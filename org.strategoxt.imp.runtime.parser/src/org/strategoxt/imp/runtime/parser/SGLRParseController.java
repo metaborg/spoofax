@@ -19,7 +19,9 @@ import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.parser.ParseError;
 import org.spoofax.jsglr.InvalidParseTableException;
 import org.spoofax.jsglr.ParseTable;
+import org.spoofax.jsglr.ParseTableManager;
 import org.spoofax.jsglr.SGLRException;
+import org.strategoxt.imp.runtime.Debug;
 
 import aterm.ATerm;
 
@@ -32,6 +34,9 @@ public abstract class SGLRParseController implements IParseController {
 	private final List<String> problemMarkerTypes = new ArrayList<String>();
 	
 	private final SGLRParser parser;
+	
+	private final static ParseTableManager parseTables
+		= new ParseTableManager(SGLRParser.getFactory());
 	
 	private IAst currentAst;
 	
@@ -65,25 +70,21 @@ public abstract class SGLRParseController implements IParseController {
 	
 	// Parsing and initialization
 
-    public SGLRParseController(ParseTable parseTable) {
+    public SGLRParseController(ParseTable parseTable, String startSymbol) {
     	this.parser = new SGLRParser(parseTable);
     }
     
-    public SGLRParseController(String parseTable) {
-		try {
-			this.parser = new SGLRParser(parseTable);
-			
-			// TODO: Proper Exception handling for bad parse table
-			
-		} catch (FileNotFoundException e) {
-			throw new RuntimeException(e);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		} catch (InvalidParseTableException e) {
-			throw new RuntimeException(e);
-		}
+    public SGLRParseController(ParseTable parseTable) {
+    	this(parseTable, null);
+    }
+    
+    public SGLRParseController(String parseTable, String startSymbol) {
+		this(loadParseTable(parseTable), startSymbol);
 	}
-
+    
+    public SGLRParseController(String parseTable) {
+    	this(parseTable, null);
+    }
 
 	public void initialize(IPath path, ISourceProject project, IMessageHandler messages) {
 		this.path = path;
@@ -97,6 +98,7 @@ public abstract class SGLRParseController implements IParseController {
 		try {
 			ATerm parsed = parser.parse(completePath);
 			currentAst = getAst(parsed);
+			
 		} catch (SGLRException x) {
 			// FIXME: Report SGLR parsing errors
 		} catch (IOException x) {
@@ -105,6 +107,25 @@ public abstract class SGLRParseController implements IParseController {
 		
 		return currentAst;
 	}
+    
+    private static ParseTable loadParseTable(String parseTable) {
+    	try {
+    		Debug.startTimer("Loading parse table ", parseTable);
+    		
+	    	return parseTables.loadFromFile(parseTable);
+			
+			// TODO: Proper Exception handling for bad parse table
+			
+		} catch (FileNotFoundException e) {
+			throw new RuntimeException(e);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		} catch (InvalidParseTableException e) {
+			throw new RuntimeException(e);
+		} finally {
+			Debug.stopTimer("Parse table loaded");
+		}
+    }
 	
 	protected abstract IAst getAst(ATerm term);
 
