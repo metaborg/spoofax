@@ -19,11 +19,9 @@ import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.parser.ParseError;
 import org.spoofax.jsglr.InvalidParseTableException;
 import org.spoofax.jsglr.ParseTable;
-import org.spoofax.jsglr.ParseTableManager;
 import org.spoofax.jsglr.SGLRException;
 
 import aterm.ATerm;
-import aterm.ATermFactory;
 
 /**
  * Base class of an IMP parse controller for an SGLR parser.
@@ -71,9 +69,19 @@ public abstract class SGLRParseController implements IParseController {
     	this.parser = new SGLRParser(parseTable);
     }
     
-    public SGLRParseController(String parseTable)
-    		throws FileNotFoundException, IOException, InvalidParseTableException {
-		this.parser = new SGLRParser(parseTable);
+    public SGLRParseController(String parseTable) {
+		try {
+			this.parser = new SGLRParser(parseTable);
+			
+			// TODO: Proper Exception handling for bad parse table
+			
+		} catch (FileNotFoundException e) {
+			throw new RuntimeException(e);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		} catch (InvalidParseTableException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 
