@@ -93,7 +93,9 @@ public abstract class SGLRParseController implements IParseController {
 	}
 
 	public IAst parse(String input, boolean scanOnly, IProgressMonitor monitor) {
-		IPath completePath = project == null ? path : project.resolvePath(path);
+		IPath completePath = project == null
+				? path
+				: project.getRawProject().getLocation().append(path);
 	
 		try {
 			ATerm parsed = parser.parse(completePath);

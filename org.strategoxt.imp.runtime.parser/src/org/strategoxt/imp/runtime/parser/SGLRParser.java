@@ -1,12 +1,12 @@
 package org.strategoxt.imp.runtime.parser;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
 import lpg.runtime.Monitor;
 import lpg.runtime.PrsStream;
 
-import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.parser.IParser;
 import org.spoofax.interpreter.Interpreter;
@@ -63,7 +63,8 @@ public class SGLRParser implements IParser {
 	}
 	
 	public ATerm parse(IPath input) throws SGLRException, IOException {
-		InputStream stream = FileLocator.openStream(Activator.getBundle(), input, false);
+		InputStream stream =
+			new FileInputStream(input.toOSString());
 		ATerm asfix;
 		
 		try {

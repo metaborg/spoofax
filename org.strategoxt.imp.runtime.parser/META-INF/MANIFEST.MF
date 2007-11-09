@@ -13,5 +13,6 @@ Require-Bundle: org.eclipse.imp.runtime,
  org.spoofax.interpreter.core,
  org.spoofax.interpreter.adapter.aterm,
  lpg.runtime,
- org.eclipse.core.runtime
+ org.eclipse.core.runtime,
+ org.eclipse.core.resources
 Export-Package: org.strategoxt.imp.runtime.parser
