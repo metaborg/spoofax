@@ -30,7 +30,7 @@ import aterm.ATerm;
  *
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
-public abstract class SGLRParseController implements IParseController {
+public abstract class SGLRParseController implements IParseController {	
 	private final List<String> problemMarkerTypes = new ArrayList<String>();
 	
 	private final SGLRParser parser;

@@ -26,7 +26,7 @@ import aterm.ATermFactory;
  *
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */ 
-public class SGLRParser implements IParser {
+public class SGLRParser implements IParser {	
 	private static final int EOFT_SYMBOL = -1;
 	
 	private final static WrappedATermFactory wrappedFactory

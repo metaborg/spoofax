@@ -10,7 +10,7 @@ import java.util.Stack;
 public class Debug {	
 	public static final boolean ENABLED = Debug.class.desiredAssertionStatus();
 	
-	public static Stack<Long> timers;
+	public static final Stack<Long> timers = new Stack<Long>();
 	
 	public static void log(Object... messageParts) {
 		if (ENABLED) {
