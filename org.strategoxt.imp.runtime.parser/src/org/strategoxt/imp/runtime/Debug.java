@@ -42,7 +42,7 @@ public class Debug {
 		if (ENABLED) {
 			long start = timers.pop();
 			
-			log(message, ": ", System.currentTimeMillis() - start, "ms");
+			log(message, "-", System.currentTimeMillis() - start, "ms");
 		}		
 	}
 }

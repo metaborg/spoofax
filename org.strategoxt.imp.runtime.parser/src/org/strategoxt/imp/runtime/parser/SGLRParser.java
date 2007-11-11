@@ -3,6 +3,7 @@ package org.strategoxt.imp.runtime.parser;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.rmi.UnexpectedException;
 
 import lpg.runtime.Monitor;
 import lpg.runtime.PrsStream;
@@ -40,6 +41,8 @@ public class SGLRParser implements IParser {
 	
 	private final SGLR parser;
 	
+	private final String startSymbol;
+	
 	private final PrsStream parseStream = new PrsStream();
 	
 	// Simple accessors
@@ -58,17 +61,31 @@ public class SGLRParser implements IParser {
 	
 	// Initialization and parsing
 	
-	public SGLRParser(ParseTable parseTable) {	
+	static {
+		try {
+			InputStream imploder = SGLRParser.class.getResourceAsStream("/str/call-implode-asfix.str");
+			interpreter.load(imploder);
+		} catch (IOException x) {
+			throw new RuntimeException(x); // shouldn't happen
+		} catch (InterpreterException x) {
+			throw new RuntimeException(x); // shouldn't happen in release builds
+		}
+	}
+	
+	public SGLRParser(ParseTable parseTable, String startSymbol) {	
 		parser = new SGLR(factory, parseTable);		
+		this.startSymbol = startSymbol;
 	}
 	
 	public ATerm parse(IPath input) throws SGLRException, IOException {
-		InputStream stream =
-			new FileInputStream(input.toOSString());
+		InputStream stream = new FileInputStream(input.toOSString());
 		ATerm asfix;
 		
 		try {
 			Debug.startTimer();
+			
+			// TODO: Current JSGLR doesn't provide a way to pass the topsort
+			
 			asfix = parser.parse(stream);
 		} finally {
 			Debug.stopTimer("File parsed");
@@ -78,8 +95,8 @@ public class SGLRParser implements IParser {
 		try {
 			Debug.startTimer("implode-asfix");
 			
-			interpreter.load(wrappedFactory.wrapTerm(asfix));
-			interpreter.invoke("implode-asfix");
+			interpreter.setCurrent(wrappedFactory.wrapTerm(asfix));
+			interpreter.invoke("call-implode-asfix");
 			WrappedATerm wrappedTerm = (WrappedATerm) interpreter.current();
 			
 			return wrappedTerm.getATerm();			

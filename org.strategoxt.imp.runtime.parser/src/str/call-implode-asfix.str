@@ -1,0 +1,10 @@
+module call-implode-asfix
+
+imports
+  stratego/asfix/implode
+
+strategies
+
+  main = call-implode-asfix
+  
+  call-implode-asfix = implode-asfix

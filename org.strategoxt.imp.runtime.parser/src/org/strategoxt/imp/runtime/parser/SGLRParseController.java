@@ -1,7 +1,7 @@
 package org.strategoxt.imp.runtime.parser;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -69,20 +69,29 @@ public abstract class SGLRParseController implements IParseController {
 	}
 	
 	// Parsing and initialization
-
+    
     public SGLRParseController(ParseTable parseTable, String startSymbol) {
-    	this.parser = new SGLRParser(parseTable);
+    	parser = new SGLRParser(parseTable, startSymbol);
     }
     
     public SGLRParseController(ParseTable parseTable) {
     	this(parseTable, null);
     }
     
-    public SGLRParseController(String parseTable, String startSymbol) {
-		this(loadParseTable(parseTable), startSymbol);
+    /**
+     * Constructs a new iSGLRParseController instance.
+     * Reads the parse table from a stream and throws runtime exceptions
+     * if anything goes wrong. 
+     */
+    protected SGLRParseController(InputStream parseTable, String startSymbol)
+    		throws IOException, InvalidParseTableException {
+    	
+    	this(loadParseTable(parseTable), startSymbol);
 	}
     
-    public SGLRParseController(String parseTable) {
+    protected SGLRParseController(InputStream parseTable)
+			throws IOException, InvalidParseTableException {
+    	
     	this(parseTable, null);
     }
 
@@ -110,20 +119,11 @@ public abstract class SGLRParseController implements IParseController {
 		return currentAst;
 	}
     
-    private static ParseTable loadParseTable(String parseTable) {
+    private static ParseTable loadParseTable(InputStream parseTable)
+    		throws IOException, InvalidParseTableException {
     	try {
-    		Debug.startTimer("Loading parse table ", parseTable);
-    		
-	    	return parseTables.loadFromFile(parseTable);
-			
-			// TODO: Proper Exception handling for bad parse table
-			
-		} catch (FileNotFoundException e) {
-			throw new RuntimeException(e);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		} catch (InvalidParseTableException e) {
-			throw new RuntimeException(e);
+    		Debug.startTimer();
+	    	return parseTables.loadFromStream(parseTable);
 		} finally {
 			Debug.stopTimer("Parse table loaded");
 		}
