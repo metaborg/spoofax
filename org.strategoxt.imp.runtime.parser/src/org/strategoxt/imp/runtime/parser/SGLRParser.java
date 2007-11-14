@@ -9,12 +9,7 @@ import lpg.runtime.PrsStream;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.parser.IParser;
-import org.spoofax.compiler.Compiler;
-import org.spoofax.interpreter.Interpreter;
-import org.spoofax.interpreter.InterpreterException;
-import org.spoofax.interpreter.adapter.aterm.WrappedATerm;
 import org.spoofax.interpreter.adapter.aterm.WrappedATermFactory;
-import org.spoofax.interpreter.library.jsglr.JSGLRLibrary;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.SGLR;
 import org.spoofax.jsglr.SGLRException;
@@ -36,8 +31,8 @@ public class SGLRParser implements IParser {
 	
 	private final static ATermFactory factory
 		= wrappedFactory.getFactory();
-
-	private final static Interpreter interpreter;
+	
+	private final static AsfixConverter converter = new AsfixConverter(wrappedFactory);
 	
 	private final SGLR parser;
 	
@@ -59,26 +54,6 @@ public class SGLRParser implements IParser {
 		return factory;
 	}
 	
-	// Initialization and parsing
-	
-	static {
-		try {
-			interpreter = new Interpreter(wrappedFactory);
-			
-			interpreter.addOperatorRegistry("JSGLR", new JSGLRLibrary(wrappedFactory));
-			interpreter.load(Compiler.sharePath()  + "/libstratego-lib.ctree");
-			interpreter.load(Compiler.sharePath()  + "/libstratego-sglr.ctree");	
-			
-			InputStream imploder = SGLRParser.class.getResourceAsStream("/str/call-implode-asfix.ctree");
-			
-			interpreter.load(imploder);
-		} catch (IOException x) {
-			throw new RuntimeException(x); // shouldn't happen
-		} catch (InterpreterException x) {
-			throw new RuntimeException(x); // shouldn't happen in release builds
-		}
-	}
-	
 	public SGLRParser(ParseTable parseTable, String startSymbol) {	
 		parser = new SGLR(factory, parseTable);		
 		this.startSymbol = startSymbol;
@@ -91,27 +66,13 @@ public class SGLRParser implements IParser {
 		try {
 			Debug.startTimer();
 			
-			// TODO: Current JSGLR doesn't provide a way to pass the topsort
-			
-			asfix = parser.parse(stream);
+			asfix = parser.parse(stream, startSymbol);
 		} finally {
 			Debug.stopTimer("File parsed");
 			stream.close();
 		}
 		
-		try {
-			Debug.startTimer("implode-asfix");
-			
-			interpreter.setCurrent(wrappedFactory.wrapTerm(asfix));
-			interpreter.invoke("call-implode-asfix_0_0");
-			WrappedATerm wrappedTerm = (WrappedATerm) interpreter.current();
-			
-			return wrappedTerm.getATerm();			
-		} catch (InterpreterException x) {
-			throw new RuntimeException("implode-asfix failed", x);
-		} finally {
-			Debug.stopTimer("implode-asfix completed");
-		}
+		return converter.implode(asfix);
 	}
 	
 	// LPG compatibility
