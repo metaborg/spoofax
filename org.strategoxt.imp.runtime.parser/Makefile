@@ -1,11 +1,14 @@
 STRS   = $(wildcard src/str/*.str)
-RTREES = $(STRS:.str=.rtree)
+CTREES = $(STRS:.str=.ctree)
 
-all : $(RTREES)
+all : $(CTREES)
 	@echo 'Built included files (currently requires further building in Eclipse).'
 
 clean :
-	rm -f src/str/*.rtree
+	rm -f src/str/*.ctree
 
 %.rtree : %.str
 	parse-stratego -i $< -o $@
+
+%.ctree : %.str
+	strc -F -i $< -o $@

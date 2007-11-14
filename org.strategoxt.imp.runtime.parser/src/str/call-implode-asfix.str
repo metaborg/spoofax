@@ -1,12 +1,12 @@
+/**
+ * Delegate module for implode-asfix. Mostly for experimentation purposes.
+ */
 module call-implode-asfix
-
-//imports
-//  stratego/asfix/implode
 
 strategies
 
   main =
-    fail
-    // call-implode-asfix
+    call-implode-asfix
   
-//  call-implode-asfix = implode-asfix
+  call-implode-asfix =
+    implode-asfix

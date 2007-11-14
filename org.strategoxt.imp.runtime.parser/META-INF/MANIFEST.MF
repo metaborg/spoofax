@@ -12,6 +12,8 @@ Require-Bundle: org.eclipse.imp.runtime,
  org.spoofax.interpreter,
  org.spoofax.interpreter.core,
  org.spoofax.interpreter.adapter.aterm,
+ org.spoofax.interpreter.library.jsglr,
+ org.spoofax.compiler,
  lpg.runtime,
  org.eclipse.core.runtime,
  org.eclipse.core.resources

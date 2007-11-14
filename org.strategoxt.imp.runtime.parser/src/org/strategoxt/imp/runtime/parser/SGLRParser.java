@@ -9,10 +9,12 @@ import lpg.runtime.PrsStream;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.parser.IParser;
+import org.spoofax.compiler.Compiler;
 import org.spoofax.interpreter.Interpreter;
 import org.spoofax.interpreter.InterpreterException;
 import org.spoofax.interpreter.adapter.aterm.WrappedATerm;
 import org.spoofax.interpreter.adapter.aterm.WrappedATermFactory;
+import org.spoofax.interpreter.library.jsglr.JSGLRLibrary;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.SGLR;
 import org.spoofax.jsglr.SGLRException;
@@ -35,8 +37,7 @@ public class SGLRParser implements IParser {
 	private final static ATermFactory factory
 		= wrappedFactory.getFactory();
 
-	private final static Interpreter interpreter
-		= new org.spoofax.interpreter.ConcreteInterpreter();
+	private final static Interpreter interpreter;
 	
 	private final SGLR parser;
 	
@@ -62,8 +63,14 @@ public class SGLRParser implements IParser {
 	
 	static {
 		try {
-			// TODO: Use concrete interpreter or compiler instead
-			InputStream imploder = SGLRParser.class.getResourceAsStream("/str/call-implode-asfix.rtree");
+			interpreter = new Interpreter(wrappedFactory);
+			
+			interpreter.addOperatorRegistry("JSGLR", new JSGLRLibrary(wrappedFactory));
+			interpreter.load(Compiler.sharePath()  + "/libstratego-lib.ctree");
+			interpreter.load(Compiler.sharePath()  + "/libstratego-sglr.ctree");	
+			
+			InputStream imploder = SGLRParser.class.getResourceAsStream("/str/call-implode-asfix.ctree");
+			
 			interpreter.load(imploder);
 		} catch (IOException x) {
 			throw new RuntimeException(x); // shouldn't happen
@@ -96,7 +103,7 @@ public class SGLRParser implements IParser {
 			Debug.startTimer("implode-asfix");
 			
 			interpreter.setCurrent(wrappedFactory.wrapTerm(asfix));
-			interpreter.invoke("implode-asfix_0_0");
+			interpreter.invoke("call-implode-asfix_0_0");
 			WrappedATerm wrappedTerm = (WrappedATerm) interpreter.current();
 			
 			return wrappedTerm.getATerm();			
