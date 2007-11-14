@@ -19,9 +19,8 @@ import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.parser.ParseError;
 import org.spoofax.jsglr.InvalidParseTableException;
 import org.spoofax.jsglr.ParseTable;
-import org.spoofax.jsglr.ParseTableManager;
 import org.spoofax.jsglr.SGLRException;
-import org.strategoxt.imp.runtime.Debug;
+import org.strategoxt.imp.runtime.Environment;
 
 import aterm.ATerm;
 
@@ -34,9 +33,6 @@ public abstract class SGLRParseController implements IParseController {
 	private final List<String> problemMarkerTypes = new ArrayList<String>();
 	
 	private final SGLRParser parser;
-	
-	private final static ParseTableManager parseTables
-		= new ParseTableManager(SGLRParser.getFactory());
 	
 	private IAst currentAst;
 	
@@ -86,7 +82,7 @@ public abstract class SGLRParseController implements IParseController {
     protected SGLRParseController(InputStream parseTable, String startSymbol)
     		throws IOException, InvalidParseTableException {
     	
-    	this(loadParseTable(parseTable), startSymbol);
+    	this(Environment.loadParseTable(parseTable), startSymbol);
 	}
     
     protected SGLRParseController(InputStream parseTable)
@@ -118,17 +114,8 @@ public abstract class SGLRParseController implements IParseController {
 		
 		return currentAst;
 	}
-    
-    private static ParseTable loadParseTable(InputStream parseTable)
-    		throws IOException, InvalidParseTableException {
-    	try {
-    		Debug.startTimer();
-	    	return parseTables.loadFromStream(parseTable);
-		} finally {
-			Debug.stopTimer("Parse table loaded");
-		}
-    }
 	
+	/** Method that converts a given term to a IAst tree. */
 	protected abstract IAst getAst(ATerm term);
 
 	// Problem markers

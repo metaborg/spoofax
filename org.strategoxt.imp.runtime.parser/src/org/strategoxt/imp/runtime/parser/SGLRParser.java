@@ -9,14 +9,13 @@ import lpg.runtime.PrsStream;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.parser.IParser;
-import org.spoofax.interpreter.adapter.aterm.WrappedATermFactory;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.SGLR;
 import org.spoofax.jsglr.SGLRException;
 import org.strategoxt.imp.runtime.Debug;
+import org.strategoxt.imp.runtime.Environment;
 
 import aterm.ATerm;
-import aterm.ATermFactory;
 
 /**
  * IParser implementation for SGLR.
@@ -25,14 +24,6 @@ import aterm.ATermFactory;
  */ 
 public class SGLRParser implements IParser {	
 	private static final int EOFT_SYMBOL = -1;
-	
-	private final static WrappedATermFactory wrappedFactory
-		= new WrappedATermFactory();
-	
-	private final static ATermFactory factory
-		= wrappedFactory.getFactory();
-	
-	private final static AsfixConverter converter = new AsfixConverter(wrappedFactory);
 	
 	private final SGLR parser;
 	
@@ -50,15 +41,17 @@ public class SGLRParser implements IParser {
 		return parseStream;
 	}
 	
-	public static ATermFactory getFactory() {
-		return factory;
-	}
-	
 	public SGLRParser(ParseTable parseTable, String startSymbol) {	
-		parser = new SGLR(factory, parseTable);		
+		parser = Environment.createSGLR(parseTable);
 		this.startSymbol = startSymbol;
 	}
 	
+	/**
+	 * Parse an input.
+	 * 
+	 * @return  A parse tree (asfix representation)
+	 * @see     AsfixConverter
+	 */
 	public ATerm parse(IPath input) throws SGLRException, IOException {
 		InputStream stream = new FileInputStream(input.toOSString());
 		ATerm asfix;
@@ -72,7 +65,7 @@ public class SGLRParser implements IParser {
 			stream.close();
 		}
 		
-		return converter.implode(asfix);
+		return asfix;
 	}
 	
 	// LPG compatibility

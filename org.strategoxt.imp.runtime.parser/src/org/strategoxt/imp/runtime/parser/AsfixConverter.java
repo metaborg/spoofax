@@ -64,5 +64,4 @@ public class AsfixConverter {
 			Debug.stopTimer("implode-asfix completed");
 		}
 	}
-
 }
