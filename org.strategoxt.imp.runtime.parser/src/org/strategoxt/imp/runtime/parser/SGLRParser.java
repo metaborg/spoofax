@@ -3,7 +3,6 @@ package org.strategoxt.imp.runtime.parser;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.rmi.UnexpectedException;
 
 import lpg.runtime.Monitor;
 import lpg.runtime.PrsStream;
@@ -37,7 +36,7 @@ public class SGLRParser implements IParser {
 		= wrappedFactory.getFactory();
 
 	private final static Interpreter interpreter
-		= new Interpreter(wrappedFactory);
+		= new org.spoofax.interpreter.ConcreteInterpreter();
 	
 	private final SGLR parser;
 	
@@ -63,7 +62,8 @@ public class SGLRParser implements IParser {
 	
 	static {
 		try {
-			InputStream imploder = SGLRParser.class.getResourceAsStream("/str/call-implode-asfix.str");
+			// TODO: Use concrete interpreter or compiler instead
+			InputStream imploder = SGLRParser.class.getResourceAsStream("/str/call-implode-asfix.rtree");
 			interpreter.load(imploder);
 		} catch (IOException x) {
 			throw new RuntimeException(x); // shouldn't happen
@@ -96,7 +96,7 @@ public class SGLRParser implements IParser {
 			Debug.startTimer("implode-asfix");
 			
 			interpreter.setCurrent(wrappedFactory.wrapTerm(asfix));
-			interpreter.invoke("call-implode-asfix");
+			interpreter.invoke("implode-asfix_0_0");
 			WrappedATerm wrappedTerm = (WrappedATerm) interpreter.current();
 			
 			return wrappedTerm.getATerm();			

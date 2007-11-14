@@ -1,10 +1,12 @@
 module call-implode-asfix
 
-imports
-  stratego/asfix/implode
+//imports
+//  stratego/asfix/implode
 
 strategies
 
-  main = call-implode-asfix
+  main =
+    fail
+    // call-implode-asfix
   
-  call-implode-asfix = implode-asfix
+//  call-implode-asfix = implode-asfix
