@@ -1,9 +1,0 @@
-/**
- * Delegate module for implode-asfix.
- */
-module call-implode-asfix
-
-strategies
-
-  main =
-    implode-asfix
