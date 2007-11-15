@@ -3,40 +3,32 @@ package org.strategoxt.imp.runtime.parser.ast;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import aterm.ATerm;
-
 import lpg.runtime.IAst;
 import lpg.runtime.IToken;
 
 /**
- * Wrapper class for an ATerm to implement IAst.
+ * A node of an SGLR abstract syntax tree.
  *
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
-public class ATermAstNode implements IAst, Iterable<ATermAstNode> {
-	private final ATerm aterm;
+public class SGLRAstNode implements IAst, Iterable<SGLRAstNode> {
+	/** The constructor name for lists. */
+	public static final String LIST_CONSTRUCTOR = "[]";
 	
-	private final ArrayList<ATermAstNode> children;
+	private final String constructor;
+	
+	private final ArrayList<SGLRAstNode> children;
 	
 	private final IToken leftToken, rightToken;
 	
-	private ATermAstNode parent;
+	private SGLRAstNode parent;
 		
-	// Accessors
+	// Accessors	
+	public String getConstructor() {
+		return constructor;
+	}
 	
-	public ATerm getATerm() {
-		return aterm;
-	}
-
-	public ATermAstNode getParent() {
-		return parent;
-	}
-
-	public void setParent(ATermAstNode value) {
-		parent = value;
-	}
-
-	public ArrayList<ATermAstNode> getChildren() {
+	public ArrayList<SGLRAstNode> getChildren() {
 		return children;
 	}
 
@@ -49,20 +41,33 @@ public class ATermAstNode implements IAst, Iterable<ATermAstNode> {
 	public IToken getRightIToken() {
 		return rightToken;
 	}
+
+	public SGLRAstNode getParent() {
+		return parent;
+	}
+
+	void setParent(SGLRAstNode value) {
+		parent = value;
+	}
 	
 	// Initialization
 	
-	protected ATermAstNode(ATerm aterm, ArrayList<ATermAstNode> children,
-			IToken leftToken, IToken rightToken) {
-		this.aterm = aterm;
-		this.children = children;
+	protected SGLRAstNode(String constructor, IToken leftToken, IToken rightToken,
+			ArrayList<SGLRAstNode> children) {
+		this.constructor = constructor;
 		this.leftToken = leftToken;
 		this.rightToken = rightToken;
+		this.children = children;
+	}
+	
+	protected SGLRAstNode(String constructor, IToken leftToken, IToken rightToken) {
+		// Construct an empty list (unfortunately needs to be a concrete ArrayList type)
+		this(constructor, leftToken, rightToken, new ArrayList<SGLRAstNode>(0));
 	}
 	
 	// General access
 	
-	public Iterator<ATermAstNode> iterator() {
+	public Iterator<SGLRAstNode> iterator() {
 		return getChildren().iterator();
 	}
 
@@ -71,10 +76,11 @@ public class ATermAstNode implements IAst, Iterable<ATermAstNode> {
         return getLeftIToken().getPrsStream().toString(getLeftIToken(), getRightIToken());
     }
 
+    /* UNDONE: Removed aterm<->ast node coupling
     @Override
 	public boolean equals(Object o) {
-    	if (o instanceof ATermAstNode)
-    		return getATerm().equals(((ATermAstNode) o).getATerm());
+    	if (o instanceof SGLRAstNode)
+    		return getATerm().equals(((SGLRAstNode) o).getATerm());
     	else
     		return false;
     }
@@ -83,6 +89,7 @@ public class ATermAstNode implements IAst, Iterable<ATermAstNode> {
     public int hashCode() {
     	return getATerm().hashCode();
     }
+    */
 	
 	// LPG legacy/compatibility
 	
@@ -92,7 +99,7 @@ public class ATermAstNode implements IAst, Iterable<ATermAstNode> {
 	 * @deprecated  Unused; ATermAstNode does not include null children.
 	 */
 	@Deprecated
-	public ArrayList<ATermAstNode> getAllChildren() {
+	public ArrayList<SGLRAstNode> getAllChildren() {
 		return getChildren();
 	}
 
@@ -104,7 +111,7 @@ public class ATermAstNode implements IAst, Iterable<ATermAstNode> {
     	return getRightIToken().getFollowingAdjuncts();
     }
 
-	public ATermAstNode getNextAst() {
+	public SGLRAstNode getNextAst() {
 		return null;
 	}
 

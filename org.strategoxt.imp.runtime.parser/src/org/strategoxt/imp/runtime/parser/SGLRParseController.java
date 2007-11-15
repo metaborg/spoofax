@@ -20,11 +20,13 @@ import org.spoofax.jsglr.InvalidParseTableException;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.SGLRException;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.parser.ast.ATermAstNode;
-import org.strategoxt.imp.runtime.parser.ast.ATermAstNodeFactory;
+import org.strategoxt.imp.runtime.parser.ast.SGLRAstNode;
+import org.strategoxt.imp.runtime.parser.ast.SGLRAstNodeFactory;
+import org.strategoxt.imp.runtime.parser.ast.SGLRParsersym;
 
 /**
  * Base class of an IMP parse controller for an SGLR parser.
+ * 
  *
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
@@ -33,7 +35,9 @@ public abstract class SGLRParseController implements IParseController {
 	
 	private final SGLRParser parser;
 	
-	private ATermAstNode currentAst;
+	private final SGLRLexer lexer;
+	
+	private SGLRAstNode currentAst;
 	
 	private ISourceProject project;
 	
@@ -44,7 +48,7 @@ public abstract class SGLRParseController implements IParseController {
 
 	// Simple accessors
 	
-	public ATermAstNode getCurrentAst() { 
+	public SGLRAstNode getCurrentAst() { 
 		return currentAst;
 	}
 	
@@ -66,11 +70,12 @@ public abstract class SGLRParseController implements IParseController {
 	
 	// Parsing and initialization
     
-    public SGLRParseController(ATermAstNodeFactory factory, ParseTable parseTable, String startSymbol) {
+    public SGLRParseController(SGLRAstNodeFactory factory, ParseTable parseTable, String startSymbol) {
     	parser = new SGLRParser(factory, parseTable, startSymbol);
+    	lexer = new SGLRLexer(parser.getTokenizer().getLexStream());
     }
     
-    public SGLRParseController(ATermAstNodeFactory factory, ParseTable parseTable) {
+    public SGLRParseController(SGLRAstNodeFactory factory, ParseTable parseTable) {
     	this(factory, parseTable, null);
     }
     
@@ -79,13 +84,13 @@ public abstract class SGLRParseController implements IParseController {
      * Reads the parse table from a stream and throws runtime exceptions
      * if anything goes wrong. 
      */
-    protected SGLRParseController(ATermAstNodeFactory factory, InputStream parseTable, String startSymbol)
+    protected SGLRParseController(SGLRAstNodeFactory factory, InputStream parseTable, String startSymbol)
     		throws IOException, InvalidParseTableException {
     	
     	this(factory, Environment.loadParseTable(parseTable), startSymbol);
 	}
     
-    protected SGLRParseController(ATermAstNodeFactory factory, InputStream parseTable)
+    protected SGLRParseController(SGLRAstNodeFactory factory, InputStream parseTable)
 			throws IOException, InvalidParseTableException {
     	
     	this(factory, parseTable, null);
@@ -97,7 +102,7 @@ public abstract class SGLRParseController implements IParseController {
 		this.messages = messages;
 	}
 
-	public ATermAstNode parse(String input, boolean scanOnly, IProgressMonitor monitor) {
+	public SGLRAstNode parse(String input, boolean scanOnly, IProgressMonitor monitor) {
 		// Make some assumptions to get the input file path
 		IPath completePath = project == null
 				? path
@@ -113,6 +118,31 @@ public abstract class SGLRParseController implements IParseController {
 		}
 		
 		return currentAst;
+	}
+	
+	// Generic parse table information (should be overridden in subclasses)
+	
+	public String getTokenKindName(int kind) {
+		return getDefaultTokenKindName(kind);
+	}
+	
+	static String getDefaultTokenKindName(int kind) {
+		switch (kind) {
+			case SGLRParsersym.TK_IDENTIFIER:
+				return "TK_IDENTIFIER";
+			case SGLRParsersym.TK_KEYWORD:
+				return "TK_KEYWORD";
+			case SGLRParsersym.TK_LAYOUT:
+				return "TK_LAYOUT";
+			case SGLRParsersym.TK_EOF:
+				return "TK_EOF";
+			default:
+				return "TK_UNKNOWN";
+		}
+	}
+	
+	public boolean isKeyword(int kind) {
+		return kind == SGLRParsersym.TK_KEYWORD;
 	}
 
 	// Problem markers
@@ -140,20 +170,15 @@ public abstract class SGLRParseController implements IParseController {
 	}
 	
 	// LPG Compatibility
-
+	
 	@Deprecated
 	public char[][] getKeywords() {
 		return new char[0][0];
 	}
 
 	@Deprecated
-	public boolean isKeyword(int kind) {
-		return false;
-	}
-
-	@Deprecated
 	public SGLRLexer getLexer() {
-		return new SGLRLexer();
+		return lexer;
 	}
 
 	@Deprecated

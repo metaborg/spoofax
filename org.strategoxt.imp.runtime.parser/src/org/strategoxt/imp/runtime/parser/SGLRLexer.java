@@ -7,31 +7,30 @@ import lpg.runtime.LexStream;
 import lpg.runtime.Monitor;
 
 /**
- * Fake SGLR ILexer implementation for compatibility with IMP.
+ * SGLR ILexer implementation for compatibility with IMP.
  * 
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  * */ 
 public class SGLRLexer implements ILexer {
-	public int[] getKeywordKinds() {
-		return new int[0];
+	private final LexStream lexStream;
+
+	public LexStream getLexStream() {
+		return lexStream;
+	}
+	
+	public SGLRLexer(LexStream lexStream) {
+		this.lexStream = lexStream;
 	}
 	
 	public void initialize(char[] contents, String filename) {
 		// We don't do that.
 	}
-
-	public void lexer(Monitor monitor, IPrsStream prsStream) {
-		// We don't do that either.
+	
+	public int[] getKeywordKinds() {
+		return new int[0];
 	}
 
-	@Deprecated
-	/**
-	 * Return an empty lex stream.
-	 * 
-	 * @deprecated  SGLR does not employ a lexer or lex stream.
-	 */
-	public LexStream getLexStream() {
-		// Used by OutlinerBase.significantChange()		
-		return new LexStream();
+	public void lexer(Monitor monitor, IPrsStream prsStream) {
+		// We don't do that.
 	}
 }

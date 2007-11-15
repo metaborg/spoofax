@@ -14,10 +14,9 @@ public class Debug {
 	
 	public static void log(Object... messageParts) {
 		if (ENABLED) {
-			StringBuilder message = new StringBuilder("[org.strategoxt.imp]");
+			StringBuilder message = new StringBuilder("[org.strategoxt.imp] ");
 			
 			for (Object s : messageParts) {
-				message.append(' ');
 				message.append(s);
 			}
 			
@@ -42,7 +41,7 @@ public class Debug {
 		if (ENABLED) {
 			long start = timers.pop();
 			
-			log(message, "-", System.currentTimeMillis() - start, "ms");
+			log(message, "-", System.currentTimeMillis() - start, " ms");
 		}		
 	}
 }

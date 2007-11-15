@@ -9,7 +9,6 @@ import org.spoofax.jsglr.InvalidParseTableException;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.ParseTableManager;
 import org.spoofax.jsglr.SGLR;
-import org.strategoxt.imp.runtime.parser.ast.AsfixConverter;
 
 import aterm.ATermFactory;
 
@@ -25,15 +24,8 @@ public final class Environment {
 	
 	private final static ATermFactory factory = wrappedFactory.getFactory();
 	
-	private final static AsfixConverter converter
-		= new AsfixConverter(wrappedFactory);
-	
 	private final static ParseTableManager parseTables
 		= new ParseTableManager(factory);
-
-	public static AsfixConverter getConverter() {
-		return converter;
-	}
 	
 	public static SGLR createSGLR(ParseTable parseTable) {
 		return new SGLR(factory, parseTable);

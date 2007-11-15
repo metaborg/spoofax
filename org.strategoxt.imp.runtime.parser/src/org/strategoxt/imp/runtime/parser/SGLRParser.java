@@ -14,9 +14,10 @@ import org.spoofax.jsglr.SGLR;
 import org.spoofax.jsglr.SGLRException;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.parser.ast.ATermAstNode;
-import org.strategoxt.imp.runtime.parser.ast.ATermAstNodeFactory;
+import org.strategoxt.imp.runtime.parser.ast.SGLRAstNode;
+import org.strategoxt.imp.runtime.parser.ast.SGLRAstNodeFactory;
 import org.strategoxt.imp.runtime.parser.ast.AsfixConverter;
+import org.strategoxt.imp.runtime.parser.ast.SGLRParsersym;
 
 import aterm.ATerm;
 
@@ -25,32 +26,37 @@ import aterm.ATerm;
  *
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */ 
-public class SGLRParser implements IParser {	
-	private static final int EOFT_SYMBOL = -1;
-	
+public class SGLRParser implements IParser {
 	private final SGLR parser;
 	
 	private final String startSymbol;
 	
-	private PrsStream parseStream;
+	private final AsfixConverter converter;
+	
+	private final SGLRTokenizer tokenizer;
 	
 	// Simple accessors
+	
+	public SGLRTokenizer getTokenizer() {
+		return tokenizer; 
+	}
 
 	public int getEOFTokenKind() {
-		return EOFT_SYMBOL;
+		return SGLRParsersym.TK_EOF;
 	}
 
 	public PrsStream getParseStream() {
-		if (parseStream == null) throw new IllegalStateException();
-		
-		return parseStream;
+		return getTokenizer().getParseStream();
 	}
 	
 	// Initialization and parsing
 	
-	public SGLRParser(ATermAstNodeFactory factory, ParseTable parseTable, String startSymbol) {	
-		parser = Environment.createSGLR(parseTable);
+	public SGLRParser(SGLRAstNodeFactory factory, ParseTable parseTable, String startSymbol) {	
 		this.startSymbol = startSymbol;
+
+		tokenizer = new SGLRTokenizer();		
+		converter = new AsfixConverter(factory, tokenizer);
+		parser = Environment.createSGLR(parseTable);
 	}
 	
 	/**
@@ -59,21 +65,23 @@ public class SGLRParser implements IParser {
 	 * @return  A parse tree.
 	 * @see     AsfixConverter
 	 */
-	public ATermAstNode parse(IPath input) throws SGLRException, IOException {
-		InputStream stream = new FileInputStream(input.toOSString());
+	public SGLRAstNode parse(IPath input) throws SGLRException, IOException {
+		String filename = input.toOSString();
+		InputStream stream = new FileInputStream(filename);
 		ATerm asfix;
 		
 		try {
 			Debug.startTimer();
 			
+			tokenizer.init(filename);			
 			asfix = parser.parse(stream, startSymbol);
 		} finally {
-			Debug.stopTimer("File parsed");
 			stream.close();
+			
+			Debug.stopTimer("File parsed");
 		}
 		
-		parseStream = new PrsStream();
-		ATermAstNode result = Environment.getConverter().implode(asfix, parseStream);
+		SGLRAstNode result = converter.implode(asfix);
 		
 		return result;
 	}
