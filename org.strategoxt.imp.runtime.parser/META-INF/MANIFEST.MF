@@ -17,4 +17,5 @@ Require-Bundle: org.eclipse.imp.runtime,
  lpg.runtime,
  org.eclipse.core.runtime,
  org.eclipse.core.resources
-Export-Package: org.strategoxt.imp.runtime.parser
+Export-Package: org.strategoxt.imp.runtime.parser,
+ org.strategoxt.imp.runtime.parser.ast

@@ -1,4 +1,4 @@
-package org.strategoxt.imp.runtime.parser;
+package org.strategoxt.imp.runtime.parser.ast;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -16,11 +16,11 @@ import lpg.runtime.IToken;
 public class ATermAstNode implements IAst, Iterable<ATermAstNode> {
 	private final ATerm aterm;
 	
-	private final ATermAstNode parent;
-	
 	private final ArrayList<ATermAstNode> children;
 	
 	private final IToken leftToken, rightToken;
+	
+	private ATermAstNode parent;
 		
 	// Accessors
 	
@@ -32,44 +32,33 @@ public class ATermAstNode implements IAst, Iterable<ATermAstNode> {
 		return parent;
 	}
 
+	public void setParent(ATermAstNode value) {
+		parent = value;
+	}
+
 	public ArrayList<ATermAstNode> getChildren() {
 		return children;
 	}
 
+	/** Get the leftmost token associated with this node. */
 	public IToken getLeftIToken() {
 		return leftToken;
 	}
 
+	/** Get the leftmost token associated with this node. */
 	public IToken getRightIToken() {
 		return rightToken;
 	}
 	
 	// Initialization
 	
-	protected ATermAstNode(ATerm aterm, ATermAstNode parent, ArrayList<ATermAstNode> children, IToken leftToken, IToken rightToken) {
+	protected ATermAstNode(ATerm aterm, ArrayList<ATermAstNode> children,
+			IToken leftToken, IToken rightToken) {
 		this.aterm = aterm;
-		this.parent = parent;
 		this.children = children;
 		this.leftToken = leftToken;
 		this.rightToken = rightToken;
 	}
-	
-	/*  Naive factory method
-	public static ATermAstNode wrap(ATerm term) {
-		ArrayList<ATermAstNode> children = new ArrayList<ATermAstNode>();
-		children.ensureCapacity(term.getChildCount());
-		
-		ATermAstNode result = new ATermAstNode(term, children);
-		
-		for (int i = 0; i < term.getChildCount(); i++) {
-			ATermAstNode child = wrap((ATerm) term.getChildAt(i));
-			child.parent = result;
-			children.add(child);
-		}
-		
-		return result;
-	}
-	*/
 	
 	// General access
 	
@@ -80,6 +69,19 @@ public class ATermAstNode implements IAst, Iterable<ATermAstNode> {
     @Override
 	public String toString() {
         return getLeftIToken().getPrsStream().toString(getLeftIToken(), getRightIToken());
+    }
+
+    @Override
+	public boolean equals(Object o) {
+    	if (o instanceof ATermAstNode)
+    		return getATerm().equals(((ATermAstNode) o).getATerm());
+    	else
+    		return false;
+    }
+    
+    @Override
+    public int hashCode() {
+    	return getATerm().hashCode();
     }
 	
 	// LPG legacy/compatibility

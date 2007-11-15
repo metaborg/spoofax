@@ -9,7 +9,7 @@ import org.spoofax.jsglr.InvalidParseTableException;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.ParseTableManager;
 import org.spoofax.jsglr.SGLR;
-import org.strategoxt.imp.runtime.parser.AsfixConverter;
+import org.strategoxt.imp.runtime.parser.ast.AsfixConverter;
 
 import aterm.ATermFactory;
 

@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import lpg.runtime.IAst;
 import lpg.runtime.IMessageHandler;
 import lpg.runtime.IToken;
 
@@ -21,8 +20,8 @@ import org.spoofax.jsglr.InvalidParseTableException;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.SGLRException;
 import org.strategoxt.imp.runtime.Environment;
-
-import aterm.ATerm;
+import org.strategoxt.imp.runtime.parser.ast.ATermAstNode;
+import org.strategoxt.imp.runtime.parser.ast.ATermAstNodeFactory;
 
 /**
  * Base class of an IMP parse controller for an SGLR parser.
@@ -34,17 +33,18 @@ public abstract class SGLRParseController implements IParseController {
 	
 	private final SGLRParser parser;
 	
-	private IAst currentAst;
+	private ATermAstNode currentAst;
 	
 	private ISourceProject project;
 	
 	private IPath path;
 	
+	@SuppressWarnings("unused")
 	private IMessageHandler messages;
 
 	// Simple accessors
 	
-	public IAst getCurrentAst() { 
+	public ATermAstNode getCurrentAst() { 
 		return currentAst;
 	}
 	
@@ -66,12 +66,12 @@ public abstract class SGLRParseController implements IParseController {
 	
 	// Parsing and initialization
     
-    public SGLRParseController(ParseTable parseTable, String startSymbol) {
-    	parser = new SGLRParser(parseTable, startSymbol);
+    public SGLRParseController(ATermAstNodeFactory factory, ParseTable parseTable, String startSymbol) {
+    	parser = new SGLRParser(factory, parseTable, startSymbol);
     }
     
-    public SGLRParseController(ParseTable parseTable) {
-    	this(parseTable, null);
+    public SGLRParseController(ATermAstNodeFactory factory, ParseTable parseTable) {
+    	this(factory, parseTable, null);
     }
     
     /**
@@ -79,16 +79,16 @@ public abstract class SGLRParseController implements IParseController {
      * Reads the parse table from a stream and throws runtime exceptions
      * if anything goes wrong. 
      */
-    protected SGLRParseController(InputStream parseTable, String startSymbol)
+    protected SGLRParseController(ATermAstNodeFactory factory, InputStream parseTable, String startSymbol)
     		throws IOException, InvalidParseTableException {
     	
-    	this(Environment.loadParseTable(parseTable), startSymbol);
+    	this(factory, Environment.loadParseTable(parseTable), startSymbol);
 	}
     
-    protected SGLRParseController(InputStream parseTable)
+    protected SGLRParseController(ATermAstNodeFactory factory, InputStream parseTable)
 			throws IOException, InvalidParseTableException {
     	
-    	this(parseTable, null);
+    	this(factory, parseTable, null);
     }
 
 	public void initialize(IPath path, ISourceProject project, IMessageHandler messages) {
@@ -97,26 +97,23 @@ public abstract class SGLRParseController implements IParseController {
 		this.messages = messages;
 	}
 
-	public IAst parse(String input, boolean scanOnly, IProgressMonitor monitor) {
+	public ATermAstNode parse(String input, boolean scanOnly, IProgressMonitor monitor) {
+		// Make some assumptions to get the input file path
 		IPath completePath = project == null
 				? path
 				: project.getRawProject().getLocation().append(path);
 	
 		try {
-			ATerm parsed = parser.parse(completePath);
-			currentAst = getAst(parsed);
-			
+			currentAst = parser.parse(completePath);
 		} catch (SGLRException x) {
 			// FIXME: Report SGLR parsing errors
+			throw new RuntimeException(x);
 		} catch (IOException x) {
-			throw new RuntimeException(x); // TODO: Better handling of 
+			throw new RuntimeException(x);
 		}
 		
 		return currentAst;
 	}
-	
-	/** Method that converts a given term to a IAst tree. */
-	protected abstract IAst getAst(ATerm term);
 
 	// Problem markers
 

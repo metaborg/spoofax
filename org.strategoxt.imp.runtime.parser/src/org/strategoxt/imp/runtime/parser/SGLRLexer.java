@@ -6,7 +6,11 @@ import lpg.runtime.IPrsStream;
 import lpg.runtime.LexStream;
 import lpg.runtime.Monitor;
 
-/** Fake SGLR lexer for compatibility with IMP. */ 
+/**
+ * Fake SGLR ILexer implementation for compatibility with IMP.
+ * 
+ * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
+ * */ 
 public class SGLRLexer implements ILexer {
 	public int[] getKeywordKinds() {
 		return new int[0];
@@ -20,7 +24,14 @@ public class SGLRLexer implements ILexer {
 		// We don't do that either.
 	}
 
+	@Deprecated
+	/**
+	 * Return an empty lex stream.
+	 * 
+	 * @deprecated  SGLR does not employ a lexer or lex stream.
+	 */
 	public LexStream getLexStream() {
-		return null;
+		// Used by OutlinerBase.significantChange()		
+		return new LexStream();
 	}
 }

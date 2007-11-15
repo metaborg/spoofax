@@ -14,6 +14,9 @@ import org.spoofax.jsglr.SGLR;
 import org.spoofax.jsglr.SGLRException;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.parser.ast.ATermAstNode;
+import org.strategoxt.imp.runtime.parser.ast.ATermAstNodeFactory;
+import org.strategoxt.imp.runtime.parser.ast.AsfixConverter;
 
 import aterm.ATerm;
 
@@ -29,7 +32,7 @@ public class SGLRParser implements IParser {
 	
 	private final String startSymbol;
 	
-	private final PrsStream parseStream = new PrsStream();
+	private PrsStream parseStream;
 	
 	// Simple accessors
 
@@ -38,21 +41,25 @@ public class SGLRParser implements IParser {
 	}
 
 	public PrsStream getParseStream() {
+		if (parseStream == null) throw new IllegalStateException();
+		
 		return parseStream;
 	}
 	
-	public SGLRParser(ParseTable parseTable, String startSymbol) {	
+	// Initialization and parsing
+	
+	public SGLRParser(ATermAstNodeFactory factory, ParseTable parseTable, String startSymbol) {	
 		parser = Environment.createSGLR(parseTable);
 		this.startSymbol = startSymbol;
 	}
 	
 	/**
-	 * Parse an input.
+	 * Parse an input, returning the AST and initializing the parse stream.
 	 * 
-	 * @return  A parse tree (asfix representation)
+	 * @return  A parse tree.
 	 * @see     AsfixConverter
 	 */
-	public ATerm parse(IPath input) throws SGLRException, IOException {
+	public ATermAstNode parse(IPath input) throws SGLRException, IOException {
 		InputStream stream = new FileInputStream(input.toOSString());
 		ATerm asfix;
 		
@@ -65,14 +72,16 @@ public class SGLRParser implements IParser {
 			stream.close();
 		}
 		
-		return asfix;
+		parseStream = new PrsStream();
+		ATermAstNode result = Environment.getConverter().implode(asfix, parseStream);
+		
+		return result;
 	}
 	
-	// LPG compatibility
+	// LPG legacy / compatibility
 
 	@Deprecated
 	public SGLR parser(Monitor monitor, int error_repair_count) {
-		// TODO: Return SGLR Parser implementation? 
 		throw new UnsupportedOperationException();
 	}
 }
