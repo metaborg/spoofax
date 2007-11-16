@@ -1,7 +1,6 @@
 package org.strategoxt.imp.runtime.parser;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 import lpg.runtime.Monitor;
 import lpg.runtime.PrsStream;
@@ -71,9 +70,8 @@ public class SGLRParser implements IParser {
 
 		// Read stream using tokenizer/lexstream
 		tokenizer.init(filename);
-		InputStream stream = tokenizer.toByteStream();
 		
-		ATerm asfix = parser.parse(stream, startSymbol);
+		ATerm asfix = parser.parse(tokenizer.toByteStream(), startSymbol);
 			
 		Debug.stopTimer("File parsed");
 		

@@ -18,7 +18,7 @@ public class SGLRParsersym {
 	public static final int
 		TK_OPERATOR = -3;
 	
-	/** Token kind for a layout token. */
+	/** Token kind for a layout (or comment) token. */
 	public static final int
 		TK_LAYOUT = -4;
 	
