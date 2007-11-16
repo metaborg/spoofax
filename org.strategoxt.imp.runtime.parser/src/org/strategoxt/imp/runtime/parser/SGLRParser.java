@@ -5,7 +5,6 @@ import java.io.IOException;
 import lpg.runtime.Monitor;
 import lpg.runtime.PrsStream;
 
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.parser.IParser;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.SGLR;
@@ -63,13 +62,11 @@ public class SGLRParser implements IParser {
 	 * @return  A parse tree.
 	 * @see     AsfixConverter
 	 */
-	public SGLRAstNode parse(IPath input) throws SGLRException, IOException {
+	public SGLRAstNode parse(char[] input, String filename) throws SGLRException, IOException {
 		Debug.startTimer();
 
-		String filename = input.toOSString();
-
 		// Read stream using tokenizer/lexstream
-		tokenizer.init(filename);
+		tokenizer.init(input, filename);
 		
 		ATerm asfix = parser.parse(tokenizer.toByteStream(), startSymbol);
 			

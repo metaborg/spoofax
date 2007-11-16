@@ -46,8 +46,7 @@ public class SGLRAstNodeFactory {
 	 * Get the token kind for a given sort.
 	 */
 	public int getTokenKind(ATermAppl sort) {
-		// TODO: More default token kinds
-		//       e.g., for numbers, comments 
+		// TODO: Default token kind for numbers?
 
 		if (isLayoutSort(sort)) {
 			return TK_LAYOUT;

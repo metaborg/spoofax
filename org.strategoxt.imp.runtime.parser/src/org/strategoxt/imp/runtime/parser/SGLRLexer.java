@@ -1,6 +1,7 @@
 package org.strategoxt.imp.runtime.parser;
 
 import org.eclipse.imp.parser.ILexer;
+import org.strategoxt.imp.runtime.parser.ast.SGLRParsersym;
 
 import lpg.runtime.IPrsStream;
 import lpg.runtime.LexStream;
@@ -22,14 +23,22 @@ public class SGLRLexer implements ILexer {
 		this.lexStream = lexStream;
 	}
 	
+	// IMP legacy / compatibility
+
+	/**
+	 * @deprecated	Use {@link SGLRParseController#isKeyword(int)} instead.
+	 */
+	@Deprecated
+	public int[] getKeywordKinds() {
+		return new int[] { SGLRParsersym.TK_KEYWORD };
+	}
+	
+	@Deprecated
 	public void initialize(char[] contents, String filename) {
 		// We don't do that.
 	}
-	
-	public int[] getKeywordKinds() {
-		return new int[0];
-	}
 
+	@Deprecated
 	public void lexer(Monitor monitor, IPrsStream prsStream) {
 		// We don't do that.
 	}

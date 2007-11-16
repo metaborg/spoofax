@@ -48,15 +48,15 @@ public abstract class SGLRParseController implements IParseController {
 
 	// Simple accessors
 	
-	public SGLRAstNode getCurrentAst() { 
+	public final SGLRAstNode getCurrentAst() { 
 		return currentAst;
 	}
 	
-	public SGLRParser getParser() {
+	public final SGLRParser getParser() {
 		return parser;
 	}
 
-	public ISourceProject getProject() {
+	public final ISourceProject getProject() {
 		return project;
 	}
 
@@ -64,9 +64,11 @@ public abstract class SGLRParseController implements IParseController {
 	 * @return either a project-relative path, if getProject() is non-null, or
 	 *         an absolute path.
 	 */
-    public IPath getPath() {
-		return path;
-	}
+    public final IPath getPath() {
+    	return project == null
+			? path
+			: project.getRawProject().getLocation().append(path);
+    }
 	
 	// Parsing and initialization
     
@@ -103,13 +105,8 @@ public abstract class SGLRParseController implements IParseController {
 	}
 
 	public SGLRAstNode parse(String input, boolean scanOnly, IProgressMonitor monitor) {
-		// Make some assumptions to get the input file path
-		IPath completePath = project == null
-				? path
-				: project.getRawProject().getLocation().append(path);
-	
 		try {
-			currentAst = parser.parse(completePath);
+			currentAst = parser.parse(input.toCharArray(), getPath().toPortableString());
 		} catch (SGLRException x) {
 			// FIXME: Report SGLR parsing errors
 			throw new RuntimeException(x);
@@ -122,6 +119,16 @@ public abstract class SGLRParseController implements IParseController {
 	
 	// Generic parse table information (should be overridden in subclasses)
 	
+	public boolean isKeyword(int kind) { // should be overridden for specific grammars
+		return kind == TK_KEYWORD;
+	}
+
+	public String getSingleLineCommentPrefix() {
+		// This is a supposedly short-term solution for getting
+		// a language's single-line comment prefix
+		return "";
+	}
+	
 	public String getTokenKindName(int kind) {
 		return getDefaultTokenKindName(kind);
 	}
@@ -132,6 +139,8 @@ public abstract class SGLRParseController implements IParseController {
 				return "TK_IDENTIFIER";
 			case TK_KEYWORD:
 				return "TK_KEYWORD";
+			case TK_OPERATOR:
+				return "TK_OPERATOR";
 			case TK_LAYOUT:
 				return "TK_LAYOUT";
 			case TK_EOF:
@@ -140,14 +149,10 @@ public abstract class SGLRParseController implements IParseController {
 				return "TK_UNKNOWN";
 		}
 	}
-	
-	public boolean isKeyword(int kind) {
-		return kind == TK_KEYWORD;
-	}
 
 	// Problem markers
 
-	public List<String> getProblemMarkerTypes() {
+	public final List<String> getProblemMarkerTypes() {
 		return problemMarkerTypes;
 	}
 	
@@ -169,23 +174,19 @@ public abstract class SGLRParseController implements IParseController {
 		return getErrors().size() != 0;
 	}
 	
-	// LPG Compatibility
+	// LPG compatibility
 	
+	/**
+	 * @deprecated	Use {@link SGLRParseController#isKeyword(int)} instead.
+	 */
 	@Deprecated
 	public char[][] getKeywords() {
 		return new char[0][0];
 	}
 
 	@Deprecated
-	public SGLRLexer getLexer() {
+	public final SGLRLexer getLexer() {
 		return lexer;
-	}
-
-	@Deprecated
-	public String getSingleLineCommentPrefix() {
-		// This is a supposedly short-term solution for getting
-		// a language's single-line comment prefix
-		return "";
 	}
 
 	public IASTNodeLocator getNodeLocator() {
@@ -194,7 +195,7 @@ public abstract class SGLRParseController implements IParseController {
 	}
 
 	public int getTokenIndexAtCharacter(int offset) {
-		int index= getParser().getParseStream().getTokenIndexAtCharacter(offset);
+		int index = getParser().getParseStream().getTokenIndexAtCharacter(offset);
     	return Math.abs(index);
 	}
 

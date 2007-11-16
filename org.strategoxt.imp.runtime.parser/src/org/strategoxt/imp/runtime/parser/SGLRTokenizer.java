@@ -49,9 +49,8 @@ public class SGLRTokenizer {
 		return new ByteArrayInputStream(bytes);
 	}
 	
-	// TODO: Don't initialize SGLRTokenizer using filename
-	public void init(String filename) throws IOException {
-		lexStream.initialize(filename);
+	public void init(char[] input, String filename) throws IOException {
+		lexStream.initialize(input, filename);
 		parseStream.resetTokenStream();
 		beginOffset = 0;
 		
