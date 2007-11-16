@@ -54,6 +54,12 @@ public class SGLRAstNode implements IAst, Iterable<SGLRAstNode> {
 	
 	protected SGLRAstNode(String constructor, IToken leftToken, IToken rightToken,
 			ArrayList<SGLRAstNode> children) {
+		
+		assert constructor != null;
+		assert leftToken != null;
+		assert rightToken != null;
+		assert children != null;
+		
 		this.constructor = constructor;
 		this.leftToken = leftToken;
 		this.rightToken = rightToken;

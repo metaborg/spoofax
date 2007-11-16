@@ -1,11 +1,11 @@
 package org.strategoxt.imp.runtime.parser.ast;
 
 /**
- * Interface containing constant values for default SGLR parser token kinds.
+ * Class containing constant values for default SGLR parser token kinds.
  * 
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
-public interface SGLRParsersym {
+public class SGLRParsersym {
 	/** Token kind for a generic identifier. */
 	public static final int
 		TK_IDENTIFIER = -1;

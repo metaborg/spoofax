@@ -1,6 +1,5 @@
 package org.strategoxt.imp.runtime.parser;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -66,20 +65,17 @@ public class SGLRParser implements IParser {
 	 * @see     AsfixConverter
 	 */
 	public SGLRAstNode parse(IPath input) throws SGLRException, IOException {
+		Debug.startTimer();
+
 		String filename = input.toOSString();
-		InputStream stream = new FileInputStream(filename);
-		ATerm asfix;
+
+		// Read stream using tokenizer/lexstream
+		tokenizer.init(filename);
+		InputStream stream = tokenizer.toByteStream();
 		
-		try {
-			Debug.startTimer();
+		ATerm asfix = parser.parse(stream, startSymbol);
 			
-			tokenizer.init(filename);			
-			asfix = parser.parse(stream, startSymbol);
-		} finally {
-			stream.close();
-			
-			Debug.stopTimer("File parsed");
-		}
+		Debug.stopTimer("File parsed");
 		
 		SGLRAstNode result = converter.implode(asfix);
 		

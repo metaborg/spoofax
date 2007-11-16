@@ -22,7 +22,7 @@ import org.spoofax.jsglr.SGLRException;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.SGLRAstNode;
 import org.strategoxt.imp.runtime.parser.ast.SGLRAstNodeFactory;
-import org.strategoxt.imp.runtime.parser.ast.SGLRParsersym;
+import static org.strategoxt.imp.runtime.parser.ast.SGLRParsersym.*;
 
 /**
  * Base class of an IMP parse controller for an SGLR parser.
@@ -128,13 +128,13 @@ public abstract class SGLRParseController implements IParseController {
 	
 	static String getDefaultTokenKindName(int kind) {
 		switch (kind) {
-			case SGLRParsersym.TK_IDENTIFIER:
+			case TK_IDENTIFIER:
 				return "TK_IDENTIFIER";
-			case SGLRParsersym.TK_KEYWORD:
+			case TK_KEYWORD:
 				return "TK_KEYWORD";
-			case SGLRParsersym.TK_LAYOUT:
+			case TK_LAYOUT:
 				return "TK_LAYOUT";
-			case SGLRParsersym.TK_EOF:
+			case TK_EOF:
 				return "TK_EOF";
 			default:
 				return "TK_UNKNOWN";
@@ -142,7 +142,7 @@ public abstract class SGLRParseController implements IParseController {
 	}
 	
 	public boolean isKeyword(int kind) {
-		return kind == SGLRParsersym.TK_KEYWORD;
+		return kind == TK_KEYWORD;
 	}
 
 	// Problem markers

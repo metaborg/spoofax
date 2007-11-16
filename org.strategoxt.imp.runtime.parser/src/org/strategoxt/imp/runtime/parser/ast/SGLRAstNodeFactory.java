@@ -4,6 +4,8 @@ import java.util.ArrayList;
 
 import aterm.ATermAppl;
 
+import static org.strategoxt.imp.runtime.parser.ast.SGLRParsersym.*;
+
 import lpg.runtime.ILexStream;
 import lpg.runtime.IToken;
 
@@ -48,11 +50,11 @@ public class SGLRAstNodeFactory {
 		//       e.g., for numbers, opererators, comments 
 
 		if (isLayoutSort(sort)) {
-			return SGLRParsersym.TK_LAYOUT;
+			return TK_LAYOUT;
 		} else if (sort.getName().equals("lex")) {
-			return SGLRParsersym.TK_IDENTIFIER;
+			return TK_IDENTIFIER;
 		} else {
-			return SGLRParsersym.TK_KEYWORD;
+			return TK_KEYWORD;
 		}
 	}
 	
@@ -61,7 +63,7 @@ public class SGLRAstNodeFactory {
 	public final SGLRAstNode createTerminal(IToken token) {
 		ILexStream lex = token.getPrsStream().getLexStream();
 		
-		int length = token.getEndOffset() - token.getStartOffset();
+		int length = token.getEndOffset() - token.getStartOffset() + 1;
 		StringBuilder tokenContents = new StringBuilder(length);
 		
 		for (int i = token.getStartOffset(); i < token.getEndOffset(); i++) {

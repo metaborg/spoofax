@@ -8,4 +8,10 @@ package org.strategoxt.imp.runtime.parser.ast;
  */
 public class InvalidParseTreeException extends RuntimeException {
 	private static final long serialVersionUID = 8848025003078734845L;
+	
+	public InvalidParseTreeException() {}
+	
+	public InvalidParseTreeException(String message) {
+		super(message);
+	}
 }

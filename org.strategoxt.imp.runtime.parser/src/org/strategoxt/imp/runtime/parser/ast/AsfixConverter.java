@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import lpg.runtime.IToken;
 import lpg.runtime.PrsStream;
 
-import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.parser.SGLRTokenizer;
 
 import aterm.ATerm;
@@ -20,10 +19,6 @@ import aterm.pure.ATermListImpl;
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
 public class AsfixConverter {
-	private final SGLRAstNodeFactory factory;
-	
-	private final SGLRTokenizer tokenizer;
-	
 	private final static int PARSE_TREE = 0;
 	
 	private final static int APPL_PROD = 0;
@@ -44,6 +39,10 @@ public class AsfixConverter {
 	
 	private final static int CONS_NAME = 0;
 	
+	private final SGLRAstNodeFactory factory;
+	
+	private final SGLRTokenizer tokenizer;
+	
 	/** Character offset for the current implosion. */ 
 	private int offset;
 	
@@ -62,7 +61,11 @@ public class AsfixConverter {
 		offset = 0;
 		lexicalContext = false;
 		
-		return implodeAppl(ignoreAmb(top));
+		SGLRAstNode root = implodeAppl(ignoreAmb(top));
+
+		tokenizer.endStream();
+		
+		return root;
 	}
 	
 	/** Implode any appl(_, _). */
@@ -73,6 +76,10 @@ public class AsfixConverter {
 		ATermList contents = (ATermList) appl.getChildAt(APPL_CONTENTS);
 		
 		IToken prevToken = tokenizer.currentToken();
+		
+		// Enter lexical context if this is a lex node
+		boolean lexicalStart = !lexicalContext && rhs.getName().equals("lex");
+		if (lexicalStart) lexicalContext = true;
 
 		// TODO2: Optimization; don't need to always allocate child list
 		ArrayList<SGLRAstNode> childNodes = new ArrayList<SGLRAstNode>();
@@ -90,25 +97,26 @@ public class AsfixConverter {
 			}
 		}
 		
-		if (lexicalContext)
-			return null; // don't create tokens in lexical context
-
-		IToken token = tokenizer.makeToken(offset, factory.getTokenKind(rhs));
-		
-		if (rhs.getName().equals("lex")) {
+		if (lexicalStart) {
+			lexicalContext = false;
+			IToken token = tokenizer.makeToken(offset, factory.getTokenKind(rhs));
 			return factory.createTerminal(token);
-		} else {			
-			return implodeContextFree(getConstructor(attrs), getStartToken(prevToken), childNodes);
+		} else if (lexicalContext) {
+			return null; // don't create tokens inside lexical context
+		} else {
+			tokenizer.makeToken(offset, factory.getTokenKind(rhs));
+			return implodeContextFree(getConstructor(attrs), prevToken, childNodes);
 		}
 	}
 
 	/** Implode a context-free node. */
-	private SGLRAstNode implodeContextFree(String constructor, IToken startToken,
+	private SGLRAstNode implodeContextFree(String constructor, IToken prevToken,
 			ArrayList<SGLRAstNode> childNodes) {
 		
 		if (constructor != null) {
-			return factory.createNonTerminal(constructor, startToken,tokenizer.currentToken(),
-			                                 childNodes);
+			IToken left = getStartToken(prevToken);
+			IToken right = tokenizer.currentToken();
+			return factory.createNonTerminal(constructor, left, right, childNodes);
 		} else {
 			switch (childNodes.size()) {
 				case 0:
@@ -116,8 +124,9 @@ public class AsfixConverter {
 				case 1:
 					return childNodes.get(0);
 				default:
-					return factory.createList(startToken, tokenizer.currentToken(),
-					                          childNodes);
+					IToken left = getStartToken(prevToken);
+					IToken right = tokenizer.currentToken();
+					return factory.createList(left, right, childNodes);
 			}
 		}
 	}
@@ -127,9 +136,7 @@ public class AsfixConverter {
 		ATermAppl appl = (ATermAppl) node;
 		
 		if (appl.getName().equals("amb")) {
-			// TODO: Do something with ambiguities?
-			Debug.log("Ambiguity in parse tree: ", node);
-			
+			// TODO: Do something with ambiguities?			
 			ATermListImpl ambs = (ATermListImpl) appl.getChildAt(AMB_LIST);
 			return ignoreAmb(ambs.getFirst());
 		} else {
@@ -147,11 +154,13 @@ public class AsfixConverter {
 		} else {
 			int index = prevToken.getTokenIndex();
 			
-			return parseStream.getSize() <= index ? null
-			                                      : parseStream.getTokenAt(index + 1); 
+			// TODO: If empty tokens are supported, remove this
+			if (parseStream.getSize() - index <= 1)
+				throw new InvalidParseTreeException("Cannot create a AST node for an empty token");
+			
+			return parseStream.getTokenAt(index + 1); 
 		}
 	}
-	
 	
 	/** Implode any appl(_, _) that constructs a lex terminal. */
 	private void implodeLexical(ATerm character) {		
@@ -159,7 +168,6 @@ public class AsfixConverter {
 		assert ((ATermInt) character).getInt()
 			== tokenizer.getLexStream().getCharValue(offset)
 			: "Character from asfix stream must be in lex stream";
-		assert false;
 		offset++;
 	}
 	
@@ -178,8 +186,10 @@ public class AsfixConverter {
 				if (namedAttr.getName().equals("term")) {
 					namedAttr = (ATermAppl) namedAttr.getChildAt(TERM_CONS);
 					
-					if (namedAttr.getName().equals("cons"))
-						return namedAttr.getChildAt(CONS_NAME).toString();
+					if (namedAttr.getName().equals("cons")) {
+						namedAttr = (ATermAppl) namedAttr.getChildAt(CONS_NAME);
+						return namedAttr.getName();
+					}
 				}
 				
 			}
