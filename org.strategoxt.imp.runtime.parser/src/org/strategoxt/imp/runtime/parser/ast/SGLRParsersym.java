@@ -14,13 +14,17 @@ public class SGLRParsersym {
 	public static final int
 		TK_KEYWORD = -2;
 	
+	/** Token kind for a generic keyword token. */
+	public static final int
+		TK_OPERATOR = -3;
+	
 	/** Token kind for a layout token. */
 	public static final int
-		TK_LAYOUT = -3;
+		TK_LAYOUT = -4;
 	
 	/** Token kind for an EOF token. */
 	public static final int
-		TK_EOF = -4;
+		TK_EOF = -5;
 
 	/** Unknown token kind. */
 	public static final int

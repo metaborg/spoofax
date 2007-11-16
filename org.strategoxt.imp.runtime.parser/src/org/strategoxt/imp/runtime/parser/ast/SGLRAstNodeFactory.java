@@ -47,12 +47,14 @@ public class SGLRAstNodeFactory {
 	 */
 	public int getTokenKind(ATermAppl sort) {
 		// TODO: More default token kinds
-		//       e.g., for numbers, opererators, comments 
+		//       e.g., for numbers, comments 
 
 		if (isLayoutSort(sort)) {
 			return TK_LAYOUT;
 		} else if (sort.getName().equals("lex")) {
 			return TK_IDENTIFIER;
+		} else if (isOperator(sort)) {
+			return TK_OPERATOR;
 		} else {
 			return TK_KEYWORD;
 		}
@@ -80,5 +82,19 @@ public class SGLRAstNodeFactory {
 			details = (ATermAppl) details.getChildAt(0);
 			
 		return details.getName().equals("layout");
+	}
+	
+	private static boolean isOperator(ATermAppl sort) {
+		if (sort.getName() != "lit") return false;
+		
+		ATermAppl lit = (ATermAppl) sort.getChildAt(0);
+		String contents = lit.getName();
+		
+		for (int i = 0; i < contents.length(); i++) {
+			char c = contents.charAt(i);
+			if (Character.isLetterOrDigit(c)) return false;
+		}
+		
+		return true;
 	}
 }
