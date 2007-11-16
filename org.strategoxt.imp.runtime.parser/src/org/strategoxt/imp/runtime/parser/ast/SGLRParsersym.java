@@ -25,6 +25,10 @@ public class SGLRParsersym {
 	/** Token kind for an EOF token. */
 	public static final int
 		TK_EOF = -5;
+	
+	/** Token kind for an junk (invalid) token. */
+	public static final int
+		TK_JUNK = -6;
 
 	/** Unknown token kind. */
 	public static final int

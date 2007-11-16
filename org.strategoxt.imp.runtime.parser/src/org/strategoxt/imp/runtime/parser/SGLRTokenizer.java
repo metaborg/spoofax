@@ -10,6 +10,7 @@ import static org.strategoxt.imp.runtime.parser.ast.SGLRParsersym.*;
 import lpg.runtime.IToken;
 import lpg.runtime.LexStream;
 import lpg.runtime.PrsStream;
+import lpg.runtime.Token;
 
 /**
  * Wrapper class to add tokens to an LPG PrsStream.
@@ -82,5 +83,19 @@ public class SGLRTokenizer {
 		parseStream.setStreamLength(parseStream.getSize());
 		
 		return currentToken();
+	}
+	
+	/**
+	 * Creates an error token up to the next whitespace character.
+	 */
+	public IToken makeErrorToken(int offset) {
+		int endOffset = offset;
+		
+		while (endOffset + 1 < lexStream.getStreamLength()) {
+			if (Character.isWhitespace(lexStream.getCharValue(endOffset + 1))) break;
+			endOffset++;
+		}
+		
+		return new Token(parseStream, offset, endOffset, TK_JUNK);
 	}
 }

@@ -190,8 +190,7 @@ public class AsfixConverter {
 						namedAttr = (ATermAppl) namedAttr.getChildAt(CONS_NAME);
 						return namedAttr.getName();
 					}
-				}
-				
+				}				
 			}
 		}
 		

@@ -3,7 +3,6 @@ package org.strategoxt.imp.runtime.parser;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import lpg.runtime.IMessageHandler;
@@ -19,9 +18,11 @@ import org.eclipse.imp.parser.ParseError;
 import org.spoofax.jsglr.InvalidParseTableException;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.SGLRException;
+import org.spoofax.jsglr.UnexpectedTokenException;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.SGLRAstNode;
 import org.strategoxt.imp.runtime.parser.ast.SGLRAstNodeFactory;
+
 import static org.strategoxt.imp.runtime.parser.ast.SGLRParsersym.*;
 
 /**
@@ -32,6 +33,8 @@ import static org.strategoxt.imp.runtime.parser.ast.SGLRParsersym.*;
  */
 public abstract class SGLRParseController implements IParseController {	
 	private final List<String> problemMarkerTypes = new ArrayList<String>();
+	
+	private final List<ParseError> parseErrors = new ArrayList<ParseError>();
 	
 	private final SGLRParser parser;
 	
@@ -58,6 +61,14 @@ public abstract class SGLRParseController implements IParseController {
 
 	public final ISourceProject getProject() {
 		return project;
+	}
+	
+	public final List<ParseError> getErrors() {
+		return parseErrors;
+	}
+
+	public final boolean hasErrors() {
+		return getErrors().size() != 0;
 	}
 
 	/**
@@ -106,9 +117,13 @@ public abstract class SGLRParseController implements IParseController {
 
 	public SGLRAstNode parse(String input, boolean scanOnly, IProgressMonitor monitor) {
 		try {
+			parseErrors.clear();
 			currentAst = parser.parse(input.toCharArray(), getPath().toPortableString());
+		} catch (UnexpectedTokenException x) {
+			reportParseError(x);
 		} catch (SGLRException x) {
-			// FIXME: Report SGLR parsing errors
+			// TODO: Report SGLR parsing errors (if any?!)
+		    
 			throw new RuntimeException(x);
 		} catch (IOException x) {
 			throw new RuntimeException(x);
@@ -143,6 +158,8 @@ public abstract class SGLRParseController implements IParseController {
 				return "TK_OPERATOR";
 			case TK_LAYOUT:
 				return "TK_LAYOUT";
+			case TK_JUNK:
+				return "TK_JUNK";
 			case TK_EOF:
 				return "TK_EOF";
 			default:
@@ -150,7 +167,7 @@ public abstract class SGLRParseController implements IParseController {
 		}
 	}
 
-	// Problem markers
+	// Problem markers and errors
 
 	public final List<String> getProblemMarkerTypes() {
 		return problemMarkerTypes;
@@ -164,14 +181,11 @@ public abstract class SGLRParseController implements IParseController {
 		problemMarkerTypes.remove(problemMarkerType);
 	}
 	
-	// Errors
-	
-	public List<ParseError> getErrors() {
-		return Collections.emptyList(); // TODO: Return SGLR errors?
-	}
-
-	public boolean hasErrors() {
-		return getErrors().size() != 0;
+	private void reportParseError(UnexpectedTokenException exception) {
+		String message = "Character '" + (char) exception.getToken() + "' unexpected";
+		IToken token = parser.getTokenizer().makeErrorToken(exception.getOffset());
+		
+		parseErrors.add(new ParseError(message, token));
 	}
 	
 	// LPG compatibility
