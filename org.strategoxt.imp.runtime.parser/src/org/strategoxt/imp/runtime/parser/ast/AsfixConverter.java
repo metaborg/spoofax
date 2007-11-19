@@ -5,7 +5,8 @@ import java.util.ArrayList;
 import lpg.runtime.IToken;
 import lpg.runtime.PrsStream;
 
-import org.strategoxt.imp.runtime.parser.SGLRTokenizer;
+import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenKindManager;
+import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
 
 import aterm.ATerm;
 import aterm.ATermAppl;
@@ -25,7 +26,7 @@ public class AsfixConverter {
 	
 	private final static int APPL_CONTENTS = 1;
 
-	// private final static int PROD_LHS = 0;
+	private final static int PROD_LHS = 0;
 	
 	private final static int PROD_RHS = 1;
 
@@ -43,13 +44,16 @@ public class AsfixConverter {
 	
 	private final SGLRTokenizer tokenizer;
 	
+	private final SGLRTokenKindManager tokenManager;
+	
 	/** Character offset for the current implosion. */ 
 	private int offset;
 	
 	private boolean lexicalContext;
 	
-	public AsfixConverter(SGLRAstNodeFactory factory, SGLRTokenizer tokenizer) {
+	public AsfixConverter(SGLRAstNodeFactory factory, SGLRTokenKindManager tokenManager, SGLRTokenizer tokenizer) {
 		this.factory = factory;
+		this.tokenManager = tokenManager;
 		this.tokenizer = tokenizer;
 	}
 	
@@ -71,6 +75,7 @@ public class AsfixConverter {
 	/** Implode any appl(_, _). */
 	private SGLRAstNode implodeAppl(ATermAppl appl) {
 		ATermAppl prod = (ATermAppl) appl.getChildAt(APPL_PROD);
+		ATermList lhs = (ATermList) prod.getChildAt(PROD_LHS);
 		ATermAppl rhs = (ATermAppl) prod.getChildAt(PROD_RHS);
 		ATermAppl attrs = (ATermAppl) prod.getChildAt(PROD_ATTRS);
 		ATermList contents = (ATermList) appl.getChildAt(APPL_CONTENTS);
@@ -99,12 +104,12 @@ public class AsfixConverter {
 		
 		if (lexicalStart) {
 			lexicalContext = false;
-			IToken token = tokenizer.makeToken(offset, factory.getTokenKind(rhs));
+			IToken token = tokenizer.makeToken(offset, tokenManager.getTokenKind(lhs, rhs));
 			return factory.createTerminal(token);
 		} else if (lexicalContext) {
 			return null; // don't create tokens inside lexical context
 		} else {
-			tokenizer.makeToken(offset, factory.getTokenKind(rhs));
+			tokenizer.makeToken(offset, tokenManager.getTokenKind(lhs, rhs));
 			return implodeContextFree(getConstructor(attrs), prevToken, childNodes);
 		}
 	}

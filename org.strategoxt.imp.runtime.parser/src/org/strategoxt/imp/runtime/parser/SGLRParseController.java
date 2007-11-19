@@ -18,12 +18,12 @@ import org.eclipse.imp.parser.ParseError;
 import org.spoofax.jsglr.InvalidParseTableException;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.SGLRException;
-import org.spoofax.jsglr.UnexpectedTokenException;
+import org.spoofax.jsglr.TokenExpectedException;
+import org.spoofax.jsglr.BadTokenException;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.SGLRAstNode;
 import org.strategoxt.imp.runtime.parser.ast.SGLRAstNodeFactory;
-
-import static org.strategoxt.imp.runtime.parser.ast.SGLRParsersym.*;
+import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenKindManager;
 
 /**
  * Base class of an IMP parse controller for an SGLR parser.
@@ -35,6 +35,8 @@ public abstract class SGLRParseController implements IParseController {
 	private final List<String> problemMarkerTypes = new ArrayList<String>();
 	
 	private final List<ParseError> parseErrors = new ArrayList<ParseError>();
+	
+	private final SGLRTokenKindManager tokenManager;
 	
 	private final SGLRParser parser;
 	
@@ -83,31 +85,30 @@ public abstract class SGLRParseController implements IParseController {
 	
 	// Parsing and initialization
     
-    public SGLRParseController(SGLRAstNodeFactory factory, ParseTable parseTable, String startSymbol) {
-    	parser = new SGLRParser(factory, parseTable, startSymbol);
+    /**
+     * Create a new SGLRParseController.
+     * 
+     * @param startSymbol	The start symbol of this grammar, or null.
+     */
+    public SGLRParseController(SGLRAstNodeFactory nodeFactory, SGLRTokenKindManager tokenManager, ParseTable parseTable, String startSymbol) {
+    	this.tokenManager = tokenManager;
+    	
+    	parser = new SGLRParser(nodeFactory, tokenManager, parseTable, startSymbol);
     	lexer = new SGLRLexer(parser.getTokenizer().getLexStream());
-    }
-    
-    public SGLRParseController(SGLRAstNodeFactory factory, ParseTable parseTable) {
-    	this(factory, parseTable, null);
     }
     
     /**
      * Constructs a new iSGLRParseController instance.
      * Reads the parse table from a stream and throws runtime exceptions
-     * if anything goes wrong. 
+     * if anything goes wrong.
+     * 
+     * @param startSymbol	The start symbol of this grammar, or null.
      */
-    protected SGLRParseController(SGLRAstNodeFactory factory, InputStream parseTable, String startSymbol)
+    protected SGLRParseController(SGLRAstNodeFactory nodeFactory, SGLRTokenKindManager tokenManager, InputStream parseTable, String startSymbol)
     		throws IOException, InvalidParseTableException {
     	
-    	this(factory, Environment.loadParseTable(parseTable), startSymbol);
+    	this(nodeFactory, tokenManager, Environment.loadParseTable(parseTable), startSymbol);
 	}
-    
-    protected SGLRParseController(SGLRAstNodeFactory factory, InputStream parseTable)
-			throws IOException, InvalidParseTableException {
-    	
-    	this(factory, parseTable, null);
-    }
 
 	public void initialize(IPath path, ISourceProject project, IMessageHandler messages) {
 		this.path = path;
@@ -117,13 +118,23 @@ public abstract class SGLRParseController implements IParseController {
 
 	public SGLRAstNode parse(String input, boolean scanOnly, IProgressMonitor monitor) {
 		try {
+			// TODO2: Optimization - don't produce AST if scanOnly is true
 			parseErrors.clear();
 			currentAst = parser.parse(input.toCharArray(), getPath().toPortableString());
-		} catch (UnexpectedTokenException x) {
+		} catch (TokenExpectedException x) {
 			reportParseError(x);
+			
+			// Throw again to ensure editor redraws later
+			throw new RuntimeException(x);
+		} catch (BadTokenException x) {
+			reportParseError(x);
+			
+			// Throw again to ensure editor redraws later
+			throw new RuntimeException(x);
 		} catch (SGLRException x) {
-			// TODO: Report SGLR parsing errors (if any?!)
+			reportParseError(x);
 		    
+			// Throw again to ensure editor redraws later
 			throw new RuntimeException(x);
 		} catch (IOException x) {
 			throw new RuntimeException(x);
@@ -132,39 +143,22 @@ public abstract class SGLRParseController implements IParseController {
 		return currentAst;
 	}
 	
-	// Generic parse table information (should be overridden in subclasses)
+	// Token kind management
 	
-	public boolean isKeyword(int kind) { // should be overridden for specific grammars
-		return kind == TK_KEYWORD;
+	public final boolean isKeyword(int kind) {
+		return tokenManager.isKeyword(kind);
 	}
+	
+	public final String getTokenKindName(int kind) {
+		return tokenManager.getName(kind);
+	}
+	
+	// Grammar specific
 
 	public String getSingleLineCommentPrefix() {
 		// This is a supposedly short-term solution for getting
 		// a language's single-line comment prefix
 		return "";
-	}
-	
-	public String getTokenKindName(int kind) {
-		return getDefaultTokenKindName(kind);
-	}
-	
-	static String getDefaultTokenKindName(int kind) {
-		switch (kind) {
-			case TK_IDENTIFIER:
-				return "TK_IDENTIFIER";
-			case TK_KEYWORD:
-				return "TK_KEYWORD";
-			case TK_OPERATOR:
-				return "TK_OPERATOR";
-			case TK_LAYOUT:
-				return "TK_LAYOUT";
-			case TK_JUNK:
-				return "TK_JUNK";
-			case TK_EOF:
-				return "TK_EOF";
-			default:
-				return "TK_UNKNOWN";
-		}
 	}
 
 	// Problem markers and errors
@@ -181,9 +175,25 @@ public abstract class SGLRParseController implements IParseController {
 		problemMarkerTypes.remove(problemMarkerType);
 	}
 	
-	private void reportParseError(UnexpectedTokenException exception) {
-		String message = "Character '" + (char) exception.getToken() + "' unexpected";
+	private void reportParseError(TokenExpectedException exception) {
+		String message = exception.getShortMessage();
 		IToken token = parser.getTokenizer().makeErrorToken(exception.getOffset());
+		
+		parseErrors.add(new ParseError(message, token));
+	}
+	
+	private void reportParseError(BadTokenException exception) {
+		IToken token = parser.getTokenizer().makeErrorToken(exception.getOffset());
+		String message = exception.isEOFToken()
+        	? exception.getShortMessage()
+        	: "'" + token.toString() + "' not expected here";
+
+		parseErrors.add(new ParseError(message, token));
+	}
+	
+	private void reportParseError(SGLRException exception) {
+		String message = "Parser error: " + exception;
+		IToken token = parser.getTokenizer().makeErrorToken(0);
 		
 		parseErrors.add(new ParseError(message, token));
 	}

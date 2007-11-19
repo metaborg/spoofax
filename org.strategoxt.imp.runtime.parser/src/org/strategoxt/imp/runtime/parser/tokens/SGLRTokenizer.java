@@ -1,11 +1,12 @@
-package org.strategoxt.imp.runtime.parser;
+package org.strategoxt.imp.runtime.parser.tokens;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
 import org.strategoxt.imp.runtime.Debug;
-import static org.strategoxt.imp.runtime.parser.ast.SGLRParsersym.*;
+
+import static org.strategoxt.imp.runtime.parser.tokens.SGLRParsersym.*;
 
 import lpg.runtime.IToken;
 import lpg.runtime.LexStream;
@@ -74,7 +75,7 @@ public class SGLRTokenizer {
 
 		Debug.log(
 				"Token: ",
-				SGLRParseController.getDefaultTokenKindName(kind),
+				SGLRTokenKindManager.getDefaultName(kind),
 				" = \"",
 				currentToken(),
 				"\"");
@@ -91,11 +92,28 @@ public class SGLRTokenizer {
 	public IToken makeErrorToken(int offset) {
 		int endOffset = offset;
 		
+		if (offset == lexStream.getStreamLength())
+		    return makeErrorTokenBackwards(offset - 1);
+		
 		while (endOffset + 1 < lexStream.getStreamLength()) {
 			if (Character.isWhitespace(lexStream.getCharValue(endOffset + 1))) break;
 			endOffset++;
 		}
 		
 		return new Token(parseStream, offset, endOffset, TK_JUNK);
+	}
+	
+	/**
+	 * Creates an error token from the last whitespace character.
+	 */
+	public IToken makeErrorTokenBackwards(int offset) {
+		int beginOffset = offset;
+		
+		while (beginOffset > 0) {
+			if (Character.isWhitespace(lexStream.getCharValue(beginOffset - 1))) break;
+			beginOffset--;
+		}
+		
+		return new Token(parseStream, beginOffset, offset, TK_JUNK);
 	}
 }

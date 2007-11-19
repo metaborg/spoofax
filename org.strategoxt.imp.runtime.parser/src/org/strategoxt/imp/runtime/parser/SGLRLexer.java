@@ -1,7 +1,7 @@
 package org.strategoxt.imp.runtime.parser;
 
 import org.eclipse.imp.parser.ILexer;
-import org.strategoxt.imp.runtime.parser.ast.SGLRParsersym;
+import org.strategoxt.imp.runtime.parser.tokens.SGLRParsersym;
 
 import lpg.runtime.IPrsStream;
 import lpg.runtime.LexStream;

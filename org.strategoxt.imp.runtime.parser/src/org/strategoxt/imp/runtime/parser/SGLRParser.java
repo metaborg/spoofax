@@ -14,7 +14,9 @@ import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.SGLRAstNode;
 import org.strategoxt.imp.runtime.parser.ast.SGLRAstNodeFactory;
 import org.strategoxt.imp.runtime.parser.ast.AsfixConverter;
-import org.strategoxt.imp.runtime.parser.ast.SGLRParsersym;
+import org.strategoxt.imp.runtime.parser.tokens.SGLRParsersym;
+import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenKindManager;
+import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
 
 import aterm.ATerm;
 
@@ -48,19 +50,18 @@ public class SGLRParser implements IParser {
 	
 	// Initialization and parsing
 	
-	public SGLRParser(SGLRAstNodeFactory factory, ParseTable parseTable, String startSymbol) {	
+	public SGLRParser(SGLRAstNodeFactory tokenFactory, SGLRTokenKindManager tokenManager, ParseTable parseTable, String startSymbol) {	
 		this.startSymbol = startSymbol;
 
 		tokenizer = new SGLRTokenizer();		
-		converter = new AsfixConverter(factory, tokenizer);
+		converter = new AsfixConverter(tokenFactory, tokenManager, tokenizer);
 		parser = Environment.createSGLR(parseTable);
 	}
 	
 	/**
 	 * Parse an input, returning the AST and initializing the parse stream.
 	 * 
-	 * @return  A parse tree.
-	 * @see     AsfixConverter
+	 * @return  The abstract syntax tree.
 	 */
 	public SGLRAstNode parse(char[] input, String filename) throws SGLRException, IOException {
 		Debug.startTimer();
@@ -71,8 +72,11 @@ public class SGLRParser implements IParser {
 		ATerm asfix = parser.parse(tokenizer.toByteStream(), startSymbol);
 			
 		Debug.stopTimer("File parsed");
+		Debug.startTimer();
 		
 		SGLRAstNode result = converter.implode(asfix);
+			
+		Debug.stopTimer("Parse tree imploded");
 		
 		return result;
 	}
