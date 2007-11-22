@@ -1,0 +1,14 @@
+module create-ast-classes
+
+imports
+  sdf-options
+  sdf-options
+
+strategies
+
+  main-create-ast-classes =
+    xtc-io-wrap(
+      sdf-main-module-option // -m <mod>
+    , read-from;
+      id // ...
+    )
