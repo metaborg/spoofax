@@ -1,7 +1,8 @@
 module create-ast-classes
 
 imports
-  sdf-options
+  libstratego-lib
+  libstratego-xtc
   sdf-options
 
 strategies
