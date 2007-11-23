@@ -27,7 +27,6 @@ import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenKindManager;
 
 /**
  * Base class of an IMP parse controller for an SGLR parser.
- * 
  *
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */

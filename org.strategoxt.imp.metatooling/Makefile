@@ -6,17 +6,21 @@ STRCFLAGS = \
     -la stratego-lib \
     -la stratego-gpp \
     -la stratego-tool-doc \
-    -la stratego-sglr
+    -la stratego-sglr \
+    -la ${HOME}/.nix-profile/lib/libjava-front.la
 
 STRINCLUDES = \
 	-I . \
 	-I src/str \
-	-I $(HOME)/.nix-profile/share
+	-I $(HOME)/.nix-profile/share \
+	-I $(HOME)/.nix-profile/share/java-front \
+    `pkg-config --variable=strcflags java-front`
 
-all : create-ast-classes eclipse-deps
+all : sdf2imp eclipse-deps
 
-create-ast-classes : $(STRS)
-	strc -i $< -o $@ $(STRCFLAGS) $(STRINCLUDES) -m main-create-ast-classes
+sdf2imp : $(STRS)
+	strc -i src/str/sdf2imp.str -o $@ $(STRCFLAGS) $(STRINCLUDES) -m main-sdf2imp && \
+	rm sdf2imp.c sdf2imp.lo sdf2imp.o
 
 eclipse-deps : $(CTREES)
 
