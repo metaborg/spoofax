@@ -2,20 +2,26 @@ module io
 
 strategies
   
-  write-file =
+  output-file =
     where(
-      path := <conc; create-dirs> (<OutputDir>, <package-name>)
+      path := <create-dirs> <package-name>
     );
     
-    write-file(|<conc-strings> (path, "/", <class-name>, ".java")
+    output-java-file(|<conc-strings> (path, "/", <class-name>, ".java"))
 
-  write-file(|filename) =
-    verbose-msg(!"Writing ", !filename);
+  output-java-file(|filename) =
+    verbose-msg(!"Outputting", <conc-strings> (
+                                 <package-name; separate-by(|"."); concat-strings>
+                               , ".", <class-name>
+                               ));
     
-    text := <pp-java-string>;
+    risky(
+      text := <pp-java-string>
+    | "Illegal Java output"
+    );
     
-    file := <fopen> (filename, "w")
-	<fputs> (text, file)
+    file := <fopen> (filename, "w");
+	<fputs> (text, file);
 	<fclose> file
   
   create-dirs = 
@@ -32,6 +38,6 @@ strategies
     CompilationUnit(None(), _, _) -> []
     
   class-name =
-    ?compilation-unit |[ ~*_ ~*_ ~*_ public class ~x:name { ~*_ } ]|
+    ?CompilationUnit(_, _, [ClassDec(ClassDecHead(_,Id(<id>),_,_,_),_)|_])
   <+
-    ?compilation-unit |[ ~*_ ~*_ ~*_ public interface ~x:name { ~*_ } ]|
+    ?CompilationUnit(_, _, [InterfaceDec(InterfaceDecHead(_,Id(<id>),_,_),_)|_])

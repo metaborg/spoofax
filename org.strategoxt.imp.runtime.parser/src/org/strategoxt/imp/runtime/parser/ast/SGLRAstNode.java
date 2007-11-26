@@ -11,13 +11,15 @@ import lpg.runtime.IToken;
  *
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
-public class SGLRAstNode implements IAst, Iterable<SGLRAstNode> {
+public class SGLRAstNode<TChild extends SGLRAstNode>
+		implements IAst, Iterable<TChild> {
+	
 	/** The constructor name for lists. */
 	public static final String LIST_CONSTRUCTOR = "[]";
 	
 	private final String constructor;
 	
-	private final ArrayList<SGLRAstNode> children;
+	private final ArrayList<TChild> children;
 	
 	private final IToken leftToken, rightToken;
 	
@@ -28,7 +30,7 @@ public class SGLRAstNode implements IAst, Iterable<SGLRAstNode> {
 		return constructor;
 	}
 	
-	public ArrayList<SGLRAstNode> getChildren() {
+	public ArrayList<TChild> getChildren() { // must expose impl. type for interface 
 		return children;
 	}
 
@@ -53,7 +55,7 @@ public class SGLRAstNode implements IAst, Iterable<SGLRAstNode> {
 	// Initialization
 	
 	protected SGLRAstNode(String constructor, IToken leftToken, IToken rightToken,
-			ArrayList<SGLRAstNode> children) {
+			ArrayList<TChild> children) {
 		
 		assert constructor != null;
 		assert leftToken != null;
@@ -68,12 +70,12 @@ public class SGLRAstNode implements IAst, Iterable<SGLRAstNode> {
 	
 	protected SGLRAstNode(String constructor, IToken leftToken, IToken rightToken) {
 		// Construct an empty list (unfortunately needs to be a concrete ArrayList type)
-		this(constructor, leftToken, rightToken, new ArrayList<SGLRAstNode>(0));
+		this(constructor, leftToken, rightToken, new ArrayList<TChild>(0));
 	}
 	
 	// General access
 	
-	public Iterator<SGLRAstNode> iterator() {
+	public Iterator<TChild> iterator() {
 		return getChildren().iterator();
 	}
 
@@ -105,7 +107,7 @@ public class SGLRAstNode implements IAst, Iterable<SGLRAstNode> {
 	 * @deprecated  Unused; ATermAstNode does not include null children.
 	 */
 	@Deprecated
-	public ArrayList<SGLRAstNode> getAllChildren() {
+	public ArrayList<TChild> getAllChildren() {
 		return getChildren();
 	}
 

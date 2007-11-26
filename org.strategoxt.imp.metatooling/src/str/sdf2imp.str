@@ -1,25 +1,53 @@
-module create-ast-classes
+module sdf2imp
 
 imports
   libstratego-lib
+  libstratego-xtc
+  libjava-front
   sdf-options
   
+  io
+  debug
   create-ast-classes
+  create-ast-visitor
+  create-ast-factory
+
+overlays
+
+  tname_ASTNODE    = tname |[ org.strategoxt.imp.runtime.parser.ast.SGLRAstNode ]|
+  tname_ASTFACTORY = tname |[ org.strategoxt.imp.runtime.parser.ast.SGLRAstNodeFactory ]|
+  tname_ITOKEN     = tname |[ lpg.runtime.IToken ]|
 
 strategies
 
   main-sdf2imp =
     rules(BasePackage := ""); // default output dir
     
-    xtc-io-wrap(
+    xtc-input-wrap(
       sdf-main-module-option // -m <mod>
     + output-dir-option
-    , create-ast-classes
+    , sdf2imp
     )
 
   output-dir-option = // TODO2: Use base package name
     ArgOption(
       "-p"
     , rules(BasePackage := <id>)
-    , !"-p <directory>                Set base package name"
+    , !"-p <directory>        Set base package name"
     )
+
+strategies
+
+  sdf2imp =
+    // TODO2: Cleanup before generating classes
+    sdf2rtg;
+    read-from;
+    rtg-to-ast-classes;
+    create-ast-factory;
+    create-ast-visitor
+
+  sdf2rtg =
+    // TODO2: XTC detox?
+    // TODO2: pack-sdf?
+    xtc-transform(!"sdf2rtg", !["--ignore-missing-cons", "-m", <get-sdf-main-module> | <pass-verbose>]);
+    xtc-transform(!"sglri", !["-p", <xtc-find> "rtg.tbl", "--start", "RTG"])

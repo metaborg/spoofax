@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import lpg.runtime.IToken;
 import lpg.runtime.PrsStream;
 
+import static org.spoofax.jsglr.Term.*;
+
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenKindManager;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
 
@@ -83,7 +85,7 @@ public class AsfixConverter {
 		IToken prevToken = tokenizer.currentToken();
 		
 		// Enter lexical context if this is a lex node
-		boolean lexicalStart = !lexicalContext && rhs.getName().equals("lex");
+		boolean lexicalStart = !lexicalContext && rhs.getName().equals("lex"); TODO: && applAt(rhs, 0).getName().equals("lit")?
 		if (lexicalStart) lexicalContext = true;
 
 		// TODO2: Optimization; don't need to always allocate child list
@@ -105,7 +107,7 @@ public class AsfixConverter {
 		if (lexicalStart) {
 			lexicalContext = false;
 			IToken token = tokenizer.makeToken(offset, tokenManager.getTokenKind(lhs, rhs));
-			return factory.createTerminal(token);
+			return factory.createTerminal(rhs, token);
 		} else if (lexicalContext) {
 			return null; // don't create tokens inside lexical context
 		} else {

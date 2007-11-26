@@ -1,0 +1,78 @@
+module create-ast-visitor
+
+imports
+  libstratego-lib
+  libstratego-xtc
+  sdf-options
+  rtg
+  
+  io
+  debug
+
+strategies // TODO: Visitor
+
+  visitor-register-class(|name) =
+    x_Name := name;
+    
+    rules(
+      VisitorMethods :+= class-body-dec |[
+        public boolean visit(x_Name node) {
+          unimplementedVisitor("visit(" + "~name" +")");
+          return true;
+        }
+      ]|
+      
+      VisitorMethods :+= class-body-dec |[
+        public void endVisit(x_Name node) {
+          unimplementedVisitor("endVisit(" + "~name" +")");
+        }
+      ]|
+      
+      VisitCases :+= bstm |[
+        if (node instanceof x_Name) return visit((x_Name) node);
+      ]|
+      
+      EndVisitCases :+= bstm |[
+        if (node instanceof x_Name) { endVisit((x_Name) node); return; }
+      ]|
+    )
+    
+    // TODO: VisitorCases; VisitorMethods
+  
+  // TODO2: Visitor interface?
+  create-ast-visitor =
+    methods       := <bagof-VisitorMethods>;
+    visitcases    := <bagof-VisitCases>;
+    endvisitcases := <bagof-EndVisitCases>;
+    x_AstNode     := <get-ast-base-name>;
+    
+    <output-file> compilation-unit |[
+      package parser.ast;
+      
+      public abstract class AbstractVisitor {
+        
+        public abstract void unimplementedVisitor(java.lang.String source);
+    
+        public boolean preVisit(x_AstNode node) { return true; }
+    
+        public void postVisit(x_AstNode node) {}
+        
+        ~*methods
+        
+        public boolean visit(x_AstNode node) {
+          ~*visitcases
+          
+          throw new java.lang.IllegalArgumentException("Node of type "
+                                                       + node.getClass().getSimpleName()
+                                                       + "not expected.");
+        }
+        
+        public void endVisit(tname_ASTNODE node) {
+          ~*endvisitcases
+          
+          throw new java.lang.IllegalArgumentException("Node of type "
+                                                       + node.getClass().getSimpleName()
+                                                       + "not expected.");
+        }
+      }
+    ]|

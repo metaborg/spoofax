@@ -2,83 +2,383 @@ module create-ast-classes
 
 imports
   libstratego-lib
-  libstratego-xtc
   sdf-options
   rtg
+  
+  io
+  debug
+  create-ast-visitor
+  create-ast-factory
 
 strategies
 
-  sdf2rtg =
-    // TODO2: XTC detox?
-    xtc-transform(!"sdf2rtg", !["-n", "--ignore-missing-cons", "-m", <get-sdf-main-module> | <pass-verbose>])
-
-  ast-package =
-    <conc> (<BasePackage>, ["ast"]);
-    !PackageDec(None, PackageName(<id>))
-
   rtg-to-ast-classes =
-    sdf2rtg;
-    read-from => RTG(_, prods);
+    ?RTG(_, ProdRules(<id>));
     
-    list-loop(try(
-      sort-to-class;
-      write-file
-    ));
+    where(register-builtin-classes);
+    
+    list-loop(
+      if(sort-to-class, output-file)
+    );
     
     list-loop(risky(
-      constructor-to-class
-      write-file
+      (terminal-to-class <+ non-terminal-to-class <+ ignore-production);
+      (None <+ output-file)
     | "Could not convert production to AST class") 
-    )
+    );
+    
+    create-ast-base-class;
+    create-ast-list-class;
+    create-ast-string-class;
+    
+    consistency-check
   
+  register-builtin-classes =
+    // Reserve default class names
+    <reserve-class-name> "Visitor";
+    <reserve-class-name> "AbstractVisitor";
+    <reserve-class-name> "List";
+    <reserve-class-name> "String";
+    <reserve-class-name> <get-ast-base-name>;
+    <reserve-class-name> <get-ast-factory-name>;
+    
+    // Reserve default accessor method names
+    rules(
+      IsReservedAccessorName: "Sort"
+      IsReservedAccessorName: "Constructor"
+      IsReservedAccessorName: "Class"
+      IsReservedAccessorName: "Children"
+      IsReservedAccessorName: "AllChildren"
+      IsReservedAccessorName: "FollowingAdjuncts"
+      IsReservedAccessorName: "PrecedingAdjuncts"
+      IsReservedAccessorName: "LeftIToken"
+      IsReservedAccessorName: "RightIToken"
+      IsReservedAccessorName: "Parent"
+      IsReservedAccessorName: "NextAst"
+    );
+    
+    visitor-register-class(|"List");
+    visitor-register-class(|"String")
+  
+  consistency-check =
+    bagof-AccessedSorts;
+    
+    list-loop(
+      SortClassName
+    <+
+      // TODO2: Recover from undefined sort by creating an abstract placeholder class
+      err(|"Undefined sort referenced");
+      try(?error)
+    );
+    
+    not(!error)
+
+/** Create default node classes. */ 
+strategies
+
+  get-ast-base-name =
+    <conc-strings> (<get-sdf-main-module>, "AstNode")
+  
+  create-ast-base-class =
+    x_Name := <get-ast-base-name>;
+    
+    <output-file> compilation-unit |[
+      package parser.ast;
+    
+      public abstract class x_Name extends tname_ASTNODE<x_Name> {
+        protected x_Name(java.lang.String constructor, tname_ITOKEN leftToken, tname_ITOKEN rightToken,
+            java.util.ArrayList<x_Name> children) {
+          super(constructor, leftToken, rightToken, children);
+	    }
+	    
+        protected x_Name(java.lang.String constructor, tname_ITOKEN leftToken, tname_ITOKEN rightToken) {
+          super(constructor, leftToken, rightToken);
+	    }
+	    
+	    public abstract java.lang.String getSort();
+	    
+        public abstract void accept(AbstractVisitor visitor);
+      }
+    ]|
+  
+  create-ast-string-class =
+    x_Super := <get-ast-base-name>;
+    
+    <output-file> compilation-unit |[
+      package parser.ast;
+    
+      public class String extends x_Super {
+        public String(java.lang.String value, tname_ITOKEN leftToken, tname_ITOKEN rightToken) {
+          super(value, leftToken, rightToken);
+          
+          // TODO2: Should constructor == value?
+	    }
+	    
+	    @Override
+	    public java.lang.String getSort() {
+	      return "<string>";
+	    }
+	    
+        @Override
+	    public void accept(AbstractVisitor visitor) {
+          visitor.visit(this);
+          visitor.endVisit(this);
+        }
+        
+        public java.lang.String getValue() {
+          return getConstructor();
+        }
+      }
+    ]|
+  
+  create-ast-list-class =
+    x_Super := <get-ast-base-name>;
+    
+    <output-file> compilation-unit |[
+      package parser.ast;
+    
+      public class List extends x_Super {
+        public List(tname_ITOKEN leftToken, tname_ITOKEN rightToken, java.util.ArrayList<x_Super> children) {
+          super(LIST_CONSTRUCTOR, leftToken, rightToken, children);
+	    }
+	    
+	    @Override
+	    public java.lang.String getSort() {
+	      return "<cons>";
+	    }
+	    
+	    @Override
+	    public void accept(AbstractVisitor visitor) {
+	      if (!visitor.preVisit(this)) return;
+	      enter(visitor);
+	      visitor.postVisit(this);
+	    }
+	    
+	    protected void enter(AbstractVisitor visitor) {
+	      if (visitor.visit(this)) {
+	        for (x_Super node : this) {
+	          node.accept(visitor);
+	        }
+	      }  
+	      visitor.endVisit(this);
+	    }
+      }
+    ]|
+
+/** Converting productions to classes. */
+rules
+
   sort-to-class:
     ProdRule(
       Nonterm(Plain(lhs))
     , [rhs]
     ) ->
     compilation-unit |[
-      package ast;
+      package parser.ast;
       
-      abstract class ~x:lhs extends SGLRAstNode {
-      
+      public abstract class x_Name extends x_Super {
+        protected x_Name(java.lang.String constructor, tname_ITOKEN leftToken, tname_ITOKEN rightToken,
+            java.util.ArrayList<x_Super> children) {
+          super(constructor, leftToken, rightToken, children);
+	    }
+	    
+	    @Override
+	    public java.lang.String getSort() {
+	      return "~lhs";
+	    }
       }
-    ]|
-    where not(<ReservedName> lhs); // create only once
+    ]|  
+    where not(<SortClassName> lhs); // create only once
+          x_Super := <get-ast-base-name>;
 
           if Appl(constructor, _) := rhs then
-            not(<eq> (lhs, constructor)); // try not to create sort class if constructor has same name
+            not(<eq> (lhs, constructor)) // try not to create sort class if constructor has same name
           end;
           
-          <reserve-name> lhs
+          not(<Ref(String + Int)> rhs); // no sort class for terminals
+          
+          x_Name := <reserve-class-name> lhs;
+          rules(SortClassName: lhs -> x_Name)
   
-  constructor-to-class:
+  non-terminal-to-class:
     ProdRule(
       Nonterm(Plain(lhs))
-    , [Appl(rhs, args)]
+    , [Appl(Term(Plain(constructor)), args)]
     ) ->
     compilation-unit |[
-      package ast;
+      package parser.ast;
       
-      class x_Name implements x_Parent {
- 
-      }     
+      public class x_Name extends x_Parent {
+        protected x_Name(java.lang.String constructor, tname_ITOKEN leftToken, tname_ITOKEN rightToken,
+            java.util.ArrayList<x_Super> children) {
+          super(constructor, leftToken, rightToken, children);
+	    }
+	    
+	    @Override
+	    public java.lang.String getSort() {
+	      return "~lhs";
+	    }
+	    
+	    @Override
+	    public void accept(AbstractVisitor visitor) {
+	      if (!visitor.preVisit(this)) return;
+	      enter(visitor);
+	      visitor.postVisit(this);
+	    }
+	    
+	    protected void enter(AbstractVisitor visitor) {
+	      if (visitor.visit(this)) {
+	        for (x_Super node : this) {
+	          node.accept(visitor);
+	        }
+	      }  
+	      visitor.endVisit(this);
+	    }
+      
+        ~*children
+      }
     ]|
-    where x_Name := <reserve-name> rhs;
-          if <eq> (x_Name, 
+    where x_Name      := <reserve-class-name> constructor;
+          x_Super     := <get-ast-base-name>;
+          x_Parent    := <get-parent-name> lhs;
+          
+          {| IsReservedAccessorName:            
+            children := <number(create-child-accessor)> args
+          |};
+          
+          factory-register-non-terminal(|constructor, x_Name, args);
+          visitor-register-class(|x_Name)
   
-  get-constructor =
-    
+  terminal-to-class:
+    ProdRule(
+      Nonterm(Plain(lhs))
+    , [Ref(String)]
+    ) ->
+    compilation-unit |[
+      package parser.ast;
+      
+      public class x_Name extends x_Parent {
+        public x_Name(java.lang.String value, tname_ITOKEN leftToken, tname_ITOKEN rightToken) {
+          super(value, leftToken, rightToken);
+	    }
+        
+        public java.lang.String getValue() {
+          return getConstructor();
+        }
+	    
+	    @Override
+	    public java.lang.String getSort() {
+	      return "~lhs";
+	    }
+	    
+	    @Override
+	    public void accept(AbstractVisitor visitor) {
+	      if (!visitor.preVisit(this)) return;
+	      enter(visitor);
+	      visitor.postVisit(this);
+	    }
+	    
+	    protected void enter(AbstractVisitor visitor) {
+	      visitor.visit(this);
+	      visitor.endVisit(this);
+	    }
+      }
+    ]|
+    where x_Name      := <reserve-class-name> lhs;
+          x_Parent    := <get-parent-name> lhs;
+          
+          factory-register-terminal(|lhs, x_Name);
+          visitor-register-class(|x_Name)
+  
+  ignore-production: // don't generate anything for <conc>, <cons>, etc.
+    ProdRule(
+      Nonterm(Plain(_))
+    , [Appl(rhs, _)]
+    ) ->
+    None()
+    where <not(Term(Plain(id)))> rhs
+  
+  ignore-production: // TODO: Reconsider this
+    ProdRule(
+      Nonterm(Plain(_))
+    , [Ref(_)]
+    ) ->
+    None()
+  
+  /** Returns a node's parent class name. */
+  get-parent-name =
+    SortClassName
+  <+
+    // There is no separate sort class for this type
+    ?sort;
+    x_Parent := <get-ast-base-name>;
+    rules(SortClassName: sort -> x_Parent)
+  
+  create-child-accessor:
+    (Ref(String()), index) ->
+    class-body-dec |[
+      java.lang.String x_Name() {
+        return ((String) getChildren().get(i)).getValue();      
+      }
+    ]|
+    where x_Name := <create-accessor-name(|index)> "String";
+          i      := <write-to-string> index
 
-  reserve-name ==
-    ?name;
+  create-child-accessor:
+    (Ref(Nonterm(Plain(child))), index) ->
+    class-body-dec |[
+      x_Type x_Name() {
+        return (x_Type) getChildren().get(i);      
+      }
+    ]|
+    where x_Name := <create-accessor-name(|index)> child;
+          x_Type := child;
+          i      := <write-to-string> index;
+          rules(AccessedSorts :+= child)
+
+/** Utility strategies. */
+strategies
+
+  /* UNDONE: Giving a generic name for NilTerm etc.
+  to-typename(|sort) =
+    is-string
+  <+
+    ?Term(Plain(<id>))
+  <+
+    NilTerm; <conc-strings> ("Nil_", sort)
+  <+
+    ConsTerm; <conc-strings> ("Cons_", sort)
+  <+
+    ConcTerm; <conc-strings> ("Conc_", sort)
+  <+
+    SomeTerm; <conc-strings> ("Some_", sort)
+  <+
+    NoneTerm; <conc-strings> ("None_", sort)
+  <+
+    err(|"Cannot convert to type name"); fail
+  */
+  
+  create-accessor-name(|index) =
+    not(IsReservedAccessorName) => name;
+    rules(IsReservedAccessorName: name);
+    
+    <conc-strings> ("get", <id>)
+  <+
+    <conc-strings> ("get", <id>, <write-to-string> index)
+
+  reserve-class-name =
+    is-string => name;
     
     for(
-      !(0, <id>)
-    , (id, ReservedName)
+      !(0, name)
+    , not((id, IsReservedClassName))
     , {n: // Create a new name0 ... nameN until non-reserved name found
-          ?(n, _)
-          (inc, <conc-strings> (name, <write-to-string> n);
+          ?(n, _);
+          (inc, <conc-strings> (name, <write-to-string> n))
       }
     );
     
-    rules(ReservedName := <id>)
+    reserved := <Snd>;
+    
+    rules(IsReservedClassName: reserved)
+    

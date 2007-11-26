@@ -1,5 +1,5 @@
-STRS   = $(wildcard src/str/*.str)
-CTREES = $(STRS:.str=.ctree)
+STRS     = $(wildcard src/str/*.str)
+CTREES   = src/str/sdf2imp.ctree
 
 STRCFLAGS = \
 	-la stratego-xtc \
@@ -7,25 +7,22 @@ STRCFLAGS = \
     -la stratego-gpp \
     -la stratego-tool-doc \
     -la stratego-sglr \
-    -la ${HOME}/.nix-profile/lib/libjava-front.la
+    -la ${HOME}/.nix-profile/lib/libjava-front.la \
+    `pkg-config --variable=strcxtcflags strategoxt`
 
 STRINCLUDES = \
-	-I . \
-	-I src/str \
-	-I $(HOME)/.nix-profile/share \
-	-I $(HOME)/.nix-profile/share/java-front \
     `pkg-config --variable=strcflags java-front`
 
 all : sdf2imp eclipse-deps
 
-sdf2imp : $(STRS)
-	strc -i src/str/sdf2imp.str -o $@ $(STRCFLAGS) $(STRINCLUDES) -m main-sdf2imp && \
+sdf2imp : $(STRS) Makefile
+	strc -i src/str/sdf2imp.str -o $@ $(STRINCLUDES) $(STRCFLAGS) -m main-sdf2imp && \
 	rm sdf2imp.c sdf2imp.lo sdf2imp.o
 
 eclipse-deps : $(CTREES)
 
 clean :
-	rm -f src/str/*.ctree create-ast-classes
+	rm -f $(CTREES) sdf2imp
 
 # files:
 
@@ -35,4 +32,4 @@ clean :
 	parse-stratego -i $< -o $@
 
 %.ctree : %.str
-	strc -F -i $< -o $@
+	strc -F -i $< -o $@ $(STRINCLUDES)
