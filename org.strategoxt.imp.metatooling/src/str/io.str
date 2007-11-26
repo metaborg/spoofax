@@ -1,0 +1,37 @@
+module io
+
+strategies
+  
+  write-file =
+    where(
+      path := <conc; create-dirs> (<OutputDir>, <package-name>)
+    );
+    
+    write-file(|<conc-strings> (path, "/", <class-name>, ".java")
+
+  write-file(|filename) =
+    verbose-msg(!"Writing ", !filename);
+    
+    text := <pp-java-string>;
+    
+    file := <fopen> (filename, "w")
+	<fputs> (text, file)
+	<fclose> file
+  
+  create-dirs = 
+    where(root := <getcwd>) 
+	; map((file-exists <+ mkdir(|"w")) ; chdir) 
+	; getcwd // return path to innermost created dir.
+    ; where (<chdir> root)     
+  
+  package-name:
+    CompilationUnit(Some(PackageDec(_, PackageName(ids))), _, _) -> xs
+    where xs := <map(?Id(<id>))> ids
+    
+  package-name:
+    CompilationUnit(None(), _, _) -> []
+    
+  class-name =
+    ?compilation-unit |[ ~*_ ~*_ ~*_ public class ~x:name { ~*_ } ]|
+  <+
+    ?compilation-unit |[ ~*_ ~*_ ~*_ public interface ~x:name { ~*_ } ]|
