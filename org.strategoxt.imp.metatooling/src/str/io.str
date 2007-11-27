@@ -8,6 +8,10 @@ strategies
     );
     
     output-java-file(|<conc-strings> (path, "/", <class-name>, ".java"))
+  
+  // TODO2: Add @Generated attribute to files
+  // import javax.annotation.Generated;
+  // @Generated("sdf2imp")
 
   output-java-file(|filename) =
     verbose-msg(!"Outputting", <conc-strings> (
@@ -21,13 +25,13 @@ strategies
     );
     
     file := <fopen> (filename, "w");
-	<fputs> (text, file);
-	<fclose> file
+    <fputs> (text, file);
+    <fclose> file
   
   create-dirs = 
     where(root := <getcwd>) 
-	; map((file-exists <+ mkdir(|"w")) ; chdir) 
-	; getcwd // return path to innermost created dir.
+    ; map((file-exists <+ mkdir(|"w")) ; chdir) 
+    ; getcwd // return path to innermost created dir.
     ; where (<chdir> root)     
   
   package-name:

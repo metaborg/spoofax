@@ -30,7 +30,7 @@ import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenKindManager;
  *
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
-public abstract class SGLRParseController implements IParseController {	
+public abstract class SGLRParseController implements IParseController {
 	private final List<String> problemMarkerTypes = new ArrayList<String>();
 	
 	private final List<ParseError> parseErrors = new ArrayList<ParseError>();
@@ -158,6 +158,10 @@ public abstract class SGLRParseController implements IParseController {
 		// This is a supposedly short-term solution for getting
 		// a language's single-line comment prefix
 		return "";
+	}
+
+	public String getLanguageName() {
+		throw new UnsupportedOperationException();
 	}
 
 	// Problem markers and errors

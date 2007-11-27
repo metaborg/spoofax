@@ -42,7 +42,7 @@ public class AsfixConverter {
 	
 	private final static int CONS_NAME = 0;
 	
-	private final SGLRAstNodeFactory factory;
+	private final SGLRAstNodeFactory<SGLRAstNode> factory;
 	
 	private final SGLRTokenizer tokenizer;
 	
@@ -53,7 +53,8 @@ public class AsfixConverter {
 	
 	private boolean lexicalContext;
 	
-	public AsfixConverter(SGLRAstNodeFactory factory, SGLRTokenKindManager tokenManager, SGLRTokenizer tokenizer) {
+	@SuppressWarnings("unchecked") // TODO2: Expand/explode generic signatures?	
+    public AsfixConverter(SGLRAstNodeFactory factory, SGLRTokenKindManager tokenManager, SGLRTokenizer tokenizer) {
 		this.factory = factory;
 		this.tokenManager = tokenManager;
 		this.tokenizer = tokenizer;
@@ -85,8 +86,14 @@ public class AsfixConverter {
 		IToken prevToken = tokenizer.currentToken();
 		
 		// Enter lexical context if this is a lex node
-		boolean lexicalStart = !lexicalContext && rhs.getName().equals("lex"); TODO: && applAt(rhs, 0).getName().equals("lit")?
-		if (lexicalStart) lexicalContext = true;
+		boolean lexicalStart = !lexicalContext && rhs.getName().equals("lex");
+		
+		// TODO: Cleanup
+		if (applAt(rhs, 0).getName().equals("layout"))
+			lexicalStart = false;
+		
+		if (lexicalStart)
+			lexicalContext = true;
 
 		// TODO2: Optimization; don't need to always allocate child list
 		ArrayList<SGLRAstNode> childNodes = new ArrayList<SGLRAstNode>();

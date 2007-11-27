@@ -11,12 +11,13 @@ imports
   create-ast-classes
   create-ast-visitor
   create-ast-factory
+  create-parse-controller
 
 overlays
 
-  tname_ASTNODE    = tname |[ org.strategoxt.imp.runtime.parser.ast.SGLRAstNode ]|
-  tname_ASTFACTORY = tname |[ org.strategoxt.imp.runtime.parser.ast.SGLRAstNodeFactory ]|
-  tname_ITOKEN     = tname |[ lpg.runtime.IToken ]|
+  tname_ASTNODE        = tname |[ org.strategoxt.imp.runtime.parser.ast.SGLRAstNode ]|
+  tname_ASTFACTORY     = tname |[ org.strategoxt.imp.runtime.parser.ast.SGLRAstNodeFactory ]|
+  tname_ITOKEN         = tname |[ lpg.runtime.IToken ]|
 
 strategies
 
@@ -26,6 +27,7 @@ strategies
     xtc-input-wrap(
       sdf-main-module-option // -m <mod>
     + output-dir-option
+    // TODO2: -s <start symbol> argument (when JSGLR supports it)
     , sdf2imp
     )
 
@@ -44,7 +46,8 @@ strategies
     read-from;
     rtg-to-ast-classes;
     create-ast-factory;
-    create-ast-visitor
+    create-ast-visitor;
+    create-parse-controller
 
   sdf2rtg =
     // TODO2: XTC detox?

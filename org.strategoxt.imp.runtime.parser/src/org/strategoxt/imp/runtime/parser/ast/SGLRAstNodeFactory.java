@@ -55,7 +55,7 @@ public abstract class SGLRAstNodeFactory<TNode extends SGLRAstNode> {
 			tokenContents.append(lex.getCharValue(i));
 		}
 		
-		assert sort.getName().equals("lex") && applAt(sort, 0).getName().equals("lit")
+		assert sort.getName().equals("lex") && applAt(sort, 0).getName().equals("sort")
 			: "Literal AST node expected instead of " + sort;
 		
 		String sortString = ((ATermAppl) sort.getChildAt(0).getChildAt(0)).getName();

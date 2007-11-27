@@ -1,0 +1,59 @@
+module create-parse-controller
+
+imports
+  libstratego-lib
+  libstratego-xtc
+  sdf-options
+  rtg
+  
+  io
+  debug
+
+strategies
+  
+  get-parse-controller-name =
+    <conc-strings> (<get-sdf-main-module>, "ParseController")
+
+  create-parse-controller =
+    x_Name    := <get-parse-controller-name>;
+    x_Node    := <get-ast-base-name>;
+    x_Factory := <get-ast-factory-name>;
+    table     := <get-sdf-main-module>;
+  
+    <output-file> |[
+      package parser;
+
+      import java.io.IOException;      
+      import org.spoofax.jsglr.InvalidParseTableException;
+      import org.strategoxt.imp.runtime.parser.SGLRParseController;
+      import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenKindManager;
+      import parser.ast.WebDSLAstNodeFactory;
+      
+      public class x_Name extends SGLRParseController {
+        private static final String GRAMMAR = "~table";
+        private static final String TABLE = "/syntax/" + GRAMMAR + ".tbl";
+        
+        public x_Name() throws IOException, InvalidParseTableException {          
+          // TODO: Grammar-specific token kind manager
+          
+          super(new x_Factory(), new SGLRTokenKindManager(), x_Name.class.getResourceAsStream(TABLE), null);
+        }
+        
+        @Override
+        public String getLanguageName() {
+          return GRAMMAR;
+        }
+        
+        @Override
+        public String getSingleLineCommentPrefix() { // TODO2: Produce single-line comment prefix for grammar?
+          return super.getSingleLineCommentPrefix();
+        }
+        
+        /* UNDONE: Using covariance here is cheaper than the immense signature explosion caused by full generics
+        @Override 
+        public x_Node parse(String input, boolean scanOnly, IProgressMonitor monitor) {
+          return (x_Node) super.parse(input, scanOnly, monitor);
+        }
+        */
+      }
+    ]|
