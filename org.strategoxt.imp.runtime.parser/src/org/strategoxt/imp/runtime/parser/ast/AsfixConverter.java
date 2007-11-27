@@ -7,6 +7,7 @@ import lpg.runtime.PrsStream;
 
 import static org.spoofax.jsglr.Term.*;
 
+import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenKindManager;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
 
@@ -114,6 +115,9 @@ public class AsfixConverter {
 		if (lexicalStart) {
 			lexicalContext = false;
 			IToken token = tokenizer.makeToken(offset, tokenManager.getTokenKind(lhs, rhs));
+
+			Debug.log("Creating node ", rhs, " from ", tokenizer.dumpToString(token));	
+			
 			return factory.createTerminal(rhs, token);
 		} else if (lexicalContext) {
 			return null; // don't create tokens inside lexical context
@@ -130,6 +134,11 @@ public class AsfixConverter {
 		if (constructor != null) {
 			IToken left = getStartToken(prevToken);
 			IToken right = tokenizer.currentToken();
+			
+			Debug.log("Creating node ", constructor, " from ", tokenizer.dumpToString(left, right));
+			Debug.log("  with children: ", childNodes);
+			
+			
 			return factory.createNonTerminal(constructor, left, right, childNodes);
 		} else {
 			switch (childNodes.size()) {

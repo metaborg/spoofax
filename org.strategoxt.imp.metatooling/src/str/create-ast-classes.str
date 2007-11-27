@@ -86,18 +86,18 @@ strategies
       package parser.ast;
     
       public abstract class x_Name extends tname_ASTNODE<x_Name> {
-        protected x_Name(java.lang.String constructor, tname_ITOKEN leftToken, tname_ITOKEN rightToken,
+        protected x_Name(tname_ITOKEN leftToken, tname_ITOKEN rightToken,
             java.util.ArrayList<x_Name> children) {
-          super(constructor, leftToken, rightToken, children);
+          super(leftToken, rightToken, children);
 	    }
 	    
-        protected x_Name(java.lang.String constructor, tname_ITOKEN leftToken, tname_ITOKEN rightToken) {
-          super(constructor, leftToken, rightToken);
+        protected x_Name(tname_ITOKEN leftToken, tname_ITOKEN rightToken) {
+          super(leftToken, rightToken);
 	    }
-	    
-	    public abstract java.lang.String getSort();
 	    
         public abstract void accept(AbstractVisitor visitor);
+        
+        // also abstract: getSort(); getCosntructor()
       }
     ]|
   
@@ -108,15 +108,18 @@ strategies
       package parser.ast;
     
       public class String extends x_Super {
-        public String(java.lang.String value, tname_ITOKEN leftToken, tname_ITOKEN rightToken) {
-          super(value, leftToken, rightToken);
-          
-          // TODO2: Should constructor == value?
+        public String(tname_ITOKEN leftToken, tname_ITOKEN rightToken) {
+          super(leftToken, rightToken);
 	    }
 	    
 	    @Override
 	    public java.lang.String getSort() {
-	      return "<string>";
+	      return STRING_SORT;
+	    }
+	    
+	    @Override
+	    public java.lang.String getConstructor() {
+	      return null;
 	    }
 	    
         @Override
@@ -139,12 +142,17 @@ strategies
     
       public class List extends x_Super {
         public List(tname_ITOKEN leftToken, tname_ITOKEN rightToken, java.util.ArrayList<x_Super> children) {
-          super(LIST_CONSTRUCTOR, leftToken, rightToken, children);
+          super(leftToken, rightToken, children);
 	    }
 	    
 	    @Override
 	    public java.lang.String getSort() {
-	      return "<cons>";
+	      return LIST_SORT;
+	    }
+	    
+	    @Override
+	    public java.lang.String getConstructor() {
+	      return LIST_CONSTRUCTOR;
 	    }
 	    
 	    @Override
@@ -170,53 +178,59 @@ rules
 
   sort-to-class:
     ProdRule(
-      Nonterm(Plain(lhs))
+      Nonterm(Plain(sort))
     , [rhs]
     ) ->
     compilation-unit |[
       package parser.ast;
       
       public abstract class x_Name extends x_Super {
-        protected x_Name(java.lang.String constructor, tname_ITOKEN leftToken, tname_ITOKEN rightToken,
+        protected x_Name(tname_ITOKEN leftToken, tname_ITOKEN rightToken,
             java.util.ArrayList<x_Super> children) {
-          super(constructor, leftToken, rightToken, children);
+          
+          super(leftToken, rightToken, children);
 	    }
 	    
 	    @Override
 	    public java.lang.String getSort() {
-	      return "~lhs";
+	      return "~sort";
 	    }
       }
     ]|  
-    where not(<SortClassName> lhs); // create only once
+    where not(<SortClassName> sort); // create only once
           x_Super := <get-ast-base-name>;
 
+          // Try not to create sort class if constructor has same name
+          // TODO: Consider always creating a sort class
           if Appl(constructor, _) := rhs then
-            not(<eq> (lhs, constructor)) // try not to create sort class if constructor has same name
+            not(<eq> (sort, constructor))
           end;
           
           not(<Ref(String + Int)> rhs); // no sort class for terminals
           
-          x_Name := <reserve-class-name> lhs;
-          rules(SortClassName: lhs -> x_Name)
+          x_Name := <reserve-class-name> sort;
+          rules(SortClassName: sort -> x_Name)
   
+  /**
+   * Create a class for a non-terminal with a constructor.
+   */
   non-terminal-to-class:
     ProdRule(
-      Nonterm(Plain(lhs))
-    , [Appl(Term(Plain(constructor)), args)]
+      Nonterm(Plain(sort))
+    , [rhs]
     ) ->
     compilation-unit |[
       package parser.ast;
       
       public class x_Name extends x_Parent {
-        protected x_Name(java.lang.String constructor, tname_ITOKEN leftToken, tname_ITOKEN rightToken,
+        protected x_Name(tname_ITOKEN leftToken, tname_ITOKEN rightToken,
             java.util.ArrayList<x_Super> children) {
-          super(constructor, leftToken, rightToken, children);
+          super(leftToken, rightToken, children);
 	    }
 	    
 	    @Override
-	    public java.lang.String getSort() {
-	      return "~lhs";
+	    public java.lang.String getConstructor() {
+	      return e_Constructor;
 	    }
 	    
 	    @Override
@@ -238,37 +252,66 @@ rules
         ~*children
       }
     ]|
-    where x_Name      := <reserve-class-name> constructor;
-          x_Super     := <get-ast-base-name>;
-          x_Parent    := <get-parent-name> lhs;
+    where (name, args, e_Constructor) := <get-non-terminal-properties>;
+          
+          x_Name   := <reserve-class-name> name;
+          x_Super  := <get-ast-base-name>;
+          x_Parent := <get-parent-name> sort;
           
           {| IsReservedAccessorName:            
             children := <number(create-child-accessor)> args
           |};
           
-          factory-register-non-terminal(|constructor, x_Name, args);
+          factory-register-non-terminal(|name, x_Name, args);
           visitor-register-class(|x_Name)
   
+  /** Get the name, arguments and Java constructor expression for the right-hand side of a rule. */
+  get-non-terminal-properties:
+    ProdRule(
+      Nonterm(Plain(sort))
+    , [Appl(Term(Plain(name)), args)]
+    ) ->
+    (name, args, |[ "~name" ]|)
+  
+  /** Get the name, arguments and Java constructor expression for the right-hand side of a rule. */
+  get-non-terminal-properties:
+    ProdRule(
+      Nonterm(Plain(sort))
+    , [Ref(Nonterm(Plain(rhs)))]
+    ) ->
+    (sort, [Ref(Nonterm(Plain(rhs)))], |[ null ]|)
+  
+  /**
+   * Create a class for a terminal.
+   */
   terminal-to-class:
     ProdRule(
-      Nonterm(Plain(lhs))
+      Nonterm(Plain(sort))
     , [Ref(String)]
     ) ->
     compilation-unit |[
       package parser.ast;
       
       public class x_Name extends x_Parent {
+        private final java.lang.String value;
+        
         public x_Name(java.lang.String value, tname_ITOKEN leftToken, tname_ITOKEN rightToken) {
-          super(value, leftToken, rightToken);
+          super(leftToken, rightToken);
+          this.value = value;
 	    }
         
         public java.lang.String getValue() {
-          return getConstructor();
+          return value;
         }
 	    
 	    @Override
+	    public java.lang.String getConstructor() {
+	      return null;
+	    }
+	    
+	    @Override
 	    public java.lang.String getSort() {
-	      return "~lhs";
+	      return "~sort";
 	    }
 	    
 	    @Override
@@ -284,10 +327,10 @@ rules
 	    }
       }
     ]|
-    where x_Name      := <reserve-class-name> lhs;
-          x_Parent    := <get-parent-name> lhs;
+    where x_Name      := <reserve-class-name> sort;
+          x_Parent    := <get-parent-name> sort;
           
-          factory-register-terminal(|lhs, x_Name);
+          factory-register-terminal(|sort, x_Name);
           visitor-register-class(|x_Name)
   
   ignore-production: // don't generate anything for <conc>, <cons>, etc.
@@ -297,13 +340,6 @@ rules
     ) ->
     None()
     where <not(Term(Plain(id)))> rhs
-  
-  ignore-production: // TODO: Reconsider this
-    ProdRule(
-      Nonterm(Plain(_))
-    , [Ref(_)]
-    ) ->
-    None()
   
   /** Returns a node's parent class name. */
   get-parent-name =
@@ -338,25 +374,6 @@ rules
 
 /** Utility strategies. */
 strategies
-
-  /* UNDONE: Giving a generic name for NilTerm etc.
-  to-typename(|sort) =
-    is-string
-  <+
-    ?Term(Plain(<id>))
-  <+
-    NilTerm; <conc-strings> ("Nil_", sort)
-  <+
-    ConsTerm; <conc-strings> ("Cons_", sort)
-  <+
-    ConcTerm; <conc-strings> ("Conc_", sort)
-  <+
-    SomeTerm; <conc-strings> ("Some_", sort)
-  <+
-    NoneTerm; <conc-strings> ("None_", sort)
-  <+
-    err(|"Cannot convert to type name"); fail
-  */
   
   create-accessor-name(|index) =
     not(IsReservedAccessorName) => name;

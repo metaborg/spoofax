@@ -11,26 +11,36 @@ import lpg.runtime.IToken;
  *
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
-public class SGLRAstNode<TChild extends SGLRAstNode>
-		implements IAst, Iterable<TChild> {
+public abstract class SGLRAstNode<TAstNode extends SGLRAstNode>
+		implements IAst, Iterable<TAstNode> {
+
+	// Unique objects (circumvent interning)
 	
 	/** The constructor name for lists. */
-	public static final String LIST_CONSTRUCTOR = "[]";
+	public static final String LIST_CONSTRUCTOR = new String("[]");
+
+	/** The sort name for lists. */
+	public static final String LIST_SORT = new String("<cons>");
+
+	/** The sort name for strings. */
+	public static final String STRING_SORT = new String("<string>");
 	
-	private final String constructor;
-	
-	private final ArrayList<TChild> children;
+	private final ArrayList<TAstNode> children;
 	
 	private final IToken leftToken, rightToken;
 	
-	private SGLRAstNode parent;
+	private TAstNode parent;
 		
-	// Accessors	
-	public String getConstructor() {
-		return constructor;
-	}
+	// Accessors
 	
-	public ArrayList<TChild> getChildren() { // must expose impl. type for interface 
+	/**
+	 * Returns the constructor name of this node, or null if not applicable. 
+	 */
+	public abstract String getConstructor();
+	
+	public abstract String getSort();
+	
+	public ArrayList<TAstNode> getChildren() { // must expose impl. type for interface 
 		return children;
 	}
 
@@ -44,38 +54,34 @@ public class SGLRAstNode<TChild extends SGLRAstNode>
 		return rightToken;
 	}
 
-	public SGLRAstNode getParent() {
+	public TAstNode getParent() {
 		return parent;
 	}
 
-	void setParent(SGLRAstNode value) {
+	void setParent(TAstNode value) {
 		parent = value;
 	}
 	
 	// Initialization
 	
-	protected SGLRAstNode(String constructor, IToken leftToken, IToken rightToken,
-			ArrayList<TChild> children) {
-		
-		assert constructor != null;
+	protected SGLRAstNode(IToken leftToken, IToken rightToken, ArrayList<TAstNode> children) {
 		assert leftToken != null;
 		assert rightToken != null;
 		assert children != null;
 		
-		this.constructor = constructor;
 		this.leftToken = leftToken;
 		this.rightToken = rightToken;
 		this.children = children;
 	}
 	
-	protected SGLRAstNode(String constructor, IToken leftToken, IToken rightToken) {
+	protected SGLRAstNode(IToken leftToken, IToken rightToken) {
 		// Construct an empty list (unfortunately needs to be a concrete ArrayList type)
-		this(constructor, leftToken, rightToken, new ArrayList<TChild>(0));
+		this(leftToken, rightToken, new ArrayList<TAstNode>(0));
 	}
 	
 	// General access
 	
-	public Iterator<TChild> iterator() {
+	public Iterator<TAstNode> iterator() {
 		return getChildren().iterator();
 	}
 
@@ -107,7 +113,7 @@ public class SGLRAstNode<TChild extends SGLRAstNode>
 	 * @deprecated  Unused; ATermAstNode does not include null children.
 	 */
 	@Deprecated
-	public ArrayList<TChild> getAllChildren() {
+	public ArrayList<TAstNode> getAllChildren() {
 		return getChildren();
 	}
 

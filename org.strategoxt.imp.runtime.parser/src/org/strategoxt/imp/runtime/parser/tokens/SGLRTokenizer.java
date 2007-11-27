@@ -4,8 +4,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.strategoxt.imp.runtime.Debug;
-
 import static org.strategoxt.imp.runtime.parser.tokens.SGLRParsersym.*;
 
 import lpg.runtime.IToken;
@@ -72,13 +70,6 @@ public class SGLRTokenizer {
 		parseStream.makeToken(beginOffset, endOffset - 1, kind);
 		
 		beginOffset = endOffset;
-
-		Debug.log(
-				"Token: ",
-				SGLRTokenKindManager.getDefaultName(kind),
-				" = \"",
-				currentToken(),
-				"\"");
 		
 		// Increment the stream size after adding this token(!)
 		parseStream.setStreamLength(parseStream.getSize());
@@ -115,5 +106,24 @@ public class SGLRTokenizer {
 		}
 		
 		return new Token(parseStream, beginOffset, offset, TK_JUNK);
+	}
+	
+	public String dumpToString(IToken left, IToken right) {
+		StringBuilder result = new StringBuilder();
+		int last = right.getTokenIndex();
+		
+		for (int i = left.getTokenIndex(); i <= last; i++) {
+			IToken token = parseStream.getTokenAt(i);
+			result.append(SGLRTokenKindManager.getDefaultName(token.getKind()));
+			result.append(":");
+			result.append(token.toString());			
+			if (i < last) result.append(", ");
+		}
+		
+		return result.toString();
+	}
+	
+	public final String dumpToString(IToken token) {
+		return dumpToString(token, token);
 	}
 }

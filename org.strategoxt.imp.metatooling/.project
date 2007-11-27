@@ -21,15 +21,15 @@
 			</arguments>
 		</buildCommand>
 		<buildCommand>
-            <name>org.eclipse.ui.externaltools.ExternalToolBuilder</name>
-            <triggers>auto,full,incremental,</triggers>
-            <arguments>
-                <dictionary>
-                    <key>LaunchConfigHandle</key>
-                    <value>&lt;project&gt;/.externalToolBuilders/Makefile.launch</value>
-                </dictionary>
-            </arguments>
-        </buildCommand>
+			<name>org.eclipse.ui.externaltools.ExternalToolBuilder</name>
+			<triggers>full,incremental,</triggers>
+			<arguments>
+				<dictionary>
+					<key>LaunchConfigHandle</key>
+					<value>&lt;project&gt;/.externalToolBuilders/Makefile for IMP metatooling.launch</value>
+				</dictionary>
+			</arguments>
+		</buildCommand>
 	</buildSpec>
 	<natures>
 		<nature>org.eclipse.pde.PluginNature</nature>
