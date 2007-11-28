@@ -119,7 +119,7 @@ public class SGLRTokenizer {
 			IToken token = parseStream.getTokenAt(i);
 			result.append(SGLRTokenKindManager.getDefaultName(token.getKind()));
 			result.append(":");
-			result.append(token.toString());
+			result.append(token.toString().replace("\n","\\n").replace("\r","\\r"));
 			if (i < last) result.append(", ");
 		}
 		

@@ -105,7 +105,10 @@ public class AsfixConverter {
 		if (lexicalStart) {
 			lexicalContext = false;
 			IToken token = tokenizer.makeToken(offset, tokenManager.getTokenKind(lhs, rhs), true);
-
+			String sort = getSort(rhs);
+			
+			if (sort == null) return null;
+			
 			Debug.log("Creating node ", getSort(rhs), " from ", tokenizer.dumpToString(token));	
 			
 			return factory.createTerminal(getSort(rhs), token);
