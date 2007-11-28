@@ -42,7 +42,7 @@ strategies
     <reserve-class-name> "AbstractVisitor";
     <reserve-class-name> "List";
     <reserve-class-name> "String";
-    <reserve-class-name> <get-ast-base-name>;
+    <reserve-class-name> "ASTNode";
     <reserve-class-name> <get-ast-factory-name>;
     
     rules(
@@ -72,24 +72,19 @@ strategies
 
 /** Create default node classes. */ 
 strategies
-
-  get-ast-base-name =
-    <conc-strings> (<get-sdf-main-module>, "AstNode")
   
   create-ast-base-class =
-    x_Name := <get-ast-base-name>;
-    
     <output-file> compilation-unit |[
       package parser.ast;
     
-      public abstract class x_Name extends tname_ASTNODE<x_Name> {
-        protected x_Name(tname_ITOKEN leftToken, tname_ITOKEN rightToken,
-            java.util.ArrayList<x_Name> children) {
+      public abstract class ASTNode extends tname_ASTNODE<ASTNode> {
+        protected ASTNode(tname_ITOKEN leftToken, tname_ITOKEN rightToken,
+            java.util.ArrayList<ASTNode> children) {
           
           super(leftToken, rightToken, children);
 	    }
 	    
-        protected x_Name(tname_ITOKEN leftToken, tname_ITOKEN rightToken) {
+        protected ASTNode(tname_ITOKEN leftToken, tname_ITOKEN rightToken) {
           super(leftToken, rightToken);
 	    }
 	    
@@ -104,12 +99,10 @@ strategies
     ]|
   
   create-ast-string-class =
-    x_Super := <get-ast-base-name>;
-    
     <output-file> compilation-unit |[
       package parser.ast;
     
-      public class String extends x_Super {
+      public class String extends ASTNode {
         public String(tname_ITOKEN leftToken, tname_ITOKEN rightToken) {
           super(leftToken, rightToken);
 	    }
@@ -137,16 +130,14 @@ strategies
     ]|
   
   create-ast-list-class =
-    x_Super := <get-ast-base-name>;
-    
     <output-file> compilation-unit |[
       package parser.ast;
     
-      public class List extends x_Super {
+      public class List extends ASTNode {
         private final java.lang.String elementSort;
         
         public List(java.lang.String elementSort, tname_ITOKEN leftToken, tname_ITOKEN rightToken,
-            java.util.ArrayList<x_Super> children) {
+            java.util.ArrayList<ASTNode> children) {
           
           super(leftToken, rightToken, children);
           this.elementSort = elementSort;
@@ -175,7 +166,7 @@ strategies
 	    
 	    protected void enter(AbstractVisitor visitor) {
 	      if (visitor.visit(this)) {
-	        for (x_Super node : this) {
+	        for (ASTNode node : this) {
 	          node.accept(visitor);
 	        }
 	      }  
@@ -195,9 +186,9 @@ rules
     compilation-unit |[
       package parser.ast;
       
-      public abstract class x_Name extends x_Super {
+      public abstract class x_Name extends ASTNode {
         protected x_Name(tname_ITOKEN leftToken, tname_ITOKEN rightToken,
-            java.util.ArrayList<x_Super> children) {
+            java.util.ArrayList<ASTNode> children) {
           
           super(leftToken, rightToken, children);
 	    }
@@ -213,8 +204,6 @@ rules
       }
     ]|  
     where not(<SortClassName> sort); // create only once
-          
-          x_Super := <get-ast-base-name>;
           
           x_Name := <reserve-class-name> <conc-strings> (sort, "Sort");
           rules(SortClassName: sort -> x_Name)
@@ -255,7 +244,7 @@ rules
       
       public class x_Name extends x_Parent {
         protected x_Name(tname_ITOKEN leftToken, tname_ITOKEN rightToken,
-            java.util.ArrayList<x_Super> children) {
+            java.util.ArrayList<ASTNode> children) {
           super(leftToken, rightToken, children);
 	    }
 	    
@@ -273,7 +262,7 @@ rules
 	    
 	    protected void enter(AbstractVisitor visitor) {
 	      if (visitor.visit(this)) {
-	        for (x_Super node : this) {
+	        for (ASTNode node : this) {
 	          node.accept(visitor);
 	        }
 	      }  
@@ -287,7 +276,6 @@ rules
           
           argtypes := <map(sort-to-typename)> args;          
           x_Name   := <reserve-class-name> name;
-          x_Super  := <get-ast-base-name>;
           x_Parent := <SortClassName> sort;
           
           {| IsReservedAccessorName:            
@@ -381,7 +369,7 @@ rules
   create-child-accessor:
     (|[ java.lang.String ]|, index) ->
     class-body-dec |[
-      java.lang.String x_Name() {
+      public java.lang.String x_Name() {
         return (java.lang.String) getChildren().get(i);      
       }
     ]|
@@ -391,7 +379,7 @@ rules
   create-child-accessor:
     (tname, index) ->
     class-body-dec |[
-      tname x_Name() {
+      public tname x_Name() {
         return (tname) getChildren().get(i);      
       }
     ]|

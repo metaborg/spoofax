@@ -16,7 +16,6 @@ strategies
 
   create-parse-controller =
     x_Name    := <get-parse-controller-name>;
-    x_Node    := <get-ast-base-name>;
     x_Factory := <get-ast-factory-name>;
     table     := <get-sdf-main-module>;
   

@@ -18,14 +18,30 @@ public abstract class SGLRAstNodeFactory<TNode extends SGLRAstNode> {
 	/**
 	 * Create a new non-terminal AST node
 	 */
-	public abstract TNode createNonTerminal(String sort, String constructor, IToken leftToken, IToken rightToken,
-			ArrayList<TNode> children);
+	public TNode createNonTerminal(String sort, String constructor, IToken leftToken, IToken rightToken,
+			ArrayList<TNode> children) {
+		
+		if ("<START>".equals(sort)) {
+			assert children.size() == 1;
+			return children.get(0);
+		}
+		          
+		throw new java.lang.IllegalArgumentException(
+				"Specified AST node with constructor "
+		        + constructor + ", sort " + sort + " and children "
+		        + SGLRAstNode.getSorts(children)
+		        + " does not exist.");
+	}
 	
 	/**
 	 * Create a new terminal AST node.
 	 */
-	public abstract TNode createTerminal(String sort, String value, IToken leftToken,
-			IToken rightToken);
+	public TNode createTerminal(String sort, String value, IToken leftToken,
+			IToken rightToken) {
+		
+        throw new java.lang.IllegalArgumentException(
+        		"Specified AST node with sort " + sort + " does not exist.");
+	}
 	
 	
 	/**

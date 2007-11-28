@@ -44,7 +44,6 @@ strategies // TODO: Visitor
     methods       := <bagof-VisitorMethods>;
     visitcases    := <bagof-VisitCases>;
     endvisitcases := <bagof-EndVisitCases>;
-    x_AstNode     := <get-ast-base-name>;
     
     <output-file> compilation-unit |[
       package parser.ast;
@@ -53,13 +52,13 @@ strategies // TODO: Visitor
         
         public abstract void unimplementedVisitor(java.lang.String source);
     
-        public boolean preVisit(x_AstNode node) { return true; }
+        public boolean preVisit(ASTNode node) { return true; }
     
-        public void postVisit(x_AstNode node) {}
+        public void postVisit(ASTNode node) {}
         
         ~*methods
         
-        public boolean visit(x_AstNode node) {
+        public boolean visit(ASTNode node) {
           ~*visitcases
           
           throw new java.lang.IllegalArgumentException("Node of type "
@@ -67,7 +66,7 @@ strategies // TODO: Visitor
                                                        + "not expected.");
         }
         
-        public void endVisit(tname_ASTNODE node) {
+        public void endVisit(ASTNode node) {
           ~*endvisitcases
           
           throw new java.lang.IllegalArgumentException("Node of type "
