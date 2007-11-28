@@ -22,7 +22,7 @@ strategies
     );
     
     list-loop(risky(
-      (terminal-to-class <+ non-terminal-to-class <+ ignore-production);
+      (terminal-to-class <+ non-terminal-to-class <+ non-terminal-list-to-class);
       (None <+ output-file)
     | "Could not convert production to AST class") 
     );
@@ -41,6 +41,11 @@ strategies
     <reserve-class-name> "String";
     <reserve-class-name> <get-ast-base-name>;
     <reserve-class-name> <get-ast-factory-name>;
+    
+    rules(
+      SortClassName: "List"
+      SortClassName: "String"
+    );
     
     // Reserve default accessor method names
     rules(
@@ -62,6 +67,7 @@ strategies
   
   consistency-check =
     bagof-AccessedSorts;
+    make-set;
     
     list-loop(
       SortClassName
@@ -141,13 +147,18 @@ strategies
       package parser.ast;
     
       public class List extends x_Super {
-        public List(tname_ITOKEN leftToken, tname_ITOKEN rightToken, java.util.ArrayList<x_Super> children) {
+        private final java.lang.String sort;
+        
+        public List(java.lang.String sort, tname_ITOKEN leftToken, tname_ITOKEN rightToken,
+            java.util.ArrayList<x_Super> children) {
+          
           super(leftToken, rightToken, children);
+          this.sort = sort;
 	    }
 	    
 	    @Override
 	    public java.lang.String getSort() {
-	      return LIST_SORT;
+	      return sort;
 	    }
 	    
 	    @Override
@@ -211,9 +222,9 @@ rules
           x_Name := <reserve-class-name> sort;
           rules(SortClassName: sort -> x_Name)
   
-  /**
-   * Create a class for a non-terminal with a constructor.
-   */
+   /**
+    * Create a class for a non-terminal with a constructor.
+    */
   non-terminal-to-class:
     ProdRule(
       Nonterm(Plain(sort))
@@ -254,15 +265,17 @@ rules
     ]|
     where (name, args, e_Constructor) := <get-non-terminal-properties>;
           
+          args' := <map(try(generic-name-for-arg))> args;
+          
           x_Name   := <reserve-class-name> name;
           x_Super  := <get-ast-base-name>;
           x_Parent := <get-parent-name> sort;
           
           {| IsReservedAccessorName:            
-            children := <number(create-child-accessor)> args
+            children := <number(create-child-accessor)> args'
           |};
           
-          factory-register-non-terminal(|name, x_Name, args);
+          factory-register-non-terminal(|sort, e_Constructor, x_Name, args');
           visitor-register-class(|x_Name)
   
   /** Get the name, arguments and Java constructor expression for the right-hand side of a rule. */
@@ -333,13 +346,35 @@ rules
           factory-register-terminal(|sort, x_Name);
           visitor-register-class(|x_Name)
   
-  ignore-production: // don't generate anything for <conc>, <cons>, etc.
+  // HACK: use a single generic class for lists
+  non-terminal-list-to-class: // don't generate anything for <conc>, <cons>, etc.
     ProdRule(
-      Nonterm(Plain(_))
+      Nonterm(Plain(lhs))
     , [Appl(rhs, _)]
     ) ->
     None()
-    where <not(Term(Plain(id)))> rhs
+    where <is-list-term> rhs;
+          rules(IsListTerm: lhs)
+  
+  // HACK: treat <some> and <none> as lists
+  non-terminal-list-to-class:
+    ProdRule(
+      Nonterm(Plain(lhs))
+    , [Appl(rhs, _)]
+    ) ->
+    None()
+    where <is-maybe-term> rhs;
+          rules(IsListTerm: lhs)
+  
+  is-list-term =
+    ConcTerm + ConsTerm + NilTerm + TupleTerm(id)
+  
+  is-maybe-term =
+    SomeTerm + NoneTerm
+  
+  generic-name-for-arg:
+    Ref(Nonterm(Plain(x))) -> Ref(Nonterm(Plain("List")))
+    where <IsListTerm> x
   
   /** Returns a node's parent class name. */
   get-parent-name =

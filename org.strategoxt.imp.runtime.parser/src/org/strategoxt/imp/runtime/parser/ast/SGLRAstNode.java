@@ -19,9 +19,6 @@ public abstract class SGLRAstNode<TAstNode extends SGLRAstNode>
 	/** The constructor name for lists. */
 	public static final String LIST_CONSTRUCTOR = new String("[]");
 
-	/** The sort name for lists. */
-	public static final String LIST_SORT = new String("<cons>");
-
 	/** The sort name for strings. */
 	public static final String STRING_SORT = new String("<string>");
 	

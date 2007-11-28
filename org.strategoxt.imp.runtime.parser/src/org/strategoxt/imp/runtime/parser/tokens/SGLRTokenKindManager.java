@@ -2,6 +2,8 @@ package org.strategoxt.imp.runtime.parser.tokens;
 
 import static org.spoofax.jsglr.Term.*;
 
+import org.strategoxt.imp.runtime.parser.SGLRParseController;
+
 import aterm.ATerm;
 import aterm.ATermAppl;
 import aterm.ATermList;
@@ -38,7 +40,7 @@ public class SGLRTokenKindManager {
 	public int getTokenKind(ATermList pattern, ATermAppl sort) {
 		// TODO2: Optimization - cache default token kinds
 		
-		if (isLayoutSort(sort)) {
+		if (SGLRParseController.isLayout(sort)) {
 			return TK_LAYOUT;
 		} else if (sort.getName().equals("lex")) {
 			if (isStringLiteral(pattern)) {
@@ -78,19 +80,10 @@ public class SGLRTokenKindManager {
     	}
     }
 
-	protected static boolean isLayoutSort(ATermAppl sort) {
-		ATermAppl details = (ATermAppl) sort.getChildAt(0);
-	
-		if (details.getName().equals("opt"))
-			details = (ATermAppl) details.getChildAt(0);
-			
-		return details.getName().equals("layout");
-	}
-	
 	protected static boolean isOperator(ATermAppl sort) {
 		if (sort.getName() != "lit") return false;
 		
-		ATermAppl lit = (ATermAppl) sort.getChildAt(0);
+		ATermAppl lit = applAt(sort, 0);
 		String contents = lit.getName();
 		
 		for (int i = 0; i < contents.length(); i++) {
@@ -108,7 +101,7 @@ public class SGLRTokenKindManager {
 	private static boolean topdownHasSpaces(ATerm term) {
 		// Return true if any character range of this contains spaces
 		for (int i = 0; i < term.getChildCount(); i++) {
-			ATerm child = (ATerm) term.getChildAt(i);
+			ATerm child = termAt(term, i);
 			if (isAppl(child) && asAppl(child).getName().equals("range")) {
 				int start = intAt(child, RANGE_START);
 				int end = intAt(child, RANGE_END);
@@ -130,7 +123,7 @@ public class SGLRTokenKindManager {
 	private static ATerm getFirstRange(ATerm term) {
 		// Get very first character range in this term
 		for (int i = 0; i < term.getChildCount(); i++) {
-			ATerm child = (ATerm) term.getChildAt(i);
+			ATerm child = termAt(term, i);
 			if (isAppl(child) && asAppl(child).getName().equals("range")) {
 				return child;
 			} else {

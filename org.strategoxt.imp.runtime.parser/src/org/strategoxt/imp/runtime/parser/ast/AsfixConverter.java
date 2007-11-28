@@ -8,6 +8,7 @@ import lpg.runtime.PrsStream;
 import static org.spoofax.jsglr.Term.*;
 
 import org.strategoxt.imp.runtime.Debug;
+import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenKindManager;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
 
@@ -78,79 +79,85 @@ public class AsfixConverter {
 	
 	/** Implode any appl(_, _). */
 	private SGLRAstNode implodeAppl(ATermAppl appl) {
-		ATermAppl prod = (ATermAppl) appl.getChildAt(APPL_PROD);
-		ATermList lhs = (ATermList) prod.getChildAt(PROD_LHS);
-		ATermAppl rhs = (ATermAppl) prod.getChildAt(PROD_RHS);
-		ATermAppl attrs = (ATermAppl) prod.getChildAt(PROD_ATTRS);
-		ATermList contents = (ATermList) appl.getChildAt(APPL_CONTENTS);
+		ATermAppl prod = termAt(appl, APPL_PROD);
+		ATermList lhs = termAt(prod, PROD_LHS);
+		ATermAppl rhs = termAt(prod, PROD_RHS);
+		ATermAppl attrs = termAt(prod, PROD_ATTRS);
+		ATermList contents = termAt(appl, APPL_CONTENTS);
 		
 		IToken prevToken = tokenizer.currentToken();
 		
+		boolean isTokenOnly = rhs.getName().equals("lit") || SGLRParseController.isLayout(rhs);
+		
 		// Enter lexical context if this is a lex node
-		boolean lexicalStart = !lexicalContext && rhs.getName().equals("lex");
+		boolean lexicalStart = !isTokenOnly && !lexicalContext && rhs.getName().equals("lex");
 		
-		// TODO: Cleanup
-		if (applAt(rhs, 0).getName().equals("layout"))
-			lexicalStart = false;
+		if (lexicalStart) lexicalContext = true;
 		
-		if (lexicalStart)
-			lexicalContext = true;
-
-		// TODO2: Optimization; don't need to always allocate child list
-		ArrayList<SGLRAstNode> childNodes = new ArrayList<SGLRAstNode>();
-		
-		for (int i = 0; i < contents.getLength(); i++) {
-			ATerm child = contents.elementAt(i);
-			
-			if (child instanceof ATermInt) {
-				implodeLexical(child);
-			} else {
-				// Recurse
-				SGLRAstNode childNode = implodeAppl(ignoreAmb(child));
-				
-				if (childNode != null) childNodes.add(childNode);
-			}
-		}
+		ArrayList<SGLRAstNode> childNodes =
+			!isTokenOnly && !lexicalContext ? implodeChildNodes(contents)
+					                        : null;
 		
 		if (lexicalStart) {
 			lexicalContext = false;
 			IToken token = tokenizer.makeToken(offset, tokenManager.getTokenKind(lhs, rhs));
 
-			Debug.log("Creating node ", rhs, " from ", tokenizer.dumpToString(token));	
+			Debug.log("Creating node ", getSort(rhs), " from ", tokenizer.dumpToString(token));	
 			
 			return factory.createTerminal(rhs, token);
 		} else if (lexicalContext) {
-			return null; // don't create tokens inside lexical context
-		} else {
+			return null; // don't create tokens inside lexical context; just create one big token at the top
+		} else if (isTokenOnly) {
 			tokenizer.makeToken(offset, tokenManager.getTokenKind(lhs, rhs));
-			return implodeContextFree(getConstructor(attrs), prevToken, childNodes);
+			return null;
+		} else {
+			String constructor = getConstructor(attrs);
+			String sort = getSort(rhs);
+			
+			tokenizer.makeToken(offset, tokenManager.getTokenKind(lhs, rhs));
+			return implodeContextFree(sort, constructor, prevToken, childNodes);
 		}
 	}
 
+	private ArrayList<SGLRAstNode> implodeChildNodes(ATermList contents) {
+	    ArrayList<SGLRAstNode> result = new ArrayList<SGLRAstNode>();
+
+		for (int i = 0; i < contents.getLength(); i++) {
+			    ATerm child = contents.elementAt(i);
+			    
+			    if (child instanceof ATermInt) {
+			    	implodeLexical(child);
+			    } else {
+			    	// Recurse
+			    	SGLRAstNode childNode = implodeAppl(ignoreAmb(child));
+			    	
+			    	if (childNode != null) result.add(childNode);
+			    }
+		}
+	    return result;
+    }
+
 	/** Implode a context-free node. */
-	private SGLRAstNode implodeContextFree(String constructor, IToken prevToken,
+	private SGLRAstNode implodeContextFree(String sort, String constructor, IToken prevToken,
 			ArrayList<SGLRAstNode> childNodes) {
 		
-		if (constructor != null) {
+		if (sort != null) {
 			IToken left = getStartToken(prevToken);
 			IToken right = tokenizer.currentToken();
 			
-			Debug.log("Creating node ", constructor, " from ", tokenizer.dumpToString(left, right));
+			Debug.log("Creating node ", sort, ":", constructor, " from ", tokenizer.dumpToString(left, right));
 			Debug.log("  with children: ", childNodes);
 			
-			
-			return factory.createNonTerminal(constructor, left, right, childNodes);
+			return factory.createNonTerminal(sort, constructor, left, right, childNodes);
 		} else {
-			switch (childNodes.size()) {
-				case 0:
-					return null;
-				case 1:
-					return childNodes.get(0);
-				default:
-					IToken left = getStartToken(prevToken);
-					IToken right = tokenizer.currentToken();
-					return factory.createList(left, right, childNodes);
-			}
+			// TODO: Proper list recognition
+			IToken left = getStartToken(prevToken);
+			IToken right = tokenizer.currentToken();
+			
+			Debug.log("Creating node list from ", tokenizer.dumpToString(left, right));
+			Debug.log("  with children: ", childNodes);
+			
+			return factory.createList(sort, left, right, childNodes);
 		}
 	}
 	
@@ -177,9 +184,10 @@ public class AsfixConverter {
 		} else {
 			int index = prevToken.getTokenIndex();
 			
-			// TODO: If empty tokens are supported, remove this
+			/* UNDONE: Assumed empty tokens are not supported
 			if (parseStream.getSize() - index <= 1)
 				throw new InvalidParseTreeException("Cannot create a AST node for an empty token");
+			*/
 			
 			return parseStream.getTokenAt(index + 1); 
 		}
@@ -219,4 +227,17 @@ public class AsfixConverter {
 		
 		return null; // no cons found
 	}
+
+    private static String getSort(ATermAppl attrs) {
+    	ATermAppl node = attrs;
+    	
+    	while (attrs.getChildCount() > 0 && isAppl(node)) {
+    		node = applAt(node, 0);
+    		
+    		if (node.getName().equals("sort"))
+    			return applAt(node, 0).getName();
+    	}
+    	
+    	return null;
+    }
 }

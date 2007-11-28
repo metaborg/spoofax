@@ -22,7 +22,7 @@ public abstract class SGLRAstNodeFactory<TNode extends SGLRAstNode> {
 	/**
 	 * Create a new non-terminal AST node
 	 */
-	public abstract TNode createNonTerminal(String constructor, IToken leftToken, IToken rightToken,
+	public abstract TNode createNonTerminal(String sort, String constructor, IToken leftToken, IToken rightToken,
 			ArrayList<TNode> children);
 	
 	/**
@@ -35,9 +35,9 @@ public abstract class SGLRAstNodeFactory<TNode extends SGLRAstNode> {
 	/**
 	 * Create a new AST node list. 
 	 */
-	public TNode createList(IToken leftToken, IToken rightToken, ArrayList<TNode> children) {
+	public TNode createList(String sort, IToken leftToken, IToken rightToken, ArrayList<TNode> children) {
 		
-		return createNonTerminal(SGLRAstNode.LIST_CONSTRUCTOR, leftToken, rightToken, children);
+		return createNonTerminal(sort, SGLRAstNode.LIST_CONSTRUCTOR, leftToken, rightToken, children);
 	}
 	
 	// Bridge method

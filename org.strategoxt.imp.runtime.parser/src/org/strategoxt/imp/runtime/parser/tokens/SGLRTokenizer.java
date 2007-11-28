@@ -63,9 +63,10 @@ public class SGLRTokenizer {
 	}
 	
 	public IToken makeToken(int endOffset, int kind) {
-		// TODO: Confirm empty tokens are unsupported
+		/* UNDONE: Assumed empty tokens are unsupported or undesired
 		if (beginOffset == endOffset)
 			return null;
+		*/
 		
 		parseStream.makeToken(beginOffset, endOffset - 1, kind);
 		

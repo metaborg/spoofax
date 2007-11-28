@@ -1,5 +1,7 @@
 package org.strategoxt.imp.runtime.parser;
 
+import static org.spoofax.jsglr.Term.applAt;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -24,6 +26,8 @@ import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.SGLRAstNode;
 import org.strategoxt.imp.runtime.parser.ast.SGLRAstNodeFactory;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenKindManager;
+
+import aterm.ATermAppl;
 
 /**
  * Base class of an IMP parse controller for an SGLR parser.
@@ -152,7 +156,7 @@ public abstract class SGLRParseController implements IParseController {
 		return tokenManager.getName(kind);
 	}
 	
-	// Grammar specific
+	// Grammar information
 
 	public String getSingleLineCommentPrefix() {
 		// This is a supposedly short-term solution for getting
@@ -163,6 +167,15 @@ public abstract class SGLRParseController implements IParseController {
 	public String getLanguageName() {
 		throw new UnsupportedOperationException();
 	}
+
+	public static boolean isLayout(ATermAppl sort) {
+    	ATermAppl details = applAt(sort, 0);
+    	
+    	if (details.getName().equals("opt"))
+    		details = applAt(details, 0);
+    	
+    	return details.getName().equals("layout");
+    }
 
 	// Problem markers and errors
 
