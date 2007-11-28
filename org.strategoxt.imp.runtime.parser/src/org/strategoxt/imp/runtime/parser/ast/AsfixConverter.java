@@ -150,12 +150,10 @@ public class AsfixConverter {
 		
 		if (Debug.ENABLED) {
 			String name = sort == null ? "list" : sort;
-			Debug.log("Creating node ", name, ":", constructor, " from ", tokenizer.dumpToString(left, right));
-			Debug.log("  with children: ", SGLRAstNode.getSorts(childNodes));
+			Debug.log("Creating node ", name, ":", constructor, SGLRAstNode.getSorts(childNodes), " from ", tokenizer.dumpToString(left, right));
 		}
 		
 		if (sort != null) {
-			
 			return factory.createNonTerminal(sort, constructor, left, right, childNodes);
 		} else {
 			// TODO: Proper list recognition

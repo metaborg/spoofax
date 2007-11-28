@@ -18,11 +18,14 @@ strategies
     where(register-builtin-classes);
     
     list-loop(
+      // HACK: use a single generic class for lists
+      list-sort-no-class
+    <+
       if(sort-to-class, output-file)
     );
     
     list-loop(risky(
-      (terminal-to-class <+ non-terminal-to-class <+ non-terminal-list-to-class);
+      (non-terminal-list-no-class <+ terminal-to-class <+ non-terminal-to-class);
       (None <+ output-file)
     | "Could not convert production to AST class") 
     );
@@ -31,7 +34,7 @@ strategies
     create-ast-list-class;
     create-ast-string-class;
     
-    consistency-check
+    not(HadErrors)
   
   register-builtin-classes =
     // Reserve default class names
@@ -63,21 +66,9 @@ strategies
     );
     
     visitor-register-class(|"List");
-    visitor-register-class(|"String")
-  
-  consistency-check =
-    bagof-AccessedSorts;
-    make-set;
+    visitor-register-class(|"String");
     
-    list-loop(
-      SortClassName
-    <+
-      // TODO2: Recover from undefined sort by creating an abstract placeholder class
-      err(|"Undefined sort referenced");
-      try(?error)
-    );
-    
-    not(!error)
+    not(HadErrors)
 
 /** Create default node classes. */ 
 strategies
@@ -94,6 +85,7 @@ strategies
       public abstract class x_Name extends tname_ASTNODE<x_Name> {
         protected x_Name(tname_ITOKEN leftToken, tname_ITOKEN rightToken,
             java.util.ArrayList<x_Name> children) {
+          
           super(leftToken, rightToken, children);
 	    }
 	    
@@ -107,7 +99,7 @@ strategies
 	    
         public abstract void accept(AbstractVisitor visitor);
         
-        // also abstract: getSort(); getCosntructor()
+        // also abstract: getSort(); getConstructor()
       }
     ]|
   
@@ -210,6 +202,10 @@ rules
           super(leftToken, rightToken, children);
 	    }
 	    
+        protected x_Name(tname_ITOKEN leftToken, tname_ITOKEN rightToken) {
+          super(leftToken, rightToken);
+	    }
+	    
 	    @Override
 	    public java.lang.String getSort() {
 	      return "~sort";
@@ -217,18 +213,34 @@ rules
       }
     ]|  
     where not(<SortClassName> sort); // create only once
+          
           x_Super := <get-ast-base-name>;
-
-          // Try not to create sort class if constructor has same name
-          // TODO: Consider always creating a sort class
-          if Appl(constructor, _) := rhs then
-            not(<eq> (sort, constructor))
-          end;
           
-          not(<Ref(String + Int)> rhs); // no sort class for terminals
-          
-          x_Name := <reserve-class-name> sort;
+          x_Name := <reserve-class-name> <conc-strings> (sort, "Sort");
           rules(SortClassName: sort -> x_Name)
+  
+  list-sort-no-class:
+    ProdRule(
+      Nonterm(Plain(lhs))
+    , [Appl(rhs, _)]
+    ) ->
+    None()
+    where <is-list-term <+ is-maybe-term> rhs; // HACK: treat <some> and <none> as lists
+          rules(SortClassName: lhs -> "List")
+
+  is-list-term =
+    ConcTerm + ConsTerm + NilTerm + TupleTerm(id)
+  
+  is-maybe-term =
+    SomeTerm + NoneTerm
+  
+  non-terminal-list-no-class:
+    ProdRule(
+      Nonterm(Plain(lhs))
+    , _
+    ) ->
+    None()
+    where "List" := <SortClassName> lhs
   
    /**
     * Create a class for a non-terminal with a constructor.
@@ -273,18 +285,35 @@ rules
     ]|
     where (name, args, e_Constructor) := <get-non-terminal-properties>;
           
-          args' := <map(try(generic-name-for-arg))> args;
-          
+          argtypes := <map(sort-to-typename)> args;          
           x_Name   := <reserve-class-name> name;
           x_Super  := <get-ast-base-name>;
-          x_Parent := <get-parent-name> sort;
+          x_Parent := <SortClassName> sort;
           
           {| IsReservedAccessorName:            
-            children := <number(create-child-accessor)> args'
+            children := <number(create-child-accessor)> argtypes
           |};
           
-          factory-register-non-terminal(|sort, e_Constructor, x_Name, args');
+          factory-register-non-terminal(|sort, e_Constructor, x_Name, argtypes);
           visitor-register-class(|x_Name)
+  
+  sort-to-typename:
+    Ref(String()) -> tname |[ String ]|
+  
+  sort-to-typename:
+    Ref(Int()) -> <err(|"Not implemented"); fail>
+  
+  sort-to-typename:
+    Ref(Nonterm(Plain(x))) -> tname |[ y ]|
+    where y := <SortClassName> x
+          <+ y := <conc-strings> (x, "Sort");
+
+             err(|"Undefined sort referenced");
+             
+             rules(
+               SortClassName: x // single error only
+               HadErrors: _
+             )
   
   /** Get the name, arguments and Java constructor expression for the right-hand side of a rule. */
   get-non-terminal-properties:
@@ -331,11 +360,6 @@ rules
 	    }
 	    
 	    @Override
-	    public java.lang.String getSort() {
-	      return "~sort";
-	    }
-	    
-	    @Override
 	    public void accept(AbstractVisitor visitor) {
 	      if (!visitor.preVisit(this)) return;
 	      enter(visitor);
@@ -348,76 +372,33 @@ rules
 	    }
       }
     ]|
-    where x_Name      := <reserve-class-name> sort;
-          x_Parent    := <get-parent-name> sort;
+    where x_Name   := <reserve-class-name> sort;
+          x_Parent := <SortClassName> sort;
           
           factory-register-terminal(|sort, x_Name);
           visitor-register-class(|x_Name)
-  
-  // HACK: use a single generic class for lists
-  non-terminal-list-to-class: // don't generate anything for <conc>, <cons>, etc.
-    ProdRule(
-      Nonterm(Plain(lhs))
-    , [Appl(rhs, _)]
-    ) ->
-    None()
-    where <is-list-term> rhs;
-          rules(IsListTerm: lhs)
-  
-  // HACK: treat <some> and <none> as lists
-  non-terminal-list-to-class:
-    ProdRule(
-      Nonterm(Plain(lhs))
-    , [Appl(rhs, _)]
-    ) ->
-    None()
-    where <is-maybe-term> rhs;
-          rules(IsListTerm: lhs)
-  
-  is-list-term =
-    ConcTerm + ConsTerm + NilTerm + TupleTerm(id)
-  
-  is-maybe-term =
-    SomeTerm + NoneTerm
-  
-  generic-name-for-arg:
-    Ref(Nonterm(Plain(x))) -> Ref(Nonterm(Plain("List")))
-    where <IsListTerm> x
-  
-  /** Returns a node's parent class name. */
-  get-parent-name =
-    SortClassName
-  <+
-    // There is no separate sort class for this type
-    ?sort;
-    x_Parent := <get-ast-base-name>;
-    rules(SortClassName: sort -> x_Parent)
-  
+
   create-child-accessor:
-    (Ref(String()), index) ->
+    (|[ java.lang.String ]|, index) ->
     class-body-dec |[
       java.lang.String x_Name() {
-        return ((String) getChildren().get(i)).getValue();      
+        return (java.lang.String) getChildren().get(i);      
       }
     ]|
     where x_Name := <create-accessor-name(|index)> "String";
-          i      := <write-to-string> index
-
+          i := <write-to-string> index
+  
   create-child-accessor:
-    (Ref(Nonterm(Plain(child))), index) ->
+    (tname, index) ->
     class-body-dec |[
-      x_Type x_Name() {
-        return (x_Type) getChildren().get(i);      
+      tname x_Name() {
+        return (tname) getChildren().get(i);      
       }
     ]|
-    where x_Name := <create-accessor-name(|index)> child;
-          x_Type := child;
-          i      := <write-to-string> index;
-          rules(AccessedSorts :+= child)
-
-/** Utility strategies. */
-strategies
-  
+    where tname |[ x ]| := tname;
+          x_Name := <create-accessor-name(|index)> x;
+          i      := <write-to-string> index
+    
   create-accessor-name(|index) =
     not(IsReservedAccessorName) => name;
     rules(IsReservedAccessorName: name);
