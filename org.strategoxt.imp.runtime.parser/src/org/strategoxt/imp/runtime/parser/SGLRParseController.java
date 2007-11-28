@@ -177,6 +177,13 @@ public abstract class SGLRParseController implements IParseController {
     	return details.getName().equals("layout");
     }
 
+	public static boolean isList(ATermAppl sort) {
+    	ATermAppl details = applAt(sort, 0);
+    	String name = details.getName();
+    	
+    	return name.equals("iter") || name.equals("iter-star");
+    }
+
 	// Problem markers and errors
 
 	public final List<String> getProblemMarkerTypes() {

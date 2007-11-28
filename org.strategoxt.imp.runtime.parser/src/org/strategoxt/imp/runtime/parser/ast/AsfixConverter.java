@@ -97,7 +97,9 @@ public class AsfixConverter {
 		
 		if (lexicalStart) lexicalContext = true;
 		
-		ArrayList<SGLRAstNode> childNodes =
+		boolean isList = !lexicalContext && SGLRParseController.isList(rhs);
+		
+		ArrayList<SGLRAstNode> children =
 			implodeChildNodes(contents, isTokenOnly || lexicalContext);
 		
 		if (lexicalStart) {
@@ -117,7 +119,7 @@ public class AsfixConverter {
 			String sort = getSort(rhs);
 			
 			tokenizer.makeToken(offset, tokenManager.getTokenKind(lhs, rhs));
-			return implodeContextFree(sort, constructor, prevToken, childNodes);
+			return implodeContextFree(sort, constructor, prevToken, children, isList);
 		}
 	}
 
@@ -143,26 +145,27 @@ public class AsfixConverter {
 
 	/** Implode a context-free node. */
 	private SGLRAstNode implodeContextFree(String sort, String constructor, IToken prevToken,
-			ArrayList<SGLRAstNode> children) {
+			ArrayList<SGLRAstNode> children, boolean isList) {
 		
 		IToken left = getStartToken(prevToken);
 		IToken right = tokenizer.currentToken();
 		
 		if (Debug.ENABLED) {
-			String name = sort == null ? "list" : sort;
+			String name = isList ? "list" : sort;
 			Debug.log("Creating node ", name, ":", constructor, SGLRAstNode.getSorts(children), " from ", tokenizer.dumpToString(left, right));
 		}
 		
-		if (constructor == null && children.size() == 1 && children.get(0).getSort() == SGLRAstNode.STRING_SORT) {
+		if (isList) {
+			return factory.createList(sort, left, right, children);
+		} else if (constructor == null && children.size() == 1 && children.get(0).getSort() == SGLRAstNode.STRING_SORT) {
 			// TODO: Is this right? First create a <string> node, put it in a list, and then dispose it?
 			assert left == right;
 			return factory.createTerminal(sort, left);
-		}
-		
-		if (sort != null) {
+		} else if (sort != null) {
 			return factory.createNonTerminal(sort, constructor, left, right, children);
 		} else {
-			// TODO: Proper list recognition
+			// TODO: This is obsolete?
+			assert false : "Deemed obsolete";
 			
 			return factory.createList(sort, left, right, children);
 		}
@@ -242,7 +245,8 @@ public class AsfixConverter {
     private static String getSort(ATermAppl attrs) {
     	ATerm node = attrs;
     	
-    	while (node.getChildCount() > 0 && isAppl(node)) {
+    	
+    	while (node.getChildCount() > 0 && isAppl(node)) {    		
     		if (asAppl(node).getName().equals("sort"))
     			return applAt(node, 0).getName();
     		
