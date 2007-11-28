@@ -101,6 +101,10 @@ strategies
           super(leftToken, rightToken);
 	    }
 	    
+        protected void setRightIToken(tname_ITOKEN value) {
+          super.setRightIToken(value);
+	    }
+	    
         public abstract void accept(AbstractVisitor visitor);
         
         // also abstract: getSort(); getCosntructor()
@@ -147,18 +151,22 @@ strategies
       package parser.ast;
     
       public class List extends x_Super {
-        private final java.lang.String sort;
+        private final java.lang.String elementSort;
         
-        public List(java.lang.String sort, tname_ITOKEN leftToken, tname_ITOKEN rightToken,
+        public List(java.lang.String elementSort, tname_ITOKEN leftToken, tname_ITOKEN rightToken,
             java.util.ArrayList<x_Super> children) {
           
           super(leftToken, rightToken, children);
-          this.sort = sort;
+          this.elementSort = elementSort;
+	    }
+	    
+	    public java.lang.String getElementSort() {
+	      return elementSort;
 	    }
 	    
 	    @Override
 	    public java.lang.String getSort() {
-	      return sort;
+	      return getElementSort() + "*";
 	    }
 	    
 	    @Override

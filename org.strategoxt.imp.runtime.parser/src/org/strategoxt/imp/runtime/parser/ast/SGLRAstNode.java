@@ -1,6 +1,7 @@
 package org.strategoxt.imp.runtime.parser.ast;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Iterator;
 
 import lpg.runtime.IAst;
@@ -24,9 +25,9 @@ public abstract class SGLRAstNode<TAstNode extends SGLRAstNode>
 	
 	private final ArrayList<TAstNode> children;
 	
-	private final IToken leftToken, rightToken;
+	private IToken leftToken, rightToken;
 	
-	private TAstNode parent;
+	private SGLRAstNode parent;
 		
 	// Accessors
 	
@@ -51,16 +52,29 @@ public abstract class SGLRAstNode<TAstNode extends SGLRAstNode>
 		return rightToken;
 	}
 
-	public TAstNode getParent() {
+	/** Set the leftmost token associated with this node. */
+	protected void setLeftIToken(IToken value) {
+		leftToken = value;
+	}
+
+	/** Set the leftmost token associated with this node. */
+	protected void setRightIToken(IToken value) {
+		rightToken = value;
+	}
+
+	public SGLRAstNode getParent() {
 		return parent;
 	}
 
-	void setParent(TAstNode value) {
+	void setParent(SGLRAstNode value) {
 		parent = value;
 	}
 	
 	// Initialization
 	
+	/**
+	 * Create a new AST node and set it to be the parent node of its children.
+	 */
 	protected SGLRAstNode(IToken leftToken, IToken rightToken, ArrayList<TAstNode> children) {
 		assert leftToken != null;
 		assert rightToken != null;
@@ -69,6 +83,9 @@ public abstract class SGLRAstNode<TAstNode extends SGLRAstNode>
 		this.leftToken = leftToken;
 		this.rightToken = rightToken;
 		this.children = children;
+		
+		for (TAstNode node : children)
+			node.setParent(this);
 	}
 	
 	protected SGLRAstNode(IToken leftToken, IToken rightToken) {
@@ -85,6 +102,17 @@ public abstract class SGLRAstNode<TAstNode extends SGLRAstNode>
     @Override
 	public String toString() {
         return getLeftIToken().getPrsStream().toString(getLeftIToken(), getRightIToken());
+    }
+    
+    // map(getSort)
+    public static List<String> getSorts(List<? extends SGLRAstNode> children) {
+  	  List<String> result = new ArrayList<String>(children.size());
+  	  
+  	  for (SGLRAstNode node : children) {
+  		  result.add(node.getSort());
+  	  }
+  	  
+  	  return result;
     }
 
     /* UNDONE: Removed aterm<->ast node coupling

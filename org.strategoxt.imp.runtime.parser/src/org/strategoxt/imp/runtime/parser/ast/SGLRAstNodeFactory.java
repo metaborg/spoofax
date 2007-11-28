@@ -35,8 +35,8 @@ public abstract class SGLRAstNodeFactory<TNode extends SGLRAstNode> {
 	/**
 	 * Create a new AST node list. 
 	 */
-	public TNode createList(String sort, IToken leftToken, IToken rightToken, ArrayList<TNode> children) {
-		
+	public TNode createList(String elementSort, IToken leftToken, IToken rightToken, ArrayList<TNode> children) {
+		String sort = elementSort + "*";
 		return createNonTerminal(sort, SGLRAstNode.LIST_CONSTRUCTOR, leftToken, rightToken, children);
 	}
 	

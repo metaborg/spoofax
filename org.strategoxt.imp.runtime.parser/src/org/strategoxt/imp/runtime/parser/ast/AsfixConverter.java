@@ -9,6 +9,7 @@ import static org.spoofax.jsglr.Term.*;
 
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
+import org.strategoxt.imp.runtime.parser.tokens.SGLRParsersym;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenKindManager;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
 
@@ -43,6 +44,8 @@ public class AsfixConverter {
 	private final static int TERM_CONS = 0;
 	
 	private final static int CONS_NAME = 0;
+	
+	private final static int EXPECTED_NODE_CHILDREN = 4;
 	
 	private final SGLRAstNodeFactory<SGLRAstNode> factory;
 	
@@ -95,12 +98,11 @@ public class AsfixConverter {
 		if (lexicalStart) lexicalContext = true;
 		
 		ArrayList<SGLRAstNode> childNodes =
-			!isTokenOnly && !lexicalContext ? implodeChildNodes(contents)
-					                        : null;
+			implodeChildNodes(contents, isTokenOnly || lexicalContext);
 		
 		if (lexicalStart) {
 			lexicalContext = false;
-			IToken token = tokenizer.makeToken(offset, tokenManager.getTokenKind(lhs, rhs));
+			IToken token = tokenizer.makeToken(offset, tokenManager.getTokenKind(lhs, rhs), true);
 
 			Debug.log("Creating node ", getSort(rhs), " from ", tokenizer.dumpToString(token));	
 			
@@ -119,13 +121,14 @@ public class AsfixConverter {
 		}
 	}
 
-	private ArrayList<SGLRAstNode> implodeChildNodes(ATermList contents) {
-	    ArrayList<SGLRAstNode> result = new ArrayList<SGLRAstNode>();
+	private ArrayList<SGLRAstNode> implodeChildNodes(ATermList contents, boolean tokensOnly) {
+	    ArrayList<SGLRAstNode> result =
+	    	tokensOnly ? null : new ArrayList<SGLRAstNode>(EXPECTED_NODE_CHILDREN);
 
 		for (int i = 0; i < contents.getLength(); i++) {
 			    ATerm child = contents.elementAt(i);
 			    
-			    if (child instanceof ATermInt) {
+			    if (isInt(child)) {
 			    	implodeLexical(child);
 			    } else {
 			    	// Recurse
@@ -134,6 +137,7 @@ public class AsfixConverter {
 			    	if (childNode != null) result.add(childNode);
 			    }
 		}
+		
 	    return result;
     }
 
@@ -141,21 +145,20 @@ public class AsfixConverter {
 	private SGLRAstNode implodeContextFree(String sort, String constructor, IToken prevToken,
 			ArrayList<SGLRAstNode> childNodes) {
 		
+		IToken left = getStartToken(prevToken);
+		IToken right = tokenizer.currentToken();
+		
+		if (Debug.ENABLED) {
+			String name = sort == null ? "list" : sort;
+			Debug.log("Creating node ", name, ":", constructor, " from ", tokenizer.dumpToString(left, right));
+			Debug.log("  with children: ", SGLRAstNode.getSorts(childNodes));
+		}
+		
 		if (sort != null) {
-			IToken left = getStartToken(prevToken);
-			IToken right = tokenizer.currentToken();
-			
-			Debug.log("Creating node ", sort, ":", constructor, " from ", tokenizer.dumpToString(left, right));
-			Debug.log("  with children: ", childNodes);
 			
 			return factory.createNonTerminal(sort, constructor, left, right, childNodes);
 		} else {
 			// TODO: Proper list recognition
-			IToken left = getStartToken(prevToken);
-			IToken right = tokenizer.currentToken();
-			
-			Debug.log("Creating node list from ", tokenizer.dumpToString(left, right));
-			Debug.log("  with children: ", childNodes);
 			
 			return factory.createList(sort, left, right, childNodes);
 		}
@@ -184,12 +187,16 @@ public class AsfixConverter {
 		} else {
 			int index = prevToken.getTokenIndex();
 			
-			/* UNDONE: Assumed empty tokens are not supported
-			if (parseStream.getSize() - index <= 1)
-				throw new InvalidParseTreeException("Cannot create a AST node for an empty token");
-			*/
-			
-			return parseStream.getTokenAt(index + 1); 
+			if (parseStream.getSize() - index <= 1) {
+				// UNDONE: Assumed empty tokens were harmful
+				// throw new InvalidParseTreeException("Cannot create a AST node for an empty token");
+
+				// Create new empty token
+				// HACK: Assume TK_KEYWORD kind for empty tokens in AST nodes
+				return tokenizer.makeToken(offset, SGLRParsersym.TK_KEYWORD, true);
+			} else {
+				return parseStream.getTokenAt(index + 1); 
+			}
 		}
 	}
 	
@@ -229,13 +236,13 @@ public class AsfixConverter {
 	}
 
     private static String getSort(ATermAppl attrs) {
-    	ATermAppl node = attrs;
+    	ATerm node = attrs;
     	
-    	while (attrs.getChildCount() > 0 && isAppl(node)) {
-    		node = applAt(node, 0);
-    		
-    		if (node.getName().equals("sort"))
+    	while (node.getChildCount() > 0 && isAppl(node)) {
+    		if (asAppl(node).getName().equals("sort"))
     			return applAt(node, 0).getName();
+    		
+    		node = termAt(node, 0);
     	}
     	
     	return null;

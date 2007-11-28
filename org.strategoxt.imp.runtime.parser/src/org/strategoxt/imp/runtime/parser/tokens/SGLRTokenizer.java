@@ -62,11 +62,9 @@ public class SGLRTokenizer {
 		parseStream.makeToken(beginOffset, beginOffset, TK_EOF);
 	}
 	
-	public IToken makeToken(int endOffset, int kind) {
-		/* UNDONE: Assumed empty tokens are unsupported or undesired
-		if (beginOffset == endOffset)
+	public IToken makeToken(int endOffset, int kind, boolean allowEmptyToken) {
+		if (!allowEmptyToken && beginOffset == endOffset) // empty token
 			return null;
-		*/
 		
 		parseStream.makeToken(beginOffset, endOffset - 1, kind);
 		
@@ -76,6 +74,10 @@ public class SGLRTokenizer {
 		parseStream.setStreamLength(parseStream.getSize());
 		
 		return currentToken();
+	}
+	
+	public final IToken makeToken(int endOffset, int kind) {
+		return makeToken(endOffset, kind, false);
 	}
 	
 	/**
@@ -117,7 +119,7 @@ public class SGLRTokenizer {
 			IToken token = parseStream.getTokenAt(i);
 			result.append(SGLRTokenKindManager.getDefaultName(token.getKind()));
 			result.append(":");
-			result.append(token.toString());			
+			result.append(token.toString());
 			if (i < last) result.append(", ");
 		}
 		
