@@ -106,7 +106,7 @@ public class AsfixConverter {
 
 			Debug.log("Creating node ", getSort(rhs), " from ", tokenizer.dumpToString(token));	
 			
-			return factory.createTerminal(rhs, token);
+			return factory.createTerminal(getSort(rhs), token);
 		} else if (lexicalContext) {
 			return null; // don't create tokens inside lexical context; just create one big token at the top
 		} else if (isTokenOnly) {
@@ -143,22 +143,28 @@ public class AsfixConverter {
 
 	/** Implode a context-free node. */
 	private SGLRAstNode implodeContextFree(String sort, String constructor, IToken prevToken,
-			ArrayList<SGLRAstNode> childNodes) {
+			ArrayList<SGLRAstNode> children) {
 		
 		IToken left = getStartToken(prevToken);
 		IToken right = tokenizer.currentToken();
 		
 		if (Debug.ENABLED) {
 			String name = sort == null ? "list" : sort;
-			Debug.log("Creating node ", name, ":", constructor, SGLRAstNode.getSorts(childNodes), " from ", tokenizer.dumpToString(left, right));
+			Debug.log("Creating node ", name, ":", constructor, SGLRAstNode.getSorts(children), " from ", tokenizer.dumpToString(left, right));
+		}
+		
+		if (constructor == null && children.size() == 1 && children.get(0).getSort() == SGLRAstNode.STRING_SORT) {
+			// TODO: Is this right? First create a <string> node, put it in a list, and then dispose it?
+			assert left == right;
+			return factory.createTerminal(sort, left);
 		}
 		
 		if (sort != null) {
-			return factory.createNonTerminal(sort, constructor, left, right, childNodes);
+			return factory.createNonTerminal(sort, constructor, left, right, children);
 		} else {
 			// TODO: Proper list recognition
 			
-			return factory.createList(sort, left, right, childNodes);
+			return factory.createList(sort, left, right, children);
 		}
 	}
 	

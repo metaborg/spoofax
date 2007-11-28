@@ -2,10 +2,6 @@ package org.strategoxt.imp.runtime.parser.ast;
 
 import java.util.ArrayList;
 
-import static org.spoofax.jsglr.Term.*;
-
-import aterm.ATermAppl;
-
 import lpg.runtime.ILexStream;
 import lpg.runtime.IToken;
 
@@ -45,7 +41,7 @@ public abstract class SGLRAstNodeFactory<TNode extends SGLRAstNode> {
 	/**
 	 * Create a new terminal AST node.
 	 */
-	public final SGLRAstNode createTerminal(ATermAppl sort, IToken token) {
+	public final SGLRAstNode createTerminal(String sort, IToken token) {
 		ILexStream lex = token.getPrsStream().getLexStream();
 		
 		int length = token.getEndOffset() - token.getStartOffset() + 1;
@@ -55,11 +51,6 @@ public abstract class SGLRAstNodeFactory<TNode extends SGLRAstNode> {
 			tokenContents.append(lex.getCharValue(i));
 		}
 		
-		assert sort.getName().equals("lex") && applAt(sort, 0).getName().equals("sort")
-			: "Literal AST node expected instead of " + sort;
-		
-		String sortString = ((ATermAppl) sort.getChildAt(0).getChildAt(0)).getName();
-		
-		return createTerminal(sortString, tokenContents.toString(), token, token);
+		return createTerminal(sort, tokenContents.toString(), token, token);
 	}
 }
