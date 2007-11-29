@@ -90,17 +90,17 @@ public class AsfixConverter {
 		
 		IToken prevToken = tokenizer.currentToken();
 		
-		boolean isTokenOnly = rhs.getName().equals("lit") || SGLRParseController.isLayout(rhs);
-		
 		// Enter lexical context if this is a lex node
-		boolean lexicalStart = !isTokenOnly && !lexicalContext && rhs.getName().equals("lex");
+		boolean lexicalStart = !lexicalContext
+			&& (rhs.getName().equals("lex") || rhs.getName().equals("lit")
+			    || SGLRParseController.isLayout(rhs));
 		
 		if (lexicalStart) lexicalContext = true;
 		
 		boolean isList = !lexicalContext && SGLRParseController.isList(rhs);
 		
 		ArrayList<SGLRAstNode> children =
-			implodeChildNodes(contents, isTokenOnly || lexicalContext);
+			implodeChildNodes(contents, lexicalContext);
 		
 		if (lexicalStart) {
 			lexicalContext = false;
@@ -114,9 +114,6 @@ public class AsfixConverter {
 			return factory.createTerminal(getSort(rhs), token);
 		} else if (lexicalContext) {
 			return null; // don't create tokens inside lexical context; just create one big token at the top
-		} else if (isTokenOnly) {
-			tokenizer.makeToken(offset, tokenManager.getTokenKind(lhs, rhs));
-			return null;
 		} else {
 			String constructor = getConstructor(attrs);
 			String sort = getSort(rhs);

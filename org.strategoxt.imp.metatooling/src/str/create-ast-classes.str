@@ -354,6 +354,11 @@ rules
 	      visitor.postVisit(this);
 	    }
 	    
+	    @Override
+	    public java.lang.String toString() { // more efficient than parent impl.
+	      return value;
+	    }
+	    
 	    protected void enter(AbstractVisitor visitor) {
 	      visitor.visit(this);
 	      visitor.endVisit(this);

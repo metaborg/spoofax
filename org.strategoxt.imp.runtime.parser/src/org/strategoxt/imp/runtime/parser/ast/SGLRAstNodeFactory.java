@@ -22,6 +22,7 @@ public abstract class SGLRAstNodeFactory<TNode extends SGLRAstNode> {
 			ArrayList<TNode> children) {
 		
 		if ("<START>".equals(sort)) {
+			// TODO: Create a top AST node to include all 
 			assert children.size() == 1;
 			return children.get(0);
 		}
