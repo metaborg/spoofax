@@ -12,6 +12,7 @@ import lpg.runtime.IToken;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.parser.AstLocator;
 import org.eclipse.imp.parser.IASTNodeLocator;
@@ -87,6 +88,11 @@ public abstract class SGLRParseController implements IParseController {
     }
 	
 	// Parsing and initialization
+    
+    static {
+    	// HACK: set always repainting in IMP using static field
+    	UniversalEditor.fAlwaysRepaint = true;
+    }
     
     /**
      * Create a new SGLRParseController.

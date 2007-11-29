@@ -88,7 +88,7 @@ public class SGLRTokenKindManager {
 		
 		for (int i = 0; i < contents.length(); i++) {
 			char c = contents.charAt(i);
-			if (Character.isLetterOrDigit(c)) return false;
+			if (Character.isLetter(c)) return false;
 		}
 		
 		return true;

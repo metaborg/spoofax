@@ -384,9 +384,20 @@ rules
       }
     ]|
     where tname |[ x ]| := tname;
-          x_Name := <create-accessor-name(|index)> x;
+          x_Name := <create-accessor-name(|index)> <try(simple-sort-name)> x;
           i      := <write-to-string> index
+  
+  simple-sort-name = // "ModuleSort" -> "Module"
+    explode-string;
     
+    rec rec(
+      \[x | ['S', 'o', 'r', 't']] -> [x]\
+    <+
+      \[x | xs] -> [x | <rec> xs]\
+    );
+    
+    implode-string
+  
   create-accessor-name(|index) =
     not(IsReservedAccessorName) => name;
     rules(IsReservedAccessorName: name);
