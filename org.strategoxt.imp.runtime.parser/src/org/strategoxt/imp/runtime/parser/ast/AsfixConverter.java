@@ -109,7 +109,7 @@ public class AsfixConverter {
 			
 			if (sort == null) return null;
 			
-			Debug.log("Creating node ", getSort(rhs), " from ", tokenizer.dumpToString(token));	
+			Debug.log("Creating node ", getSort(rhs), " from ", SGLRTokenizer.dumpToString(token));	
 			
 			return factory.createTerminal(getSort(rhs), token);
 		} else if (lexicalContext) {
@@ -152,7 +152,7 @@ public class AsfixConverter {
 		
 		if (Debug.ENABLED) {
 			String name = isList ? "list" : sort;
-			Debug.log("Creating node ", name, ":", constructor, SGLRAstNode.getSorts(children), " from ", tokenizer.dumpToString(left, right));
+			Debug.log("Creating node ", name, ":", constructor, SGLRAstNode.getSorts(children), " from ", SGLRTokenizer.dumpToString(left, right));
 		}
 		
 		if (isList) {

@@ -111,12 +111,12 @@ public class SGLRTokenizer {
 		return new Token(parseStream, beginOffset, offset, TK_JUNK);
 	}
 	
-	public String dumpToString(IToken left, IToken right) {
+	public static String dumpToString(IToken left, IToken right) {
 		StringBuilder result = new StringBuilder();
 		int last = right.getTokenIndex();
 		
 		for (int i = left.getTokenIndex(); i <= last; i++) {
-			IToken token = parseStream.getTokenAt(i);
+			IToken token = left.getPrsStream().getTokenAt(i);
 			result.append(SGLRTokenKindManager.getDefaultName(token.getKind()));
 			result.append(":");
 			result.append(token.toString().replace("\n","\\n").replace("\r","\\r"));
@@ -126,7 +126,7 @@ public class SGLRTokenizer {
 		return result.toString();
 	}
 	
-	public final String dumpToString(IToken token) {
+	public static final String dumpToString(IToken token) {
 		return dumpToString(token, token);
 	}
 }
