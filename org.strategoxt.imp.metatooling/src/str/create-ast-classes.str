@@ -47,7 +47,7 @@ strategies
     
     rules(
       SortClassName: "List"
-      SortClassName: "String"
+      // UNDONE: SortClassName: "String"
     );
     
     // Reserve default accessor method names
@@ -82,22 +82,29 @@ strategies
             java.util.ArrayList<ASTNode> children) {
           
           super(leftToken, rightToken, children);
-	    }
-	    
+        }
+        
         protected ASTNode(tname_ITOKEN leftToken, tname_ITOKEN rightToken) {
           super(leftToken, rightToken);
-	    }
-	    
+        }
+        
         protected void setRightIToken(tname_ITOKEN value) {
           super.setRightIToken(value);
-	    }
-	    
-        public abstract void accept(AbstractVisitor visitor);
+        }
+        
+        public final void accept(AbstractVisitor visitor) {
+          if (!visitor.preVisit(this)) return;
+          enter(visitor);
+          visitor.postVisit(this);
+        }
+        
+        protected abstract void enter(AbstractVisitor visitor);
         
         // also abstract: getSort(); getConstructor()
       }
     ]|
   
+  // TODO: Confirm AST string class is still needed
   create-ast-string-class =
     <output-file> compilation-unit |[
       package parser.ast;
@@ -105,20 +112,20 @@ strategies
       public class String extends ASTNode {
         public String(tname_ITOKEN leftToken, tname_ITOKEN rightToken) {
           super(leftToken, rightToken);
-	    }
-	    
-	    @Override
-	    public java.lang.String getSort() {
-	      return STRING_SORT;
-	    }
-	    
-	    @Override
-	    public java.lang.String getConstructor() {
-	      return null;
-	    }
-	    
+        }
+        
         @Override
-	    public void accept(AbstractVisitor visitor) {
+        public java.lang.String getSort() {
+          return STRING_SORT;
+        }
+        
+        @Override
+        public java.lang.String getConstructor() {
+          return null;
+        }
+        
+        @Override
+        protected void enter(AbstractVisitor visitor) {
           visitor.visit(this);
           visitor.endVisit(this);
         }
@@ -141,37 +148,31 @@ strategies
           
           super(leftToken, rightToken, children);
           this.elementSort = elementSort;
-	    }
-	    
-	    public java.lang.String getElementSort() {
-	      return elementSort;
-	    }
-	    
-	    @Override
-	    public java.lang.String getSort() {
-	      return getElementSort() + "*";
-	    }
-	    
-	    @Override
-	    public java.lang.String getConstructor() {
-	      return LIST_CONSTRUCTOR;
-	    }
-	    
-	    @Override
-	    public void accept(AbstractVisitor visitor) {
-	      if (!visitor.preVisit(this)) return;
-	      enter(visitor);
-	      visitor.postVisit(this);
-	    }
-	    
-	    protected void enter(AbstractVisitor visitor) {
-	      if (visitor.visit(this)) {
-	        for (ASTNode node : this) {
-	          node.accept(visitor);
-	        }
-	      }  
-	      visitor.endVisit(this);
-	    }
+        }
+        
+        public java.lang.String getElementSort() {
+          return elementSort;
+        }
+        
+        @Override
+        public java.lang.String getSort() {
+          return getElementSort() + "*";
+        }
+        
+        @Override
+        public java.lang.String getConstructor() {
+          return LIST_CONSTRUCTOR;
+        }
+        
+        @Override
+        protected void enter(AbstractVisitor visitor) {
+          if (visitor.visit(this)) {
+            for (ASTNode child : this) {
+              child.accept(visitor);
+            }
+          }  
+          visitor.endVisit(this);
+        }
       }
     ]|
 
@@ -191,21 +192,23 @@ rules
             java.util.ArrayList<ASTNode> children) {
           
           super(leftToken, rightToken, children);
-	    }
-	    
+        }
+        
         protected x_Name(tname_ITOKEN leftToken, tname_ITOKEN rightToken) {
           super(leftToken, rightToken);
-	    }
-	    
-	    @Override
-	    public java.lang.String getSort() {
-	      return "~sort";
-	    }
+        }
+        
+        @Override
+        public java.lang.String getSort() {
+          return "~sort";
+        }
       }
     ]|  
     where not(<SortClassName> sort); // create only once
           
           x_Name := <reserve-class-name> <conc-strings> (sort, "Sort");
+          
+          visitor-register-class(|x_Name);
           rules(SortClassName: sort -> x_Name)
   
   list-sort-no-class:
@@ -246,28 +249,25 @@ rules
         protected x_Name(tname_ITOKEN leftToken, tname_ITOKEN rightToken,
             java.util.ArrayList<ASTNode> children) {
           super(leftToken, rightToken, children);
-	    }
-	    
-	    @Override
-	    public java.lang.String getConstructor() {
-	      return e_Constructor;
-	    }
-	    
-	    @Override
-	    public void accept(AbstractVisitor visitor) {
-	      if (!visitor.preVisit(this)) return;
-	      enter(visitor);
-	      visitor.postVisit(this);
-	    }
-	    
-	    protected void enter(AbstractVisitor visitor) {
-	      if (visitor.visit(this)) {
-	        for (ASTNode node : this) {
-	          node.accept(visitor);
-	        }
-	      }  
-	      visitor.endVisit(this);
-	    }
+        }
+        
+        @Override
+        public java.lang.String getConstructor() {
+          return e_Constructor;
+        }
+        
+        @Override
+        protected void enter(AbstractVisitor visitor) {
+          if (visitor.visit((x_Parent) this)) {
+            if (visitor.visit(this)) {
+              for (ASTNode child : this) {
+                child.accept(visitor);
+              }
+            }  
+            visitor.endVisit(this);
+          }
+          visitor.endVisit((x_Parent) this);
+        }
       
         ~*children
       }
@@ -336,33 +336,30 @@ rules
         public x_Name(java.lang.String value, tname_ITOKEN leftToken, tname_ITOKEN rightToken) {
           super(leftToken, rightToken);
           this.value = value;
-	    }
+        }
         
         public java.lang.String getValue() {
           return value;
         }
-	    
-	    @Override
-	    public java.lang.String getConstructor() {
-	      return null;
-	    }
-	    
-	    @Override
-	    public void accept(AbstractVisitor visitor) {
-	      if (!visitor.preVisit(this)) return;
-	      enter(visitor);
-	      visitor.postVisit(this);
-	    }
-	    
-	    @Override
-	    public java.lang.String toString() { // more efficient than parent impl.
-	      return value;
-	    }
-	    
-	    protected void enter(AbstractVisitor visitor) {
-	      visitor.visit(this);
-	      visitor.endVisit(this);
-	    }
+        
+        @Override
+        public java.lang.String getConstructor() {
+          return null;
+        }
+        
+        @Override
+        public java.lang.String toString() { // more efficient than parent impl.
+          return value;
+        }
+        
+        @Override
+        protected void enter(AbstractVisitor visitor) {
+          if (visitor.visit((x_Parent) this)) {
+            visitor.visit(this);
+            visitor.endVisit(this);
+          }
+          visitor.endVisit((x_Parent) this);
+        }
       }
     ]|
     where x_Name   := <reserve-class-name> sort;
