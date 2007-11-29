@@ -148,7 +148,7 @@ public class AsfixConverter {
 			ArrayList<SGLRAstNode> children, boolean isList) {
 		
 		IToken left = getStartToken(prevToken);
-		IToken right = tokenizer.currentToken();
+		IToken right = getEndToken(left, tokenizer.currentToken());
 		
 		if (Debug.ENABLED) {
 			String name = isList ? "list" : sort;
@@ -161,13 +161,9 @@ public class AsfixConverter {
 			// TODO: Is this right? First create a <string> node, put it in a list, and then dispose it?
 			assert left == right;
 			return factory.createTerminal(sort, left);
-		} else if (sort != null) {
-			return factory.createNonTerminal(sort, constructor, left, right, children);
 		} else {
-			// TODO: This is obsolete?
-			assert false : "Deemed obsolete";
-			
-			return factory.createList(sort, left, right, children);
+			assert sort != null : "Terminals must have a sort";
+			return factory.createNonTerminal(sort, constructor, left, right, children);
 		}
 	}
 	
@@ -199,12 +195,27 @@ public class AsfixConverter {
 				// throw new InvalidParseTreeException("Cannot create a AST node for an empty token");
 
 				// Create new empty token
-				// HACK: Assume TK_KEYWORD kind for empty tokens in AST nodes
-				return tokenizer.makeToken(offset, SGLRParsersym.TK_KEYWORD, true);
+				// HACK: Assume TK_LAYOUT kind for empty tokens in AST nodes
+				return tokenizer.makeToken(offset, SGLRParsersym.TK_LAYOUT, true);
 			} else {
 				return parseStream.getTokenAt(index + 1); 
 			}
 		}
+	}
+	
+	/** Get the last no-layout token for an AST node. */
+	private IToken getEndToken(IToken startToken, IToken lastToken) {
+		PrsStream parseStream = tokenizer.getParseStream();
+		int begin = startToken.getTokenIndex();
+		
+		for (int i = lastToken.getTokenIndex(); i > begin; i--) {
+			lastToken = parseStream.getTokenAt(i);
+			if (lastToken.getKind() != SGLRParsersym.TK_LAYOUT
+					|| lastToken.getStartOffset() == lastToken.getEndOffset()-1)
+				break;
+		}
+		
+		return lastToken;
 	}
 	
 	/** Implode any appl(_, _) that constructs a lex terminal. */

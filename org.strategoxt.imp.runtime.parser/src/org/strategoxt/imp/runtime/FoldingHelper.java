@@ -27,49 +27,37 @@ public class FoldingHelper {
 	}
 	
 	public void makeCompleteAnnotation(IToken firstToken, IToken lastToken) {
-		// Consume any layout tokens that appear at the end of our AST node		
-		while (parseStream.getStreamLength() >= lastToken.getTokenIndex()) {
-			IToken next = parseStream.getTokenAt(lastToken.getTokenIndex() + 1);
-			
-			if (next.getKind() == SGLRParsersym.TK_LAYOUT) {
-				lastToken = next;
-				if (containsEndOfLine(next)) break;
-			} else {
-				break;
-			}
-		}
+		final int start = firstToken.getEndOffset();
+		int end = -1;
 		
-		defaultMakeAnnotation(firstToken, lastToken);
+		if (firstToken.getLine() != lastToken.getLine()) {
+			// Consume any layout tokens at the end of our AST node until the next EOL		
+			while (parseStream.getStreamLength() >= lastToken.getTokenIndex()) {
+				IToken next = parseStream.getTokenAt(lastToken.getTokenIndex() + 1);
+				
+				if (next.getKind() == SGLRParsersym.TK_LAYOUT) {
+					lastToken = next;
+					if ((end = getEndOfLinePosition(next)) != -1) break;
+				} else {
+					// Next AST node starts at the same line!
+					break;
+				}
+			}
+			
+			if (end == -1) end = lastToken.getEndOffset();
+			folder.makeAnnotation(start, end - start + 1);
+		}
 	}
 	
-	private boolean containsEndOfLine(IToken token) {
+	private int getEndOfLinePosition(IToken token) {
 		int end = token.getEndOffset();
 		
-		for (int i = token.getStartOffset(); i < end; i++) {
+		for (int i = token.getStartOffset(); i <= end; i++) {
 			char c = lexStream.getCharValue(i);
 			if (c == '\n' || c == '\r')
-				return true;
+				return i;
 		}
 		
-		return false;
+		return -1;
 	}
-
-	// Default IMP implementation of makeAnnotation (private in generated code...)
-	private void defaultMakeAnnotation(IToken firstToken, IToken lastToken) {
-	    if (lastToken.getEndLine() > firstToken.getLine()) {
-			IToken next_token = parseStream.getIToken(parseStream
-					.getNext(lastToken.getTokenIndex()));
-			
-			IToken[] adjuncts = next_token.getPrecedingAdjuncts();
-			IToken gate_token = adjuncts.length == 0 ? next_token : adjuncts[0];
-			
-			int firstOffset = firstToken.getStartOffset();
-			int lastOffset = gate_token
-					.getLine() > lastToken.getEndLine() ? parseStream
-					.getLexStream().getLineOffset(gate_token.getLine() - 1)
-					: lastToken.getEndOffset();
-			
-			folder.makeAnnotation(firstOffset, lastOffset - firstOffset + 1);
-		}
-    }
 }
