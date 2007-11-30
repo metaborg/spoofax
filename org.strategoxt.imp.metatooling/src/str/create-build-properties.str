@@ -1,0 +1,19 @@
+module create-build-properties
+
+imports
+  io
+
+strategies
+
+  create-build-properties =
+    name := <get-sdf-main-module>;
+    
+    <output-text-file(|[], "build.properties")>
+    
+<conc-strings> (
+"source.. = src/
+output.. = bin/
+bin.includes = META-INF/,\\
+               .,\\
+               syntax/", name, ".tbl
+")

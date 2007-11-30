@@ -19,7 +19,7 @@ strategies
     x_Factory := <get-ast-factory-name>;
     table     := <get-sdf-main-module>;
   
-    <output-file> |[
+    <output-java-file> |[
       package parser;
 
       import java.io.IOException;      
@@ -33,7 +33,8 @@ strategies
         private static final String TABLE = "/syntax/" + GRAMMAR + ".tbl";
         
         public x_Name() throws IOException, InvalidParseTableException {          
-          // TODO: Grammar-specific token kind manager
+          // TODO: Optimize - don't load the parse table for every parse controller instance
+          // TODO2: Grammar-specific token kind manager?
           
           super(new x_Factory(), new SGLRTokenKindManager(), x_Name.class.getResourceAsStream(TABLE), null);
         }

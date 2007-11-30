@@ -1,4 +1,4 @@
-STRS     = $(wildcard src/str/*.str)
+STRS     = $(wildcard src/str/*.str) $(wildcard src/str/lib/*.str)
 CTREES   = src/str/sdf2imp.ctree
 
 STRCFLAGS = \
@@ -11,6 +11,8 @@ STRCFLAGS = \
     `pkg-config --variable=strcxtcflags strategoxt`
 
 STRINCLUDES = \
+	-I $(HOME)/.nix-profile/share/sdf/xml-front \
+	-I $(HOME)/.nix-profile/share/sdf/gpp \
     `pkg-config --variable=strcflags java-front`
 
 all : sdf2imp eclipse-deps

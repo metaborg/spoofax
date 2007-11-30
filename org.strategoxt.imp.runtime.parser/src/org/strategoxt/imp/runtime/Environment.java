@@ -34,14 +34,14 @@ public final class Environment {
 	public static Interpreter createInterpreter() {
 		return new Interpreter(wrappedFactory);
 	}
-    
-    public static ParseTable loadParseTable(InputStream parseTable)
-    		throws IOException, InvalidParseTableException {
-    	try {
-    		Debug.startTimer();
-	    	return parseTables.loadFromStream(parseTable);
+	
+	public static ParseTable loadParseTable(InputStream parseTable)
+			throws IOException, InvalidParseTableException {
+		try {
+			Debug.startTimer();
+			return parseTables.loadFromStream(parseTable);
 		} finally {
 			Debug.stopTimer("Parse table loaded");
 		}
-    }
+	}
 }

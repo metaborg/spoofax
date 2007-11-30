@@ -1,0 +1,71 @@
+module create-plugin-xml
+
+imports
+  io
+
+strategies
+
+  create-plugin-xml =
+    name := <get-sdf-main-module>;
+    extensions := <EditorExtensions>;
+    
+    <output-xml-file(|[], "plugin.xml")>
+    %>
+    <?xml version="1.0" encoding="UTF-8"?>
+    <?eclipse version="3.0"?>
+    <plugin>
+       <extension
+             point="org.eclipse.imp.runtime.languageDescription">
+          <language
+                extensions="<%= extensions %>"
+                description="Professional Home Pages"
+                language="<%= name %>">
+          </language>
+       </extension>
+       <extension
+             id="<%= name %>.parserWrapper"
+             name="<%= name %> Parser Wrapper"
+             point="org.eclipse.imp.runtime.parser">
+          <parserWrapper
+                class="parser.<%= name %>ParseController"
+                language="<%= name %>">
+          </parserWrapper>
+       </extension>
+    
+       <extension
+             point="org.eclipse.imp.runtime.tokenColorer">
+          <tokenColorer
+                class="tokenColorer.<%= name %>TokenColorer"
+                language="<%= name %>">
+          </tokenColorer>
+       </extension>
+       
+       
+       <extension
+             point="org.eclipse.imp.runtime.outliner">
+          <outliner
+                class="outliner.<%= name %>Outliner"
+                language="<%= name %>">
+          </outliner>
+       </extension>
+    
+       <extension
+             point="org.eclipse.imp.runtime.foldingUpdater">
+          <foldingUpdater
+                class="foldingUpdater.<%= name %>FoldingUpdater"
+                language="<%= name %>">
+          </foldingUpdater>
+       </extension>
+    
+       <!-- editor services
+       <extension
+             point="org.eclipse.imp.runtime.referenceResolvers">
+          <referenceResolver
+                class="referenceResolvers.<%= name %>ReferenceResolver"
+                language="<%= name %>">
+          </referenceResolver>
+       </extension>
+       -->
+    
+    </plugin>
+    <%

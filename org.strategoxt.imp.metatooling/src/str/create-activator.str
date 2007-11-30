@@ -1,0 +1,73 @@
+module create-activator
+      
+imports
+  io
+
+strategies
+
+  get-activator-packagename =
+    <lower-case> <get-sdf-main-module> // HACK: Standard package for activator
+
+  create-activator =
+    // TODO: Cleanup default manifest
+  
+    name      := <get-sdf-main-module>;
+    x_Package := <get-activator-packagename>;
+    
+    <output-java-file> compilation-unit |[    
+      package x_Package;
+      
+      import org.eclipse.core.resources.ResourcesPlugin;
+      import org.eclipse.imp.preferences.PreferencesService;
+      import org.eclipse.imp.runtime.PluginBase;
+      import org.osgi.framework.BundleContext;
+      
+      public class Activator extends PluginBase {
+        public static final String kPluginID = "~name";
+      
+        public static final String kLanguageName = "~name";
+      
+        /**
+         * The unique instance of this plugin class
+         */
+        protected static Activator sPlugin;
+      
+        public static Activator getInstance() {
+          if (sPlugin == null) return new Activator();
+          
+          return sPlugin;
+        }
+      
+        public Activator() {
+          super();
+          sPlugin = this;
+        }
+      
+        public void start(BundleContext context) throws Exception {
+          super.start(context);
+      
+        }
+      
+        public String getID() {
+          return kPluginID;
+        }
+      
+        protected static PreferencesService preferencesService = null;
+      
+        public static PreferencesService getPreferencesService() {
+          if (preferencesService == null) {
+            preferencesService = new PreferencesService(ResourcesPlugin
+                .getWorkspace().getRoot().getProject());
+            preferencesService.setLanguageName(kLanguageName);
+            
+            // TODO2: IMP-generated activator TODO
+            // When some actual preferences are created, put
+            // a call to the preferences initializer here
+            // (The IMP New Preferences Support wizard creates such
+            // an initializer.)
+      
+          }
+          return preferencesService;
+        }
+      }
+    ]|

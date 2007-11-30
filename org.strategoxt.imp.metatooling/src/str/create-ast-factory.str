@@ -1,0 +1,104 @@
+module create-ast-factory
+
+imports
+  libstratego-lib
+  libstratego-xtc
+  sdf-options
+  rtg
+  
+  io
+  debug
+
+strategies
+
+  // TODO2: Optimize - AST node factory
+  //        - use a hash table, tree form and/or string length conditions
+
+  factory-register-non-terminal(|sort, e_Constructor, class, argtypes) =
+    i_ArgLength := <length; write-to-string> argtypes;
+    
+    // Condition: children.get(0) instanceof ... && ... && true
+    !argtypes;
+    number(arg-type-check);
+    foldr(!|[ true ]|, !|[ ~<Fst> && ~<Snd> ]|) => conditions;
+    
+    if |[ null ]| := e_Constructor then
+      e_ConstructorCheck := |[ null == constructor ]|
+    else
+      e_ConstructorCheck := |[ e_Constructor.equals(constructor) ]|
+    end;
+    
+    rules(
+      FactoryNonTerminals :+= bstm |[
+        if (numChildren == i_ArgLength
+            && e_ConstructorCheck
+            && "~sort".equals(sort)
+            && ~conditions)
+          return new ~x:class(leftToken, rightToken, children);
+      ]|
+    )
+
+  factory-register-terminal(|sort, class) =
+    rules(
+      FactoryTerminals :+= bstm |[
+        if ("~sort".equals(sort))
+          return new ~x:class(value, leftToken, rightToken);
+      ]|
+    )
+  
+  arg-type-check:
+    (tname, index) ->
+    expr |[
+      children.get(i_Index) instanceof tname
+    ]|
+    where i_Index := <write-to-string> index
+  
+  get-ast-factory-name =
+    <conc-strings> (<get-sdf-main-module>, "AstNodeFactory")
+  
+  create-ast-factory =
+    x_Name       := <get-ast-factory-name>;
+    terminals    := <bagof-FactoryTerminals>;
+    nonterminals := <bagof-FactoryNonTerminals>;
+     
+    <output-file> compilation-unit |[
+      package parser.ast;
+      
+      public class x_Name extends tname_ASTFACTORY<ASTNode> {
+        @Override
+        public ASTNode createNonTerminal(java.lang.String sort, java.lang.String constructor,
+            tname_ITOKEN leftToken, tname_ITOKEN rightToken,
+            java.util.ArrayList<ASTNode> children) {
+          
+          int numChildren = children.size();
+          
+          ~*nonterminals
+          
+          // HACK: Don't generate an AST node for implicit lexical -> context-free injections
+          // (i.e., don't generate Id(Id("x")) for a lexical sort Id)
+          if (numChildren == 1 && sort != null && sort.equals(children.get(0).getSort())) {
+            ASTNode result = children.get(0);
+            children.get(0).setRightIToken(rightToken); // expand node with any additional tokens
+            return result;
+          }
+          
+          return super.createNonTerminal(sort, constructor, leftToken, rightToken, children);
+        }
+        
+        @Override
+        public ASTNode createTerminal(java.lang.String sort, java.lang.String value,
+            tname_ITOKEN leftToken, tname_ITOKEN rightToken) {
+          
+          ~*terminals
+          
+          return super.createTerminal(sort, value, leftToken, rightToken);
+        }
+        
+        @Override
+        public List createList(java.lang.String elementSort, tname_ITOKEN leftToken,
+            tname_ITOKEN rightToken, java.util.ArrayList<ASTNode> children) {
+          
+          return new List(elementSort, leftToken, rightToken, children);
+        }
+      }
+    ]|
