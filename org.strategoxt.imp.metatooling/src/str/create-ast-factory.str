@@ -61,7 +61,7 @@ strategies
     terminals    := <bagof-FactoryTerminals>;
     nonterminals := <bagof-FactoryNonTerminals>;
      
-    <output-file> compilation-unit |[
+    <output-java-file> compilation-unit |[
       package parser.ast;
       
       public class x_Name extends tname_ASTFACTORY<ASTNode> {

@@ -6,10 +6,6 @@ imports
 
 strategies
   
-  //  TODO2: Should be named output-java-file
-  output-file =
-    output-java-file
-  
   output-java-file =
     where(
       path := <create-dirs> ["src" | <package-name>]

@@ -45,7 +45,7 @@ strategies // TODO: Visitor
     visitcases    := <bagof-VisitCases>;
     endvisitcases := <bagof-EndVisitCases>;
     
-    <output-file> compilation-unit |[
+    <output-java-file> compilation-unit |[
       package parser.ast;
       
       public abstract class AbstractVisitor {

@@ -21,12 +21,12 @@ strategies
       // HACK: use a single generic class for lists
       list-sort-no-class
     <+
-      if(sort-to-class, output-file)
+      if(sort-to-class, output-java-file)
     );
     
     list-loop(risky(
       (non-terminal-list-no-class <+ terminal-to-class <+ non-terminal-to-class);
-      (None <+ output-file)
+      (None <+ output-java-file)
     | "Could not convert production to AST class") 
     );
     
@@ -74,7 +74,7 @@ strategies
 strategies
   
   create-ast-base-class =
-    <output-file> compilation-unit |[
+    <output-java-file> compilation-unit |[
       package parser.ast;
     
       public abstract class ASTNode extends tname_ASTNODE<ASTNode> {
@@ -106,7 +106,7 @@ strategies
   
   // TODO: Confirm AST string class is still needed
   create-ast-string-class =
-    <output-file> compilation-unit |[
+    <output-java-file> compilation-unit |[
       package parser.ast;
     
       public class String extends ASTNode {
@@ -137,7 +137,7 @@ strategies
     ]|
   
   create-ast-list-class =
-    <output-file> compilation-unit |[
+    <output-java-file> compilation-unit |[
       package parser.ast;
     
       public class List extends ASTNode {
