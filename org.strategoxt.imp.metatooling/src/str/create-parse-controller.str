@@ -26,7 +26,7 @@ strategies
       import org.spoofax.jsglr.InvalidParseTableException;
       import org.strategoxt.imp.runtime.parser.SGLRParseController;
       import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenKindManager;
-      import parser.ast.WebDSLAstNodeFactory;
+      import parser.ast.x_Factory;
       
       public class x_Name extends SGLRParseController {
         private static final String GRAMMAR = "~table";

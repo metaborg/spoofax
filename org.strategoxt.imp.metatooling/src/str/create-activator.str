@@ -2,20 +2,18 @@ module create-activator
       
 imports
   io
+  options
 
-strategies
-
-  get-activator-packagename =
-    <lower-case> <get-sdf-main-module> // HACK: Standard package for activator
+strategies    
 
   create-activator =
     // TODO: Cleanup default manifest
   
-    name      := <get-sdf-main-module>;
-    x_Package := <get-activator-packagename>;
+    name    := <get-sdf-main-module>;
+    pkgname := <get-package-name>;
     
-    <output-java-file> compilation-unit |[    
-      package x_Package;
+    <output-java-file> compilation-unit |[
+      package pkgname;
       
       import org.eclipse.core.resources.ResourcesPlugin;
       import org.eclipse.imp.preferences.PreferencesService;

@@ -1,0 +1,58 @@
+module options
+
+strategies
+
+  sdf2imp-options =
+    sdf-main-module-option // -m <mod>; defines get-sdf-main-module
+  + extensions-option
+  + parse-table-option
+  + package-name-option
+
+  // TODO2: -s <start symbol> option (when JSGLR supports it)
+
+  parse-table-option =
+    ArgOption(
+      "-p"
+    , rules(ParseTable := <id>)
+    , !"-p <parse table>.tbl  Set parse table (optional)"
+    )
+
+  extensions-option =
+    ArgOption(
+      "-e"
+    , rules(EditorExtensions := <id>)
+    , !"-e <extensions>       Set editor file extensions (comma separated)"
+    )
+
+  package-name-option =
+    ArgOption(
+      "-n"
+    , rules(BasePackage := <id>);
+      get-package-name // ensure legal
+    , !"-n <packagename>      Set base package name"
+    )
+  
+  get-package-name =
+    // TODO: Redirect to get-package-name
+    // get-package-name(|[])
+    
+    get-sdf-main-module;
+    lower-case;
+    get-package-name(|[<id>])
+  
+  get-package-name(|subpackage) =
+    // TODO: Use BasePackage for generated code
+    <map(!Id(<id>))> subpackage;
+    !PackageName(<id>)
+  
+  check-options = 
+    where(
+      BasePackage
+    <+
+      fatal-err-msg(|"Base package name not specified")
+    );
+    where(
+      EditorExtensions
+    <+
+      fatal-err-msg(|"Editor extensions not specified")
+    )

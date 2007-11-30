@@ -289,7 +289,7 @@ rules
     Ref(String()) -> tname |[ String ]|
   
   sort-to-typename:
-    Ref(Int()) -> <err(|"Not implemented"); fail>
+    Ref(Int()) -> tname |[ String ]| // HACK: Sort type for integers is string
   
   sort-to-typename:
     Ref(Nonterm(Plain(x))) -> tname |[ y ]|
@@ -369,13 +369,13 @@ rules
           visitor-register-class(|x_Name)
 
   create-child-accessor:
-    (|[ java.lang.String ]|, index) ->
+    (|[ String ]|, index) ->
     class-body-dec |[
       public java.lang.String x_Name() {
-        return (java.lang.String) getChildren().get(i);      
+        return ((String) getChildren().get(i)).getValue();      
       }
     ]|
-    where x_Name := <create-accessor-name(|index)> "String";
+    where x_Name := <create-accessor-name(|index)> "Value";
           i := <write-to-string> index
   
   create-child-accessor:

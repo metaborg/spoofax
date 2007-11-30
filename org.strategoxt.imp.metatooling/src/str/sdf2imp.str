@@ -2,9 +2,10 @@ module sdf2imp
 
 imports
   libstratego-lib
-  libstratego-xtc
+  libstratego-xtc // TODO2: XTC detox?
   libjava-front
   sdf-options
+  options
   
   io
   debug
@@ -16,6 +17,7 @@ imports
   create-activator
   create-classpath
   create-plugin-xml
+  create-project-file
   create-build-properties
 
 overlays
@@ -30,34 +32,8 @@ strategies
     rules(BasePackage := ""); // default output dir
     
     xtc-input-wrap(
-      sdf-main-module-option // -m <mod>; defines get-sdf-main-module
-    + extensions-option
-    + parse-table-option
-    // TODO2: Use base package name
-    // + package-name-option
-    // TODO2: -s <start symbol> argument (when JSGLR supports it)
+      sdf2imp-options
     , sdf2imp
-    )
-
-  parse-table-option = // TODO2: Use base package name
-    ArgOption(
-      "-p"
-    , rules(ParseTable := <id>)
-    , !"-p <parse table>.tbl  Set parse table (optional)"
-    )
-
-  extensions-option = // TODO2: Use base package name
-    ArgOption(
-      "-e"
-    , rules(EditorExtensions := <id>)
-    , !"-e <extensions>       Set editor file extensions (comma separated)"
-    )
-
-  package-name-option =
-    ArgOption(
-      "-n"
-    , rules(BasePackage := <id>)
-    , !"-n <directory>        Set base package name"
     )
 
 strategies
@@ -65,15 +41,9 @@ strategies
   // TODO2: Cleanup before generating classes
 
   sdf2imp =
-    where(
-      EditorExtensions
-    <+
-      fatal-err-msg(|"Editor extensions not specified")
-    );
-    
-    xtc-ensure-file;
-    
-    where(create-or-copy-parse-table);
+    check-options;
+  
+    create-or-copy-parse-table;
     
     sdf2rtg;
     read-from;
@@ -83,28 +53,33 @@ strategies
     create-ast-visitor;
     create-parse-controller;
     create-build-properties;
+    create-project-file;
     create-activator;
     create-classpath;
     create-manifest;
     create-plugin-xml
 
   create-or-copy-parse-table =
-    print-filename(|[], <parse-table-target>);
-    <eq> (<ParseTable>, <parse-table-target>)
+    where(
+      print-filename(|[], <parse-table-target>);
+      <eq> (<ParseTable>, <parse-table-target>)
+    <+
+      ParseTable;
+      risky(file-exists |"File not found");
+      <copy-file> (<id>, <parse-table-target>)
+    )
   <+
-    ParseTable;
-    risky(file-exists |"File not found");
-    <copy-file> (<id>, <parse-table-target>)
-  <+
-    // TODO: don't use xtc-transform but write to a file
-    // xtc-transform(!"sdf2table", !["-m", <get-sdf-main-module>]);
-    fatal-err(|"Not implemented: please specify correct parse table.")
+    xtc-ensure-file => FILE(input);
+    where(
+      <file-exists <+ mkdir> "syntax";
+      <xtc-command(!"sdf2table")> ["-i", input, "-o", <parse-table-target>,
+                                   "-m", <get-sdf-main-module>]
+    )
 
   parse-table-target =
     <conc-strings> ("syntax/", <get-sdf-main-module>, ".tbl")
 
   sdf2rtg =
-    // TODO2: XTC detox?
     // TODO2: pack-sdf?
     xtc-transform(!"sdf2rtg", !["--ignore-missing-cons", "-m", <get-sdf-main-module> | <pass-verbose>]);
     xtc-transform(!"sglri", !["-p", <xtc-find> "rtg.tbl", "--start", "RTG"])

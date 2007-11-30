@@ -8,8 +8,8 @@ strategies
   create-manifest =
     // TODO2: Cleanup default manifest
   
-    name             := <get-sdf-main-module>;
-    activatorpackage := <get-activator-packagename>;
+    name    := <get-sdf-main-module>;
+    package := <BasePackage>;
     
     <output-text-file(|["META-INF"], "MANIFEST.MF")>
     
@@ -19,7 +19,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: ", name, " Plug-in
 Bundle-SymbolicName: ", name, "; singleton:=true
 Bundle-Version: 1.0.0
-Bundle-Activator: ", activatorpackage, ".Activator
+Bundle-Activator: ", package, ".Activator
 Bundle-Localization: plugin
 Import-Package: org.osgi.framework;version=\"1.3.0\"
 Require-Bundle: org.eclipse.core.runtime,
