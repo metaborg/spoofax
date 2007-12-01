@@ -8,7 +8,7 @@ strategies
   create-manifest =
     // TODO2: Cleanup default manifest
   
-    name    := <get-sdf-main-module>;
+    name    := <get-main-class-name>;
     package := <BasePackage>;
     
     <output-text-file(|["META-INF"], "MANIFEST.MF")>

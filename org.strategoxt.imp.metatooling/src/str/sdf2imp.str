@@ -9,6 +9,8 @@ imports
   
   io
   debug
+  class-naming
+  
   create-ast-classes
   create-ast-visitor
   create-ast-factory

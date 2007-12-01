@@ -5,7 +5,7 @@ strategies
   // TODO: Token colorer DSL
 
   create-colorer =
-    x_Name := <conc-strings> (<get-sdf-main-module>, "TokenColorer");
+    x_Name  := <conc-strings> (<get-main-class-name>, "TokenColorer");
     pkgname := <get-package-name(|["tokenColorer"])>;
     
     // TODO2: Cleanup of generated token colorer class

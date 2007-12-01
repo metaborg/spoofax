@@ -9,7 +9,7 @@ strategies
   create-activator =
     // TODO: Cleanup default manifest
   
-    name    := <get-sdf-main-module>;
+    name    := <get-main-class-name>;
     pkgname := <get-package-name>;
     
     <output-java-file> compilation-unit |[

@@ -6,7 +6,6 @@ imports
 strategies
 
   create-project-file =
-    name    := <get-sdf-main-module>;
     package := <BasePackage>;
     
     // TODO2: Cleanup default .project file?

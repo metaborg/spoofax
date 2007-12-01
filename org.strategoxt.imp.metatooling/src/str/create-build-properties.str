@@ -6,7 +6,7 @@ imports
 strategies
 
   create-build-properties =
-    name := <get-sdf-main-module>;
+    name := <get-main-class-name>;
     
     <output-text-file(|[], "build.properties")>
     

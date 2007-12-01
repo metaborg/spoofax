@@ -45,6 +45,10 @@ public class AsfixConverter {
 	
 	private final static int CONS_NAME = 0;
 	
+	private final static int PARAMETRIZED_SORT_NAME = 0;
+	
+	private final static int PARAMETRIZED_SORT_ARGS = 1;
+	
 	private final static int EXPECTED_NODE_CHILDREN = 4;
 	
 	private final SGLRAstNodeFactory<SGLRAstNode> factory;
@@ -162,7 +166,7 @@ public class AsfixConverter {
 			assert left == right;
 			return factory.createTerminal(sort, left);
 		} else {
-			assert sort != null : "Terminals must have a sort";
+			// UNDONE: assert sort != null : "Non-terminals must have a sort";
 			return factory.createNonTerminal(sort, constructor, left, right, children);
 		}
 	}
@@ -253,17 +257,35 @@ public class AsfixConverter {
 		return null; // no cons found
 	}
 
-    private static String getSort(ATermAppl attrs) {
-    	ATerm node = attrs;
+	// TODO2: Optimize - cache getSort (especially for parametrized-sort!)
+    private static String getSort(ATermAppl rhs) {
+    	ATerm node = rhs;
     	
-    	
-    	while (node.getChildCount() > 0 && isAppl(node)) {    		
+    	while (node.getChildCount() > 0 && isAppl(node)) {	
     		if (asAppl(node).getName().equals("sort"))
     			return applAt(node, 0).getName();
+    		if (asAppl(node).getName().equals("parameterized-sort"))
+    			return getParameterizedSortName(node);
     		
     		node = termAt(node, 0);
     	}
     	
     	return null;
+    }
+    
+    private static String getParameterizedSortName(ATerm node) {
+    	StringBuilder result = new StringBuilder();
+    	
+    	result.append(applAt(node, PARAMETRIZED_SORT_NAME).getName());
+    	result.append('_');
+    	
+		ATermList args = termAt(node, PARAMETRIZED_SORT_ARGS);
+		
+		for (int i = 0; i < args.getChildCount(); i++) {
+			ATermAppl arg = termAt(termAt(args, i), 0);
+			result.append(arg.getName());
+		}
+		
+		return result.toString();
     }
 }

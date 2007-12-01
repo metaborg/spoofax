@@ -7,6 +7,7 @@ imports
   
   io
   debug
+  class-naming
   create-ast-visitor
   create-ast-factory
 
@@ -34,7 +35,7 @@ strategies
     create-ast-list-class;
     create-ast-string-class;
     
-    not(HadErrors)
+    risky(not(HadErrors) |"Errors encountered; aborting.")
   
   register-builtin-classes =
     // Reserve default class names
@@ -66,9 +67,7 @@ strategies
     );
     
     visitor-register-class(|"List");
-    visitor-register-class(|"String");
-    
-    not(HadErrors)
+    visitor-register-class(|"String")
 
 /** Create default node classes. */ 
 strategies
@@ -217,7 +216,8 @@ rules
     , [Appl(rhs, _)]
     ) ->
     None()
-    where <is-list-term <+ is-maybe-term> rhs; // HACK: treat <some> and <none> as lists
+    where // HACK: treat <some> and <none> as lists
+          <is-list-term <+ is-maybe-term> rhs; 
           rules(SortClassName: lhs -> "List")
 
   is-list-term =
@@ -294,14 +294,33 @@ rules
   sort-to-typename:
     Ref(Nonterm(Plain(x))) -> tname |[ y ]|
     where y := <SortClassName> x
-          <+ y := <conc-strings> (x, "Sort");
-
-             err(|"Undefined sort referenced");
-             
-             rules(
-               SortClassName: x // single error only
-               HadErrors: _
-             )
+        <+
+          y := <recover-from-missing-renamed-sort> x
+        <+
+          y := <conc-strings> (x, "Sort");
+          
+          err(|"Undefined sort referenced");
+          
+          rules(
+            SortClassName: x // single error only
+            HadErrors: _
+          )
+  
+  // HACK: try finding missing renamed sorts 
+  //       sdf2rtg doesn't seem to rename renamed sorts without a constructor
+  //       e.g., in Stratego-Java-15, ArraySubscript is not renamed to
+  //       ArraySubscript_JavaObject.
+  // TODO: Report this issue
+  recover-from-missing-renamed-sort =
+    // "ArraySubscript_JavaObject" -> "ArraySubscript"
+    ?sort;
+    explode-string;
+    reverse;
+    split-at('_') => (_, <id>);
+    reverse;
+    implode-string;
+    SortClassName;
+    warn-msg(|<conc-strings> ("Could not find sort ", sort, "; using ", <id>, " instead."))
   
   /** Get the name, arguments and Java constructor expression for the right-hand side of a rule. */
   get-non-terminal-properties:
@@ -325,7 +344,7 @@ rules
   terminal-to-class:
     ProdRule(
       Nonterm(Plain(sort))
-    , [Ref(String)]
+    , [Ref(<String + Int>)] // HACK: Treat Int terminal as String
     ) ->
     compilation-unit |[
       package parser.ast;
@@ -407,20 +426,3 @@ rules
     <conc-strings> ("get", <id>)
   <+
     <conc-strings> ("get", <id>, <write-to-string> index)
-
-  reserve-class-name =
-    is-string => name;
-    
-    for(
-      !(0, name)
-    , not((id, IsReservedClassName))
-    , {n: // Create a new name0 ... nameN until non-reserved name found
-          ?(n, _);
-          (inc, <conc-strings> (name, <write-to-string> n))
-      }
-    );
-    
-    reserved := <Snd>;
-    
-    rules(IsReservedClassName: reserved)
-    

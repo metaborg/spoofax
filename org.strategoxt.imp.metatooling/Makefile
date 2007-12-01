@@ -11,7 +11,7 @@ STRCFLAGS = \
     `pkg-config --variable=strcxtcflags strategoxt`
 
 # I don't care much for nullary constructor warnings unless it's about lowercase ones, such as 'start'
-STRCSTFU=2>&1 | grep -vE 'warning ] Nullary constructor .*[A-Z]|warning ] multiple external| \[ExtSDef\(|stratego-trm|module-name-checked|"' \
+STRCSTFU=2>&1 | grep -vE 'warning ] Nullary constructor .*[A-Z]|warning ] multiple external| \[ExtSDef\(|stratego-trm|module-name-checked|module-name-checked"' \
                  >&2
 
 STRINCLUDES = \

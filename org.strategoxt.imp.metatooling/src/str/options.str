@@ -37,6 +37,7 @@ strategies
     // get-package-name(|[])
     
     get-sdf-main-module;
+    to-java-class-name;
     lower-case;
     get-package-name(|[<id>])
   
@@ -49,10 +50,10 @@ strategies
     where(
       BasePackage
     <+
-      fatal-err-msg(|"Base package name not specified")
+      fatal-err-msg(|"Base package name (option -n) not specified")
     );
     where(
       EditorExtensions
     <+
-      fatal-err-msg(|"Editor extensions not specified")
+      fatal-err-msg(|"Editor extensions (option -e) not specified")
     )

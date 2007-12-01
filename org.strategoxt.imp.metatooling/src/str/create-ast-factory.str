@@ -13,6 +13,7 @@ strategies
 
   // TODO2: Optimize - AST node factory
   //        - use a hash table, tree form and/or string length conditions
+  //        - instanceof vs. getSort()?
 
   factory-register-non-terminal(|sort, e_Constructor, class, argtypes) =
     i_ArgLength := <length; write-to-string> argtypes;
@@ -54,7 +55,7 @@ strategies
     where i_Index := <write-to-string> index
   
   get-ast-factory-name =
-    <conc-strings> (<get-sdf-main-module>, "AstNodeFactory")
+    <conc-strings> (<get-main-class-name>, "AstNodeFactory")
   
   create-ast-factory =
     x_Name       := <get-ast-factory-name>;

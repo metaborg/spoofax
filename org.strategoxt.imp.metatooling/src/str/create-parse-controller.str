@@ -12,7 +12,7 @@ imports
 strategies
   
   get-parse-controller-name =
-    <conc-strings> (<get-sdf-main-module>, "ParseController")
+    <conc-strings> (<get-main-class-name>, "ParseController")
 
   create-parse-controller =
     x_Name    := <get-parse-controller-name>;

@@ -6,7 +6,9 @@ imports
 strategies
 
   create-plugin-xml =
-    name := <get-sdf-main-module>;
+    name       := <get-sdf-main-module>;
+    classname  := <get-main-class-name>;
+    pkgname    := <BasePackage>;
     extensions := <EditorExtensions>;
     
     <output-xml-file(|[], "plugin.xml")>
@@ -23,11 +25,11 @@ strategies
           </language>
        </extension>
        <extension
-             id="<%= name %>.parserWrapper"
+             id="<%= pkgname %>.parserWrapper"
              name="<%= name %> Parser Wrapper"
              point="org.eclipse.imp.runtime.parser">
           <parserWrapper
-                class="parser.<%= name %>ParseController"
+                class="parser.<%= classname %>ParseController"
                 language="<%= name %>">
           </parserWrapper>
        </extension>
@@ -35,7 +37,7 @@ strategies
        <extension
              point="org.eclipse.imp.runtime.tokenColorer">
           <tokenColorer
-                class="tokenColorer.<%= name %>TokenColorer"
+                class="tokenColorer.<%= classname %>TokenColorer"
                 language="<%= name %>">
           </tokenColorer>
        </extension>
@@ -44,7 +46,7 @@ strategies
        <extension
              point="org.eclipse.imp.runtime.outliner">
           <outliner
-                class="outliner.<%= name %>Outliner"
+                class="outliner.<%= classname %>Outliner"
                 language="<%= name %>">
           </outliner>
        </extension>
@@ -52,7 +54,7 @@ strategies
        <extension
              point="org.eclipse.imp.runtime.foldingUpdater">
           <foldingUpdater
-                class="foldingUpdater.<%= name %>FoldingUpdater"
+                class="foldingUpdater.<%= classname %>FoldingUpdater"
                 language="<%= name %>">
           </foldingUpdater>
        </extension>
