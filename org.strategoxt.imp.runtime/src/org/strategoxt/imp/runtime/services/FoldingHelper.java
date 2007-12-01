@@ -1,4 +1,4 @@
-package org.strategoxt.imp.runtime;
+package org.strategoxt.imp.runtime.services;
 
 import lpg.runtime.ILexStream;
 import lpg.runtime.IPrsStream;
