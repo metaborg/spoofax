@@ -13,6 +13,7 @@ imports
   create-ast-visitor
   create-ast-factory
   create-parse-controller
+  create-colorer
   create-manifest
   create-activator
   create-classpath
@@ -57,6 +58,7 @@ strategies
     create-activator;
     create-classpath;
     create-manifest;
+    create-colorer;
     create-plugin-xml
 
   create-or-copy-parse-table =

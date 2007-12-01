@@ -10,6 +10,10 @@ STRCFLAGS = \
     -la ${HOME}/.nix-profile/lib/libjava-front.la \
     `pkg-config --variable=strcxtcflags strategoxt`
 
+# I don't care much for nullary constructor warnings unless it's about lowercase ones, such as 'start'
+STRCSTFU=2>&1 | grep -vE 'warning ] Nullary constructor .*[A-Z]|warning ] multiple external| \[ExtSDef\(|stratego-trm|module-name-checked|"' \
+                 >&2
+
 STRINCLUDES = \
 	-I $(HOME)/.nix-profile/share/sdf/xml-front \
 	-I $(HOME)/.nix-profile/share/sdf/gpp \
@@ -17,8 +21,12 @@ STRINCLUDES = \
 
 all : sdf2imp eclipse-deps
 
+check : sdf2imp
+	cd tests
+	./webdsl
+
 sdf2imp : $(STRS) Makefile
-	strc -i src/str/sdf2imp.str -o $@ $(STRINCLUDES) $(STRCFLAGS) -m main-sdf2imp && \
+	strc -i src/str/sdf2imp.str -o $@ $(STRINCLUDES) $(STRCFLAGS) -m main-sdf2imp $(STRCSTFU)
 	rm sdf2imp.c sdf2imp.lo sdf2imp.o
 
 eclipse-deps : $(CTREES)
@@ -34,4 +42,5 @@ clean :
 	parse-stratego -i $< -o $@
 
 %.ctree : %.str
-	strc -F -i $< -o $@ $(STRINCLUDES)
+	strc -F -i $< -o $@ $(STRINCLUDES) $(STRCSTFU)
+

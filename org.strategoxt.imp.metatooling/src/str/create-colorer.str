@@ -1,0 +1,73 @@
+module create-colorer
+
+strategies
+
+  // TODO: Token colorer DSL
+
+  create-colorer =
+    x_Name := <conc-strings> (<get-sdf-main-module>, "TokenColorer");
+    pkgname := <get-package-name(|["tokenColorer"])>;
+    
+    // TODO2: Cleanup of generated token colorer class
+    //        A lot of this can be moved to a super/helper-class
+    
+    <output-java-file> |[
+      package pkgname;
+      
+      import org.eclipse.imp.parser.IParseController;
+      import org.eclipse.imp.services.ITokenColorer;
+      import org.eclipse.imp.services.base.TokenColorerBase;
+      import org.eclipse.jface.text.TextAttribute;
+      import org.eclipse.swt.SWT;
+      import org.eclipse.swt.widgets.Display;
+      
+      import static org.strategoxt.imp.runtime.parser.tokens.SGLRParsersym.*;
+      
+      import lpg.runtime.IToken;
+      
+      public class x_Name extends TokenColorerBase implements ITokenColorer {
+      
+        TextAttribute commentAttribute, keywordAttribute, stringAttribute,
+            numberAttribute, doubleAttribute, identifierAttribute,
+            operatorAttribute;
+      
+        public TextAttribute getColoring(IParseController controller, IToken token) {
+          switch (token.getKind()) {      
+            case TK_LAYOUT:
+              return commentAttribute;
+            case TK_KEYWORD:
+              return keywordAttribute;
+            case TK_IDENTIFIER:
+              return identifierAttribute;
+            case TK_STRING:
+              return stringAttribute;
+            case TK_NUMBER:
+              return numberAttribute;
+            case TK_OPERATOR:
+              return operatorAttribute;
+      
+            default:
+              return super.getColoring(controller, token);
+          }
+        }
+      
+        public x_Name() {
+          Display display = Display.getDefault();
+          commentAttribute = new TextAttribute(display
+              .getSystemColor(SWT.COLOR_DARK_CYAN), null, SWT.ITALIC);
+          stringAttribute = new TextAttribute(display
+              .getSystemColor(SWT.COLOR_BLUE), null, SWT.NORMAL);
+          identifierAttribute = new TextAttribute(display
+              .getSystemColor(SWT.COLOR_BLACK), null, SWT.NORMAL);
+          doubleAttribute = new TextAttribute(display
+              .getSystemColor(SWT.COLOR_DARK_GREEN), null, SWT.NORMAL);
+          numberAttribute = new TextAttribute(display
+              .getSystemColor(SWT.COLOR_DARK_GREEN), null, SWT.NORMAL);
+          keywordAttribute = new TextAttribute(display
+              .getSystemColor(SWT.COLOR_DARK_MAGENTA), null, SWT.BOLD);
+          operatorAttribute = new TextAttribute(display
+              .getSystemColor(SWT.COLOR_DARK_CYAN), null, SWT.NORMAL);
+        }
+      
+      }
+  ]|
