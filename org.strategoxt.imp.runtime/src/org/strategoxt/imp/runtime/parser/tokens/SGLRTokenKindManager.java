@@ -10,6 +10,8 @@ import aterm.ATermList;
 
 import static org.strategoxt.imp.runtime.parser.tokens.SGLRParsersym.*;
 
+// TODO2: Token kind heuristic determines the colors, which needs to be migrated to the generator
+
 /**
  * Class that handles producing and printing token kinds.
  * 

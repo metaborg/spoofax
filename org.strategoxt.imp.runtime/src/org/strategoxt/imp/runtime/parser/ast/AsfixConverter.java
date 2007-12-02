@@ -49,6 +49,10 @@ public class AsfixConverter {
 	
 	private final static int PARAMETRIZED_SORT_ARGS = 1;
 	
+	private final static int ALT_SORT_LEFT = 0;
+	
+	private final static int ALT_SORT_RIGHT = 1;
+	
 	private final static int EXPECTED_NODE_CHILDREN = 4;
 	
 	private final SGLRAstNodeFactory<SGLRAstNode> factory;
@@ -103,6 +107,7 @@ public class AsfixConverter {
 		
 		boolean isList = !lexicalContext && SGLRParseController.isList(rhs);
 		
+		// Recurse the tree (and set children if applicable)
 		ArrayList<SGLRAstNode> children =
 			implodeChildNodes(contents, lexicalContext);
 		
@@ -259,12 +264,17 @@ public class AsfixConverter {
 	}
 
 	// TODO2: Optimize - cache getSort (especially for parametrized-sort!)
+	/** 
+	 * Get the RTG sort name of a production RHS, or for lists, the RTG element sort name.
+	 */
     private static String getSort(ATermAppl rhs) {
     	ATerm node = rhs;
     	
-    	while (node.getChildCount() > 0 && isAppl(node)) {	
+    	while (node.getChildCount() > 0 && isAppl(node)) {
     		if (asAppl(node).getName().equals("sort"))
     			return applAt(node, 0).getName();
+    		if (asAppl(node).getName().equals("alt"))
+    			return getAltSortName(node);
     		if (asAppl(node).getName().equals("parameterized-sort"))
     			return getParameterizedSortName(node);
     		
@@ -288,5 +298,13 @@ public class AsfixConverter {
 		}
 		
 		return result.toString();
+    }
+    
+    private static String getAltSortName(ATerm node) {
+		String left = getSort(applAt(node, ALT_SORT_LEFT));
+		String right = getSort(applAt(node, ALT_SORT_RIGHT));
+		
+		// HACK: In the RTG, alt sorts appear with a number at the end
+		return left + "_" + right + "0";
     }
 }
