@@ -98,6 +98,13 @@ public class SGLRTokenizer {
 	}
 	
 	/**
+	 * Creates an error token from existing tokens.
+	 */
+	public IToken makeErrorToken(IToken left, IToken right) {
+		return new Token(parseStream, left.getStartOffset(), right.getEndOffset(), TK_JUNK);
+	}
+	
+	/**
 	 * Creates an error token from the last whitespace character.
 	 */
 	public IToken makeErrorTokenBackwards(int offset) {

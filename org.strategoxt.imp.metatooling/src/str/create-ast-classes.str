@@ -1,5 +1,7 @@
 module create-ast-classes
 
+// TODO2: Reorganize; file is too large
+
 imports
   libstratego-lib
   sdf-options
@@ -20,13 +22,21 @@ strategies
     
     list-loop(
       // HACK: use a single generic class for lists
-      list-sort-no-class
+      list-sort-no-class <+ maybe-sort-no-class
     <+
       if(sort-to-class, output-java-file)
     );
     
+    list-loop(try(maybe-sort-redirects-to-class));
+    
     list-loop(risky(
-      (non-terminal-list-no-class <+ terminal-to-class <+ non-terminal-to-class);
+      (   non-terminal-list-no-class
+       <+ non-terminal-some-to-class
+       <+ non-terminal-none-no-class
+       <+ terminal-to-class
+       <+ non-terminal-to-class
+       <+ non-terminal-to-class
+      );
       (None <+ output-java-file)
     | "Could not convert production to AST class") 
     );
@@ -181,7 +191,7 @@ rules
   sort-to-class:
     ProdRule(
       Nonterm(Plain(sort))
-    , [rhs]
+    , _
     ) ->
     compilation-unit |[
       package parser.ast;
@@ -210,21 +220,44 @@ rules
           visitor-register-class(|x_Name);
           rules(SortClassName: sort -> x_Name)
   
+  /**
+   * Don't create a separate sort class for list nodes,
+   * but redirect them to the generic list class.
+   */
   list-sort-no-class:
     ProdRule(
-      Nonterm(Plain(lhs))
-    , [Appl(rhs, _)]
+      Nonterm(Plain(sort))
+    , [Appl(cons, _)]
     ) ->
     None()
-    where // HACK: treat <some> and <none> as lists
-          <is-list-term <+ is-maybe-term> rhs; 
-          rules(SortClassName: lhs -> "List")
+    where <is-list-term> cons; 
+          rules(SortClassName: sort -> "List")
 
   is-list-term =
     ConcTerm + ConsTerm + NilTerm + TupleTerm(id)
   
-  is-maybe-term =
-    SomeTerm + NoneTerm
+  /**
+   * Don't create a separate sort class for <some>/<none> nodes.
+   */
+  maybe-sort-no-class:
+    ProdRule(
+      _
+    , [Appl(<NoneTerm + SomeTerm>, _)]
+    ) ->
+    None()
+  
+  /**
+   * Redirect <some>/<none> nodes to an existing sort class.
+   */
+  maybe-sort-redirects-to-class:
+    ProdRule(
+      Nonterm(Plain(lhs)) // not an actual sort but a name given by sdf2rtg
+    , [Appl(SomeTerm(), [Ref(Nonterm(Plain(sort)))])]
+    ) ->
+    None()
+    where // Redirect the RTG name to the sort class of the asfix sort
+          // (dynamically to ensure late errors)
+          rules(SortClassName: lhs -> <try-get-sort-class-name> sort)
   
   non-terminal-list-no-class:
     ProdRule(
@@ -246,8 +279,9 @@ rules
       package parser.ast;
       
       public class x_Name extends x_Parent {
-        protected x_Name(tname_ITOKEN leftToken, tname_ITOKEN rightToken,
+        public x_Name(tname_ITOKEN leftToken, tname_ITOKEN rightToken,
             java.util.ArrayList<ASTNode> children) {
+          
           super(leftToken, rightToken, children);
         }
         
@@ -293,18 +327,25 @@ rules
   
   sort-to-typename:
     Ref(Nonterm(Plain(x))) -> tname |[ y ]|
-    where y := <SortClassName> x
-        <+
-          y := <recover-from-missing-renamed-sort> x
-        <+
-          y := <conc-strings> (x, "Sort");
-          
-          err(|"Undefined sort referenced");
-          
-          rules(
-            SortClassName: x // single error only
-            HadErrors: _
-          )
+    where y := <try-get-sort-class-name> x
+  
+  /**
+   * Get the name of a sort class, or report an error if it's undefined.
+   */
+  try-get-sort-class-name =
+    SortClassName
+  <+
+    recover-from-missing-renamed-sort
+  <+
+    ?sort; 
+    err(|"Undefined sort referenced");
+    
+    class := <conc-strings> (sort, "Sort");
+    
+    rules(
+      SortClassName: sort -> class // single error only
+      HadErrors: _
+    )
   
   // HACK: try finding missing renamed sorts 
   //       sdf2rtg doesn't seem to rename renamed sorts without a constructor
@@ -320,7 +361,7 @@ rules
     reverse;
     implode-string;
     SortClassName;
-    warn-msg(|<conc-strings> ("Could not find sort ", sort, "; using ", <id>, " instead."))
+    warn-msg(|<conc-strings> ("Could not find sort ", sort, "; using ", <simple-sort-name>, " instead."))
   
   /** Get the name, arguments and Java constructor expression for the right-hand side of a rule. */
   get-non-terminal-properties:
@@ -334,9 +375,9 @@ rules
   get-non-terminal-properties:
     ProdRule(
       Nonterm(Plain(sort))
-    , [Ref(Nonterm(Plain(rhs)))]
+    , rhs @ [Ref(Nonterm(Plain(_)))]
     ) ->
-    (sort, [Ref(Nonterm(Plain(rhs)))], |[ null ]|)
+    (sort, rhs, |[ null ]|)
   
   /**
    * Create a class for a terminal.
@@ -352,7 +393,7 @@ rules
       public class x_Name extends x_Parent {
         private final java.lang.String value;
         
-        public x_Name(java.lang.String value, tname_ITOKEN leftToken, tname_ITOKEN rightToken) {
+        public x_Name(tname_ITOKEN leftToken, tname_ITOKEN rightToken, java.lang.String value) {
           super(leftToken, rightToken);
           this.value = value;
         }
@@ -386,6 +427,70 @@ rules
           
           factory-register-terminal(|sort, x_Name);
           visitor-register-class(|x_Name)
+  
+  // TODO2: Only create a maximally 1 some/none pair per sort
+  
+  /**
+   * Create a class for an optional AST node (<some>/<none>).
+   */
+  non-terminal-some-to-class:
+    ProdRule(
+      Nonterm(Plain(name))
+    , [Appl(SomeTerm(), [rhs @ Ref(Nonterm(Plain(sort)))])] // rhs is sort in asfix
+    ) ->
+    compilation-unit |[
+      package parser.ast;
+      
+      public class x_Name extends x_Parent {
+        private final x_Parent value;
+        
+        public x_Name(tname_ITOKEN leftToken, tname_ITOKEN rightToken,
+            java.util.ArrayList<ASTNode> children) {
+          
+          super(leftToken, rightToken, children);
+          value = getChildren().size() > 0 ? (x_Parent) getChildren().get(0)
+                                           : null;
+        }
+        
+        @Override
+        public java.lang.String getConstructor() {
+          return value == null ? "None" : "Some";
+        }
+        
+        @Override
+        protected void enter(AbstractVisitor visitor) {
+          if (visitor.visit((x_Parent) this)) {
+            if (visitor.visit(this) && value != null)
+              value.accept(visitor);
+            
+            visitor.endVisit(this);
+          }
+          visitor.endVisit((x_Parent) this);
+        }
+        
+        public x_Parent getValue() {
+          return value;
+        }
+      }
+    ]|
+    where argtype  := <sort-to-typename> rhs;
+          x_Parent := <try-get-sort-class-name> sort; // e.g., "OptTypeArgs0"
+          x_Name   := <reserve-class-name> name;
+          
+          // Register some, none, and the visitor
+          factory-register-non-terminal(|sort, |[ null ]|, x_Name, [argtype]);
+          factory-register-non-terminal(|sort, |[ null ]|, x_Name, []);
+          visitor-register-class(|x_Name)
+  
+  /**
+   * Don't create a separate class for a <none> constructor.
+   */
+  non-terminal-none-no-class: // nah-uh, no class for you
+    ProdRule(
+      Nonterm(Plain(sort))
+    , [Appl(NoneTerm(), [])]
+    ) ->
+    None()
 
   create-child-accessor:
     (|[ String ]|, index) ->
@@ -408,6 +513,7 @@ rules
           x_Name := <create-accessor-name(|index)> <try(simple-sort-name)> x;
           i      := <write-to-string> index
   
+  // TODO2: Use name "SortModule" instead of "ModuleSort"?
   simple-sort-name = // "ModuleSort" -> "Module"
     explode-string;
     

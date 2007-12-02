@@ -22,16 +22,12 @@ public abstract class SGLRAstNodeFactory<TNode extends SGLRAstNode> {
 			ArrayList<TNode> children) {
 		
 		if ("<START>".equals(sort)) {
-			// TODO: Create a top AST node to include all 
+			// TODO2: Create a top AST node to include all tokens
 			assert children.size() == 1;
 			return children.get(0);
 		}
 		          
-		throw new java.lang.IllegalArgumentException(
-				"Specified AST node with constructor "
-		        + constructor + ", sort " + sort + " and children "
-		        + SGLRAstNode.getSorts(children)
-		        + " does not exist.");
+		throw new UnknownAstNodeException(sort, constructor, children, leftToken, rightToken);
 	}
 	
 	/**
@@ -40,8 +36,7 @@ public abstract class SGLRAstNodeFactory<TNode extends SGLRAstNode> {
 	public TNode createTerminal(String sort, String value, IToken leftToken,
 			IToken rightToken) {
 		
-        throw new java.lang.IllegalArgumentException(
-        		"Specified AST node with sort " + sort + " does not exist.");
+        throw new UnknownAstNodeException(sort, leftToken, rightToken);
 	}
 	
 	

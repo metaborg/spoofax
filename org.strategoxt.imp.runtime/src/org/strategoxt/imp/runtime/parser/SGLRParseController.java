@@ -26,6 +26,7 @@ import org.spoofax.jsglr.BadTokenException;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.SGLRAstNode;
 import org.strategoxt.imp.runtime.parser.ast.SGLRAstNodeFactory;
+import org.strategoxt.imp.runtime.parser.ast.UnknownAstNodeException;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenKindManager;
 
 import aterm.ATermAppl;
@@ -132,19 +133,12 @@ public abstract class SGLRParseController implements IParseController {
 			currentAst = parser.parse(input.toCharArray(), getPath().toPortableString());
 		} catch (TokenExpectedException x) {
 			reportParseError(x);
-			
-			// Throw again to ensure editor redraws later
-			throw new RuntimeException(x);
 		} catch (BadTokenException x) {
 			reportParseError(x);
-			
-			// Throw again to ensure editor redraws later
-			throw new RuntimeException(x);
 		} catch (SGLRException x) {
 			reportParseError(x);
-		    
-			// Throw again to ensure editor redraws later
-			throw new RuntimeException(x);
+		} catch (UnknownAstNodeException x) {
+			reportParseError(x);
 		} catch (IOException x) {
 			throw new RuntimeException(x);
 		}
@@ -187,7 +181,8 @@ public abstract class SGLRParseController implements IParseController {
     	ATermAppl details = applAt(sort, 0);
     	String name = details.getName();
     	
-    	return name.equals("iter") || name.equals("iter-star");
+    	return name.equals("iter") || name.equals("iter-star")  || name.equals("iter-plus")
+    			|| name.equals("iter-sep") || name.equals("iter-star-sep") || name.equals("iter-plus-sep");
     }
 
 	// Problem markers and errors
@@ -221,8 +216,17 @@ public abstract class SGLRParseController implements IParseController {
 	}
 	
 	private void reportParseError(SGLRException exception) {
-		String message = "Parser error: " + exception;
+		String message = "Internal parsing error: " + exception;
 		IToken token = parser.getTokenizer().makeErrorToken(0);
+		
+		parseErrors.add(new ParseError(message, token));
+	}
+	
+	private void reportParseError(UnknownAstNodeException exception) {
+		String message = "Internal parsing error: " + exception.getMessage();
+		IToken left = exception.getLeftToken();
+		IToken right = exception.getRightToken();
+		IToken token = parser.getTokenizer().makeErrorToken(left, right);
 		
 		parseErrors.add(new ParseError(message, token));
 	}

@@ -163,6 +163,7 @@ public class AsfixConverter {
 			return factory.createList(sort, left, right, children);
 		} else if (constructor == null && children.size() == 1 && children.get(0).getSort() == SGLRAstNode.STRING_SORT) {
 			// TODO: Is this right? First create a <string> node, put it in a list, and then dispose it?
+			//       (and is this even used anymore?)
 			assert left == right;
 			return factory.createTerminal(sort, left);
 		} else {

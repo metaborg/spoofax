@@ -13,10 +13,12 @@ strategies
 
   // TODO2: Optimize - AST node factory
   //        - use a hash table, tree form and/or string length conditions
-  //        - instanceof vs. getSort()?
+  //        - getSort() may be faster than instanceof? (but is incompatible with <some>/<none>)
 
   factory-register-non-terminal(|sort, e_Constructor, class, argtypes) =
-    i_ArgLength := <length; write-to-string> argtypes;
+    <factory-dupe-check> (sort, e_Constructor, class, argtypes);
+    
+    i_ArgLength  := <length; write-to-string> argtypes;
     
     // Condition: children.get(0) instanceof ... && ... && true
     !argtypes;
@@ -40,11 +42,27 @@ strategies
     )
 
   factory-register-terminal(|sort, class) =
+    <factory-dupe-check> (sort, class);
+    
     rules(
       FactoryTerminals :+= bstm |[
         if ("~sort".equals(sort))
-          return new ~x:class(value, leftToken, rightToken);
+          return new ~x:class(leftToken, rightToken, value);
       ]|
+    )
+  
+  /**
+   * Sanity check: ensure classes are not created with an existing factory pattern.
+   */
+  factory-dupe-check =
+    HasFactoryPattern;
+    // TODO: Shouldn't be an error, but should ensure class is not created
+    err(|"Internal error: factory pattern already exists");
+    fail
+  <+
+    ?pattern;
+    rules(
+      HasFactoryPattern: pattern
     )
   
   arg-type-check:
