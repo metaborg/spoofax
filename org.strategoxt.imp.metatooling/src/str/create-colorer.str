@@ -20,6 +20,7 @@ strategies
       import org.eclipse.jface.text.TextAttribute;
       import org.eclipse.swt.SWT;
       import org.eclipse.swt.widgets.Display;
+      import org.eclipse.swt.graphics.Color;
       
       import static org.strategoxt.imp.runtime.parser.tokens.SGLRParsersym.*;
       
@@ -53,8 +54,8 @@ strategies
       
         public x_Name() {
           Display display = Display.getDefault();
-          commentAttribute = new TextAttribute(display
-              .getSystemColor(SWT.COLOR_DARK_CYAN), null, SWT.ITALIC);
+          commentAttribute = new TextAttribute(
+              new Color(display, 0x60, 0x60, 0), null, SWT.ITALIC);
           stringAttribute = new TextAttribute(display
               .getSystemColor(SWT.COLOR_BLUE), null, SWT.NORMAL);
           identifierAttribute = new TextAttribute(display
@@ -65,8 +66,8 @@ strategies
               .getSystemColor(SWT.COLOR_DARK_GREEN), null, SWT.NORMAL);
           keywordAttribute = new TextAttribute(display
               .getSystemColor(SWT.COLOR_DARK_MAGENTA), null, SWT.BOLD);
-          operatorAttribute = new TextAttribute(display
-              .getSystemColor(SWT.COLOR_DARK_CYAN), null, SWT.NORMAL);
+          operatorAttribute = new TextAttribute(
+              new Color(display, 0, 0x90, 0x90), null, SWT.NORMAL);
         }
       
       }
