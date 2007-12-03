@@ -35,7 +35,6 @@ strategies
        <+ non-terminal-none-no-class
        <+ terminal-to-class
        <+ non-terminal-to-class
-       <+ non-terminal-to-class
       );
       (None <+ output-java-file)
     | "Could not convert production to AST class") 

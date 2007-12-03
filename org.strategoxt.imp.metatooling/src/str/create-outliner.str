@@ -1,21 +1,112 @@
 module create-outliner
 
 imports
+  libstratego-lib
+  
   io
   debug
 
 strategies
 
   rtg-to-outliner =
-    rtg-top-productions-heuristic;
+    heuristic-top-sorts;
     id // TODO
   
-  rtg-top-productions-heuristic =
+  heuristic-top-sorts =
     ?RTG(_, ProdRules(<id>));
     
-    list-loop(try(register-rtg-production));
+    list-loop(heuristic-register-production);
     
-    id
+    heuristic-start-sorts;
+    
+    mapconcat(heuristic-child-sorts-with-identifiers) => children;
+    debug(!2);
+    
+    mapconcat(heuristic-child-sorts-with-identifiers) => children2;
+    debug(!3);
+    
+    <conc> (children, children2);
+    debug(!4);
+    <exit> 0
+
+/** @internal */
+strategies
+
+  heuristic-start-sorts =
+    StartSymbol;
+    bagof-Productions;
+    filter(heuristic-sort-name)
+  <+
+    fatal-err-msg(|"No legal start symbol specified.")
   
-  register-rtg-production =
-    id // TODO
+  heuristic-register-production =
+    try(
+      ?prod;
+      heuristic-sort-name => sort;
+      
+      rules(
+        Productions :+ sort -> prod
+      )
+    )
+
+  heuristic-child-sorts =
+    ?ProdRule(
+      Nonterm(Plain(sort))
+    , [Appl(_, <id>)]
+    );
+    
+    map(?Ref(Nonterm(Plain(<id>))));
+    
+    filter(not(?sort)) // avoid circular references
+  <+
+    // Injection
+    ?ProdRule(
+      Nonterm(Plain(sort))
+    , [Ref(Nonterm(Plain(<id>)))]
+    );
+    
+    filter(not(?sort)) // avoid circular references
+  <+
+    ![]
+
+  heuristic-child-sorts-with-identifiers =
+    rec rec(
+      debug(!"**");
+      bagof-Productions;
+      map(
+        debug(!"  >1");
+        heuristic-child-sorts;
+        debug(!"  >2");
+        map(heuristic-has-identifier <+ rec)
+      )
+    );
+    
+    flatten-list
+
+  heuristic-sort-name =
+    ?ProdRule(
+      Nonterm(Plain(<id>))
+    , [Appl(_, _)]
+    )
+  <+
+    // Injection
+    ?ProdRule(
+      _
+    , [Ref(Nonterm(Plain(<id>)))]
+    )
+  
+  heuristic-has-identifier =
+    where(
+      heuristic-child-sorts;
+      [heuristic-is-identifier | id]
+    <+
+      verbose-msg(!"Has no identifier:", id, bagof-Productions, heuristic-child-sorts)
+    )
+  
+  heuristic-is-identifier = // TODO: Better heuristic-is-identifier
+    where(
+      heuristic-child-sorts;
+      ([] + [heuristic-is-identifier])
+    <+
+      debug(!"Not an identifier:")
+    )

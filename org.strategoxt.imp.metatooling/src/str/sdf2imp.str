@@ -52,8 +52,8 @@ strategies
     sdf2rtg;
     read-from => rtg;
     
+    // <rtg-to-outliner> rtg;
     <rtg-to-ast-classes> rtg;
-    <rtg-to-outliner> rtg;
     
     create-ast-factory;
     create-ast-visitor;

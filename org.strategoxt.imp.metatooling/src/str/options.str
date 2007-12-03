@@ -36,8 +36,19 @@ strategies
   start-symbol-option =
     ArgOption(
       "-s"
-    , rules(StartSymbol := <id>)
+    , parameterized-sort-to-rtg-sort;
+      rules(StartSymbol := <id>)
     , !"-s <start symbol>     Set start symbol"
+    )
+  
+  parameterized-sort-to-rtg-sort =
+    // Module[StrategoHost] -> Module_StrategoHost
+    string-as-chars(
+      filter(
+        \<'[' + ' '> -> '_'\
+      <+
+        not(']')
+      )
     )
   
   get-package-name =
@@ -64,9 +75,4 @@ strategies
       EditorExtensions
     <+
       fatal-err-msg(|"Editor extensions (option -e) not specified")
-    );
-    where(
-      EditorExtensions
-    <+
-      fatal-err-msg(|"Start symbol (option -s) not specified")
     )
