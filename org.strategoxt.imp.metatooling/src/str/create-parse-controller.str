@@ -35,17 +35,12 @@ strategies
         public x_Name() throws IOException, InvalidParseTableException {          
           // TODO2: Grammar-specific token kind manager?
           
-          super(new x_Factory(), new SGLRTokenKindManager(), null);
+          super(new x_Factory(), new SGLRTokenKindManager(), x_Name.class.getResourceAsStream(TABLE), null);
         }
         
         @Override
         public String getLanguageName() {
           return GRAMMAR;
-        }
-        
-        @Override
-        protected InputStream openParseTable() {
-          return x_Name.class.getResourceAsStream(TABLE);
         }
         
         @Override
