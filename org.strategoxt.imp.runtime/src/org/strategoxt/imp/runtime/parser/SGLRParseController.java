@@ -108,9 +108,7 @@ public abstract class SGLRParseController implements IParseController {
     }
     
     /**
-     * Constructs a new iSGLRParseController instance.
-     * Reads the parse table from a stream and throws runtime exceptions
-     * if anything goes wrong.
+     * Constructs a new SGLRParseController instance.
      * 
      * @param startSymbol	The start symbol of this grammar, or null.
      */
@@ -178,7 +176,9 @@ public abstract class SGLRParseController implements IParseController {
     }
 
 	public static boolean isList(ATermAppl sort) {
-    	ATermAppl details = applAt(sort, 0);
+    	ATermAppl details = sort.getName().equals("cf")
+    	                  ? applAt(sort, 0)
+    	                  : sort;
     	String name = details.getName();
     	
     	return name.equals("iter") || name.equals("iter-star")  || name.equals("iter-plus")

@@ -52,13 +52,12 @@ strategies
     <reserve-class-name> "Visitor";
     <reserve-class-name> "AbstractVisitor";
     <reserve-class-name> "List";
-    <reserve-class-name> "String";
+    <reserve-class-name> "ASTString";
     <reserve-class-name> "ASTNode";
     <reserve-class-name> <get-ast-factory-name>;
     
     rules(
       SortClassName: "List"
-      // UNDONE: SortClassName: "String"
     );
     
     // Reserve default accessor method names
@@ -77,7 +76,7 @@ strategies
     );
     
     visitor-register-class(|"List");
-    visitor-register-class(|"String")
+    visitor-register-class(|"ASTString")
 
 /** Create default node classes. */ 
 strategies
@@ -113,14 +112,16 @@ strategies
       }
     ]|
   
-  // TODO: Confirm AST string class is still needed
   create-ast-string-class =
     <output-java-file> compilation-unit |[
       package parser.ast;
     
-      public class String extends ASTNode {
-        public String(tname_ITOKEN leftToken, tname_ITOKEN rightToken) {
+      public class ASTString extends ASTNode {
+        private final java.lang.String value;
+        
+        public ASTString(tname_ITOKEN leftToken, tname_ITOKEN rightToken, java.lang.String value) {
           super(leftToken, rightToken);
+          this.value = value;
         }
         
         @Override
@@ -134,13 +135,18 @@ strategies
         }
         
         @Override
+        public java.lang.String toString() {
+          return value;
+        }
+        
+        @Override
         protected void enter(AbstractVisitor visitor) {
           visitor.visit(this);
           visitor.endVisit(this);
         }
         
         public java.lang.String getValue() {
-          return getConstructor();
+          return value;
         }
       }
     ]|
@@ -320,10 +326,10 @@ rules
           visitor-register-class(|x_Name)
   
   sort-to-typename:
-    Ref(String()) -> tname |[ String ]|
+    Ref(String()) -> tname |[ ASTString ]|
   
   sort-to-typename:
-    Ref(Int()) -> tname |[ String ]| // HACK: Sort type for integers is string
+    Ref(Int()) -> tname |[ ASTString ]| // HACK: Sort type for integers is string
   
   sort-to-typename:
     Ref(Nonterm(Plain(x))) -> tname |[ y ]|
@@ -398,10 +404,6 @@ rules
           this.value = value;
         }
         
-        public java.lang.String getValue() {
-          return value;
-        }
-        
         @Override
         public java.lang.String getConstructor() {
           return null;
@@ -419,6 +421,10 @@ rules
             visitor.endVisit(this);
           }
           visitor.endVisit((x_Parent) this);
+        }
+        
+        public java.lang.String getValue() {
+          return value;
         }
       }
     ]|
@@ -493,10 +499,10 @@ rules
     None()
 
   create-child-accessor:
-    (|[ String ]|, index) ->
+    (tname |[ ASTString ]|, index) ->
     class-body-dec |[
       public java.lang.String x_Name() {
-        return ((String) getChildren().get(i)).getValue();      
+        return getChildren().get(i).toString();      
       }
     ]|
     where x_Name := <create-accessor-name(|index)> "Value";

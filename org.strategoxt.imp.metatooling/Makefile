@@ -21,10 +21,6 @@ STRINCLUDES = \
 
 all : sdf2imp eclipse-deps
 
-check : sdf2imp
-	cd tests
-	./webdsl
-
 sdf2imp : $(STRS) Makefile
 	strc -i src/str/sdf2imp.str -o $@ $(STRINCLUDES) $(STRCFLAGS) -m main-sdf2imp $(STRCSTFU)
 	rm sdf2imp.c sdf2imp.lo sdf2imp.o

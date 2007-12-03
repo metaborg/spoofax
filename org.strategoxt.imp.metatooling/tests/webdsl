@@ -1,3 +1,0 @@
-#!/bin/bash
-
-../sdf2imp -i $WD/syntax/WebDSL.def -p $WD/syntax/WebDSL.tbl -m WebDSL -e app,mod --verbose 2 2>&1

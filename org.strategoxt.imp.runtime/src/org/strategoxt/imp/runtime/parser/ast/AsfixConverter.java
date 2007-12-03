@@ -1,6 +1,7 @@
 package org.strategoxt.imp.runtime.parser.ast;
 
 import java.util.ArrayList;
+import static java.lang.Math.min;
 
 import lpg.runtime.IToken;
 import lpg.runtime.PrsStream;
@@ -53,7 +54,7 @@ public class AsfixConverter {
 	
 	private final static int ALT_SORT_RIGHT = 1;
 	
-	private final static int EXPECTED_NODE_CHILDREN = 4;
+	private final static int EXPECTED_NODE_CHILDREN = 5;
 	
 	private final SGLRAstNodeFactory<SGLRAstNode> factory;
 	
@@ -96,6 +97,8 @@ public class AsfixConverter {
 		ATermAppl attrs = termAt(prod, PROD_ATTRS);
 		ATermList contents = termAt(appl, APPL_CONTENTS);
 		
+		// TODO: Support <int> nodes in implosion (e.g., chars in Java)
+		
 		IToken prevToken = tokenizer.currentToken();
 		
 		// Enter lexical context if this is a lex node
@@ -133,24 +136,28 @@ public class AsfixConverter {
 	}
 
 	private ArrayList<SGLRAstNode> implodeChildNodes(ATermList contents, boolean tokensOnly) {
-	    ArrayList<SGLRAstNode> result =
-	    	tokensOnly ? null : new ArrayList<SGLRAstNode>(EXPECTED_NODE_CHILDREN);
+		
+		ArrayList<SGLRAstNode> result = tokensOnly
+				? null
+				: new ArrayList<SGLRAstNode>(
+						min(EXPECTED_NODE_CHILDREN, contents.getChildCount()));
 
 		for (int i = 0; i < contents.getLength(); i++) {
-			    ATerm child = contents.elementAt(i);
-			    
-			    if (isInt(child)) {
-			    	implodeLexical(child);
-			    } else {
-			    	// Recurse
-			    	SGLRAstNode childNode = implodeAppl(ignoreAmb(child));
-			    	
-			    	if (childNode != null) result.add(childNode);
-			    }
+			ATerm child = contents.elementAt(i);
+
+			if (isInt(child)) {
+				implodeLexical(child);
+			} else {
+				// Recurse
+				SGLRAstNode childNode = implodeAppl(ignoreAmb(child));
+
+				if (childNode != null)
+					result.add(childNode);
+			}
 		}
-		
-	    return result;
-    }
+
+		return result;
+	}
 
 	/** Implode a context-free node. */
 	private SGLRAstNode implodeContextFree(String sort, String constructor, IToken prevToken,
@@ -167,12 +174,10 @@ public class AsfixConverter {
 		if (isList) {
 			return factory.createList(sort, left, right, children);
 		} else if (constructor == null && children.size() == 1 && children.get(0).getSort() == SGLRAstNode.STRING_SORT) {
-			// TODO: Is this right? First create a <string> node, put it in a list, and then dispose it?
-			//       (and is this even used anymore?)
-			assert left == right;
+			// Child node was a <string> node (rare case); unpack it and create a new terminal
+			assert left == right && children.get(0).getChildren().size() == 0;
 			return factory.createTerminal(sort, left);
 		} else {
-			// UNDONE: assert sort != null : "Non-terminals must have a sort";
 			return factory.createNonTerminal(sort, constructor, left, right, children);
 		}
 	}

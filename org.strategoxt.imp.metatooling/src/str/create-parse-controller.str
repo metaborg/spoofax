@@ -33,15 +33,19 @@ strategies
         private static final String TABLE = "/syntax/" + GRAMMAR + ".tbl";
         
         public x_Name() throws IOException, InvalidParseTableException {          
-          // TODO: Optimize - don't load the parse table for every parse controller instance
           // TODO2: Grammar-specific token kind manager?
           
-          super(new x_Factory(), new SGLRTokenKindManager(), x_Name.class.getResourceAsStream(TABLE), null);
+          super(new x_Factory(), new SGLRTokenKindManager(), null);
         }
         
         @Override
         public String getLanguageName() {
           return GRAMMAR;
+        }
+        
+        @Override
+        protected InputStream openParseTable() {
+          return x_Name.class.getResourceAsStream(TABLE);
         }
         
         @Override

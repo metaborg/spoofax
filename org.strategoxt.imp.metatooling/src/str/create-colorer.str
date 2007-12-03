@@ -67,7 +67,7 @@ strategies
           keywordAttribute = new TextAttribute(display
               .getSystemColor(SWT.COLOR_DARK_MAGENTA), null, SWT.BOLD);
           operatorAttribute = new TextAttribute(
-              new Color(display, 0, 0x90, 0x90), null, SWT.NORMAL);
+              new Color(display, 0, 0xA0, 0x70), null, SWT.NORMAL);
         }
       
       }

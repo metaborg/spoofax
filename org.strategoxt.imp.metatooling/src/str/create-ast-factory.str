@@ -12,13 +12,14 @@ imports
 strategies
 
   // TODO2: Optimize - AST node factory
-  //        - use a hash table, tree form and/or string length conditions
+  //        - use a hash table ir tree form
   //        - getSort() may be faster than instanceof? (but is incompatible with <some>/<none>)
 
   factory-register-non-terminal(|sort, e_Constructor, class, argtypes) =
     <factory-dupe-check> (sort, e_Constructor, class, argtypes);
     
-    i_ArgLength  := <length; write-to-string> argtypes;
+    i_ArgLength   := <length; write-to-string> argtypes;
+    i_SortLength  := <string-length; write-to-string> sort;
     
     // Condition: children.get(0) instanceof ... && ... && true
     !argtypes;
@@ -33,7 +34,8 @@ strategies
     
     rules(
       FactoryNonTerminals :+= bstm |[
-        if (numChildren == i_ArgLength
+        if (sortLength == i_SortLength // first compare ints for performance
+            && numChildren == i_ArgLength
             && e_ConstructorCheck
             && "~sort".equals(sort)
             && ~conditions)
@@ -90,6 +92,7 @@ strategies
             java.util.ArrayList<ASTNode> children) {
           
           int numChildren = children.size();
+          int sortLength = sort.length();
           
           ~*nonterminals
           
@@ -110,7 +113,11 @@ strategies
           
           ~*terminals
           
-          return super.createTerminal(sort, value, leftToken, rightToken);
+          // HACK: Create <string> node for unknown terminals
+          //       (required for, e.g., FooStringChars in Java-15, which
+          //        does not appear in the RTG)
+          return new ASTString(leftToken, rightToken, value);
+          // return super.createTerminal(sort, value, leftToken, rightToken);
         }
         
         @Override
