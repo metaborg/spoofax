@@ -19,6 +19,7 @@ import org.eclipse.imp.parser.IASTNodeLocator;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.parser.ParseError;
 import org.spoofax.jsglr.InvalidParseTableException;
+import org.spoofax.jsglr.NotImplementedException;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.SGLRException;
 import org.spoofax.jsglr.TokenExpectedException;
@@ -133,12 +134,11 @@ public abstract class SGLRParseController implements IParseController {
 			reportParseError(x);
 		} catch (BadTokenException x) {
 			reportParseError(x);
-		} catch (SGLRException x) {
-			reportParseError(x);
 		} catch (UnknownAstNodeException x) {
 			reportParseError(x);
-		} catch (IOException x) {
-			throw new RuntimeException(x);
+		} catch (Exception x) {
+			// catches SGLRException; NotImplementedException; IOException
+			reportParseError(x);
 		}
 		
 		return currentAst;
@@ -215,7 +215,7 @@ public abstract class SGLRParseController implements IParseController {
 		parseErrors.add(new ParseError(message, token));
 	}
 	
-	private void reportParseError(SGLRException exception) {
+	private void reportParseError(Exception exception) {
 		String message = "Internal parsing error: " + exception;
 		IToken token = parser.getTokenizer().makeErrorToken(0);
 		
