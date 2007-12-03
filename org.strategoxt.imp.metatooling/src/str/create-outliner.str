@@ -1,0 +1,21 @@
+module create-outliner
+
+imports
+  io
+  debug
+
+strategies
+
+  rtg-to-outliner =
+    rtg-top-productions-heuristic;
+    id // TODO
+  
+  rtg-top-productions-heuristic =
+    ?RTG(_, ProdRules(<id>));
+    
+    list-loop(try(register-rtg-production));
+    
+    id
+  
+  register-rtg-production =
+    id // TODO

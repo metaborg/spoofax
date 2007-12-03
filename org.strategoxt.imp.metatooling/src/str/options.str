@@ -7,6 +7,7 @@ strategies
   + extensions-option
   + parse-table-option
   + package-name-option
+  + start-symbol-option
 
   // TODO2: -s <start symbol> option (when JSGLR supports it)
 
@@ -30,6 +31,13 @@ strategies
     , rules(BasePackage := <id>);
       get-package-name // ensure legal
     , !"-n <packagename>      Set base package name"
+    )
+
+  start-symbol-option =
+    ArgOption(
+      "-s"
+    , rules(StartSymbol := <id>)
+    , !"-s <start symbol>     Set start symbol"
     )
   
   get-package-name =
@@ -56,4 +64,9 @@ strategies
       EditorExtensions
     <+
       fatal-err-msg(|"Editor extensions (option -e) not specified")
+    );
+    where(
+      EditorExtensions
+    <+
+      fatal-err-msg(|"Start symbol (option -s) not specified")
     )

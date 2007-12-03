@@ -16,6 +16,7 @@ imports
   create-ast-factory
   create-parse-controller
   create-colorer
+  create-outliner
   create-manifest
   create-activator
   create-classpath
@@ -49,8 +50,10 @@ strategies
     create-or-copy-parse-table;
     
     sdf2rtg;
-    read-from;
-    rtg-to-ast-classes;
+    read-from => rtg;
+    
+    <rtg-to-ast-classes> rtg;
+    <rtg-to-outliner> rtg;
     
     create-ast-factory;
     create-ast-visitor;
