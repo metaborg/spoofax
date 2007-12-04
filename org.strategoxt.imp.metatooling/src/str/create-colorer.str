@@ -30,7 +30,7 @@ strategies
       
         TextAttribute commentAttribute, keywordAttribute, stringAttribute,
             numberAttribute, doubleAttribute, identifierAttribute,
-            operatorAttribute;
+            operatorAttribute, varAttribute;
       
         public TextAttribute getColoring(IParseController controller, IToken token) {
           switch (token.getKind()) {      
@@ -44,6 +44,8 @@ strategies
               return stringAttribute;
             case TK_NUMBER:
               return numberAttribute;
+            case TK_VAR:
+              return varAttribute;
             case TK_OPERATOR:
               return operatorAttribute;
       
@@ -68,6 +70,8 @@ strategies
               .getSystemColor(SWT.COLOR_DARK_MAGENTA), null, SWT.BOLD);
           operatorAttribute = new TextAttribute(
               new Color(display, 0, 0xA0, 0x70), null, SWT.NORMAL);
+          varAttribute = new TextAttribute(display
+              .getSystemColor(SWT.COLOR_MAGENTA), null, SWT.BOLD);
         }
       
       }

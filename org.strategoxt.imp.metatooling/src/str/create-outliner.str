@@ -15,7 +15,7 @@ strategies
   sorts-to-outliner =
     visitmethods := <mapconcat(create-outline-methods)>;
     sdfmodule    := <get-sdf-main-module>;
-    x_Name       := <conc-strings> (sdfmodule, "Outliner");
+    x_Name       := <conc-strings> (<get-main-class-name>, "Outliner");
     
     <output-java-file(not(ResetFiles))> |[
       package outliner;

@@ -46,17 +46,21 @@ public class SGLRParsersym {
 	public static final int
 		TK_OPERATOR = -5;
 	
+	/** Token kind for a meta-variable. */
+	public static final int
+		TK_VAR = -6;
+	
 	/** Token kind for a layout (or comment) token. */
 	public static final int
-		TK_LAYOUT = -6;
+		TK_LAYOUT = -7;
 	
 	/** Token kind for an EOF token. */
 	public static final int
-		TK_EOF = -7;
+		TK_EOF = -8;
 	
 	/** Token kind for an junk (invalid) token. */
 	public static final int
-		TK_JUNK = -8;
+		TK_JUNK = -9;
 
 	/** Unknown token kind. */
 	public static final int

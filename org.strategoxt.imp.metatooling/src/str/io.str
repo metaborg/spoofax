@@ -19,7 +19,7 @@ strategies
     if not(dontoverwrite; <file-exists> fullpath) then
       output-java-file(|fullpath)
     else
-      verbose-msg(!"Skipping", fullpath)
+      verbose-msg(!"Skipping", !fullpath)
     end
   
   // TODO2: Add @Generated attribute to files

@@ -52,6 +52,8 @@ public class SGLRTokenKindManager {
 			} else {
 				return TK_IDENTIFIER;
 			}
+		} else if (sort.getName().equals("varsym")) {
+			return TK_VAR;
 		} else if (isOperator(sort)) {
 			return TK_OPERATOR;
 		} else {
@@ -61,21 +63,23 @@ public class SGLRTokenKindManager {
 	
 	static String getDefaultName(int kind) {
     	switch (kind) {
-    		case SGLRParsersym.TK_IDENTIFIER:
+    		case TK_IDENTIFIER:
     			return "TK_IDENTIFIER";
-    		case SGLRParsersym.TK_KEYWORD:
+    		case TK_KEYWORD:
     			return "TK_KEYWORD";
-    		case SGLRParsersym.TK_OPERATOR:
+    		case TK_OPERATOR:
     			return "TK_OPERATOR";
-    		case SGLRParsersym.TK_NUMBER:
+    		case TK_NUMBER:
     			return "TK_NUMBER";
-    		case SGLRParsersym.TK_STRING:
+    		case TK_STRING:
     			return "TK_STRING";
-    		case SGLRParsersym.TK_LAYOUT:
+    		case TK_LAYOUT:
     			return "TK_LAYOUT";
-    		case SGLRParsersym.TK_JUNK:
+    		case TK_VAR:
+    			return "TK_VAR";
+    		case TK_JUNK:
     			return "TK_JUNK";
-    		case SGLRParsersym.TK_EOF:
+    		case TK_EOF:
     			return "TK_EOF";
     		default:
     			return "TK_UNKNOWN";

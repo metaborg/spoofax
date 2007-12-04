@@ -89,6 +89,8 @@ public class AsfixConverter {
 		return root;
 	}
 	
+	// TODO2: Cleanup implodeAppl
+	
 	/** Implode any appl(_, _). */
 	private SGLRAstNode implodeAppl(ATermAppl appl) {
 		ATermAppl prod = termAt(appl, APPL_PROD);
@@ -109,21 +111,16 @@ public class AsfixConverter {
 		if (lexicalStart) lexicalContext = true;
 		
 		boolean isList = !lexicalContext && SGLRParseController.isList(rhs);
+		boolean isVar  = !lexicalContext && !isList && rhs.getName().equals("varsym");
+		
+		if (isVar) lexicalContext = true;
 		
 		// Recurse the tree (and set children if applicable)
 		ArrayList<SGLRAstNode> children =
 			implodeChildNodes(contents, lexicalContext);
 		
-		if (lexicalStart) {
-			lexicalContext = false;
-			IToken token = tokenizer.makeToken(offset, tokenManager.getTokenKind(lhs, rhs), true);
-			String sort = getSort(rhs);
-			
-			if (sort == null) return null;
-			
-			Debug.log("Creating node ", getSort(rhs), " from ", SGLRTokenizer.dumpToString(token));	
-			
-			return factory.createTerminal(getSort(rhs), token);
+		if (lexicalStart || isVar) {
+			return createTerminal(lhs, rhs);
 		} else if (lexicalContext) {
 			return null; // don't create tokens inside lexical context; just create one big token at the top
 		} else {
@@ -131,7 +128,7 @@ public class AsfixConverter {
 			String sort = getSort(rhs);
 			
 			tokenizer.makeToken(offset, tokenManager.getTokenKind(lhs, rhs));
-			return implodeContextFree(sort, constructor, prevToken, children, isList);
+			return createNonTerminal(sort, constructor, prevToken, children, isList);
 		}
 	}
 
@@ -159,8 +156,31 @@ public class AsfixConverter {
 		return result;
 	}
 
+	private SGLRAstNode createTerminal(ATermList lhs, ATermAppl rhs) {
+		lexicalContext = false;
+		IToken token = tokenizer.makeToken(offset, tokenManager.getTokenKind(lhs, rhs), true);
+		String sort = getSort(rhs);
+		
+		if (sort == null) return null;
+		
+		Debug.log("Creating node ", sort, " from ", SGLRTokenizer.dumpToString(token));	
+		
+		return factory.createTerminal(sort, token);
+	}
+
+	/* UNDONE: createVarTerminal()
+	private SGLRAstNode createVarTerminal(ATermAppl rhs) {
+		IToken token = tokenizer.makeToken(offset, SGLRParsersym.TK_VAR, true);
+		String sort = getSort(rhs);
+		
+		Debug.log("Creating node ", sort, " from ", SGLRTokenizer.dumpToString(token));
+		
+		return factory.createTerminal(getSort(rhs), token);
+	}
+	*/
+
 	/** Implode a context-free node. */
-	private SGLRAstNode implodeContextFree(String sort, String constructor, IToken prevToken,
+	private SGLRAstNode createNonTerminal(String sort, String constructor, IToken prevToken,
 			ArrayList<SGLRAstNode> children, boolean isList) {
 		
 		IToken left = getStartToken(prevToken);

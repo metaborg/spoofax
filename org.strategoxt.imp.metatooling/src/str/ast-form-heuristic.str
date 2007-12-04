@@ -190,6 +190,5 @@ strategies
   is-unvisited-list-production =
     ProdRule(
       id
-    , [Appl(is-list-term, [not(FollowVisited)])]
+    , [Appl(is-list-term, [not(FollowVisited + CollectAllVisited)])]
     )
-    

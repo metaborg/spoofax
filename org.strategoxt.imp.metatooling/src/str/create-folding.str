@@ -19,8 +19,7 @@ strategies
   
   sorts-to-folding =
     visitmethods := <map(create-folding-method)>;
-    sdfmodule    := <get-sdf-main-module>;
-    x_Name       := <conc-strings> (sdfmodule, "FoldingUpdater");
+    x_Name       := <conc-strings> (<get-main-class-name>, "FoldingUpdater");
     
     <output-java-file(not(ResetFiles))> |[
       package foldingUpdater;
