@@ -8,6 +8,7 @@ strategies
   + parse-table-option
   + package-name-option
   + start-symbol-option
+  + reset-files-option
 
   // TODO2: -s <start symbol> option (when JSGLR supports it)
 
@@ -39,6 +40,13 @@ strategies
     , parameterized-sort-to-rtg-sort;
       rules(StartSymbol := <id>)
     , !"-s <start symbol>     Set start symbol"
+    )
+
+  reset-files-option =
+    Option(
+      "-r" + "--reset"
+    , rules(ResetFiles: _)
+    , !"-r | --reset          Reset all generated files to their defaults"
     )
   
   parameterized-sort-to-rtg-sort =

@@ -11,10 +11,12 @@ imports
   debug
   class-naming
   
+  ast-form-heuristic
   create-ast-classes
   create-ast-visitor
   create-ast-factory
   create-parse-controller
+  create-folding
   create-colorer
   create-outliner
   create-manifest
@@ -42,7 +44,7 @@ strategies
 
 strategies
 
-  // TODO2: Cleanup before generating classes
+  // TODO2: Cleanup before generating classes (replacing --reset option?)
 
   sdf2imp =
     check-options;
@@ -50,10 +52,11 @@ strategies
     create-or-copy-parse-table;
     
     sdf2rtg;
-    read-from => rtg;
-    
-    // <rtg-to-outliner> rtg;
+    read-from => RTG(_, ProdRules(rtg));
     <rtg-to-ast-classes> rtg;
+    <init-ast-form-heuristic> rtg;
+    <rtg-to-outliner> rtg;
+    <rtg-to-folding> rtg;
     
     create-ast-factory;
     create-ast-visitor;
@@ -64,7 +67,9 @@ strategies
     create-classpath;
     create-manifest;
     create-colorer;
-    create-plugin-xml
+    create-plugin-xml;
+    
+    risky(not(HadErrors) |"Errors encountered; aborting.")
 
   create-or-copy-parse-table =
     where(

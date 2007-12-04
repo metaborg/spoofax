@@ -7,11 +7,20 @@ imports
 strategies
   
   output-java-file =
+    output-java-file(fail)
+  
+  output-java-file(dontoverwrite) =
     where(
-      path := <create-dirs> ["src" | <package-name>]
+      ?class;
+      path := <create-dirs> ["src" | <package-name>];
+      fullpath := <conc-strings> (path, "/", <class-name> class, ".java")
     );
     
-    output-java-file(|<conc-strings> (path, "/", <class-name>, ".java"))
+    if not(dontoverwrite; <file-exists> fullpath) then
+      output-java-file(|fullpath)
+    else
+      verbose-msg(!"Skipping", fullpath)
+    end
   
   // TODO2: Add @Generated attribute to files
   // import javax.annotation.Generated;

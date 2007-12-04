@@ -16,8 +16,6 @@ imports
 strategies
 
   rtg-to-ast-classes =
-    ?RTG(_, ProdRules(<id>));
-    
     where(register-builtin-classes);
     
     list-loop(
@@ -42,9 +40,7 @@ strategies
     
     create-ast-base-class;
     create-ast-list-class;
-    create-ast-string-class;
-    
-    risky(not(HadErrors) |"Errors encountered; aborting.")
+    create-ast-string-class
   
   register-builtin-classes =
     // Reserve default class names

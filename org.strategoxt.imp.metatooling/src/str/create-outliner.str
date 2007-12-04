@@ -9,104 +9,56 @@ imports
 strategies
 
   rtg-to-outliner =
-    heuristic-top-sorts;
-    id // TODO
+    heuristic-outline-and-folding-sorts;
+    sorts-to-outliner
   
-  heuristic-top-sorts =
-    ?RTG(_, ProdRules(<id>));
+  sorts-to-outliner =
+    visitmethods := <mapconcat(create-outline-methods)>;
+    sdfmodule    := <get-sdf-main-module>;
+    x_Name       := <conc-strings> (sdfmodule, "Outliner");
     
-    list-loop(heuristic-register-production);
+    <output-java-file(not(ResetFiles))> |[
+      package outliner;
     
-    heuristic-start-sorts;
-    
-    mapconcat(heuristic-child-sorts-with-identifiers) => children;
-    debug(!2);
-    
-    mapconcat(heuristic-child-sorts-with-identifiers) => children2;
-    debug(!3);
-    
-    <conc> (children, children2);
-    debug(!4);
-    <exit> 0
-
-/** @internal */
-strategies
-
-  heuristic-start-sorts =
-    StartSymbol;
-    bagof-Productions;
-    filter(heuristic-sort-name)
-  <+
-    fatal-err-msg(|"No legal start symbol specified.")
-  
-  heuristic-register-production =
-    try(
-      ?prod;
-      heuristic-sort-name => sort;
+      import parser.ast.*;
       
-      rules(
-        Productions :+ sort -> prod
-      )
-    )
-
-  heuristic-child-sorts =
-    ?ProdRule(
-      Nonterm(Plain(sort))
-    , [Appl(_, <id>)]
-    );
-    
-    map(?Ref(Nonterm(Plain(<id>))));
-    
-    filter(not(?sort)) // avoid circular references
-  <+
-    // Injection
-    ?ProdRule(
-      Nonterm(Plain(sort))
-    , [Ref(Nonterm(Plain(<id>)))]
-    );
-    
-    filter(not(?sort)) // avoid circular references
-  <+
-    ![]
-
-  heuristic-child-sorts-with-identifiers =
-    rec rec(
-      debug(!"**");
-      bagof-Productions;
-      map(
-        debug(!"  >1");
-        heuristic-child-sorts;
-        debug(!"  >2");
-        map(heuristic-has-identifier <+ rec)
-      )
-    );
-    
-    flatten-list
-
-  heuristic-sort-name =
-    ?ProdRule(
-      Nonterm(Plain(<id>))
-    , [Appl(_, _)]
-    )
-  <+
-    // Injection
-    ?ProdRule(
-      _
-    , [Ref(Nonterm(Plain(<id>)))]
-    )
+      public class x_Name extends org.eclipse.imp.services.base.OutlinerBase {
+      
+        private final class OutlineVisitor extends AbstractVisitor {
+          public OutlineVisitor() {
+            pushTopItem("~sdfmodule" + " program", null);
+          }
+          
+          public void unimplementedVisitor(java.lang.String n) {
+            // Could be used for debugging purposes.
+          }
+        
+          ~*visitmethods
+        }
   
-  heuristic-has-identifier =
-    where(
-      heuristic-child-sorts;
-      [heuristic-is-identifier | id]
-    <+
-      verbose-msg(!"Has no identifier:", id, bagof-Productions, heuristic-child-sorts)
-    )
+        protected void sendVisitorToAST(Object node) {
+          ASTNode root = (ASTNode) node;
+          root.accept(new OutlineVisitor());
+        }
+      }
+    ]|
   
-  heuristic-is-identifier = // TODO: Better heuristic-is-identifier
-    where(
-      heuristic-child-sorts;
-      ([] + [heuristic-is-identifier])
-    <+
-      debug(!"Not an identifier:")
-    )
+  create-outline-methods:
+    x_Type ->
+    class-body-dec* |[
+      public boolean visit(x_Type n) {
+        if (n.getChildren().size() > 0) {
+          Object descriptor = n.getChildren().get(0);
+          
+          java.lang.String text = descriptor.toString();
+          pushSubItem(text, n);
+        }
+        return true;
+      }
+      
+      public void endVisit(x_Type n) {
+        if (n.getChildren().size() > 0) {
+          popSubItem();
+        }
+      }
+    ]|

@@ -4,11 +4,9 @@ imports
   io
   options
 
-strategies    
+strategies
 
-  create-activator =
-    // TODO: Cleanup default manifest
-  
+  create-activator =  
     name    := <get-main-class-name>;
     pkgname := <get-package-name>;
     
@@ -58,7 +56,7 @@ strategies
                 .getWorkspace().getRoot().getProject());
             preferencesService.setLanguageName(kLanguageName);
             
-            // TODO2: IMP-generated activator TODO
+            // TODO2: IMP-generated activator todo note
             // When some actual preferences are created, put
             // a call to the preferences initializer here
             // (The IMP New Preferences Support wizard creates such

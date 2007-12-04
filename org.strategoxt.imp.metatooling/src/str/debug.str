@@ -59,7 +59,10 @@ strategies
   /** Example: <to-tiny-string> [Invoke(Foo(x), [1,2]) => "[Invoke(Foo,[..])]" */
   to-tiny-string =
     map(to-tiny-string); 
+    
     separate-by(|",");
+    try(take(!6); <conc> (<id>, ["..."]));
+    
     <conc-strings> ("[", <concat-strings>, "]")
   <+
     ?name#(<id>);
@@ -74,6 +77,9 @@ strategies
       <+ []; !"[]"
       <+ ?<as-string>#(_)
       );
-      separate-by(|",");
+      
+      separate-by(|",");      
+      try(take(!6); <conc> (<id>, ["..."]));
+      
       <conc-strings> (name, "(", <concat-strings>, ")")
     end
