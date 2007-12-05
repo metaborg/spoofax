@@ -338,15 +338,7 @@ rules
   <+
     recover-from-missing-renamed-sort
   <+
-    ?sort; 
-    err(|"Undefined sort referenced");
-    
-    class := <conc-strings> (sort, "Sort");
-    
-    rules(
-      SortClassName: sort -> class // single error only
-      HadErrors: _
-    )
+    recover-from-missing-sort
   
   // HACK: try finding missing renamed sorts 
   //       sdf2rtg doesn't seem to rename renamed sorts without a constructor
@@ -363,6 +355,16 @@ rules
     implode-string;
     SortClassName;
     warn-msg(|<conc-strings> ("Could not find sort ", sort, "; using ", <simple-sort-name>, " instead."))
+  
+  /**
+   * Create a sort class if it does not exist yet.
+   */
+  recover-from-missing-sort =
+    ?sort;
+    warn(|"Undefined sort referenced");
+    <sort-to-class> ProdRule(Nonterm(Plain(<id>)), ());
+    output-java-file;
+    <SortClassName> sort
   
   /** Get the name, arguments and Java constructor expression for the right-hand side of a rule. */
   get-non-terminal-properties:

@@ -87,7 +87,7 @@ public class SGLRTokenKindManager {
     }
 
 	protected static boolean isOperator(ATermAppl sort) {
-		if (sort.getName() != "lit") return false;
+		if (!SGLRParseController.isLiteral(sort)) return false;
 		
 		ATermAppl lit = applAt(sort, 0);
 		String contents = lit.getName();

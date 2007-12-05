@@ -163,6 +163,8 @@ public abstract class SGLRParseController implements IParseController {
 	public String getLanguageName() {
 		throw new UnsupportedOperationException();
 	}
+	
+	// TODO2: Move sort recognition elsewhere
 
 	public static boolean isLayout(ATermAppl sort) {
     	ATermAppl details = applAt(sort, 0);
@@ -173,14 +175,23 @@ public abstract class SGLRParseController implements IParseController {
     	return details.getName().equals("layout");
     }
 
+	public static boolean isLiteral(ATermAppl sort) {
+    	return sort.getName().equals("lit") || sort.getName().equals("cilit");
+    }
+
 	public static boolean isList(ATermAppl sort) {
     	ATermAppl details = sort.getName().equals("cf")
     	                  ? applAt(sort, 0)
     	                  : sort;
+    	              	
+	  	if (details.getName().equals("opt"))
+	  		details = applAt(details, 0);
+	  	
     	String name = details.getName();
     	
     	return name.equals("iter") || name.equals("iter-star")  || name.equals("iter-plus")
-    			|| name.equals("iter-sep") || name.equals("iter-star-sep") || name.equals("iter-plus-sep");
+    			|| name.equals("iter-sep") || name.equals("seq") || name.equals("iter-star-sep")
+    			|| name.equals("iter-plus-sep");
     }
 
 	// Problem markers and errors
@@ -213,18 +224,20 @@ public abstract class SGLRParseController implements IParseController {
 		parseErrors.add(new ParseError(message, token));
 	}
 	
-	private void reportParseError(Exception exception) {
-		String message = "Internal parsing error: " + exception;
-		IToken token = parser.getTokenizer().makeErrorToken(0);
+	private void reportParseError(UnknownAstNodeException exception) {
+		String message = "Internal parsing error (asfix implosion): " + exception.getMessage();
+		IToken left = exception.getLeftToken();
+		IToken right = exception.getRightToken();
+		IToken token = parser.getTokenizer().makeErrorToken(left, right);
 		
 		parseErrors.add(new ParseError(message, token));
 	}
 	
-	private void reportParseError(UnknownAstNodeException exception) {
-		String message = "Internal parsing error: " + exception.getMessage();
-		IToken left = exception.getLeftToken();
-		IToken right = exception.getRightToken();
-		IToken token = parser.getTokenizer().makeErrorToken(left, right);
+	private void reportParseError(Exception exception) {
+		String message = "Internal parsing error: " + exception;
+		exception.printStackTrace();
+		
+		IToken token = parser.getTokenizer().makeErrorToken(0);
 		
 		parseErrors.add(new ParseError(message, token));
 	}

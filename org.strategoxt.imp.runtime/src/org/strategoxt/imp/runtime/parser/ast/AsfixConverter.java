@@ -105,7 +105,7 @@ public class AsfixConverter {
 		
 		// Enter lexical context if this is a lex node
 		boolean lexicalStart = !lexicalContext
-			&& (rhs.getName().equals("lex") || rhs.getName().equals("lit")
+			&& (rhs.getName().equals("lex") || SGLRParseController.isLiteral(rhs)
 			    || SGLRParseController.isLayout(rhs));
 		
 		if (lexicalStart) lexicalContext = true;

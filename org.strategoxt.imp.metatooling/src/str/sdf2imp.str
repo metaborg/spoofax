@@ -53,8 +53,8 @@ strategies
     
     sdf2rtg;
     read-from => RTG(_, ProdRules(rtg));
-    <rtg-to-ast-classes> rtg;
     <init-ast-form-heuristic> rtg;
+    <rtg-to-ast-classes> rtg;
     <rtg-to-outliner> rtg;
     <rtg-to-folding> rtg;
     
@@ -67,10 +67,8 @@ strategies
     create-classpath;
     create-manifest;
     create-colorer;
-    create-plugin-xml;
-    
-    risky(not(HadErrors) |"Errors encountered; aborting.")
-
+    create-plugin-xml
+  
   create-or-copy-parse-table =
     where(
       print-filename(|[], <parse-table-target>);

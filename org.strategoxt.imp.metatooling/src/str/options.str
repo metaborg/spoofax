@@ -51,13 +51,9 @@ strategies
   
   parameterized-sort-to-rtg-sort =
     // Module[StrategoHost] -> Module_StrategoHost
-    string-as-chars(
-      filter(
-        \<'[' + ' '> -> '_'\
-      <+
-        not(']')
-      )
-    )
+    string-replace(|"[[", "_");
+    string-replace(|"[", "_");
+    string-replace(|"]", "")
   
   get-package-name =
     // TODO: Redirect to get-package-name

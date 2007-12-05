@@ -92,7 +92,7 @@ strategies
             java.util.ArrayList<ASTNode> children) {
           
           int numChildren = children.size();
-          int sortLength = sort.length();
+          int sortLength = sort == null ? -1 : sort.length();
           
           ~*nonterminals
           
