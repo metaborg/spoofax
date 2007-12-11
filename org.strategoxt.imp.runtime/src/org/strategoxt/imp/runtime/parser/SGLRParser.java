@@ -6,6 +6,7 @@ import lpg.runtime.Monitor;
 import lpg.runtime.PrsStream;
 
 import org.eclipse.imp.parser.IParser;
+import org.spoofax.NotImplementedException;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.SGLR;
 import org.spoofax.jsglr.SGLRException;
@@ -85,7 +86,13 @@ public class SGLRParser implements IParser {
 	// LPG legacy / compatibility
 
 	@Deprecated
-	public SGLR parser(Monitor monitor, int error_repair_count) {
+	public Object parser(Monitor monitor, int error_repair_count) {
 		throw new UnsupportedOperationException();
+	}
+
+	@Deprecated
+	public String[] orderedTerminalSymbols() {
+		// TODO2: SGLRParser.orderedTerminalSymbols() - should map token kinds to names
+		throw new NotImplementedException();
 	}
 }
