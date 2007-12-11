@@ -81,23 +81,6 @@ public class SGLRTokenizer {
 	}
 	
 	/**
-	 * Creates an error token up to the next whitespace character.
-	 */
-	public IToken makeErrorToken(int offset) {
-		int endOffset = offset;
-		
-		if (offset == lexStream.getStreamLength())
-		    return makeErrorTokenBackwards(offset - 1);
-		
-		while (endOffset + 1 < lexStream.getStreamLength()) {
-			if (Character.isWhitespace(lexStream.getCharValue(endOffset + 1))) break;
-			endOffset++;
-		}
-		
-		return new Token(parseStream, offset, endOffset, TK_JUNK);
-	}
-	
-	/**
 	 * Creates an error token from existing tokens.
 	 */
 	public IToken makeErrorToken(IToken left, IToken right) {
@@ -105,13 +88,46 @@ public class SGLRTokenizer {
 	}
 	
 	/**
+	 * Creates an error token up to the next whitespace character.
+	 */
+	public IToken makeErrorToken(int offset) {		
+		if (offset == lexStream.getStreamLength())
+		    return makeErrorTokenBackwards(offset - 1);
+
+		int endOffset = offset;
+		boolean onlySeenWhitespace = Character.isWhitespace(lexStream.getCharValue(endOffset));
+		
+		while (endOffset + 1 < lexStream.getStreamLength()) {
+			char c = lexStream.getCharValue(endOffset + 1);
+			boolean isWhitespace = Character.isWhitespace(c);
+			
+			if (onlySeenWhitespace)
+				onlySeenWhitespace = isWhitespace;
+			else if (isWhitespace)
+				break;
+			
+			endOffset++;
+		}
+		
+		return new Token(parseStream, offset, endOffset, TK_JUNK);
+	}
+	
+	/**
 	 * Creates an error token from the last whitespace character.
 	 */
 	public IToken makeErrorTokenBackwards(int offset) {
 		int beginOffset = offset;
+		boolean onlySeenWhitespace = true;
 		
 		while (beginOffset > 0) {
-			if (Character.isWhitespace(lexStream.getCharValue(beginOffset - 1))) break;
+			char c = lexStream.getCharValue(beginOffset - 1);
+			boolean isWhitespace = Character.isWhitespace(c);
+			
+			if (onlySeenWhitespace)
+				onlySeenWhitespace = isWhitespace;
+			else if (isWhitespace)
+				break;
+			
 			beginOffset--;
 		}
 		
