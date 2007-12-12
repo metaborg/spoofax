@@ -1,0 +1,31 @@
+module Common
+
+exports
+
+  sorts
+    Id Int String CommentChar
+
+  lexical syntax
+    [a-zA-Z][a-zA-Z0-9\_]* -> Id
+    "-"? [0-9]+            -> Int
+    "\"" ~[\"\n]* "\""     -> String
+    
+    [\ \t\n\r]             -> LAYOUT
+    
+    [\*]                             -> CommentChar
+    "/*" (~[\*] | CommentChar)* "*/" -> LAYOUT
+    "//" ~[\n\r]* [\n\r]             -> LAYOUT
+  
+  lexical restrictions
+  	CommentChar -/- [\/]
+  	Int         -/- [0-9]
+  	Id          -/- [a-zA-Z0-9\_]
+
+  context-free restrictions
+
+    LAYOUT? -/- [\ \t\n\r]
+    
+    %% FIXME: JSGLR doesn't accept this atm
+    %%
+    %% LAYOUT? -/- [\/].[\/]
+    %% LAYOUT?  -/- [\/].[\*]

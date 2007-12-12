@@ -1,0 +1,27 @@
+module ColorerService
+
+imports
+  Common
+
+exports
+
+  sorts
+    Section ColorRule Font Color ColorName
+
+  context-free syntax
+	"colorer" ColorRule* -> Section {cons("Colorer")}
+
+  context-free syntax
+    Id ":" Color Font -> ColorRule
+    
+    -> Font %% TODO: ColorerService Font
+  
+    ColorName   -> Color {cons("ColorName")}
+    Int Int Int -> Color {cons("ColorRGB")}
+    
+     %% TODO: More built-in colors
+  
+    'RED'             -> ColorName {cons("RED")}
+    'DARK' '_'? 'RED' -> ColorName {cons("DARK_RED")}
+    'GREEN'           -> ColorName {cons("GREEN")}
+    'BLUE'            -> ColorName {cons("BLUE")}

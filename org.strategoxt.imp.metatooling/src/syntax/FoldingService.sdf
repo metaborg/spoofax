@@ -1,0 +1,14 @@
+module FoldingService
+
+imports
+  Common
+
+exports
+
+  sorts
+    Section FoldingRule
+
+  context-free syntax
+    "folding" FoldingRule* -> Section {cons("Folding")}
+    
+    Id                     -> FoldingRule

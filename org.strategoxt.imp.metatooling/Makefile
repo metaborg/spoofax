@@ -1,4 +1,5 @@
 STRS     = $(wildcard src/str/*.str) $(wildcard src/str/lib/*.str)
+SDFS     = $(wildcard src/syntax/*.sdf)
 CTREES   = src/str/sdf2imp.ctree
 
 STRCFLAGS = \
@@ -19,11 +20,13 @@ STRINCLUDES = \
 	-I $(HOME)/.nix-profile/share/sdf/gpp \
     `pkg-config --variable=strcflags java-front`
 
-all : sdf2imp eclipse-deps
+all : sdf2imp syntax eclipse-deps
 
 sdf2imp : $(STRS) Makefile
 	strc -i src/str/sdf2imp.str -o $@ $(STRINCLUDES) $(STRCFLAGS) -m main-sdf2imp $(STRCSTFU)
 	rm sdf2imp.c sdf2imp.lo sdf2imp.o
+
+syntax : src/syntax/EditorService.tbl
 
 eclipse-deps : $(CTREES)
 
@@ -39,4 +42,16 @@ clean :
 
 %.ctree : %.str
 	strc -F -i $< -o $@ $(STRINCLUDES) $(STRCSTFU)
+
+src/syntax/EditorService.def : src/syntax/EditorService.sdf
+	pack-sdf -i $< -o $@ -I src/syntax
+
+src/syntax/EditorService.tbl : src/syntax/EditorService.def
+	sdf2table -m EditorService -i $< -o $@
+
+src/syntax/Stratego-EditorService.def : src/syntax/Stratego-EditorService.sdf $(SDFS)
+	pack-sdf -i $< -o $@ -I src/syntax
+
+src/syntax/Stratego-EditorService.tbl : src/syntax/Stratego-EditorService.def
+	sdf2table -m Stratego-EditorService -i $< -o $@
 
