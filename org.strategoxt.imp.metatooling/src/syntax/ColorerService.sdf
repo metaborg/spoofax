@@ -21,9 +21,19 @@ exports
     ColorName   -> Color {cons("ColorName")}
     Int Int Int -> Color {cons("ColorRGB")}
     
-     %% TODO: More built-in colors
+     %% HACK: Constructors shouldn't actually contain '_' characters...
   
-    'RED'             -> ColorName {cons("RED")}
-    'DARK' '_'? 'RED' -> ColorName {cons("DARK_RED")}
-    'GREEN'           -> ColorName {cons("GREEN")}
-    'BLUE'            -> ColorName {cons("BLUE")}
+    'RED'                 -> ColorName {cons("RED")}
+    'DARK' '_'? 'RED'     -> ColorName {cons("DARK_RED")}
+    'GREEN'               -> ColorName {cons("GREEN")}
+    'DARK' '_'? 'GREEN'   -> ColorName {cons("DARK_GREEN")}
+    'WHITE'               -> ColorName {cons("WHITE")}
+    'BLACK'               -> ColorName {cons("BLACK")}
+    'YELLOW'              -> ColorName {cons("YELLOW")}
+    'DARK' '_'? 'YELLOW'  -> ColorName {cons("DARK_YELLOW")}
+    'BLUE'                -> ColorName {cons("BLUE")}
+    'DARK' '_'? 'BLUE'    -> ColorName {cons("DARK_BLUE")}
+    'MAGENTA'             -> ColorName {cons("MAGENTA")}
+    'DARK' '_'? 'MAGENTA' -> ColorName {cons("DARK_MAGENTA")}
+    'GRAY'                -> ColorName {cons("GRAY")}
+    'DARK' '_'? 'GRAY'    -> ColorName {cons("DARK_GRAY")}

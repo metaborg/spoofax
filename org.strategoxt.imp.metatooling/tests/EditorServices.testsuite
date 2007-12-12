@@ -7,7 +7,6 @@ test Empty module
 
 test Empty module with imports
   "module foo imports bar, baz" -> Module("foo", Imports(["bar", "baz"]), [])
-
   
 test Larger module
   "module foo imports bar, baz
@@ -19,7 +18,7 @@ test Larger module
      y
   
    colorer
-     z : red
+     z : dark red
   
   " ->
   Module(
@@ -27,6 +26,6 @@ test Larger module
   , Imports(["bar", "baz"])
   , [ Folding([Sort("x")])
     , Outliner([Sort("y")])
-    , Colorer([Rule(Sort("z"), ColorName(RED()), NoFont())])
+    , Colorer([Rule(Sort("z"), ColorName(_), NoFont())])
     ]
   )
