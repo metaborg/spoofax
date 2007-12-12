@@ -1,0 +1,26 @@
+module EditorService
+
+imports
+  Common
+  FoldingService
+  OutlinerService
+  ColorerService
+
+exports
+
+  context-free start-symbols
+    Module
+
+exports
+
+  sorts
+    Module ModuleName Imports Undefined
+
+  context-free syntax
+  
+  	%% TODO: ModuleName with path
+  	Id -> ModuleName
+  	
+    "module" ModuleName Imports Section* -> Module {cons("Module")}
+    "imports" { ModuleName "," }+        -> Imports {cons("Imports")}
+    Undefined*                           -> Imports {cons("Imports")}

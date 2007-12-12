@@ -22,6 +22,8 @@ STRINCLUDES = \
 
 all : sdf2imp syntax eclipse-deps
 
+check : tests/EditorServices.runtestsuite
+
 sdf2imp : $(STRS) Makefile
 	strc -i src/str/sdf2imp.str -o $@ $(STRINCLUDES) $(STRCFLAGS) -m main-sdf2imp $(STRCSTFU)
 	rm sdf2imp.c sdf2imp.lo sdf2imp.o
@@ -43,15 +45,12 @@ clean :
 %.ctree : %.str
 	strc -F -i $< -o $@ $(STRINCLUDES) $(STRCSTFU)
 
-src/syntax/EditorService.def : src/syntax/EditorService.sdf
+%.runtestsuite : %.testsuite
+	parse-unit --no-heuristic-filters -i $< -p src/syntax/EditorService.tbl
+
+src/syntax/EditorService.def : src/syntax/EditorService.sdf $(SDFS)
 	pack-sdf -i $< -o $@ -I src/syntax
 
 src/syntax/EditorService.tbl : src/syntax/EditorService.def
 	sdf2table -m EditorService -i $< -o $@
-
-src/syntax/Stratego-EditorService.def : src/syntax/Stratego-EditorService.sdf $(SDFS)
-	pack-sdf -i $< -o $@ -I src/syntax
-
-src/syntax/Stratego-EditorService.tbl : src/syntax/Stratego-EditorService.def
-	sdf2table -m Stratego-EditorService -i $< -o $@
 

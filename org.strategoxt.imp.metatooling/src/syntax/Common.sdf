@@ -3,9 +3,10 @@ module Common
 exports
 
   sorts
-    Id Int String CommentChar
+    Id Int String CommentChar RuleId Sort Constructor
 
   lexical syntax
+  
     [a-zA-Z][a-zA-Z0-9\_]* -> Id
     "-"? [0-9]+            -> Int
     "\"" ~[\"\n]* "\""     -> String
@@ -17,6 +18,7 @@ exports
     "//" ~[\n\r]* [\n\r]             -> LAYOUT
   
   lexical restrictions
+  
   	CommentChar -/- [\/]
   	Int         -/- [0-9]
   	Id          -/- [a-zA-Z0-9\_]
@@ -29,3 +31,14 @@ exports
     %%
     %% LAYOUT? -/- [\/].[\/]
     %% LAYOUT?  -/- [\/].[\*]
+
+  context-free syntax
+  
+    Id     -> Sort {cons("Sort")}
+    Id "*" -> Sort {cons("ListSort")}
+    
+    "." Id -> Constructor {cons("Constructor")}
+    
+    Sort        -> RuleId
+    Constructor -> RuleId
+    Sort "." Id -> RuleId {cons("SortAndConstructor")}

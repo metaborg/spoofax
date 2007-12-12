@@ -10,11 +10,13 @@ exports
 
   context-free syntax
 	"colorer" ColorRule* -> Section {cons("Colorer")}
+	
+	"colorer" -> RuleId {reject}
 
   context-free syntax
-    Id ":" Color Font -> ColorRule
+    RuleId ":" Color Font -> ColorRule {cons("Rule")}
     
-    -> Font %% TODO: ColorerService Font
+    -> Font {cons("NoFont")} %% TODO: ColorerService Font
   
     ColorName   -> Color {cons("ColorName")}
     Int Int Int -> Color {cons("ColorRGB")}

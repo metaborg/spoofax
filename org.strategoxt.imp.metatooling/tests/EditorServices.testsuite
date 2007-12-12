@@ -1,0 +1,32 @@
+testsuite EditorServices
+
+topsort Module
+
+test Empty module
+  "module foo" -> Module("foo", Imports([]), [])
+
+test Empty module with imports
+  "module foo imports bar, baz" -> Module("foo", Imports(["bar", "baz"]), [])
+
+  
+test Larger module
+  "module foo imports bar, baz
+  
+   folding
+     x
+  
+   outliner
+     y
+  
+   colorer
+     z : red
+  
+  " ->
+  Module(
+    "foo"
+  , Imports(["bar", "baz"])
+  , [ Folding([Sort("x")])
+    , Outliner([Sort("y")])
+    , Colorer([Rule(Sort("z"), ColorName(RED()), NoFont())])
+    ]
+  )

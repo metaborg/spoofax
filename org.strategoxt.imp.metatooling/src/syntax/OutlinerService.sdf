@@ -10,7 +10,9 @@ exports
 
   context-free syntax
     "outliner" OutlineRule* -> Section {cons("Outliner")}
+	
+	"outliner" -> RuleId {reject}
     
     %% TODO: Patterns for outlinerservice
 
-    Id -> OutlineRule
+    RuleId -> OutlineRule
