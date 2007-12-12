@@ -1,10 +1,10 @@
-module create-ast-factory
+module parser/create-ast-factory
 
 imports
   libstratego-lib
   libstratego-xtc
   sdf-options
-  rtg
+  lib/RTG
   
   io
   debug

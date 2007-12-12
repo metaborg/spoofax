@@ -1,4 +1,4 @@
-module create-outliner
+module services/create-outliner
 
 imports
   libstratego-lib

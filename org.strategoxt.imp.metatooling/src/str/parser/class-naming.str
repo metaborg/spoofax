@@ -1,4 +1,4 @@
-module class-naming
+module parser/class-naming
 
 imports
   libstratego-lib

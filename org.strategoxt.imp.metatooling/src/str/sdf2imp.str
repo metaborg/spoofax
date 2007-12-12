@@ -9,22 +9,10 @@ imports
   
   io
   debug
-  class-naming
   
-  ast-form-heuristic
-  create-ast-classes
-  create-ast-visitor
-  create-ast-factory
-  create-parse-controller
-  create-folding
-  create-colorer
-  create-outliner
-  create-manifest
-  create-activator
-  create-classpath
-  create-plugin-xml
-  create-project-file
-  create-build-properties
+  parser/-
+  project/-
+  services/-
 
 overlays
 

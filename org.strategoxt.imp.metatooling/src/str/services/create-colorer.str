@@ -1,4 +1,10 @@
-module create-colorer
+module services/create-colorer
+
+imports
+  libstratego-lib
+  
+  io
+  debug
 
 strategies
 

@@ -1,4 +1,4 @@
-module rtg
+module RTG
 
 signature
   constructors

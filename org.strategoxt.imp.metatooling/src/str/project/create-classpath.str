@@ -1,4 +1,4 @@
-module create-classpath
+module project/create-classpath
 
 imports
   io

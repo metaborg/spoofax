@@ -1,10 +1,10 @@
-module create-parse-controller
+module parser/create-parse-controller
 
 imports
   libstratego-lib
   libstratego-xtc
   sdf-options
-  rtg
+  lib/RTG
   
   io
   debug

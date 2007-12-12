@@ -1,4 +1,4 @@
-module create-build-properties
+module project/create-build-properties
 
 imports
   io

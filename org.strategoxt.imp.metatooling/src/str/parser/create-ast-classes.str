@@ -1,17 +1,17 @@
-module create-ast-classes
+module parser/create-ast-classes
 
 // TODO2: Reorganize; file is too large
 
 imports
   libstratego-lib
   sdf-options
-  rtg
+  lib/RTG
   
   io
   debug
-  class-naming
-  create-ast-visitor
-  create-ast-factory
+  parser/class-naming
+  parser/create-ast-visitor
+  parser/create-ast-factory
 
 strategies
 

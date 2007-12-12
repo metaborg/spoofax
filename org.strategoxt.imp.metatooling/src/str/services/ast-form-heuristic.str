@@ -1,4 +1,4 @@
-module ast-form-heuristic
+module services/ast-form-heuristic
 
 imports
   libstratego-lib

@@ -1,4 +1,8 @@
-STRS     = $(wildcard src/str/*.str) $(wildcard src/str/lib/*.str)
+STRS     = $(wildcard src/str/*.str) \
+           $(wildcard src/str/lib/*.str) \
+           $(wildcard src/str/project/*.str) \
+           $(wildcard src/str/parser/*.str) \
+           $(wildcard src/str/services/*.str)           
 SDFS     = $(wildcard src/syntax/*.sdf)
 CTREES   = src/str/sdf2imp.ctree
 

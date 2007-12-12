@@ -1,4 +1,4 @@
-module create-plugin-xml
+module project/create-plugin-xml
 
 imports
   io

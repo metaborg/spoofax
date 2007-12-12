@@ -1,4 +1,4 @@
-module create-manifest
+module project/create-manifest
 
 imports
   io

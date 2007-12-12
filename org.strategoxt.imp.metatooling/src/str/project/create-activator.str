@@ -1,4 +1,4 @@
-module create-activator
+module project/create-activator
       
 imports
   io

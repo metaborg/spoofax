@@ -1,4 +1,4 @@
-module create-folding
+module services/create-folding
 
 imports
   libstratego-lib
