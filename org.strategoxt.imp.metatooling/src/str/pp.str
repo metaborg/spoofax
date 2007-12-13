@@ -35,5 +35,5 @@ strategies
   descriptor-pp-table =
     DescriptorPPTable
   <+
-    tbl := <import-term(descriptor-pretty.pp.af)>;
+    tbl := <import-term(EditorService.pp.af)>;
     rules(DescriptorPPTable := tbl )

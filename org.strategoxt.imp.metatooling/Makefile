@@ -22,17 +22,18 @@ STRCSTFU=2>&1 | grep -vE 'warning ] Nullary constructor .*[A-Z]|warning ] multip
 STRINCLUDES = \
 	-I $(HOME)/.nix-profile/share/sdf/xml-front \
 	-I $(HOME)/.nix-profile/share/sdf/gpp \
+	-I src/syntax \
     `pkg-config --variable=strcflags java-front`
 
 all : sdf2imp syntax eclipse-deps
 
 check : tests/EditorServices.runtestsuite
 
-sdf2imp : $(STRS) Makefile src/syntax/EditorService.pp.af
+sdf2imp : $(STRS) syntax Makefile
 	strc -i src/str/sdf2imp.str -o $@ $(STRINCLUDES) $(STRCFLAGS) -m main-sdf2imp $(STRCSTFU)
 	rm sdf2imp.c sdf2imp.lo sdf2imp.o
 
-syntax : src/syntax/EditorService.tbl src/syntax/EditorService.pp.af
+syntax : src/syntax/EditorService.tbl src/syntax/EditorService.pp.af src/syntax/EditorService.str
 
 eclipse-deps : $(CTREES)
 
@@ -54,6 +55,12 @@ clean :
 
 %.pp.af : %.pp
 	parse-pp-table -i $< -o $@
+
+%.str : %.rtg
+	rtg2sig -i $< -o $@
+
+%.rtg : %.def
+	sdf2rtg -i $< -o $@ -m `basename $*` --ignore-missing-cons
 
 %.runtestsuite : %.testsuite
 	parse-unit --no-heuristic-filters -i $< -p src/syntax/EditorService.tbl
