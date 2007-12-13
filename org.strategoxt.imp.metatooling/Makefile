@@ -28,11 +28,11 @@ all : sdf2imp syntax eclipse-deps
 
 check : tests/EditorServices.runtestsuite
 
-sdf2imp : $(STRS) Makefile
+sdf2imp : $(STRS) Makefile src/syntax/EditorService.pp.af
 	strc -i src/str/sdf2imp.str -o $@ $(STRINCLUDES) $(STRCFLAGS) -m main-sdf2imp $(STRCSTFU)
 	rm sdf2imp.c sdf2imp.lo sdf2imp.o
 
-syntax : src/syntax/EditorService.tbl
+syntax : src/syntax/EditorService.tbl src/syntax/EditorService.pp.af
 
 eclipse-deps : $(CTREES)
 
@@ -48,6 +48,12 @@ clean :
 
 %.ctree : %.str
 	strc -F -i $< -o $@ $(STRINCLUDES) $(STRCSTFU)
+
+%.pp : %.def
+	ppgen -i $< -o $@
+
+%.pp.af : %.pp
+	parse-pp-table -i $< -o $@
 
 %.runtestsuite : %.testsuite
 	parse-unit --no-heuristic-filters -i $< -p src/syntax/EditorService.tbl
