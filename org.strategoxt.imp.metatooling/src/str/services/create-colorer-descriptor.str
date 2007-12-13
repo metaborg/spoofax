@@ -1,0 +1,12 @@
+module services/create-colorer-descriptor
+
+imports
+  libstratego-lib
+  
+  io
+  debug
+
+strategies
+
+  create-colorer-script =
+    id  // TODO: output-descriptor-file ...

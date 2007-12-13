@@ -1,0 +1,11 @@
+module services/create-folding-descriptor
+
+imports
+  libstratego-lib
+  
+  io
+  debug
+
+strategies
+
+  create-folding-descriptor = id // TODO

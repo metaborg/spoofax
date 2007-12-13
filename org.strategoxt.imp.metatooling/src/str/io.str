@@ -1,8 +1,11 @@
 module io
 
 imports
-  lib/xml-doc2abox
   libstratego-gpp
+  
+  lib/xml-doc2abox
+
+  pp
 
 strategies
   
@@ -40,6 +43,14 @@ strategies
     risky(
       xml-doc2abox; box2text-string(|80)
     | "Illegal XML output"
+    );
+    
+    output-text-file(|pathparts, filename)
+
+  output-descriptor-file(|pathparts, filename) =
+    risky(
+      pp-descriptor-to-string
+    | "Illegal editor service descriptor output"
     );
     
     output-text-file(|pathparts, filename)

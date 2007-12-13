@@ -1,0 +1,11 @@
+module services/create-outliner-descriptor
+
+imports
+  libstratego-lib
+  
+  io
+  debug
+
+strategies
+
+  create-outliner-descriptor = id // TODO

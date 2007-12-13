@@ -6,7 +6,7 @@ imports
 exports
 
   sorts
-    Section ColorRule Font Color ColorName
+    Section ColorRule Font Color ColorName ColorRuleId TokenKind TokenKindName
 
   context-free syntax
 	"colorer" ColorRule* -> Section {cons("Colorer")}
@@ -14,14 +14,24 @@ exports
 	"colorer" -> RuleId {reject}
 
   context-free syntax
-    RuleId ":" Color Font -> ColorRule {cons("Rule")}
+    ColorRuleId ":" Color Font -> ColorRule {cons("Rule")}
+    
+    RuleId        -> ColorRuleId
+    TokenKindName -> ColorRuleId {cons("Token")}
+    
+    "identifier" "token" -> TokenKindName {cons("TK_IDENTIFIER")}
+    "number"     "token" -> TokenKindName {cons("TK_NUMBER")}
+    "string"     "token" -> TokenKindName {cons("TK_STRING")}
+    "keyword"    "token" -> TokenKindName {cons("TK_KEYWORD")}
+    "operator"   "token" -> TokenKindName {cons("TK_OPERATOR")}
+    "var"        "token" -> TokenKindName {cons("TK_VAR")}
+    "junk"       "token" -> TokenKindName {cons("TK_JUNK")}
+    "unknown"    "token" -> TokenKindName {cons("TK_UNKNOWN")}
     
     -> Font {cons("NoFont")} %% TODO: ColorerService Font
   
     ColorName   -> Color {cons("ColorName")}
     Int Int Int -> Color {cons("ColorRGB")}
-    
-     %% HACK: Constructors shouldn't actually contain '_' characters...
   
     'RED'                 -> ColorName {cons("RED")}
     'DARK' '_'? 'RED'     -> ColorName {cons("DARK_RED")}

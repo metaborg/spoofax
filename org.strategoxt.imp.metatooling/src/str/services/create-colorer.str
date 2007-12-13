@@ -8,8 +8,6 @@ imports
 
 strategies
 
-  // TODO: Token colorer DSL
-
   create-colorer =
     x_Name  := <conc-strings> (<get-main-class-name>, "TokenColorer");
     pkgname := <get-package-name(|["tokenColorer"])>;
