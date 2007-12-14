@@ -1,7 +1,7 @@
 [
    Colorer              -- V  [H  [KW["colorer"]] _1],
    Colorer.1:iter-star  -- _1,
-   Rule                 -- _1 KW[":"] _2 _3 _4,
+   Rule                 -- H [ _1 KW[":"] _2 _3 _4 ],
    Rule.3:opt           -- _1,
    Token                -- _1,
    TK_IDENTIFIER        -- KW["identifier"] KW["token"],
@@ -39,9 +39,9 @@
    ListSort             -- _1 KW["*"],
    Constructor          -- KW["."] _1,
    SortAndConstructor   -- _1 KW["."] _2,
-   Module               -- KW["module"] _1 _2 _3,
+   Module               -- V is=2 [ H [ KW["module"] _1 ] _2 _3 ],
    Module.3:iter-star   -- _1,
-   Imports              -- V  [H  [KW["imports"]] _1],
+   Imports              -- H [ KW["imports"] _1 ],
    Imports.1:iter-sep   -- _1 KW[","],
    Imports              -- _1,
    Imports.1:iter-star  -- _1
