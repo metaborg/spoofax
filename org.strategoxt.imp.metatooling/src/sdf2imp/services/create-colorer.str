@@ -11,9 +11,6 @@ strategies
     x_Name  := <conc-strings> (<get-main-class-name>, "TokenColorer");
     pkgname := <get-package-name(|["tokenColorer"])>;
     
-    // TODO2: Cleanup of generated token colorer class
-    //        A lot of this can be moved to a super/helper-class
-    
     <output-java-file> |[
       package pkgname;
       

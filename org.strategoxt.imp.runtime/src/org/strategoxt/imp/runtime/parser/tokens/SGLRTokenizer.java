@@ -55,28 +55,31 @@ public class SGLRTokenizer {
 		beginOffset = 0;
 		
 		// Token list must start with a bad token
-		parseStream.makeToken(0, -1, 0);
+		makeToken(0, 0, true);
 	}
 	
 	public void endStream() {
-		parseStream.makeToken(beginOffset, beginOffset, TK_EOF);
+		makeToken(beginOffset, TK_EOF, true);
 	}
 	
-	public IToken makeToken(int endOffset, int kind, boolean allowEmptyToken) {
+	public SGLRToken makeToken(int endOffset, int kind, boolean allowEmptyToken) {
 		if (!allowEmptyToken && beginOffset == endOffset) // empty token
 			return null;
 		
-		parseStream.makeToken(beginOffset, endOffset - 1, kind);
+		SGLRToken token = new SGLRToken(parseStream, beginOffset, endOffset - 1, parseStream.mapKind(kind));
+		token.setTokenIndex(parseStream.getSize());
+		
+		// Add token and increment the stream size(!)
+		parseStream.addToken(token);
+		parseStream.setStreamLength(parseStream.getSize());
 		
 		beginOffset = endOffset;
 		
-		// Increment the stream size after adding this token(!)
-		parseStream.setStreamLength(parseStream.getSize());
-		
-		return currentToken();
+		return token;
 	}
 	
-	public final IToken makeToken(int endOffset, int kind) {
+	// Bridge method
+	public final SGLRToken makeToken(int endOffset, int kind) {
 		return makeToken(endOffset, kind, false);
 	}
 	
@@ -101,10 +104,11 @@ public class SGLRTokenizer {
 			char c = lexStream.getCharValue(endOffset + 1);
 			boolean isWhitespace = Character.isWhitespace(c);
 			
-			if (onlySeenWhitespace)
+			if (onlySeenWhitespace) {
 				onlySeenWhitespace = isWhitespace;
-			else if (isWhitespace)
+			} else if (isWhitespace) {
 				break;
+			}
 			
 			endOffset++;
 		}
@@ -123,10 +127,11 @@ public class SGLRTokenizer {
 			char c = lexStream.getCharValue(beginOffset - 1);
 			boolean isWhitespace = Character.isWhitespace(c);
 			
-			if (onlySeenWhitespace)
+			if (onlySeenWhitespace) {
 				onlySeenWhitespace = isWhitespace;
-			else if (isWhitespace)
+			} else if (isWhitespace) {
 				break;
+			}
 			
 			beginOffset--;
 		}

@@ -4,7 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Iterator;
 
+import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
+
 import lpg.runtime.IAst;
+import lpg.runtime.IPrsStream;
 import lpg.runtime.IToken;
 
 /**
@@ -76,7 +79,7 @@ public class AstNode implements IAst, Iterable<AstNode> {
 		return parent;
 	}
 
-	void setParent(AstNode value) {
+	private void setParent(AstNode value) {
 		parent = value;
 	}
 	
@@ -98,8 +101,21 @@ public class AstNode implements IAst, Iterable<AstNode> {
 		this.rightToken = rightToken;
 		this.children = children;
 		
-		for (AstNode node : children)
+		setReferences(leftToken, rightToken, children);
+	}
+
+	private void setReferences(IToken leftToken, IToken rightToken, ArrayList<AstNode> children) {
+		IPrsStream parseStream = leftToken.getPrsStream();
+		int length = rightToken.getTokenIndex();
+		
+		for (int i = leftToken.getTokenIndex(); i < length; i++) {
+			SGLRToken token = (SGLRToken) parseStream.getTokenAt(i);
+			if (token.getAstNode() == null) token.setAstNode(this);
+		}
+		
+		for (AstNode node : children) {
 			node.setParent(this);
+		}
 	}
 	
 	// General access
