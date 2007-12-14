@@ -13,10 +13,10 @@ exports
     QuotedTerm
     QuotedTerms
   
-  context-free syntax %% (Anti-)quotations
+  context-free syntax
+    %% (Anti-)quotations
     "|[" Module "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
 
-    %% Instructions, operands, identifiers
     QuotedTerm -> Id {cons("FromMetaExpr")}
     
     QuotedTerms -> RuleId* {cons("FromMetaExpr")}
