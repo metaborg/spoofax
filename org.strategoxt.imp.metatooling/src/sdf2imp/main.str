@@ -1,0 +1,83 @@
+module sdf2imp/main
+
+imports
+  libstratego-lib
+  libstratego-xtc // TODO2: XTC detox?
+  libjava-front
+  sdf-options
+  
+  EditorService
+  
+  sdf2imp/parser/-
+  sdf2imp/project/-
+  sdf2imp/services/-
+  sdf2imp/util/-
+
+overlays
+
+  tname_ASTNODE    = tname |[ org.strategoxt.imp.runtime.parser.ast.SGLRAstNode ]|
+  tname_ASTFACTORY = tname |[ org.strategoxt.imp.runtime.parser.ast.SGLRAstNodeFactory ]|
+  tname_ITOKEN     = tname |[ lpg.runtime.IToken ]|
+
+strategies
+
+  main-sdf2imp =
+    rules(BasePackage := ""); // default output dir
+    
+    xtc-input-wrap(
+      sdf2imp-options
+    , sdf2imp
+    )
+
+strategies
+
+  // TODO2: Cleanup before generating classes?
+
+  sdf2imp =
+    check-options;
+  
+    create-or-copy-parse-table;
+    
+    sdf2rtg;
+    read-from => RTG(_, ProdRules(rtg));
+
+    <init-ast-form-heuristic> rtg;
+    
+    <rtg-to-outliner> rtg;
+    <rtg-to-folding> rtg;
+    
+    create-colorer-descriptor;
+    
+    create-parse-controller;
+    create-build-properties;
+    create-project-file;
+    create-activator;
+    create-classpath;
+    create-manifest;
+    create-colorer;
+    create-plugin-xml
+  
+  create-or-copy-parse-table =
+    where(
+      print-filename(|[], <parse-table-target>);
+      <eq> (<ParseTable>, <parse-table-target>)
+    <+
+      ParseTable;
+      risky(file-exists |"File not found");
+      <copy-file> (<id>, <parse-table-target>)
+    )
+  <+
+    xtc-ensure-file => FILE(input);
+    where(
+      <file-exists <+ mkdir> "syntax";
+      <xtc-command(!"sdf2table")> ["-i", input, "-o", <parse-table-target>,
+                                   "-m", <get-sdf-main-module>]
+    )
+
+  parse-table-target =
+    <conc-strings> ("syntax/", <get-sdf-main-module>, ".tbl")
+
+  sdf2rtg =
+    // TODO2: pack-sdf?
+    xtc-transform(!"sdf2rtg", !["--ignore-missing-cons", "-m", <get-sdf-main-module> | <pass-verbose>]);
+    xtc-transform(!"sglri", !["-p", <xtc-find> "rtg.tbl", "--start", "RTG"])

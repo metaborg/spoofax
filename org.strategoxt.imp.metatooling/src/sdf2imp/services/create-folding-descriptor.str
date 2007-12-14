@@ -1,0 +1,10 @@
+module sdf2imp/services/create-folding-descriptor
+
+imports
+  libstratego-lib
+  
+  sdf2imp/util/-
+  
+strategies
+
+  create-folding-descriptor = id // TODO

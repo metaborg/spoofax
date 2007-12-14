@@ -1,0 +1,23 @@
+module sdf2imp/services/create-colorer-descriptor
+
+imports
+  libstratego-lib
+  
+  sdf2imp/util/-
+
+strategies
+
+  create-colorer-descriptor =
+    <output-descriptor-file(|["services"], "Colorer.esv")> |[
+      module Colorer
+      
+      colorer
+      
+        TK_LAYOUT:     96 96 0      italic
+        TK_KEYWORD:    dark magenta
+        TK_IDENTIFIER: black
+        TK_STRING:     blue
+        TK_NUMBER:     dark green
+        TK_VAR:        160 112 0    italic
+        TK_OPERATOR:   96 96 96     italic
+    ]|

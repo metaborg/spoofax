@@ -1,0 +1,36 @@
+module sdf2imp/project/create-manifest
+
+imports
+  sdf2imp/util/-
+
+strategies
+
+  create-manifest =
+    // TODO2: Cleanup default manifest
+  
+    name    := <get-main-class-name>;
+    package := <BasePackage>;
+    
+    <output-text-file(|["META-INF"], "MANIFEST.MF")>
+    
+<conc-strings> (
+"Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: ", name, " Plug-in
+Bundle-SymbolicName: ", name, "; singleton:=true
+Bundle-Version: 1.0.0
+Bundle-Activator: ", package, ".Activator
+Bundle-Localization: plugin
+Import-Package: org.osgi.framework;version=\"1.3.0\"
+Require-Bundle: org.eclipse.core.runtime,
+  org.eclipse.core.resources,
+  org.eclipse.imp.runtime,
+  org.eclipse.ui,
+  lpg.runtime,
+  org.eclipse.jface.text,
+  org.eclipse.ui.editors,
+  org.eclipse.ui.workbench.texteditor,
+  org.strategoxt.imp.runtime,
+  org.spoofax.aterm,
+  org.spoofax.jsglr
+")

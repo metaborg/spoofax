@@ -1,0 +1,81 @@
+module sdf2imp/services/create-colorer
+
+imports
+  libstratego-lib
+  
+  sdf2imp/util/-
+
+strategies
+
+  create-colorer =
+    x_Name  := <conc-strings> (<get-main-class-name>, "TokenColorer");
+    pkgname := <get-package-name(|["tokenColorer"])>;
+    
+    // TODO2: Cleanup of generated token colorer class
+    //        A lot of this can be moved to a super/helper-class
+    
+    <output-java-file> |[
+      package pkgname;
+      
+      import org.eclipse.imp.parser.IParseController;
+      import org.eclipse.imp.services.ITokenColorer;
+      import org.eclipse.imp.services.base.TokenColorerBase;
+      import org.eclipse.jface.text.TextAttribute;
+      import org.eclipse.swt.SWT;
+      import org.eclipse.swt.widgets.Display;
+      import org.eclipse.swt.graphics.Color;
+      
+      import static org.strategoxt.imp.runtime.parser.tokens.SGLRParsersym.*;
+      
+      import lpg.runtime.IToken;
+      
+      public class x_Name extends TokenColorerBase implements ITokenColorer {
+      
+        TextAttribute commentAttribute, keywordAttribute, stringAttribute,
+            numberAttribute, doubleAttribute, identifierAttribute,
+            operatorAttribute, varAttribute;
+      
+        public TextAttribute getColoring(IParseController controller, IToken token) {
+          switch (token.getKind()) {      
+            case TK_LAYOUT:
+              return commentAttribute;
+            case TK_KEYWORD:
+              return keywordAttribute;
+            case TK_IDENTIFIER:
+              return identifierAttribute;
+            case TK_STRING:
+              return stringAttribute;
+            case TK_NUMBER:
+              return numberAttribute;
+            case TK_VAR:
+              return varAttribute;
+            case TK_OPERATOR:
+              return operatorAttribute;
+      
+            default:
+              return super.getColoring(controller, token);
+          }
+        }
+      
+        public x_Name() {
+          Display display = Display.getDefault();
+          commentAttribute = new TextAttribute(
+              new Color(display, 0x60, 0x60, 0), null, SWT.ITALIC);
+          stringAttribute = new TextAttribute(display
+              .getSystemColor(SWT.COLOR_BLUE), null, SWT.NORMAL);
+          identifierAttribute = new TextAttribute(display
+              .getSystemColor(SWT.COLOR_BLACK), null, SWT.NORMAL);
+          doubleAttribute = new TextAttribute(display
+              .getSystemColor(SWT.COLOR_DARK_GREEN), null, SWT.NORMAL);
+          numberAttribute = new TextAttribute(display
+              .getSystemColor(SWT.COLOR_DARK_GREEN), null, SWT.NORMAL);
+          keywordAttribute = new TextAttribute(display
+              .getSystemColor(SWT.COLOR_DARK_MAGENTA), null, SWT.BOLD);
+          operatorAttribute = new TextAttribute(
+              new Color(display, 0, 0xA0, 0x70), null, SWT.NORMAL);
+          varAttribute = new TextAttribute(display
+              .getSystemColor(SWT.COLOR_MAGENTA), null, SWT.BOLD);
+        }
+      
+      }
+  ]|

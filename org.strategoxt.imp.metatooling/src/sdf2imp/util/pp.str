@@ -1,0 +1,39 @@
+module sdf2imp/util/pp
+
+imports
+  libstratego-gpp
+
+strategies
+
+  /**
+   * Pretty-prints the descriptor AST to a string.
+   *
+   * @type descriptor -> String
+   */
+  pp-descriptor-to-string =
+    descriptor-to-abox;
+    box2text-string(|80)
+
+  /**
+   * Pretty-prints the descriptor AST to a Stream.
+   *
+   * @param Stream
+   * @type descriptor -> Stream
+   */
+  pp-descriptor-to-stream(|stream) =
+    descriptor-to-abox;
+    box2text-stream(|80, stream)
+
+  /**
+   * Pretty-prints the descriptor AST to a Box representation.
+   *
+   * @type descriptor -> Box
+   */    
+  descriptor-to-abox =
+    ast2box(|[<descriptor-pp-table>])
+    
+  descriptor-pp-table =
+    DescriptorPPTable
+  <+
+    tbl := <import-term(EditorService.pp.af)>;
+    rules(DescriptorPPTable := tbl )

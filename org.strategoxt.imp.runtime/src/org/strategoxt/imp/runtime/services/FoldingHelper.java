@@ -5,7 +5,7 @@ import lpg.runtime.IPrsStream;
 import lpg.runtime.IToken;
 
 import org.eclipse.imp.services.base.FolderBase;
-import org.strategoxt.imp.runtime.parser.ast.SGLRAstNode;
+import org.strategoxt.imp.runtime.parser.ast.AstNode;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRParsersym;
 
 // TODO: FoldingHelper should not be in the "parser" plugin (nor should this package be exported)
@@ -22,7 +22,7 @@ public class FoldingHelper {
 		lexStream = parseStream.getLexStream();
 	}
 	
-	public void makeCompleteAnnotation(SGLRAstNode node) {
+	public void makeCompleteAnnotation(AstNode node) {
 		makeCompleteAnnotation(node.getLeftIToken(), node.getRightIToken());
 	}
 	

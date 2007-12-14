@@ -56,7 +56,7 @@ public class AsfixConverter {
 	
 	private final static int EXPECTED_NODE_CHILDREN = 5;
 	
-	private final SGLRAstNodeFactory factory = new SGLRAstNodeFactory();
+	private final AstNodeFactory factory = new AstNodeFactory();
 	
 	private final SGLRTokenizer tokenizer;
 	
@@ -73,7 +73,7 @@ public class AsfixConverter {
 		this.tokenizer = tokenizer;
 	}
 	
-	public SGLRAstNode implode(ATerm asfix) {
+	public AstNode implode(ATerm asfix) {
 		if (!(asfix instanceof ATermAppl && ((ATermAppl) asfix).getName().equals("parsetree")))
 			throw new IllegalArgumentException("Parse tree expected");
 		
@@ -81,7 +81,7 @@ public class AsfixConverter {
 		offset = 0;
 		lexicalContext = false;
 		
-		SGLRAstNode root = implodeAppl(ignoreAmb(top));
+		AstNode root = implodeAppl(ignoreAmb(top));
 
 		tokenizer.endStream();
 		
@@ -91,7 +91,7 @@ public class AsfixConverter {
 	// TODO2: Cleanup implodeAppl
 	
 	/** Implode any appl(_, _). */
-	private SGLRAstNode implodeAppl(ATermAppl appl) {
+	private AstNode implodeAppl(ATermAppl appl) {
 		ATermAppl prod = termAt(appl, APPL_PROD);
 		ATermList lhs = termAt(prod, PROD_LHS);
 		ATermAppl rhs = termAt(prod, PROD_RHS);
@@ -115,7 +115,7 @@ public class AsfixConverter {
 		if (isVar) lexicalContext = true;
 		
 		// Recurse the tree (and set children if applicable)
-		ArrayList<SGLRAstNode> children =
+		ArrayList<AstNode> children =
 			implodeChildNodes(contents, lexicalContext);
 		
 		if (lexicalStart || isVar) {
@@ -131,11 +131,11 @@ public class AsfixConverter {
 		}
 	}
 
-	private ArrayList<SGLRAstNode> implodeChildNodes(ATermList contents, boolean tokensOnly) {
+	private ArrayList<AstNode> implodeChildNodes(ATermList contents, boolean tokensOnly) {
 		
-		ArrayList<SGLRAstNode> result = tokensOnly
+		ArrayList<AstNode> result = tokensOnly
 				? null
-				: new ArrayList<SGLRAstNode>(
+				: new ArrayList<AstNode>(
 						min(EXPECTED_NODE_CHILDREN, contents.getChildCount()));
 
 		for (int i = 0; i < contents.getLength(); i++) {
@@ -145,7 +145,7 @@ public class AsfixConverter {
 				implodeLexical(child);
 			} else {
 				// Recurse
-				SGLRAstNode childNode = implodeAppl(ignoreAmb(child));
+				AstNode childNode = implodeAppl(ignoreAmb(child));
 
 				if (childNode != null)
 					result.add(childNode);
@@ -155,7 +155,7 @@ public class AsfixConverter {
 		return result;
 	}
 
-	private SGLRAstNode createTerminal(ATermList lhs, ATermAppl rhs) {
+	private AstNode createTerminal(ATermList lhs, ATermAppl rhs) {
 		// TODO: Also create int terminals
 		// TODO2: Optimize - don't construct a token's string value until it is used
 		
@@ -171,20 +171,20 @@ public class AsfixConverter {
 	}
 
 	/** Implode a context-free node. */
-	private SGLRAstNode createNonTerminal(String sort, String constructor, IToken prevToken,
-			ArrayList<SGLRAstNode> children, boolean isList) {
+	private AstNode createNonTerminal(String sort, String constructor, IToken prevToken,
+			ArrayList<AstNode> children, boolean isList) {
 		
 		IToken left = getStartToken(prevToken);
 		IToken right = getEndToken(left, tokenizer.currentToken());
 		
 		if (Debug.ENABLED) {
 			String name = isList ? "list" : sort;
-			Debug.log("Creating node ", name, ":", constructor, SGLRAstNode.getSorts(children), " from ", SGLRTokenizer.dumpToString(left, right));
+			Debug.log("Creating node ", name, ":", constructor, AstNode.getSorts(children), " from ", SGLRTokenizer.dumpToString(left, right));
 		}
 		
 		if (isList) {
 			return factory.createList(sort, left, right, children);
-		} else if (constructor == null && children.size() == 1 && children.get(0).getSort() == SGLRAstNode.STRING_SORT) {
+		} else if (constructor == null && children.size() == 1 && children.get(0).getSort() == AstNode.STRING_SORT) {
 			// Child node was a <string> node (rare case); unpack it and create a new terminal
 			assert left == right && children.get(0).getChildren().size() == 0;
 			return factory.createTerminal(sort, left);

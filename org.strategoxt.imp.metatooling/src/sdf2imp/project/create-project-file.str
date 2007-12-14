@@ -1,0 +1,42 @@
+module sdf2imp/project/create-project-file
+    
+imports
+  sdf2imp/util/-
+
+strategies
+
+  create-project-file =
+    package := <BasePackage>;
+    
+    // TODO2: Cleanup default .project file?
+    
+    <output-xml-file(|[], ".project")>
+    %>
+    <?xml version="1.0" encoding="UTF-8"?>
+    <projectDescription>
+      <name><%= package::cdata %></name>
+      <comment></comment>
+      <buildSpec>
+        <buildCommand>
+          <name>org.eclipse.jdt.core.javabuilder</name>
+          <arguments>
+          </arguments>
+        </buildCommand>
+        <buildCommand>
+          <name>org.eclipse.pde.ManifestBuilder</name>
+          <arguments>
+          </arguments>
+        </buildCommand>
+        <buildCommand>
+          <name>org.eclipse.pde.SchemaBuilder</name>
+          <arguments>
+          </arguments>
+        </buildCommand>
+      </buildSpec>
+      <natures>
+        <nature>org.eclipse.pde.PluginNature</nature>
+        <nature>org.eclipse.jdt.core.javanature</nature>
+        <nature>org.eclipse.imp.lpg.runtime.LPGNature</nature>
+      </natures>
+    </projectDescription>
+    <%

@@ -1,0 +1,130 @@
+module sdf2imp/parser/create-ast-factory
+
+imports
+  libstratego-lib
+  libstratego-xtc
+  sdf-options
+  
+  sdf2imp/lib/RTG
+  
+  sdf2imp/util/-
+
+strategies
+
+  // TODO2: Optimize - AST node factory
+  //        - use a hash table ir tree form
+  //        - getSort() may be faster than instanceof? (but is incompatible with <some>/<none>)
+
+  factory-register-non-terminal(|sort, e_Constructor, class, argtypes) =
+    <factory-dupe-check> (sort, e_Constructor, class, argtypes);
+    
+    i_ArgLength   := <length; write-to-string> argtypes;
+    i_SortLength  := <string-length; write-to-string> sort;
+    
+    // Condition: children.get(0) instanceof ... && ... && true
+    !argtypes;
+    number(arg-type-check);
+    foldr(!|[ true ]|, !|[ ~<Fst> && ~<Snd> ]|) => conditions;
+    
+    if |[ null ]| := e_Constructor then
+      e_ConstructorCheck := |[ null == constructor ]|
+    else
+      e_ConstructorCheck := |[ e_Constructor.equals(constructor) ]|
+    end;
+    
+    rules(
+      FactoryNonTerminals :+= bstm |[
+        if (sortLength == i_SortLength // first compare ints for performance
+            && numChildren == i_ArgLength
+            && e_ConstructorCheck
+            && "~sort".equals(sort)
+            && ~conditions)
+          return new ~x:class(leftToken, rightToken, children);
+      ]|
+    )
+
+  factory-register-terminal(|sort, class) =
+    <factory-dupe-check> (sort, class);
+    
+    rules(
+      FactoryTerminals :+= bstm |[
+        if ("~sort".equals(sort))
+          return new ~x:class(leftToken, rightToken, value);
+      ]|
+    )
+  
+  /**
+   * Sanity check: ensure classes are not created with an existing factory pattern.
+   */
+  factory-dupe-check =
+    HasFactoryPattern;
+    // TODO: Shouldn't be an error, but should ensure class is not created
+    err(|"Internal error: factory pattern already exists");
+    fail
+  <+
+    ?pattern;
+    rules(
+      HasFactoryPattern: pattern
+    )
+  
+  arg-type-check:
+    (tname, index) ->
+    expr |[
+      children.get(i_Index) instanceof tname
+    ]|
+    where i_Index := <write-to-string> index
+  
+  get-ast-factory-name =
+    <conc-strings> (<get-main-class-name>, "AstNodeFactory")
+  
+  create-ast-factory =
+    x_Name       := <get-ast-factory-name>;
+    terminals    := <bagof-FactoryTerminals>;
+    nonterminals := <bagof-FactoryNonTerminals>;
+     
+    <output-java-file> compilation-unit |[
+      package parser.ast;
+      
+      public class x_Name extends tname_ASTFACTORY<ASTNode> {
+        @Override
+        public ASTNode createNonTerminal(java.lang.String sort, java.lang.String constructor,
+            tname_ITOKEN leftToken, tname_ITOKEN rightToken,
+            java.util.ArrayList<ASTNode> children) {
+          
+          int numChildren = children.size();
+          int sortLength = sort == null ? -1 : sort.length();
+          
+          ~*nonterminals
+          
+          // HACK: Don't generate an AST node for implicit lexical -> context-free injections
+          // (i.e., don't generate Id(Id("x")) for a lexical sort Id)
+          if (numChildren == 1 && sort != null && sort.equals(children.get(0).getSort())) {
+            ASTNode result = children.get(0);
+            children.get(0).setRightIToken(rightToken); // expand node with any additional tokens
+            return result;
+          }
+          
+          return super.createNonTerminal(sort, constructor, leftToken, rightToken, children);
+        }
+        
+        @Override
+        public ASTNode createTerminal(java.lang.String sort, java.lang.String value,
+            tname_ITOKEN leftToken, tname_ITOKEN rightToken) {
+          
+          ~*terminals
+          
+          // HACK: Create <string> node for unknown terminals
+          //       (required for, e.g., FooStringChars in Java-15, which
+          //        does not appear in the RTG)
+          return new ASTString(leftToken, rightToken, value);
+          // return super.createTerminal(sort, value, leftToken, rightToken);
+        }
+        
+        @Override
+        public List createList(java.lang.String elementSort, tname_ITOKEN leftToken,
+            tname_ITOKEN rightToken, java.util.ArrayList<ASTNode> children) {
+          
+          return new List(elementSort, leftToken, rightToken, children);
+        }
+      }
+    ]|

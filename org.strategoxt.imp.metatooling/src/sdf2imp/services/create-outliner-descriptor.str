@@ -1,0 +1,10 @@
+module sdf2imp/services/create-outliner-descriptor
+
+imports
+  libstratego-lib
+  
+  sdf2imp/util/-
+
+strategies
+
+  create-outliner-descriptor = id // TODO

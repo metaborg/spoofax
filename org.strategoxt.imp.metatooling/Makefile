@@ -1,14 +1,16 @@
 # HACK: Assume nix installation in Makefile
 
-STRS     = $(wildcard src/str/*.str) \
-           $(wildcard src/str/lib/*.str) \
-           $(wildcard src/str/project/*.str) \
-           $(wildcard src/str/parser/*.str) \
-           $(wildcard src/str/services/*.str)           
+STRS     = $(wildcard src/*.str) \
+           $(wildcard src/sdf2imp/*.str) \
+           $(wildcard src/sdf2imp/lib/*.str) \
+           $(wildcard src/sdf2imp/project/*.str) \
+           $(wildcard src/sdf2imp/parser/*.str) \
+           $(wildcard src/sdf2imp/util/*.str) \
+           $(wildcard src/sdf2imp/services/*.str)           
 
 SDFS     = $(wildcard src/syntax/*.sdf)
 
-CTREES   = src/str/sdf2imp.ctree
+CTREES   = # TODO: src/sdf2imp.ctree
 
 STRCFLAGS = \
 	-la stratego-xtc \
@@ -38,7 +40,7 @@ all : sdf2imp syntax eclipse-deps
 check : tests/EditorServices.runtestsuite
 
 sdf2imp : $(STRS) syntax Makefile
-	strc -i src/str/sdf2imp.str -o $@ $(STRINCLUDES) $(STRCFLAGS) -m main-sdf2imp $(STRCSTFU)
+	strc -i src/sdf2imp.str -o $@ $(STRINCLUDES) $(STRCFLAGS) -m main-sdf2imp $(STRCSTFU)
 	rm sdf2imp.c sdf2imp.lo sdf2imp.o
 
 syntax : src/syntax/EditorService.tbl src/syntax/EditorService.pp.af src/syntax/EditorService.str src/syntax/Stratego-Java-EditorService.tbl

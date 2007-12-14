@@ -1,0 +1,18 @@
+module sdf2imp/project/create-classpath
+
+imports
+  sdf2imp/util/-
+
+strategies
+
+  create-classpath =
+    <output-xml-file(|[], ".classpath")>
+    %>
+    <?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+        <classpathentry path="src" kind="src"/>
+        <classpathentry path="org.eclipse.jdt.launching.JRE_CONTAINER" kind="con"/>
+        <classpathentry path="org.eclipse.pde.core.requiredPlugins" kind="con"/>
+        <classpathentry path="bin" kind="output"/>
+</classpath>
+    <%

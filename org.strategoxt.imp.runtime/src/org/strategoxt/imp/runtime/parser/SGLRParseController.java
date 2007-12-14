@@ -23,8 +23,8 @@ import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.TokenExpectedException;
 import org.spoofax.jsglr.BadTokenException;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.parser.ast.SGLRAstNode;
-import org.strategoxt.imp.runtime.parser.ast.SGLRAstNodeFactory;
+import org.strategoxt.imp.runtime.parser.ast.AstNode;
+import org.strategoxt.imp.runtime.parser.ast.AstNodeFactory;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenKindManager;
 
 import aterm.ATermAppl;
@@ -45,7 +45,7 @@ public abstract class SGLRParseController implements IParseController {
 	
 	private final SGLRLexer lexer;
 	
-	private SGLRAstNode currentAst;
+	private AstNode currentAst;
 	
 	private ISourceProject project;
 	
@@ -56,7 +56,7 @@ public abstract class SGLRParseController implements IParseController {
 
 	// Simple accessors
 	
-	public final SGLRAstNode getCurrentAst() { 
+	public final AstNode getCurrentAst() { 
 		return currentAst;
 	}
 	
@@ -98,7 +98,7 @@ public abstract class SGLRParseController implements IParseController {
      * 
      * @param startSymbol	The start symbol of this grammar, or null.
      */
-    public SGLRParseController(SGLRAstNodeFactory nodeFactory, SGLRTokenKindManager tokenManager, ParseTable parseTable, String startSymbol) {
+    public SGLRParseController(AstNodeFactory nodeFactory, SGLRTokenKindManager tokenManager, ParseTable parseTable, String startSymbol) {
     	this.tokenManager = tokenManager;
     	
     	parser = new SGLRParser(nodeFactory, tokenManager, parseTable, startSymbol);
@@ -110,7 +110,7 @@ public abstract class SGLRParseController implements IParseController {
      * 
      * @param startSymbol	The start symbol of this grammar, or null.
      */
-    protected SGLRParseController(SGLRAstNodeFactory nodeFactory, SGLRTokenKindManager tokenManager, InputStream parseTable, String startSymbol)
+    protected SGLRParseController(AstNodeFactory nodeFactory, SGLRTokenKindManager tokenManager, InputStream parseTable, String startSymbol)
     		throws IOException, InvalidParseTableException {
     	
     	this(nodeFactory, tokenManager, Environment.loadParseTable(parseTable), startSymbol);
@@ -122,7 +122,7 @@ public abstract class SGLRParseController implements IParseController {
 		this.messages = messages;
 	}
 
-	public SGLRAstNode parse(String input, boolean scanOnly, IProgressMonitor monitor) {
+	public AstNode parse(String input, boolean scanOnly, IProgressMonitor monitor) {
 		try {
 			// TODO2: Optimization - don't produce AST if scanOnly is true
 			parseErrors.clear();

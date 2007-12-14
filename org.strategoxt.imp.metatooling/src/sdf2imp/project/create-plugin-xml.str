@@ -1,0 +1,73 @@
+module project/create-plugin-xml
+
+imports
+  sdf2imp/util/-
+
+strategies
+
+  create-plugin-xml =
+    name       := <get-sdf-main-module>;
+    classname  := <get-main-class-name>;
+    pkgname    := <BasePackage>;
+    extensions := <EditorExtensions>;
+    
+    <output-xml-file(|[], "plugin.xml")>
+    %>
+    <?xml version="1.0" encoding="UTF-8"?>
+    <?eclipse version="3.0"?>
+    <plugin>
+       <extension
+             point="org.eclipse.imp.runtime.languageDescription">
+          <language
+                extensions="<%= extensions %>"
+                description="Professional Home Pages"
+                language="<%= name %>">
+          </language>
+       </extension>
+       <extension
+             id="<%= pkgname %>.parserWrapper"
+             name="<%= name %> Parser Wrapper"
+             point="org.eclipse.imp.runtime.parser">
+          <parserWrapper
+                class="parser.<%= classname %>ParseController"
+                language="<%= name %>">
+          </parserWrapper>
+       </extension>
+    
+       <extension
+             point="org.eclipse.imp.runtime.tokenColorer">
+          <tokenColorer
+                class="tokenColorer.<%= classname %>TokenColorer"
+                language="<%= name %>">
+          </tokenColorer>
+       </extension>
+       
+       
+       <extension
+             point="org.eclipse.imp.runtime.outliner">
+          <outliner
+                class="outliner.<%= classname %>Outliner"
+                language="<%= name %>">
+          </outliner>
+       </extension>
+    
+       <extension
+             point="org.eclipse.imp.runtime.foldingUpdater">
+          <foldingUpdater
+                class="foldingUpdater.<%= classname %>FoldingUpdater"
+                language="<%= name %>">
+          </foldingUpdater>
+       </extension>
+    
+       <!-- editor services
+       <extension
+             point="org.eclipse.imp.runtime.referenceResolvers">
+          <referenceResolver
+                class="referenceResolvers.<%= name %>ReferenceResolver"
+                language="<%= name %>">
+          </referenceResolver>
+       </extension>
+       -->
+    
+    </plugin>
+    <%
