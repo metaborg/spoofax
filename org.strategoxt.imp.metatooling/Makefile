@@ -1,9 +1,13 @@
+# HACK: Assume nix installation in Makefile
+
 STRS     = $(wildcard src/str/*.str) \
            $(wildcard src/str/lib/*.str) \
            $(wildcard src/str/project/*.str) \
            $(wildcard src/str/parser/*.str) \
            $(wildcard src/str/services/*.str)           
+
 SDFS     = $(wildcard src/syntax/*.sdf)
+
 CTREES   = src/str/sdf2imp.ctree
 
 STRCFLAGS = \
@@ -14,6 +18,10 @@ STRCFLAGS = \
     -la stratego-sglr \
     -la ${HOME}/.nix-profile/lib/libjava-front.la \
     `pkg-config --variable=strcxtcflags strategoxt`
+
+SDFINCLUDES    = -Idef ${HOME}/.nix-profile/share/java-front-syntax/JavaMix.def \
+                 -Idef ${HOME}/.nix-profile/share/java-front/JavaEBlockMix.def \
+                 -Idef ${HOME}/.nix-profile/share/java-front/EmbeddedJavaMix.def
 
 # I don't care much for nullary constructor warnings unless it's about lowercase ones, such as 'start'
 STRCSTFU=2>&1 | grep -vE 'warning ] Nullary constructor .*[A-Z]|warning ] multiple external| \[ExtSDef\(|stratego-trm|module-name-checked|module-name-checked"' \
@@ -33,7 +41,7 @@ sdf2imp : $(STRS) syntax Makefile
 	strc -i src/str/sdf2imp.str -o $@ $(STRINCLUDES) $(STRCFLAGS) -m main-sdf2imp $(STRCSTFU)
 	rm sdf2imp.c sdf2imp.lo sdf2imp.o
 
-syntax : src/syntax/EditorService.tbl src/syntax/EditorService.pp.af src/syntax/EditorService.str
+syntax : src/syntax/EditorService.tbl src/syntax/EditorService.pp.af src/syntax/EditorService.str src/syntax/Stratego-Java-EditorService.tbl
 
 eclipse-deps : $(CTREES)
 
@@ -50,8 +58,8 @@ clean :
 %.ctree : %.str
 	strc -F -i $< -o $@ $(STRINCLUDES) $(STRCSTFU)
 
-%.pp : %.def
-	ppgen -i $< -o $@
+# %.pp : %.def
+# 	ppgen -i $< -o $@
 
 %.pp.af : %.pp
 	parse-pp-table -i $< -o $@
@@ -70,4 +78,10 @@ src/syntax/EditorService.def : src/syntax/EditorService.sdf $(SDFS)
 
 src/syntax/EditorService.tbl : src/syntax/EditorService.def
 	sdf2table -m EditorService -i $< -o $@
+
+src/syntax/Stratego-Java-EditorService.def : src/syntax/Stratego-Java-EditorService.sdf $(SDFS)
+	pack-sdf -i $< -o $@ -I src/syntax $(SDFINCLUDES)
+
+src/syntax/Stratego-Java-EditorService.tbl : src/syntax/Stratego-Java-EditorService.def
+	sdf2table -m Stratego-Java-EditorService -i $< -o $@
 

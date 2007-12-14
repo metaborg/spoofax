@@ -14,10 +14,10 @@ exports
 	"colorer" -> RuleId {reject}
 
   context-free syntax
-    ColorRuleId ":" Color Font -> ColorRule {cons("Rule")}
+    ColorRuleId ":" Color Color? Font -> ColorRule {cons("Rule")}
     
     RuleId        -> ColorRuleId
-    TokenKindName -> ColorRuleId {cons("Token")}
+    TokenKindName -> ColorRuleId {cons("Token"), prefer}
     
     "identifier" "token" -> TokenKindName {cons("TK_IDENTIFIER")}
     "number"     "token" -> TokenKindName {cons("TK_NUMBER")}
@@ -28,22 +28,24 @@ exports
     "junk"       "token" -> TokenKindName {cons("TK_JUNK")}
     "unknown"    "token" -> TokenKindName {cons("TK_UNKNOWN")}
     
-    -> Font {cons("NoFont")} %% TODO: ColorerService Font
+             -> Font {cons("NORMAL")}
+    "bold"   -> Font {cons("BOLD")}
+    "italic" -> Font {cons("ITALIC")}
   
     ColorName   -> Color {cons("ColorName")}
     Int Int Int -> Color {cons("ColorRGB")}
   
-    'RED'                 -> ColorName {cons("RED")}
-    'DARK' '_'? 'RED'     -> ColorName {cons("DARK_RED")}
-    'GREEN'               -> ColorName {cons("GREEN")}
-    'DARK' '_'? 'GREEN'   -> ColorName {cons("DARK_GREEN")}
-    'WHITE'               -> ColorName {cons("WHITE")}
-    'BLACK'               -> ColorName {cons("BLACK")}
-    'YELLOW'              -> ColorName {cons("YELLOW")}
-    'DARK' '_'? 'YELLOW'  -> ColorName {cons("DARK_YELLOW")}
-    'BLUE'                -> ColorName {cons("BLUE")}
-    'DARK' '_'? 'BLUE'    -> ColorName {cons("DARK_BLUE")}
-    'MAGENTA'             -> ColorName {cons("MAGENTA")}
-    'DARK' '_'? 'MAGENTA' -> ColorName {cons("DARK_MAGENTA")}
-    'GRAY'                -> ColorName {cons("GRAY")}
-    'DARK' '_'? 'GRAY'    -> ColorName {cons("DARK_GRAY")}
+    "red"            -> ColorName {cons("RED")}
+    "dark" "red"     -> ColorName {cons("DARK_RED")}
+    "green"          -> ColorName {cons("GREEN")}
+    "dark" "green"   -> ColorName {cons("DARK_GREEN")}
+    "white"          -> ColorName {cons("WHITE")}
+    "black"          -> ColorName {cons("BLACK")}
+    "yellow"         -> ColorName {cons("YELLOW")}
+    "dark" "yellow"  -> ColorName {cons("DARK_YELLOW")}
+    "blue"           -> ColorName {cons("BLUE")}
+    "dark" "blue"    -> ColorName {cons("DARK_BLUE")}
+    "magenta"        -> ColorName {cons("MAGENTA")}
+    "dark" "magenta" -> ColorName {cons("DARK_MAGENTA")}
+    "gray"           -> ColorName {cons("GRAY")}
+    "dark" "gray"    -> ColorName {cons("DARK_GRAY")}

@@ -7,6 +7,8 @@ imports
   sdf-options
   options
   
+  EditorService
+  
   io
   debug
   
@@ -32,7 +34,7 @@ strategies
 
 strategies
 
-  // TODO2: Cleanup before generating classes (replacing --reset option?)
+  // TODO2: Cleanup before generating classes?
 
   sdf2imp =
     check-options;
@@ -43,6 +45,9 @@ strategies
     read-from => RTG(_, ProdRules(rtg));
     <init-ast-form-heuristic> rtg;
     <rtg-to-ast-classes> rtg;
+    
+    create-colorer-descriptor;
+    
     <rtg-to-outliner> rtg;
     <rtg-to-folding> rtg;
     

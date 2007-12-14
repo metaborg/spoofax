@@ -1,0 +1,32 @@
+module Stratego-Java-EditorService
+imports
+  StrategoMix[StrategoHost]
+  languages/java/EmbeddedJavaMix[Java Term[[StrategoHost]]]
+  languages/java/eblock/JavaEBlockMix[Java]
+  
+  EditorService
+
+exports
+  context-free start-symbols Module[[StrategoHost]]
+
+  sorts
+    QuotedTerm
+    QuotedTerms
+  
+  context-free syntax %% (Anti-)quotations
+    "|[" Module "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
+
+    %% Instructions, operands, identifiers
+    QuotedTerm -> Id {cons("FromMetaExpr")}
+    
+    QuotedTerms -> RuleId* {cons("FromMetaExpr")}
+
+    "~"  Term[[StrategoHost]] -> QuotedTerm  {bracket}
+    "~*" Term[[StrategoHost]] -> QuotedTerms {bracket}
+
+    %% Stratego applications as anti-quotation
+    "<" Strategy[[StrategoHost]] ">" Term[[StrategoHost]] -> QuotedTerm {cons("App")}
+    StrategyAngle[[StrategoHost]]                         -> QuotedTerm {cons("RootApp"), avoid}
+    InitId Term[[StrategoHost]]                           -> QuotedTerm {reject}
+    InitId                                                -> QuotedTerm {reject}
+

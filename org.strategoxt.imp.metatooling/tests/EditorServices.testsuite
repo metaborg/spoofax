@@ -26,6 +26,30 @@ test Larger module
   , Imports(["bar", "baz"])
   , [ Folding([Sort("x")])
     , Outliner([Sort("y")])
-    , Colorer([Rule(Sort("z"), ColorName(_), NoFont())])
+    , Colorer([Rule(Sort("z"), ColorName(_), None, NORMAL)])
+    ]
+  )
+  
+test Token-based colors
+  "module foo
+  
+   colorer
+     TK_LAYOUT : green italic
+     TK_VAR    : 1 2 3 bold
+  
+  " ->
+  Module(
+    "foo"
+  , Imports([])
+  , [ Colorer(
+        [ Rule(Sort("TK_LAYOUT"), ColorName(GREEN()), None(), ITALIC())
+        , Rule(
+            Sort("TK_VAR")
+          , ColorRGB("1", "2", "3")
+          , None()
+          , BOLD()
+          )
+        ]
+      )
     ]
   )
