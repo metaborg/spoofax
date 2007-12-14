@@ -1,4 +1,4 @@
-module options
+module util/options
 
 strategies
 

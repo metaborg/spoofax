@@ -1,4 +1,4 @@
-module pp
+module util/pp
 
 imports
   libstratego-gpp

@@ -1,11 +1,11 @@
-module io
+module util/io
 
 imports
   libstratego-gpp
   
   lib/xml-doc2abox
 
-  pp
+  util/pp
 
 strategies
   

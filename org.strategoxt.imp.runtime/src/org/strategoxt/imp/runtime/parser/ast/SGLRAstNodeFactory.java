@@ -8,42 +8,45 @@ import lpg.runtime.IToken;
 /**
  * Default ATermAstNode factory.
  * 
- * @note Should be overridden to supply specialized AstNode classes for a specific grammar.
- * 
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
-public abstract class SGLRAstNodeFactory<TNode extends SGLRAstNode> {
-	// TODO: Cleanup
-	
+public class SGLRAstNodeFactory {
 	/**
-	 * Create a new non-terminal AST node
+	 * Create a new non-terminal AST node (or a terminal with only a constructor).
 	 */
-	public TNode createNonTerminal(String sort, String constructor, IToken leftToken, IToken rightToken,
-			ArrayList<TNode> children) {
+	public SGLRAstNode createNonTerminal(String sort, String constructor, IToken leftToken, IToken rightToken,
+			ArrayList<SGLRAstNode> children) {
 		
-		if ("<START>".equals(sort)) {
-			// TODO2: Create a top AST node to include all tokens
-			assert children.size() == 1;
-			return children.get(0);
-		}
-		          
-		throw new UnknownAstNodeException(sort, constructor, children, leftToken, rightToken);
+		// TODO: Should top node with sort "<START>" get special treatment? Probably not...
+
+		return new SGLRAstNode(sort, constructor, leftToken, rightToken, children);
 	}
 	
 	/**
 	 * Create a new terminal AST node.
 	 */
-	public TNode createTerminal(String sort, String value, IToken leftToken,
+	public SGLRAstNode createTerminal(String sort, String value, IToken leftToken,
 			IToken rightToken) {
 		
-        throw new UnknownAstNodeException(sort, leftToken, rightToken);
+		return new StringSGLRAstNode(sort, value, leftToken, rightToken);
+	}
+	
+	/**
+	 * Create a new terminal AST node.
+	 */
+	public SGLRAstNode createTerminal(String sort, int value, IToken leftToken,
+			IToken rightToken) {
+		
+		return new IntSGLRAstNode(sort, value, leftToken, rightToken);
 	}
 	
 	
 	/**
 	 * Create a new AST node list. 
 	 */
-	public TNode createList(String elementSort, IToken leftToken, IToken rightToken, ArrayList<TNode> children) {
+	public SGLRAstNode createList(String elementSort, IToken leftToken, IToken rightToken, ArrayList<SGLRAstNode> children) {
+		// TODO: Specialized AST Node type for lists
+		
 		String sort = elementSort + "*";
 		return createNonTerminal(sort, SGLRAstNode.LIST_CONSTRUCTOR, leftToken, rightToken, children);
 	}

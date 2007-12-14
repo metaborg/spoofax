@@ -56,7 +56,7 @@ public class AsfixConverter {
 	
 	private final static int EXPECTED_NODE_CHILDREN = 5;
 	
-	private final SGLRAstNodeFactory<SGLRAstNode> factory;
+	private final SGLRAstNodeFactory factory = new SGLRAstNodeFactory();
 	
 	private final SGLRTokenizer tokenizer;
 	
@@ -68,8 +68,7 @@ public class AsfixConverter {
 	private boolean lexicalContext;
 	
 	@SuppressWarnings("unchecked") // TODO2: Expand/explode generic signatures?	
-    public AsfixConverter(SGLRAstNodeFactory factory, SGLRTokenKindManager tokenManager, SGLRTokenizer tokenizer) {
-		this.factory = factory;
+    public AsfixConverter(SGLRTokenKindManager tokenManager, SGLRTokenizer tokenizer) {
 		this.tokenManager = tokenManager;
 		this.tokenizer = tokenizer;
 	}
@@ -157,6 +156,9 @@ public class AsfixConverter {
 	}
 
 	private SGLRAstNode createTerminal(ATermList lhs, ATermAppl rhs) {
+		// TODO: Also create int terminals
+		// TODO2: Optimize - don't construct a token's string value until it is used
+		
 		lexicalContext = false;
 		IToken token = tokenizer.makeToken(offset, tokenManager.getTokenKind(lhs, rhs), true);
 		String sort = getSort(rhs);
@@ -167,17 +169,6 @@ public class AsfixConverter {
 		
 		return factory.createTerminal(sort, token);
 	}
-
-	/* UNDONE: createVarTerminal()
-	private SGLRAstNode createVarTerminal(ATermAppl rhs) {
-		IToken token = tokenizer.makeToken(offset, SGLRParsersym.TK_VAR, true);
-		String sort = getSort(rhs);
-		
-		Debug.log("Creating node ", sort, " from ", SGLRTokenizer.dumpToString(token));
-		
-		return factory.createTerminal(getSort(rhs), token);
-	}
-	*/
 
 	/** Implode a context-free node. */
 	private SGLRAstNode createNonTerminal(String sort, String constructor, IToken prevToken,

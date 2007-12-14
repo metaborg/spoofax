@@ -5,16 +5,13 @@ imports
   libstratego-xtc // TODO2: XTC detox?
   libjava-front
   sdf-options
-  options
   
   EditorService
-  
-  io
-  debug
   
   parser/-
   project/-
   services/-
+  util/-
 
 overlays
 
@@ -43,16 +40,14 @@ strategies
     
     sdf2rtg;
     read-from => RTG(_, ProdRules(rtg));
+
     <init-ast-form-heuristic> rtg;
-    <rtg-to-ast-classes> rtg;
-    
-    create-colorer-descriptor;
     
     <rtg-to-outliner> rtg;
     <rtg-to-folding> rtg;
     
-    create-ast-factory;
-    create-ast-visitor;
+    create-colorer-descriptor;
+    
     create-parse-controller;
     create-build-properties;
     create-project-file;

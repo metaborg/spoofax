@@ -15,7 +15,6 @@ import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.SGLRAstNode;
 import org.strategoxt.imp.runtime.parser.ast.SGLRAstNodeFactory;
 import org.strategoxt.imp.runtime.parser.ast.AsfixConverter;
-import org.strategoxt.imp.runtime.parser.ast.UnknownAstNodeException;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRParsersym;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenKindManager;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
@@ -56,7 +55,7 @@ public class SGLRParser implements IParser {
 		this.startSymbol = startSymbol;
 
 		tokenizer = new SGLRTokenizer();		
-		converter = new AsfixConverter(tokenFactory, tokenManager, tokenizer);
+		converter = new AsfixConverter(tokenManager, tokenizer);
 		parser = Environment.createSGLR(parseTable);
 	}
 	
@@ -65,7 +64,7 @@ public class SGLRParser implements IParser {
 	 * 
 	 * @return  The abstract syntax tree.
 	 */
-	public SGLRAstNode parse(char[] input, String filename) throws SGLRException, IOException, UnknownAstNodeException {
+	public SGLRAstNode parse(char[] input, String filename) throws SGLRException, IOException {
 		Debug.startTimer();
 
 		// Read stream using tokenizer/lexstream

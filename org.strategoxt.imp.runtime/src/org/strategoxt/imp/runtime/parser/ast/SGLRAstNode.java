@@ -12,10 +12,8 @@ import lpg.runtime.IToken;
  *
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
-public abstract class SGLRAstNode<TAstNode extends SGLRAstNode>
-		implements IAst, Iterable<TAstNode> {
-
-	// Unique objects (circumvent interning)
+public class SGLRAstNode implements IAst, Iterable<SGLRAstNode> {
+	// Globally unique objects (circumvent interning)
 	
 	/** The constructor name for lists. */
 	public static final String LIST_CONSTRUCTOR = new String("[]");
@@ -23,7 +21,11 @@ public abstract class SGLRAstNode<TAstNode extends SGLRAstNode>
 	/** The sort name for strings. */
 	public static final String STRING_SORT = new String("<string>");
 	
-	private final ArrayList<TAstNode> children;
+	static final ArrayList<SGLRAstNode> EMPTY_LIST = new ArrayList<SGLRAstNode>(0);
+	
+	private final ArrayList<SGLRAstNode> children;
+	
+	private final String constructor, sort;
 	
 	private IToken leftToken, rightToken;
 	
@@ -34,11 +36,19 @@ public abstract class SGLRAstNode<TAstNode extends SGLRAstNode>
 	/**
 	 * Returns the constructor name of this node, or null if not applicable. 
 	 */
-	public abstract String getConstructor();
+	public String getConstructor() {
+		return constructor;
+	}
 	
-	public abstract String getSort();
+	public String getSort() {
+		return sort;
+	}
 	
-	public ArrayList<TAstNode> getChildren() { // must expose impl. type for interface 
+	// must expose impl. type for interface
+	// using a bounded type to give it read-only semantics
+	public final ArrayList<? extends SGLRAstNode> getChildren() {
+		assert EMPTY_LIST.size() == 0;
+		
 		return children;
 	}
 
@@ -75,28 +85,27 @@ public abstract class SGLRAstNode<TAstNode extends SGLRAstNode>
 	/**
 	 * Create a new AST node and set it to be the parent node of its children.
 	 */
-	protected SGLRAstNode(IToken leftToken, IToken rightToken, ArrayList<TAstNode> children) {
+	public SGLRAstNode(String sort, String constructor, IToken leftToken, IToken rightToken,
+			ArrayList<SGLRAstNode> children) {
+		
 		assert leftToken != null;
 		assert rightToken != null;
 		assert children != null;
 		
+		this.constructor = constructor;
+		this.sort = sort;
 		this.leftToken = leftToken;
 		this.rightToken = rightToken;
 		this.children = children;
 		
-		for (TAstNode node : children)
+		for (SGLRAstNode node : children)
 			node.setParent(this);
-	}
-	
-	protected SGLRAstNode(IToken leftToken, IToken rightToken) {
-		// Construct an empty list (unfortunately needs to be a concrete ArrayList type)
-		this(leftToken, rightToken, new ArrayList<TAstNode>(0));
 	}
 	
 	// General access
 	
-	public Iterator<TAstNode> iterator() {
-		return getChildren().iterator();
+	public Iterator<SGLRAstNode> iterator() {
+		return children.iterator();
 	}
 
     @Override
@@ -129,6 +138,26 @@ public abstract class SGLRAstNode<TAstNode extends SGLRAstNode>
     	return getATerm().hashCode();
     }
     */
+    
+    // Visitor support
+    
+    public void accept(AbstractVisitor visitor) {
+    	if (visitor.preVisit(this)) {
+    		enter(visitor);
+    		visitor.postVisit(this);
+    	}
+    }
+    
+    protected void enter(AbstractVisitor visitor) {
+    	if (visitor.visit(this)) {
+    		int size = children.size();
+    		
+    		for (int i = 0; i < size; i++)
+    			visitor.visit(children.get(i));
+    	}
+    	
+    	visitor.endVisit(this);
+    }
 	
 	// LPG legacy/compatibility
 	
@@ -138,7 +167,7 @@ public abstract class SGLRAstNode<TAstNode extends SGLRAstNode>
 	 * @deprecated  Unused; ATermAstNode does not include null children.
 	 */
 	@Deprecated
-	public ArrayList<TAstNode> getAllChildren() {
+	public ArrayList<? extends SGLRAstNode> getAllChildren() {
 		return getChildren();
 	}
 

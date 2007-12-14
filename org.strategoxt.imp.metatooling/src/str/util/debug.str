@@ -3,9 +3,10 @@
  *
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-module debug // dryad-compiler/lib-ext/debug
+module util/debug // dryad-compiler/lib-ext/debug
 
-imports libstratego-lib
+imports
+  libstratego-lib
 
 strategies
 

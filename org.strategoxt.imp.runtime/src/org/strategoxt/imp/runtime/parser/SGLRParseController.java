@@ -25,7 +25,6 @@ import org.spoofax.jsglr.BadTokenException;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.SGLRAstNode;
 import org.strategoxt.imp.runtime.parser.ast.SGLRAstNodeFactory;
-import org.strategoxt.imp.runtime.parser.ast.UnknownAstNodeException;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenKindManager;
 
 import aterm.ATermAppl;
@@ -91,7 +90,7 @@ public abstract class SGLRParseController implements IParseController {
     
     static {
     	// HACK: set always repainting in IMP using static field
-    	UniversalEditor.fAlwaysRepaint = true;
+    	UniversalEditor.fRepaintAll = true;
     }
     
     /**
@@ -131,8 +130,6 @@ public abstract class SGLRParseController implements IParseController {
 		} catch (TokenExpectedException x) {
 			reportParseError(x);
 		} catch (BadTokenException x) {
-			reportParseError(x);
-		} catch (UnknownAstNodeException x) {
 			reportParseError(x);
 		} catch (Exception x) {
 			// catches SGLRException; NotImplementedException; IOException
@@ -221,15 +218,6 @@ public abstract class SGLRParseController implements IParseController {
         	? exception.getShortMessage()
         	: "'" + token.toString() + "' not expected here";
 
-		parseErrors.add(new ParseError(message, token));
-	}
-	
-	private void reportParseError(UnknownAstNodeException exception) {
-		String message = "Internal parsing error (asfix implosion): " + exception.getMessage();
-		IToken left = exception.getLeftToken();
-		IToken right = exception.getRightToken();
-		IToken token = parser.getTokenizer().makeErrorToken(left, right);
-		
 		parseErrors.add(new ParseError(message, token));
 	}
 	
