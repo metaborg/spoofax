@@ -20,7 +20,7 @@ strategies
     visitmethods := <map(create-folding-method)>;
     x_Name       := <conc-strings> (<get-main-class-name>, "FoldingUpdater");
     
-    <output-java-file(not(ResetFiles))> |[
+    <output-java-file> |[
       package foldingUpdater;
     
       import parser.ast.*;

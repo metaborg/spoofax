@@ -16,7 +16,7 @@ strategies
     sdfmodule    := <get-sdf-main-module>;
     x_Name       := <conc-strings> (<get-main-class-name>, "Outliner");
     
-    <output-java-file(not(ResetFiles))> |[
+    <output-java-file> |[
       package outliner;
     
       import parser.ast.*;

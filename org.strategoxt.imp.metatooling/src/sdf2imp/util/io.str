@@ -10,20 +10,13 @@ imports
 strategies
   
   output-java-file =
-    output-java-file(fail)
-  
-  output-java-file(dontoverwrite) =
     where(
       ?class;
       path := <create-dirs> ["src" | <package-name>];
       fullpath := <conc-strings> (path, "/", <class-name> class, ".java")
     );
     
-    if not(dontoverwrite; <file-exists> fullpath) then
-      output-java-file(|fullpath)
-    else
-      verbose-msg(!"Skipping", !fullpath)
-    end
+    output-java-file(|fullpath)
   
   // TODO2: Add @Generated attribute to files
   // import javax.annotation.Generated;
@@ -47,13 +40,24 @@ strategies
     
     output-text-file(|pathparts, filename)
 
-  output-descriptor-file(|pathparts, filename) =
+  output-default-descriptor-file =
     risky(
+      ?Module(name, _ ,_);
       pp-descriptor-to-string
     | "Illegal editor service descriptor output"
     );
     
-    output-text-file(|pathparts, filename)
+    where(
+      filename := <add-extension> (name, "esv");
+      path     := <create-dirs> ["services"];
+      fullpath := <conc-strings> (path, "/", filename)
+    );
+    
+    if ResetFiles + not(<file-exists> fullpath) then
+      output-text-file(|[], filename)
+    else
+      verbose-msg(!"Skipping", !fullpath)
+    end
   
   output-text-file(|pathparts, filename) =
     print-filename(|pathparts, filename);

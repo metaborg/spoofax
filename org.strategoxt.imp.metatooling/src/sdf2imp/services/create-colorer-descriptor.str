@@ -8,7 +8,7 @@ imports
 strategies
 
   create-colorer-descriptor =
-    <output-descriptor-file(|["services"], "Colorer.esv")> |[
+    <output-default-descriptor-file> |[
       module Colorer
       
       colorer
