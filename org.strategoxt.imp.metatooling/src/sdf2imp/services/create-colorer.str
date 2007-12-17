@@ -7,6 +7,8 @@ imports
 
 strategies
 
+  // TODO: Read colorer descriptor
+
   create-colorer =
     x_Name  := <conc-strings> (<get-main-class-name>, "TokenColorer");
     pkgname := <get-package-name(|["tokenColorer"])>;

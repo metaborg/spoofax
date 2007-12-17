@@ -2,6 +2,7 @@ module sdf2imp/util/io
 
 imports
   libstratego-gpp
+  libstratego-sglr
   
   sdf2imp/lib/xml-doc2abox
 
@@ -71,6 +72,21 @@ strategies
     
     <fputs> (<id>, file);
     <fclose> file
+  
+  parse-table-descriptor =
+    CachedParseTableDescriptor
+  <+
+    table := <open-parse-table> <import-term(EditorService.tbl)>;
+    rules(CachedParseTableDescriptor := table)
+  
+  input-descriptor-file =
+  {| IsImported:
+    input-descriptor-file-no-imports
+    // TODO: include all imports
+  |}
+  
+  input-descriptor-file-no-imports =
+    parse-xtc-file-report-errors(|<parse-table-descriptor>, "Module")
   
   print-filename(|pathparts, filename) =
     if [] := pathparts then

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cd `dirname $0`
+
 if [ ! -d webdsl ]
 then mkdir webdsl
 fi

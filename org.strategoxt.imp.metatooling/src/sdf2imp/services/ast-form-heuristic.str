@@ -29,28 +29,24 @@ strategies
   <+
     fatal-err-msg(|"No legal start symbol specified.")
 
-  // TODO: More specific outline/folding heuristic?
+  // TODO: More specific heuristic for outline and folding?
   
-  heuristic-outline-and-folding-sorts =
+  heuristic-outline-and-folding-productions =
     StartSymbol;
     
-    heuristic-collect-all-rtg(
-      heuristic-is-outline-or-folding-production
-    );
-    
-    map(heuristic-asfix-sort-name);
-    make-set
-  
-  heuristic-is-outline-or-folding-production =
-    where(
+    memo(heuristic-collect-all-rtg({
       not(is-list-production);
       
-      // TODO: Don't just match with identifier at head (requires adapted visitor)
-      heuristic-child-sorts;
-      ?[heuristic-sort-is-identifier | <id>];
+      where(
+        heuristic-child-sorts;
+        one(heuristic-sort-is-identifier => reason1);      
+        one(heuristic-sort-is-unvisited-list => reason2)
+      );
       
-      one(heuristic-sort-is-unvisited-list)
-    )
+      verbose-msg(!"Heur. match:", heuristic-asfix-sort-name, constructor-name);
+      verbose-msg(!"  because:  ", !reason1);
+      verbose-msg(!"  and:      ", !reason2)
+    }))
   
   heuristic-register-production =
     try(
@@ -96,8 +92,7 @@ strategies
       }
     );
     
-    flatten-list;
-    make-set
+    flatten-list
   |}
   
   heuristic-collect-all-visit-sort(condition, rec) =
@@ -112,28 +107,71 @@ strategies
     
     try(![<condition> prod | <id>])
   
+   // TODO2: Cleanup
+  
   /**
    * Succeeds if by following recursively the current productions single child,
-   * at some point <condition> applies.
+   * at some point <condition> applies for one of the encountered productions.
    */
-  heuristic-follow-single-child-productions(condition) =
+  heuristic-follow-single-child-productions1(condition) =
   {| FollowVisited:
     rec rec({
-      if not(FollowVisited) then // avoid infinite looping
-        ?sort;
-        rules(FollowVisited: sort);
+      // Avoid infinite looping
+      not(FollowVisited) => sort; 
+      rules(FollowVisited: sort);
         
-        bagof-Productions;
-        where(
-          one(condition)
-        <+
-          one(
-            not(is-list-production);
-            heuristic-child-sorts;
-            [rec]
-          )
+      bagof-Productions;
+      (
+        getfirst(condition)
+      <+
+        getfirst(
+          heuristic-child-sorts => [<rec>]
         )
-      end
+      )
+    })
+  |}
+  
+  /**
+   * Succeeds if by following recursively the current productions single child,
+   * at some point <condition> applies for all of the encountered productions.
+   */
+  heuristic-follow-single-child-productions(condition) =
+  {| FollowVisited, FollowSuccess:
+    rec rec({
+      // Avoid infinite looping
+      not(FollowVisited) => sort; 
+      rules(FollowVisited: sort);
+        
+      bagof-Productions;
+      not([]);
+      
+      /* UNDONE: debugging
+      {| FollowVisited: where(
+      getfirst(
+        condition
+      <+
+        heuristic-child-sorts;
+        ?[<rec>]
+      )) |};
+      
+      verbose-msg(!"--");
+      */
+      map({
+        //risky(
+        //verbose-msg(!" ", is-list-production; !1, is-unvisited-list-production; !1, id);
+      
+        FollowSuccess
+      <+
+        condition
+      <+
+        ?prod;
+        
+         heuristic-child-sorts => [<rec>];
+          
+         rules(FollowSuccess: prod)
+        //| "Hey what's this then?")
+      });
+      Hd
     })
   |}
 
@@ -168,8 +206,19 @@ strategies
     , [Appl(_, _)]
     )
   
+  constructor-name =
+    ?ProdRule(
+      _
+    , [Appl(Term(Plain(<id>)), _)]
+    )
+  
+  // TODO: Don't match the webdsl "if"
+  //       is-identifier should be more strict,
+  //       so that it matches identifiers and lists of identifiers
+  //       for _all_ productions
+  
   heuristic-sort-is-identifier =
-    heuristic-follow-single-child-productions(is-string-production)
+    heuristic-follow-single-child-productions1(is-string-production)
   
   heuristic-sort-is-unvisited-list =
     heuristic-follow-single-child-productions(is-unvisited-list-production)
@@ -192,5 +241,10 @@ strategies
   is-unvisited-list-production =
     ProdRule(
       id
-    , [Appl(is-list-term, [not(FollowVisited + CollectAllVisited)])]
+    , [Appl(ConsTerm(), [not(Ref(Nonterm(Plain(FollowVisited)))), id])]
+    )
+  <+ // TODO: Cleanup
+    ProdRule(
+      id
+    , [Appl(is-list-term; not(ConsTerm()), id)]
     )

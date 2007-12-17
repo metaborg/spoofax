@@ -7,4 +7,17 @@ imports
   
 strategies
 
-  create-folding-descriptor = id // TODO
+  create-folding-descriptor =
+    heuristic-outline-and-folding-productions;
+    map(create-folding-rule);
+    
+    <output-default-descriptor-file> |[
+      module Folding
+      
+      folding
+        ~*<id>
+    ]|
+  
+  create-folding-rule:
+    ProdRule(_, _) ->
+    |[ <heuristic-asfix-sort-name>.<constructor-name> ]|

@@ -7,6 +7,11 @@ imports
 
 strategies
 
+  // TODO: Read outliner descriptor
+  
+  create-outliner = id
+
+  /* UNDONE: Direct output of Java file
   rtg-to-outliner =
     heuristic-outline-and-folding-sorts;
     sorts-to-outliner
@@ -61,3 +66,4 @@ strategies
         }
       }
     ]|
+  */

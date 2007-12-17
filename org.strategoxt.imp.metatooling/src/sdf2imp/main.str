@@ -38,15 +38,19 @@ strategies
   
     create-or-copy-parse-table;
     
+    verbose-msg(!"Analyzing grammar...");
     sdf2rtg;
     read-from => RTG(_, ProdRules(rtg));
 
     <init-ast-form-heuristic> rtg;
     
-    <rtg-to-outliner> rtg;
-    <rtg-to-folding> rtg;
-    
+    create-folding-descriptor;
+    create-outliner-descriptor;    
     create-colorer-descriptor;
+    
+    create-folding;
+    create-outliner;
+    create-colorer;
     
     create-parse-controller;
     create-build-properties;

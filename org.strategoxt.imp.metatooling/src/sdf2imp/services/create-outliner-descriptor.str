@@ -7,4 +7,17 @@ imports
 
 strategies
 
-  create-outliner-descriptor = id // TODO
+  create-outliner-descriptor =
+    heuristic-outline-and-folding-productions;
+    map(create-outliner-rule);
+    
+    <output-default-descriptor-file> |[
+      module Outliner
+      
+      outliner
+        ~*<id>
+    ]|
+  
+  create-outliner-rule:
+    ProdRule(_, _) ->
+    |[ <heuristic-asfix-sort-name>.<constructor-name> ]|

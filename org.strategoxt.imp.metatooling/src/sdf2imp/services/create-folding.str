@@ -12,6 +12,11 @@ overlays
 
 strategies
 
+  // TODO: Read folding descriptor
+
+  create-folding = id
+
+  /* UNDONE: Direct output of Java file
   rtg-to-folding =
     heuristic-outline-and-folding-sorts;
     sorts-to-folding
@@ -63,3 +68,4 @@ strategies
         return true;
       }
     ]|
+  */

@@ -12,6 +12,8 @@ SDFS     = $(wildcard src/syntax/*.sdf)
 
 CTREES   = # TODO: src/sdf2imp.ctree
 
+SYNTAX   = src/syntax/EditorService.tbl src/syntax/EditorService.pp.af src/syntax/EditorService.str src/syntax/Stratego-Java-EditorService.tbl
+
 STRCFLAGS = \
 	-la stratego-xtc \
     -la stratego-lib \
@@ -37,13 +39,15 @@ STRINCLUDES = \
 
 all : sdf2imp syntax eclipse-deps
 
-check : tests/EditorServices.runtestsuite
+check : tests/EditorServices.runtestsuite \
+        tests/test-stratego-java.runsh \
+        # tests/test-webdsl.runsh # unfair dependencies
 
-sdf2imp : $(STRS) syntax Makefile
+sdf2imp : $(STRS) $(SYNTAX) Makefile
 	strc -i src/sdf2imp.str -o $@ $(STRINCLUDES) $(STRCFLAGS) -m main-sdf2imp $(STRCSTFU)
 	rm sdf2imp.c sdf2imp.lo sdf2imp.o
 
-syntax : src/syntax/EditorService.tbl src/syntax/EditorService.pp.af src/syntax/EditorService.str src/syntax/Stratego-Java-EditorService.tbl
+syntax : $(SYNTAX)
 
 eclipse-deps : $(CTREES)
 
@@ -74,6 +78,9 @@ clean :
 
 %.runtestsuite : %.testsuite
 	parse-unit --no-heuristic-filters -i $< -p src/syntax/EditorService.tbl
+
+%.runsh : %.sh
+	sh $<
 
 src/syntax/EditorService.def : src/syntax/EditorService.sdf $(SDFS)
 	pack-sdf -i $< -o $@ -I src/syntax

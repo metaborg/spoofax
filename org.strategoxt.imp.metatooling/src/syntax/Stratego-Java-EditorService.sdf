@@ -15,11 +15,23 @@ exports
   
   context-free syntax
     %% (Anti-)quotations
+    "descriptor" "|[" Module "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
+    
     "|[" Module "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
+    
+    "descriptor" "|[" OutlineRule "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
+    "descriptor" "|[" ColorRule "]|"   -> Term[[StrategoHost]] {cons("ToMetaExpr")}
+    "descriptor" "|[" FoldingRule "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr"), avoid}
+    
+    "|[" OutlineRule "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
+    "|[" ColorRule "]|"   -> Term[[StrategoHost]] {cons("ToMetaExpr")}
+    "|[" FoldingRule "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr"), avoid}
 
     QuotedTerm -> Id {cons("FromMetaExpr")}
     
-    QuotedTerms -> RuleId* {cons("FromMetaExpr")}
+    QuotedTerms -> OutlineRule* {cons("FromMetaExpr")}
+    QuotedTerms -> ColorRule*   {cons("FromMetaExpr")}
+    QuotedTerms -> FoldingRule* {cons("FromMetaExpr")}
 
     "~"  Term[[StrategoHost]] -> QuotedTerm  {bracket}
     "~*" Term[[StrategoHost]] -> QuotedTerms {bracket}
