@@ -23,4 +23,4 @@ exports
   	
     "module" ModuleName Imports Section* -> Module {cons("Module")}
     "imports" { ModuleName "," }+        -> Imports {cons("Imports")}
-    Undefined*                           -> Imports {cons("Imports")}
+                                         -> Imports {cons("NoImports")}

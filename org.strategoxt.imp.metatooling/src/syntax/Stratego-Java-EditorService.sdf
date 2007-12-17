@@ -17,17 +17,19 @@ exports
     %% (Anti-)quotations
     "descriptor" "|[" Module "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
     
-    "|[" Module "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
+                 "|[" Module "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
     
     "descriptor" "|[" OutlineRule "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
-    "descriptor" "|[" ColorRule "]|"   -> Term[[StrategoHost]] {cons("ToMetaExpr")}
+    "descriptor" "|[" ColorRule   "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
     "descriptor" "|[" FoldingRule "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr"), avoid}
     
-    "|[" OutlineRule "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
-    "|[" ColorRule "]|"   -> Term[[StrategoHost]] {cons("ToMetaExpr")}
-    "|[" FoldingRule "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr"), avoid}
+                 "|[" OutlineRule "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
+                 "|[" ColorRule   "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
+                 "|[" FoldingRule "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr"), avoid}
 
-    QuotedTerm -> Id {cons("FromMetaExpr")}
+    QuotedTerm -> Id {cons("FromMetaExpr"), avoid}
+    QuotedTerm -> Color {cons("FromMetaExpr")}
+    QuotedTerm -> Font  {cons("FromMetaExpr")}
     
     QuotedTerms -> OutlineRule* {cons("FromMetaExpr")}
     QuotedTerms -> ColorRule*   {cons("FromMetaExpr")}

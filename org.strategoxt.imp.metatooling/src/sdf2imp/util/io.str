@@ -8,6 +8,50 @@ imports
 
   sdf2imp/util/pp
 
+/** File input. */
+strategies
+  
+  /**
+   * Given its filename (no extension), parse a service descriptor, including its imports.
+   */
+  input-descriptor-file =
+  {| IsImported:    
+    <add-imports> Module("", Imports([<id>]), []) // placeholder module importing the real module
+  |}
+  
+  /**
+   * Given its filename (no extension), parse a service descriptor, excluding its imports.
+   */
+  input-descriptor-file-no-imports =
+    ?name;
+    !FILE(<add-extension> (<id>, "esv"));
+    
+    parse-xtc-file-report-errors(|<parse-table-descriptor>, "Module");
+    
+    risky(?Module(name, _, _) |"Module name does not match file name")
+  
+  /** @internal */
+  add-imports:
+    Module(name, Imports(imports), definitions) -> Module(name, NoImports(), definitions')
+    where rules(IsImported: name);
+          
+          !imports;
+          map(
+            risky(
+              IsImported
+            <+
+              input-descriptor-file-no-imports;
+              add-imports => Module(_, _, <id>)
+            | "Unable to import module"
+            )
+          );
+          
+          definitions' := <conc> (definitions, <concat>)
+
+  add-imports:
+    Module(_, NoImports(), _) -> <id>
+
+/** File output. */
 strategies
   
   output-java-file =
@@ -78,15 +122,6 @@ strategies
   <+
     table := <open-parse-table> <import-term(EditorService.tbl)>;
     rules(CachedParseTableDescriptor := table)
-  
-  input-descriptor-file =
-  {| IsImported:
-    input-descriptor-file-no-imports
-    // TODO: include all imports
-  |}
-  
-  input-descriptor-file-no-imports =
-    parse-xtc-file-report-errors(|<parse-table-descriptor>, "Module")
   
   print-filename(|pathparts, filename) =
     if [] := pathparts then
