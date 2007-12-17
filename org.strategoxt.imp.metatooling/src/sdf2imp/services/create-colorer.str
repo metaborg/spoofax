@@ -8,10 +8,46 @@ imports
 strategies
 
   // TODO: Read colorer descriptor
+  read-colorer =
+    <input-descriptor-file> "Colorer";
+    
+    collect-all(?Colorer(<id>));
+    concat
+  
+  descriptor-rule-to-java:
+    Rule(condition, color, bgcolor, font) ->
+    |[ if (e_Condition) return x_Style; ]|
+    where x_Style     := <newname> "style";
+          e_Condition := <condition-to-java> condition;
+          e_Color     := <color-to-java> color;
+          e_BGColor   := <color-to-java> bgcolor;
+          e_Font      := <font-to-java> font;
+          
+          rules(
+            TokenStyles :+= |[
+              TextAttribute x_Style =
+                new TextAttribute(e_Color, e_BGColor, e_Font);
+            ]|
+          )
+  
+  condition-to-java: // TODO: sort/c'tor conditions
+    Token(x) ->
+    |[ tokenKind == x_Name ]|
+    where x_Name := <write-to-string> x
+  
+  color-to-java = id // TODO
+  
+  font-to-java = id // TODO
 
   create-colorer =
     x_Name  := <conc-strings> (<get-main-class-name>, "TokenColorer");
     pkgname := <get-package-name(|["tokenColorer"])>;
+    
+    {| TokenStyles:
+      read-colorer;
+      ifs   := <map(risky(descriptor-rule-to-java |"Rule not supported"))>;
+      decls := <bagof-TokenStyles>
+    |};
     
     <output-java-file> |[
       package pkgname;
@@ -29,33 +65,16 @@ strategies
       import lpg.runtime.IToken;
       
       public class x_Name extends TokenColorerBase implements ITokenColorer {
-      
-        TextAttribute commentAttribute, keywordAttribute, stringAttribute,
-            numberAttribute, doubleAttribute, identifierAttribute,
-            operatorAttribute, varAttribute;
+        ~*decls
       
         public TextAttribute getColoring(IParseController controller, IToken token) {
-          switch (token.getKind()) {      
-            case TK_LAYOUT:
-              return commentAttribute;
-            case TK_KEYWORD:
-              return keywordAttribute;
-            case TK_IDENTIFIER:
-              return identifierAttribute;
-            case TK_STRING:
-              return stringAttribute;
-            case TK_NUMBER:
-              return numberAttribute;
-            case TK_VAR:
-              return varAttribute;
-            case TK_OPERATOR:
-              return operatorAttribute;
+          ~*ifs
       
-            default:
-              return super.getColoring(controller, token);
-          }
+          // Default:
+          return super.getColoring(controller, token);
         }
-      
+        
+        /*
         public x_Name() {
           Display display = Display.getDefault();
           commentAttribute = new TextAttribute(
@@ -75,6 +94,6 @@ strategies
           varAttribute = new TextAttribute(display
               .getSystemColor(SWT.COLOR_MAGENTA), null, SWT.BOLD);
         }
-      
+        */      
       }
   ]|
