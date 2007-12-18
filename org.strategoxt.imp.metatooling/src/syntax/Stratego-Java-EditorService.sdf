@@ -16,18 +16,27 @@ exports
   lexical syntax
     ~[\n\r]* -> CommentLine
 
-  %% FIXME: JSGLR doesn't accept this atm
-  %%
-  %% lexical restrictions
-  %%   CommentLine -/- [\/].[\/]
-  %%   CommentLine -/- [\/].[\*]
+  lexical restrictions
+  
+    CommentLine -/- ~[\n\r]
+  
+    %% FIXME: JSGLR doesn't accept this atm
+    %%
+    %% CommentLine -/- [\/].[\/]
+    %% CommentLine -/- [\/].[\*]
   
   context-free syntax
-    %% Comments
+    %% Printed comments
     "~//" CommentLine -> Section {cons("CommentLine")}
     "~//" CommentLine -> ColorRule {cons("CommentLine"), prefer}
     "~//" CommentLine -> OutlineRule {cons("CommentLine"), prefer}
     "~//" CommentLine -> FoldingRule {cons("CommentLine"), prefer}
+    
+    %% Printed empty lines
+    "~\n" -> Section {cons("EmptyLine"), avoid}
+    "~\n" -> ColorRule {cons("EmptyLine")}
+    "~\n" -> OutlineRule {cons("EmptyLine")}
+    "~\n" -> FoldingRule {cons("EmptyLine")}
     
     %% TODO2: ~ construct to add empty lines?
   

@@ -15,8 +15,8 @@ imports
 
 overlays
 
-  tname_ASTNODE    = tname |[ org.strategoxt.imp.runtime.parser.ast.SGLRAstNode ]|
-  tname_ASTFACTORY = tname |[ org.strategoxt.imp.runtime.parser.ast.SGLRAstNodeFactory ]|
+  tname_ASTNODE    = tname |[ org.strategoxt.imp.runtime.parser.ast.AstNode ]|
+  tname_VISITOR    = tname |[ org.strategoxt.imp.runtime.parser.ast.AbstractVisitor ]|
   tname_ITOKEN     = tname |[ lpg.runtime.IToken ]|
 
 strategies

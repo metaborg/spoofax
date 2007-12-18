@@ -8,6 +8,13 @@ imports
 
 strategies
 
+  read-outliner =
+    <input-descriptor-file> "Outliner";
+    
+    collect-all(?Outliner(<id>));
+    
+    concat
+
   // TODO: Read outliner descriptor
   
   create-outliner = id

@@ -30,15 +30,16 @@ exports
     %% FIXME: JSGLR doesn't accept this atm
     %%
     %% LAYOUT? -/- [\/].[\/]
-    %% LAYOUT?  -/- [\/].[\*]
+    %% LAYOUT? -/- [\/].[\*]
+    LAYOUT? -/- [\/]
 
   context-free syntax
   
     Id     -> Sort {cons("Sort")}
     Id "*" -> Sort {cons("ListSort")}
     
-    "." Id -> Constructor {cons("Constructor")}
+    "*" "." Id -> Constructor {cons("Constructor")}
     
     Sort        -> RuleId
     Constructor -> RuleId
-    Sort "." Id -> RuleId {cons("SortAndConstructor")}
+    Id "." Id   -> RuleId {cons("SortAndConstructor")}

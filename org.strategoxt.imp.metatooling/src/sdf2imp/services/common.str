@@ -11,6 +11,8 @@ signature constructors
 
 strategies
 
+  // TODO: General strategy for reading all esv files
+
   // TODO2: Optimize - add string length check to conditions
   
   condition-to-java:

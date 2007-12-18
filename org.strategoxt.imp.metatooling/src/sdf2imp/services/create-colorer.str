@@ -8,7 +8,6 @@ imports
 
 strategies
 
-  // TODO: Read colorer descriptor
   read-colorer =
     <input-descriptor-file> "Colorer";
     
@@ -100,7 +99,7 @@ strategies
           // TODO2: Optimize - color selection loop
           do {
             String sort = node == null ? null : node.getSort();
-            String constructor = node == null ? null :node.getConstructor();
+            String constructor = node == null ? null : node.getConstructor();
             
             ~*ifs
             
@@ -123,10 +122,12 @@ strategies
           
           if (fg == null || bg == null) {
             return new TextAttribute(
-              fg == null ? slave.getForeGround() : fg,
-              bg == null ? slave.getBackground : bg,
+              fg == null ? slave.getForeground() : fg,
+              bg == null ? slave.getBackground() : bg,
               master.getStyle()
             );
+          } else {
+            return master;
           }
         }        
       }

@@ -13,23 +13,26 @@ overlays
 
 strategies
 
-  // TODO: Read folding descriptor
-
-  create-folding = id
-
-  /* UNDONE: Direct output of Java file
-  rtg-to-folding =
-    heuristic-outline-and-folding-sorts;
-    sorts-to-folding
+  read-folding =
+    <input-descriptor-file> "Folding";
+    
+    collect-all(?Folding(<id>));
+    
+    concat
   
-  sorts-to-folding =
-    visitmethods := <map(create-folding-method)>;
-    x_Name       := <conc-strings> (<get-main-class-name>, "FoldingUpdater");
+  folding-rule-to-java:
+    condition ->
+    |[ if (e_Condition) { helper.makeCompleteAnnotation(node); return true; } ]|
+    where
+      e_Condition := <condition-to-java>
+
+  create-folding =
+    read-folding;
+    ifs    := <map(folding-rule-to-java)>;
+    x_Name := <conc-strings> (<get-main-class-name>, "FoldingUpdater");
     
     <output-java-file> |[
       package foldingUpdater;
-    
-      import parser.ast.*;
       
       public class x_Name extends tname_FOLDINGBASE {
         private lpg.runtime.IPrsStream prsStream;
@@ -41,18 +44,25 @@ strategies
         }
           
         // Visitor inner class
-        private class FoldingVisitor extends AbstractVisitor {
-          public void unimplementedVisitor(java.lang.String s) {
-            // Could be used for debugging purposes.
+        private class FoldingVisitor extends tname_VISITOR {
+          public boolean visit(tname_ASTNODE node) {
+            String constructor = node.getConstructor();
+            String sort = node.getSort();
+            
+            ~*ifs
+            
+            return true;
           }
-      
-          ~*visitmethods
+          
+          public void endVisit(tname_ASTNODE node) {
+            // Nothing to see here; move along.
+          }
         };
 
         public void sendVisitorToAST(java.util.HashMap newAnnotations, java.util.List annotations, java.lang.Object ast) {
-          ASTNode theAST = (ASTNode) ast;
+          tname_ASTNODE theAST = (tname_ASTNODE) ast;
           prsStream = theAST.getLeftIToken().getPrsStream();
-          AbstractVisitor abstractVisitor = new FoldingVisitor();
+          tname_VISITOR abstractVisitor = new FoldingVisitor();
           
           helper = new tname_FOLDINGHELPER(this, prsStream);
           
@@ -60,13 +70,3 @@ strategies
         }
       }
     ]|
-  
-  create-folding-method:
-    x_Type ->
-    class-body-dec |[
-      public boolean visit(x_Type n) {
-        helper.makeCompleteAnnotation(n);
-        return true;
-      }
-    ]|
-  */
