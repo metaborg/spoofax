@@ -14,64 +14,47 @@ strategies
     collect-all(?Outliner(<id>));
     
     concat
-
-  // TODO: Read outliner descriptor
   
-  create-outliner = id
-
-  /* UNDONE: Direct output of Java file
-  rtg-to-outliner =
-    heuristic-outline-and-folding-sorts;
-    sorts-to-outliner
+  outliner-rule-to-java:
+    condition ->
+    |[ if (e_Condition) { outline(node); return true; } ]|
+    where
+      e_Condition := <condition-to-java>
   
-  sorts-to-outliner =
-    visitmethods := <mapconcat(create-outline-methods)>;
-    sdfmodule    := <get-sdf-main-module>;
-    x_Name       := <conc-strings> (<get-main-class-name>, "Outliner");
+  create-outliner =
+    outliner  := <read-outliner>;
+    visits    := <map(risky(outliner-rule-to-java |"Rule not supported"))> outliner;
+    sdfmodule := <get-sdf-main-module>;
+    x_Name    := <conc-strings> (<get-main-class-name>, "Outliner");
     
     <output-java-file> |[
       package outliner;
-    
-      import parser.ast.*;
       
-      public class x_Name extends org.eclipse.imp.services.base.OutlinerBase {
+      public class x_Name extends tname_OUTLINERBASE {
       
-        private final class OutlineVisitor extends AbstractVisitor {
+        private class OutlineVisitor extends tname_VISITOR {
+          /* UNDONE: Generic top item
           public OutlineVisitor() {
             pushTopItem("~sdfmodule" + " program", null);
           }
+          */
           
-          public void unimplementedVisitor(java.lang.String n) {
-            // Could be used for debugging purposes.
+          public boolean visit(tname_ASTNODE node) {
+            String constructor = node.getConstructor();
+            String sort = node.getSort();
+            
+            ~*visits
+            
+            return true;
           }
-        
-          ~*visitmethods
-        }
-  
-        protected void sendVisitorToAST(Object node) {
-          ASTNode root = (ASTNode) node;
-          root.accept(new OutlineVisitor());
-        }
-      }
-    ]|
-  
-  create-outline-methods:
-    x_Type ->
-    class-body-dec* |[
-      public boolean visit(x_Type n) {
-        if (n.getChildren().size() > 0) {
-          Object descriptor = n.getChildren().get(0);
           
-          java.lang.String text = descriptor.toString();
-          pushSubItem(text, n);
+          public void endVisit(tname_ASTNODE node) {
+            endOutline(node);
+          }
         }
-        return true;
-      }
-      
-      public void endVisit(x_Type n) {
-        if (n.getChildren().size() > 0) {
-          popSubItem();
+  
+        protected void sendVisitorToAST(tname_ASTNODE node) {
+          node.accept(new OutlineVisitor());
         }
       }
     ]|
-  */

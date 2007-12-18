@@ -64,9 +64,9 @@ strategies
     pkgname := <get-package-name(|["tokenColorer"])>;
     
     {| TokenStyles:
-      read-colorer;
-      ifs   := <map(risky(descriptor-rule-to-java |"Rule not supported"))>;
-      decls := <bagof-TokenStyles>
+      colorer := <read-colorer>;
+      ifs     := <map(risky(descriptor-rule-to-java |"Rule not supported"))> colorer;
+      decls   := <bagof-TokenStyles>
     |};
     
     <output-java-file> |[

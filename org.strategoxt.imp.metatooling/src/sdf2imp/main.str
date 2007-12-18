@@ -15,9 +15,10 @@ imports
 
 overlays
 
-  tname_ASTNODE    = tname |[ org.strategoxt.imp.runtime.parser.ast.AstNode ]|
-  tname_VISITOR    = tname |[ org.strategoxt.imp.runtime.parser.ast.AbstractVisitor ]|
-  tname_ITOKEN     = tname |[ lpg.runtime.IToken ]|
+  tname_ASTNODE      = tname |[ org.strategoxt.imp.runtime.parser.ast.AstNode ]|
+  tname_VISITOR      = tname |[ org.strategoxt.imp.runtime.parser.ast.AbstractVisitor ]|
+  tname_OUTLINERBASE = tname |[ org.strategoxt.imp.runtime.services.OutlinerBase ]|
+  tname_ITOKEN       = tname |[ lpg.runtime.IToken ]|
 
 strategies
 

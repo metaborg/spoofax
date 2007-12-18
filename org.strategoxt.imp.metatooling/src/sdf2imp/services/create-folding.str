@@ -27,9 +27,9 @@ strategies
       e_Condition := <condition-to-java>
 
   create-folding =
-    read-folding;
-    ifs    := <map(folding-rule-to-java)>;
-    x_Name := <conc-strings> (<get-main-class-name>, "FoldingUpdater");
+    folding := <read-folding>;
+    ifs     := <map(risky(folding-rule-to-java |"Rule not supported"))> folding;
+    x_Name  := <conc-strings> (<get-main-class-name>, "FoldingUpdater");
     
     <output-java-file> |[
       package foldingUpdater;
@@ -38,10 +38,6 @@ strategies
         private lpg.runtime.IPrsStream prsStream;
           
         private tname_FOLDINGHELPER helper;
-      
-        public void makeAnnotationWithOffsets(int first_offset, int last_offset) {
-          super.makeAnnotation(first_offset, last_offset - first_offset + 1);
-        }
           
         // Visitor inner class
         private class FoldingVisitor extends tname_VISITOR {
@@ -58,6 +54,8 @@ strategies
             // Nothing to see here; move along.
           }
         };
+
+        // TODO: Move helper method to super
 
         public void sendVisitorToAST(java.util.HashMap newAnnotations, java.util.List annotations, java.lang.Object ast) {
           tname_ASTNODE theAST = (tname_ASTNODE) ast;

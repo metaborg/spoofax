@@ -8,7 +8,7 @@ import org.eclipse.imp.services.base.FolderBase;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRParsersym;
 
-// TODO: FoldingHelper should not be in the "parser" plugin (nor should this package be exported)
+// TODO: FoldingHelper should be the superclass of the folding component 
 
 public class FoldingHelper {
 	private final FolderBase folder;
