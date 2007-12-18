@@ -35,14 +35,25 @@ public abstract class OutlinerBase extends org.eclipse.imp.services.base.Outline
 	protected void outline(AstNode node) {
 		int index = getIdentifierIndex(node);
 		if (index != -1) {
-			pushSubItem(node.getChildren().get(0).getLeftIToken().toString(), node);
-			outlineStack.push(node);
+			outline(node, node.getChildren().get(0).getLeftIToken().toString());
 		}
+	}
+	
+	protected void outline(AstNode node, String caption) {
+		if (outlineStack.isEmpty()) {
+			pushTopItem(caption, node);
+		} else {
+			pushSubItem(caption, node);
+		}
+		
+		outlineStack.push(node);
 	}
 	
 	protected void endOutline(AstNode node) {
 		if (outlineStack.peek() == node) {
-			popSubItem();
+			if (outlineStack.size() > 1) // don't pop top items
+				popSubItem();
+			
 			outlineStack.pop();
 		}
 	}

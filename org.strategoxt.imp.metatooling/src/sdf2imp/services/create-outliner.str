@@ -33,12 +33,6 @@ strategies
       public class x_Name extends tname_OUTLINERBASE {
       
         private class OutlineVisitor extends tname_VISITOR {
-          /* UNDONE: Generic top item
-          public OutlineVisitor() {
-            pushTopItem("~sdfmodule" + " program", null);
-          }
-          */
-          
           public boolean visit(tname_ASTNODE node) {
             String constructor = node.getConstructor();
             String sort = node.getSort();
