@@ -13,6 +13,10 @@ strategies
     
     <output-default-descriptor-file> |[
       module Folding
+        
+      // TODO2: Explain folding syntax
+        
+      ~// Foldings go here.
       
       folding
         ~*<id>

@@ -15,7 +15,7 @@ strategies
    * Given its filename (no extension), parse a service descriptor, including its imports.
    */
   input-descriptor-file =
-  {| IsImported:    
+  {| IsImported:
     <add-imports> Module("", Imports([<id>]), []) // placeholder module importing the real module
   |}
   

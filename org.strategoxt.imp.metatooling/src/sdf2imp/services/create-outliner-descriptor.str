@@ -4,6 +4,7 @@ imports
   libstratego-lib
   
   sdf2imp/util/-
+  sdf2imp/services/common
 
 strategies
 
@@ -14,6 +15,10 @@ strategies
     <output-default-descriptor-file> |[
       module Outliner
       
+      // TODO: Explain outline syntax
+        
+      ~// Outline goes here.
+     
       outliner
         ~*<id>
     ]|

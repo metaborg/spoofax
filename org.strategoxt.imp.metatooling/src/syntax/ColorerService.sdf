@@ -6,7 +6,7 @@ imports
 exports
 
   sorts
-    Section ColorRule Font Color ColorName ColorRuleId TokenKind TokenKindName
+    Section ColorRule Font Color MaybeColor NoColor ColorName ColorRuleId TokenKind TokenKindName
 
   context-free syntax
 	"colorer" ColorRule* -> Section {cons("Colorer")}
@@ -14,7 +14,11 @@ exports
 	"colorer" -> RuleId {reject}
 
   context-free syntax
-    ColorRuleId ":" Color Color? Font -> ColorRule {cons("Rule")}
+    "all" ColorRuleId ":" Color MaybeColor Font -> ColorRule {cons("RuleAll")} %% one rule to rule them all
+          ColorRuleId ":" Color MaybeColor Font -> ColorRule {cons("Rule")}
+
+    "all" ColorRuleId ":" NoColor NoColor Font -> ColorRule {cons("RuleAll")}
+          ColorRuleId ":" NoColor NoColor Font -> ColorRule {cons("Rule")}
     
     RuleId        -> ColorRuleId
     TokenKindName -> ColorRuleId {cons("Token"), prefer}
@@ -28,12 +32,20 @@ exports
     "junk"       "token" -> TokenKindName {cons("TK_JUNK")}
     "unknown"    "token" -> TokenKindName {cons("TK_UNKNOWN")}
     
-             -> Font {cons("NORMAL")}
-    "bold"   -> Font {cons("BOLD")}
-    "italic" -> Font {cons("ITALIC")}
-  
+              -> Font {cons("NORMAL")}
+    "bold"    -> Font {cons("BOLD")}
+    "italic"  -> Font {cons("ITALIC")}
+
+    %% TODO: Default "font" attribute? (would need disambiguation and merging support)
+    %%
+    %% "default" -> Font {cons("NORMAL")}
+    
+    "default"   -> Color {cons("ColorDefault")}
     ColorName   -> Color {cons("ColorName")}
     Int Int Int -> Color {cons("ColorRGB")}
+                -> NoColor {cons("ColorDefault")}
+    Color       -> MaybeColor
+    NoColor     -> MaybeColor
   
     "red"            -> ColorName {cons("RED")}
     "dark" "red"     -> ColorName {cons("DARK_RED")}

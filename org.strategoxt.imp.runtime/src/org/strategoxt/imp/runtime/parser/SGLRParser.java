@@ -13,7 +13,6 @@ import org.spoofax.jsglr.SGLRException;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
-import org.strategoxt.imp.runtime.parser.ast.AstNodeFactory;
 import org.strategoxt.imp.runtime.parser.ast.AsfixConverter;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRParsersym;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenKindManager;
@@ -51,7 +50,7 @@ public class SGLRParser implements IParser {
 	
 	// Initialization and parsing
 	
-	public SGLRParser(AstNodeFactory tokenFactory, SGLRTokenKindManager tokenManager, ParseTable parseTable, String startSymbol) {	
+	public SGLRParser(SGLRTokenKindManager tokenManager, ParseTable parseTable, String startSymbol) {	
 		this.startSymbol = startSymbol;
 
 		tokenizer = new SGLRTokenizer();		

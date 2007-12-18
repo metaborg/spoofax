@@ -24,7 +24,6 @@ import org.spoofax.jsglr.TokenExpectedException;
 import org.spoofax.jsglr.BadTokenException;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
-import org.strategoxt.imp.runtime.parser.ast.AstNodeFactory;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenKindManager;
 
 import aterm.ATermAppl;
@@ -98,10 +97,10 @@ public abstract class SGLRParseController implements IParseController {
      * 
      * @param startSymbol	The start symbol of this grammar, or null.
      */
-    public SGLRParseController(AstNodeFactory nodeFactory, SGLRTokenKindManager tokenManager, ParseTable parseTable, String startSymbol) {
+    public SGLRParseController(SGLRTokenKindManager tokenManager, ParseTable parseTable, String startSymbol) {
     	this.tokenManager = tokenManager;
     	
-    	parser = new SGLRParser(nodeFactory, tokenManager, parseTable, startSymbol);
+    	parser = new SGLRParser(tokenManager, parseTable, startSymbol);
     	lexer = new SGLRLexer(parser.getTokenizer().getLexStream());
     }
     
@@ -110,10 +109,10 @@ public abstract class SGLRParseController implements IParseController {
      * 
      * @param startSymbol	The start symbol of this grammar, or null.
      */
-    protected SGLRParseController(AstNodeFactory nodeFactory, SGLRTokenKindManager tokenManager, InputStream parseTable, String startSymbol)
+    protected SGLRParseController(SGLRTokenKindManager tokenManager, InputStream parseTable, String startSymbol)
     		throws IOException, InvalidParseTableException {
     	
-    	this(nodeFactory, tokenManager, Environment.loadParseTable(parseTable), startSymbol);
+    	this(tokenManager, Environment.loadParseTable(parseTable), startSymbol);
 	}
 
 	public void initialize(IPath path, ISourceProject project, IMessageHandler messages) {

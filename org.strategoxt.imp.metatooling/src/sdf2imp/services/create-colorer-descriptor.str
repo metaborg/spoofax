@@ -12,6 +12,10 @@ strategies
       module Colorer
       
       colorer
+        
+        // TODO2: Explain colorer syntax
+        
+        ~// Colors go here.
       
         TK_LAYOUT:     96 96 0      italic
         TK_KEYWORD:    dark magenta

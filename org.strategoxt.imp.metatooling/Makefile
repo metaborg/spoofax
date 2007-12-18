@@ -40,6 +40,7 @@ STRINCLUDES = \
 all : sdf2imp syntax eclipse-deps
 
 check : tests/EditorService.runtestsuite \
+        tests/test-editor-descriptor.runsh \
         tests/test-stratego-java.runsh \
         # tests/test-webdsl.runsh # unfair dependencies
 

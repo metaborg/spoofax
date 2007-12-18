@@ -24,3 +24,6 @@ exports
     "module" ModuleName Imports Section* -> Module {cons("Module")}
     "imports" { ModuleName "," }+        -> Imports {cons("Imports")}
                                          -> Imports {cons("NoImports")}
+
+    %% TODO: Consider including other grammar meta-data here, e.g., SDF main module, extensions
+    

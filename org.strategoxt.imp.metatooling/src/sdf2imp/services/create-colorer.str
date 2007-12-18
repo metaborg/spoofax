@@ -4,6 +4,7 @@ imports
   libstratego-lib
   
   sdf2imp/util/-
+  sdf2imp/services/common
 
 strategies
 
@@ -12,32 +13,52 @@ strategies
     <input-descriptor-file> "Colorer";
     
     collect-all(?Colorer(<id>));
+    
     concat
   
+  // "all" rules override any existing coloring style
+  descriptor-rule-to-java:
+    RuleAll(condition, color, bgcolor, font) ->
+    |[ if (e_Condition) result = mergeStyles(x_Style, result); ]|
+    where
+      e_Condition := <condition-to-java> condition;
+      x_Style     := <create-style(|color, bgcolor, font)>
+  
+  // regular rules just set a new coloring style if none applicable yet
   descriptor-rule-to-java:
     Rule(condition, color, bgcolor, font) ->
-    |[ if (e_Condition) return x_Style; ]|
-    where x_Style     := <newname> "style";
-          e_Condition := <condition-to-java> condition;
-          e_Color     := <color-to-java> color;
-          e_BGColor   := <color-to-java> bgcolor;
-          e_Font      := <font-to-java> font;
-          
-          rules(
-            TokenStyles :+= |[
-              TextAttribute x_Style =
-                new TextAttribute(e_Color, e_BGColor, e_Font);
-            ]|
-          )
+    |[ if (result == null && e_Condition) result = x_Style; ]|
+    where
+      e_Condition := <condition-to-java> condition;
+      x_Style := <create-style(|color, bgcolor, font)>
+
+  create-style(|color, bgcolor, font) =
+    e_Color     := <color-to-java> color;
+    e_BGColor   := <color-to-java> bgcolor;
+    e_Font      := <font-to-java> font;
+    x_Style     := <newname> "style";
+    
+    rules(
+      TokenStyles :+= |[
+        private TextAttribute x_Style =
+          new TextAttribute(e_Color, e_BGColor, e_Font);
+      ]|
+    )
   
-  condition-to-java: // TODO: sort/c'tor conditions
-    Token(x) ->
-    |[ tokenKind == x_Name ]|
+  color-to-java:
+    ColorName(x) -> |[ display.getSystemColor(SWT.x_Name) ]|
+    where
+      x_Name := <conc-strings> ("COLOR_", <write-to-string> x)
+  
+  color-to-java:
+    ColorDefault() -> |[ null ]|
+    
+  color-to-java:
+    ColorRGB(r,g,b) -> |[ new Color(display, ~i:r, ~i:g, ~i:b) ]|
+  
+  font-to-java:
+    x -> |[ SWT.x_Name ]|
     where x_Name := <write-to-string> x
-  
-  color-to-java = id // TODO
-  
-  font-to-java = id // TODO
 
   create-colorer =
     x_Name  := <conc-strings> (<get-main-class-name>, "TokenColorer");
@@ -60,40 +81,53 @@ strategies
       import org.eclipse.swt.widgets.Display;
       import org.eclipse.swt.graphics.Color;
       
+      import org.strategoxt.imp.runtime.parser.ast.AstNode;
+      import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
       import static org.strategoxt.imp.runtime.parser.tokens.SGLRParsersym.*;
       
       import lpg.runtime.IToken;
       
       public class x_Name extends TokenColorerBase implements ITokenColorer {
+        private Display display = Display.getDefault();
+        
         ~*decls
       
         public TextAttribute getColoring(IParseController controller, IToken token) {
-          ~*ifs
-      
-          // Default:
+          TextAttribute result = null;
+          AstNode node = ((SGLRToken) token).getAstNode();
+          int tokenKind = token.getKind();
+          
+          // TODO2: Optimize - color selection loop
+          do {
+            String sort = node == null ? null : node.getSort();
+            String constructor = node == null ? null :node.getConstructor();
+            
+            ~*ifs
+            
+            if (node != null) node = node.getParent();
+            
+          } while (node != null);
+          
+          if (result != null) return result;
+
           return super.getColoring(controller, token);
         }
         
-        /*
-        public x_Name() {
-          Display display = Display.getDefault();
-          commentAttribute = new TextAttribute(
-              new Color(display, 0x60, 0x60, 0), null, SWT.ITALIC);
-          stringAttribute = new TextAttribute(display
-              .getSystemColor(SWT.COLOR_BLUE), null, SWT.NORMAL);
-          identifierAttribute = new TextAttribute(display
-              .getSystemColor(SWT.COLOR_BLACK), null, SWT.NORMAL);
-          doubleAttribute = new TextAttribute(display
-              .getSystemColor(SWT.COLOR_DARK_GREEN), null, SWT.NORMAL);
-          numberAttribute = new TextAttribute(display
-              .getSystemColor(SWT.COLOR_DARK_GREEN), null, SWT.NORMAL);
-          keywordAttribute = new TextAttribute(display
-              .getSystemColor(SWT.COLOR_DARK_MAGENTA), null, SWT.BOLD);
-          operatorAttribute = new TextAttribute(
-              new Color(display, 0, 0xA0, 0x70), null, SWT.NORMAL);
-          varAttribute = new TextAttribute(display
-              .getSystemColor(SWT.COLOR_MAGENTA), null, SWT.BOLD);
-        }
-        */      
+        // TODO: Allow overriding of colors and text attributes?
+        private TextAttribute mergeStyles(TextAttribute master, TextAttribute slave) {
+          if (slave == null)
+            return master;
+          
+          Color fg = master.getForeground();
+          Color bg = master.getBackground();
+          
+          if (fg == null || bg == null) {
+            return new TextAttribute(
+              fg == null ? slave.getForeGround() : fg,
+              bg == null ? slave.getBackground : bg,
+              master.getStyle()
+            );
+          }
+        }        
       }
   ]|

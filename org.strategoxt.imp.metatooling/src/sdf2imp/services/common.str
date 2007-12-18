@@ -1,0 +1,27 @@
+module sdf2imp/services/common
+
+imports
+  libstratego-lib
+  
+  sdf2imp/util/-
+
+signature constructors
+
+  CommentLine : String -> Term
+
+strategies
+
+  // TODO2: Optimize - add string length check to conditions
+  
+  condition-to-java:
+    Token(x) -> |[ tokenKind == x_Name ]|
+    where x_Name := <write-to-string> x
+  
+  condition-to-java:
+    Constructor(x) -> |[ "~x".equals(constructor) ]|
+  
+  condition-to-java:
+    Sort(x) -> |[ "~x".equals(sort) ]|
+  
+  condition-to-java:
+    SortAndConstructor(x, y) -> |[ "~y".equals(constructor) && "~x".equals(sort) ]|

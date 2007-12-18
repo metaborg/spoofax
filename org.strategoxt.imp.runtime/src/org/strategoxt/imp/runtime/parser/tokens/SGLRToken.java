@@ -12,16 +12,16 @@ import lpg.runtime.Token;
  */
 public class SGLRToken extends Token {
 	private AstNode astNode;
-    
-    public AstNode getAstNode() {
-    	return astNode;
-    }
-    
-    public void setAstNode(AstNode value) {
-    	astNode = value;
-    }
-	
-    public SGLRToken(IPrsStream parseStream, int startOffset, int endOffset, int kind) {    	
-        super(parseStream, startOffset, endOffset, kind);
-    }
+
+	public AstNode getAstNode() {
+		return astNode;
+	}
+
+	public void setAstNode(AstNode value) {
+		astNode = value;
+	}
+
+	public SGLRToken(IPrsStream parseStream, int startOffset, int endOffset, int kind) {
+		super(parseStream, startOffset, endOffset, kind);
+	}
 }

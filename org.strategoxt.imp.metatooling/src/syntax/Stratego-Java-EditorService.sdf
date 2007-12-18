@@ -13,7 +13,24 @@ exports
     QuotedTerm
     QuotedTerms
   
+  lexical syntax
+    ~[\n\r]* -> CommentLine
+
+  %% FIXME: JSGLR doesn't accept this atm
+  %%
+  %% lexical restrictions
+  %%   CommentLine -/- [\/].[\/]
+  %%   CommentLine -/- [\/].[\*]
+  
   context-free syntax
+    %% Comments
+    "~//" CommentLine -> Section {cons("CommentLine")}
+    "~//" CommentLine -> ColorRule {cons("CommentLine"), prefer}
+    "~//" CommentLine -> OutlineRule {cons("CommentLine"), prefer}
+    "~//" CommentLine -> FoldingRule {cons("CommentLine"), prefer}
+    
+    %% TODO2: ~ construct to add empty lines?
+  
     %% (Anti-)quotations
     "descriptor" "|[" Module "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
     
