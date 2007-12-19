@@ -80,6 +80,9 @@ public abstract class OutlinerBase extends org.eclipse.imp.services.base.Outline
 		while (node.getChildren().size() == 1)
 			node = node.getChildren().get(0);
 		
-		return node.getChildren().size() == 0 && node.getLeftIToken().getKind() == SGLRParsersym.TK_IDENTIFIER;
+		int kind = node.getLeftIToken().getKind();
+		
+		return (kind == SGLRParsersym.TK_IDENTIFIER || kind == SGLRParsersym.TK_STRING)
+				&& node.getChildren().size() == 0;
 	}
 }

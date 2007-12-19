@@ -8,6 +8,8 @@ package org.strategoxt.imp.runtime.parser.tokens;
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
 public class SGLRParsersym {	
+	// TODO: This should be an enum, now that we have a separate SGLRToken class
+	
 	/** Token kind for a generic identifier. */
 	public static final int
 		TK_IDENTIFIER = -1;
