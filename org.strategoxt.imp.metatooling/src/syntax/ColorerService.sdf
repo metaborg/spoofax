@@ -25,6 +25,7 @@ exports
     
     "identifier" "token" -> TokenKindName {cons("TK_IDENTIFIER")}
     "number"     "token" -> TokenKindName {cons("TK_NUMBER")}
+    "layout"     "token" -> TokenKindName {cons("TK_LAYOUT")}
     "string"     "token" -> TokenKindName {cons("TK_STRING")}
     "keyword"    "token" -> TokenKindName {cons("TK_KEYWORD")}
     "operator"   "token" -> TokenKindName {cons("TK_OPERATOR")}
