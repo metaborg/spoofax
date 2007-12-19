@@ -20,6 +20,7 @@ import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.parser.ParseError;
 import org.spoofax.jsglr.InvalidParseTableException;
 import org.spoofax.jsglr.ParseTable;
+import org.spoofax.jsglr.SGLR;
 import org.spoofax.jsglr.TokenExpectedException;
 import org.spoofax.jsglr.BadTokenException;
 import org.strategoxt.imp.runtime.Environment;
@@ -90,6 +91,8 @@ public abstract class SGLRParseController implements IParseController {
     static {
     	// HACK: set always repainting in IMP using static field
     	UniversalEditor.fRepaintAll = true;
+    	
+    	SGLR.setWorkAroundMultipleLookahead(true);
     }
     
     /**

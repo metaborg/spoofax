@@ -31,11 +31,13 @@ strategies
         ~// Default, token-based highlighting.
         ~
       
-        layout token     : 96 96 0      italic
         keyword token    : dark magenta
         identifier token : black
         string token     : blue
         number token     : dark green
         var token        : 160 112 0    italic
-        operator token   : 96 96 96     italic
+        operator token   : 96 96 96
+        ~
+        ~// comments
+        layout token     : 96 96 0      italic
     ]|
