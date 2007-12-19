@@ -108,9 +108,9 @@ public class AstNode implements IAst, Iterable<AstNode> {
 
 	private void setReferences(IToken leftToken, IToken rightToken, ArrayList<AstNode> children) {
 		IPrsStream parseStream = leftToken.getPrsStream();
-		int length = rightToken.getTokenIndex();
+		int end = rightToken.getTokenIndex();
 		
-		for (int i = leftToken.getTokenIndex(); i < length; i++) {
+		for (int i = leftToken.getTokenIndex(); i <= end; i++) {
 			SGLRToken token = (SGLRToken) parseStream.getTokenAt(i);
 			if (token.getAstNode() == null) token.setAstNode(this);
 		}

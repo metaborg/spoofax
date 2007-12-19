@@ -132,7 +132,6 @@ public class AsfixConverter {
 	}
 
 	private ArrayList<AstNode> implodeChildNodes(ATermList contents, boolean tokensOnly) {
-		
 		ArrayList<AstNode> result = tokensOnly
 				? null
 				: new ArrayList<AstNode>(

@@ -35,7 +35,7 @@ public abstract class OutlinerBase extends org.eclipse.imp.services.base.Outline
 	protected void outline(AstNode node) {
 		int index = getIdentifierIndex(node);
 		if (index != -1) {
-			outline(node, node.getChildren().get(0).getLeftIToken().toString());
+			outline(node, node.getChildren().get(index).getLeftIToken().toString());
 		} else {
 			System.err.println(
 				"Unable to infer the caption of this AST node: " +
