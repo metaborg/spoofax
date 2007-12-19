@@ -1,3 +1,9 @@
+/**
+ * sdf2imp concrete outliner service generator.
+ *
+ *
+ * @author Lennart Kats <lennart add lclnet.nl>
+ */
 module sdf2imp/services/create-outliner
 
 imports

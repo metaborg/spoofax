@@ -40,8 +40,10 @@ exports
 
     Sort "." "_" -> Sort {bracket}
     
+    %% HACK: GPP needs different constructor names for these
+    
     "_" "." Id -> Constructor {cons("Constructor")}
-    Id         -> ConstructorId {cons("Constructor")}
+            Id -> ConstructorId {cons("ConstructorId")}
     
     Sort                   -> RuleId
     Constructor            -> RuleId

@@ -1,3 +1,9 @@
+/**
+ * sdf2imp concrete token colorer generator.
+ *
+ *
+ * @author Lennart Kats <lennart add lclnet.nl>
+ */
 module sdf2imp/services/create-colorer
 
 imports
@@ -86,6 +92,7 @@ strategies
       
       import lpg.runtime.IToken;
       
+      @SuppressWarnings("unused")
       public class x_Name extends TokenColorerBase implements ITokenColorer {
         private Display display = Display.getDefault();
         

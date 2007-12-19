@@ -41,6 +41,7 @@
    Sort                 -- _1,
    ListSort             -- _1 KW["*"],
    Constructor          -- H hs=0 [ KW["_"] KW["."] _1 ],
+   ConstructorId        -- _1,
    SortAndConstructor   -- H hs=0 [ _1 KW["."] _2 ],
    Module               -- V is=2 [ H [ KW["module"] _1 ] _2 _3 ],
    Module.3:iter-star   -- _1,
