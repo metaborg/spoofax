@@ -24,15 +24,23 @@ strategies
   // "all" rules override any existing coloring style
   descriptor-rule-to-java:
     RuleAll(condition, color, bgcolor, font) ->
-    |[ if (e_Condition) result = mergeStyles(x_Style, result); ]|
+    |[ if (e_Condition) return mergeStyles(x_Style, result); ]|
     where
       e_Condition := <condition-to-java> condition;
       x_Style     := <create-style(|color, bgcolor, font)>
   
-  // regular rules just set a new coloring style if none applicable yet
+  // constructor/sort rules override token rules
   descriptor-rule-to-java:
-    Rule(condition, color, bgcolor, font) ->
-    |[ if (result == null && e_Condition) result = x_Style; ]|
+    Rule(condition @ <not(?Token(_))>, color, bgcolor, font) ->
+    |[ if (!otherThanTokenSet && e_Condition) { otherThanTokenSet = true; result = x_Style; continue; } ]|
+    where
+      e_Condition := <condition-to-java> condition;
+      x_Style := <create-style(|color, bgcolor, font)>
+  
+  // token rules don't get to override anything
+  descriptor-rule-to-java:
+    Rule(condition @ Token(_), color, bgcolor, font) ->
+    |[ if (result == null && e_Condition) { result = x_Style; continue; } ]|
     where
       e_Condition := <condition-to-java> condition;
       x_Style := <create-style(|color, bgcolor, font)>
@@ -102,6 +110,8 @@ strategies
           TextAttribute result = null;
           AstNode node = ((SGLRToken) token).getAstNode();
           int tokenKind = token.getKind();
+          
+          boolean otherThanTokenSet = false;
           
           // TODO2: Optimize - color selection loop
           do {
