@@ -45,10 +45,7 @@ public class AstNodeFactory {
 	 * Create a new AST node list. 
 	 */
 	public AstNode createList(String elementSort, IToken leftToken, IToken rightToken, ArrayList<AstNode> children) {
-		// TODO: Specialized AST Node type for lists
-		
-		String sort = elementSort + "*";
-		return createNonTerminal(sort, AstNode.LIST_CONSTRUCTOR, leftToken, rightToken, children);
+		return new ListAstNode(elementSort, leftToken, rightToken, children);
 	}
 	
 	// Bridge method

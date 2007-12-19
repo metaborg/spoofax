@@ -94,12 +94,14 @@ strategies
     
     where(
       filename := <add-extension> (name, "esv");
-      path     := <create-dirs> ["services"];
+      // TODO: services should be in 'services' subdir? (needs reading from dirs support)
+      // path  := <create-dirs> ["services"];
+      path     := ".";
       fullpath := <conc-strings> (path, "/", filename)
     );
     
     if ResetFiles + not(<file-exists> fullpath) then
-      output-text-file(|[], filename)
+      output-text-file(|path, filename)
     else
       verbose-msg(!"Skipping", !fullpath)
     end

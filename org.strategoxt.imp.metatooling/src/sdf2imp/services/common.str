@@ -29,7 +29,15 @@ strategies
     Sort(sort) -> |[ "~sort'".equals(sort) ]|
     where sort' := <parameterized-sort-to-asfix-sort> sort
   
+  condition-to-java:
+    ListSort(sort) -> |["~sort'".equals(sort) ]|
+    where sort' := <conc-strings> (<parameterized-sort-to-asfix-sort> sort, "*")
+  
   parameterized-sort-to-asfix-sort = parameterized-sort-to-rtg-sort
   
   condition-to-java:
-    SortAndConstructor(x, y) -> |[ "~y".equals(constructor) && "~x".equals(sort) ]|
+    descriptor |[ ~sort.~constructor ]| ->
+    java       |[ "~constructor".equals(constructor) && "~sort".equals(sort) ]|
+  
+  condition-to-java:
+    descriptor |[ _.~sort ]| -> |[ "~sort".equals(sort) ]|

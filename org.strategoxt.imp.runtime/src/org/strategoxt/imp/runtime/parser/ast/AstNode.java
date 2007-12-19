@@ -16,14 +16,12 @@ import lpg.runtime.IToken;
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
 public class AstNode implements IAst, Iterable<AstNode> {
-	// Globally unique objects (circumvent interning)
-	
-	/** The constructor name for lists. */
-	public static final String LIST_CONSTRUCTOR = new String("[]");
+	// Globally unique object (circumvent interning)
 
 	/** The sort name for strings. */
 	public static final String STRING_SORT = new String("<string>");
-	
+
+	// TODO2: Read-only array list
 	static final ArrayList<AstNode> EMPTY_LIST = new ArrayList<AstNode>(0);
 	
 	private final ArrayList<AstNode> children;
@@ -45,6 +43,10 @@ public class AstNode implements IAst, Iterable<AstNode> {
 	
 	public String getSort() {
 		return sort;
+	}
+	
+	public boolean isList() {
+		return false;
 	}
 	
 	// must expose impl. type for interface

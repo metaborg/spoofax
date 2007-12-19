@@ -3,7 +3,7 @@ module Common
 exports
 
   sorts
-    Id Int String CommentChar RuleId Sort Constructor
+    Id Int String CommentChar RuleId Sort Constructor ConstructorId
 
   lexical syntax
   
@@ -37,9 +37,12 @@ exports
   
     Id     -> Sort {cons("Sort")}
     Id "*" -> Sort {cons("ListSort")}
+
+    Sort "." "_" -> Sort {bracket}
     
-    "*" "." Id -> Constructor {cons("Constructor")}
+    "_" "." Id -> Constructor {cons("Constructor")}
+    Id         -> ConstructorId {cons("Constructor")}
     
-    Sort        -> RuleId
-    Constructor -> RuleId
-    Id "." Id   -> RuleId {cons("SortAndConstructor")}
+    Sort                   -> RuleId
+    Constructor            -> RuleId
+    Sort "." ConstructorId -> RuleId {cons("SortAndConstructor")}

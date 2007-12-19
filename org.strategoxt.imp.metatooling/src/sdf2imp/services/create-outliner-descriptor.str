@@ -11,7 +11,7 @@ strategies
 
   create-outliner-descriptor =
     heuristic-outliner-productions;
-    map(create-outliner-rule);
+    map(create-folding-or-outliner-rule);
     
     <output-default-descriptor-file> |[
       module Outliner
@@ -40,7 +40,3 @@ strategies
       verbose-msg(!"  because:     ", !reason1);
       verbose-msg(!"  and:         ", !reason2)
     })
-  
-  create-outliner-rule:
-    ProdRule(_, _) ->
-    |[ <heuristic-asfix-sort-name>.<constructor-name> ]|

@@ -32,7 +32,7 @@ exports
   
   context-free syntax
     
-    %% TODO2: ~// lines ignore spaces
+    %% TODO2: ~// comment lines don't include preceding whitespace
   
     %% Printed comments
     "~//" CommentLine -> Section {cons("CommentLine")}
@@ -70,6 +70,8 @@ exports
     "~"  Term[[StrategoHost]] -> QuotedTerm  {bracket}
     "~*" Term[[StrategoHost]] -> QuotedTerms {bracket}
 
+    "~sort:" Term[[StrategoHost]] -> Sort {cons("FromMetaExpr"), prefer}
+    
     %% Stratego applications as anti-quotation
     "<" Strategy[[StrategoHost]] ">" Term[[StrategoHost]] -> QuotedTerm {cons("App")}
     StrategyAngle[[StrategoHost]]                         -> QuotedTerm {cons("RootApp"), avoid}

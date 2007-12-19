@@ -10,7 +10,7 @@ strategies
 
   create-folding-descriptor =
     heuristic-folding-productions;
-    map(create-folding-rule);
+    map(create-folding-or-outliner-rule);
     
     <output-default-descriptor-file> |[
       module Folding
@@ -28,7 +28,6 @@ strategies
     
     heuristic-collect-all-rtg(
       // UNDONE: not(is-list-production);
-            
       where(
         heuristic-child-sorts;
         one(heuristic-sort-is-list)
@@ -41,8 +40,15 @@ strategies
       verbose-msg(!"Folding match:", heuristic-asfix-sort-name, constructor-name)
     )
   
-  create-folding-rule =
-    !descriptor |[ <heuristic-asfix-sort-name>.<constructor-name> ]|
-  <+
-    // or, if no constructor available:
-    !descriptor |[ <heuristic-asfix-sort-name> ]|
+  create-folding-or-outliner-rule =
+    where(sort := <heuristic-asfix-sort-name>);
+  
+    if is-list-production then
+      !descriptor |[ ~(sort)*.<constructor-name> ]|
+    <+
+      !descriptor |[ ~(sort)* ]|
+    else
+      !descriptor |[ ~sort.<constructor-name> ]|
+    <+
+      !descriptor |[ ~sort ]|
+    end
