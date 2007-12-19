@@ -22,7 +22,7 @@ strategies
     concat
   
   // "all" rules override any existing coloring style
-  descriptor-rule-to-java:
+  descriptor-rule-to-java-1:
     RuleAll(condition, color, bgcolor, font) ->
     |[ if (e_Condition) return mergeStyles(x_Style, result); ]|
     where
@@ -30,17 +30,19 @@ strategies
       x_Style     := <create-style(|color, bgcolor, font)>
   
   // constructor/sort rules override token rules
-  descriptor-rule-to-java:
+  descriptor-rule-to-java-2:
     Rule(condition @ <not(?Token(_))>, color, bgcolor, font) ->
     |[ if (!otherThanTokenSet && e_Condition) { otherThanTokenSet = true; result = mergeStyles(x_Style, result); continue; } ]|
     where
       e_Condition := <condition-to-java> condition;
       x_Style := <create-style(|color, bgcolor, font)>
   
+  // TODO2 - Optimize - token rules could use a switch
+  
   // token rules don't get to override anything
-  descriptor-rule-to-java:
+  descriptor-rule-to-java-3:
     Rule(condition @ Token(_), color, bgcolor, font) ->
-    |[ if (result == null && e_Condition) { result = x_Style; continue; } ]|
+    |[ if (e_Condition) result = x_Style; ]|
     where
       e_Condition := <condition-to-java> condition;
       x_Style := <create-style(|color, bgcolor, font)>
@@ -53,7 +55,7 @@ strategies
     
     rules(
       TokenStyles :+= |[
-        private TextAttribute x_Style =
+        private final TextAttribute x_Style =
           new TextAttribute(e_Color, e_BGColor, e_Font);
       ]|
     )
@@ -79,7 +81,9 @@ strategies
     
     {| TokenStyles:
       colorer := <read-colorer>;
-      ifs     := <map(risky(descriptor-rule-to-java |"Rule not supported"))> colorer;
+      ifs1    := <filter(descriptor-rule-to-java-1)> colorer;
+      ifs2    := <filter(descriptor-rule-to-java-2)> colorer;
+      ifs3    := <filter(descriptor-rule-to-java-3)> colorer;
       decls   := <bagof-TokenStyles>
     |};
     
@@ -111,6 +115,8 @@ strategies
           AstNode node = ((SGLRToken) token).getAstNode();
           int tokenKind = token.getKind();
           
+          ~*ifs3
+
           boolean otherThanTokenSet = false;
           
           // TODO2: Optimize - color selection loop
@@ -118,7 +124,8 @@ strategies
             String sort = node == null ? null : node.getSort();
             String constructor = node == null ? null : node.getConstructor();
             
-            ~*ifs
+            ~*ifs2
+            ~*ifs1
             
             otherThanTokenSet = result != null; // don't override the color from outer sorts
             
