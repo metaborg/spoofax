@@ -13,9 +13,23 @@ strategies
       
       colorer
         
-        // TODO2: Explain colorer syntax
-        
-        ~// Colors go here.
+        ~
+        ~// Example: sort-based highlighting with background color
+        ~//   Id: yellow green
+        ~
+        ~// Example: sort- and constructor-based highlighting
+        ~//   ClassBodyDec.MethodDec: yellow
+        ~
+        ~// Example: constructor-based highlighting
+        ~//   *.MethodDec: 255 0 0
+        ~
+        ~// Example: background colors for ToMetaExpr/FromMetaExpr, if supported by the grammar
+        ~//   all *.ToMetaExpr:   default 255 200 255
+        ~//   all *.FromMetaExpr: default white
+        ~
+        ~
+        ~// Default, token-based highlighting.
+        ~
       
         TK_LAYOUT:     96 96 0      italic
         TK_KEYWORD:    dark magenta

@@ -169,7 +169,7 @@ public class AstNode implements IAst, Iterable<AstNode> {
     		int size = children.size();
     		
     		for (int i = 0; i < size; i++)
-    			visitor.visit(children.get(i));
+    			children.get(i).accept(visitor);
     	}
     	
     	visitor.endVisit(this);

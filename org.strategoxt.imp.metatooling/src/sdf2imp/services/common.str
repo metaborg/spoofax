@@ -8,6 +8,7 @@ imports
 signature constructors
 
   CommentLine : String -> Term
+  EmptyLine   : Term
 
 strategies
 
@@ -22,8 +23,13 @@ strategies
   condition-to-java:
     Constructor(x) -> |[ "~x".equals(constructor) ]|
   
+  // TODO: Match list sorts based on EditorService grammar and RTG list sorts
+  
   condition-to-java:
-    Sort(x) -> |[ "~x".equals(sort) ]|
+    Sort(sort) -> |[ "~sort'".equals(sort) ]|
+    where sort' := <parameterized-sort-to-asfix-sort> sort
+  
+  parameterized-sort-to-asfix-sort = parameterized-sort-to-rtg-sort
   
   condition-to-java:
     SortAndConstructor(x, y) -> |[ "~y".equals(constructor) && "~x".equals(sort) ]|

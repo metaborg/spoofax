@@ -5,23 +5,41 @@ imports
   
   sdf2imp/util/-
   sdf2imp/services/common
+  sdf2imp/services/ast-form-heuristic
 
 strategies
 
   create-outliner-descriptor =
-    heuristic-outline-and-folding-productions;
+    heuristic-outliner-productions;
     map(create-outliner-rule);
     
     <output-default-descriptor-file> |[
       module Outliner
       
       // TODO: Explain outline syntax
-        
+      ~
       ~// Outline goes here.
-     
+      ~
       outliner
         ~*<id>
     ]|
+  
+  heuristic-outliner-productions =
+    StartSymbol;
+    
+    heuristic-collect-all-rtg({
+      not(is-list-production);
+      
+      where(
+        heuristic-child-sorts;
+        one(heuristic-sort-is-identifier => reason1);      
+        one(heuristic-sort-is-unvisited-list => reason2)
+      );
+      
+      verbose-msg(!"Outliner match:", heuristic-asfix-sort-name, constructor-name);
+      verbose-msg(!"  because:     ", !reason1);
+      verbose-msg(!"  and:         ", !reason2)
+    })
   
   create-outliner-rule:
     ProdRule(_, _) ->

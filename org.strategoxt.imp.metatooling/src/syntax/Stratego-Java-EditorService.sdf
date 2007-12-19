@@ -24,8 +24,16 @@ exports
     %%
     %% CommentLine -/- [\/].[\/]
     %% CommentLine -/- [\/].[\*]
+    CommentLine -/- [\/]
+
+  context-free restrictions
+    
+    "~//" -/- [\n\r]
   
   context-free syntax
+    
+    %% TODO2: ~// lines ignore spaces
+  
     %% Printed comments
     "~//" CommentLine -> Section {cons("CommentLine")}
     "~//" CommentLine -> ColorRule {cons("CommentLine"), prefer}
@@ -37,8 +45,6 @@ exports
     "~\n" -> ColorRule {cons("EmptyLine")}
     "~\n" -> OutlineRule {cons("EmptyLine")}
     "~\n" -> FoldingRule {cons("EmptyLine")}
-    
-    %% TODO2: ~ construct to add empty lines?
   
     %% (Anti-)quotations
     "descriptor" "|[" Module "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}

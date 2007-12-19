@@ -36,6 +36,11 @@ public abstract class OutlinerBase extends org.eclipse.imp.services.base.Outline
 		int index = getIdentifierIndex(node);
 		if (index != -1) {
 			outline(node, node.getChildren().get(0).getLeftIToken().toString());
+		} else {
+			System.err.println(
+				"Unable to infer the caption of this AST node: " +
+				node.getSort() + "." + node.getConstructor()
+			);
 		}
 	}
 	
@@ -50,7 +55,7 @@ public abstract class OutlinerBase extends org.eclipse.imp.services.base.Outline
 	}
 	
 	protected void endOutline(AstNode node) {
-		if (outlineStack.peek() == node) {
+		if (!outlineStack.isEmpty() && outlineStack.peek() == node) {
 			if (outlineStack.size() > 1) // don't pop top items
 				popSubItem();
 			

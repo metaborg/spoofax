@@ -4,11 +4,12 @@ imports
   libstratego-lib
   
   sdf2imp/util/-
+  sdf2imp/services/ast-form-heuristic
   
 strategies
 
   create-folding-descriptor =
-    heuristic-outline-and-folding-productions;
+    heuristic-folding-productions;
     map(create-folding-rule);
     
     <output-default-descriptor-file> |[
@@ -22,6 +23,26 @@ strategies
         ~*<id>
     ]|
   
-  create-folding-rule:
-    ProdRule(_, _) ->
-    |[ <heuristic-asfix-sort-name>.<constructor-name> ]|
+  heuristic-folding-productions =
+    StartSymbol;
+    
+    heuristic-collect-all-rtg(
+      // UNDONE: not(is-list-production);
+            
+      where(
+        heuristic-child-sorts;
+        one(heuristic-sort-is-list)
+      );
+      
+      where(
+        heuristic-production-has-no-same-sort-descendant
+      );
+      
+      verbose-msg(!"Folding match:", heuristic-asfix-sort-name, constructor-name)
+    )
+  
+  create-folding-rule =
+    !descriptor |[ <heuristic-asfix-sort-name>.<constructor-name> ]|
+  <+
+    // or, if no constructor available:
+    !descriptor |[ <heuristic-asfix-sort-name> ]|
