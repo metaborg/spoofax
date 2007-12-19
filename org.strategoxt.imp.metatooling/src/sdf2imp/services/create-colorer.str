@@ -32,7 +32,7 @@ strategies
   // constructor/sort rules override token rules
   descriptor-rule-to-java:
     Rule(condition @ <not(?Token(_))>, color, bgcolor, font) ->
-    |[ if (!otherThanTokenSet && e_Condition) { otherThanTokenSet = true; result = x_Style; continue; } ]|
+    |[ if (!otherThanTokenSet && e_Condition) { otherThanTokenSet = true; result = mergeStyles(x_Style, result); continue; } ]|
     where
       e_Condition := <condition-to-java> condition;
       x_Style := <create-style(|color, bgcolor, font)>
@@ -120,9 +120,9 @@ strategies
             
             ~*ifs
             
-            if (node != null) node = node.getParent();
+            otherThanTokenSet = result != null; // don't override the color from outer sorts
             
-          } while (node != null);
+          } while (node != null && (node = node.getParent()) != null);
           
           if (result != null) return result;
 

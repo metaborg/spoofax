@@ -35,9 +35,9 @@ strategies
         identifier token : black
         string token     : blue
         number token     : dark green
-        var token        : 160 112 0    italic
-        operator token   : 96 96 96
+        var token        : 255 0 100      italic
+        operator token   : 160 112 50
         ~
         ~// comments
-        layout token     : 96 96 0      italic
+        layout token     : 100 100 0      italic
     ]|
