@@ -23,21 +23,29 @@ strategies
   condition-to-java:
     Constructor(x) -> |[ "~x".equals(constructor) ]|
   
-  // TODO: Match list sorts based on EditorService grammar and RTG list sorts
-  
   condition-to-java:
     Sort(sort) -> |[ "~sort'".equals(sort) ]|
-    where sort' := <parameterized-sort-to-asfix-sort> sort
+    where sort' := <try-get-sort-name> sort
   
   condition-to-java:
     ListSort(sort) -> |["~sort'".equals(sort) ]|
-    where sort' := <conc-strings> (<parameterized-sort-to-asfix-sort> sort, "*")
+    where sort' := <conc-strings> (<try-get-sort-name> sort, "*")
   
   parameterized-sort-to-asfix-sort = parameterized-sort-to-rtg-sort
   
   condition-to-java:
     descriptor |[ ~sort.~constructor ]| ->
-    java       |[ "~constructor".equals(constructor) && "~sort".equals(sort) ]|
+    java       |[ "~constructor".equals(constructor) && "~sort'".equals(sort) ]|
+    where sort' := <try-get-sort-name> sort
   
   condition-to-java:
-    descriptor |[ _.~sort ]| -> |[ "~sort".equals(sort) ]|
+    descriptor |[ _.~sort ]| -> |[ "~sort'".equals(sort) ]|
+    where sort' := <try-get-sort-name> sort
+
+  // TODO2: Check if constructors actually exist
+
+  try-get-sort-name =
+    parameterized-sort-to-asfix-sort;
+    where(
+      risky(bagof-Productions |"Unknown sort referenced")
+    )
