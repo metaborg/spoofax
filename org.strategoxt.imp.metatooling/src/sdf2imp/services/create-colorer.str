@@ -32,7 +32,7 @@ strategies
   // constructor/sort rules override token rules
   descriptor-rule-to-java-2:
     Rule(condition @ <not(?Token(_))>, color, bgcolor, font) ->
-    |[ if (!otherThanTokenSet && e_Condition) { otherThanTokenSet = true; result = mergeStyles(x_Style, result); continue; } ]|
+    |[ if (!otherThanTokenSet && e_Condition) { otherThanTokenSet = true; result = mergeStyles(x_Style, result); break out; } ]|
     where
       e_Condition := <condition-to-java> condition;
       x_Style := <create-style(|color, bgcolor, font)>
@@ -42,7 +42,7 @@ strategies
   // token rules don't get to override anything
   descriptor-rule-to-java-3:
     Rule(condition @ Token(_), color, bgcolor, font) ->
-    |[ if (e_Condition) result = x_Style; ]|
+    |[ if (e_Condition) { result = x_Style; break out; } ]|
     where
       e_Condition := <condition-to-java> condition;
       x_Style := <create-style(|color, bgcolor, font)>
@@ -105,31 +105,35 @@ strategies
       import lpg.runtime.IToken;
       
       @SuppressWarnings("unused")
-      public class x_Name extends TokenColorerBase implements ITokenColorer {
+      public class x_Name extends TokenColorerBase {
         private Display display = Display.getDefault();
         
         ~*decls
       
         public TextAttribute getColoring(IParseController controller, IToken token) {
           TextAttribute result = null;
+          boolean otherThanTokenSet = false;
+
           AstNode node = ((SGLRToken) token).getAstNode();
           int tokenKind = token.getKind();
+          String sort = node == null ? null : node.getSort();
+          String constructor = node == null ? null : node.getConstructor();
           
-          ~*ifs3
-
-          boolean otherThanTokenSet = false;
+          out: { ~*ifs3 }
+          out: { ~*ifs2 }
           
           // TODO2: Optimize - color selection loop
           do {
-            String sort = node == null ? null : node.getSort();
-            String constructor = node == null ? null : node.getConstructor();
-            
-            ~*ifs2
             ~*ifs1
             
             otherThanTokenSet = result != null; // don't override the color from outer sorts
             
-          } while (node != null && (node = node.getParent()) != null);
+            if (node == null) break;
+            
+            sort = node.getSort();
+            constructor = node.getConstructor();
+            
+          } while ((node = node.getParent()) != null);
           
           if (result != null) return result;
 

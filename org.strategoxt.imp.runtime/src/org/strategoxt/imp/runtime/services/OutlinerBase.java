@@ -1,7 +1,9 @@
 package org.strategoxt.imp.runtime.services;
 
-import java.util.ArrayList;
 import java.util.Stack;
+
+import lpg.runtime.IPrsStream;
+import lpg.runtime.IToken;
 
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRParsersym;
@@ -33,9 +35,9 @@ public abstract class OutlinerBase extends org.eclipse.imp.services.base.Outline
 	// to find it.
 	
 	protected void outline(AstNode node) {
-		int index = getIdentifierIndex(node);
-		if (index != -1) {
-			outline(node, node.getChildren().get(index).getLeftIToken().toString());
+		String caption = getIdentifier(node);
+		if (caption != null) {
+			outline(node, caption);
 		} else {
 			System.err.println(
 				"Unable to infer the caption of this AST node: " +
@@ -63,26 +65,24 @@ public abstract class OutlinerBase extends org.eclipse.imp.services.base.Outline
 		}
 	}
 	
-	// TODO2: Optimize - cache getIdentifierIndex
+	// TODO2: Optimize - cache getIdentifier?
 	
-	private int getIdentifierIndex(AstNode node) {
-		ArrayList<? extends AstNode> children = node.getChildren();
-		
-		for (int i = 0; i < children.size(); i++) {
-			AstNode child = children.get(i);
-			if (isIdentifier(child)) return i;
-		}
-		
-		return -1;
-	}
+	// TODO: Don't return identifier tokens in list or optional AST nodes
 	
-	private boolean isIdentifier(AstNode node) {
-		while (node.getChildren().size() == 1)
-			node = node.getChildren().get(0);
+	private String getIdentifier(AstNode node) {
+		IPrsStream stream = node.getLeftIToken().getPrsStream();
+		int i = node.getLeftIToken().getTokenIndex();
+		int end = node.getRightIToken().getTokenIndex();
 		
-		int kind = node.getLeftIToken().getKind();
+		do {
+			IToken token = stream.getTokenAt(i);
+			int kind = token.getKind();
+
+			if (kind == SGLRParsersym.TK_IDENTIFIER || kind == SGLRParsersym.TK_STRING)
+				return token.toString();
+			
+		} while (i++ < end);
 		
-		return (kind == SGLRParsersym.TK_IDENTIFIER || kind == SGLRParsersym.TK_STRING)
-				&& node.getChildren().size() == 0;
+		return null;
 	}
 }
