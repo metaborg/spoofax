@@ -18,6 +18,7 @@ overlays
   tname_ASTNODE      = tname |[ org.strategoxt.imp.runtime.parser.ast.AstNode ]|
   tname_VISITOR      = tname |[ org.strategoxt.imp.runtime.parser.ast.AbstractVisitor ]|
   tname_OUTLINERBASE = tname |[ org.strategoxt.imp.runtime.services.OutlinerBase ]|
+  tname_FOLDINGBASE  = tname |[ org.strategoxt.imp.runtime.services.FoldingBase ]|
   tname_ITOKEN       = tname |[ lpg.runtime.IToken ]|
 
 strategies

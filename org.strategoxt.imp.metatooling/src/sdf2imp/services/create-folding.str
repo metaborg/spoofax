@@ -12,11 +12,6 @@ imports
   sdf2imp/util/-
   sdf2imp/services/common
 
-overlays
-
-  tname_FOLDINGHELPER = tname |[ org.strategoxt.imp.runtime.services.FoldingHelper ]|
-  tname_FOLDINGBASE   = tname |[ org.eclipse.imp.services.base.FolderBase ]|
-
 strategies
 
   read-folding =
@@ -28,7 +23,7 @@ strategies
   
   folding-rule-to-java:
     condition ->
-    |[ if (e_Condition) { helper.makeCompleteAnnotation(node); return true; } ]|
+    |[ if (e_Condition) { makeCompleteAnnotation(node); return true; } ]|
     where
       e_Condition := <condition-to-java>
 
@@ -41,10 +36,6 @@ strategies
       package foldingUpdater;
       
       public class x_Name extends tname_FOLDINGBASE {
-        private lpg.runtime.IPrsStream prsStream;
-          
-        private tname_FOLDINGHELPER helper;
-          
         // Visitor inner class
         private class FoldingVisitor extends tname_VISITOR {
           public boolean visit(tname_ASTNODE node) {
@@ -61,16 +52,8 @@ strategies
           }
         };
 
-        // TODO: Move helper method to super
-
-        public void sendVisitorToAST(java.util.HashMap newAnnotations, java.util.List annotations, java.lang.Object ast) {
-          tname_ASTNODE theAST = (tname_ASTNODE) ast;
-          prsStream = theAST.getLeftIToken().getPrsStream();
-          tname_VISITOR abstractVisitor = new FoldingVisitor();
-          
-          helper = new tname_FOLDINGHELPER(this, prsStream);
-          
-          theAST.accept(abstractVisitor);
+        public void sendVisitorToAST(tname_ASTNODE node) {
+          node.accept(new FoldingVisitor());
         }
       }
     ]|
