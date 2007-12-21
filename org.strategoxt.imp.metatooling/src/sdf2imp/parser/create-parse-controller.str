@@ -17,40 +17,47 @@ strategies
   create-parse-controller =
     x_Name    := <get-parse-controller-name>;
     table     := <get-sdf-main-module>;
-  
+    
     <output-java-file> |[
       package parser;
 
       import java.io.IOException;      
+      import org.eclipse.core.runtime.IPath;
+      import org.spoofax.jsglr.ParseTable;
       import org.spoofax.jsglr.InvalidParseTableException;
+      import org.strategoxt.imp.runtime.Environment;
       import org.strategoxt.imp.runtime.parser.SGLRParseController;
-      import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenKindManager;
       
       public class x_Name extends SGLRParseController {
         private static final String GRAMMAR = "~table";
         private static final String TABLE = "/syntax/" + GRAMMAR + ".tbl";
+        private static final String START_SYMBOL = "~<StartSymbol>";
+      
+        static {
+          try {
+            Environment.registerParseTable(GRAMMAR, x_Name.class.getResourceAsStream(TABLE));
+            
+            // TODO: Load all parse tables associated with this file extension         
+          } catch (IOException exc) {
+            throw new RuntimeException(exc);
+          } catch (InvalidParseTableException exc) {
+            throw new RuntimeException(exc);
+          }
+        }
         
         public x_Name() throws IOException, InvalidParseTableException {          
-          // TODO2: Grammar-specific token kind manager?
-          
-          super(new SGLRTokenKindManager(), x_Name.class.getResourceAsStream(TABLE), null);
+          super(START_SYMBOL);
         }
         
         @Override
-        public String getLanguageName() {
+        public String getGrammarName() {
           return GRAMMAR;
         }
         
         @Override
-        public String getSingleLineCommentPrefix() { // TODO2: Produce single-line comment prefix for grammar?
-          return super.getSingleLineCommentPrefix();
+        public ParseTable selectParseTable(IPath path) {
+          // TODO: Run-time selection of a parse table, e.g., by use of .meta files
+          return Environment.getParseTable(GRAMMAR);
         }
-        
-        /* UNDONE: Using covariance here is cheaper than the immense signature explosion caused by full generics
-        @Override 
-        public x_Node parse(String input, boolean scanOnly, IProgressMonitor monitor) {
-          return (x_Node) super.parse(input, scanOnly, monitor);
-        }
-        */
       }
     ]|

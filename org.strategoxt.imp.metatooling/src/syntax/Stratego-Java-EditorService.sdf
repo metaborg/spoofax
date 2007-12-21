@@ -60,6 +60,7 @@ exports
                  "|[" FoldingRule "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr"), avoid}
 
     QuotedTerm -> Id {cons("FromMetaExpr"), avoid}
+    QuotedTerm -> ModuleName {cons("FromMetaExpr")}
     QuotedTerm -> Color {cons("FromMetaExpr")}
     QuotedTerm -> Font  {cons("FromMetaExpr")}
     
@@ -75,6 +76,3 @@ exports
     %% Stratego applications as anti-quotation
     "<" Strategy[[StrategoHost]] ">" Term[[StrategoHost]] -> QuotedTerm {cons("App")}
     StrategyAngle[[StrategoHost]]                         -> QuotedTerm {cons("RootApp"), avoid}
-    InitId Term[[StrategoHost]]                           -> QuotedTerm {reject}
-    InitId                                                -> QuotedTerm {reject}
-

@@ -14,12 +14,14 @@ exports
 exports
 
   sorts
-    Module ModuleName Imports Undefined
+    Module FileName ModuleName Imports Undefined
+
+  lexical syntax
+  
+    [a-zA-Z0-9\-\_]+ -> FileName
+    {FileName "/"}+  -> ModuleName
 
   context-free syntax
-  
-  	%% TODO: ModuleName with path
-  	Id -> ModuleName
   	
     "module" ModuleName Imports Section* -> Module {cons("Module")}
     "imports" { ModuleName "," }+        -> Imports {cons("Imports")}

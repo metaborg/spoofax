@@ -2,7 +2,7 @@ package org.strategoxt.imp.runtime.parser.tokens;
 
 import static org.spoofax.jsglr.Term.*;
 
-import org.strategoxt.imp.runtime.parser.SGLRParseController;
+import org.strategoxt.imp.runtime.parser.ast.AsfixAnalyzer;
 
 import aterm.ATerm;
 import aterm.ATermAppl;
@@ -42,7 +42,7 @@ public class SGLRTokenKindManager {
 	public int getTokenKind(ATermList pattern, ATermAppl sort) {
 		// TODO2: Optimization - cache default token kinds
 		
-		if (SGLRParseController.isLayout(sort)) {
+		if (AsfixAnalyzer.isLayout(sort)) {
 			return TK_LAYOUT;
 		} else if (sort.getName().equals("lex")) {
 			if (isStringLiteral(pattern)) {
@@ -87,7 +87,7 @@ public class SGLRTokenKindManager {
     }
 
 	protected static boolean isOperator(ATermAppl sort) {
-		if (!SGLRParseController.isLiteral(sort)) return false;
+		if (!AsfixAnalyzer.isLiteral(sort)) return false;
 		
 		ATermAppl lit = applAt(sort, 0);
 		String contents = lit.getName();

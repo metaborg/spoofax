@@ -2,6 +2,8 @@ package org.strategoxt.imp.runtime;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.spoofax.interpreter.Interpreter;
 import org.spoofax.interpreter.adapter.aterm.WrappedATermFactory;
@@ -21,11 +23,14 @@ import aterm.ATermFactory;
 public final class Environment {	
 	private final static WrappedATermFactory wrappedFactory
 		= new WrappedATermFactory();
-	
+		
 	private final static ATermFactory factory = wrappedFactory.getFactory();
 	
-	private final static ParseTableManager parseTables
+	private final static ParseTableManager parseTableManager
 		= new ParseTableManager(factory);
+	
+	private final static Map<String, ParseTable> parseTables
+		= new HashMap<String, ParseTable>();
 	
 	public static SGLR createSGLR(ParseTable parseTable) {
 		return new SGLR(factory, parseTable);
@@ -35,13 +40,24 @@ public final class Environment {
 		return new Interpreter(wrappedFactory);
 	}
 	
-	public static ParseTable loadParseTable(InputStream parseTable)
-			throws IOException, InvalidParseTableException {
+	public static void registerParseTable(String grammar, InputStream parseTable)
+		throws IOException, InvalidParseTableException {
+		
 		try {
 			Debug.startTimer();
-			return parseTables.loadFromStream(parseTable);
+			ParseTable table = parseTableManager.loadFromStream(parseTable);
+			
+			parseTables.put(grammar, table);
 		} finally {
 			Debug.stopTimer("Parse table loaded");
 		}
+	}
+	
+	public static ParseTable getParseTable(String grammar) {
+		ParseTable table = parseTables.get(grammar);
+		
+		if (table == null) throw new IllegalStateException("Parse table not available: " + grammar);
+		
+		return table;
 	}
 }

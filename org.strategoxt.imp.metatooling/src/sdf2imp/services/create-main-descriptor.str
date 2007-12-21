@@ -1,0 +1,17 @@
+module sdf2imp/services/create-main-descriptor
+
+imports
+  libstratego-lib
+  
+  sdf2imp/util/-
+
+strategies
+
+  create-main-descriptor =
+    <output-default-descriptor-file>
+      |[ module <descriptor-name> "Main"
+         
+        imports <descriptor-name> "Colorer",
+                <descriptor-name> "Outliner",
+                <descriptor-name> "Folding"
+      ]|

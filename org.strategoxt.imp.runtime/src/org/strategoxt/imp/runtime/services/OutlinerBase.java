@@ -8,6 +8,11 @@ import lpg.runtime.IToken;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRParsersym;
 
+/**
+ * Base class for an outliner.
+ * 
+ * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
+ */
 public abstract class OutlinerBase extends org.eclipse.imp.services.base.OutlinerBase {
 	/*
 	 * A shadow copy of the outline stack maintained in the super class,

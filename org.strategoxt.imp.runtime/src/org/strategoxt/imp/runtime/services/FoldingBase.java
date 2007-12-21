@@ -7,6 +7,12 @@ import lpg.runtime.IToken;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRParsersym;
 
+/**
+ * Base class for a folding service. Includes special logic to deal with
+ * layout tokens in SGLR token streams.
+ * 
+ * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
+ */
 public abstract class FoldingBase extends org.eclipse.imp.services.base.FolderBase {
 	private IPrsStream parseStream;
 

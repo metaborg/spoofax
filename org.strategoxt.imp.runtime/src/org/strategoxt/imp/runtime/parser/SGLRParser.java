@@ -50,8 +50,9 @@ public class SGLRParser implements IParser {
 	
 	// Initialization and parsing
 	
-	public SGLRParser(SGLRTokenKindManager tokenManager, ParseTable parseTable, String startSymbol) {	
-		this.startSymbol = startSymbol;
+	public SGLRParser(SGLRTokenKindManager tokenManager, ParseTable parseTable, String startSymbol) {
+		// TODO: Once spoofax supports it, use a start symbol
+		this.startSymbol = null; // startSymbol;
 
 		tokenizer = new SGLRTokenizer();		
 		converter = new AsfixConverter(tokenManager, tokenizer);

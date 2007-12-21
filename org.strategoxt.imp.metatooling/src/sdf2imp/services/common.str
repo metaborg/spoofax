@@ -16,31 +16,41 @@ strategies
 
   // TODO2: Optimize - add string length check to conditions
   
+  descriptor-name:
+    name -> <conc-strings> (language, name)
+    where
+      language := <get-sdf-main-module>
+  
   condition-to-java:
     Token(x) -> |[ tokenKind == x_Name ]|
-    where x_Name := <write-to-string> x
+    where
+      x_Name := <write-to-string> x
   
   condition-to-java:
     Constructor(x) -> |[ "~x".equals(constructor) ]|
   
   condition-to-java:
     Sort(sort) -> |[ "~sort'".equals(sort) ]|
-    where sort' := <try-get-sort-name> sort
+    where
+      sort' := <try-get-sort-name> sort
   
   condition-to-java:
     ListSort(sort) -> |["~sort'".equals(sort) ]|
-    where sort' := <conc-strings> (<try-get-sort-name> sort, "*")
+    where
+      sort' := <conc-strings> (<try-get-sort-name> sort, "*")
   
   parameterized-sort-to-asfix-sort = parameterized-sort-to-rtg-sort
   
   condition-to-java:
     descriptor |[ ~sort.~constructor ]| ->
     java       |[ "~constructor".equals(constructor) && "~sort'".equals(sort) ]|
-    where sort' := <try-get-sort-name> sort
+    where
+      sort' := <try-get-sort-name> sort
   
   condition-to-java:
     descriptor |[ _.~sort ]| -> |[ "~sort'".equals(sort) ]|
-    where sort' := <try-get-sort-name> sort
+    where
+      sort' := <try-get-sort-name> sort
 
   // TODO2: Check if constructors actually exist
 

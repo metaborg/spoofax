@@ -9,7 +9,6 @@ import lpg.runtime.PrsStream;
 import static org.spoofax.jsglr.Term.*;
 
 import org.strategoxt.imp.runtime.Debug;
-import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRParsersym;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenKindManager;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
@@ -104,12 +103,12 @@ public class AsfixConverter {
 		
 		// Enter lexical context if this is a lex node
 		boolean lexicalStart = !lexicalContext
-			&& (rhs.getName().equals("lex") || SGLRParseController.isLiteral(rhs)
-			    || SGLRParseController.isLayout(rhs));
+			&& (rhs.getName().equals("lex") || AsfixAnalyzer.isLiteral(rhs)
+			    || AsfixAnalyzer.isLayout(rhs));
 		
 		if (lexicalStart) lexicalContext = true;
 		
-		boolean isList = !lexicalContext && SGLRParseController.isList(rhs);
+		boolean isList = !lexicalContext && AsfixAnalyzer.isList(rhs);
 		boolean isVar  = !lexicalContext && !isList && rhs.getName().equals("varsym");
 		
 		if (isVar) lexicalContext = true;

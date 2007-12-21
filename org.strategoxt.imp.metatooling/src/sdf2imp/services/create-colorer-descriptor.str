@@ -31,7 +31,7 @@ strategies
         ~// Default, token-based highlighting.
         ~
       
-        keyword token    : dark magenta
+        keyword token    : 127 0 85       bold
         identifier token : black
         string token     : blue
         number token     : dark green

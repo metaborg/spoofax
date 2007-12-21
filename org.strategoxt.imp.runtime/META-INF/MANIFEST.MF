@@ -21,7 +21,8 @@ Require-Bundle: org.eclipse.imp.runtime,
  org.eclipse.swt,
  org.eclipse.jface,
  org.eclipse.jface.text
-Export-Package: org.strategoxt.imp.runtime.services,
+Export-Package: org.strategoxt.imp.runtime,
  org.strategoxt.imp.runtime.parser,
  org.strategoxt.imp.runtime.parser.ast,
- org.strategoxt.imp.runtime.parser.tokens
+ org.strategoxt.imp.runtime.parser.tokens,
+ org.strategoxt.imp.runtime.services

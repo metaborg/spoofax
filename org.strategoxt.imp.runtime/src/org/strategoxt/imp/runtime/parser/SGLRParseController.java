@@ -1,9 +1,5 @@
 package org.strategoxt.imp.runtime.parser;
 
-import static org.spoofax.jsglr.Term.applAt;
-
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,16 +14,13 @@ import org.eclipse.imp.parser.AstLocator;
 import org.eclipse.imp.parser.IASTNodeLocator;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.parser.ParseError;
-import org.spoofax.jsglr.InvalidParseTableException;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.SGLR;
 import org.spoofax.jsglr.TokenExpectedException;
 import org.spoofax.jsglr.BadTokenException;
-import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenKindManager;
 
-import aterm.ATermAppl;
 
 /**
  * Base class of an IMP parse controller for an SGLR parser.
@@ -39,11 +32,11 @@ public abstract class SGLRParseController implements IParseController {
 	
 	private final List<ParseError> parseErrors = new ArrayList<ParseError>();
 	
-	private final SGLRTokenKindManager tokenManager;
+	private final SGLRTokenKindManager tokenManager = new SGLRTokenKindManager();
 	
-	private final SGLRParser parser;
+	private final String startSymbol;
 	
-	private final SGLRLexer lexer;
+	private SGLRParser parser;
 	
 	private AstNode currentAst;
 	
@@ -61,6 +54,8 @@ public abstract class SGLRParseController implements IParseController {
 	}
 	
 	public final SGLRParser getParser() {
+		if (parser == null) throw new IllegalStateException("Parser not determined yet");
+		
 		return parser;
 	}
 
@@ -100,28 +95,17 @@ public abstract class SGLRParseController implements IParseController {
      * 
      * @param startSymbol	The start symbol of this grammar, or null.
      */
-    public SGLRParseController(SGLRTokenKindManager tokenManager, ParseTable parseTable, String startSymbol) {
-    	this.tokenManager = tokenManager;
-    	
-    	parser = new SGLRParser(tokenManager, parseTable, startSymbol);
-    	lexer = new SGLRLexer(parser.getTokenizer().getLexStream());
+    public SGLRParseController(String startSymbol) {
+    	this.startSymbol = startSymbol;
     }
-    
-    /**
-     * Constructs a new SGLRParseController instance.
-     * 
-     * @param startSymbol	The start symbol of this grammar, or null.
-     */
-    protected SGLRParseController(SGLRTokenKindManager tokenManager, InputStream parseTable, String startSymbol)
-    		throws IOException, InvalidParseTableException {
-    	
-    	this(tokenManager, Environment.loadParseTable(parseTable), startSymbol);
-	}
 
 	public void initialize(IPath path, ISourceProject project, IMessageHandler messages) {
 		this.path = path;
 		this.project = project;
 		this.messages = messages;
+		
+		ParseTable table = selectParseTable(path);
+		parser = new SGLRParser(tokenManager, table, startSymbol);
 	}
 
 	public AstNode parse(String input, boolean scanOnly, IProgressMonitor monitor) {
@@ -159,42 +143,12 @@ public abstract class SGLRParseController implements IParseController {
 		return "";
 	}
 
-	public String getLanguageName() {
-		throw new UnsupportedOperationException();
-	}
+	public abstract String getGrammarName();
 	
-	// TODO2: Move sort recognition elsewhere
-
-	public static boolean isLayout(ATermAppl sort) {
-    	ATermAppl details = applAt(sort, 0);
-    	
-    	if (details.getName().equals("opt"))
-    		details = applAt(details, 0);
-    	
-    	return details.getName().equals("layout");
-    }
-
-	public static boolean isLiteral(ATermAppl sort) {
-    	return sort.getName().equals("lit") || sort.getName().equals("cilit");
-    }
-
-	public static boolean isList(ATermAppl sort) {
-    	ATermAppl details = sort.getName().equals("cf")
-    	                  ? applAt(sort, 0)
-    	                  : sort;
-    	              	
-	  	if (details.getName().equals("opt"))
-	  		details = applAt(details, 0);
-	  	
-    	String name = details.getName();
-    	
-    	return name.equals("iter") || name.equals("iter-star")  || name.equals("iter-plus")
-    			|| name.equals("iter-sep") || name.equals("seq") || name.equals("iter-star-sep")
-    			|| name.equals("iter-plus-sep");
-    }
-
-	// Problem markers and errors
-
+	public abstract ParseTable selectParseTable(IPath path);
+	
+	// Problem markers
+	
 	public final List<String> getProblemMarkerTypes() {
 		return problemMarkerTypes;
 	}
@@ -213,6 +167,8 @@ public abstract class SGLRParseController implements IParseController {
 		
 		parseErrors.add(new ParseError(message, token));
 	}
+	
+	// Error reporting
 	
 	private void reportParseError(BadTokenException exception) {
 		IToken token = parser.getTokenizer().makeErrorToken(exception.getOffset());
@@ -243,8 +199,8 @@ public abstract class SGLRParseController implements IParseController {
 	}
 
 	@Deprecated
-	public final SGLRLexer getLexer() {
-		return lexer;
+	public SGLRLexer getLexer() {
+		return new SGLRLexer(getParser().getTokenizer().getLexStream());
 	}
 
 	public IASTNodeLocator getNodeLocator() {
