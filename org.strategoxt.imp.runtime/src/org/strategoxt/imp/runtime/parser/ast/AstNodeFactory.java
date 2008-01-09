@@ -17,8 +17,6 @@ public class AstNodeFactory {
 	public AstNode createNonTerminal(String sort, String constructor, IToken leftToken, IToken rightToken,
 			ArrayList<AstNode> children) {
 		
-		// TODO: Should top node with sort "<START>" get special treatment? Probably not...
-
 		return new AstNode(sort, constructor, leftToken, rightToken, children);
 	}
 	

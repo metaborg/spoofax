@@ -32,6 +32,10 @@ public final class Environment {
 	private final static Map<String, ParseTable> parseTables
 		= new HashMap<String, ParseTable>();
 	
+	public static ATermFactory getATermFactory() {
+		return factory;
+	}
+	
 	public static SGLR createSGLR(ParseTable parseTable) {
 		return new SGLR(factory, parseTable);
 	}

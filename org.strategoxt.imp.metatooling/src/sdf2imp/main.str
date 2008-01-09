@@ -39,6 +39,12 @@ strategies
     check-options;
   
     create-or-copy-parse-table;
+    create-default-descriptors;
+    create-java-implementation;
+  
+  /** @type FILE -> _ */
+  create-default-descriptors =
+    // TODO2: Optimize - completely skip this step if descriptors exist    
     
     verbose-msg(!"Analyzing grammar...");
     sdf2rtg;
@@ -50,10 +56,13 @@ strategies
     create-outliner-descriptor;    
     create-colorer-descriptor;
     
+  create-java-implementation =    
+    // Create modules from the descriptors
     create-folding;
     create-outliner;
     create-colorer;
     
+    // Create other plugin classes
     create-parse-controller;
     create-build-properties;
     create-project-file;
@@ -84,6 +93,5 @@ strategies
     <conc-strings> ("syntax/", <get-sdf-main-module>, ".tbl")
 
   sdf2rtg =
-    // TODO2: pack-sdf?
     xtc-transform(!"sdf2rtg", !["--ignore-missing-cons", "-m", <get-sdf-main-module> | <pass-verbose>]);
     xtc-transform(!"sglri", !["-p", <xtc-find> "rtg.tbl", "--start", "RTG"])

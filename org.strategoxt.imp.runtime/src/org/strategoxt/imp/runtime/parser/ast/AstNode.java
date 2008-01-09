@@ -4,7 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Iterator;
 
+import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
+import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
+import org.strategoxt.imp.runtime.stratego.adapter.WrappedAstNodeFactory;
 
 import lpg.runtime.IAst;
 import lpg.runtime.IPrsStream;
@@ -15,7 +18,7 @@ import lpg.runtime.IToken;
  *
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
-public class AstNode implements IAst, Iterable<AstNode> {
+public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 	// Globally unique object (circumvent interning)
 
 	/** The sort name for strings. */
@@ -27,6 +30,8 @@ public class AstNode implements IAst, Iterable<AstNode> {
 	private final ArrayList<AstNode> children;
 	
 	private final String constructor, sort;
+	
+	private IStrategoTerm term;
 	
 	private IToken leftToken, rightToken;
 	
@@ -50,8 +55,7 @@ public class AstNode implements IAst, Iterable<AstNode> {
 	}
 	
 	// must expose impl. type for interface
-	// using a bounded type to give it read-only semantics
-	public final ArrayList<? extends AstNode> getChildren() {
+	public final ArrayList<AstNode> getChildren() {
 		assert EMPTY_LIST.size() == 0;
 		
 		return children;
@@ -83,6 +87,11 @@ public class AstNode implements IAst, Iterable<AstNode> {
 
 	private void setParent(AstNode value) {
 		parent = value;
+	}
+	
+	public IStrategoTerm getTerm(WrappedAstNodeFactory factory) {
+		if (term != null) return term;
+		else return factory.wrapNew(this);
 	}
 	
 	// Initialization
@@ -140,6 +149,18 @@ public class AstNode implements IAst, Iterable<AstNode> {
   	  }
   	  
   	  return result;
+    }
+    
+    @Override
+    public int hashCode() {
+    	int result =  235235 ^ getChildren().size();
+    	String constructor = getConstructor();
+    	String sort = getSort();
+    	
+    	if (constructor == null) result ^= constructor.hashCode();  
+    	if (sort == null) result ^= sort.hashCode();
+    	
+    	return result;
     }
 
     /* UNDONE: Removed aterm<->ast node coupling

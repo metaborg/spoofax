@@ -105,7 +105,7 @@ public abstract class SGLRParseController implements IParseController {
 		this.messages = messages;
 		
 		ParseTable table = selectParseTable(path);
-		parser = new SGLRParser(tokenManager, table, startSymbol);
+		parser = new SGLRParser(this, tokenManager, table, startSymbol);
 	}
 
 	public AstNode parse(String input, boolean scanOnly, IProgressMonitor monitor) {
@@ -143,7 +143,10 @@ public abstract class SGLRParseController implements IParseController {
 		return "";
 	}
 
-	public abstract String getGrammarName();
+	/**
+	 * Returns the name of the currently active grammar definition.
+	 */ 
+	public abstract String getActiveGrammarName();
 	
 	public abstract ParseTable selectParseTable(IPath path);
 	

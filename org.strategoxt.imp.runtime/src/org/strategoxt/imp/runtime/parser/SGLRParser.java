@@ -14,6 +14,7 @@ import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
 import org.strategoxt.imp.runtime.parser.ast.AsfixConverter;
+import org.strategoxt.imp.runtime.parser.ast.RootAstNode;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRParsersym;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenKindManager;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
@@ -26,6 +27,8 @@ import aterm.ATerm;
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */ 
 public class SGLRParser implements IParser {
+	private final SGLRParseController controller;
+	
 	private final SGLR parser;
 	
 	private final String startSymbol;
@@ -50,8 +53,11 @@ public class SGLRParser implements IParser {
 	
 	// Initialization and parsing
 	
-	public SGLRParser(SGLRTokenKindManager tokenManager, ParseTable parseTable, String startSymbol) {
+	public SGLRParser(SGLRParseController controller, SGLRTokenKindManager tokenManager,
+			ParseTable parseTable, String startSymbol) {
+		
 		// TODO: Once spoofax supports it, use a start symbol
+		this.controller = controller;
 		this.startSymbol = null; // startSymbol;
 
 		tokenizer = new SGLRTokenizer();		
@@ -76,6 +82,7 @@ public class SGLRParser implements IParser {
 		Debug.startTimer();
 		
 		AstNode result = converter.implode(asfix);
+		result = RootAstNode.makeRoot(result, controller);
 			
 		Debug.stopTimer("Parse tree imploded");
 		
