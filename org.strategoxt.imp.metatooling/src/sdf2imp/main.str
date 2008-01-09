@@ -12,6 +12,7 @@ imports
   sdf2imp/project/-
   sdf2imp/services/-
   sdf2imp/util/-
+  sdf2imp/lib/-
 
 overlays
 
@@ -40,7 +41,7 @@ strategies
   
     create-or-copy-parse-table;
     create-default-descriptors;
-    create-java-implementation;
+    create-java-implementation
   
   /** @type FILE -> _ */
   create-default-descriptors =
@@ -53,8 +54,8 @@ strategies
     <init-ast-form-heuristic> rtg;
     
     create-folding-descriptor;
-    create-outliner-descriptor;    
-    create-colorer-descriptor;
+    create-outliner-descriptor;
+    create-colorer-descriptor
     
   create-java-implementation =    
     // Create modules from the descriptors

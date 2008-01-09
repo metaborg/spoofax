@@ -4,7 +4,7 @@ imports
   libstratego-gpp
   libstratego-sglr
   
-  sdf2imp/lib/xml-doc2abox
+  sdf2imp/lib/-
 
   sdf2imp/util/pp
 
