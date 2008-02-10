@@ -50,7 +50,7 @@ strategies
         }
         
         @Override
-        public String getGrammarName() {
+        public String getActiveGrammarName() {
           return GRAMMAR;
         }
         

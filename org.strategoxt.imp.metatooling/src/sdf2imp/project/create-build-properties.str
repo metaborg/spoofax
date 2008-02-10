@@ -15,5 +15,6 @@ strategies
 output.. = bin/
 bin.includes = META-INF/,\\
                .,\\
+               plugin.xml,\\
                syntax/", name, ".tbl
 ")
