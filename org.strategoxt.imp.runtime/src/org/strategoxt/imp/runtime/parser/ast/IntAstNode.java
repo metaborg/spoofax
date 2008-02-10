@@ -25,4 +25,9 @@ public class IntAstNode extends AstNode {
 	public String toString() {
 		return String.valueOf(value);
 	}
+	
+	@Override
+	public String repr() {
+		return "" + value;
+	}
 }

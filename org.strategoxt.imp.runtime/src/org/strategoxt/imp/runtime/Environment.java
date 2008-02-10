@@ -5,7 +5,7 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.spoofax.interpreter.Interpreter;
+import org.spoofax.interpreter.core.Interpreter;
 import org.spoofax.interpreter.adapter.aterm.WrappedATermFactory;
 import org.spoofax.jsglr.InvalidParseTableException;
 import org.spoofax.jsglr.ParseTable;

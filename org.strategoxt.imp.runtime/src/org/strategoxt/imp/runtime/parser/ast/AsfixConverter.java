@@ -125,8 +125,13 @@ public class AsfixConverter {
 			String constructor = getConstructor(attrs);
 			String sort = getSort(rhs);
 			
+			// TODO should also account for size != 1
+			if(constructor == null && children.size() == 1) {
+				return children.get(0);
+			}
 			tokenizer.makeToken(offset, tokenManager.getTokenKind(lhs, rhs));
 			return createNonTerminal(sort, constructor, prevToken, children, isList);
+			
 		}
 	}
 

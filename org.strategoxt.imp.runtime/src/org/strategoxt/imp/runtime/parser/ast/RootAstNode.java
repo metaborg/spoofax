@@ -29,7 +29,7 @@ public class RootAstNode extends AstNode {
 	}
 	
 	public static RootAstNode makeRoot(AstNode ast, SGLRParseController parseController) {
-		assert ast.getSort().equals("<START>");
+		//assert ast.getSort().equals("<START>");
 		
 		return new RootAstNode(
 				ast.getSort(), ast.getSort(), ast.getLeftIToken(), ast.getRightIToken(),

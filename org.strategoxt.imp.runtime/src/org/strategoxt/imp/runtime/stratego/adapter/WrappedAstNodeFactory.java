@@ -4,6 +4,8 @@ import java.util.WeakHashMap;
 
 import org.spoofax.interpreter.terms.BasicTermFactory;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.strategoxt.imp.runtime.parser.ast.IntAstNode;
+import org.strategoxt.imp.runtime.parser.ast.StringAstNode;
 
 import lpg.runtime.IAst;
 
@@ -24,11 +26,24 @@ public class WrappedAstNodeFactory extends BasicTermFactory {
 	}
 
 	public IStrategoTerm wrapNew(IAst node) {
-		// TODO2: Foreign IAst wrapping doesn't do terminals
-		return new WrappedAstNodeAppl(this, node);
+		// TODO: Foreign IAst wrapping doesn't do terminals
+		if(node instanceof IntAstNode) {
+			return new WrappedAstNodeInt(this, (IntAstNode)node);
+		} else if(node instanceof WrappedAstNodeString) {
+			return new WrappedAstNodeString(this, (StringAstNode)node);
+		} else {
+			return new WrappedAstNodeAppl(this, node);
+		}
 	}
 
+
 	public IStrategoTerm wrapNew(IStrategoAstNode node) {
-		return new WrappedAstNodeAppl(this, node);
+		if(node instanceof IntAstNode) {
+			return new WrappedAstNodeInt(this, (IntAstNode)node);
+		} else if(node instanceof StringAstNode) {
+			return new WrappedAstNodeString(this, (StringAstNode)node);
+		} else {
+			return new WrappedAstNodeAppl(this, node);
+		}
 	}
 }

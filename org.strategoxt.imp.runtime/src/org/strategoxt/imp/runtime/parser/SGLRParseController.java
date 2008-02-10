@@ -8,16 +8,18 @@ import lpg.runtime.IToken;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.parser.AstLocator;
 import org.eclipse.imp.parser.IASTNodeLocator;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.parser.ParseError;
+import org.spoofax.jsglr.BadTokenException;
+import org.spoofax.jsglr.InvalidParseTableException;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.SGLR;
 import org.spoofax.jsglr.TokenExpectedException;
-import org.spoofax.jsglr.BadTokenException;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenKindManager;
 
@@ -85,7 +87,7 @@ public abstract class SGLRParseController implements IParseController {
     
     static {
     	// HACK: set always repainting in IMP using static field
-    	UniversalEditor.fRepaintAll = true;
+    	UniversalEditor.fAlwaysRepaint = true;
     	
     	SGLR.setWorkAroundMultipleLookahead(true);
     }
@@ -120,6 +122,7 @@ public abstract class SGLRParseController implements IParseController {
 		} catch (Exception x) {
 			// catches SGLRException; NotImplementedException; IOException
 			reportParseError(x);
+			Activator.log(new Status(Status.ERROR, Activator.PLUGIN_ID, Status.OK, "Fatal error during parsing", x));
 		}
 		
 		return currentAst;
@@ -219,4 +222,5 @@ public abstract class SGLRParseController implements IParseController {
 	public IToken getTokenAtCharacter(int offset) {
 		return getParser().getParseStream().getTokenAtCharacter(offset);
 	}
+	
 }

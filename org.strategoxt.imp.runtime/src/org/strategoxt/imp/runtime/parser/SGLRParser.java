@@ -18,6 +18,7 @@ import org.strategoxt.imp.runtime.parser.ast.RootAstNode;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRParsersym;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenKindManager;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
+import org.strategoxt.imp.runtime.stratego.adapter.WrappedAstNodeFactory;
 
 import aterm.ATerm;
 
@@ -63,6 +64,8 @@ public class SGLRParser implements IParser {
 		tokenizer = new SGLRTokenizer();		
 		converter = new AsfixConverter(tokenManager, tokenizer);
 		parser = Environment.createSGLR(parseTable);
+		parser.setCycleDetect(false);
+		parser.setFilter(false);
 	}
 	
 	/**
@@ -82,6 +85,8 @@ public class SGLRParser implements IParser {
 		Debug.startTimer();
 		
 		AstNode result = converter.implode(asfix);
+		WrappedAstNodeFactory wanf = new WrappedAstNodeFactory();
+		System.out.println(result.getTerm(wanf).toString());
 		result = RootAstNode.makeRoot(result, controller);
 			
 		Debug.stopTimer("Parse tree imploded");

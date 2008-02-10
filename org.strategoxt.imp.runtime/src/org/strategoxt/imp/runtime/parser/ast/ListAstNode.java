@@ -23,4 +23,16 @@ public class ListAstNode extends AstNode {
 		
 		this.elementSort = elementSort;
 	}
+	
+	@Override
+	public String repr() {
+		StringBuilder sb = new StringBuilder();
+		sb.append('[');
+		for(AstNode kid : children) {
+			sb.append(kid.repr());
+			sb.append(',');
+		}
+		sb.append(']');
+		return sb.toString();
+	}
 }

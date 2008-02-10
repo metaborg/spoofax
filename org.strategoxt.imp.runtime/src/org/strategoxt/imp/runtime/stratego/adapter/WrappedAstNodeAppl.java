@@ -5,6 +5,7 @@ import lpg.runtime.IAst;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.ITermPrinter;
 
 public class WrappedAstNodeAppl extends WrappedAstNode implements IStrategoAppl {
 	private final IStrategoConstructor constructor;
@@ -56,5 +57,37 @@ public class WrappedAstNodeAppl extends WrappedAstNode implements IStrategoAppl 
                 return false;
         }
         return true;
+    }
+
+    public void prettyPrint(ITermPrinter pp) {
+    	final String name = constructor.getName() == null ? "<#null>" : constructor.getName();
+    	if(name.equals("[]")) {
+    		pp.print("[");
+    	} else {
+    		pp.print(name);
+            pp.println("(");
+    	}
+        final IStrategoTerm[] kids = getAllSubterms();
+        if(kids.length > 0) {
+            pp.indent(name.length());
+            if(kids[0] == null) {
+            	pp.print("<#null>");
+            } else {
+            	kids[0].prettyPrint(pp);
+            }
+            for(int i = 1; i < kids.length; i++) {
+                pp.print(", ");
+                if(kids[1] == null)
+                	pp.print("<#null>");
+                else
+                	kids[i].prettyPrint(pp);
+            }
+            pp.outdent(name.length());
+        }
+        if(name.equals("[]")) {
+        	pp.println("]");
+        } else {
+        	pp.println(")");
+        }
     }
 }

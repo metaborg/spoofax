@@ -25,4 +25,9 @@ public class StringAstNode extends AstNode {
 	public String toString() {
 		return getValue();
 	}
+	
+	@Override
+	public String repr() {
+		return '"' + value + '"';
+	}
 }

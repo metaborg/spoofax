@@ -3,7 +3,7 @@ package org.strategoxt.imp.runtime.stratego.adapter;
 import lpg.runtime.IAst;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.interpreter.terms.ITermPrinter;
+import org.spoofax.interpreter.terms.InlinePrinter;
 
 public abstract class WrappedAstNode implements IStrategoTerm {
 	private final IAst node;
@@ -43,11 +43,6 @@ public abstract class WrappedAstNode implements IStrategoTerm {
 		return 0;
 	}
 
-	public void prettyPrint(ITermPrinter pp) {
-		// TODO Auto-generated method stub
-		
-	}
-	
 	@Override
 	public boolean equals(Object other) {
 		if (other instanceof WrappedAstNode) {
@@ -58,4 +53,12 @@ public abstract class WrappedAstNode implements IStrategoTerm {
 			return false;
 		}
 	}
+	
+    @Override
+    public String toString() {
+    	InlinePrinter ip = new InlinePrinter();
+    	prettyPrint(ip);
+    	return ip.getString();
+    }
+
 }

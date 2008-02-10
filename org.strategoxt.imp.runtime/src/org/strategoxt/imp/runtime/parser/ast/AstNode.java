@@ -27,7 +27,7 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 	// TODO2: Read-only array list
 	static final ArrayList<AstNode> EMPTY_LIST = new ArrayList<AstNode>(0);
 	
-	private final ArrayList<AstNode> children;
+	protected final ArrayList<AstNode> children;
 	
 	private final String constructor, sort;
 	
@@ -222,4 +222,17 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 		return null;
 	}
 
+	public String repr() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(constructor);
+		sb.append(':');
+		sb.append(sort);
+		sb.append('(');
+		for(AstNode kid : children) {
+			sb.append(kid.repr());
+			sb.append(',');
+		}
+		sb.append(')');
+		return sb.toString();
+	}
 }
