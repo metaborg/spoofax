@@ -168,7 +168,7 @@ public class AsfixConverter {
 		
 		if (sort == null) return null;
 		
-		Debug.log("Creating node ", sort, " from ", SGLRTokenizer.dumpToString(token));	
+		//Debug.log("Creating node ", sort, " from ", SGLRTokenizer.dumpToString(token));	
 		
 		return factory.createTerminal(sort, token);
 	}
@@ -182,7 +182,7 @@ public class AsfixConverter {
 		
 		if (Debug.ENABLED) {
 			String name = isList ? "list" : sort;
-			Debug.log("Creating node ", name, ":", constructor, AstNode.getSorts(children), " from ", SGLRTokenizer.dumpToString(left, right));
+			//Debug.log("Creating node ", name, ":", constructor, AstNode.getSorts(children), " from ", SGLRTokenizer.dumpToString(left, right));
 		}
 		
 		if (isList) {

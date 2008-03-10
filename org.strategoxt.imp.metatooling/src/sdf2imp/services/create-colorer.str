@@ -93,6 +93,7 @@ strategies
       import org.eclipse.imp.parser.IParseController;
       import org.eclipse.imp.services.ITokenColorer;
       import org.eclipse.imp.services.base.TokenColorerBase;
+      import org.eclipse.jface.text.IRegion;
       import org.eclipse.jface.text.TextAttribute;
       import org.eclipse.swt.SWT;
       import org.eclipse.swt.widgets.Display;
@@ -110,12 +111,12 @@ strategies
         
         ~*decls
       
-        public TextAttribute getColoring(IParseController controller, IToken token) {
+        public TextAttribute getColoring(IParseController controller, Object token) {
           TextAttribute result = null;
           boolean otherThanTokenSet = false;
 
           AstNode node = ((SGLRToken) token).getAstNode();
-          int tokenKind = token.getKind();
+          final int tokenKind = ((SGLRToken) token).getKind();
           String sort = node == null ? null : node.getSort();
           String constructor = node == null ? null : node.getConstructor();
           
@@ -137,7 +138,7 @@ strategies
           
           if (result != null) return result;
 
-          return super.getColoring(controller, token);
+          return super.getColoring(controller, ((IToken)token));
         }
         
         // TODO: Allow overriding of colors and text attributes?
@@ -157,6 +158,11 @@ strategies
           } else {
             return master;
           }
+        }
+        
+        @Override
+        public IRegion calculateDamageExtent(IRegion seed) {
+	      return seed;
         }        
       }
   ]|

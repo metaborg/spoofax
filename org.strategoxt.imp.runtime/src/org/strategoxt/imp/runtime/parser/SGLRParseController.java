@@ -3,7 +3,6 @@ package org.strategoxt.imp.runtime.parser;
 import java.util.ArrayList;
 import java.util.List;
 
-import lpg.runtime.IMessageHandler;
 import lpg.runtime.IToken;
 
 import org.eclipse.core.runtime.IPath;
@@ -12,11 +11,14 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.parser.AstLocator;
-import org.eclipse.imp.parser.IASTNodeLocator;
-import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.parser.IMessageHandler;
+import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.eclipse.imp.parser.ParseError;
+import org.eclipse.imp.parser.SimpleLPGParseController;
+import org.eclipse.imp.services.IAnnotationTypeInfo;
+import org.eclipse.imp.services.ILanguageSyntaxProperties;
+import org.spoofax.NotImplementedException;
 import org.spoofax.jsglr.BadTokenException;
-import org.spoofax.jsglr.InvalidParseTableException;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.SGLR;
 import org.spoofax.jsglr.TokenExpectedException;
@@ -25,11 +27,13 @@ import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenKindManager;
 
 
 /**
- * Base class of an IMP parse controller for an SGLR parser.
+ * IMP parse controller for an SGLR parser, reusing some logic from the LPG
+ * implementation.
  *
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
+ * @author Karl Trygve Kalleberg <karltk add strategoxt.org>
  */
-public abstract class SGLRParseController implements IParseController {
+public abstract class SGLRParseController extends SimpleLPGParseController {
 	private final List<String> problemMarkerTypes = new ArrayList<String>();
 	
 	private final List<ParseError> parseErrors = new ArrayList<ParseError>();
@@ -47,20 +51,23 @@ public abstract class SGLRParseController implements IParseController {
 	private IPath path;
 	
 	@SuppressWarnings("unused")
-	private IMessageHandler messages;
+	private org.eclipse.imp.parser.IMessageHandler messages;
 
 	// Simple accessors
 	
+	@Override
 	public final AstNode getCurrentAst() { 
 		return currentAst;
 	}
 	
+	@Override
 	public final SGLRParser getParser() {
 		if (parser == null) throw new IllegalStateException("Parser not determined yet");
 		
 		return parser;
 	}
 
+	@Override
 	public final ISourceProject getProject() {
 		return project;
 	}
@@ -101,14 +108,16 @@ public abstract class SGLRParseController implements IParseController {
     	this.startSymbol = startSymbol;
     }
 
-	public void initialize(IPath path, ISourceProject project, IMessageHandler messages) {
-		this.path = path;
+    @Override
+	public void initialize(IPath filePath, ISourceProject project,
+    		IMessageHandler handler) {
+		this.path = filePath;
 		this.project = project;
-		this.messages = messages;
+		this.messages = handler;
 		
 		ParseTable table = selectParseTable(path);
 		parser = new SGLRParser(this, tokenManager, table, startSymbol);
-	}
+    }
 
 	public AstNode parse(String input, boolean scanOnly, IProgressMonitor monitor) {
 		try {
@@ -130,21 +139,22 @@ public abstract class SGLRParseController implements IParseController {
 	
 	// Token kind management
 	
+	@Override
 	public final boolean isKeyword(int kind) {
 		return tokenManager.isKeyword(kind);
 	}
 	
-	public final String getTokenKindName(int kind) {
-		return tokenManager.getName(kind);
-	}
+//	public final String getTokenKindName(int kind) {
+//		return tokenManager.getName(kind);
+//	}
 	
 	// Grammar information
 
-	public String getSingleLineCommentPrefix() {
-		// This is a supposedly short-term solution for getting
-		// a language's single-line comment prefix
-		return "";
-	}
+//	public String getSingleLineCommentPrefix() {
+//		// This is a supposedly short-term solution for getting
+//		// a language's single-line comment prefix
+//		return "";
+//	}
 
 	/**
 	 * Returns the name of the currently active grammar definition.
@@ -209,10 +219,6 @@ public abstract class SGLRParseController implements IParseController {
 		return new SGLRLexer(getParser().getTokenizer().getLexStream());
 	}
 
-	public IASTNodeLocator getNodeLocator() {
-		// Use the default AST Locator defined in IMP for IAst trees 
-		return new AstLocator();
-	}
 
 	public int getTokenIndexAtCharacter(int offset) {
 		int index = getParser().getParseStream().getTokenIndexAtCharacter(offset);
@@ -221,6 +227,16 @@ public abstract class SGLRParseController implements IParseController {
 
 	public IToken getTokenAtCharacter(int offset) {
 		return getParser().getParseStream().getTokenAtCharacter(offset);
+	}
+	
+	@Override
+	public ISourcePositionLocator getNodeLocator() {
+		return new SGLRAstLocator();
+	}
+	
+	@Override
+	public ILanguageSyntaxProperties getSyntaxProperties() {
+		return null;
 	}
 	
 }

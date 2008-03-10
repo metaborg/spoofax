@@ -10,6 +10,7 @@ import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 import org.strategoxt.imp.runtime.stratego.adapter.WrappedAstNodeFactory;
 
 import lpg.runtime.IAst;
+import lpg.runtime.IAstVisitor;
 import lpg.runtime.IPrsStream;
 import lpg.runtime.IToken;
 
@@ -180,22 +181,23 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
     
     // Visitor support
     
-    public void accept(AbstractVisitor visitor) {
+    @Override
+    public void accept(IAstVisitor visitor) {
     	if (visitor.preVisit(this)) {
     		enter(visitor);
     		visitor.postVisit(this);
     	}
     }
     
-    protected void enter(AbstractVisitor visitor) {
-    	if (visitor.visit(this)) {
+    protected void enter(IAstVisitor visitor) {
+    	if (visitor.preVisit(this)) {
     		int size = children.size();
     		
     		for (int i = 0; i < size; i++)
     			children.get(i).accept(visitor);
     	}
     	
-    	visitor.endVisit(this);
+    	visitor.postVisit(this);
     }
 	
 	// LPG legacy/compatibility

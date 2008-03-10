@@ -106,4 +106,10 @@ public class SGLRParser implements IParser {
 		// TODO2: SGLRParser.orderedTerminalSymbols() - should map token kinds to names
 		throw new NotImplementedException();
 	}
+
+	@Override
+	public int numTokenKinds() {
+		// FIXME don't hard code this
+		return 10;
+	}
 }
