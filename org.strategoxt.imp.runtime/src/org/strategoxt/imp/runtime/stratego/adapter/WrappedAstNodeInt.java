@@ -14,7 +14,7 @@ public class WrappedAstNodeInt extends WrappedAstNode implements IStrategoInt {
 		this.wrappee = node;
 	}
 
-	public int getValue() {
+	public int intValue() {
 		return wrappee.getValue();
 	}
 	

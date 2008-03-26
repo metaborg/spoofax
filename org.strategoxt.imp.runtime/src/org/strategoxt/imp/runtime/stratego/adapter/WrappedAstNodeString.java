@@ -14,7 +14,7 @@ public class WrappedAstNodeString extends WrappedAstNode implements IStrategoStr
 		this.wrappee = node;
 	}
 
-	public String getValue() {
+	public String stringValue() {
 		return wrappee.getValue();
 	}
 	
