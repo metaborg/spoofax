@@ -20,7 +20,8 @@ Require-Bundle: org.eclipse.imp.runtime,
  org.eclipse.jface,
  org.eclipse.jface.text,
  org.eclipse.ui.editors,
- org.eclipse.ui.workbench
+ org.eclipse.ui.workbench,
+ org.eclipse.ui
 Export-Package: org.strategoxt.imp.runtime,
  org.strategoxt.imp.runtime.parser,
  org.strategoxt.imp.runtime.parser.ast,

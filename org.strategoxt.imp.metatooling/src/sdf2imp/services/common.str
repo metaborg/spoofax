@@ -52,10 +52,10 @@ strategies
     where
       sort' := <try-get-sort-name> sort
 
-  // TODO2: Check if constructors actually exist
+  // TODO: Check if constructors actually exist
 
   try-get-sort-name =
     parameterized-sort-to-asfix-sort;
     where(
-      risky(bagof-Productions |"Unknown sort referenced")
+      risky(Productions |"Unknown sort referenced")
     )

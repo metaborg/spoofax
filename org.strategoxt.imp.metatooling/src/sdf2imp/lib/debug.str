@@ -14,7 +14,8 @@ strategies
    * Writes a message to the standard output, without failing or changing the current term.
    * Only executed if the verbosity level is 2.
    */
-  verbose-msg(a) = where(if-verbose2(<debug> <as-string(a)>))
+  verbose-msg(a) =
+    where(if-verbose2(<debug> <as-string(a)>))
   verbose-msg(a, b) =
     where(if-verbose2(<verbose-msg> [<as-string(a)>, <as-string(b)>]))
   verbose-msg(a, b, c) =
@@ -65,6 +66,8 @@ strategies
     try(take(!6); <conc> (<id>, ["..."]));
     
     <conc-strings> ("[", <concat-strings>, "]")
+  <+
+    (); !"()"
   <+
     ?name#(<id>);
     if [] then

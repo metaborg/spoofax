@@ -191,10 +191,9 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
     
     protected void enter(IAstVisitor visitor) {
     	if (visitor.preVisit(this)) {
-    		int size = children.size();
-    		
-    		for (int i = 0; i < size; i++)
+    		for (int i = 0, size = children.size(); i < size; i++) {
     			children.get(i).accept(visitor);
+    		}
     	}
     	
     	visitor.postVisit(this);

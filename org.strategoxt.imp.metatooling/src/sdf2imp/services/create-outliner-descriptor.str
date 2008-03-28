@@ -14,13 +14,13 @@ strategies
     map(create-folding-or-outliner-rule);
     
     <output-default-descriptor-file> |[
-      module Outliner
+      module <descriptor-name> "-Outliner"
       
-      // TODO: Explain outline syntax
       ~
-      ~// Outline goes here.
+      ~// Outliner rules take the form of <sort>.<pattern>, <sort>._, or _.<pattern>
       ~
-      outliner
+      
+      outliner Default outliner
         ~*<id>
     ]|
   

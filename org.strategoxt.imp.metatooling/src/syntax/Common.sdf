@@ -27,11 +27,8 @@ exports
 
     LAYOUT? -/- [\ \t\n\r]
     
-    %% FIXME: JSGLR doesn't accept this atm
-    %%
-    %% LAYOUT? -/- [\/].[\/]
-    %% LAYOUT? -/- [\/].[\*]
-    LAYOUT? -/- [\/]
+    LAYOUT? -/- [\/].[\/]
+    LAYOUT? -/- [\/].[\*]
 
   context-free syntax
   
@@ -40,11 +37,10 @@ exports
 
     Sort "." "_" -> Sort {bracket}
     
-    %% HACK: GPP needs different constructor names for these
-    
     "_" "." Id -> Constructor {cons("Constructor")}
             Id -> ConstructorId {cons("ConstructorId")}
     
     Sort                   -> RuleId
     Constructor            -> RuleId
     Sort "." ConstructorId -> RuleId {cons("SortAndConstructor")}
+

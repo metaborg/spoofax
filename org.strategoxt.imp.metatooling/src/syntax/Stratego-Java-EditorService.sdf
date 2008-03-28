@@ -20,11 +20,8 @@ exports
   
     CommentLine -/- ~[\n\r]
   
-    %% FIXME: JSGLR doesn't accept this atm
-    %%
-    %% CommentLine -/- [\/].[\/]
-    %% CommentLine -/- [\/].[\*]
-    CommentLine -/- [\/]
+    CommentLine -/- [\/].[\/]
+    CommentLine -/- [\/].[\*]
 
   context-free restrictions
     

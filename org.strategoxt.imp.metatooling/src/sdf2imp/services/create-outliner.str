@@ -15,9 +15,9 @@ imports
 strategies
 
   read-outliner =
-    <input-descriptor-file> "Outliner";
+    <input-descriptor-file> <main-descriptor-name>;
     
-    collect-all(?Outliner(<id>));
+    collect-all(?Outliner(_, <id>));
     
     concat
   

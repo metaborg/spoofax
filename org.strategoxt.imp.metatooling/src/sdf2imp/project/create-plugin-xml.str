@@ -20,7 +20,7 @@ strategies
              point="org.eclipse.imp.runtime.languageDescription">
           <language
                 extensions="<%= extensions %>"
-                description="Professional Home Pages"
+                description="<%= name %>"
                 language="<%= name %>">
           </language>
        </extension>

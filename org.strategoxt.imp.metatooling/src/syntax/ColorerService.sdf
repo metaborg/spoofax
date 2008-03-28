@@ -9,7 +9,7 @@ exports
     Section ColorRule Font Color MaybeColor NoColor ColorName ColorRuleId TokenKind TokenKindName
 
   context-free syntax
-	"colorer" ColorRule* -> Section {cons("Colorer")}
+	"colorer" SectionName ColorRule* -> Section {cons("Colorer")}
 	
 	"colorer" -> RuleId {reject}
 
@@ -39,9 +39,9 @@ exports
 
     %% TODO: Default "font" attribute? (would need disambiguation and merging support)
     %%
-    %% "default" -> Font {cons("NORMAL")}
+    %% "_" -> Font {cons("NORMAL")}
     
-    "default"   -> Color {cons("ColorDefault")}
+    "_"         -> Color {cons("ColorDefault")}
     ColorName   -> Color {cons("ColorName")}
     Int Int Int -> Color {cons("ColorRGB")}
                 -> NoColor {cons("ColorDefault")}

@@ -9,27 +9,26 @@ strategies
 
   create-colorer-descriptor =
     <output-default-descriptor-file> |[
-      module Colorer
-      
-      colorer
+      module <descriptor-name> "-Colorer"
         
         ~
-        ~// Example: sort-based highlighting with background color
+        ~// Sort-based highlighting with background color
         ~//   Id: yellow green
         ~
-        ~// Example: sort- and constructor-based highlighting
+        ~// Sort- and constructor-based highlighting
         ~//   ClassBodyDec.MethodDec: yellow
         ~
-        ~// Example: constructor-based highlighting
-        ~//   *.MethodDec: 255 0 0
+        ~// Constructor-based highlighting
+        ~//   _.MethodDec: 255 0 0
         ~
         ~// Example: background colors for ToMetaExpr/FromMetaExpr, if supported by the grammar
-        ~//   all *.ToMetaExpr:   default 255 200 255
-        ~//   all *.FromMetaExpr: default white
+        ~//   all _.ToMetaExpr:   _ 220 230 200
+        ~//   all _.FromMetaExpr: _ white
         ~
-        ~
-        ~// Default, token-based highlighting.
-        ~
+      
+        // TODO: Insert embedding background colors by default?
+      
+      colorer Default, token-based highlighting
       
         keyword token    : 127 0 85       bold
         identifier token : black

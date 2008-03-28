@@ -13,13 +13,13 @@ strategies
     map(create-folding-or-outliner-rule);
     
     <output-default-descriptor-file> |[
-      module Folding
-        
-      // TODO2: Explain folding syntax
-        
-      ~// Foldings go here.
+      module <descriptor-name> "-Folding"
       
-      folding
+      ~
+      ~// Folding rules take the form of <sort>.<constructor>, <sort>._, or _.<constructor>
+      ~
+        
+      folding Default folding definitions
         ~*<id>
     ]|
   

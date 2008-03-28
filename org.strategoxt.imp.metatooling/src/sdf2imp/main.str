@@ -55,7 +55,8 @@ strategies
     
     create-folding-descriptor;
     create-outliner-descriptor;
-    create-colorer-descriptor
+    create-colorer-descriptor;
+    create-main-descriptor
     
   create-java-implementation =    
     // Create modules from the descriptors

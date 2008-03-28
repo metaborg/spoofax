@@ -15,16 +15,16 @@ imports
 strategies
 
   read-colorer =
-    <input-descriptor-file> "Colorer";
+    <input-descriptor-file> <main-descriptor-name>;
     
-    collect-all(?Colorer(<id>));
+    collect-all(?Colorer(_, <id>));
     
     concat
   
   // "all" rules override any existing coloring style
   descriptor-rule-to-java-1:
     RuleAll(condition, color, bgcolor, font) ->
-    |[ if (e_Condition) return mergeStyles(x_Style, result); ]|
+    |[ if (e_Condition) return noWhitespaceBackground(mergeStyles(x_Style, result), token); ]|
     where
       e_Condition := <condition-to-java> condition;
       x_Style     := <create-style(|color, bgcolor, font)>
@@ -32,7 +32,12 @@ strategies
   // constructor/sort rules override token rules
   descriptor-rule-to-java-2:
     Rule(condition @ <not(?Token(_))>, color, bgcolor, font) ->
-    |[ if (!otherThanTokenSet && e_Condition) { otherThanTokenSet = true; result = mergeStyles(x_Style, result); break out; } ]|
+    |[ if (!otherThanTokenSet && e_Condition) {
+         otherThanTokenSet = true;
+         result = noWhitespaceBackground(mergeStyles(x_Style, result), token);
+         break out;
+       }
+     ]|
     where
       e_Condition := <condition-to-java> condition;
       x_Style := <create-style(|color, bgcolor, font)>
@@ -141,6 +146,8 @@ strategies
           return super.getColoring(controller, ((IToken)token));
         }
         
+        // TODO2: Optimize - don't create new TextAttributes at runtime
+        
         // TODO: Allow overriding of colors and text attributes?
         private TextAttribute mergeStyles(TextAttribute master, TextAttribute slave) {
           if (slave == null)
@@ -160,9 +167,21 @@ strategies
           }
         }
         
+        private TextAttribute noWhitespaceBackground(TextAttribute attribute, IToken token) {
+          if (attribute.getBackground() == null) {
+            return attribute;
+          } else if (token.toString().contains("\n")) { // TODO: Don't use toString() on tokens
+            return new TextAttribute(
+              attribute.getForeground(),
+              null,
+              attribute.getStyle()
+            );
+          }
+        }
+        
         @Override
         public IRegion calculateDamageExtent(IRegion seed) {
 	      return seed;
-        }        
+        }
       }
   ]|

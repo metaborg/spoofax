@@ -14,17 +14,22 @@ exports
 exports
 
   sorts
-    Module FileName ModuleName Imports Undefined
+    Module FileName ModuleName Imports Undefined SectionName
 
   lexical syntax
   
     [a-zA-Z0-9\-\_]+ -> FileName
     {FileName "/"}+  -> ModuleName
+    ~[\n\r]*         -> SectionName %% FIXME: Section name can't be empty now; add follow restr. on keyword?
+
+  context-free restrictions
+    
+    SectionName -/- ~[\n\r]
 
   context-free syntax
   	
     "module" ModuleName Imports Section* -> Module {cons("Module")}
-    "imports" { ModuleName "," }+        -> Imports {cons("Imports")}
+    "imports" { ModuleName "," }+        -> Imports {cons("Imports")} %% TODO: No comma's for imports?
                                          -> Imports {cons("NoImports")}
 
     %% TODO: Consider including other grammar meta-data here, e.g., SDF main module, extensions

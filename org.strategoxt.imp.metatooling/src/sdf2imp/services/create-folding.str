@@ -15,9 +15,9 @@ imports
 strategies
 
   read-folding =
-    <input-descriptor-file> "Folding";
+    <input-descriptor-file> <main-descriptor-name>;
     
-    collect-all(?Folding(<id>));
+    collect-all(?Folding(_, <id>));
     
     concat
   

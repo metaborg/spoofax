@@ -9,7 +9,7 @@ exports
     Section FoldingRule
 
   context-free syntax
-    "folding" FoldingRule* -> Section {cons("Folding")}
+    "folding" SectionName FoldingRule* -> Section {cons("Folding")}
 	
 	"folding" -> RuleId {reject}
     
