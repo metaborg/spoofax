@@ -24,7 +24,7 @@ strategies
   // "all" rules override any existing coloring style
   descriptor-rule-to-java-1:
     RuleAll(condition, color, bgcolor, font) ->
-    |[ if (e_Condition) return noWhitespaceBackground(mergeStyles(x_Style, result), token); ]|
+    |[ if (e_Condition) return noWhitespaceBackground(mergeStyles(x_Style, result), (IToken) token); ]|
     where
       e_Condition := <condition-to-java> condition;
       x_Style     := <create-style(|color, bgcolor, font)>
@@ -34,7 +34,7 @@ strategies
     Rule(condition @ <not(?Token(_))>, color, bgcolor, font) ->
     |[ if (!otherThanTokenSet && e_Condition) {
          otherThanTokenSet = true;
-         result = noWhitespaceBackground(mergeStyles(x_Style, result), token);
+         result = noWhitespaceBackground(mergeStyles(x_Style, result), (IToken) token);
          break out;
        }
      ]|
@@ -176,6 +176,8 @@ strategies
               null,
               attribute.getStyle()
             );
+          } else {
+            return attribute;
           }
         }
         

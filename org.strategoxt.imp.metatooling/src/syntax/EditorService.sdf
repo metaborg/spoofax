@@ -21,6 +21,10 @@ exports
     [a-zA-Z0-9\-\_]+ -> FileName
     {FileName "/"}+  -> ModuleName
     ~[\n\r]*         -> SectionName %% FIXME: Section name can't be empty now; add follow restr. on keyword?
+  
+  lexical restrictions
+  
+  	FileName    -/- [a-zA-Z0-9\-\_]
 
   context-free restrictions
     
@@ -29,7 +33,7 @@ exports
   context-free syntax
   	
     "module" ModuleName Imports Section* -> Module {cons("Module")}
-    "imports" { ModuleName "," }+        -> Imports {cons("Imports")} %% TODO: No comma's for imports?
+    "imports" ModuleName+                -> Imports {cons("Imports")}
                                          -> Imports {cons("NoImports")}
 
     %% TODO: Consider including other grammar meta-data here, e.g., SDF main module, extensions

@@ -16,10 +16,14 @@ strategies
 
   // TODO2: Optimize - add string length check to conditions
   
+  // TODO2: descriptor-name should have an aterm argument, overloading main-descriptor-name
+  
   descriptor-name:
     name -> <conc-strings> (language, name)
     where
       language := <get-sdf-main-module>
+  
+  main-descriptor-name = get-sdf-main-module
   
   condition-to-java:
     Token(x) -> |[ tokenKind == x_Name ]|

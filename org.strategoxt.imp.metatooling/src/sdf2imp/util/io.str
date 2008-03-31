@@ -42,7 +42,7 @@ strategies
             <+
               input-descriptor-file-no-imports;
               add-imports => Module(_, _, <id>)
-            | "Unable to import module"
+            | "Unable to locate module"
             )
           );
           

@@ -3,7 +3,7 @@ module Common
 exports
 
   sorts
-    Id Int String CommentChar RuleId Sort Constructor ConstructorId
+    Id Int String CommentChar Node Sort Constructor ConstructorId ReservedName
 
   lexical syntax
   
@@ -40,7 +40,10 @@ exports
     "_" "." Id -> Constructor {cons("Constructor")}
             Id -> ConstructorId {cons("ConstructorId")}
     
-    Sort                   -> RuleId
-    Constructor            -> RuleId
-    Sort "." ConstructorId -> RuleId {cons("SortAndConstructor")}
+    Sort                   -> Node
+    Constructor            -> Node
+    Sort "." ConstructorId -> Node {cons("SortAndConstructor")}
+    
+    ReservedName -> Node       {reject}
+    ReservedName -> ModuleName {reject}
 

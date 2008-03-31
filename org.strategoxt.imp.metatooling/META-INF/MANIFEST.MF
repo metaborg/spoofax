@@ -4,4 +4,3 @@ Bundle-Name: Metatooling Plug-in
 Bundle-SymbolicName: org.strategoxt.imp.metatooling
 Bundle-Version: 1.0.0
 Bundle-ClassPath: org.strategoxt.imp.metatooling/
-Bundle-Localization: plugin

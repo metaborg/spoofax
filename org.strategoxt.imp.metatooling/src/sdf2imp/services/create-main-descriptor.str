@@ -7,13 +7,11 @@ imports
 
 strategies
 
-  main-descriptor-name = <descriptor-name> "-Main"
-
   create-main-descriptor =
-    <output-default-descriptor-file>
-      |[ module <main-descriptor-name>
-         
-        imports <descriptor-name> "-Colorer",
-                <descriptor-name> "-Outliner",
-                <descriptor-name> "-Folding"
-      ]|
+    <output-default-descriptor-file> descriptor |[
+      module <main-descriptor-name>
+      
+      imports <descriptor-name> "-Colorer"
+              <descriptor-name> "-Outliner"
+              <descriptor-name> "-Folding"
+    ]|

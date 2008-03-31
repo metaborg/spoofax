@@ -47,8 +47,8 @@
    Module               -- V is=2 [ H [ KW["module"] _1 ] _2 _3 ],
    Module.3:iter-star   -- _1,
    Imports              -- V is=2 [ KW["imports"] _1 ],
-   Imports.1:iter-sep   -- H hs=0 [ _1 KW[","] ],
    Imports              -- _1,
    Imports.1:iter-star  -- _1,
-   NoImports            --
+   NoImports            -- ,
+   Select               -- KW["<id>"]
 ]

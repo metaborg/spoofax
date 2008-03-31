@@ -11,8 +11,8 @@ exports
   context-free syntax
     "outliner" SectionName OutlineRule* -> Section {cons("Outliner")}
 	
-	"outliner" -> RuleId {reject}
+	"outliner" -> ReservedName
     
     %% TODO: Patterns for outlinerservice
 
-    RuleId -> OutlineRule
+    Node -> OutlineRule
