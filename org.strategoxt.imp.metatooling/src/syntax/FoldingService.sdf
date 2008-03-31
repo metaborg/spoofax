@@ -12,5 +12,8 @@ exports
     "folding" SectionName FoldingRule* -> Section {cons("Folding")}
 	
 	"folding" -> ReservedName
+	
+	%% TODO2: AST consistency wrt ColorerService
     
-    Node -> FoldingRule
+          Node -> FoldingRule
+    "all" Node -> FoldingRule {cons("FoldAll")}

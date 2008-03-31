@@ -29,7 +29,7 @@ strategies
         // TODO: Insert embedding background colors by default?
       
       colorer Default, token-based highlighting
-      
+      ~
         keyword token    : 127 0 85       bold
         identifier token : black
         string token     : blue

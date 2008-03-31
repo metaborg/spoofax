@@ -26,6 +26,11 @@ strategies
     |[ if (e_Condition) { makeCompleteAnnotation(node); return true; } ]|
     where
       e_Condition := <condition-to-java>
+  
+  condition-to-java:
+    FoldAll(x) -> <condition-to-java> x
+    where
+      warn(|"Folding of lists of nodes not implemented yet.")// TODO: condition-to-java for FoldAll()
 
   create-folding =
     folding := <read-folding>;
@@ -38,7 +43,7 @@ strategies
       public class x_Name extends tname_FOLDINGBASE {
         // Visitor inner class
         private class FoldingVisitor extends tname_VISITOR {
-          public boolean visit(tname_ASTNODE node) {
+          public boolean preVisit(tname_ASTNODE node) {
             String constructor = node.getConstructor();
             String sort = node.getSort();
             
@@ -47,7 +52,7 @@ strategies
             return true;
           }
           
-          public void endVisit(tname_ASTNODE node) {
+          public void postVisit(tname_ASTNODE node) {
             // Nothing to see here; move along.
           }
         };

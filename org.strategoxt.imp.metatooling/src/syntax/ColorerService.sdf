@@ -20,7 +20,7 @@ exports
     "all" ColorNode ":" NoColor NoColor Font -> ColorRule {cons("RuleAll")}
           ColorNode ":" NoColor NoColor Font -> ColorRule {cons("Rule")}
     
-    Node        -> ColorNode
+    Node          -> ColorNode
     TokenKindName -> ColorNode {cons("Token"), prefer}
     
     "identifier" "token" -> TokenKindName {cons("TK_IDENTIFIER")}

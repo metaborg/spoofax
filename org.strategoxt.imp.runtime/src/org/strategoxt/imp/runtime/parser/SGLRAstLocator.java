@@ -13,7 +13,11 @@ public class SGLRAstLocator extends AstLocator {
 	
 	@Override
 	public Object findNode(Object node, int offset) {
-		return super.findNode(((SGLRToken)node).getAstNode(), offset);
+		// TODO: Can this happen?
+		if (node instanceof SGLRToken)
+			node = ((SGLRToken) node).getAstNode();
+		
+		return super.findNode(node, offset);
 	}
 	
 	@Override

@@ -9,27 +9,18 @@ import lpg.runtime.IAstVisitor;
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
 public abstract class AbstractVisitor implements IAstVisitor {
-	public boolean preVisit(AstNode node) {
-		return true;
-	}
+	
+	public abstract boolean preVisit(AstNode node);
 
-	public void postVisit(AstNode node) {
-		
-	}
+	public abstract void postVisit(AstNode node);
 	
 	@Override
-	public boolean preVisit(IAst arg0) {
-		return preVisit((AstNode)arg0);
+	public final boolean preVisit(IAst arg0) {
+		return preVisit((AstNode) arg0);
 	}
 
 	@Override
-	public void postVisit(IAst arg0) {
-		postVisit((AstNode)arg0);
+	public final void postVisit(IAst arg0) {
+		postVisit((AstNode) arg0);
 	}
-
-	// TODO: Should AbstractVisitor have special 
-	
-	public abstract boolean visit(AstNode node);
-
-	public abstract void endVisit(AstNode node);
 }

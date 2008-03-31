@@ -21,6 +21,8 @@ strategies
     
     concat
   
+  // TODO: Outliner patterns
+  
   outliner-rule-to-java:
     condition ->
     |[ if (e_Condition) { outline(node); return true; } ]|
@@ -39,7 +41,7 @@ strategies
       public class x_Name extends tname_OUTLINERBASE {
       
         private class OutlineVisitor extends tname_VISITOR {
-          public boolean visit(tname_ASTNODE node) {
+          public boolean preVisit(tname_ASTNODE node) {
             String constructor = node.getConstructor();
             String sort = node.getSort();
             
@@ -48,7 +50,7 @@ strategies
             return true;
           }
           
-          public void endVisit(tname_ASTNODE node) {
+          public void postVisit(tname_ASTNODE node) {
             endOutline(node);
           }
         }
