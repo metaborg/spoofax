@@ -8,7 +8,6 @@ import lpg.runtime.PrsStream;
 
 import static org.spoofax.jsglr.Term.*;
 
-import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRParsersym;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenKindManager;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
@@ -180,10 +179,12 @@ public class AsfixConverter {
 		IToken left = getStartToken(prevToken);
 		IToken right = getEndToken(left, tokenizer.currentToken());
 		
+		/*
 		if (Debug.ENABLED) {
 			String name = isList ? "list" : sort;
-			//Debug.log("Creating node ", name, ":", constructor, AstNode.getSorts(children), " from ", SGLRTokenizer.dumpToString(left, right));
+			Debug.log("Creating node ", name, ":", constructor, AstNode.getSorts(children), " from ", SGLRTokenizer.dumpToString(left, right));
 		}
+		*/
 		
 		if (isList) {
 			return factory.createList(sort, left, right, children);

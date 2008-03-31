@@ -10,14 +10,11 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.model.ISourceProject;
-import org.eclipse.imp.parser.AstLocator;
 import org.eclipse.imp.parser.IMessageHandler;
 import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.eclipse.imp.parser.ParseError;
 import org.eclipse.imp.parser.SimpleLPGParseController;
-import org.eclipse.imp.services.IAnnotationTypeInfo;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
-import org.spoofax.NotImplementedException;
 import org.spoofax.jsglr.BadTokenException;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.SGLR;
@@ -84,7 +81,8 @@ public abstract class SGLRParseController extends SimpleLPGParseController {
 	 * @return either a project-relative path, if getProject() is non-null, or
 	 *         an absolute path.
 	 */
-    public final IPath getPath() {
+    @Override
+	public final IPath getPath() {
     	return project == null
 			? path
 			: project.getRawProject().getLocation().append(path);
@@ -215,6 +213,7 @@ public abstract class SGLRParseController extends SimpleLPGParseController {
 	}
 
 	@Deprecated
+	@Override
 	public SGLRLexer getLexer() {
 		return new SGLRLexer(getParser().getTokenizer().getLexStream());
 	}
