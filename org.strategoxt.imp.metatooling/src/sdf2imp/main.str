@@ -40,13 +40,15 @@ strategies
     check-options;
   
     create-or-copy-parse-table;
-    create-default-descriptors;
+
+    if not(skip-descriptors) then
+      create-default-descriptors
+    end;
+    
     create-java-implementation
   
   /** @type FILE -> _ */
-  create-default-descriptors =
-    // TODO2: Optimize - completely skip this step if descriptors exist    
-    
+  create-default-descriptors =    
     verbose-msg(!"Analyzing grammar...");
     sdf2rtg;
     read-from => RTG(_, ProdRules(rtg));
@@ -73,6 +75,12 @@ strategies
     create-manifest;
     create-colorer;
     create-plugin-xml
+  
+  skip-descriptors =
+    !["", "-Colorer", "-Folding", "-Outliner"];
+    map(
+      <file-exists> <descriptor-name>
+    )
   
   create-or-copy-parse-table =
     where(

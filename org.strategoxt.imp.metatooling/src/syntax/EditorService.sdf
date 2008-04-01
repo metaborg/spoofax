@@ -14,7 +14,7 @@ exports
 exports
 
   sorts
-    Module FileName ModuleName Imports Undefined SectionName
+    Module FileName ModuleName Imports Import SectionName
 
   lexical syntax
   
@@ -33,8 +33,11 @@ exports
   context-free syntax
   	
     "module" ModuleName Imports Section* -> Module {cons("Module")}
-    "imports" ModuleName+                -> Imports {cons("Imports")}
+    "imports" Import+                    -> Imports {cons("Imports")}
                                          -> Imports {cons("NoImports")}
+
+    ModuleName            -> Import {cons("Import")}
+    ModuleName "[" Id "]" -> Import {cons("ImportRenamed")}
 
     %% TODO: Consider including other grammar meta-data here, e.g., SDF main module, extensions
     

@@ -7,6 +7,7 @@ exports
 
   sorts
     Section ColorRule Font Color MaybeColor NoColor ColorName ColorNode TokenKind TokenKindName
+    ColorId
 
   context-free syntax
 	"colorer" SectionName ColorRule* -> Section {cons("Colorer")}
@@ -47,6 +48,16 @@ exports
                 -> NoColor {cons("ColorDefault")}
     Color       -> MaybeColor
     NoColor     -> MaybeColor
+    
+    %% TODO: All named colors must be used-defined
+
+    ColorId "=" Color -> ColorRule {cons("DefineColor")}
+    
+    Id     -> ColorId                  %% Built-in color name (e.g., 'red')
+    String -> ColorId {cons("String")} %% Descriptive color name (could be show in IDE)
+    "_"    -> ColorId {reject}
+    Font   -> ColorId {reject}
+    "all"  -> ColorId {reject}
   
     "red"            -> ColorName {cons("RED")}
     "dark" "red"     -> ColorName {cons("DARK_RED")}

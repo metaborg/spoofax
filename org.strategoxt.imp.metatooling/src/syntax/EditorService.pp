@@ -1,6 +1,7 @@
 [
-   Colorer              -- V is=2 [H  [ KW["colorer"] _1 ] V vs=1 [ _2 ] ],
+   Colorer              -- V is=2 [ H [ KW["colorer"] _1 ] V vs=1 [ _2 ] ],
    Colorer.1:iter-star  -- _1,
+   DefineColor          -- H [ _1 KW["="] _2 ],
    Rule                 -- V is=2 [ H hs=0 [ _1 KW[":"] ] _2 _3 _4 ],
    RuleAll              -- V is=2 [ H hs=0 [ KW["all"] _1 KW[":"] ] _2 _3 _4 ],
    FoldAll              -- H [ KW ["all"] _1 ],
@@ -50,6 +51,9 @@
    Imports              -- V is=2 [ KW["imports"] _1 ],
    Imports              -- _1,
    Imports.1:iter-star  -- _1,
+   Import               -- _1,
+   RenamedImport        -- H hs=0 [ _1 KW["["] _2 KW["]"] ],
    NoImports            -- ,
-   Select               -- KW["<id>"]
+   Select               -- KW["<id>"],
+   String               -- H hs=0 [ KW["\""] _1 KW["\""] ]
 ]

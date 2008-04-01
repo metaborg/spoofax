@@ -16,19 +16,28 @@ strategies
    */
   input-descriptor-file =
   {| IsImported:
-    <add-imports> Module("", Imports([<id>]), []) // placeholder module importing the real module
+    <add-imports> Module("<main>", Imports([Import(<id>)]), [])
   |}
   
-  /**
-   * Given its filename (no extension), parse a service descriptor, excluding its imports.
-   */
-  input-descriptor-file-no-imports =
-    ?name;
-    !FILE(<add-extension> (<id>, "esv"));
-    
+  /** @internal */
+  input-descriptor-import =
+    ?Import(name);
+    !FILE(<add-extension> (name, "esv"));
     parse-xtc-file-report-errors(|<parse-table-descriptor>, "Module");
     
     risky(?Module(name, _, _) |"Module name does not match file name")
+  <+
+    ?ImportRenamed(name, prefix);
+    <input-descriptor-import> Import(name);
+    rename-sorts(|prefix)
+  
+  /** Rename all sorts in an editor descriptor file. */
+  rename-sorts(|prefix) =
+    // TODO: Default sorts ("_") should probably also be renamed (to "_Renamed")
+    alltd(
+     \Sort(name) -> Sort(renamed)
+      where renamed := <conc-strings> (prefix, "_", name)\
+    )
   
   /** @internal */
   add-imports:
@@ -40,9 +49,9 @@ strategies
             risky(
               IsImported
             <+
-              input-descriptor-file-no-imports;
+              input-descriptor-import;
               add-imports => Module(_, _, <id>)
-            | "Unable to locate module"
+            | "Unable to import module"
             )
           );
           

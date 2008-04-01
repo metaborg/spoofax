@@ -14,6 +14,8 @@ imports
 
 strategies
 
+  // TODO: Process color definition rules
+
   read-colorer =
     <input-descriptor-file> <main-descriptor-name>;
     
