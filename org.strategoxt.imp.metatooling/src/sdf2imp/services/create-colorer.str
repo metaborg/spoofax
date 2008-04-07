@@ -1,7 +1,6 @@
 /**
  * sdf2imp concrete token colorer generator.
  *
- *
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 module sdf2imp/services/create-colorer
@@ -23,7 +22,7 @@ strategies
     
     concat
   
-  // "all" rules override any existing coloring style
+  // "environment" rules override any existing coloring style
   descriptor-rule-to-java-1:
     RuleAll(condition, color, bgcolor, font) ->
     |[ if (e_Condition) return noWhitespaceBackground(mergeStyles(x_Style, result), (IToken) token); ]|
@@ -117,12 +116,21 @@ strategies
         private Display display = Display.getDefault();
         
         ~*decls
+        
+        private Color lastBackground;
+        
+        private Color WHITE = display.getSystemColor(SWT.COLOR_WHITE);
       
         public TextAttribute getColoring(IParseController controller, Object token) {
           TextAttribute result = null;
           boolean otherThanTokenSet = false;
 
           AstNode node = ((SGLRToken) token).getAstNode();
+          
+          // Take the parent of string/int terminal nodes
+          if (node.getConstructor() == null && node.getParent() != null)
+            node = node.getParent();
+          
           final int tokenKind = ((SGLRToken) token).getKind();
           String sort = node == null ? null : node.getSort();
           String constructor = node == null ? null : node.getConstructor();
@@ -130,18 +138,21 @@ strategies
           out: { ~*ifs3 }
           out: { ~*ifs2 }
           
-          // TODO2: Optimize - color selection loop
-          do {
+          // TODO: Optimize - color selection loop is extermely inefficient
+          if (node != null) {
+            while (node.getParent() != null) {
+              node = node.getParent();
+              sort = node.getSort();
+              constructor = node.getConstructor();
+              
+              ~*ifs1
+              
+              otherThanTokenSet = result != null; // don't override the color from outer sorts
+            }
+          } else if (!otherThanTokenSet) {
+            // No value has been set, try the value from 'inner' rules
             ~*ifs1
-            
-            otherThanTokenSet = result != null; // don't override the color from outer sorts
-            
-            if (node == null) break;
-            
-            sort = node.getSort();
-            constructor = node.getConstructor();
-            
-          } while ((node = node.getParent()) != null);
+          }
           
           if (result != null) return result;
 
@@ -151,6 +162,7 @@ strategies
         // TODO2: Optimize - don't create new TextAttributes at runtime
         
         // TODO: Allow overriding of colors and text attributes?
+        
         private TextAttribute mergeStyles(TextAttribute master, TextAttribute slave) {
           if (slave == null)
             return master;
@@ -169,18 +181,24 @@ strategies
           }
         }
         
+        // TODO: Move static code to superclass
+        // FIXME: Don't use toString() on tokens
+        // TODO: Prefer a white background for layout tokens next to another white token
+        
         private TextAttribute noWhitespaceBackground(TextAttribute attribute, IToken token) {
           if (attribute.getBackground() == null) {
+            lastBackground = WHITE;
             return attribute;
-          } else if (token.toString().contains("\n")) { // TODO: Don't use toString() on tokens
-            return new TextAttribute(
+          } else if (token.toString().contains("\n")) {
+            attribute = new TextAttribute(
               attribute.getForeground(),
               null,
               attribute.getStyle()
             );
-          } else {
-            return attribute;
           }
+          
+          lastBackground = attribute.getBackground();
+          return attribute;
         }
         
         @Override

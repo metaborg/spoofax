@@ -14,7 +14,7 @@ strategies
   /**
    * Given its filename (no extension), parse a service descriptor, including its imports.
    */
-  input-descriptor-file =
+  input-descriptor-file = // TODO: file input caching
   {| IsImported:
     <add-imports> Module("<main>", Imports([Import(<id>)]), [])
   |}
@@ -27,17 +27,18 @@ strategies
     
     risky(?Module(name, _, _) |"Module name does not match file name")
   <+
-    ?ImportRenamed(name, prefix);
+    ?ImportRenamed(name, tail);
     <input-descriptor-import> Import(name);
-    rename-sorts(|prefix)
+    add-imports;
+    alltd(rename-sort(|tail))
+    
+  // TODO: Sort renaming could be inferred from the .def file
   
-  /** Rename all sorts in an editor descriptor file. */
-  rename-sorts(|prefix) =
-    // TODO: Default sorts ("_") should probably also be renamed (to "_Renamed")
-    alltd(
-     \Sort(name) -> Sort(renamed)
-      where renamed := <conc-strings> (prefix, "_", name)\
-    )
+  rename-sort(|tail):
+    Sort(name) -> Sort(<conc-strings> (name, "_", tail))
+  
+  rename-sort(|tail):
+    ListSort(name) -> ListSort(<conc-strings> (name, "_", tail))
   
   /** @internal */
   add-imports:

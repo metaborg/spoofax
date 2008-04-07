@@ -6,7 +6,7 @@ imports
 strategies
 
   create-build-properties =
-    name := <get-main-class-name>;
+    table := <parse-table-target>;
     
     <output-text-file(|[], "build.properties")>
     
@@ -16,5 +16,5 @@ output.. = bin/
 bin.includes = META-INF/,\\
                .,\\
                plugin.xml,\\
-               syntax/", name, ".tbl
+               ", table, "\\
 ")

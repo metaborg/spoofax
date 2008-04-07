@@ -16,7 +16,7 @@ strategies
  */
 strategies
 
-  init-ast-form-heuristic =
+  register-rtg =
     list-loop(heuristic-register-production);
     
     verified-start-symbol

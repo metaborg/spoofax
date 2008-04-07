@@ -39,5 +39,16 @@ exports
     ModuleName            -> Import {cons("Import")}
     ModuleName "[" Id "]" -> Import {cons("ImportRenamed")}
 
-    %% TODO: Consider including other grammar meta-data here, e.g., SDF main module, extensions
+    %% TODO: Including other grammar meta-data here, such as the grammar name, start symbol, extensions
+    %%
+    %% e.g.:
+    %%
+    %% exports / hiddens
+    %%   Stratego-WebDSL:
+    %%     .str
+    %%     Module[[StrategoHost]]
+    %%
+    %%   Stratego:  %% might be imported from another esv: Stratego-WebDSL incorporates 'Stratego'
+    %%     .str     %% (of course, parametrized imports would need to be renamed/disabled)   
+    %%     Module   %% start symbol needs Sort() constructor for renaming support
     

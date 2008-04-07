@@ -61,5 +61,10 @@ strategies
   try-get-sort-name =
     parameterized-sort-to-asfix-sort;
     where(
-      risky(Productions |"Unknown sort referenced")
+      Productions
+    <+
+      // FIXME: Fail if unknown sort found (temporarily had to disable this)
+      // TODO: Renamed sorts like OptExtendsInterfaces0_Java need special treatment
+      //       looks like sdf2rtg needs to be adapted to not perform renaming like this!
+      warn(|"Unknown sort referenced")
     )

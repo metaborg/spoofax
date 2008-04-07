@@ -3,7 +3,7 @@
    Colorer.1:iter-star  -- _1,
    DefineColor          -- H [ _1 KW["="] _2 ],
    Rule                 -- V is=2 [ H hs=0 [ _1 KW[":"] ] _2 _3 _4 ],
-   RuleAll              -- V is=2 [ H hs=0 [ KW["all"] _1 KW[":"] ] _2 _3 _4 ],
+   RuleAll              -- V is=2 [ H hs=0 [ KW["environment"] _1 KW[":"] ] _2 _3 _4 ],
    FoldAll              -- H [ KW ["all"] _1 ],
    CommentLine          -- H [ KW["//"] _1 ],
    EmptyLine            -- V [ KW[""]],

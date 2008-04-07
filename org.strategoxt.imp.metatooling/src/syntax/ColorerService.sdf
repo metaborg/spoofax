@@ -15,11 +15,11 @@ exports
 	"colorer" -> ReservedName
 
   context-free syntax
-    "all" ColorNode ":" Color MaybeColor Font -> ColorRule {cons("RuleAll")} %% one rule to rule them all
-          ColorNode ":" Color MaybeColor Font -> ColorRule {cons("Rule")}
+    "environment" ColorNode ":" Color MaybeColor Font -> ColorRule {cons("RuleAll")} %% One rule to rule them all
+                  ColorNode ":" Color MaybeColor Font -> ColorRule {cons("Rule")}
 
-    "all" ColorNode ":" NoColor NoColor Font -> ColorRule {cons("RuleAll")}
-          ColorNode ":" NoColor NoColor Font -> ColorRule {cons("Rule")}
+    "environment" ColorNode ":" NoColor NoColor Font -> ColorRule {cons("RuleAll")}
+                  ColorNode ":" NoColor NoColor Font -> ColorRule {cons("Rule")}
     
     Node          -> ColorNode
     TokenKindName -> ColorNode {cons("Token"), prefer}
@@ -53,11 +53,11 @@ exports
 
     ColorId "=" Color -> ColorRule {cons("DefineColor")}
     
-    Id     -> ColorId                  %% Built-in color name (e.g., 'red')
-    String -> ColorId {cons("String")} %% Descriptive color name (could be show in IDE)
-    "_"    -> ColorId {reject}
-    Font   -> ColorId {reject}
-    "all"  -> ColorId {reject}
+    Id             -> ColorId                  %% Built-in color name (e.g., 'red')
+    String         -> ColorId {cons("String")} %% Descriptive color name (could be show in IDE)
+    "_"            -> ColorId {reject}
+    Font           -> ColorId {reject}
+    "environment"  -> ColorId {reject}
   
     "red"            -> ColorName {cons("RED")}
     "dark" "red"     -> ColorName {cons("DARK_RED")}

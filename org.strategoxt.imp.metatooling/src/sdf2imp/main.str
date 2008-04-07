@@ -34,26 +34,23 @@ strategies
 
 strategies
 
-  // TODO2: Cleanup before generating classes?
-
   sdf2imp =
     check-options;
   
     create-or-copy-parse-table;
-
-    if not(skip-descriptors) then
-      create-default-descriptors
-    end;
     
+    verbose-msg(!"Analyzing grammar...");
+    sdf2rtg;
+    read-from => RTG(_, ProdRules(<id>));
+    register-rtg;
+
+    create-default-descriptors;
     create-java-implementation
   
   /** @type FILE -> _ */
-  create-default-descriptors =    
-    verbose-msg(!"Analyzing grammar...");
-    sdf2rtg;
-    read-from => RTG(_, ProdRules(rtg));
-
-    <init-ast-form-heuristic> rtg;
+  create-default-descriptors =
+    // TODO: Only build default descriptor files if they do not exist
+    //       or perhaps they shouldn't be built if they aren't imported?
     
     create-folding-descriptor;
     create-outliner-descriptor;
@@ -75,12 +72,6 @@ strategies
     create-manifest;
     create-colorer;
     create-plugin-xml
-  
-  skip-descriptors =
-    !["", "-Colorer", "-Folding", "-Outliner"];
-    map(
-      <file-exists> <descriptor-name>
-    )
   
   create-or-copy-parse-table =
     where(

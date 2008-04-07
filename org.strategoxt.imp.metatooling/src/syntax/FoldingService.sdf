@@ -15,5 +15,7 @@ exports
 	
 	%% TODO2: AST consistency wrt ColorerService
     
+    %% TODO: Reconsider "all" keyword for siblings; we already have list sorts using '*'
+    
           Node -> FoldingRule
     "all" Node -> FoldingRule {cons("FoldAll")}
