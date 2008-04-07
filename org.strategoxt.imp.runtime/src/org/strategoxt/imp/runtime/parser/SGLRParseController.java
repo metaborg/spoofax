@@ -175,6 +175,8 @@ public abstract class SGLRParseController extends SimpleLPGParseController {
 		problemMarkerTypes.remove(problemMarkerType);
 	}
 	
+	// FIXME: Parse errors are no longer supported in the newer versions of IMP
+	
 	private void reportParseError(TokenExpectedException exception) {
 		String message = exception.getShortMessage();
 		IToken token = parser.getTokenizer().makeErrorToken(exception.getOffset());
