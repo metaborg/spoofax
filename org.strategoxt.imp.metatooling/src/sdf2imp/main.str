@@ -92,6 +92,8 @@ strategies
 
   parse-table-target =
     <conc-strings> ("syntax/", <get-sdf-main-module>, ".tbl")
+    
+  // TODO: Cache rtg like parse table (specifying both the rtg and table would make -i optional)
 
   sdf2rtg =
     xtc-transform(!"sdf2rtg", !["--ignore-missing-cons", "-m", <get-sdf-main-module> | <pass-verbose>]);
