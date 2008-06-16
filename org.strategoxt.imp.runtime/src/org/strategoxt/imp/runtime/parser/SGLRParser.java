@@ -7,6 +7,7 @@ import lpg.runtime.PrsStream;
 
 import org.eclipse.imp.parser.IParser;
 import org.spoofax.NotImplementedException;
+import org.spoofax.interpreter.core.Interpreter;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.SGLR;
 import org.spoofax.jsglr.SGLRException;

@@ -3,6 +3,7 @@ package org.strategoxt.imp.runtime.parser;
 import java.util.ArrayList;
 import java.util.List;
 
+import lpg.runtime.ILexStream;
 import lpg.runtime.IToken;
 
 import org.eclipse.core.runtime.IPath;
@@ -12,7 +13,6 @@ import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.parser.IMessageHandler;
 import org.eclipse.imp.parser.ISourcePositionLocator;
-import org.eclipse.imp.parser.ParseError;
 import org.eclipse.imp.parser.SimpleLPGParseController;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.spoofax.jsglr.BadTokenException;
@@ -33,8 +33,6 @@ import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenKindManager;
 public abstract class SGLRParseController extends SimpleLPGParseController {
 	private final List<String> problemMarkerTypes = new ArrayList<String>();
 	
-	private final List<ParseError> parseErrors = new ArrayList<ParseError>();
-	
 	private final SGLRTokenKindManager tokenManager = new SGLRTokenKindManager();
 	
 	private final String startSymbol;
@@ -47,8 +45,7 @@ public abstract class SGLRParseController extends SimpleLPGParseController {
 	
 	private IPath path;
 	
-	@SuppressWarnings("unused")
-	private org.eclipse.imp.parser.IMessageHandler messages;
+	private IMessageHandler messages;
 
 	// Simple accessors
 	
@@ -67,14 +64,6 @@ public abstract class SGLRParseController extends SimpleLPGParseController {
 	@Override
 	public final ISourceProject getProject() {
 		return project;
-	}
-	
-	public final List<ParseError> getErrors() {
-		return parseErrors;
-	}
-
-	public final boolean hasErrors() {
-		return getErrors().size() != 0;
 	}
 
 	/**
@@ -120,7 +109,7 @@ public abstract class SGLRParseController extends SimpleLPGParseController {
 	public AstNode parse(String input, boolean scanOnly, IProgressMonitor monitor) {
 		try {
 			// TODO2: Optimization - don't produce AST if scanOnly is true
-			parseErrors.clear();
+			//parseErrors.clear();
 			currentAst = parser.parse(input.toCharArray(), getPath().toPortableString());
 		} catch (TokenExpectedException x) {
 			reportParseError(x);
@@ -142,17 +131,7 @@ public abstract class SGLRParseController extends SimpleLPGParseController {
 		return tokenManager.isKeyword(kind);
 	}
 	
-//	public final String getTokenKindName(int kind) {
-//		return tokenManager.getName(kind);
-//	}
-	
 	// Grammar information
-
-//	public String getSingleLineCommentPrefix() {
-//		// This is a supposedly short-term solution for getting
-//		// a language's single-line comment prefix
-//		return "";
-//	}
 
 	/**
 	 * Returns the name of the currently active grammar definition.
@@ -160,6 +139,11 @@ public abstract class SGLRParseController extends SimpleLPGParseController {
 	public abstract String getActiveGrammarName();
 	
 	public abstract ParseTable selectParseTable(IPath path);
+	
+	@Override
+	public ISourcePositionLocator getNodeLocator() {
+		return new SGLRAstLocator();
+	}
 	
 	// Problem markers
 	
@@ -175,16 +159,20 @@ public abstract class SGLRParseController extends SimpleLPGParseController {
 		problemMarkerTypes.remove(problemMarkerType);
 	}
 	
-	// FIXME: Parse errors are no longer supported in the newer versions of IMP
+	// Error reporting
+	
+	private void reportError(String message, IToken token) {
+		messages.handleSimpleMessage(
+				message, token.getStartOffset(), token.getEndOffset(),
+				token.getColumn(), token.getEndColumn(), token.getLine(), token.getEndLine());
+	}
 	
 	private void reportParseError(TokenExpectedException exception) {
 		String message = exception.getShortMessage();
 		IToken token = parser.getTokenizer().makeErrorToken(exception.getOffset());
 		
-		parseErrors.add(new ParseError(message, token));
+		reportError(message, token);
 	}
-	
-	// Error reporting
 	
 	private void reportParseError(BadTokenException exception) {
 		IToken token = parser.getTokenizer().makeErrorToken(exception.getOffset());
@@ -192,7 +180,7 @@ public abstract class SGLRParseController extends SimpleLPGParseController {
         	? exception.getShortMessage()
         	: "'" + token.toString() + "' not expected here";
 
-		parseErrors.add(new ParseError(message, token));
+        reportError(message, token);
 	}
 	
 	private void reportParseError(Exception exception) {
@@ -201,7 +189,7 @@ public abstract class SGLRParseController extends SimpleLPGParseController {
 		
 		IToken token = parser.getTokenizer().makeErrorToken(0);
 		
-		parseErrors.add(new ParseError(message, token));
+		reportError(message, token);
 	}
 	
 	// LPG compatibility
@@ -218,21 +206,6 @@ public abstract class SGLRParseController extends SimpleLPGParseController {
 	@Override
 	public SGLRLexer getLexer() {
 		return new SGLRLexer(getParser().getTokenizer().getLexStream());
-	}
-
-
-	public int getTokenIndexAtCharacter(int offset) {
-		int index = getParser().getParseStream().getTokenIndexAtCharacter(offset);
-    	return Math.abs(index);
-	}
-
-	public IToken getTokenAtCharacter(int offset) {
-		return getParser().getParseStream().getTokenAtCharacter(offset);
-	}
-	
-	@Override
-	public ISourcePositionLocator getNodeLocator() {
-		return new SGLRAstLocator();
 	}
 	
 	@Override

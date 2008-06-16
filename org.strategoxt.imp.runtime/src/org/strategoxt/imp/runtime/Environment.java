@@ -36,6 +36,10 @@ public final class Environment {
 		return factory;
 	}
 	
+	public static WrappedATermFactory getWrappedTermFactory() {
+		return wrappedFactory;
+	}
+	
 	public static SGLR createSGLR(ParseTable parseTable) {
 		return new SGLR(factory, parseTable);
 	}

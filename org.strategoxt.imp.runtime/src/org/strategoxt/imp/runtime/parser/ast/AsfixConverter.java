@@ -72,7 +72,7 @@ public class AsfixConverter {
 	}
 	
 	public AstNode implode(ATerm asfix) {
-		if (!(asfix instanceof ATermAppl && ((ATermAppl) asfix).getName().equals("parsetree")))
+		if (!(asfix instanceof ATermAppl || ((ATermAppl) asfix).getName().equals("parsetree")))
 			throw new IllegalArgumentException("Parse tree expected");
 		
 		ATerm top = (ATerm) asfix.getChildAt(PARSE_TREE);

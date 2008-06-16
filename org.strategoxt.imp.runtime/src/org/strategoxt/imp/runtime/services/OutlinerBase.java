@@ -40,7 +40,8 @@ public abstract class OutlinerBase extends org.eclipse.imp.services.base.Outline
 	// to find it.
 	
 	protected void outline(AstNode node) {
-		String caption = getIdentifier(node);
+		String caption = getIdentifierHelper(node);
+		
 		if (caption != null) {
 			outline(node, caption);
 		} else {
@@ -48,6 +49,23 @@ public abstract class OutlinerBase extends org.eclipse.imp.services.base.Outline
 				"Unable to infer the caption of this AST node: " +
 				node.getSort() + "." + node.getConstructor()
 			);
+		}
+	}
+
+	private String getIdentifierHelper(AstNode node) {
+		// HACK: Hardcoded outlining, until we have support for patterns
+		String constructor = node == null ? null : node.getConstructor();
+		
+		if ("MethodDec".equals(constructor)) {
+			return node.getChildren().get(0).getChildren().get(3).toString();
+		} else if ("ClassDec".equals(constructor)) {
+			return node.getChildren().get(0).getChildren().get(1).toString();
+		} else if ("Rules".equals(constructor)) {
+			return "rules";
+		} else if ("Strategies".equals(constructor)) {
+			return "strategies";
+		} else {
+			return getIdentifier(node);
 		}
 	}
 	
