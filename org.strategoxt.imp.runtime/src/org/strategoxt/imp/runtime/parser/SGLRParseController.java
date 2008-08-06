@@ -3,13 +3,12 @@ package org.strategoxt.imp.runtime.parser;
 import java.util.ArrayList;
 import java.util.List;
 
-import lpg.runtime.ILexStream;
 import lpg.runtime.IToken;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.imp.editor.UniversalEditor;
+import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.parser.IMessageHandler;
 import org.eclipse.imp.parser.ISourcePositionLocator;
@@ -19,9 +18,9 @@ import org.spoofax.jsglr.BadTokenException;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.SGLR;
 import org.spoofax.jsglr.TokenExpectedException;
+import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenKindManager;
-
 
 /**
  * IMP parse controller for an SGLR parser, reusing some logic from the LPG
@@ -30,7 +29,7 @@ import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenKindManager;
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  * @author Karl Trygve Kalleberg <karltk add strategoxt.org>
  */
-public abstract class SGLRParseController extends SimpleLPGParseController {
+public class SGLRParseController extends SimpleLPGParseController {
 	private final List<String> problemMarkerTypes = new ArrayList<String>();
 	
 	private final SGLRTokenKindManager tokenManager = new SGLRTokenKindManager();
@@ -81,7 +80,7 @@ public abstract class SGLRParseController extends SimpleLPGParseController {
     
     static {
     	// HACK: set always repainting in IMP using static field
-    	UniversalEditor.fAlwaysRepaint = true;
+    	// TODO: UniversalEditor.fAlwaysRepaint = true;
     	
     	SGLR.setWorkAroundMultipleLookahead(true);
     }
@@ -89,9 +88,11 @@ public abstract class SGLRParseController extends SimpleLPGParseController {
     /**
      * Create a new SGLRParseController.
      * 
+     * @param language      The name of the language, as registered in the {@link LanguageRegistry}.
      * @param startSymbol	The start symbol of this grammar, or null.
      */
-    public SGLRParseController(String startSymbol) {
+    public SGLRParseController(String language, String startSymbol) {
+    	super(language);
     	this.startSymbol = startSymbol;
     }
 
@@ -124,25 +125,20 @@ public abstract class SGLRParseController extends SimpleLPGParseController {
 		return currentAst;
 	}
 	
-	// Token kind management
+	// Grammar information
 	
 	@Override
 	public final boolean isKeyword(int kind) {
 		return tokenManager.isKeyword(kind);
 	}
 	
-	// Grammar information
-
-	/**
-	 * Returns the name of the currently active grammar definition.
-	 */ 
-	public abstract String getActiveGrammarName();
-	
-	public abstract ParseTable selectParseTable(IPath path);
-	
 	@Override
 	public ISourcePositionLocator getNodeLocator() {
 		return new SGLRAstLocator();
+	}
+	
+	public ParseTable selectParseTable(IPath path) { 
+		return Environment.getParseTable(getLanguage());
 	}
 	
 	// Problem markers

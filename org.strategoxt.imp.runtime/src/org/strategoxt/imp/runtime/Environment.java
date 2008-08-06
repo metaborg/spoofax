@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.imp.language.Language;
 import org.spoofax.interpreter.core.Interpreter;
 import org.spoofax.interpreter.adapter.aterm.WrappedATermFactory;
 import org.spoofax.jsglr.InvalidParseTableException;
@@ -29,8 +30,8 @@ public final class Environment {
 	private final static ParseTableManager parseTableManager
 		= new ParseTableManager(factory);
 	
-	private final static Map<String, ParseTable> parseTables
-		= new HashMap<String, ParseTable>();
+	private final static Map<Language, ParseTable> parseTables
+		= new HashMap<Language, ParseTable>();
 	
 	public static ATermFactory getATermFactory() {
 		return factory;
@@ -48,7 +49,7 @@ public final class Environment {
 		return new Interpreter(wrappedFactory);
 	}
 	
-	public static void registerParseTable(String grammar, InputStream parseTable)
+	public static void registerParseTable(Language grammar, InputStream parseTable)
 		throws IOException, InvalidParseTableException {
 		
 		try {
@@ -61,7 +62,7 @@ public final class Environment {
 		}
 	}
 	
-	public static ParseTable getParseTable(String grammar) {
+	public static ParseTable getParseTable(Language grammar) {
 		ParseTable table = parseTables.get(grammar);
 		
 		if (table == null) throw new IllegalStateException("Parse table not available: " + grammar);

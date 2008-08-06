@@ -2,6 +2,7 @@ package org.strategoxt.imp.runtime.parser.ast;
 
 import java.util.ArrayList;
 
+import org.eclipse.imp.language.Language;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 
 import lpg.runtime.IToken;
@@ -9,10 +10,10 @@ import lpg.runtime.IToken;
 public class RootAstNode extends AstNode {
 	private final SGLRParseController parseController;
 	
-	private final String grammar;
+	private final Language language;
 
-	public String getGrammarName() {
-		return grammar;
+	public Language getGrammarName() {
+		return language;
 	}
 
 	public SGLRParseController getParseController() {
@@ -25,7 +26,7 @@ public class RootAstNode extends AstNode {
 		super(sort, constructor, leftToken, rightToken, children);
 		
 		this.parseController = parseController;
-		this.grammar = parseController.getActiveGrammarName();
+		this.language = parseController.getLanguage();
 	}
 	
 	public static RootAstNode makeRoot(AstNode ast, SGLRParseController parseController) {
