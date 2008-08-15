@@ -15,15 +15,18 @@ import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
 import org.strategoxt.imp.runtime.parser.ast.AsfixConverter;
 import org.strategoxt.imp.runtime.parser.ast.RootAstNode;
-import org.strategoxt.imp.runtime.parser.tokens.SGLRParsersym;
-import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenKindManager;
+import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
+import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
 import org.strategoxt.imp.runtime.stratego.adapter.WrappedAstNodeFactory;
 
 import aterm.ATerm;
 
 /**
- * IParser implementation for SGLR.
+ * IMP IParser implementation for SGLR,
+ * imploding parse trees to AST nodes and tokens.
+ * 
+ * @see SimpleSGLRParser
  *
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */ 
@@ -45,7 +48,7 @@ public class SGLRParser implements IParser {
 	}
 
 	public int getEOFTokenKind() {
-		return SGLRParsersym.TK_EOF;
+		return TokenKind.TK_EOF.ordinal();
 	}
 
 	public PrsStream getParseStream() {
@@ -54,7 +57,7 @@ public class SGLRParser implements IParser {
 	
 	// Initialization and parsing
 	
-	public SGLRParser(SGLRParseController controller, SGLRTokenKindManager tokenManager,
+	public SGLRParser(SGLRParseController controller, TokenKindManager tokenManager,
 			ParseTable parseTable, String startSymbol) {
 		
 		// TODO: Once spoofax supports it, use a start symbol
@@ -66,6 +69,10 @@ public class SGLRParser implements IParser {
 		parser = Environment.createSGLR(parseTable);
 		parser.setCycleDetect(false);
 		parser.setFilter(false);
+	}
+	
+	public SGLRParser(ParseTable parseTable, String startSymbol) {
+		this(null, new TokenKindManager(), parseTable, startSymbol);
 	}
 	
 	/**

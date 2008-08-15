@@ -2,6 +2,7 @@ module EditorService
 
 imports
   Common
+  Language
   FoldingService
   OutlinerService
   ColorerService
@@ -14,21 +15,16 @@ exports
 exports
 
   sorts
-    Module FileName ModuleName Imports Import SectionName
+    Module FileName ModuleName Imports Import
 
   lexical syntax
   
-    [a-zA-Z0-9\-\_]+ -> FileName
-    {FileName "/"}+  -> ModuleName
-    ~[\n\r]*         -> SectionName %% FIXME: Section name can't be empty now; add follow restr. on keyword?
+    [a-zA-Z0-9\-\_\.]+ -> FileName
+    {FileName "/"}+    -> ModuleName
   
   lexical restrictions
   
-  	FileName    -/- [a-zA-Z0-9\-\_]
-
-  context-free restrictions
-    
-    SectionName -/- ~[\n\r]
+  	FileName    -/- [a-zA-Z0-9\-\_\.]
 
   context-free syntax
   	
@@ -38,17 +34,3 @@ exports
 
     ModuleName            -> Import {cons("Import")}
     ModuleName "[" Id "]" -> Import {cons("ImportRenamed")}
-
-    %% TODO: Including other grammar meta-data here, such as the grammar name, start symbol, extensions
-    %%
-    %% e.g.:
-    %%
-    %% exports / hiddens
-    %%   Stratego-WebDSL:
-    %%     .str
-    %%     Module[[StrategoHost]]
-    %%
-    %%   Stratego:  %% might be imported from another esv: Stratego-WebDSL incorporates 'Stratego'
-    %%     .str     %% (of course, parametrized imports would need to be renamed/disabled)   
-    %%     Module   %% start symbol needs Sort() constructor for renaming support
-    

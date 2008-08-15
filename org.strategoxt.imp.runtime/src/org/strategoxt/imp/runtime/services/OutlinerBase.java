@@ -6,7 +6,7 @@ import lpg.runtime.IPrsStream;
 import lpg.runtime.IToken;
 
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
-import org.strategoxt.imp.runtime.parser.tokens.SGLRParsersym;
+import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.*;
 
 /**
  * Base class for an outliner.
@@ -101,7 +101,7 @@ public abstract class OutlinerBase extends org.eclipse.imp.services.base.Outline
 			IToken token = stream.getTokenAt(i);
 			int kind = token.getKind();
 
-			if (kind == SGLRParsersym.TK_IDENTIFIER || kind == SGLRParsersym.TK_STRING)
+			if (kind == TK_IDENTIFIER.ordinal() || kind == TK_STRING.ordinal())
 				return token.toString();
 			
 		} while (i++ < end);

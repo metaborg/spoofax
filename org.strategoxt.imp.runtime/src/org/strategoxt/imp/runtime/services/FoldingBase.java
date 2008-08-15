@@ -5,7 +5,7 @@ import lpg.runtime.IPrsStream;
 import lpg.runtime.IToken;
 
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
-import org.strategoxt.imp.runtime.parser.tokens.SGLRParsersym;
+import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.*;
 
 /**
  * Base class for a folding service. Includes special logic to deal with
@@ -30,7 +30,7 @@ public abstract class FoldingBase extends org.eclipse.imp.services.base.FolderBa
 			while (parseStream.getStreamLength() >= lastToken.getTokenIndex()) {
 				IToken next = parseStream.getTokenAt(lastToken.getTokenIndex() + 1);
 
-				if (next.getKind() == SGLRParsersym.TK_LAYOUT) {
+				if (next.getKind() == TK_LAYOUT.ordinal()) {
 					lastToken = next;
 					if ((end = getEndOfLinePosition(next)) != -1)
 						break;

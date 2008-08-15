@@ -36,12 +36,14 @@ exports
     "~//" CommentLine -> ColorRule {cons("CommentLine"), prefer}
     "~//" CommentLine -> OutlineRule {cons("CommentLine"), prefer}
     "~//" CommentLine -> FoldingRule {cons("CommentLine"), prefer}
+    "~//" CommentLine -> LanguageProperty {cons("CommentLine"), prefer}
     
     %% Printed empty lines
     "~\n" -> Section {cons("EmptyLine"), avoid}
     "~\n" -> ColorRule {cons("EmptyLine")}
     "~\n" -> OutlineRule {cons("EmptyLine")}
     "~\n" -> FoldingRule {cons("EmptyLine")}
+    "~\n" -> LanguageProperty {cons("EmptyLine")}
   
     %% (Anti-)quotations
     "descriptor" "|[" Module "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
@@ -57,9 +59,11 @@ exports
                  "|[" FoldingRule "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr"), avoid}
 
     QuotedTerm -> Id {cons("FromMetaExpr"), avoid}
+    QuotedTerm -> PropertyValue {cons("FromMetaExpr"), avoid}
     QuotedTerm -> ModuleName {cons("FromMetaExpr")}
     QuotedTerm -> Color {cons("FromMetaExpr")}
     QuotedTerm -> Font  {cons("FromMetaExpr")}
+    QuotedTerm -> SectionName {cons("FromMetaExpr")}
     
     QuotedTerms -> OutlineRule* {cons("FromMetaExpr")}
     QuotedTerms -> ColorRule*   {cons("FromMetaExpr")}

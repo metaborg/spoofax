@@ -10,20 +10,24 @@ imports
 strategies
 
   create-outliner-descriptor =
-    heuristic-outliner-productions;
-    map(create-folding-or-outliner-rule);
     
-    <output-default-descriptor-file> |[
-      module <descriptor-name> "-Outliner"
-      
-      ~
-      ~// Outliner rules take the form of <sort>.<pattern>, <sort>._, or _.<pattern>
-      ~
-      
-      outliner Default outliner
-      
-        ~*<id>
-    ]|
+    output-default-descriptor-file(
+      <descriptor-name> "-Outliner.generated"
+    , 
+      heuristic-outliner-productions;
+      map(create-folding-or-outliner-rule);
+      !|[
+        module <descriptor-name> "-Outliner.generated"
+        
+        ~
+        ~// Outliner rules take the form of <sort>.<pattern>, <sort>._, or _.<pattern>
+        ~
+        
+        outliner Default outliner
+        
+          ~*<id>
+      ]|
+    )
   
   heuristic-outliner-productions =
     StartSymbol;

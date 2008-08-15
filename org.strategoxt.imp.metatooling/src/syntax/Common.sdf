@@ -3,13 +3,16 @@ module Common
 exports
 
   sorts
-    Id Int String CommentChar Node Sort Constructor ConstructorId ReservedName
+    Id Int String CommentChar Node Sort Constructor ConstructorId ReservedName SectionName
 
   lexical syntax
   
     [a-zA-Z][a-zA-Z0-9\_]* -> Id
     "-"? [0-9]+            -> Int
     "\"" ~[\"\n]* "\""     -> String
+    
+    %% FIXME: Section name can't be empty now; add follow restr. on keyword?
+    ~[\n\r]*               -> SectionName
     
     [\ \t\n\r]             -> LAYOUT
     
@@ -29,6 +32,8 @@ exports
     
     LAYOUT? -/- [\/].[\/]
     LAYOUT? -/- [\/].[\*]
+    
+    SectionName -/- ~[\n\r]
 
   context-free syntax
   
@@ -37,8 +42,8 @@ exports
 
     Sort "." "_" -> Sort {bracket}
     
-    "_" "." Id -> Constructor {cons("Constructor")}
-            Id -> ConstructorId {cons("ConstructorId")}
+    "_" "." Id -> Constructor {cons("ConstructorOnly")}
+            Id -> ConstructorId {cons("Constructor")}
     
     Sort                   -> Node
     Constructor            -> Node

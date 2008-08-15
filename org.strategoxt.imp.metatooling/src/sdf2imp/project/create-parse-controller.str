@@ -1,0 +1,39 @@
+module sdf2imp/project/create-parse-controller
+
+imports
+  libstratego-lib
+  libstratego-xtc
+  sdf-options
+  
+  sdf2imp/lib/RTG
+    
+  sdf2imp/util/-
+
+strategies
+  
+  get-parse-controller-name =
+    <conc-strings> (<get-main-class-name>, "ParseController")
+
+  create-parse-controller =
+    x_Name    := <get-parse-controller-name>;
+    table     := <get-sdf-main-module>;
+    
+    <output-java-file> |[
+      package parser;
+
+      import java.io.IOException;
+      import org.spoofax.jsglr.InvalidParseTableException;
+      import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
+      import org.strategoxt.imp.runtime.dynamicloading.DynamicParseController;
+      
+      public class x_Name extends DynamicParseController {
+        private static final String LANGUAGE = "~table";
+        private static final String TABLE = "/syntax/" + LANGUAGE + ".tbl";
+        private static final String DESCRIPTOR = "/src/" + LANGUAGE + ".esv";
+        
+        public x_Name() {
+          super(x_Name.class.getResourceAsStream(DESCRIPTOR),
+                x_Name.class.getResourceAsStream(TABLE));
+        }
+      }
+    ]|

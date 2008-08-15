@@ -1,4 +1,29 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <?eclipse version="3.0"?>
 
-<plugin></plugin>
+<plugin>
+   <extension
+         point="org.eclipse.imp.runtime.languageDescription">
+      <language
+            extensions="sdf2impbase"
+            description="sdf2imp generic base language"
+            language="Root">
+      </language>
+   </extension>
+   <extension
+         id="org.strategoxt.imp.runtime.parser"
+         name="Root Parser Wrapper"
+         point="org.eclipse.imp.runtime.parser">
+      <parser
+            class="org.strategoxt.imp.runtime.dynamicloading.DynamicParseController"
+            language="Root">
+      </parser>
+   </extension>
+   <extension
+         point="org.eclipse.imp.runtime.tokenColorer">
+      <tokenColorer
+            class="org.strategoxt.imp.runtime.services.TokenColorer"
+            language="Root">
+      </tokenColorer>
+   </extension>
+</plugin>

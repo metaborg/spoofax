@@ -8,6 +8,7 @@ import lpg.runtime.IToken;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.parser.IMessageHandler;
@@ -15,12 +16,12 @@ import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.eclipse.imp.parser.SimpleLPGParseController;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.spoofax.jsglr.BadTokenException;
-import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.SGLR;
 import org.spoofax.jsglr.TokenExpectedException;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
-import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenKindManager;
+import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
+import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
 
 /**
  * IMP parse controller for an SGLR parser, reusing some logic from the LPG
@@ -32,11 +33,9 @@ import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenKindManager;
 public class SGLRParseController extends SimpleLPGParseController {
 	private final List<String> problemMarkerTypes = new ArrayList<String>();
 	
-	private final SGLRTokenKindManager tokenManager = new SGLRTokenKindManager();
+	private final TokenKindManager tokenManager = new TokenKindManager();
 	
-	private final String startSymbol;
-	
-	private SGLRParser parser;
+	private final SGLRParser parser;
 	
 	private AstNode currentAst;
 	
@@ -79,8 +78,7 @@ public class SGLRParseController extends SimpleLPGParseController {
 	// Parsing and initialization
     
     static {
-    	// HACK: set always repainting in IMP using static field
-    	// TODO: UniversalEditor.fAlwaysRepaint = true;
+    	// UNDONE: UniversalEditor.fAlwaysRepaint = true;
     	
     	SGLR.setWorkAroundMultipleLookahead(true);
     }
@@ -91,9 +89,9 @@ public class SGLRParseController extends SimpleLPGParseController {
      * @param language      The name of the language, as registered in the {@link LanguageRegistry}.
      * @param startSymbol	The start symbol of this grammar, or null.
      */
-    public SGLRParseController(String language, String startSymbol) {
-    	super(language);
-    	this.startSymbol = startSymbol;
+    public SGLRParseController(Language language, String startSymbol) {
+    	super(language == null ? null : language.getName());
+    	parser = new SGLRParser(this, tokenManager, Environment.getParseTable(language.getName()), startSymbol);
     }
 
     @Override
@@ -102,16 +100,13 @@ public class SGLRParseController extends SimpleLPGParseController {
 		this.path = filePath;
 		this.project = project;
 		this.messages = handler;
-		
-		ParseTable table = selectParseTable(path);
-		parser = new SGLRParser(this, tokenManager, table, startSymbol);
     }
 
 	public AstNode parse(String input, boolean scanOnly, IProgressMonitor monitor) {
 		try {
 			// TODO2: Optimization - don't produce AST if scanOnly is true
-			//parseErrors.clear();
 			currentAst = parser.parse(input.toCharArray(), getPath().toPortableString());
+			messages.clearMessages();
 		} catch (TokenExpectedException x) {
 			reportParseError(x);
 		} catch (BadTokenException x) {
@@ -129,16 +124,12 @@ public class SGLRParseController extends SimpleLPGParseController {
 	
 	@Override
 	public final boolean isKeyword(int kind) {
-		return tokenManager.isKeyword(kind);
+		return kind == TokenKind.TK_KEYWORD.ordinal();
 	}
 	
 	@Override
 	public ISourcePositionLocator getNodeLocator() {
 		return new SGLRAstLocator();
-	}
-	
-	public ParseTable selectParseTable(IPath path) { 
-		return Environment.getParseTable(getLanguage());
 	}
 	
 	// Problem markers
@@ -189,14 +180,6 @@ public class SGLRParseController extends SimpleLPGParseController {
 	}
 	
 	// LPG compatibility
-	
-	/**
-	 * @deprecated	Use {@link SGLRParseController#isKeyword(int)} instead.
-	 */
-	@Deprecated
-	public char[][] getKeywords() {
-		return new char[0][0];
-	}
 
 	@Deprecated
 	@Override
@@ -208,5 +191,4 @@ public class SGLRParseController extends SimpleLPGParseController {
 	public ILanguageSyntaxProperties getSyntaxProperties() {
 		return null;
 	}
-	
 }

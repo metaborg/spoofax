@@ -10,9 +10,7 @@ STRS     = $(wildcard src/*.str) \
 
 SDFS     = $(wildcard src/syntax/*.sdf)
 
-CTREES   = # TODO: src/sdf2imp.ctree
-
-SYNTAX   = src/syntax/EditorService.tbl src/syntax/EditorService.pp.af src/syntax/EditorService.str src/syntax/Stratego-Java-EditorService.tbl
+SYNTAX   = src/syntax/EditorService.tbl src/syntax/EditorService.pp src/syntax/EditorService-pretty.pp.af src/syntax/EditorService.str src/syntax/Stratego-Java-EditorService.tbl
 
 STRCFLAGS = \
 	-la stratego-xtc \
@@ -37,12 +35,11 @@ STRINCLUDES = \
 	-I src/syntax \
     `pkg-config --variable=strcflags java-front`
 
-all : sdf2imp syntax eclipse-deps
+all : sdf2imp sdf2imp.ctree syntax
 
 check : tests/EditorService.runtestsuite \
         tests/test-editor-descriptor.runsh \
-        tests/test-stratego-java.runsh \
-        # tests/test-webdsl.runsh # unfair dependencies
+        tests/test-stratego-java.runsh
 
 sdf2imp : $(STRS) $(SYNTAX) Makefile
 	strc -i src/sdf2imp.str -o $@ $(STRINCLUDES) $(STRCFLAGS) -m main-sdf2imp $(STRCSTFU)
@@ -50,10 +47,8 @@ sdf2imp : $(STRS) $(SYNTAX) Makefile
 
 syntax : $(SYNTAX)
 
-eclipse-deps : $(CTREES)
-
 clean :
-	rm -f $(CTREES) sdf2imp
+	rm -f sdf2imp.ctree sdf2imp
 
 # files:
 
@@ -62,11 +57,11 @@ clean :
 %.rtree : %.str
 	parse-stratego -i $< -o $@
 
-%.ctree : %.str
+%.ctree : src/%.str
 	strc -F -i $< -o $@ $(STRINCLUDES) $(STRCSTFU)
 
-# %.pp : %.def
-# 	ppgen -i $< -o $@
+%.pp : %.def
+	ppgen -i $< -o $@
 
 %.pp.af : %.pp
 	parse-pp-table -i $< -o $@

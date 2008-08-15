@@ -8,8 +8,8 @@ import lpg.runtime.PrsStream;
 
 import static org.spoofax.jsglr.Term.*;
 
-import org.strategoxt.imp.runtime.parser.tokens.SGLRParsersym;
-import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenKindManager;
+import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.*;
+import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
 
 import aterm.ATerm;
@@ -58,7 +58,7 @@ public class AsfixConverter {
 	
 	private final SGLRTokenizer tokenizer;
 	
-	private final SGLRTokenKindManager tokenManager;
+	private final TokenKindManager tokenManager;
 	
 	/** Character offset for the current implosion. */ 
 	private int offset;
@@ -66,7 +66,7 @@ public class AsfixConverter {
 	private boolean lexicalContext;
 	
 	@SuppressWarnings("unchecked") // TODO2: Expand/explode generic signatures?	
-    public AsfixConverter(SGLRTokenKindManager tokenManager, SGLRTokenizer tokenizer) {
+    public AsfixConverter(TokenKindManager tokenManager, SGLRTokenizer tokenizer) {
 		this.tokenManager = tokenManager;
 		this.tokenizer = tokenizer;
 	}
@@ -226,7 +226,7 @@ public class AsfixConverter {
 
 				// Create new empty token
 				// HACK: Assume TK_LAYOUT kind for empty tokens in AST nodes
-				return tokenizer.makeToken(offset, SGLRParsersym.TK_LAYOUT, true);
+				return tokenizer.makeToken(offset, TK_LAYOUT, true);
 			} else {
 				return parseStream.getTokenAt(index + 1); 
 			}
@@ -240,7 +240,7 @@ public class AsfixConverter {
 		
 		for (int i = lastToken.getTokenIndex(); i > begin; i--) {
 			lastToken = parseStream.getTokenAt(i);
-			if (lastToken.getKind() != SGLRParsersym.TK_LAYOUT
+			if (lastToken.getKind() != TK_LAYOUT.ordinal()
 					|| lastToken.getStartOffset() == lastToken.getEndOffset()-1)
 				break;
 		}

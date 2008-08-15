@@ -1,7 +1,7 @@
 package org.strategoxt.imp.runtime.parser;
 
 import org.eclipse.imp.parser.ILexer;
-import org.strategoxt.imp.runtime.parser.tokens.SGLRParsersym;
+import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
 
 import lpg.runtime.IPrsStream;
 import lpg.runtime.LexStream;
@@ -30,7 +30,7 @@ public class SGLRLexer implements ILexer {
 	 */
 	@Deprecated
 	public int[] getKeywordKinds() {
-		return new int[] { SGLRParsersym.TK_KEYWORD };
+		return new int[] { TokenKind.TK_KEYWORD.ordinal() };
 	}
 	
 	@Deprecated

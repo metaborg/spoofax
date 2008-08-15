@@ -6,33 +6,40 @@ imports
 exports
 
   sorts
-    Section ColorRule Font Color MaybeColor NoColor ColorName ColorNode TokenKind TokenKindName
-    ColorId
+  
+    Section ColorRule Font Color MaybeColor NoColor
+    TokenKind TokenKindName AttributeId Attribute AttributeRef
 
   context-free syntax
+  
 	"colorer" SectionName ColorRule* -> Section {cons("Colorer")}
 	
 	"colorer" -> ReservedName
 
   context-free syntax
-    "environment" ColorNode ":" Color MaybeColor Font -> ColorRule {cons("RuleAll")} %% One rule to rule them all
-                  ColorNode ":" Color MaybeColor Font -> ColorRule {cons("Rule")}
+  
+    "environment" ColorNode ":" Attribute -> ColorRule {cons("ColorRuleAll")} %% One rule to rule them all
+                  ColorNode ":" Attribute -> ColorRule {cons("ColorRule")}
+    
+    "environment" ColorNode ":" AttributeRef "=" Attribute -> ColorRule {cons("ColorRuleAllNamed")}
+                  ColorNode ":" AttributeRef "=" Attribute -> ColorRule {cons("ColorRuleNamed")}
 
-    "environment" ColorNode ":" NoColor NoColor Font -> ColorRule {cons("RuleAll")}
-                  ColorNode ":" NoColor NoColor Font -> ColorRule {cons("Rule")}
+    Color   MaybeColor Font -> Attribute {cons("Attribute")}
+    NoColor NoColor    Font -> Attribute {cons("Attribute")}
+    AttributeId             -> Attribute {cons("AttributeRef")}
     
     Node          -> ColorNode
     TokenKindName -> ColorNode {cons("Token"), prefer}
     
-    "identifier" "token" -> TokenKindName {cons("TK_IDENTIFIER")}
-    "number"     "token" -> TokenKindName {cons("TK_NUMBER")}
-    "layout"     "token" -> TokenKindName {cons("TK_LAYOUT")}
-    "string"     "token" -> TokenKindName {cons("TK_STRING")}
-    "keyword"    "token" -> TokenKindName {cons("TK_KEYWORD")}
-    "operator"   "token" -> TokenKindName {cons("TK_OPERATOR")}
-    "var"        "token" -> TokenKindName {cons("TK_VAR")}
-    "junk"       "token" -> TokenKindName {cons("TK_JUNK")}
-    "unknown"    "token" -> TokenKindName {cons("TK_UNKNOWN")}
+    "identifier" -> TokenKindName {cons("TK_IDENTIFIER")}
+    "number"     -> TokenKindName {cons("TK_NUMBER")}
+    "layout"     -> TokenKindName {cons("TK_LAYOUT")}
+    "string"     -> TokenKindName {cons("TK_STRING")}
+    "keyword"    -> TokenKindName {cons("TK_KEYWORD")}
+    "operator"   -> TokenKindName {cons("TK_OPERATOR")}
+    "var"        -> TokenKindName {cons("TK_VAR")}
+    "junk"       -> TokenKindName {cons("TK_JUNK")}
+    "unknown"    -> TokenKindName {cons("TK_UNKNOWN")}
     
               -> Font {cons("NORMAL")}
     "bold"    -> Font {cons("BOLD")}
@@ -43,33 +50,15 @@ exports
     %% "_" -> Font {cons("NORMAL")}
     
     "_"         -> Color {cons("ColorDefault")}
-    ColorName   -> Color {cons("ColorName")}
     Int Int Int -> Color {cons("ColorRGB")}
                 -> NoColor {cons("ColorDefault")}
     Color       -> MaybeColor
     NoColor     -> MaybeColor
-    
-    %% TODO: All named colors must be used-defined
 
-    ColorId "=" Color -> ColorRule {cons("DefineColor")}
+    AttributeId "=" Attribute -> ColorRule {cons("ColorDef")}
     
-    Id             -> ColorId                  %% Built-in color name (e.g., 'red')
-    String         -> ColorId {cons("String")} %% Descriptive color name (could be show in IDE)
-    "_"            -> ColorId {reject}
-    Font           -> ColorId {reject}
-    "environment"  -> ColorId {reject}
-  
-    "red"            -> ColorName {cons("RED")}
-    "dark" "red"     -> ColorName {cons("DARK_RED")}
-    "green"          -> ColorName {cons("GREEN")}
-    "dark" "green"   -> ColorName {cons("DARK_GREEN")}
-    "white"          -> ColorName {cons("WHITE")}
-    "black"          -> ColorName {cons("BLACK")}
-    "yellow"         -> ColorName {cons("YELLOW")}
-    "dark" "yellow"  -> ColorName {cons("DARK_YELLOW")}
-    "blue"           -> ColorName {cons("BLUE")}
-    "dark" "blue"    -> ColorName {cons("DARK_BLUE")}
-    "magenta"        -> ColorName {cons("MAGENTA")}
-    "dark" "magenta" -> ColorName {cons("DARK_MAGENTA")}
-    "gray"           -> ColorName {cons("GRAY")}
-    "dark" "gray"    -> ColorName {cons("DARK_GRAY")}
+    Id             -> AttributeId          %% Standard color name (e.g., 'red')
+    String         -> AttributeId          %% Descriptive color name (could be show in IDE)
+    "_"            -> AttributeId {reject}
+    Font           -> AttributeId {reject}
+    "environment"  -> AttributeId {reject}

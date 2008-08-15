@@ -10,8 +10,6 @@ strategies
   + start-symbol-option
   + reset-files-option
 
-  // TODO2: -s <start symbol> option (when JSGLR supports it)
-
   parse-table-option =
     ArgOption(
       "-p"
@@ -31,9 +29,9 @@ strategies
       "-n"
     , rules(BasePackage := <id>);
       get-package-name // ensure legal
-    , !"-n <packagename>      Set base package name"
+    , !"-n <packagename>      Set base package name (optional)"
     )
-
+    
   start-symbol-option =
     ArgOption(
       "-s"

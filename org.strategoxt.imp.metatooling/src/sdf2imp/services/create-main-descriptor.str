@@ -7,11 +7,76 @@ imports
 
 strategies
 
-  create-main-descriptor =
-    <output-default-descriptor-file> descriptor |[
+  create-analyze-main-descriptor =
+    output-default-descriptor-file(
+      main-descriptor-name
+    , 
+      default-main-descriptor => main-descriptor
+    );
+    
+    // Store the main descriptor in a rule for further reference
+    
+    if not(!main-descriptor) then
+      main-descriptor := <current-main-descriptor-file>
+    end;
+    
+    rules(MainDescriptor := main-descriptor)
+
+  default-main-descriptor =
+    name        := <get-sdf-main-module>;
+    ident       := <get-package-name>;
+    classname   := <get-main-class-name>;
+    pkgname     := <BasePackage>;
+    extensions  := <EditorExtensions>;
+    parsetable  := <parse-table-target>;
+    startsymbol := <StartSymbol>;
+    !|[
       module <main-descriptor-name>
       
-      imports <descriptor-name> "-Colorer"
-              <descriptor-name> "-Outliner"
-              <descriptor-name> "-Folding"
+      imports <descriptor-name> "-Colorer.generated"
+              <descriptor-name> "-Outliner.generated"
+              <descriptor-name> "-Folding.generated"
+      
+      language ~name
+      
+        name ~name
+        description <conc-strings> ("\"", name, "\"")
+        url http://strategoxt.org
+        ~
+        id ~ident
+        extends
+        aliases
+        ~
+        extensions ~extensions
+        table ~parsetable
+        start symbol ~startsymbol
     ]|
+  
+  current-main-descriptor-file =
+     {| OnImportFailure, IsImported:
+       main-descriptor-name := <main-descriptor-name>;
+       rules(
+         IsImported: main-descriptor-name
+         IgnoreBadName: Module(main-descriptor-name, _, _)
+         OnImportFailure := Module("", NoImports(), [])
+       );
+       
+       verbosity-scope(
+         !Import(<conc-strings> ("src/", main-descriptor-name));
+         input-descriptor-import;
+         add-imports
+       | -1 
+       );
+       
+       verbose-msg(!"Using current descriptor file to determine required generated descriptor components")
+     |}
+   <+
+     default-main-descriptor
+
+  verbosity-scope(s|level) = 
+    with( 
+      oldlevel := <verbosity>;
+      <set-verbosity> level
+    );
+    s;
+    with(<set-verbosity> oldlevel)

@@ -4,7 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import static org.strategoxt.imp.runtime.parser.tokens.SGLRParsersym.*;
+import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.*;
 
 import lpg.runtime.IToken;
 import lpg.runtime.LexStream;
@@ -55,18 +55,18 @@ public class SGLRTokenizer {
 		beginOffset = 0;
 		
 		// Token list must start with a bad token
-		makeToken(0, 0, true);
+		makeToken(0, TK_RESERVED, true);
 	}
 	
 	public void endStream() {
 		makeToken(beginOffset, TK_EOF, true);
 	}
 	
-	public SGLRToken makeToken(int endOffset, int kind, boolean allowEmptyToken) {
+	public SGLRToken makeToken(int endOffset, TokenKind kind, boolean allowEmptyToken) {
 		if (!allowEmptyToken && beginOffset == endOffset) // empty token
 			return null;
 		
-		SGLRToken token = new SGLRToken(parseStream, beginOffset, endOffset - 1, parseStream.mapKind(kind));
+		SGLRToken token = new SGLRToken(parseStream, beginOffset, endOffset - 1, kind.ordinal());
 		token.setTokenIndex(parseStream.getSize());
 		
 		// Add token and increment the stream size(!)
@@ -79,7 +79,7 @@ public class SGLRTokenizer {
 	}
 	
 	// Bridge method
-	public final SGLRToken makeToken(int endOffset, int kind) {
+	public final SGLRToken makeToken(int endOffset, TokenKind kind) {
 		return makeToken(endOffset, kind, false);
 	}
 	
@@ -87,7 +87,7 @@ public class SGLRTokenizer {
 	 * Creates an error token from existing tokens.
 	 */
 	public IToken makeErrorToken(IToken left, IToken right) {
-		return new Token(parseStream, left.getStartOffset(), right.getEndOffset(), TK_JUNK);
+		return new Token(parseStream, left.getStartOffset(), right.getEndOffset(), TK_JUNK.ordinal());
 	}
 	
 	/**
@@ -113,7 +113,7 @@ public class SGLRTokenizer {
 			endOffset++;
 		}
 		
-		return new Token(parseStream, offset, endOffset, TK_JUNK);
+		return new Token(parseStream, offset, endOffset, TK_JUNK.ordinal());
 	}
 	
 	/**
@@ -136,7 +136,7 @@ public class SGLRTokenizer {
 			beginOffset--;
 		}
 		
-		return new Token(parseStream, beginOffset, offset, TK_JUNK);
+		return new Token(parseStream, beginOffset, offset, TK_JUNK.ordinal());
 	}
 	
 	public static String dumpToString(IToken left, IToken right) {
@@ -145,7 +145,7 @@ public class SGLRTokenizer {
 		
 		for (int i = left.getTokenIndex(); i <= last; i++) {
 			IToken token = left.getPrsStream().getTokenAt(i);
-			result.append(SGLRTokenKindManager.getDefaultName(token.getKind()));
+			result.append(valueOf(token.getKind()));
 			result.append(":");
 			result.append(token.toString().replace("\n","\\n").replace("\r","\\r"));
 			if (i < last) result.append(", ");

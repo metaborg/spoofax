@@ -9,20 +9,22 @@ imports
 strategies
 
   create-folding-descriptor =
-    heuristic-folding-productions;
-    map(create-folding-or-outliner-rule);
     
-    <output-default-descriptor-file> |[
-      module <descriptor-name> "-Folding"
-      
-      ~
-      ~// Folding rules take the form of <sort>.<constructor>, <sort>._, or _.<constructor>
-      ~
+    output-default-descriptor-file(
+      <descriptor-name> "-Folding.generated"
+    , 
+      heuristic-folding-productions;
+      map(create-folding-or-outliner-rule);
+      !|[
+        module <descriptor-name> "-Folding.generated"
+        ~
+        ~// Folding rules take the form of <sort>.<constructor>, <sort>._, or _.<constructor>
+        ~
+        folding Default folding definitions
         
-      folding Default folding definitions
-      
-        ~*<id>
-    ]|
+          ~*<id>
+      ]|
+    )
   
   heuristic-folding-productions =
     StartSymbol;

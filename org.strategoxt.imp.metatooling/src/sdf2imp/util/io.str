@@ -22,10 +22,10 @@ strategies
   /** @internal */
   input-descriptor-import =
     ?Import(name);
-    !FILE(<add-extension> (name, "esv"));
+    !FILE(<add-extension; file-exists> (name, "esv"));
     parse-xtc-file-report-errors(|<parse-table-descriptor>, "Module");
     
-    risky(?Module(name, _, _) |"Module name does not match file name")
+    risky(?Module(name, _, _) <+ IgnoreBadName |"Module name does not match file name")
   <+
     ?ImportRenamed(name, tail);
     <input-descriptor-import> Import(name);
@@ -42,21 +42,28 @@ strategies
   
   /** @internal */
   add-imports:
-    Module(name, Imports(imports), definitions) -> Module(name, NoImports(), definitions')
-    where rules(IsImported: name);
-          
-          !imports;
-          map(
-            risky(
-              IsImported
-            <+
-              input-descriptor-import;
-              add-imports => Module(_, _, <id>)
-            | "Unable to import module"
-            )
-          );
-          
-          definitions' := <conc> (definitions, <concat>)
+    Module(name, Imports(imports), definitions) ->
+    Module(name, Imports(imports'), definitions')
+    where
+      rules(IsImported: name);
+      
+      !imports;
+      map(
+        risky(
+          IsImported
+        <+
+          input-descriptor-import;
+          add-imports
+        <+
+          OnImportFailure
+        | "Unable to import module"
+        )
+      ) => imported;
+      
+      imported-defs    := <mapconcat(?Module(_, _, <id>))>;
+      definitions'     := <conc> (definitions, <id>);
+      imported-imports := <filter(?Module(_, Import(<id>), _))> imported;
+      imports'         := <concat> [imports | <id>]
 
   add-imports:
     Module(_, NoImports(), _) -> <id>
@@ -95,24 +102,34 @@ strategies
     
     output-text-file(|pathparts, filename)
 
-  output-default-descriptor-file =
-    risky(
-      ?Module(name, _ ,_);
-      pp-descriptor-to-string
-    | "Illegal editor service descriptor output"
-    );
-    
+  output-default-descriptor-file(name, new-contents) =
     where(
-      filename := <add-extension> (name, "esv");
-      // TODO: services should be in 'services' subdir? (needs reading from dirs support)
-      path     := ".";
+      filename := <add-extension> (<name>, "esv");
+      path     := "src";
       fullpath := <conc-strings> (path, "/", filename)
     );
     
-    if ResetFiles + not(<file-exists> fullpath) then
+    if is-descriptor-necessary(|<name>, fullpath) then
+      new-contents;
+      risky(
+        ?Module(name, _ ,_);
+        pp-descriptor-to-string
+      | "Illegal editor service descriptor output"
+      );
       output-text-file(|[path], filename)
     else
       verbose-msg(!"Skipping", !fullpath)
+    end
+  
+  is-descriptor-necessary(|name, fullpath) =
+    ResetFiles
+  <+
+    if MainDescriptor then 
+      // Only generate default descriptors if they are imported by the main descriptor
+      MainDescriptor;
+      oncetd(?Import(name) + ?ImportRenamed(name, _))
+    else
+      not(<file-exists> fullpath) // main descriptor file must exist
     end
   
   output-text-file(|pathparts, filename) =
@@ -136,9 +153,9 @@ strategies
   
   print-filename(|pathparts, filename) =
     if [] := pathparts then
-      verbose-msg(!"Outputting", !filename)
+      verbose-msg(!"Generating", !filename)
     else
-      verbose-msg(!"Outputting", <conc-strings> (
+      verbose-msg(!"Generating", <conc-strings> (
                                    <separate-by(|"/"); concat-strings> pathparts
                                  , "/", filename
                                  ))

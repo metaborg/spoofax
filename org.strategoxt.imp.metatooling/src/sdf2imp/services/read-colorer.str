@@ -1,0 +1,31 @@
+/**
+ * sdf2imp concrete token colorer generator.
+ *
+ * @author Lennart Kats <lennart add lclnet.nl>
+ */
+module sdf2imp/services/read-colorer
+
+imports
+  libstratego-lib
+  
+  sdf2imp/util/-
+  sdf2imp/services/common
+
+strategies
+
+  /* TODO: cleanup
+  collect-env-color-rules =
+    collect(
+      ?RuleAll(_, _, _, _)
+    )
+
+  collect-token-color-rules =
+    collect(
+      ?Rule(c, _, _, _); where(<not(?Token(_))> c)
+    )
+
+  collect-node-color-rules =
+    collect(
+      ?Rule(Token(_), _, _, _)
+    )
+  */

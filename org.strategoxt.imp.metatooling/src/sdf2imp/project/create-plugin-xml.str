@@ -25,49 +25,13 @@ strategies
           </language>
        </extension>
        <extension
-             id="<%= pkgname %>.parserWrapper"
-             name="<%= name %> Parser Wrapper"
+             id="<%= pkgname %>.parser"
+             name="<%= name %> Parser"
              point="org.eclipse.imp.runtime.parser">
-          <parserWrapper
+          <parser
                 class="parser.<%= classname %>ParseController"
                 language="<%= name %>">
-          </parserWrapper>
-       </extension>
-    
-       <extension
-             point="org.eclipse.imp.runtime.tokenColorer">
-          <tokenColorer
-                class="tokenColorer.<%= classname %>TokenColorer"
-                language="<%= name %>">
-          </tokenColorer>
-       </extension>
-       
-       
-       <extension
-             point="org.eclipse.imp.runtime.outliner">
-          <outliner
-                class="outliner.<%= classname %>Outliner"
-                language="<%= name %>">
-          </outliner>
-       </extension>
-    
-       <extension
-             point="org.eclipse.imp.runtime.foldingUpdater">
-          <foldingUpdater
-                class="foldingUpdater.<%= classname %>FoldingUpdater"
-                language="<%= name %>">
-          </foldingUpdater>
-       </extension>
-    
-       <!-- editor services
-       <extension
-             point="org.eclipse.imp.runtime.referenceResolvers">
-          <referenceResolver
-                class="referenceResolvers.<%= name %>ReferenceResolver"
-                language="<%= name %>">
-          </referenceResolver>
-       </extension>
-       -->
-    
+          </parser>
+       </extension>    
     </plugin>
     <%

@@ -4,7 +4,7 @@
  *
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-module sdf2imp/services/create-folding
+module sdf2imp/services/read-folding
 
 imports
   libstratego-lib
@@ -13,6 +13,8 @@ imports
   sdf2imp/services/common
 
 strategies
+
+  /* TODO: cleanup
 
   read-folding =
     <input-descriptor-file> <main-descriptor-name>;
@@ -62,3 +64,4 @@ strategies
         }
       }
     ]|
+  */

@@ -4,7 +4,7 @@
  *
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-module sdf2imp/services/create-outliner
+module sdf2imp/services/read-outliner
 
 imports
   libstratego-lib
@@ -13,6 +13,8 @@ imports
   sdf2imp/services/common
 
 strategies
+
+  /* TODO: cleanup
 
   read-outliner =
     <input-descriptor-file> <main-descriptor-name>;
@@ -60,3 +62,4 @@ strategies
         }
       }
     ]|
+  */

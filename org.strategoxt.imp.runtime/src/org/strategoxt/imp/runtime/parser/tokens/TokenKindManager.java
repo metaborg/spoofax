@@ -8,7 +8,7 @@ import aterm.ATerm;
 import aterm.ATermAppl;
 import aterm.ATermList;
 
-import static org.strategoxt.imp.runtime.parser.tokens.SGLRParsersym.*;
+import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.*;
 
 // TODO2: Token kind heuristic determines the colors, which needs to be migrated to the generator
 
@@ -17,29 +17,21 @@ import static org.strategoxt.imp.runtime.parser.tokens.SGLRParsersym.*;
  * 
  * @note Should be overridden for specific grammars.
  * 
- * @see SGLRParsersym
+ * @see TokenKind
  * 
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
-public class SGLRTokenKindManager {
+public class TokenKindManager {
 	private static final int RANGE_START = 0;
 	
 	private static final int RANGE_END = 1;
 	
 	// General token kind information
 	
-	public String getName(int kind) {
-		return SGLRTokenKindManager.getDefaultName(kind);
-	}
-	
-	public boolean isKeyword(int kind) {
-		return kind == TK_KEYWORD || !isGenericToken(kind); // assume all non-default tokens are keywords
-	}
-	
 	/**
 	 * Get the token kind for a given sort.
 	 */
-	public int getTokenKind(ATermList pattern, ATermAppl sort) {
+	public TokenKind getTokenKind(ATermList pattern, ATermAppl sort) {
 		// TODO2: Optimization - cache default token kinds
 		
 		if (AsfixAnalyzer.isLayout(sort)) {
@@ -60,31 +52,6 @@ public class SGLRTokenKindManager {
 			return TK_KEYWORD;
 		}
 	}
-	
-	static String getDefaultName(int kind) {
-    	switch (kind) {
-    		case TK_IDENTIFIER:
-    			return "TK_IDENTIFIER";
-    		case TK_KEYWORD:
-    			return "TK_KEYWORD";
-    		case TK_OPERATOR:
-    			return "TK_OPERATOR";
-    		case TK_NUMBER:
-    			return "TK_NUMBER";
-    		case TK_STRING:
-    			return "TK_STRING";
-    		case TK_LAYOUT:
-    			return "TK_LAYOUT";
-    		case TK_VAR:
-    			return "TK_VAR";
-    		case TK_JUNK:
-    			return "TK_JUNK";
-    		case TK_EOF:
-    			return "TK_EOF";
-    		default:
-    			return "TK_UNKNOWN";
-    	}
-    }
 
 	protected static boolean isOperator(ATermAppl sort) {
 		if (!AsfixAnalyzer.isLiteral(sort)) return false;

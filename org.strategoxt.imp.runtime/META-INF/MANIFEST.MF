@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: sdf2imp plug-in
-Bundle-SymbolicName: org.strategoxt.imp.runtime
+Bundle-SymbolicName: org.strategoxt.imp.runtime;singleton:=true
 Bundle-Version: 1.0.0
 Bundle-Activator: org.strategoxt.imp.runtime.parser.Activator
 Import-Package: org.osgi.framework;version="1.3.0"
@@ -20,9 +20,11 @@ Require-Bundle: org.eclipse.imp.runtime,
  org.eclipse.jface.text,
  org.eclipse.ui.editors,
  org.eclipse.ui.workbench,
- org.eclipse.ui
+ org.eclipse.ui,
+ org.spoofax.compiler
 Export-Package: org.strategoxt.imp.runtime,
  org.strategoxt.imp.runtime.parser,
  org.strategoxt.imp.runtime.parser.ast,
  org.strategoxt.imp.runtime.parser.tokens,
- org.strategoxt.imp.runtime.services
+ org.strategoxt.imp.runtime.services,
+ org.strategoxt.imp.runtime.dynamicloading

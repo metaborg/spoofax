@@ -15,16 +15,6 @@ strategies
     box2text-string(|80)
 
   /**
-   * Pretty-prints the descriptor AST to a Stream.
-   *
-   * @param Stream
-   * @type descriptor -> Stream
-   */
-  pp-descriptor-to-stream(|stream) =
-    descriptor-to-abox;
-    box2text-stream(|80, stream)
-
-  /**
    * Pretty-prints the descriptor AST to a Box representation.
    *
    * @type descriptor -> Box
@@ -35,5 +25,5 @@ strategies
   descriptor-pp-table =
     DescriptorPPTable
   <+
-    tbl := <import-term(EditorService.pp.af)>;
+    tbl := <import-term(EditorService-pretty.pp.af)>;
     rules(DescriptorPPTable := tbl )

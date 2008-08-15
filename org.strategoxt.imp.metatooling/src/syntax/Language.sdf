@@ -1,0 +1,38 @@
+module Language
+
+imports Common
+
+exports
+  
+  sorts
+  
+    Section LanguageProperty PropertyValue PropertyValues
+  
+  context-free syntax
+  
+    "language" SectionName LanguageProperty* -> Section {cons("Language")}
+    
+    "language" -> ReservedName
+  
+  lexical syntax
+    
+    ~[\ \t\n\r\,]+        -> PropertyValue
+    { PropertyValue ","}* -> PropertyValues
+    String                -> PropertyValue
+    String                -> PropertyValues
+  
+  context-free syntax
+  
+  	%% Required properties
+  
+    "name"           PropertyValue  -> LanguageProperty {cons("Name")}
+    "id"             PropertyValue  -> LanguageProperty {cons("Id")}
+    "extensions"     PropertyValues -> LanguageProperty {cons("Extensions")}
+    "description"    PropertyValue  -> LanguageProperty {cons("Description")}
+    "table"          PropertyValue  -> LanguageProperty {cons("Table")}
+    "start" "symbol" PropertyValue  -> LanguageProperty {cons("StartSymbol")}
+    "url"            PropertyValue  -> LanguageProperty {cons("URL")}
+    "extends"        PropertyValues -> LanguageProperty {cons("Extends")} %% derivedFrom
+    "aliases"        PropertyValues -> LanguageProperty {cons("Aliases")} %% synonyms
+    
+    

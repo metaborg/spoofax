@@ -5,8 +5,9 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.eclipse.imp.language.Language;
+import org.spoofax.compiler.Compiler;
 import org.spoofax.interpreter.core.Interpreter;
+import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.adapter.aterm.WrappedATermFactory;
 import org.spoofax.jsglr.InvalidParseTableException;
 import org.spoofax.jsglr.ParseTable;
@@ -30,8 +31,8 @@ public final class Environment {
 	private final static ParseTableManager parseTableManager
 		= new ParseTableManager(factory);
 	
-	private final static Map<Language, ParseTable> parseTables
-		= new HashMap<Language, ParseTable>();
+	private final static Map<String, ParseTable> parseTables
+		= new HashMap<String, ParseTable>();
 	
 	public static ATermFactory getATermFactory() {
 		return factory;
@@ -45,24 +46,27 @@ public final class Environment {
 		return new SGLR(factory, parseTable);
 	}
 
-	public static Interpreter createInterpreter() {
-		return new Interpreter(wrappedFactory);
+	public static Interpreter createInterpreter() throws IOException, InterpreterException {
+		Interpreter result = new Interpreter(wrappedFactory);
+		result.load(Compiler.sharePath() + "/stratego-lib/libstratego-lib.ctree");
+		result.load(Compiler.sharePath() + "/libstratego-sglr.ctree");
+		return result;
 	}
 	
-	public static void registerParseTable(Language grammar, InputStream parseTable)
+	public static void registerParseTable(String language, InputStream parseTable)
 		throws IOException, InvalidParseTableException {
 		
 		try {
 			Debug.startTimer();
 			ParseTable table = parseTableManager.loadFromStream(parseTable);
 			
-			parseTables.put(grammar, table);
+			parseTables.put(language, table);
 		} finally {
 			Debug.stopTimer("Parse table loaded");
 		}
 	}
 	
-	public static ParseTable getParseTable(Language grammar) {
+	public static ParseTable getParseTable(String grammar) {
 		ParseTable table = parseTables.get(grammar);
 		
 		if (table == null) throw new IllegalStateException("Parse table not available: " + grammar);

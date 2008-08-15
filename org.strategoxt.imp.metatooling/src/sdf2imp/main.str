@@ -8,7 +8,6 @@ imports
   
   EditorService
   
-  sdf2imp/parser/-
   sdf2imp/project/-
   sdf2imp/services/-
   sdf2imp/util/-
@@ -49,20 +48,12 @@ strategies
   
   /** @type FILE -> _ */
   create-default-descriptors =
-    // TODO: Only build default descriptor files if they do not exist
-    //       or perhaps they shouldn't be built if they aren't imported?
-    
+    create-analyze-main-descriptor;
     create-folding-descriptor;
     create-outliner-descriptor;
-    create-colorer-descriptor;
-    create-main-descriptor
+    create-colorer-descriptor
     
   create-java-implementation =    
-    // Create modules from the descriptors
-    create-folding;
-    create-outliner;
-    create-colorer;
-    
     // Create other plugin classes
     create-parse-controller;
     create-build-properties;
@@ -70,7 +61,6 @@ strategies
     create-activator;
     create-classpath;
     create-manifest;
-    create-colorer;
     create-plugin-xml
   
   create-or-copy-parse-table =
