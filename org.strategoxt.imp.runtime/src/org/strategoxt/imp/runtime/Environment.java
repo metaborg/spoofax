@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.imp.runtime.RuntimePlugin;
 import org.spoofax.compiler.Compiler;
 import org.spoofax.interpreter.core.Interpreter;
 import org.spoofax.interpreter.core.InterpreterException;
@@ -72,5 +73,11 @@ public final class Environment {
 		if (table == null) throw new IllegalStateException("Parse table not available: " + grammar);
 		
 		return table;
+	}
+	
+	public static void logException(String message, Throwable t) {
+		System.err.println(message);
+		t.printStackTrace();
+		RuntimePlugin.getInstance().logException(message, t);
 	}
 }

@@ -26,10 +26,15 @@ strategies
   main-sdf2imp =
     rules(BasePackage := ""); // default output dir
     
+    ctree-include(input-descriptor-file);
+    
     xtc-input-wrap(
       sdf2imp-options
     , sdf2imp
     )
+  
+  ctree-include(s) = // ensure strategies s are not optimized away when packed to a ctree
+    id <+ s
 
 strategies
 
@@ -66,7 +71,7 @@ strategies
   create-or-copy-parse-table =
     where(
       print-filename(|[], <parse-table-target>);
-      <eq> (<ParseTable>, <parse-table-target>)
+      <eq> (<ParseTable>, <parse-table-target; file-exists>)
     <+
       ParseTable;
       risky(file-exists |"File not found");

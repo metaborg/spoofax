@@ -21,15 +21,12 @@ strategies
     <output-java-file> |[
       package parser;
 
-      import java.io.IOException;
-      import org.spoofax.jsglr.InvalidParseTableException;
-      import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
       import org.strategoxt.imp.runtime.dynamicloading.DynamicParseController;
       
       public class x_Name extends DynamicParseController {
         private static final String LANGUAGE = "~table";
         private static final String TABLE = "/syntax/" + LANGUAGE + ".tbl";
-        private static final String DESCRIPTOR = "/src/" + LANGUAGE + ".esv";
+        private static final String DESCRIPTOR = "/" + LANGUAGE + ".esv";
         
         public x_Name() {
           super(x_Name.class.getResourceAsStream(DESCRIPTOR),

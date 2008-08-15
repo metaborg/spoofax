@@ -16,6 +16,8 @@ output.. = bin/
 bin.includes = META-INF/,\\
                .,\\
                plugin.xml,\\
-               ", table, "\\
+               ", table, ",\\
+               src/
+src.includes = syntax/EditorService.tbl,\\
                src/
 ")

@@ -35,10 +35,18 @@ public class DynamicParseController implements IParseController {
 	
 	public DynamicParseController() {}
 	
-	public DynamicParseController(InputStream descriptor, InputStream parseTable) throws BadDescriptorException, IOException, InvalidParseTableException {
-		Language language = LanguageLoader.register(descriptor, false);
-		Environment.registerParseTable(language.getName(), parseTable);
-		setWrapped(ServiceFactory.getInstance().getParseController(language));
+	public DynamicParseController(InputStream descriptor, InputStream parseTable) {
+		try {
+			Language language = LanguageLoader.register(descriptor, false);
+			Environment.registerParseTable(language.getName(), parseTable);
+			setWrapped(ServiceFactory.getInstance().getParseController(language));
+		} catch (BadDescriptorException e) {
+			Environment.logException("Could not load editor service descriptor", e);
+		} catch (IOException e) {
+			Environment.logException("Could not read editor service descriptor", e);
+		} catch (InvalidParseTableException e) {
+			Environment.logException("Could not load editor service parse table", e);
+		}
 	}
 
 	public IAnnotationTypeInfo getAnnotationTypeInfo() {

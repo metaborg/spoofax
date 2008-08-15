@@ -53,12 +53,15 @@ public class Descriptor {
 		try {
 			IStrategoTerm term = parser.parseToTerm(file);
 			interpreter.setCurrent(term);
-			interpreter.invoke("input_descriptor_file_0_0");
+			
+			boolean success = interpreter.invoke("input_descriptor_file_0_0");
+			if (!success) throw new BadDescriptorException("Interpreting the descriptor file failed");
+			
 			return new Descriptor((IStrategoAppl) interpreter.current());			
 		} catch (InterpreterException e) {
-			throw new BadDescriptorException(e); // TODO: Handle description loading exceptions
+			throw new BadDescriptorException("Internal error in descriptor interpreter", e);
 		} catch (SGLRException e) {
-			throw new BadDescriptorException(e);
+			throw new BadDescriptorException("Could not parse descriptor file", e);
 		}
 	}
 	
