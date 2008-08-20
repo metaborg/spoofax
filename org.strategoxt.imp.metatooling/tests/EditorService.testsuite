@@ -6,11 +6,11 @@ test Empty module
   "module foo" -> Module("foo", NoImports(), [])
 
 test Empty module with imports
-  "module foo imports bar, baz" -> Module("foo", Imports(["bar", "baz"]), [])
+  "module foo imports bar baz" -> Module("foo", Imports([Import("bar"), Import("baz")]), [])
   
 test Larger module
   "module foo
-   imports bar, baz
+   imports bar baz
   
    folding
      sortX
@@ -24,7 +24,7 @@ test Larger module
   " ->
   Module(
     "foo"
-  , Imports(["bar", "baz"])
+  , _
   , [ Folding([Sort("sortX")])
     , Outliner([Sort("sortY")])
     , Colorer([Rule(Sort("sortZ"), ColorName(_), ColorDefault, NORMAL)])

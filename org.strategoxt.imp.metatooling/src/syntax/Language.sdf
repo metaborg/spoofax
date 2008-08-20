@@ -6,22 +6,25 @@ exports
   
   sorts
   
-    Section LanguageProperty PropertyValue PropertyValues
+    Section LanguageProperty PropertyValue PropertyValues URL
   
-  context-free syntax
+  syntax
   
-    "language" SectionName LanguageProperty* -> Section {cons("Language")}
+    "language" <SectionName-LEX> <LAYOUT?-CF> <LanguageProperty*-CF> -> <Section-CF> {cons("Language")}
     
-    "language" -> ReservedName
+    "language" -> <ReservedName-CF>
   
   lexical syntax
     
-    ~[\ \t\n\r\,]+        -> PropertyValue
-    { PropertyValue ","}* -> PropertyValues
+    ~[\ \t\n\r\,\~\<]+    -> PropertyValue {avoid}
     String                -> PropertyValue
-    String                -> PropertyValues
+
+    ~[\ \t\n\r\,\/\~\<]+ "://" ~[\ \t\n\r\,]+ -> URL
   
   context-free syntax
+  
+    { PropertyValue ","}* -> PropertyValues {cons("Values")}
+    PropertyKeyword       -> PropertyValue {reject}
   
   	%% Required properties
   
@@ -31,8 +34,17 @@ exports
     "description"    PropertyValue  -> LanguageProperty {cons("Description")}
     "table"          PropertyValue  -> LanguageProperty {cons("Table")}
     "start" "symbol" PropertyValue  -> LanguageProperty {cons("StartSymbol")}
-    "url"            PropertyValue  -> LanguageProperty {cons("URL")}
+    "url"            URL            -> LanguageProperty {cons("URL")}
     "extends"        PropertyValues -> LanguageProperty {cons("Extends")} %% derivedFrom
     "aliases"        PropertyValues -> LanguageProperty {cons("Aliases")} %% synonyms
     
-    
+    "name"        -> PropertyKeyword
+    "id"          -> PropertyKeyword
+    "extensions"  -> PropertyKeyword
+    "description" -> PropertyKeyword
+    "table"       -> PropertyKeyword
+    "start"       -> PropertyKeyword
+    "url"         -> PropertyKeyword
+    "extends"     -> PropertyKeyword
+    "aliases"     -> PropertyKeyword
+   

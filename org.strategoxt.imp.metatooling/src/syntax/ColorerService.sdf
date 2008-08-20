@@ -10,11 +10,11 @@ exports
     Section ColorRule Font Color MaybeColor NoColor
     TokenKind TokenKindName AttributeId Attribute AttributeRef
 
-  context-free syntax
+  syntax
   
-	"colorer" SectionName ColorRule* -> Section {cons("Colorer")}
-	
-	"colorer" -> ReservedName
+    "colorer" <SectionName-LEX> <LAYOUT?-CF> <ColorRule*-CF> -> <Section-CF> {cons("Colorer")}
+    
+    "colorer" -> <ReservedName-CF>
 
   context-free syntax
   

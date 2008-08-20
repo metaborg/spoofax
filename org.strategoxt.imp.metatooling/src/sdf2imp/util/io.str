@@ -10,22 +10,39 @@ imports
 
 /** File input. */
 strategies
-  
+
   /**
-   * Given its filename (no extension), parse a service descriptor, including its imports.
+   * Given a location and filename (no extension),
+   * parse an editor descriptor, including all imports.
    */
-  input-descriptor-file = // TODO: file input caching
-  {| IsImported:
-    <add-imports> Module("<main>", Imports([Import(<id>)]), [])
-  |}
+  input-descriptor-file =
+    {| IsImported:
+      ?import;
+      name := <conc-strings> (<main-descriptor-name>, ".packed");
+      <add-imports> Module(name, Imports([Import(import)]), [])
+    |}
   
-  /** @internal */
+  set-input-dir-prefix =
+    with(string-ends-with(|"/"));
+    rules(InputDirPrefix := <id>)
+  
+  add-input-dir-prefix =
+    <set-input-dir-prefix> <conc-strings> (<InputDirPrefix <+ !"">, <id>)
+
+/** @internal */
+strategies
+  
+  include-input-dir-prefix =
+    try(<conc-strings> (<InputDirPrefix>, <id>))
+    
+  // TODO: Optimize - file input/parsing caching
+  
   input-descriptor-import =
     ?Import(name);
-    !FILE(<add-extension; file-exists> (name, "esv"));
+    !FILE(<add-extension; include-input-dir-prefix> (name, "esv"));
     parse-xtc-file-report-errors(|<parse-table-descriptor>, "Module");
     
-    risky(?Module(name, _, _) <+ IgnoreBadName |"Module name does not match file name")
+    risky(?Module(name, _, _) |"Module name does not match file name")
   <+
     ?ImportRenamed(name, tail);
     <input-descriptor-import> Import(name);
@@ -40,7 +57,6 @@ strategies
   rename-sort(|tail):
     ListSort(name) -> ListSort(<conc-strings> (name, "_", tail))
   
-  /** @internal */
   add-imports:
     Module(name, Imports(imports), definitions) ->
     Module(name, Imports(imports'), definitions')
@@ -62,7 +78,7 @@ strategies
       
       imported-defs    := <mapconcat(?Module(_, _, <id>))>;
       definitions'     := <conc> (definitions, <id>);
-      imported-imports := <filter(?Module(_, Import(<id>), _))> imported;
+      imported-imports := <filter(?Module(_, Imports(<id>), _))> imported;
       imports'         := <concat> [imports | <id>]
 
   add-imports:
@@ -79,10 +95,6 @@ strategies
     );
     
     output-java-file(|fullpath)
-  
-  // TODO2: Add @Generated attribute to files
-  // import javax.annotation.Generated;
-  // @Generated("sdf2imp")
 
   output-java-file(|filename) =
     print-filename(|["src" | <package-name>], <base-filename> filename);
@@ -103,7 +115,7 @@ strategies
     output-text-file(|pathparts, filename)
 
   output-default-descriptor-file(name, new-contents) =
-    where(
+    with(
       filename := <add-extension> (<name>, "esv");
       path     := "src";
       fullpath := <conc-strings> (path, "/", filename)
@@ -120,6 +132,15 @@ strategies
     else
       verbose-msg(!"Skipping", !fullpath)
     end
+
+  output-packed-descriptor-file(|filename) =
+    with(
+      path     := "bin";
+      fullpath := <conc-strings> (path, "/", filename)
+    );
+    
+    pp-descriptor-to-string;
+    output-text-file(|[path], filename)
   
   is-descriptor-necessary(|name, fullpath) =
     ResetFiles

@@ -6,8 +6,6 @@ imports
 strategies
 
   create-manifest =
-    // TODO2: Cleanup default manifest
-  
     name    := <get-main-class-name>;
     package := <BasePackage>;
     

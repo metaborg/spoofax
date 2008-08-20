@@ -8,10 +8,13 @@ exports
   sorts
     Section OutlineRule
 
+  syntax
+  
+    "outliner" <SectionName-LEX> <LAYOUT?-CF> <OutlineRule*-CF> -> <Section-CF> {cons("Outliner")}
+    
+    "outliner" -> <ReservedName-CF>
+
   context-free syntax
-    "outliner" SectionName OutlineRule* -> Section {cons("Outliner")}
-	
-	"outliner" -> ReservedName
     
     %% TODO: Patterns for outlinerservice
 

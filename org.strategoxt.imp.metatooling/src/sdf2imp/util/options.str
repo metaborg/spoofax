@@ -28,7 +28,7 @@ strategies
     ArgOption(
       "-n"
     , rules(BasePackage := <id>);
-      get-package-name // ensure legal
+      get-package-name(fail) // ensure legal
     , !"-n <packagename>      Set base package name (optional)"
     )
     
@@ -54,25 +54,24 @@ strategies
     string-replace(|"]", "")
   
   get-package-name =
-    // TODO: Redirect to get-package-name
-    // get-package-name(|[])
-    
+    get-package-name(default-package-name)
+  
+  get-package-name(default) =
+    ( BasePackage
+    <+
+      default
+    );
+    string-tokenize('.');
+    map(!Id(<id>));
+    !PackageName(<id>)
+  
+  default-package-name =
     get-sdf-main-module;
     to-java-class-name;
     lower-case;
-    get-package-name(|[<id>])
-  
-  get-package-name(|subpackage) =
-    // TODO: Use BasePackage for generated code
-    <map(!Id(<id>))> subpackage;
-    !PackageName(<id>)
+    <conc-strings> ("org.strategoxt.imp.generated.", <id>)
   
   check-options = 
-    where(
-      BasePackage
-    <+
-      fatal-err-msg(|"Base package name (option -n) not specified")
-    );
     where(
       EditorExtensions
     <+

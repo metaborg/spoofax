@@ -15,22 +15,23 @@ strategies
     <conc-strings> (<get-main-class-name>, "ParseController")
 
   create-parse-controller =
-    x_Name    := <get-parse-controller-name>;
-    table     := <get-sdf-main-module>;
+    x_name  := <get-parse-controller-name>;
+    pkgname := <get-package-name>;
+    table   := <get-sdf-main-module>;
     
     <output-java-file> |[
-      package parser;
+      package pkgname;
 
       import org.strategoxt.imp.runtime.dynamicloading.DynamicParseController;
       
-      public class x_Name extends DynamicParseController {
+      public class x_name extends DynamicParseController {
         private static final String LANGUAGE = "~table";
         private static final String TABLE = "/syntax/" + LANGUAGE + ".tbl";
-        private static final String DESCRIPTOR = "/" + LANGUAGE + ".esv";
+        private static final String DESCRIPTOR = "/" + LANGUAGE + ".packed.esv";
         
-        public x_Name() {
-          super(x_Name.class.getResourceAsStream(DESCRIPTOR),
-                x_Name.class.getResourceAsStream(TABLE));
+        public x_name() {
+          super(x_name.class.getResourceAsStream(DESCRIPTOR),
+                x_name.class.getResourceAsStream(TABLE));
         }
       }
     ]|

@@ -37,9 +37,10 @@ STRINCLUDES = \
 
 all : sdf2imp sdf2imp.ctree syntax
 
-check : tests/EditorService.runtestsuite \
-        tests/test-editor-descriptor.runsh \
-        tests/test-stratego-java.runsh
+check : all \
+        tests/EditorService.runtestsuite \
+        # tests/test-editor-descriptor.runsh \
+        # tests/test-stratego-java.runsh
 
 sdf2imp : $(STRS) $(SYNTAX) Makefile
 	strc -i src/sdf2imp.str -o $@ $(STRINCLUDES) $(STRCFLAGS) -m main-sdf2imp $(STRCSTFU)

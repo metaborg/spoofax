@@ -17,7 +17,7 @@ bin.includes = META-INF/,\\
                .,\\
                plugin.xml,\\
                ", table, ",\\
-               src/
+               bin/
 src.includes = syntax/EditorService.tbl,\\
                src/
 ")

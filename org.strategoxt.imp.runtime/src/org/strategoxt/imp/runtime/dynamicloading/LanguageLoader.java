@@ -7,6 +7,7 @@ import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.language.ServiceFactory;
 import org.spoofax.jsglr.InvalidParseTableException;
+import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.services.TokenColorer;
@@ -18,6 +19,7 @@ public class LanguageLoader {
 	private LanguageLoader() {}
 	
 	public static Language register(InputStream file, boolean readTableFromFile) throws BadDescriptorException {
+		Debug.startTimer();
 		Descriptor descriptor = Descriptor.load(file);
 		Language language = descriptor.toLanguage();
 		
@@ -25,6 +27,7 @@ public class LanguageLoader {
 		
 		registerServices(descriptor, language);
 		
+		Debug.stopTimer("Editor service loaded");
 		return language;
 	}
 

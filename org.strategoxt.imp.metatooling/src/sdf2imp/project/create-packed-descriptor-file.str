@@ -1,0 +1,21 @@
+module sdf2imp/project/create-packed-descriptor-file
+
+imports
+  libstratego-lib
+  sdf2imp/util/io
+
+strategies
+
+  create-packed-descriptor-file =
+    {| InputDirPrefix:
+      risky(
+        <add-input-dir-prefix> "src/";
+        filename := <conc-strings> (<main-descriptor-name>, ".packed.esv");
+        
+        main-descriptor-name;
+        input-descriptor-file;
+        
+        output-packed-descriptor-file(|filename)
+      | "Could not pack descriptor files"
+      )
+    |}

@@ -23,7 +23,9 @@ import aterm.ATermFactory;
  *
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
-public final class Environment {	
+public final class Environment {
+	// TODO: What about thread safety?
+	
 	private final static WrappedATermFactory wrappedFactory
 		= new WrappedATermFactory();
 		

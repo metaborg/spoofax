@@ -24,7 +24,6 @@ strategies
 
   default-main-descriptor =
     name        := <get-sdf-main-module>;
-    ident       := <get-package-name>;
     classname   := <get-main-class-name>;
     pkgname     := <BasePackage>;
     extensions  := <EditorExtensions>;
@@ -37,13 +36,13 @@ strategies
               <descriptor-name> "-Outliner.generated"
               <descriptor-name> "-Folding.generated"
       
-      language ~name
+      language
       
         name ~name
-        description <conc-strings> ("\"", name, "\"")
+        description <conc-strings> ("\"sdf2imp-generated editor for the ", name, " language\"")
         url http://strategoxt.org
         ~
-        id ~ident
+        id ~pkgname
         extends
         aliases
         ~
@@ -53,22 +52,18 @@ strategies
     ]|
   
   current-main-descriptor-file =
-     {| OnImportFailure, IsImported:
-       main-descriptor-name := <main-descriptor-name>;
+     {| InputDirPrefix, OnImportFailure:
+       <add-input-dir-prefix> "src/";
        rules(
-         IsImported: main-descriptor-name
-         IgnoreBadName: Module(main-descriptor-name, _, _)
          OnImportFailure := Module("", NoImports(), [])
        );
        
        verbosity-scope(
-         !Import(<conc-strings> ("src/", main-descriptor-name));
-         input-descriptor-import;
-         add-imports
-       | -1 
+         main-descriptor-name;
+         input-descriptor-file
+       | -1
        );
-       
-       verbose-msg(!"Using current descriptor file to determine required generated descriptor components")
+       verbose-msg(!"Current descriptor determines generated services")
      |}
    <+
      default-main-descriptor

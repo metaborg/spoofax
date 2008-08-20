@@ -60,6 +60,8 @@ exports
 
     QuotedTerm -> Id {cons("FromMetaExpr"), avoid}
     QuotedTerm -> PropertyValue {cons("FromMetaExpr"), avoid}
+    QuotedTerm -> PropertyValues {cons("FromMetaExpr"), avoid}
+    QuotedTerm -> URL {cons("FromMetaExpr"), avoid}
     QuotedTerm -> ModuleName {cons("FromMetaExpr")}
     QuotedTerm -> Color {cons("FromMetaExpr")}
     QuotedTerm -> Font  {cons("FromMetaExpr")}

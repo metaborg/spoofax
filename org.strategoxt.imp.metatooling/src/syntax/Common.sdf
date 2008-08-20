@@ -3,7 +3,8 @@ module Common
 exports
 
   sorts
-    Id Int String CommentChar Node Sort Constructor ConstructorId ReservedName SectionName
+    Id Int String CommentChar Node Sort Constructor ConstructorId
+    ReservedName SectionName
 
   lexical syntax
   
@@ -11,7 +12,6 @@ exports
     "-"? [0-9]+            -> Int
     "\"" ~[\"\n]* "\""     -> String
     
-    %% FIXME: Section name can't be empty now; add follow restr. on keyword?
     ~[\n\r]*               -> SectionName
     
     [\ \t\n\r]             -> LAYOUT
@@ -24,7 +24,8 @@ exports
   
   	CommentChar -/- [\/]
   	Int         -/- [0-9]
-  	Id          -/- [a-zA-Z0-9\_]
+  	Id          -/- [a-zA-Z0-9\_]    
+    SectionName -/- ~[\n\r]
 
   context-free restrictions
 
@@ -32,8 +33,6 @@ exports
     
     LAYOUT? -/- [\/].[\/]
     LAYOUT? -/- [\/].[\*]
-    
-    SectionName -/- ~[\n\r]
 
   context-free syntax
   

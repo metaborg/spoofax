@@ -29,7 +29,7 @@ strategies
              name="<%= name %> Parser"
              point="org.eclipse.imp.runtime.parser">
           <parser
-                class="parser.<%= classname %>ParseController"
+                class="<%= pkgname %>.<%= classname %>ParseController"
                 language="<%= name %>">
           </parser>
        </extension>    

@@ -1,20 +1,18 @@
 package org.strategoxt.imp.runtime.dynamicloading;
 
+import static org.strategoxt.imp.runtime.dynamicloading.TermReader.*;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
 import org.eclipse.imp.language.Language;
-import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.SGLRException;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.SimpleSGLRParser;
 import org.strategoxt.imp.runtime.services.TokenColorer;
-import org.spoofax.interpreter.core.Interpreter;
-
-import static org.strategoxt.imp.runtime.dynamicloading.TermReader.*;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -26,8 +24,6 @@ public class Descriptor {
 	
 	private static final SimpleSGLRParser parser;
 	
-	private static final Interpreter interpreter;
-	
 	private final IStrategoAppl descriptor;
 	
 	// LOADING DESCRIPTOR
@@ -37,9 +33,6 @@ public class Descriptor {
 			InputStream stream = Descriptor.class.getResourceAsStream("/syntax/EditorService.tbl");
 			Environment.registerParseTable(LANGUAGE, stream);
 			parser = new SimpleSGLRParser(Environment.getParseTable(LANGUAGE), "Module");
-			
-			interpreter = Environment.createInterpreter();
-			interpreter.load(Descriptor.class.getResourceAsStream("/str/sdf2imp.ctree"));
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -51,15 +44,8 @@ public class Descriptor {
 	
 	public static Descriptor load(InputStream file) throws BadDescriptorException {
 		try {
-			IStrategoTerm term = parser.parseToTerm(file);
-			interpreter.setCurrent(term);
-			
-			boolean success = interpreter.invoke("input_descriptor_file_0_0");
-			if (!success) throw new BadDescriptorException("Interpreting the descriptor file failed");
-			
-			return new Descriptor((IStrategoAppl) interpreter.current());			
-		} catch (InterpreterException e) {
-			throw new BadDescriptorException("Internal error in descriptor interpreter", e);
+			IStrategoAppl input = (IStrategoAppl) parser.parseToTerm(file);
+	        return new Descriptor(input);
 		} catch (SGLRException e) {
 			throw new BadDescriptorException("Could not parse descriptor file", e);
 		}
@@ -112,8 +98,25 @@ public class Descriptor {
 	
 	private String getProperty(String name, String defaultValue) {
 		IStrategoAppl result = findTerm(descriptor, name);		
-		if (result == null) return defaultValue;		
-		return termContents(result);
+		if (result == null) return defaultValue;
+		
+		if (cons(result).equals("Values")) {
+			return concatValues(result);
+		} else {
+			return termContents(result);
+		}
+	}
+
+	private static String concatValues(IStrategoAppl values) {
+		StringBuilder results = new StringBuilder();
+		if (values.getSubtermCount() > 0)
+			results.append(termContents(termAt(values, 0)));
+		
+		for (int i = 1; i <  values.getSubtermCount(); i++) {
+			results.append(',');
+			results.append(termContents(termAt(values, i)));
+		}
+		return results.toString();
 	}
 	
 

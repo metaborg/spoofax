@@ -8,12 +8,13 @@ exports
   sorts
     Section FoldingRule
 
+  syntax
+  
+    "folding" <SectionName-LEX> <LAYOUT?-CF> <FoldingRule*-CF> -> <Section-CF> {cons("Folding")}
+    
+    "folding" -> <ReservedName-CF>
+  
   context-free syntax
-    "folding" SectionName FoldingRule* -> Section {cons("Folding")}
-	
-	"folding" -> ReservedName
-	
-	%% TODO2: AST consistency wrt ColorerService
     
     %% TODO: Reconsider "all" keyword for siblings; we already have list sorts using '*'
     
