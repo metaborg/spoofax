@@ -38,17 +38,17 @@ strategies
       
       language
       
-        name ~name
-        description <conc-strings> ("\"sdf2imp-generated editor for the ", name, " language\"")
-        url http://strategoxt.org
+        name: ~name
+        description: <conc-strings> ("\"sdf2imp-generated editor for the ", name, " language\"")
+        url: http://strategoxt.org
         ~
-        id ~pkgname
-        extends
-        aliases
+        id: ~pkgname
+        extends:
+        aliases:
         ~
-        extensions ~extensions
-        table ~parsetable
-        start symbol ~startsymbol
+        extensions: ~extensions
+        table:  ~parsetable
+        start symbol: ~startsymbol
     ]|
   
   current-main-descriptor-file =

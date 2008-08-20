@@ -8,7 +8,7 @@ exports
   sorts
   
     Section ColorRule Font Color MaybeColor NoColor
-    TokenKind TokenKindName AttributeId Attribute AttributeRef
+    TokenKind TokenKindName AttributeId Attribute
 
   syntax
   
@@ -21,11 +21,10 @@ exports
     "environment" ColorNode ":" Attribute -> ColorRule {cons("ColorRuleAll")} %% One rule to rule them all
                   ColorNode ":" Attribute -> ColorRule {cons("ColorRule")}
     
-    "environment" ColorNode ":" AttributeRef "=" Attribute -> ColorRule {cons("ColorRuleAllNamed")}
-                  ColorNode ":" AttributeRef "=" Attribute -> ColorRule {cons("ColorRuleNamed")}
+    "environment" ColorNode ":" String "=" Attribute -> ColorRule {cons("ColorRuleAllNamed")}
+                  ColorNode ":" String "=" Attribute -> ColorRule {cons("ColorRuleNamed")}
 
     Color   MaybeColor Font -> Attribute {cons("Attribute")}
-    NoColor NoColor    Font -> Attribute {cons("Attribute")}
     AttributeId             -> Attribute {cons("AttributeRef")}
     
     Node          -> ColorNode
@@ -58,7 +57,7 @@ exports
     AttributeId "=" Attribute -> ColorRule {cons("ColorDef")}
     
     Id             -> AttributeId          %% Standard color name (e.g., 'red')
-    String         -> AttributeId          %% Descriptive color name (could be show in IDE)
+    String         -> AttributeId          %% Descriptive color name (could be shown in IDE)
     "_"            -> AttributeId {reject}
     Font           -> AttributeId {reject}
     "environment"  -> AttributeId {reject}

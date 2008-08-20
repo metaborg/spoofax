@@ -8,7 +8,6 @@ import java.io.InputStream;
 
 import org.eclipse.imp.language.Language;
 import org.spoofax.interpreter.terms.IStrategoAppl;
-import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.SGLRException;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.SimpleSGLRParser;
