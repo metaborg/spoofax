@@ -13,8 +13,10 @@ strategies
     ,
       !|[
         module <descriptor-name> "-Colorer.generated"
+        
+        colorer
           
-           ~// Sort-based highlighting with background color
+          ~// Sort-based highlighting with background color
           ~//   Id: yellow green
           ~
           ~// Sort- and constructor-based highlighting

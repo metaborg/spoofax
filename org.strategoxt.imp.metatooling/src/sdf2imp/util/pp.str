@@ -13,17 +13,35 @@ strategies
   pp-descriptor-to-string =
     descriptor-to-abox;
     box2text-string(|80)
-
+  
   /**
    * Pretty-prints the descriptor AST to a Box representation.
    *
    * @type descriptor -> Box
    */    
   descriptor-to-abox =
+    topdown(try(pp-fix-string-quotes));
     ast2box(|[<descriptor-pp-table>])
-    
+  
   descriptor-pp-table =
     DescriptorPPTable
   <+
     tbl := <import-term(EditorService-pretty.pp.af)>;
     rules(DescriptorPPTable := tbl )
+
+/** @internal */
+strategies
+    
+  // HACK: add quotes omitted by the stratego parser
+  
+  pp-fix-string-quotes:
+    ColorRuleNamed(node, string, attr) -> ColorRuleNamed(node, string', attr)
+    where
+      <not(string-starts-with(|"\""))> string;
+      string' := <conc-strings> ("\"", string, "\"")
+  
+  pp-fix-string-quotes:
+    ColorRuleAllNamed(node, string, attr) -> ColorRuleAllNamed(node, string', attr)
+    where
+      <not(string-starts-with(|"\""))> string;
+      string' := <conc-strings> ("\"", string, "\"")

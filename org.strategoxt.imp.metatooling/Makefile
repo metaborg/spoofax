@@ -8,6 +8,8 @@ STRS     = $(wildcard src/*.str) \
            $(wildcard src/sdf2imp/util/*.str) \
            $(wildcard src/sdf2imp/services/*.str)           
 
+RTREES = $(STRS:.str=.rtree)
+
 SDFS     = $(wildcard src/syntax/*.sdf)
 
 SYNTAX   = src/syntax/EditorService.tbl src/syntax/EditorService.pp src/syntax/EditorService-pretty.pp.af src/syntax/EditorService.str src/syntax/Stratego-Java-EditorService.tbl
@@ -42,21 +44,21 @@ check : all \
         # tests/test-editor-descriptor.runsh \
         # tests/test-stratego-java.runsh
 
-sdf2imp : $(STRS) $(SYNTAX) Makefile
+sdf2imp : $(RTREES) $(SYNTAX) Makefile
 	strc -i src/sdf2imp.str -o $@ $(STRINCLUDES) $(STRCFLAGS) -m main-sdf2imp $(STRCSTFU)
 	rm sdf2imp.c sdf2imp.lo sdf2imp.o
 
 syntax : $(SYNTAX)
 
 clean :
-	rm -f sdf2imp.ctree sdf2imp
+	rm -f sdf2imp.ctree sdf2imp $(RTREES)
 
 # files:
 
 % : %.str $(STRS)
 
-%.rtree : %.str
-	parse-stratego -i $< -o $@
+%.rtree : %.str $(SYNTAX)
+	@parse-stratego -i $< -o $@ $(STRINCLUDES)
 
 %.ctree : src/%.str
 	strc -F -i $< -o $@ -m main-sdf2imp $(STRINCLUDES) $(STRCSTFU)

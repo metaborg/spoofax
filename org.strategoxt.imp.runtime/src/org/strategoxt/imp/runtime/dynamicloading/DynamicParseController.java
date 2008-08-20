@@ -28,9 +28,15 @@ import org.strategoxt.imp.runtime.Environment;
  */
 public class DynamicParseController implements IParseController {
 	private IParseController wrapped;
+	
+	private Throwable notLoadingCause;
 
 	public void setWrapped(IParseController value) {
 		wrapped = value;
+	}
+	
+	public void setNotLoadingCause(Throwable notLoadingCause) {
+		this.notLoadingCause = notLoadingCause;
 	}
 	
 	public DynamicParseController() {}
@@ -42,10 +48,13 @@ public class DynamicParseController implements IParseController {
 			setWrapped(ServiceFactory.getInstance().getParseController(language));
 		} catch (BadDescriptorException e) {
 			Environment.logException("Could not load editor service descriptor", e);
+			setNotLoadingCause(e);
 		} catch (IOException e) {
 			Environment.logException("Could not read editor service descriptor", e);
+			setNotLoadingCause(e);
 		} catch (InvalidParseTableException e) {
 			Environment.logException("Could not load editor service parse table", e);
+			setNotLoadingCause(e);
 		}
 	}
 
@@ -82,7 +91,14 @@ public class DynamicParseController implements IParseController {
 	}
 
 	public void initialize(IPath filePath, ISourceProject project, IMessageHandler handler) {
-		if (wrapped == null) throw new IllegalStateException("Dynamic parse controller not initialized yet");
+		if (wrapped == null) {
+			if (notLoadingCause != null) {
+				if (notLoadingCause instanceof RuntimeException) throw (RuntimeException) notLoadingCause;
+				else throw new RuntimeException(notLoadingCause);
+			} else {
+				throw new IllegalStateException("Dynamic parse controller not initialized yet");
+			}
+		}
 		wrapped.initialize(filePath, project, handler);
 	}
 
