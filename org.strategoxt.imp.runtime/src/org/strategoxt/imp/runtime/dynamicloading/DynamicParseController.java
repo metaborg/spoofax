@@ -41,7 +41,7 @@ public class DynamicParseController implements IParseController {
 	
 	public DynamicParseController() {}
 	
-	public DynamicParseController(InputStream descriptor, InputStream parseTable) {
+	public void load(InputStream descriptor, InputStream parseTable) {
 		try {
 			Language language = LanguageLoader.register(descriptor, false);
 			Environment.registerParseTable(language.getName(), parseTable);

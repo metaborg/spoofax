@@ -77,6 +77,10 @@ public class Descriptor {
 		return getProperty("StartSymbol", null);
 	}
 	
+	public String getName() throws BadDescriptorException {
+		return getProperty("Name");
+	}
+	
 	public InputStream getTableStream() throws BadDescriptorException {
 		String file = getProperty("Table", getProperty("Name"));
 		if (!file.endsWith(".tbl")) file += ".tbl";
@@ -90,13 +94,13 @@ public class Descriptor {
 	// PARSING
 	
 	private String getProperty(String name) throws BadDescriptorException {
-		String result = getProperty(name, null);		
+		String result = getProperty(name, null);
 		if (result == null) throw new BadDescriptorException("Property " + name + " not specified");		
 		return result;
 	}
 	
 	private String getProperty(String name, String defaultValue) {
-		IStrategoAppl result = findTerm(descriptor, name);		
+		IStrategoAppl result = findTerm(descriptor, name);
 		if (result == null) return defaultValue;
 		
 		if (cons(result).equals("Values")) {

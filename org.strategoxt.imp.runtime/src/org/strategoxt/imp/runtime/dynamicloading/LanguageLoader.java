@@ -27,7 +27,7 @@ public class LanguageLoader {
 		
 		registerServices(descriptor, language);
 		
-		Debug.stopTimer("Editor service loaded");
+		Debug.stopTimer("Editor service loaded: " + descriptor.getName());
 		return language;
 	}
 

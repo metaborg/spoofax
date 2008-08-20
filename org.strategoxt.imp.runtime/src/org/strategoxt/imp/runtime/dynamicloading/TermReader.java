@@ -13,17 +13,13 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 public class TermReader {
 	private TermReader() {}
 	
-	public static IStrategoAppl findTerm(IStrategoAppl term, String constructor) {
+	public static IStrategoAppl findTerm(IStrategoTerm term, String constructor) {
+		if (term instanceof IStrategoAppl && cons((IStrategoAppl) term).equals(constructor))
+			return (IStrategoAppl) term;
+		
 		for (int i = 0; i < term.getSubtermCount(); i++) {
-			if (term.getSubterm(i).getTermType() == IStrategoTerm.APPL) {
-				IStrategoAppl subterm = (IStrategoAppl) term.getSubterm(i);
-				if (cons(subterm).equals(constructor)) {
-					return subterm;
-				} else {
-					IStrategoAppl result = findTerm(subterm, constructor);
-					if (result != null) return result;
-				}
-			}
+			IStrategoAppl result = findTerm(termAt(term, i), constructor);
+			if (result != null) return result;
 		}
 		
 		return null;

@@ -22,16 +22,26 @@ strategies
     <output-java-file> |[
       package pkgname;
 
+      import org.eclipse.core.runtime.IPath;
+      import org.eclipse.imp.model.ISourceProject;
+      import org.eclipse.imp.parser.IMessageHandler;
       import org.strategoxt.imp.runtime.dynamicloading.DynamicParseController;
       
       public class x_name extends DynamicParseController {
         private static final String LANGUAGE = "~table";
         private static final String TABLE = "/syntax/" + LANGUAGE + ".tbl";
         private static final String DESCRIPTOR = "/" + LANGUAGE + ".packed.esv";
+        private static boolean loaded;
         
-        public x_name() {
-          super(x_name.class.getResourceAsStream(DESCRIPTOR),
-                x_name.class.getResourceAsStream(TABLE));
+        @Override public void initialize(IPath filePath, ISourceProject project,
+            IMessageHandler handler) {
+          
+          if (!loaded) {
+            loaded = true;
+            load(x_name.class.getResourceAsStream(DESCRIPTOR),
+                 x_name.class.getResourceAsStream(TABLE));
+          }
+          super.initialize(filePath, project, handler);
         }
       }
     ]|
