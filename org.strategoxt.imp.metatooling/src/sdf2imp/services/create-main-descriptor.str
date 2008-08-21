@@ -39,12 +39,11 @@ strategies
       language
       
         name: ~name
+        aliases:
+        id: ~pkgname
+        ~
         description: <conc-strings> ("\"sdf2imp-generated editor for the ", name, " language\"")
         url: http://strategoxt.org
-        ~
-        id: ~pkgname
-        extends:
-        aliases:
         ~
         extensions: ~extensions
         table:  ~parsetable

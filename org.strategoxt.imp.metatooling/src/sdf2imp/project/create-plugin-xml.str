@@ -22,6 +22,7 @@ strategies
                 extensions="<%= extensions %>"
                 description="<%= name %>"
                 language="<%= name %>">
+                derivedFrom="Root"
           </language>
        </extension>
        <extension

@@ -23,20 +23,16 @@ exports
     CommentLine -/- [\/].[\/]
     CommentLine -/- [\/].[\*]
 
-  context-free restrictions
-    
-    "~//" -/- [\n\r]
-  
-  context-free syntax
-    
-    %% TODO2: ~// comment lines don't include preceding whitespace
+  syntax  
   
     %% Printed comments
-    "~//" CommentLine -> Section {cons("CommentLine")}
-    "~//" CommentLine -> ColorRule {cons("CommentLine"), prefer}
-    "~//" CommentLine -> OutlineRule {cons("CommentLine"), prefer}
-    "~//" CommentLine -> FoldingRule {cons("CommentLine"), prefer}
-    "~//" CommentLine -> LanguageProperty {cons("CommentLine"), prefer}
+    "~//" <CommentLine-LEX> -> <Section-CF> {cons("CommentLine")}
+    "~//" <CommentLine-LEX> -> <ColorRule-CF> {cons("CommentLine"), prefer}
+    "~//" <CommentLine-LEX> -> <OutlineRule-CF> {cons("CommentLine"), prefer}
+    "~//" <CommentLine-LEX> -> <FoldingRule-CF> {cons("CommentLine"), prefer}
+    "~//" <CommentLine-LEX> -> <LanguageProperty-CF> {cons("CommentLine"), prefer}
+
+  context-free syntax
     
     %% Printed empty lines
     "~\n" -> Section {cons("EmptyLine"), avoid}

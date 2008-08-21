@@ -17,11 +17,16 @@ strategies
       map(create-folding-or-outliner-rule);
       !|[
         module <descriptor-name> "-Folding.generated"
-        ~
-        ~// Folding rules take the form of <sort>.<constructor>, <sort>._, or _.<constructor>
-        ~
-        folding Default folding definitions
         
+        folding Default folding definitions
+        ~
+        ~// Folding rules indicate grammar productions to be foldable,
+        ~// and take one of the following forms, and :
+        ~//
+        ~//   - <sort>.<constructor>
+        ~//   - <sort>._,
+        ~//   - _.<constructor>
+        ~
           ~*<id>
       ]|
     )

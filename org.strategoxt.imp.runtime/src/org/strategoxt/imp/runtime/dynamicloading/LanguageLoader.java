@@ -5,12 +5,9 @@ import java.io.InputStream;
 
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
-import org.eclipse.imp.language.ServiceFactory;
 import org.spoofax.jsglr.InvalidParseTableException;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.parser.SGLRParseController;
-import org.strategoxt.imp.runtime.services.TokenColorer;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -18,40 +15,27 @@ import org.strategoxt.imp.runtime.services.TokenColorer;
 public class LanguageLoader {
 	private LanguageLoader() {}
 	
-	public static Language register(InputStream file, boolean readTableFromFile) throws BadDescriptorException {
+	public static Language load(InputStream file, boolean readTableFromFile) throws BadDescriptorException {
 		Debug.startTimer();
 		Descriptor descriptor = Descriptor.load(file);
 		Language language = descriptor.toLanguage();
 		
-		if (readTableFromFile) registerParseTable(descriptor, language);
+		Environment.registerDescriptor(language, descriptor);
+		LanguageRegistry.registerLanguage(language);
 		
-		registerServices(descriptor, language);
+		if (readTableFromFile) registerParseTable(descriptor, language);
 		
 		Debug.stopTimer("Editor service loaded: " + descriptor.getName());
 		return language;
 	}
 
-	private static void registerServices(Descriptor descriptor, Language language)
-			throws BadDescriptorException {
-		
-		DynamicParseController proxy = (DynamicParseController) ServiceFactory.getInstance().getParseController(language);
-		proxy.setWrapped(new SGLRParseController(language, descriptor.getStartSymbol()));
-		
-		TokenColorer colorer = (TokenColorer) ServiceFactory.getInstance().getTokenColorer(language);
-		descriptor.configureColorer(colorer);
-	}
-
-	private static Language registerParseTable(Descriptor descriptor, Language language) throws BadDescriptorException {
-		
+	private static void registerParseTable(Descriptor descriptor, Language language) throws BadDescriptorException {
 		try {
-			Environment.registerParseTable(language.getName(), descriptor.getTableStream());
+			Environment.registerParseTable(language, descriptor.getTableStream());
 		} catch (IOException e) {
 			throw new BadDescriptorException(e);
 		} catch (InvalidParseTableException e) {
 			throw new BadDescriptorException(e);
 		}
-		
-		LanguageRegistry.registerLanguage(language);
-		return language;
 	}
 }

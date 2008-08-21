@@ -7,7 +7,9 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 
 import org.eclipse.imp.language.Language;
+import org.eclipse.imp.language.LanguageRegistry;
 import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.SGLRException;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.SimpleSGLRParser;
@@ -19,7 +21,8 @@ import org.strategoxt.imp.runtime.services.TokenColorer;
 public class Descriptor {
 	public static final String ROOT_LANGUAGE = "Root";
 	
-	private static final String LANGUAGE = "EditorService";
+	private static final Language LANGUAGE =
+		new Language("EditorService-builtin", "org.strategoxt.imp.builtin.editorservice", "", "Root", "", "", "", null);
 	
 	private static final SimpleSGLRParser parser;
 	
@@ -55,14 +58,14 @@ public class Descriptor {
 	/**
 	 * Gets the language for this descriptor, but does not register it.
 	 * 
-	 * @see LanguageLoader#register(InputStream, boolean)
+	 * @see LanguageLoader#load(InputStream, boolean)
 	 */
 	public Language toLanguage() throws BadDescriptorException {
 		return new Language(
 				getProperty("Name"),
 				getProperty("Name"), // natureId
 				getProperty("Description", ""),
-				getProperty("Extends", ROOT_LANGUAGE),
+				ROOT_LANGUAGE,
 				getProperty("URL", ""),
 				getProperty("Extensions"),
 				getProperty("Aliases", ""),
@@ -102,8 +105,9 @@ public class Descriptor {
 	private String getProperty(String name, String defaultValue) {
 		IStrategoAppl result = findTerm(descriptor, name);
 		if (result == null) return defaultValue;
-		
-		if (cons(result).equals("Values")) {
+
+		if (termAt(result, 0) instanceof IStrategoAppl &&
+				cons((IStrategoAppl) termAt(result, 0)).equals("Values")) {
 			return concatValues(result);
 		} else {
 			return termContents(result);
@@ -111,16 +115,16 @@ public class Descriptor {
 	}
 
 	private static String concatValues(IStrategoAppl values) {
+		IStrategoTerm list = termAt(termAt(values, 0), 0);
 		StringBuilder results = new StringBuilder();
-		if (values.getSubtermCount() > 0)
-			results.append(termContents(termAt(values, 0)));
 		
-		for (int i = 1; i <  values.getSubtermCount(); i++) {
+		if (list.getSubtermCount() > 0)
+			results.append(termContents(termAt(list, 0)));
+		
+		for (int i = 1; i <  list.getSubtermCount(); i++) {
 			results.append(',');
-			results.append(termContents(termAt(values, i)));
+			results.append(termContents(termAt(list, i)));
 		}
 		return results.toString();
 	}
-	
-
 }

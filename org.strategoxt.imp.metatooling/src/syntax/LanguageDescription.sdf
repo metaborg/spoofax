@@ -1,4 +1,4 @@
-module Language
+module LanguageDescription
 
 imports Common
 
@@ -35,6 +35,6 @@ exports
     "table"          ":" PropertyValue  -> LanguageProperty {cons("Table")}
     "start" "symbol" ":" PropertyValue  -> LanguageProperty {cons("StartSymbol")}
     "url"            ":" URL            -> LanguageProperty {cons("URL")}
-    "extends"        ":" PropertyValues -> LanguageProperty {cons("Extends")} %% derivedFrom
+%%  "extends"        ":" PropertyValue  -> LanguageProperty {cons("Extends")} %% derivedFrom
     "aliases"        ":" PropertyValues -> LanguageProperty {cons("Aliases")} %% synonyms
    

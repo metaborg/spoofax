@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.imp.language.Language;
 import org.eclipse.imp.runtime.RuntimePlugin;
 import org.spoofax.compiler.Compiler;
 import org.spoofax.interpreter.core.Interpreter;
@@ -14,6 +15,7 @@ import org.spoofax.jsglr.InvalidParseTableException;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.ParseTableManager;
 import org.spoofax.jsglr.SGLR;
+import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 
 import aterm.ATermFactory;
 
@@ -34,8 +36,11 @@ public final class Environment {
 	private final static ParseTableManager parseTableManager
 		= new ParseTableManager(factory);
 	
-	private final static Map<String, ParseTable> parseTables
-		= new HashMap<String, ParseTable>();
+	private final static Map<Language, ParseTable> parseTables
+		= new HashMap<Language, ParseTable>();
+	
+	private final static Map<Language, Descriptor> descriptors
+		= new HashMap<Language, Descriptor>();
 	
 	public static ATermFactory getATermFactory() {
 		return factory;
@@ -56,7 +61,7 @@ public final class Environment {
 		return result;
 	}
 	
-	public static void registerParseTable(String language, InputStream parseTable)
+	public static void registerParseTable(Language language, InputStream parseTable)
 		throws IOException, InvalidParseTableException {
 		
 		try {
@@ -69,12 +74,20 @@ public final class Environment {
 		}
 	}
 	
-	public static ParseTable getParseTable(String grammar) {
-		ParseTable table = parseTables.get(grammar);
+	public static ParseTable getParseTable(Language language) {
+		ParseTable table = parseTables.get(language);
 		
-		if (table == null) throw new IllegalStateException("Parse table not available: " + grammar);
+		if (table == null) throw new IllegalStateException("Parse table not available: " + language.getName());
 		
 		return table;
+	}
+	
+	public static Descriptor getDescriptor(Language language) {
+		return descriptors.get(language);
+	}
+	
+	public static void registerDescriptor(Language language, Descriptor descriptor) {
+		descriptors.put(language, descriptor);
 	}
 	
 	public static void logException(String message, Throwable t) {

@@ -11,6 +11,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.model.ISourceProject;
+import org.eclipse.imp.parser.AstLocator;
 import org.eclipse.imp.parser.IMessageHandler;
 import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.eclipse.imp.parser.SimpleLPGParseController;
@@ -91,7 +92,7 @@ public class SGLRParseController extends SimpleLPGParseController {
      */
     public SGLRParseController(Language language, String startSymbol) {
     	super(language == null ? null : language.getName());
-    	parser = new SGLRParser(this, tokenManager, Environment.getParseTable(language.getName()), startSymbol);
+    	parser = new SGLRParser(this, tokenManager, Environment.getParseTable(language), startSymbol);
     }
 
     @Override
@@ -129,7 +130,7 @@ public class SGLRParseController extends SimpleLPGParseController {
 	
 	@Override
 	public ISourcePositionLocator getNodeLocator() {
-		return new SGLRAstLocator();
+		return new AstLocator();
 	}
 	
 	// Problem markers

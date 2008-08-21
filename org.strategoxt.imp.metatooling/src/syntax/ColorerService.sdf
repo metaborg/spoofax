@@ -50,7 +50,7 @@ exports
     
     "_"         -> Color {cons("ColorDefault")}
     Int Int Int -> Color {cons("ColorRGB")}
-                -> NoColor {cons("ColorDefault")}
+                -> NoColor {cons("NoColor")}
     Color       -> MaybeColor
     NoColor     -> MaybeColor
 

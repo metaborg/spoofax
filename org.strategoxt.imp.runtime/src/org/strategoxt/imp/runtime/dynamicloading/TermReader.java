@@ -45,7 +45,9 @@ public class TermReader {
 	
 	public static String termContents(IStrategoTerm t) {
 		if (t == null) return null;
-		String result = termAt(t, 0).toString();
+		String result = t.getTermType() == IStrategoTerm.STRING
+		        ? t.toString()
+		        : termAt(t, 0).toString();
 		if (result.startsWith("\"") && result.endsWith("\""))
 			result = result.substring(1, result.length() - 2);
 		return result;				
