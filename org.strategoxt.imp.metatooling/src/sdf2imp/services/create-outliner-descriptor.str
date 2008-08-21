@@ -19,12 +19,15 @@ strategies
       !|[
         module <descriptor-name> "-Outliner.generated"
         
+        outliner Default outliner        
         ~
-        ~// Outliner rules take the form of <sort>.<pattern>, <sort>._, or _.<pattern>
+        ~// Outliner rules indicate grammar productions to be outlined,
+        ~// and take one of the following forms, and :
+        ~//
+        ~//   - <sort>.<constructor>
+        ~//   - <sort>._,
+        ~//   - _.<constructor>
         ~
-        
-        outliner Default outliner
-        
           ~*<id>
       ]|
     )

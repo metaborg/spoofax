@@ -28,7 +28,6 @@ strategies
           ~// Example: background colors for ToMetaExpr/FromMetaExpr, if supported by the grammar
           ~//   environment _.ToMetaExpr:   _ 220 230 200
           ~//   environment _.FromMetaExpr: _ white
-          ~
         
           // TODO: Better documentation of colorer descriptor
         
