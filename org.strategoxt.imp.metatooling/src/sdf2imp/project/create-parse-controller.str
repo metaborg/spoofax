@@ -22,26 +22,34 @@ strategies
     <output-java-file> |[
       package pkgname;
 
-      import org.eclipse.core.runtime.IPath;
-      import org.eclipse.imp.model.ISourceProject;
-      import org.eclipse.imp.parser.IMessageHandler;
+      import org.eclipse.imp.parser.IParseController;
+      import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
+      import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
+      import org.strategoxt.imp.runtime.dynamicloading.DescriptorFactory;
       import org.strategoxt.imp.runtime.dynamicloading.DynamicParseController;
       
       public class x_name extends DynamicParseController {
         private static final String LANGUAGE = "~table";
+
         private static final String TABLE = "/syntax/" + LANGUAGE + ".tbl";
+
         private static final String DESCRIPTOR = "/" + LANGUAGE + ".packed.esv";
-        private static boolean loaded;
+
+        private static boolean registered;
         
-        @Override public void initialize(IPath filePath, ISourceProject project,
-            IMessageHandler handler) {
-          
-          if (!loaded) {
-            loaded = true;
-            load(x_name.class.getResourceAsStream(DESCRIPTOR),
-                 x_name.class.getResourceAsStream(TABLE));
+        @Override
+        public IParseController getWrapped() { 
+          if (!registered) { 
+            registered = true;
+            try {
+              Descriptor descriptor = DescriptorFactory.load(EditorServiceParseController.class.getResourceAsStream(DESCRIPTOR), EditorServiceParseController.class.getResourceAsStream(TABLE));
+              init(descriptor.getLanguage());
+            } catch (BadDescriptorException exc) {
+              setNotLoadingCause(exc);
+              throw new RuntimeException(exc);
+            }
           }
-          super.initialize(filePath, project, handler);
+          return super.getWrapped();
         }
       }
     ]|

@@ -1,7 +1,5 @@
 package org.strategoxt.imp.runtime.dynamicloading;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Iterator;
 
 import org.eclipse.core.runtime.IPath;
@@ -20,9 +18,6 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
-import org.spoofax.jsglr.InvalidParseTableException;
-import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.parser.SGLRParseController;
 
 /**
  * This class functions as a dynamic proxy to a parse controller.
@@ -32,17 +27,23 @@ import org.strategoxt.imp.runtime.parser.SGLRParseController;
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class DynamicParseController implements IParseController {
-	private SGLRParseController wrapped;
+public class DynamicParseController extends DynamicService<IParseController> implements IParseController {
+	public DynamicParseController() {
+		super(IParseController.class);
+	}
 	
-	private Throwable notLoadingCause;
+	@Override
+	protected IParseController getWrapped() {
+		if (getLanguage() == null) init(findLanguage());
+		init(getLanguage());
+		return super.getWrapped();
+	}
 	
-	private Language language;
-	
-	public Language getLanguage() {
-		if (language != null) return language;
-		if (getWrapped() != null) return getWrapped().getLanguage();
-		
+	/**
+	 * Find the language associated with this parse controller,
+	 * in case this is not statically known.
+	 */
+	private Language findLanguage() {
 		for (IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows()) {
 			for (IWorkbenchPage page : window.getPages()) {
 				for (IEditorReference editor : page.getEditorReferences()) {
@@ -50,8 +51,7 @@ public class DynamicParseController implements IParseController {
 					if (part instanceof UniversalEditor) {
 						IParseController controller = ((UniversalEditor) part).getParseController();
 						if (controller == this) {
-							language = ((UniversalEditor) part).fLanguage;
-							return language;
+							return ((UniversalEditor) part).fLanguage;
 						}
 					}
 				}
@@ -59,40 +59,6 @@ public class DynamicParseController implements IParseController {
 		}
 		
 		throw new IllegalStateException("Cannot reference the parse controller language at this time");
-	}
-	
-	public IParseController getWrapped() {
-		if (wrapped == null) {
-			if (notLoadingCause != null) {
-				if (notLoadingCause instanceof RuntimeException) throw (RuntimeException) notLoadingCause;
-				else throw new RuntimeException(notLoadingCause);
-			} else {
-				Language language = getLanguage(); // or LanguageRegistry.findLanguage(filePath, null);
-				Environment.getParseTable(language);
-				wrapped = new SGLRParseController(language, Environment.getDescriptor(language).getStartSymbol());
-			}
-		}
-		return wrapped;
-	}
-	
-	public void load(InputStream descriptor, InputStream parseTable) {
-		try {
-			language = LanguageLoader.load(descriptor, false);
-			Environment.registerParseTable(language, parseTable);
-			wrapped = null;
-		} catch (BadDescriptorException e) {
-			Environment.logException("Error in editor service descriptor", e);
-			notLoadingCause = e;
-		} catch (IOException e) {
-			Environment.logException("Could not read editor service descriptor", e);
-			notLoadingCause = e;
-		} catch (InvalidParseTableException e) {
-			Environment.logException("Could not load editor service parse table", e);
-			notLoadingCause = e;
-		} catch (Exception e) {
-			Environment.logException("Could not load editor service descriptor", e);
-			notLoadingCause = e;
-		}
 	}
 
 	public IAnnotationTypeInfo getAnnotationTypeInfo() {

@@ -10,7 +10,6 @@ import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.swt.graphics.Color;
 
-import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
@@ -29,8 +28,6 @@ public class TokenColorer extends TokenColorerBase {
 		nodeMappings = new ArrayList<ColorMapping>(),
 		envMappings = new ArrayList<ColorMapping>();
 	
-	boolean initialized;
-	
 	public List<ColorMapping> getTokenMappings() {
 		return tokenMappings;
 	}
@@ -41,13 +38,6 @@ public class TokenColorer extends TokenColorerBase {
 	
 	public List<ColorMapping> getEnvMappings() {
 		return envMappings;
-	}
-	
-	private void initialize(IParseController controller) {
-		if (!initialized) {
-			initialized = true; TODO: cache all services, in the Descriptor class, make proxies
-			Environment.getDescriptor(controller.getLanguage()).configureColorer(this);
-		}
 	}
 
 	@Override

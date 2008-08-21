@@ -21,9 +21,9 @@ strategies
           <language
                 extensions="<%= extensions %>"
                 description="<%= name %>"
-                language="<%= name %>">
+                language="<%= name %>"
                 derivedFrom="Root"
-          </language>
+          ></language>
        </extension>
        <extension
              id="<%= pkgname %>.parser"

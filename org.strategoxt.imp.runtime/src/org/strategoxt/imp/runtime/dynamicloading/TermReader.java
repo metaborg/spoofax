@@ -52,6 +52,20 @@ public class TermReader {
 			result = result.substring(1, result.length() - 2);
 		return result;				
 	}
+
+	public static String concatTermStrings(IStrategoTerm list) {
+		IStrategoTerm values = termAt(list, 0);
+		StringBuilder results = new StringBuilder();
+		
+		if (values.getSubtermCount() > 0)
+			results.append(termContents(termAt(values, 0)));
+		
+		for (int i = 1; i <  values.getSubtermCount(); i++) {
+			results.append(',');
+			results.append(termContents(termAt(values, i)));
+		}
+		return results.toString();
+	}
 	
 	public static int intAt(IStrategoTerm t, int index) {
 		return Integer.parseInt(termContents(t.getSubterm(index)));

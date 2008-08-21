@@ -18,31 +18,32 @@ import org.strategoxt.imp.runtime.services.TokenColorer;
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-class TokenColorerLoader {
-	private final IStrategoAppl descriptor;
+class TokenColorerFactory {
 	
-	public TokenColorerLoader(IStrategoAppl descriptor) {
-		this.descriptor = descriptor;
-	}
-	
-	public void configureColorer(TokenColorer colorer) throws BadDescriptorException {
-		TextAttributeReferenceMap colors = getColorList();
+	/**
+	 * @see Descriptor#getService(Class)
+	 */
+	public static TokenColorer create(IStrategoAppl descriptor) throws BadDescriptorException {
+		TokenColorer result = new TokenColorer();
+		TextAttributeReferenceMap colors = getColorList(descriptor);
 		
 		for (IStrategoAppl rule : collectTerms(descriptor, "ColorRuleAll", "ColorRuleAllNamed")) {
-			addMapping(rule, colorer.getEnvMappings(), colors);
+			addMapping(rule, result.getEnvMappings(), colors);
 		}
 		
 		for (IStrategoAppl rule : collectTerms(descriptor, "ColorRule", "ColorRuleNamed")) {
 			IStrategoAppl pattern = termAt(rule, 0);
 			if (cons(pattern).equals("Token")) {
-				addMapping(rule, colorer.getTokenMappings(), colors);
+				addMapping(rule, result.getTokenMappings(), colors);
 			} else {
-				addMapping(rule, colorer.getNodeMappings(), colors);
+				addMapping(rule, result.getNodeMappings(), colors);
 			}
 		}
+		
+		return result;
 	}
 
-	private void addMapping(IStrategoAppl rule, List<ColorMapping> mappings,
+	private static void addMapping(IStrategoAppl rule, List<ColorMapping> mappings,
 			TextAttributeReferenceMap colors) throws BadDescriptorException {
 		
 		// FIXME
@@ -65,7 +66,7 @@ class TokenColorerLoader {
 		mappings.add(new ColorMapping(a, constructor, sort, getTokenKind(tokenKind)));
 	}
 	
-	private TokenKind getTokenKind(String tokenKind) throws BadDescriptorException {
+	private static TokenKind getTokenKind(String tokenKind) throws BadDescriptorException {
 		try {
 			return tokenKind == null ? null : TokenKind.valueOf(tokenKind);
 		} catch (IllegalArgumentException e) {
@@ -73,7 +74,7 @@ class TokenColorerLoader {
 		}
 	}
 
-	private TextAttributeReferenceMap getColorList() {
+	private static TextAttributeReferenceMap getColorList(IStrategoAppl descriptor) {
 		TextAttributeReferenceMap result = new TextAttributeReferenceMap();
 		
 		for (IStrategoAppl rule : collectTerms(descriptor, "ColorDef")) {
@@ -91,14 +92,14 @@ class TokenColorerLoader {
 		return result;
 	}
 	
-	private int getFont(IStrategoAppl font) {
+	private static int getFont(IStrategoAppl font) {
 		if (cons(font).equals("BOLD")) return SWT.BOLD;
 		if (cons(font).equals("ITALIC")) return SWT.BOLD;
 		if (cons(font).equals("BOLD_ITALIC")) return SWT.BOLD | SWT.ITALIC;
 		return 0;
 	}
 
-	private TextAttributeReference getAttribute(TextAttributeReferenceMap colors, IStrategoAppl color) {
+	private static TextAttributeReference getAttribute(TextAttributeReferenceMap colors, IStrategoAppl color) {
 		TextAttributeReference result = null;
 		
 		if (cons(color).equals("ColorDefault")) {

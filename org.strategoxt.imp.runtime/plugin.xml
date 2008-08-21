@@ -22,7 +22,7 @@
    <extension
          point="org.eclipse.imp.runtime.tokenColorer">
       <tokenColorer
-            class="org.strategoxt.imp.runtime.services.TokenColorer"
+            class="org.strategoxt.imp.runtime.dynamicloading.DynamicTokenColorer"
             language="Root">
       </tokenColorer>
    </extension>
