@@ -5,6 +5,7 @@ import static org.strategoxt.imp.runtime.dynamicloading.TermReader.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.imp.services.ITokenColorer;
 import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
@@ -20,11 +21,10 @@ import org.strategoxt.imp.runtime.services.TokenColorer;
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 class TokenColorerFactory {
-	
 	/**
 	 * @see Descriptor#getService(Class)
 	 */
-	public static TokenColorer create(IStrategoAppl descriptor) throws BadDescriptorException {
+	public static ITokenColorer create(IStrategoAppl descriptor) throws BadDescriptorException {
 		List<ColorMapping> tokenMappings = new ArrayList<ColorMapping>();
 		List<ColorMapping> nodeMappings = new ArrayList<ColorMapping>();
 		List<ColorMapping> envMappings = new ArrayList<ColorMapping>();

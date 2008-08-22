@@ -11,6 +11,8 @@ import java.util.Map;
 import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.services.ILanguageSyntaxProperties;
+import org.eclipse.imp.services.IReferenceResolver;
 import org.eclipse.imp.services.ITokenColorer;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.jsglr.SGLRException;
@@ -69,9 +71,14 @@ public class Descriptor {
 		if (result != null) return type.cast(result);
 		
 		if (IParseController.class.isAssignableFrom(type)) {
-			result = new SGLRParseController(getLanguage(), getStartSymbol());
+			ILanguageSyntaxProperties syntaxProperties = getService(ILanguageSyntaxProperties.class);
+			result = new SGLRParseController(getLanguage(), syntaxProperties, getStartSymbol());
 		} else if (ITokenColorer.class.isAssignableFrom(type)) {
 			result = TokenColorerFactory.create(document);
+		} else if (IReferenceResolver.class.isAssignableFrom(type)) {
+			result = ReferenceResolverFactory.create(document);
+		} else if (ILanguageSyntaxProperties.class.isAssignableFrom(type)) {
+			result = SyntaxPropertiesFactory.create(document);
 		} else {
 			throw new IllegalArgumentException(type.getSimpleName() + " is not a supported editor service type");
 		}

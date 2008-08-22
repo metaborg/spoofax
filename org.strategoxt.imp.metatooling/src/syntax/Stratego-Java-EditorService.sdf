@@ -75,3 +75,8 @@ exports
     %% Stratego applications as anti-quotation
     "<" Strategy[[StrategoHost]] ">" Term[[StrategoHost]] -> QuotedTerm {cons("App")}
     StrategyAngle[[StrategoHost]]                         -> QuotedTerm {cons("RootApp"), avoid}
+
+  lexical syntax
+  
+    "<" ~[]* ">" -> PropertyValue {reject}
+    "~" ~[]*     -> PropertyValue {reject}

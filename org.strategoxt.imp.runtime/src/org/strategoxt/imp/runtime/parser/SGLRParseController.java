@@ -43,6 +43,8 @@ public class SGLRParseController implements IParseController {
 	
 	private final Language language;
 	
+	private final ILanguageSyntaxProperties syntaxProperties;
+	
 	private AstNode currentAst;
 	
 	private ISourceProject project;
@@ -85,8 +87,12 @@ public class SGLRParseController implements IParseController {
      * @param language      The name of the language, as registered in the {@link LanguageRegistry}.
      * @param startSymbol	The start symbol of this grammar, or null.
      */
-    public SGLRParseController(Language language, String startSymbol) {
+    public SGLRParseController(Language language, ILanguageSyntaxProperties syntaxProperties,
+			String startSymbol) {
+    	
     	this.language = language;
+    	this.syntaxProperties = syntaxProperties;
+    	
     	parser = new SGLRParser(this, tokenManager, Environment.getParseTable(language), startSymbol);
     }
 
@@ -126,7 +132,7 @@ public class SGLRParseController implements IParseController {
 	}
 	
 	public ILanguageSyntaxProperties getSyntaxProperties() {
-		return null; // TODO: ILanguageSyntaxProperties
+		return syntaxProperties;
 	}
 
 	public IAnnotationTypeInfo getAnnotationTypeInfo() {

@@ -1,0 +1,28 @@
+module sdf2imp/services/create-syntax-descripto
+
+imports
+  libstratego-lib
+  
+  sdf2imp/util/-
+
+strategies
+
+  create-syntax-descriptor =
+    output-default-descriptor-file(
+      <descriptor-name> "-Syntax.generated"
+    ,
+      // TODO: Infer syntax properties from the SDF definition?
+      !|[
+        module <descriptor-name> "-Syntax.generated"
+        
+        language Syntax properties (static defaults)
+          ~
+          line comment: "//"
+          block comment: "/*" * "*/"
+          fences: [  ]
+                  (  )
+                  {  }
+                  |[ ]|
+                  <? ?>
+      ]|
+    )

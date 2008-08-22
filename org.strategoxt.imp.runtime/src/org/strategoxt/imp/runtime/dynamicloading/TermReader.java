@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import static org.spoofax.interpreter.terms.IStrategoTerm.*;
 
 /**
  * Term reading utility class.
@@ -44,11 +45,21 @@ public class TermReader {
 	
 	public static String termContents(IStrategoTerm t) {
 		if (t == null) return null;
-		String result = t.getTermType() == IStrategoTerm.STRING
-		        ? t.toString()
-		        : termAt(t, 0).toString();
+		
+		String result;
+		
+		if (t.getTermType() == STRING) {
+			result = t.toString();
+		} else if (t.getTermType() == APPL && cons((IStrategoAppl) t).equals("String")) {
+			return termContents(termAt(t, 0));
+		} else {
+			if (t.getSubtermCount() == 0) return null;
+			result = termAt(t, 0).toString();
+		}
+		
 		if (result.startsWith("\"") && result.endsWith("\""))
 			result = result.substring(1, result.length() - 2);
+		
 		return result;				
 	}
 

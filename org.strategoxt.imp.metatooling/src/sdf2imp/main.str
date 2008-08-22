@@ -55,6 +55,7 @@ strategies
   create-default-descriptors =
     create-analyze-main-descriptor;
 
+    create-syntax-descriptor;
     create-folding-descriptor;
     create-outliner-descriptor;
     create-colorer-descriptor;

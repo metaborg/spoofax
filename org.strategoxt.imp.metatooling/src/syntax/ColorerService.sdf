@@ -7,7 +7,7 @@ exports
 
   sorts
   
-    Section ColorRule Font Color MaybeColor NoColor
+    Section ColorRule Font Color ColorNode MaybeColor NoColor
     TokenKind TokenKindName AttributeId Attribute
 
   syntax

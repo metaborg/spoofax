@@ -6,7 +6,8 @@ exports
   
   sorts
   
-    Section LanguageProperty PropertyValue PropertyValues URL
+    Section LanguageProperty PropertyValue NoContinuation PropertyValues URL
+    FenceDef BlockCommentDef
   
   syntax
   
@@ -16,17 +17,17 @@ exports
   
   lexical syntax
     
-    ~[\ \t\n\r\,\~\<\:]+  -> PropertyValue {avoid}
-    String                -> PropertyValue
+    ~[\ \t\n\r\,\:]+  -> PropertyValue {avoid}
 
-    ~[\ \t\n\r\,\/\~\<]+ "://" ~[\ \t\n\r\,]+ -> URL
+    ~[\ \t\n\r\,\/\:]+ "://" ~[\ \t\n\r]+ -> URL
   
   context-free syntax
   
     { PropertyValue ","}* -> PropertyValues {cons("Values")}
+    String                -> PropertyValue
     PropertyKeyword       -> PropertyValue {reject}
   
-  	%% Required properties
+  	%% General language properties
   
     "name"           ":" PropertyValue  -> LanguageProperty {cons("Name")}
     "id"             ":" PropertyValue  -> LanguageProperty {cons("Id")}
@@ -38,3 +39,14 @@ exports
 %%  "extends"        ":" PropertyValue  -> LanguageProperty {cons("Extends")} %% derivedFrom
     "aliases"        ":" PropertyValues -> LanguageProperty {cons("Aliases")} %% synonyms
    
+     %% Syntax properties
+     
+     "line"  "comment" ":" PropertyValue   -> LanguageProperty {cons("LineCommentPrefix")}
+     "block" "comment" ":" BlockCommentDef -> LanguageProperty {cons("BlockCommentDefs")}
+     "fences"          ":" FenceDef*       -> LanguageProperty {cons("FenceDefs")}
+     
+     PropertyValue PropertyValue  PropertyValue -> BlockCommentDef {cons("BlockCommentDef")}
+     PropertyValue NoContinuation PropertyValue -> BlockCommentDef {cons("BlockCommentDef")}
+                                                -> NoContinuation {cons("NoContinuation")}
+     
+     PropertyValue PropertyValue -> FenceDef {cons("FenceDef")}

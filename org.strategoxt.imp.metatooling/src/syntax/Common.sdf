@@ -3,14 +3,14 @@ module Common
 exports
 
   sorts
-    Id Int String CommentChar Node Sort Constructor ConstructorId
-    ReservedName SectionName
+    Id Int STRING String CommentChar Node Sort Constructor ConstructorId
+    ReservedName SectionName ModuleName
 
   lexical syntax
   
     [a-zA-Z][a-zA-Z0-9\_]* -> Id
     "-"? [0-9]+            -> Int
-    "\"" ~[\"\n]* "\""     -> String
+    "\"" ~[\"\n]* "\""     -> STRING
     
     ~[\n\r]*               -> SectionName
     
@@ -38,6 +38,7 @@ exports
   
     Id     -> Sort {cons("Sort")}
     Id "*" -> Sort {cons("ListSort")}
+    STRING -> String {cons("String")}
 
     Sort "." "_" -> Sort {bracket}
     

@@ -27,21 +27,13 @@ strategies
     DescriptorPPTable
   <+
     tbl := <import-term(EditorService-pretty.pp.af)>;
-    rules(DescriptorPPTable := tbl )
-
-/** @internal */
-strategies
+    rules(DescriptorPPTable := tbl)
     
   // HACK: add quotes omitted by the stratego parser
   
   pp-fix-string-quotes:
-    ColorRuleNamed(node, string, attr) -> ColorRuleNamed(node, string', attr)
+    String(string) -> String(string')
     where
-      <not(string-starts-with(|"\""))> string;
-      string' := <conc-strings> ("\"", string, "\"")
-  
-  pp-fix-string-quotes:
-    ColorRuleAllNamed(node, string, attr) -> ColorRuleAllNamed(node, string', attr)
-    where
-      <not(string-starts-with(|"\""))> string;
+      <not(string-starts-with(|"\""))> string
+    with
       string' := <conc-strings> ("\"", string, "\"")
