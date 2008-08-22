@@ -5,9 +5,9 @@ import java.util.List;
 import java.util.Iterator;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
-import org.strategoxt.imp.runtime.stratego.adapter.WrappedAstNodeFactory;
 
 import lpg.runtime.IAst;
 import lpg.runtime.IAstVisitor;
@@ -90,9 +90,9 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 		parent = value;
 	}
 	
-	public IStrategoTerm getTerm(WrappedAstNodeFactory factory) {
+	public IStrategoTerm getTerm() {
 		if (term != null) return term;
-		else return factory.wrapNew(this);
+		else return Environment.getWrappedAstNodeFactory().wrapNew(this);
 	}
 	
 	// Initialization

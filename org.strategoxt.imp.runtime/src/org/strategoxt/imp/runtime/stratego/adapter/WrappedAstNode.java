@@ -10,7 +10,7 @@ public abstract class WrappedAstNode implements IStrategoTerm {
 	
 	private final WrappedAstNodeFactory factory;
 	
-	protected final IAst getNode() {
+	public final IAst getNode() {
 		return node;
 	}
 	
@@ -37,10 +37,9 @@ public abstract class WrappedAstNode implements IStrategoTerm {
 	public int getSubtermCount() {
 		return node.getChildren().size();
 	}
-
-	public int getTermType() {
-		// TODO Auto-generated method stub
-		return 0;
+	
+	public final boolean match(IStrategoTerm second) {
+		return equals(second);
 	}
 
 	@Override
@@ -48,13 +47,15 @@ public abstract class WrappedAstNode implements IStrategoTerm {
 		if (other instanceof WrappedAstNode) {
 			return node.equals(((WrappedAstNode) other).node);
 		} else if (other instanceof IStrategoTerm) {
-			return match((IStrategoTerm) other);
+			return slowCompare((IStrategoTerm) other);
 		} else {
 			return false;
 		}
 	}
 	
-    @Override
+	protected abstract boolean slowCompare(IStrategoTerm second);
+	
+	@Override
     public String toString() {
     	InlinePrinter ip = new InlinePrinter();
     	prettyPrint(ip);

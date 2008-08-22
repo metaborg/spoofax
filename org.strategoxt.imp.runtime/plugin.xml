@@ -26,4 +26,11 @@
             language="Root">
       </tokenColorer>
    </extension>
+   <extension
+         point="org.eclipse.imp.runtime.referenceResolvers">
+      <referenceResolver
+            class="org.strategoxt.imp.runtime.dynamicloading.DynamicReferenceResolver"
+            language="EditorService">
+      </referenceResolver>
+   </extension>
 </plugin>

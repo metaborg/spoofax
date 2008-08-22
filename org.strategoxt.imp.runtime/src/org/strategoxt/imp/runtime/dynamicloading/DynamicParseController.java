@@ -21,10 +21,9 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
 /**
- * This class functions as a dynamic proxy to a parse controller.
- * All dynamically loaded languages inherit from the "Root" language, which
- * specifies this class as its parse controller, allowing it to be
- * adapted at run time.  
+ * Dynamic proxy class to a parse controller.
+ * 
+ * @see DynamicService
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */

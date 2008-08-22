@@ -2,6 +2,7 @@ package org.strategoxt.imp.runtime.dynamicloading;
 
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.jface.text.TextAttribute;
@@ -24,23 +25,26 @@ class TokenColorerFactory {
 	 * @see Descriptor#getService(Class)
 	 */
 	public static TokenColorer create(IStrategoAppl descriptor) throws BadDescriptorException {
-		TokenColorer result = new TokenColorer();
+		List<ColorMapping> tokenMappings = new ArrayList<ColorMapping>();
+		List<ColorMapping> nodeMappings = new ArrayList<ColorMapping>();
+		List<ColorMapping> envMappings = new ArrayList<ColorMapping>();
+		
 		TextAttributeReferenceMap colors = readColorList(descriptor);
 		
 		for (IStrategoAppl rule : collectTerms(descriptor, "ColorRuleAll", "ColorRuleAllNamed")) {
-			addMapping(rule, result.getEnvMappings(), colors);
+			addMapping(rule, envMappings, colors);
 		}
 		
 		for (IStrategoAppl rule : collectTerms(descriptor, "ColorRule", "ColorRuleNamed")) {
 			IStrategoAppl pattern = termAt(rule, 0);
 			if (cons(pattern).equals("Token")) {
-				addMapping(rule, result.getTokenMappings(), colors);
+				addMapping(rule, tokenMappings, colors);
 			} else {
-				addMapping(rule, result.getNodeMappings(), colors);
+				addMapping(rule, nodeMappings, colors);
 			}
 		}
 		
-		return result;
+		return new TokenColorer(envMappings, nodeMappings, tokenMappings);
 	}
 
 	private static void addMapping(IStrategoAppl rule, List<ColorMapping> mappings,

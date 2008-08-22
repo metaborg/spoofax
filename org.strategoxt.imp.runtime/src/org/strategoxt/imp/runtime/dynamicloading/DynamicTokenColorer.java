@@ -6,6 +6,10 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.TextAttribute;
 
 /**
+ * Dynamic proxy class to a token colorer.
+ * 
+ * @see DynamicService
+ * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class DynamicTokenColorer extends DynamicService<ITokenColorer> implements ITokenColorer {

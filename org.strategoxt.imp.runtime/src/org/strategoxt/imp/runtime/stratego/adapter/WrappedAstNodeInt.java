@@ -22,13 +22,17 @@ public class WrappedAstNodeInt extends WrappedAstNode implements IStrategoInt {
 		return getAllSubterms();
 	}
 	
-	public boolean match(IStrategoTerm second) {
-		// TODO Auto-generated method stub
-		return false;
+	@Override
+	public boolean slowCompare(IStrategoTerm second) {
+		return second instanceof IStrategoInt
+			&& ((IStrategoInt) second).intValue() == intValue();
 	}
-    
 
     public void prettyPrint(ITermPrinter pp) {
     	pp.print("" + wrappee.getValue());
     }
+
+	public int getTermType() {
+		return IStrategoTerm.INT;
+	}
 }

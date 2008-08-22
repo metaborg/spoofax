@@ -16,6 +16,7 @@ import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.ParseTableManager;
 import org.spoofax.jsglr.SGLR;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
+import org.strategoxt.imp.runtime.stratego.adapter.WrappedAstNodeFactory;
 
 import aterm.ATermFactory;
 
@@ -42,12 +43,19 @@ public final class Environment {
 	private final static Map<Language, Descriptor> descriptors
 		= new HashMap<Language, Descriptor>();
 	
+	private final static WrappedAstNodeFactory wrappedAstNodeFactory
+		= new WrappedAstNodeFactory();
+	
 	public static ATermFactory getATermFactory() {
 		return factory;
 	}
 	
 	public static WrappedATermFactory getWrappedTermFactory() {
 		return wrappedFactory;
+	}
+	
+	public static WrappedAstNodeFactory getWrappedAstNodeFactory() {
+		return wrappedAstNodeFactory;
 	}
 	
 	public static SGLR createSGLR(ParseTable parseTable) {
@@ -94,5 +102,10 @@ public final class Environment {
 		System.err.println(message);
 		t.printStackTrace();
 		RuntimePlugin.getInstance().logException(message, t);
+	}
+	
+	public static void logException(String message) {
+		System.err.println(message);
+		RuntimePlugin.getInstance().logException(message, new RuntimeException(message));
 	}
 }

@@ -9,6 +9,12 @@ import org.strategoxt.imp.runtime.parser.ast.StringAstNode;
 
 import lpg.runtime.IAst;
 
+/**
+ * A factory creating ATerms from AST nodes.
+ * 
+ * @author Lennart Kats <lennart add lclnet.nl>
+ * @author Karl Trygve Kalleberg <karltk add strategoxt.org>
+ */
 public class WrappedAstNodeFactory extends BasicTermFactory {	
 	private static final WeakHashMap<IAst, WrappedAstNode> cache
 		= new WeakHashMap<IAst, WrappedAstNode>();
@@ -16,7 +22,7 @@ public class WrappedAstNodeFactory extends BasicTermFactory {
 	public IStrategoTerm wrap(IAst node) {
 		if (node instanceof IStrategoAstNode) {
 			// Get associated term from IStrategoAstNode, may be cached
-			return ((IStrategoAstNode) node).getTerm(this);
+			return ((IStrategoAstNode) node).getTerm();
 		} else {
 			WrappedAstNode result = cache.get(node);
 			if (result != null) return result;

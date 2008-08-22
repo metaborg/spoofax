@@ -1,6 +1,5 @@
 package org.strategoxt.imp.runtime.services;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.imp.parser.IParseController;
@@ -23,10 +22,7 @@ import lpg.runtime.IToken;
 public class TokenColorer extends TokenColorerBase {
 	private /*final*/ IParseController parseController;
 	
-	private final ArrayList<ColorMapping>
-		tokenMappings = new ArrayList<ColorMapping>(),
-		nodeMappings = new ArrayList<ColorMapping>(),
-		envMappings = new ArrayList<ColorMapping>();
+	private final List<ColorMapping> envMappings, nodeMappings, tokenMappings;
 	
 	public List<ColorMapping> getTokenMappings() {
 		return tokenMappings;
@@ -38,6 +34,14 @@ public class TokenColorer extends TokenColorerBase {
 	
 	public List<ColorMapping> getEnvMappings() {
 		return envMappings;
+	}
+	
+	public TokenColorer(List<ColorMapping> envMappings, List<ColorMapping> nodeMappings,
+			List<ColorMapping> tokenMappings) {
+		
+		this.tokenMappings = tokenMappings;
+		this.nodeMappings = nodeMappings;
+		this.envMappings = envMappings;
 	}
 
 	@Override
@@ -69,7 +73,7 @@ public class TokenColorer extends TokenColorerBase {
 		else return noWhitespaceBackground(result, token, tokenKind);
 	}
 
-	private TextAttribute getColoring(ArrayList<ColorMapping> mappings, String constructor, String sort, int tokenKind) {
+	private TextAttribute getColoring(List<ColorMapping> mappings, String constructor, String sort, int tokenKind) {
 		for (ColorMapping mapping : mappings) {
 			TextAttribute result = mapping.getAttribute(constructor, sort, tokenKind);
 			if (result != null) return result;

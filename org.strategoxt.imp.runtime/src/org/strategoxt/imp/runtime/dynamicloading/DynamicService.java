@@ -5,6 +5,11 @@ import org.eclipse.imp.language.Language;
 import org.strategoxt.imp.runtime.Environment;
 
 /**
+ * Dynamic service proxy base class: implements an editor service
+ * for the "Root" language, from which all dynamically loaded languages
+ * inherit. The proxy class then allows it to be specialized for
+ * the specific language on demand.  
+ * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class DynamicService<T extends ILanguageService> {

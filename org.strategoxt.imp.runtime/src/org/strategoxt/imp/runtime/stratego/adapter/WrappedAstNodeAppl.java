@@ -7,6 +7,12 @@ import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermPrinter;
 
+/**
+ * A constructor application AST node wrapped into an ATerm.
+ * 
+ * @author Lennart Kats <lennart add lclnet.nl>
+ * @author Karl Trygve Kalleberg <karltk add strategoxt.org>
+ */
 public class WrappedAstNodeAppl extends WrappedAstNode implements IStrategoAppl {
 	private final IStrategoConstructor constructor;
 
@@ -29,24 +35,9 @@ public class WrappedAstNodeAppl extends WrappedAstNode implements IStrategoAppl 
 	public IStrategoTerm[] getArguments() {
 		return getAllSubterms();
 	}
-	
-	public boolean match(IStrategoTerm second) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-    
-    @Override
-    public boolean equals(Object other) {
-        if(other instanceof WrappedAstNode) {
-            if(other instanceof WrappedAstNodeAppl) {
-                return ((WrappedAstNodeAppl) other).getNode().equals(getNode());
-            }
-            return false;
-        }
-        return slowCompare(other);
-    }
 
-    protected boolean slowCompare(Object second) {
+	@Override
+    protected boolean slowCompare(IStrategoTerm second) {
         if(!(second instanceof IStrategoAppl))
             return false;
         IStrategoAppl snd = (IStrategoAppl) second;
@@ -90,4 +81,8 @@ public class WrappedAstNodeAppl extends WrappedAstNode implements IStrategoAppl 
         	pp.println(")");
         }
     }
+
+	public int getTermType() {
+		return IStrategoTerm.APPL;
+	}
 }

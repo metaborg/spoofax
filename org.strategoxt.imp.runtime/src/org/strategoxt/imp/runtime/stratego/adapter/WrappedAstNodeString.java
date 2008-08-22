@@ -21,16 +21,20 @@ public class WrappedAstNodeString extends WrappedAstNode implements IStrategoStr
 	public IStrategoTerm[] getArguments() {
 		return getAllSubterms();
 	}
-	
-	public boolean match(IStrategoTerm second) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-    
 
     public void prettyPrint(ITermPrinter pp) {
     	pp.print("\"");
     	pp.print(wrappee.getValue());
     	pp.print("\"");
     }
+
+	public int getTermType() {
+		return IStrategoTerm.STRING;
+	}
+
+	@Override
+	public boolean slowCompare(IStrategoTerm second) {
+		return second instanceof IStrategoString
+			&& ((IStrategoString) second).stringValue().equals(stringValue());
+	}
 }
