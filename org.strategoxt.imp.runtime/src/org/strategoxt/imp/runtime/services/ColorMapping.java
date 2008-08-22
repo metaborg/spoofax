@@ -9,13 +9,13 @@ import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
 public class ColorMapping {
 	private final static int NO_TOKEN_KIND = TokenKind.TK_RESERVED.ordinal();
 	
-	private final TextAttribute attribute;
+	private final TextAttributeReference attribute;
 	
 	private final String constructor, sort;
 	
 	private final int tokenKind;
 	
-	public ColorMapping(TextAttribute attribute, String constructor, String sort, TokenKind tokenKind) {
+	public ColorMapping(String constructor, String sort, TokenKind tokenKind, TextAttributeReference attribute) {
 		this.attribute = attribute;
 		this.constructor = constructor;
 		this.sort = sort;
@@ -25,10 +25,13 @@ public class ColorMapping {
 	}
 	
 	public TextAttribute getAttribute(String constructor, String sort, int tokenKind) {
-		if (this.constructor == null || this.constructor.equals(constructor))
-			if (this.sort == null || this.sort.equals(sort))
-				if (this.tokenKind == NO_TOKEN_KIND || this.tokenKind == tokenKind)
-					return attribute;
+		if (this.constructor == null || this.constructor.equals(constructor)) {
+			if (this.sort == null || this.sort.equals(sort)) {
+				if (this.tokenKind == NO_TOKEN_KIND || this.tokenKind == tokenKind) {
+					return attribute.get();
+				}
+			}
+		}
 		return null;
 	}
 }

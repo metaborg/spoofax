@@ -25,9 +25,6 @@ public class SGLRLexer implements ILexer {
 	
 	// IMP legacy / compatibility
 
-	/**
-	 * @deprecated	Use {@link SGLRParseController#isKeyword(int)} instead.
-	 */
 	@Deprecated
 	public int[] getKeywordKinds() {
 		return new int[] { TokenKind.TK_KEYWORD.ordinal() };

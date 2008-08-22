@@ -45,6 +45,8 @@ public class TokenColorer extends TokenColorerBase {
 		SGLRToken token = (SGLRToken) oToken;
 		AstNode node = token.getAstNode();
 		
+		parseController = controller;
+		
 		// Use the parent of string/int terminal nodes
 		if (node.getConstructor() == null && node.getParent() != null)
 			node = node.getParent();
@@ -58,7 +60,7 @@ public class TokenColorer extends TokenColorerBase {
 		TextAttribute result = mergeStyles(nodeColor, tokenColor);
 		
 		if (node != null) {
-			return addEnvColoring(result, node, tokenKind);
+			return addEnvColoring(result, node, tokenKind); // TODO: noWhitespaceBackground?
 		} else if (nodeColor == null) {
 			result = getColoring(envMappings, constructor, sort, tokenKind);
 		}
@@ -98,7 +100,7 @@ public class TokenColorer extends TokenColorerBase {
 				|| attribute.getForeground() == null || attribute.getFont() == null;
 	}
 
-	private TextAttribute mergeStyles(TextAttribute master, TextAttribute slave) {
+	private static TextAttribute mergeStyles(TextAttribute master, TextAttribute slave) {
 		if (slave == null) return master;
 		if (master == null) return slave;
 
@@ -113,7 +115,7 @@ public class TokenColorer extends TokenColorerBase {
 		}
 	}
 
-	private TextAttribute noWhitespaceBackground(TextAttribute attribute, IToken token, int tokenKind) {
+	private static TextAttribute noWhitespaceBackground(TextAttribute attribute, IToken token, int tokenKind) {
 		// FIXME: Don't use toString() on tokens
 		// TODO: Prefer a white background for layout tokens next to another white token
 		

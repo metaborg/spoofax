@@ -1,8 +1,9 @@
 package org.strategoxt.imp.runtime.services;
 
 import java.util.HashMap;
+import java.util.Map;
 
-import org.eclipse.swt.graphics.Color;
+import org.eclipse.jface.text.TextAttribute;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 
 /**
@@ -11,15 +12,22 @@ import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class TextAttributeReferenceMap {
-	private final HashMap<String, TextAttributeReference> colors = new HashMap<String, TextAttributeReference>();
+	private final HashMap<String, TextAttributeReference> map = new HashMap<String, TextAttributeReference>();
 	
-	public Color getColor(String name) throws BadDescriptorException {
-		TextAttributeReference result = colors.get(name);
-		if (result == null) throw new BadDescriptorException("Color not defined: " + name);
+	public TextAttribute getAttribute(String name) {
+		TextAttributeReference result = map.get(name);
 		return result.get();
 	}
 	
+	public void checkAllColors() throws BadDescriptorException {
+		for (Map.Entry<String, TextAttributeReference> entry : map.entrySet()) {
+			if (entry.getValue().get() == null) {
+				throw new BadDescriptorException("Bad definition for token colorer identifier " + entry.getKey());
+			}
+		}
+	}
+	
 	public void register(String name, TextAttributeReference color) {
-		colors.put(name, color);
+		map.put(name, color);
 	}
 }

@@ -25,7 +25,7 @@ class TokenColorerFactory {
 	 */
 	public static TokenColorer create(IStrategoAppl descriptor) throws BadDescriptorException {
 		TokenColorer result = new TokenColorer();
-		TextAttributeReferenceMap colors = getColorList(descriptor);
+		TextAttributeReferenceMap colors = readColorList(descriptor);
 		
 		for (IStrategoAppl rule : collectTerms(descriptor, "ColorRuleAll", "ColorRuleAllNamed")) {
 			addMapping(rule, result.getEnvMappings(), colors);
@@ -46,24 +46,29 @@ class TokenColorerFactory {
 	private static void addMapping(IStrategoAppl rule, List<ColorMapping> mappings,
 			TextAttributeReferenceMap colors) throws BadDescriptorException {
 		
-		// FIXME
-		
 		IStrategoAppl pattern = termAt(rule, 0);
-		IStrategoAppl attribute = termAt(rule, 1);
-		
-		IStrategoAppl foreground = termAt(attribute, 0);
-		IStrategoAppl background = termAt(attribute, 1);
-		IStrategoAppl font = termAt(attribute, 2);
+		IStrategoAppl attribute = termAt(rule, rule.getSubtermCount() - 1);
 		
 		String constructor = termContents(findTerm(pattern, "Constructor"));
 		String sort = termContents(findTerm(pattern, "Sort"));
-		String tokenKind = termContents(findTerm(pattern, "Token"));
+		TokenKind tokenKind = getTokenKind(termContents(findTerm(pattern, "Token")));
 		String listSort = termContents(findTerm(pattern, "Sort"));
 		if (listSort != null) sort = listSort + "*";
 		
-		TextAttribute a = new TextAttribute(getAttribute(colors, foreground).get(), getAttribute(colors, background).get(), getFont(font));
-		
-		mappings.add(new ColorMapping(a, constructor, sort, getTokenKind(tokenKind)));
+		mappings.add(new ColorMapping(constructor, sort, tokenKind, readAttribute(colors, attribute)));
+	}
+
+	private static TextAttributeReference readAttribute(TextAttributeReferenceMap colors, IStrategoAppl attribute) {
+		if (cons(attribute).equals("AttributeRef")) {
+			return new TextAttributeReference(colors, termContents(attribute));
+		} else {
+			assert cons(attribute).equals("Attribute");
+			IStrategoAppl foreground = termAt(attribute, 0);
+			IStrategoAppl background = termAt(attribute, 1);
+			IStrategoAppl font = termAt(attribute, 2);
+			TextAttribute result = new TextAttribute(readColor(foreground), readColor(background), readFont(font));
+			return new TextAttributeReference(colors, result);
+		}
 	}
 	
 	private static TokenKind getTokenKind(String tokenKind) throws BadDescriptorException {
@@ -74,43 +79,41 @@ class TokenColorerFactory {
 		}
 	}
 
-	private static TextAttributeReferenceMap getColorList(IStrategoAppl descriptor) {
-		TextAttributeReferenceMap result = new TextAttributeReferenceMap();
+	private static TextAttributeReferenceMap readColorList(IStrategoAppl descriptor) throws BadDescriptorException {
+		TextAttributeReferenceMap results = new TextAttributeReferenceMap();
 		
 		for (IStrategoAppl rule : collectTerms(descriptor, "ColorDef")) {
 			String name = termContents(termAt(rule, 0));
 			IStrategoAppl attribute = termAt(rule, 1);
-			result.register(name, getAttribute(result, attribute));
+			results.register(name, readAttribute(results, attribute));
 		}
 		
 		for (IStrategoAppl rule : collectTerms(descriptor, "ColorRuleNamed", "ColorRuleAllNamed")) {
 			String name = termContents(termAt(rule, 1));
 			IStrategoAppl attribute = termAt(rule, 2);
-			result.register(name, getAttribute(result, attribute));
+			results.register(name, readAttribute(results, attribute));
 		}
 		
-		return result;
+		results.checkAllColors();
+		
+		return results;
 	}
 	
-	private static int getFont(IStrategoAppl font) {
+	private static int readFont(IStrategoAppl font) {
 		if (cons(font).equals("BOLD")) return SWT.BOLD;
 		if (cons(font).equals("ITALIC")) return SWT.BOLD;
 		if (cons(font).equals("BOLD_ITALIC")) return SWT.BOLD | SWT.ITALIC;
 		return 0;
 	}
 
-	private static TextAttributeReference getAttribute(TextAttributeReferenceMap colors, IStrategoAppl color) {
-		TextAttributeReference result = null;
-		
-		if (cons(color).equals("ColorDefault")) {
-			result = new TextAttributeReference(colors);
-		} else if (cons(color).equals("ColorName")) {
-			result = new TextAttributeReference(colors, termContents(color));
+	private static Color readColor(IStrategoAppl color) {
+		if (cons(color).equals("ColorDefault") || cons(color).equals("NoColor")) {
+			return null;
 		} else if (cons(color).equals("ColorRGB")) {
-			result = new TextAttributeReference(colors, new Color(Display.getCurrent(),
-					intAt(color, 0), intAt(color, 1), intAt(color, 2)));
+			return new Color(Display.getCurrent(), 
+					intAt(color, 0), intAt(color, 1), intAt(color, 2));
+		} else {
+			throw new IllegalArgumentException("Unknown color of type " + cons(color));
 		}
-		
-		return result;
 	}
 }

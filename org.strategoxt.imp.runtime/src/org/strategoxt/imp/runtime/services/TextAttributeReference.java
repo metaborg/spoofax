@@ -3,40 +3,41 @@
  */
 package org.strategoxt.imp.runtime.services;
 
-import org.eclipse.swt.graphics.Color;
-import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
+import org.eclipse.jface.text.TextAttribute;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class TextAttributeReference {
-	private final TextAttributeReferenceMap colorList;
-	private Color color;
+	private final TextAttributeReferenceMap map;
+	private TextAttribute attribute;
 	private String name;
 	private boolean isFollowing;
 	
-	public TextAttributeReference(TextAttributeReferenceMap colorList) {
-		this.colorList = colorList;
+	public TextAttributeReference(TextAttributeReferenceMap map) {
+		this.map = map;
 	}
 	
-	public TextAttributeReference(TextAttributeReferenceMap colorList, Color color) {
-		this.colorList = colorList;
-		this.color = color;
+	public TextAttributeReference(TextAttributeReferenceMap map, TextAttribute attribute) {
+		this.map = map;
+		this.attribute = attribute;
 	}
 	
-	public TextAttributeReference(TextAttributeReferenceMap colorList, String name) {
-		this.colorList = colorList;
+	public TextAttributeReference(TextAttributeReferenceMap map, String name) {
+		this.map = map;
 		this.name = name;
 	}
 	
-	public Color get() throws BadDescriptorException {
-		if (color != null) {
-			return color;
+	public TextAttribute get() {
+		if (attribute != null) {
+			return attribute;
 		} else {
-			if (isFollowing == true)
-				throw new BadDescriptorException("Circular definition of color: " + name);
+			if (isFollowing == true) {
+				// throw new new BadDescriptorException("Circular definition of color: " + name);
+				return null;
+			}
 			isFollowing = true;
-			return this.colorList.getColor(name);
+			return this.map.getAttribute(name);
 		}
 	}
 }

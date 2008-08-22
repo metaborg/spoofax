@@ -1,6 +1,7 @@
 package org.strategoxt.imp.runtime.parser;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import lpg.runtime.IToken;
@@ -11,32 +12,36 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.model.ISourceProject;
-import org.eclipse.imp.parser.AstLocator;
 import org.eclipse.imp.parser.IMessageHandler;
+import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.parser.ISourcePositionLocator;
-import org.eclipse.imp.parser.SimpleLPGParseController;
+import org.eclipse.imp.parser.SimpleAnnotationTypeInfo;
+import org.eclipse.imp.services.IAnnotationTypeInfo;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
+import org.eclipse.jface.text.IRegion;
 import org.spoofax.jsglr.BadTokenException;
 import org.spoofax.jsglr.SGLR;
 import org.spoofax.jsglr.TokenExpectedException;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
-import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
+import org.strategoxt.imp.runtime.parser.ast.SGLRAstLocator;
+import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenIterator;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
 
 /**
- * IMP parse controller for an SGLR parser, reusing some logic from the LPG
- * implementation.
+ * IMP parse controller for an SGLR parser.
  *
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  * @author Karl Trygve Kalleberg <karltk add strategoxt.org>
  */
-public class SGLRParseController extends SimpleLPGParseController {
+public class SGLRParseController implements IParseController {
 	private final List<String> problemMarkerTypes = new ArrayList<String>();
 	
 	private final TokenKindManager tokenManager = new TokenKindManager();
 	
 	private final SGLRParser parser;
+	
+	private final Language language;
 	
 	private AstNode currentAst;
 	
@@ -48,19 +53,10 @@ public class SGLRParseController extends SimpleLPGParseController {
 
 	// Simple accessors
 	
-	@Override
 	public final AstNode getCurrentAst() { 
 		return currentAst;
 	}
-	
-	@Override
-	public final SGLRParser getParser() {
-		if (parser == null) throw new IllegalStateException("Parser not determined yet");
-		
-		return parser;
-	}
 
-	@Override
 	public final ISourceProject getProject() {
 		return project;
 	}
@@ -69,8 +65,7 @@ public class SGLRParseController extends SimpleLPGParseController {
 	 * @return either a project-relative path, if getProject() is non-null, or
 	 *         an absolute path.
 	 */
-    @Override
-	public final IPath getPath() {
+    public final IPath getPath() {
     	return project == null
 			? path
 			: project.getRawProject().getLocation().append(path);
@@ -91,12 +86,11 @@ public class SGLRParseController extends SimpleLPGParseController {
      * @param startSymbol	The start symbol of this grammar, or null.
      */
     public SGLRParseController(Language language, String startSymbol) {
-    	super(language == null ? null : language.getName());
+    	this.language = language;
     	parser = new SGLRParser(this, tokenManager, Environment.getParseTable(language), startSymbol);
     }
 
-    @Override
-	public void initialize(IPath filePath, ISourceProject project,
+    public void initialize(IPath filePath, ISourceProject project,
     		IMessageHandler handler) {
 		this.path = filePath;
 		this.project = project;
@@ -121,16 +115,26 @@ public class SGLRParseController extends SimpleLPGParseController {
 		return currentAst;
 	}
 	
-	// Grammar information
-	
-	@Override
-	public final boolean isKeyword(int kind) {
-		return kind == TokenKind.TK_KEYWORD.ordinal();
+	// Language information
+
+	public Language getLanguage() {
+		return language;
 	}
 	
-	@Override
 	public ISourcePositionLocator getNodeLocator() {
-		return new AstLocator();
+		return new SGLRAstLocator();
+	}
+	
+	public ILanguageSyntaxProperties getSyntaxProperties() {
+		return null; // TODO: ILanguageSyntaxProperties
+	}
+
+	public IAnnotationTypeInfo getAnnotationTypeInfo() {
+		return new SimpleAnnotationTypeInfo();
+	}
+
+	public Iterator<IToken> getTokenIterator(IRegion region) {
+		return new SGLRTokenIterator(parser.getParseStream(), region);
 	}
 	
 	// Problem markers
@@ -178,18 +182,5 @@ public class SGLRParseController extends SimpleLPGParseController {
 		IToken token = parser.getTokenizer().makeErrorToken(0);
 		
 		reportError(message, token);
-	}
-	
-	// LPG compatibility
-
-	@Deprecated
-	@Override
-	public SGLRLexer getLexer() {
-		return new SGLRLexer(getParser().getTokenizer().getLexStream());
-	}
-	
-	@Override
-	public ILanguageSyntaxProperties getSyntaxProperties() {
-		return null;
 	}
 }

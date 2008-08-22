@@ -22,9 +22,10 @@ public class DynamicService<T extends ILanguageService> {
 	
 	protected T getWrapped() {
 		if (wrapped == null) {
-			if (getNotLoadingCause() != null) {
+			if (getNotLoadingCause() != null)
 				throw new RuntimeException(getNotLoadingCause());
-			}
+			if (!isInitialized())
+				throw new IllegalStateException("Editor service component not initialized yet - " + getClass().getSimpleName());
 			try {
 				wrapped = Environment.getDescriptor(getLanguage()).getService(serviceType);
 			} catch (Exception e) {
@@ -33,10 +34,6 @@ public class DynamicService<T extends ILanguageService> {
 			}
 		}
 		return wrapped;
-	}
-	
-	public Language getLanguage() {
-		return language;
 	}
 	
 	private Throwable getNotLoadingCause() {
@@ -51,7 +48,15 @@ public class DynamicService<T extends ILanguageService> {
 		this.wrapped = wrapped;
 	}
 	
-	protected void init(Language language) {
+	public Language getLanguage() {
+		return language;
+	}
+	
+	public boolean isInitialized() {
+		return language != null;
+	}
+	
+	protected void initialize(Language language) {
 		this.language = language;
 	}
 }

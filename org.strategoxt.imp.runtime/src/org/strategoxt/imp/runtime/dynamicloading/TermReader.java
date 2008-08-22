@@ -33,13 +33,12 @@ public class TermReader {
 		return results;
 	}
 	
-	private static void collectTerms(IStrategoAppl term, String constructor, ArrayList<IStrategoAppl> results) {
+	private static void collectTerms(IStrategoTerm term, String constructor, ArrayList<IStrategoAppl> results) {
+		if (term instanceof IStrategoAppl && cons((IStrategoAppl) term).equals(constructor))
+			results.add((IStrategoAppl) term);
+		
 		for (int i = 0; i < term.getSubtermCount(); i++) {
-			if (termAt(term, i).getTermType() == IStrategoTerm.APPL) {
-				IStrategoAppl subterm = termAt(term, i);
-				if (cons(subterm).equals(constructor))	results.add(subterm);
-				collectTerms(subterm, constructor, results);
-			}
+			collectTerms(termAt(term, i), constructor, results);
 		}
 	}
 	

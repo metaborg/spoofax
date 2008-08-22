@@ -6,6 +6,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.language.Language;
+import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.parser.IMessageHandler;
 import org.eclipse.imp.parser.IParseController;
@@ -32,18 +33,12 @@ public class DynamicParseController extends DynamicService<IParseController> imp
 		super(IParseController.class);
 	}
 	
-	@Override
-	protected IParseController getWrapped() {
-		if (getLanguage() == null) init(findLanguage());
-		init(getLanguage());
-		return super.getWrapped();
-	}
-	
 	/**
 	 * Find the language associated with this parse controller,
 	 * in case this is not statically known.
 	 */
-	private Language findLanguage() {
+	private Language findLanguage(IPath filePath) {
+		// Search for an active editor with this parser
 		for (IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows()) {
 			for (IWorkbenchPage page : window.getPages()) {
 				for (IEditorReference editor : page.getEditorReferences()) {
@@ -58,7 +53,9 @@ public class DynamicParseController extends DynamicService<IParseController> imp
 			}
 		}
 		
-		throw new IllegalStateException("Cannot reference the parse controller language at this time");
+		// No active editor; try the registry instead
+		// TODO: Use language validator?
+		return LanguageRegistry.findLanguage(filePath, null);
 	}
 
 	public IAnnotationTypeInfo getAnnotationTypeInfo() {
@@ -90,6 +87,11 @@ public class DynamicParseController extends DynamicService<IParseController> imp
 	}
 
 	public void initialize(IPath filePath, ISourceProject project, IMessageHandler handler) {
+		if (!isInitialized()) {
+			Language language = findLanguage(filePath);
+			
+			initialize(language);
+		}
 		getWrapped().initialize(filePath, project, handler);
 	}
 
