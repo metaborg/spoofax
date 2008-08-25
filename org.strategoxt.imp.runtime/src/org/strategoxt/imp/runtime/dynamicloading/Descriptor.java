@@ -73,12 +73,16 @@ public class Descriptor {
 		if (IParseController.class.isAssignableFrom(type)) {
 			ILanguageSyntaxProperties syntaxProperties = getService(ILanguageSyntaxProperties.class);
 			result = new SGLRParseController(getLanguage(), syntaxProperties, getStartSymbol());
+
 		} else if (ITokenColorer.class.isAssignableFrom(type)) {
 			result = TokenColorerFactory.create(document);
+		
 		} else if (IReferenceResolver.class.isAssignableFrom(type)) {
 			result = ReferenceResolverFactory.create(document);
+		
 		} else if (ILanguageSyntaxProperties.class.isAssignableFrom(type)) {
 			result = SyntaxPropertiesFactory.create(document);
+		
 		} else {
 			throw new IllegalArgumentException(type.getSimpleName() + " is not a supported editor service type");
 		}

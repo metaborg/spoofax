@@ -25,7 +25,7 @@
    Aliases              -- R [ KW["aliases"] KW[":"] _1 ],
    LineCommentPrefix    -- R [ H [ KW["line"] KW["comment"] ] KW[":"] _1 ],
    BlockCommentDefs     -- R [ H [ KW["block"] KW["comment"] ] KW[":"] _1 ],
-   FenceDefs            -- R [ H [ KW["fences"] KW[":"] A(l,l) [ _1 ] ] ],
+   FenceDefs            -- R [ KW["fences"] KW[":"] A(l,l) [ _1 ] ],
    FenceDef             -- R [ _1 _2 ],
    BlockCommentDef      -- H [ _1 _2 _3 ],
    String               -- _1,

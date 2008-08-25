@@ -35,7 +35,7 @@ class SyntaxPropertiesFactory {
 			fences.add(array);
 		}
 		
-		return (String[][]) fences.toArray();
+		return fences.toArray(new String[][] {});
 	}
 	
 	private static class SyntaxProperties implements ILanguageSyntaxProperties {

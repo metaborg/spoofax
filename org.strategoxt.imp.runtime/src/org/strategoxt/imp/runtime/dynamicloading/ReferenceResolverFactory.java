@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.imp.services.IReferenceResolver;
+import org.spoofax.interpreter.core.Interpreter;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.strategoxt.imp.runtime.services.StrategoReferenceResolver;
 
@@ -23,6 +24,9 @@ class ReferenceResolverFactory {
 			resolverFunctions.put(termContents(termAt(rule, 0)), termContents(termAt(rule, 1)));
 		}
 		
-		return new StrategoReferenceResolver(resolver, descriptor);
+		// TODO: Stratego binding
+		Interpreter resolver = null;
+		
+		return new StrategoReferenceResolver(resolver, resolverFunctions);
 	}
 }

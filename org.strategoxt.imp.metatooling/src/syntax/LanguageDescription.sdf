@@ -17,9 +17,13 @@ exports
   
   lexical syntax
     
-    ~[\ \t\n\r\,\:]+  -> PropertyValue {avoid}
+    ~[\ \t\n\r\,\:\"]+  -> PropertyValue {avoid}
 
     ~[\ \t\n\r\,\/\:]+ "://" ~[\ \t\n\r]+ -> URL
+  
+  lexical restrictions
+  
+  	PropertyValue -/- ~[\ \t\n\r\,\:\"]
   
   context-free syntax
   
