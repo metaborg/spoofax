@@ -18,7 +18,9 @@ exports
     
     [\*]                             -> CommentChar
     "/*" (~[\*] | CommentChar)* "*/" -> LAYOUT
-    "//" ~[\n\r]* [\n\r]             -> LAYOUT
+    "//" ~[\n\r]* ([\n\r] | Eof)     -> LAYOUT
+    
+    -> Eof
   
   lexical restrictions
   
@@ -26,6 +28,7 @@ exports
   	Int         -/- [0-9]
   	Id          -/- [a-zA-Z0-9\_]    
     SectionName -/- ~[\n\r]
+    Eof         -/- ~[]
 
   context-free restrictions
 
