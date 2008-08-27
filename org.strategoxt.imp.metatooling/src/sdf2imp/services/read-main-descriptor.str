@@ -1,0 +1,85 @@
+module sdf2imp/services/read-main-descriptor
+
+imports
+  libstratego-lib
+  
+  sdf2imp/util/-
+
+strategies
+
+  read-main-descriptor =
+    current-main-descriptor-file;
+    
+    rules(MainDescriptor := <id>);
+    
+    require-option(
+      where(<set-config> (SdfMainModuleFlag(), <find-main-module>));
+      with(get-sdf-main-module)
+    | "Main module (-m)"
+    );
+    
+    require-option(
+      rules(StartSymbol := <find-start-symbol>)
+    | "Start symbol (-s)"
+    );
+    
+    require-option(
+     rules(BasePackage := <find-package-name>)
+    | "Package name (-p)"
+    );
+    
+    require-option(
+      rules(EditorExtensions := <find-editor-extensions>)
+    | "Editor file extensions (-e)"
+    )
+  
+  current-main-descriptor-file =
+     {| InputDirPrefix, OnImportFailure:
+       <add-input-dir-prefix> "src/";
+       rules(
+         OnImportFailure := Module("", NoImports(), [])
+       );
+       
+       verbosity-scope(
+         main-descriptor-name;
+         input-descriptor-file
+       | -1
+       );
+       verbose-msg(!"Current descriptor determines generated services")
+     |}
+   <+
+     // Could not read the existing file: use the defaults instead, but don't overwrite the file
+     default-main-descriptor
+
+  find-main-module =
+    oncetd(?LanguageName(result));
+    verbose-msg(!"Using main module", !result);
+    !result
+
+  find-start-symbol =
+    oncetd(?StartSymbol(result));
+    verbose-msg(!"Using start symbol", !result);
+    !result
+
+  find-editor-extensions =
+    oncetd(?Extensions(Values(results)));
+    result := <separate-by(|","); concat-strings> results;
+    verbose-msg(!"Using file extensions", !result);
+    !result
+
+  find-package-name =
+    with(
+      oncetd(?LanguageId(result))
+    <+
+      default-package-name => result
+    );
+    verbose-msg(!"Using package name", !result);
+    !result
+
+  verbosity-scope(s|level) = 
+    with( 
+      oldlevel := <verbosity>;
+      <set-verbosity> level
+    );
+    s;
+    with(<set-verbosity> oldlevel)

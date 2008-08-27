@@ -40,14 +40,17 @@ strategies
 
   sdf2imp =
     create-or-copy-parse-table;
-
-    where(
-      create-analyze-main-descriptor
-    );
     
     verbose-msg(!"Analyzing grammar...");
     sdf2rtg;
     read-from => RTG(_, ProdRules(<id>));
+    
+    where(
+      create-main-descriptor
+    <+
+      read-main-descriptor // descriptor already exists, analyze it
+    );
+    
     register-rtg;
     
     create-syntax-descriptor;

@@ -7,30 +7,15 @@ imports
 
 strategies
 
-  create-analyze-main-descriptor =
+  create-main-descriptor =
     output-default-descriptor-file(
       main-descriptor-name
     , 
       default-main-descriptor => main-descriptor
     );
     
-    // Store the main descriptor in a rule for further reference
-    
-    if not(!main-descriptor) then
-      main-descriptor := <current-main-descriptor-file>;
-      require-option(
-        <set-config> (SdfMainModuleFlag(), <find-main-module>)
-      |"Main module (-m)"
-      );
-      require-option(
-        rules(StartSymbol := <find-start-symbol>)
-      |"Main module (-m)"
-      );
-      require-option(
-        rules(BasePackage := <find-package-name>)
-      |"Package name (-p)"
-      )
-    end;
+    // Store the main descriptor in a rule for further reference,
+    // or fail if no descriptor was created
     
     rules(MainDescriptor := main-descriptor)
 
@@ -75,47 +60,3 @@ strategies
                 |[ ]|
                 <? ?> //"
     ]|
-  
-  current-main-descriptor-file =
-     {| InputDirPrefix, OnImportFailure:
-       <add-input-dir-prefix> "src/";
-       rules(
-         OnImportFailure := Module("", NoImports(), [])
-       );
-       
-       verbosity-scope(
-         main-descriptor-name;
-         input-descriptor-file
-       | -1
-       );
-       verbose-msg(!"Current descriptor determines generated services")
-     |}
-   <+
-     default-main-descriptor
-
-  find-main-module =
-    oncetd(?LanguageName(result));
-    verbose-msg(!"Using main module ", !result);
-    !result
-
-  find-start-symbol =
-    oncetd(?StartSymbol(result));
-    verbose-msg(!"Using start symbol ", !result);
-    !result
-
-  find-package-name =
-    with(
-      oncetd(?LanguageId(result))
-    <+
-      default-package-name => result
-    );
-    verbose-msg(!"Using package name ", !result);
-    !result
-
-  verbosity-scope(s|level) = 
-    with( 
-      oldlevel := <verbosity>;
-      <set-verbosity> level
-    );
-    s;
-    with(<set-verbosity> oldlevel)
