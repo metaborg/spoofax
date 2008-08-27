@@ -1,29 +1,29 @@
 package org.strategoxt.imp.runtime.parser;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 import lpg.runtime.Monitor;
 import lpg.runtime.PrsStream;
 
 import org.eclipse.imp.parser.IParser;
-import org.spoofax.NotImplementedException;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.SGLR;
 import org.spoofax.jsglr.SGLRException;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.parser.ast.AstNode;
 import org.strategoxt.imp.runtime.parser.ast.AsfixConverter;
+import org.strategoxt.imp.runtime.parser.ast.AstNode;
 import org.strategoxt.imp.runtime.parser.ast.RootAstNode;
+import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
-import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
 
 import aterm.ATerm;
 
 /**
- * IMP IParser implementation for SGLR,
- * imploding parse trees to AST nodes and tokens.
+ * IMP IParser implementation for SGLR, imploding parse trees to AST nodes and tokens.
  * 
  * @see SimpleSGLRParser
  *
@@ -79,19 +79,22 @@ public class SGLRParser implements IParser {
 	 * 
 	 * @return  The abstract syntax tree.
 	 */
-	public AstNode parse(char[] input, String filename) throws SGLRException, IOException {
+	public AstNode parse(InputStream inputStream, char[] inputChars, String filename) throws SGLRException, IOException {
 		Debug.startTimer();
+		
+		// TODO: Parse caching
+		//       using a WeakHashMap<char[], WeakReference<AstNode>>
 
 		// Read stream using tokenizer/lexstream
-		tokenizer.init(input, filename);
+		tokenizer.init(inputChars, filename);
 		
-		ATerm asfix = parser.parse(tokenizer.toByteStream(), startSymbol);
+		ATerm asfix = parser.parse(inputStream, startSymbol);
 			
 		Debug.stopTimer("File parsed");
 		Debug.startTimer();
 		
 		AstNode result = converter.implode(asfix);
-		result = RootAstNode.makeRoot(result, controller);
+		result = RootAstNode.makeRoot(result, controller, inputChars);
 		
 		if (Debug.ENABLED) {
 			Debug.log("Parsed " + result.getTerm().toString());
@@ -100,6 +103,19 @@ public class SGLRParser implements IParser {
 		Debug.stopTimer("Parse tree imploded");
 		
 		return result;
+	}
+	
+	public AstNode parse(char[] inputChars, String filename) throws SGLRException, IOException {
+		return parse(toByteStream(inputChars), inputChars, filename);
+	}
+	
+	private static ByteArrayInputStream toByteStream(char[] chars) {
+		byte[] bytes = new byte[chars.length];
+		
+		for (int i = 0; i < bytes.length; i++)
+			bytes[i] = (byte) chars[i];
+		
+		return new ByteArrayInputStream(bytes);
 	}
 	
 	// LPG legacy / compatibility
@@ -111,13 +127,11 @@ public class SGLRParser implements IParser {
 
 	@Deprecated
 	public String[] orderedTerminalSymbols() {
-		// TODO2: SGLRParser.orderedTerminalSymbols() - should map token kinds to names
-		throw new NotImplementedException();
+		return null; // should map token kinds to names
 	}
 
-	@Override
+	@Deprecated
 	public int numTokenKinds() {
-		// FIXME don't hard code this
 		return 10;
 	}
 }

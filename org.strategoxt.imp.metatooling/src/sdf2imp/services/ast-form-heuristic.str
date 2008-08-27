@@ -28,7 +28,7 @@ strategies
       not([])
     )
   <+
-    fatal-err-msg(|"No legal start symbol specified.")
+    fatal-err-msg(|"No legal start symbol specified")
   
   heuristic-register-production =
     try(

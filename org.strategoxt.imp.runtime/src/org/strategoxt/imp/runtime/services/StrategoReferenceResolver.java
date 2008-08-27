@@ -1,5 +1,6 @@
 package org.strategoxt.imp.runtime.services;
 
+import java.io.FileNotFoundException;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -24,33 +25,59 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 	
 	private final Map<String, String> resolverFunctions;
 	
-	private final WeakHashMap<IStrategoAstNode, IAst> cache =
+	private final Map<String, String> helpFunctions;
+	
+	private final WeakHashMap<IStrategoAstNode, IAst> resolverCache =
 		new WeakHashMap<IStrategoAstNode, IAst>();
+	
+	private final WeakHashMap<IStrategoAstNode, String> helpCache =
+		new WeakHashMap<IStrategoAstNode, String>();
 	
 	private final IStrategoAstNode NOT_FOUND = new IntAstNode(null, 0, null, null) {};
 	
-	public StrategoReferenceResolver(Interpreter resolver, Map<String, String> resolverFunctions) {
+	public StrategoReferenceResolver(Interpreter resolver, Map<String, String> resolverFunctions, Map<String, String> helpFunctions) {
 		this.resolver = resolver;
 		this.resolverFunctions = resolverFunctions;
+		this.helpFunctions = helpFunctions;
 	}
 
 	public IAst getLinkTarget(Object oNode, IParseController parseController) {
 		IStrategoAstNode node = (IStrategoAstNode) oNode;
-		IAst result = cache.get(oNode);
+		IAst result = resolverCache.get(oNode);
 		if (result != null) return result == NOT_FOUND ? null : result;
 		
-		String resolverFunction = resolverFunctions.get(node.getConstructor());
-		if (resolverFunction == null) return null;
+		String function = resolverFunctions.get(node.getConstructor());
+		if (function == null) return null;
 		
-		result = resolveReference(node, resolverFunction);	
-		cache.put(node, result);
+		IStrategoTerm resultTerm = strategoCall(node, function);
+		result = resultTerm == null ? null : ((WrappedAstNode) resultTerm).getNode();
+		
+		resolverCache.put(node, result == null ? NOT_FOUND : result);
 		return result;
 	}
 
-	private IAst resolveReference(IStrategoAstNode node, String resolverFunction) {
-		IStrategoTerm input = resolver.getFactory().makeTuple(getRoot(node).getTerm(), node.getTerm(), new StrategoTermPath(node));
+	public String getLinkText(Object oNode) {
+		IStrategoAstNode node = (IStrategoAstNode) oNode;
+		String result = helpCache.get(oNode);
+		if (result != null) return result == "" ? null : result;
+		
+		String function = helpFunctions.get(node.getConstructor());
+		if (function == null) return null;
+		
+		result = strategoCall(node, function).toString();	
+		helpCache.put(node, result == null ? "" : result);
+		return result;
+	}
+
+	private IStrategoTerm strategoCall(IStrategoAstNode node, String function) {
+		IStrategoTerm path = resolver.getFactory().makeString(node.getResourcePath().toOSString());
+		IStrategoTerm[] inputParts = { getRoot(node).getTerm(), path, node.getTerm(), new StrategoTermPath(node) };
+		IStrategoTerm input = resolver.getFactory().makeTuple(inputParts);
+
 		try {
-			boolean success = resolver.invoke(resolverFunction);
+			initResolver(node);
+
+			boolean success = resolver.invoke(function);
 			
 			if (!success) {
 				Environment.logException("Unable to resolve reference " + input.toString());
@@ -62,10 +89,21 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 		}
 		
 		if (resolver.current() instanceof WrappedAstNode) {
-			return ((WrappedAstNode) resolver.current()).getNode();
+			return resolver.current();
 		} else {
 			Environment.logException("Resolved reference is not associated with an AST node " + resolver.current());
 			return null;
+		}
+	}
+	
+	private void initResolver(IStrategoAstNode node) {
+		resolver.reset();
+		try {
+			String workingDir = node.getRootPath().toOSString();
+			resolver.setWorkingDir(workingDir);
+		} catch (FileNotFoundException e) {
+			Environment.logException("Could not set Stratego working directory", e);
+			throw new RuntimeException(e);
 		}
 	}
 	
@@ -73,11 +111,6 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 		while (node.getParent() != null)
 			node = node.getParent();
 		return node;
-	}
-
-	public String getLinkText(Object node) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 }

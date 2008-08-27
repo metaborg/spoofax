@@ -2,6 +2,7 @@ package org.strategoxt.imp.runtime.stratego.adapter;
 
 import lpg.runtime.IAst;
 
+import org.eclipse.core.runtime.IPath;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 /**
@@ -13,6 +14,10 @@ public interface IStrategoAstNode extends IAst {
 	IStrategoTerm getTerm();
 	
 	String getConstructor();
+	
+	IPath getResourcePath();
+	
+	IPath getRootPath();
 	
 	// SPECIALIZED FROM PARENT INTERFACE
 	

@@ -13,7 +13,7 @@ import org.strategoxt.imp.runtime.Environment;
 import aterm.ATerm;
 
 /**
- * Simple SGLR parser wrapper that does not create
+ * Simple SGLR parser and imploder wrapper that does not create
  * an IMP AST or tokens.
  * 
  * @see SGLRParser
@@ -45,7 +45,7 @@ public class SimpleSGLRParser {
 		this.startSymbol = null;
 	}
 	
-	public IStrategoTerm parseToTerm(InputStream input) throws SGLRException {
+	public IStrategoTerm parseImplode(InputStream input) throws SGLRException {
 		try {
 			ATerm asfix = parser.parse(input, startSymbol);
 

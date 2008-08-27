@@ -1,4 +1,4 @@
-package org.strategoxt.imp.runtime.stratego;
+package org.strategoxt.imp.runtime.services;
 
 import java.io.File;
 import java.io.IOException;

@@ -1,4 +1,4 @@
-package org.strategoxt.imp.runtime.stratego;
+package org.strategoxt.imp.runtime.services;
 
 public class BadMetaFileException extends Exception {
 	private static final long serialVersionUID = -4173696243409037945L;

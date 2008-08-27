@@ -57,7 +57,7 @@ public class Descriptor {
 	
 	public static Descriptor load(InputStream file) throws BadDescriptorException {
 		try {
-			IStrategoAppl input = (IStrategoAppl) parser.parseToTerm(file);
+			IStrategoAppl input = (IStrategoAppl) parser.parseImplode(file);
 	        return new Descriptor(input);
 		} catch (SGLRException e) {
 			throw new BadDescriptorException("Could not parse descriptor file", e);
@@ -78,7 +78,7 @@ public class Descriptor {
 			result = TokenColorerFactory.create(document);
 		
 		} else if (IReferenceResolver.class.isAssignableFrom(type)) {
-			result = ReferenceResolverFactory.create(document);
+			result = ReferenceResolverFactory.create(this, document);
 		
 		} else if (ILanguageSyntaxProperties.class.isAssignableFrom(type)) {
 			result = SyntaxPropertiesFactory.create(document);
@@ -99,8 +99,8 @@ public class Descriptor {
 	public Language getLanguage() throws BadDescriptorException {
 		if (language == null)
 			language = new Language(
-				getProperty("Name"),
-				getProperty("Name"), // natureId
+				getProperty("LanguageName"),
+				getProperty("LanguageId", getProperty("Name")), // natureId
 				getProperty("Description", ""),
 				ROOT_LANGUAGE,
 				getProperty("URL", ""),
@@ -114,11 +114,21 @@ public class Descriptor {
 		return getProperty("StartSymbol", null);
 	}
 	
-	public InputStream getTableStream() throws BadDescriptorException {
+	public InputStream openTableStream() throws BadDescriptorException {
 		String file = getProperty("Table", getProperty("Name"));
 		if (!file.endsWith(".tbl")) file += ".tbl";
+		return openAttachment(file);
+	}
+	
+	public InputStream openProviderStream() throws BadDescriptorException {
+		String file = getProperty("ReferenceProvider");
+		if (!file.endsWith(".ctree")) file += ".ctree";
+		return openAttachment(file);
+	}
+
+	private InputStream openAttachment(String path) throws BadDescriptorException {
 		try {
-			return new FileInputStream(file);
+			return new FileInputStream(path);
 		} catch (FileNotFoundException e) {
 			throw new BadDescriptorException(e);
 		}

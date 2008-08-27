@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Iterator;
 
+import org.eclipse.core.runtime.IPath;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
@@ -88,6 +89,21 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 
 	private void setParent(AstNode value) {
 		parent = value;
+	}
+	
+	public RootAstNode getRoot() {
+		AstNode result = this;
+		while (getParent() != null)
+			result = result.getParent();
+		return (RootAstNode) result;
+	}
+	
+	public IPath getResourcePath() {
+		return getRoot().getParseController().getPath();
+	}
+	
+	public IPath getRootPath() {
+		return getRoot().getParseController().getProject().getRawProject().getLocation();
 	}
 	
 	public IStrategoTerm getTerm() {

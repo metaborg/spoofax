@@ -27,7 +27,7 @@ public class DescriptorFactory {
 		Environment.registerDescriptor(language, result);
 		LanguageRegistry.registerLanguage(language);
 		
-		if (parseTable == null) parseTable = result.getTableStream();
+		if (parseTable == null) parseTable = result.openTableStream();
 		registerParseTable(language, parseTable);
 		
 		Debug.stopTimer("Editor service loaded: " + result.getLanguage().getName());

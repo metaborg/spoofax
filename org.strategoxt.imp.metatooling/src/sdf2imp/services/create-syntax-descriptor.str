@@ -1,4 +1,4 @@
-module sdf2imp/services/create-syntax-descripto
+module sdf2imp/services/create-syntax-descriptor
 
 imports
   libstratego-lib

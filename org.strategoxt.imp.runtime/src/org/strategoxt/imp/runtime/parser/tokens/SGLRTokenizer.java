@@ -1,10 +1,8 @@
 package org.strategoxt.imp.runtime.parser.tokens;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
 import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.*;
+
+import java.io.IOException;
 
 import lpg.runtime.IToken;
 import lpg.runtime.LexStream;
@@ -35,18 +33,6 @@ public class SGLRTokenizer {
 	
 	public final LexStream getLexStream() {
 		return lexStream;
-	}
-	
-	public final InputStream toByteStream() {
-		// TODO: SGLR only does ASCII, but this conversion could be better
-		
-		char[] chars = lexStream.getInputChars();
-		byte[] bytes = new byte[chars.length];
-		
-		for (int i = 0; i < bytes.length; i++)
-			bytes[i] = (byte) chars[i];
-		
-		return new ByteArrayInputStream(bytes);
 	}
 	
 	public void init(char[] input, String filename) throws IOException {

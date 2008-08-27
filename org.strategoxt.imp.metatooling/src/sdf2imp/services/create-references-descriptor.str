@@ -1,0 +1,32 @@
+module sdf2imp/services/create-references-descriptor
+
+imports
+  libstratego-lib
+  
+  sdf2imp/util/-
+
+strategies
+
+  create-references-descriptor =
+    output-default-descriptor-file(
+      <descriptor-name> "-References.generated"
+    ,
+      !|[
+        module <descriptor-name> "-References.generated"
+        
+        references
+        ~//
+        ~// Reference resolving functionality can be provided by an external Stratego program:
+        ~//
+        ~//   provider stratego-program.ctree // (built using strc -F)
+        ~//
+        ~// Reference rules can specify the syntax constructors for which
+        ~// a reference resolving function is available:
+        ~//
+        ~//   FunctionCall : resolve-function-call function-call-hover-help
+        ~//
+        ~// This defines that for each FunctionCall, resolver-function-call
+        ~// will retrieve the AST node that declares it, and function-call-hover-help
+        ~// returns hover help information.
+      ]|
+    )

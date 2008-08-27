@@ -71,9 +71,16 @@ strategies
     lower-case;
     <conc-strings> ("org.strategoxt.imp.generated.", <id>)
   
-  check-options = 
-    where(
-      EditorExtensions
-    <+
-      fatal-err-msg(|"Editor extensions (option -e) not specified")
+  check-options =
+    require-option(
+      where(<get-config> SdfMainModuleFlag)
+    | "Main module (-m)"
     )
+  
+  require-option(rule|description) = 
+    where(
+      rule
+    <+
+      fatal-err-msg(|<conc-strings> (description, " not specified"))
+    )
+    

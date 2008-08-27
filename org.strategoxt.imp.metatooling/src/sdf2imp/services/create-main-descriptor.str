@@ -17,7 +17,19 @@ strategies
     // Store the main descriptor in a rule for further reference
     
     if not(!main-descriptor) then
-      main-descriptor := <current-main-descriptor-file>
+      main-descriptor := <current-main-descriptor-file>;
+      require-option(
+        <set-config> (SdfMainModuleFlag(), <find-main-module>)
+      |"Main module (-m)"
+      );
+      require-option(
+        rules(StartSymbol := <find-start-symbol>)
+      |"Main module (-m)"
+      );
+      require-option(
+        rules(BasePackage := <find-package-name>)
+      |"Package name (-p)"
+      )
     end;
     
     rules(MainDescriptor := main-descriptor)
@@ -25,16 +37,18 @@ strategies
   default-main-descriptor =
     name        := <get-sdf-main-module>;
     classname   := <get-main-class-name>;
-    pkgname     := <BasePackage>;
-    extensions  := <EditorExtensions>;
+    pkgname     := <BasePackage <+ default-package-name>;
+    extensions  := <require-option(EditorExtensions |"File extensions (-e)")>;
     parsetable  := <parse-table-target>;
-    startsymbol := <StartSymbol>;
+    startsymbol := <StartSymbol <+ !NoStartSymbol()>;
+    
     !|[
       module <main-descriptor-name>
       
       imports <descriptor-name> "-Colorer.generated"
-              <descriptor-name> "-Outliner.generated"
               <descriptor-name> "-Folding.generated"
+              <descriptor-name> "-Outliner.generated"
+              <descriptor-name> "-References.generated"
               <descriptor-name> "-Syntax.generated"
       
       language General properties
@@ -52,14 +66,14 @@ strategies
         ~
       language Syntax properties (defaults)
         ~
-        // TODO: Infer syntax properties from the SDF definition
+        // TODO: Infer syntax properties from the SDF .def file
         line comment: "//"
         block comment: "/*" * "*/"
         fences: [  ]
                 (  )
                 {  }
                 |[ ]|
-                <? ?>
+                <? ?> //"
     ]|
   
   current-main-descriptor-file =
@@ -78,6 +92,25 @@ strategies
      |}
    <+
      default-main-descriptor
+
+  find-main-module =
+    oncetd(?LanguageName(result));
+    verbose-msg(!"Using main module ", !result);
+    !result
+
+  find-start-symbol =
+    oncetd(?StartSymbol(result));
+    verbose-msg(!"Using start symbol ", !result);
+    !result
+
+  find-package-name =
+    with(
+      oncetd(?LanguageId(result))
+    <+
+      default-package-name => result
+    );
+    verbose-msg(!"Using package name ", !result);
+    !result
 
   verbosity-scope(s|level) = 
     with( 

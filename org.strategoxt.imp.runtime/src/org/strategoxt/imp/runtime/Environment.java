@@ -16,6 +16,7 @@ import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.ParseTableManager;
 import org.spoofax.jsglr.SGLR;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
+import org.strategoxt.imp.runtime.stratego.IMPJSGLRLibrary;
 import org.strategoxt.imp.runtime.stratego.adapter.WrappedAstNodeFactory;
 
 import aterm.ATermFactory;
@@ -64,6 +65,7 @@ public final class Environment {
 
 	public static Interpreter createInterpreter() throws IOException, InterpreterException {
 		Interpreter result = new Interpreter(wrappedFactory);
+		result.addOperatorRegistry("JSGLR", new IMPJSGLRLibrary());
 		result.load(Compiler.sharePath() + "/stratego-lib/libstratego-lib.ctree");
 		result.load(Compiler.sharePath() + "/libstratego-sglr.ctree");
 		return result;

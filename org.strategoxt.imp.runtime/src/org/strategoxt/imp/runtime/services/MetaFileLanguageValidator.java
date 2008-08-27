@@ -1,4 +1,4 @@
-package org.strategoxt.imp.runtime.stratego;
+package org.strategoxt.imp.runtime.services;
 
 /* TODO: Validate using meta file
    FIXME: This IMP interface is insufficient: the class always requires a path not just a String
