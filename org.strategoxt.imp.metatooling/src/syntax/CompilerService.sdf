@@ -1,0 +1,29 @@
+module ReferencesService
+
+imports
+  Common LanguageDescription
+
+exports
+
+  sorts
+    Section ReferenceRule StrategoId StrategoCall
+
+  syntax
+  
+    "compiler" <SectionName-LEX> <LAYOUT?-CF> <ReferenceRule*-CF> -> <Section-CF> {cons("Compiler")}
+    
+    "compiler" -> <ReservedName-CF>
+
+  lexical syntax
+
+    [a-zA-Z\_] [a-zA-Z0-9\'\-\_]* -> StrategoId
+
+  context-free syntax
+  
+    "reference" ConstructorId ":" StrategoCall StrategoCall -> ReferenceRule {cons("ReferenceRule")}
+%%  "reference" "*"           ":" StrategoCall StrategoCall -> ReferenceRule {cons("AllReferenceRule")}
+
+    "provider" PropertyValue -> ReferenceRule {cons("CompilerProvider")}
+
+             StrategoId -> StrategoCall {cons("Strategy")}
+    "id" "." StrategoId -> StrategoCall {cons("Attribute")}

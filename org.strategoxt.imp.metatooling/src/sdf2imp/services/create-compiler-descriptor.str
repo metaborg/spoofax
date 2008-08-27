@@ -1,4 +1,4 @@
-module sdf2imp/services/create-references-descriptor
+module sdf2imp/services/create-compiler-descriptor
 
 imports
   libstratego-lib
@@ -7,12 +7,12 @@ imports
 
 strategies
 
-  create-references-descriptor =
+  create-analyzer-descriptor =
     output-default-descriptor-file(
-      <descriptor-name> "-References.generated"
+      <descriptor-name> "-Compiler.generated"
     ,
       !|[
-        module <descriptor-name> "-References.generated"
+        module <descriptor-name> "-Compiler.generated"
         
         references
         ~//

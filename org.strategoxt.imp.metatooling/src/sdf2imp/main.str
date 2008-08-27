@@ -57,7 +57,7 @@ strategies
     create-folding-descriptor;
     create-outliner-descriptor;
     create-colorer-descriptor;
-    create-references-descriptor;
+    create-compiler-descriptor;
 
     create-packed-descriptor-file;
     

@@ -64,5 +64,6 @@ public class DynamicService<T extends ILanguageService> {
 	
 	protected void initialize(Language language) {
 		this.language = language;
+		getWrapped();
 	}
 }

@@ -45,7 +45,7 @@ public class DynamicParseController extends DynamicService<IParseController> imp
 		
 		if (activePage != null) {
 			IEditorPart activeEditor = activePage.getActiveEditor();
-		
+			
 			if (isMyEditor(activeEditor))
 				return ((UniversalEditor) activeEditor).fLanguage;
 			

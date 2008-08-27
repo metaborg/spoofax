@@ -1,7 +1,9 @@
 [
    ReferenceRule        -- R [ _1 KW[":"] _2 _3 ],
-   ReferenceProvider    -- R [ H [ KW["provider"] _1 ] ],
-   References           -- V is=2 [H hs=0 [ KW["references"] _1 ] A(l,l,l,l) [_2] ],
+   CompilerProvider     -- R [ H [ KW["provider"] _1 ] ],
+   Compiler             -- V is=2 [H hs=0 [ KW["compiler"] _1 ] A(l,l,l,l) [_2] ],
+   Strategy             -- _1,
+   Attribute            -- H hs=0 [ KW["id"] KW["."] _1 ],
    Colorer              -- V is=2 [H hs=0 [KW["colorer"] _1] A(l,l,l,l,l,l) [_2]],
    Colorer.2:iter-star  -- _1,
    ColorDef             -- R [ _1 KW["="] _2],
