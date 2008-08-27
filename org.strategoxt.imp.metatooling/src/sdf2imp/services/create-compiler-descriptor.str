@@ -7,14 +7,14 @@ imports
 
 strategies
 
-  create-analyzer-descriptor =
+  create-compiler-descriptor =
     output-default-descriptor-file(
       <descriptor-name> "-Compiler.generated"
     ,
       !|[
         module <descriptor-name> "-Compiler.generated"
         
-        references
+        compiler
         ~//
         ~// Reference resolving functionality can be provided by an external Stratego program:
         ~//

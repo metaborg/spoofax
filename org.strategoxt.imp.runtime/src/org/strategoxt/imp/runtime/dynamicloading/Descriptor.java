@@ -91,14 +91,13 @@ public class Descriptor {
 	}
 	
 	public InputStream openTableStream() throws BadDescriptorException {
-		String file = getProperty("Table", getProperty("Name"));
+		String file = getProperty("Table", getProperty("LanguageName"));
 		if (!file.endsWith(".tbl")) file += ".tbl";
 		return openAttachment(file);
 	}
 	
 	public InputStream openProviderStream() throws BadDescriptorException {
-		String file = getProperty("ReferenceProvider");
-		if (!file.endsWith(".ctree")) file += ".ctree";
+		String file = getProperty("CompilerProvider");
 		return openAttachment(file);
 	}
 

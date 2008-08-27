@@ -6,7 +6,7 @@ imports
   FoldingService
   OutlinerService
   ColorerService
-  ReferencesService
+  CompilerService
 
 exports
 
