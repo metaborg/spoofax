@@ -28,7 +28,7 @@ public class DynamicService<T extends ILanguageService> {
 	protected T getWrapped() {
 		// TODO: Perhaps get the dynamic service using an approach similar to DynamicParseController.findLanguage()
 		if (wrapped == null) {
-			if (getNotLoadingCause() != null)
+			if (getNotLoadingCause() != null) // previous error
 				throw new RuntimeException(getNotLoadingCause());
 			if (!isInitialized())
 				throw new IllegalStateException("Editor service component not initialized yet - " + getClass().getSimpleName());
@@ -36,6 +36,7 @@ public class DynamicService<T extends ILanguageService> {
 				wrapped = Environment.getDescriptor(getLanguage()).getService(serviceType);
 			} catch (Exception e) {
 				setNotLoadingCause(e);
+				Environment.logException("Unable to dynamically initialize service of type " + serviceType.getSimpleName(), e);
 				throw new RuntimeException(e);
 			}
 		}

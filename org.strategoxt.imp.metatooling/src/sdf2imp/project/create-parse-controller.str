@@ -23,6 +23,7 @@ strategies
       package pkgname;
 
       import org.eclipse.imp.parser.IParseController;
+      import org.strategoxt.imp.runtime.Environment;
       import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
       import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
       import org.strategoxt.imp.runtime.dynamicloading.DescriptorFactory;
@@ -46,7 +47,8 @@ strategies
               initialize(descriptor.getLanguage());
             } catch (BadDescriptorException exc) {
               setNotLoadingCause(exc);
-              throw new RuntimeException(exc);
+              Environment.logException("Bad descriptor for " + LANGUAGE, exc);
+              throw new RuntimeException("Bad descriptor for " + LANGUAGE, exc);
             }
           }
           return super.getWrapped();

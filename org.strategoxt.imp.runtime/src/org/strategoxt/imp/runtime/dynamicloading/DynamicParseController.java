@@ -11,7 +11,6 @@ import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.parser.IMessageHandler;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.parser.ISourcePositionLocator;
-import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.imp.services.IAnnotationTypeInfo;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.jface.text.IRegion;
@@ -40,8 +39,7 @@ public class DynamicParseController extends DynamicService<IParseController> imp
 	 */
 	private Language findLanguage(IPath filePath) {
 		IWorkbenchPage activePage =
-	         RuntimePlugin.getInstance().getWorkbench().
-	         getActiveWorkbenchWindow().getActivePage();
+			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 		
 		if (activePage != null) {
 			IEditorPart activeEditor = activePage.getActiveEditor();

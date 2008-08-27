@@ -26,7 +26,7 @@ public class Descriptor {
 	
 	private static final SimpleSGLRParser parser;
 	
-	private final DynamicServiceFactory serviceFactory = new DynamicServiceFactory(this);
+	private final DynamicServiceFactory serviceFactory;
 	
 	private final IStrategoAppl document;
 	
@@ -50,6 +50,7 @@ public class Descriptor {
 	
 	private Descriptor(IStrategoAppl document) {
 		this.document = document;
+		serviceFactory = new DynamicServiceFactory(this);
 	}
 	
 	protected static Descriptor load(InputStream file) throws BadDescriptorException {
