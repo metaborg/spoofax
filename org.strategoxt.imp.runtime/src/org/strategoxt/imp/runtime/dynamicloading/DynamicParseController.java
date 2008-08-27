@@ -39,26 +39,23 @@ public class DynamicParseController extends DynamicService<IParseController> imp
 	 * in case this is not statically known.
 	 */
 	private Language findLanguage(IPath filePath) {
-		IEditorPart editorPart =
+		IWorkbenchPage activePage =
 	         RuntimePlugin.getInstance().getWorkbench().
-	         getActiveWorkbenchWindow().getActivePage().getActiveEditor();
+	         getActiveWorkbenchWindow().getActivePage();
 		
-		if (editorPart instanceof UniversalEditor) {
-			IParseController controller = ((UniversalEditor) editorPart).getParseController();
-			if (controller == this)
-				return ((UniversalEditor) editorPart).fLanguage;
-		}
+		if (activePage != null) {
+			IEditorPart activeEditor = activePage.getActiveEditor();
 		
-		// Search for an active editor with this parser
-		for (IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows()) {
-			for (IWorkbenchPage page : window.getPages()) {
-				for (IEditorReference editor : page.getEditorReferences()) {
-					IWorkbenchPart part = editor.getPart(false);
-					if (part instanceof UniversalEditor) {
-						IParseController controller = ((UniversalEditor) part).getParseController();
-						if (controller == this) {
-							return ((UniversalEditor) part).fLanguage;
-						}
+			if (isMyEditor(activeEditor))
+				return ((UniversalEditor) activeEditor).fLanguage;
+			
+			// Search for an active editor with this parser
+			for (IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows()) {
+				for (IWorkbenchPage page : window.getPages()) {
+					for (IEditorReference reference : page.getEditorReferences()) {
+						IWorkbenchPart editor = reference.getPart(false);
+						if (isMyEditor(editor))
+							return ((UniversalEditor) editor).fLanguage;
 					}
 				}
 			}
@@ -67,6 +64,15 @@ public class DynamicParseController extends DynamicService<IParseController> imp
 		// No active editor; try the registry instead
 		// TODO: Use language validator?
 		return LanguageRegistry.findLanguage(filePath, null);
+	}
+	
+	private boolean isMyEditor(IWorkbenchPart editor) {
+		if (editor instanceof UniversalEditor) {
+			IParseController controller = ((UniversalEditor) editor).getParseController();
+			if (controller == this)
+				return true;
+		}
+		return false;
 	}
 
 	public IAnnotationTypeInfo getAnnotationTypeInfo() {
