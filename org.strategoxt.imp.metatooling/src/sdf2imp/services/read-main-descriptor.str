@@ -57,7 +57,7 @@ strategies
     !result
 
   find-start-symbol =
-    oncetd(?StartSymbol(result));
+    oncetd(?StartSymbols(Values([result])));
     verbose-msg(!"Using start symbol", !result);
     !result
 

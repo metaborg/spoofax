@@ -36,6 +36,11 @@ strategies
     ArgOption(
       "-s"
     , parameterized-sort-to-rtg-sort;
+      if is-substring(!",") then
+        // TODO: Multiple start symbols
+        err(|"Multiple start symbols not supported yet, please specify a single start symbol");
+        fail
+      end;
       rules(StartSymbol := <id>)
     , !"-s <start symbol>     Set start symbol"
     )

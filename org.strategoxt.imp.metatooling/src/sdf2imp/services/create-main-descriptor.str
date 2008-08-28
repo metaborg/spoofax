@@ -20,12 +20,12 @@ strategies
     rules(MainDescriptor := main-descriptor)
 
   default-main-descriptor =
-    name        := <get-sdf-main-module>;
-    classname   := <get-main-class-name>;
-    pkgname     := <BasePackage <+ default-package-name>;
-    extensions  := <require-option(EditorExtensions |"File extensions (-e)")>;
-    parsetable  := <parse-table-target>;
-    startsymbol := <StartSymbol <+ !NoStartSymbol()>;
+    name         := <get-sdf-main-module>;
+    classname    := <get-main-class-name>;
+    pkgname      := <BasePackage <+ default-package-name>;
+    extensions   := <require-option(EditorExtensions |"File extensions (-e)")>;
+    parsetable   := <parse-table-target>;
+    startsymbols := <StartSymbol>;
     
     !|[
       module <main-descriptor-name>
@@ -47,7 +47,7 @@ strategies
         ~
         extensions: ~extensions
         table:  ~parsetable
-        start symbol: ~startsymbol
+        start symbols: ~startsymbols
         ~
       language Syntax properties (defaults)
         ~
