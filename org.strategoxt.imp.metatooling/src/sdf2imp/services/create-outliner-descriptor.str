@@ -44,7 +44,9 @@ strategies
         one(heuristic-sort-is-unvisited-list => reason2)
       );
       
-      verbose-msg(!"Outliner match:", heuristic-asfix-sort-name, constructor-name);
-      verbose-msg(!"  because:     ", !reason1);
-      verbose-msg(!"  and:         ", !reason2)
+      if-verbose3(
+        verbose-msg(!"Outliner match:", heuristic-asfix-sort-name, constructor-name);
+        verbose-msg(!"  because:     ", !reason1);
+        verbose-msg(!"  and:         ", !reason2)
+      )
     })

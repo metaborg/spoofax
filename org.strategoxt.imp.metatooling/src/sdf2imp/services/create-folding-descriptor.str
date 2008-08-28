@@ -45,7 +45,9 @@ strategies
         heuristic-production-has-no-same-sort-descendant
       );
       
-      verbose-msg(!"Folding match:", heuristic-asfix-sort-name, constructor-name)
+      if-verbose3(
+        verbose-msg(!"Folding match:", heuristic-asfix-sort-name, constructor-name)
+      )
     )
   
   create-folding-or-outliner-rule =

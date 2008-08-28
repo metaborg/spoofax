@@ -83,9 +83,7 @@ strategies
     )
   
   require-option(rule|description) = 
-    where(
-      rule
-    <+
-      fatal-err-msg(|<conc-strings> (description, " not specified"))
-    )
+    rule
+  <+
+    fatal-err-msg(|<conc-strings> (description, " not specified"))
     
