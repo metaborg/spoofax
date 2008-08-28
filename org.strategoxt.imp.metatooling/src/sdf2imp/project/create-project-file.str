@@ -6,7 +6,7 @@ imports
 strategies
 
   create-project-file =
-    package := <BasePackage>;
+    package := <BasePackage <+ default-package-name>;
     
     // TODO2: Cleanup default .project file?
     

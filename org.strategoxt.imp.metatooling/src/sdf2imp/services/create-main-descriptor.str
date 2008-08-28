@@ -33,7 +33,7 @@ strategies
       imports <descriptor-name> "-Colorer.generated"
               <descriptor-name> "-Folding.generated"
               <descriptor-name> "-Outliner.generated"
-              <descriptor-name> "-References.generated"
+              <descriptor-name> "-Compiler.generated"
               <descriptor-name> "-Syntax.generated"
       
       language General properties

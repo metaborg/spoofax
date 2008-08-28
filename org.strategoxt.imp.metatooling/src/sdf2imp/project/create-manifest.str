@@ -7,7 +7,7 @@ strategies
 
   create-manifest =
     name    := <get-main-class-name>;
-    package := <BasePackage>;
+    package := <BasePackage <+ default-package-name>;
     
     <output-text-file(|["META-INF"], "MANIFEST.MF")>
     

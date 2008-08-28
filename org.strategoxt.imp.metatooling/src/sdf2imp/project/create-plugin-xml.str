@@ -8,7 +8,7 @@ strategies
   create-plugin-xml =
     name       := <get-sdf-main-module>;
     classname  := <get-main-class-name>;
-    pkgname    := <BasePackage>;
+    pkgname    := <BasePackage <+ default-package-name>;
     extensions := <EditorExtensions>;
     
     <output-xml-file(|[], "plugin.xml")>

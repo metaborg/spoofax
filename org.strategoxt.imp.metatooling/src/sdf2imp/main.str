@@ -24,8 +24,6 @@ overlays
 strategies
 
   main-sdf2imp =
-    rules(BasePackage := ""); // default output dir
-    
     ctree-include(input-descriptor-file + set-input-dir-prefix);
     
     xtc-input-wrap(
