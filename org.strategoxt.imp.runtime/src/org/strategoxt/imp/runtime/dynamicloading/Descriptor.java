@@ -87,8 +87,8 @@ public class Descriptor {
 		return language;
 	}
 	
-	public String getStartSymbol() {
-		return getProperty("StartSymbol", null);
+	public String getStartSymbols() {
+		return getProperty("StartSymbols", null);
 	}
 	
 	public InputStream openTableStream() throws BadDescriptorException {

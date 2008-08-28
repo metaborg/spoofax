@@ -34,7 +34,7 @@ public class DynamicServiceFactory {
 		
 		if (IParseController.class.isAssignableFrom(type)) {
 			ILanguageSyntaxProperties syntaxProperties = getService(ILanguageSyntaxProperties.class);
-			result = new SGLRParseController(descriptor.getLanguage(), syntaxProperties, descriptor.getStartSymbol());
+			result = new SGLRParseController(descriptor.getLanguage(), syntaxProperties, descriptor.getStartSymbols());
 
 		} else if (ITokenColorer.class.isAssignableFrom(type)) {
 			result = TokenColorerFactory.create(descriptorFile);
