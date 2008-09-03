@@ -1,12 +1,10 @@
 package org.strategoxt.imp.runtime.dynamicloading;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.imp.services.IReferenceResolver;
 import org.spoofax.interpreter.core.Interpreter;
-import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.services.StrategoReferenceResolver;
@@ -41,13 +39,7 @@ class ReferenceResolverFactory {
 			return null;
 		}
 
-		try {
-			resolver.load(descriptor.openProviderStream());
-		} catch (InterpreterException e) {
-			throw new BadDescriptorException("Error loading reference resolving provider", e);
-		} catch (IOException e) {
-			throw new BadDescriptorException("Could not load reference resolving provider", e);
-		}
+		descriptor.addCompilerProviders(resolver);
 		
 		return new StrategoReferenceResolver(resolver, resolverFunctions, helpFunctions);
 	}

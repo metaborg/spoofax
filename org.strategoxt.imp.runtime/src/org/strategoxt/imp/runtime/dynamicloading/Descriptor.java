@@ -4,12 +4,15 @@ import static org.strategoxt.imp.runtime.dynamicloading.TermReader.*;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.language.Language;
+import org.spoofax.interpreter.core.Interpreter;
+import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.jsglr.SGLRException;
 import org.strategoxt.imp.runtime.Environment;
@@ -105,9 +108,16 @@ public class Descriptor {
 		return openAttachment(file);
 	}
 	
-	public InputStream openProviderStream() throws BadDescriptorException {
-		String file = getProperty("CompilerProvider");
-		return openAttachment(file);
+	public void addCompilerProviders(Interpreter interpreter) throws BadDescriptorException {
+		for (IStrategoAppl term : collectTerms(document, "CompilerProvider")) {
+			try {
+				interpreter.load(openAttachment(termContents(term)));
+			} catch (InterpreterException e) {
+				throw new BadDescriptorException("Error loading reference resolving provider", e);
+			} catch (IOException e) {
+				throw new BadDescriptorException("Could not load reference resolving provider", e);
+			}
+		}
 	}
 
 	private InputStream openAttachment(String path) throws BadDescriptorException {

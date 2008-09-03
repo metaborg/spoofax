@@ -31,6 +31,7 @@ exports
     "~//" <CommentLine-LEX> -> <OutlineRule-CF> {cons("CommentLine"), prefer}
     "~//" <CommentLine-LEX> -> <FoldingRule-CF> {cons("CommentLine"), prefer}
     "~//" <CommentLine-LEX> -> <LanguageProperty-CF> {cons("CommentLine"), prefer}
+    "~//" <CommentLine-LEX> -> <ReferenceRule-CF> {cons("CommentLine"),prefer}
     
     
     "print" Expr "\n" -> Stm
@@ -42,6 +43,7 @@ exports
     "~\n" -> ColorRule {cons("EmptyLine")}
     "~\n" -> OutlineRule {cons("EmptyLine")}
     "~\n" -> FoldingRule {cons("EmptyLine")}
+    "~\n" -> ReferenceRule {cons("EmptyLine")}
     "~\n" -> LanguageProperty {cons("EmptyLine")}
   
     %% (Anti-)quotations
