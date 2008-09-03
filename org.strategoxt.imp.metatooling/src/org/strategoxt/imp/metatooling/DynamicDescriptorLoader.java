@@ -1,10 +1,6 @@
 package org.strategoxt.imp.metatooling;
 
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
@@ -13,6 +9,7 @@ import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.ui.IStartup;
 import org.spoofax.NotImplementedException;
@@ -29,7 +26,6 @@ public class DynamicDescriptorLoader implements IResourceChangeListener, IStartu
 		try {
 			ResourcesPlugin.getWorkspace().run(
 				new IWorkspaceRunnable() {
-					@Override
 					public void run(IProgressMonitor monitor) throws CoreException {
 						loadInitialServices();
 					}},
@@ -42,54 +38,55 @@ public class DynamicDescriptorLoader implements IResourceChangeListener, IStartu
 	@Override
 	public void resourceChanged(IResourceChangeEvent event) {
 		if (event.getType() == IResourceChangeEvent.POST_CHANGE) {
-			for (IResourceDelta delta : event.getDelta().getAffectedChildren()) {
-				if (delta.getResource().getFileExtension().equals("esv")) {
-					switch (delta.getKind()) {
-						case IResourceDelta.ADDED:
-							descriptorAdded(delta.getResource());
-							break;
-						case IResourceDelta.CHANGED:
-							descriptorChanged(delta.getResource());
-							break;
-						case IResourceDelta.REMOVED:
-							descriptorRemoved(delta.getResource());
-							break;
-					}
-				}
+			postResourceChanged(event.getDelta());
+		}
+	}
+	
+	public void postResourceChanged(IResourceDelta delta) {
+		if ("esv".equals(delta.getResource().getFileExtension())) {
+			switch (delta.getKind()) {
+				case IResourceDelta.ADDED:
+					descriptorAdded(delta.getResource());
+					break;
+				case IResourceDelta.CHANGED:
+					descriptorChanged(delta.getResource());
+					break;
+				case IResourceDelta.REMOVED:
+					descriptorRemoved(delta.getResource());
+					break;
 			}
-			for (IResourceDelta added : event.getDelta().getAffectedChildren()) {
-				if (added.getResource().getFileExtension().equals("esv")) {
-					descriptorAdded(added.getResource());
-				}
-			}
+		}
+		for (IResourceDelta child : delta.getAffectedChildren()) {
+			postResourceChanged(child);
 		}
 	}
 	
 	private void loadInitialServices() {
 		for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
-			for (String descriptor : LoaderPreferences.get(project).getDescriptors()) {
-				loadDescriptor(project, descriptor);
+			if (project.isOpen()) {
+				for (String descriptor : LoaderPreferences.get(project).getDescriptors()) {
+					loadDescriptor(project, descriptor);
+				}
 			}
 		}
 	}
 	
-	private void loadDescriptor(IProject project, String relativePath) {
+	public void loadDescriptor(IProject project, String path) {
 		try {
-			String path = project.getRawLocation().append(relativePath).toString();
-			InputStream stream = new BufferedInputStream(new FileInputStream(path));
-			DescriptorFactory.load(stream);
-		} catch (FileNotFoundException e) {
-			Environment.logException("Unable to load descriptor");
+			IFile file = project.getFile(path);
+			DescriptorFactory.load(file);
+		} catch (CoreException e) {
+			Environment.logException("Unable to load descriptor " + path, e);
 		} catch (BadDescriptorException e) {
 			// TODO: Report bad descriptors in the UI
-			Environment.logException("Error in descriptor " + relativePath, e);
+			Environment.logException("Error in descriptor " + path, e);
 		}
 	}
 	
 	private void descriptorAdded(IResource descriptor) {
 		String path = getMainDescriptorLocation(descriptor);
-		loadDescriptor(descriptor.getProject(), path);
 		LoaderPreferences.get(descriptor.getProject()).putDescriptor(path);
+		loadDescriptor(descriptor.getProject(), path);
 	}
 	
 	private void descriptorChanged(IResource descriptor) {
@@ -111,6 +108,7 @@ public class DynamicDescriptorLoader implements IResourceChangeListener, IStartu
 
 	private String getMainDescriptorLocation(IResource descriptor) {
 		// TODO: Get the path of the main descriptor file(s?) associated with this resource
-		return descriptor.getLocation().toString();
+		IPath result = descriptor.getProjectRelativePath();
+		return result.toString();
 	}
 }

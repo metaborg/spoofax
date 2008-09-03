@@ -52,7 +52,7 @@ public class TokenColorer extends TokenColorerBase {
 		parseController = controller;
 		
 		// Use the parent of string/int terminal nodes
-		if (node.getConstructor() == null && node.getParent() != null)
+		if (node != null && node.getConstructor() == null && node.getParent() != null)
 			node = node.getParent();
 		
 		int tokenKind = token.getKind();

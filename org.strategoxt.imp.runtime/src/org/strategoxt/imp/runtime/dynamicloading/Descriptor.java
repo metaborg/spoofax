@@ -6,6 +6,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.language.Language;
 import org.spoofax.interpreter.terms.IStrategoAppl;
@@ -16,7 +18,7 @@ import org.strategoxt.imp.runtime.parser.SimpleSGLRParser;
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  * 
- * @see DescriptorFactory#load(InputStream)
+ * @see DescriptorFactory#load(IFile)
  */
 public class Descriptor {
 	public static final String ROOT_LANGUAGE = "Root";
@@ -31,6 +33,8 @@ public class Descriptor {
 	private final IStrategoAppl document;
 	
 	private Language language;
+	
+	private IPath basePath;
 	
 	public IStrategoAppl getDocument() {
 		return document;
@@ -60,6 +64,10 @@ public class Descriptor {
 		} catch (SGLRException e) {
 			throw new BadDescriptorException("Could not parse descriptor file", e);
 		}
+	}
+	
+	protected void setBasePath(IPath basePath) {
+		this.basePath = basePath;
 	}
 	
 	// LOADING SERVICES
@@ -104,6 +112,9 @@ public class Descriptor {
 
 	private InputStream openAttachment(String path) throws BadDescriptorException {
 		try {
+			if (basePath != null)
+				path = basePath.append(path).toString();
+				
 			return new FileInputStream(path);
 		} catch (FileNotFoundException e) {
 			throw new BadDescriptorException(e);

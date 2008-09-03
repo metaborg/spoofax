@@ -5,6 +5,7 @@
    <extension
          point="org.eclipse.ui.startup">
       <startup
-            class="org.strategoxt.imp.metatooling.DynamicDescriptorLoader"></startup>
+            class="org.strategoxt.imp.metatooling.StartupDescriptorLoader">
+      </startup>
    </extension>
 </plugin>

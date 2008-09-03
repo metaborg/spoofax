@@ -7,13 +7,15 @@ import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
 public class SGLRAstLocator extends AstLocator {
 
 	@Override
-	public Object findNode(Object ast, int startOffset, int endOffset) {
-		return super.findNode(((SGLRToken)ast).getAstNode(), startOffset, endOffset);
+	public Object findNode(Object node, int startOffset, int endOffset) {
+		if (node instanceof SGLRToken)
+			node = ((SGLRToken) node).getAstNode();
+		
+		return super.findNode(((AstNode) node), startOffset); // , endOffset is not supported
 	}
 	
 	@Override
 	public Object findNode(Object node, int offset) {
-		// TODO: Can this happen?
 		if (node instanceof SGLRToken)
 			node = ((SGLRToken) node).getAstNode();
 		

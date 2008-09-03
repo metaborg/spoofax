@@ -43,7 +43,7 @@ strategies
           if (!registered) { 
             registered = true;
             try {
-              Descriptor descriptor = DescriptorFactory.load(EditorServiceParseController.class.getResourceAsStream(DESCRIPTOR), EditorServiceParseController.class.getResourceAsStream(TABLE));
+              Descriptor descriptor = DescriptorFactory.load(x_name.class.getResourceAsStream(DESCRIPTOR), x_name.class.getResourceAsStream(TABLE), null);
               initialize(descriptor.getLanguage());
             } catch (BadDescriptorException exc) {
               setNotLoadingCause(exc);

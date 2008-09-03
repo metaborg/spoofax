@@ -3,6 +3,9 @@ package org.strategoxt.imp.runtime.dynamicloading;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.spoofax.jsglr.InvalidParseTableException;
@@ -15,13 +18,25 @@ import org.strategoxt.imp.runtime.Environment;
 public class DescriptorFactory {
 	private DescriptorFactory() {}
 	
-	public static Descriptor load(InputStream descriptor) throws BadDescriptorException {
-		return load(descriptor, null);
+	public static Descriptor load(IFile descriptor) throws CoreException, BadDescriptorException {
+		IPath basePath = descriptor.getLocation();
+		basePath = basePath.removeLastSegments(2); // strip off /bin/filename
+		return load(descriptor.getContents(), null, basePath);
 	}
 	
-	public static Descriptor load(InputStream descriptor, InputStream parseTable) throws BadDescriptorException {
+	/**
+	 * Creates a new {@link Descriptor} instance.
+	 * 
+	 * @param descriptor  The descriptor stream to load
+	 * @param parseTable  An associated parse table stream, or null
+	 * @param basePath    A relative path of the descriptor, or null
+	 *
+	 * @throws BadDescriptorException
+	 */
+	public static Descriptor load(InputStream descriptor, InputStream parseTable, IPath basePath) throws BadDescriptorException {
 		Debug.startTimer();
 		Descriptor result = Descriptor.load(descriptor);
+		result.setBasePath(basePath);
 		Language language = result.getLanguage();
 		
 		Environment.registerDescriptor(language, result);
