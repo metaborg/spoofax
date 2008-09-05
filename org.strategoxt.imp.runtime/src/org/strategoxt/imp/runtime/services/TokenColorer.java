@@ -22,22 +22,22 @@ import lpg.runtime.IToken;
 public class TokenColorer extends TokenColorerBase {
 	private /*final*/ IParseController parseController;
 	
-	private final List<ColorMapping> envMappings, nodeMappings, tokenMappings;
+	private final List<TextAttributeMapping> envMappings, nodeMappings, tokenMappings;
 	
-	public List<ColorMapping> getTokenMappings() {
+	public List<TextAttributeMapping> getTokenMappings() {
 		return tokenMappings;
 	}
 	
-	public List<ColorMapping> getNodeMappings() {
+	public List<TextAttributeMapping> getNodeMappings() {
 		return nodeMappings;
 	}
 	
-	public List<ColorMapping> getEnvMappings() {
+	public List<TextAttributeMapping> getEnvMappings() {
 		return envMappings;
 	}
 	
-	public TokenColorer(List<ColorMapping> envMappings, List<ColorMapping> nodeMappings,
-			List<ColorMapping> tokenMappings) {
+	public TokenColorer(List<TextAttributeMapping> envMappings, List<TextAttributeMapping> nodeMappings,
+			List<TextAttributeMapping> tokenMappings) {
 		
 		this.tokenMappings = tokenMappings;
 		this.nodeMappings = nodeMappings;
@@ -73,9 +73,9 @@ public class TokenColorer extends TokenColorerBase {
 		else return noWhitespaceBackground(result, token, tokenKind);
 	}
 
-	private TextAttribute getColoring(List<ColorMapping> mappings, String constructor, String sort, int tokenKind) {
-		for (ColorMapping mapping : mappings) {
-			TextAttribute result = mapping.getAttribute(constructor, sort, tokenKind);
+	private TextAttribute getColoring(List<TextAttributeMapping> mappings, String constructor, String sort, int tokenKind) {
+		for (TextAttributeMapping mapping : mappings) {
+			TextAttribute result = mapping.getAttribute(constructor, sort, tokenKind).get();
 			if (result != null) return result;
 		}
 		

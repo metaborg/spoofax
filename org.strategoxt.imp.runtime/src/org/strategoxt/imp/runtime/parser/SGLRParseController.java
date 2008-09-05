@@ -24,7 +24,7 @@ import org.spoofax.jsglr.SGLR;
 import org.spoofax.jsglr.TokenExpectedException;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
-import org.strategoxt.imp.runtime.parser.ast.SGLRAstLocator;
+import org.strategoxt.imp.runtime.parser.ast.AstNodeLocator;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenIterator;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
 
@@ -128,7 +128,7 @@ public class SGLRParseController implements IParseController {
 	}
 	
 	public ISourcePositionLocator getNodeLocator() {
-		return new SGLRAstLocator();
+		return new AstNodeLocator();
 	}
 	
 	public ILanguageSyntaxProperties getSyntaxProperties() {

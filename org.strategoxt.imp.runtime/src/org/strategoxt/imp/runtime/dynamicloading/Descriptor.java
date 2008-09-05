@@ -14,7 +14,9 @@ import org.eclipse.imp.language.Language;
 import org.spoofax.interpreter.core.Interpreter;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.SGLRException;
+import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.SimpleSGLRParser;
 
@@ -48,9 +50,10 @@ public class Descriptor {
 	static {
 		try {
 			InputStream stream = Descriptor.class.getResourceAsStream("/syntax/EditorService.tbl");
-			Environment.registerParseTable(LANGUAGE, stream);
-			parser = new SimpleSGLRParser(Environment.getParseTable(LANGUAGE), "Module");
-		} catch (Exception e) {
+			ParseTable table = Environment.registerParseTable(LANGUAGE, stream);
+			parser = new SimpleSGLRParser(table, "Module");
+		} catch (Throwable e) {
+			Environment.logException("Could not initialize the Descriptor class.", e);
 			throw new RuntimeException(e);
 		}
 	}
@@ -111,7 +114,9 @@ public class Descriptor {
 	public void addCompilerProviders(Interpreter interpreter) throws BadDescriptorException {
 		for (IStrategoAppl term : collectTerms(document, "CompilerProvider")) {
 			try {
+				Debug.startTimer("Loading interpreter input ", termContents(term));
 				interpreter.load(openAttachment(termContents(term)));
+				Debug.stopTimer("Successfully loaded " +  termContents(term));
 			} catch (InterpreterException e) {
 				throw new BadDescriptorException("Error loading reference resolving provider", e);
 			} catch (IOException e) {

@@ -64,24 +64,25 @@ public final class Environment {
 	}
 
 	public static Interpreter createInterpreter() throws IOException, InterpreterException {
-		Interpreter result = new Interpreter(wrappedFactory);
+		Interpreter result = new Interpreter(wrappedAstNodeFactory);
 		result.addOperatorRegistry("JSGLR", new IMPJSGLRLibrary());
 		result.load(Compiler.sharePath() + "/stratego-lib/libstratego-lib.ctree");
 		result.load(Compiler.sharePath() + "/libstratego-sglr.ctree");
 		return result;
 	}
 	
-	public static void registerParseTable(Language language, InputStream parseTable)
+	public static ParseTable registerParseTable(Language language, InputStream parseTable)
 		throws IOException, InvalidParseTableException {
 		
-		try {
-			Debug.startTimer();
-			ParseTable table = parseTableManager.loadFromStream(parseTable);
+		Debug.startTimer();
+		ParseTable table = parseTableManager.loadFromStream(parseTable);
 			
-			parseTables.put(language, table);
-		} finally {
-			Debug.stopTimer("Parse table loaded");
-		}
+		parseTables.put(language, table);
+		assert getParseTable(language) == table;
+		
+		Debug.stopTimer("Parse table loaded");
+		
+		return table;
 	}
 	
 	public static ParseTable getParseTable(Language language) {

@@ -23,10 +23,10 @@ strategies
         ~// Reference rules can specify the syntax constructors for which
         ~// a reference resolving function is available:
         ~//
-        ~//   FunctionCall : resolve-function-call function-call-hover-help
+        ~//   reference FunctionCall : resolve-function-call hover-help-function-call
         ~//
-        ~// This defines that for each FunctionCall, resolver-function-call
-        ~// will retrieve the AST node that declares it, and function-call-hover-help
+        ~// This defines that for each FunctionCall, resolve-function-call
+        ~// will retrieve the AST node that declares it, and hover-help-function-call
         ~// returns hover help information.
       ]|
     )

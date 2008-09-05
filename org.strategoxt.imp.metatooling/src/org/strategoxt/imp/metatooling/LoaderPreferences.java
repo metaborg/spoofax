@@ -69,7 +69,7 @@ public class LoaderPreferences {
 				try {
 					if (!hasDescriptor(descriptor)) {
 						String value = preferences.get(DESCRIPTORS_KEY, "")
-								+ "," + descriptor;
+								+ SEPARATOR + descriptor;
 						preferences.put(DESCRIPTORS_KEY, value);
 						preferences.sync();
 					}

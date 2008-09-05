@@ -3,9 +3,15 @@
 <plugin
 >
    <extension
-         point="org.eclipse.ui.startup">
-      <startup
-            class="org.strategoxt.imp.metatooling.StartupDescriptorLoader">
-      </startup>
+         point="org.eclipse.imp.runtime.languageDescription">
+      <language
+            description="sdf2imp metatooling dynamic language placeholder"
+            extensions="sdf2impbase2"
+            language="Root2"
+            validatorClass="org.strategoxt.imp.metatooling.DynamicLanguageValidator"
+            validator="org.strategoxt.imp.metatooling.DynamicLanguageValidator">
+            <!-- "validator" is wat imp currently (incorrectly) tries to load) -->
+      </language>
    </extension>
+   
 </plugin>

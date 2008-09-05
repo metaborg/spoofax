@@ -1,5 +1,5 @@
 [
-   ReferenceRule        -- R [ _1 KW[":"] _2 _3 ],
+   ReferenceRule        -- R [ KW["reference"] _1 H [ KW[":"] _2 ] _3 ],
    CompilerProvider     -- R [ H [ KW["provider"] _1 ] ],
    Compiler             -- V is=2 [H hs=0 [ KW["compiler"] _1 ] A(l,l,l,l) [_2] ],
    Strategy             -- _1,

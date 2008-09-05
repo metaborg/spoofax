@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.services.IFoldingUpdater;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.imp.services.IReferenceResolver;
 import org.eclipse.imp.services.ITokenColorer;
@@ -32,6 +33,9 @@ public class DynamicServiceFactory {
 		Object result = services.get(type);
 		if (result != null) return type.cast(result);
 		
+		// TODO: Dynamic registration of service factories
+		//       (which should not be static)
+		
 		if (IParseController.class.isAssignableFrom(type)) {
 			ILanguageSyntaxProperties syntaxProperties = getService(ILanguageSyntaxProperties.class);
 			result = new SGLRParseController(descriptor.getLanguage(), syntaxProperties, descriptor.getStartSymbols());
@@ -44,6 +48,9 @@ public class DynamicServiceFactory {
 		
 		} else if (ILanguageSyntaxProperties.class.isAssignableFrom(type)) {
 			result = SyntaxPropertiesFactory.create(descriptorFile);
+		
+		} else if (IFoldingUpdater.class.isAssignableFrom(type)) {
+			result = FoldingUpdaterFactory.create(descriptorFile);
 		
 		} else {
 			throw new IllegalArgumentException(type.getSimpleName() + " is not a supported editor service type");

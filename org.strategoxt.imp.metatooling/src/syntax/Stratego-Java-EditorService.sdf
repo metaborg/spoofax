@@ -32,9 +32,6 @@ exports
     "~//" <CommentLine-LEX> -> <FoldingRule-CF> {cons("CommentLine"), prefer}
     "~//" <CommentLine-LEX> -> <LanguageProperty-CF> {cons("CommentLine"), prefer}
     "~//" <CommentLine-LEX> -> <ReferenceRule-CF> {cons("CommentLine"),prefer}
-    
-    
-    "print" Expr "\n" -> Stm
 
   context-free syntax
     

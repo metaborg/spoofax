@@ -93,7 +93,7 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 	
 	public RootAstNode getRoot() {
 		AstNode result = this;
-		while (getParent() != null)
+		while (result.getParent() != null)
 			result = result.getParent();
 		return (RootAstNode) result;
 	}
@@ -129,7 +129,8 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 		this.rightToken = rightToken;
 		this.children = children;
 		
-		setReferences(leftToken, rightToken, children);
+		if (leftToken != null)
+			setReferences(leftToken, rightToken, children);
 	}
 
 	private void setReferences(IToken leftToken, IToken rightToken, ArrayList<AstNode> children) {
@@ -174,8 +175,8 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
     	String constructor = getConstructor();
     	String sort = getSort();
     	
-    	if (constructor == null) result ^= constructor.hashCode();  
-    	if (sort == null) result ^= sort.hashCode();
+    	if (constructor != null) result ^= constructor.hashCode();  
+    	if (sort != null) result ^= sort.hashCode();
     	
     	return result;
     }

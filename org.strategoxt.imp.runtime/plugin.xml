@@ -5,8 +5,8 @@
    <extension
          point="org.eclipse.imp.runtime.languageDescription">
       <language
-            extensions="sdf2impbase"
             description="sdf2imp generic base language"
+            extensions="sdf2impbase"
             language="Root">
       </language>
    </extension>
@@ -30,7 +30,14 @@
          point="org.eclipse.imp.runtime.referenceResolvers">
       <referenceResolver
             class="org.strategoxt.imp.runtime.dynamicloading.DynamicReferenceResolver"
-            language="EditorService">
+            language="Root">
       </referenceResolver>
+   </extension>
+   <extension
+         point="org.eclipse.imp.runtime.foldingUpdater">
+      <foldingUpdater
+            class="org.strategoxt.imp.runtime.dynamicloading.DynamicFoldingUpdater"
+            language="Root">
+      </foldingUpdater>
    </extension>
 </plugin>

@@ -6,12 +6,8 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
-import org.eclipse.core.resources.IWorkspaceRunnable;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.ui.IStartup;
 import org.spoofax.NotImplementedException;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
@@ -20,20 +16,9 @@ import org.strategoxt.imp.runtime.dynamicloading.DescriptorFactory;
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class DynamicDescriptorLoader implements IResourceChangeListener, IStartup {
-	public void earlyStartup() {
-		ResourcesPlugin.getWorkspace().addResourceChangeListener(this);
-		try {
-			ResourcesPlugin.getWorkspace().run(
-				new IWorkspaceRunnable() {
-					public void run(IProgressMonitor monitor) throws CoreException {
-						loadInitialServices();
-					}},
-				null);
-		} catch (CoreException e) {
-			Environment.logException("Could not load initial editor services");
-		}
-	}
+public class DynamicDescriptorLoader implements IResourceChangeListener {
+	
+	// TODO: Reloading should trigger for dependant files, attachments, etc.
 
 	@Override
 	public void resourceChanged(IResourceChangeEvent event) {
@@ -61,19 +46,10 @@ public class DynamicDescriptorLoader implements IResourceChangeListener, IStartu
 		}
 	}
 	
-	private void loadInitialServices() {
-		for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
-			if (project.isOpen()) {
-				for (String descriptor : LoaderPreferences.get(project).getDescriptors()) {
-					loadDescriptor(project, descriptor);
-				}
-			}
-		}
-	}
-	
 	public void loadDescriptor(IProject project, String path) {
 		try {
 			IFile file = project.getFile(path);
+			file.refreshLocal(0, null); // resource might be out of sync
 			DescriptorFactory.load(file);
 		} catch (CoreException e) {
 			Environment.logException("Unable to load descriptor " + path, e);

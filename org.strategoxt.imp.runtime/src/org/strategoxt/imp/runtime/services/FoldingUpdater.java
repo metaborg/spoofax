@@ -1,20 +1,62 @@
 package org.strategoxt.imp.runtime.services;
 
+import java.util.List;
+
 import lpg.runtime.ILexStream;
 import lpg.runtime.IPrsStream;
 import lpg.runtime.IToken;
 
+import org.eclipse.imp.services.base.FolderBase;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
+import org.strategoxt.imp.runtime.parser.ast.AbstractVisitor;
 import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.*;
 
 /**
- * Base class for a folding service. Includes special logic to deal with
+ * Folding service. Includes special logic to deal with
  * layout tokens in SGLR token streams.
  * 
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
-public abstract class FoldingBase extends org.eclipse.imp.services.base.FolderBase {
+public class FoldingUpdater extends FolderBase {
 	private IPrsStream parseStream;
+	
+	private final List<NodeMapping> folded;
+	
+	public FoldingUpdater(List<NodeMapping> folded) {
+		this.folded = folded;
+	}
+	
+    private class FoldingVisitor extends AbstractVisitor {
+		@Override
+		public boolean preVisit(AstNode node) {
+          String constructor = node.getConstructor();
+          String sort = node.getSort();
+          
+          for (NodeMapping folding : folded) {
+        	  if (folding.getAttribute(constructor, sort, 0) != null) {
+        		  makeCompleteAnnotation(node);
+        		  break;
+        	  }
+          }
+                    
+          return true;
+        }
+
+		@Override
+		public void postVisit(AstNode node) {
+			// Nothing to see here; move along.
+		}
+	}
+
+	@Override
+	public void sendVisitorToAST(java.util.HashMap newAnnotations, java.util.List annotations,
+			java.lang.Object node) {
+		
+		AstNode astNode = (AstNode) node;
+		parseStream = astNode.getLeftIToken().getPrsStream();
+		
+		astNode.accept(new FoldingVisitor());
+	}
 
 	public void makeCompleteAnnotation(AstNode node) {
 		makeCompleteAnnotation(node.getLeftIToken(), node.getRightIToken());
@@ -60,16 +102,4 @@ public abstract class FoldingBase extends org.eclipse.imp.services.base.FolderBa
 
 		return -1;
 	}
-
-	@Override
-	public void sendVisitorToAST(java.util.HashMap newAnnotations, java.util.List annotations,
-			java.lang.Object node) {
-		
-		AstNode astNode = (AstNode) node;
-		parseStream = astNode.getLeftIToken().getPrsStream();
-		
-		sendVisitorToAST(astNode);
-	}
-	
-	protected abstract void sendVisitorToAST(AstNode node);
 }

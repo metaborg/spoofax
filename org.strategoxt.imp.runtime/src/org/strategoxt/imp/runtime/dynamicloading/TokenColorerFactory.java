@@ -11,8 +11,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
 import org.spoofax.interpreter.terms.IStrategoAppl;
-import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
-import org.strategoxt.imp.runtime.services.ColorMapping;
+import org.strategoxt.imp.runtime.services.TextAttributeMapping;
 import org.strategoxt.imp.runtime.services.TextAttributeReference;
 import org.strategoxt.imp.runtime.services.TextAttributeReferenceMap;
 import org.strategoxt.imp.runtime.services.TokenColorer;
@@ -25,9 +24,9 @@ class TokenColorerFactory {
 	 * @see Descriptor#getService(Class)
 	 */
 	public static ITokenColorer create(IStrategoAppl descriptor) throws BadDescriptorException {
-		List<ColorMapping> tokenMappings = new ArrayList<ColorMapping>();
-		List<ColorMapping> nodeMappings = new ArrayList<ColorMapping>();
-		List<ColorMapping> envMappings = new ArrayList<ColorMapping>();
+		List<TextAttributeMapping> tokenMappings = new ArrayList<TextAttributeMapping>();
+		List<TextAttributeMapping> nodeMappings = new ArrayList<TextAttributeMapping>();
+		List<TextAttributeMapping> envMappings = new ArrayList<TextAttributeMapping>();
 		
 		TextAttributeReferenceMap colors = readColorList(descriptor);
 		
@@ -47,19 +46,12 @@ class TokenColorerFactory {
 		return new TokenColorer(envMappings, nodeMappings, tokenMappings);
 	}
 
-	private static void addMapping(IStrategoAppl rule, List<ColorMapping> mappings,
+	private static void addMapping(IStrategoAppl rule, List<TextAttributeMapping> mappings,
 			TextAttributeReferenceMap colors) throws BadDescriptorException {
 		
-		IStrategoAppl pattern = termAt(rule, 0);
 		IStrategoAppl attribute = termAt(rule, rule.getSubtermCount() - 1);
 		
-		String constructor = termContents(findTerm(pattern, "Constructor"));
-		String sort = termContents(findTerm(pattern, "Sort"));
-		TokenKind tokenKind = getTokenKind(termContents(findTerm(pattern, "Token")));
-		String listSort = termContents(findTerm(pattern, "Sort"));
-		if (listSort != null) sort = listSort + "*";
-		
-		mappings.add(new ColorMapping(constructor, sort, tokenKind, readAttribute(colors, attribute)));
+		mappings.add(TextAttributeMapping.create(rule, readAttribute(colors, attribute)));
 	}
 
 	private static TextAttributeReference readAttribute(TextAttributeReferenceMap colors, IStrategoAppl attribute) {
@@ -72,14 +64,6 @@ class TokenColorerFactory {
 			IStrategoAppl font = termAt(attribute, 2);
 			TextAttribute result = new TextAttribute(readColor(foreground), readColor(background), readFont(font));
 			return new TextAttributeReference(colors, result);
-		}
-	}
-	
-	private static TokenKind getTokenKind(String tokenKind) throws BadDescriptorException {
-		try {
-			return tokenKind == null ? null : TokenKind.valueOf(tokenKind);
-		} catch (IllegalArgumentException e) {
-			throw new BadDescriptorException("Could not set the coloring rule for token kind: " + tokenKind, e);
 		}
 	}
 
@@ -105,7 +89,7 @@ class TokenColorerFactory {
 	
 	private static int readFont(IStrategoAppl font) {
 		if (cons(font).equals("BOLD")) return SWT.BOLD;
-		if (cons(font).equals("ITALIC")) return SWT.BOLD;
+		if (cons(font).equals("ITALIC")) return SWT.ITALIC;
 		if (cons(font).equals("BOLD_ITALIC")) return SWT.BOLD | SWT.ITALIC;
 		return 0;
 	}

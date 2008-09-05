@@ -9,32 +9,24 @@ import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 
 /**
- * Represents a list of ATerms, forming a path to the root from a given AST node.
- * 
- * @note This class uses lazy initialization, to avoid the overhead when it's unused.
+ * Maintains aterm paths, lists of nodes on the path to the root from a given AST node.
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class StrategoTermPath extends StrategoListProxy implements IStrategoList {
-	private final IStrategoAstNode node;
+public class StrategoTermPath extends StrategoListProxy {
+
+	private StrategoTermPath() {}
 	
-	public StrategoTermPath(IStrategoAstNode node) {
-		this.node = node;
-	}
-
-	@Override
-	public IStrategoList getWrapped() {
-		if (super.getWrapped() == null) initialize();
-		return super.getWrapped();
-	}
-
-	private void initialize() {
+	public static IStrategoList createPath(IStrategoAstNode node) {
 		List<IStrategoTerm> path = new ArrayList<IStrategoTerm>();
 		
-		for (IStrategoAstNode parent = node; (parent = node.getParent()) != null; ) {
-			path.add(parent.getTerm());
+		while(node.getParent() != null) {
+			IStrategoAstNode parent = node.getParent();
+			int index = parent.getAllChildren().indexOf(node);
+			path.add(Environment.getWrappedTermFactory().makeInt(index));
+			node = node.getParent();
 		}
 		
-		setWrapped(Environment.getWrappedAstNodeFactory().makeList(path));
+		return Environment.getWrappedAstNodeFactory().makeList(path);
 	}	
 }

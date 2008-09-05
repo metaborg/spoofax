@@ -1,9 +1,11 @@
 package org.strategoxt.imp.runtime.stratego.adapter;
 
+import java.io.IOException;
 import java.util.WeakHashMap;
 
 import org.spoofax.interpreter.terms.BasicTermFactory;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.IntAstNode;
 import org.strategoxt.imp.runtime.parser.ast.StringAstNode;
 
@@ -41,7 +43,18 @@ public class WrappedAstNodeFactory extends BasicTermFactory {
 			return new WrappedAstNodeAppl(this, node);
 		}
 	}
-
+	
+	@Override
+	public IStrategoTerm parseFromFile(String path) throws IOException {
+		// BasicTermFactory does not support binary aterms atm
+		return Environment.getWrappedTermFactory().parseFromFile(path);
+	}
+	
+	@Override
+	public IStrategoTerm parseFromString(String path) {
+		// BasicTermFactory does not support binary aterms atm
+		return Environment.getWrappedTermFactory().parseFromString(path);
+	}
 
 	public IStrategoTerm wrapNew(IStrategoAstNode node) {
 		if(node instanceof IntAstNode) {

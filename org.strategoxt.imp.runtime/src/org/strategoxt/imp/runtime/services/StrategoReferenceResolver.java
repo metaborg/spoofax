@@ -11,6 +11,7 @@ import org.eclipse.imp.services.IReferenceResolver;
 import org.spoofax.interpreter.core.Interpreter;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.IntAstNode;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
@@ -42,12 +43,15 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 	}
 
 	public IAst getLinkTarget(Object oNode, IParseController parseController) {
-		IStrategoAstNode node = (IStrategoAstNode) oNode;
+		IStrategoAstNode node = getReferencedNode(oNode);
 		IAst result = resolverCache.get(oNode);
 		if (result != null) return result == NOT_FOUND ? null : result;
 		
 		String function = resolverFunctions.get(node.getConstructor());
-		if (function == null) return null;
+		if (function == null) {
+			Debug.log("No reference resolver available for node of type ", node.getConstructor());
+			return null;
+		}
 		
 		IStrategoTerm resultTerm = strategoCall(node, function);
 		result = resultTerm == null ? null : ((WrappedAstNode) resultTerm).getNode();
@@ -57,7 +61,7 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 	}
 
 	public String getLinkText(Object oNode) {
-		IStrategoAstNode node = (IStrategoAstNode) oNode;
+		IStrategoAstNode node = getReferencedNode(oNode);
 		String result = helpCache.get(oNode);
 		if (result != null) return result == "" ? null : result;
 		
@@ -68,23 +72,27 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 		helpCache.put(node, result == null ? "" : result);
 		return result;
 	}
+	
+	private static final IStrategoAstNode getReferencedNode(Object oNode) {
+		IStrategoAstNode result = (IStrategoAstNode) oNode;
+		while (result != null && result.getConstructor() == null)
+			result = result.getParent();
+		return result;
+	}
 
 	private IStrategoTerm strategoCall(IStrategoAstNode node, String function) {
-		IStrategoTerm path = resolver.getFactory().makeString(node.getResourcePath().toOSString());
-		IStrategoTerm[] inputParts = { getRoot(node).getTerm(), path, node.getTerm(), new StrategoTermPath(node) };
-		IStrategoTerm input = resolver.getFactory().makeTuple(inputParts);
-
 		try {
-			initResolver(node);
+			initResolverInput(node);
+			initResolverPath(node);
 
 			boolean success = resolver.invoke(function);
 			
 			if (!success) {
-				Environment.logException("Unable to resolve reference " + input.toString());
+				Environment.logException("Unable to resolve reference " + node);
 				return null;
 			}
 		} catch (InterpreterException e) {
-			Environment.logException("Unable to resolve reference " + input.toString(), e);
+			Environment.logException("Unable to resolve reference " + node, e);
 			return null;
 		}
 		
@@ -95,9 +103,21 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 			return null;
 		}
 	}
+
+	private void initResolverInput(IStrategoAstNode node) {
+		IStrategoTerm[] inputParts = {
+				getRoot(node).getTerm(),
+				Environment.getWrappedTermFactory().makeString(node.getResourcePath().toOSString()),
+				node.getTerm(),
+				StrategoTermPath.createPath(node)
+			};
+		
+		IStrategoTerm input = resolver.getFactory().makeTuple(inputParts);
+		resolver.setCurrent(input);
+	}
 	
-	private void initResolver(IStrategoAstNode node) {
-		resolver.reset();
+	private void initResolverPath(IStrategoAstNode node) {
+		resolver.reset(); // FIXME: When to reset the resolver??
 		try {
 			String workingDir = node.getRootPath().toOSString();
 			resolver.setWorkingDir(workingDir);

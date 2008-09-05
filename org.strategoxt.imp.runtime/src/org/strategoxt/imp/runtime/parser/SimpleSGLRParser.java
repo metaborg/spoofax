@@ -32,9 +32,8 @@ public class SimpleSGLRParser {
 		
 		try {
 			imploder = Environment.createInterpreter();
-		} catch (IOException e) {
-			throw new RuntimeException(e); // no recovery
-		} catch (InterpreterException e) {
+		} catch (Throwable e) {
+			Environment.logException("Could not load the imploder interpreter instance.");
 			throw new RuntimeException(e); // no recovery
 		}
 	}
