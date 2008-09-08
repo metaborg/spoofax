@@ -16,10 +16,11 @@ import aterm.ATerm;
  * Simple SGLR parser and imploder wrapper that does not create
  * an IMP AST or tokens.
  * 
- * @see SGLRParser
+ * @deprecated Use {@link SGLRParser} instead.
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
+@Deprecated
 public class SimpleSGLRParser {
 	private static final Interpreter imploder;
 	

@@ -21,7 +21,7 @@ public class AstNodeFactory {
 	}
 	
 	/**
-	 * Create a new terminal AST node.
+	 * Create a new terminal AST node for a String value.
 	 */
 	public AstNode createTerminal(String sort, String value, IToken leftToken,
 			IToken rightToken) {
@@ -30,7 +30,7 @@ public class AstNodeFactory {
 	}
 	
 	/**
-	 * Create a new terminal AST node.
+	 * Create a new terminal AST node for an int value.
 	 */
 	public AstNode createTerminal(String sort, int value, IToken leftToken,
 			IToken rightToken) {
@@ -38,18 +38,8 @@ public class AstNodeFactory {
 		return new IntAstNode(sort, value, leftToken, rightToken);
 	}
 	
-	
 	/**
-	 * Create a new AST node list. 
-	 */
-	public AstNode createList(String elementSort, IToken leftToken, IToken rightToken, ArrayList<AstNode> children) {
-		return new ListAstNode(elementSort, leftToken, rightToken, children);
-	}
-	
-	// Bridge method
-	
-	/**
-	 * Create a new terminal AST node.
+	 * Create a new terminal AST node from a single token.
 	 */
 	public final AstNode createTerminal(String sort, IToken token) {
 		ILexStream lex = token.getPrsStream().getLexStream();
@@ -62,5 +52,27 @@ public class AstNodeFactory {
 		}
 		
 		return createTerminal(sort, tokenContents.toString(), token, token);
+	}
+	
+	/**
+	 * Create a new AST node list. 
+	 */
+	public AstNode createList(String elementSort, IToken leftToken, IToken rightToken, ArrayList<AstNode> children) {
+		// Flatten lists
+		//
+		// this implementation is not exactly good for performance,
+		// but the current IMP interfaces call for ArrayLists rather than just Lists...
+		
+		for (int i = 0; i < children.size(); i++) {
+			AstNode child = children.get(i);
+			if (child.isList()) {
+				children.remove(i--);
+				for (int j = 0; j < child.getChildren().size(); j++) {
+					children.add(++i, child.getChildren().get(j));
+				}
+			}
+		}
+		
+		return new ListAstNode(elementSort, leftToken, rightToken, children);
 	}
 }

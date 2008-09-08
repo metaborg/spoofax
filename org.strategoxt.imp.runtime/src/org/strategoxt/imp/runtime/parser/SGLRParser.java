@@ -3,6 +3,7 @@ package org.strategoxt.imp.runtime.parser;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 
 import lpg.runtime.Monitor;
 import lpg.runtime.PrsStream;
@@ -13,7 +14,7 @@ import org.spoofax.jsglr.SGLR;
 import org.spoofax.jsglr.SGLRException;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.parser.ast.AsfixConverter;
+import org.strategoxt.imp.runtime.parser.ast.AsfixImploder;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
 import org.strategoxt.imp.runtime.parser.ast.RootAstNode;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
@@ -24,8 +25,6 @@ import aterm.ATerm;
 
 /**
  * IMP IParser implementation for SGLR, imploding parse trees to AST nodes and tokens.
- * 
- * @see SimpleSGLRParser
  *
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */ 
@@ -36,9 +35,11 @@ public class SGLRParser implements IParser {
 	
 	private final String startSymbol;
 	
-	private final AsfixConverter converter;
+	private final AsfixImploder converter;
 	
 	private final SGLRTokenizer tokenizer;
+	
+	private final char[] buffer = new char[4096];
 	
 	// Simple accessors
 	
@@ -64,7 +65,7 @@ public class SGLRParser implements IParser {
 		this.startSymbol = null; // startSymbol;
 
 		tokenizer = new SGLRTokenizer();		
-		converter = new AsfixConverter(tokenManager, tokenizer);
+		converter = new AsfixImploder(tokenManager, tokenizer);
 		parser = Environment.createSGLR(parseTable);
 		parser.setCycleDetect(false);
 		parser.setFilter(false);
@@ -97,7 +98,7 @@ public class SGLRParser implements IParser {
 		result = RootAstNode.makeRoot(result, controller, inputChars);
 		
 		if (Debug.ENABLED) {
-			Debug.log("Parsed " + result.getTerm().toString());
+			Debug.log("Parsed " + result.toString());
 		}
 			
 		Debug.stopTimer("Parse tree imploded");
@@ -107,6 +108,28 @@ public class SGLRParser implements IParser {
 	
 	public AstNode parse(char[] inputChars, String filename) throws SGLRException, IOException {
 		return parse(toByteStream(inputChars), inputChars, filename);
+	}
+	
+	public AstNode parse(InputStream input, String filename) throws SGLRException, IOException {
+		return parse(toCharArray(input), filename); // don't ask
+	}
+	
+	// Utility methods
+
+	private char[] toCharArray(InputStream input) throws IOException {
+		StringBuilder copy = new StringBuilder();
+		InputStreamReader reader = new InputStreamReader(input);
+		
+		int read = 0;
+		do {
+			read = reader.read(buffer);
+			copy.append(buffer);
+		} while (read != -1);
+		
+		char[] chars = new char[copy.length()];
+		copy.getChars(0, copy.length(), chars, 0);
+		
+		return chars;
 	}
 	
 	private static ByteArrayInputStream toByteStream(char[] chars) {

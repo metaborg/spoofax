@@ -1,5 +1,7 @@
 package org.strategoxt.imp.runtime.parser.ast;
 
+import org.spoofax.interpreter.terms.ITermPrinter;
+
 import lpg.runtime.IToken;
 
 /**
@@ -22,12 +24,15 @@ public class StringAstNode extends AstNode {
 	}
 	
 	@Override
-	public String toString() {
+	public String yield() {
 		return getValue();
 	}
 	
+	
 	@Override
-	public String repr() {
-		return '"' + value + '"';
+	public void prettyPrint(ITermPrinter printer) {
+		printer.print("\"");
+		printer.print(getValue());
+		printer.print("\"");
 	}
 }

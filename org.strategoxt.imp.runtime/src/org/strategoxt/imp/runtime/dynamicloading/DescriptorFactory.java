@@ -18,7 +18,7 @@ import org.strategoxt.imp.runtime.Environment;
 public class DescriptorFactory {
 	private DescriptorFactory() {}
 	
-	public static Descriptor load(IFile descriptor) throws CoreException, BadDescriptorException {
+	public static Descriptor load(IFile descriptor) throws CoreException, BadDescriptorException, IOException {
 		IPath basePath = descriptor.getLocation();
 		basePath = basePath.removeLastSegments(2); // strip off /bin/filename
 		return load(descriptor.getContents(), null, basePath);
@@ -33,7 +33,9 @@ public class DescriptorFactory {
 	 *
 	 * @throws BadDescriptorException
 	 */
-	public static Descriptor load(InputStream descriptor, InputStream parseTable, IPath basePath) throws BadDescriptorException {
+	public static Descriptor load(InputStream descriptor, InputStream parseTable, IPath basePath)
+			throws BadDescriptorException, IOException {
+		
 		Debug.startTimer();
 		Descriptor result = Descriptor.load(descriptor);
 		result.setBasePath(basePath);

@@ -3,6 +3,8 @@ package org.strategoxt.imp.runtime.parser.ast;
 import java.util.ArrayList;
 
 import org.eclipse.imp.language.Language;
+import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.ITermPrinter;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 
 import lpg.runtime.IToken;
@@ -10,14 +12,12 @@ import lpg.runtime.IToken;
 public class RootAstNode extends AstNode {
 	private final SGLRParseController parseController;
 	
-	private final Language language;
-	
 	// This field provides an object reference for the key to stay alive in a WeakHashMap
 	@SuppressWarnings("unused")
 	private final Object cachingKey;
 
-	public Language getGrammarName() {
-		return language;
+	public Language getLanguage() {
+		return parseController.getLanguage();
 	}
 
 	public SGLRParseController getParseController() {
@@ -30,13 +30,10 @@ public class RootAstNode extends AstNode {
 		super(sort, constructor, leftToken, rightToken, children);
 		
 		this.parseController = parseController;
-		this.language = parseController.getLanguage();
 		this.cachingKey = cachingKey;
 	}
 	
 	public static RootAstNode makeRoot(AstNode ast, SGLRParseController parseController, Object cachingKey) {
-		//assert ast.getSort().equals("<START>");
-		
 		return new RootAstNode(
 				ast.getSort(), ast.getSort(), ast.getLeftIToken(), ast.getRightIToken(),
 				ast.getChildren(), parseController, cachingKey);

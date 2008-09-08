@@ -58,9 +58,9 @@ public class TermReader {
 		}
 		
 		if (result.startsWith("\"") && result.endsWith("\""))
-			result = result.substring(1, result.length() - 2);
+			result = result.substring(1, result.length() - 1);
 		
-		return result;				
+		return result;
 	}
 
 	public static String concatTermStrings(IStrategoTerm list) {

@@ -15,10 +15,11 @@ import org.spoofax.interpreter.core.Interpreter;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.jsglr.ParseTable;
+import org.spoofax.jsglr.SGLR;
 import org.spoofax.jsglr.SGLRException;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.parser.SimpleSGLRParser;
+import org.strategoxt.imp.runtime.parser.SGLRParser;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -31,7 +32,7 @@ public class Descriptor {
 	private static final Language LANGUAGE =
 		new Language("EditorService-builtin", "org.strategoxt.imp.builtin.editorservice", "", "Root", "", "", "", null);
 	
-	private static final SimpleSGLRParser parser;
+	private static final SGLRParser parser;
 	
 	private final DynamicServiceFactory serviceFactory;
 	
@@ -49,9 +50,10 @@ public class Descriptor {
 	
 	static {
 		try {
+			SGLR.setWorkAroundMultipleLookahead(true);
 			InputStream stream = Descriptor.class.getResourceAsStream("/syntax/EditorService.tbl");
 			ParseTable table = Environment.registerParseTable(LANGUAGE, stream);
-			parser = new SimpleSGLRParser(table, "Module");
+			parser = new SGLRParser(table, "Module");
 		} catch (Throwable e) {
 			Environment.logException("Could not initialize the Descriptor class.", e);
 			throw new RuntimeException(e);
@@ -63,9 +65,9 @@ public class Descriptor {
 		serviceFactory = new DynamicServiceFactory(this);
 	}
 	
-	protected static Descriptor load(InputStream file) throws BadDescriptorException {
+	protected static Descriptor load(InputStream file) throws BadDescriptorException, IOException {
 		try {
-			IStrategoAppl input = (IStrategoAppl) parser.parseImplode(file);
+			IStrategoAppl input = (IStrategoAppl) parser.parse(file, null).getTerm();
 	        return new Descriptor(input);
 		} catch (SGLRException e) {
 			throw new BadDescriptorException("Could not parse descriptor file", e);
@@ -147,7 +149,7 @@ public class Descriptor {
 	private String getProperty(String name, String defaultValue) {
 		IStrategoAppl result = findTerm(document, name);
 		if (result == null) return defaultValue;
-
+		
 		if (termAt(result, 0) instanceof IStrategoAppl &&
 				cons((IStrategoAppl) termAt(result, 0)).equals("Values")) {
 			return concatTermStrings(termAt(result, 0));

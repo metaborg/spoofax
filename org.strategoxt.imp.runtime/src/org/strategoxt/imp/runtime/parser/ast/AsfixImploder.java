@@ -23,7 +23,7 @@ import aterm.pure.ATermListImpl;
  * 
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
-public class AsfixConverter {
+public class AsfixImploder {
 	private final static int PARSE_TREE = 0;
 	
 	private final static int APPL_PROD = 0;
@@ -66,7 +66,7 @@ public class AsfixConverter {
 	private boolean lexicalContext;
 	
 	@SuppressWarnings("unchecked") // TODO2: Expand/explode generic signatures?	
-    public AsfixConverter(TokenKindManager tokenManager, SGLRTokenizer tokenizer) {
+    public AsfixImploder(TokenKindManager tokenManager, SGLRTokenizer tokenizer) {
 		this.tokenManager = tokenManager;
 		this.tokenizer = tokenizer;
 	}
@@ -121,16 +121,7 @@ public class AsfixConverter {
 		} else if (lexicalContext) {
 			return null; // don't create tokens inside lexical context; just create one big token at the top
 		} else {
-			String constructor = getConstructor(attrs);
-			String sort = getSort(rhs);
-			
-			// TODO should also account for size != 1
-			if(constructor == null && children.size() == 1) {
-				return children.get(0);
-			}
-			tokenizer.makeToken(offset, tokenManager.getTokenKind(lhs, rhs));
-			return createNonTerminal(sort, constructor, prevToken, children, isList);
-			
+			return createNonTerminalOrInjection(lhs, rhs, attrs, prevToken, children, isList);
 		}
 	}
 
@@ -172,6 +163,25 @@ public class AsfixConverter {
 		return factory.createTerminal(sort, token);
 	}
 
+	private AstNode createNonTerminalOrInjection(ATermList lhs, ATermAppl rhs, ATermAppl attrs,
+			IToken prevToken, ArrayList<AstNode> children, boolean isList) {
+		
+		String constructor = getConstructor(attrs);
+		String sort = getSort(rhs);
+		
+		if(constructor == null) {
+			if (isList) {
+				return createNonTerminal(sort, null, prevToken, children, true);
+			} else {
+				assert children.size() == 1;
+				return children.get(0);
+			}
+		} else {
+			tokenizer.makeToken(offset, tokenManager.getTokenKind(lhs, rhs));
+			return createNonTerminal(sort, constructor, prevToken, children, isList);
+		}
+	}
+
 	/** Implode a context-free node. */
 	private AstNode createNonTerminal(String sort, String constructor, IToken prevToken,
 			ArrayList<AstNode> children, boolean isList) {
@@ -202,7 +212,7 @@ public class AsfixConverter {
 		ATermAppl appl = (ATermAppl) node;
 		
 		if (appl.getName().equals("amb")) {
-			// TODO: Do something with ambiguities?			
+			// TODO: Report context-free ambiguities
 			ATermListImpl ambs = (ATermListImpl) appl.getChildAt(AMB_LIST);
 			return ignoreAmb(ambs.getFirst());
 		} else {

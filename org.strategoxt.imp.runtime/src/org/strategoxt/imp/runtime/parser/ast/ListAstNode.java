@@ -2,6 +2,8 @@ package org.strategoxt.imp.runtime.parser.ast;
 
 import java.util.ArrayList;
 
+import org.spoofax.interpreter.terms.ITermPrinter;
+
 import lpg.runtime.IToken;
 
 public class ListAstNode extends AstNode {
@@ -25,14 +27,15 @@ public class ListAstNode extends AstNode {
 	}
 	
 	@Override
-	public String repr() {
-		StringBuilder sb = new StringBuilder();
-		sb.append('[');
-		for(AstNode kid : children) {
-			sb.append(kid.repr());
-			sb.append(',');
+	public void prettyPrint(ITermPrinter printer) {
+		printer.print("[");
+		if (getChildren().size() > 0) {
+			getChildren().get(0).prettyPrint(printer);
+			for (int i = 1; i < getChildren().size(); i++) {
+				printer.print(",");
+				getChildren().get(i).prettyPrint(printer);
+			}
 		}
-		sb.append(']');
-		return sb.toString();
+		printer.print("]");
 	}
 }

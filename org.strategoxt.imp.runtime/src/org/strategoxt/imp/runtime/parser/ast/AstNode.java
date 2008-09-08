@@ -6,6 +6,8 @@ import java.util.Iterator;
 
 import org.eclipse.core.runtime.IPath;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.ITermPrinter;
+import org.spoofax.interpreter.terms.InlinePrinter;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
@@ -153,8 +155,7 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 		return children.iterator();
 	}
 
-    @Override
-	public String toString() {
+    public String yield() {
         return getLeftIToken().getPrsStream().toString(getLeftIToken(), getRightIToken());
     }
     
@@ -233,17 +234,25 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 		return null;
 	}
 
-	public String repr() {
-		StringBuilder sb = new StringBuilder();
-		sb.append(constructor);
-		sb.append(':');
-		sb.append(sort);
-		sb.append('(');
-		for(AstNode kid : children) {
-			sb.append(kid.repr());
-			sb.append(',');
+	@Override
+	public final String toString() {
+		ITermPrinter result = new InlinePrinter();
+		prettyPrint(result);
+		return result.getString();
+	}
+	
+	public void prettyPrint(ITermPrinter printer) {
+		printer.print(constructor);
+		//sb.append(':');
+		//sb.append(sort);
+		printer.print("(");
+		if (getChildren().size() > 0) {
+			getChildren().get(0).prettyPrint(printer);
+			for (int i = 1; i < getChildren().size(); i++) {
+				printer.print(",");
+				getChildren().get(i).prettyPrint(printer);
+			}
 		}
-		sb.append(')');
-		return sb.toString();
+		printer.print(")");
 	}
 }

@@ -1,5 +1,7 @@
 package org.strategoxt.imp.metatooling;
 
+import java.io.IOException;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -54,8 +56,10 @@ public class DynamicDescriptorLoader implements IResourceChangeListener {
 		} catch (CoreException e) {
 			Environment.logException("Unable to load descriptor " + path, e);
 		} catch (BadDescriptorException e) {
-			// TODO: Report bad descriptors in the UI
+			// TODO: Properly report bad descriptors in the UI
 			Environment.logException("Error in descriptor " + path, e);
+		} catch (IOException e) {
+			Environment.logException("Error reading descriptor " + path, e);
 		}
 	}
 	

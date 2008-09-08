@@ -1,5 +1,7 @@
 package org.strategoxt.imp.runtime.parser.ast;
 
+import org.spoofax.interpreter.terms.ITermPrinter;
+
 import lpg.runtime.IToken;
 
 /**
@@ -16,18 +18,18 @@ public class IntAstNode extends AstNode {
 		
 		this.value = value;
 	}
-
+	
 	public int getValue() {
 		return value;
 	}
 	
 	@Override
-	public String toString() {
-		return String.valueOf(value);
+	public String yield() {
+		return String.valueOf(getValue());
 	}
 	
 	@Override
-	public String repr() {
-		return "" + value;
+	public void prettyPrint(ITermPrinter printer) {
+		printer.print(String.valueOf(getValue()));
 	}
 }

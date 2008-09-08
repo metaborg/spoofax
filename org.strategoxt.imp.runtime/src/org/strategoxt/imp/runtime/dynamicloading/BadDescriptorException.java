@@ -1,5 +1,7 @@
 package org.strategoxt.imp.runtime.dynamicloading;
 
+import org.spoofax.interpreter.terms.IStrategoTerm;
+
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */
@@ -8,8 +10,19 @@ public class BadDescriptorException extends Exception {
 	
 	private static final String DEFAULT_MESSAGE = "Bad editor service descriptor.";
 	
+	private IStrategoTerm offendingTerm;
+	
+	public IStrategoTerm getOffendingTerm() {
+		return offendingTerm;
+	}
+	
 	public BadDescriptorException(String message, Throwable cause) {
 		super(message, cause);
+	}
+
+	public BadDescriptorException(String message, IStrategoTerm cause) {
+		super(message);
+		offendingTerm = cause;
 	}
 	
 	public BadDescriptorException(String message) {
