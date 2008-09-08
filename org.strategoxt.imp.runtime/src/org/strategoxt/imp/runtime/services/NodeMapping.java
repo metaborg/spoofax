@@ -2,6 +2,7 @@ package org.strategoxt.imp.runtime.services;
 
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.*;
 
+import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
@@ -39,7 +40,8 @@ public class NodeMapping<T> {
 	}
 	
 	private static TokenKind readTokenKind(IStrategoTerm pattern) throws BadDescriptorException {
-		String tokenKind = cons(termAt(findTerm(pattern, "Token"), 0));
+		IStrategoAppl tokenTerm = findTerm(pattern, "Token");
+		String tokenKind = tokenTerm == null ? null : cons(termAt(tokenTerm, 0));
 		try {
 			return tokenKind == null ? null : TokenKind.valueOf(tokenKind);
 		} catch (IllegalArgumentException e) {

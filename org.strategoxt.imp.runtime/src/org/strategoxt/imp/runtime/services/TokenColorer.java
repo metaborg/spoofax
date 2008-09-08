@@ -75,8 +75,8 @@ public class TokenColorer extends TokenColorerBase {
 
 	private TextAttribute getColoring(List<TextAttributeMapping> mappings, String constructor, String sort, int tokenKind) {
 		for (TextAttributeMapping mapping : mappings) {
-			TextAttribute result = mapping.getAttribute(constructor, sort, tokenKind).get();
-			if (result != null) return result;
+			TextAttributeReference result = mapping.getAttribute(constructor, sort, tokenKind);
+			if (result != null) return result.get();
 		}
 		
 		return null;
