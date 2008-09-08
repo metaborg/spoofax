@@ -71,28 +71,6 @@ strategies
     create-manifest;
     create-plugin-xml
   
-  create-or-copy-parse-table =
-    where(
-      print-filename(|[], <parse-table-target>);
-      <eq> (<ParseTable>, <parse-table-target; file-exists>)
-    <+
-      ParseTable;
-      risky(file-exists |"File not found");
-      <copy-file> (<id>, <parse-table-target>)
-    )
-  <+
-    xtc-ensure-file => FILE(input);
-    where(
-      <file-exists <+ mkdir> "syntax";
-      <xtc-command(!"sdf2table")> ["-i", input, "-o", <parse-table-target>,
-                                   "-m", <get-sdf-main-module>]
-    )
-
-  parse-table-target =
-    <conc-strings> ("syntax/", <get-sdf-main-module>, ".tbl")
-    
-  // TODO: Cache rtg like parse table (specifying both the rtg and table would make -i optional)
-
   sdf2rtg =
     xtc-transform(!"sdf2rtg", !["--ignore-missing-cons", "-m", <get-sdf-main-module> | <pass-verbose>]);
     xtc-transform(!"sglri", !["-p", <xtc-find> "rtg.tbl", "--start", "RTG"])

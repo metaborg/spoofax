@@ -10,7 +10,7 @@ strategies
     {| InputDirPrefix:
       risky(
         <add-input-dir-prefix> "src/";
-        filename := <conc-strings> (<main-descriptor-name>, ".packed.esv");
+        filename := <packed-descriptor-file-name>;
         
         main-descriptor-name;
         input-descriptor-file;
@@ -19,3 +19,6 @@ strategies
       | "Could not pack descriptor files"
       )
     |}
+
+  packed-descriptor-file-name =
+    <conc-strings> (<main-descriptor-name>, ".packed.esv")

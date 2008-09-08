@@ -135,7 +135,7 @@ strategies
 
   output-packed-descriptor-file(|filename) =
     with(
-      path     := "bin";
+      path     := "include";
       fullpath := <conc-strings> (path, "/", filename)
     );
     
