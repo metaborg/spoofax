@@ -25,7 +25,7 @@ public class DynamicService<T extends ILanguageService> {
 		this.serviceType = serviceType;
 	}
 	
-	protected T getWrapped() {
+	protected synchronized T getWrapped() {
 		// TODO: Perhaps get the dynamic service using an approach similar to DynamicParseController.findLanguage()
 		if (wrapped == null) {
 			if (getNotLoadingCause() != null) // previous error

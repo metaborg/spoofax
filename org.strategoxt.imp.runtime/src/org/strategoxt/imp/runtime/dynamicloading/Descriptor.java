@@ -71,7 +71,7 @@ public class Descriptor {
 	protected static Descriptor load(InputStream input) throws BadDescriptorException, IOException {
 		try {
 			IStrategoAppl document = parser.parse(input, null).getTerm();
-	        return new Descriptor(document);
+			return new Descriptor(document);
 		} catch (SGLRException e) {
 			throw new BadDescriptorException("Could not parse descriptor file", e);
 		}

@@ -120,11 +120,8 @@ public class SGLRParser implements IParser {
 		StringBuilder copy = new StringBuilder();
 		InputStreamReader reader = new InputStreamReader(input);
 		
-		int read = 0;
-		do {
-			read = reader.read(buffer);
-			copy.append(buffer);
-		} while (read != -1);
+		for (int read = 0; read != -1; read = reader.read(buffer))
+			copy.append(buffer, 0, read);
 		
 		char[] chars = new char[copy.length()];
 		copy.getChars(0, copy.length(), chars, 0);

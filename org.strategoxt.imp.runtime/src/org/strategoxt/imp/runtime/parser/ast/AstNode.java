@@ -121,7 +121,6 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 	public AstNode(String sort, String constructor, IToken leftToken, IToken rightToken,
 			ArrayList<AstNode> children) {
 		
-		assert leftToken != null;
 		assert rightToken != null;
 		assert children != null;
 		
