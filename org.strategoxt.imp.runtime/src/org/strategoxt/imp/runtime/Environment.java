@@ -64,7 +64,7 @@ public final class Environment {
 	}
 
 	public static Interpreter createInterpreter() throws IOException, InterpreterException {
-		Interpreter result = new Interpreter(wrappedAstNodeFactory);
+		Interpreter result = new Interpreter(wrappedAstNodeFactory, wrappedFactory);
 		result.addOperatorRegistry("JSGLR", new IMPJSGLRLibrary());
 		result.load(Compiler.sharePath() + "/stratego-lib/libstratego-lib.ctree");
 		result.load(Compiler.sharePath() + "/libstratego-sglr.ctree");

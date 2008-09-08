@@ -9,7 +9,7 @@ import org.eclipse.jface.text.source.projection.ProjectionAnnotationModel;
  */
 public class DynamicFoldingUpdater extends DynamicService<IFoldingUpdater> implements IFoldingUpdater {
 
-	protected DynamicFoldingUpdater() {
+	public DynamicFoldingUpdater() {
 		super(IFoldingUpdater.class);
 	}
 

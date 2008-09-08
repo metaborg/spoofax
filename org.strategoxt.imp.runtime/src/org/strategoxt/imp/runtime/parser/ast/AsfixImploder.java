@@ -9,6 +9,8 @@ import lpg.runtime.PrsStream;
 import static org.spoofax.jsglr.Term.*;
 
 import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.*;
+
+import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
 
@@ -35,10 +37,6 @@ public class AsfixImploder {
 	private final static int PROD_RHS = 1;
 
 	private final static int PROD_ATTRS = 2;
-
-	private final static int ATTRS_LIST = 0;
-
-	private final static int AMB_LIST = 0;
 	
 	private final static int TERM_CONS = 0;
 	
@@ -79,7 +77,7 @@ public class AsfixImploder {
 		offset = 0;
 		lexicalContext = false;
 		
-		AstNode root = implodeAppl(ignoreAmb(top));
+		AstNode root = implodeAppl(resolveAmbiguities(top));
 
 		tokenizer.endStream();
 		
@@ -138,7 +136,7 @@ public class AsfixImploder {
 				implodeLexical(child);
 			} else {
 				// Recurse
-				AstNode childNode = implodeAppl(ignoreAmb(child));
+				AstNode childNode = implodeAppl(resolveAmbiguities(child));
 
 				if (childNode != null)
 					result.add(childNode);
@@ -207,16 +205,62 @@ public class AsfixImploder {
 		}
 	}
 	
-	/** Ignore any ambiguities in the parse tree. */
-	private static ATermAppl ignoreAmb(ATerm node) {
-		ATermAppl appl = (ATermAppl) node;
+	/** Resolve or ignore any ambiguities in the parse tree. */
+	private ATermAppl resolveAmbiguities(ATerm node) {
+		if (!"amb".equals(((ATermAppl) node).getName()))
+			return (ATermAppl) node;
 		
-		if (appl.getName().equals("amb")) {
-			// TODO: Report context-free ambiguities
-			ATermListImpl ambs = (ATermListImpl) appl.getChildAt(AMB_LIST);
-			return ignoreAmb(ambs.getFirst());
-		} else {
-			return appl;
+		final ATermListImpl ambs = termAt(node, 0);
+		ATermAppl result = null;
+		ATermAppl lastNonAvoid = null;
+		boolean multipleNonAvoids = false;
+		
+	alts:
+		for (int i = 0; i < ambs.getLength(); i++) {
+			ATermAppl prod = resolveAmbiguities(termAt(ambs, i));
+			ATermAppl appl = termAt(prod, APPL_PROD);
+			ATermAppl attrs = termAt(appl, PROD_ATTRS);
+			
+			if ("attrs".equals(attrs.getName())) {
+				ATermList attrList = termAt(attrs, 0);
+				
+				for (int j = 0; j < attrList.getLength(); j++) {
+					ATerm attr = termAt(attrList, j);
+					if (isAppl(attr) && "prefer".equals(asAppl(attr).getName())) {
+						result = resolveAmbiguities(prod);
+						break alts;
+					} else if (isAppl(attr) && "avoid".equals(asAppl(attr).getName())) {
+						continue alts;
+					}
+				}
+				
+				if (lastNonAvoid == null) {
+					lastNonAvoid = prod;
+				} else {
+					multipleNonAvoids = true;
+				}
+			}
+		}
+		
+		if (result == null && !multipleNonAvoids) {
+			result = lastNonAvoid;
+		}
+		
+		if (result == null) {
+			if (Debug.ENABLED && !lexicalContext) reportUnresolvedAmb(ambs);
+			result = resolveAmbiguities(ambs.getFirst());
+		}
+		
+		return result;
+	}
+	
+	private void reportUnresolvedAmb(ATermList ambs) {
+		Debug.log("Ambiguity found during implosion: ");
+		
+		for (ATerm amb : ambs) {
+			String ambString = amb.toString();
+			if (ambString.length() > 1000) ambString = ambString.substring(0, 1000) + "...";
+			Debug.log("  amb: ", ambString);
 		}
 	}
 	
@@ -272,7 +316,7 @@ public class AsfixImploder {
 		if (attrs.getName().equals("no-attrs"))
 			return null;
 		
-		ATermList list = (ATermList) attrs.getChildAt(ATTRS_LIST);
+		ATermList list = termAt(attrs, 0);
 		
 		for (int i = 0; i < list.getLength(); i++) {
 			ATerm attr = list.elementAt(i);

@@ -1,5 +1,7 @@
 package org.strategoxt.imp.runtime.stratego.adapter;
 
+import java.util.Arrays;
+
 import lpg.runtime.IAst;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
@@ -84,5 +86,13 @@ public class WrappedAstNodeAppl extends WrappedAstNode implements IStrategoAppl 
 
 	public int getTermType() {
 		return IStrategoTerm.APPL;
+	}
+	
+	@Override
+	public int hashCode() {
+		int result = 235325;
+		result = result * 31 + getConstructor().hashCode();
+		result = result * 31 + Arrays.deepHashCode(getAllSubterms());
+		return result;
 	}
 }

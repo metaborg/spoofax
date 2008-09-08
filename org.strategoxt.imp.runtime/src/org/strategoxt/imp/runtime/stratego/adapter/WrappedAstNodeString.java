@@ -1,5 +1,7 @@
 package org.strategoxt.imp.runtime.stratego.adapter;
 
+import java.util.Arrays;
+
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermPrinter;
@@ -36,5 +38,13 @@ public class WrappedAstNodeString extends WrappedAstNode implements IStrategoStr
 	public boolean slowCompare(IStrategoTerm second) {
 		return second instanceof IStrategoString
 			&& ((IStrategoString) second).stringValue().equals(stringValue());
+	}
+	
+	@Override
+	public int hashCode() {
+		int result = 8865;
+		result = result * 31 + stringValue().hashCode();
+		result = result * 31 + Arrays.deepHashCode(getAllSubterms());
+		return result;
 	}
 }

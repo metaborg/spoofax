@@ -45,13 +45,17 @@ public abstract class WrappedAstNode implements IStrategoTerm {
 	@Override
 	public boolean equals(Object other) {
 		if (other instanceof WrappedAstNode) {
-			return node.equals(((WrappedAstNode) other).node);
+			return node == ((WrappedAstNode) other).node
+				|| slowCompare((IStrategoTerm) other);
 		} else if (other instanceof IStrategoTerm) {
 			return slowCompare((IStrategoTerm) other);
 		} else {
 			return false;
 		}
 	}
+	
+	@Override
+	public abstract int hashCode();
 	
 	protected abstract boolean slowCompare(IStrategoTerm second);
 	

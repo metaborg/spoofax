@@ -6,6 +6,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IPath;
@@ -114,7 +117,7 @@ public class Descriptor {
 	}
 	
 	public void addCompilerProviders(Interpreter interpreter) throws BadDescriptorException {
-		for (IStrategoAppl term : collectTerms(document, "CompilerProvider")) {
+		for (IStrategoAppl term : makeSet(collectTerms(document, "CompilerProvider"))) {
 			try {
 				Debug.startTimer("Loading interpreter input ", termContents(term));
 				interpreter.load(openAttachment(termContents(term)));
@@ -125,6 +128,13 @@ public class Descriptor {
 				throw new BadDescriptorException("Could not load reference resolving provider", e);
 			}
 		}
+	}
+	
+	private static<E> Set<E> makeSet(List<E> list) {
+		// FIXME: Duplicates appear in descriptor files?
+		//        Currently, I'm making a set of property values to eliminate duplicates
+		//        to avoid this problem
+		return new HashSet<E>(list);
 	}
 
 	private InputStream openAttachment(String path) throws BadDescriptorException {

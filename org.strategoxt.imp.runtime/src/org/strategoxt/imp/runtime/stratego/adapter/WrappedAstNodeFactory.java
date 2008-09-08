@@ -34,7 +34,7 @@ public class WrappedAstNodeFactory extends BasicTermFactory {
 	}
 
 	public IStrategoTerm wrapNew(IAst node) {
-		// TODO: Foreign IAst wrapping doesn't do terminals
+		// TODO: Wrap lists??
 		if(node instanceof IntAstNode) {
 			return new WrappedAstNodeInt(this, (IntAstNode)node);
 		} else if(node instanceof WrappedAstNodeString) {

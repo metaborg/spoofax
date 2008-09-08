@@ -1,5 +1,7 @@
 package org.strategoxt.imp.runtime.stratego.adapter;
 
+import java.util.Arrays;
+
 import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermPrinter;
@@ -34,5 +36,13 @@ public class WrappedAstNodeInt extends WrappedAstNode implements IStrategoInt {
 
 	public int getTermType() {
 		return IStrategoTerm.INT;
+	}
+	
+	@Override
+	public int hashCode() {
+		int result = 345239057;
+		result = result * 31 + intValue();
+		result = result * 31 + Arrays.deepHashCode(getAllSubterms());
+		return result;
 	}
 }
