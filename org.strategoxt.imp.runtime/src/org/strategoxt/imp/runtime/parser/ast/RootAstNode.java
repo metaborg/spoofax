@@ -3,8 +3,7 @@ package org.strategoxt.imp.runtime.parser.ast;
 import java.util.ArrayList;
 
 import org.eclipse.imp.language.Language;
-import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.interpreter.terms.ITermPrinter;
+import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 
 import lpg.runtime.IToken;
@@ -22,6 +21,11 @@ public class RootAstNode extends AstNode {
 
 	public SGLRParseController getParseController() {
 		return parseController;
+	}
+	
+	@Override
+	public IStrategoAppl getTerm() {
+		return (IStrategoAppl) super.getTerm();
 	}
 
 	protected RootAstNode(String sort, String constructor, IToken leftToken, IToken rightToken,

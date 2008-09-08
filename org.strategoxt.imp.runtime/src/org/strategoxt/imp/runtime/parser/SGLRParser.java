@@ -80,7 +80,7 @@ public class SGLRParser implements IParser {
 	 * 
 	 * @return  The abstract syntax tree.
 	 */
-	public AstNode parse(InputStream inputStream, char[] inputChars, String filename) throws SGLRException, IOException {
+	public RootAstNode parse(InputStream inputStream, char[] inputChars, String filename) throws SGLRException, IOException {
 		Debug.startTimer();
 		
 		// TODO: Parse caching
@@ -94,8 +94,8 @@ public class SGLRParser implements IParser {
 		Debug.stopTimer("File parsed");
 		Debug.startTimer();
 		
-		AstNode result = converter.implode(asfix);
-		result = RootAstNode.makeRoot(result, controller, inputChars);
+		AstNode imploded = converter.implode(asfix);
+		RootAstNode result = RootAstNode.makeRoot(imploded, controller, inputChars);
 		
 		if (Debug.ENABLED) {
 			Debug.log("Parsed " + result.toString());
@@ -106,11 +106,11 @@ public class SGLRParser implements IParser {
 		return result;
 	}
 	
-	public AstNode parse(char[] inputChars, String filename) throws SGLRException, IOException {
+	public RootAstNode parse(char[] inputChars, String filename) throws SGLRException, IOException {
 		return parse(toByteStream(inputChars), inputChars, filename);
 	}
 	
-	public AstNode parse(InputStream input, String filename) throws SGLRException, IOException {
+	public RootAstNode parse(InputStream input, String filename) throws SGLRException, IOException {
 		return parse(toCharArray(input), filename); // don't ask
 	}
 	

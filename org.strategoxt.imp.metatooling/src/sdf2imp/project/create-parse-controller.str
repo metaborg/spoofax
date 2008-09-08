@@ -22,6 +22,8 @@ strategies
     <output-java-file> |[
       package pkgname;
 
+      import java.io.InputStream;
+      import java.io.IOException;
       import org.eclipse.imp.parser.IParseController;
       import org.strategoxt.imp.runtime.Environment;
       import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
@@ -43,12 +45,25 @@ strategies
           if (!registered) { 
             registered = true;
             try {
-              Descriptor descriptor = DescriptorFactory.load(x_name.class.getResourceAsStream(DESCRIPTOR), x_name.class.getResourceAsStream(TABLE), null);
+              InputStream descriptorStream = x_name.class.getResourceAsStream(DESCRIPTOR);
+              InputStream table = x_name.class.getResourceAsStream(TABLE);
+
+              if (descriptorStream == null)
+                throw new BadDescriptorException("Could not load descriptor file from " + DESCRIPTOR);
+
+              if (table == null)
+                throw new BadDescriptorException("Could not load parse table from " + TABLE);
+
+              Descriptor descriptor = DescriptorFactory.load(descriptorStream, table, null);
               initialize(descriptor.getLanguage());
             } catch (BadDescriptorException exc) {
               setNotLoadingCause(exc);
               Environment.logException("Bad descriptor for " + LANGUAGE, exc);
               throw new RuntimeException("Bad descriptor for " + LANGUAGE, exc);
+            } catch (IOException exc) {
+              setNotLoadingCause(exc);
+              Environment.logException("I/O problem loading descriptor for " + LANGUAGE, exc);
+              throw new RuntimeException("I/O problem loading descriptor for " + LANGUAGE, exc);
             }
           }
           return super.getWrapped();

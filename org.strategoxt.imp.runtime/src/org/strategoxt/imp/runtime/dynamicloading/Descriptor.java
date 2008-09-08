@@ -65,10 +65,10 @@ public class Descriptor {
 		serviceFactory = new DynamicServiceFactory(this);
 	}
 	
-	protected static Descriptor load(InputStream file) throws BadDescriptorException, IOException {
+	protected static Descriptor load(InputStream input) throws BadDescriptorException, IOException {
 		try {
-			IStrategoAppl input = (IStrategoAppl) parser.parse(file, null).getTerm();
-	        return new Descriptor(input);
+			IStrategoAppl document = parser.parse(input, null).getTerm();
+	        return new Descriptor(document);
 		} catch (SGLRException e) {
 			throw new BadDescriptorException("Could not parse descriptor file", e);
 		}

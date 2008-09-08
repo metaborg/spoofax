@@ -15,7 +15,7 @@ public class TermReader {
 	private TermReader() {}
 	
 	public static IStrategoAppl findTerm(IStrategoTerm term, String constructor) {
-		if (term instanceof IStrategoAppl && cons((IStrategoAppl) term).equals(constructor))
+		if (term instanceof IStrategoAppl && cons(term).equals(constructor))
 			return (IStrategoAppl) term;
 		
 		for (int i = 0; i < term.getSubtermCount(); i++) {
@@ -35,7 +35,7 @@ public class TermReader {
 	}
 	
 	private static void collectTerms(IStrategoTerm term, String constructor, ArrayList<IStrategoAppl> results) {
-		if (term instanceof IStrategoAppl && cons((IStrategoAppl) term).equals(constructor))
+		if (term instanceof IStrategoAppl && cons(term).equals(constructor))
 			results.add((IStrategoAppl) term);
 		
 		for (int i = 0; i < term.getSubtermCount(); i++) {
@@ -53,7 +53,8 @@ public class TermReader {
 		} else if (t.getTermType() == APPL && cons((IStrategoAppl) t).equals("String")) {
 			return termContents(termAt(t, 0));
 		} else {
-			if (t.getSubtermCount() == 0) return null;
+			if (t.getSubtermCount() == 0 || termAt(t, 0).getTermType() == APPL)
+				return null;
 			result = termAt(t, 0).toString();
 		}
 		
@@ -81,8 +82,10 @@ public class TermReader {
 		return Integer.parseInt(termContents(t.getSubterm(index)));
 	}
 	
-	public static String cons(IStrategoAppl t) {
-		return t.getConstructor().getName();
+	public static String cons(IStrategoTerm t) {
+		if (t == null || t.getTermType() != APPL)
+			return null;
+		return ((IStrategoAppl) t).getConstructor().getName();
 	}
 
     @SuppressWarnings("unchecked") // casting is inherently unsafe, but doesn't warrant a warning here
