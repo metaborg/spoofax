@@ -18,5 +18,5 @@ exports
     
     %% TODO: Reconsider "all" keyword for siblings; we already have list sorts using '*'
     
-          Node -> FoldingRule
-    "all" Node -> FoldingRule {cons("FoldAll")}
+          Node -> FoldingRule {cons("FoldRule")}
+    "all" Node -> FoldingRule {cons("FoldRuleAll")}

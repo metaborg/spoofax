@@ -59,4 +59,8 @@ public class DynamicServiceFactory {
 		services.put(type, result);
 		return type.cast(result);
 	}
+	
+	public void clearCache() {
+		services.clear();
+	}
 }

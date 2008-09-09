@@ -17,6 +17,9 @@ public class DynamicReferenceResolver extends DynamicService<IReferenceResolver>
 	}
 
 	public Object getLinkTarget(Object node, IParseController parseController) {
+		System.out.println("HACK: reinitializing reference resolver"); // HACK
+		uninitialize(parseController.getLanguage());
+		
 		initialize(parseController.getLanguage());
 		return getWrapped().getLinkTarget(node, parseController);
 	}

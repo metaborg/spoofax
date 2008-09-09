@@ -18,4 +18,4 @@ exports
     
     %% TODO: Patterns for outlinerservice
 
-    Node -> OutlineRule
+    Node -> OutlineRule {cons("OutlineRule")}

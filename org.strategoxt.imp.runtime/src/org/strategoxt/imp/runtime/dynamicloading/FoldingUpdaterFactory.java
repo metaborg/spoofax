@@ -22,9 +22,10 @@ class FoldingUpdaterFactory {
 		// TODO: "FoldAll" folding rules
 		
 		List<NodeMapping> folded = new ArrayList<NodeMapping>(); 
+		Object foldme = new Object();
 		
-		for (IStrategoAppl folding : collectTerms(descriptor, "Folding")) {
-			folded.add(NodeMapping.create(folding, null));
+		for (IStrategoAppl folding : collectTerms(descriptor, "FoldRule")) {
+			folded.add(NodeMapping.create(folding, foldme));
 		}
 		
 		FoldingUpdater result = new FoldingUpdater(folded);

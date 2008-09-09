@@ -26,7 +26,7 @@ public class WrappedAstNodeString extends WrappedAstNode implements IStrategoStr
 
     public void prettyPrint(ITermPrinter pp) {
     	pp.print("\"");
-    	pp.print(wrappee.getValue());
+    	pp.print(wrappee.getValue().replace("\"", "\\\""));
     	pp.print("\"");
     }
 

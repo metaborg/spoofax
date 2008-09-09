@@ -63,8 +63,16 @@ public class DynamicService<T extends ILanguageService> {
 		return language != null;
 	}
 	
-	protected void initialize(Language language) {
+	public void initialize(Language language) {
 		this.language = language;
 		getWrapped();
+	}
+	
+	public void uninitialize(Language language) {
+		if (language != null)
+			Environment.getDescriptor(language).clearServiceCache();
+		
+		wrapped = null;
+		language = null;
 	}
 }

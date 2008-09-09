@@ -32,7 +32,7 @@ public class StringAstNode extends AstNode {
 	@Override
 	public void prettyPrint(ITermPrinter printer) {
 		printer.print("\"");
-		printer.print(getValue().replaceAll("\"", "\\\\\\\"")); // escape: " -> \"
+		printer.print(getValue().replace("\"", "\\\""));
 		printer.print("\"");
 	}
 }

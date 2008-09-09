@@ -17,6 +17,7 @@ import org.spoofax.jsglr.ParseTableManager;
 import org.spoofax.jsglr.SGLR;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.stratego.IMPJSGLRLibrary;
+import org.strategoxt.imp.runtime.stratego.IMPLibrary;
 import org.strategoxt.imp.runtime.stratego.adapter.WrappedAstNodeFactory;
 
 import aterm.ATermFactory;
@@ -65,9 +66,13 @@ public final class Environment {
 
 	public static Interpreter createInterpreter() throws IOException, InterpreterException {
 		Interpreter result = new Interpreter(wrappedAstNodeFactory, wrappedFactory);
-		result.addOperatorRegistry("JSGLR", new IMPJSGLRLibrary());
+
+		result.addOperatorRegistry(IMPJSGLRLibrary.REGISTRY_NAME, new IMPJSGLRLibrary());
+		result.addOperatorRegistry(IMPLibrary.REGISTRY_NAME, new IMPLibrary());
+		
 		result.load(Compiler.sharePath() + "/stratego-lib/libstratego-lib.ctree");
 		result.load(Compiler.sharePath() + "/libstratego-sglr.ctree");
+		
 		return result;
 	}
 	
@@ -88,7 +93,8 @@ public final class Environment {
 	public static ParseTable getParseTable(Language language) {
 		ParseTable table = parseTables.get(language);
 		
-		if (table == null) throw new IllegalStateException("Parse table not available: " + language.getName());
+		if (table == null)
+			throw new IllegalStateException("Parse table not available: " + language.getName());
 		
 		return table;
 	}

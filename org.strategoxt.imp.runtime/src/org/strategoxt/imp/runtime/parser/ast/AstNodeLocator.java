@@ -1,5 +1,7 @@
 package org.strategoxt.imp.runtime.parser.ast;
 
+import lpg.runtime.IToken;
+
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
@@ -34,20 +36,29 @@ public class AstNodeLocator implements ISourcePositionLocator {
 		return findNode(root, offset, offset);
 	}
 	
-	public int getStartOffset(Object node) {
-		return ((SGLRToken) node).getStartOffset();
+	public int getStartOffset(Object token) {
+	    	if (token instanceof AstNode)
+	    	    token = ((AstNode) token).getLeftIToken();
+	    	    
+		return ((IToken) token).getStartOffset();
 	}
 	
-	public int getEndOffset(Object node) {
-		return ((SGLRToken) node).getEndOffset();
+	public int getEndOffset(Object token) {
+            if (token instanceof AstNode)
+                token = ((AstNode) token).getRightIToken();
+            
+            return ((IToken) token).getEndOffset();
 	}
 	
-	public int getLength(Object node) {
-		return getEndOffset(node) - getStartOffset(node);
+	public int getLength(Object token) {
+		return getEndOffset(token) - getStartOffset(token);
 	}
 	
 	public IPath getPath(Object node) {
-		return null;
+	   if (node instanceof SGLRToken)
+            	node = ((SGLRToken) node).getAstNode();
+            
+            return ((AstNode) node).getResourcePath(); 
 	}
 	
 }

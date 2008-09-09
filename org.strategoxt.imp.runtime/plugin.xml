@@ -40,4 +40,11 @@
             language="Root">
       </foldingUpdater>
    </extension>
+   <extension
+         point="org.eclipse.imp.runtime.documentationProvider">
+      <docProvider
+            class="org.strategoxt.imp.runtime.services.DocumentationProvider"
+            language="Root">
+      </docProvider>
+   </extension>
 </plugin>

@@ -48,13 +48,13 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 		if (result != null) return result == NOT_FOUND ? null : result;
 		
 		String function = resolverFunctions.get(node.getConstructor());
-		if (function == null) {
+		if (function == null || function.equals("_")) {
 			Debug.log("No reference resolver available for node of type ", node.getConstructor());
 			return null;
 		}
 		
 		IStrategoTerm resultTerm = strategoCall(node, function);
-		result = resultTerm == null ? null : ((WrappedAstNode) resultTerm).getNode();
+		result = getAstNode(resultTerm);
 		
 		resolverCache.put(node, result == null ? NOT_FOUND : result);
 		return result;
@@ -66,7 +66,10 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 		if (result != null) return result == "" ? null : result;
 		
 		String function = helpFunctions.get(node.getConstructor());
-		if (function == null) return null;
+		if (function == null || function.equals("_"))  {
+			Debug.log("No reference info available for node of type ", node.getConstructor());
+			return null;
+		}
 		
 		result = strategoCall(node, function).toString();	
 		helpCache.put(node, result == null ? "" : result);
@@ -96,8 +99,14 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 			return null;
 		}
 		
-		if (resolver.current() instanceof WrappedAstNode) {
-			return resolver.current();
+		return resolver.current();
+	}
+
+	private IAst getAstNode(IStrategoTerm term) {
+		if (term == null) return null;
+			
+		if (term instanceof WrappedAstNode) {
+			return ((WrappedAstNode) term).getNode();
 		} else {
 			Environment.logException("Resolved reference is not associated with an AST node " + resolver.current());
 			return null;

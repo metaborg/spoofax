@@ -51,7 +51,7 @@ public class NodeMapping<T> {
 	
 	private static String readSort(IStrategoTerm pattern) {
 		String result = termContents(findTerm(pattern, "Sort"));
-		String listSort = termContents(findTerm(pattern, "Sort"));
+		String listSort = termContents(findTerm(pattern, "ListSort"));
 		if (listSort != null) result = listSort + "*";
 		return result;
 	}
@@ -65,5 +65,11 @@ public class NodeMapping<T> {
 			}
 		}
 		return null;
+	}
+	
+	@Override
+	public String toString() {
+		return "(" + constructor + "," + sort + "," + TokenKind.valueOf(tokenKind).toString()
+				+ " => " + attribute + ")";
 	}
 }

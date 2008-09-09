@@ -87,6 +87,10 @@ public class Descriptor {
 		return serviceFactory.getService(type);
 	}
 	
+	public void clearServiceCache() {
+		serviceFactory.clearCache();
+	}
+	
 	// PUBLIC PROPERTIES
 	
 	/**

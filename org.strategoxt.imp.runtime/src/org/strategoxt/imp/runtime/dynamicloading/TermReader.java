@@ -9,6 +9,9 @@ import static org.spoofax.interpreter.terms.IStrategoTerm.*;
 /**
  * Term reading utility class.
  * 
+ * @see org.spoofax.interpreter.core.Tools
+ * 	    A similar utility class, not specific for reading descriptors.
+ * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class TermReader {
