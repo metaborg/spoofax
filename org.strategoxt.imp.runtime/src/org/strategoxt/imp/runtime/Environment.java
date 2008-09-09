@@ -16,6 +16,7 @@ import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.ParseTableManager;
 import org.spoofax.jsglr.SGLR;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
+import org.strategoxt.imp.runtime.stratego.IMPIOAgent;
 import org.strategoxt.imp.runtime.stratego.IMPJSGLRLibrary;
 import org.strategoxt.imp.runtime.stratego.IMPLibrary;
 import org.strategoxt.imp.runtime.stratego.adapter.WrappedAstNodeFactory;
@@ -69,6 +70,7 @@ public final class Environment {
 
 		result.addOperatorRegistry(IMPJSGLRLibrary.REGISTRY_NAME, new IMPJSGLRLibrary());
 		result.addOperatorRegistry(IMPLibrary.REGISTRY_NAME, new IMPLibrary());
+		result.setIOAgent(new IMPIOAgent());
 		
 		result.load(Compiler.sharePath() + "/stratego-lib/libstratego-lib.ctree");
 		result.load(Compiler.sharePath() + "/libstratego-sglr.ctree");

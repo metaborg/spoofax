@@ -13,7 +13,9 @@ import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.parser.ast.IntAstNode;
+import org.strategoxt.imp.runtime.stratego.IMPIOAgent;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 import org.strategoxt.imp.runtime.stratego.adapter.WrappedAstNode;
@@ -23,6 +25,8 @@ import org.strategoxt.imp.runtime.stratego.adapter.WrappedAstNode;
  */
 public class StrategoReferenceResolver implements IReferenceResolver {
 	private final Interpreter resolver;
+	
+	private final Descriptor descriptor;
 	
 	private final Map<String, String> resolverFunctions;
 	
@@ -36,7 +40,8 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 	
 	private final IStrategoAstNode NOT_FOUND = new IntAstNode(null, 0, null, null) {};
 	
-	public StrategoReferenceResolver(Interpreter resolver, Map<String, String> resolverFunctions, Map<String, String> helpFunctions) {
+	public StrategoReferenceResolver(Descriptor descriptor, Interpreter resolver, Map<String, String> resolverFunctions, Map<String, String> helpFunctions) {
+		this.descriptor = descriptor;
 		this.resolver = resolver;
 		this.resolverFunctions = resolverFunctions;
 		this.helpFunctions = helpFunctions;
@@ -129,7 +134,8 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 		resolver.reset(); // FIXME: When to reset the resolver??
 		try {
 			String workingDir = node.getRootPath().toOSString();
-			resolver.setWorkingDir(workingDir);
+			resolver.getIOAgent().setWorkingDir(workingDir);
+			((IMPIOAgent) resolver.getIOAgent()).setDescriptor(descriptor);
 		} catch (FileNotFoundException e) {
 			Environment.logException("Could not set Stratego working directory", e);
 			throw new RuntimeException(e);

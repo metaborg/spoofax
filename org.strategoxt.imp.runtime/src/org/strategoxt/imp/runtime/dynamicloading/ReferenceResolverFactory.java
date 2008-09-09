@@ -41,6 +41,6 @@ class ReferenceResolverFactory {
 
 		descriptor.addCompilerProviders(resolver);
 		
-		return new StrategoReferenceResolver(resolver, resolverFunctions, helpFunctions);
+		return new StrategoReferenceResolver(descriptor, resolver, resolverFunctions, helpFunctions);
 	}
 }

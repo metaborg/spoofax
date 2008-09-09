@@ -117,19 +117,29 @@ public class Descriptor {
 	public InputStream openTableStream() throws BadDescriptorException {
 		String file = getProperty("Table", getProperty("LanguageName"));
 		if (!file.endsWith(".tbl")) file += ".tbl";
-		return openAttachment(file);
+		
+		try {
+			return openAttachment(file);
+		} catch (FileNotFoundException e) {
+			throw new BadDescriptorException(e);
+		}
 	}
 	
 	public void addCompilerProviders(Interpreter interpreter) throws BadDescriptorException {
 		for (IStrategoAppl term : makeSet(collectTerms(document, "CompilerProvider"))) {
-			try {
-				Debug.startTimer("Loading interpreter input ", termContents(term));
-				interpreter.load(openAttachment(termContents(term)));
-				Debug.stopTimer("Successfully loaded " +  termContents(term));
-			} catch (InterpreterException e) {
-				throw new BadDescriptorException("Error loading reference resolving provider", e);
-			} catch (IOException e) {
-				throw new BadDescriptorException("Could not load reference resolving provider", e);
+			String filename = termContents(term);
+			if (filename.endsWith(".ctree")) {
+				try {
+					Debug.startTimer("Loading interpreter input ", filename);
+					interpreter.load(openAttachment(filename));
+					Debug.stopTimer("Successfully loaded " +  filename);
+				} catch (InterpreterException e) {
+					throw new BadDescriptorException("Error loading compiler service provider " + filename, e);
+				} catch (IOException e) {
+					throw new BadDescriptorException("Could not load compiler service provider" + filename, e);
+				}
+			} else {
+				Debug.log("Not a compiler service provider, ignoring for now: ", filename);
 			}
 		}
 	}
@@ -141,15 +151,11 @@ public class Descriptor {
 		return new HashSet<E>(list);
 	}
 
-	private InputStream openAttachment(String path) throws BadDescriptorException {
-		try {
-			if (basePath != null)
-				path = basePath.append(path).toString();
+	public InputStream openAttachment(String path) throws FileNotFoundException {
+		if (basePath != null)
+			path = basePath.append(path).toString();
 				
-			return new FileInputStream(path);
-		} catch (FileNotFoundException e) {
-			throw new BadDescriptorException(e);
-		}
+		return new FileInputStream(path);
 	}
 	
 	// INTERPRETING
