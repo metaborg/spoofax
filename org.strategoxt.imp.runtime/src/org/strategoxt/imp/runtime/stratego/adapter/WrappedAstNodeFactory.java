@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.util.WeakHashMap;
 
 import org.spoofax.interpreter.terms.BasicTermFactory;
+import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.interpreter.terms.TermConverter;
@@ -78,5 +79,13 @@ public class WrappedAstNodeFactory extends BasicTermFactory implements ITermFact
 		} else {
 			return new WrappedAstNodeAppl(this, node);
 		}
+	}
+	
+	@Override
+	public IStrategoTerm annotate(IStrategoTerm term, IStrategoList annotations) {
+		if (term instanceof AnnotatedAstNode)
+			return annotate(((AnnotatedAstNode) term).getWrapped(), annotations);
+		
+		return new AnnotatedAstNode(term, annotations);
 	}
 }

@@ -37,7 +37,7 @@ public class Descriptor {
 	private static final Language LANGUAGE =
 		new Language("EditorService-builtin", "org.strategoxt.imp.builtin.editorservice", "", "Root", "", "", "", null);
 	
-	private static final SGLRParser parser;
+	private static SGLRParser parser;
 	
 	private final DynamicServiceFactory serviceFactory;
 	
@@ -53,7 +53,8 @@ public class Descriptor {
 	
 	// LOADING DESCRIPTOR 
 	
-	static {
+	private static void init() {
+		if (parser != null) return;
 		try {
 			SGLR.setWorkAroundMultipleLookahead(true);
 			InputStream stream = Descriptor.class.getResourceAsStream("/syntax/EditorService.tbl");
@@ -72,6 +73,7 @@ public class Descriptor {
 	
 	protected static Descriptor load(InputStream input) throws BadDescriptorException, IOException {
 		try {
+			init();
 			IStrategoAppl document = parser.parse(input, null).getTerm();
 			return new Descriptor(document);
 		} catch (SGLRException e) {

@@ -7,6 +7,7 @@ import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoReal;
 import org.spoofax.interpreter.terms.IStrategoList;
+import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermPrinter;
@@ -14,7 +15,7 @@ import org.spoofax.interpreter.terms.ITermPrinter;
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class AnnotatedAstNode implements IWrappedAstNode, IStrategoTerm, IStrategoList, IStrategoAppl, IStrategoTuple, IStrategoInt, IStrategoReal {
+public class AnnotatedAstNode implements IWrappedAstNode, IStrategoTerm, IStrategoList, IStrategoAppl, IStrategoTuple, IStrategoInt, IStrategoReal, IStrategoString {
 	
 	private final IStrategoTerm wrapped;
 	
@@ -27,6 +28,10 @@ public class AnnotatedAstNode implements IWrappedAstNode, IStrategoTerm, IStrate
 
 	public IAst getNode() {
 		return ((IWrappedAstNode) wrapped).getNode();
+	}
+	
+	public IStrategoTerm getWrapped() {
+		return wrapped;
 	}
 
 	public IStrategoList getAnnotations() {
@@ -122,5 +127,11 @@ public class AnnotatedAstNode implements IWrappedAstNode, IStrategoTerm, IStrate
 		if (getTermType() != APPL)
 			throw new AnnotationWrapperException("Called realValue() on a term that is not of type LIST");
 		return ((IStrategoReal) wrapped).realValue();
+	}
+
+	public String stringValue() {
+		if (getTermType() != STRING)
+			throw new AnnotationWrapperException("Called realValue() on a term that is not of type LIST");
+		return ((IStrategoReal) wrapped).stringValue();
 	}
 }

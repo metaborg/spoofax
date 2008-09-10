@@ -62,7 +62,7 @@ public class DynamicDescriptorLoader implements IResourceChangeListener {
 			Environment.logException("Error reading descriptor " + path, e);
 		} catch (RuntimeException e) {
 			Environment.logException("Unable to load descriptor " + path, e);
-		} catch (Error e) { // workspace thread swallows this (in 3.3)
+		} catch (Error e) { // workspace thread swallows this >:(
 			Environment.logException("Unable to load descriptor " + path, e);
 			throw e;
 		}
