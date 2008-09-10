@@ -47,6 +47,10 @@ public class StrategoListProxy implements IStrategoList {
 	public IStrategoTerm[] getAllSubterms() {
 		return getWrapped().getAllSubterms();
 	}
+	
+	public IStrategoList getAnnotations() {
+		return getWrapped().getAnnotations();
+	}
 
 	public IStrategoTerm getSubterm(int index) {
 		return getWrapped().getSubterm(index);

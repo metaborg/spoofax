@@ -6,24 +6,29 @@ imports
 exports
 
   sorts
-    Section ReferenceRule StrategoId StrategoCall
+    Section CompilerRule StrategoId StrategoCall ReferenceNode
 
   syntax
   
-    "compiler" <SectionName-LEX> <LAYOUT?-CF> <ReferenceRule*-CF> -> <Section-CF> {cons("Compiler")}
+    "compiler" <SectionName-LEX> <LAYOUT?-CF> <CompilerRule*-CF> -> <Section-CF> {cons("Compiler")}
     
     "compiler" -> <ReservedName-CF>
 
   lexical syntax
 
     [a-zA-Z\_] [a-zA-Z0-9\'\-\_]* -> StrategoId
+  
+    ConstructorId -> ReferenceNode
+    "_"           -> ReferenceNode
 
   context-free syntax
   
-    "reference" ConstructorId ":" StrategoCall StrategoCall -> ReferenceRule {cons("ReferenceRule")}
-%%  "reference" "*"           ":" StrategoCall StrategoCall -> ReferenceRule {cons("AllReferenceRule")}
+    "reference" ReferenceNode ":" StrategoCall StrategoCall -> CompilerRule {cons("ReferenceRule")}
+%%  "reference" "*"           ":" StrategoCall StrategoCall -> CompilerRule {cons("AllReferenceRule")}
 
-    "provider" PropertyValue -> ReferenceRule {cons("CompilerProvider")}
+    "provider" PropertyValue     -> CompilerRule {cons("CompilerProvider")}
+    
+    "observer" ":" PropertyValue -> CompilerRule {cons("CompilerObserver")}
 
              StrategoId -> StrategoCall {cons("Strategy")}
     "id" "." StrategoId -> StrategoCall {cons("Attribute")}

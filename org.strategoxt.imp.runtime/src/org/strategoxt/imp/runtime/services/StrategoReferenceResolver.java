@@ -32,6 +32,10 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 	
 	private final Map<String, String> helpFunctions;
 	
+	private final String wildcardResolverFunction;
+	
+	private final String wildcardHelperFunction;
+	
 	private final WeakHashMap<IStrategoAstNode, IAst> resolverCache =
 		new WeakHashMap<IStrategoAstNode, IAst>();
 	
@@ -45,14 +49,17 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 		this.resolver = resolver;
 		this.resolverFunctions = resolverFunctions;
 		this.helpFunctions = helpFunctions;
+		wildcardResolverFunction = resolverFunctions.get("_");
+		wildcardHelperFunction = resolverFunctions.get("_");
 	}
 
 	public IAst getLinkTarget(Object oNode, IParseController parseController) {
 		IStrategoAstNode node = getReferencedNode(oNode);
-		IAst result = resolverCache.get(oNode);
+		IAst result = resolverCache.get(node);
 		if (result != null) return result == NOT_FOUND ? null : result;
 		
 		String function = resolverFunctions.get(node.getConstructor());
+		if (function == null) function = wildcardResolverFunction;
 		if (function == null || function.equals("_")) {
 			Debug.log("No reference resolver available for node of type ", node.getConstructor());
 			return null;
@@ -67,10 +74,11 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 
 	public String getLinkText(Object oNode) {
 		IStrategoAstNode node = getReferencedNode(oNode);
-		String cached = helpCache.get(oNode);
+		String cached = helpCache.get(node);
 		if (cached != null) return cached == "" ? null : cached;
 		
 		String function = helpFunctions.get(node.getConstructor());
+		if (function == null) function = wildcardHelperFunction;
 		if (function == null || function.equals("_"))  {
 			Debug.log("No reference info available for node of type ", node.getConstructor());
 			return null;

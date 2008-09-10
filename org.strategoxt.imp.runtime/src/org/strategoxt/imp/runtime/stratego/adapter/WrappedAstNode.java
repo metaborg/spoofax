@@ -2,10 +2,12 @@ package org.strategoxt.imp.runtime.stratego.adapter;
 
 import lpg.runtime.IAst;
 
+import org.spoofax.interpreter.terms.BasicTermFactory;
+import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.InlinePrinter;
 
-public abstract class WrappedAstNode implements IStrategoTerm {
+public abstract class WrappedAstNode implements IWrappedAstNode, IStrategoTerm {
 	private final IAst node;
 	
 	private final WrappedAstNodeFactory factory;
@@ -36,6 +38,11 @@ public abstract class WrappedAstNode implements IStrategoTerm {
 
 	public int getSubtermCount() {
 		return node.getChildren().size();
+	}
+	
+	public IStrategoList getAnnotations() {
+		/** Only {@link AnnotatedAstNode } has annotations */
+		return BasicTermFactory.EMPTY_LIST;
 	}
 	
 	public final boolean match(IStrategoTerm second) {
