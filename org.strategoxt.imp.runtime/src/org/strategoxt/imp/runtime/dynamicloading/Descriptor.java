@@ -2,6 +2,7 @@ package org.strategoxt.imp.runtime.dynamicloading;
 
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.*;
 
+import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -14,6 +15,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.language.Language;
+import org.eclipse.imp.parser.IParseController;
 import org.spoofax.interpreter.core.Interpreter;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.terms.IStrategoAppl;
@@ -152,10 +154,21 @@ public class Descriptor {
 	}
 
 	public InputStream openAttachment(String path) throws FileNotFoundException {
-		if (basePath != null)
+		if (basePath != null) { // read from filesystem
 			path = basePath.append(path).toString();
-				
-		return new FileInputStream(path);
+			return new BufferedInputStream(new FileInputStream(path));
+		} else { // read from jar
+			try {
+				Class mainClass = getService(IParseController.class).getClass();
+				InputStream result = mainClass.getResourceAsStream(path);
+				if (result == null)
+					throw new FileNotFoundException(path + " not found in editor service plugin");
+				return result;
+			} catch (BadDescriptorException e) {
+				throw new RuntimeException("Unable to instantiate parse controller class", e);
+			}
+			
+		}
 	}
 	
 	// INTERPRETING

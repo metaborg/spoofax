@@ -1,10 +1,13 @@
 package org.strategoxt.imp.runtime.stratego;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
 import org.spoofax.interpreter.library.IOAgent;
+import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 
 /**
@@ -30,8 +33,18 @@ public class IMPIOAgent extends IOAgent {
 	}
 	
 	private InputStream openAttachedFile(String path) throws FileNotFoundException {
-		String filename = new File(path).getName();
-		return descriptor.openAttachment(filename);		
+		try {
+			String filename = new File(path).getName();
+			return descriptor.openAttachment(filename);
+		} catch (FileNotFoundException e) {
+			File localFile = new File(path);
+			if (localFile.exists()) {
+				Debug.log("Reading file form the current directory: ", path);  
+				return new BufferedInputStream(new FileInputStream(localFile));
+			} else {
+				throw e;
+			}
+		}
 	}
 	
 	@Override

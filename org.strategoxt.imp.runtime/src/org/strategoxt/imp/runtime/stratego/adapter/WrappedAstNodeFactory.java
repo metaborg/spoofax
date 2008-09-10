@@ -1,10 +1,13 @@
 package org.strategoxt.imp.runtime.stratego.adapter;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.WeakHashMap;
 
 import org.spoofax.interpreter.terms.BasicTermFactory;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.interpreter.terms.TermConverter;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.IntAstNode;
 import org.strategoxt.imp.runtime.parser.ast.StringAstNode;
@@ -17,9 +20,11 @@ import lpg.runtime.IAst;
  * @author Lennart Kats <lennart add lclnet.nl>
  * @author Karl Trygve Kalleberg <karltk add strategoxt.org>
  */
-public class WrappedAstNodeFactory extends BasicTermFactory {	
+public class WrappedAstNodeFactory extends BasicTermFactory implements ITermFactory {	
 	private static final WeakHashMap<IAst, WrappedAstNode> cache
 		= new WeakHashMap<IAst, WrappedAstNode>();
+	
+	private final TermConverter converter = new TermConverter(this);
 
 	public IStrategoTerm wrap(IAst node) {
 		if (node instanceof IStrategoAstNode) {
@@ -45,15 +50,24 @@ public class WrappedAstNodeFactory extends BasicTermFactory {
 	}
 	
 	@Override
+	public IStrategoTerm parseFromStream(InputStream inputStream) throws IOException {
+		// BasicTermFactory does not support binary aterms atm
+		IStrategoTerm result = Environment.getWrappedTermFactory().parseFromStream(inputStream);
+		return converter.convert(result);
+	}
+	
+	@Override
 	public IStrategoTerm parseFromFile(String path) throws IOException {
 		// BasicTermFactory does not support binary aterms atm
-		return Environment.getWrappedTermFactory().parseFromFile(path);
+		IStrategoTerm result = Environment.getWrappedTermFactory().parseFromFile(path);
+		return converter.convert(result);
 	}
 	
 	@Override
 	public IStrategoTerm parseFromString(String path) {
 		// BasicTermFactory does not support binary aterms atm
-		return Environment.getWrappedTermFactory().parseFromString(path);
+		IStrategoTerm result = Environment.getWrappedTermFactory().parseFromString(path);
+		return converter.convert(result);
 	}
 
 	public IStrategoTerm wrapNew(IStrategoAstNode node) {

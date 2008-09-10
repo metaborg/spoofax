@@ -67,8 +67,8 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 
 	public String getLinkText(Object oNode) {
 		IStrategoAstNode node = getReferencedNode(oNode);
-		String result = helpCache.get(oNode);
-		if (result != null) return result == "" ? null : result;
+		String cached = helpCache.get(oNode);
+		if (cached != null) return cached == "" ? null : cached;
 		
 		String function = helpFunctions.get(node.getConstructor());
 		if (function == null || function.equals("_"))  {
@@ -76,8 +76,10 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 			return null;
 		}
 		
-		result = strategoCall(node, function).toString();	
-		helpCache.put(node, result == null ? "" : result);
+		IStrategoTerm resultTerm = strategoCall(node, function);
+		String result = resultTerm == null ? null : resultTerm.toString();
+		
+		helpCache.put(node, result == null ? "" : result.toString());
 		return result;
 	}
 	
