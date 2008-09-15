@@ -48,15 +48,4 @@ strategies
         extensions: ~extensions
         table:  ~parsetable
         start symbols: ~startsymbols
-        ~
-      language Syntax properties (defaults)
-        ~
-        // TODO: Infer syntax properties from the SDF .def file
-        line comment: "//"
-        block comment: "/*" * "*/"
-        fences: [  ]
-                (  )
-                {  }
-                |[ ]|
-                <? ?> //"
     ]|

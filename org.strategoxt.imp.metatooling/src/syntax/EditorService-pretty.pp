@@ -1,6 +1,7 @@
 [
    ReferenceRule        -- R [ H [ KW["reference"] _1 ] H [ KW[":"] _2 ] _3 ],
    CompilerProvider     -- R [ H [ KW["provider"] _1 ] ],
+   CompilerObserver     -- R [ KW["observer"] H [ KW[":"] _1 ] ],
    Compiler             -- V is=2 [H hs=0 [ KW["compiler"] _1 ] A(l,l,l) [_2] ],
    Strategy             -- _1,
    Attribute            -- H hs=0 [ KW["id"] KW["."] _1 ],
