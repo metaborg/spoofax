@@ -38,9 +38,10 @@ strategies
       
       language General properties
         ~
-        name: ~name
+        name:    ~name
         aliases:
-        id: ~pkgname
+        id:      ~pkgname
+        extends: Root
         ~
         description: <conc-strings> ("\"sdf2imp-generated editor for the ", name, " language\"")
         url: http://strategoxt.org

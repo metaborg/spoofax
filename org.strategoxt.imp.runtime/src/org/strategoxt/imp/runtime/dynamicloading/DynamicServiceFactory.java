@@ -20,8 +20,6 @@ public class DynamicServiceFactory {
 	
 	private final IStrategoAppl descriptorFile;
 	
-	private final Map<Class, Object> services = new HashMap<Class, Object>();
-	
 	public DynamicServiceFactory(Descriptor descriptor) {
 		this.descriptor = descriptor;
 		descriptorFile = descriptor.getDocument();
@@ -32,8 +30,7 @@ public class DynamicServiceFactory {
 	public synchronized <T extends ILanguageService> T getService(Class<T> type)
 			throws BadDescriptorException {
 
-		Object result = services.get(type);
-		if (result != null) return type.cast(result);
+		ILanguageService result;
 		
 		// TODO: Dynamic registration of service factories
 		//       (which should not be static)
@@ -58,11 +55,6 @@ public class DynamicServiceFactory {
 			throw new IllegalArgumentException(type.getSimpleName() + " is not a supported editor service type");
 		}
 		
-		services.put(type, result);
 		return type.cast(result);
-	}
-	
-	public void clearCache() {
-		services.clear();
 	}
 }

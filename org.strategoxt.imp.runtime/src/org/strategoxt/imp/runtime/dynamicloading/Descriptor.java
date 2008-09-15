@@ -91,10 +91,6 @@ public class Descriptor {
 		return serviceFactory.getService(type);
 	}
 	
-	public void clearServiceCache() {
-		serviceFactory.clearCache();
-	}
-	
 	// PUBLIC PROPERTIES
 	
 	/**
@@ -106,7 +102,7 @@ public class Descriptor {
 				getProperty("LanguageName"),
 				getProperty("LanguageId", getProperty("LanguageName")), // natureId
 				getProperty("Description", ""),
-				ROOT_LANGUAGE,
+				ROOT_LANGUAGE,                     // TODO: Use "extends" property?
 				getProperty("URL", ""),
 				getProperty("Extensions"),
 				getProperty("Aliases", ""),

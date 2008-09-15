@@ -33,7 +33,6 @@ exports
   context-free restrictions
 
     LAYOUT? -/- [\ \t\n\r]
-    
     LAYOUT? -/- [\/].[\/]
     LAYOUT? -/- [\/].[\*]
 
@@ -45,8 +44,8 @@ exports
 
     Sort "." "_" -> Sort {bracket}
     
-    "_" "." Id -> Constructor {cons("ConstructorOnly")}
-            Id -> ConstructorId {cons("Constructor")}
+    "_" "." ConstructorId -> Constructor {cons("ConstructorOnly")}
+                       Id -> ConstructorId {cons("Constructor")}
     
     Sort                   -> Node
     Constructor            -> Node

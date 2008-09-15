@@ -3,7 +3,7 @@ package org.strategoxt.imp.runtime.services;
 import java.util.List;
 
 import org.eclipse.imp.parser.IParseController;
-import org.eclipse.imp.services.base.TokenColorerBase;
+import org.eclipse.imp.services.ITokenColorer;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.TextAttribute;
@@ -19,7 +19,7 @@ import lpg.runtime.IToken;
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class TokenColorer extends TokenColorerBase {
+public class TokenColorer implements ITokenColorer {
 	private /*final*/ IParseController parseController;
 	
 	private final List<TextAttributeMapping> envMappings, nodeMappings, tokenMappings;

@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import lpg.runtime.IToken;
+import lpg.runtime.PrsStream;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -25,7 +26,9 @@ import org.spoofax.jsglr.TokenExpectedException;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
 import org.strategoxt.imp.runtime.parser.ast.AstNodeLocator;
+import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenIterator;
+import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
 import static java.lang.Math.max;
 
@@ -107,6 +110,7 @@ public class SGLRParseController implements IParseController {
 	public AstNode parse(String input, boolean scanOnly, IProgressMonitor monitor) {
 		try {
 			// TODO2: Optimization - don't produce AST if scanOnly is true
+			currentAst = null;
 			currentAst = parser.parse(input.toCharArray(), getPath().toPortableString());
 			messages.clearMessages();
 		} catch (TokenExpectedException x) {
@@ -141,7 +145,14 @@ public class SGLRParseController implements IParseController {
 	}
 
 	public Iterator<IToken> getTokenIterator(IRegion region) {
-		return new SGLRTokenIterator(parser.getParseStream(), region);
+		// TODO: Return a damaged token stream on parse errors
+		PrsStream stream = parser.getParseStream();
+		if (stream.getTokens().size() == 0) {
+			// Parse hasn't succeeded yet, consider the entire stream as one big token
+			stream.addToken(new SGLRToken(stream, region.getOffset(), stream.getStreamLength() - 1,
+					TokenKind.TK_UNKNOWN.ordinal()));
+		}
+		return new SGLRTokenIterator(stream, region);
 	}
 	
 	// Problem markers

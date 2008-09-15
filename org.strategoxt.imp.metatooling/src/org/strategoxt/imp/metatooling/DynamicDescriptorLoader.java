@@ -48,22 +48,26 @@ public class DynamicDescriptorLoader implements IResourceChangeListener {
 		}
 	}
 	
-	public void loadDescriptor(IProject project, String path) {
+	public void loadDescriptor(IProject project, IResource descriptor) {
+		loadDescriptor(project, getMainDescriptorLocation(descriptor));
+	}
+	
+	public void loadDescriptor(IProject project, String descriptor) {
 		try {
-			IFile file = project.getFile(path);
+			IFile file = project.getFile(descriptor);
 			file.refreshLocal(0, null); // resource might be out of sync
 			DescriptorFactory.load(file);
 		} catch (CoreException e) {
-			Environment.logException("Unable to load descriptor " + path, e);
+			Environment.logException("Unable to load descriptor " + descriptor, e);
 		} catch (BadDescriptorException e) {
 			// TODO: Properly report bad descriptors in the UI
-			Environment.logException("Error in descriptor " + path, e);
+			Environment.logException("Error in descriptor " + descriptor, e);
 		} catch (IOException e) {
-			Environment.logException("Error reading descriptor " + path, e);
+			Environment.logException("Error reading descriptor " + descriptor, e);
 		} catch (RuntimeException e) {
-			Environment.logException("Unable to load descriptor " + path, e);
+			Environment.logException("Unable to load descriptor " + descriptor, e);
 		} catch (Error e) { // workspace thread swallows this >:(
-			Environment.logException("Unable to load descriptor " + path, e);
+			Environment.logException("Unable to load descriptor " + descriptor, e);
 			throw e;
 		}
 	}

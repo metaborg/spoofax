@@ -20,7 +20,7 @@ public class SGLRTokenIterator implements Iterator<IToken> {
 	public SGLRTokenIterator(PrsStream stream, IRegion region) {
 		this.stream = stream;
 		index = stream.getTokenIndexAtCharacter(region.getOffset());
-		lastIndex = stream.getTokenIndexAtCharacter(region.getOffset() + region.getLength() - 1);
+		lastIndex = Math.abs(stream.getTokenIndexAtCharacter(region.getOffset() + region.getLength()));
 	}
 
 	@Override

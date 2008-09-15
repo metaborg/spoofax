@@ -12,6 +12,8 @@ strategies
     
     rules(MainDescriptor := <id>);
     
+    // TODO: These errors are misleading - keys must be in the esv
+    
     require-option(
       where(<set-config> (SdfMainModuleFlag(), <find-main-module>));
       with(get-sdf-main-module)
