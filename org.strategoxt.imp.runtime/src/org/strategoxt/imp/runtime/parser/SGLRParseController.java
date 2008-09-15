@@ -27,6 +27,7 @@ import org.strategoxt.imp.runtime.parser.ast.AstNode;
 import org.strategoxt.imp.runtime.parser.ast.AstNodeLocator;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenIterator;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
+import static java.lang.Math.max;
 
 /**
  * IMP parse controller for an SGLR parser.
@@ -161,7 +162,7 @@ public class SGLRParseController implements IParseController {
 	
 	private void reportError(String message, IToken token) {
 		messages.handleSimpleMessage(
-				message, token.getStartOffset(), token.getEndOffset(),
+				message, max(0, token.getStartOffset()), max(0, token.getEndOffset()),
 				token.getColumn(), token.getEndColumn(), token.getLine(), token.getEndLine());
 	}
 	

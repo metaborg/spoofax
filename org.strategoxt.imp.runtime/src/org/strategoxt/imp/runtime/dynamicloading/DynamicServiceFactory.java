@@ -29,7 +29,9 @@ public class DynamicServiceFactory {
 	
 	// LOADING SERVICES
 	
-	public<T extends ILanguageService> T getService(Class<T> type) throws BadDescriptorException {
+	public synchronized <T extends ILanguageService> T getService(Class<T> type)
+			throws BadDescriptorException {
+
 		Object result = services.get(type);
 		if (result != null) return type.cast(result);
 		

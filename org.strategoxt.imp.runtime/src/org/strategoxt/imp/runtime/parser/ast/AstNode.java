@@ -110,7 +110,7 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 	
 	public IStrategoTerm getTerm() {
 		if (term != null) return term;
-		else return Environment.getWrappedAstNodeFactory().wrapNew(this);
+		else return Environment.getWrappedAstNodeFactory().wrap(this);
 	}
 	
 	// Initialization

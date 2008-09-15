@@ -32,10 +32,6 @@ public class StrategoListProxy implements IStrategoList {
 		return getWrapped().isEmpty();
 	}
 
-	public IStrategoList prepend(IStrategoTerm prefix) {
-		return getWrapped().prepend(prefix);
-	}
-
 	public int size() {
 		return getWrapped().size();
 	}
@@ -70,5 +66,10 @@ public class StrategoListProxy implements IStrategoList {
 
 	public void prettyPrint(ITermPrinter pp) {
 		getWrapped().prettyPrint(pp);
+	}
+
+	@Override @Deprecated
+	public IStrategoList prepend(IStrategoTerm prefix) {
+		return getWrapped().prepend(prefix);
 	}
 }

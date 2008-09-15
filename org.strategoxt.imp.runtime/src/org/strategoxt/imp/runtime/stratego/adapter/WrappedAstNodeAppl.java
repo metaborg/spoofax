@@ -1,7 +1,5 @@
 package org.strategoxt.imp.runtime.stratego.adapter;
 
-import java.util.Arrays;
-
 import lpg.runtime.IAst;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
@@ -34,55 +32,52 @@ public class WrappedAstNodeAppl extends WrappedAstNode implements IStrategoAppl 
 		constructor = factory.makeConstructor(node.getClass().getSimpleName(), node.getChildren().size());
 	}
 	
-	public IStrategoTerm[] getArguments() {
+	public final IStrategoTerm[] getArguments() {
 		return getAllSubterms();
 	}
 
 	@Override
-    protected boolean slowCompare(IStrategoTerm second) {
-        if(!(second instanceof IStrategoAppl))
-            return false;
-        IStrategoAppl snd = (IStrategoAppl) second;
-        if(!snd.getConstructor().equals(getConstructor()))
-            return false;
-        for(int i = 0, sz = getSubtermCount(); i < sz; i++) {
-            if(!snd.getSubterm(i).equals(getSubterm(i)))
-                return false;
-        }
-        return true;
-    }
+	protected boolean slowCompare(IStrategoTerm second) {
+		if (!(second instanceof IStrategoAppl))
+			return false;
+		IStrategoAppl snd = (IStrategoAppl) second;
+		if (snd.getSubtermCount() != getSubtermCount())
+			return false;
+		if (!snd.getConstructor().equals(getConstructor()))
+			return false;
+		if (!snd.getAnnotations().equals(getAnnotations()))
+			return false;
+		for (int i = 0, sz = getSubtermCount(); i < sz; i++) {
+			if (!snd.getSubterm(i).equals(getSubterm(i)))
+				return false;
+		}
+		return true;
+	}
 
-    public void prettyPrint(ITermPrinter pp) {
-    	final String name = constructor.getName() == null ? "<#null>" : constructor.getName();
-    	if(name.equals("[]")) {
-    		pp.print("[");
-    	} else {
-    		pp.print(name);
-            pp.println("(");
-    	}
-        final IStrategoTerm[] kids = getAllSubterms();
-        if(kids.length > 0) {
-            pp.indent(name.length());
-            if(kids[0] == null) {
-            	pp.print("<#null>");
-            } else {
-            	kids[0].prettyPrint(pp);
-            }
-            for(int i = 1; i < kids.length; i++) {
-                pp.print(", ");
-                if(kids[1] == null)
-                	pp.print("<#null>");
-                else
-                	kids[i].prettyPrint(pp);
-            }
-            pp.outdent(name.length());
-        }
-        if(name.equals("[]")) {
-        	pp.println("]");
-        } else {
-        	pp.println(")");
-        }
-    }
+	public void prettyPrint(ITermPrinter pp) {
+		final String name = constructor.getName() == null ? "<#null>" : constructor.getName();
+		pp.print(name);
+		pp.print("(");
+		final IStrategoTerm[] kids = getAllSubterms();
+		if (kids.length > 0) {
+			pp.indent(name.length());
+			if (kids[0] == null) {
+				pp.print("<#null>");
+			} else {
+				kids[0].prettyPrint(pp);
+			}
+			for (int i = 1; i < kids.length; i++) {
+				pp.print(",");
+				if (kids[1] == null)
+					pp.print("<#null>");
+				else
+					kids[i].prettyPrint(pp);
+			}
+			pp.outdent(name.length());
+		}
+		pp.println(")");
+		printAnnotations(pp);
+	}
 
 	public int getTermType() {
 		return IStrategoTerm.APPL;
@@ -90,9 +85,16 @@ public class WrappedAstNodeAppl extends WrappedAstNode implements IStrategoAppl 
 	
 	@Override
 	public int hashCode() {
-		int result = 235325;
-		result = result * 31 + getConstructor().hashCode();
-		result = result * 31 + Arrays.deepHashCode(getAllSubterms());
-		return result;
+        long r = constructorHashCode();
+        int accum = 6673;
+        for(int i = 0; i < getSubtermCount(); i++) {
+            r += getSubterm(i).hashCode() * accum;
+            accum *= 7703;
+        }
+        return (int)(r >> 12);
+	}
+	
+	private int constructorHashCode() {
+		return constructor.hashCode() + 5407 * getSubtermCount();
 	}
 }

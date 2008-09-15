@@ -13,6 +13,7 @@ import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.*;
  * 
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
+@Deprecated
 public abstract class OutlinerBase extends org.eclipse.imp.services.base.OutlinerBase {
 	/*
 	 * A shadow copy of the outline stack maintained in the super class,

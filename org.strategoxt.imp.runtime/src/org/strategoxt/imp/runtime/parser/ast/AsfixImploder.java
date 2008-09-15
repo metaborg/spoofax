@@ -63,7 +63,6 @@ public class AsfixImploder {
 	
 	private boolean lexicalContext;
 	
-	@SuppressWarnings("unchecked") // TODO2: Expand/explode generic signatures?	
     public AsfixImploder(TokenKindManager tokenManager, SGLRTokenizer tokenizer) {
 		this.tokenManager = tokenManager;
 		this.tokenizer = tokenizer;

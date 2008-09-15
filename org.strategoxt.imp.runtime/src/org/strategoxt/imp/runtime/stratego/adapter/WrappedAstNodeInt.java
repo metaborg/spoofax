@@ -1,7 +1,5 @@
 package org.strategoxt.imp.runtime.stratego.adapter;
 
-import java.util.Arrays;
-
 import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermPrinter;
@@ -27,11 +25,13 @@ public class WrappedAstNodeInt extends WrappedAstNode implements IStrategoInt {
 	@Override
 	public boolean slowCompare(IStrategoTerm second) {
 		return second instanceof IStrategoInt
-			&& ((IStrategoInt) second).intValue() == intValue();
+			&& ((IStrategoInt) second).intValue() == intValue()
+			&& second.getAnnotations().equals(getAnnotations());
 	}
 
     public void prettyPrint(ITermPrinter pp) {
     	pp.print("" + wrappee.getValue());
+    	printAnnotations(pp);
     }
 
 	public int getTermType() {
@@ -40,9 +40,6 @@ public class WrappedAstNodeInt extends WrappedAstNode implements IStrategoInt {
 	
 	@Override
 	public int hashCode() {
-		int result = 345239057;
-		result = result * 31 + intValue();
-		result = result * 31 + Arrays.deepHashCode(getAllSubterms());
-		return result;
+		return 449 * intValue() ^ 7841;
 	}
 }
