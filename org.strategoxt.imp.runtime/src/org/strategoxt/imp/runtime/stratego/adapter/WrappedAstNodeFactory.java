@@ -3,10 +3,14 @@ package org.strategoxt.imp.runtime.stratego.adapter;
 import java.io.IOException;
 import java.io.InputStream;
 
+import lpg.runtime.IAst;
+
 import org.spoofax.interpreter.terms.BasicTermFactory;
+import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.interpreter.terms.TermConverter;
 import org.strategoxt.imp.runtime.Environment;
@@ -25,9 +29,9 @@ public class WrappedAstNodeFactory extends BasicTermFactory implements ITermFact
 
 	public IStrategoTerm wrap(IStrategoAstNode node) {
 		if(node instanceof IntAstNode) {
-			return new WrappedAstNodeInt(this, (IntAstNode)node);
+			return new WrappedAstNodeInt(this, (IntAstNode) node);
 		} else if(node instanceof StringAstNode) {
-			return new WrappedAstNodeString(this, (StringAstNode)node);
+			return new WrappedAstNodeString(this, (StringAstNode) node);
 		} else if (node instanceof ListAstNode) {
 			return new WrappedAstNodeList(this, node);
 		} else {
@@ -35,26 +39,30 @@ public class WrappedAstNodeFactory extends BasicTermFactory implements ITermFact
 		}
 	}
 	
+	// Parsing
+	
 	@Override
 	public IStrategoTerm parseFromStream(InputStream inputStream) throws IOException {
 		// BasicTermFactory does not support binary aterms atm
-		IStrategoTerm result = Environment.getWrappedTermFactory().parseFromStream(inputStream);
+		IStrategoTerm result = Environment.getWrappedATermFactory().parseFromStream(inputStream);
 		return converter.convert(result);
 	}
 	
 	@Override
 	public IStrategoTerm parseFromFile(String path) throws IOException {
 		// BasicTermFactory does not support binary aterms atm
-		IStrategoTerm result = Environment.getWrappedTermFactory().parseFromFile(path);
+		IStrategoTerm result = Environment.getWrappedATermFactory().parseFromFile(path);
 		return converter.convert(result);
 	}
 	
 	@Override
 	public IStrategoTerm parseFromString(String path) {
 		// BasicTermFactory does not support binary aterms atm
-		IStrategoTerm result = Environment.getWrappedTermFactory().parseFromString(path);
+		IStrategoTerm result = Environment.getWrappedATermFactory().parseFromString(path);
 		return converter.convert(result);
 	}
+	
+	// Annotations
 	
 	@Override
 	public IStrategoTerm annotateTerm(IStrategoTerm term, IStrategoList annotations) {
@@ -67,24 +75,46 @@ public class WrappedAstNodeFactory extends BasicTermFactory implements ITermFact
 		}
 	}
 	
+	// Origin tracking
+	
 	@Override
-	public IStrategoTerm replaceAppl(IStrategoConstructor constructor, final IStrategoTerm[] kids,
-			IStrategoTerm old) {
+	public IStrategoAppl replaceAppl(IStrategoConstructor constructor, IStrategoTerm[] kids,
+			IStrategoAppl oldTerm) {
 		
-		if (old instanceof IWrappedAstNode) {
-			return new WrappedAstNodeAppl(this, ((IWrappedAstNode) old).getNode()) {
-				@Override
-				public IStrategoTerm getSubterm(int index) {
-					return kids[index];
-				}
-				
-				@Override
-				public int getSubtermCount() {
-					return kids.length;
-				}
-			};
+		IStrategoAppl result = makeAppl(constructor, ensureLinks(kids, oldTerm));
+		
+		return (IStrategoAppl) ensureLink(result, oldTerm);
+	}
+	
+	@Override
+	public IStrategoTuple replaceTuple(IStrategoTerm[] kids, IStrategoTuple old) {
+		return (IStrategoTuple) ensureLink(makeTuple(ensureLinks(kids, old)), old);
+	}
+	
+	@Override
+	public IStrategoList replaceList(IStrategoTerm[] kids, IStrategoList old) {
+		return (IStrategoList) ensureLink(makeList(ensureLinks(kids, old)), old);
+	}
+
+	private IStrategoTerm[] ensureLinks(IStrategoTerm[] kids, IStrategoTerm oldTerm) {
+		if (!(oldTerm instanceof IWrappedAstNode))
+			return kids;
+		
+		IStrategoTerm[] linkedKids = new IWrappedAstNode[kids.length];
+		
+		for (int i = 0; i < kids.length; i++) {
+			linkedKids[i] = ensureLink(kids[i], oldTerm.getSubterm(i));
+		}
+		return linkedKids;
+	}
+	
+	private IStrategoTerm ensureLink(IStrategoTerm term, IStrategoTerm oldTerm) {
+		if (term instanceof IWrappedAstNode) {
+			return (IWrappedAstNode) term;
+		} else if (oldTerm instanceof IWrappedAstNode) {
+			return new WrappedAstNodeLink(this, term, ((IWrappedAstNode) oldTerm).getNode());
 		} else {
-			return super.replaceAppl(constructor, kids, old);
+			return term;
 		}
 	}
 }

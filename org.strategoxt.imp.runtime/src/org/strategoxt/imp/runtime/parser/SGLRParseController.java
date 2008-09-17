@@ -1,15 +1,21 @@
 package org.strategoxt.imp.runtime.parser;
 
+import static java.lang.Math.*;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import lpg.runtime.IAst;
 import lpg.runtime.IToken;
 import lpg.runtime.PrsStream;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.Status;
+import org.eclipse.imp.builder.MarkerCreator;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.model.ISourceProject;
@@ -20,17 +26,20 @@ import org.eclipse.imp.parser.SimpleAnnotationTypeInfo;
 import org.eclipse.imp.services.IAnnotationTypeInfo;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.jface.text.IRegion;
+import org.eclipse.ui.PlatformUI;
 import org.spoofax.jsglr.BadTokenException;
 import org.spoofax.jsglr.SGLR;
+import org.spoofax.jsglr.SGLRException;
 import org.spoofax.jsglr.TokenExpectedException;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
 import org.strategoxt.imp.runtime.parser.ast.AstNodeLocator;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenIterator;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
-import static java.lang.Math.max;
+import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 
 /**
  * IMP parse controller for an SGLR parser.
@@ -39,6 +48,7 @@ import static java.lang.Math.max;
  * @author Karl Trygve Kalleberg <karltk add strategoxt.org>
  */
 public class SGLRParseController implements IParseController {
+	@Deprecated
 	private final List<String> problemMarkerTypes = new ArrayList<String>();
 	
 	private final TokenKindManager tokenManager = new TokenKindManager();
@@ -113,14 +123,23 @@ public class SGLRParseController implements IParseController {
 			currentAst = null;
 			currentAst = parser.parse(input.toCharArray(), getPath().toPortableString());
 			messages.clearMessages();
-		} catch (TokenExpectedException x) {
-			reportParseError(x);
-		} catch (BadTokenException x) {
-			reportParseError(x);
-		} catch (Exception x) {
-			// catches SGLRException; NotImplementedException; IOException
-			reportParseError(x);
-			Activator.log(new Status(Status.ERROR, Activator.PLUGIN_ID, Status.OK, "Fatal error during parsing", x));
+			
+			// HACK: Call IModelListener.update manually, IMP extension point is not implemented
+			Environment.getDescriptor(getLanguage()).getStrategoFeedback().update(this, null);
+		} catch (TokenExpectedException e) {
+			reportParseError(e);
+		} catch (BadTokenException e) {
+			reportParseError(e);
+		} catch (SGLRException e) {
+			reportParseError(e);
+		} catch (IOException e) {
+			reportParseError(e);
+		} catch (BadDescriptorException e) {
+			Environment.logException("Unexpected error during parsing", e);
+			reportParseError(e);
+		} catch (RuntimeException e) {
+			Environment.logException("Unexpected error during parsing", e);
+			reportParseError(e);
 		}
 		
 		return currentAst;
@@ -157,21 +176,43 @@ public class SGLRParseController implements IParseController {
 	
 	// Problem markers
 	
+	@Deprecated
 	public final List<String> getProblemMarkerTypes() {
 		return problemMarkerTypes;
 	}
 	
+	@Deprecated
 	public void addProblemMarkerType(String problemMarkerType) {
 		problemMarkerTypes.add(problemMarkerType);
 	}
 	
+	@Deprecated
 	public void removeProblemMarkerType(String problemMarkerType) {
 		problemMarkerTypes.remove(problemMarkerType);
 	}
 	
 	// Error reporting
 	
-	private void reportError(String message, IToken token) {
+	public void reportError(IAst node, String message) {
+		if (node == null) node = currentAst;
+		
+		IMessageHandler messages;
+		if (node instanceof IStrategoAstNode) {
+			IPath path = ((IStrategoAstNode) node).getResourcePath();
+			path = path.removeFirstSegments(path.matchingFirstSegments(getProject().getRawProject().getLocation()));
+			IFile file = getProject().getRawProject().getFile(path);
+			assert file.exists();
+			messages = new MarkerCreator(file, this, "org.eclipse.core.resources.problemmarker");
+		} else {
+			messages = this.messages;
+		}
+		
+		IToken left = node.getLeftIToken();
+		IToken right = node.getRightIToken();
+		messages.handleSimpleMessage(message, left.getStartOffset(), right.getEndOffset() + 1, left.getColumn(), right.getEndColumn() + 1, left.getLine(), right.getEndLine());
+	}
+	
+	private void reportError(IToken token, String message) {
 		messages.handleSimpleMessage(
 				message, max(0, token.getStartOffset()), max(0, token.getEndOffset()),
 				token.getColumn(), token.getEndColumn(), token.getLine(), token.getEndLine());
@@ -181,7 +222,7 @@ public class SGLRParseController implements IParseController {
 		String message = exception.getShortMessage();
 		IToken token = parser.getTokenizer().makeErrorToken(exception.getOffset());
 		
-		reportError(message, token);
+		reportError(token, message);
 	}
 	
 	private void reportParseError(BadTokenException exception) {
@@ -190,7 +231,7 @@ public class SGLRParseController implements IParseController {
         	? exception.getShortMessage()
         	: "'" + token.toString() + "' not expected here";
 
-        reportError(message, token);
+        reportError(token, message);
 	}
 	
 	private void reportParseError(Exception exception) {
@@ -199,6 +240,6 @@ public class SGLRParseController implements IParseController {
 		
 		IToken token = parser.getTokenizer().makeErrorToken(0);
 		
-		reportError(message, token);
+		reportError(token, message);
 	}
 }

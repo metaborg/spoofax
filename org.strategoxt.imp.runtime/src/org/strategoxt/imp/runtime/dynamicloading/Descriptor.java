@@ -7,24 +7,19 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.parser.IParseController;
-import org.spoofax.interpreter.core.Interpreter;
-import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.SGLR;
 import org.spoofax.jsglr.SGLRException;
-import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.SGLRParser;
+import org.strategoxt.imp.runtime.services.StrategoFeedback;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -46,6 +41,8 @@ public class Descriptor {
 	private Language language;
 	
 	private IPath basePath;
+	
+	private StrategoFeedback feedback;
 	
 	public IStrategoAppl getDocument() {
 		return document;
@@ -91,6 +88,13 @@ public class Descriptor {
 		return serviceFactory.getService(type);
 	}
 	
+	public StrategoFeedback getStrategoFeedback() throws BadDescriptorException {
+		if (feedback == null) {
+			feedback = new StrategoFeedbackFactory().create(this);
+		}
+		return feedback;
+	}
+	
 	// PUBLIC PROPERTIES
 	
 	/**
@@ -124,32 +128,6 @@ public class Descriptor {
 			throw new BadDescriptorException(e);
 		}
 	}
-	
-	public void addCompilerProviders(Interpreter interpreter) throws BadDescriptorException {
-		for (IStrategoAppl term : makeSet(collectTerms(document, "CompilerProvider"))) {
-			String filename = termContents(term);
-			if (filename.endsWith(".ctree")) {
-				try {
-					Debug.startTimer("Loading interpreter input ", filename);
-					interpreter.load(openAttachment(filename));
-					Debug.stopTimer("Successfully loaded " +  filename);
-				} catch (InterpreterException e) {
-					throw new BadDescriptorException("Error loading compiler service provider " + filename, e);
-				} catch (IOException e) {
-					throw new BadDescriptorException("Could not load compiler service provider" + filename, e);
-				}
-			} else {
-				Debug.log("Not a compiler service provider, ignoring for now: ", filename);
-			}
-		}
-	}
-	
-	private static<E> Set<E> makeSet(List<E> list) {
-		// FIXME: Duplicates appear in descriptor files?
-		//        Currently, I'm making a set of property values to eliminate duplicates
-		//        to avoid this problem
-		return new HashSet<E>(list);
-	}
 
 	public InputStream openAttachment(String path) throws FileNotFoundException {
 		if (basePath != null) { // read from filesystem
@@ -171,13 +149,13 @@ public class Descriptor {
 	
 	// INTERPRETING
 	
-	private String getProperty(String name) throws BadDescriptorException {
+	protected String getProperty(String name) throws BadDescriptorException {
 		String result = getProperty(name, null);
 		if (result == null) throw new BadDescriptorException("Property " + name + " not specified");		
 		return result;
 	}
 	
-	private String getProperty(String name, String defaultValue) {
+	protected String getProperty(String name, String defaultValue) {
 		IStrategoAppl result = findTerm(document, name);
 		if (result == null) return defaultValue;
 		

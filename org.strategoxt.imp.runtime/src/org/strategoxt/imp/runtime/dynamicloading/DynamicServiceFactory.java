@@ -1,8 +1,5 @@
 package org.strategoxt.imp.runtime.dynamicloading;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.services.IFoldingUpdater;
@@ -43,7 +40,7 @@ public class DynamicServiceFactory {
 			result = TokenColorerFactory.create(descriptorFile);
 		
 		} else if (IReferenceResolver.class.isAssignableFrom(type)) {
-			result = ReferenceResolverFactory.create(descriptor, descriptorFile);
+			result = ReferenceResolverFactory.create(descriptor);
 		
 		} else if (ILanguageSyntaxProperties.class.isAssignableFrom(type)) {
 			result = SyntaxPropertiesFactory.create(descriptorFile);

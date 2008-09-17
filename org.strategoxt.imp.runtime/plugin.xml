@@ -47,4 +47,13 @@
             language="Root">
       </docProvider>
    </extension>
+   <!-- Extension point not implemented; manually called from SGLRParseController instead
+   <extension
+         point="org.eclipse.imp.runtime.modelListener">
+      <listener
+            class="org.strategoxt.imp.runtime.dynamicloading.DynamicStrategoFeedback"
+            language="Root">
+      </listener>
+   </extension>
+   -->
 </plugin>

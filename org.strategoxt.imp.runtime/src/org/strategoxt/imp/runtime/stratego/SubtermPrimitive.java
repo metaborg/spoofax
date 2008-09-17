@@ -14,7 +14,7 @@ import static org.spoofax.interpreter.core.Tools.*;
 public class SubtermPrimitive extends AbstractPrimitive {
 
 	public SubtermPrimitive() {
-		super("sdf2imp_subterm", 0, 2);
+		super("SSL_EXT_subterm", 0, 2);
 	}
 	
 	@Override

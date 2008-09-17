@@ -55,7 +55,7 @@ public abstract class WrappedAstNode implements IWrappedAstNode, IStrategoTerm, 
 	}
 
 	@Override
-	public boolean equals(Object other) {
+	public final boolean equals(Object other) {
 		if (other instanceof WrappedAstNode) {
 			WrappedAstNode otherTerm = (WrappedAstNode) other;
 			return (node == otherTerm.node && getAnnotations().equals(otherTerm.getAnnotations()))

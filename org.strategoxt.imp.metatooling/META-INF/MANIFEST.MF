@@ -22,4 +22,3 @@ Require-Bundle: org.eclipse.imp.runtime,
  org.eclipse.ui,
  org.spoofax.compiler,
  org.strategoxt.imp.runtime
-Eclipse-LazyStart: false

@@ -23,10 +23,10 @@ public class StrategoTermPath extends StrategoListProxy {
 		while(node.getParent() != null) {
 			IStrategoAstNode parent = node.getParent();
 			int index = parent.getAllChildren().indexOf(node);
-			path.add(Environment.getWrappedTermFactory().makeInt(index));
+			path.add(Environment.getTermFactory().makeInt(index));
 			node = node.getParent();
 		}
 		
-		return Environment.getWrappedAstNodeFactory().makeList(path);
+		return Environment.getTermFactory().makeList(path);
 	}	
 }

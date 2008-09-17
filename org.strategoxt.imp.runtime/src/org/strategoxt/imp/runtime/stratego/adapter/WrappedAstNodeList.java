@@ -113,7 +113,7 @@ public class WrappedAstNodeList extends WrappedAstNode implements IStrategoList 
 	@Override
 	@Deprecated
 	public IStrategoList prepend(IStrategoTerm prefix) {
-		return Environment.getWrappedAstNodeFactory().makeList(prefix, this);
+		return Environment.getTermFactory().makeList(prefix, this);
 	}
 
 }

@@ -9,7 +9,7 @@ import org.strategoxt.imp.runtime.Environment;
 public class IMPJSGLRLibrary extends JSGLRLibrary {
 
 	public IMPJSGLRLibrary() {
-		super(Environment.getWrappedTermFactory());
+		super(Environment.getWrappedATermFactory());
 		
 		add(new IMPJSGLRParser());
 	}

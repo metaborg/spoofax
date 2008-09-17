@@ -57,7 +57,7 @@ public class SimpleSGLRParser {
 
 	private IStrategoTerm implode(ATerm asfix) {
 		try {
-			imploder.setCurrent(Environment.getWrappedTermFactory().wrapTerm(asfix));
+			imploder.setCurrent(Environment.getWrappedATermFactory().wrapTerm(asfix));
 			imploder.invoke("implode_asfix_0_0");
 		
 			return imploder.current();

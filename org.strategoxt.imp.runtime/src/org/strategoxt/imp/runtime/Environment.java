@@ -49,16 +49,12 @@ public final class Environment {
 	private final static WrappedAstNodeFactory wrappedAstNodeFactory
 		= new WrappedAstNodeFactory();
 	
-	public static ATermFactory getATermFactory() {
-		return factory;
-	}
-	
-	public static WrappedATermFactory getWrappedTermFactory() {
-		return wrappedFactory;
-	}
-	
-	public static WrappedAstNodeFactory getWrappedAstNodeFactory() {
+	public static WrappedAstNodeFactory getTermFactory() {
 		return wrappedAstNodeFactory;
+	}
+
+	public static WrappedATermFactory getWrappedATermFactory() {
+		return wrappedFactory;
 	}
 	
 	public static SGLR createSGLR(ParseTable parseTable) {
@@ -66,7 +62,9 @@ public final class Environment {
 	}
 
 	public static Interpreter createInterpreter() throws IOException, InterpreterException {
-		Interpreter result = new Interpreter(wrappedAstNodeFactory, wrappedFactory);
+		// We ue the wrappedAstNode factory for both the programs and the terms,
+		// to ensure they are compatible.
+		Interpreter result = new Interpreter(wrappedAstNodeFactory);
 
 		result.addOperatorRegistry(IMPJSGLRLibrary.REGISTRY_NAME, new IMPJSGLRLibrary());
 		result.addOperatorRegistry(IMPLibrary.REGISTRY_NAME, new IMPLibrary());

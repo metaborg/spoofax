@@ -5,9 +5,6 @@ import java.io.IOException;
 
 import org.spoofax.NotImplementedException;
 import org.strategoxt.imp.runtime.Environment;
-import static org.spoofax.jsglr.Term.*;
-
-import aterm.ATerm;
 
 public class MetaFileReader {
 	public static String tryReadSyntax(String file) {
@@ -23,13 +20,12 @@ public class MetaFileReader {
 	}
 	
 	public static String readSyntax(String file) throws IOException, BadMetaFileException {
-		ATerm term = Environment.getATermFactory().readFromFile(file);
+		// IStrategoTerm term =
+			Environment.getTermFactory().parseFromFile(file);
 		
 		try {
 			// TODO: .meta file reading
 			// ATermAppl appl =
-			asAppl(term);
-			
 			throw new NotImplementedException();
 			
 		} catch (ClassCastException e) {
