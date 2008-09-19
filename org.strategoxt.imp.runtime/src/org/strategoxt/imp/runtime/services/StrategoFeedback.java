@@ -13,6 +13,7 @@ import org.eclipse.imp.parser.IParseController;
 import org.spoofax.interpreter.core.Interpreter;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.terms.IStrategoList;
+import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
@@ -82,11 +83,11 @@ public class StrategoFeedback implements IModelListener {
 	
 	public static void feedbackToMarker(IParseController parseController, IStrategoTerm feedback) {
 	    IStrategoTerm term = termAt(feedback, 0);
-	    String message = termAt(feedback, 1).toString();
+	    IStrategoString message = termAt(feedback, 1);
 	    IAst node = getClosestAstNode(term);
 	    
 	    // TODO: Don't be SGLR specific here?
-	    ((SGLRParseController) parseController).reportError(node, message);
+	    ((SGLRParseController) parseController).reportError(node, message.stringValue());
 	}
 	
 	/**

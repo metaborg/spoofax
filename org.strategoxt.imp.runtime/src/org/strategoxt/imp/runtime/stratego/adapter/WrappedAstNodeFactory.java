@@ -3,8 +3,6 @@ package org.strategoxt.imp.runtime.stratego.adapter;
 import java.io.IOException;
 import java.io.InputStream;
 
-import lpg.runtime.IAst;
-
 import org.spoofax.interpreter.terms.BasicTermFactory;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
@@ -97,10 +95,7 @@ public class WrappedAstNodeFactory extends BasicTermFactory implements ITermFact
 	}
 
 	private IStrategoTerm[] ensureLinks(IStrategoTerm[] kids, IStrategoTerm oldTerm) {
-		if (!(oldTerm instanceof IWrappedAstNode))
-			return kids;
-		
-		IStrategoTerm[] linkedKids = new IWrappedAstNode[kids.length];
+		IStrategoTerm[] linkedKids = new IStrategoTerm[kids.length];
 		
 		for (int i = 0; i < kids.length; i++) {
 			linkedKids[i] = ensureLink(kids[i], oldTerm.getSubterm(i));

@@ -12,7 +12,8 @@ import lpg.runtime.IToken;
 import lpg.runtime.PrsStream;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.builder.MarkerCreator;
@@ -26,7 +27,6 @@ import org.eclipse.imp.parser.SimpleAnnotationTypeInfo;
 import org.eclipse.imp.services.IAnnotationTypeInfo;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.jface.text.IRegion;
-import org.eclipse.ui.PlatformUI;
 import org.spoofax.jsglr.BadTokenException;
 import org.spoofax.jsglr.SGLR;
 import org.spoofax.jsglr.SGLRException;
@@ -48,6 +48,8 @@ import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
  * @author Karl Trygve Kalleberg <karltk add strategoxt.org>
  */
 public class SGLRParseController implements IParseController {
+	private static final String PROBLEM_MARKER_TYPE = "org.eclipse.core.resources.problemmarker";
+
 	@Deprecated
 	private final List<String> problemMarkerTypes = new ArrayList<String>();
 	
@@ -202,7 +204,8 @@ public class SGLRParseController implements IParseController {
 			path = path.removeFirstSegments(path.matchingFirstSegments(getProject().getRawProject().getLocation()));
 			IFile file = getProject().getRawProject().getFile(path);
 			assert file.exists();
-			messages = new MarkerCreator(file, this, "org.eclipse.core.resources.problemmarker");
+			messages = new MarkerCreator(file, this, PROBLEM_MARKER_TYPE);
+			clearReportedErrors(file); // messages.clearMessages() is not implemented
 		} else {
 			messages = this.messages;
 		}
@@ -210,6 +213,17 @@ public class SGLRParseController implements IParseController {
 		IToken left = node.getLeftIToken();
 		IToken right = node.getRightIToken();
 		messages.handleSimpleMessage(message, left.getStartOffset(), right.getEndOffset() + 1, left.getColumn(), right.getEndColumn() + 1, left.getLine(), right.getEndLine());
+	}
+	
+	private static void clearReportedErrors(IFile file) {
+		try {
+			IMarker[] markers = file.findMarkers(PROBLEM_MARKER_TYPE, true, 0);
+			for (IMarker marker : markers) {
+				marker.delete();
+			}
+		} catch (CoreException e) {
+			Environment.logException("Unable to clear existing markers for file", e);
+		}
 	}
 	
 	private void reportError(IToken token, String message) {
