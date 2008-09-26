@@ -48,8 +48,6 @@ import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
  * @author Karl Trygve Kalleberg <karltk add strategoxt.org>
  */
 public class SGLRParseController implements IParseController {
-	private static final String PROBLEM_MARKER_TYPE = "org.eclipse.core.resources.problemmarker";
-
 	@Deprecated
 	private final List<String> problemMarkerTypes = new ArrayList<String>();
 	
@@ -195,35 +193,8 @@ public class SGLRParseController implements IParseController {
 	
 	// Error reporting
 	
-	public void reportError(IAst node, String message) {
-		if (node == null) node = currentAst;
-		
-		IMessageHandler messages;
-		if (node instanceof IStrategoAstNode) {
-			IPath path = ((IStrategoAstNode) node).getResourcePath();
-			path = path.removeFirstSegments(path.matchingFirstSegments(getProject().getRawProject().getLocation()));
-			IFile file = getProject().getRawProject().getFile(path);
-			assert file.exists();
-			messages = new MarkerCreator(file, this, PROBLEM_MARKER_TYPE);
-			clearReportedErrors(file); // messages.clearMessages() is not implemented
-		} else {
-			messages = this.messages;
-		}
-		
-		IToken left = node.getLeftIToken();
-		IToken right = node.getRightIToken();
-		messages.handleSimpleMessage(message, left.getStartOffset(), right.getEndOffset() + 1, left.getColumn(), right.getEndColumn() + 1, left.getLine(), right.getEndLine());
-	}
-	
-	private static void clearReportedErrors(IFile file) {
-		try {
-			IMarker[] markers = file.findMarkers(PROBLEM_MARKER_TYPE, true, 0);
-			for (IMarker marker : markers) {
-				marker.delete();
-			}
-		} catch (CoreException e) {
-			Environment.logException("Unable to clear existing markers for file", e);
-		}
+	public final IMessageHandler getMessages() {
+		return messages;
 	}
 	
 	private void reportError(IToken token, String message) {

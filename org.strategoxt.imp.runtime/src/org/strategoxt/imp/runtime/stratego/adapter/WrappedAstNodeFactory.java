@@ -109,6 +109,7 @@ public class WrappedAstNodeFactory extends BasicTermFactory implements ITermFact
 		} else if (oldTerm instanceof IWrappedAstNode) {
 			return new WrappedAstNodeLink(this, term, ((IWrappedAstNode) oldTerm).getNode());
 		} else {
+			// TODO: Add a link to the parent node for children that do not have tracking info?
 			return term;
 		}
 	}

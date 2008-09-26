@@ -39,10 +39,12 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 		this.resolverFunctions = resolverFunctions;
 		this.helpFunctions = helpFunctions;
 		wildcardResolverFunction = resolverFunctions.get("_");
-		wildcardHelperFunction = resolverFunctions.get("_");
+		wildcardHelperFunction = helpFunctions.get("_");
 	}
 
 	public IAst getLinkTarget(Object oNode, IParseController parseController) {
+		// TODO: Fix reference resolve caching, cache resetting
+		
 		IStrategoAstNode node = getReferencedNode(oNode);
 		IAst result = resolverCache.get(node);
 		if (result != null) return result == NOT_FOUND ? null : result;

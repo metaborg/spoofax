@@ -18,6 +18,10 @@ public abstract class WrappedAstNode implements IWrappedAstNode, IStrategoTerm, 
 		return node;
 	}
 	
+	public WrappedAstNodeFactory getFactory() {
+		return factory;
+	}
+	
 	protected WrappedAstNode(WrappedAstNodeFactory factory, IAst node) {
 		this.factory = factory;
 		this.node = node;

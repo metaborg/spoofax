@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 
 import lpg.runtime.IAst;
 
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.parser.IModelListener;
@@ -20,7 +21,7 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
-import org.strategoxt.imp.runtime.parser.SGLRParseController;
+import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
 import org.strategoxt.imp.runtime.stratego.IMPIOAgent;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
@@ -28,6 +29,8 @@ import org.strategoxt.imp.runtime.stratego.adapter.IWrappedAstNode;
 import org.strategoxt.imp.runtime.stratego.adapter.WrappedAstNode;
 
 /**
+ * Basic Stratego feedback (i.e., errors and warnings) provider.
+ * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class StrategoFeedback implements IModelListener {
@@ -37,19 +40,23 @@ public class StrategoFeedback implements IModelListener {
 	
 	private final String feedbackFunction;
 	
+	private final AstMessageHandler messages = new AstMessageHandler();
+	
 	public StrategoFeedback(Descriptor descriptor, Interpreter resolver, String feedbackFunction) {
 		this.descriptor = descriptor;
 		this.interpreter = resolver;
 		this.feedbackFunction = feedbackFunction;
 	}
 
-	@Override
 	public AnalysisRequired getAnalysisRequired() {
 		return AnalysisRequired.TYPE_ANALYSIS;
 	}
 
 	@Override
 	public void update(IParseController parseController, IProgressMonitor monitor) {
+		
+		// TODO: Threading of feedback method
+		
 		if (feedbackFunction != null) {
 			ITermFactory factory = Environment.getTermFactory();
 			IStrategoAstNode ast = (IStrategoAstNode) parseController.getCurrentAst();
@@ -62,12 +69,17 @@ public class StrategoFeedback implements IModelListener {
 			IStrategoTerm input = factory.makeTuple(inputParts);
 
 			IStrategoTerm feedback = invoke(feedbackFunction, input, ast.getRootPath());
+			
+			messages.clearAllMarkers();
 
-	        if (feedback instanceof IStrategoTuple && termAt(feedback, 0) instanceof IStrategoList && termAt(feedback, 1) instanceof IStrategoList) {
+	        if (feedback instanceof IStrategoTuple && termAt(feedback, 0) instanceof IStrategoList
+					&& termAt(feedback, 1) instanceof IStrategoList
+					&& termAt(feedback, 1) instanceof IStrategoList) {
+	        	
 	            IStrategoList errors = termAt(feedback, 0);
                 IStrategoList warnings = termAt(feedback, 1);
-	            feedbackToMarkers(parseController, errors);
-                feedbackToMarkers(parseController, warnings);
+	            feedbackToMarkers(parseController, errors, IMarker.SEVERITY_ERROR);
+                feedbackToMarkers(parseController, warnings, IMarker.SEVERITY_WARNING);
 	        } else {
 	            Environment.logException("Illegal output from " + feedbackFunction + ": " + feedback);
 	        }
@@ -75,23 +87,22 @@ public class StrategoFeedback implements IModelListener {
 		}
 	}
 	
-	public static final void feedbackToMarkers(IParseController parseController, IStrategoList feedbacks) {
+	public final void feedbackToMarkers(IParseController parseController, IStrategoList feedbacks, int severity) {
 	    for (IStrategoTerm feedback : feedbacks.getAllSubterms()) {
-	        feedbackToMarker(parseController, feedback);
+	        feedbackToMarker(parseController, feedback, severity);
 	    }
 	}
 	
-	public static void feedbackToMarker(IParseController parseController, IStrategoTerm feedback) {
+	public void feedbackToMarker(IParseController parseController, IStrategoTerm feedback, int severity) {
 	    IStrategoTerm term = termAt(feedback, 0);
 	    IStrategoString message = termAt(feedback, 1);
 	    IAst node = getClosestAstNode(term);
 	    
-	    // TODO: Don't be SGLR specific here?
-	    ((SGLRParseController) parseController).reportError(node, message.stringValue());
+	    messages.addMarker(node, message.stringValue(), severity);
 	}
 	
 	/**
-	 * Given an stratego term, give the first IAst node associated
+	 * Given an stratego term, give the first AST node associated
 	 * with any of its subterms, doing a depth-first search.
 	 */
 	private static IAst getClosestAstNode(IStrategoTerm term) {
@@ -99,7 +110,7 @@ public class StrategoFeedback implements IModelListener {
 	        return ((IWrappedAstNode) term).getNode();
 	    } else {
 	        for (int i = 0; i < term.getSubtermCount(); i++) {
-	            IAst result = getClosestAstNode(termAt(term, i));
+	        	IAst result = getClosestAstNode(termAt(term, i));
 	            if (result != null) return result;
 	        }
 	        return null;
@@ -137,7 +148,7 @@ public class StrategoFeedback implements IModelListener {
 				return null;
 			}
 		} catch (InterpreterException e) {
-			Environment.logException("Internal error evaluation function " + function, e);
+			Environment.logException("Internal error evaluating function " + function, e);
 			return null;
 		}
 		
@@ -157,7 +168,6 @@ public class StrategoFeedback implements IModelListener {
 	}
 	
 	private void initInterpreterPath(IPath workingDir) {
-		interpreter.reset(); // FIXME: When to reset the resolver??
 		try {
 			interpreter.getIOAgent().setWorkingDir(workingDir.toOSString());
 			((IMPIOAgent) interpreter.getIOAgent()).setDescriptor(descriptor);

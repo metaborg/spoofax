@@ -15,10 +15,12 @@ public class RootAstNode extends AstNode {
 	@SuppressWarnings("unused")
 	private final Object cachingKey;
 
+	@Override
 	public Language getLanguage() {
 		return parseController.getLanguage();
 	}
 
+	@Override
 	public SGLRParseController getParseController() {
 		return parseController;
 	}

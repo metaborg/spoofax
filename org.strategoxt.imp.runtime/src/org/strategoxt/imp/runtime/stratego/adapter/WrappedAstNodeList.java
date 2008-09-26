@@ -69,8 +69,14 @@ public class WrappedAstNodeList extends WrappedAstNode implements IStrategoList 
 
 	@Override
 	public IStrategoList tail() {
-		// TODO Auto-generated method stub
-		throw new NotImplementedException();
+		// FIXME: Head/tail impl of lists, or caching?!
+		
+        IStrategoTerm[] tail = new IStrategoTerm[size() - 1];
+        for(int i = 1, size = size(); i < size; i++) {
+        	tail[i - 1] = get(i);
+        }
+		
+		return getFactory().makeList(tail);
 	}
 
 	@Override

@@ -1,21 +1,23 @@
 package org.strategoxt.imp.runtime.parser.ast;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Iterator;
-
-import org.eclipse.core.runtime.IPath;
-import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.interpreter.terms.ITermPrinter;
-import org.spoofax.interpreter.terms.InlinePrinter;
-import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
-import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
+import java.util.List;
 
 import lpg.runtime.IAst;
 import lpg.runtime.IAstVisitor;
 import lpg.runtime.IPrsStream;
 import lpg.runtime.IToken;
+
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.imp.language.Language;
+import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.ITermPrinter;
+import org.spoofax.interpreter.terms.InlinePrinter;
+import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.parser.SGLRParseController;
+import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
+import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 
 /**
  * A node of an SGLR abstract syntax tree.
@@ -56,6 +58,14 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 	
 	public boolean isList() {
 		return false;
+	}
+	
+	public Language getLanguage() {
+		return getRoot().getLanguage();
+	}
+	
+	public SGLRParseController getParseController() {
+		return getRoot().getParseController();
 	}
 	
 	// must expose impl. type for interface
@@ -170,30 +180,17 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
     
     @Override
     public int hashCode() {
-    	int result =  235235 ^ getChildren().size();
-    	String constructor = getConstructor();
-    	String sort = getSort();
-    	
-    	if (constructor != null) result ^= constructor.hashCode();  
-    	if (sort != null) result ^= sort.hashCode();
-    	
-    	return result;
-    }
-
-    /* UNDONE: Removed aterm<->ast node coupling
-    @Override
-	public boolean equals(Object o) {
-    	if (o instanceof SGLRAstNode)
-    		return getATerm().equals(((SGLRAstNode) o).getATerm());
-    	else
-    		return false;
+    	return getTerm().hashCode();
     }
     
     @Override
-    public int hashCode() {
-    	return getATerm().hashCode();
+    public boolean equals(Object obj) {
+    	if (obj instanceof IStrategoAstNode) {
+        	return this == obj || ((IStrategoAstNode) obj).getTerm().equals(getTerm());
+    	} else {
+    		return false;
+    	}
     }
-    */
     
     // Visitor support
     

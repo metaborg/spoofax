@@ -25,6 +25,8 @@ public class StrategoFeedbackFactory {
 		IStrategoAppl document = descriptor.getDocument();
 		Interpreter interpreter;
 		
+		// TODO: Sharing of FeedBack instances
+		
 		try {
 			interpreter = Environment.createInterpreter();
 		} catch (Exception e) {
