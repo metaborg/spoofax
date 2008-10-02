@@ -50,8 +50,15 @@ public abstract class WrappedAstNode implements IWrappedAstNode, IStrategoTerm, 
 		return annotations == null ? WrappedAstNodeFactory.EMPTY_LIST : annotations;
 	}
 	
-	protected void internalSetAnnotations(IStrategoList annotations) {
-		this.annotations = annotations;
+	/**
+	 * Creates a copy of this term, and applies the given annotations to it.
+	 * 
+	 * @see WrappedAstNodeFactory#annotateTerm(IStrategoTerm, IStrategoList)
+	 */
+	protected WrappedAstNode setAnnotations(IStrategoList annotations) {
+		WrappedAstNode result = clone();
+		result.annotations = annotations;
+		return result;
 	}
 	
 	public final boolean match(IStrategoTerm second) {

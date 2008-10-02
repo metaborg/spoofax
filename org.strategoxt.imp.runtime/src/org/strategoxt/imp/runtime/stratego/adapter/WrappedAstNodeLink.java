@@ -2,18 +2,19 @@ package org.strategoxt.imp.runtime.stratego.adapter;
 
 import lpg.runtime.IAst;
 
-import org.spoofax.NotImplementedException;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoInt;
-import org.spoofax.interpreter.terms.IStrategoReal;
 import org.spoofax.interpreter.terms.IStrategoList;
+import org.spoofax.interpreter.terms.IStrategoReal;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermPrinter;
 
 /**
+ * A wrapper class linking any {@link IStrategoTerm} to an {@link IAst} node.
+ * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class WrappedAstNodeLink extends WrappedAstNode implements IWrappedAstNode, IStrategoTerm, IStrategoList, IStrategoAppl, IStrategoTuple, IStrategoInt, IStrategoReal, IStrategoString {
@@ -33,9 +34,10 @@ public class WrappedAstNodeLink extends WrappedAstNode implements IWrappedAstNod
 	// Annotation handling
 	
 	@Override
-	protected void internalSetAnnotations(IStrategoList annotations) {
-		// TODO: Annotations on linked ast nodes
-		throw new NotImplementedException("Annotations on linked ast nodes");
+	protected WrappedAstNodeLink setAnnotations(IStrategoList annotations) {
+		// To get a working equals() and hashCode() impl, we need to annotate the wrapped term
+		IStrategoTerm wrapped = getFactory().annotateTerm(getWrapped(), annotations);
+		return new WrappedAstNodeLink(getFactory(), wrapped, getNode());
 	}
 	
 	// Common accessors

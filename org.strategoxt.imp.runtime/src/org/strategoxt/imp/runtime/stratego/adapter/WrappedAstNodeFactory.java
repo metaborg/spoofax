@@ -65,9 +65,7 @@ public class WrappedAstNodeFactory extends BasicTermFactory implements ITermFact
 	@Override
 	public IStrategoTerm annotateTerm(IStrategoTerm term, IStrategoList annotations) {
 		if (term instanceof WrappedAstNode) {
-			WrappedAstNode result = ((WrappedAstNode) term).clone();
-			result.internalSetAnnotations(annotations);
-			return result;
+			return ((WrappedAstNode) term).setAnnotations(annotations);
 		} else {
 			return super.annotateTerm(term, annotations);
 		}
