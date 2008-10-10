@@ -73,6 +73,7 @@ public final class Environment {
 		result.load(Compiler.sharePath() + "/stratego-lib/libstratego-lib.ctree");
 		result.load(Compiler.sharePath() + "/libstratego-sglr.ctree");
 		result.load(Compiler.sharePath() + "/libstratego-gpp.ctree");
+		result.load(Environment.class.getResourceAsStream("/stratego-editor-support.ctree"));
 		
 		return result;
 	}

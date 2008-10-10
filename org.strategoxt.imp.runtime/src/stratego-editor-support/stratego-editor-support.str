@@ -1,0 +1,5 @@
+module stratego-editor-support
+
+imports
+  dr-scoping
+  term

@@ -7,16 +7,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import lpg.runtime.IAst;
 import lpg.runtime.IToken;
 import lpg.runtime.PrsStream;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.imp.builder.MarkerCreator;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.model.ISourceProject;
@@ -39,7 +34,6 @@ import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenIterator;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
-import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 
 /**
  * IMP parse controller for an SGLR parser.
