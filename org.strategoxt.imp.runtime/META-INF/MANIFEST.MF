@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: sdf2imp plug-in
 Bundle-SymbolicName: org.strategoxt.imp.runtime;singleton:=true
-Bundle-Version: 1.0.0
+Bundle-Version: 0.1.0.2131
 Import-Package: org.osgi.framework;version="1.3.0"
 Require-Bundle: org.eclipse.imp.runtime,
  org.spoofax.aterm,
@@ -27,3 +27,4 @@ Export-Package: org.strategoxt.imp.runtime,
  org.strategoxt.imp.runtime.parser.tokens,
  org.strategoxt.imp.runtime.services,
  org.strategoxt.imp.runtime.dynamicloading
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6

@@ -22,13 +22,13 @@ public class IMPIOAgent extends IOAgent {
 	}
 	
 	@Override
-	public InputStream openInputStream(String path, boolean isSourceRelative)
+	public InputStream openInputStream(String path, boolean isInternalFile)
 			throws FileNotFoundException {
 		
-		if (isSourceRelative) {
+		if (isInternalFile) {
 			return openAttachedFile(path);
 		} else {
-			return super.openInputStream(path, isSourceRelative);
+			return super.openInputStream(path, isInternalFile);
 		}
 	}
 	
@@ -45,10 +45,5 @@ public class IMPIOAgent extends IOAgent {
 				throw e;
 			}
 		}
-	}
-	
-	@Override
-	protected String adaptFilePath(String fn) { // TODO: Something with IOAgent paths?
-		return super.adaptFilePath(fn);
 	}
 }
