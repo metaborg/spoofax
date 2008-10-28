@@ -38,11 +38,13 @@ strategies
           sPlugin = this;
         }
       
+        @Override
         public void start(BundleContext context) throws Exception {
           super.start(context);
       
         }
       
+        @Override
         public String getID() {
           return kPluginID;
         }

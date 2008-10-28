@@ -6,6 +6,8 @@ imports
 strategies
 
   create-manifest =
+    <file-exists> "META-INF/MANIFEST.MF"
+  <+
     name    := <get-main-class-name>;
     package := <BasePackage <+ default-package-name>;
     
@@ -30,4 +32,5 @@ Require-Bundle: org.eclipse.core.runtime,
   org.strategoxt.imp.runtime,
   org.spoofax.aterm,
   org.spoofax.jsglr
+Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 ")

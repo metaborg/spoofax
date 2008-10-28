@@ -6,19 +6,15 @@ imports
 strategies
 
   create-build-properties =
-    esv   := <packed-descriptor-file-name>;
-    table := <parse-table-target>;
-    
+    <file-exists> "build.properties"
+  <+
     <output-text-file(|[], "build.properties")>
-    
-<conc-strings> (
 "source.. = src/
 output.. = bin/
 bin.includes = META-INF/,\\
                .,\\
                plugin.xml,\\
-               ", table, ",\\
-               include/", esv, "\\
+               include/,\\
                bin/,\\
-               /
-")
+               .
+"

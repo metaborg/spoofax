@@ -6,6 +6,8 @@ imports
 strategies
 
   create-plugin-xml =
+    <file-exists> "plugin.xml"
+  <+
     name       := <get-sdf-main-module>;
     classname  := <get-main-class-name>;
     pkgname    := <BasePackage <+ default-package-name>;
