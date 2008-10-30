@@ -7,11 +7,21 @@
       <language
             description="sdf2imp metatooling dynamic language placeholder"
             extensions="sdf2impbase2"
-            language="Root2"
+            language="RootExt"
             validatorClass="org.strategoxt.imp.metatooling.DynamicLanguageValidator"
             validator="org.strategoxt.imp.metatooling.DynamicLanguageValidator">
             <!-- "validator" is wat imp currently (incorrectly) tries to load) -->
       </language>
+   </extension>
+   <extension
+         point="org.eclipse.ui.newWizards">
+      <wizard
+            category="org.strategoxt.imp.metatooling"
+            class="org.strategoxt.imp.metatooling.wizards.NewEditorWizard"
+            icon="icons/sample.gif"
+            id="org.strategoxt.imp.metatooling.wizards.sdf2imp editor"
+            name="org.eclipse.imp.wizards">
+      </wizard>
    </extension>
    
 </plugin>
