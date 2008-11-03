@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Metatooling Plug-in
 Bundle-SymbolicName: org.strategoxt.imp.metatooling;singleton:=true
-Bundle-Version: 0.1.0.2131
+Bundle-Version: 0.1.0.2161
 Bundle-ClassPath: org.strategoxt.imp.metatooling/
 Require-Bundle: org.eclipse.imp.runtime,
  org.spoofax.aterm,

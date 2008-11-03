@@ -1,8 +1,8 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: sdf2imp plug-in
+Bundle-Name: sdf2imp runtime plug-in
 Bundle-SymbolicName: org.strategoxt.imp.runtime;singleton:=true
-Bundle-Version: 0.1.0.2131
+Bundle-Version: 0.1.0.2161
 Require-Bundle: org.eclipse.imp.runtime,
  org.spoofax.aterm,
  org.spoofax.jsglr,
@@ -19,7 +19,7 @@ Require-Bundle: org.eclipse.imp.runtime,
  org.eclipse.ui.editors,
  org.eclipse.ui.workbench,
  org.eclipse.ui,
- org.spoofax.compiler;bundle-version="0.3.9"
+ org.spoofax.compiler
 Export-Package: org.strategoxt.imp.runtime,
  org.strategoxt.imp.runtime.parser,
  org.strategoxt.imp.runtime.parser.ast,

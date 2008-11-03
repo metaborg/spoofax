@@ -34,9 +34,9 @@ strategies
       public class x_name extends DynamicParseController {
         private static final String LANGUAGE = "~table";
 
-        private static final String TABLE = "/syntax/" + LANGUAGE + ".tbl";
+        private static final String TABLE = "/include/" + LANGUAGE + ".tbl";
 
-        private static final String DESCRIPTOR = "/" + LANGUAGE + ".packed.esv";
+        private static final String DESCRIPTOR = "/include/" + LANGUAGE + ".packed.esv";
 
         private static boolean registered;
         
@@ -49,10 +49,10 @@ strategies
               InputStream table = x_name.class.getResourceAsStream(TABLE);
 
               if (descriptorStream == null)
-                throw new BadDescriptorException("Could not load descriptor file from " + DESCRIPTOR);
+                throw new BadDescriptorException("Could not load descriptor file from " + DESCRIPTOR + " (not found in plugin)");
 
               if (table == null)
-                throw new BadDescriptorException("Could not load parse table from " + TABLE);
+                throw new BadDescriptorException("Could not load parse table from " + TABLE + " (not found in plugin)");
 
               Descriptor descriptor = DescriptorFactory.load(descriptorStream, table, null);
               initialize(descriptor.getLanguage());
