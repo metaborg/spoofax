@@ -61,7 +61,7 @@ clean :
 	@parse-stratego -i $< -o $@ $(STRINCLUDES)
 
 %.ctree : src/%.str
-	strc -F -i $< -o $@ -m main-sdf2imp $(STRINCLUDES) $(STRCSTFU)
+	strc -F --library -i $< -o $@ $(STRINCLUDES) $(STRCSTFU)
 
 %.pp : %.def
 	ppgen -i $< -o $@
