@@ -1,0 +1,31 @@
+module org/spoofax/bindings/jsglr/jsglr-parser
+
+signature
+  sorts ParseTable
+  constructors
+    ParseTable : Int -> ParseTable
+    
+strategies
+
+  /**
+   * @type SerializedParseTable -> ParseTable
+   */
+  jsglr-open-parsetable = 
+      ?tbl
+    ; prim("JSGLR_open_parsetable", tbl) => internal
+    ; !ParseTable(internal)
+    
+  jsglr-parse-string(|tbl) =
+    jsglr-parse-string(id | tbl, None(), "string")
+  
+  jsglr-parse-string(on-parse-error | tbl, start-symbol, path) =
+      jsglr-parse-string-pt(on-parse-error | tbl, start-symbol, path)
+    ; implode-asfix
+    
+strategies
+
+  jsglr-parse-string-pt(on-parse-error | tbl, start-symbol, path) =
+      where(!tbl => ParseTable(internal-tbl))
+    ; ?string
+    ; prim("JSGLR_parse_string_pt", on-parse-error | string, internal-tbl, start-symbol, path)
+    

@@ -1,0 +1,22 @@
+module jsglr-parser-compat
+
+imports
+  libstratego-lib
+  jsglr-parser
+    
+strategies
+
+  /**
+   * @type SerializedParseTable -> ParseTable
+   */
+  open-parse-table = jsglr-open-parsetable
+  
+  parse-stream-pt(on-parse-error |tbl, start-symbol, path):
+    stream -> term
+    where
+      read-text-from-stream;
+      jsglr-parse-string-pt(on-parse-error |tbl, start-symbol, path) => term
+
+strategies // Interface to SGLR functions
+
+  external implode-asfix(|)

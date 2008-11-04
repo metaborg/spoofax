@@ -70,9 +70,11 @@ public final class Environment {
 		result.addOperatorRegistry(IMPLibrary.REGISTRY_NAME, new IMPLibrary());
 		result.setIOAgent(new IMPIOAgent());
 		
-		result.load(Compiler.sharePath() + "/stratego-lib/libstratego-lib.ctree");
-		result.load(Compiler.sharePath() + "/libstratego-sglr.ctree");
-		result.load(Compiler.sharePath() + "/libstratego-gpp.ctree");
+		result.load(Environment.class.getResourceAsStream("/include/libstratego-lib.ctree"));
+		result.load(Environment.class.getResourceAsStream("/include/libstratego-sglr.ctree"));
+		result.load(Environment.class.getResourceAsStream("/include/libstratego-gpp.ctree"));
+		result.load(Environment.class.getResourceAsStream("/include/libstratego-xtc.ctree"));
+		
 		result.load(Environment.class.getResourceAsStream("/stratego-editor-support.ctree"));
 		
 		return result;
