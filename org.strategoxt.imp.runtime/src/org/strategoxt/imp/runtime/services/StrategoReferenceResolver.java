@@ -32,7 +32,7 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 	private final WeakHashMap<IStrategoAstNode, String> helpCache =
 		new WeakHashMap<IStrategoAstNode, String>();
 	
-	private final IStrategoAstNode NOT_FOUND = new IntAstNode(null, 0, null, null) {};
+	private final IStrategoAstNode NOT_FOUND = new IntAstNode(null, 0, null, null) { /* uses protected c'tor */ };
 	
 	public StrategoReferenceResolver(StrategoFeedback feedback, Map<String, String> resolverFunctions, Map<String, String> helpFunctions) {
 		this.feedback = feedback;

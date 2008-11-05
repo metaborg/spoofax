@@ -7,10 +7,9 @@ import java.util.Map;
 
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.runtime.RuntimePlugin;
-import org.spoofax.compiler.Compiler;
+import org.spoofax.interpreter.adapter.aterm.WrappedATermFactory;
 import org.spoofax.interpreter.core.Interpreter;
 import org.spoofax.interpreter.core.InterpreterException;
-import org.spoofax.interpreter.adapter.aterm.WrappedATermFactory;
 import org.spoofax.jsglr.InvalidParseTableException;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.ParseTableManager;
@@ -62,7 +61,7 @@ public final class Environment {
 	}
 
 	public static Interpreter createInterpreter() throws IOException, InterpreterException {
-		// We ue the wrappedAstNode factory for both the programs and the terms,
+		// We use the wrappedAstNode factory for both the programs and the terms,
 		// to ensure they are compatible.
 		Interpreter result = new Interpreter(wrappedAstNodeFactory);
 

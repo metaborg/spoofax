@@ -15,7 +15,9 @@ import static org.spoofax.interpreter.terms.IStrategoTerm.*;
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class TermReader {
-	private TermReader() {}
+	private TermReader() {
+		// TermReader cannot be constructed
+	}
 	
 	public static IStrategoAppl findTerm(IStrategoTerm term, String constructor) {
 		if (term instanceof IStrategoAppl && cons(term).equals(constructor))

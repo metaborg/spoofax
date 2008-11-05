@@ -16,7 +16,6 @@ import org.strategoxt.imp.runtime.Environment;
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class DescriptorFactory {
-	private DescriptorFactory() {}
 	
 	public static Descriptor load(IFile descriptor) throws CoreException, BadDescriptorException, IOException {
 		IPath basePath = descriptor.getLocation();

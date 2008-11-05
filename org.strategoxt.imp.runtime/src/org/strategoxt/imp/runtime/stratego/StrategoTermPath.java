@@ -15,7 +15,9 @@ import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
  */
 public class StrategoTermPath extends StrategoListProxy {
 
-	private StrategoTermPath() {}
+	private StrategoTermPath() {
+		// Constructed by a static constructor
+	}
 	
 	public static IStrategoList createPath(IStrategoAstNode node) {
 		List<IStrategoTerm> path = new ArrayList<IStrategoTerm>();
