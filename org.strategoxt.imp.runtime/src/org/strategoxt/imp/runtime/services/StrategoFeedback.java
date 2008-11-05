@@ -68,7 +68,7 @@ public class StrategoFeedback implements IModelListener {
 			};
 			IStrategoTerm input = factory.makeTuple(inputParts);
 
-			IStrategoTerm feedback = invoke(feedbackFunction, input, ast.getRootPath());
+			IStrategoTerm feedback = invoke(feedbackFunction, input, ast.getResourcePath().removeLastSegments(1));
 			
 			messages.clearAllMarkers();
 
@@ -132,7 +132,7 @@ public class StrategoFeedback implements IModelListener {
 		};
 		IStrategoTerm input = factory.makeTuple(inputParts);
 		
-		return invoke(function, input, node.getResourcePath());
+		return invoke(function, input, node.getResourcePath().removeLastSegments(1));
 	}
 	
 	public IStrategoTerm invoke(String function, IStrategoTerm term, IPath workingDir) {
