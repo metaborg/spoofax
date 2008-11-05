@@ -11,6 +11,9 @@ import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 
 /**
+ * This class overrides the default IOAgent to support attached files in editor plugins,
+ * and may redirect any disk reads to the Eclipse API. 
+ * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class IMPIOAgent extends IOAgent {
