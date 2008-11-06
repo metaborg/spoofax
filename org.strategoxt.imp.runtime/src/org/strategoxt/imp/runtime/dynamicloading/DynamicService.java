@@ -66,9 +66,14 @@ public class DynamicService<T extends ILanguageService> {
 	public void initialize(Language language) {
 		this.language = language;
 		getWrapped();
+		Environment.getDescriptor(language).initializeService(this);
 	}
 	
-	public void uninitialize(Language language) {
+	/**
+	 * Uninitializes the reference to the class that implements this service,
+	 * ensuring it is reinitialized on use.
+	 */
+	public void uninitialize() {
 		wrapped = null;
 		language = null;
 	}

@@ -39,11 +39,11 @@ public final class Environment {
 	private final static ParseTableManager parseTableManager
 		= new ParseTableManager(factory);
 	
-	private final static Map<Language, ParseTable> parseTables
-		= new HashMap<Language, ParseTable>();
+	private final static Map<String, ParseTable> parseTables
+		= new HashMap<String, ParseTable>();
 	
-	private final static Map<Language, Descriptor> descriptors
-		= new HashMap<Language, Descriptor>();
+	private final static Map<String, Descriptor> descriptors
+		= new HashMap<String, Descriptor>();
 	
 	private final static WrappedAstNodeFactory wrappedAstNodeFactory
 		= new WrappedAstNodeFactory();
@@ -85,7 +85,7 @@ public final class Environment {
 		Debug.startTimer();
 		ParseTable table = parseTableManager.loadFromStream(parseTable);
 			
-		parseTables.put(language, table);
+		parseTables.put(language.getName(), table);
 		assert getParseTable(language) == table;
 		
 		Debug.stopTimer("Parse table loaded");
@@ -94,7 +94,7 @@ public final class Environment {
 	}
 	
 	public static ParseTable getParseTable(Language language) {
-		ParseTable table = parseTables.get(language);
+		ParseTable table = parseTables.get(language.getName());
 		
 		if (table == null)
 			throw new IllegalStateException("Parse table not available: " + language.getName());
@@ -103,11 +103,17 @@ public final class Environment {
 	}
 	
 	public static Descriptor getDescriptor(Language language) {
-		return descriptors.get(language);
+		return descriptors.get(language.getName());
 	}
 	
 	public static void registerDescriptor(Language language, Descriptor descriptor) {
-		descriptors.put(language, descriptor);
+		Descriptor oldDescriptor = getDescriptor(language);
+		
+		if (oldDescriptor != null) {
+			oldDescriptor.uninitialize();
+		}
+		
+		descriptors.put(language.getName(), descriptor);
 	}
 	
 	public static void logException(String message, Throwable t) {

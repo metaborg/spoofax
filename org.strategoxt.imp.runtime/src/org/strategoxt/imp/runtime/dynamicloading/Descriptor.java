@@ -7,6 +7,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IPath;
@@ -32,7 +34,9 @@ public class Descriptor {
 	private static final Language LANGUAGE =
 		new Language("EditorService-builtin", "org.strategoxt.imp.builtin.editorservice", "", "Root", "", "", "", null);
 	
-	private static SGLRParser parser;
+	private static SGLRParser descriptorParser;
+	
+	private final List<DynamicService> services = new ArrayList<DynamicService>();
 	
 	private final DynamicServiceFactory serviceFactory;
 	
@@ -51,12 +55,12 @@ public class Descriptor {
 	// LOADING DESCRIPTOR 
 	
 	private static void init() {
-		if (parser != null) return;
+		if (descriptorParser != null) return;
 		try {
 			SGLR.setWorkAroundMultipleLookahead(true);
 			InputStream stream = Descriptor.class.getResourceAsStream("/syntax/EditorService.tbl");
 			ParseTable table = Environment.registerParseTable(LANGUAGE, stream);
-			parser = new SGLRParser(table, "Module");
+			descriptorParser = new SGLRParser(table, "Module");
 		} catch (Throwable e) {
 			Environment.logException("Could not initialize the Descriptor class.", e);
 			throw new RuntimeException(e);
@@ -71,7 +75,7 @@ public class Descriptor {
 	protected static Descriptor load(InputStream input) throws BadDescriptorException, IOException {
 		try {
 			init();
-			IStrategoAppl document = parser.parse(input, null).getTerm();
+			IStrategoAppl document = descriptorParser.parse(input, null).getTerm();
 			return new Descriptor(document);
 		} catch (SGLRException e) {
 			throw new BadDescriptorException("Could not parse descriptor file", e);
@@ -80,6 +84,20 @@ public class Descriptor {
 	
 	protected void setBasePath(IPath basePath) {
 		this.basePath = basePath;
+	}
+	
+	public void initializeService(DynamicService service) {
+		services.add(service);
+	}
+	
+	/**
+	 * Uninitialize all dynamic services associated with this Descriptor.
+	 * 
+	 * @see DynamicService#uninitialize()
+	 */
+	public void uninitialize() {
+		for (DynamicService service : services)
+			service.uninitialize();
 	}
 	
 	// LOADING SERVICES
