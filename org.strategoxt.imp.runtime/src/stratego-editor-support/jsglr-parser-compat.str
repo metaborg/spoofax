@@ -6,6 +6,8 @@ imports
     
 strategies
 
+  // TODO: Move to JSGLR project?
+
   /**
    * @type SerializedParseTable -> ParseTable
    */
@@ -16,6 +18,9 @@ strategies
     where
       read-text-from-stream;
       jsglr-parse-string-pt(on-parse-error |tbl, start-symbol, path) => term
+  
+  parse-string-pt(on-parse-error | tbl, start-symbol, path) =
+    jsglr-parse-string-pt(on-parse-error | tbl, start-symbol, path)
 
 strategies // Interface to SGLR functions
 
