@@ -32,26 +32,34 @@ public class DynamicServiceFactory {
 		// TODO: Dynamic registration of service factories
 		//       (which should not be static)
 		
-		if (IParseController.class.isAssignableFrom(type)) {
-			ILanguageSyntaxProperties syntaxProperties = getService(ILanguageSyntaxProperties.class);
-			result = new SGLRParseController(descriptor.getLanguage(), syntaxProperties, descriptor.getStartSymbols());
-
-		} else if (ITokenColorer.class.isAssignableFrom(type)) {
-			result = TokenColorerFactory.create(descriptorFile);
+		try {
+			if (IParseController.class.isAssignableFrom(type)) {
+				ILanguageSyntaxProperties syntaxProperties = getService(ILanguageSyntaxProperties.class);
+				result = new SGLRParseController(descriptor.getLanguage(), syntaxProperties, descriptor.getStartSymbols());
+	
+			} else if (ITokenColorer.class.isAssignableFrom(type)) {
+				result = TokenColorerFactory.create(descriptorFile);
+			
+			} else if (IReferenceResolver.class.isAssignableFrom(type)) {
+				result = ReferenceResolverFactory.create(descriptor);
+			
+			} else if (ILanguageSyntaxProperties.class.isAssignableFrom(type)) {
+				result = SyntaxPropertiesFactory.create(descriptorFile);
+			
+			} else if (IFoldingUpdater.class.isAssignableFrom(type)) {
+				result = FoldingUpdaterFactory.create(descriptorFile);
+			
+			} else {
+				throw new IllegalArgumentException(type.getSimpleName() + " is not a supported editor service type");
+			}
 		
-		} else if (IReferenceResolver.class.isAssignableFrom(type)) {
-			result = ReferenceResolverFactory.create(descriptor);
-		
-		} else if (ILanguageSyntaxProperties.class.isAssignableFrom(type)) {
-			result = SyntaxPropertiesFactory.create(descriptorFile);
-		
-		} else if (IFoldingUpdater.class.isAssignableFrom(type)) {
-			result = FoldingUpdaterFactory.create(descriptorFile);
-		
-		} else {
-			throw new IllegalArgumentException(type.getSimpleName() + " is not a supported editor service type");
+			return type.cast(result);
+		} catch (RuntimeException e) {
+			throw new BadDescriptorException("Exception occurred when initializing "
+					+ type.getSimpleName()
+					+ " editor service for "
+					+ descriptor.getLanguage().getName()
+					);
 		}
-		
-		return type.cast(result);
 	}
 }

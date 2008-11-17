@@ -41,7 +41,6 @@ public class WrappedAstNodeList extends WrappedAstNode implements IStrategoList 
 		return true;
 	}
 
-	@Override
 	public final IStrategoTerm get(int index) {
 		return getSubterm(index);
 	}
@@ -51,22 +50,18 @@ public class WrappedAstNodeList extends WrappedAstNode implements IStrategoList 
 		return super.getSubterm(index + offset);
 	}
 
-	@Override
 	public IStrategoTerm head() {
 		return get(offset);
 	}
 
-	@Override
 	public final boolean isEmpty() {
 		return getSubtermCount() == 0;
 	}
 
-	@Override
 	public final int size() {
 		return getSubtermCount();
 	}
 
-	@Override
 	public IStrategoList tail() {
 		// FIXME: Head/tail impl of lists, or caching?!
 		
@@ -78,12 +73,10 @@ public class WrappedAstNodeList extends WrappedAstNode implements IStrategoList 
 		return getFactory().makeList(tail);
 	}
 
-	@Override
 	public int getTermType() {
 		return LIST;
 	}
 
-	@Override
 	public void prettyPrint(ITermPrinter pp) {
 		int sz = size();
 		if (sz > 0) {
@@ -115,7 +108,6 @@ public class WrappedAstNodeList extends WrappedAstNode implements IStrategoList 
 		return (int) (hc >> 2);
 	}
 
-	@Override
 	@Deprecated
 	public IStrategoList prepend(IStrategoTerm prefix) {
 		return Environment.getTermFactory().makeList(prefix, this);

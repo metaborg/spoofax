@@ -44,7 +44,6 @@ public class TokenColorer implements ITokenColorer {
 		this.envMappings = envMappings;
 	}
 
-	@Override
 	public TextAttribute getColoring(IParseController controller, Object oToken) {
 		SGLRToken token = (SGLRToken) oToken;
 		AstNode node = token.getAstNode();
@@ -134,7 +133,6 @@ public class TokenColorer implements ITokenColorer {
 		return attribute;
 	}
 
-	@Override
 	public IRegion calculateDamageExtent(IRegion seed) {
 		if (parseController.getCurrentAst() == null) return seed;
 		

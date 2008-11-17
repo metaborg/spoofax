@@ -1,15 +1,17 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <?eclipse version="3.0"?>
-<plugin
->
+
+<plugin>
    <extension
          point="org.eclipse.imp.runtime.languageDescription">
       <language
             description="sdf2imp metatooling dynamic language placeholder"
-            extensions="sdf2impbase2"
-            language="RootExt"
+            extensions="sdf2impbasetoo"
+            language="ExtRoot"
             validatorClass="org.strategoxt.imp.metatooling.DynamicLanguageValidator"
-            validator="org.strategoxt.imp.metatooling.DynamicLanguageValidator">
+            validator="org.strategoxt.imp.metatooling.DynamicLanguageValidator"
+            >
+            <!-- The validator class is used to start the dynamic loader       -->
             <!-- "validator" is wat imp currently (incorrectly) tries to load) -->
       </language>
    </extension>

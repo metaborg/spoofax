@@ -14,12 +14,10 @@ public abstract class AbstractVisitor implements IAstVisitor {
 
 	public abstract void postVisit(AstNode node);
 	
-	@Override
 	public final boolean preVisit(IAst arg0) {
 		return preVisit((AstNode) arg0);
 	}
 
-	@Override
 	public final void postVisit(IAst arg0) {
 		postVisit((AstNode) arg0);
 	}

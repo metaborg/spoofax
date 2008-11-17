@@ -19,10 +19,13 @@ class SyntaxPropertiesFactory {
 
 		IStrategoAppl blockComment = findTerm(descriptor, "BlockCommentDef");
 		result.singleLineCommentPrefix = termContents(findTerm(descriptor, "LineCommentPrefix"));
-		result.blockCommentStart = termContents(termAt(blockComment, 0));
-		result.blockCommentContinuation = termContents(termAt(blockComment, 1));
-		result.blockCommentEnd = termContents(termAt(blockComment, 2));
 		result.fences = readFences(descriptor);
+		
+		if (blockComment != null) {
+			result.blockCommentStart = termContents(termAt(blockComment, 0));
+			result.blockCommentContinuation = termContents(termAt(blockComment, 1));
+			result.blockCommentEnd = termContents(termAt(blockComment, 2));
+		}
 		
 		return result;
 	}

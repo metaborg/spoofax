@@ -17,6 +17,10 @@ public class StartupDescriptorLoader {
 	
 	private static final DynamicDescriptorLoader loader = new DynamicDescriptorLoader();
 	
+	/**
+	 * Initializes the dynamic language loading component.
+	 * May be invoked by {@link DynamicLanguageValidator }
+	 */
 	public static void initialize() {
 		if (didInitialize) return;
 		

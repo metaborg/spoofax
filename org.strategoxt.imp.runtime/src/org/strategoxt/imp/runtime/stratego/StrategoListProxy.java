@@ -68,7 +68,7 @@ public class StrategoListProxy implements IStrategoList {
 		getWrapped().prettyPrint(pp);
 	}
 
-	@Override @Deprecated
+	@Deprecated
 	public IStrategoList prepend(IStrategoTerm prefix) {
 		return getWrapped().prepend(prefix);
 	}

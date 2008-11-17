@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Metatooling Plug-in
+Bundle-Name: sdf2imp metatooling plug-in
 Bundle-SymbolicName: org.strategoxt.imp.metatooling;singleton:=true
 Bundle-Version: 0.1.0.2161
 Bundle-ClassPath: org.strategoxt.imp.metatooling/
@@ -23,4 +23,4 @@ Require-Bundle: org.eclipse.imp.runtime,
  org.spoofax.compiler,
  org.strategoxt.imp.runtime,
  org.eclipse.ui.ide
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: J2SE-1.5

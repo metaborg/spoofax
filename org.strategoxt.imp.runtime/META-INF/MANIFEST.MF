@@ -26,4 +26,4 @@ Export-Package: org.strategoxt.imp.runtime,
  org.strategoxt.imp.runtime.parser.tokens,
  org.strategoxt.imp.runtime.services,
  org.strategoxt.imp.runtime.dynamicloading
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-RequiredExecutionEnvironment: J2SE-1.5

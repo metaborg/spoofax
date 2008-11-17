@@ -23,17 +23,14 @@ public class SGLRTokenIterator implements Iterator<IToken> {
 		lastIndex = Math.abs(stream.getTokenIndexAtCharacter(region.getOffset() + region.getLength()));
 	}
 
-	@Override
 	public boolean hasNext() {
 		return index <= lastIndex;
 	}
 
-	@Override
 	public IToken next() {
 		return stream.getTokenAt(index++);
 	}
 
-	@Override
 	public void remove() {
 		throw new UnsupportedOperationException();
 	}

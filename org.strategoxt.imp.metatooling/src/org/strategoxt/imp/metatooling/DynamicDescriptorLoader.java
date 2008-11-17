@@ -22,7 +22,6 @@ public class DynamicDescriptorLoader implements IResourceChangeListener {
 	
 	// TODO: Reloading should trigger for dependant files, attachments, etc.
 
-	@Override
 	public void resourceChanged(IResourceChangeEvent event) {
 		if (event.getType() == IResourceChangeEvent.POST_CHANGE) {
 			postResourceChanged(event.getDelta());

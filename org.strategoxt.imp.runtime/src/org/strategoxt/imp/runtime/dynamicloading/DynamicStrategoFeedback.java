@@ -14,12 +14,10 @@ public class DynamicStrategoFeedback extends DynamicService<StrategoFeedback> im
 		super(StrategoFeedback.class);
 	}
 
-	@Override
 	public AnalysisRequired getAnalysisRequired() {
 		return AnalysisRequired.SYNTACTIC_ANALYSIS;
 	}
 
-	@Override
 	public void update(IParseController parseController, IProgressMonitor monitor) {
 		initialize(parseController.getLanguage());
 		getWrapped().update(parseController, monitor);

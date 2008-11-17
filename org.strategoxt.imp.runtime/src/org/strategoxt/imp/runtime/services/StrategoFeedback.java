@@ -52,7 +52,6 @@ public class StrategoFeedback implements IModelListener {
 		return AnalysisRequired.TYPE_ANALYSIS;
 	}
 
-	@Override
 	public void update(IParseController parseController, IProgressMonitor monitor) {
 		
 		// TODO: Threading of feedback method
