@@ -59,7 +59,7 @@ public class DynamicServiceFactory {
 					+ type.getSimpleName()
 					+ " editor service for "
 					+ descriptor.getLanguage().getName()
-					);
+					, e);
 		}
 	}
 }

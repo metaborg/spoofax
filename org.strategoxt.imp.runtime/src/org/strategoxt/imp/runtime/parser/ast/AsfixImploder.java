@@ -169,6 +169,8 @@ public class AsfixImploder {
 		if(constructor == null) {
 			if (isList) {
 				return createNonTerminal(sort, null, prevToken, children, true);
+			} else if (children.size() == 0) {
+				return createNonTerminal(sort, "None", prevToken, children, false);
 			} else {
 				assert children.size() == 1;
 				return children.get(0);

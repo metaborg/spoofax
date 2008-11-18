@@ -35,10 +35,13 @@ public class AstMessageHandler {
 	 * @param severity  The severity of this warning, one of {@link IMarker#SEVERITY_ERROR}, WARNING, or INFO.
 	 */
 	public void addMarker(IAst node, String message, int severity) {
-		assert node instanceof AstNode; // TODO: Be less SGLR specific?
+		if (!(node instanceof AstNode)) { // TODO: Be less SGLR specific?
+			Environment.logException("Cannot annotate a node of type " + node.getClass().getSimpleName() + ": " + node);
+			return;
+		}
 		
 		IFile file = getFile((AstNode) node);
-		assert file.exists();
+		if (!file.exists()) return;
 		
 		IToken left = node.getLeftIToken();
 		IToken right = node.getRightIToken();
@@ -61,6 +64,9 @@ public class AstMessageHandler {
 		for (IMarker marker : activeMarkers) {
 			try {
 				marker.delete();
+				for (IMarker otherMarker : marker.getResource().findMarkers(PROBLEM_MARKER_TYPE, true, 0)) {
+					otherMarker.delete();
+				}
 			} catch (CoreException e) {
 				Environment.logException("Unable to delete marker: " + marker, e);
 			}
