@@ -97,7 +97,11 @@ public class StrategoFeedback implements IModelListener {
 	    IStrategoString message = termAt(feedback, 1);
 	    IAst node = getClosestAstNode(term);
 	    
-	    messages.addMarker(node, message.stringValue(), severity);
+	    if (node == null) {
+	    	Environment.logException("ATerm is not associated with an AST node, cannot report feedback message: " + term + " - " + message);
+	    } else {
+	    	messages.addMarker(node, message.stringValue(), severity);
+	    }
 	}
 	
 	/**
