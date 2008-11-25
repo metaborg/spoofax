@@ -29,7 +29,7 @@ public class DynamicDescriptorLoader implements IResourceChangeListener {
 	}
 	
 	public void postResourceChanged(IResourceDelta delta) {
-		if ("esv".equals(delta.getResource().getFileExtension())) {
+		if (delta.getResource().getName().endsWith(".packed.esv")) {
 			switch (delta.getKind()) {
 				case IResourceDelta.ADDED:
 					descriptorAdded(delta.getResource());

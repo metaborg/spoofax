@@ -71,7 +71,8 @@ public class StrategoFeedback implements IModelListener {
 			
 			messages.clearAllMarkers();
 
-	        if (feedback.getTermType() == TUPLE
+	        if (feedback != null
+	        		&& feedback.getTermType() == TUPLE
 	        		&& termAt(feedback, 0).getTermType() == LIST
 					&& termAt(feedback, 1).getTermType() == LIST
 					&& termAt(feedback, 2).getTermType() == LIST) {

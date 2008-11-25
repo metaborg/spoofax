@@ -29,10 +29,10 @@ import org.strategoxt.imp.runtime.services.StrategoFeedback;
  * @see DescriptorFactory#load(IFile)
  */
 public class Descriptor {
-	public static final String ROOT_LANGUAGE = "Root";
+	public static final String ROOT_LANGUAGE = "DynamicRoot";
 	
 	private static final Language LANGUAGE =
-		new Language("EditorService-builtin", "org.strategoxt.imp.builtin.editorservice", "", "Root", "", "", "", null);
+		new Language("EditorService-builtin", "org.strategoxt.imp.builtin.editorservice", "", ROOT_LANGUAGE, "", "", "", null);
 	
 	private static SGLRParser descriptorParser;
 	

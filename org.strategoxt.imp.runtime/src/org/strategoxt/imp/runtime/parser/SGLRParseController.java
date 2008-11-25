@@ -34,6 +34,7 @@ import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenIterator;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
+import org.strategoxt.imp.runtime.services.StrategoFeedback;
 
 /**
  * IMP parse controller for an SGLR parser.
@@ -118,8 +119,10 @@ public class SGLRParseController implements IParseController {
 			currentAst = parser.parse(input.toCharArray(), getPath().toPortableString());
 			messages.clearMessages();
 			
-			// HACK: Call IModelListener.update manually, IMP extension point is not implemented
-			Environment.getDescriptor(getLanguage()).getStrategoFeedback().update(this, null);
+			// HACK: Call IModelListener.update manually, IMP extension point is not implemented?
+			StrategoFeedback feedback = Environment.getDescriptor(getLanguage()).getStrategoFeedback();
+			// FIXME: OMG THIS HAS TO RUN IN ANOTHER THREAD
+			if (feedback != null) feedback.update(this, null);
 		} catch (TokenExpectedException e) {
 			reportParseError(e);
 		} catch (BadTokenException e) {
