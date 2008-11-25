@@ -24,7 +24,7 @@ strategies
                 extensions="<%= extensions %>"
                 description="<%= name %>"
                 language="<%= name %>"
-                derivedFrom="Root"
+                derivedFrom="DynamicRoot"
           ></language>
        </extension>
        <extension

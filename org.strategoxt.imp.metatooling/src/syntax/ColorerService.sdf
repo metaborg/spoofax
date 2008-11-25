@@ -29,6 +29,7 @@ exports
     
     Node          -> ColorNode
     TokenKindName -> ColorNode {cons("Token"), prefer}
+    "token" Id    -> ColorNode {cons("Literal")}
     
     "identifier" -> TokenKindName {cons("TK_IDENTIFIER")}
     "number"     -> TokenKindName {cons("TK_NUMBER")}

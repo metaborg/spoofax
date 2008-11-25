@@ -1,5 +1,6 @@
 package org.strategoxt.imp.runtime.services;
 
+import static org.spoofax.interpreter.terms.IStrategoTerm.*;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.*;
 
 import java.io.FileNotFoundException;
@@ -16,7 +17,6 @@ import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
@@ -71,9 +71,10 @@ public class StrategoFeedback implements IModelListener {
 			
 			messages.clearAllMarkers();
 
-	        if (feedback instanceof IStrategoTuple && termAt(feedback, 0) instanceof IStrategoList
-					&& termAt(feedback, 1) instanceof IStrategoList
-					&& termAt(feedback, 1) instanceof IStrategoList) {
+	        if (feedback.getTermType() == TUPLE
+	        		&& termAt(feedback, 0).getTermType() == LIST
+					&& termAt(feedback, 1).getTermType() == LIST
+					&& termAt(feedback, 2).getTermType() == LIST) {
 	        	
 	            IStrategoList errors = termAt(feedback, 0);
                 IStrategoList warnings = termAt(feedback, 1);
