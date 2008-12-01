@@ -7,7 +7,7 @@
       <language
             description="sdf2imp generic base language"
             extensions="sdf2impbase"
-            language="Root">
+            language="DynamicRoot">
       </language>
    </extension>
    <extension
@@ -16,43 +16,50 @@
          point="org.eclipse.imp.runtime.parser">
       <parser
             class="org.strategoxt.imp.runtime.dynamicloading.DynamicParseController"
-            language="Root">
+            language="DynamicRoot">
       </parser>
    </extension>
    <extension
          point="org.eclipse.imp.runtime.tokenColorer">
       <tokenColorer
             class="org.strategoxt.imp.runtime.dynamicloading.DynamicTokenColorer"
-            language="Root">
+            language="DynamicRoot">
       </tokenColorer>
    </extension>
    <extension
          point="org.eclipse.imp.runtime.referenceResolvers">
       <referenceResolver
             class="org.strategoxt.imp.runtime.dynamicloading.DynamicReferenceResolver"
-            language="Root">
+            language="DynamicRoot">
       </referenceResolver>
    </extension>
    <extension
          point="org.eclipse.imp.runtime.foldingUpdater">
       <foldingUpdater
             class="org.strategoxt.imp.runtime.dynamicloading.DynamicFoldingUpdater"
-            language="Root">
+            language="DynamicRoot">
       </foldingUpdater>
    </extension>
    <extension
          point="org.eclipse.imp.runtime.documentationProvider">
       <docProvider
             class="org.strategoxt.imp.runtime.services.DocumentationProvider"
-            language="Root">
+            language="DynamicRoot">
       </docProvider>
+   </extension>
+   <extension
+         point="org.eclipse.imp.runtime.outliner">
+      <outliner
+            class="org.strategoxt.imp.runtime.dynamicloading.DynamicOutliner"
+            language="DynamicRoot">
+      </outliner>
    </extension>
    <!-- Extension point not implemented; manually called from SGLRParseController instead
    <extension
          point="org.eclipse.imp.runtime.modelListener">
       <listener
             class="org.strategoxt.imp.runtime.dynamicloading.DynamicStrategoFeedback"
-            language="Root">
+            language="DynamicRoot">
       </listener>
    </extension>
    -->

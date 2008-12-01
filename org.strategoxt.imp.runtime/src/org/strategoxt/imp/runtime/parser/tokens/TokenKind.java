@@ -38,7 +38,9 @@ public enum TokenKind {
 	/** Unknown token kind. */
 	TK_UNKNOWN,
 	
-	TK_RESERVED;
+	TK_RESERVED,
+	
+	TK_NO_TOKEN_KIND;
 	
 	public static TokenKind valueOf(int ordinal) {
 		if (0 <= ordinal && ordinal < values().length)

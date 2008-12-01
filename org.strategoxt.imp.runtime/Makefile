@@ -10,7 +10,7 @@ all : $(TABLE) stratego-editor-support.ctree ctree-libs
 	
 # We need a better solution for this
 ctree-libs :
+	rm -f include/libstratego-lib.ctree include/libstratego-sglr.ctree include/libstratego-gpp.ctree
 	cp ~/.nix-profile/share/stratego-lib/libstratego-lib.ctree include
 	cp ~/.nix-profile/share/libstratego-sglr.ctree include
 	cp ~/.nix-profile/share/libstratego-gpp.ctree include
-	cp ~/.nix-profile/share/libstratego-xtc.ctree include

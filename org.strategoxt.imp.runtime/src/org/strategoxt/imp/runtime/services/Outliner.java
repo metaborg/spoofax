@@ -1,20 +1,25 @@
 package org.strategoxt.imp.runtime.services;
 
+import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.*;
+
+import java.util.List;
 import java.util.Stack;
 
 import lpg.runtime.IPrsStream;
 import lpg.runtime.IToken;
 
+import org.eclipse.imp.parser.IParseController;
+import org.strategoxt.imp.runtime.parser.ast.AbstractVisitor;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
-import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.*;
 
 /**
  * Base class for an outliner.
  * 
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
-@Deprecated
-public abstract class OutlinerBase extends org.eclipse.imp.services.base.OutlinerBase {
+public class Outliner extends org.eclipse.imp.services.base.OutlinerBase {
+	// TODO: Re-implement outline based on TreeModelBuilderBase 
+	
 	/*
 	 * A shadow copy of the outline stack maintained in the super class,
 	 * holding all pushed AST nodes (rather than outline items).
@@ -25,14 +30,42 @@ public abstract class OutlinerBase extends org.eclipse.imp.services.base.Outline
 	 */
 	private Stack<AstNode> outlineStack = new Stack<AstNode>();
 	
+	private final List<NodeMapping> rules;
+	
+	public Outliner(List<NodeMapping> rules) {
+		this.rules = rules;
+	}	
+	
+    private class OutlineVisitor extends AbstractVisitor {
+		@Override
+		public boolean preVisit(AstNode node) {
+			for (int i = 0; i < rules.size(); i++) {
+				if (rules.get(i).getAttribute(node.getConstructor(), node.getSort(), 0) != null) {
+					outline(node);
+					return true;
+				}
+			}
+			
+			return true;
+		}
+
+		@Override
+		public void postVisit(AstNode node) {
+			endOutline(node);
+		}
+	}
+	
 	// Interface implementation
 	
 	@Override
 	protected final void sendVisitorToAST(Object node) {
-		sendVisitorToAST((AstNode) node);
+		((AstNode) node).accept(new OutlineVisitor());
 	}
 	
-	protected abstract void sendVisitorToAST(AstNode node);
+	@Override
+	protected boolean significantChange(IParseController controller) {
+		return true; // HACK: parent method is now LPG specific
+	}
 	
 	// Helper methods
 	

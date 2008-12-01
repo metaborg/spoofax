@@ -6,7 +6,7 @@ imports
 exports
 
   sorts
-    Section FoldingRule
+    Section FoldingRule FoldingAnno
 
   syntax
   
@@ -18,5 +18,9 @@ exports
     
     %% TODO: Reconsider "all" keyword for siblings; we already have list sorts using '*'
     
-          Node -> FoldingRule {cons("FoldRule")}
-    "all" Node -> FoldingRule {cons("FoldRuleAll")}
+          Node FoldingAnno -> FoldingRule {cons("FoldRule")}
+    "all" Node FoldingAnno -> FoldingRule {cons("FoldRuleAll")}
+
+    "(avoid)"  -> FoldingAnno {cons("Avoid")}
+    "(folded)" -> FoldingAnno {cons("Folded")}
+               -> FoldingAnno {cons("None")}

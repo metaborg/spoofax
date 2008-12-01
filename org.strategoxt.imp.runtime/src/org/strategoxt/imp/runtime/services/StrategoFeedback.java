@@ -59,6 +59,7 @@ public class StrategoFeedback implements IModelListener {
 		if (feedbackFunction != null) {
 			ITermFactory factory = Environment.getTermFactory();
 			IStrategoAstNode ast = (IStrategoAstNode) parseController.getCurrentAst();
+			if (ast == null) return;
 			
 			IStrategoTerm[] inputParts = {
 					ast.getTerm(),

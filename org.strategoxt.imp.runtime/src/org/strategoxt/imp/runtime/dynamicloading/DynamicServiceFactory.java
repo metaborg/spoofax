@@ -4,6 +4,7 @@ import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.services.IFoldingUpdater;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
+import org.eclipse.imp.services.IOutliner;
 import org.eclipse.imp.services.IReferenceResolver;
 import org.eclipse.imp.services.ITokenColorer;
 import org.spoofax.interpreter.terms.IStrategoAppl;
@@ -48,6 +49,9 @@ public class DynamicServiceFactory {
 			
 			} else if (IFoldingUpdater.class.isAssignableFrom(type)) {
 				result = FoldingUpdaterFactory.create(descriptorFile);
+				
+			} else if (IOutliner.class.isAssignableFrom(type)) {
+				result = OutlinerFactory.create(descriptorFile);
 			
 			} else {
 				throw new IllegalArgumentException(type.getSimpleName() + " is not a supported editor service type");

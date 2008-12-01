@@ -29,6 +29,10 @@ import org.eclipse.ui.PlatformUI;
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class DynamicParseController extends DynamicService<IParseController> implements IParseController {
+	private IPath filePath;
+	private ISourceProject project;
+	private IMessageHandler handler;
+	
 	public DynamicParseController() {
 		super(IParseController.class);
 	}
@@ -107,6 +111,15 @@ public class DynamicParseController extends DynamicService<IParseController> imp
 			
 			initialize(language);
 		}
+		
+		// (Re)store these inputs in case the parse controller has been dynamically reloaded
+		if (filePath == null) filePath = this.filePath;
+		else this.filePath = filePath;
+		if (filePath == null) project = this.project;
+		else this.project = project;
+		if (filePath == null) handler = this.handler;
+		else this.handler = handler;
+		
 		getWrapped().initialize(filePath, project, handler);
 	}
 

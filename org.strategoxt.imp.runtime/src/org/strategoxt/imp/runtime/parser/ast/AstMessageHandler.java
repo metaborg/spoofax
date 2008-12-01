@@ -50,7 +50,7 @@ public class AstMessageHandler {
 			IMarker marker = file.createMarker(PROBLEM_MARKER_TYPE);
 			marker.setAttribute(LINE_NUMBER, left.getLine());
 			marker.setAttribute(CHAR_START, left.getStartOffset());
-			marker.setAttribute(CHAR_END, right.getEndOffset());
+			marker.setAttribute(CHAR_END, right.getEndOffset() + 1);
 			marker.setAttribute(MESSAGE, message);
 			marker.setAttribute(SEVERITY, severity);
 			marker.setAttribute(PRIORITY, PRIORITY_HIGH);

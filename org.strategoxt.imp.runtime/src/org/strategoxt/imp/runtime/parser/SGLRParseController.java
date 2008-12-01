@@ -113,16 +113,13 @@ public class SGLRParseController implements IParseController {
     }
 
 	public AstNode parse(String input, boolean scanOnly, IProgressMonitor monitor) {
+		if (getPath() == null)
+		    throw new IllegalStateException("SGLR parse controller not initialized");
+
 		try {
 			// TODO2: Optimization - don't produce AST if scanOnly is true
 			currentAst = null;
 			currentAst = parser.parse(input.toCharArray(), getPath().toPortableString());
-			messages.clearMessages();
-			
-			// HACK: Call IModelListener.update manually, IMP extension point is not implemented?
-			StrategoFeedback feedback = Environment.getDescriptor(getLanguage()).getStrategoFeedback();
-			// FIXME: OMG THIS HAS TO RUN IN ANOTHER THREAD
-			if (feedback != null) feedback.update(this, null);
 		} catch (TokenExpectedException e) {
 			reportParseError(e);
 		} catch (BadTokenException e) {
@@ -131,14 +128,26 @@ public class SGLRParseController implements IParseController {
 			reportParseError(e);
 		} catch (IOException e) {
 			reportParseError(e);
-		} catch (BadDescriptorException e) {
-			Environment.logException("Unexpected error during parsing", e);
-			reportParseError(e);
 		} catch (RuntimeException e) {
 			Environment.logException("Unexpected error during parsing", e);
 			reportParseError(e);
 		}
 		
+		messages.clearMessages();
+		
+		// HACK: Call IModelListener.update manually, IMP extension point is not implemented?
+		// FIXME: OMG THIS HAS TO RUN IN ANOTHER THREAD
+		try {
+			StrategoFeedback feedback = Environment.getDescriptor(getLanguage()).getStrategoFeedback();
+			if (feedback != null) feedback.update(this, null);
+		} catch (BadDescriptorException e) {
+			Environment.logException("Unexpected error during analysis", e);
+			reportParseError(e);
+		} catch (RuntimeException e) {
+			Environment.logException("Unexpected exception during analysis", e);
+			reportParseError(e);
+		}
+
 		return currentAst;
 	}
 	

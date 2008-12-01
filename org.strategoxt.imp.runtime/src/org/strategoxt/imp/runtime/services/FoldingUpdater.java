@@ -21,9 +21,11 @@ public class FoldingUpdater extends FolderBase {
 	private IPrsStream parseStream;
 	
 	private final List<NodeMapping> folded;
+	private final List<NodeMapping> defaultFolded;
 	
-	public FoldingUpdater(List<NodeMapping> folded) {
+	public FoldingUpdater(List<NodeMapping> folded, List<NodeMapping> defaultFolded) {
 		this.folded = folded;
+		this.defaultFolded = defaultFolded;
 	}
 	
     private class FoldingVisitor extends AbstractVisitor {
@@ -35,6 +37,14 @@ public class FoldingUpdater extends FolderBase {
           for (NodeMapping folding : folded) {
         	  if (folding.getAttribute(constructor, sort, 0) != null) {
         		  makeCompleteAnnotation(node);
+        		  break;
+        	  }
+          }
+          
+          for (NodeMapping folding : defaultFolded) {
+        	  if (folding.getAttribute(constructor, sort, 0) != null) {
+        		  makeCompleteAnnotation(node);
+        		  // TODO: Fold node by default
         		  break;
         	  }
           }

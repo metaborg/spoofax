@@ -75,6 +75,6 @@ public class DynamicService<T extends ILanguageService> {
 	 */
 	public void uninitialize() {
 		wrapped = null;
-		language = null;
+		// UNDONE: language = null;
 	}
 }

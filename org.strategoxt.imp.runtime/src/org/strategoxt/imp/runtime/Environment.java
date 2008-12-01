@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.imp.language.Language;
+import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.runtime.RuntimePlugin;
 import org.spoofax.interpreter.adapter.aterm.WrappedATermFactory;
 import org.spoofax.interpreter.core.Interpreter;

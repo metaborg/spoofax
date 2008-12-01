@@ -11,7 +11,7 @@ import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class NodeMapping<T> {
-	private final static int NO_TOKEN_KIND = TokenKind.TK_RESERVED.ordinal();
+	private final static int NO_TOKEN_KIND = TokenKind.TK_NO_TOKEN_KIND.ordinal();
 	
 	private final T attribute;
 	
@@ -71,5 +71,25 @@ public class NodeMapping<T> {
 	public String toString() {
 		return "(" + constructor + "," + sort + "," + TokenKind.valueOf(tokenKind).toString()
 				+ " => " + attribute + ")";
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof NodeMapping)) return false;
+		NodeMapping o = (NodeMapping) obj;
+		return equals(attribute, o.attribute)
+			&& equals(constructor, o.constructor)
+			&& equals(sort, o.sort)
+			&& tokenKind == o.tokenKind;
+	}
+	
+	private static boolean equals(Object o1, Object o2) {
+		if (o1 == null) return o2 == null;
+		else return o1.equals(o2);
+	}
+	
+	@Override
+	public int hashCode() {
+		throw new UnsupportedOperationException();
 	}
 }

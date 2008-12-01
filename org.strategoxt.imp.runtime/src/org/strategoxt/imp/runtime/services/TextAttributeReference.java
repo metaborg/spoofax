@@ -4,6 +4,8 @@
 package org.strategoxt.imp.runtime.services;
 
 import org.eclipse.jface.text.TextAttribute;
+import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -33,11 +35,13 @@ public class TextAttributeReference {
 			return attribute;
 		} else {
 			if (isFollowing == true) {
-				// throw new new BadDescriptorException("Circular definition of color: " + name);
+				Environment.logException("Unable to apply attribute to token", new BadDescriptorException("Circular definition of color: " + name));
 				return null;
 			}
 			isFollowing = true;
-			return this.map.getAttribute(name);
+			TextAttribute result = this.map.getAttribute(name);
+			isFollowing = false;
+			return result;
 		}
 	}
 }

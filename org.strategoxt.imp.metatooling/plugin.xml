@@ -7,7 +7,7 @@
       <language
             description="sdf2imp metatooling dynamic language placeholder"
             extensions="sdf2impbasetoo"
-            language="ExtRoot"
+            language="DynamicRootInitializer"
             validatorClass="org.strategoxt.imp.metatooling.DynamicLanguageValidator"
             validator="org.strategoxt.imp.metatooling.DynamicLanguageValidator"
             >

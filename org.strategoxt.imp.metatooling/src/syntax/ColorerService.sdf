@@ -41,9 +41,11 @@ exports
     "junk"       -> TokenKindName {cons("TK_JUNK")}
     "unknown"    -> TokenKindName {cons("TK_UNKNOWN")}
     
-              -> Font {cons("NORMAL")}
-    "bold"    -> Font {cons("BOLD")}
-    "italic"  -> Font {cons("ITALIC")}
+                    -> Font {cons("NORMAL")}
+    "bold"          -> Font {cons("BOLD")}
+    "italic"        -> Font {cons("ITALIC")}
+    "bold" "italic" -> Font {cons("BOLD_ITALIC")}
+    "italic" "bold" -> Font {cons("BOLD_ITALIC")}
 
     %% TODO: Default "font" attribute? (would need disambiguation and merging support)
     %%
