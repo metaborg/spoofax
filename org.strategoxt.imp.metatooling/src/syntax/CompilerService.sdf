@@ -10,9 +10,19 @@ exports
 
   syntax
   
+    %% TODO: first-class treatment for these sections
+  
     "compiler" <SectionName-LEX> <LAYOUT?-CF> <CompilerRule*-CF> -> <Section-CF> {cons("Compiler")}
-    
+    "analysis" <SectionName-LEX> <LAYOUT?-CF> <CompilerRule*-CF> -> <Section-CF> {cons("Compiler")}
+    "occurrences" <SectionName-LEX> <LAYOUT?-CF> <CompilerRule*-CF> -> <Section-CF> {cons("Compiler")}
+    "references" <SectionName-LEX> <LAYOUT?-CF> <CompilerRule*-CF> -> <Section-CF> {cons("Compiler")}
+
+    "analysis" -> <ReservedName-CF>
     "compiler" -> <ReservedName-CF>
+    "occurrences" -> <ReservedName-CF>
+    "references" -> <ReservedName-CF>
+    
+    %% TODO: occurrence highlighting
 
   lexical syntax
 
