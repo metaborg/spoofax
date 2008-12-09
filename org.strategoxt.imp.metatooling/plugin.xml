@@ -8,7 +8,7 @@
             description="sdf2imp metatooling dynamic language placeholder"
             extensions="sdf2impbasetoo"
             language="DynamicRootInitializer"
-            validatorClass="org.strategoxt.imp.metatooling.DynamicLanguageValidator"
+            validatorClass="org.strategoxt.imp.metatooling.loading.DynamicLanguageValidator"
             validator="org.strategoxt.imp.metatooling.DynamicLanguageValidator"
             >
             <!-- The validator class is used to start the dynamic loader       -->

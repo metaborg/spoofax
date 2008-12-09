@@ -1,4 +1,4 @@
-package org.strategoxt.imp.metatooling;
+package org.strategoxt.imp.metatooling.loading;
 
 import java.util.Arrays;
 import java.util.List;

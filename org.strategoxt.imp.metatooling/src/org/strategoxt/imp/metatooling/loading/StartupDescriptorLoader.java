@@ -1,4 +1,4 @@
-package org.strategoxt.imp.metatooling;
+package org.strategoxt.imp.metatooling.loading;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;

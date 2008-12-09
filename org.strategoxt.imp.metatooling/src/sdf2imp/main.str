@@ -31,6 +31,9 @@ strategies
     , sdf2imp
     )
   
+  sdf2imp-for-file:
+    file -> <main-sdf2imp> ["-i", file]
+  
   ctree-include(s) = // ensure strategies s are not optimized away when packed to a ctree
     id <+ s
 
@@ -60,7 +63,7 @@ strategies
     create-packed-descriptor-file;
     
     create-java-implementation
-    
+  
   create-java-implementation =    
     // Create other plugin classes
     create-parse-controller;
