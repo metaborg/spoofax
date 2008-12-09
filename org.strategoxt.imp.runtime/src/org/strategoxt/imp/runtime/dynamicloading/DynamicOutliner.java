@@ -8,7 +8,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class DynamicOutliner extends DynamicService<IOutliner> implements IOutliner {
+public class DynamicOutliner extends AbstractService<IOutliner> implements IOutliner {
 	
 	private ITextEditor editor;
 	

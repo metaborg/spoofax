@@ -6,11 +6,11 @@ import org.eclipse.imp.services.IReferenceResolver;
 /**
  * Dynamic proxy class to a reference resolver.
  * 
- * @see DynamicService
+ * @see AbstractService
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class DynamicReferenceResolver extends DynamicService<IReferenceResolver> implements IReferenceResolver {
+public class DynamicReferenceResolver extends AbstractService<IReferenceResolver> implements IReferenceResolver {
 	
 	public DynamicReferenceResolver() {
 		super(IReferenceResolver.class);

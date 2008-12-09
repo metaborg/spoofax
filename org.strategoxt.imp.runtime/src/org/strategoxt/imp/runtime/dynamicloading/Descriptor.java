@@ -5,7 +5,6 @@ import static org.strategoxt.imp.runtime.dynamicloading.TermReader.*;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,11 +15,6 @@ import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.parser.IParseController;
 import org.spoofax.interpreter.terms.IStrategoAppl;
-import org.spoofax.jsglr.ParseTable;
-import org.spoofax.jsglr.SGLR;
-import org.spoofax.jsglr.SGLRException;
-import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.parser.SGLRParser;
 import org.strategoxt.imp.runtime.services.StrategoFeedback;
 
 /**
@@ -30,15 +24,13 @@ import org.strategoxt.imp.runtime.services.StrategoFeedback;
  */
 public class Descriptor {
 	public static final String ROOT_LANGUAGE = "DynamicRoot";
-	
-	private static final Language LANGUAGE =
+
+	protected static final Language DESCRIPTOR_LANGUAGE =
 		new Language("EditorService-builtin", "org.strategoxt.imp.builtin.editorservice", "", ROOT_LANGUAGE, "", "", "", null);
 	
-	private static SGLRParser descriptorParser;
+	private final List<AbstractService> services = new ArrayList<AbstractService>();
 	
-	private final List<DynamicService> services = new ArrayList<DynamicService>();
-	
-	private final DynamicServiceFactory serviceFactory;
+	private final List<AbstractServiceFactory> serviceFactories = new ArrayList<AbstractServiceFactory>();
 	
 	private final IStrategoAppl document;
 	
@@ -48,62 +40,44 @@ public class Descriptor {
 	
 	private StrategoFeedback feedback;
 	
-	public IStrategoAppl getDocument() {
-		return document;
-	}
-	
-	// LOADING DESCRIPTOR 
-	
-	private static void init() {
-		if (descriptorParser != null) return;
-		try {
-			SGLR.setWorkAroundMultipleLookahead(true);
-			InputStream stream = Descriptor.class.getResourceAsStream("/syntax/EditorService.tbl");
-			ParseTable table = Environment.registerParseTable(LANGUAGE, stream);
-			descriptorParser = new SGLRParser(table, "Module");
-		} catch (Throwable e) {
-			Environment.logException("Could not initialize the Descriptor class.", e);
-			throw new RuntimeException(e);
-		}
-	}
-	
-	private Descriptor(IStrategoAppl document) {
+	protected Descriptor(IStrategoAppl document) {
 		this.document = document;
-		serviceFactory = new DynamicServiceFactory(this);
-	}
-	
-	protected static Descriptor load(InputStream input) throws BadDescriptorException, IOException {
-		try {
-			init();
-			IStrategoAppl document = descriptorParser.parse(input, null).getTerm();
-			return new Descriptor(document);
-		} catch (SGLRException e) {
-			throw new BadDescriptorException("Could not parse descriptor file", e);
-		}
-	}
-	
-	protected void setBasePath(IPath basePath) {
-		this.basePath = basePath;
-	}
-	
-	public void initializeService(DynamicService service) {
-		services.add(service);
 	}
 	
 	/**
 	 * Uninitialize all dynamic services associated with this Descriptor.
 	 * 
-	 * @see DynamicService#uninitialize()
+	 * @see AbstractService#uninitialize()
 	 */
 	public void uninitialize() {
-		for (DynamicService service : services)
+		for (AbstractService service : services)
 			service.uninitialize();
 	}
 	
 	// LOADING SERVICES
 	
-	public<T extends ILanguageService> T getService(Class<T> type) throws BadDescriptorException {
-		return serviceFactory.getService(type);
+	public synchronized<T extends ILanguageService> T createService(Class<T> type)
+			throws BadDescriptorException {
+		
+		boolean foundFactory = false;
+		
+		try {
+			for (AbstractServiceFactory<T> factory : serviceFactories) {
+				if (factory.canCreate(type)) {
+					T result = (T) factory.create(this);
+					foundFactory = true;
+					if (result != null) return result;
+				}
+			}
+		} catch (RuntimeException e) {
+			throw new BadDescriptorException("Exception occurred when initializing "
+					+ type.getSimpleName() + " editor service for " + getLanguage().getName(), e);
+		}
+		
+		if (!foundFactory)
+			throw new IllegalArgumentException(type.getSimpleName() + " is not a supported editor service type");
+		else
+			throw new IllegalStateException("Could not create an editor service for " + type.getSimpleName());
 	}
 	
 	public StrategoFeedback getStrategoFeedback() throws BadDescriptorException {
@@ -113,7 +87,17 @@ public class Descriptor {
 		return feedback;
 	}
 	
-	// PUBLIC PROPERTIES
+	public void addInitializedService(AbstractService service) {
+		services.add(service);
+	}
+	
+	public IStrategoAppl getDocument() {
+		return document;
+	}
+	
+	protected void setBasePath(IPath basePath) {
+		this.basePath = basePath;
+	}
 	
 	/**
 	 * Gets the language for this descriptor, but does not register it.
@@ -153,7 +137,7 @@ public class Descriptor {
 			return new BufferedInputStream(new FileInputStream(path));
 		} else { // read from jar
 			try {
-				Class mainClass = getService(IParseController.class).getClass();
+				Class mainClass = createService(IParseController.class).getClass();
 				InputStream result = mainClass.getResourceAsStream(path);
 				if (result == null)
 					throw new FileNotFoundException(path + " not found in editor service plugin");

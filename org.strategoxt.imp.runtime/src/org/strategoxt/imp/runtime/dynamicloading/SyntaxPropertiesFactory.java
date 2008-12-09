@@ -10,16 +10,22 @@ import static org.strategoxt.imp.runtime.dynamicloading.TermReader.*;
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-class SyntaxPropertiesFactory {
-	/**
-	 * @see Descriptor#getService(Class)
-	 */
-	public static ILanguageSyntaxProperties create(IStrategoAppl descriptor) throws BadDescriptorException {
-		SyntaxProperties result = new SyntaxProperties();
+class SyntaxPropertiesFactory extends AbstractServiceFactory<ILanguageSyntaxProperties> {
+	
+	@Override
+	public Class<ILanguageSyntaxProperties> getCreatedType() {
+		return ILanguageSyntaxProperties.class;
+	}
 
-		IStrategoAppl blockComment = findTerm(descriptor, "BlockCommentDef");
-		result.singleLineCommentPrefix = termContents(findTerm(descriptor, "LineCommentPrefix"));
-		result.fences = readFences(descriptor);
+	@Override
+	public ILanguageSyntaxProperties create(Descriptor descriptor) throws BadDescriptorException {
+		SyntaxProperties result = new SyntaxProperties();
+		
+		IStrategoAppl doc = descriptor.getDocument();
+
+		IStrategoAppl blockComment = findTerm(doc, "BlockCommentDef");
+		result.singleLineCommentPrefix = termContents(findTerm(doc, "LineCommentPrefix"));
+		result.fences = readFences(doc);
 		
 		if (blockComment != null) {
 			result.blockCommentStart = termContents(termAt(blockComment, 0));

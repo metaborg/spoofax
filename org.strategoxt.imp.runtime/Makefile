@@ -1,11 +1,11 @@
 TABLE = ../org.strategoxt.imp.metatooling/src/syntax/EditorService.tbl
 STRS  = $(wildcard src//stratego-editor-support*.str) $(wildcard src/stratego-editor-support/*/*.str)
 
-all : $(TABLE) stratego-editor-support.ctree ctree-libs
+all : $(TABLE) include/stratego-editor-support.ctree ctree-libs
 	[ -d syntax ] || mkdir syntax
 	cp $(TABLE) syntax
 
-%.ctree : src/stratego-editor-support/%.str $(STRS)
+include/%.ctree : src/stratego-editor-support/%.str $(STRS)
 	strc -i $< -o $@ -O 1 -la stratego-lib --library -F
 	
 # We need a better solution for this

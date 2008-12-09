@@ -8,14 +8,34 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
+import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.jsglr.InvalidParseTableException;
+import org.spoofax.jsglr.ParseTable;
+import org.spoofax.jsglr.SGLR;
+import org.spoofax.jsglr.SGLRException;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.parser.SGLRParser;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class DescriptorFactory {
+public class DescriptorFactory {	
+	
+	private static SGLRParser descriptorParser;
+	
+	private static void init() {
+		if (descriptorParser != null) return;
+		try {
+			SGLR.setWorkAroundMultipleLookahead(true);
+			InputStream stream = Descriptor.class.getResourceAsStream("/syntax/EditorService.tbl");
+			ParseTable table = Environment.registerParseTable(Descriptor.DESCRIPTOR_LANGUAGE, stream);
+			descriptorParser = new SGLRParser(table, "Module");
+		} catch (Throwable e) {
+			Environment.logException("Could not initialize the Descriptor class.", e);
+			throw new RuntimeException(e);
+		}
+	}
 	
 	public static Descriptor load(IFile descriptor) throws CoreException, BadDescriptorException, IOException {
 		IPath basePath = descriptor.getLocation();
@@ -37,7 +57,7 @@ public class DescriptorFactory {
 			throws BadDescriptorException, IOException {
 		
 		Debug.startTimer();
-		Descriptor result = Descriptor.load(descriptor);
+		Descriptor result = parse(descriptor);
 		result.setBasePath(basePath);
 		Language language = result.getLanguage();
 		
@@ -50,6 +70,16 @@ public class DescriptorFactory {
 		
 		Debug.stopTimer("Editor services loaded: " + result.getLanguage().getName());
 		return result;
+	}
+	
+	public static Descriptor parse(InputStream input) throws BadDescriptorException, IOException {
+		try {
+			init();
+			IStrategoAppl document = descriptorParser.parse(input, null).getTerm();
+			return new Descriptor(document);
+		} catch (SGLRException e) {
+			throw new BadDescriptorException("Could not parse descriptor file", e);
+		}
 	}
 
 	private static void registerParseTable(Language language, InputStream table) throws BadDescriptorException {

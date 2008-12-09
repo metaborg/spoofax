@@ -5,7 +5,7 @@ import org.eclipse.imp.language.ServiceFactory;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.services.IDocumentationProvider;
 import org.eclipse.imp.services.IReferenceResolver;
-import org.strategoxt.imp.runtime.dynamicloading.DynamicService;
+import org.strategoxt.imp.runtime.dynamicloading.AbstractService;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -19,7 +19,7 @@ public class DocumentationProvider implements IDocumentationProvider {
 		
 		Language language = parseController.getLanguage();
 		references = ServiceFactory.getInstance().getReferenceResolver(language);
-		((DynamicService) references).initialize(language);
+		((AbstractService) references).initialize(language);
 	}
 
 	public String getDocumentation(Object target, IParseController parseController) {

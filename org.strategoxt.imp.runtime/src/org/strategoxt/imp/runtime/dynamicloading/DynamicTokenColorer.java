@@ -8,11 +8,11 @@ import org.eclipse.jface.text.TextAttribute;
 /**
  * Dynamic proxy class to a token colorer.
  * 
- * @see DynamicService
+ * @see AbstractService
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class DynamicTokenColorer extends DynamicService<ITokenColorer> implements ITokenColorer {
+public class DynamicTokenColorer extends AbstractService<ITokenColorer> implements ITokenColorer {
 
 	public DynamicTokenColorer() {
 		super(ITokenColorer.class);

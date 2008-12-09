@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.imp.language.Language;
-import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.runtime.RuntimePlugin;
 import org.spoofax.interpreter.adapter.aterm.WrappedATermFactory;
 import org.spoofax.interpreter.core.Interpreter;
@@ -16,7 +15,7 @@ import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.ParseTableManager;
 import org.spoofax.jsglr.SGLR;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
-import org.strategoxt.imp.runtime.stratego.IMPIOAgent;
+import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.IMPJSGLRLibrary;
 import org.strategoxt.imp.runtime.stratego.IMPLibrary;
 import org.strategoxt.imp.runtime.stratego.adapter.WrappedAstNodeFactory;
@@ -66,16 +65,16 @@ public final class Environment {
 		// to ensure they are compatible.
 		Interpreter result = new Interpreter(wrappedAstNodeFactory);
 
-		result.addOperatorRegistry(IMPJSGLRLibrary.REGISTRY_NAME, new IMPJSGLRLibrary());
-		result.addOperatorRegistry(IMPLibrary.REGISTRY_NAME, new IMPLibrary());
-		result.setIOAgent(new IMPIOAgent());
+		result.addOperatorRegistry(new IMPJSGLRLibrary());
+		result.addOperatorRegistry(new IMPLibrary());
+		result.setIOAgent(new EditorIOAgent());
 		
 		result.load(Environment.class.getResourceAsStream("/include/libstratego-lib.ctree"));
 		result.load(Environment.class.getResourceAsStream("/include/libstratego-sglr.ctree"));
 		result.load(Environment.class.getResourceAsStream("/include/libstratego-gpp.ctree"));
 		result.load(Environment.class.getResourceAsStream("/include/libstratego-xtc.ctree"));
 		
-		result.load(Environment.class.getResourceAsStream("/stratego-editor-support.ctree"));
+		result.load(Environment.class.getResourceAsStream("/include/stratego-editor-support.ctree"));
 		
 		return result;
 	}

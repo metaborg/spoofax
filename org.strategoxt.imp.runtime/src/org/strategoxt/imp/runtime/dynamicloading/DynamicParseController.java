@@ -24,11 +24,11 @@ import org.eclipse.ui.PlatformUI;
 /**
  * Dynamic proxy class to a parse controller.
  * 
- * @see DynamicService
+ * @see AbstractService
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class DynamicParseController extends DynamicService<IParseController> implements IParseController {
+public class DynamicParseController extends AbstractService<IParseController> implements IParseController {
 	private IPath filePath;
 	private ISourceProject project;
 	private IMessageHandler handler;

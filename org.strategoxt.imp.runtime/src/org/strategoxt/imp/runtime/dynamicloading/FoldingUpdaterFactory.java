@@ -13,19 +13,25 @@ import static org.strategoxt.imp.runtime.dynamicloading.TermReader.*;
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-class FoldingUpdaterFactory {
+public class FoldingUpdaterFactory extends AbstractServiceFactory<IFoldingUpdater> {
+	
+	@Override
+	public Class<IFoldingUpdater> getCreatedType() {
+		return IFoldingUpdater.class;
+	}
 
 	/**
-	 * @see Descriptor#getService(Class)
+	 * @see Descriptor#createService(Class)
 	 */
-	public static IFoldingUpdater create(IStrategoAppl descriptor) throws BadDescriptorException {
+	@Override
+	public IFoldingUpdater create(Descriptor d) throws BadDescriptorException {
 		// TODO: "FoldAll" folding rules
 		
 		List<NodeMapping> folded = new ArrayList<NodeMapping>(); 
 		List<NodeMapping> defaultFolded = new ArrayList<NodeMapping>(); 
 		Object foldme = new Object();
 		
-		for (IStrategoAppl folding : collectTerms(descriptor, "FoldRule")) {
+		for (IStrategoAppl folding : collectTerms(d.getDocument(), "FoldRule")) {
 			IStrategoAppl term = termAt(folding, 1);
 			String type = term.getConstructor().getName();
 			NodeMapping mapping = NodeMapping.create(folding, foldme);

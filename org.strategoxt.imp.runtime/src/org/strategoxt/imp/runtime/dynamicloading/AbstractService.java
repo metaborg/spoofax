@@ -12,7 +12,7 @@ import org.strategoxt.imp.runtime.Environment;
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class DynamicService<T extends ILanguageService> {
+public class AbstractService<T extends ILanguageService> {
 	private final Class<T> serviceType;
 	
 	private T wrapped;
@@ -21,7 +21,7 @@ public class DynamicService<T extends ILanguageService> {
 	
 	private Language language;
 	
-	protected DynamicService(Class<T> serviceType) {
+	protected AbstractService(Class<T> serviceType) {
 		this.serviceType = serviceType;
 	}
 	
@@ -33,7 +33,7 @@ public class DynamicService<T extends ILanguageService> {
 			if (!isInitialized())
 				throw new IllegalStateException("Editor service component not initialized yet - " + getClass().getSimpleName());
 			try {
-				wrapped = Environment.getDescriptor(getLanguage()).getService(serviceType);
+				wrapped = Environment.getDescriptor(getLanguage()).createService(serviceType);
 			} catch (Exception e) {
 				setNotLoadingCause(e);
 				Environment.logException("Unable to dynamically initialize service of type " + serviceType.getSimpleName(), e);
@@ -66,7 +66,7 @@ public class DynamicService<T extends ILanguageService> {
 	public void initialize(Language language) {
 		this.language = language;
 		getWrapped();
-		Environment.getDescriptor(language).initializeService(this);
+		Environment.getDescriptor(language).addInitializedService(this);
 	}
 	
 	/**

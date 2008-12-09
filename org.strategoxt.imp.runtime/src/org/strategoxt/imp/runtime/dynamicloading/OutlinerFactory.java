@@ -13,18 +13,24 @@ import static org.strategoxt.imp.runtime.dynamicloading.TermReader.*;
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-class OutlinerFactory {
+class OutlinerFactory extends AbstractServiceFactory<IOutliner> {
+	
+	@Override
+	public Class<IOutliner> getCreatedType() {
+		return IOutliner.class;
+	}
 
 	/**
-	 * @see Descriptor#getService(Class)
+	 * @see Descriptor#createService(Class)
 	 */
-	public static IOutliner create(IStrategoAppl descriptor) throws BadDescriptorException {
+	@Override
+	public IOutliner create(Descriptor d) throws BadDescriptorException {
 		// TODO: "FoldAll" folding rules
 		
 		List<NodeMapping> outlined = new ArrayList<NodeMapping>(); 
 		Object outlineme = new Object();
 		
-		for (IStrategoAppl rule : collectTerms(descriptor, "OutlineRule")) {
+		for (IStrategoAppl rule : collectTerms(d.getDocument(), "OutlineRule")) {
 			outlined.add(NodeMapping.create(rule, outlineme));
 		}
 		

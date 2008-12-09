@@ -6,7 +6,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
-import org.spoofax.interpreter.library.IOAgent;
+import org.spoofax.interpreter.library.LoggingIOAgent;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 
@@ -16,7 +16,7 @@ import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class IMPIOAgent extends IOAgent {
+public class EditorIOAgent extends LoggingIOAgent {
 	
 	private Descriptor descriptor;
 	

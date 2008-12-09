@@ -17,10 +17,14 @@ import org.strategoxt.imp.runtime.services.StrategoFeedback;
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class StrategoFeedbackFactory {
-	/**
-	 * @see Descriptor#getService(Class)
-	 */
+public class StrategoFeedbackFactory extends AbstractServiceFactory<StrategoFeedback> {
+	
+	@Override
+	public Class<StrategoFeedback> getCreatedType() {
+		return StrategoFeedback.class;
+	}
+	
+	@Override
 	public StrategoFeedback create(Descriptor descriptor) throws BadDescriptorException {
 		IStrategoAppl document = descriptor.getDocument();
 		Interpreter interpreter;

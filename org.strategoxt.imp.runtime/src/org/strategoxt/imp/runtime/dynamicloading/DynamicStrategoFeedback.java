@@ -8,7 +8,7 @@ import org.strategoxt.imp.runtime.services.StrategoFeedback;
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class DynamicStrategoFeedback extends DynamicService<StrategoFeedback> implements IModelListener {
+public class DynamicStrategoFeedback extends AbstractService<StrategoFeedback> implements IModelListener {
 
 	public DynamicStrategoFeedback() {
 		super(StrategoFeedback.class);

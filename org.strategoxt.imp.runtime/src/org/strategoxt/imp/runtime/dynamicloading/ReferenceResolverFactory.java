@@ -13,15 +13,15 @@ import org.strategoxt.imp.runtime.services.StrategoReferenceResolver;
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class ReferenceResolverFactory {
+public class ReferenceResolverFactory extends AbstractServiceFactory<IReferenceResolver> {
 	
-	// TODO: Allow a Java-based reference resolver?
-	//       (possibly using reflection)
+	@Override
+	public Class<IReferenceResolver> getCreatedType() {
+		return IReferenceResolver.class;
+	}
 	
-	/**
-	 * @see Descriptor#getService(Class)
-	 */
-	public static IReferenceResolver create(Descriptor descriptor) throws BadDescriptorException {
+	@Override
+	public IReferenceResolver create(Descriptor descriptor) throws BadDescriptorException {
 		IStrategoAppl descriptorFile = descriptor.getDocument();
 		StrategoFeedback feedback = descriptor.getStrategoFeedback();
 		

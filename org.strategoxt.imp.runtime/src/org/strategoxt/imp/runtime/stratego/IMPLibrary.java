@@ -7,9 +7,13 @@ import org.spoofax.interpreter.library.AbstractStrategoOperatorRegistry;
  */
 public class IMPLibrary extends AbstractStrategoOperatorRegistry {
 	
-	public static final String REGISTRY_NAME = "sdf2imp";
+	private static final String REGISTRY_NAME = "sdf2imp";
 	
 	public IMPLibrary() {
 		add(new SubtermPrimitive());
+	}
+
+	public String getOperatorRegistryName() {
+		return REGISTRY_NAME;
 	}
 }

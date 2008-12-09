@@ -7,7 +7,7 @@ import org.eclipse.jface.text.source.projection.ProjectionAnnotationModel;
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class DynamicFoldingUpdater extends DynamicService<IFoldingUpdater> implements IFoldingUpdater {
+public class DynamicFoldingUpdater extends AbstractService<IFoldingUpdater> implements IFoldingUpdater {
 
 	public DynamicFoldingUpdater() {
 		super(IFoldingUpdater.class);

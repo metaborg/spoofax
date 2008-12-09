@@ -19,22 +19,28 @@ import org.strategoxt.imp.runtime.services.TokenColorer;
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-class TokenColorerFactory {
-	/**
-	 * @see Descriptor#getService(Class)
-	 */
-	public static ITokenColorer create(IStrategoAppl descriptor) throws BadDescriptorException {
+class TokenColorerFactory extends AbstractServiceFactory<ITokenColorer> {
+	
+	@Override
+	public Class<ITokenColorer> getCreatedType() {
+		return ITokenColorer.class;
+	}
+	
+	@Override
+	public ITokenColorer create(Descriptor descriptor) throws BadDescriptorException {
+		IStrategoAppl doc = descriptor.getDocument();
+		
 		List<TextAttributeMapping> tokenMappings = new ArrayList<TextAttributeMapping>();
 		List<TextAttributeMapping> nodeMappings = new ArrayList<TextAttributeMapping>();
 		List<TextAttributeMapping> envMappings = new ArrayList<TextAttributeMapping>();
 		
-		TextAttributeReferenceMap colors = readColorList(descriptor);
+		TextAttributeReferenceMap colors = readColorList(doc);
 		
-		for (IStrategoAppl rule : collectTerms(descriptor, "ColorRuleAll", "ColorRuleAllNamed")) {
+		for (IStrategoAppl rule : collectTerms(doc, "ColorRuleAll", "ColorRuleAllNamed")) {
 			addMapping(rule, envMappings, colors);
 		}
 		
-		for (IStrategoAppl rule : collectTerms(descriptor, "ColorRule", "ColorRuleNamed")) {
+		for (IStrategoAppl rule : collectTerms(doc, "ColorRule", "ColorRuleNamed")) {
 			IStrategoAppl pattern = termAt(rule, 0);
 			if (cons(pattern).equals("Token")) {
 				addMapping(rule, tokenMappings, colors);

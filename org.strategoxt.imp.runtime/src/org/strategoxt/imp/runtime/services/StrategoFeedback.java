@@ -22,7 +22,7 @@ import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
-import org.strategoxt.imp.runtime.stratego.IMPIOAgent;
+import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 import org.strategoxt.imp.runtime.stratego.adapter.IWrappedAstNode;
@@ -176,7 +176,7 @@ public class StrategoFeedback implements IModelListener {
 	private void initInterpreterPath(IPath workingDir) {
 		try {
 			interpreter.getIOAgent().setWorkingDir(workingDir.toOSString());
-			((IMPIOAgent) interpreter.getIOAgent()).setDescriptor(descriptor);
+			((EditorIOAgent) interpreter.getIOAgent()).setDescriptor(descriptor);
 		} catch (FileNotFoundException e) {
 			Environment.logException("Could not set Stratego working directory", e);
 			throw new RuntimeException(e);
