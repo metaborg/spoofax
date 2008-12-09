@@ -18,9 +18,9 @@ strategies
         imports <descriptor-name> "-Outliner.generated"
         
         outliner
-        ~
-        ~// This file can be used for custom outliner rules.
-        ~// See the imported file for a brief introduction and examples.
+          ~
+          ~// This file can be used for custom outliner rules.
+          ~// See the imported file for a brief introduction and examples.
       ]|
     );
     
@@ -33,15 +33,15 @@ strategies
         module <descriptor-name> "-Outliner.generated"
         
         outliner Default outliner        
-        ~
-        ~// Outliner rules indicate grammar productions to be outlined,
-        ~// and take one of the following forms, and :
-        ~//
-        ~//   - <sort>.<constructor>
-        ~//   - <sort>._,
-        ~//   - _.<constructor>
-        ~
-        ~*<id>
+          ~
+          ~// Outliner rules indicate grammar productions to be outlined,
+          ~// and take one of the following forms, and :
+          ~//
+          ~//   - <sort>.<constructor>
+          ~//   - <sort>._,
+          ~//   - _.<constructor>
+          ~
+          ~*<id>
       ]|
     )
   

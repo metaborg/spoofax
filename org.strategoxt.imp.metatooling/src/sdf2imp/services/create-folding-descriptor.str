@@ -17,9 +17,9 @@ strategies
         imports <descriptor-name> "-Folding.generated"
         
         folding
-        ~
-        ~// This file can be used for custom folding rules.
-        ~// See the imported file for a brief introduction and examples.
+          ~
+          ~// This file can be used for custom folding rules.
+          ~// See the imported file for a brief introduction and examples.
       ]|
     );
     
@@ -32,14 +32,14 @@ strategies
         module <descriptor-name> "-Folding.generated"
         
         folding Default folding definitions
-        ~
-        ~// Folding rules indicate grammar productions to be foldable,
-        ~// and take one of the following forms, and :
-        ~//
-        ~//   - <sort>.<constructor>
-        ~//   - <sort>._,
-        ~//   - _.<constructor>
-        ~
+          ~
+          ~// Folding rules indicate grammar productions to be foldable,
+          ~// and take one of the following forms, and :
+          ~//
+          ~//   - <sort>.<constructor>
+          ~//   - <sort>._,
+          ~//   - _.<constructor>
+          ~
           ~*<id>
       ]|
     )

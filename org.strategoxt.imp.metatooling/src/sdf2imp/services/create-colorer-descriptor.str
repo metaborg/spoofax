@@ -16,9 +16,9 @@ strategies
         imports <descriptor-name> "-Colorer.generated"
         
         colorer
-        ~
-        ~// This file can be used for custom colorer rules.
-        ~// See the imported file for a brief introduction and examples.
+          ~
+          ~// This file can be used for custom colorer rules.
+          ~// See the imported file for a brief introduction and examples.
       ]|
     );
     

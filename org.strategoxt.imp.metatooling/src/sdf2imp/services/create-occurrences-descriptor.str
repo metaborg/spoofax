@@ -16,9 +16,9 @@ strategies
         imports <descriptor-name> "-Occurrences.generated"
         
         occurrences
-        ~
-        ~// This file can be used for custom occurrence highlighting rules.
-        ~// See the imported file for a brief introduction and examples.
+          ~
+          ~// This file can be used for custom occurrence highlighting rules.
+          ~// See the imported file for a brief introduction and examples.
       ]|
     );
     
@@ -29,14 +29,14 @@ strategies
         module <descriptor-name> "-Occurrences"
         
         occurrences
-        ~
-        ~// Occurrence highlighting functionality may be provided by an external Stratego program:
-        ~//
-        ~//   provider stratego-program.ctree // (built using strc -F)
-        ~//
-        ~// Occurence rules can specify the syntax constructors for which
-        ~// a reference resolving function is available:
-        ~//
-        ~//   occurrence FunctionCall : occurrences
+          ~
+          ~// Occurrence highlighting functionality may be provided by an external Stratego program:
+          ~//
+          ~//   provider stratego-program.ctree // (built using strc -F)
+          ~//
+          ~// Occurence rules can specify the syntax constructors for which
+          ~// a reference resolving function is available:
+          ~//
+          ~//   occurrence FunctionCall : occurrences
       ]|
     )
