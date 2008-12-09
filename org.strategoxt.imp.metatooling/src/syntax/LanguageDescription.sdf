@@ -24,6 +24,7 @@ exports
   lexical restrictions
   
   	PropertyValue -/- ~[\ \t\n\r\,\:\"]
+  	URL           -/- ~[\ \t\n\r]
   
   context-free syntax
   

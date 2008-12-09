@@ -23,10 +23,10 @@ strategies
     );
     
     output-derived-descriptor-file(
-      <descriptor-name> "-References"
+      <descriptor-name> "-References.generated"
     ,
       !|[
-        module <descriptor-name> "-References"
+        module <descriptor-name> "-References.generated"
         
         references
           ~

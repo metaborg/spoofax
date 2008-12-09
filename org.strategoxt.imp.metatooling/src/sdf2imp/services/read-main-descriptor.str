@@ -12,27 +12,25 @@ strategies
     
     rules(MainDescriptor := <id>);
     
-    // TODO: These errors are misleading - keys must be in the esv
-    
     require-option(
       where(<set-config> (SdfMainModuleFlag(), <find-main-module>));
       with(get-sdf-main-module)
-    | "Main module (-m)"
+    | <NoExistingDescriptor < !"Main module (-m)" + !"language name">
     );
     
     require-option(
       rules(StartSymbol := <find-start-symbol>)
-    | "Start symbol (-s)"
+    | <NoExistingDescriptor < !"Start symbols (-s)" + !"language start symbols">
     );
     
     require-option(
      rules(BasePackage := <find-package-name>)
-    | "Package name (-p)"
+    | <NoExistingDescriptor < !"Package name (-p)" + !"language id">
     );
     
     require-option(
       rules(EditorExtensions := <find-editor-extensions>)
-    | "Editor file extensions (-e)"
+    | <NoExistingDescriptor < !"Editor file extensions (-e)" + !"language extensions">
     )
   
   current-main-descriptor-file =
@@ -47,13 +45,15 @@ strategies
          input-descriptor-file
        | -1
        );
-       verbose-msg(!"Current descriptor determines generated services")
+       verbose-msg(!"Existing descriptor determines generated services:", main-descriptor-name)
      |}
    <+
      // Could not read the existing file: use the defaults instead, but don't overwrite the file
+     rules(NoExistingDescriptor: _);
      default-main-descriptor
 
   find-main-module =
+    debug(!"foo");
     oncetd(?LanguageName(result));
     verbose-msg(!"Using main module", !result);
     !result

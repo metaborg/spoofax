@@ -46,7 +46,7 @@ strategies
         id:      ~pkgname
         extends: Root
         ~
-        description: <conc-strings> ("\"sdf2imp-generated editor for the ", name, " language\"")
+        description: <conc-strings> ("\"Spoofax/IMP-generated editor for the ", name, " language\"")
         url: http://strategoxt.org
         ~
         extensions: ~extensions

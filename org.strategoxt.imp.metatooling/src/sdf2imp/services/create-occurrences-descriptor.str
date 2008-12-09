@@ -23,10 +23,10 @@ strategies
     );
     
     output-derived-descriptor-file(
-      <descriptor-name> "-Occurrences"
+      <descriptor-name> "-Occurrences.generated"
     ,
       !|[
-        module <descriptor-name> "-Occurrences"
+        module <descriptor-name> "-Occurrences.generated"
         
         occurrences
           ~
