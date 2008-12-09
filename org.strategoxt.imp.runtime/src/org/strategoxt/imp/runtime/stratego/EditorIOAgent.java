@@ -28,7 +28,7 @@ public class EditorIOAgent extends LoggingIOAgent {
 	public InputStream openInputStream(String path, boolean isInternalFile)
 			throws FileNotFoundException {
 		
-		if (isInternalFile) {
+		if (isInternalFile && descriptor != null) {
 			return openAttachedFile(path);
 		} else {
 			return super.openInputStream(path, isInternalFile);

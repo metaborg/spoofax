@@ -38,7 +38,7 @@ public class StrategoFeedbackFactory extends AbstractServiceFactory<StrategoFeed
 			return null;
 		}
 		
-		for (IStrategoAppl term : makeSet(collectTerms(document, "CompilerProvider"))) {
+		for (IStrategoAppl term : makeSet(collectTerms(document, "SemanticProvider"))) {
 			String filename = termContents(term);
 			if (filename.endsWith(".ctree")) {
 				try {
@@ -55,7 +55,7 @@ public class StrategoFeedbackFactory extends AbstractServiceFactory<StrategoFeed
 			}
 		}
 		
-		String observerFunction = descriptor.getProperty("CompilerObserver", null);
+		String observerFunction = descriptor.getProperty("SemanticObserver", null);
 		
 		return new StrategoFeedback(descriptor, interpreter, observerFunction);
 	}

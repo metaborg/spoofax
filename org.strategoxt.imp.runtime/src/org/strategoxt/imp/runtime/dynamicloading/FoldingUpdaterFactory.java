@@ -38,7 +38,7 @@ public class FoldingUpdaterFactory extends AbstractServiceFactory<IFoldingUpdate
 			
 			if (type.equals("None")) {
 				folded.add(mapping);
-			} else if (type.equals("Avoid")) {
+			} else if (type.equals("Disable")) {
 				folded.remove(mapping);
 				defaultFolded.remove(mapping);
 			} else {
