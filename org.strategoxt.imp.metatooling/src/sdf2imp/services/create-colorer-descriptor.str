@@ -8,7 +8,21 @@ imports
 strategies
 
   create-colorer-descriptor =
-    output-default-descriptor-file(
+    output-initial-descriptor-file(
+      <descriptor-name> "-Colorer"
+    , !|[
+        module <descriptor-name> "-Colorer"
+        
+        imports <descriptor-name> "-Colorer.generated"
+        
+        colorer
+        ~
+        ~// This file can be used for custom colorer rules.
+        ~// See the imported file for a brief introduction and examples.
+      ]|
+    );
+    
+    output-derived-descriptor-file(
       <descriptor-name> "-Colorer.generated"
     ,
       !|[

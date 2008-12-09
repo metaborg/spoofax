@@ -8,11 +8,25 @@ imports
 strategies
 
   create-analysis-descriptor =
-    output-default-descriptor-file(
+    output-initial-descriptor-file(
       <descriptor-name> "-Analysis"
+    , !|[
+        module <descriptor-name> "-Analysis"
+        
+        imports <descriptor-name> "-Analysis.generated"
+        
+        analysis
+        ~
+        ~// This file can be used for custom analysis rules.
+        ~// See the imported file for a brief introduction and examples.
+      ]|
+    );
+    
+    output-derived-descriptor-file(
+      <descriptor-name> "-Analysis.generated"
     ,
       !|[
-        module <descriptor-name> "-Analysis"
+        module <descriptor-name> "-Analysis.generated"
         
         analysis
         ~

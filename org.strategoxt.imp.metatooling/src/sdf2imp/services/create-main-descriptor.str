@@ -8,7 +8,7 @@ imports
 strategies
 
   create-main-descriptor =
-    output-default-descriptor-file(
+    output-main-descriptor-file(
       main-descriptor-name
     , 
       default-main-descriptor => main-descriptor
@@ -30,11 +30,14 @@ strategies
     !|[
       module <main-descriptor-name>
       
-      imports <descriptor-name> "-Colorer.generated"
-              <descriptor-name> "-Folding.generated"
-              <descriptor-name> "-Outliner.generated"
-              <descriptor-name> "-Compiler.generated"
-              <descriptor-name> "-Syntax.generated"
+      imports
+        <descriptor-name> "-Analysis"
+        <descriptor-name> "-Colorer"
+        <descriptor-name> "-Folding"
+        <descriptor-name> "-Occurrences"
+        <descriptor-name> "-Outliner"
+        <descriptor-name> "-References"
+        <descriptor-name> "-Syntax"
       
       language General properties
         ~

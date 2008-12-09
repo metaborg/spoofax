@@ -9,8 +9,21 @@ imports
 strategies
 
   create-folding-descriptor =
+    output-initial-descriptor-file(
+      <descriptor-name> "-Folding"
+    , !|[
+        module <descriptor-name> "-Folding"
+        
+        imports <descriptor-name> "-Folding.generated"
+        
+        folding
+        ~
+        ~// This file can be used for custom folding rules.
+        ~// See the imported file for a brief introduction and examples.
+      ]|
+    );
     
-    output-default-descriptor-file(
+    output-derived-descriptor-file(
       <descriptor-name> "-Folding.generated"
     , 
       heuristic-folding-productions;

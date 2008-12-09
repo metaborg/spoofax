@@ -8,7 +8,21 @@ imports
 strategies
 
   create-references-descriptor =
-    output-default-descriptor-file(
+    output-initial-descriptor-file(
+      <descriptor-name> "-References"
+    , !|[
+        module <descriptor-name> "-References"
+        
+        imports <descriptor-name> "-References.generated"
+        
+        references
+        ~
+        ~// This file can be used for custom reference resolving rules.
+        ~// See the imported file for a brief introduction and examples.
+      ]|
+    );
+    
+    output-derived-descriptor-file(
       <descriptor-name> "-References"
     ,
       !|[

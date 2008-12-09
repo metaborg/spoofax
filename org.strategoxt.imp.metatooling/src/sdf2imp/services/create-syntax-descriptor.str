@@ -8,7 +8,21 @@ imports
 strategies
 
   create-syntax-descriptor =
-    output-default-descriptor-file(
+    output-initial-descriptor-file(
+      <descriptor-name> "-Syntax"
+    , !|[
+        module <descriptor-name> "-Syntax"
+        
+        imports <descriptor-name> "-Syntax.generated"
+        
+        syntax
+        ~
+        ~// This file can be used for custom syntax rules.
+        ~// See the imported file for a brief introduction and examples.
+      ]|
+    );
+    
+    output-derived-descriptor-file(
       <descriptor-name> "-Syntax.generated"
     ,
       // TODO: Infer syntax properties from the SDF definition?

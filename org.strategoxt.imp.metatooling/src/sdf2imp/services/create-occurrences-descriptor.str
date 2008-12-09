@@ -8,7 +8,21 @@ imports
 strategies
 
   create-occurrences-descriptor =
-    output-default-descriptor-file(
+    output-initial-descriptor-file(
+      <descriptor-name> "-Occurrences"
+    , !|[
+        module <descriptor-name> "-Occurrences"
+        
+        imports <descriptor-name> "-Occurrences.generated"
+        
+        occurrences
+        ~
+        ~// This file can be used for custom occurrence highlighting rules.
+        ~// See the imported file for a brief introduction and examples.
+      ]|
+    );
+    
+    output-derived-descriptor-file(
       <descriptor-name> "-Occurrences"
     ,
       !|[

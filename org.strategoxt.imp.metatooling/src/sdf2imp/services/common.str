@@ -20,14 +20,15 @@ strategies
   
   descriptor-name:
     name -> <conc-strings> (language, name)
-    where
+    with
       language := <get-sdf-main-module>
   
-  main-descriptor-name = get-sdf-main-module
+  main-descriptor-name =
+    <conc-strings> (<get-sdf-main-module>, ".main")
   
   condition-to-java:
     Token(x) -> |[ tokenKind == x_Name ]|
-    where
+    with
       x_Name := <write-to-string> x
   
   condition-to-java:
@@ -66,5 +67,6 @@ strategies
       // FIXME: Fail if unknown sort found (temporarily had to disable this)
       // TODO: Renamed sorts like OptExtendsInterfaces0_Java need special treatment
       //       looks like sdf2rtg needs to be adapted to not perform renaming like this!
-      warn(|"Unknown sort referenced")
+      err(|"Unknown sort referenced");
+      fail
     )

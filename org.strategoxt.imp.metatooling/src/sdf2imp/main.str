@@ -29,6 +29,7 @@ strategies
     xtc-input-wrap(
       sdf2imp-options
     , sdf2imp
+      <+ <xtc-exit> 1 // proper stack traces
     )
   
   sdf2imp-for-file:

@@ -10,8 +10,21 @@ imports
 strategies
 
   create-outliner-descriptor =
+    output-initial-descriptor-file(
+      <descriptor-name> "-Outliner"
+    , !|[
+        module <descriptor-name> "-Outliner"
+        
+        imports <descriptor-name> "-Outliner.generated"
+        
+        outliner
+        ~
+        ~// This file can be used for custom outliner rules.
+        ~// See the imported file for a brief introduction and examples.
+      ]|
+    );
     
-    output-default-descriptor-file(
+    output-derived-descriptor-file(
       <descriptor-name> "-Outliner.generated"
     , 
       heuristic-outliner-productions;
@@ -28,7 +41,7 @@ strategies
         ~//   - <sort>._,
         ~//   - _.<constructor>
         ~
-          ~*<id>
+        ~*<id>
       ]|
     )
   

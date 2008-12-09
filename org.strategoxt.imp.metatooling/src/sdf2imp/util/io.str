@@ -84,7 +84,88 @@ strategies
   add-imports:
     Module(_, NoImports(), _) -> <id>
 
-/** File output. */
+/**
+ * Descriptor output.
+ */
+strategies
+  
+  /**
+   * Output the main descriptor file (e.g., EditorService.main.esv).
+   * This file is never overwritten.
+   */
+  output-main-descriptor-file(name, new-contents) =
+    output-descriptor-file(
+      name
+    , new-contents
+    , not(file-exists)
+    )
+  
+  /**
+   * Output an initial descriptor file (e.g., EditorService-Outliner.esv).
+   * These files are never overwritten and only generated if imported.
+   */
+  output-initial-descriptor-file(name, new-contents) =
+    output-descriptor-file(
+      name
+    , new-contents
+    , not(file-exists); is-descriptor-imported(|<name>)
+    )
+
+  /**
+   * Output an derived descriptor file (e.g., EditorService-Outliner.generated.esv).
+   * These files are always overwritten, but only if imported.
+   */
+  output-derived-descriptor-file(name, new-contents) =
+    output-descriptor-file(
+      name
+    , new-contents
+    , is-descriptor-imported(|<name>)
+    )
+  
+  /**
+   * Output a descriptor file if <condition> succeeds for
+   * the full file path of the generated file.
+   *
+   * @internal
+   */
+  output-descriptor-file(name, new-contents, condition) =
+    with(
+      filename := <add-extension> (<name>, "esv");
+      path     := "src";
+      fullpath := <conc-strings> (path, "/", filename)
+    );
+    
+    if ResetFiles <+ <condition> fullpath then
+      new-contents;
+      risky(
+        ?Module(name, _ ,_);
+        pp-descriptor-to-string
+      | "Illegal editor service descriptor output"
+      );
+      output-text-file(|[path], filename)
+    else
+      verbose-msg(!"Skipping", !fullpath)
+    end
+
+  /**
+   * Output a packed descriptor file (e.g., EditorService.packed.esv).
+   */
+  output-packed-descriptor-file(|filename) =
+    with(
+      path     := "include";
+      fullpath := <conc-strings> (path, "/", filename)
+    );
+    
+    pp-descriptor-to-string;
+    output-text-file(|[path], filename)
+  
+  is-descriptor-imported(|name) =
+    MainDescriptor;
+    oncetd(?Import(name) + ?ImportRenamed(name, _))
+
+/**
+ * Pretty-printing support.
+ */
 strategies
   
   output-java-file =
@@ -113,45 +194,6 @@ strategies
     );
     
     output-text-file(|pathparts, filename)
-
-  output-default-descriptor-file(name, new-contents) =
-    with(
-      filename := <add-extension> (<name>, "esv");
-      path     := "src";
-      fullpath := <conc-strings> (path, "/", filename)
-    );
-    
-    if is-descriptor-necessary(|<name>, fullpath) then
-      new-contents;
-      risky(
-        ?Module(name, _ ,_);
-        pp-descriptor-to-string
-      | "Illegal editor service descriptor output"
-      );
-      output-text-file(|[path], filename)
-    else
-      verbose-msg(!"Skipping", !fullpath)
-    end
-
-  output-packed-descriptor-file(|filename) =
-    with(
-      path     := "include";
-      fullpath := <conc-strings> (path, "/", filename)
-    );
-    
-    pp-descriptor-to-string;
-    output-text-file(|[path], filename)
-  
-  is-descriptor-necessary(|name, fullpath) =
-    ResetFiles
-  <+
-    if MainDescriptor then 
-      // Only generate default descriptors if they are imported by the main descriptor
-      MainDescriptor;
-      oncetd(?Import(name) + ?ImportRenamed(name, _))
-    else
-      not(<file-exists> fullpath) // main descriptor file must exist
-    end
   
   output-text-file(|pathparts, filename) =
     print-filename(|pathparts, filename);
@@ -165,6 +207,8 @@ strategies
     
     <fputs> (<id>, file);
     <fclose> file
+
+strategies
   
   parse-table-descriptor =
     CachedParseTableDescriptor
