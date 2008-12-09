@@ -1,6 +1,6 @@
 package org.strategoxt.imp.runtime.services;
 
-import java.util.Map;
+import java.util.List;
 import java.util.WeakHashMap;
 
 import lpg.runtime.IAst;
@@ -18,9 +18,9 @@ import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 public class StrategoReferenceResolver implements IReferenceResolver {
 	private final StrategoFeedback feedback;
 	
-	private final Map<String, String> resolverFunctions;
+	private final List<NodeMapping<String>> resolverFunctions;
 	
-	private final Map<String, String> helpFunctions;
+	private final List<NodeMapping<String>> helpFunctions;
 	
 	private final String wildcardResolverFunction;
 	
@@ -34,12 +34,12 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 	
 	private final IStrategoAstNode NOT_FOUND = new IntAstNode(null, 0, null, null) { /* uses protected c'tor */ };
 	
-	public StrategoReferenceResolver(StrategoFeedback feedback, Map<String, String> resolverFunctions, Map<String, String> helpFunctions) {
+	public StrategoReferenceResolver(StrategoFeedback feedback, List<NodeMapping<String>> resolverFunctions, List<NodeMapping<String>> helpFunctions) {
 		this.feedback = feedback;
 		this.resolverFunctions = resolverFunctions;
 		this.helpFunctions = helpFunctions;
-		wildcardResolverFunction = resolverFunctions.get("_");
-		wildcardHelperFunction = helpFunctions.get("_");
+		wildcardResolverFunction = NodeMapping.getFirstAttribute(resolverFunctions, "_", null, 0);
+		wildcardHelperFunction = NodeMapping.getFirstAttribute(helpFunctions, "_", null, 0);
 	}
 
 	public IAst getLinkTarget(Object oNode, IParseController parseController) {
@@ -49,7 +49,7 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 		IAst result = resolverCache.get(node);
 		if (result != null) return result == NOT_FOUND ? null : result;
 		
-		String function = resolverFunctions.get(node.getConstructor());
+		String function = NodeMapping.getFirstAttribute(resolverFunctions, node.getConstructor(), node.getSort(), 0);
 		if (function == null) function = wildcardResolverFunction;
 		if (function == null || function.equals("_")) {
 			Debug.log("No reference resolver available for node of type ", node.getConstructor());
@@ -68,7 +68,7 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 		String cached = helpCache.get(node);
 		if (cached != null) return cached == "" ? null : cached;
 		
-		String function = helpFunctions.get(node.getConstructor());
+		String function = NodeMapping.getFirstAttribute(helpFunctions, node.getConstructor(), null, 0);
 		if (function == null) function = wildcardHelperFunction;
 		if (function == null || function.equals("_"))  {
 			Debug.log("No reference info available for node of type ", node.getConstructor());

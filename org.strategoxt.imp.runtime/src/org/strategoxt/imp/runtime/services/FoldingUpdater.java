@@ -34,12 +34,8 @@ public class FoldingUpdater extends FolderBase {
           String constructor = node.getConstructor();
           String sort = node.getSort();
           
-          for (NodeMapping folding : folded) {
-        	  if (folding.getAttribute(constructor, sort, 0) != null) {
-        		  makeCompleteAnnotation(node);
-        		  break;
-        	  }
-          }
+          if (NodeMapping.hasAttribute(folded, constructor, sort, 0))
+        	  makeCompleteAnnotation(node);
           
           for (NodeMapping folding : defaultFolded) {
         	  if (folding.getAttribute(constructor, sort, 0) != null) {

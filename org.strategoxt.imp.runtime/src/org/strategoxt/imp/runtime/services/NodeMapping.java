@@ -2,6 +2,8 @@ package org.strategoxt.imp.runtime.services;
 
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.*;
 
+import java.util.List;
+
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
@@ -65,6 +67,19 @@ public class NodeMapping<T> {
 			}
 		}
 		return null;
+	}
+	
+	public static<T> T getFirstAttribute(List<NodeMapping<T>> mappings, String constructor, String sort, int tokenKind) {
+		for (int i = 0; i < mappings.size(); i++) {
+			T result = mappings.get(i).getAttribute(constructor, sort, tokenKind);
+			if (result != null) return result;
+		}
+		return null;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static<T> boolean hasAttribute(List<? extends NodeMapping> mappings, String constructor, String sort, int tokenKind) {
+		return getFirstAttribute((List<NodeMapping<T>>) mappings, constructor, sort, tokenKind) != null;
 	}
 	
 	@Override

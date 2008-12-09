@@ -15,6 +15,8 @@ public interface IStrategoAstNode extends IAst {
 	
 	String getConstructor();
 	
+	String getSort();
+	
 	IPath getResourcePath();
 	
 	IPath getRootPath();
