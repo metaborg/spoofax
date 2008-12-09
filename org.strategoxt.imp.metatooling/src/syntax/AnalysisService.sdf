@@ -1,0 +1,16 @@
+module AnalysisService
+
+imports
+  SemanticServices
+
+exports
+
+  syntax
+  
+    "analysis" <SectionName-LEX> <LAYOUT?-CF> <SemanticRule*-CF> -> <Section-CF> {cons("Analysis")}
+
+    "analysis" -> <ReservedName-CF>
+
+  context-free syntax
+    
+    "observer" ":" StrategoCall -> SemanticRule {cons("CompilerObserver")}

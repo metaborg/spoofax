@@ -6,8 +6,8 @@ exports
   
   sorts
   
-    Section LanguageProperty PropertyValue NoContinuation PropertyValues URL
-    FenceDef BlockCommentDef StartSymbols
+    LanguageProperty PropertyValue NoContinuation PropertyValues URL
+    FenceDef BlockCommentDef StartSymbols PropertyKeyword
   
   syntax
   

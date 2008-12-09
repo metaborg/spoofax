@@ -1,6 +1,7 @@
 package org.strategoxt.imp.metatooling.building;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -32,16 +33,14 @@ public class DynamicDescriptorBuilder {
 		boolean success = builder.invoke("sdf2imp-for-file");
 		builder.invoke("dr-scope-all-end");
 		
-		
-
-		
 		Set<String> tracked = ((TrackingIOAgent) builder.getIOAgent()).getTracked();
 		tracked.clear();
 	}
 	
-	private boolean isMainFile() {
+	private boolean isMainFile(String file) {
+		// TODO: Determine if a file is the main descriptor file by its contents?
+		// InputStream stream = builder.getIOAgent().openInputStream(file);
 		
-		
-		return false;
+		return file.matches("(/[^-\\.]*\\.esv|-Main\\.esv|\\.main\\.esv)$");
 	}
 }

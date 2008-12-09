@@ -4,7 +4,7 @@ exports
 
   sorts
     Id Int STRING String CommentChar Node Sort Constructor ConstructorId
-    ReservedName SectionName ModuleName
+    ReservedName SectionName ModuleName Section Eof
 
   lexical syntax
   

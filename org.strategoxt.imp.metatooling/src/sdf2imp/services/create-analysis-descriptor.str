@@ -1,0 +1,27 @@
+module sdf2imp/services/create-analysis-descriptor
+
+imports
+  libstratego-lib
+  
+  sdf2imp/util/-
+
+strategies
+
+  create-analysis-descriptor =
+    output-default-descriptor-file(
+      <descriptor-name> "-Analysis"
+    ,
+      !|[
+        module <descriptor-name> "-Analysis"
+        
+        analysis
+        ~
+        ~// Analysis can be provided by an external Stratego program:
+        ~//
+        ~//   provider stratego-program.ctree // (built using strc -F)
+        ~//
+        ~// Analysis is carried out by a rule of the form (ast, path, fullpath) -> (errors, warnings, infos)
+        ~//
+        ~//   observer analysis-rule
+      ]|
+    )

@@ -6,7 +6,9 @@ imports
   FoldingService
   OutlinerService
   ColorerService
-  CompilerService
+  AnalysisService
+  ReferencesService
+  OccurrencesService
 
 exports
 

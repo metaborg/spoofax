@@ -6,7 +6,7 @@ imports
 exports
 
   sorts
-    Section FoldingRule FoldingAnno
+    FoldingRule FoldingAnno
 
   syntax
   
@@ -21,6 +21,6 @@ exports
           Node FoldingAnno -> FoldingRule {cons("FoldRule")}
     "all" Node FoldingAnno -> FoldingRule {cons("FoldRuleAll")}
 
-    "(avoid)"  -> FoldingAnno {cons("Avoid")}
-    "(folded)" -> FoldingAnno {cons("Folded")}
-               -> FoldingAnno {cons("None")}
+    "(disable)" -> FoldingAnno {cons("Disable")}
+    "(folded)"  -> FoldingAnno {cons("Folded")}
+                -> FoldingAnno {cons("None")}

@@ -1,5 +1,7 @@
 module Stratego-Java-EditorService
 imports
+  StrategoMix[StrategoHost]	
+
   languages/java/EmbeddedJavaMix[Java Term[[StrategoHost]]]
   languages/java/eblock/JavaEBlockMix[Java]
   

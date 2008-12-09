@@ -1,4 +1,4 @@
-module sdf2imp/services/create-compiler-descriptor
+module sdf2imp/services/create-references-descriptor
 
 imports
   libstratego-lib
@@ -7,20 +7,20 @@ imports
 
 strategies
 
-  create-compiler-descriptor =
+  create-references-descriptor =
     output-default-descriptor-file(
-      <descriptor-name> "-Compiler.generated"
+      <descriptor-name> "-References"
     ,
       !|[
-        module <descriptor-name> "-Compiler.generated"
+        module <descriptor-name> "-References"
         
-        compiler
+        references
         ~
-        ~// Reference resolving functionality can be provided by an external Stratego program:
+        ~// Reference resolving functionality may be provided by an external Stratego program:
         ~//
         ~//   provider stratego-program.ctree // (built using strc -F)
         ~//
-        ~// Reference rules can specify the syntax constructors for which
+        ~// Occurence rules can specify the syntax constructors for which
         ~// a reference resolving function is available:
         ~//
         ~//   reference FunctionCall : resolve-function-call hover-help-function-call

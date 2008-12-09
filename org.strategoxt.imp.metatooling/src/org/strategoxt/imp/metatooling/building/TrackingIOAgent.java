@@ -6,12 +6,12 @@ import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.spoofax.interpreter.library.LoggingIOAgent;
+import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class TrackingIOAgent extends LoggingIOAgent {
+public class TrackingIOAgent extends EditorIOAgent {
 	private Set<String> tracked = new HashSet<String>();
 	
 	public Set<String> getTracked() {

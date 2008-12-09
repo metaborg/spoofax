@@ -1,0 +1,23 @@
+module SemanticServices
+
+imports
+  Common LanguageDescription
+
+exports
+
+  sorts
+    SemanticRule SemanticNode StrategoId StrategoCall
+
+  lexical syntax
+
+    [a-zA-Z\_] [a-zA-Z0-9\'\-\_]* -> StrategoId
+  
+    Node -> SemanticNode
+    "_"  -> SemanticNode
+
+  context-free syntax
+
+    "provider" PropertyValue -> SemanticRule {cons("SemanticProvider")}
+
+             StrategoId -> StrategoCall {cons("Strategy")}
+    "id" "." StrategoId -> StrategoCall {cons("Attribute")}

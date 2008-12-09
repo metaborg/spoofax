@@ -1,0 +1,28 @@
+module sdf2imp/services/create-occurrences-descriptor
+
+imports
+  libstratego-lib
+  
+  sdf2imp/util/-
+
+strategies
+
+  create-occurrences-descriptor =
+    output-default-descriptor-file(
+      <descriptor-name> "-Occurrences"
+    ,
+      !|[
+        module <descriptor-name> "-Occurrences"
+        
+        occurrences
+        ~
+        ~// Occurrence highlighting functionality may be provided by an external Stratego program:
+        ~//
+        ~//   provider stratego-program.ctree // (built using strc -F)
+        ~//
+        ~// Occurence rules can specify the syntax constructors for which
+        ~// a reference resolving function is available:
+        ~//
+        ~//   occurrence FunctionCall : occurrences
+      ]|
+    )
