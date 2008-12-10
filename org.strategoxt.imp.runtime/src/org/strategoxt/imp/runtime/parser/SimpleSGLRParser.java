@@ -58,7 +58,9 @@ public class SimpleSGLRParser {
 	private IStrategoTerm implode(ATerm asfix) {
 		try {
 			imploder.setCurrent(Environment.getWrappedATermFactory().wrapTerm(asfix));
-			imploder.invoke("implode_asfix_0_0");
+			boolean success = imploder.invoke("implode_asfix_0_0");
+			if (!success)
+				Environment.logStrategyFailure("Implosion failed.", imploder);
 		
 			return imploder.current();
 		} catch (InterpreterException x) {

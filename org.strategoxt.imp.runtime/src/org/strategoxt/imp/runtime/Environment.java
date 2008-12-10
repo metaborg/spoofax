@@ -10,6 +10,7 @@ import org.eclipse.imp.runtime.RuntimePlugin;
 import org.spoofax.interpreter.adapter.aterm.WrappedATermFactory;
 import org.spoofax.interpreter.core.Interpreter;
 import org.spoofax.interpreter.core.InterpreterException;
+import org.spoofax.interpreter.library.LoggingIOAgent;
 import org.spoofax.jsglr.InvalidParseTableException;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.ParseTableManager;
@@ -31,22 +32,26 @@ import aterm.ATermFactory;
 public final class Environment {
 	// TODO: What about thread safety?
 	
-	private final static WrappedATermFactory wrappedFactory
-		= new WrappedATermFactory();
+	private final static WrappedATermFactory wrappedFactory;
 		
-	private final static ATermFactory factory = wrappedFactory.getFactory();
+	private final static ATermFactory factory;
 	
-	private final static ParseTableManager parseTableManager
-		= new ParseTableManager(factory);
+	private final static ParseTableManager parseTableManager;
 	
-	private final static Map<String, ParseTable> parseTables
-		= new HashMap<String, ParseTable>();
+	private final static Map<String, ParseTable> parseTables;
 	
-	private final static Map<String, Descriptor> descriptors
-		= new HashMap<String, Descriptor>();
+	private final static Map<String, Descriptor> descriptors;
 	
-	private final static WrappedAstNodeFactory wrappedAstNodeFactory
-		= new WrappedAstNodeFactory();
+	private final static WrappedAstNodeFactory wrappedAstNodeFactory;
+	
+	static {
+		wrappedFactory = new WrappedATermFactory();
+		factory = wrappedFactory.getFactory();
+		parseTableManager = new ParseTableManager(factory);
+		parseTables = new HashMap<String, ParseTable>();
+		descriptors = new HashMap<String, Descriptor>();
+		wrappedAstNodeFactory = new WrappedAstNodeFactory();
+	}
 	
 	public static WrappedAstNodeFactory getTermFactory() {
 		return wrappedAstNodeFactory;
@@ -73,7 +78,6 @@ public final class Environment {
 		result.load(Environment.class.getResourceAsStream("/include/libstratego-sglr.ctree"));
 		result.load(Environment.class.getResourceAsStream("/include/libstratego-gpp.ctree"));
 		result.load(Environment.class.getResourceAsStream("/include/libstratego-xtc.ctree"));
-		
 		result.load(Environment.class.getResourceAsStream("/include/stratego-editor-support.ctree"));
 		
 		return result;
@@ -125,5 +129,15 @@ public final class Environment {
 	public static void logException(String message) {
 		System.err.println(message);
 		RuntimePlugin.getInstance().logException(message, new RuntimeException(message));
+	}
+	
+	public static void logStrategyFailure(String message, Interpreter interpreter) {
+		if (interpreter.getIOAgent() instanceof LoggingIOAgent) {
+			System.err.println(message);
+			String log = ((LoggingIOAgent) interpreter.getIOAgent()).getLog();
+			logException(message, new InterpreterException(message + " Log follows.\n\n" + log));
+		} else {
+			logException(message);
+		}
 	}
 }

@@ -150,7 +150,7 @@ public class StrategoFeedback implements IModelListener {
 			boolean success = interpreter.invoke(function);
 			
 			if (!success) {
-				Environment.logException("Failure reported during evaluation of function " + function);
+				Environment.logStrategyFailure("Failure reported during evaluation of function " + function, interpreter);
 				return null;
 			}
 		} catch (InterpreterException e) {
