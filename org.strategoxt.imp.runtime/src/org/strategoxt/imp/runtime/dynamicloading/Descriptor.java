@@ -42,6 +42,18 @@ public class Descriptor {
 	
 	protected Descriptor(IStrategoAppl document) {
 		this.document = document;
+		
+		initializeFactories();
+	}
+	
+	private void initializeFactories() {
+		serviceFactories.add(new ParseControllerFactory());
+		serviceFactories.add(new FoldingUpdaterFactory());
+		serviceFactories.add(new OutlinerFactory());
+		serviceFactories.add(new ReferenceResolverFactory());
+		serviceFactories.add(new StrategoFeedbackFactory());
+		serviceFactories.add(new SyntaxPropertiesFactory());
+		serviceFactories.add(new TokenColorerFactory());
 	}
 	
 	/**

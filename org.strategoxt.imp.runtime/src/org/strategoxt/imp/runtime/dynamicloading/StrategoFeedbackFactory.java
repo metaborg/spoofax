@@ -42,7 +42,7 @@ public class StrategoFeedbackFactory extends AbstractServiceFactory<StrategoFeed
 			String filename = termContents(term);
 			if (filename.endsWith(".ctree")) {
 				try {
-					Debug.startTimer("Loading interpreter input ", filename);
+					Debug.startTimer("Loading Stratego module ", filename);
 					interpreter.load(descriptor.openAttachment(filename));
 					Debug.stopTimer("Successfully loaded " +  filename);
 				} catch (InterpreterException e) {
