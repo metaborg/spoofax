@@ -11,9 +11,9 @@ strategies
       risky(
         <add-input-dir-prefix> "src/";
         filename := <packed-descriptor-file-name>;
+        main     := <main-descriptor-name>;
         
-        main-descriptor-name;
-        input-descriptor-file;
+        <input-descriptor-file> main;
         
         output-packed-descriptor-file(|filename)
       | "Could not pack descriptor files"
@@ -21,4 +21,4 @@ strategies
     |}
 
   packed-descriptor-file-name =
-    <conc-strings> (<main-descriptor-name>, ".packed.esv")
+    <conc-strings> (<get-sdf-main-module>, ".packed.esv")

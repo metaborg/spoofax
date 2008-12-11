@@ -37,7 +37,12 @@ strategies
      {| InputDirPrefix, OnImportFailure:
        <add-input-dir-prefix> "src/";
        rules(
-         OnImportFailure := Module("", NoImports(), [])
+         OnImportFailure:
+           Import(i) -> Module("", NoImports(), [])
+           where
+             if <eq> (<main-descriptor-name>, i) then
+               <set-verbosity> 1; fail
+             end
        );
        
        verbosity-scope(
@@ -53,7 +58,6 @@ strategies
      default-main-descriptor
 
   find-main-module =
-    debug(!"foo");
     oncetd(?LanguageName(result));
     verbose-msg(!"Using main module", !result);
     !result

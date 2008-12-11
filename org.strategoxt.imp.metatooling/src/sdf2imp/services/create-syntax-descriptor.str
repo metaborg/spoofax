@@ -15,7 +15,7 @@ strategies
         
         imports <descriptor-name> "-Syntax.generated"
         
-        syntax
+        language
           ~
           ~// This file can be used for custom syntax rules.
           ~// See the imported file for a brief introduction and examples.

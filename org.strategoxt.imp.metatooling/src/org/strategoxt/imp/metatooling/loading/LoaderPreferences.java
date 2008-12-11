@@ -17,8 +17,11 @@ import org.osgi.service.prefs.BackingStoreException;
 import org.strategoxt.imp.runtime.Environment;
 
 /**
+ * Maintains a list of active editor descriptors in the project settings.
+ * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
+@Deprecated // currently unused
 public class LoaderPreferences {
 	private final static String PREFERENCES_NODE = "org.strategoxt.imp.metatooling";
 	
@@ -64,7 +67,7 @@ public class LoaderPreferences {
 	}
 	
 	public void putDescriptor(final String descriptor) {
-		setDescriptors(new IWorkspaceRunnable() {
+		updateDescriptors(new IWorkspaceRunnable() {
 			public void run(IProgressMonitor monitor) throws CoreException {
 				try {
 					if (!hasDescriptor(descriptor)) {
@@ -83,7 +86,7 @@ public class LoaderPreferences {
 	}
 	
 	public void removeDescriptor(final String descriptor) {
-		setDescriptors(new IWorkspaceRunnable() {
+		updateDescriptors(new IWorkspaceRunnable() {
 			public void run(IProgressMonitor monitor) throws CoreException {
 				List<String> descriptors = Arrays.asList(getDescriptors());
 				descriptors.remove(descriptor);
@@ -102,7 +105,7 @@ public class LoaderPreferences {
 		});
 	}
 	
-	private void setDescriptors(final IWorkspaceRunnable job) {
+	private void updateDescriptors(final IWorkspaceRunnable job) {
 		// HACK: Workspace is locked, try again later
 		TimerTask task = new TimerTask() {
 			@Override
@@ -112,7 +115,7 @@ public class LoaderPreferences {
 				try {
 					ResourcesPlugin.getWorkspace().run(job, null);
 				} catch (CoreException e) {
-					setDescriptors(job);
+					updateDescriptors(job);
 				}
 			}
 		};

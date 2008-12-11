@@ -19,7 +19,7 @@ strategies
     {| IsImported:
       ?import;
       name := <conc-strings> (<main-descriptor-name>, ".packed");
-      <add-imports> Module(name, Imports([Import(import)]), [])
+      <fetch-imports> Module(name, Imports([Import(import)]), [])
     |}
   
   set-input-dir-prefix =
@@ -37,16 +37,23 @@ strategies
     
   // TODO: Optimize - file input/parsing caching
   
+  // TODO: Multi-directory support (-I)
+  
   input-descriptor-import =
     ?Import(name);
     !FILE(<add-extension; include-input-dir-prefix> (name, "esv"));
     parse-xtc-file-report-errors(|<parse-table-descriptor>, "Module");
     
-    risky(?Module(name, _, _) |"Module name does not match file name")
+    risky(
+      ?Module(name, _, _)
+    <+
+      try(<OnImportFailure> Import(name)); fail // trigger failure event
+    |"Module name does not match file name"
+    )
   <+
     ?ImportRenamed(name, tail);
     <input-descriptor-import> Import(name);
-    add-imports;
+    fetch-imports;
     alltd(rename-sort(|tail))
     
   // TODO: Sort renaming could be inferred from the .def file
@@ -57,7 +64,7 @@ strategies
   rename-sort(|tail):
     ListSort(name) -> ListSort(<conc-strings> (name, "_", tail))
   
-  add-imports:
+  fetch-imports:
     Module(name, Imports(imports), definitions) ->
     Module(name, Imports(imports'), definitions')
     where
@@ -69,9 +76,9 @@ strategies
           IsImported
         <+
           input-descriptor-import;
-          add-imports
+          fetch-imports
         <+
-          OnImportFailure
+          OnImportFailure; debug(!"failorz")
         | "Unable to import module"
         )
       ) => imported;
@@ -81,7 +88,7 @@ strategies
       imported-imports := <filter(?Module(_, Imports(<id>), _))> imported;
       imports'         := <concat> [imports | <id>]
 
-  add-imports:
+  fetch-imports:
     Module(_, NoImports(), _) -> <id>
 
 /**

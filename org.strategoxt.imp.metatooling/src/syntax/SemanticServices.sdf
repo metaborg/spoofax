@@ -15,6 +15,10 @@ exports
     Node -> SemanticNode
     "_"  -> SemanticNode
 
+  lexical restrictions
+  
+    StrategoId -/- [a-zA-Z0-9\'\-\_]
+
   context-free syntax
 
     "provider" PropertyValue -> SemanticRule {cons("SemanticProvider")}

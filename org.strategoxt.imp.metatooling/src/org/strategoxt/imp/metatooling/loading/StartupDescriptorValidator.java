@@ -4,16 +4,15 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.imp.language.LanguageValidator;
 
 /**
- * Dynamically loaded language validator class,
- * currently the purpose of loading any such languages at startup,
- * plugging into IMP.
+ * Dynamically loaded language validator class.
+ * Currently used to launch the <ref>StartupDescriptorLoader</ref>.
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class DynamicLanguageValidator extends LanguageValidator {
+public class StartupDescriptorValidator extends LanguageValidator {
 
-	public DynamicLanguageValidator() {
-		StartupDescriptorLoader.initialize();
+	public StartupDescriptorValidator() {
+		new StartupDescriptorLoader().initialize();
 	}
 
 	@Override

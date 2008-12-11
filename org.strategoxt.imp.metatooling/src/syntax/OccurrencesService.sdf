@@ -13,4 +13,4 @@ exports
 
   context-free syntax
   
-    "occurrence" SemanticNode ":" StrategoCall StrategoCall -> SemanticRule {cons("OccurrenceRule")}
+    "occurrence" SemanticNode ":" StrategoCall -> SemanticRule {cons("OccurrenceRule")}

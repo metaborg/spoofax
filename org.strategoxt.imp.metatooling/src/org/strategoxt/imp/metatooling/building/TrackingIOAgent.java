@@ -9,6 +9,8 @@ import java.util.Set;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 
 /**
+ * An IOAgent that keeps track of all files accessed.
+ * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class TrackingIOAgent extends EditorIOAgent {
@@ -16,6 +18,10 @@ public class TrackingIOAgent extends EditorIOAgent {
 	
 	public Set<String> getTracked() {
 		return tracked;
+	}
+	
+	public void setTracked(Set<String> value) {
+		tracked = value;
 	}
 	
 	private void track(String fn) {

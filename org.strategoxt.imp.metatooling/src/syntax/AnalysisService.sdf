@@ -13,4 +13,4 @@ exports
 
   context-free syntax
     
-    "observer" ":" StrategoCall -> SemanticRule {cons("CompilerObserver")}
+    "observer" ":" StrategoCall -> SemanticRule {cons("SemanticObserver")}
