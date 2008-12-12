@@ -1,7 +1,7 @@
 module dr-scoping
 
 imports
-  libstrategolib
+  libstratego-lib
 
 strategies
 

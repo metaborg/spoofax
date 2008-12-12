@@ -1,7 +1,7 @@
 module term
 
 imports
-  libstrategolib
+  libstratego-lib
 
 strategies
   

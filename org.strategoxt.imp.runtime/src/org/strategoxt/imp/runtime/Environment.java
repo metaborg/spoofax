@@ -11,6 +11,7 @@ import org.spoofax.interpreter.adapter.aterm.WrappedATermFactory;
 import org.spoofax.interpreter.core.Interpreter;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.library.LoggingIOAgent;
+import org.spoofax.interpreter.stratego.SDefT;
 import org.spoofax.jsglr.InvalidParseTableException;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.ParseTableManager;
@@ -79,6 +80,9 @@ public final class Environment {
 		result.load(Environment.class.getResourceAsStream("/include/libstratego-gpp.ctree"));
 		result.load(Environment.class.getResourceAsStream("/include/libstratego-xtc.ctree"));
 		result.load(Environment.class.getResourceAsStream("/include/stratego-editor-support.ctree"));
+		
+		SDefT call = result.getContext().lookupSVar("REPLACE_call_0_0");
+		result.getContext().getVarScope().addSVar("call_0_0", call);
 		
 		return result;
 	}

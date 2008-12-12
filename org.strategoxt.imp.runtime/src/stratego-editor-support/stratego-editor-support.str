@@ -5,3 +5,4 @@ imports
   term
   jsglr-parser
   jsglr-parser-compat
+  xtc-compat
