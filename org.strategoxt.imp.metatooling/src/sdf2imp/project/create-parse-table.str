@@ -2,7 +2,7 @@ module sdf2imp/project/create-parse-table
 
 imports
   libstratego-lib
-  libstratego-xtc // TODO2: XTC detox?
+  libstratego-xtc
   
   EditorService
   
@@ -14,6 +14,9 @@ imports
 strategies
   
   create-or-copy-parse-table =
+    copy-parse-table <+ create-parse-table
+  
+  copy-parse-table =
     where(
       print-filename(|[], <parse-table-target>);
       <eq> (<ParseTable>, <parse-table-target; file-exists>)
@@ -22,7 +25,8 @@ strategies
       risky(file-exists |"File not found");
       <copy-file> (<id>, <parse-table-target>)
     )
-  <+
+    
+  create-parse-table =
     xtc-ensure-file => FILE(input);
     where(
       <file-exists <+ mkdir> "include";

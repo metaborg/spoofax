@@ -2,7 +2,8 @@ module sdf2imp/main
 
 imports
   libstratego-lib
-  libstratego-xtc // TODO2: XTC detox?
+  libstratego-xtc
+
   libjava-front
   sdf-options
   
@@ -24,36 +25,35 @@ overlays
 strategies
 
   main-sdf2imp =
-    ctree-include(input-descriptor-file + set-input-dir-prefix);
-    
     xtc-input-wrap(
       sdf2imp-options
     , sdf2imp
       <+ <xtc-exit> 1 // proper stack traces
     )
   
-  sdf2imp-for-file:
-    file -> <packed-descriptor-file-name>
+  sdf2imp-jvm:
+    esv -> <packed-descriptor-file-name>
     where
-      <main-sdf2imp> ["sdf2imp", "-i", file]
+      def := <find-def-file> esv;
+      <main-sdf2imp> ["sdf2imp", "-i", def]
   
-  ctree-include(s) = // ensure strategies s are not optimized away when packed to a ctree
-    id <+ s
+  // FIXME: dirty hack for getting the .def file
+  find-def-file =
+      remove-extension;
+      guarantee-extension(|"def"); // remove .main.esv
+      if not(file-exists) then
+        <conc-strings> ("../", <id>)
+      end
 
 strategies
 
   sdf2imp =
-    create-or-copy-parse-table;
-    
-    verbose-msg(!"Analyzing grammar...");
-    sdf2rtg;
-    read-from => RTG(_, ProdRules(<id>));
-    
-    where(
+    if read-main-descriptor then
+      sdf2rtg // descriptor already exists
+    else
+      sdf2rtg;
       create-main-descriptor
-    <+
-      read-main-descriptor // descriptor already exists, analyze it
-    );
+    end;
     
     register-rtg;
     
@@ -67,7 +67,9 @@ strategies
 
     create-packed-descriptor-file;
     
-    create-java-implementation
+    create-java-implementation;
+    
+    create-or-copy-parse-table
   
   create-java-implementation =    
     // Create other plugin classes
@@ -80,5 +82,7 @@ strategies
     create-plugin-xml
   
   sdf2rtg =
+    verbose-msg(!"Analyzing grammar...");
     xtc-transform(!"sdf2rtg", !["--ignore-missing-cons", "-m", <get-sdf-main-module> | <pass-verbose>]);
-    xtc-transform(!"sglri", !["-p", <xtc-find> "rtg.tbl", "--start", "RTG"])
+    xtc-transform(!"sglri", !["-p", <xtc-find> "rtg.tbl", "--start", "RTG"]);
+    read-from => RTG(_, ProdRules(<id>))
