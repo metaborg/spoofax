@@ -13,7 +13,7 @@ import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class TrackingIOAgent extends EditorIOAgent {
+public class FileTrackingIOAgent extends EditorIOAgent {
 	private Set<String> tracked = new HashSet<String>();
 	
 	public Set<String> getTracked() {
@@ -24,7 +24,7 @@ public class TrackingIOAgent extends EditorIOAgent {
 		tracked = value;
 	}
 	
-	private void track(String fn) {
+	protected void track(String fn) {
 		tracked.add(getAbsolutePath(fn));
 	}
 	

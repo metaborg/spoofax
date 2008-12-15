@@ -1,11 +1,13 @@
 package org.strategoxt.imp.metatooling.building;
 
+import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.spoofax.interpreter.core.Interpreter;
 import org.spoofax.interpreter.core.InterpreterException;
@@ -36,8 +38,8 @@ public class DynamicDescriptorBuilder {
 			Debug.startTimer("Loading dynamic editor builder");
 
 			builder = Environment.createInterpreter();
-			builder.setIOAgent(new TrackingIOAgent());
-			builder.load(DynamicDescriptorBuilder.class.getResourceAsStream("/include/sdf2imp.ctree"));
+			builder.setIOAgent(new FileTrackingIOAgent());
+			builder.load(DynamicDescriptorBuilder.class.getResourceAsStream("/sdf2imp.ctree"));
 			
 			Debug.stopTimer("Successfully loaded dynamic editor builder");
 			
@@ -47,7 +49,9 @@ public class DynamicDescriptorBuilder {
 	}
 	
 	public void updateResource(IResource resource) {
-		String filename = resource.getFullPath().toPortableString();
+		IPath location = resource.getRawLocation();
+		if (location == null) return;
+		String filename = location.toOSString();
 		
 		try {
 			Set<IResource> mainFiles = mainEditorFiles.get(filename);
@@ -66,11 +70,16 @@ public class DynamicDescriptorBuilder {
 		}
 	}
 
-	private void buildDescriptor(IResource mainFile) {
+	private synchronized void buildDescriptor(IResource mainFile) {
 		try {
-			builder.setCurrent(builder.getFactory().makeString(mainFile.getFullPath().toOSString()));
+			IPath location = mainFile.getRawLocation();
+			String path = location.removeLastSegments(1).toOSString();
+			String filename = mainFile.getName();
+			
+			builder.getIOAgent().setWorkingDir(path);
+			builder.setCurrent(builder.getFactory().makeString(filename));
 			builder.invoke("dr-scope-all-start");
-			boolean success = builder.invoke("sdf2imp-for-file");
+			boolean success = builder.invoke("sdf2imp-jvm");
 			builder.invoke("dr-scope-all-end");
 			
 			if (!success) {
@@ -82,6 +91,8 @@ public class DynamicDescriptorBuilder {
 			
 		} catch (InterpreterException e) {
 			Environment.logException("Unable to build descriptor for " + mainFile, e);
+		} catch (FileNotFoundException e) {
+			Environment.logException("Unable to build descriptor for " + mainFile, e);
 		}
 		
 		String result = ((IStrategoString) builder.current()).stringValue();
@@ -90,7 +101,7 @@ public class DynamicDescriptorBuilder {
 	}
 
 	private void updateDependencies(IResource mainFile) {
-		TrackingIOAgent agent = (TrackingIOAgent) builder.getIOAgent();
+		FileTrackingIOAgent agent = (FileTrackingIOAgent) builder.getIOAgent();
 		
 		// Remove old dependencies		
 		for (String oldDependency : includedEditorFiles.get(mainFile)) {

@@ -51,10 +51,14 @@ public class NativeCallPrimitive extends AbstractPrimitive {
 		
 		try {
 			Process process = Runtime.getRuntime().exec(commandArgs, null, dir);
-			new StreamCopier(process.getInputStream(), io.getOutputStream(IOAgent.CONST_STDOUT)).start();
-			new StreamCopier(process.getErrorStream(), io.getOutputStream(IOAgent.CONST_STDERR)).start();
+			Thread t1 = new StreamCopier(process.getInputStream(), io.getOutputStream(IOAgent.CONST_STDOUT));
+			Thread t2 = new StreamCopier(process.getErrorStream(), io.getOutputStream(IOAgent.CONST_STDERR));
+			t1.start();
+			t2.start();
 			
 			int result = process.waitFor();
+			t1.join();
+			t2.join();
 					
 			env.setCurrent(env.getFactory().makeInt(result));
 		

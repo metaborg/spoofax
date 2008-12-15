@@ -8,7 +8,6 @@ import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.runtime.CoreException;
-import org.spoofax.interpreter.core.InterpreterException;
 import org.strategoxt.imp.metatooling.building.DynamicDescriptorBuilder;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
@@ -22,11 +21,7 @@ import org.strategoxt.imp.runtime.dynamicloading.DescriptorFactory;
  */
 public class DynamicDescriptorUpdater implements IResourceChangeListener {
 	
-	private final DynamicDescriptorBuilder builder;
-	
-	public DynamicDescriptorUpdater() throws InterpreterException, IOException {
-		builder = new DynamicDescriptorBuilder(this);
-	}
+	private DynamicDescriptorBuilder builder;
 
 	public void resourceChanged(IResourceChangeEvent event) {
 		if (event.getType() == IResourceChangeEvent.POST_CHANGE) {
@@ -51,6 +46,8 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 		if (resource.getName().endsWith(".packed.esv")) {
 			loadPackedDescriptor(resource);
 		} else {
+			if (builder == null)
+				builder = new DynamicDescriptorBuilder(this);
 			builder.updateResource(resource);
 		}
 	}

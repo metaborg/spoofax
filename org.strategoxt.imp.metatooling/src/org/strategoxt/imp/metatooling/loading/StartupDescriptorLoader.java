@@ -1,7 +1,5 @@
 package org.strategoxt.imp.metatooling.loading;
 
-import java.io.IOException;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceVisitor;
@@ -9,7 +7,6 @@ import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.spoofax.interpreter.core.InterpreterException;
 import org.strategoxt.imp.runtime.Environment;
 
 /**
@@ -19,15 +16,17 @@ import org.strategoxt.imp.runtime.Environment;
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class StartupDescriptorLoader {
-	private boolean didInitialize;
+	private static boolean didInitialize;
 	
-	private DynamicDescriptorUpdater loader;
+	private static DynamicDescriptorUpdater loader;
+	
+	private StartupDescriptorLoader() {}
 	
 	/**
 	 * Initializes the dynamic language loading component.
 	 * May be invoked by {@link StartupDescriptorValidator }
 	 */
-	public void initialize() {
+	public static void initialize() {
 		try {
 			if (didInitialize) return;
 			didInitialize = true;
@@ -42,11 +41,7 @@ public class StartupDescriptorLoader {
 					}},
 				null);
 		} catch (CoreException e) {
-			Environment.logException("Could not load initial editor services", e);
-		} catch (IOException e) {
-			Environment.logException("Could not load dynamic descriptor updater", e);
-		} catch (InterpreterException e) {
-			Environment.logException("Could not load dynamic descriptor updater", e);			
+			Environment.logException("Could not load initial editor services", e);			
 		} catch (RuntimeException e) {
 			Environment.logException("Could not load dynamic descriptor updater", e);
 		}
@@ -65,7 +60,7 @@ public class StartupDescriptorLoader {
 	}
 	*/
 	
-	private void loadAllServices() {
+	private static void loadAllServices() {
 		for (final IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
 			if (project.isOpen()) {
 				try {
