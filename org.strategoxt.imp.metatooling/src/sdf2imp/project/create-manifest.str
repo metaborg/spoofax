@@ -33,4 +33,5 @@ Require-Bundle: org.eclipse.core.runtime,
   org.spoofax.aterm,
   org.spoofax.jsglr
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
-")
+Export-Package: ", package
+)

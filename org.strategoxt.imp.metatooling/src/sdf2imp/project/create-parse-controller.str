@@ -37,13 +37,21 @@ strategies
         private static final String TABLE = "/include/" + LANGUAGE + ".tbl";
 
         private static final String DESCRIPTOR = "/include/" + LANGUAGE + ".packed.esv";
-
-        private static boolean registered;
         
-        @Override
-        public IParseController getWrapped() { 
-          if (!registered) { 
-            registered = true;
+        private static Descriptor descriptor;
+        
+        private static Throwable notLoadingCause;
+        
+        public static Descriptor getDescriptor() {
+          if (notLoadingCause != null)
+            throw new RuntimeException(notLoadingCause); // unexpected exception
+          if (descriptor == null)
+            createDescriptor();
+          
+          return descriptor;
+        }
+        
+        private static void createDescriptor() {
             try {
               InputStream descriptorStream = x_name.class.getResourceAsStream(DESCRIPTOR);
               InputStream table = x_name.class.getResourceAsStream(TABLE);
@@ -54,19 +62,39 @@ strategies
               if (table == null)
                 throw new BadDescriptorException("Could not load parse table from " + TABLE + " (not found in plugin)");
 
-              Descriptor descriptor = DescriptorFactory.load(descriptorStream, table, null);
-              initialize(descriptor.getLanguage());
+              descriptor = DescriptorFactory.load(descriptorStream, table, null);
+              
             } catch (BadDescriptorException exc) {
-              setNotLoadingCause(exc);
-              Environment.logException("Bad descriptor for " + LANGUAGE, exc);
-              throw new RuntimeException("Bad descriptor for " + LANGUAGE, exc);
+              notLoadingCause = exc;
+              Environment.logException("Bad descriptor for " + LANGUAGE + " plugin", exc);
+              throw new RuntimeException("Bad descriptor for " + LANGUAGE + " plugin", exc);
+              
             } catch (IOException exc) {
-              setNotLoadingCause(exc);
-              Environment.logException("I/O problem loading descriptor for " + LANGUAGE, exc);
-              throw new RuntimeException("I/O problem loading descriptor for " + LANGUAGE, exc);
+              notLoadingCause = exc;
+              Environment.logException("I/O problem loading descriptor for " + LANGUAGE + " plugin", exc);
+              throw new RuntimeException("I/O problem loading descriptor for " + LANGUAGE + " plugin", exc);
+            }
+        }
+        
+        @Override
+        public IParseController getWrapped() {
+          if (!isInitialized()) {
+            if (notLoadingCause != null) throw new RuntimeException(notLoadingCause);
+            try {
+              initialize(getDescriptor().getLanguage());
+            } catch (BadDescriptorException exc) {
+              notLoadingCause = exc;
+              throw new RuntimeException(exc);
             }
           }
+          
           return super.getWrapped();
+        }
+        
+        @Override
+        protected void setNotLoadingCause(Throwable value) {
+          notLoadingCause = value;
+          super.setNotLoadingCause(value);
         }
       }
     ]|
