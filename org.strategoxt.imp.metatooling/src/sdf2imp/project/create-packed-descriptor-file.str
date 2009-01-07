@@ -14,11 +14,18 @@ strategies
         main     := <main-descriptor-name>;
         
         <input-descriptor-file> main;
-        
+        remove-empty-sections;        
         output-packed-descriptor-file(|filename)
       | "Could not pack descriptor files"
       )
     |}
+  
+  remove-empty-sections =
+    Module(
+      id
+    , id
+    , filter(not(?_#([_, []])))
+    )
 
   packed-descriptor-file-name =
     <conc-strings> (<get-sdf-main-module>, ".packed.esv")
