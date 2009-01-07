@@ -78,7 +78,7 @@ strategies
           input-descriptor-import;
           fetch-imports
         <+
-          OnImportFailure; debug(!"failorz")
+          OnImportFailure
         | "Unable to import module"
         )
       ) => imported;
@@ -126,7 +126,7 @@ strategies
     output-descriptor-file(
       name
     , new-contents
-    , is-descriptor-imported(|<name>)
+    , id // TODO: is-descriptor-imported(|<name>) - not working atm if not directly imported by main file
     )
   
   /**
