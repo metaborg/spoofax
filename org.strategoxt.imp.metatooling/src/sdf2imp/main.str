@@ -51,6 +51,8 @@ strategies
 strategies
 
   sdf2imp =
+    xtc-ensure-file => input;
+  
     if <file-exists> (<add-extension> (<main-descriptor-name>, "esv")); read-main-descriptor then
       sdf2rtg // descriptor already exists
     else
@@ -70,7 +72,7 @@ strategies
     
     create-java-implementation;
     
-    create-or-copy-parse-table
+    <copy-or-create-parse-table> input
   
   create-java-implementation =    
     // Create other plugin classes

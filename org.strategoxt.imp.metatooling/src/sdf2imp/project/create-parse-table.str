@@ -13,7 +13,7 @@ imports
 
 strategies
   
-  create-or-copy-parse-table =
+  copy-or-create-parse-table =
     copy-parse-table <+ create-parse-table
   
   copy-parse-table =
