@@ -38,10 +38,10 @@ strategies
        <add-input-dir-prefix> "src/";
        rules(
          OnImportFailure:
-           Import(i) -> Module("", NoImports(), [])
+           Import(m) -> Module("", NoImports(), [])
            where
-             if <eq> (<main-descriptor-name>, i) then
-               <set-verbosity> 1; fail
+             if <eq> (<main-descriptor-name>, m) then
+               fail
              end
        );
        
@@ -87,5 +87,7 @@ strategies
       oldlevel := <verbosity>;
       <set-verbosity> level
     );
-    s;
-    with(<set-verbosity> oldlevel)
+    finally(
+      s
+    , <set-verbosity> oldlevel
+    )

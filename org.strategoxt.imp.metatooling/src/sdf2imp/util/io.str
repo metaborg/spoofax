@@ -126,7 +126,7 @@ strategies
     output-descriptor-file(
       name
     , new-contents
-    , id // TODO: is-descriptor-imported(|<name>) - not working atm if not directly imported by main file
+    , NoExistingDescriptor <+ is-descriptor-imported(|<name>)
     )
   
   /**

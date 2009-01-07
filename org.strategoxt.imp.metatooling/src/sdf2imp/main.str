@@ -31,7 +31,8 @@ strategies
       with(<set-verbosity> 2);
       sdf2imp
     <+
-      <xtc-exit> 1 // proper stack traces
+      prim("SSL_stacktrace_get_all_frame_names") => trace;       
+      report-failure // proper stack traces
     )
   
   sdf2imp-jvm:
@@ -42,21 +43,21 @@ strategies
   
   // FIXME: dirty hack for getting the .def file
   find-def-file =
-      remove-extension;
-      guarantee-extension(|"def"); // remove .main.esv
-      if not(file-exists) then
-        <conc-strings> ("../", <id>)
-      end
+    remove-extension;
+    guarantee-extension(|"def"); // remove .main.esv
+    if not(file-exists) then
+      <conc-strings> ("../", <id>)
+    end
 
 strategies
 
   sdf2imp =
     xtc-ensure-file => input;
   
-    if <file-exists> (<add-extension> (<main-descriptor-name>, "esv")); read-main-descriptor then
-      sdf2rtg // descriptor already exists
-    else
-      sdf2rtg;
+    read-main-descriptor;
+    <sdf2rtg> input;
+  
+    if NoExistingDescriptor then
       create-main-descriptor
     end;
     
