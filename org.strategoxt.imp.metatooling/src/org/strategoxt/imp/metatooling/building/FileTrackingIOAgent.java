@@ -25,7 +25,7 @@ public class FileTrackingIOAgent extends EditorIOAgent {
 	}
 	
 	protected void track(String fn) {
-		tracked.add(getAbsolutePath(fn));
+		tracked.add(getAbsolutePath(getWorkingDir(), fn));
 	}
 	
 	@Override
@@ -35,15 +35,15 @@ public class FileTrackingIOAgent extends EditorIOAgent {
 	}
 	
 	@Override
-	public InputStream openInputStream(String fn, boolean isInternalFile)
+	public InputStream openInputStream(String fn, boolean isDefinitionFile)
 			throws FileNotFoundException {
-		track(fn);
-		return super.openInputStream(fn, isInternalFile);
+		
+		if (!isDefinitionFile) track(fn);
+		return super.openInputStream(fn, isDefinitionFile);
 	}
 	
 	@Override
-	public int openRandomAccessFile(String fn, String mode)
-			throws FileNotFoundException {
+	public int openRandomAccessFile(String fn, String mode) throws FileNotFoundException {
 		track(fn);
 		return super.openRandomAccessFile(fn, mode);
 	}

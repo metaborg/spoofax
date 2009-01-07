@@ -12,9 +12,11 @@ import org.eclipse.core.runtime.Path;
 import org.spoofax.interpreter.core.Interpreter;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.terms.IStrategoString;
+import org.strategoxt.imp.editors.editorservice.EditorServiceParseController;
 import org.strategoxt.imp.metatooling.loading.DynamicDescriptorUpdater;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -37,8 +39,10 @@ public class DynamicDescriptorBuilder {
 			
 			Debug.startTimer("Loading dynamic editor builder");
 
+			EditorIOAgent agent = new FileTrackingIOAgent();			
+			agent.setDescriptor(EditorServiceParseController.getDescriptor());
 			builder = Environment.createInterpreter();
-			builder.setIOAgent(new FileTrackingIOAgent());
+			builder.setIOAgent(agent);
 			builder.load(DynamicDescriptorBuilder.class.getResourceAsStream("/sdf2imp.ctree"));
 			
 			Debug.stopTimer("Successfully loaded dynamic editor builder");
