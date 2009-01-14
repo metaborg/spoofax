@@ -2,7 +2,8 @@ module sdf2imp/project/create-packed-descriptor-file
 
 imports
   libstratego-lib
-  sdf2imp/util/io
+  sdf2imp/util/input
+  sdf2imp/util/output
 
 strategies
 
