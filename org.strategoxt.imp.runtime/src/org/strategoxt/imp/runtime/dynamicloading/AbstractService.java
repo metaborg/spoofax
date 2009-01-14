@@ -1,5 +1,6 @@
 package org.strategoxt.imp.runtime.dynamicloading;
 
+import org.eclipse.imp.editor.LanguageServiceManager;
 import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.language.Language;
 import org.strategoxt.imp.runtime.Environment;
@@ -28,8 +29,8 @@ public class AbstractService<T extends ILanguageService> {
 	protected synchronized T getWrapped() {
 		// TODO: Perhaps get the dynamic service using an approach similar to DynamicParseController.findLanguage()
 		if (wrapped == null) {
-			if (getNotLoadingCause() != null) // previous error
-				throw new RuntimeException(getNotLoadingCause());
+			if (notLoadingCause != null) // previous error
+				throw new RuntimeException(notLoadingCause);
 			if (!isInitialized())
 				throw new IllegalStateException("Editor service component not initialized yet - " + getClass().getSimpleName());
 			try {
@@ -41,10 +42,6 @@ public class AbstractService<T extends ILanguageService> {
 			}
 		}
 		return wrapped;
-	}
-	
-	private Throwable getNotLoadingCause() {
-		return notLoadingCause;
 	}
 	
 	protected void setNotLoadingCause(Throwable notLoadingCause) {

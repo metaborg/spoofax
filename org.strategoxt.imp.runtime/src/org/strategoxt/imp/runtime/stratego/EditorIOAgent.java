@@ -25,20 +25,19 @@ public class EditorIOAgent extends LoggingIOAgent {
 	}
 	
 	@Override
-	public InputStream openInputStream(String path, boolean isInternalFile)
+	public InputStream openInputStream(String path, boolean isDefinitionFile)
 			throws FileNotFoundException {
 		
-		if (isInternalFile && descriptor != null) {
+		if (isDefinitionFile && descriptor != null) {
 			return openAttachedFile(path);
 		} else {
-			return super.openInputStream(path, isInternalFile);
+			return super.openInputStream(path, isDefinitionFile);
 		}
 	}
 	
 	private InputStream openAttachedFile(String path) throws FileNotFoundException {
 		try {
-			String filename = new File(path).getName();
-			return descriptor.openAttachment(filename);
+			return descriptor.openAttachment(path);
 		} catch (FileNotFoundException e) {
 			File localFile = new File(path);
 			if (localFile.exists()) {
