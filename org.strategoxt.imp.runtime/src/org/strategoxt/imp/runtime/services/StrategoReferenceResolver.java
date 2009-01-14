@@ -5,6 +5,7 @@ import java.util.WeakHashMap;
 
 import lpg.runtime.IAst;
 
+import org.eclipse.imp.editor.LanguageServiceManager;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.services.IReferenceResolver;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -41,6 +42,10 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 		wildcardResolverFunction = NodeMapping.getFirstAttribute(resolverFunctions, "_", null, 0);
 		wildcardHelperFunction = NodeMapping.getFirstAttribute(helpFunctions, "_", null, 0);
 	}
+
+    public void initialize(LanguageServiceManager manager) {
+    	// Not used here
+    }
 
 	public IAst getLinkTarget(Object oNode, IParseController parseController) {
 		// TODO: Fix reference resolve caching, cache resetting

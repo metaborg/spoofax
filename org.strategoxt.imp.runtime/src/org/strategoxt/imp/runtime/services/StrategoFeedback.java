@@ -10,6 +10,7 @@ import lpg.runtime.IAst;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.imp.editor.LanguageServiceManager;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
 import org.spoofax.interpreter.core.Interpreter;
@@ -46,7 +47,11 @@ public class StrategoFeedback implements IModelListener {
 		this.descriptor = descriptor;
 		this.interpreter = resolver;
 		this.feedbackFunction = feedbackFunction;
-	}
+	}	
+
+    public void initialize(LanguageServiceManager manager) {
+    	// Not used here
+    }
 
 	public AnalysisRequired getAnalysisRequired() {
 		return AnalysisRequired.TYPE_ANALYSIS;

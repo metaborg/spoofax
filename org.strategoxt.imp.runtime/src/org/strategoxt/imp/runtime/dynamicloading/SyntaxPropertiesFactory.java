@@ -2,6 +2,7 @@ package org.strategoxt.imp.runtime.dynamicloading;
 
 import java.util.ArrayList;
 
+import org.eclipse.imp.editor.LanguageServiceManager;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 
@@ -53,6 +54,10 @@ class SyntaxPropertiesFactory extends AbstractServiceFactory<ILanguageSyntaxProp
 		String blockCommentStart, blockCommentContinuation, blockCommentEnd;
 		
 		String[][] fences;
+		
+		public void initialize(LanguageServiceManager manager) {
+			// Not used here
+		}
 
 		public String getSingleLineCommentPrefix() {
 			return singleLineCommentPrefix;
@@ -75,11 +80,11 @@ class SyntaxPropertiesFactory extends AbstractServiceFactory<ILanguageSyntaxProp
 		}
 
 		public int[] getIdentifierComponents(String ident) {
-			return null; // ?
+			return null; // described in PrefspecsSyntaxProperties.
 		}
 
 		public String getIdentifierConstituentChars() {
-			return null; // ?
+			return null; // all characters in identifiers. Unused.
 		}
 		
 	}

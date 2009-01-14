@@ -12,6 +12,7 @@ import lpg.runtime.PrsStream;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.imp.editor.LanguageServiceManager;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.model.ISourceProject;
@@ -110,6 +111,10 @@ public class SGLRParseController implements IParseController {
 		this.path = filePath;
 		this.project = project;
 		this.messages = handler;
+    }
+    
+    public void initialize(LanguageServiceManager manager) {
+    	// Not used here    	
     }
 
 	public AstNode parse(String input, boolean scanOnly, IProgressMonitor monitor) {

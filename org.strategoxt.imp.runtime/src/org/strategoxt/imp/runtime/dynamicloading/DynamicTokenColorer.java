@@ -19,14 +19,10 @@ public class DynamicTokenColorer extends AbstractService<ITokenColorer> implemen
 	}
 	
 	public IRegion calculateDamageExtent(IRegion seed) {
-		if (!isInitialized()) return seed;
-		
 		return getWrapped().calculateDamageExtent(seed);
 	}
 
 	public TextAttribute getColoring(IParseController controller, Object token) {
-		initialize(controller.getLanguage());
-		
 		return getWrapped().getColoring(controller, token);
 	}
 }

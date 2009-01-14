@@ -3,11 +3,14 @@ package org.strategoxt.imp.runtime.dynamicloading;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.*;
 
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IPath;
@@ -40,6 +43,8 @@ public class Descriptor {
 	
 	private StrategoFeedback feedback;
 	
+	private Set<File> attachedFiles;
+	
 	protected Descriptor(IStrategoAppl document) {
 		this.document = document;
 		
@@ -64,6 +69,7 @@ public class Descriptor {
 	public void uninitialize() {
 		for (AbstractService service : services)
 			service.uninitialize();
+		attachedFiles = null;
 	}
 	
 	// LOADING SERVICES
@@ -111,57 +117,128 @@ public class Descriptor {
 		this.basePath = basePath;
 	}
 	
-	/**
-	 * Gets the language for this descriptor, but does not register it.
-	 */
-	public Language getLanguage() throws BadDescriptorException {
-		if (language == null)
-			language = new Language(
-				getProperty("LanguageName"),
-				getProperty("LanguageId", getProperty("LanguageName")), // natureId
-				getProperty("Description", ""),
-				ROOT_LANGUAGE,                     // TODO: Use "extends" property?
-				getProperty("URL", ""),
-				getProperty("Extensions"),
-				getProperty("Aliases", ""),
-				null);
-		return language;
-	}
-	
 	public String getStartSymbols() {
 		return getProperty("StartSymbols", null);
 	}
 	
-	public InputStream openTableStream() throws BadDescriptorException {
-		String file = getProperty("Table", getProperty("LanguageName"));
-		if (!file.endsWith(".tbl")) file += ".tbl";
-		
+	public InputStream openParseTableStream() throws BadDescriptorException {
 		try {
-			return openAttachment(file);
+			return openAttachment(getParseTableName(), false);
 		} catch (FileNotFoundException e) {
 			throw new BadDescriptorException(e);
 		}
 	}
+    
+    public InputStream openPPTableStream() throws BadDescriptorException {
+        try {
+            return openAttachment(getPPTableName(), false);
+        } catch (FileNotFoundException e) {
+            throw new BadDescriptorException(e);
+        }
+    }
 
-	public InputStream openAttachment(String path) throws FileNotFoundException {
-		if (basePath != null) { // read from filesystem
-			path = basePath.append(path).toString();
+    /**
+     * Open an attached file associated with this descriptor.
+     */ 
+    public InputStream openAttachment(String path) throws FileNotFoundException {
+    	return openAttachment(path, false);
+	}
+    
+    /**
+     * Open an attached file associated with this descriptor.
+     * 
+     * @param onlyListedFiles  Only consider attached files listed in the descriptor.
+     */
+	private InputStream openAttachment(String path, boolean onlyListedFiles) throws FileNotFoundException {
+		if (onlyListedFiles) {
+    		path = getAttachmentPath(path);
+    		if (path == null)
+                throw new FileNotFoundException(path + " not found in editor service plugin");
+    	}
+    	
+        if (basePath != null) { // read from filesystem
+            path = basePath.append(path).toString();
+            if (!onlyListedFiles && !new File(path).exists())
+            	return openAttachment(path, true);
 			return new BufferedInputStream(new FileInputStream(path));
-		} else { // read from jar
-			try {
-				Class mainClass = createService(IParseController.class).getClass();
-				InputStream result = mainClass.getResourceAsStream(path);
-				if (result == null)
-					throw new FileNotFoundException(path + " not found in editor service plugin");
-				return result;
+        } else { // read from jar
+            try {
+			    Class mainClass = createService(IParseController.class).getClass();
+			    InputStream result = mainClass.getResourceAsStream(path);
+			    if (result == null) { // read resource listed in descriptor
+			    	if (!onlyListedFiles) return openAttachment(path, true);
+			        throw new FileNotFoundException(path + " not found in editor service plugin");
+			    }
+			    return result;
 			} catch (BadDescriptorException e) {
-				throw new RuntimeException("Unable to instantiate parse controller class", e);
-			}
-			
+			    throw new RuntimeException("Unable to instantiate parse controller class", e);
+			}            
+        }
+    }
+
+	private String getAttachmentPath(String path) throws FileNotFoundException {
+		File file = new File(path);
+		String name = file.getName();
+		for (File attached : getAttachedFiles()) {
+		    if (attached.getName().equals(name))
+		        return attached.toString();
 		}
+		return null;
 	}
 	
 	// INTERPRETING
+    
+    /**
+     * Gets the language for this descriptor, but does not register it.
+     */
+    public Language getLanguage() throws BadDescriptorException {
+        if (language == null)
+            language = new Language(
+                getProperty("LanguageName"),
+                getProperty("LanguageId", getProperty("LanguageName")), // natureId
+                getProperty("Description", ""),
+                ROOT_LANGUAGE,                     // TODO: Use "extends" property?
+                getProperty("URL", ""),
+                getProperty("Extensions"),
+                getProperty("Aliases", ""),
+                null);
+        return language;
+    }
+
+    private String getParseTableName() throws BadDescriptorException {
+        String file = getProperty("Table", getProperty("LanguageName"));
+        if (!file.endsWith(".tbl")) file += ".tbl";
+        return file;
+    }
+
+    private String getPPTableName() throws BadDescriptorException {
+        String file = getProperty("PPTable", getProperty("LanguageName"));
+        if (!file.endsWith(".pp.af")) file += ".pp.af";
+        return file;
+    }
+    
+    /**
+     * Get a set of all files attached to this descriptor
+     * (e.g., .ctree or .pp.af files). 
+     * This method is cached.
+     */
+    public Set<File> getAttachedFiles() {
+    	if (attachedFiles != null) return attachedFiles;
+    	attachedFiles = new HashSet<File>();
+    	
+    	try {
+    		attachedFiles.add(new File(getParseTableName()));
+    		attachedFiles.add(new File(getPPTableName()));
+    	} catch (Exception e) {
+    		// Ignore missing language name here
+    	}
+    	
+    	for (IStrategoAppl s : collectTerms(getDocument(), "SemanticProvider")) {
+    		attachedFiles.add(new File(termContents(s)));
+    	}
+    	
+    	return attachedFiles;
+    }
 	
 	protected String getProperty(String name) throws BadDescriptorException {
 		String result = getProperty(name, null);

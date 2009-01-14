@@ -2,6 +2,7 @@ package org.strategoxt.imp.runtime.services;
 
 import java.util.List;
 
+import org.eclipse.imp.editor.LanguageServiceManager;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.services.ITokenColorer;
 import org.eclipse.jface.text.IRegion;
@@ -43,6 +44,11 @@ public class TokenColorer implements ITokenColorer {
 		this.nodeMappings = nodeMappings;
 		this.envMappings = envMappings;
 	}
+	
+
+    public void initialize(LanguageServiceManager manager) {
+    	// Not used here
+    }
 
 	public TextAttribute getColoring(IParseController controller, Object oToken) {
 		SGLRToken token = (SGLRToken) oToken;

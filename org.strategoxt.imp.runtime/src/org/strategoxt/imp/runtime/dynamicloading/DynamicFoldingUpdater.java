@@ -16,8 +16,6 @@ public class DynamicFoldingUpdater extends AbstractService<IFoldingUpdater> impl
 	public void updateFoldingStructure(IParseController parseController,
 			ProjectionAnnotationModel annotationModel) {
 		
-		initialize(parseController.getLanguage());
-		
 		getWrapped().updateFoldingStructure(parseController, annotationModel);
 	}
 
