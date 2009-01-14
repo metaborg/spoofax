@@ -40,7 +40,10 @@ strategies
     output-descriptor-file(
       name
     , new-contents
-    , NoExistingDescriptor <+ is-descriptor-imported(|<name>)
+    , id 
+      // TODO: Only build derived files if imported??
+      // (doesn't currently work because transient imports are not considered)
+      // NoExistingDescriptor <+ is-descriptor-imported(|<name>)
     )
   
   /**
