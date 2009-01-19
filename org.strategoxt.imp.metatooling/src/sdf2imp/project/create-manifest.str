@@ -17,7 +17,7 @@ strategies
 "Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: ", name, " Plug-in
-Bundle-SymbolicName: ", name, "; singleton:=true
+Bundle-SymbolicName: ", package, "; singleton:=true
 Bundle-Version: 1.0.0
 Bundle-Activator: ", package, ".Activator
 Import-Package: org.osgi.framework;version=\"1.3.0\"
@@ -33,5 +33,6 @@ Require-Bundle: org.eclipse.core.runtime,
   org.spoofax.aterm,
   org.spoofax.jsglr
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
-Export-Package: ", package
+Export-Package: ", package, "
+" // newline required
 )
