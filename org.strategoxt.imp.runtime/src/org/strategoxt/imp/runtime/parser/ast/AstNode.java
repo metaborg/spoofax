@@ -163,12 +163,12 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 		return children.iterator();
 	}
 
-    public String yield() {
-        return getLeftIToken().getPrsStream().toString(getLeftIToken(), getRightIToken());
-    }
-    
-    // map(getSort)
-    public static List<String> getSorts(List<? extends AstNode> children) {
+	public String yield() {
+		return getLeftIToken().getPrsStream().toString(getLeftIToken(), getRightIToken());
+	}
+	
+	// map(getSort)
+	public static List<String> getSorts(List<? extends AstNode> children) {
   	  List<String> result = new ArrayList<String>(children.size());
   	  
   	  for (AstNode node : children) {
@@ -176,33 +176,33 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
   	  }
   	  
   	  return result;
-    }
-    
-    @Override
-    public int hashCode() {
-    	return getTerm().hashCode();
-    }
-    
-    @Override
-    public boolean equals(Object obj) {
-    	if (obj instanceof IStrategoAstNode) {
-        	return this == obj || ((IStrategoAstNode) obj).getTerm().equals(getTerm());
-    	} else {
-    		return false;
-    	}
-    }
-    
-    // Visitor support
-    
-    public void accept(IAstVisitor visitor) {
-    	if (visitor.preVisit(this)) {
-    		for (int i = 0, size = children.size(); i < size; i++) {
-    			children.get(i).accept(visitor);
-    		}
-    	}
-    	
-    	visitor.postVisit(this);
-    }
+	}
+	
+	@Override
+	public int hashCode() {
+		return getTerm().hashCode();
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof IStrategoAstNode) {
+			return this == obj || ((IStrategoAstNode) obj).getTerm().equals(getTerm());
+		} else {
+			return false;
+		}
+	}
+	
+	// Visitor support
+	
+	public void accept(IAstVisitor visitor) {
+		if (visitor.preVisit(this)) {
+			for (int i = 0, size = children.size(); i < size; i++) {
+				children.get(i).accept(visitor);
+			}
+		}
+		
+		visitor.postVisit(this);
+	}
 	
 	// LPG legacy/compatibility
 	
@@ -212,18 +212,21 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 	 * @deprecated  Unused; ATermAstNode does not include null children.
 	 */
 	@Deprecated
-	public ArrayList<? extends AstNode> getAllChildren() {
+	public ArrayList<AstNode> getAllChildren() {
 		return getChildren();
 	}
 
-    public IToken[] getPrecedingAdjuncts() {
-    	return getLeftIToken().getPrecedingAdjuncts();
-    }
-    
-    public IToken[] getFollowingAdjuncts() {
-    	return getRightIToken().getFollowingAdjuncts();
-    }
+	@Deprecated
+	public IToken[] getPrecedingAdjuncts() {
+		return getLeftIToken().getPrecedingAdjuncts();
+	}
+	
+	@Deprecated
+	public IToken[] getFollowingAdjuncts() {
+		return getRightIToken().getFollowingAdjuncts();
+	}
 
+	@Deprecated
 	public AstNode getNextAst() {
 		return null;
 	}
