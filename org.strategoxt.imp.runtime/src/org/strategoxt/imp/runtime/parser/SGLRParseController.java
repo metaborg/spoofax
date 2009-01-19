@@ -203,20 +203,20 @@ public class SGLRParseController implements IParseController {
 		return messages;
 	}
 	
-	private void reportError(IToken token, String message) {
+	protected void reportError(IToken token, String message) {
 		messages.handleSimpleMessage(
 				message, max(0, token.getStartOffset()), max(0, token.getEndOffset()),
 				token.getColumn(), token.getEndColumn(), token.getLine(), token.getEndLine());
 	}
 	
-	private void reportParseError(TokenExpectedException exception) {
+	protected void reportParseError(TokenExpectedException exception) {
 		String message = exception.getShortMessage();
 		IToken token = parser.getTokenizer().makeErrorToken(exception.getOffset());
 		
 		reportError(token, message);
 	}
 	
-	private void reportParseError(BadTokenException exception) {
+	protected void reportParseError(BadTokenException exception) {
 		IToken token = parser.getTokenizer().makeErrorToken(exception.getOffset());
 		String message = exception.isEOFToken()
         	? exception.getShortMessage()
@@ -225,7 +225,7 @@ public class SGLRParseController implements IParseController {
         reportError(token, message);
 	}
 	
-	private void reportParseError(Exception exception) {
+	protected void reportParseError(Exception exception) {
 		String message = "Internal parsing error: " + exception;
 		exception.printStackTrace();
 		

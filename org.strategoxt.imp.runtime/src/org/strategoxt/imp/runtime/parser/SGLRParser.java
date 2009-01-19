@@ -8,10 +8,14 @@ import java.io.InputStreamReader;
 import lpg.runtime.Monitor;
 import lpg.runtime.PrsStream;
 
+import org.eclipse.imp.language.Language;
 import org.eclipse.imp.parser.IParser;
+import org.spoofax.jsglr.BadTokenException;
+import org.spoofax.jsglr.InvalidParseTableException;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.SGLR;
 import org.spoofax.jsglr.SGLRException;
+import org.spoofax.jsglr.TokenExpectedException;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.AsfixImploder;
@@ -80,7 +84,9 @@ public class SGLRParser implements IParser {
 	 * 
 	 * @return  The abstract syntax tree.
 	 */
-	public RootAstNode parse(InputStream inputStream, char[] inputChars, String filename) throws SGLRException, IOException {
+	public RootAstNode parse(InputStream inputStream, char[] inputChars, String filename)
+			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
+		
 		Debug.startTimer();
 		
 		// TODO: Parse caching
@@ -106,11 +112,15 @@ public class SGLRParser implements IParser {
 		return result;
 	}
 	
-	public RootAstNode parse(char[] inputChars, String filename) throws SGLRException, IOException {
+	public RootAstNode parse(char[] inputChars, String filename)
+			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
+		
 		return parse(toByteStream(inputChars), inputChars, filename);
 	}
 	
-	public RootAstNode parse(InputStream input, String filename) throws SGLRException, IOException {
+	public RootAstNode parse(InputStream input, String filename)
+			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
+		
 		return parse(toCharArray(input), filename); // don't ask
 	}
 	
