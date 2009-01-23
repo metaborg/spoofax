@@ -1,4 +1,4 @@
-module sdf2imp/util/io
+module sdf2imp/util/input
 
 imports
   libstratego-gpp

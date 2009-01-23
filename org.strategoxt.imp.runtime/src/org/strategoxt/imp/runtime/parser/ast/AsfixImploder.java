@@ -26,31 +26,31 @@ import aterm.pure.ATermListImpl;
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
 public class AsfixImploder {
-	private final static int PARSE_TREE = 0;
+	protected final static int PARSE_TREE = 0;
 	
-	private final static int APPL_PROD = 0;
+	protected final static int APPL_PROD = 0;
 	
-	private final static int APPL_CONTENTS = 1;
+	protected final static int APPL_CONTENTS = 1;
 
-	private final static int PROD_LHS = 0;
+	protected final static int PROD_LHS = 0;
 	
-	private final static int PROD_RHS = 1;
+	protected final static int PROD_RHS = 1;
 
-	private final static int PROD_ATTRS = 2;
+	protected final static int PROD_ATTRS = 2;
 	
-	private final static int TERM_CONS = 0;
+	protected final static int TERM_CONS = 0;
 	
-	private final static int CONS_NAME = 0;
+	protected final static int CONS_NAME = 0;
 	
-	private final static int PARAMETRIZED_SORT_NAME = 0;
+	protected final static int PARAMETRIZED_SORT_NAME = 0;
 	
-	private final static int PARAMETRIZED_SORT_ARGS = 1;
+	protected final static int PARAMETRIZED_SORT_ARGS = 1;
 	
-	private final static int ALT_SORT_LEFT = 0;
+	protected final static int ALT_SORT_LEFT = 0;
 	
-	private final static int ALT_SORT_RIGHT = 1;
+	protected final static int ALT_SORT_RIGHT = 1;
 	
-	private final static int EXPECTED_NODE_CHILDREN = 5;
+	protected final static int EXPECTED_NODE_CHILDREN = 5;
 	
 	private final AstNodeFactory factory = new AstNodeFactory();
 	
@@ -59,9 +59,9 @@ public class AsfixImploder {
 	private final TokenKindManager tokenManager;
 	
 	/** Character offset for the current implosion. */ 
-	private int offset;
+	protected int offset;
 	
-	private boolean lexicalContext;
+	protected boolean lexicalContext;
 	
     public AsfixImploder(TokenKindManager tokenManager, SGLRTokenizer tokenizer) {
 		this.tokenManager = tokenManager;
@@ -76,7 +76,7 @@ public class AsfixImploder {
 		offset = 0;
 		lexicalContext = false;
 		
-		AstNode root = implodeAppl(resolveAmbiguities(top));
+		AstNode root = implodeAppl(top);
 
 		tokenizer.endStream();
 		
@@ -86,14 +86,13 @@ public class AsfixImploder {
 	// TODO2: Cleanup implodeAppl
 	
 	/** Implode any appl(_, _). */
-	private AstNode implodeAppl(ATermAppl appl) {
+	protected AstNode implodeAppl(ATerm term) {
+		ATermAppl appl = resolveAmbiguities(term);		
 		ATermAppl prod = termAt(appl, APPL_PROD);
 		ATermList lhs = termAt(prod, PROD_LHS);
 		ATermAppl rhs = termAt(prod, PROD_RHS);
 		ATermAppl attrs = termAt(prod, PROD_ATTRS);
 		ATermList contents = termAt(appl, APPL_CONTENTS);
-		
-		// TODO: Support <int> nodes in implosion (e.g., chars in Java)
 		
 		IToken prevToken = tokenizer.currentToken();
 		
@@ -122,7 +121,7 @@ public class AsfixImploder {
 		}
 	}
 
-	private ArrayList<AstNode> implodeChildNodes(ATermList contents, boolean tokensOnly) {
+	protected ArrayList<AstNode> implodeChildNodes(ATermList contents, boolean tokensOnly) {
 		ArrayList<AstNode> result = tokensOnly
 				? null
 				: new ArrayList<AstNode>(
@@ -135,7 +134,7 @@ public class AsfixImploder {
 				implodeLexical(child);
 			} else {
 				// Recurse
-				AstNode childNode = implodeAppl(resolveAmbiguities(child));
+				AstNode childNode = implodeAppl(child);
 
 				if (childNode != null)
 					result.add(childNode);
@@ -206,13 +205,15 @@ public class AsfixImploder {
 		}
 	}
 	
-	/** Resolve or ignore any ambiguities in the parse tree. */
-	private ATermAppl resolveAmbiguities(ATerm node) {
+	/**
+	 * Resolve or ignore any ambiguities in the parse tree.
+	 */
+	protected ATermAppl resolveAmbiguities(ATerm node) {
 		if (!"amb".equals(((ATermAppl) node).getName()))
 			return (ATermAppl) node;
 		
 		final ATermListImpl ambs = termAt(node, 0);
-		ATermAppl result = null;
+		
 		ATermAppl lastNonAvoid = null;
 		boolean multipleNonAvoids = false;
 		
@@ -228,8 +229,7 @@ public class AsfixImploder {
 				for (int j = 0; j < attrList.getLength(); j++) {
 					ATerm attr = termAt(attrList, j);
 					if (isAppl(attr) && "prefer".equals(asAppl(attr).getName())) {
-						result = resolveAmbiguities(prod);
-						break alts;
+						return resolveAmbiguities(prod);
 					} else if (isAppl(attr) && "avoid".equals(asAppl(attr).getName())) {
 						continue alts;
 					}
@@ -243,16 +243,12 @@ public class AsfixImploder {
 			}
 		}
 		
-		if (result == null && !multipleNonAvoids) {
-			result = lastNonAvoid;
-		}
-		
-		if (result == null) {
+		if (!multipleNonAvoids) {
+			return lastNonAvoid;
+		} else {
 			if (Debug.ENABLED && !lexicalContext) reportUnresolvedAmb(ambs);
-			result = resolveAmbiguities(ambs.getFirst());
+			return resolveAmbiguities(ambs.getFirst());
 		}
-		
-		return result;
 	}
 	
 	private void reportUnresolvedAmb(ATermList ambs) {
@@ -304,7 +300,7 @@ public class AsfixImploder {
 	}
 	
 	/** Implode any appl(_, _) that constructs a lex terminal. */
-	private void implodeLexical(ATerm character) {		
+	protected void implodeLexical(ATerm character) {		
 		// Add character
 		assert ((ATermInt) character).getInt()
 			== tokenizer.getLexStream().getCharValue(offset)

@@ -19,7 +19,7 @@ import org.strategoxt.imp.runtime.parser.ast.AstNode;
  */
 public class StandAloneSGLRParser {
 	
-	private SGLRParser parser;
+	private final SGLRParser parser;
 	
 	public StandAloneSGLRParser(String language, InputStream parseTable, String startSymbol)
 			throws IOException, InvalidParseTableException {
@@ -33,6 +33,13 @@ public class StandAloneSGLRParser {
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 		
 		return parser.parse(input, filename);
+	}
+	
+	/**
+	 * Sets whether to keep any unresolved ambiguities. Default false.
+	 */
+	public void setKeepAmbiguities(boolean value) {
+		parser.setKeepAmbiguities(value);
 	}
 	
 	private static class StandAloneLanguage extends Language {

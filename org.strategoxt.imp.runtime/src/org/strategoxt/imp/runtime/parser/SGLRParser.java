@@ -8,16 +8,15 @@ import java.io.InputStreamReader;
 import lpg.runtime.Monitor;
 import lpg.runtime.PrsStream;
 
-import org.eclipse.imp.language.Language;
 import org.eclipse.imp.parser.IParser;
 import org.spoofax.jsglr.BadTokenException;
-import org.spoofax.jsglr.InvalidParseTableException;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.SGLR;
 import org.spoofax.jsglr.SGLRException;
 import org.spoofax.jsglr.TokenExpectedException;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.parser.ast.AmbAsfixImploder;
 import org.strategoxt.imp.runtime.parser.ast.AsfixImploder;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
 import org.strategoxt.imp.runtime.parser.ast.RootAstNode;
@@ -39,11 +38,13 @@ public class SGLRParser implements IParser {
 	
 	private final String startSymbol;
 	
-	private final AsfixImploder converter;
-	
 	private final SGLRTokenizer tokenizer;
 	
+	private final TokenKindManager tokenManager;
+	
 	private final char[] buffer = new char[4096];
+	
+	private AsfixImploder imploder;
 	
 	// Simple accessors
 	
@@ -59,6 +60,12 @@ public class SGLRParser implements IParser {
 		return getTokenizer().getParseStream();
 	}
 	
+	public void setKeepAmbiguities(boolean value) {
+		imploder = value
+			? new AmbAsfixImploder(tokenManager, tokenizer)
+			: new AsfixImploder(tokenManager, tokenizer);
+	}
+	
 	// Initialization and parsing
 	
 	public SGLRParser(SGLRParseController controller, TokenKindManager tokenManager,
@@ -67,9 +74,10 @@ public class SGLRParser implements IParser {
 		// TODO: Once spoofax supports it, use a start symbol
 		this.controller = controller;
 		this.startSymbol = null; // startSymbol;
+		this.tokenManager = tokenManager;
 
 		tokenizer = new SGLRTokenizer();		
-		converter = new AsfixImploder(tokenManager, tokenizer);
+		imploder = new AsfixImploder(tokenManager, tokenizer);
 		parser = Environment.createSGLR(parseTable);
 		parser.setCycleDetect(false);
 		parser.setFilter(false);
@@ -100,7 +108,7 @@ public class SGLRParser implements IParser {
 		Debug.stopTimer("File parsed");
 		Debug.startTimer();
 		
-		AstNode imploded = converter.implode(asfix);
+		AstNode imploded = imploder.implode(asfix);
 		RootAstNode result = RootAstNode.makeRoot(imploded, controller, inputChars);
 		
 		if (Debug.ENABLED) {
