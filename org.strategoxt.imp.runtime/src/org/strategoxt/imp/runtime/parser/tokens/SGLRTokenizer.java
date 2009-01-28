@@ -27,12 +27,20 @@ public class SGLRTokenizer {
 		return parseStream.getTokenAt(parseStream.getSize() - 1);
 	}
 	
-	public final PrsStream getParseStream() {
+	public PrsStream getParseStream() {
 		return parseStream;
 	}
 	
-	public final LexStream getLexStream() {
+	public LexStream getLexStream() {
 		return lexStream;
+	}
+	
+	public int getBeginOffset() {
+		return beginOffset;
+	}
+	
+	public void setBeginOffset(int beginOffset) {
+		this.beginOffset = beginOffset;
 	}
 	
 	public void init(char[] input, String filename) throws IOException {

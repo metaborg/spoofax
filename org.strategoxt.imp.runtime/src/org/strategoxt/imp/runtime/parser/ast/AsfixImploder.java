@@ -52,11 +52,11 @@ public class AsfixImploder {
 	
 	protected final static int EXPECTED_NODE_CHILDREN = 5;
 	
-	private final AstNodeFactory factory = new AstNodeFactory();
+	protected final AstNodeFactory factory = new AstNodeFactory();
 	
-	private final SGLRTokenizer tokenizer;
+	protected final SGLRTokenizer tokenizer;
 	
-	private final TokenKindManager tokenManager;
+	protected final TokenKindManager tokenManager;
 	
 	/** Character offset for the current implosion. */ 
 	protected int offset;
@@ -83,9 +83,9 @@ public class AsfixImploder {
 		return root;
 	}
 	
-	// TODO2: Cleanup implodeAppl
-	
-	/** Implode any appl(_, _). */
+	/**
+	 * Implode any appl(_, _).
+	 */
 	protected AstNode implodeAppl(ATerm term) {
 		ATermAppl appl = resolveAmbiguities(term);		
 		ATermAppl prod = termAt(appl, APPL_PROD);

@@ -7,10 +7,20 @@ import java.util.ArrayList;
  */
 public class AmbAstNode extends AstNode {
 
-	public AmbAstNode(ArrayList<AstNode> children) {
+	public AmbAstNode(ListAstNode children) {
+		super("amb", children.getElementSort(), children.getLeftIToken(),
+				children.getRightIToken(), makeList(children));
+	}
 
-		super("amb", "amb", children.get(0).getLeftIToken(),
-				children.get(children.size() - 1).getRightIToken(), children);
+	public AmbAstNode(ArrayList<AstNode> children) {
+		this(new ListAstNode(children.get(0).getSort(), children.get(0).getLeftIToken(),
+				children.get(0).getRightIToken(), children));
+	}
+	
+	private static ArrayList<AstNode> makeList(AstNode node) {
+		ArrayList<AstNode> result = new ArrayList<AstNode>();
+		result.add(node);
+		return result;
 	}
 
 }
