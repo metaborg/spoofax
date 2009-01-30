@@ -17,16 +17,25 @@ import org.strategoxt.imp.runtime.parser.ast.AstNode;
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class StandAloneSGLRParser {
+public class StandAloneSGLRI {
 	
-	private final SGLRParser parser;
+	private final AbstractSGLRI parser;
 	
-	public StandAloneSGLRParser(String language, InputStream parseTable, String startSymbol)
+	public StandAloneSGLRI(String language, InputStream parseTable, String startSymbol)
+			throws IOException, InvalidParseTableException {
+		this(language, parseTable, startSymbol, false);
+	}
+	
+	public StandAloneSGLRI(String language, InputStream parseTable, String startSymbol, boolean useCSGLR)
 			throws IOException, InvalidParseTableException {
 		
-		Language lang = new StandAloneLanguage(language);
-		ParseTable table = Environment.registerParseTable(lang, parseTable);
-		parser = new SGLRParser(table, startSymbol);
+		if (useCSGLR) {
+			parser = new CSGLRI(parseTable, startSymbol);
+		} else {
+			Language lang = new StandAloneLanguage(language);
+			ParseTable table = Environment.registerParseTable(lang, parseTable);
+			parser = new JSGLRI(table, startSymbol);			
+		}
 	}
 	
 	public AstNode parse(InputStream input, String filename)

@@ -10,12 +10,9 @@ import lpg.runtime.PrsStream;
 
 import org.eclipse.imp.parser.IParser;
 import org.spoofax.jsglr.BadTokenException;
-import org.spoofax.jsglr.ParseTable;
-import org.spoofax.jsglr.SGLR;
 import org.spoofax.jsglr.SGLRException;
 import org.spoofax.jsglr.TokenExpectedException;
 import org.strategoxt.imp.runtime.Debug;
-import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.AmbAsfixImploder;
 import org.strategoxt.imp.runtime.parser.ast.AsfixImploder;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
@@ -31,10 +28,8 @@ import aterm.ATerm;
  *
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */ 
-public class SGLRParser implements IParser {
+public abstract class AbstractSGLRI implements IParser {
 	private final SGLRParseController controller;
-	
-	private final SGLR parser;
 	
 	private final String startSymbol;
 	
@@ -42,7 +37,7 @@ public class SGLRParser implements IParser {
 	
 	private final TokenKindManager tokenManager;
 	
-	private final char[] buffer = new char[4096];
+	private final char[] buffer = new char[2048];
 	
 	private AsfixImploder imploder;
 	
@@ -60,6 +55,14 @@ public class SGLRParser implements IParser {
 		return getTokenizer().getParseStream();
 	}
 	
+	public SGLRParseController getController() {
+		return controller;
+	}
+	
+	public String getStartSymbol() {
+		return startSymbol;
+	}
+	
 	public void setKeepAmbiguities(boolean value) {
 		imploder = value
 			? new AmbAsfixImploder(tokenManager, tokenizer)
@@ -68,8 +71,7 @@ public class SGLRParser implements IParser {
 	
 	// Initialization and parsing
 	
-	public SGLRParser(SGLRParseController controller, TokenKindManager tokenManager,
-			ParseTable parseTable, String startSymbol) {
+	public AbstractSGLRI(SGLRParseController controller, TokenKindManager tokenManager, String startSymbol) {
 		
 		// TODO: Once spoofax supports it, use a start symbol
 		this.controller = controller;
@@ -78,58 +80,55 @@ public class SGLRParser implements IParser {
 
 		tokenizer = new SGLRTokenizer();		
 		imploder = new AsfixImploder(tokenManager, tokenizer);
-		parser = Environment.createSGLR(parseTable);
-		parser.setCycleDetect(false);
-		parser.setFilter(false);
 	}
 	
-	public SGLRParser(ParseTable parseTable, String startSymbol) {
-		this(null, new TokenKindManager(), parseTable, startSymbol);
-	}
+	// Parsing
 	
 	/**
 	 * Parse an input, returning the AST and initializing the parse stream.
 	 * 
 	 * @return  The abstract syntax tree.
 	 */
-	public RootAstNode parse(InputStream inputStream, char[] inputChars, String filename)
-			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
-		
-		Debug.startTimer();
-		
-		// TODO: Parse caching
-		//       using a WeakHashMap<char[], WeakReference<AstNode>>
-
-		// Read stream using tokenizer/lexstream
-		tokenizer.init(inputChars, filename);
-		
-		ATerm asfix = parser.parse(inputStream, startSymbol);
-			
-		Debug.stopTimer("File parsed");
-		Debug.startTimer();
-		
-		AstNode imploded = imploder.implode(asfix);
-		RootAstNode result = RootAstNode.makeRoot(imploded, controller, inputChars);
-		
-		if (Debug.ENABLED) {
-			Debug.log("Parsed " + result.toString());
-		}
-			
-		Debug.stopTimer("Parse tree imploded");
-		
-		return result;
-	}
-	
 	public RootAstNode parse(char[] inputChars, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 		
-		return parse(toByteStream(inputChars), inputChars, filename);
+		// TODO: Parse caching
+		//       using a WeakHashMap<char[], WeakReference<AstNode>>
+		tokenizer.init(inputChars, filename);
+		
+		Debug.startTimer();
+		ATerm asfix = parseNoImplode(inputChars);
+		Debug.stopTimer("File parsed: " + filename);
+			
+		return implode(asfix, inputChars);
 	}
 	
+	/**
+	 * Parse an input, returning the AST and initializing the parse stream.
+	 * 
+	 * @note This redirects to the preferred {@link #parse(char[], String)} method.
+	 * 
+	 * @return  The abstract syntax tree.
+	 */
 	public RootAstNode parse(InputStream input, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
+		return parse(toCharArray(input), filename);
+	}
+	
+	public abstract ATerm parseNoImplode(char[] inputChars)
+			throws TokenExpectedException, BadTokenException, SGLRException, IOException;
+
+	private RootAstNode implode(ATerm asfix, char[] inputChars) {		
+		Debug.startTimer();		
+		AstNode imploded = imploder.implode(asfix);
+		RootAstNode result = RootAstNode.makeRoot(imploded, getController(), inputChars);
 		
-		return parse(toCharArray(input), filename); // don't ask
+		if (Debug.ENABLED) {
+			Debug.stopTimer("Parse tree imploded");
+			Debug.log("Parsed " + result.toString());
+		}
+		
+		return result;
 	}
 	
 	// Utility methods
@@ -147,7 +146,7 @@ public class SGLRParser implements IParser {
 		return chars;
 	}
 	
-	private static ByteArrayInputStream toByteStream(char[] chars) {
+	protected static ByteArrayInputStream toByteStream(char[] chars) {
 		byte[] bytes = new byte[chars.length];
 		
 		for (int i = 0; i < bytes.length; i++)

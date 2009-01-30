@@ -48,7 +48,7 @@ public class SGLRParseController implements IParseController {
 	
 	private final TokenKindManager tokenManager = new TokenKindManager();
 	
-	private final SGLRParser parser;
+	private final JSGLRI parser;
 	
 	private final Language language;
 	
@@ -102,7 +102,7 @@ public class SGLRParseController implements IParseController {
     	this.language = language;
     	this.syntaxProperties = syntaxProperties;
     	
-    	parser = new SGLRParser(this, tokenManager, Environment.getParseTable(language), startSymbol);
+    	parser = new JSGLRI(Environment.getParseTable(language), startSymbol, this, tokenManager);
     }
 
     public void initialize(IPath filePath, ISourceProject project,

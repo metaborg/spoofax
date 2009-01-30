@@ -87,7 +87,7 @@ public class AsfixImploder {
 	 * Implode any appl(_, _).
 	 */
 	protected AstNode implodeAppl(ATerm term) {
-		ATermAppl appl = resolveAmbiguities(term);		
+		ATermAppl appl = resolveAmbiguities(term);
 		ATermAppl prod = termAt(appl, APPL_PROD);
 		ATermList lhs = termAt(prod, PROD_LHS);
 		ATermAppl rhs = termAt(prod, PROD_RHS);
@@ -120,6 +120,17 @@ public class AsfixImploder {
 			return createNonTerminalOrInjection(lhs, rhs, attrs, prevToken, children, isList);
 		}
 	}
+	
+	/*
+	private static ATermList extractLHS(ATermAppl prod) {
+		ATerm lhs = termAt(prod, i)
+		if (term.getType() == ATerm.APPL && asAppl(term).getName().equals("list")) {
+			return term.getFactory().makeList(termAt(term, 0));
+		} else {
+			return (ATermList) term;
+		}
+	}
+	*/
 
 	protected ArrayList<AstNode> implodeChildNodes(ATermList contents, boolean tokensOnly) {
 		ArrayList<AstNode> result = tokensOnly

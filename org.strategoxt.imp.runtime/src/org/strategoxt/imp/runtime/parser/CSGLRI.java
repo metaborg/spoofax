@@ -1,0 +1,86 @@
+package org.strategoxt.imp.runtime.parser;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
+import org.spoofax.jsglr.SGLRException;
+import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
+import org.strategoxt.imp.runtime.stratego.NativeCallHelper;
+
+import aterm.ATerm;
+
+/**
+ * IMP IParser implementation using the native C version of SGLR, imploding
+ * parse trees to AST nodes and tokens.
+ * 
+ * @note This class currently neither portable nor very efficient, and simply
+ *       uses a native call to the SGLR executable.
+ * 
+ * @see JSGLRI The pure Java version of this class.
+ * 
+ * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
+ */ 
+public class CSGLRI extends AbstractSGLRI {
+	
+	private final NativeCallHelper caller = new NativeCallHelper();
+	
+	private final byte[] buffer = new byte[4096];
+	
+	private final File parseTable;
+	
+	public CSGLRI(InputStream parseTable, String startSymbol, SGLRParseController controller, TokenKindManager tokenManager) throws IOException {
+		super(controller, tokenManager, startSymbol);
+		
+		// Write this parse table (which may come from a JAR) to disk
+		this.parseTable = streamToTempFile(parseTable);
+	}
+
+	public CSGLRI(InputStream parseTable, String startSymbol) throws IOException {
+		this(parseTable, startSymbol, null, new TokenKindManager());
+	}
+	
+	private File streamToTempFile(InputStream input) throws IOException {
+		OutputStream output = null;
+		
+		try {
+			File result = File.createTempFile("parsetable", null);
+			output = new FileOutputStream(result);
+			
+			for (int read = 0; read != -1; read = input.read(buffer)) {
+				output.write(buffer, 0, read);
+			}
+			
+			return result;			
+		} finally {
+			input.close();
+			if (output != null) output.close();
+		}
+	}
+
+	@Override
+	public ATerm parseNoImplode(char[] inputChars) throws SGLRException, IOException {
+		File inputFile = streamToTempFile(toByteStream(inputChars));
+		File outputFile = File.createTempFile("parserOutput", null);
+		try {
+			String[] commandArgs = {
+					"sglr", "-p", parseTable.getAbsolutePath(),
+					"-i", inputFile.getAbsolutePath(),
+					"-o", outputFile.getAbsolutePath(),
+					"-2"
+			};
+			caller.call(commandArgs, null, System.out, System.err);
+			
+			return Environment.getWrappedATermFactory().getFactory().readFromFile(outputFile.getAbsolutePath());
+		} catch (InterruptedException e) {
+			throw new RuntimeException("CSGLRI parser interrupted", e);
+		} finally {
+			outputFile.delete();
+			inputFile.delete();
+		}
+	}
+
+}

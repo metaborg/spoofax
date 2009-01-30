@@ -1,8 +1,6 @@
 package org.strategoxt.imp.runtime.stratego;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.InterpreterException;
@@ -13,7 +11,7 @@ import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.SGLRException;
-import org.strategoxt.imp.runtime.parser.SGLRParser;
+import org.strategoxt.imp.runtime.parser.JSGLRI;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -42,14 +40,13 @@ public class IMPJSGLRParser extends JSGLRPrimitive {
 		ParseTable pt = lib.getParseTable(Tools.asJavaInt(tvars[1]));
 		String startSymbol = tvars[2].toString();
 		
-		SGLRParser parser = new SGLRParser(pt, startSymbol);
+		JSGLRI parser = new JSGLRI(pt, startSymbol);
 		
-		InputStream inputBytes = new ByteArrayInputStream(input.getBytes());
 		char[] inputChars = new char[input.length()];
 		input.getChars(0, input.length(), inputChars, 0);
 		
 		try {
-			env.setCurrent(parser.parse(inputBytes, inputChars, path).getTerm());
+			env.setCurrent(parser.parse(inputChars, path).getTerm());
 			return true;
 		} catch (IOException e) {
 			e.printStackTrace();

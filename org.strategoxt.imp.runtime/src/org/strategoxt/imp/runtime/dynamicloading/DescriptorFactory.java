@@ -15,14 +15,14 @@ import org.spoofax.jsglr.SGLR;
 import org.spoofax.jsglr.SGLRException;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.parser.SGLRParser;
+import org.strategoxt.imp.runtime.parser.JSGLRI;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class DescriptorFactory {	
 	
-	private static SGLRParser descriptorParser;
+	private static JSGLRI descriptorParser;
 	
 	private static void init() {
 		if (descriptorParser != null) return;
@@ -30,7 +30,7 @@ public class DescriptorFactory {
 			SGLR.setWorkAroundMultipleLookahead(true);
 			InputStream stream = Descriptor.class.getResourceAsStream("/syntax/EditorService.tbl");
 			ParseTable table = Environment.registerParseTable(Descriptor.DESCRIPTOR_LANGUAGE, stream);
-			descriptorParser = new SGLRParser(table, "Module");
+			descriptorParser = new JSGLRI(table, "Module");
 		} catch (Throwable e) {
 			Environment.logException("Could not initialize the Descriptor class.", e);
 			throw new RuntimeException(e);
