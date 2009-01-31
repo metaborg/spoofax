@@ -45,6 +45,8 @@ public class Descriptor {
 	
 	private Set<File> attachedFiles;
 	
+	// LOADING DESCRIPTOR 
+
 	protected Descriptor(IStrategoAppl document) {
 		this.document = document;
 		

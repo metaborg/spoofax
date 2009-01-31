@@ -34,7 +34,10 @@ public class AbstractService<T extends ILanguageService> {
 			if (!isInitialized())
 				throw new IllegalStateException("Editor service component not initialized yet - " + getClass().getSimpleName());
 			try {
-				wrapped = Environment.getDescriptor(getLanguage()).createService(serviceType);
+				Descriptor desc = Environment.getDescriptor(getLanguage());
+				if(desc == null)
+					throw new IllegalStateException("Language '" + getLanguage().getName() + "' not registered");
+				wrapped = desc.createService(serviceType);
 			} catch (Exception e) {
 				setNotLoadingCause(e);
 				Environment.logException("Unable to dynamically initialize service of type " + serviceType.getSimpleName(), e);
@@ -57,12 +60,13 @@ public class AbstractService<T extends ILanguageService> {
 	}
 	
 	public boolean isInitialized() {
-		return language != null;
+		return language != null && Environment.getDescriptor(language) != null;
 	}
 	
 	public void initialize(Language language) {
 		this.language = language;
-		getWrapped();
+		if(getWrapped() == null)
+			throw new RuntimeException("Failed to initialize language " + language.getName());
 		Environment.getDescriptor(language).addInitializedService(this);
 	}
 	
