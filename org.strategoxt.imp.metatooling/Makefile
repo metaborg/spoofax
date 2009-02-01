@@ -51,8 +51,8 @@ sdf2imp : $(RTREES) $(SYNTAX) Makefile
 syntax : $(SYNTAX)
 
 clean :
-	rm -f include/sdf2imp.ctree sdf2imp $(RTREES) $(wildcard src/syntax/*.tbl) $(wildcard src/syntax/*.def)
-
+	rm -f include/sdf2imp.ctree sdf2imp $(RTREES) $(wildcard src/syntax/*.tbl) $(wildcard src/syntax/*.def) *.dep include/*.dep
+	
 # files:
 
 % : %.str $(STRS)
