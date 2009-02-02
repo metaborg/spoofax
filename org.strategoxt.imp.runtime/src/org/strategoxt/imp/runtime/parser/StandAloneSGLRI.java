@@ -38,10 +38,14 @@ public class StandAloneSGLRI {
 		}
 	}
 	
-	public AstNode parse(InputStream input, String filename)
-			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
-		
-		return parser.parse(input, filename);
+	// Simple accessors
+	
+	public String getStartSymbol() {
+		return parser.getStartSymbol();
+	}
+	
+	public void setStartSymbol(String startSymbol) {
+		parser.setStartSymbol(startSymbol);
 	}
 	
 	/**
@@ -49,6 +53,14 @@ public class StandAloneSGLRI {
 	 */
 	public void setKeepAmbiguities(boolean value) {
 		parser.setKeepAmbiguities(value);
+	}
+	
+	// Parsing
+	
+	public AstNode parse(InputStream input, String filename)
+			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
+		
+		return parser.parse(input, filename);
 	}
 	
 	private static class StandAloneLanguage extends Language {

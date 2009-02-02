@@ -31,8 +31,6 @@ import aterm.ATerm;
 public abstract class AbstractSGLRI implements IParser {
 	private final SGLRParseController controller;
 	
-	private final String startSymbol;
-	
 	private final SGLRTokenizer tokenizer;
 	
 	private final TokenKindManager tokenManager;
@@ -40,6 +38,8 @@ public abstract class AbstractSGLRI implements IParser {
 	private final char[] buffer = new char[2048];
 	
 	private AsfixImploder imploder;
+	
+	private String startSymbol;
 	
 	// Simple accessors
 	
@@ -61,6 +61,10 @@ public abstract class AbstractSGLRI implements IParser {
 	
 	public String getStartSymbol() {
 		return startSymbol;
+	}
+	
+	public void setStartSymbol(String startSymbol) {
+		this.startSymbol = startSymbol;
 	}
 	
 	public void setKeepAmbiguities(boolean value) {

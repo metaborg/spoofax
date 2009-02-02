@@ -162,10 +162,6 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 	public Iterator<AstNode> iterator() {
 		return children.iterator();
 	}
-
-	public String yield() {
-		return getLeftIToken().getPrsStream().toString(getLeftIToken(), getRightIToken());
-	}
 	
 	// map(getSort)
 	public static List<String> getSorts(List<? extends AstNode> children) {
@@ -231,6 +227,12 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 		return null;
 	}
 
+	/**
+	 * Pretty prints the AST formed by this node.
+	 * 
+	 * @see #prettyPrint(ITermPrinter)
+	 * @see #yield()
+	 */
 	@Override
 	public final String toString() {
 		ITermPrinter result = new InlinePrinter();
@@ -251,5 +253,12 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 			}
 		}
 		printer.print(")");
+	}
+
+	/**
+	 * Return the input string that formed this AST.
+	 */
+	public String yield() {
+		return getLeftIToken().getPrsStream().toString(getLeftIToken(), getRightIToken());
 	}
 }

@@ -70,6 +70,7 @@ public class CSGLRI extends AbstractSGLRI {
 					"sglr", "-p", parseTable.getAbsolutePath(),
 					"-i", inputFile.getAbsolutePath(),
 					"-o", outputFile.getAbsolutePath(),
+					"-s", getStartSymbol(),
 					"-2"
 			};
 			caller.call(commandArgs, null, System.out, System.err);
