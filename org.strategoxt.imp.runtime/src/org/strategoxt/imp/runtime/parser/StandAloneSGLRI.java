@@ -10,7 +10,7 @@ import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.SGLRException;
 import org.spoofax.jsglr.TokenExpectedException;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.parser.ast.AstNode;
+import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 
 /**
  * A stand-alone SGLR parsing class that uses the Spoofax/IMP imploder and AST classes.
@@ -57,11 +57,18 @@ public class StandAloneSGLRI {
 	
 	// Parsing
 	
-	public AstNode parse(InputStream input, String filename)
+	public IStrategoAstNode parse(InputStream input, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 		
 		return parser.parse(input, filename);
 	}
+	
+	public IStrategoAstNode parse(char[] input, String filename)
+			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
+		
+		return parser.parse(input, filename);
+	}
+	
 	
 	private static class StandAloneLanguage extends Language {
 		public StandAloneLanguage(String name) {

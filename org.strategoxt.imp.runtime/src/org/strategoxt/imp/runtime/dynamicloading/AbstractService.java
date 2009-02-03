@@ -1,6 +1,5 @@
 package org.strategoxt.imp.runtime.dynamicloading;
 
-import org.eclipse.imp.editor.LanguageServiceManager;
 import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.language.Language;
 import org.strategoxt.imp.runtime.Environment;

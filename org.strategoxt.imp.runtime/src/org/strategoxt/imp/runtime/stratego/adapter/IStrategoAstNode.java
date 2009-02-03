@@ -1,5 +1,7 @@
 package org.strategoxt.imp.runtime.stratego.adapter;
 
+import java.util.ArrayList;
+
 import lpg.runtime.IAst;
 
 import org.eclipse.core.runtime.IPath;
@@ -26,4 +28,9 @@ public interface IStrategoAstNode extends IAst {
 	IStrategoAstNode getNextAst();
     
 	IStrategoAstNode getParent();
+	
+	// getChildren() is also published here
+	// to avoid dependencies on IAst
+	// (concrete type exposed by IAst interface)
+	ArrayList getChildren();
 }
