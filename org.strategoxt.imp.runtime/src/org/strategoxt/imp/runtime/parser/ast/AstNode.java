@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import lpg.runtime.IAst;
 import lpg.runtime.IAstVisitor;
 import lpg.runtime.IPrsStream;
 import lpg.runtime.IToken;
@@ -23,7 +24,7 @@ import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
  *
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
-public class AstNode implements Iterable<AstNode>, IStrategoAstNode {
+public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 	// Globally unique object (circumvent interning)
 
 	/** The sort name for strings. */

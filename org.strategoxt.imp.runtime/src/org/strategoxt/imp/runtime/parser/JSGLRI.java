@@ -27,8 +27,6 @@ public class JSGLRI extends AbstractSGLRI {
 			SGLRParseController controller, TokenKindManager tokenManager) {
 		super(controller, tokenManager, startSymbol);
 		
-		// TODO: Once spoofax supports it, use the start symbol
-
 		parser = Environment.createSGLR(parseTable);
 		parser.setCycleDetect(false);
 		parser.setFilter(true);
@@ -50,7 +48,8 @@ public class JSGLRI extends AbstractSGLRI {
 		
 		// Read stream using tokenizer/lexstream
 		
-		ATerm asfix = parser.parse(inputStream, getStartSymbol());
+		// TODO: Once spoofax supports it, use the start symbol
+		ATerm asfix = parser.parse(inputStream, null /*getStartSymbol()*/); 
 		
 		return asfix;
 	}

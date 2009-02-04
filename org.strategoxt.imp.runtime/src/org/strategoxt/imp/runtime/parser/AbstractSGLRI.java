@@ -77,9 +77,8 @@ public abstract class AbstractSGLRI implements IParser {
 	
 	public AbstractSGLRI(SGLRParseController controller, TokenKindManager tokenManager, String startSymbol) {
 		
-		// TODO: Once spoofax supports it, use a start symbol
 		this.controller = controller;
-		this.startSymbol = null; // startSymbol;
+		this.startSymbol = startSymbol;
 		this.tokenManager = tokenManager;
 
 		tokenizer = new SGLRTokenizer();		
