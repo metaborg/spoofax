@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: sdf2imp metatooling plug-in
+Bundle-Name: Spoofax/IMP Metatooling
 Bundle-SymbolicName: org.strategoxt.imp.metatooling;singleton:=true
 Bundle-Version: 0.1.0.2161
 Bundle-ClassPath: org.strategoxt.imp.metatooling/
@@ -27,3 +27,4 @@ Require-Bundle: org.eclipse.imp.runtime,
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Bundle-Activator: org.strategoxt.imp.metatooling.MetatoolingActivator
 Bundle-ActivationPolicy: lazy
+Bundle-Vendor: Spoofax.org
