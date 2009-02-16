@@ -63,6 +63,7 @@ strategies
                 throw new BadDescriptorException("Could not load parse table from " + TABLE + " (not found in plugin)");
 
               descriptor = DescriptorFactory.load(descriptorStream, table, null);
+              descriptor.setAttachmentProvider(x_name.class);
               
             } catch (BadDescriptorException exc) {
               notLoadingCause = exc;

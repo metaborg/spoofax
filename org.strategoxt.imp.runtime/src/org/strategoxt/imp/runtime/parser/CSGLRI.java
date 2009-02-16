@@ -12,6 +12,8 @@ import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
 import org.strategoxt.imp.runtime.stratego.NativeCallHelper;
 
 import aterm.ATerm;
+import aterm.ATermAppl;
+import aterm.ATermFactory;
 
 /**
  * IMP IParser implementation using the native C version of SGLR, imploding
@@ -62,9 +64,13 @@ public class CSGLRI extends AbstractSGLRI {
 	}
 
 	@Override
-	public ATerm parseNoImplode(char[] inputChars) throws SGLRException, IOException {
-		File inputFile = streamToTempFile(toByteStream(inputChars));
+	public ATerm parseNoImplode(char[] inputChars, String filename) throws SGLRException, IOException {
+		ATermFactory factory = Environment.getWrappedATermFactory().getFactory();
 		File outputFile = File.createTempFile("parserOutput", null);
+		File inputFile = filename == null
+				? streamToTempFile(toByteStream(inputChars))
+				: new File(filename);
+		
 		try {
 			String[] commandArgs = {
 					"sglr", "-p", parseTable.getAbsolutePath(),
@@ -75,7 +81,12 @@ public class CSGLRI extends AbstractSGLRI {
 			};
 			caller.call(commandArgs, null, System.out, System.err);
 			
-			return Environment.getWrappedATermFactory().getFactory().readFromFile(outputFile.getAbsolutePath());
+			ATermAppl result = (ATermAppl) factory.readFromFile(outputFile.getAbsolutePath());
+			
+			if ("error".equals(result.getName()))
+				throw new SGLRException("CSGLR Parse error"); // (actual error isn't extracted atm)
+			
+			return result;
 		} catch (InterruptedException e) {
 			throw new RuntimeException("CSGLRI parser interrupted", e);
 		} finally {

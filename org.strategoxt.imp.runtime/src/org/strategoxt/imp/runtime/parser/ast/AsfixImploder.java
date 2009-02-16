@@ -219,7 +219,7 @@ public class AsfixImploder {
 	/**
 	 * Resolve or ignore any ambiguities in the parse tree.
 	 */
-	protected ATermAppl resolveAmbiguities(ATerm node) {
+	protected ATermAppl resolveAmbiguities(final ATerm node) {
 		if (!"amb".equals(((ATermAppl) node).getName()))
 			return (ATermAppl) node;
 		
@@ -255,7 +255,7 @@ public class AsfixImploder {
 		}
 		
 		if (!multipleNonAvoids) {
-			return lastNonAvoid;
+			return lastNonAvoid != null ? lastNonAvoid : applAt(ambs, 0);
 		} else {
 			if (Debug.ENABLED && !lexicalContext) reportUnresolvedAmb(ambs);
 			return resolveAmbiguities(ambs.getFirst());

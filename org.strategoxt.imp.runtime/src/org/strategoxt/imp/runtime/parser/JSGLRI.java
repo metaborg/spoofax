@@ -29,7 +29,7 @@ public class JSGLRI extends AbstractSGLRI {
 		
 		parser = Environment.createSGLR(parseTable);
 		parser.setCycleDetect(false);
-		parser.setFilter(true);
+		parser.setFilter(false); // FIXME: Filters not supported ATM
 	}
 	
 	public JSGLRI(ParseTable parseTable, String startSymbol) {
@@ -37,7 +37,7 @@ public class JSGLRI extends AbstractSGLRI {
 	}
 	
 	@Override
-	public ATerm parseNoImplode(char[] inputChars)
+	public ATerm parseNoImplode(char[] inputChars, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 		
 		return parseNoImplode(toByteStream(inputChars), inputChars);

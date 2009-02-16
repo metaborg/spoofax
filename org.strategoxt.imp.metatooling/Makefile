@@ -37,7 +37,7 @@ STRINCLUDES = \
 	-I src/syntax \
     `pkg-config --variable=strcflags java-front`
 
-all : sdf2imp include/sdf2imp.ctree syntax
+all : sdf2imp src/include/sdf2imp.ctree syntax
 
 check : all \
         tests/EditorService.runtestsuite \
@@ -51,7 +51,7 @@ sdf2imp : $(RTREES) $(SYNTAX) Makefile
 syntax : $(SYNTAX)
 
 clean :
-	rm -f include/sdf2imp.ctree sdf2imp $(RTREES) $(wildcard src/syntax/*.tbl) $(wildcard src/syntax/*.def) *.dep include/*.dep
+	rm -f src/include/sdf2imp.ctree sdf2imp $(RTREES) $(wildcard src/syntax/*.tbl) $(wildcard src/syntax/*.def) *.dep include/*.dep
 	
 # files:
 
@@ -60,7 +60,7 @@ clean :
 %.rtree : %.str $(SYNTAX)
 	@parse-stratego -i $< -o $@ $(STRINCLUDES)
 
-include/%.ctree : src/%.str
+src/include/%.ctree : src/%.str
 	strc -F --library -i $< -o $@ $(STRINCLUDES) $(STRCSTFU)
 
 %.pp : %.def

@@ -100,7 +100,7 @@ public abstract class AbstractSGLRI implements IParser {
 		tokenizer.init(inputChars, filename);
 		
 		Debug.startTimer();
-		ATerm asfix = parseNoImplode(inputChars);
+		ATerm asfix = parseNoImplode(inputChars, filename);
 		Debug.stopTimer("File parsed: " + filename);
 			
 		return implode(asfix, inputChars);
@@ -118,7 +118,7 @@ public abstract class AbstractSGLRI implements IParser {
 		return parse(toCharArray(input), filename);
 	}
 	
-	public abstract ATerm parseNoImplode(char[] inputChars)
+	public abstract ATerm parseNoImplode(char[] inputChars, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException;
 
 	private RootAstNode implode(ATerm asfix, char[] inputChars) {		

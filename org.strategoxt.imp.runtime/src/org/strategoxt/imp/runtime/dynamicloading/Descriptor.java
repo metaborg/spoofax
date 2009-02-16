@@ -18,6 +18,7 @@ import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.parser.IParseController;
 import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.services.StrategoFeedback;
 
 /**
@@ -44,6 +45,8 @@ public class Descriptor {
 	private StrategoFeedback feedback;
 	
 	private Set<File> attachedFiles;
+	
+	private Class<?> attachmentProvider;
 	
 	// LOADING DESCRIPTOR 
 
@@ -123,6 +126,27 @@ public class Descriptor {
 		return getProperty("StartSymbols", null);
 	}
 	
+	/**
+	 * Sets the class that provides access to any attached files in its enclosing JAR file.
+	 */
+	public void setAttachmentProvider(Class<?> attachmentProvider) {
+		this.attachmentProvider = attachmentProvider;
+	}
+	
+	/**
+	 * Gets the class that provides access to any attached files in its enclosing JAR file.
+	 */
+	protected Class<?> getAttachmentProvider() {
+		try {
+			if (attachmentProvider == null)
+				attachmentProvider = createService(IParseController.class).getClass();
+			return attachmentProvider;
+		} catch (BadDescriptorException e) { // Unexpected exception
+		    Environment.logException("Unable to instantiate parse controller class", e);
+		    return Descriptor.class;
+		}            
+	}
+	
 	public InputStream openParseTableStream() throws BadDescriptorException {
 		try {
 			return openAttachment(getParseTableName(), false);
@@ -164,17 +188,12 @@ public class Descriptor {
             	return openAttachment(path, true);
 			return new BufferedInputStream(new FileInputStream(path));
         } else { // read from jar
-            try {
-			    Class mainClass = createService(IParseController.class).getClass();
-			    InputStream result = mainClass.getResourceAsStream(path);
-			    if (result == null) { // read resource listed in descriptor
-			    	if (!onlyListedFiles) return openAttachment(path, true);
-			        throw new FileNotFoundException(path + " not found in editor service plugin");
-			    }
-			    return result;
-			} catch (BadDescriptorException e) {
-			    throw new RuntimeException("Unable to instantiate parse controller class", e);
-			}            
+		    InputStream result = getAttachmentProvider().getResourceAsStream("/" + path);
+		    if (result == null) { // read resource listed in descriptor
+		    	if (!onlyListedFiles) return openAttachment(path, true);
+		        throw new FileNotFoundException(path + " not found in editor service plugin");
+		    }
+		    return result;
         }
     }
 
