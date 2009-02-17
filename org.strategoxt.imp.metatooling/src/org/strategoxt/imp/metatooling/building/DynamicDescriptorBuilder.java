@@ -1,5 +1,7 @@
 package org.strategoxt.imp.metatooling.building;
 
+import static org.eclipse.core.resources.IMarker.*;
+
 import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -11,12 +13,15 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.spoofax.interpreter.core.Interpreter;
 import org.spoofax.interpreter.core.InterpreterException;
+import org.spoofax.interpreter.core.InterpreterExit;
+import org.spoofax.interpreter.library.LoggingIOAgent;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.strategoxt.imp.editors.editorservice.EditorServiceParseController;
 import org.strategoxt.imp.metatooling.MetatoolingActivator;
 import org.strategoxt.imp.metatooling.loading.DynamicDescriptorUpdater;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 
 /**
@@ -29,6 +34,9 @@ public class DynamicDescriptorBuilder {
 	
 	private final Map<IResource, Set<String>> includedEditorFiles =
 		new HashMap<IResource, Set<String>>();
+	
+	private final AstMessageHandler messageHandler =
+		new AstMessageHandler();
 	
 	private final Interpreter builder;
 	
@@ -75,34 +83,65 @@ public class DynamicDescriptorBuilder {
 		}
 	}
 
+	/**
+	 * Build and load a descriptor file.
+	 */
 	private synchronized void buildDescriptor(IResource mainFile) {
 		try {
-			IPath location = mainFile.getRawLocation();
-			String path = location.removeLastSegments(1).toOSString();
-			String filename = mainFile.getName();
+			messageHandler.clearMarkers(mainFile);
 			
-			builder.getIOAgent().setWorkingDir(path);
-			builder.setCurrent(builder.getFactory().makeString(filename));
-			builder.invoke("dr-scope-all-start");
-			boolean success = builder.invoke("sdf2imp-jvm");
-			builder.invoke("dr-scope-all-end");
+			boolean success = invokeBuilder(mainFile);
 			
 			if (!success) {
 				Environment.logStrategyFailure("Unable to build descriptor for " + mainFile, builder);
+				String log = ((LoggingIOAgent) builder.getIOAgent()).getLog();
+				messageHandler.addMarkerFirstLine(mainFile,
+						"Unable to build descriptor for " + mainFile + "\n" + log, SEVERITY_ERROR);
 				return;
 			}
 			
 			updateDependencies(mainFile);
 			
 		} catch (InterpreterException e) {
+			messageHandler.addMarkerFirstLine(mainFile, "Unable to build descriptor for " + mainFile + ":" + e, SEVERITY_ERROR);
 			Environment.logException("Unable to build descriptor for " + mainFile, e);
 		} catch (FileNotFoundException e) {
+			messageHandler.addMarkerFirstLine(mainFile, "Unable to build descriptor for " + mainFile + ":" + e, SEVERITY_ERROR);
 			Environment.logException("Unable to build descriptor for " + mainFile, e);
 		}
 		
 		String result = ((IStrategoString) builder.current()).stringValue();
 		IResource packedDescriptor = mainFile.getParent().getFile(Path.fromOSString(result));
 		loader.loadPackedDescriptor(packedDescriptor);
+	}
+
+	/**
+	 * Invoke the Stratego-based descriptor builder.
+	 * 
+	 * @return  <code>true</code> if successful.
+	 */
+	private boolean invokeBuilder(IResource mainFile)
+			throws FileNotFoundException, InterpreterException {
+		
+		IPath location = mainFile.getRawLocation();
+		String path = location.removeLastSegments(1).toOSString();
+		String filename = mainFile.getName();
+		
+		builder.getIOAgent().setWorkingDir(path);
+		builder.setCurrent(builder.getFactory().makeString(filename));
+		builder.invoke("dr-scope-all-start");
+		
+		boolean success;
+		
+		try {
+			success = builder.invoke("sdf2imp-jvm");
+		} catch (InterpreterExit e) {
+			success = e.getValue() == 0;
+		} finally {
+			builder.invoke("dr-scope-all-end");
+		}
+		
+		return success;
 	}
 
 	private void updateDependencies(IResource mainFile) {

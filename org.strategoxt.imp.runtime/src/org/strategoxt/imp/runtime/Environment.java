@@ -135,6 +135,10 @@ public final class Environment {
 		RuntimePlugin.getInstance().logException(message, new RuntimeException(message));
 	}
 	
+	public static void logException(Throwable t) {
+		RuntimePlugin.getInstance().logException(null, t);
+	}
+	
 	public static void logStrategyFailure(String message, Interpreter interpreter) {
 		if (interpreter.getIOAgent() instanceof LoggingIOAgent) {
 			System.err.println(message);
