@@ -85,8 +85,6 @@ public class SGLRParseController implements IParseController {
 	// Parsing and initialization
     
     static {
-    	// UNDONE: UniversalEditor.fAlwaysRepaint = true;
-    	
     	SGLR.setWorkAroundMultipleLookahead(true);
     }
     
@@ -117,6 +115,8 @@ public class SGLRParseController implements IParseController {
 		    throw new IllegalStateException("SGLR parse controller not initialized");
 
 		try {
+			messages.clearMessages();
+
 			// TODO2: Optimization - don't produce AST if scanOnly is true
 			currentAst = null;
 			currentAst = parser.parse(input.toCharArray(), getPath().toPortableString());
@@ -133,9 +133,7 @@ public class SGLRParseController implements IParseController {
 			reportParseError(e);
 		}
 		
-		messages.clearMessages();
-		
-		// HACK: Call IModelListener.update manually, IMP extension point is not implemented?
+		// HACK: Need to call IModelListener.update manually, the IMP extension point is not implemented?
 		// FIXME: OMG THIS HAS TO RUN IN ANOTHER THREAD
 		try {
 			StrategoFeedback feedback = Environment.getDescriptor(getLanguage()).getStrategoFeedback();
@@ -172,7 +170,7 @@ public class SGLRParseController implements IParseController {
 	public Iterator<IToken> getTokenIterator(IRegion region) {
 		// TODO: Return a damaged token stream on parse errors
 		PrsStream stream = parser.getParseStream();
-		if (stream.getTokens().size() == 0) {
+		if (stream.getTokens().size() == 0 || getCurrentAst() == null) {
 			// Parse hasn't succeeded yet, consider the entire stream as one big token
 			stream.addToken(new SGLRToken(stream, region.getOffset(), stream.getStreamLength() - 1,
 					TokenKind.TK_UNKNOWN.ordinal()));
@@ -199,21 +197,16 @@ public class SGLRParseController implements IParseController {
 	
 	// Error reporting
 	
+	@Deprecated
 	public final IMessageHandler getMessages() {
 		return messages;
-	}
-	
-	protected void reportError(IToken token, String message) {
-		messages.handleSimpleMessage(
-				message, max(0, token.getStartOffset()), max(0, token.getEndOffset()),
-				token.getColumn(), token.getEndColumn(), token.getLine(), token.getEndLine());
 	}
 	
 	protected void reportParseError(TokenExpectedException exception) {
 		String message = exception.getShortMessage();
 		IToken token = parser.getTokenizer().makeErrorToken(exception.getOffset());
 		
-		reportError(token, message);
+		reportTokenError(token, message);
 	}
 	
 	protected void reportParseError(BadTokenException exception) {
@@ -222,7 +215,7 @@ public class SGLRParseController implements IParseController {
         	? exception.getShortMessage()
         	: "'" + token.toString() + "' not expected here";
 
-        reportError(token, message);
+        reportTokenError(token, message);
 	}
 	
 	protected void reportParseError(Exception exception) {
@@ -231,6 +224,14 @@ public class SGLRParseController implements IParseController {
 		
 		IToken token = parser.getTokenizer().makeErrorToken(0);
 		
-		reportError(token, message);
+		reportTokenError(token, message);
+	}
+	
+	private void reportTokenError(IToken token, String message) {
+		messages.handleSimpleMessage(
+				message, max(0, token.getStartOffset()), max(0, token.getEndOffset()),
+				token.getColumn(), token.getEndColumn(), token.getLine(), token.getEndLine());
+		// UNDONE: Using AstMessageHandler
+		// parseErrors.addMarker(getProject().getRawProject().getFile(path), token, token, message, IMarker.SEVERITY_ERROR);
 	}
 }

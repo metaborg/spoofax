@@ -2,6 +2,7 @@ package org.strategoxt.imp.runtime.parser.ast;
 
 import static org.eclipse.core.resources.IMarker.*;
 
+import java.io.FileNotFoundException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -40,13 +41,26 @@ public class AstMessageHandler {
 			return;
 		}
 		
-		IFile file = getFile((AstNode) node);
-		if (!file.exists()) return;
-		
 		IToken left = node.getLeftIToken();
 		IToken right = node.getRightIToken();
+
+		IFile file = getFile((AstNode) node);
 		
+		addMarker(file, left, right, message, severity);
+	}
+
+	/**
+	 * Associates a new marker with tokens.
+	 * 
+	 * @param severity  The severity of this warning, one of {@link IMarker#SEVERITY_ERROR}, WARNING, or INFO.
+	 */
+	public void addMarker(IFile file, IToken left, IToken right, String message, int severity) {
 		try {
+			if (!file.exists()) {
+				Environment.logException("Could not create error marker: " + message, new FileNotFoundException(file.toString()));
+				return;
+			}
+
 			IMarker marker = file.createMarker(PROBLEM_MARKER_TYPE);
 			marker.setAttribute(LINE_NUMBER, left.getLine());
 			marker.setAttribute(CHAR_START, left.getStartOffset());

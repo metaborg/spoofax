@@ -32,7 +32,8 @@ public class DescriptorFactory {
 			ParseTable table = Environment.registerParseTable(Descriptor.DESCRIPTOR_LANGUAGE, stream);
 			descriptorParser = new JSGLRI(table, "Module");
 		} catch (Throwable e) {
-			Environment.logException("Could not initialize the Descriptor class.", e);
+			e.printStackTrace();
+  			Environment.logException("Could not initialize the Descriptor class.", e);
 			throw new RuntimeException(e);
 		}
 	}

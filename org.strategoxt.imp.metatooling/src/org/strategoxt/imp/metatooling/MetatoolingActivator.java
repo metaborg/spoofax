@@ -22,9 +22,17 @@ public class MetatoolingActivator extends AbstractUIPlugin {
 	}
 
 	public static InputStream getResourceAsStream(String string) throws IOException {
-        URL r = FileLocator.find(MetatoolingActivator.getDefault().getBundle(), new Path(string), null);
-        if(r == null)
+        URL url = FileLocator.find(MetatoolingActivator.getDefault().getBundle(), new Path(string), null);
+        
+        if (url != null)
+        	return url.openStream();
+        
+        // In Java 5, the above approach doesn't seem to work         
+        InputStream result = MetatoolingActivator.class.getResourceAsStream(string);
+        
+        if (result == null)
         	throw new FileNotFoundException("Resource not found '" + string + "'");
-        return r.openStream();
+        
+        return result;
 	}
 }
