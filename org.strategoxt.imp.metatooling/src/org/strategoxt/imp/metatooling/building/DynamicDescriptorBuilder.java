@@ -96,17 +96,17 @@ public class DynamicDescriptorBuilder {
 				Environment.logStrategyFailure("Unable to build descriptor for " + mainFile, builder);
 				String log = ((LoggingIOAgent) builder.getIOAgent()).getLog();
 				messageHandler.addMarkerFirstLine(mainFile,
-						"Unable to build descriptor for " + mainFile + "\n" + log, SEVERITY_ERROR);
+						"Unable to build descriptor: \n" + log, SEVERITY_ERROR);
 				return;
 			}
 			
 			updateDependencies(mainFile);
 			
 		} catch (InterpreterException e) {
-			messageHandler.addMarkerFirstLine(mainFile, "Unable to build descriptor for " + mainFile + ":" + e, SEVERITY_ERROR);
+			messageHandler.addMarkerFirstLine(mainFile, "Unable to build descriptor:" + e, SEVERITY_ERROR);
 			Environment.logException("Unable to build descriptor for " + mainFile, e);
 		} catch (FileNotFoundException e) {
-			messageHandler.addMarkerFirstLine(mainFile, "Unable to build descriptor for " + mainFile + ":" + e, SEVERITY_ERROR);
+			messageHandler.addMarkerFirstLine(mainFile, "Unable to build descriptor:" + e, SEVERITY_ERROR);
 			Environment.logException("Unable to build descriptor for " + mainFile, e);
 		}
 		
@@ -122,6 +122,8 @@ public class DynamicDescriptorBuilder {
 	 */
 	private boolean invokeBuilder(IResource mainFile)
 			throws FileNotFoundException, InterpreterException {
+		
+		((LoggingIOAgent) builder.getIOAgent()).clearLog();
 		
 		IPath location = mainFile.getRawLocation();
 		String path = location.removeLastSegments(1).toOSString();

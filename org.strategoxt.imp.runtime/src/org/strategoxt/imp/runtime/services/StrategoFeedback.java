@@ -14,6 +14,7 @@ import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
 import org.spoofax.interpreter.core.Interpreter;
 import org.spoofax.interpreter.core.InterpreterException;
+import org.spoofax.interpreter.library.LoggingIOAgent;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -147,6 +148,7 @@ public class StrategoFeedback implements IModelListener {
 			interpreter.setCurrent(term);
 			initInterpreterPath(workingDir);
 
+			((LoggingIOAgent) interpreter.getIOAgent()).clearLog();
 			boolean success = interpreter.invoke(function);
 			
 			if (!success) {
