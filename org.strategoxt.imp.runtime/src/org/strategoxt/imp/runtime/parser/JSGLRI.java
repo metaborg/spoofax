@@ -25,7 +25,7 @@ public class JSGLRI extends AbstractSGLRI {
 	
 	public JSGLRI(ParseTable parseTable, String startSymbol,
 			SGLRParseController controller, TokenKindManager tokenManager) {
-		super(controller, tokenManager, startSymbol);
+		super(controller, tokenManager, startSymbol, parseTable);
 		
 		parser = Environment.createSGLR(parseTable);
 		parser.setCycleDetect(false);

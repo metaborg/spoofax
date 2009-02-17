@@ -143,7 +143,8 @@ public final class Environment {
 		if (interpreter.getIOAgent() instanceof LoggingIOAgent) {
 			System.err.println(message);
 			String log = ((LoggingIOAgent) interpreter.getIOAgent()).getLog();
-			logException(message, new InterpreterException(message + " Log follows.\n\n" + log));
+			logException(message,
+					new InterpreterException(message + " \nLog follows. \n\n" + log));
 		} else {
 			logException(message);
 		}

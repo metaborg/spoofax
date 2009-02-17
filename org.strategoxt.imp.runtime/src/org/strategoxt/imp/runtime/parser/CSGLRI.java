@@ -35,7 +35,7 @@ public class CSGLRI extends AbstractSGLRI {
 	private final File parseTable;
 	
 	public CSGLRI(InputStream parseTable, String startSymbol, SGLRParseController controller, TokenKindManager tokenManager) throws IOException {
-		super(controller, tokenManager, startSymbol);
+		super(controller, tokenManager, startSymbol, parseTable);
 		
 		// Write this parse table (which may come from a JAR) to disk
 		this.parseTable = streamToTempFile(parseTable);

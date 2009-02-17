@@ -4,6 +4,12 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.ref.Reference;
+import java.lang.ref.WeakReference;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 import lpg.runtime.Monitor;
 import lpg.runtime.PrsStream;
@@ -29,6 +35,10 @@ import aterm.ATerm;
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */ 
 public abstract class AbstractSGLRI implements IParser {
+	
+	private static final Map<CachingKey, WeakReference<RootAstNode>> parseCache =
+		Collections.synchronizedMap(new WeakHashMap<CachingKey, WeakReference<RootAstNode>>());
+	
 	private final SGLRParseController controller;
 	
 	private final SGLRTokenizer tokenizer;
@@ -36,6 +46,8 @@ public abstract class AbstractSGLRI implements IParser {
 	private final TokenKindManager tokenManager;
 	
 	private final char[] buffer = new char[2048];
+	
+	private final Object parseTableId;
 	
 	private AsfixImploder imploder;
 	
@@ -75,11 +87,11 @@ public abstract class AbstractSGLRI implements IParser {
 	
 	// Initialization and parsing
 	
-	public AbstractSGLRI(SGLRParseController controller, TokenKindManager tokenManager, String startSymbol) {
-		
+	public AbstractSGLRI(SGLRParseController controller, TokenKindManager tokenManager, String startSymbol, Object parseTableId) {
 		this.controller = controller;
 		this.startSymbol = startSymbol;
 		this.tokenManager = tokenManager;
+		this.parseTableId = parseTableId;
 
 		tokenizer = new SGLRTokenizer();		
 		imploder = new AsfixImploder(tokenManager, tokenizer);
@@ -95,15 +107,20 @@ public abstract class AbstractSGLRI implements IParser {
 	public RootAstNode parse(char[] inputChars, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 		
-		// TODO: Parse caching
-		//       using a WeakHashMap<char[], WeakReference<AstNode>>
+		CachingKey cachingKey = new CachingKey(parseTableId, startSymbol, inputChars);
+		Reference<RootAstNode> cached = parseCache.get(cachingKey);
+		if (cached != null) return cached.get();
+		
 		tokenizer.init(inputChars, filename);
 		
 		Debug.startTimer();
 		ATerm asfix = parseNoImplode(inputChars, filename);
 		Debug.stopTimer("File parsed: " + filename);
 			
-		return implode(asfix, inputChars);
+		RootAstNode result = implode(asfix, inputChars);
+		result.setCachingKey(cachingKey);
+		parseCache.put(cachingKey, new WeakReference<RootAstNode>(result));
+		return result;
 	}
 	
 	/**
@@ -124,7 +141,7 @@ public abstract class AbstractSGLRI implements IParser {
 	private RootAstNode implode(ATerm asfix, char[] inputChars) {		
 		Debug.startTimer();		
 		AstNode imploded = imploder.implode(asfix);
-		RootAstNode result = RootAstNode.makeRoot(imploded, getController(), inputChars);
+		RootAstNode result = RootAstNode.makeRoot(imploded, getController());
 		
 		if (Debug.ENABLED) {
 			Debug.stopTimer("Parse tree imploded");
@@ -173,5 +190,34 @@ public abstract class AbstractSGLRI implements IParser {
 	@Deprecated
 	public int numTokenKinds() {
 		return 10;
+	}
+}
+
+/**
+ * A tuple class. Gotta love the Java.
+ */
+class CachingKey {
+	private Object parseTable;
+	private String startSymbol;
+	private char[] input;
+	
+	public CachingKey(Object parseTable, String startSymbol, char[] input) {
+		this.parseTable = parseTable;
+		this.startSymbol = startSymbol;
+		this.input = input;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		CachingKey other = (CachingKey) obj;
+		return parseTable.equals(other.parseTable) && Arrays.equals(input, other.input) && 
+			(startSymbol == null ? other.startSymbol == null : startSymbol.equals(other.startSymbol));
+	}
+	
+	@Override
+	public int hashCode() {
+		// (Ignores parse table hash code)
+		return 12125125 * (startSymbol == null ? 42 : startSymbol.hashCode())
+			^ Arrays.hashCode(input);
 	}
 }
