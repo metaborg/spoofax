@@ -2,6 +2,8 @@
    ReferenceRule        -- R [ H [ KW["reference"] _1 ] H [ KW[":"] _2 ] _3 ],
    OccurrenceRule       -- R [ H [ KW["occurrence"] _1 ] H [ KW[":"] _2 ] ],
    SemanticProvider     -- R [ H [ KW["provider"] _1 ] ],
+   Strategy             -- _1,
+   Attribute            -- H hs=0 [ KW["id"] KW["."] _1 ],
    SemanticObserver     -- R [ KW["observer"] H [ KW[":"] _1 ] ],
    Analysis             -- V is=2 [H hs=0 [ KW["analysis"] _1 ] A(l,l,l) [_2] ],
    References           -- V is=2 [H hs=0 [ KW["references"] _1 ] A(l,l,l) [_2] ],

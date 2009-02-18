@@ -77,6 +77,7 @@ public class AstMessageHandler {
 			marker.setAttribute(PRIORITY, PRIORITY_HIGH);
 			activeMarkers.add(marker);
 		} catch (CoreException e) {
+			// FIXME: The resource tree might be locked for modification at this point
 			Environment.logException("Could not create error marker: " + message, e);
 		}
 	}

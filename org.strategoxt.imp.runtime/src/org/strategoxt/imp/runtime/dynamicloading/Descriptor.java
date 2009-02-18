@@ -278,4 +278,13 @@ public class Descriptor {
 			return termContents(result);
 		}
 	}
+	
+	@Override
+	public String toString() {
+		try {
+			return "D:" + getLanguage();
+		} catch (BadDescriptorException e) {
+			return "D:" + e;
+		}
+	}
 }

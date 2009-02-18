@@ -134,10 +134,9 @@ public class SGLRParseController implements IParseController {
 		}
 		
 		// HACK: Need to call IModelListener.update manually, the IMP extension point is not implemented?
-		// FIXME: OMG THIS HAS TO RUN IN ANOTHER THREAD
 		try {
 			StrategoFeedback feedback = Environment.getDescriptor(getLanguage()).getStrategoFeedback();
-			if (feedback != null) feedback.update(this, null);
+			if (feedback != null) feedback.asyncUpdate(this, null);
 		} catch (BadDescriptorException e) {
 			Environment.logException("Unexpected error during analysis", e);
 			reportParseError(e);

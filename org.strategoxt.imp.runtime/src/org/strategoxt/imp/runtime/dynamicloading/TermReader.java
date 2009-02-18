@@ -55,12 +55,12 @@ public class TermReader {
 		
 		if (t.getTermType() == STRING) {
 			result = t.toString();
-		} else if (t.getTermType() == APPL && cons((IStrategoAppl) t).equals("String")) {
+		} else if (t.getTermType() == APPL && t.getSubtermCount() == 1 && termAt(t, 0).getTermType() == STRING) {
+			result = termAt(t, 0).toString();
+		} else if (t.getTermType() == APPL && t.getSubtermCount() == 1) {
 			return termContents(termAt(t, 0));
 		} else {
-			if (t.getSubtermCount() == 0 || termAt(t, 0).getTermType() == APPL)
-				return null;
-			result = termAt(t, 0).toString();
+			return null;
 		}
 		
 		if (result.startsWith("\"") && result.endsWith("\""))

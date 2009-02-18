@@ -142,7 +142,7 @@ public final class Environment {
 	public static void logStrategyFailure(String message, Interpreter interpreter) {
 		if (interpreter.getIOAgent() instanceof LoggingIOAgent) {
 			System.err.println(message);
-			String log = ((LoggingIOAgent) interpreter.getIOAgent()).getLog();
+			String log = ((LoggingIOAgent) interpreter.getIOAgent()).getLog().trim();
 			logException(message,
 					new InterpreterException(message + " \nLog follows. \n\n" + log));
 		} else {

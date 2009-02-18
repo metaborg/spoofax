@@ -93,8 +93,7 @@ public class DynamicDescriptorBuilder {
 			boolean success = invokeBuilder(mainFile);
 			
 			if (!success) {
-				Environment.logStrategyFailure("Unable to build descriptor for " + mainFile, builder);
-				String log = ((LoggingIOAgent) builder.getIOAgent()).getLog();
+				String log = ((LoggingIOAgent) builder.getIOAgent()).getLog().trim();
 				messageHandler.addMarkerFirstLine(mainFile,
 						"Unable to build descriptor: \n" + log, SEVERITY_ERROR);
 				return;

@@ -4,12 +4,18 @@ import static org.spoofax.interpreter.terms.IStrategoTerm.*;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.*;
 
 import java.io.FileNotFoundException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import lpg.runtime.IAst;
 
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IWorkspaceRunnable;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
 import org.spoofax.interpreter.core.Interpreter;
@@ -31,6 +37,8 @@ import org.strategoxt.imp.runtime.stratego.adapter.WrappedAstNode;
 
 /**
  * Basic Stratego feedback (i.e., errors and warnings) provider.
+ * This service may also be used as a basis for other semantic services
+ * such as reference resolving.
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
@@ -43,20 +51,43 @@ public class StrategoFeedback implements IModelListener {
 	
 	private final AstMessageHandler messages = new AstMessageHandler();
 	
+	private final ExecutorService asyncExecutor = Executors.newSingleThreadExecutor();
+	
+	private boolean asyncExecuterEnqueued = false;
+	
 	public StrategoFeedback(Descriptor descriptor, Interpreter resolver, String feedbackFunction) {
 		this.descriptor = descriptor;
 		this.interpreter = resolver;
 		this.feedbackFunction = feedbackFunction;
 	}
 
-	public AnalysisRequired getAnalysisRequired() {
+	public final AnalysisRequired getAnalysisRequired() {
 		return AnalysisRequired.TYPE_ANALYSIS;
 	}
 
-	public void update(IParseController parseController, IProgressMonitor monitor) {
+	/**
+	 * Starts a new update() operation, asynchronously.
+	 */
+	public synchronized void asyncUpdate(final IParseController parseController, final IProgressMonitor monitor) {
 		
-		// TODO: Threading of feedback method
+		// TODO: Properly integrate this asynchronous job into the Eclipse environment?
+		//       e.g. (ab)using Workspace.run()
 		
+		if (!asyncExecuterEnqueued && feedbackFunction != null) {
+			asyncExecuterEnqueued = true;
+			
+			asyncExecutor.execute(new Runnable() {
+				public void run() {
+					synchronized (StrategoFeedback.this) {
+						asyncExecuterEnqueued = false;
+						update(parseController, monitor);
+					}
+				}
+			});
+		}
+	}
+
+	public synchronized void update(IParseController parseController, IProgressMonitor monitor) {
 		if (feedbackFunction != null) {
 			ITermFactory factory = Environment.getTermFactory();
 			IStrategoAstNode ast = (IStrategoAstNode) parseController.getCurrentAst();
@@ -71,32 +102,51 @@ public class StrategoFeedback implements IModelListener {
 
 			IStrategoTerm feedback = invoke(feedbackFunction, input, ast.getResourcePath().removeLastSegments(1));
 			
-			messages.clearAllMarkers();
-
-	        if (feedback != null
-	        		&& feedback.getTermType() == TUPLE
-	        		&& termAt(feedback, 0).getTermType() == LIST
-					&& termAt(feedback, 1).getTermType() == LIST
-					&& termAt(feedback, 2).getTermType() == LIST) {
-	        	
-	            IStrategoList errors = termAt(feedback, 0);
-                IStrategoList warnings = termAt(feedback, 1);
-	            feedbackToMarkers(parseController, errors, IMarker.SEVERITY_ERROR);
-                feedbackToMarkers(parseController, warnings, IMarker.SEVERITY_WARNING);
-	        } else {
-	            Environment.logException("Illegal output from " + feedbackFunction + ": " + feedback);
-	        }
-			
+			asyncPresentToUser(parseController, feedback);
 		}
 	}
 	
-	public final void feedbackToMarkers(IParseController parseController, IStrategoList feedbacks, int severity) {
+	private void asyncPresentToUser(final IParseController parseController, final IStrategoTerm feedback) {
+		try {
+			ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
+				public void run(IProgressMonitor monitor) throws CoreException {
+					presentToUser(parseController, feedback);
+				}
+			}
+			, null
+			);
+		} catch (CoreException e) {
+			// TODO: Handle exceptions, particularly workspace locked ones
+			// (see LoaderPreferences#updateDescriptors(IWorkspaceRunnable))
+			Environment.logException("Could not update feedback", e);
+		}
+	}
+
+	private void presentToUser(IParseController parseController, IStrategoTerm feedback) {
+		messages.clearAllMarkers();
+
+		if (feedback != null
+				&& feedback.getTermType() == TUPLE
+				&& termAt(feedback, 0).getTermType() == LIST
+				&& termAt(feedback, 1).getTermType() == LIST
+				&& termAt(feedback, 2).getTermType() == LIST) {
+			
+		    IStrategoList errors = termAt(feedback, 0);
+		    IStrategoList warnings = termAt(feedback, 1);
+		    feedbackToMarkers(parseController, errors, IMarker.SEVERITY_ERROR);
+		    feedbackToMarkers(parseController, warnings, IMarker.SEVERITY_WARNING);
+		} else {
+		    Environment.logException("Illegal output from " + feedbackFunction + ": " + feedback);
+		}
+	}
+	
+	private final void feedbackToMarkers(IParseController parseController, IStrategoList feedbacks, int severity) {
 	    for (IStrategoTerm feedback : feedbacks.getAllSubterms()) {
 	        feedbackToMarker(parseController, feedback, severity);
 	    }
 	}
 	
-	public void feedbackToMarker(IParseController parseController, IStrategoTerm feedback, int severity) {
+	private void feedbackToMarker(IParseController parseController, IStrategoTerm feedback, int severity) {
 	    IStrategoTerm term = termAt(feedback, 0);
 	    IStrategoString message = termAt(feedback, 1);
 	    IAst node = getClosestAstNode(term);
@@ -129,7 +179,7 @@ public class StrategoFeedback implements IModelListener {
 	 * 
 	 * @see #getAstNode(IStrategoTerm)  To retrieve the AST node associated with the resulting term.
 	 */
-	public IStrategoTerm invoke(String function, IStrategoAstNode node) {
+	public synchronized IStrategoTerm invoke(String function, IStrategoAstNode node) {
 		ITermFactory factory = Environment.getTermFactory();
 		IStrategoTerm[] inputParts = {
 				getRoot(node).getTerm(),
@@ -142,7 +192,7 @@ public class StrategoFeedback implements IModelListener {
 		return invoke(function, input, node.getResourcePath().removeLastSegments(1));
 	}
 	
-	public IStrategoTerm invoke(String function, IStrategoTerm term, IPath workingDir) {
+	public synchronized IStrategoTerm invoke(String function, IStrategoTerm term, IPath workingDir) {
 	    Debug.startTimer();
 		try {
 			interpreter.setCurrent(term);
