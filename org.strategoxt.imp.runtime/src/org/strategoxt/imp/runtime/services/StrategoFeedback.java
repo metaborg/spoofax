@@ -4,12 +4,14 @@ import static org.spoofax.interpreter.terms.IStrategoTerm.*;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.*;
 
 import java.io.FileNotFoundException;
+import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import lpg.runtime.IAst;
 
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -108,16 +110,27 @@ public class StrategoFeedback implements IModelListener {
 	
 	private void asyncPresentToUser(final IParseController parseController, final IStrategoTerm feedback) {
 		try {
-			ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
+			ResourcesPlugin.getWorkspace().run(
+			  new IWorkspaceRunnable() {
 				public void run(IProgressMonitor monitor) throws CoreException {
 					presentToUser(parseController, feedback);
 				}
+			  }
+			, new ISchedulingRule() {
+				public boolean contains(ISchedulingRule rule) {
+					return false;
+				}
+				public boolean isConflicting(ISchedulingRule rule) {
+					return true;
+				}
 			}
+			, IWorkspace.AVOID_UPDATE
 			, null
 			);
 		} catch (CoreException e) {
 			// TODO: Handle exceptions, particularly workspace locked ones
-			// (see LoaderPreferences#updateDescriptors(IWorkspaceRunnable))
+			//       (assuming these still occur with the scheduling rule)
+			//       (see also LoaderPreferences#updateDescriptors(IWorkspaceRunnable))
 			Environment.logException("Could not update feedback", e);
 		}
 	}
