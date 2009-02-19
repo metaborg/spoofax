@@ -91,6 +91,7 @@ public class StrategoFeedback implements IModelListener {
 
 	public synchronized void update(IParseController parseController, IProgressMonitor monitor) {
 		if (feedbackFunction != null) {
+			Debug.startTimer("Invoking feedback strategy " + feedbackFunction);
 			ITermFactory factory = Environment.getTermFactory();
 			IStrategoAstNode ast = (IStrategoAstNode) parseController.getCurrentAst();
 			if (ast == null) return;
@@ -101,9 +102,10 @@ public class StrategoFeedback implements IModelListener {
 					factory.makeString(ast.getRootPath().toOSString())
 			};
 			IStrategoTerm input = factory.makeTuple(inputParts);
-
+			
 			IStrategoTerm feedback = invoke(feedbackFunction, input, ast.getResourcePath().removeLastSegments(1));
 			
+			Debug.stopTimer("Completed feedback strategy " + feedbackFunction);
 			asyncPresentToUser(parseController, feedback);
 		}
 	}
@@ -118,10 +120,10 @@ public class StrategoFeedback implements IModelListener {
 			  }
 			, new ISchedulingRule() {
 				public boolean contains(ISchedulingRule rule) {
-					return false;
+					return rule == this;
 				}
 				public boolean isConflicting(ISchedulingRule rule) {
-					return true;
+					return rule == this;
 				}
 			}
 			, IWorkspace.AVOID_UPDATE
