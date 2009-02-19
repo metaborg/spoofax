@@ -93,7 +93,7 @@ public class AstMessageHandler {
 				stream = ((IFile) file).getContents();
 				BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
 				String firstLine = reader.readLine();
-				IToken errorToken = new SGLRToken(null, 0, firstLine.length(), TK_JUNK.ordinal());
+				IToken errorToken = new SGLRToken(null, 0, firstLine.length(), TK_ERROR.ordinal());
 				addMarker(file, errorToken, errorToken, message, severity);				
 			} catch (CoreException e) {
 				addMarkerNoLocation(file, message, severity);
@@ -115,7 +115,7 @@ public class AstMessageHandler {
 	 * Add a marker to a file, without having a specific location associated to it.
 	 */
 	private void addMarkerNoLocation(IResource file, String message, int severity) {
-		IToken errorToken = new SGLRToken(null, 0, 0, TK_JUNK.ordinal());
+		IToken errorToken = new SGLRToken(null, 0, 0, TK_ERROR.ordinal());
 		addMarker(file, errorToken, errorToken, message, severity);
 	}
 	

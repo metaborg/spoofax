@@ -81,7 +81,7 @@ public class SGLRTokenizer {
 	 * Creates an error token from existing tokens.
 	 */
 	public IToken makeErrorToken(IToken left, IToken right) {
-		return new Token(parseStream, left.getStartOffset(), right.getEndOffset(), TK_JUNK.ordinal());
+		return new Token(parseStream, left.getStartOffset(), right.getEndOffset(), TK_ERROR.ordinal());
 	}
 	
 	/**
@@ -107,7 +107,7 @@ public class SGLRTokenizer {
 			endOffset++;
 		}
 		
-		return new Token(parseStream, offset, endOffset, TK_JUNK.ordinal());
+		return new Token(parseStream, offset, endOffset, TK_ERROR.ordinal());
 	}
 	
 	/**
@@ -130,7 +130,7 @@ public class SGLRTokenizer {
 			beginOffset--;
 		}
 		
-		return new Token(parseStream, beginOffset, offset, TK_JUNK.ordinal());
+		return new Token(parseStream, beginOffset, offset, TK_ERROR.ordinal());
 	}
 	
 	public static String dumpToString(IToken left, IToken right) {

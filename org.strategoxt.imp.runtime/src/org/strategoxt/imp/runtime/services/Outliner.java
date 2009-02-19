@@ -37,7 +37,6 @@ public class Outliner extends org.eclipse.imp.services.base.OutlinerBase {
 	}	
 	
     private class OutlineVisitor extends AbstractVisitor {
-		@Override
 		public boolean preVisit(AstNode node) {
 			if (NodeMapping.hasAttribute(rules, node.getConstructor(), node.getSort(), 0))
 				outline(node);
@@ -45,7 +44,6 @@ public class Outliner extends org.eclipse.imp.services.base.OutlinerBase {
 			return true;
 		}
 
-		@Override
 		public void postVisit(AstNode node) {
 			endOutline(node);
 		}

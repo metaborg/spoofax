@@ -29,7 +29,6 @@ public class FoldingUpdater extends FolderBase {
 	}
 	
     private class FoldingVisitor extends AbstractVisitor {
-		@Override
 		public boolean preVisit(AstNode node) {
           String constructor = node.getConstructor();
           String sort = node.getSort();
@@ -48,7 +47,6 @@ public class FoldingUpdater extends FolderBase {
           return true;
         }
 
-		@Override
 		public void postVisit(AstNode node) {
 			// Nothing to see here; move along.
 		}

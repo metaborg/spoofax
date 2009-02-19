@@ -1,11 +1,7 @@
 package org.strategoxt.imp.runtime.parser;
 
-import static java.lang.Math.*;
-
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 
 import lpg.runtime.IToken;
 import lpg.runtime.PrsStream;
@@ -37,15 +33,12 @@ import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
 import org.strategoxt.imp.runtime.services.StrategoFeedback;
 
 /**
- * IMP parse controller for an SGLR parser.
+ * IMP parse controller for an SGLR parser; instantiated for a particular source file.
  *
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  * @author Karl Trygve Kalleberg <karltk add strategoxt.org>
  */
 public class SGLRParseController implements IParseController {
-	@Deprecated
-	private final List<String> problemMarkerTypes = new ArrayList<String>();
-	
 	private final TokenKindManager tokenManager = new TokenKindManager();
 	
 	private final JSGLRI parser;
@@ -54,13 +47,13 @@ public class SGLRParseController implements IParseController {
 	
 	private final ILanguageSyntaxProperties syntaxProperties;
 	
+	private ParseErrorHandler errorHandler;
+	
 	private AstNode currentAst;
 	
 	private ISourceProject project;
 	
 	private IPath path;
-	
-	private IMessageHandler messages;
 
 	// Simple accessors
 	
@@ -70,6 +63,10 @@ public class SGLRParseController implements IParseController {
 
 	public final ISourceProject getProject() {
 		return project;
+	}
+	
+	public final JSGLRI getParser() {
+		return parser;
 	}
 
 	/**
@@ -104,10 +101,10 @@ public class SGLRParseController implements IParseController {
     }
 
     public void initialize(IPath filePath, ISourceProject project,
-    		IMessageHandler handler) {
+    		IMessageHandler messages) {
 		this.path = filePath;
 		this.project = project;
-		this.messages = handler;
+		errorHandler = new ParseErrorHandler(messages, parser.getTokenizer());
     }
 
 	public AstNode parse(String input, boolean scanOnly, IProgressMonitor monitor) {
@@ -115,34 +112,36 @@ public class SGLRParseController implements IParseController {
 		    throw new IllegalStateException("SGLR parse controller not initialized");
 
 		try {
-			messages.clearMessages();
+			errorHandler.clearErrors();
 
 			// TODO2: Optimization - don't produce AST if scanOnly is true
 			currentAst = null;
 			currentAst = parser.parse(input.toCharArray(), getPath().toPortableString());
+			errorHandler.reportNonFatalErrors(currentAst);
+			
 		} catch (TokenExpectedException e) {
-			reportParseError(e);
+			errorHandler.reportError(e);
 		} catch (BadTokenException e) {
-			reportParseError(e);
+			errorHandler.reportError(e);
 		} catch (SGLRException e) {
-			reportParseError(e);
+			errorHandler.reportError(e);
 		} catch (IOException e) {
-			reportParseError(e);
+			errorHandler.reportError(e);
 		} catch (RuntimeException e) {
 			Environment.logException("Unexpected error during parsing", e);
-			reportParseError(e);
+			errorHandler.reportError(e);
 		}
 		
-		// HACK: Need to call IModelListener.update manually, the IMP extension point is not implemented?
+		// HACK: Need to call IModelListener.update manually; the IMP extension point is not implemented?!
 		try {
 			StrategoFeedback feedback = Environment.getDescriptor(getLanguage()).getStrategoFeedback();
 			if (feedback != null) feedback.asyncUpdate(this, null);
 		} catch (BadDescriptorException e) {
 			Environment.logException("Unexpected error during analysis", e);
-			reportParseError(e);
+			errorHandler.reportError(e);
 		} catch (RuntimeException e) {
 			Environment.logException("Unexpected exception during analysis", e);
-			reportParseError(e);
+			errorHandler.reportError(e);
 		}
 
 		return currentAst;
@@ -175,62 +174,5 @@ public class SGLRParseController implements IParseController {
 					TokenKind.TK_UNKNOWN.ordinal()));
 		}
 		return new SGLRTokenIterator(stream, region);
-	}
-	
-	// Problem markers
-	
-	@Deprecated
-	public final List<String> getProblemMarkerTypes() {
-		return problemMarkerTypes;
-	}
-	
-	@Deprecated
-	public void addProblemMarkerType(String problemMarkerType) {
-		problemMarkerTypes.add(problemMarkerType);
-	}
-	
-	@Deprecated
-	public void removeProblemMarkerType(String problemMarkerType) {
-		problemMarkerTypes.remove(problemMarkerType);
-	}
-	
-	// Error reporting
-	
-	@Deprecated
-	public final IMessageHandler getMessages() {
-		return messages;
-	}
-	
-	protected void reportParseError(TokenExpectedException exception) {
-		String message = exception.getShortMessage();
-		IToken token = parser.getTokenizer().makeErrorToken(exception.getOffset());
-		
-		reportTokenError(token, message);
-	}
-	
-	protected void reportParseError(BadTokenException exception) {
-		IToken token = parser.getTokenizer().makeErrorToken(exception.getOffset());
-		String message = exception.isEOFToken()
-        	? exception.getShortMessage()
-        	: "'" + token.toString() + "' not expected here";
-
-        reportTokenError(token, message);
-	}
-	
-	protected void reportParseError(Exception exception) {
-		String message = "Internal parsing error: " + exception;
-		exception.printStackTrace();
-		
-		IToken token = parser.getTokenizer().makeErrorToken(0);
-		
-		reportTokenError(token, message);
-	}
-	
-	private void reportTokenError(IToken token, String message) {
-		messages.handleSimpleMessage(
-				message, max(0, token.getStartOffset()), max(0, token.getEndOffset()),
-				token.getColumn(), token.getEndColumn(), token.getLine(), token.getEndLine());
-		// UNDONE: Using AstMessageHandler
-		// parseErrors.addMarker(getProject().getRawProject().getFile(path), token, token, message, IMarker.SEVERITY_ERROR);
 	}
 }

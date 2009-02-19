@@ -32,8 +32,8 @@ public enum TokenKind {
 	/** Token kind for an EOF token. */
 	TK_EOF,
 	
-	/** Token kind for an junk (invalid) token. */
-	TK_JUNK,
+	/** Token kind for an erroneous token. */
+	TK_ERROR,
 
 	/** Unknown token kind. */
 	TK_UNKNOWN,
