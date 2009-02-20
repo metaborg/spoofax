@@ -28,10 +28,13 @@ import aterm.ATermFactory;
  * Environment class that maintains a maximally shared ATerm environment and
  * parse tables, shared by any editors or other plugins.
  *
+ * Methods in this class are either synchronized on the {@link #getSyncRoot()}
+ * property, have to be synchronized, or may only be ran from the main thread,
+ * as neatly "documented" in the source code at the moment.
+ *
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
 public final class Environment {
-	// TODO: What about thread safety?
 	
 	private final static WrappedATermFactory wrappedFactory;
 		
@@ -45,6 +48,10 @@ public final class Environment {
 	
 	private final static WrappedAstNodeFactory wrappedAstNodeFactory;
 	
+	private final static Object syncRoot = new Object();
+	
+	private static Thread mainThread;
+	
 	static {
 		wrappedFactory = new WrappedATermFactory();
 		factory = wrappedFactory.getFactory();
@@ -54,75 +61,126 @@ public final class Environment {
 		wrappedAstNodeFactory = new WrappedAstNodeFactory();
 	}
 	
+	// TODO: Split up shared and non-shared environment entities?
+	
+	// LOCKING
+	
+	/**
+	 * Gets the object to lock on for environment entities shared
+	 * between the main thread and the workspace thread.
+	 */
+	public static Object getSyncRoot() {
+		return syncRoot;
+	}
+	
+	private static void assertLock() {
+		assert Thread.holdsLock(getSyncRoot()) : "Please use the course-grained Environment.getSyncRoot() lock";
+	}
+	
+	private static void assertMainThread() {
+		if (mainThread == null)
+			mainThread = Thread.currentThread();
+		assert "main".equals(mainThread.getName()) : "Please only perform this operation from the main thread";
+		assert mainThread == Thread.currentThread() : "Please only perform this operation from the main thread";
+	}
+	
+	// BASIC ACCESSORS
+	
 	public static WrappedAstNodeFactory getTermFactory() {
+		// (no state; no assertion)
 		return wrappedAstNodeFactory;
 	}
 
 	public static WrappedATermFactory getWrappedATermFactory() {
+		assertLock();
 		return wrappedFactory;
 	}
 	
 	public static SGLR createSGLR(ParseTable parseTable) {
+		// (no state; no assertion)
 		return new SGLR(factory, parseTable);
 	}
+	
+	// ENVIRONMENT ACCESS AND MANIPULATION
 
 	public static Interpreter createInterpreter() throws IOException, InterpreterException {
-		// We use the wrappedAstNode factory for both the programs and the terms,
-		// to ensure they are compatible.
-		Interpreter result = new Interpreter(wrappedAstNodeFactory);
-
-		result.addOperatorRegistry(new IMPJSGLRLibrary());
-		result.addOperatorRegistry(new IMPLibrary());
-		result.setIOAgent(new EditorIOAgent());
-		
-		result.load(Environment.class.getResourceAsStream("/include/libstratego-lib.ctree"));
-		result.load(Environment.class.getResourceAsStream("/include/libstratego-sglr.ctree"));
-		result.load(Environment.class.getResourceAsStream("/include/libstratego-gpp.ctree"));
-		result.load(Environment.class.getResourceAsStream("/include/libstratego-xtc.ctree"));
-		result.load(Environment.class.getResourceAsStream("/include/stratego-editor-support.ctree"));
-		
-		SDefT call = result.getContext().lookupSVar("REPLACE_call_0_0");
-		result.getContext().getVarScope().addSVar("call_0_0", call);
-		
-		return result;
+		synchronized (getSyncRoot()) {
+			// We use the wrappedAstNode factory for both the programs and the terms,
+			// to ensure they are compatible.
+			Interpreter result = new Interpreter(getTermFactory());
+	
+			result.addOperatorRegistry(new IMPJSGLRLibrary());
+			result.addOperatorRegistry(new IMPLibrary());
+			result.setIOAgent(new EditorIOAgent());
+			
+			result.load(Environment.class.getResourceAsStream("/include/libstratego-lib.ctree"));
+			result.load(Environment.class.getResourceAsStream("/include/libstratego-sglr.ctree"));
+			result.load(Environment.class.getResourceAsStream("/include/libstratego-gpp.ctree"));
+			result.load(Environment.class.getResourceAsStream("/include/libstratego-xtc.ctree"));
+			result.load(Environment.class.getResourceAsStream("/include/stratego-editor-support.ctree"));
+			
+			SDefT call = result.getContext().lookupSVar("REPLACE_call_0_0");
+			result.getContext().getVarScope().addSVar("call_0_0", call);
+			
+			return result;
+		}
+	}
+	
+	public static void addToInterpreter(Interpreter interpreter, InputStream stream) throws IOException, InterpreterException {
+		synchronized (getSyncRoot()) {
+			interpreter.load(stream);			
+		}
 	}
 	
 	public static ParseTable registerParseTable(Language language, InputStream parseTable)
-		throws IOException, InvalidParseTableException {
+			throws IOException, InvalidParseTableException {
 		
-		Debug.startTimer();
-		ParseTable table = parseTableManager.loadFromStream(parseTable);
+		synchronized (getSyncRoot()) {		
+			Debug.startTimer();
+			ParseTable table = parseTableManager.loadFromStream(parseTable);
+				
+			parseTables.put(language.getName(), table);
 			
-		parseTables.put(language.getName(), table);
-		assert getParseTable(language) == table;
-		
-		Debug.stopTimer("Parse table loaded");
-		
-		return table;
+			Debug.stopTimer("Parse table loaded");
+			
+			return table;
+		}
 	}
 	
 	public static ParseTable getParseTable(Language language) {
-		ParseTable table = parseTables.get(language.getName());
+		assertMainThread();
 		
-		if (table == null)
-			throw new IllegalStateException("Parse table not available: " + language.getName());
-		
-		return table;
-	}
-	
-	public static Descriptor getDescriptor(Language language) {
-		return descriptors.get(language.getName());
+		synchronized (getSyncRoot()) { // synchronized on registration
+			ParseTable table = parseTables.get(language.getName());
+			
+			if (table == null)
+				throw new IllegalStateException("Parse table not available: " + language.getName());
+			
+			return table;
+		}
 	}
 	
 	public static void registerDescriptor(Language language, Descriptor descriptor) {
-		Descriptor oldDescriptor = getDescriptor(language);
-		
-		if (oldDescriptor != null) {
-			oldDescriptor.uninitialize();
+		synchronized (getSyncRoot()) {
+			Descriptor oldDescriptor = getDescriptor(language);
+			
+			if (oldDescriptor != null) {
+				oldDescriptor.uninitialize();
+			}
+			
+			descriptors.put(language.getName(), descriptor);
 		}
-		
-		descriptors.put(language.getName(), descriptor);
 	}
+	
+	public static Descriptor getDescriptor(Language language) {
+		synchronized (getSyncRoot()) {
+			return descriptors.get(language.getName());			
+		}
+	}
+	
+	// ERROR HANDLING
+	
+	// TODO: Move out error handling to a separate class
 	
 	public static void logException(String message, Throwable t) {
 		System.err.println(message);

@@ -1,5 +1,7 @@
 package org.strategoxt.imp.metatooling.loading;
 
+import static org.eclipse.core.resources.IResourceDelta.*;
+
 import java.io.IOException;
 
 import org.eclipse.core.resources.IFile;
@@ -7,9 +9,12 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.strategoxt.imp.metatooling.building.DynamicDescriptorBuilder;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.WorkspaceRunner;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.DescriptorFactory;
 
@@ -22,10 +27,22 @@ import org.strategoxt.imp.runtime.dynamicloading.DescriptorFactory;
 public class DynamicDescriptorUpdater implements IResourceChangeListener {
 	
 	private DynamicDescriptorBuilder builder;
+	
+	private DynamicDescriptorBuilder getBuilder() {
+		if (builder == null)
+			builder = new DynamicDescriptorBuilder(this);
+		return builder;
+	}
 
-	public void resourceChanged(IResourceChangeEvent event) {
+	public void resourceChanged(final IResourceChangeEvent event) {
 		if (event.getType() == IResourceChangeEvent.POST_CHANGE) {
-			postResourceChanged(event.getDelta());
+			WorkspaceRunner.run(
+					new IWorkspaceRunnable() {
+							public void run(IProgressMonitor monitor) throws CoreException {
+								getBuilder().invalidateUpdatedResources();
+								postResourceChanged(event.getDelta());
+							}
+					});
 		}
 	}
 	
@@ -34,7 +51,8 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 		
 		if (children.length == 0) {		
 			IResource resource = delta.getResource();
-			updateResource(resource);
+			if ((delta.getFlags() & CONTENT) == CONTENT)
+				updateResource(resource);
 		} else {
 			// Recurse
 			for (IResourceDelta child : children)
@@ -46,9 +64,7 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 		if (resource.getName().endsWith(".packed.esv")) {
 			loadPackedDescriptor(resource);
 		} else {
-			if (builder == null)
-				builder = new DynamicDescriptorBuilder(this);
-			builder.updateResource(resource);
+			getBuilder().updateResource(resource);
 		}
 	}
 

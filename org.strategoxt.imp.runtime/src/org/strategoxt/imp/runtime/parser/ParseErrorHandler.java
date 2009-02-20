@@ -46,7 +46,6 @@ public class ParseErrorHandler {
 			public void postVisit(AstNode node) {
 				// Nothing to see here; move along.
 			}
-			
 		};
 	}
 	

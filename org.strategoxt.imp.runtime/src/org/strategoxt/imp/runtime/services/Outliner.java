@@ -9,6 +9,7 @@ import lpg.runtime.IPrsStream;
 import lpg.runtime.IToken;
 
 import org.eclipse.imp.parser.IParseController;
+import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.AbstractVisitor;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
 
@@ -73,7 +74,7 @@ public class Outliner extends org.eclipse.imp.services.base.OutlinerBase {
 		if (caption != null) {
 			outline(node, caption);
 		} else {
-			System.err.println(
+			Environment.logException(
 				"Unable to infer the caption of this AST node: " +
 				node.getSort() + "." + node.getConstructor()
 			);

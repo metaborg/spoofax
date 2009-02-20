@@ -72,15 +72,17 @@ public class AsfixImploder {
 		if (!(asfix instanceof ATermAppl || ((ATermAppl) asfix).getName().equals("parsetree")))
 			throw new IllegalArgumentException("Parse tree expected");
 		
+		assert offset == 0 : "Race condition";
+		
 		ATerm top = (ATerm) asfix.getChildAt(PARSE_TREE);
 		offset = 0;
 		lexicalContext = false;
 		
-		AstNode root = implodeAppl(top);
+		AstNode result = implodeAppl(top);
 
 		tokenizer.endStream();
-		
-		return root;
+		offset = 0;		
+		return result;
 	}
 	
 	/**

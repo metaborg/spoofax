@@ -12,7 +12,7 @@ import lpg.runtime.IToken;
 public class IntAstNode extends AstNode {
 	private final int value;
 
-	protected IntAstNode(String sort, int value, IToken leftToken, IToken rightToken) {
+	public IntAstNode(String sort, int value, IToken leftToken, IToken rightToken) {
 		// Construct an empty list (unfortunately needs to be a concrete ArrayList type)
 		super(sort, null, leftToken, rightToken, EMPTY_LIST);
 		

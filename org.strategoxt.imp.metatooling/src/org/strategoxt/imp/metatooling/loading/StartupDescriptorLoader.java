@@ -8,6 +8,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.WorkspaceRunner;
 
 /**
  * This class loads all active descriptors  in the workspace at startup,
@@ -24,7 +25,7 @@ public class StartupDescriptorLoader {
 	
 	/**
 	 * Initializes the dynamic language loading component.
-	 * May be invoked by {@link StartupDescriptorValidator }
+	 * May be invoked by {@link StartupDescriptorValidator}
 	 */
 	public static void initialize() {
 		try {
@@ -34,20 +35,17 @@ public class StartupDescriptorLoader {
 			loader = new DynamicDescriptorUpdater();
 		
 			ResourcesPlugin.getWorkspace().addResourceChangeListener(loader);
-			ResourcesPlugin.getWorkspace().run(
+			WorkspaceRunner.run(
 				new IWorkspaceRunnable() {
 					public void run(IProgressMonitor monitor) throws CoreException {
 						loadAllServices();
-					}},
-				null);
-		} catch (CoreException e) {
-			Environment.logException("Could not load initial editor services", e);			
+					}});
 		} catch (RuntimeException e) {
 			Environment.logException("Could not load dynamic descriptor updater", e);
 		}
 	}
 	
-	/* TODO: Load only descriptors indicated in the project settings
+	/* TODO: Only load descriptors indicated in the project settings
 	
 	private static void loadProjectSettingsServices() {
 		for (IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {

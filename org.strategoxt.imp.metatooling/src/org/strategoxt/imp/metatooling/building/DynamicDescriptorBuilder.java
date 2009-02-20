@@ -35,6 +35,12 @@ public class DynamicDescriptorBuilder {
 	private final Map<IResource, Set<String>> includedEditorFiles =
 		new HashMap<IResource, Set<String>>();
 	
+	/**
+	 * The set of main files that just has been updated in the current updating pass.
+	 */
+	private final Set<IResource> upToDateMainFiles =
+		new HashSet<IResource>();
+	
 	private final AstMessageHandler messageHandler =
 		new AstMessageHandler();
 	
@@ -52,7 +58,7 @@ public class DynamicDescriptorBuilder {
 			agent.setDescriptor(EditorServiceParseController.getDescriptor());
 			builder = Environment.createInterpreter();
 			builder.setIOAgent(agent);
-			builder.load(MetatoolingActivator.getResourceAsStream("/include/sdf2imp.ctree"));
+			Environment.addToInterpreter(builder, MetatoolingActivator.getResourceAsStream("/include/sdf2imp.ctree"));
 			
 			Debug.stopTimer("Successfully loaded dynamic editor builder");
 			
@@ -69,12 +75,18 @@ public class DynamicDescriptorBuilder {
 		try {
 			Set<IResource> mainFiles = mainEditorFiles.get(filename);
 			if (mainFiles != null) {
-				for (IResource mainFile : mainFiles)
-					buildDescriptor(mainFile);
+				for (IResource mainFile : mainFiles) {
+					if (!upToDateMainFiles.contains(mainFile)) {
+						upToDateMainFiles.add(mainFile);
+						buildDescriptor(mainFile);
+					}
+				}
 			}
 			
-			if (isMainFile(filename))
+			if (isMainFile(filename) && !upToDateMainFiles.contains(resource)) {
+				upToDateMainFiles.add(resource);
 				buildDescriptor(resource);
+			}
 		
 		} catch (RuntimeException e) {
 			Environment.logException("Unable to build descriptor for " + filename);
@@ -82,14 +94,17 @@ public class DynamicDescriptorBuilder {
 			Environment.logException("Unable to build descriptor for " + filename);
 		}
 	}
+	
+	public void invalidateUpdatedResources() {
+		upToDateMainFiles.clear();
+	}
 
 	/**
 	 * Build and load a descriptor file.
 	 */
-	private synchronized void buildDescriptor(IResource mainFile) {
+	private void buildDescriptor(IResource mainFile) {
 		try {
 			messageHandler.clearMarkers(mainFile);
-			
 			boolean success = invokeBuilder(mainFile);
 			
 			if (!success) {

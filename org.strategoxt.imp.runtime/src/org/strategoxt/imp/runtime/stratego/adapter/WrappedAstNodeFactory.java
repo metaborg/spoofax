@@ -37,30 +37,39 @@ public class WrappedAstNodeFactory extends BasicTermFactory implements ITermFact
 		}
 	}
 	
-	// Parsing
+	// PARSING
 	
 	@Override
 	public IStrategoTerm parseFromStream(InputStream inputStream) throws IOException {
 		// BasicTermFactory does not support binary aterms atm
-		IStrategoTerm result = Environment.getWrappedATermFactory().parseFromStream(inputStream);
+		IStrategoTerm result;
+		synchronized (Environment.getSyncRoot()) {
+			result = Environment.getWrappedATermFactory().parseFromStream(inputStream);
+		}
 		return converter.convert(result);
 	}
 	
 	@Override
 	public IStrategoTerm parseFromFile(String path) throws IOException {
 		// BasicTermFactory does not support binary aterms atm
-		IStrategoTerm result = Environment.getWrappedATermFactory().parseFromFile(path);
+		IStrategoTerm result;
+		synchronized (Environment.getSyncRoot()) {
+			result = Environment.getWrappedATermFactory().parseFromFile(path);
+		}
 		return converter.convert(result);
 	}
 	
 	@Override
 	public IStrategoTerm parseFromString(String path) {
 		// BasicTermFactory does not support binary aterms atm
-		IStrategoTerm result = Environment.getWrappedATermFactory().parseFromString(path);
+		IStrategoTerm result;
+		synchronized (Environment.getSyncRoot()) {
+			result = Environment.getWrappedATermFactory().parseFromString(path);
+		}
 		return converter.convert(result);
 	}
 	
-	// Annotations
+	// ANNOTATIONS
 	
 	@Override
 	public IStrategoTerm annotateTerm(IStrategoTerm term, IStrategoList annotations) {
@@ -71,7 +80,7 @@ public class WrappedAstNodeFactory extends BasicTermFactory implements ITermFact
 		}
 	}
 	
-	// Origin tracking
+	// ORIGIN TRACKING
 	
 	@Override
 	public IStrategoAppl replaceAppl(IStrategoConstructor constructor, IStrategoTerm[] kids,

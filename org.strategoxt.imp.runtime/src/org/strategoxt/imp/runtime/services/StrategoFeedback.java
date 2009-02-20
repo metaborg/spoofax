@@ -4,19 +4,14 @@ import static org.spoofax.interpreter.terms.IStrategoTerm.*;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.*;
 
 import java.io.FileNotFoundException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import lpg.runtime.IAst;
 
 import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRunnable;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
 import org.spoofax.interpreter.core.Interpreter;
@@ -28,6 +23,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.WorkspaceRunner;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
@@ -52,8 +48,6 @@ public class StrategoFeedback implements IModelListener {
 	
 	private final AstMessageHandler messages = new AstMessageHandler();
 	
-	private final ExecutorService asyncExecutor = Executors.newSingleThreadExecutor();
-	
 	private boolean asyncExecuterEnqueued = false;
 	
 	public StrategoFeedback(Descriptor descriptor, Interpreter resolver, String feedbackFunction) {
@@ -69,71 +63,56 @@ public class StrategoFeedback implements IModelListener {
 	/**
 	 * Starts a new update() operation, asynchronously.
 	 */
-	public synchronized void asyncUpdate(final IParseController parseController, final IProgressMonitor monitor) {
-		
-		// TODO: Properly integrate this asynchronous job into the Eclipse environment?
-		//       e.g. (ab)using Workspace.run()
-		
-		if (!asyncExecuterEnqueued && feedbackFunction != null) {
-			asyncExecuterEnqueued = true;
+	public void asyncUpdate(final IParseController parseController, final IProgressMonitor monitor) {		
+		synchronized (Environment.getSyncRoot()) {		
+			// TODO: Properly integrate this asynchronous job into the Eclipse environment?
 			
-			asyncExecutor.execute(new Runnable() {
-				public void run() {
-					synchronized (StrategoFeedback.this) {
-						asyncExecuterEnqueued = false;
-						update(parseController, monitor);
+			if (!asyncExecuterEnqueued && feedbackFunction != null) {
+				asyncExecuterEnqueued = true;
+				
+				WorkspaceRunner.run(new IWorkspaceRunnable() {
+					public void run(IProgressMonitor monitor) {
+						synchronized (Environment.getSyncRoot()) {
+							asyncExecuterEnqueued = false;
+							update(parseController, monitor);
+						}
 					}
-				}
-			});
+				});
+			}			
 		}
 	}
 
-	public synchronized void update(IParseController parseController, IProgressMonitor monitor) {
-		if (feedbackFunction != null) {
-			Debug.startTimer("Invoking feedback strategy " + feedbackFunction);
-			ITermFactory factory = Environment.getTermFactory();
-			IStrategoAstNode ast = (IStrategoAstNode) parseController.getCurrentAst();
-			if (ast == null) return;
-			
-			IStrategoTerm[] inputParts = {
-					ast.getTerm(),
-					factory.makeString(ast.getResourcePath().toOSString()),
-					factory.makeString(ast.getRootPath().toOSString())
-			};
-			IStrategoTerm input = factory.makeTuple(inputParts);
-			
-			IStrategoTerm feedback = invoke(feedbackFunction, input, ast.getResourcePath().removeLastSegments(1));
-			
-			Debug.stopTimer("Completed feedback strategy " + feedbackFunction);
-			asyncPresentToUser(parseController, feedback);
+	public void update(IParseController parseController, IProgressMonitor monitor) {
+		synchronized (Environment.getSyncRoot()) {
+			if (feedbackFunction != null) {
+				Debug.startTimer("Invoking feedback strategy " + feedbackFunction);
+				ITermFactory factory = Environment.getTermFactory();
+				IStrategoAstNode ast = (IStrategoAstNode) parseController.getCurrentAst();
+				if (ast == null) return;
+				
+				IStrategoTerm[] inputParts = {
+						ast.getTerm(),
+						factory.makeString(ast.getResourcePath().toOSString()),
+						factory.makeString(ast.getRootPath().toOSString())
+				};
+				IStrategoTerm input = factory.makeTuple(inputParts);
+				
+				IStrategoTerm feedback = invoke(feedbackFunction, input, ast.getResourcePath().removeLastSegments(1));
+				
+				Debug.stopTimer("Completed feedback strategy " + feedbackFunction);
+				asyncPresentToUser(parseController, feedback);
+			}
 		}
 	}
 	
 	private void asyncPresentToUser(final IParseController parseController, final IStrategoTerm feedback) {
-		try {
-			ResourcesPlugin.getWorkspace().run(
+		WorkspaceRunner.run(
 			  new IWorkspaceRunnable() {
 				public void run(IProgressMonitor monitor) throws CoreException {
 					presentToUser(parseController, feedback);
 				}
 			  }
-			, new ISchedulingRule() {
-				public boolean contains(ISchedulingRule rule) {
-					return rule == this;
-				}
-				public boolean isConflicting(ISchedulingRule rule) {
-					return rule == this;
-				}
-			}
-			, IWorkspace.AVOID_UPDATE
-			, null
 			);
-		} catch (CoreException e) {
-			// TODO: Handle exceptions, particularly workspace locked ones
-			//       (assuming these still occur with the scheduling rule)
-			//       (see also LoaderPreferences#updateDescriptors(IWorkspaceRunnable))
-			Environment.logException("Could not update feedback", e);
-		}
 	}
 
 	private void presentToUser(IParseController parseController, IStrategoTerm feedback) {
@@ -193,39 +172,49 @@ public class StrategoFeedback implements IModelListener {
 	 * 
 	 * @see #getAstNode(IStrategoTerm)  To retrieve the AST node associated with the resulting term.
 	 */
-	public synchronized IStrategoTerm invoke(String function, IStrategoAstNode node) {
-		ITermFactory factory = Environment.getTermFactory();
-		IStrategoTerm[] inputParts = {
-				getRoot(node).getTerm(),
-				factory.makeString(node.getResourcePath().toOSString()),
-				node.getTerm(),
-				StrategoTermPath.createPath(node)
-		};
-		IStrategoTerm input = factory.makeTuple(inputParts);
-		
-		return invoke(function, input, node.getResourcePath().removeLastSegments(1));
+	public IStrategoTerm invoke(String function, IStrategoAstNode node) {
+		synchronized (Environment.getSyncRoot()) {
+			ITermFactory factory = Environment.getTermFactory();
+			IStrategoTerm[] inputParts = {
+					getRoot(node).getTerm(),
+					factory.makeString(node.getResourcePath().toOSString()),
+					node.getTerm(),
+					StrategoTermPath.createPath(node)
+			};
+			IStrategoTerm input = factory.makeTuple(inputParts);
+			
+			return invoke(function, input, node.getResourcePath().removeLastSegments(1));
+		}
 	}
 	
-	public synchronized IStrategoTerm invoke(String function, IStrategoTerm term, IPath workingDir) {
-	    Debug.startTimer();
-		try {
-			interpreter.setCurrent(term);
-			initInterpreterPath(workingDir);
-
-			((LoggingIOAgent) interpreter.getIOAgent()).clearLog();
-			boolean success = interpreter.invoke(function);
-			
-			if (!success) {
-				Environment.logStrategyFailure("Failure reported during evaluation of function " + function, interpreter);
+	/**
+	 * Invoke a Stratego function with a specific term its input,
+	 * given a particular working directory.
+	 * 
+	 * @see #getAstNode(IStrategoTerm)  To retrieve the AST node associated with the resulting term.
+	 */
+	public IStrategoTerm invoke(String function, IStrategoTerm term, IPath workingDir) {
+		synchronized (Environment.getSyncRoot()) {
+		    Debug.startTimer();
+			try {
+				interpreter.setCurrent(term);
+				initInterpreterPath(workingDir);
+	
+				((LoggingIOAgent) interpreter.getIOAgent()).clearLog();
+				boolean success = interpreter.invoke(function);
+				
+				if (!success) {
+					Environment.logStrategyFailure("Failure reported during evaluation of function " + function, interpreter);
+					return null;
+				}
+			} catch (InterpreterException e) {
+				Environment.logException("Internal error evaluating function " + function, e);
 				return null;
 			}
-		} catch (InterpreterException e) {
-			Environment.logException("Internal error evaluating function " + function, e);
-			return null;
+			
+			Debug.stopTimer("Invoked Stratego strategy " + function);
+			return interpreter.current();
 		}
-		
-		Debug.stopTimer("Invoked Stratego strategy " + function);
-		return interpreter.current();
 	}
 
 	public IAst getAstNode(IStrategoTerm term) {

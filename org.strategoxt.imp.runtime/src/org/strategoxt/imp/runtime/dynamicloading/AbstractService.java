@@ -25,25 +25,28 @@ public class AbstractService<T extends ILanguageService> {
 		this.serviceType = serviceType;
 	}
 	
-	protected synchronized T getWrapped() {
-		// TODO: Perhaps get the dynamic service using an approach similar to DynamicParseController.findLanguage()
-		if (wrapped == null) {
-			if (notLoadingCause != null) // previous error
-				throw new RuntimeException(notLoadingCause);
-			if (!isInitialized())
-				throw new IllegalStateException("Editor service component not initialized yet - " + getClass().getSimpleName());
-			try {
-				Descriptor desc = Environment.getDescriptor(getLanguage());
-				if(desc == null)
-					throw new IllegalStateException("Language '" + getLanguage().getName() + "' not registered");
-				wrapped = desc.createService(serviceType);
-			} catch (Exception e) {
-				setNotLoadingCause(e);
-				Environment.logException("Unable to dynamically initialize service of type " + serviceType.getSimpleName(), e);
-				throw new RuntimeException(e);
+	protected T getWrapped() {
+		synchronized (Environment.getSyncRoot()) { // (lock seems unnecesary here?)
+			
+			// TODO: Perhaps get the dynamic service using an approach similar to DynamicParseController.findLanguage()
+			if (wrapped == null) {
+				if (notLoadingCause != null) // previous error
+					throw new RuntimeException(notLoadingCause);
+				if (!isInitialized())
+					throw new IllegalStateException("Editor service component not initialized yet - " + getClass().getSimpleName());
+				try {
+					Descriptor desc = Environment.getDescriptor(getLanguage());
+					if(desc == null)
+						throw new IllegalStateException("Language '" + getLanguage().getName() + "' not registered");
+					wrapped = desc.createService(serviceType);
+				} catch (Exception e) {
+					setNotLoadingCause(e);
+					Environment.logException("Unable to dynamically initialize service of type " + serviceType.getSimpleName(), e);
+					throw new RuntimeException(e);
+				}
 			}
+			return wrapped;
 		}
-		return wrapped;
 	}
 	
 	protected void setNotLoadingCause(Throwable notLoadingCause) {
