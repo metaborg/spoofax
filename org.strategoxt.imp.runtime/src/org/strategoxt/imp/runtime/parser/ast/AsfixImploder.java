@@ -72,7 +72,7 @@ public class AsfixImploder {
 		if (!(asfix instanceof ATermAppl || ((ATermAppl) asfix).getName().equals("parsetree")))
 			throw new IllegalArgumentException("Parse tree expected");
 		
-		assert offset == 0 : "Race condition";
+		assert offset == 0 : "Race condition in AsfixImploder";
 		
 		ATerm top = (ATerm) asfix.getChildAt(PARSE_TREE);
 		offset = 0;
@@ -144,7 +144,7 @@ public class AsfixImploder {
 			ATerm child = contents.elementAt(i);
 
 			if (isInt(child)) {
-				implodeLexical(child);
+				implodeLexical((ATermInt) child);
 			} else {
 				// Recurse
 				AstNode childNode = implodeAppl(child);
@@ -313,11 +313,13 @@ public class AsfixImploder {
 	}
 	
 	/** Implode any appl(_, _) that constructs a lex terminal. */
-	protected void implodeLexical(ATerm character) {		
-		// Add character
-		assert ((ATermInt) character).getInt()
+	protected void implodeLexical(ATermInt character) {
+		assert character.getInt()
 			== tokenizer.getLexStream().getCharValue(offset)
-			: "Character from asfix stream must be in lex stream";
+			: "Character from asfix stream (" + character.getInt()
+			+ ") must be in lex stream ("
+			+ (int) tokenizer.getLexStream().getCharValue(offset) + ")";
+		
 		offset++;
 	}
 	
@@ -376,8 +378,7 @@ public class AsfixImploder {
     	
 		ATermList args = termAt(node, PARAMETRIZED_SORT_ARGS);
 		
-		for (int i = 0; i < args.getChildCount(); i++) {
-			ATermAppl arg = termAt(termAt(args, i), 0);
+        for (ATermAppl arg = (ATermAppl) args.getFirst(); !args.getNext().isEmpty(); args = args.getNext()) {
 			result.append(arg.getName());
 		}
 		

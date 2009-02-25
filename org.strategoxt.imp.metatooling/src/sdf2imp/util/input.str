@@ -44,6 +44,7 @@ strategies
     risky(
       ?Module(name, _, _)
     <+
+      debug(!"module name no match");
       try(<OnImportFailure> Import(name)); fail // trigger failure event
     |"Module name does not match file name"
     )

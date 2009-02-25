@@ -38,7 +38,9 @@ public class StartupDescriptorLoader {
 			WorkspaceRunner.run(
 				new IWorkspaceRunnable() {
 					public void run(IProgressMonitor monitor) throws CoreException {
-						loadAllServices();
+						synchronized (Environment.getSyncRoot()) {
+							loadAllServices();
+						}
 					}});
 		} catch (RuntimeException e) {
 			Environment.logException("Could not load dynamic descriptor updater", e);

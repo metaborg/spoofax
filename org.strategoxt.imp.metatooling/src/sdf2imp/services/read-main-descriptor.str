@@ -35,7 +35,7 @@ strategies
   
   current-main-descriptor-file =
      {| InputDirPrefix, OnImportFailure:
-       <add-input-dir-prefix> "src/";
+       <add-input-dir-prefix> <SrcDir <+ !"src/">;
        rules(
          OnImportFailure:
            Import(m) -> Module("", NoImports(), [])
@@ -45,14 +45,18 @@ strategies
              end
        );
        
-       verbosity-scope(
+       //verbosity-scope(
          main-descriptor-name;
+         where(<conc-strings> (<id>, ".esv"); file-exists; debug(!"exists:") <+ debug(!"not exists:"));
          input-descriptor-file
-       | -1
-       );
+       //| -1
+       //)
+       ;
        verbose-msg(!"Existing descriptor determines generated services:", main-descriptor-name)
      |}
+     ; where(<debug(!"reading of  ")> <main-descriptor-name>)
    <+
+     where(<debug(!"no reading of  ")> <main-descriptor-name>);
      // Could not read the existing file: use the defaults instead, but don't overwrite the file
      rules(NoExistingDescriptor: _);
      default-main-descriptor

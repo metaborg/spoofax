@@ -9,16 +9,24 @@ import org.spoofax.interpreter.library.jsglr.JSGLRLibrary;
 import org.spoofax.interpreter.library.jsglr.JSGLRPrimitive;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.TermConverter;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.SGLRException;
+import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.JSGLRI;
 
+import aterm.ATerm;
+
 /**
+ * Supports parsing with JSGLR with a custom ITermFactory (i.e., not WrappedATermFactory).
+ * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class IMPJSGLRParser extends JSGLRPrimitive {
+public class IMPJSGLRParserPrimitive extends JSGLRPrimitive {
+	
+	private final TermConverter termConverter = new TermConverter(Environment.getTermFactory());
 
-	protected IMPJSGLRParser() {
+	protected IMPJSGLRParserPrimitive() {
 		super("JSGLR_parse_string_pt", 1, 4);
 	}
 
@@ -46,7 +54,9 @@ public class IMPJSGLRParser extends JSGLRPrimitive {
 		input.getChars(0, input.length(), inputChars, 0);
 		
 		try {
-			env.setCurrent(parser.parse(inputChars, path).getTerm());
+			ATerm asfix = parser.parseNoImplode(inputChars, path);
+			IStrategoTerm result = Environment.getWrappedATermFactory().wrapTerm(asfix);
+			env.setCurrent(termConverter.convert(result));
 			return true;
 		} catch (IOException e) {
 			e.printStackTrace();

@@ -19,12 +19,15 @@ strategies
   // TODO2: descriptor-name should have an aterm argument, overloading main-descriptor-name
   
   descriptor-name:
-    name -> <conc-strings> (language, name)
+    name -> <conc-strings> (prefix, name)
     with
-      language := <get-sdf-main-module>
+      prefix := <DescriptorNamePrefix <+ get-sdf-main-module>
   
   main-descriptor-name =
-    <conc-strings> (<get-sdf-main-module>, ".main")
+    MainDescriptorName
+  <+
+    <get-config> SdfMainModuleFlag();
+    <conc-strings> (<id>, ".main")
   
   condition-to-java:
     Token(x) -> |[ tokenKind == x_Name ]|

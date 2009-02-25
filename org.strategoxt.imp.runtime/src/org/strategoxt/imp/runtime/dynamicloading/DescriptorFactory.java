@@ -76,8 +76,10 @@ public class DescriptorFactory {
 	public static Descriptor parse(InputStream input) throws BadDescriptorException, IOException {
 		try {
 			init();
-			IStrategoAppl document = descriptorParser.parse(input, null).getTerm();
-			return new Descriptor(document);
+			synchronized (Environment.getSyncRoot()) {
+				IStrategoAppl document = descriptorParser.parse(input, null).getTerm();
+				return new Descriptor(document);
+			}
 		} catch (SGLRException e) {
 			throw new BadDescriptorException("Could not parse descriptor file", e);
 		}

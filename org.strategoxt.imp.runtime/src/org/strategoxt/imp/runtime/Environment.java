@@ -10,6 +10,7 @@ import org.eclipse.imp.runtime.RuntimePlugin;
 import org.spoofax.interpreter.adapter.aterm.WrappedATermFactory;
 import org.spoofax.interpreter.core.Interpreter;
 import org.spoofax.interpreter.core.InterpreterException;
+import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.library.LoggingIOAgent;
 import org.spoofax.interpreter.stratego.SDefT;
 import org.spoofax.jsglr.InvalidParseTableException;
@@ -80,7 +81,6 @@ public final class Environment {
 	private static void assertMainThread() {
 		if (mainThread == null)
 			mainThread = Thread.currentThread();
-		assert "main".equals(mainThread.getName()) : "Please only perform this operation from the main thread";
 		assert mainThread == Thread.currentThread() : "Please only perform this operation from the main thread";
 	}
 	
@@ -107,8 +107,14 @@ public final class Environment {
 		synchronized (getSyncRoot()) {
 			// We use the wrappedAstNode factory for both the programs and the terms,
 			// to ensure they are compatible.
-			Interpreter result = new Interpreter(getTermFactory());
-	
+			Interpreter result = new Interpreter(getTermFactory()) {
+				@Override
+				public boolean invoke(String name) throws InterpreterExit, InterpreterException {
+					assertLock();
+					return super.invoke(name);
+				}
+			};
+
 			result.addOperatorRegistry(new IMPJSGLRLibrary());
 			result.addOperatorRegistry(new IMPLibrary());
 			result.setIOAgent(new EditorIOAgent());
