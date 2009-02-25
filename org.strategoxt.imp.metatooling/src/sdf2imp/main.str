@@ -37,22 +37,37 @@ strategies
   
   sdf2imp-jvm:
     esv -> <packed-descriptor-file-name>
+    with
+      file-exists
     where
       def := <find-def-file> esv;
       <main-sdf2imp> ["sdf2imp", "-i", def]
   
   // FIXME: dirty hack for getting the .def file
+  //        (should do this based on the esv contents instead...)
   find-def-file =
     remove-extension;
+    rules(
+      MainDescriptorName   := <id>
+      DescriptorNamePrefix := <remove-extension>
+    );
     guarantee-extension(|"def"); // remove .main.esv
     if not(file-exists) then
-      <conc-strings> ("../", <id>)
+      <conc-strings> ("../", <id>);
+      rules(
+        SrcDir := "./"
+      )
     end
 
 strategies
 
   sdf2imp =
-    xtc-ensure-file => input;
+    xtc-ensure-file;
+    if FILE(has-extension(|"esv") => esv) then
+      <find-def-file> esv
+    <+
+      fatal-err(|"Could not find associated .def file")
+    end => input;
   
     read-main-descriptor;
     <sdf2rtg> input;
@@ -88,6 +103,6 @@ strategies
   sdf2rtg =
     verbose-msg(!"Analyzing grammar...");
     xtc-transform(!"sdf2rtg", !["--ignore-missing-cons", "-m", <get-sdf-main-module> | <pass-verbose>]);
-    xtc-transform(!"sglri", !["-p", <xtc-find> "rtg.tbl", "--start", "RTG"]);
-    read-from => RTG(_, ProdRules(<id>));
+    parse-xtc-file-report-errors(|<open-parse-table> <import-term(include/rtg.tbl)>, "RTG");
+    ?RTG(_, ProdRules(<id>));
     register-rtg

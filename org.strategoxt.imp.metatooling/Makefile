@@ -44,7 +44,7 @@ check : all \
         # tests/test-editor-descriptor.runsh \
         # tests/test-stratego-java.runsh
 
-sdf2imp : $(RTREES) $(SYNTAX) Makefile
+sdf2imp : $(RTREES) $(SYNTAX) Makefile src/include/rtg.tbl
 	strc -i src/sdf2imp.str -o $@ $(STRINCLUDES) $(STRCFLAGS) -m main-sdf2imp $(STRCSTFU)
 	rm sdf2imp.c sdf2imp.lo sdf2imp.o
 
@@ -60,8 +60,8 @@ clean :
 %.rtree : %.str $(SYNTAX)
 	@parse-stratego -i $< -o $@ $(STRINCLUDES)
 
-src/include/%.ctree : src/%.str
-	strc -F --library -i $< -o $@ $(STRINCLUDES) $(STRCSTFU)
+src/include/sdf2imp.ctree : sdf2imp
+	strc -F --library -i src/sdf2imp.str -o $@ $(STRINCLUDES) $(STRCSTFU)
 
 %.pp : %.def
 	ppgen -i $< -o $@
@@ -92,4 +92,8 @@ src/syntax/Stratego-Java-EditorService.def : src/syntax/Stratego-Java-EditorServ
 
 src/syntax/Stratego-Java-EditorService.tbl : src/syntax/Stratego-Java-EditorService.def
 	sdf2table -m Stratego-Java-EditorService -i $< -o $@
+
+# We need a better solution for this
+src/include/rtg.tbl : ~/.nix-profile/share/sdf/stratego-regular/rtg.tbl
+	cp $< $@
 
