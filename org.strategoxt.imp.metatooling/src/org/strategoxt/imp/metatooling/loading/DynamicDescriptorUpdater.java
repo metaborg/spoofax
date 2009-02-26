@@ -1,6 +1,7 @@
 package org.strategoxt.imp.metatooling.loading;
 
 import static org.eclipse.core.resources.IResourceDelta.*;
+import static org.eclipse.core.resources.IMarker.*;
 
 import java.io.IOException;
 
@@ -17,6 +18,7 @@ import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.WorkspaceRunner;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.DescriptorFactory;
+import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
 
 /**
  * This class updates any editors in the environment,
@@ -27,6 +29,9 @@ import org.strategoxt.imp.runtime.dynamicloading.DescriptorFactory;
 public class DynamicDescriptorUpdater implements IResourceChangeListener {
 	
 	private DynamicDescriptorBuilder builder;
+	
+	private final AstMessageHandler messageHandler =
+		new AstMessageHandler();
 	
 	private DynamicDescriptorBuilder getBuilder() {
 		if (builder == null)
@@ -70,20 +75,26 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 
 	public void loadPackedDescriptor(IResource descriptor) {
 		try {
+			messageHandler.clearMarkers(descriptor);
+			
 			IFile file = descriptor.getProject().getFile(descriptor.getProjectRelativePath());
 			file.refreshLocal(0, null); // resource might be out of sync
 			DescriptorFactory.load(file);
 			
 		} catch (CoreException e) {
+			messageHandler.addMarkerFirstLine(descriptor, "Unable to load descriptor: " + e.getMessage(), SEVERITY_ERROR);
 			Environment.logException("Unable to load descriptor " + descriptor, e);
 		} catch (BadDescriptorException e) {
-			// TODO: Properly report bad descriptors in the UI
+			messageHandler.addMarkerFirstLine(descriptor, "Error in descriptor: " + e.getMessage(), SEVERITY_ERROR);
 			Environment.logException("Error in descriptor " + descriptor, e);
 		} catch (IOException e) {
+			messageHandler.addMarkerFirstLine(descriptor, "Error reading descriptor: " + e.getMessage(), SEVERITY_ERROR);
 			Environment.logException("Error reading descriptor " + descriptor, e);
 		} catch (RuntimeException e) {
+			messageHandler.addMarkerFirstLine(descriptor, "Unable to load descriptor: " + e.getMessage(), SEVERITY_ERROR);
 			Environment.logException("Unable to load descriptor " + descriptor, e);
 		} catch (Error e) { // workspace thread swallows this >:(
+			messageHandler.addMarkerFirstLine(descriptor, "Unable to load descriptor: " + e.getMessage(), SEVERITY_ERROR);
 			Environment.logException("Unable to load descriptor " + descriptor, e);
 			throw e;
 		}

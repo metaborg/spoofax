@@ -64,12 +64,14 @@ public class StartupDescriptorLoader {
 		for (final IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
 			if (project.isOpen()) {
 				try {
-					project.accept(new IResourceVisitor() {
-						public boolean visit(IResource resource) throws CoreException {
-							loader.updateResource(resource);
-							return true;
-						}
-					});
+					synchronized (Environment.getSyncRoot()) {
+						project.accept(new IResourceVisitor() {
+							public boolean visit(IResource resource) throws CoreException {
+								loader.updateResource(resource);
+								return true;
+							}
+						});
+					}
 				} catch (CoreException e) {
 					Environment.logException("Error loading descriptors for project " + project.getName(), e);
 				}
