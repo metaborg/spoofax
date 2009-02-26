@@ -102,7 +102,7 @@ strategies
   
   sdf2rtg =
     verbose-msg(!"Analyzing grammar...");
-    xtc-transform(!"sdf2rtg", !["--ignore-missing-cons", "-m", <get-sdf-main-module> | <pass-verbose>]);
+    xtc-transform(!"sdf2rtg", !["--ignore-missing-cons", "-m", <get-sdf-main-module> | <pass-verbose>])
     parse-xtc-file-report-errors(|<open-parse-table> <import-term(include/rtg.tbl)>, "RTG");
     ?RTG(_, ProdRules(<id>));
     register-rtg

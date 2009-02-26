@@ -89,9 +89,9 @@ public class DynamicDescriptorBuilder {
 			}
 			
 		} catch (RuntimeException e) {
-			Environment.logException("Unable to build descriptor for " + filename);
+			Environment.logException("Unable to build descriptor for " + filename, e);
 		} catch (Error e) { // workspace thread swallows this >:(
-			Environment.logException("Unable to build descriptor for " + filename);
+			Environment.logException("Unable to build descriptor for " + filename, e);
 		}
 	}
 	
@@ -104,19 +104,18 @@ public class DynamicDescriptorBuilder {
 	 */
 	private void buildDescriptor(IResource mainFile) {
 		try {
-			synchronized (Environment.getSyncRoot()) {
-				messageHandler.clearMarkers(mainFile);
-				boolean success = invokeBuilder(mainFile);
-			
-				if (!success) {
-					String log = ((LoggingIOAgent) builder.getIOAgent()).getLog().trim();
-					messageHandler.addMarkerFirstLine(mainFile,
-							"Unable to build descriptor: \n" + log, SEVERITY_ERROR);
-					return;
-				}
-				
-				updateDependencies(mainFile);
+			Environment.assertLock();
+			messageHandler.clearMarkers(mainFile);
+			boolean success = invokeBuilder(mainFile);
+		
+			if (!success) {
+				String log = ((LoggingIOAgent) builder.getIOAgent()).getLog().trim();
+				messageHandler.addMarkerFirstLine(mainFile,
+						"Unable to build descriptor: \n" + log, SEVERITY_ERROR);
+				return;
 			}
+			
+			updateDependencies(mainFile);
 		} catch (InterpreterException e) {
 			messageHandler.addMarkerFirstLine(mainFile, "Unable to build descriptor:" + e, SEVERITY_ERROR);
 			Environment.logException("Unable to build descriptor for " + mainFile, e);

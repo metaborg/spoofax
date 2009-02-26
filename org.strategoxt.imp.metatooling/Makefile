@@ -95,5 +95,5 @@ src/syntax/Stratego-Java-EditorService.tbl : src/syntax/Stratego-Java-EditorServ
 
 # We need a better solution for this
 src/include/rtg.tbl : ~/.nix-profile/share/sdf/stratego-regular/rtg.tbl
-	cp $< $@
+	baf2trm  -i $< -o $@ # cp $< $@
 

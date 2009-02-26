@@ -74,7 +74,7 @@ public final class Environment {
 		return syncRoot;
 	}
 	
-	private static void assertLock() {
+	public static void assertLock() {
 		assert Thread.holdsLock(getSyncRoot()) : "Please use the course-grained Environment.getSyncRoot() lock";
 	}
 	

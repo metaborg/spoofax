@@ -39,6 +39,8 @@ public class WrappedAstNodeFactory extends BasicTermFactory implements ITermFact
 	
 	// PARSING
 	
+	// TODO: Use BAFReader.isBinaryATerm() to determine if BAFreading is required
+	
 	@Override
 	public IStrategoTerm parseFromStream(InputStream inputStream) throws IOException {
 		// BasicTermFactory does not support binary aterms atm
