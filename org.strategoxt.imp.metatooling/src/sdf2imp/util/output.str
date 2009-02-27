@@ -105,7 +105,7 @@ strategies
     print-filename(|["src" | <package-name>], <base-filename> filename);
     
     risky(
-      text := <pp-java-string>
+      text := <pp-java-string <+ pp-java-string-fallback>
     | "Illegal Java output"
     );
     
@@ -133,6 +133,12 @@ strategies
     <fclose> file
 
 strategies
+
+  pp-java-string-fallback =
+    write-to;
+    xtc-transform(!"pp-java");
+    ?FILE(<read-text-file>);
+    warn-msg(|"PP-JAVA-STRING LIBRARY CALL FAILED; USING XTC INSTEAD")
   
   print-filename(|pathparts, filename) =
     if [] := pathparts then

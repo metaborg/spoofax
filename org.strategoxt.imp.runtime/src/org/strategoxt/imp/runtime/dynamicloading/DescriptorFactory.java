@@ -65,11 +65,11 @@ public class DescriptorFactory {
 		Environment.registerDescriptor(language, result);
 		LanguageRegistry.registerLanguage(language);
 		
-		// TODO: Lazily load parse tables
+		// TODO: Lazily load parse tables?
 		if (parseTable == null) parseTable = result.openParseTableStream();
 		registerParseTable(language, parseTable);
 		
-		Debug.stopTimer("Editor services loaded: " + result.getLanguage().getName());
+		Debug.stopTimer("Editor services loaded: " + result);
 		return result;
 	}
 	
