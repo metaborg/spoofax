@@ -1,5 +1,7 @@
 package org.strategoxt.imp.runtime.stratego.adapter;
 
+import java.util.NoSuchElementException;
+
 import lpg.runtime.IAst;
 
 import org.spoofax.interpreter.terms.IStrategoList;
@@ -14,6 +16,8 @@ import org.strategoxt.imp.runtime.Environment;
 public class WrappedAstNodeList extends WrappedAstNode implements IStrategoList {
 	
 	private final int offset;
+	
+	private WrappedAstNodeList tail;
 	
 	protected WrappedAstNodeList(WrappedAstNodeFactory factory, IAst node) {
 		this(factory, node, 0);
@@ -61,16 +65,17 @@ public class WrappedAstNodeList extends WrappedAstNode implements IStrategoList 
 	public final int size() {
 		return getSubtermCount();
 	}
+	
+	@Override
+	public int getSubtermCount() {
+		return super.getSubtermCount() - offset;
+	}
 
 	public IStrategoList tail() {
-		// FIXME: Head/tail impl of lists, or caching?!
-		
-        IStrategoTerm[] tail = new IStrategoTerm[size() - 1];
-        for(int i = 1, size = size(); i < size; i++) {
-        	tail[i - 1] = get(i);
-        }
-		
-		return getFactory().makeList(tail);
+		if (tail != null) return tail;
+		if (isEmpty()) throw new NoSuchElementException();
+		tail = getFactory().wrapList(getNode(), offset + 1);
+		return tail;
 	}
 
 	public int getTermType() {

@@ -117,11 +117,11 @@ public class DynamicDescriptorBuilder {
 			
 			updateDependencies(mainFile);
 		} catch (InterpreterException e) {
-			messageHandler.addMarkerFirstLine(mainFile, "Unable to build descriptor:" + e, SEVERITY_ERROR);
 			Environment.logException("Unable to build descriptor for " + mainFile, e);
+			messageHandler.addMarkerFirstLine(mainFile, "Unable to build descriptor:" + e, SEVERITY_ERROR);
 		} catch (FileNotFoundException e) {
-			messageHandler.addMarkerFirstLine(mainFile, "Unable to build descriptor:" + e, SEVERITY_ERROR);
 			Environment.logException("Unable to build descriptor for " + mainFile, e);
+			messageHandler.addMarkerFirstLine(mainFile, "Unable to build descriptor:" + e, SEVERITY_ERROR);
 		}
 		
 		String result = ((IStrategoString) builder.current()).stringValue();
@@ -150,10 +150,12 @@ public class DynamicDescriptorBuilder {
 		boolean success;
 		
 		try {
+			Debug.startTimer();
 			success = builder.invoke("sdf2imp-jvm");
 		} catch (InterpreterExit e) {
 			success = e.getValue() == 0;
 		} finally {
+			Debug.stopTimer("Invoked descriptor builder for " + mainFile.getName());
 			builder.invoke("dr-scope-all-end");
 		}
 		

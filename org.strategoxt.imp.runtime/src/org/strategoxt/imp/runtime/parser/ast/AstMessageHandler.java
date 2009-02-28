@@ -89,7 +89,7 @@ public class AstMessageHandler {
 		if (file instanceof IFile) {
 			InputStream stream = null;
 			try {
-				stream = ((IFile) file).getContents();
+				stream = ((IFile) file).getContents(true);
 				BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
 				String firstLine = reader.readLine();
 				IToken errorToken = new SGLRToken(null, 0, firstLine.length(), TK_ERROR.ordinal());

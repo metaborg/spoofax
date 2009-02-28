@@ -78,24 +78,26 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 			messageHandler.clearMarkers(descriptor);
 			
 			IFile file = descriptor.getProject().getFile(descriptor.getProjectRelativePath());
-			file.refreshLocal(0, null); // resource might be out of sync
+			// UNDONE: Refresh packed descriptor resource if out of sync
+			//         (no longer works from workspace thread ... *sigh*)
+			// file.refreshLocal(0, null);
 			DescriptorFactory.load(file);
 			
 		} catch (CoreException e) {
-			messageHandler.addMarkerFirstLine(descriptor, "Unable to load descriptor: " + e.getMessage(), SEVERITY_ERROR);
 			Environment.logException("Unable to load descriptor " + descriptor, e);
+			messageHandler.addMarkerFirstLine(descriptor, "Unable to load descriptor: " + e.getMessage(), SEVERITY_ERROR);
 		} catch (BadDescriptorException e) {
-			messageHandler.addMarkerFirstLine(descriptor, "Error in descriptor: " + e.getMessage(), SEVERITY_ERROR);
 			Environment.logException("Error in descriptor " + descriptor, e);
+			messageHandler.addMarkerFirstLine(descriptor, "Error in descriptor: " + e.getMessage(), SEVERITY_ERROR);
 		} catch (IOException e) {
-			messageHandler.addMarkerFirstLine(descriptor, "Error reading descriptor: " + e.getMessage(), SEVERITY_ERROR);
 			Environment.logException("Error reading descriptor " + descriptor, e);
+			messageHandler.addMarkerFirstLine(descriptor, "Error reading descriptor: " + e.getMessage(), SEVERITY_ERROR);
 		} catch (RuntimeException e) {
-			messageHandler.addMarkerFirstLine(descriptor, "Unable to load descriptor: " + e.getMessage(), SEVERITY_ERROR);
 			Environment.logException("Unable to load descriptor " + descriptor, e);
+			messageHandler.addMarkerFirstLine(descriptor, "Unable to load descriptor: " + e.getMessage(), SEVERITY_ERROR);
 		} catch (Error e) { // workspace thread swallows this >:(
-			messageHandler.addMarkerFirstLine(descriptor, "Unable to load descriptor: " + e.getMessage(), SEVERITY_ERROR);
 			Environment.logException("Unable to load descriptor " + descriptor, e);
+			messageHandler.addMarkerFirstLine(descriptor, "Unable to load descriptor: " + e.getMessage(), SEVERITY_ERROR);
 			throw e;
 		}
 	}

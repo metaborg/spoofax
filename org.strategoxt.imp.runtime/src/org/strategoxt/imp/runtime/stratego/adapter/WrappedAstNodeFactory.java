@@ -3,6 +3,8 @@ package org.strategoxt.imp.runtime.stratego.adapter;
 import java.io.IOException;
 import java.io.InputStream;
 
+import lpg.runtime.IAst;
+
 import org.spoofax.interpreter.terms.BasicTermFactory;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
@@ -35,6 +37,10 @@ public class WrappedAstNodeFactory extends BasicTermFactory implements ITermFact
 		} else {
 			return new WrappedAstNodeAppl(this, node);
 		}
+	}
+	
+	protected WrappedAstNodeList wrapList(IAst node, int offset) {
+		return new WrappedAstNodeList(this, node, offset);
 	}
 	
 	// PARSING

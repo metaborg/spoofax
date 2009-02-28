@@ -42,7 +42,7 @@ public class DescriptorFactory {
 		IPath basePath = descriptor.getLocation();
 		basePath = basePath.removeLastSegments(2); // strip off /bin/filename
 		Debug.log("Loading editor services for ", descriptor.getName());
-		return load(descriptor.getContents(), null, basePath);
+		return load(descriptor.getContents(true), null, basePath);
 	}
 	
 	/**
