@@ -3,19 +3,24 @@ package org.strategoxt.imp.runtime.services;
 import static org.spoofax.interpreter.terms.IStrategoTerm.*;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.*;
 
-import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import lpg.runtime.IAst;
 
 import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.resources.IWorkspaceRunnable;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
 import org.spoofax.interpreter.core.Interpreter;
 import org.spoofax.interpreter.core.InterpreterException;
+import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.library.LoggingIOAgent;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
@@ -23,13 +28,12 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.WorkspaceRunner;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
+import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
-import org.strategoxt.imp.runtime.stratego.adapter.IWrappedAstNode;
 import org.strategoxt.imp.runtime.stratego.adapter.WrappedAstNode;
 
 /**
@@ -59,6 +63,10 @@ public class StrategoFeedback implements IModelListener {
 	public final AnalysisRequired getAnalysisRequired() {
 		return AnalysisRequired.TYPE_ANALYSIS;
 	}
+	
+	public AstMessageHandler getMessages() {
+		return messages;
+	}
 
 	/**
 	 * Starts a new update() operation, asynchronously.
@@ -70,14 +78,18 @@ public class StrategoFeedback implements IModelListener {
 			if (!asyncExecuterEnqueued && feedbackFunction != null) {
 				asyncExecuterEnqueued = true;
 				
-				WorkspaceRunner.run(new IWorkspaceRunnable() {
-					public void run(IProgressMonitor monitor) {
+				Job job = new WorkspaceJob("Analyzing updated resource") {
+					@Override
+					public IStatus runInWorkspace(IProgressMonitor monitor) throws CoreException {
 						synchronized (Environment.getSyncRoot()) {
 							asyncExecuterEnqueued = false;
 							update(parseController, monitor);
 						}
+						return Status.OK_STATUS;
 					}
-				});
+				};
+				job.setRule(parseController.getProject().getResource());
+				job.schedule();
 			}			
 		}
 	}
@@ -85,11 +97,12 @@ public class StrategoFeedback implements IModelListener {
 	public void update(IParseController parseController, IProgressMonitor monitor) {
 		synchronized (Environment.getSyncRoot()) {
 			if (feedbackFunction != null) {
-				Debug.startTimer("Invoking feedback strategy " + feedbackFunction);
 				ITermFactory factory = Environment.getTermFactory();
 				IStrategoAstNode ast = (IStrategoAstNode) parseController.getCurrentAst();
 				if (ast == null) return;
-				
+
+				Debug.startTimer("Invoking feedback strategy " + feedbackFunction);
+
 				IStrategoTerm[] inputParts = {
 						ast.getTerm(),
 						factory.makeString(ast.getResourcePath().toOSString()),
@@ -100,22 +113,27 @@ public class StrategoFeedback implements IModelListener {
 				IStrategoTerm feedback = invoke(feedbackFunction, input, ast.getResourcePath().removeLastSegments(1));
 				
 				Debug.stopTimer("Completed feedback strategy " + feedbackFunction);
-				asyncPresentToUser(parseController, feedback);
+				String log = ((LoggingIOAgent) interpreter.getIOAgent()).getLog().trim();
+				asyncPresentToUser(parseController, feedback, log);
 			}
 		}
 	}
 	
-	private void asyncPresentToUser(final IParseController parseController, final IStrategoTerm feedback) {
-		WorkspaceRunner.run(
-			  new IWorkspaceRunnable() {
-				public void run(IProgressMonitor monitor) throws CoreException {
-					presentToUser(parseController, feedback);
-				}
-			  }
-			);
+	private void asyncPresentToUser(final IParseController parseController, final IStrategoTerm feedback, final String log) {
+		Job job = new WorkspaceJob("Showing feedback") {
+			{ setSystem(true); } // don't show to user
+			@Override
+			public IStatus runInWorkspace(IProgressMonitor monitor) throws CoreException {
+				presentToUser(parseController, feedback, log);
+				return Status.OK_STATUS;
+			}
+		};
+		
+		job.setRule(parseController.getProject().getResource());
+		job.schedule();
 	}
 
-	private void presentToUser(IParseController parseController, IStrategoTerm feedback) {
+	private void presentToUser(IParseController parseController, IStrategoTerm feedback, String log) {
 		messages.clearAllMarkers();
 
 		if (feedback != null
@@ -128,44 +146,24 @@ public class StrategoFeedback implements IModelListener {
 		    IStrategoList warnings = termAt(feedback, 1);
 		    feedbackToMarkers(parseController, errors, IMarker.SEVERITY_ERROR);
 		    feedbackToMarkers(parseController, warnings, IMarker.SEVERITY_WARNING);
+		} else if (feedback == null) {
+			IResource resource = ((SGLRParseController) parseController).getResource();
+			messages.addMarkerFirstLine(resource, "Analysis failed: " + log, IMarker.SEVERITY_ERROR);
 		} else {
+			IResource resource = ((SGLRParseController) parseController).getResource();
+			messages.addMarkerFirstLine(resource, "Internal error - illegal output from " + feedbackFunction + ": " + feedback, IMarker.SEVERITY_ERROR);
 		    Environment.logException("Illegal output from " + feedbackFunction + ": " + feedback);
 		}
 	}
 	
 	private final void feedbackToMarkers(IParseController parseController, IStrategoList feedbacks, int severity) {
 	    for (IStrategoTerm feedback : feedbacks.getAllSubterms()) {
-	        feedbackToMarker(parseController, feedback, severity);
+	        IStrategoTerm term = termAt(feedback, 0);
+			IStrategoString message = termAt(feedback, 1);
+			IResource resource = ((SGLRParseController) parseController).getResource();
+			messages.addMarker(resource, term, message.stringValue(), severity);
 	    }
-	}
-	
-	private void feedbackToMarker(IParseController parseController, IStrategoTerm feedback, int severity) {
-	    IStrategoTerm term = termAt(feedback, 0);
-	    IStrategoString message = termAt(feedback, 1);
-	    IAst node = getClosestAstNode(term);
-	    
-	    if (node == null) {
-	    	Environment.logException("ATerm is not associated with an AST node, cannot report feedback message: " + term + " - " + message);
-	    } else {
-	    	messages.addMarker(node, message.stringValue(), severity);
-	    }
-	}
-	
-	/**
-	 * Given an stratego term, give the first AST node associated
-	 * with any of its subterms, doing a depth-first search.
-	 */
-	private static IAst getClosestAstNode(IStrategoTerm term) {
-	    if (term instanceof IWrappedAstNode) {
-	        return ((IWrappedAstNode) term).getNode();
-	    } else {
-	        for (int i = 0; i < term.getSubtermCount(); i++) {
-	        	IAst result = getClosestAstNode(termAt(term, i));
-	            if (result != null) return result;
-	        }
-	        return null;
-	    }
-	}
+	}	
 	
 	/**
 	 * Invoke a Stratego function with a specific AST node as its input.
@@ -196,21 +194,22 @@ public class StrategoFeedback implements IModelListener {
 	public IStrategoTerm invoke(String function, IStrategoTerm term, IPath workingDir) {
 		synchronized (Environment.getSyncRoot()) {
 		    Debug.startTimer();
+		    boolean success;
 			try {
 				interpreter.setCurrent(term);
 				initInterpreterPath(workingDir);
 	
 				((LoggingIOAgent) interpreter.getIOAgent()).clearLog();
-				boolean success = interpreter.invoke(function);
-				
-				if (!success) {
-					Environment.logStrategyFailure("Failure reported during evaluation of function " + function, interpreter);
-					return null;
-				}
+				success = interpreter.invoke(function);
+
+			} catch (InterpreterExit e) {
+				success = e.getValue() == InterpreterExit.SUCCESS;
 			} catch (InterpreterException e) {
 				Environment.logException("Internal error evaluating function " + function, e);
 				return null;
 			}
+			
+			if (!success) return null;
 			
 			Debug.stopTimer("Invoked Stratego strategy " + function);
 			return interpreter.current();
@@ -232,7 +231,7 @@ public class StrategoFeedback implements IModelListener {
 		try {
 			interpreter.getIOAgent().setWorkingDir(workingDir.toOSString());
 			((EditorIOAgent) interpreter.getIOAgent()).setDescriptor(descriptor);
-		} catch (FileNotFoundException e) {
+		} catch (IOException e) {
 			Environment.logException("Could not set Stratego working directory", e);
 			throw new RuntimeException(e);
 		}

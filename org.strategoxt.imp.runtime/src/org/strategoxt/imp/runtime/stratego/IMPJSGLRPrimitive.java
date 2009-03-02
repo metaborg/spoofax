@@ -22,17 +22,19 @@ import aterm.ATerm;
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class IMPJSGLRParserPrimitive extends JSGLRPrimitive {
+public class IMPJSGLRPrimitive extends JSGLRPrimitive {
 	
 	private final TermConverter termConverter = new TermConverter(Environment.getTermFactory());
 
-	protected IMPJSGLRParserPrimitive() {
+	protected IMPJSGLRPrimitive() {
 		super("JSGLR_parse_string_pt", 1, 4);
 	}
 
 	@Override
 	public boolean call(IContext env, Strategy[] svars, IStrategoTerm[] tvars)
 			throws InterpreterException {
+		
+		// TODO: Use svars[0] onError argument?
 		
 		if(!Tools.isTermString(tvars[0]))
 			return false;
@@ -59,9 +61,9 @@ public class IMPJSGLRParserPrimitive extends JSGLRPrimitive {
 			env.setCurrent(termConverter.convert(result));
 			return true;
 		} catch (IOException e) {
-			e.printStackTrace();
+            Environment.logException("Could not parse " + path, e);
 		} catch (SGLRException e) {
-			e.printStackTrace();
+			Environment.logException("Could not parse " + path, e);
 		}
 		return false;
 	}

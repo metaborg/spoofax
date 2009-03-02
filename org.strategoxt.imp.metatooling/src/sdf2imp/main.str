@@ -52,11 +52,9 @@ strategies
       DescriptorNamePrefix := <remove-extension>
     );
     guarantee-extension(|"def"); // remove .main.esv
+    with(<chdir> "..");
     if not(file-exists) then
-      <conc-strings> ("../", <id>);
-      rules(
-        SrcDir := "./"
-      )
+      fatal-err(|"Accompanying .def file not found.")
     end
 
 strategies

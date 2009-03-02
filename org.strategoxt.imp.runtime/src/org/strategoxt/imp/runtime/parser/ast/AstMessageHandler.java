@@ -1,6 +1,7 @@
 package org.strategoxt.imp.runtime.parser.ast;
 
 import static org.eclipse.core.resources.IMarker.*;
+import static org.strategoxt.imp.runtime.dynamicloading.TermReader.*;
 import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.*;
 
 import java.io.BufferedReader;
@@ -16,13 +17,13 @@ import lpg.runtime.IToken;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.parser.IMessageHandler;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
+import org.strategoxt.imp.runtime.stratego.adapter.IWrappedAstNode;
 
 /**
  * Reports messages for a group of files, associating
@@ -38,12 +39,31 @@ public class AstMessageHandler {
 	private final Set<IMarker> activeMarkers = new HashSet<IMarker>();
 	
 	/**
+	 * Associates a new marker with a parsed (and possibly rewritten) term.
+	 * 
+	 * @param severity  The severity of this warning, one of {@link IMarker#SEVERITY_ERROR}, WARNING, or INFO.
+	 */
+	public void addMarker(IResource resource, IStrategoTerm term, String message,
+			int severity) {
+		
+		IAst node = getClosestAstNode(term);
+
+		if (node == null) {
+			addMarkerFirstLine(resource, message, severity);
+			Environment.logException("ATerm is not associated with an AST node, cannot report feedback message: "
+							+ term + " - " + message);
+		} else {
+			addMarker(node, message, severity);
+		}
+	}
+	
+	/**
 	 * Associates a new marker with an AST node.
 	 * 
 	 * @param severity  The severity of this warning, one of {@link IMarker#SEVERITY_ERROR}, WARNING, or INFO.
 	 */
 	public void addMarker(IAst node, String message, int severity) {
-		if (!(node instanceof AstNode)) { // TODO: Be less SGLR specific?
+		if (!(node instanceof AstNode)) {
 			Environment.logException("Cannot annotate a node of type " + node.getClass().getSimpleName() + ": " + node);
 			return;
 		}
@@ -51,7 +71,7 @@ public class AstMessageHandler {
 		IToken left = node.getLeftIToken();
 		IToken right = node.getRightIToken();
 
-		IResource file = getFile((AstNode) node);
+		IResource file = ((AstNode) node).getResource();
 		
 		addMarker(file, left, right, message, severity);
 	}
@@ -111,6 +131,24 @@ public class AstMessageHandler {
 	}
 
 	/**
+	 * Given an stratego term, give the first AST node associated
+	 * with any of its subterms, doing a depth-first search.
+	 */
+	private static IAst getClosestAstNode(IStrategoTerm term) {
+	    if (term instanceof IWrappedAstNode) {
+	        return ((IWrappedAstNode) term).getNode();
+	    } else if (term == null) {
+	    	return null;
+	    } else {
+	        for (int i = 0; i < term.getSubtermCount(); i++) {
+	        	IAst result = getClosestAstNode(termAt(term, i));
+	            if (result != null) return result;
+	        }
+	        return null;
+	    }
+	}
+
+	/**
 	 * Add a marker to a file, without having a specific location associated to it.
 	 */
 	private void addMarkerNoLocation(IResource file, String message, int severity) {
@@ -133,7 +171,7 @@ public class AstMessageHandler {
 	}
 	
 	public final void clearMarkers(AstNode node) {
-		clearMarkers(getFile(node));
+		clearMarkers(node.getResource());
 	}
 	
 	/**
@@ -148,12 +186,5 @@ public class AstMessageHandler {
 		} catch (CoreException e) {
 			Environment.logException("Unable to clear existing markers for file", e);
 		}		
-	}
-
-	protected IResource getFile(AstNode node) {
-		IPath path = node.getResourcePath();
-		IProject project = node.getParseController().getProject().getRawProject();
-		path = path.removeFirstSegments(path.matchingFirstSegments(project.getLocation()));
-		return project.getFile(path);
 	}
 }

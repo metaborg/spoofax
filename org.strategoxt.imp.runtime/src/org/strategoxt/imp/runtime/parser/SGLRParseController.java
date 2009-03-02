@@ -6,6 +6,8 @@ import java.util.Iterator;
 import lpg.runtime.IToken;
 import lpg.runtime.PrsStream;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.language.Language;
@@ -77,6 +79,13 @@ public class SGLRParseController implements IParseController {
     	return project == null
 			? path
 			: project.getRawProject().getLocation().append(path);
+    }
+    
+    public IResource getResource() {
+    	IPath path = getPath();
+		IProject project = getProject().getRawProject();
+		path = path.removeFirstSegments(path.matchingFirstSegments(project.getLocation()));
+		return project.getFile(path);
     }
 	
 	// Parsing and initialization

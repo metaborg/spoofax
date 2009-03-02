@@ -24,6 +24,10 @@ public class EditorIOAgent extends LoggingIOAgent {
 		this.descriptor = descriptor;
 	}
 	
+	public Descriptor getDescriptor() {
+		return descriptor;
+	}
+	
 	@Override
 	public InputStream openInputStream(String path, boolean isDefinitionFile)
 			throws FileNotFoundException {

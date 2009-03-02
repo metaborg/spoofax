@@ -3,12 +3,10 @@ package org.strategoxt.imp.metatooling.loading;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceVisitor;
-import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.WorkspaceRunner;
 
 /**
  * This class loads all active descriptors  in the workspace at startup,
@@ -27,21 +25,15 @@ public class StartupDescriptorLoader {
 	 * Initializes the dynamic language loading component.
 	 * May be invoked by {@link StartupDescriptorValidator}
 	 */
-	public static void initialize() {
+	public static void run() {
 		try {
 			if (didInitialize) return;
 			didInitialize = true;
 			
 			loader = new DynamicDescriptorUpdater();
 		
-			ResourcesPlugin.getWorkspace().addResourceChangeListener(loader);
-			WorkspaceRunner.run(
-				new IWorkspaceRunnable() {
-					public void run(IProgressMonitor monitor) throws CoreException {
-						synchronized (Environment.getSyncRoot()) {
-							loadAllServices();
-						}
-					}});
+			loadAllServices();
+			
 		} catch (RuntimeException e) {
 			Environment.logException("Could not load dynamic descriptor updater", e);
 		}
@@ -67,7 +59,7 @@ public class StartupDescriptorLoader {
 					synchronized (Environment.getSyncRoot()) {
 						project.accept(new IResourceVisitor() {
 							public boolean visit(IResource resource) throws CoreException {
-								loader.updateResource(resource);
+								loader.updateResource(resource, new NullProgressMonitor(), true);
 								return true;
 							}
 						});

@@ -90,6 +90,8 @@ public class SGLRTokenizer {
 	public IToken makeErrorToken(int offset) {		
 		if (offset == lexStream.getStreamLength())
 		    return makeErrorTokenBackwards(offset - 1);
+		if (offset > lexStream.getStreamLength())
+			return makeErrorTokenBackwards(lexStream.getStreamLength() - 1);
 
 		int endOffset = offset;
 		boolean onlySeenWhitespace = Character.isWhitespace(lexStream.getCharValue(endOffset));

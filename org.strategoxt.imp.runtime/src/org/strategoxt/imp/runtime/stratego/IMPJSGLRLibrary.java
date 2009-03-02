@@ -11,7 +11,8 @@ public class IMPJSGLRLibrary extends JSGLRLibrary {
 	public IMPJSGLRLibrary() {
 		super(Environment.getWrappedATermFactory());
 		
-		add(new IMPJSGLRParserPrimitive());
+		add(new IMPJSGLRPrimitive());
+		add(new IMPJSGLRIPrimitive());
 	}
 
 }

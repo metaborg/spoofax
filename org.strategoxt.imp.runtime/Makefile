@@ -1,7 +1,7 @@
 TABLE = ../org.strategoxt.imp.metatooling/src/syntax/EditorService.tbl
-STRS  = $(wildcard src//stratego-editor-support*.str) $(wildcard src/stratego-editor-support/*/*.str)
+STRS  = $(wildcard src/stratego-editor-support/*.str) $(wildcard src/stratego-editor-support/*/*.str)
 
-all : $(TABLE) include/stratego-editor-support.ctree ctree-libs
+all : $(TABLE) include/stratego-editor-support.ctree include/performance-tweaks.ctree ctree-libs
 	[ -d syntax ] || mkdir syntax
 	cp $(TABLE) syntax
 

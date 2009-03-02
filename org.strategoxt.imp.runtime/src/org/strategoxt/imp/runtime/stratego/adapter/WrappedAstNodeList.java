@@ -55,7 +55,7 @@ public class WrappedAstNodeList extends WrappedAstNode implements IStrategoList 
 	}
 
 	public IStrategoTerm head() {
-		return get(offset);
+		return get(0);
 	}
 
 	public final boolean isEmpty() {

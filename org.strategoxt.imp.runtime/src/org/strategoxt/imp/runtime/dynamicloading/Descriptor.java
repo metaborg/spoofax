@@ -176,11 +176,8 @@ public class Descriptor {
      * @param onlyListedFiles  Only consider attached files listed in the descriptor.
      */
 	private InputStream openAttachment(String path, boolean onlyListedFiles) throws FileNotFoundException {
-		if (onlyListedFiles) {
+		if (onlyListedFiles)
     		path = getAttachmentPath(path);
-    		if (path == null)
-                throw new FileNotFoundException(path + " not found in editor service plugin");
-    	}
     	
         if (basePath != null) { // read from filesystem
             path = basePath.append(path).toString();
@@ -191,7 +188,8 @@ public class Descriptor {
 		    InputStream result = getAttachmentProvider().getResourceAsStream("/" + path);
 		    if (result == null) { // read resource listed in descriptor
 		    	if (!onlyListedFiles) return openAttachment(path, true);
-		        throw new FileNotFoundException(path + " not found in editor service plugin");
+		    	String specified = onlyListedFiles ? "specified file " : "";
+		        throw new FileNotFoundException(specified + path + " not found in editor service plugin");
 		    }
 		    return result;
         }
@@ -204,7 +202,7 @@ public class Descriptor {
 		    if (attached.getName().equals(name))
 		        return attached.toString();
 		}
-		return null;
+		throw new FileNotFoundException(path + " not specified as an attachment in editor service plugin");
 	}
 	
 	// INTERPRETING

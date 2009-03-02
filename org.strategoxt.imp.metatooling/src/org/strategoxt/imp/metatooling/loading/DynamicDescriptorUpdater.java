@@ -1,7 +1,7 @@
 package org.strategoxt.imp.metatooling.loading;
 
-import static org.eclipse.core.resources.IResourceDelta.*;
 import static org.eclipse.core.resources.IMarker.*;
+import static org.eclipse.core.resources.IResourceDelta.*;
 
 import java.io.IOException;
 
@@ -10,12 +10,16 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
-import org.eclipse.core.resources.IWorkspaceRunnable;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.metatooling.building.DynamicDescriptorBuilder;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.WorkspaceRunner;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.DescriptorFactory;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
@@ -41,35 +45,42 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 
 	public void resourceChanged(final IResourceChangeEvent event) {
 		if (event.getType() == IResourceChangeEvent.POST_CHANGE) {
-			WorkspaceRunner.run(
-					new IWorkspaceRunnable() {
-							public void run(IProgressMonitor monitor) throws CoreException {
-								getBuilder().invalidateUpdatedResources();
-								postResourceChanged(event.getDelta());
-							}
-					});
+			Job job = new WorkspaceJob("Updating editor descriptor runtime") {
+				@Override
+				public IStatus runInWorkspace(IProgressMonitor monitor) {
+					synchronized (Environment.getSyncRoot()) {
+						getBuilder().invalidateUpdatedResources();
+						postResourceChanged(event.getDelta(), monitor);
+						return Status.OK_STATUS;
+					}
+				}
+			};
+			job.setRule(event.getResource());
+			job.schedule();
 		}
 	}
 	
-	public void postResourceChanged(IResourceDelta delta) {
+	public void postResourceChanged(IResourceDelta delta, IProgressMonitor monitor) {
 		IResourceDelta[] children = delta.getAffectedChildren();
 		
 		if (children.length == 0) {		
 			IResource resource = delta.getResource();
 			if ((delta.getFlags() & CONTENT) == CONTENT)
-				updateResource(resource);
+				updateResource(resource, monitor, false);
 		} else {
 			// Recurse
 			for (IResourceDelta child : children)
-				postResourceChanged(child);
+				postResourceChanged(child, monitor);
 		}
 	}
 	
-	public void updateResource(IResource resource) {
+	public void updateResource(IResource resource, IProgressMonitor monitor, boolean startup) {
 		if (resource.getName().endsWith(".packed.esv")) {
+			monitor.beginTask("Loading " + resource.getName(), IProgressMonitor.UNKNOWN);
 			loadPackedDescriptor(resource);
-		} else {
-			getBuilder().updateResource(resource);
+		} else if (!startup) {
+			// Re-build descriptor if resource changed (but not if we're starting up)
+			getBuilder().updateResource(resource, monitor);
 		}
 	}
 
@@ -83,22 +94,55 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 			// file.refreshLocal(0, null);
 			DescriptorFactory.load(file);
 			
-		} catch (CoreException e) {
-			Environment.logException("Unable to load descriptor " + descriptor, e);
-			messageHandler.addMarkerFirstLine(descriptor, "Unable to load descriptor: " + e.getMessage(), SEVERITY_ERROR);
 		} catch (BadDescriptorException e) {
-			Environment.logException("Error in descriptor " + descriptor, e);
-			messageHandler.addMarkerFirstLine(descriptor, "Error in descriptor: " + e.getMessage(), SEVERITY_ERROR);
+			reportError(descriptor, e.getOffendingTerm(), "Error in descriptor: " + e.getMessage());
 		} catch (IOException e) {
 			Environment.logException("Error reading descriptor " + descriptor, e);
-			messageHandler.addMarkerFirstLine(descriptor, "Error reading descriptor: " + e.getMessage(), SEVERITY_ERROR);
+			reportError(descriptor, "Internal error reading descriptor" + e.getMessage());
+		} catch (CoreException e) {
+			Environment.logException("Unable to load descriptor " + descriptor, e);
+			reportError(descriptor, "Internal error loading descriptor: " + e.getMessage());
 		} catch (RuntimeException e) {
 			Environment.logException("Unable to load descriptor " + descriptor, e);
-			messageHandler.addMarkerFirstLine(descriptor, "Unable to load descriptor: " + e.getMessage(), SEVERITY_ERROR);
+			reportError(descriptor, "Internal error loading descriptor: " + e.getMessage());
 		} catch (Error e) { // workspace thread swallows this >:(
 			Environment.logException("Unable to load descriptor " + descriptor, e);
-			messageHandler.addMarkerFirstLine(descriptor, "Unable to load descriptor: " + e.getMessage(), SEVERITY_ERROR);
+			reportError(descriptor, "Internal error loading descriptor: " + e.getMessage());
 			throw e;
+		}
+	}
+	
+	private void reportError(final IResource descriptor, final String message) {
+		if (ResourcesPlugin.getWorkspace().isTreeLocked()) {
+			Job job = new WorkspaceJob("Add error marker") {
+				{ setSystem(true); } // don't show to user
+				@Override
+				public IStatus runInWorkspace(IProgressMonitor monitor) {
+					messageHandler.addMarkerFirstLine(descriptor, message, SEVERITY_ERROR);
+					return Status.OK_STATUS;
+				}
+			};
+			job.setRule(descriptor);
+			job.schedule();
+		} else {
+			messageHandler.addMarkerFirstLine(descriptor, message, SEVERITY_ERROR);
+		}
+	}
+	
+	private void reportError(final IResource descriptor, final IStrategoTerm offendingTerm, final String message) {
+		if (ResourcesPlugin.getWorkspace().isTreeLocked()) {
+			Job job = new WorkspaceJob("Add error marker") {
+				{ setSystem(true); } // don't show to user
+				@Override
+				public IStatus runInWorkspace(IProgressMonitor monitor) {
+					messageHandler.addMarker(descriptor, offendingTerm, message, SEVERITY_ERROR);
+					return Status.OK_STATUS;
+				}
+			};
+			job.setRule(descriptor);
+			job.schedule();
+		} else {
+			messageHandler.addMarkerFirstLine(descriptor, message, SEVERITY_ERROR);
 		}
 	}
 }

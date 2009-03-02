@@ -2,7 +2,7 @@ package org.strategoxt.imp.metatooling.building;
 
 import static org.eclipse.core.resources.IMarker.*;
 
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -10,6 +10,7 @@ import java.util.Set;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.spoofax.interpreter.core.Interpreter;
 import org.spoofax.interpreter.core.InterpreterException;
@@ -67,7 +68,7 @@ public class DynamicDescriptorBuilder {
 		}
 	}
 	
-	public void updateResource(IResource resource) {
+	public void updateResource(IResource resource, IProgressMonitor monitor) {
 		IPath location = resource.getRawLocation();
 		if (location == null) return;
 		String filename = location.toOSString();
@@ -78,6 +79,7 @@ public class DynamicDescriptorBuilder {
 				for (IResource mainFile : mainFiles) {
 					if (!upToDateMainFiles.contains(mainFile)) {
 						upToDateMainFiles.add(mainFile);
+						monitor.beginTask("Building " + mainFile.getName(), IProgressMonitor.UNKNOWN);
 						buildDescriptor(mainFile);
 					}
 				}
@@ -85,6 +87,7 @@ public class DynamicDescriptorBuilder {
 			
 			if (isMainFile(filename) && !upToDateMainFiles.contains(resource)) {
 				upToDateMainFiles.add(resource);
+				monitor.beginTask("Building " + resource.getName(), IProgressMonitor.UNKNOWN);
 				buildDescriptor(resource);
 			}
 			
@@ -118,10 +121,10 @@ public class DynamicDescriptorBuilder {
 			updateDependencies(mainFile);
 		} catch (InterpreterException e) {
 			Environment.logException("Unable to build descriptor for " + mainFile, e);
-			messageHandler.addMarkerFirstLine(mainFile, "Unable to build descriptor:" + e, SEVERITY_ERROR);
-		} catch (FileNotFoundException e) {
+			messageHandler.addMarkerFirstLine(mainFile, "Internal error building descriptor:" + e, SEVERITY_ERROR);
+		} catch (IOException e) {
 			Environment.logException("Unable to build descriptor for " + mainFile, e);
-			messageHandler.addMarkerFirstLine(mainFile, "Unable to build descriptor:" + e, SEVERITY_ERROR);
+			messageHandler.addMarkerFirstLine(mainFile, "Internal error building descriptor:" + e, SEVERITY_ERROR);
 		}
 		
 		String result = ((IStrategoString) builder.current()).stringValue();
@@ -135,7 +138,7 @@ public class DynamicDescriptorBuilder {
 	 * @return  <code>true</code> if successful.
 	 */
 	private boolean invokeBuilder(IResource mainFile)
-			throws FileNotFoundException, InterpreterException {
+			throws IOException, InterpreterException {
 		
 		((LoggingIOAgent) builder.getIOAgent()).clearLog();
 		
@@ -153,7 +156,7 @@ public class DynamicDescriptorBuilder {
 			Debug.startTimer();
 			success = builder.invoke("sdf2imp-jvm");
 		} catch (InterpreterExit e) {
-			success = e.getValue() == 0;
+			success = e.getValue() == InterpreterExit.SUCCESS;
 		} finally {
 			Debug.stopTimer("Invoked descriptor builder for " + mainFile.getName());
 			builder.invoke("dr-scope-all-end");

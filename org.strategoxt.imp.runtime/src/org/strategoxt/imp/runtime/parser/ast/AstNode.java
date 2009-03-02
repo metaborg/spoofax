@@ -9,6 +9,7 @@ import lpg.runtime.IAstVisitor;
 import lpg.runtime.IPrsStream;
 import lpg.runtime.IToken;
 
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.language.Language;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -111,11 +112,15 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 	}
 	
 	public IPath getResourcePath() {
-		return getRoot().getParseController().getPath();
+		return getParseController().getPath();
+	}
+	
+	public IResource getResource() {
+		return getParseController().getResource();
 	}
 	
 	public IPath getRootPath() {
-		return getRoot().getParseController().getProject().getRawProject().getLocation();
+		return getParseController().getProject().getRawProject().getLocation();
 	}
 	
 	public IStrategoTerm getTerm() {

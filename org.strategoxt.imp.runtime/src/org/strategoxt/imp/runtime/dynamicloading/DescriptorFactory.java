@@ -69,7 +69,7 @@ public class DescriptorFactory {
 		if (parseTable == null) parseTable = result.openParseTableStream();
 		registerParseTable(language, parseTable);
 		
-		Debug.stopTimer("Editor services loaded: " + result);
+		Debug.stopTimer("Editor services loaded: " + result.getLanguage().getName());
 		return result;
 	}
 	
@@ -77,7 +77,7 @@ public class DescriptorFactory {
 		try {
 			init();
 			synchronized (Environment.getSyncRoot()) {
-				IStrategoAppl document = descriptorParser.parse(input, null).getTerm();
+				IStrategoAppl document = descriptorParser.parse(input, "(descriptor)").getTerm();
 				return new Descriptor(document);
 			}
 		} catch (SGLRException e) {

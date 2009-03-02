@@ -4,7 +4,7 @@ import static org.spoofax.interpreter.core.Tools.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
+import java.io.PrintStream;
 
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.InterpreterException;
@@ -39,8 +39,8 @@ public class NativeCallPrimitive extends AbstractPrimitive {
 			SSLLibrary op = (SSLLibrary) env.getOperatorRegistry(SSLLibrary.REGISTRY_NAME);
 			IOAgent io = op.getIOAgent();
 			File dir = io.openFile(io.getWorkingDir());
-			OutputStream stdout = io.getOutputStream(IOAgent.CONST_STDOUT);
-			OutputStream stderr = io.getOutputStream(IOAgent.CONST_STDERR);
+			PrintStream stdout = io.getOutputStream(IOAgent.CONST_STDOUT);
+			PrintStream stderr = io.getOutputStream(IOAgent.CONST_STDERR);
 			
 			// Invocation
 			int returnCode = caller.call(commandArgs, dir, stdout, stderr);

@@ -19,8 +19,9 @@ strategies
     jsglr-parse-string(id | tbl, None(), "string")
   
   jsglr-parse-string(on-parse-error | tbl, start-symbol, path) =
-      jsglr-parse-string-pt(on-parse-error | tbl, start-symbol, path)
-    ; implode-asfix
+      where(!tbl => ParseTable(internal-tbl))
+    ; ?string
+    ; prim("JSGLR_parse_string", on-parse-error | string, internal-tbl, start-symbol, path)
     
 strategies
 

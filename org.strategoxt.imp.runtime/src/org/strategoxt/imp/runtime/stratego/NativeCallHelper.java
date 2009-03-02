@@ -5,8 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.io.PrintStream;
 
 import org.strategoxt.imp.runtime.Environment;
 
@@ -14,7 +13,7 @@ import org.strategoxt.imp.runtime.Environment;
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class NativeCallHelper {	
-	public int call(String[] commandArgs, File workingDir, OutputStream outStream, OutputStream errorStream)
+	public int call(String[] commandArgs, File workingDir, PrintStream outStream, PrintStream errorStream)
 			throws InterruptedException, IOException {
 		
 		Process process = Runtime.getRuntime().exec(commandArgs, null, workingDir);
@@ -33,9 +32,9 @@ public class NativeCallHelper {
 
 class StreamCopier extends Thread {
 	private final InputStream input;
-	private final OutputStream output;
+	private final PrintStream output;
 
-	public StreamCopier(InputStream input, OutputStream output) {
+	public StreamCopier(InputStream input, PrintStream output) {
 		this.input = input;
 		this.output = output;
 	}
@@ -45,18 +44,17 @@ class StreamCopier extends Thread {
 		try {
 			InputStreamReader streamReader = new InputStreamReader(input);
 			BufferedReader reader = new BufferedReader(streamReader);
-			PrintWriter writer = new PrintWriter(output);
 			
 			// NOTE: This might block if exceptionally long lines are printed
 			String line;
 			while ((line = reader.readLine()) != null) {
-				writer.println(line);
+				output.println(line);
 			}
 			
 			reader.close();
-			writer.flush();
+			output.flush();
 			if (output != System.out && output != System.err)
-				writer.close();
+				output.close();
 		} catch (IOException e) {
 			Environment.logException("IO Exception redirecting output from Process", e);
 		}

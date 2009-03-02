@@ -30,3 +30,5 @@ Export-Package: org.strategoxt.imp.runtime,
  org.strategoxt.imp.runtime.stratego.adapter
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Bundle-Vendor: Spoofax.org
+Bundle-ActivationPolicy: lazy
+Bundle-Activator: org.strategoxt.imp.runtime.RuntimeActivator

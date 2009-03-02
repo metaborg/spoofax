@@ -35,7 +35,7 @@ strategies
   
   current-main-descriptor-file =
      {| InputDirPrefix, OnImportFailure:
-       <add-input-dir-prefix> <SrcDir <+ !"src/">;
+       <add-input-dir-prefix> "src/";
        rules(
          OnImportFailure:
            Import(m) -> Module("", NoImports(), [])

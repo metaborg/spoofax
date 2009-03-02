@@ -2,6 +2,7 @@ package org.strategoxt.imp.runtime;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,7 +50,7 @@ public final class Environment {
 	
 	private final static WrappedAstNodeFactory wrappedAstNodeFactory;
 	
-	private final static Object syncRoot = new Object();
+	private final static Object syncRoot = Environment.class;
 	
 	private static Thread mainThread;
 	
@@ -58,7 +59,7 @@ public final class Environment {
 		factory = wrappedFactory.getFactory();
 		parseTableManager = new ParseTableManager(factory);
 		parseTables = new HashMap<String, ParseTable>();
-		descriptors = new HashMap<String, Descriptor>();
+		descriptors = Collections.synchronizedMap(new HashMap<String, Descriptor>());
 		wrappedAstNodeFactory = new WrappedAstNodeFactory();
 	}
 	
@@ -103,54 +104,49 @@ public final class Environment {
 	
 	// ENVIRONMENT ACCESS AND MANIPULATION
 
-	public static Interpreter createInterpreter() throws IOException, InterpreterException {
-		synchronized (getSyncRoot()) {
-			// We use the wrappedAstNode factory for both the programs and the terms,
-			// to ensure they are compatible.
-			Interpreter result = new Interpreter(getTermFactory()) {
-				@Override
-				public boolean invoke(String name) throws InterpreterExit, InterpreterException {
-					assertLock();
-					return super.invoke(name);
-				}
-			};
+	public static synchronized Interpreter createInterpreter() throws IOException, InterpreterException {
+		// We use the wrappedAstNode factory for both the programs and the terms,
+		// to ensure they are compatible.
+		Interpreter result = new Interpreter(getTermFactory()) {
+			@Override
+			public boolean invoke(String name) throws InterpreterExit, InterpreterException {
+				assertLock();
+				return super.invoke(name);
+			}
+		};
 
-			result.addOperatorRegistry(new IMPJSGLRLibrary());
-			result.addOperatorRegistry(new IMPLibrary());
-			result.setIOAgent(new EditorIOAgent());
-			
-			result.load(Environment.class.getResourceAsStream("/include/libstratego-lib.ctree"));
-			result.load(Environment.class.getResourceAsStream("/include/libstratego-sglr.ctree"));
-			result.load(Environment.class.getResourceAsStream("/include/libstratego-gpp.ctree"));
-			result.load(Environment.class.getResourceAsStream("/include/libstratego-xtc.ctree"));
-			result.load(Environment.class.getResourceAsStream("/include/stratego-editor-support.ctree"));
-			
-			SDefT call = result.getContext().lookupSVar("REPLACE_call_0_0");
-			result.getContext().getVarScope().addSVar("call_0_0", call);
-			
-			return result;
-		}
+		result.addOperatorRegistry(new IMPJSGLRLibrary());
+		result.addOperatorRegistry(new IMPLibrary());
+		result.setIOAgent(new EditorIOAgent());
+		
+		result.load(Environment.class.getResourceAsStream("/include/libstratego-lib.ctree"));
+		result.load(Environment.class.getResourceAsStream("/include/libstratego-sglr.ctree"));
+		result.load(Environment.class.getResourceAsStream("/include/libstratego-gpp.ctree"));
+		result.load(Environment.class.getResourceAsStream("/include/libstratego-xtc.ctree"));
+		result.load(Environment.class.getResourceAsStream("/include/stratego-editor-support.ctree"));
+		result.load(Environment.class.getResourceAsStream("/include/performance-tweaks.ctree"));
+		
+		SDefT call = result.getContext().lookupSVar("REPLACE_call_0_0");
+		result.getContext().getVarScope().addSVar("call_0_0", call);
+		
+		return result;
 	}
 	
-	public static void addToInterpreter(Interpreter interpreter, InputStream stream) throws IOException, InterpreterException {
-		synchronized (getSyncRoot()) {
-			interpreter.load(stream);			
-		}
+	public static synchronized void addToInterpreter(Interpreter interpreter, InputStream stream) throws IOException, InterpreterException {
+		interpreter.load(stream);			
 	}
 	
-	public static ParseTable registerParseTable(Language language, InputStream parseTable)
+	public static synchronized ParseTable registerParseTable(Language language, InputStream parseTable)
 			throws IOException, InvalidParseTableException {
 		
-		synchronized (getSyncRoot()) {		
-			Debug.startTimer();
-			ParseTable table = parseTableManager.loadFromStream(parseTable);
-				
-			parseTables.put(language.getName(), table);
+		Debug.startTimer();
+		ParseTable table = parseTableManager.loadFromStream(parseTable);
 			
-			Debug.stopTimer("Parse table loaded");
-			
-			return table;
-		}
+		parseTables.put(language.getName(), table);
+		
+		Debug.stopTimer("Parse table loaded");
+		
+		return table;
 	}
 	
 	public static ParseTable getParseTable(Language language) {
@@ -166,22 +162,18 @@ public final class Environment {
 		}
 	}
 	
-	public static void registerDescriptor(Language language, Descriptor descriptor) {
-		synchronized (getSyncRoot()) {
-			Descriptor oldDescriptor = getDescriptor(language);
-			
-			if (oldDescriptor != null) {
-				oldDescriptor.uninitialize();
-			}
-			
-			descriptors.put(language.getName(), descriptor);
+	public static synchronized void registerDescriptor(Language language, Descriptor descriptor) {
+		Descriptor oldDescriptor = getDescriptor(language);
+		
+		if (oldDescriptor != null) {
+			oldDescriptor.uninitialize();
 		}
+		
+		descriptors.put(language.getName(), descriptor);
 	}
 	
 	public static Descriptor getDescriptor(Language language) {
-		synchronized (getSyncRoot()) {
-			return descriptors.get(language.getName());			
-		}
+		return descriptors.get(language.getName());
 	}
 	
 	// ERROR HANDLING

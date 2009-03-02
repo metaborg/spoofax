@@ -12,7 +12,7 @@ import org.eclipse.imp.language.LanguageValidator;
 public class StartupDescriptorValidator extends LanguageValidator {
 
 	public StartupDescriptorValidator() {
-		StartupDescriptorLoader.initialize();
+		StartupDescriptorLoader.run();
 	}
 
 	@Override

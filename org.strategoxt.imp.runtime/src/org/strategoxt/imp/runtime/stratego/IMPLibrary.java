@@ -12,6 +12,7 @@ public class IMPLibrary extends AbstractStrategoOperatorRegistry {
 	public IMPLibrary() {
 		add(new SubtermPrimitive());
 		add(new NativeCallPrimitive());
+		add(new ReadTextFromStreamPrimitive());
 	}
 
 	public String getOperatorRegistryName() {
