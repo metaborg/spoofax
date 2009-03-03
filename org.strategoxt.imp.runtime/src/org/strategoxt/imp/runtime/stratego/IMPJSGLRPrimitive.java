@@ -1,6 +1,8 @@
 package org.strategoxt.imp.runtime.stratego;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.InterpreterException;
@@ -25,9 +27,15 @@ import aterm.ATerm;
 public class IMPJSGLRPrimitive extends JSGLRPrimitive {
 	
 	private final TermConverter termConverter = new TermConverter(Environment.getTermFactory());
+	
+	private final Map<IStrategoTerm, char[]> inputCharMap = new WeakHashMap<IStrategoTerm, char[]>();
+
+	private final Map<IStrategoTerm, ATerm> inputTermMap = new WeakHashMap<IStrategoTerm, ATerm>();
+
+	public static final String NAME = "JSGLR_parse_string_pt";
 
 	protected IMPJSGLRPrimitive() {
-		super("JSGLR_parse_string_pt", 1, 4);
+		super(NAME, 1, 4);
 	}
 
 	@Override
@@ -58,7 +66,12 @@ public class IMPJSGLRPrimitive extends JSGLRPrimitive {
 		try {
 			ATerm asfix = parser.parseNoImplode(inputChars, path);
 			IStrategoTerm result = Environment.getWrappedATermFactory().wrapTerm(asfix);
-			env.setCurrent(termConverter.convert(result));
+			result = termConverter.convert(result);
+
+			inputTermMap.put(result, asfix);
+			inputCharMap.put(result, inputChars);
+			
+			env.setCurrent(result);
 			return true;
 		} catch (IOException e) {
             Environment.logException("Could not parse " + path, e);
@@ -66,5 +79,13 @@ public class IMPJSGLRPrimitive extends JSGLRPrimitive {
 			Environment.logException("Could not parse " + path, e);
 		}
 		return false;
+	}
+	
+	public char[] getInputChars(IStrategoTerm asfix) {
+		return inputCharMap.get(asfix);
+	}
+	
+	public ATerm getInputTerm(IStrategoTerm asfix) {
+		return inputTermMap.get(asfix);
 	}
 }

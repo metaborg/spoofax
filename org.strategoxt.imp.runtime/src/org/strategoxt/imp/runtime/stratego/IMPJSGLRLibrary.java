@@ -13,6 +13,7 @@ public class IMPJSGLRLibrary extends JSGLRLibrary {
 		
 		add(new IMPJSGLRPrimitive());
 		add(new IMPJSGLRIPrimitive());
+		add(new IMPAsfixImplodePrimitive());
 	}
 
 }

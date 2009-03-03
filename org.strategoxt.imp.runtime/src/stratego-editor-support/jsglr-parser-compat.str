@@ -71,11 +71,19 @@ strategies
   parse-string-pt(on-parse-error | tbl, start-symbol, path) =
     jsglr-parse-string-pt(on-parse-error | tbl, start-symbol, path)
 
+strategies
+
+  implode-asfix =
+    ?asfix;
+    prim("SPI_implode_asfix", asfix)
+
 strategies // Disable position annotation
 
-  asfix-anno-location = id
+  asfix-anno-location =
+    warn-msg(|"asfix-anno-location not implemented on this platform")
   
-  asfix-anno-position-info(|path) = id
+  asfix-anno-position-info(|path) =
+    warn-msg(|"asfix-anno-position-info not implemented on this platform")
 
 strategies // Defined in libraries
 

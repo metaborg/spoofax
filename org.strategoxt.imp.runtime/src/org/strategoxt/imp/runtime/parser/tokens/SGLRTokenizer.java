@@ -1,9 +1,6 @@
 package org.strategoxt.imp.runtime.parser.tokens;
 
 import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.*;
-
-import java.io.IOException;
-
 import lpg.runtime.IToken;
 import lpg.runtime.LexStream;
 import lpg.runtime.PrsStream;
@@ -43,7 +40,7 @@ public class SGLRTokenizer {
 		this.beginOffset = beginOffset;
 	}
 	
-	public void init(char[] input, String filename) throws IOException {
+	public void init(char[] input, String filename) {
 		lexStream.initialize(input, filename);
 		parseStream.resetTokenStream();
 		beginOffset = 0;

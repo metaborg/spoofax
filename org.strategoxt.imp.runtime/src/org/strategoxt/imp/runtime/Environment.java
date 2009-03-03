@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.runtime.RuntimePlugin;
+import org.spoofax.interpreter.adapter.aterm.UnsharedWrappedATermFactory;
 import org.spoofax.interpreter.adapter.aterm.WrappedATermFactory;
 import org.spoofax.interpreter.core.Interpreter;
 import org.spoofax.interpreter.core.InterpreterException;
@@ -55,7 +56,7 @@ public final class Environment {
 	private static Thread mainThread;
 	
 	static {
-		wrappedFactory = new WrappedATermFactory();
+		wrappedFactory = new UnsharedWrappedATermFactory();
 		factory = wrappedFactory.getFactory();
 		parseTableManager = new ParseTableManager(factory);
 		parseTables = new HashMap<String, ParseTable>();
