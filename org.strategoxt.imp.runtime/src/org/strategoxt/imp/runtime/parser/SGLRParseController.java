@@ -34,6 +34,8 @@ import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
 import org.strategoxt.imp.runtime.services.StrategoFeedback;
 
+import aterm.ATerm;
+
 /**
  * IMP parse controller for an SGLR parser; instantiated for a particular source file.
  *
@@ -126,7 +128,9 @@ public class SGLRParseController implements IParseController {
 			// TODO2: Optimization - don't produce AST if scanOnly is true
 			currentAst = null;
 			currentAst = parser.parse(input.toCharArray(), getPath().toPortableString());
-			errorHandler.reportNonFatalErrors(currentAst);
+			//TODO: caching + no double work in ast and parse tree
+			ATerm pt = parser.parseNoImplode(input.toCharArray(), getPath().toPortableString());
+			errorHandler.reportNonFatalErrors(pt);
 			
 		} catch (TokenExpectedException e) {
 			errorHandler.reportError(e);
