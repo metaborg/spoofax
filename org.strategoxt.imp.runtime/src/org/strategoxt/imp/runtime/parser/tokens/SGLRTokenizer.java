@@ -110,6 +110,13 @@ public class SGLRTokenizer {
 	}
 	
 	/**
+	 * Creates an error token on stream part
+	 */
+	public IToken makeErrorToken(int beginOffset, int endOffset) {		
+		return new Token(parseStream, beginOffset, endOffset, TK_ERROR.ordinal());
+	}
+	
+	/**
 	 * Creates an error token from the last whitespace character.
 	 */
 	public IToken makeErrorTokenBackwards(int offset) {
