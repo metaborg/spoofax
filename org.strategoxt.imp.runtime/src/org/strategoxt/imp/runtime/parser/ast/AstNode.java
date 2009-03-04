@@ -9,14 +9,11 @@ import lpg.runtime.IAstVisitor;
 import lpg.runtime.IPrsStream;
 import lpg.runtime.IToken;
 
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.imp.language.Language;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermPrinter;
 import org.spoofax.interpreter.terms.InlinePrinter;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.parser.SGLRParseController;
+import org.strategoxt.imp.runtime.parser.ISourceInfo;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 
@@ -61,12 +58,8 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 		return false;
 	}
 	
-	public Language getLanguage() {
-		return getRoot().getLanguage();
-	}
-	
-	public SGLRParseController getParseController() {
-		return getRoot().getParseController();
+	public ISourceInfo getSourceInfo() {
+		return getRoot().getSourceInfo();
 	}
 	
 	// (concrete type exposed by IAst interface)
@@ -109,18 +102,6 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 		while (result.getParent() != null)
 			result = result.getParent();
 		return (RootAstNode) result;
-	}
-	
-	public IPath getResourcePath() {
-		return getParseController().getPath();
-	}
-	
-	public IResource getResource() {
-		return getParseController().getResource();
-	}
-	
-	public IPath getRootPath() {
-		return getParseController().getProject().getRawProject().getLocation();
 	}
 	
 	public IStrategoTerm getTerm() {

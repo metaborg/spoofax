@@ -44,6 +44,11 @@ public class IMPAsfixImplodePrimitive extends JSGLRPrimitive {
 		tokenizer.init(inputChars, null);
 		AstNode result = imploder.implode(asfix);
 		env.setCurrent(result.getTerm());
+		
+		// TODO: Make a RootAstNode object from this tree and for IMPSGLRIPrimitive
+		//       which either refers to a (possibly fresh) ParseController or
+		//       some other cookie that traces back the tree to the file
+		
 		return true;
 	}
 }

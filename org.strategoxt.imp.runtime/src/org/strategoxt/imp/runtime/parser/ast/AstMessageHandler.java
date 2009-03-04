@@ -23,6 +23,7 @@ import org.eclipse.imp.parser.IMessageHandler;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
+import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 import org.strategoxt.imp.runtime.stratego.adapter.IWrappedAstNode;
 
 /**
@@ -63,7 +64,7 @@ public class AstMessageHandler {
 	 * @param severity  The severity of this warning, one of {@link IMarker#SEVERITY_ERROR}, WARNING, or INFO.
 	 */
 	public void addMarker(IAst node, String message, int severity) {
-		if (!(node instanceof AstNode)) {
+		if (!(node instanceof IStrategoAstNode)) {
 			Environment.logException("Cannot annotate a node of type " + node.getClass().getSimpleName() + ": " + node);
 			return;
 		}
@@ -71,7 +72,7 @@ public class AstMessageHandler {
 		IToken left = node.getLeftIToken();
 		IToken right = node.getRightIToken();
 
-		IResource file = ((AstNode) node).getResource();
+		IResource file = ((IStrategoAstNode) node).getSourceInfo().getResource();
 		
 		addMarker(file, left, right, message, severity);
 	}
@@ -170,8 +171,8 @@ public class AstMessageHandler {
 		activeMarkers.clear();
 	}
 	
-	public final void clearMarkers(AstNode node) {
-		clearMarkers(node.getResource());
+	public final void clearMarkers(IStrategoAstNode node) {
+		clearMarkers(node.getSourceInfo().getResource());
 	}
 	
 	/**

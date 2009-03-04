@@ -65,7 +65,6 @@ public class DescriptorFactory {
 		Environment.registerDescriptor(language, result);
 		LanguageRegistry.registerLanguage(language);
 		
-		// TODO: Lazily load parse tables?
 		if (parseTable == null) parseTable = result.openParseTableStream();
 		registerParseTable(language, parseTable);
 		

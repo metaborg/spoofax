@@ -36,7 +36,7 @@ import aterm.ATerm;
  */ 
 public abstract class AbstractSGLRI implements IParser {
 	
-	private static final Map<CachingKey, WeakReference<RootAstNode>> parseCache =
+	private static final Map<CachingKey, WeakReference<RootAstNode>> implodedCache =
 		Collections.synchronizedMap(new WeakHashMap<CachingKey, WeakReference<RootAstNode>>());
 	
 	private final SGLRParseController controller;
@@ -107,8 +107,10 @@ public abstract class AbstractSGLRI implements IParser {
 	public RootAstNode parse(char[] inputChars, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 		
+		// TODO: Support caching in parseNoImplode
+		
 		CachingKey cachingKey = new CachingKey(parseTableId, startSymbol, inputChars);
-		Reference<RootAstNode> cached = parseCache.get(cachingKey);
+		Reference<RootAstNode> cached = implodedCache.get(cachingKey);
 		if (cached != null) return cached.get();
 		
 		tokenizer.init(inputChars, filename);
@@ -117,9 +119,11 @@ public abstract class AbstractSGLRI implements IParser {
 		ATerm asfix = parseNoImplode(inputChars, filename);
 		Debug.stopTimer("File parsed: " + filename);
 			
-		RootAstNode result = implode(asfix, inputChars);
+		AstNode imploded = imploder.implode(asfix);
+		RootAstNode result = RootAstNode.makeRoot(imploded, getController());
+		
 		result.setCachingKey(cachingKey);
-		parseCache.put(cachingKey, new WeakReference<RootAstNode>(result));
+		implodedCache.put(cachingKey, new WeakReference<RootAstNode>(result));
 		return result;
 	}
 	
@@ -137,21 +141,6 @@ public abstract class AbstractSGLRI implements IParser {
 	
 	public abstract ATerm parseNoImplode(char[] inputChars, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException;
-
-	private RootAstNode implode(ATerm asfix, char[] inputChars) {		
-		Debug.startTimer();		
-		AstNode imploded = imploder.implode(asfix);
-		RootAstNode result = RootAstNode.makeRoot(imploded, getController());
-		
-		if (Debug.ENABLED) {
-			Debug.stopTimer("Parse tree imploded");
-			Debug.log("Parsed " + result.toString());
-		}
-		
-		return result;
-	}
-	
-	// Utility methods
 
 	private char[] toCharArray(InputStream input) throws IOException {
 		StringBuilder copy = new StringBuilder();

@@ -5,6 +5,7 @@ import lpg.runtime.IToken;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
+import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 
 /**
  * Ast locator: mapping source positions to AST nodes,
@@ -58,7 +59,7 @@ public class AstNodeLocator implements ISourcePositionLocator {
 	   if (node instanceof SGLRToken)
             	node = ((SGLRToken) node).getAstNode();
             
-            return ((AstNode) node).getResourcePath(); 
+            return ((IStrategoAstNode) node).getSourceInfo().getPath(); 
 	}
 	
 }

@@ -21,6 +21,7 @@ import org.eclipse.imp.services.IAnnotationTypeInfo;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.jface.text.IRegion;
 import org.spoofax.jsglr.BadTokenException;
+import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.SGLR;
 import org.spoofax.jsglr.SGLRException;
 import org.spoofax.jsglr.TokenExpectedException;
@@ -42,7 +43,7 @@ import aterm.ATerm;
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  * @author Karl Trygve Kalleberg <karltk add strategoxt.org>
  */
-public class SGLRParseController implements IParseController {
+public class SGLRParseController implements IParseController, ISourceInfo {
 	private final TokenKindManager tokenManager = new TokenKindManager();
 	
 	private final JSGLRI parser;
@@ -108,7 +109,8 @@ public class SGLRParseController implements IParseController {
     	this.language = language;
     	this.syntaxProperties = syntaxProperties;
     	
-    	parser = new JSGLRI(Environment.getParseTable(language), startSymbol, this, tokenManager);
+    	ParseTable table = Environment.getParseTable(language);
+		parser = new JSGLRI(table, startSymbol, this, tokenManager);
     }
 
     public void initialize(IPath filePath, ISourceProject project,
@@ -145,6 +147,12 @@ public class SGLRParseController implements IParseController {
 			errorHandler.reportError(e);
 		}
 		
+		updateFeedBack();
+
+		return currentAst;
+	}
+
+	private void updateFeedBack() {
 		// HACK: Need to call IModelListener.update manually; the IMP extension point is not implemented?!
 		try {
 			StrategoFeedback feedback = Environment.getDescriptor(getLanguage()).getStrategoFeedback();
@@ -156,8 +164,6 @@ public class SGLRParseController implements IParseController {
 			Environment.logException("Unexpected exception during analysis", e);
 			errorHandler.reportError(e);
 		}
-
-		return currentAst;
 	}
 	
 	// Language information

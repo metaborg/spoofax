@@ -1,18 +1,17 @@
 package org.strategoxt.imp.runtime.parser.ast;
 
+import static java.lang.Math.*;
+import static org.spoofax.jsglr.Term.*;
+import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.*;
+
 import java.util.ArrayList;
-import static java.lang.Math.min;
 
 import lpg.runtime.IToken;
 import lpg.runtime.PrsStream;
 
-import static org.spoofax.jsglr.Term.*;
-
-import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.*;
-
 import org.strategoxt.imp.runtime.Debug;
-import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
+import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
 
 import aterm.ATerm;
 import aterm.ATermAppl;
@@ -69,6 +68,8 @@ public class AsfixImploder {
 	}
 	
 	public AstNode implode(ATerm asfix) {
+		Debug.startTimer();		
+
 		if (!(asfix instanceof ATermAppl || ((ATermAppl) asfix).getName().equals("parsetree")))
 			throw new IllegalArgumentException("Parse tree expected");
 		
@@ -82,6 +83,12 @@ public class AsfixImploder {
 
 		tokenizer.endStream();
 		offset = 0;		
+		
+		if (Debug.ENABLED) {
+			Debug.stopTimer("Parse tree imploded");
+			Debug.log("Parsed " + result.toString());
+		}
+
 		return result;
 	}
 	
@@ -322,7 +329,7 @@ public class AsfixImploder {
 		
 		offset++;
 	}
-	
+
 	/** Return the contents of the cons() attribute, or null if not found. */
 	private static String getConstructor(ATermAppl attrs) {
 		if (attrs.getName().equals("no-attrs"))

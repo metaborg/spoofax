@@ -34,6 +34,8 @@ public class StartupDescriptorLoader {
 		
 			loadAllServices();
 			
+			ResourcesPlugin.getWorkspace().addResourceChangeListener(loader);
+			
 		} catch (RuntimeException e) {
 			Environment.logException("Could not load dynamic descriptor updater", e);
 		}

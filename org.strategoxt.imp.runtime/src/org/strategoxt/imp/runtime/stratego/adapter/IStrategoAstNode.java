@@ -4,8 +4,8 @@ import java.util.ArrayList;
 
 import lpg.runtime.IAst;
 
-import org.eclipse.core.runtime.IPath;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.strategoxt.imp.runtime.parser.ISourceInfo;
 
 /**
  * Interface for an AST node that can be converted into an ATerm. 
@@ -13,15 +13,16 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public interface IStrategoAstNode extends IAst {
+	
+	// TODO: Make independent from IAst interface??
+	
 	IStrategoTerm getTerm();
 	
 	String getConstructor();
 	
 	String getSort();
 	
-	IPath getResourcePath();
-	
-	IPath getRootPath();
+	ISourceInfo getSourceInfo();
 	
 	// SPECIALIZED FROM PARENT INTERFACE
 	

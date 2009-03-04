@@ -102,15 +102,18 @@ public class StrategoFeedback implements IModelListener {
 				if (ast == null) return;
 
 				Debug.startTimer("Invoking feedback strategy " + feedbackFunction);
+				
+				String path = ast.getSourceInfo().getPath().toOSString();
+				String rootPath = ast.getSourceInfo().getProject().getRawProject().getLocation().toOSString();
 
 				IStrategoTerm[] inputParts = {
 						ast.getTerm(),
-						factory.makeString(ast.getResourcePath().toOSString()),
-						factory.makeString(ast.getRootPath().toOSString())
+						factory.makeString(path),
+						factory.makeString(rootPath)
 				};
 				IStrategoTerm input = factory.makeTuple(inputParts);
 				
-				IStrategoTerm feedback = invoke(feedbackFunction, input, ast.getResourcePath().removeLastSegments(1));
+				IStrategoTerm feedback = invoke(feedbackFunction, input, ast.getSourceInfo().getPath().removeLastSegments(1));
 				
 				Debug.stopTimer("Completed feedback strategy " + feedbackFunction);
 				String log = ((LoggingIOAgent) interpreter.getIOAgent()).getLog().trim();
@@ -175,13 +178,13 @@ public class StrategoFeedback implements IModelListener {
 			ITermFactory factory = Environment.getTermFactory();
 			IStrategoTerm[] inputParts = {
 					getRoot(node).getTerm(),
-					factory.makeString(node.getResourcePath().toOSString()),
+					factory.makeString(node.getSourceInfo().getPath().toOSString()),
 					node.getTerm(),
 					StrategoTermPath.createPath(node)
 			};
 			IStrategoTerm input = factory.makeTuple(inputParts);
 			
-			return invoke(function, input, node.getResourcePath().removeLastSegments(1));
+			return invoke(function, input, node.getSourceInfo().getPath().removeLastSegments(1));
 		}
 	}
 	

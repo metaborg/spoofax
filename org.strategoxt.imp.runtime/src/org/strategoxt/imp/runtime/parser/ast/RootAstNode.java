@@ -2,26 +2,21 @@ package org.strategoxt.imp.runtime.parser.ast;
 
 import java.util.ArrayList;
 
-import org.eclipse.imp.language.Language;
-import org.spoofax.interpreter.terms.IStrategoAppl;
-import org.strategoxt.imp.runtime.parser.SGLRParseController;
-
 import lpg.runtime.IToken;
 
+import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.strategoxt.imp.runtime.parser.ISourceInfo;
+import org.strategoxt.imp.runtime.parser.SGLRParseController;
+
 public class RootAstNode extends AstNode {
-	private final SGLRParseController parseController;
+	private final ISourceInfo locationInfo;
 	
 	@SuppressWarnings("unused")
 	private Object cachingKey;
 
 	@Override
-	public Language getLanguage() {
-		return parseController.getLanguage();
-	}
-
-	@Override
-	public SGLRParseController getParseController() {
-		return parseController;
+	public ISourceInfo getSourceInfo() {
+		return locationInfo;
 	}
 	
 	@Override
@@ -45,12 +40,12 @@ public class RootAstNode extends AstNode {
 		
 		super(sort, constructor, leftToken, rightToken, children);
 		
-		this.parseController = parseController;
+		this.locationInfo = parseController;
 	}
 	
 	public static RootAstNode makeRoot(AstNode ast, SGLRParseController parseController) {
 		return new RootAstNode(
-				ast.getSort(), ast.getSort(), ast.getLeftIToken(), ast.getRightIToken(),
+				ast.getSort(), ast.getConstructor(), ast.getLeftIToken(), ast.getRightIToken(),
 				ast.getChildren(), parseController);
 	}
 }

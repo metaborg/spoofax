@@ -1,29 +1,17 @@
 package org.strategoxt.imp.runtime.parser;
 
 import static java.lang.Math.*;
-import static org.spoofax.jsglr.Term.applAt;
-import static org.spoofax.jsglr.Term.termAt;
-
-import java.util.ArrayList;
-
+import static org.spoofax.jsglr.Term.*;
 import lpg.runtime.IToken;
 
 import org.eclipse.imp.parser.IMessageHandler;
 import org.spoofax.jsglr.BadTokenException;
 import org.spoofax.jsglr.TokenExpectedException;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.parser.ast.AbstractVisitor;
-import org.strategoxt.imp.runtime.parser.ast.AsfixAnalyzer;
-import org.strategoxt.imp.runtime.parser.ast.AsfixImploder;
-import org.strategoxt.imp.runtime.parser.ast.AstNode;
-import org.strategoxt.imp.runtime.parser.ast.AstNodeFactory;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
-import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
-import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;   
 
 import aterm.ATerm;
 import aterm.ATermAppl;
-import aterm.ATermInt;
 import aterm.ATermList;
 
 /**
@@ -33,8 +21,8 @@ import aterm.ATermList;
  */
 public class ParseErrorHandler {
 	
-	private static final String WATER = "Water"; 
-	private static final String INSERT = "Insert";
+	private static final String WATER = "WATER"; 
+	private static final String INSERT = "INSERTION";
 	
 	int offset;
 	
@@ -73,8 +61,12 @@ public class ParseErrorHandler {
 	 * Report WATER + INSERT errors from parse tree
 	 */
 	public void reportNonFatalErrors(ATerm top) {
-		offset=0;
-		reportOnRepairedCode(top);	
+		try {
+			offset=0;
+			reportOnRepairedCode(termAt(top, 0));
+		} catch (RuntimeException e) {
+			reportError(e);
+		}
 	}
 
 	private void reportOnRepairedCode(ATerm term) {
