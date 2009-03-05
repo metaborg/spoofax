@@ -37,13 +37,13 @@ public class JSGLRI extends AbstractSGLRI {
 	}
 	
 	@Override
-	public ATerm parseNoImplode(char[] inputChars, String filename)
+	protected ATerm doParseNoImplode(char[] inputChars, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 		
-		return parseNoImplode(toByteStream(inputChars), inputChars);
+		return doParseNoImplode(toByteStream(inputChars), inputChars);
 	}
 	
-	public ATerm parseNoImplode(InputStream inputStream, char[] inputChars)
+	private ATerm doParseNoImplode(InputStream inputStream, char[] inputChars)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 		
 		// Read stream using tokenizer/lexstream

@@ -4,17 +4,15 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.ref.Reference;
-import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
-import java.util.WeakHashMap;
 
 import lpg.runtime.Monitor;
 import lpg.runtime.PrsStream;
 
 import org.eclipse.imp.parser.IParser;
+import org.jboss.util.collection.WeakValueHashMap;
 import org.spoofax.jsglr.BadTokenException;
 import org.spoofax.jsglr.SGLRException;
 import org.spoofax.jsglr.TokenExpectedException;
@@ -36,8 +34,8 @@ import aterm.ATerm;
  */ 
 public abstract class AbstractSGLRI implements IParser {
 	
-	private static final Map<CachingKey, WeakReference<RootAstNode>> implodedCache =
-		Collections.synchronizedMap(new WeakHashMap<CachingKey, WeakReference<RootAstNode>>());
+	private static final Map<CachingKey, ATerm> parsedCache =
+		Collections.synchronizedMap(new WeakValueHashMap<CachingKey, ATerm>());
 	
 	private final SGLRParseController controller;
 	
@@ -107,24 +105,22 @@ public abstract class AbstractSGLRI implements IParser {
 	public RootAstNode parse(char[] inputChars, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 		
-		// TODO: Support caching in parseNoImplode
-		
-		CachingKey cachingKey = new CachingKey(parseTableId, startSymbol, inputChars);
-		Reference<RootAstNode> cached = implodedCache.get(cachingKey);
-		if (cached != null) return cached.get();
-		
 		tokenizer.init(inputChars, filename);
 		
 		Debug.startTimer();
 		ATerm asfix = parseNoImplode(inputChars, filename);
 		Debug.stopTimer("File parsed: " + filename);
-			
-		AstNode imploded = imploder.implode(asfix);
-		RootAstNode result = RootAstNode.makeRoot(imploded, getController());
 		
-		result.setCachingKey(cachingKey);
-		implodedCache.put(cachingKey, new WeakReference<RootAstNode>(result));
-		return result;
+		return implodeAndBind(asfix);
+	}
+	
+	/**
+	 * Implodes an asfix tree and associates its {@link ISourceInfo}
+	 * with this parse controller.
+	 */
+	public RootAstNode implodeAndBind(ATerm asfix) {
+		AstNode imploded = imploder.implode(asfix);
+		return RootAstNode.makeRoot(imploded, getController());
 	}
 	
 	/**
@@ -134,12 +130,25 @@ public abstract class AbstractSGLRI implements IParser {
 	 * 
 	 * @return  The abstract syntax tree.
 	 */
-	public RootAstNode parse(InputStream input, String filename)
+	public final RootAstNode parse(InputStream input, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 		return parse(toCharArray(input), filename);
 	}
 	
-	public abstract ATerm parseNoImplode(char[] inputChars, String filename)
+	public ATerm parseNoImplode(char[] inputChars, String filename)
+			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
+		
+		CachingKey cachingKey = new CachingKey(parseTableId, startSymbol, inputChars);
+		ATerm result = parsedCache.get(cachingKey);
+		if (result != null) return result;
+		
+		result = doParseNoImplode(inputChars, filename);
+		parsedCache.put(cachingKey, result);
+		
+		return result;
+	}
+	
+	protected abstract ATerm doParseNoImplode(char[] inputChars, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException;
 
 	private char[] toCharArray(InputStream input) throws IOException {
@@ -199,14 +208,15 @@ class CachingKey {
 	@Override
 	public boolean equals(Object obj) {
 		CachingKey other = (CachingKey) obj;
-		return parseTable.equals(other.parseTable) && Arrays.equals(input, other.input) && 
-			(startSymbol == null ? other.startSymbol == null : startSymbol.equals(other.startSymbol));
+		return parseTable.equals(other.parseTable)
+			&& Arrays.equals(input, other.input)
+			&& (startSymbol == null ? other.startSymbol == null : startSymbol.equals(other.startSymbol));
 	}
 	
 	@Override
 	public int hashCode() {
 		// (Ignores parse table hash code)
 		return 12125125 * (startSymbol == null ? 42 : startSymbol.hashCode())
-			^ Arrays.hashCode(input);
+			^ Arrays.hashCode((char[]) input);
 	}
 }

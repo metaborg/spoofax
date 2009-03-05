@@ -5,10 +5,13 @@ import static org.spoofax.jsglr.Term.*;
 import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.*;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Map;
 
 import lpg.runtime.IToken;
 import lpg.runtime.PrsStream;
 
+import org.jboss.util.collection.WeakValueHashMap;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
@@ -25,6 +28,9 @@ import aterm.pure.ATermListImpl;
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
 public class AsfixImploder {
+	private static final Map<ATerm, AstNode> implodedCache =
+		Collections.synchronizedMap(new WeakValueHashMap<ATerm, AstNode>());
+	
 	protected final static int PARSE_TREE = 0;
 	
 	protected final static int APPL_PROD = 0;
@@ -68,7 +74,10 @@ public class AsfixImploder {
 	}
 	
 	public AstNode implode(ATerm asfix) {
-		Debug.startTimer();		
+		AstNode result = implodedCache.get(asfix);
+		if (result != null) return result;
+		
+		Debug.startTimer();
 
 		if (!(asfix instanceof ATermAppl || ((ATermAppl) asfix).getName().equals("parsetree")))
 			throw new IllegalArgumentException("Parse tree expected");
@@ -79,7 +88,7 @@ public class AsfixImploder {
 		offset = 0;
 		lexicalContext = false;
 		
-		AstNode result = implodeAppl(top);
+		result = implodeAppl(top);
 
 		tokenizer.endStream();
 		offset = 0;		
@@ -88,6 +97,8 @@ public class AsfixImploder {
 			Debug.stopTimer("Parse tree imploded");
 			Debug.log("Parsed " + result.toString());
 		}
+		
+		implodedCache.put(asfix, result);
 
 		return result;
 	}

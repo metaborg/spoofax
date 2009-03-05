@@ -126,13 +126,11 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 
 		try {
 			errorHandler.clearErrors();
-
-			// TODO2: Optimization - don't produce AST if scanOnly is true
 			currentAst = null;
-			currentAst = parser.parse(input.toCharArray(), getPath().toPortableString());
-			//TODO: caching + no double work in ast and parse tree
-			ATerm pt = parser.parseNoImplode(input.toCharArray(), getPath().toPortableString());
-			errorHandler.reportNonFatalErrors(pt);
+			
+			ATerm asfix = parser.parseNoImplode(input.toCharArray(), getPath().toPortableString());			
+			errorHandler.reportNonFatalErrors(asfix);			
+			currentAst = parser.implodeAndBind(asfix);
 			
 		} catch (TokenExpectedException e) {
 			errorHandler.reportError(e);

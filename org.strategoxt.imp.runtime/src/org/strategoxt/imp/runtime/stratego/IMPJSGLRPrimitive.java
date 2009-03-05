@@ -64,7 +64,7 @@ public class IMPJSGLRPrimitive extends JSGLRPrimitive {
 		input.getChars(0, input.length(), inputChars, 0);
 		
 		try {
-			ATerm asfix = parser.parseNoImplode(inputChars, path);
+			ATerm asfix = parser.doParseNoImplode(inputChars, path);
 			IStrategoTerm result = Environment.getWrappedATermFactory().wrapTerm(asfix);
 			result = termConverter.convert(result);
 

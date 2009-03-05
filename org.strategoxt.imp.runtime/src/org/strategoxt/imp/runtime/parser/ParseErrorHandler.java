@@ -96,20 +96,18 @@ public class ParseErrorHandler {
 		}
 		
 		//post visit: report error
-        if(isWaterTerm)
-        {        	
-        	IToken token = tokenizer.makeErrorToken(beginErrorOffSet, offset-1);        	
-        	reportErrorAtTokens(token, token, "Unexpected text fragment");        	
-        }
-        if(isInsertTerm)
-        {        	
-        	IToken token = tokenizer.makeErrorToken(beginErrorOffSet, offset);
-        	String inserted = "";
-        	if(rhs.getName()=="lit"){
-        		inserted = applAt(rhs, 0).getName();
-        	}
-        	reportErrorAtTokens(token, token, "Missing text fragment: '" + inserted +"'");        	
-        }
+		if (isWaterTerm) {
+			IToken token = tokenizer.makeErrorToken(beginErrorOffSet, offset - 1);
+			reportErrorAtTokens(token, token, "Unexpected token");
+		}
+		if (isInsertTerm) {
+			IToken token = tokenizer.makeErrorToken(beginErrorOffSet, offset);
+			String inserted = "";
+			if (rhs.getName() == "lit") {
+				inserted = applAt(rhs, 0).getName();
+			}
+			reportErrorAtTokens(token, token, "Expected: '" + inserted + "'");
+		}
 	}
 	
 		
@@ -149,8 +147,7 @@ public class ParseErrorHandler {
 	private static boolean isWater(ATermAppl cf) {
 		ATermAppl details = applAt(cf, 0);
 		
-		if (details.getName().equals("sort"))
-		{	
+		if (details.getName().equals("sort")) {	
 			details = applAt(details, 0);
 			return details.getName().equals(WATER);
 		}

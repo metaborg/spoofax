@@ -10,9 +10,6 @@ import org.strategoxt.imp.runtime.parser.SGLRParseController;
 
 public class RootAstNode extends AstNode {
 	private final ISourceInfo locationInfo;
-	
-	@SuppressWarnings("unused")
-	private Object cachingKey;
 
 	@Override
 	public ISourceInfo getSourceInfo() {
@@ -22,17 +19,6 @@ public class RootAstNode extends AstNode {
 	@Override
 	public IStrategoAppl getTerm() {
 		return (IStrategoAppl) super.getTerm();
-	}
-	
-	/**
-	 * Sets an object reference associated with this object.
-	 * This can be used for caching schemes with a WeakHashMap,
-	 * ensuring a life reference to the specified object exists.
-	 * 
-	 * @param cachingKey
-	 */
-	public void setCachingKey(Object cachingKey) {
-		this.cachingKey = cachingKey;
 	}
 
 	protected RootAstNode(String sort, String constructor, IToken leftToken, IToken rightToken,
