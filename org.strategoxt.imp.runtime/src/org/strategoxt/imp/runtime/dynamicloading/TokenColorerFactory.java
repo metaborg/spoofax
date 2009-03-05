@@ -21,6 +21,16 @@ import org.strategoxt.imp.runtime.services.TokenColorer;
  */
 class TokenColorerFactory extends AbstractServiceFactory<ITokenColorer> {
 	
+	private final ITokenColorer sharedColorer;
+	
+	public TokenColorerFactory(Descriptor descriptor) throws BadDescriptorException {
+		// HACK: Initialize token colorer early to avoid a threading deadlock
+		//       (where the main thread waits to create a coloring service
+		//        and a second thread has a getService() lock but
+		//        waits for the main thread in the Color constructor) 
+		sharedColorer = doCreate(descriptor);
+	}
+	
 	@Override
 	public Class<ITokenColorer> getCreatedType() {
 		return ITokenColorer.class;
@@ -28,6 +38,10 @@ class TokenColorerFactory extends AbstractServiceFactory<ITokenColorer> {
 	
 	@Override
 	public ITokenColorer create(Descriptor descriptor) throws BadDescriptorException {
+		return sharedColorer;
+	}
+	
+	private ITokenColorer doCreate(Descriptor descriptor) throws BadDescriptorException {
 		IStrategoAppl doc = descriptor.getDocument();
 		
 		List<TextAttributeMapping> tokenMappings = new ArrayList<TextAttributeMapping>();

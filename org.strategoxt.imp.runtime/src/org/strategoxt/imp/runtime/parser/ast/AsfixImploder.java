@@ -59,21 +59,22 @@ public class AsfixImploder {
 	
 	protected final AstNodeFactory factory = new AstNodeFactory();
 	
-	protected final SGLRTokenizer tokenizer;
-	
 	protected final TokenKindManager tokenManager;
+	
+	protected SGLRTokenizer tokenizer;
 	
 	/** Character offset for the current implosion. */ 
 	protected int offset;
 	
 	protected boolean lexicalContext;
 	
-    public AsfixImploder(TokenKindManager tokenManager, SGLRTokenizer tokenizer) {
+    public AsfixImploder(TokenKindManager tokenManager) {
 		this.tokenManager = tokenManager;
-		this.tokenizer = tokenizer;
 	}
 	
-	public AstNode implode(ATerm asfix) {
+	public AstNode implode(ATerm asfix, SGLRTokenizer tokenizer) {
+		this.tokenizer = tokenizer;
+		
 		AstNode result = implodedCache.get(asfix);
 		if (result != null) return result;
 		
@@ -88,10 +89,12 @@ public class AsfixImploder {
 		offset = 0;
 		lexicalContext = false;
 		
-		result = implodeAppl(top);
-
-		tokenizer.endStream();
-		offset = 0;		
+		try {
+			result = implodeAppl(top);
+		} finally {
+			tokenizer.endStream();
+			offset = 0;
+		}
 		
 		if (Debug.ENABLED) {
 			Debug.stopTimer("Parse tree imploded");
@@ -332,11 +335,13 @@ public class AsfixImploder {
 	
 	/** Implode any appl(_, _) that constructs a lex terminal. */
 	protected void implodeLexical(ATermInt character) {
-		assert character.getInt()
-			== tokenizer.getLexStream().getCharValue(offset)
+		assert tokenizer.getLexStream().getInputChars().length > offset
+		    && character.getInt() == tokenizer.getLexStream().getCharValue(offset)
 			: "Character from asfix stream (" + character.getInt()
 			+ ") must be in lex stream ("
-			+ (int) tokenizer.getLexStream().getCharValue(offset) + ")";
+			+ (tokenizer.getLexStream().getInputChars().length > offset 
+			   ? "???"
+			   : (int) tokenizer.getLexStream().getCharValue(offset)) + ")";
 		
 		offset++;
 	}

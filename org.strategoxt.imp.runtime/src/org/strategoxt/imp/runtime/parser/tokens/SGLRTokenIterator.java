@@ -11,16 +11,27 @@ import org.eclipse.jface.text.IRegion;
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class SGLRTokenIterator implements Iterator<IToken> {
-	final int lastIndex;
+	private final int lastIndex;
 	
-	final PrsStream stream;
+	private final PrsStream stream;
 	
-	int index;
+	private int index;
 	
 	public SGLRTokenIterator(PrsStream stream, IRegion region) {
 		this.stream = stream;
-		index = stream.getTokenIndexAtCharacter(region.getOffset());
-		lastIndex = Math.abs(stream.getTokenIndexAtCharacter(region.getOffset() + region.getLength()));
+		index = Math.abs(stream.getTokenIndexAtCharacter(region.getOffset()));
+		
+		int lastIndex = stream.getTokenIndexAtCharacter(region.getOffset() + region.getLength());
+		if (lastIndex < 0)
+			lastIndex = -lastIndex + 1;
+		if (lastIndex >= stream.getTokens().size())
+			lastIndex = stream.getTokens().size() - 1;
+		//if (lastIndex > 0 && stream.getTokenAt(lastIndex).getKind() == TokenKind.TK_EOF.ordinal())
+		//	lastIndex--;
+		if (lastIndex > 0 && stream.getTokenAt(lastIndex).getStartOffset() == 0)
+			lastIndex--;
+		
+		this.lastIndex = lastIndex;
 	}
 
 	public boolean hasNext() {

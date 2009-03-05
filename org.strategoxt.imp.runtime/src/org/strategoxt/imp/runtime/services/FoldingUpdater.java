@@ -57,7 +57,7 @@ public class FoldingUpdater extends FolderBase {
 			java.lang.Object node) {
 		
 		AstNode astNode = (AstNode) node;
-		parseStream = astNode.getLeftIToken().getPrsStream();
+		parseStream = astNode.getLeftIToken().getIPrsStream();
 		
 		astNode.accept(new FoldingVisitor());
 	}
@@ -96,7 +96,7 @@ public class FoldingUpdater extends FolderBase {
 	private int getEndOfLinePosition(IToken token) {
 		int end = token.getEndOffset();
 
-		ILexStream lexStream = parseStream.getLexStream();
+		ILexStream lexStream = parseStream.getILexStream();
 
 		for (int i = token.getStartOffset(); i <= end; i++) {
 			char c = lexStream.getCharValue(i);

@@ -47,6 +47,7 @@ public class TokenColorer implements ITokenColorer {
 	public TextAttribute getColoring(IParseController controller, Object oToken) {
 		SGLRToken token = (SGLRToken) oToken;
 		AstNode node = token.getAstNode();
+		token.toString();
 		
 		parseController = controller;
 		
@@ -57,7 +58,7 @@ public class TokenColorer implements ITokenColorer {
 		int tokenKind = token.getKind();
 		String sort = node == null ? null : node.getSort();
 		String constructor = node == null ? null : node.getConstructor();
-		
+		 
 		TextAttribute tokenColor = getColoring(tokenMappings, constructor, sort, tokenKind);
 		TextAttribute nodeColor = getColoring(nodeMappings, constructor, sort, tokenKind);
 		TextAttribute result = mergeStyles(nodeColor, tokenColor);

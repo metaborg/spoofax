@@ -130,7 +130,7 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 	}
 
 	private void setReferences(IToken leftToken, IToken rightToken, ArrayList<AstNode> children) {
-		IPrsStream parseStream = leftToken.getPrsStream();
+		IPrsStream parseStream = leftToken.getIPrsStream();
 		int end = rightToken.getTokenIndex();
 		
 		for (int i = leftToken.getTokenIndex(); i <= end; i++) {
@@ -245,6 +245,6 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 	 * Return the input string that formed this AST.
 	 */
 	public String yield() {
-		return getLeftIToken().getPrsStream().toString(getLeftIToken(), getRightIToken());
+		return getLeftIToken().getIPrsStream().toString(getLeftIToken(), getRightIToken());
 	}
 }

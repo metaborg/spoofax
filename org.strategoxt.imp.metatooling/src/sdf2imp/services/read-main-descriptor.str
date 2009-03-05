@@ -7,6 +7,8 @@ imports
 
 strategies
 
+  // FIXME: Error reporting not always working for new editor..?
+
   read-main-descriptor =
     current-main-descriptor-file;
     
@@ -44,7 +46,6 @@ strategies
                fail
              end
        );
-       
        verbosity-scope(
          main-descriptor-name;
          input-descriptor-file
@@ -52,9 +53,7 @@ strategies
        );
        verbose-msg(!"Existing descriptor determines generated services:", main-descriptor-name)
      |}
-     ; where(<debug(!"reading of  ")> <main-descriptor-name>)
    <+
-     where(<debug(!"no reading of  ")> <main-descriptor-name>);
      // Could not read the existing file: use the defaults instead, but don't overwrite the file
      rules(NoExistingDescriptor: _);
      default-main-descriptor

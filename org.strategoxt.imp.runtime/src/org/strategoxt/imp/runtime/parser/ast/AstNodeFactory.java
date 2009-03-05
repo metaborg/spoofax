@@ -42,7 +42,7 @@ public class AstNodeFactory {
 	 * Create a new terminal AST node from a single token.
 	 */
 	public final AstNode createTerminal(String sort, IToken token) {
-		ILexStream lex = token.getPrsStream().getLexStream();
+		ILexStream lex = token.getIPrsStream().getILexStream();
 		
 		int length = token.getEndOffset() - token.getStartOffset() + 1;
 		StringBuilder tokenContents = new StringBuilder(length);

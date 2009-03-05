@@ -122,7 +122,7 @@ public class Outliner extends org.eclipse.imp.services.base.OutlinerBase {
 	// TODO: Don't return identifier tokens in list or optional AST nodes
 	
 	private String getIdentifier(AstNode node) {
-		IPrsStream stream = node.getLeftIToken().getPrsStream();
+		IPrsStream stream = node.getLeftIToken().getIPrsStream();
 		int i = node.getLeftIToken().getTokenIndex();
 		int end = node.getRightIToken().getTokenIndex();
 		

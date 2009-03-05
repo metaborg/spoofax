@@ -50,20 +50,20 @@ public class Descriptor {
 	
 	// LOADING DESCRIPTOR 
 
-	protected Descriptor(IStrategoAppl document) {
+	protected Descriptor(IStrategoAppl document) throws BadDescriptorException {
 		this.document = document;
 		
 		initializeFactories();
 	}
 	
-	private void initializeFactories() {
+	private void initializeFactories() throws BadDescriptorException {
 		serviceFactories.add(new ParseControllerFactory());
 		serviceFactories.add(new FoldingUpdaterFactory());
 		serviceFactories.add(new OutlinerFactory());
 		serviceFactories.add(new ReferenceResolverFactory());
 		serviceFactories.add(new StrategoFeedbackFactory());
 		serviceFactories.add(new SyntaxPropertiesFactory());
-		serviceFactories.add(new TokenColorerFactory());
+		serviceFactories.add(new TokenColorerFactory(this));
 	}
 	
 	/**

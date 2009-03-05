@@ -80,7 +80,7 @@ public final class Environment {
 		assert Thread.holdsLock(getSyncRoot()) : "Please use the course-grained Environment.getSyncRoot() lock";
 	}
 	
-	private static void assertMainThread() {
+	public static void assertMainThread() {
 		if (mainThread == null)
 			mainThread = Thread.currentThread();
 		assert mainThread == Thread.currentThread() : "Please only perform this operation from the main thread";

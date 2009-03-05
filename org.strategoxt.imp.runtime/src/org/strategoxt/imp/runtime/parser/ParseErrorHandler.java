@@ -21,55 +21,35 @@ import aterm.ATermList;
  */
 public class ParseErrorHandler {
 	
-	private static final String WATER = "WATER"; 
+	private static final String WATER = "WATER";
+	
 	private static final String INSERT = "INSERTION";
 	
-	int offset;
+	private IMessageHandler messages;
 	
-	private final IMessageHandler messages;
-	
-	private final SGLRTokenizer tokenizer;
-	
-	public ParseErrorHandler(IMessageHandler messages, SGLRTokenizer tokenizer) {
-		this.messages = messages;
-		this.tokenizer = tokenizer;
-	}
+	private int offset;
 	
 	public void clearErrors() {
 		messages.clearMessages();
 	}
-	/*
-	public void reportNonFatalErrors(AstNode ast) {
-		// TODO: Report any insertions using the asfix tree
-		ast.accept(
-		new AbstractVisitor() {
-			public boolean preVisit(AstNode node) {
-				if (WATER.equals(node.getConstructor())) {
-					reportErrorAtTokens(node.getLeftIToken(), node.getRightIToken(), "Unexpected text fragment");
-				}
-				return true;
-			}
-
-			public void postVisit(AstNode node) {
-				// Nothing to see here; move along.
-			}
-		}
-		);
-	}*/
+	
+	public void setMessages(IMessageHandler messages) {
+		this.messages = messages;
+	}
 	
 	/**
 	 * Report WATER + INSERT errors from parse tree
 	 */
-	public void reportNonFatalErrors(ATerm top) {
+	public void reportNonFatalErrors(SGLRTokenizer tokenizer, ATerm top) {
 		try {
 			offset=0;
-			reportOnRepairedCode(termAt(top, 0));
+			reportOnRepairedCode(tokenizer, termAt(top, 0));
 		} catch (RuntimeException e) {
-			reportError(e);
+			reportError(tokenizer, e);
 		}
 	}
 
-	private void reportOnRepairedCode(ATerm term) {
+	private void reportOnRepairedCode(SGLRTokenizer tokenizer, ATerm term) {
 		//TODO: use constants in AsfixImploder
 		ATermAppl prod = termAt(term, 0);
 		ATermAppl rhs = termAt(prod, 1);
@@ -92,7 +72,7 @@ public class ParseErrorHandler {
 				offset+=1;				
 				}
 			else
-				reportOnRepairedCode(child);				
+				reportOnRepairedCode(tokenizer, child);				
 		}
 		
 		//post visit: report error
@@ -111,14 +91,14 @@ public class ParseErrorHandler {
 	}
 	
 		
-	public void reportError(TokenExpectedException exception) {
+	public void reportError(SGLRTokenizer tokenizer, TokenExpectedException exception) {
 		String message = exception.getShortMessage();
 		IToken token = tokenizer.makeErrorToken(exception.getOffset());
 		
 		reportErrorAtTokens(token, token, message);
 	}
 	
-	public void reportError(BadTokenException exception) {
+	public void reportError(SGLRTokenizer tokenizer, BadTokenException exception) {
 		IToken token = tokenizer.makeErrorToken(exception.getOffset());
 		String message = exception.isEOFToken()
         	? exception.getShortMessage()
@@ -127,7 +107,7 @@ public class ParseErrorHandler {
         	reportErrorAtTokens(token, token, message);
 	}
 	
-	public void reportError(Exception exception) {
+	public void reportError(SGLRTokenizer tokenizer, Exception exception) {
 		String message = "Internal parsing error: " + exception;
 		IToken token = tokenizer.makeErrorToken(0);
 		

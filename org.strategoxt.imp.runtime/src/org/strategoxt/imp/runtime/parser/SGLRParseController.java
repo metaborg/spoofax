@@ -45,15 +45,16 @@ import aterm.ATerm;
  * @author Karl Trygve Kalleberg <karltk add strategoxt.org>
  */
 public class SGLRParseController implements IParseController, ISourceInfo {
+
 	private final TokenKindManager tokenManager = new TokenKindManager();
+	
+	private final ParseErrorHandler errorHandler = new ParseErrorHandler();
 	
 	private final JSGLRI parser;
 	
 	private final Language language;
 	
 	private final ILanguageSyntaxProperties syntaxProperties;
-	
-	private ParseErrorHandler errorHandler;
 	
 	private AstNode currentAst;
 	
@@ -118,44 +119,47 @@ public class SGLRParseController implements IParseController, ISourceInfo {
     		IMessageHandler messages) {
 		this.path = filePath;
 		this.project = project;
-		errorHandler = new ParseErrorHandler(messages, parser.getTokenizer());
+		this.errorHandler.setMessages(messages);
     }
 
 	public AstNode parse(String input, boolean scanOnly, IProgressMonitor monitor) {
-		if (getPath() == null)
-		    throw new IllegalStateException("SGLR parse controller not initialized");
-
-		try {
-			errorHandler.clearErrors();
-			currentAst = null;
+		// LK: Not sure if synchronization makes sense here??
+		synchronized (Environment.getSyncRoot()) {
+			if (getPath() == null)
+			    throw new IllegalStateException("SGLR parse controller not initialized");
+	
+			try {
+				errorHandler.clearErrors();
+				currentAst = null;
+				
+				Debug.startTimer();
+				
+				char[] inputChars = input.toCharArray();
+				String filename = getPath().toPortableString();
+				
+				currentAst = parser.parse(inputChars, filename);
+				ATerm asfix = parser.parseNoImplode(inputChars, filename);
+				errorHandler.reportNonFatalErrors(parser.getTokenizer(), asfix);
+				
+				Debug.stopTimer("File parsed: " + filename);
+				
+			} catch (TokenExpectedException e) {
+				errorHandler.reportError(parser.getTokenizer(), e);
+			} catch (BadTokenException e) {
+				errorHandler.reportError(parser.getTokenizer(), e);
+			} catch (SGLRException e) {
+				errorHandler.reportError(parser.getTokenizer(), e);
+			} catch (IOException e) {
+				errorHandler.reportError(parser.getTokenizer(), e);
+			} catch (RuntimeException e) {
+				Environment.logException("Unexpected error during parsing", e);
+				errorHandler.reportError(parser.getTokenizer(), e);
+			}
 			
-			Debug.startTimer();
-			
-			char[] inputChars = input.toCharArray();
-			String filename = getPath().toPortableString();
-			
-			currentAst = parser.parse(inputChars, filename);
-			ATerm asfix = parser.parseNoImplode(inputChars, filename);
-			errorHandler.reportNonFatalErrors(asfix);
-			
-			Debug.stopTimer("File parsed: " + filename);
-			
-		} catch (TokenExpectedException e) {
-			errorHandler.reportError(e);
-		} catch (BadTokenException e) {
-			errorHandler.reportError(e);
-		} catch (SGLRException e) {
-			errorHandler.reportError(e);
-		} catch (IOException e) {
-			errorHandler.reportError(e);
-		} catch (RuntimeException e) {
-			Environment.logException("Unexpected error during parsing", e);
-			errorHandler.reportError(e);
+			updateFeedBack();
+	
+			return currentAst;
 		}
-		
-		updateFeedBack();
-
-		return currentAst;
 	}
 
 	private void updateFeedBack() {
@@ -165,10 +169,10 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 			if (feedback != null) feedback.asyncUpdate(this, null);
 		} catch (BadDescriptorException e) {
 			Environment.logException("Unexpected error during analysis", e);
-			errorHandler.reportError(e);
+			errorHandler.reportError(parser.getTokenizer(), e);
 		} catch (RuntimeException e) {
 			Environment.logException("Unexpected exception during analysis", e);
-			errorHandler.reportError(e);
+			errorHandler.reportError(parser.getTokenizer(), e);
 		}
 	}
 	
@@ -191,13 +195,13 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 	}
 
 	public Iterator<IToken> getTokenIterator(IRegion region) {
-		// TODO: Return a damaged token stream on parse errors
 		PrsStream stream = parser.getParseStream();
 		if (stream.getTokens().size() == 0 || getCurrentAst() == null) {
 			// Parse hasn't succeeded yet, consider the entire stream as one big token
 			stream.addToken(new SGLRToken(stream, region.getOffset(), stream.getStreamLength() - 1,
 					TokenKind.TK_UNKNOWN.ordinal()));
 		}
+		
 		return new SGLRTokenIterator(stream, region);
 	}
 }

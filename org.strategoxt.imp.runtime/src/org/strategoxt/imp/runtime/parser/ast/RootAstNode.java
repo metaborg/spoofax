@@ -9,11 +9,11 @@ import org.strategoxt.imp.runtime.parser.ISourceInfo;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 
 public class RootAstNode extends AstNode {
-	private final ISourceInfo locationInfo;
+	private final ISourceInfo lsourceInfo;
 
 	@Override
 	public ISourceInfo getSourceInfo() {
-		return locationInfo;
+		return lsourceInfo;
 	}
 	
 	@Override
@@ -22,16 +22,16 @@ public class RootAstNode extends AstNode {
 	}
 
 	protected RootAstNode(String sort, String constructor, IToken leftToken, IToken rightToken,
-			ArrayList<AstNode> children, SGLRParseController parseController) {
+			ArrayList<AstNode> children, ISourceInfo sourceInfo) {
 		
 		super(sort, constructor, leftToken, rightToken, children);
 		
-		this.locationInfo = parseController;
+		this.lsourceInfo = sourceInfo;
 	}
 	
-	public static RootAstNode makeRoot(AstNode ast, SGLRParseController parseController) {
+	public static RootAstNode makeRoot(AstNode ast, ISourceInfo sourceInfo) {
 		return new RootAstNode(
 				ast.getSort(), ast.getConstructor(), ast.getLeftIToken(), ast.getRightIToken(),
-				ast.getChildren(), parseController);
+				ast.getChildren(), sourceInfo);
 	}
 }

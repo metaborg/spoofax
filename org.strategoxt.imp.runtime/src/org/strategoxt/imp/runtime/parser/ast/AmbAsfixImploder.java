@@ -4,7 +4,6 @@ import static org.spoofax.jsglr.Term.*;
 
 import java.util.ArrayList;
 
-import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
 
 import aterm.ATerm;
@@ -19,8 +18,8 @@ import aterm.pure.ATermListImpl;
  */
 public class AmbAsfixImploder extends AsfixImploder {
 
-	public AmbAsfixImploder(TokenKindManager tokenManager, SGLRTokenizer tokenizer) {
-		super(tokenManager, tokenizer);
+	public AmbAsfixImploder(TokenKindManager tokenManager) {
+		super(tokenManager);
 	}
 	
 	@Override

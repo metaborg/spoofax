@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
+import java.util.WeakHashMap;
 
 import lpg.runtime.Monitor;
 import lpg.runtime.PrsStream;
@@ -36,9 +37,10 @@ public abstract class AbstractSGLRI implements IParser {
 	private static final Map<CachingKey, ATerm> parsedCache =
 		Collections.synchronizedMap(new WeakValueHashMap<CachingKey, ATerm>());
 	
-	private final SGLRParseController controller;
+	private static final Map<ATerm, SGLRTokenizer> tokenizerCache =
+		Collections.synchronizedMap(new WeakHashMap<ATerm, SGLRTokenizer>());
 	
-	private final SGLRTokenizer tokenizer;
+	private final SGLRParseController controller;
 	
 	private final TokenKindManager tokenManager;
 	
@@ -50,16 +52,21 @@ public abstract class AbstractSGLRI implements IParser {
 	
 	private String startSymbol;
 	
+	private SGLRTokenizer currentTokenizer;
+	
 	// Simple accessors
 	
-	public SGLRTokenizer getTokenizer() {
-		return tokenizer; 
+	protected SGLRTokenizer getTokenizer() {
+		return currentTokenizer; 
 	}
 
 	public int getEOFTokenKind() {
 		return TokenKind.TK_EOF.ordinal();
 	}
 
+	/**
+	 * Get the current parsestream.
+	 */
 	public PrsStream getParseStream() {
 		return getTokenizer().getParseStream();
 	}
@@ -78,8 +85,8 @@ public abstract class AbstractSGLRI implements IParser {
 	
 	public void setKeepAmbiguities(boolean value) {
 		imploder = value
-			? new AmbAsfixImploder(tokenManager, tokenizer)
-			: new AsfixImploder(tokenManager, tokenizer);
+			? new AmbAsfixImploder(tokenManager)
+			: new AsfixImploder(tokenManager);
 	}
 	
 	// Initialization and parsing
@@ -90,8 +97,7 @@ public abstract class AbstractSGLRI implements IParser {
 		this.tokenManager = tokenManager;
 		this.parseTableId = parseTableId;
 
-		tokenizer = new SGLRTokenizer();		
-		imploder = new AsfixImploder(tokenManager, tokenizer);
+		imploder = new AsfixImploder(tokenManager);
 	}
 	
 	// Parsing
@@ -105,12 +111,13 @@ public abstract class AbstractSGLRI implements IParser {
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 
 		ATerm asfix = parseNoImplode(inputChars, filename);
-		AstNode imploded = imploder.implode(asfix);
+		AstNode imploded = imploder.implode(asfix, currentTokenizer);
 		return RootAstNode.makeRoot(imploded, getController());
 	}
 	
 	/**
 	 * Parse an input, returning the AST and initializing the parse stream.
+	 * Also initializes a new tokenizer for the given input.
 	 * 
 	 * @note This redirects to the preferred {@link #parse(char[], String)} method.
 	 * 
@@ -118,22 +125,39 @@ public abstract class AbstractSGLRI implements IParser {
 	 */
 	public final RootAstNode parse(InputStream input, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
+		
 		return parse(toCharArray(input), filename);
 	}
 	
+	/**
+	 * Parse an input, returning the AST and initializing the parse stream.
+	 * Also initializes a new tokenizer for the given input.
+	 */ 
 	public ATerm parseNoImplode(char[] inputChars, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 		
 		CachingKey cachingKey = new CachingKey(parseTableId, startSymbol, inputChars);
 		ATerm result = parsedCache.get(cachingKey);
-		if (result != null) return result;
+		if (result != null) {
+			currentTokenizer = getTokenizer(result);
+			assert currentTokenizer != null;
+			return result;
+		}
 		
-		tokenizer.init(inputChars, filename);
-		
+		currentTokenizer = new SGLRTokenizer(inputChars, filename);
 		result = doParseNoImplode(inputChars, filename);
 		parsedCache.put(cachingKey, result);
+		tokenizerCache.put(result, currentTokenizer);
 		
 		return result;
+	}
+
+	/**
+	 * Retrieve the original tokenizer for an asfix tree,
+	 * if available.
+	 */
+	public static SGLRTokenizer getTokenizer(ATerm asfix) {
+		return tokenizerCache.get(asfix);
 	}
 	
 	protected abstract ATerm doParseNoImplode(char[] inputChars, String filename)

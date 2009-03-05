@@ -13,10 +13,20 @@ import lpg.runtime.Token;
  */
 public class SGLRTokenizer {
 	private final LexStream lexStream = new LexStream();
+	
 	private final PrsStream parseStream = new PrsStream(lexStream);
 	
 	/** Start of the last token */
 	private int beginOffset;
+	
+	public SGLRTokenizer(char[] input, String filename) {
+		lexStream.initialize(input, filename);
+		parseStream.resetTokenStream();
+		beginOffset = 0;
+		
+		// Token list must start with a bad token
+		makeToken(0, TK_RESERVED, true);
+	}
 	
 	public IToken currentToken() {
 		if (parseStream.getSize() == 0) return null;
@@ -40,17 +50,8 @@ public class SGLRTokenizer {
 		this.beginOffset = beginOffset;
 	}
 	
-	public void init(char[] input, String filename) {
-		lexStream.initialize(input, filename);
-		parseStream.resetTokenStream();
-		beginOffset = 0;
-		
-		// Token list must start with a bad token
-		makeToken(0, TK_RESERVED, true);
-	}
-	
 	public void endStream() {
-		makeToken(beginOffset, TK_EOF, true);
+		makeToken(beginOffset + 1, TK_EOF, true);
 	}
 	
 	public SGLRToken makeToken(int endOffset, TokenKind kind, boolean allowEmptyToken) {
@@ -144,7 +145,7 @@ public class SGLRTokenizer {
 		int last = right.getTokenIndex();
 		
 		for (int i = left.getTokenIndex(); i <= last; i++) {
-			IToken token = left.getPrsStream().getTokenAt(i);
+			IToken token = left.getIPrsStream().getTokenAt(i);
 			result.append(valueOf(token.getKind()));
 			result.append(":");
 			result.append(token.toString().replace("\n","\\n").replace("\r","\\r"));
