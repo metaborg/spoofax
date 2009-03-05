@@ -16,7 +16,6 @@ import org.jboss.util.collection.WeakValueHashMap;
 import org.spoofax.jsglr.BadTokenException;
 import org.spoofax.jsglr.SGLRException;
 import org.spoofax.jsglr.TokenExpectedException;
-import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.parser.ast.AmbAsfixImploder;
 import org.strategoxt.imp.runtime.parser.ast.AsfixImploder;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
@@ -104,21 +103,8 @@ public abstract class AbstractSGLRI implements IParser {
 	 */
 	public RootAstNode parse(char[] inputChars, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
-		
-		tokenizer.init(inputChars, filename);
-		
-		Debug.startTimer();
+
 		ATerm asfix = parseNoImplode(inputChars, filename);
-		Debug.stopTimer("File parsed: " + filename);
-		
-		return implodeAndBind(asfix);
-	}
-	
-	/**
-	 * Implodes an asfix tree and associates its {@link ISourceInfo}
-	 * with this parse controller.
-	 */
-	public RootAstNode implodeAndBind(ATerm asfix) {
 		AstNode imploded = imploder.implode(asfix);
 		return RootAstNode.makeRoot(imploded, getController());
 	}
@@ -141,6 +127,8 @@ public abstract class AbstractSGLRI implements IParser {
 		CachingKey cachingKey = new CachingKey(parseTableId, startSymbol, inputChars);
 		ATerm result = parsedCache.get(cachingKey);
 		if (result != null) return result;
+		
+		tokenizer.init(inputChars, filename);
 		
 		result = doParseNoImplode(inputChars, filename);
 		parsedCache.put(cachingKey, result);

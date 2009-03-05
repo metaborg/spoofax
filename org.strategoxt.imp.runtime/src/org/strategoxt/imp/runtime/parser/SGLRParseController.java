@@ -25,6 +25,7 @@ import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.SGLR;
 import org.spoofax.jsglr.SGLRException;
 import org.spoofax.jsglr.TokenExpectedException;
+import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
@@ -128,9 +129,16 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 			errorHandler.clearErrors();
 			currentAst = null;
 			
-			ATerm asfix = parser.parseNoImplode(input.toCharArray(), getPath().toPortableString());			
-			errorHandler.reportNonFatalErrors(asfix);			
-			currentAst = parser.implodeAndBind(asfix);
+			Debug.startTimer();
+			
+			char[] inputChars = input.toCharArray();
+			String filename = getPath().toPortableString();
+			
+			currentAst = parser.parse(inputChars, filename);
+			ATerm asfix = parser.parseNoImplode(inputChars, filename);
+			errorHandler.reportNonFatalErrors(asfix);
+			
+			Debug.stopTimer("File parsed: " + filename);
 			
 		} catch (TokenExpectedException e) {
 			errorHandler.reportError(e);

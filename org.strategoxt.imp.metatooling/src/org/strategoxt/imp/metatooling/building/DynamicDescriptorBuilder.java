@@ -54,8 +54,8 @@ public class DynamicDescriptorBuilder {
 			this.loader = loader;
 			
 			Debug.startTimer("Loading dynamic editor builder");
-
-			EditorIOAgent agent = new FileTrackingIOAgent();			
+			
+			EditorIOAgent agent = new FileTrackingIOAgent();		
 			agent.setDescriptor(EditorServiceParseController.getDescriptor());
 			builder = Environment.createInterpreter();
 			builder.setIOAgent(agent);
