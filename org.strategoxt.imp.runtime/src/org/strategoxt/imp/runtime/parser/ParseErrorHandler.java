@@ -57,9 +57,9 @@ public class ParseErrorHandler {
 		ATermAppl prod = termAt(term, 0);
 		ATermAppl rhs = termAt(prod, 1);
 		ATermAppl attrs = termAt(prod, 2);
-		ATermList contents = termAt(term, 1);
-		boolean isWaterTerm = isWater(rhs);
-		boolean isInsertTerm = isInsert(attrs);		
+		ATermList contents = termAt(term, 1);		
+		boolean isWaterTerm = hasLexicalConstructor(attrs, WATER);
+		boolean isInsertTerm = hasLexicalConstructor(attrs, INSERT);		
 		int beginErrorOffSet = 0;		
 		
 		//pre visit: keep offset as begin of error
@@ -125,19 +125,9 @@ public class ParseErrorHandler {
 				left.getColumn(), right.getEndColumn(), left.getLine(), right.getEndLine());
 		// UNDONE: Using AstMessageHandler
 		// parseErrors.addMarker(getProject().getRawProject().getFile(path), token, token, message, IMarker.SEVERITY_ERROR);
-	}
+	}	
 	
-	private static boolean isWater(ATermAppl cf) {
-		ATermAppl details = applAt(cf, 0);
-		
-		if (details.getName().equals("sort")) {	
-			details = applAt(details, 0);
-			return details.getName().equals(WATER);
-		}
-		return false;
-	}
-	
-	private static boolean isInsert(ATermAppl attrs) {		
+	private static boolean hasLexicalConstructor(ATermAppl attrs, String name) {		
 		if ("attrs".equals(attrs.getName())) {
 			ATermList attrList = termAt(attrs, 0);
 		
@@ -146,10 +136,11 @@ public class ParseErrorHandler {
 				ATermAppl details = applAt(term, 0);
 				if (details.getName().equals("cons")) {
 					details = applAt(details, 0);					
-					return details.getName().equals(INSERT);
+					return details.getName().equals(name);
 				}
 			}
 		}
 		return false;
-	}
+	}	
+	
 }
