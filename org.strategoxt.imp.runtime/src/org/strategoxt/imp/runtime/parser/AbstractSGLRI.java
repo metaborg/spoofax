@@ -12,6 +12,7 @@ import java.util.WeakHashMap;
 import lpg.runtime.Monitor;
 import lpg.runtime.PrsStream;
 
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.parser.IParser;
 import org.jboss.util.collection.WeakValueHashMap;
 import org.spoofax.jsglr.BadTokenException;

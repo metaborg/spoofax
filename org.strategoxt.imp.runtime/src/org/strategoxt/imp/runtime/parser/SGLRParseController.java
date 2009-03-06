@@ -64,7 +64,7 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 
 	// Simple accessors
 	
-	public final AstNode getCurrentAst() { 
+	public final synchronized AstNode getCurrentAst() { 
 		return currentAst;
 	}
 
@@ -123,12 +123,11 @@ public class SGLRParseController implements IParseController, ISourceInfo {
     }
 
 	public AstNode parse(String input, boolean scanOnly, IProgressMonitor monitor) {
-		// LK: Not sure if synchronization makes sense here??
-		synchronized (Environment.getSyncRoot()) {
-			if (getPath() == null)
-			    throw new IllegalStateException("SGLR parse controller not initialized");
-	
-			try {
+		if (getPath() == null)
+		    throw new IllegalStateException("SGLR parse controller not initialized");
+
+		try {
+			synchronized (this) {
 				errorHandler.clearErrors();
 				currentAst = null;
 				
@@ -137,29 +136,36 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 				char[] inputChars = input.toCharArray();
 				String filename = getPath().toPortableString();
 				
+				// TODO: finer-grained Monitor.isCanceled() checks
+				// TODO: finer-grained/less locking?
+				
 				currentAst = parser.parse(inputChars, filename);
+				if (monitor.isCanceled()) return null;
+				
 				ATerm asfix = parser.parseNoImplode(inputChars, filename);
+				if (monitor.isCanceled()) return null;
+				
 				errorHandler.reportNonFatalErrors(parser.getTokenizer(), asfix);
+				if (monitor.isCanceled()) return null;
 				
 				Debug.stopTimer("File parsed: " + filename);
-				
-			} catch (TokenExpectedException e) {
-				errorHandler.reportError(parser.getTokenizer(), e);
-			} catch (BadTokenException e) {
-				errorHandler.reportError(parser.getTokenizer(), e);
-			} catch (SGLRException e) {
-				errorHandler.reportError(parser.getTokenizer(), e);
-			} catch (IOException e) {
-				errorHandler.reportError(parser.getTokenizer(), e);
-			} catch (RuntimeException e) {
-				Environment.logException("Unexpected error during parsing", e);
-				errorHandler.reportError(parser.getTokenizer(), e);
-			}
-			
-			updateFeedBack();
-	
-			return currentAst;
+			}			
+		} catch (TokenExpectedException e) {
+			errorHandler.reportError(parser.getTokenizer(), e);
+		} catch (BadTokenException e) {
+			errorHandler.reportError(parser.getTokenizer(), e);
+		} catch (SGLRException e) {
+			errorHandler.reportError(parser.getTokenizer(), e);
+		} catch (IOException e) {
+			errorHandler.reportError(parser.getTokenizer(), e);
+		} catch (RuntimeException e) {
+			Environment.logException("Unexpected error during parsing", e);
+			errorHandler.reportError(parser.getTokenizer(), e);
 		}
+		
+		updateFeedBack();
+
+		return currentAst;
 	}
 
 	private void updateFeedBack() {

@@ -47,7 +47,6 @@ public class TokenColorer implements ITokenColorer {
 	public TextAttribute getColoring(IParseController controller, Object oToken) {
 		SGLRToken token = (SGLRToken) oToken;
 		AstNode node = token.getAstNode();
-		token.toString();
 		
 		parseController = controller;
 		

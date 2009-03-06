@@ -19,23 +19,35 @@ public class SGLRTokenIterator implements Iterator<IToken> {
 	
 	public SGLRTokenIterator(PrsStream stream, IRegion region) {
 		this.stream = stream;
-		index = Math.abs(stream.getTokenIndexAtCharacter(region.getOffset()));
-		
-		int lastIndex = stream.getTokenIndexAtCharacter(region.getOffset() + region.getLength());
-		if (lastIndex < 0)
-			lastIndex = -lastIndex + 1;
-		if (lastIndex >= stream.getTokens().size())
-			lastIndex = stream.getTokens().size() - 1;
-		//if (lastIndex > 0 && stream.getTokenAt(lastIndex).getKind() == TokenKind.TK_EOF.ordinal())
-		//	lastIndex--;
-		if (lastIndex > 0 && stream.getTokenAt(lastIndex).getStartOffset() == 0)
-			lastIndex--;
-		
-		this.lastIndex = lastIndex;
+		index = getStartIndex(stream, region);
+		lastIndex = getLastIndex(stream, region);
+	}
+
+	private static int getStartIndex(PrsStream stream, IRegion region) {
+		int result = Math.abs(stream.getTokenIndexAtCharacter(region.getOffset()));
+		if (result == 0)
+			result = 1; // skip reserved initial token
+		return result;
+	}
+
+	private static int getLastIndex(PrsStream stream, IRegion region) {
+		// TODO: Just fetch the last token by hand; the IMP interface and this workaround is terrible
+		int result = stream.getTokenIndexAtCharacter(region.getOffset() + region.getLength());
+		if (result < 0)
+			result = -result + 1;
+		if (result >= stream.getTokens().size())
+			result = stream.getTokens().size() - 1;
+		if (result > 0 && stream.getTokenAt(result).getStartOffset() == 0)
+			result--;
+		// while (stream.getTokenAt(result).getKind() == TokenKind.TK_ERROR.ordinal())
+		// 	result--;
+		return result;
 	}
 
 	public boolean hasNext() {
-		return index <= lastIndex;
+		return index <= lastIndex
+			&& stream.getTokenAt(index).getKind() != TokenKind.TK_ERROR.ordinal()
+			&& stream.getTokenAt(index).getKind() != TokenKind.TK_UNKNOWN.ordinal();
 	}
 
 	public IToken next() {

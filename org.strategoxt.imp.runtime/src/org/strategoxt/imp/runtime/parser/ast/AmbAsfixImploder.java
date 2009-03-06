@@ -37,13 +37,13 @@ public class AmbAsfixImploder extends AsfixImploder {
 		final ArrayList<AstNode> results = new ArrayList<AstNode>();
 		
 		final int oldOffset = offset;
-		final int oldBeginOffset = tokenizer.getBeginOffset();
+		final int oldBeginOffset = tokenizer.getStartOffset();
 		final boolean oldLexicalContext = lexicalContext;
 		
 		for (ATerm amb : ambs) {
 			// Restore lexical state for each branch
 			offset = oldOffset;
-			tokenizer.setBeginOffset(oldBeginOffset);
+			tokenizer.setStartOffset(oldBeginOffset);
 			lexicalContext = oldLexicalContext;
 			
 			results.add(implodeAppl(amb));

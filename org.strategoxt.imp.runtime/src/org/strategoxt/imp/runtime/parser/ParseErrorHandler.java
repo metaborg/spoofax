@@ -50,7 +50,10 @@ public class ParseErrorHandler {
 	}
 
 	private void reportOnRepairedCode(SGLRTokenizer tokenizer, ATerm term) {
+		// TODO: Nicer error messages; merge sequential error tokens etc.
+		
 		//TODO: use constants in AsfixImploder
+		
 		ATermAppl prod = termAt(term, 0);
 		ATermAppl rhs = termAt(prod, 1);
 		ATermAppl attrs = termAt(prod, 2);

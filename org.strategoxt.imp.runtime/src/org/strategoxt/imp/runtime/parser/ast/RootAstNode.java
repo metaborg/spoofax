@@ -6,14 +6,13 @@ import lpg.runtime.IToken;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.strategoxt.imp.runtime.parser.ISourceInfo;
-import org.strategoxt.imp.runtime.parser.SGLRParseController;
 
 public class RootAstNode extends AstNode {
-	private final ISourceInfo lsourceInfo;
+	private final ISourceInfo sourceInfo;
 
 	@Override
 	public ISourceInfo getSourceInfo() {
-		return lsourceInfo;
+		return sourceInfo;
 	}
 	
 	@Override
@@ -26,7 +25,7 @@ public class RootAstNode extends AstNode {
 		
 		super(sort, constructor, leftToken, rightToken, children);
 		
-		this.lsourceInfo = sourceInfo;
+		this.sourceInfo = sourceInfo;
 	}
 	
 	public static RootAstNode makeRoot(AstNode ast, ISourceInfo sourceInfo) {

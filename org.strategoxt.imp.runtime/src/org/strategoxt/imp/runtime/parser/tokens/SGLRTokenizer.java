@@ -17,12 +17,12 @@ public class SGLRTokenizer {
 	private final PrsStream parseStream = new PrsStream(lexStream);
 	
 	/** Start of the last token */
-	private int beginOffset;
+	private int startOffset;
 	
 	public SGLRTokenizer(char[] input, String filename) {
 		lexStream.initialize(input, filename);
 		parseStream.resetTokenStream();
-		beginOffset = 0;
+		startOffset = 0;
 		
 		// Token list must start with a bad token
 		makeToken(0, TK_RESERVED, true);
@@ -42,30 +42,39 @@ public class SGLRTokenizer {
 		return lexStream;
 	}
 	
-	public int getBeginOffset() {
-		return beginOffset;
+	public int getStartOffset() {
+		return startOffset;
 	}
 	
-	public void setBeginOffset(int beginOffset) {
-		this.beginOffset = beginOffset;
+	public void setStartOffset(int beginOffset) {
+		this.startOffset = beginOffset;
 	}
 	
 	public void endStream() {
-		makeToken(beginOffset + 1, TK_EOF, true);
+		makeToken(startOffset + 1, TK_EOF, true);
 	}
 	
 	public SGLRToken makeToken(int endOffset, TokenKind kind, boolean allowEmptyToken) {
-		if (!allowEmptyToken && beginOffset == endOffset) // empty token
+		if (!allowEmptyToken && startOffset == endOffset) // empty token
 			return null;
 		
-		SGLRToken token = new SGLRToken(parseStream, beginOffset, endOffset - 1, kind.ordinal());
+		//if (Debug.ENABLED) {
+			assert endOffset >= startOffset || (kind == TK_RESERVED && startOffset == 0);
+		//	if (parseStream.getTokens().size() > 0) {
+		//		IToken lastToken = (IToken) parseStream.getTokens().get(parseStream.getTokens().size() - 1); 
+		//		assert lastToken.getKind() == TK_RESERVED.ordinal()
+		//			|| (lastToken.getStartOffset() + lastToken.getEndOffset()) == startOffset;
+		//	}
+		//}
+		
+		SGLRToken token = new SGLRToken(parseStream, startOffset, endOffset - 1, kind.ordinal());
 		token.setTokenIndex(parseStream.getSize());
 		
 		// Add token and increment the stream size(!)
 		parseStream.addToken(token);
 		parseStream.setStreamLength(parseStream.getSize());
 		
-		beginOffset = endOffset;
+		startOffset = endOffset;
 		
 		return token;
 	}
