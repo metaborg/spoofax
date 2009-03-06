@@ -104,8 +104,7 @@ public class SGLRTokenizer {
 		boolean onlySeenWhitespace = Character.isWhitespace(lexStream.getCharValue(endOffset));
 		
 		while (endOffset + 1 < lexStream.getStreamLength()) {
-			char c = lexStream.getCharValue(endOffset + 1);
-			boolean isWhitespace = Character.isWhitespace(c);
+			boolean isWhitespace = isWhitespaceChar(endOffset+1);
 			
 			if (onlySeenWhitespace) {
 				onlySeenWhitespace = isWhitespace;
@@ -118,12 +117,29 @@ public class SGLRTokenizer {
 		
 		return new Token(parseStream, offset, endOffset, TK_ERROR.ordinal());
 	}
+
+	private boolean isWhitespaceChar(int streamPos) {
+		char c = lexStream.getCharValue(streamPos);
+		boolean isWhitespace = Character.isWhitespace(c);
+		return isWhitespace;
+	}
 	
 	/**
 	 * Creates an error token on stream part
 	 */
 	public IToken makeErrorToken(int beginOffset, int endOffset) {		
 		return new Token(parseStream, beginOffset, endOffset, TK_ERROR.ordinal());
+	}
+	
+	/**
+	 * Creates an error token on stream part, backwards skipping whitespace
+	 */
+	public IToken makeErrorTokenSkipLayout(int beginOffset, int endOffset) {		
+		int skipLength =0;
+		while (isWhitespaceChar(beginOffset-skipLength-1) && beginOffset-skipLength>0) {
+			skipLength++;
+		}
+		return makeErrorToken(beginOffset-skipLength, endOffset-skipLength);
 	}
 	
 	/**
