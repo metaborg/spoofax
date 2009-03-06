@@ -84,7 +84,7 @@ public class ParseErrorHandler {
 			reportErrorAtTokens(token, token, "Unexpected token");
 		}
 		if (isInsertTerm) {
-			IToken token = tokenizer.makeErrorToken(beginErrorOffSet, offset);
+			IToken token = tokenizer.makeErrorTokenSkipLayout(beginErrorOffSet, offset);
 			String inserted = "";
 			if (rhs.getName() == "lit") {
 				inserted = applAt(rhs, 0).getName();
