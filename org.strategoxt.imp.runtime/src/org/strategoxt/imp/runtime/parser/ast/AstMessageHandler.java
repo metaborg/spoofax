@@ -35,9 +35,19 @@ import org.strategoxt.imp.runtime.stratego.adapter.IWrappedAstNode;
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class AstMessageHandler {
-	private static final String PROBLEM_MARKER_TYPE = "org.eclipse.core.resources.problemmarker";
+	public static final String PARSE_MARKER_TYPE = new String("org.strategoxt.imp.runtime.parsemarker"); 
 
+	public static final String ANALYSIS_MARKER_TYPE = new String("org.strategoxt.imp.runtime.analysismarker");
+	
+	private final String markerType;
+
+	// TODO: Synchronize access to activeMarkers
+	//       (but not to marker API)
 	private final Set<IMarker> activeMarkers = new HashSet<IMarker>();
+	
+	public AstMessageHandler(String markerType) {
+		this.markerType = markerType;
+	}
 	
 	/**
 	 * Associates a new marker with a parsed (and possibly rewritten) term.
@@ -89,14 +99,13 @@ public class AstMessageHandler {
 				return;
 			}
 
-			IMarker marker = file.createMarker(PROBLEM_MARKER_TYPE);
-			marker.setAttribute(LINE_NUMBER, left.getLine());
-			marker.setAttribute(CHAR_START, left.getStartOffset());
-			marker.setAttribute(CHAR_END, right.getEndOffset() + 1);
-			marker.setAttribute(MESSAGE, message);
-			marker.setAttribute(SEVERITY, severity);
-			marker.setAttribute(PRIORITY, PRIORITY_HIGH);
-			activeMarkers.add(marker);
+			IMarker marker = file.createMarker(markerType);
+			String[] attrs =  { LINE_NUMBER,    CHAR_START,            CHAR_END,                 MESSAGE, SEVERITY, PRIORITY };
+			Object[] values = { left.getLine(), left.getStartOffset(), right.getEndOffset() + 1, message, severity, PRIORITY_HIGH };
+			marker.setAttributes(attrs, values);
+			synchronized (activeMarkers) {
+				activeMarkers.add(marker);
+			}
 		} catch (CoreException e) {
 			Environment.logException("Could not create error marker: " + message, e);
 		}
@@ -157,18 +166,24 @@ public class AstMessageHandler {
 		addMarker(file, errorToken, errorToken, message, severity);
 	}
 	
+	/**
+	 * Clear all known markers (previously reported by this instance).
+	 * For a know resource, use {@link #clearMarkers(IResource)} instead.
+	 */
 	public void clearAllMarkers() {
-		for (IMarker marker : activeMarkers) {
-			try {
-				marker.delete();
-				for (IMarker otherMarker : marker.getResource().findMarkers(PROBLEM_MARKER_TYPE, true, 0)) {
-					otherMarker.delete();
+		synchronized (activeMarkers) {
+			for (IMarker marker : activeMarkers) {
+				try {
+					marker.delete();
+					for (IMarker otherMarker : marker.getResource().findMarkers(markerType, true, 0)) {
+						otherMarker.delete();
+					}
+				} catch (CoreException e) {
+					Environment.logException("Unable to delete marker: " + marker, e);
 				}
-			} catch (CoreException e) {
-				Environment.logException("Unable to delete marker: " + marker, e);
 			}
+			activeMarkers.clear();
 		}
-		activeMarkers.clear();
 	}
 	
 	public final void clearMarkers(IStrategoAstNode node) {
@@ -180,7 +195,7 @@ public class AstMessageHandler {
 	 */
 	public void clearMarkers(IResource file) {
 		try {
-			IMarker[] markers = file.findMarkers(PROBLEM_MARKER_TYPE, true, 0);
+			IMarker[] markers = file.findMarkers(markerType, true, 0);
 			for (IMarker marker : markers) {
 				marker.delete();
 			}

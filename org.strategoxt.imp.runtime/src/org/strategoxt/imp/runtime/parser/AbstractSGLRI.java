@@ -13,6 +13,8 @@ import lpg.runtime.Monitor;
 import lpg.runtime.PrsStream;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.imp.parser.IParser;
 import org.jboss.util.collection.WeakValueHashMap;
 import org.spoofax.jsglr.BadTokenException;
@@ -108,12 +110,25 @@ public abstract class AbstractSGLRI implements IParser {
 	 * 
 	 * @return  The abstract syntax tree.
 	 */
-	public RootAstNode parse(char[] inputChars, String filename)
+	protected RootAstNode parse(char[] inputChars, String filename, IProgressMonitor monitor)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 
 		ATerm asfix = parseNoImplode(inputChars, filename);
+		if (monitor.isCanceled())
+			throw new OperationCanceledException();
 		AstNode imploded = imploder.implode(asfix, currentTokenizer);
 		return RootAstNode.makeRoot(imploded, getController());
+	}
+	
+	/**
+	 * Parse an input, returning the AST and initializing the parse stream.
+	 * 
+	 * @return  The abstract syntax tree.
+	 */
+	public RootAstNode parse(char[] inputChars, String filename)
+			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
+
+		return parse(inputChars, filename, new NullProgressMonitor());
 	}
 	
 	/**

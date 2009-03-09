@@ -2,19 +2,18 @@ package org.strategoxt.imp.runtime.services;
 
 import java.util.List;
 
+import lpg.runtime.IAst;
+import lpg.runtime.IToken;
+
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.services.ITokenColorer;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.swt.graphics.Color;
-
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
-import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
-
-import lpg.runtime.IAst;
-import lpg.runtime.IToken;
+import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -134,10 +133,13 @@ public class TokenColorer implements ITokenColorer {
 	}
 
 	public IRegion calculateDamageExtent(IRegion seed) {
-		if (parseController.getCurrentAst() == null) return seed;
+		if (parseController.getCurrentAst() == null)
+			return seed;
 		
 		// Always damage the complete source
+		// TODO: Is always damaging the complete source still necessary??
 		IAst ast = (IAst) parseController.getCurrentAst();
 		return new Region(0, ast.getRightIToken().getEndOffset());
+		// return seed;
 	}
 }

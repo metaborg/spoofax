@@ -42,8 +42,9 @@ public class DynamicDescriptorBuilder {
 	private final Set<IResource> upToDateMainFiles =
 		new HashSet<IResource>();
 	
+	// TODO: Use (and properly clean up) new marker type for internal errors?
 	private final AstMessageHandler messageHandler =
-		new AstMessageHandler();
+		new AstMessageHandler(AstMessageHandler.ANALYSIS_MARKER_TYPE);
 	
 	private final Interpreter builder;
 	

@@ -10,6 +10,8 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.model.ISourceProject;
@@ -27,6 +29,7 @@ import org.spoofax.jsglr.SGLRException;
 import org.spoofax.jsglr.TokenExpectedException;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.ISourceInfo;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
 import org.strategoxt.imp.runtime.parser.ast.AstNodeLocator;
@@ -48,7 +51,7 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 
 	private final TokenKindManager tokenManager = new TokenKindManager();
 	
-	private final ParseErrorHandler errorHandler = new ParseErrorHandler();
+	private final ParseErrorHandler errorHandler = new ParseErrorHandler(this);
 	
 	private final JSGLRI parser;
 	
@@ -126,44 +129,56 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 		if (getPath() == null)
 		    throw new IllegalStateException("SGLR parse controller not initialized");
 
+		String filename = getPath().toPortableString();
+		
+		IResource resource = getResource();
 		try {
-			synchronized (this) {
-				errorHandler.clearErrors();
-				currentAst = null;
+			Job.getJobManager().beginRule(resource, monitor); // enter lock
+
+			// TODO: Wait with parsing until token completes? and do it again for timer?
+			
+			// TODO: set update field, or use AstMessageHandler if all else fails
+			
+			ATerm asfix;
+			
+			Debug.startTimer();
+			
+			char[] inputChars = input.toCharArray();
 				
-				Debug.startTimer();
+			currentAst = parser.parse(inputChars, filename);
+			
+			if (monitor.isCanceled()) throw new OperationCanceledException();
+			asfix = parser.parseNoImplode(inputChars, filename);
+			
+			// (may not be synchronized; uses workspace lock)
+			if (monitor.isCanceled()) throw new OperationCanceledException();
+			errorHandler.clearErrors();
+			errorHandler.reportNonFatalErrors(parser.getTokenizer(), asfix);
 				
-				char[] inputChars = input.toCharArray();
-				String filename = getPath().toPortableString();
-				
-				// TODO: finer-grained Monitor.isCanceled() checks
-				// TODO: finer-grained/less locking?
-				
-				currentAst = parser.parse(inputChars, filename);
-				if (monitor.isCanceled()) return null;
-				
-				ATerm asfix = parser.parseNoImplode(inputChars, filename);
-				if (monitor.isCanceled()) return null;
-				
-				errorHandler.reportNonFatalErrors(parser.getTokenizer(), asfix);
-				if (monitor.isCanceled()) return null;
-				
-				Debug.stopTimer("File parsed: " + filename);
-			}			
+			Debug.stopTimer("File parsed: " + filename);
 		} catch (TokenExpectedException e) {
+			errorHandler.clearErrors(); // (may not be synchronized; uses workspace lock)
 			errorHandler.reportError(parser.getTokenizer(), e);
 		} catch (BadTokenException e) {
+			errorHandler.clearErrors();
 			errorHandler.reportError(parser.getTokenizer(), e);
 		} catch (SGLRException e) {
+			errorHandler.clearErrors();
 			errorHandler.reportError(parser.getTokenizer(), e);
 		} catch (IOException e) {
+			errorHandler.clearErrors();
 			errorHandler.reportError(parser.getTokenizer(), e);
+		} catch (OperationCanceledException e) {
+			throw e;
 		} catch (RuntimeException e) {
-			Environment.logException("Unexpected error during parsing", e);
+			Environment.logException("Internal parser error", e);
 			errorHandler.reportError(parser.getTokenizer(), e);
+		} finally {
+			Job.getJobManager().endRule(resource);
 		}
 		
-		updateFeedBack();
+		if (!monitor.isCanceled())
+			updateFeedBack();
 
 		return currentAst;
 	}

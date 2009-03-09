@@ -31,6 +31,7 @@ public class TokenKindManager {
 	 */
 	public TokenKind getTokenKind(ATermList pattern, ATermAppl sort) {
 		// TODO2: Optimization - cache default token kinds
+		// TODO: return TK_ERROR for WATER tokenss
 		
 		if (AsfixAnalyzer.isLayout(sort)) {
 			return TK_LAYOUT;

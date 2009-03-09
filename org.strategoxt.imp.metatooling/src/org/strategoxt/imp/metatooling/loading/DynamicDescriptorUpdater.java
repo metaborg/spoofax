@@ -34,8 +34,9 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 	
 	private DynamicDescriptorBuilder builder;
 	
+	// TODO: Use (and properly clean up) new marker type for internal errors?
 	private final AstMessageHandler messageHandler =
-		new AstMessageHandler();
+		new AstMessageHandler(AstMessageHandler.ANALYSIS_MARKER_TYPE);
 	
 	private DynamicDescriptorBuilder getBuilder() {
 		if (builder == null)
@@ -89,9 +90,6 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 			messageHandler.clearMarkers(descriptor);
 			
 			IFile file = descriptor.getProject().getFile(descriptor.getProjectRelativePath());
-			// UNDONE: Refresh packed descriptor resource if out of sync
-			//         (no longer works from workspace thread ... *sigh*)
-			// file.refreshLocal(0, null);
 			DescriptorFactory.load(file);
 			
 		} catch (BadDescriptorException e) {

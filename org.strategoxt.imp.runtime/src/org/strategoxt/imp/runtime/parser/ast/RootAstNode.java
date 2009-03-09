@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import lpg.runtime.IToken;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
-import org.strategoxt.imp.runtime.parser.ISourceInfo;
+import org.strategoxt.imp.runtime.ISourceInfo;
 
 public class RootAstNode extends AstNode {
 	private final ISourceInfo sourceInfo;

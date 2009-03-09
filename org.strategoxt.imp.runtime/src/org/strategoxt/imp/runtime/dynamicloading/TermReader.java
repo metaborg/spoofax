@@ -20,7 +20,7 @@ public class TermReader {
 	}
 	
 	public static IStrategoAppl findTerm(IStrategoTerm term, String constructor) {
-		if (term instanceof IStrategoAppl && cons(term).equals(constructor))
+		if (term.getTermType() == IStrategoTerm.APPL && cons(term).equals(constructor))
 			return (IStrategoAppl) term;
 		
 		for (int i = 0; i < term.getSubtermCount(); i++) {
@@ -40,7 +40,7 @@ public class TermReader {
 	}
 	
 	private static void collectTerms(IStrategoTerm term, String constructor, ArrayList<IStrategoAppl> results) {
-		if (term instanceof IStrategoAppl && cons(term).equals(constructor))
+		if (term.getTermType() == IStrategoTerm.APPL && cons(term).equals(constructor))
 			results.add((IStrategoAppl) term);
 		
 		for (int i = 0; i < term.getSubtermCount(); i++) {

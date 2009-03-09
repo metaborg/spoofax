@@ -38,7 +38,7 @@ public class WrappedAstNodeAppl extends WrappedAstNode implements IStrategoAppl 
 
 	@Override
 	protected boolean slowCompare(IStrategoTerm second) {
-		if (!(second instanceof IStrategoAppl))
+		if (second.getTermType() != IStrategoTerm.APPL)
 			return false;
 		IStrategoAppl snd = (IStrategoAppl) second;
 		if (snd.getSubtermCount() != getSubtermCount())

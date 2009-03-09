@@ -10,7 +10,6 @@ import lpg.runtime.IAst;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.WorkspaceJob;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -28,6 +27,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.ISourceInfo;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
@@ -50,9 +50,9 @@ public class StrategoFeedback implements IModelListener {
 	
 	private final String feedbackFunction;
 	
-	private final AstMessageHandler messages = new AstMessageHandler();
+	private final AstMessageHandler messages = new AstMessageHandler(AstMessageHandler.ANALYSIS_MARKER_TYPE);
 	
-	private boolean asyncExecuterEnqueued = false;
+	private Job asyncLastBuildJob;
 	
 	public StrategoFeedback(Descriptor descriptor, Interpreter resolver, String feedbackFunction) {
 		this.descriptor = descriptor;
@@ -72,56 +72,55 @@ public class StrategoFeedback implements IModelListener {
 	 * Starts a new update() operation, asynchronously.
 	 */
 	public void asyncUpdate(final IParseController parseController, final IProgressMonitor monitor) {		
-		synchronized (Environment.getSyncRoot()) {		
-			// TODO: Properly integrate this asynchronous job into the Eclipse environment?
+		// TODO: Properly integrate this asynchronous job into the Eclipse environment?
+		
+		synchronized (this) {
+			if (asyncLastBuildJob != null)
+				asyncLastBuildJob.cancel();
 			
-			if (!asyncExecuterEnqueued && feedbackFunction != null) {
-				asyncExecuterEnqueued = true;
-				
-				Job job = new WorkspaceJob("Analyzing updated resource") {
-					@Override
-					public IStatus runInWorkspace(IProgressMonitor monitor) throws CoreException {
-						synchronized (Environment.getSyncRoot()) {
-							asyncExecuterEnqueued = false;
-							update(parseController, monitor);
-						}
-						return Status.OK_STATUS;
-					}
-				};
-				job.setRule(parseController.getProject().getResource());
-				job.schedule();
-			}			
+			asyncLastBuildJob = new WorkspaceJob("Analyzing updated resource") {
+				@Override
+				public IStatus runInWorkspace(IProgressMonitor monitor) {
+					update(parseController, monitor);
+					return Status.OK_STATUS;
+				}
+			};
+			asyncLastBuildJob.setRule(parseController.getProject().getResource());
+			asyncLastBuildJob.schedule();
 		}
 	}
 
 	public void update(IParseController parseController, IProgressMonitor monitor) {
+		if (feedbackFunction == null || monitor.isCanceled())
+			return;
+
+		IStrategoTerm feedback;
+		String log;
+		
 		synchronized (Environment.getSyncRoot()) {
-			if (feedbackFunction != null) {
-				ITermFactory factory = Environment.getTermFactory();
-				IStrategoAstNode ast = (IStrategoAstNode) parseController.getCurrentAst();
-				if (ast == null) return;
+			ITermFactory factory = Environment.getTermFactory();
+			IStrategoAstNode ast = (IStrategoAstNode) parseController.getCurrentAst();
+			if (ast == null) return;
 
-				Debug.startTimer("Invoking feedback strategy " + feedbackFunction);
-				
-				String path = ast.getSourceInfo().getPath().toOSString();
-				String rootPath = ast.getSourceInfo().getProject().getRawProject().getLocation().toOSString();
+			String path = ast.getSourceInfo().getPath().toOSString();
+			String rootPath = ast.getSourceInfo().getProject().getRawProject().getLocation().toOSString();
 
-				IStrategoTerm[] inputParts = {
-						ast.getTerm(),
-						factory.makeString(path),
-						factory.makeString(rootPath)
-				};
-				IStrategoTerm input = factory.makeTuple(inputParts);
-				
-				IStrategoTerm feedback = invoke(feedbackFunction, input, ast.getSourceInfo().getPath().removeLastSegments(1));
-				
-				Debug.stopTimer("Completed feedback strategy " + feedbackFunction);
-				String log = ((LoggingIOAgent) interpreter.getIOAgent()).getLog().trim();
-				asyncPresentToUser(parseController, feedback, log);
-			}
+			IStrategoTerm[] inputParts = {
+					ast.getTerm(),
+					factory.makeString(path),
+					factory.makeString(rootPath)
+			};
+			IStrategoTerm input = factory.makeTuple(inputParts);
+			
+			feedback = invoke(feedbackFunction, input, ast.getSourceInfo());
+			log = ((LoggingIOAgent) interpreter.getIOAgent()).getLog().trim();
 		}
+		
+		if (!monitor.isCanceled())
+			presentToUser((ISourceInfo) parseController, feedback, log);
 	}
 	
+	/* UNDONE: asynchronous feedback presentation
 	private void asyncPresentToUser(final IParseController parseController, final IStrategoTerm feedback, final String log) {
 		Job job = new WorkspaceJob("Showing feedback") {
 			{ setSystem(true); } // don't show to user
@@ -135,8 +134,9 @@ public class StrategoFeedback implements IModelListener {
 		job.setRule(parseController.getProject().getResource());
 		job.schedule();
 	}
+	*/
 
-	private void presentToUser(IParseController parseController, IStrategoTerm feedback, String log) {
+	private void presentToUser(ISourceInfo sourceInfo, IStrategoTerm feedback, String log) {
 		messages.clearAllMarkers();
 
 		if (feedback != null
@@ -147,23 +147,23 @@ public class StrategoFeedback implements IModelListener {
 			
 		    IStrategoList errors = termAt(feedback, 0);
 		    IStrategoList warnings = termAt(feedback, 1);
-		    feedbackToMarkers(parseController, errors, IMarker.SEVERITY_ERROR);
-		    feedbackToMarkers(parseController, warnings, IMarker.SEVERITY_WARNING);
+		    feedbackToMarkers(sourceInfo, errors, IMarker.SEVERITY_ERROR);
+		    feedbackToMarkers(sourceInfo, warnings, IMarker.SEVERITY_WARNING);
 		} else if (feedback == null) {
-			IResource resource = ((SGLRParseController) parseController).getResource();
+			IResource resource = ((SGLRParseController) sourceInfo).getResource();
 			messages.addMarkerFirstLine(resource, "Analysis failed: " + log, IMarker.SEVERITY_ERROR);
 		} else {
-			IResource resource = ((SGLRParseController) parseController).getResource();
+			IResource resource = ((SGLRParseController) sourceInfo).getResource();
 			messages.addMarkerFirstLine(resource, "Internal error - illegal output from " + feedbackFunction + ": " + feedback, IMarker.SEVERITY_ERROR);
 		    Environment.logException("Illegal output from " + feedbackFunction + ": " + feedback);
 		}
 	}
 	
-	private final void feedbackToMarkers(IParseController parseController, IStrategoList feedbacks, int severity) {
+	private final void feedbackToMarkers(ISourceInfo sourceInfo, IStrategoList feedbacks, int severity) {
 	    for (IStrategoTerm feedback : feedbacks.getAllSubterms()) {
 	        IStrategoTerm term = termAt(feedback, 0);
 			IStrategoString message = termAt(feedback, 1);
-			IResource resource = ((SGLRParseController) parseController).getResource();
+			IResource resource = sourceInfo.getResource();
 			messages.addMarker(resource, term, message.stringValue(), severity);
 	    }
 	}	
@@ -184,7 +184,7 @@ public class StrategoFeedback implements IModelListener {
 			};
 			IStrategoTerm input = factory.makeTuple(inputParts);
 			
-			return invoke(function, input, node.getSourceInfo().getPath().removeLastSegments(1));
+			return invoke(function, input, node.getSourceInfo());
 		}
 	}
 	
@@ -194,13 +194,16 @@ public class StrategoFeedback implements IModelListener {
 	 * 
 	 * @see #getAstNode(IStrategoTerm)  To retrieve the AST node associated with the resulting term.
 	 */
-	public IStrategoTerm invoke(String function, IStrategoTerm term, IPath workingDir) {
+	public IStrategoTerm invoke(String function, IStrategoTerm term, ISourceInfo sourceInfo) {
 		synchronized (Environment.getSyncRoot()) {
 		    Debug.startTimer();
 		    boolean success;
 			try {
+				// TODO: Make interpreter support monitor.isCanceled()?
+				//       (e.g., overriding Context.lookupSVar to throw an OperationCanceledException) 
+				
 				interpreter.setCurrent(term);
-				initInterpreterPath(workingDir);
+				initInterpreterPath(sourceInfo.getPath().removeLastSegments(1));
 	
 				((LoggingIOAgent) interpreter.getIOAgent()).clearLog();
 				success = interpreter.invoke(function);
@@ -208,13 +211,18 @@ public class StrategoFeedback implements IModelListener {
 			} catch (InterpreterExit e) {
 				success = e.getValue() == InterpreterExit.SUCCESS;
 			} catch (InterpreterException e) {
-				Environment.logException("Internal error evaluating function " + function, e);
+				// (source marker should be added by invoking method) 
+				Environment.logException("Internal error evaluating strategy " + function, e);
+				return null;
+			} catch (RuntimeException e) {
+				// (source marker should be added by invoking method) 
+				Environment.logException("Internal error evaluating strategy " + function, e);
 				return null;
 			}
 			
 			if (!success) return null;
 			
-			Debug.stopTimer("Invoked Stratego strategy " + function);
+			Debug.stopTimer("Evaluated strategy " + function);
 			return interpreter.current();
 		}
 	}

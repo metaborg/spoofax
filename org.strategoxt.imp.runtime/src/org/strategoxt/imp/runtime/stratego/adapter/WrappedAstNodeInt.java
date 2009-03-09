@@ -24,7 +24,7 @@ public class WrappedAstNodeInt extends WrappedAstNode implements IStrategoInt {
 	
 	@Override
 	public boolean slowCompare(IStrategoTerm second) {
-		return second instanceof IStrategoInt
+		return second.getTermType() == IStrategoTerm.INT
 			&& ((IStrategoInt) second).intValue() == intValue()
 			&& second.getAnnotations().equals(getAnnotations());
 	}

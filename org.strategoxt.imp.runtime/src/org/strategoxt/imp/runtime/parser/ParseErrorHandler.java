@@ -1,13 +1,15 @@
 package org.strategoxt.imp.runtime.parser;
 
-import static java.lang.Math.*;
 import static org.spoofax.jsglr.Term.*;
 import lpg.runtime.IToken;
 
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.imp.parser.IMessageHandler;
 import org.spoofax.jsglr.BadTokenException;
 import org.spoofax.jsglr.TokenExpectedException;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.ISourceInfo;
+import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
 
 import aterm.ATerm;
@@ -25,12 +27,21 @@ public class ParseErrorHandler {
 	
 	private static final String INSERT = "INSERTION";
 	
+	private final AstMessageHandler handler = new AstMessageHandler(AstMessageHandler.PARSE_MARKER_TYPE);
+	
+	private final ISourceInfo sourceInfo;
+
 	private IMessageHandler messages;
 	
 	private int offset;
+
+	public ParseErrorHandler(ISourceInfo sourceInfo) {
+		this.sourceInfo = sourceInfo;
+	}
 	
 	public void clearErrors() {
 		messages.clearMessages();
+		handler.clearMarkers(sourceInfo.getResource());
 	}
 	
 	public void setMessages(IMessageHandler messages) {
@@ -50,16 +61,19 @@ public class ParseErrorHandler {
 	}
 
 	private void reportOnRepairedCode(SGLRTokenizer tokenizer, ATerm term) {
-		// TODO: Nicer error messages; merge sequential error tokens etc.
+		// TODO: Nicer error messages; merge consecutive error tokens etc.
 		
-		//TODO: use constants in AsfixImploder
+		// TODO: Report error for INSERTEND tokens
+		
+		// TODO: Try using constructor matching to recognize WATER tokens..?
+		//       (which wasn't working before...)
 		
 		ATermAppl prod = termAt(term, 0);
 		ATermAppl rhs = termAt(prod, 1);
 		ATermAppl attrs = termAt(prod, 2);
-		ATermList contents = termAt(term, 1);		
-		boolean isWaterTerm = hasLexicalConstructor(attrs, WATER);
-		boolean isInsertTerm = hasLexicalConstructor(attrs, INSERT);		
+		ATermList contents = termAt(term, 1);
+		boolean isWaterTerm = isWater(rhs);
+		boolean isInsertTerm = isInsert(attrs);		
 		int beginErrorOffSet = 0;		
 		
 		//pre visit: keep offset as begin of error
@@ -71,20 +85,20 @@ public class ParseErrorHandler {
 		// Recurse the tree and update the offset
 		for (int i = 0; i < contents.getLength(); i++) {
 			ATerm child = contents.elementAt(i);
-			if (child.getType() == ATerm.INT){
-				offset+=1;				
-				}
-			else
-				reportOnRepairedCode(tokenizer, child);				
+			if (child.getType() == ATerm.INT) {
+				offset += 1;				
+			} else {
+				reportOnRepairedCode(tokenizer, child);
+			}
 		}
 		
 		//post visit: report error
 		if (isWaterTerm) {
 			IToken token = tokenizer.makeErrorToken(beginErrorOffSet, offset - 1);
-			reportErrorAtTokens(token, token, "Unexpected token");
+			reportErrorAtTokens(token, token, "'" + token + "' not expected here");
 		}
 		if (isInsertTerm) {
-			IToken token = tokenizer.makeErrorTokenSkipLayout(beginErrorOffSet, offset);
+			IToken token = tokenizer.makeErrorTokenSkipLayout(beginErrorOffSet, offset + 1);
 			String inserted = "";
 			if (rhs.getName() == "lit") {
 				inserted = applAt(rhs, 0).getName();
@@ -105,7 +119,7 @@ public class ParseErrorHandler {
 		IToken token = tokenizer.makeErrorToken(exception.getOffset());
 		String message = exception.isEOFToken()
         	? exception.getShortMessage()
-        	: "'" + token.toString() + "' not expected here";
+        	: "'" + token + "' not expected here";
 
         	reportErrorAtTokens(token, token, message);
 	}
@@ -120,14 +134,25 @@ public class ParseErrorHandler {
 	}
 	
 	private void reportErrorAtTokens(IToken left, IToken right, String message) {
-		messages.handleSimpleMessage(
-				message, max(0, left.getStartOffset()), max(0, right.getEndOffset()),
-				left.getColumn(), right.getEndColumn(), left.getLine(), right.getEndLine());
-		// UNDONE: Using AstMessageHandler
-		// parseErrors.addMarker(getProject().getRawProject().getFile(path), token, token, message, IMarker.SEVERITY_ERROR);
-	}	
+		// UNDONE: Using IMP message handler
+		// TODO: Cleanup - remove messages field and related code
+		//messages.handleSimpleMessage(
+		// 		message, max(0, left.getStartOffset()), max(0, right.getEndOffset()),
+		// 		left.getColumn(), right.getEndColumn(), left.getLine(), right.getEndLine());
+		handler.addMarker(sourceInfo.getResource(), left, right, message, IMarker.SEVERITY_ERROR);
+	}
 	
-	private static boolean hasLexicalConstructor(ATermAppl attrs, String name) {		
+	private static boolean isWater(ATermAppl cf) {
+		ATermAppl details = applAt(cf, 0);
+		
+		if (details.getName().equals("sort")) {	
+			details = applAt(details, 0);
+			return details.getName().equals(WATER);
+		}
+		return false;
+	}
+	
+	private static boolean isInsert(ATermAppl attrs) {		
 		if ("attrs".equals(attrs.getName())) {
 			ATermList attrList = termAt(attrs, 0);
 		
@@ -136,11 +161,10 @@ public class ParseErrorHandler {
 				ATermAppl details = applAt(term, 0);
 				if (details.getName().equals("cons")) {
 					details = applAt(details, 0);					
-					return details.getName().equals(name);
+					return details.getName().equals(INSERT);
 				}
 			}
 		}
 		return false;
-	}	
-	
+	}
 }

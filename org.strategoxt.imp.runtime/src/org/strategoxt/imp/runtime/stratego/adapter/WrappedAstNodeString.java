@@ -35,7 +35,7 @@ public class WrappedAstNodeString extends WrappedAstNode implements IStrategoStr
 
 	@Override
 	public boolean slowCompare(IStrategoTerm second) {
-		return second instanceof IStrategoString
+		return second.getTermType() == IStrategoTerm.STRING
 			&& ((IStrategoString) second).stringValue().equals(stringValue())
 			&& second.getAnnotations().equals(getAnnotations());
 	}

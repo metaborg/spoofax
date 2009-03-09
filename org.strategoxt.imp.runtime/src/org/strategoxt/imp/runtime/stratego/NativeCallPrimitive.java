@@ -19,6 +19,8 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class NativeCallPrimitive extends AbstractPrimitive {
+    
+	// TODO: Treat sdf2table differently; give warning for other native calls
 
 	private final NativeCallHelper caller = new NativeCallHelper();
 	

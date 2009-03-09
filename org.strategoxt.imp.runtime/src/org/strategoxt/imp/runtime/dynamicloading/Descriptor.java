@@ -18,6 +18,7 @@ import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.parser.IParseController;
 import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.services.StrategoFeedback;
 
@@ -269,7 +270,7 @@ public class Descriptor {
 		IStrategoAppl result = findTerm(document, name);
 		if (result == null) return defaultValue;
 		
-		if (termAt(result, 0) instanceof IStrategoAppl &&
+		if ( termAt(result, 0).getTermType() == IStrategoTerm.APPL &&
 				cons((IStrategoAppl) termAt(result, 0)).equals("Values")) {
 			return concatTermStrings(termAt(result, 0));
 		} else {

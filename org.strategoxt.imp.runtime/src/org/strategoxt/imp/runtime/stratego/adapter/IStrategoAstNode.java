@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import lpg.runtime.IAst;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.strategoxt.imp.runtime.parser.ISourceInfo;
+import org.strategoxt.imp.runtime.ISourceInfo;
 
 /**
  * Interface for an AST node that can be converted into an ATerm. 

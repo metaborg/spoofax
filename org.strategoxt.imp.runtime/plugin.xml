@@ -54,6 +54,70 @@
             language="DynamicRoot">
       </outliner>
    </extension>
+   
+   <extension
+         id="org.strategoxt.imp.runtime.parsemarker"
+         name="Parse error"
+         point="org.eclipse.core.resources.markers">
+    		<persistent value="true" />
+            <super type="org.eclipse.core.resources.problemmarker"/>
+            <super type="org.eclipse.core.resources.textmarker"/>
+   </extension>
+   
+   <extension
+         id="org.strategoxt.imp.runtime.analysismarker"
+         name="Parse error"
+         point="org.eclipse.core.resources.markers">
+    		<persistent value="true" />
+            <super type="org.eclipse.core.resources.problemmarker"/>
+            <super type="org.eclipse.core.resources.textmarker"/>
+   </extension>
+   
+   <extension
+      point="org.eclipse.ui.editors.annotationTypes">
+   <!-- (ignore any reference errors here *sigh*) -->
+   <type
+      name="org.strategoxt.imp.runtime.parseannotation"
+      super="org.eclipse.ui.workbench.texteditor.error"
+      markerType="org.strategoxt.imp.runtime.parsemarker"
+      markerSeverity="2">
+   </type>
+   <type
+      name="org.strategoxt.imp.runtime.analysisannotation"
+      super="org.eclipse.ui.workbench.texteditor.error"
+      markerType="org.strategoxt.imp.runtime.analysismarker"
+      markerSeverity="2">
+   </type>
+   </extension>
+   <extension
+         id="org.strategoxt.imp.runtime.parsemarkerspec"
+         point="org.eclipse.ui.editors.markerAnnotationSpecification">
+      <specification
+            annotationType="org.strategoxt.imp.runtime.parseannotation"
+            colorPreferenceKey="spiParseAnnotationColor"
+            colorPreferenceValue="255,128,147"
+            contributesToHeader="true"
+            highlightPreferenceKey="parseAnnotationHighlightKey"
+            highlightPreferenceValue="false"
+            includeOnPreferencePage="false"
+            isGoToNextNavigationTarget="true"
+            isGoToNextNavigationTargetKey="parseAnnotationIsGotoNextKey"
+            isGoToPreviousNavigationTarget="true"
+            isGoToPreviousNavigationTargetKey="parseAnnotationIsGotoPrevKey"
+            label="Spoofax/IMP Parser Annotation"
+            overviewRulerPreferenceKey="parseAnnotationOverviewKey"
+            overviewRulerPreferenceValue="true"
+            presentationLayer="2"
+            showInNextPrevDropdownToolbarAction="true"
+            symbolicIcon="error"
+            textPreferenceKey="parseAnnotationTextKey"
+            textPreferenceValue="true"
+            textStylePreferenceKey="parseAnnotationTextStyleKey"
+            textStylePreferenceValue="SQUIGGLES"
+            verticalRulerPreferenceKey="parseAnnotationVerticalKey"
+            verticalRulerPreferenceValue="true"/>
+   </extension>
+
    <!-- Extension point not implemented; manually called from SGLRParseController instead
    <extension
          point="org.eclipse.imp.runtime.modelListener">

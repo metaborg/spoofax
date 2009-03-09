@@ -10,8 +10,18 @@ import java.util.Stack;
 public class Debug {	
 	public static final boolean ENABLED = Debug.class.desiredAssertionStatus();
 	
-	public static final Stack<Long> timers = new Stack<Long>();
-	
+	private static ThreadLocal<Stack<Long>> timers = new ThreadLocal<Stack<Long>>();
+
+	public static Stack<Long> getTimers() {
+		Stack<Long> result = timers.get();
+		if (result == null) {
+			result = new Stack<Long>();
+			timers.set(result);
+		}
+		
+		return result;
+	}
+
 	public static void log(Object... messageParts) {
 		if (ENABLED) {
 			StringBuilder message = new StringBuilder("[org.strategoxt.imp] ");
@@ -27,19 +37,19 @@ public class Debug {
 	public static void startTimer(Object... messageParts) {
 		if (ENABLED) {
 			log(messageParts);
-			timers.push(System.currentTimeMillis());
+			getTimers().push(System.currentTimeMillis());
 		}
 	}
 	
 	public static void startTimer() {
 		if (ENABLED) {
-			timers.push(System.currentTimeMillis());
+			getTimers().push(System.currentTimeMillis());
 		}
 	}
 	
 	public static void stopTimer(String message) {
 		if (ENABLED) {
-			long start = timers.pop();
+			long start = getTimers().pop();
 			
 			log(message, "-", System.currentTimeMillis() - start, " ms");
 		}		

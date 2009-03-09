@@ -13,7 +13,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermPrinter;
 import org.spoofax.interpreter.terms.InlinePrinter;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.parser.ISourceInfo;
+import org.strategoxt.imp.runtime.ISourceInfo;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 
@@ -101,7 +101,10 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 		AstNode result = this;
 		while (result.getParent() != null)
 			result = result.getParent();
-		return (RootAstNode) result;
+		if (!(result instanceof RootAstNode))
+			throw new IllegalStateException("Tree not initialized using RootAstNode.create()");
+		else
+			return (RootAstNode) result;
 	}
 	
 	public IStrategoTerm getTerm() {

@@ -148,7 +148,7 @@ public class WrappedAstNodeLink extends WrappedAstNode implements IWrappedAstNod
 
 	public String stringValue() {
 		if (getTermType() != STRING)
-			throw new AnnotationWrapperException("Called realValue() on a term that is not of type LIST");
+			throw new AnnotationWrapperException("Called stringValue() on a term that is not of type LIST");
 		return ((IStrategoString) wrapped).stringValue();
 	}
 }
