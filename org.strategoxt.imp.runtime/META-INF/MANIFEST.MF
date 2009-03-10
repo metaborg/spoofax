@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Spoofax/IMP Runtime
 Bundle-SymbolicName: org.strategoxt.imp.runtime;singleton:=true
-Bundle-Version: 0.1.0.2500
+Bundle-Version: 0.1.0.2505
 Require-Bundle: org.eclipse.imp.runtime,
  org.spoofax.aterm,
  org.spoofax.jsglr,
