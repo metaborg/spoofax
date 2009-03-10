@@ -49,6 +49,7 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 			Job job = new WorkspaceJob("Updating editor descriptor runtime") {
 				@Override
 				public IStatus runInWorkspace(IProgressMonitor monitor) {
+					// TODO: Finer-grained locking?
 					synchronized (Environment.getSyncRoot()) {
 						getBuilder().invalidateUpdatedResources();
 						postResourceChanged(event.getDelta(), monitor);
@@ -66,7 +67,7 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 		
 		if (children.length == 0) {		
 			IResource resource = delta.getResource();
-			if ((delta.getFlags() & CONTENT) == CONTENT)
+			if (isSignificantChange(delta))
 				updateResource(resource, monitor, false);
 		} else {
 			// Recurse
@@ -74,8 +75,18 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 				postResourceChanged(child, monitor);
 		}
 	}
+
+	private static boolean isSignificantChange(IResourceDelta delta) {
+		int flags = delta.getFlags();
+		return (flags & CONTENT) == CONTENT
+			|| (flags & MOVED_TO) == MOVED_TO
+			|| (flags & MOVED_FROM) == MOVED_FROM
+			|| (flags & REPLACED) == REPLACED
+			|| (flags == 0);
+	}
 	
 	public void updateResource(IResource resource, IProgressMonitor monitor, boolean startup) {
+		// TODO: Enqueue all updates, ensure builder runs first
 		if (resource.getName().endsWith(".packed.esv")) {
 			monitor.beginTask("Loading " + resource.getName(), IProgressMonitor.UNKNOWN);
 			loadPackedDescriptor(resource);
