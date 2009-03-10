@@ -10,6 +10,8 @@ import org.eclipse.imp.language.LanguageValidator;
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class StartupDescriptorValidator extends LanguageValidator {
+	
+	// HACK: I'm using a validator to hook into the language runtime
 
 	public StartupDescriptorValidator() {
 		StartupDescriptorLoader.run();

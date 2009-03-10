@@ -7,7 +7,6 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.language.Language;
-import org.eclipse.imp.language.LanguageRegistry;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.jsglr.InvalidParseTableException;
 import org.spoofax.jsglr.ParseTable;
@@ -20,7 +19,9 @@ import org.strategoxt.imp.runtime.parser.JSGLRI;
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class DescriptorFactory {	
+public class DescriptorFactory {
+	
+	private static final DescriptorRegistry registry = new DescriptorRegistry();
 	
 	private static JSGLRI descriptorParser;
 	
@@ -63,7 +64,7 @@ public class DescriptorFactory {
 		Language language = result.getLanguage();
 		
 		Environment.registerDescriptor(language, result);
-		LanguageRegistry.registerLanguage(language);
+		registry.register(result);
 		
 		if (parseTable == null) parseTable = result.openParseTableStream();
 		registerParseTable(language, parseTable);
