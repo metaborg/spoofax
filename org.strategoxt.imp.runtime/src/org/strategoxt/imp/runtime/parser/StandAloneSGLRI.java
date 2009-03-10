@@ -5,6 +5,7 @@ import java.io.InputStream;
 
 import org.eclipse.imp.language.Language;
 import org.spoofax.jsglr.BadTokenException;
+import org.spoofax.jsglr.IRecoverAlgorithm;
 import org.spoofax.jsglr.InvalidParseTableException;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.SGLRException;
@@ -35,6 +36,12 @@ public class StandAloneSGLRI {
 			Language lang = new StandAloneLanguage(language);
 			ParseTable table = Environment.registerParseTable(lang, parseTable);
 			parser = new JSGLRI(table, startSymbol);			
+		}
+	}
+	
+	public void withBacktracking(boolean withBT) {
+		if (parser instanceof JSGLRI) {
+			((JSGLRI)parser).withBacktracking(withBT);
 		}
 	}
 	
