@@ -2,7 +2,6 @@ package org.strategoxt.imp.runtime.parser;
 
 import static org.spoofax.jsglr.Term.*;
 import lpg.runtime.IToken;
-
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.imp.parser.IMessageHandler;
 import org.spoofax.jsglr.BadTokenException;
@@ -27,6 +26,8 @@ public class ParseErrorHandler {
 	
 	private static final String INSERT = "INSERTION";
 	
+	private static final String INSERT_END = "INSERTEND";
+	
 	private final AstMessageHandler handler = new AstMessageHandler(AstMessageHandler.PARSE_MARKER_TYPE);
 	
 	private final ISourceInfo sourceInfo;
@@ -44,9 +45,9 @@ public class ParseErrorHandler {
 		handler.clearMarkers(sourceInfo.getResource());
 	}
 	
-	public void setMessages(IMessageHandler messages) {
+	public void setMessages (IMessageHandler messages) {
 		this.messages = messages;
-	}
+	}	
 	
 	/**
 	 * Report WATER + INSERT errors from parse tree
@@ -72,12 +73,13 @@ public class ParseErrorHandler {
 		ATermAppl rhs = termAt(prod, 1);
 		ATermAppl attrs = termAt(prod, 2);
 		ATermList contents = termAt(term, 1);
-		boolean isWaterTerm = isWater(rhs);
-		boolean isInsertTerm = isInsert(attrs);		
+		boolean isWaterTerm = isErrorProduction(attrs, WATER);	//isWater(rhs);
+		boolean isInsertTerm = isErrorProduction(attrs, INSERT);	
+		boolean isEndInsertTerm = isErrorProduction(attrs, INSERT_END);	
 		int beginErrorOffSet = 0;		
 		
 		//pre visit: keep offset as begin of error
-		if(isWaterTerm || isInsertTerm)
+		if(isWaterTerm || isInsertTerm || isEndInsertTerm)
         { 
         	beginErrorOffSet = offset;        	
         }
@@ -92,10 +94,14 @@ public class ParseErrorHandler {
 			}
 		}
 		
-		//post visit: report error
+		//post visit: report error				
 		if (isWaterTerm) {
 			IToken token = tokenizer.makeErrorToken(beginErrorOffSet, offset - 1);
 			reportErrorAtTokens(token, token, "'" + token + "' not expected here");
+		}
+		if (isEndInsertTerm) {
+			IToken token = tokenizer.makeErrorToken(beginErrorOffSet, offset - 1);
+			reportErrorAtTokens(token, token, "Closing of '" + token + "' is expected here");
 		}
 		if (isInsertTerm) {
 			IToken token = tokenizer.makeErrorTokenSkipLayout(beginErrorOffSet, offset + 1);
@@ -120,10 +126,9 @@ public class ParseErrorHandler {
 		String message = exception.isEOFToken()
         	? exception.getShortMessage()
         	: "'" + token + "' not expected here";
-
         	reportErrorAtTokens(token, token, message);
-	}
-	
+	}	
+	 
 	public void reportError(SGLRTokenizer tokenizer, Exception exception) {
 		String message = "Internal parsing error: " + exception;
 		IToken token = tokenizer.makeErrorToken(0);
@@ -140,29 +145,21 @@ public class ParseErrorHandler {
 		// 		message, max(0, left.getStartOffset()), max(0, right.getEndOffset()),
 		// 		left.getColumn(), right.getEndColumn(), left.getLine(), right.getEndLine());
 		handler.addMarker(sourceInfo.getResource(), left, right, message, IMarker.SEVERITY_ERROR);
-	}
+	}	
 	
-	private static boolean isWater(ATermAppl cf) {
-		ATermAppl details = applAt(cf, 0);
-		
-		if (details.getName().equals("sort")) {	
-			details = applAt(details, 0);
-			return details.getName().equals(WATER);
-		}
-		return false;
-	}
-	
-	private static boolean isInsert(ATermAppl attrs) {		
+	private static boolean isErrorProduction(ATermAppl attrs, String consName) {		
 		if ("attrs".equals(attrs.getName())) {
 			ATermList attrList = termAt(attrs, 0);
 		
-			ATermAppl term = termAt(attrList, 0);
+			for (int i=0; i<attrList.getLength(); i++) {							
+			ATermAppl term = termAt(attrList, i);
 			if (term.getName().equals("term")) {
 				ATermAppl details = applAt(term, 0);
 				if (details.getName().equals("cons")) {
 					details = applAt(details, 0);					
-					return details.getName().equals(INSERT);
+					return details.getName().equals(consName);
 				}
+			}
 			}
 		}
 		return false;
