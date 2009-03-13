@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.spoofax.jsglr.BadTokenException;
-import org.spoofax.jsglr.IRecoverAlgorithm;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.SGLR;
 import org.spoofax.jsglr.SGLRException;
@@ -20,7 +19,10 @@ import aterm.ATerm;
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */ 
 public class JSGLRI extends AbstractSGLRI {
-	private final SGLR parser;
+	
+	private final ParseTable parseTable;
+	
+	private SGLR parser;
 	
 	// Initialization and parsing
 	
@@ -28,9 +30,8 @@ public class JSGLRI extends AbstractSGLRI {
 			SGLRParseController controller, TokenKindManager tokenManager) {
 		super(controller, tokenManager, startSymbol, parseTable);
 		
-		parser = Environment.createSGLR(parseTable);
-		parser.setCycleDetect(false);
-		parser.setFilter(false); // FIXME: Filters not supported ATM
+		this.parseTable = parseTable;
+		resetState();
 	}
 	
 	public JSGLRI(ParseTable parseTable, String startSymbol) {
@@ -48,8 +49,20 @@ public class JSGLRI extends AbstractSGLRI {
 		return doParseNoImplode(toByteStream(inputChars), inputChars);
 	}
 	
+	/**
+	 * Resets the state of this parser, reinitializing the SGLR instance
+	 */
+	void resetState() {
+		parser = Environment.createSGLR(parseTable);
+		parser.setCycleDetect(false);
+		parser.setFilter(false); // FIXME: Filters not supported ATM
+	}
+	
 	private ATerm doParseNoImplode(InputStream inputStream, char[] inputChars)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
+		
+		// FIXME: Some bug in JSGLR is causing its state to get corrupted; must reset it every parse
+		resetState();
 		
 		// Read stream using tokenizer/lexstream
 		
