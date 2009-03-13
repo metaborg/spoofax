@@ -86,7 +86,8 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 	}
 	
 	public void updateResource(IResource resource, IProgressMonitor monitor, boolean startup) {
-		// TODO: Enqueue all updates, ensure builder runs first
+		// FIXME: Enqueue all updates, ensure builder runs first
+		// FIXME: The builder should refresh any build resources (i.e., .packed.esv)
 		if (resource.getName().endsWith(".packed.esv")) {
 			monitor.beginTask("Loading " + resource.getName(), IProgressMonitor.UNKNOWN);
 			loadPackedDescriptor(resource);

@@ -84,6 +84,9 @@ public class DynamicDescriptorBuilder {
 						buildDescriptor(mainFile);
 					}
 				}
+			} else if (!isMainFile(filename)) {
+				// XXX: Find the corresponding main file when a file hasn't been loaded before
+				Environment.logException("Could not resolve dependencies for updated file " + resource.getName());
 			}
 			
 			if (isMainFile(filename) && !upToDateMainFiles.contains(resource)) {
@@ -120,6 +123,9 @@ public class DynamicDescriptorBuilder {
 			}
 			
 			updateDependencies(mainFile);
+			
+			// XXX: The generated file should be refreshed after rebuilding
+			
 		} catch (InterpreterException e) {
 			Environment.logException("Unable to build descriptor for " + mainFile, e);
 			messageHandler.addMarkerFirstLine(mainFile, "Internal error building descriptor:" + e, SEVERITY_ERROR);
