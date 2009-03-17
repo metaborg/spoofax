@@ -75,6 +75,8 @@ public class AsfixImploder {
 	public AstNode implode(ATerm asfix, SGLRTokenizer tokenizer) {
 		this.tokenizer = tokenizer;
 		
+		// TODO: Return null if imploded tree has null constructor??
+		
 		AstNode result = implodedCache.get(asfix);
 		if (result != null) return result;
 		

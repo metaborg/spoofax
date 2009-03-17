@@ -37,6 +37,8 @@ public class IMPJSGLRIPrimitive extends JSGLRPrimitive {
 		
 		// TODO: Use svars[0] onError argument?
 		
+		// XXX: Don't use recovery from Interpreter-primitive parsing
+		
 		if(!Tools.isTermString(tvars[0]))
 			return false;
 		if(!Tools.isTermInt(tvars[1]))

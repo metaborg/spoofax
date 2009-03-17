@@ -169,7 +169,7 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 			errorHandler.clearErrors();
 			errorHandler.reportError(parser.getTokenizer(), e);
 		} catch (OperationCanceledException e) {
-			throw e;
+			return null;
 		} catch (RuntimeException e) {
 			Environment.logException("Internal parser error", e);
 			errorHandler.reportError(parser.getTokenizer(), e);

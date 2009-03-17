@@ -100,7 +100,7 @@ public class StrategoFeedback implements IModelListener {
 		synchronized (Environment.getSyncRoot()) {
 			ITermFactory factory = Environment.getTermFactory();
 			IStrategoAstNode ast = (IStrategoAstNode) parseController.getCurrentAst();
-			if (ast == null) return;
+			if (ast == null || ast.getConstructor() == null) return;
 
 			String path = ast.getSourceInfo().getPath().toOSString();
 			String rootPath = ast.getSourceInfo().getProject().getRawProject().getLocation().toOSString();
