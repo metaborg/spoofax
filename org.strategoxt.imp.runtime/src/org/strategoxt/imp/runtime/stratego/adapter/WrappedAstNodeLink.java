@@ -34,7 +34,7 @@ public class WrappedAstNodeLink extends WrappedAstNode implements IWrappedAstNod
 	// Annotation handling
 	
 	@Override
-	protected WrappedAstNodeLink setAnnotations(IStrategoList annotations) {
+	protected WrappedAstNodeLink getAnnotatedWith(IStrategoList annotations) {
 		// To get a working equals() and hashCode() impl, we need to annotate the wrapped term
 		IStrategoTerm wrapped = getFactory().annotateTerm(getWrapped(), annotations);
 		return new WrappedAstNodeLink(getFactory(), wrapped, getNode());

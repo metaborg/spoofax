@@ -24,9 +24,11 @@ import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.jface.text.IRegion;
 import org.spoofax.jsglr.BadTokenException;
 import org.spoofax.jsglr.ParseTable;
+import org.spoofax.jsglr.ParseTimeoutException;
 import org.spoofax.jsglr.SGLR;
 import org.spoofax.jsglr.SGLRException;
 import org.spoofax.jsglr.TokenExpectedException;
+import org.spoofax.jsglr.Tools;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.ISourceInfo;
@@ -48,6 +50,8 @@ import aterm.ATerm;
  * @author Karl Trygve Kalleberg <karltk add strategoxt.org>
  */
 public class SGLRParseController implements IParseController, ISourceInfo {
+	
+	private final static int PARSE_TIMEOUT = 5 * 1000;
 
 	private final TokenKindManager tokenManager = new TokenKindManager();
 	
@@ -100,6 +104,7 @@ public class SGLRParseController implements IParseController, ISourceInfo {
     
     static {
     	SGLR.setWorkAroundMultipleLookahead(true);
+		Tools.setTimeout(PARSE_TIMEOUT);
     }
     
     /**
@@ -150,7 +155,7 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 			if (monitor.isCanceled()) throw new OperationCanceledException();
 			asfix = parser.parseNoImplode(inputChars, filename);
 			
-			// (may not be synchronized; uses workspace lock)
+			// (must not be synchronized; uses workspace lock)
 			if (monitor.isCanceled()) throw new OperationCanceledException();
 			errorHandler.clearErrors();
 			errorHandler.reportNonFatalErrors(parser.getTokenizer(), asfix);
@@ -158,6 +163,9 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 			Debug.stopTimer("File parsed: " + filename);
 		} catch (TokenExpectedException e) {
 			errorHandler.clearErrors(); // (may not be synchronized; uses workspace lock)
+			errorHandler.reportError(parser.getTokenizer(), e);
+		} catch (ParseTimeoutException e) {
+			errorHandler.clearErrors();
 			errorHandler.reportError(parser.getTokenizer(), e);
 		} catch (BadTokenException e) {
 			errorHandler.clearErrors();

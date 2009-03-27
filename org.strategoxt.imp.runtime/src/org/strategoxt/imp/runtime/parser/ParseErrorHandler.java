@@ -5,6 +5,7 @@ import lpg.runtime.IToken;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.imp.parser.IMessageHandler;
 import org.spoofax.jsglr.BadTokenException;
+import org.spoofax.jsglr.ParseTimeoutException;
 import org.spoofax.jsglr.TokenExpectedException;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.ISourceInfo;
@@ -127,7 +128,12 @@ public class ParseErrorHandler {
         	? exception.getShortMessage()
         	: "'" + token + "' not expected here";
         	reportErrorAtTokens(token, token, message);
-	}	
+	}
+	
+	public void reportError(SGLRTokenizer tokenizer, ParseTimeoutException exception) {
+		Environment.logException(exception);
+		reportError(tokenizer, (BadTokenException) exception);
+	}
 	 
 	public void reportError(SGLRTokenizer tokenizer, Exception exception) {
 		String message = "Internal parsing error: " + exception;

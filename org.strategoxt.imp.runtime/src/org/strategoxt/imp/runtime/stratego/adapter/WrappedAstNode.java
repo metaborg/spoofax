@@ -55,7 +55,7 @@ public abstract class WrappedAstNode implements IWrappedAstNode, IStrategoTerm, 
 	 * 
 	 * @see WrappedAstNodeFactory#annotateTerm(IStrategoTerm, IStrategoList)
 	 */
-	protected WrappedAstNode setAnnotations(IStrategoList annotations) {
+	protected WrappedAstNode getAnnotatedWith(IStrategoList annotations) {
 		WrappedAstNode result = clone();
 		result.annotations = annotations;
 		return result;
