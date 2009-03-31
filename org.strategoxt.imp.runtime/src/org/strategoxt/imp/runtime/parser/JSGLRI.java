@@ -44,6 +44,10 @@ public class JSGLRI extends AbstractSGLRI {
 		parser.withBacktracking(withBT);
     }
 	
+	public void asyncAbort() {
+		parser.asyncAbort();
+	}
+	
 	public void setRecoverHandler(IRecoverAlgorithm recoverHandler) {
 		parser.setRecoverHandler(recoverHandler);
 	}

@@ -51,7 +51,7 @@ import aterm.ATerm;
  */
 public class SGLRParseController implements IParseController, ISourceInfo {
 	
-	private final static int PARSE_TIMEOUT = 5 * 1000;
+	private final static int PARSE_TIMEOUT = 4 * 1000;
 
 	private final TokenKindManager tokenManager = new TokenKindManager();
 	
@@ -88,7 +88,7 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 	 *         an absolute path.
 	 */
     public final IPath getPath() {
-    	return project == null
+    	return project == null || project.getRawProject().getLocation() == null
 			? path
 			: project.getRawProject().getLocation().append(path);
     }
@@ -136,6 +136,10 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 
 		String filename = getPath().toPortableString();
 		
+		// XXX: SGLR.asyncAbort() is never called until the old parse actually completes
+		//      need to use the monitor to get this working
+		getParser().asyncAbort();
+		
 		IResource resource = getResource();
 		try {
 			Job.getJobManager().beginRule(resource, monitor); // enter lock
@@ -152,11 +156,11 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 				
 			currentAst = parser.parse(inputChars, filename);
 			
-			if (monitor.isCanceled()) throw new OperationCanceledException();
+			if (monitor.isCanceled()) return null;
 			asfix = parser.parseNoImplode(inputChars, filename);
+			if (monitor.isCanceled()) return null;
 			
 			// (must not be synchronized; uses workspace lock)
-			if (monitor.isCanceled()) throw new OperationCanceledException();
 			errorHandler.clearErrors();
 			errorHandler.reportNonFatalErrors(parser.getTokenizer(), asfix);
 				
@@ -165,6 +169,8 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 			errorHandler.clearErrors(); // (may not be synchronized; uses workspace lock)
 			errorHandler.reportError(parser.getTokenizer(), e);
 		} catch (ParseTimeoutException e) {
+			// TODO: Don't show stack trace for this
+			if (monitor.isCanceled()) return null;
 			errorHandler.clearErrors();
 			errorHandler.reportError(parser.getTokenizer(), e);
 		} catch (BadTokenException e) {

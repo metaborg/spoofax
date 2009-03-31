@@ -122,8 +122,12 @@ public class AstMessageHandler {
 				stream = ((IFile) file).getContents(true);
 				BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
 				String firstLine = reader.readLine();
-				IToken errorToken = new SGLRToken(null, 0, firstLine.length(), TK_ERROR.ordinal());
-				addMarker(file, errorToken, errorToken, message, severity);				
+				if (firstLine != null) {
+					IToken errorToken = new SGLRToken(null, 0, firstLine.length(), TK_ERROR.ordinal());
+					addMarker(file, errorToken, errorToken, message, severity);				
+				} else {
+					addMarkerNoLocation(file, message, severity);
+				}
 			} catch (CoreException e) {
 				addMarkerNoLocation(file, message, severity);
 			} catch (IOException e) {

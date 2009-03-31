@@ -133,7 +133,7 @@ public class TokenColorer implements ITokenColorer {
 	}
 
 	public IRegion calculateDamageExtent(IRegion seed) {
-		if (parseController.getCurrentAst() == null)
+		if (parseController == null || parseController.getCurrentAst() == null)
 			return seed;
 		
 		// Always damage the complete source
