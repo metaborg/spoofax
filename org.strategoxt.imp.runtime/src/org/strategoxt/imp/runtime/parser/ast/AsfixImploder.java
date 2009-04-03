@@ -123,10 +123,14 @@ public class AsfixImploder {
 		
 		// Enter lexical context if this is a lex node
 		boolean lexicalStart = !lexicalContext
-			&& (rhs.getName().equals("lex") || AsfixAnalyzer.isLiteral(rhs)
+			&& ("lex".equals(rhs.getName()) || AsfixAnalyzer.isLiteral(rhs)
 			    || AsfixAnalyzer.isLayout(rhs));
 		
 		if (lexicalStart) lexicalContext = true;
+		
+		if (!lexicalContext && "sort".equals(rhs.getName()) && lhs.getLength() == 1 && termAt(contents, 0).getType() == ATerm.INT) {
+			return createIntTerminal(contents, rhs);
+		}
 		
 		boolean isList = !lexicalContext && AsfixAnalyzer.isList(rhs);
 		boolean isVar  = !lexicalContext && !isList && rhs.getName().equals("varsym");
@@ -138,24 +142,13 @@ public class AsfixImploder {
 			implodeChildNodes(contents, lexicalContext);
 		
 		if (lexicalStart || isVar) {
-			return createTerminal(lhs, rhs);
+			return createStringTerminal(lhs, rhs);
 		} else if (lexicalContext) {
 			return null; // don't create tokens inside lexical context; just create one big token at the top
 		} else {
 			return createNonTerminalOrInjection(lhs, rhs, attrs, prevToken, children, isList);
 		}
 	}
-	
-	/*
-	private static ATermList extractLHS(ATermAppl prod) {
-		ATerm lhs = termAt(prod, i)
-		if (term.getType() == ATerm.APPL && asAppl(term).getName().equals("list")) {
-			return term.getFactory().makeList(termAt(term, 0));
-		} else {
-			return (ATermList) term;
-		}
-	}
-	*/
 
 	protected ArrayList<AstNode> implodeChildNodes(ATermList contents, boolean tokensOnly) {
 		ArrayList<AstNode> result = tokensOnly
@@ -180,8 +173,7 @@ public class AsfixImploder {
 		return result;
 	}
 
-	private AstNode createTerminal(ATermList lhs, ATermAppl rhs) {
-		// TODO: Also create int terminals
+	private StringAstNode createStringTerminal(ATermList lhs, ATermAppl rhs) {
 		// TODO2: Optimize - don't construct a token's string value until it is used
 		
 		lexicalContext = false;
@@ -193,6 +185,13 @@ public class AsfixImploder {
 		//Debug.log("Creating node ", sort, " from ", SGLRTokenizer.dumpToString(token));	
 		
 		return factory.createTerminal(sort, token);
+	}
+	
+	private IntAstNode createIntTerminal(ATermList contents, ATermAppl rhs) {
+		IToken token = tokenizer.makeToken(offset, tokenManager.getTokenKind(contents, rhs), true);
+		String sort = getSort(rhs);
+		ATermInt value = termAt(contents, 0);
+		return factory.createTerminal(sort, value.getInt(), token, token);
 	}
 
 	private AstNode createNonTerminalOrInjection(ATermList lhs, ATermAppl rhs, ATermAppl attrs,
@@ -206,6 +205,10 @@ public class AsfixImploder {
 				return createNonTerminal(sort, null, prevToken, children, true);
 			} else if (children.size() == 0) {
 				return createNonTerminal(sort, "None", prevToken, children, false);
+			} else if ("opt".equals(applAt(rhs, 0).getName())) {
+				assert children.size() == 1;
+				AstNode child = children.get(0);
+				return new AstNode(sort, "Some", child.getLeftIToken(), child.getRightIToken(), children);
 			} else {
 				assert children.size() == 1;
 				return children.get(0);
@@ -308,9 +311,6 @@ public class AsfixImploder {
 			int index = prevToken.getTokenIndex();
 			
 			if (parseStream.getSize() - index <= 1) {
-				// UNDONE: Assumed empty tokens were harmful
-				// throw new InvalidParseTreeException("Cannot create a AST node for an empty token");
-
 				// Create new empty token
 				// HACK: Assume TK_LAYOUT kind for empty tokens in AST nodes
 				return tokenizer.makeToken(offset, TK_LAYOUT, true);

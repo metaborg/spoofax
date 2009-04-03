@@ -23,7 +23,7 @@ public class AstNodeFactory {
 	/**
 	 * Create a new terminal AST node for a String value.
 	 */
-	public AstNode createTerminal(String sort, String value, IToken leftToken,
+	public StringAstNode createTerminal(String sort, String value, IToken leftToken,
 			IToken rightToken) {
 		
 		return new StringAstNode(sort, value, leftToken, rightToken);
@@ -32,7 +32,7 @@ public class AstNodeFactory {
 	/**
 	 * Create a new terminal AST node for an int value.
 	 */
-	public AstNode createTerminal(String sort, int value, IToken leftToken,
+	public IntAstNode createTerminal(String sort, int value, IToken leftToken,
 			IToken rightToken) {
 		
 		return new IntAstNode(sort, value, leftToken, rightToken);
@@ -41,7 +41,7 @@ public class AstNodeFactory {
 	/**
 	 * Create a new terminal AST node from a single token.
 	 */
-	public final AstNode createTerminal(String sort, IToken token) {
+	public final StringAstNode createTerminal(String sort, IToken token) {
 		ILexStream lex = token.getIPrsStream().getILexStream();
 		
 		int length = token.getEndOffset() - token.getStartOffset() + 1;

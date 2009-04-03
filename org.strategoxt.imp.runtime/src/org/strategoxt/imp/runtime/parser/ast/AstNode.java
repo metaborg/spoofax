@@ -141,8 +141,8 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 			if (token.getAstNode() == null) token.setAstNode(this);
 		}
 		
-		for (AstNode node : children) {
-			node.setParent(this);
+		for (int i = 0; i < children.size(); i++) {
+			children.get(i).setParent(this);
 		}
 	}
 	
@@ -230,7 +230,7 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 	}
 	
 	public void prettyPrint(ITermPrinter printer) {
-		printer.print(constructor);
+		printer.print(constructor == null ? "<null>" : constructor);
 		//sb.append(':');
 		//sb.append(sort);
 		printer.print("(");
