@@ -95,7 +95,7 @@ public class AstAnnoImploder {
 			}
 		}
 			
-		throw new IllegalStateException("Error in syntax definition: illegal placeholder " + placeholder);
+		throw new IllegalStateException("Error in syntax definition: illegal placeholder in {ast} attribute: " + placeholder);
 	}
 	
 	private AstNode applToAstNode(ATerm term, String sort) {
