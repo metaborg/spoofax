@@ -43,10 +43,6 @@ public class AsfixImploder {
 
 	protected final static int PROD_ATTRS = 2;
 	
-	protected final static int TERM_CONS = 0;
-	
-	protected final static int CONS_NAME = 0;
-	
 	protected final static int PARAMETRIZED_SORT_NAME = 0;
 	
 	protected final static int PARAMETRIZED_SORT_ARGS = 1;
@@ -151,7 +147,7 @@ public class AsfixImploder {
 	}
 
 	protected ArrayList<AstNode> implodeChildNodes(ATermList contents, boolean tokensOnly) {
-		ArrayList<AstNode> result = tokensOnly
+		ArrayList<AstNode> results = tokensOnly
 				? null
 				: new ArrayList<AstNode>(
 						min(EXPECTED_NODE_CHILDREN, contents.getChildCount()));
@@ -166,11 +162,11 @@ public class AsfixImploder {
 				AstNode childNode = implodeAppl(child);
 
 				if (childNode != null)
-					result.add(childNode);
+					results.add(childNode);
 			}
 		}
 
-		return result;
+		return results;
 	}
 
 	private StringAstNode createStringTerminal(ATermList lhs, ATermAppl rhs) {
@@ -190,8 +186,8 @@ public class AsfixImploder {
 	private IntAstNode createIntTerminal(ATermList contents, ATermAppl rhs) {
 		IToken token = tokenizer.makeToken(offset, tokenManager.getTokenKind(contents, rhs), true);
 		String sort = getSort(rhs);
-		ATermInt value = termAt(contents, 0);
-		return factory.createTerminal(sort, value.getInt(), token, token);
+		int value = intAt(contents, 0);
+		return factory.createTerminal(sort, value, token, token);
 	}
 
 	private AstNode createNonTerminalOrInjection(ATermList lhs, ATermAppl rhs, ATermAppl attrs,
@@ -203,6 +199,11 @@ public class AsfixImploder {
 		if(constructor == null) {
 			if (isList) {
 				return createNonTerminal(sort, null, prevToken, children, true);
+			}
+			
+			ATerm ast = getTermAttr(attrs, "ast");
+			if (ast != null) {
+				return createAstNonTerminal(rhs, prevToken, children, ast);
 			} else if (children.size() == 0) {
 				return createNonTerminal(sort, "None", prevToken, children, false);
 			} else if ("opt".equals(applAt(rhs, 0).getName())) {
@@ -242,6 +243,14 @@ public class AsfixImploder {
 		} else {
 			return factory.createNonTerminal(sort, constructor, left, right, children);
 		}
+	}
+
+	/** Implode a context-free node with an {ast} annotation. */
+	private AstNode createAstNonTerminal(ATermAppl rhs, IToken prevToken, ArrayList<AstNode> children, ATerm ast) {
+		IToken left = getStartToken(prevToken);
+		IToken right = getEndToken(left, tokenizer.currentToken());
+		AstAnnoImploder imploder = new AstAnnoImploder(factory, children, left, right);
+		return imploder.implode(ast, getSort(rhs));
 	}
 	
 	/**
@@ -290,7 +299,7 @@ public class AsfixImploder {
 		}
 	}
 	
-	private void reportUnresolvedAmb(ATermList ambs) {
+	private static void reportUnresolvedAmb(ATermList ambs) {
 		Debug.log("Ambiguity found during implosion: ");
 		
 		for (ATerm amb : ambs) {
@@ -348,8 +357,13 @@ public class AsfixImploder {
 		offset++;
 	}
 
-	/** Return the contents of the cons() attribute, or null if not found. */
-	private static String getConstructor(ATermAppl attrs) {
+	private String getConstructor(ATermAppl attrs) {
+		ATerm consAttr = getTermAttr(attrs, "cons");
+		return consAttr == null ? null : ((ATermAppl) consAttr).getName();
+	}
+
+	/** Return the contents of a term attribute (e.g., "cons"), or null if not found. */
+	private static ATerm getTermAttr(ATermAppl attrs, String attrName) {
 		if (attrs.getName().equals("no-attrs"))
 			return null;
 		
@@ -361,11 +375,10 @@ public class AsfixImploder {
 			if (attr instanceof ATermAppl) {
 				ATermAppl namedAttr = (ATermAppl) attr;
 				if (namedAttr.getName().equals("term")) {
-					namedAttr = (ATermAppl) namedAttr.getChildAt(TERM_CONS);
+					namedAttr = termAt(namedAttr, 0);
 					
-					if (namedAttr.getName().equals("cons")) {
-						namedAttr = (ATermAppl) namedAttr.getChildAt(CONS_NAME);
-						return namedAttr.getName();
+					if (namedAttr.getName().equals(attrName)) {
+						return termAt(namedAttr, 0);
 					}
 				}				
 			}
