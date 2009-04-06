@@ -33,4 +33,6 @@ public interface IStrategoAstNode extends IAst {
 	// getChildren() is also published here to avoid dependencies on IAst
 	// (concrete, unparameterized type exposed by IAst interface)
 	ArrayList getChildren();
+	
+	String yield();
 }
