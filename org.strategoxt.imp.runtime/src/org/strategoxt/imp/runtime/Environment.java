@@ -15,6 +15,7 @@ import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.library.LoggingIOAgent;
 import org.spoofax.interpreter.stratego.SDefT;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.InvalidParseTableException;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.ParseTableManager;
@@ -113,6 +114,18 @@ public final class Environment {
 			public boolean invoke(String name) throws InterpreterExit, InterpreterException {
 				assertLock();
 				return super.invoke(name);
+			}
+			
+			@Override
+			public void load(InputStream stream) throws IOException, InterpreterException {
+				assertLock();
+				super.load(stream);
+			}
+			
+			@Override
+			public IStrategoTerm current() {
+				assertLock();
+				return super.current();
 			}
 		};
 

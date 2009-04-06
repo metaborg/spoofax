@@ -20,17 +20,17 @@ public class RootAstNode extends AstNode {
 		return (IStrategoAppl) super.getTerm();
 	}
 
-	protected RootAstNode(String sort, String constructor, IToken leftToken, IToken rightToken,
+	protected RootAstNode(String sort, IToken leftToken, IToken rightToken, String constructor,
 			ArrayList<AstNode> children, ISourceInfo sourceInfo) {
 		
-		super(sort, constructor, leftToken, rightToken, children);
+		super(sort, leftToken, rightToken, constructor, children);
 		
 		this.sourceInfo = sourceInfo;
 	}
 	
 	public static RootAstNode makeRoot(AstNode ast, ISourceInfo sourceInfo) {
 		return new RootAstNode(
-				ast.getSort(), ast.getConstructor(), ast.getLeftIToken(), ast.getRightIToken(),
+				ast.getSort(), ast.getLeftIToken(), ast.getRightIToken(), ast.getConstructor(),
 				ast.getChildren(), sourceInfo);
 	}
 }

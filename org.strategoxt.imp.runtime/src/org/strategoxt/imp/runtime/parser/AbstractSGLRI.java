@@ -20,6 +20,7 @@ import org.jboss.util.collection.WeakValueHashMap;
 import org.spoofax.jsglr.BadTokenException;
 import org.spoofax.jsglr.SGLRException;
 import org.spoofax.jsglr.TokenExpectedException;
+import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.parser.ast.AmbAsfixImploder;
 import org.strategoxt.imp.runtime.parser.ast.AsfixImploder;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
@@ -160,12 +161,17 @@ public abstract class AbstractSGLRI implements IParser {
 			return result;
 		}
 		
-		currentTokenizer = new SGLRTokenizer(inputChars, filename);
-		result = doParseNoImplode(inputChars, filename);
-		parsedCache.put(cachingKey, result);
-		tokenizerCache.put(result, currentTokenizer);
+		Debug.startTimer();
+		try {
+			currentTokenizer = new SGLRTokenizer(inputChars, filename);
+			result = doParseNoImplode(inputChars, filename);
+			parsedCache.put(cachingKey, result);
+			tokenizerCache.put(result, currentTokenizer);
 		
-		return result;
+			return result;
+		} finally {
+			Debug.stopTimer("File parsed");
+		}
 	}
 
 	/**

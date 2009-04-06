@@ -117,7 +117,7 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 	/**
 	 * Create a new AST node and set it to be the parent node of its children.
 	 */
-	public AstNode(String sort, String constructor, IToken leftToken, IToken rightToken,
+	public AstNode(String sort, IToken leftToken, IToken rightToken, String constructor,
 			ArrayList<AstNode> children) {
 		
 		assert children != null;
@@ -134,15 +134,29 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 
 	private void setReferences(IToken leftToken, IToken rightToken, ArrayList<AstNode> children) {
 		IPrsStream parseStream = leftToken.getIPrsStream();
-		int end = rightToken.getTokenIndex();
-		
-		for (int i = leftToken.getTokenIndex(); i <= end; i++) {
-			SGLRToken token = (SGLRToken) parseStream.getTokenAt(i);
-			if (token.getAstNode() == null) token.setAstNode(this);
+		int tokenIndex = leftToken.getTokenIndex();
+		int endTokenIndex = rightToken.getTokenIndex();
+
+		// Set ast node for tokens before children, and set parent references
+		for (int childIndex = 0, size = children.size(); childIndex < size; childIndex++) {
+			AstNode child = children.get(childIndex);
+			child.setParent(this);
+			
+			int childStart = child.getLeftIToken().getTokenIndex();
+			int childEnd = child.getRightIToken().getTokenIndex();
+			
+			while (tokenIndex < childStart) {
+				SGLRToken token = (SGLRToken) parseStream.getTokenAt(tokenIndex++);
+				token.setAstNode(this);
+			}
+			
+			tokenIndex = childEnd; 
 		}
 		
-		for (int i = 0; i < children.size(); i++) {
-			children.get(i).setParent(this);
+		// Set ast node for tokens after children
+		while (tokenIndex <= endTokenIndex) {
+			SGLRToken token = (SGLRToken) parseStream.getTokenAt(tokenIndex++);
+			token.setAstNode(this);
 		}
 	}
 	

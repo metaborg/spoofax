@@ -21,7 +21,7 @@ public class ListAstNode extends AstNode {
 	public ListAstNode(String elementSort, IToken leftToken, IToken rightToken,
 			ArrayList<AstNode> children) {
 		
-		super(elementSort + "*", "[]", leftToken, rightToken, children);
+		super(elementSort + "*", leftToken, rightToken, "[]", children);
 		
 		this.elementSort = elementSort;
 	}

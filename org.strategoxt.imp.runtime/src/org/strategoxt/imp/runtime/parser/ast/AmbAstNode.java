@@ -8,8 +8,8 @@ import java.util.ArrayList;
 public class AmbAstNode extends AstNode {
 
 	public AmbAstNode(ListAstNode children) {
-		super("amb", children.getElementSort(), children.getLeftIToken(),
-				children.getRightIToken(), makeList(children));
+		super("amb", children.getLeftIToken(), children.getRightIToken(),
+				children.getElementSort(), makeList(children));
 	}
 
 	public AmbAstNode(ArrayList<AstNode> children) {
@@ -18,7 +18,7 @@ public class AmbAstNode extends AstNode {
 	}
 	
 	private static ArrayList<AstNode> makeList(AstNode node) {
-		ArrayList<AstNode> result = new ArrayList<AstNode>();
+		ArrayList<AstNode> result = new ArrayList<AstNode>(1);
 		result.add(node);
 		return result;
 	}

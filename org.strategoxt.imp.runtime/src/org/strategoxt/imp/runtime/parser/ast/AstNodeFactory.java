@@ -2,7 +2,6 @@ package org.strategoxt.imp.runtime.parser.ast;
 
 import java.util.ArrayList;
 
-import lpg.runtime.ILexStream;
 import lpg.runtime.IToken;
 
 /**
@@ -17,41 +16,21 @@ public class AstNodeFactory {
 	public AstNode createNonTerminal(String sort, String constructor, IToken leftToken, IToken rightToken,
 			ArrayList<AstNode> children) {
 		
-		return new AstNode(sort, constructor, leftToken, rightToken, children);
-	}
-	
-	/**
-	 * Create a new terminal AST node for a String value.
-	 */
-	public StringAstNode createTerminal(String sort, String value, IToken leftToken,
-			IToken rightToken) {
-		
-		return new StringAstNode(sort, value, leftToken, rightToken);
+		return new AstNode(sort, leftToken, rightToken, constructor, children);
 	}
 	
 	/**
 	 * Create a new terminal AST node for an int value.
 	 */
-	public IntAstNode createTerminal(String sort, int value, IToken leftToken,
-			IToken rightToken) {
-		
-		return new IntAstNode(sort, value, leftToken, rightToken);
+	public IntAstNode createIntTerminal(String sort, IToken token, int value) {
+		return new IntAstNode(sort, token, token, value);
 	}
 	
 	/**
-	 * Create a new terminal AST node from a single token.
+	 * Create a new terminal AST node for a string token.
 	 */
-	public final StringAstNode createTerminal(String sort, IToken token) {
-		ILexStream lex = token.getIPrsStream().getILexStream();
-		
-		int length = token.getEndOffset() - token.getStartOffset() + 1;
-		StringBuilder tokenContents = new StringBuilder(length);
-		
-		for (int i = token.getStartOffset(); i <= token.getEndOffset(); i++) {
-			tokenContents.append(lex.getCharValue(i));
-		}
-		
-		return createTerminal(sort, tokenContents.toString(), token, token);
+	public final StringAstNode createStringTerminal(String sort, IToken token) {
+		return new StringAstNode(sort, token, token);
 	}
 	
 	/**

@@ -8,13 +8,14 @@ import java.util.List;
 import lpg.runtime.IToken;
 
 import org.spoofax.NotImplementedException;
-import org.strategoxt.imp.runtime.Environment;
 
 import aterm.ATerm;
 import aterm.ATermAppl;
+import aterm.ATermFactory;
 import aterm.ATermInt;
 import aterm.ATermList;
 import aterm.ATermPlaceholder;
+import aterm.pure.PureFactory;
 
 
 /**
@@ -26,11 +27,14 @@ import aterm.ATermPlaceholder;
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class AstAnnoImploder {
+	
+	private final ATermFactory atermFactory = new PureFactory();
+
 	private final AstNodeFactory factory;
 	
 	private final List<AstNode> placeholderValues;
 	
-	private final IToken leftToken, rightToken; 
+	private final IToken leftToken, rightToken;
 	
 	public AstAnnoImploder(AstNodeFactory factory, List<AstNode> placeholderValues, IToken leftToken, IToken rightToken) {
 		this.factory = factory;
@@ -44,7 +48,7 @@ public class AstAnnoImploder {
 		String astString = ast.toString();
 		if (astString.startsWith("\"") && astString.endsWith("\"")) {
 			astString = astString.substring(1, astString.length() - 1);
-			ast = Environment.getWrappedATermFactory().getFactory().parse(astString);
+			ast = atermFactory.parse(astString);
 		}
 		
 		return toAstNode(ast, sort);
@@ -63,7 +67,7 @@ public class AstAnnoImploder {
 				
 			case ATerm.INT:
 				ATermInt i = (ATermInt) term;
-				return factory.createTerminal(sort, i.getInt(), leftToken, rightToken);
+				return factory.createIntTerminal(sort, leftToken, i.getInt());
 				
 			case ATerm.REAL:
 				throw new NotImplementedException("reals in {ast} attribute");

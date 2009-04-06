@@ -51,6 +51,7 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 				public IStatus runInWorkspace(IProgressMonitor monitor) {
 					// TODO: Finer-grained locking?
 					synchronized (Environment.getSyncRoot()) {
+						monitor.beginTask("", IProgressMonitor.UNKNOWN);
 						getBuilder().invalidateUpdatedResources();
 						postResourceChanged(event.getDelta(), monitor);
 						return Status.OK_STATUS;
@@ -89,7 +90,7 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 		// FIXME: Enqueue all updates, ensure builder runs first
 		// FIXME: The builder should refresh any build resources (i.e., .packed.esv)
 		if (resource.getName().endsWith(".packed.esv")) {
-			monitor.beginTask("Loading " + resource.getName(), IProgressMonitor.UNKNOWN);
+			monitor.subTask("Loading " + resource.getName());
 			loadPackedDescriptor(resource);
 		} else if (!startup) {
 			// Re-build descriptor if resource changed (but not if we're starting up)

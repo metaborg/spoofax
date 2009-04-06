@@ -7,11 +7,11 @@ import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
+import java.util.WeakHashMap;
 
 import lpg.runtime.IToken;
 import lpg.runtime.PrsStream;
 
-import org.jboss.util.collection.WeakValueHashMap;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
@@ -23,39 +23,33 @@ import aterm.ATermList;
 import aterm.pure.ATermListImpl;
 
 /**
- * Class to convert an Asfix tree to another format.
+ * Implodes an Asfix tree to AstNode nodes and IToken tokens.
  * 
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
 public class AsfixImploder {
+	private static final int EXPECTED_NODE_CHILDREN = 5;
+	
+	protected static final int PARSE_TREE = 0;
+	
+	protected static final int APPL_PROD = 0;
+	
+	protected static final int APPL_CONTENTS = 1;
+
+	protected static final int PROD_LHS = 0;
+	
+	protected static final int PROD_RHS = 1;
+
+	protected static final int PROD_ATTRS = 2;
+	
 	private static final Map<ATerm, AstNode> implodedCache =
-		Collections.synchronizedMap(new WeakValueHashMap<ATerm, AstNode>());
-	
-	protected final static int PARSE_TREE = 0;
-	
-	protected final static int APPL_PROD = 0;
-	
-	protected final static int APPL_CONTENTS = 1;
-
-	protected final static int PROD_LHS = 0;
-	
-	protected final static int PROD_RHS = 1;
-
-	protected final static int PROD_ATTRS = 2;
-	
-	protected final static int PARAMETRIZED_SORT_NAME = 0;
-	
-	protected final static int PARAMETRIZED_SORT_ARGS = 1;
-	
-	protected final static int ALT_SORT_LEFT = 0;
-	
-	protected final static int ALT_SORT_RIGHT = 1;
-	
-	protected final static int EXPECTED_NODE_CHILDREN = 5;
+		Collections.synchronizedMap(new WeakHashMap<ATerm, AstNode>());
 	
 	protected final AstNodeFactory factory = new AstNodeFactory();
 	
-	protected final TokenKindManager tokenManager;
+	private final ProductionAttributeReader reader = new ProductionAttributeReader();
+	
+	private final TokenKindManager tokenManager;
 	
 	protected SGLRTokenizer tokenizer;
 	
@@ -81,7 +75,7 @@ public class AsfixImploder {
 		if (!(asfix instanceof ATermAppl || ((ATermAppl) asfix).getName().equals("parsetree")))
 			throw new IllegalArgumentException("Parse tree expected");
 		
-		assert offset == 0 : "Race condition in AsfixImploder";
+		assert offset == 0 && tokenizer.getStartOffset() == 0 : "Race condition in AsfixImploder";
 		
 		ATerm top = (ATerm) asfix.getChildAt(PARSE_TREE);
 		offset = 0;
@@ -100,6 +94,7 @@ public class AsfixImploder {
 		}
 		
 		implodedCache.put(asfix, result);
+		assert implodedCache.get(asfix) == result;
 
 		return result;
 	}
@@ -129,13 +124,13 @@ public class AsfixImploder {
 		}
 		
 		boolean isList = !lexicalContext && AsfixAnalyzer.isList(rhs);
-		boolean isVar  = !lexicalContext && !isList && rhs.getName().equals("varsym");
+		boolean isVar  = !lexicalContext && !isList && "varsym".equals(rhs.getName());
 		
 		if (isVar) lexicalContext = true;
 		
 		// Recurse the tree (and set children if applicable)
 		ArrayList<AstNode> children =
-			implodeChildNodes(contents, lexicalContext);
+			implodeChildNodes(contents);
 		
 		if (lexicalStart || isVar) {
 			return createStringTerminal(lhs, rhs);
@@ -146,8 +141,8 @@ public class AsfixImploder {
 		}
 	}
 
-	protected ArrayList<AstNode> implodeChildNodes(ATermList contents, boolean tokensOnly) {
-		ArrayList<AstNode> results = tokensOnly
+	protected ArrayList<AstNode> implodeChildNodes(ATermList contents) {
+		ArrayList<AstNode> results = lexicalContext
 				? null
 				: new ArrayList<AstNode>(
 						min(EXPECTED_NODE_CHILDREN, contents.getChildCount()));
@@ -170,38 +165,36 @@ public class AsfixImploder {
 	}
 
 	private StringAstNode createStringTerminal(ATermList lhs, ATermAppl rhs) {
-		// TODO2: Optimize - don't construct a token's string value until it is used
-		
 		lexicalContext = false;
 		IToken token = tokenizer.makeToken(offset, tokenManager.getTokenKind(lhs, rhs), true);
-		String sort = getSort(rhs);
+		String sort = reader.getSort(rhs);
 		
 		if (sort == null) return null;
 		
 		//Debug.log("Creating node ", sort, " from ", SGLRTokenizer.dumpToString(token));	
 		
-		return factory.createTerminal(sort, token);
+		return factory.createStringTerminal(sort, token);
 	}
 	
 	private IntAstNode createIntTerminal(ATermList contents, ATermAppl rhs) {
 		IToken token = tokenizer.makeToken(offset, tokenManager.getTokenKind(contents, rhs), true);
-		String sort = getSort(rhs);
+		String sort = reader.getSort(rhs);
 		int value = intAt(contents, 0);
-		return factory.createTerminal(sort, value, token, token);
+		return factory.createIntTerminal(sort, token, value);
 	}
 
 	private AstNode createNonTerminalOrInjection(ATermList lhs, ATermAppl rhs, ATermAppl attrs,
 			IToken prevToken, ArrayList<AstNode> children, boolean isList) {
 		
-		String constructor = getConstructor(attrs);
-		String sort = getSort(rhs);
+		String constructor = reader.getConsAttribute(attrs);
+		String sort = reader.getSort(rhs);
 		
 		if(constructor == null) {
 			if (isList) {
 				return createNonTerminal(sort, null, prevToken, children, true);
 			}
 			
-			ATerm ast = getTermAttr(attrs, "ast");
+			ATerm ast = reader.getAstAttribute(attrs);
 			if (ast != null) {
 				return createAstNonTerminal(rhs, prevToken, children, ast);
 			} else if (children.size() == 0) {
@@ -209,8 +202,9 @@ public class AsfixImploder {
 			} else if ("opt".equals(applAt(rhs, 0).getName())) {
 				assert children.size() == 1;
 				AstNode child = children.get(0);
-				return new AstNode(sort, "Some", child.getLeftIToken(), child.getRightIToken(), children);
+				return new AstNode(sort, child.getLeftIToken(), child.getRightIToken(), "Some", children);
 			} else {
+				// Injection
 				assert children.size() == 1;
 				return children.get(0);
 			}
@@ -239,7 +233,7 @@ public class AsfixImploder {
 		} else if (constructor == null && children.size() == 1 && children.get(0).getSort() == AstNode.STRING_SORT) {
 			// Child node was a <string> node (rare case); unpack it and create a new terminal
 			assert left == right && children.get(0).getChildren().size() == 0;
-			return factory.createTerminal(sort, left);
+			return factory.createStringTerminal(sort, left);
 		} else {
 			return factory.createNonTerminal(sort, constructor, left, right, children);
 		}
@@ -250,7 +244,7 @@ public class AsfixImploder {
 		IToken left = getStartToken(prevToken);
 		IToken right = getEndToken(left, tokenizer.currentToken());
 		AstAnnoImploder imploder = new AstAnnoImploder(factory, children, left, right);
-		return imploder.implode(ast, getSort(rhs));
+		return imploder.implode(ast, reader.getSort(rhs));
 	}
 	
 	/**
@@ -356,78 +350,4 @@ public class AsfixImploder {
 		
 		offset++;
 	}
-
-	private String getConstructor(ATermAppl attrs) {
-		ATerm consAttr = getTermAttr(attrs, "cons");
-		return consAttr == null ? null : ((ATermAppl) consAttr).getName();
-	}
-
-	/** Return the contents of a term attribute (e.g., "cons"), or null if not found. */
-	private static ATerm getTermAttr(ATermAppl attrs, String attrName) {
-		if (attrs.getName().equals("no-attrs"))
-			return null;
-		
-		ATermList list = termAt(attrs, 0);
-		
-		for (int i = 0; i < list.getLength(); i++) {
-			ATerm attr = list.elementAt(i);
-			
-			if (attr instanceof ATermAppl) {
-				ATermAppl namedAttr = (ATermAppl) attr;
-				if (namedAttr.getName().equals("term")) {
-					namedAttr = termAt(namedAttr, 0);
-					
-					if (namedAttr.getName().equals(attrName)) {
-						return termAt(namedAttr, 0);
-					}
-				}				
-			}
-		}
-		
-		return null; // no cons found
-	}
-
-	// TODO2: Optimize - cache getSort (especially for parametrized-sort!)
-	/** 
-	 * Get the RTG sort name of a production RHS, or for lists, the RTG element sort name.
-	 */
-    private static String getSort(ATermAppl rhs) {
-    	ATerm node = rhs;
-    	
-    	while (node.getChildCount() > 0 && isAppl(node)) {
-    		if (asAppl(node).getName().equals("sort"))
-    			return applAt(node, 0).getName();
-    		if (asAppl(node).getName().equals("alt"))
-    			return getAltSortName(node);
-    		if (asAppl(node).getName().equals("parameterized-sort"))
-    			return getParameterizedSortName(node);
-    		
-    		node = termAt(node, 0);
-    	}
-    	
-    	return null;
-    }
-    
-    private static String getParameterizedSortName(ATerm node) {
-    	StringBuilder result = new StringBuilder();
-    	
-    	result.append(applAt(node, PARAMETRIZED_SORT_NAME).getName());
-    	result.append('_');
-    	
-		ATermList args = termAt(node, PARAMETRIZED_SORT_ARGS);
-		
-        for (ATermAppl arg = (ATermAppl) args.getFirst(); !args.getNext().isEmpty(); args = args.getNext()) {
-			result.append(arg.getName());
-		}
-		
-		return result.toString();
-    }
-    
-    private static String getAltSortName(ATerm node) {
-		String left = getSort(applAt(node, ALT_SORT_LEFT));
-		String right = getSort(applAt(node, ALT_SORT_RIGHT));
-		
-		// HACK: In the RTG, alt sorts appear with a number at the end
-		return left + "_" + right + "0";
-    }
 }

@@ -12,9 +12,9 @@ import lpg.runtime.IToken;
 public class IntAstNode extends AstNode {
 	private final int value;
 
-	public IntAstNode(String sort, int value, IToken leftToken, IToken rightToken) {
+	public IntAstNode(String sort, IToken leftToken, IToken rightToken, int value) {
 		// Construct an empty list (unfortunately needs to be a concrete ArrayList type)
-		super(sort, null, leftToken, rightToken, EMPTY_LIST);
+		super(sort, leftToken, rightToken, null, EMPTY_LIST);
 		
 		this.value = value;
 	}

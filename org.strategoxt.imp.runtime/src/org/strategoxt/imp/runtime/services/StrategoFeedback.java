@@ -3,6 +3,7 @@ package org.strategoxt.imp.runtime.services;
 import static org.spoofax.interpreter.terms.IStrategoTerm.*;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.*;
 
+import java.io.File;
 import java.io.IOException;
 
 import lpg.runtime.IAst;
@@ -28,6 +29,7 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.ISourceInfo;
+import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
@@ -44,19 +46,19 @@ import org.strategoxt.imp.runtime.stratego.adapter.WrappedAstNode;
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class StrategoFeedback implements IModelListener {
-	private final Descriptor descriptor;
 	
-	private final Interpreter interpreter;
+	private final Descriptor descriptor;
 	
 	private final String feedbackFunction;
 	
 	private final AstMessageHandler messages = new AstMessageHandler(AstMessageHandler.ANALYSIS_MARKER_TYPE);
 	
+	private Interpreter interpreter;
+	
 	private Job asyncLastBuildJob;
 	
-	public StrategoFeedback(Descriptor descriptor, Interpreter resolver, String feedbackFunction) {
+	public StrategoFeedback(Descriptor descriptor, String feedbackFunction) {
 		this.descriptor = descriptor;
-		this.interpreter = resolver;
 		this.feedbackFunction = feedbackFunction;
 	}
 
@@ -67,13 +69,40 @@ public class StrategoFeedback implements IModelListener {
 	public AstMessageHandler getMessages() {
 		return messages;
 	}
+	
+	private void init(IProgressMonitor monitor) {
+		monitor.subTask("Instantiating analysis runtime");
+		
+		for (File file : descriptor.getAttachedFiles()) {
+			String filename = file.toString();
+			if (filename.endsWith(".ctree")) {
+				if (interpreter == null) {
+					try {
+						interpreter = Environment.createInterpreter();
+					} catch (Exception e) {
+						Environment.logException("Could not create interpreter", e);
+					}
+					monitor.subTask("Loading analysis runtime components");
+				}
+				try {
+					Debug.startTimer("Loading Stratego module ", filename);
+					Environment.addToInterpreter(interpreter, descriptor.openAttachment(filename));
+					Debug.stopTimer("Successfully loaded " +  filename);
+				} catch (InterpreterException e) {
+					Environment.logException(new BadDescriptorException("Error loading compiler service provider " + filename, e));
+				} catch (IOException e) {
+					Environment.logException(new BadDescriptorException("Could not load compiler service provider" + filename, e));
+				}
+			}
+		}
+		
+		monitor.subTask(null);
+	}
 
 	/**
 	 * Starts a new update() operation, asynchronously.
 	 */
 	public void asyncUpdate(final IParseController parseController, final IProgressMonitor monitor) {		
-		// TODO: Properly integrate this asynchronous job into the Eclipse environment?
-		
 		synchronized (this) {
 			if (asyncLastBuildJob != null)
 				asyncLastBuildJob.cancel();
@@ -81,6 +110,7 @@ public class StrategoFeedback implements IModelListener {
 			asyncLastBuildJob = new WorkspaceJob("Analyzing updated resource") {
 				@Override
 				public IStatus runInWorkspace(IProgressMonitor monitor) {
+					monitor.beginTask("", IProgressMonitor.UNKNOWN);
 					update(parseController, monitor);
 					return Status.OK_STATUS;
 				}
@@ -93,11 +123,14 @@ public class StrategoFeedback implements IModelListener {
 	public void update(IParseController parseController, IProgressMonitor monitor) {
 		if (feedbackFunction == null || monitor.isCanceled())
 			return;
-
+		
 		IStrategoTerm feedback;
 		String log;
 		
 		synchronized (Environment.getSyncRoot()) {
+			if (interpreter == null)
+				init(monitor);
+
 			ITermFactory factory = Environment.getTermFactory();
 			IStrategoAstNode ast = (IStrategoAstNode) parseController.getCurrentAst();
 			if (ast == null || ast.getConstructor() == null) return;
