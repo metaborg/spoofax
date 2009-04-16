@@ -23,7 +23,7 @@ import aterm.ATermList;
  */
 public class ParseErrorHandler {
 	
-	private static final String WATER = "WATER";
+	public static final String WATER = "WATER";
 	
 	private static final String INSERT = "INSERTION";
 	
