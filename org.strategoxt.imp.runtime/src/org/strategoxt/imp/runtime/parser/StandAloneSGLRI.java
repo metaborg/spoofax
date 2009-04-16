@@ -80,7 +80,9 @@ public class StandAloneSGLRI {
 	public IStrategoAstNode parse(char[] input, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 		
-		return parser.parse(input, filename);
+		synchronized (Environment.getSyncRoot()) {
+			return parser.parse(input, filename);
+		}
 	}
 	
 	private static class StandAloneLanguage extends Language {
