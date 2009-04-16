@@ -67,7 +67,7 @@ public class CSGLRI extends AbstractSGLRI {
 	protected ATerm doParseNoImplode(char[] inputChars, String filename) throws SGLRException, IOException {
 		ATermFactory factory = Environment.getWrappedATermFactory().getFactory();
 		File outputFile = File.createTempFile("parserOutput", null);
-		File inputFile = filename == null || filename.equals("")
+		File inputFile = filename == null || !new File(filename).exists()
 				? streamToTempFile(toByteStream(inputChars))
 				: new File(filename);
 		String startSymbol = getStartSymbol();
@@ -86,7 +86,7 @@ public class CSGLRI extends AbstractSGLRI {
 			ATermAppl result = (ATermAppl) factory.readFromFile(outputFile.getAbsolutePath());
 			
 			if ("error".equals(result.getName()))
-				throw new SGLRException("CSGLR Parse error"); // (actual error isn't extracted atm)
+				throw new SGLRException("CSGLR Parse error: " + result); // (actual error isn't extracted atm)
 			
 			return result;
 		} catch (InterruptedException e) {
