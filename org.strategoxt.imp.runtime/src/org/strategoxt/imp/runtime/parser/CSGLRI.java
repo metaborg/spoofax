@@ -70,13 +70,15 @@ public class CSGLRI extends AbstractSGLRI {
 		File inputFile = filename == null
 				? streamToTempFile(toByteStream(inputChars))
 				: new File(filename);
-		
+		String startSymbol = getStartSymbol();
+				
 		try {
 			String[] commandArgs = {
 					"sglr", "-p", parseTable.getAbsolutePath(),
 					"-i", inputFile.getAbsolutePath(),
 					"-o", outputFile.getAbsolutePath(),
-					"-s", getStartSymbol(),
+					(startSymbol == null ? "" : "-s"),
+					(startSymbol == null ? "" : startSymbol),
 					"-2"
 			};
 			caller.call(commandArgs, null, System.out, System.err);
