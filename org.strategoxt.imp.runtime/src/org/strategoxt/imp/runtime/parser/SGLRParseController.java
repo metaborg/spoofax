@@ -121,6 +121,7 @@ public class SGLRParseController implements IParseController, ISourceInfo {
     	
     	ParseTable table = Environment.getParseTable(language);
 		parser = new JSGLRI(table, startSymbol, this, tokenManager);
+		parser.setKeepAmbiguities(false); // not interested in ambiguities in the editor
     }
 
     public void initialize(IPath filePath, ISourceProject project,

@@ -87,6 +87,9 @@ public abstract class AbstractSGLRI implements IParser {
 		this.startSymbol = startSymbol;
 	}
 	
+	/**
+	 * Sets whether to keep any unresolved ambiguities. Default true.
+	 */
 	public void setKeepAmbiguities(boolean value) {
 		imploder = value
 			? new AmbAsfixImploder(tokenManager)
@@ -101,7 +104,7 @@ public abstract class AbstractSGLRI implements IParser {
 		this.tokenManager = tokenManager;
 		this.parseTableId = parseTableId;
 
-		imploder = new AsfixImploder(tokenManager);
+		imploder = new AmbAsfixImploder(tokenManager);
 	}
 	
 	// Parsing

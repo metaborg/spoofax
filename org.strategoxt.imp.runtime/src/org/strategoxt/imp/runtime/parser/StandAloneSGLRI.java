@@ -63,7 +63,7 @@ public class StandAloneSGLRI {
 	}
 	
 	/**
-	 * Sets whether to keep any unresolved ambiguities. Default false.
+	 * Sets whether to keep any unresolved ambiguities. Default true.
 	 */
 	public void setKeepAmbiguities(boolean value) {
 		parser.setKeepAmbiguities(value);
