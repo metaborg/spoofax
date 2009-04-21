@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.spoofax.jsglr.BadTokenException;
-import org.spoofax.jsglr.IRecoverAlgorithm;
 import org.spoofax.jsglr.ParseTable;
+import org.spoofax.jsglr.RecoverAlgorithm;
 import org.spoofax.jsglr.SGLR;
 import org.spoofax.jsglr.SGLRException;
 import org.spoofax.jsglr.TokenExpectedException;
@@ -48,7 +48,7 @@ public class JSGLRI extends AbstractSGLRI {
 		parser.asyncAbort();
 	}
 	
-	public void setRecoverHandler(IRecoverAlgorithm recoverHandler) {
+	public void setRecoverHandler(RecoverAlgorithm recoverHandler) {
 		parser.setRecoverHandler(recoverHandler);
 	}
 	

@@ -7,7 +7,7 @@ import java.io.InputStreamReader;
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.Tools;
-import org.spoofax.interpreter.library.jsglr.JSGLRPrimitive;
+import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.library.ssl.SSLLibrary;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -16,7 +16,7 @@ import org.strategoxt.imp.runtime.Environment;
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class ReadTextFromStreamPrimitive extends JSGLRPrimitive {
+public class ReadTextFromStreamPrimitive extends AbstractPrimitive {
 	
 	private final char[] buffer = new char[2048];
 

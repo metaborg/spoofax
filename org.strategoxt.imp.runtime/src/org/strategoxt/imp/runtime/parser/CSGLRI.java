@@ -49,7 +49,7 @@ public class CSGLRI extends AbstractSGLRI {
 		OutputStream output = null;
 		
 		try {
-			File result = File.createTempFile("parsetable", null);
+			File result = File.createTempFile("temp", null);
 			output = new FileOutputStream(result);
 			
 			for (int read = 0; read != -1; read = input.read(buffer)) {

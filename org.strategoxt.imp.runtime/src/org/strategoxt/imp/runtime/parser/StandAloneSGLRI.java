@@ -5,9 +5,9 @@ import java.io.InputStream;
 
 import org.eclipse.imp.language.Language;
 import org.spoofax.jsglr.BadTokenException;
-import org.spoofax.jsglr.IRecoverAlgorithm;
 import org.spoofax.jsglr.InvalidParseTableException;
 import org.spoofax.jsglr.ParseTable;
+import org.spoofax.jsglr.RecoverAlgorithm;
 import org.spoofax.jsglr.SGLRException;
 import org.spoofax.jsglr.TokenExpectedException;
 import org.strategoxt.imp.runtime.Environment;
@@ -46,7 +46,7 @@ public class StandAloneSGLRI {
 		}
 	}
 	
-	public void setRecoverHandler(IRecoverAlgorithm recoverHandler) {
+	public void setRecoverHandler(RecoverAlgorithm recoverHandler) {
 		if (parser instanceof JSGLRI) {
 			((JSGLRI) parser).setRecoverHandler(recoverHandler);
 		}
