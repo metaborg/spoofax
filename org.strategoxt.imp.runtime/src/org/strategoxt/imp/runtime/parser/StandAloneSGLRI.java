@@ -39,13 +39,6 @@ public class StandAloneSGLRI {
 		}
 	}
 	
-	@Deprecated
-	public void withBacktracking(boolean withBT) {
-		if (parser instanceof JSGLRI) {
-			((JSGLRI) parser).withBacktracking(withBT);
-		}
-	}
-	
 	public void setRecoverHandler(RecoverAlgorithm recoverHandler) {
 		if (parser instanceof JSGLRI) {
 			((JSGLRI) parser).setRecoverHandler(recoverHandler);

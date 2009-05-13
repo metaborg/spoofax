@@ -39,11 +39,6 @@ public class JSGLRI extends AbstractSGLRI {
 		this(parseTable, startSymbol, null, new TokenKindManager());
 	}
 	
-	@Deprecated
-	public void withBacktracking(boolean withBT) {
-		parser.withBacktracking(withBT);
-    }
-	
 	public void asyncAbort() {
 		parser.asyncAbort();
 	}
@@ -64,8 +59,6 @@ public class JSGLRI extends AbstractSGLRI {
 	 */
 	void resetState() {
 		parser = Environment.createSGLR(parseTable);
-		parser.setCycleDetect(false);
-		parser.setFilter(false); // FIXME: Filters not supported ATM
 	}
 	
 	private ATerm doParseNoImplode(InputStream inputStream, char[] inputChars)
@@ -76,8 +69,7 @@ public class JSGLRI extends AbstractSGLRI {
 		
 		// Read stream using tokenizer/lexstream
 		
-		// TODO: Once spoofax supports it, use the start symbol
-		ATerm asfix = parser.parse(inputStream, null /*getStartSymbol()*/); 
+		ATerm asfix = parser.parse(inputStream, getStartSymbol()); 
 		
 		return asfix;
 	}
