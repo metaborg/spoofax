@@ -59,6 +59,8 @@ public class AmbAsfixImploder extends AsfixImploder {
 	 */
 	@Override
 	protected ATermAppl resolveAmbiguities(ATerm node) {
+		return (ATermAppl) node;
+		/* UNDONE: prefer/avoid disambiguation in imploder
 		if (!"amb".equals(((ATermAppl) node).getName()))
 			return (ATermAppl) node;
 		
@@ -94,6 +96,7 @@ public class AmbAsfixImploder extends AsfixImploder {
 		return ambs.getLength() == 1
 				? (ATermAppl) ambs.getSubTerm(0)
 				: (ATermAppl) node;
+		*/
 	}
 	
 }

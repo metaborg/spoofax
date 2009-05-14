@@ -70,6 +70,12 @@ public class ParseErrorHandler {
 		// TODO: Try using constructor matching to recognize WATER tokens..?
 		//       (which wasn't working before...)
 		
+		if ("amb".equals(((ATermAppl) term).getAFun().getName())) {
+			for (int i = 0; i < term.getChildCount(); i++) {
+				reportOnRepairedCode(tokenizer, (ATerm) term.getChildAt(i));
+			}
+		}
+		
 		ATermAppl prod = termAt(term, 0);
 		ATermAppl rhs = termAt(prod, 1);
 		ATermAppl attrs = termAt(prod, 2);
