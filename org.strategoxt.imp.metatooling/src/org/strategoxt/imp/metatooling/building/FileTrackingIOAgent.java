@@ -43,7 +43,7 @@ public class FileTrackingIOAgent extends EditorIOAgent {
 	}
 	
 	@Override
-	public int openRandomAccessFile(String fn, String mode) throws FileNotFoundException {
+	public int openRandomAccessFile(String fn, String mode) throws FileNotFoundException, IOException {
 		track(fn);
 		return super.openRandomAccessFile(fn, mode);
 	}
