@@ -86,7 +86,7 @@ public class CSGLRI extends AbstractSGLRI {
 			ATermAppl result = (ATermAppl) factory.readFromFile(outputFile.getAbsolutePath());
 			
 			if ("error".equals(result.getName()))
-				throw new SGLRException("CSGLR Parse error: " + result); // (actual error isn't extracted atm)
+				throw new SGLRException(null, "CSGLR Parse error: " + result); // (actual error isn't extracted atm)
 			
 			return result;
 		} catch (InterruptedException e) {
