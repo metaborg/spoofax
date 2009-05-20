@@ -2,6 +2,7 @@ package org.strategoxt.imp.metatooling.building;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Set;
