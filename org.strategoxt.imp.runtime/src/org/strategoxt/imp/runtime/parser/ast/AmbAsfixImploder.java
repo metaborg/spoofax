@@ -8,7 +8,6 @@ import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
 
 import aterm.ATerm;
 import aterm.ATermAppl;
-import aterm.ATermList;
 import aterm.pure.ATermListImpl;
 
 /**

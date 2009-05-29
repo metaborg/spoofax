@@ -26,12 +26,6 @@ public class WrappedAstNodeAppl extends WrappedAstNode implements IStrategoAppl 
 		constructor = factory.makeConstructor(node.getConstructor(), node.getChildren().size());
 	}
 	
-	protected WrappedAstNodeAppl(WrappedAstNodeFactory factory, IAst node) {
-		super(factory, node);
-		
-		constructor = factory.makeConstructor(node.getClass().getSimpleName(), node.getChildren().size());
-	}
-	
 	public final IStrategoTerm[] getArguments() {
 		return getAllSubterms();
 	}

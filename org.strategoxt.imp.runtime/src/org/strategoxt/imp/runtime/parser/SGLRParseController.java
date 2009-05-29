@@ -22,6 +22,7 @@ import org.eclipse.imp.parser.SimpleAnnotationTypeInfo;
 import org.eclipse.imp.services.IAnnotationTypeInfo;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.jface.text.IRegion;
+import org.spoofax.jsglr.BackTrackRecovery2;
 import org.spoofax.jsglr.BadTokenException;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.ParseTimeoutException;
@@ -122,6 +123,7 @@ public class SGLRParseController implements IParseController, ISourceInfo {
     	ParseTable table = Environment.getParseTable(language);
 		parser = new JSGLRI(table, startSymbol, this, tokenManager);
 		parser.setKeepAmbiguities(false); // not interested in ambiguities in the editor
+		parser.setRecoverHandler(new BackTrackRecovery2());
     }
 
     public void initialize(IPath filePath, ISourceProject project,
@@ -163,6 +165,7 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 			
 			// (must not be synchronized; uses workspace lock)
 			errorHandler.clearErrors();
+			errorHandler.setRecoveryEnabled(true);
 			errorHandler.reportNonFatalErrors(parser.getTokenizer(), asfix);
 				
 			Debug.stopTimer("File parsed: " + filename);
@@ -173,15 +176,19 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 			// TODO: Don't show stack trace for this
 			if (monitor.isCanceled()) return null;
 			errorHandler.clearErrors();
+			errorHandler.setRecoveryEnabled(false);
 			errorHandler.reportError(parser.getTokenizer(), e);
 		} catch (BadTokenException e) {
 			errorHandler.clearErrors();
+			errorHandler.setRecoveryEnabled(false);
 			errorHandler.reportError(parser.getTokenizer(), e);
 		} catch (SGLRException e) {
 			errorHandler.clearErrors();
+			errorHandler.setRecoveryEnabled(false);
 			errorHandler.reportError(parser.getTokenizer(), e);
 		} catch (IOException e) {
 			errorHandler.clearErrors();
+			errorHandler.setRecoveryEnabled(false);
 			errorHandler.reportError(parser.getTokenizer(), e);
 		} catch (OperationCanceledException e) {
 			return null;

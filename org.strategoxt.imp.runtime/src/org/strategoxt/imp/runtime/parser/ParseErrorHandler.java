@@ -32,6 +32,8 @@ public class ParseErrorHandler {
 	private final AstMessageHandler handler = new AstMessageHandler(AstMessageHandler.PARSE_MARKER_TYPE);
 	
 	private final ISourceInfo sourceInfo;
+	
+	private boolean isRecoveryEnabled = true;
 
 	private IMessageHandler messages;
 	
@@ -46,9 +48,17 @@ public class ParseErrorHandler {
 		handler.clearMarkers(sourceInfo.getResource());
 	}
 	
-	public void setMessages (IMessageHandler messages) {
+	public void setMessages(IMessageHandler messages) {
 		this.messages = messages;
-	}	
+	}
+	
+	/**
+	 * Informs the parse error handler that recovery is unavailable.
+	 * This information is reflected in any parse error messages.
+	 */
+	public void setRecoveryEnabled(boolean recoveryEnabled) {
+		this.isRecoveryEnabled = recoveryEnabled;
+	}
 	
 	/**
 	 * Report WATER + INSERT errors from parse tree
@@ -71,9 +81,11 @@ public class ParseErrorHandler {
 		//       (which wasn't working before...)
 		
 		if ("amb".equals(((ATermAppl) term).getAFun().getName())) {
-			for (int i = 0; i < term.getChildCount(); i++) {
-				reportOnRepairedCode(tokenizer, (ATerm) term.getChildAt(i));
+			
+			for (ATermList cons = (ATermList) term.getChildAt(0); !cons.isEmpty(); cons = cons.getNext()) {
+				reportOnRepairedCode(tokenizer, cons.getFirst());
 			}
+			return;
 		}
 		
 		ATermAppl prod = termAt(term, 0);
@@ -156,6 +168,10 @@ public class ParseErrorHandler {
 		//messages.handleSimpleMessage(
 		// 		message, max(0, left.getStartOffset()), max(0, right.getEndOffset()),
 		// 		left.getColumn(), right.getEndColumn(), left.getLine(), right.getEndLine());
+		
+		if (!isRecoveryEnabled)
+			message += " (recovery unavailable)";
+		
 		handler.addMarker(sourceInfo.getResource(), left, right, message, IMarker.SEVERITY_ERROR);
 	}	
 	

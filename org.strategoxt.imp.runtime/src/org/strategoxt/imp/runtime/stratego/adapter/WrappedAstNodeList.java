@@ -19,11 +19,11 @@ public class WrappedAstNodeList extends WrappedAstNode implements IStrategoList 
 	
 	private WrappedAstNodeList tail;
 	
-	protected WrappedAstNodeList(WrappedAstNodeFactory factory, IAst node) {
+	protected WrappedAstNodeList(WrappedAstNodeFactory factory, IStrategoAstNode node) {
 		this(factory, node, 0);
 	}
 
-	protected WrappedAstNodeList(WrappedAstNodeFactory factory, IAst node, int offset) {
+	protected WrappedAstNodeList(WrappedAstNodeFactory factory, IStrategoAstNode node, int offset) {
 		super(factory, node);
 		this.offset = offset;
 	}

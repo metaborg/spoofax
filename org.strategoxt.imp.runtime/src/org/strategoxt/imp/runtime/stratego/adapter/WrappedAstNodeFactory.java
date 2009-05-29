@@ -39,7 +39,7 @@ public class WrappedAstNodeFactory extends BasicTermFactory implements ITermFact
 		}
 	}
 	
-	protected WrappedAstNodeList wrapList(IAst node, int offset) {
+	protected WrappedAstNodeList wrapList(IStrategoAstNode node, int offset) {
 		return new WrappedAstNodeList(this, node, offset);
 	}
 	

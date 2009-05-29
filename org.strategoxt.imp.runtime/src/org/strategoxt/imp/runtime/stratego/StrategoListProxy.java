@@ -19,6 +19,10 @@ public class StrategoListProxy implements IStrategoList {
 	public void setWrapped(IStrategoList wrapped) {
 		this.wrapped = wrapped;
 	}
+    
+	public int getStorageType() {
+		return IMMUTABLE;
+	}
 
 	public IStrategoTerm get(int index) {
 		return getWrapped().get(index);

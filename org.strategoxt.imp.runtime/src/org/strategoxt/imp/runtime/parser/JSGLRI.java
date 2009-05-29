@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.spoofax.jsglr.BadTokenException;
+import org.spoofax.jsglr.NoRecovery;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.RecoverAlgorithm;
 import org.spoofax.jsglr.SGLR;
@@ -22,6 +23,8 @@ import aterm.ATerm;
 public class JSGLRI extends AbstractSGLRI {
 	
 	private final ParseTable parseTable;
+	
+	private RecoverAlgorithm recoverHandler = new NoRecovery();
 	
 	private SGLR parser;
 	
@@ -44,6 +47,7 @@ public class JSGLRI extends AbstractSGLRI {
 	}
 	
 	public void setRecoverHandler(RecoverAlgorithm recoverHandler) {
+		this.recoverHandler = recoverHandler;
 		parser.setRecoverHandler(recoverHandler);
 	}
 	
@@ -59,6 +63,9 @@ public class JSGLRI extends AbstractSGLRI {
 	 */
 	void resetState() {
 		parser = Environment.createSGLR(parseTable);
+		parser.setRecoverHandler(recoverHandler);
+		// XXX: Must run with filters enabled, when they're no longer b0rked
+		parser.getDisambiguator().setFilterPriorities(false);
 	}
 	
 	private ATerm doParseNoImplode(InputStream inputStream, char[] inputChars)

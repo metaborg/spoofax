@@ -21,7 +21,7 @@ public class WrappedAstNodeLink extends WrappedAstNode implements IWrappedAstNod
 	
 	private final IStrategoTerm wrapped;
 	
-	public WrappedAstNodeLink(WrappedAstNodeFactory factory, IStrategoTerm term, IAst node) {
+	public WrappedAstNodeLink(WrappedAstNodeFactory factory, IStrategoTerm term, IStrategoAstNode node) {
 		super(factory, node);
 		this.wrapped = term;
 		assert !(wrapped instanceof IWrappedAstNode);

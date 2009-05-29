@@ -8,13 +8,17 @@ import org.spoofax.interpreter.terms.ITermPrinter;
 import org.spoofax.interpreter.terms.InlinePrinter;
 
 public abstract class WrappedAstNode implements IWrappedAstNode, IStrategoTerm, Cloneable {
-	private final IAst node;
+	private final IStrategoAstNode node;
 	
 	private final WrappedAstNodeFactory factory;
 	
 	private IStrategoList annotations;
+    
+	public int getStorageType() {
+		return IMMUTABLE;
+	}
 	
-	public final IAst getNode() {
+	public final IStrategoAstNode getNode() {
 		return node;
 	}
 	
@@ -22,7 +26,7 @@ public abstract class WrappedAstNode implements IWrappedAstNode, IStrategoTerm, 
 		return factory;
 	}
 	
-	protected WrappedAstNode(WrappedAstNodeFactory factory, IAst node) {
+	protected WrappedAstNode(WrappedAstNodeFactory factory, IStrategoAstNode node) {
 		this.factory = factory;
 		this.node = node;
 	}
