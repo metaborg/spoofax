@@ -44,7 +44,12 @@ public class ParseErrorHandler {
 	}
 	
 	public void clearErrors() {
-		messages.clearMessages();
+		try {
+			messages.clearMessages();
+		} catch (RuntimeException e) {
+			// Might happen if editor is closed
+			Environment.logException("Exception occurred in clearing error markers", e);
+		}
 		handler.clearMarkers(sourceInfo.getResource());
 	}
 	
@@ -75,13 +80,7 @@ public class ParseErrorHandler {
 	private void reportOnRepairedCode(SGLRTokenizer tokenizer, ATerm term) {
 		// TODO: Nicer error messages; merge consecutive error tokens etc.
 		
-		// TODO: Report error for INSERTEND tokens
-		
-		// TODO: Try using constructor matching to recognize WATER tokens..?
-		//       (which wasn't working before...)
-		
 		if ("amb".equals(((ATermAppl) term).getAFun().getName())) {
-			
 			for (ATermList cons = (ATermList) term.getChildAt(0); !cons.isEmpty(); cons = cons.getNext()) {
 				reportOnRepairedCode(tokenizer, cons.getFirst());
 			}
@@ -92,16 +91,7 @@ public class ParseErrorHandler {
 		ATermAppl rhs = termAt(prod, 1);
 		ATermAppl attrs = termAt(prod, 2);
 		ATermList contents = termAt(term, 1);
-		boolean isWaterTerm = isErrorProduction(attrs, WATER);	//isWater(rhs);
-		boolean isInsertTerm = isErrorProduction(attrs, INSERT);	
-		boolean isEndInsertTerm = isErrorProduction(attrs, INSERT_END);	
-		int beginErrorOffSet = 0;		
-		
-		//pre visit: keep offset as begin of error
-		if(isWaterTerm || isInsertTerm || isEndInsertTerm)
-        { 
-        	beginErrorOffSet = offset;        	
-        }
+		int beginErrorOffSet = offset;
 		
 		// Recurse the tree and update the offset
 		for (int i = 0; i < contents.getLength(); i++) {
@@ -114,15 +104,13 @@ public class ParseErrorHandler {
 		}
 		
 		//post visit: report error				
-		if (isWaterTerm) {
+		if (isErrorProduction(attrs, WATER)) {
 			IToken token = tokenizer.makeErrorToken(beginErrorOffSet, offset - 1);
 			reportErrorAtTokens(token, token, "'" + token + "' not expected here");
-		}
-		if (isEndInsertTerm) {
+		} else if (isErrorProduction(attrs, INSERT_END)) {
 			IToken token = tokenizer.makeErrorToken(beginErrorOffSet, offset - 1);
 			reportErrorAtTokens(token, token, "Closing of '" + token + "' is expected here");
-		}
-		if (isInsertTerm) {
+		} else if (isErrorProduction(attrs, INSERT)) {
 			IToken token = tokenizer.makeErrorTokenSkipLayout(beginErrorOffSet, offset + 1);
 			String inserted = "";
 			if (rhs.getName() == "lit") {
@@ -143,23 +131,21 @@ public class ParseErrorHandler {
 	public void reportError(SGLRTokenizer tokenizer, BadTokenException exception) {
 		IToken token = tokenizer.makeErrorToken(exception.getOffset());
 		String message = exception.isEOFToken()
-        	? exception.getShortMessage()
-        	: "'" + token + "' not expected here";
-        	reportErrorAtTokens(token, token, message);
+			? exception.getShortMessage()
+			: "'" + token + "' not expected here";
+		reportErrorAtTokens(token, token, message);
 	}
 	
 	public void reportError(SGLRTokenizer tokenizer, ParseTimeoutException exception) {
 		Environment.logException(exception);
-		reportError(tokenizer, (BadTokenException) exception);
+		String message = "Internal parsing error: " + exception.getMessage();
+		reportErrorAtFirstLine(message);
 	}
 	 
 	public void reportError(SGLRTokenizer tokenizer, Exception exception) {
 		String message = "Internal parsing error: " + exception;
-		IToken token = tokenizer.makeErrorToken(0);
-		
 		Environment.logException("Internal parsing error", exception);
-		
-		reportErrorAtTokens(token, token, message);
+		reportErrorAtFirstLine(message);
 	}
 	
 	private void reportErrorAtTokens(IToken left, IToken right, String message) {
@@ -173,6 +159,13 @@ public class ParseErrorHandler {
 			message += " (recovery unavailable)";
 		
 		handler.addMarker(sourceInfo.getResource(), left, right, message, IMarker.SEVERITY_ERROR);
+	}
+	
+	private void reportErrorAtFirstLine(String message) {
+		if (!isRecoveryEnabled)
+			message += " (recovery unavailable)";
+		
+		handler.addMarkerFirstLine(sourceInfo.getResource(), message, IMarker.SEVERITY_ERROR);
 	}	
 	
 	private static boolean isErrorProduction(ATermAppl attrs, String consName) {		

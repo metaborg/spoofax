@@ -8,6 +8,7 @@ import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
 
 import aterm.ATerm;
 import aterm.ATermAppl;
+import aterm.ATermList;
 import aterm.pure.ATermListImpl;
 
 /**
@@ -58,8 +59,7 @@ public class AmbAsfixImploder extends AsfixImploder {
 	 */
 	@Override
 	protected ATermAppl resolveAmbiguities(ATerm node) {
-		return (ATermAppl) node;
-		/* UNDONE: prefer/avoid disambiguation in imploder
+		// TODO: disable when prefer/avoid disambiguation works in Disambiguator
 		if (!"amb".equals(((ATermAppl) node).getName()))
 			return (ATermAppl) node;
 		
@@ -95,7 +95,6 @@ public class AmbAsfixImploder extends AsfixImploder {
 		return ambs.getLength() == 1
 				? (ATermAppl) ambs.getSubTerm(0)
 				: (ATermAppl) node;
-		*/
 	}
 	
 }

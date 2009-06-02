@@ -157,9 +157,10 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 			
 			char[] inputChars = input.toCharArray();
 				
-			currentAst = parser.parse(inputChars, filename);
-			
 			if (monitor.isCanceled()) return null;
+                        currentAst = parser.parse(inputChars, filename);			
+			if (monitor.isCanceled()) return null;
+			// For error handling, retrieve the cached, unimploded asfix tree
 			asfix = parser.parseNoImplode(inputChars, filename);
 			if (monitor.isCanceled()) return null;
 			

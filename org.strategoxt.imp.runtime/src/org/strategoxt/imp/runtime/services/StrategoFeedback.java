@@ -228,6 +228,9 @@ public class StrategoFeedback implements IModelListener {
 	 * @see #getAstNode(IStrategoTerm)  To retrieve the AST node associated with the resulting term.
 	 */
 	public IStrategoTerm invoke(String function, IStrategoTerm term, ISourceInfo sourceInfo) {
+		if (interpreter == null)
+			return null;
+		
 		synchronized (Environment.getSyncRoot()) {
 		    Debug.startTimer();
 		    boolean success;

@@ -128,17 +128,31 @@ public class SGLRTokenizer {
 	 * Creates an error token on stream part
 	 */
 	public IToken makeErrorToken(int beginOffset, int endOffset) {		
+		if (endOffset >= lexStream.getStreamLength()) {
+			endOffset = lexStream.getStreamLength() - 1;
+			beginOffset = Math.min(beginOffset, endOffset);
+		}
+
 		return new Token(parseStream, beginOffset, endOffset, TK_ERROR.ordinal());
 	}
 	
 	/**
 	 * Creates an error token on stream part, backwards skipping whitespace
 	 */
-	public IToken makeErrorTokenSkipLayout(int beginOffset, int endOffset) {		
-		int skipLength =0;
-		while (isWhitespaceChar(beginOffset-skipLength-1) && beginOffset-skipLength>0) {
-			skipLength++;
+	public IToken makeErrorTokenSkipLayout(int beginOffset, int endOffset) {
+		if (endOffset >= lexStream.getStreamLength()) {
+			endOffset = lexStream.getStreamLength() - 1;
+			beginOffset = Math.min(beginOffset, endOffset);
 		}
+
+		int skipLength;
+		
+		for (skipLength = 0; beginOffset - skipLength > 0; skipLength++) {
+			char c = lexStream.getCharValue(beginOffset - skipLength - 1);
+			if (!Character.isWhitespace(c) || c == '\n')
+				break;
+		}
+		
 		return makeErrorToken(beginOffset-skipLength, endOffset-skipLength);
 	}
 	
