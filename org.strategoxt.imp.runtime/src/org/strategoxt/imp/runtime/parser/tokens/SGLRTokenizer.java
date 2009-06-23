@@ -108,6 +108,7 @@ public class SGLRTokenizer {
 			
 			if (onlySeenWhitespace) {
 				onlySeenWhitespace = isWhitespace;
+				offset++;
 			} else if (isWhitespace) {
 				break;
 			}

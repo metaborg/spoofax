@@ -170,14 +170,14 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 			errorHandler.reportNonFatalErrors(parser.getTokenizer(), asfix);
 				
 			Debug.stopTimer("File parsed: " + filename);
-		} catch (TokenExpectedException e) {
-			errorHandler.clearErrors(); // (may not be synchronized; uses workspace lock)
-			errorHandler.reportError(parser.getTokenizer(), e);
 		} catch (ParseTimeoutException e) {
 			// TODO: Don't show stack trace for this
 			if (monitor.isCanceled()) return null;
 			errorHandler.clearErrors();
 			errorHandler.setRecoveryEnabled(false);
+			errorHandler.reportError(parser.getTokenizer(), e);
+		} catch (TokenExpectedException e) {
+			errorHandler.clearErrors(); // (must not be synchronized; uses workspace lock)
 			errorHandler.reportError(parser.getTokenizer(), e);
 		} catch (BadTokenException e) {
 			errorHandler.clearErrors();
