@@ -22,8 +22,8 @@ import org.eclipse.imp.parser.SimpleAnnotationTypeInfo;
 import org.eclipse.imp.services.IAnnotationTypeInfo;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.jface.text.IRegion;
-import org.spoofax.jsglr.BackTrackRecovery2;
 import org.spoofax.jsglr.BadTokenException;
+import org.spoofax.jsglr.CoarseGrainedRecovery;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.ParseTimeoutException;
 import org.spoofax.jsglr.SGLR;
@@ -123,7 +123,7 @@ public class SGLRParseController implements IParseController, ISourceInfo {
     	ParseTable table = Environment.getParseTable(language);
 		parser = new JSGLRI(table, startSymbol, this, tokenManager);
 		parser.setKeepAmbiguities(false); // not interested in ambiguities in the editor
-		parser.setRecoverHandler(new BackTrackRecovery2());
+		parser.setRecoverHandler(new CoarseGrainedRecovery());
     }
 
     public void initialize(IPath filePath, ISourceProject project,
@@ -158,7 +158,7 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 			char[] inputChars = input.toCharArray();
 				
 			if (monitor.isCanceled()) return null;
-                        currentAst = parser.parse(inputChars, filename);			
+			currentAst = parser.parse(inputChars, filename);			
 			if (monitor.isCanceled()) return null;
 			// For error handling, retrieve the cached, unimploded asfix tree
 			asfix = parser.parseNoImplode(inputChars, filename);
