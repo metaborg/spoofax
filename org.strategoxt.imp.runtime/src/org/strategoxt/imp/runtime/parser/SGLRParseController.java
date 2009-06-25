@@ -23,11 +23,11 @@ import org.eclipse.imp.services.IAnnotationTypeInfo;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.jface.text.IRegion;
 import org.spoofax.jsglr.BadTokenException;
-import org.spoofax.jsglr.CoarseGrainedRecovery;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.ParseTimeoutException;
 import org.spoofax.jsglr.SGLR;
 import org.spoofax.jsglr.SGLRException;
+import org.spoofax.jsglr.StructureRecoveryAlgorithm;
 import org.spoofax.jsglr.TokenExpectedException;
 import org.spoofax.jsglr.Tools;
 import org.strategoxt.imp.runtime.Debug;
@@ -122,8 +122,10 @@ public class SGLRParseController implements IParseController, ISourceInfo {
     	
     	ParseTable table = Environment.getParseTable(language);
 		parser = new JSGLRI(table, startSymbol, this, tokenManager);
+		// TODO: Do something useful with ambiguities
 		parser.setKeepAmbiguities(false); // not interested in ambiguities in the editor
-		parser.setRecoverHandler(new CoarseGrainedRecovery());
+		// parser.setRecoverHandler(new CoarseGrainedRecovery());
+		parser.setRecoverHandler(new StructureRecoveryAlgorithm());
     }
 
     public void initialize(IPath filePath, ISourceProject project,

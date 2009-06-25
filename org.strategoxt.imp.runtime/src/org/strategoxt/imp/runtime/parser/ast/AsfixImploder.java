@@ -345,8 +345,8 @@ public class AsfixImploder {
 			: "Character from asfix stream (" + character.getInt()
 			+ ") must be in lex stream ("
 			+ (tokenizer.getLexStream().getInputChars().length > offset 
-			   ? "???"
-			   : (int) tokenizer.getLexStream().getCharValue(offset)) + ")";
+			   ? (int) tokenizer.getLexStream().getCharValue(offset)
+			   :  "???") + ")";
 		
 		offset++;
 	}
