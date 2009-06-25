@@ -257,11 +257,13 @@ public class AsfixImploder {
 		final ATermListImpl ambs = termAt(node, 0);
 		
 		ATermAppl lastNonAvoid = null;
+		ATermAppl firstOption = null;
 		boolean multipleNonAvoids = false;
 		
 	alts:
 		for (int i = 0; i < ambs.getLength(); i++) {
 			ATermAppl prod = resolveAmbiguities(termAt(ambs, i));
+			if (firstOption == null) firstOption = prod;
 			ATermAppl appl = termAt(prod, APPL_PROD);
 			ATermAppl attrs = termAt(appl, PROD_ATTRS);
 			
@@ -271,7 +273,7 @@ public class AsfixImploder {
 				for (int j = 0; j < attrList.getLength(); j++) {
 					ATerm attr = termAt(attrList, j);
 					if (isAppl(attr) && "prefer".equals(asAppl(attr).getName())) {
-						return resolveAmbiguities(prod);
+						return prod;
 					} else if (isAppl(attr) && "avoid".equals(asAppl(attr).getName())) {
 						continue alts;
 					}
@@ -286,10 +288,10 @@ public class AsfixImploder {
 		}
 		
 		if (!multipleNonAvoids) {
-			return lastNonAvoid != null ? lastNonAvoid : applAt(ambs, 0);
+			return lastNonAvoid != null ? lastNonAvoid : firstOption;
 		} else {
 			if (Debug.ENABLED && !lexicalContext) reportUnresolvedAmb(ambs);
-			return resolveAmbiguities(ambs.getFirst());
+			return firstOption;
 		}
 	}
 	
