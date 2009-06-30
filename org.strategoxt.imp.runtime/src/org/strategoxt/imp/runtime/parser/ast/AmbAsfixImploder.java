@@ -38,13 +38,13 @@ public class AmbAsfixImploder extends AsfixImploder {
 		
 		final int oldOffset = offset;
 		final int oldBeginOffset = tokenizer.getStartOffset();
-		final boolean oldLexicalContext = lexicalContext;
+		final boolean oldLexicalContext = inLexicalContext;
 		
 		for (ATerm amb : ambs) {
 			// Restore lexical state for each branch
 			offset = oldOffset;
 			tokenizer.setStartOffset(oldBeginOffset);
-			lexicalContext = oldLexicalContext;
+			inLexicalContext = oldLexicalContext;
 			
 			results.add(implodeAppl(amb));
 		}

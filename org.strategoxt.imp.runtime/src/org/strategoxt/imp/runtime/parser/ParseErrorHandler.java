@@ -6,6 +6,7 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.imp.parser.IMessageHandler;
 import org.spoofax.jsglr.BadTokenException;
 import org.spoofax.jsglr.ParseTimeoutException;
+import org.spoofax.jsglr.RecoveryConnector;
 import org.spoofax.jsglr.TokenExpectedException;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.ISourceInfo;
@@ -23,11 +24,26 @@ import aterm.ATermList;
  */
 public class ParseErrorHandler {
 	
+	/**
+	 * The constructor used for "water" recovery rules.
+	 */
 	public static final String WATER = "WATER";
 	
-	private static final String INSERT = "INSERTION";
+	/**
+	 * The constructor used for "insertion" recovery rules.
+	 */
+	public static final String INSERT = "INSERTION";
 	
-	private static final String INSERT_END = "INSERTEND";
+	/**
+	 * The constructor used for "end insertion" recovery rules.
+	 */
+	public static final String INSERT_END = "INSERTEND";
+	
+	/**
+	 * The parse stream character that indicates a character has
+	 * been skipped by the parser.
+	 */
+	public static final char SKIPPED_CHAR = (char) -1;
 	
 	private final AstMessageHandler handler = new AstMessageHandler(AstMessageHandler.PARSE_MARKER_TYPE);
 	
@@ -70,19 +86,20 @@ public class ParseErrorHandler {
 	 */
 	public void reportNonFatalErrors(SGLRTokenizer tokenizer, ATerm top) {
 		try {
-			offset=0;
-			reportOnRepairedCode(tokenizer, termAt(top, 0));
+			offset = 0;
+			reportSkippedFragments(tokenizer);
+			reportRecoveredErrors(tokenizer, termAt(top, 0));
 		} catch (RuntimeException e) {
 			reportError(tokenizer, e);
 		}
 	}
 
-	private void reportOnRepairedCode(SGLRTokenizer tokenizer, ATerm term) {
+	private void reportRecoveredErrors(SGLRTokenizer tokenizer, ATerm term) {
 		// TODO: Nicer error messages; merge consecutive error tokens etc.
 		
 		if ("amb".equals(((ATermAppl) term).getAFun().getName())) {
 			for (ATermList cons = (ATermList) term.getChildAt(0); !cons.isEmpty(); cons = cons.getNext()) {
-				reportOnRepairedCode(tokenizer, cons.getFirst());
+				reportRecoveredErrors(tokenizer, cons.getFirst());
 			}
 			return;
 		}
@@ -99,7 +116,7 @@ public class ParseErrorHandler {
 			if (child.getType() == ATerm.INT) {
 				offset += 1;				
 			} else {
-				reportOnRepairedCode(tokenizer, child);
+				reportRecoveredErrors(tokenizer, child);
 			}
 		}
 		
@@ -117,6 +134,26 @@ public class ParseErrorHandler {
 				inserted = applAt(rhs, 0).getName();
 			}
 			reportErrorAtTokens(token, token, "Expected: '" + inserted + "'");
+		}
+	}
+	
+	private void reportSkippedFragments(SGLRTokenizer tokenizer) {
+		char[] inputChars = tokenizer.getLexStream().getInputChars();
+		for (int i = 0; i < inputChars.length; i++) {
+			char c = inputChars[i];
+			if (c == SKIPPED_CHAR) {
+				int beginSkipped = i;
+				int endSkipped = i;
+				while (++i < inputChars.length) {
+					c = inputChars[i];
+					if (c == SKIPPED_CHAR)
+						endSkipped = i;
+					else if (!RecoveryConnector.isLayoutCharacter(c))
+						break;
+				}
+				IToken token = tokenizer.makeErrorToken(beginSkipped, endSkipped);
+				reportErrorAtTokens(token, token, "Could not parse this fragment");
+			}
 		}
 	}
 	
