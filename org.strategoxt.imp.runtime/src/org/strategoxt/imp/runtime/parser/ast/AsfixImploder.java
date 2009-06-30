@@ -116,9 +116,7 @@ public class AsfixImploder {
 		IToken prevToken = tokenizer.currentToken();
 		
 		// Enter lexical context if this is a lex node
-		boolean lexicalStart = !inLexicalContext
-			&& ("lex".equals(rhs.getName()) || AsfixAnalyzer.isLiteral(rhs)
-			    || AsfixAnalyzer.isLayout(rhs));
+		boolean lexicalStart = !inLexicalContext && isLexicalNode(rhs);
 		
 		if (lexicalStart) inLexicalContext = true;
 		
@@ -127,7 +125,7 @@ public class AsfixImploder {
 		}
 		
 		boolean isList = !inLexicalContext && AsfixAnalyzer.isList(rhs);
-		boolean isVar  = !inLexicalContext && !isList && "varsym".equals(rhs.getName());
+		boolean isVar  = !inLexicalContext && !isList && isVariableNode(rhs);
 		
 		if (isVar) inLexicalContext = true;
 		
@@ -142,6 +140,30 @@ public class AsfixImploder {
 		} else {
 			return createNonTerminalOrInjection(lhs, rhs, attrs, prevToken, children, isList);
 		}
+	}
+
+	/**
+	 * Identifies lexical parse tree nodes.
+	 * 
+	 * @see #isVariableNode(ATermAppl)
+	 *      Identifies variables, which are usually treated similarly to
+	 *      lexical nodes.
+	 * 
+	 * @return true if the current node is lexical.
+	 */
+	public static boolean isLexicalNode(ATermAppl rhs) {
+		return ("lex".equals(rhs.getName()) || AsfixAnalyzer.isLiteral(rhs)
+		    || AsfixAnalyzer.isLayout(rhs));
+	}
+
+	/**
+	 * Identifies parse tree nodes that begin variables.
+	 * 
+	 * @see #isVariableNode(ATermAppl) 
+	 * @return true if the current node is lexical.
+	 */
+	public static boolean isVariableNode(ATermAppl rhs) {
+		return "varsym".equals(rhs.getName());
 	}
 
 	protected ArrayList<AstNode> implodeChildNodes(ATermList contents) {

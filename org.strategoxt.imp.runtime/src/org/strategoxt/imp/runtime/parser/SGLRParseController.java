@@ -168,7 +168,7 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 			
 			// (must not be synchronized; uses workspace lock)
 			errorHandler.clearErrors();
-			errorHandler.setRecoveryEnabled(true);
+			errorHandler.setRecoveryAvailable(true);
 			errorHandler.reportNonFatalErrors(parser.getTokenizer(), asfix);
 				
 			Debug.stopTimer("File parsed: " + filename);
@@ -176,22 +176,22 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 			// TODO: Don't show stack trace for this
 			if (monitor.isCanceled()) return null;
 			errorHandler.clearErrors();
-			errorHandler.setRecoveryEnabled(false);
+			errorHandler.setRecoveryAvailable(false);
 			errorHandler.reportError(parser.getTokenizer(), e);
 		} catch (TokenExpectedException e) {
 			errorHandler.clearErrors(); // (must not be synchronized; uses workspace lock)
 			errorHandler.reportError(parser.getTokenizer(), e);
 		} catch (BadTokenException e) {
 			errorHandler.clearErrors();
-			errorHandler.setRecoveryEnabled(false);
+			errorHandler.setRecoveryAvailable(false);
 			errorHandler.reportError(parser.getTokenizer(), e);
 		} catch (SGLRException e) {
 			errorHandler.clearErrors();
-			errorHandler.setRecoveryEnabled(false);
+			errorHandler.setRecoveryAvailable(false);
 			errorHandler.reportError(parser.getTokenizer(), e);
 		} catch (IOException e) {
 			errorHandler.clearErrors();
-			errorHandler.setRecoveryEnabled(false);
+			errorHandler.setRecoveryAvailable(false);
 			errorHandler.reportError(parser.getTokenizer(), e);
 		} catch (OperationCanceledException e) {
 			return null;

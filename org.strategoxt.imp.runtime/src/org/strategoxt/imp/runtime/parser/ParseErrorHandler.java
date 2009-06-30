@@ -10,6 +10,7 @@ import org.spoofax.jsglr.RecoveryConnector;
 import org.spoofax.jsglr.TokenExpectedException;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.ISourceInfo;
+import org.strategoxt.imp.runtime.parser.ast.AsfixImploder;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
 
@@ -49,11 +50,13 @@ public class ParseErrorHandler {
 	
 	private final ISourceInfo sourceInfo;
 	
-	private boolean isRecoveryEnabled = true;
+	private boolean isRecoveryAvailable = true;
 
 	private IMessageHandler messages;
 	
 	private int offset;
+	
+	private boolean inLexicalContext;
 
 	public ParseErrorHandler(ISourceInfo sourceInfo) {
 		this.sourceInfo = sourceInfo;
@@ -77,8 +80,8 @@ public class ParseErrorHandler {
 	 * Informs the parse error handler that recovery is unavailable.
 	 * This information is reflected in any parse error messages.
 	 */
-	public void setRecoveryEnabled(boolean recoveryEnabled) {
-		this.isRecoveryEnabled = recoveryEnabled;
+	public void setRecoveryAvailable(boolean recoveryAvailable) {
+		this.isRecoveryAvailable = recoveryAvailable;
 	}
 	
 	/**
@@ -88,19 +91,23 @@ public class ParseErrorHandler {
 		try {
 			offset = 0;
 			reportSkippedFragments(tokenizer);
-			reportRecoveredErrors(tokenizer, termAt(top, 0));
+			ATermAppl asfix = termAt(top, 0);
+			reportRecoveredErrors(tokenizer, asfix);
 		} catch (RuntimeException e) {
 			reportError(tokenizer, e);
 		}
 	}
 
-	private void reportRecoveredErrors(SGLRTokenizer tokenizer, ATerm term) {
+	private void reportRecoveredErrors(SGLRTokenizer tokenizer, ATermAppl term) {
 		// TODO: Nicer error messages; merge consecutive error tokens etc.
+		int startOffset = offset;
 		
-		if ("amb".equals(((ATermAppl) term).getAFun().getName())) {
-			for (ATermList cons = (ATermList) term.getChildAt(0); !cons.isEmpty(); cons = cons.getNext()) {
-				reportRecoveredErrors(tokenizer, cons.getFirst());
-			}
+		if ("amb".equals(term.getAFun().getName())) {
+			// Report errors in first ambiguous branch and update offset
+			ATermList ambs = termAt(term, 0);
+			reportRecoveredErrors(tokenizer, (ATermAppl) ambs.getFirst());
+			
+			reportAmbiguity(tokenizer, term, startOffset);
 			return;
 		}
 		
@@ -108,33 +115,61 @@ public class ParseErrorHandler {
 		ATermAppl rhs = termAt(prod, 1);
 		ATermAppl attrs = termAt(prod, 2);
 		ATermList contents = termAt(term, 1);
-		int beginErrorOffSet = offset;
+		boolean lexicalStart = false;
 		
-		// Recurse the tree and update the offset
+		if (!inLexicalContext && AsfixImploder.isLexicalNode(rhs) || AsfixImploder.isVariableNode(rhs)) {
+			inLexicalContext = lexicalStart = true;
+		}
+		
+		// Recursively visit the subtree and update the offset
 		for (int i = 0; i < contents.getLength(); i++) {
 			ATerm child = contents.elementAt(i);
 			if (child.getType() == ATerm.INT) {
 				offset += 1;				
 			} else {
-				reportRecoveredErrors(tokenizer, child);
+				reportRecoveredErrors(tokenizer, (ATermAppl) child);
 			}
 		}
 		
 		//post visit: report error				
 		if (isErrorProduction(attrs, WATER)) {
-			IToken token = tokenizer.makeErrorToken(beginErrorOffSet, offset - 1);
+			IToken token = tokenizer.makeErrorToken(startOffset, offset - 1);
 			reportErrorAtTokens(token, token, "'" + token + "' not expected here");
 		} else if (isErrorProduction(attrs, INSERT_END)) {
-			IToken token = tokenizer.makeErrorToken(beginErrorOffSet, offset - 1);
+			IToken token = tokenizer.makeErrorToken(startOffset, offset - 1);
 			reportErrorAtTokens(token, token, "Closing of '" + token + "' is expected here");
 		} else if (isErrorProduction(attrs, INSERT)) {
-			IToken token = tokenizer.makeErrorTokenSkipLayout(beginErrorOffSet, offset + 1);
-			String inserted = "";
+			IToken token = tokenizer.makeErrorTokenSkipLayout(startOffset, offset + 1);
+			String inserted = ""; // TODO: Handle this default case better
 			if (rhs.getName() == "lit") {
 				inserted = applAt(rhs, 0).getName();
 			}
 			reportErrorAtTokens(token, token, "Expected: '" + inserted + "'");
 		}
+		
+		if (lexicalStart) inLexicalContext = false;
+	}
+	
+	private void reportAmbiguity(SGLRTokenizer tokenizer, ATermAppl amb, int startOffset) {
+		if (!inLexicalContext && hasContextFreeNode(amb)) {
+			IToken token = tokenizer.makeErrorToken(startOffset, offset - 1);
+			reportErrorAtTokens(token, token, "Fragment is ambiguous");
+		}
+	}
+	
+	private static boolean hasContextFreeNode(ATermAppl term) {
+		if ("lit".equals(term.getAFun().getName()))
+			return true;
+		
+		for (int i = 0; i < term.getChildCount(); i++) {
+			ATerm child = termAt(term, i);
+			if (child.getType() == ATerm.AFUN) {
+				boolean success = hasContextFreeNode((ATermAppl) child);
+				if (success) return true;
+			}
+		}
+		
+		return false;
 	}
 	
 	private void reportSkippedFragments(SGLRTokenizer tokenizer) {
@@ -192,14 +227,14 @@ public class ParseErrorHandler {
 		// 		message, max(0, left.getStartOffset()), max(0, right.getEndOffset()),
 		// 		left.getColumn(), right.getEndColumn(), left.getLine(), right.getEndLine());
 		
-		if (!isRecoveryEnabled)
+		if (!isRecoveryAvailable)
 			message += " (recovery unavailable)";
 		
 		handler.addMarker(sourceInfo.getResource(), left, right, message, IMarker.SEVERITY_ERROR);
 	}
 	
 	private void reportErrorAtFirstLine(String message) {
-		if (!isRecoveryEnabled)
+		if (!isRecoveryAvailable)
 			message += " (recovery unavailable)";
 		
 		handler.addMarkerFirstLine(sourceInfo.getResource(), message, IMarker.SEVERITY_ERROR);
