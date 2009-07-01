@@ -65,6 +65,7 @@ public class DynamicDescriptorBuilder {
 			Debug.stopTimer("Successfully loaded dynamic editor builder");
 			
 		} catch (Throwable e) {
+			Environment.logException("Unable to initialize dynamic builder", e);
 			throw new RuntimeException("Unable to initialize dynamic builder", e);
 		}
 	}
