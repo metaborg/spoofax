@@ -92,20 +92,25 @@ public class ParseErrorHandler {
 			offset = 0;
 			reportSkippedFragments(tokenizer);
 			ATermAppl asfix = termAt(top, 0);
-			reportRecoveredErrors(tokenizer, asfix);
+			reportRecoveredErrors(tokenizer, asfix, 0);
 		} catch (RuntimeException e) {
 			reportError(tokenizer, e);
 		}
 	}
 
-	private void reportRecoveredErrors(SGLRTokenizer tokenizer, ATermAppl term) {
+    /**
+     * Report recoverable errors (e.g., inserted brackets).
+     * 
+	 * @param outerBeginOffset  The begin offset of the enclosing construct.
+     */
+	private void reportRecoveredErrors(SGLRTokenizer tokenizer, ATermAppl term, int outerStartOffset) {
 		// TODO: Nicer error messages; merge consecutive error tokens etc.
 		int startOffset = offset;
 		
 		if ("amb".equals(term.getAFun().getName())) {
 			// Report errors in first ambiguous branch and update offset
 			ATermList ambs = termAt(term, 0);
-			reportRecoveredErrors(tokenizer, (ATermAppl) ambs.getFirst());
+			reportRecoveredErrors(tokenizer, (ATermAppl) ambs.getFirst(), startOffset);
 			
 			reportAmbiguity(tokenizer, term, startOffset);
 			return;
@@ -127,7 +132,7 @@ public class ParseErrorHandler {
 			if (child.getType() == ATerm.INT) {
 				offset += 1;				
 			} else {
-				reportRecoveredErrors(tokenizer, (ATermAppl) child);
+				reportRecoveredErrors(tokenizer, (ATermAppl) child, startOffset);
 			}
 		}
 		
@@ -139,7 +144,7 @@ public class ParseErrorHandler {
 			IToken token = tokenizer.makeErrorToken(startOffset, offset - 1);
 			reportErrorAtTokens(token, token, "Closing of '" + token + "' is expected here");
 		} else if (isErrorProduction(attrs, INSERT)) {
-			IToken token = tokenizer.makeErrorTokenSkipLayout(startOffset, offset + 1);
+			IToken token = tokenizer.makeErrorTokenSkipLayout(startOffset, offset + 1, outerStartOffset);
 			String inserted = ""; // TODO: Handle this default case better
 			if (rhs.getName() == "lit") {
 				inserted = applAt(rhs, 0).getName();

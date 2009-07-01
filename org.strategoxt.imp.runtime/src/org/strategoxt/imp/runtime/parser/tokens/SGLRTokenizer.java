@@ -139,19 +139,35 @@ public class SGLRTokenizer {
 	
 	/**
 	 * Creates an error token on stream part, backwards skipping whitespace
+	 * 
+	 * @param beginOffset       The begin offset of the erroneous location.
+     * @param endOffset         The end offset of the erroneous location.
+     * @param outerBeginOffset  The begin offset of the enclosing construct.
 	 */
-	public IToken makeErrorTokenSkipLayout(int beginOffset, int endOffset) {
+	public IToken makeErrorTokenSkipLayout(int beginOffset, int endOffset, int outerBeginOffset) {	    
 		if (endOffset >= lexStream.getStreamLength()) {
 			endOffset = lexStream.getStreamLength() - 1;
 			beginOffset = Math.min(beginOffset, endOffset);
 		}
 
 		int skipLength;
+		int newlineSkipLength = -1;
 		
 		for (skipLength = 0; beginOffset - skipLength > 0; skipLength++) {
-			char c = lexStream.getCharValue(beginOffset - skipLength - 1);
-			if (!Character.isWhitespace(c) || c == '\n')
+			int offset = beginOffset - skipLength - 1;
+			char c = lexStream.getCharValue(offset);
+			if (!Character.isWhitespace(c)) {
+			    if (newlineSkipLength != -1) {
+                    // Only allow skipping back a few lines if the outer
+                    // construct started on the line we skipped to
+			        if (lexStream.getLine(offset) != lexStream.getLine(outerBeginOffset))
+			            skipLength = newlineSkipLength;
+			    }
 				break;
+			}
+			if (c == '\n')
+			    newlineSkipLength = skipLength;
+			    
 		}
 		
 		return makeErrorToken(beginOffset-skipLength, endOffset-skipLength);
