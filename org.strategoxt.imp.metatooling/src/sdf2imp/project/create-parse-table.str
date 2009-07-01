@@ -14,7 +14,7 @@ imports
 strategies
   
   copy-or-create-parse-table =
-    copy-parse-table <+ create-parse-table
+    copy-parse-table <+ create-parse-table <+ err(|"Could not copy or create parse table")
   
   copy-parse-table =
     where(
@@ -22,8 +22,9 @@ strategies
       <eq> (<ParseTable>, <parse-table-target; file-exists>)
     <+
       ParseTable;
-      risky(file-exists |"File not found");
-      <copy-file> (<id>, <parse-table-target>)
+      if file-exists then
+        <copy-file> (<id>, <parse-table-target>)
+      end
     )
     
   create-parse-table =
