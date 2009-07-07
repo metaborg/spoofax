@@ -6,6 +6,14 @@ imports
   languages/java/eblock/JavaEBlockMix[Java]
   
   EditorService
+  
+  Comments[Section]
+  Comments[SemanticRule]
+  Comments[ColorRule]
+  Comments[OutlineRule]
+  Comments[FoldingRule]
+  Comments[LanguageProperty]
+  Comments[ReferenceRule]
 
 exports
   context-free start-symbols Module[[StrategoHost]]
@@ -13,39 +21,9 @@ exports
   sorts
     QuotedTerm
     QuotedTerms
-  
-  lexical syntax
-    ~[\n\r]* -> CommentLine
-
-  lexical restrictions
-  
-    CommentLine -/- ~[\n\r]
-  
-    CommentLine -/- [\/].[\/]
-    CommentLine -/- [\/].[\*]
-
-  syntax  
-  
-    %% Printed comments
-    "~//" <CommentLine-LEX> -> <Section-CF> {cons("CommentLine")}
-    "~//" <CommentLine-LEX> -> <SemanticRule-CF> {cons("CommentLine"), prefer}
-    "~//" <CommentLine-LEX> -> <ColorRule-CF> {cons("CommentLine"), prefer}
-    "~//" <CommentLine-LEX> -> <OutlineRule-CF> {cons("CommentLine"), prefer}
-    "~//" <CommentLine-LEX> -> <FoldingRule-CF> {cons("CommentLine"), prefer}
-    "~//" <CommentLine-LEX> -> <LanguageProperty-CF> {cons("CommentLine"), prefer}
-    "~//" <CommentLine-LEX> -> <ReferenceRule-CF> {cons("CommentLine"), prefer}
 
   context-free syntax
     
-    %% Printed empty lines
-    "~\n" -> Section {cons("EmptyLine"), avoid}
-    "~\n" -> SemanticRule {cons("EmptyLine")}
-    "~\n" -> ColorRule {cons("EmptyLine")}
-    "~\n" -> OutlineRule {cons("EmptyLine")}
-    "~\n" -> FoldingRule {cons("EmptyLine")}
-    "~\n" -> LanguageProperty {cons("EmptyLine")}
-    "~\n" -> ReferenceRule {cons("EmptyLine")}
-  
     %% (Anti-)quotations
     "descriptor" "|[" Module "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
     

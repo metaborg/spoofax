@@ -41,8 +41,8 @@ public class NativeCallPrimitive extends AbstractPrimitive {
 			SSLLibrary op = (SSLLibrary) env.getOperatorRegistry(SSLLibrary.REGISTRY_NAME);
 			IOAgent io = op.getIOAgent();
 			File dir = io.openFile(io.getWorkingDir());
-			PrintStream stdout = io.getOutputStream(IOAgent.CONST_STDOUT);
-			PrintStream stderr = io.getOutputStream(IOAgent.CONST_STDERR);
+			PrintStream stdout = (PrintStream) io.getOutputStream(IOAgent.CONST_STDOUT);
+			PrintStream stderr = (PrintStream) io.getOutputStream(IOAgent.CONST_STDERR);
 			
 			// Invocation
 			int returnCode = caller.call(commandArgs, dir, stdout, stderr);
