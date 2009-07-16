@@ -1,4 +1,4 @@
-module sdf2imp/services/read-main-descriptor
+module sdf2imp/services/configure-main-descriptor
 
 imports
   libstratego-lib
@@ -9,7 +9,11 @@ strategies
 
   // FIXME: Error reporting not always working for new editor..?
 
-  read-main-descriptor =
+  /**
+   * Records the descriptor configuration, using the 
+   * existing descriptor file and/or the command-line options.
+   */
+  configure-main-descriptor =
     current-main-descriptor-file;
     
     rules(MainDescriptor := <id>);
@@ -37,7 +41,7 @@ strategies
   
   current-main-descriptor-file =
      {| InputDirPrefix, OnImportFailure:
-       <add-input-dir-prefix> "src/";
+       <add-input-dir-prefix> "editor/";
        rules(
          OnImportFailure:
            Import(m) -> Module("", NoImports(), [])

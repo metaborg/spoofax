@@ -55,7 +55,7 @@ strategies
   output-descriptor-file(name, new-contents, condition) =
     with(
       filename := <add-extension> (<name>, "esv");
-      path     := "src";
+      path     := "editor";
       fullpath := <conc-strings> (path, "/", filename)
     );
     
@@ -95,14 +95,14 @@ strategies
   output-java-file =
     where(
       ?class;
-      path := <create-dirs> ["src" | <package-name>];
+      path := <create-dirs> ["editor", "java" | <package-name>];
       fullpath := <conc-strings> (path, "/", <class-name> class, ".java")
     );
     
     output-java-file(|fullpath)
 
   output-java-file(|filename) =
-    print-filename(|["src" | <package-name>], <base-filename> filename);
+    print-filename(|["editor", "java" | <package-name>], <base-filename> filename);
     
     risky(
       text := <pp-java-string <+ pp-java-string-fallback>
