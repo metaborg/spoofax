@@ -10,6 +10,7 @@ strategies
   <+ package-name-option
   <+ start-symbol-option
   <+ reset-files-option
+  <+ verbose-option
 
   input-file-option =
     ArgOption(
@@ -20,7 +21,7 @@ strategies
 
   parse-table-option =
     ArgOption(
-      "-i"
+      "-p"
     , rules(ParseTable := <id>)
     , !"-p <parse table>.tbl  Set parse table (optional)"
     )

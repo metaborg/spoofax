@@ -59,6 +59,7 @@ strategies
      |}
    <+
      // Could not read the existing file: use the defaults instead, but don't overwrite the file
+     verbose-msg(!"No legal existing descriptor file found", <conc-strings> ("(editor/", main-descriptor-name, ")"));
      rules(NoExistingDescriptor: _);
      default-main-descriptor
 
