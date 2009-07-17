@@ -9,7 +9,7 @@ strategies
     <file-exists> "build.properties"
   <+
     <output-text-file(|[], "build.properties")>
-"source.. = src/
+"source.. = editor/java/
 output.. = bin/
 bin.includes = META-INF/,\\
                .,\\

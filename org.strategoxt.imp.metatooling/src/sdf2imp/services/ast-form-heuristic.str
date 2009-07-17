@@ -6,8 +6,7 @@ imports
   sdf2imp/util/-
   sdf2imp/lib/-
 
-strategies
-
+overlays
   
 /**
  * Heuristic traversal strategies.
@@ -17,9 +16,11 @@ strategies
 strategies
 
   register-rtg =
-    list-loop(heuristic-register-production);
-    
-    verified-start-symbol
+    with(
+      list-loop(heuristic-register-production);
+      
+      verified-start-symbol
+    )
 
   verified-start-symbol =
     StartSymbol;
@@ -42,18 +43,18 @@ strategies
 
   heuristic-child-sorts =
     ?ProdRule(
-      Nonterm(Plain(sort))
+      Nonterm(/*Plain*/(sort))
     , [Appl(_, <id>)]
     );
     
-    map(?Ref(Nonterm(Plain(<id>))));
+    map(?Ref(Nonterm(/*Plain*/(<id>))));
     
     filter(not(?sort)) // avoid circular references
   <+
     // Injection
     ?ProdRule(
-      Nonterm(Plain(sort))
-    , [Ref(Nonterm(Plain(<id>)))]
+      Nonterm(/*Plain*/(sort))
+    , [Ref(Nonterm(/*Plain*/(<id>)))]
     );
     
     ![<not(?sort)>] // avoid circular references
@@ -155,7 +156,7 @@ strategies
   <+
     // Injection: use lhs name
     ?ProdRule(
-      Nonterm(Plain(<id>))
+      Nonterm(/*Plain*/(<id>))
     , [Ref(_)]
     )
 
@@ -165,19 +166,19 @@ strategies
     // Injection: use rhs name
     ?ProdRule(
       _
-    , [Ref(Nonterm(Plain(<id>)))]
+    , [Ref(Nonterm(/*Plain*/(<id>)))]
     )
   
   non-terminal-sort-name =
     ?ProdRule(
-      Nonterm(Plain(<id>))
+      Nonterm(/*Plain*/(<id>))
     , [Appl(_, _)]
     )
   
   constructor-name =
     ?ProdRule(
       _
-    , [Appl(Term(Plain(<id>)), _)]
+    , [Appl(Term(/*Plain*/(<id>)), _)]
     )
   
   // TODO: Don't match the webdsl "if"
@@ -259,5 +260,5 @@ strategies
   get-list-production-item-sort =
     ?ProdRule(
       _
-    , [Appl(ConsTerm(), [Ref(Nonterm(Plain(<id>))), _])]
+    , [Appl(ConsTerm(), [Ref(Nonterm(/*Plain*/(<id>))), _])]
     )

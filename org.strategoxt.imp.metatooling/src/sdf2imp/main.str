@@ -3,6 +3,7 @@ module sdf2imp/main
 imports
   libstratego-lib
   libstratego-xtc
+  libstratego-rtg
 
   libjava-front
   sdf-options
@@ -70,6 +71,9 @@ strategies
       end;
       ?input
     else
+      if not(StartSymbol) then
+        rules(StartSymbol := "Start")
+      end;
       create-grammar;
       input := <pack-sdf> FILE(<conc-strings> ("syntax/", <get-main-class-name>, ".sdf"))
     end;
@@ -101,7 +105,7 @@ strategies
     
     <copy-or-create-parse-table> input
   
-  // TODO: XTC detox
+  // TODO: XTC detox -_-;;
   sdf2rtg:
     FILE(sdf) -> rtg
     with
@@ -109,8 +113,11 @@ strategies
       if FILE(has-extension(|"sdf")) then
         fatal-err(|"Input file must be a .def file.")
       end;
-      xtc-transform(!"sdf2rtg", !["--ignore-missing-cons", "-m", <get-sdf-main-module> | <pass-verbose>]);
-      parse-xtc-file-report-errors(|<open-parse-table> <import-term(include/rtg.tbl)>, "RTG") => rtg;
+      xtc-transform(!"sdf2table", !["-n", "-m", <get-sdf-main-module> | <pass-v-verbose>]);
+      xtc-transform(!"implodePT");
+      read-from;
+      sdf-desugar;
+      core-sdf-grammar2rtg => rtg;
       ?RTG(_, ProdRules(<id>));
       register-rtg
 

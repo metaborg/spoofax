@@ -13,7 +13,7 @@ strategies
     <file-exists> <conc-strings> ("syntax/", <get-main-class-name>, ".sdf")
   <+
     name        := <get-main-class-name>;
-    startsymbol := <StartSymbol <+ !"Start">;
+    startsymbol := <StartSymbol>;
     
     <output-text-file(|["syntax"], <conc-strings> (name, ".sdf"))>
     <conc-strings>
