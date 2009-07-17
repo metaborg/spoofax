@@ -3,12 +3,21 @@ module sdf2imp/util/options
 strategies
 
   sdf2imp-options =
-    sdf-main-module-option // -m <mod>; defines get-sdf-main-module
-  + extensions-option
-  + parse-table-option
-  + package-name-option
-  + start-symbol-option
-  + reset-files-option
+     sdf-main-module-option // -m <mod>; sets get-sdf-main-module
+  <+ input-file-option
+  <+ extensions-option
+  <+ parse-table-option
+  <+ package-name-option
+  <+ start-symbol-option
+  <+ reset-files-option
+  <+ verbose-option
+
+  input-file-option =
+    ArgOption(
+      "-i"
+    , rules(InputFile := <id>)
+    , !"-i <grammar>.def      Set input file (optional)"
+    )
 
   parse-table-option =
     ArgOption(

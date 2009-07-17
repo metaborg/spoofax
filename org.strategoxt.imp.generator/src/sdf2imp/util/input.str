@@ -38,7 +38,7 @@ strategies
   
   input-descriptor-import =
     ?Import(name);
-    !FILE(<add-extension; include-input-dir-prefix> (name, "esv"));
+    !FILE(<add-extension; include-input-dir-prefix; file-exists> (name, "esv"));
     parse-xtc-file-report-errors(|<parse-table-descriptor>, "Module");
     
     risky(

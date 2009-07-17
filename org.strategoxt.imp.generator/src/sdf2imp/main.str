@@ -3,12 +3,14 @@ module sdf2imp/main
 imports
   libstratego-lib
   libstratego-xtc
+  libstratego-rtg
 
   libjava-front
   sdf-options
   
   EditorService
   
+  sdf2imp/options
   sdf2imp/project/-
   sdf2imp/services/-
   sdf2imp/util/-
@@ -25,7 +27,7 @@ overlays
 strategies
 
   main-sdf2imp =
-    xtc-input-wrap(
+    option-wrap(
       sdf2imp-options
     , 
       with(<set-verbosity> 2);
@@ -60,14 +62,23 @@ strategies
 strategies
 
   sdf2imp =
-    xtc-ensure-file;
-    if FILE(has-extension(|"esv") => esv) then
-      <find-def-file> esv
-    <+
-      fatal-err(|"Could not find associated .def file")
-    end => input;
+    if InputFile then
+      !FILE(<InputFile>);
+      if FILE(has-extension(|"esv") => esv) then
+        <find-def-file> esv
+      <+
+        fatal-err(|"Could not find associated .def file")
+      end;
+      ?input
+    else
+      if not(StartSymbol) then
+        rules(StartSymbol := "Start")
+      end;
+      create-grammar;
+      input := <pack-sdf> FILE(<conc-strings> ("syntax/", <get-main-class-name>, ".sdf"))
+    end;
   
-    read-main-descriptor;
+    configure-main-descriptor;
     <sdf2rtg> input;
   
     if NoExistingDescriptor then
@@ -84,23 +95,34 @@ strategies
 
     create-packed-descriptor-file;
     
-    create-java-implementation;
-    
-    <copy-or-create-parse-table> input
-  
-  create-java-implementation =    
-    // Create other plugin classes
     create-parse-controller;
     create-build-properties;
     create-project-file;
     create-activator;
     create-classpath;
     create-manifest;
-    create-plugin-xml
+    create-plugin-xml;
+    
+    <copy-or-create-parse-table> input
   
-  sdf2rtg =
-    verbose-msg(!"Analyzing grammar...");
-    xtc-transform(!"sdf2rtg", !["--ignore-missing-cons", "-m", <get-sdf-main-module> | <pass-verbose>]);
-    parse-xtc-file-report-errors(|<open-parse-table> <import-term(include/rtg.tbl)>, "RTG");
-    ?RTG(_, ProdRules(<id>));
-    register-rtg
+  // TODO: XTC detox -_-;;
+  sdf2rtg:
+    FILE(sdf) -> rtg
+    with
+      verbose-msg(!"Analyzing grammar...");
+      if FILE(has-extension(|"sdf")) then
+        fatal-err(|"Input file must be a .def file.")
+      end;
+      xtc-transform(!"sdf2table", !["-n", "-m", <get-sdf-main-module> | <pass-v-verbose>]);
+      xtc-transform(!"implodePT");
+      read-from;
+      sdf-desugar;
+      core-sdf-grammar2rtg => rtg;
+      ?RTG(_, ProdRules(<id>));
+      register-rtg
+
+  pack-sdf:
+    FILE(sdf) -> FILE(def)
+    with
+      def := <guarantee-extension(|"def")> sdf;
+      <xtc-command(!"pack-sdf")> ["-i", sdf, "-o", def | <pass-verbose>]

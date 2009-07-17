@@ -10,7 +10,7 @@ strategies
   create-packed-descriptor-file =
     {| InputDirPrefix:
       risky(
-        <add-input-dir-prefix> "src/";
+        <add-input-dir-prefix> "editor/";
         filename := <packed-descriptor-file-name>;
         main     := <main-descriptor-name>;
         
