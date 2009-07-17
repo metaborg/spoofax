@@ -1,0 +1,65 @@
+module sdf2imp/services/create-outliner-descriptor
+
+imports
+  libstratego-lib
+  
+  sdf2imp/util/-
+  sdf2imp/services/common
+  sdf2imp/services/ast-form-heuristic
+
+strategies
+
+  create-outliner-descriptor =
+    output-initial-descriptor-file(
+      <descriptor-name> "-Outliner"
+    , !|[
+        module <descriptor-name> "-Outliner"
+        
+        imports <descriptor-name> "-Outliner.generated"
+        
+        outliner
+          ~
+          ~// This file can be used for custom outliner rules.
+          ~// See the imported file for a brief introduction and examples.
+      ]|
+    );
+    
+    output-derived-descriptor-file(
+      <descriptor-name> "-Outliner.generated"
+    , 
+      heuristic-outliner-productions;
+      map(create-folding-or-outliner-rule);
+      !|[
+        module <descriptor-name> "-Outliner.generated"
+        
+        outliner Default outliner        
+          ~
+          ~// Outliner rules indicate grammar productions to be outlined,
+          ~// and take one of the following forms, and :
+          ~//
+          ~//   - <sort>.<constructor>
+          ~//   - <sort>._,
+          ~//   - _.<constructor>
+          ~
+          ~*<id>
+      ]|
+    )
+  
+  heuristic-outliner-productions =
+    StartSymbol;
+    
+    heuristic-collect-all-rtg({
+      not(is-list-production);
+      
+      where(
+        heuristic-child-sorts;
+        one(heuristic-sort-is-identifier => reason1);      
+        one(heuristic-sort-is-unvisited-list => reason2)
+      );
+      
+      if-verbose3(
+        verbose-msg(!"Outliner match:", heuristic-asfix-sort-name, constructor-name);
+        verbose-msg(!"  because:     ", !reason1);
+        verbose-msg(!"  and:         ", !reason2)
+      )
+    })

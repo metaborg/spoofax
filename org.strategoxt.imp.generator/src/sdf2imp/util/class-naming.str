@@ -1,0 +1,39 @@
+module sdf2imp/util/class-naming
+
+imports
+  libstratego-lib
+
+strategies
+
+  /** Create and reserve a unique Java class name. */
+  reserve-class-name =
+    to-java-class-name => name;
+    
+    for(
+      !(0, name)
+    , not((id, IsReservedClassName))
+    , {n: // Create a new name0 ... nameN until non-reserved name found
+          ?(n, _);
+          (inc, <conc-strings> (name, <write-to-string> n))
+      }
+    );
+    
+    reserved := <Snd>;
+    
+    rules(IsReservedClassName: reserved)
+  
+  to-java-class-name =
+    string-as-chars(
+      filter(is-java-identifier-char);
+      if [is-num | id] + [] then
+        !["N", <id>]
+      end;
+      [to-upper | id]
+    )
+  
+  is-java-identifier-char =
+    is-alphanum + '$' + '_'
+  
+  get-main-class-name =
+    get-sdf-main-module;
+    to-java-class-name

@@ -1,0 +1,16 @@
+module OccurrencesService
+
+imports
+  SemanticServices
+
+exports
+
+  syntax
+  
+    "occurrences" <SectionName-LEX> <LAYOUT?-CF> <SemanticRule*-CF> -> <Section-CF> {cons("Occurrences")}
+
+    "occurrences" -> <ReservedName-CF>
+
+  context-free syntax
+  
+    "occurrence" SemanticNode ":" StrategoCall -> SemanticRule {cons("OccurrenceRule")}

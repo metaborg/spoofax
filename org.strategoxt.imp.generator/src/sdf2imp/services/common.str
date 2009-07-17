@@ -1,0 +1,75 @@
+module sdf2imp/services/common
+
+imports
+  libstratego-lib
+  
+  sdf2imp/util/-
+
+signature constructors
+
+  CommentLine : String -> Term
+  EmptyLine   : Term
+
+strategies
+
+  // TODO: General strategy for reading all esv files
+
+  // TODO2: Optimize - add string length check to conditions
+  
+  // TODO2: descriptor-name should have an aterm argument, overloading main-descriptor-name
+  
+  descriptor-name:
+    name -> <conc-strings> (prefix, name)
+    with
+      prefix := <DescriptorNamePrefix <+ get-sdf-main-module>
+  
+  main-descriptor-name =
+    MainDescriptorName
+  <+
+    <get-config> SdfMainModuleFlag();
+    <conc-strings> (<id>, ".main")
+  
+  condition-to-java:
+    Token(x) -> |[ tokenKind == x_Name ]|
+    with
+      x_Name := <write-to-string> x
+  
+  condition-to-java:
+    Constructor(x) -> |[ "~x".equals(constructor) ]|
+  
+  condition-to-java:
+    Sort(sort) -> |[ "~sort'".equals(sort) ]|
+    where
+      sort' := <try-get-sort-name> sort
+  
+  condition-to-java:
+    ListSort(sort) -> |["~sort'".equals(sort) ]|
+    where
+      sort' := <conc-strings> (<try-get-sort-name> sort, "*")
+  
+  parameterized-sort-to-asfix-sort = parameterized-sort-to-rtg-sort
+  
+  condition-to-java:
+    descriptor |[ ~sort.~constructor ]| ->
+    java       |[ "~constructor".equals(constructor) && "~sort'".equals(sort) ]|
+    where
+      sort' := <try-get-sort-name> sort
+  
+  condition-to-java:
+    descriptor |[ _.~sort ]| -> |[ "~sort'".equals(sort) ]|
+    where
+      sort' := <try-get-sort-name> sort
+
+  // TODO: Check if constructors actually exist
+
+  try-get-sort-name =
+    parameterized-sort-to-asfix-sort;
+    where(
+      Productions
+    <+
+      // FIXME: Fail if unknown sort found (temporarily had to disable this)
+      // TODO: Renamed sorts like OptExtendsInterfaces0_Java need special treatment
+      //       looks like sdf2rtg needs to be adapted to not perform renaming like this!
+      err(|"Unknown sort referenced");
+      fail
+    )

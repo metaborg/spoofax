@@ -1,0 +1,26 @@
+module FoldingService
+
+imports
+  Common
+
+exports
+
+  sorts
+    FoldingRule FoldingAnno
+
+  syntax
+  
+    "folding" <SectionName-LEX> <LAYOUT?-CF> <FoldingRule*-CF> -> <Section-CF> {cons("Folding")}
+    
+    "folding" -> <ReservedName-CF>
+  
+  context-free syntax
+    
+    %% TODO: Reconsider "all" keyword for siblings; we already have list sorts using '*'
+    
+          Node FoldingAnno -> FoldingRule {cons("FoldRule")}
+    "all" Node FoldingAnno -> FoldingRule {cons("FoldRuleAll")}
+
+    "(disable)" -> FoldingAnno {cons("Disable")}
+    "(folded)"  -> FoldingAnno {cons("Folded")}
+                -> FoldingAnno {cons("None")}

@@ -1,0 +1,40 @@
+module project/create-plugin-xml
+
+imports
+  sdf2imp/util/-
+
+strategies
+
+  create-plugin-xml =
+    <file-exists> "plugin.xml"
+  <+
+    name       := <get-sdf-main-module>;
+    classname  := <get-main-class-name>;
+    pkgname    := <BasePackage <+ default-package-name>;
+    extensions := <EditorExtensions>;
+    
+    <output-xml-file(|[], "plugin.xml")>
+    %>
+    <?xml version="1.0" encoding="UTF-8"?>
+    <?eclipse version="3.0"?>
+    <plugin>
+       <extension
+             point="org.eclipse.imp.runtime.languageDescription">
+          <language
+                extensions="<%= extensions %>"
+                description="<%= name %>"
+                language="<%= name %>"
+                derivedFrom="DynamicRoot"
+          ></language>
+       </extension>
+       <extension
+             id="<%= pkgname %>.parser"
+             name="<%= name %> Parser"
+             point="org.eclipse.imp.runtime.parser">
+          <parser
+                class="<%= pkgname %>.<%= classname %>ParseController"
+                language="<%= name %>">
+          </parser>
+       </extension>    
+    </plugin>
+    <%

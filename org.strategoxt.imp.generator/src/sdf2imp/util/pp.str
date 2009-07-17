@@ -1,0 +1,39 @@
+module sdf2imp/util/pp
+
+imports
+  libstratego-gpp
+
+strategies
+
+  /**
+   * Pretty-prints the descriptor AST to a string.
+   *
+   * @type descriptor -> String
+   */
+  pp-descriptor-to-string =
+    descriptor-to-abox;
+    box2text-string(|80)
+  
+  /**
+   * Pretty-prints the descriptor AST to a Box representation.
+   *
+   * @type descriptor -> Box
+   */    
+  descriptor-to-abox =
+    topdown(try(pp-fix-string-quotes));
+    ast2box(|[<descriptor-pp-table>])
+  
+  descriptor-pp-table =
+    DescriptorPPTable
+  <+
+    tbl := <import-term(EditorService-pretty.pp.af)>;
+    rules(DescriptorPPTable := tbl)
+    
+  // HACK: add quotes omitted by the stratego parser
+  
+  pp-fix-string-quotes:
+    String(string) -> String(string')
+    where
+      <not(string-starts-with(|"\""))> string
+    with
+      string' := <conc-strings> ("\"", string, "\"")

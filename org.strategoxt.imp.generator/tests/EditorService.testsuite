@@ -1,0 +1,56 @@
+testsuite EditorService
+
+topsort Module
+
+test Empty module
+  "module foo" -> Module("foo", NoImports(), [])
+
+test Empty module with imports
+  "module foo imports bar baz" -> Module("foo", Imports([Import("bar"), Import("baz")]), [])
+  
+test Larger module
+  "module foo
+   imports bar baz
+  
+   folding
+     sortX
+  
+   outliner
+     sortY
+  
+   colorer
+     sortZ : dark red
+  
+  " ->
+  Module(
+    "foo"
+  , _
+  , [ Folding([Sort("sortX")])
+    , Outliner([Sort("sortY")])
+    , Colorer([Rule(Sort("sortZ"), ColorName(_), ColorDefault, NORMAL)])
+    ]
+  )
+  
+test Token-based colors
+  "module foo
+  
+   colorer
+     TK_LAYOUT : green italic
+     TK_VAR    : 1 2 3 green bold
+  
+  " ->
+  Module(
+    "foo"
+  , NoImports()
+  , [ Colorer(
+        [ Rule(Sort("TK_LAYOUT"), ColorName(GREEN()), ColorDefault(), ITALIC())
+        , Rule(
+            Sort("TK_VAR")
+          , ColorRGB("1", "2", "3")
+          , ColorName(GREEN())
+          , BOLD()
+          )
+        ]
+      )
+    ]
+  )

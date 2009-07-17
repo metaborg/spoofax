@@ -1,0 +1,106 @@
+module sdf2imp/main
+
+imports
+  libstratego-lib
+  libstratego-xtc
+
+  libjava-front
+  sdf-options
+  
+  EditorService
+  
+  sdf2imp/project/-
+  sdf2imp/services/-
+  sdf2imp/util/-
+  sdf2imp/lib/-
+
+overlays
+
+  tname_ASTNODE      = tname |[ org.strategoxt.imp.runtime.parser.ast.AstNode ]|
+  tname_VISITOR      = tname |[ org.strategoxt.imp.runtime.parser.ast.AbstractVisitor ]|
+  tname_OUTLINERBASE = tname |[ org.strategoxt.imp.runtime.services.OutlinerBase ]|
+  tname_FOLDINGBASE  = tname |[ org.strategoxt.imp.runtime.services.FoldingBase ]|
+  tname_ITOKEN       = tname |[ lpg.runtime.IToken ]|
+
+strategies
+
+  main-sdf2imp =
+    xtc-input-wrap(
+      sdf2imp-options
+    , 
+      with(<set-verbosity> 2);
+      sdf2imp
+    <+
+      prim("SSL_stacktrace_get_all_frame_names") => trace;       
+      report-failure // proper stack traces
+    )
+  
+  sdf2imp-jvm:
+    esv -> <packed-descriptor-file-name>
+    with
+      file-exists
+    where
+      def := <find-def-file> esv;
+      <main-sdf2imp> ["sdf2imp", "-i", def]
+  
+  // FIXME: dirty hack for getting the .def file
+  //        (should do this based on the esv contents instead...)
+  find-def-file =
+    remove-extension;
+    rules(
+      MainDescriptorName   := <id>
+      DescriptorNamePrefix := <remove-extension>
+    );
+    guarantee-extension(|"def"); // remove .main.esv
+    with(<chdir> "..");
+    if not(file-exists) then
+      fatal-err(|"Accompanying .def file not found.")
+    end
+
+strategies
+
+  sdf2imp =
+    xtc-ensure-file;
+    if FILE(has-extension(|"esv") => esv) then
+      <find-def-file> esv
+    <+
+      fatal-err(|"Could not find associated .def file")
+    end => input;
+  
+    read-main-descriptor;
+    <sdf2rtg> input;
+  
+    if NoExistingDescriptor then
+      create-main-descriptor
+    end;
+    
+    create-syntax-descriptor;
+    create-folding-descriptor;
+    create-outliner-descriptor;
+    create-colorer-descriptor;
+    create-analysis-descriptor;
+    create-occurrences-descriptor;
+    create-references-descriptor;
+
+    create-packed-descriptor-file;
+    
+    create-java-implementation;
+    
+    <copy-or-create-parse-table> input
+  
+  create-java-implementation =    
+    // Create other plugin classes
+    create-parse-controller;
+    create-build-properties;
+    create-project-file;
+    create-activator;
+    create-classpath;
+    create-manifest;
+    create-plugin-xml
+  
+  sdf2rtg =
+    verbose-msg(!"Analyzing grammar...");
+    xtc-transform(!"sdf2rtg", !["--ignore-missing-cons", "-m", <get-sdf-main-module> | <pass-verbose>]);
+    parse-xtc-file-report-errors(|<open-parse-table> <import-term(include/rtg.tbl)>, "RTG");
+    ?RTG(_, ProdRules(<id>));
+    register-rtg

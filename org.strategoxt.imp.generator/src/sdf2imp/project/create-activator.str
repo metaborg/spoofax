@@ -1,0 +1,70 @@
+module sdf2imp/project/create-activator
+      
+imports
+  sdf2imp/util/-
+
+strategies
+
+  create-activator =  
+    name    := <get-main-class-name>;
+    pkgname := <get-package-name>;
+    
+    <output-java-file> compilation-unit |[
+      package pkgname;
+      
+      import org.eclipse.core.resources.ResourcesPlugin;
+      import org.eclipse.imp.preferences.PreferencesService;
+      import org.eclipse.imp.runtime.PluginBase;
+      import org.osgi.framework.BundleContext;
+      
+      public class Activator extends PluginBase {
+        public static final String kPluginID = "~name";
+      
+        public static final String kLanguageName = "~name";
+      
+        /**
+         * The unique instance of this plugin class
+         */
+        protected static Activator sPlugin;
+      
+        public static Activator getInstance() {
+          if (sPlugin == null) return new Activator();
+          
+          return sPlugin;
+        }
+      
+        public Activator() {
+          super();
+          sPlugin = this;
+        }
+      
+        @Override
+        public void start(BundleContext context) throws Exception {
+          super.start(context);
+      
+        }
+      
+        @Override
+        public String getID() {
+          return kPluginID;
+        }
+      
+        protected static PreferencesService preferencesService = null;
+      
+        public static PreferencesService getPreferencesService() {
+          if (preferencesService == null) {
+            preferencesService = new PreferencesService(ResourcesPlugin
+                .getWorkspace().getRoot().getProject());
+            preferencesService.setLanguageName(kLanguageName);
+            
+            // TODO2: IMP-generated activator todo note
+            // When some actual preferences are created, put
+            // a call to the preferences initializer here
+            // (The IMP New Preferences Support wizard creates such
+            // an initializer.)
+      
+          }
+          return preferencesService;
+        }
+      }
+    ]|

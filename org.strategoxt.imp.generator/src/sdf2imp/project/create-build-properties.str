@@ -1,0 +1,20 @@
+module sdf2imp/project/create-build-properties
+
+imports
+  sdf2imp/util/-
+
+strategies
+
+  create-build-properties =
+    <file-exists> "build.properties"
+  <+
+    <output-text-file(|[], "build.properties")>
+"source.. = src/
+output.. = bin/
+bin.includes = META-INF/,\\
+               .,\\
+               plugin.xml,\\
+               include/,\\
+               bin/,\\
+               .
+"

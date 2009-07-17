@@ -1,0 +1,59 @@
+module LanguageDescription
+
+imports Common
+
+exports
+  
+  sorts
+  
+    LanguageProperty PropertyValue NoContinuation PropertyValues URL
+    FenceDef BlockCommentDef StartSymbols PropertyKeyword
+  
+  syntax
+  
+    "language" <SectionName-LEX> <LAYOUT?-CF> <LanguageProperty*-CF> -> <Section-CF> {cons("Language")}
+    
+    "language" -> <ReservedName-CF>
+  
+  lexical syntax
+    
+    ~[\ \t\n\r\,\:\"]+  -> PropertyValue {avoid}
+
+    ~[\ \t\n\r\,\/\:]+ "://" ~[\ \t\n\r]+ -> URL
+  
+  lexical restrictions
+  
+  	PropertyValue -/- ~[\ \t\n\r\,\:\"]
+  	URL           -/- ~[\ \t\n\r]
+  
+  context-free syntax
+  
+    { PropertyValue ","}* -> PropertyValues {cons("Values")}
+    String                -> PropertyValue
+    PropertyKeyword       -> PropertyValue {reject}
+    PropertyValues        -> StartSymbols
+    "_"                   -> StartSymbols {cons("NoStartSymbols"), prefer}
+  
+  	%% General language properties
+  
+    "name"            ":" PropertyValue  -> LanguageProperty {cons("LanguageName")}
+    "id"              ":" PropertyValue  -> LanguageProperty {cons("LanguageId")}
+    "extensions"      ":" PropertyValues -> LanguageProperty {cons("Extensions")}
+    "description"     ":" PropertyValue  -> LanguageProperty {cons("Description")}
+    "table"           ":" PropertyValue  -> LanguageProperty {cons("Table")}
+    "start" "symbols" ":" StartSymbols   -> LanguageProperty {cons("StartSymbols")}
+    "url"             ":" URL            -> LanguageProperty {cons("URL")}
+    "extends"         ":" PropertyValue  -> LanguageProperty {cons("Extends")} %% derivedFrom
+    "aliases"         ":" PropertyValues -> LanguageProperty {cons("Aliases")} %% synonyms
+   
+     %% Syntax properties
+     
+     "line"  "comment" ":" PropertyValue   -> LanguageProperty {cons("LineCommentPrefix")}
+     "block" "comment" ":" BlockCommentDef -> LanguageProperty {cons("BlockCommentDefs")}
+     "fences"          ":" FenceDef*       -> LanguageProperty {cons("FenceDefs")}
+     
+     PropertyValue PropertyValue  PropertyValue -> BlockCommentDef {cons("BlockCommentDef")}
+     PropertyValue NoContinuation PropertyValue -> BlockCommentDef {cons("BlockCommentDef")}
+                                                -> NoContinuation {cons("NoContinuation")}
+     
+     PropertyValue PropertyValue -> FenceDef {cons("FenceDef")}

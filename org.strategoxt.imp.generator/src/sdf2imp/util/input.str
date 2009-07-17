@@ -1,0 +1,101 @@
+module sdf2imp/util/input
+
+imports
+  libstratego-gpp
+  libstratego-sglr
+  
+  sdf2imp/lib/-
+
+strategies
+
+  /**
+   * Given a location and filename (no extension),
+   * parse an editor descriptor, including all imports.
+   */
+  input-descriptor-file =
+    {| IsImported:
+      ?import;
+      name := <conc-strings> (<main-descriptor-name>, ".packed");
+      <fetch-imports> Module(name, Imports([Import(import)]), [])
+    |}
+  
+  set-input-dir-prefix =
+    with(string-ends-with(|"/"));
+    rules(InputDirPrefix := <id>)
+  
+  add-input-dir-prefix =
+    <set-input-dir-prefix> <conc-strings> (<InputDirPrefix <+ !"">, <id>)
+
+/** @internal */
+strategies
+  
+  include-input-dir-prefix =
+    try(<conc-strings> (<InputDirPrefix>, <id>))
+    
+  // TODO: Optimize - file input/parsing caching
+  
+  // TODO: Multi-directory support (-I)
+  
+  input-descriptor-import =
+    ?Import(name);
+    !FILE(<add-extension; include-input-dir-prefix> (name, "esv"));
+    parse-xtc-file-report-errors(|<parse-table-descriptor>, "Module");
+    
+    risky(
+      ?Module(name, _, _)
+    <+
+      try(<OnImportFailure> Import(name)); fail // trigger failure event
+    |"Module name does not match file name"
+    )
+  <+
+    ?ImportRenamed(name, tail);
+    <input-descriptor-import> Import(name);
+    fetch-imports;
+    alltd(rename-sort(|tail))
+    
+  // TODO: Sort renaming could be inferred from the .def file
+  
+  rename-sort(|tail):
+    Sort(name) -> Sort(<conc-strings> (name, "_", tail))
+  
+  rename-sort(|tail):
+    ListSort(name) -> ListSort(<conc-strings> (name, "_", tail))
+  
+  fetch-imports:
+    Module(name, Imports(imports), definitions) ->
+    Module(name, Imports(imports'), definitions')
+    where
+      rules(IsImported: name);
+      
+      !imports;
+      map(
+        risky(
+          IsImported
+        <+
+          input-descriptor-import;
+          fetch-imports
+        <+
+          OnImportFailure
+        | "Unable to import module"
+        )
+      ) => imported;
+      
+      imported-defs    := <mapconcat(?Module(_, _, <id>))>;
+      definitions'     := <conc> (definitions, <id>);
+      imported-imports := <filter(?Module(_, Imports(<id>), _))> imported;
+      imports'         := <concat> [imports | <id>]
+
+  fetch-imports:
+    Module(_, NoImports(), _) -> <id>
+
+/**
+ * @internal
+ */
+strategies
+  
+  parse-table-descriptor =
+    CachedParseTableDescriptor
+  <+
+    table := <open-parse-table> <import-term(EditorService.tbl)>;
+    rules(CachedParseTableDescriptor := table)
+

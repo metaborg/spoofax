@@ -1,0 +1,89 @@
+module sdf2imp/util/options
+
+strategies
+
+  sdf2imp-options =
+    sdf-main-module-option // -m <mod>; defines get-sdf-main-module
+  + extensions-option
+  + parse-table-option
+  + package-name-option
+  + start-symbol-option
+  + reset-files-option
+
+  parse-table-option =
+    ArgOption(
+      "-p"
+    , rules(ParseTable := <id>)
+    , !"-p <parse table>.tbl  Set parse table (optional)"
+    )
+
+  extensions-option =
+    ArgOption(
+      "-e"
+    , rules(EditorExtensions := <id>)
+    , !"-e <extensions>       Set editor file extensions (comma separated)"
+    )
+
+  package-name-option =
+    ArgOption(
+      "-n"
+    , rules(BasePackage := <id>);
+      get-package-name(fail) // ensure legal
+    , !"-n <packagename>      Set base package name (optional)"
+    )
+    
+  start-symbol-option =
+    ArgOption(
+      "-s"
+    , parameterized-sort-to-rtg-sort;
+      if is-substring(!",") then
+        // TODO: Multiple start symbols
+        err(|"Multiple start symbols not supported yet, please specify a single start symbol");
+        fail
+      end;
+      rules(StartSymbol := <id>)
+    , !"-s <start symbol>     Set start symbol"
+    )
+
+  reset-files-option =
+    Option(
+      "-r" + "--reset"
+    , rules(ResetFiles: _)
+    , !"-r | --reset          Reset all generated files to their defaults"
+    )
+  
+  parameterized-sort-to-rtg-sort =
+    // Module[StrategoHost] -> Module_StrategoHost
+    string-replace(|"[[", "_");
+    string-replace(|"[", "_");
+    string-replace(|"]", "")
+  
+  get-package-name =
+    get-package-name(default-package-name)
+  
+  get-package-name(default) =
+    ( BasePackage
+    <+
+      default
+    );
+    string-tokenize('.');
+    map(!Id(<id>));
+    !PackageName(<id>)
+  
+  default-package-name =
+    get-sdf-main-module;
+    to-java-class-name;
+    lower-case;
+    <conc-strings> ("org.strategoxt.imp.generated.", <id>)
+  
+  check-options =
+    require-option(
+      where(<get-config> SdfMainModuleFlag)
+    | "Main module (-m)"
+    )
+  
+  require-option(rule|description) = 
+    rule
+  <+
+    fatal-err-msg(|<conc-strings> (description, " not specified"))
+    

@@ -7,7 +7,7 @@ module lib/sdf2imp/core-sdf-grammar2rtg
 imports
   libstratego-lib
   libstratego-rtg
-  Sdf2
+  libstratego-sdf
   sdf/tool/xtc
   libstratego-xtc
 

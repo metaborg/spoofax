@@ -1,0 +1,55 @@
+module sdf2imp/services/create-main-descriptor
+
+imports
+  libstratego-lib
+  
+  sdf2imp/util/-
+
+strategies
+
+  create-main-descriptor =
+    output-main-descriptor-file(
+      main-descriptor-name
+    , 
+      default-main-descriptor => main-descriptor
+    );
+    
+    // Store the main descriptor in a rule for further reference,
+    // or fail if no descriptor was created
+    
+    rules(MainDescriptor := main-descriptor)
+
+  default-main-descriptor =
+    name         := <get-sdf-main-module>;
+    classname    := <get-main-class-name>;
+    pkgname      := <BasePackage <+ default-package-name>;
+    extensions   := <require-option(EditorExtensions |"File extensions (-e)")>;
+    parsetable   := <parse-table-target>;
+    startsymbols := <StartSymbol>;
+    
+    !|[
+      module <main-descriptor-name>
+      
+      imports
+        <descriptor-name> "-Analysis"
+        <descriptor-name> "-Colorer"
+        <descriptor-name> "-Folding"
+        <descriptor-name> "-Occurrences"
+        <descriptor-name> "-Outliner"
+        <descriptor-name> "-References"
+        <descriptor-name> "-Syntax"
+      
+      language General properties
+        ~
+        name:    ~name
+        aliases:
+        id:      ~pkgname
+        extends: Root
+        ~
+        description: <conc-strings> ("\"Spoofax/IMP-generated editor for the ", name, " language\"")
+        url: http://strategoxt.org
+        ~
+        extensions: ~extensions
+        table:  ~parsetable
+        start symbols: ~startsymbols
+    ]|

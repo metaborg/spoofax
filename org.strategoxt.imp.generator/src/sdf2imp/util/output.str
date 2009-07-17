@@ -1,0 +1,169 @@
+module sdf2imp/util/output
+
+imports
+  libstratego-gpp
+  libstratego-sglr
+  
+  sdf2imp/lib/-
+
+  sdf2imp/util/pp
+
+strategies
+  
+  /**
+   * Output the main descriptor file (e.g., EditorService.main.esv).
+   * This file is never overwritten.
+   */
+  output-main-descriptor-file(name, new-contents) =
+    output-descriptor-file(
+      name
+    , new-contents
+    , not(file-exists)
+    )
+  
+  /**
+   * Output an initial descriptor file (e.g., EditorService-Outliner.esv).
+   * These files are never overwritten and only generated if imported.
+   */
+  output-initial-descriptor-file(name, new-contents) =
+    output-descriptor-file(
+      name
+    , new-contents
+    , not(file-exists); is-descriptor-imported(|<name>)
+    )
+
+  /**
+   * Output an derived descriptor file (e.g., EditorService-Outliner.generated.esv).
+   * These files are always overwritten, but only if imported.
+   */
+  output-derived-descriptor-file(name, new-contents) =
+    output-descriptor-file(
+      name
+    , new-contents
+    , id 
+      // TODO: Only build derived files if imported??
+      // (doesn't currently work because transient imports are not considered)
+      // NoExistingDescriptor <+ is-descriptor-imported(|<name>)
+    )
+  
+  /**
+   * Output a descriptor file if <condition> succeeds for
+   * the full file path of the generated file.
+   *
+   * @internal
+   */
+  output-descriptor-file(name, new-contents, condition) =
+    with(
+      filename := <add-extension> (<name>, "esv");
+      path     := "src";
+      fullpath := <conc-strings> (path, "/", filename)
+    );
+    
+    if ResetFiles <+ <condition> fullpath then
+      new-contents;
+      risky(
+        ?Module(name, _ ,_);
+        pp-descriptor-to-string
+      | "Illegal editor service descriptor output"
+      );
+      output-text-file(|[path], filename)
+    else
+      verbose-msg(!"Skipping", !fullpath)
+    end
+
+  /**
+   * Output a packed descriptor file (e.g., EditorService.packed.esv).
+   */
+  output-packed-descriptor-file(|filename) =
+    with(
+      path     := "include";
+      fullpath := <conc-strings> (path, "/", filename)
+    );
+    
+    pp-descriptor-to-string;
+    output-text-file(|[path], filename)
+  
+  is-descriptor-imported(|name) =
+    MainDescriptor;
+    oncetd(?Import(name) + ?ImportRenamed(name, _))
+
+/**
+ * Pretty-printing support.
+ */
+strategies
+  
+  output-java-file =
+    where(
+      ?class;
+      path := <create-dirs> ["src" | <package-name>];
+      fullpath := <conc-strings> (path, "/", <class-name> class, ".java")
+    );
+    
+    output-java-file(|fullpath)
+
+  output-java-file(|filename) =
+    print-filename(|["src" | <package-name>], <base-filename> filename);
+    
+    risky(
+      text := <pp-java-string <+ pp-java-string-fallback>
+    | "Illegal Java output"
+    );
+    
+    output-text-file(|filename)
+
+  output-xml-file(|pathparts, filename) =
+    risky(
+      xml-doc2abox; box2text-string(|80)
+    | "Illegal XML output"
+    );
+    
+    output-text-file(|pathparts, filename)
+  
+  output-text-file(|pathparts, filename) =
+    print-filename(|pathparts, filename);
+    
+    where(path := <create-dirs> pathparts);
+    
+    output-text-file(|<conc-strings> (path, "/", filename))
+  
+  output-text-file(|filename) =
+    where(file := <fopen> (filename, "w"));
+    
+    <fputs> (<id>, file);
+    <fclose> file
+
+strategies
+
+  pp-java-string-fallback =
+    write-to;
+    xtc-transform(!"pp-java");
+    ?FILE(<read-text-file>);
+    warn-msg(|"PP-JAVA-STRING LIBRARY CALL FAILED; USING XTC INSTEAD")
+  
+  print-filename(|pathparts, filename) =
+    if [] := pathparts then
+      verbose-msg(!"Generating", !filename)
+    else
+      verbose-msg(!"Generating", <conc-strings> (
+                                   <separate-by(|"/"); concat-strings> pathparts
+                                 , "/", filename
+                                 ))
+    end
+  
+  create-dirs = 
+    where(root := <getcwd>);
+    map((file-exists <+ mkdir(|"w")); chdir);
+    getcwd; // return path to innermost created dir.
+    where (<chdir> root)     
+  
+  package-name:
+    CompilationUnit(Some(PackageDec(_, PackageName(ids))), _, _) -> xs
+    where xs := <map(?Id(<id>))> ids
+    
+  package-name:
+    CompilationUnit(None(), _, _) -> []
+    
+  class-name =
+    ?CompilationUnit(_, _, [ClassDec(ClassDecHead(_,Id(<id>),_,_,_),_)|_])
+  <+
+    ?CompilationUnit(_, _, [InterfaceDec(InterfaceDecHead(_,Id(<id>),_,_),_)|_])
