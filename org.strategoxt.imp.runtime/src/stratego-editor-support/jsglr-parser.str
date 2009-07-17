@@ -12,8 +12,8 @@ strategies
    */
   jsglr-open-parsetable = 
       ?tbl
-    ; prim("JSGLR_open_parsetable", tbl) => internal
-    ; !ParseTable(internal)
+    ; prim("JSGLR_open_parsetable", tbl) => table
+    ; !ParseTable(table)
     
   jsglr-parse-string(|tbl) =
     jsglr-parse-string(id | tbl, None(), "string")

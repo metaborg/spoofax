@@ -1,51 +1,54 @@
 package org.strategoxt.imp.metatooling.wizards;
 
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
-import org.eclipse.core.runtime.*;
-import org.eclipse.jface.operation.*;
-import java.lang.reflect.InvocationTargetException;
-import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.core.resources.*;
-import org.eclipse.core.runtime.CoreException;
-import java.io.*;
-import org.eclipse.ui.*;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
+import org.spoofax.interpreter.core.Interpreter;
+import org.spoofax.interpreter.core.InterpreterException;
+import org.spoofax.interpreter.core.InterpreterExit;
+import org.strategoxt.imp.editors.editorservice.EditorServiceParseController;
+import org.strategoxt.imp.metatooling.MetatoolingActivator;
+import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
+import org.strategoxt.imp.runtime.stratego.adapter.WrappedAstNodeFactory;
 
 /**
- * This is a sample new wizard. Its role is to create a new file 
- * resource in the provided container. If the container resource
- * (a folder or a project) is selected in the workspace 
- * when the wizard is opened, it will accept it as the target
- * container. The wizard creates one file with the extension
- * "esv". If a sample multi-page editor (also available
- * as a template) is registered for the same extension, it will
- * be able to open it.
+ * 
+ * @author Lennart Kats <lennart add lclnet.nl>
  */
-
 public class NewEditorWizard extends Wizard implements INewWizard {
-	private NewEditorWizardPage page;
-	private ISelection selection;
+	private final NewEditorWizardPage input = new NewEditorWizardPage();
 
-	/**
-	 * Constructor for NewEditorWizard.
-	 */
+	// TODO: Support external directory and working set selection in wizard
+			
 	public NewEditorWizard() {
-		super();
 		setNeedsProgressMonitor(true);
 	}
-	
-	/**
-	 * Adding the page to the wizard.
-	 */
 
+	public void init(IWorkbench workbench, IStructuredSelection selection) {
+		// No further initialization required
+	}
+	
 	@Override
 	public void addPages() {
-		page = new NewEditorWizardPage(selection);
-		addPage(page);
+		addPage(input);
 	}
 
 	/**
@@ -55,19 +58,23 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 	 */
 	@Override
 	public boolean performFinish() {
-		final String containerName = page.getContainerName();
-		final String fileName = page.getFileName();
+		final String name = input.getInputName();
+		final String packageName = input.getInputPackageName();
+		final String extensions = input.getInputExtensions();
+		
 		IRunnableWithProgress op = new IRunnableWithProgress() {
 			public void run(IProgressMonitor monitor) throws InvocationTargetException {
 				try {
-					doFinish(containerName, fileName, monitor);
-				} catch (CoreException e) {
+					doFinish(name, packageName, extensions, monitor);
+				} catch (Exception e) {
+					Environment.logException("Error creating new project", e);
 					throw new InvocationTargetException(e);
 				} finally {
 					monitor.done();
 				}
 			}
 		};
+		
 		try {
 			getContainer().run(true, false, op);
 		} catch (InterruptedException e) {
@@ -86,67 +93,79 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 	 * the editor on the newly created file.
 	 */
 
-	private void doFinish(
-		String containerName,
-		String fileName,
-		IProgressMonitor monitor)
-		throws CoreException {
-		// create a sample file
-		monitor.beginTask("Creating " + fileName, 2);
-		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-		IResource resource = root.findMember(new Path(containerName));
-		if (!resource.exists() || !(resource instanceof IContainer)) {
-			throwCoreException("Container \"" + containerName + "\" does not exist.");
-		}
-		IContainer container = (IContainer) resource;
-		final IFile file = container.getFile(new Path(fileName));
-		try {
-			InputStream stream = openContentStream();
-			if (file.exists()) {
-				file.setContents(stream, true, true, monitor);
-			} else {
-				file.create(stream, true, monitor);
-			}
-			stream.close();
-		} catch (IOException e) {
-		}
+	private void doFinish(String name, String packageName, String extensions, IProgressMonitor monitor) throws InterpreterException, IOException, CoreException {
+		final int TASK_COUNT = 5;
+		monitor.beginTask("Creating " + name + " project", TASK_COUNT);
+		
+		monitor.setTaskName("Preparing project builder...");
+		Interpreter builder = Environment.createInterpreter();
+		Environment.addToInterpreter(builder, MetatoolingActivator.getResourceAsStream("/include/sdf2imp.ctree"));
+		EditorIOAgent agent = new EditorIOAgent();		
+		agent.setDescriptor(EditorServiceParseController.getDescriptor());
+		builder.setIOAgent(agent);
 		monitor.worked(1);
-		monitor.setTaskName("Opening file for editing...");
+
+		monitor.setTaskName("Creating project...");
+		IWorkspace workspace = ResourcesPlugin.getWorkspace();
+		IProject project = workspace.getRoot().getProject(name);
+		project.create(null);
+		project.open(null);
+		try {
+			WrappedAstNodeFactory terms = Environment.getTermFactory();
+			builder.setCurrent(terms.makeList(
+				terms.makeString("sdf2imp"),
+				terms.makeString("-m"), terms.makeString(name),
+				terms.makeString("-n"), terms.makeString(packageName),
+				terms.makeString("-e"), terms.makeString(extensions)
+			));
+			agent.setWorkingDir(project.getLocation().toOSString());
+			synchronized (Environment.getSyncRoot()) {
+				try {
+					builder.invoke("main-sdf2imp");
+				} catch (InterpreterExit e) {
+					if (e.getValue() != 0) {
+						throw new InterpreterException("Project builder failed. Log follows\n\n"
+								+ agent.getLog());
+					}
+				}
+			}
+			project.refreshLocal(IResource.DEPTH_INFINITE, monitor);
+			monitor.worked(1);		
+			
+			monitor.setTaskName("Opening files for editing...");
+			openEditor(project, "/syntax/" + name +  ".sdf");
+			openEditor(project, "/editor/" + name +  ".main.esv");
+			monitor.worked(1);
+		} finally {
+			monitor.setTaskName("Undoing workspace operations...");
+			project.delete(true, null);
+		}
+	}
+	
+	private void openEditor(IProject project, String filename) {
+		final IResource file = (IResource) project.findMember(filename);
+		if (!file.exists() || !(file instanceof IFile)) {
+			Environment.logException("Cannot open an editor for " + filename);
+			return;
+		}
 		getShell().getDisplay().asyncExec(new Runnable() {
 			public void run() {
 				IWorkbenchPage page =
 					PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 				try {
-					IDE.openEditor(page, file, true);
+					IDE.openEditor(page, (IFile) file, true);
 				} catch (PartInitException e) {
+					Environment.logException("Cannot open an editor for " + file, e);
 				}
 			}
 		});
-		monitor.worked(1);
-	}
-	
-	/**
-	 * We will initialize file contents with a sample text.
-	 */
-
-	private InputStream openContentStream() {
-		String contents =
-			"This is the initial file contents for *.esv file that should be word-sorted in the Preview page of the multi-page editor";
-		return new ByteArrayInputStream(contents.getBytes());
 	}
 
+	/*
 	private void throwCoreException(String message) throws CoreException {
 		IStatus status =
 			new Status(IStatus.ERROR, "org.strategoxt.imp.metatooling", IStatus.OK, message, null);
 		throw new CoreException(status);
 	}
-
-	/**
-	 * We will accept the selection in the workbench to see if
-	 * we can initialize from it.
-	 * @see IWorkbenchWizard#init(IWorkbench, IStructuredSelection)
-	 */
-	public void init(IWorkbench workbench, IStructuredSelection selection) {
-		this.selection = selection;
-	}
+	*/
 }

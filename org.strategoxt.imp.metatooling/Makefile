@@ -20,6 +20,9 @@ STRCFLAGS = \
     -la stratego-gpp \
     -la stratego-tool-doc \
     -la stratego-sglr \
+    -la stratego-rtg \
+    -la stratego-aterm \
+    -la ${HOME}/.nix-profile/lib/libstratego-sdf.la \
     -la ${HOME}/.nix-profile/lib/libjava-front.la \
     `pkg-config --variable=strcxtcflags strategoxt`
 
@@ -34,6 +37,8 @@ STRCSTFU=2>&1 | grep -vE 'warning ] Nullary constructor .*[A-Z]|warning ] multip
 STRINCLUDES = \
 	-I $(HOME)/.nix-profile/share/sdf/xml-front \
 	-I $(HOME)/.nix-profile/share/sdf/gpp \
+	-I $(HOME)/.nix-profile/share/sdf/stratego-regular \
+	-I $(HOME)/.nix-profile/share/sdf/sdf-front/ \
 	-I src/syntax \
     `pkg-config --variable=strcflags java-front`
 
@@ -41,12 +46,17 @@ all : sdf2imp src/include/sdf2imp.ctree syntax
 
 check : all \
         tests/EditorService.runtestsuite \
-        # tests/test-editor-descriptor.runsh \
-        # tests/test-stratego-java.runsh
+        tests/test-editor-descriptor.runsh \
+        tests/test-stratego-java.runsh \
+        tests/test-foo.runsh
 
 sdf2imp : $(RTREES) $(SYNTAX) Makefile src/include/rtg.tbl
 	strc -i src/sdf2imp.str -o $@ $(STRINCLUDES) $(STRCFLAGS) -m main-sdf2imp $(STRCSTFU)
 	rm sdf2imp.c sdf2imp.lo sdf2imp.o
+
+sdf2imp.java : $(RTREES) $(SYNTAX) Makefile src/include/rtg.tbl
+	[ -e strategoxt.jar ] || (echo "ERROR: Missing file strategoxt.jar. Please copy/link it to this directory"; exit 1)
+	java -server -Xss4m -jar strategoxt.jar -i src/sdf2imp.str -o $@ $(STRINCLUDES) $(STRCFLAGS) -m main-sdf2imp $(STRCSTFU)
 
 syntax : $(SYNTAX)
 

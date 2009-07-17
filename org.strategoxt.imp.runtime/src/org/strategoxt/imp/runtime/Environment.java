@@ -20,6 +20,7 @@ import org.spoofax.jsglr.InvalidParseTableException;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.ParseTableManager;
 import org.spoofax.jsglr.SGLR;
+import org.strategoxt.HybridInterpreter;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.IMPJSGLRLibrary;
@@ -109,7 +110,10 @@ public final class Environment {
 	public static synchronized Interpreter createInterpreter() throws IOException, InterpreterException {
 		// We use the wrappedAstNode factory for both the programs and the terms,
 		// to ensure they are compatible.
-		Interpreter result = new Interpreter(getTermFactory()) {
+		
+		// TODO: Optimize - at least use the HybridInterpreter here
+		
+		Interpreter result = new HybridInterpreter(getTermFactory()) {
 			@Override
 			public boolean invoke(String name) throws InterpreterExit, InterpreterException {
 				assertLock();
@@ -129,16 +133,10 @@ public final class Environment {
 			}
 		};
 
+		// TODO: Clean up Spoofax/IMP operator registries; remove overlap with STRJ runtime
 		result.addOperatorRegistry(new IMPJSGLRLibrary());
 		result.addOperatorRegistry(new IMPLibrary());
 		result.setIOAgent(new EditorIOAgent());
-		
-		result.load(Environment.class.getResourceAsStream("/include/libstratego-lib.ctree"));
-		result.load(Environment.class.getResourceAsStream("/include/libstratego-sglr.ctree"));
-		result.load(Environment.class.getResourceAsStream("/include/libstratego-gpp.ctree"));
-		result.load(Environment.class.getResourceAsStream("/include/libstratego-xtc.ctree"));
-		result.load(Environment.class.getResourceAsStream("/include/stratego-editor-support.ctree"));
-		result.load(Environment.class.getResourceAsStream("/include/performance-tweaks.ctree"));
 		
 		SDefT call = result.getContext().lookupSVar("REPLACE_call_0_0");
 		result.getContext().getVarScope().addSVar("call_0_0", call);
@@ -146,6 +144,10 @@ public final class Environment {
 		return result;
 	}
 	
+	/**
+	 * @Deprecated Use {@link Interpreter#load(InputStream)} instead.
+	 */
+	@Deprecated
 	public static synchronized void addToInterpreter(Interpreter interpreter, InputStream stream) throws IOException, InterpreterException {
 		interpreter.load(stream);			
 	}

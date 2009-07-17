@@ -17,12 +17,15 @@
    </extension>
    <extension
          point="org.eclipse.ui.newWizards">
+      <primaryWizard
+            id="org.strategoxt.imp.metatooling.wizards.NewEditorWizard">
+      </primaryWizard>
       <wizard
-            category="org.strategoxt.imp.metatooling"
             class="org.strategoxt.imp.metatooling.wizards.NewEditorWizard"
             icon="icons/sample.gif"
-            id="org.strategoxt.imp.metatooling.wizards.sdf2imp editor"
-            name="org.eclipse.imp.wizards">
+            id="org.strategoxt.imp.metatooling.wizards.NewEditorWizard"
+            name="Spoofax/IMP editor project"
+            project="true">
       </wizard>
    </extension>
    

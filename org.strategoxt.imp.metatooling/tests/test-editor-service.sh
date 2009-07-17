@@ -1,13 +1,12 @@
-#!/bin/bash
+#!/bin/bash -e
 
 cd `dirname $0`
 
-if [ ! -d editorservice ]
-then mkdir editorservice
-fi
-
+rm -rf editorservice
+mdkir editorservice
 cd editorservice
 
 ES=../../src/syntax/EditorService
 
-../../sdf2imp -i $ES.def -p $ES.tbl -m EditorService -s Module -e esv --verbose 2 2>&1
+../../sdf2imp -i $ES.def -p $ES.tbl -m EditorService -s Module -e esv --verbose 2
+../../sdf2imp -i $ES.def --verbose 2
