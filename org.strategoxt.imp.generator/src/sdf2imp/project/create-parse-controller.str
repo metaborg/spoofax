@@ -3,7 +3,6 @@ module sdf2imp/project/create-parse-controller
 imports
   libstratego-lib
   libstratego-xtc
-  sdf-options
   
   sdf2imp/lib/RTG
     

@@ -5,6 +5,7 @@ import java.io.InputStream;
 
 import lpg.runtime.IAst;
 
+import org.spoofax.interpreter.adapter.aterm.BAFBasicTermFactory;
 import org.spoofax.interpreter.terms.BasicTermFactory;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
@@ -24,7 +25,7 @@ import org.strategoxt.imp.runtime.parser.ast.StringAstNode;
  * @author Lennart Kats <lennart add lclnet.nl>
  * @author Karl Trygve Kalleberg <karltk add strategoxt.org>
  */
-public class WrappedAstNodeFactory extends BasicTermFactory implements ITermFactory {	
+public class WrappedAstNodeFactory extends BAFBasicTermFactory implements ITermFactory {	
 	private final TermConverter converter = new TermConverter(this);
 
 	public IStrategoTerm wrap(IStrategoAstNode node) {
@@ -44,38 +45,6 @@ public class WrappedAstNodeFactory extends BasicTermFactory implements ITermFact
 	}
 	
 	// PARSING
-	
-	// TODO: Use BAFReader.isBinaryATerm() to determine if BAFreading is required
-	
-	@Override
-	public IStrategoTerm parseFromStream(InputStream inputStream) throws IOException {
-		// BasicTermFactory does not support binary aterms atm
-		IStrategoTerm result;
-		synchronized (Environment.getSyncRoot()) {
-			result = Environment.getWrappedATermFactory().parseFromStream(inputStream);
-		}
-		return converter.convert(result);
-	}
-	
-	@Override
-	public IStrategoTerm parseFromFile(String path) throws IOException {
-		// BasicTermFactory does not support binary aterms atm
-		IStrategoTerm result;
-		synchronized (Environment.getSyncRoot()) {
-			result = Environment.getWrappedATermFactory().parseFromFile(path);
-		}
-		return converter.convert(result);
-	}
-	
-	@Override
-	public IStrategoTerm parseFromString(String path) {
-		// BasicTermFactory does not support binary aterms atm
-		IStrategoTerm result;
-		synchronized (Environment.getSyncRoot()) {
-			result = Environment.getWrappedATermFactory().parseFromString(path);
-		}
-		return converter.convert(result);
-	}
 	
 	// ANNOTATIONS
 	

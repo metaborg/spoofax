@@ -21,14 +21,22 @@ STRCFLAGS = \
     -la stratego-tool-doc \
     -la stratego-sglr \
     -la stratego-rtg \
+    -la stratego-sdf \
     -la stratego-aterm \
-    -la ${HOME}/.nix-profile/lib/libstratego-sdf.la \
-    -la ${HOME}/.nix-profile/lib/libjava-front.la \
+    -I $(HOME)/.nix-profile/share/java-front \
+    -I $(HOME)/.nix-profile/share/gpp \
+    -I $(HOME)/.nix-profile/share/xml-front \
+    -I $(HOME)/.nix-profile/share/sdf-tools \
+    -I $(HOME)/.nix-profile/share/xtc \
     `pkg-config --variable=strcxtcflags strategoxt`
 
-SDFINCLUDES    = -Idef ${HOME}/.nix-profile/share/java-front-syntax/JavaMix.def \
-                 -Idef ${HOME}/.nix-profile/share/java-front/JavaEBlockMix.def \
-                 -Idef ${HOME}/.nix-profile/share/java-front/EmbeddedJavaMix.def
+JAVACFLAGS=-J-Xmx256m -J-Xms100m -J-server -J-XX:+UseParallelGC -cp $(CLASSPATH) -source 5 -nowarn
+JAVAC=`if which ecj >/dev/null; then echo ecj; else echo javac; fi`
+
+SDFINCLUDES = \
+    -Idef $(HOME)/.nix-profile/share/java-front-syntax/JavaMix.def \
+    -Idef $(HOME)/.nix-profile/share/java-front/JavaEBlockMix.def \
+    -Idef $(HOME)/.nix-profile/share/java-front/EmbeddedJavaMix.def
 
 # I don't care much for nullary constructor warnings unless it's about lowercase ones, such as 'start'
 STRCSTFU=2>&1 | grep -vE 'warning ] Nullary constructor .*[A-Z]|warning ] multiple external| \[ExtSDef\(|stratego-trm|module-name-checked|module-name-checked"' \
@@ -45,7 +53,7 @@ STRINCLUDES = \
 
 all : sdf2imp java syntax
 
-java : src-gen/sdf2imp.java
+java : src-gen/org/strategoxt/imp/generator/sdf2imp.java
 
 check : all \
         tests/EditorService.runtestsuite \
@@ -54,17 +62,21 @@ check : all \
         tests/test-foo.runsh
 
 sdf2imp : $(RTREES) $(SYNTAX) Makefile src/include/rtg.tbl
-	strc -i src/sdf2imp.str -o $@ $(STRINCLUDES) $(STRCFLAGS) -m main-sdf2imp $(STRCSTFU)
+	strc -i src/sdf2imp.str -o $@ $(STRINCLUDES) $(STRCFLAGS) -m main-sdf2imp \
+	     -la $(HOME)/.nix-profile/lib/libjava-front.la $(STRCSTFU)
 	rm sdf2imp.c sdf2imp.lo sdf2imp.o
 
-src-gen/sdf2imp.java : $(RTREES) $(SYNTAX) Makefile src/include/rtg.tbl
-	[ -e strategoxt.jar ] || (echo "ERROR: Missing file strategoxt.jar. Please copy/link it to this directory"; exit 1)
-	java -server -Xss4m -jar strategoxt.jar -i src/sdf2imp.str -o $@ $(STRINCLUDES) $(STRCFLAGS) -m main-sdf2imp $(STRCSTFU)
+%.class : %.java strategoxt.jar
+	$(JAVAC) $(JAVACFLAGS) -cp strategoxt.jar $<
+
+src-gen/org/strategoxt/imp/generator/sdf2imp.java : $(RTREES) $(SYNTAX) Makefile src/include/rtg.tbl
+	strj -i src/sdf2imp.str -o $@ $(STRINCLUDES) $(STRCFLAGS) -m main-sdf2imp \
+	     --library -la java-front -p org.strategoxt.imp.generator $(STRCSTFU)
 
 syntax : $(SYNTAX)
 
 clean :
-	rm -f src/include/sdf2imp.ctree sdf2imp $(RTREES) $(wildcard src/syntax/*.tbl) $(wildcard src/syntax/*.def) *.dep include/*.dep
+	rm -f src/include/sdf2imp.ctree sdf2imp $(RTREES) $(wildcard src/syntax/*.tbl) $(wildcard src/syntax/*.def) *.dep include/*.dep src-gen/org/strategoxt/imp/generator/sdf2imp.java src-gen/org/strategoxt/imp/generator/sdf2imp.class
 	
 # files:
 

@@ -2,7 +2,7 @@ module sdf2imp/lib/xml-doc2abox // based on xml-front
 
 imports 
   xml-doc 
-  Box 
+  Box
   libstratego-lib
   
 strategies

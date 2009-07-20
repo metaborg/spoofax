@@ -6,7 +6,6 @@ imports
   libstratego-rtg
 
   libjava-front
-  sdf-options
   
   EditorService
   

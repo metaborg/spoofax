@@ -96,6 +96,7 @@ public final class Environment {
 	}
 
 	public static WrappedATermFactory getWrappedATermFactory() {
+		// (stateful factory)
 		assertLock();
 		return wrappedFactory;
 	}
