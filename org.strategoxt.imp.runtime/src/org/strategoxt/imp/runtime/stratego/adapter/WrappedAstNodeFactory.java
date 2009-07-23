@@ -1,20 +1,12 @@
 package org.strategoxt.imp.runtime.stratego.adapter;
 
-import java.io.IOException;
-import java.io.InputStream;
-
-import lpg.runtime.IAst;
-
 import org.spoofax.interpreter.adapter.aterm.BAFBasicTermFactory;
-import org.spoofax.interpreter.terms.BasicTermFactory;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.spoofax.interpreter.terms.TermConverter;
-import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.IntAstNode;
 import org.strategoxt.imp.runtime.parser.ast.ListAstNode;
 import org.strategoxt.imp.runtime.parser.ast.StringAstNode;
@@ -26,8 +18,6 @@ import org.strategoxt.imp.runtime.parser.ast.StringAstNode;
  * @author Karl Trygve Kalleberg <karltk add strategoxt.org>
  */
 public class WrappedAstNodeFactory extends BAFBasicTermFactory implements ITermFactory {	
-	private final TermConverter converter = new TermConverter(this);
-
 	public IStrategoTerm wrap(IStrategoAstNode node) {
 		if(node instanceof IntAstNode) {
 			return new WrappedAstNodeInt(this, (IntAstNode) node);

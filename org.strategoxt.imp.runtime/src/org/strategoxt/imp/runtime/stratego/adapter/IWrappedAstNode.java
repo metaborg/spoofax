@@ -1,7 +1,5 @@
 package org.strategoxt.imp.runtime.stratego.adapter;
 
-import lpg.runtime.IAst;
-
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 /**

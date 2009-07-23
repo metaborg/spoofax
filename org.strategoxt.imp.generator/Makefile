@@ -23,31 +23,32 @@ STRCFLAGS = \
     -la stratego-rtg \
     -la stratego-sdf \
     -la stratego-aterm \
-    -I $(HOME)/.nix-profile/share/java-front \
-    -I $(HOME)/.nix-profile/share/gpp \
-    -I $(HOME)/.nix-profile/share/xml-front \
-    -I $(HOME)/.nix-profile/share/sdf-tools \
-    -I $(HOME)/.nix-profile/share/xtc \
+    -I ${HOME}/.nix-profile/share/java-front \
+    -I ${HOME}/.nix-profile/share/gpp \
+    -I ${HOME}/.nix-profile/share/xml-front \
+    -I ${HOME}/.nix-profile/share/sdf-tools \
+    -I ${HOME}/.nix-profile/share/xtc \
     `pkg-config --variable=strcxtcflags strategoxt`
 
-JAVACFLAGS=-J-Xmx256m -J-Xms100m -J-server -J-XX:+UseParallelGC -cp $(CLASSPATH) -source 5 -nowarn
+JAVACFLAGS=-J-Xmx256m -J-Xms100m -J-server -J-XX:+UseParallelGC -cp strategoxt.jar -source 5 -nowarn
 JAVAC=`if which ecj >/dev/null; then echo ecj; else echo javac; fi`
+STRJ=`if which strj >/dev/null; then echo strj; elif [ -e strategoxt.jar ]; then echo java -server -Xss4m -jar strategoxt.jar; else echo Please install strj or put strategoxt.jar into the current directory. >&2; exit 1; fi`
 
 SDFINCLUDES = \
-    -Idef $(HOME)/.nix-profile/share/java-front-syntax/JavaMix.def \
-    -Idef $(HOME)/.nix-profile/share/java-front/JavaEBlockMix.def \
-    -Idef $(HOME)/.nix-profile/share/java-front/EmbeddedJavaMix.def
+    -Idef ${HOME}/.nix-profile/share/java-front-syntax/JavaMix.def \
+    -Idef ${HOME}/.nix-profile/share/java-front/JavaEBlockMix.def \
+    -Idef ${HOME}/.nix-profile/share/java-front/EmbeddedJavaMix.def
 
 # I don't care much for nullary constructor warnings unless it's about lowercase ones, such as 'start'
 STRCSTFU=2>&1 | grep -vE 'warning ] Nullary constructor .*[A-Z]|warning ] multiple external| \[ExtSDef\(|stratego-trm|module-name-checked|module-name-checked"' \
                  >&2
 
 STRINCLUDES = \
-	-I $(HOME)/.nix-profile/share/sdf/xml-front \
-	-I $(HOME)/.nix-profile/share/sdf/gpp \
-	-I $(HOME)/.nix-profile/share/sdf/stratego-regular \
-	-I $(HOME)/.nix-profile/share/sdf/sdf-front/ \
-	-I $(HOME)/.nix-profile/share/java-front/ \
+	-I ${HOME}/.nix-profile/share/sdf/xml-front \
+	-I ${HOME}/.nix-profile/share/sdf/gpp \
+	-I ${HOME}/.nix-profile/share/sdf/stratego-regular \
+	-I ${HOME}/.nix-profile/share/sdf/sdf-front \
+	-I ${HOME}/.nix-profile/share/java-front \
 	-I src/syntax \
     `pkg-config --variable=strcflags java-front`
 
@@ -63,15 +64,15 @@ check : all \
 
 sdf2imp : $(RTREES) $(SYNTAX) Makefile src/include/rtg.tbl
 	strc -i src/sdf2imp.str -o $@ $(STRINCLUDES) $(STRCFLAGS) -m main-sdf2imp \
-	     -la $(HOME)/.nix-profile/lib/libjava-front.la $(STRCSTFU)
+	     -la ${HOME}/.nix-profile/lib/libjava-front.la $(STRCSTFU)
 	rm sdf2imp.c sdf2imp.lo sdf2imp.o
 
 %.class : %.java strategoxt.jar
 	$(JAVAC) $(JAVACFLAGS) -cp strategoxt.jar $<
 
 src-gen/org/strategoxt/imp/generator/sdf2imp.java : $(RTREES) $(SYNTAX) Makefile src/include/rtg.tbl
-	strj -i src/sdf2imp.str -o $@ $(STRINCLUDES) $(STRCFLAGS) -m main-sdf2imp \
-	     --library -la java-front -p org.strategoxt.imp.generator $(STRCSTFU)
+	$(STRJ) -i src/sdf2imp.str -o $@ $(STRINCLUDES) $(STRCFLAGS) -m main-sdf2imp \
+	        -la java-front --library -p org.strategoxt.imp.generator $(STRCSTFU)
 
 syntax : $(SYNTAX)
 

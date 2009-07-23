@@ -29,6 +29,7 @@ import org.strategoxt.lang.StrategoException;
 import org.strategoxt.lang.StrategoExit;
 
 /**
+ * A wizard for creating new Spoofax/IMP projects.
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
@@ -104,6 +105,7 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 		IProject project = workspace.getRoot().getProject(name);
 		project.create(null);
 		project.open(null);
+		boolean success = false;
 		try {
 			agent.setWorkingDir(project.getLocation().toOSString());
 			try {
@@ -118,12 +120,16 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 			monitor.worked(1);		
 			
 			monitor.setTaskName("Opening files for editing...");
-			openEditor(project, "/syntax/" + name +  ".sdf");
 			openEditor(project, "/editor/" + name +  ".main.esv");
+			openEditor(project, "/syntax/" + name +  ".sdf");
 			monitor.worked(1);
+			monitor.done();
+			success = true;
 		} finally {
-			monitor.setTaskName("Undoing workspace operations...");
-			project.delete(true, null);
+			if (!success) {
+				monitor.setTaskName("Undoing workspace operations...");
+				project.delete(true, null);
+			}
 		}
 	}
 	

@@ -14,7 +14,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.strategoxt.strj;
+import org.strategoxt.libstratego_lib;
 import org.strategoxt.imp.editors.editorservice.EditorServiceParseController;
 import org.strategoxt.imp.generator.sdf2imp;
 import org.strategoxt.imp.metatooling.loading.DynamicDescriptorUpdater;

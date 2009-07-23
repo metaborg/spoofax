@@ -86,7 +86,9 @@ public class StrategoFeedback implements IModelListener {
 				}
 				try {
 					Debug.startTimer("Loading Stratego module ", filename);
-					Environment.addToInterpreter(interpreter, descriptor.openAttachment(filename));
+					synchronized (Environment.getSyncRoot()) {
+						interpreter.load(descriptor.openAttachment(filename));
+					}
 					Debug.stopTimer("Successfully loaded " +  filename);
 				} catch (InterpreterException e) {
 					Environment.logException(new BadDescriptorException("Error loading compiler service provider " + filename, e));
