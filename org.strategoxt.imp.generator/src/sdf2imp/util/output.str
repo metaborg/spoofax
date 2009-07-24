@@ -59,6 +59,8 @@ strategies
       fullpath := <conc-strings> (path, "/", filename)
     );
     
+    print-filename(|["editor"], filename);
+    
     if ResetFiles <+ <condition> fullpath then
       new-contents;
       risky(
@@ -112,6 +114,8 @@ strategies
     output-text-file(|filename)
 
   output-xml-file(|pathparts, filename) =
+    print-filename(|pathparts, filename);
+    
     risky(
       xml-doc2abox; box2text-string(|80)
     | "Illegal XML output"
@@ -120,8 +124,6 @@ strategies
     output-text-file(|pathparts, filename)
   
   output-text-file(|pathparts, filename) =
-    print-filename(|pathparts, filename);
-    
     where(path := <create-dirs> pathparts);
     
     output-text-file(|<conc-strings> (path, "/", filename))

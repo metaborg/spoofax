@@ -9,6 +9,7 @@ strategies
   <+ parse-table-option
   <+ package-name-option
   <+ start-symbol-option
+  <+ jar-option
   <+ reset-files-option
   <+ verbose-option
 
@@ -39,6 +40,17 @@ strategies
     , rules(BasePackage := <id>);
       get-package-name(fail) // ensure legal
     , !"-n <packagename>      Set base package name (optional)"
+    )
+
+  jar-option =
+    ArgOption(
+      "-jar"
+    , rules(JarLocation := <id>);
+      if not(file-exists) then
+        err(|"File does not exist");
+        fail
+      end
+    , !"-jar <path>           Set location of strategoxt.jar (optional)"
     )
     
   start-symbol-option =

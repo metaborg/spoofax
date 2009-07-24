@@ -1,0 +1,12 @@
+module sdf2imp/project/copy-strategoxt-jar
+
+imports
+  libstratego-lib
+
+strategies
+  
+  copy-strategoxt-jar =
+    if JarLocation then
+      <file-exists <+ mkdir> "lib/";
+      <copy-file> (<id>, "lib/")
+    end

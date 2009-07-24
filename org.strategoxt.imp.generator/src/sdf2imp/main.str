@@ -101,6 +101,8 @@ strategies
     create-classpath;
     create-manifest;
     create-plugin-xml;
+    create-build-xml;
+    copy-strategoxt-jar;
     
     <copy-or-create-parse-table> input
   
