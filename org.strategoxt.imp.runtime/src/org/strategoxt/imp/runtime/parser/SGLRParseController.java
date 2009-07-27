@@ -105,7 +105,8 @@ public class SGLRParseController implements IParseController, ISourceInfo {
     
     static {
     	SGLR.setWorkAroundMultipleLookahead(true);
-		Tools.setTimeout(PARSE_TIMEOUT);
+    	if (!Debug.ENABLED)
+    		Tools.setTimeout(PARSE_TIMEOUT);
     }
     
     /**

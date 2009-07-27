@@ -76,8 +76,6 @@ public class JSGLRI extends AbstractSGLRI {
 		
 		// Read stream using tokenizer/lexstream
 		
-		ATerm asfix = parser.parse(inputStream, getStartSymbol()); 
-		
-		return asfix;
+		return parser.parse(inputStream, getStartSymbol());
 	}
 }

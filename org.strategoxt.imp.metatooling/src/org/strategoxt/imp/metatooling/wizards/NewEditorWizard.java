@@ -3,7 +3,6 @@ package org.strategoxt.imp.metatooling.wizards;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.net.URISyntaxException;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;

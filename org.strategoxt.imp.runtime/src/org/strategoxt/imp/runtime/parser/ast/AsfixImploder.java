@@ -14,7 +14,6 @@ import lpg.runtime.PrsStream;
 
 import org.spoofax.jsglr.RecoveryConnector;
 import org.strategoxt.imp.runtime.Debug;
-import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ParseErrorHandler;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
@@ -45,6 +44,8 @@ public class AsfixImploder {
 
 	protected static final int PROD_ATTRS = 2;
 	
+	private static final int NONE = -1;
+	
 	private static final Map<ATerm, AstNode> implodedCache =
 		Collections.synchronizedMap(new WeakHashMap<ATerm, AstNode>());
 	
@@ -58,6 +59,10 @@ public class AsfixImploder {
 	
 	/** Character offset for the current implosion. */ 
 	protected int offset;
+	
+	private int nonMatchingOffset = NONE;
+	
+	private char nonMatchingChar, nonMatchingCharExpected;
 	
 	protected boolean inLexicalContext;
 	
@@ -78,7 +83,8 @@ public class AsfixImploder {
 		if (!(asfix instanceof ATermAppl || ((ATermAppl) asfix).getName().equals("parsetree")))
 			throw new IllegalArgumentException("Parse tree expected");
 		
-		assert offset == 0 && tokenizer.getStartOffset() == 0 : "Race condition in AsfixImploder";
+		if (offset != 0 || tokenizer.getStartOffset() != 0)
+			throw new IllegalStateException("Race condition in AsfixImploder");
 		
 		ATerm top = (ATerm) asfix.getChildAt(PARSE_TREE);
 		offset = 0;
@@ -89,6 +95,7 @@ public class AsfixImploder {
 		} finally {
 			tokenizer.endStream();
 			offset = 0;
+			nonMatchingOffset = NONE;
 		}
 		
 		if (Debug.ENABLED) {
@@ -368,12 +375,13 @@ public class AsfixImploder {
 	/** Implode any appl(_, _) that constructs a lex terminal. */
 	protected void implodeLexical(ATermInt character) {
 		char[] inputChars = tokenizer.getLexStream().getInputChars();
-		if (inputChars.length <= offset) {
-			// TODO: Must throw an exception in this case
-			Environment.logException("Unexpected character in parse tree: " + (char) character.getInt());
-			// offset++;
-			return;
-			// throw new IllegalStateException("Unexpected character in parse tree: " + character);
+		if (offset >= inputChars.length) {
+			if (nonMatchingOffset == NONE)
+				throw new ImploderException("Character in parse tree after end of input stream: " + (char) character.getInt());
+			else
+				throw new ImploderException("Character in parse tree after end of input stream: " + (char) character.getInt()
+						+ " - may be caused by unexcepted character in parse tree at position " + nonMatchingChar
+						+ ": " + nonMatchingChar + " instead of " + nonMatchingCharExpected);
 		}
 		
 		char parsedChar = (char) character.getInt();
@@ -385,12 +393,20 @@ public class AsfixImploder {
 				// for later error reporting. (Cannot modify the immutable
 				// parse tree here; changing the original stream instead.)
 				inputChars[offset] = ParseErrorHandler.SKIPPED_CHAR;
+				offset++;
 			} else {
-				throw new IllegalStateException("Character from asfix stream (" + parsedChar
-						+ ") must be in lex stream (" + inputChar + ")");
+				// UNDONE: Strict lexical stream checking
+				// throw new IllegalStateException("Character from asfix stream (" + parsedChar
+				//	 	+ ") must be in lex stream (" + inputChar + ")");
+				if (nonMatchingOffset == NONE) {
+					nonMatchingOffset = offset;
+					nonMatchingChar = parsedChar;
+					nonMatchingCharExpected = inputChar;
+				}
+				inputChars[offset] = ParseErrorHandler.SKIPPED_CHAR;
 			}
+		} else {
+			offset++;
 		}
-		
-		offset++;
 	}
 }
