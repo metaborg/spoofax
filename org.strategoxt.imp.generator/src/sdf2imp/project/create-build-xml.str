@@ -17,48 +17,35 @@ strategies
     <output-xml-file(|[], "build.xml")>
     %>
     <?xml version="1.0" encoding="UTF-8"?>
-    <project name="= name " default="buildAll">
+    <project name="<%= name %>" default="buildAll">
     
         <!-- Project configuration -->
         <property name="trans" location="trans"/>
-        <property name="editor" location="editor"/>
         <property name="syntax" location="syntax"/>
+        <property name="editor" location="editor"/>
         <property name="build" location="bin"/>
         <property name="dist" location="bin/dist"/>
         
-        <!-- System configuration -->
+        <!-- Environment configuration -->
         <property name="strategoBinariesLocation" location="${user.home}/.nix-profile/bin"/>
         <property name="scriptsLocation" location="aux"/>
-        <property name="customImports" value="-I ${src} -I ${src}/detection -I ${src}/statistics -I ${src}/utils  -I ${src}/syntax -I ${lib}/apath -I ${lib}/apath/syntax"/>
-        
-        <target name="init">
-            <mkdir dir="${build}"/>
-            <mkdir dir="${dist}"/>
-        </target>
+        <property name="customImports" value="-I ${trans} -I ${syntax}"/>
     
         <target name="buildAll">
             <parallel>
                 <antcall target="strc"/>
                 <antcall target="sdf2table"/>
             </parallel>
+            <antcall target="sdf2imp"/>
         </target>
-    
-        <target name="pack-sdf" depends="init">
-            <apply executable="${strategoBinariesLocation}/pack-sdf" dest="${build}" failonerror="true">
-                <arg value="-i"/>
-                <srcfile/>
-                <arg value="-o"/>
-                <targetfile/>
-                <arg value="-I"/>
-                <arg value="${lib}"/>
-                <arg line="${customImports}"/>
-                <fileset dir="${src}/syntax" includes="*.sdf"/>
-                <mapper type="glob" from="*.sdf" to="*.def"/>
-            </apply>
+        
+        <target name="init">
+            <mkdir dir="${build}"/>
+            <mkdir dir="${dist}"/>
         </target>
     
         <target name="sdf2table" depends="init,pack-sdf">
-            <apply executable="${scriptsLocation}/applyUsingBasename" dest="${dist}" failonerror="true">
+            <apply executable="${scriptsLocation}/applyUsingBasename.sh" dest="${dist}" failonerror="true">
                 <srcfile/>
                 <arg value=".def"/>
                 <arg value="-i"/>
@@ -70,9 +57,23 @@ strategies
                 <mapper type="glob" from="*.def" to="*.tbl"/>
             </apply>
         </target>
-    
+
+        <target name="pack-sdf" depends="init">
+            <apply executable="${strategoBinariesLocation}/pack-sdf" dest="${build}" failonerror="true">
+                <arg value="-i"/>
+                <srcfile/>
+                <arg value="-o"/>
+                <targetfile/>
+                <arg value="-I"/>
+                <arg value="${lib}"/>
+                <arg line="${customImports}"/>
+                <fileset dir="${syntax}" includes="*.sdf"/>
+                <mapper type="glob" from="*.sdf" to="*.def"/>
+            </apply>
+        </target>
+        
         <target name="sdf2rtg" depends="init,pack-sdf">
-            <apply executable="${scriptsLocation}/applyUsingBasename" dest="${build}" failonerror="true">
+            <apply executable="${scriptsLocation}/applyUsingBasename.sh" dest="${build}" failonerror="true">
                 <srcfile/>
                 <arg value=".def"/>
                 <arg value="-i"/>
@@ -86,7 +87,7 @@ strategies
         </target>
     
         <target name="rtg2sig" depends="init,sdf2rtg">
-            <apply executable="${scriptsLocation}/applyUsingBasename" dest="${build}" failonerror="true">
+            <apply executable="${scriptsLocation}/applyUsingBasename.sh" dest="${build}" failonerror="true">
                 <srcfile/>
                 <arg value=".rtg"/>
                 <arg value="-i"/>
@@ -103,6 +104,15 @@ strategies
             <antcall target="strc-call">
                 <param name="additionalStrcParameters" value=""/>
                 <param name="additionalStrcExtension" value="*"/>
+                <param name="strcExecutable" value="strc"/>
+            </antcall>
+        </target>
+    
+        <target name="strj" depends="init,rtg2sig">
+            <antcall target="strc-call">
+                <param name="additionalStrcParameters" value=""/>
+                <param name="additionalStrcExtension" value="*.java"/>
+                <param name="strcExecutable" value="strj"/>
             </antcall>
         </target>
         
@@ -110,21 +120,22 @@ strategies
             <antcall target="strc-call">
                 <param name="additionalStrcParameters" value="-F"/>
                 <param name="additionalStrcExtension" value="*.ctree"/>
+                <param name="strcExecutable" value="strc"/>
             </antcall>
         </target>
         
         <target name="strc-call" depends="init,rtg2sig">
             <dependset>
-                <srcfilelist dir = "${src}" files = "**/*.str"/>
-                <srcfilelist dir = "${build}" files = "**/*.str"/>
-                <targetfileset dir = "${dist}" includes = "**/*"/>
+                <srcfilelist dir="${trans}" files="**/*.str"/>   <!-- */-->
+                <srcfilelist dir="${build}" files="**/*.str"/> <!-- */-->
+                <targetfileset dir="${dist}" includes="**/*"/> <!-- */-->
             </dependset>
-            <apply executable="${scriptsLocation}/applyUsingBasename" dest="${dist}" failonerror="true">
+            <apply executable="${scriptsLocation}/applyUsingBasename.sh" dest="${dist}" failonerror="true">
                 <srcfile/>
                 <arg value=".str"/>
                 <arg value="-i"/>
                 <arg value="-m"/>
-                <arg value="${strategoBinariesLocation}/strc"/>
+                <arg value="${strategoBinariesLocation}/{strcExecutable}"/>
                 <arg value="-o"/>
                 <targetfile/>
                 <arg value="-S"/>    <!-- Silent mode -->
@@ -153,34 +164,29 @@ strategies
                 <arg value="${user.home}/.nix-profile/lib/libstrc.la"/-->
                 <!--arg value="-la"/>
                 <arg value="${user.home}/.nix-profile/lib/libstratego-sglr.la"/-->
-    
                 
                 <arg line="${customImports}"/>
                 
-                <fileset dir="${src}">
-                    <include name="**/*.str"/>
-                    <exclude name="**/*Lib*"/>
-                    <exclude name="**/*lib*"/>
+                <fileset dir="${trans}">
+                    <include name="**/*.str"/> <!-- */ -->
+                    <exclude name="**/*Lib*"/> <!-- */ -->
+                    <exclude name="**/*lib*"/> <!-- */ -->
                 </fileset>
                 <mapper type="glob" from="*.str" to="${additionalStrcExtension}"/>
             </apply>
             <!-- Remove the c files again -->
             <delete>
                 <fileset dir="${dist}">
-                    <include name="**/*.c"/>
-                    <include name="**/*.dep"/>
-                    <include name="**/*.lo"/>
-                    <include name="**/*.o"/>
+                    <include name="**/*.c"/>   <!-- */ -->
+                    <include name="**/*.dep"/> <!-- */ -->
+                    <include name="**/*.lo"/>  <!-- */ -->
+                    <include name="**/*.o"/>   <!-- */ -->
                 </fileset>
             </delete>
         </target>
         
         <target name="clean" description="clean up" >
             <delete dir="${build}"/>
-        </target>
-    
-        <target name="cleanall" description="clean up" depends="clean" >
-            <delete dir="${dist}"/>
         </target>
     </project>
     <%

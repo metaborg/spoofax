@@ -7,6 +7,6 @@ strategies
   
   copy-strategoxt-jar =
     if JarLocation then
-      <file-exists <+ mkdir> "lib/";
-      <copy-file> (<id>, "lib/")
+      <file-exists <+ mkdir> "aux/";
+      <copy-file> (<id>, "aux/strategoxt.jar")
     end
