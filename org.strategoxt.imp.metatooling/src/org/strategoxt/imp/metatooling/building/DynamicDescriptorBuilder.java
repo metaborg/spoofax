@@ -59,6 +59,7 @@ public class DynamicDescriptorBuilder {
 			agent.setDescriptor(EditorServiceParseController.getDescriptor());
 			context = new Context(Environment.getTermFactory());
 			context.setIOAgent(agent);
+			sdf2imp.init(context);
 			
 		} catch (Throwable e) { // (catch classes not loading, etc.)
 			Environment.logException("Unable to initialize dynamic builder", e);

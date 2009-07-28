@@ -1,6 +1,7 @@
 package org.strategoxt.imp.runtime.parser.tokens;
 
 import java.util.Iterator;
+import java.util.List;
 
 import lpg.runtime.IToken;
 import lpg.runtime.PrsStream;
@@ -31,23 +32,27 @@ public class SGLRTokenIterator implements Iterator<IToken> {
 	}
 
 	private static int getLastIndex(PrsStream stream, IRegion region) {
-		// TODO: Just fetch the last token by hand; the IMP interface and this workaround is terrible
-		int result = stream.getTokenIndexAtCharacter(region.getOffset() + region.getLength());
-		if (result < 0)
-			result = -result + 1;
-		if (result >= stream.getTokens().size())
-			result = stream.getTokens().size() - 1;
-		if (result > 0 && stream.getTokenAt(result).getStartOffset() == 0)
-			result--;
-		// while (stream.getTokenAt(result).getKind() == TokenKind.TK_ERROR.ordinal())
-		// 	result--;
+		List tokens = stream.getTokens();
+		int end = region.getOffset() + region.getLength() + 1;
+		
+		int result = stream.getStreamLength();
+		while (result-- > 0) {
+			IToken token = (IToken) tokens.get(result);
+			if (token.getKind() == TokenKind.TK_EOF.ordinal())
+				break;
+		}
+
+		while (result-- > 0) {
+			IToken token = (IToken) tokens.get(result);
+			if (token.getEndOffset() <= end)
+				break;
+		}
+		
 		return result;
 	}
 
 	public boolean hasNext() {
-		return index <= lastIndex
-			&& stream.getTokenAt(index).getKind() != TokenKind.TK_ERROR.ordinal()
-			&& stream.getTokenAt(index).getKind() != TokenKind.TK_UNKNOWN.ordinal();
+		return index <= lastIndex;
 	}
 
 	public IToken next() {
