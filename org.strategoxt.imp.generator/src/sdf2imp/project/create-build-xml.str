@@ -38,7 +38,7 @@ strategies
     
         <target name="all">
             <parallel>
-                <available="${trans}/${strmodule}.str">
+                <available file="${trans}/${strmodule}.str">
                   <antcall target="strc"/>
                 </available>
                 <antcall target="sdf2table"/>
@@ -152,7 +152,7 @@ strategies
                 <arg value="-o"/>
                 <targetfile/>
                 <arg value="-m"/>
-                <!-- <arg value="-S"/> <!-- Silent mode -->
+                <arg value="-S"/> <!-- (Silent mode) -->
                 <arg value="-I"/>
                 <arg value="${trans}"/>
                 <arg value="-I"/>
