@@ -158,10 +158,15 @@ public class SGLRTokenizer {
 			char c = lexStream.getCharValue(offset);
 			if (!Character.isWhitespace(c)) {
 			    if (newlineSkipLength != -1) {
-                    // Only allow skipping back a few lines if the outer
-                    // construct started on the line we skipped to
-			        if (lexStream.getLine(offset) != lexStream.getLine(outerBeginOffset))
+			        if (lexStream.getLine(offset) != lexStream.getLine(outerBeginOffset)) {
+	                    // Report the error at the next newline
+			        	// if the outer construct started on a different line
 			            skipLength = newlineSkipLength;
+			        } else {
+			        	// Skip to the previous token at the end of this line
+			        	// if the outer construct started on the same line
+			        	return makeErrorTokenBackwards(beginOffset - skipLength);
+			        }
 			    }
 				break;
 			}
@@ -170,7 +175,7 @@ public class SGLRTokenizer {
 			    
 		}
 		
-		return makeErrorToken(beginOffset-skipLength, endOffset-skipLength);
+		return makeErrorToken(beginOffset - skipLength, endOffset - skipLength);
 	}
 	
 	/**

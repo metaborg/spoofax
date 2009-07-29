@@ -92,7 +92,7 @@ public class ParseErrorHandler {
 			offset = 0;
 			reportSkippedFragments(tokenizer);
 			ATermAppl asfix = termAt(top, 0);
-			reportRecoveredErrors(tokenizer, asfix, 0);
+			reportRecoveredErrors(tokenizer, asfix, 0, 0);
 		} catch (RuntimeException e) {
 			reportError(tokenizer, e);
 		}
@@ -103,14 +103,14 @@ public class ParseErrorHandler {
      * 
 	 * @param outerBeginOffset  The begin offset of the enclosing construct.
      */
-	private void reportRecoveredErrors(SGLRTokenizer tokenizer, ATermAppl term, int outerStartOffset) {
+	private void reportRecoveredErrors(SGLRTokenizer tokenizer, ATermAppl term, int outerStartOffset, int outerStartOffset2) {
 		// TODO: Nicer error messages; merge consecutive error tokens etc.
 		int startOffset = offset;
 		
 		if ("amb".equals(term.getAFun().getName())) {
 			// Report errors in first ambiguous branch and update offset
 			ATermList ambs = termAt(term, 0);
-			reportRecoveredErrors(tokenizer, (ATermAppl) ambs.getFirst(), startOffset);
+			reportRecoveredErrors(tokenizer, (ATermAppl) ambs.getFirst(), startOffset, outerStartOffset);
 			
 			reportAmbiguity(tokenizer, term, startOffset);
 			return;
@@ -132,24 +132,30 @@ public class ParseErrorHandler {
 			if (child.getType() == ATerm.INT) {
 				offset += 1;				
 			} else {
-				reportRecoveredErrors(tokenizer, (ATermAppl) child, startOffset);
+				reportRecoveredErrors(tokenizer, (ATermAppl) child, startOffset, outerStartOffset);
 			}
 		}
 		
 		//post visit: report error				
 		if (isErrorProduction(attrs, WATER)) {
 			IToken token = tokenizer.makeErrorToken(startOffset, offset - 1);
-			reportErrorAtTokens(token, token, "'" + token + "' not expected here");
+			reportErrorAtTokens(token, token, "Syntax error, '" + token + "' not expected here");
 		} else if (isErrorProduction(attrs, INSERT_END)) {
 			IToken token = tokenizer.makeErrorToken(startOffset, offset - 1);
-			reportErrorAtTokens(token, token, "Closing of '" + token + "' is expected here");
+			reportErrorAtTokens(token, token, "Syntax error, Closing of '" + token + "' is expected here");
 		} else if (isErrorProduction(attrs, INSERT)) {
-			IToken token = tokenizer.makeErrorTokenSkipLayout(startOffset, offset + 1, outerStartOffset);
-			String inserted = ""; // TODO: Handle this default case better
+			IToken token = tokenizer.makeErrorTokenSkipLayout(startOffset, offset + 1, outerStartOffset2);
+			String inserted = "token";
 			if (rhs.getName() == "lit") {
 				inserted = applAt(rhs, 0).getName();
 			}
-			reportErrorAtTokens(token, token, "Expected: '" + inserted + "'");
+			if (token.getLine() == tokenizer.getLexStream().getLine(outerStartOffset2) && !token.toString().equals(inserted)) {
+				reportErrorAtTokens(token, token, "Syntax error, expected: '" + inserted + "'");
+			} else {
+				// Had to backtrack to the last token of the current line,
+				// (or reporting a missing } at another })
+				reportErrorAtTokens(token, token, "Syntax error, insert '" + inserted + "' to complete construct");
+			}
 		}
 		
 		if (lexicalStart) inLexicalContext = false;
