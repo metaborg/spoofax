@@ -1,6 +1,5 @@
 package org.strategoxt.imp.metatooling.wizards;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
@@ -24,6 +23,7 @@ import org.eclipse.ui.ide.IDE;
 import org.strategoxt.libstratego_lib;
 import org.strategoxt.imp.editors.editorservice.EditorServiceParseController;
 import org.strategoxt.imp.generator.sdf2imp;
+import org.strategoxt.permissivegrammars.make_permissive;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.lang.Context;
@@ -111,12 +111,8 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 		try {
 			agent.setWorkingDir(project.getLocation().toOSString());
 			try {
-				String jar = getStrategoXTJar();
-				if (new File(jar).exists()) {
-					sdf2imp.mainNoExit(context, "-m", name, "-n", packageName, "-e", extensions, "-jar", jar);
-				} else {
-					sdf2imp.mainNoExit(context, "-m", name, "-n", packageName, "-e", extensions);
-				}
+				String jars = getJarFiles();
+				sdf2imp.mainNoExit(context, "-m", name, "-n", packageName, "-e", extensions, "-jar", jars);
 			} catch (StrategoExit e) {
 				if (e.getValue() != 0) {
 					throw new StrategoException("Project builder failed. Log follows\n\n"
@@ -140,8 +136,10 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 		}
 	}
 
-	private static String getStrategoXTJar() {
-		return libstratego_lib.class.getProtectionDomain().getCodeSource().getLocation().toExternalForm();
+	private static String getJarFiles() {
+		String strategoxt = libstratego_lib.class.getProtectionDomain().getCodeSource().getLocation().toExternalForm();
+		String makePermissive = make_permissive.class.getProtectionDomain().getCodeSource().getLocation().toExternalForm();
+		return strategoxt + " " + makePermissive;
 	}
 	
 	private void openEditor(IProject project, String filename) {

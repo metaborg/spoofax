@@ -3,7 +3,8 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Spoofax/IMP Metatooling
 Bundle-SymbolicName: org.strategoxt.imp.generator;singleton:=true
 Bundle-Version: 0.1.0.2600
-Bundle-ClassPath: src-gen/
+Bundle-ClassPath: src-gen/,
+ lib/make_permissive.jar
 Require-Bundle: org.spoofax.aterm,
  org.spoofax.jsglr,
  org.spoofax.interpreter.core,
@@ -19,4 +20,5 @@ Require-Bundle: org.spoofax.aterm,
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: Spoofax.org
-Export-Package: org.strategoxt.imp.generator
+Export-Package: org.strategoxt.imp.generator,
+ org.strategoxt.permissivegrammars

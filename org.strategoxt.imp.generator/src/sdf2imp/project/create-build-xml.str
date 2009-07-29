@@ -5,35 +5,42 @@ imports
 
 strategies
 
-  // TODO: create proper build.xml
-
   create-build-xml =
     <file-exists> "build.xml"
   <+
     name       := <get-sdf-main-module>;
+    name'      := <lower-case; cify; string-replace(|"_", "-")> name;
     classname  := <get-main-class-name>;
     pkgname    := <BasePackage <+ default-package-name>;
     
     <output-xml-file(|[], "build.xml")>
     %>
     <?xml version="1.0" encoding="UTF-8"?>
-    <project name="<%= name %>" default="buildAll">
+    <project name="<%= name %>" default="all">
     
-        <!-- Project configuration -->
+        <!-- Project directories -->
         <property name="trans" location="trans"/>
         <property name="syntax" location="syntax"/>
         <property name="editor" location="editor"/>
+        <property name="lib" location="lib"/>
         <property name="build" location="bin"/>
         <property name="dist" location="bin/dist"/>
         
+        <!-- Key input modules -->
+        <property name="sdfmodule" value="<%= name %>"/>
+        <property name="esvmodule" value="<%= name %>"/>
+        <property name="strmodule" location="<%= name' %>"/>
+        
         <!-- Environment configuration -->
-        <property name="strategoBinariesLocation" location="${user.home}/.nix-profile/bin"/>
-        <property name="scriptsLocation" location="aux"/>
-        <property name="customImports" value="-I ${trans} -I ${syntax}"/>
+        <property name="build.strategoxt" location="${user.home}/.nix-profile/bin"/>
+        <property name="build.strategoxt.sdf.imports"  value=""/>
+        <property name="build.strategoxt.strc.imports" value=""/>
     
-        <target name="buildAll">
+        <target name="all">
             <parallel>
-                <antcall target="strc"/>
+                <available="${trans}/${strmodule}.str">
+                  <antcall target="strc"/>
+                </available>
                 <antcall target="sdf2table"/>
             </parallel>
             <antcall target="sdf2imp"/>
@@ -43,30 +50,38 @@ strategies
             <mkdir dir="${build}"/>
             <mkdir dir="${dist}"/>
         </target>
+        
+        <target name="sdf2imp" depends="sdf2table">
+          <!-- HACK: Trigger the Eclipse builder rather than build it here -->
+          <!-- (Eclipse is needed anyway at this time for distribution)    -->
+          <echo message="  Triggering Eclipse build"/> 
+          <touch file="${editor}/${esvmodule}.esv"/>
+        </target>
     
-        <target name="sdf2table" depends="init,pack-sdf">
-            <apply executable="${scriptsLocation}/applyUsingBasename.sh" dest="${dist}" failonerror="true">
-                <srcfile/>
-                <arg value=".def"/>
+        <target name="sdf2table" depends="pack-sdf">
+            <apply executable="${build.strategoxt}/sdf2table" dest="${dist}" failonerror="true">
                 <arg value="-i"/>
-                <arg value="-m"/>
-                <arg value="${strategoBinariesLocation}/sdf2table"/>
+                <srcfile/>
                 <arg value="-o"/>
                 <targetfile/>
+                <arg value="-m"/>
+                <arg value="${sdfmodule}"/>
                 <fileset dir="${build}" includes="*.def"/>
                 <mapper type="glob" from="*.def" to="*.tbl"/>
             </apply>
         </target>
 
         <target name="pack-sdf" depends="init">
-            <apply executable="${strategoBinariesLocation}/pack-sdf" dest="${build}" failonerror="true">
+            <apply executable="${build.strategoxt}/pack-sdf" dest="${build}" failonerror="true">
                 <arg value="-i"/>
                 <srcfile/>
                 <arg value="-o"/>
                 <targetfile/>
                 <arg value="-I"/>
+                <arg value="${trans}"/>
+                <arg value="-I"/>
                 <arg value="${lib}"/>
-                <arg line="${customImports}"/>
+                <arg line="${build.strategoxt.sdf.imports}"/>
                 <fileset dir="${syntax}" includes="*.sdf"/>
                 <mapper type="glob" from="*.sdf" to="*.def"/>
             </apply>
@@ -78,7 +93,7 @@ strategies
                 <arg value=".def"/>
                 <arg value="-i"/>
                 <arg value="-m"/>
-                <arg value="${strategoBinariesLocation}/sdf2rtg"/>
+                <arg value="${build.strategoxt}/sdf2rtg"/>
                 <arg value="-o"/>
                 <targetfile/>
                 <fileset dir="${build}" includes="*.def"/>
@@ -92,7 +107,7 @@ strategies
                 <arg value=".rtg"/>
                 <arg value="-i"/>
                 <arg value="--module"/>
-                <arg value="${strategoBinariesLocation}/rtg2sig"/>
+                <arg value="${build.strategoxt}/rtg2sig"/>
                 <arg value="-o"/>
                 <targetfile/>
                 <fileset dir="${build}" includes="*.rtg"/>
@@ -102,79 +117,71 @@ strategies
     
         <target name="strc" depends="init,rtg2sig">
             <antcall target="strc-call">
-                <param name="additionalStrcParameters" value=""/>
-                <param name="additionalStrcExtension" value="*"/>
+                <param name="build.strategoxt.strc.params" value=""/>
+                <param name="build.strategoxt.strc.extension" value="*"/>
                 <param name="strcExecutable" value="strc"/>
             </antcall>
         </target>
     
         <target name="strj" depends="init,rtg2sig">
             <antcall target="strc-call">
-                <param name="additionalStrcParameters" value=""/>
-                <param name="additionalStrcExtension" value="*.java"/>
+                <param name="build.strategoxt.strc.params" value=""/>
+                <param name="build.strategoxt.strc.extension" value="*.java"/>
                 <param name="strcExecutable" value="strj"/>
             </antcall>
         </target>
         
-        <target name="ctrees" depends="init,rtg2sig">
+        <target name="strji" depends="init,rtg2sig">
             <antcall target="strc-call">
-                <param name="additionalStrcParameters" value="-F"/>
-                <param name="additionalStrcExtension" value="*.ctree"/>
+                <param name="build.strategoxt.strc.params" value="-F --library"/>
+                <param name="build.strategoxt.strc.extension" value="*.ctree"/>
                 <param name="strcExecutable" value="strc"/>
             </antcall>
         </target>
         
         <target name="strc-call" depends="init,rtg2sig">
             <dependset>
-                <srcfilelist dir="${trans}" files="**/*.str"/>   <!-- */-->
+                <srcfilelist dir="${trans}" files="**/*.str"/> <!-- */-->
                 <srcfilelist dir="${build}" files="**/*.str"/> <!-- */-->
                 <targetfileset dir="${dist}" includes="**/*"/> <!-- */-->
             </dependset>
-            <apply executable="${scriptsLocation}/applyUsingBasename.sh" dest="${dist}" failonerror="true">
-                <srcfile/>
+            <apply executable="${build.strategoxt}/{strcExecutable}" dest="${dist}" failonerror="true">
                 <arg value=".str"/>
                 <arg value="-i"/>
-                <arg value="-m"/>
-                <arg value="${strategoBinariesLocation}/{strcExecutable}"/>
+                <srcfile/>
                 <arg value="-o"/>
                 <targetfile/>
-                <arg value="-S"/>    <!-- Silent mode -->
-                <arg value="${additionalStrcParameters}"/>    <!-- Used for Ctree generation -->
+                <arg value="-m"/>
+                <!-- <arg value="-S"/> <!-- Silent mode -->
+                <arg value="-I"/>
+                <arg value="${trans}"/>
                 <arg value="-I"/>
                 <arg value="${build}"/>
                 <arg value="-I"/>
                 <arg value="${lib}"/>
                 <arg value="-I"/>
-                <arg value="${user.home}/.nix-profile/share/"/>
-                <arg value="-I"/>
                 <arg value="${user.home}/.nix-profile/share/java-front"/>
-                <arg value="-I"/>
-                <arg value="${user.home}/.nix-profile/share/sdf/gpp"/>
-                <arg value="-I"/>
-                <arg value="${user.home}/.nix-profile/share/sdf/xml-front"/>
-                <arg value="-I"/>
-                <arg value="${user.home}/.nix-profile/share/sdf/sdf-front"/>
-                <arg value="-I"/>
-                <arg value="${user.home}/.nix-profile/share/sdf/stratego-front"/>
                 <arg value="-la"/>
                 <arg value="stratego-lib"/>
                 <arg value="-la"/>
                 <arg value="${user.home}/.nix-profile/lib/libjava-front.la"/>
-                <!--arg value="-la"/>
-                <arg value="${user.home}/.nix-profile/lib/libstrc.la"/-->
-                <!--arg value="-la"/>
-                <arg value="${user.home}/.nix-profile/lib/libstratego-sglr.la"/-->
+                <arg value="-la"/>
+                <arg value="stratego-sglr"/>
+                <arg value="-la"/>
+                <arg value="stratego-gpp"/>
+                <arg value="-la"/>
+                <arg value="stratego-xtc"/>
                 
-                <arg line="${customImports}"/>
+                <arg line="${build.strategoxt.strc.params}"/>
+                <arg line="${build.strategoxt.strc.imports}"/>
                 
                 <fileset dir="${trans}">
-                    <include name="**/*.str"/> <!-- */ -->
-                    <exclude name="**/*Lib*"/> <!-- */ -->
-                    <exclude name="**/*lib*"/> <!-- */ -->
+                    <include name="${trans}/${strmodule}.str"/>
                 </fileset>
-                <mapper type="glob" from="*.str" to="${additionalStrcExtension}"/>
+                <mapper type="glob" from="*.str" to="${build.strategoxt.strc.extension}"/>
             </apply>
-            <!-- Remove the c files again -->
+            
+            <!-- Remove any intermediate files -->
             <delete>
                 <fileset dir="${dist}">
                     <include name="**/*.c"/>   <!-- */ -->

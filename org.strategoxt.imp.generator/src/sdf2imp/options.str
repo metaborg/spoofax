@@ -43,14 +43,14 @@ strategies
     )
 
   jar-option =
-    ArgOption(
+    MultiArgOption(
       "-jar"
     , rules(JarLocation := <id>);
       if not(file-exists) then
         err(|"File does not exist");
         fail
       end
-    , !"-jar <path>           Set location of strategoxt.jar (optional)"
+    , !"-jar <path>           Set jar files to include (optional)"
     )
     
   start-symbol-option =
