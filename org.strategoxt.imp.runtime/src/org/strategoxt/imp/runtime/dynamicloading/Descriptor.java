@@ -20,6 +20,7 @@ import org.eclipse.imp.parser.IParseController;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.services.MetaFileLanguageValidator;
 import org.strategoxt.imp.runtime.services.StrategoFeedback;
 
 /**
@@ -221,7 +222,7 @@ public class Descriptor {
                 getProperty("URL", ""),
                 getProperty("Extensions"),
                 getProperty("Aliases", ""),
-                null);
+                new MetaFileLanguageValidator());
         return language;
     }
 
