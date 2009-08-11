@@ -16,7 +16,7 @@ Require-Bundle: org.spoofax.aterm,
  org.eclipse.swt,
  org.spoofax.compiler,
  org.strategoxt.imp.editors.editorservice,
- org.strategoxt.strcjava;bundle-version="0.1.0"
+ org.strategoxt.strj;bundle-version="0.1.0"
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: Spoofax.org
