@@ -2,6 +2,7 @@ package org.strategoxt.imp.metatooling.wizards;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.security.CodeSource;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -111,8 +112,9 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 		try {
 			agent.setWorkingDir(project.getLocation().toOSString());
 			try {
-				String jars = getJarFiles();
-				sdf2imp.mainNoExit(context, "-m", name, "-n", packageName, "-e", extensions, "-jar", jars);
+				String jar1 = libstratego_lib.class.getProtectionDomain().getCodeSource().getLocation().getFile();
+				String jar2 = make_permissive.class.getProtectionDomain().getCodeSource().getLocation().getFile();
+				sdf2imp.mainNoExit(context, "-m", name, "-n", packageName, "-e", extensions, "-jar", jar1, jar2);
 			} catch (StrategoExit e) {
 				if (e.getValue() != 0) {
 					throw new StrategoException("Project builder failed. Log follows\n\n"
@@ -134,12 +136,6 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 				project.delete(true, null);
 			}
 		}
-	}
-
-	private static String getJarFiles() {
-		String strategoxt = libstratego_lib.class.getProtectionDomain().getCodeSource().getLocation().toExternalForm();
-		String makePermissive = make_permissive.class.getProtectionDomain().getCodeSource().getLocation().toExternalForm();
-		return strategoxt + " " + makePermissive;
 	}
 	
 	private void openEditor(IProject project, String filename) {

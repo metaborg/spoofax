@@ -46,11 +46,13 @@ strategies
     MultiArgOption(
       "-jar"
     , rules(JarLocation := <id>);
-      if not(file-exists) then
-        err(|"File does not exist");
-        fail
-      end
-    , !"-jar <path>           Set jar files to include (optional)"
+      list-loop(
+        if not(file-exists) then
+          err(|"File does not exist");
+          fail
+        end
+      )
+    , !"-jar <paths>          Set jar files to include (optional)"
     )
     
   start-symbol-option =

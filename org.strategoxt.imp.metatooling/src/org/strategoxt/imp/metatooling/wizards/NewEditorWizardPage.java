@@ -27,6 +27,10 @@ public class NewEditorWizardPage extends WizardPage {
 	private Text inputExtensions;
 	
 	private boolean isInputPackageNameChanged;
+	
+	private boolean isInputExtensionsChanged;
+	
+	private boolean ignoreEventsOnce;
 
 	/**
 	 * Constructor for SampleNewWizardPage.
@@ -92,19 +96,24 @@ public class NewEditorWizardPage extends WizardPage {
 		inputExtensions.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		inputExtensions.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
+				isInputExtensionsChanged = true;
 				onChange();
 			}
 		});
 
-		inputName.setText("MyFirstEditor");
-		inputExtensions.setText("ext");
 		setControl(container);
+		setPageComplete(false);
 	}
 
 	/**
 	 * Ensures that both text fields are set.
 	 */
 	private void onChange() {
+		if (ignoreEventsOnce) {
+			ignoreEventsOnce = false;
+			return;
+		}
+		
 		if (getInputName().length() == 0) {
 			updateStatus("Project name must be specified");
 			return;
@@ -115,10 +124,19 @@ public class NewEditorWizardPage extends WizardPage {
 		}
 		
 		if (!isInputPackageNameChanged) {
+			ignoreEventsOnce = true;
 			inputPackageName.setText(toPackageName(getInputName()));
 			isInputPackageNameChanged = false;
 		} else if (getInputPackageName().equals(toPackageName(getInputName()))) {
 			isInputPackageNameChanged = false;
+		}
+		
+		if (!isInputExtensionsChanged) {
+			ignoreEventsOnce = true;
+			inputExtensions.setText(toExtension(getInputName()));
+			isInputExtensionsChanged = false;
+		} else if (getInputExtensions().equals(toExtension(getInputExtensions()))) {
+			isInputExtensionsChanged = false;
 		}
 
 		if (getInputPackageName().length() == 0) {
@@ -126,8 +144,7 @@ public class NewEditorWizardPage extends WizardPage {
 			return;
 		}
 		if (!getInputPackageName().toLowerCase().equals(toPackageName(getInputPackageName()))
-				|| getInputPackageName().indexOf("..") != -1)
-		{
+				|| getInputPackageName().indexOf("..") != -1) {
 			updateStatus("Package name must be valid");
 			return;
 		}
@@ -136,8 +153,9 @@ public class NewEditorWizardPage extends WizardPage {
 			updateStatus("File extension must be specified");
 			return;
 		}
-		if (getInputExtensions().startsWith(".")) {
-			updateStatus("File extension must be valid: cannot start with a '.'");
+		if (getInputExtensions().indexOf(".") != -1 || getInputExtensions().indexOf("/") != -1
+				|| getInputExtensions().indexOf(":") > -1){
+			updateStatus("File extension must be valid");
 			return;
 		}
 
@@ -167,6 +185,11 @@ public class NewEditorWizardPage extends WizardPage {
 				output.append(c);
 		}
 		return output.toString();
+	}
+	
+	private static String toExtension(String name) {
+		String input = name.toLowerCase().replace("-", "").replace(".", "").replace(" ", "").replace(":", "");
+		return input.substring(0, Math.min(input.length(), 3));
 	}
 
 	private void updateStatus(String message) {

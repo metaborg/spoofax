@@ -52,9 +52,11 @@ STRINCLUDES = \
 	-I src/syntax \
     `pkg-config --variable=strcflags java-front`
 
-all : sdf2imp java syntax
+all : sdf2imp java jar syntax
 
 java : src-gen/org/strategoxt/imp/generator/sdf2imp.java
+
+jar : lib/sdf2imp.jar
 
 check : all \
         tests/EditorService.runtestsuite \
@@ -67,12 +69,12 @@ sdf2imp : $(RTREES) $(SYNTAX) Makefile src/include/rtg.tbl
 	     -la ${HOME}/.nix-profile/lib/libjava-front.la $(STRCSTFU)
 	rm sdf2imp.c sdf2imp.lo sdf2imp.o
 
-%.class : %.java strategoxt.jar
-	$(JAVAC) $(JAVACFLAGS) -cp strategoxt.jar $<
-
 src-gen/org/strategoxt/imp/generator/sdf2imp.java : $(RTREES) $(SYNTAX) Makefile src/include/rtg.tbl
 	$(STRJ) -i src/sdf2imp.str -o $@ $(STRINCLUDES) $(STRCFLAGS) -m main-sdf2imp \
 	        -la java-front --library -p org.strategoxt.imp.generator $(STRCSTFU)
+
+lib/sdf2imp.jar : src-gen/org/strategoxt/imp/generator/sdf2imp.java
+	strj-jar -i $< -o $@ -p org.strategoxt.imp.generator
 
 syntax : $(SYNTAX)
 

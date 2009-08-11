@@ -8,5 +8,6 @@ strategies
   copy-strategoxt-jar =
     if JarLocation then
       <file-exists <+ mkdir> "aux/";
-      <copy-file> (<id>, "aux/strategoxt.jar")
+      JarLocation;
+      list-loop(<copy-file> (<id>, "aux/"))
     end
