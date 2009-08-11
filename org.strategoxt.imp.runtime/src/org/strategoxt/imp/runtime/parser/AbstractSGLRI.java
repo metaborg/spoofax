@@ -156,6 +156,7 @@ public abstract class AbstractSGLRI implements IParser {
 	public ATerm parseNoImplode(char[] inputChars, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 		
+		/*
 		CachingKey cachingKey = new CachingKey(parseTableId, startSymbol, inputChars);
 		ATerm result = parsedCache.get(cachingKey);
 		if (result != null) {
@@ -163,13 +164,17 @@ public abstract class AbstractSGLRI implements IParser {
 			assert currentTokenizer != null;
 			return result;
 		}
+		*/
+		ATerm result;
 		
 		Debug.startTimer();
 		try {
 			currentTokenizer = new SGLRTokenizer(inputChars, filename);
 			result = doParseNoImplode(inputChars, filename);
+			/*
 			parsedCache.put(cachingKey, result);
 			tokenizerCache.put(result, currentTokenizer);
+			*/
 		
 			return result;
 		} finally {

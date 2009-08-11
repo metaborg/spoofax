@@ -13,6 +13,7 @@ import lpg.runtime.IToken;
 import lpg.runtime.PrsStream;
 
 import org.strategoxt.imp.runtime.Debug;
+import org.strategoxt.imp.runtime.parser.ParseErrorHandler;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
 
@@ -42,6 +43,8 @@ public class AsfixImploder {
 
 	protected static final int PROD_ATTRS = 2;
 	
+	private static final int NONE = -1;
+	
 	private static final Map<ATerm, AstNode> implodedCache =
 		Collections.synchronizedMap(new WeakHashMap<ATerm, AstNode>());
 	
@@ -56,7 +59,11 @@ public class AsfixImploder {
 	/** Character offset for the current implosion. */ 
 	protected int offset;
 	
-	protected boolean lexicalContext;
+	private int nonMatchingOffset = NONE;
+	
+	private char nonMatchingChar, nonMatchingCharExpected;
+	
+	protected boolean inLexicalContext;
 	
     public AsfixImploder(TokenKindManager tokenManager) {
 		this.tokenManager = tokenManager;
@@ -75,17 +82,19 @@ public class AsfixImploder {
 		if (!(asfix instanceof ATermAppl || ((ATermAppl) asfix).getName().equals("parsetree")))
 			throw new IllegalArgumentException("Parse tree expected");
 		
-		assert offset == 0 && tokenizer.getStartOffset() == 0 : "Race condition in AsfixImploder";
+		if (offset != 0 || tokenizer.getStartOffset() != 0)
+			throw new IllegalStateException("Race condition in AsfixImploder");
 		
 		ATerm top = (ATerm) asfix.getChildAt(PARSE_TREE);
 		offset = 0;
-		lexicalContext = false;
+		inLexicalContext = false;
 		
 		try {
 			result = implodeAppl(top);
 		} finally {
 			tokenizer.endStream();
 			offset = 0;
+			nonMatchingOffset = NONE;
 		}
 		
 		if (Debug.ENABLED) {
@@ -113,20 +122,18 @@ public class AsfixImploder {
 		IToken prevToken = tokenizer.currentToken();
 		
 		// Enter lexical context if this is a lex node
-		boolean lexicalStart = !lexicalContext
-			&& ("lex".equals(rhs.getName()) || AsfixAnalyzer.isLiteral(rhs)
-			    || AsfixAnalyzer.isLayout(rhs));
+		boolean lexicalStart = !inLexicalContext && isLexicalNode(rhs);
 		
-		if (lexicalStart) lexicalContext = true;
+		if (lexicalStart) inLexicalContext = true;
 		
-		if (!lexicalContext && "sort".equals(rhs.getName()) && lhs.getLength() == 1 && termAt(contents, 0).getType() == ATerm.INT) {
+		if (!inLexicalContext && "sort".equals(rhs.getName()) && lhs.getLength() == 1 && termAt(contents, 0).getType() == ATerm.INT) {
 			return createIntTerminal(contents, rhs);
 		}
 		
-		boolean isList = !lexicalContext && AsfixAnalyzer.isList(rhs);
-		boolean isVar  = !lexicalContext && !isList && "varsym".equals(rhs.getName());
+		boolean isList = !inLexicalContext && AsfixAnalyzer.isList(rhs);
+		boolean isVar  = !inLexicalContext && !isList && isVariableNode(rhs);
 		
-		if (isVar) lexicalContext = true;
+		if (isVar) inLexicalContext = true;
 		
 		// Recurse the tree (and set children if applicable)
 		ArrayList<AstNode> children =
@@ -134,15 +141,39 @@ public class AsfixImploder {
 		
 		if (lexicalStart || isVar) {
 			return createStringTerminal(lhs, rhs);
-		} else if (lexicalContext) {
+		} else if (inLexicalContext) {
 			return null; // don't create tokens inside lexical context; just create one big token at the top
 		} else {
 			return createNonTerminalOrInjection(lhs, rhs, attrs, prevToken, children, isList);
 		}
 	}
 
+	/**
+	 * Identifies lexical parse tree nodes.
+	 * 
+	 * @see #isVariableNode(ATermAppl)
+	 *      Identifies variables, which are usually treated similarly to
+	 *      lexical nodes.
+	 * 
+	 * @return true if the current node is lexical.
+	 */
+	public static boolean isLexicalNode(ATermAppl rhs) {
+		return ("lex".equals(rhs.getName()) || AsfixAnalyzer.isLiteral(rhs)
+		    || AsfixAnalyzer.isLayout(rhs));
+	}
+
+	/**
+	 * Identifies parse tree nodes that begin variables.
+	 * 
+	 * @see #isVariableNode(ATermAppl) 
+	 * @return true if the current node is lexical.
+	 */
+	public static boolean isVariableNode(ATermAppl rhs) {
+		return "varsym".equals(rhs.getName());
+	}
+
 	protected ArrayList<AstNode> implodeChildNodes(ATermList contents) {
-		ArrayList<AstNode> results = lexicalContext
+		ArrayList<AstNode> results = inLexicalContext
 				? null
 				: new ArrayList<AstNode>(
 						min(EXPECTED_NODE_CHILDREN, contents.getChildCount()));
@@ -165,7 +196,7 @@ public class AsfixImploder {
 	}
 
 	private StringAstNode createStringTerminal(ATermList lhs, ATermAppl rhs) {
-		lexicalContext = false;
+		inLexicalContext = false;
 		IToken token = tokenizer.makeToken(offset, tokenManager.getTokenKind(lhs, rhs), true);
 		String sort = reader.getSort(rhs);
 		
@@ -257,11 +288,13 @@ public class AsfixImploder {
 		final ATermListImpl ambs = termAt(node, 0);
 		
 		ATermAppl lastNonAvoid = null;
+		ATermAppl firstOption = null;
 		boolean multipleNonAvoids = false;
 		
 	alts:
 		for (int i = 0; i < ambs.getLength(); i++) {
 			ATermAppl prod = resolveAmbiguities(termAt(ambs, i));
+			if (firstOption == null) firstOption = prod;
 			ATermAppl appl = termAt(prod, APPL_PROD);
 			ATermAppl attrs = termAt(appl, PROD_ATTRS);
 			
@@ -271,7 +304,7 @@ public class AsfixImploder {
 				for (int j = 0; j < attrList.getLength(); j++) {
 					ATerm attr = termAt(attrList, j);
 					if (isAppl(attr) && "prefer".equals(asAppl(attr).getName())) {
-						return resolveAmbiguities(prod);
+						return prod;
 					} else if (isAppl(attr) && "avoid".equals(asAppl(attr).getName())) {
 						continue alts;
 					}
@@ -286,10 +319,10 @@ public class AsfixImploder {
 		}
 		
 		if (!multipleNonAvoids) {
-			return lastNonAvoid != null ? lastNonAvoid : applAt(ambs, 0);
+			return lastNonAvoid != null ? lastNonAvoid : firstOption;
 		} else {
-			if (Debug.ENABLED && !lexicalContext) reportUnresolvedAmb(ambs);
-			return resolveAmbiguities(ambs.getFirst());
+			if (Debug.ENABLED && !inLexicalContext) reportUnresolvedAmb(ambs);
+			return firstOption;
 		}
 	}
 	
@@ -340,14 +373,23 @@ public class AsfixImploder {
 	
 	/** Implode any appl(_, _) that constructs a lex terminal. */
 	protected void implodeLexical(ATermInt character) {
-		assert tokenizer.getLexStream().getInputChars().length > offset
-		    && character.getInt() == tokenizer.getLexStream().getCharValue(offset)
-			: "Character from asfix stream (" + character.getInt()
-			+ ") must be in lex stream ("
-			+ (tokenizer.getLexStream().getInputChars().length > offset 
-			   ? "???"
-			   : (int) tokenizer.getLexStream().getCharValue(offset)) + ")";
+		char[] inputChars = tokenizer.getLexStream().getInputChars();
+		if (offset >= inputChars.length) {
+			if (nonMatchingOffset == NONE)
+				throw new IllegalStateException("Character in parse tree after end of input stream: " + (char) character.getInt());
+			else
+				throw new IllegalStateException("Character in parse tree after end of input stream: " + (char) character.getInt()
+						+ " - may be caused by unexcepted character in parse tree at position " + nonMatchingChar
+						+ ": " + nonMatchingChar + " instead of " + nonMatchingCharExpected);
+		}
 		
-		offset++;
+		char parsedChar = (char) character.getInt();
+		char inputChar = inputChars[offset];
+		
+		if (parsedChar != inputChar) {
+			throw new IllegalStateException("uh oh");
+		} else {
+			offset++;
+		}
 	}
 }
