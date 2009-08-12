@@ -1,7 +1,5 @@
 package org.strategoxt.imp.runtime.services;
 
-import java.util.Collection;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
@@ -11,8 +9,10 @@ import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 
 /**
+ * Validates files by their (optional) .meta file,
+ * picking the right editor for the job.
+ * 
  * @author Lennart Kats <lennart add lclnet.nl>
- *
  */
 public class MetaFileLanguageValidator extends LanguageValidator {
 	

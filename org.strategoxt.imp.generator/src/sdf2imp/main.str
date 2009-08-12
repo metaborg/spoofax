@@ -54,6 +54,7 @@ strategies
     );
     guarantee-extension(|"def"); // remove .main.esv
     with(<chdir> "..");
+    <conc-strings> ("syntax/", <id>);
     if not(file-exists) then
       fatal-err(|"Accompanying .def file not found.")
     end
@@ -65,8 +66,6 @@ strategies
       !FILE(<InputFile>);
       if FILE(has-extension(|"esv") => esv) then
         <find-def-file> esv
-      <+
-        fatal-err(|"Could not find associated .def file")
       end;
       ?input
     else
@@ -102,6 +101,7 @@ strategies
     create-manifest;
     create-plugin-xml;
     create-build-xml;
+    create-builder-xml;
     copy-strategoxt-jar;
     
     <copy-or-create-parse-table> input

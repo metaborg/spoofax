@@ -165,6 +165,13 @@ public class Descriptor {
 			throw new BadDescriptorException(e);
 		}
 	}
+
+	/**
+	 * Open an attached file associated with this descriptor.
+	 */ 
+	public InputStream openAttachment(String path) throws FileNotFoundException {
+		return openAttachment(path, false);
+	}
     
     /**
      * Open an attached file associated with this descriptor.
@@ -210,16 +217,17 @@ public class Descriptor {
      * Gets the language for this descriptor, but does not register it.
      */
     public Language getLanguage() throws BadDescriptorException {
-        if (language == null)
+        if (language == null) {
             language = new Language(
                 getProperty("LanguageName"),
-                getProperty("LanguageId", getProperty("LanguageName")), // natureId
+                getProperty("LanguageId", getProperty("LanguageName")),
                 getProperty("Description", ""),
-                ROOT_LANGUAGE,          // ("extends" property is not used for the
-                getProperty("URL", ""), //   IMP API)
+                ROOT_LANGUAGE,          // ("Extends" is not used for IMP)
+                getProperty("URL", ""),
                 getProperty("Extensions"),
                 getProperty("Aliases", ""),
                 new MetaFileLanguageValidator(this));
+        }
         return language;
     }
 

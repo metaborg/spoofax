@@ -30,6 +30,7 @@ strategies
         <property name="sdfmodule" value="<%= name %>"/>
         <property name="esvmodule" value="<%= name %>"/>
         <property name="strmodule" location="<%= name' %>"/>
+	    <available file="${trans}/${strmodule}.str" property="strmodule.present"/>
         
         <!-- Environment configuration -->
         <property name="build.strategoxt" location="${user.home}/.nix-profile/bin"/>
@@ -58,7 +59,7 @@ strategies
           <touch file="${editor}/${esvmodule}.esv"/>
         </target>
     
-        <target name="sdf2table" depends="pack-sdf">
+        <target name="sdf2table" depends="make-permissive">
             <apply executable="${build.strategoxt}/sdf2table" dest="${dist}" failonerror="true">
                 <arg value="-i"/>
                 <srcfile/>
@@ -66,12 +67,29 @@ strategies
                 <targetfile/>
                 <arg value="-m"/>
                 <arg value="${sdfmodule}"/>
-                <fileset dir="${build}" includes="*.def"/>
-                <mapper type="glob" from="*.def" to="*.tbl"/>
+                
+                <fileset file="${syntax}/${sdfmodule}-Permissive.gendef"/>
+                <mapper type="glob" from="*-Permissive.gendef" to="*.tbl"/>
             </apply>
+        </target>
+        
+        <target name="make-permissive" depends="pack-sdf">
+            <java classname="org.strategoxt.permissivegrammars.make_permissive"
+                  classpath="aux/make_permissive.jar:aux/strategoxt.jar" failonerror="true">
+                <arg value="-i"/>
+                <srcfile/>
+                <arg value="-o"/>
+                <targetfile/>
+                
+                <fileset file="${syntax}/${sdfmodule}.def"/>
+                <mapper type="glob" from="*.def" to="*-Permissive.gendef"/>
+            </java>
         </target>
 
         <target name="pack-sdf" depends="init">
+            <dependset>
+                <srcfilelist dir="${syntax}" files="**/*.sdf"/> <!-- */-->
+            </dependset>
             <apply executable="${build.strategoxt}/pack-sdf" dest="${build}" failonerror="true">
                 <arg value="-i"/>
                 <srcfile/>
@@ -82,40 +100,39 @@ strategies
                 <arg value="-I"/>
                 <arg value="${lib}"/>
                 <arg line="${build.strategoxt.sdf.imports}"/>
-                <fileset dir="${syntax}" includes="*.sdf"/>
+                
+                <fileset file="${syntax}/${sdfmodule}.sdf"/>
                 <mapper type="glob" from="*.sdf" to="*.def"/>
-            </apply>
-        </target>
-        
-        <target name="sdf2rtg" depends="init,pack-sdf">
-            <apply executable="${scriptsLocation}/applyUsingBasename.sh" dest="${build}" failonerror="true">
-                <srcfile/>
-                <arg value=".def"/>
-                <arg value="-i"/>
-                <arg value="-m"/>
-                <arg value="${build.strategoxt}/sdf2rtg"/>
-                <arg value="-o"/>
-                <targetfile/>
-                <fileset dir="${build}" includes="*.def"/>
-                <mapper type="glob" from="*.def" to="*.rtg"/>
             </apply>
         </target>
     
         <target name="rtg2sig" depends="init,sdf2rtg">
-            <apply executable="${scriptsLocation}/applyUsingBasename.sh" dest="${build}" failonerror="true">
-                <srcfile/>
-                <arg value=".rtg"/>
+            <apply executable="${build.strategoxt}/rtg2sig" dest="${build}" failonerror="true">
                 <arg value="-i"/>
-                <arg value="--module"/>
-                <arg value="${build.strategoxt}/rtg2sig"/>
+                <srcfile/>
                 <arg value="-o"/>
                 <targetfile/>
-                <fileset dir="${build}" includes="*.rtg"/>
+                
+                <fileset file="${syntax}/${sdfmodule}.rtg"/>
                 <mapper type="glob" from="*.rtg" to="*.str"/>
             </apply>
         </target>
+        
+        <target name="sdf2rtg" depends="init,pack-sdf">
+            <apply executable="${build.strategoxt}/sdf2rtg" dest="${build}" failonerror="true">
+                <arg value="-i"/>
+                <srcfile/>
+                <arg value="-m"/>
+            	<arg value="${sdfmodule}"/>
+                <arg value="-o"/>
+                <targetfile/>
+                
+                <fileset file="${syntax}/${sdfmodule}.str"/>
+                <mapper type="glob" from="*.def" to="*.rtg"/>
+            </apply>
+        </target>
     
-        <target name="strc" depends="init,rtg2sig">
+        <target name="strc" depends="init,rtg2sig" if="strmodule.present">
             <antcall target="strc-call">
                 <param name="build.strategoxt.strc.params" value=""/>
                 <param name="build.strategoxt.strc.extension" value="*"/>
@@ -123,7 +140,7 @@ strategies
             </antcall>
         </target>
     
-        <target name="strj" depends="init,rtg2sig">
+        <target name="strj" depends="init,rtg2sig" if="strmodule.present">
             <antcall target="strc-call">
                 <param name="build.strategoxt.strc.params" value=""/>
                 <param name="build.strategoxt.strc.extension" value="*.java"/>
@@ -131,7 +148,7 @@ strategies
             </antcall>
         </target>
         
-        <target name="strji" depends="init,rtg2sig">
+        <target name="strji" depends="init,rtg2sig" if="strmodule.present">
             <antcall target="strc-call">
                 <param name="build.strategoxt.strc.params" value="-F --library"/>
                 <param name="build.strategoxt.strc.extension" value="*.ctree"/>
@@ -175,9 +192,7 @@ strategies
                 <arg line="${build.strategoxt.strc.params}"/>
                 <arg line="${build.strategoxt.strc.imports}"/>
                 
-                <fileset dir="${trans}">
-                    <include name="${trans}/${strmodule}.str"/>
-                </fileset>
+                <fileset file="${trans}/${strmodule}.str"/>
                 <mapper type="glob" from="*.str" to="${build.strategoxt.strc.extension}"/>
             </apply>
             
