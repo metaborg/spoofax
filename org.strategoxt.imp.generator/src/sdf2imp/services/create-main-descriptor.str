@@ -42,7 +42,6 @@ strategies
       language General properties
         ~
         name:    ~name
-        aliases:
         id:      ~pkgname
         extends: Root
         ~

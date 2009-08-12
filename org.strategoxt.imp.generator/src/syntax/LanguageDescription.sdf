@@ -43,8 +43,8 @@ exports
     "table"           ":" PropertyValue  -> LanguageProperty {cons("Table")}
     "start" "symbols" ":" StartSymbols   -> LanguageProperty {cons("StartSymbols")}
     "url"             ":" URL            -> LanguageProperty {cons("URL")}
-    "extends"         ":" PropertyValue  -> LanguageProperty {cons("Extends")} %% derivedFrom
-    "aliases"         ":" PropertyValues -> LanguageProperty {cons("Aliases")} %% synonyms
+    "extends"         ":" PropertyValues -> LanguageProperty {cons("Extends")}
+    "aliases"         ":" PropertyValues -> LanguageProperty {cons("Aliases")} %% deprecated
    
      %% Syntax properties
      

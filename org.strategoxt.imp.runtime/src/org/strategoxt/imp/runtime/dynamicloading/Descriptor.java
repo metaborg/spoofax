@@ -18,6 +18,7 @@ import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.parser.IParseController;
 import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.services.MetaFileLanguageValidator;
@@ -144,11 +145,11 @@ public class Descriptor {
 				attachmentProvider = createService(IParseController.class).getClass();
 			return attachmentProvider;
 		} catch (BadDescriptorException e) { // Unexpected exception
-		    Environment.logException("Unable to instantiate parse controller class", e);
-		    return Descriptor.class;
-		}            
+			Environment.logException("Unable to instantiate parse controller class", e);
+			return Descriptor.class;
+		}
 	}
-	
+
 	public InputStream openParseTableStream() throws BadDescriptorException {
 		try {
 			return openAttachment(getParseTableName(), false);
@@ -156,20 +157,13 @@ public class Descriptor {
 			throw new BadDescriptorException(e);
 		}
 	}
-    
-    public InputStream openPPTableStream() throws BadDescriptorException {
-        try {
-            return openAttachment(getPPTableName(), false);
-        } catch (FileNotFoundException e) {
-            throw new BadDescriptorException(e);
-        }
-    }
 
-    /**
-     * Open an attached file associated with this descriptor.
-     */ 
-    public InputStream openAttachment(String path) throws FileNotFoundException {
-    	return openAttachment(path, false);
+	public InputStream openPPTableStream() throws BadDescriptorException {
+		try {
+			return openAttachment(getPPTableName(), false);
+		} catch (FileNotFoundException e) {
+			throw new BadDescriptorException(e);
+		}
 	}
     
     /**
@@ -179,32 +173,35 @@ public class Descriptor {
      */
 	private InputStream openAttachment(String path, boolean onlyListedFiles) throws FileNotFoundException {
 		if (onlyListedFiles)
-    		path = getAttachmentPath(path);
-    	
-        if (basePath != null) { // read from filesystem
-            path = basePath.append(path).toString();
-            if (!onlyListedFiles && !new File(path).exists())
-            	return openAttachment(path, true);
+			path = getAttachmentPath(path);
+
+		if (basePath != null) { // read from filesystem
+			path = basePath.append(path).toString();
+			if (!onlyListedFiles && !new File(path).exists())
+				return openAttachment(path, true);
 			return new BufferedInputStream(new FileInputStream(path));
-        } else { // read from jar
-		    InputStream result = getAttachmentProvider().getResourceAsStream("/" + path);
-		    if (result == null) { // read resource listed in descriptor
-		    	if (!onlyListedFiles) return openAttachment(path, true);
-		    	String specified = onlyListedFiles ? "specified file " : "";
-		        throw new FileNotFoundException(specified + path + " not found in editor service plugin");
-		    }
-		    return result;
-        }
-    }
+		} else { // read from jar
+			InputStream result = getAttachmentProvider().getResourceAsStream("/" + path);
+			if (result == null) { // read resource listed in descriptor
+				if (!onlyListedFiles)
+					return openAttachment(path, true);
+				String specified = onlyListedFiles ? "specified file " : "";
+				throw new FileNotFoundException(specified + path
+						+ " not found in editor service plugin");
+			}
+			return result;
+		}
+	}
 
 	private String getAttachmentPath(String path) throws FileNotFoundException {
 		File file = new File(path);
 		String name = file.getName();
 		for (File attached : getAttachedFiles()) {
-		    if (attached.getName().equals(name))
-		        return attached.toString();
+			if (attached.getName().equals(name))
+				return attached.toString();
 		}
-		throw new FileNotFoundException(path + " not specified as an attachment in editor service plugin");
+		throw new FileNotFoundException(path
+				+ " not specified as an attachment in editor service plugin");
 	}
 	
 	// INTERPRETING
@@ -218,67 +215,90 @@ public class Descriptor {
                 getProperty("LanguageName"),
                 getProperty("LanguageId", getProperty("LanguageName")), // natureId
                 getProperty("Description", ""),
-                ROOT_LANGUAGE,                     // TODO: Use "extends" property?
-                getProperty("URL", ""),
+                ROOT_LANGUAGE,          // ("extends" property is not used for the
+                getProperty("URL", ""), //   IMP API)
                 getProperty("Extensions"),
                 getProperty("Aliases", ""),
-                new MetaFileLanguageValidator());
+                new MetaFileLanguageValidator(this));
         return language;
     }
 
-    private String getParseTableName() throws BadDescriptorException {
-        String file = getProperty("Table", getProperty("LanguageName"));
-        if (!file.endsWith(".tbl")) file += ".tbl";
-        return file;
+	private String getParseTableName() throws BadDescriptorException {
+		String file = getProperty("Table", getProperty("LanguageName"));
+		if (!file.endsWith(".tbl"))
+			file += ".tbl";
+		return file;
+	}
+
+	private String getPPTableName() throws BadDescriptorException {
+		String file = getProperty("PPTable", getProperty("LanguageName"));
+		if (!file.endsWith(".pp.af"))
+			file += ".pp.af";
+		return file;
+	}
+
+	public String[] getExtendedLanguages() {
+    	return getPropertyArray("Extends");
     }
 
-    private String getPPTableName() throws BadDescriptorException {
-        String file = getProperty("PPTable", getProperty("LanguageName"));
-        if (!file.endsWith(".pp.af")) file += ".pp.af";
-        return file;
-    }
-    
-    /**
-     * Get a set of all files attached to this descriptor
-     * (e.g., .ctree or .pp.af files). 
-     * This method is cached.
-     */
-    public Set<File> getAttachedFiles() {
-    	if (attachedFiles != null) return attachedFiles;
-    	attachedFiles = new HashSet<File>();
-    	
-    	try {
-    		attachedFiles.add(new File(getParseTableName()));
-    		attachedFiles.add(new File(getPPTableName()));
-    	} catch (Exception e) {
-    		// Ignore missing language name here
-    	}
-    	
-    	for (IStrategoAppl s : collectTerms(getDocument(), "SemanticProvider")) {
-    		attachedFiles.add(new File(termContents(s)));
-    	}
-    	
-    	return attachedFiles;
-    }
-	
+	/**
+	 * Get a set of all files attached to this descriptor (e.g., .ctree or
+	 * .pp.af files). This method is cached.
+	 */
+	public Set<File> getAttachedFiles() {
+		if (attachedFiles != null)
+			return attachedFiles;
+		attachedFiles = new HashSet<File>();
+
+		try {
+			attachedFiles.add(new File(getParseTableName()));
+			attachedFiles.add(new File(getPPTableName()));
+		} catch (Exception e) {
+			// Ignore missing language name here
+		}
+
+		for (IStrategoAppl s : collectTerms(getDocument(), "SemanticProvider")) {
+			attachedFiles.add(new File(termContents(s)));
+		}
+
+		return attachedFiles;
+	}
+
 	protected String getProperty(String name) throws BadDescriptorException {
 		String result = getProperty(name, null);
-		if (result == null) throw new BadDescriptorException("Property " + name + " not specified");		
+		if (result == null)
+			throw new BadDescriptorException("Property " + name + " not specified");
 		return result;
 	}
-	
+
 	protected String getProperty(String name, String defaultValue) {
 		IStrategoAppl result = findTerm(document, name);
-		if (result == null) return defaultValue;
-		
-		if ( termAt(result, 0).getTermType() == IStrategoTerm.APPL &&
-				cons((IStrategoAppl) termAt(result, 0)).equals("Values")) {
+		if (result == null)
+			return defaultValue;
+
+		if (termAt(result, 0).getTermType() == IStrategoTerm.APPL
+				&& cons((IStrategoAppl) termAt(result, 0)).equals("Values")) {
 			return concatTermStrings(termAt(result, 0));
 		} else {
 			return termContents(result);
 		}
 	}
-	
+
+	protected String[] getPropertyArray(String name) {
+		IStrategoAppl result = findTerm(document, name);
+		if (result == null)
+			return new String[0];
+		
+		IStrategoList list = termAt(termAt(result, 0), 0);
+
+		String[] results = new String[list.size()];
+		for (int i = 0; i < results.length; i++)
+			results[i] = termContents(list.get(i));
+		
+		return results;
+	}
+
+
 	@Override
 	public String toString() {
 		try {

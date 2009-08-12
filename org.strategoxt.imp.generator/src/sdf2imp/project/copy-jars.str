@@ -1,4 +1,4 @@
-module sdf2imp/project/copy-strategoxt-jar
+module sdf2imp/project/copy-jars
 
 imports
   libstratego-lib

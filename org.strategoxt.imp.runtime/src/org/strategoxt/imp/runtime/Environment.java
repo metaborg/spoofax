@@ -157,12 +157,9 @@ public final class Environment {
 			throws IOException, InvalidParseTableException {
 		
 		Debug.startTimer();
-		ParseTable table = parseTableManager.loadFromStream(parseTable);
-			
+		ParseTable table = parseTableManager.loadFromStream(parseTable);	
 		parseTables.put(language.getName(), table);
-		
 		Debug.stopTimer("Parse table loaded");
-		
 		return table;
 	}
 	

@@ -12,6 +12,7 @@ import org.spoofax.jsglr.InvalidParseTableException;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.SGLR;
 import org.spoofax.jsglr.SGLRException;
+import org.strategoxt.imp.generator.sdf2imp;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.JSGLRI;
@@ -29,13 +30,12 @@ public class DescriptorFactory {
 		if (descriptorParser != null) return;
 		try {
 			SGLR.setWorkAroundMultipleLookahead(true);
-			InputStream stream = Descriptor.class.getResourceAsStream("/syntax/EditorService.tbl");
+			InputStream stream = sdf2imp.class.getResourceAsStream("/EditorService.tbl");
 			ParseTable table = Environment.registerParseTable(Descriptor.DESCRIPTOR_LANGUAGE, stream);
 			descriptorParser = new JSGLRI(table, "Module");
 		} catch (Throwable e) {
-			e.printStackTrace();
-  			Environment.logException("Could not initialize the Descriptor class.", e);
-			throw new RuntimeException(e);
+			Environment.logException("Could not initialize the Descriptor class.", e);
+			throw new IllegalStateException(e);
 		}
 	}
 	
