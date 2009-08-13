@@ -42,7 +42,7 @@ strategies
       file-exists
     where
       def := <find-def-file> esv;
-      <main-sdf2imp> ["sdf2imp", "-i", def]
+      <sdf2imp> FILE(def)
   
   // FIXME: dirty hack for getting the .def file
   //        (should do this based on the esv contents instead...)
@@ -54,7 +54,7 @@ strategies
     );
     guarantee-extension(|"def"); // remove .main.esv
     with(<chdir> "..");
-    <conc-strings> ("syntax/", <id>);
+    (file-exists <+ <conc-strings> ("syntax/", <id>));
     if not(file-exists) then
       fatal-err(|"Accompanying .def file not found.")
     end

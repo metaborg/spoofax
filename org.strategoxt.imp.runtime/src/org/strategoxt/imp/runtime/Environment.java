@@ -13,7 +13,6 @@ import org.spoofax.interpreter.adapter.aterm.WrappedATermFactory;
 import org.spoofax.interpreter.core.Interpreter;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
-import org.spoofax.interpreter.library.LoggingIOAgent;
 import org.spoofax.interpreter.stratego.SDefT;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.InvalidParseTableException;
@@ -192,8 +191,6 @@ public final class Environment {
 	
 	// ERROR HANDLING
 	
-	// TODO: Move out error handling to a separate class
-	
 	public static void logException(String message, Throwable t) {
 		System.err.println(message);
 		t.printStackTrace();
@@ -207,16 +204,5 @@ public final class Environment {
 	
 	public static void logException(Throwable t) {
 		RuntimePlugin.getInstance().logException(null, t);
-	}
-	
-	public static void logStrategyFailure(String message, Interpreter interpreter) {
-		if (interpreter.getIOAgent() instanceof LoggingIOAgent) {
-			System.err.println(message);
-			String log = ((LoggingIOAgent) interpreter.getIOAgent()).getLog().trim();
-			logException(message,
-					new InterpreterException(message + " \nLog follows. \n\n" + log));
-		} else {
-			logException(message);
-		}
 	}
 }

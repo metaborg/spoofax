@@ -2,7 +2,6 @@ package org.strategoxt.imp.metatooling.wizards;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.security.CodeSource;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -24,12 +23,12 @@ import org.eclipse.ui.ide.IDE;
 import org.strategoxt.libstratego_lib;
 import org.strategoxt.imp.editors.editorservice.EditorServiceParseController;
 import org.strategoxt.imp.generator.sdf2imp;
-import org.strategoxt.permissivegrammars.make_permissive;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.StrategoException;
 import org.strategoxt.lang.StrategoExit;
+import org.strategoxt.permissivegrammars.make_permissive;
 
 /**
  * A wizard for creating new Spoofax/IMP projects.

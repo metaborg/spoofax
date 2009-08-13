@@ -152,7 +152,8 @@ public class DynamicDescriptorBuilder {
 			Debug.startTimer();
 			return sdf2imp.sdf2imp_jvm_0_0.instance.invoke(context, input);
 		} catch (StrategoExit e) {
-			Environment.logException("Unexpected exit in dynamic builder", e);
+			Environment.logException("Unexpected exit in dynamic builder\nAt\n" + context.getTrace(), e);
+			context.printStackTrace();
 			return null;
 		} finally {
 			Debug.stopTimer("Invoked descriptor builder for " + mainFile.getName());

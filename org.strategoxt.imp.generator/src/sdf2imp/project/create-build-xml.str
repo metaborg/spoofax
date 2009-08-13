@@ -16,7 +16,7 @@ strategies
     <output-xml-file(|[], "build.xml")>
     %>
     <?xml version="1.0" encoding="UTF-8"?>
-    <project name="<%= name %>" default="all">
+    <project name="<%= name %>" default="standalone">
     
         <!-- Project directories -->
         <property name="trans" location="trans"/>
@@ -36,27 +36,30 @@ strategies
         <property name="build.strategoxt" location="${user.home}/.nix-profile/bin"/>
         <property name="build.strategoxt.sdf.imports"  value=""/>
         <property name="build.strategoxt.strc.imports" value=""/>
-    
-        <target name="all">
-            <parallel>
-                <available file="${trans}/${strmodule}.str">
-                  <antcall target="strc"/>
-                </available>
-                <antcall target="sdf2table"/>
-            </parallel>
-            <antcall target="sdf2imp"/>
-        </target>
+        
+        <!-- Default target for building within Eclipse -->
+        <target name="from-eclipse" depends="strc,sdf2table,sdf2imp-eclipse"/>
+        
+        <!-- Default target for building outside of Eclipse -->
+        <target name="standalone" depends="strc,sdf2table,sdf2imp-standalone"/>
         
         <target name="init">
             <mkdir dir="${build}"/>
             <mkdir dir="${dist}"/>
         </target>
         
-        <target name="sdf2imp" depends="sdf2table">
+        <target name="sdf2imp-eclipse" depends="sdf2table">
           <!-- HACK: Trigger the Eclipse builder rather than build it here -->
-          <!-- (Eclipse is needed anyway at this time for distribution)    -->
-          <echo message="  Triggering Eclipse build"/> 
           <touch file="${editor}/${esvmodule}.esv"/>
+          <eclipse.refreshLocal resource="${editor}/${esvmodule}.main.esv"/>
+        </target>
+        
+        <target name="sdf2imp-standalone" depends="sdf2table">
+          <if> <not><isset property="eclipse.running"/></not>
+          <then>
+            <echo level="error" message="Only building from within Eclipse is implemented at this time"/>
+          </then>
+          </if>
         </target>
     
         <target name="sdf2table" depends="make-permissive">
@@ -68,27 +71,28 @@ strategies
                 <arg value="-m"/>
                 <arg value="${sdfmodule}"/>
                 
-                <fileset file="${syntax}/${sdfmodule}-Permissive.gendef"/>
+                <fileset file="${build}/${sdfmodule}-Permissive.gendef"/>
                 <mapper type="glob" from="*-Permissive.gendef" to="*.tbl"/>
             </apply>
         </target>
         
         <target name="make-permissive" depends="pack-sdf">
-            <java classname="org.strategoxt.permissivegrammars.make_permissive"
-                  classpath="aux/make_permissive.jar:aux/strategoxt.jar" failonerror="true">
+            <dependset>
+                <srcfileset    file="${build}/${sdfmodule}.def"/>
+                <targetfileset file="${syntax}/${sdfmodule}-Permissive.gendef"/>
+            </dependset>
+            <java classname="org.strategoxt.permissivegrammars.make_permissive" classpath="aux/make_permissive.jar:aux/strategoxt.jar" failonerror="true">
                 <arg value="-i"/>
-                <srcfile/>
+                <arg value="${build}/${sdfmodule}.def"/>
                 <arg value="-o"/>
-                <targetfile/>
-                
-                <fileset file="${syntax}/${sdfmodule}.def"/>
-                <mapper type="glob" from="*.def" to="*-Permissive.gendef"/>
+            	<arg value="${syntax}/${sdfmodule}-Permissive.gendef"/>
             </java>
         </target>
 
         <target name="pack-sdf" depends="init">
             <dependset>
                 <srcfilelist dir="${syntax}" files="**/*.sdf"/> <!-- */-->
+                <targetfileset file="${syntax}/${sdfmodule}.def"/>
             </dependset>
             <apply executable="${build.strategoxt}/pack-sdf" dest="${build}" failonerror="true">
                 <arg value="-i"/>
@@ -207,7 +211,7 @@ strategies
             </delete>
         </target>
         
-        <target name="clean" description="clean up" >
+        <target name="clean" description="clean up">
             <delete dir="${build}"/>
         </target>
     </project>
