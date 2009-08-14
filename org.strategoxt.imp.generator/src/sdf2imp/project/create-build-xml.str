@@ -49,17 +49,13 @@ strategies
         </target>
         
         <target name="sdf2imp-eclipse" depends="sdf2table">
-          <!-- HACK: Trigger the Eclipse builder rather than build it here -->
-          <touch file="${editor}/${esvmodule}.esv"/>
-          <eclipse.refreshLocal resource="${editor}/${esvmodule}.main.esv"/>
+            <!-- HACK: Trigger the Eclipse builder rather than build it here -->
+            <touch file="${editor}/${esvmodule}.main.esv"/>
+            <eclipse.refreshLocal resource="${editor}/${esvmodule}.main.esv"/>
         </target>
         
         <target name="sdf2imp-standalone" depends="sdf2table">
-          <if> <not><isset property="eclipse.running"/></not>
-          <then>
-            <echo level="error" message="Only building from within Eclipse is implemented at this time"/>
-          </then>
-          </if>
+            <echo message="Only building from within Eclipse is implemented at this time"/>
         </target>
     
         <target name="sdf2table" depends="make-permissive">

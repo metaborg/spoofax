@@ -60,14 +60,15 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 	 */
 	@Override
 	public boolean performFinish() {
-		final String name = input.getInputName();
+		final String languageName = input.getInputLanguageName();
+		final String projectName = input.getInputProjectName();
 		final String packageName = input.getInputPackageName();
 		final String extensions = input.getInputExtensions();
 		
 		IRunnableWithProgress op = new IRunnableWithProgress() {
 			public void run(IProgressMonitor monitor) throws InvocationTargetException {
 				try {
-					doFinish(name, packageName, extensions, monitor);
+					doFinish(languageName, projectName, packageName, extensions, monitor);
 				} catch (Exception e) {
 					Environment.logException("Error creating new project", e);
 					throw new InvocationTargetException(e);
@@ -90,9 +91,9 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 		return true;
 	}
 	
-	private void doFinish(String name, String packageName, String extensions, IProgressMonitor monitor) throws IOException, CoreException {
+	private void doFinish(String languageName, String projectName, String packageName, String extensions, IProgressMonitor monitor) throws IOException, CoreException {
 		final int TASK_COUNT = 5;
-		monitor.beginTask("Creating " + name + " project", TASK_COUNT);
+		monitor.beginTask("Creating " + languageName + " project", TASK_COUNT);
 		
 		monitor.setTaskName("Preparing project builder...");
 		Context context = new Context(Environment.getTermFactory());
@@ -104,7 +105,7 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 
 		monitor.setTaskName("Creating project...");
 		IWorkspace workspace = ResourcesPlugin.getWorkspace();
-		IProject project = workspace.getRoot().getProject(name);
+		IProject project = workspace.getRoot().getProject(projectName);
 		project.create(null);
 		project.open(null);
 		boolean success = false;
@@ -113,7 +114,7 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 			try {
 				String jar1 = libstratego_lib.class.getProtectionDomain().getCodeSource().getLocation().getFile();
 				String jar2 = make_permissive.class.getProtectionDomain().getCodeSource().getLocation().getFile();
-				sdf2imp.mainNoExit(context, "-m", name, "-n", packageName, "-e", extensions, "-jar", jar1, jar2);
+				sdf2imp.mainNoExit(context, "-m", languageName, "-n", packageName, "-e", extensions, "-jar", jar1, jar2);
 			} catch (StrategoExit e) {
 				if (e.getValue() != 0) {
 					throw new StrategoException("Project builder failed. Log follows\n\n"
@@ -124,8 +125,9 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 			monitor.worked(1);		
 			
 			monitor.setTaskName("Opening files for editing...");
-			openEditor(project, "/editor/" + name +  ".main.esv");
-			openEditor(project, "/syntax/" + name +  ".sdf");
+			openEditor(project, "/test/example." + extensions.split(",")[0]);
+			openEditor(project, "/editor/" + languageName +  ".main.esv");
+			openEditor(project, "/syntax/" + languageName +  ".sdf");
 			monitor.worked(1);
 			monitor.done();
 			success = true;

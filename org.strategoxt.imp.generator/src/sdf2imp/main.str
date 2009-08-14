@@ -102,6 +102,7 @@ strategies
     create-plugin-xml;
     create-build-xml;
     create-builder-xml;
+    create-example-file;
     copy-strategoxt-jar;
     
     <copy-or-create-parse-table> input
