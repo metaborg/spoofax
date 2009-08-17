@@ -62,6 +62,7 @@ strategies
 strategies
 
   sdf2imp =
+    check-options;
     if InputFile then
       !FILE(<InputFile>);
       if FILE(has-extension(|"esv") => esv) then

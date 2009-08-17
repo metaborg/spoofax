@@ -8,8 +8,6 @@ strategies
   create-builder-xml =
     // (the XML pretty printer has problems with this file, so it's printed as text instead)
     <output-text-file(|[".externalToolBuilders"], "Ant Builder.launch")>
-    <conc-strings>
-(
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>
 <launchConfiguration type=\"org.eclipse.ant.AntBuilderLaunchConfigurationType\">
 <stringAttribute key=\"org.eclipse.ant.ui.ATTR_ANT_AFTER_CLEAN_TARGETS\" value=\"from-eclipse,\"/>
@@ -39,4 +37,3 @@ strategies
 <stringAttribute key=\"org.eclipse.ui.externaltools.ATTR_WORKING_DIRECTORY\" value=\"${project_loc}\"/>
 <stringAttribute key=\"process_factory_id\" value=\"org.eclipse.ant.ui.remoteAntProcessFactory\"/>
 </launchConfiguration>"
-)

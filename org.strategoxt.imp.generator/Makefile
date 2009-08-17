@@ -59,10 +59,10 @@ java : src-gen/org/strategoxt/imp/generator/sdf2imp.java
 jar : lib/sdf2imp.jar
 
 check : all \
-        tests/EditorService.runtestsuite \
-        tests/test-editor-descriptor.runsh \
-        tests/test-stratego-java.runsh \
-        tests/test-foo.runsh
+        test/EditorService.runtestsuite \
+        test/test-editor-service.runsh \
+        test/test-stratego-java.runsh \
+        test/test-foo.runsh
 
 sdf2imp : $(RTREES) $(SYNTAX) Makefile src/include/rtg.tbl
 	strc -i src/sdf2imp.str -o $@ $(STRINCLUDES) $(STRCFLAGS) -m main-sdf2imp \

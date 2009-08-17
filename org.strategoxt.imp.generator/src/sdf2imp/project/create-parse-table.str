@@ -14,7 +14,7 @@ imports
 strategies
   
   copy-or-create-parse-table =
-    copy-parse-table <+ create-parse-table <+ err(|"Could not copy or create parse table")
+    copy-parse-table <+ xtc-ensure-file; create-parse-table <+ err(|"Could not copy or create parse table")
   
   copy-parse-table =
     where(
@@ -27,13 +27,31 @@ strategies
       end
     )
     
-  create-parse-table =
-    xtc-ensure-file => FILE(input);
-    where(
+  create-parse-table:
+    FILE(input) -> FILE(output)
+    with
+      FILE(input') := <create-permissive-grammar> FILE(input);
+      output       := <parse-table-target>;
       <file-exists <+ mkdir> "include";
-      <xtc-command(!"sdf2table")> ["-i", input, "-o", <parse-table-target>,
-                                   "-m", <get-sdf-main-module>]
-    )
+      <xtc-command(!"sdf2table")> ["-i", input', "-o", output, "-m", <get-sdf-main-module>]
+  
+  create-permissive-grammar:
+    FILE(input) -> FILE(output)
+    with
+      output := <permissive-grammar-target>;
+      args   := ["-i", input, "-o", output];
+      if <get-config> "JAVA_PLATFORM" then
+        <call> ("org.strategoxt.permissivegrammars.main-make-permissive", args)
+      else
+        // FIXME: should we even bother making make-permissive an xtc executable?
+        <call> ("make-permissive", args)
+      end
+    <+
+      warn(|"Could not create permissive grammar using make-permissive");
+      output := input
+
+  permissive-grammar-target =
+    <conc-strings> ("include/", <get-sdf-main-module>, "-Permissive.gendef")
 
   parse-table-target =
     <conc-strings> ("include/", <get-sdf-main-module>, ".tbl")
