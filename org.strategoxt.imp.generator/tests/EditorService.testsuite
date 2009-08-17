@@ -19,15 +19,15 @@ test Larger module
      sortY
   
    colorer
-     sortZ : dark red
+     sortZ : darkred
   
   " ->
   Module(
     "foo"
-  , _
-  , [ Folding([Sort("sortX")])
-    , Outliner([Sort("sortY")])
-    , Colorer([Rule(Sort("sortZ"), ColorName(_), ColorDefault, NORMAL)])
+  , Imports(_)
+  , [ Folding("",  [FoldRule(Sort("sortX"),None)])
+    , Outliner("", [OutlineRule(Sort("sortY"))])
+    , Colorer("",  [ColorRule(Sort("sortZ"),AttributeRef("darkred"))])
     ]
   )
   
@@ -35,21 +35,16 @@ test Token-based colors
   "module foo
   
    colorer
-     TK_LAYOUT : green italic
-     TK_VAR    : 1 2 3 green bold
+     TK_LAYOUT : green
+     TK_VAR    : 1 2 3 bold
   
   " ->
   Module(
     "foo"
-  , NoImports()
-  , [ Colorer(
-        [ Rule(Sort("TK_LAYOUT"), ColorName(GREEN()), ColorDefault(), ITALIC())
-        , Rule(
-            Sort("TK_VAR")
-          , ColorRGB("1", "2", "3")
-          , ColorName(GREEN())
-          , BOLD()
-          )
+  , NoImports
+  , [ Colorer("",
+        [ ColorRule(Sort("TK_LAYOUT"),AttributeRef("green"))
+        , ColorRule(Sort("TK_VAR"),Attribute(ColorRGB("1","2","3"),NoColor,BOLD))
         ]
       )
     ]
