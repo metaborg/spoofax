@@ -12,7 +12,7 @@ strategies
   create-grammar-main =
     <file-exists> <conc-strings> ("syntax/", <get-main-class-name>, ".sdf")
   <+
-    name        := <get-main-class-name>;
+    name        := <get-sdf-main-module>;
     startsymbol := <StartSymbol>;
     
     <output-text-file(|["syntax"], <conc-strings> (name, ".sdf"))>

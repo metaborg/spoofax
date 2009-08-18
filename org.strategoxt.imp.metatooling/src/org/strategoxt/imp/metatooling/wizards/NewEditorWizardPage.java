@@ -171,11 +171,12 @@ public class NewEditorWizardPage extends WizardPage {
 			updateStatus("Project name must be specified");
 			return;
 		}
-		if (getInputLanguageName().replace('\\', '/').indexOf('/', 1) > 0) {
+		if (getInputLanguageName().replace('\\', '/').indexOf('/', 1) > 0
+				|| getInputLanguageName().equals("Common")) {
 			updateStatus("Language name must be valid");
 			return;
 		}
-		if (getInputLanguageName().replace('\\', '/').indexOf('/', 1) > 0) {
+		if (getInputProjectName().replace('\\', '/').indexOf('/', 1) > 0) {
 			updateStatus("Project name must be valid");
 			return;
 		}
@@ -230,7 +231,14 @@ public class NewEditorWizardPage extends WizardPage {
 	
 	private static String toExtension(String name) {
 		String input = name.toLowerCase().replace("-", "").replace(".", "").replace(" ", "").replace(":", "");
-		return input.substring(0, Math.min(input.length(), 3));
+		String prefix = input.substring(0, Math.min(input.length(), 3));
+		
+		for (int i = input.length() - 1;; i--) {
+			if (i == prefix.length()
+					|| !(Character.isDigit(input.charAt(i)) || input.charAt(i) == '.')) {
+				return prefix + input.substring(Math.min(input.length(), i + 1));
+			}
+		}
 	}
 
 	private void updateStatus(String message) {

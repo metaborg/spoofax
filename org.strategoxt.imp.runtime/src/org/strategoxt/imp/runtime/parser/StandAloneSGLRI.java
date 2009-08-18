@@ -42,6 +42,8 @@ public class StandAloneSGLRI {
 	public void setRecoverHandler(RecoverAlgorithm recoverHandler) {
 		if (parser instanceof JSGLRI) {
 			((JSGLRI) parser).setRecoverHandler(recoverHandler);
+		} else {
+			throw new UnsupportedOperationException("C-SGLR does not support error recovery");
 		}
 	}
 	

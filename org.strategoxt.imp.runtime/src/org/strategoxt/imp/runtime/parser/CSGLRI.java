@@ -9,7 +9,7 @@ import java.io.OutputStream;
 import org.spoofax.jsglr.SGLRException;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
-import org.strategoxt.imp.runtime.stratego.NativeCallHelper;
+import org.strategoxt.lang.compat.NativeCallHelper;
 
 import aterm.ATerm;
 import aterm.ATermAppl;

@@ -13,7 +13,6 @@ import org.spoofax.interpreter.adapter.aterm.WrappedATermFactory;
 import org.spoofax.interpreter.core.Interpreter;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
-import org.spoofax.interpreter.stratego.SDefT;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.InvalidParseTableException;
 import org.spoofax.jsglr.ParseTable;
@@ -108,11 +107,6 @@ public final class Environment {
 	// ENVIRONMENT ACCESS AND MANIPULATION
 
 	public static synchronized Interpreter createInterpreter() throws IOException, InterpreterException {
-		// We use the wrappedAstNode factory for both the programs and the terms,
-		// to ensure they are compatible.
-		
-		// TODO: Optimize - at least use the HybridInterpreter here
-		
 		Interpreter result = new HybridInterpreter(getTermFactory()) {
 			@Override
 			public boolean invoke(String name) throws InterpreterExit, InterpreterException {
@@ -138,18 +132,7 @@ public final class Environment {
 		result.addOperatorRegistry(new IMPLibrary());
 		result.setIOAgent(new EditorIOAgent());
 		
-		SDefT call = result.getContext().lookupSVar("REPLACE_call_0_0");
-		result.getContext().getVarScope().addSVar("call_0_0", call);
-		
 		return result;
-	}
-	
-	/**
-	 * @Deprecated Use {@link Interpreter#load(InputStream)} instead.
-	 */
-	@Deprecated
-	public static synchronized void addToInterpreter(Interpreter interpreter, InputStream stream) throws IOException, InterpreterException {
-		interpreter.load(stream);			
 	}
 	
 	public static synchronized ParseTable registerParseTable(Language language, InputStream parseTable)

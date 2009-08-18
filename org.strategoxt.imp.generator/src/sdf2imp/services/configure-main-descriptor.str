@@ -7,8 +7,6 @@ imports
 
 strategies
 
-  // FIXME: Error reporting not always working for new editor..?
-
   /**
    * Records the descriptor configuration, using the 
    * existing descriptor file and/or the command-line options.
@@ -19,23 +17,25 @@ strategies
     rules(MainDescriptor := <id>);
     
     require-option(
+      where(<get-config> SdfMainModuleFlag())
+    <+
       where(<set-config> (SdfMainModuleFlag(), <find-main-module>));
       with(get-sdf-main-module)
     | <NoExistingDescriptor < !"Main module (-m)" + !"language name">
     );
     
     require-option(
-      StartSymbol <+ rules(StartSymbol := <find-start-symbol>)
+      where(StartSymbol) <+ rules(StartSymbol := <find-start-symbol>)
     | <NoExistingDescriptor < !"Start symbols (-s)" + !"language start symbols">
     );
     
     require-option(
-      BasePackage <+ rules(BasePackage := <find-package-name>)
+      where(BasePackage) <+ rules(BasePackage := <find-package-name>)
     | <NoExistingDescriptor < !"Package name (-p)" + !"language id">
     );
     
     require-option(
-      EditorExtensions <+ rules(EditorExtensions := <find-editor-extensions>)
+      where(EditorExtensions) <+ rules(EditorExtensions := <find-editor-extensions>)
     | <NoExistingDescriptor < !"Editor file extensions (-e)" + !"language extensions">
     )
   
@@ -72,9 +72,10 @@ strategies
     !result
 
   find-start-symbol =
-    oncetd(?StartSymbols(Values([result])));
-    verbose-msg(!"Using start symbol", !result);
-    !result
+    collect-one(?StartSymbols(Values(<id>)));
+    separate-by(|",");
+    concat-strings;
+    verbose-msg(!"Using start symbols", id)
 
   find-editor-extensions =
     oncetd(?Extensions(Values(results)));

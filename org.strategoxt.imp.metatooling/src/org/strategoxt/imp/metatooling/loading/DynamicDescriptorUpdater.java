@@ -108,7 +108,7 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 			
 			boolean isUpdateOnly = updateOnly.contains(resource);
 			
-			if (!source.equals(resource) && !isUpdateOnly) {
+			if (!source.equals(resource) && !isUpdateOnly && !startup) {
 				// Try to build using the .main.esv instead;
 				// the build.xml file may touch the .packed.esv file
 				// to signal a rebuild is necessary

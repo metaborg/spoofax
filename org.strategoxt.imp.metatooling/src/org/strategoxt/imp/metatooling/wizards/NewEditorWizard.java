@@ -10,6 +10,7 @@ import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -123,10 +124,9 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 			monitor.worked(1);
 			
 			monitor.setTaskName("Opening files for editing...");
-			// TODO: ensure editor definition is loaded _before_ opening example editor
-			// openEditor(project, "/test/example." + extensions.split(",")[0]);
-			openEditor(project, "/editor/" + languageName +  ".main.esv");
-			openEditor(project, "/syntax/" + languageName +  ".sdf");
+			openEditor(project, "/editor/" + languageName +  ".main.esv", true);
+			openEditor(project, "/syntax/" + languageName +  ".sdf", true);
+			openEditor(project, "/test/example." + extensions.split(",")[0], false);
 			
 			monitor.worked(1);
 			DynamicDescriptorUpdater.scheduleUpdate(project.findMember("include/" + languageName + ".packed.esv"));
@@ -142,7 +142,7 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 		}
 	}
 	
-	private void openEditor(IProject project, String filename) {
+	private void openEditor(IProject project, String filename, final boolean activate) {
 		final IResource file = (IResource) project.findMember(filename);
 		if (!file.exists() || !(file instanceof IFile)) {
 			Environment.logException("Cannot open an editor for " + filename);
@@ -153,7 +153,7 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 				IWorkbenchPage page =
 					PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 				try {
-					IDE.openEditor(page, (IFile) file, true);
+					IDE.openEditor(page, (IFile) file, UniversalEditor.EDITOR_ID, activate);
 				} catch (PartInitException e) {
 					Environment.logException("Cannot open an editor for " + file, e);
 				}

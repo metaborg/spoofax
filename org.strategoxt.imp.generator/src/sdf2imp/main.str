@@ -111,7 +111,7 @@ strategies
     
     <copy-or-create-parse-table> input;
     
-    say(!"sdf2imp project generator successfully completed with 0 fatal errors.")
+    say(!"SUCCESS: completed with 0 fatal errors.")
   
   // TODO: XTC detox -_-;;
   sdf2rtg:

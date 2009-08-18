@@ -21,7 +21,6 @@ strategies
 
   default-main-descriptor =
     name         := <get-sdf-main-module>;
-    classname    := <get-main-class-name>;
     pkgname      := <BasePackage <+ default-package-name>;
     extensions   := <require-option(EditorExtensions |"File extensions (-e)")>;
     parsetable   := <parse-table-target>;
