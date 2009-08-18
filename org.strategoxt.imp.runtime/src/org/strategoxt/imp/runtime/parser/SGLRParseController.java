@@ -1,15 +1,20 @@
 package org.strategoxt.imp.runtime.parser;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Iterator;
 
 import lpg.runtime.IToken;
 import lpg.runtime.PrsStream;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.imp.language.Language;
@@ -94,7 +99,7 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 			: project.getRawProject().getLocation().append(path);
     }
     
-    public IResource getResource() {
+    public IFile getResource() {
     	IPath path = getPath();
 		IProject project = getProject().getRawProject();
 		path = path.removeFirstSegments(path.matchingFirstSegments(project.getLocation()));
@@ -242,13 +247,42 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 	}
 
 	public Iterator<IToken> getTokenIterator(IRegion region) {
-		PrsStream stream = parser.getParseStream();
-		if (stream.getTokens().size() == 0 || getCurrentAst() == null) {
+		PrsStream stream = forceGetParseStream();
+		
+		if (stream == null || stream.getTokens().size() == 0 || getCurrentAst() == null) {
 			// Parse hasn't succeeded yet, consider the entire stream as one big token
 			stream.addToken(new SGLRToken(stream, region.getOffset(), stream.getStreamLength() - 1,
 					TokenKind.TK_UNKNOWN.ordinal()));
 		}
 		
 		return new SGLRTokenIterator(stream, region);
+	}
+
+	/**
+	 * Get a parse stream for the current file, enforcing a new parse
+	 * if it hasn't been parsed before.
+	 */
+	private PrsStream forceGetParseStream() {
+		try {
+			PrsStream stream = parser.getParseStream();
+			
+			if (stream == null) {
+				InputStream input = getResource().getContents();
+	            InputStreamReader reader = new InputStreamReader(input);
+	            StringBuilder contents = new StringBuilder();
+	            char[] buffer = new char[2048];
+	            
+	            for (int read = 0; read != -1; read = reader.read(buffer))
+	                    contents.append(buffer, 0, read);
+	
+				parse(contents.toString(), true, new NullProgressMonitor());
+				stream = parser.getParseStream();
+			}
+			return stream;
+		} catch (IOException e) {
+			return null;
+		} catch (CoreException e) {
+			return null;
+		}
 	}
 }

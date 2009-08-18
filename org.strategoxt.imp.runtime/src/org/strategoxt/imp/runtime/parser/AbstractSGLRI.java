@@ -72,7 +72,9 @@ public abstract class AbstractSGLRI implements IParser {
 	 * Get the current parsestream.
 	 */
 	public PrsStream getParseStream() {
-		return getTokenizer().getParseStream();
+		SGLRTokenizer tokenizer = getTokenizer();
+		if (tokenizer == null) return null;
+		return tokenizer.getParseStream();
 	}
 	
 	public SGLRParseController getController() {

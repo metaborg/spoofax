@@ -1,0 +1,12 @@
+module sdf2imp/project/copy-def-file
+    
+imports
+  sdf2imp/util/-
+
+strategies
+
+  copy-def-file =
+    if NoExistingDescriptor; InputFile; not(<file-exists> "syntax") then
+      <mkdir> "syntax";
+      <copy-file> (<InputFile>, "syntax")
+    end

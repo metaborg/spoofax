@@ -5,7 +5,7 @@ imports
 
 strategies
   
-  copy-strategoxt-jar =
+  copy-jars =
     if JarLocation then
       <file-exists <+ mkdir> "aux/";
       JarLocation;

@@ -66,7 +66,8 @@ strategies
     if InputFile then
       !FILE(<InputFile>);
       if FILE(has-extension(|"esv") => esv) then
-        <find-def-file> esv
+        <find-def-file> esv;
+        rules(InputFile := <id>)
       end;
       ?input
     else
@@ -104,7 +105,8 @@ strategies
     create-build-xml;
     create-builder-xml;
     create-example-file;
-    copy-strategoxt-jar;
+    copy-jars;
+    copy-def-file;
     
     <copy-or-create-parse-table> input;
     
