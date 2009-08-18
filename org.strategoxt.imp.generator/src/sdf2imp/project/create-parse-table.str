@@ -41,7 +41,7 @@ strategies
       output := <permissive-grammar-target>;
       args   := ["-i", input, "-o", output];
       if <get-config> "JAVA_PLATFORM" then
-        <call> ("org.strategoxt.permissivegrammars.make_permissive.main-make-permissive", args)
+        <call> ("org.strategoxt.permissivegrammars.make-permissive.main-make-permissive", args)
       else
         // FIXME: should we even bother making make-permissive an xtc executable?
         <call> ("make-permissive", args)
