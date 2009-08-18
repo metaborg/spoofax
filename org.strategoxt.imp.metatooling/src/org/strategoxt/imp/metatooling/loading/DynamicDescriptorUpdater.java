@@ -4,6 +4,9 @@ import static org.eclipse.core.resources.IMarker.*;
 import static org.eclipse.core.resources.IResourceDelta.*;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -34,7 +37,11 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 	
 	private DynamicDescriptorBuilder builder;
 	
+	private static Set<IResource> updateOnly =
+		Collections.synchronizedSet(new HashSet<IResource>());
+	
 	// TODO: Use (and properly clean up) new marker type for internal errors?
+	//       (also seen in DynamicDescriptorBuilder)
 	private final AstMessageHandler messageHandler =
 		new AstMessageHandler(AstMessageHandler.ANALYSIS_MARKER_TYPE);
 	
@@ -42,6 +49,16 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 		if (builder == null)
 			builder = new DynamicDescriptorBuilder(this);
 		return builder;
+	}
+	
+	/**
+	 * Schedules a file to be updated (not built)
+	 * for the next time a matching resource event
+	 * is received.
+	 */
+	public static void scheduleUpdate(IResource resource) {
+		assert resource.toString().endsWith(".packed.esv");
+		updateOnly.add(resource);
 	}
 
 	public void resourceChanged(final IResourceChangeEvent event) {
@@ -52,7 +69,6 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 					// TODO: Finer-grained locking?
 					synchronized (Environment.getSyncRoot()) {
 						monitor.beginTask("", IProgressMonitor.UNKNOWN);
-						getBuilder().invalidateUpdatedResources();
 						postResourceChanged(event.getDelta(), monitor);
 						return Status.OK_STATUS;
 					}
@@ -87,12 +103,21 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 	}
 	
 	public void updateResource(IResource resource, IProgressMonitor monitor, boolean startup) {
-		// FIXME: Enqueue all updates, ensure builder runs first
-		// FIXME: The builder should refresh any build resources (i.e., .packed.esv)
 		if (resource.getName().endsWith(".packed.esv")) {
-			monitor.subTask("Loading " + resource.getName());
-			if (resource.exists())
+			IResource source = getMainDescriptor(resource);
+			
+			boolean isUpdateOnly = updateOnly.contains(resource);
+			
+			if (!source.equals(resource) && !isUpdateOnly) {
+				// Try to build using the .main.esv instead;
+				// the build.xml file may touch the .packed.esv file
+				// to signal a rebuild is necessary
+				getBuilder().updateResource(source, monitor);
+			} else if (resource.exists()) {
+				monitor.subTask("Loading " + resource.getName());
 				loadPackedDescriptor(resource);
+				if (isUpdateOnly) updateOnly.remove(resource);
+			}
 		} else if (!startup) {
 			// Re-build descriptor if resource changed (but not if we're starting up)
 			getBuilder().updateResource(resource, monitor);
@@ -100,8 +125,10 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 	}
 
 	public void loadPackedDescriptor(IResource descriptor) {
+		// TODO2: Properly trace back descriptor errors to their original source
+		IResource source = getMainDescriptor(descriptor);
 		try {
-			messageHandler.clearMarkers(descriptor);
+			messageHandler.clearMarkers(source);
 			
 			IFile file = descriptor.getProject().getFile(descriptor.getProjectRelativePath());
 			DescriptorFactory.load(file);
@@ -110,18 +137,25 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 			reportError(descriptor, e.getOffendingTerm(), "Error in descriptor: " + e.getMessage());
 		} catch (IOException e) {
 			Environment.logException("Error reading descriptor " + descriptor, e);
-			reportError(descriptor, "Internal error reading descriptor" + e.getMessage());
+			reportError(source, "Internal error reading descriptor" + e.getMessage());
 		} catch (CoreException e) {
 			Environment.logException("Unable to load descriptor " + descriptor, e);
-			reportError(descriptor, "Internal error loading descriptor: " + e.getMessage());
+			reportError(source, "Internal error loading descriptor: " + e.getMessage());
 		} catch (RuntimeException e) {
 			Environment.logException("Unable to load descriptor " + descriptor, e);
-			reportError(descriptor, "Internal error loading descriptor: " + e.getMessage());
+			reportError(source, "Internal error loading descriptor: " + e.getMessage());
 		} catch (Error e) { // workspace thread swallows this >:(
 			Environment.logException("Unable to load descriptor " + descriptor, e);
-			reportError(descriptor, "Internal error loading descriptor: " + e.getMessage());
+			reportError(source, "Internal error loading descriptor: " + e.getMessage());
 			throw e;
 		}
+	}
+	
+	private IResource getMainDescriptor(IResource packedDescriptor) {
+		String name = packedDescriptor.getName();
+		name = name.substring(0, name.length() - ".packed.esv".length());
+		IResource result = packedDescriptor.getParent().getParent().findMember("editor/" + name + ".main.esv");
+		return result != null ? result : packedDescriptor;
 	}
 	
 	private void reportError(final IResource descriptor, final String message) {

@@ -8,9 +8,9 @@ import java.util.List;
 import org.eclipse.imp.services.ITokenColorer;
 import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.widgets.Display;
 import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.strategoxt.imp.runtime.services.LazyColor;
+import org.strategoxt.imp.runtime.services.LazyTextAttribute;
 import org.strategoxt.imp.runtime.services.TextAttributeMapping;
 import org.strategoxt.imp.runtime.services.TextAttributeReference;
 import org.strategoxt.imp.runtime.services.TextAttributeReferenceMap;
@@ -21,16 +21,6 @@ import org.strategoxt.imp.runtime.services.TokenColorer;
  */
 class TokenColorerFactory extends AbstractServiceFactory<ITokenColorer> {
 	
-	private final ITokenColorer sharedColorer;
-	
-	public TokenColorerFactory(Descriptor descriptor) throws BadDescriptorException {
-		// HACK: Initialize token colorer early to avoid a threading deadlock
-		//       (where the main thread waits to create a coloring service
-		//        and a second thread has a getService() lock but
-		//        waits for the main thread in the Color constructor) 
-		sharedColorer = doCreate(descriptor);
-	}
-	
 	@Override
 	public Class<ITokenColorer> getCreatedType() {
 		return ITokenColorer.class;
@@ -38,10 +28,6 @@ class TokenColorerFactory extends AbstractServiceFactory<ITokenColorer> {
 	
 	@Override
 	public ITokenColorer create(Descriptor descriptor) throws BadDescriptorException {
-		return sharedColorer;
-	}
-	
-	private ITokenColorer doCreate(Descriptor descriptor) throws BadDescriptorException {
 		IStrategoAppl doc = descriptor.getDocument();
 		
 		List<TextAttributeMapping> tokenMappings = new ArrayList<TextAttributeMapping>();
@@ -82,7 +68,7 @@ class TokenColorerFactory extends AbstractServiceFactory<ITokenColorer> {
 			IStrategoAppl foreground = termAt(attribute, 0);
 			IStrategoAppl background = termAt(attribute, 1);
 			IStrategoAppl font = termAt(attribute, 2);
-			TextAttribute result = new TextAttribute(readColor(foreground), readColor(background), readFont(font));
+			TextAttribute result = new LazyTextAttribute(readColor(foreground), readColor(background), readFont(font));
 			return new TextAttributeReference(colors, result);
 		}
 	}
@@ -114,12 +100,11 @@ class TokenColorerFactory extends AbstractServiceFactory<ITokenColorer> {
 		return 0;
 	}
 
-	private static Color readColor(IStrategoAppl color) {
+	private static LazyColor readColor(IStrategoAppl color) {
 		if (cons(color).equals("ColorDefault") || cons(color).equals("NoColor")) {
 			return null;
 		} else if (cons(color).equals("ColorRGB")) {
-			return new Color(Display.getCurrent(), 
-					intAt(color, 0), intAt(color, 1), intAt(color, 2));
+			return new LazyColor(intAt(color, 0), intAt(color, 1), intAt(color, 2));
 		} else {
 			throw new IllegalArgumentException("Unknown color of type " + cons(color));
 		}

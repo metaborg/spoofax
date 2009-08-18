@@ -50,8 +50,8 @@ strategies
         
         <target name="sdf2imp-eclipse" depends="sdf2table">
             <!-- HACK: Trigger the Eclipse builder rather than build it here -->
-            <touch file="${editor}/${esvmodule}.main.esv"/>
-            <eclipse.refreshLocal resource="${editor}/${esvmodule}.main.esv"/>
+            <touch file="include/${esvmodule}.packed.esv"/>
+            <eclipse.refreshLocal resource="include/${esvmodule}.packed.esv"/>
         </target>
         
         <target name="sdf2imp-standalone" depends="sdf2table">

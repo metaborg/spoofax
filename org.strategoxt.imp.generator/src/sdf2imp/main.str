@@ -52,8 +52,9 @@ strategies
       MainDescriptorName   := <id>
       DescriptorNamePrefix := <remove-extension>
     );
+    with(<chdir> <dirname>; <chdir> "..");
     guarantee-extension(|"def"); // remove .main.esv
-    with(<chdir> "..");
+    base-filename;
     (file-exists <+ <conc-strings> ("syntax/", <id>));
     if not(file-exists) then
       fatal-err(|"Accompanying .def file not found.")
@@ -62,7 +63,6 @@ strategies
 strategies
 
   sdf2imp =
-    check-options;
     if InputFile then
       !FILE(<InputFile>);
       if FILE(has-extension(|"esv") => esv) then
@@ -78,6 +78,7 @@ strategies
       input := <pack-sdf> FILE(<conc-strings> ("syntax/", <get-main-class-name>, ".sdf"))
     end;
   
+    check-options;
     configure-main-descriptor;
     <sdf2rtg> input;
   
@@ -110,7 +111,6 @@ strategies
     
     <copy-or-create-parse-table> input;
     
-    say(!"");
     say(!"sdf2imp project generator successfully completed with 0 fatal errors.")
   
   // TODO: XTC detox -_-;;

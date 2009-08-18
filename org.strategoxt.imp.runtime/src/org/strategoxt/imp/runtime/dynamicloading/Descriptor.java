@@ -66,7 +66,7 @@ public class Descriptor {
 		serviceFactories.add(new ReferenceResolverFactory());
 		serviceFactories.add(new StrategoFeedbackFactory());
 		serviceFactories.add(new SyntaxPropertiesFactory());
-		serviceFactories.add(new TokenColorerFactory(this));
+		serviceFactories.add(new TokenColorerFactory());
 	}
 	
 	/**

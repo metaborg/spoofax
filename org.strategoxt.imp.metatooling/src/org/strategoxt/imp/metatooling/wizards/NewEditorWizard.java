@@ -21,8 +21,8 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
 import org.strategoxt.libstratego_lib;
-import org.strategoxt.imp.editors.editorservice.EditorServiceParseController;
 import org.strategoxt.imp.generator.sdf2imp;
+import org.strategoxt.imp.metatooling.loading.DynamicDescriptorUpdater;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.lang.Context;
@@ -96,11 +96,9 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 		monitor.beginTask("Creating " + languageName + " project", TASK_COUNT);
 		
 		monitor.setTaskName("Preparing project builder...");
-		Context context = new Context(Environment.getTermFactory());
-		sdf2imp.init(context);
 		EditorIOAgent agent = new EditorIOAgent();		
-		agent.setDescriptor(EditorServiceParseController.getDescriptor()); // TODO: remove this?
-		context.setIOAgent(agent);
+		Context context = new Context(Environment.getTermFactory(), agent);
+		sdf2imp.init(context);
 		monitor.worked(1);
 
 		monitor.setTaskName("Creating project...");
@@ -122,15 +120,20 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 				}
 			}
 			project.refreshLocal(IResource.DEPTH_INFINITE, monitor);
-			monitor.worked(1);		
+			monitor.worked(1);
 			
 			monitor.setTaskName("Opening files for editing...");
-			openEditor(project, "/test/example." + extensions.split(",")[0]);
+			// TODO: ensure editor definition is loaded _before_ opening example editor
+			// openEditor(project, "/test/example." + extensions.split(",")[0]);
 			openEditor(project, "/editor/" + languageName +  ".main.esv");
 			openEditor(project, "/syntax/" + languageName +  ".sdf");
+			
 			monitor.worked(1);
+			DynamicDescriptorUpdater.scheduleUpdate(project.findMember("include/" + languageName + ".packed.esv"));
 			monitor.done();
+			
 			success = true;
+			
 		} finally {
 			if (!success) {
 				monitor.setTaskName("Undoing workspace operations...");

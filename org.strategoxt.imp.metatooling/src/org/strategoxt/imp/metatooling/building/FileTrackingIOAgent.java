@@ -14,6 +14,7 @@ import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
+@Deprecated
 public class FileTrackingIOAgent extends EditorIOAgent {
 	private Set<String> tracked = new HashSet<String>();
 	
