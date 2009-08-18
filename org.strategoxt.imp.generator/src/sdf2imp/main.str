@@ -106,7 +106,10 @@ strategies
     create-example-file;
     copy-strategoxt-jar;
     
-    <copy-or-create-parse-table> input
+    <copy-or-create-parse-table> input;
+    
+    say(!"");
+    say(!"sdf2imp project generator successfully completed with 0 fatal errors.")
   
   // TODO: XTC detox -_-;;
   sdf2rtg:
