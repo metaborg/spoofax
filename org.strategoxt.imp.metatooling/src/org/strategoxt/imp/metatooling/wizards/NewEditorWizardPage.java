@@ -128,6 +128,7 @@ public class NewEditorWizardPage extends WizardPage {
 
 		setControl(container);
 		setPageComplete(false);
+		inputLanguageName.setFocus();
 	}
 
 	private void distributeLanguageName() {

@@ -25,17 +25,17 @@ strategies
     );
     
     require-option(
-      rules(StartSymbol := <find-start-symbol>)
+      StartSymbol <+ rules(StartSymbol := <find-start-symbol>)
     | <NoExistingDescriptor < !"Start symbols (-s)" + !"language start symbols">
     );
     
     require-option(
-     rules(BasePackage := <find-package-name>)
+      BasePackage <+ rules(BasePackage := <find-package-name>)
     | <NoExistingDescriptor < !"Package name (-p)" + !"language id">
     );
     
     require-option(
-      rules(EditorExtensions := <find-editor-extensions>)
+      EditorExtensions <+ rules(EditorExtensions := <find-editor-extensions>)
     | <NoExistingDescriptor < !"Editor file extensions (-e)" + !"language extensions">
     )
   

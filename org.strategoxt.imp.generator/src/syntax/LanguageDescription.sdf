@@ -7,7 +7,7 @@ exports
   sorts
   
     LanguageProperty PropertyValue NoContinuation PropertyValues URL
-    FenceDef BlockCommentDef StartSymbols PropertyKeyword
+    FenceDef BlockCommentDef PropertyKeyword
   
   syntax
   
@@ -31,8 +31,6 @@ exports
     { PropertyValue ","}* -> PropertyValues {cons("Values")}
     String                -> PropertyValue
     PropertyKeyword       -> PropertyValue {reject}
-    PropertyValues        -> StartSymbols
-    "_"                   -> StartSymbols {cons("NoStartSymbols"), prefer}
   
   	%% General language properties
   
@@ -41,7 +39,7 @@ exports
     "extensions"      ":" PropertyValues -> LanguageProperty {cons("Extensions")}
     "description"     ":" PropertyValue  -> LanguageProperty {cons("Description")}
     "table"           ":" PropertyValue  -> LanguageProperty {cons("Table")}
-    "start" "symbols" ":" StartSymbols   -> LanguageProperty {cons("StartSymbols")}
+    "start" "symbols" ":" PropertyValues -> LanguageProperty {cons("StartSymbols")}
     "url"             ":" URL            -> LanguageProperty {cons("URL")}
     "extends"         ":" PropertyValues -> LanguageProperty {cons("Extends")}
     "aliases"         ":" PropertyValues -> LanguageProperty {cons("Aliases")} %% deprecated

@@ -25,7 +25,7 @@ strategies
     pkgname      := <BasePackage <+ default-package-name>;
     extensions   := <require-option(EditorExtensions |"File extensions (-e)")>;
     parsetable   := <parse-table-target>;
-    startsymbols := <StartSymbol>;
+    startsymbols := <![<StartSymbol>] <+ ![]>;
     
     !|[
       module <main-descriptor-name>
@@ -50,5 +50,5 @@ strategies
         ~
         extensions: ~extensions
         table:  ~parsetable
-        start symbols: ~startsymbols
+        start symbols: ~*startsymbols
     ]|

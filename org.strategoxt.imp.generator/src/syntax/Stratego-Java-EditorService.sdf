@@ -39,16 +39,16 @@ exports
 
     QuotedTerm -> Id {cons("FromMetaExpr"), avoid}
     QuotedTerm -> PropertyValue {cons("FromMetaExpr"), avoid}
-    QuotedTerm -> PropertyValues {cons("FromMetaExpr"), avoid}
     QuotedTerm -> URL {cons("FromMetaExpr"), avoid}
     QuotedTerm -> ModuleName {cons("FromMetaExpr")}
     QuotedTerm -> Color {cons("FromMetaExpr")}
     QuotedTerm -> Font  {cons("FromMetaExpr")}
     QuotedTerm -> SectionName {cons("FromMetaExpr")}
     
-    QuotedTerms -> OutlineRule* {cons("FromMetaExpr")}
-    QuotedTerms -> ColorRule*   {cons("FromMetaExpr")}
-    QuotedTerms -> FoldingRule* {cons("FromMetaExpr")}
+    QuotedTerms -> OutlineRule*   {cons("FromMetaExpr")}
+    QuotedTerms -> ColorRule*     {cons("FromMetaExpr")}
+    QuotedTerms -> FoldingRule*   {cons("FromMetaExpr")}
+    QuotedTerms -> PropertyValues {cons("FromMetaExpr")}
 
     "~"  Term[[StrategoHost]] -> QuotedTerm  {bracket}
     "~*" Term[[StrategoHost]] -> QuotedTerms {bracket}
