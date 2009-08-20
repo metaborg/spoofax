@@ -18,6 +18,8 @@ import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.StrategoExit;
+import org.strategoxt.lang.compat.SSL_EXT_java_call;
+import org.strategoxt.permissivegrammars.make_permissive;
 
 /**
  * Runs the project generator on modified editor descriptors.
@@ -43,6 +45,7 @@ public class DynamicDescriptorBuilder {
 			
 			agent = new EditorIOAgent();
 			context = new Context(Environment.getTermFactory(), agent);
+			SSL_EXT_java_call.registerClassLoader(make_permissive.class.getClassLoader());
 			sdf2imp.init(context);
 			
 		} catch (Throwable e) { // (catch classes not loading, etc.)
