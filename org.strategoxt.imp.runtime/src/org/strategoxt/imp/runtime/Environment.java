@@ -26,6 +26,7 @@ import org.strategoxt.imp.runtime.stratego.IMPLibrary;
 import org.strategoxt.imp.runtime.stratego.adapter.WrappedAstNodeFactory;
 
 import aterm.ATermFactory;
+import aterm.pure.PureFactory;
 
 /**
  * Environment class that maintains a maximally shared ATerm environment and
@@ -43,8 +44,6 @@ public final class Environment {
 		
 	private final static ATermFactory factory;
 	
-	private final static ParseTableManager parseTableManager;
-	
 	private final static Map<String, ParseTable> parseTables;
 	
 	private final static Map<String, Descriptor> descriptors;
@@ -57,7 +56,7 @@ public final class Environment {
 	
 	static {
 		wrappedFactory = new UnsharedWrappedATermFactory();
-		factory = wrappedFactory.getFactory();
+		factory = new PureFactory();
 		parseTableManager = new ParseTableManager(factory);
 		parseTables = new HashMap<String, ParseTable>();
 		descriptors = Collections.synchronizedMap(new HashMap<String, Descriptor>());

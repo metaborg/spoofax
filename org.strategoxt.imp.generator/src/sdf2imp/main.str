@@ -58,7 +58,8 @@ strategies
     (file-exists <+ <conc-strings> ("syntax/", <id>));
     if not(file-exists) then
       fatal-err(|"Accompanying .def file not found.")
-    end
+    end;
+    verbose-msg(!"Found accompanying .def file: ", id)
 
 strategies
 
@@ -78,7 +79,6 @@ strategies
       input := <pack-sdf> FILE(<conc-strings> ("syntax/", <get-main-class-name>, ".sdf"))
     end;
   
-    check-options;
     configure-main-descriptor;
     <sdf2rtg> input;
   

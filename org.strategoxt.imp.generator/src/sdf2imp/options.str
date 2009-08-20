@@ -107,12 +107,6 @@ strategies
     lower-case;
     <conc-strings> ("org.strategoxt.imp.generated.", <id>)
   
-  check-options =
-    require-option(
-      where(<get-config> SdfMainModuleFlag)
-    | "Main module (-m)"
-    )
-  
   require-option(rule|description) = 
     rule
   <+
