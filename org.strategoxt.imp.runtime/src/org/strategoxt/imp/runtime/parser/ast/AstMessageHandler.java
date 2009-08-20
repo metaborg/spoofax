@@ -41,8 +41,6 @@ public class AstMessageHandler {
 	
 	private final String markerType;
 
-	// TODO: Synchronize access to activeMarkers
-	//       (but not to marker API)
 	private final Set<IMarker> activeMarkers = new HashSet<IMarker>();
 	
 	public AstMessageHandler(String markerType) {

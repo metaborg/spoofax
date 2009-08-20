@@ -49,8 +49,8 @@ strategies
   find-def-file =
     remove-extension;
     rules(
-      MainDescriptorName   := <id>
-      DescriptorNamePrefix := <remove-extension>
+      MainDescriptorName   := <base-filename>
+      DescriptorNamePrefix := <base-filename; remove-extension>
     );
     with(<chdir> <dirname>; <chdir> "..");
     guarantee-extension(|"def"); // remove .main.esv
@@ -68,7 +68,8 @@ strategies
       !FILE(<InputFile>);
       if FILE(has-extension(|"esv") => esv) then
         <find-def-file> esv;
-        rules(InputFile := <id>)
+        rules(InputFile := <id>);
+        !FILE(<id>)
       end;
       ?input
     else

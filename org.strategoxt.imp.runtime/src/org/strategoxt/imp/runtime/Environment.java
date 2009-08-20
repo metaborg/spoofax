@@ -44,6 +44,8 @@ public final class Environment {
 		
 	private final static ATermFactory factory;
 	
+	private final static ParseTableManager parseTableManager;
+	
 	private final static Map<String, ParseTable> parseTables;
 	
 	private final static Map<String, Descriptor> descriptors;

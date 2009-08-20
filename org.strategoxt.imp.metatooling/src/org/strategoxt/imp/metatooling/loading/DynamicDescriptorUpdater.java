@@ -104,14 +104,15 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 	
 	public void updateResource(IResource resource, IProgressMonitor monitor, boolean startup) {
 		if (resource.getName().endsWith(".packed.esv")) {
-			IResource source = getMainDescriptor(resource);
+			IResource source = getSourceDescriptor(resource);
 			
 			boolean isUpdateOnly = updateOnly.contains(resource);
 			
-			if (!source.equals(resource) && !isUpdateOnly && !startup) {
+			if (!source.equals(resource) && source.exists() && !isUpdateOnly && !startup) {
 				// Try to build using the .main.esv instead;
 				// the build.xml file may touch the .packed.esv file
 				// to signal a rebuild is necessary
+				// TODO: Prevent duplicate builds triggered this way...
 				getBuilder().updateResource(source, monitor);
 			} else if (resource.exists()) {
 				monitor.subTask("Loading " + resource.getName());
@@ -126,7 +127,7 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 
 	public void loadPackedDescriptor(IResource descriptor) {
 		// TODO2: Properly trace back descriptor errors to their original source
-		IResource source = getMainDescriptor(descriptor);
+		IResource source = getSourceDescriptor(descriptor);
 		try {
 			messageHandler.clearMarkers(source);
 			
@@ -151,10 +152,17 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 		}
 	}
 	
-	private IResource getMainDescriptor(IResource packedDescriptor) {
+	public static IResource getSourceDescriptor(IResource packedDescriptor) {
 		String name = packedDescriptor.getName();
 		name = name.substring(0, name.length() - ".packed.esv".length());
 		IResource result = packedDescriptor.getParent().getParent().findMember("editor/" + name + ".main.esv");
+		return result != null ? result : packedDescriptor;
+	}
+	
+	public static IResource getTargetDescriptor(IResource packedDescriptor) {
+		String name = packedDescriptor.getName();
+		name = name.substring(0, name.length() - ".main.esv".length());
+		IResource result = packedDescriptor.getParent().getParent().findMember("include/" + name + ".packed.esv");
 		return result != null ? result : packedDescriptor;
 	}
 	

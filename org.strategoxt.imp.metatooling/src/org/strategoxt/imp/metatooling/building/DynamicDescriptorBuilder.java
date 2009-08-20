@@ -7,7 +7,6 @@ import java.io.IOException;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.Path;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.libstratego_lib;
@@ -55,18 +54,17 @@ public class DynamicDescriptorBuilder {
 	public void updateResource(IResource resource, IProgressMonitor monitor) {
 		IPath location = resource.getRawLocation();
 		if (location == null) return;
-		String filename = location.toOSString();
 		
 		try {
-			if (resource.exists() && isMainFile(filename)) {
+			if (resource.exists() && isMainFile(resource)) {
 				monitor.beginTask("Building " + resource.getName(), IProgressMonitor.UNKNOWN);
 				buildDescriptor(resource);
 			}
 			
 		} catch (RuntimeException e) {
-			Environment.logException("Unable to build descriptor for " + filename, e);
+			Environment.logException("Unable to build descriptor for " + resource, e);
 		} catch (Error e) { // workspace thread swallows this >:(
-			Environment.logException("Unable to build descriptor for " + filename, e);
+			Environment.logException("Unable to build descriptor for " + resource, e);
 		}
 	}
 
@@ -85,11 +83,9 @@ public class DynamicDescriptorBuilder {
 				return;
 			}
 			
-			String resultPath = ((IStrategoString) result).stringValue();
-			IResource packedDescriptor = mainFile.getParent().getFile(Path.fromOSString(resultPath));
-			loader.loadPackedDescriptor(packedDescriptor);
+			loader.loadPackedDescriptor(DynamicDescriptorUpdater.getTargetDescriptor(mainFile));
 			
-			// XXX: The generated file should be refreshed after rebuilding
+			// TODO: Refresh generated files after rebuilding?
 			
 		} catch (IOException e) {
 			Environment.logException("Unable to build descriptor for " + mainFile, e);
@@ -118,6 +114,7 @@ public class DynamicDescriptorBuilder {
 		} catch (StrategoExit e) {
 			Environment.logException("Unexpected exit in dynamic builder", e);
 			context.printStackTrace();
+			messageHandler.addMarkerFirstLine(mainFile, "Error building descriptor:" + e, SEVERITY_ERROR);
 			return null;
 		} finally {
 			Debug.stopTimer("Invoked descriptor builder for " + mainFile.getName());
@@ -125,10 +122,13 @@ public class DynamicDescriptorBuilder {
 		}
 	}
 	
-	private static boolean isMainFile(String file) {
+	private static boolean isMainFile(IResource file) {
 		// TODO: Determine if a file is the main descriptor file by its contents?
 		// InputStream stream = agent.openInputStream(file);
 		
-		return file.matches(".*(-Main|\\.main)\\.esv");
+		if (file.getParent() != null && "bin".equals(file.getParent().getName()))
+			return false;
+		
+		return file.toString().matches(".*(-Main|\\.main)\\.esv");
 	}
 }
