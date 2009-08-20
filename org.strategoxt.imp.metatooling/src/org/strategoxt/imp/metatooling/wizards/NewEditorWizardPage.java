@@ -202,7 +202,7 @@ public class NewEditorWizardPage extends WizardPage {
 		}
 
 		IWorkspace workspace = ResourcesPlugin.getWorkspace();
-		if (workspace.getRoot().getProject(getInputLanguageName()).exists()) {
+		if (workspace.getRoot().getProject(getInputProjectName()).exists()) {
 			updateStatus("A project with this name already exists");
 			return;
 		}
@@ -232,11 +232,13 @@ public class NewEditorWizardPage extends WizardPage {
 	private static String toExtension(String name) {
 		String input = name.toLowerCase().replace("-", "").replace(".", "").replace(" ", "").replace(":", "");
 		String prefix = input.substring(0, Math.min(input.length(), 3));
+		if (input.length() == 0) return "";
 		
 		for (int i = input.length() - 1;; i--) {
-			if (i == prefix.length()
-					|| !(Character.isDigit(input.charAt(i)) || input.charAt(i) == '.')) {
-				return prefix + input.substring(Math.min(input.length(), i + 1));
+			if (!Character.isDigit(input.charAt(i)) && input.charAt(i) != '.') {
+				return prefix + input.substring(Math.max(prefix.length(), Math.min(input.length(), i + 1)));
+			} else if (i == prefix.length()) {
+				return prefix + input.substring(i);
 			}
 		}
 	}

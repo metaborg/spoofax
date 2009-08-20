@@ -8,6 +8,7 @@ strategies
   <+ extensions-option
   <+ parse-table-option
   <+ package-name-option
+  <+ project-name-option
   <+ start-symbol-option
   <+ jar-option
   <+ reset-files-option
@@ -40,6 +41,13 @@ strategies
     , rules(BasePackage := <id>);
       get-package-name(fail) // ensure legal
     , !"-n <packagename>      Set base package name (optional)"
+    )
+
+  project-name-option =
+    ArgOption(
+      "-pn"
+    , rules(ProjectName := <id>)
+    , !"-pn <project name>    Set project name (optional)"
     )
 
   jar-option =

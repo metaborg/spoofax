@@ -113,7 +113,7 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 			try {
 				String jar1 = libstratego_lib.class.getProtectionDomain().getCodeSource().getLocation().getFile();
 				String jar2 = make_permissive.class.getProtectionDomain().getCodeSource().getLocation().getFile();
-				sdf2imp.mainNoExit(context, "-m", languageName, "-n", packageName, "-e", extensions, "-jar", jar1, jar2);
+				sdf2imp.mainNoExit(context, "-m", languageName, "-pn", projectName, "-n", packageName, "-e", extensions, "-jar", jar1, jar2);
 			} catch (StrategoExit e) {
 				if (e.getValue() != 0) {
 					throw new StrategoException("Project builder failed. Log follows\n\n"
