@@ -29,7 +29,6 @@ strategies
     option-wrap(
       sdf2imp-options
     , 
-      with(<set-verbosity> 2);
       sdf2imp
     <+
       prim("SSL_stacktrace_get_all_frame_names") => trace;       
@@ -41,8 +40,8 @@ strategies
     with
       file-exists
     where
-      def := <find-def-file> esv;
-      <sdf2imp> FILE(def)
+      rules(InputFile := esv);
+      <sdf2imp> FILE(esv)
   
   // FIXME: dirty hack for getting the .def file
   //        (should do this based on the esv contents instead...)
@@ -64,6 +63,9 @@ strategies
 strategies
 
   sdf2imp =
+    with(
+      <set-verbosity> 2
+    );
     if InputFile then
       !FILE(<InputFile>);
       if FILE(has-extension(|"esv") => esv) then
@@ -73,6 +75,10 @@ strategies
       end;
       ?input
     else
+      require-option(
+        <get-config> SdfMainModuleFlag()
+      | "Main module (-m)"
+      );
       if not(StartSymbol) then
         rules(StartSymbol := "Start")
       end;

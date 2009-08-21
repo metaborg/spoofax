@@ -1,6 +1,7 @@
 package org.strategoxt.imp.metatooling.building;
 
 import static org.eclipse.core.resources.IMarker.*;
+import static org.strategoxt.imp.metatooling.loading.DynamicDescriptorUpdater.*;
 
 import java.io.IOException;
 
@@ -61,7 +62,7 @@ public class DynamicDescriptorBuilder {
 		try {
 			if (resource.exists() && isMainFile(resource)) {
 				monitor.beginTask("Building " + resource.getName(), IProgressMonitor.UNKNOWN);
-				buildDescriptor(resource);
+				buildDescriptor(resource, monitor);
 			}
 			
 		} catch (RuntimeException e) {
@@ -74,7 +75,7 @@ public class DynamicDescriptorBuilder {
 	/**
 	 * Build and load a descriptor file.
 	 */
-	private void buildDescriptor(IResource mainFile) {
+	private void buildDescriptor(IResource mainFile, IProgressMonitor monitor) {
 		try {
 			Environment.assertLock();
 			messageHandler.clearMarkers(mainFile);
@@ -86,7 +87,8 @@ public class DynamicDescriptorBuilder {
 				return;
 			}
 			
-			loader.loadPackedDescriptor(DynamicDescriptorUpdater.getTargetDescriptor(mainFile));
+			monitor.beginTask("Loading " + mainFile.getName(), IProgressMonitor.UNKNOWN);
+			loader.loadPackedDescriptor(getTargetDescriptor(mainFile));
 			
 			// TODO: Refresh generated files after rebuilding?
 			
