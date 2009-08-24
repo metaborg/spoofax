@@ -22,7 +22,7 @@ strategies
     )
   ; where(
       collect-om(?syntax(_))
-    ; map(grammar2prodrules <+ log(|Error(), "Rewriting syntax section failed"); fail)
+    ; map(grammar2prodrules <+ err(|"Rewriting syntax section failed"); fail)
     ; concat
     ; if ?[] then
         log(|Error(), "No production rules in RTG. Did you specify the right main module?")
@@ -62,7 +62,7 @@ strategies
           <+ opt2prodrule
           <+ inj2prodrule
           <+ prod2prodrule
-          <+ err(!"Rewriting production failed"); fail
+          <+ err(|"Rewriting production failed"); fail
           )
         ; where(try(<cycle-error> (p, <id>)))
         })
@@ -204,10 +204,10 @@ strategies
       ; if y := <get-cnstr-name> attrs then
           !rtg |[ A -> y(t*) ]|
         else
-          log-prod(|Error(), "No constructor name specified in production:", p)
-          ;    log(|Error(), "Resolution: please add a cons attribute to this production.")
-          ; if-verbose1(log(|Error(), "Production in abstract syntax: ", p))
-          ; //if <get-config> IgnoreMissingCons() then
+          //log-prod(|Error(), "No constructor name specified in production:", p)
+          //;    log(|Error(), "Resolution: please add a cons attribute to this production.")
+          //; if-verbose1(log(|Error(), "Production in abstract syntax: ", p))
+          //; if <get-config> IgnoreMissingCons() then
               ![]
             //else
             //  // FIXME SDF: http://sjofar.sen.cwi.nl:8080/show_bug.cgi?id=660
