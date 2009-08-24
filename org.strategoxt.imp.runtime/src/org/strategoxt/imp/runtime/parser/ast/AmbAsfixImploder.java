@@ -46,7 +46,10 @@ public class AmbAsfixImploder extends AsfixImploder {
 			tokenizer.setStartOffset(oldBeginOffset);
 			inLexicalContext = oldLexicalContext;
 			
-			results.add(implodeAppl(amb));
+			AstNode result = implodeAppl(amb);
+			if (result == null)
+				return null;
+			results.add(result);
 		}
 		
 		return new AmbAstNode(results);
