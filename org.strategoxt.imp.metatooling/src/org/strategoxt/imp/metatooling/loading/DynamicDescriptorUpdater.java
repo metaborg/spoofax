@@ -133,6 +133,7 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 			DescriptorFactory.load(file);
 			
 		} catch (BadDescriptorException e) {
+			Environment.logException("Error in descriptor " + descriptor, e);
 			reportError(descriptor, e.getOffendingTerm(), "Error in descriptor: " + e.getMessage());
 		} catch (IOException e) {
 			Environment.logException("Error reading descriptor " + descriptor, e);

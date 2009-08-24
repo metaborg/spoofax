@@ -142,7 +142,7 @@ public final class Environment {
 		Debug.startTimer();
 		ParseTable table = parseTableManager.loadFromStream(parseTable);	
 		parseTables.put(language.getName(), table);
-		Debug.stopTimer("Parse table loaded");
+		Debug.stopTimer("Parse table loaded: " + language.getName());
 		return table;
 	}
 	

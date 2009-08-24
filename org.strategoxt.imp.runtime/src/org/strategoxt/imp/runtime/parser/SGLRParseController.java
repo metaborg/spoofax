@@ -27,6 +27,7 @@ import org.eclipse.imp.parser.SimpleAnnotationTypeInfo;
 import org.eclipse.imp.services.IAnnotationTypeInfo;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.jface.text.IRegion;
+import org.eclipse.ui.PlatformUI;
 import org.spoofax.jsglr.BadTokenException;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.ParseTimeoutException;
@@ -74,6 +75,8 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 	private ISourceProject project;
 	
 	private IPath path;
+	
+	private boolean isStartupParsed;
 
 	// Simple accessors
 	
@@ -153,7 +156,10 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 		
 		IResource resource = getResource();
 		try {
-			Job.getJobManager().beginRule(resource, monitor); // enter lock
+			// while (PlatformUI.getWorkbench().getDisplay().readAndDispatch());
+			
+			if (isStartupParsed)
+				Job.getJobManager().beginRule(resource, monitor); // enter lock
 
 			// TODO: Wait with parsing until token completes? and do it again for timer?
 			
@@ -172,10 +178,19 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 			asfix = parser.parseNoImplode(inputChars, filename);
 			if (monitor.isCanceled()) return null;
 			
-			// (must not be synchronized; uses workspace lock)
-			errorHandler.clearErrors();
-			errorHandler.setRecoveryAvailable(true);
-			errorHandler.reportNonFatalErrors(parser.getTokenizer(), asfix);
+
+			if (isStartupParsed) {
+				// Threading concerns:
+				//   - must not be synchronized; uses resource lock
+				//   - when ran directly from the main thread, it may block other
+				//     UI threads that already have a lock on my resource,
+				//     but are waiting to run in the UI thread themselves
+				//   - reporting errors at startup may trigger the above condition,
+				//     at least for files with an in-workspace editor(?)
+				errorHandler.clearErrors();
+				errorHandler.setRecoveryAvailable(true);
+				errorHandler.reportNonFatalErrors(parser.getTokenizer(), asfix);
+			}
 				
 			Debug.stopTimer("File parsed: " + filename);
 		} catch (ParseTimeoutException e) {
@@ -205,7 +220,10 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 			Environment.logException("Internal parser error", e);
 			errorHandler.reportError(parser.getTokenizer(), e);
 		} finally {
-			Job.getJobManager().endRule(resource);
+			if (isStartupParsed)
+				Job.getJobManager().endRule(resource);
+			else 
+				isStartupParsed = true;
 		}
 		
 		if (!monitor.isCanceled())
