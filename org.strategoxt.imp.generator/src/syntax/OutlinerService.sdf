@@ -2,11 +2,12 @@ module OutlinerService
 
 imports
   Common
+  StrategoMix[StrategoExpr]
 
 exports
 
   sorts
-    OutlineRule
+    OutlineRule Pattern Term PreTerm
 
   syntax
   
@@ -15,7 +16,6 @@ exports
     "outliner" -> <ReservedName-CF>
 
   context-free syntax
-    
-    %% TODO: Patterns for outlinerservice
 
-    Node -> OutlineRule {cons("OutlineRule")}
+    Node               -> OutlineRule {cons("OutlineRule"), prefer}
+    Term[StrategoExpr] -> OutlineRule {cons("OutlineRule")}

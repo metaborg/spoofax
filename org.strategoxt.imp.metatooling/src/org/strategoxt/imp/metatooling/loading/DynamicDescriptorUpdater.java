@@ -40,8 +40,6 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 	private static Set<IResource> updateOnly =
 		Collections.synchronizedSet(new HashSet<IResource>());
 	
-	// TODO: Use (and properly clean up) new marker type for internal errors?
-	//       (also seen in DynamicDescriptorBuilder)
 	private final AstMessageHandler messageHandler =
 		new AstMessageHandler(AstMessageHandler.ANALYSIS_MARKER_TYPE);
 	

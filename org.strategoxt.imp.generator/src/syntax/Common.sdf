@@ -3,18 +3,19 @@ module Common
 exports
 
   sorts
-    Id Int STRING String CommentChar Node Sort Constructor ConstructorId
+    Id IdStar Int STRING String CommentChar Node Sort Constructor ConstructorId
     ReservedName SectionName ModuleName Section Eof
 
   lexical syntax
   
-    [a-zA-Z][a-zA-Z0-9\_]* -> Id
-    "-"? [0-9]+            -> Int
-    "\"" ~[\"\n]* "\""     -> STRING
+    [a-zA-Z\_][a-zA-Z0-9\'\-\_]*     -> Id
+    [a-zA-Z\_][a-zA-Z0-9\'\-\_]* "*" -> IdStar
+    "-"? [0-9]+                      -> Int
+    "\"" ~[\"\n]* "\""               -> STRING
     
-    ~[\n\r]*               -> SectionName
+    ~[\n\r]*                         -> SectionName
     
-    [\ \t\n\r]             -> LAYOUT
+    [\ \t\n\r]                       -> LAYOUT
     
     [\*]                             -> CommentChar
     "/*" (~[\*] | CommentChar)* "*/" -> LAYOUT
@@ -24,9 +25,9 @@ exports
   
   lexical restrictions
   
-  	CommentChar -/- [\/]
-  	Int         -/- [0-9]
-  	Id          -/- [a-zA-Z0-9\_]    
+    CommentChar -/- [\/]
+    Int         -/- [0-9]
+    Id          -/- [a-zA-Z0-9\_]    
     SectionName -/- ~[\n\r]
     Eof         -/- ~[]
 
@@ -53,4 +54,3 @@ exports
     
     ReservedName -> Node       {reject}
     ReservedName -> ModuleName {reject}
-

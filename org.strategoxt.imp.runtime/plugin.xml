@@ -117,6 +117,34 @@
             verticalRulerPreferenceKey="parseAnnotationVerticalKey"
             verticalRulerPreferenceValue="true"/>
    </extension>
+   <extension
+         id="org.strategoxt.imp.runtime.analysismarkerspec"
+         point="org.eclipse.ui.editors.markerAnnotationSpecification">
+      <specification
+            annotationType="org.strategoxt.imp.runtime.analysisannotation"
+            colorPreferenceKey="spiAnalysisAnnotationColor"
+            colorPreferenceValue="255,128,147"
+            contributesToHeader="true"
+            highlightPreferenceKey="analysisAnnotationHighlightKey"
+            highlightPreferenceValue="false"
+            includeOnPreferencePage="false"
+            isGoToNextNavigationTarget="true"
+            isGoToNextNavigationTargetKey="analysisAnnotationIsGotoNextKey"
+            isGoToPreviousNavigationTarget="true"
+            isGoToPreviousNavigationTargetKey="analysisAnnotationIsGotoPrevKey"
+            label="Spoofax/IMP Analysis Annotation"
+            overviewRulerPreferenceKey="analysisAnnotationOverviewKey"
+            overviewRulerPreferenceValue="true"
+            presentationLayer="2"
+            showInNextPrevDropdownToolbarAction="true"
+            symbolicIcon="error"
+            textPreferenceKey="analysisAnnotationTextKey"
+            textPreferenceValue="true"
+            textStylePreferenceKey="analysisAnnotationTextStyleKey"
+            textStylePreferenceValue="SQUIGGLES"
+            verticalRulerPreferenceKey="analysisAnnotationVerticalKey"
+            verticalRulerPreferenceValue="true"/>
+   </extension>
 
    <!-- Extension point not implemented; manually called from SGLRParseController instead
    <extension

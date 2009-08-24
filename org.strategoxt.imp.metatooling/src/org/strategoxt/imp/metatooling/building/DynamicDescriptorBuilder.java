@@ -29,8 +29,6 @@ import org.strategoxt.permissivegrammars.make_permissive;
  */
 public class DynamicDescriptorBuilder {
 	
-	// TODO: Use (and properly clean up) new marker type for internal errors?
-	//       (also seen in DynamicDescriptorUpdater)
 	private final AstMessageHandler messageHandler =
 		new AstMessageHandler(AstMessageHandler.ANALYSIS_MARKER_TYPE);
 	
@@ -90,8 +88,6 @@ public class DynamicDescriptorBuilder {
 			monitor.beginTask("Loading " + mainFile.getName(), IProgressMonitor.UNKNOWN);
 			loader.loadPackedDescriptor(getTargetDescriptor(mainFile));
 			
-			// TODO: Refresh generated files after rebuilding?
-			
 		} catch (IOException e) {
 			Environment.logException("Unable to build descriptor for " + mainFile, e);
 			messageHandler.addMarkerFirstLine(mainFile, "Internal error building descriptor:" + e, SEVERITY_ERROR);
@@ -119,7 +115,7 @@ public class DynamicDescriptorBuilder {
 		} catch (StrategoExit e) {
 			Environment.logException("Unexpected exit in dynamic builder", e);
 			context.printStackTrace();
-			messageHandler.addMarkerFirstLine(mainFile, "Error building descriptor:" + e, SEVERITY_ERROR);
+			messageHandler.addMarkerFirstLine(mainFile, "Error building descriptor:" + e + "\n" + agent.getLog(), SEVERITY_ERROR);
 			return null;
 		} finally {
 			Debug.stopTimer("Invoked descriptor builder for " + mainFile.getName());

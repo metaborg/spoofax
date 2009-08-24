@@ -24,20 +24,28 @@ strategies
     | <NoExistingDescriptor < !"Main module (-m)" + !"language name">
     );
     
+    verbose-msg(!"Using main module", get-sdf-main-module);
+    
     require-option(
       where(StartSymbol) <+ rules(StartSymbol := <find-start-symbol>)
     | <NoExistingDescriptor < !"Start symbols (-s)" + !"language start symbols">
     );
+    
+    verbose-msg(!"Using start symbols", StartSymbol);
     
     require-option(
       where(BasePackage) <+ rules(BasePackage := <find-package-name>)
     | <NoExistingDescriptor < !"Package name (-p)" + !"language id">
     );
     
+    verbose-msg(!"Using package name", BasePackage);
+    
     require-option(
       where(EditorExtensions) <+ rules(EditorExtensions := <find-editor-extensions>)
     | <NoExistingDescriptor < !"Editor file extensions (-e)" + !"language extensions">
-    )
+    );
+    
+    verbose-msg(!"Using file extensions", EditorExtensions)
   
   current-main-descriptor-file =
      {| InputDirPrefix, OnImportFailure:
@@ -67,21 +75,17 @@ strategies
      default-main-descriptor
 
   find-main-module =
-    oncetd(?LanguageName(result));
-    verbose-msg(!"Using main module", !result);
-    !result
+    collect-one(?LanguageName(<id>))
 
   find-start-symbol =
     collect-one(?StartSymbols(Values(<id>)));
     separate-by(|",");
-    concat-strings;
-    verbose-msg(!"Using start symbols", id)
+    concat-strings
 
   find-editor-extensions =
-    oncetd(?Extensions(Values(results)));
-    result := <separate-by(|","); concat-strings> results;
-    verbose-msg(!"Using file extensions", !result);
-    !result
+    collect-one(?Extensions(Values(<id>)));
+    separate-by(|",");
+    concat-strings
 
   find-package-name =
     with(
@@ -89,7 +93,6 @@ strategies
     <+
       default-package-name => result
     );
-    verbose-msg(!"Using package name", !result);
     !result
 
   verbosity-scope(s|level) = 

@@ -67,7 +67,7 @@ strategies
                 <arg value="-m"/>
                 <arg value="${sdfmodule}"/>
                 
-                <fileset file="${build}/${sdfmodule}-Permissive.gendef"/>
+                <fileset file="${syntax}/${sdfmodule}-Permissive.gendef"/>
                 <mapper type="glob" from="*-Permissive.gendef" to="*.tbl"/>
             </apply>
         </target>
@@ -86,8 +86,14 @@ strategies
         </target>
 
         <target name="pack-sdf" depends="init">
+            <available property="source-sdf-exists" resource="${syntax}/${sdfmodule}.sdf"/>
+        	<antcall target="pack-sdf.real"/>
+        	<antcall target="pack-sdf.copy"/>
+        </target>
+    
+        <target name="pack-sdf.real" depends="init" if="source-sdf-exists">
             <dependset>
-                <srcfilelist dir="${syntax}" files="**/*.sdf"/> <!-- */-->
+                <srcfilelist dir="${syntax}" files="**/*.sdf"/>
                 <targetfileset file="${syntax}/${sdfmodule}.def"/>
             </dependset>
             <apply executable="${build.strategoxt}/pack-sdf" dest="${build}" failonerror="true">
@@ -104,6 +110,10 @@ strategies
                 <fileset file="${syntax}/${sdfmodule}.sdf"/>
                 <mapper type="glob" from="*.sdf" to="*.def"/>
             </apply>
+        </target>
+	
+	    <target name="pack-sdf.copy" depends="init" unless="source-sdf-exists">
+            <copy file="${syntax}/${sdfmodule}.def" todir="${build}"/>
         </target>
     
         <target name="rtg2sig" depends="init,sdf2rtg">
@@ -158,9 +168,9 @@ strategies
         
         <target name="strc-call" depends="init,rtg2sig">
             <dependset>
-                <srcfilelist dir="${trans}" files="**/*.str"/> <!-- */-->
-                <srcfilelist dir="${build}" files="**/*.str"/> <!-- */-->
-                <targetfileset dir="${dist}" includes="**/*"/> <!-- */-->
+                <srcfilelist dir="${trans}" files="**/*.str"/>
+                <srcfilelist dir="${build}" files="**/*.str"/>
+                <targetfileset dir="${dist}" includes="**/*"/>
             </dependset>
             <apply executable="${build.strategoxt}/{strcExecutable}" dest="${dist}" failonerror="true">
                 <arg value=".str"/>
@@ -199,10 +209,10 @@ strategies
             <!-- Remove any intermediate files -->
             <delete>
                 <fileset dir="${dist}">
-                    <include name="**/*.c"/>   <!-- */ -->
-                    <include name="**/*.dep"/> <!-- */ -->
-                    <include name="**/*.lo"/>  <!-- */ -->
-                    <include name="**/*.o"/>   <!-- */ -->
+                    <include name="**/*.c"/>
+                    <include name="**/*.dep"/>
+                    <include name="**/*.lo"/>
+                    <include name="**/*.o"/>
                 </fileset>
             </delete>
         </target>
