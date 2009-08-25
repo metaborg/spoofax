@@ -27,6 +27,7 @@ STRCFLAGS = \
     -I ${HOME}/.nix-profile/share/gpp \
     -I ${HOME}/.nix-profile/share/xml-front \
     -I ${HOME}/.nix-profile/share/sdf-tools \
+    -I ${HOME}/.nix-profile/share/stratego-front \
     -I ${HOME}/.nix-profile/share/xtc \
     `pkg-config --variable=strcxtcflags strategoxt`
 

@@ -21,7 +21,7 @@ strategies
    */    
   descriptor-to-abox =
     topdown(try(pp-fix-string-quotes));
-    ast2box(|[<descriptor-pp-table>])
+    ast2box(|[<descriptor-pp-table>, <import-term(Stratego-Sugar-pretty.pp.af)>])
   
   descriptor-pp-table =
     DescriptorPPTable
