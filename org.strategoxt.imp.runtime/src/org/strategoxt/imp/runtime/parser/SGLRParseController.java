@@ -27,7 +27,6 @@ import org.eclipse.imp.parser.SimpleAnnotationTypeInfo;
 import org.eclipse.imp.services.IAnnotationTypeInfo;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.jface.text.IRegion;
-import org.eclipse.ui.PlatformUI;
 import org.spoofax.jsglr.BadTokenException;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.ParseTimeoutException;
@@ -187,6 +186,9 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 				//     but are waiting to run in the UI thread themselves
 				//   - reporting errors at startup may trigger the above condition,
 				//     at least for files with an in-workspace editor(?)
+				//
+				// TODO: Consider using Display.asyncExec for reporting errors;
+				//       this could be integrated into the AstMessageHandler class!
 				errorHandler.clearErrors();
 				errorHandler.setRecoveryAvailable(true);
 				errorHandler.reportNonFatalErrors(parser.getTokenizer(), asfix);

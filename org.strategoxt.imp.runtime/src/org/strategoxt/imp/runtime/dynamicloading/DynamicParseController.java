@@ -64,7 +64,6 @@ public class DynamicParseController extends AbstractService<IParseController> im
 		}
 		
 		// No active editor; try the registry instead
-		// TODO: Use language validator?
 		return LanguageRegistry.findLanguage(filePath, null);
 	}
 	
@@ -75,6 +74,13 @@ public class DynamicParseController extends AbstractService<IParseController> im
 				return true;
 		}
 		return false;
+	}
+	
+	@Override
+	public IParseController getWrapped() {
+		if (!isInitialized())
+			initialize(null, null, null);
+		return super.getWrapped();
 	}
 
 	public IAnnotationTypeInfo getAnnotationTypeInfo() {
@@ -120,7 +126,7 @@ public class DynamicParseController extends AbstractService<IParseController> im
 		if (filePath == null) handler = this.handler;
 		else this.handler = handler;
 		
-		getWrapped().initialize(filePath, project, handler);
+		super.getWrapped().initialize(filePath, project, handler);
 	}
 
 	public Object parse(String input, boolean scanOnly, IProgressMonitor monitor) {

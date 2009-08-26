@@ -35,9 +35,15 @@ import org.strategoxt.imp.runtime.stratego.adapter.IWrappedAstNode;
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class AstMessageHandler {
+	
+	public static final String GENERIC_PROBLEM = IMarker.PROBLEM;
+	
 	public static final String PARSE_MARKER_TYPE = new String("org.strategoxt.imp.runtime.parsemarker"); 
 
-	public static final String ANALYSIS_MARKER_TYPE = new String("org.strategoxt.imp.runtime.analysismarker");
+	// TODO: ANALYSIS_MARKER_TYPE should be new String("org.strategoxt.imp.runtime.analysismarker");
+	//       as soon as we can get org.strategoxt.imp.runtime.analysismarker to show up in the
+	//       package explorer...
+	public static final String ANALYSIS_MARKER_TYPE = GENERIC_PROBLEM;
 	
 	private final String markerType;
 
