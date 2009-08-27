@@ -10,7 +10,6 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.strategoxt.libstratego_lib;
 import org.strategoxt.imp.generator.sdf2imp;
 import org.strategoxt.imp.metatooling.loading.DynamicDescriptorUpdater;
 import org.strategoxt.imp.runtime.Debug;
@@ -20,6 +19,8 @@ import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.StrategoExit;
 import org.strategoxt.lang.compat.SSL_EXT_java_call;
+import org.strategoxt.libstratego_lib.dr_scope_all_end_0_0;
+import org.strategoxt.libstratego_lib.dr_scope_all_start_0_0;
 import org.strategoxt.permissivegrammars.make_permissive;
 
 /**
@@ -107,7 +108,7 @@ public class DynamicDescriptorBuilder {
 		
 		agent.clearLog();
 		agent.setWorkingDir(path);
-		libstratego_lib.dr_scope_all_start_0_0.instance.invoke(context, input);
+		dr_scope_all_start_0_0.instance.invoke(context, input);
 		
 		try {
 			Debug.startTimer();
@@ -119,7 +120,7 @@ public class DynamicDescriptorBuilder {
 			return null;
 		} finally {
 			Debug.stopTimer("Invoked descriptor builder for " + mainFile.getName());
-			libstratego_lib.dr_scope_all_end_0_0.instance.invoke(context, input);
+			dr_scope_all_end_0_0.instance.invoke(context, input);
 		}
 	}
 	

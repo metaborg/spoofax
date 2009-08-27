@@ -21,7 +21,6 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
-import org.strategoxt.libstratego_lib;
 import org.strategoxt.imp.generator.sdf2imp;
 import org.strategoxt.imp.metatooling.loading.DynamicDescriptorUpdater;
 import org.strategoxt.imp.runtime.Environment;
@@ -111,7 +110,7 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 		try {
 			agent.setWorkingDir(project.getLocation().toOSString());
 			try {
-				String jar1 = libstratego_lib.class.getProtectionDomain().getCodeSource().getLocation().getFile();
+				String jar1 = org.strategoxt.libstratego_lib.Main.class.getProtectionDomain().getCodeSource().getLocation().getFile();
 				String jar2 = make_permissive.class.getProtectionDomain().getCodeSource().getLocation().getFile();
 				sdf2imp.mainNoExit(context, "-m", languageName, "-pn", projectName, "-n", packageName, "-e", extensions, "-jar", jar1, jar2);
 			} catch (StrategoExit e) {

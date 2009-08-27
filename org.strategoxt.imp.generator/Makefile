@@ -75,7 +75,7 @@ src-gen/org/strategoxt/imp/generator/sdf2imp.java : $(RTREES) $(SYNTAX) Makefile
 	        -la java-front --library -p org.strategoxt.imp.generator $(STRCSTFU)
 
 lib/sdf2imp.jar : src-gen/org/strategoxt/imp/generator/sdf2imp.java
-	strj-jar -i $< -o $@ -p org.strategoxt.imp.generator
+	strj-jar -i $< -o $@ -p org.strategoxt.imp.generator -cp src-gen
 
 syntax : $(SYNTAX)
 
