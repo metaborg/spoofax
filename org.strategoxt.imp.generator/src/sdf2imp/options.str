@@ -56,8 +56,7 @@ strategies
     , rules(JarLocation := <id>);
       list-loop(
         if not(file-exists) then
-          err(|"File does not exist");
-          fail
+          fatal-err(|"File does not exist")
         end
       )
     , !"-jar <paths>          Set jar files to include (optional)"
@@ -69,8 +68,7 @@ strategies
     , parameterized-sort-to-rtg-sort;
       if is-substring(!",") then
         // TODO: Multiple start symbols
-        err(|"Multiple start symbols not supported yet, please specify a single start symbol");
-        fail
+        fatal-err(|"Multiple start symbols not supported yet, please specify a single start symbol")
       end;
       rules(StartSymbol := <id>)
     , !"-s <start symbol>     Set start symbol"

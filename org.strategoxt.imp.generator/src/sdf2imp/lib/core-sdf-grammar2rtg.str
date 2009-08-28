@@ -22,11 +22,10 @@ strategies
     )
   ; where(
       collect-om(?syntax(_))
-    ; map(grammar2prodrules <+ err(|"Rewriting syntax section failed"); fail)
+    ; map(grammar2prodrules <+ fatal-err(|"sdf2rtg: Rewriting syntax section failed"); fail)
     ; concat
     ; if ?[] then
-        log(|Error(), "No production rules in RTG. Did you specify the right main module?")
-        ; <xtc-exit> 1
+        fatal-err(|"No production rules in RTG. Did you specify the right main module?")
       else
         ?prods
       end
@@ -37,8 +36,7 @@ strategies
      */
   ; collect-om(is-start-prod)
   ; if ?[] then
-      log(|Error(), "No start productions found. Did you specify any start-symbols in the syntax definition?")
-      ; <xtc-exit> 1
+      fatal-err(|"No start productions found. Did you specify any start-symbols in the syntax definition?")
     else
       map(start-prod2tree; ?Ref(<id>) <+ err(!"Rewriting production to nonterm failed"); fail)
     ; !RTG(Start(<id>), ProdRules(prods))
@@ -62,7 +60,7 @@ strategies
           <+ opt2prodrule
           <+ inj2prodrule
           <+ prod2prodrule
-          <+ err(|"Rewriting production failed"); fail
+          <+ fatal-err(|"sdf2rtg: Rewriting production failed"); fail
           )
         ; where(try(<cycle-error> (p, <id>)))
         })
@@ -79,8 +77,7 @@ strategies
 
   cycle-error =
     ?(p, rtg |[ A -> A ]|)
-    ; log(|Critical(), "production rule resulted in a direct cycle", p)
-    ; <exit> 1
+    ; <fatal-err(|"production rule resulted in a direct cycle")> p
 
 strategies
 

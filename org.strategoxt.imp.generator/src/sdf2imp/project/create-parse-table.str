@@ -14,7 +14,7 @@ imports
 strategies
   
   copy-or-create-parse-table =
-    copy-parse-table <+ xtc-ensure-file; create-parse-table <+ err(|"Could not copy or create parse table")
+    copy-parse-table <+ xtc-ensure-file; create-parse-table <+ fatal-err(|"Could not copy or create parse table")
   
   copy-parse-table =
     where(

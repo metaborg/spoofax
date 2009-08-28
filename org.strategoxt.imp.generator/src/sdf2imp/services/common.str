@@ -70,6 +70,6 @@ strategies
       // FIXME: Fail if unknown sort found (temporarily had to disable this)
       // TODO: Renamed sorts like OptExtendsInterfaces0_Java need special treatment
       //       looks like sdf2rtg needs to be adapted to not perform renaming like this!
-      err(|"Unknown sort referenced");
+      fatal-err(|"Unknown sort referenced");
       fail
     )
