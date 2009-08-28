@@ -26,6 +26,7 @@ import org.strategoxt.imp.metatooling.loading.DynamicDescriptorUpdater;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.lang.Context;
+import org.strategoxt.lang.StrategoErrorExit;
 import org.strategoxt.lang.StrategoException;
 import org.strategoxt.lang.StrategoExit;
 import org.strategoxt.permissivegrammars.make_permissive;
@@ -113,6 +114,9 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 				String jar1 = org.strategoxt.libstratego_lib.Main.class.getProtectionDomain().getCodeSource().getLocation().getFile();
 				String jar2 = make_permissive.class.getProtectionDomain().getCodeSource().getLocation().getFile();
 				sdf2imp.mainNoExit(context, "-m", languageName, "-pn", projectName, "-n", packageName, "-e", extensions, "-jar", jar1, jar2);
+			} catch (StrategoErrorExit e) {
+				Environment.logException(e);
+				throw new StrategoErrorExit("Project builder failed: " + e.getMessage());
 			} catch (StrategoExit e) {
 				if (e.getValue() != 0) {
 					throw new StrategoException("Project builder failed. Log follows\n\n"

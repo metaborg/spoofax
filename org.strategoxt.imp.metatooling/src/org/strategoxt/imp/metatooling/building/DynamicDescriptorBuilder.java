@@ -18,6 +18,7 @@ import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.lang.Context;
+import org.strategoxt.lang.StrategoErrorExit;
 import org.strategoxt.lang.StrategoExit;
 import org.strategoxt.lang.compat.SSL_EXT_java_call;
 import org.strategoxt.libstratego_lib.dr_scope_all_end_0_0;
@@ -114,6 +115,10 @@ public class DynamicDescriptorBuilder {
 		try {
 			Debug.startTimer();
 			return sdf2imp_jvm_0_0.instance.invoke(context, input);
+		} catch (StrategoErrorExit e) {
+			Environment.logException("Fatal error exit in dynamic builder", e);
+			messageHandler.addMarkerFirstLine(mainFile, "Error building descriptor:" + e.getMessage(), SEVERITY_ERROR);
+			return null;
 		} catch (StrategoExit e) {
 			Environment.logException("Unexpected exit in dynamic builder", e);
 			context.printStackTrace();
