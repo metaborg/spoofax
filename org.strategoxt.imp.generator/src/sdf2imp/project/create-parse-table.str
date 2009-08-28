@@ -18,11 +18,11 @@ strategies
   
   copy-parse-table =
     where(
-      print-filename(|[], <parse-table-target>);
       <eq> (<ParseTable>, <parse-table-target; file-exists>)
     <+
       ParseTable;
       if file-exists then
+        print-filename(|[], <parse-table-target>);
         <copy-file> (<id>, <parse-table-target>)
       end
     )
@@ -32,6 +32,7 @@ strategies
     with
       FILE(input') := <create-permissive-grammar> FILE(input);
       output       := <parse-table-target>;
+      print-filename(|[], output);
       <file-exists <+ mkdir> "include";
       <xtc-command(!"sdf2table")> ["-i", input', "-o", output, "-m", <get-sdf-main-module>]
   
@@ -39,9 +40,10 @@ strategies
     FILE(input) -> FILE(output)
     with
       output := <permissive-grammar-target>;
+      print-filename(|[], output);
       args   := ["-i", input, "-o", output];
       if-java-platform(
-        <call> ("org.strategoxt.permissivegrammars.make-permissive.main-make-permissive", args)
+        <call> ("org.strategoxt.permissivegrammars.main-make-permissive", args)
       );
       if-c-platform(  // FIXME: should we even bother making make-permissive an xtc executable?
         <call> ("make-permissive", args)

@@ -11,6 +11,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.generator.sdf2imp;
+import org.strategoxt.imp.generator.sdf2imp_jvm_0_0;
 import org.strategoxt.imp.metatooling.loading.DynamicDescriptorUpdater;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
@@ -112,7 +113,7 @@ public class DynamicDescriptorBuilder {
 		
 		try {
 			Debug.startTimer();
-			return sdf2imp.sdf2imp_jvm_0_0.instance.invoke(context, input);
+			return sdf2imp_jvm_0_0.instance.invoke(context, input);
 		} catch (StrategoExit e) {
 			Environment.logException("Unexpected exit in dynamic builder", e);
 			context.printStackTrace();
