@@ -12,6 +12,7 @@ import org.spoofax.interpreter.terms.ITermPrinter;
  * @author Karl Trygve Kalleberg <karltk add strategoxt.org>
  */
 public class WrappedAstNodeAppl extends WrappedAstNode implements IStrategoAppl {
+    
 	private final IStrategoConstructor constructor;
 
 	public IStrategoConstructor getConstructor() {
@@ -29,7 +30,7 @@ public class WrappedAstNodeAppl extends WrappedAstNode implements IStrategoAppl 
 	}
 
 	@Override
-	protected boolean slowCompare(IStrategoTerm second) {
+	protected boolean doSlowMatch(IStrategoTerm second, int commonStorageType) {
 		if (second.getTermType() != IStrategoTerm.APPL)
 			return false;
 		IStrategoAppl snd = (IStrategoAppl) second;
@@ -76,7 +77,7 @@ public class WrappedAstNodeAppl extends WrappedAstNode implements IStrategoAppl 
 	}
 	
 	@Override
-	public int hashCode() {
+	public int hashFunction() {
         long r = constructorHashCode();
         int accum = 6673;
         for(int i = 0; i < getSubtermCount(); i++) {

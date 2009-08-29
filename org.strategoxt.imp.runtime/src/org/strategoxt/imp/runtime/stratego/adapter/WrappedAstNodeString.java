@@ -34,14 +34,14 @@ public class WrappedAstNodeString extends WrappedAstNode implements IStrategoStr
 	}
 
 	@Override
-	public boolean slowCompare(IStrategoTerm second) {
+	protected boolean doSlowMatch(IStrategoTerm second, int commonStorageType) {
 		return second.getTermType() == IStrategoTerm.STRING
 			&& ((IStrategoString) second).stringValue().equals(stringValue())
 			&& second.getAnnotations().equals(getAnnotations());
 	}
 	
 	@Override
-	public int hashCode() {
+	public int hashFunction() {
 		return stringValue().hashCode();
 	}
 }

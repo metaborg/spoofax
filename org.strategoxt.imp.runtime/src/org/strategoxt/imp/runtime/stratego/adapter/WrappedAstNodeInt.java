@@ -23,7 +23,7 @@ public class WrappedAstNodeInt extends WrappedAstNode implements IStrategoInt {
 	}
 	
 	@Override
-	public boolean slowCompare(IStrategoTerm second) {
+	protected boolean doSlowMatch(IStrategoTerm second, int commonStorageType) {
 		return second.getTermType() == IStrategoTerm.INT
 			&& ((IStrategoInt) second).intValue() == intValue()
 			&& second.getAnnotations().equals(getAnnotations());
@@ -39,7 +39,7 @@ public class WrappedAstNodeInt extends WrappedAstNode implements IStrategoInt {
 	}
 	
 	@Override
-	public int hashCode() {
+	public int hashFunction() {
 		return 449 * intValue() ^ 7841;
 	}
 }

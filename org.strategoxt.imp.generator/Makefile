@@ -71,11 +71,11 @@ sdf2imp : $(RTREES) $(SYNTAX) Makefile src/include/rtg.tbl
 	rm sdf2imp.c sdf2imp.lo sdf2imp.o
 
 src-gen/org/strategoxt/imp/generator/sdf2imp.java : $(RTREES) $(SYNTAX) Makefile src/include/rtg.tbl
-	$(STRJ) -i src/sdf2imp.str -o $@ $(STRINCLUDES) $(STRCFLAGS) -m main-sdf2imp \
+	$(STRJ) -clean -i src/sdf2imp.str -o $@ $(STRINCLUDES) $(STRCFLAGS) -m main-sdf2imp \
 	        -la java-front --library -p org.strategoxt.imp.generator $(STRCSTFU)
 
 lib/sdf2imp.jar : src-gen/org/strategoxt/imp/generator/sdf2imp.java
-	strj-jar -i $< -o $@ -p org.strategoxt.imp.generator -cp src-gen
+	strj-jar -i $< -o $@ -cp src-gen
 
 syntax : $(SYNTAX)
 
@@ -127,7 +127,7 @@ src/include/rtg.tbl : ~/.nix-profile/share/sdf/stratego-regular/rtg.tbl
 	[ -e src/include ] || mkdir src/include
 	baf2trm  -i $< -o $@ # cp $< $@
 
-new-make-permissive :
+new-libs :
 	rm -rf $(BRIDGE)/permissive-grammars/trans/make-permissive/bin
 	make jar -C $(BRIDGE)/permissive-grammars/trans/make-permissive
 	cp $(BRIDGE)/permissive-grammars/trans/make-permissive/bin/*.jar lib

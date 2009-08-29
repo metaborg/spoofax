@@ -43,7 +43,7 @@ public class WrappedAstNodeLink extends WrappedAstNode implements IWrappedAstNod
 	// Common accessors
 
 	@Override
-	protected boolean slowCompare(IStrategoTerm second) {
+	protected boolean doSlowMatch(IStrategoTerm second, int commonStorageType) {
 		if (second.getAnnotations().size() != getAnnotations().size())
 			return false;
 		
@@ -53,7 +53,7 @@ public class WrappedAstNodeLink extends WrappedAstNode implements IWrappedAstNod
 	}
 
 	@Override
-	public int hashCode() {
+	public int hashFunction() {
 		return wrapped.hashCode();
 	}
 

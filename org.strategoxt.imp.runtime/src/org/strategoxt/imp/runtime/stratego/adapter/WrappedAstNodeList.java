@@ -27,7 +27,7 @@ public class WrappedAstNodeList extends WrappedAstNode implements IStrategoList 
 	}
 
 	@Override
-	protected boolean slowCompare(IStrategoTerm second) {
+	protected boolean doSlowMatch(IStrategoTerm second, int commonStorageType) {
 		if (second.getTermType() != IStrategoTerm.LIST)
 			return false;
 
@@ -103,7 +103,7 @@ public class WrappedAstNodeList extends WrappedAstNode implements IStrategoList 
 	}
 
 	@Override
-	public int hashCode() {
+	public int hashFunction() {
 		long hc = 4787;
 		for (int i = 0; i < getSubtermCount(); i++) {
 			hc *= getSubterm(i).hashCode();

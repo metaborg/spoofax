@@ -1,6 +1,5 @@
 package org.strategoxt.imp.runtime.stratego.adapter;
 
-import org.spoofax.interpreter.adapter.aterm.BAFBasicTermFactory;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoList;
@@ -10,6 +9,7 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.imp.runtime.parser.ast.IntAstNode;
 import org.strategoxt.imp.runtime.parser.ast.ListAstNode;
 import org.strategoxt.imp.runtime.parser.ast.StringAstNode;
+import org.strategoxt.lang.terms.TermFactory;
 
 /**
  * A factory creating ATerms from AST nodes.
@@ -17,7 +17,8 @@ import org.strategoxt.imp.runtime.parser.ast.StringAstNode;
  * @author Lennart Kats <lennart add lclnet.nl>
  * @author Karl Trygve Kalleberg <karltk add strategoxt.org>
  */
-public class WrappedAstNodeFactory extends BAFBasicTermFactory implements ITermFactory {	
+public class WrappedAstNodeFactory extends TermFactory implements ITermFactory {
+	
 	public IStrategoTerm wrap(IStrategoAstNode node) {
 		if(node instanceof IntAstNode) {
 			return new WrappedAstNodeInt(this, (IntAstNode) node);

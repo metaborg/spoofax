@@ -13,7 +13,7 @@ import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class StrategoTermPath extends StrategoListProxy {
+public class StrategoTermPath {
 
 	private StrategoTermPath() {
 		// Constructed by a static constructor
