@@ -71,7 +71,7 @@ sdf2imp : $(RTREES) $(SYNTAX) Makefile src/include/rtg.tbl
 	rm sdf2imp.c sdf2imp.lo sdf2imp.o
 
 src-gen/org/strategoxt/imp/generator/sdf2imp.java : $(RTREES) $(SYNTAX) Makefile src/include/rtg.tbl
-	$(STRJ) -clean -i src/sdf2imp.str -o $@ $(STRINCLUDES) $(STRCFLAGS) -m main-sdf2imp \
+	$(STRJ) -clean -O 3 -i src/sdf2imp.str -o $@ $(STRINCLUDES) $(STRCFLAGS) -m main-sdf2imp \
 	        -la java-front --library -p org.strategoxt.imp.generator $(STRCSTFU)
 
 lib/sdf2imp.jar : src-gen/org/strategoxt/imp/generator/sdf2imp.java
