@@ -147,7 +147,7 @@ public final class Environment {
 	}
 	
 	public static ParseTable getParseTable(Language language) {
-		assertMainThread();
+		// UNDONE: assertMainThread();
 		
 		synchronized (getSyncRoot()) { // synchronized on registration
 			ParseTable table = parseTables.get(language.getName());

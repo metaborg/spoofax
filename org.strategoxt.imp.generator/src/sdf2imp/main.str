@@ -39,6 +39,7 @@ strategies
     esv -> <packed-descriptor-file-name>
     with
       file-exists
+    ; not(<get-config> SdfMainModuleFlag()) // (should be read from the file)
     where
       rules(InputFile := esv);
       <sdf2imp> FILE(esv)

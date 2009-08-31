@@ -25,7 +25,7 @@ strategies
     ; map(grammar2prodrules <+ fatal-err(|"sdf2rtg: Rewriting syntax section failed"); fail)
     ; concat
     ; if ?[] then
-        fatal-err(|"No production rules in RTG. Did you specify the right main module?")
+        fatal-err-msg(|"No production rules in RTG. Did you specify the right main module?")
       else
         ?prods
       end

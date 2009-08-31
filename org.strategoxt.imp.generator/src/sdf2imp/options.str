@@ -53,7 +53,7 @@ strategies
   jar-option =
     MultiArgOption(
       "-jar"
-    , rules(JarLocation := <id>);
+    , rules(JarLocations := <id>);
       list-loop(
         if not(file-exists) then
           fatal-err(|"File does not exist")

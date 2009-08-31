@@ -6,8 +6,9 @@ imports
 strategies
   
   copy-jars =
-    if JarLocation then
+    if JarLocations then
+      verbose-msg(!"Copying jar files", JarLocations; separate-by(|","); concat-strings);
       <file-exists <+ mkdir> "aux/";
-      JarLocation;
+      JarLocations;
       list-loop(<copy-file> (<id>, "aux/"))
     end

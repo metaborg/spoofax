@@ -113,6 +113,7 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 			try {
 				String jar1 = org.strategoxt.libstratego_lib.Main.class.getProtectionDomain().getCodeSource().getLocation().getFile();
 				String jar2 = make_permissive.class.getProtectionDomain().getCodeSource().getLocation().getFile();
+				assert jar1.endsWith(".jar") && jar2.endsWith(".jar");
 				sdf2imp.mainNoExit(context, "-m", languageName, "-pn", projectName, "-n", packageName, "-e", extensions, "-jar", jar1, jar2);
 			} catch (StrategoErrorExit e) {
 				Environment.logException(e);

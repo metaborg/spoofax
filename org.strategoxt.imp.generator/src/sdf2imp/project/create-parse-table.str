@@ -31,7 +31,6 @@ strategies
       FILE(input') := <create-permissive-grammar> FILE(input);
       output       := <parse-table-target>;
       print-filename(|[], output);
-      <file-exists <+ mkdir> "include";
       <xtc-command(!"sdf2table")> ["-i", input', "-o", output, "-m", <get-sdf-main-module>]
   
   create-permissive-grammar:
@@ -51,7 +50,9 @@ strategies
       output := input
 
   permissive-grammar-target =
+    <file-exists <+ mkdir> "include";
     <conc-strings> ("include/", <get-sdf-main-module>, "-Permissive.gendef")
 
   parse-table-target =
+    <file-exists <+ mkdir> "include";
     <conc-strings> ("include/", <get-sdf-main-module>, ".tbl")
