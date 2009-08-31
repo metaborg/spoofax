@@ -150,7 +150,7 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 		String filename = getPath().toPortableString();
 		
 		// XXX: SGLR.asyncAbort() is never called until the old parse actually completes
-		//      need to use the monitor to get this working
+		//      need to intercept cancellation events in the running thread's monitor instead
 		getParser().asyncAbort();
 		
 		IResource resource = getResource();
@@ -159,24 +159,16 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 			
 			if (isStartupParsed)
 				Job.getJobManager().beginRule(resource, monitor); // enter lock
-
-			// TODO: Wait with parsing until token completes? and do it again for timer?
-			
-			// TODO: set update field, or use AstMessageHandler if all else fails
-			
-			ATerm asfix;
 			
 			Debug.startTimer();
 			
 			char[] inputChars = input.toCharArray();
 				
 			if (monitor.isCanceled()) return null;
-			currentAst = parser.parse(inputChars, filename);
+			ATerm asfix = parser.parseNoImplode(inputChars, filename);
 			if (monitor.isCanceled()) return null;
-			// For error handling, retrieve the cached, unimploded asfix tree
-			asfix = parser.parseNoImplode(inputChars, filename);
+			currentAst = parser.internalImplode(asfix);
 			if (monitor.isCanceled()) return null;
-			
 
 			if (isStartupParsed) {
 				// Threading concerns:

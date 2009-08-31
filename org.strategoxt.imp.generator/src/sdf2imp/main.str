@@ -83,11 +83,12 @@ strategies
         rules(StartSymbol := "Start")
       end;
       create-grammar;
-      input := <pack-sdf> FILE(<conc-strings> ("syntax/", <get-main-class-name>, ".sdf"))
+      input := <pack-sdf> FILE(<conc-strings> ("syntax/", <get-sdf-main-module>, ".sdf"))
     end;
   
     configure-main-descriptor;
     <sdf2rtg> input;
+    <copy-or-create-parse-table> input;
   
     if NoExistingDescriptor then
       create-main-descriptor
@@ -115,8 +116,6 @@ strategies
     create-example-file;
     copy-jars;
     copy-def-file;
-    
-    <copy-or-create-parse-table> input;
     
     say(!"SUCCESS: completed with 0 fatal errors.")
   

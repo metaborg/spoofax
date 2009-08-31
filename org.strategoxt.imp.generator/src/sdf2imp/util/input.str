@@ -40,6 +40,9 @@ strategies
     ?Import(name);
     !FILE(<add-extension; include-input-dir-prefix; file-exists> (name, "esv"));
     parse-xtc-file-report-errors(|<parse-table-descriptor>, "Module");
+    if oncetd(?amb(_)) then
+      fatal-err(|"Parsed module has ambiguities")
+    end;
     
     risky(
       ?Module(name, _, _)

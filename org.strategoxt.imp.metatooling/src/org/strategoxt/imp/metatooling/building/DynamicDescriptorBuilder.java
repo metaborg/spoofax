@@ -20,7 +20,6 @@ import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.StrategoErrorExit;
 import org.strategoxt.lang.StrategoExit;
-import org.strategoxt.lang.compat.SSL_EXT_java_call;
 import org.strategoxt.libstratego_lib.dr_scope_all_end_0_0;
 import org.strategoxt.libstratego_lib.dr_scope_all_start_0_0;
 import org.strategoxt.permissivegrammars.make_permissive;
@@ -47,7 +46,7 @@ public class DynamicDescriptorBuilder {
 			
 			agent = new EditorIOAgent();
 			context = new Context(Environment.getTermFactory(), agent);
-			SSL_EXT_java_call.registerClassLoader(make_permissive.class.getClassLoader());
+			context.registerClassLoader(make_permissive.class.getClassLoader());
 			sdf2imp.init(context);
 			
 		} catch (Throwable e) { // (catch classes not loading, etc.)

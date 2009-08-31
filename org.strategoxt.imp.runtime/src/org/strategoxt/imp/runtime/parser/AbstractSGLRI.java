@@ -122,8 +122,7 @@ public abstract class AbstractSGLRI implements IParser {
 		ATerm asfix = parseNoImplode(inputChars, filename);
 		if (monitor.isCanceled())
 			throw new OperationCanceledException();
-		AstNode imploded = imploder.implode(asfix, currentTokenizer);
-		return RootAstNode.makeRoot(imploded, getController());
+		return internalImplode(asfix);
 	}
 	
 	/**
@@ -149,6 +148,16 @@ public abstract class AbstractSGLRI implements IParser {
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 		
 		return parse(toCharArray(input), filename);
+	}
+	
+	/**
+	 * Implodes a parse tree that was just produced.
+	 * 
+	 * @note May only work with the latest parse tree produced.
+	 */
+	protected RootAstNode internalImplode(ATerm asfix) {
+		AstNode imploded = imploder.implode(asfix, currentTokenizer);
+		return RootAstNode.makeRoot(imploded, getController());		
 	}
 	
 	/**

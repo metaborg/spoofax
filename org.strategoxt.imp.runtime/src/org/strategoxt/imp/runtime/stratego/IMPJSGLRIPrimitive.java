@@ -35,7 +35,10 @@ public class IMPJSGLRIPrimitive extends JSGLRPrimitive {
 	public boolean call(IContext env, Strategy[] svars, IStrategoTerm[] tvars)
 			throws InterpreterException {
 		
-		// TODO: Use svars[0] onError argument?
+		// TODO: Use svars[0] onError argument
+		//       see jsglr compat component
+		
+		// XXX: IMPJSGLRIPrimitive et al should be used again
 		
 		// XXX: Don't use recovery from Interpreter-primitive parsing
 		

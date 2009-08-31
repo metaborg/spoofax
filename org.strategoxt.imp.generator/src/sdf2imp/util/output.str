@@ -68,7 +68,7 @@ strategies
         pp-descriptor-to-string
       | "Illegal editor service descriptor output"
       );
-      output-text-file(|[path], filename)
+      output-text-file'(|[path], filename)
     else
       verbose-msg(!"Skipping", !fullpath)
     end
@@ -83,7 +83,7 @@ strategies
     );
     
     pp-descriptor-to-string;
-    output-text-file(|[path], filename)
+    output-text-file'(|[path], filename)
   
   is-descriptor-imported(|name) =
     MainDescriptor;
@@ -111,7 +111,7 @@ strategies
     | "Illegal Java output"
     );
     
-    output-text-file(|filename)
+    output-text-file'(|filename)
 
   output-xml-file(|pathparts, filename) =
     print-filename(|pathparts, filename);
@@ -121,14 +121,18 @@ strategies
     | "Illegal XML output"
     );
     
-    output-text-file(|pathparts, filename)
+    output-text-file'(|pathparts, filename)
   
   output-text-file(|pathparts, filename) =
+    print-filename(|pathparts, filename);
+    output-text-file'(|pathparts, filename)
+  
+  output-text-file'(|pathparts, filename) =
     where(path := <create-dirs> pathparts);
     
-    output-text-file(|<conc-strings> (path, "/", filename))
+    output-text-file'(|<conc-strings> (path, "/", filename))
   
-  output-text-file(|filename) =
+  output-text-file'(|filename) =
     where(file := <fopen> (filename, "w"));
     
     <fputs> (<id>, file);

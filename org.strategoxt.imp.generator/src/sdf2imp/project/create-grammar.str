@@ -10,7 +10,7 @@ strategies
     create-grammar-common
   
   create-grammar-main =
-    <file-exists> <conc-strings> ("syntax/", <get-main-class-name>, ".sdf")
+    <file-exists> <conc-strings> ("syntax/", <get-sdf-main-module>, ".sdf")
   <+
     name        := <get-sdf-main-module>;
     startsymbol := <StartSymbol>;
