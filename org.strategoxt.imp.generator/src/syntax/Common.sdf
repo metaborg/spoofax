@@ -3,39 +3,43 @@ module Common
 exports
 
   sorts
-    Id IdStar Int STRING String CommentChar Node Sort Constructor ConstructorId
+    Id IdStar Int STRING String Node Sort Constructor ConstructorId
     ReservedName SectionName ModuleName Section Eof
+    Ws ShortCom LongCom CommChar
 
   lexical syntax
   
-    [a-zA-Z\_][a-zA-Z0-9\'\-\_]*     -> Id
-    [a-zA-Z\_][a-zA-Z0-9\'\-\_]* "*" -> IdStar
-    "-"? [0-9]+                      -> Int
-    "\"" ~[\"\n]* "\""               -> STRING
+    [a-zA-Z][a-zA-Z0-9\'\-\_]*     -> Id
+    [a-zA-Z][a-zA-Z0-9\'\-\_]* "*" -> IdStar
+    "-"? [0-9]+                    -> Int
+    "\"" ~[\"\n]* "\""             -> STRING
     
-    ~[\n\r]*                         -> SectionName
-    
-    [\ \t\n\r]                       -> LAYOUT
-    
-    [\*]                             -> CommentChar
-    "/*" (~[\*] | CommentChar)* "*/" -> LAYOUT
-    "//" ~[\n\r]* ([\n\r] | Eof)     -> LAYOUT
-    
-    -> Eof
+    ~[\n\r]*                       -> SectionName
+
+    [\t\ \n\r]               -> Ws
+    "//" ~[\n]* ([\n] | Eof) -> ShortCom
+    "/*" CommChar* "*/"      -> LongCom
+    ~[\*]                    -> CommChar
+    Asterisk                 -> CommChar
+    "*"                      -> Asterisk
+    Ws                       -> LAYOUT
+    ShortCom                 -> LAYOUT
+    LongCom                  -> LAYOUT
+                             -> Eof
   
   lexical restrictions
   
-    CommentChar -/- [\/]
     Int         -/- [0-9]
-    Id          -/- [a-zA-Z0-9\_]    
+    Id          -/- [a-zA-Z0-9\'\-\_]
     SectionName -/- ~[\n\r]
+    Asterisk    -/- [\/]
     Eof         -/- ~[]
 
   context-free restrictions
 
     LAYOUT? -/- [\ \t\n\r]
-    LAYOUT? -/- [\/].[\/]
     LAYOUT? -/- [\/].[\*]
+    LAYOUT? -/- [\/].[\/]
 
   context-free syntax
   
