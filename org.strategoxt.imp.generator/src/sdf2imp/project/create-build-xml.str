@@ -32,6 +32,10 @@ strategies
         <property name="strmodule" location="<%= name' %>"/>
 	    <available file="${trans}/${strmodule}.str" property="strmodule.present"/>
         
+        <!-- External .def location (optional)
+        <property name="externaldef" location="syntax/${sdfmodule}.def"/>
+        -->
+        
         <!-- Environment configuration -->
         <property name="build.strategoxt" location="${user.home}/.nix-profile/bin"/>
         <property name="build.strategoxt.sdf.imports"  value=""/>
@@ -74,7 +78,7 @@ strategies
             </apply>
         </target>
         
-        <target name="make-permissive" depends="pack-sdf">
+        <target name="make-permissive" depends="pack-sdf,copy-sdf">
             <dependset>
                 <srcfileset    file="include/${sdfmodule}.def"/>
                 <targetfileset file="include/${sdfmodule}-Permissive.def"/>
@@ -86,14 +90,8 @@ strategies
             	<arg value="${basedir}/include/${sdfmodule}-Permissive.def"/>
             </java>
         </target>
-
-        <target name="pack-sdf" depends="init">
-            <available property="source-sdf-exists" file="${syntax}/${sdfmodule}.sdf"/>
-        	<antcall target="pack-sdf.real"/>
-        	<antcall target="pack-sdf.copy"/>
-        </target>
     
-        <target name="pack-sdf.real" depends="init" if="source-sdf-exists">
+        <target name="pack-sdf" depends="init" unless="externaldef">
             <dependset>
                 <srcfilelist dir="${syntax}" files="**/*.sdf"/>
                 <targetfileset file="${syntax}/${sdfmodule}.def"/>
@@ -114,9 +112,8 @@ strategies
             </apply>
         </target>
 	
-	    <target name="pack-sdf.copy" depends="init" unless="source-sdf-exists">
-        	<echo message="Could not find ${syntax}/${sdfmodule}.sdf" level="warning" />
-            <copy file="${syntax}/${sdfmodule}.def" todir="include"/>
+	    <target name="copy-sdf" depends="init" if="externaldef">
+            <copy file="${externaldef}" todir="include"/>
         </target>
     
         <target name="rtg2sig" depends="init,sdf2rtg">
