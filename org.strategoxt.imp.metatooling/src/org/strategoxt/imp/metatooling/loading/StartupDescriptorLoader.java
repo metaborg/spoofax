@@ -30,7 +30,7 @@ public class StartupDescriptorLoader {
 			if (didInitialize) return;
 			didInitialize = true;
 			
-			loader = new DynamicDescriptorUpdater();
+			loader = DynamicDescriptorUpdater.getInstance();
 		
 			loadAllServices();
 			

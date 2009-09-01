@@ -6,7 +6,7 @@ imports
 strategies
 
   copy-def-file =
-    if NoExistingDescriptor; InputFile; not(<file-exists> "syntax") then
-      <mkdir> "syntax";
-      <copy-file> (<InputFile>, "syntax")
+    if NoExistingDescriptor; InputFile; not(<file-exists> "include") then
+      <mkdir> "include";
+      <copy-file> (<InputFile>, "include")
     end

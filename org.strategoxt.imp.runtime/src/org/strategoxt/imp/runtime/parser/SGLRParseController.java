@@ -130,14 +130,13 @@ public class SGLRParseController implements IParseController, ISourceInfo {
     	
     	ParseTable table = Environment.getParseTable(language);
 		parser = new JSGLRI(table, startSymbol, this, tokenManager);
-		// TODO: Do something useful with ambiguities
-		parser.setKeepAmbiguities(false); // not interested in ambiguities in the editor
-		// parser.setRecoverHandler(new CoarseGrainedRecovery());
+		parser.setKeepAmbiguities(true);
 		parser.setRecoverHandler(new StructureRecoveryAlgorithm());
     }
 
     public void initialize(IPath filePath, ISourceProject project,
     		IMessageHandler messages) {
+    	
 		this.path = filePath;
 		this.project = project;
 		this.errorHandler.setMessages(messages);
@@ -162,6 +161,7 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 			
 			Debug.startTimer();
 			
+			// TODO: Do not fail or complain on empty input?
 			char[] inputChars = input.toCharArray();
 				
 			if (monitor.isCanceled()) return null;

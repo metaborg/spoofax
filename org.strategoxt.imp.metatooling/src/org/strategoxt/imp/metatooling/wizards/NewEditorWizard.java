@@ -10,6 +10,8 @@ import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -92,17 +94,17 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 		return true;
 	}
 	
-	private void doFinish(String languageName, String projectName, String packageName, String extensions, IProgressMonitor monitor) throws IOException, CoreException {
-		final int TASK_COUNT = 5;
+ 	private void doFinish(String languageName, String projectName, String packageName, String extensions, IProgressMonitor monitor) throws IOException, CoreException {
+		final int TASK_COUNT = 6;
 		monitor.beginTask("Creating " + languageName + " project", TASK_COUNT);
 		
-		monitor.setTaskName("Preparing project builder...");
+		monitor.setTaskName("Preparing project builder");
 		EditorIOAgent agent = new EditorIOAgent();		
 		Context context = new Context(Environment.getTermFactory(), agent);
 		sdf2imp.init(context);
-		monitor.worked(1);
+		monitor.worked(3);
 
-		monitor.setTaskName("Creating project...");
+		monitor.setTaskName("Creating project");
 		IWorkspace workspace = ResourcesPlugin.getWorkspace();
 		IProject project = workspace.getRoot().getProject(projectName);
 		project.create(null);
@@ -117,30 +119,46 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 				sdf2imp.mainNoExit(context, "-m", languageName, "-pn", projectName, "-n", packageName, "-e", extensions, "-jar", jar1, jar2);
 			} catch (StrategoErrorExit e) {
 				Environment.logException(e);
-				throw new StrategoErrorExit("Project builder failed: " + e.getMessage());
+				throw new StrategoException("Project builder failed: " + e.getMessage(), e);
 			} catch (StrategoExit e) {
 				if (e.getValue() != 0) {
 					throw new StrategoException("Project builder failed. Log follows\n\n"
 							+ agent.getLog(), e);
 				}
 			}
-			project.refreshLocal(IResource.DEPTH_INFINITE, monitor);
-			monitor.worked(1);
+
+			monitor.setTaskName("Acquiring project lock");
+			Job.getJobManager().beginRule(project, monitor);  // avoid ant builder launching
+			try {
+				// FIXME: 
+				monitor.setTaskName("Acquiring environment lock");
+				synchronized (Environment.getSyncRoot()) { // avoid background editor loading
+					monitor.setTaskName("Loading new resources");
+					project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
+					monitor.worked(1);
+					
+					monitor.setTaskName("Loading the new editor");
+					IResource descriptor = project.findMember("include/" + languageName + ".packed.esv");
+					DynamicDescriptorUpdater.getInstance().forceUpdate(descriptor);
+				}
+				monitor.worked(1);
+			} finally {
+				Job.getJobManager().endRule(project);
+			}
 			
-			monitor.setTaskName("Opening files for editing...");
+			monitor.setTaskName("Opening files for editing");
 			openEditor(project, "/editor/" + languageName +  ".main.esv", true);
 			openEditor(project, "/syntax/" + languageName +  ".sdf", true);
 			openEditor(project, "/test/example." + extensions.split(",")[0], false);
 			
 			monitor.worked(1);
-			DynamicDescriptorUpdater.scheduleUpdate(project.findMember("include/" + languageName + ".packed.esv"));
 			monitor.done();
 			
 			success = true;
 			
 		} finally {
 			if (!success) {
-				monitor.setTaskName("Undoing workspace operations...");
+				monitor.setTaskName("Undoing workspace operations");
 				project.delete(true, null);
 			}
 		}

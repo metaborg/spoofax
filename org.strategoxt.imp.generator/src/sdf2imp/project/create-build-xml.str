@@ -69,26 +69,26 @@ strategies
                 <arg value="-m"/>
                 <arg value="${sdfmodule}"/>
                 
-                <fileset file="${syntax}/${sdfmodule}-Permissive.gendef"/>
-                <mapper type="glob" from="*-Permissive.gendef" to="*.tbl"/>
+                <fileset file="include/${sdfmodule}-Permissive.def"/>
+                <mapper type="glob" from="*-Permissive.def" to="*.tbl"/>
             </apply>
         </target>
         
         <target name="make-permissive" depends="pack-sdf">
             <dependset>
-                <srcfileset    file="${build}/${sdfmodule}.def"/>
-                <targetfileset file="${syntax}/${sdfmodule}-Permissive.gendef"/>
+                <srcfileset    file="include/${sdfmodule}.def"/>
+                <targetfileset file="include/${sdfmodule}-Permissive.def"/>
             </dependset>
             <java classname="org.strategoxt.permissivegrammars.make_permissive" classpath="aux/make_permissive.jar:aux/strategoxt.jar" failonerror="true">
                 <arg value="-i"/>
-                <arg value="${build}/${sdfmodule}.def"/>
+                <arg value="${basedir}/include/${sdfmodule}.def"/>
                 <arg value="-o"/>
-            	<arg value="${syntax}/${sdfmodule}-Permissive.gendef"/>
+            	<arg value="${basedir}/include/${sdfmodule}-Permissive.def"/>
             </java>
         </target>
 
         <target name="pack-sdf" depends="init">
-            <available property="source-sdf-exists" resource="${syntax}/${sdfmodule}.sdf"/>
+            <available property="source-sdf-exists" file="${syntax}/${sdfmodule}.sdf"/>
         	<antcall target="pack-sdf.real"/>
         	<antcall target="pack-sdf.copy"/>
         </target>
@@ -98,7 +98,7 @@ strategies
                 <srcfilelist dir="${syntax}" files="**/*.sdf"/>
                 <targetfileset file="${syntax}/${sdfmodule}.def"/>
             </dependset>
-            <apply executable="${build.strategoxt}/pack-sdf" dest="${build}" failonerror="true">
+            <apply executable="${build.strategoxt}/pack-sdf" failonerror="true" dest="include">
                 <arg value="-i"/>
                 <srcfile/>
                 <arg value="-o"/>
@@ -115,7 +115,8 @@ strategies
         </target>
 	
 	    <target name="pack-sdf.copy" depends="init" unless="source-sdf-exists">
-            <copy file="${syntax}/${sdfmodule}.def" todir="${build}"/>
+        	<echo message="Could not find ${syntax}/${sdfmodule}.sdf" level="warning" />
+            <copy file="${syntax}/${sdfmodule}.def" todir="include"/>
         </target>
     
         <target name="rtg2sig" depends="init,sdf2rtg">

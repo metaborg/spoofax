@@ -35,28 +35,41 @@ import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
  */
 public class DynamicDescriptorUpdater implements IResourceChangeListener {
 	
-	private DynamicDescriptorBuilder builder;
+	private static final DynamicDescriptorUpdater instance = new DynamicDescriptorUpdater();
 	
-	private static Set<IResource> updateOnly =
+	private final Set<IResource> asyncIgnoreOnce =
 		Collections.synchronizedSet(new HashSet<IResource>());
 	
-	private final AstMessageHandler messageHandler =
+	private final AstMessageHandler asyncMessageHandler =
 		new AstMessageHandler(AstMessageHandler.ANALYSIS_MARKER_TYPE);
 	
+	private DynamicDescriptorBuilder asyncBuilder;
+	
 	private DynamicDescriptorBuilder getBuilder() {
-		if (builder == null)
-			builder = new DynamicDescriptorBuilder(this);
-		return builder;
+		Environment.assertLock();
+		if (asyncBuilder == null)
+			asyncBuilder = new DynamicDescriptorBuilder(this);
+		return asyncBuilder;
+	}
+	
+	private DynamicDescriptorUpdater() {
+		// use getInstance() instead
+	}
+	
+	public static DynamicDescriptorUpdater getInstance() {
+		return instance;
 	}
 	
 	/**
-	 * Schedules a file to be updated (not built)
-	 * for the next time a matching resource event
-	 * is received.
+	 * Loads the editor for the specified descriptor,
+	 * and ignore it the next resource event arrives.
 	 */
-	public static void scheduleUpdate(IResource resource) {
-		assert resource.toString().endsWith(".packed.esv");
-		updateOnly.add(resource);
+	public void forceUpdate(IResource resource) {
+		synchronized (Environment.getSyncRoot()) {
+			assert resource.toString().endsWith(".packed.esv");
+			asyncIgnoreOnce.add(resource);
+			loadPackedDescriptor(resource);
+		}
 	}
 
 	public void resourceChanged(final IResourceChangeEvent event) {
@@ -101,12 +114,17 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 	}
 	
 	public void updateResource(IResource resource, IProgressMonitor monitor, boolean startup) {
+		Environment.assertLock();
+		
 		if (resource.getName().endsWith(".packed.esv")) {
 			IResource source = getSourceDescriptor(resource);
 			
-			boolean isUpdateOnly = updateOnly.contains(resource);
+			if (asyncIgnoreOnce.contains(resource)) {
+				asyncIgnoreOnce.remove(resource);
+				return;
+			}
 			
-			if (!source.equals(resource) && source.exists() && !isUpdateOnly && !startup) {
+			if (!source.equals(resource) && source.exists() && !startup) {
 				// Try to build using the .main.esv instead;
 				// the build.xml file may touch the .packed.esv file
 				// to signal a rebuild is necessary
@@ -115,7 +133,6 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 			} else if (resource.exists()) {
 				monitor.subTask("Loading " + resource.getName());
 				loadPackedDescriptor(resource);
-				if (isUpdateOnly) updateOnly.remove(resource);
 			}
 		} else if (!startup) {
 			// Re-build descriptor if resource changed (but not if we're starting up)
@@ -124,10 +141,12 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 	}
 
 	public void loadPackedDescriptor(IResource descriptor) {
+		Environment.assertLock();
+		
 		// TODO2: Properly trace back descriptor errors to their original source
 		IResource source = getSourceDescriptor(descriptor);
 		try {
-			messageHandler.clearMarkers(source);
+			asyncMessageHandler.clearMarkers(source);
 			
 			IFile file = descriptor.getProject().getFile(descriptor.getProjectRelativePath());
 			DescriptorFactory.load(file);
@@ -166,36 +185,40 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 	}
 	
 	private void reportError(final IResource descriptor, final String message) {
+		Environment.assertLock();
+		
 		if (ResourcesPlugin.getWorkspace().isTreeLocked()) {
 			Job job = new WorkspaceJob("Add error marker") {
 				{ setSystem(true); } // don't show to user
 				@Override
 				public IStatus runInWorkspace(IProgressMonitor monitor) {
-					messageHandler.addMarkerFirstLine(descriptor, message, SEVERITY_ERROR);
+					asyncMessageHandler.addMarkerFirstLine(descriptor, message, SEVERITY_ERROR);
 					return Status.OK_STATUS;
 				}
 			};
 			job.setRule(descriptor);
 			job.schedule();
 		} else {
-			messageHandler.addMarkerFirstLine(descriptor, message, SEVERITY_ERROR);
+			asyncMessageHandler.addMarkerFirstLine(descriptor, message, SEVERITY_ERROR);
 		}
 	}
 	
 	private void reportError(final IResource descriptor, final IStrategoTerm offendingTerm, final String message) {
+		Environment.assertLock();
+
 		if (ResourcesPlugin.getWorkspace().isTreeLocked()) {
 			Job job = new WorkspaceJob("Add error marker") {
 				{ setSystem(true); } // don't show to user
 				@Override
 				public IStatus runInWorkspace(IProgressMonitor monitor) {
-					messageHandler.addMarker(descriptor, offendingTerm, message, SEVERITY_ERROR);
+					asyncMessageHandler.addMarker(descriptor, offendingTerm, message, SEVERITY_ERROR);
 					return Status.OK_STATUS;
 				}
 			};
 			job.setRule(descriptor);
 			job.schedule();
 		} else {
-			messageHandler.addMarkerFirstLine(descriptor, message, SEVERITY_ERROR);
+			asyncMessageHandler.addMarkerFirstLine(descriptor, message, SEVERITY_ERROR);
 		}
 	}
 }

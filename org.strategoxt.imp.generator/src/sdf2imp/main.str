@@ -55,7 +55,7 @@ strategies
     with(<chdir> <dirname>; <chdir> "..");
     guarantee-extension(|"def"); // remove .main.esv
     base-filename;
-    (file-exists <+ <conc-strings> ("syntax/", <id>));
+    (file-exists <+ <conc-strings> ("include/", <id>));
     if not(file-exists) then
       fatal-err(|"Accompanying .def file not found.")
     end;
@@ -139,5 +139,6 @@ strategies
   pack-sdf:
     FILE(sdf) -> FILE(def)
     with
-      def := <guarantee-extension(|"def")> sdf;
+      def := <conc-strings> ("include/", <get-sdf-main-module>, ".def");
+      <file-exists <+ mkdir> "include";
       <xtc-command(!"pack-sdf")> ["-i", sdf, "-o", def | <pass-verbose>]

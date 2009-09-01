@@ -48,11 +48,9 @@ public final class Environment {
 	
 	private final static Map<String, ParseTable> parseTables;
 	
-	private final static Map<String, Descriptor> descriptors;
+	private final static Map<String, Descriptor> asyncDescriptors;
 	
 	private final static WrappedAstNodeFactory wrappedAstNodeFactory;
-	
-	private final static Object syncRoot = Environment.class;
 	
 	private static Thread mainThread;
 	
@@ -61,7 +59,7 @@ public final class Environment {
 		factory = new PureFactory();
 		parseTableManager = new ParseTableManager(factory);
 		parseTables = new HashMap<String, ParseTable>();
-		descriptors = Collections.synchronizedMap(new HashMap<String, Descriptor>());
+		asyncDescriptors = Collections.synchronizedMap(new HashMap<String, Descriptor>());
 		wrappedAstNodeFactory = new WrappedAstNodeFactory();
 	}
 	
@@ -74,7 +72,7 @@ public final class Environment {
 	 * between the main thread and the workspace thread.
 	 */
 	public static Object getSyncRoot() {
-		return syncRoot;
+		return Environment.class;
 	}
 	
 	public static void assertLock() {
@@ -128,7 +126,6 @@ public final class Environment {
 			}
 		};
 
-		// TODO: Clean up Spoofax/IMP operator registries; remove overlap with STRJ runtime
 		result.addOperatorRegistry(new IMPJSGLRLibrary());
 		result.addOperatorRegistry(new IMPLibrary());
 		result.setIOAgent(new EditorIOAgent());
@@ -159,18 +156,18 @@ public final class Environment {
 		}
 	}
 	
-	public static synchronized void registerDescriptor(Language language, Descriptor descriptor) {
+	public synchronized static void registerDescriptor(Language language, Descriptor descriptor) {
 		Descriptor oldDescriptor = getDescriptor(language);
 		
 		if (oldDescriptor != null) {
 			oldDescriptor.uninitialize();
 		}
 		
-		descriptors.put(language.getName(), descriptor);
+		asyncDescriptors.put(language.getName(), descriptor);
 	}
 	
-	public static Descriptor getDescriptor(Language language) {
-		return descriptors.get(language.getName());
+	public synchronized static Descriptor getDescriptor(Language language) {
+		return asyncDescriptors.get(language.getName());
 	}
 	
 	// ERROR HANDLING

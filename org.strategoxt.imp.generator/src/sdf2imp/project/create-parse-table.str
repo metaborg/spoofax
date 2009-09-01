@@ -51,7 +51,7 @@ strategies
 
   permissive-grammar-target =
     <file-exists <+ mkdir> "include";
-    <conc-strings> ("include/", <get-sdf-main-module>, "-Permissive.gendef")
+    <conc-strings> ("include/", <get-sdf-main-module>, "-Permissive.def")
 
   parse-table-target =
     <file-exists <+ mkdir> "include";

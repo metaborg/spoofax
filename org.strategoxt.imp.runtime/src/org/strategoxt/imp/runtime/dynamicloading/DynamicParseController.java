@@ -78,7 +78,8 @@ public class DynamicParseController extends AbstractService<IParseController> im
 	
 	@Override
 	public IParseController getWrapped() {
-		if (!isInitialized())
+		// Reinitalize path etc. if descriptor was reloaded
+		if (super.getWrapped().getProject() == null)
 			initialize(null, null, null);
 		return super.getWrapped();
 	}
@@ -121,9 +122,9 @@ public class DynamicParseController extends AbstractService<IParseController> im
 		// (Re)store these inputs in case the parse controller has been dynamically reloaded
 		if (filePath == null) filePath = this.filePath;
 		else this.filePath = filePath;
-		if (filePath == null) project = this.project;
+		if (project == null) project = this.project;
 		else this.project = project;
-		if (filePath == null) handler = this.handler;
+		if (handler == null) handler = this.handler;
 		else this.handler = handler;
 		
 		super.getWrapped().initialize(filePath, project, handler);

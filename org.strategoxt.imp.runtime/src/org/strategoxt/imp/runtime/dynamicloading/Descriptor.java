@@ -35,7 +35,7 @@ public class Descriptor {
 	protected static final Language DESCRIPTOR_LANGUAGE =
 		new Language("EditorService-builtin", "org.strategoxt.imp.builtin.editorservice", "", ROOT_LANGUAGE, "", "", "", null);
 	
-	private final List<AbstractService> services = new ArrayList<AbstractService>();
+	private final Set<AbstractService> services = new HashSet<AbstractService>();
 	
 	private final List<AbstractServiceFactory> serviceFactories = new ArrayList<AbstractServiceFactory>();
 	
