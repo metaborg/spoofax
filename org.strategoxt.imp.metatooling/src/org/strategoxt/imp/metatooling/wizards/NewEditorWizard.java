@@ -95,21 +95,23 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 	}
 	
  	private void doFinish(String languageName, String projectName, String packageName, String extensions, IProgressMonitor monitor) throws IOException, CoreException {
-		final int TASK_COUNT = 6;
+		final int TASK_COUNT = 11;
+		boolean success = false;
 		monitor.beginTask("Creating " + languageName + " project", TASK_COUNT);
 		
 		monitor.setTaskName("Preparing project builder");
 		EditorIOAgent agent = new EditorIOAgent();		
 		Context context = new Context(Environment.getTermFactory(), agent);
 		sdf2imp.init(context);
-		monitor.worked(3);
+		monitor.worked(1);
 
 		monitor.setTaskName("Creating project");
 		IWorkspace workspace = ResourcesPlugin.getWorkspace();
 		IProject project = workspace.getRoot().getProject(projectName);
 		project.create(null);
 		project.open(null);
-		boolean success = false;
+		monitor.worked(1);
+
 		try {
 			agent.setWorkingDir(project.getLocation().toOSString());
 			try {
@@ -126,12 +128,13 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 							+ agent.getLog(), e);
 				}
 			}
+			monitor.worked(3);
 
 			monitor.setTaskName("Acquiring project lock");
 			Job.getJobManager().beginRule(project, monitor);  // avoid ant builder launching
 			try {
-				// FIXME: 
 				monitor.setTaskName("Acquiring environment lock");
+				monitor.worked(1);
 				synchronized (Environment.getSyncRoot()) { // avoid background editor loading
 					monitor.setTaskName("Loading new resources");
 					project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
@@ -148,9 +151,10 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 			
 			monitor.setTaskName("Opening files for editing");
 			openEditor(project, "/editor/" + languageName +  ".main.esv", true);
+			monitor.worked(1);
 			openEditor(project, "/syntax/" + languageName +  ".sdf", true);
+			monitor.worked(1);
 			openEditor(project, "/test/example." + extensions.split(",")[0], false);
-			
 			monitor.worked(1);
 			monitor.done();
 			

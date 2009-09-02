@@ -2,6 +2,7 @@ package org.strategoxt.imp.runtime.parser;
 
 import static org.spoofax.jsglr.Term.*;
 import lpg.runtime.IToken;
+
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.imp.parser.IMessageHandler;
 import org.spoofax.jsglr.BadTokenException;
@@ -185,6 +186,7 @@ public class ParseErrorHandler {
 	
 	private void reportSkippedFragments(SGLRTokenizer tokenizer) {
 		char[] inputChars = tokenizer.getLexStream().getInputChars();
+
 		for (int i = 0; i < inputChars.length; i++) {
 			char c = inputChars[i];
 			if (c == SKIPPED_CHAR) {
@@ -200,6 +202,13 @@ public class ParseErrorHandler {
 				IToken token = tokenizer.makeErrorToken(beginSkipped, endSkipped);
 				reportErrorAtTokens(token, token, "Could not parse this fragment");
 			}
+		}
+		
+		// Report forced reductions
+		int treeEnd = tokenizer.getParseStream().getTokenAt(tokenizer.getParseStream().getStreamLength() - 1).getEndOffset();
+		if (treeEnd < inputChars.length) {
+			IToken token = tokenizer.makeErrorToken(treeEnd + 1, inputChars.length);
+			reportErrorAtTokens(token, token, "Could not parse this fragment");
 		}
 	}
 	
@@ -227,7 +236,7 @@ public class ParseErrorHandler {
 	 
 	public void reportError(SGLRTokenizer tokenizer, Exception exception) {
 		String message = "Internal parsing error: " + exception;
-		Environment.logException("Internal parsing error", exception);
+		Environment.logException("Error while reporting parse errors", exception);
 		reportErrorAtFirstLine(message);
 	}
 	
