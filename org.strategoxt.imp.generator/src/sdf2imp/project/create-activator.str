@@ -5,7 +5,8 @@ imports
 
 strategies
 
-  create-activator =  
+  create-activator =
+    // TODO: never overwrite existing activator
     name    := <get-main-class-name>;
     pkgname := <get-package-name>;
     

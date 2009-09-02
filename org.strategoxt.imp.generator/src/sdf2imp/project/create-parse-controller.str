@@ -14,6 +14,7 @@ strategies
     <conc-strings> (<get-main-class-name>, "ParseController")
 
   create-parse-controller =
+    // TODO: do not overwrite existing parse controller
     x_name  := <get-parse-controller-name>;
     pkgname := <get-package-name>;
     table   := <get-sdf-main-module>;

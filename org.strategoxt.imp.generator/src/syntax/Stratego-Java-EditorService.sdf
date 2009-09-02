@@ -7,7 +7,7 @@ imports
   
   EditorService
   
-  Comments[Section]
+%%Comments[Section]
   Comments[SemanticRule]
   Comments[ColorRule]
   Comments[OutlineRule]

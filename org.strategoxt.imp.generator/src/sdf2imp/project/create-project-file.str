@@ -6,6 +6,8 @@ imports
 strategies
 
   create-project-file =
+    <file-exists> ".project"
+  <+
     package := <BasePackage <+ default-package-name>;
     
     <output-xml-file(|[], ".project")>

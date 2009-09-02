@@ -110,6 +110,7 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 		IProject project = workspace.getRoot().getProject(projectName);
 		project.create(null);
 		project.open(null);
+		project.findMember(".project").delete(true, new NullProgressMonitor()); // ensure new one is created
 		monitor.worked(1);
 
 		try {
@@ -156,6 +157,7 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 			monitor.worked(1);
 			openEditor(project, "/test/example." + extensions.split(",")[0], false);
 			monitor.worked(1);
+			openEditor(project, "/syntax/" + languageName +  ".sdf", true); // honestly, give this one focus
 			monitor.done();
 			
 			success = true;

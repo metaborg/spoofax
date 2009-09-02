@@ -6,6 +6,8 @@ imports
 strategies
 
   create-classpath =
+    <file-exists> ".classpath"
+  <+
     <output-xml-file(|[], ".classpath")>
     %><?xml version="1.0" encoding="UTF-8"?>
 <classpath>
