@@ -63,10 +63,11 @@ strategies
     
     if ResetFiles <+ <condition> fullpath then
       new-contents;
-      risky(
+      (
         ?Module(name, _ ,_);
         pp-descriptor-to-string
-      | "Illegal editor service descriptor output"
+      <+
+        fatal-err(|"Illegal editor service descriptor output")
       );
       output-text-file'(|[path], filename)
     else
@@ -106,9 +107,10 @@ strategies
   output-java-file(|filename) =
     print-filename(|["editor", "java" | <package-name>], <base-filename> filename);
     
-    risky(
+    (
       text := <pp-java-string <+ pp-java-string-fallback>
-    | "Illegal Java output"
+    <+
+      fatal-err(|"Illegal Java output")
     );
     
     output-text-file'(|filename)
@@ -116,9 +118,10 @@ strategies
   output-xml-file(|pathparts, filename) =
     print-filename(|pathparts, filename);
     
-    risky(
+    (
       xml-doc2abox; box2text-string(|80)
-    | "Illegal XML output"
+    <+
+      fatal-err(|"Illegal XML output")
     );
     
     output-text-file'(|pathparts, filename)

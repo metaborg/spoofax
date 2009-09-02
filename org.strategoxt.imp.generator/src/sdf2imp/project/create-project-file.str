@@ -8,7 +8,8 @@ strategies
   create-project-file =
     <file-exists> ".project"
   <+
-    package := <BasePackage <+ default-package-name>;
+    package     := <BasePackage <+ default-package-name>;
+    builder-xml := <conc-strings> ("&lt;project&gt;/.externalToolBuilders/", <builder-xml-name>);
     
     <output-xml-file(|[], ".project")>
     %>
@@ -23,7 +24,7 @@ strategies
 			<arguments>
 				<dictionary>
 					<key>LaunchConfigHandle</key>
-					<value>&lt;project&gt;/.externalToolBuilders/Ant Builder.launch</value>
+					<value><%= builder-xml::cdata %></value>
 				</dictionary>
 			</arguments>
 		</buildCommand>

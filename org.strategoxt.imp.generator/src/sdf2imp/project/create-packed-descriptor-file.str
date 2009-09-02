@@ -9,16 +9,15 @@ strategies
 
   create-packed-descriptor-file =
     {| InputDirPrefix:
-      risky(
-        <add-input-dir-prefix> "editor/";
-        filename := <packed-descriptor-file-name>;
-        main     := <main-descriptor-name>;
-        
-        <input-descriptor-file> main;
-        remove-empty-sections;        
-        output-packed-descriptor-file(|filename)
-      | "Could not pack descriptor files"
-      )
+      <add-input-dir-prefix> "editor/";
+      filename := <packed-descriptor-file-name>;
+      main     := <main-descriptor-name>;
+      
+      <input-descriptor-file> main;
+      remove-empty-sections;        
+      output-packed-descriptor-file(|filename)
+    <+
+      fatal-err-msg(|"Could not pack descriptor files")
     |}
   
   remove-empty-sections =

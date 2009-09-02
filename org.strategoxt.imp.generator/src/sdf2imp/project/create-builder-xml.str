@@ -5,47 +5,50 @@ imports
 
 strategies
 
+  builder-xml-name =
+    // Note that we cannot use ProjectName here since
+    // it may not be set after the first time this runs
+    <conc-strings> (<get-sdf-main-module>, " build.xml.launch")
+
   create-builder-xml =
-    // The XML pretty printer has problems with this file, so it's printed as text instead.
-    // Half the time ${project_name} and ${project_loc} don't work, so
-    // we're using name instead
-    name := <ProjectName <+ get-sdf-main-module>; 
+    <file-exists> <conc-strings> (".externalToolBuilders/", <builder-xml-name>)
+  <+
+    // We use plain text since the XML pretty printer has problems with this file.
+    // Also, half the time ${project_name} and ${project_loc} don't work,
+    // so we're using a compile-time 'project-name' variable instead.
+    project-name := <ProjectName <+ get-sdf-main-module>;
     
-    <output-text-file(|[".externalToolBuilders"], "Ant Builder.launch")>
+    <output-text-file(|[".externalToolBuilders"], <builder-xml-name>)>
     <conc-strings>
 (
 "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>
-<launchConfiguration type=\"org.eclipse.ant.AntBuilderLaunchConfigurationType\">
-<stringAttribute key=\"org.eclipse.ant.ui.ATTR_ANT_AFTER_CLEAN_TARGETS\" value=\"from-eclipse,\"/>
-<stringAttribute key=\"org.eclipse.ant.ui.ATTR_ANT_MANUAL_TARGETS\" value=\"from-eclipse,\"/>
-<booleanAttribute key=\"org.eclipse.ant.ui.ATTR_TARGETS_UPDATED\" value=\"true\"/>
+<launchConfiguration type=\"org.eclipse.ant.AntLaunchConfigurationType\">
+<stringAttribute key=\"bad_container_name\" value=\".externalToolBuilders\"/>
 <booleanAttribute key=\"org.eclipse.ant.ui.DEFAULT_VM_INSTALL\" value=\"false\"/>
-<stringAttribute key=\"org.eclipse.debug.core.ATTR_REFRESH_SCOPE\" value=\"${working_set:&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&#10;&lt;launchConfigurationWorkingSet factoryID=&quot;org.eclipse.ui.internal.WorkingSetFactory&quot; label=&quot;working set&quot; name=&quot;working set&quot;&gt;&#10;&lt;item factoryID=&quot;org.eclipse.ui.internal.model.ResourceFactory&quot; path=&quot;/", name, "/include&quot; type=&quot;2&quot;/&gt;&#10;&lt;/launchConfigurationWorkingSet&gt;}\"/>
-
-<!--
-  <listAttribute key=\"org.eclipse.debug.core.MAPPED_RESOURCE_PATHS\">
-  <listEntry value=\"", name, "/build.xml\"/>
-  </listAttribute>
-  <listAttribute key=\"org.eclipse.debug.core.MAPPED_RESOURCE_TYPES\">
-  <listEntry value=\"1\"/>
-  </listAttribute>
--->
-<listAttribute key=\"org.eclipse.debug.core.MAPPED_RESOURCE_PATHS\"/>
-<listAttribute key=\"org.eclipse.debug.core.MAPPED_RESOURCE_TYPES\"/>
-
+<stringAttribute key=\"org.eclipse.debug.core.ATTR_REFRESH_SCOPE\" value=\"${working_set:&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&#10;&lt;launchConfigurationWorkingSet editPageId=&quot;org.eclipse.ui.resourceWorkingSetPage&quot; factoryID=&quot;org.eclipse.ui.internal.WorkingSetFactory&quot; label=&quot;working set&quot; name=&quot;working set&quot;&gt;&#10;&lt;item factoryID=&quot;org.eclipse.ui.internal.model.ResourceFactory&quot; path=&quot;/", project-name, "/include&quot; type=&quot;2&quot;/&gt;&#10;&lt;/launchConfigurationWorkingSet&gt;}\"/>
+<listAttribute key=\"org.eclipse.debug.core.MAPPED_RESOURCE_PATHS\">
+<listEntry value=\"/", project-name, "/build.xml\"/>
+</listAttribute>
+<listAttribute key=\"org.eclipse.debug.core.MAPPED_RESOURCE_TYPES\">
+<listEntry value=\"1\"/>
+</listAttribute>
 <booleanAttribute key=\"org.eclipse.debug.ui.ATTR_LAUNCH_IN_BACKGROUND\" value=\"false\"/>
 <listAttribute key=\"org.eclipse.jdt.launching.CLASSPATH\">
-<listEntry value=\"&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#10;&lt;runtimeClasspathEntry containerPath=&quot;org.eclipse.jdt.launching.JRE_CONTAINER&quot; path=&quot;1&quot; type=&quot;4&quot;/&gt;&#10;\"/>
+<listEntry value=\"&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#10;&lt;runtimeClasspathEntry containerPath=&quot;org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/java-1.5.0-sun-1.5.0.18&quot; path=&quot;1&quot; type=&quot;4&quot;/&gt;&#10;\"/>
 <listEntry value=\"&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#10;&lt;runtimeClasspathEntry id=&quot;org.eclipse.ant.ui.classpathentry.antHome&quot;&gt;&#10;&lt;memento default=&quot;true&quot;/&gt;&#10;&lt;/runtimeClasspathEntry&gt;&#10;\"/>
 <listEntry value=\"&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#10;&lt;runtimeClasspathEntry id=&quot;org.eclipse.ant.ui.classpathentry.extraClasspathEntries&quot;&gt;&#10;&lt;memento/&gt;&#10;&lt;/runtimeClasspathEntry&gt;&#10;\"/>
-<listEntry value=\"&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#10;&lt;runtimeClasspathEntry id=&quot;org.eclipse.jdt.launching.classpathentry.variableClasspathEntry&quot;&gt;&#10;&lt;memento path=&quot;3&quot; variableString=&quot;", name, "/aux/make_permissive.jar&quot;/&gt;&#10;&lt;/runtimeClasspathEntry&gt;&#10;\"/>
-<listEntry value=\"&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#10;&lt;runtimeClasspathEntry id=&quot;org.eclipse.jdt.launching.classpathentry.variableClasspathEntry&quot;&gt;&#10;&lt;memento path=&quot;3&quot; variableString=&quot;", name, "/aux/strategoxt.jar&quot;/&gt;&#10;&lt;/runtimeClasspathEntry&gt;&#10;\"/>
+<listEntry value=\"&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#10;&lt;runtimeClasspathEntry internalArchive=&quot;/", project-name, "/aux/make_permissive.jar&quot; path=&quot;3&quot; type=&quot;2&quot;/&gt;&#10;\"/>
+<listEntry value=\"&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#10;&lt;runtimeClasspathEntry internalArchive=&quot;/", project-name, "/aux/strategoxt.jar&quot; path=&quot;3&quot; type=&quot;2&quot;/&gt;&#10;\"/>
 </listAttribute>
 <stringAttribute key=\"org.eclipse.jdt.launching.CLASSPATH_PROVIDER\" value=\"org.eclipse.ant.ui.AntClasspathProvider\"/>
 <booleanAttribute key=\"org.eclipse.jdt.launching.DEFAULT_CLASSPATH\" value=\"false\"/>
-<stringAttribute key=\"org.eclipse.ui.externaltools.ATTR_LOCATION\" value=\"${workspace_loc:/", name, "/build.xml}\"/>
-<stringAttribute key=\"org.eclipse.ui.externaltools.ATTR_RUN_BUILD_KINDS\" value=\"full,incremental,\"/>
-<booleanAttribute key=\"org.eclipse.ui.externaltools.ATTR_TRIGGERS_CONFIGURED\" value=\"true\"/>
-<stringAttribute key=\"org.eclipse.ui.externaltools.ATTR_WORKING_DIRECTORY\" value=\"${workspace_loc:/", name, "}\"/>
-</launchConfiguration>"
+<stringAttribute key=\"org.eclipse.jdt.launching.PROJECT_ATTR\" value=\"", project-name, "\"/>
+<stringAttribute key=\"org.eclipse.jdt.launching.SOURCE_PATH_PROVIDER\" value=\"org.eclipse.ant.ui.AntClasspathProvider\"/>
+<stringAttribute key=\"org.eclipse.ui.externaltools.ATTR_ANT_TARGETS\" value=\"from-eclipse,\"/>
+<stringAttribute key=\"org.eclipse.ui.externaltools.ATTR_LAUNCH_CONFIGURATION_BUILD_SCOPE\" value=\"${project}\"/>
+<stringAttribute key=\"org.eclipse.ui.externaltools.ATTR_LOCATION\" value=\"${workspace_loc:/", project-name, "/build.xml}\"/>
+<stringAttribute key=\"org.eclipse.ui.externaltools.ATTR_WORKING_DIRECTORY\" value=\"${workspace_loc:/", project-name, "}\"/>
+<stringAttribute key=\"process_factory_id\" value=\"org.eclipse.ant.ui.remoteAntProcessFactory\"/>
+</launchConfiguration>
+"
 )
