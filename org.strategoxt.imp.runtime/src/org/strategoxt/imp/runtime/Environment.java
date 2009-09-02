@@ -48,7 +48,7 @@ public final class Environment {
 	
 	private final static Map<String, ParseTable> parseTables;
 	
-	private final static Map<String, Descriptor> asyncDescriptors;
+	private final static Map<String, Descriptor> descriptors;
 	
 	private final static WrappedAstNodeFactory wrappedAstNodeFactory;
 	
@@ -58,8 +58,8 @@ public final class Environment {
 		wrappedFactory = new UnsharedWrappedATermFactory();
 		factory = new PureFactory();
 		parseTableManager = new ParseTableManager(factory);
-		parseTables = new HashMap<String, ParseTable>();
-		asyncDescriptors = Collections.synchronizedMap(new HashMap<String, Descriptor>());
+		parseTables = Collections.synchronizedMap(new HashMap<String, ParseTable>());
+		descriptors = Collections.synchronizedMap(new HashMap<String, Descriptor>());
 		wrappedAstNodeFactory = new WrappedAstNodeFactory();
 	}
 	
@@ -144,30 +144,26 @@ public final class Environment {
 	}
 	
 	public static ParseTable getParseTable(Language language) {
-		// UNDONE: assertMainThread();
+		ParseTable table = parseTables.get(language.getName());
 		
-		synchronized (getSyncRoot()) { // synchronized on registration
-			ParseTable table = parseTables.get(language.getName());
+		if (table == null)
+			throw new IllegalStateException("Parse table not available: " + language.getName());
 			
-			if (table == null)
-				throw new IllegalStateException("Parse table not available: " + language.getName());
-			
-			return table;
-		}
+		return table;
 	}
 	
-	public synchronized static void registerDescriptor(Language language, Descriptor descriptor) {
+	public static void registerDescriptor(Language language, Descriptor descriptor) {
 		Descriptor oldDescriptor = getDescriptor(language);
 		
 		if (oldDescriptor != null) {
 			oldDescriptor.uninitialize();
 		}
 		
-		asyncDescriptors.put(language.getName(), descriptor);
+		descriptors.put(language.getName(), descriptor);
 	}
 	
-	public synchronized static Descriptor getDescriptor(Language language) {
-		return asyncDescriptors.get(language.getName());
+	public static Descriptor getDescriptor(Language language) {
+		return descriptors.get(language.getName());
 	}
 	
 	// ERROR HANDLING
