@@ -76,7 +76,8 @@ public class AsfixImploder {
 		// TODO: Return null if imploded tree has null constructor??
 		
 		AstNode result = implodedCache.get(asfix);
-		if (result != null) return result;
+		if (result != null && tokenizer.getStartOffset() != 0) // HACK: tokenizer is sometimes cached empty?
+			return result;
 		
 		Debug.startTimer();
 
