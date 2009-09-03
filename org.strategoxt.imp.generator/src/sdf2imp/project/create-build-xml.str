@@ -55,7 +55,7 @@ strategies
         <target name="sdf2imp-eclipse" depends="sdf2table">
             <!-- HACK: Trigger the Eclipse builder rather than build it here -->
             <!-- (if we did built it here, we'd have to use the -p option to -->
-            <!--  specify the parse table, and put the table in another dir  -->
+            <!--  specify the parse table, and put the table in another dir) -->
             <touch file="include/${esvmodule}.packed.esv"/>
             <eclipse.refreshLocal resource="include/${esvmodule}.packed.esv"/>
         </target>
