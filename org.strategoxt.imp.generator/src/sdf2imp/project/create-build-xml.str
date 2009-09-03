@@ -80,16 +80,21 @@ strategies
         
         <target name="make-permissive" depends="pack-sdf,copy-sdf">
             <dependset>
-                <srcfileset    file="include/${sdfmodule}.def"/>
+                <srcfileset file="include/${sdfmodule}.def"/>
                 <targetfileset file="include/${sdfmodule}-Permissive.def"/>
             </dependset>
-            <java classname="org.strategoxt.permissivegrammars.make_permissive" classpath="aux/make_permissive.jar:aux/strategoxt.jar" failonerror="true">
-                <arg value="-i"/>
-                <arg value="${basedir}/include/${sdfmodule}.def"/>
-                <arg value="-o"/>
-            	<arg value="${basedir}/include/${sdfmodule}-Permissive.def"/>
-            </java>
+        	<available file="include/${sdfmodule}-Permissive.def" property="permissive-grammar.available"/>
+            <antcall target="make-permissive.real"/>
         </target>
+    
+       <target name="make-permissive.real" unless="permissive-grammar.available">
+        <java classname="org.strategoxt.permissivegrammars.make_permissive" classpath="aux/make_permissive.jar:aux/strategoxt.jar" failonerror="true">
+            <arg value="-i"/>
+            <arg value="${basedir}/include/${sdfmodule}.def"/>
+            <arg value="-o"/>
+        	<arg value="${basedir}/include/${sdfmodule}-Permissive.def"/>
+        </java>
+       	</target>
     
         <target name="pack-sdf" depends="init" unless="externaldef">
             <dependset>
