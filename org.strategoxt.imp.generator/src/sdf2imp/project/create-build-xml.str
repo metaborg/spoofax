@@ -30,7 +30,7 @@ strategies
         <property name="sdfmodule" value="<%= name %>"/>
         <property name="esvmodule" value="<%= name %>"/>
         <property name="strmodule" location="<%= name' %>"/>
-	    <available file="${trans}/${strmodule}.str" property="strmodule.present"/>
+        <available file="${trans}/${strmodule}.str" property="strmodule.present"/>
         
         <!-- External .def location (optional)
         <property name="externaldef" location="syntax/${sdfmodule}.def"/>
@@ -83,18 +83,24 @@ strategies
                 <srcfileset file="include/${sdfmodule}.def"/>
                 <targetfileset file="include/${sdfmodule}-Permissive.def"/>
             </dependset>
-        	<available file="include/${sdfmodule}-Permissive.def" property="permissive-grammar.available"/>
+            <available file="include/${sdfmodule}-Permissive.def" property="permissive-grammar.available"/>
             <antcall target="make-permissive.real"/>
         </target>
     
-       <target name="make-permissive.real" unless="permissive-grammar.available">
-        <java classname="org.strategoxt.permissivegrammars.make_permissive" classpath="aux/make_permissive.jar:aux/strategoxt.jar" failonerror="true">
-            <arg value="-i"/>
-            <arg value="${basedir}/include/${sdfmodule}.def"/>
-            <arg value="-o"/>
-        	<arg value="${basedir}/include/${sdfmodule}-Permissive.def"/>
-        </java>
-       	</target>
+        <target name="make-permissive.real" unless="permissive-grammar.available" depends="aux-files">
+            <java classname="org.strategoxt.permissivegrammars.make_permissive" classpath="aux/make_permissive.jar:aux/strategoxt.jar" failonerror="true">
+                <arg value="-i"/>
+                <arg value="${basedir}/include/${sdfmodule}.def"/>
+                <arg value="-o"/>
+                <arg value="${basedir}/include/${sdfmodule}-Permissive.def"/>
+            </java>
+        </target>
+
+        <target name="aux-files">
+            <property name="site" value="http://www.st.ewi.tudelft.nl/~kats/strategoxt/18a"/>
+            <get src="${site}/strategoxt.jar" dest="aux/strategoxt.jar" usetimestamp="true" ignoreerrors="true"/>
+            <get src="${site}/make_permissive.jar" dest="aux/make_permissive.jar" usetimestamp="true" ignoreerrors="true"/>
+        </target>
     
         <target name="pack-sdf" depends="init" unless="externaldef">
             <dependset>
@@ -116,8 +122,8 @@ strategies
                 <mapper type="glob" from="*.sdf" to="*.def"/>
             </apply>
         </target>
-	
-	    <target name="copy-sdf" depends="init" if="externaldef">
+    
+        <target name="copy-sdf" depends="init" if="externaldef">
             <copy file="${externaldef}" todir="include"/>
         </target>
     
@@ -138,7 +144,7 @@ strategies
                 <arg value="-i"/>
                 <srcfile/>
                 <arg value="-m"/>
-            	<arg value="${sdfmodule}"/>
+                <arg value="${sdfmodule}"/>
                 <arg value="-o"/>
                 <targetfile/>
                 
