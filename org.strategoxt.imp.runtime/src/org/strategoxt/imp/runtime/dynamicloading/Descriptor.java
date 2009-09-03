@@ -154,7 +154,7 @@ public class Descriptor {
 		try {
 			return openAttachment(getParseTableName(), false);
 		} catch (FileNotFoundException e) {
-			throw new BadDescriptorException(e);
+			throw new BadDescriptorException("Could not open parse table", e);
 		}
 	}
 
@@ -162,7 +162,7 @@ public class Descriptor {
 		try {
 			return openAttachment(getPPTableName(), false);
 		} catch (FileNotFoundException e) {
-			throw new BadDescriptorException(e);
+			throw new BadDescriptorException("Could not pretty printing table", e);
 		}
 	}
 

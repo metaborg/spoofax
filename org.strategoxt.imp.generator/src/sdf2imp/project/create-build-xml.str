@@ -65,7 +65,7 @@ strategies
         </target>
     
         <target name="sdf2table" depends="make-permissive">
-            <apply executable="${build.strategoxt}/sdf2table" dest="${dist}" failonerror="true">
+            <apply executable="${build.strategoxt}/sdf2table" dest="include" failonerror="true">
                 <arg value="-i"/>
                 <srcfile/>
                 <arg value="-o"/>
@@ -116,7 +116,7 @@ strategies
             <copy file="${externaldef}" todir="include"/>
         </target>
     
-        <target name="rtg2sig" depends="init,sdf2rtg">
+        <target name="rtg2sig" depends="init,sdf2rtg" if="strmodule.present" unless="external-def">
             <apply executable="${build.strategoxt}/rtg2sig" dest="${build}" failonerror="true">
                 <arg value="-i"/>
                 <srcfile/>
@@ -128,7 +128,7 @@ strategies
             </apply>
         </target>
         
-        <target name="sdf2rtg" depends="init,pack-sdf">
+        <target name="sdf2rtg" depends="init,pack-sdf" if="strmodule.present" unless="external-def">
             <apply executable="${build.strategoxt}/sdf2rtg" dest="${build}" failonerror="true">
                 <arg value="-i"/>
                 <srcfile/>
@@ -172,7 +172,7 @@ strategies
                 <srcfilelist dir="${build}" files="**/*.str"/>
                 <targetfileset dir="${dist}" includes="**/*"/>
             </dependset>
-            <apply executable="${build.strategoxt}/{strcExecutable}" dest="${dist}" failonerror="true">
+            <apply executable="${build.strategoxt}/{strcExecutable}" dest="include" failonerror="true">
                 <arg value=".str"/>
                 <arg value="-i"/>
                 <srcfile/>

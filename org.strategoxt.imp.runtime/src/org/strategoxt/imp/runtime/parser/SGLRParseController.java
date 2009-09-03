@@ -143,6 +143,9 @@ public class SGLRParseController implements IParseController, ISourceInfo {
     }
 
 	public AstNode parse(String input, boolean scanOnly, IProgressMonitor monitor) {
+		if (input.length() == 0)
+			return currentAst = null;
+		
 		if (getPath() == null)
 		    throw new IllegalStateException("SGLR parse controller not initialized");
 
@@ -161,7 +164,6 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 			
 			Debug.startTimer();
 			
-			// TODO: Do not fail or complain on empty input?
 			char[] inputChars = input.toCharArray();
 				
 			if (monitor.isCanceled()) return null;
@@ -261,7 +263,9 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 	public Iterator<IToken> getTokenIterator(IRegion region) {
 		PrsStream stream = forceGetParseStream();
 		
-		if (stream == null || stream.getTokens().size() == 0 || getCurrentAst() == null) {
+		if (stream == null) {
+			return null;
+		} else if (stream.getTokens().size() == 0 || getCurrentAst() == null) {
 			// Parse hasn't succeeded yet, consider the entire stream as one big token
 			stream.addToken(new SGLRToken(stream, region.getOffset(), stream.getStreamLength() - 1,
 					TokenKind.TK_UNKNOWN.ordinal()));

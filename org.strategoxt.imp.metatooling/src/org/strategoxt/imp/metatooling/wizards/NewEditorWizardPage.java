@@ -102,7 +102,7 @@ public class NewEditorWizardPage extends WizardPage {
 			}
 		});
 		
-		new Label(container, SWT.NULL).setText("&Plugin ID:");
+		new Label(container, SWT.NULL).setText("&Plugin ID and package name:");
 		inputPackageName = new Text(container, SWT.BORDER | SWT.SINGLE);
 		inputPackageName.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		inputPackageName.addModifyListener(new ModifyListener() {

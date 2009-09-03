@@ -128,15 +128,12 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 				// Try to build using the .main.esv instead;
 				// the build.xml file may touch the .packed.esv file
 				// to signal a rebuild is necessary
-				// TODO: Prevent duplicate builds triggered this way...
+				// TODO: Prevent duplicate builds triggered this way...?
 				getBuilder().updateResource(source, monitor);
 			} else if (resource.exists()) {
 				monitor.subTask("Loading " + resource.getName());
 				loadPackedDescriptor(resource);
 			}
-		} else if (!startup) {
-			// Re-build descriptor if resource changed (but not if we're starting up)
-			getBuilder().updateResource(resource, monitor);
 		}
 	}
 
@@ -147,12 +144,14 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 		IResource source = getSourceDescriptor(descriptor);
 		try {
 			asyncMessageHandler.clearMarkers(source);
+			asyncMessageHandler.clearMarkers(descriptor);
 			
 			IFile file = descriptor.getProject().getFile(descriptor.getProjectRelativePath());
 			DescriptorFactory.load(file);
 			
 		} catch (BadDescriptorException e) {
 			Environment.logException("Error in descriptor " + descriptor, e);
+			reportError(source, "Error in descriptor: " + e.getMessage());
 			reportError(descriptor, e.getOffendingTerm(), "Error in descriptor: " + e.getMessage());
 		} catch (IOException e) {
 			Environment.logException("Error reading descriptor " + descriptor, e);

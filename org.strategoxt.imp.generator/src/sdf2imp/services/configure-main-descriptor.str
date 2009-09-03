@@ -53,24 +53,22 @@ strategies
        rules(
          OnImportFailure:
            Import(m) -> Module("", NoImports(), [])
-           where
-             if <eq> (<main-descriptor-name>, m) then
-               fail
+           with
+             if <has-extension(|"esv")> <InputFile> then
+               fatal-err-msg(|["Could not import module ", m])
              end
+           where
+             not(<eq> (<main-descriptor-name>, m)) // silently ignore non-main import fails
        );
-       verbosity-scope(
-         main-descriptor-name;
-         input-descriptor-file
-       | -1
-       );
+       main-descriptor-name;
+       input-descriptor-file;
        verbose-msg(!"Existing descriptor determines generated services:", main-descriptor-name)
      |}
    <+
      // Could not read the existing file: use the defaults instead, but don't overwrite the file
-     verbose-msg(
-       !"No legal existing descriptor file found"
-     , <conc-strings> ("(editor/", <main-descriptor-name>, ")")
-     );
+     main-descriptor := <conc-strings> ("(editor/", <main-descriptor-name>, ")");
+     <warn(|"Error opening existing descriptor file; attempting to use defaults instead")> main-descriptor;
+          
      rules(NoExistingDescriptor: _);
      default-main-descriptor
 

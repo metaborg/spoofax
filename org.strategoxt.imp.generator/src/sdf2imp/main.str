@@ -41,7 +41,10 @@ strategies
       file-exists
     ; not(<get-config> SdfMainModuleFlag()) // (should be read from the file)
     where
-      rules(InputFile := esv);
+      rules(
+        InputFile := esv
+        IsLaunchedFromEclipse: _ 
+      );
       <sdf2imp> FILE(esv)
   
   // FIXME: dirty hack for getting the .def file
@@ -89,7 +92,12 @@ strategies
   
     configure-main-descriptor;
     <sdf2rtg> input;
-    <copy-or-create-parse-table> input;
+    
+    if not(IsLaunchedFromEclipse) then
+      // We could build the table here, but doing it from ant is more customizable
+      // (also, this way we don't expose our xtc underbelly)
+      <copy-or-create-parse-table> input
+    end;
   
     if NoExistingDescriptor then
       create-main-descriptor

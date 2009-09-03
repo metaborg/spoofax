@@ -44,11 +44,16 @@ strategies
       fatal-err(|"Parsed module has ambiguities")
     end;
     
-    risky(
+    (
       ?Module(name, _, _)
     <+
       try(<OnImportFailure> Import(name)); fail // trigger failure event
-    |"Module name does not match file name"
+    <+
+      if <has-extension(|"esv")> <InputFile> then
+        fatal-err(|"Module name does not match file name")
+      else
+        err(|"Module name does not match file name")
+      end
     )
   <+
     ?ImportRenamed(name, tail);

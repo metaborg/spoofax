@@ -113,6 +113,9 @@ public class DynamicDescriptorBuilder {
 		
 		try {
 			Debug.startTimer();
+			// UNDONE: setting the exceptionhandler has no effect,
+			//         other than making eclipse not release the locks
+			//context.getExceptionHandler().setEnabled(true);
 			return sdf2imp_jvm_0_0.instance.invoke(context, input);
 		} catch (StrategoErrorExit e) {
 			Environment.logException("Fatal error exit in dynamic builder", e);
@@ -124,6 +127,7 @@ public class DynamicDescriptorBuilder {
 			messageHandler.addMarkerFirstLine(mainFile, "Error building descriptor:" + e + "\n" + agent.getLog(), SEVERITY_ERROR);
 			return null;
 		} finally {
+			//context.getExceptionHandler().setEnabled(false);
 			Debug.stopTimer("Invoked descriptor builder for " + mainFile.getName());
 			dr_scope_all_end_0_0.instance.invoke(context, input);
 		}
