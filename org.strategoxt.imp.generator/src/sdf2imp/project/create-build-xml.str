@@ -16,7 +16,7 @@ strategies
     <output-xml-file(|[], "build.xml")>
     %>
     <?xml version="1.0" encoding="UTF-8"?>
-    <project name="<%= name %>" default="standalone">
+    <project name="<%= name %>" default="all">
     
         <!-- Project directories -->
         <property name="trans" location="trans"/>
@@ -41,27 +41,28 @@ strategies
         <property name="build.strategoxt.sdf.imports"  value=""/>
         <property name="build.strategoxt.strc.imports" value=""/>
         
-        <!-- Default target for building within Eclipse -->
-        <target name="from-eclipse" depends="strc,sdf2table,sdf2imp-eclipse"/>
-        
-        <!-- Default target for building outside of Eclipse -->
-        <target name="standalone" depends="strc,sdf2table,sdf2imp-standalone"/>
+        <target name="all" depends="strc,sdf2table,sdf2imp.eclipse,sdf2imp.standalone"/>
         
         <target name="init">
             <mkdir dir="${build}"/>
             <mkdir dir="${dist}"/>
         </target>
         
-        <target name="sdf2imp-eclipse" depends="sdf2table">
+        <target name="sdf2imp.eclipse" depends="sdf2table" if="eclipse.running">
             <!-- HACK: Trigger the Eclipse builder rather than build it here -->
-            <!-- (if we did built it here, we'd have to use the -p option to -->
+            <!-- (if we did do this here, we'd have to use the -p option to -->
             <!--  specify the parse table, and put the table in another dir) -->
             <touch file="include/${esvmodule}.packed.esv"/>
             <eclipse.refreshLocal resource="include/${esvmodule}.packed.esv"/>
         </target>
         
-        <target name="sdf2imp-standalone" depends="sdf2table">
-            <echo message="Only building from within Eclipse is implemented at this time"/>
+        <target name="sdf2imp.standalone" depends="sdf2table,aux-files" unless="eclipse.running">
+            <java classname="org.strategoxt.imp.generator.sdf2imp" classpath="aux/sdf2imp.jar:aux/strategoxt.jar" failonerror="true">
+                <arg value="-i"/>
+                <arg value="${basedir}/editor/${esvmodule}.main.esv"/>
+                <arg value="-p"/>
+                <arg value="${basedir}/include/${sdfmodule}.tbl"/>
+            </java>
         </target>
     
         <target name="sdf2table" depends="make-permissive">
@@ -101,6 +102,7 @@ strategies
             <mkdir dir="aux"/>
             <get src="${site}/strategoxt.jar" dest="aux/strategoxt.jar" usetimestamp="true" ignoreerrors="true"/>
             <get src="${site}/make_permissive.jar" dest="aux/make_permissive.jar" usetimestamp="true" ignoreerrors="true"/>
+            <get src="${site}/sdf2imp.jar" dest="aux/sdf2imp.jar" usetimestamp="true" ignoreerrors="true"/>
         </target>
     
         <target name="pack-sdf" depends="init" unless="externaldef">

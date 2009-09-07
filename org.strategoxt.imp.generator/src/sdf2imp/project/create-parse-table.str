@@ -17,12 +17,12 @@ strategies
     copy-parse-table <+ xtc-ensure-file; create-parse-table <+ fatal-err(|"Could not copy or create parse table")
   
   copy-parse-table =
-    if not(<eq> (<ParseTable>, <parse-table-target>)) then
-      ParseTable;
-      if file-exists then
-        print-filename(|[], <parse-table-target>);
-        <copy-file> (<id>, <parse-table-target>)
-      end
+    <eq> (<ParseTable>, <parse-table-target>)
+  <+
+    ParseTable;
+    if file-exists then
+      print-filename(|[], <parse-table-target>);
+      <copy-file> (<id>, <parse-table-target>)
     end
     
   create-parse-table:
