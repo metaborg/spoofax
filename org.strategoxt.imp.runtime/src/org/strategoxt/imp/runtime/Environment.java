@@ -24,6 +24,7 @@ import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.IMPJSGLRLibrary;
 import org.strategoxt.imp.runtime.stratego.IMPLibrary;
 import org.strategoxt.imp.runtime.stratego.adapter.WrappedAstNodeFactory;
+import org.strategoxt.lang.compat.sglr.SGLRCompatLibrary;
 
 import aterm.ATermFactory;
 import aterm.pure.PureFactory;
@@ -126,7 +127,8 @@ public final class Environment {
 			}
 		};
 
-		result.addOperatorRegistry(new IMPJSGLRLibrary());
+		SGLRCompatLibrary sglrLibrary = (SGLRCompatLibrary) result.getContext().getOperatorRegistry(SGLRCompatLibrary.REGISTRY_NAME);
+		result.addOperatorRegistry(new IMPJSGLRLibrary(sglrLibrary));
 		result.addOperatorRegistry(new IMPLibrary());
 		result.setIOAgent(new EditorIOAgent());
 		

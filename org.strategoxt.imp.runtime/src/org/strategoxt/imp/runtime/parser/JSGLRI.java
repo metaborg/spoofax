@@ -46,6 +46,9 @@ public class JSGLRI extends AbstractSGLRI {
 		parser.asyncAbort();
 	}
 	
+	/**
+	 * @see SGLR#setRecoverHandler(RecoverAlgorithm)
+	 */
 	public void setRecoverHandler(RecoverAlgorithm recoverHandler) {
 		this.recoverHandler = recoverHandler;
 		parser.setRecoverHandler(recoverHandler);
