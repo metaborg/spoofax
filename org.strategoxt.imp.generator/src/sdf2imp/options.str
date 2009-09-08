@@ -25,7 +25,7 @@ strategies
     ArgOption(
       "-p"
     , rules(ParseTable := <id>)
-    , !"-p <parse table>.tbl  Set parse table (optional)"
+    , !"-p <parse table>.tbl  Set parse table (optional; None to skip table generation)"
     )
 
   extensions-option =

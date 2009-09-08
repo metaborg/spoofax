@@ -61,7 +61,7 @@ strategies
                 <arg value="-i"/>
                 <arg value="${basedir}/editor/${esvmodule}.main.esv"/>
                 <arg value="-p"/>
-                <arg value="${basedir}/include/${sdfmodule}.tbl"/>
+                <arg value="None"/>
             </java>
         </target>
     
