@@ -139,7 +139,7 @@ public class TokenColorer implements ITokenColorer {
 		// Always damage the complete source
 		// TODO: Is always damaging the complete source still necessary??
 		IAst ast = (IAst) parseController.getCurrentAst();
-		return new Region(0, ast.getRightIToken().getEndOffset());
+		return new Region(0, ast.getRightIToken().getIPrsStream().getILexStream().getStreamLength() - 1);
 		// return seed;
 	}
 }

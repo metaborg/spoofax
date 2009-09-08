@@ -5,8 +5,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Iterator;
 
+import lpg.runtime.IPrsStream;
 import lpg.runtime.IToken;
-import lpg.runtime.PrsStream;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -261,7 +261,7 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 	}
 
 	public Iterator<IToken> getTokenIterator(IRegion region) {
-		PrsStream stream = forceGetParseStream();
+		IPrsStream stream = getParseStream();
 		
 		if (stream == null) {
 			return null;
@@ -278,9 +278,9 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 	 * Get a parse stream for the current file, enforcing a new parse
 	 * if it hasn't been parsed before.
 	 */
-	private PrsStream forceGetParseStream() {
+	public IPrsStream getParseStream() {
 		try {
-			PrsStream stream = parser.getParseStream();
+			IPrsStream stream = parser.getParseStream();
 			
 			if (stream == null) {
 				InputStream input = getResource().getContents();
