@@ -38,7 +38,7 @@ strategies
     with
       output := <permissive-grammar-target>;
       print-filename(|[], output);
-      args   := ["-i", input, "-o", output];
+      args   := ["-i", input, "-o", output, "--open-insertions", "on", "--optimize", "on"];
       if-java-platform(
         <call> ("org.strategoxt.permissivegrammars.main-make-permissive", args)
       );
