@@ -9,8 +9,6 @@ import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
-import org.strategoxt.lang._Fail;
-import org.strategoxt.lang._Id;
 import org.strategoxt.libstratego_sglr.implode_asfix_1_0;
 
 import aterm.ATerm;
@@ -25,9 +23,9 @@ public class IMPImplodeAsfixStrategy extends implode_asfix_1_0 {
 	private final AsfixImploder imploder = new AsfixImploder(new TokenKindManager());
 
 	@Override
-	public IStrategoTerm invoke(Context context, IStrategoTerm asfix, Strategy skipConcreteSyntax) {
-		if (skipConcreteSyntax.invoke(context, asfix) != null)
-			return super.invoke(context, asfix, _Id.instance);
+	public IStrategoTerm invoke(Context context, IStrategoTerm asfix, Strategy implodeConcreteSyntax) {
+		if (implodeConcreteSyntax.invoke(context, asfix) == null)
+			return super.invoke(context, asfix, implodeConcreteSyntax);
 		
 		IOperatorRegistry library = context.getOperatorRegistry(IMPJSGLRLibrary.REGISTRY_NAME);
 		IMPParseStringPTPrimitive jsglr = (IMPParseStringPTPrimitive) library.get(IMPParseStringPTPrimitive.NAME);
@@ -36,7 +34,7 @@ public class IMPImplodeAsfixStrategy extends implode_asfix_1_0 {
 		ATerm asfixATerm = jsglr.getInputTerm(asfix);
 		
 		if (inputChars == null || asfix == null) {
-			return outer.invoke(context, asfix, _Fail.instance);
+			return outer.invoke(context, asfix, implodeConcreteSyntax);
 		}
 		
 		SGLRTokenizer tokenizer = JSGLRI.getTokenizer(asfixATerm);
