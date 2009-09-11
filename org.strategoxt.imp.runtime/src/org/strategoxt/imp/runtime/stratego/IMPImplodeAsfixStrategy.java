@@ -29,6 +29,10 @@ public class IMPImplodeAsfixStrategy extends implode_asfix_1_0 {
 		
 		IOperatorRegistry library = context.getOperatorRegistry(IMPJSGLRLibrary.REGISTRY_NAME);
 		IMPParseStringPTPrimitive jsglr = (IMPParseStringPTPrimitive) library.get(IMPParseStringPTPrimitive.NAME);
+		if (jsglr == null) {
+			// Spoofax/IMP parsing may not be used for this context
+			return super.invoke(context, asfix, implodeConcreteSyntax);
+		}
 		
 		char[] inputChars = jsglr.getInputChars(asfix);
 		ATerm asfixATerm = jsglr.getInputTerm(asfix);

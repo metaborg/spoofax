@@ -213,6 +213,7 @@ public abstract class AbstractSGLRI implements IParser {
 	}
 	
 	protected static ByteArrayInputStream toByteStream(char[] chars) {
+		// FIXME: AbstractSGLRI.toByteStream() breaks extended ASCII support
 		byte[] bytes = new byte[chars.length];
 		
 		for (int i = 0; i < bytes.length; i++)

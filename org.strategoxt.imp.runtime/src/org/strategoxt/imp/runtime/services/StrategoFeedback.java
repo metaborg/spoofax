@@ -53,6 +53,8 @@ public class StrategoFeedback implements IModelListener {
 	
 	private final AstMessageHandler messages = new AstMessageHandler(AstMessageHandler.ANALYSIS_MARKER_TYPE);
 	
+	private final Object asyncUpdateSyncRoot = new Object();
+	
 	private Interpreter interpreter;
 	
 	private Job asyncLastBuildJob;
@@ -105,7 +107,7 @@ public class StrategoFeedback implements IModelListener {
 	 * Starts a new update() operation, asynchronously.
 	 */
 	public void asyncUpdate(final IParseController parseController, final IProgressMonitor monitor) {		
-		synchronized (this) {
+		synchronized (asyncUpdateSyncRoot) {
 			if (asyncLastBuildJob != null)
 				asyncLastBuildJob.cancel();
 			

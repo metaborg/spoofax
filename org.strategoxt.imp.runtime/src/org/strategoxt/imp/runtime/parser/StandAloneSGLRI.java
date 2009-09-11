@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.eclipse.imp.language.Language;
+import org.spoofax.NotImplementedException;
 import org.spoofax.jsglr.BadTokenException;
+import org.spoofax.jsglr.Disambiguator;
 import org.spoofax.jsglr.InvalidParseTableException;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.RecoverAlgorithm;
@@ -51,6 +53,10 @@ public class StandAloneSGLRI {
 	
 	public String getStartSymbol() {
 		return parser.getStartSymbol();
+	}
+	
+	public Disambiguator getDisambiguator() {
+		throw new NotImplementedException();
 	}
 	
 	public void setStartSymbol(String startSymbol) {

@@ -20,17 +20,16 @@ strategies
     
         <!-- Project directories -->
         <property name="trans" location="trans"/>
+        <property name="src-gen" location="editor/java"/>
         <property name="syntax" location="syntax"/>
-        <property name="editor" location="editor"/>
         <property name="lib" location="lib"/>
         <property name="build" location="bin"/>
         <property name="dist" location="bin/dist"/>
         
         <!-- Key input modules -->
-        <property name="sdfmodule" value="<%= name %>"/>
-        <property name="esvmodule" value="<%= name %>"/>
-        <property name="strmodule" location="<%= name' %>"/>
-        <available file="${trans}/${strmodule}.str" property="strmodule.present"/>
+        <property name="sdfmodule" value="WebDSL"/>
+        <property name="esvmodule" value="WebDSL"/>
+        <property name="strmodule" value="webdsl"/>
         
         <!-- External .def location (optional)
         <property name="externaldef" location="syntax/${sdfmodule}.def"/>
@@ -38,30 +37,42 @@ strategies
         
         <!-- Environment configuration -->
         <property name="build.strategoxt" location="${user.home}/.nix-profile/bin"/>
-        <property name="build.strategoxt.sdf.imports"  value=""/>
-        <property name="build.strategoxt.strc.imports" value=""/>
+        <property name="build.sdf.imports" value=""/>
+        <property name="build.stratego.args"
+                 value="-m main-${strmodule} -S -I ${trans} -I ${build} -I ${lib}
+                        -la stratego-lib -la stratego-sglr -la stratego-gpp -la stratego-xtc
+                        -I ${user.home}/.nix-profile/share/java-front
+                        -I include
+                        -la ${user.home}/.nix-profile/lib/libjava-front.la"/>
         
-        <target name="all" depends="strc,sdf2table,sdf2imp.eclipse,sdf2imp.standalone"/>
-        
-        <target name="init">
-            <mkdir dir="${build}"/>
-            <mkdir dir="${dist}"/>
-        </target>
+        <!-- Initialization -->
+        <target name="all" depends="stratego.java,sdf2table,sdf2imp"/>
+        <available file="${trans}/${strmodule}.str" property="build.stratego.enabled"/>
+        <available file="${build.strategoxt}/strj" property="build.stratego.usenativestrj"/>
+        <dirname property="externaldefdir" file="${externaldef}"/>
+        <condition property="externaldefimport" value="-I ${externaldefdir}" else="">
+            <isset property="externaldef"/>
+        </condition>
+        <mkdir dir="${build}"/>
+        <mkdir dir="${src-gen}"/>
+        <mkdir dir="${dist}"/>
+        <mkdir dir="include"/>
+    
+    	<target name="sdf2imp" depends="sdf2imp.eclipse,sdf2imp.standalone"/>
         
         <target name="sdf2imp.eclipse" depends="sdf2table" if="eclipse.running">
-            <!-- HACK: Trigger the Eclipse builder rather than build it here -->
-            <!-- (if we did do this here, we'd have to use the -p option to -->
-            <!--  specify the parse table, and put the table in another dir) -->
+            <!-- In Eclipse, we trigger the Eclipse builder rather than build it here -->
             <touch file="include/${esvmodule}.packed.esv"/>
             <eclipse.refreshLocal resource="include/${esvmodule}.packed.esv"/>
         </target>
         
         <target name="sdf2imp.standalone" depends="sdf2table,aux-files" unless="eclipse.running">
-            <java classname="org.strategoxt.imp.generator.sdf2imp" classpath="aux/sdf2imp.jar:aux/strategoxt.jar" failonerror="true">
+            <java classname="org.strategoxt.imp.generator.sdf2imp" classpath="aux/sdf2imp.jar:aux/strategoxt.jar" failonerror="true" fork="true">
+                <jvmarg line="-ss4m -server"/> 
                 <arg value="-i"/>
                 <arg value="${basedir}/editor/${esvmodule}.main.esv"/>
                 <arg value="-p"/>
-                <arg value="None"/>
+                <arg value="${basedir}/include/${sdfmodule}.tbl"/>
             </java>
         </target>
     
@@ -94,10 +105,6 @@ strategies
                 <arg value="${basedir}/include/${sdfmodule}.def"/>
                 <arg value="-o"/>
                 <arg value="${basedir}/include/${sdfmodule}-Permissive.def"/>
-                <arg value="--open-insertions"/>
-                <arg value="on"/>
-                <arg value="--optimize"/>
-                <arg value="off"/>
             </java>
         </target>
 
@@ -107,136 +114,6 @@ strategies
             <get src="${site}/strategoxt.jar" dest="aux/strategoxt.jar" usetimestamp="true" ignoreerrors="true"/>
             <get src="${site}/make_permissive.jar" dest="aux/make_permissive.jar" usetimestamp="true" ignoreerrors="true"/>
             <get src="${site}/sdf2imp.jar" dest="aux/sdf2imp.jar" usetimestamp="true" ignoreerrors="true"/>
-        </target>
-    
-        <target name="pack-sdf" depends="init" unless="externaldef">
-            <dependset>
-                <srcfilelist dir="${syntax}" files="**/*.sdf"/>
-                <targetfileset file="${syntax}/${sdfmodule}.def"/>
-            </dependset>
-            <apply executable="${build.strategoxt}/pack-sdf" failonerror="true" dest="include">
-                <arg value="-i"/>
-                <srcfile/>
-                <arg value="-o"/>
-                <targetfile/>
-                <arg value="-I"/>
-                <arg value="${trans}"/>
-                <arg value="-I"/>
-                <arg value="${lib}"/>
-                <arg line="${build.strategoxt.sdf.imports}"/>
-                
-                <fileset file="${syntax}/${sdfmodule}.sdf"/>
-                <mapper type="glob" from="*.sdf" to="*.def"/>
-            </apply>
-        </target>
-    
-        <target name="copy-sdf" depends="init" if="externaldef">
-            <copy file="${externaldef}" todir="include"/>
-        </target>
-    
-        <target name="rtg2sig" depends="init,sdf2rtg" if="strmodule.present" unless="external-def">
-            <apply executable="${build.strategoxt}/rtg2sig" dest="${build}" failonerror="true">
-                <arg value="-i"/>
-                <srcfile/>
-                <arg value="-o"/>
-                <targetfile/>
-                
-                <fileset file="${syntax}/${sdfmodule}.rtg"/>
-                <mapper type="glob" from="*.rtg" to="*.str"/>
-            </apply>
-        </target>
-        
-        <target name="sdf2rtg" depends="init,pack-sdf" if="strmodule.present" unless="external-def">
-            <apply executable="${build.strategoxt}/sdf2rtg" dest="${build}" failonerror="true">
-                <arg value="-i"/>
-                <srcfile/>
-                <arg value="-m"/>
-                <arg value="${sdfmodule}"/>
-                <arg value="-o"/>
-                <targetfile/>
-                
-                <fileset file="${syntax}/${sdfmodule}.str"/>
-                <mapper type="glob" from="*.def" to="*.rtg"/>
-            </apply>
-        </target>
-    
-        <target name="strc" depends="init,rtg2sig" if="strmodule.present">
-            <antcall target="strc-call">
-                <param name="build.strategoxt.strc.params" value=""/>
-                <param name="build.strategoxt.strc.extension" value="*"/>
-                <param name="strcExecutable" value="strc"/>
-            </antcall>
-        </target>
-    
-        <target name="strj" depends="init,rtg2sig" if="strmodule.present">
-            <antcall target="strc-call">
-                <param name="build.strategoxt.strc.params" value=""/>
-                <param name="build.strategoxt.strc.extension" value="*.java"/>
-                <param name="strcExecutable" value="strj"/>
-            </antcall>
-        </target>
-        
-        <target name="strji" depends="init,rtg2sig" if="strmodule.present">
-            <antcall target="strc-call">
-                <param name="build.strategoxt.strc.params" value="-F --library"/>
-                <param name="build.strategoxt.strc.extension" value="*.ctree"/>
-                <param name="strcExecutable" value="strc"/>
-            </antcall>
-        </target>
-        
-        <target name="strc-call" depends="init,rtg2sig">
-            <dependset>
-                <srcfilelist dir="${trans}" files="**/*.str"/>
-                <srcfilelist dir="${build}" files="**/*.str"/>
-                <targetfileset dir="${dist}" includes="**/*"/>
-            </dependset>
-            <apply executable="${build.strategoxt}/{strcExecutable}" dest="include" failonerror="true">
-                <arg value=".str"/>
-                <arg value="-i"/>
-                <srcfile/>
-                <arg value="-o"/>
-                <targetfile/>
-                <arg value="-m"/>
-                <arg value="-S"/> <!-- (Silent mode) -->
-                <arg value="-I"/>
-                <arg value="${trans}"/>
-                <arg value="-I"/>
-                <arg value="${build}"/>
-                <arg value="-I"/>
-                <arg value="${lib}"/>
-                <arg value="-I"/>
-                <arg value="${user.home}/.nix-profile/share/java-front"/>
-                <arg value="-la"/>
-                <arg value="stratego-lib"/>
-                <arg value="-la"/>
-                <arg value="${user.home}/.nix-profile/lib/libjava-front.la"/>
-                <arg value="-la"/>
-                <arg value="stratego-sglr"/>
-                <arg value="-la"/>
-                <arg value="stratego-gpp"/>
-                <arg value="-la"/>
-                <arg value="stratego-xtc"/>
-                
-                <arg line="${build.strategoxt.strc.params}"/>
-                <arg line="${build.strategoxt.strc.imports}"/>
-                
-                <fileset file="${trans}/${strmodule}.str"/>
-                <mapper type="glob" from="*.str" to="${build.strategoxt.strc.extension}"/>
-            </apply>
-            
-            <!-- Remove any intermediate files -->
-            <delete>
-                <fileset dir="${dist}">
-                    <include name="**/*.c"/>
-                    <include name="**/*.dep"/>
-                    <include name="**/*.lo"/>
-                    <include name="**/*.o"/>
-                </fileset>
-            </delete>
-        </target>
-        
-        <target name="clean" description="clean up">
-            <delete dir="${build}"/>
         </target>
     </project>
     <%
