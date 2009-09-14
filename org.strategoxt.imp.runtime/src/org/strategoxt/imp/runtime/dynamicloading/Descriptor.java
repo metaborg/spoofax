@@ -125,6 +125,10 @@ public class Descriptor {
 		this.basePath = basePath;
 	}
 	
+	public IPath getBasePath() {
+		return basePath;
+	}
+	
 	public String getStartSymbols() {
 		return getProperty("StartSymbols", null);
 	}

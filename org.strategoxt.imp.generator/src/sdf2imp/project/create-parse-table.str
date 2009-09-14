@@ -17,7 +17,7 @@ strategies
     copy-parse-table <+ xtc-ensure-file; create-parse-table <+ fatal-err(|"Could not copy or create parse table")
   
   copy-parse-table =
-    <debug(!"!!!"); eq> (<ParseTable; abspath>, <parse-table-target; abspath>) // skip copying
+    <eq> (<ParseTable; abspath>, <parse-table-target; abspath>) // skip copying
   <+
     ParseTable => "None" // skip copying
   <+

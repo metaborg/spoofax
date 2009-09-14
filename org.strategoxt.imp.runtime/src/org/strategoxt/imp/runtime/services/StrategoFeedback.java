@@ -5,6 +5,11 @@ import static org.strategoxt.imp.runtime.dynamicloading.TermReader.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.List;
 
 import lpg.runtime.IAst;
 
@@ -18,6 +23,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
+import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.Interpreter;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
@@ -26,6 +32,7 @@ import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.strategoxt.HybridInterpreter;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.ISourceInfo;
@@ -37,6 +44,8 @@ import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 import org.strategoxt.imp.runtime.stratego.adapter.WrappedAstNode;
+import org.strategoxt.lang.Context;
+import org.strategoxt.libstratego_lib.libstratego_lib;
 
 /**
  * Basic Stratego feedback (i.e., errors and warnings) provider.
@@ -55,7 +64,7 @@ public class StrategoFeedback implements IModelListener {
 	
 	private final Object asyncUpdateSyncRoot = new Object();
 	
-	private Interpreter interpreter;
+	private HybridInterpreter runtime;
 	
 	private Job asyncLastBuildJob;
 	
@@ -75,32 +84,60 @@ public class StrategoFeedback implements IModelListener {
 	private void init(IProgressMonitor monitor) {
 		monitor.subTask("Instantiating analysis runtime");
 		
+		List<String> jars = new ArrayList<String>();
+		
 		for (File file : descriptor.getAttachedFiles()) {
 			String filename = file.toString();
 			if (filename.endsWith(".ctree")) {
-				if (interpreter == null) {
-					try {
-						interpreter = Environment.createInterpreter();
-					} catch (Exception e) {
-						Environment.logException("Could not create interpreter", e);
-					}
-					monitor.subTask("Loading analysis runtime components");
-				}
-				try {
-					Debug.startTimer("Loading Stratego module ", filename);
-					synchronized (Environment.getSyncRoot()) {
-						interpreter.load(descriptor.openAttachment(filename));
-					}
-					Debug.stopTimer("Successfully loaded " +  filename);
-				} catch (InterpreterException e) {
-					Environment.logException(new BadDescriptorException("Error loading compiler service provider " + filename, e));
-				} catch (IOException e) {
-					Environment.logException(new BadDescriptorException("Could not load compiler service provider" + filename, e));
-				}
+				initRuntime(monitor);
+				loadCTree(filename);
+			} else if (filename.endsWith(".jar")) {
+				initRuntime(monitor);
+				jars.add(filename);
 			}
 		}
 		
+		loadJars(jars);
+		
 		monitor.subTask(null);
+	}
+
+	private void initRuntime(IProgressMonitor monitor) {
+		if (runtime == null) {
+			runtime = Environment.createInterpreter();
+			monitor.subTask("Loading analysis runtime components");
+		}
+	}
+
+	private void loadCTree(String filename) {
+		try {
+			Debug.startTimer("Loading Stratego module ", filename);
+			synchronized (Environment.getSyncRoot()) {
+				runtime.load(descriptor.openAttachment(filename));
+			}
+			Debug.stopTimer("Successfully loaded " +  filename);
+		} catch (InterpreterException e) {
+			Environment.logException(new BadDescriptorException("Error loading compiler service provider " + filename, e));
+		} catch (IOException e) {
+			Environment.logException(new BadDescriptorException("Could not load compiler service provider" + filename, e));
+		}
+	}
+	
+	private void loadJars(List<String> jars) {
+		try {
+			URL[] classpath = new URL[jars.size()];
+			for (int i = 0; i < classpath.length; i++) {
+				classpath[i] = descriptor.getBasePath().append(jars.get(i)).toFile().toURL();
+			}
+			
+			ClassLoader loader = new URLClassLoader(classpath, libstratego_lib.class.getClassLoader());
+			Class<?> mainClass = loader.loadClass("trans.Main");
+			Method registerer = mainClass.getMethod("registerInterop", IContext.class, Context.class);
+			registerer.invoke(null, runtime.getContext(), runtime.getCompiledContext());
+		
+		} catch (Exception e) {
+			Environment.logException("Error loading compiler service providers " + jars, e);
+		}
 	}
 
 	/**
@@ -132,7 +169,7 @@ public class StrategoFeedback implements IModelListener {
 		String log;
 		
 		synchronized (Environment.getSyncRoot()) {
-			if (interpreter == null)
+			if (runtime == null)
 				init(monitor);
 
 			ITermFactory factory = Environment.getTermFactory();
@@ -150,7 +187,7 @@ public class StrategoFeedback implements IModelListener {
 			IStrategoTerm input = factory.makeTuple(inputParts);
 			
 			feedback = invoke(feedbackFunction, input, ast.getSourceInfo());
-			log = ((LoggingIOAgent) interpreter.getIOAgent()).getLog().trim();
+			log = ((LoggingIOAgent) runtime.getIOAgent()).getLog().trim();
 		}
 		
 		if (!monitor.isCanceled())
@@ -232,7 +269,7 @@ public class StrategoFeedback implements IModelListener {
 	 * @see #getAstNode(IStrategoTerm)  To retrieve the AST node associated with the resulting term.
 	 */
 	public IStrategoTerm invoke(String function, IStrategoTerm term, ISourceInfo sourceInfo) {
-		if (interpreter == null)
+		if (runtime == null)
 			return null;
 		
 		synchronized (Environment.getSyncRoot()) {
@@ -242,17 +279,24 @@ public class StrategoFeedback implements IModelListener {
 				// TODO: Make interpreter support monitor.isCanceled()?
 				//       (e.g., overriding Context.lookupSVar to throw an OperationCanceledException) 
 				
-				interpreter.setCurrent(term);
+				runtime.setCurrent(term);
 				initInterpreterPath(sourceInfo.getPath().removeLastSegments(1));
 	
-				((LoggingIOAgent) interpreter.getIOAgent()).clearLog();
-				success = interpreter.invoke(function);
+				((LoggingIOAgent) runtime.getIOAgent()).clearLog();
+				success = runtime.invoke(function);
 
 			} catch (InterpreterExit e) {
-				success = e.getValue() == InterpreterExit.SUCCESS;
+				// (source marker should be added by invoking method) 
+				Environment.logException("Runtime exited when evaluating strategy " + function, e);
+				// Successful exit code or not, we needed to return a result term
+				return null;
 			} catch (InterpreterException e) {
 				// (source marker should be added by invoking method) 
-				Environment.logException("Internal error evaluating strategy " + function, e);
+				if (runtime.getContext().getVarScope().lookupSVar(Interpreter.cify(function)) == null) {
+					Environment.logException("Strategy does not exist: " + function, e);
+				} else {
+					Environment.logException("Internal error evaluating strategy " + function, e);
+				}
 				return null;
 			} catch (RuntimeException e) {
 				// (source marker should be added by invoking method) 
@@ -263,7 +307,7 @@ public class StrategoFeedback implements IModelListener {
 			if (!success) return null;
 			
 			Debug.stopTimer("Evaluated strategy " + function);
-			return interpreter.current();
+			return runtime.current();
 		}
 	}
 
@@ -273,15 +317,15 @@ public class StrategoFeedback implements IModelListener {
 		if (term instanceof WrappedAstNode) {
 			return ((WrappedAstNode) term).getNode();
 		} else {
-			Environment.logException("Resolved reference is not associated with an AST node " + interpreter.current());
+			Environment.logException("Resolved reference is not associated with an AST node " + runtime.current());
 			return null;
 		}
 	}
 	
 	private void initInterpreterPath(IPath workingDir) {
 		try {
-			interpreter.getIOAgent().setWorkingDir(workingDir.toOSString());
-			((EditorIOAgent) interpreter.getIOAgent()).setDescriptor(descriptor);
+			runtime.getIOAgent().setWorkingDir(workingDir.toOSString());
+			((EditorIOAgent) runtime.getIOAgent()).setDescriptor(descriptor);
 		} catch (IOException e) {
 			Environment.logException("Could not set Stratego working directory", e);
 			throw new RuntimeException(e);

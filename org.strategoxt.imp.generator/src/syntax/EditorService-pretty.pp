@@ -1,7 +1,7 @@
 [
    ReferenceRule        -- R [ H [ KW["reference"] _1 ] H [ KW[":"] _2 ] _3 ],
    OccurrenceRule       -- R [ H [ KW["occurrence"] _1 ] H [ KW[":"] _2 ] ],
-   SemanticProvider     -- R [ H [ KW["provider"] _1 ] ],
+   SemanticProvider     -- R [ KW["provider"] H [ KW[":"] _1 ] ],
    Strategy             -- _1,
    Attribute            -- H hs=0 [ KW["id"] KW["."] _1 ],
    SemanticObserver     -- R [ KW["observer"] H [ KW[":"] _1 ] ],

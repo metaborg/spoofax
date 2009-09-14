@@ -10,7 +10,6 @@ import org.eclipse.imp.language.Language;
 import org.eclipse.imp.runtime.RuntimePlugin;
 import org.spoofax.interpreter.adapter.aterm.UnsharedWrappedATermFactory;
 import org.spoofax.interpreter.adapter.aterm.WrappedATermFactory;
-import org.spoofax.interpreter.core.Interpreter;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -106,8 +105,8 @@ public final class Environment {
 	
 	// ENVIRONMENT ACCESS AND MANIPULATION
 
-	public static synchronized Interpreter createInterpreter() throws IOException, InterpreterException {
-		Interpreter result = new HybridInterpreter(getTermFactory()) {
+	public static synchronized HybridInterpreter createInterpreter() {
+		HybridInterpreter result = new HybridInterpreter(getTermFactory()) {
 			@Override
 			public boolean invoke(String name) throws InterpreterExit, InterpreterException {
 				assertLock();
@@ -115,9 +114,9 @@ public final class Environment {
 			}
 			
 			@Override
-			public void load(InputStream stream) throws IOException, InterpreterException {
+			public void load(IStrategoTerm program) throws InterpreterException {
 				assertLock();
-				super.load(stream);
+				super.load(program);
 			}
 			
 			@Override
@@ -126,7 +125,8 @@ public final class Environment {
 				return super.current();
 			}
 		};
-
+		
+		result.getCompiledContext().registerComponent("libstratego_sglr"); // ensure op. registry available
 		SGLRCompatLibrary sglrLibrary = (SGLRCompatLibrary) result.getContext().getOperatorRegistry(SGLRCompatLibrary.REGISTRY_NAME);
 		result.addOperatorRegistry(new IMPJSGLRLibrary(sglrLibrary));
 		result.addOperatorRegistry(new IMPLibrary());

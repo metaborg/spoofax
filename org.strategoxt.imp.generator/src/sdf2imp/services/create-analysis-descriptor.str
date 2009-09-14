@@ -19,6 +19,10 @@ strategies
           ~
           ~// This file can be used for custom analysis rules.
           ~// See the imported file for a brief introduction and examples.
+          ~
+          provider: include/trans.jar
+          ~
+          ~// observer: analyze
       ]|
     );
     
@@ -32,10 +36,10 @@ strategies
           ~
           ~// Analysis can be provided by an external Stratego program:
           ~//
-          ~//   provider stratego-program.ctree // (built using strc -F)
+          ~//   provider : stratego-program.ctree // (built using strc -F)
           ~//
           ~// Analysis is carried out by a rule of the form (ast, path, fullpath) -> (errors, warnings, infos)
           ~//
-          ~//   observer analysis-rule
+          ~//   observer : analysis-rule
       ]|
     )
