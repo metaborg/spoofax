@@ -9,6 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -260,7 +261,7 @@ public class Descriptor {
 	public Set<File> getAttachedFiles() {
 		if (attachedFiles != null)
 			return attachedFiles;
-		attachedFiles = new HashSet<File>();
+		attachedFiles = new LinkedHashSet<File>(); // (linked: must maintain jar order)
 
 		try {
 			attachedFiles.add(new File(getParseTableName()));

@@ -31,8 +31,10 @@ strategies
         <property name="esvmodule" value="WebDSL"/>
         <property name="strmodule" value="webdsl"/>
         
-        <!-- External .def location (optional)
+        <!-- External .def and .jar locations
         <property name="externaldef" location="syntax/${sdfmodule}.def"/>
+        <property name="externaljar" value="../lib.jar"/>
+        <property name="externaljarflags" value="-la org.lib"/>
         -->
         
         <!-- Environment configuration -->
@@ -42,7 +44,7 @@ strategies
                  value="-m main-${strmodule} --library -S -I ${trans} -I ${build} -I ${lib}
                         -la stratego-lib -la stratego-sglr -la stratego-gpp -la stratego-xtc
                         -I ${user.home}/.nix-profile/share/java-front
-                        -I include
+                        -I ${basedir}/include
                         -la ${user.home}/.nix-profile/lib/libjava-front.la"/>
         
         <!-- Initialization -->
@@ -51,6 +53,9 @@ strategies
         <dirname property="externaldefdir" file="${externaldef}"/>
         <condition property="externaldefimport" value="-I ${externaldefdir}" else="">
             <isset property="externaldef"/>
+        </condition>
+        <condition property="externaljarimport" value=":${externaljar}" else="">
+            <isset property="externaljar"/>
         </condition>
         <mkdir dir="${build}"/>
         <mkdir dir="${src-gen}"/>
@@ -142,6 +147,10 @@ strategies
             <copy file="${externaldef}" todir="include" preservelastmodified="true"/>
         </target>
     
+        <target name="copy-jar" if="externaljar">
+            <copy file="${externaljar}" todir="include" preservelastmodified="true"/>
+        </target>
+    
         <target name="rtg2sig" depends="sdf2rtg" if="build.stratego.enabled" unless="external-def">
             <apply executable="${build.strategoxt}/rtg2sig" dest="include" failonerror="true">
                 <arg value="-i"/>
@@ -205,11 +214,14 @@ strategies
                 <targetfileset file="${src-gen}/trans/Main.java"/>
             </dependset>
             <available file="${src-gen}/trans/Main.java" property="strc-java.available"/>
+            <antcall target="copy-jar"/>
             <antcall target="stratego.java.jvm.helper"/>
+            <javac classpath="aux/strategoxt.jar${externaljarimport}" srcdir="${src-gen}/trans" destdir="${build}/trans" source="1.5" debug="on"/>
+            <jar basedir="${build}/trans" destfile="include/trans.jar"/>
         </target>
             
         <target name="stratego.java.jvm.helper" depends="aux-files" unless="strc-java.available">
-            <java classname="org.strategoxt.strj.Main" classpath="aux/strategoxt.jar" failonerror="true">
+            <java classname="org.strategoxt.strj.Main" classpath="aux/strategoxt.jar:aux/sdf2imp.jar" failonerror="true">
                 <arg value="-i"/>
                 <arg value="${trans}/${strmodule}.str"/>
                 <arg value="-o"/>
@@ -218,11 +230,10 @@ strategies
                 <arg value="trans"/>
                 <arg value="-clean"/>
                 <arg line="${build.stratego.args} -la java-front"/>
+                <arg line="${externaljarflags}"/>
                 <arg line="${externaldefimport}"/>
             </java>
             <mkdir dir="${build}/trans"/>
-            <javac classpath="aux/strategoxt.jar" srcdir="${src-gen}/trans" destdir="${build}/trans" source="1.5" debug="on"/>
-            <jar basedir="${build}/trans" destfile="include/trans.jar"/>
         </target>
         
         <!-- Helper target for calling the stratego compiler -->
@@ -241,8 +252,9 @@ strategies
             </apply>
         </target>
         
-        <target name="clean">
+        <target name="clean" description="clean up">
             <delete dir="${build}"/>
+            <delete file="${src-gen}/trans/Main.java"/>
         </target>
     </project>
     <%

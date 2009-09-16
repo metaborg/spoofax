@@ -5,9 +5,7 @@ import static org.strategoxt.imp.runtime.dynamicloading.TermReader.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,7 +21,6 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
-import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.Interpreter;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
@@ -33,6 +30,7 @@ import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.HybridInterpreter;
+import org.strategoxt.IncompatibleJarException;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.ISourceInfo;
@@ -44,8 +42,6 @@ import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 import org.strategoxt.imp.runtime.stratego.adapter.WrappedAstNode;
-import org.strategoxt.lang.Context;
-import org.strategoxt.libstratego_lib.libstratego_lib;
 
 /**
  * Basic Stratego feedback (i.e., errors and warnings) provider.
@@ -129,6 +125,20 @@ public class StrategoFeedback implements IModelListener {
 			for (int i = 0; i < classpath.length; i++) {
 				classpath[i] = descriptor.getBasePath().append(jars.get(i)).toFile().toURL();
 			}
+			runtime.loadJars(classpath);
+		} catch (SecurityException e) {
+			Environment.logException("Error loading compiler service providers " + jars, e);
+		} catch (IncompatibleJarException e) {
+			Environment.logException("Error loading compiler service providers " + jars, e);
+		} catch (IOException e) {
+			Environment.logException("Error loading compiler service providers " + jars, e);
+		}
+		/*
+		try {
+			URL[] classpath = new URL[jars.size()];
+			for (int i = 0; i < classpath.length; i++) {
+				classpath[i] = descriptor.getBasePath().append(jars.get(i)).toFile().toURL();
+			}
 			
 			ClassLoader loader = new URLClassLoader(classpath, libstratego_lib.class.getClassLoader());
 			Class<?> mainClass = loader.loadClass("trans.Main");
@@ -138,6 +148,7 @@ public class StrategoFeedback implements IModelListener {
 		} catch (Exception e) {
 			Environment.logException("Error loading compiler service providers " + jars, e);
 		}
+		*/
 	}
 
 	/**
@@ -276,8 +287,8 @@ public class StrategoFeedback implements IModelListener {
 		    Debug.startTimer();
 		    boolean success;
 			try {
-				// TODO: Make interpreter support monitor.isCanceled()?
-				//       (e.g., overriding Context.lookupSVar to throw an OperationCanceledException) 
+				// TODO: Make Context support monitor.isCanceled()?
+				//       (e.g., overriding Context.lookupPrimitive to throw an OperationCanceledException) 
 				
 				runtime.setCurrent(term);
 				initInterpreterPath(sourceInfo.getPath().removeLastSegments(1));
