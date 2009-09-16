@@ -116,7 +116,7 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 		try {
 			agent.setWorkingDir(project.getLocation().toOSString());
 			try {
-				String jar1 = org.strategoxt.libstratego_lib.Main.class.getProtectionDomain().getCodeSource().getLocation().getFile();
+				String jar1 = org.strategoxt.stratego_lib.Main.class.getProtectionDomain().getCodeSource().getLocation().getFile();
 				String jar2 = make_permissive.class.getProtectionDomain().getCodeSource().getLocation().getFile();
 				String jar3 = sdf2imp.class.getProtectionDomain().getCodeSource().getLocation().getFile();
 				assert jar1.endsWith(".jar") && jar2.endsWith(".jar") && jar3.endsWith(".jar");

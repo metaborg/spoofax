@@ -3,7 +3,7 @@ package org.strategoxt.imp.runtime.stratego;
 import org.spoofax.interpreter.library.jsglr.JSGLRLibrary;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.lang.compat.sglr.SGLRCompatLibrary;
-import org.strategoxt.libstratego_sglr.implode_asfix_1_0;
+import org.strategoxt.stratego_sglr.implode_asfix_1_0;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>

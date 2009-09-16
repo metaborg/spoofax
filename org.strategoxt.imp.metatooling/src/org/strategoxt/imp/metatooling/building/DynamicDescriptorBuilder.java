@@ -20,8 +20,8 @@ import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.StrategoErrorExit;
 import org.strategoxt.lang.StrategoExit;
-import org.strategoxt.libstratego_lib.dr_scope_all_end_0_0;
-import org.strategoxt.libstratego_lib.dr_scope_all_start_0_0;
+import org.strategoxt.stratego_lib.dr_scope_all_end_0_0;
+import org.strategoxt.stratego_lib.dr_scope_all_start_0_0;
 import org.strategoxt.permissivegrammars.make_permissive;
 
 /**

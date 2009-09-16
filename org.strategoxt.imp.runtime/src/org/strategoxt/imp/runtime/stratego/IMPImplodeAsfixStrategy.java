@@ -9,7 +9,7 @@ import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
-import org.strategoxt.libstratego_sglr.implode_asfix_1_0;
+import org.strategoxt.stratego_sglr.implode_asfix_1_0;
 
 import aterm.ATerm;
 
