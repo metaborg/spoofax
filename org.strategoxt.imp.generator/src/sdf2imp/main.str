@@ -87,6 +87,7 @@ strategies
         rules(StartSymbol := "Start")
       end;
       create-grammar;
+      create-trans;
       input := <pack-sdf> FILE(<conc-strings> ("syntax/", <get-sdf-main-module>, ".sdf"))
     end;
   

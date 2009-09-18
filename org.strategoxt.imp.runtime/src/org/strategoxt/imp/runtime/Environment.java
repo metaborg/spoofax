@@ -126,7 +126,7 @@ public final class Environment {
 			}
 		};
 		
-		result.getCompiledContext().registerComponent("libstratego_sglr"); // ensure op. registry available
+		result.getCompiledContext().registerComponent("stratego_sglr"); // ensure op. registry available
 		SGLRCompatLibrary sglrLibrary = (SGLRCompatLibrary) result.getContext().getOperatorRegistry(SGLRCompatLibrary.REGISTRY_NAME);
 		result.addOperatorRegistry(new IMPJSGLRLibrary(sglrLibrary));
 		result.addOperatorRegistry(new IMPLibrary());

@@ -42,6 +42,7 @@ import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 import org.strategoxt.imp.runtime.stratego.adapter.WrappedAstNode;
+import org.strategoxt.lang.StrategoException;
 
 /**
  * Basic Stratego feedback (i.e., errors and warnings) provider.
@@ -80,6 +81,7 @@ public class StrategoFeedback implements IModelListener {
 	private void init(IProgressMonitor monitor) {
 		monitor.subTask("Instantiating analysis runtime");
 		
+		Debug.startTimer();
 		List<String> jars = new ArrayList<String>();
 		
 		for (File file : descriptor.getAttachedFiles()) {
@@ -94,6 +96,7 @@ public class StrategoFeedback implements IModelListener {
 		}
 		
 		loadJars(jars);
+		Debug.stopTimer("Loaded feedback components");
 		
 		monitor.subTask(null);
 	}
@@ -232,12 +235,16 @@ public class StrategoFeedback implements IModelListener {
 			
 		    IStrategoList errors = termAt(feedback, 0);
 		    IStrategoList warnings = termAt(feedback, 1);
+		    IStrategoList notes = termAt(feedback, 2);
 		    feedbackToMarkers(sourceInfo, errors, IMarker.SEVERITY_ERROR);
 		    feedbackToMarkers(sourceInfo, warnings, IMarker.SEVERITY_WARNING);
+		    feedbackToMarkers(sourceInfo, notes, IMarker.SEVERITY_INFO);
 		} else if (feedback == null) {
 			IResource resource = ((SGLRParseController) sourceInfo).getResource();
+			if (log.length() == 0) log = "(see error log)"; // TODO: report or throw last exception if strategy not found etc.
 			messages.addMarkerFirstLine(resource, "Analysis failed: " + log, IMarker.SEVERITY_ERROR);
 		} else {
+			// TODO: throw an exception causing a pop-up in this case 
 			IResource resource = ((SGLRParseController) sourceInfo).getResource();
 			messages.addMarkerFirstLine(resource, "Internal error - illegal output from " + feedbackFunction + ": " + feedback, IMarker.SEVERITY_ERROR);
 		    Environment.logException("Illegal output from " + feedbackFunction + ": " + feedback);
@@ -246,6 +253,8 @@ public class StrategoFeedback implements IModelListener {
 	
 	private final void feedbackToMarkers(ISourceInfo sourceInfo, IStrategoList feedbacks, int severity) {
 	    for (IStrategoTerm feedback : feedbacks.getAllSubterms()) {
+	    	if (feedback.getSubtermCount() != 2)
+	    		throw new StrategoException("Illegal feedback result (must be a term/message tuple): " + feedback);
 	        IStrategoTerm term = termAt(feedback, 0);
 			IStrategoString message = termAt(feedback, 1);
 			IResource resource = sourceInfo.getResource();
@@ -302,6 +311,7 @@ public class StrategoFeedback implements IModelListener {
 				// Successful exit code or not, we needed to return a result term
 				return null;
 			} catch (InterpreterException e) {
+				// TODO: for asyncUpdate(), programmer errors like these should just be thrown, triggering a pop-up
 				// (source marker should be added by invoking method) 
 				if (runtime.getContext().getVarScope().lookupSVar(Interpreter.cify(function)) == null) {
 					Environment.logException("Strategy does not exist: " + function, e);

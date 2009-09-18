@@ -110,7 +110,8 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 		IProject project = workspace.getRoot().getProject(projectName);
 		project.create(null);
 		project.open(null);
-		project.findMember(".project").delete(true, new NullProgressMonitor()); // ensure new one is created
+		// UNDONE: deleting the .project file doesn't always work, likely due to threading
+		// project.findMember(".project").delete(true, new NullProgressMonitor());
 		monitor.worked(1);
 
 		try {

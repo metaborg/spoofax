@@ -13,6 +13,8 @@
 <booleanAttribute key="default" value="true"/>
 <booleanAttribute key="includeOptional" value="true"/>
 <stringAttribute key="location" value="${workspace_loc}/../runtime-spoofax-imp"/>
+<stringAttribute key="org.eclipse.debug.core.source_locator_id" value="org.eclipse.pde.ui.launcher.PDESourceLookupDirector"/>
+<stringAttribute key="org.eclipse.debug.core.source_locator_memento" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#10;&lt;sourceLookupDirector&gt;&#10;&lt;sourceContainers duplicates=&quot;false&quot;&gt;&#10;&lt;container memento=&quot;&amp;lt;?xml version=&amp;quot;1.0&amp;quot; encoding=&amp;quot;UTF-8&amp;quot; standalone=&amp;quot;no&amp;quot;?&amp;gt;&amp;#10;&amp;lt;folder nest=&amp;quot;false&amp;quot; path=&amp;quot;/webdsl/src/bin&amp;quot;/&amp;gt;&amp;#10;&quot; typeId=&quot;org.eclipse.debug.core.containerType.folder&quot;/&gt;&#10;&lt;container memento=&quot;&amp;lt;?xml version=&amp;quot;1.0&amp;quot; encoding=&amp;quot;UTF-8&amp;quot; standalone=&amp;quot;no&amp;quot;?&amp;gt;&amp;#10;&amp;lt;default/&amp;gt;&amp;#10;&quot; typeId=&quot;org.eclipse.debug.core.containerType.default&quot;/&gt;&#10;&lt;/sourceContainers&gt;&#10;&lt;/sourceLookupDirector&gt;&#10;"/>
 <listAttribute key="org.eclipse.debug.ui.favoriteGroups">
 <listEntry value="org.eclipse.debug.ui.launchGroup.debug"/>
 <listEntry value="org.eclipse.debug.ui.launchGroup.run"/>

@@ -19,6 +19,8 @@ strategies
           ~
           ~// This file can be used for custom reference resolving rules.
           ~// See the imported file for a brief introduction and examples.
+          ~
+          reference _ : editor-resolve editor-hover
       ]|
     );
     

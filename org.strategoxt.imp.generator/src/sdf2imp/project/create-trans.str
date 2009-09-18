@@ -1,0 +1,83 @@
+module sdf2imp/project/create-trans
+
+imports
+  sdf2imp/util/-
+
+strategies
+  
+  trans-module-name =
+     get-sdf-main-module;
+     lower-case;
+     cify;
+     string-replace(|"_", "-")
+  
+  create-trans =
+    <file-exists> <conc-strings> ("trans/", <trans-module-name>, ".str")
+  <+
+    name     := <trans-module-name>;
+    sdf-name := <get-sdf-main-module>;
+    
+    <output-text-file(|["trans"], <conc-strings> (name, ".str"))>
+    <conc-strings>
+(
+"module ", name, "
+
+imports
+  libstratego-lib
+  ", sdf-name, "
+
+strategies
+
+  main-entities =
+    fatal-err(|\"No main strategy\")
+  
+  editor-analyze:
+    (ast, path, fullpath) -> (errors, warnings, notes)
+    with
+      // Analysis: scope and record dynamic rules
+      try(dr-scope-all-end);
+      dr-scope-all-start;
+      alltd(record-entity)
+    with
+      errors   := <collect-all(include-origin(constraint-error))> ast;
+      warnings := <collect-all(include-origin(constraint-warning))> ast;
+      notes    := <collect-all(include-origin(constraint-note))> ast
+   
+  include-origin(s):
+    t -> (t, message)
+    where
+      message := <s; try(all(is-string <+ write-to-string)); try(concat-strings)> t
+  
+  editor-resolve:
+    (source, filename, reference, path) -> target
+    where
+      target := <GetEntity> source
+
+  editor-hover:
+    (source, filename, reference, path) -> <conc-strings> (\"Hover help: \", <write-to-string> source)
+
+rules
+
+  record-entity:
+    Entity(x, body) -> Entity(x, body)
+    with
+      rules(
+        GetEntity: x -> x
+      )
+    
+  constraint-error:
+    Property(x, Type(type)) -> [\"Type \", type, \" is not defined\"]
+    where
+      not(!type => \"String\");
+      not(!type => \"Int\");
+      not(<GetEntity> type)
+  
+  constraint-warning:
+    Entity(x, _) -> \"Entity names must start with a capital\"
+    where
+      not(<explode-string; Hd; is-upper> x)
+  
+  constraint-note:
+    Module(\"example\", _) -> \"This is just an example program in the \\\"entities\\\" language\"
+"
+)

@@ -79,6 +79,7 @@ public class DynamicDescriptorBuilder {
 		try {
 			Environment.assertLock();
 			messageHandler.clearMarkers(mainFile);
+			monitor.beginTask("Generating service descriptors for " + mainFile.getName(), IProgressMonitor.UNKNOWN);
 			IStrategoTerm result = invokeBuilder(mainFile);
 			if (result == null) {
 				String log = agent.getLog().trim();

@@ -2,6 +2,7 @@ module project/create-build-xml
 
 imports
   sdf2imp/util/-
+  sdf2imp/project/create-trans
 
 strategies
 
@@ -9,7 +10,7 @@ strategies
     <file-exists> "build.xml"
   <+
     name       := <get-sdf-main-module>;
-    name'      := <lower-case; cify; string-replace(|"_", "-")> name;
+    name'      := <trans-module-name>;
     classname  := <get-main-class-name>;
     pkgname    := <BasePackage <+ default-package-name>;
     
@@ -17,6 +18,11 @@ strategies
     %>
     <?xml version="1.0" encoding="UTF-8"?>
     <project name="<%= name %>" default="all">
+        
+        <!-- Key input modules -->
+        <property name="sdfmodule" value="<%= name %>"/>
+        <property name="esvmodule" value="<%= name %>"/>
+        <property name="strmodule" value="<%= name' %>"/>
     
         <!-- Project directories -->
         <property name="trans" location="trans"/>
@@ -25,11 +31,6 @@ strategies
         <property name="lib" location="lib"/>
         <property name="build" location="bin"/>
         <property name="dist" location="bin/dist"/>
-        
-        <!-- Key input modules -->
-        <property name="sdfmodule" value="WebDSL"/>
-        <property name="esvmodule" value="WebDSL"/>
-        <property name="strmodule" value="webdsl"/>
         
         <!-- External .def and .jar locations
         <property name="externaldef" location="syntax/${sdfmodule}.def"/>
@@ -40,8 +41,7 @@ strategies
         <!-- Environment configuration -->
         <property name="build.strategoxt" location="${user.home}/.nix-profile/bin"/>
         <property name="build.sdf.imports" value=""/>
-        <property name="build.stratego.args"
-                 value="-m main-${strmodule} --library -S -I ${trans} -I ${build} -I ${lib}
+        <property name="build.stratego.args" value="-m main-${strmodule} --library -I ${trans} -I ${build} -I ${lib}
                         -la stratego-lib -la stratego-sglr -la stratego-gpp -la stratego-xtc
                         -I ${user.home}/.nix-profile/share/java-front
                         -I ${basedir}/include
@@ -57,12 +57,16 @@ strategies
         <condition property="externaljarimport" value=":${externaljar}" else="">
             <isset property="externaljar"/>
         </condition>
+        <fail if="externaljar" unless="externaljarflags"/>
+        <condition property="externaljarflags" value="${externaljarflags}" else="">
+            <isset property="externaljarflags"/>
+        </condition>
         <mkdir dir="${build}"/>
         <mkdir dir="${src-gen}"/>
         <mkdir dir="${dist}"/>
         <mkdir dir="include"/>
     
-        <target name="all" depends="stratego.java,sdf2table,sdf2imp"/>
+        <target name="all" depends="stratego.ctree,sdf2table,sdf2imp"/>
 
         <target name="sdf2imp" depends="sdf2imp.eclipse,sdf2imp.standalone"/>
         
@@ -157,6 +161,8 @@ strategies
                 <srcfile/>
                 <arg value="-o"/>
                 <targetfile/>
+                <arg value="--module"/>
+                <arg value="${sdfmodule}"/>
                 
                 <fileset file="include/${sdfmodule}.rtg"/>
                 <mapper type="glob" from="*.rtg" to="*.str"/>
@@ -172,11 +178,12 @@ strategies
                 <arg value="-o"/>
                 <targetfile/>
                 
-                <fileset file="include/${sdfmodule}.str"/>
+                <fileset file="include/${sdfmodule}.def"/>
                 <mapper type="glob" from="*.def" to="*.rtg"/>
             </apply>
         </target>
     
+        <!-- C-based Stratego compilation (unused) -->
         <target name="stratego.c">
             <antcall target="stratego.helper">
                 <param name="build.stratego.outputpath" value="include"/>
@@ -186,7 +193,8 @@ strategies
             </antcall>
         </target>
     
-        <target name="stratego.interpreter">
+        <!-- Stratego interpreter target -->
+        <target name="stratego.ctree">
             <antcall target="stratego.helper">
                 <param name="build.stratego.outputpath" value="include"/>
                 <param name="build.stratego.extraargs" value="-F --library"/>
@@ -216,11 +224,11 @@ strategies
             <available file="${src-gen}/trans/Main.java" property="strc-java.available"/>
             <antcall target="copy-jar"/>
             <antcall target="stratego.java.jvm.helper"/>
-            <javac classpath="aux/strategoxt.jar${externaljarimport}" srcdir="${src-gen}/trans" destdir="${build}/trans" source="1.5" debug="on"/>
-            <jar basedir="${build}/trans" destfile="include/trans.jar"/>
+            <javac classpath="aux/strategoxt.jar${externaljarimport}" srcdir="${src-gen}/trans" destdir="${build}" source="1.5" debug="on"/>
+            <jar basedir="${build}" includes="trans/**" destfile="include/trans.jar"/>
         </target>
             
-        <target name="stratego.java.jvm.helper" depends="aux-files" unless="strc-java.available">
+        <target name="stratego.java.jvm.helper" depends="aux-files,rtg2sig" unless="strc-java.available">
             <java classname="org.strategoxt.strj.Main" classpath="aux/strategoxt.jar:aux/sdf2imp.jar" failonerror="true">
                 <arg value="-i"/>
                 <arg value="${trans}/${strmodule}.str"/>

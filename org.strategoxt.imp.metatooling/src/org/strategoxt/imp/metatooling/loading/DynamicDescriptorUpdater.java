@@ -73,7 +73,9 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 	}
 
 	public void resourceChanged(final IResourceChangeEvent event) {
-		if (event.getType() == IResourceChangeEvent.POST_CHANGE) {
+		if (event.getType() == IResourceChangeEvent.POST_CHANGE && isSignificantChange(event.getDelta())) {
+			// TODO: aggregate multiple events into a single job?
+			//       this seems to spawn way to many threads
 			Job job = new WorkspaceJob("Updating editor descriptor runtime") {
 				@Override
 				public IStatus runInWorkspace(IProgressMonitor monitor) {
