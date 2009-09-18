@@ -79,5 +79,15 @@ rules
   
   constraint-note:
     Module(\"example\", _) -> \"This is just an example program in the \\\"entities\\\" language\"
+
+signature constructors
+
+  // These definitions are not strictly necessary,
+  // but they ensure that the build doesn't break if the syntax
+  // is changed and these constructors no longer exist
+  Module   : ID * List(Entity)   -> Module
+  Entity   : ID * List(Property) -> Entity
+  Property : ID * Type           -> Property
+  Type     : ID                  -> Type
 "
 )
