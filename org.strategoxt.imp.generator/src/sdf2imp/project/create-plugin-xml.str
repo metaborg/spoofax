@@ -6,11 +6,11 @@ imports
 strategies
 
   create-plugin-xml =
-    // TODO: if there is an existing plugin.xml, we should check if the extensions/language/derivedFrom settings are still okay
     <file-exists> "plugin.xml"
   <+
     name       := <get-sdf-main-module>;
-    classname  := <get-main-class-name>;
+    parser     := <parse-controller-name>;
+    validator  := <validator-name>;
     pkgname    := <BasePackage <+ default-package-name>;
     extensions := <EditorExtensions>;
     
@@ -26,6 +26,8 @@ strategies
                 description="<%= name %>"
                 language="<%= name %>"
                 derivedFrom="DynamicRoot"
+                validator="<%= pkgname %>.<%= validator %>"
+                validatorClass="<%= pkgname %>.<%= validator %>"
           ></language>
        </extension>
        <extension
@@ -33,7 +35,7 @@ strategies
              name="<%= name %> Parser"
              point="org.eclipse.imp.runtime.parser">
           <parser
-                class="<%= pkgname %>.<%= classname %>ParseController"
+                class="<%= pkgname %>.<%= parser %>"
                 language="<%= name %>">
           </parser>
        </extension>    

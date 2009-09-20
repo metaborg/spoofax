@@ -23,6 +23,14 @@ public class MetaFileLanguageValidator extends LanguageValidator {
 	public MetaFileLanguageValidator(Descriptor descriptor) {
 	    this.descriptor = descriptor;
 	}
+	
+	protected MetaFileLanguageValidator() {
+		// Lazily initializes the descriptor
+	}
+	
+	public Descriptor getDescriptor() {
+		return descriptor;
+	}
 
 	@Override
 	public boolean validate(IFile file) {
@@ -35,7 +43,7 @@ public class MetaFileLanguageValidator extends LanguageValidator {
 	
 	public boolean validateByLanguage(IFile file, String languageName) {
 		try {
-			Language language = descriptor.getLanguage();
+			Language language = getDescriptor().getLanguage();
 				
 			if (languageName.equals(language.getName()))
 				return true;
@@ -58,7 +66,7 @@ public class MetaFileLanguageValidator extends LanguageValidator {
 	
 	private boolean validateByExtension(IFile file) {
 		try {
-			return descriptor.getLanguage().hasExtension(file.getFileExtension());
+			return getDescriptor().getLanguage().hasExtension(file.getFileExtension());
 		} catch (BadDescriptorException e) {
 			Environment.logException(e);
 			return false;
@@ -66,7 +74,7 @@ public class MetaFileLanguageValidator extends LanguageValidator {
 	}
 	
 	private boolean isExactMatchAvailable(String languageName) throws BadDescriptorException {
-		Language myLanguage = descriptor.getLanguage(); 
+		Language myLanguage = getDescriptor().getLanguage(); 
 		for (Language language : LanguageRegistry.getLanguages()) {
 			if (language != myLanguage && languageName.equals(language.getName()))
 				return true;
@@ -75,7 +83,7 @@ public class MetaFileLanguageValidator extends LanguageValidator {
 	}
 	
 	private boolean isExtensionOfAvailable(String languageName) throws BadDescriptorException {
-		Language myLanguage = descriptor.getLanguage(); 
+		Language myLanguage = getDescriptor().getLanguage(); 
 		for (Language language : LanguageRegistry.getLanguages()) {
 			if (language != myLanguage && isExtensionOf(language, languageName))
 				return true;

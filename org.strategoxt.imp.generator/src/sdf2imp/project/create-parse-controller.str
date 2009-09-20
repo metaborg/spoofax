@@ -10,12 +10,12 @@ imports
 
 strategies
   
-  get-parse-controller-name =
+  parse-controller-name =
     <conc-strings> (<get-main-class-name>, "ParseController")
 
   create-parse-controller =
     // TODO: do not overwrite existing parse controller
-    x_name  := <get-parse-controller-name>;
+    x_name  := <parse-controller-name>;
     pkgname := <get-package-name>;
     table   := <get-sdf-main-module>;
     
@@ -57,10 +57,10 @@ strategies
               InputStream table = x_name.class.getResourceAsStream(TABLE);
 
               if (descriptorStream == null)
-                throw new BadDescriptorException("Could not load descriptor file from " + DESCRIPTOR + " (not found in plugin)");
+                throw new BadDescriptorException("Could not load descriptor file from " + DESCRIPTOR + " (not found in plugin: " + getPluginLocation() + ")");
 
               if (table == null)
-                throw new BadDescriptorException("Could not load parse table from " + TABLE + " (not found in plugin)");
+                throw new BadDescriptorException("Could not load parse table from " + TABLE + " (not found in plugin: " + getPluginLocation() + ")");
 
               descriptor = DescriptorFactory.load(descriptorStream, table, null);
               descriptor.setAttachmentProvider(x_name.class);
@@ -75,6 +75,10 @@ strategies
               Environment.logException("I/O problem loading descriptor for " + LANGUAGE + " plugin", exc);
               throw new RuntimeException("I/O problem loading descriptor for " + LANGUAGE + " plugin", exc);
             }
+        }
+  
+        private static String getPluginLocation() {
+            return x_name.class.getProtectionDomain().getCodeSource().getLocation().getFile();
         }
         
         @Override

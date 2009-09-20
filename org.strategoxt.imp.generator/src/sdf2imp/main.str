@@ -115,6 +115,7 @@ strategies
     create-packed-descriptor-file;
     
     create-parse-controller;
+    create-validator;
     create-build-properties;
     create-project-file;
     create-activator;

@@ -31,7 +31,7 @@ public class AbstractService<T extends ILanguageService> {
 			if (notLoadingCause != null) // previous error
 				throw new RuntimeException(notLoadingCause);
 			if (!isInitialized())
-				throw new IllegalStateException("Editor service component not initialized yet - " + getClass().getSimpleName());
+				throw new IllegalStateException("Editor service component not initialized yet - " + getClass().getSimpleName() + "/" + language);
 			try {
 				Descriptor desc = Environment.getDescriptor(getLanguage());
 				if(desc == null)
@@ -63,10 +63,16 @@ public class AbstractService<T extends ILanguageService> {
 	}
 	
 	public void initialize(Language language) {
+		// (Thrown exceptions are shown directly in the editor view.)
 		this.language = language;
-		if(getWrapped() == null)
+		if (getWrapped() == null) // (trigger descriptor init)
 			throw new RuntimeException("Failed to initialize language " + language.getName());
-		Environment.getDescriptor(language).addInitializedService(this);
+		if (!this.language.getName().equals(language.getName()))
+			throw new RuntimeException("Failed to initialize language " + this.language.getName() + ": language name in plugin.xml (" + language.getName() + ") does not correspond to name in editor service descriptors");
+		Descriptor descriptor = Environment.getDescriptor(language);
+		if (descriptor == null)
+			throw new RuntimeException("No definition for language '" + language.getName() + "'; try re-opening the editor");
+		descriptor.addInitializedService(this);
 	}
 	
 	/**

@@ -23,6 +23,7 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
+import org.spoofax.interpreter.core.Interpreter;
 import org.strategoxt.imp.generator.sdf2imp;
 import org.strategoxt.imp.metatooling.loading.DynamicDescriptorUpdater;
 import org.strategoxt.imp.runtime.Environment;
@@ -152,7 +153,9 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 				Job.getJobManager().endRule(project);
 			}
 			
-			monitor.setTaskName("Opening files for editing");
+			monitor.setTaskName("Opening editors");
+			openEditor(project, "/trans/" + toStrategoName(languageName) +  ".str", true);
+			monitor.worked(1);
 			openEditor(project, "/editor/" + languageName +  ".main.esv", true);
 			monitor.worked(1);
 			openEditor(project, "/syntax/" + languageName +  ".sdf", true);
@@ -171,6 +174,10 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 			}
 		}
 	}
+ 	
+ 	private static String toStrategoName(String languageName) {
+ 		return Interpreter.cify(languageName.toLowerCase()).replace('_', '-');
+ 	}
 	
 	private void openEditor(IProject project, String filename, final boolean activate) {
 		final IResource file = (IResource) project.findMember(filename);

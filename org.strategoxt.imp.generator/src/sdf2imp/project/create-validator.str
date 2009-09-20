@@ -1,0 +1,32 @@
+module sdf2imp/project/create-validator
+
+imports
+  libstratego-lib
+  libstratego-xtc
+    
+  sdf2imp/util/-
+
+strategies
+  
+  validator-name =
+    <conc-strings> (<get-main-class-name>, "Validator")
+
+  create-validator =
+    // TODO: do not overwrite existing validator
+    x_name   := <validator-name>;
+    x_parser := <parse-controller-name>;
+    pkgname  := <get-package-name>;
+    
+    <output-java-file> |[
+      package pkgname;
+
+      import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
+      import org.strategoxt.imp.runtime.services.MetaFileLanguageValidator;
+
+      public class x_name extends MetaFileLanguageValidator {
+          public Descriptor getDescriptor() {
+              // Lazily get the descriptor
+              return x_parser.getDescriptor();
+          }
+      }
+    ]|
