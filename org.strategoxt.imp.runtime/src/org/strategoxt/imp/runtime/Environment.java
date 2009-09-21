@@ -121,8 +121,9 @@ public final class Environment {
 			
 			@Override
 			public IStrategoTerm current() {
-				assertLock();
-				return super.current();
+				synchronized (getSyncRoot()) {
+					return super.current();
+				}
 			}
 		};
 		

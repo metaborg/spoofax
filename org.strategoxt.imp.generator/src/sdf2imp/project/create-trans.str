@@ -49,20 +49,21 @@ strategies
       message := <s; try(all(is-string <+ write-to-string)); try(concat-strings)> t
   
   editor-resolve:
-    (source, filename, reference, path) -> target
+    (Type(type), position, ast, path, fullpath) -> target
     where
-      target := <GetEntity> source
+      target := <GetEntity> type
 
   editor-hover:
-    (source, filename, reference, path) -> <conc-strings> (\"Hover help: \", <write-to-string> source)
+    (term, position, ast, path, fullpath) -> <conc-strings> (\"Hover help: \", <write-to-string> term)
 
 rules
 
   record-entity:
-    Entity(x, body) -> Entity(x, body)
+    Entity(x_declaration, body) -> Entity(x_declaration, body)
     with
+      x_reference := x_declaration;
       rules(
-        GetEntity: x -> x
+        GetEntity: x_reference -> x_declaration
       )
     
   constraint-error:

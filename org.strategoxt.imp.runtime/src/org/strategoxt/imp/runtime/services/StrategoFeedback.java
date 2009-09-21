@@ -65,6 +65,8 @@ public class StrategoFeedback implements IModelListener {
 	
 	private Job asyncLastBuildJob;
 	
+	private volatile boolean isUpdateStarted;
+	
 	public StrategoFeedback(Descriptor descriptor, String feedbackFunction) {
 		this.descriptor = descriptor;
 		this.feedbackFunction = feedbackFunction;
@@ -72,6 +74,16 @@ public class StrategoFeedback implements IModelListener {
 
 	public final AnalysisRequired getAnalysisRequired() {
 		return AnalysisRequired.TYPE_ANALYSIS;
+	}
+	
+	/**
+	 * Returns a value indicating whether or not an analysis has
+	 * been scheduled or completed at this point.
+	 * 
+	 * @return true if update() or asyncUpdate() have been called.
+	 */
+	public boolean isUpdateStarted() {
+		return isUpdateStarted;
 	}
 	
 	public AstMessageHandler getMessages() {
@@ -157,7 +169,9 @@ public class StrategoFeedback implements IModelListener {
 	/**
 	 * Starts a new update() operation, asynchronously.
 	 */
-	public void asyncUpdate(final IParseController parseController, final IProgressMonitor monitor) {		
+	public void asyncUpdate(final IParseController parseController) {
+		isUpdateStarted = true;
+		
 		synchronized (asyncUpdateSyncRoot) {
 			if (asyncLastBuildJob != null)
 				asyncLastBuildJob.cancel();
@@ -176,6 +190,8 @@ public class StrategoFeedback implements IModelListener {
 	}
 
 	public void update(IParseController parseController, IProgressMonitor monitor) {
+		isUpdateStarted = true;
+		
 		if (feedbackFunction == null || monitor.isCanceled())
 			return;
 		
@@ -271,10 +287,11 @@ public class StrategoFeedback implements IModelListener {
 		synchronized (Environment.getSyncRoot()) {
 			ITermFactory factory = Environment.getTermFactory();
 			IStrategoTerm[] inputParts = {
+					node.getTerm(),
+					StrategoTermPath.createPath(node),
 					getRoot(node).getTerm(),
 					factory.makeString(node.getSourceInfo().getPath().toOSString()),
-					node.getTerm(),
-					StrategoTermPath.createPath(node)
+					factory.makeString(node.getSourceInfo().getProject().getRawProject().getLocation().toOSString())
 			};
 			IStrategoTerm input = factory.makeTuple(inputParts);
 			
@@ -325,9 +342,8 @@ public class StrategoFeedback implements IModelListener {
 				return null;
 			}
 			
+			Debug.stopTimer("Evaluated strategy " + function + (success ? "" : " (failed)"));
 			if (!success) return null;
-			
-			Debug.stopTimer("Evaluated strategy " + function);
 			return runtime.current();
 		}
 	}

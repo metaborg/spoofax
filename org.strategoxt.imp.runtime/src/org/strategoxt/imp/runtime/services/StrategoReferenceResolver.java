@@ -1,15 +1,16 @@
 package org.strategoxt.imp.runtime.services;
 
+import static org.spoofax.interpreter.core.Tools.*;
+
 import java.util.List;
-import java.util.WeakHashMap;
 
 import lpg.runtime.IAst;
 
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.services.IReferenceResolver;
+import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.Debug;
-import org.strategoxt.imp.runtime.parser.ast.IntAstNode;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 
 /**
@@ -26,14 +27,6 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 	
 	private final String wildcardHelperFunction;
 	
-	private final WeakHashMap<IStrategoAstNode, IAst> resolverCache =
-		new WeakHashMap<IStrategoAstNode, IAst>();
-	
-	private final WeakHashMap<IStrategoAstNode, String> helpCache =
-		new WeakHashMap<IStrategoAstNode, String>();
-	
-	private final IStrategoAstNode NOT_FOUND = new IntAstNode(null, null, null, 0);
-	
 	public StrategoReferenceResolver(StrategoFeedback feedback, List<NodeMapping<String>> resolverFunctions, List<NodeMapping<String>> helpFunctions) {
 		this.feedback = feedback;
 		this.resolverFunctions = resolverFunctions;
@@ -43,11 +36,7 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 	}
 
 	public IAst getLinkTarget(Object oNode, IParseController parseController) {
-		// TODO: Fix reference resolve caching, cache resetting
-		
 		IStrategoAstNode node = getReferencedNode(oNode);
-		IAst result = resolverCache.get(node);
-		if (result != null) return result == NOT_FOUND ? null : result;
 		
 		String function = NodeMapping.getFirstAttribute(resolverFunctions, node.getConstructor(), node.getSort(), 0);
 		if (function == null) function = wildcardResolverFunction;
@@ -57,16 +46,13 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 		}
 		
 		IStrategoTerm resultTerm = feedback.invoke(function, node);
-		result = feedback.getAstNode(resultTerm);
-		
-		resolverCache.put(node, result == null ? NOT_FOUND : result);
-		return result;
+		if (resultTerm == null && !feedback.isUpdateStarted())
+			feedback.asyncUpdate(parseController);
+		return feedback.getAstNode(resultTerm);
 	}
 
 	public String getLinkText(Object oNode) {
 		IStrategoAstNode node = getReferencedNode(oNode);
-		String cached = helpCache.get(node);
-		if (cached != null) return cached == "" ? null : cached;
 		
 		String function = NodeMapping.getFirstAttribute(helpFunctions, node.getConstructor(), null, 0);
 		if (function == null) function = wildcardHelperFunction;
@@ -75,11 +61,14 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 			return null;
 		}
 		
-		IStrategoTerm resultTerm = feedback.invoke(function, node);
-		String result = resultTerm == null ? null : resultTerm.toString();
-		
-		helpCache.put(node, result == null ? "" : result.toString());
-		return result;
+		IStrategoTerm result = feedback.invoke(function, node);
+		if (result == null) {
+			return null;
+		} else if (isTermString(result)) {
+			return ((IStrategoString) result).stringValue();
+		} else {
+			return result.toString();
+		}
 	}
 	
 	private static final IStrategoAstNode getReferencedNode(Object oNode) {

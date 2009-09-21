@@ -232,7 +232,7 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 		// HACK: Need to call IModelListener.update manually; the IMP extension point is not implemented?!
 		try {
 			StrategoFeedback feedback = Environment.getDescriptor(getLanguage()).getStrategoFeedback();
-			if (feedback != null) feedback.asyncUpdate(this, null);
+			if (feedback != null) feedback.asyncUpdate(this);
 		} catch (BadDescriptorException e) {
 			Environment.logException("Unexpected error during analysis", e);
 			errorHandler.reportError(parser.getTokenizer(), e);

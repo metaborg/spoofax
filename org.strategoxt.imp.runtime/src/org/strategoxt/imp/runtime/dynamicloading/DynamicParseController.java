@@ -2,6 +2,8 @@ package org.strategoxt.imp.runtime.dynamicloading;
 
 import java.util.Iterator;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.editor.UniversalEditor;
@@ -20,6 +22,7 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
+import org.strategoxt.imp.runtime.ISourceInfo;
 
 /**
  * Dynamic proxy class to a parse controller.
@@ -28,7 +31,7 @@ import org.eclipse.ui.PlatformUI;
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class DynamicParseController extends AbstractService<IParseController> implements IParseController {
+public class DynamicParseController extends AbstractService<IParseController> implements IParseController, ISourceInfo {
 	private IPath filePath;
 	private ISourceProject project;
 	private IMessageHandler handler;
@@ -132,5 +135,12 @@ public class DynamicParseController extends AbstractService<IParseController> im
 
 	public Object parse(String input, boolean scanOnly, IProgressMonitor monitor) {
 		return getWrapped().parse(input, scanOnly, monitor);
+	}
+
+	public IResource getResource() {
+    	IPath path = getPath();
+		IProject project = getProject().getRawProject();
+		path = path.removeFirstSegments(path.matchingFirstSegments(project.getLocation()));
+		return project.getFile(path);
 	}
 }
