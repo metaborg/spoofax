@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Spoofax/IMP Metatooling
 Bundle-SymbolicName: org.strategoxt.imp.generator;singleton:=true
-Bundle-Version: 0.1.0.2700
+Bundle-Version: 0.1.0.2800
 Bundle-ClassPath: lib/make_permissive.jar,
  lib/sdf2imp.jar
 Require-Bundle: org.spoofax.aterm,
