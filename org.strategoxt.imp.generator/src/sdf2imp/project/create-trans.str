@@ -28,7 +28,7 @@ imports
 
 strategies
 
-  main-entities =
+  main-", name, " =
     fatal-err(|\"No main strategy\")
   
   editor-analyze:

@@ -183,33 +183,32 @@ strategies
             </apply>
         </target>
     
-        <!-- C-based Stratego compilation (unused) -->
-        <target name="stratego.c">
-            <antcall target="stratego.helper">
-                <param name="build.stratego.outputpath" value="include"/>
-                <param name="build.stratego.extraargs" value=""/>
-                <param name="build.stratego.extension" value="*"/>
-                <param name="build.stratego.compiler" value="strc"/>
-            </antcall>
-        </target>
-    
-        <!-- Stratego interpreter target -->
+        <!-- Stratego to Java interpreter -->
         <target name="stratego.ctree">
-            <antcall target="stratego.helper">
-                <param name="build.stratego.outputpath" value="include"/>
+            <dependset>
+                <srcfileset dir="${basedir}">
+                  <include name="**/*.str"/>
+                </srcfileset>
+                <targetfileset file="${include}/{strmodule}.ctree"/>
+            </dependset>
+            <available file="${src-gen}/trans/Main.java" property="strc-java.available"/>
+            <antcall target="copy-jar"/>            
+            <antcall target="stratego.jvm.helper">
+                <param name="build.stratego.outputpath" value="${basedir}/include"/>
                 <param name="build.stratego.extraargs" value="-F --library"/>
-                <param name="build.stratego.extension" value="*.ctree"/>
+                <param name="build.stratego.extension" value="ctree"/>
                 <param name="build.stratego.compiler" value="strc"/>
             </antcall>
         </target>
     
+        <!-- Stratego to Java compiler -->
         <target name="stratego.java" depends="stratego.java.native,stratego.java.jvm"/>
     
         <target name="stratego.java.native" if="build.stratego.usenativestrj"> 
             <antcall target="stratego.helper">
-                <param name="build.stratego.outputpath" value="${src-gen}"/>
+                <param name="build.stratego.outputpath" value="${basedir}/${src-gen}"/>
                 <param name="build.stratego.extraargs" value="-la java-front"/>
-                <param name="build.stratego.extension" value="*.java"/>
+                <param name="build.stratego.extension" value="java"/>
                 <param name="build.stratego.compiler" value="strj"/>
             </antcall>
         </target>
@@ -223,29 +222,44 @@ strategies
             </dependset>
             <available file="${src-gen}/trans/Main.java" property="strc-java.available"/>
             <antcall target="copy-jar"/>
-            <antcall target="stratego.java.jvm.helper"/>
+            <antcall target="stratego.jvm.helper">
+                <param name="build.stratego.outputpath" value="${src-gen}/trans"/>
+                <param name="build.stratego.extraargs" value="-la java-front"/>
+                <param name="build.stratego.extension" value="java"/>
+            </antcall>
             <javac classpath="aux/strategoxt.jar${externaljarimport}" srcdir="${src-gen}/trans" destdir="${build}" source="1.5" debug="on"/>
-            <jar basedir="${build}" includes="trans/**" destfile="include/trans.jar"/>
+            <jar basedir="${build}" includes="trans/**" destfile="include/${strmodule}.jar"/>
         </target>
             
-        <target name="stratego.java.jvm.helper" depends="aux-files,rtg2sig" unless="strc-java.available">
+        <target name="stratego.jvm.helper" depends="aux-files,rtg2sig" unless="strc-java.available">
             <java classname="org.strategoxt.strj.Main" classpath="aux/strategoxt.jar:aux/sdf2imp.jar" failonerror="true">
                 <arg value="-i"/>
                 <arg value="${trans}/${strmodule}.str"/>
                 <arg value="-o"/>
-                <arg value="${src-gen}/trans/${strmodule}.java"/>
+                <arg value="${build.stratego.outputpath}/${strmodule}.${build.stratego.extension}"/>
                 <arg value="-p"/>
                 <arg value="trans"/>
                 <arg value="-clean"/>
-                <arg line="${build.stratego.args} -la java-front"/>
+                <arg line="${build.stratego.args}"/>
+                <arg line="${build.stratego.extraargs}"/>
                 <arg line="${externaljarflags}"/>
                 <arg line="${externaldefimport}"/>
             </java>
             <mkdir dir="${build}/trans"/>
         </target>
+                
+        <!-- Stratego to C-based native executable -->
+        <target name="stratego.c">
+            <antcall target="stratego.c.helper">
+                <param name="build.stratego.outputpath" value="include"/>
+                <param name="build.stratego.extraargs" value=""/>
+                <param name="build.stratego.extension" value=""/>
+                <param name="build.stratego.compiler" value="strc"/>
+            </antcall>
+        </target>
         
         <!-- Helper target for calling the stratego compiler -->
-        <target name="stratego.helper" depends="rtg2sig" if="build.stratego.enabled">
+        <target name="stratego.c.helper" depends="rtg2sig" if="build.stratego.enabled">
             <apply executable="${build.strategoxt}/${build.stratego.compiler}" dest="${build.stratego.outputpath}" failonerror="true">
                 <arg value="-i"/>
                 <srcfile/>
@@ -256,7 +270,7 @@ strategies
                 <arg line="${externaldefimport}"/>
                 
                 <fileset file="${trans}/${strmodule}.str"/>
-                <mapper type="glob" from="*.str" to="${build.stratego.extension}"/>
+                <mapper type="glob" from="*.str" to="*.${build.stratego.extension}"/>
             </apply>
         </target>
         

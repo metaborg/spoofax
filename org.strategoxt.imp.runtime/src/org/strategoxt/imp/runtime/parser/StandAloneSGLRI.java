@@ -56,7 +56,11 @@ public class StandAloneSGLRI {
 	}
 	
 	public Disambiguator getDisambiguator() {
-		throw new NotImplementedException();
+        if (parser instanceof JSGLRI) {
+            return ((JSGLRI) parser).getDisambiguator();
+        } else {
+            throw new UnsupportedOperationException("C-SGLR does not provide a disambiguator configuration object");
+        }
 	}
 	
 	public void setStartSymbol(String startSymbol) {
