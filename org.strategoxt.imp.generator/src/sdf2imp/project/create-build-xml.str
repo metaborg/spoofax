@@ -223,7 +223,7 @@ strategies
             <available file="${src-gen}/trans/Main.java" property="strc-java.available"/>
             <antcall target="copy-jar"/>
             <antcall target="stratego.jvm.helper">
-                <param name="build.stratego.outputpath" value="${src-gen}/trans"/>
+                <param name="build.stratego.outputpath" value="${basedir}/${src-gen}/trans"/>
                 <param name="build.stratego.extraargs" value="-la java-front"/>
                 <param name="build.stratego.extension" value="java"/>
             </antcall>
@@ -251,7 +251,7 @@ strategies
         <!-- Stratego to C-based native executable -->
         <target name="stratego.c">
             <antcall target="stratego.c.helper">
-                <param name="build.stratego.outputpath" value="include"/>
+                <param name="build.stratego.outputpath" value="${basedir}/include"/>
                 <param name="build.stratego.extraargs" value=""/>
                 <param name="build.stratego.extension" value=""/>
                 <param name="build.stratego.compiler" value="strc"/>
