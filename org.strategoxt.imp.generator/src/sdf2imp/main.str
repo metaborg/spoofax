@@ -88,7 +88,12 @@ strategies
       end;
       create-grammar;
       create-trans;
-      input := <pack-sdf> FILE(<conc-strings> ("syntax/", <get-sdf-main-module>, ".sdf"))
+      ( input := <pack-sdf> FILE(<conc-strings> ("syntax/", <get-sdf-main-module>, ".sdf"))
+      <+
+        fatal-err(|["Could not call pack-sdf. Please ensure pack-sdf and sdf2table are ",
+                    "installed and on the path (on Linux and OS/X they should be on the ",
+                    "PATH variable set in /etc/profile)"])
+      )
     end;
   
     configure-main-descriptor;
@@ -148,7 +153,7 @@ strategies
 
   pack-sdf:
     FILE(sdf) -> FILE(def)
-    with
+    where
       def := <conc-strings> ("include/", <get-sdf-main-module>, ".def");
       <file-exists <+ mkdir> "include";
       <xtc-command(!"pack-sdf")> ["-i", sdf, "-o", def | <pass-verbose>]

@@ -41,7 +41,7 @@ public class DescriptorFactory {
 	
 	public static Descriptor load(IFile descriptor) throws CoreException, BadDescriptorException, IOException {
 		IPath basePath = descriptor.getLocation();
-		basePath = basePath.removeLastSegments(2); // strip off /bin/filename
+		basePath = basePath.removeLastSegments(2); // strip off /include/filename.main.esv
 		Debug.log("Loading editor services for ", descriptor.getName());
 		return load(descriptor.getContents(true), null, basePath);
 	}
@@ -63,11 +63,11 @@ public class DescriptorFactory {
 		result.setBasePath(basePath);
 		Language language = result.getLanguage();
 		
-		Environment.registerDescriptor(language, result);
-		registry.register(result);
-		
 		if (parseTable == null) parseTable = result.openParseTableStream();
 		registerParseTable(language, parseTable);
+		
+		Environment.registerDescriptor(language, result);
+		registry.register(result);
 		
 		Debug.stopTimer("Editor services loaded: " + result.getLanguage().getName());
 		return result;

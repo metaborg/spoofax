@@ -18,6 +18,7 @@ import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.ParseTableManager;
 import org.spoofax.jsglr.SGLR;
 import org.strategoxt.HybridInterpreter;
+import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.IMPJSGLRLibrary;
@@ -155,14 +156,17 @@ public final class Environment {
 		return table;
 	}
 	
-	public static void registerDescriptor(Language language, Descriptor descriptor) {
+	public static void registerDescriptor(Language language, Descriptor descriptor)
+			throws BadDescriptorException {
+		
 		Descriptor oldDescriptor = getDescriptor(language);
 		
-		if (oldDescriptor != null) {
-			oldDescriptor.uninitialize();
-		}
-		
 		descriptors.put(language.getName(), descriptor);
+		
+		if (oldDescriptor != null) {
+			descriptor.addInitializedServices(oldDescriptor);
+			oldDescriptor.reinitialize(descriptor);
+		}
 	}
 	
 	public static Descriptor getDescriptor(Language language) {

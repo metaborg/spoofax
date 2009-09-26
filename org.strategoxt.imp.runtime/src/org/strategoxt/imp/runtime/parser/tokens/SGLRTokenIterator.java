@@ -2,6 +2,7 @@ package org.strategoxt.imp.runtime.parser.tokens;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import lpg.runtime.IPrsStream;
 import lpg.runtime.IToken;
@@ -12,6 +13,21 @@ import org.eclipse.jface.text.IRegion;
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class SGLRTokenIterator implements Iterator<IToken> {
+	
+	public static Iterator<IToken> EMPTY = new Iterator<IToken>() {
+		public boolean hasNext() {
+			return false;
+		}
+		
+		public IToken next() {
+			throw new NoSuchElementException();
+		}
+		
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
+	};
+	
 	private final int lastIndex;
 	
 	private final IPrsStream stream;

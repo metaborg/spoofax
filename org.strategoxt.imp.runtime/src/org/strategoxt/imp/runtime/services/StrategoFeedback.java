@@ -220,8 +220,10 @@ public class StrategoFeedback implements IModelListener {
 			log = ((LoggingIOAgent) runtime.getIOAgent()).getLog().trim();
 		}
 		
-		if (!monitor.isCanceled())
-			presentToUser((ISourceInfo) parseController, feedback, log);
+		synchronized (feedback) {
+			if (!monitor.isCanceled())
+				presentToUser((ISourceInfo) parseController, feedback, log);
+		}
 	}
 	
 	/* UNDONE: asynchronous feedback presentation
@@ -242,6 +244,7 @@ public class StrategoFeedback implements IModelListener {
 
 	private void presentToUser(ISourceInfo sourceInfo, IStrategoTerm feedback, String log) {
 		messages.clearAllMarkers();
+		messages.clearMarkers(sourceInfo.getResource());
 
 		if (feedback != null
 				&& feedback.getTermType() == TUPLE
@@ -260,17 +263,17 @@ public class StrategoFeedback implements IModelListener {
 			if (log.length() == 0) log = "(see error log)"; // TODO: report or throw last exception if strategy not found etc.
 			messages.addMarkerFirstLine(resource, "Analysis failed: " + log, IMarker.SEVERITY_ERROR);
 		} else {
-			// TODO: throw an exception causing a pop-up in this case 
-			IResource resource = ((SGLRParseController) sourceInfo).getResource();
-			messages.addMarkerFirstLine(resource, "Internal error - illegal output from " + feedbackFunction + ": " + feedback, IMarker.SEVERITY_ERROR);
-		    Environment.logException("Illegal output from " + feedbackFunction + ": " + feedback);
+			// Throw an exception to trigger an Eclipse pop-up  
+			throw new StrategoException("Illegal output from " + feedbackFunction + " (should be (errors,warnings,notes) tuple: " + feedback);
 		}
 	}
 	
 	private final void feedbackToMarkers(ISourceInfo sourceInfo, IStrategoList feedbacks, int severity) {
 	    for (IStrategoTerm feedback : feedbacks.getAllSubterms()) {
-	    	if (feedback.getSubtermCount() != 2)
+	    	if (feedback.getSubtermCount() != 2 || feedback.getSubterm(1).getTermType() != STRING) {
+				// Throw an exception to trigger an Eclipse pop-up  
 	    		throw new StrategoException("Illegal feedback result (must be a term/message tuple): " + feedback);
+	    	}
 	        IStrategoTerm term = termAt(feedback, 0);
 			IStrategoString message = termAt(feedback, 1);
 			IResource resource = sourceInfo.getResource();

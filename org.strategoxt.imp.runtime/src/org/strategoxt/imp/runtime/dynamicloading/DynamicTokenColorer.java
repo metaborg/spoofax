@@ -25,7 +25,7 @@ public class DynamicTokenColorer extends AbstractService<ITokenColorer> implemen
 	}
 
 	public TextAttribute getColoring(IParseController controller, Object token) {
-		initialize(controller.getLanguage());
+		if (!isInitialized()) initialize(controller.getLanguage());
 		
 		return getWrapped().getColoring(controller, token);
 	}

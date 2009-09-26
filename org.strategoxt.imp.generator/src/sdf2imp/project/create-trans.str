@@ -24,15 +24,20 @@ strategies
 
 imports
   libstratego-lib
-  ", sdf-name, "
+  include/", sdf-name, "
 
-strategies
+strategies // Main editor interface
 
   main-", name, " =
     fatal-err(|\"No main strategy\")
   
+  /**
+   * Analyzes the current program.
+   * Returns a Tuple with errors, warnings, and notes;
+   * each a list of (term, message) tuples.
+   */
   editor-analyze:
-    (ast, path, fullpath) -> (errors, warnings, notes)
+    (ast, path, absolute-path) -> (errors, warnings, notes)
     with
       // Analysis: scope and record dynamic rules
       try(dr-scope-all-end);
@@ -42,30 +47,43 @@ strategies
       errors   := <collect-all(include-origin(constraint-error))> ast;
       warnings := <collect-all(include-origin(constraint-warning))> ast;
       notes    := <collect-all(include-origin(constraint-note))> ast
-   
-  include-origin(s):
-    t -> (t, message)
-    where
-      message := <s; try(all(is-string <+ write-to-string)); try(concat-strings)> t
   
+  /**
+   * Resolves a reference when the user control-clicks or presses F3 in the editor.
+   * For the entities language, only Type(_) nodes are resolved by default.
+   */
   editor-resolve:
-    (Type(type), position, ast, path, fullpath) -> target
+    (Type(type), position, ast, path, absolute-path) -> target
     where
       target := <GetEntity> type
 
+  /**
+   * Returns \"hover help\" information for a particular node in the editor.
+   * For references, this rule is invoked using the resolved term.
+   */
   editor-hover:
-    (term, position, ast, path, fullpath) -> <conc-strings> (\"Hover help: \", <write-to-string> term)
-
-rules
-
-  record-entity:
-    Entity(x_declaration, body) -> Entity(x_declaration, body)
+    (target, position, ast, path, fullpath) -> <conc-strings> (\"Hover help: \", <write-to-string> target)
+   
+  /**
+   * Adds the originating term to the result of a constraint rule,
+   * and concatenates strings in the resulting message if necessary.
+   */
+  include-origin(s):
+    t -> (t', message')
+    where
+      result := <s> t
     with
-      x_reference := x_declaration;
-      rules(
-        GetEntity: x_reference -> x_declaration
-      )
+      if not(!result => (t', message)) then
+        message := result;
+        t'      := t
+      end;
+      message' := <try(all(is-string <+ write-to-string); concat-strings)> message
+
+rules // Semantic rules
     
+  /**
+   * Reports an error if a property type is undefined.
+   */
   constraint-error:
     Property(x, Type(type)) -> [\"Type \", type, \" is not defined\"]
     where
@@ -73,19 +91,48 @@ rules
       not(!type => \"Int\");
       not(<GetEntity> type)
   
+  /**
+   * Reports an error if an entity is defined more than once.
+   * This constraint is implemented by testing if the \"bag\" of
+   * all entities x is a list with at least two items.
+   * This error is reported on the entity name x.
+   */
+  constraint-error:
+    Entity(x, _) -> (x, \"Duplicate entity name\")
+    where
+      <bagof-GetEntity> x => [_, _ | _]
+  
+  /**
+   * Reports a warning if an entity name does not start with a capital.
+   * This error is reported on the entity name x.
+   */
   constraint-warning:
-    Entity(x, _) -> \"Entity names must start with a capital\"
+    Entity(x, _) -> (x, \"Entity names must start with a capital\")
     where
       not(<explode-string; Hd; is-upper> x)
   
+  /**
+   * Adds a note to modules named \"example.\"
+   */
   constraint-note:
     Module(\"example\", _) -> \"This is just an example program in the \\\"entities\\\" language\"
 
+  /**
+   * Records the definition of an entity in a dynamic rule GetEntity.
+   */
+  record-entity:
+    Entity(x_declaration, body) -> Entity(x_declaration, body)
+    with
+      x_reference := x_declaration;
+      rules(
+        GetEntity :+ x_reference -> x_declaration
+      )
+
 signature constructors
 
-  // These definitions are not strictly necessary,
-  // but they ensure that the build doesn't break if the syntax
-  // is changed and these constructors no longer exist
+  // These definitions are not strictly necessary, but they
+  // ensure that the build doesn't break if the example syntax
+  // is changed and these constructors no longer exist.
   Module   : ID * List(Entity)   -> Module
   Entity   : ID * List(Property) -> Entity
   Property : ID * Type           -> Property

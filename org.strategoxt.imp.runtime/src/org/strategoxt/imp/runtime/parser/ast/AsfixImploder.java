@@ -14,6 +14,7 @@ import lpg.runtime.PrsStream;
 
 import org.spoofax.jsglr.RecoveryConnector;
 import org.strategoxt.imp.runtime.Debug;
+import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ParseErrorHandler;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
@@ -377,12 +378,18 @@ public class AsfixImploder {
 	protected void implodeLexical(ATermInt character) {
 		char[] inputChars = tokenizer.getLexStream().getInputChars();
 		if (offset >= inputChars.length) {
-			if (nonMatchingOffset == NONE)
-				throw new ImploderException("Character in parse tree after end of input stream: " + (char) character.getInt());
-			else
-				throw new ImploderException("Character in parse tree after end of input stream: " + (char) character.getInt()
-						+ " - may be caused by unexcepted character in parse tree at position " + nonMatchingChar
-						+ ": " + nonMatchingChar + " instead of " + nonMatchingCharExpected);
+			if (nonMatchingOffset != NONE) {
+				Environment.logException(new ImploderException("Character in parse tree after end of input stream: "
+						+ (char) character.getInt()
+						+ " - may be caused by unexcepted character in parse tree at position "
+						+ nonMatchingChar 	+ ": " + nonMatchingChar + " instead of "
+						+ nonMatchingCharExpected));
+			}
+		    // UNDONE: Strict lexical stream checking
+			// throw new ImploderException("Character in parse tree after end of input stream: " + (char) character.getInt());
+			// a forced reduction may have added some extra characters to the tree;
+			inputChars[inputChars.length - 1] = ParseErrorHandler.UNEXPECTED_EOF_CHAR;
+			return;
 		}
 		
 		char parsedChar = (char) character.getInt();
@@ -399,6 +406,8 @@ public class AsfixImploder {
 				// UNDONE: Strict lexical stream checking
 				// throw new IllegalStateException("Character from asfix stream (" + parsedChar
 				//	 	+ ") must be in lex stream (" + inputChar + ")");
+			    // instead, we allow the non-matching character for now, and hope
+			    // we can pick up the right track later
 				if (nonMatchingOffset == NONE) {
 					nonMatchingOffset = offset;
 					nonMatchingChar = parsedChar;

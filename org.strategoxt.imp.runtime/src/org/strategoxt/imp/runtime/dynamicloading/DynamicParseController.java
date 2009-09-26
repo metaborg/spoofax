@@ -32,8 +32,15 @@ import org.strategoxt.imp.runtime.ISourceInfo;
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class DynamicParseController extends AbstractService<IParseController> implements IParseController, ISourceInfo {
+	
+	private static final int REINIT_PARSE_DELAY = 100;
+	
+	private UniversalEditor lastEditor;
+	
 	private IPath filePath;
+	
 	private ISourceProject project;
+	
 	private IMessageHandler handler;
 	
 	public DynamicParseController() {
@@ -45,14 +52,31 @@ public class DynamicParseController extends AbstractService<IParseController> im
 	 * in case this is not statically known.
 	 */
 	private Language findLanguage(IPath filePath) {
-		IWorkbenchPage activePage =
-			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+		UniversalEditor editor = getActiveEditor();
+		if (editor != null) {
+			lastEditor = editor;
+			return editor.fLanguage;
+		}
+		
+		// No active editor; try the registry instead
+		return LanguageRegistry.findLanguage(filePath, null);
+	}
+
+	/**
+	 * Returns the editor associated with this parse controller,
+	 * if any active editor can be found.
+	 */
+	private UniversalEditor getActiveEditor() {
+		IWorkbenchWindow activeWorkbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+		if (activeWorkbenchWindow == null)
+			return null; // called from non-UI thread
+		IWorkbenchPage activePage = activeWorkbenchWindow.getActivePage();
 		
 		if (activePage != null) {
 			IEditorPart activeEditor = activePage.getActiveEditor();
 			
 			if (isMyEditor(activeEditor))
-				return ((UniversalEditor) activeEditor).fLanguage;
+				return ((UniversalEditor) activeEditor);
 			
 			// Search for an active editor with this parser
 			for (IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows()) {
@@ -60,14 +84,13 @@ public class DynamicParseController extends AbstractService<IParseController> im
 					for (IEditorReference reference : page.getEditorReferences()) {
 						IWorkbenchPart editor = reference.getPart(false);
 						if (isMyEditor(editor))
-							return ((UniversalEditor) editor).fLanguage;
+							return ((UniversalEditor) editor);
 					}
 				}
 			}
 		}
 		
-		// No active editor; try the registry instead
-		return LanguageRegistry.findLanguage(filePath, null);
+		return null;
 	}
 	
 	private boolean isMyEditor(IWorkbenchPart editor) {
@@ -84,6 +107,8 @@ public class DynamicParseController extends AbstractService<IParseController> im
 		// Reinitalize path etc. if descriptor was reloaded
 		if (super.getWrapped().getProject() == null)
 			initialize(null, null, null);
+		if (lastEditor == null)
+			lastEditor = getActiveEditor();
 		return super.getWrapped();
 	}
 
@@ -131,6 +156,13 @@ public class DynamicParseController extends AbstractService<IParseController> im
 		else this.handler = handler;
 		
 		super.getWrapped().initialize(filePath, project, handler);
+	}
+	
+	@Override
+	public void reinitialize(Descriptor newDescriptor) throws BadDescriptorException {
+		super.reinitialize(newDescriptor);
+		if (lastEditor != null)
+			lastEditor.fParserScheduler.schedule(REINIT_PARSE_DELAY);
 	}
 
 	public Object parse(String input, boolean scanOnly, IProgressMonitor monitor) {

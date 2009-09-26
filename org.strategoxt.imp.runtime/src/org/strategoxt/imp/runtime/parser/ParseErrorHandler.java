@@ -47,6 +47,11 @@ public class ParseErrorHandler {
 	 */
 	public static final char SKIPPED_CHAR = (char) -1;
 	
+	/**
+	 * The parse stream character that indicates EOF was unexpected.
+	 */
+	public static final char UNEXPECTED_EOF_CHAR = (char) -2;
+	
 	private final AstMessageHandler handler = new AstMessageHandler(AstMessageHandler.PARSE_MARKER_TYPE);
 	
 	private final ISourceInfo sourceInfo;
@@ -190,6 +195,7 @@ public class ParseErrorHandler {
 		for (int i = 0; i < inputChars.length; i++) {
 			char c = inputChars[i];
 			if (c == SKIPPED_CHAR) {
+				// Recovered by skipping a region
 				int beginSkipped = i;
 				int endSkipped = i;
 				while (++i < inputChars.length) {
@@ -201,6 +207,11 @@ public class ParseErrorHandler {
 				}
 				IToken token = tokenizer.makeErrorToken(beginSkipped, endSkipped);
 				reportErrorAtTokens(token, token, "Could not parse this fragment");
+			} else if (c == UNEXPECTED_EOF_CHAR) {
+				// Recovered using a forced reduction
+				IToken token = tokenizer.makeErrorTokenBackwards(i);
+				if (token.getStartOffset() == 0) break; // be less complainy about single-token files
+				reportErrorAtTokens(token, token, "End of file unexpected");
 			}
 		}
 		

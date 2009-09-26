@@ -44,7 +44,7 @@ strategies
         <property name="build.stratego.args" value="-m main-${strmodule} --library -I ${trans} -I ${build} -I ${lib}
                         -la stratego-lib -la stratego-sglr -la stratego-gpp -la stratego-xtc
                         -I ${user.home}/.nix-profile/share/java-front
-                        -I ${basedir}/include
+                        -I ${basedir}
                         -la ${user.home}/.nix-profile/lib/libjava-front.la"/>
         
         <!-- Initialization -->
@@ -177,6 +177,7 @@ strategies
                 <arg value="${sdfmodule}"/>
                 <arg value="-o"/>
                 <targetfile/>
+                <arg value="--ignore-missing-cons"/>
                 
                 <fileset file="include/${sdfmodule}.def"/>
                 <mapper type="glob" from="*.def" to="*.rtg"/>
@@ -189,9 +190,9 @@ strategies
                 <srcfileset dir="${basedir}">
                   <include name="**/*.str"/>
                 </srcfileset>
-                <targetfileset file="${include}/{strmodule}.ctree"/>
+                <targetfileset file="include/${strmodule}.ctree"/>
             </dependset>
-            <available file="${src-gen}/trans/Main.java" property="strc-java.available"/>
+            <available file="include/${strmodule}.ctree" property="strc-java.available"/>
             <antcall target="copy-jar"/>            
             <antcall target="stratego.jvm.helper">
                 <param name="build.stratego.outputpath" value="${basedir}/include"/>
@@ -231,7 +232,7 @@ strategies
             <jar basedir="${build}" includes="trans/**" destfile="include/${strmodule}.jar"/>
         </target>
             
-        <target name="stratego.jvm.helper" depends="aux-files,rtg2sig" unless="strc-java.available">
+        <target name="stratego.jvm.helper" depends="aux-files,rtg2sig" unless="strc-java.available" if="build.stratego.enabled">
             <java classname="org.strategoxt.strj.Main" classpath="aux/strategoxt.jar:aux/sdf2imp.jar" failonerror="true">
                 <arg value="-i"/>
                 <arg value="${trans}/${strmodule}.str"/>

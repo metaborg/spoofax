@@ -18,7 +18,9 @@ strategies
     <output-text-file(|["syntax"], <conc-strings> (name, ".sdf"))>
     <conc-strings>
 (
-"module ", name, "
+"%% Grammar for the ", name, " language
+%% By default, based on an example \"entities\" syntax
+module ", name, "
 
 imports Common
 

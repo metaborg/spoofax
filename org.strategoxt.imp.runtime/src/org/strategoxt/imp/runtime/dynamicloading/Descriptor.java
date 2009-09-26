@@ -8,10 +8,11 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IPath;
@@ -36,7 +37,7 @@ public class Descriptor {
 	protected static final Language DESCRIPTOR_LANGUAGE =
 		new Language("EditorService-builtin", "org.strategoxt.imp.builtin.editorservice", "", ROOT_LANGUAGE, "", "", "", null);
 	
-	private final Set<AbstractService> services = new HashSet<AbstractService>();
+	private final Map<AbstractService, Object> services = new WeakHashMap<AbstractService, Object>();
 	
 	private final List<AbstractServiceFactory> serviceFactories = new ArrayList<AbstractServiceFactory>();
 	
@@ -71,13 +72,14 @@ public class Descriptor {
 	}
 	
 	/**
-	 * Uninitialize all dynamic services associated with this Descriptor.
+	 * Uninitialize all dynamic services associated with this Descriptor,
+	 * and lazily initializes them to use the given new Descriptor.
 	 * 
-	 * @see AbstractService#uninitialize()
+	 * @see AbstractService#reinitialize(Descriptor)
 	 */
-	public void uninitialize() {
-		for (AbstractService service : services)
-			service.uninitialize();
+	public void reinitialize(Descriptor newDescriptor) throws BadDescriptorException {
+		for (AbstractService service : services.keySet())
+			service.reinitialize(newDescriptor);
 		attachedFiles = null;
 	}
 	
@@ -115,7 +117,13 @@ public class Descriptor {
 	}
 	
 	public void addInitializedService(AbstractService service) {
-		services.add(service);
+		services.put(service, null);
+	}
+	
+	public void addInitializedServices(Descriptor descriptor) {
+		for (AbstractService service : descriptor.services.keySet()) {
+			services.put(service, null);
+		} 
 	}
 	
 	public IStrategoAppl getDocument() {

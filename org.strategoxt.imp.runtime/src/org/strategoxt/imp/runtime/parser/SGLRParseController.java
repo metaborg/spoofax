@@ -264,7 +264,7 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 		IPrsStream stream = getParseStream();
 		
 		if (stream == null) {
-			return null;
+			return SGLRTokenIterator.EMPTY;
 		} else if (stream.getTokens().size() == 0 || getCurrentAst() == null) {
 			// Parse hasn't succeeded yet, consider the entire stream as one big token
 			stream.addToken(new SGLRToken(stream, region.getOffset(), stream.getStreamLength() - 1,

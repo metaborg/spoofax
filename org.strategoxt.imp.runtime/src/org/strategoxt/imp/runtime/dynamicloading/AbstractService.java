@@ -77,10 +77,10 @@ public class AbstractService<T extends ILanguageService> {
 	
 	/**
 	 * Uninitializes the reference to the class that implements this service,
-	 * ensuring it is reinitialized on use.
+	 * ensuring it is reinitialized on use, using the given new Descriptor.
 	 */
-	public void uninitialize() {
+	public void reinitialize(Descriptor newDescriptor) throws BadDescriptorException {
 		wrapped = null;
-		// UNDONE: language = null;
+		language = newDescriptor.getLanguage();
 	}
 }
