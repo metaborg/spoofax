@@ -1,5 +1,6 @@
 package org.strategoxt.imp.metatooling.wizards;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
@@ -121,7 +122,12 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 				String jar1 = org.strategoxt.stratego_lib.Main.class.getProtectionDomain().getCodeSource().getLocation().getFile();
 				String jar2 = make_permissive.class.getProtectionDomain().getCodeSource().getLocation().getFile();
 				String jar3 = sdf2imp.class.getProtectionDomain().getCodeSource().getLocation().getFile();
-				assert jar1.endsWith(".jar") && jar2.endsWith(".jar") && jar3.endsWith(".jar");
+				// HACK: find jars at development time after 'make'
+				if (!jar1.endsWith(".jar")) {
+					String jar1a = jar1 + "/../strategoxt.jar";
+					if (new File(jar1a).exists()) jar1 = jar1a;
+				}
+				assert jar1.endsWith(".jar") && jar2.endsWith(".jar") && jar3.endsWith(".jar") : "Library files are not in JAR"; // please refresh the strj projectin Eclipse
 				sdf2imp.mainNoExit(context, "-m", languageName, "-pn", projectName, "-n", packageName, "-e", extensions, "-jar", jar1, jar2, jar3);
 			} catch (StrategoErrorExit e) {
 				Environment.logException(e);

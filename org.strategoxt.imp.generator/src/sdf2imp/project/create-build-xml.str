@@ -115,6 +115,7 @@ strategies
                 <arg value="${basedir}/include/${sdfmodule}.def"/>
                 <arg value="-o"/>
                 <arg value="${basedir}/include/${sdfmodule}-Permissive.def"/>
+                <arg line="--optimize on"/>
             </java>
         </target>
 

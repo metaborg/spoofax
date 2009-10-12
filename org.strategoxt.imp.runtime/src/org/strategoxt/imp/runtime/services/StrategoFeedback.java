@@ -130,7 +130,7 @@ public class StrategoFeedback implements IModelListener {
 		} catch (InterpreterException e) {
 			Environment.logException(new BadDescriptorException("Error loading compiler service provider " + filename, e));
 		} catch (IOException e) {
-			Environment.logException(new BadDescriptorException("Could not load compiler service provider" + filename, e));
+			Environment.logException(new BadDescriptorException("Could not load compiler service provider " + filename, e));
 		}
 	}
 	
@@ -220,10 +220,11 @@ public class StrategoFeedback implements IModelListener {
 			log = ((LoggingIOAgent) runtime.getIOAgent()).getLog().trim();
 		}
 		
-		synchronized (feedback) {
+		// TODO: figure out how this was supposed to be synchronized
+		// synchronized (feedback) {
 			if (!monitor.isCanceled())
 				presentToUser((ISourceInfo) parseController, feedback, log);
-		}
+		// }
 	}
 	
 	/* UNDONE: asynchronous feedback presentation
