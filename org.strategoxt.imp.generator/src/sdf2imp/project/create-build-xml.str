@@ -120,7 +120,7 @@ strategies
         </target>
 
         <target name="aux-files">
-            <property name="site" value="http://www.st.ewi.tudelft.nl/~kats/strategoxt/18a"/>
+            <property name="site" value="http://www.st.ewi.tudelft.nl/~kats/strategoxt/18b"/>
             <mkdir dir="aux"/>
             <get src="${site}/strategoxt.jar" dest="aux/strategoxt.jar" usetimestamp="true" ignoreerrors="true"/>
             <get src="${site}/make_permissive.jar" dest="aux/make_permissive.jar" usetimestamp="true" ignoreerrors="true"/>
