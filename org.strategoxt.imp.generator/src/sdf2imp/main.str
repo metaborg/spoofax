@@ -88,12 +88,7 @@ strategies
       end;
       create-grammar;
       create-trans;
-      ( input := <pack-sdf> FILE(<conc-strings> ("syntax/", <get-sdf-main-module>, ".sdf"))
-      <+
-        fatal-err(|["Could not call pack-sdf. Please ensure pack-sdf and sdf2table are ",
-                    "installed and on the path (on Linux and OS/X they should be on the ",
-                    "PATH variable set in /etc/profile)"])
-      )
+      input := <pack-default-sdf> FILE(<conc-strings> ("syntax/", <get-sdf-main-module>, ".sdf"))
     end;
   
     configure-main-descriptor;
@@ -151,9 +146,33 @@ strategies
       ?RTG(_, ProdRules(<id>));
       register-rtg
 
-  pack-sdf:
+  /* UNDONE: sdf2def converts a single SDF file to a DEF file.
+  sdf2def: 
     FILE(sdf) -> FILE(def)
-    where
+    where      
+      <file-exists <+ mkdir> "include";
+      def       := <conc-strings> ("include/", <get-sdf-main-module>, ".def");
+      streamin  := <fopen> (sdf, "r");
+      streamout := <fopen> (def, "w");
+      finally(
+        <fputs> ("definition\n", streamout);
+        repeat(
+          <fgetc> streamin; <fputc> (<id>, streamout)
+        )
+      , <fclose> streamin;
+        <fclose> streamout
+      )
+  */
+
+  pack-default-sdf:
+    FILE(sdf) -> FILE(def)
+    with
       def := <conc-strings> ("include/", <get-sdf-main-module>, ".def");
       <file-exists <+ mkdir> "include";
-      <xtc-command(!"pack-sdf")> ["-i", sdf, "-o", def | <pass-verbose>]
+      
+      // <xtc-command(!"pack-sdf")> ["-i", sdf, "-o", def | <pass-verbose>]
+      <pack-sdf(|[IncludeDir("syntax")])> FILE(sdf) => (_, def-asfix);
+      stream := <fopen> (def, "w");
+      <asfix-yield(|stream)> def-asfix;
+      <fclose> stream
+

@@ -14,6 +14,9 @@ public class IMPJSGLRLibrary extends JSGLRLibrary {
 		super(Environment.getWrappedATermFactory());
 		
 		add(new IMPParseStringPTPrimitive(Environment.getWrappedATermFactory(), sglrLibrary.getFilterSettings()));
+	}
+	
+	public static void init() {
 		implode_asfix_1_0.instance = new IMPImplodeAsfixStrategy();
 	}
 

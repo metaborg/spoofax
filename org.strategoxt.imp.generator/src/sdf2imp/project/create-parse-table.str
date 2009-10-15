@@ -33,14 +33,24 @@ strategies
       FILE(input') := <create-permissive-grammar> FILE(input);
       output       := <parse-table-target>;
       print-filename(|[], output);
-      <xtc-command(!"sdf2table")> ["-i", input', "-o", output, "-m", <get-sdf-main-module>]
+      <debug; sdf2table> (input', output)
+  
+  sdf2table =
+    ?(input, output);
+    <xtc-command(!"sdf2table")> ["-i", <abspath> input, "-o", <abspath> output, "-m", <get-sdf-main-module>]
+  <+
+    <xtc-command(!"sdf2table")> ["-V"] // ensure it's available
+  <+
+    fatal-err(|["Could not call sdf2table. Please ensure sdf2table is ",
+                "installed and on the path (on Linux and OS/X they should be on the ",
+                "PATH variable set in /etc/profile)"])
   
   create-permissive-grammar:
     FILE(input) -> FILE(output)
     with
       output := <permissive-grammar-target>;
       print-filename(|[], output);
-      args   := ["-i", input, "-o", output, "--open-insertions", "on", "--optimize", "on"];
+      args   := ["-i", input, "-o", output, "--open-brackets", "on", "--optimize", "on"];
       if-java-platform(
         <call> ("org.strategoxt.permissivegrammars.main-make-permissive", args)
       );

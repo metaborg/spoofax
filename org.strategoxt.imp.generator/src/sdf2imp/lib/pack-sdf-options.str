@@ -1,0 +1,145 @@
+/**
+ * @author  Martin Bravenboer <martin.bravenboer@gmail.com>
+ */
+module pack-sdf-options
+imports
+  libstratego-lib
+  libstratego-xtc
+  strategoxt-xtc-tools
+
+/**
+ * Options
+ */
+signature
+  constructors
+    IncludeDef : String -> IncludeVal
+    IncludeDef : String * List(String, Module) -> IncludeVal
+    IncludeDir : String -> IncludeVal
+    IncludeXTC : IncludeVal
+
+  constructors
+    IncludePathName : String -> Include
+    IncludeFromPath : String -> Include
+
+strategies
+
+  pack-sdf-options =
+       include-from-dir-option
+    <+ include-from-def-option
+    <+ dep-options
+    <+ of-option
+
+  of-config = 
+    <get-config> "--output-format" <+ !"txt"
+
+  of-option =
+    OutputFormatOption(|["txt", "asfix", "ast"])
+
+  OutputFormatOption(|formats) =
+    ArgOption("-of" + "--output-format"
+    , where(
+        where(<elem> (<id>, formats))
+      ; <set-config> ("--output-format", <id>)
+      <+ <fatal-error> ["pack-sdf: ", <id>, " is not a valid output format. Supported formats: " | <separate-by> (", ", formats)]
+      )
+    , <concat-strings> ["-of f            Use output format f (", <separate-by; concat-strings> (", ", formats), ")"]
+    )
+
+  include-from-def-option =
+    ArgOption("-Idef"
+    , where(<extend-config> ("-I", [IncludeDef(<id>)]))
+    , !"-Idef <lang.def>     Include modules from SDF definition <lang.def>"
+    )
+
+  /**
+   * Read SDF definitions and add current directory and XTC to include values.
+   */
+  process-options =
+    where(
+      (<get-config> "-I" <+ ![])
+    ; map(?IncludeDef(_) < process-Idef + id)
+
+      /**
+       * XTC is the final search option
+       */
+    ; <conc> (<id>, [IncludeXTC()])
+      
+      /**
+       * The first search option is the directory of the input
+       * file, or the current directory if the input is stdin.
+       */
+    ; if <get-config> "-i" => input then
+        ![IncludeDir(<dirname> input) | <id>]
+      else 
+        ![IncludeDir(".") | <id>]
+      end
+
+    ; <set-config> ("-I", <id>)
+    )
+
+  /**
+   * @type  String -> List((String, AsFix(Module)))
+   */
+  process-Idef =
+      ?IncludeDef(def)
+    ; !FILE(def)
+    ; xtc-temp-files(
+        xtc-sglr(!"Sdf2.baf", !"SDF")
+      ; read-from
+      )
+    ; collect-om(?
+        appl(prod(_, cf(sort("Module")), attrs([term(cons("module"))])), _)
+      )
+    ; map(!(<module-to-module-name>, <id>))
+    ; where(
+        if-verbose2(
+          say(<concat-strings> ["pack-sdf: SDF Syntax Definition ", def, " provides the modules "])
+        ; map(Fst; debug(!"pack-sdf:   - "))
+        )
+      )
+    ; !IncludeDef(def, <id>)
+
+  include-from-dir-option =
+    ArgOption("-I" + "--Include"
+    , where(<extend-config>("-I", [IncludeDir(<ensure-directory>)]))
+    , !"-I|--Include <dir>   Include modules from directory <dir>"
+    )
+
+  ensure-directory =
+    if not(file-exists) then
+      debug(!"pack-sdf: warning: directory specified with -I does not exist: ")
+    else
+      if not(filemode; isdir) then
+        debug(!"pack-sdf: warning: path specified with -I is a file, not a directory: ")
+      else id end
+    end
+
+  dep-options = 
+    ArgOption("--dep"
+    , where(<set-config> ("-dep", <id>))
+    , !"--dep <file>         Write make dependencies to <file>"
+    )
+
+  /**
+   * Gets the include path from the config.
+   *
+   * The current working directory . is added to this path.
+   */
+  include-path =
+    <get-config> "-I" <+ ![]
+
+  depfile-from-config =
+    <get-config> "-dep"
+
+  maybe-create-depfile =
+    where(try(create-dep-file))
+
+  create-dep-file =
+    ?files
+    ; where(
+        <get-config> "-o" => outfile
+      ; <fopen> (<depfile-from-config> (), "w") => stream
+      )
+    ; ![outfile | <separate-by(|" \\\n\t")> [":" | files]]
+    ; map(<fputs> (<id>, stream))
+    ; <fclose> stream

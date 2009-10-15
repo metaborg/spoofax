@@ -1,0 +1,399 @@
+/**
+ * pack-sdf creates an SDF definition file containing all modules imported 
+ * from the given top module.
+ *
+ * pack-sdf is an instantiation of pack-modules implemented with graph-nodes. 	
+ *
+ * @authors    Merijn de Jonge <mdejonge@cwi.nl>
+ *             Eelco Visser <visser@acm.org>
+ *             Joost Visser <jvisser@cwi.nl>
+ *             Martin Bravenboer <martin.bravenboer@gmail.com>
+ */
+module pack-sdf
+imports
+  libstratego-lib
+  libstratego-xtc
+  strategoxt-xtc-tools
+  libstratego-sglr
+  sdf2imp/lib/asfix-abstractions
+  sdf2imp/lib/pack-sdf-options
+
+/**
+ * Entry point
+ */
+strategies
+
+  main-pack-sdf =
+    xtc-io-wrap(pack-sdf-options,
+      process-options
+    ; pack-sdf(|<include-path>) => (files, spec)
+    ; <maybe-create-depfile> files
+    ; !spec
+    ; where( (<fopen> (<get-config> "-o", "w") <+ stdout-stream ) => stream ) 
+    ; (  where(of-config => "txt")   < ( asfix-yield(|stream) ; <xtc-exit>0 )
+      +  where(of-config => "ast")   < implode-asfix
+      +  where(of-config => "asfix")
+      ) ; write-to <+ <fatal-error> ["pack-sdf: ", <id>, " is not a valid output format."]
+    )
+
+/**
+ * Main strategies
+ */
+strategies
+
+  pack-sdf(|mkpt) =
+      \ FILE(s) -> IncludePathName(s) \
+    ; !(<id>, mkpt, [])
+    ; graph-nodes-undef(
+        pack-sdf-parse-sdf
+      , get-sdf-imports
+        ; map(!IncludeFromPath(<id>))
+      , \ (n,x,xs) -> [x|xs] \
+      )
+    ; if ?(_, []) then
+       Fst
+       ; unzip
+       ; (id, ConcatModules) 
+      else
+        Snd
+        ; map(report-module-not-found)
+        ; <xtc-exit> 1
+      end
+
+  report-module-not-found =
+    let get-module-name =
+          ?IncludeFromPath(<id>) + ?IncludePathName(<id>)
+
+     in get-module-name => module-name
+      ; <fprintnl> (stderr(), ["pack-sdf: error: module ", module-name, " not found"])
+      ; <bagof-ImportedFrom> module-name
+      ; if [] then
+          id
+        else if ?[mod] then
+            <get-source-pathname <+ !"unknown location"> mod
+          ; <fprintnl> (stderr(), ["    imported from module ", mod, 
+                                "\n      in file ", <id>])
+        else
+            where(<fprintnl> (stderr(), ["    imported from:"]))
+          ; map({mod1 :
+              ?mod1
+            ; (get-source-pathname <+ !"at unknown location")
+            ; <fprintnl> (stderr(),   ["      module ", mod1, 
+                                    "\n        in file ", <id>])
+            })
+          end
+        end
+      ; <fprintnl> (stderr(),   [""])
+    end
+
+  /**
+   * @type  (Include, List(IncludeVal)) -> (String, AsFix(Module))
+   */
+  pack-sdf-parse-sdf =
+    ?(<id>, includes)
+    ; ?IncludeFromPath(<id>)
+    ; guarantee-extension(|"sdf")
+    ; remove-extension
+    ; ?mod
+    ; <fetch-elem(
+         include-from-dir(|mod)
+       + include-from-def(|mod)
+       + include-from-xtc(|mod)
+       )> includes
+
+  pack-sdf-parse-sdf =
+    let qualify-pathname =
+            where(explode-string => cs)
+          ; if <is-qualified> cs then
+              id
+            else
+              <implode-string> ['.', '/' | cs]
+            end
+  
+         is-qualified =
+           ?['/' | _] + ?['.' | _ ]
+
+     in ?(<id>, _)
+      ; ?IncludePathName(<qualify-pathname>)
+      ; if file-exists then
+          if-verbose1(debug(!"  including "))
+        ; include-pathname
+        else
+          <fatal-error> ["pack-sdf: error: file ", <id>, " does not exist\n"]
+        end
+    end
+
+  include-pathname :
+    file -> (file, tree)
+      where <parse-sdf2-module-to-asfix> file => tree
+          ; get-module-name-from-asfix => mod
+          ; <register-source-pathname(|mod)> file
+
+  include-from-dir(|mod) :
+    IncludeDir(dir) -> <include-pathname> file
+      where <concat-strings; file-exists> [dir,"/", mod, ".sdf"] => file
+          ; if-verbose1(debug(!"  including "))
+          ; <parse-sdf2-module-to-asfix(|mod)> file => tree
+          ; <register-source-pathname(|mod)> file
+
+  include-from-xtc(|mod) :
+    IncludeXTC() -> (file, tree)
+      where <conc-strings; xtc-find-loc> (mod, ".sdf") => file
+          ; if-verbose1(say(<concat-strings> ["  including ", mod, " from XTC repository"]))
+          ; <parse-sdf2-module-to-asfix(|mod)> file => tree
+          ; <register-source-pathname(|mod)> file
+
+  include-from-def(|mod) :
+    IncludeDef(file, mods) -> (file, Module_START(NewLine(), tree, NewLine()))
+      where <fetch-elem(?(mod, <id>))> mods => tree
+          ; if-verbose1(say(<concat-strings> ["  including ", mod, " from ", file]))
+          ; <register-source-pathname(|mod)> file
+
+strategies
+
+  register-source-pathname(|mod) =
+    ?file
+    ; rules(SourcePathName : mod -> file)
+
+  get-source-pathname =
+    SourcePathName
+
+strategies
+
+  /**
+   * Parses SDF module and checks basename of SDF module name
+   */
+  parse-sdf2-module-to-asfix =
+    let check =
+            (<conc-strings> (<base-filename>, ".sdf"), base-filename)
+          ; eq
+     in parse-sdf2-module-to-asfix(check)
+    end
+
+  /**
+   * Parses SDF module and checks full module name.
+   */
+  parse-sdf2-module-to-asfix(|mod) =
+    let check =
+          ?(<id>, _)
+          ; <eq> (<id>, mod)
+     in parse-sdf2-module-to-asfix(check)
+    end 
+
+  /**
+   * Parses SDF module.
+   *
+   * check is applied to a tuple of (actual module name, pathname of sdf)
+   */
+  parse-sdf2-module-to-asfix(check) =
+    ?pathname
+    ; ( <parse-file-pt(|<pack-sdf-table>, "Module")> pathname
+        <   ?parsetree(<id>, _)
+          ; check-module-name(check|pathname)
+        + <fatal-error> ["pack-sdf: Error: module ", pathname, " cannot be parsed\n"]
+      )
+  
+  pack-sdf-table =
+    PackSDFTable
+  <+
+    import-term(Sdf2.baf);
+    open-parse-table;
+    rules(
+      PackSDFTable := <id>
+    )
+
+  check-module-name(check|pathname) =
+    ?ptree;
+    let get-actual-modname =
+          <get-module-name-from-asfix> ptree
+
+     in where(<get-actual-modname> () => actual)
+      ; if <check> (actual, pathname) then
+          id
+        else
+          <fatal-error> ["pack-sdf: error: module name '", actual, "' in file '", pathname, "' does not correspond to filename.\n"]
+        end
+    end
+
+  get-module-name-from-asfix = 
+      collect-om(?appl(prod(_, cf(sort("Module")), _), _))
+    ; ?[<id>]
+             // module layout ModuleName
+    ; ?appl(_, [_, _, <id> | _])
+    
+    ; collect-om(?appl(prod(_, lex(sort("ModuleId")), _), _))
+    ; ?[<id>]
+    ; asfix-lex-yield
+
+  asfix-lex-yield =
+    let F  = \ appl(p, ts) -> <concat> ts \
+        F' = \ x -> [x] \
+
+     in rec x(appl(id, map(x)); F <+ F')
+    end
+    ; implode-string
+
+strategies
+
+  get-sdf-imports = 
+    where(get-module-name-from-asfix => mod)
+    ; collect(
+          ?appl(prod(_,cf(sort("Import")),_),_)
+        ; get-module-name
+      , skip-non-imports
+      )
+    ; where(
+        map({import:
+            ?import
+          ; rules(ImportedFrom :+ import -> mod)
+        })
+      )
+    <+ debug(!"a -------------------- "); fail
+
+  skip-non-imports(search, ignore) =  
+    parsetree(search,id)
+    //<+ appl(prod(id, cf(sort("Module")),id),[id,id,id,search,id,search])
+    <+ appl(prod(id, cf(opt(layout()) <+ 
+                        sort("Productions" <+ "Symbols" <+ 
+                             "Priorities" <+ "Restrictions" <+
+                             "Aliases")), id); ignore, ignore)
+    <+ appl(ignore,search)
+
+strategies
+
+  /**
+   * Obtain module name from Import construct by removing optional parameters
+   */
+  get-module-name =
+      oncetd(?appl(prod(_,cf(sort("ModuleId")),_),_); yield => y)
+    ; !y
+
+  module-to-module-name = 
+    ?appl(prod(_, cf(sort("Module")), _), [_, _, mid | _])
+    ; <get-module-name> mid
+
+  /**
+   * Composing AsFix; The parser produces an AsFix term for each module. These
+   * have to be merged into a list of modules. This entails merging the layout
+   * at the end and start of subsequent trees. Note that the prefer longets
+   * match of laout is not considered here. This means that the layout nodes may not be
+   * equavalent to the layout nodes when parsing the resulting definition file:
+   *  
+   * parse( unparse(pack(m))) != pack(m) 
+   *
+   */
+  ConcatModules =
+   rec x(
+   {w1, w2, m, m1, m2, xs:
+      []; 
+      !(NoCfLayout(), EmptyModuleIterStar(), NoCfLayout())
+   <+ 
+      [id];
+      ?[Module_START(w1, m, w2)]; 
+      !(NoCfLayout(), M-iter(m), NoCfLayout())
+   <+
+      ?[m1,m2|xs];
+      <concat-modules>( <x>[m1], <x>[m2|xs])
+   }) => (w1, modules, w2);
+   !parsetree(SDF_START(NoCfLayout(), 
+      Definition-overlay(
+         <concat-layout>[OptNewLine(), w1], 
+         Module-s-overlay(NonEmptyModuleIterStar(modules))),w2),0)
+
+
+  concat-modules =
+    ?( (w1, m1, w2), (w3, m2, w4) );
+    !(w1, MM-iter( 
+            m1, 
+            <concat-layout>[w2, OptNewLine(), OptNewLine(), w3], 
+            m2), w4)
+
+signature
+  constructors
+    'id: Arg -> ID
+
+/**
+ * Overlays for SDF constructs
+ */
+overlays 
+
+  /**
+   * Module -> <START>
+   */
+  Module_START(w1, t, w2) =
+    appl(
+      prod(
+        [ cf(opt(layout()))
+        , cf(sort("Module"))
+        , cf(opt(layout()))
+        ]
+      , sort("<START>")
+      , no-attrs()
+      )
+    , [ w1, t, w2]
+    )
+
+  /**
+   * SDF -> <START>
+   */
+  SDF_START(w1, t, w2) =
+    appl(
+      prod(
+        [ cf(opt(layout()))
+        , cf(sort("SDF"))
+        , cf(opt(layout()))
+        ]
+      , sort("<START>")
+      , no-attrs()
+      )
+    , [w1, t, w2]
+    )
+
+  /**
+   *   -> M*
+   */
+  EmptyModuleIterStar =
+    appl(prod([],cf(iter-star(sort("Module"))),no-attrs()),[])
+
+  /**
+   * M+ -> M*
+   */
+  NonEmptyModuleIterStar(m) = 
+    appl(prod([cf(iter(sort("Module")))],cf(iter-star(sort("Module"))),no-attrs()),[m])
+
+  /**
+   * M+ M+ -> M+ {left}
+   */
+  MM-iter(m1, w, m2) =
+    appl(prod([cf(iter(sort("Module"))),cf(opt(layout())),cf(iter(sort("Module")))],
+     cf(iter(sort("Module"))),attrs([assoc(left())])),[m1, w, m2])
+
+  /**
+   * M -> M+
+   */
+  M-iter( m ) = 
+    appl(prod([cf(sort("Module"))],cf(iter(sort("Module"))),no-attrs()),[m])
+
+  /**
+   *  Module* -> Definition
+   */
+  Module-s-overlay ( g_6 ) =
+    appl ( prod ( [ cf ( iter-star ( sort ( "Module" ) ) ) ] , cf ( sort ( "Definition" ) ) , no-attrs()  ) , [ g_6 ] )
+
+  /**
+   * definition Definition -> SDF
+   */
+  Definition-overlay(b_1,c_1) = 
+  appl(prod([lit("definition"),cf(opt(layout())),cf(sort("Definition"))],cf(sort("SDF")),
+         attrs([term(cons("definition"))])),[appl(prod([
+    char-class([100]),
+    char-class([101]),
+    char-class([102]),
+    char-class([105]),
+    char-class([110]),
+    char-class([105]),
+    char-class([116]),
+    char-class([105]),
+    char-class([111]),
+    char-class([110])],lit("definition"),no-attrs()),[100,101,102,105,110,105,116,105,111,110]),b_1,c_1])
+
