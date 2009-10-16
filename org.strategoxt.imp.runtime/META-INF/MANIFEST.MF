@@ -21,8 +21,7 @@ Require-Bundle: org.eclipse.imp.runtime,
  org.eclipse.ui,
  org.spoofax.compiler,
  org.strategoxt.imp.generator,
- org.strategoxt.strj,
- sdf_eclipse_installer
+ org.strategoxt.strj
 Export-Package: org.strategoxt.imp.runtime,
  org.strategoxt.imp.runtime.dynamicloading,
  org.strategoxt.imp.runtime.parser,

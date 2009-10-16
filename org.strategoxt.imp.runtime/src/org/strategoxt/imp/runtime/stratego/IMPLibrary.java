@@ -13,10 +13,6 @@ public class IMPLibrary extends AbstractStrategoOperatorRegistry {
 	public IMPLibrary() {
 		add(new SubtermPrimitive());
 	}
-	
-	public static void init() {
-		xtc_command_1_0.instance = new SDFBundleCommand();
-	}
 
 	public String getOperatorRegistryName() {
 		return REGISTRY_NAME;

@@ -26,7 +26,9 @@ Require-Bundle: org.strategoxt.imp.runtime,
  org.eclipse.ui.ide,
  org.strategoxt.strj,
  org.strategoxt.imp.editors.editorservice,
- org.strategoxt.imp.editors.sdf
+ org.strategoxt.imp.editors.sdf,
+ org.eclipse.ant.core,
+ sdf_eclipse_installer;bundle-version="1.0.10"
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Bundle-Activator: org.strategoxt.imp.metatooling.MetatoolingActivator
 Bundle-ActivationPolicy: lazy

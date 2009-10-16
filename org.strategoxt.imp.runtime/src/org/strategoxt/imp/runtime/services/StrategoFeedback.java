@@ -260,6 +260,8 @@ public class StrategoFeedback implements IModelListener {
 		    feedbackToMarkers(sourceInfo, warnings, IMarker.SEVERITY_WARNING);
 		    feedbackToMarkers(sourceInfo, notes, IMarker.SEVERITY_INFO);
 		} else if (feedback == null) {
+			// Note that this condition may also be reached when
+			// the semantic service hasn't been loaded yet
 			IResource resource = ((SGLRParseController) sourceInfo).getResource();
 			if (log.length() == 0) log = "(see error log)"; // TODO: report or throw last exception if strategy not found etc.
 			messages.addMarkerFirstLine(resource, "Analysis failed: " + log, IMarker.SEVERITY_ERROR);

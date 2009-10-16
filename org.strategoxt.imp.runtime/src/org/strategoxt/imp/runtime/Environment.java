@@ -63,7 +63,6 @@ public final class Environment {
 		descriptors = Collections.synchronizedMap(new HashMap<String, Descriptor>());
 		wrappedAstNodeFactory = new WrappedAstNodeFactory();
 		IMPJSGLRLibrary.init();
-		IMPLibrary.init();
 	}
 	
 	// TODO: Split up shared and non-shared environment entities?

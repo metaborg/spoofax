@@ -28,5 +28,12 @@
             project="true">
       </wizard>
    </extension>
+   <extension
+         point="org.eclipse.ant.core.antProperties">
+      <antProperty
+            class="org.strategoxt.imp.metatooling.NativePrefixAntPropertyProvider"
+            name="eclipse.spoofaximp.nativeprefix">
+      </antProperty>
+   </extension>
    
 </plugin>

@@ -8,6 +8,7 @@ import java.net.URL;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.strategoxt.imp.metatooling.stratego.MetaIMPLibrary;
 
 public class MetatoolingActivator extends AbstractUIPlugin {
 
@@ -15,6 +16,7 @@ public class MetatoolingActivator extends AbstractUIPlugin {
 	
 	public MetatoolingActivator() {
 		instance = this;
+		MetaIMPLibrary.init();
 	}
 
 	public static MetatoolingActivator getDefault() { 

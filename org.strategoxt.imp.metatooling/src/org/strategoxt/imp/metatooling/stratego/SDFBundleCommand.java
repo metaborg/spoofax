@@ -1,4 +1,4 @@
-package org.strategoxt.imp.runtime.stratego;
+package org.strategoxt.imp.metatooling.stratego;
 
 import static org.spoofax.interpreter.terms.IStrategoTerm.*;
 
@@ -10,6 +10,7 @@ import org.spoofax.interpreter.library.IOAgent;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.StrategoException;
 import org.strategoxt.lang.compat.NativeCallHelper;
@@ -44,7 +45,7 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 		try {
 			init();
 		} catch (IOException e) {
-			e.printStackTrace();
+			Environment.logException("Could not determine the prefix path for the native tool bundle", e);
 			return proceed.invoke(context, args, command);
 		}
 		

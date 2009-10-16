@@ -92,7 +92,7 @@ strategies
     end;
   
     configure-main-descriptor;
-    <sdf2rtg> input;
+    <sdf2rtg => RTG(_, ProdRules(<id>)); register-rtg> input;
     
     if not(IsLaunchedFromEclipse) then
       // We could build the table here, but doing it from ant is more customizable
@@ -142,9 +142,7 @@ strategies
       xtc-transform(!"implodePT");
       read-from;
       sdf-desugar;
-      core-sdf-grammar2rtg => rtg;
-      ?RTG(_, ProdRules(<id>));
-      register-rtg
+      core-sdf-grammar2rtg => rtg
 
   /* UNDONE: sdf2def converts a single SDF file to a DEF file.
   sdf2def: 
