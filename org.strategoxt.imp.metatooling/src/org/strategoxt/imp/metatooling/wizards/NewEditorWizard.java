@@ -104,6 +104,7 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 		monitor.setTaskName("Preparing project builder");
 		EditorIOAgent agent = new EditorIOAgent();		
 		Context context = new Context(Environment.getTermFactory(), agent);
+		context.registerClassLoader(make_permissive.class.getClassLoader());
 		sdf2imp.init(context);
 		monitor.worked(1);
 

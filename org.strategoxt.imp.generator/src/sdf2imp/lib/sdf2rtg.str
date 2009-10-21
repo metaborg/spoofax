@@ -3,7 +3,7 @@ module lib/sdf2imp/sdf2rtg
 imports
   libstratego-lib
   libstratego-xtc
-  tool-doc
+  libstratego-tool-doc
 
 signature constructors
   IgnoreMissingCons : Option
