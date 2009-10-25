@@ -6,7 +6,9 @@ import lpg.runtime.ILexStream;
 import lpg.runtime.IPrsStream;
 import lpg.runtime.IToken;
 
+import org.eclipse.core.runtime.AssertionFailedException;
 import org.eclipse.imp.services.base.FolderBase;
+import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
 import org.strategoxt.imp.runtime.parser.ast.AbstractVisitor;
 import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.*;
@@ -89,7 +91,11 @@ public class FoldingUpdater extends FolderBase {
 			if (end == -1)
 				end = lastToken.getEndOffset();
 			
-			makeAnnotation(start, end - start + 1);
+			try {
+				makeAnnotation(start, end - start + 1);
+			} catch (AssertionFailedException e) {
+				Environment.logException("Could not create a folding annotation at (" + start + "," + (end - start + 1));
+			}
 		}
 	}
 
