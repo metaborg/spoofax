@@ -1,6 +1,7 @@
 package org.strategoxt.imp.runtime.stratego;
 
 import java.io.IOException;
+import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -10,6 +11,7 @@ import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.TermConverter;
 import org.spoofax.jsglr.Disambiguator;
+import org.spoofax.jsglr.NoRecoveryRulesException;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.SGLRException;
 import org.spoofax.jsglr.StructureRecoveryAlgorithm;
@@ -33,6 +35,8 @@ public class IMPParseStringPTPrimitive extends JSGLR_parse_string_pt_compat {
 	private final Map<IStrategoTerm, char[]> inputCharMap = new WeakHashMap<IStrategoTerm, char[]>();
 
 	private final Map<IStrategoTerm, ATerm> inputTermMap = new WeakHashMap<IStrategoTerm, ATerm>();
+	
+	private Map<ParseTable, ParseTable> isNoRecoveryWarned = new IdentityHashMap<ParseTable, ParseTable>();
 
 	protected IMPParseStringPTPrimitive(WrappedATermFactory factory, Disambiguator filterSettings) {
 		super(factory, filterSettings);
@@ -49,7 +53,15 @@ public class IMPParseStringPTPrimitive extends JSGLR_parse_string_pt_compat {
 		
 		String path = getLastPath();		
 		JSGLRI parser = new JSGLRI(table, startSymbol);
-		parser.setRecoverHandler(new StructureRecoveryAlgorithm());
+		try {
+			parser.setRecoverHandler(new StructureRecoveryAlgorithm());
+		} catch (NoRecoveryRulesException e) {
+			if (!isNoRecoveryWarned.containsKey(table)) {
+				Environment.logException(NAME + ": warning - no recovery rules available in parse table", e);
+				// (we use an identity hash map to avoid parse table hashing)
+				isNoRecoveryWarned.put(table, table);
+			}
+		}
 		char[] inputChars = input.toCharArray();
 		
 		final ATerm asfix = parser.parseNoImplode(inputChars, path);

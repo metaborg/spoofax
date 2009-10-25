@@ -28,6 +28,7 @@ import org.eclipse.imp.services.IAnnotationTypeInfo;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.jface.text.IRegion;
 import org.spoofax.jsglr.BadTokenException;
+import org.spoofax.jsglr.NoRecoveryRulesException;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.ParseTimeoutException;
 import org.spoofax.jsglr.SGLR;
@@ -131,7 +132,11 @@ public class SGLRParseController implements IParseController, ISourceInfo {
     	ParseTable table = Environment.getParseTable(language);
 		parser = new JSGLRI(table, startSymbol, this, tokenManager);
 		parser.setKeepAmbiguities(true);
-		parser.setRecoverHandler(new StructureRecoveryAlgorithm());
+		try {
+			parser.setRecoverHandler(new StructureRecoveryAlgorithm());
+		} catch (NoRecoveryRulesException e) {
+			Environment.logException("Warning: no recovery rules available for " + language.getName());
+		}
     }
 
     public void initialize(IPath filePath, ISourceProject project,

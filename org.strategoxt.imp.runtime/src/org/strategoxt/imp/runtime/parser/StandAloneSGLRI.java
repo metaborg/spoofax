@@ -7,6 +7,7 @@ import org.eclipse.imp.language.Language;
 import org.spoofax.jsglr.BadTokenException;
 import org.spoofax.jsglr.Disambiguator;
 import org.spoofax.jsglr.InvalidParseTableException;
+import org.spoofax.jsglr.NoRecoveryRulesException;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.RecoverAlgorithm;
 import org.spoofax.jsglr.SGLRException;
@@ -40,7 +41,7 @@ public class StandAloneSGLRI {
 		}
 	}
 	
-	public void setRecoverHandler(RecoverAlgorithm recoverHandler) {
+	public void setRecoverHandler(RecoverAlgorithm recoverHandler) throws NoRecoveryRulesException {
 		if (parser instanceof JSGLRI) {
 			((JSGLRI) parser).setRecoverHandler(recoverHandler);
 		} else {
