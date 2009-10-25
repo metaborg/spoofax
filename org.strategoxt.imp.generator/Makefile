@@ -58,7 +58,7 @@ java : src-gen/org/strategoxt/imp/generator/sdf2imp.java
 
 jar : lib/sdf2imp.jar
 
-check : all \
+check : sdf2imp syntax \
         test/EditorService.runtestsuite \
         test/test-editor-service.runsh \
         test/test-stratego-java.runsh \

@@ -130,7 +130,7 @@ strategies
     
     say(!"SUCCESS: completed with 0 fatal errors.")
   
-  // TODO: XTC detox -_-;;
+  // (Note that these xtc calls are intercepted by the Spoofax/IMP runtime.)
   sdf2rtg:
     FILE(sdf) -> rtg
     with
@@ -138,8 +138,9 @@ strategies
       if FILE(has-extension(|"sdf")) then
         fatal-err(|"Input file must be a .def file.")
       end;
-      xtc-transform(!"sdf2table", !["-n", "-m", <get-sdf-main-module> | <pass-v-verbose>]);
-      xtc-transform(!"implodePT");
+      table := <xtc-new-file>;
+      <sdf2table> (sdf, table, ["-n"]);
+      <xtc-transform(!"implodePT")> FILE(table);
       read-from;
       sdf-desugar;
       core-sdf-grammar2rtg => rtg

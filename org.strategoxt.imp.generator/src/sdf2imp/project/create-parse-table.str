@@ -33,11 +33,12 @@ strategies
       FILE(input') := <create-permissive-grammar> FILE(input);
       output       := <parse-table-target>;
       print-filename(|[], output);
-      <debug; sdf2table> (input', output)
+      <debug; sdf2table> (input', output, [])
   
+  // (Note that these xtc calls are intercepted by the Spoofax/IMP runtime.)
   sdf2table =
-    ?(input, output);
-    <xtc-command(!"sdf2table")> ["-i", <abspath> input, "-o", <abspath> output, "-m", <get-sdf-main-module>]
+    ?(input, output, options);
+    <xtc-command(!"sdf2table")> ["-i", <abspath> input, "-o", <abspath> output, "-m", <get-sdf-main-module> | <conc> (options, <pass-v-verbose>)]
   <+
     <xtc-command(!"sdf2table")> ["-V"] // ensure it's available
   <+

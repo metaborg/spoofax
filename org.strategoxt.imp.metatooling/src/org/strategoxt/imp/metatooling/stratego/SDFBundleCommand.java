@@ -5,6 +5,7 @@ import static org.spoofax.interpreter.terms.IStrategoTerm.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Arrays;
 
 import org.spoofax.interpreter.library.IOAgent;
 import org.spoofax.interpreter.terms.IStrategoList;
@@ -50,7 +51,7 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 		}
 		
 		IStrategoTerm commandTerm = command.invoke(context, args);
-		if (commandTerm.getTermType() != STRING)
+		if (commandTerm.getTermType() != STRING || true) // FIXME: call sdf2table in plugin
 			return proceed.invoke(context, args, command);
 		
 		String commandName = ((IStrategoString) commandTerm).stringValue();
@@ -64,6 +65,25 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 			? args
 			: null;
 	}
+	
+	/* TODO: chmod executable before use
+	private static void makeExecutable(String command) throws IOException {
+		String os = Platform.getOS();
+		if (os.equals(Platform.OS_LINUX)
+				|| os.equals(Platform.OS_MACOSX)) {
+			try {
+			    String cmdBin = binary(command);
+				Process p = Runtime.getRuntime().exec("/bin/chmod +x " + cmdBin);
+				p.waitFor();
+				if (p.exitValue() != 0) {
+				    a.getLog().log(new Status(IStatus.ERROR, Activator.PLUGIN_ID, "chmod of '" + cmdBin + "' failed: " + p.exitValue()));
+				}
+			} catch (InterruptedException e) {
+				a.getLog().log(new Status(IStatus.ERROR, Activator.PLUGIN_ID, "chmod of '" + binary(command) + "' failed: " + e.getMessage()));	
+			}
+		}
+	}
+	*/
 
 	private boolean invokeSDF2Table(Context context, String command, IStrategoTerm[] argList) throws StrategoException {
 		// HACK: concatenating all command-line arguments...
@@ -90,6 +110,8 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 			IOAgent io = context.getIOAgent();
 			PrintStream stdout = io.getOutputStream(IOAgent.CONST_STDOUT);
 			PrintStream stderr = io.getOutputStream(IOAgent.CONST_STDERR);
+			// DEBUG
+			System.out.println("Calling: " + Arrays.toString(commandArgs) + " " + Arrays.toString(environment) + " " + io.getWorkingDir());
 			int result = new NativeCallHelper().call(commandArgs, environment, new File(io.getWorkingDir()), stdout, stderr);
 			return result == 0;
 		} catch (IOException e) {
