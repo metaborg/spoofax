@@ -2,8 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Spoofax/IMP Metatooling
 Bundle-SymbolicName: org.strategoxt.imp.metatooling;singleton:=true
-Bundle-Version: 0.1.0.2800
-Bundle-ClassPath: org.strategoxt.imp.metatooling/
+Bundle-Version: 0.1.0.2802
 Require-Bundle: org.strategoxt.imp.runtime,
  org.strategoxt.imp.generator,
  org.eclipse.imp.runtime,

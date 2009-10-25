@@ -35,5 +35,9 @@
             name="eclipse.spoofaximp.nativeprefix">
       </antProperty>
    </extension>
-   
+   <!--  TODO: something like the following:
+   <extension point="org.eclipse.ant.core.extraClasspathEntries">
+     <extraClasspathEntry library="strategoxt.jar"/>
+   </extension>
+   -->
 </plugin>

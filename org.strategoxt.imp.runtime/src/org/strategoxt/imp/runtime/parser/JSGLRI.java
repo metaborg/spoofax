@@ -75,8 +75,7 @@ public class JSGLRI extends AbstractSGLRI {
 		try {
 			parser.setRecoverHandler(recoverHandler);
 		} catch (NoRecoveryRulesException e) {
-			// Not expected here
-			Environment.logException("Exception when resetting parser state", e);
+			// Already handled/logged this error in setRecoverHandler()
 		}
 		// XXX: Must run with filters enabled, when they're no longer b0rked
 		parser.getDisambiguator().setFilterPriorities(false);
