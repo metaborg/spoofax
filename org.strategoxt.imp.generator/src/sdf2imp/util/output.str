@@ -98,14 +98,14 @@ strategies
   output-java-file =
     where(
       ?class;
-      path := <create-dirs> ["editor", "java" | <package-name>];
+      path := <create-dirs> ["editor", "java" | <to-package-name>];
       fullpath := <conc-strings> (path, "/", <class-name> class, ".java")
     );
     
     output-java-file(|fullpath)
 
   output-java-file(|filename) =
-    print-filename(|["editor", "java" | <package-name>], <base-filename> filename);
+    print-filename(|["editor", "java" | <to-package-name>], <base-filename> filename);
     
     (
       text := <pp-java-string <+ pp-java-string-fallback>
@@ -165,11 +165,11 @@ strategies
     getcwd; // return path to innermost created dir.
     where (<chdir> root)     
   
-  package-name:
+  to-package-name:
     CompilationUnit(Some(PackageDec(_, PackageName(ids))), _, _) -> xs
     where xs := <map(?Id(<id>))> ids
     
-  package-name:
+  to-package-name:
     CompilationUnit(None(), _, _) -> []
     
   class-name =
