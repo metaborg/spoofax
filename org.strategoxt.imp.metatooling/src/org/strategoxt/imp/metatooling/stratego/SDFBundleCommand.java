@@ -33,10 +33,12 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 	private String binaryPostfix;
 	
 	private void init() throws IOException {
+		/* FIXME: initialization doesn't seem to work on the mac atm
 		if (binaryPostfix != null) return;
 		Activator sdfBundle = Activator.getInstance();
 		binaryPrefix = sdfBundle.getBinaryPrefix();
 		binaryPostfix = sdfBundle.getBinaryPostfix();
+		*/
 	}
 	
 	@Override
