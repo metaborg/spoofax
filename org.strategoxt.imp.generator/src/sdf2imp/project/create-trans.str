@@ -5,7 +5,7 @@ imports
 
 strategies
   
-  trans-module-name =
+  trans-module-name = // TODO: move "undefined" type error to x subterm? remove/fix x_declaration hack?
      get-sdf-main-module;
      lower-case;
      cify;
@@ -94,13 +94,13 @@ rules // Semantic rules
   /**
    * Reports an error if an entity is defined more than once.
    * This constraint is implemented by testing if the \"bag\" of
-   * all entities x is a list with at least two items.
+   * all entities x is not an empty list.
    * This error is reported on the entity name x.
    */
   constraint-error:
     Entity(x, _) -> (x, \"Duplicate entity name\")
     where
-      <bagof-GetEntity> x => [_, _ | _]
+      not(<bagof-GetEntity> x => [])
   
   /**
    * Reports a warning if an entity name does not start with a capital.

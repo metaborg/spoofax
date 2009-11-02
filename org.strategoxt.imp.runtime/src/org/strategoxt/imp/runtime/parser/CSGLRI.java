@@ -81,7 +81,7 @@ public class CSGLRI extends AbstractSGLRI {
 					(startSymbol == null ? "" : startSymbol),
 					"-2"
 			};
-			caller.call(commandArgs, null, System.out, System.err);
+			caller.call(commandArgs, new String[0], null, System.out, System.err);
 			
 			ATermAppl result = (ATermAppl) factory.readFromFile(outputFile.getAbsolutePath());
 			

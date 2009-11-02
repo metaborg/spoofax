@@ -188,9 +188,10 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 				//
 				// TODO: Consider using Display.asyncExec for reporting errors;
 				//       this could be integrated into the AstMessageHandler class!
-				errorHandler.clearErrors();
 				errorHandler.setRecoveryAvailable(true);
-				errorHandler.reportNonFatalErrors(parser.getTokenizer(), asfix);
+				errorHandler.gatherNonFatalErrors(parser.getTokenizer(), asfix);
+				errorHandler.clearErrors();
+				errorHandler.applyMarkers();
 			}
 				
 			Debug.stopTimer("File parsed: " + filename);
@@ -200,26 +201,32 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 			errorHandler.clearErrors();
 			errorHandler.setRecoveryAvailable(false);
 			errorHandler.reportError(parser.getTokenizer(), e);
+			errorHandler.applyMarkers();
 		} catch (TokenExpectedException e) {
 			errorHandler.clearErrors(); // (must not be synchronized; uses workspace lock)
 			errorHandler.reportError(parser.getTokenizer(), e);
+			errorHandler.applyMarkers();
 		} catch (BadTokenException e) {
 			errorHandler.clearErrors();
 			errorHandler.setRecoveryAvailable(false);
 			errorHandler.reportError(parser.getTokenizer(), e);
+			errorHandler.applyMarkers();
 		} catch (SGLRException e) {
 			errorHandler.clearErrors();
 			errorHandler.setRecoveryAvailable(false);
 			errorHandler.reportError(parser.getTokenizer(), e);
+			errorHandler.applyMarkers();
 		} catch (IOException e) {
 			errorHandler.clearErrors();
 			errorHandler.setRecoveryAvailable(false);
 			errorHandler.reportError(parser.getTokenizer(), e);
+			errorHandler.applyMarkers();
 		} catch (OperationCanceledException e) {
 			return null;
 		} catch (RuntimeException e) {
 			Environment.logException("Internal parser error", e);
 			errorHandler.reportError(parser.getTokenizer(), e);
+			errorHandler.applyMarkers();
 		} finally {
 			if (isStartupParsed)
 				Job.getJobManager().endRule(resource);

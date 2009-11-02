@@ -38,7 +38,7 @@ exports
     "keyword"    -> TokenKindName {cons("TK_KEYWORD")}
     "operator"   -> TokenKindName {cons("TK_OPERATOR")}
     "var"        -> TokenKindName {cons("TK_VAR")}
-    "junk"       -> TokenKindName {cons("TK_JUNK")}
+    "error"      -> TokenKindName {cons("TK_ERROR")}
     "unknown"    -> TokenKindName {cons("TK_UNKNOWN")}
     
                     -> Font {cons("NORMAL")}

@@ -1,6 +1,7 @@
 package org.strategoxt.imp.runtime.parser.tokens;
 
 import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.*;
+import lpg.runtime.IPrsStream;
 import lpg.runtime.IToken;
 import lpg.runtime.LexStream;
 import lpg.runtime.PrsStream;
@@ -135,6 +136,17 @@ public class SGLRTokenizer {
 		}
 
 		return new Token(parseStream, beginOffset, endOffset, TK_ERROR.ordinal());
+	}
+	
+	public void changeTokenKinds(int beginOffset, int endOffset, TokenKind kind) {
+		IPrsStream tokens = lexStream.getIPrsStream();
+		for (int i = 0, end = tokens.getSize(); i < end; i++) {
+			IToken token = tokens.getIToken(i);
+			if (token.getEndOffset() >= beginOffset)
+				token.setKind(kind.ordinal());
+			if (token.getEndOffset() > endOffset)
+				return;
+		}
 	}
 	
 	/**

@@ -22,12 +22,18 @@ strategies
 
 // Example ", name, " program
 
-entity Foo {
-  bar : String
-  baz : String
+entity User {
+  name     : String
+  password : String
+  homepage : URL
 }
 
-entity Qux {
-  foo : Foo
+entity BlogPosting {
+  poster : User
+  body   : String
+}
+
+entity URL {
+  location : String
 }"
 )

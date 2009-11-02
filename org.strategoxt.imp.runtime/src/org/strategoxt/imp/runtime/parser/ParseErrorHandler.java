@@ -1,6 +1,10 @@
 package org.strategoxt.imp.runtime.parser;
 
 import static org.spoofax.jsglr.Term.*;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import lpg.runtime.IToken;
 
 import org.eclipse.core.resources.IMarker;
@@ -14,9 +18,11 @@ import org.strategoxt.imp.runtime.ISourceInfo;
 import org.strategoxt.imp.runtime.parser.ast.AsfixImploder;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
+import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
 
 import aterm.ATerm;
 import aterm.ATermAppl;
+import aterm.ATermInt;
 import aterm.ATermList;
 
 /**
@@ -63,6 +69,8 @@ public class ParseErrorHandler {
 	private int offset;
 	
 	private boolean inLexicalContext;
+	
+	private List<Runnable> errorReports = new ArrayList<Runnable>(); // HACK
 
 	public ParseErrorHandler(ISourceInfo sourceInfo) {
 		this.sourceInfo = sourceInfo;
@@ -93,14 +101,21 @@ public class ParseErrorHandler {
 	/**
 	 * Report WATER + INSERT errors from parse tree
 	 */
-	public void reportNonFatalErrors(SGLRTokenizer tokenizer, ATerm top) {
+	public void gatherNonFatalErrors(SGLRTokenizer tokenizer, ATerm top) {
 		try {
+			errorReports.clear();
 			offset = 0;
 			reportSkippedFragments(tokenizer);
 			ATermAppl asfix = termAt(top, 0);
 			reportRecoveredErrors(tokenizer, asfix, 0, 0);
 		} catch (RuntimeException e) {
 			reportError(tokenizer, e);
+		}
+	}
+	
+	public void applyMarkers() {
+		for (Runnable marker : errorReports) {
+			marker.run();
 		}
 	}
 
@@ -145,15 +160,19 @@ public class ParseErrorHandler {
 		//post visit: report error				
 		if (isErrorProduction(attrs, WATER)) {
 			IToken token = tokenizer.makeErrorToken(startOffset, offset - 1);
+			tokenizer.changeTokenKinds(startOffset, offset - 1, TokenKind.TK_ERROR);
 			reportErrorAtTokens(token, token, "Syntax error, '" + token + "' not expected here");
 		} else if (isErrorProduction(attrs, INSERT_END)) {
 			IToken token = tokenizer.makeErrorToken(startOffset, offset - 1);
+			tokenizer.changeTokenKinds(startOffset, offset - 1, TokenKind.TK_ERROR);
 			reportErrorAtTokens(token, token, "Syntax error, Closing of '" + token + "' is expected here");
 		} else if (isErrorProduction(attrs, INSERT)) {
 			IToken token = tokenizer.makeErrorTokenSkipLayout(startOffset, offset + 1, outerStartOffset2);
 			String inserted = "token";
-			if (rhs.getName() == "lit") {
+			if (rhs.getName().equals("lit")) {
 				inserted = applAt(rhs, 0).getName();
+			} else if (rhs.getName().equals("char-class")) {
+				inserted = toString(listAt(rhs, 0));
 			}
 			if (token.getLine() == tokenizer.getLexStream().getLine(outerStartOffset2) && !token.toString().equals(inserted)) {
 				reportErrorAtTokens(token, token, "Syntax error, expected: '" + inserted + "'");
@@ -166,6 +185,19 @@ public class ParseErrorHandler {
 		
 		if (lexicalStart) inLexicalContext = false;
 	}
+	
+	private static String toString(ATermList chars) {
+		// TODO: move to SSL_implode_string.call() ?
+        StringBuilder result = new StringBuilder(chars.getLength());
+
+        while (chars.getFirst() != null) {
+        	ATermInt v = (ATermInt) chars.getFirst();
+            result.append((char) v.getInt());
+            chars = chars.getNext();
+        }
+        
+        return result.toString();
+    }
 	
 	private void reportAmbiguity(SGLRTokenizer tokenizer, ATermAppl amb, int startOffset) {
 		if (!inLexicalContext && hasContextFreeNode(amb)) {
@@ -206,6 +238,7 @@ public class ParseErrorHandler {
 						break;
 				}
 				IToken token = tokenizer.makeErrorToken(beginSkipped, endSkipped);
+				tokenizer.changeTokenKinds(beginSkipped, endSkipped, TokenKind.TK_ERROR);
 				reportErrorAtTokens(token, token, "Could not parse this fragment");
 			} else if (c == UNEXPECTED_EOF_CHAR) {
 				// Recovered using a forced reduction
@@ -219,7 +252,8 @@ public class ParseErrorHandler {
 		int treeEnd = tokenizer.getParseStream().getTokenAt(tokenizer.getParseStream().getStreamLength() - 1).getEndOffset();
 		if (treeEnd < inputChars.length) {
 			IToken token = tokenizer.makeErrorToken(treeEnd + 1, inputChars.length);
-			reportErrorAtTokens(token, token, "Could not parse this fragment");
+			reportErrorAtTokens(token, token, "Could not parse the remainder of this file");
+			tokenizer.changeTokenKinds(treeEnd + 1, inputChars.length, TokenKind.TK_ERROR);
 		}
 	}
 	
@@ -251,24 +285,30 @@ public class ParseErrorHandler {
 		reportErrorAtFirstLine(message);
 	}
 	
-	private void reportErrorAtTokens(IToken left, IToken right, String message) {
+	private void reportErrorAtTokens(final IToken left, final IToken right, String message) {
 		// UNDONE: Using IMP message handler
 		// TODO: Cleanup - remove messages field and related code
 		//messages.handleSimpleMessage(
 		// 		message, max(0, left.getStartOffset()), max(0, right.getEndOffset()),
 		// 		left.getColumn(), right.getEndColumn(), left.getLine(), right.getEndLine());
 		
-		if (!isRecoveryAvailable)
-			message += " (recovery unavailable)";
+		final String message2 = isRecoveryAvailable ? message : message + " (recovery unavailable)";
 		
-		handler.addMarker(sourceInfo.getResource(), left, right, message, IMarker.SEVERITY_ERROR);
+		errorReports.add(new Runnable() {
+			public void run() {
+				handler.addMarker(sourceInfo.getResource(), left, right, message2, IMarker.SEVERITY_ERROR);
+			}
+		});
 	}
 	
 	private void reportErrorAtFirstLine(String message) {
-		if (!isRecoveryAvailable)
-			message += " (recovery unavailable)";
+		final String message2 = isRecoveryAvailable ? message : message + " (recovery unavailable)";
 		
-		handler.addMarkerFirstLine(sourceInfo.getResource(), message, IMarker.SEVERITY_ERROR);
+		errorReports.add(new Runnable() {
+			public void run() {
+				handler.addMarkerFirstLine(sourceInfo.getResource(), message2, IMarker.SEVERITY_ERROR);
+			}
+		});
 	}	
 	
 	private static boolean isErrorProduction(ATermAppl attrs, String consName) {		
