@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
@@ -13,20 +12,17 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.ide.IDE;
 import org.spoofax.interpreter.core.Interpreter;
 import org.strategoxt.imp.generator.sdf2imp;
 import org.strategoxt.imp.metatooling.loading.DynamicDescriptorUpdater;
+import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.lang.Context;
@@ -161,15 +157,16 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 			}
 			
 			monitor.setTaskName("Opening editors");
-			openEditor(project, "/trans/" + toStrategoName(languageName) +  ".str", true);
+			Display display = getShell().getDisplay();
+			EditorState.asyncOpenEditor(display,  project, "/trans/" + toStrategoName(languageName) +  ".str", true);
 			monitor.worked(1);
-			openEditor(project, "/editor/" + languageName +  ".main.esv", true);
+			EditorState.asyncOpenEditor(display, project, "/editor/" + languageName +  ".main.esv", true);
 			monitor.worked(1);
-			openEditor(project, "/syntax/" + languageName +  ".sdf", true);
+			EditorState.asyncOpenEditor(display, project, "/syntax/" + languageName +  ".sdf", true);
 			monitor.worked(1);
-			openEditor(project, "/test/example." + extensions.split(",")[0], false);
+			EditorState.asyncOpenEditor(display, project, "/test/example." + extensions.split(",")[0], false);
 			monitor.worked(1);
-			openEditor(project, "/syntax/" + languageName +  ".sdf", true); // honestly, give this one focus
+			EditorState.asyncOpenEditor(display, project, "/syntax/" + languageName +  ".sdf", true); // honestly, give this one focus
 			monitor.done();
 			
 			success = true;
@@ -185,25 +182,6 @@ public class NewEditorWizard extends Wizard implements INewWizard {
  	private static String toStrategoName(String languageName) {
  		return Interpreter.cify(languageName.toLowerCase()).replace('_', '-');
  	}
-	
-	private void openEditor(IProject project, String filename, final boolean activate) {
-		final IResource file = (IResource) project.findMember(filename);
-		if (!file.exists() || !(file instanceof IFile)) {
-			Environment.logException("Cannot open an editor for " + filename);
-			return;
-		}
-		getShell().getDisplay().asyncExec(new Runnable() {
-			public void run() {
-				IWorkbenchPage page =
-					PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-				try {
-					IDE.openEditor(page, (IFile) file, UniversalEditor.EDITOR_ID, activate);
-				} catch (PartInitException e) {
-					Environment.logException("Cannot open an editor for " + file, e);
-				}
-			}
-		});
-	}
 
 	/*
 	private void throwCoreException(String message) throws CoreException {

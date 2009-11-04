@@ -10,8 +10,18 @@ exports
     "references" <SectionName-LEX> <LAYOUT?-CF> <SemanticRule*-CF> -> <Section-CF> {cons("References")}
 
     "references" -> <ReservedName-CF>
+    
+    %% Deprecated:
+  
+    "occurrences" <SectionName-LEX> <LAYOUT?-CF> <SemanticRule*-CF> -> <Section-CF> {cons("Occurrences")}
+
+    "occurrences" -> <ReservedName-CF>
 
   context-free syntax
   
+    %% TODO: separate "hover" syntax
+  
     "reference" SemanticNode ":" StrategoCall StrategoCall -> SemanticRule {cons("ReferenceRule")}
 %%  "reference" "*"          ":" StrategoCall StrategoCall -> SemanticRule {cons("AllReferenceRule")}
+  
+    "occurrence" SemanticNode ":" StrategoCall -> SemanticRule {cons("OccurrenceRule")}

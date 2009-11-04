@@ -8,7 +8,7 @@ import java.util.List;
 import org.eclipse.imp.services.IReferenceResolver;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.strategoxt.imp.runtime.services.NodeMapping;
-import org.strategoxt.imp.runtime.services.StrategoFeedback;
+import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.services.StrategoReferenceResolver;
 
 /**
@@ -24,7 +24,7 @@ public class ReferenceResolverFactory extends AbstractServiceFactory<IReferenceR
 	@Override
 	public IReferenceResolver create(Descriptor descriptor) throws BadDescriptorException {
 		IStrategoAppl descriptorFile = descriptor.getDocument();
-		StrategoFeedback feedback = descriptor.getStrategoFeedback();
+		StrategoObserver feedback = descriptor.getStrategoObserver();
 		
 		List<NodeMapping<String>> resolverFunctions = new ArrayList<NodeMapping<String>>();
 		List<NodeMapping<String>> helpFunctions = new ArrayList<NodeMapping<String>>();

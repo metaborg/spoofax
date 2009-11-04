@@ -17,7 +17,7 @@ import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class StrategoReferenceResolver implements IReferenceResolver {
-	private final StrategoFeedback feedback;
+	private final StrategoObserver observer;
 	
 	private final List<NodeMapping<String>> resolverFunctions;
 	
@@ -27,8 +27,8 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 	
 	private final String wildcardHelperFunction;
 	
-	public StrategoReferenceResolver(StrategoFeedback feedback, List<NodeMapping<String>> resolverFunctions, List<NodeMapping<String>> helpFunctions) {
-		this.feedback = feedback;
+	public StrategoReferenceResolver(StrategoObserver observer, List<NodeMapping<String>> resolverFunctions, List<NodeMapping<String>> helpFunctions) {
+		this.observer = observer;
 		this.resolverFunctions = resolverFunctions;
 		this.helpFunctions = helpFunctions;
 		wildcardResolverFunction = NodeMapping.getFirstAttribute(resolverFunctions, "_", null, 0);
@@ -45,10 +45,10 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 			return null;
 		}
 		
-		IStrategoTerm resultTerm = feedback.invoke(function, node);
-		if (resultTerm == null && !feedback.isUpdateStarted())
-			feedback.asyncUpdate(parseController);
-		return feedback.getAstNode(resultTerm);
+		IStrategoTerm resultTerm = observer.invoke(function, node);
+		if (resultTerm == null && !observer.isUpdateStarted())
+			observer.asyncUpdate(parseController);
+		return observer.getAstNode(resultTerm);
 	}
 
 	public String getLinkText(Object oNode) {
@@ -61,7 +61,7 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 			return null;
 		}
 		
-		IStrategoTerm result = feedback.invoke(function, node);
+		IStrategoTerm result = observer.invoke(function, node);
 		if (result == null) {
 			return null;
 		} else if (isTermString(result)) {

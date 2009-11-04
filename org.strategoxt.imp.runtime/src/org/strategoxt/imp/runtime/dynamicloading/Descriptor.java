@@ -24,7 +24,7 @@ import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.services.MetaFileLanguageValidator;
-import org.strategoxt.imp.runtime.services.StrategoFeedback;
+import org.strategoxt.imp.runtime.services.StrategoObserver;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -47,11 +47,13 @@ public class Descriptor {
 	
 	private IPath basePath;
 	
-	private StrategoFeedback feedback;
+	private StrategoObserver feedback;
 	
 	private Set<File> attachedFiles;
 	
 	private Class<?> attachmentProvider;
+	
+	private boolean dynamicallyLoaded;
 	
 	// LOADING DESCRIPTOR 
 
@@ -66,9 +68,10 @@ public class Descriptor {
 		serviceFactories.add(new FoldingUpdaterFactory());
 		serviceFactories.add(new OutlinerFactory());
 		serviceFactories.add(new ReferenceResolverFactory());
-		serviceFactories.add(new StrategoFeedbackFactory());
+		serviceFactories.add(new StrategoObserverFactory());
 		serviceFactories.add(new SyntaxPropertiesFactory());
 		serviceFactories.add(new TokenColorerFactory());
+		serviceFactories.add(new BuilderFactory());
 	}
 	
 	/**
@@ -85,6 +88,12 @@ public class Descriptor {
 	
 	// LOADING SERVICES
 	
+	/**
+	 * Creates a new service of a particular type.
+	 * 
+	 * @see #addInitializedService(AbstractService)
+	 *      Must be called for dynamic _wrapper_ services as soon as they are fully initialized.
+	 */
 	public synchronized<T extends ILanguageService> T createService(Class<T> type)
 			throws BadDescriptorException {
 		
@@ -109,10 +118,9 @@ public class Descriptor {
 			throw new IllegalStateException("Could not create an editor service for " + type.getSimpleName());
 	}
 	
-	public StrategoFeedback getStrategoFeedback() throws BadDescriptorException {
-		if (feedback == null) {
-			feedback = new StrategoFeedbackFactory().create(this);
-		}
+	public StrategoObserver getStrategoObserver() throws BadDescriptorException {
+		if (feedback == null)
+			feedback = new StrategoObserverFactory().create(this);
 		return feedback;
 	}
 	
@@ -140,6 +148,14 @@ public class Descriptor {
 	
 	public String getStartSymbols() {
 		return getProperty("StartSymbols", null);
+	}
+	
+	public boolean isDynamicallyLoaded() {
+		return dynamicallyLoaded;
+	}
+	
+	public void setDynamicallyLoaded(boolean dynamicallyLoaded) {
+		this.dynamicallyLoaded = dynamicallyLoaded;
 	}
 	
 	/**

@@ -30,10 +30,9 @@ strategies
       module <main-descriptor-name>
       
       imports
-        <descriptor-name> "-Analysis"
+        <descriptor-name> "-Builders"
         <descriptor-name> "-Colorer"
         <descriptor-name> "-Folding"
-        <descriptor-name> "-Occurrences"
         <descriptor-name> "-Outliner"
         <descriptor-name> "-References"
         <descriptor-name> "-Syntax"

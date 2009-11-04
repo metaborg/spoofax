@@ -1,0 +1,66 @@
+module sdf2imp/services/create-analysis-descriptor
+
+imports
+  libstratego-lib
+  
+  sdf2imp/util/-
+  sdf2imp/project/create-example-trans
+
+strategies
+
+  create-builders-descriptor =
+    output-initial-descriptor-file(
+      <descriptor-name> "-Builders"
+    , provider := <conc-strings> ("include/", <trans-module-name>, ".ctree");
+      !|[
+        module <descriptor-name> "-Builders"
+        
+        imports <descriptor-name> "-Builders.generated"
+        
+        builders
+          ~
+          ~// This file can be used for custom analysis and builder rules.
+          ~// See the imported file for a brief introduction and examples.
+          ~
+          provider: ~provider
+          observer: editor-analyze
+          builder: "Generate Java code" = generate-java  (openeditor) (realtime)
+          builder: "Show ATerm"         = generate-aterm (openeditor) (realtime)
+      ]|
+    );
+    
+    output-derived-descriptor-file(
+      <descriptor-name> "-Builders.generated"
+    ,
+      !|[
+        module <descriptor-name> "-Builders.generated"
+        
+        analysis
+          ~
+          ~// Building and analysis is defined in Stratego program or programs:
+          ~//
+          ~//   provider : stratego-program.ctree
+          ~//   provider : stratego-library.jar
+          ~
+          ~// Analysis is carried out by a Stratego rule that can be selected as follows:
+          ~//
+          ~//   observer : analysis-rule
+          ~//
+          ~// Any dynamic rules set in the analysis may be used by other semantic services,
+          ~// such as reference resolving or the builders.
+          ~
+          ~// Builders may carry out custom transformations on a file or selection,
+          ~// and can be selected as follows:
+          ~//
+          ~//   builder : "Generate Java code" = generate-java (openeditor) (persistent) (realtime)
+          ~//
+          ~// In this example, the caption "Generate Java code" is used in the build button dropdown menu,
+          ~// and the generate-java rule is used to carry out the tranformation.
+          ~// Builder definitions can also specify any combination of the following annotations:
+          ~//
+          ~//   (openeditor)  Indicates an editor should be opened with the result.
+          ~//   (persistent)  Indicates that the resulting file should be saved to disk.
+          ~//   (realtime)    Indicates that the resulting editor should be updated in real-time
+          ~//                 as the source file is edited.
+      ]|
+    )

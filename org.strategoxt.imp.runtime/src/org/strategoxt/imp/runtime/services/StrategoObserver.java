@@ -51,7 +51,7 @@ import org.strategoxt.lang.StrategoException;
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class StrategoFeedback implements IModelListener {
+public class StrategoObserver implements IModelListener {
 	
 	private final Descriptor descriptor;
 	
@@ -67,7 +67,7 @@ public class StrategoFeedback implements IModelListener {
 	
 	private volatile boolean isUpdateStarted;
 	
-	public StrategoFeedback(Descriptor descriptor, String feedbackFunction) {
+	public StrategoObserver(Descriptor descriptor, String feedbackFunction) {
 		this.descriptor = descriptor;
 		this.feedbackFunction = feedbackFunction;
 	}
@@ -108,7 +108,7 @@ public class StrategoFeedback implements IModelListener {
 		}
 		
 		loadJars(jars);
-		Debug.stopTimer("Loaded feedback components");
+		Debug.stopTimer("Loaded analysis components");
 		
 		monitor.subTask(null);
 	}
@@ -206,13 +206,13 @@ public class StrategoFeedback implements IModelListener {
 			IStrategoAstNode ast = (IStrategoAstNode) parseController.getCurrentAst();
 			if (ast == null || ast.getConstructor() == null) return;
 
-			String path = ast.getSourceInfo().getPath().toOSString();
-			String rootPath = ast.getSourceInfo().getProject().getRawProject().getLocation().toOSString();
+			String path = ast.getSourceInfo().getResource().getProjectRelativePath().toPortableString();
+			String absolutePath = ast.getSourceInfo().getProject().getRawProject().getLocation().toOSString();
 
 			IStrategoTerm[] inputParts = {
 					ast.getTerm(),
 					factory.makeString(path),
-					factory.makeString(rootPath)
+					factory.makeString(absolutePath)
 			};
 			IStrategoTerm input = factory.makeTuple(inputParts);
 			
@@ -263,8 +263,10 @@ public class StrategoFeedback implements IModelListener {
 			// Note that this condition may also be reached when
 			// the semantic service hasn't been loaded yet
 			IResource resource = ((SGLRParseController) sourceInfo).getResource();
-			if (log.length() == 0) log = "(see error log)"; // TODO: report or throw last exception if strategy not found etc.
-			messages.addMarkerFirstLine(resource, "Analysis failed: " + log, IMarker.SEVERITY_ERROR);
+			// TODO: report or throw last exception if strategy not found etc.?
+			Environment.logException(log.length() == 0 ? "Analysis failed" : "Analysis failed:\n" + log);
+			messages.addMarkerFirstLine(resource, "Analysis failed (see error log)", IMarker.SEVERITY_ERROR);
+			if (descriptor.isDynamicallyLoaded()) EditorIOAgent.activateConsole();
 		} else {
 			// Throw an exception to trigger an Eclipse pop-up  
 			throw new StrategoException("Illegal output from " + feedbackFunction + " (should be (errors,warnings,notes) tuple: " + feedback);
@@ -274,7 +276,8 @@ public class StrategoFeedback implements IModelListener {
 	private final void feedbackToMarkers(ISourceInfo sourceInfo, IStrategoList feedbacks, int severity) {
 	    for (IStrategoTerm feedback : feedbacks.getAllSubterms()) {
 	    	if (feedback.getSubtermCount() != 2 || feedback.getSubterm(1).getTermType() != STRING) {
-				// Throw an exception to trigger an Eclipse pop-up  
+				// Throw an exception to trigger an Eclipse pop-up
+	    		if (descriptor.isDynamicallyLoaded()) EditorIOAgent.activateConsole();
 	    		throw new StrategoException("Illegal feedback result (must be a term/message tuple): " + feedback);
 	    	}
 	        IStrategoTerm term = termAt(feedback, 0);
@@ -292,12 +295,14 @@ public class StrategoFeedback implements IModelListener {
 	public IStrategoTerm invoke(String function, IStrategoAstNode node) {
 		synchronized (Environment.getSyncRoot()) {
 			ITermFactory factory = Environment.getTermFactory();
+			String path = node.getSourceInfo().getResource().getProjectRelativePath().toPortableString();
+			String absolutePath = node.getSourceInfo().getProject().getRawProject().getLocation().toOSString();
 			IStrategoTerm[] inputParts = {
 					node.getTerm(),
 					StrategoTermPath.createPath(node),
 					getRoot(node).getTerm(),
-					factory.makeString(node.getSourceInfo().getPath().toOSString()),
-					factory.makeString(node.getSourceInfo().getProject().getRawProject().getLocation().toOSString())
+					factory.makeString(path),
+					factory.makeString(absolutePath)
 			};
 			IStrategoTerm input = factory.makeTuple(inputParts);
 			
@@ -330,6 +335,7 @@ public class StrategoFeedback implements IModelListener {
 
 			} catch (InterpreterExit e) {
 				// (source marker should be added by invoking method) 
+				if (descriptor.isDynamicallyLoaded()) EditorIOAgent.activateConsole();
 				Environment.logException("Runtime exited when evaluating strategy " + function, e);
 				// Successful exit code or not, we needed to return a result term
 				return null;
@@ -339,11 +345,13 @@ public class StrategoFeedback implements IModelListener {
 				if (runtime.getContext().getVarScope().lookupSVar(Interpreter.cify(function)) == null) {
 					Environment.logException("Strategy does not exist: " + function, e);
 				} else {
+					if (descriptor.isDynamicallyLoaded()) EditorIOAgent.activateConsole();
 					Environment.logException("Internal error evaluating strategy " + function, e);
 				}
 				return null;
 			} catch (RuntimeException e) {
 				// (source marker should be added by invoking method) 
+				if (descriptor.isDynamicallyLoaded()) EditorIOAgent.activateConsole();
 				Environment.logException("Internal error evaluating strategy " + function, e);
 				return null;
 			}

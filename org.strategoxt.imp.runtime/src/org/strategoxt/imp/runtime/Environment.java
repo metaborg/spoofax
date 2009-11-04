@@ -133,7 +133,7 @@ public final class Environment {
 		SGLRCompatLibrary sglrLibrary = (SGLRCompatLibrary) result.getContext().getOperatorRegistry(SGLRCompatLibrary.REGISTRY_NAME);
 		result.addOperatorRegistry(new IMPJSGLRLibrary(sglrLibrary));
 		result.addOperatorRegistry(new IMPLibrary());
-		result.setIOAgent(new EditorIOAgent());
+		 result.setIOAgent(new EditorIOAgent());
 		
 		return result;
 	}

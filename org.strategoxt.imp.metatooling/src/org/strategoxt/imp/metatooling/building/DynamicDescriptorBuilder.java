@@ -83,8 +83,9 @@ public class DynamicDescriptorBuilder {
 			IStrategoTerm result = invokeBuilder(mainFile);
 			if (result == null) {
 				String log = agent.getLog().trim();
-				messageHandler.addMarkerFirstLine(mainFile,
-						"Unable to build descriptor: \n" + log, SEVERITY_ERROR);
+				Environment.logException("Unable to build descriptor:\n" + log);
+				messageHandler.addMarkerFirstLine(mainFile, "Unable to build descriptor (see error log)", SEVERITY_ERROR);
+				EditorIOAgent.activateConsole();
 				return;
 			}
 			
@@ -93,7 +94,7 @@ public class DynamicDescriptorBuilder {
 			
 		} catch (IOException e) {
 			Environment.logException("Unable to build descriptor for " + mainFile, e);
-			messageHandler.addMarkerFirstLine(mainFile, "Internal error building descriptor:" + e, SEVERITY_ERROR);
+			messageHandler.addMarkerFirstLine(mainFile, "Internal error building descriptor (see error log)", SEVERITY_ERROR);
 		}
 	}
 
@@ -119,13 +120,15 @@ public class DynamicDescriptorBuilder {
 			//context.getExceptionHandler().setEnabled(true);
 			return sdf2imp_jvm_0_0.instance.invoke(context, input);
 		} catch (StrategoErrorExit e) {
-			Environment.logException("Fatal error exit in dynamic builder", e);
-			messageHandler.addMarkerFirstLine(mainFile, "Error building descriptor:" + e.getMessage(), SEVERITY_ERROR);
+			Environment.logException("Fatal error exit in dynamic builder, log:\n" + agent.getLog().trim(), e);
+			messageHandler.addMarkerFirstLine(mainFile, "Fatal error building descriptor:" + e.getMessage(), SEVERITY_ERROR);
+			EditorIOAgent.activateConsole();
 			return null;
 		} catch (StrategoExit e) {
-			Environment.logException("Unexpected exit in dynamic builder", e);
+			Environment.logException("Unexpected exit in dynamic builder, log:\n" + agent.getLog().trim(), e);
 			context.printStackTrace();
-			messageHandler.addMarkerFirstLine(mainFile, "Error building descriptor:" + e + "\n" + agent.getLog(), SEVERITY_ERROR);
+			messageHandler.addMarkerFirstLine(mainFile, "Error building descriptor (see error log)", SEVERITY_ERROR);
+			EditorIOAgent.activateConsole();
 			return null;
 		} finally {
 			//context.getExceptionHandler().setEnabled(false);

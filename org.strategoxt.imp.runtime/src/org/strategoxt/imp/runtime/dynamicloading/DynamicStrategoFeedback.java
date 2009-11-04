@@ -3,15 +3,15 @@ package org.strategoxt.imp.runtime.dynamicloading;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
-import org.strategoxt.imp.runtime.services.StrategoFeedback;
+import org.strategoxt.imp.runtime.services.StrategoObserver;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class DynamicStrategoFeedback extends AbstractService<StrategoFeedback> implements IModelListener {
+public class DynamicStrategoFeedback extends AbstractService<StrategoObserver> implements IModelListener {
 
 	public DynamicStrategoFeedback() {
-		super(StrategoFeedback.class);
+		super(StrategoObserver.class);
 	}
 
 	public AnalysisRequired getAnalysisRequired() {

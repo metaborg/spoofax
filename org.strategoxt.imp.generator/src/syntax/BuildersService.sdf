@@ -1,0 +1,28 @@
+module BuildersService
+
+imports
+  SemanticServices
+
+exports
+  
+  syntax
+  
+    "builders" <SectionName-LEX> <LAYOUT?-CF> <SemanticRule*-CF> -> <Section-CF> {cons("Builders")}
+
+    "builders" -> <ReservedName-CF>
+    
+    %% deprecated:
+  
+    "analysis" <SectionName-LEX> <LAYOUT?-CF> <SemanticRule*-CF> -> <Section-CF> {cons("Builders")}
+
+    "analysis" -> <ReservedName-CF>
+
+  context-free syntax
+    
+    "observer" ":" StrategoCall                           -> SemanticRule {cons("SemanticObserver")}
+    "builder"  ":" String "=" StrategoCall BuilderOption* -> SemanticRule {cons("Builder")}
+    
+    
+    "(openeditor)" -> BuilderOption {cons("OpenEditor")}
+    "(realtime)"   -> BuilderOption {cons("RealTime")}
+    "(persistent)" -> BuilderOption {cons("Persistent")}

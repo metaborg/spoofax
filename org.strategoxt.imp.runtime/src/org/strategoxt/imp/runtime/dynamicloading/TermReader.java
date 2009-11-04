@@ -1,5 +1,6 @@
 package org.strategoxt.imp.runtime.dynamicloading;
 
+import static org.spoofax.interpreter.core.Tools.*;
 import static org.spoofax.interpreter.terms.IStrategoTerm.*;
 
 import java.util.ArrayList;
@@ -56,9 +57,9 @@ public class TermReader {
 		String result;
 		
 		if (t.getTermType() == STRING) {
-			result = t.toString();
+			result = asJavaString(t);
 		} else if (t.getTermType() == APPL && t.getSubtermCount() == 1 && termAt(t, 0).getTermType() == STRING) {
-			result = termAt(t, 0).toString();
+			result = asJavaString(termAt(t, 0));
 		} else if (t.getTermType() == APPL && t.getSubtermCount() == 1) {
 			return termContents(termAt(t, 0));
 		} else {

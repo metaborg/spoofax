@@ -46,7 +46,7 @@ import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenIterator;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
-import org.strategoxt.imp.runtime.services.StrategoFeedback;
+import org.strategoxt.imp.runtime.services.StrategoObserver;
 
 import aterm.ATerm;
 
@@ -174,8 +174,7 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 			if (monitor.isCanceled()) return null;
 			ATerm asfix = parser.parseNoImplode(inputChars, filename);
 			if (monitor.isCanceled()) return null;
-			currentAst = parser.internalImplode(asfix);
-			if (monitor.isCanceled()) return null;
+			AstNode ast = parser.internalImplode(asfix);
 
 			if (isStartupParsed) {
 				// Threading concerns:
@@ -193,6 +192,8 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 				errorHandler.clearErrors();
 				errorHandler.applyMarkers();
 			}
+			
+			currentAst = ast;
 				
 			Debug.stopTimer("File parsed: " + filename);
 		} catch (ParseTimeoutException e) {
@@ -242,8 +243,9 @@ public class SGLRParseController implements IParseController, ISourceInfo {
 
 	private void updateFeedBack() {
 		// HACK: Need to call IModelListener.update manually; the IMP extension point is not implemented?!
+		// TODO: use UniversalEditor.addModelListener() instead?
 		try {
-			StrategoFeedback feedback = Environment.getDescriptor(getLanguage()).getStrategoFeedback();
+			StrategoObserver feedback = Environment.getDescriptor(getLanguage()).getStrategoObserver();
 			if (feedback != null) feedback.asyncUpdate(this);
 		} catch (BadDescriptorException e) {
 			Environment.logException("Unexpected error during analysis", e);

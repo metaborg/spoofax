@@ -2,7 +2,7 @@ module project/create-build-xml
 
 imports
   sdf2imp/util/-
-  sdf2imp/project/create-trans
+  sdf2imp/project/create-example-trans
 
 strategies
 
@@ -42,7 +42,7 @@ strategies
         <property name="build.strategoxt" location="${user.home}/.nix-profile/bin"/>
         <property name="build.sdf.imports" value=""/>
         <property name="build.stratego.args" value="-m main-${strmodule} --library -I ${trans} -I ${build} -I ${lib}
-                        -la stratego-lib -la stratego-sglr -la stratego-gpp -la stratego-xtc
+                        -la stratego-lib -la stratego-sglr -la stratego-gpp -la stratego-xtc -la stratego-aterm
                         -I ${user.home}/.nix-profile/share/java-front
                         -I ${basedir}
                         -la ${user.home}/.nix-profile/lib/libjava-front.la"/>

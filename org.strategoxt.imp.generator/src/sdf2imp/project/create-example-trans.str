@@ -24,9 +24,11 @@ strategies
 
 imports
   libstratego-lib
+  libstratego-gpp
+  libstratego-aterm
   include/", sdf-name, "
 
-strategies // Main editor interface
+strategies // Main editor interface (defined by the .esv files)
 
   main-", name, " =
     fatal-err(|\"No main strategy\")
@@ -37,7 +39,7 @@ strategies // Main editor interface
    * each a list of (term, message) tuples.
    */
   editor-analyze:
-    (ast, path, absolute-path) -> (errors, warnings, notes)
+    (ast, path, project-path) -> (errors, warnings, notes)
     with
       // Analysis: scope and record dynamic rules
       try(dr-scope-all-end);
@@ -53,7 +55,7 @@ strategies // Main editor interface
    * For the entities language, only Type(_) nodes are resolved by default.
    */
   editor-resolve:
-    (Type(type), position, ast, path, absolute-path) -> target
+    (Type(type), position, ast, path, project-path) -> target
     where
       target := <GetEntity> type
 
@@ -62,8 +64,19 @@ strategies // Main editor interface
    * For references, this rule is invoked using the resolved term.
    */
   editor-hover:
-    (target, position, ast, path, fullpath) -> <conc-strings> (\"Hover help: \", <write-to-string> target)
-   
+    (target, position, ast, path, project-path) -> <conc-strings> (\"Hover help: \", <write-to-string> target)
+  
+  generate-java:
+    (selected, position, ast, path, project-path) -> (\"filename\", \"result-string\")
+    with
+      fatal-err(|\"Not implemented\")
+  
+  generate-aterm:
+    (selected, position, ast, path, project-path) -> (filename, result-string)
+    with
+      filename      := <guarantee-extension(|\"aterm\")> path;
+      result-string := <pp-aterm-box; box2text-string(|120)> selected
+  
   /**
    * Adds the originating term to the result of a constraint rule,
    * and concatenates strings in the resulting message if necessary.
@@ -94,13 +107,13 @@ rules // Semantic rules
   /**
    * Reports an error if an entity is defined more than once.
    * This constraint is implemented by testing if the \"bag\" of
-   * all entities x is not an empty list.
+   * all entities x is not a singleton list.
    * This error is reported on the entity name x.
    */
   constraint-error:
     Entity(x, _) -> (x, \"Duplicate entity name\")
     where
-      not(<bagof-GetEntity> x => [])
+      not(<bagof-GetEntity> x => [_])
   
   /**
    * Reports a warning if an entity name does not start with a capital.

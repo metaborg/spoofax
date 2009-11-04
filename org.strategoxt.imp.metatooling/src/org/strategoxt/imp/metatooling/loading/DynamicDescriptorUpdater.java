@@ -24,6 +24,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.metatooling.building.DynamicDescriptorBuilder;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
+import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.dynamicloading.DescriptorFactory;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
 
@@ -149,7 +150,8 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 			asyncMessageHandler.clearMarkers(descriptor);
 			
 			IFile file = descriptor.getProject().getFile(descriptor.getProjectRelativePath());
-			DescriptorFactory.load(file);
+			Descriptor result = DescriptorFactory.load(file);
+			result.setDynamicallyLoaded(true);
 			
 		} catch (BadDescriptorException e) {
 			Environment.logException("Error in descriptor " + descriptor, e);

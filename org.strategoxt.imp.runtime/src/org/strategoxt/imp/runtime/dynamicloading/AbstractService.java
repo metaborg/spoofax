@@ -68,7 +68,7 @@ public class AbstractService<T extends ILanguageService> {
 		if (getWrapped() == null) // (trigger descriptor init)
 			throw new RuntimeException("Failed to initialize language " + language.getName());
 		if (!this.language.getName().equals(language.getName()))
-			throw new RuntimeException("Failed to initialize language " + this.language.getName() + ": language name in plugin.xml (" + language.getName() + ") does not correspond to name in editor service descriptors");
+			throw new RuntimeException("Failed to initialize language " + this.language.getName() + ": language name in plugin.xml (" + language.getName() + ") does not correspond to name in editor service descriptors (" + language.getName() + ")");
 		Descriptor descriptor = Environment.getDescriptor(language);
 		if (descriptor == null)
 			throw new RuntimeException("No definition for language '" + language.getName() + "'; try re-opening the editor");

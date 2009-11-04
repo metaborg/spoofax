@@ -17,7 +17,8 @@ strategies
         
         references
           ~
-          ~// This file can be used for custom reference resolving rules.
+          ~// This file can be used for custom reference resolving and
+          ~// occurrence highlighting rules.
           ~// See the imported file for a brief introduction and examples.
           ~
           reference _ : editor-resolve editor-hover
@@ -32,11 +33,12 @@ strategies
         
         references
           ~
-          ~// Reference resolving functionality may be provided by an external Stratego program:
+          ~// Building and analysis is defined in Stratego program or programs:
           ~//
-          ~//   provider stratego-program.ctree // (built using strc -F)
-          ~//
-          ~// Occurence rules can specify the syntax constructors for which
+          ~//   provider : stratego-program.ctree
+          ~//   provider : stratego-library.jar
+          ~
+          ~// Reference resolving rules can specify the syntax constructors for which
           ~// a reference resolving function is available:
           ~//
           ~//   reference FunctionCall : resolve-function-call hover-help-function-call
@@ -44,5 +46,12 @@ strategies
           ~// This defines that for each FunctionCall, resolve-function-call
           ~// will retrieve the AST node that declares it, and hover-help-function-call
           ~// returns hover help information.
+          ~
+          ~// Likewise, occurrence highlighting functionality may be specified as follows:
+          ~//
+          ~//   occurrence FunctionCall : find-occurrences
+          ~
+          ~// The reference resolver and occurences service can use any dynamic rules
+          ~// created by the analysis service.
       ]|
     )

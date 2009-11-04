@@ -61,7 +61,7 @@ public class AstMessageHandler {
 	public void addMarker(IResource resource, IStrategoTerm term, String message,
 			int severity) {
 		
-		IAst node = getClosestAstNode(term);
+		IAst node = minimizeMarkerSize(getClosestAstNode(term));
 
 		if (node == null) {
 			addMarkerFirstLine(resource, message, severity);
@@ -104,8 +104,8 @@ public class AstMessageHandler {
 			}
 
 			IMarker marker = file.createMarker(markerType);
-			String[] attrs =  { LINE_NUMBER,    CHAR_START,            CHAR_END,                 MESSAGE, SEVERITY, PRIORITY,      TRANSIENT};
-			Object[] values = { left.getLine(), left.getStartOffset(), right.getEndOffset() + 1, message, severity, PRIORITY_HIGH, false };
+			String[] attrs =  { LINE_NUMBER,    CHAR_START,            CHAR_END,                 MESSAGE,        SEVERITY, PRIORITY,      TRANSIENT};
+			Object[] values = { left.getLine(), left.getStartOffset(), right.getEndOffset() + 1, message + "\n", severity, PRIORITY_HIGH, false };
 			marker.setAttributes(attrs, values);
 			synchronized (activeMarkers) {
 				activeMarkers.add(marker);
@@ -164,6 +164,15 @@ public class AstMessageHandler {
 	        }
 	        return null;
 	    }
+	}
+	
+	private static IAst minimizeMarkerSize(IAst node) {
+		// TODO: prefer lexical nodes when minimizing marker size? (e.g., not 'private')
+		while (node.getLeftIToken().getLine() < node.getRightIToken().getEndLine()) {
+			if (node.getChildren().size() == 0) break;
+			node = (IAst) node.getChildren().get(0);
+		}
+		return node;
 	}
 
 	/**
