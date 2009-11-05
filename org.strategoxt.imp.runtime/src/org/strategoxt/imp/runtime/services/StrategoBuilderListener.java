@@ -35,7 +35,7 @@ public class StrategoBuilderListener implements IModelListener {
 	
 	private long lastChanged;
 	
-	private boolean enabled;
+	private boolean enabled = true;
 	
 	public StrategoBuilderListener(EditorState editor, IEditorPart targetEditor, IFile targetFile,
 			String builder, StrategoTermPath selectionPath, String selectionConstructor) {
