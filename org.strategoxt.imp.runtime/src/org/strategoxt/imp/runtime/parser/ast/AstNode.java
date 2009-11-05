@@ -147,10 +147,11 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 			
 			while (tokenIndex < childStart) {
 				SGLRToken token = (SGLRToken) parseStream.getTokenAt(tokenIndex++);
-				token.setAstNode(this);
+				if (token.getAstNode() == null)
+					token.setAstNode(this);
 			}
 			
-			tokenIndex = childEnd; 
+			tokenIndex = childEnd + 1; 
 		}
 		
 		// Set ast node for tokens after children

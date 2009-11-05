@@ -7,10 +7,10 @@ import org.eclipse.imp.language.ILanguageService;
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class StrategoBuilderMap implements IBuilderMap, ILanguageService {
+public class BuilderMap implements IBuilderMap, ILanguageService {
 	private final Set<IBuilder> builders;
 	
-	public StrategoBuilderMap(Set<IBuilder> builders) {
+	public BuilderMap(Set<IBuilder> builders) {
 		this.builders = builders;
 	}
 	

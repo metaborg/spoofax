@@ -2,17 +2,16 @@ package org.strategoxt.imp.runtime.dynamicloading;
 
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.*;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
-import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.strategoxt.imp.runtime.services.BuilderMap;
 import org.strategoxt.imp.runtime.services.IBuilder;
 import org.strategoxt.imp.runtime.services.IBuilderMap;
 import org.strategoxt.imp.runtime.services.StrategoBuilder;
-import org.strategoxt.imp.runtime.services.StrategoBuilderMap;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -21,7 +20,7 @@ public class BuilderFactory extends AbstractServiceFactory<IBuilderMap> {
 
 	@Override
 	public IBuilderMap create(Descriptor d) throws BadDescriptorException {
-		Set<IBuilder> builders = new HashSet<IBuilder>();
+		Set<IBuilder> builders = new LinkedHashSet<IBuilder>();
 		
 		for (IStrategoAppl builder : collectTerms(d.getDocument(), "Builder")) {
 			String caption = termContents(termAt(builder, 0));
@@ -45,7 +44,7 @@ public class BuilderFactory extends AbstractServiceFactory<IBuilderMap> {
 			builders.add(new StrategoBuilder(d.getStrategoObserver(), caption, strategy, openEditor, realTime, persistent));
 		}
 		
-		return new StrategoBuilderMap(builders);
+		return new BuilderMap(builders);
 	}
 
 	@Override

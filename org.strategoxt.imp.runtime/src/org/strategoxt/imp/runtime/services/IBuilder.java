@@ -1,7 +1,5 @@
 package org.strategoxt.imp.runtime.services;
 
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jface.action.IAction;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 
@@ -16,7 +14,5 @@ public interface IBuilder {
 	
 	boolean isOpenEditorEnabled();
 	
-	void execute(EditorState editor, IStrategoAstNode node) throws CoreException;
-	
-	IAction toAction(EditorState editor);
+	void execute(EditorState editor, IStrategoAstNode ast);
 }

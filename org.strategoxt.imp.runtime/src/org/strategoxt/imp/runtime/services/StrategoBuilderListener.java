@@ -3,10 +3,11 @@ package org.strategoxt.imp.runtime.services;
 import java.lang.ref.WeakReference;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
+import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.ui.IEditorPart;
 import org.spoofax.NotImplementedException;
 import org.strategoxt.imp.runtime.EditorState;
@@ -34,6 +35,8 @@ public class StrategoBuilderListener implements IModelListener {
 	
 	private long lastChanged;
 	
+	private boolean enabled;
+	
 	public StrategoBuilderListener(EditorState editor, IEditorPart targetEditor, IFile targetFile,
 			String builder, StrategoTermPath selectionPath, String selectionConstructor) {
 		
@@ -49,15 +52,20 @@ public class StrategoBuilderListener implements IModelListener {
 	public AnalysisRequired getAnalysisRequired() {
 		return AnalysisRequired.SYNTACTIC_ANALYSIS;
 	}
+	
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
 
 	public void update(IParseController parseController, IProgressMonitor monitor) {
 		EditorState editor = this.editor.get();
 		IEditorPart targetEditor = this.targetEditor.get();
 		
 		// FIXME: Don't update if the editor is closed
-		if (editor == null || targetEditor == null || targetEditor.isDirty()
+		if (!enabled || editor == null || targetEditor == null || targetEditor.isDirty()
 				|| targetEditor.getTitleImage().isDisposed() // editor closed
 				|| targetFile.getLocalTimeStamp() > lastChanged) {
+			enabled = false;
 			return;
 		}
 		
@@ -75,8 +83,8 @@ public class StrategoBuilderListener implements IModelListener {
 			lastChanged = targetFile.getLocalTimeStamp();
 		} catch (BadDescriptorException e) {
 			Environment.logException("Could not update derived editor for " + editor.getResource(), e);
-		} catch (CoreException e) {
-			Environment.logException("Could not update derived editor for " + editor.getResource(), e);
+			ErrorDialog.openError(editor.getEditor().getSite().getShell(),
+					"Spoofax/IMP builder", "Could not update derived editor for " + editor.getResource(), Status.OK_STATUS); 
 		}
 	}
 }

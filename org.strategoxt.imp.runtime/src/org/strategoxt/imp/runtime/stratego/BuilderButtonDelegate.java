@@ -28,43 +28,67 @@ public class BuilderButtonDelegate implements IWorkbenchWindowPulldownDelegate {
 	// TODO: IWorkbenchWindowPulldownDelegate?
 	
 	private Menu result;
+	
+	private String lastAction;
 
 	public void init(IWorkbenchWindow window) {
 		// Initialized using getMenu()
 	}
 
 	public void run(IAction action) {
-		// Unused
+		EditorState editor = EditorState.getActiveEditor();
+		if (editor == null) return;
+		
+		IBuilderMap builders = getBuilders(editor);
+		IBuilder builder = builders.get(lastAction);
+		if (builder == null && builders.getAll().size() > 0) {
+			builder = builders.getAll().iterator().next();
+		}
+		if (builder != null)
+			builder.execute(editor, null);
 	}
 
 	public void selectionChanged(IAction action, ISelection selection) {
-		// TODO Auto-generated method stub
-
+		// Unused
 	}
 		
 	private void populateMenu(Menu menu) {
 		MenuItem dummy = new MenuItem(menu, SWT.PUSH);
 		dummy.setText("No builders defined for this editor");
 		
-		EditorState editor = EditorState.getActiveEditor();
+		final EditorState editor = EditorState.getActiveEditor();
 		if (editor == null) return;
 		
+		IBuilderMap builders = getBuilders(editor);
+		
+		for (final IBuilder builder : builders.getAll()) {
+			IAction action = new Action(builder.getCaption()) {
+				@Override
+				public void run() {
+					lastAction = builder.getCaption();
+					builder.execute(editor, null);
+				}
+			};
+			ActionContributionItem item = new ActionContributionItem(action);
+			// item.fill(menu, Action.AS_PUSH_BUTTON);
+			item.fill(menu, menu.getItemCount());
+		}
+		
+		dummy.dispose();
+	}
+
+	private IBuilderMap getBuilders(EditorState editor) {
 		IBuilderMap builders;
 		try {
 			builders = editor.getDescriptor().createService(IBuilderMap.class);
 		} catch (BadDescriptorException e) {
 			Environment.logException("Could not load builder", e);
 			// TODO: fix error dialog not showing?
-			ErrorDialog.openError(null, "Spoofax/IMP building", "Could not load builders", Status.OK_STATUS); 
-			return;
+			ErrorDialog.openError(editor.getEditor().getSite().getShell(),
+					"Spoofax/IMP building", "Could not load builders", Status.OK_STATUS);
+			throw new RuntimeException(e);
 		}
-		
-		for (final IBuilder builder : builders.getAll()) {
-			ActionContributionItem item = new ActionContributionItem(builder.toAction(editor));
-			item.fill(menu, Action.AS_PUSH_BUTTON);
-		}
-		
-		dummy.dispose();
+		return builders;
 	}
 		
 	public void dispose() {

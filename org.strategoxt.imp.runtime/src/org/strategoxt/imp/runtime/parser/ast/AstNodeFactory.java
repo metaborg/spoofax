@@ -42,6 +42,8 @@ public class AstNodeFactory {
 		// this implementation is not exactly good for performance,
 		// but the current IMP interfaces call for ArrayLists rather than just Lists...
 		
+		// FIXME: cons/nil lists without arraylists?
+		
 		for (int i = 0; i < children.size(); i++) {
 			AstNode child = children.get(i);
 			if (child.isList()) {

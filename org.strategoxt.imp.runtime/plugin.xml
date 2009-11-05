@@ -164,6 +164,13 @@
                tooltip="Apply transformation to file in current editor"/>
       </actionSet>
    </extension>
+   <extension
+         point="org.eclipse.imp.runtime.annotationHover">
+      <annotationHover
+            class="org.strategoxt.imp.runtime.services.AnnotationHover"
+            language="DynamicRoot">
+      </annotationHover>
+   </extension>
 
    <!-- Extension point not implemented?
         manually called from SGLRParseController instead

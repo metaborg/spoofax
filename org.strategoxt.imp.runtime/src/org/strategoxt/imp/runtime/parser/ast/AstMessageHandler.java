@@ -104,8 +104,8 @@ public class AstMessageHandler {
 			}
 
 			IMarker marker = file.createMarker(markerType);
-			String[] attrs =  { LINE_NUMBER,    CHAR_START,            CHAR_END,                 MESSAGE,        SEVERITY, PRIORITY,      TRANSIENT};
-			Object[] values = { left.getLine(), left.getStartOffset(), right.getEndOffset() + 1, message + "\n", severity, PRIORITY_HIGH, false };
+			String[] attrs =  { LINE_NUMBER,    CHAR_START,            CHAR_END,                 MESSAGE, SEVERITY, PRIORITY,      TRANSIENT};
+			Object[] values = { left.getLine(), left.getStartOffset(), right.getEndOffset() + 1, message, severity, PRIORITY_HIGH, false };
 			marker.setAttributes(attrs, values);
 			synchronized (activeMarkers) {
 				activeMarkers.add(marker);
