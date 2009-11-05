@@ -65,6 +65,8 @@ public class TokenColorer implements ITokenColorer {
 			return addEnvColoring(result, node, tokenKind); // TODO: noWhitespaceBackground?
 		} else if (nodeColor == null) {
 			result = getColoring(envMappings, constructor, sort, tokenKind);
+			if (result == null)
+				result = tokenColor;
 		}
 		
 		if (result == null) return null;
