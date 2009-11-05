@@ -14,7 +14,6 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermPrinter;
 import org.spoofax.interpreter.terms.InlinePrinter;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.ISourceInfo;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 
@@ -57,11 +56,6 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 	
 	public boolean isList() {
 		return false;
-	}
-	
-	@Deprecated
-	public ISourceInfo getSourceInfo() {
-		return getRoot().getSourceInfo();
 	}
 	
 	public IResource getResource() {

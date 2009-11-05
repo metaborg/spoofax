@@ -38,7 +38,6 @@ import org.spoofax.jsglr.TokenExpectedException;
 import org.spoofax.jsglr.Tools;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.ISourceInfo;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
 import org.strategoxt.imp.runtime.parser.ast.AstNodeLocator;
@@ -56,7 +55,7 @@ import aterm.ATerm;
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  * @author Karl Trygve Kalleberg <karltk add strategoxt.org>
  */
-public class SGLRParseController implements IParseController, ISourceInfo {
+public class SGLRParseController implements IParseController {
 	
 	private final static int PARSE_TIMEOUT = 4 * 1000;
 

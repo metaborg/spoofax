@@ -157,7 +157,7 @@ public abstract class AbstractSGLRI implements IParser {
 	 */
 	protected RootAstNode internalImplode(ATerm asfix) {
 		AstNode imploded = imploder.implode(asfix, currentTokenizer);
-		return RootAstNode.makeRoot(imploded, getController());		
+		return RootAstNode.makeRoot(imploded, getController() == null ? null : getController().getResource());
 	}
 	
 	/**

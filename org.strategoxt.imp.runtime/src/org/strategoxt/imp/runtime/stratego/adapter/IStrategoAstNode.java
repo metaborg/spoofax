@@ -6,7 +6,6 @@ import lpg.runtime.IAst;
 
 import org.eclipse.core.resources.IResource;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.strategoxt.imp.runtime.ISourceInfo;
 
 /**
  * Interface for an AST node that can be converted into an ATerm. 
@@ -22,9 +21,6 @@ public interface IStrategoAstNode extends IAst {
 	String getConstructor();
 	
 	String getSort();
-	
-	@Deprecated
-	ISourceInfo getSourceInfo();
 	
 	IResource getResource();
 	

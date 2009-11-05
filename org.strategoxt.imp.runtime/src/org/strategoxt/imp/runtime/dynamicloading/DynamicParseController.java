@@ -16,7 +16,6 @@ import org.eclipse.imp.services.IAnnotationTypeInfo;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.jface.text.IRegion;
 import org.strategoxt.imp.runtime.EditorState;
-import org.strategoxt.imp.runtime.ISourceInfo;
 
 /**
  * Dynamic proxy class to a parse controller.
@@ -25,7 +24,7 @@ import org.strategoxt.imp.runtime.ISourceInfo;
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class DynamicParseController extends AbstractService<IParseController> implements IParseController, ISourceInfo {
+public class DynamicParseController extends AbstractService<IParseController> implements IParseController {
 	
 	private static final int REINIT_PARSE_DELAY = 100;
 	

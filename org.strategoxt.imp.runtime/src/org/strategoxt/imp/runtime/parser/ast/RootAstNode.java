@@ -6,21 +6,14 @@ import lpg.runtime.IToken;
 
 import org.eclipse.core.resources.IResource;
 import org.spoofax.interpreter.terms.IStrategoAppl;
-import org.strategoxt.imp.runtime.ISourceInfo;
 
 public class RootAstNode extends AstNode {
 	
-	private final ISourceInfo sourceInfo;
-
-	@Override
-	@Deprecated
-	public ISourceInfo getSourceInfo() {
-		return sourceInfo;
-	}
+	private final IResource resource;
 	
 	@Override
 	public IResource getResource() {
-		return sourceInfo.getResource();
+		return resource;
 	}
 	
 	@Override
@@ -29,16 +22,16 @@ public class RootAstNode extends AstNode {
 	}
 
 	protected RootAstNode(String sort, IToken leftToken, IToken rightToken, String constructor,
-			ArrayList<AstNode> children, ISourceInfo sourceInfo) {
+			ArrayList<AstNode> children, IResource resource) {
 		
 		super(sort, leftToken, rightToken, constructor, children);
 		
-		this.sourceInfo = sourceInfo;
+		this.resource = resource;
 	}
 	
-	public static RootAstNode makeRoot(AstNode ast, ISourceInfo sourceInfo) {
+	public static RootAstNode makeRoot(AstNode ast, IResource resource) {
 		return new RootAstNode(
 				ast.getSort(), ast.getLeftIToken(), ast.getRightIToken(), ast.getConstructor(),
-				ast.getChildren(), sourceInfo);
+				ast.getChildren(), resource);
 	}
 }
