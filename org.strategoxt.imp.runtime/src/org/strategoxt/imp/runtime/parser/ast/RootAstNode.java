@@ -4,15 +4,23 @@ import java.util.ArrayList;
 
 import lpg.runtime.IToken;
 
+import org.eclipse.core.resources.IResource;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.strategoxt.imp.runtime.ISourceInfo;
 
 public class RootAstNode extends AstNode {
+	
 	private final ISourceInfo sourceInfo;
 
 	@Override
+	@Deprecated
 	public ISourceInfo getSourceInfo() {
 		return sourceInfo;
+	}
+	
+	@Override
+	public IResource getResource() {
+		return sourceInfo.getResource();
 	}
 	
 	@Override

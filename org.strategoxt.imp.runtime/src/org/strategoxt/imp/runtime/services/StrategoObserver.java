@@ -21,9 +21,10 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
-import org.spoofax.interpreter.core.Interpreter;
+import org.spoofax.interpreter.core.InterpreterErrorExit;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
+import org.spoofax.interpreter.core.UndefinedStrategyException;
 import org.spoofax.interpreter.library.LoggingIOAgent;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
@@ -33,10 +34,8 @@ import org.strategoxt.HybridInterpreter;
 import org.strategoxt.IncompatibleJarException;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.ISourceInfo;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
-import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
@@ -88,6 +87,10 @@ public class StrategoObserver implements IModelListener {
 	
 	public AstMessageHandler getMessages() {
 		return messages;
+	}
+
+	public String getLog() {
+		return ((EditorIOAgent) runtime.getIOAgent()).getLog().trim();
 	}
 	
 	private void init(IProgressMonitor monitor) {
@@ -195,35 +198,23 @@ public class StrategoObserver implements IModelListener {
 		if (feedbackFunction == null || monitor.isCanceled())
 			return;
 		
-		IStrategoTerm feedback;
-		String log;
+		IStrategoAstNode ast = (IStrategoAstNode) parseController.getCurrentAst();
+		IStrategoTerm feedback = null;
 		
 		synchronized (Environment.getSyncRoot()) {
 			if (runtime == null)
 				init(monitor);
 
-			ITermFactory factory = Environment.getTermFactory();
-			IStrategoAstNode ast = (IStrategoAstNode) parseController.getCurrentAst();
-			if (ast == null || ast.getConstructor() == null) return;
-
-			String path = ast.getSourceInfo().getResource().getProjectRelativePath().toPortableString();
-			String absolutePath = ast.getSourceInfo().getProject().getRawProject().getLocation().toOSString();
-
-			IStrategoTerm[] inputParts = {
-					ast.getTerm(),
-					factory.makeString(path),
-					factory.makeString(absolutePath)
-			};
-			IStrategoTerm input = factory.makeTuple(inputParts);
+			if (ast == null || ast.getConstructor() == null)
+				return;
 			
-			feedback = invoke(feedbackFunction, input, ast.getSourceInfo());
-			log = ((LoggingIOAgent) runtime.getIOAgent()).getLog().trim();
+			feedback = invokeSilent(feedbackFunction, ast.getResource(), makeInputTerm(ast, false));
 		}
 		
 		// TODO: figure out how this was supposed to be synchronized
 		// synchronized (feedback) {
-			if (!monitor.isCanceled())
-				presentToUser((ISourceInfo) parseController, feedback, log);
+			if (feedback != null && !monitor.isCanceled())
+				presentToUser(ast.getResource(), feedback);
 		// }
 	}
 	
@@ -243,12 +234,12 @@ public class StrategoObserver implements IModelListener {
 	}
 	*/
 
-	private void presentToUser(ISourceInfo sourceInfo, IStrategoTerm feedback, String log) {
+	private void presentToUser(IResource resource, IStrategoTerm feedback) {
+		assert feedback != null;
 		messages.clearAllMarkers();
-		messages.clearMarkers(sourceInfo.getResource());
+		messages.clearMarkers(resource);
 
-		if (feedback != null
-				&& feedback.getTermType() == TUPLE
+		if (feedback.getTermType() == TUPLE
 				&& termAt(feedback, 0).getTermType() == LIST
 				&& termAt(feedback, 1).getTermType() == LIST
 				&& termAt(feedback, 2).getTermType() == LIST) {
@@ -256,24 +247,16 @@ public class StrategoObserver implements IModelListener {
 		    IStrategoList errors = termAt(feedback, 0);
 		    IStrategoList warnings = termAt(feedback, 1);
 		    IStrategoList notes = termAt(feedback, 2);
-		    feedbackToMarkers(sourceInfo, errors, IMarker.SEVERITY_ERROR);
-		    feedbackToMarkers(sourceInfo, warnings, IMarker.SEVERITY_WARNING);
-		    feedbackToMarkers(sourceInfo, notes, IMarker.SEVERITY_INFO);
-		} else if (feedback == null) {
-			// Note that this condition may also be reached when
-			// the semantic service hasn't been loaded yet
-			IResource resource = ((SGLRParseController) sourceInfo).getResource();
-			// TODO: report or throw last exception if strategy not found etc.?
-			Environment.logException(log.length() == 0 ? "Analysis failed" : "Analysis failed:\n" + log);
-			messages.addMarkerFirstLine(resource, "Analysis failed (see error log)", IMarker.SEVERITY_ERROR);
-			if (descriptor.isDynamicallyLoaded()) EditorIOAgent.activateConsole();
+		    feedbackToMarkers(resource, errors, IMarker.SEVERITY_ERROR);
+		    feedbackToMarkers(resource, warnings, IMarker.SEVERITY_WARNING);
+		    feedbackToMarkers(resource, notes, IMarker.SEVERITY_INFO);
 		} else {
 			// Throw an exception to trigger an Eclipse pop-up  
 			throw new StrategoException("Illegal output from " + feedbackFunction + " (should be (errors,warnings,notes) tuple: " + feedback);
 		}
 	}
 	
-	private final void feedbackToMarkers(ISourceInfo sourceInfo, IStrategoList feedbacks, int severity) {
+	private final void feedbackToMarkers(IResource resource, IStrategoList feedbacks, int severity) {
 	    for (IStrategoTerm feedback : feedbacks.getAllSubterms()) {
 	    	if (feedback.getSubtermCount() != 2 || feedback.getSubterm(1).getTermType() != STRING) {
 				// Throw an exception to trigger an Eclipse pop-up
@@ -282,7 +265,6 @@ public class StrategoObserver implements IModelListener {
 	    	}
 	        IStrategoTerm term = termAt(feedback, 0);
 			IStrategoString message = termAt(feedback, 1);
-			IResource resource = sourceInfo.getResource();
 			messages.addMarker(resource, term, message.stringValue(), severity);
 	    }
 	}	
@@ -292,74 +274,106 @@ public class StrategoObserver implements IModelListener {
 	 * 
 	 * @see #getAstNode(IStrategoTerm)  To retrieve the AST node associated with the resulting term.
 	 */
-	public IStrategoTerm invoke(String function, IStrategoAstNode node) {
-		synchronized (Environment.getSyncRoot()) {
-			ITermFactory factory = Environment.getTermFactory();
-			String path = node.getSourceInfo().getResource().getProjectRelativePath().toPortableString();
-			String absolutePath = node.getSourceInfo().getProject().getRawProject().getLocation().toOSString();
+	public IStrategoTerm invoke(String function, IStrategoAstNode node)
+			throws UndefinedStrategyException, InterpreterErrorExit, InterpreterExit, InterpreterException {
+
+		IStrategoTerm input = makeInputTerm(node, true);
+		return invoke(function, input, node.getResource());
+	}
+
+	private static IStrategoTerm makeInputTerm(IStrategoAstNode node, boolean includeSubNode) {
+		ITermFactory factory = Environment.getTermFactory();
+		String path = node.getResource().getProjectRelativePath().toPortableString();
+		String absolutePath = node.getResource().getProject().getLocation().toOSString();
+		
+		if (includeSubNode) {
 			IStrategoTerm[] inputParts = {
 					node.getTerm(),
 					StrategoTermPath.createPath(node),
 					getRoot(node).getTerm(),
 					factory.makeString(path),
 					factory.makeString(absolutePath)
-			};
-			IStrategoTerm input = factory.makeTuple(inputParts);
-			
-			return invoke(function, input, node.getSourceInfo());
+				};
+			return factory.makeTuple(inputParts);
+		} else {
+			IStrategoTerm[] inputParts = {
+					node.getTerm(),
+					factory.makeString(path),
+					factory.makeString(absolutePath)
+				};
+			return factory.makeTuple(inputParts);
 		}
 	}
 	
 	/**
 	 * Invoke a Stratego function with a specific term its input,
 	 * given a particular working directory.
-	 * 
-	 * @see #getAstNode(IStrategoTerm)  To retrieve the AST node associated with the resulting term.
 	 */
-	public IStrategoTerm invoke(String function, IStrategoTerm term, ISourceInfo sourceInfo) {
+	public IStrategoTerm invoke(String function, IStrategoTerm term, IResource resource)
+			throws UndefinedStrategyException, InterpreterErrorExit, InterpreterExit, InterpreterException {
+		
 		if (runtime == null)
 			return null;
 		
 		synchronized (Environment.getSyncRoot()) {
 		    Debug.startTimer();
-		    boolean success;
-			try {
-				// TODO: Make Context support monitor.isCanceled()?
-				//       (e.g., overriding Context.lookupPrimitive to throw an OperationCanceledException) 
-				
-				runtime.setCurrent(term);
-				initInterpreterPath(sourceInfo.getPath().removeLastSegments(1));
-	
-				((LoggingIOAgent) runtime.getIOAgent()).clearLog();
-				success = runtime.invoke(function);
+			// TODO: Make Context support monitor.isCanceled()?
+			//       (e.g., overriding Context.lookupPrimitive to throw an OperationCanceledException) 
+			
+			runtime.setCurrent(term);
+			IPath path = resource.getProject().getLocation().append(resource.getProjectRelativePath());
+			initInterpreterPath(path.removeLastSegments(1));
 
-			} catch (InterpreterExit e) {
-				// (source marker should be added by invoking method) 
-				if (descriptor.isDynamicallyLoaded()) EditorIOAgent.activateConsole();
-				Environment.logException("Runtime exited when evaluating strategy " + function, e);
-				// Successful exit code or not, we needed to return a result term
-				return null;
-			} catch (InterpreterException e) {
-				// TODO: for asyncUpdate(), programmer errors like these should just be thrown, triggering a pop-up
-				// (source marker should be added by invoking method) 
-				if (runtime.getContext().getVarScope().lookupSVar(Interpreter.cify(function)) == null) {
-					Environment.logException("Strategy does not exist: " + function, e);
-				} else {
-					if (descriptor.isDynamicallyLoaded()) EditorIOAgent.activateConsole();
-					Environment.logException("Internal error evaluating strategy " + function, e);
-				}
-				return null;
-			} catch (RuntimeException e) {
-				// (source marker should be added by invoking method) 
-				if (descriptor.isDynamicallyLoaded()) EditorIOAgent.activateConsole();
-				Environment.logException("Internal error evaluating strategy " + function, e);
-				return null;
-			}
+			((LoggingIOAgent) runtime.getIOAgent()).clearLog();
+			boolean success = runtime.invoke(function);
 			
 			Debug.stopTimer("Evaluated strategy " + function + (success ? "" : " (failed)"));
-			if (!success) return null;
-			return runtime.current();
+			return success ? runtime.current() : null;
 		}
+	}
+
+	/**
+	 * Invoke a Stratego function with a specific AST node as its input,
+	 * logging and swallowing all exceptions.
+	 * 
+	 * @see #getAstNode(IStrategoTerm)  To retrieve the AST node associated with the resulting term.
+	 */
+	public IStrategoTerm invokeSilent(String function, IStrategoAstNode node) {
+		return invokeSilent(function, node.getResource(), makeInputTerm(node, true));
+	}
+	
+	/**
+	 * Invoke a Stratego function with a specific term its input,
+	 * given a particular working directory.
+	 * Logs and swallows all exceptions.
+	 */
+	public IStrategoTerm invokeSilent(String function, IResource resource, IStrategoTerm input) {
+		IStrategoTerm result = null;
+		
+		try {
+			result = invoke(function, input, resource);
+			if (result == null) {
+				if (descriptor.isDynamicallyLoaded()) EditorIOAgent.activateConsole();
+				String log = getLog();
+				Environment.logException(log.length() == 0 ? "Analysis failed" : "Analysis failed:\n" + log);
+				messages.addMarkerFirstLine(resource, "Analysis failed (see error log)", IMarker.SEVERITY_ERROR);
+			}
+		} catch (InterpreterExit e) {
+			if (descriptor.isDynamicallyLoaded()) EditorIOAgent.activateConsole();
+			messages.addMarkerFirstLine(resource, "Analysis failed", IMarker.SEVERITY_ERROR);
+			Environment.logException("Runtime exited when evaluating strategy " + function, e);
+		} catch (UndefinedStrategyException e) {
+			// Note that this condition may also be reached when the semantic service hasn't been loaded yet
+			Environment.logException("Strategy does not exist: " + function, e);
+		} catch (InterpreterException e) {
+			Environment.logException("Internal error evaluating strategy " + function, e);
+			if (descriptor.isDynamicallyLoaded()) EditorIOAgent.activateConsole();
+		} catch (RuntimeException e) {
+			Environment.logException("Internal error evaluating strategy " + function, e);
+			if (descriptor.isDynamicallyLoaded()) EditorIOAgent.activateConsole();
+		}
+		
+		return result;
 	}
 
 	public IAst getAstNode(IStrategoTerm term) {

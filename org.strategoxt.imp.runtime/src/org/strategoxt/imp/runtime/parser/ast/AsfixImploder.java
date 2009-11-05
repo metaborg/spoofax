@@ -396,7 +396,7 @@ public class AsfixImploder {
 		char inputChar = inputChars[offset];
 		
 		if (parsedChar != inputChar) {
-			if (RecoveryConnector.isLayoutCharacter((char) parsedChar)) {
+			if (RecoveryConnector.isLayoutCharacter(parsedChar)) {
 				// Remember that the parser skipped the current character
 				// for later error reporting. (Cannot modify the immutable
 				// parse tree here; changing the original stream instead.)

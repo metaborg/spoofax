@@ -86,7 +86,7 @@ public class AstMessageHandler {
 		IToken left = node.getLeftIToken();
 		IToken right = node.getRightIToken();
 
-		IResource file = ((IStrategoAstNode) node).getSourceInfo().getResource();
+		IResource file = ((IStrategoAstNode) node).getResource();
 		
 		addMarker(file, left, right, message, severity);
 	}
@@ -204,7 +204,7 @@ public class AstMessageHandler {
 	}
 	
 	public final void clearMarkers(IStrategoAstNode node) {
-		clearMarkers(node.getSourceInfo().getResource());
+		clearMarkers(node.getResource());
 	}
 	
 	/**

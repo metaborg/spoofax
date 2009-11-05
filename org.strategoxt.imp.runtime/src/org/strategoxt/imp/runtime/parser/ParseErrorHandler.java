@@ -14,7 +14,6 @@ import org.spoofax.jsglr.ParseTimeoutException;
 import org.spoofax.jsglr.RecoveryConnector;
 import org.spoofax.jsglr.TokenExpectedException;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.ISourceInfo;
 import org.strategoxt.imp.runtime.parser.ast.AsfixImploder;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
@@ -60,7 +59,7 @@ public class ParseErrorHandler {
 	
 	private final AstMessageHandler handler = new AstMessageHandler(AstMessageHandler.PARSE_MARKER_TYPE);
 	
-	private final ISourceInfo sourceInfo;
+	private final SGLRParseController source;
 	
 	private boolean isRecoveryAvailable = true;
 
@@ -70,10 +69,10 @@ public class ParseErrorHandler {
 	
 	private boolean inLexicalContext;
 	
-	private List<Runnable> errorReports = new ArrayList<Runnable>(); // HACK
+	private List<Runnable> errorReports = new ArrayList<Runnable>();
 
-	public ParseErrorHandler(ISourceInfo sourceInfo) {
-		this.sourceInfo = sourceInfo;
+	public ParseErrorHandler(SGLRParseController source) {
+		this.source = source;
 	}
 	
 	public void clearErrors() {
@@ -83,7 +82,7 @@ public class ParseErrorHandler {
 			// Might happen if editor is closed
 			Environment.logException("Exception occurred in clearing error markers", e);
 		}
-		handler.clearMarkers(sourceInfo.getResource());
+		handler.clearMarkers(source.getResource());
 	}
 	
 	public void setMessages(IMessageHandler messages) {
@@ -296,7 +295,7 @@ public class ParseErrorHandler {
 		
 		errorReports.add(new Runnable() {
 			public void run() {
-				handler.addMarker(sourceInfo.getResource(), left, right, message2, IMarker.SEVERITY_ERROR);
+				handler.addMarker(source.getResource(), left, right, message2, IMarker.SEVERITY_ERROR);
 			}
 		});
 	}
@@ -306,7 +305,7 @@ public class ParseErrorHandler {
 		
 		errorReports.add(new Runnable() {
 			public void run() {
-				handler.addMarkerFirstLine(sourceInfo.getResource(), message2, IMarker.SEVERITY_ERROR);
+				handler.addMarkerFirstLine(source.getResource(), message2, IMarker.SEVERITY_ERROR);
 			}
 		});
 	}	

@@ -21,7 +21,7 @@ Require-Bundle: org.eclipse.imp.runtime,
  org.eclipse.ui,
  org.eclipse.ui.ide,
  org.eclipse.ui.console,
- org.eclipse.debug.ui;bundle-version="3.4.2",
+ org.eclipse.debug.ui,
  org.spoofax.compiler,
  org.strategoxt.imp.generator,
  org.strategoxt.strj

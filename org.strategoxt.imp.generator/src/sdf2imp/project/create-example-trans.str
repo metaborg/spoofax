@@ -28,7 +28,7 @@ imports
   libstratego-aterm
   include/", sdf-name, "
 
-strategies // Main editor interface (defined by the .esv files)
+rules // Main editor interface (defined by the .esv files)
 
   main-", name, " =
     fatal-err(|\"No main strategy\")

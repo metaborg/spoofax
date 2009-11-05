@@ -9,6 +9,7 @@ import java.util.WeakHashMap;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.ui.IEditorPart;
@@ -16,12 +17,16 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
+import org.spoofax.interpreter.core.InterpreterErrorExit;
+import org.spoofax.interpreter.core.InterpreterException;
+import org.spoofax.interpreter.core.InterpreterExit;
+import org.spoofax.interpreter.core.UndefinedStrategyException;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.RuntimeActivator;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
-import org.strategoxt.lang.StrategoException;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -37,7 +42,10 @@ public class StrategoBuilder implements IBuilder {
 	
 	private final String builderRule;
 	
-	private final boolean realTime, persistent;
+	private final boolean realTime;
+	
+	@SuppressWarnings("unused")
+	private final boolean persistent;
 	
 	private boolean openEditor;
 	
@@ -68,23 +76,25 @@ public class StrategoBuilder implements IBuilder {
 			if (node == null)
 				node = editor.getParseController().getCurrentAst();
 			if (node == null) {
-				ErrorDialog.openError(editor.getEditor().getSite().getShell(),
-						"Spoofax/IMP building", "Editor is still analyzing", Status.OK_STATUS);
+				openError(editor, "Editor is still analyzing");
 				return;
 			}
-				
 			
 			IStrategoTerm resultTerm = observer.invoke(builderRule, node);
 			if (resultTerm == null) {
+				if (editor.getDescriptor().isDynamicallyLoaded()) EditorIOAgent.activateConsole();
+				Environment.logException("Builder failed:\n" + observer.getLog());
 				if (!observer.isUpdateStarted())
 					observer.asyncUpdate(editor.getParseController());
+				openError(editor, "Builder failed (see error log)");
 				return;
 			}
 	
 			// TODO: support "None()" result
 			if (!isTermTuple(resultTerm) || !isTermString(resultTerm.getSubterm(0))
 					|| !isTermString(resultTerm.getSubterm(0))) {
-				throw new StrategoException("Illegal builder result (must be a filename/string tuple)");
+				Environment.logException("Illegal builder result (must be a filename/string tuple)");
+				openError(editor, "Illegal builder result (must be a filename/string tuple): " + resultTerm);
 			}
 			
 			IStrategoTerm filenameTerm = termAt(resultTerm, 0);
@@ -104,15 +114,34 @@ public class StrategoBuilder implements IBuilder {
 			}
 		} catch (CoreException e) {
 			Environment.logException("Builder failed", e);
-			ErrorDialog.openError(editor.getEditor().getSite().getShell(),
-					"Spoofax/IMP builder", "Builder failed (see error log)", Status.OK_STATUS); 
+			openError(editor, "Builder failed (see error log)");
+		} catch (InterpreterErrorExit e) {
+			Environment.logException("Builder failed:\n" + observer.getLog(), e);
+			if (editor.getDescriptor().isDynamicallyLoaded()) EditorIOAgent.activateConsole();
+			openError(editor, e.getMessage());
+		} catch (UndefinedStrategyException e) {
+			reportException(editor, e);
+		} catch (InterpreterExit e) {
+			reportException(editor, e);
+		} catch (InterpreterException e) {
+			reportException(editor, e);
 		} catch (RuntimeException e) {
-			Environment.logException("Builder failed", e);
-			if (editor.getDescriptor().isDynamicallyLoaded())
-				EditorIOAgent.activateConsole();
-			ErrorDialog.openError(editor.getEditor().getSite().getShell(),
-					"Spoofax/IMP builder", "Builder failed (see error log)", Status.OK_STATUS); 
+			reportException(editor, e);
 		}
+	}
+
+	private void reportException(EditorState editor, Exception e) {
+		Environment.logException("Builder failed", e);
+		if (editor.getDescriptor().isDynamicallyLoaded()) EditorIOAgent.activateConsole();
+		Status status = new Status(IStatus.ERROR, RuntimeActivator.PLUGIN_ID, e.getLocalizedMessage(), e);
+		ErrorDialog.openError(editor.getEditor().getSite().getShell(),
+				"Spoofax/IMP builder", null, status);
+	}
+	
+	private static void openError(EditorState editor, String message) {
+		Status status = new Status(IStatus.ERROR, RuntimeActivator.PLUGIN_ID, message);
+		ErrorDialog.openError(editor.getEditor().getSite().getShell(),
+				"Spoofax/IMP builder", null, status);
 	}
 
 	private IFile createFile(EditorState editor, String filename, String result) throws CoreException {

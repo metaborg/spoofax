@@ -98,7 +98,7 @@ public class EditorState {
 	 * Exceptions are swallowed and logged.
 	 */
 	public static void asyncOpenEditor(Display display, IProject project, String filename, final boolean activate) {
-		final IResource file = (IResource) project.findMember(filename);
+		final IResource file = project.findMember(filename);
 		if (!file.exists() || !(file instanceof IFile)) {
 			Environment.logException("Cannot open an editor for " + filename);
 			return;

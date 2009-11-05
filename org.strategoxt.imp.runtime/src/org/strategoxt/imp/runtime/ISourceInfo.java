@@ -10,10 +10,13 @@ import org.eclipse.imp.model.ISourceProject;
 public interface ISourceInfo {
 	// TODO: Just use a IResource or IFile instead of ISourceInfo
 	//       now that it no longer provides the active language
-	
+
+	@Deprecated
 	IPath getPath();
-	
+
+	@Deprecated
 	IResource getResource();
-	
+
+	@Deprecated
 	ISourceProject getProject();
 }

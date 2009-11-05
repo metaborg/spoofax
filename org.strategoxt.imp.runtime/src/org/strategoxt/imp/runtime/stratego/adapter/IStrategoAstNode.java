@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import lpg.runtime.IAst;
 
+import org.eclipse.core.resources.IResource;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.ISourceInfo;
 
@@ -22,7 +23,10 @@ public interface IStrategoAstNode extends IAst {
 	
 	String getSort();
 	
+	@Deprecated
 	ISourceInfo getSourceInfo();
+	
+	IResource getResource();
 	
 	String yield();
 	

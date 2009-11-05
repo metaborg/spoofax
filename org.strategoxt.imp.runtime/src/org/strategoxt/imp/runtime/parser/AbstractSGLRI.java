@@ -266,6 +266,6 @@ class CachingKey {
 	public int hashCode() {
 		// (Ignores parse table hash code)
 		return 12125125 * (startSymbol == null ? 42 : startSymbol.hashCode())
-			^ Arrays.hashCode((char[]) input);
+			^ Arrays.hashCode(input);
 	}
 }

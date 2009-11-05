@@ -38,17 +38,17 @@ public class AstNodeLocator implements ISourcePositionLocator {
 	}
 	
 	public int getStartOffset(Object token) {
-	    	if (token instanceof AstNode)
-	    	    token = ((AstNode) token).getLeftIToken();
-	    	    
+		if (token instanceof AstNode)
+			token = ((AstNode) token).getLeftIToken();
+
 		return ((IToken) token).getStartOffset();
 	}
-	
+
 	public int getEndOffset(Object token) {
-            if (token instanceof AstNode)
-                token = ((AstNode) token).getRightIToken();
-            
-            return ((IToken) token).getEndOffset();
+		if (token instanceof AstNode)
+			token = ((AstNode) token).getRightIToken();
+
+		return ((IToken) token).getEndOffset();
 	}
 	
 	public int getLength(Object token) {
@@ -56,10 +56,10 @@ public class AstNodeLocator implements ISourcePositionLocator {
 	}
 	
 	public IPath getPath(Object node) {
-	   if (node instanceof SGLRToken)
-            	node = ((SGLRToken) node).getAstNode();
-            
-            return ((IStrategoAstNode) node).getSourceInfo().getPath(); 
+		if (node instanceof SGLRToken)
+			node = ((SGLRToken) node).getAstNode();
+
+		return ((IStrategoAstNode) node).getResource().getFullPath();
 	}
 	
 }

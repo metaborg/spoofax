@@ -9,6 +9,7 @@ import lpg.runtime.IAstVisitor;
 import lpg.runtime.IPrsStream;
 import lpg.runtime.IToken;
 
+import org.eclipse.core.resources.IResource;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermPrinter;
 import org.spoofax.interpreter.terms.InlinePrinter;
@@ -58,8 +59,13 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 		return false;
 	}
 	
+	@Deprecated
 	public ISourceInfo getSourceInfo() {
 		return getRoot().getSourceInfo();
+	}
+	
+	public IResource getResource() {
+		return getRoot().getResource();
 	}
 	
 	// (concrete type exposed by IAst interface)

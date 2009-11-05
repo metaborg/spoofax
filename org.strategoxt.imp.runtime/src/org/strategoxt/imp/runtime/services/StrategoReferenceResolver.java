@@ -45,7 +45,7 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 			return null;
 		}
 		
-		IStrategoTerm resultTerm = observer.invoke(function, node);
+		IStrategoTerm resultTerm = observer.invokeSilent(function, node);
 		if (resultTerm == null && !observer.isUpdateStarted())
 			observer.asyncUpdate(parseController);
 		return observer.getAstNode(resultTerm);
@@ -61,7 +61,7 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 			return null;
 		}
 		
-		IStrategoTerm result = observer.invoke(function, node);
+		IStrategoTerm result = observer.invokeSilent(function, node);
 		if (result == null) {
 			return null;
 		} else if (isTermString(result)) {

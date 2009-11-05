@@ -80,7 +80,7 @@ public class WrappedAstNodeFactory extends TermFactory implements ITermFactory {
 	
 	private IStrategoTerm ensureLink(IStrategoTerm term, IStrategoTerm oldTerm) {
 		if (term instanceof IWrappedAstNode) {
-			return (IWrappedAstNode) term;
+			return term;
 		} else if (oldTerm instanceof IWrappedAstNode) {
 			return new WrappedAstNodeLink(this, term, ((IWrappedAstNode) oldTerm).getNode());
 		} else {

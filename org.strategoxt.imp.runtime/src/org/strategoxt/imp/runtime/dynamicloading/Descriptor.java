@@ -102,7 +102,7 @@ public class Descriptor {
 		try {
 			for (AbstractServiceFactory<T> factory : serviceFactories) {
 				if (factory.canCreate(type)) {
-					T result = (T) factory.create(this);
+					T result = factory.create(this);
 					foundFactory = true;
 					if (result != null) return result;
 				}
@@ -314,7 +314,7 @@ public class Descriptor {
 			return defaultValue;
 
 		if (termAt(result, 0).getTermType() == IStrategoTerm.APPL
-				&& cons((IStrategoAppl) termAt(result, 0)).equals("Values")) {
+				&& cons(termAt(result, 0)).equals("Values")) {
 			return concatTermStrings(termAt(result, 0));
 		} else {
 			return termContents(result);

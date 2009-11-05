@@ -10,6 +10,8 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
 public class RuntimeActivator extends AbstractUIPlugin {
+	
+	public static final String PLUGIN_ID = new String("org.strategoxt.imp.runtime"); 
 
 	private static RuntimeActivator instance; 
 	
