@@ -5,7 +5,7 @@ imports
 
 strategies
   
-  trans-module-name = // TODO: move "undefined" type error to x subterm? remove/fix x_declaration hack?
+  trans-module-name =
      get-sdf-main-module;
      lower-case;
      cify;
@@ -134,11 +134,11 @@ rules // Semantic rules
    * Records the definition of an entity in a dynamic rule GetEntity.
    */
   record-entity:
-    Entity(x_declaration, body) -> Entity(x_declaration, body)
+    Entity(x, body) -> Entity(x, body)
     with
       x_reference := x_declaration;
       rules(
-        GetEntity :+ x_reference -> x_declaration
+        GetEntity :+ x -> x
       )
 
 signature constructors
