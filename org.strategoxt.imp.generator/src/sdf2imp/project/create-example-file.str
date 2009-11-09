@@ -20,7 +20,7 @@ strategies
 (
 "module example
 
-// Example ", name, " program
+// Example \"", name, "\" program (see syntax/", name, ".sdf for the grammar)
 
 entity User {
   name     : String

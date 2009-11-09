@@ -111,6 +111,8 @@ public abstract class AbstractSGLRI implements IParser {
 	
 	// Parsing
 	
+	 // TODO: use IStrategoAstNode as result types?
+	
 	/**
 	 * Parse an input, returning the AST and initializing the parse stream.
 	 * 

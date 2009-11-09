@@ -25,7 +25,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.RuntimeActivator;
-import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
+import org.strategoxt.imp.runtime.stratego.StrategoConsole;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 
 /**
@@ -72,9 +72,10 @@ public class StrategoBuilder implements IBuilder {
 	
 	public void execute(EditorState editor, IStrategoAstNode node) {
 		try {
-			// TODO: support selection AST in builders
-			if (node == null)
-				node = editor.getParseController().getCurrentAst();
+			if (node == null) {
+				node = editor.getSelectionAst(true);
+				if (node == null) node = editor.getParseController().getCurrentAst();
+			}
 			if (node == null) {
 				openError(editor, "Editor is still analyzing");
 				return;
@@ -82,7 +83,7 @@ public class StrategoBuilder implements IBuilder {
 			
 			IStrategoTerm resultTerm = observer.invoke(builderRule, node);
 			if (resultTerm == null) {
-				if (editor.getDescriptor().isDynamicallyLoaded()) EditorIOAgent.activateConsole();
+				observer.reportRewritingFailed();
 				Environment.logException("Builder failed:\n" + observer.getLog());
 				if (!observer.isUpdateStarted())
 					observer.asyncUpdate(editor.getParseController());
@@ -107,7 +108,7 @@ public class StrategoBuilder implements IBuilder {
 				if (realTime) {
 					StrategoBuilderListener listener = listeners.get(editor);
 					if (listener != null) listener.setEnabled(false);
-					listener = new StrategoBuilderListener(editor, target, file, getCaption(), null, null);
+					listener = new StrategoBuilderListener(editor, target, file, getCaption(), node);
 					listeners.put(editor, listener);
 					editor.getEditor().addModelListener(listener);
 				}
@@ -116,8 +117,9 @@ public class StrategoBuilder implements IBuilder {
 			Environment.logException("Builder failed", e);
 			openError(editor, "Builder failed (see error log)");
 		} catch (InterpreterErrorExit e) {
+			observer.reportRewritingFailed();
 			Environment.logException("Builder failed:\n" + observer.getLog(), e);
-			if (editor.getDescriptor().isDynamicallyLoaded()) EditorIOAgent.activateConsole();
+			if (editor.getDescriptor().isDynamicallyLoaded()) StrategoConsole.activateConsole();
 			openError(editor, e.getMessage());
 		} catch (UndefinedStrategyException e) {
 			reportException(editor, e);
@@ -132,7 +134,7 @@ public class StrategoBuilder implements IBuilder {
 
 	private void reportException(EditorState editor, Exception e) {
 		Environment.logException("Builder failed", e);
-		if (editor.getDescriptor().isDynamicallyLoaded()) EditorIOAgent.activateConsole();
+		if (editor.getDescriptor().isDynamicallyLoaded()) StrategoConsole.activateConsole();
 		Status status = new Status(IStatus.ERROR, RuntimeActivator.PLUGIN_ID, e.getLocalizedMessage(), e);
 		ErrorDialog.openError(editor.getEditor().getSite().getShell(),
 				"Spoofax/IMP builder", null, status);
@@ -144,10 +146,11 @@ public class StrategoBuilder implements IBuilder {
 				"Spoofax/IMP builder", null, status);
 	}
 
-	private IFile createFile(EditorState editor, String filename, String result) throws CoreException {
+	private IFile createFile(EditorState editor, String filename, String contents) throws CoreException {
 		IFile file = editor.getProject().getRawProject().getFile(filename);
-		InputStream resultStream = new ByteArrayInputStream(result.getBytes());
+		InputStream resultStream = new ByteArrayInputStream(contents.getBytes());
 		if (file.exists()) {
+			// TODO: editor.getDocument().set(contents);?
 			file.setContents(resultStream, true, true, null);
 		} else {
 			file.create(resultStream, true, null);

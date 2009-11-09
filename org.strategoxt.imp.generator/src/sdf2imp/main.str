@@ -76,6 +76,13 @@ strategies
         <find-def-file> esv;
         rules(InputFile := <id>);
         !FILE(<id>)
+      else
+        where(
+          <file-exists> <conc-strings> ("include/", <InputFile>)
+        <+
+          <file-exists <+ mkdir> "include";
+          <copy-file> (<InputFile>, "include")
+        )
       end;
       ?input
     else

@@ -7,11 +7,14 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
 
+import org.eclipse.core.runtime.Platform;
 import org.spoofax.interpreter.library.IOAgent;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.StrategoException;
 import org.strategoxt.lang.compat.NativeCallHelper;
@@ -32,94 +35,130 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 	
 	private String binaryPostfix;
 	
-	private void init() throws IOException {
-		/* FIXME: initialization doesn't seem to work on the mac atm
+	public void init() throws IOException {
 		if (binaryPostfix != null) return;
 		Activator sdfBundle = Activator.getInstance();
 		binaryPrefix = sdfBundle.getBinaryPrefix();
 		binaryPostfix = sdfBundle.getBinaryPostfix();
-		*/
+		String os = Platform.getOS();
+		if (os.equals(Platform.OS_LINUX) || os.equals(Platform.OS_MACOSX)) {
+			// Some of these are used from Ant and should always be executable
+			EditorIOAgent agent = new EditorIOAgent();
+			boolean success = makeExecutable(agent, "sdf2table") && makeExecutable(agent, "sglr") && makeExecutable(agent, "implodePT");
+			if (!success)
+				Environment.logException("chmod of native tool bundle executables failed:\n" + agent.getLog());
+		}
+		Debug.log("Initialized the native tool bundle in " + binaryPrefix);
+	}
+	
+	public static SDFBundleCommand getInstance() {
+		return (SDFBundleCommand) instance;
 	}
 	
 	@Override
 	public IStrategoTerm invoke(Context context, IStrategoTerm args,
-			org.strategoxt.lang.Strategy command) {
+			org.strategoxt.lang.Strategy commandStrategy) {
 		
 		try {
 			init();
 		} catch (IOException e) {
-			Environment.logException("Could not determine the prefix path for the native tool bundle", e);
-			return proceed.invoke(context, args, command);
+			Environment.logException("Could not determine the prefix path for the native tool bundle (" 
+					+ Platform.getOS() + "/" + Platform.getOSArch()
+					+ ")", e);
+			return proceed.invoke(context, args, commandStrategy);
+		} catch (RuntimeException e) {
+			Environment.logException("Failed to initialize the native tool bundle (" + Platform.getOS()
+					+ "/" + Platform.getOSArch() + ")", e);
+			return proceed.invoke(context, args, commandStrategy);
 		}
 		
-		IStrategoTerm commandTerm = command.invoke(context, args);
-		if (commandTerm.getTermType() != STRING || true) // FIXME: call sdf2table in plugin
-			return proceed.invoke(context, args, command);
+		IStrategoTerm commandTerm = commandStrategy.invoke(context, args);
+		if (commandTerm.getTermType() != STRING)
+			return proceed.invoke(context, args, commandStrategy);
 		
-		String commandName = ((IStrategoString) commandTerm).stringValue();
-		if (!new File(binaryPrefix + "/" + commandName + binaryPostfix).exists())
-			return proceed.invoke(context, args, command);
+		String command = ((IStrategoString) commandTerm).stringValue();
+		if (!new File(binaryPrefix + "/" + command + binaryPostfix).exists()) {
+			if (command.equals("sdf2table") || command.equals("implodePT")) {
+				Environment.logException("Could not find the native tool bundle command "
+						+ command + " in " + binaryPrefix);
+			}
+			return proceed.invoke(context, args, commandStrategy);
+		}
 		
 		if (args.getTermType() != LIST)
 			return null;
 		
-		return invokeSDF2Table(context, commandName, ((IStrategoList) args).getAllSubterms())
+		String os = Platform.getOS();
+		if (os.equals(Platform.OS_LINUX) || os.equals(Platform.OS_MACOSX)) {
+			if (!makeExecutable(context.getIOAgent(), command)) {
+				EditorIOAgent io = (EditorIOAgent) context.getIOAgent();
+				Environment.logException("chmod of " + binaryPrefix + command + binaryPostfix + " failed, log:\n" + io.getLog());
+				return proceed.invoke(context, args, commandStrategy); // (already logged)
+			}
+		}
+		
+		return invoke(context, command, ((IStrategoList) args).getAllSubterms())
 			? args
 			: null;
 	}
-	
-	/* TODO: chmod executable before use
-	private static void makeExecutable(String command) throws IOException {
-		String os = Platform.getOS();
-		if (os.equals(Platform.OS_LINUX)
-				|| os.equals(Platform.OS_MACOSX)) {
-			try {
-			    String cmdBin = binary(command);
-				Process p = Runtime.getRuntime().exec("/bin/chmod +x " + cmdBin);
-				p.waitFor();
-				if (p.exitValue() != 0) {
-				    a.getLog().log(new Status(IStatus.ERROR, Activator.PLUGIN_ID, "chmod of '" + cmdBin + "' failed: " + p.exitValue()));
-				}
-			} catch (InterruptedException e) {
-				a.getLog().log(new Status(IStatus.ERROR, Activator.PLUGIN_ID, "chmod of '" + binary(command) + "' failed: " + e.getMessage()));	
-			}
-		}
-	}
-	*/
 
-	private boolean invokeSDF2Table(Context context, String command, IStrategoTerm[] argList) throws StrategoException {
-		// HACK: concatenating all command-line arguments...
-		StringBuilder allArgs = new StringBuilder();
-		String[] commandArgs = new String[argList.length + 1];
-		int i = 1;
-		for (IStrategoTerm arg : argList) {
-			if (arg.getTermType() != STRING) return false;
-			allArgs.append(' ');
-			allArgs.append(((IStrategoString) arg).stringValue());
-			commandArgs[i++] = ((IStrategoString) arg).stringValue();
-		}
-		
+	private boolean invoke(Context context, String command, IStrategoTerm[] argList) throws StrategoException {
 		try {
-			/*
-			InputStream result = Tools.exec("sdf2table " + allArgs, System.in);
-			// Synchronously copy the std error stream
-			PrintStream stderr = context.getIOAgent().getOutputStream(IOAgent.CONST_STDERR);
-			new NativeCallHelper.StreamCopier(result, stderr).run();
-			*/
-			commandArgs[0] = binaryPrefix + "/" + command + binaryPostfix;
-			String[] environment = { "PATH=" + binaryPrefix.getAbsolutePath(), 
+ 			String[] commandArgs = toCommandArgs(command, argList);
+			if (commandArgs == null) return false;
+			String path = binaryPrefix.getAbsolutePath() + System.getProperty("path.separator") + System.getenv("PATH");
+			String[] environment = { "PATH=" + path, 
 					                 "LD_LIBRARY_PATH=" + binaryPrefix.getParentFile().getAbsolutePath() + "/lib" };
 			IOAgent io = context.getIOAgent();
-			PrintStream stdout = io.getOutputStream(IOAgent.CONST_STDOUT);
-			PrintStream stderr = io.getOutputStream(IOAgent.CONST_STDERR);
-			// DEBUG
-			System.out.println("Calling: " + Arrays.toString(commandArgs) + " " + Arrays.toString(environment) + " " + io.getWorkingDir());
-			int result = new NativeCallHelper().call(commandArgs, environment, new File(io.getWorkingDir()), stdout, stderr);
+			PrintStream out = io.getOutputStream(IOAgent.CONST_STDOUT);
+			PrintStream err = io.getOutputStream(IOAgent.CONST_STDERR);
+
+			Debug.log("Invoking " + binaryPrefix + "/" + command + binaryPostfix + " " + Arrays.toString(argList));
+			int result = new NativeCallHelper().call(commandArgs, environment, new File(io.getWorkingDir()), out, err);
+			if (result != 0) {
+				Environment.logException("Native tool " + command
+						+ " exited with error code " + result
+						+ "\nCommand:\n  " + Arrays.toString(commandArgs)
+						+ "\nWorking dir:\n  " + io.getWorkingDir()
+						+ "\nEnvironment:\n  " + Arrays.toString(environment));
+			}
 			return result == 0;
 		} catch (IOException e) {
 			return false;
 		} catch (InterruptedException e) {
-			throw new StrategoException("Could not call sdf2table", e);
+			throw new StrategoException("Could not call " + command, e);
+		}
+	}
+
+	private String[] toCommandArgs(String command, IStrategoTerm[] argList) {
+		StringBuilder allArgs = new StringBuilder();
+		String[] commandArgs = new String[argList.length + 1];
+		int i = 1;
+		for (IStrategoTerm arg : argList) {
+			if (arg.getTermType() != STRING) return null;
+			allArgs.append(' ');
+			allArgs.append(((IStrategoString) arg).stringValue());
+			commandArgs[i++] = ((IStrategoString) arg).stringValue();
+		}
+		commandArgs[0] = binaryPrefix + "/" + command + binaryPostfix;
+		return commandArgs;
+	}
+	
+	private boolean makeExecutable(IOAgent io, String command) {
+		try {
+			PrintStream out = io.getOutputStream(IOAgent.CONST_STDOUT);
+			PrintStream err = io.getOutputStream(IOAgent.CONST_STDERR);
+			command = binaryPrefix + "/" + command + binaryPostfix;
+			// /bin/sh should exist even on NixOS
+			String[] commandArgs = { "/bin/sh", "-c", "chmod +x " + command };
+			int result = new NativeCallHelper().call(commandArgs, binaryPrefix, out, err);
+			return result == 0;
+		} catch (InterruptedException e) {
+			Environment.logException("chmod failed: /bin/sh -c \"chmod +x " + command + "\"", e);
+			return false;
+		} catch (IOException e) {
+			Environment.logException("chmod failed: /bin/sh -c \"chmod +x " + command + "\"", e);
+			return false;
 		}
 	}
 }

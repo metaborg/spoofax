@@ -103,7 +103,8 @@ public class DescriptorRegistry {
 			
 	        IEditorDescriptor defaultEditor = mapping.getDefaultEditor();
 	        
-	        if (defaultEditor == null || defaultEditor.getId().equals("")) {
+	        if (defaultEditor == null || defaultEditor.getId().equals("")
+	        		|| "str".equals(extension) || "sdf".equals(extension)) {
 	        	mapping.setDefaultEditor(universalEditor);
 	        } else {
 	        	if (!isUniversalEditorIncluded(mapping))

@@ -17,6 +17,7 @@ import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
+import org.strategoxt.imp.runtime.stratego.StrategoConsole;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.StrategoErrorExit;
 import org.strategoxt.lang.StrategoExit;
@@ -85,7 +86,7 @@ public class DynamicDescriptorBuilder {
 				String log = agent.getLog().trim();
 				Environment.logException("Unable to build descriptor:\n" + log);
 				messageHandler.addMarkerFirstLine(mainFile, "Unable to build descriptor (see error log)", SEVERITY_ERROR);
-				EditorIOAgent.activateConsole();
+				StrategoConsole.activateConsole();
 				return;
 			}
 			
@@ -122,13 +123,13 @@ public class DynamicDescriptorBuilder {
 		} catch (StrategoErrorExit e) {
 			Environment.logException("Fatal error exit in dynamic builder, log:\n" + agent.getLog().trim(), e);
 			messageHandler.addMarkerFirstLine(mainFile, "Fatal error building descriptor:" + e.getMessage(), SEVERITY_ERROR);
-			EditorIOAgent.activateConsole();
+			StrategoConsole.activateConsole();
 			return null;
 		} catch (StrategoExit e) {
 			Environment.logException("Unexpected exit in dynamic builder, log:\n" + agent.getLog().trim(), e);
 			context.printStackTrace();
 			messageHandler.addMarkerFirstLine(mainFile, "Error building descriptor (see error log)", SEVERITY_ERROR);
-			EditorIOAgent.activateConsole();
+			StrategoConsole.activateConsole();
 			return null;
 		} finally {
 			//context.getExceptionHandler().setEnabled(false);

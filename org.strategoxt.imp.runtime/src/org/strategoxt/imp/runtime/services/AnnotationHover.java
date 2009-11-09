@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.eclipse.imp.services.IAnnotationHover;
 import org.eclipse.imp.utils.AnnotationUtils;
+import org.eclipse.imp.utils.HTMLPrinter;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.DefaultAnnotationHover;
 import org.eclipse.jface.text.source.ILineDiffInfo;
@@ -55,5 +56,9 @@ public class AnnotationHover extends DefaultAnnotationHover implements IAnnotati
 		addPageEpilog(result);
     	return result.toString();
     }
+	
+	private static String convertToHTMLContent(String content) {
+		return HTMLPrinter.convertToHTMLContent(content).replace("\n", "<br />");
+	}
 
 }

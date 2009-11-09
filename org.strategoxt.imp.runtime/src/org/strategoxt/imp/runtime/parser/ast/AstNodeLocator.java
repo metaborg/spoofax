@@ -2,6 +2,7 @@ package org.strategoxt.imp.runtime.parser.ast;
 
 import lpg.runtime.IToken;
 
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
@@ -16,14 +17,14 @@ import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
  */
 public class AstNodeLocator implements ISourcePositionLocator {
 
-	public AstNode findNode(Object root, int startOffset, int endOffset) {
-		AstNode ast = root instanceof SGLRToken
+	public IStrategoAstNode findNode(Object root, int startOffset, int endOffset) {
+		IStrategoAstNode ast = root instanceof SGLRToken
 				? ((SGLRToken) root).getAstNode()
 				: (AstNode) root;
 		
 		if (ast.getLeftIToken().getStartOffset() <= startOffset && endOffset <= ast.getRightIToken().getEndOffset()) {
-		    for (AstNode child : ast.getChildren()) {
-		        AstNode candidate = findNode(child, startOffset, endOffset);
+		    for (Object child : ast.getChildren()) {
+		        IStrategoAstNode candidate = findNode(child, startOffset, endOffset);
 		        if (candidate != null)
 		            return candidate;
 		    }
@@ -33,7 +34,7 @@ public class AstNodeLocator implements ISourcePositionLocator {
 		}
 	}
 	
-	public AstNode findNode(Object root, int offset) {
+	public IStrategoAstNode findNode(Object root, int offset) {
 		return findNode(root, offset, offset);
 	}
 	
@@ -59,7 +60,8 @@ public class AstNodeLocator implements ISourcePositionLocator {
 		if (node instanceof SGLRToken)
 			node = ((SGLRToken) node).getAstNode();
 
-		return ((IStrategoAstNode) node).getResource().getFullPath();
+		IResource resource = ((IStrategoAstNode) node).getResource();
+		return resource.getLocation();
 	}
 	
 }

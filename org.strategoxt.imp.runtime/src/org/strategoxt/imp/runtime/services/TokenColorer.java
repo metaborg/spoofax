@@ -11,9 +11,9 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.swt.graphics.Color;
-import org.strategoxt.imp.runtime.parser.ast.AstNode;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
+import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -45,7 +45,7 @@ public class TokenColorer implements ITokenColorer {
 
 	public TextAttribute getColoring(IParseController controller, Object oToken) {
 		SGLRToken token = (SGLRToken) oToken;
-		AstNode node = token.getAstNode();
+		IStrategoAstNode node = token.getAstNode();
 		
 		parseController = controller;
 		
@@ -82,7 +82,7 @@ public class TokenColorer implements ITokenColorer {
 		return null;
 	}
 
-	private TextAttribute addEnvColoring(TextAttribute attribute, AstNode node, int tokenKind) {
+	private TextAttribute addEnvColoring(TextAttribute attribute, IStrategoAstNode node, int tokenKind) {
 		TextAttribute envColor = null;
 		
 		// TODO: Optimize - don't traverse up the tree to color every node

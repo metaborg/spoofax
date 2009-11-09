@@ -171,12 +171,14 @@ public class NewEditorWizardPage extends WizardPage {
 			updateStatus("Project name must be specified");
 			return;
 		}
-		if (getInputLanguageName().replace('\\', '/').indexOf('/', 1) > 0
+		if (getInputLanguageName().replace('\\', '/').indexOf('/', 1) > -1
+				|| getInputLanguageName().indexOf(' ') > -1
+				|| getInputLanguageName().equals("DynamicRoot")
 				|| getInputLanguageName().equals("Common")) {
 			updateStatus("Language name must be valid");
 			return;
 		}
-		if (getInputProjectName().replace('\\', '/').indexOf('/', 1) > 0) {
+		if (getInputProjectName().replace('\\', '/').indexOf('/', 1) > -1) {
 			updateStatus("Project name must be valid");
 			return;
 		}

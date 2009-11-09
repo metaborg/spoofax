@@ -42,9 +42,7 @@ strategies
   <+
     <xtc-command(!"sdf2table")> ["-V"] // ensure it's available
   <+
-    fatal-err(|["Could not call sdf2table. Please ensure sdf2table is ",
-                "installed and on the path (on Linux and OS/X they should be on the ",
-                "PATH variable set in /etc/profile)"])
+    fatal-err(|["Internal error: could not call sdf2table"])
   
   create-permissive-grammar:
     FILE(input) -> FILE(output)

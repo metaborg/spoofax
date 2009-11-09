@@ -8,8 +8,7 @@ strategies
   trans-module-name =
      get-sdf-main-module;
      lower-case;
-     cify;
-     string-replace(|"_", "-")
+     cify
   
   create-trans =
     <file-exists> <conc-strings> ("trans/", <trans-module-name>, ".str")
@@ -29,9 +28,6 @@ imports
   include/", sdf-name, "
 
 rules // Main editor interface (defined by the .esv files)
-
-  main-", name, " =
-    fatal-err(|\"No main strategy\")
   
   /**
    * Analyzes the current program.
@@ -66,11 +62,17 @@ rules // Main editor interface (defined by the .esv files)
   editor-hover:
     (target, position, ast, path, project-path) -> <conc-strings> (\"Hover help: \", <write-to-string> target)
   
+  /**
+   * Transforms a selection to Java.
+   */
   generate-java:
     (selected, position, ast, path, project-path) -> (\"filename\", \"result-string\")
     with
       fatal-err(|\"Not implemented\")
   
+  /**
+   * Prints the abstract syntax ATerm of a selection.
+   */
   generate-aterm:
     (selected, position, ast, path, project-path) -> (filename, result-string)
     with
@@ -128,7 +130,7 @@ rules // Semantic rules
    * Adds a note to modules named \"example.\"
    */
   constraint-note:
-    Module(\"example\", _) -> \"This is just an example program in the \\\"entities\\\" language\"
+    Module(\"example\", _) -> \"This is just an example program in the \\\"entities\\\" language (this note is defined in trans/", name, ".str)\"
 
   /**
    * Records the definition of an entity in a dynamic rule GetEntity.
@@ -136,7 +138,6 @@ rules // Semantic rules
   record-entity:
     Entity(x, body) -> Entity(x, body)
     with
-      x_reference := x_declaration;
       rules(
         GetEntity :+ x -> x
       )

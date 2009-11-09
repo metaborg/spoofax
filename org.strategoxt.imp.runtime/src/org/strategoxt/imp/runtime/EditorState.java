@@ -1,5 +1,11 @@
 package org.strategoxt.imp.runtime;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import lpg.runtime.IPrsStream;
+import lpg.runtime.IToken;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -10,6 +16,9 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.model.ISourceProject;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.Region;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
@@ -20,9 +29,13 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.progress.UIJob;
+import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.dynamicloading.DynamicParseController;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
+import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
+import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
+import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 
 /**
  * Helper class for accessing the active editor.
@@ -86,10 +99,88 @@ public class EditorState {
 		return null;
 	}
 	
-	// UTILITY METHODS
+	// ACCESSORS
 	
 	public static boolean isUIThread() {
 		return Display.getCurrent() != null;
+	}
+
+	public UniversalEditor getEditor() {
+		return editor;
+	}
+	
+	public SGLRParseController getParseController() {
+		DynamicParseController wrapper = (DynamicParseController) getEditor().getParseController();
+		return (SGLRParseController) wrapper.getWrapped();
+	}
+	
+	public Language getLanguage() {
+		return getEditor().fLanguage;
+	}
+	
+	public final Descriptor getDescriptor() {
+		return Environment.getDescriptor(getLanguage());
+	}
+
+	public final IResource getResource() {
+    	return getParseController().getResource();
+	}
+	
+	public final ISourceProject getProject() {
+		return getParseController().getProject();
+	}
+	
+	/**
+	 * Gets the document model for this editor, which can be used to manipulate
+	 * the contents of the editor.
+	 * 
+	 * See http://wiki.eclipse.org/FAQ_How_do_I_insert_text_in_the_active_text_editor%3F
+	 */
+	public IDocument getDocument() {
+		IDocumentProvider provider = getEditor().getDocumentProvider();
+		return provider.getDocument(getEditor().getEditorInput());
+	}
+	
+	/**
+	 * Gets the abstract syntax subtree for the selection in the editor.
+	 * 
+	 * @param ignoreEmptyEmpySelection
+	 *            If true, null is returned if the selection is 0 characters wide.
+	 * 
+	 * @see SGLRParseController#getCurrentAst()
+	 *            Gets the entire AST.
+	 */
+	public final synchronized IStrategoAstNode getSelectionAst(boolean ignoreEmptyEmpySelection) {
+		Point selection = getEditor().getSelection();
+		if (ignoreEmptyEmpySelection && selection.y == 0)
+			return null;
+		
+		IToken start = getParseController().getTokenIterator(new Region(selection.x, 0)).next();
+		IToken end = getParseController().getTokenIterator(new Region(selection.x + selection.y - 1, 0)).next();
+		
+		IPrsStream tokens = start.getIPrsStream();
+		int layout = TokenKind.TK_LAYOUT.ordinal();
+		while (start.getKind() == layout && start.getTokenIndex() < tokens.getSize())
+			start = tokens.getTokenAt(start.getTokenIndex() + 1);
+		
+		while (end.getKind() == layout && end.getTokenIndex() > 0)
+			end = tokens.getTokenAt(end.getTokenIndex() - 1);
+		
+		IStrategoAstNode startNode = ((SGLRToken) start).getAstNode();
+		IStrategoAstNode endNode = ((SGLRToken) end).getAstNode();
+
+		return findCommonAncestor(startNode, endNode);
+	}
+
+	private static IStrategoAstNode findCommonAncestor(IStrategoAstNode node1, IStrategoAstNode node2) {
+		Set<IStrategoAstNode> node1Ancestors = new HashSet<IStrategoAstNode>();
+		for (IStrategoAstNode n = node1; n != null; n = n.getParent())
+			node1Ancestors.add(n);
+		
+		for (IStrategoAstNode n = node2; n != null; n = n.getParent())
+			if (node1Ancestors.contains(n)) return n;
+		
+		throw new IllegalStateException("Could not find common ancestor for nodes: " + node1 + "," + node2);
 	}
 
 	/**
@@ -126,32 +217,5 @@ public class EditorState {
 			}
 		};
 		job.schedule();
-	}
-	
-	// ACCESSORS
-	
-	public UniversalEditor getEditor() {
-		return editor;
-	}
-	
-	public SGLRParseController getParseController() {
-		DynamicParseController wrapper = (DynamicParseController) getEditor().getParseController();
-		return (SGLRParseController) wrapper.getWrapped();
-	}
-	
-	public Language getLanguage() {
-		return getEditor().fLanguage;
-	}
-	
-	public final Descriptor getDescriptor() {
-		return Environment.getDescriptor(getLanguage());
-	}
-
-	public final IResource getResource() {
-    	return getParseController().getResource();
-	}
-	
-	public final ISourceProject getProject() {
-		return getParseController().getProject();
 	}
 }

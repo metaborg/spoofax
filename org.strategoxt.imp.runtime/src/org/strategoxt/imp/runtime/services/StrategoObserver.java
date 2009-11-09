@@ -24,11 +24,14 @@ import org.eclipse.imp.parser.IParseController;
 import org.spoofax.interpreter.core.InterpreterErrorExit;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
+import org.spoofax.interpreter.core.StackTracer;
 import org.spoofax.interpreter.core.UndefinedStrategyException;
+import org.spoofax.interpreter.library.IOAgent;
 import org.spoofax.interpreter.library.LoggingIOAgent;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.HybridInterpreter;
 import org.strategoxt.IncompatibleJarException;
@@ -38,10 +41,12 @@ import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
+import org.strategoxt.imp.runtime.stratego.StrategoConsole;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 import org.strategoxt.imp.runtime.stratego.adapter.WrappedAstNode;
 import org.strategoxt.lang.StrategoException;
+import org.strategoxt.stratego_lib.set_config_0_0;
 
 /**
  * Basic Stratego feedback (i.e., errors and warnings) provider.
@@ -118,7 +123,19 @@ public class StrategoObserver implements IModelListener {
 
 	private void initRuntime(IProgressMonitor monitor) {
 		if (runtime == null) {
+			Debug.startTimer();
 			runtime = Environment.createInterpreter();
+			runtime.init();
+			Debug.stopTimer("Created new Stratego runtime instance");
+			try {
+				ITermFactory factory = runtime.getFactory();
+				IStrategoTuple programName = factory.makeTuple(
+						factory.makeString("program"),
+						factory.makeString(descriptor.getLanguage().getName()));
+				set_config_0_0.instance.invoke(runtime.getCompiledContext(), programName);
+			} catch (BadDescriptorException e) {
+				// Ignore
+			}
 			monitor.subTask("Loading analysis runtime components");
 		}
 	}
@@ -210,12 +227,27 @@ public class StrategoObserver implements IModelListener {
 			
 			feedback = invokeSilent(feedbackFunction, ast.getResource(), makeInputTerm(ast, false));
 		}
-		
-		// TODO: figure out how this was supposed to be synchronized
-		// synchronized (feedback) {
-			if (feedback != null && !monitor.isCanceled())
-				presentToUser(ast.getResource(), feedback);
-		// }
+
+		if (feedback == null) {
+			reportRewritingFailed();
+			String log = getLog();
+			Environment.logException(log.length() == 0 ? "Analysis failed" : "Analysis failed:\n" + log);
+			messages.addMarkerFirstLine(ast.getResource(), "Analysis failed (see error log)", IMarker.SEVERITY_ERROR);
+		} else if (!monitor.isCanceled()) {
+			// TODO: figure out how this was supposed to be synchronized
+			// synchronized (feedback) {
+			presentToUser(ast.getResource(), feedback);
+			// }
+		}
+	}
+
+	public void reportRewritingFailed() {
+		StackTracer trace = runtime.getContext().getStackTracer();
+		runtime.getIOAgent().getOutputStream(IOAgent.CONST_STDERR).println(
+				trace.getTraceDepth() != 0 ? "rewriting failed, trace:" : "rewriting failed");
+		trace.printStackTrace();
+		if (descriptor.isDynamicallyLoaded())
+			StrategoConsole.activateConsole();
 	}
 	
 	/* UNDONE: asynchronous feedback presentation
@@ -260,7 +292,7 @@ public class StrategoObserver implements IModelListener {
 	    for (IStrategoTerm feedback : feedbacks.getAllSubterms()) {
 	    	if (feedback.getSubtermCount() != 2 || feedback.getSubterm(1).getTermType() != STRING) {
 				// Throw an exception to trigger an Eclipse pop-up
-	    		if (descriptor.isDynamicallyLoaded()) EditorIOAgent.activateConsole();
+	    		if (descriptor.isDynamicallyLoaded()) StrategoConsole.activateConsole();
 	    		throw new StrategoException("Illegal feedback result (must be a term/message tuple): " + feedback);
 	    	}
 	        IStrategoTerm term = termAt(feedback, 0);
@@ -321,7 +353,7 @@ public class StrategoObserver implements IModelListener {
 			//       (e.g., overriding Context.lookupPrimitive to throw an OperationCanceledException) 
 			
 			runtime.setCurrent(term);
-			IPath path = resource.getProject().getLocation().append(resource.getProjectRelativePath());
+			IPath path = resource.getLocation();
 			initInterpreterPath(path.removeLastSegments(1));
 
 			((LoggingIOAgent) runtime.getIOAgent()).clearLog();
@@ -352,14 +384,8 @@ public class StrategoObserver implements IModelListener {
 		
 		try {
 			result = invoke(function, input, resource);
-			if (result == null) {
-				if (descriptor.isDynamicallyLoaded()) EditorIOAgent.activateConsole();
-				String log = getLog();
-				Environment.logException(log.length() == 0 ? "Analysis failed" : "Analysis failed:\n" + log);
-				messages.addMarkerFirstLine(resource, "Analysis failed (see error log)", IMarker.SEVERITY_ERROR);
-			}
 		} catch (InterpreterExit e) {
-			if (descriptor.isDynamicallyLoaded()) EditorIOAgent.activateConsole();
+			if (descriptor.isDynamicallyLoaded()) StrategoConsole.activateConsole();
 			messages.addMarkerFirstLine(resource, "Analysis failed", IMarker.SEVERITY_ERROR);
 			Environment.logException("Runtime exited when evaluating strategy " + function, e);
 		} catch (UndefinedStrategyException e) {
@@ -367,10 +393,10 @@ public class StrategoObserver implements IModelListener {
 			Environment.logException("Strategy does not exist: " + function, e);
 		} catch (InterpreterException e) {
 			Environment.logException("Internal error evaluating strategy " + function, e);
-			if (descriptor.isDynamicallyLoaded()) EditorIOAgent.activateConsole();
+			if (descriptor.isDynamicallyLoaded()) StrategoConsole.activateConsole();
 		} catch (RuntimeException e) {
 			Environment.logException("Internal error evaluating strategy " + function, e);
-			if (descriptor.isDynamicallyLoaded()) EditorIOAgent.activateConsole();
+			if (descriptor.isDynamicallyLoaded()) StrategoConsole.activateConsole();
 		}
 		
 		return result;

@@ -145,6 +145,13 @@
             verticalRulerPreferenceKey="analysisAnnotationVerticalKey"
             verticalRulerPreferenceValue="true"/>
    </extension>
+   <extension
+         point="org.eclipse.imp.runtime.annotationHover">
+      <annotationHover
+            class="org.strategoxt.imp.runtime.services.AnnotationHover"
+            language="DynamicRoot">
+      </annotationHover>
+   </extension>
 
    <extension
          point="org.eclipse.ui.actionSets">
@@ -155,7 +162,7 @@
             visible="true">
          <action
                class="org.strategoxt.imp.runtime.stratego.BuilderButtonDelegate"
-               definitionId="org.eclipse.jdt.debug.ui.commands.Execute"
+               definitionId="org.strategoxt.imp.runtime.transformCommand"
                icon="icons/builder.png"
                id="org.strategoxt.imp.runtime.stratego.builder"
                label="Apply transformation"
@@ -165,11 +172,32 @@
       </actionSet>
    </extension>
    <extension
-         point="org.eclipse.imp.runtime.annotationHover">
-      <annotationHover
-            class="org.strategoxt.imp.runtime.services.AnnotationHover"
-            language="DynamicRoot">
-      </annotationHover>
+         point="org.eclipse.ui.commands">
+      <category
+            id="org.strategoxt.imp.runtime.transformCommandCategory"
+            name="Transform Command category">
+      </category>
+      <command
+            categoryId="org.strategoxt.imp.runtime.transformCommandCategory"
+            id="org.strategoxt.imp.runtime.transformCommand"
+            name="Transform Command">
+      </command>
+   </extension>
+   <extension
+         point="org.eclipse.ui.handlers">
+      <handler
+            class="org.strategoxt.imp.runtime.stratego.BuilderButtonDelegate"
+            commandId="org.strategoxt.imp.runtime.commands.sampleCommand">
+      </handler>
+   </extension>
+   <extension
+         point="org.eclipse.ui.bindings">
+      <key
+            commandId="org.strategoxt.imp.runtime.transformCommand"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="CTRL+T">
+      </key>
    </extension>
 
    <!-- Extension point not implemented?

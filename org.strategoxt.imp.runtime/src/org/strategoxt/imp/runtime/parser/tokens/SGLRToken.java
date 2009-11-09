@@ -1,9 +1,10 @@
 package org.strategoxt.imp.runtime.parser.tokens;
 
-import org.strategoxt.imp.runtime.parser.ast.AstNode;
-
 import lpg.runtime.IPrsStream;
 import lpg.runtime.Token;
+
+import org.strategoxt.imp.runtime.parser.ast.AstNode;
+import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 
 /**
  * An SGLR token. Maintains a link to its associated AST node.
@@ -13,7 +14,7 @@ import lpg.runtime.Token;
 public class SGLRToken extends Token {
 	private AstNode astNode;
 
-	public AstNode getAstNode() {
+	public IStrategoAstNode getAstNode() {
 		return astNode;
 	}
 

@@ -1,5 +1,8 @@
 package org.strategoxt.imp.runtime.stratego;
 
+import org.eclipse.core.commands.AbstractHandler;
+import org.eclipse.core.commands.ExecutionEvent;
+import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ActionContributionItem;
@@ -23,13 +26,13 @@ import org.strategoxt.imp.runtime.services.IBuilderMap;
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class BuilderButtonDelegate implements IWorkbenchWindowPulldownDelegate {
+public class BuilderButtonDelegate extends AbstractHandler implements IWorkbenchWindowPulldownDelegate {
 	
 	// TODO: IWorkbenchWindowPulldownDelegate?
 	
-	private Menu result;
+	private static String lastAction;
 	
-	private String lastAction;
+	private Menu menu;
 
 	public void init(IWorkbenchWindow window) {
 		// Initialized using getMenu()
@@ -48,6 +51,11 @@ public class BuilderButtonDelegate implements IWorkbenchWindowPulldownDelegate {
 			builder.execute(editor, null);
 	}
 
+	public Object execute(ExecutionEvent event) throws ExecutionException {
+		run(null);
+		return null;
+	}
+	
 	public void selectionChanged(IAction action, ISelection selection) {
 		// Unused
 	}
@@ -60,6 +68,7 @@ public class BuilderButtonDelegate implements IWorkbenchWindowPulldownDelegate {
 		if (editor == null) return;
 		
 		IBuilderMap builders = getBuilders(editor);
+		if (builders.getAll().size() == 0) return;
 		
 		for (final IBuilder builder : builders.getAll()) {
 			IAction action = new Action(builder.getCaption()) {
@@ -91,20 +100,22 @@ public class BuilderButtonDelegate implements IWorkbenchWindowPulldownDelegate {
 		return builders;
 	}
 		
+	@Override
 	public void dispose() {
-		if (result != null) {
-			result.dispose();
-			result = null;
+		if (menu != null) {
+			menu.dispose();
+			menu = null;
 		}
+		super.dispose();
 	}
 
 	public Menu getMenu(Control parent) {
-		if (result != null) {
-			result.dispose();
+		if (menu != null) {
+			menu.dispose();
 		}
-		result = new Menu(parent);
-		populateMenu(result);
-		return result;
+		menu = new Menu(parent);
+		populateMenu(menu);
+		return menu;
 	}
 
 }

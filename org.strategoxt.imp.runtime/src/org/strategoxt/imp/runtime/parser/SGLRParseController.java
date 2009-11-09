@@ -22,7 +22,6 @@ import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.parser.IMessageHandler;
 import org.eclipse.imp.parser.IParseController;
-import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.eclipse.imp.parser.SimpleAnnotationTypeInfo;
 import org.eclipse.imp.services.IAnnotationTypeInfo;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
@@ -41,6 +40,7 @@ import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
 import org.strategoxt.imp.runtime.parser.ast.AstNodeLocator;
+import org.strategoxt.imp.runtime.parser.ast.RootAstNode;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenIterator;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
@@ -69,7 +69,7 @@ public class SGLRParseController implements IParseController {
 	
 	private final ILanguageSyntaxProperties syntaxProperties;
 	
-	private AstNode currentAst;
+	private RootAstNode currentAst;
 	
 	private ISourceProject project;
 	
@@ -173,7 +173,7 @@ public class SGLRParseController implements IParseController {
 			if (monitor.isCanceled()) return null;
 			ATerm asfix = parser.parseNoImplode(inputChars, filename);
 			if (monitor.isCanceled()) return null;
-			AstNode ast = parser.internalImplode(asfix);
+			RootAstNode ast = parser.internalImplode(asfix);
 
 			if (isStartupParsed) {
 				// Threading concerns:
@@ -261,7 +261,7 @@ public class SGLRParseController implements IParseController {
 		return language;
 	}
 	
-	public ISourcePositionLocator getNodeLocator() {
+	public AstNodeLocator getNodeLocator() {
 		return new AstNodeLocator();
 	}
 	
