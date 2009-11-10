@@ -17,6 +17,7 @@ import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.imp.parser.IModelListener;
@@ -344,10 +345,10 @@ public class StrategoObserver implements IModelListener {
 	public IStrategoTerm invoke(String function, IStrategoTerm term, IResource resource)
 			throws UndefinedStrategyException, InterpreterErrorExit, InterpreterExit, InterpreterException {
 		
-		if (runtime == null)
-			return null;
-		
 		synchronized (Environment.getSyncRoot()) {
+			if (runtime == null) init(new NullProgressMonitor());
+			if (runtime == null) return null;
+			
 		    Debug.startTimer();
 			// TODO: Make Context support monitor.isCanceled()?
 			//       (e.g., overriding Context.lookupPrimitive to throw an OperationCanceledException) 

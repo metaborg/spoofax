@@ -29,9 +29,17 @@ public class ReferenceResolverFactory extends AbstractServiceFactory<IReferenceR
 		List<NodeMapping<String>> resolverFunctions = new ArrayList<NodeMapping<String>>();
 		List<NodeMapping<String>> helpFunctions = new ArrayList<NodeMapping<String>>();
 		
-		for (IStrategoAppl rule : collectTerms(descriptorFile, "ReferenceRule")) {
+		for (IStrategoAppl rule : collectTerms(descriptorFile, "ReferenceHoverRule")) {
 			resolverFunctions.add(NodeMapping.create(termAt(rule, 0), termContents(termAt(rule, 1))));
 			helpFunctions.add(NodeMapping.create(termAt(rule, 0), termContents(termAt(rule, 2))));
+		}
+		
+		for (IStrategoAppl rule : collectTerms(descriptorFile, "ReferenceRule")) {
+			resolverFunctions.add(NodeMapping.create(termAt(rule, 0), termContents(termAt(rule, 1))));
+		}
+		
+		for (IStrategoAppl rule : collectTerms(descriptorFile, "HoverRule")) {
+			helpFunctions.add(NodeMapping.create(termAt(rule, 0), termContents(termAt(rule, 1))));
 		}
 		
 		return new StrategoReferenceResolver(feedback, resolverFunctions, helpFunctions);

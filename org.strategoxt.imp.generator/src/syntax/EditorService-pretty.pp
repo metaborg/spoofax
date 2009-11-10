@@ -1,5 +1,7 @@
 [
-   ReferenceRule        -- R [ H [ KW["reference"] _1 ] H [ KW[":"] _2 ] _3 ],
+   ReferenceHoverRule   -- R [ H [ KW["reference"] _1 ] KW[":"] H [ _2 _3 ] ],
+   ReferenceRule        -- R [ H [ KW["reference"] _1 ] KW[":"] _2 ],
+   HoverRule            -- R [ H [ KW["hover"]     _1 ] KW[":"] _2 ],
    OccurrenceRule       -- R [ H [ KW["occurrence"] _1 ] H [ KW[":"] _2 ] ],
    SemanticProvider     -- R [ H [ KW["provider" ] ] KW[":"] _1 ],
    SemanticObserver     -- R [ H [ KW["observer"] ]  KW[":"] _1 ],

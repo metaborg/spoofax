@@ -19,9 +19,19 @@ exports
 
   context-free syntax
   
-    %% TODO: separate "hover" syntax
-  
-    "reference" SemanticNode ":" StrategoCall StrategoCall -> SemanticRule {cons("ReferenceRule")}
-%%  "reference" "*"          ":" StrategoCall StrategoCall -> SemanticRule {cons("AllReferenceRule")}
+    "reference"  SemanticNode ":" StrategoCall StrategoCall -> SemanticRule {cons("ReferenceHoverRule"), deprecated}
+
+    "reference"  SemanticNode ":" StrategoCall -> SemanticRule {cons("ReferenceRule")}
+
+    "hover"      SemanticNode ":" StrategoCall -> SemanticRule {cons("HoverRule")}
   
     "occurrence" SemanticNode ":" StrategoCall -> SemanticRule {cons("OccurrenceRule")}
+  
+  context-free syntax
+  
+    "reference"  -> StrategoCall {reject}
+    "hover"      -> StrategoCall {reject}
+    "observer"   -> StrategoCall {reject}
+    "builder"    -> StrategoCall {reject}
+    "occurrence" -> StrategoCall {reject}
+    ReservedName -> StrategoCall {reject}

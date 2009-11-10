@@ -58,8 +58,10 @@ public class EditorIOAgent extends LoggingIOAgent {
 	public PrintStream getOutputStream(int fd) {
 		// TODO: close console streams after use?
 		if (fd == CONST_STDOUT && descriptor != null && descriptor.isDynamicallyLoaded()) {
+			StrategoConsole.activateConsole(true);
 			return StrategoConsole.getOutputStream();
 		} else if (fd == CONST_STDERR && descriptor != null && descriptor.isDynamicallyLoaded()) {
+			StrategoConsole.activateConsole(true);
 			return StrategoConsole.getErrorStream();
 		} else {
 			return super.getOutputStream(fd);

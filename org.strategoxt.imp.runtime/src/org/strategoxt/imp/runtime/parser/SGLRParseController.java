@@ -192,6 +192,9 @@ public class SGLRParseController implements IParseController {
 				errorHandler.applyMarkers();
 			}
 			
+			// TODO: Delay parse error markers for newly typed text
+			//       (the new ast should then also be delayed as to get the old coloring)
+			
 			currentAst = ast;
 				
 			Debug.stopTimer("File parsed: " + filename);

@@ -77,10 +77,16 @@
       point="org.eclipse.ui.editors.annotationTypes">
    <!-- (ignore any reference errors here *sigh*) -->
    <type
-      name="org.strategoxt.imp.runtime.parseannotation"
+      name="org.strategoxt.imp.runtime.parseerror"
       super="org.eclipse.ui.workbench.texteditor.error"
       markerType="org.strategoxt.imp.runtime.parsemarker"
       markerSeverity="2">
+   </type>
+   <type
+      name="org.strategoxt.imp.runtime.parsewarning"
+      super="org.eclipse.ui.workbench.texteditor.warning"
+      markerType="org.strategoxt.imp.runtime.parsemarker"
+      markerSeverity="1">
    </type>
    <type
       name="org.strategoxt.imp.runtime.analysisannotation"
@@ -89,11 +95,12 @@
       markerSeverity="2">
    </type>
    </extension>
+
    <extension
          id="org.strategoxt.imp.runtime.parsemarkerspec"
          point="org.eclipse.ui.editors.markerAnnotationSpecification">
       <specification
-            annotationType="org.strategoxt.imp.runtime.parseannotation"
+            annotationType="org.strategoxt.imp.runtime.parseerror"
             colorPreferenceKey="spiParseAnnotationColor"
             colorPreferenceValue="255,128,147"
             contributesToHeader="true"
@@ -107,7 +114,7 @@
             label="Spoofax/IMP Parser Annotation"
             overviewRulerPreferenceKey="parseAnnotationOverviewKey"
             overviewRulerPreferenceValue="true"
-            presentationLayer="2"
+            presentationLayer="1"
             showInNextPrevDropdownToolbarAction="true"
             symbolicIcon="error"
             textPreferenceKey="parseAnnotationTextKey"
@@ -117,6 +124,37 @@
             verticalRulerPreferenceKey="parseAnnotationVerticalKey"
             verticalRulerPreferenceValue="true"/>
    </extension>
+
+   <!-- TODO: proper red and orange colors for errors and warnings --> 
+   <extension
+         id="org.strategoxt.imp.runtime.parsemarkerspec"
+         point="org.eclipse.ui.editors.markerAnnotationSpecification">
+      <specification
+            annotationType="org.strategoxt.imp.runtime.parsewarning"
+            colorPreferenceKey="spiParseAnnotationColor"
+            colorPreferenceValue="255,148,127"
+            contributesToHeader="true"
+            highlightPreferenceKey="parseAnnotationHighlightKey"
+            highlightPreferenceValue="false"
+            includeOnPreferencePage="false"
+            isGoToNextNavigationTarget="true"
+            isGoToNextNavigationTargetKey="parseAnnotationIsGotoNextKey"
+            isGoToPreviousNavigationTarget="true"
+            isGoToPreviousNavigationTargetKey="parseAnnotationIsGotoPrevKey"
+            label="Spoofax/IMP Parser Annotation"
+            overviewRulerPreferenceKey="parseAnnotationOverviewKey"
+            overviewRulerPreferenceValue="true"
+            presentationLayer="1"
+            showInNextPrevDropdownToolbarAction="true"
+            symbolicIcon="warning"
+            textPreferenceKey="parseAnnotationTextKey"
+            textPreferenceValue="true"
+            textStylePreferenceKey="parseAnnotationTextStyleKey"
+            textStylePreferenceValue="SQUIGGLES"
+            verticalRulerPreferenceKey="parseAnnotationVerticalKey"
+            verticalRulerPreferenceValue="true"/>
+   </extension>
+
    <extension
          id="org.strategoxt.imp.runtime.analysismarkerspec"
          point="org.eclipse.ui.editors.markerAnnotationSpecification">
@@ -135,7 +173,7 @@
             label="Spoofax/IMP Analysis Annotation"
             overviewRulerPreferenceKey="analysisAnnotationOverviewKey"
             overviewRulerPreferenceValue="true"
-            presentationLayer="2"
+            presentationLayer="1"
             showInNextPrevDropdownToolbarAction="true"
             symbolicIcon="error"
             textPreferenceKey="analysisAnnotationTextKey"
@@ -187,7 +225,7 @@
          point="org.eclipse.ui.handlers">
       <handler
             class="org.strategoxt.imp.runtime.stratego.BuilderButtonDelegate"
-            commandId="org.strategoxt.imp.runtime.commands.sampleCommand">
+            commandId="org.strategoxt.imp.runtime.transformCommand">
       </handler>
    </extension>
    <extension

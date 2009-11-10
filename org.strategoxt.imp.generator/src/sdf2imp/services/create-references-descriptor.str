@@ -17,11 +17,12 @@ strategies
         
         references
           ~
-          ~// This file can be used for custom reference resolving and
-          ~// occurrence highlighting rules.
+          ~// This file can be used for custom reference resolving,
+          ~// hover help, occurrence highlighting rules.
           ~// See the imported file for a brief introduction and examples.
           ~
-          reference _ : editor-resolve editor-hover
+          reference _ : editor-resolve
+          hover     _ : editor-hover
       ]|
     );
     
@@ -41,17 +42,18 @@ strategies
           ~// Reference resolving rules can specify the syntax constructors for which
           ~// a reference resolving function is available:
           ~//
-          ~//   reference FunctionCall : resolve-function-call hover-help-function-call
+          ~//   reference FunctionCall : resolve-function-call 
           ~//
           ~// This defines that for each FunctionCall, resolve-function-call
-          ~// will retrieve the AST node that declares it, and hover-help-function-call
-          ~// returns hover help information.
+          ~// will retrieve the AST node that declares it.
           ~
-          ~// Likewise, occurrence highlighting functionality may be specified as follows:
+          ~// Likewise, hover help and occurrence highlighting functionality and can be
+          ~// specified as follows:
           ~//
-          ~//   occurrence FunctionCall : find-occurrences
+          ~//   hover      FunctionCall : hover-help-function-call
+          ~//   occurrence _            : find-occurrences
           ~
-          ~// The reference resolver and occurences service can use any dynamic rules
-          ~// created by the analysis service.
+          ~// The reference resolver, hover help, and occurences service may use any
+          ~// dynamic rules created by the analysis service.
       ]|
     )

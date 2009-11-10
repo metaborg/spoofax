@@ -99,6 +99,8 @@ public class Descriptor {
 		
 		boolean foundFactory = false;
 		
+		// TODO: caching of builders and reference resolvers?
+		
 		try {
 			for (AbstractServiceFactory<T> factory : serviceFactories) {
 				if (factory.canCreate(type)) {

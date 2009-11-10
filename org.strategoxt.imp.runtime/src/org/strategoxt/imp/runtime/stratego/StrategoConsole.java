@@ -74,7 +74,7 @@ public class StrategoConsole {
 		consoles.addConsoles(new IConsole[] { result });
 		return result;
 	}
-
+	
 	/**
 	 * Activates the console for this plugin.
 	 * 
@@ -83,11 +83,31 @@ public class StrategoConsole {
 	 * @see Descriptor#isDynamicallyLoaded()  Should typically be checked before opening a console.
 	 */
 	public static void activateConsole() {
+		activateConsole(false);
+	}
+
+	/**
+	 * Activates the console for this plugin.
+	 * 
+	 * Swallows and logs any PartInitException.
+	 * 
+	 * @param consoleViewOnly
+	 *            Only open the console within the console view; don't activate
+	 *            the console view itself.
+	 * 
+	 * @see Descriptor#isDynamicallyLoaded() Should typically be checked before
+	 *      opening a console.
+	 */
+	public static void activateConsole(final boolean consoleViewOnly) {
 		Job job = new UIJob("Open console") {
 			@Override
 			public IStatus runInUIThread(IProgressMonitor monitor) {
 				final String ID = IConsoleConstants.ID_CONSOLE_VIEW;
-				IConsole console = StrategoConsole.getConsole();
+				MessageConsole console = StrategoConsole.getConsole();
+				if (consoleViewOnly) {
+					console.activate();
+					return Status.OK_STATUS;
+				}
 				IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 				try {
 					IConsoleView view = (IConsoleView) page.showView(ID, null, IWorkbenchPage.VIEW_VISIBLE);

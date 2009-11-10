@@ -49,6 +49,9 @@ strategies
         <condition property="build.strategoxt.sdf" value="${eclipse.spoofaximp.nativeprefix}" else="">
             <isset property="eclipse.spoofaximp.nativeprefix"/>
         </condition>
+        <condition property="build.strategoxt.sdf.bin" value="${eclipse.spoofaximp.nativeprefix}/bin/" else="">
+            <isset property="eclipse.spoofaximp.nativeprefix"/>
+        </condition>
         <property name="build.strategoxt.stratego" location="${user.home}/.nix-profile/bin"/>
         <property name="build.sdf.imports" value=""/>
         <property name="build.stratego.args" value="-m main-${strmodule} --library -I ${trans} -I ${build} -I ${lib}
@@ -56,7 +59,7 @@ strategies
                         -I ${user.home}/.nix-profile/share/java-front
                         -I ${basedir}
                         -la ${user.home}/.nix-profile/lib/libjava-front.la"/>
-	    <property name="build.jvmargs" value="-client -Xverify:none -ss4m"/>
+	    <property name="build.jvmargs" value="-client -Xverify:none -Xss4m -Xmx512m"/>
         
         <!-- Initialization -->
         <available file="${trans}/${strmodule}.str" property="build.stratego.enabled"/>
@@ -67,7 +70,6 @@ strategies
         <condition property="externaljarimport" value=":${externaljar}" else="">
             <isset property="externaljar"/>
         </condition>
-        <property name="build.strategoxt.sdf.bin" value="${eclipse.spoofaximp.nativeprefix}/bin/"/>
         <fail if="externaljar" unless="externaljarflags"/>
         <condition property="externaljarflags" value="${externaljarflags}" else="">
             <isset property="externaljarflags"/>
@@ -155,7 +157,7 @@ strategies
             <antcall target="pack-sdf.helper"/>
         </target>
     
-        <target name="pack-sdf.helper" unless="pack-sdf.available">
+        <target name="pack-sdf.helper" depends="aux-files" unless="pack-sdf.available">
             <java classname="start" classpath="aux/strategoxt.jar" failonerror="true" fork="true">
                 <jvmarg line="${build.jvmargs}"/>
                 <arg value="org.strategoxt.tools.main-pack-sdf"/>
@@ -188,7 +190,7 @@ strategies
             <antcall target="rtg2sig.helper"/>
         </target>
     
-        <target name="rtg2sig.helper" unless="rtg2sig.available">
+        <target name="rtg2sig.helper" depends="aux-files" unless="rtg2sig.available">
             <java classname="start" classpath="aux/strategoxt.jar" failonerror="true" fork="true">
                 <jvmarg line="${build.jvmargs}"/>
                 <arg value="org.strategoxt.tools.main-rtg2sig"/>
@@ -210,7 +212,7 @@ strategies
             <antcall target="sdf2rtg.helper"/>
         </target>
     
-        <target name="sdf2rtg.helper" unless="sdf2rtg.available">
+        <target name="sdf2rtg.helper" depends="aux-files" unless="sdf2rtg.available">
             <java classname="start" classpath="aux/strategoxt.jar" failonerror="true" fork="true">
                 <jvmarg line="${build.jvmargs}"/>
                 <arg value="org.strategoxt.tools.main-sdf2rtg"/>

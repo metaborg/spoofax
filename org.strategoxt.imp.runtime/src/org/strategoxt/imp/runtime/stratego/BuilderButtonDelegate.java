@@ -3,6 +3,7 @@ package org.strategoxt.imp.runtime.stratego;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ActionContributionItem;
@@ -17,6 +18,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowPulldownDelegate;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.RuntimeActivator;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.services.IBuilder;
 import org.strategoxt.imp.runtime.services.IBuilderMap;
@@ -40,15 +42,21 @@ public class BuilderButtonDelegate extends AbstractHandler implements IWorkbench
 
 	public void run(IAction action) {
 		EditorState editor = EditorState.getActiveEditor();
-		if (editor == null) return;
+		if (editor == null) {
+			openError("No builders defined for this editor");
+			return;
+		}
 		
 		IBuilderMap builders = getBuilders(editor);
 		IBuilder builder = builders.get(lastAction);
 		if (builder == null && builders.getAll().size() > 0) {
 			builder = builders.getAll().iterator().next();
 		}
-		if (builder != null)
+		if (builder == null) {
+			openError("No builders defined for this editor");
+		} else {
 			builder.execute(editor, null);
+		}
 	}
 
 	public Object execute(ExecutionEvent event) throws ExecutionException {
@@ -92,12 +100,15 @@ public class BuilderButtonDelegate extends AbstractHandler implements IWorkbench
 			builders = editor.getDescriptor().createService(IBuilderMap.class);
 		} catch (BadDescriptorException e) {
 			Environment.logException("Could not load builder", e);
-			// TODO: fix error dialog not showing?
-			ErrorDialog.openError(editor.getEditor().getSite().getShell(),
-					"Spoofax/IMP building", "Could not load builders", Status.OK_STATUS);
+			openError("Could not load builders");
 			throw new RuntimeException(e);
 		}
 		return builders;
+	}
+
+	private void openError(String message) {
+		Status status = new Status(IStatus.ERROR, RuntimeActivator.PLUGIN_ID, message);
+		ErrorDialog.openError(null, "Spoofax/IMP builder", null, status);
 	}
 		
 	@Override

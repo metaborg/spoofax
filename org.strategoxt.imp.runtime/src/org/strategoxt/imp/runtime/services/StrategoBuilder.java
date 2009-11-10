@@ -137,13 +137,13 @@ public class StrategoBuilder implements IBuilder {
 		if (editor.getDescriptor().isDynamicallyLoaded()) StrategoConsole.activateConsole();
 		Status status = new Status(IStatus.ERROR, RuntimeActivator.PLUGIN_ID, e.getLocalizedMessage(), e);
 		ErrorDialog.openError(editor.getEditor().getSite().getShell(),
-				"Spoofax/IMP builder", null, status);
+				caption, null, status);
 	}
 	
-	private static void openError(EditorState editor, String message) {
+	private void openError(EditorState editor, String message) {
 		Status status = new Status(IStatus.ERROR, RuntimeActivator.PLUGIN_ID, message);
 		ErrorDialog.openError(editor.getEditor().getSite().getShell(),
-				"Spoofax/IMP builder", null, status);
+				caption, null, status);
 	}
 
 	private IFile createFile(EditorState editor, String filename, String contents) throws CoreException {

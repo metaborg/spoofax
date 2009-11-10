@@ -46,6 +46,8 @@ public class ParseErrorHandler {
 	 */
 	public static final String INSERT_END = "INSERTEND";
 	
+	public static final String DEPRECATED = "deprecated";
+	
 	/**
 	 * The parse stream character that indicates a character has
 	 * been skipped by the parser.
@@ -180,6 +182,9 @@ public class ParseErrorHandler {
 				// (or reporting a missing } at another })
 				reportErrorAtTokens(token, token, "Syntax error, insert '" + inserted + "' to complete construct");
 			}
+		} else if (getDeprecatedProductionMessage(attrs) != null) {
+			IToken token = tokenizer.makeErrorToken(startOffset, offset - 1);
+			reportWarnningAtTokens(token, token, getDeprecatedProductionMessage(attrs));
 		}
 		
 		if (lexicalStart) inLexicalContext = false;
@@ -285,17 +290,19 @@ public class ParseErrorHandler {
 	}
 	
 	private void reportErrorAtTokens(final IToken left, final IToken right, String message) {
-		// UNDONE: Using IMP message handler
-		// TODO: Cleanup - remove messages field and related code
-		//messages.handleSimpleMessage(
-		// 		message, max(0, left.getStartOffset()), max(0, right.getEndOffset()),
-		// 		left.getColumn(), right.getEndColumn(), left.getLine(), right.getEndLine());
-		
 		final String message2 = isRecoveryAvailable ? message : message + " (recovery unavailable)";
 		
 		errorReports.add(new Runnable() {
 			public void run() {
 				handler.addMarker(source.getResource(), left, right, message2, IMarker.SEVERITY_ERROR);
+			}
+		});
+	}
+	
+	private void reportWarnningAtTokens(final IToken left, final IToken right, final String message) {
+		errorReports.add(new Runnable() {
+			public void run() {
+				handler.addMarker(source.getResource(), left, right, message, IMarker.SEVERITY_WARNING);
 			}
 		});
 	}
@@ -314,17 +321,40 @@ public class ParseErrorHandler {
 		if ("attrs".equals(attrs.getName())) {
 			ATermList attrList = termAt(attrs, 0);
 		
-			for (int i=0; i<attrList.getLength(); i++) {							
-			ATermAppl term = termAt(attrList, i);
-			if (term.getName().equals("term")) {
-				ATermAppl details = applAt(term, 0);
-				if (details.getName().equals("cons")) {
-					details = applAt(details, 0);					
-					return details.getName().equals(consName);
+			while (!attrList.isEmpty()) {
+				ATermAppl attr = (ATermAppl) attrList.getFirst();
+				attrList = attrList.getNext();
+				if (attr.getName().equals("term")) {
+					ATermAppl details = applAt(attr, 0);
+					if (details.getName().equals("cons")) {
+						details = applAt(details, 0);					
+						return details.getName().equals(consName);
+					}
 				}
-			}
 			}
 		}
 		return false;
+	}
+	
+	private static String getDeprecatedProductionMessage(ATermAppl attrs) {
+		if ("attrs".equals(attrs.getName())) {
+			ATermList attrList = termAt(attrs, 0);
+			while (!attrList.isEmpty()) {
+				ATermAppl attr = (ATermAppl) attrList.getFirst();
+				attrList = attrList.getNext();
+				if (attr.getName().equals("term")) {
+					ATermAppl details = applAt(attr, 0);
+					if (details.getName().equals("deprecated")) {
+						if (details.getChildCount() == 1) {
+							details = termAt(details, 0);
+							return "Deprecated syntactic construct:" + details.getName();
+						} else {
+							return "Deprecated syntactic construct";
+						}
+					}
+				}
+			}
+		}
+		return null;
 	}
 }

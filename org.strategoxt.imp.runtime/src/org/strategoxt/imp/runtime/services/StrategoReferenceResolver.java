@@ -57,7 +57,7 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 		String function = NodeMapping.getFirstAttribute(helpFunctions, node.getConstructor(), null, 0);
 		if (function == null) function = wildcardHelperFunction;
 		if (function == null || function.equals("_"))  {
-			Debug.log("No reference info available for node of type ", node.getConstructor());
+			Debug.log("No hover help available for node of type ", node.getConstructor());
 			return null;
 		}
 		
