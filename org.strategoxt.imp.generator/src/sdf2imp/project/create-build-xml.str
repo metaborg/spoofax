@@ -49,9 +49,6 @@ strategies
         <condition property="build.strategoxt.sdf" value="${eclipse.spoofaximp.nativeprefix}" else="">
             <isset property="eclipse.spoofaximp.nativeprefix"/>
         </condition>
-        <condition property="build.strategoxt.sdf.bin" value="${eclipse.spoofaximp.nativeprefix}/bin/" else="">
-            <isset property="eclipse.spoofaximp.nativeprefix"/>
-        </condition>
         <property name="build.strategoxt.stratego" location="${user.home}/.nix-profile/bin"/>
         <property name="build.sdf.imports" value=""/>
         <property name="build.stratego.args" value="--library -I ${trans} -I ${build} -I ${lib}
@@ -101,8 +98,7 @@ strategies
         </target>
     
         <target name="sdf2table" depends="make-permissive">
-            <apply executable="${build.strategoxt.sdf.bin}sdf2table" dest="${include}" failonerror="true">
-                <env key="LD_LIBRARY_PATH" path="${build.strategoxt.sdf}/lib"/>
+            <apply executable="${build.strategoxt.sdf}sdf2table" dest="${include}" failonerror="true">
                 <arg value="-i"/>
                 <srcfile/>
                 <arg value="-o"/>
