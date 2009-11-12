@@ -21,9 +21,9 @@ import org.eclipse.swt.widgets.Text;
 
 public class NewEditorWizardPage extends WizardPage {
 	
-	private Text inputLanguageName;
-	
 	private Text inputProjectName;
+	
+	private Text inputLanguageName;
 	
 	private Text inputPackageName;
 	
@@ -77,18 +77,6 @@ public class NewEditorWizardPage extends WizardPage {
 		});
 		*/
 				
-		new Label(container, SWT.NULL).setText("&Language name:");
-		inputLanguageName = new Text(container, SWT.BORDER | SWT.SINGLE);
-		inputLanguageName.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		inputLanguageName.addModifyListener(new ModifyListener() {
-			public void modifyText(ModifyEvent e) {
-				if (!ignoreEvents) {
-					distributeLanguageName();
-					onChange();
-				}
-			}
-		});
-				
 		new Label(container, SWT.NULL).setText("&Project name:");
 		inputProjectName = new Text(container, SWT.BORDER | SWT.SINGLE);
 		inputProjectName.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -96,6 +84,18 @@ public class NewEditorWizardPage extends WizardPage {
 			public void modifyText(ModifyEvent e) {
 				if (!ignoreEvents) {
 					distributeProjectName();
+					onChange();
+				}
+			}
+		});
+				
+		new Label(container, SWT.NULL).setText("&Language name:");
+		inputLanguageName = new Text(container, SWT.BORDER | SWT.SINGLE);
+		inputLanguageName.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		inputLanguageName.addModifyListener(new ModifyListener() {
+			public void modifyText(ModifyEvent e) {
+				if (!ignoreEvents) {
+					distributeLanguageName();
 					isInputProjectNameChanged = true;
 					onChange();
 				}
@@ -128,32 +128,32 @@ public class NewEditorWizardPage extends WizardPage {
 
 		setControl(container);
 		setPageComplete(false);
-		inputLanguageName.setFocus();
+		inputProjectName.setFocus();
 	}
 
-	private void distributeLanguageName() {
-		if (!isInputProjectNameChanged || getInputProjectName().length() == 0
-				|| getInputProjectName().equals(getInputLanguageName())) {
+	private void distributeProjectName() {
+		if (!isInputProjectNameChanged || getInputLanguageName().length() == 0
+				|| getInputLanguageName().equals(toLanguageName(getInputProjectName()))) {
 			ignoreEvents = true;
-			inputProjectName.setText(getInputLanguageName());
+			inputLanguageName.setText(toLanguageName(getInputProjectName()));
 			isInputProjectNameChanged = false;
 			ignoreEvents = false;
-			distributeProjectName();
+			distributeLanguageName();
 		}
 		if (!isInputExtensionsChanged || getInputExtensions().length() == 0
-				|| getInputExtensions().equals(toExtension(getInputLanguageName()))) {
+				|| getInputExtensions().equals(toExtension(getInputProjectName()))) {
 			ignoreEvents = true;
-			inputExtensions.setText(toExtension(getInputLanguageName()));
+			inputExtensions.setText(toExtension(getInputProjectName()));
 			isInputExtensionsChanged = false;
 			ignoreEvents = false;
 		}
 	}
 
-	private void distributeProjectName() {
+	private void distributeLanguageName() {
 		if (!isInputPackageNameChanged || getInputPackageName().length() == 0
-				|| getInputPackageName().equals(toPackageName(getInputProjectName()))) {
+				|| getInputPackageName().equals(toPackageName(getInputLanguageName()))) {
 			ignoreEvents = true;
-			inputPackageName.setText(toPackageName(getInputProjectName()));
+			inputPackageName.setText(toPackageName(getInputLanguageName()));
 			isInputPackageNameChanged = false;
 			ignoreEvents = false;
 		}
@@ -162,73 +162,95 @@ public class NewEditorWizardPage extends WizardPage {
 	/**
 	 * Ensures that both text fields are set.
 	 */
-	private void onChange() {		
-		if (getInputLanguageName().length() == 0) {
-			updateStatus("Language name must be specified");
-			return;
-		}
+	private void onChange() {
+		
 		if (getInputProjectName().length() == 0) {
-			updateStatus("Project name must be specified");
+			setErrorStatus("Project name must be specified");
 			return;
 		}
-		if (getInputLanguageName().replace('\\', '/').indexOf('/', 1) > -1
-				|| getInputLanguageName().indexOf(' ') > -1
-				|| getInputLanguageName().equals("DynamicRoot")
-				|| getInputLanguageName().equals("Common")) {
-			updateStatus("Language name must be valid");
+		if (getInputLanguageName().length() == 0) {
+			setErrorStatus("Language name must be specified");
+			return;
+		}	
+		
+		if (!isValidProjectName(getInputProjectName())) {
+			setErrorStatus("Project name must be valid");
 			return;
 		}
-		if (getInputProjectName().replace('\\', '/').indexOf('/', 1) > -1) {
-			updateStatus("Project name must be valid");
+		if (!toLanguageName(getInputLanguageName()).equals(getInputLanguageName())) {
+			setErrorStatus("Language name must be valid");
 			return;
 		}
 
 		if (getInputPackageName().length() == 0) {
-			updateStatus("Package name must be specified");
+			setErrorStatus("Package name must be specified");
 			return;
 		}
 		if (!getInputPackageName().toLowerCase().equals(toPackageName(getInputPackageName()))
 				|| getInputPackageName().indexOf("..") != -1) {
-			updateStatus("Package name must be valid");
+			setErrorStatus("Package name must be valid");
 			return;
 		}
 
 		if (getInputExtensions().length() == 0) {
-			updateStatus("File extension must be specified");
+			setErrorStatus("File extension must be specified");
 			return;
 		}
 		if (getInputExtensions().indexOf(".") != -1 || getInputExtensions().replace('\\', '/').indexOf("/") != -1
 				|| getInputExtensions().indexOf(":") > -1){
-			updateStatus("File extension must be valid");
+			setErrorStatus("File extension must be valid");
 			return;
 		}
 
 		IWorkspace workspace = ResourcesPlugin.getWorkspace();
-		if (workspace.getRoot().getProject(getInputProjectName()).exists()) {
-			updateStatus("A project with this name already exists");
+		if (workspace.getRoot().getProject(getInputLanguageName()).exists()) {
+			setErrorStatus("A project with this name already exists");
 			return;
 		}
 	
-		updateStatus(null);
+
+		if (getInputProjectName().indexOf(' ') != -1) {
+			setWarningStatus("Project names with spaces may not be supported depending on your configuration");
+		} else if (ResourcesPlugin.getWorkspace().getRoot().getRawLocation().toOSString().indexOf(' ') != -1) {
+			setWarningStatus("A workspace directory with spaces may not be supported depending on your configuration");
+		} else {
+			setErrorStatus(null);
+		}
 	}
-	
-	private static String toPackageName(String name) {
-		char[] input = name.toLowerCase().replace('-', '_').replace(' ', '_').toCharArray();
+
+	private static boolean isValidProjectName(String name) {
+		for (char c : name.toCharArray()) {
+			if (!(Character.isLetterOrDigit(c) || c == '_' || c == ' ' || c == '-' || c == '.'
+				|| c == '(' || c == ')' || c == '#' || c == '+' || c =='[' || c == ']' || c == '@'))
+				return false;
+		}
+		return true;
+	}
+
+	private static String toLanguageName(String name) {
+		// TODO: be more flexible in language names
+		char[] input = name.replace(' ', '-').toCharArray();
 		StringBuilder output = new StringBuilder();
 		int i = 0;
 		while (i < input.length) {
 			char c = input[i++];
-			if (Character.isLetter(c) || c == '_') {
+			if (Character.isLetter(c) || c == '-' || c == '_') {
 				output.append(c);
 				break;
 			}
 		}
 		while (i < input.length) {
 			char c = input[i++];
-			if (Character.isLetterOrDigit(c) || c == '_' || c == '.')
+			if (Character.isLetterOrDigit(c) || c == '-' || c == '_' || c == '.')
 				output.append(c);
 		}
+		if (output.length() > 0)
+			output.setCharAt(0, Character.toUpperCase(output.charAt(0))); // SDF wants a capital here
 		return output.toString();
+	}
+	
+	private static String toPackageName(String name) {
+		return toLanguageName(name).toLowerCase().replace('-', '_');
 	}
 	
 	private static String toExtension(String name) {
@@ -245,17 +267,21 @@ public class NewEditorWizardPage extends WizardPage {
 		}
 	}
 
-	private void updateStatus(String message) {
+	private void setErrorStatus(String message) {
 		setErrorMessage(message);
 		setPageComplete(message == null);
 	}
-	
-	public String getInputLanguageName() {
-		return inputLanguageName.getText().trim();
+
+	private void setWarningStatus(String message) {
+		setErrorMessage(message);
 	}
 	
 	public String getInputProjectName() {
 		return inputProjectName.getText().trim();
+	}
+	
+	public String getInputLanguageName() {
+		return inputLanguageName.getText().trim();
 	}
 	
 	public String getInputPackageName() {

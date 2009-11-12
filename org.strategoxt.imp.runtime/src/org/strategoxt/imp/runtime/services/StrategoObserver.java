@@ -429,5 +429,9 @@ public class StrategoObserver implements IModelListener {
 			node = node.getParent();
 		return node;
 	}
+	
+	public HybridInterpreter getRuntime() {
+		return runtime;
+	}
 
 }

@@ -47,13 +47,13 @@ strategies
         
         colorer Default, token-based highlighting
         ~
-          keyword    : "Keywords"    = 127 0 85     bold
-          identifier : "Identifiers" = default
-          string     : "Strings"     = blue
-          number     : "Numbers"     = darkgreen
-          var        : "Variables"   = 255 0 100    italic
-          operator   : "Operators"   = 0 0 128
-          layout     : "Comments"    = 100 100 0    italic
+          keyword    = 127 0 85     bold
+          identifier = default
+          string     = blue
+          number     = darkgreen
+          var        = 255 0 100    italic
+          operator   = 0 0 128
+          layout     = 100 100 0    italic
         
         colorer System colors
         ~

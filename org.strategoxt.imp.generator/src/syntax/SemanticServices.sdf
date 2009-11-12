@@ -21,7 +21,7 @@ exports
 
   context-free syntax
 
-    "provider"     PropertyValue -> SemanticRule {cons("SemanticProvider"),deprecated}
+    "provider"     PropertyValue -> SemanticRule {cons("SemanticProvider"), deprecated("Use 'provider :'")}
     "provider" ":" PropertyValue -> SemanticRule {cons("SemanticProvider")}
 
              StrategoId -> StrategoCall {cons("Strategy")}

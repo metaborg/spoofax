@@ -24,6 +24,7 @@ strategies
       import org.strategoxt.imp.runtime.services.MetaFileLanguageValidator;
 
       public class x_name extends MetaFileLanguageValidator {
+          @Override
           public Descriptor getDescriptor() {
               // Lazily get the descriptor
               return x_parser.getDescriptor();

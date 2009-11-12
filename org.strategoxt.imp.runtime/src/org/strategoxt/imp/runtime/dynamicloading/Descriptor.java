@@ -24,6 +24,7 @@ import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.services.MetaFileLanguageValidator;
+import org.strategoxt.imp.runtime.services.StrategoBuilderListener;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
 
 /**
@@ -84,6 +85,7 @@ public class Descriptor {
 		for (AbstractService service : services.keySet())
 			service.reinitialize(newDescriptor);
 		attachedFiles = null;
+		StrategoBuilderListener.rescheduleAllListeners();
 	}
 	
 	// LOADING SERVICES

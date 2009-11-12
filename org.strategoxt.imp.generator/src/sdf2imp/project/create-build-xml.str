@@ -54,7 +54,7 @@ strategies
         </condition>
         <property name="build.strategoxt.stratego" location="${user.home}/.nix-profile/bin"/>
         <property name="build.sdf.imports" value=""/>
-        <property name="build.stratego.args" value="-m main-${strmodule} --library -I ${trans} -I ${build} -I ${lib}
+        <property name="build.stratego.args" value="--library -I ${trans} -I ${build} -I ${lib}
                         -la stratego-lib -la stratego-sglr -la stratego-gpp -la stratego-xtc -la stratego-aterm
                         -I ${user.home}/.nix-profile/share/java-front
                         -I ${basedir}
@@ -181,7 +181,7 @@ strategies
             <copy file="${externaljar}" todir="${include}" preservelastmodified="true"/>
         </target>
     
-        <target name="rtg2sig" depends="sdf2rtg" if="build.stratego.enabled" unless="external-def">
+        <target name="rtg2sig" depends="sdf2rtg" if="build.stratego.enabled">
             <dependset>
                 <srcfileset file="${include}/${sdfmodule}.rtg"/>
                 <targetfileset file="${include}/${sdfmodule}.str"/>
@@ -203,7 +203,7 @@ strategies
             </java>
         </target>
         
-        <target name="sdf2rtg" depends="pack-sdf" if="build.stratego.enabled" unless="external-def">
+        <target name="sdf2rtg" depends="pack-sdf" if="build.stratego.enabled">
             <dependset>
                 <srcfileset file="${include}/${sdfmodule}.def"/>
                 <targetfileset file="${include}/${sdfmodule}.rtg"/>
@@ -227,9 +227,29 @@ strategies
                 <arg value="${build.strategoxt.sdf}"/>
             </java>
         </target>
+        
+        <target name="ppgen" depends="pack-sdf" if="build.stratego.enabled">
+            <dependset>
+                <srcfileset file="${include}/${sdfmodule}.def"/>
+                <targetfileset file="${include}/${sdfmodule}.pp"/>
+            </dependset>
+            <available file="${include}/${sdfmodule}.pp" property="ppgen.available"/>
+            <antcall target="ppgen.helper"/>
+        </target>
+    
+        <target name="ppgen.helper" depends="aux-files" unless="ppgen.available">
+            <java classname="start" dir="${include}" classpath="aux/strategoxt.jar" failonerror="true" fork="true">
+                <jvmarg line="${build.jvmargs}"/>
+                <arg value="org.strategoxt.tools.main-ppgen"/>
+                <arg value="-i"/>
+                <arg value="${sdfmodule}.def"/>
+                <arg value="-o"/>
+                <arg value="${sdfmodule}.pp"/>
+            </java>
+        </target>
     
         <!-- Stratego to Java interpreter -->
-        <target name="stratego.ctree" depends="rtg2sig">
+        <target name="stratego.ctree" depends="rtg2sig,ppgen">
             <dependset>
                 <srcfileset dir="${basedir}">
                     <include name="**/*.str"/>
@@ -247,7 +267,7 @@ strategies
         </target>
     
         <!-- Stratego to Java compiler -->
-        <target name="stratego.jar" depends="rtg2sig">
+        <target name="stratego.jar" depends="rtg2sig,ppgen">
             <dependset>
                 <srcfileset dir="${basedir}">
                     <include name="**/*.str"/>
@@ -294,7 +314,7 @@ strategies
         </target>
         
         <!-- Helper target for calling the stratego compiler -->
-        <target name="stratego.c.helper" depends="rtg2sig" if="build.stratego.enabled">
+        <target name="stratego.c.helper" depends="rtg2sig,ppgen" if="build.stratego.enabled">
             <apply executable="${build.strategoxt.stratego}/${build.stratego.compiler}" dest="${build.stratego.outputpath}" failonerror="true">
                 <arg value="-i"/>
                 <srcfile/>

@@ -37,25 +37,25 @@ public class StrategoConsole {
 
 	public static PrintStream getErrorStream() {
 		MessageConsole console = getConsole();
-		if (console == lastConsole) {
+		if (console == lastConsole && lastConsoleErrorStream != null) {
 			return lastConsoleErrorStream;
 		} else {
-			lastConsole = console;
 			IOConsoleOutputStream stream = console.newOutputStream();
 			// A red color doesn't seem to make sense for Stratego
 			// stream.setColor(DebugUIPlugin.getPreferenceColor(IDebugPreferenceConstants.CONSOLE_SYS_ERR_COLOR));
 			lastConsoleErrorStream = new PrintStream(stream);
+			lastConsole = console;
 			return lastConsoleErrorStream;
 		}
 	}
 
 	public static PrintStream getOutputStream() {
 		MessageConsole console = getConsole();
-		if (console == lastConsole) {
+		if (console == lastConsole && lastConsoleOutputStream != null) {
 			return lastConsoleOutputStream;
 		} else {
-			lastConsole = console;
 			lastConsoleOutputStream = new PrintStream(console.newOutputStream());
+			lastConsole = console;
 			return lastConsoleOutputStream;
 		}
 	}

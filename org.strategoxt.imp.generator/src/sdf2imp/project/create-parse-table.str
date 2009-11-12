@@ -40,9 +40,11 @@ strategies
     ?(input, output, options);
     <xtc-command(!"sdf2table")> ["-i", <abspath> input, "-o", <abspath> output, "-m", <get-sdf-main-module> | <conc> (options, <pass-v-verbose>)]
   <+
-    <xtc-command(!"sdf2table")> ["-V"] // ensure it's available
-  <+
-    fatal-err(|["Internal error: could not call sdf2table"])
+    if <xtc-command(!"sdf2table")> ["-V"] then // ensure it's available
+      fatal-err(|["Internal error: parse table creation failed"])
+    else
+      fatal-err(|["Internal error: could not call sdf2table"])
+    end
   
   create-permissive-grammar:
     FILE(input) -> FILE(output)

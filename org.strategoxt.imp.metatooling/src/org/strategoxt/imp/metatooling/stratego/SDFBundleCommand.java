@@ -29,6 +29,8 @@ import org.syntax_definition.sdf.Activator;
  */
 public class SDFBundleCommand extends xtc_command_1_0 {
 	
+	private static final boolean ENABLED = false;
+	
 	private final xtc_command_1_0 proceed = xtc_command_1_0.instance;
 
 	private File binaryPrefix;
@@ -36,7 +38,7 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 	private String binaryPostfix;
 	
 	public void init() throws IOException {
-		if (binaryPostfix != null) return;
+		if (!ENABLED || binaryPostfix != null) return;
 		Activator sdfBundle = Activator.getInstance();
 		binaryPrefix = sdfBundle.getBinaryPrefix();
 		binaryPostfix = sdfBundle.getBinaryPostfix();
@@ -73,7 +75,7 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 		}
 		
 		IStrategoTerm commandTerm = commandStrategy.invoke(context, args);
-		if (commandTerm.getTermType() != STRING)
+		if (!ENABLED || commandTerm.getTermType() != STRING)
 			return proceed.invoke(context, args, commandStrategy);
 		
 		String command = ((IStrategoString) commandTerm).stringValue();
@@ -150,7 +152,7 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 			PrintStream err = io.getOutputStream(IOAgent.CONST_STDERR);
 			command = binaryPrefix + "/" + command + binaryPostfix;
 			// /bin/sh should exist even on NixOS
-			String[] commandArgs = { "/bin/sh", "-c", "chmod +x " + command };
+			String[] commandArgs = { "/bin/sh", "-c", "chmod +x \"" + command + "\"" };
 			int result = new NativeCallHelper().call(commandArgs, binaryPrefix, out, err);
 			return result == 0;
 		} catch (InterruptedException e) {

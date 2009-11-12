@@ -4,8 +4,6 @@ import static org.spoofax.interpreter.core.Tools.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.util.Map;
-import java.util.WeakHashMap;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
@@ -25,16 +23,17 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.RuntimeActivator;
+import org.strategoxt.imp.runtime.dynamicloading.TermReader;
 import org.strategoxt.imp.runtime.stratego.StrategoConsole;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
+import org.strategoxt.lang.Context;
+import org.strategoxt.stratego_aterm.pp_aterm_box_0_0;
+import org.strategoxt.stratego_gpp.box2text_string_0_1;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class StrategoBuilder implements IBuilder {
-	
-	private final Map<EditorState, StrategoBuilderListener> listeners =
-		new WeakHashMap<EditorState, StrategoBuilderListener>();
 	
 	private final StrategoObserver observer;
 
@@ -91,27 +90,24 @@ public class StrategoBuilder implements IBuilder {
 				return;
 			}
 	
-			// TODO: support "None()" result
-			if (!isTermTuple(resultTerm) || !isTermString(resultTerm.getSubterm(0))
-					|| !isTermString(resultTerm.getSubterm(0))) {
+			if (isTermAppl(resultTerm) && "None".equals(TermReader.cons(resultTerm))) {
+				return;
+			} else if (!isTermTuple(resultTerm) || !isTermString(termAt(resultTerm, 0))) {
 				Environment.logException("Illegal builder result (must be a filename/string tuple)");
 				openError(editor, "Illegal builder result (must be a filename/string tuple): " + resultTerm);
 			}
-			
+
 			IStrategoTerm filenameTerm = termAt(resultTerm, 0);
 			String filename = asJavaString(filenameTerm);
-			String result = asJavaString(termAt(resultTerm, 1));
+			String result = isTermString(termAt(resultTerm, 1))
+					? asJavaString(termAt(resultTerm, 1))
+					: ppATerm(termAt(resultTerm, 1));
 			IFile file = createFile(editor, filename, result);
 			// TODO: if not persistent, create IEditorInput from result String
 			if (openEditor) {
 				IEditorPart target = openEditor(file, !realTime);
-				if (realTime) {
-					StrategoBuilderListener listener = listeners.get(editor);
-					if (listener != null) listener.setEnabled(false);
-					listener = new StrategoBuilderListener(editor, target, file, getCaption(), node);
-					listeners.put(editor, listener);
-					editor.getEditor().addModelListener(listener);
-				}
+				if (realTime)
+					StrategoBuilderListener.addListener(editor, target, file, getCaption(), node);
 			}
 		} catch (CoreException e) {
 			Environment.logException("Builder failed", e);
@@ -130,6 +126,13 @@ public class StrategoBuilder implements IBuilder {
 		} catch (RuntimeException e) {
 			reportException(editor, e);
 		}
+	}
+
+	private String ppATerm(IStrategoTerm term) {
+		Context context = observer.getRuntime().getCompiledContext();
+		term = pp_aterm_box_0_0.instance.invoke(context, term);
+		term = box2text_string_0_1.instance.invoke(context, term, Environment.getTermFactory().makeInt(120));
+		return asJavaString(term);
 	}
 
 	private void reportException(EditorState editor, Exception e) {

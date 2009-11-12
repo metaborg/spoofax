@@ -48,7 +48,7 @@ strategies
           ~// will retrieve the AST node that declares it.
           ~
           ~// Likewise, hover help and occurrence highlighting functionality and can be
-          ~// specified as follows:
+          ~// specified as follows: (note: occurrence highlighting is not implemented at this time)
           ~//
           ~//   hover      FunctionCall : hover-help-function-call
           ~//   occurrence _            : find-occurrences

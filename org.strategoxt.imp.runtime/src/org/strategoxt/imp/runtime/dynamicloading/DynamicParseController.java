@@ -26,7 +26,7 @@ import org.strategoxt.imp.runtime.EditorState;
  */
 public class DynamicParseController extends AbstractService<IParseController> implements IParseController {
 	
-	private static final int REINIT_PARSE_DELAY = 100;
+	public static final int REINIT_PARSE_DELAY = 100;
 	
 	private EditorState lastEditor;
 	

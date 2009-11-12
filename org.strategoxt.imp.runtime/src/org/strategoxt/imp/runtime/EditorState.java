@@ -130,6 +130,10 @@ public class EditorState {
 		return getParseController().getProject();
 	}
 	
+	public final IStrategoAstNode getCurrentAst() {
+		return getParseController().getCurrentAst();
+	}
+	
 	/**
 	 * Gets the document model for this editor, which can be used to manipulate
 	 * the contents of the editor.
