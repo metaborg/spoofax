@@ -133,11 +133,15 @@ public class StrategoBuilder implements IBuilder {
 	}
 
 	private void reportException(EditorState editor, Exception e) {
-		Environment.logException("Builder failed", e);
-		if (editor.getDescriptor().isDynamicallyLoaded()) StrategoConsole.activateConsole();
-		Status status = new Status(IStatus.ERROR, RuntimeActivator.PLUGIN_ID, e.getLocalizedMessage(), e);
-		ErrorDialog.openError(editor.getEditor().getSite().getShell(),
-				caption, null, status);
+		boolean isDynamic = editor.getDescriptor().isDynamicallyLoaded();
+		Environment.logException("Builder failed for " + (isDynamic ? "" : "non-") + "dynamically loaded editor", e);
+		if (isDynamic) StrategoConsole.activateConsole();
+		
+		if (EditorState.isUIThread()) {
+			// Only show if builder runs interactively (and not from the StrategoBuilderListener background builder)
+			Status status = new Status(IStatus.ERROR, RuntimeActivator.PLUGIN_ID, e.getLocalizedMessage(), e);
+			ErrorDialog.openError(editor.getEditor().getSite().getShell(), caption, null, status);
+		}
 	}
 	
 	private void openError(EditorState editor, String message) {

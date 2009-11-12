@@ -237,6 +237,8 @@
             sequence="CTRL+T">
       </key>
    </extension>
+   
+   <!-- TODO: control-shift-b binding for build current project?-->
 
    <!-- Extension point not implemented?
         manually called from SGLRParseController instead
