@@ -25,7 +25,7 @@ strategies
           provider: ~provider
           observer: editor-analyze
           builder: "Generate Java code" = generate-java  (openeditor) (realtime)
-          builder: "Show ATerm"         = generate-aterm (openeditor) (realtime)
+          builder: "Show ATerm"         = generate-aterm (openeditor) (realtime) (meta)
       ]|
     );
     
@@ -59,6 +59,8 @@ strategies
           ~// and the generate-java rule is used to carry out the tranformation.
           ~// Builder definitions can also specify any combination of the following annotations:
           ~//
+          ~//   (meta)        Indicates the builder should only be available to meta-programmers
+          ~//                 (i.e., not when the plugin is deployed to end-users)
           ~//   (openeditor)  Indicates an editor should be opened with the result.
           ~//   (persistent)  Indicates that the resulting file should be saved to disk.
           ~//   (realtime)    Indicates that the resulting editor should be updated in real-time

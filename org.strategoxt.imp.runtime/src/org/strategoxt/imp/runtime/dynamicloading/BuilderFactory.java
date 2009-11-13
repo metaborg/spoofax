@@ -26,9 +26,12 @@ public class BuilderFactory extends AbstractServiceFactory<IBuilderMap> {
 			String caption = termContents(termAt(builder, 0));
 			String strategy = termContents(termAt(builder, 1));
 			IStrategoList options = termAt(builder, 2);
+			
 			boolean openEditor = false;
 			boolean realTime = false;
 			boolean persistent = false;
+			boolean meta = false;
+			
 			for (IStrategoTerm option : options.getAllSubterms()) {
 				String type = cons(option);
 				if (type.equals("OpenEditor")) {
@@ -37,11 +40,14 @@ public class BuilderFactory extends AbstractServiceFactory<IBuilderMap> {
 					realTime = true;
 				} else if (type.equals("Persistent")) {
 					persistent = true;
+				} else if (type.equals("Meta")) {
+					meta = true;
 				} else {
 					throw new BadDescriptorException("Unknown builder annotation: " + type);
 				}
 			}
-			builders.add(new StrategoBuilder(d.getStrategoObserver(), caption, strategy, openEditor, realTime, persistent));
+			if (!meta || d.isDynamicallyLoaded())			
+				builders.add(new StrategoBuilder(d.getStrategoObserver(), caption, strategy, openEditor, realTime, persistent));
 		}
 		
 		return new BuilderMap(builders);
