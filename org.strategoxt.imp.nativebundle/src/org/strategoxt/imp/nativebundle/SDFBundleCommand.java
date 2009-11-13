@@ -46,9 +46,8 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 		binaryExtension = getBinaryExtension();
 		String os = Platform.getOS();
 		if (os.equals(Platform.OS_LINUX) || os.equals(Platform.OS_MACOSX)) {
-			// Some of these are used from Ant and should always be executable
 			EditorIOAgent agent = new EditorIOAgent();
-			boolean success = makeExecutable(agent, "sdf2table") && makeExecutable(agent, "sglr") && makeExecutable(agent, "implodePT");
+			boolean success = makeExecutable(agent, "sdf2table") && makeExecutable(agent, "implodePT");
 			if (!success)
 				Environment.logException("chmod of native tool bundle executables failed:\n" + agent.getLog());
 		}

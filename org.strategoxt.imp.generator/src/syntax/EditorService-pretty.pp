@@ -10,6 +10,7 @@
    OpenEditor           -- KW["(openeditor)"],
    RealTime             -- KW["(realtime)"],
    Persistent           -- KW["(persistent)"],
+   Persistent           -- KW["(meta)"],
    Strategy             -- _1,
    Attribute            -- H hs=0 [ KW["id"] KW["."] _1 ],
    Analysis             -- V is=2 [H hs=0 [ KW["analysis"] _1 ] A(l,l,l) [_2] ],

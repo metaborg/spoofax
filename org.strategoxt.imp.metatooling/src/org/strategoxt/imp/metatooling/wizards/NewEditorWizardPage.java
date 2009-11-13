@@ -163,6 +163,7 @@ public class NewEditorWizardPage extends WizardPage {
 	 * Ensures that both text fields are set.
 	 */
 	private void onChange() {
+		setErrorMessage(null);
 		
 		if (getInputProjectName().length() == 0) {
 			setErrorStatus("Project name must be specified");
@@ -273,7 +274,8 @@ public class NewEditorWizardPage extends WizardPage {
 	}
 
 	private void setWarningStatus(String message) {
-		setErrorMessage(message);
+		if (getErrorMessage() == null)
+			setErrorMessage(message);
 	}
 	
 	public String getInputProjectName() {
