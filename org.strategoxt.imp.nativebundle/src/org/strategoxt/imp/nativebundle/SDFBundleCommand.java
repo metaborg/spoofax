@@ -158,14 +158,11 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 	}
 
 	private String[] toCommandArgs(String command, IStrategoTerm[] argList) {
-		StringBuilder allArgs = new StringBuilder();
 		String[] commandArgs = new String[argList.length + 1];
 		int i = 1;
 		for (IStrategoTerm arg : argList) {
 			if (arg.getTermType() != STRING) return null;
-			allArgs.append(' ');
-			allArgs.append(((IStrategoString) arg).stringValue());
-			commandArgs[i++] = ((IStrategoString) arg).stringValue();
+			commandArgs[i++] = handleSpacesInPath(((IStrategoString) arg).stringValue());
 		}
 		commandArgs[0] = binaryPath + "/" + command + binaryExtension;
 		return commandArgs;
@@ -187,5 +184,11 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 			Environment.logException("chmod failed: /bin/sh -c \"chmod +x " + command + "\"", e);
 			return false;
 		}
+	}
+	
+	private String handleSpacesInPath(String potentialPath) {
+		return (potentialPath.indexOf(' ') != -1 && Platform.getOS().equals(Platform.OS_WIN32))
+				? "\"" + potentialPath + "\""
+				: potentialPath;
 	}
 }

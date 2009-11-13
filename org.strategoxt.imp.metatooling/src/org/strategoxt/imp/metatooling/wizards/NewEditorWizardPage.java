@@ -212,8 +212,6 @@ public class NewEditorWizardPage extends WizardPage {
 
 		if (getInputProjectName().indexOf(' ') != -1) {
 			setWarningStatus("Project names with spaces may not be supported depending on your configuration");
-		} else if (ResourcesPlugin.getWorkspace().getRoot().getRawLocation().toOSString().indexOf(' ') != -1) {
-			setWarningStatus("A workspace directory with spaces may not be supported depending on your configuration");
 		} else {
 			setErrorStatus(null);
 		}
