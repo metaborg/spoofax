@@ -21,6 +21,8 @@ public class EditorIOAgent extends LoggingIOAgent {
 	
 	private Descriptor descriptor;
 	
+	private boolean alwaysActivateConsole;
+	
 	public void setDescriptor(Descriptor descriptor) {
 		this.descriptor = descriptor;
 	}
@@ -57,14 +59,23 @@ public class EditorIOAgent extends LoggingIOAgent {
 	@Override
 	public PrintStream getOutputStream(int fd) {
 		// TODO: close console streams after use?
-		if (fd == CONST_STDOUT && descriptor != null && descriptor.isDynamicallyLoaded()) {
+		// TODO: show console during wizard
+		if (fd == CONST_STDOUT && isActivateConsoleEnabled()) {
 			StrategoConsole.activateConsole(true);
 			return StrategoConsole.getOutputStream();
-		} else if (fd == CONST_STDERR && descriptor != null && descriptor.isDynamicallyLoaded()) {
+		} else if (fd == CONST_STDERR && isActivateConsoleEnabled()) {
 			StrategoConsole.activateConsole(true);
 			return StrategoConsole.getErrorStream();
 		} else {
 			return super.getOutputStream(fd);
 		}
+	}
+
+	private boolean isActivateConsoleEnabled() {
+		return alwaysActivateConsole || (descriptor != null && descriptor.isDynamicallyLoaded());
+	}
+	
+	public void setAlwaysActivateConsole(boolean alwaysShowConsole) {
+		this.alwaysActivateConsole = alwaysShowConsole;
 	}
 }

@@ -13,6 +13,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -113,7 +114,8 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 		monitor.beginTask("Creating " + languageName + " project", TASK_COUNT);
 		
 		monitor.setTaskName("Preparing project builder");
-		EditorIOAgent agent = new EditorIOAgent();		
+		EditorIOAgent agent = new EditorIOAgent();
+		agent.setAlwaysActivateConsole(true);
 		Context context = new Context(Environment.getTermFactory(), agent);
 		context.registerClassLoader(make_permissive.class.getClassLoader());
 		sdf2imp.init(context);
@@ -128,15 +130,21 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 
 		agent.setWorkingDir(project.getLocation().toOSString());
 		try {
+			
 			String jar1 = org.strategoxt.stratego_lib.Main.class.getProtectionDomain().getCodeSource().getLocation().getFile();
 			String jar2 = make_permissive.class.getProtectionDomain().getCodeSource().getLocation().getFile();
 			String jar3 = sdf2imp.class.getProtectionDomain().getCodeSource().getLocation().getFile();
+			if (Platform.getOS().equals(Platform.OS_WIN32)) { // FIXME: proper paths on Windows
+				jar1 = jar1.substring(1);
+				jar2 = jar2.substring(1);
+				jar3 = jar3.substring(1);
+			}
 			if (!jar1.endsWith(".jar")) { // ensure correct jar at development time
 				String jar1a = jar1 + "/../strategoxt.jar";
 				if (new File(jar1a).exists()) jar1 = jar1a;
 			}
 			assert jar1.endsWith(".jar") && jar2.endsWith(".jar") && jar3.endsWith(".jar") : "Library files are not in JAR"; // please refresh the strj projectin Eclipse
-			sdf2imp.mainNoExit(context, "-m", languageName, "-pn", projectName, "-n", packageName, "-e", extensions, "-jar", jar1, jar2, jar3);
+			sdf2imp.mainNoExit(context, "-m", languageName, "-pn", projectName, "-n", packageName, "-e", extensions, "--verbose", "2", "-jar", jar1, jar2, jar3);
 		} catch (StrategoErrorExit e) {
 			Environment.logException(e);
 			throw new StrategoException("Project builder failed: " + e.getMessage() + "\nLog follows:\n\n"

@@ -27,32 +27,50 @@ imports
   libstratego-aterm
   include/", sdf-name, "
 
-rules // Main editor interface (defined by the .esv files)
+/**
+ * Main editor interface
+ * (defined by the ", sdf-name, "-Builders/-References.esv files)
+ */
+rules
   
   /**
    * Analyzes the current program.
-   * Returns a Tuple with errors, warnings, and notes;
-   * each a list of (term, message) tuples.
+   * Returns a tuple with errors, warnings, and notes;
+   * each a list of (term, message) tuples or simply (message) terms.
    */
   editor-analyze:
     (ast, path, project-path) -> (errors, warnings, notes)
     with
-      // Analysis: scope and record dynamic rules
+      // Ensure all dynamic rules are properly scoped
       try(dr-scope-all-end);
       dr-scope-all-start;
+      // Analysis: record all entity declarations
       alltd(record-entity)
     with
-      errors   := <collect-all(include-origin(constraint-error))> ast;
-      warnings := <collect-all(include-origin(constraint-warning))> ast;
-      notes    := <collect-all(include-origin(constraint-note))> ast
+      // Collect all feedback markers
+      errors   := <collect-all(constraint-error)> ast;
+      warnings := <collect-all(constraint-warning)> ast;
+      notes    := <collect-all(constraint-note)> ast
+
+  /**
+   * Records the definition of an entity in a dynamic rule GetEntity.
+   */
+  record-entity:
+    Entity(x, body) -> Entity(x, body)
+    with
+      rules(
+        GetEntity :+ x -> x
+      )
   
   /**
    * Resolves a reference when the user control-clicks or presses F3 in the editor.
-   * For the entities language, only Type(_) nodes are resolved by default.
+   * For the entities language, we only resolve references for Type(_) nodes.
    */
   editor-resolve:
     (Type(type), position, ast, path, project-path) -> target
     where
+      // This rule only successfully evaluates if it can 
+      // lookup the entity for this type, as recorded in record-entity.
       target := <GetEntity> type
 
   /**
@@ -78,33 +96,22 @@ rules // Main editor interface (defined by the .esv files)
     with
       filename      := <guarantee-extension(|\"aterm\")> path;
       result-string := <pp-aterm-box; box2text-string(|120)> selected
-  
-  /**
-   * Adds the originating term to the result of a constraint rule,
-   * and concatenates strings in the resulting message if necessary.
-   */
-  include-origin(s):
-    t -> (t', message')
-    where
-      result := <s> t
-    with
-      if not(!result => (t', message)) then
-        message := result;
-        t'      := t
-      end;
-      message' := <try(all(is-string <+ write-to-string); concat-strings)> message
 
-rules // Semantic rules
+/**
+ * Semantic rules
+ */
+rules
     
   /**
    * Reports an error if a property type is undefined.
+   * This error is reported on the type name.
    */
   constraint-error:
-    Property(x, Type(type)) -> [\"Type \", type, \" is not defined\"]
+    Property(x, Type(type)) -> (type, [\"Type \", type, \" is not defined\"])
     where
-      not(!type => \"String\");
+      not(!type => \"String\"); // String and Int are built-in types
       not(!type => \"Int\");
-      not(<GetEntity> type)
+      not(<GetEntity> type) // no entity for this type
   
   /**
    * Reports an error if an entity is defined more than once.
@@ -130,23 +137,20 @@ rules // Semantic rules
    * Adds a note to modules named \"example.\"
    */
   constraint-note:
-    Module(\"example\", _) -> \"This is just an example program in the \\\"entities\\\" language (this note is defined in trans/", name, ".str)\"
-
-  /**
-   * Records the definition of an entity in a dynamic rule GetEntity.
-   */
-  record-entity:
-    Entity(x, body) -> Entity(x, body)
-    with
-      rules(
-        GetEntity :+ x -> x
-      )
+    Module(x, _) -> (x, [\"This is just an example program in the \\\"entities\\\" language,\"
+                         \" (this note is defined in trans/", name, ".str) ])\"])
+    where
+      !x => \"example\"
 
 signature constructors
 
-  // These definitions are not strictly necessary, but they
-  // ensure that the build doesn't break if the example syntax
-  // is changed and these constructors no longer exist.
+  // HACK: Below are copies of the signatures of the terms used in this file.
+  // These definitions are actually automatically generated in the imported
+  // include/", sdf-name, ".str module. However, to ensure that this example
+  // file doesn't break if the syntax is changed, we also include them here.
+  // Consider this a newbie treat; now that you got this far reading through
+  // this file, just try removing them and see if the build still works! ;)
+  
   Module   : ID * List(Entity)   -> Module
   Entity   : ID * List(Property) -> Entity
   Property : ID * Type           -> Property

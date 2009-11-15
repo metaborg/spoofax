@@ -33,4 +33,28 @@ public class AsfixAnalyzer {
 				|| name.equals("iter-plus-sep");
 	}
 
+	/**
+	 * Identifies lexical parse tree nodes.
+	 * 
+	 * @see AsfixAnalyzer#isVariableNode(ATermAppl)
+	 *      Identifies variables, which are usually treated similarly to
+	 *      lexical nodes.
+	 * 
+	 * @return true if the current node is lexical.
+	 */
+	public static boolean isLexicalNode(ATermAppl rhs) {
+		return ("lex".equals(rhs.getName()) || isLiteral(rhs)
+		    || isLayout(rhs));
+	}
+
+	/**
+	 * Identifies parse tree nodes that begin variables.
+	 * 
+	 * @see #isVariableNode(ATermAppl) 
+	 * @return true if the current node is lexical.
+	 */
+	public static boolean isVariableNode(ATermAppl rhs) {
+		return "varsym".equals(rhs.getName());
+	}
+
 }

@@ -5,6 +5,7 @@ import java.io.InputStream;
 
 import org.spoofax.jsglr.BadTokenException;
 import org.spoofax.jsglr.Disambiguator;
+import org.spoofax.jsglr.FilterException;
 import org.spoofax.jsglr.NoRecovery;
 import org.spoofax.jsglr.NoRecoveryRulesException;
 import org.spoofax.jsglr.ParseTable;
@@ -29,6 +30,8 @@ public class JSGLRI extends AbstractSGLRI {
 	private RecoverAlgorithm recoverHandler = new NoRecovery();
 	
 	private SGLR parser;
+	
+	private boolean filtersBorked;
 	
 	// Initialization and parsing
 	
@@ -72,13 +75,12 @@ public class JSGLRI extends AbstractSGLRI {
 	 */
 	void resetState() {
 		parser = Environment.createSGLR(parseTable);
+		parser.getDisambiguator().setFilterPriorities(!filtersBorked);
 		try {
 			parser.setRecoverHandler(recoverHandler);
 		} catch (NoRecoveryRulesException e) {
 			// Already handled/logged this error in setRecoverHandler()
 		}
-		// XXX: Must run with filters enabled, when they're no longer b0rked
-		parser.getDisambiguator().setFilterPriorities(false);
 	}
 	
 	private ATerm doParseNoImplode(InputStream inputStream, char[] inputChars)
@@ -89,6 +91,13 @@ public class JSGLRI extends AbstractSGLRI {
 		
 		// Read stream using tokenizer/lexstream
 		
-		return parser.parse(inputStream, getStartSymbol());
+		try {
+			return parser.parse(inputStream, getStartSymbol());
+		} catch (FilterException e) {
+			Environment.logException("Parse filter failure - disabling priority filters and trying again", e);
+			filtersBorked = true;
+			parser.getDisambiguator().setFilterPriorities(false);
+			return parser.parse(inputStream, getStartSymbol());
+		}
 	}
 }

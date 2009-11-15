@@ -168,6 +168,7 @@ public class AstMessageHandler {
 	
 	private static IAst minimizeMarkerSize(IAst node) {
 		// TODO: prefer lexical nodes when minimizing marker size? (e.g., not 'private')
+		if (node == null) return null;
 		while (node.getLeftIToken().getLine() < node.getRightIToken().getEndLine()) {
 			if (node.getChildren().size() == 0) break;
 			node = (IAst) node.getChildren().get(0);

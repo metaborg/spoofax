@@ -33,6 +33,10 @@ public class ProductionAttributeReader {
 	public ATerm getAstAttribute(ATermAppl attrs) {
 		return getAttribute(attrs, "ast");
 	}
+	
+	public boolean isIndentPaddingLexical(ATermAppl attrs) {
+		return getAttribute(attrs, "indentpadding") != null;
+	}
 
 	/** Return the contents of a term attribute (e.g., "cons"), or null if not found. */
 	private static ATerm getAttribute(ATermAppl attrs, String attrName) {
@@ -49,9 +53,8 @@ public class ProductionAttributeReader {
 				if (namedAttr.getName().equals("term")) {
 					namedAttr = termAt(namedAttr, 0);
 					
-					if (namedAttr.getName().equals(attrName)) {
-						return termAt(namedAttr, 0);
-					}
+					if (namedAttr.getName().equals(attrName))
+						return namedAttr.getChildCount() == 1 ? termAt(namedAttr, 0) : namedAttr;
 				}				
 			}
 		}

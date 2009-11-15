@@ -1,8 +1,8 @@
 package org.strategoxt.imp.runtime.parser.ast;
 
 import org.spoofax.interpreter.terms.ITermPrinter;
+import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
 
-import lpg.runtime.ILexStream;
 import lpg.runtime.IToken;
 
 /**
@@ -13,30 +13,20 @@ import lpg.runtime.IToken;
 public class StringAstNode extends AstNode {
 	private String value;
 
-	protected StringAstNode(String sort, IToken leftToken, IToken rightToken) {
+	/**
+	 * @param value  The string value for this node or null if the token value should be used.
+	 */
+	protected StringAstNode(String value, String sort, IToken leftToken, IToken rightToken) {
 		// Construct an empty list (unfortunately needs to be a concrete ArrayList type)
 		super(sort, leftToken, rightToken, null, EMPTY_LIST);
+		this.value = value;
 	}
 
 	public String getValue() {
 		if (value != null) return value;
-		
-		IToken left = getLeftIToken();
-		IToken right = getRightIToken();
-		ILexStream lex = left.getIPrsStream().getILexStream();
-		
-		int length = right.getEndOffset() - left.getStartOffset() + 1;
-		StringBuilder tokenContents = new StringBuilder(length);
-		
-		for (int i = left.getStartOffset(), end = right.getEndOffset(); i <= end; i++) {
-			tokenContents.append(lex.getCharValue(i));
-		}
-		
-		value = tokenContents.toString();
-
-		return value;
+		return value = SGLRToken.toString(getLeftIToken(), getRightIToken());
 	}
-	
+
 	@Override
 	public String yield() {
 		return getValue();

@@ -1,5 +1,6 @@
 package org.strategoxt.imp.runtime.dynamicloading;
 
+import static org.spoofax.interpreter.core.Tools.*;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.*;
 
 import java.util.ArrayList;
@@ -104,7 +105,7 @@ class TokenColorerFactory extends AbstractServiceFactory<ITokenColorer> {
 		if (cons(color).equals("ColorDefault") || cons(color).equals("NoColor")) {
 			return null;
 		} else if (cons(color).equals("ColorRGB")) {
-			return new LazyColor(intAt(color, 0), intAt(color, 1), intAt(color, 2));
+			return new LazyColor(parseIntAt(color, 0), parseIntAt(color, 1), parseIntAt(color, 2));
 		} else {
 			throw new IllegalArgumentException("Unknown color of type " + cons(color));
 		}

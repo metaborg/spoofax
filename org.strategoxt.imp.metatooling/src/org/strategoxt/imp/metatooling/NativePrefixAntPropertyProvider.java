@@ -14,7 +14,7 @@ public class NativePrefixAntPropertyProvider implements IAntPropertyValueProvide
 	public String getAntPropertyValue(String antPropertyName) {
 		try {
 			// Ensure proper chmod first
-			return SDFBundleCommand.getInstance().getBinaryPath().getAbsolutePath();
+			return SDFBundleCommand.getInstance().getBinaryPath();
 		} catch (IOException e) {
 			Environment.logException("Could not determine the prefix path for the native tool bundle", e);
 			return ".";

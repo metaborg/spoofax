@@ -21,6 +21,7 @@ import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.StrategoException;
 import org.strategoxt.lang.compat.NativeCallHelper;
+import org.strategoxt.lang.compat.SSL_EXT_call;
 import org.strategoxt.stratego_xtc.xtc_command_1_0;
 
 /**
@@ -37,13 +38,17 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 	
 	private final xtc_command_1_0 proceed = xtc_command_1_0.instance;
 	
-	private File binaryPath;
+	private String binaryPath;
 	
 	private String binaryExtension;
 	
+	private boolean initialized;
+	
 	public void init() throws IOException {
+		if (initialized) return;
 		binaryPath = getBinaryPath();
 		binaryExtension = getBinaryExtension();
+		
 		String os = Platform.getOS();
 		if (os.equals(Platform.OS_LINUX) || os.equals(Platform.OS_MACOSX)) {
 			EditorIOAgent agent = new EditorIOAgent();
@@ -52,9 +57,10 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 				Environment.logException("chmod of native tool bundle executables failed:\n" + agent.getLog());
 		}
 		Debug.log("Initialized the native tool bundle in " + getBinaryPath());
+		initialized = true;
 	}
 	
-	public File getBinaryPath() throws IOException, UnsupportedOperationException {
+	public String getBinaryPath() throws IOException, UnsupportedOperationException {
 		String os = Platform.getOS();
 		String subdir;
 		if (os.equals(Platform.OS_LINUX)) {
@@ -71,7 +77,7 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 		File result = new File(FileLocator.toFileURL(url).getPath());
 		if (!result.exists())
 			throw new FileNotFoundException(result.getAbsolutePath());
-		return result;
+		return result.getAbsolutePath() + File.separator;
 	}
 	
 	public String getBinaryExtension() {
@@ -89,7 +95,7 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 		try {
 			init();
 		} catch (IOException e) {
-			Environment.logException("Could not determine the prefix path for the native tool bundle (" 
+			Environment.logException("Could not determine the binary path for the native tool bundle (" 
 					+ Platform.getOS() + "/" + Platform.getOSArch()
 					+ ")", e);
 			return proceed.invoke(context, args, commandStrategy);
@@ -104,10 +110,10 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 			return proceed.invoke(context, args, commandStrategy);
 		
 		String command = ((IStrategoString) commandTerm).stringValue();
-		if (!new File(binaryPath + "/" + command + binaryExtension).exists()) {
+		if (!new File(binaryPath + command + binaryExtension).exists()) {
 			if (command.equals("sdf2table") || command.equals("implodePT")) {
-				Environment.logException("Could not find the native tool bundle command "
-						+ command + " in " + binaryPath);
+				throw new StrategoException("Could not find the native tool bundle command "
+						+ command + " in " + binaryPath + command + binaryExtension);
 			}
 			return proceed.invoke(context, args, commandStrategy);
 		}
@@ -130,52 +136,44 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 	}
 
 	private boolean invoke(Context context, String command, IStrategoTerm[] argList) throws StrategoException {
+		String[] commandArgs = SSL_EXT_call.toCommandArgs(binaryPath + command, argList);
+		IOAgent io = context.getIOAgent();
+		
 		try {
- 			String[] commandArgs = toCommandArgs(command, argList);
 			if (commandArgs == null) return false;
-			String path = binaryPath.getAbsolutePath() + System.getProperty("path.separator") + System.getenv("PATH");
-			String[] environment = { "PATH=" + path, 
-					                 "LD_LIBRARY_PATH=" + binaryPath.getParentFile().getAbsolutePath() + "/lib" };
-			IOAgent io = context.getIOAgent();
 			PrintStream out = io.getOutputStream(IOAgent.CONST_STDOUT);
 			PrintStream err = io.getOutputStream(IOAgent.CONST_STDERR);
 
-			Debug.log("Invoking " + binaryPath + "/" + command + binaryExtension + " " + Arrays.toString(argList));
-			int result = new NativeCallHelper().call(commandArgs, environment, new File(io.getWorkingDir()), out, err);
+			err.println(("Invoking native tool " + binaryPath + command + binaryExtension + " " + Arrays.toString(argList)));
+			int result = new NativeCallHelper().call(commandArgs, null, new File(io.getWorkingDir()), out, err);
 			if (result != 0) {
 				Environment.logException("Native tool " + command
 						+ " exited with error code " + result
 						+ "\nCommand:\n  " + Arrays.toString(commandArgs)
-						+ "\nWorking dir:\n  " + io.getWorkingDir()
-						+ "\nEnvironment:\n  " + Arrays.toString(environment));
+						+ "\nWorking dir:\n  " + io.getWorkingDir());
 			}
 			return result == 0;
 		} catch (IOException e) {
-			return false;
+			throw new StrategoException("Could not call native tool " + command
+					+ "\nCommand:\n  " + Arrays.toString(commandArgs)
+					+ "\nWorking dir:\n  " + io.getWorkingDir(), e);
 		} catch (InterruptedException e) {
 			throw new StrategoException("Could not call " + command, e);
+		} catch (RuntimeException e) {
+			throw new StrategoException("Could not call native tool " + command
+					+ "\nCommand:\n  " + Arrays.toString(commandArgs)
+					+ "\nWorking dir:\n  " + io.getWorkingDir(), e);
 		}
-	}
-
-	private String[] toCommandArgs(String command, IStrategoTerm[] argList) {
-		String[] commandArgs = new String[argList.length + 1];
-		int i = 1;
-		for (IStrategoTerm arg : argList) {
-			if (arg.getTermType() != STRING) return null;
-			commandArgs[i++] = handleSpacesInPath(((IStrategoString) arg).stringValue());
-		}
-		commandArgs[0] = binaryPath + "/" + command + binaryExtension;
-		return commandArgs;
 	}
 	
 	private boolean makeExecutable(IOAgent io, String command) {
 		try {
 			PrintStream out = io.getOutputStream(IOAgent.CONST_STDOUT);
 			PrintStream err = io.getOutputStream(IOAgent.CONST_STDERR);
-			command = binaryPath + "/" + command + binaryExtension;
+			command = binaryPath + command + binaryExtension;
 			// /bin/sh should exist even on NixOS
 			String[] commandArgs = { "/bin/sh", "-c", "chmod +x \"" + command + "\"" };
-			int result = new NativeCallHelper().call(commandArgs, binaryPath, out, err);
+			int result = new NativeCallHelper().call(commandArgs, new File(binaryPath), out, err);
 			return result == 0;
 		} catch (InterruptedException e) {
 			Environment.logException("chmod failed: /bin/sh -c \"chmod +x " + command + "\"", e);
@@ -184,11 +182,5 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 			Environment.logException("chmod failed: /bin/sh -c \"chmod +x " + command + "\"", e);
 			return false;
 		}
-	}
-	
-	private String handleSpacesInPath(String potentialPath) {
-		return (potentialPath.indexOf(' ') != -1 && Platform.getOS().equals(Platform.OS_WIN32))
-				? "\"" + potentialPath + "\""
-				: potentialPath;
 	}
 }

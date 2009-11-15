@@ -88,8 +88,8 @@ strategies
             <eclipse.refreshLocal resource="${include}/${esvmodule}.packed.esv"/>
         </target>
         
-        <target name="sdf2imp.standalone" depends="sdf2table,aux-files" unless="eclipse.running">
-            <java classname="org.strategoxt.imp.generator.sdf2imp" classpath="aux/sdf2imp.jar:aux/strategoxt.jar" failonerror="true" fork="true">
+        <target name="sdf2imp.standalone" depends="sdf2table,utils-files" unless="eclipse.running">
+            <java classname="org.strategoxt.imp.generator.sdf2imp" classpath="utils/sdf2imp.jar:utils/strategoxt.jar" failonerror="true" fork="true">
                 <jvmarg line="${build.jvmargs}"/>
                 <arg value="-i"/>
                 <arg value="${basedir}/editor/${esvmodule}.main.esv"/>
@@ -121,8 +121,8 @@ strategies
             <antcall target="make-permissive.helper"/>
         </target>
     
-        <target name="make-permissive.helper" unless="permissive-grammar.available" depends="aux-files">
-            <java classname="org.strategoxt.permissivegrammars.make_permissive" classpath="aux/make_permissive.jar:aux/strategoxt.jar" failonerror="true" fork="true">
+        <target name="make-permissive.helper" unless="permissive-grammar.available" depends="utils-files">
+            <java classname="org.strategoxt.permissivegrammars.make_permissive" classpath="utils/make_permissive.jar:utils/strategoxt.jar" failonerror="true" fork="true">
                 <jvmarg line="${build.jvmargs}"/>
                 <arg value="-i"/>
                 <arg value="${include}/${sdfmodule}.def"/>
@@ -132,14 +132,14 @@ strategies
             </java>
         </target>
 
-        <target name="aux-files" unless="aux-files.available">
+        <target name="utils-files" unless="utils-files.available">
             <property name="site" value="http://www.st.ewi.tudelft.nl/~kats/strategoxt/18b"/>
-        	<property name="aux-files.available" value="1"/>
-            <mkdir dir="aux"/>
+        	<property name="utils-files.available" value="1"/>
+            <mkdir dir="utils"/>
             <parallel>
-                <get src="${site}/strategoxt.jar" dest="aux/strategoxt.jar" usetimestamp="true" ignoreerrors="true"/>
-                <get src="${site}/make_permissive.jar" dest="aux/make_permissive.jar" usetimestamp="true" ignoreerrors="true"/>
-                <get src="${site}/sdf2imp.jar" dest="aux/sdf2imp.jar" usetimestamp="true" ignoreerrors="true"/>
+                <get src="${site}/strategoxt.jar" dest="utils/strategoxt.jar" usetimestamp="true" ignoreerrors="true"/>
+                <get src="${site}/make_permissive.jar" dest="utils/make_permissive.jar" usetimestamp="true" ignoreerrors="true"/>
+                <get src="${site}/sdf2imp.jar" dest="utils/sdf2imp.jar" usetimestamp="true" ignoreerrors="true"/>
             </parallel>
         </target>
     
@@ -154,8 +154,8 @@ strategies
             <antcall target="pack-sdf.helper"/>
         </target>
     
-        <target name="pack-sdf.helper" depends="aux-files" unless="pack-sdf.available">
-            <java classname="start" classpath="aux/strategoxt.jar" failonerror="true" fork="true">
+        <target name="pack-sdf.helper" depends="utils-files" unless="pack-sdf.available">
+            <java classname="start" classpath="utils/strategoxt.jar" failonerror="true" fork="true">
                 <jvmarg line="${build.jvmargs}"/>
                 <arg value="org.strategoxt.tools.main-pack-sdf"/>
                 <arg value="-i"/>
@@ -187,8 +187,8 @@ strategies
             <antcall target="rtg2sig.helper"/>
         </target>
     
-        <target name="rtg2sig.helper" depends="aux-files" unless="rtg2sig.available">
-            <java classname="start" classpath="aux/strategoxt.jar" failonerror="true" fork="true">
+        <target name="rtg2sig.helper" depends="utils-files" unless="rtg2sig.available">
+            <java classname="start" classpath="utils/strategoxt.jar" failonerror="true" fork="true">
                 <jvmarg line="${build.jvmargs}"/>
                 <arg value="org.strategoxt.tools.main-rtg2sig"/>
                 <arg value="-i"/>
@@ -209,8 +209,8 @@ strategies
             <antcall target="sdf2rtg.helper"/>
         </target>
     
-        <target name="sdf2rtg.helper" depends="aux-files" unless="sdf2rtg.available">
-            <java classname="start" classpath="aux/strategoxt.jar" failonerror="true" fork="true">
+        <target name="sdf2rtg.helper" depends="utils-files" unless="sdf2rtg.available">
+            <java classname="start" classpath="utils/strategoxt.jar" failonerror="true" fork="true">
                 <jvmarg line="${build.jvmargs}"/>
                 <arg value="org.strategoxt.tools.main-sdf2rtg"/>
                 <arg value="-i"/>
@@ -234,8 +234,8 @@ strategies
             <antcall target="ppgen.helper"/>
         </target>
     
-        <target name="ppgen.helper" depends="aux-files" unless="ppgen.available">
-            <java classname="start" dir="${include}" classpath="aux/strategoxt.jar" failonerror="true" fork="true">
+        <target name="ppgen.helper" depends="utils-files" unless="ppgen.available">
+            <java classname="start" dir="${include}" classpath="utils/strategoxt.jar" failonerror="true" fork="true">
                 <jvmarg line="${build.jvmargs}"/>
                 <arg value="org.strategoxt.tools.main-ppgen"/>
                 <arg value="-i"/>
@@ -278,12 +278,12 @@ strategies
                 <param name="build.stratego.extraargs" value="-la java-front"/>
                 <param name="build.stratego.extension" value="java"/>
             </antcall>
-            <javac classpath="aux/strategoxt.jar${externaljarimport}" srcdir="${src-gen}/trans" destdir="${build}" source="1.5" debug="on"/>
+            <javac classpath="utils/strategoxt.jar${externaljarimport}" srcdir="${src-gen}/trans" destdir="${build}" source="1.5" debug="on"/>
             <jar basedir="${build}" includes="trans/**" destfile="${include}/${strmodule}.jar"/>
         </target>
             
-        <target name="stratego.jvm.helper" depends="aux-files" unless="strc-java.available" if="build.stratego.enabled">
-            <java classname="org.strategoxt.strj.Main" classpath="aux/strategoxt.jar:aux/sdf2imp.jar" failonerror="true" fork="true">
+        <target name="stratego.jvm.helper" depends="utils-files" unless="strc-java.available" if="build.stratego.enabled">
+            <java classname="org.strategoxt.strj.Main" classpath="utils/strategoxt.jar:utils/sdf2imp.jar" failonerror="true" fork="true">
                 <jvmarg line="${build.jvmargs}"/>
                 <arg value="-i"/>
                 <arg value="${trans}/${strmodule}.str"/>
@@ -343,7 +343,7 @@ strategies
                 <param name="build.stratego.extension" value="java"/>
                 <param name="build.stratego.compiler" value="strj"/>
             </antcall>
-            <javac classpath="aux/strategoxt.jar${externaljarimport}" srcdir="${src-gen}/trans" destdir="${build}" source="1.5" debug="on"/>
+            <javac classpath="utils/strategoxt.jar${externaljarimport}" srcdir="${src-gen}/trans" destdir="${build}" source="1.5" debug="on"/>
             <jar basedir="${build}" includes="trans/**" destfile="${include}/${strmodule}.jar"/>
         </target>
 */

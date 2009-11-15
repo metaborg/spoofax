@@ -14,7 +14,7 @@ import org.spoofax.jsglr.ParseTimeoutException;
 import org.spoofax.jsglr.RecoveryConnector;
 import org.spoofax.jsglr.TokenExpectedException;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.parser.ast.AsfixImploder;
+import org.strategoxt.imp.runtime.parser.ast.AsfixAnalyzer;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
@@ -144,7 +144,7 @@ public class ParseErrorHandler {
 		ATermList contents = termAt(term, 1);
 		boolean lexicalStart = false;
 		
-		if (!inLexicalContext && AsfixImploder.isLexicalNode(rhs) || AsfixImploder.isVariableNode(rhs)) {
+		if (!inLexicalContext && AsfixAnalyzer.isLexicalNode(rhs) || AsfixAnalyzer.isVariableNode(rhs)) {
 			inLexicalContext = lexicalStart = true;
 		}
 		

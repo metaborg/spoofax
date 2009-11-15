@@ -4,20 +4,11 @@ imports
   libstratego-lib
 
 strategies
-
-  /* TODO: instead of copying jar files, use an Ant task to download them
-  <copy todir="dest" flatten="true">
-      <resources>
-      <file file="src_dir/file1.txt"/>
-      <url url="http://ant.apache.org/index.html"/>
-    </resources>
-  </copy>
-  */  
   
   copy-jars =
     if JarLocations then
       verbose-msg(!"Copying jar files", JarLocations; separate-by(|","); concat-strings);
-      <file-exists <+ mkdir> "aux/";
+      <file-exists <+ mkdir> "utils";
       JarLocations;
-      list-loop(<copy-file> (<id>, "aux/"))
+      list-loop(<copy-file> (<id>, "utils"))
     end

@@ -16,6 +16,7 @@ import org.spoofax.jsglr.RecoveryConnector;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ParseErrorHandler;
+import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
 
@@ -125,7 +126,7 @@ public class AsfixImploder {
 		IToken prevToken = tokenizer.currentToken();
 		
 		// Enter lexical context if this is a lex node
-		boolean lexicalStart = !inLexicalContext && isLexicalNode(rhs);
+		boolean lexicalStart = !inLexicalContext && AsfixAnalyzer.isLexicalNode(rhs);
 		
 		if (lexicalStart) inLexicalContext = true;
 		
@@ -134,7 +135,7 @@ public class AsfixImploder {
 		}
 		
 		boolean isList = !inLexicalContext && AsfixAnalyzer.isList(rhs);
-		boolean isVar  = !inLexicalContext && !isList && isVariableNode(rhs);
+		boolean isVar  = !inLexicalContext && !isList && AsfixAnalyzer.isVariableNode(rhs);
 		
 		if (isVar) inLexicalContext = true;
 		
@@ -143,36 +144,12 @@ public class AsfixImploder {
 			implodeChildNodes(contents);
 		
 		if (lexicalStart || isVar) {
-			return createStringTerminal(lhs, rhs);
+			return createStringTerminal(lhs, rhs, attrs);
 		} else if (inLexicalContext) {
 			return null; // don't create tokens inside lexical context; just create one big token at the top
 		} else {
-			return createNonTerminalOrInjection(lhs, rhs, attrs, prevToken, children, isList);
+			return createNodeOrInjection(lhs, rhs, attrs, prevToken, children, isList);
 		}
-	}
-
-	/**
-	 * Identifies lexical parse tree nodes.
-	 * 
-	 * @see #isVariableNode(ATermAppl)
-	 *      Identifies variables, which are usually treated similarly to
-	 *      lexical nodes.
-	 * 
-	 * @return true if the current node is lexical.
-	 */
-	public static boolean isLexicalNode(ATermAppl rhs) {
-		return ("lex".equals(rhs.getName()) || AsfixAnalyzer.isLiteral(rhs)
-		    || AsfixAnalyzer.isLayout(rhs));
-	}
-
-	/**
-	 * Identifies parse tree nodes that begin variables.
-	 * 
-	 * @see #isVariableNode(ATermAppl) 
-	 * @return true if the current node is lexical.
-	 */
-	public static boolean isVariableNode(ATermAppl rhs) {
-		return "varsym".equals(rhs.getName());
 	}
 
 	protected ArrayList<AstNode> implodeChildNodes(ATermList contents) {
@@ -185,7 +162,7 @@ public class AsfixImploder {
 			ATerm child = contents.elementAt(i);
 
 			if (isInt(child)) {
-				implodeLexical((ATermInt) child);
+				consumeLexicalChar((ATermInt) child);
 			} else {
 				// Recurse
 				AstNode childNode = implodeAppl(child);
@@ -198,16 +175,16 @@ public class AsfixImploder {
 		return results;
 	}
 
-	private StringAstNode createStringTerminal(ATermList lhs, ATermAppl rhs) {
+	private StringAstNode createStringTerminal(ATermList lhs, ATermAppl rhs, ATermAppl attrs) {
 		inLexicalContext = false;
 		IToken token = tokenizer.makeToken(offset, tokenManager.getTokenKind(lhs, rhs), true);
 		String sort = reader.getSort(rhs);
 		
 		if (sort == null) return null;
 		
-		//Debug.log("Creating node ", sort, " from ", SGLRTokenizer.dumpToString(token));	
+		// Debug.log("Creating node ", sort, " from ", SGLRTokenizer.dumpToString(token));
 		
-		return factory.createStringTerminal(sort, token);
+		return factory.createStringTerminal(getPaddedLexicalValue(attrs, token), sort, token);
 	}
 	
 	private IntAstNode createIntTerminal(ATermList contents, ATermAppl rhs) {
@@ -217,7 +194,7 @@ public class AsfixImploder {
 		return factory.createIntTerminal(sort, token, value);
 	}
 
-	private AstNode createNonTerminalOrInjection(ATermList lhs, ATermAppl rhs, ATermAppl attrs,
+	private AstNode createNodeOrInjection(ATermList lhs, ATermAppl rhs, ATermAppl attrs,
 			IToken prevToken, ArrayList<AstNode> children, boolean isList) {
 		
 		String constructor = reader.getConsAttribute(attrs);
@@ -225,14 +202,14 @@ public class AsfixImploder {
 		
 		if(constructor == null) {
 			if (isList) {
-				return createNonTerminal(sort, null, prevToken, children, true);
+				return createNode(attrs, sort, null, prevToken, children, true);
 			}
 			
 			ATerm ast = reader.getAstAttribute(attrs);
 			if (ast != null) {
 				return createAstNonTerminal(rhs, prevToken, children, ast);
 			} else if (children.size() == 0) {
-				return createNonTerminal(sort, "None", prevToken, children, false);
+				return createNode(attrs, sort, "None", prevToken, children, false);
 			} else if ("opt".equals(applAt(rhs, 0).getName())) {
 				assert children.size() == 1;
 				AstNode child = children.get(0);
@@ -244,12 +221,12 @@ public class AsfixImploder {
 			}
 		} else {
 			tokenizer.makeToken(offset, tokenManager.getTokenKind(lhs, rhs));
-			return createNonTerminal(sort, constructor, prevToken, children, isList);
+			return createNode(attrs, sort, constructor, prevToken, children, isList);
 		}
 	}
 
 	/** Implode a context-free node. */
-	private AstNode createNonTerminal(String sort, String constructor, IToken prevToken,
+	private AstNode createNode(ATermAppl attrs, String sort, String constructor, IToken prevToken,
 			ArrayList<AstNode> children, boolean isList) {
 		
 		IToken left = getStartToken(prevToken);
@@ -267,9 +244,37 @@ public class AsfixImploder {
 		} else if (constructor == null && children.size() == 1 && children.get(0).getSort() == AstNode.STRING_SORT) {
 			// Child node was a <string> node (rare case); unpack it and create a new terminal
 			assert left == right && children.get(0).getChildren().size() == 0;
-			return factory.createStringTerminal(sort, left);
+			return factory.createStringTerminal(getPaddedLexicalValue(attrs, left), sort, left);
 		} else {
 			return factory.createNonTerminal(sort, constructor, left, right, children);
+		}
+	}
+	
+	/**
+	 * Gets the padded lexical value for {indentpadding} lexicals, or returns null.
+	 */
+	private String getPaddedLexicalValue(ATermAppl attrs, IToken startToken) {
+		if (reader.isIndentPaddingLexical(attrs)) {
+			char[] inputChars = tokenizer.getLexStream().getInputChars();
+			int lineStart = startToken.getStartOffset() - 1;
+			if (lineStart < 0) return null;
+			while (lineStart >= 0) {
+				char c = inputChars[lineStart--];
+				if (c == '\n' || c == '\r') {
+					lineStart++;
+					break;
+				}
+			}
+			StringBuilder result = new StringBuilder();
+			result.append(inputChars, lineStart, startToken.getStartOffset() - lineStart - 1);
+			for (int i = 0; i < result.length(); i++) {
+				char c = result.charAt(i);
+				if (c != ' ' && c != '\t') result.setCharAt(i, ' ');
+			}
+			result.append(SGLRToken.toString(startToken, startToken));
+			return result.toString();
+		} else {
+			return null; // lazily load token string value
 		}
 	}
 
@@ -374,8 +379,8 @@ public class AsfixImploder {
 		return lastToken;
 	}
 	
-	/** Implode any appl(_, _) that constructs a lex terminal. */
-	protected void implodeLexical(ATermInt character) {
+	/** Consume a character of a lexical terminal. */
+	protected final void consumeLexicalChar(ATermInt character) {
 		char[] inputChars = tokenizer.getLexStream().getInputChars();
 		if (offset >= inputChars.length) {
 			if (nonMatchingOffset != NONE) {

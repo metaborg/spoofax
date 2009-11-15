@@ -1,23 +1,21 @@
 package org.strategoxt.imp.runtime.dynamicloading;
 
-import static org.spoofax.interpreter.core.Tools.*;
 import static org.spoofax.interpreter.terms.IStrategoTerm.*;
 
 import java.util.ArrayList;
 
+import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 /**
- * Term reading utility class.
- * 
- * @see org.spoofax.interpreter.core.Tools
- * 	    A similar utility class, not specific for reading descriptors.
+ * Term reading utility class, extending {@link org.spoofax.interpreter.core.Tools}
+ * with new methods specific for reading descriptors.s
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class TermReader {
+public class TermReader extends Tools {
 	private TermReader() {
 		// TermReader cannot be constructed
 	}
@@ -86,7 +84,7 @@ public class TermReader {
 		return results.toString();
 	}
 	
-	public static int intAt(IStrategoTerm t, int index) {
+	public static int parseIntAt(IStrategoTerm t, int index) {
 		return Integer.parseInt(termContents(t.getSubterm(index)));
 	}
 	
@@ -95,9 +93,4 @@ public class TermReader {
 			return null;
 		return ((IStrategoAppl) t).getConstructor().getName();
 	}
-
-    @SuppressWarnings("unchecked") // casting is inherently unsafe, but doesn't warrant a warning here
-    public static<T extends IStrategoTerm> T termAt(IStrategoTerm t, int index) {
-        return (T) t.getSubterm(index);
-    }
 }

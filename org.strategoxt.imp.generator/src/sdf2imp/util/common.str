@@ -1,0 +1,24 @@
+module sdf2imp/util/common
+
+imports
+
+  libstratego-lib
+
+strategies
+
+  // (Used from StrategoObserver.java)
+  postprocess-feedback-results =
+    flatten-list;
+    map(
+      (is-tuple <+ !(<id>, <id>));
+      (id, postprocess-feedback-message)
+    )
+  
+  internal postprocess-feedback-message =
+    if is-list then
+      flatten-list;
+      map(is-string <+ write-to-string);
+      concat-strings
+    else
+      is-string <+ write-to-string
+    end

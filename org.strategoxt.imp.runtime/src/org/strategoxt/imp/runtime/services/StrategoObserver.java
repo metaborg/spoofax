@@ -1,7 +1,7 @@
 package org.strategoxt.imp.runtime.services;
 
+import static org.spoofax.interpreter.core.Tools.*;
 import static org.spoofax.interpreter.terms.IStrategoTerm.*;
-import static org.strategoxt.imp.runtime.dynamicloading.TermReader.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,6 +36,7 @@ import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.HybridInterpreter;
 import org.strategoxt.IncompatibleJarException;
+import org.strategoxt.imp.generator.postprocess_feedback_results_0_0;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
@@ -233,6 +234,7 @@ public class StrategoObserver implements IModelListener {
 			reportRewritingFailed();
 			String log = getLog();
 			Environment.logException(log.length() == 0 ? "Analysis failed" : "Analysis failed:\n" + log);
+			messages.clearMarkers(ast.getResource());
 			messages.addMarkerFirstLine(ast.getResource(), "Analysis failed (see error log)", IMarker.SEVERITY_ERROR);
 		} else if (!monitor.isCanceled()) {
 			// TODO: figure out how this was supposed to be synchronized
@@ -290,14 +292,12 @@ public class StrategoObserver implements IModelListener {
 	}
 	
 	private final void feedbackToMarkers(IResource resource, IStrategoList feedbacks, int severity) {
+		feedbacks = (IStrategoList) postprocess_feedback_results_0_0.instance.invoke(runtime.getCompiledContext(), feedbacks);
+		
 	    for (IStrategoTerm feedback : feedbacks.getAllSubterms()) {
-	    	if (feedback.getSubtermCount() != 2 || feedback.getSubterm(1).getTermType() != STRING) {
-				// Throw an exception to trigger an Eclipse pop-up
-	    		if (descriptor.isDynamicallyLoaded()) StrategoConsole.activateConsole();
-	    		throw new StrategoException("Illegal feedback result (must be a term/message tuple): " + feedback);
-	    	}
 	        IStrategoTerm term = termAt(feedback, 0);
 			IStrategoString message = termAt(feedback, 1);
+	    	
 			messages.addMarker(resource, term, message.stringValue(), severity);
 	    }
 	}	
@@ -387,7 +387,8 @@ public class StrategoObserver implements IModelListener {
 			result = invoke(function, input, resource);
 		} catch (InterpreterExit e) {
 			if (descriptor.isDynamicallyLoaded()) StrategoConsole.activateConsole();
-			messages.addMarkerFirstLine(resource, "Analysis failed", IMarker.SEVERITY_ERROR);
+			messages.clearMarkers(resource);
+			messages.addMarkerFirstLine(resource, "Analysis failed (see error log)", IMarker.SEVERITY_ERROR);
 			Environment.logException("Runtime exited when evaluating strategy " + function, e);
 		} catch (UndefinedStrategyException e) {
 			// Note that this condition may also be reached when the semantic service hasn't been loaded yet

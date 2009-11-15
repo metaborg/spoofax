@@ -1,7 +1,5 @@
 package org.strategoxt.imp.runtime.stratego.adapter;
 
-import java.util.NoSuchElementException;
-
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermPrinter;
@@ -52,8 +50,8 @@ public class WrappedAstNodeList extends WrappedAstNode implements IStrategoList 
 		return super.getSubterm(index + offset);
 	}
 
-	public IStrategoTerm head() {
-		return get(0);
+	public final IStrategoTerm head() {
+		return getSubtermCount() == 0 ? null : get(0);
 	}
 
 	public final boolean isEmpty() {
@@ -71,7 +69,7 @@ public class WrappedAstNodeList extends WrappedAstNode implements IStrategoList 
 
 	public IStrategoList tail() {
 		if (tail != null) return tail;
-		if (isEmpty()) throw new NoSuchElementException();
+		if (getSubtermCount() == 0) return null;
 		tail = getFactory().wrapList(getNode(), offset + 1);
 		return tail;
 	}
@@ -104,11 +102,20 @@ public class WrappedAstNodeList extends WrappedAstNode implements IStrategoList 
 
 	@Override
 	public int hashFunction() {
-		long hc = 4787;
-		for (int i = 0; i < getSubtermCount(); i++) {
-			hc *= getSubterm(i).hashCode();
-		}
-		return (int) (hc >> 2);
+    	/* UNDONE: BasicStrategoTerm hash; should use cons/nil hash instead
+        long hc = 4787;
+        for (IStrategoList cur = this; !cur.isEmpty(); cur = cur.tail()) {
+            hc *= cur.head().hashCode();
+        }
+        return (int)(hc >> 2);
+        */
+		final int prime = 71;
+		int result = 1;
+		IStrategoTerm head = head();
+		result = prime * result + ((head == null) ? 0 : head.hashCode());
+		IStrategoList tail = tail();
+		result = prime * result + ((tail == null) ? 0 : tail.hashCode());
+		return result;
 	}
 
 	@Deprecated

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Iterator;
+import java.util.concurrent.locks.ReentrantLock;
 
 import lpg.runtime.IPrsStream;
 import lpg.runtime.IToken;
@@ -71,15 +72,26 @@ public class SGLRParseController implements IParseController {
 	
 	private RootAstNode currentAst;
 	
+	private IPrsStream currentParseStream;
+	
 	private ISourceProject project;
 	
 	private IPath path;
 	
-	private boolean isStartupParsed;
+	private volatile boolean isStartupParsed;
+	
+	private ReentrantLock startupParseLock = new ReentrantLock();
 
 	// Simple accessors
 	
-	public final synchronized AstNode getCurrentAst() { 
+	/**
+	 * Gets the last parsed AST for this editor, or
+	 * tries to parse the file if it hasn't been parsed yet.
+	 * 
+	 * @return The parsed AST, or null if the file could not be parsed (yet).
+	 */
+	public final AstNode getCurrentAst() {
+		if (currentAst == null) forceInitialParse();
 		return currentAst;
 	}
 
@@ -147,8 +159,10 @@ public class SGLRParseController implements IParseController {
     }
 
 	public AstNode parse(String input, boolean scanOnly, IProgressMonitor monitor) {
-		if (input.length() == 0)
+		if (input.length() == 0) {
+			currentParseStream = null;
 			return currentAst = null;
+		}
 		
 		if (getPath() == null)
 		    throw new IllegalStateException("SGLR parse controller not initialized");
@@ -163,8 +177,11 @@ public class SGLRParseController implements IParseController {
 		try {
 			// while (PlatformUI.getWorkbench().getDisplay().readAndDispatch());
 			
+			// Can't do resource locking when Eclipse is still starting up; causes deadlock
 			if (isStartupParsed)
 				Job.getJobManager().beginRule(resource, monitor); // enter lock
+			else
+				startupParseLock.lock();
 			
 			Debug.startTimer();
 			
@@ -196,6 +213,7 @@ public class SGLRParseController implements IParseController {
 			//       (the new ast should then also be delayed as to get the old coloring)
 			
 			currentAst = ast;
+			currentParseStream = parser.getParseStream();
 				
 			Debug.stopTimer("File parsed: " + filename);
 		} catch (ParseTimeoutException e) {
@@ -231,10 +249,12 @@ public class SGLRParseController implements IParseController {
 			errorHandler.reportError(parser.getTokenizer(), e);
 			errorHandler.applyMarkers();
 		} finally {
-			if (isStartupParsed)
+			if (isStartupParsed) {
 				Job.getJobManager().endRule(resource);
-			else 
+			} else { 
 				isStartupParsed = true;
+				startupParseLock.unlock();
+			}
 		}
 		
 		if (!monitor.isCanceled())
@@ -294,27 +314,36 @@ public class SGLRParseController implements IParseController {
 	 * Get a parse stream for the current file, enforcing a new parse
 	 * if it hasn't been parsed before.
 	 */
-	public IPrsStream getParseStream() {
+	private IPrsStream getParseStream() {
+		if (currentParseStream != null)
+			return currentParseStream;
+
+		forceInitialParse();
+		return currentParseStream;
+	}
+
+	private void forceInitialParse() {
 		try {
-			IPrsStream stream = parser.getParseStream();
-			
-			if (stream == null) {
-				InputStream input = getResource().getContents();
-	            InputStreamReader reader = new InputStreamReader(input);
-	            StringBuilder contents = new StringBuilder();
-	            char[] buffer = new char[2048];
-	            
-	            for (int read = 0; read != -1; read = reader.read(buffer))
-	                    contents.append(buffer, 0, read);
-	
-				parse(contents.toString(), true, new NullProgressMonitor());
-				stream = parser.getParseStream();
+			if (!isStartupParsed) {
+				startupParseLock.lock();
+				startupParseLock.unlock();
 			}
-			return stream;
+			if (currentAst != null && currentParseStream != null)
+				return;
+			
+			InputStream input = getResource().getContents();
+			InputStreamReader reader = new InputStreamReader(input);
+			StringBuilder contents = new StringBuilder();
+			char[] buffer = new char[2048];
+			
+			for (int read = 0; read != -1; read = reader.read(buffer))
+			        contents.append(buffer, 0, read);
+	
+			parse(contents.toString(), true, new NullProgressMonitor());
 		} catch (IOException e) {
-			return null;
+			Environment.logException("Forced parse failed", e);
 		} catch (CoreException e) {
-			return null;
+			Environment.logException("Forced parse failed", e);
 		}
 	}
 }

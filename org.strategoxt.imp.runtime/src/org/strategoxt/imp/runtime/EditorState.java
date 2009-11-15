@@ -130,6 +130,9 @@ public class EditorState {
 		return getParseController().getProject();
 	}
 	
+	/**
+	 * @see SGLRParseController#getCurrentAst
+	 */
 	public final IStrategoAstNode getCurrentAst() {
 		return getParseController().getCurrentAst();
 	}
