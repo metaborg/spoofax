@@ -78,16 +78,13 @@ public class WrappedAstNodeAppl extends WrappedAstNode implements IStrategoAppl 
 	
 	@Override
 	public int hashFunction() {
-        long r = constructorHashCode();
+        long r = constructor.hashCode();
         int accum = 6673;
-        for(int i = 0; i < getSubtermCount(); i++) {
-            r += getSubterm(i).hashCode() * accum;
+        IStrategoTerm[] kids = getAllSubterms();
+        for(int i = 0; i < kids.length; i++) {
+            r += kids[i].hashCode() * accum;
             accum *= 7703;
         }
         return (int)(r >> 12);
-	}
-	
-	private int constructorHashCode() {
-		return constructor.hashCode() + 5407 * getSubtermCount();
 	}
 }

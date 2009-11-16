@@ -26,19 +26,33 @@ public class WrappedAstNodeList extends WrappedAstNode implements IStrategoList 
 
 	@Override
 	protected boolean doSlowMatch(IStrategoTerm second, int commonStorageType) {
-		if (second.getTermType() != IStrategoTerm.LIST)
-			return false;
-
-		IStrategoList snd = (IStrategoList) second;
-		if (size() != snd.size())
-			return false;
-		if (!getAnnotations().match(second.getAnnotations()))
-			return false;
-		for (int i = 0, sz = size(); i < sz; i++) {
-			if (!get(i).match(snd.get(i)))
-				return false;
-		}
-		return true;
+        if(second.getTermType() != IStrategoTerm.LIST)
+            return false;
+        
+        final IStrategoList snd = (IStrategoList) second;
+        if (size() != snd.size())
+            return false;
+        
+        if (!isEmpty()) {
+        	IStrategoTerm head = head();
+        	IStrategoTerm head2 = snd.head();
+        	if (head != head2 && !head.match(head2))
+        		return false;
+        	
+        	IStrategoList tail = tail();
+        	IStrategoList tail2 = snd.tail();
+        
+	        for (IStrategoList cons = tail, cons2 = tail2; !cons.isEmpty(); cons = cons.tail(), cons2 = cons2.tail()) {
+	            IStrategoTerm consHead = cons.head();
+				IStrategoTerm cons2Head = cons2.head();
+				if (consHead != cons2Head && !consHead.match(cons2Head))
+	                return false;
+	        }
+        }
+        
+        IStrategoList annotations = getAnnotations();
+        IStrategoList secondAnnotations = second.getAnnotations();
+        return annotations == secondAnnotations || annotations.match(secondAnnotations);
 	}
 
 	public final IStrategoTerm get(int index) {

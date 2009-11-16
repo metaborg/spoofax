@@ -27,7 +27,9 @@ public class WrappedAstNodeFactory extends TermFactory implements ITermFactory {
 		} else if (node instanceof ListAstNode) {
 			return new WrappedAstNodeList(this, node);
 		} else {
-			return new WrappedAstNodeAppl(this, node);
+			return "()".equals(node.getConstructor())
+				? new WrappedAstNodeTuple(this, node)
+				: new WrappedAstNodeAppl(this, node);
 		}
 	}
 	
