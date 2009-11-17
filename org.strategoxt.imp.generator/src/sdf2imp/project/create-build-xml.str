@@ -201,7 +201,7 @@ strategies
             </java>
         </target>
         
-        <target name="sdf2rtg" depends="pack-sdf" if="build.stratego.enabled">
+        <target name="sdf2rtg" depends="pack-sdf,copy-sdf" if="build.stratego.enabled">
             <dependset>
                 <srcfileset file="${include}/${sdfmodule}.def"/>
                 <targetfileset file="${include}/${sdfmodule}.rtg"/>
