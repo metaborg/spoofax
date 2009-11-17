@@ -13,6 +13,7 @@ import org.spoofax.jsglr.RecoverAlgorithm;
 import org.spoofax.jsglr.SGLR;
 import org.spoofax.jsglr.SGLRException;
 import org.spoofax.jsglr.TokenExpectedException;
+import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
 
@@ -80,6 +81,8 @@ public class JSGLRI extends AbstractSGLRI {
 			parser.setRecoverHandler(recoverHandler);
 		} catch (NoRecoveryRulesException e) {
 			// Already handled/logged this error in setRecoverHandler()
+			if (Debug.ENABLED)
+				Environment.logException(e);
 		}
 	}
 	

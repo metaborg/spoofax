@@ -201,12 +201,12 @@
          <action
                class="org.strategoxt.imp.runtime.stratego.BuilderButtonDelegate"
                definitionId="org.strategoxt.imp.runtime.transformCommand"
-               icon="icons/builder.png"
                id="org.strategoxt.imp.runtime.stratego.builder"
                label="Apply transformation"
                style="pulldown"
                toolbarPath="spoofax"
                tooltip="Apply transformation to file in current editor"/>
+               <!-- TODO: icon="icons/builder.png" -->
       </actionSet>
    </extension>
    <extension

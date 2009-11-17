@@ -184,7 +184,7 @@ public class ParseErrorHandler {
 			}
 		} else if (getDeprecatedProductionMessage(attrs) != null) {
 			IToken token = tokenizer.makeErrorToken(startOffset, offset - 1);
-			reportWarnningAtTokens(token, token, getDeprecatedProductionMessage(attrs));
+			reportWarningAtTokens(token, token, getDeprecatedProductionMessage(attrs));
 		}
 		
 		if (lexicalStart) inLexicalContext = false;
@@ -299,7 +299,7 @@ public class ParseErrorHandler {
 		});
 	}
 	
-	private void reportWarnningAtTokens(final IToken left, final IToken right, final String message) {
+	private void reportWarningAtTokens(final IToken left, final IToken right, final String message) {
 		errorReports.add(new Runnable() {
 			public void run() {
 				handler.addMarker(source.getResource(), left, right, message, IMarker.SEVERITY_WARNING);

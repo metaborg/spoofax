@@ -136,6 +136,7 @@ strategies
             <property name="site" value="http://www.st.ewi.tudelft.nl/~kats/strategoxt/18b"/>
         	<property name="utils-files.available" value="1"/>
             <mkdir dir="utils"/>
+            <!-- TODO: <copy file="${}" todir="${include}" preservelastmodified="true"/> -->
             <parallel>
                 <get src="${site}/strategoxt.jar" dest="utils/strategoxt.jar" usetimestamp="true" ignoreerrors="true"/>
                 <get src="${site}/make_permissive.jar" dest="utils/make_permissive.jar" usetimestamp="true" ignoreerrors="true"/>

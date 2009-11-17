@@ -9,6 +9,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.jface.dialogs.ErrorDialog;
@@ -28,12 +29,12 @@ public class StrategoBuilderListener implements IModelListener {
 	/**
 	 * Maps target editors to their builder listener.
 	 */
-	private static final Map<EditorState, StrategoBuilderListener> asyncListeners =
-		new WeakHashMap<EditorState, StrategoBuilderListener>();
+	private static final Map<UniversalEditor, StrategoBuilderListener> asyncListeners =
+		new WeakHashMap<UniversalEditor, StrategoBuilderListener>();
 	
 	private final String builder;
 	
-	private final WeakReference<EditorState> editor;
+	private final WeakReference<UniversalEditor> editor;
 	
 	private final WeakReference<IEditorPart> targetEditor;
 	
@@ -45,10 +46,10 @@ public class StrategoBuilderListener implements IModelListener {
 	
 	private boolean enabled = true;
 	
-	private  StrategoBuilderListener(EditorState editor, IEditorPart targetEditor, IFile targetFile,
+	private  StrategoBuilderListener(UniversalEditor editor, IEditorPart targetEditor, IFile targetFile,
 			String builder, IStrategoAstNode selection) {
 		
-		this.editor = new WeakReference<EditorState>(editor);
+		this.editor = new WeakReference<UniversalEditor>(editor);
 		this.targetEditor = new WeakReference<IEditorPart>(targetEditor);
 		this.builder = builder;
 		this.targetFile = targetFile;
@@ -56,13 +57,13 @@ public class StrategoBuilderListener implements IModelListener {
 		this.selection = selection;
 	}
 
-	public static void addListener(EditorState editor, IEditorPart target, IFile file, String builder, IStrategoAstNode node) {
+	public static void addListener(UniversalEditor editor, IEditorPart target, IFile file, String builder, IStrategoAstNode node) {
 		synchronized (asyncListeners) {
 			StrategoBuilderListener listener = asyncListeners.get(editor);
 			if (listener != null) listener.setEnabled(false);
 			listener = new StrategoBuilderListener(editor, target, file, builder, node);
 			asyncListeners.put(editor, listener);
-			editor.getEditor().addModelListener(listener);
+			editor.addModelListener(listener);
 		}
 	}
 	
@@ -75,7 +76,7 @@ public class StrategoBuilderListener implements IModelListener {
 	}
 	
 	public boolean isEnabled() {
-		EditorState editor = this.editor.get();
+		UniversalEditor editor = this.editor.get();
 		IEditorPart targetEditor = this.targetEditor.get();
 		
 		if (!enabled || editor == null || targetEditor == null || targetEditor.isDirty()
@@ -94,7 +95,7 @@ public class StrategoBuilderListener implements IModelListener {
 	}
 
 	public void update(IProgressMonitor monitor) {
-		EditorState editor = this.editor.get(); // (must appear first; garbage might be collected)
+		EditorState editor = new EditorState(this.editor.get()); // (must appear first; garbage might be collected)
 		if (!isEnabled())
 			return;
 		

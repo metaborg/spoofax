@@ -34,5 +34,13 @@
             class="org.strategoxt.imp.metatooling.NativePrefixAntPropertyProvider"
             name="eclipse.spoofaximp.nativeprefix">
       </antProperty>
+      <antProperty
+            class="org.strategoxt.imp.metatooling.StrategoJarAntPropertyProvider"
+            name="eclipse.spoofaximp.strategojar">
+      </antProperty>
+      <antProperty
+            class="org.strategoxt.imp.metatooling.SPIJarsAntPropertyProvider"
+            name="eclipse.spoofaximp.jars">
+      </antProperty>
    </extension>
 </plugin>

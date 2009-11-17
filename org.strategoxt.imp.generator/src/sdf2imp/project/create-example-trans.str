@@ -137,7 +137,7 @@ rules
    * Adds a note to modules named \"example.\"
    */
   constraint-note:
-    Module(x, _) -> (x, [\"This is just an example program in the \\\"entities\\\" language,\"
+    Module(x, _) -> (x, [\"This is just an example program in the \\\"entities\\\" language,\",
                          \" (this note is defined in trans/", name, ".str) ])\"])
     where
       !x => \"example\"

@@ -107,7 +107,7 @@ public class StrategoBuilder implements IBuilder {
 			if (openEditor) {
 				IEditorPart target = openEditor(file, !realTime);
 				if (realTime)
-					StrategoBuilderListener.addListener(editor, target, file, getCaption(), node);
+					StrategoBuilderListener.addListener(editor.getEditor(), target, file, getCaption(), node);
 			}
 		} catch (CoreException e) {
 			Environment.logException("Builder failed", e);
