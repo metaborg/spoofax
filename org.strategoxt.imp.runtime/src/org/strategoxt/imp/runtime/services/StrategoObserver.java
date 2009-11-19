@@ -37,6 +37,7 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.HybridInterpreter;
 import org.strategoxt.IncompatibleJarException;
 import org.strategoxt.imp.generator.postprocess_feedback_results_0_0;
+import org.strategoxt.imp.generator.sdf2imp;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
@@ -47,6 +48,7 @@ import org.strategoxt.imp.runtime.stratego.StrategoConsole;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 import org.strategoxt.imp.runtime.stratego.adapter.WrappedAstNode;
+import org.strategoxt.lang.Context;
 import org.strategoxt.lang.StrategoException;
 import org.strategoxt.stratego_lib.set_config_0_0;
 
@@ -292,7 +294,9 @@ public class StrategoObserver implements IModelListener {
 	}
 	
 	private final void feedbackToMarkers(IResource resource, IStrategoList feedbacks, int severity) {
-		feedbacks = (IStrategoList) postprocess_feedback_results_0_0.instance.invoke(runtime.getCompiledContext(), feedbacks);
+		Context context = runtime.getCompiledContext();
+		sdf2imp.init(context);
+		feedbacks = (IStrategoList) postprocess_feedback_results_0_0.instance.invoke(context, feedbacks);
 		
 	    for (IStrategoTerm feedback : feedbacks.getAllSubterms()) {
 	        IStrategoTerm term = termAt(feedback, 0);

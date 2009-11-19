@@ -123,7 +123,6 @@ public class SGLRParseController implements IParseController {
 	// Parsing and initialization
     
     static {
-    	SGLR.setWorkAroundMultipleLookahead(true);
     	if (!Debug.ENABLED)
     		Tools.setTimeout(PARSE_TIMEOUT);
     }

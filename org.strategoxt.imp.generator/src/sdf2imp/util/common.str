@@ -8,6 +8,7 @@ strategies
 
   // (Used from StrategoObserver.java)
   postprocess-feedback-results =
+    (is-list <+ ![<id>]);
     flatten-list;
     map(
       (is-tuple <+ !(<id>, <id>));

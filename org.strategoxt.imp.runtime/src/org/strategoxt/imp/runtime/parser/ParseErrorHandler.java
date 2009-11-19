@@ -1,5 +1,6 @@
 package org.strategoxt.imp.runtime.parser;
 
+import static org.spoofax.interpreter.core.Tools.*;
 import static org.spoofax.jsglr.Term.*;
 
 import java.util.ArrayList;
@@ -9,6 +10,9 @@ import lpg.runtime.IToken;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.imp.parser.IMessageHandler;
+import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.interpreter.terms.TermConverter;
 import org.spoofax.jsglr.BadTokenException;
 import org.spoofax.jsglr.ParseTimeoutException;
 import org.spoofax.jsglr.RecoveryConnector;
@@ -18,6 +22,12 @@ import org.strategoxt.imp.runtime.parser.ast.AsfixAnalyzer;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
+import org.strategoxt.lang.Context;
+import org.strategoxt.stratego_aterm.pp_aterm_box_0_0;
+import org.strategoxt.stratego_aterm.stratego_aterm;
+import org.strategoxt.stratego_gpp.box2text_string_0_1;
+import org.strategoxt.stratego_sglr.implode_asfix_0_0;
+import org.strategoxt.stratego_sglr.stratego_sglr;
 
 import aterm.ATerm;
 import aterm.ATermAppl;
@@ -72,6 +82,8 @@ public class ParseErrorHandler {
 	private boolean inLexicalContext;
 	
 	private List<Runnable> errorReports = new ArrayList<Runnable>();
+	
+	private Context ambReportingContext;
 
 	public ParseErrorHandler(SGLRParseController source) {
 		this.source = source;
@@ -204,25 +216,25 @@ public class ParseErrorHandler {
     }
 	
 	private void reportAmbiguity(SGLRTokenizer tokenizer, ATermAppl amb, int startOffset) {
-		if (!inLexicalContext && hasContextFreeNode(amb)) {
+		if (!inLexicalContext) {
 			IToken token = tokenizer.makeErrorToken(startOffset, offset - 1);
-			reportErrorAtTokens(token, token, "Fragment is ambiguous");
-		}
-	}
-	
-	private static boolean hasContextFreeNode(ATermAppl term) {
-		if ("lit".equals(term.getAFun().getName()))
-			return true;
-		
-		for (int i = 0; i < term.getChildCount(); i++) {
-			ATerm child = termAt(term, i);
-			if (child.getType() == ATerm.AFUN) {
-				boolean success = hasContextFreeNode((ATermAppl) child);
-				if (success) return true;
+			if (ambReportingContext == null) {
+				stratego_sglr.init();
+				ambReportingContext = stratego_aterm.init();
 			}
+			ITermFactory factory = ambReportingContext.getFactory();
+			IStrategoTerm ambTerm;
+			synchronized (Environment.getSyncRoot()) {
+				ambTerm = TermConverter.convert(factory, Environment.getWrappedATermFactory().wrapTerm(amb));
+			}
+			
+			ambTerm = factory.makeAppl(factory.makeConstructor("parsetree", 2), ambTerm, factory.makeInt(2));
+			ambTerm = implode_asfix_0_0.instance.invoke(ambReportingContext, ambTerm);
+			ambTerm = pp_aterm_box_0_0.instance.invoke(ambReportingContext, ambTerm);
+			ambTerm = box2text_string_0_1.instance.invoke(ambReportingContext, ambTerm, factory.makeInt(80));
+			
+			reportWarningAtTokens(token, token, "Fragment is ambiguous: " + asJavaString(ambTerm));
 		}
-		
-		return false;
 	}
 	
 	private void reportSkippedFragments(SGLRTokenizer tokenizer) {

@@ -105,7 +105,7 @@ public class StrategoBuilder implements IBuilder {
 			IFile file = createFile(editor, filename, result);
 			// TODO: if not persistent, create IEditorInput from result String
 			if (openEditor) {
-				IEditorPart target = openEditor(file, !realTime);
+				IEditorPart target = openEditor(file, realTime);
 				if (realTime)
 					StrategoBuilderListener.addListener(editor.getEditor(), target, file, getCaption(), node);
 			}
@@ -169,10 +169,32 @@ public class StrategoBuilder implements IBuilder {
 	 * Opens or activates an editor.
 	 * (Asynchronous) exceptions are swallowed and logged.
 	 */
-	private static IEditorPart openEditor(IFile file, boolean activate) throws PartInitException {
+	private static IEditorPart openEditor(IFile file, boolean realTime) throws PartInitException {
+		// TODO: WorkBenchPage.openEdiotr with a custom IEditorInput?
 		IWorkbenchPage page =
 			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-		return IDE.openEditor(page, file, activate);
+		
+		SidePaneEditorHelper sidePane = null;
+		
+		if (realTime) {
+			try {
+				sidePane = SidePaneEditorHelper.openSidePane();
+			} catch (Throwable t) {
+				// org.eclipse.ui.internal API might have changed
+				Environment.logException("Unable to open side pane", t);
+			}
+		}
+		
+		IEditorPart result = null;
+		try {
+			result = IDE.openEditor(page, file, !realTime);
+		} finally {
+			if (result == null && sidePane != null) sidePane.undoOpenSidePane();
+		}
+		
+		if (sidePane != null) sidePane.restoreFocus();
+		
+		return result;
 	}
 	
 	@Override

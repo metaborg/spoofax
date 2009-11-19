@@ -15,15 +15,16 @@ import org.strategoxt.imp.generator.sdf2imp_jvm_0_0;
 import org.strategoxt.imp.metatooling.loading.DynamicDescriptorUpdater;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.dynamicloading.DescriptorFactory;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.StrategoConsole;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.StrategoErrorExit;
 import org.strategoxt.lang.StrategoExit;
+import org.strategoxt.permissivegrammars.make_permissive;
 import org.strategoxt.stratego_lib.dr_scope_all_end_0_0;
 import org.strategoxt.stratego_lib.dr_scope_all_start_0_0;
-import org.strategoxt.permissivegrammars.make_permissive;
 
 /**
  * Runs the project generator on modified editor descriptors.
@@ -61,6 +62,7 @@ public class DynamicDescriptorBuilder {
 		if (location == null) return;
 		
 		try {
+			System.err.println("Resource changed: " + resource.getName()); // DEBUG
 			if (resource.exists() && isMainFile(resource)) {
 				monitor.beginTask("Building " + resource.getName(), IProgressMonitor.UNKNOWN);
 				buildDescriptor(resource, monitor);
@@ -79,6 +81,10 @@ public class DynamicDescriptorBuilder {
 	private void buildDescriptor(IResource mainFile, IProgressMonitor monitor) {
 		try {
 			Environment.assertLock();
+			
+			monitor.beginTask("Notifying active editors", IProgressMonitor.UNKNOWN);
+			DescriptorFactory.prepareForReload(getSourceDescriptor(mainFile));
+			
 			messageHandler.clearMarkers(mainFile);
 			monitor.beginTask("Generating service descriptors for " + mainFile.getName(), IProgressMonitor.UNKNOWN);
 			IStrategoTerm result = invokeBuilder(mainFile);

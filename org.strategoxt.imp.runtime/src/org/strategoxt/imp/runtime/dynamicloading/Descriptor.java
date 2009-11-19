@@ -1,5 +1,6 @@
 package org.strategoxt.imp.runtime.dynamicloading;
 
+import static org.spoofax.interpreter.core.Tools.*;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.*;
 
 import java.io.BufferedInputStream;
@@ -15,6 +16,7 @@ import java.util.Set;
 import java.util.WeakHashMap;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.language.Language;
@@ -24,13 +26,12 @@ import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.services.MetaFileLanguageValidator;
-import org.strategoxt.imp.runtime.services.StrategoBuilderListener;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  * 
- * @see DescriptorFactory#load(IFile)
+ * @see DescriptorFactory#load(IFile, IResource)
  */
 public class Descriptor {
 	public static final String ROOT_LANGUAGE = "DynamicRoot";
@@ -85,7 +86,15 @@ public class Descriptor {
 		for (AbstractService service : services.keySet())
 			service.reinitialize(newDescriptor);
 		attachedFiles = null;
-		StrategoBuilderListener.rescheduleAllListeners();
+		// UNDONE: StrategoBuilderListener.rescheduleAllListeners(); // TODO: cleanup
+	}
+	
+	/**
+	 * Prepares editor services for reinitialization with a new descriptor.
+	 */
+	public void prepareForReinitialize() {
+		for (AbstractService service : services.keySet())
+			service.prepareForReinitialize();
 	}
 	
 	// LOADING SERVICES

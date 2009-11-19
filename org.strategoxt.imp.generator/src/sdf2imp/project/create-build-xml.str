@@ -80,15 +80,15 @@ strategies
     
         <target name="all" depends="stratego.ctree,sdf2table,sdf2imp"/>
 
-        <target name="sdf2imp" depends="sdf2imp.eclipse,sdf2imp.standalone"/>
+        <target name="sdf2imp" depends="sdf2table,sdf2imp.eclipse,sdf2imp.standalone"/>
         
-        <target name="sdf2imp.eclipse" depends="sdf2table" if="eclipse.running">
+        <target name="sdf2imp.eclipse" if="eclipse.running">
             <!-- In Eclipse, we trigger the Eclipse builder rather than build it here -->
             <touch file="${include}/${esvmodule}.packed.esv"/>
             <eclipse.refreshLocal resource="${include}/${esvmodule}.packed.esv"/>
         </target>
         
-        <target name="sdf2imp.standalone" depends="sdf2table,utils-files" unless="eclipse.running">
+        <target name="sdf2imp.standalone" unless="eclipse.running" depends="utils-files">
             <java classname="org.strategoxt.imp.generator.sdf2imp" classpath="utils/sdf2imp.jar:utils/strategoxt.jar" failonerror="true" fork="true">
                 <jvmarg line="${build.jvmargs}"/>
                 <arg value="-i"/>
@@ -132,16 +132,11 @@ strategies
             </java>
         </target>
 
-        <target name="utils-files" unless="utils-files.available">
-            <property name="site" value="http://www.st.ewi.tudelft.nl/~kats/strategoxt/18b"/>
-        	<property name="utils-files.available" value="1"/>
+        <target name="utils-files">
             <mkdir dir="utils"/>
-            <!-- TODO: <copy file="${}" todir="${include}" preservelastmodified="true"/> -->
-            <parallel>
-                <get src="${site}/strategoxt.jar" dest="utils/strategoxt.jar" usetimestamp="true" ignoreerrors="true"/>
-                <get src="${site}/make_permissive.jar" dest="utils/make_permissive.jar" usetimestamp="true" ignoreerrors="true"/>
-                <get src="${site}/sdf2imp.jar" dest="utils/sdf2imp.jar" usetimestamp="true" ignoreerrors="true"/>
-            </parallel>
+            <copy file="${eclipse.spoofaximp.jars}/make_permissive.jar" todir="utils"/>
+            <copy file="${eclipse.spoofaximp.jars}/sdf2imp.jar"         todir="utils"/>
+            <copy file="${eclipse.spoofaximp.strategojar}"              todir="utils"/>
         </target>
     
         <target name="pack-sdf" unless="externaldef">
@@ -155,7 +150,7 @@ strategies
             <antcall target="pack-sdf.helper"/>
         </target>
     
-        <target name="pack-sdf.helper" depends="utils-files" unless="pack-sdf.available">
+        <target name="pack-sdf.helper" unless="pack-sdf.available" depends="utils-files">
             <java classname="start" classpath="utils/strategoxt.jar" failonerror="true" fork="true">
                 <jvmarg line="${build.jvmargs}"/>
                 <arg value="org.strategoxt.tools.main-pack-sdf"/>
@@ -179,7 +174,7 @@ strategies
             <copy file="${externaljar}" todir="${include}" preservelastmodified="true"/>
         </target>
     
-        <target name="rtg2sig" depends="sdf2rtg" if="build.stratego.enabled">
+        <target name="rtg2sig" if="build.stratego.enabled" depends="sdf2rtg">
             <dependset>
                 <srcfileset file="${include}/${sdfmodule}.rtg"/>
                 <targetfileset file="${include}/${sdfmodule}.str"/>
@@ -188,7 +183,7 @@ strategies
             <antcall target="rtg2sig.helper"/>
         </target>
     
-        <target name="rtg2sig.helper" depends="utils-files" unless="rtg2sig.available">
+        <target name="rtg2sig.helper" unless="rtg2sig.available" depends="utils-files">
             <java classname="start" classpath="utils/strategoxt.jar" failonerror="true" fork="true">
                 <jvmarg line="${build.jvmargs}"/>
                 <arg value="org.strategoxt.tools.main-rtg2sig"/>
@@ -201,7 +196,7 @@ strategies
             </java>
         </target>
         
-        <target name="sdf2rtg" depends="pack-sdf,copy-sdf" if="build.stratego.enabled">
+        <target name="sdf2rtg" if="build.stratego.enabled" depends="pack-sdf,copy-sdf">
             <dependset>
                 <srcfileset file="${include}/${sdfmodule}.def"/>
                 <targetfileset file="${include}/${sdfmodule}.rtg"/>
@@ -210,7 +205,7 @@ strategies
             <antcall target="sdf2rtg.helper"/>
         </target>
     
-        <target name="sdf2rtg.helper" depends="utils-files" unless="sdf2rtg.available">
+        <target name="sdf2rtg.helper" unless="sdf2rtg.available" depends="utils-files">
             <java classname="start" classpath="utils/strategoxt.jar" failonerror="true" fork="true">
                 <jvmarg line="${build.jvmargs}"/>
                 <arg value="org.strategoxt.tools.main-sdf2rtg"/>
@@ -226,7 +221,7 @@ strategies
             </java>
         </target>
         
-        <target name="ppgen" depends="pack-sdf" if="build.stratego.enabled">
+        <target name="ppgen" if="build.stratego.enabled" depends="pack-sdf">
             <dependset>
                 <srcfileset file="${include}/${sdfmodule}.def"/>
                 <targetfileset file="${include}/${sdfmodule}.pp"/>
@@ -235,7 +230,7 @@ strategies
             <antcall target="ppgen.helper"/>
         </target>
     
-        <target name="ppgen.helper" depends="utils-files" unless="ppgen.available">
+        <target name="ppgen.helper" unless="ppgen.available" depends="utils-files">
             <java classname="start" dir="${include}" classpath="utils/strategoxt.jar" failonerror="true" fork="true">
                 <jvmarg line="${build.jvmargs}"/>
                 <arg value="org.strategoxt.tools.main-ppgen"/>
@@ -283,7 +278,7 @@ strategies
             <jar basedir="${build}" includes="trans/**" destfile="${include}/${strmodule}.jar"/>
         </target>
             
-        <target name="stratego.jvm.helper" depends="utils-files" unless="strc-java.available" if="build.stratego.enabled">
+        <target name="stratego.jvm.helper" unless="strc-java.available" if="build.stratego.enabled" depends="utils-files">
             <java classname="org.strategoxt.strj.Main" classpath="utils/strategoxt.jar:utils/sdf2imp.jar" failonerror="true" fork="true">
                 <jvmarg line="${build.jvmargs}"/>
                 <arg value="-i"/>

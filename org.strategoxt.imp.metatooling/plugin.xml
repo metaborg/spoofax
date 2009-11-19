@@ -39,7 +39,7 @@
             name="eclipse.spoofaximp.strategojar">
       </antProperty>
       <antProperty
-            class="org.strategoxt.imp.metatooling.SPIJarsAntPropertyProvider"
+            class="org.strategoxt.imp.metatooling.JarsAntPropertyProvider"
             name="eclipse.spoofaximp.jars">
       </antProperty>
    </extension>

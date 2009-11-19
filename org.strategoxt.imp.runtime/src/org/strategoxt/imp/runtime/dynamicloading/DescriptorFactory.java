@@ -2,15 +2,17 @@ package org.strategoxt.imp.runtime.dynamicloading;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.language.Language;
+import org.jboss.util.collection.WeakValueHashMap;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.jsglr.InvalidParseTableException;
 import org.spoofax.jsglr.ParseTable;
-import org.spoofax.jsglr.SGLR;
 import org.spoofax.jsglr.SGLRException;
 import org.strategoxt.imp.generator.sdf2imp;
 import org.strategoxt.imp.runtime.Debug;
@@ -26,10 +28,11 @@ public class DescriptorFactory {
 	
 	private static JSGLRI descriptorParser;
 	
+	private static Map<IResource, Descriptor> asyncOldDescriptors = new WeakValueHashMap<IResource, Descriptor>();
+	
 	private static void init() {
 		if (descriptorParser != null) return;
 		try {
-			SGLR.setWorkAroundMultipleLookahead(true);
 			InputStream stream = sdf2imp.class.getResourceAsStream("/EditorService.tbl");
 			ParseTable table = Environment.registerParseTable(Descriptor.DESCRIPTOR_LANGUAGE, stream);
 			descriptorParser = new JSGLRI(table, "Module");
@@ -39,11 +42,26 @@ public class DescriptorFactory {
 		}
 	}
 	
-	public static Descriptor load(IFile descriptor) throws CoreException, BadDescriptorException, IOException {
+	public static Descriptor load(IFile descriptor, IResource source) throws CoreException, BadDescriptorException, IOException {
 		IPath basePath = descriptor.getLocation();
 		basePath = basePath.removeLastSegments(2); // strip off /include/filename.main.esv
 		Debug.log("Loading editor services for ", descriptor.getName());
-		return load(descriptor.getContents(true), null, basePath);
+		
+		Descriptor result = load(descriptor.getContents(true), null, basePath);
+		synchronized (asyncOldDescriptors) {
+			assert source.getName().endsWith(".main.esv");
+			asyncOldDescriptors.put(source, result);
+		}
+		return result;
+	}
+	
+	public static void prepareForReload(IResource descriptor) {
+		assert descriptor.getName().endsWith(".main.esv");
+		synchronized (asyncOldDescriptors) {
+			Descriptor oldDescriptor = asyncOldDescriptors.get(descriptor);
+			if (oldDescriptor != null)
+				oldDescriptor.prepareForReinitialize();
+		}
 	}
 	
 	/**

@@ -150,7 +150,7 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 			asyncMessageHandler.clearMarkers(descriptor);
 			
 			IFile file = descriptor.getProject().getFile(descriptor.getProjectRelativePath());
-			Descriptor result = DescriptorFactory.load(file);
+			Descriptor result = DescriptorFactory.load(file, getSourceDescriptor(descriptor));
 			result.setDynamicallyLoaded(true);
 			
 		} catch (BadDescriptorException e) {

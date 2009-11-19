@@ -83,4 +83,8 @@ public class AbstractService<T extends ILanguageService> {
 		wrapped = null;
 		language = newDescriptor.getLanguage();
 	}
+	
+	public void prepareForReinitialize() {
+		// By default, does nothing
+	}
 }

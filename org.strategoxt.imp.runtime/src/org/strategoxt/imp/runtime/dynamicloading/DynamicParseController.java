@@ -6,6 +6,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.model.ISourceProject;
@@ -15,6 +16,7 @@ import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.eclipse.imp.services.IAnnotationTypeInfo;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.Region;
 import org.strategoxt.imp.runtime.EditorState;
 
 /**
@@ -35,6 +37,8 @@ public class DynamicParseController extends AbstractService<IParseController> im
 	private ISourceProject project;
 	
 	private IMessageHandler handler;
+	
+	private boolean isReinitialized;
 	
 	public DynamicParseController() {
 		super(IParseController.class);
@@ -83,6 +87,10 @@ public class DynamicParseController extends AbstractService<IParseController> im
 	public ISourceProject getProject() {
 		return getWrapped().getProject();
 	}
+	
+	protected EditorState getLastEditor() {
+		return lastEditor;
+	}
 
 	public ILanguageSyntaxProperties getSyntaxProperties() {
 		return getWrapped().getSyntaxProperties();
@@ -113,12 +121,24 @@ public class DynamicParseController extends AbstractService<IParseController> im
 	@Override
 	public void reinitialize(Descriptor newDescriptor) throws BadDescriptorException {
 		super.reinitialize(newDescriptor);
-		if (lastEditor != null)
+		isReinitialized = true;
+		if (lastEditor != null && !lastEditor.getEditor().getTitleImage().isDisposed()) {
 			lastEditor.getEditor().fParserScheduler.schedule(REINIT_PARSE_DELAY);
+		}
 	}
 
 	public Object parse(String input, boolean scanOnly, IProgressMonitor monitor) {
-		return getWrapped().parse(input, scanOnly, monitor);
+		Object result = getWrapped().parse(input, scanOnly, monitor);
+		if (isReinitialized) {
+			// Update other services
+			// TODO: Trigger colorer update
+			// lastEditor.getEditor().getServiceControllerManager().getPresentationController().damage(new Region(0, input.length()));
+			
+			lastEditor.getEditor().damage(new Region(0, input.length()));
+			lastEditor.getEditor().fParserScheduler.notifyModelListeners(new NullProgressMonitor());
+			isReinitialized = false;
+		}
+		return result;
 	}
 
 	public IResource getResource() {
