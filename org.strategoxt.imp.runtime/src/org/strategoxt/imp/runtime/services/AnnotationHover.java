@@ -38,7 +38,7 @@ public class AnnotationHover extends DefaultAnnotationHover implements IAnnotati
 		StringBuffer result = new StringBuffer();
 		addPageProlog(result);
 		result.append("<p>");
-		result.append(convertToHTMLContent(annotations.get(0).getText()));
+		result.append(/*convertToHTMLContent*/(annotations.get(0).getText())); // UNDONE: Moved to StrategoObserver
 		result.append("</p>");
 		addPageEpilog(result);
     	return result.toString();
@@ -50,14 +50,15 @@ public class AnnotationHover extends DefaultAnnotationHover implements IAnnotati
 		result.append("Multiple messages:<ul>");
 		for (Annotation annotation : annotations) {
 			result.append("<li> ");
-			result.append(convertToHTMLContent(annotation.getText()));
+			result.append(/*convertToHTMLContent*/(annotation.getText()));
 			result.append("</li>");
 		}
+		result.append("</ul>");
 		addPageEpilog(result);
     	return result.toString();
     }
 	
-	private static String convertToHTMLContent(String content) {
+	public static String convertToHTMLContent(String content) {
 		return HTMLPrinter.convertToHTMLContent(content).replace("\n", "<br />");
 	}
 

@@ -300,9 +300,10 @@ public class StrategoObserver implements IModelListener {
 		
 	    for (IStrategoTerm feedback : feedbacks.getAllSubterms()) {
 	        IStrategoTerm term = termAt(feedback, 0);
-			IStrategoString message = termAt(feedback, 1);
-	    	
-			messages.addMarker(resource, term, message.stringValue(), severity);
+			IStrategoString messageTerm = termAt(feedback, 1);
+			String message = AnnotationHover.convertToHTMLContent(messageTerm.stringValue());
+			
+			messages.addMarker(resource, term, message, severity);
 	    }
 	}	
 	

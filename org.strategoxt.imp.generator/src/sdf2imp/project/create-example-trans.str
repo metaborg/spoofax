@@ -50,7 +50,7 @@ rules
       // Collect all feedback markers
       errors   := <collect-all(constraint-error, conc)> ast;
       warnings := <collect-all(constraint-warning, conc)> ast;
-      notes    := <collect-all(constraint-note), conc> ast
+      notes    := <collect-all(constraint-note, conc)> ast
 
   /**
    * Records the definition of an entity in a dynamic rule GetEntity.
