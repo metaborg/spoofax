@@ -55,7 +55,6 @@ exports
   
     [a-zA-Z][a-zA-Z0-9\\_]* -> ID
     \"-\"? [0-9]+            -> INT
-    \"\\\"\" ~[\\\"\\n]* \"\\\"\"     -> STRING
     
     \"\\\"\" StringChar* \"\\\"\" -> STRING
     ~[\\\"\\n]               -> StringChar
