@@ -56,6 +56,12 @@ public class TokenColorer implements ITokenColorer {
 		int tokenKind = token.getKind();
 		String sort = node == null ? null : node.getSort();
 		String constructor = node == null ? null : node.getConstructor();
+		
+		/*if (tokenKind == TokenKind.TK_LAYOUT.ordinal() && SGLRToken.isWhiteSpace(token)) {
+			// Don't treat whitespace layout as comments, to avoid italics in text that
+			// was just typed in
+			tokenKind = TokenKind.TK_UNKNOWN.ordinal();
+		}*/
 		 
 		TextAttribute tokenColor = getColoring(tokenMappings, constructor, sort, tokenKind);
 		TextAttribute nodeColor = getColoring(nodeMappings, constructor, sort, tokenKind);
@@ -120,13 +126,12 @@ public class TokenColorer implements ITokenColorer {
 	}
 
 	private static TextAttribute noWhitespaceBackground(TextAttribute attribute, IToken token, int tokenKind) {
-		// FIXME: Don't use toString() on tokens
 		// TODO: Prefer a white background for layout tokens next to another white token
 		
 		if (attribute.getBackground() == null) {
 			// _lastBackground = WHITE;
 			return attribute;
-		} else if (tokenKind == TokenKind.TK_LAYOUT.ordinal() && token.toString().contains("\n")) {			
+		} else if (tokenKind == TokenKind.TK_LAYOUT.ordinal() && SGLRToken.indexOf(token, '\n') != -1) {			
 			attribute = new TextAttribute(attribute.getForeground(), null, attribute.getStyle());
 		}
 

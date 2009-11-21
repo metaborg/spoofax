@@ -86,6 +86,7 @@ public class DynamicDescriptorBuilder {
 			DescriptorFactory.prepareForReload(getSourceDescriptor(mainFile));
 			
 			messageHandler.clearMarkers(mainFile);
+			messageHandler.commitChanges();
 			monitor.beginTask("Generating service descriptors for " + mainFile.getName(), IProgressMonitor.UNKNOWN);
 			IStrategoTerm result = invokeBuilder(mainFile);
 			if (result == null) {

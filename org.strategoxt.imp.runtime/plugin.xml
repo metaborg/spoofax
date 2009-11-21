@@ -60,8 +60,6 @@
          name="Parse error"
          point="org.eclipse.core.resources.markers">
     		<persistent value="true" />
-            <super type="org.eclipse.core.resources.problemmarker"/>
-            <super type="org.eclipse.core.resources.textmarker"/>
    </extension>
    
    <extension
@@ -101,58 +99,56 @@
          point="org.eclipse.ui.editors.markerAnnotationSpecification">
       <specification
             annotationType="org.strategoxt.imp.runtime.parseerror"
-            colorPreferenceKey="spiParseAnnotationColor"
-            colorPreferenceValue="255,128,147"
-            contributesToHeader="true"
-            highlightPreferenceKey="parseAnnotationHighlightKey"
-            highlightPreferenceValue="false"
-            includeOnPreferencePage="false"
-            isGoToNextNavigationTarget="true"
-            isGoToNextNavigationTargetKey="parseAnnotationIsGotoNextKey"
-            isGoToPreviousNavigationTarget="true"
-            isGoToPreviousNavigationTargetKey="parseAnnotationIsGotoPrevKey"
-            label="Spoofax/IMP Parser Annotation"
-            overviewRulerPreferenceKey="parseAnnotationOverviewKey"
-            overviewRulerPreferenceValue="true"
-            presentationLayer="1"
-            showInNextPrevDropdownToolbarAction="true"
-            symbolicIcon="error"
-            textPreferenceKey="parseAnnotationTextKey"
+            textPreferenceKey="spiParseErrorAnnotationColor"
             textPreferenceValue="true"
-            textStylePreferenceKey="parseAnnotationTextStyleKey"
-            textStylePreferenceValue="SQUIGGLES"
-            verticalRulerPreferenceKey="parseAnnotationVerticalKey"
-            verticalRulerPreferenceValue="true"/>
+            presentationLayer="6"
+            showInNextPrevDropdownToolbarAction="true"
+            label="Spoofax/IMP Parser Annotation"
+            colorPreferenceKey="errorIndicationColor"
+            showInNextPrevDropdownToolbarActionKey="showErrorInNextPrevDropdownToolbarAction"
+            symbolicIcon="error"
+            isGoToNextNavigationTargetKey="isErrorGoToNextNavigationTarget"
+            isGoToPreviousNavigationTargetKey="isErrorGoToPreviousNavigationTarget"
+            isGoToPreviousNavigationTarget="true"
+            highlightPreferenceKey="errorIndicationHighlighting"
+            highlightPreferenceValue="false"
+            textStylePreferenceKey="errorTextStyle"
+			textStylePreferenceValue="SQUIGGLES"             
+            verticalRulerPreferenceKey="errorIndicationInVerticalRuler"
+            verticalRulerPreferenceValue="true"
+            overviewRulerPreferenceKey="errorIndicationInOverviewRuler"
+            overviewRulerPreferenceValue="true"
+            contributesToHeader="true"
+            colorPreferenceValue="255,128,147"/>
    </extension>
 
-   <!-- TODO: proper red and orange colors for errors and warnings --> 
+   <!-- TODO: proper red and orange colors for errors and warnings? -->
    <extension
          id="org.strategoxt.imp.runtime.parsemarkerspec"
          point="org.eclipse.ui.editors.markerAnnotationSpecification">
       <specification
             annotationType="org.strategoxt.imp.runtime.parsewarning"
-            colorPreferenceKey="spiParseAnnotationColor"
-            colorPreferenceValue="255,148,127"
-            contributesToHeader="true"
-            highlightPreferenceKey="parseAnnotationHighlightKey"
-            highlightPreferenceValue="false"
-            includeOnPreferencePage="false"
-            isGoToNextNavigationTarget="true"
-            isGoToNextNavigationTargetKey="parseAnnotationIsGotoNextKey"
-            isGoToPreviousNavigationTarget="true"
-            isGoToPreviousNavigationTargetKey="parseAnnotationIsGotoPrevKey"
-            label="Spoofax/IMP Parser Annotation"
-            overviewRulerPreferenceKey="parseAnnotationOverviewKey"
-            overviewRulerPreferenceValue="true"
-            presentationLayer="1"
-            showInNextPrevDropdownToolbarAction="true"
-            symbolicIcon="warning"
-            textPreferenceKey="parseAnnotationTextKey"
+            textPreferenceKey="spiParseErrorAnnotationColor"
             textPreferenceValue="true"
-            textStylePreferenceKey="parseAnnotationTextStyleKey"
-            textStylePreferenceValue="SQUIGGLES"
-            verticalRulerPreferenceKey="parseAnnotationVerticalKey"
-            verticalRulerPreferenceValue="true"/>
+            presentationLayer="6"
+            showInNextPrevDropdownToolbarAction="true"
+            label="Spoofax/IMP Parser Warning Annotation"
+            colorPreferenceKey="warningIndicationColor"
+            showInNextPrevDropdownToolbarActionKey="showErrorInNextPrevDropdownToolbarAction"
+            symbolicIcon="warning"
+            isGoToNextNavigationTargetKey="isErrorGoToNextNavigationTarget"
+            isGoToPreviousNavigationTargetKey="isErrorGoToPreviousNavigationTarget"
+            isGoToPreviousNavigationTarget="true"
+            highlightPreferenceKey="warningIndicationHighlighting"
+            highlightPreferenceValue="false"
+            textStylePreferenceKey="warningTextStyle"
+			textStylePreferenceValue="SQUIGGLES"             
+            verticalRulerPreferenceKey="warningIndicationInVerticalRuler"
+            verticalRulerPreferenceValue="true"
+            overviewRulerPreferenceKey="warningIndicationInOverviewRuler"
+            overviewRulerPreferenceValue="true"
+            contributesToHeader="true"
+            colorPreferenceValue="255,148,127"/>
    </extension>
 
    <extension
@@ -173,7 +169,7 @@
             label="Spoofax/IMP Analysis Annotation"
             overviewRulerPreferenceKey="analysisAnnotationOverviewKey"
             overviewRulerPreferenceValue="true"
-            presentationLayer="1"
+            presentationLayer="5"
             showInNextPrevDropdownToolbarAction="true"
             symbolicIcon="error"
             textPreferenceKey="analysisAnnotationTextKey"
@@ -236,9 +232,13 @@
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="CTRL+T">
       </key>
+     <!-- TODO: test control-alt-b binding for build current project?-->
+      <key
+            commandId="org.eclipse.ui.project.buildProject"
+            contextId="org.eclipse.ui.contexts.window"
+            sequence="M1+ALT+B"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration" />
    </extension>
-   
-   <!-- TODO: control-shift-b binding for build current project?-->
 
    <!-- Extension point not implemented?
         manually called from SGLRParseController instead

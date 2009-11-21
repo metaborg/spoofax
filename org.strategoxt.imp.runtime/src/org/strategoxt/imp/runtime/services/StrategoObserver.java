@@ -238,6 +238,7 @@ public class StrategoObserver implements IModelListener {
 			Environment.logException(log.length() == 0 ? "Analysis failed" : "Analysis failed:\n" + log);
 			messages.clearMarkers(ast.getResource());
 			messages.addMarkerFirstLine(ast.getResource(), "Analysis failed (see error log)", IMarker.SEVERITY_ERROR);
+			messages.commitChanges();
 		} else if (!monitor.isCanceled()) {
 			// TODO: figure out how this was supposed to be synchronized
 			// synchronized (feedback) {
@@ -273,23 +274,28 @@ public class StrategoObserver implements IModelListener {
 
 	private void presentToUser(IResource resource, IStrategoTerm feedback) {
 		assert feedback != null;
-		messages.clearAllMarkers();
+		// UNDONE: messages.clearAllMarkers();
+		// TODO: use tracking io agent to find out what to clear
 		messages.clearMarkers(resource);
 
-		if (feedback.getTermType() == TUPLE
-				&& termAt(feedback, 0).getTermType() == LIST
-				&& termAt(feedback, 1).getTermType() == LIST
-				&& termAt(feedback, 2).getTermType() == LIST) {
-			
-		    IStrategoList errors = termAt(feedback, 0);
-		    IStrategoList warnings = termAt(feedback, 1);
-		    IStrategoList notes = termAt(feedback, 2);
-		    feedbackToMarkers(resource, errors, IMarker.SEVERITY_ERROR);
-		    feedbackToMarkers(resource, warnings, IMarker.SEVERITY_WARNING);
-		    feedbackToMarkers(resource, notes, IMarker.SEVERITY_INFO);
-		} else {
-			// Throw an exception to trigger an Eclipse pop-up  
-			throw new StrategoException("Illegal output from " + feedbackFunction + " (should be (errors,warnings,notes) tuple: " + feedback);
+		try {
+			if (feedback.getTermType() == TUPLE
+					&& termAt(feedback, 0).getTermType() == LIST
+					&& termAt(feedback, 1).getTermType() == LIST
+					&& termAt(feedback, 2).getTermType() == LIST) {
+				
+			    IStrategoList errors = termAt(feedback, 0);
+			    IStrategoList warnings = termAt(feedback, 1);
+			    IStrategoList notes = termAt(feedback, 2);
+			    feedbackToMarkers(resource, errors, IMarker.SEVERITY_ERROR);
+			    feedbackToMarkers(resource, warnings, IMarker.SEVERITY_WARNING);
+			    feedbackToMarkers(resource, notes, IMarker.SEVERITY_INFO);
+			} else {
+				// Throw an exception to trigger an Eclipse pop-up  
+				throw new StrategoException("Illegal output from " + feedbackFunction + " (should be (errors,warnings,notes) tuple: " + feedback);
+			}
+		} finally {
+			messages.commitChanges();
 		}
 	}
 	
@@ -394,6 +400,7 @@ public class StrategoObserver implements IModelListener {
 			if (descriptor.isDynamicallyLoaded()) StrategoConsole.activateConsole();
 			messages.clearMarkers(resource);
 			messages.addMarkerFirstLine(resource, "Analysis failed (see error log)", IMarker.SEVERITY_ERROR);
+			messages.commitChanges();
 			Environment.logException("Runtime exited when evaluating strategy " + function, e);
 		} catch (UndefinedStrategyException e) {
 			// Note that this condition may also be reached when the semantic service hasn't been loaded yet

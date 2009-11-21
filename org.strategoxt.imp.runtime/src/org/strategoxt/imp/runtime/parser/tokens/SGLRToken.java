@@ -35,6 +35,24 @@ public class SGLRToken extends Token {
 		}
 		return result.toString();
 	}
+	
+	public static int indexOf(IToken token, char c) {
+		ILexStream stream = token.getILexStream();
+		for (int i = token.getStartOffset(), last = token.getEndOffset(); i <= last; i++) { 
+			if (stream.getCharValue(i) == c)
+				return i;
+		}
+		return -1;
+	}
+	
+	public static boolean isWhiteSpace(IToken token) {
+		ILexStream stream = token.getILexStream();
+		for (int i = token.getStartOffset(), last = token.getEndOffset(); i <= last; i++) { 
+			if (!Character.isWhitespace(stream.getCharValue(i)))
+				return false;
+		}
+		return true;
+	}
 
 	public SGLRToken(IPrsStream parseStream, int startOffset, int endOffset, int kind) {
 		super(parseStream, startOffset, endOffset, kind);

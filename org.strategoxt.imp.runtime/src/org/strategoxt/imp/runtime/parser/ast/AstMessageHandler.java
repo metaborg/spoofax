@@ -1,7 +1,7 @@
 package org.strategoxt.imp.runtime.parser.ast;
 
 import static org.eclipse.core.resources.IMarker.*;
-import static org.strategoxt.imp.runtime.dynamicloading.TermReader.*;
+import static org.spoofax.interpreter.core.Tools.*;
 import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.*;
 
 import java.io.BufferedReader;
@@ -9,7 +9,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import lpg.runtime.IAst;
@@ -48,6 +50,8 @@ public class AstMessageHandler {
 	private final String markerType;
 
 	private final Set<IMarker> activeMarkers = new HashSet<IMarker>();
+	
+	private final Map<MarkerAttributes, IMarker> markersToDelete = new HashMap<MarkerAttributes, IMarker>();
 	
 	public AstMessageHandler(String markerType) {
 		this.markerType = markerType;
@@ -102,11 +106,13 @@ public class AstMessageHandler {
 				Environment.logException("Could not create error marker: " + message, new FileNotFoundException(file.toString()));
 				return;
 			}
-
-			IMarker marker = file.createMarker(markerType);
-			String[] attrs =  { LINE_NUMBER,    CHAR_START,            CHAR_END,                 MESSAGE, SEVERITY, PRIORITY,      TRANSIENT};
-			Object[] values = { left.getLine(), left.getStartOffset(), right.getEndOffset() + 1, message, severity, PRIORITY_HIGH, false };
-			marker.setAttributes(attrs, values);
+			
+			MarkerAttributes attributes = new MarkerAttributes(left, right, message, severity, PRIORITY_HIGH, false);
+			
+			IMarker marker = markersToDelete.remove(attributes); // reuse existing
+			if (marker == null)
+				marker = file.createMarker(markerType);
+			marker.setAttributes(attributes.getAttributes(), attributes.getValues());
 			synchronized (activeMarkers) {
 				activeMarkers.add(marker);
 			}
@@ -187,38 +193,60 @@ public class AstMessageHandler {
 	/**
 	 * Clear all known markers (previously reported by this instance).
 	 * For a know resource, use {@link #clearMarkers(IResource)} instead.
+	 * 
+	 * @see #commitChanges()  To commit the changes made by this action.
 	 */
 	public void clearAllMarkers() {
 		synchronized (activeMarkers) {
 			for (IMarker marker : activeMarkers) {
 				try {
-					marker.delete();
+					markersToDelete.put(new MarkerAttributes(marker), marker);
 					for (IMarker otherMarker : marker.getResource().findMarkers(markerType, true, 0)) {
-						otherMarker.delete();
+						markersToDelete.put(new MarkerAttributes(otherMarker), otherMarker);
 					}
 				} catch (CoreException e) {
-					Environment.logException("Unable to delete marker: " + marker, e);
+					Environment.logException("Unable find related markers: " + marker, e);
 				}
 			}
 			activeMarkers.clear();
 		}
 	}
 	
-	public final void clearMarkers(IStrategoAstNode node) {
-		clearMarkers(node.getResource());
-	}
-	
 	/**
 	 * Clear all markers for the specified resource.
+	 * 
+	 * @see #commitChanges()  To commit the changes made by this action.
 	 */
 	public void clearMarkers(IResource file) {
 		try {
 			IMarker[] markers = file.findMarkers(markerType, true, 0);
 			for (IMarker marker : markers) {
-				marker.delete();
+				markersToDelete.put(new MarkerAttributes(marker), marker);
 			}
 		} catch (CoreException e) {
-			Environment.logException("Unable to clear existing markers for file", e);
+			Environment.logException("Unable to clear existing markers for file:" + file.getName(), e);
 		}		
+	}
+	
+	/**
+	 * Delete all markers specified by clearMarkers().
+	 * Should be used after new markers have been added,
+	 * to ensure markers can be reused.
+	 * 
+	 * Swallows all exceptions for use in finally blocks.
+	 */
+	public void commitChanges() {
+		try {
+			for (IMarker marker : markersToDelete.values()) {
+				try {
+					marker.delete();
+				} catch (CoreException e) {
+					Environment.logException("Unable to clear existing marker", e);
+				}
+			}
+			markersToDelete.clear();
+		} catch (RuntimeException e) {
+			Environment.logException("Unable to clear markers", e);
+		}
 	}
 }

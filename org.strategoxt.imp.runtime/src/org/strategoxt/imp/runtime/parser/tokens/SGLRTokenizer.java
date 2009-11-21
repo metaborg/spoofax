@@ -138,12 +138,13 @@ public class SGLRTokenizer {
 		return new Token(parseStream, beginOffset, endOffset, TK_ERROR.ordinal());
 	}
 	
-	public void changeTokenKinds(int beginOffset, int endOffset, TokenKind kind) {
+	public void changeTokenKinds(int beginOffset, int endOffset, TokenKind fromKind, TokenKind toKind) {
+		int fromOrdinal = fromKind.ordinal();
 		IPrsStream tokens = lexStream.getIPrsStream();
 		for (int i = 0, end = tokens.getSize(); i < end; i++) {
 			IToken token = tokens.getIToken(i);
-			if (token.getEndOffset() >= beginOffset)
-				token.setKind(kind.ordinal());
+			if (token.getEndOffset() >= beginOffset && token.getKind() == fromOrdinal)
+				token.setKind(toKind.ordinal());
 			if (token.getEndOffset() > endOffset)
 				return;
 		}

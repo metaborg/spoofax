@@ -57,6 +57,8 @@ public class SGLRTokenIterator implements Iterator<IToken> {
 			if (token.getKind() == TokenKind.TK_EOF.ordinal())
 				break;
 		}
+		if (result == 0 && stream.getStreamLength() > 20)
+			throw new IllegalStateException("No EOF token in parse stream");
 
 		while (--result > 0) {
 			IToken token = (IToken) tokens.get(result);

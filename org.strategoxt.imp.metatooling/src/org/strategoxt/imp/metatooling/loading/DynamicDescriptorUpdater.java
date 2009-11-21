@@ -170,6 +170,8 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 			Environment.logException("Unable to load descriptor " + descriptor, e);
 			reportError(source, "Internal error loading descriptor: " + e.getMessage());
 			throw e;
+		} finally {
+			asyncMessageHandler.commitChanges();
 		}
 	}
 	

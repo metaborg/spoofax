@@ -52,12 +52,12 @@ strategies
         <property name="build.strategoxt.stratego" location="${user.home}/.nix-profile/bin"/>
         <property name="build.sdf.imports" value=""/>
         <property name="build.stratego.args" value="--library
-        	            -I &quot;${trans}&quot;
+                        -I &quot;${trans}&quot;
                         -I &quot;${basedir}&quot;
                         -la stratego-lib -la stratego-sglr
-        	            -la stratego-gpp -la stratego-xtc
-        	            -la stratego-aterm"/>
-	    <property name="build.jvmargs" value="-client -Xverify:none -Xss4m -Xmx512m"/>
+                        -la stratego-gpp -la stratego-xtc
+                        -la stratego-aterm"/>
+        <property name="build.jvmargs" value="-client -Xverify:none -Xss4m -Xmx512m"/>
         
         <!-- Initialization -->
         <available file="${trans}/${strmodule}.str" property="build.stratego.enabled"/>

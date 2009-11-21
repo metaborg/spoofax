@@ -31,7 +31,6 @@ import org.spoofax.jsglr.BadTokenException;
 import org.spoofax.jsglr.NoRecoveryRulesException;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.ParseTimeoutException;
-import org.spoofax.jsglr.SGLR;
 import org.spoofax.jsglr.SGLRException;
 import org.spoofax.jsglr.StructureRecoveryAlgorithm;
 import org.spoofax.jsglr.TokenExpectedException;
@@ -64,23 +63,23 @@ public class SGLRParseController implements IParseController {
 	
 	private final ParseErrorHandler errorHandler = new ParseErrorHandler(this);
 	
+	private final ReentrantLock parseLock = new ReentrantLock();
+	
 	private final JSGLRI parser;
 	
 	private final Language language;
 	
 	private final ILanguageSyntaxProperties syntaxProperties;
 	
-	private RootAstNode currentAst;
+	private volatile RootAstNode currentAst;
 	
-	private IPrsStream currentParseStream;
+	private volatile IPrsStream currentParseStream;
 	
 	private ISourceProject project;
 	
 	private IPath path;
 	
 	private volatile boolean isStartupParsed;
-	
-	private ReentrantLock startupParseLock = new ReentrantLock();
 
 	// Simple accessors
 	
@@ -177,10 +176,10 @@ public class SGLRParseController implements IParseController {
 			// while (PlatformUI.getWorkbench().getDisplay().readAndDispatch());
 			
 			// Can't do resource locking when Eclipse is still starting up; causes deadlock
+			parseLock.lock();
+			currentParseStream = null; // avoid twitchy colorer
 			if (isStartupParsed)
 				Job.getJobManager().beginRule(resource, monitor); // enter lock
-			else
-				startupParseLock.lock();
 			
 			Debug.startTimer();
 			
@@ -203,9 +202,8 @@ public class SGLRParseController implements IParseController {
 				// TODO: Consider using Display.asyncExec for reporting errors;
 				//       this could be integrated into the AstMessageHandler class!
 				errorHandler.setRecoveryAvailable(true);
-				errorHandler.gatherNonFatalErrors(parser.getTokenizer(), asfix);
 				errorHandler.clearErrors();
-				errorHandler.applyMarkers();
+				errorHandler.reportNonFatalErrors(parser.getTokenizer(), asfix);
 			}
 			
 			// TODO: Delay parse error markers for newly typed text
@@ -221,39 +219,31 @@ public class SGLRParseController implements IParseController {
 			errorHandler.clearErrors();
 			errorHandler.setRecoveryAvailable(false);
 			errorHandler.reportError(parser.getTokenizer(), e);
-			errorHandler.applyMarkers();
 		} catch (TokenExpectedException e) {
 			errorHandler.clearErrors(); // (must not be synchronized; uses workspace lock)
 			errorHandler.reportError(parser.getTokenizer(), e);
-			errorHandler.applyMarkers();
 		} catch (BadTokenException e) {
 			errorHandler.clearErrors();
 			errorHandler.setRecoveryAvailable(false);
 			errorHandler.reportError(parser.getTokenizer(), e);
-			errorHandler.applyMarkers();
 		} catch (SGLRException e) {
 			errorHandler.clearErrors();
 			errorHandler.setRecoveryAvailable(false);
 			errorHandler.reportError(parser.getTokenizer(), e);
-			errorHandler.applyMarkers();
 		} catch (IOException e) {
 			errorHandler.clearErrors();
 			errorHandler.setRecoveryAvailable(false);
 			errorHandler.reportError(parser.getTokenizer(), e);
-			errorHandler.applyMarkers();
 		} catch (OperationCanceledException e) {
 			return null;
 		} catch (RuntimeException e) {
 			Environment.logException("Internal parser error", e);
 			errorHandler.reportError(parser.getTokenizer(), e);
-			errorHandler.applyMarkers();
 		} finally {
-			if (isStartupParsed) {
-				Job.getJobManager().endRule(resource);
-			} else { 
-				isStartupParsed = true;
-				startupParseLock.unlock();
-			}
+			errorHandler.commitChanges();
+			if (isStartupParsed) Job.getJobManager().endRule(resource);
+			else isStartupParsed = true;
+			parseLock.unlock();
 		}
 		
 		if (!monitor.isCanceled())
@@ -323,22 +313,29 @@ public class SGLRParseController implements IParseController {
 
 	private void forceInitialParse() {
 		try {
-			if (!isStartupParsed) {
-				startupParseLock.lock();
-				startupParseLock.unlock();
+			if (!isStartupParsed || currentParseStream == null) {
+				parseLock.lock();
+				parseLock.unlock();
 			}
-			if (currentAst != null && currentParseStream != null)
+			if (isStartupParsed)
 				return;
 			
-			InputStream input = getResource().getContents();
-			InputStreamReader reader = new InputStreamReader(input);
-			StringBuilder contents = new StringBuilder();
-			char[] buffer = new char[2048];
-			
-			for (int read = 0; read != -1; read = reader.read(buffer))
-			        contents.append(buffer, 0, read);
-	
-			parse(contents.toString(), true, new NullProgressMonitor());
+			parseLock.lock();
+			try {
+				if (isStartupParsed)
+					return;
+				InputStream input = getResource().getContents();
+				InputStreamReader reader = new InputStreamReader(input);
+				StringBuilder contents = new StringBuilder();
+				char[] buffer = new char[2048];
+				
+				for (int read = 0; read != -1; read = reader.read(buffer))
+				        contents.append(buffer, 0, read);
+		
+				parse(contents.toString(), true, new NullProgressMonitor());
+			} finally {
+				parseLock.unlock();
+			}
 		} catch (IOException e) {
 			Environment.logException("Forced parse failed", e);
 		} catch (CoreException e) {

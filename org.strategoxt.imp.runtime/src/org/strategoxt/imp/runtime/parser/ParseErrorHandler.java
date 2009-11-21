@@ -1,11 +1,6 @@
 package org.strategoxt.imp.runtime.parser;
 
-import static org.spoofax.interpreter.core.Tools.*;
 import static org.spoofax.jsglr.Term.*;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import lpg.runtime.IToken;
 
 import org.eclipse.core.resources.IMarker;
@@ -23,9 +18,7 @@ import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
 import org.strategoxt.lang.Context;
-import org.strategoxt.stratego_aterm.pp_aterm_box_0_0;
 import org.strategoxt.stratego_aterm.stratego_aterm;
-import org.strategoxt.stratego_gpp.box2text_string_0_1;
 import org.strategoxt.stratego_sglr.implode_asfix_0_0;
 import org.strategoxt.stratego_sglr.stratego_sglr;
 
@@ -75,13 +68,11 @@ public class ParseErrorHandler {
 	
 	private boolean isRecoveryAvailable = true;
 
-	private IMessageHandler messages;
+	private IMessageHandler messages; // TODO: remove ParseErrorHandler.messages?
 	
 	private int offset;
 	
 	private boolean inLexicalContext;
-	
-	private List<Runnable> errorReports = new ArrayList<Runnable>();
 	
 	private Context ambReportingContext;
 
@@ -114,9 +105,8 @@ public class ParseErrorHandler {
 	/**
 	 * Report WATER + INSERT errors from parse tree
 	 */
-	public void gatherNonFatalErrors(SGLRTokenizer tokenizer, ATerm top) {
+	public void reportNonFatalErrors(SGLRTokenizer tokenizer, ATerm top) {
 		try {
-			errorReports.clear();
 			offset = 0;
 			reportSkippedFragments(tokenizer);
 			ATermAppl asfix = termAt(top, 0);
@@ -126,10 +116,8 @@ public class ParseErrorHandler {
 		}
 	}
 	
-	public void applyMarkers() {
-		for (Runnable marker : errorReports) {
-			marker.run();
-		}
+	public void commitChanges() {
+		handler.commitChanges();
 	}
 
     /**
@@ -173,11 +161,11 @@ public class ParseErrorHandler {
 		//post visit: report error				
 		if (isErrorProduction(attrs, WATER)) {
 			IToken token = tokenizer.makeErrorToken(startOffset, offset - 1);
-			tokenizer.changeTokenKinds(startOffset, offset - 1, TokenKind.TK_ERROR);
+			tokenizer.changeTokenKinds(startOffset, offset - 1, TokenKind.TK_LAYOUT, TokenKind.TK_ERROR);
 			reportErrorAtTokens(token, token, "Syntax error, '" + token + "' not expected here");
 		} else if (isErrorProduction(attrs, INSERT_END)) {
 			IToken token = tokenizer.makeErrorToken(startOffset, offset - 1);
-			tokenizer.changeTokenKinds(startOffset, offset - 1, TokenKind.TK_ERROR);
+			tokenizer.changeTokenKinds(startOffset, offset - 1, TokenKind.TK_LAYOUT, TokenKind.TK_ERROR);
 			reportErrorAtTokens(token, token, "Syntax error, Closing of '" + token + "' is expected here");
 		} else if (isErrorProduction(attrs, INSERT)) {
 			IToken token = tokenizer.makeErrorTokenSkipLayout(startOffset, offset + 1, outerStartOffset2);
@@ -230,10 +218,8 @@ public class ParseErrorHandler {
 			
 			ambTerm = factory.makeAppl(factory.makeConstructor("parsetree", 2), ambTerm, factory.makeInt(2));
 			ambTerm = implode_asfix_0_0.instance.invoke(ambReportingContext, ambTerm);
-			ambTerm = pp_aterm_box_0_0.instance.invoke(ambReportingContext, ambTerm);
-			ambTerm = box2text_string_0_1.instance.invoke(ambReportingContext, ambTerm, factory.makeInt(80));
 			
-			reportWarningAtTokens(token, token, "Fragment is ambiguous: " + asJavaString(ambTerm));
+			reportWarningAtTokens(token, token, "Fragment is ambiguous: " + ambTerm.toString());
 		}
 	}
 	
@@ -254,7 +240,7 @@ public class ParseErrorHandler {
 						break;
 				}
 				IToken token = tokenizer.makeErrorToken(beginSkipped, endSkipped);
-				tokenizer.changeTokenKinds(beginSkipped, endSkipped, TokenKind.TK_ERROR);
+				tokenizer.changeTokenKinds(beginSkipped, endSkipped, TokenKind.TK_LAYOUT, TokenKind.TK_ERROR);
 				reportErrorAtTokens(token, token, "Could not parse this fragment");
 			} else if (c == UNEXPECTED_EOF_CHAR) {
 				// Recovered using a forced reduction
@@ -269,7 +255,7 @@ public class ParseErrorHandler {
 		if (treeEnd < inputChars.length) {
 			IToken token = tokenizer.makeErrorToken(treeEnd + 1, inputChars.length);
 			reportErrorAtTokens(token, token, "Could not parse the remainder of this file");
-			tokenizer.changeTokenKinds(treeEnd + 1, inputChars.length, TokenKind.TK_ERROR);
+			tokenizer.changeTokenKinds(treeEnd + 1, inputChars.length, TokenKind.TK_LAYOUT, TokenKind.TK_ERROR);
 		}
 	}
 	
@@ -304,29 +290,17 @@ public class ParseErrorHandler {
 	private void reportErrorAtTokens(final IToken left, final IToken right, String message) {
 		final String message2 = isRecoveryAvailable ? message : message + " (recovery unavailable)";
 		
-		errorReports.add(new Runnable() {
-			public void run() {
-				handler.addMarker(source.getResource(), left, right, message2, IMarker.SEVERITY_ERROR);
-			}
-		});
+		handler.addMarker(source.getResource(), left, right, message2, IMarker.SEVERITY_ERROR);
 	}
 	
 	private void reportWarningAtTokens(final IToken left, final IToken right, final String message) {
-		errorReports.add(new Runnable() {
-			public void run() {
-				handler.addMarker(source.getResource(), left, right, message, IMarker.SEVERITY_WARNING);
-			}
-		});
+		handler.addMarker(source.getResource(), left, right, message, IMarker.SEVERITY_WARNING);
 	}
 	
 	private void reportErrorAtFirstLine(String message) {
 		final String message2 = isRecoveryAvailable ? message : message + " (recovery unavailable)";
 		
-		errorReports.add(new Runnable() {
-			public void run() {
-				handler.addMarkerFirstLine(source.getResource(), message2, IMarker.SEVERITY_ERROR);
-			}
-		});
+		handler.addMarkerFirstLine(source.getResource(), message2, IMarker.SEVERITY_ERROR);
 	}	
 	
 	private static boolean isErrorProduction(ATermAppl attrs, String consName) {		
