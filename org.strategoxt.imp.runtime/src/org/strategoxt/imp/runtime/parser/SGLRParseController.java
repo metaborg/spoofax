@@ -176,10 +176,10 @@ public class SGLRParseController implements IParseController {
 			// while (PlatformUI.getWorkbench().getDisplay().readAndDispatch());
 			
 			// Can't do resource locking when Eclipse is still starting up; causes deadlock
-			parseLock.lock();
 			currentParseStream = null; // avoid twitchy colorer
 			if (isStartupParsed)
 				Job.getJobManager().beginRule(resource, monitor); // enter lock
+			parseLock.lock(); // Parse lock must be locked _after_ resource lock
 			
 			Debug.startTimer();
 			

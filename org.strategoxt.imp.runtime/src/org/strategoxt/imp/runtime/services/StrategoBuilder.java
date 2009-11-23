@@ -71,67 +71,78 @@ public class StrategoBuilder implements IBuilder {
 		this.openEditor = openEditor;
 	}
 	
-	public void execute(EditorState editor, IStrategoAstNode node) {
-		try {
-			if (node == null) {
-				node = editor.getSelectionAst(true);
-				if (node == null) node = editor.getParseController().getCurrentAst();
-			}
-			if (node == null) {
-				openError(editor, "Editor is still analyzing");
-				return;
-			}
-			
-			IStrategoTerm resultTerm = observer.invoke(builderRule, node);
-			if (resultTerm == null) {
-				observer.reportRewritingFailed();
-				Environment.logException("Builder failed:\n" + observer.getLog());
-				if (!observer.isUpdateStarted())
-					observer.asyncUpdate(editor.getParseController());
-				openError(editor, "Builder failed (see error log)");
-				return;
-			}
+	public void execute(EditorState editor, IStrategoAstNode node) { // TODO: refactor
+		IStrategoTerm resultTerm = null;
+		String filename = null;
+		
+		synchronized (observer.getSyncRoot()) {
+			try {
+				if (node == null) {
+					node = editor.getSelectionAst(true);
+					if (node == null) node = editor.getParseController().getCurrentAst();
+				}
+				if (node == null) {
+					openError(editor, "Editor is still analyzing");
+					return;
+				}
+				
+				resultTerm = observer.invoke(builderRule, node);
+				if (resultTerm == null) {
+					observer.reportRewritingFailed();
+					Environment.logException("Builder failed:\n" + observer.getLog());
+					if (!observer.isUpdateStarted())
+						observer.asyncUpdate(editor.getParseController());
+					openError(editor, "Builder failed (see error log)");
+					return;
+				}
+		
+				if (isTermAppl(resultTerm) && "None".equals(TermReader.cons(resultTerm))) {
+					return;
+				} else if (!isTermTuple(resultTerm) || !isTermString(termAt(resultTerm, 0))) {
+					Environment.logException("Illegal builder result (must be a filename/string tuple)");
+					openError(editor, "Illegal builder result (must be a filename/string tuple): " + resultTerm);
+				}
 	
-			if (isTermAppl(resultTerm) && "None".equals(TermReader.cons(resultTerm))) {
-				return;
-			} else if (!isTermTuple(resultTerm) || !isTermString(termAt(resultTerm, 0))) {
-				Environment.logException("Illegal builder result (must be a filename/string tuple)");
-				openError(editor, "Illegal builder result (must be a filename/string tuple): " + resultTerm);
+				IStrategoTerm filenameTerm = termAt(resultTerm, 0);
+				filename = asJavaString(filenameTerm);
+				
+				resultTerm = termAt(resultTerm, 1);
+				resultTerm = try_1_0.instance.invoke(observer.getRuntime().getCompiledContext(),
+						resultTerm, concat_strings_0_0.instance);
+			} catch (InterpreterErrorExit e) {
+				observer.reportRewritingFailed();
+				Environment.logException("Builder failed:\n" + observer.getLog(), e);
+				if (editor.getDescriptor().isDynamicallyLoaded()) StrategoConsole.activateConsole();
+				openError(editor, e.getMessage());
+			} catch (UndefinedStrategyException e) {
+				reportException(editor, e);
+			} catch (InterpreterExit e) {
+				reportException(editor, e);
+			} catch (InterpreterException e) {
+				reportException(editor, e);
+			} catch (RuntimeException e) {
+				reportException(editor, e);
 			}
-
-			IStrategoTerm filenameTerm = termAt(resultTerm, 0);
-			String filename = asJavaString(filenameTerm);
-			
-			resultTerm = termAt(resultTerm, 1);
-			resultTerm = try_1_0.instance.invoke(observer.getRuntime().getCompiledContext(),
-					resultTerm, concat_strings_0_0.instance);
-			String result = isTermString(resultTerm)
+		}
+		
+		if (resultTerm != null && filename != null) {
+			try {
+				String result = isTermString(resultTerm)
 					? asJavaString(resultTerm)
 					: ppATerm(resultTerm);
-			IFile file = createFile(editor, filename, result);
-			// TODO: if not persistent, create IEditorInput from result String
-			if (openEditor) {
-				IEditorPart target = openEditor(file, realTime);
-				if (realTime)
-					StrategoBuilderListener.addListener(editor.getEditor(), target, file, getCaption(), node);
+				IFile file = createFile(editor, filename, result);
+				// TODO: if not persistent, create IEditorInput from result String
+				if (openEditor) {
+					IEditorPart target = openEditor(file, realTime);
+					if (realTime)
+						StrategoBuilderListener.addListener(editor.getEditor(), target, file, getCaption(), node);
+				}
+			} catch (CoreException e) {
+				Environment.logException("Builder failed", e);
+				openError(editor, "Builder failed (see error log)");
 			}
-		} catch (CoreException e) {
-			Environment.logException("Builder failed", e);
-			openError(editor, "Builder failed (see error log)");
-		} catch (InterpreterErrorExit e) {
-			observer.reportRewritingFailed();
-			Environment.logException("Builder failed:\n" + observer.getLog(), e);
-			if (editor.getDescriptor().isDynamicallyLoaded()) StrategoConsole.activateConsole();
-			openError(editor, e.getMessage());
-		} catch (UndefinedStrategyException e) {
-			reportException(editor, e);
-		} catch (InterpreterExit e) {
-			reportException(editor, e);
-		} catch (InterpreterException e) {
-			reportException(editor, e);
-		} catch (RuntimeException e) {
-			reportException(editor, e);
 		}
+
 	}
 
 	private String ppATerm(IStrategoTerm term) {

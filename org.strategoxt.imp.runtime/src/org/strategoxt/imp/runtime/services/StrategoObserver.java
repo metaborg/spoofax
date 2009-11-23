@@ -67,8 +67,6 @@ public class StrategoObserver implements IModelListener {
 	
 	private final AstMessageHandler messages = new AstMessageHandler(AstMessageHandler.ANALYSIS_MARKER_TYPE);
 	
-	private final Object asyncUpdateSyncRoot = new Object();
-	
 	private HybridInterpreter runtime;
 	
 	private Job asyncLastBuildJob;
@@ -96,6 +94,10 @@ public class StrategoObserver implements IModelListener {
 	
 	public AstMessageHandler getMessages() {
 		return messages;
+	}
+	
+	public Object getSyncRoot() {
+		return Environment.getSyncRoot(); // TODO syncRoot field; ?? deadlocky ??
 	}
 
 	public String getLog() {
@@ -128,7 +130,7 @@ public class StrategoObserver implements IModelListener {
 	private void initRuntime(IProgressMonitor monitor) {
 		if (runtime == null) {
 			Debug.startTimer();
-			runtime = Environment.createInterpreter();
+			runtime = Environment.createInterpreter(true);
 			runtime.init();
 			Debug.stopTimer("Created new Stratego runtime instance");
 			try {
@@ -172,22 +174,6 @@ public class StrategoObserver implements IModelListener {
 		} catch (IOException e) {
 			Environment.logException("Error loading compiler service providers " + jars, e);
 		}
-		/*
-		try {
-			URL[] classpath = new URL[jars.size()];
-			for (int i = 0; i < classpath.length; i++) {
-				classpath[i] = descriptor.getBasePath().append(jars.get(i)).toFile().toURL();
-			}
-			
-			ClassLoader loader = new URLClassLoader(classpath, libstratego_lib.class.getClassLoader());
-			Class<?> mainClass = loader.loadClass("trans.Main");
-			Method registerer = mainClass.getMethod("registerInterop", IContext.class, Context.class);
-			registerer.invoke(null, runtime.getContext(), runtime.getCompiledContext());
-		
-		} catch (Exception e) {
-			Environment.logException("Error loading compiler service providers " + jars, e);
-		}
-		*/
 	}
 
 	/**
@@ -196,7 +182,7 @@ public class StrategoObserver implements IModelListener {
 	public void asyncUpdate(final IParseController parseController) {
 		isUpdateStarted = true;
 		
-		synchronized (asyncUpdateSyncRoot) {
+		synchronized (getSyncRoot()) {
 			if (asyncLastBuildJob != null)
 				asyncLastBuildJob.cancel();
 			
@@ -222,7 +208,7 @@ public class StrategoObserver implements IModelListener {
 		IStrategoAstNode ast = (IStrategoAstNode) parseController.getCurrentAst();
 		IStrategoTerm feedback = null;
 		
-		synchronized (Environment.getSyncRoot()) {
+		synchronized (getSyncRoot()) {
 			if (runtime == null)
 				init(monitor);
 
@@ -230,24 +216,25 @@ public class StrategoObserver implements IModelListener {
 				return;
 			
 			feedback = invokeSilent(feedbackFunction, ast.getResource(), makeInputTerm(ast, false));
-		}
 
-		if (feedback == null) {
-			reportRewritingFailed();
-			String log = getLog();
-			Environment.logException(log.length() == 0 ? "Analysis failed" : "Analysis failed:\n" + log);
-			messages.clearMarkers(ast.getResource());
-			messages.addMarkerFirstLine(ast.getResource(), "Analysis failed (see error log)", IMarker.SEVERITY_ERROR);
-			messages.commitChanges();
-		} else if (!monitor.isCanceled()) {
-			// TODO: figure out how this was supposed to be synchronized
-			// synchronized (feedback) {
-			presentToUser(ast.getResource(), feedback);
-			// }
+			if (feedback == null) {
+				reportRewritingFailed();
+				String log = getLog();
+				Environment.logException(log.length() == 0 ? "Analysis failed" : "Analysis failed:\n" + log);
+				messages.clearMarkers(ast.getResource());
+				messages.addMarkerFirstLine(ast.getResource(), "Analysis failed (see error log)", IMarker.SEVERITY_ERROR);
+				messages.commitChanges();
+			} else if (!monitor.isCanceled()) {
+				// TODO: figure out how this was supposed to be synchronized
+				// synchronized (feedback) {
+				presentToUser(ast.getResource(), feedback);
+				// }
+			}
 		}
 	}
 
 	public void reportRewritingFailed() {
+		assert Thread.holdsLock(getSyncRoot());
 		StackTracer trace = runtime.getContext().getStackTracer();
 		runtime.getIOAgent().getOutputStream(IOAgent.CONST_STDERR).println(
 				trace.getTraceDepth() != 0 ? "rewriting failed, trace:" : "rewriting failed");
@@ -273,9 +260,11 @@ public class StrategoObserver implements IModelListener {
 	*/
 
 	private void presentToUser(IResource resource, IStrategoTerm feedback) {
+		assert Thread.holdsLock(getSyncRoot());
 		assert feedback != null;
-		// UNDONE: messages.clearAllMarkers();
+
 		// TODO: use tracking io agent to find out what to clear
+		// UNDONE: messages.clearAllMarkers();
 		messages.clearMarkers(resource);
 
 		try {
@@ -300,6 +289,8 @@ public class StrategoObserver implements IModelListener {
 	}
 	
 	private final void feedbackToMarkers(IResource resource, IStrategoList feedbacks, int severity) {
+		assert Thread.holdsLock(getSyncRoot());
+		
 		Context context = runtime.getCompiledContext();
 		sdf2imp.init(context);
 		feedbacks = (IStrategoList) postprocess_feedback_results_0_0.instance.invoke(context, feedbacks);
@@ -356,7 +347,7 @@ public class StrategoObserver implements IModelListener {
 	public IStrategoTerm invoke(String function, IStrategoTerm term, IResource resource)
 			throws UndefinedStrategyException, InterpreterErrorExit, InterpreterExit, InterpreterException {
 		
-		synchronized (Environment.getSyncRoot()) {
+		synchronized (getSyncRoot()) {
 			if (runtime == null) init(new NullProgressMonitor());
 			if (runtime == null) return null;
 			
@@ -366,7 +357,7 @@ public class StrategoObserver implements IModelListener {
 			
 			runtime.setCurrent(term);
 			IPath path = resource.getLocation();
-			initInterpreterPath(path.removeLastSegments(1));
+			initRuntimePath(path.removeLastSegments(1));
 
 			((LoggingIOAgent) runtime.getIOAgent()).clearLog();
 			boolean success = runtime.invoke(function);
@@ -404,11 +395,14 @@ public class StrategoObserver implements IModelListener {
 			Environment.logException("Runtime exited when evaluating strategy " + function, e);
 		} catch (UndefinedStrategyException e) {
 			// Note that this condition may also be reached when the semantic service hasn't been loaded yet
+			runtime.getIOAgent().getOutputStream(IOAgent.CONST_STDERR).println("Internal error: strategy does not exist: " + function);
 			Environment.logException("Strategy does not exist: " + function, e);
 		} catch (InterpreterException e) {
+			runtime.getIOAgent().getOutputStream(IOAgent.CONST_STDERR).println("Internal error evaluating " + function + " (see error log)");
 			Environment.logException("Internal error evaluating strategy " + function, e);
 			if (descriptor.isDynamicallyLoaded()) StrategoConsole.activateConsole();
 		} catch (RuntimeException e) {
+			runtime.getIOAgent().getOutputStream(IOAgent.CONST_STDERR).println("Internal error evaluating " + function + " (see error log)");
 			Environment.logException("Internal error evaluating strategy " + function, e);
 			if (descriptor.isDynamicallyLoaded()) StrategoConsole.activateConsole();
 		}
@@ -427,7 +421,9 @@ public class StrategoObserver implements IModelListener {
 		}
 	}
 	
-	private void initInterpreterPath(IPath workingDir) {
+	private void initRuntimePath(IPath workingDir) {
+		assert Thread.holdsLock(getSyncRoot());
+		
 		try {
 			runtime.getIOAgent().setWorkingDir(workingDir.toOSString());
 			((EditorIOAgent) runtime.getIOAgent()).setDescriptor(descriptor);
@@ -444,6 +440,8 @@ public class StrategoObserver implements IModelListener {
 	}
 	
 	public HybridInterpreter getRuntime() {
+		assert Thread.holdsLock(getSyncRoot());
+		
 		return runtime;
 	}
 

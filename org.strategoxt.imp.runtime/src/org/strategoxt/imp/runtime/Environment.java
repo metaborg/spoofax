@@ -106,34 +106,40 @@ public final class Environment {
 	}
 	
 	// ENVIRONMENT ACCESS AND MANIPULATION
-
+	
 	public static synchronized HybridInterpreter createInterpreter() {
-		HybridInterpreter result = new HybridInterpreter(getTermFactory()) {
-			@Override
-			public boolean invoke(String name) throws InterpreterExit, InterpreterException {
-				assertLock();
-				return super.invoke(name);
-			}
-			
-			@Override
-			public void load(IStrategoTerm program) throws InterpreterException {
-				assertLock();
-				super.load(program);
-			}
-			
-			@Override
-			public IStrategoTerm current() {
-				synchronized (getSyncRoot()) {
-					return super.current();
+		return createInterpreter(false);
+	}
+
+	public static synchronized HybridInterpreter createInterpreter(boolean noGlobalLock) {
+		HybridInterpreter result =	noGlobalLock
+			? new HybridInterpreter(getTermFactory())
+			: new HybridInterpreter(getTermFactory()) {
+				@Override
+				public boolean invoke(String name) throws InterpreterExit, InterpreterException {
+					assertLock();
+					return super.invoke(name);
 				}
-			}
-		};
+				
+				@Override
+				public void load(IStrategoTerm program) throws InterpreterException {
+					assertLock();
+					super.load(program);
+				}
+				
+				@Override
+				public IStrategoTerm current() {
+					synchronized (getSyncRoot()) {
+						return super.current();
+					}
+				}
+			};
 		
 		result.getCompiledContext().registerComponent("stratego_sglr"); // ensure op. registry available
 		SGLRCompatLibrary sglrLibrary = (SGLRCompatLibrary) result.getContext().getOperatorRegistry(SGLRCompatLibrary.REGISTRY_NAME);
 		result.addOperatorRegistry(new IMPJSGLRLibrary(sglrLibrary));
 		result.addOperatorRegistry(new IMPLibrary());
-		 result.setIOAgent(new EditorIOAgent());
+		result.setIOAgent(new EditorIOAgent());
 		
 		return result;
 	}
