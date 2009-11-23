@@ -1,9 +1,11 @@
 package org.strategoxt.imp.runtime.stratego.adapter;
 
+import java.util.ArrayList;
+import java.util.NoSuchElementException;
+
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermPrinter;
-import org.strategoxt.imp.runtime.Environment;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -11,17 +13,52 @@ import org.strategoxt.imp.runtime.Environment;
  */
 public class WrappedAstNodeList extends WrappedAstNode implements IStrategoList {
 	
+	private final WrappedAstNodeFactory factory;
+	
 	private final int offset;
 	
-	private WrappedAstNodeList tail;
+	private IStrategoTerm head;
 	
-	protected WrappedAstNodeList(WrappedAstNodeFactory factory, IStrategoAstNode node) {
-		this(factory, node, 0);
+	private IStrategoList tail;
+
+	/**
+	 * Creates a new WrappedAstNodeList with lazily initialized subterms.
+	 */
+	protected WrappedAstNodeList(WrappedAstNodeFactory factory, IStrategoAstNode node, int offset) {
+		super(node);
+		this.factory = factory;
+		this.offset = offset;
 	}
 
-	protected WrappedAstNodeList(WrappedAstNodeFactory factory, IStrategoAstNode node, int offset) {
-		super(factory, node);
+	/**
+	 * Creates a new WrappedAstNodeList with the given head and tail.
+	 */
+	protected WrappedAstNodeList(IStrategoAstNode node, int offset, IStrategoTerm head, IStrategoList tail) {
+		super(node);
+		this.factory = null;
 		this.offset = offset;
+		this.head = head;
+		this.tail = tail;
+		assert getSubtermCount() == node.getChildren().size() - offset;
+	}
+
+	public final IStrategoTerm head() {
+		if (head == null) {
+			ArrayList children = getNode().getChildren();
+			head = ((IStrategoAstNode) children.get(offset)).getTerm();
+		}
+		return head;
+	}
+	
+	public IStrategoList tail() {
+		if (tail != null) return tail;
+		if (head != null && getSubtermCount() == 0) throw new NoSuchElementException();
+		tail = factory.wrapList(getNode(), offset + 1);
+		return tail;
+	}
+	
+	protected int getOffset() {
+		return offset;
 	}
 
 	@Override
@@ -30,7 +67,7 @@ public class WrappedAstNodeList extends WrappedAstNode implements IStrategoList 
             return false;
         
         final IStrategoList snd = (IStrategoList) second;
-        if (size() != snd.size())
+        if (getSubtermCount() != snd.getSubtermCount())
             return false;
         
         if (!isEmpty()) {
@@ -54,38 +91,50 @@ public class WrappedAstNodeList extends WrappedAstNode implements IStrategoList 
         IStrategoList secondAnnotations = second.getAnnotations();
         return annotations == secondAnnotations || annotations.match(secondAnnotations);
 	}
-
-	public final IStrategoTerm get(int index) {
-		return getSubterm(index);
+	
+	@Override
+	public IStrategoTerm[] getAllSubterms() {
+		if (tail == null) {
+			// Get children from origin node
+			ArrayList children = getNode().getChildren();
+			IStrategoTerm[] results = new IStrategoTerm[children.size() - offset];
+			for (int i = 0; i < results.length; i++) {
+				results[i] = ((IStrategoAstNode) children.get(i + offset)).getTerm();
+			}
+			return results;
+		} else {
+			// Get children from head and tail
+	        int size = size();
+	        IStrategoTerm[] clone = new IStrategoTerm[size];
+	        IStrategoList list = this;
+	        for (int i = 0; i < size; i++) {
+	            clone[i] = list.head();
+	            list = list.tail();
+	        }
+	        return clone;
+		}
 	}
 	
 	@Override
 	public IStrategoTerm getSubterm(int index) {
-		return super.getSubterm(index + offset);
-	}
-
-	public final IStrategoTerm head() {
-		return getSubtermCount() == 0 ? null : get(0);
-	}
-
-	public final boolean isEmpty() {
-		return getSubtermCount() == 0;
-	}
-
-	public final int size() {
-		return getSubtermCount();
+		return ((IStrategoAstNode) getNode().getAllChildren().get(index + offset)).getTerm();
 	}
 	
 	@Override
 	public int getSubtermCount() {
-		return super.getSubtermCount() - offset;
+		return getNode().getChildren().size() - offset;
 	}
 
-	public IStrategoList tail() {
-		if (tail != null) return tail;
-		if (getSubtermCount() == 0) return null;
-		tail = getFactory().wrapList(getNode(), offset + 1);
-		return tail;
+	public final IStrategoTerm get(int index) {
+		return getSubterm(index);
+	}
+
+	public final boolean isEmpty() {
+		return head == null && getSubtermCount() == 0;
+	}
+
+	public final int size() {
+		return getSubtermCount();
 	}
 
 	public int getTermType() {
@@ -93,17 +142,16 @@ public class WrappedAstNodeList extends WrappedAstNode implements IStrategoList 
 	}
 
 	public void prettyPrint(ITermPrinter pp) {
-		int sz = size();
-		if (sz > 0) {
+		if (head != null || getSubtermCount() > 0) {
 			pp.println("[");
 			pp.indent(2);
-			get(0).prettyPrint(pp);
-			for (int i = 1; i < sz; i++) {
-				pp.print(",");
-				pp.nextIndentOff();
-				get(i).prettyPrint(pp);
-				pp.println("");
-			}
+			head().prettyPrint(pp);
+            for (IStrategoList cur = tail(); !cur.isEmpty(); cur = cur.tail()) {
+                pp.print(",");
+                pp.nextIndentOff();
+                cur.head().prettyPrint(pp);
+                pp.println("");
+            }
 			pp.println("");
 			pp.print("]");
 			pp.outdent(2);
@@ -116,25 +164,27 @@ public class WrappedAstNodeList extends WrappedAstNode implements IStrategoList 
 
 	@Override
 	public int hashFunction() {
-    	/* UNDONE: BasicStrategoTerm hash; should use cons/nil hash instead
-        long hc = 4787;
-        for (IStrategoList cur = this; !cur.isEmpty(); cur = cur.tail()) {
-            hc *= cur.head().hashCode();
-        }
-        return (int)(hc >> 2);
-        */
 		final int prime = 71;
 		int result = 1;
-		IStrategoTerm head = head();
-		result = prime * result + ((head == null) ? 0 : head.hashCode());
-		IStrategoList tail = tail();
-		result = prime * result + ((tail == null) ? 0 : tail.hashCode());
+		IStrategoTerm head = this.head; 
+		if (head == null) {
+			ArrayList children = getNode().getChildren();
+			int size = children.size() - offset;
+			if (size == 0) return prime * prime * result;
+
+			head = ((IStrategoAstNode) children.get(offset)).getTerm();
+			result = prime * result + head.hashCode();
+		} else {
+			result = prime * result + head.hashCode();
+		}
+		IStrategoList tail = this.tail;
+		result = prime * result + (tail == null ? tail() : tail).hashCode();
 		return result;
 	}
 
 	@Deprecated
 	public IStrategoList prepend(IStrategoTerm prefix) {
-		return Environment.getTermFactory().makeList(prefix, this);
+		throw new UnsupportedOperationException();
 	}
 
 }

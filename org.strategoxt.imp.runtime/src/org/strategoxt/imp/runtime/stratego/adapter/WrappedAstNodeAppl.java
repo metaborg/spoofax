@@ -11,18 +11,19 @@ import org.spoofax.interpreter.terms.ITermPrinter;
  * @author Lennart Kats <lennart add lclnet.nl>
  * @author Karl Trygve Kalleberg <karltk add strategoxt.org>
  */
-public class WrappedAstNodeAppl extends WrappedAstNode implements IStrategoAppl {
+public class WrappedAstNodeAppl extends WrappedAstNodeParent implements IStrategoAppl {
     
 	private final IStrategoConstructor constructor;
+	
+	protected WrappedAstNodeAppl(WrappedAstNodeFactory factory, IStrategoAstNode node) {
+		super(node);
+		
+		constructor = factory.makeConstructor(node.getConstructor(), node.getChildren().size());
+		node.setConstructor(constructor.getName()); // ensure shared string is used
+	}
 
 	public IStrategoConstructor getConstructor() {
 		return constructor;
-	}
-	
-	protected WrappedAstNodeAppl(WrappedAstNodeFactory factory, IStrategoAstNode node) {
-		super(factory, node);
-		
-		constructor = factory.makeConstructor(node.getConstructor(), node.getChildren().size());
 	}
 	
 	public final IStrategoTerm[] getArguments() {

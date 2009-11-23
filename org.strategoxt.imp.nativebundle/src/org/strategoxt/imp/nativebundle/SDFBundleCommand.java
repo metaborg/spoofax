@@ -135,7 +135,7 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 			: null;
 	}
 
-	private boolean invoke(Context context, String command, IStrategoTerm[] argList) throws StrategoException {
+	private boolean invoke(Context context, String command, IStrategoTerm[] argList) {
 		String[] commandArgs = SSL_EXT_call.toCommandArgs(binaryPath + command, argList);
 		IOAgent io = context.getIOAgent();
 		

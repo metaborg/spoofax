@@ -4,25 +4,23 @@ import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.InlinePrinter;
 import org.strategoxt.lang.terms.StrategoTerm;
+import org.strategoxt.lang.terms.TermFactory;
 
 public abstract class WrappedAstNode extends StrategoTerm implements IWrappedAstNode, IStrategoTerm, Cloneable {
 	
 	private final IStrategoAstNode node;
 	
-	private final WrappedAstNodeFactory factory;
-	
+	/**
+	 * Gets the node or origin node associated with this term.
+	 */
 	public final IStrategoAstNode getNode() {
 		return node;
 	}
 	
-	public WrappedAstNodeFactory getFactory() {
-		return factory;
-	}
-	
-	protected WrappedAstNode(WrappedAstNodeFactory factory, IStrategoAstNode node) {
+	protected WrappedAstNode(IStrategoAstNode node) {
 		super(null);
-		this.factory = factory;
 		this.node = node;
+		assert node != null;
 	}
 	
 	public final int getStorageType() {
@@ -32,22 +30,18 @@ public abstract class WrappedAstNode extends StrategoTerm implements IWrappedAst
 	}
 
 	public IStrategoTerm[] getAllSubterms() {
-		IStrategoTerm[] result = new IStrategoTerm[getSubtermCount()];
-		int size = getSubtermCount();
-		
-		for (int i = 0; i < size; i++) {
-			result[i] = getSubterm(i);
-		}
-		
-		return result;
+		assert node.getChildren().size() == 0;
+		return TermFactory.EMPTY;
 	}
 
 	public IStrategoTerm getSubterm(int index) {
-		return factory.wrap((IStrategoAstNode) node.getChildren().get(index));
+		assert node.getChildren().size() == 0;
+        throw new IndexOutOfBoundsException();
 	}
 
 	public int getSubtermCount() {
-		return node.getChildren().size();
+		assert node.getChildren().size() == 0;
+		return 0;
 	}
 	
 	/**

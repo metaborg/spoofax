@@ -8,10 +8,11 @@ import org.spoofax.interpreter.terms.ITermPrinter;
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class WrappedAstNodeTuple extends WrappedAstNode implements IStrategoTuple {
+public class WrappedAstNodeTuple extends WrappedAstNodeParent implements IStrategoTuple {
 
-	protected WrappedAstNodeTuple(WrappedAstNodeFactory factory, IStrategoAstNode node) {
-		super(factory, node);
+	protected WrappedAstNodeTuple(IStrategoAstNode node) {
+		super(node);
+		node.setConstructor("()"); // ensure interned string is used
 	}
 
 	@Override

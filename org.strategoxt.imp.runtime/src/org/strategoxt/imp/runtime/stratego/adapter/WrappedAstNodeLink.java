@@ -16,16 +16,28 @@ import org.strategoxt.lang.terms.TermFactory;
 /**
  * A wrapper class linking any {@link IStrategoTerm} to an {@link IAst} node.
  * 
+ * @see WrappedAstNodeFactory#makeLink(IStrategoTerm, IWrappedAstNode)
+ * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class WrappedAstNodeLink extends WrappedAstNode implements IWrappedAstNode, IStrategoTerm, IStrategoList, IStrategoAppl, IStrategoTuple, IStrategoInt, IStrategoReal, IStrategoString {
+public class WrappedAstNodeLink extends WrappedAstNodeParent implements IWrappedAstNode, IStrategoTerm, IStrategoList, IStrategoAppl, IStrategoTuple, IStrategoInt, IStrategoReal, IStrategoString {
+	
+	private final WrappedAstNodeFactory factory;
+	
+	private final IWrappedAstNode origin; // = node + offset for lists
 	
 	private final IStrategoTerm wrapped;
 	
-	public WrappedAstNodeLink(WrappedAstNodeFactory factory, IStrategoTerm term, IStrategoAstNode node) {
-		super(factory, node);
+	protected WrappedAstNodeLink(WrappedAstNodeFactory factory, IStrategoTerm term, IWrappedAstNode origin) {
+		super(origin.getNode());
+		this.factory = factory;
 		this.wrapped = term;
-		assert !(wrapped instanceof IWrappedAstNode);
+		this.origin = origin;
+		
+		assert !(wrapped instanceof IWrappedAstNode) : "Already wrapped";
+		assert wrapped.getTermType() != LIST || wrapped.getSubtermCount() == 0
+				|| wrapped.getSubtermCount() != origin.getSubtermCount()
+				: "Track lists using WrappedAstNodeList / WrappedAstNOdeFactory.makeLink()";
 	}
 	
 	public final IStrategoTerm getWrapped() {
@@ -37,8 +49,10 @@ public class WrappedAstNodeLink extends WrappedAstNode implements IWrappedAstNod
 	@Override
 	protected WrappedAstNodeLink getAnnotatedWith(IStrategoList annotations) {
 		// To get a working equals() and hashCode() impl, we need to annotate the wrapped term
-		IStrategoTerm wrapped = getFactory().annotateTerm(getWrapped(), annotations);
-		return new WrappedAstNodeLink(getFactory(), wrapped, getNode());
+		IStrategoTerm wrapped = factory.annotateTerm(getWrapped(), annotations);
+		WrappedAstNodeLink result = new WrappedAstNodeLink(factory, wrapped, origin);
+		result.subterms = subterms;
+		return result;
 	}
 	
 	// Common accessors
@@ -55,7 +69,7 @@ public class WrappedAstNodeLink extends WrappedAstNode implements IWrappedAstNod
 		if (annotations.isEmpty()) {
 			return wrapped.match(second);
 		} else {
-			second = getFactory().annotateTerm(second, TermFactory.EMPTY_LIST);
+			second = factory.annotateTerm(second, TermFactory.EMPTY_LIST);
 			return wrapped.match(second);
 		}
 	}
@@ -67,12 +81,69 @@ public class WrappedAstNodeLink extends WrappedAstNode implements IWrappedAstNod
 
 	@Override
 	public IStrategoTerm[] getAllSubterms() {
-		return wrapped.getAllSubterms();
+		if (subterms == null)
+			subterms = ensureChildLinks(wrapped.getAllSubterms());
+		return subterms;
+	}
+
+	/**
+	 * Ensures (lazy) origin tracking links for subterms.
+	 */
+	private IStrategoTerm[] ensureChildLinks(IStrategoTerm[] kids) {
+		if (!isCorrespondingTerm(kids))
+			return kids;
+		
+		for (int i = 0; i < kids.length; i++) {
+			if (!(kids[i] instanceof IWrappedAstNode)) {
+				IStrategoTerm[] newKids = new IStrategoTerm[kids.length];
+				System.arraycopy(kids, 0, newKids, 0, i);
+				newKids[i] = ensureChildLink(kids[i], i);
+				while (++i < kids.length) {
+					newKids[i] = ensureChildLink(kids[i], i);
+				}
+				return newKids;
+			}
+		}
+		return kids;
+	}
+	
+	private IStrategoTerm ensureChildLink(IStrategoTerm kid, int index) {
+		if (kid instanceof IWrappedAstNode) {
+			return kid;
+		} else {
+			return factory.ensureLink(kid, origin.getSubterm(index));
+		}
+	}
+	
+	/**
+	 * Tests if this node corresponds in shape (constructor/nr of subterms) to its origin node.
+	 */
+	private boolean isCorrespondingTerm(IStrategoTerm[] kids) {
+		int termType = wrapped.getTermType();
+		if (termType == LIST) {
+			// List with inequal amount of kids; other lists are WrappedAstNodeLists not WrappedAstNodeLinks
+			return false;
+		}
+		
+		if (origin.getTermType() != termType || origin.getSubtermCount() != kids.length)
+			return false;
+		
+		if (termType == APPL) {
+			if (((IStrategoAppl) wrapped).getConstructor() != ((IStrategoAppl) origin).getConstructor()) {
+				assert !((IStrategoAppl) wrapped).getConstructor().equals(((IStrategoAppl) origin).getConstructor())
+						: "Maximally shared constructors are assumed";
+				return false;				
+			}
+		} else if (termType != TUPLE) {
+			throw new IllegalStateException("Unexpected type of term with kids: " + this);
+		}
+
+		return true;
 	}
 
 	@Override
 	public IStrategoTerm getSubterm(int index) {
-		return wrapped.getSubterm(index);
+		return getAllSubterms()[index];
 	}
 
 	@Override
@@ -95,7 +166,7 @@ public class WrappedAstNodeLink extends WrappedAstNode implements IWrappedAstNod
 	}
 
 	public final IStrategoTerm[] getArguments() {
-		return wrapped.getAllSubterms();
+		return getAllSubterms();
 	}
 	
 	// Specialized accessors

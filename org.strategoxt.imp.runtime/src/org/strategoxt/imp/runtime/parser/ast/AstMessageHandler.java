@@ -9,8 +9,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -51,7 +53,9 @@ public class AstMessageHandler {
 
 	private final Set<IMarker> activeMarkers = new HashSet<IMarker>();
 	
-	private final Map<MarkerAttributes, IMarker> markersToDelete = new HashMap<MarkerAttributes, IMarker>();
+	private final Map<MarkerAttributes, IMarker> markersToDeleteOrReuse = new HashMap<MarkerAttributes, IMarker>();
+	
+	private final List<IMarker> markersToDelete = new ArrayList<IMarker>();
 	
 	public AstMessageHandler(String markerType) {
 		this.markerType = markerType;
@@ -109,7 +113,7 @@ public class AstMessageHandler {
 			
 			MarkerAttributes attributes = new MarkerAttributes(left, right, message, severity, PRIORITY_HIGH, false);
 			
-			IMarker marker = markersToDelete.remove(attributes); // reuse existing
+			IMarker marker = markersToDeleteOrReuse.remove(attributes); // reuse existing
 			if (marker == null)
 				marker = file.createMarker(markerType);
 			marker.setAttributes(attributes.getAttributes(), attributes.getValues());
@@ -200,9 +204,10 @@ public class AstMessageHandler {
 		synchronized (activeMarkers) {
 			for (IMarker marker : activeMarkers) {
 				try {
-					markersToDelete.put(new MarkerAttributes(marker), marker);
+					markersToDeleteOrReuse.put(new MarkerAttributes(marker), marker);
 					for (IMarker otherMarker : marker.getResource().findMarkers(markerType, true, 0)) {
-						markersToDelete.put(new MarkerAttributes(otherMarker), otherMarker);
+						IMarker dupe = markersToDeleteOrReuse.put(new MarkerAttributes(otherMarker), otherMarker);
+						if (dupe != null) markersToDelete.add(dupe);
 					}
 				} catch (CoreException e) {
 					Environment.logException("Unable find related markers: " + marker, e);
@@ -221,7 +226,8 @@ public class AstMessageHandler {
 		try {
 			IMarker[] markers = file.findMarkers(markerType, true, 0);
 			for (IMarker marker : markers) {
-				markersToDelete.put(new MarkerAttributes(marker), marker);
+				IMarker dupe = markersToDeleteOrReuse.put(new MarkerAttributes(marker), marker);
+				if (dupe != null) markersToDelete.add(dupe);
 			}
 		} catch (CoreException e) {
 			Environment.logException("Unable to clear existing markers for file:" + file.getName(), e);
@@ -237,7 +243,15 @@ public class AstMessageHandler {
 	 */
 	public void commitChanges() {
 		try {
-			for (IMarker marker : markersToDelete.values()) {
+			for (IMarker marker : markersToDeleteOrReuse.values()) {
+				try {
+					marker.delete();
+				} catch (CoreException e) {
+					Environment.logException("Unable to clear existing marker", e);
+				}
+			}
+			markersToDeleteOrReuse.clear();
+			for (IMarker marker : markersToDelete) {
 				try {
 					marker.delete();
 				} catch (CoreException e) {

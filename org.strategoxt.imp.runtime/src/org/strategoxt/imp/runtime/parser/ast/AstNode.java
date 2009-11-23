@@ -33,7 +33,9 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 	
 	protected final ArrayList<AstNode> children;
 	
-	private final String constructor, sort;
+	private final String sort;
+	
+	private String constructor;
 	
 	private IStrategoTerm term;
 	
@@ -48,6 +50,10 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 	 */
 	public String getConstructor() {
 		return constructor;
+	}
+	
+	public void setConstructor(String constructor) {
+		this.constructor = constructor;
 	}
 	
 	public String getSort() {

@@ -6,20 +6,14 @@ import org.spoofax.interpreter.terms.ITermPrinter;
 import org.strategoxt.imp.runtime.parser.ast.StringAstNode;
 
 public class WrappedAstNodeString extends WrappedAstNode implements IStrategoString {
-
-	private final StringAstNode wrappee;
 	
-	protected WrappedAstNodeString(WrappedAstNodeFactory factory, StringAstNode node) {
-		super(factory, node);
-		this.wrappee = node;
+	protected WrappedAstNodeString(IStrategoAstNode node) {
+		super(node);
+		assert node instanceof StringAstNode;
 	}
 
 	public String stringValue() {
-		return wrappee.getValue();
-	}
-	
-	public IStrategoTerm[] getArguments() {
-		return getAllSubterms();
+		return ((StringAstNode) getNode()).getValue();
 	}
 
     public void prettyPrint(ITermPrinter pp) {

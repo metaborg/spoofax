@@ -20,6 +20,8 @@ public interface IStrategoAstNode extends IAst {
 	
 	String getConstructor();
 	
+	void setConstructor(String constructor);
+	
 	String getSort();
 	
 	IResource getResource();
