@@ -1,4 +1,4 @@
-package org.strategoxt.imp.runtime.stratego;
+package org.strategoxt.imp.runtime.services;
 
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
@@ -20,8 +20,6 @@ import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.RuntimeActivator;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
-import org.strategoxt.imp.runtime.services.IBuilder;
-import org.strategoxt.imp.runtime.services.IBuilderMap;
 
 /**
  * Implements a dropdown button with builder actions.

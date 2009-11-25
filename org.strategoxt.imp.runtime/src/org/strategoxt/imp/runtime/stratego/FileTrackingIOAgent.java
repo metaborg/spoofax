@@ -1,4 +1,4 @@
-package org.strategoxt.imp.metatooling.building;
+package org.strategoxt.imp.runtime.stratego;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -7,14 +7,12 @@ import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 
 /**
  * An IOAgent that keeps track of all files accessed.
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-@Deprecated
 public class FileTrackingIOAgent extends EditorIOAgent {
 	private Set<String> tracked = new HashSet<String>();
 	

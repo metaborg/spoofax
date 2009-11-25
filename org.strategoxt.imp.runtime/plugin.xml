@@ -195,7 +195,7 @@
             label="Spoofax"
             visible="true">
          <action
-               class="org.strategoxt.imp.runtime.stratego.BuilderButtonDelegate"
+               class="org.strategoxt.imp.runtime.services.BuilderButtonDelegate"
                definitionId="org.strategoxt.imp.runtime.transformCommand"
                id="org.strategoxt.imp.runtime.stratego.builder"
                label="Apply transformation"
@@ -220,7 +220,7 @@
    <extension
          point="org.eclipse.ui.handlers">
       <handler
-            class="org.strategoxt.imp.runtime.stratego.BuilderButtonDelegate"
+            class="org.strategoxt.imp.runtime.services.BuilderButtonDelegate"
             commandId="org.strategoxt.imp.runtime.transformCommand">
       </handler>
    </extension>
@@ -236,7 +236,7 @@
       <key
             commandId="org.eclipse.ui.project.buildProject"
             contextId="org.eclipse.ui.contexts.window"
-            sequence="M1+ALT+B"
+            sequence="M1+M3+B"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration" />
    </extension>
 
