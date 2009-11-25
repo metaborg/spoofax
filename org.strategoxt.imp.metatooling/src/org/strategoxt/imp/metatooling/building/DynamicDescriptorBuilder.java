@@ -6,8 +6,13 @@ import static org.strategoxt.imp.metatooling.loading.DynamicDescriptorUpdater.*;
 import java.io.IOException;
 
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.generator.sdf2imp;
@@ -70,7 +75,9 @@ public class DynamicDescriptorBuilder {
 			
 		} catch (RuntimeException e) {
 			Environment.logException("Unable to build descriptor for " + resource, e);
+			reportError(resource, "Unable to build descriptor for " + resource, e);
 		} catch (Error e) { // workspace thread swallows this >:(
+			reportError(resource, "Unable to build descriptor for " + resource, e);
 			Environment.logException("Unable to build descriptor for " + resource, e);
 		}
 	}
@@ -128,20 +135,40 @@ public class DynamicDescriptorBuilder {
 			//context.getExceptionHandler().setEnabled(true);
 			return sdf2imp_jvm_0_0.instance.invoke(context, input);
 		} catch (StrategoErrorExit e) {
-			Environment.logException("Fatal error exit in dynamic builder, log:\n" + agent.getLog().trim(), e);
-			messageHandler.addMarkerFirstLine(mainFile, "Fatal error building descriptor:" + e.getMessage(), SEVERITY_ERROR);
-			StrategoConsole.activateConsole();
+			Environment.logException("Fatal error in dynamic builder, log:\n" + agent.getLog().trim(), e);
+			reportError(mainFile, "Fatal error in descriptor builder: " + e.getMessage(), e);
 			return null;
 		} catch (StrategoExit e) {
-			Environment.logException("Unexpected exit in dynamic builder, log:\n" + agent.getLog().trim(), e);
 			context.printStackTrace();
-			messageHandler.addMarkerFirstLine(mainFile, "Error building descriptor (see error log)", SEVERITY_ERROR);
-			StrategoConsole.activateConsole();
+			Environment.logException("Unexpected exit in dynamic builder, log:\n" + agent.getLog().trim(), e);
+			reportError(mainFile, "Unexpected exit in descriptor builder, log:" + agent.getLog().trim(), e);
 			return null;
 		} finally {
 			//context.getExceptionHandler().setEnabled(false);
 			Debug.stopTimer("Invoked descriptor builder for " + mainFile.getName());
 			dr_scope_all_end_0_0.instance.invoke(context, input);
+		}
+	}
+	
+	private void reportError(final IResource descriptor, final String message, final Throwable exception) {
+		Environment.assertLock();
+		
+		if (exception != null)
+			Environment.asynOpenErrorDialog("Dynamic editor descriptor loading", message, exception);
+		
+		if (ResourcesPlugin.getWorkspace().isTreeLocked()) {
+			Job job = new WorkspaceJob("Add error marker") {
+				{ setSystem(true); } // don't show to user
+				@Override
+				public IStatus runInWorkspace(IProgressMonitor monitor) {
+					messageHandler.addMarkerFirstLine(descriptor, message, SEVERITY_ERROR);
+					return Status.OK_STATUS;
+				}
+			};
+			job.setRule(descriptor);
+			job.schedule();
+		} else {
+			messageHandler.addMarkerFirstLine(descriptor, message, SEVERITY_ERROR);
 		}
 	}
 	

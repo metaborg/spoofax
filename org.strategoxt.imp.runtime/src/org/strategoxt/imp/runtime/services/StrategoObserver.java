@@ -263,7 +263,7 @@ public class StrategoObserver implements IModelListener {
 		assert Thread.holdsLock(getSyncRoot());
 		assert feedback != null;
 
-		// TODO: use tracking io agent to find out what to clear
+		// TODO: use FileTrackingIOAgent to find out what to clear
 		// UNDONE: messages.clearAllMarkers();
 		messages.clearMarkers(resource);
 

@@ -155,20 +155,20 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 			
 		} catch (BadDescriptorException e) {
 			Environment.logException("Error in descriptor " + descriptor, e);
-			reportError(source, "Error in descriptor: " + e.getMessage());
-			reportError(descriptor, e.getOffendingTerm(), "Error in descriptor: " + e.getMessage());
+			reportError(source, "Error in descriptor: " + e.getMessage(), null);
+			reportError(descriptor, e.getOffendingTerm(), "Error in descriptor: " + e.getMessage(), e);
 		} catch (IOException e) {
 			Environment.logException("Error reading descriptor " + descriptor, e);
-			reportError(source, "Internal error reading descriptor" + e.getMessage());
+			reportError(source, "Internal error reading descriptor" + e.getMessage(), e);
 		} catch (CoreException e) {
 			Environment.logException("Unable to load descriptor " + descriptor, e);
-			reportError(source, "Internal error loading descriptor: " + e.getMessage());
+			reportError(source, "Internal error loading descriptor: " + e.getMessage(), e);
 		} catch (RuntimeException e) {
 			Environment.logException("Unable to load descriptor " + descriptor, e);
-			reportError(source, "Internal error loading descriptor: " + e.getMessage());
+			reportError(source, "Internal error loading descriptor: " + e.getMessage(), e);
 		} catch (Error e) { // workspace thread swallows this >:(
 			Environment.logException("Unable to load descriptor " + descriptor, e);
-			reportError(source, "Internal error loading descriptor: " + e.getMessage());
+			reportError(source, "Internal error loading descriptor: " + e.getMessage(), e);
 			throw e;
 		} finally {
 			asyncMessageHandler.commitChanges();
@@ -189,8 +189,11 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 		return result != null ? result : packedDescriptor;
 	}
 	
-	private void reportError(final IResource descriptor, final String message) {
+	private void reportError(final IResource descriptor, final String message, Throwable exception) {
 		Environment.assertLock();
+		
+		if (exception != null)
+			Environment.asynOpenErrorDialog("Dynamic editor descriptor loading", message, exception);
 		
 		if (ResourcesPlugin.getWorkspace().isTreeLocked()) {
 			Job job = new WorkspaceJob("Add error marker") {
@@ -208,8 +211,11 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 		}
 	}
 	
-	private void reportError(final IResource descriptor, final IStrategoTerm offendingTerm, final String message) {
+	private void reportError(final IResource descriptor, final IStrategoTerm offendingTerm, final String message, final Throwable exception) {
 		Environment.assertLock();
+		
+		if (exception != null)
+			Environment.asynOpenErrorDialog("Dynamic editor descriptor loading", message, exception);
 
 		if (ResourcesPlugin.getWorkspace().isTreeLocked()) {
 			Job job = new WorkspaceJob("Add error marker") {

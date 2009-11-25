@@ -10,7 +10,12 @@ import org.eclipse.swt.graphics.Color;
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class LazyTextAttribute extends TextAttribute{
+public class LazyTextAttribute extends TextAttribute {
+    
+    // FIXME: colorer deadlock situation can still occur
+    //        PresentationController.damage() runs in the main thread and wants to acquire
+    //        our fWorkItems lock while we need the main thread to yield for SWT...
+    //        maybe we can preinitialize the colors in the factory using an async call?
 	
 	private final LazyColor foreground;
 	

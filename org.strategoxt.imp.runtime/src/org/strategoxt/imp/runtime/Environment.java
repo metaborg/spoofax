@@ -6,8 +6,13 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.runtime.RuntimePlugin;
+import org.eclipse.jface.dialogs.ErrorDialog;
+import org.eclipse.ui.progress.UIJob;
 import org.spoofax.interpreter.adapter.aterm.UnsharedWrappedATermFactory;
 import org.spoofax.interpreter.adapter.aterm.WrappedATermFactory;
 import org.spoofax.interpreter.core.InterpreterException;
@@ -195,5 +200,16 @@ public final class Environment {
 	
 	public static void logException(Throwable t) {
 		RuntimePlugin.getInstance().logException(null, t);
+	}
+
+	public static void asynOpenErrorDialog(final String caption, final String message, final Throwable exception) {
+		new UIJob("Report error") {
+			@Override
+			public IStatus runInUIThread(IProgressMonitor monitor) {
+				Status status = new Status(IStatus.ERROR, RuntimeActivator.PLUGIN_ID, message, exception);
+				ErrorDialog.openError(null, caption, null, status);
+				return Status.OK_STATUS;
+			}
+		}.schedule();
 	}
 }
