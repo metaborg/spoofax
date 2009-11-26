@@ -129,7 +129,7 @@ public class DynamicParseController extends AbstractService<IParseController> im
 
 	public Object parse(String input, boolean scanOnly, IProgressMonitor monitor) {
 		Object result = getWrapped().parse(input, scanOnly, monitor);
-		if (isReinitialized) {
+		if (isReinitialized && lastEditor != null) {
 			// Update other services
 			// TODO: Trigger colorer update
 			// lastEditor.getEditor().getServiceControllerManager().getPresentationController().damage(new Region(0, input.length()));

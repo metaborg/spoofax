@@ -114,7 +114,7 @@ public class AstMessageHandler {
 			MarkerAttributes attributes = new MarkerAttributes(left, right, message, severity, PRIORITY_HIGH, false);
 			
 			IMarker marker = markersToDeleteOrReuse.remove(attributes); // reuse existing
-			if (marker == null)
+			if (marker == null || !marker.exists())
 				marker = file.createMarker(markerType);
 			marker.setAttributes(attributes.getAttributes(), attributes.getValues());
 			synchronized (activeMarkers) {
