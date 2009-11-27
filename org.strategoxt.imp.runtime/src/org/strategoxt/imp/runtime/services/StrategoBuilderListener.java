@@ -6,18 +6,13 @@ import java.util.WeakHashMap;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
-import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.ui.IEditorPart;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
-import org.strategoxt.imp.runtime.dynamicloading.DynamicParseController;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 
@@ -46,7 +41,7 @@ public class StrategoBuilderListener implements IModelListener {
 	
 	private boolean enabled = true;
 	
-	private  StrategoBuilderListener(UniversalEditor editor, IEditorPart targetEditor, IFile targetFile,
+	private StrategoBuilderListener(UniversalEditor editor, IEditorPart targetEditor, IFile targetFile,
 			String builder, IStrategoAstNode selection) {
 		
 		this.editor = new WeakReference<UniversalEditor>(editor);
@@ -110,12 +105,13 @@ public class StrategoBuilderListener implements IModelListener {
 			} else {
 				builder.execute(editor, editor.getParseController().getCurrentAst());
 			}
-			lastChanged = targetFile.getLocalTimeStamp();
 
 		} catch (BadDescriptorException e) {
 			Environment.logException("Could not update derived editor for " + editor.getResource(), e);
-			ErrorDialog.openError(editor.getEditor().getSite().getShell(),
-					"Spoofax/IMP builder", "Could not update derived editor for " + editor.getResource(), Status.OK_STATUS); 
+		} catch (RuntimeException e) {
+			Environment.logException("Could not update derived editor for " + editor.getResource(), e);
+		} finally {
+			if (targetFile.exists()) lastChanged = targetFile.getLocalTimeStamp();
 		}
 	}
 	
@@ -124,34 +120,5 @@ public class StrategoBuilderListener implements IModelListener {
 		IStrategoAstNode newAst = editor.getParseController().getCurrentAst();
 		if (newAst == null) return null;
 		return StrategoTermPath.findCorrespondingSubtree(newAst, selection);
-	}
-
-	public static void rescheduleAllListeners() {
-		boolean required = false;
-		synchronized (asyncListeners) {
-			for (StrategoBuilderListener listener : asyncListeners.values()) {
-				if (listener.isEnabled()) {
-					required = true;
-					break;
-				}
-			}
-		}
-		if (required) {
-			new Job("Rebuild derived files") {
-				@Override
-				protected IStatus run(IProgressMonitor monitor) {
-					synchronized (asyncListeners) {
-						for (StrategoBuilderListener listener : asyncListeners.values()) {
-							try {
-								listener.update(monitor);
-							} catch (Exception e) {
-								Environment.logException("Could not update builder", e);
-							}
-						}
-					}
-					return Status.OK_STATUS;
-				}
-			}.schedule(DynamicParseController.REINIT_PARSE_DELAY * 3);
-		}
 	}
 }

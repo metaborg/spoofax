@@ -156,19 +156,19 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 		} catch (BadDescriptorException e) {
 			Environment.logException("Error in descriptor " + descriptor, e);
 			reportError(source, "Error in descriptor: " + e.getMessage(), null);
-			reportError(descriptor, e.getOffendingTerm(), "Error in descriptor: " + e.getMessage(), e);
+			reportError(descriptor, e.getOffendingTerm(), "Error in descriptor " + descriptor + ": " + e.getMessage(), e);
 		} catch (IOException e) {
 			Environment.logException("Error reading descriptor " + descriptor, e);
-			reportError(source, "Internal error reading descriptor" + e.getMessage(), e);
+			reportError(source, "Internal error reading descriptor " + descriptor + ": " + e.getMessage(), e);
 		} catch (CoreException e) {
 			Environment.logException("Unable to load descriptor " + descriptor, e);
-			reportError(source, "Internal error loading descriptor: " + e.getMessage(), e);
+			reportError(source, "Internal error loading descriptor " + descriptor + ": " + e.getMessage(), e);
 		} catch (RuntimeException e) {
 			Environment.logException("Unable to load descriptor " + descriptor, e);
-			reportError(source, "Internal error loading descriptor: " + e.getMessage(), e);
+			reportError(source, "Internal error loading descriptor " + descriptor + ": " + e.getMessage(), e);
 		} catch (Error e) { // workspace thread swallows this >:(
 			Environment.logException("Unable to load descriptor " + descriptor, e);
-			reportError(source, "Internal error loading descriptor: " + e.getMessage(), e);
+			reportError(source, "Internal error loading descriptor " + descriptor + ": " + e.getMessage(), e);
 			throw e;
 		} finally {
 			asyncMessageHandler.commitChanges();

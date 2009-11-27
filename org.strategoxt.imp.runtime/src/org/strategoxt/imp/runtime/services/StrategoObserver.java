@@ -303,7 +303,7 @@ public class StrategoObserver implements IModelListener {
 		
 		Context context = runtime.getCompiledContext();
 		sdf2imp.init(context);
-		feedbacks = (IStrategoList) postprocess_feedback_results_0_0.instance.invoke(context, feedbacks);
+		feedbacks = postProcessFeedback(feedbacks, context);
 		
 	    for (IStrategoTerm feedback : feedbacks.getAllSubterms()) {
 	        IStrategoTerm term = termAt(feedback, 0);
@@ -312,6 +312,16 @@ public class StrategoObserver implements IModelListener {
 			
 			messages.addMarker(resource, term, message, severity);
 	    }
+	}
+
+	private IStrategoList postProcessFeedback(IStrategoList feedbacks, Context context) {
+		IStrategoList result =
+				(IStrategoList) postprocess_feedback_results_0_0.instance.invoke(context, feedbacks);
+		if (result == null) {
+			// Throw an exception to trigger an Eclipse pop-up  
+			throw new StrategoException("Illegal output from " + feedbackFunction + ": " + feedbacks);
+		}
+		return result;
 	}	
 	
 	/**

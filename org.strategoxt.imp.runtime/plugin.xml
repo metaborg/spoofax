@@ -198,7 +198,7 @@
                class="org.strategoxt.imp.runtime.services.BuilderButtonDelegate"
                definitionId="org.strategoxt.imp.runtime.transformCommand"
                id="org.strategoxt.imp.runtime.stratego.builder"
-               label="Apply transformation"
+               label="Transform"
                style="pulldown"
                toolbarPath="spoofax"
                tooltip="Apply transformation to file in current editor"/>

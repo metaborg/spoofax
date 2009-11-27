@@ -136,7 +136,7 @@ public class DynamicDescriptorBuilder {
 			return sdf2imp_jvm_0_0.instance.invoke(context, input);
 		} catch (StrategoErrorExit e) {
 			Environment.logException("Fatal error in dynamic builder, log:\n" + agent.getLog().trim(), e);
-			reportError(mainFile, "Fatal error in descriptor builder: " + e.getMessage(), e);
+			reportError(mainFile, "Fatal error in descriptor " + mainFile + ": " + e.getMessage(), e);
 			return null;
 		} catch (StrategoExit e) {
 			context.printStackTrace();

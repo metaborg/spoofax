@@ -71,9 +71,10 @@ public class StrategoBuilder implements IBuilder {
 		this.openEditor = openEditor;
 	}
 	
-	public void execute(EditorState editor, IStrategoAstNode node) { // TODO: refactor
-		IStrategoTerm resultTerm = null;
+	public void execute(EditorState editor, IStrategoAstNode node) {
+		// TODO: refactor
 		String filename = null;
+		String result = null;
 		
 		synchronized (observer.getSyncRoot()) {
 			try {
@@ -86,7 +87,7 @@ public class StrategoBuilder implements IBuilder {
 					return;
 				}
 				
-				resultTerm = observer.invoke(builderRule, node);
+				IStrategoTerm resultTerm = observer.invoke(builderRule, node);
 				if (resultTerm == null) {
 					observer.reportRewritingFailed();
 					Environment.logException("Builder failed:\n" + observer.getLog());
@@ -109,11 +110,17 @@ public class StrategoBuilder implements IBuilder {
 				resultTerm = termAt(resultTerm, 1);
 				resultTerm = try_1_0.instance.invoke(observer.getRuntime().getCompiledContext(),
 						resultTerm, concat_strings_0_0.instance);
+				
+				if (resultTerm != null && filename != null) {
+					result = isTermString(resultTerm)
+						? asJavaString(resultTerm)
+						: ppATerm(resultTerm);
+				}
 			} catch (InterpreterErrorExit e) {
 				observer.reportRewritingFailed();
 				Environment.logException("Builder failed:\n" + observer.getLog(), e);
 				if (editor.getDescriptor().isDynamicallyLoaded()) StrategoConsole.activateConsole();
-				openError(editor, e.getMessage());
+				openError(editor, e.getMessage()); // TODO: show message in editor if st
 			} catch (UndefinedStrategyException e) {
 				reportException(editor, e);
 			} catch (InterpreterExit e) {
@@ -124,13 +131,10 @@ public class StrategoBuilder implements IBuilder {
 				reportException(editor, e);
 			}
 		}
-		
-		if (resultTerm != null && filename != null) {
+
+		if (result != null) {
 			try {
-				String result = isTermString(resultTerm)
-					? asJavaString(resultTerm)
-					: ppATerm(resultTerm);
-				IFile file = createFile(editor, filename, result);
+				IFile file = setFileContents(editor, filename, result);
 				// TODO: if not persistent, create IEditorInput from result String
 				if (openEditor) {
 					IEditorPart target = openEditor(file, realTime);
@@ -139,10 +143,9 @@ public class StrategoBuilder implements IBuilder {
 				}
 			} catch (CoreException e) {
 				Environment.logException("Builder failed", e);
-				openError(editor, "Builder failed (see error log)");
+				openError(editor, "Failed (see error log): " + e.getMessage());
 			}
 		}
-
 	}
 
 	private String ppATerm(IStrategoTerm term) {
@@ -170,12 +173,36 @@ public class StrategoBuilder implements IBuilder {
 				caption, null, status);
 	}
 
-	private IFile createFile(EditorState editor, String filename, String contents) throws CoreException {
-		IFile file = editor.getProject().getRawProject().getFile(filename);
+	private IFile setFileContents(final EditorState editor, String filename, final String contents) throws CoreException {
+		assert !Thread.holdsLock(observer.getSyncRoot()) || Thread.holdsLock(Environment.getSyncRoot())
+			: "Acquiring a resource lock can cause a deadlock";
+
+		final IFile file = editor.getProject().getRawProject().getFile(filename);
 		InputStream resultStream = new ByteArrayInputStream(contents.getBytes());
 		if (file.exists()) {
-			// TODO: editor.getDocument().set(contents);?
 			file.setContents(resultStream, true, true, null);
+			
+			/* TODO: update editor contents instead of file?
+			if (editor.getEditor().getTitleImage().isDisposed()) {
+				InputStream resultStream = new ByteArrayInputStream(contents.getBytes());
+				file.setContents(resultStream, true, true, null);
+				...save...
+			} else {
+				new UIJob("Update derived editor") {
+					@Override
+					public IStatus runInUIThread(IProgressMonitor monitor) {
+						try {
+							editor.getDocument().set(contents);
+							...save...
+			                ...ensure listener knows updated time stamp...
+						} catch (RuntimeException e) {
+							Environment.logException("Could not update derived editor", e);
+						}
+						return Status.OK_STATUS;
+					}
+				}.schedule();
+			}
+			*/
 		} else {
 			file.create(resultStream, true, null);
 		}
@@ -186,7 +213,10 @@ public class StrategoBuilder implements IBuilder {
 	 * Opens or activates an editor.
 	 * (Asynchronous) exceptions are swallowed and logged.
 	 */
-	private static IEditorPart openEditor(IFile file, boolean realTime) throws PartInitException {
+	private IEditorPart openEditor(IFile file, boolean realTime) throws PartInitException {
+		assert !Thread.holdsLock(observer.getSyncRoot()) || Thread.holdsLock(Environment.getSyncRoot())
+			: "Opening a new editor and acquiring a resource lock can cause a deadlock";
+		
 		// TODO: WorkBenchPage.openEdiotr with a custom IEditorInput?
 		IWorkbenchPage page =
 			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
