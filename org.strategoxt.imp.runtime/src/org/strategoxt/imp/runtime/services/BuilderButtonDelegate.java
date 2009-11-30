@@ -53,7 +53,7 @@ public class BuilderButtonDelegate extends AbstractHandler implements IWorkbench
 		if (builder == null) {
 			openError("No builders defined for this editor");
 		} else {
-			builder.execute(editor, null);
+			builder.execute(editor, null, null, false);
 		}
 	}
 
@@ -81,7 +81,7 @@ public class BuilderButtonDelegate extends AbstractHandler implements IWorkbench
 				@Override
 				public void run() {
 					lastAction = builder.getCaption();
-					builder.execute(editor, null);
+					builder.execute(editor, null, null, false);
 				}
 			};
 			ActionContributionItem item = new ActionContributionItem(action);

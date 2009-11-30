@@ -45,10 +45,10 @@ public class StrategoBuilder implements IBuilder {
 	
 	private final boolean realTime;
 	
+	private final boolean openEditor;
+	
 	@SuppressWarnings("unused")
 	private final boolean persistent;
-	
-	private boolean openEditor;
 	
 	public StrategoBuilder(StrategoObserver observer, String caption, String builderRule, boolean openEditor, boolean realTime, boolean persistent) {
 		this.observer = observer;
@@ -63,18 +63,11 @@ public class StrategoBuilder implements IBuilder {
 		return caption;
 	}
 	
-	public boolean isOpenEditorEnabled() {
-		return openEditor;
-	}
-	
-	public void setOpenEditorEnabled(boolean openEditor) {
-		this.openEditor = openEditor;
-	}
-	
-	public void execute(EditorState editor, IStrategoAstNode node) {
+	public void execute(EditorState editor, IStrategoAstNode node, IFile errorReportFile, boolean isRebuild) {
 		// TODO: refactor
 		String filename = null;
 		String result = null;
+		Exception errorReport = null;
 		
 		synchronized (observer.getSyncRoot()) {
 			try {
@@ -112,7 +105,7 @@ public class StrategoBuilder implements IBuilder {
 						resultTerm, concat_strings_0_0.instance);
 				
 				if (resultTerm != null && filename != null) {
-					result = isTermString(resultTerm)
+					result = isTermString(resultTerm) 
 						? asJavaString(resultTerm)
 						: ppATerm(resultTerm);
 				}
@@ -120,7 +113,11 @@ public class StrategoBuilder implements IBuilder {
 				observer.reportRewritingFailed();
 				Environment.logException("Builder failed:\n" + observer.getLog(), e);
 				if (editor.getDescriptor().isDynamicallyLoaded()) StrategoConsole.activateConsole();
-				openError(editor, e.getMessage()); // TODO: show message in editor if st
+				if (errorReportFile == null || !openEditor) {
+					openError(editor, e.getMessage());
+				} else {
+					errorReport = e;
+				}
 			} catch (UndefinedStrategyException e) {
 				reportException(editor, e);
 			} catch (InterpreterExit e) {
@@ -132,19 +129,24 @@ public class StrategoBuilder implements IBuilder {
 			}
 		}
 
-		if (result != null) {
-			try {
-				IFile file = setFileContents(editor, filename, result);
+		try {
+			if (errorReport != null) {
+				setFileContents(editor, errorReportFile, "ERROR: " + errorReport.getMessage());
+			}
+		
+			if (result != null) {
+				IFile file = editor.getProject().getRawProject().getFile(filename);
+				setFileContents(editor, file, result);
 				// TODO: if not persistent, create IEditorInput from result String
-				if (openEditor) {
+				if (openEditor && !isRebuild) {
 					IEditorPart target = openEditor(file, realTime);
 					if (realTime)
 						StrategoBuilderListener.addListener(editor.getEditor(), target, file, getCaption(), node);
 				}
-			} catch (CoreException e) {
-				Environment.logException("Builder failed", e);
-				openError(editor, "Failed (see error log): " + e.getMessage());
 			}
+		} catch (CoreException e) {
+			Environment.logException("Builder failed", e);
+			openError(editor, "Failed (see error log): " + e.getMessage());
 		}
 	}
 
@@ -173,11 +175,10 @@ public class StrategoBuilder implements IBuilder {
 				caption, null, status);
 	}
 
-	private IFile setFileContents(final EditorState editor, String filename, final String contents) throws CoreException {
+	private void setFileContents(final EditorState editor, IFile file, final String contents) throws CoreException {
 		assert !Thread.holdsLock(observer.getSyncRoot()) || Thread.holdsLock(Environment.getSyncRoot())
 			: "Acquiring a resource lock can cause a deadlock";
 
-		final IFile file = editor.getProject().getRawProject().getFile(filename);
 		InputStream resultStream = new ByteArrayInputStream(contents.getBytes());
 		if (file.exists()) {
 			file.setContents(resultStream, true, true, null);
@@ -206,7 +207,6 @@ public class StrategoBuilder implements IBuilder {
 		} else {
 			file.create(resultStream, true, null);
 		}
-		return file;
 	}
 
 	/**

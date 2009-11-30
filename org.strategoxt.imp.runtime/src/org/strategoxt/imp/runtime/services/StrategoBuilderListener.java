@@ -97,13 +97,12 @@ public class StrategoBuilderListener implements IModelListener {
 		try {
 			IBuilderMap builders = editor.getDescriptor().createService(IBuilderMap.class);
 			IBuilder builder = builders.get(this.builder);
-			builder.setOpenEditorEnabled(false);
 			
 			IStrategoAstNode newSelection = findNewSelection(editor);
 			if (newSelection != null) {
-				builder.execute(editor, selection = newSelection);
+				builder.execute(editor, selection = newSelection, targetFile, true);
 			} else {
-				builder.execute(editor, editor.getParseController().getCurrentAst());
+				builder.execute(editor, editor.getParseController().getCurrentAst(), targetFile, true);
 			}
 
 		} catch (BadDescriptorException e) {

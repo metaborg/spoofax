@@ -10,7 +10,7 @@ import org.strategoxt.stratego_xtc.xtc_command_1_0;
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class MetaIMPLibrary {
+public class MetaSPILibrary {
 	public static void init() {
 		// It's a small library, okay?
 		SDFBundleCommand nativeBundle = new SDFBundleCommand();

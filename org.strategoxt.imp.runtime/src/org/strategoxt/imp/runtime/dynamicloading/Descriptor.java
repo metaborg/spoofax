@@ -111,7 +111,6 @@ public class Descriptor {
 		boolean foundFactory = false;
 		
 		// TODO: caching of builders and reference resolvers?
-		//       (but then they must be immutable; no more IBuilder.setOpenEditorEnabled)
 		
 		try {
 			for (AbstractServiceFactory<T> factory : serviceFactories) {
