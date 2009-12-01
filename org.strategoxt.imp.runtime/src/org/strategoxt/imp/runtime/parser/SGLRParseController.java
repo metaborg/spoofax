@@ -194,9 +194,9 @@ public class SGLRParseController implements IParseController {
 			currentParseStream = null; // avoid twitchy colorer
 			if (isStartupParsed)
 				Job.getJobManager().beginRule(resource, monitor); // enter lock
-			assert !parseLock.isLocked() : "Parse lock must be locked after resource lock";
+			assert !parseLock.isHeldByCurrentThread() : "Parse lock must be locked after resource lock";
 			parseLock.lock();
-			System.out.println("PARSE! " + System.currentTimeMillis()); // DEBUG
+			// System.out.println("PARSE! " + System.currentTimeMillis()); // DEBUG
 			
 			Debug.startTimer();
 			
@@ -253,8 +253,8 @@ public class SGLRParseController implements IParseController {
 			if (isStartupParsed) Job.getJobManager().endRule(resource);
 			else isStartupParsed = true;
 			
-			boolean mustRecolor = isColorerQueued && editor != null;
 			IPrsStream parseStream = currentParseStream;
+			boolean mustRecolor = isColorerQueued && editor != null && parseStream != null;
 			isColorerQueued = false;
 			
 			parseLock.unlock();
@@ -320,7 +320,7 @@ public class SGLRParseController implements IParseController {
 			stream = getIPrsStream();
 		} finally {
 			isColorerQueued = false;
-			System.out.println("COLOR! " + System.currentTimeMillis()); // DEBUG
+			// System.out.println("COLOR! " + System.currentTimeMillis()); // DEBUG
 			parseLock.unlock();
 		}
 		
@@ -336,26 +336,13 @@ public class SGLRParseController implements IParseController {
 	}
 
 	private void forceRecolor(IPrsStream parseStream) {
-		System.out.println("RECOLOR! " + System.currentTimeMillis()); // DEBUG
+		// System.out.println("RECOLOR! " + System.currentTimeMillis()); // DEBUG
 		isColorerQueued = true;
 		try {
-			/*new Job("Reschedule syntax highlighting") {
-				@Override
-				protected IStatus run(IProgressMonitor monitor) {
-					IPrsStream parseStream;
-					parseLock.lock();
-					try {
-					parseStream = currentParseStream;
-					} finally {*/
-						isColorerQueued = false;
-					/*	parseLock.unlock();
-					}*/
-					System.out.println("RECOLOR GO! " + System.currentTimeMillis()); // DEBUG
-					assert !parseLock.isLocked() : "Parse lock may not be locked: dead lock risk with colorer queue";
-					editor.getEditor().updateColoring(new Region(0, parseStream.getStreamLength() - 1));
-					/*return Status.OK_STATUS;
-				}
-			}.schedule();*/
+			isColorerQueued = false;
+			// System.out.println("RECOLOR GO! " + System.currentTimeMillis()); // DEBUG
+			assert !parseLock.isHeldByCurrentThread() : "Parse lock may not be locked: dead lock risk with colorer queue";
+			editor.getEditor().updateColoring(new Region(0, parseStream.getStreamLength() - 1));
 		} catch (RuntimeException e) {
 			Environment.logException("Could reschedule syntax highlighter", e);
 		}
