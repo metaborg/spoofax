@@ -61,6 +61,8 @@ import org.strategoxt.stratego_lib.set_config_0_0;
  */
 public class StrategoObserver implements IModelListener {
 	
+	private static final long OBSERVER_DELAY = 500;
+	
 	private final Descriptor descriptor;
 	
 	private final String feedbackFunction;
@@ -205,7 +207,7 @@ public class StrategoObserver implements IModelListener {
 				}
 			};
 			asyncLastBuildJob.setRule(parseController.getProject().getResource());
-			asyncLastBuildJob.schedule();
+			asyncLastBuildJob.schedule(OBSERVER_DELAY);
 		}
 	}
 

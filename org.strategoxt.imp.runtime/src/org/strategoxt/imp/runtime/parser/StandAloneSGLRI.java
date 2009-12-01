@@ -92,7 +92,7 @@ public class StandAloneSGLRI {
 	
 	private static class StandAloneLanguage extends Language {
 		public StandAloneLanguage(String name) {
-			super(name, null, null, null, null, null, null, null);
+			super(name, null, null, null, null, null, null, "", null, null);
 		}
 	}
 }

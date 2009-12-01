@@ -3,6 +3,8 @@ package org.strategoxt.imp.runtime.parser;
 import java.io.IOException;
 import java.io.InputStream;
 
+import lpg.runtime.IPrsStream;
+
 import org.spoofax.jsglr.BadTokenException;
 import org.spoofax.jsglr.Disambiguator;
 import org.spoofax.jsglr.FilterException;
@@ -62,6 +64,10 @@ public class JSGLRI extends AbstractSGLRI {
 	
 	public Disambiguator getDisambiguator() {
 		return parser.getDisambiguator();
+	}
+	
+	public IPrsStream getIPrsStream() {
+		return super.getController().getIPrsStream();
 	}
 	
 	@Override

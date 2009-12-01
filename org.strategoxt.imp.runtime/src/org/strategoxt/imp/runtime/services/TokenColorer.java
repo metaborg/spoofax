@@ -19,8 +19,6 @@ import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class TokenColorer implements ITokenColorer {
-	private /*final*/ IParseController parseController;
-	
 	private final List<TextAttributeMapping> envMappings, nodeMappings, tokenMappings;
 	
 	public List<TextAttributeMapping> getTokenMappings() {
@@ -47,8 +45,6 @@ public class TokenColorer implements ITokenColorer {
 		SGLRToken token = (SGLRToken) oToken;
 		IStrategoAstNode node = token.getAstNode();
 		
-		parseController = controller;
-		
 		// Use the parent of string/int terminal nodes
 		if (node != null && node.getConstructor() == null && node.getParent() != null)
 			node = node.getParent();
@@ -57,11 +53,11 @@ public class TokenColorer implements ITokenColorer {
 		String sort = node == null ? null : node.getSort();
 		String constructor = node == null ? null : node.getConstructor();
 		
-		/*if (tokenKind == TokenKind.TK_LAYOUT.ordinal() && SGLRToken.isWhiteSpace(token)) {
+		if (tokenKind == TokenKind.TK_LAYOUT.ordinal() && SGLRToken.isWhiteSpace(token)) {
 			// Don't treat whitespace layout as comments, to avoid italics in text that
 			// was just typed in
 			tokenKind = TokenKind.TK_UNKNOWN.ordinal();
-		}*/
+		}
 		 
 		TextAttribute tokenColor = getColoring(tokenMappings, constructor, sort, tokenKind);
 		TextAttribute nodeColor = getColoring(nodeMappings, constructor, sort, tokenKind);
@@ -139,8 +135,8 @@ public class TokenColorer implements ITokenColorer {
 		return attribute;
 	}
 
-	public IRegion calculateDamageExtent(IRegion seed) {
-		if (parseController == null || parseController.getCurrentAst() == null)
+	public IRegion calculateDamageExtent(IRegion seed, IParseController parseController) {
+		if (parseController.getCurrentAst() == null)
 			return seed;
 		
 		// Always damage the complete source

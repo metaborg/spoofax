@@ -13,7 +13,6 @@ strategies
     <output-java-file> compilation-unit |[
       package pkgname;
       
-      import org.eclipse.core.resources.ResourcesPlugin;
       import org.eclipse.imp.preferences.PreferencesService;
       import org.eclipse.imp.runtime.PluginBase;
       import org.osgi.framework.BundleContext;
@@ -42,7 +41,6 @@ strategies
         @Override
         public void start(BundleContext context) throws Exception {
           super.start(context);
-      
         }
       
         @Override
@@ -50,8 +48,14 @@ strategies
           return kPluginID;
         }
       
+        @Override
+        public String getLanguageID() {
+          return kLanguageName;
+        }
+      
         protected static PreferencesService preferencesService = null;
       
+        /* UNDONE: Activator.getPreferencesService()
         public static PreferencesService getPreferencesService() {
           if (preferencesService == null) {
             preferencesService = new PreferencesService(ResourcesPlugin
@@ -67,5 +71,6 @@ strategies
           }
           return preferencesService;
         }
+        */
       }
     ]|

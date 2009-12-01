@@ -18,7 +18,6 @@ import org.eclipse.jface.text.source.ISourceViewer;
  */
 public class AnnotationHover extends DefaultAnnotationHover implements IAnnotationHover {
     
-	@SuppressWarnings("unchecked")
 	@Override
 	public String getHoverInfo(ISourceViewer sourceViewer, int lineNumber) {
     	List<Annotation> annotations = AnnotationUtils.getAnnotationsForLine(sourceViewer, lineNumber);

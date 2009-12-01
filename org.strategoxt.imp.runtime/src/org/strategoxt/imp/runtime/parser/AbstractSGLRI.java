@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.WeakHashMap;
 
+import lpg.runtime.ILexStream;
 import lpg.runtime.Monitor;
 import lpg.runtime.PrsStream;
 
@@ -188,6 +189,11 @@ public abstract class AbstractSGLRI implements IParser {
 		} finally {
 			Debug.stopTimer("File parsed");
 		}
+	}
+	
+	@Deprecated
+	public void reset(ILexStream lexStream) {
+		throw new UnsupportedOperationException();
 	}
 
 	/**

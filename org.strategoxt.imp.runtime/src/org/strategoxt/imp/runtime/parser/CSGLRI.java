@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import lpg.runtime.IPrsStream;
+
 import org.spoofax.jsglr.SGLRException;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
@@ -95,6 +97,11 @@ public class CSGLRI extends AbstractSGLRI {
 			outputFile.delete();
 			inputFile.delete();
 		}
+	}
+	
+	@Deprecated
+	public IPrsStream getIPrsStream() {
+		throw new UnsupportedOperationException();
 	}
 
 }

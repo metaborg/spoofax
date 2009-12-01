@@ -32,10 +32,10 @@ public class DynamicTokenColorer extends AbstractService<ITokenColorer> implemen
 		super(ITokenColorer.class);
 	}
 	
-	public IRegion calculateDamageExtent(IRegion seed) {
+	public IRegion calculateDamageExtent(IRegion seed, IParseController controller) {
 		if (!isInitialized()) return seed;
 		
-		return getWrapped().calculateDamageExtent(seed);
+		return getWrapped().calculateDamageExtent(seed, controller);
 	}
 
 	public TextAttribute getColoring(IParseController controller, Object token) {
@@ -43,6 +43,10 @@ public class DynamicTokenColorer extends AbstractService<ITokenColorer> implemen
 		lastParseController = controller;
 		TextAttribute result = getWrapped().getColoring(controller, token);
 		if (isReinitializing) result = toGray(result);
+		if (token.toString().indexOf("2") > -1
+				&& (result.getForeground() == null || result.getForeground().getRed() == 0 || result.getForeground().getBlue() == 0)) {
+			System.out.print(""); // DEBUG
+		}
 		return result;
 	}
 	
@@ -54,7 +58,7 @@ public class DynamicTokenColorer extends AbstractService<ITokenColorer> implemen
 			lastEditor = ((DynamicParseController) lastParseController).getLastEditor().getEditor();
 
 		if (lastEditor != null && !lastEditor.getTitleImage().isDisposed()) {
-			lastEditor.damage(new Region(0, lastEditor.getServiceControllerManager().getSourceViewer().getDocument().getLength()));
+			lastEditor.updateColoring(new Region(0, lastEditor.getServiceControllerManager().getSourceViewer().getDocument().getLength()));
 			IModelListener presentation = lastEditor.getServiceControllerManager().getPresentationController();
 			presentation.update(lastParseController, new NullProgressMonitor());
 		}

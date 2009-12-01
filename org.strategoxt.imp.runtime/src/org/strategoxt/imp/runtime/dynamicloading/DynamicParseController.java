@@ -18,6 +18,7 @@ import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 import org.strategoxt.imp.runtime.EditorState;
+import org.strategoxt.imp.runtime.parser.SGLRParseController;
 
 /**
  * Dynamic proxy class to a parse controller.
@@ -63,9 +64,12 @@ public class DynamicParseController extends AbstractService<IParseController> im
 		// Reinitalize path etc. if descriptor was reloaded
 		if (super.getWrapped().getProject() == null)
 			initialize(null, null, null);
+		
+		IParseController result = super.getWrapped(); 
+
 		if (lastEditor == null && EditorState.isUIThread())
 			lastEditor = EditorState.getEditorFor(this);
-		return super.getWrapped();
+		return result;
 	}
 
 	public IAnnotationTypeInfo getAnnotationTypeInfo() {
@@ -76,8 +80,8 @@ public class DynamicParseController extends AbstractService<IParseController> im
 		return getWrapped().getCurrentAst();
 	}
 
-	public ISourcePositionLocator getNodeLocator() {
-		return getWrapped().getNodeLocator();
+	public ISourcePositionLocator getSourcePositionLocator() {
+		return getWrapped().getSourcePositionLocator();
 	}
 
 	public IPath getPath() {
@@ -127,14 +131,18 @@ public class DynamicParseController extends AbstractService<IParseController> im
 		}
 	}
 
-	public Object parse(String input, boolean scanOnly, IProgressMonitor monitor) {
-		Object result = getWrapped().parse(input, scanOnly, monitor);
+	public Object parse(String input, IProgressMonitor monitor) {
+		IParseController parser = getWrapped();
+		if (parser instanceof SGLRParseController)
+			((SGLRParseController) parser).setEditor(lastEditor);
+		
+		Object result = parser.parse(input, monitor);
 		if (isReinitialized && lastEditor != null) {
 			// Update other services
 			// TODO: Trigger colorer update
 			// lastEditor.getEditor().getServiceControllerManager().getPresentationController().damage(new Region(0, input.length()));
 			
-			lastEditor.getEditor().damage(new Region(0, input.length()));
+			lastEditor.getEditor().updateColoring(new Region(0, input.length()));
 			lastEditor.getEditor().fParserScheduler.notifyModelListeners(new NullProgressMonitor());
 			isReinitialized = false;
 		}

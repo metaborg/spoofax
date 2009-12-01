@@ -3,6 +3,7 @@ package org.strategoxt.imp.runtime.parser;
 import org.eclipse.imp.parser.ILexer;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
 
+import lpg.runtime.ILexStream;
 import lpg.runtime.IPrsStream;
 import lpg.runtime.LexStream;
 import lpg.runtime.Monitor;
@@ -23,7 +24,11 @@ public class SGLRLexer implements ILexer {
 		this.lexStream = lexStream;
 	}
 	
-	// IMP legacy / compatibility
+	public ILexStream getILexStream() {
+		return lexStream;
+	}
+	
+	// IMP/LPG legacy / compatibility
 
 	@Deprecated
 	public int[] getKeywordKinds() {
@@ -38,5 +43,10 @@ public class SGLRLexer implements ILexer {
 	@Deprecated
 	public void lexer(Monitor monitor, IPrsStream prsStream) {
 		// We don't do that.
+	}
+
+	@Deprecated
+	public void reset(char[] contentsArray, String filePath) {
+		throw new UnsupportedOperationException();
 	}
 }

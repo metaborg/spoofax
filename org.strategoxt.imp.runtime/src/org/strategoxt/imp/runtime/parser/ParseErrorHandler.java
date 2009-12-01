@@ -117,7 +117,11 @@ public class ParseErrorHandler {
 	}
 	
 	public void commitChanges() {
-		handler.commitChanges();
+		try {
+			handler.commitChanges();
+		} catch (RuntimeException e) {
+			Environment.logException("Could not commit syntax error marker changes", e);
+		}
 	}
 
     /**

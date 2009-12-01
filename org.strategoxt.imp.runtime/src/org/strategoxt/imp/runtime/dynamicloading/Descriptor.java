@@ -37,7 +37,7 @@ public class Descriptor {
 	public static final String ROOT_LANGUAGE = "DynamicRoot";
 
 	protected static final Language DESCRIPTOR_LANGUAGE =
-		new Language("EditorService-builtin", "org.strategoxt.imp.builtin.editorservice", "", ROOT_LANGUAGE, "", "", "", null);
+		new Language("EditorService-builtin", "org.strategoxt.imp.builtin.editorservice", "", ROOT_LANGUAGE, null, "", null, "", "", null);
 	
 	private final Map<AbstractService, Object> services = new WeakHashMap<AbstractService, Object>();
 	
@@ -254,24 +254,28 @@ public class Descriptor {
 	}
 	
 	// INTERPRETING
-    
-    /**
-     * Gets the language for this descriptor, but does not register it.
-     */
-    public Language getLanguage() throws BadDescriptorException {
-        if (language == null) {
-            language = new Language(
-                getProperty("LanguageName"),
-                getProperty("LanguageId", getProperty("LanguageName")),
-                getProperty("Description", ""),
-                ROOT_LANGUAGE,          // ("Extends" is not used for IMP)
-                getProperty("URL", ""),
-                getProperty("Extensions"),
-                getProperty("Aliases", ""),
-                new MetaFileLanguageValidator(this));
-        }
-        return language;
-    }
+	
+	/**
+	 * Gets the language for this descriptor, but does not register it.
+	 */
+	public Language getLanguage() throws BadDescriptorException {
+		if (language == null) {
+			language = new Language(
+				getProperty("LanguageName"),
+				getProperty("LanguageId", getProperty("LanguageName")),
+				getProperty("Description", ""),
+				ROOT_LANGUAGE,		  // ("Extends" is not used for IMP)
+				getProperty("Icon", ""), // TODO: icon path in esv language
+				getProperty("URL", ""),
+				// FIXME: ID of the bundle containing the language descriptor and icon for this language
+				//        (does getAttachmentProvider() already provide enough functionality for this?)
+				getProperty("LanguageId", getProperty("LanguageName")), 
+				getProperty("Extensions"),
+				getProperty("Aliases", ""),
+				new MetaFileLanguageValidator(this));
+		}
+		return language;
+	}
 
 	private String getParseTableName() throws BadDescriptorException {
 		String file = getProperty("Table", getProperty("LanguageName"));
@@ -288,8 +292,8 @@ public class Descriptor {
 	}
 
 	public String[] getExtendedLanguages() {
-    	return getPropertyArray("Extends");
-    }
+		return getPropertyArray("Extends");
+	}
 
 	/**
 	 * Get a set of all files attached to this descriptor (e.g., .ctree or

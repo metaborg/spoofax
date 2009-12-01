@@ -27,6 +27,7 @@ import org.eclipse.imp.parser.SimpleAnnotationTypeInfo;
 import org.eclipse.imp.services.IAnnotationTypeInfo;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.Region;
 import org.spoofax.jsglr.BadTokenException;
 import org.spoofax.jsglr.NoRecoveryRulesException;
 import org.spoofax.jsglr.ParseTable;
@@ -36,6 +37,7 @@ import org.spoofax.jsglr.StructureRecoveryAlgorithm;
 import org.spoofax.jsglr.TokenExpectedException;
 import org.spoofax.jsglr.Tools;
 import org.strategoxt.imp.runtime.Debug;
+import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
@@ -63,7 +65,7 @@ public class SGLRParseController implements IParseController {
 	
 	private final ParseErrorHandler errorHandler = new ParseErrorHandler(this);
 	
-	private final ReentrantLock parseLock = new ReentrantLock();
+	private final ReentrantLock parseLock = new ReentrantLock(true);
 	
 	private final JSGLRI parser;
 	
@@ -79,7 +81,11 @@ public class SGLRParseController implements IParseController {
 	
 	private IPath path;
 	
+	private EditorState editor;
+	
 	private volatile boolean isStartupParsed;
+	
+	private volatile boolean isColorerQueued;
 
 	// Simple accessors
 	
@@ -118,6 +124,10 @@ public class SGLRParseController implements IParseController {
 		path = path.removeFirstSegments(path.matchingFirstSegments(project.getLocation()));
 		return project.getFile(path);
     }
+    
+    public void setEditor(EditorState editor) {
+		this.editor = editor;
+	}
 	
 	// Parsing and initialization
     
@@ -155,8 +165,13 @@ public class SGLRParseController implements IParseController {
 		this.project = project;
 		this.errorHandler.setMessages(messages);
     }
+    
+    @Deprecated
+    public final AstNode parse(String input, boolean scanOnly, IProgressMonitor monitor) {
+    	return parse(input, monitor);
+    }
 
-	public AstNode parse(String input, boolean scanOnly, IProgressMonitor monitor) {
+	public AstNode parse(String input, IProgressMonitor monitor) {
 		if (input.length() == 0) {
 			currentParseStream = null;
 			return currentAst = null;
@@ -179,7 +194,9 @@ public class SGLRParseController implements IParseController {
 			currentParseStream = null; // avoid twitchy colorer
 			if (isStartupParsed)
 				Job.getJobManager().beginRule(resource, monitor); // enter lock
-			parseLock.lock(); // Parse lock must be locked _after_ resource lock
+			assert !parseLock.isLocked() : "Parse lock must be locked after resource lock";
+			parseLock.lock();
+			System.out.println("PARSE! " + System.currentTimeMillis()); // DEBUG
 			
 			Debug.startTimer();
 			
@@ -216,24 +233,15 @@ public class SGLRParseController implements IParseController {
 		} catch (ParseTimeoutException e) {
 			// TODO: Don't show stack trace for this
 			if (monitor.isCanceled()) return null;
-			errorHandler.clearErrors();
-			errorHandler.setRecoveryAvailable(false);
-			errorHandler.reportError(parser.getTokenizer(), e);
+			reportGenericException(e);
 		} catch (TokenExpectedException e) {
-			errorHandler.clearErrors(); // (must not be synchronized; uses workspace lock)
-			errorHandler.reportError(parser.getTokenizer(), e);
+			reportGenericException(e);
 		} catch (BadTokenException e) {
-			errorHandler.clearErrors();
-			errorHandler.setRecoveryAvailable(false);
-			errorHandler.reportError(parser.getTokenizer(), e);
+			reportGenericException(e);
 		} catch (SGLRException e) {
-			errorHandler.clearErrors();
-			errorHandler.setRecoveryAvailable(false);
-			errorHandler.reportError(parser.getTokenizer(), e);
+			reportGenericException(e);
 		} catch (IOException e) {
-			errorHandler.clearErrors();
-			errorHandler.setRecoveryAvailable(false);
-			errorHandler.reportError(parser.getTokenizer(), e);
+			reportGenericException(e);
 		} catch (OperationCanceledException e) {
 			return null;
 		} catch (RuntimeException e) {
@@ -241,9 +249,16 @@ public class SGLRParseController implements IParseController {
 			errorHandler.reportError(parser.getTokenizer(), e);
 		} finally {
 			errorHandler.commitChanges();
+			
 			if (isStartupParsed) Job.getJobManager().endRule(resource);
 			else isStartupParsed = true;
+			
+			boolean mustRecolor = isColorerQueued && editor != null;
+			IPrsStream parseStream = currentParseStream;
+			isColorerQueued = false;
+			
 			parseLock.unlock();
+			if (mustRecolor) forceRecolor(parseStream);
 		}
 		
 		if (!monitor.isCanceled())
@@ -252,9 +267,16 @@ public class SGLRParseController implements IParseController {
 		return currentAst;
 	}
 
+	private void reportGenericException(Exception e) {
+		errorHandler.clearErrors();
+		errorHandler.setRecoveryAvailable(false);
+		errorHandler.reportError(parser.getTokenizer(), e);
+	}
+
 	private void updateFeedBack() {
 		// HACK: Need to call IModelListener.update manually; the IMP extension point is not implemented?!
 		// TODO: use UniversalEditor.addModelListener() instead?
+		//       must attach to an editor and remember to which ones we already attached
 		try {
 			StrategoObserver feedback = Environment.getDescriptor(getLanguage()).getStrategoObserver();
 			if (feedback != null) feedback.asyncUpdate(this);
@@ -273,7 +295,7 @@ public class SGLRParseController implements IParseController {
 		return language;
 	}
 	
-	public AstNodeLocator getNodeLocator() {
+	public AstNodeLocator getSourcePositionLocator() {
 		return new AstNodeLocator();
 	}
 	
@@ -285,8 +307,22 @@ public class SGLRParseController implements IParseController {
 		return new SimpleAnnotationTypeInfo();
 	}
 
+	/**
+	 * Gets the token iterator for this parse controller.
+	 * The current implementation assumes it is only used for
+	 * syntax highlighting.
+	 */
 	public Iterator<IToken> getTokenIterator(IRegion region) {
-		IPrsStream stream = getParseStream();
+		IPrsStream stream;
+		isColorerQueued = true;
+		parseLock.lock();
+		try {
+			stream = getIPrsStream();
+		} finally {
+			isColorerQueued = false;
+			System.out.println("COLOR! " + System.currentTimeMillis()); // DEBUG
+			parseLock.unlock();
+		}
 		
 		if (stream == null) {
 			return SGLRTokenIterator.EMPTY;
@@ -299,11 +335,37 @@ public class SGLRParseController implements IParseController {
 		return new SGLRTokenIterator(stream, region);
 	}
 
+	private void forceRecolor(IPrsStream parseStream) {
+		System.out.println("RECOLOR! " + System.currentTimeMillis()); // DEBUG
+		isColorerQueued = true;
+		try {
+			/*new Job("Reschedule syntax highlighting") {
+				@Override
+				protected IStatus run(IProgressMonitor monitor) {
+					IPrsStream parseStream;
+					parseLock.lock();
+					try {
+					parseStream = currentParseStream;
+					} finally {*/
+						isColorerQueued = false;
+					/*	parseLock.unlock();
+					}*/
+					System.out.println("RECOLOR GO! " + System.currentTimeMillis()); // DEBUG
+					assert !parseLock.isLocked() : "Parse lock may not be locked: dead lock risk with colorer queue";
+					editor.getEditor().updateColoring(new Region(0, parseStream.getStreamLength() - 1));
+					/*return Status.OK_STATUS;
+				}
+			}.schedule();*/
+		} catch (RuntimeException e) {
+			Environment.logException("Could reschedule syntax highlighter", e);
+		}
+	}
+
 	/**
 	 * Get a parse stream for the current file, enforcing a new parse
 	 * if it hasn't been parsed before.
 	 */
-	private IPrsStream getParseStream() {
+	protected IPrsStream getIPrsStream() {
 		if (currentParseStream != null)
 			return currentParseStream;
 
@@ -312,34 +374,32 @@ public class SGLRParseController implements IParseController {
 	}
 
 	private void forceInitialParse() {
+		parseLock.lock();
 		try {
-			if (!isStartupParsed || currentParseStream == null) {
-				parseLock.lock();
-				parseLock.unlock();
-			}
 			if (isStartupParsed)
 				return;
-			
-			parseLock.lock();
-			try {
-				if (isStartupParsed)
-					return;
-				InputStream input = getResource().getContents();
-				InputStreamReader reader = new InputStreamReader(input);
-				StringBuilder contents = new StringBuilder();
-				char[] buffer = new char[2048];
-				
-				for (int read = 0; read != -1; read = reader.read(buffer))
-				        contents.append(buffer, 0, read);
-		
-				parse(contents.toString(), true, new NullProgressMonitor());
-			} finally {
-				parseLock.unlock();
-			}
+	
+			parse(getContents(), new NullProgressMonitor());
 		} catch (IOException e) {
 			Environment.logException("Forced parse failed", e);
 		} catch (CoreException e) {
 			Environment.logException("Forced parse failed", e);
+		} finally {
+			parseLock.unlock();
 		}
+	}
+
+	private String getContents() throws CoreException, IOException {
+		// This is not a bottleneck right now, but could be optimized to use something
+		// like descriptor.getParseController().lastEditor.getDocument().getContents()
+		InputStream input = getResource().getContents();
+		InputStreamReader reader = new InputStreamReader(input);
+		StringBuilder result = new StringBuilder();
+		char[] buffer = new char[2048];
+		
+		for (int read = 0; read != -1; read = reader.read(buffer))
+		        result.append(buffer, 0, read);
+		
+		return result.toString();
 	}
 }
