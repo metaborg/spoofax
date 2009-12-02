@@ -79,6 +79,7 @@ public class StrategoBuilderListener implements IModelListener {
 				|| targetFile.getLocalTimeStamp() > lastChanged) {
 			enabled = false;
 			selection = null;
+			editor.removeModelListener(this);
 			return false;
 		} else {
 			return true;

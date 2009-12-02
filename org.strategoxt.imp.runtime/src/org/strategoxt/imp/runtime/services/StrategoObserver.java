@@ -61,7 +61,7 @@ import org.strategoxt.stratego_lib.set_config_0_0;
  */
 public class StrategoObserver implements IModelListener {
 	
-	private static final long OBSERVER_DELAY = 500;
+	private static final long OBSERVER_DELAY = 1000;
 	
 	private final Descriptor descriptor;
 	

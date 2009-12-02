@@ -1,10 +1,13 @@
 package org.strategoxt.imp.runtime.parser;
 
 import static org.spoofax.jsglr.Term.*;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import lpg.runtime.IToken;
 
 import org.eclipse.core.resources.IMarker;
-import org.eclipse.imp.parser.IMessageHandler;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.interpreter.terms.TermConverter;
@@ -62,36 +65,26 @@ public class ParseErrorHandler {
 	 */
 	public static final char UNEXPECTED_EOF_CHAR = (char) -2;
 	
+	private static Context asyncAmbReportingContext;
+	
 	private final AstMessageHandler handler = new AstMessageHandler(AstMessageHandler.PARSE_MARKER_TYPE);
 	
 	private final SGLRParseController source;
 	
 	private boolean isRecoveryAvailable = true;
-
-	private IMessageHandler messages; // TODO: remove ParseErrorHandler.messages?
 	
 	private int offset;
 	
 	private boolean inLexicalContext;
 	
-	private Context ambReportingContext;
+	private List<Runnable> errorReports = new ArrayList<Runnable>();
 
 	public ParseErrorHandler(SGLRParseController source) {
 		this.source = source;
 	}
 	
 	public void clearErrors() {
-		try {
-			messages.clearMessages();
-		} catch (RuntimeException e) {
-			// Might happen if editor is closed
-			Environment.logException("Exception occurred in clearing error markers", e);
-		}
 		handler.clearMarkers(source.getResource());
-	}
-	
-	public void setMessages(IMessageHandler messages) {
-		this.messages = messages;
 	}
 	
 	/**
@@ -105,8 +98,9 @@ public class ParseErrorHandler {
 	/**
 	 * Report WATER + INSERT errors from parse tree
 	 */
-	public void reportNonFatalErrors(SGLRTokenizer tokenizer, ATerm top) {
+	public void gatherNonFatalErrors(SGLRTokenizer tokenizer, ATerm top) {
 		try {
+			errorReports.clear();
 			offset = 0;
 			reportSkippedFragments(tokenizer);
 			ATermAppl asfix = termAt(top, 0);
@@ -115,9 +109,20 @@ public class ParseErrorHandler {
 			reportError(tokenizer, e);
 		}
 	}
-	
+
 	public void commitChanges() {
+		// Threading concerns:
+		//   - must not be synchronized; uses resource lock
+		//   - when ran directly from the main thread, it may block other
+		//     UI threads that already have a lock on my resource,
+		//     but are waiting to run in the UI thread themselves
+		//   - reporting errors at startup may trigger the above condition,
+		//     at least for files with an in-workspace editor(?)
+		assert !source.getParseLock().isHeldByCurrentThread();
 		try {
+			for (Runnable marker : errorReports) {
+				marker.run();
+			}
 			handler.commitChanges();
 		} catch (RuntimeException e) {
 			Environment.logException("Could not commit syntax error marker changes", e);
@@ -210,20 +215,29 @@ public class ParseErrorHandler {
 	private void reportAmbiguity(SGLRTokenizer tokenizer, ATermAppl amb, int startOffset) {
 		if (!inLexicalContext) {
 			IToken token = tokenizer.makeErrorToken(startOffset, offset - 1);
-			if (ambReportingContext == null) {
-				stratego_sglr.init();
-				ambReportingContext = stratego_aterm.init();
-			}
-			ITermFactory factory = ambReportingContext.getFactory();
-			IStrategoTerm ambTerm;
+			reportWarningAtTokens(token, token, "Fragment is ambiguous: " + ambToString(amb));
+		}
+	}
+
+	private String ambToString(ATermAppl amb) {
+		if (asyncAmbReportingContext == null) {
+			stratego_sglr.init();
+			asyncAmbReportingContext = stratego_aterm.init();
+		}
+
+		assert !Thread.holdsLock(Environment.getSyncRoot()) : "Potential deadlock";
+		
+		synchronized (asyncAmbReportingContext) {
+			ITermFactory factory = asyncAmbReportingContext.getFactory();
+			IStrategoTerm result;
+			
 			synchronized (Environment.getSyncRoot()) {
-				ambTerm = TermConverter.convert(factory, Environment.getWrappedATermFactory().wrapTerm(amb));
+				result = TermConverter.convert(factory, Environment.getWrappedATermFactory().wrapTerm(amb));
 			}
 			
-			ambTerm = factory.makeAppl(factory.makeConstructor("parsetree", 2), ambTerm, factory.makeInt(2));
-			ambTerm = implode_asfix_0_0.instance.invoke(ambReportingContext, ambTerm);
-			
-			reportWarningAtTokens(token, token, "Fragment is ambiguous: " + ambTerm.toString());
+			result = factory.makeAppl(factory.makeConstructor("parsetree", 2), result, factory.makeInt(2));
+			result = implode_asfix_0_0.instance.invoke(asyncAmbReportingContext, result);
+			return result.toString();
 		}
 	}
 	
@@ -294,17 +308,29 @@ public class ParseErrorHandler {
 	private void reportErrorAtTokens(final IToken left, final IToken right, String message) {
 		final String message2 = isRecoveryAvailable ? message : message + " (recovery unavailable)";
 		
-		handler.addMarker(source.getResource(), left, right, message2, IMarker.SEVERITY_ERROR);
+		errorReports.add(new Runnable() {
+			public void run() {
+				handler.addMarker(source.getResource(), left, right, message2, IMarker.SEVERITY_ERROR);
+			}
+		});
 	}
 	
 	private void reportWarningAtTokens(final IToken left, final IToken right, final String message) {
-		handler.addMarker(source.getResource(), left, right, message, IMarker.SEVERITY_WARNING);
+		errorReports.add(new Runnable() {
+			public void run() {
+				handler.addMarker(source.getResource(), left, right, message, IMarker.SEVERITY_WARNING);
+			}
+		});
 	}
 	
 	private void reportErrorAtFirstLine(String message) {
 		final String message2 = isRecoveryAvailable ? message : message + " (recovery unavailable)";
 		
-		handler.addMarkerFirstLine(source.getResource(), message2, IMarker.SEVERITY_ERROR);
+		errorReports.add(new Runnable() {
+			public void run() {
+				handler.addMarkerFirstLine(source.getResource(), message2, IMarker.SEVERITY_ERROR);
+			}
+		});
 	}	
 	
 	private static boolean isErrorProduction(ATermAppl attrs, String consName) {		
