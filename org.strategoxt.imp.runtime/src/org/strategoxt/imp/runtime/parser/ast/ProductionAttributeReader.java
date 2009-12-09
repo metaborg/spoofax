@@ -76,18 +76,16 @@ public class ProductionAttributeReader {
     }
     
     private String getSortUncached(ATermAppl node) {
-    	while (node.getChildCount() > 0 && isAppl(node)) {
-    		String cons = asAppl(node).getName();
+    	for (ATerm current = node; current.getChildCount() > 0 && isAppl(current); current = termAt(current, 0)) {
+    		String cons = asAppl(current).getName();
 			if (cons.equals("sort"))
-    			return applAt(node, 0).getName();
+    			return applAt(current, 0).getName();
     		if (cons.equals("alt"))
-    			return getAltSortName(node);
+    			return getAltSortName(current);
     		if (cons.equals("parameterized-sort"))
-    			return getParameterizedSortName(node);
+    			return getParameterizedSortName(current);
     		if (cons.equals("char-class"))
     			return null;
-    		
-    		node = termAt(node, 0);
     	}
     	
     	return null;
