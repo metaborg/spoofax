@@ -143,10 +143,11 @@ strategies
     not(
       <is-older-than> (
         <guarantee-extension(|"rtg")> <InputFile>
-      , [ $[[<descriptor-name>]-Outliner.generated.esv],
-          $[[<descriptor-name>]-Outliner.esv],
-          $[[<descriptor-name>]-Folding.generated.esv],
-          $[[<descriptor-name>]-Folding.esv]]
+      , [ <descriptor-name> "Outliner.generated.esv"
+        , <descriptor-name> "Outliner.esv"
+        , <descriptor-name> "Folding.generated.esv"
+        , <descriptor-name> "Folding.esv"
+        ]
       )
     )
   
@@ -154,9 +155,9 @@ strategies
   sdf2rtg:
     FILE(sdf) -> rtg
     with
-      <file-exists> <guarantee-extension(|".rtg")> sdf;
+      <file-exists> <guarantee-extension(|"rtg")> sdf;
       verbose-msg(!"Importing regular tree grammar from", id);
-      parse-rtg-file
+      parse-rtg-file => rtg
     <+
       verbose-msg(!"Analyzing grammar...");
       if FILE(has-extension(|"sdf")) then
@@ -179,4 +180,3 @@ strategies
       stream := <fopen> (def, "w");
       <asfix-yield(|stream)> def-asfix;
       <fclose> stream
-

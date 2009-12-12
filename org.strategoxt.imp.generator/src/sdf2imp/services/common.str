@@ -19,7 +19,7 @@ strategies
   // TODO2: descriptor-name should have an aterm argument, overloading main-descriptor-name
   
   descriptor-name:
-    name -> <conc-strings> (prefix, name)
+    name -> $[[prefix][name]]
     with
       prefix := <DescriptorNamePrefix <+ get-sdf-main-module>
   
