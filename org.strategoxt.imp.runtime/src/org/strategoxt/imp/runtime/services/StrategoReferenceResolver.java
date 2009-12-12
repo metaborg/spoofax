@@ -47,7 +47,7 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 		
 		IStrategoTerm resultTerm = observer.invokeSilent(function, node);
 		if (resultTerm == null && !observer.isUpdateStarted())
-			observer.asyncUpdate(parseController);
+			observer.scheduleUpdate(parseController);
 		return observer.getAstNode(resultTerm);
 	}
 

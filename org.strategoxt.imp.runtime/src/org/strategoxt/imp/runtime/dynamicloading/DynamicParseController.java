@@ -126,9 +126,8 @@ public class DynamicParseController extends AbstractService<IParseController> im
 	public void reinitialize(Descriptor newDescriptor) throws BadDescriptorException {
 		super.reinitialize(newDescriptor);
 		isReinitialized = true;
-		if (lastEditor != null && !lastEditor.getEditor().getTitleImage().isDisposed()) {
-			lastEditor.getEditor().fParserScheduler.schedule(REINIT_PARSE_DELAY);
-		}
+		if (lastEditor != null)
+			lastEditor.scheduleParserUpdate(REINIT_PARSE_DELAY);
 	}
 
 	public Object parse(String input, IProgressMonitor monitor) {

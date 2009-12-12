@@ -7,10 +7,13 @@ import java.util.List;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
+import org.eclipse.imp.runtime.RuntimePlugin;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IFileEditorMapping;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.internal.UIPlugin;
 import org.eclipse.ui.internal.registry.EditorDescriptor;
 import org.eclipse.ui.internal.registry.EditorRegistry;
 import org.eclipse.ui.internal.registry.FileEditorMapping;
@@ -99,17 +102,18 @@ public class DescriptorRegistry {
 			FileEditorMapping mapping = getMapping(mappings, extension);
 			boolean existing = mapping != null;
 			if (!existing)
-	            mapping = new FileEditorMapping(extension);
+	            mapping = new DynamicEditorMapping(language, extension); // TODO: create something like a IMPFileEditorMapping, linking to our favorite image 
 			
+	        /* UNDONE: no longer setting default editor; breaks icon
 	        IEditorDescriptor defaultEditor = mapping.getDefaultEditor();
 	        
 	        if (defaultEditor == null || defaultEditor.getId().equals("")
 	        		|| "str".equals(extension) || "sdf".equals(extension)) {
 	        	mapping.setDefaultEditor(universalEditor);
-	        } else {
+	        } else {*/
 	        	if (!isUniversalEditorIncluded(mapping))
 	        		mapping.addEditor(universalEditor);
-	        }
+	        //}
 	        
 	        if (!existing)
 	        	mappings.add(mapping);
@@ -131,5 +135,25 @@ public class DescriptorRegistry {
 			}
 			return null;
 		}
+	}
+	
+	/**
+	 * Maps an extension to an editor and provides editors with an icon.
+	 */
+	private static class DynamicEditorMapping extends FileEditorMapping {
+		
+		private final ImageDescriptor imageDescriptor =
+			UIPlugin.imageDescriptorFromPlugin(
+					RuntimePlugin.getInstance().getID(), Descriptor.DEFAULT_ICON);
+
+		public DynamicEditorMapping(Language language, String extension) {
+			super(language.getName(), extension);
+		}
+		
+		@Override
+		public ImageDescriptor getImageDescriptor() {
+			return imageDescriptor;
+		}
+		
 	}
 }

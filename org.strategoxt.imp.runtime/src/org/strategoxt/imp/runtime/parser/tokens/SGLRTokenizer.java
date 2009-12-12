@@ -130,8 +130,12 @@ public class SGLRTokenizer {
 	 * Creates an error token on stream part
 	 */
 	public IToken makeErrorToken(int beginOffset, int endOffset) {		
-		if (endOffset >= lexStream.getStreamLength()) {
-			endOffset = lexStream.getStreamLength() - 1;
+		while (beginOffset < endOffset && Character.isWhitespace(lexStream.getCharValue(beginOffset)))
+			beginOffset++;
+		
+		// FIXME: error markers at last character of file don't show up?
+		if (endOffset > lexStream.getStreamLength()) {
+			endOffset = lexStream.getStreamLength();
 			beginOffset = Math.min(beginOffset, endOffset);
 		}
 
@@ -139,13 +143,14 @@ public class SGLRTokenizer {
 	}
 	
 	public void changeTokenKinds(int beginOffset, int endOffset, TokenKind fromKind, TokenKind toKind) {
+		// FIXME: changeTokenKinds sometimes changes the token kinds of comments just adjacent to erroneous regions
 		int fromOrdinal = fromKind.ordinal();
 		IPrsStream tokens = lexStream.getIPrsStream();
 		for (int i = 0, end = tokens.getSize(); i < end; i++) {
 			IToken token = tokens.getIToken(i);
 			if (token.getEndOffset() >= beginOffset && token.getKind() == fromOrdinal)
 				token.setKind(toKind.ordinal());
-			if (token.getEndOffset() > endOffset)
+			if (token.getEndOffset() >= endOffset)
 				return;
 		}
 	}

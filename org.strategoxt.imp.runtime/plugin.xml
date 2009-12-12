@@ -179,12 +179,21 @@
             verticalRulerPreferenceKey="analysisAnnotationVerticalKey"
             verticalRulerPreferenceValue="true"/>
    </extension>
+   
    <extension
          point="org.eclipse.imp.runtime.annotationHover">
       <annotationHover
             class="org.strategoxt.imp.runtime.services.AnnotationHover"
             language="DynamicRoot">
       </annotationHover>
+   </extension>
+   
+   <extension
+         point="org.eclipse.imp.runtime.hoverHelper">
+      <hoverHelper
+            class="org.strategoxt.imp.runtime.services.AnnotationHoverHelper"
+            language="DynamicRoot">
+      </hoverHelper>
    </extension>
 
    <extension

@@ -11,13 +11,11 @@ import lpg.runtime.IToken;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.model.ISourceProject;
@@ -59,19 +57,19 @@ import aterm.ATerm;
  */
 public class SGLRParseController implements IParseController {
 	
-	private final static int PARSE_TIMEOUT = 4 * 1000;
-
+	private static final int PARSE_TIMEOUT = 4 * 1000;
+	
 	private final TokenKindManager tokenManager = new TokenKindManager();
 	
 	private final ReentrantLock parseLock = new ReentrantLock(true);
-	
-	private final ReentrantLock errorReportingLock = new ReentrantLock(true);
 	
 	private final JSGLRI parser;
 	
 	private final Language language;
 	
 	private final ILanguageSyntaxProperties syntaxProperties;
+	
+	private final ParseErrorHandler errorHandler = new ParseErrorHandler(this);
 	
 	private volatile RootAstNode currentAst;
 	
@@ -132,6 +130,10 @@ public class SGLRParseController implements IParseController {
     public void setEditor(EditorState editor) {
 		this.editor = editor;
 	}
+    
+    public EditorState getEditor() {
+		return editor;
+	}
 	
 	// Parsing and initialization
     
@@ -173,12 +175,14 @@ public class SGLRParseController implements IParseController {
     	return parse(input, monitor);
     }
 
-	public AstNode parse(String input, IProgressMonitor monitor) {
+	public AstNode parse(String input, final IProgressMonitor monitor) {
+		disallowColorer = true; // isStartupParsed;
 		if (input.length() == 0) {
 			currentParseStream = null;
 			return currentAst = null;
 		}
 		
+		// TODO: Eclipse 3.5 issues: static icons, dynamic icons
 		if (getPath() == null)
 		    throw new IllegalStateException("SGLR parse controller not initialized");
 		
@@ -187,20 +191,19 @@ public class SGLRParseController implements IParseController {
 		//      need to intercept cancellation events in the running thread's monitor instead
 		getParser().asyncAbort();
 
-		IPrsStream parseStream;
 		String filename = getPath().toPortableString();
-		IResource resource = getResource();
-		ParseErrorHandler errorHandler = new ParseErrorHandler(this); // thread-local
+		// IResource resource = getResource();
+		errorHandler.abortScheduledCommit();
 		
 		try {
 			// Can't do resource locking when Eclipse is still starting up; causes deadlock
-			disallowColorer = isStartupParsed;
-			if (isStartupParsed)
-				Job.getJobManager().beginRule(resource, monitor); // enter lock
-			disallowColorer = isStartupParsed;
-			assert !parseLock.isHeldByCurrentThread() : "Parse lock must be locked after resource lock";
+			// UNDONE: No longer using resource lock because it sucks
+			// if (isStartupParsed)
+			// 	Job.getJobManager().beginRule(resource, monitor); // enter lock
+			// disallowColorer = isStartupParsed;
+			//assert !parseLock.isHeldByCurrentThread() : "Parse lock must be locked after resource lock";
 			parseLock.lock();
-			System.out.println("PARSE! " + System.currentTimeMillis()); // DEBUG
+			//System.out.println("PARSE! " + System.currentTimeMillis()); // DEBUG
 			
 			Debug.startTimer();
 			
@@ -215,13 +218,13 @@ public class SGLRParseController implements IParseController {
 			errorHandler.setRecoveryAvailable(true);
 			errorHandler.gatherNonFatalErrors(parser.getTokenizer(), asfix);
 			
-			// TODO: Delay parse error markers for newly typed text
-			//       (the new ast should then also be delayed as to get the old coloring)
-			
 			currentAst = ast;
 			currentParseStream = parser.getParseStream();
 				
 			Debug.stopTimer("File parsed: " + filename);
+			
+			// TODO: is coloring, then error marking best?
+		
 		} catch (ParseTimeoutException e) {
 			// TODO: Don't show stack trace for this
 			if (monitor.isCanceled()) return null;
@@ -240,32 +243,54 @@ public class SGLRParseController implements IParseController {
 			Environment.logException("Internal parser error", e);
 			errorHandler.reportError(parser.getTokenizer(), e);
 		} finally {
-			if (isStartupParsed) Job.getJobManager().endRule(resource);
-			else isStartupParsed = true;
+			try {
+				onParseCompleted(monitor);
+			} catch (RuntimeException e) {
+				Environment.logException("Exception in post-parse events", e);
+			}
 			
-			parseStream = currentParseStream;
-			
+			//if (isStartupParsed) Job.getJobManager().endRule(resource);
+			isStartupParsed = true;			
 			parseLock.unlock();
 		}
+
+		return monitor.isCanceled() ? null : currentAst;
+	}
+
+	private void onParseCompleted(final IProgressMonitor monitor) {
+		assert parseLock.isHeldByCurrentThread();
 		
-		// TODO: is coloring, then error marking best?
+		if (!monitor.isCanceled() && currentParseStream != null)
+			forceRecolor();
 		
-		if (!monitor.isCanceled() && parseStream != null && editor != null)
-			forceRecolor(parseStream);
+		// TODO: Delay parse error markers for newly typed text
 		
-		// TODO: really realyl make sure error marking is not applied when a new parse is started
-		errorReportingLock.lock(); // ensure only 1 thread reports errors at a time
-		try {
-			if (!monitor.isCanceled()) 
-				errorHandler.commitChanges();
-		} finally {
-			errorReportingLock.unlock();
+		// Threading concerns:
+		// must never block the main thread with a lock here since
+		// it must be available to draw error markers
+		
+		if (!Environment.isMainThread() || !isStartupParsed) {
+			if (!monitor.isCanceled()) {
+				// Note that a resource lock is acquired here
+				errorHandler.commitMultiErrorLineAdditions();
+				errorHandler.commitDeletions();
+			}
+			
+			// Removed markers seem to require recoloring:
+			//if (!monitor.isCanceled() /*&& currentParseStream != null*/ && editor != null)
+			//	AstMessageHandler.processEditorRecolorEvents(editor.getEditor());
+			
+			if (!monitor.isCanceled())
+				errorHandler.scheduleCommitAdditions();
+		} else {
+			// Report errors again later when not in main thread
+			// (this state shouldn't be reachable from normal operation)
+			if (editor != null)
+				editor.scheduleParserUpdate(ParseErrorHandler.PARSE_ERROR_DELAY);
 		}
 		
 		if (!monitor.isCanceled())
-			updateFeedBack(errorHandler);
-
-		return monitor.isCanceled() ? null : currentAst;
+			scheduleObserverUpdate(errorHandler);
 	}
 
 	private void reportGenericException(ParseErrorHandler errorHandler, Exception e) {
@@ -274,21 +299,20 @@ public class SGLRParseController implements IParseController {
 		errorHandler.reportError(parser.getTokenizer(), e);
 	}
 
-	private void updateFeedBack(ParseErrorHandler errorHandler) {
-		// HACK: Need to call IModelListener.update manually; the IMP extension point is not implemented?!
-		// TODO: use UniversalEditor.addModelListener() instead?
-		//       must attach to an editor and remember to which ones we already attached
+	private void scheduleObserverUpdate(ParseErrorHandler errorHandler) {
+		// We bypass the UniversalEditor IModelListener for this,
+		// allowing a bit more (timing) control and ease of use (wrt dynamic reloading)
 		try {
 			StrategoObserver feedback = Environment.getDescriptor(getLanguage()).getStrategoObserver();
-			if (feedback != null) feedback.asyncUpdate(this);
+			if (feedback != null) feedback.scheduleUpdate(this);
 		} catch (BadDescriptorException e) {
 			Environment.logException("Unexpected error during analysis", e);
 			errorHandler.reportError(parser.getTokenizer(), e);
-			errorHandler.commitChanges();
+			// UNDONE: errorHandler.commitChanges(); (committed by scheduler)
 		} catch (RuntimeException e) {
 			Environment.logException("Unexpected exception during analysis", e);
 			errorHandler.reportError(parser.getTokenizer(), e);
-			errorHandler.commitChanges();
+			// UNDONE: errorHandler.commitChanges(); (committed by scheduler)
 		}
 	}
 	
@@ -311,58 +335,56 @@ public class SGLRParseController implements IParseController {
 	}
 
 	/**
-	 * Gets the token iterator for this parse controller.
-	 * The current implementation assumes it is only used for
-	 * syntax highlighting.
+	 * Gets the token iterator for this parse controller. The current
+	 * implementation assumes it is only used for syntax highlighting.
+	 * 
+	 * @return The token iterator, or an empty token iterator if coloring is not
+	 *         allowed or no parse stream is available the time of invocation
 	 */
 	public Iterator<IToken> getTokenIterator(IRegion region) {
 		// Threading concerns:
-		// - the colorer runs in the main thread and should not be blocked by an lock
-		// - a parser thread with a parse lock may need main thread acess to report locks
+		// - the colorer runs in the main thread and should not be blocked by ANY lock
+		// - CANNOT acquire parse lock:
+		//   - a parser thread with a parse lock may forceRecolor(), acquiring the colorer queue lock 
+		//   - a parser thread with a parse lock may need main thread acess to report locks
+		
 		
 		IPrsStream stream = currentParseStream;
-		if (currentParseStream == null && !isStartupParsed)
-			stream = getIPrsStream();
 		
-		if (stream == null || disallowColorer) {
+		if (stream == null || disallowColorer || (editor != null && stream.getILexStream().getStreamLength() != editor.getDocument().getLength())) {
 			return SGLRTokenIterator.EMPTY;
 		} else if (stream.getTokens().size() == 0 || getCurrentAst() == null) {
 			// Parse hasn't succeeded yet, consider the entire stream as one big token
 			stream.addToken(new SGLRToken(stream, region.getOffset(), stream.getStreamLength() - 1,
 					TokenKind.TK_UNKNOWN.ordinal()));
 		} else {
-			System.out.println("COLOR! " + System.currentTimeMillis()); // DEBUG
+			// System.out.println("COLOR! " + System.currentTimeMillis()); // DEBUG
 		}
 		
-		disallowColorer = true;
+		// UNDONE: Cannot disable colorer afterwards, need it to remove error markers
+		// disallowColorer = true;
 		
 		return new SGLRTokenIterator(stream, region);
 	}
 
-	private void forceRecolor(IPrsStream parseStream) {
+	protected void forceRecolor() {
+		assert !parseLock.isHeldByCurrentThread() || !Environment.isMainThread() || !isStartupParsed
+			: "Parse lock may not be locked: dead lock risk with colorer queue lock";
 		try {
-			System.out.println("RECOLOR! " + System.currentTimeMillis()); // DEBUG
-			assert !parseLock.isHeldByCurrentThread() : "Parse lock may not be locked: dead lock risk with colorer queue";
+			// System.out.println("FORCECOLOR! " + System.currentTimeMillis()); // DEBUG
+			// UNDONE: no longer acquiring parse lock from colorer
 			disallowColorer = false;
-			editor.getEditor().updateColoring(new Region(0, parseStream.getStreamLength() - 1));
+			if (editor != null)
+				editor.getEditor().updateColoring(new Region(0, currentParseStream.getStreamLength() - 1));
 		} catch (RuntimeException e) {
 			Environment.logException("Could reschedule syntax highlighter", e);
 		}
 	}
 
-	/**
-	 * Get a parse stream for the current file, enforcing a new parse
-	 * if it hasn't been parsed before.
-	 */
 	protected IPrsStream getIPrsStream() {
-		IPrsStream result = currentParseStream;
-		if (result != null)
-			return result;
-	
-		forceInitialParse();
 		return currentParseStream;
 	}
-
+	
 	private void forceInitialParse() {
 		if (isStartupParsed) return;
 		
@@ -372,7 +394,7 @@ public class SGLRParseController implements IParseController {
 		} finally {
 			parseLock.unlock();
 		}
-		try{
+		try {
 			parse(getContents(), new NullProgressMonitor());
 		} catch (IOException e) {
 			Environment.logException("Forced parse failed", e);

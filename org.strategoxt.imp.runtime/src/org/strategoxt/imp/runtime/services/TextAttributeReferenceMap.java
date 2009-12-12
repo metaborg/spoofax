@@ -7,7 +7,10 @@ import org.eclipse.jface.text.TextAttribute;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 
 /**
- * A lazy palette of colors.
+ * A collection of lazy colors and text attributes.
+ * 
+ * @see LazyTextAttribute
+ * @see LazyColor
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
@@ -16,6 +19,8 @@ public class TextAttributeReferenceMap {
 	
 	public TextAttribute getAttribute(String name) {
 		TextAttributeReference result = map.get(name);
+		if (result == null)
+			throw new IllegalStateException("Color is not defined: " + name);
 		return result.get();
 	}
 	

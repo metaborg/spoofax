@@ -1,5 +1,6 @@
 package org.strategoxt.imp.runtime.parser;
 
+import static java.lang.Math.*;
 import static org.spoofax.jsglr.Term.*;
 
 import java.util.ArrayList;
@@ -8,6 +9,10 @@ import java.util.List;
 import lpg.runtime.IToken;
 
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.interpreter.terms.TermConverter;
@@ -18,8 +23,10 @@ import org.spoofax.jsglr.TokenExpectedException;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.AsfixAnalyzer;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
+import org.strategoxt.imp.runtime.parser.ast.MarkerSignature;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
+import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.lang.Context;
 import org.strategoxt.stratego_aterm.stratego_aterm;
 import org.strategoxt.stratego_sglr.implode_asfix_0_0;
@@ -64,6 +71,14 @@ public class ParseErrorHandler {
 	 * The parse stream character that indicates EOF was unexpected.
 	 */
 	public static final char UNEXPECTED_EOF_CHAR = (char) -2;
+
+	public static final String UNEXPECTED_TOKEN_POSTFIX = "' not expected here";
+	
+	public static final String UNEXPECTED_TOKEN_PREFIX = "Syntax error, '";
+	
+	public static final String UNEXPECTED_REGION = "Could not parse this fragment: misplaced construct(s)";
+	
+	public static final int PARSE_ERROR_DELAY = min(StrategoObserver.OBSERVER_DELAY + 50, 1000);
 	
 	private static Context asyncAmbReportingContext;
 	
@@ -76,6 +91,8 @@ public class ParseErrorHandler {
 	private int offset;
 	
 	private boolean inLexicalContext;
+	
+	private volatile int additionsVersionId;
 	
 	private List<Runnable> errorReports = new ArrayList<Runnable>();
 
@@ -109,24 +126,97 @@ public class ParseErrorHandler {
 			reportError(tokenizer, e);
 		}
 	}
-
-	public void commitChanges() {
-		// Threading concerns:
+	
+	/**
+	 * @see AstMessageHandler#commitDeletions()
+	 */
+	public void commitDeletions() {
 		//   - must not be synchronized; uses resource lock
 		//   - when ran directly from the main thread, it may block other
 		//     UI threads that already have a lock on my resource,
 		//     but are waiting to run in the UI thread themselves
 		//   - reporting errors at startup may trigger the above condition,
 		//     at least for files with an in-workspace editor(?)
-		assert !source.getParseLock().isHeldByCurrentThread();
-		try {
-			for (Runnable marker : errorReports) {
-				marker.run();
-			}
-			handler.commitChanges();
-		} catch (RuntimeException e) {
-			Environment.logException("Could not commit syntax error marker changes", e);
+		//   - also see SGLRParseController.onParseCompleted
+		assert source.getParseLock().isHeldByCurrentThread();
+		assert !Thread.holdsLock(Environment.getSyncRoot()) : "Potential deadlock";
+		
+		for (Runnable marker : errorReports) {
+			marker.run();
 		}
+		errorReports.clear();
+		handler.commitDeletions();
+	}
+	
+	/**
+	 * @see AstMessageHandler#commitMultiErrorLineAdditions()
+	 */
+	public void commitMultiErrorLineAdditions() {
+		// Threading concerns: see commitDeletions()
+		assert source.getParseLock().isHeldByCurrentThread();
+		assert !Thread.holdsLock(Environment.getSyncRoot()) : "Potential deadlock";
+
+		for (Runnable marker : errorReports) {
+			marker.run();
+		}
+		errorReports.clear();
+		handler.commitMultiErrorLineAdditions();
+	}
+
+	/**
+	 * @see AstMessageHandler#commitAdditions()
+	 */
+	public void commitAdditions() {
+		// Threading concerns: see commitDeletions()
+		assert source.getParseLock().isHeldByCurrentThread();
+		assert !Thread.holdsLock(Environment.getSyncRoot()) : "Potential deadlock";
+		
+		handler.commitAdditions();
+	}
+
+	public void scheduleCommitAdditions() {
+		assert errorReports.isEmpty() : "Deletions must be committed first";
+
+		final int expectedVersion = ++additionsVersionId;
+
+		List<MarkerSignature> markers = handler.getAdditions();
+		if (markers.isEmpty()) return;
+
+		final List<MarkerSignature> safeMarkers = new ArrayList<MarkerSignature>(markers);
+		
+		Job job = new Job("Report parse errors") {
+			@Override
+			protected IStatus run(IProgressMonitor monitor2) {
+				if (additionsVersionId != expectedVersion) return Status.OK_STATUS;
+				
+				source.getParseLock().lock();
+				try {
+					if (additionsVersionId != expectedVersion) return Status.OK_STATUS;
+					synchronized (handler.getSyncRoot()) {
+						if (additionsVersionId != expectedVersion) return Status.OK_STATUS;
+	
+						List<IMarker> markers = handler.asyncCommitAdditions(safeMarkers);
+						
+						if (additionsVersionId != expectedVersion)
+							handler.asyncDeleteMarkers(markers); // rollback
+					}
+					//source.forceRecolor(); // Adding markers corrupts coloring sometimes
+					//EditorState editor = source.getEditor();
+					//if (editor != null)
+					//	AstMessageHandler.processEditorRecolorEvents(editor.getEditor());
+				} finally {
+					source.getParseLock().unlock();
+				}
+				
+				return Status.OK_STATUS;
+			}
+		};
+		job.setSystem(true);
+		job.schedule(PARSE_ERROR_DELAY);
+	}
+	
+	public void abortScheduledCommit() {
+		additionsVersionId++;
 	}
 
     /**
@@ -171,11 +261,11 @@ public class ParseErrorHandler {
 		if (isErrorProduction(attrs, WATER)) {
 			IToken token = tokenizer.makeErrorToken(startOffset, offset - 1);
 			tokenizer.changeTokenKinds(startOffset, offset - 1, TokenKind.TK_LAYOUT, TokenKind.TK_ERROR);
-			reportErrorAtTokens(token, token, "Syntax error, '" + token + "' not expected here");
+			reportErrorAtTokens(token, token, UNEXPECTED_TOKEN_PREFIX + token + UNEXPECTED_TOKEN_POSTFIX);
 		} else if (isErrorProduction(attrs, INSERT_END)) {
 			IToken token = tokenizer.makeErrorToken(startOffset, offset - 1);
 			tokenizer.changeTokenKinds(startOffset, offset - 1, TokenKind.TK_LAYOUT, TokenKind.TK_ERROR);
-			reportErrorAtTokens(token, token, "Syntax error, Closing of '" + token + "' is expected here");
+			reportErrorAtTokens(token, token, "Syntax error, closing of '" + token + "' is expected here");
 		} else if (isErrorProduction(attrs, INSERT)) {
 			IToken token = tokenizer.makeErrorTokenSkipLayout(startOffset, offset + 1, outerStartOffset2);
 			String inserted = "token";
@@ -259,7 +349,7 @@ public class ParseErrorHandler {
 				}
 				IToken token = tokenizer.makeErrorToken(beginSkipped, endSkipped);
 				tokenizer.changeTokenKinds(beginSkipped, endSkipped, TokenKind.TK_LAYOUT, TokenKind.TK_ERROR);
-				reportErrorAtTokens(token, token, "Could not parse this fragment");
+				reportErrorAtTokens(token, token, UNEXPECTED_REGION);
 			} else if (c == UNEXPECTED_EOF_CHAR) {
 				// Recovered using a forced reduction
 				IToken token = tokenizer.makeErrorTokenBackwards(i);
@@ -276,7 +366,6 @@ public class ParseErrorHandler {
 			tokenizer.changeTokenKinds(treeEnd + 1, inputChars.length, TokenKind.TK_LAYOUT, TokenKind.TK_ERROR);
 		}
 	}
-	
 		
 	public void reportError(SGLRTokenizer tokenizer, TokenExpectedException exception) {
 		String message = exception.getShortMessage();

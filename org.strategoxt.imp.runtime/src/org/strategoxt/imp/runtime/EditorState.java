@@ -7,12 +7,7 @@ import lpg.runtime.IPrsStream;
 import lpg.runtime.IToken;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.model.ISourceProject;
@@ -28,7 +23,6 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
-import org.eclipse.ui.progress.UIJob;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.dynamicloading.DynamicParseController;
@@ -137,6 +131,11 @@ public class EditorState {
 		return getParseController().getCurrentAst();
 	}
 	
+	public void scheduleParserUpdate(long delay) {
+		if (!getEditor().getTitleImage().isDisposed())
+			getEditor().fParserScheduler.schedule(delay);
+	}
+	
 	/**
 	 * Gets the document model for this editor, which can be used to manipulate
 	 * the contents of the editor.
@@ -195,34 +194,29 @@ public class EditorState {
 	 * 
 	 * Exceptions are swallowed and logged.
 	 */
-	public static void asyncOpenEditor(Display display, IProject project, String filename, final boolean activate) {
-		final IResource file = project.findMember(filename);
-		if (!file.exists() || !(file instanceof IFile)) {
-			Environment.logException("Cannot open an editor for " + filename);
-			return;
-		}
-		asyncOpenEditor(display, (IFile) file, activate);
+	public static void asyncOpenEditor(Display display, final IFile file, final boolean activate) {
+		display.asyncExec(new Runnable() {
+			public void run() {
+				openEditor(file, activate);
+			}
+		});
 	}
 
 	/**
-	 * Asynchronously opens or activates an editor.
+	 * Opens a new editor. Must be invoked from the UI thread.
 	 * 
-	 * Exceptions are swallowed and logged.
+	 * PartInitExceptions are swallowed and logged.
 	 */
-	public static void asyncOpenEditor(Display display, final IFile file, final boolean activate) {
-		Job job = new UIJob("Open editor") {
-			@Override
-			public IStatus runInUIThread(IProgressMonitor monitor) {
-				IWorkbenchPage page =
-					PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-				try {
-					IDE.openEditor(page, file, UniversalEditor.EDITOR_ID, activate);
-				} catch (PartInitException e) {
-					Environment.logException("Cannot open an editor for " + file, e);
-				}
-				return Status.OK_STATUS;
-			}
-		};
-		job.schedule();
+	public static void openEditor(final IFile file, final boolean activate) {
+		if (!isUIThread())
+			throw new IllegalStateException("Must be called from UI thread");
+		
+		IWorkbenchPage page =
+			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+		try {
+			IDE.openEditor(page, file, UniversalEditor.EDITOR_ID, activate);
+		} catch (PartInitException e) {
+			Environment.logException("Cannot open an editor for " + file, e);
+		}
 	}
 }

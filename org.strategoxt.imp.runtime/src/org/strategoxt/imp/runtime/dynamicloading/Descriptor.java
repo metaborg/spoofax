@@ -25,6 +25,7 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.RuntimeActivator;
 import org.strategoxt.imp.runtime.services.MetaFileLanguageValidator;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
 
@@ -34,10 +35,15 @@ import org.strategoxt.imp.runtime.services.StrategoObserver;
  * @see DescriptorFactory#load(IFile, IResource)
  */
 public class Descriptor {
+	
 	public static final String ROOT_LANGUAGE = "DynamicRoot";
 
 	protected static final Language DESCRIPTOR_LANGUAGE =
 		new Language("EditorService-builtin", "org.strategoxt.imp.builtin.editorservice", "", ROOT_LANGUAGE, null, "", null, "", "", null);
+	
+	protected static final String DEFAULT_ICON = "icons/IMP-editor.gif";
+	
+	protected static final String DEFAULT_ICON_BUNDLE = RuntimeActivator.getDefault().getBundle().getSymbolicName();
 	
 	private final Map<AbstractService, Object> services = new WeakHashMap<AbstractService, Object>();
 	
@@ -265,11 +271,11 @@ public class Descriptor {
 				getProperty("LanguageId", getProperty("LanguageName")),
 				getProperty("Description", ""),
 				ROOT_LANGUAGE,		  // ("Extends" is not used for IMP)
-				getProperty("Icon", ""), // TODO: icon path in esv language
+				DEFAULT_ICON, // TODO: icon path in esv language
 				getProperty("URL", ""),
 				// FIXME: ID of the bundle containing the language descriptor and icon for this language
 				//        (does getAttachmentProvider() already provide enough functionality for this?)
-				getProperty("LanguageId", getProperty("LanguageName")), 
+				DEFAULT_ICON_BUNDLE, 
 				getProperty("Extensions"),
 				getProperty("Aliases", ""),
 				new MetaFileLanguageValidator(this));

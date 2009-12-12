@@ -8,12 +8,13 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import lpg.runtime.IAst;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -39,9 +40,11 @@ import org.strategoxt.IncompatibleJarException;
 import org.strategoxt.imp.generator.postprocess_feedback_results_0_0;
 import org.strategoxt.imp.generator.sdf2imp;
 import org.strategoxt.imp.runtime.Debug;
+import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
+import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.StrategoConsole;
@@ -61,7 +64,8 @@ import org.strategoxt.stratego_lib.set_config_0_0;
  */
 public class StrategoObserver implements IModelListener {
 	
-	private static final long OBSERVER_DELAY = 1000;
+	// TODO: separate delay for error markers?
+	public static final int OBSERVER_DELAY = 600;
 	
 	private final Descriptor descriptor;
 	
@@ -71,7 +75,9 @@ public class StrategoObserver implements IModelListener {
 	
 	private HybridInterpreter runtime;
 	
-	private Job asyncLastBuildJob;
+	private Lock observerSchedulerLock = new ReentrantLock();
+	
+	private Job asyncObserverScheduler;
 	
 	private volatile boolean isUpdateStarted;
 	
@@ -191,58 +197,86 @@ public class StrategoObserver implements IModelListener {
 	/**
 	 * Starts a new update() operation, asynchronously.
 	 */
-	public void asyncUpdate(final IParseController parseController) {
+	public void scheduleUpdate(final IParseController parseController) {
 		isUpdateStarted = true;
 		
-		synchronized (getSyncRoot()) {
-			if (asyncLastBuildJob != null)
-				asyncLastBuildJob.cancel();
-			
-			asyncLastBuildJob = new WorkspaceJob("Analyzing updated resource") {
+		observerSchedulerLock.lock();
+		try {
+			if (asyncObserverScheduler != null)
+				asyncObserverScheduler.cancel();
+				
+			asyncObserverScheduler = new Job("Analyzing updates to " + parseController.getPath().lastSegment()) {
 				@Override
-				public IStatus runInWorkspace(IProgressMonitor monitor) {
+				public IStatus run(IProgressMonitor monitor) {
 					monitor.beginTask("", IProgressMonitor.UNKNOWN);
 					update(parseController, monitor);
 					return Status.OK_STATUS;
 				}
 			};
-			asyncLastBuildJob.setRule(parseController.getProject().getResource());
-			asyncLastBuildJob.schedule(OBSERVER_DELAY);
+			
+			// UNDONE: observer job is no longer a WorkspaceJob
+			//         thus avoiding analysis delays and progress view spamming 
+			// asyncObserverScheduler.setRule(parseController.getProject().getResource());
+			asyncObserverScheduler.setSystem(true);
+			asyncObserverScheduler.schedule(OBSERVER_DELAY);
+		} finally {
+			observerSchedulerLock.unlock();
 		}
 	}
 
 	public void update(IParseController parseController, IProgressMonitor monitor) {
 		isUpdateStarted = true;
+		// System.out.println("OBSERVING " + System.currentTimeMillis()); // DEBUG
 		
-		if (feedbackFunction == null || monitor.isCanceled())
+		if (feedbackFunction == null) {
+			messages.clearMarkers(((IStrategoAstNode) parseController.getCurrentAst()).getResource());
+			messages.commitDeletions();
+			return;
+		}
+			
+		if (monitor.isCanceled())
 			return;
 		
 		IStrategoAstNode ast = (IStrategoAstNode) parseController.getCurrentAst();
 		IStrategoTerm feedback = null;
 		
-		synchronized (getSyncRoot()) {
-			if (runtime == null)
-				init(monitor);
-
-			if (ast == null || ast.getConstructor() == null)
-				return;
-			
-			feedback = invokeSilent(feedbackFunction, ast.getResource(), makeInputTerm(ast, false));
-
-			if (feedback == null) {
-				reportRewritingFailed();
-				String log = getLog();
-				Environment.logException(log.length() == 0 ? "Analysis failed" : "Analysis failed:\n" + log);
-				messages.clearMarkers(ast.getResource());
-				messages.addMarkerFirstLine(ast.getResource(), "Analysis failed (see error log)", IMarker.SEVERITY_ERROR);
-				messages.commitChanges();
-			} else if (!monitor.isCanceled()) {
-				// TODO: figure out how this was supposed to be synchronized
-				// synchronized (feedback) {
-				presentToUser(ast.getResource(), feedback);
-				// }
+		try {
+			synchronized (getSyncRoot()) {
+				if (runtime == null)
+					init(monitor);
+	
+				if (ast == null || ast.getConstructor() == null)
+					return;
+				
+				feedback = invokeSilent(feedbackFunction, ast.getResource(), makeInputTerm(ast, false));
+	
+				if (feedback == null) {
+					reportRewritingFailed();
+					String log = getLog();
+					Environment.logException(log.length() == 0 ? "Analysis failed" : "Analysis failed:\n" + log);
+					messages.clearMarkers(ast.getResource());
+					messages.addMarkerFirstLine(ast.getResource(), "Analysis failed (see error log)", IMarker.SEVERITY_ERROR);
+					messages.commitChanges();
+				} else if (!monitor.isCanceled()) {
+					// TODO: figure out how this was supposed to be synchronized
+					presentToUser(ast.getResource(), feedback);
+				}
 			}
+		} finally {
+			System.out.println("OBSERVED " + System.currentTimeMillis());
+			// processEditorRecolorEvents(parseController);
 		}
+	}
+
+	@Deprecated
+	@SuppressWarnings("unused")
+	private void processEditorRecolorEvents(IParseController parseController) {
+		if (parseController instanceof SGLRParseController) {
+			EditorState editor = ((SGLRParseController) parseController).getEditor();
+			if (editor != null)
+				AstMessageHandler.processEditorRecolorEvents(editor.getEditor());
+		}
+		AstMessageHandler.processAllEditorRecolorEvents();
 	}
 
 	public void reportRewritingFailed() {
@@ -267,6 +301,7 @@ public class StrategoObserver implements IModelListener {
 		};
 		
 		job.setRule(parseController.getProject().getResource());
+		job.setSystem(true);
 		job.schedule();
 	}
 	*/
@@ -310,7 +345,7 @@ public class StrategoObserver implements IModelListener {
 	    for (IStrategoTerm feedback : feedbacks.getAllSubterms()) {
 	        IStrategoTerm term = termAt(feedback, 0);
 			IStrategoString messageTerm = termAt(feedback, 1);
-			String message = AnnotationHover.convertToHTMLContent(messageTerm.stringValue());
+			String message = messageTerm.stringValue();
 			
 			messages.addMarker(resource, term, message, severity);
 	    }

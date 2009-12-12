@@ -85,7 +85,7 @@ public class StrategoBuilder implements IBuilder {
 					observer.reportRewritingFailed();
 					Environment.logException("Builder failed:\n" + observer.getLog());
 					if (!observer.isUpdateStarted())
-						observer.asyncUpdate(editor.getParseController());
+						observer.scheduleUpdate(editor.getParseController());
 					openError(editor, "Builder failed (see error log)");
 					return;
 				}
@@ -189,7 +189,7 @@ public class StrategoBuilder implements IBuilder {
 				file.setContents(resultStream, true, true, null);
 				...save...
 			} else {
-				new UIJob("Update derived editor") {
+				Job job = new UIJob("Update derived editor") {
 					@Override
 					public IStatus runInUIThread(IProgressMonitor monitor) {
 						try {
@@ -201,7 +201,9 @@ public class StrategoBuilder implements IBuilder {
 						}
 						return Status.OK_STATUS;
 					}
-				}.schedule();
+				};
+				job.setSystem(true);
+				job.schedule();
 			}
 			*/
 		} else {

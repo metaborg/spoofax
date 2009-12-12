@@ -6,13 +6,12 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.jface.dialogs.ErrorDialog;
-import org.eclipse.ui.progress.UIJob;
+import org.eclipse.swt.widgets.Display;
 import org.spoofax.interpreter.adapter.aterm.UnsharedWrappedATermFactory;
 import org.spoofax.interpreter.adapter.aterm.WrappedATermFactory;
 import org.spoofax.interpreter.core.InterpreterException;
@@ -28,7 +27,6 @@ import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.IMPJSGLRLibrary;
 import org.strategoxt.imp.runtime.stratego.IMPLibrary;
-import org.strategoxt.imp.runtime.stratego.ReportWithFailure;
 import org.strategoxt.imp.runtime.stratego.adapter.WrappedAstNodeFactory;
 import org.strategoxt.lang.compat.sglr.SGLRCompatLibrary;
 
@@ -87,10 +85,20 @@ public final class Environment {
 		assert Thread.holdsLock(getSyncRoot()) : "Please use the course-grained Environment.getSyncRoot() lock";
 	}
 	
-	public static void assertMainThread() {
-		if (mainThread == null)
-			mainThread = Thread.currentThread();
-		assert mainThread == Thread.currentThread() : "Please only perform this operation from the main thread";
+	private static void initMainThread() {
+		Thread thread = Thread.currentThread();
+		if (thread.getName().equals("main"))
+			mainThread = thread;
+	}
+	
+	public static boolean isMainThread() {
+		if (mainThread == null) initMainThread();
+		if (mainThread == null) return false;
+		return Thread.currentThread() == mainThread;
+	}
+	
+	public static void assertNotMainThread() {
+		assert !isMainThread() : "Potential deadlock when performing this synchronized operation from the main thread";
 	}
 	
 	// BASIC ACCESSORS
@@ -146,7 +154,6 @@ public final class Environment {
 		result.addOperatorRegistry(new IMPJSGLRLibrary(sglrLibrary));
 		result.addOperatorRegistry(new IMPLibrary());
 		result.setIOAgent(new EditorIOAgent());
-		ReportWithFailure.init();
 		
 		return result;
 	}
@@ -205,13 +212,11 @@ public final class Environment {
 	}
 
 	public static void asynOpenErrorDialog(final String caption, final String message, final Throwable exception) {
-		new UIJob("Report error") {
-			@Override
-			public IStatus runInUIThread(IProgressMonitor monitor) {
+		Display.getDefault().asyncExec(new Runnable() {
+			public void run() {
 				Status status = new Status(IStatus.ERROR, RuntimeActivator.PLUGIN_ID, message, exception);
 				ErrorDialog.openError(null, caption, null, status);
-				return Status.OK_STATUS;
 			}
-		}.schedule();
+		});
 	}
 }

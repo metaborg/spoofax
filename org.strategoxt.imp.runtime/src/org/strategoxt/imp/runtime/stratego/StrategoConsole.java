@@ -118,6 +118,7 @@ public class StrategoConsole {
 				return Status.OK_STATUS;
 			}
 		};
+		job.setSystem(true);
 		job.schedule();
 	}
 

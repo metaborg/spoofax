@@ -413,6 +413,8 @@ public class AsfixImploder {
 				//	 	+ ") must be in lex stream (" + inputChar + ")");
 			    // instead, we allow the non-matching character for now, and hope
 			    // we can pick up the right track later
+				// TODO: better way to report skipped fragments in the parser
+				//       this isn't 100% reliable
 				if (nonMatchingOffset == NONE) {
 					nonMatchingOffset = offset;
 					nonMatchingChar = parsedChar;

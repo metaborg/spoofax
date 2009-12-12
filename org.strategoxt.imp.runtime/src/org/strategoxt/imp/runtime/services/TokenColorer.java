@@ -44,12 +44,15 @@ public class TokenColorer implements ITokenColorer {
 	public TextAttribute getColoring(IParseController controller, Object oToken) {
 		SGLRToken token = (SGLRToken) oToken;
 		IStrategoAstNode node = token.getAstNode();
+		TextAttribute nodeColor = null;
+		int tokenKind = token.getKind();
 		
 		// Use the parent of string/int terminal nodes
-		if (node != null && node.getConstructor() == null && node.getParent() != null)
+		if (node != null && node.getConstructor() == null && node.getParent() != null) {
+			nodeColor = getColoring(nodeMappings, null, node.getSort(), tokenKind);
 			node = node.getParent();
+		}
 		
-		int tokenKind = token.getKind();
 		String sort = node == null ? null : node.getSort();
 		String constructor = node == null ? null : node.getConstructor();
 		
@@ -60,7 +63,7 @@ public class TokenColorer implements ITokenColorer {
 		}
 		 
 		TextAttribute tokenColor = getColoring(tokenMappings, constructor, sort, tokenKind);
-		TextAttribute nodeColor = getColoring(nodeMappings, constructor, sort, tokenKind);
+		if (nodeColor == null) nodeColor = getColoring(nodeMappings, constructor, sort, tokenKind);
 		TextAttribute result = mergeStyles(nodeColor, tokenColor);
 		
 		if (node != null) {

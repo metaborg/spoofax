@@ -2,6 +2,7 @@ package org.strategoxt.imp.runtime.services;
 
 import static org.eclipse.imp.utils.HTMLPrinter.*;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -22,18 +23,28 @@ public class AnnotationHover extends DefaultAnnotationHover implements IAnnotati
 	public String getHoverInfo(ISourceViewer sourceViewer, int lineNumber) {
     	List<Annotation> annotations = AnnotationUtils.getAnnotationsForLine(sourceViewer, lineNumber);
     	
-    	for (Iterator<Annotation> iter = annotations.iterator(); iter.hasNext(); ) {
+    	removeLineDiffInfo(annotations);
+    	
+    	if (annotations.size() == 0) return "";
+    	return formatMessages(annotations);
+	}
+
+	protected static String formatMessages(List<Annotation> annotations) {
+		return (annotations.size() == 1)
+				? formatSingle(annotations)
+    			: formatMultiple(annotations);
+	}
+
+	protected static void removeLineDiffInfo(List<Annotation> annotations) {
+		if (annotations == null) return;
+		for (Iterator<Annotation> iter = annotations.iterator(); iter.hasNext(); ) {
     		Annotation annotation = iter.next();
     		if (annotation instanceof ILineDiffInfo)
     			iter.remove();
     	}
-    	
-    	if (annotations.size() == 0) return "";
-    	if (annotations.size() == 1) return formatSingle(annotations);
-    	return formatMultiple(annotations);
 	}
 
-	private String formatSingle(List<Annotation> annotations) {
+	private static String formatSingle(List<Annotation> annotations) {
 		StringBuffer result = new StringBuffer();
 		addPageProlog(result);
 		result.append("<p>");
@@ -43,13 +54,14 @@ public class AnnotationHover extends DefaultAnnotationHover implements IAnnotati
     	return result.toString();
 	}
 	
-	private String formatMultiple(List<Annotation> annotations) {
+	private static String formatMultiple(List<Annotation> annotations) {
 		StringBuffer result = new StringBuffer();
 		addPageProlog(result);
 		result.append("Multiple messages:<ul>");
+		Collections.reverse(annotations);
 		for (Annotation annotation : annotations) {
 			result.append("<li> ");
-			result.append(/*convertToHTMLContent*/(annotation.getText()));
+			result.append(convertToHTMLContent(annotation.getText()));
 			result.append("</li>");
 		}
 		result.append("</ul>");
