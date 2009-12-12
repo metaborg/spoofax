@@ -14,7 +14,7 @@ strategies
     <file-exists> <conc-strings> (".externalToolBuilders/", <builder-xml-name>)
   <+
     // We use plain text since the XML pretty printer has problems with this file.
-    // Also, half the time ${project_name} and ${project_loc} don't work,
+    // Also, half the time ${project_name} AND ${project_loc} don't work,
     // so we're using a compile-time 'project-name' variable instead.
     project-name := <ProjectName <+ get-sdf-main-module>;
     

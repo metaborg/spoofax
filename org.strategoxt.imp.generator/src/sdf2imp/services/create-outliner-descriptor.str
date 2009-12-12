@@ -24,6 +24,11 @@ strategies
       ]|
     );
     
+    if is-heuristic-services-needed then
+      create-derived-outliner-descriptor
+    end
+  
+  create-derived-outliner-descriptor =
     output-derived-descriptor-file(
       <descriptor-name> "-Outliner.generated"
     , 

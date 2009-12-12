@@ -69,7 +69,10 @@ strategies
         white     = 255 255 255   
         black     = 0 0 0         
         gray      = 128 128 128   
-        grey      = gray          
+        grey      = gray       
+        orange    = 255 165 0
+        pink      = 255 105 180   
+        brown     = 139 69 19
         default   = _       
       ]|
     )

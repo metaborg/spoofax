@@ -23,6 +23,11 @@ strategies
       ]|
     );
     
+    if is-heuristic-services-needed then
+      create-derived-folding-descriptor
+    end
+  
+  create-derived-folding-descriptor =
     output-derived-descriptor-file(
       <descriptor-name> "-Folding.generated"
     , 

@@ -2,6 +2,10 @@
 <?eclipse version="3.0"?>
 
 <plugin>
+   <!-- We indirectly put our plugins on the Ant classpath by putting a dummy jar on it -->
+   <extension point="org.eclipse.ant.core.extraClasspathEntries">
+      <extraClasspathEntry library="lib/dummy.jar"/>
+   </extension>
    <extension
          point="org.eclipse.imp.runtime.languageDescription">
       <language

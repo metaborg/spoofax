@@ -7,3 +7,6 @@ mkdir foo
 cd foo
 
 ../../sdf2imp -m Foo -e foo --verbose 2
+
+cd ..
+rm -rf foo

@@ -17,21 +17,17 @@ strategies
     sdf-name := <get-sdf-main-module>;
     
     <output-text-file(|["trans"], <conc-strings> (name, ".str"))>
-    <conc-strings>
-(
-"module ", name, "
+
+${module {name}
 
 imports
   libstratego-lib
   libstratego-gpp
   libstratego-aterm
-  include/", sdf-name, "
+  include/{sdf-name}
+  include/entities
 
-/**
- * Main editor interface
- * (defined by the ", sdf-name, "-Builders/-References.esv files)
- */
-rules
+rules // Main editor interface (defined by the {sdf-name}-Builders/-References.esv files)
   
   /**
    * Analyzes the current program.
@@ -74,19 +70,20 @@ rules
       target := <GetEntity> type
 
   /**
-   * Returns \"hover help\" information for a particular node in the editor.
+   * Returns "hover help" information for a particular node in the editor.
    * For references, this rule is invoked using the resolved term.
    */
   editor-hover:
-    (target, position, ast, path, project-path) -> <conc-strings> (\"Hover help: \", <write-to-string> target)
+    (target, position, ast, path, project-path) -> $[Hover help: [<write-to-string> target]]
   
   /**
    * Transforms a selection to Java.
    */
   generate-java:
-    (selected, position, ast, path, project-path) -> (\"filename\", \"result-string\")
+    (selected, position, ast, path, project-path) -> (filename, result)
     with
-      fatal-err(|\"Not implemented\")
+      filename := <guarantee-extension(|"java")> path;
+      result   := <bottomup(try(to-java))> selected
   
   /**
    * Prints the abstract syntax ATerm of a selection.
@@ -94,66 +91,93 @@ rules
   generate-aterm:
     (selected, position, ast, path, project-path) -> (filename, result-string)
     with
-      filename      := <guarantee-extension(|\"aterm\")> path;
+      filename      := <guarantee-extension(|"aterm")> path;
       result-string := <pp-aterm-box; box2text-string(|120)> selected
 
-/**
- * Semantic rules
- */
-rules
+rules // Code generation
+
+  to-java:
+    Module(x, d*) ->
+    $[ package [x];
+       
+       [d*]
+     ]
+  
+  to-java:
+    Entity(x, p*) ->
+    $[ class [x] ${$
+           [p*]
+       $}$
+     ]
+
+  to-java:
+    Property(x, t) -> $[
+      private [t] [x];
+      
+      public [t] get_[x] ${$
+          return [x];  
+      $}$
+      
+      public [t] set_[x] ([t] [x]) ${$
+          this.[x] = [x];    
+      $}$
+    ]    
+  
+ to-java:
+    Type(t) -> t
+
+rules // Semantic rules
     
   /**
    * Reports an error if a property type is undefined.
    * This error is reported on the type name.
    */
   constraint-error:
-    Property(x, Type(type)) -> (type, [\"Type \", type, \" is not defined\"])
+    Property(x, Type(type)) -> (type, $[Type [type] is not defined])
     where
-      not(!type => \"String\"); // String and Int are built-in types
-      not(!type => \"Int\");
+      not(!type => "String"); // String and Int are built-in types
+      not(!type => "Int");
       not(<GetEntity> type) // no entity for this type
   
   /**
    * Reports an error if an entity is defined more than once.
-   * This constraint is implemented by testing if the \"bag\" of
+   * This constraint is implemented by testing if the "bag" of
    * all entities x is not a singleton list.
    * This error is reported on the entity name x.
    */
   constraint-error:
-    Entity(x, _) -> (x, \"Duplicate entity name\")
+    Entity(x, _) -> (x, $[Duplicate entity name])
     where
       not(<bagof-GetEntity> x => [_])
   
-  /**
-   * Reports a warning if an entity name does not start with a capital.
-   * This error is reported on the entity name x.
-   */
   constraint-warning:
-    Entity(x, _) -> (x, \"Entity names must start with a capital\")
+    Entity(x, _) -> (x, $[Entity names must start with a capital])
     where
       not(<explode-string; Hd; is-upper> x)
   
-  /**
-   * Adds a note to modules named \"example.\"
-   */
   constraint-note:
-    Module(x, _) -> (x, [\"This is just an example program in the \\\"entities\\\" language,\",
-                         \" (this note is defined in trans/", name, ".str) ])\"])
-    where
-      !x => \"example\"
+    Module(x @ "example", _) -> (x, $[This is just an example program in the "entities" language
+                                     (this note is defined in trans/{name}.str) ])
 
-signature constructors
+}
 
-  // HACK: Below are copies of the signatures of the terms used in this file.
-  // These definitions are actually automatically generated in the imported
-  // include/", sdf-name, ".str module. However, to ensure that this example
-  // file doesn't break if the syntax is changed, we also include them here.
-  // Consider this a newbie treat; now that you got this far reading through
-  // this file, just try removing them and see if the build still works! ;)
-  
-  Module   : ID * List(Entity)   -> Module
-  Entity   : ID * List(Property) -> Entity
-  Property : ID * Type           -> Property
-  Type     : ID                  -> Type
-"
-)
+  create-trans-helper =
+    <file-exists> "include/entities.str"
+  <+
+    name     := <trans-module-name>;
+    sdf-name := <get-sdf-main-module>;
+    <output-text-file(|["include"], "entities.str")>
+    ${module {name}
+
+      signature constructors
+
+        // Below are copies of the signatures of the terms used in example {name}.str file.
+        // These definitions are actually automatically generated in the imported
+        // include/{sdf-name}.str module. However, to ensure that this example
+        // file doesn't break if the syntax is changed, we also include them here.
+          
+        Module   : ID * List(Entity)   -> Module
+        Entity   : ID * List(Property) -> Entity
+        Property : ID * Type           -> Property
+        Type     : ID                  -> Type
+    }

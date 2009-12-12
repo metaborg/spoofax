@@ -96,6 +96,15 @@ strategies
   fetch-imports:
     Module(_, NoImports(), _) -> <id>
 
+  is-older-than =
+    ?(file, otherfiles);
+    basetime := <modification-time> file;
+    !otherfiles;
+    list-loop(
+      <lt> (basetime, <modification-time>)
+    )
+    
+
 /**
  * @internal
  */

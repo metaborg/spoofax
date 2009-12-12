@@ -58,7 +58,7 @@ strategies
     with(<chdir> <dirname>; <chdir> "..");
     guarantee-extension(|"def"); // remove .main.esv
     base-filename;
-    (file-exists <+ <conc-strings> ("include/", <id>));
+    (file-exists <+ !$[include/[<id>]]);
     if not(file-exists) then
       fatal-err(|"Accompanying .def file not found.")
     end;
@@ -78,7 +78,7 @@ strategies
         !FILE(<id>)
       else
         where(
-          <file-exists> <conc-strings> ("include/", <InputFile>)
+          <file-exists> $[include/[<InputFile>]]
         <+
           <file-exists <+ mkdir> "include";
           <copy-file> (<InputFile>, "include")
@@ -95,11 +95,13 @@ strategies
       end;
       create-grammar;
       create-trans;
-      input := <pack-default-sdf> FILE(<conc-strings> ("syntax/", <get-sdf-main-module>, ".sdf"))
+      input := <pack-default-sdf> FILE($[syntax/[<get-sdf-main-module>].sdf])
     end;
-  
+    
     configure-main-descriptor;
-    <sdf2rtg => RTG(_, ProdRules(<id>)); register-rtg> input;
+    if is-heuristic-services-needed then
+      <sdf2rtg => RTG(_, ProdRules(<id>)); register-rtg> input
+    end;
     
     if not(IsLaunchedFromEclipse) then
       // We could build the table here, but doing it from ant is more customizable
@@ -131,15 +133,31 @@ strategies
     create-build-xml;
     create-builder-xml;
     create-example-file;
+    create-trans-helper;
     copy-jars;
     copy-def-file;
     
     say(!"SUCCESS: completed with 0 fatal errors.")
+
+  is-heuristic-services-needed =
+    not(
+      <is-older-than> (
+        <guarantee-extension(|"rtg")> <InputFile>
+      , [ $[[<descriptor-name>]-Outliner.generated.esv],
+          $[[<descriptor-name>]-Outliner.esv],
+          $[[<descriptor-name>]-Folding.generated.esv],
+          $[[<descriptor-name>]-Folding.esv]]
+      )
+    )
   
   // (Note that these xtc calls are intercepted by the Spoofax/IMP runtime.)
   sdf2rtg:
     FILE(sdf) -> rtg
     with
+      <file-exists> <guarantee-extension(|".rtg")> sdf;
+      verbose-msg(!"Importing regular tree grammar from", id);
+      parse-rtg-file
+    <+
       verbose-msg(!"Analyzing grammar...");
       if FILE(has-extension(|"sdf")) then
         fatal-err(|"Input file must be a .def file.")
@@ -151,31 +169,12 @@ strategies
       sdf-desugar;
       core-sdf-grammar2rtg => rtg
 
-  /* UNDONE: sdf2def converts a single SDF file to a DEF file.
-  sdf2def: 
-    FILE(sdf) -> FILE(def)
-    where      
-      <file-exists <+ mkdir> "include";
-      def       := <conc-strings> ("include/", <get-sdf-main-module>, ".def");
-      streamin  := <fopen> (sdf, "r");
-      streamout := <fopen> (def, "w");
-      finally(
-        <fputs> ("definition\n", streamout);
-        repeat(
-          <fgetc> streamin; <fputc> (<id>, streamout)
-        )
-      , <fclose> streamin;
-        <fclose> streamout
-      )
-  */
-
   pack-default-sdf:
     FILE(sdf) -> FILE(def)
     with
-      def := <conc-strings> ("include/", <get-sdf-main-module>, ".def");
+      def := $[include/[<get-sdf-main-module>].def];
       <file-exists <+ mkdir> "include";
       
-      // <xtc-command(!"pack-sdf")> ["-i", sdf, "-o", def | <pass-verbose>]
       <pack-sdf(|[IncludeDir("syntax")])> FILE(sdf) => (_, def-asfix);
       stream := <fopen> (def, "w");
       <asfix-yield(|stream)> def-asfix;

@@ -7,6 +7,7 @@ imports
 strategies
 
   // TODO: -XX:+TieredCompilation in Java 7?
+  // TODO: generate .pp.af file
 
   create-build-xml =
     <file-exists> "build.xml"
@@ -57,7 +58,6 @@ strategies
                         -la stratego-lib -la stratego-sglr
                         -la stratego-gpp -la stratego-xtc
                         -la stratego-aterm"/>
-        <property name="build.jvmargs" value="-client -Xverify:none -Xss4m -Xmx512m"/>
         
         <!-- Initialization -->
         <available file="${trans}/${strmodule}.str" property="build.stratego.enabled"/>
@@ -89,8 +89,7 @@ strategies
         </target>
         
         <target name="sdf2imp.standalone" unless="eclipse.running" depends="utils-files">
-            <java classname="org.strategoxt.imp.generator.sdf2imp" classpath="utils/sdf2imp.jar:utils/strategoxt.jar" failonerror="true" fork="true">
-                <jvmarg line="${build.jvmargs}"/>
+            <java classname="org.strategoxt.imp.generator.sdf2imp" failonerror="true">
                 <arg value="-i"/>
                 <arg value="${basedir}/editor/${esvmodule}.main.esv"/>
                 <arg value="-p"/>
@@ -122,8 +121,7 @@ strategies
         </target>
     
         <target name="make-permissive.helper" unless="permissive-grammar.available" depends="utils-files">
-            <java classname="org.strategoxt.permissivegrammars.make_permissive" classpath="utils/make_permissive.jar:utils/strategoxt.jar" failonerror="true" fork="true">
-                <jvmarg line="${build.jvmargs}"/>
+            <java classname="org.strategoxt.permissivegrammars.make_permissive" failonerror="true">
                 <arg value="-i"/>
                 <arg value="${include}/${sdfmodule}.def"/>
                 <arg value="-o"/>
@@ -134,9 +132,9 @@ strategies
 
         <target name="utils-files">
             <mkdir dir="utils"/>
-            <copy file="${eclipse.spoofaximp.jars}/make_permissive.jar" todir="utils"/>
-            <copy file="${eclipse.spoofaximp.jars}/sdf2imp.jar"         todir="utils"/>
-            <copy file="${eclipse.spoofaximp.strategojar}"              todir="utils"/>
+            <copy file="${eclipse.spoofaximp.jars}/make_permissive.jar" todir="utils" failonerror="false"/>
+            <copy file="${eclipse.spoofaximp.jars}/sdf2imp.jar" todir="utils" failonerror="false"/>
+            <copy file="${eclipse.spoofaximp.strategojar}" todir="utils" failonerror="false"/>
         </target>
     
         <target name="pack-sdf" unless="externaldef">
@@ -151,8 +149,7 @@ strategies
         </target>
     
         <target name="pack-sdf.helper" unless="pack-sdf.available" depends="utils-files">
-            <java classname="start" classpath="utils/strategoxt.jar" failonerror="true" fork="true">
-                <jvmarg line="${build.jvmargs}"/>
+            <java classname="start" failonerror="true">
                 <arg value="org.strategoxt.tools.main-pack-sdf"/>
                 <arg value="-i"/>
                 <arg value="${syntax}/${sdfmodule}.sdf"/>
@@ -184,8 +181,7 @@ strategies
         </target>
     
         <target name="rtg2sig.helper" unless="rtg2sig.available" depends="utils-files">
-            <java classname="start" classpath="utils/strategoxt.jar" failonerror="true" fork="true">
-                <jvmarg line="${build.jvmargs}"/>
+            <java classname="start" failonerror="true">
                 <arg value="org.strategoxt.tools.main-rtg2sig"/>
                 <arg value="-i"/>
                 <arg value="${include}/${sdfmodule}.rtg"/>
@@ -206,8 +202,7 @@ strategies
         </target>
     
         <target name="sdf2rtg.helper" unless="sdf2rtg.available" depends="utils-files">
-            <java classname="start" classpath="utils/strategoxt.jar" failonerror="true" fork="true">
-                <jvmarg line="${build.jvmargs}"/>
+            <java classname="start" failonerror="true">
                 <arg value="org.strategoxt.tools.main-sdf2rtg"/>
                 <arg value="-i"/>
                 <arg value="${include}/${sdfmodule}.def"/>
@@ -231,13 +226,12 @@ strategies
         </target>
     
         <target name="ppgen.helper" unless="ppgen.available" depends="utils-files">
-            <java classname="start" dir="${include}" classpath="utils/strategoxt.jar" failonerror="true" fork="true">
-                <jvmarg line="${build.jvmargs}"/>
+            <java classname="start" failonerror="true">
                 <arg value="org.strategoxt.tools.main-ppgen"/>
                 <arg value="-i"/>
-                <arg value="${sdfmodule}.def"/>
+                <arg value="${include}/${sdfmodule}.def"/>
                 <arg value="-o"/>
-                <arg value="${sdfmodule}.pp"/>
+                <arg value="${include}/${sdfmodule}.pp"/>
             </java>
         </target>
     
@@ -279,8 +273,7 @@ strategies
         </target>
             
         <target name="stratego.jvm.helper" unless="strc-java.available" if="build.stratego.enabled" depends="utils-files">
-            <java classname="org.strategoxt.strj.Main" classpath="utils/strategoxt.jar:utils/sdf2imp.jar" failonerror="true" fork="true">
-                <jvmarg line="${build.jvmargs}"/>
+            <java classname="org.strategoxt.strj.Main" failonerror="true">
                 <arg value="-i"/>
                 <arg value="${trans}/${strmodule}.str"/>
                 <arg value="-o"/>

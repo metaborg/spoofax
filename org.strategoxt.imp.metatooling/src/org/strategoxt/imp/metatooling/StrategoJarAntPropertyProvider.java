@@ -19,6 +19,8 @@ public class StrategoJarAntPropertyProvider implements IAntPropertyValueProvider
 		if (!result.endsWith(".jar")) { // ensure correct jar at development time
 			String result2 = result + "/../strategoxt.jar";
 			if (new File(result2).exists()) return result2;
+			result2 = result + "/java/strategoxt.jar";
+			if (new File(result2).exists()) return result2;
 		}
 		return result;
 	}

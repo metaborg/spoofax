@@ -37,7 +37,8 @@ JAVAC=`if which ecj >/dev/null; then echo ecj; else echo javac; fi`
 STRJ=`if which strj >/dev/null; then echo strj; elif [ -e strategoxt.jar ]; then echo java -server -Xss4m -jar strategoxt.jar; else echo Please install strj or put strategoxt.jar into the current directory. >&2; exit 1; fi`
 
 SDFINCLUDES = \
-    -Idef ${HOME}/.nix-profile/share/java-front/Stratego-Java-EBlock.def
+    -Idef ${HOME}/.nix-profile/share/java-front/Stratego-Java-EBlock.def \
+    -Idef ${HOME}/opt/java-front/share/java-front/Stratego-Java-EBlock.def
 
 # I don't care much for nullary constructor warnings unless it's about lowercase ones, such as 'start'
 STRCSTFU=2>&1 | grep -vE 'warning ] Nullary constructor .*[A-Z]|warning ] multiple external| \[ExtSDef\(|stratego-trm|module-name-checked|module-name-checked"' \
