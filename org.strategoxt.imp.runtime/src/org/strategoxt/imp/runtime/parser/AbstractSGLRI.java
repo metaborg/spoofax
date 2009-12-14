@@ -183,7 +183,7 @@ public abstract class AbstractSGLRI implements IParser {
 			currentTokenizer = new SGLRTokenizer(inputChars, filename);
 			result = doParseNoImplode(inputChars, filename);
 			parsedCache.put(cachingKey, result);
-			tokenizerCache.put(result, currentTokenizer);
+			putTokenizer(result, currentTokenizer);
 		
 			return result;
 		} finally {
@@ -202,6 +202,13 @@ public abstract class AbstractSGLRI implements IParser {
 	 */
 	public static SGLRTokenizer getTokenizer(ATerm asfix) {
 		return tokenizerCache.get(asfix);
+	}
+
+	/**
+	 * Store the original tokenizer for an asfix tree.
+	 */
+	public static SGLRTokenizer putTokenizer(ATerm asfix, SGLRTokenizer tokenizer) {
+		return tokenizerCache.put(asfix, tokenizer);
 	}
 	
 	protected abstract ATerm doParseNoImplode(char[] inputChars, String filename)

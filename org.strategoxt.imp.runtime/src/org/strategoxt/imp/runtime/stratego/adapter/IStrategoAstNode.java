@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import lpg.runtime.IAst;
 
 import org.eclipse.core.resources.IResource;
+import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 /**
@@ -17,6 +18,8 @@ public interface IStrategoAstNode extends IAst {
 	// TODO: Make independent from IAst interface??
 	
 	IStrategoTerm getTerm();
+	
+	IStrategoList getAnnotations();
 	
 	String getConstructor();
 	

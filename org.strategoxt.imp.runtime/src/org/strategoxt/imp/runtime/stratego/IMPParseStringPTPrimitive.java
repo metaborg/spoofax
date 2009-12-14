@@ -74,10 +74,18 @@ public class IMPParseStringPTPrimitive extends JSGLR_parse_string_pt_compat {
 			
 		result = termConverter.convert(result);
 
-		inputTermMap.put(result, asfix);
-		inputCharMap.put(result, inputChars);
+		putInputTerm(result, asfix);
+		putInputChars(result, inputChars);
 		
 		return result;
+	}
+
+	protected char[] putInputChars(IStrategoTerm asfix, char[] inputChars) {
+		return inputCharMap.put(asfix, inputChars);
+	}
+
+	protected ATerm putInputTerm(IStrategoTerm asfix, final ATerm asfixATerm) {
+		return inputTermMap.put(asfix, asfixATerm);
 	}
 	
 	public char[] getInputChars(IStrategoTerm asfix) {

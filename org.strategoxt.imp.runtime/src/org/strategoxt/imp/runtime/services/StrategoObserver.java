@@ -126,6 +126,8 @@ public class StrategoObserver implements IModelListener {
 			} else if (filename.endsWith(".jar")) {
 				initRuntime(monitor);
 				jars.add(filename);
+			} else if (filename.endsWith(".str")) {
+				Environment.asynOpenErrorDialog("Loading analysis components", "Cannot use .str files as a provider: please specify a .ctree or .jar file instead (usually built in /include/)", null);
 			}
 		}
 		

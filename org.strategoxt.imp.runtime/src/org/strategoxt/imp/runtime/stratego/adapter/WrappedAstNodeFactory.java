@@ -22,19 +22,24 @@ import org.strategoxt.lang.terms.TermFactory;
 public class WrappedAstNodeFactory extends TermFactory implements ITermFactory {
 	
 	public IStrategoTerm wrap(IStrategoAstNode node) {
-		if(node instanceof IntAstNode) {
-			return new WrappedAstNodeInt(node);
+		IStrategoTerm result;
+		if (node instanceof IntAstNode) {
+			result = new WrappedAstNodeInt(node);
 		} else if (node instanceof StringAstNode) {
-			return new WrappedAstNodeString(node);
+			result = new WrappedAstNodeString(node);
 		} else if (node instanceof ListAstNode) {
-			return new WrappedAstNodeList(this, node, 0);
+			result = new WrappedAstNodeList(this, node, 0);
 		} else {
 			// TODO: ensure maximal sharing of node constructors
 			//       (term constructors are also maximally shared!)
-			return "()".equals(node.getConstructor())
+			result = "()".equals(node.getConstructor())
 				? new WrappedAstNodeTuple(node)
 				: new WrappedAstNodeAppl(this, node);
 		}
+		IStrategoList annos = node.getAnnotations();
+		if (annos != null)
+			result = annotateTerm(result, annos);
+		return result;
 	}
 	
 	protected IStrategoList wrapList(IStrategoAstNode node, int offset) {

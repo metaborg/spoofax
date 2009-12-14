@@ -10,6 +10,7 @@ import lpg.runtime.IPrsStream;
 import lpg.runtime.IToken;
 
 import org.eclipse.core.resources.IResource;
+import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermPrinter;
 import org.spoofax.interpreter.terms.InlinePrinter;
@@ -42,6 +43,8 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 	private IToken leftToken, rightToken;
 	
 	private AstNode parent;
+	
+	private IStrategoList annotations;
 		
 	// Accessors
 	
@@ -111,6 +114,14 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 			throw new IllegalStateException("Tree not initialized using RootAstNode.create()");
 		else
 			return (RootAstNode) result;
+	}
+	
+	public IStrategoList getAnnotations() {
+		return annotations;
+	}
+	
+	protected void setAnnotations(IStrategoList annotations) {
+		this.annotations = annotations;
 	}
 	
 	public IStrategoTerm getTerm() {

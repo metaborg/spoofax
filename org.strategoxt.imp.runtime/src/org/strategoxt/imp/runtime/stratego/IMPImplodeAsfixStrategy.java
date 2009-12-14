@@ -1,7 +1,9 @@
 package org.strategoxt.imp.runtime.stratego;
 
+import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.library.IOperatorRegistry;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.JSGLRI;
 import org.strategoxt.imp.runtime.parser.ast.AsfixImploder;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
@@ -28,16 +30,19 @@ public class IMPImplodeAsfixStrategy extends implode_asfix_1_0 {
 			return super.invoke(context, asfix, implodeConcreteSyntax);
 		
 		IOperatorRegistry library = context.getOperatorRegistry(IMPJSGLRLibrary.REGISTRY_NAME);
-		IMPParseStringPTPrimitive jsglr = (IMPParseStringPTPrimitive) library.get(IMPParseStringPTPrimitive.NAME);
-		if (jsglr == null) {
+		AbstractPrimitive mappingPrimitive = library.get(IMPParseStringPTPrimitive.NAME);
+		if (!(mappingPrimitive instanceof IMPParseStringPTPrimitive)) {
 			// Spoofax/IMP parsing may not be used for this context
 			return super.invoke(context, asfix, implodeConcreteSyntax);
 		}
+
+		IMPParseStringPTPrimitive mapping = (IMPParseStringPTPrimitive) mappingPrimitive;
 		
-		char[] inputChars = jsglr.getInputChars(asfix);
-		ATerm asfixATerm = jsglr.getInputTerm(asfix);
+		char[] inputChars = mapping.getInputChars(asfix);
+		ATerm asfixATerm = mapping.getInputTerm(asfix);
 		
 		if (inputChars == null || asfix == null) {
+			Environment.logException("Could not find origin term for asfix tree");
 			return outer.invoke(context, asfix, implodeConcreteSyntax);
 		}
 		

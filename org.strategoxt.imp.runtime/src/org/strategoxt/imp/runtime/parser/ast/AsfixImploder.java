@@ -12,6 +12,9 @@ import java.util.WeakHashMap;
 import lpg.runtime.IToken;
 import lpg.runtime.PrsStream;
 
+import org.spoofax.interpreter.terms.IStrategoList;
+import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.TermConverter;
 import org.spoofax.jsglr.RecoveryConnector;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
@@ -54,6 +57,8 @@ public class AsfixImploder {
 	protected final AstNodeFactory factory = new AstNodeFactory();
 	
 	private final ProductionAttributeReader reader = new ProductionAttributeReader();
+	
+	private final TermConverter converter = new TermConverter(Environment.getTermFactory());
 	
 	private final TokenKindManager tokenManager;
 	
@@ -122,6 +127,8 @@ public class AsfixImploder {
 		ATermAppl rhs = termAt(prod, PROD_RHS);
 		ATermAppl attrs = termAt(prod, PROD_ATTRS);
 		ATermList contents = termAt(appl, APPL_CONTENTS);
+		ATermList annos = appl.getAnnotations();
+		// TODO: use annos as annotations for resulting terms
 		
 		IToken prevToken = tokenizer.currentToken();
 		
@@ -131,7 +138,7 @@ public class AsfixImploder {
 		if (lexicalStart) inLexicalContext = true;
 		
 		if (!inLexicalContext && "sort".equals(rhs.getName()) && lhs.getLength() == 1 && termAt(contents, 0).getType() == ATerm.INT) {
-			return createIntTerminal(contents, rhs);
+			return setAnnos(createIntTerminal(contents, rhs), annos);
 		}
 		
 		boolean isList = !inLexicalContext && AsfixAnalyzer.isList(rhs);
@@ -144,12 +151,20 @@ public class AsfixImploder {
 			implodeChildNodes(contents);
 		
 		if (lexicalStart || isVar) {
-			return createStringTerminal(lhs, rhs, attrs);
+			return setAnnos(createStringTerminal(lhs, rhs, attrs), annos);
 		} else if (inLexicalContext) {
 			return null; // don't create tokens inside lexical context; just create one big token at the top
 		} else {
-			return createNodeOrInjection(lhs, rhs, attrs, prevToken, children, isList);
+			return setAnnos(createNodeOrInjection(lhs, rhs, attrs, prevToken, children, isList), annos);
 		}
+	}
+	
+	private AstNode setAnnos(AstNode node, ATermList annos) {
+		if (node != null && annos != null && !annos.isEmpty()) {
+			IStrategoTerm termAnnos = converter.convert(Environment.getWrappedATermFactory().wrapTerm(annos));
+			node.setAnnotations((IStrategoList) termAnnos);
+		}
+		return node;
 	}
 
 	protected ArrayList<AstNode> implodeChildNodes(ATermList contents) {
