@@ -23,7 +23,6 @@ import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.DescriptorFactory;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
-import org.strategoxt.imp.runtime.stratego.StrategoConsole;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.StrategoErrorExit;
 import org.strategoxt.lang.StrategoExit;
@@ -100,7 +99,7 @@ public class DynamicDescriptorBuilder {
 				String log = agent.getLog().trim();
 				Environment.logException("Unable to build descriptor:\n" + log);
 				messageHandler.addMarkerFirstLine(mainFile, "Unable to build descriptor (see error log)", SEVERITY_ERROR);
-				StrategoConsole.activateConsole();
+				// UNDONE: StrategoConsole.activateConsole(); (not good for ant triggered builds)
 				return;
 			}
 			

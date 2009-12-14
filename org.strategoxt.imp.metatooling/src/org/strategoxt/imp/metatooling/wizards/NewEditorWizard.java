@@ -109,7 +109,7 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 	}
 	
  	private void doFinish(String languageName, String projectName, String packageName, String extensions, IProgressMonitor monitor) throws IOException, CoreException {
-		final int TASK_COUNT = 17;
+		final int TASK_COUNT = 20;
 		lastProject = null;
 		monitor.beginTask("Creating " + languageName + " project", TASK_COUNT);
 		
@@ -169,10 +169,12 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 				project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
 				monitor.worked(1);
 				
-				monitor.setTaskName("Building example editor");
+				monitor.setTaskName("Building and loading example editor");
 				project.build(IncrementalProjectBuilder.FULL_BUILD, null);
-				monitor.worked(4);
+				monitor.worked(6);
 
+				// TODO: Optimize - don't reload editor (already done from Ant file)
+				// DynamicDescriptorUpdater.getInstance().forceNoUpdate(descriptor);
 				monitor.setTaskName("Loading editor");
 				IResource descriptor = project.findMember("include/" + languageName + ".packed.esv");
 				DynamicDescriptorUpdater.getInstance().forceUpdate(descriptor);
@@ -189,7 +191,7 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 		monitor.setTaskName("Opening editor tabs");
 		Display display = getShell().getDisplay();
 		EditorState.asyncOpenEditor(display, project.getFile("/trans/" + toStrategoName(languageName) +  ".str"), true);
-		monitor.worked(1);
+		monitor.worked(2);
 		EditorState.asyncOpenEditor(display, project.getFile("/editor/" + languageName +  ".main.esv"), true);
 		monitor.worked(1);
 		EditorState.asyncOpenEditor(display, project.getFile("/syntax/" + languageName +  ".sdf"), true);

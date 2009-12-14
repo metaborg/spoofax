@@ -63,13 +63,22 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 	
 	/**
 	 * Loads the editor for the specified descriptor,
-	 * and ignore it the next resource event arrives.
+	 * and ignore it at the next resource event arrives.
 	 */
 	public void forceUpdate(IResource resource) {
 		synchronized (Environment.getSyncRoot()) {
 			assert resource.toString().endsWith(".packed.esv");
-			asyncIgnoreOnce.add(resource);
+			forceNoUpdate(resource);
 			loadPackedDescriptor(resource);
+		}
+	}
+
+	/**
+	 * Ignores the specified descriptor at the next resource event arrives.
+	 */
+	public void forceNoUpdate(IResource resource) {
+		synchronized (Environment.getSyncRoot()) {
+			asyncIgnoreOnce.add(resource);
 		}
 	}
 

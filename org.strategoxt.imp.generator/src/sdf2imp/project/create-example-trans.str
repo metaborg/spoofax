@@ -167,14 +167,15 @@ rules // Semantic rules
     name     := <trans-module-name>;
     sdf-name := <get-sdf-main-module>;
     <output-text-file(|["include"], "entities.str")>
-    ${module {name}
+    ${module entities
 
       signature constructors
 
-        // Below are copies of the signatures of the terms used in example {name}.str file.
-        // These definitions are actually automatically generated in the imported
-        // include/{sdf-name}.str module. However, to ensure that this example
-        // file doesn't break if the syntax is changed, we also include them here.
+        // Below are copies of the signatures of the terms used in example
+        // trans/{name}.str file. These definitions should also be automatically 
+        // generated in the imported include/{sdf-name}.str module. However,
+        // to ensure that the example transformation doesn't break when the
+        // syntax is changed, we also hard-coded them here.
           
         Module   : ID * List(Entity)   -> Module
         Entity   : ID * List(Property) -> Entity

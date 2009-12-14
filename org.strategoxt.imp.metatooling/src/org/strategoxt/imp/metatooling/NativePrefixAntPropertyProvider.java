@@ -11,7 +11,7 @@ import org.strategoxt.imp.runtime.Environment;
  */
 public class NativePrefixAntPropertyProvider implements IAntPropertyValueProvider {
 
-	public String getAntPropertyValue(String antPropertyName) {
+	public String getAntPropertyValue(String antPropertyName) {		
 		try {
 			// Ensure proper chmod first
 			return SDFBundleCommand.getInstance().getBinaryPath();

@@ -3,7 +3,9 @@ package org.strategoxt.imp.runtime.services;
 import static org.spoofax.interpreter.core.Tools.*;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.io.PrintStream;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
@@ -67,7 +69,7 @@ public class StrategoBuilder implements IBuilder {
 		// TODO: refactor
 		String filename = null;
 		String result = null;
-		Exception errorReport = null;
+		String errorReport = null;
 		
 		synchronized (observer.getSyncRoot()) {
 			try {
@@ -110,13 +112,15 @@ public class StrategoBuilder implements IBuilder {
 						: ppATerm(resultTerm);
 				}
 			} catch (InterpreterErrorExit e) {
-				observer.reportRewritingFailed();
 				Environment.logException("Builder failed:\n" + observer.getLog(), e);
 				if (editor.getDescriptor().isDynamicallyLoaded()) StrategoConsole.activateConsole();
 				if (errorReportFile == null || !openEditor) {
 					openError(editor, e.getMessage());
 				} else {
-					errorReport = e;
+					ByteArrayOutputStream trace = new ByteArrayOutputStream();
+					observer.getRuntime().getCompiledContext().printStackTrace(new PrintStream(trace), false);
+					errorReport = "[ERROR] " + e.getMessage() + "\n\t" + ppATerm(e.getTerm())
+							+ "\nrewriting failed at\n" + trace.toString();
 				}
 			} catch (UndefinedStrategyException e) {
 				reportGenericException(editor, e);
@@ -131,7 +135,7 @@ public class StrategoBuilder implements IBuilder {
 
 		try {
 			if (errorReport != null) {
-				setFileContents(editor, errorReportFile, "ERROR: " + errorReport.getMessage());
+				setFileContents(editor, errorReportFile, errorReport);
 			}
 		
 			if (result != null) {
@@ -154,7 +158,9 @@ public class StrategoBuilder implements IBuilder {
 		Context context = observer.getRuntime().getCompiledContext();
 		term = pp_aterm_box_0_0.instance.invoke(context, term);
 		term = box2text_string_0_1.instance.invoke(context, term, Environment.getTermFactory().makeInt(120));
-		return asJavaString(term);
+		String result = term.toString();
+		assert result.startsWith("\"") && result.endsWith("\"");
+		return result.substring(1, result.length() - 1);
 	}
 
 	private void reportGenericException(EditorState editor, Exception e) {

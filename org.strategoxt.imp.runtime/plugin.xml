@@ -122,7 +122,8 @@
             colorPreferenceValue="255,128,147"/>
    </extension>
 
-   <!-- TODO: proper red and orange colors for errors and warnings? -->
+   <!-- TODO: proper red and orange colors for errors and warnings?   -->
+   <!-- Note that post-deployment colors may differ from debug colors -->
    <extension
          id="org.strategoxt.imp.runtime.parsemarkerspec"
          point="org.eclipse.ui.editors.markerAnnotationSpecification">

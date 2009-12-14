@@ -161,8 +161,8 @@ public class EditorState {
 		if (ignoreEmptyEmpySelection && selection.y == 0)
 			return null;
 		
-		IToken start = getParseController().getTokenIterator(new Region(selection.x, 0)).next();
-		IToken end = getParseController().getTokenIterator(new Region(selection.x + selection.y - 1, 0)).next();
+		IToken start = getParseController().getTokenIterator(new Region(selection.x, 0), true).next();
+		IToken end = getParseController().getTokenIterator(new Region(selection.x + selection.y - 1, 0), true).next();
 		
 		IPrsStream tokens = start.getIPrsStream();
 		int layout = TokenKind.TK_LAYOUT.ordinal();

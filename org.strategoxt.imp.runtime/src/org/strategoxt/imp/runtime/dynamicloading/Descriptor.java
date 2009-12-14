@@ -236,11 +236,17 @@ public class Descriptor {
 				return openAttachment(path, true);
 			return new BufferedInputStream(new FileInputStream(path));
 		} else { // read from jar
-			InputStream result = getAttachmentProvider().getResourceAsStream("/" + path);
+			Class provider = getAttachmentProvider();
+			InputStream result = provider.getResourceAsStream("/" + path);
+			if (result == null) // Try non-windows path
+				result = provider.getResourceAsStream("/" + path.replace('\\', '/'));
 			if (result == null) { // read resource listed in descriptor
 				if (!onlyListedFiles)
 					return openAttachment(path, true);
 				String specified = onlyListedFiles ? "specified file " : "";
+				Environment.logException("Attachment " + path
+						+ " not found in plugin with attachment provider "
+						+ provider.getName());
 				throw new FileNotFoundException(specified + path
 						+ " not found in editor service plugin");
 			}

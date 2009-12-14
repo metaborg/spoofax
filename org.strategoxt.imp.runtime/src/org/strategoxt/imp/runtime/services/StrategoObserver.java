@@ -263,7 +263,7 @@ public class StrategoObserver implements IModelListener {
 				}
 			}
 		} finally {
-			System.out.println("OBSERVED " + System.currentTimeMillis());
+			// System.out.println("OBSERVED " + System.currentTimeMillis()); // DEBUG
 			// processEditorRecolorEvents(parseController);
 		}
 	}

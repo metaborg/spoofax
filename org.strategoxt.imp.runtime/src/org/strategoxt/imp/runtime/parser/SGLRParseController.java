@@ -342,6 +342,11 @@ public class SGLRParseController implements IParseController {
 	 *         allowed or no parse stream is available the time of invocation
 	 */
 	public Iterator<IToken> getTokenIterator(IRegion region) {
+		return getTokenIterator(region, false);
+	}
+	
+	
+	public Iterator<IToken> getTokenIterator(IRegion region, boolean notForColorer) {
 		// Threading concerns:
 		// - the colorer runs in the main thread and should not be blocked by ANY lock
 		// - CANNOT acquire parse lock:
@@ -351,14 +356,12 @@ public class SGLRParseController implements IParseController {
 		
 		IPrsStream stream = currentParseStream;
 		
-		if (stream == null || disallowColorer || (editor != null && stream.getILexStream().getStreamLength() != editor.getDocument().getLength())) {
+		if (!notForColorer && (stream == null || disallowColorer || (editor != null && stream.getILexStream().getStreamLength() != editor.getDocument().getLength()))) {
 			return SGLRTokenIterator.EMPTY;
 		} else if (stream.getTokens().size() == 0 || getCurrentAst() == null) {
 			// Parse hasn't succeeded yet, consider the entire stream as one big token
 			stream.addToken(new SGLRToken(stream, region.getOffset(), stream.getStreamLength() - 1,
 					TokenKind.TK_UNKNOWN.ordinal()));
-		} else {
-			// System.out.println("COLOR! " + System.currentTimeMillis()); // DEBUG
 		}
 		
 		// UNDONE: Cannot disable colorer afterwards, need it to remove error markers

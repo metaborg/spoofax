@@ -83,9 +83,9 @@ strategies
         <target name="sdf2imp" depends="sdf2table,sdf2imp.eclipse,sdf2imp.standalone"/>
         
         <target name="sdf2imp.eclipse" if="eclipse.running">
-            <!-- In Eclipse, we trigger the Eclipse builder rather than build it here -->
-            <touch file="${include}/${esvmodule}.packed.esv"/>
-            <eclipse.refreshLocal resource="${include}/${esvmodule}.packed.esv"/>
+            <java classname="org.strategoxt.imp.metatooling.building.AntDescriptorBuilder">
+                <arg value="${include}/${esvmodule}.packed.esv"/>
+            </java>
         </target>
         
         <target name="sdf2imp.standalone" unless="eclipse.running" depends="utils-files">
@@ -156,7 +156,7 @@ strategies
                 <arg value="-o"/>
                 <arg value="${include}/${sdfmodule}.def"/>
                 <arg value="-I"/>
-                <arg value="${trans}"/>
+                <arg value="${syntax}"/>
                 <arg value="-I"/>
                 <arg value="${lib}"/>
                 <arg line="${build.sdf.imports}"/>
