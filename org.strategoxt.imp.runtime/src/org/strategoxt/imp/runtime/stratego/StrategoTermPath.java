@@ -72,6 +72,8 @@ public class StrategoTermPath {
 			IStrategoAstNode oldSubtree = (IStrategoAstNode) oldParent.getChildren().get(i);
 			IStrategoAstNode newSubtree;
 			if (i == newParent.getChildren().size()) {
+				if (i == 0) // fallback
+					return findIdenticalSubtree(oldAst, newAst, selection);
 				newSubtree = (IStrategoAstNode) newParent.getChildren().get(--i);
 			} else if (i > newParent.getChildren().size()) {
 				return findIdenticalSubtree(oldAst, newAst, selection);

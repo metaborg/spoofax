@@ -117,10 +117,11 @@ public class StrategoBuilder implements IBuilder {
 				if (errorReportFile == null || !openEditor) {
 					openError(editor, e.getMessage());
 				} else {
-					ByteArrayOutputStream trace = new ByteArrayOutputStream();
-					observer.getRuntime().getCompiledContext().printStackTrace(new PrintStream(trace), false);
-					errorReport = "[ERROR] " + e.getMessage() + "\n\t" + ppATerm(e.getTerm())
-							+ "\nrewriting failed at\n" + trace.toString();
+					// UNDONE: Printing stack trace in editor
+					// ByteArrayOutputStream trace = new ByteArrayOutputStream();
+					// observer.getRuntime().getCompiledContext().printStackTrace(new PrintStream(trace), false);
+					errorReport = e.getMessage();
+					if (e.getTerm() != null) errorReport += "\n\t" + ppATerm(e.getTerm());
 				}
 			} catch (UndefinedStrategyException e) {
 				reportGenericException(editor, e);
