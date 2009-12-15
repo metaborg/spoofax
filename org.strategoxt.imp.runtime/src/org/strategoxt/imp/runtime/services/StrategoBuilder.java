@@ -15,11 +15,14 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
+import org.spoofax.interpreter.adapter.aterm.WrappedATerm;
 import org.spoofax.interpreter.core.InterpreterErrorExit;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.core.UndefinedStrategyException;
+import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.TermConverter;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.RuntimeActivator;
@@ -107,7 +110,7 @@ public class StrategoBuilder implements IBuilder {
 				if (resultTerm != null && filename != null) {
 					result = isTermString(resultTerm) 
 						? asJavaString(resultTerm)
-						: ppATerm(resultTerm);
+						: ppATerm(resultTerm).stringValue();
 				}
 			} catch (InterpreterErrorExit e) {
 				Environment.logException("Builder failed:\n" + observer.getLog(), e);
@@ -119,7 +122,7 @@ public class StrategoBuilder implements IBuilder {
 					// ByteArrayOutputStream trace = new ByteArrayOutputStream();
 					// observer.getRuntime().getCompiledContext().printStackTrace(new PrintStream(trace), false);
 					errorReport = e.getMessage();
-					if (e.getTerm() != null) errorReport += "\n\t" + ppATerm(e.getTerm());
+					if (e.getTerm() != null) errorReport += "\n\t" + toEscapedString(ppATerm(e.getTerm()));
 				}
 			} catch (UndefinedStrategyException e) {
 				reportGenericException(editor, e);
@@ -153,13 +156,15 @@ public class StrategoBuilder implements IBuilder {
 		}
 	}
 
-	private String ppATerm(IStrategoTerm term) {
+	private IStrategoString ppATerm(IStrategoTerm term) {
 		Context context = observer.getRuntime().getCompiledContext();
 		term = pp_aterm_box_0_0.instance.invoke(context, term);
 		term = box2text_string_0_1.instance.invoke(context, term, Environment.getTermFactory().makeInt(120));
-		String result = term.toString();
-		assert result.startsWith("\"") && result.endsWith("\"");
-		return result.substring(1, result.length() - 1);
+		return (IStrategoString) term;
+	}
+
+	private static String toEscapedString(IStrategoString term) {
+		return ((WrappedATerm) TermConverter.convert(Environment.getWrappedATermFactory(), term)).toString();
 	}
 
 	private void reportGenericException(EditorState editor, Exception e) {

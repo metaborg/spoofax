@@ -135,7 +135,8 @@ public class WrappedAstNodeLink extends WrappedAstNodeParent implements IWrapped
 				return false;				
 			}
 		} else if (termType != TUPLE) {
-			throw new IllegalStateException("Unexpected type of term with kids: " + this);
+			// UNDONE: throw new IllegalStateException("Unexpected type of term with kids: " + this);
+			return false;
 		}
 
 		return true;
