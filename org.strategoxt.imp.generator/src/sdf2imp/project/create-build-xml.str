@@ -220,16 +220,26 @@ strategies
             <dependset>
                 <srcfileset file="${include}/${sdfmodule}.def"/>
                 <targetfileset file="${include}/${sdfmodule}.pp"/>
+                <targetfileset file="${include}/${sdfmodule}.pp.af"/>
             </dependset>
             <available file="${include}/${sdfmodule}.pp" property="ppgen.available"/>
             <antcall target="ppgen.helper"/>
         </target>
     
         <target name="ppgen.helper" unless="ppgen.available" depends="utils-files">
-            <java classname="start" failonerror="true">
+            <!-- Any failures here are ignored; they are only a problem when imported from Stratego -->
+            <java classname="start" failonerror="false">
                 <arg value="org.strategoxt.tools.main-ppgen"/>
                 <arg value="-i"/>
                 <arg value="${include}/${sdfmodule}.def"/>
+                <arg value="-o"/>
+                <arg value="${include}/${sdfmodule}.pp.af"/>
+                <arg value="-t"/>
+            </java>
+            <java classname="start" failonerror="false">
+                <arg value="org.strategoxt.tools.pp-pp-table"/>
+                <arg value="-i"/>
+                <arg value="${include}/${sdfmodule}.pp.af"/>
                 <arg value="-o"/>
                 <arg value="${include}/${sdfmodule}.pp"/>
             </java>
