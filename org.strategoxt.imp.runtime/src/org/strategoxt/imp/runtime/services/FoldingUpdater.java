@@ -42,6 +42,7 @@ public class FoldingUpdater extends FolderBase {
         	  if (folding.getAttribute(constructor, sort, 0) != null) {
         		  makeCompleteAnnotation(node);
         		  // TODO: Fold node by default
+        		  Environment.logException("Folding annotation (folded) not implemented");
         		  break;
         	  }
           }

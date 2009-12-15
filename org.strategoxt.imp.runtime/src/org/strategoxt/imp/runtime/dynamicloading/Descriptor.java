@@ -92,7 +92,6 @@ public class Descriptor {
 		for (AbstractService service : services.keySet())
 			service.reinitialize(newDescriptor);
 		attachedFiles = null;
-		// UNDONE: StrategoBuilderListener.rescheduleAllListeners(); // TODO: cleanup
 	}
 	
 	/**
@@ -277,7 +276,7 @@ public class Descriptor {
 				getProperty("LanguageId", getProperty("LanguageName")),
 				getProperty("Description", ""),
 				ROOT_LANGUAGE,		  // ("Extends" is not used for IMP)
-				DEFAULT_ICON, // TODO: icon path in esv language
+				DEFAULT_ICON, // TODO: use a default icon path /icons/editor.gif, if it exists
 				getProperty("URL", ""),
 				// FIXME: ID of the bundle containing the language descriptor and icon for this language
 				//        (does getAttachmentProvider() already provide enough functionality for this?)

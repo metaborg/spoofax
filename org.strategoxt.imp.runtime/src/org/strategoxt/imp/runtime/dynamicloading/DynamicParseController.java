@@ -138,9 +138,6 @@ public class DynamicParseController extends AbstractService<IParseController> im
 		Object result = parser.parse(input, monitor);
 		if (isReinitialized && lastEditor != null) {
 			// Update other services
-			// TODO: Trigger colorer update
-			// lastEditor.getEditor().getServiceControllerManager().getPresentationController().damage(new Region(0, input.length()));
-			
 			lastEditor.getEditor().updateColoring(new Region(0, input.length()));
 			lastEditor.getEditor().fParserScheduler.notifyModelListeners(new NullProgressMonitor());
 			isReinitialized = false;

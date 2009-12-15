@@ -3,9 +3,7 @@ package org.strategoxt.imp.runtime.services;
 import static org.spoofax.interpreter.core.Tools.*;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.io.PrintStream;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
@@ -226,7 +224,7 @@ public class StrategoBuilder implements IBuilder {
 		assert !Thread.holdsLock(observer.getSyncRoot()) || Thread.holdsLock(Environment.getSyncRoot())
 			: "Opening a new editor and acquiring a resource lock can cause a deadlock";
 		
-		// TODO: WorkBenchPage.openEdiotr with a custom IEditorInput?
+		// TODO: non-persistent editor: WorkBenchPage.openEditor with a custom IEditorInput?
 		IWorkbenchPage page =
 			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 		
