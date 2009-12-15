@@ -7,9 +7,9 @@ imports
 strategies
 
   // TODO: -XX:+TieredCompilation in Java 7?
-  // TODO: generate .pp.af file
 
   create-build-xml =
+    create-build-common-xml;
     <file-exists> "build.xml"
   <+
     name       := <get-sdf-main-module>;
@@ -36,29 +36,46 @@ strategies
         <property name="build" location="bin"/>
         <property name="dist" location="bin/dist"/>
         
+        <!-- Imports -->
+        <property name="build.sdf.imports" value=""/>
+        <property name="build.stratego.args" value="--library
+                        -I &quot;${trans}&quot; -I &quot;${basedir}&quot;
+                        -la stratego-lib -la stratego-sglr -la stratego-gpp -la stratego-xtc -la stratego-aterm"/>
+        
         <!-- External .def and .jar locations
         <property name="externaldef" location="syntax/${sdfmodule}.def"/>
         <property name="externaljar" value="../lib.jar"/>
         <property name="externaljarflags" value="-la org.lib"/>
         -->
     
-        <!--
-            Environment configuration:
-            Spoofax/IMP includes native versions of the SDF executables (build.strategoxt.sdf),
-            and Java alternatives for the Stratego alternatives (build.strategoxt.stratego)
-        -->
+        <!-- Environment configuration for command-line builds -->
         <condition property="build.strategoxt.sdf" value="${eclipse.spoofaximp.nativeprefix}" else="">
             <isset property="eclipse.spoofaximp.nativeprefix"/>
         </condition>
         <property name="build.strategoxt.stratego" location="${user.home}/.nix-profile/bin"/>
-        <property name="build.sdf.imports" value=""/>
-        <property name="build.stratego.args" value="--library
-                        -I &quot;${trans}&quot;
-                        -I &quot;${basedir}&quot;
-                        -la stratego-lib -la stratego-sglr
-                        -la stratego-gpp -la stratego-xtc
-                        -la stratego-aterm"/>
-        
+    
+        <import file="build.common.xml"/>
+    
+        <!-- Main target -->
+        <target name="all" depends="spoofaximp"/>
+    </project>
+    <%
+  
+  create-build-common-xml =
+    <file-exists> "build.common.xml"
+  <+
+    name       := <get-sdf-main-module>;
+    name'      := <trans-module-name>;
+    classname  := <get-main-class-name>;
+    pkgname    := <BasePackage <+ default-package-name>;
+    
+    <output-xml-file(|[], "build.common.xml")>
+    %>
+    <?xml version="1.0" encoding="UTF-8"?>
+    <project name="common">
+    
+        <target name="spoofaximp" depends="stratego.ctree,sdf2table,sdf2imp"/>
+    
         <!-- Initialization -->
         <available file="${trans}/${strmodule}.str" property="build.stratego.enabled"/>
         <dirname property="externaldefdir" file="${externaldef}"/>
@@ -77,8 +94,6 @@ strategies
         <mkdir dir="${dist}"/>
         <mkdir dir="${include}"/>
         <mkdir dir="${lib}"/>
-    
-        <target name="all" depends="stratego.ctree,sdf2table,sdf2imp"/>
 
         <target name="sdf2imp" depends="sdf2table,sdf2imp.eclipse,sdf2imp.standalone"/>
         
