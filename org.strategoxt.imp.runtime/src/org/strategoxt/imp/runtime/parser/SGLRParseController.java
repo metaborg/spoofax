@@ -212,9 +212,10 @@ public class SGLRParseController implements IParseController {
 			char[] inputChars = input.toCharArray();
 			
 			Debug.startTimer();
-				
+			
 			if (monitor.isCanceled()) return null;
-			ATerm asfix = parser.parseNoImplode(inputChars, filename);
+			ATerm asfix;
+			asfix = parseNoImplode(inputChars, filename);
 			if (monitor.isCanceled()) return null;
 			RootAstNode ast = parser.internalImplode(asfix);
 
@@ -228,14 +229,7 @@ public class SGLRParseController implements IParseController {
 			Debug.stopTimer("File parsed: " + filename);
 			
 			// TODO: is coloring, then error marking best?
-		
-		} catch (StartSymbolException e) {
-			if (metaSyntax != null) {
-				// Unmanaged parse tables may have different start symbols;
-				// try again without the standard start symbol
-				parser.setStartSymbol(null);
-				return parse(input, monitor);
-			}
+			
 		} catch (ParseTimeoutException e) {
 			// TODO: Don't show stack trace for this
 			if (monitor.isCanceled()) return null;
@@ -266,6 +260,21 @@ public class SGLRParseController implements IParseController {
 		}
 
 		return monitor.isCanceled() ? null : currentAst;
+	}
+
+	private ATerm parseNoImplode(char[] inputChars, String filename)
+			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
+		try {
+			return parser.parseNoImplode(inputChars, filename);
+		} catch (StartSymbolException e) {
+			if (metaSyntax != null) {
+				// Unmanaged parse tables may have different start symbols;
+				// try again without the standard start symbol
+				parser.setStartSymbol(null);
+				return parser.parseNoImplode(inputChars, filename);
+			}
+		}
+		return null;
 	}
 
 	private void processMetaFile() {
