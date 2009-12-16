@@ -89,6 +89,7 @@ public class Descriptor {
 	 * @see AbstractService#reinitialize(Descriptor)
 	 */
 	public void reinitialize(Descriptor newDescriptor) throws BadDescriptorException {
+		// Note: may also be reinitialized with the same descriptor
 		for (AbstractService service : services.keySet())
 			service.reinitialize(newDescriptor);
 		attachedFiles = null;
@@ -166,6 +167,11 @@ public class Descriptor {
 	
 	public String getStartSymbols() {
 		return getProperty("StartSymbols", null);
+	}
+	
+	public boolean isUsedForUnmanagedParseTable(String languageName) {
+		String prefix = getProperty("UnmanagedTablePrefix", null);
+		return prefix != null && languageName.startsWith(prefix);
 	}
 	
 	public boolean isDynamicallyLoaded() {

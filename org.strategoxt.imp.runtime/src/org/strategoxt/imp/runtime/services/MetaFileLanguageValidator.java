@@ -54,6 +54,12 @@ public class MetaFileLanguageValidator extends LanguageValidator {
 			if (isExtensionOf(language, languageName))
 				return true;
 			
+			if (getDescriptor().isUsedForUnmanagedParseTable(languageName))
+				return true;
+			
+			if (isUnmanagedMatchAvailable(languageName))
+				return false; // better alternatives exist
+			
 			if (!isExtensionOfAvailable(languageName) && validateByExtension(file))
 				return true;
 
@@ -77,6 +83,15 @@ public class MetaFileLanguageValidator extends LanguageValidator {
 		Language myLanguage = getDescriptor().getLanguage(); 
 		for (Language language : LanguageRegistry.getLanguages()) {
 			if (language != myLanguage && languageName.equals(language.getName()))
+				return true;
+		}
+		return false;
+	}
+	
+	private boolean isUnmanagedMatchAvailable(String languageName) throws BadDescriptorException {
+		for (Language language : LanguageRegistry.getLanguages()) {
+			Descriptor descriptor = Environment.getDescriptor(language);
+			if (descriptor != null && descriptor.isUsedForUnmanagedParseTable(languageName))
 				return true;
 		}
 		return false;

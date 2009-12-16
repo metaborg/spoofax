@@ -28,7 +28,7 @@ import aterm.ATerm;
  */ 
 public class JSGLRI extends AbstractSGLRI {
 	
-	private final ParseTable parseTable;
+	private ParseTable parseTable;
 	
 	private RecoverAlgorithm recoverHandler = new NoRecovery();
 	
@@ -68,6 +68,11 @@ public class JSGLRI extends AbstractSGLRI {
 	
 	public IPrsStream getIPrsStream() {
 		return super.getController().getIPrsStream();
+	}
+	
+	public void setParseTable(ParseTable parseTable) {
+		this.parseTable = parseTable;
+		resetState();
 	}
 	
 	@Override

@@ -45,6 +45,7 @@
    Extensions           -- R [ KW["extensions"] KW[":"] _1 ],
    Description          -- R [ KW["description"] KW[":"] _1 ],
    Table                -- R [ KW["table"] KW[":"] _1 ],
+   UnmanagedTablePrefix -- R [ H [ KW["unmanaged"] KW["table"] ] H hs=0 [ KW[":"] _1 KW["*"] ] ],
    StartSymbols         -- R [ H [ KW["start"] KW["symbols"] ] KW[":"] _1 ],
    NoStartSymbols       -- KW["_"],
    URL                  -- R [ KW["url"] KW[":"] _1 ],

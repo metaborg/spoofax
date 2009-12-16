@@ -31,6 +31,7 @@ import org.spoofax.jsglr.NoRecoveryRulesException;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.ParseTimeoutException;
 import org.spoofax.jsglr.SGLRException;
+import org.spoofax.jsglr.StartSymbolException;
 import org.spoofax.jsglr.StructureRecoveryAlgorithm;
 import org.spoofax.jsglr.TokenExpectedException;
 import org.spoofax.jsglr.Tools;
@@ -45,6 +46,7 @@ import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenIterator;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
+import org.strategoxt.imp.runtime.services.MetaFileReader;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
 
 import aterm.ATerm;
@@ -80,6 +82,8 @@ public class SGLRParseController implements IParseController {
 	private IPath path;
 	
 	private EditorState editor;
+	
+	private String metaSyntax;
 	
 	private volatile boolean isStartupParsed;
 	
@@ -165,7 +169,6 @@ public class SGLRParseController implements IParseController {
     }
 
     public void initialize(IPath filePath, ISourceProject project, IMessageHandler messages) {
-    	
 		this.path = filePath;
 		this.project = project;
     }
@@ -205,9 +208,10 @@ public class SGLRParseController implements IParseController {
 			parseLock.lock();
 			//System.out.println("PARSE! " + System.currentTimeMillis()); // DEBUG
 			
-			Debug.startTimer();
-			
+			processMetaFile();			
 			char[] inputChars = input.toCharArray();
+			
+			Debug.startTimer();
 				
 			if (monitor.isCanceled()) return null;
 			ATerm asfix = parser.parseNoImplode(inputChars, filename);
@@ -225,6 +229,13 @@ public class SGLRParseController implements IParseController {
 			
 			// TODO: is coloring, then error marking best?
 		
+		} catch (StartSymbolException e) {
+			if (metaSyntax != null) {
+				// Unmanaged parse tables may have different start symbols;
+				// try again without the standard start symbol
+				parser.setStartSymbol(null);
+				return parse(input, monitor);
+			}
 		} catch (ParseTimeoutException e) {
 			// TODO: Don't show stack trace for this
 			if (monitor.isCanceled()) return null;
@@ -255,6 +266,20 @@ public class SGLRParseController implements IParseController {
 		}
 
 		return monitor.isCanceled() ? null : currentAst;
+	}
+
+	private void processMetaFile() {
+		String metaFile = getPath().removeFileExtension().addFileExtension("meta").toOSString();
+		String metaSyntax = MetaFileReader.readSyntax(metaFile);
+		if (metaSyntax != this.metaSyntax) {
+			ParseTable table = Environment.getUnmanagedParseTable(metaSyntax);
+			if (table == null) {
+				Environment.logException("Could not find descriptor or unmanaged parse table for language " + metaSyntax);
+			} else {
+				parser.setParseTable(table);				
+			}
+			this.metaSyntax = metaSyntax;
+		}
 	}
 
 	private void onParseCompleted(final IProgressMonitor monitor) {
@@ -402,6 +427,8 @@ public class SGLRParseController implements IParseController {
 		} catch (IOException e) {
 			Environment.logException("Forced parse failed", e);
 		} catch (CoreException e) {
+			if (e.getMessage().contains("Resource is out of sync")) // don't log these
+				return;
 			Environment.logException("Forced parse failed", e);
 		}
 	}

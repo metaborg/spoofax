@@ -128,7 +128,8 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 	public void updateResource(IResource resource, IProgressMonitor monitor, boolean startup) {
 		Environment.assertLock();
 		
-		if (resource.getName().endsWith(".packed.esv")) {
+		String name = resource.getName();
+		if (name.endsWith(".packed.esv")) {
 			IResource source = getSourceDescriptor(resource);
 			
 			if (asyncIgnoreOnce.contains(resource)) {
@@ -143,9 +144,13 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 				// TODO: Prevent duplicate builds triggered this way...?
 				getBuilder().updateResource(source, monitor);
 			} else if (resource.exists()) {
-				monitor.subTask("Loading " + resource.getName());
+				monitor.subTask("Loading " + name);
 				loadPackedDescriptor(resource);
 			}
+		} else if (name.endsWith(".tbl")) {
+			name = name.substring(0, name.length() - 4);
+			if (resource instanceof IFile)
+				Environment.registerUnmanagedParseTable(name, (IFile) resource);
 		}
 	}
 

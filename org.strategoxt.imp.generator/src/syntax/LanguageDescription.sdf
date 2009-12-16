@@ -43,6 +43,7 @@ exports
     "url"             ":" URL            -> LanguageProperty {cons("URL")}
     "extends"         ":" PropertyValues -> LanguageProperty {cons("Extends")}
     "aliases"         ":" PropertyValues -> LanguageProperty {cons("Aliases")} %% deprecated
+    "unmanaged" "table" ":" Id "*"        -> LanguageProperty {cons("UnmanagedTablePrefix")}
    
      %% Syntax properties
      

@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.imp.language.Language;
@@ -24,6 +25,7 @@ import org.spoofax.jsglr.SGLR;
 import org.strategoxt.HybridInterpreter;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
+import org.strategoxt.imp.runtime.dynamicloading.ParseTableProvider;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.IMPJSGLRLibrary;
 import org.strategoxt.imp.runtime.stratego.IMPLibrary;
@@ -54,6 +56,8 @@ public final class Environment {
 	
 	private final static Map<String, ParseTable> parseTables;
 	
+	private final static Map<String, ParseTableProvider> unmanagedTables;
+	
 	private final static Map<String, Descriptor> descriptors;
 	
 	private final static WrappedAstNodeFactory wrappedAstNodeFactory;
@@ -66,6 +70,7 @@ public final class Environment {
 		parseTableManager = new ParseTableManager(factory);
 		parseTables = Collections.synchronizedMap(new HashMap<String, ParseTable>());
 		descriptors = Collections.synchronizedMap(new HashMap<String, Descriptor>());
+		unmanagedTables = Collections.synchronizedMap(new HashMap<String, ParseTableProvider>());
 		wrappedAstNodeFactory = new WrappedAstNodeFactory();
 		IMPJSGLRLibrary.init();
 	}
@@ -166,8 +171,10 @@ public final class Environment {
 		
 		Debug.startTimer();
 		ParseTable table = parseTableManager.loadFromStream(parseTable);	
-		parseTables.put(language.getName(), table);
-		Debug.stopTimer("Parse table loaded: " + language.getName());
+		if (language != null) {
+			parseTables.put(language.getName(), table);
+			Debug.stopTimer("Parse table loaded: " + language.getName());
+		}
 		return table;
 	}
 	
@@ -190,6 +197,31 @@ public final class Environment {
 		if (oldDescriptor != null) {
 			descriptor.addInitializedServices(oldDescriptor);
 			oldDescriptor.reinitialize(descriptor);
+		}
+	}
+	
+	public static void registerUnmanagedParseTable(String name, IFile file) {
+		unmanagedTables.put(name, new ParseTableProvider(file));
+		synchronized (descriptors) { // object is its own syncroot, per JavaDoc
+			for (Descriptor descriptor : descriptors.values()) {
+				if (descriptor.isUsedForUnmanagedParseTable(name)) {
+					try {
+						descriptor.reinitialize(descriptor);
+					} catch (BadDescriptorException e) {
+						Environment.logException("Could not reinitialize descriptor", e);
+					}
+				}
+			}
+		}
+	}
+	
+	public static ParseTable getUnmanagedParseTable(String name) {
+		ParseTableProvider result = unmanagedTables.get(name);
+		try {
+			return result == null ? null : result.get();
+		} catch (Exception e) {
+			Environment.logException("Could not read unmanaged parse table " + name, e);
+			return null;
 		}
 	}
 	
