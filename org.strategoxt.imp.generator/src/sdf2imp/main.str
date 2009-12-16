@@ -148,7 +148,7 @@ strategies
         , <descriptor-name> "Folding.generated.esv"
         , <descriptor-name> "Folding.esv"
         ]
-      )
+      ); debug(!"sorry boss these fiels are older")
     )
   
   // (Note that these xtc calls are intercepted by the Spoofax/IMP runtime.)

@@ -8,7 +8,7 @@ strategies
   builder-xml-name =
     // Note that we cannot use ProjectName here since
     // it may not be set after the first time this runs
-    !$[[<get-sdf-main-module>] build.xml.launch]
+    !$[[<get-sdf-main-module>] build.main.xml.launch]
 
   create-builder-xml =
     <file-exists> $[.externalToolBuilders/[<builder-xml-name>]]
@@ -40,7 +40,7 @@ $[ <?xml version="1.0" encoding="UTF-8" standalone="no"?>
     project-name]/editor/java&quot; type=&quot;2&quot;/&gt;&#10;&lt;item factoryID=&quot;org.eclipse.ui.internal.model.ResourceFactory&quot; path=&quot;/[
     project-name]/utils&quot; type=&quot;2&quot;/&gt;&#10;&lt;/launchConfigurationWorkingSet&gt;}"/>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
-<listEntry value="/[project-name]/build.xml"/>
+<listEntry value="/[project-name]/build.main.xml"/>
 </listAttribute>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
 <listEntry value="1"/>
@@ -57,7 +57,7 @@ $[ <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <stringAttribute key="org.eclipse.jdt.launching.SOURCE_PATH_PROVIDER" value="org.eclipse.ant.ui.AntClasspathProvider"/>
 <stringAttribute key="org.eclipse.ui.externaltools.ATTR_ANT_TARGETS" value="all,"/>
 <stringAttribute key="org.eclipse.ui.externaltools.ATTR_LAUNCH_CONFIGURATION_BUILD_SCOPE" value="${project}"/>
-<stringAttribute key="org.eclipse.ui.externaltools.ATTR_LOCATION" value="${workspace_loc:/[project-name]/build.xml}"/>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_LOCATION" value="${workspace_loc:/[project-name]/build.main.xml}"/>
 <stringAttribute key="org.eclipse.ui.externaltools.ATTR_WORKING_DIRECTORY" value="${workspace_loc:/[project-name]}"/>
 <stringAttribute key="process_factory_id" value="org.eclipse.ant.ui.remoteAntProcessFactory"/>
 </launchConfiguration>

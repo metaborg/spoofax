@@ -9,15 +9,17 @@ strategies
   // TODO: -XX:+TieredCompilation in Java 7?
 
   create-build-xml =
+    // Note that we cannot call this file build.xml,
+    // as Eclipse will delete it as it deploys plugins
     create-build-common-xml;
-    <file-exists> "build.xml"
+    <file-exists> "build.main.xml"
   <+
     name       := <get-sdf-main-module>;
     name'      := <trans-module-name>;
     classname  := <get-main-class-name>;
     pkgname    := <BasePackage <+ default-package-name>;
     
-    <output-xml-file(|[], "build.xml")>
+    <output-xml-file(|[], "build.main.xml")>
     %>
     <?xml version="1.0" encoding="UTF-8"?>
     <project name="<%= name %>" default="all">

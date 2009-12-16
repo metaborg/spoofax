@@ -24,11 +24,12 @@ strategies
       ]|
     );
     
-    if is-heuristic-services-needed then
-      create-derived-outliner-descriptor
-    end
+    create-derived-outliner-descriptor
   
   create-derived-outliner-descriptor =
+    not(is-heuristic-services-needed);
+    verbose-msg(!"Skipping", <descriptor-name> "-Outliner.generated")
+  <+
     output-derived-descriptor-file(
       <descriptor-name> "-Outliner.generated"
     , 

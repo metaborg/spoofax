@@ -98,10 +98,10 @@ strategies
 
   is-older-than =
     ?(file, otherfiles);
-    basetime := <modification-time> file;
+    basetime := <file-exists; modification-time> file;
     !otherfiles;
     list-loop(
-      <lt> (basetime, <modification-time>)
+      <lt> (basetime, <file-exists; modification-time>)
     )
     
 

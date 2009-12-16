@@ -240,7 +240,7 @@ public class NewEditorWizardPage extends WizardPage {
 		}
 		while (i < input.length) {
 			char c = input[i++];
-			if (Character.isLetterOrDigit(c) || c == '-' || c == '_' || c == '.')
+			if (Character.isLetterOrDigit(c) || c == '-' || c == '_')
 				output.append(c);
 		}
 		if (output.length() > 0)
