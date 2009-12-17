@@ -1,0 +1,43 @@
+/**
+ * Strategies used directly by the Java code of the IDE.
+ */
+module sdf2imp/util/ide-support
+
+imports
+
+  libstratego-lib
+
+strategies
+
+  // (Used from StrategoObserver.java)
+  postprocess-feedback-results =
+    (is-list <+ ![<id>]);
+    flatten-list;
+    map(
+      (is-tuple <+ !(<id>, <id>));
+      (id, postprocess-feedback-message)
+    )
+  
+  internal postprocess-feedback-message =
+    if is-list then
+      flatten-list;
+      map(is-string <+ write-to-string);
+      concat-strings
+    else
+      is-string <+ write-to-string
+    end
+  
+  simplify-ambiguity-report:
+    amb(a*) -> $[either [a'*]]
+    where
+      !a*;
+      map(try(?ToMetaExpr(<id>)));
+      map(simplify-ambiguity-element);
+      where(<eq> (<id>, <make-set>)); // no duplicates
+      a'* := <separate-by(|" or ")>
+
+  simplify-ambiguity-element:
+    [x] -> $[list of [<simplify-ambiguity-element> x]]
+
+  simplify-ambiguity-element:
+    x#(_) -> x

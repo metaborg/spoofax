@@ -13,6 +13,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.interpreter.terms.TermConverter;
@@ -20,6 +21,8 @@ import org.spoofax.jsglr.BadTokenException;
 import org.spoofax.jsglr.ParseTimeoutException;
 import org.spoofax.jsglr.RecoveryConnector;
 import org.spoofax.jsglr.TokenExpectedException;
+import org.strategoxt.imp.generator.sdf2imp;
+import org.strategoxt.imp.generator.simplify_ambiguity_report_0_0;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.AsfixAnalyzer;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
@@ -311,8 +314,9 @@ public class ParseErrorHandler {
 
 	private String ambToString(ATermAppl amb) {
 		if (asyncAmbReportingContext == null) {
-			stratego_sglr.init();
-			asyncAmbReportingContext = stratego_aterm.init();
+			asyncAmbReportingContext = stratego_sglr.init();
+			stratego_aterm.init(asyncAmbReportingContext);
+			sdf2imp.init(asyncAmbReportingContext);
 		}
 
 		assert !Thread.holdsLock(Environment.getSyncRoot()) : "Potential deadlock";
@@ -327,8 +331,15 @@ public class ParseErrorHandler {
 			
 			result = factory.makeAppl(factory.makeConstructor("parsetree", 2), result, factory.makeInt(2));
 			result = implode_asfix_0_0.instance.invoke(asyncAmbReportingContext, result);
-			return result.toString();
+			return ambToSimplifiedString(result);
 		}
+	}
+	
+	private static String ambToSimplifiedString(IStrategoTerm amb) {
+		assert Thread.holdsLock(asyncAmbReportingContext);
+		
+		IStrategoTerm message = simplify_ambiguity_report_0_0.instance.invoke(asyncAmbReportingContext, amb);
+		return message == null ? amb.toString() : ((IStrategoString) message).stringValue();
 	}
 	
 	private void reportSkippedFragments(SGLRTokenizer tokenizer) {

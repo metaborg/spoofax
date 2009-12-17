@@ -99,13 +99,13 @@ strategies
 
         <target name="sdf2imp" depends="sdf2table,sdf2imp.eclipse,sdf2imp.standalone"/>
         
-        <target name="sdf2imp.eclipse" if="eclipse.running">
+        <target name="sdf2imp.eclipse" if="eclipse.running" depends="sdf2rtg">
             <java classname="org.strategoxt.imp.metatooling.building.AntDescriptorBuilder">
                 <arg value="${include}/${esvmodule}.packed.esv"/>
             </java>
         </target>
         
-        <target name="sdf2imp.standalone" unless="eclipse.running" depends="utils-files">
+        <target name="sdf2imp.standalone" unless="eclipse.running" depends="sdf2rtg,utils-files">
             <java classname="org.strategoxt.imp.generator.sdf2imp" failonerror="true">
                 <arg value="-i"/>
                 <arg value="${basedir}/editor/${esvmodule}.main.esv"/>
@@ -209,7 +209,7 @@ strategies
             </java>
         </target>
         
-        <target name="sdf2rtg" if="build.stratego.enabled" depends="pack-sdf,copy-sdf">
+        <target name="sdf2rtg" depends="pack-sdf,copy-sdf">
             <dependset>
                 <srcfileset file="${include}/${sdfmodule}.def"/>
                 <targetfileset file="${include}/${sdfmodule}.rtg"/>
