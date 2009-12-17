@@ -380,7 +380,7 @@ public class SGLRParseController implements IParseController {
 	}
 	
 	
-	public Iterator<IToken> getTokenIterator(IRegion region, boolean notForColorer) {
+	public Iterator<IToken> getTokenIterator(IRegion region, boolean force) {
 		// Threading concerns:
 		// - the colorer runs in the main thread and should not be blocked by ANY lock
 		// - CANNOT acquire parse lock:
@@ -390,7 +390,7 @@ public class SGLRParseController implements IParseController {
 		
 		IPrsStream stream = currentParseStream;
 		
-		if (!notForColorer && (stream == null || disallowColorer || (editor != null && stream.getILexStream().getStreamLength() != editor.getDocument().getLength()))) {
+		if (!force && (stream == null || disallowColorer || (editor != null && stream.getILexStream().getStreamLength() != editor.getDocument().getLength()))) {
 			return SGLRTokenIterator.EMPTY;
 		} else if (stream.getTokens().size() == 0 || getCurrentAst() == null) {
 			// Parse hasn't succeeded yet, consider the entire stream as one big token

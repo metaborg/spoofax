@@ -81,7 +81,7 @@ public class ParseErrorHandler {
 	
 	public static final String UNEXPECTED_REGION = "Could not parse this fragment: misplaced construct(s)";
 	
-	public static final int PARSE_ERROR_DELAY = min(StrategoObserver.OBSERVER_DELAY + 50, 1000);
+	public static final int PARSE_ERROR_DELAY = min(StrategoObserver.OBSERVER_DELAY + 50, 800);
 	
 	private static Context asyncAmbReportingContext;
 	
@@ -215,7 +215,7 @@ public class ParseErrorHandler {
 			}
 		};
 		job.setSystem(true);
-		job.schedule(PARSE_ERROR_DELAY);
+		job.schedule((long) (PARSE_ERROR_DELAY * (isRecoveryAvailable ? 1 : 1.5)));
 	}
 	
 	public void abortScheduledCommit() {
