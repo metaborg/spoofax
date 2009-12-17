@@ -8,6 +8,7 @@ import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
+import org.strategoxt.imp.runtime.EditorState;
 
 /**
  * Dynamic proxy class to a token colorer.
@@ -48,8 +49,10 @@ public class DynamicTokenColorer extends AbstractService<ITokenColorer> implemen
 	public void prepareForReinitialize() {
 		isReinitializing = true;
 		UniversalEditor lastEditor = null;
-		if (lastParseController instanceof DynamicParseController)
-			lastEditor = ((DynamicParseController) lastParseController).getLastEditor().getEditor();
+		if (lastParseController instanceof DynamicParseController) {
+			EditorState editorState = ((DynamicParseController) lastParseController).getLastEditor();
+			if (editorState != null) lastEditor = editorState.getEditor();
+		}
 
 		if (lastEditor != null && !lastEditor.getTitleImage().isDisposed())
 			lastEditor.updateColoring(new Region(0, lastEditor.getServiceControllerManager().getSourceViewer().getDocument().getLength()));
