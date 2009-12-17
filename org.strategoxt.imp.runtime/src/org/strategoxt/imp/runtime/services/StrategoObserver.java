@@ -228,10 +228,12 @@ public class StrategoObserver implements IModelListener {
 
 	public void update(IParseController parseController, IProgressMonitor monitor) {
 		isUpdateStarted = true;
-		// System.out.println("OBSERVING " + System.currentTimeMillis()); // DEBUG
+		
+		IStrategoAstNode ast = (IStrategoAstNode) parseController.getCurrentAst();
+		if (ast == null) return;
 		
 		if (feedbackFunction == null) {
-			messages.clearMarkers(((IStrategoAstNode) parseController.getCurrentAst()).getResource());
+			messages.clearMarkers(ast.getResource());
 			messages.commitDeletions();
 			return;
 		}
@@ -239,7 +241,6 @@ public class StrategoObserver implements IModelListener {
 		if (monitor.isCanceled())
 			return;
 		
-		IStrategoAstNode ast = (IStrategoAstNode) parseController.getCurrentAst();
 		IStrategoTerm feedback = null;
 		
 		try {
