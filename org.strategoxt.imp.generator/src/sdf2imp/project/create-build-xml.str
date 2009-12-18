@@ -7,6 +7,9 @@ imports
 strategies
 
   // TODO: -XX:+TieredCompilation in Java 7?
+  
+  // TODO: first ensure .packed.esv is built, then load it
+  //       maybe first call the thing on ${basedir}/editor/${esvmodule}.main.esv then on ${include}/${esvmodule}.packed.esv
 
   create-build-xml =
     // Note that we cannot call this file build.xml,
@@ -87,7 +90,6 @@ strategies
         <condition property="externaljarimport" value=":${externaljar}" else="">
             <isset property="externaljar"/>
         </condition>
-        <fail if="externaljar" unless="externaljarflags"/>
         <condition property="externaljarflags" value="${externaljarflags}" else="">
             <isset property="externaljarflags"/>
         </condition>
@@ -106,6 +108,7 @@ strategies
         </target>
         
         <target name="sdf2imp.standalone" unless="eclipse.running" depends="sdf2rtg,utils-files">
+            <echo message="Property eclipse.running is not set; assuming Eclipse is not running"/>
             <java classname="org.strategoxt.imp.generator.sdf2imp" failonerror="true">
                 <arg value="-i"/>
                 <arg value="${basedir}/editor/${esvmodule}.main.esv"/>
@@ -181,7 +184,7 @@ strategies
         </target>
     
         <target name="copy-sdf" if="externaldef">
-            <copy file="${externaldef}" todir="${include}" preservelastmodified="true"/>
+            <copy file="${externaldef}" tofile="${include}/${sdfmodule}.def" preservelastmodified="true"/>
         </target>
     
         <target name="copy-jar" if="externaljar">

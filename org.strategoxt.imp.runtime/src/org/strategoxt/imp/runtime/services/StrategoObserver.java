@@ -131,7 +131,7 @@ public class StrategoObserver implements IModelListener {
 			}
 		}
 		
-		loadJars(jars);
+		if (!jars.isEmpty()) loadJars(jars);
 		Debug.stopTimer("Loaded analysis components");
 		
 		monitor.subTask(null);
@@ -230,7 +230,8 @@ public class StrategoObserver implements IModelListener {
 		isUpdateStarted = true;
 		
 		IStrategoAstNode ast = (IStrategoAstNode) parseController.getCurrentAst();
-		if (ast == null) return;
+		if (ast == null || ast.getConstructor() == null)
+			return;
 		
 		if (feedbackFunction == null) {
 			messages.clearMarkers(ast.getResource());
@@ -247,9 +248,6 @@ public class StrategoObserver implements IModelListener {
 			synchronized (getSyncRoot()) {
 				if (runtime == null)
 					init(monitor);
-	
-				if (ast == null || ast.getConstructor() == null)
-					return;
 				
 				feedback = invokeSilent(feedbackFunction, ast.getResource(), makeInputTerm(ast, false));
 	

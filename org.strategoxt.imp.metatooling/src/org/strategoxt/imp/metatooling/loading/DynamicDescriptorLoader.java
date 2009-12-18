@@ -3,6 +3,7 @@ package org.strategoxt.imp.metatooling.loading;
 import static org.eclipse.core.resources.IMarker.*;
 import static org.eclipse.core.resources.IResourceDelta.*;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
@@ -34,9 +35,9 @@ import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class DynamicDescriptorUpdater implements IResourceChangeListener {
+public class DynamicDescriptorLoader implements IResourceChangeListener {
 	
-	private static final DynamicDescriptorUpdater instance = new DynamicDescriptorUpdater();
+	private static final DynamicDescriptorLoader instance = new DynamicDescriptorLoader();
 	
 	private final Set<IResource> asyncIgnoreOnce =
 		Collections.synchronizedSet(new HashSet<IResource>());
@@ -44,20 +45,11 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 	private final AstMessageHandler asyncMessageHandler =
 		new AstMessageHandler(AstMessageHandler.ANALYSIS_MARKER_TYPE);
 	
-	private DynamicDescriptorBuilder asyncBuilder;
-	
-	private DynamicDescriptorBuilder getBuilder() {
-		Environment.assertLock();
-		if (asyncBuilder == null)
-			asyncBuilder = new DynamicDescriptorBuilder(this);
-		return asyncBuilder;
-	}
-	
-	private DynamicDescriptorUpdater() {
+	private DynamicDescriptorLoader() {
 		// use getInstance() instead
 	}
 	
-	public static DynamicDescriptorUpdater getInstance() {
+	public static DynamicDescriptorLoader getInstance() {
 		return instance;
 	}
 	
@@ -142,7 +134,7 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 				// the build.xml file may touch the .packed.esv file
 				// to signal a rebuild is necessary
 				// TODO: Prevent duplicate builds triggered this way...?
-				getBuilder().updateResource(source, monitor);
+				DynamicDescriptorBuilder.getInstance().updateResource(source, monitor);
 			} else if (resource.exists()) {
 				monitor.subTask("Loading " + name);
 				loadPackedDescriptor(resource);
@@ -191,16 +183,26 @@ public class DynamicDescriptorUpdater implements IResourceChangeListener {
 	
 	public static IResource getSourceDescriptor(IResource packedDescriptor) {
 		String name = packedDescriptor.getName();
+		if (name.endsWith(".main.esv")) return packedDescriptor;
 		name = name.substring(0, name.length() - ".packed.esv".length());
 		IResource result = packedDescriptor.getParent().getParent().findMember("editor/" + name + ".main.esv");
 		return result != null ? result : packedDescriptor;
 	}
 	
-	public static IResource getTargetDescriptor(IResource packedDescriptor) {
-		String name = packedDescriptor.getName();
+	public static String getSourceDescriptor(String packedDescriptor) {
+		File file = new File(packedDescriptor);
+		String name = file.getName();
+		if (name.endsWith(".main.esv")) return packedDescriptor;
+		name = name.substring(0, name.length() - ".packed.esv".length());
+		return file.getParentFile().getParent() + "/editor/" + name + ".main.esv";
+	}
+	
+	public static IResource getTargetDescriptor(IResource mainDescriptor) {
+		String name = mainDescriptor.getName();
+		if (name.endsWith(".packed.esv")) return mainDescriptor;
 		name = name.substring(0, name.length() - ".main.esv".length());
-		IResource result = packedDescriptor.getParent().getParent().findMember("include/" + name + ".packed.esv");
-		return result != null ? result : packedDescriptor;
+		IResource result = mainDescriptor.getParent().getParent().findMember("include/" + name + ".packed.esv");
+		return result != null ? result : mainDescriptor;
 	}
 	
 	private void reportError(final IResource descriptor, final String message, Throwable exception) {

@@ -10,14 +10,14 @@ import org.strategoxt.imp.runtime.Environment;
 
 /**
  * This class loads all active descriptors  in the workspace at startup,
- * and activates the <ref>DynamicDescriptorUpdater</ref> class.
+ * and activates the <ref>DynamicDescriptorLoader</ref> class.
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class StartupDescriptorLoader {
 	private static boolean didInitialize;
 	
-	private static DynamicDescriptorUpdater loader;
+	private static DynamicDescriptorLoader loader;
 	
 	private StartupDescriptorLoader() {}
 	
@@ -30,7 +30,7 @@ public class StartupDescriptorLoader {
 			if (didInitialize) return;
 			didInitialize = true;
 			
-			loader = DynamicDescriptorUpdater.getInstance();
+			loader = DynamicDescriptorLoader.getInstance();
 		
 			loadAllServices();
 			

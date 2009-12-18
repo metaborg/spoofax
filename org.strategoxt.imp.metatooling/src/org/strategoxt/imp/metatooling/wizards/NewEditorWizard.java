@@ -24,7 +24,7 @@ import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 import org.spoofax.interpreter.core.Interpreter;
 import org.strategoxt.imp.generator.sdf2imp;
-import org.strategoxt.imp.metatooling.loading.DynamicDescriptorUpdater;
+import org.strategoxt.imp.metatooling.loading.DynamicDescriptorLoader;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
@@ -174,10 +174,10 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 				monitor.worked(6);
 
 				// TODO: Optimize - don't reload editor (already done from Ant file)
-				// DynamicDescriptorUpdater.getInstance().forceNoUpdate(descriptor);
+				// DynamicDescriptorLoader.getInstance().forceNoUpdate(descriptor);
 				monitor.setTaskName("Loading editor");
 				IResource descriptor = project.findMember("include/" + languageName + ".packed.esv");
-				DynamicDescriptorUpdater.getInstance().forceUpdate(descriptor);
+				DynamicDescriptorLoader.getInstance().forceUpdate(descriptor);
 				monitor.worked(2);
 
 				project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());

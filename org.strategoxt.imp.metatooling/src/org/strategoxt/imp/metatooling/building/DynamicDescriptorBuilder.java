@@ -1,7 +1,7 @@
 package org.strategoxt.imp.metatooling.building;
 
 import static org.eclipse.core.resources.IMarker.*;
-import static org.strategoxt.imp.metatooling.loading.DynamicDescriptorUpdater.*;
+import static org.strategoxt.imp.metatooling.loading.DynamicDescriptorLoader.*;
 
 import java.io.IOException;
 
@@ -17,7 +17,7 @@ import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.generator.sdf2imp;
 import org.strategoxt.imp.generator.sdf2imp_jvm_0_0;
-import org.strategoxt.imp.metatooling.loading.DynamicDescriptorUpdater;
+import org.strategoxt.imp.metatooling.loading.DynamicDescriptorLoader;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.DescriptorFactory;
@@ -37,6 +37,8 @@ import org.strategoxt.stratego_lib.dr_scope_all_start_0_0;
  */
 public class DynamicDescriptorBuilder {
 	
+	private static final DynamicDescriptorBuilder instance = new DynamicDescriptorBuilder();
+	
 	private final AstMessageHandler messageHandler =
 		new AstMessageHandler(AstMessageHandler.ANALYSIS_MARKER_TYPE);
 	
@@ -44,12 +46,8 @@ public class DynamicDescriptorBuilder {
 	
 	private final EditorIOAgent agent;
 	
-	private final DynamicDescriptorUpdater loader;
-	
-	public DynamicDescriptorBuilder(DynamicDescriptorUpdater loader) {
+	private DynamicDescriptorBuilder() {
 		try {
-			this.loader = loader;
-			
 			agent = new EditorIOAgent();
 			context = new Context(Environment.getTermFactory(), agent);
 			context.registerClassLoader(make_permissive.class.getClassLoader());
@@ -61,12 +59,16 @@ public class DynamicDescriptorBuilder {
 		}
 	}
 	
+	public static DynamicDescriptorBuilder getInstance() {
+		return instance;
+	}
+	
 	public void updateResource(IResource resource, IProgressMonitor monitor) {
 		IPath location = resource.getRawLocation();
 		if (location == null) return;
 		
 		try {
-			System.err.println("Resource changed: " + resource.getName()); // DEBUG
+			// System.err.println("Resource changed: " + resource.getName()); // DEBUG
 			if (resource.exists() && isMainFile(resource)) {
 				monitor.beginTask("Building " + resource.getName(), IProgressMonitor.UNKNOWN);
 				buildDescriptor(resource, monitor);
@@ -104,7 +106,7 @@ public class DynamicDescriptorBuilder {
 			}
 			
 			monitor.beginTask("Loading " + mainFile.getName(), IProgressMonitor.UNKNOWN);
-			loader.loadPackedDescriptor(getTargetDescriptor(mainFile));
+			DynamicDescriptorLoader.getInstance().loadPackedDescriptor(getTargetDescriptor(mainFile));
 			
 		} catch (IOException e) {
 			Environment.logException("Unable to build descriptor for " + mainFile, e);
