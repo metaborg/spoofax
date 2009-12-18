@@ -49,6 +49,7 @@ strategies
   
   current-main-descriptor-file =
      {| InputDirPrefix, OnImportFailure:
+       verbose-msg(!"Reading descriptor files");
        <add-input-dir-prefix> "editor/";
        rules(
          OnImportFailure:

@@ -4,12 +4,14 @@ import static org.eclipse.core.resources.IMarker.*;
 import static org.eclipse.core.resources.IResourceDelta.*;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
@@ -19,6 +21,7 @@ import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -39,8 +42,8 @@ public class DynamicDescriptorLoader implements IResourceChangeListener {
 	
 	private static final DynamicDescriptorLoader instance = new DynamicDescriptorLoader();
 	
-	private final Set<IResource> asyncIgnoreOnce =
-		Collections.synchronizedSet(new HashSet<IResource>());
+	private final Set<String> asyncIgnoreOnce =
+		Collections.synchronizedSet(new HashSet<String>());
 	
 	private final AstMessageHandler asyncMessageHandler =
 		new AstMessageHandler(AstMessageHandler.ANALYSIS_MARKER_TYPE);
@@ -69,8 +72,15 @@ public class DynamicDescriptorLoader implements IResourceChangeListener {
 	 * Ignores the specified descriptor at the next resource event arrives.
 	 */
 	public void forceNoUpdate(IResource resource) {
+		forceNoUpdate(resource.getFullPath().toString());
+	}
+
+	/**
+	 * Ignores the specified descriptor at the next resource event arrives.
+	 */
+	public void forceNoUpdate(String file) {
 		synchronized (Environment.getSyncRoot()) {
-			asyncIgnoreOnce.add(resource);
+			asyncIgnoreOnce.add(file);
 		}
 	}
 
@@ -124,10 +134,8 @@ public class DynamicDescriptorLoader implements IResourceChangeListener {
 		if (name.endsWith(".packed.esv")) {
 			IResource source = getSourceDescriptor(resource);
 			
-			if (asyncIgnoreOnce.contains(resource)) {
-				asyncIgnoreOnce.remove(resource);
+			if (asyncIgnoreOnce.remove(resource.getFullPath().toString()))
 				return;
-			}
 			
 			if (!source.equals(resource) && source.exists() && !startup) {
 				// Try to build using the .main.esv instead;
@@ -186,7 +194,12 @@ public class DynamicDescriptorLoader implements IResourceChangeListener {
 		if (name.endsWith(".main.esv")) return packedDescriptor;
 		name = name.substring(0, name.length() - ".packed.esv".length());
 		IResource result = packedDescriptor.getParent().getParent().findMember("editor/" + name + ".main.esv");
-		return result != null ? result : packedDescriptor;
+		if (result == null) {
+			Environment.logException("Source descriptor not found", new FileNotFoundException("include/" + name + ".packed.esv"));
+			return packedDescriptor;
+		} else {
+			return result;
+		}
 	}
 	
 	public static String getSourceDescriptor(String packedDescriptor) {
@@ -201,8 +214,27 @@ public class DynamicDescriptorLoader implements IResourceChangeListener {
 		String name = mainDescriptor.getName();
 		if (name.endsWith(".packed.esv")) return mainDescriptor;
 		name = name.substring(0, name.length() - ".main.esv".length());
-		IResource result = mainDescriptor.getParent().getParent().findMember("include/" + name + ".packed.esv");
-		return result != null ? result : mainDescriptor;
+		IProject project = mainDescriptor.getProject();
+		IResource result = project.findMember("include/" + name + ".packed.esv");
+		
+		if (result == null) {
+			getInstance().forceNoUpdate(project.getFullPath() + "/include/" + name + ".packed.esv");
+			IResource includeDir = project.findMember("/include");
+			try {
+				if (includeDir == null) project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
+				else includeDir.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
+			} catch (CoreException e) {
+				Environment.logException("Exception when refreshing resources", e);
+			}
+			result = project.findMember("include/" + name + ".packed.esv");
+		}
+		
+		if (result == null) {
+			Environment.logException("Target descriptor not found", new FileNotFoundException("include/" + name + ".packed.esv"));
+			return mainDescriptor;
+		} else {
+			return result;
+		}
 	}
 	
 	private void reportError(final IResource descriptor, final String message, Throwable exception) {

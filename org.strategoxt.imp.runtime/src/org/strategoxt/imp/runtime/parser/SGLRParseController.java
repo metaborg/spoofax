@@ -436,7 +436,7 @@ public class SGLRParseController implements IParseController {
 		} catch (IOException e) {
 			Environment.logException("Forced parse failed", e);
 		} catch (CoreException e) {
-			if (e.getMessage().contains("Resource is out of sync")) // don't log these
+			if (e.getMessage().contains("Resource is out of sync") || e.getMessage().contains("does not exist")) // don't log these
 				return;
 			Environment.logException("Forced parse failed", e);
 		}

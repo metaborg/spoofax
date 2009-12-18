@@ -84,6 +84,7 @@ strategies
     );
     
     pp-descriptor-to-string;
+    print-filename(|[path], filename);
     output-text-file'(|[path], filename)
   
   is-descriptor-imported(|name) =

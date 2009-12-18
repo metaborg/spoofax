@@ -26,12 +26,6 @@ public class AntDescriptorBuilder {
 			
 			IResource source = getResource(getSourceDescriptor(descriptor));
 			DynamicDescriptorBuilder.getInstance().updateResource(source, new NullProgressMonitor());
-			
-			/* loading is already performed by builder
-			System.out.println("Loading " + descriptor);
-			IResource target = getResource(descriptor);
-			DynamicDescriptorLoader.getInstance().loadPackedDescriptor(target);
-			*/
 		}
 	}
 
