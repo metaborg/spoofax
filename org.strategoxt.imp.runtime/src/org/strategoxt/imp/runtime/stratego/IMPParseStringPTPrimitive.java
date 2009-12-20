@@ -3,13 +3,11 @@ package org.strategoxt.imp.runtime.stratego;
 import java.io.IOException;
 import java.util.IdentityHashMap;
 import java.util.Map;
-import java.util.WeakHashMap;
 
-import org.spoofax.interpreter.adapter.aterm.WrappedATermFactory;
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.InterpreterException;
+import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.interpreter.terms.TermConverter;
 import org.spoofax.jsglr.Disambiguator;
 import org.spoofax.jsglr.NoRecoveryRulesException;
 import org.spoofax.jsglr.ParseTable;
@@ -21,6 +19,7 @@ import org.strategoxt.lang.LazyTerm;
 import org.strategoxt.lang.compat.sglr.JSGLR_parse_string_pt_compat;
 
 import aterm.ATerm;
+import aterm.ATermFactory;
 
 /**
  * Parses strings to asfix trees, caching the internal ATerm
@@ -30,27 +29,26 @@ import aterm.ATerm;
  */
 public class IMPParseStringPTPrimitive extends JSGLR_parse_string_pt_compat {
 	
-	private final TermConverter termConverter = new TermConverter(Environment.getTermFactory());
-	
-	private final Map<IStrategoTerm, char[]> inputCharMap = new WeakHashMap<IStrategoTerm, char[]>();
-
-	private final Map<IStrategoTerm, ATerm> inputTermMap = new WeakHashMap<IStrategoTerm, ATerm>();
+	private final SourceMappings mappings;
 	
 	private Map<ParseTable, ParseTable> isNoRecoveryWarned = new IdentityHashMap<ParseTable, ParseTable>();
 
-	protected IMPParseStringPTPrimitive(WrappedATermFactory factory, Disambiguator filterSettings) {
-		super(factory, filterSettings);
+	protected IMPParseStringPTPrimitive(ATermFactory atermFactory, Disambiguator filterSettings, 
+			SourceMappings mappings) {
+		super(atermFactory, filterSettings);
+		this.mappings = mappings;
 	}
 
 	@Override
-	public IStrategoTerm call(IContext env, String input,
-			ParseTable table, String startSymbol, boolean outputWrappedATerm)
+	protected IStrategoTerm call(IContext env, IStrategoString inputTerm,
+			ParseTable table, String startSymbol)
 			throws InterpreterException, IOException, SGLRException {
 		
 		// TODO: new "jsglr enable recovery" strategy in jsglr-parser.str
 		// FIXME: recovery is always enabled in Stratego right now
 		//        (and once it isn't, how would caching factor into that?)
 		
+		String input = inputTerm.stringValue();
 		String path = getLastPath();		
 		JSGLRI parser = new JSGLRI(table, startSymbol);
 		try {
@@ -68,31 +66,14 @@ public class IMPParseStringPTPrimitive extends JSGLR_parse_string_pt_compat {
 		IStrategoTerm result = new LazyTerm() {
 			@Override
 			protected IStrategoTerm init() {
-				return Environment.getWrappedATermFactory().wrapTerm(asfix);
-			}			
+				return Environment.getATermConverter().convert(asfix);
+			}
 		};
-			
-		result = termConverter.convert(result);
 
-		putInputTerm(result, asfix);
-		putInputChars(result, inputChars);
+		mappings.putInputTerm(result, asfix);
+		mappings.putInputChars(result, inputChars);
+		mappings.putInputFile(result, mappings.getInputFile(inputTerm));
 		
 		return result;
-	}
-
-	protected char[] putInputChars(IStrategoTerm asfix, char[] inputChars) {
-		return inputCharMap.put(asfix, inputChars);
-	}
-
-	protected ATerm putInputTerm(IStrategoTerm asfix, final ATerm asfixATerm) {
-		return inputTermMap.put(asfix, asfixATerm);
-	}
-	
-	public char[] getInputChars(IStrategoTerm asfix) {
-		return inputCharMap.get(asfix);
-	}
-	
-	public ATerm getInputTerm(IStrategoTerm asfix) {
-		return inputTermMap.get(asfix);
 	}
 }

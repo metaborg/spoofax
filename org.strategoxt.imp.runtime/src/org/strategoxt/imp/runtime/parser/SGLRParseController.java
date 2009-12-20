@@ -46,7 +46,7 @@ import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenIterator;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
-import org.strategoxt.imp.runtime.services.MetaFileReader;
+import org.strategoxt.imp.runtime.services.MetaFile;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
 
 import aterm.ATerm;
@@ -83,7 +83,7 @@ public class SGLRParseController implements IParseController {
 	
 	private EditorState editor;
 	
-	private String metaSyntax;
+	private MetaFile metaFile;
 	
 	private volatile boolean isStartupParsed;
 	
@@ -164,7 +164,7 @@ public class SGLRParseController implements IParseController {
 		try {
 			parser.setRecoverHandler(new StructureRecoveryAlgorithm());
 		} catch (NoRecoveryRulesException e) {
-			Environment.logException("Warning: no recovery rules available for " + language.getName());
+			Environment.logException("No recovery rules available for " + language.getName() + " editor", e);
 		}
     }
 
@@ -267,7 +267,7 @@ public class SGLRParseController implements IParseController {
 		try {
 			return parser.parseNoImplode(inputChars, filename);
 		} catch (StartSymbolException e) {
-			if (metaSyntax != null) {
+			if (metaFile != null) {
 				// Unmanaged parse tables may have different start symbols;
 				// try again without the standard start symbol
 				parser.setStartSymbol(null);
@@ -278,16 +278,17 @@ public class SGLRParseController implements IParseController {
 	}
 
 	private void processMetaFile() {
-		String metaFile = getPath().removeFileExtension().addFileExtension("meta").toOSString();
-		String metaSyntax = MetaFileReader.readSyntax(metaFile);
-		if (metaSyntax != this.metaSyntax) {
-			ParseTable table = Environment.getUnmanagedParseTable(metaSyntax);
+		String metaFileName = getPath().removeFileExtension().addFileExtension("meta").toOSString();
+		MetaFile metaFile = MetaFile.read(metaFileName);
+		if (metaFile != this.metaFile) {
+			ParseTable table = Environment.getUnmanagedParseTable(metaFile.getLanguage());
+			parser.getDisambiguator().setHeuristicFilters(metaFile.isHeuristicFiltersEnabled());
 			if (table == null) {
-				Environment.logException("Could not find descriptor or unmanaged parse table for language " + metaSyntax);
+				Environment.logException("Could not find descriptor or unmanaged parse table for language " + metaFile.getLanguage());
 			} else {
 				parser.setParseTable(table);				
 			}
-			this.metaSyntax = metaSyntax;
+			this.metaFile = metaFile;
 		}
 	}
 

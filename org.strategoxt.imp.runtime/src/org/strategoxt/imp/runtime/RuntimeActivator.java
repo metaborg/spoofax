@@ -19,12 +19,12 @@ public class RuntimeActivator extends AbstractUIPlugin {
 		instance = this;
 	}
 
-	public static RuntimeActivator getDefault() { 
+	public static RuntimeActivator getInstance() { 
 		return instance;
 	}
 
 	public static InputStream getResourceAsStream(String string) throws IOException {
-        URL url = FileLocator.find(RuntimeActivator.getDefault().getBundle(), new Path(string), null);
+        URL url = FileLocator.find(RuntimeActivator.getInstance().getBundle(), new Path(string), null);
         
         if (url != null)
         	return url.openStream();

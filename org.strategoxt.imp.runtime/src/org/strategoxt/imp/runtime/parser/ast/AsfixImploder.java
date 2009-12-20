@@ -14,7 +14,6 @@ import lpg.runtime.PrsStream;
 
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.interpreter.terms.TermConverter;
 import org.spoofax.jsglr.RecoveryConnector;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
@@ -57,8 +56,6 @@ public class AsfixImploder {
 	protected final AstNodeFactory factory = new AstNodeFactory();
 	
 	private final ProductionAttributeReader reader = new ProductionAttributeReader();
-	
-	private final TermConverter converter = new TermConverter(Environment.getTermFactory());
 	
 	private final TokenKindManager tokenManager;
 	
@@ -161,7 +158,7 @@ public class AsfixImploder {
 	
 	private AstNode setAnnos(AstNode node, ATermList annos) {
 		if (node != null && annos != null && !annos.isEmpty()) {
-			IStrategoTerm termAnnos = converter.convert(Environment.getWrappedATermFactory().wrapTerm(annos));
+			IStrategoTerm termAnnos = Environment.getATermConverter().convert(annos);
 			node.setAnnotations((IStrategoList) termAnnos);
 		}
 		return node;

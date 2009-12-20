@@ -326,7 +326,7 @@ public class ParseErrorHandler {
 			IStrategoTerm result;
 			
 			synchronized (Environment.getSyncRoot()) {
-				result = TermConverter.convert(factory, Environment.getWrappedATermFactory().wrapTerm(amb));
+				result = TermConverter.convert(factory, Environment.getATermConverter().convert(amb));
 			}
 			
 			result = factory.makeAppl(factory.makeConstructor("parsetree", 2), result, factory.makeInt(2));
@@ -406,7 +406,7 @@ public class ParseErrorHandler {
 	}
 	
 	private void reportErrorAtTokens(final IToken left, final IToken right, String message) {
-		final String message2 = isRecoveryAvailable ? message : message + " (recovery unavailable)";
+		final String message2 = message + getErrorExplanation();
 		
 		errorReports.add(new Runnable() {
 			public void run() {
@@ -424,7 +424,7 @@ public class ParseErrorHandler {
 	}
 	
 	private void reportErrorAtFirstLine(String message) {
-		final String message2 = isRecoveryAvailable ? message : message + " (recovery unavailable)";
+		final String message2 = message + getErrorExplanation();
 		
 		errorReports.add(new Runnable() {
 			public void run() {
@@ -432,6 +432,18 @@ public class ParseErrorHandler {
 			}
 		});
 	}	
+
+	private String getErrorExplanation() {
+		final String message2;
+		if (!isRecoveryAvailable) {
+			message2 = " (recovery unavailable)";
+		} else if (!source.getParser().getParseTable().hasRecovers()) {
+			message2 = " (no recovery rules in parse table)";
+		} else {
+			message2 = "";
+		}
+		return message2;
+	}
 	
 	private static boolean isErrorProduction(ATermAppl attrs, String consName) {		
 		if ("attrs".equals(attrs.getName())) {

@@ -35,10 +35,10 @@ public class MetaFileLanguageValidator extends LanguageValidator {
 	@Override
 	public boolean validate(IFile file) {
 		isLanguageRegistryPatchEnabled = true;
-		String metaFile = file.getFullPath().removeFileExtension().addFileExtension("meta").toOSString();
-		String language = MetaFileReader.readSyntax(metaFile);
+		String metaFileName = file.getFullPath().removeFileExtension().addFileExtension("meta").toOSString();
+		MetaFile metaFile = MetaFile.read(metaFileName);
 		
-		return language == null || validateByLanguage(file, language);
+		return metaFile == null || validateByLanguage(file, metaFile.getLanguage());
 	}
 	
 	public boolean validateByLanguage(IFile file, String languageName) {

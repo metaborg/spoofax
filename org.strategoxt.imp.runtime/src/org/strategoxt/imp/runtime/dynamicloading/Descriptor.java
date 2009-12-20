@@ -43,7 +43,7 @@ public class Descriptor {
 	
 	protected static final String DEFAULT_ICON = "icons/IMP-editor.gif";
 	
-	protected static final String DEFAULT_ICON_BUNDLE = RuntimeActivator.getDefault().getBundle().getSymbolicName();
+	protected static final String DEFAULT_ICON_BUNDLE = RuntimeActivator.getInstance().getBundle().getSymbolicName();
 	
 	private final Map<AbstractService, Object> services = new WeakHashMap<AbstractService, Object>();
 	

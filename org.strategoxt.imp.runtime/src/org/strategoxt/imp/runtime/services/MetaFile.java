@@ -1,6 +1,7 @@
 package org.strategoxt.imp.runtime.services;
 
 import static org.spoofax.interpreter.core.Tools.*;
+import static org.spoofax.interpreter.terms.IStrategoTerm.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,10 +17,23 @@ import org.strategoxt.imp.runtime.Environment;
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class MetaFileReader {
+public class MetaFile {
 	
-	private MetaFileReader() {
-		// No public constructor
+	private final String language;
+	
+	private final boolean heuristicFilters;
+	
+	private MetaFile(String language, boolean heuristicFilters) {
+		this.language = language;
+		this.heuristicFilters = heuristicFilters;
+	}
+	
+	public String getLanguage() {
+		return language;
+	}
+	
+	public boolean isHeuristicFiltersEnabled() {
+		return heuristicFilters;
 	}
 	
 	/**
@@ -28,13 +42,15 @@ public class MetaFileReader {
 	 * If any error occurs while reading, an exception is logged and
 	 * null is returned.
 	 */
-	public static String readSyntax(String file) {
+	public static MetaFile read(String file) {
 		if (!new File(file).exists()) return null;
 		
 		try {
 			IStrategoTerm meta = readFile(file);
 			IStrategoString language = termAt(getEntry(meta, "Syntax"), 0);
-			return language.stringValue();
+			IStrategoAppl filtersTerm = getEntry(meta, "HeuristicFilters");
+			boolean heuristicFilters = filtersTerm == null || isOnAppl(termAt(filtersTerm, 0)); 
+			return new MetaFile(language.stringValue(), heuristicFilters);
 		} catch (IOException e) {
 			Environment.logException("Error reading " + file, e);
 			return null;
@@ -52,6 +68,10 @@ public class MetaFileReader {
 				return (IStrategoAppl) entry;
 		}
 		return null;
+	}
+	
+	private static boolean isOnAppl(IStrategoTerm term) {
+		return term.getTermType() == APPL && "ON".equals(((IStrategoAppl) term).getConstructor().getName());
 	}
 	
 	private static IStrategoTerm readFile(String file) throws IOException {

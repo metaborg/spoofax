@@ -85,8 +85,11 @@ public class AstMessageHandler {
 
 		if (node == null) {
 			addMarkerFirstLine(resource, message, severity);
-			Environment.logException("ATerm is not associated with an AST node, cannot report feedback message: "
+			Environment.logException("Term is not associated with an AST node, cannot report feedback message: "
 							+ term + " - " + message);
+		} else if (((IStrategoAstNode) node).getResource() == null) {
+            Environment.logException("Term is not associated with a workspace file, cannot report feedback message: "
+                    + term + " - " + message);
 		} else {
 			addMarker(node, message, severity);
 		}

@@ -15,14 +15,12 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
-import org.spoofax.interpreter.adapter.aterm.WrappedATerm;
 import org.spoofax.interpreter.core.InterpreterErrorExit;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.core.UndefinedStrategyException;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.interpreter.terms.TermConverter;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.RuntimeActivator;
@@ -164,7 +162,7 @@ public class StrategoBuilder implements IBuilder {
 	}
 
 	private static String toEscapedString(IStrategoString term) {
-		return ((WrappedATerm) TermConverter.convert(Environment.getWrappedATermFactory(), term)).toString();
+		return Environment.getATermConverter().convert(term).toString();
 	}
 
 	private void reportGenericException(EditorState editor, Exception e) {

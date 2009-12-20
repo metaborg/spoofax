@@ -15,7 +15,6 @@ import org.spoofax.jsglr.RecoverAlgorithm;
 import org.spoofax.jsglr.SGLR;
 import org.spoofax.jsglr.SGLRException;
 import org.spoofax.jsglr.TokenExpectedException;
-import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
 
@@ -34,7 +33,7 @@ public class JSGLRI extends AbstractSGLRI {
 	
 	private SGLR parser;
 	
-	private boolean filtersBorked;
+	private Disambiguator disambiguator;
 	
 	// Initialization and parsing
 	
@@ -62,8 +61,12 @@ public class JSGLRI extends AbstractSGLRI {
 		parser.setRecoverHandler(recoverHandler);
 	}
 	
+	public ParseTable getParseTable() {
+		return parseTable;
+	}
+	
 	public Disambiguator getDisambiguator() {
-		return parser.getDisambiguator();
+		return disambiguator;
 	}
 	
 	public IPrsStream getIPrsStream() {
@@ -87,13 +90,12 @@ public class JSGLRI extends AbstractSGLRI {
 	 */
 	void resetState() {
 		parser = Environment.createSGLR(parseTable);
-		parser.getDisambiguator().setFilterPriorities(!filtersBorked);
+		if (disambiguator != null) parser.setDisambiguator(disambiguator);
+		else disambiguator = parser.getDisambiguator();
 		try {
 			parser.setRecoverHandler(recoverHandler);
 		} catch (NoRecoveryRulesException e) {
 			// Already handled/logged this error in setRecoverHandler()
-			if (Debug.ENABLED)
-				Environment.logException(e);
 		}
 	}
 	
@@ -108,10 +110,17 @@ public class JSGLRI extends AbstractSGLRI {
 		try {
 			return parser.parse(inputStream, getStartSymbol());
 		} catch (FilterException e) {
-			Environment.logException("Parse filter failure - disabling priority filters and trying again", e);
-			filtersBorked = true;
-			parser.getDisambiguator().setFilterPriorities(false);
-			return parser.parse(inputStream, getStartSymbol());
+			if (parser.getDisambiguator().getFilterPriorities()) {
+				Environment.logException("Parse filter failure - disabling priority filters and trying again", e);
+				getDisambiguator().setFilterPriorities(false);
+				try {
+					return parser.parse(inputStream, getStartSymbol());
+				} finally {
+					getDisambiguator().setFilterPriorities(true);
+				}
+			} else {
+				throw new FilterException(e.getParser(), e.getMessage(), e);
+			}
 		}
 	}
 }

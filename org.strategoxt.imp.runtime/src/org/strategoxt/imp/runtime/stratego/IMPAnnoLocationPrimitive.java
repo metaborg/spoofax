@@ -1,12 +1,9 @@
 package org.strategoxt.imp.runtime.stratego;
 
-import org.spoofax.interpreter.adapter.aterm.WrappedATerm;
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.InterpreterException;
-import org.spoofax.interpreter.library.IOperatorRegistry;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.interpreter.terms.TermConverter;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.JSGLRI;
 import org.strategoxt.lang.compat.sglr.STRSGLR_anno_location;
@@ -18,7 +15,11 @@ import aterm.ATerm;
  */
 public class IMPAnnoLocationPrimitive extends STRSGLR_anno_location {
 	
-	private final TermConverter converter = new TermConverter(Environment.getWrappedATermFactory());
+	private final SourceMappings mappings;
+	
+	public IMPAnnoLocationPrimitive(SourceMappings mappings) {
+		this.mappings = mappings;
+	}
 
 	@Override
 	public boolean call(IContext env, Strategy[] svars, IStrategoTerm[] tvars)
@@ -31,18 +32,15 @@ public class IMPAnnoLocationPrimitive extends STRSGLR_anno_location {
 		
 		// Restore tree metadata mappings
 		IStrategoTerm newAsfix = env.current();
-		IOperatorRegistry registry = env.getOperatorRegistry(IMPJSGLRLibrary.REGISTRY_NAME);
-		IMPParseStringPTPrimitive mapping = (IMPParseStringPTPrimitive) registry.get(IMPParseStringPTPrimitive.NAME);
-
-		char[] oldChars = mapping.getInputChars(oldAsfix);
+		char[] oldChars = mappings.getInputChars(oldAsfix);
 		if (oldChars == null) return true;
 
-		// TODO: Optimize - Aagh stop it with all the term conversions!!
-		ATerm newAsfixTerm = ((WrappedATerm) converter.convert(newAsfix)).getATerm();
-		mapping.putInputChars(newAsfix, oldChars);
-		mapping.putInputTerm(newAsfix, newAsfixTerm);
+		ATerm newAsfixTerm = Environment.getATermConverter().convert(newAsfix);
+		mappings.putInputChars(newAsfix, oldChars);
+		mappings.putInputTerm(newAsfix, newAsfixTerm);
+		mappings.putInputFile(newAsfix, mappings.getInputFile(oldAsfix));
 		
-		JSGLRI.putTokenizer(newAsfixTerm, JSGLRI.getTokenizer(mapping.getInputTerm(oldAsfix)));
+		JSGLRI.putTokenizer(newAsfixTerm, JSGLRI.getTokenizer(mappings.getInputTerm(oldAsfix)));
 		
 		return true;
 	}

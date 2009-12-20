@@ -2,6 +2,7 @@ package org.strategoxt.imp.runtime;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.management.ManagementFactory;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -10,9 +11,9 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.imp.language.Language;
-import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.swt.widgets.Display;
+import org.spoofax.interpreter.adapter.aterm.ATermConverter;
 import org.spoofax.interpreter.adapter.aterm.UnsharedWrappedATermFactory;
 import org.spoofax.interpreter.adapter.aterm.WrappedATermFactory;
 import org.spoofax.interpreter.core.InterpreterException;
@@ -29,6 +30,7 @@ import org.strategoxt.imp.runtime.dynamicloading.ParseTableProvider;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.IMPJSGLRLibrary;
 import org.strategoxt.imp.runtime.stratego.IMPLibrary;
+import org.strategoxt.imp.runtime.stratego.IMPOpenFile;
 import org.strategoxt.imp.runtime.stratego.IMPParseStringPTPrimitive;
 import org.strategoxt.imp.runtime.stratego.adapter.WrappedAstNodeFactory;
 import org.strategoxt.lang.compat.sglr.SGLRCompatLibrary;
@@ -52,6 +54,8 @@ public final class Environment {
 		
 	private final static ATermFactory factory;
 	
+	private final static ATermConverter atermConverter;
+	
 	private final static ParseTableManager parseTableManager;
 	
 	private final static Map<String, ParseTable> parseTables;
@@ -72,7 +76,15 @@ public final class Environment {
 		descriptors = Collections.synchronizedMap(new HashMap<String, Descriptor>());
 		unmanagedTables = Collections.synchronizedMap(new HashMap<String, ParseTableProvider>());
 		wrappedAstNodeFactory = new WrappedAstNodeFactory();
-		IMPJSGLRLibrary.init();
+		atermConverter = new ATermConverter(factory, wrappedAstNodeFactory, true);
+		if (!isServerMode()) logWarning("Ensure eclipse is started with -vmwargs -server for best performance");
+	}
+	
+	private static boolean isServerMode() {
+		for (String arg : ManagementFactory.getRuntimeMXBean().getInputArguments()) {
+			if (arg.startsWith("-server")) return true;
+		}
+		return false;
 	}
 	
 	// TODO: Split up shared and non-shared environment entities?
@@ -120,6 +132,14 @@ public final class Environment {
 		return wrappedFactory;
 	}
 	
+	public static ATermConverter getATermConverter() {
+	    return atermConverter;
+	}
+	
+	public static ATermFactory getATermFactory() {
+	    return factory;
+	}
+	
 	public static SGLR createSGLR(ParseTable parseTable) {
 		// (no state; no assertion)
 		return new SGLR(factory, parseTable);
@@ -155,12 +175,16 @@ public final class Environment {
 				}
 			};
 		
+		result.getCompiledContext().registerComponent("stratego_lib"); // ensure op. registry available
 		result.getCompiledContext().registerComponent("stratego_sglr"); // ensure op. registry available
 		SGLRCompatLibrary sglrLibrary = (SGLRCompatLibrary) result.getContext().getOperatorRegistry(SGLRCompatLibrary.REGISTRY_NAME);
-		result.addOperatorRegistry(new IMPJSGLRLibrary(sglrLibrary));
+		IMPJSGLRLibrary impSglrLibrary = new IMPJSGLRLibrary(sglrLibrary);
+		result.addOperatorRegistry(impSglrLibrary);
 		result.addOperatorRegistry(new IMPLibrary());
+		impSglrLibrary.addOverrides(result.getCompiledContext());
 		assert result.getContext().lookupOperator(IMPParseStringPTPrimitive.NAME) instanceof IMPParseStringPTPrimitive;
 		assert result.getCompiledContext().lookupPrimitive(IMPParseStringPTPrimitive.NAME) instanceof IMPParseStringPTPrimitive;
+		assert result.getCompiledContext().lookupPrimitive(IMPOpenFile.NAME) instanceof IMPOpenFile;
 		result.setIOAgent(new EditorIOAgent());
 		
 		return result;
@@ -232,24 +256,32 @@ public final class Environment {
 	// ERROR HANDLING
 	
 	public static void logException(String message, Throwable t) {
-		System.err.println(message);
-		t.printStackTrace();
-		RuntimePlugin.getInstance().logException(message, t);
+		if (Debug.ENABLED) {
+			if (message != null) System.err.println(message);
+			t.printStackTrace();
+		}
+		Status status = new Status(IStatus.ERROR, RuntimeActivator.PLUGIN_ID, 0, message, null);
+		RuntimeActivator.getInstance().getLog().log(status);
 	}
 	
 	public static void logException(String message) {
-		System.err.println(message);
-		RuntimePlugin.getInstance().logException(message, new RuntimeException(message));
+		logException(message, new RuntimeException(message));
 	}
 	
 	public static void logException(Throwable t) {
-		RuntimePlugin.getInstance().logException(null, t);
+		logException(null, t);
+	}
+	
+	public static void logWarning(String message) {
+		if (Debug.ENABLED) System.err.println("Warning: " + message);
+		Status status = new Status(IStatus.WARNING, RuntimeActivator.PLUGIN_ID, 0, message, null);
+		RuntimeActivator.getInstance().getLog().log(status);
 	}
 
 	public static void asynOpenErrorDialog(final String caption, final String message, final Throwable exception) {
 		Display.getDefault().asyncExec(new Runnable() {
 			public void run() {
-				Status status = new Status(IStatus.ERROR, RuntimeActivator.PLUGIN_ID, message, exception);
+				Status status = new Status(IStatus.ERROR, RuntimeActivator.PLUGIN_ID, 0, message, exception);
 				ErrorDialog.openError(null, caption, null, status);
 			}
 		});
