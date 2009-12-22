@@ -30,6 +30,16 @@ public class ProductionAttributeReader {
 		return consAttr == null ? null : ((ATermAppl) consAttr).getName();
 	}
 	
+	// FIXME: support meta-var constructors
+	public String getMetaVarConstructor(ATermAppl rhs) {
+		if (rhs.getChildCount() == 1 && "varsym".equals(rhs.getName())) {
+			return ((ATermAppl) rhs.getChildAt(0)).getName().startsWith("iter")
+					? "meta-listvar"
+					: "meta-var";
+		}
+		return null;
+	}
+	
 	public ATerm getAstAttribute(ATermAppl attrs) {
 		return getAttribute(attrs, "ast");
 	}

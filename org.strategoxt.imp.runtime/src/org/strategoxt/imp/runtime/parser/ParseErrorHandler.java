@@ -401,7 +401,7 @@ public class ParseErrorHandler {
 	 
 	public void reportError(SGLRTokenizer tokenizer, Exception exception) {
 		String message = "Internal parsing error: " + exception;
-		Environment.logException("Error while reporting parse errors", exception);
+		Environment.logException("Internal parsing error", exception);
 		reportErrorAtFirstLine(message);
 	}
 	

@@ -187,7 +187,7 @@ public class AsfixImploder {
 		return results;
 	}
 
-	private StringAstNode createStringTerminal(ATermList lhs, ATermAppl rhs, ATermAppl attrs) {
+	private AstNode createStringTerminal(ATermList lhs, ATermAppl rhs, ATermAppl attrs) {
 		inLexicalContext = false;
 		IToken token = tokenizer.makeToken(offset, tokenManager.getTokenKind(lhs, rhs), true);
 		String sort = reader.getSort(rhs);
@@ -196,7 +196,14 @@ public class AsfixImploder {
 		
 		// Debug.log("Creating node ", sort, " from ", SGLRTokenizer.dumpToString(token));
 		
-		return factory.createStringTerminal(getPaddedLexicalValue(attrs, token), sort, token);
+		AstNode result = factory.createStringTerminal(getPaddedLexicalValue(attrs, token), sort, token);
+		String constructor = reader.getMetaVarConstructor(rhs);
+		if (constructor != null) {
+			ArrayList<AstNode> children = new ArrayList<AstNode>(1);
+			children.add(result);
+			result = factory.createNonTerminal(sort, constructor, token, token, children);
+		}
+		return result;
 	}
 	
 	private IntAstNode createIntTerminal(ATermList contents, ATermAppl rhs) {

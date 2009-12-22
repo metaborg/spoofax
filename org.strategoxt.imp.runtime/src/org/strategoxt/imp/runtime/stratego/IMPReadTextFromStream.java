@@ -4,8 +4,6 @@ import java.io.InputStream;
 
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.terms.IStrategoString;
-import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.strategoxt.lang.LazyTerm;
 import org.strategoxt.lang.compat.SSL_EXT_read_text_from_stream;
 
 /**
@@ -21,15 +19,8 @@ public class IMPReadTextFromStream extends SSL_EXT_read_text_from_stream {
 
 	@Override
 	protected IStrategoString call(IContext env, InputStream input) {
-		final IStrategoString string = super.call(env, input);
-		if (string == null) return null;
-		
-		IStrategoString result = new LazyTerm() {			
-			@Override
-			protected IStrategoTerm init() {
-				return string;
-			}
-		};
+		final IStrategoString result = super.call(env, input);
+		if (result == null) return null;
 		
 		mappings.putInputFile(result, mappings.getInputFile(input));
 		

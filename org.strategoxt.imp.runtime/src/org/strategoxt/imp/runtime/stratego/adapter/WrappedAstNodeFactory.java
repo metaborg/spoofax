@@ -114,7 +114,7 @@ public class WrappedAstNodeFactory extends TermFactory implements ITermFactory {
 				WrappedAstNodeList oldList = (WrappedAstNodeList) old;
 				return new WrappedAstNodeList(oldList.getNode(), oldList.getOffset(), head, tail);
 			} else {
-				assert !(old instanceof IWrappedAstNode);
+				// UNDONE: assert !(old instanceof IWrappedAstNode);
 				return makeListCons(head, tail);
 			}
 		}
@@ -131,7 +131,7 @@ public class WrappedAstNodeFactory extends TermFactory implements ITermFactory {
 				WrappedAstNodeList oldList = (WrappedAstNodeList) old;
 				return new WrappedAstNodeList(oldList.getNode(), oldList.getOffset(), head, tail);
 			} else {
-				assert !(old instanceof IWrappedAstNode);
+				// UNDONE: assert !(old instanceof IWrappedAstNode);
 				return makeListCons(head, tail);
 			}
 		}

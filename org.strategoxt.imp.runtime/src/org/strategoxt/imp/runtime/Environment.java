@@ -77,6 +77,7 @@ public final class Environment {
 		unmanagedTables = Collections.synchronizedMap(new HashMap<String, ParseTableProvider>());
 		wrappedAstNodeFactory = new WrappedAstNodeFactory();
 		atermConverter = new ATermConverter(factory, wrappedAstNodeFactory, true);
+		// TODO: report missing -Xss option; only complain about server mode in meta editor
 		if (!isServerMode()) logWarning("Ensure eclipse is started with -vmwargs -server for best performance");
 	}
 	
@@ -260,7 +261,7 @@ public final class Environment {
 			if (message != null) System.err.println(message);
 			t.printStackTrace();
 		}
-		Status status = new Status(IStatus.ERROR, RuntimeActivator.PLUGIN_ID, 0, message, null);
+		Status status = new Status(IStatus.ERROR, RuntimeActivator.PLUGIN_ID, 0, message, t);
 		RuntimeActivator.getInstance().getLog().log(status);
 	}
 	

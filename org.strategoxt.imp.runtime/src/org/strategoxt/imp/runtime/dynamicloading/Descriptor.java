@@ -18,6 +18,7 @@ import java.util.WeakHashMap;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.parser.IParseController;
@@ -162,6 +163,11 @@ public class Descriptor {
 	}
 	
 	public IPath getBasePath() {
+		if (basePath == null) {
+			Class attachmentProvider = getAttachmentProvider();
+			if (attachmentProvider != null)
+				basePath = new Path(attachmentProvider.getProtectionDomain().getCodeSource().getLocation().getFile());
+		}
 		return basePath;
 	}
 	

@@ -69,9 +69,13 @@ public class StrategoTermPath {
 		
 		for (int c = 0, size = selectionPath.size(); c < size; c++) {
 			int i = selectionPath.get(c);
+			if (i >= oldParent.getChildren().size()) { // Shouldn't happen
+				Environment.logException("Unable to recover old selection AST in " + oldParent, new ArrayIndexOutOfBoundsException(i));
+				return findIdenticalSubtree(oldAst, newAst, selection);
+			}
 			IStrategoAstNode oldSubtree = (IStrategoAstNode) oldParent.getChildren().get(i);
 			IStrategoAstNode newSubtree;
-			if (i == newParent.getChildren().size()) {
+			if (i >= newParent.getChildren().size()) {
 				if (i == 0) // fallback
 					return findIdenticalSubtree(oldAst, newAst, selection);
 				newSubtree = (IStrategoAstNode) newParent.getChildren().get(--i);

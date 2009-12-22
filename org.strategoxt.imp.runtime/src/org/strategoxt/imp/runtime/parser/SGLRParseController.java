@@ -142,7 +142,7 @@ public class SGLRParseController implements IParseController {
 	// Parsing and initialization
     
     static {
-    	if (!Debug.ENABLED)
+    	// if (!Debug.ENABLED)
     		Tools.setTimeout(PARSE_TIMEOUT);
     }
     
@@ -179,13 +179,14 @@ public class SGLRParseController implements IParseController {
     }
 
 	public AstNode parse(String input, final IProgressMonitor monitor) {
-		disallowColorer = true; // isStartupParsed;
+		disallowColorer = true;
+		boolean wasStartupParsed = isStartupParsed;
+		isStartupParsed = true; // Eagerly init this to avoid the main thread acquiring our lock			
 		if (input.length() == 0) {
 			currentParseStream = null;
 			return currentAst = null;
 		}
 		
-		// TODO: Eclipse 3.5 issues: static icons, dynamic icons
 		if (getPath() == null)
 		    throw new IllegalStateException("SGLR parse controller not initialized");
 		
@@ -232,6 +233,8 @@ public class SGLRParseController implements IParseController {
 			
 		} catch (ParseTimeoutException e) {
 			// TODO: Don't show stack trace for this
+			// TODO: Report ParseTimeOutException at offending line; sort of helpful
+			// TODO: Report if unmanaged parse table could not be found
 			if (monitor.isCanceled()) return null;
 			reportGenericException(errorHandler, e);
 		} catch (TokenExpectedException e) {
@@ -249,13 +252,12 @@ public class SGLRParseController implements IParseController {
 			errorHandler.reportError(parser.getTokenizer(), e);
 		} finally {
 			try {
-				onParseCompleted(monitor);
+				onParseCompleted(monitor, wasStartupParsed);
 			} catch (RuntimeException e) {
 				Environment.logException("Exception in post-parse events", e);
 			}
 			
 			//if (isStartupParsed) Job.getJobManager().endRule(resource);
-			isStartupParsed = true;			
 			parseLock.unlock();
 		}
 
@@ -281,22 +283,28 @@ public class SGLRParseController implements IParseController {
 		String metaFileName = getPath().removeFileExtension().addFileExtension("meta").toOSString();
 		MetaFile metaFile = MetaFile.read(metaFileName);
 		if (metaFile != this.metaFile) {
-			ParseTable table = Environment.getUnmanagedParseTable(metaFile.getLanguage());
-			parser.getDisambiguator().setHeuristicFilters(metaFile.isHeuristicFiltersEnabled());
-			if (table == null) {
-				Environment.logException("Could not find descriptor or unmanaged parse table for language " + metaFile.getLanguage());
+			if (metaFile == null) {
+				parser.setParseTable(Environment.getParseTable(getLanguage()));
+				parser.getDisambiguator().setHeuristicFilters(false);
 			} else {
-				parser.setParseTable(table);				
+				ParseTable table = Environment.getUnmanagedParseTable(metaFile.getLanguage() + "-Permissive");
+				if (table == null) table = Environment.getUnmanagedParseTable(metaFile.getLanguage());
+				parser.getDisambiguator().setHeuristicFilters(metaFile.isHeuristicFiltersEnabled());
+				if (table == null) {
+					Environment.logException("Could not find descriptor or unmanaged parse table for language " + metaFile.getLanguage());
+				} else {
+					parser.setParseTable(table);				
+				}
 			}
 			this.metaFile = metaFile;
 		}
 	}
 
-	private void onParseCompleted(final IProgressMonitor monitor) {
+	private void onParseCompleted(final IProgressMonitor monitor, boolean wasStartupParsed) {
 		assert parseLock.isHeldByCurrentThread();
 		
 		if (!monitor.isCanceled() && currentParseStream != null)
-			forceRecolor();
+			forceRecolor(wasStartupParsed);
 		
 		// TODO: Delay parse error markers for newly typed text
 		
@@ -405,8 +413,8 @@ public class SGLRParseController implements IParseController {
 		return new SGLRTokenIterator(stream, region);
 	}
 
-	protected void forceRecolor() {
-		assert !parseLock.isHeldByCurrentThread() || !Environment.isMainThread() || !isStartupParsed
+	protected void forceRecolor(boolean wasStartupParsed) {
+		assert !parseLock.isHeldByCurrentThread() || !Environment.isMainThread() || !wasStartupParsed
 			: "Parse lock may not be locked: dead lock risk with colorer queue lock";
 		try {
 			// System.out.println("FORCECOLOR! " + System.currentTimeMillis()); // DEBUG

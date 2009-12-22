@@ -18,9 +18,11 @@ strategies
         imports <descriptor-name> "-Builders.generated"
         
         builders
-          ~
-          ~// This file can be used for custom analysis and builder rules.
-          ~// See the imported file for a brief introduction and examples.
+        ~
+        ~// This file can be used for custom analysis and builder rules.
+        ~// See the imported file for a brief introduction and examples.
+        
+        builders // new heading: ensure proper pretty printer table layout
           ~
           provider: ~provider
           observer: editor-analyze

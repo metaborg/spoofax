@@ -91,7 +91,7 @@ public class DynamicDescriptorLoader implements IResourceChangeListener {
 			Job job = new WorkspaceJob("Updating editor descriptor runtime") {
 				@Override
 				public IStatus runInWorkspace(IProgressMonitor monitor) {
-					// TODO: Finer-grained locking?
+					// TODO: Finer-grained locking? (Seems to lead to deadlocks)
 					synchronized (Environment.getSyncRoot()) {
 						monitor.beginTask("", IProgressMonitor.UNKNOWN);
 						postResourceChanged(event.getDelta(), monitor);

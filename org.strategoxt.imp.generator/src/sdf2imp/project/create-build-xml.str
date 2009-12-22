@@ -90,6 +90,9 @@ strategies
         <condition property="externaljarimport" value=":${externaljar}" else="">
             <isset property="externaljar"/>
         </condition>
+        <condition property="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter">
+            <isset property="eclipse.running"/>
+        </condition>
         <condition property="externaljarflags" value="${externaljarflags}" else="">
             <isset property="externaljarflags"/>
         </condition>
@@ -277,7 +280,7 @@ strategies
             <antcall target="copy-jar"/>
             <antcall target="stratego.jvm.helper">
                 <param name="build.stratego.outputpath" value="${include}"/>
-                <param name="build.stratego.extraargs" value="-F --library"/>
+                <param name="build.stratego.extraargs" value="-F"/>
                 <param name="build.stratego.extension" value="ctree"/>
                 <param name="build.stratego.compiler" value="strc"/>
             </antcall>
@@ -298,7 +301,7 @@ strategies
                 <param name="build.stratego.extraargs" value="-la java-front"/>
                 <param name="build.stratego.extension" value="java"/>
             </antcall>
-            <javac classpath="utils/strategoxt.jar${externaljarimport}" srcdir="${src-gen}/trans" destdir="${build}" source="1.5" debug="on"/>
+            <javac classpath="utils/strategoxt.jar${externaljarimport}" srcdir="${src-gen}/trans" destdir="${build}" source="1.5" target="1.5" debug="on"/>
             <jar basedir="${build}" includes="trans/**" destfile="${include}/${strmodule}.jar"/>
         </target>
             
@@ -310,7 +313,8 @@ strategies
                 <arg value="${build.stratego.outputpath}/${strmodule}.${build.stratego.extension}"/>
                 <arg value="-p"/>
                 <arg value="trans"/>
-                <arg value="-clean"/>
+                <arg value="--library"/>
+                <arg value="--clean"/>
                 <arg line="${build.stratego.args}"/>
                 <arg line="${build.stratego.extraargs}"/>
                 <arg line="${externaljarflags}"/>

@@ -98,6 +98,8 @@ public class StrategoBuilderListener implements IModelListener {
 		try {
 			IBuilderMap builders = editor.getDescriptor().createService(IBuilderMap.class);
 			IBuilder builder = builders.get(this.builder);
+			if (builder == null)
+			    throw new RuntimeException("No builder exists with this name: " + this.builder);
 			
 			IStrategoAstNode newSelection = findNewSelection(editor);
 			if (newSelection != null) {

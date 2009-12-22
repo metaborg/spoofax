@@ -35,7 +35,8 @@ public class WrappedAstNodeLink extends WrappedAstNodeParent implements IWrapped
 		this.origin = origin;
 		
 		assert !(wrapped instanceof IWrappedAstNode) : "Already wrapped";
-		assert wrapped.getTermType() != LIST || wrapped.getSubtermCount() == 0
+		assert wrapped.getTermType() != LIST || origin.getTermType() != LIST
+				|| wrapped.getSubtermCount() == 0
 				|| wrapped.getSubtermCount() != origin.getSubtermCount()
 				: "Track lists using WrappedAstNodeList / WrappedAstNOdeFactory.makeLink()";
 	}

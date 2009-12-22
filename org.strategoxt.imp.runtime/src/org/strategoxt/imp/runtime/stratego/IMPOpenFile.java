@@ -22,6 +22,7 @@ public class IMPOpenFile extends SSL_fopen {
 	@Override
 	protected IStrategoInt call(IContext env, String fn, String mode) {
 		IStrategoInt result = super.call(env, fn, mode);
+		if (result == null) return null;
 		IOAgent io = SSLLibrary.instance(env).getIOAgent();
 		InputStream stream = io.getInputStream(result.intValue());
 		mappings.putInputFile(stream, io.openFile(fn));
