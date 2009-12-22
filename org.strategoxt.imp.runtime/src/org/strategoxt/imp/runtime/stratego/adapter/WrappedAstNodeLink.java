@@ -33,6 +33,7 @@ public class WrappedAstNodeLink extends WrappedAstNodeParent implements IWrapped
 		this.factory = factory;
 		this.wrapped = term;
 		this.origin = origin;
+		internalSetAnnotations(term.getAnnotations());
 		
 		assert !(wrapped instanceof IWrappedAstNode) : "Already wrapped";
 		assert wrapped.getTermType() != LIST || origin.getTermType() != LIST
