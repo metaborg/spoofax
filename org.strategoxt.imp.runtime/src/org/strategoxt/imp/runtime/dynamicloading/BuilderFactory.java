@@ -8,19 +8,26 @@ import java.util.Set;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.services.BuilderMap;
 import org.strategoxt.imp.runtime.services.IBuilder;
 import org.strategoxt.imp.runtime.services.IBuilderMap;
 import org.strategoxt.imp.runtime.services.StrategoBuilder;
+import org.strategoxt.imp.runtime.services.StrategoObserver;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class BuilderFactory extends AbstractServiceFactory<IBuilderMap> {
+	
+	public BuilderFactory() {
+		super(IBuilderMap.class, true);
+	}
 
 	@Override
-	public IBuilderMap create(Descriptor d) throws BadDescriptorException {
+	public IBuilderMap create(Descriptor d, SGLRParseController controller) throws BadDescriptorException {
 		Set<IBuilder> builders = new LinkedHashSet<IBuilder>();
+		StrategoObserver feedback = d.createService(StrategoObserver.class, controller);
 		
 		for (IStrategoAppl builder : collectTerms(d.getDocument(), "Builder")) {
 			String caption = termContents(termAt(builder, 0));
@@ -47,15 +54,10 @@ public class BuilderFactory extends AbstractServiceFactory<IBuilderMap> {
 				}
 			}
 			if (!meta || d.isDynamicallyLoaded())			
-				builders.add(new StrategoBuilder(d.getStrategoObserver(), caption, strategy, openEditor, realTime, persistent));
+				builders.add(new StrategoBuilder(feedback, caption, strategy, openEditor, realTime, persistent));
 		}
 		
 		return new BuilderMap(builders);
-	}
-
-	@Override
-	public Class<IBuilderMap> getCreatedType() {
-		return IBuilderMap.class;
 	}
 
 }

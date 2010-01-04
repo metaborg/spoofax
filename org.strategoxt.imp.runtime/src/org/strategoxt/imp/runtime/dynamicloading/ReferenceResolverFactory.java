@@ -7,6 +7,7 @@ import java.util.List;
 
 import org.eclipse.imp.services.IReferenceResolver;
 import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.services.NodeMapping;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.services.StrategoReferenceResolver;
@@ -16,15 +17,14 @@ import org.strategoxt.imp.runtime.services.StrategoReferenceResolver;
  */
 public class ReferenceResolverFactory extends AbstractServiceFactory<IReferenceResolver> {
 	
-	@Override
-	public Class<IReferenceResolver> getCreatedType() {
-		return IReferenceResolver.class;
+	public ReferenceResolverFactory() {
+		super(IReferenceResolver.class);
 	}
 	
 	@Override
-	public IReferenceResolver create(Descriptor descriptor) throws BadDescriptorException {
+	public IReferenceResolver create(Descriptor descriptor, SGLRParseController controller) throws BadDescriptorException {
 		IStrategoAppl descriptorFile = descriptor.getDocument();
-		StrategoObserver feedback = descriptor.getStrategoObserver();
+		StrategoObserver feedback = descriptor.createService(StrategoObserver.class, controller);
 		
 		List<NodeMapping<String>> resolverFunctions = new ArrayList<NodeMapping<String>>();
 		List<NodeMapping<String>> helpFunctions = new ArrayList<NodeMapping<String>>();

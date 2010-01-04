@@ -9,14 +9,13 @@ import org.strategoxt.imp.runtime.parser.SGLRParseController;
  */
 public class ParseControllerFactory extends AbstractServiceFactory<IParseController> {
 
-	@Override
-	public Class<IParseController> getCreatedType() {
-		return IParseController.class;
+	public ParseControllerFactory() {
+		super(IParseController.class);
 	}
 
 	@Override
-	public IParseController create(Descriptor descriptor) throws BadDescriptorException {
-		ILanguageSyntaxProperties syntaxProperties = descriptor.createService(ILanguageSyntaxProperties.class);
+	public IParseController create(Descriptor descriptor, SGLRParseController controller) throws BadDescriptorException {
+		ILanguageSyntaxProperties syntaxProperties = descriptor.createService(ILanguageSyntaxProperties.class, controller);
 		return new SGLRParseController(descriptor.getLanguage(), syntaxProperties, descriptor.getStartSymbols());
 	}
 

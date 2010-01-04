@@ -5,7 +5,6 @@ import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.parser.JSGLRI;
 import org.strategoxt.lang.compat.sglr.STRSGLR_anno_location;
 
 import aterm.ATerm;
@@ -39,8 +38,7 @@ public class IMPAnnoLocationPrimitive extends STRSGLR_anno_location {
 		mappings.putInputChars(newAsfix, oldChars);
 		mappings.putInputTerm(newAsfix, newAsfixTerm);
 		mappings.putInputFile(newAsfix, mappings.getInputFile(oldAsfix));
-		
-		JSGLRI.putTokenizer(newAsfixTerm, JSGLRI.getTokenizer(mappings.getInputTerm(oldAsfix)));
+		mappings.putTokenizer(newAsfix, mappings.getTokenizer(oldAsfix));
 		
 		return true;
 	}

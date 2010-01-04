@@ -6,16 +6,17 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.eclipse.imp.language.Language;
+import org.eclipse.imp.language.LanguageRegistry;
 import org.spoofax.interpreter.library.IOAgent;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.jsglr.InvalidParseTableException;
 import org.spoofax.jsglr.NoRecoveryRulesException;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.SGLRException;
 import org.spoofax.jsglr.StructureRecoveryAlgorithm;
 import org.strategoxt.imp.editors.stratego.StrategoSugarParseController;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.parser.JSGLRI;
 import org.strategoxt.imp.runtime.parser.ast.RootAstNode;
 import org.strategoxt.imp.runtime.services.MetaFile;
@@ -36,8 +37,8 @@ public class IMPParseStrategoFileStrategy extends parse_stratego_file_0_0 {
 			return null;
 		
 		String file = ((IStrategoString) current).stringValue();
-		JSGLRI parser = processMetaFile(file, getStrategoParser());
 		try {
+			JSGLRI parser = processMetaFile(file, getStrategoParser());
 			InputStream stream = null;
 			try {
 				stream = context.getIOAgent().openInputStream(file);
@@ -50,6 +51,10 @@ public class IMPParseStrategoFileStrategy extends parse_stratego_file_0_0 {
 			context.getIOAgent().getOutputStream(IOAgent.CONST_STDERR).println("parse-stratego-file (" + file + "): " + e.getMessage());
 			Environment.logException("Parsing of " + file + " failed", e);
 			return null;
+		} catch (InvalidParseTableException e) {
+			context.getIOAgent().getOutputStream(IOAgent.CONST_STDERR).println("parse-stratego-file (" + file + "): " + e.getMessage());
+			Environment.logException("Parsing of " + file + " failed", e);
+			return null;
 		} catch (IOException e) {
 			return null;
 		}
@@ -57,26 +62,23 @@ public class IMPParseStrategoFileStrategy extends parse_stratego_file_0_0 {
 
 	private JSGLRI getStrategoParser() {
 		try {
-			Language strategoSugar = StrategoSugarParseController.getDescriptor().getLanguage();
+			Language strategoSugar = LanguageRegistry.findLanguage(StrategoSugarParseController.LANGUAGE);
 			JSGLRI parser = new JSGLRI(Environment.getParseTable(strategoSugar), "Module");
 			if (parser.getParseTable().hasRecovers()) parser.setRecoverHandler(new StructureRecoveryAlgorithm());
 			return parser;
-		} catch (BadDescriptorException e) {
-			throw new StrategoException("Could not load Stratego-Sugar syntax", e);
 		} catch (NoRecoveryRulesException e) {
 			throw new StrategoException("Could not load stratego parse table", e);
 		}
 	}
 
-	private JSGLRI processMetaFile(String file, JSGLRI parser) {
+	private JSGLRI processMetaFile(String file, JSGLRI parser) throws InvalidParseTableException {
 		String metaFileName = file.substring(file.length() - 4) + ".meta";
 		MetaFile metaFile = MetaFile.read(metaFileName);
 		ParseTable table = null;
 		if (metaFile != null) {
 			table = Environment.getUnmanagedParseTable(metaFile.getLanguage() + "-Permissive");
 			if (table == null) table = Environment.getUnmanagedParseTable(metaFile.getLanguage());
-		}
-		if (table != null) {
+			if (table == null) throw new InvalidParseTableException("No parse table for language " + metaFile.getLanguage());
 			parser.setParseTable(table);
 			parser.setStartSymbol(null);
 			parser.getDisambiguator().setHeuristicFilters(metaFile.isHeuristicFiltersEnabled());

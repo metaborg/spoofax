@@ -73,6 +73,7 @@ public class IMPParseStringPTPrimitive extends JSGLR_parse_string_pt_compat {
 		mappings.putInputTerm(result, asfix);
 		mappings.putInputChars(result, inputChars);
 		mappings.putInputFile(result, mappings.getInputFile(inputTerm));
+		mappings.putTokenizer(result, parser.getTokenizer());
 		
 		return result;
 	}

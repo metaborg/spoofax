@@ -54,6 +54,20 @@
             language="DynamicRoot">
       </outliner>
    </extension>
+   <extension
+         point="org.eclipse.imp.runtime.autoEditStrategy">
+      <autoEditStrategy
+            class="org.eclipse.imp.services.base.DefaultAutoIndentStrategy"
+            language="DynamicRoot">
+      </autoEditStrategy>
+   </extension>
+   <extension
+         point="org.eclipse.imp.runtime.contentProposer">
+      <proposer
+            class="org.strategoxt.imp.runtime.dynamicloading.DynamicContentProposer"
+            language="DynamicRoot">
+      </proposer>
+   </extension>
    
    <extension
          id="org.strategoxt.imp.runtime.parsemarker"
@@ -224,7 +238,14 @@
       <command
             categoryId="org.strategoxt.imp.runtime.transformCommandCategory"
             id="org.strategoxt.imp.runtime.transformCommand"
-            name="Transform Command">
+            name="Transform"
+            description="Transform">
+      </command>
+      <command
+            categoryId="org.eclipse.ui.category.textEditor"
+            description="Go to definition"
+            id="org.strategoxt.imp.runtime.resolveReferenceCommand"
+            name="Go to definition">
       </command>
    </extension>
    <extension
@@ -233,32 +254,28 @@
             class="org.strategoxt.imp.runtime.services.BuilderButtonDelegate"
             commandId="org.strategoxt.imp.runtime.transformCommand">
       </handler>
+      <handler
+            class="org.strategoxt.imp.runtime.services.ReferenceResolverDelegate"
+            commandId="org.strategoxt.imp.runtime.resolveReferenceCommand">
+      </handler>
    </extension>
    <extension
          point="org.eclipse.ui.bindings">
       <key
             commandId="org.strategoxt.imp.runtime.transformCommand"
-            contextId="org.eclipse.ui.contexts.window"
+            contextId="org.eclipse.ui.textEditorScope"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-            sequence="CTRL+T">
-      </key>
-     <!-- TODO: test control-alt-b binding for build current project?-->
+            sequence="CTRL+T"/>
       <key
             commandId="org.eclipse.ui.project.buildProject"
             contextId="org.eclipse.ui.contexts.window"
             sequence="M1+M3+B"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration" />
+      <key
+            commandId="org.strategoxt.imp.runtime.resolveReferenceCommand"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="F3"/>
    </extension>
-
-   <!-- Extension point not implemented?
-        manually called from SGLRParseController instead
-   <extension
-         point="org.eclipse.imp.runtime.modelListener">
-      <listener
-            class="org.strategoxt.imp.runtime.dynamicloading.DynamicStrategoFeedback"
-            language="DynamicRoot">
-      </listener>
-   </extension>
-   -->
    
 </plugin>

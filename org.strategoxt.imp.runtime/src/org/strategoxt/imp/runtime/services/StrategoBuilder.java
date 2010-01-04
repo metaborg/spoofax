@@ -3,6 +3,7 @@ package org.strategoxt.imp.runtime.services;
 import static org.spoofax.interpreter.core.Tools.*;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.InputStream;
 
 import org.eclipse.core.resources.IFile;
@@ -28,6 +29,7 @@ import org.strategoxt.imp.runtime.dynamicloading.TermReader;
 import org.strategoxt.imp.runtime.stratego.StrategoConsole;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 import org.strategoxt.lang.Context;
+import org.strategoxt.stratego_aterm.aterm_escape_strings_0_0;
 import org.strategoxt.stratego_aterm.pp_aterm_box_0_0;
 import org.strategoxt.stratego_gpp.box2text_string_0_1;
 import org.strategoxt.stratego_lib.concat_strings_0_0;
@@ -48,7 +50,6 @@ public class StrategoBuilder implements IBuilder {
 	
 	private final boolean openEditor;
 	
-	@SuppressWarnings("unused")
 	private final boolean persistent;
 	
 	public StrategoBuilder(StrategoObserver observer, String caption, String builderRule, boolean openEditor, boolean realTime, boolean persistent) {
@@ -85,7 +86,7 @@ public class StrategoBuilder implements IBuilder {
 				if (resultTerm == null) {
 					observer.reportRewritingFailed();
 					Environment.logException("Builder failed:\n" + observer.getLog());
-					if (!observer.isUpdateStarted())
+					if (!observer.isUpdateScheduled())
 						observer.scheduleUpdate(editor.getParseController());
 					openError(editor, "Builder failed (see error log)");
 					return;
@@ -144,6 +145,7 @@ public class StrategoBuilder implements IBuilder {
 				// TODO: if not persistent, create IEditorInput from result String
 				if (openEditor && !isRebuild) {
 					IEditorPart target = openEditor(file, realTime);
+					if (!persistent) new File(file.getLocationURI()).delete();
 					if (realTime)
 						StrategoBuilderListener.addListener(editor.getEditor(), target, file, getCaption(), node);
 				}
@@ -156,6 +158,7 @@ public class StrategoBuilder implements IBuilder {
 
 	private IStrategoString ppATerm(IStrategoTerm term) {
 		Context context = observer.getRuntime().getCompiledContext();
+		term = aterm_escape_strings_0_0.instance.invoke(context, term);
 		term = pp_aterm_box_0_0.instance.invoke(context, term);
 		term = box2text_string_0_1.instance.invoke(context, term, Environment.getTermFactory().makeInt(120));
 		return (IStrategoString) term;
@@ -216,6 +219,7 @@ public class StrategoBuilder implements IBuilder {
 			*/
 		} else {
 			file.create(resultStream, true, null);
+			// UNDONE: file.setDerived(!persistent); // marks it as "derived" for life, even after editing...
 		}
 	}
 

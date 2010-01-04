@@ -1,24 +1,25 @@
 package org.strategoxt.imp.runtime.dynamicloading;
 
+import static org.spoofax.interpreter.core.Tools.*;
+import static org.strategoxt.imp.runtime.dynamicloading.TermReader.*;
+
 import java.util.ArrayList;
 
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.spoofax.interpreter.terms.IStrategoAppl;
-
-import static org.strategoxt.imp.runtime.dynamicloading.TermReader.*;
+import org.strategoxt.imp.runtime.parser.SGLRParseController;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 class SyntaxPropertiesFactory extends AbstractServiceFactory<ILanguageSyntaxProperties> {
 	
-	@Override
-	public Class<ILanguageSyntaxProperties> getCreatedType() {
-		return ILanguageSyntaxProperties.class;
+	public SyntaxPropertiesFactory() {
+		super(ILanguageSyntaxProperties.class, true);
 	}
 
 	@Override
-	public ILanguageSyntaxProperties create(Descriptor descriptor) throws BadDescriptorException {
+	public ILanguageSyntaxProperties create(Descriptor descriptor, SGLRParseController controller) throws BadDescriptorException {
 		SyntaxProperties result = new SyntaxProperties();
 		
 		IStrategoAppl doc = descriptor.getDocument();

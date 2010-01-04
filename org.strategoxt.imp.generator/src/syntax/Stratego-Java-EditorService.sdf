@@ -25,13 +25,15 @@ exports
     
                  "|[" Module "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
     
-    "descriptor" "|[" OutlineRule "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
-    "descriptor" "|[" ColorRule   "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
-    "descriptor" "|[" FoldingRule "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr"), avoid}
+    "descriptor" "|[" OutlineRule  "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
+    "descriptor" "|[" ColorRule    "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
+    "descriptor" "|[" FoldingRule  "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr"), avoid}
+    "descriptor" "|[" SemanticRule "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
     
-                 "|[" OutlineRule "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
-                 "|[" ColorRule   "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
-                 "|[" FoldingRule "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr"), avoid}
+                 "|[" OutlineRule  "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
+                 "|[" ColorRule    "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
+                 "|[" FoldingRule  "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr"), avoid}
+                 "|[" SemanticRule "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
 
     QuotedTerm -> Id {cons("FromMetaExpr"), avoid}
     QuotedTerm -> PropertyValue {cons("FromMetaExpr"), avoid}
@@ -40,11 +42,13 @@ exports
     QuotedTerm -> Color {cons("FromMetaExpr")}
     QuotedTerm -> Font  {cons("FromMetaExpr")}
     QuotedTerm -> SectionName {cons("FromMetaExpr")}
+    QuotedTerm -> SemanticRule {cons("FromMetaExpr")}
     
     QuotedTerms -> OutlineRule*   {cons("FromMetaExpr")}
     QuotedTerms -> ColorRule*     {cons("FromMetaExpr")}
     QuotedTerms -> FoldingRule*   {cons("FromMetaExpr")}
     QuotedTerms -> PropertyValues {cons("FromMetaExpr")}
+    QuotedTerms -> SemanticRule*  {cons("FromMetaExpr")}
 
     "~"  Term[[StrategoHost]] -> QuotedTerm  {bracket}
     "~*" Term[[StrategoHost]] -> QuotedTerms {bracket}

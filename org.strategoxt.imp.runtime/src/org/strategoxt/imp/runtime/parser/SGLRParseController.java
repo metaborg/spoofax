@@ -27,6 +27,7 @@ import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 import org.spoofax.jsglr.BadTokenException;
+import org.spoofax.jsglr.InvalidParseTableException;
 import org.spoofax.jsglr.NoRecoveryRulesException;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.ParseTimeoutException;
@@ -39,6 +40,8 @@ import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
+import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
+import org.strategoxt.imp.runtime.dynamicloading.DynamicParseController;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
 import org.strategoxt.imp.runtime.parser.ast.AstNodeLocator;
 import org.strategoxt.imp.runtime.parser.ast.RootAstNode;
@@ -48,6 +51,7 @@ import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
 import org.strategoxt.imp.runtime.services.MetaFile;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
+import org.strategoxt.imp.runtime.services.TokenColorer;
 
 import aterm.ATerm;
 
@@ -85,9 +89,13 @@ public class SGLRParseController implements IParseController {
 	
 	private MetaFile metaFile;
 	
+	private Exception unmanagedParseTableMismatch;
+	
 	private volatile boolean isStartupParsed;
 	
 	private volatile boolean disallowColorer;
+	
+	private volatile boolean isAborted;
 
 	// Simple accessors
 	
@@ -97,7 +105,7 @@ public class SGLRParseController implements IParseController {
 	 * 
 	 * @return The parsed AST, or null if the file could not be parsed (yet).
 	 */
-	public final AstNode getCurrentAst() {
+	public final RootAstNode getCurrentAst() {
 		if (currentAst == null) forceInitialParse();
 		return currentAst;
 	}
@@ -110,8 +118,12 @@ public class SGLRParseController implements IParseController {
 		return parser;
 	}
 	
-	protected ReentrantLock getParseLock() {
+	public ReentrantLock getParseLock() {
 		return parseLock;
+	}
+	
+	public ParseErrorHandler getErrorHandler() {
+		return errorHandler;
 	}
 
 	/**
@@ -193,7 +205,7 @@ public class SGLRParseController implements IParseController {
 		// XXX: SGLR.asyncAbort() is never called until the old parse actually completes
 		//      (or is it?!)
 		//      need to intercept cancellation events in the running thread's monitor instead
-		getParser().asyncAbort();
+		// UNDONE: getParser().asyncAbort(); // can't call this anyway atm when completion is running
 
 		String filename = getPath().toPortableString();
 		// IResource resource = getResource();
@@ -209,8 +221,10 @@ public class SGLRParseController implements IParseController {
 			parseLock.lock();
 			//System.out.println("PARSE! " + System.currentTimeMillis()); // DEBUG
 			
-			processMetaFile();			
+			processMetaFile();
+			// XXX: input chars are changed by the asfix imploder, invalidating caching and requiring a clone here
 			char[] inputChars = input.toCharArray();
+			char[] originalInputChars = inputChars.clone();
 			
 			Debug.startTimer();
 			
@@ -222,7 +236,7 @@ public class SGLRParseController implements IParseController {
 
 			errorHandler.clearErrors();
 			errorHandler.setRecoveryAvailable(true);
-			errorHandler.gatherNonFatalErrors(parser.getTokenizer(), asfix);
+			errorHandler.gatherNonFatalErrors(originalInputChars, parser.getTokenizer(), asfix);
 			
 			currentAst = ast;
 			currentParseStream = parser.getParseStream();
@@ -232,24 +246,18 @@ public class SGLRParseController implements IParseController {
 			// TODO: is coloring, then error marking best?
 			
 		} catch (ParseTimeoutException e) {
-			// TODO: Don't show stack trace for this
-			// TODO: Report ParseTimeOutException at offending line; sort of helpful
-			// TODO: Report if unmanaged parse table could not be found
-			if (monitor.isCanceled()) return null;
-			reportGenericException(errorHandler, e);
-		} catch (TokenExpectedException e) {
-			reportGenericException(errorHandler, e);
-		} catch (BadTokenException e) {
-			reportGenericException(errorHandler, e);
+			if (monitor.isCanceled() || isAborted) return null;
+			reportException(errorHandler, e);
+			if (unmanagedParseTableMismatch != null)
+				reportException(errorHandler, unmanagedParseTableMismatch);
 		} catch (SGLRException e) {
-			reportGenericException(errorHandler, e);
+			reportException(errorHandler, e);
 		} catch (IOException e) {
-			reportGenericException(errorHandler, e);
+			reportException(errorHandler, e);
 		} catch (OperationCanceledException e) {
 			return null;
 		} catch (RuntimeException e) {
-			Environment.logException("Internal parser error", e);
-			errorHandler.reportError(parser.getTokenizer(), e);
+			reportException(errorHandler, e);
 		} finally {
 			try {
 				onParseCompleted(monitor, wasStartupParsed);
@@ -262,6 +270,18 @@ public class SGLRParseController implements IParseController {
 		}
 
 		return monitor.isCanceled() ? null : currentAst;
+	}
+	
+	public void scheduleParserUpdate(long delay, boolean abortFirst) {
+		if (abortFirst) {
+			isAborted = true;
+			getParser().asyncAbort();
+			parseLock.lock();
+			isAborted = false;
+			parseLock.unlock();
+		}
+		if (getEditor() != null)
+			getEditor().scheduleParserUpdate(delay);
 	}
 
 	private ATerm parseNoImplode(char[] inputChars, String filename)
@@ -280,9 +300,17 @@ public class SGLRParseController implements IParseController {
 	}
 
 	private void processMetaFile() {
+		unmanagedParseTableMismatch = null;
 		String metaFileName = getPath().removeFileExtension().addFileExtension("meta").toOSString();
 		MetaFile metaFile = MetaFile.read(metaFileName);
 		if (metaFile != this.metaFile) {
+			Descriptor descriptor = Environment.getDescriptor(getLanguage());
+			if (metaFile != null && !descriptor.isUsedForUnmanagedParseTable(metaFile.getLanguage())) {
+				String message = "Meta file ignored for " + getResource().getName() + " (unsupported language: " + metaFile.getLanguage() +")";
+				unmanagedParseTableMismatch = new InvalidParseTableException(message);
+				Environment.logWarning(message);
+				metaFile = null;
+			}
 			if (metaFile == null) {
 				parser.setParseTable(Environment.getParseTable(getLanguage()));
 				parser.getDisambiguator().setHeuristicFilters(false);
@@ -291,7 +319,9 @@ public class SGLRParseController implements IParseController {
 				if (table == null) table = Environment.getUnmanagedParseTable(metaFile.getLanguage());
 				parser.getDisambiguator().setHeuristicFilters(metaFile.isHeuristicFiltersEnabled());
 				if (table == null) {
-					Environment.logException("Could not find descriptor or unmanaged parse table for language " + metaFile.getLanguage());
+					String message = "Could not find descriptor or unmanaged parse table for language " + metaFile.getLanguage();
+					unmanagedParseTableMismatch = new InvalidParseTableException(message);
+					Environment.logException(unmanagedParseTableMismatch);
 				} else {
 					parser.setParseTable(table);				
 				}
@@ -313,7 +343,7 @@ public class SGLRParseController implements IParseController {
 		// it must be available to draw error markers
 		
 		if (!Environment.isMainThread() || !isStartupParsed) {
-			if (!monitor.isCanceled()) {
+			if (!monitor.isCanceled() && !Thread.holdsLock(Environment.getSyncRoot())) {
 				// Note that a resource lock is acquired here
 				errorHandler.commitMultiErrorLineAdditions();
 				errorHandler.commitDeletions();
@@ -324,19 +354,18 @@ public class SGLRParseController implements IParseController {
 			//	AstMessageHandler.processEditorRecolorEvents(editor.getEditor());
 			
 			if (!monitor.isCanceled())
-				errorHandler.scheduleCommitAdditions();
+				errorHandler.scheduleCommitAllChanges();
 		} else {
 			// Report errors again later when not in main thread
 			// (this state shouldn't be reachable from normal operation)
-			if (editor != null)
-				editor.scheduleParserUpdate(ParseErrorHandler.PARSE_ERROR_DELAY);
+			scheduleParserUpdate(DynamicParseController.REINIT_PARSE_DELAY, false);
 		}
 		
 		if (!monitor.isCanceled())
 			scheduleObserverUpdate(errorHandler);
 	}
 
-	private void reportGenericException(ParseErrorHandler errorHandler, Exception e) {
+	private void reportException(ParseErrorHandler errorHandler, Exception e) {
 		errorHandler.clearErrors();
 		errorHandler.setRecoveryAvailable(false);
 		errorHandler.reportError(parser.getTokenizer(), e);
@@ -346,7 +375,7 @@ public class SGLRParseController implements IParseController {
 		// We bypass the UniversalEditor IModelListener for this,
 		// allowing a bit more (timing) control and ease of use (wrt dynamic reloading)
 		try {
-			StrategoObserver feedback = Environment.getDescriptor(getLanguage()).getStrategoObserver();
+			StrategoObserver feedback = Environment.getDescriptor(getLanguage()).createService(StrategoObserver.class, this);
 			if (feedback != null) feedback.scheduleUpdate(this);
 		} catch (BadDescriptorException e) {
 			Environment.logException("Unexpected error during analysis", e);
@@ -420,6 +449,7 @@ public class SGLRParseController implements IParseController {
 			// System.out.println("FORCECOLOR! " + System.currentTimeMillis()); // DEBUG
 			// UNDONE: no longer acquiring parse lock from colorer
 			disallowColorer = false;
+			TokenColorer.initLazyColors(this);
 			if (editor != null)
 				editor.getEditor().updateColoring(new Region(0, currentParseStream.getStreamLength() - 1));
 		} catch (RuntimeException e) {

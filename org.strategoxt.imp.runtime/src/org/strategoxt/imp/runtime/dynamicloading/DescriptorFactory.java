@@ -2,6 +2,8 @@ package org.strategoxt.imp.runtime.dynamicloading;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PushbackInputStream;
+import java.util.Collections;
 import java.util.Map;
 
 import org.eclipse.core.resources.IFile;
@@ -18,6 +20,7 @@ import org.strategoxt.imp.generator.sdf2imp;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.JSGLRI;
+import org.strategoxt.lang.terms.BAFReader;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -28,7 +31,8 @@ public class DescriptorFactory {
 	
 	private static JSGLRI descriptorParser;
 	
-	private static Map<IResource, Descriptor> asyncOldDescriptors = new WeakValueHashMap<IResource, Descriptor>();
+	private static Map<IResource, Descriptor> oldDescriptors =
+		Collections.synchronizedMap(new WeakValueHashMap<IResource, Descriptor>());
 	
 	private static void init() {
 		if (descriptorParser != null) return;
@@ -48,20 +52,16 @@ public class DescriptorFactory {
 		Debug.log("Loading editor services for ", descriptor.getName());
 		
 		Descriptor result = load(descriptor.getContents(true), null, basePath);
-		synchronized (asyncOldDescriptors) {
-			assert source.getName().endsWith(".main.esv");
-			asyncOldDescriptors.put(source, result);
-		}
+		assert source.getName().endsWith(".main.esv");
+		oldDescriptors.put(source, result);
 		return result;
 	}
 	
 	public static void prepareForReload(IResource descriptor) {
 		assert descriptor.getName().endsWith(".main.esv");
-		synchronized (asyncOldDescriptors) {
-			Descriptor oldDescriptor = asyncOldDescriptors.get(descriptor);
-			if (oldDescriptor != null)
-				oldDescriptor.prepareForReinitialize();
-		}
+		Descriptor oldDescriptor = oldDescriptors.get(descriptor);
+		if (oldDescriptor != null)
+			oldDescriptor.prepareForReinitialize();
 	}
 	
 	/**
@@ -94,12 +94,27 @@ public class DescriptorFactory {
 	public static Descriptor parse(InputStream input) throws BadDescriptorException, IOException {
 		try {
 			init();
+			input = new PushbackInputStream(input, 100);
+			
 			synchronized (Environment.getSyncRoot()) {
-				IStrategoAppl document = descriptorParser.parse(input, "(descriptor)").getTerm();
+				IStrategoAppl document = tryReadTerm((PushbackInputStream) input);
+				if (document == null)
+					document = (IStrategoAppl) descriptorParser.parse(input, "(descriptor)").getTerm();
 				return new Descriptor(document);
 			}
 		} catch (SGLRException e) {
 			throw new BadDescriptorException("Could not parse descriptor file", e);
+		}
+	}
+	
+	private static IStrategoAppl tryReadTerm(PushbackInputStream input) throws IOException {
+		byte[] buffer = new byte[6];
+		int bufferSize = input.read(buffer);
+		if (bufferSize != -1) input.unread(buffer, 0, bufferSize);
+		if ((bufferSize == 6 && buffer.toString().equals("Module")) || BAFReader.isBinaryATerm(input)) { 
+			return (IStrategoAppl) Environment.getTermFactory().parseFromStream(input);
+		} else {
+			return null;
 		}
 	}
 

@@ -27,7 +27,7 @@ strategies
   
   create-derived-folding-descriptor =
     not(is-heuristic-services-needed);
-    verbose-msg(!"Skipping", <descriptor-name> "-Outliner.generated")
+    verbose-msg(!"Skipping", <descriptor-name> "-Folding.generated")
   <+
     output-derived-descriptor-file(
       <descriptor-name> "-Folding.generated"

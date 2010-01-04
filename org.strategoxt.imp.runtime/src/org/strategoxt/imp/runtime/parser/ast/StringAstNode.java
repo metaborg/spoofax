@@ -16,7 +16,7 @@ public class StringAstNode extends AstNode {
 	/**
 	 * @param value  The string value for this node or null if the token value should be used.
 	 */
-	protected StringAstNode(String value, String sort, IToken leftToken, IToken rightToken) {
+	public StringAstNode(String value, String sort, IToken leftToken, IToken rightToken) {
 		// Construct an empty list (unfortunately needs to be a concrete ArrayList type)
 		super(sort, leftToken, rightToken, null, EMPTY_LIST);
 		this.value = value;

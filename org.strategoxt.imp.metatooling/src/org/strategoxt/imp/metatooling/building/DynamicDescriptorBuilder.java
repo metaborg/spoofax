@@ -3,14 +3,19 @@ package org.strategoxt.imp.metatooling.building;
 import static org.eclipse.core.resources.IMarker.*;
 import static org.strategoxt.imp.metatooling.loading.DynamicDescriptorLoader.*;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.resources.WorkspaceJob;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.spoofax.interpreter.terms.IStrategoString;
@@ -46,6 +51,8 @@ public class DynamicDescriptorBuilder {
 	
 	private final EditorIOAgent agent;
 	
+	private boolean antBuildDisallowed;
+	
 	private DynamicDescriptorBuilder() {
 		try {
 			agent = new EditorIOAgent();
@@ -63,6 +70,10 @@ public class DynamicDescriptorBuilder {
 		return instance;
 	}
 	
+	public boolean isAntBuildDisallowed() {
+		return antBuildDisallowed;
+	}
+
 	public void updateResource(IResource resource, IProgressMonitor monitor) {
 		IPath location = resource.getRawLocation();
 		if (location == null) return;
@@ -70,7 +81,7 @@ public class DynamicDescriptorBuilder {
 		try {
 			// System.err.println("Resource changed: " + resource.getName()); // DEBUG
 			if (resource.exists() && isMainFile(resource)) {
-				monitor.beginTask("Building " + resource.getName(), IProgressMonitor.UNKNOWN);
+				monitor.setTaskName("Building " + resource.getName());
 				buildDescriptor(resource, monitor);
 			}
 			
@@ -90,12 +101,17 @@ public class DynamicDescriptorBuilder {
 		try {
 			Environment.assertLock();
 			
-			monitor.beginTask("Notifying active editors", IProgressMonitor.UNKNOWN);
+			monitor.setTaskName("Notifying active editors");
 			DescriptorFactory.prepareForReload(getSourceDescriptor(mainFile));
+			try {
+				prepareOutputFiles(mainFile);
+			} catch (CoreException e) {
+				Environment.logException("Could not prepare descriptor output files", e);
+			}
 			
 			messageHandler.clearMarkers(mainFile);
-			messageHandler.commitChanges();
-			monitor.beginTask("Generating service descriptors for " + mainFile.getName(), IProgressMonitor.UNKNOWN);
+			messageHandler.commitAllChanges();
+			monitor.setTaskName("Generating service descriptors for " + mainFile.getName());
 			IStrategoTerm result = invokeBuilder(mainFile);
 			if (result == null) {
 				String log = agent.getLog().trim();
@@ -105,8 +121,11 @@ public class DynamicDescriptorBuilder {
 				return;
 			}
 			
-			monitor.beginTask("Loading " + mainFile.getName(), IProgressMonitor.UNKNOWN);
+			monitor.setTaskName("Loading " + mainFile.getName());
+			if (AntDescriptorBuilder.isActive())
+				System.err.println("Loading new editor services");
 			DynamicDescriptorLoader.getInstance().loadPackedDescriptor(getTargetDescriptor(mainFile));
+			monitor.setTaskName(null);
 			
 		} catch (IOException e) {
 			Environment.logException("Unable to build descriptor for " + mainFile, e);
@@ -173,6 +192,80 @@ public class DynamicDescriptorBuilder {
 		}
 	}
 	
+	private void prepareOutputFiles(IResource mainDescriptor) throws CoreException, IOException {
+		IProject project = mainDescriptor.getProject();
+		String name = mainDescriptor.getName();
+
+		if (name.endsWith(".main.esv")) {
+			name = name.substring(0, name.length() - ".main.esv".length());
+		} else if (name.endsWith(".packed.esv")) {
+			name = name.substring(0, name.length() - ".packed.esv".length());
+		} else {
+			throw new IOException("Main descriptor name must end with .main.esv: " + mainDescriptor);
+		}		
+		
+		if (project.findMember("include/" + name + ".packed.esv") == null)
+			refreshIncludeDir(project, name);
+		
+		setDerivedResources(project);
+	}
+
+	private void refreshIncludeDir(IProject project, String name) {
+		DynamicDescriptorLoader.getInstance().forceNoUpdate(project.getFullPath() + "/include/" + name + ".packed.esv");
+		IResource includeDir = project.findMember("/include");
+		try {
+			// Ant thread holds resource lock and wants environment; avoid deadlock
+			// FIXME: ant thread deadlock can only be really avoided with a proper ReentrantLock environment lock
+			antBuildDisallowed = true;
+			if (includeDir == null) project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
+			else includeDir.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
+		} catch (CoreException e) {
+			Environment.logException("Exception when refreshing resources", e);
+		} finally {
+			antBuildDisallowed = false;
+		}
+	}
+
+	private static void setDerivedResources(IProject project) throws CoreException,
+			IOException {
+		
+		IResource includeDir = project.findMember("include");
+		IResource editorDir = project.findMember("editor");
+		IResource buildFile = project.findMember("build.generated.xml");
+
+		if (!(includeDir instanceof IContainer && editorDir instanceof IContainer))
+			throw new IOException("/include and /editor directories must exist");
+
+		if (!includeDir.isDerived()) {
+			includeDir.setDerived(true);
+			for (IResource member : ((IContainer) includeDir).members()) {
+				member.setDerived(true);
+			}			
+			for (IResource member : ((IContainer) editorDir).members()) {
+				if (member.getName().endsWith(".generated.esv"))
+					member.setDerived(true);
+			}
+			if (buildFile != null)
+				buildFile.setDerived(true);
+		}
+	}
+	
+	public IResource getTargetDescriptor(IResource mainDescriptor) {
+		String name = mainDescriptor.getName();
+		if (name.endsWith(".packed.esv")) return mainDescriptor;
+		name = name.substring(0, name.length() - ".main.esv".length());
+		IProject project = mainDescriptor.getProject();
+		refreshIncludeDir(project, name); // really ensure include/ exists
+		IResource result = project.findMember("include/" + name + ".packed.esv");
+		
+		if (result == null) {
+			Environment.logException("Target descriptor not found", new FileNotFoundException("include/" + name + ".packed.esv"));
+			return mainDescriptor;
+		} else {
+			return result;
+		}
+	}
+
 	private static boolean isMainFile(IResource file) {
 		// TODO: Determine if a file is the main descriptor file by its contents?
 		// InputStream stream = agent.openInputStream(file);

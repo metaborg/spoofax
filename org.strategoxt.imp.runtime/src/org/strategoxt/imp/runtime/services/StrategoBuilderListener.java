@@ -96,7 +96,7 @@ public class StrategoBuilderListener implements IModelListener {
 			return;
 		
 		try {
-			IBuilderMap builders = editor.getDescriptor().createService(IBuilderMap.class);
+			IBuilderMap builders = editor.getDescriptor().createService(IBuilderMap.class, editor.getParseController());
 			IBuilder builder = builders.get(this.builder);
 			if (builder == null)
 			    throw new RuntimeException("No builder exists with this name: " + this.builder);

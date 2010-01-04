@@ -38,22 +38,29 @@ public class AstNodeFactory {
 	 */
 	public AstNode createList(String elementSort, IToken leftToken, IToken rightToken, ArrayList<AstNode> children) {
 		// Flatten lists
+		// FIXME: Don't flatten all lists in the imploder?
 		//
 		// this implementation is not exactly good for performance,
 		// but the current IMP interfaces call for ArrayLists rather than just Lists...
 		
-		// FIXME: cons/nil lists without arraylists?
+		// FIXME: createList() has horrible performance right now
+		//        what with the flattening and the arraylists and the overrideReferences...
+		
+		ListAstNode result = new ListAstNode(elementSort, leftToken, rightToken, children);
 		
 		for (int i = 0; i < children.size(); i++) {
 			AstNode child = children.get(i);
 			if (child.isList()) {
 				children.remove(i--);
-				for (int j = 0; j < child.getChildren().size(); j++) {
-					children.add(++i, child.getChildren().get(j));
+				ArrayList<AstNode> subChildren = child.getChildren();
+				for (int j = 0; j < subChildren.size(); j++) {
+					AstNode subChild = subChildren.get(j);
+					children.add(++i, subChild);
 				}
+				result.overrideReferences(child.getLeftIToken(), child.getRightIToken(), subChildren, child);
 			}
 		}
 		
-		return new ListAstNode(elementSort, leftToken, rightToken, children);
+		return result;
 	}
 }

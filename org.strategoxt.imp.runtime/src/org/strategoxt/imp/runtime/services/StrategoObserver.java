@@ -7,7 +7,10 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -44,6 +47,7 @@ import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
+import org.strategoxt.imp.runtime.dynamicloading.IDynamicLanguageService;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
@@ -62,24 +66,29 @@ import org.strategoxt.stratego_lib.set_config_0_0;
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class StrategoObserver implements IModelListener {
+public class StrategoObserver implements IDynamicLanguageService, IModelListener {
 	
 	// TODO: separate delay for error markers?
 	public static final int OBSERVER_DELAY = 600;
 	
-	private final Descriptor descriptor;
+	private static Map<Descriptor, HybridInterpreter> cachedRuntimes =
+		Collections.synchronizedMap(new WeakHashMap<Descriptor, HybridInterpreter>());
 	
 	private final String feedbackFunction;
 	
 	private final AstMessageHandler messages = new AstMessageHandler(AstMessageHandler.ANALYSIS_MARKER_TYPE);
 	
-	private HybridInterpreter runtime;
-	
 	private Lock observerSchedulerLock = new ReentrantLock();
 	
 	private Job asyncObserverScheduler;
 	
+	private HybridInterpreter runtime;
+	
+	private volatile Descriptor descriptor;
+	
 	private volatile boolean isUpdateStarted;
+	
+	private volatile boolean rushNextUpdate;
 	
 	public StrategoObserver(Descriptor descriptor, String feedbackFunction) {
 		this.descriptor = descriptor;
@@ -96,8 +105,12 @@ public class StrategoObserver implements IModelListener {
 	 * 
 	 * @return true if update() or asyncUpdate() have been called.
 	 */
-	public boolean isUpdateStarted() {
+	public boolean isUpdateScheduled() {
 		return isUpdateStarted;
+	}
+	
+	public void setRushNextUpdate(boolean rushNextUpdate) {
+		this.rushNextUpdate = rushNextUpdate;
 	}
 	
 	public AstMessageHandler getMessages() {
@@ -105,15 +118,25 @@ public class StrategoObserver implements IModelListener {
 	}
 	
 	public Object getSyncRoot() {
-		return Environment.getSyncRoot(); // TODO syncRoot field; ?? deadlocky ??
+		 // TODO: *maybe* use descriptor as syncroot? deadlocky?
+		return Environment.getSyncRoot();
 	}
 
 	public String getLog() {
+		assert Thread.holdsLock(getSyncRoot());
 		return ((EditorIOAgent) runtime.getIOAgent()).getLog().trim();
 	}
 	
 	private void init(IProgressMonitor monitor) {
-		monitor.subTask("Instantiating analysis runtime");
+		assert Thread.holdsLock(getSyncRoot());
+		
+		HybridInterpreter prototype = cachedRuntimes.get(descriptor);
+		if (prototype != null) {
+			runtime = new HybridInterpreter(prototype);
+			return;
+		}
+		
+		monitor.subTask("Loading analysis runtime");
 		
 		Debug.startTimer();
 		List<String> jars = new ArrayList<String>();
@@ -135,12 +158,15 @@ public class StrategoObserver implements IModelListener {
 		Debug.stopTimer("Loaded analysis components");
 		
 		monitor.subTask(null);
+		cachedRuntimes.put(descriptor, runtime);
 	}
 
 	private void initRuntime(IProgressMonitor monitor) {
+		assert Thread.holdsLock(getSyncRoot());
+		
 		if (runtime == null) {
 			Debug.startTimer();
-			runtime = Environment.createInterpreter(true);
+			runtime = Environment.createInterpreter(getSyncRoot() != Environment.getSyncRoot());
 			runtime.init();
 			Debug.stopTimer("Created new Stratego runtime instance");
 			try {
@@ -159,6 +185,7 @@ public class StrategoObserver implements IModelListener {
 	private void loadCTree(String filename) {
 		try {
 			Debug.startTimer("Loading Stratego module ", filename);
+			assert getSyncRoot() == Environment.getSyncRoot() || !Thread.holdsLock(Environment.getSyncRoot());
 			synchronized (Environment.getSyncRoot()) {
 				runtime.load(descriptor.openAttachment(filename));
 			}
@@ -207,6 +234,7 @@ public class StrategoObserver implements IModelListener {
 			if (asyncObserverScheduler != null)
 				asyncObserverScheduler.cancel();
 				
+			// TODO: reuse observer schedulers; just rename them and set a new parsecontroller
 			asyncObserverScheduler = new Job("Analyzing updates to " + parseController.getPath().lastSegment()) {
 				@Override
 				public IStatus run(IProgressMonitor monitor) {
@@ -220,7 +248,12 @@ public class StrategoObserver implements IModelListener {
 			//         thus avoiding analysis delays and progress view spamming 
 			// asyncObserverScheduler.setRule(parseController.getProject().getResource());
 			asyncObserverScheduler.setSystem(true);
-			asyncObserverScheduler.schedule(OBSERVER_DELAY);
+			if (rushNextUpdate) {
+				rushNextUpdate = false;
+				asyncObserverScheduler.schedule(0);
+			} else {
+				asyncObserverScheduler.schedule(OBSERVER_DELAY);
+			}
 		} finally {
 			observerSchedulerLock.unlock();
 		}
@@ -246,9 +279,6 @@ public class StrategoObserver implements IModelListener {
 		
 		try {
 			synchronized (getSyncRoot()) {
-				if (runtime == null)
-					init(monitor);
-				
 				feedback = invokeSilent(feedbackFunction, ast.getResource(), makeInputTerm(ast, false));
 	
 				if (feedback == null) {
@@ -257,7 +287,7 @@ public class StrategoObserver implements IModelListener {
 					Environment.logException(log.length() == 0 ? "Analysis failed" : "Analysis failed:\n" + log);
 					messages.clearMarkers(ast.getResource());
 					messages.addMarkerFirstLine(ast.getResource(), "Analysis failed (see error log)", IMarker.SEVERITY_ERROR);
-					messages.commitChanges();
+					messages.commitAllChanges();
 				} else if (!monitor.isCanceled()) {
 					// TODO: figure out how this was supposed to be synchronized
 					presentToUser(ast.getResource(), feedback);
@@ -332,7 +362,7 @@ public class StrategoObserver implements IModelListener {
 				throw new StrategoException("Illegal output from " + feedbackFunction + " (should be (errors,warnings,notes) tuple: " + feedback);
 			}
 		} finally {
-			messages.commitChanges();
+			messages.commitAllChanges();
 		}
 	}
 	
@@ -441,6 +471,7 @@ public class StrategoObserver implements IModelListener {
 	 * Logs and swallows all exceptions.
 	 */
 	public IStrategoTerm invokeSilent(String function, IResource resource, IStrategoTerm input) {
+		assert Thread.holdsLock(getSyncRoot());
 		IStrategoTerm result = null;
 		
 		try {
@@ -449,7 +480,7 @@ public class StrategoObserver implements IModelListener {
 			if (descriptor.isDynamicallyLoaded()) StrategoConsole.activateConsole();
 			messages.clearMarkers(resource);
 			messages.addMarkerFirstLine(resource, "Analysis failed (see error log)", IMarker.SEVERITY_ERROR);
-			messages.commitChanges();
+			messages.commitAllChanges();
 			Environment.logException("Runtime exited when evaluating strategy " + function, e);
 		} catch (UndefinedStrategyException e) {
 			// Note that this condition may also be reached when the semantic service hasn't been loaded yet
@@ -460,6 +491,10 @@ public class StrategoObserver implements IModelListener {
 			Environment.logException("Internal error evaluating strategy " + function, e);
 			if (descriptor.isDynamicallyLoaded()) StrategoConsole.activateConsole();
 		} catch (RuntimeException e) {
+			runtime.getIOAgent().getOutputStream(IOAgent.CONST_STDERR).println("Internal error evaluating " + function + " (see error log)");
+			Environment.logException("Internal error evaluating strategy " + function, e);
+			if (descriptor.isDynamicallyLoaded()) StrategoConsole.activateConsole();
+		} catch (Error e) { // e.g. NoClassDefFoundError due to bad/missing stratego jar
 			runtime.getIOAgent().getOutputStream(IOAgent.CONST_STDERR).println("Internal error evaluating " + function + " (see error log)");
 			Environment.logException("Internal error evaluating strategy " + function, e);
 			if (descriptor.isDynamicallyLoaded()) StrategoConsole.activateConsole();
@@ -501,6 +536,22 @@ public class StrategoObserver implements IModelListener {
 		assert Thread.holdsLock(getSyncRoot());
 		
 		return runtime;
+	}
+
+	public void prepareForReinitialize() {
+		// Do nothing
+	}
+	
+	public void initialize(IParseController controller) {
+		// Unused
+	}
+
+	public void reinitialize(Descriptor newDescriptor) throws BadDescriptorException {
+		synchronized (getSyncRoot()) {
+			cachedRuntimes.remove(descriptor);
+			runtime = null;
+			descriptor = newDescriptor;
+		}
 	}
 
 }

@@ -219,7 +219,7 @@ public class AstMessageHandler {
 	 * Clear all known markers (previously reported by this instance).
 	 * For a know resource, use {@link #clearMarkers(IResource)} instead.
 	 * 
-	 * @see #commitChanges()  To commit the changes made by this action.
+	 * @see #commitAllChanges()  To commit the changes made by this action.
 	 */
 	public void clearAllMarkers() {
 		synchronized (asyncActiveMarkers) {
@@ -265,7 +265,7 @@ public class AstMessageHandler {
 	 * Adds any markers not previously present and
 	 * deletes markers as instructed using clearMarkers().
 	 */
-	public void commitChanges() {
+	public void commitAllChanges() {
 		commitAdditions();
 		commitDeletions();
 	}

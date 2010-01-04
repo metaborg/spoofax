@@ -17,7 +17,7 @@ public class DynamicReferenceResolver extends AbstractService<IReferenceResolver
 	}
 
 	public Object getLinkTarget(Object node, IParseController parseController) {
-		initialize(parseController.getLanguage());
+		initialize(parseController);
 		return getWrapped().getLinkTarget(node, parseController);
 	}
 

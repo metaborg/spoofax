@@ -84,7 +84,7 @@ public class StrategoTermPath {
 			} else {
 				newSubtree = (IStrategoAstNode) newParent.getChildren().get(i);
 			}
-			if (!oldSubtree.getConstructor().equals(newSubtree.getConstructor())) {
+			if (!constructorEquals(oldSubtree, newSubtree)) {
 				// First, try siblings instead
 				if (i + 1 < newParent.getChildren().size()) {
 					newSubtree = (IStrategoAstNode) newParent.getChildren().get(i + 1);
@@ -111,6 +111,12 @@ public class StrategoTermPath {
 		return newAst;
 	}
 
+	private static boolean constructorEquals(IStrategoAstNode first, IStrategoAstNode second) {
+		return first.getConstructor() == null
+				? second.getConstructor() == null
+				: first.getConstructor().equals(second.getConstructor());
+	}
+
 	private static IStrategoAstNode findCorrespondingSubtreeResult(
 			IStrategoAstNode oldAst, IStrategoAstNode newAst,
 			IStrategoAstNode oldSubtree, IStrategoAstNode newSubtree,
@@ -131,7 +137,7 @@ public class StrategoTermPath {
 			if (exactMatch != null) return exactMatch;
 
 			newSubtree = (IStrategoAstNode) newParent.getChildren().get(i);
-			if (newSubtree.getConstructor().equals(oldSubtree.getConstructor())
+			if (constructorEquals(newSubtree, oldSubtree)
 					&& (containsMultipleCopies(newAst, newSubtree)
 					    || findSubtree(oldAst, newSubtree, true) == null)) {
 				return newSubtree; // meh, close enough

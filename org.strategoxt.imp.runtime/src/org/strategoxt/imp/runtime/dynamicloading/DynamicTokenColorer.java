@@ -9,6 +9,7 @@ import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
 import org.strategoxt.imp.runtime.EditorState;
+import org.strategoxt.imp.runtime.Environment;
 
 /**
  * Dynamic proxy class to a token colorer.
@@ -21,14 +22,16 @@ public class DynamicTokenColorer extends AbstractService<ITokenColorer> implemen
 	
 	private static final int GRAY_COMPONENT = 96;
 	
-	private IParseController lastParseController;
+	private static volatile Color gray;
 	
-	private Color gray;
+	private IParseController lastParseController;
 	
 	private volatile boolean isReinitializing;
 
 	public DynamicTokenColorer() {
 		super(ITokenColorer.class);
+		if (Environment.isMainThread())
+			getGrayColor(); // initialize color while we're in the SWT main thread
 	}
 	
 	public IRegion calculateDamageExtent(IRegion seed, IParseController controller) {
@@ -38,7 +41,7 @@ public class DynamicTokenColorer extends AbstractService<ITokenColorer> implemen
 	}
 
 	public TextAttribute getColoring(IParseController controller, Object token) {
-		if (!isInitialized()) initialize(controller.getLanguage());
+		if (!isInitialized()) initialize(controller);
 		lastParseController = controller;
 		TextAttribute result = getWrapped().getColoring(controller, token);
 		if (isReinitializing) result = toGray(result);
@@ -54,8 +57,12 @@ public class DynamicTokenColorer extends AbstractService<ITokenColorer> implemen
 			if (editorState != null) lastEditor = editorState.getEditor();
 		}
 
-		if (lastEditor != null && !lastEditor.getTitleImage().isDisposed())
-			lastEditor.updateColoring(new Region(0, lastEditor.getServiceControllerManager().getSourceViewer().getDocument().getLength()));
+		try {
+			if (lastEditor != null && !lastEditor.getTitleImage().isDisposed())
+				lastEditor.updateColoring(new Region(0, lastEditor.getServiceControllerManager().getSourceViewer().getDocument().getLength()));
+		} catch (NullPointerException e) {
+			// TODO: find out what's causing this NPE
+		}
 	}
 	
 	@Override
@@ -70,9 +77,13 @@ public class DynamicTokenColorer extends AbstractService<ITokenColorer> implemen
 				: new TextAttribute(getGrayColor(), attribute.getBackground(), attribute.getStyle(), attribute.getFont());
 	}
 	
-	private Color getGrayColor() {
-		if (gray == null)
-			gray = new Color(Display.getCurrent(), GRAY_COMPONENT, GRAY_COMPONENT, GRAY_COMPONENT);
+	private static Color getGrayColor() {
+		if (gray == null) {
+			synchronized (DynamicTokenColorer.class) {
+				if (gray == null)
+					gray = new Color(Display.getCurrent(), GRAY_COMPONENT, GRAY_COMPONENT, GRAY_COMPONENT);
+			}
+		}
 		return gray;
 	}
 }

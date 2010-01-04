@@ -1,6 +1,9 @@
 [
    ReferenceHoverRule   -- R [ H [ KW["reference"] _1 ] KW[":"] H [ _2 _3 ] ],
    ReferenceRule        -- R [ H [ KW["reference"] _1 ] KW[":"] _2 ],
+   CompletionProposer   -- R [ H [ KW["completion"] KW["proposer"] ] KW[":"] _1 ],
+   CompletionLexical    -- R [ H [ KW["completion"] KW["lexical"] ] KW[":"] _1 ],
+   CompletionKeyword    -- R [ H [ KW["completion"] KW["keyword"] ] KW[":"] H [ _1 _2 ] ],
    HoverRule            -- R [ H [ KW["hover"]     _1 ] KW[":"] _2 ],
    OccurrenceRule       -- R [ H [ KW["occurrence"] _1 ] H [ KW[":"] _2 ] ],
    SemanticProvider     -- R [ H [ KW["provider" ] ] KW[":"] _1 ],
@@ -45,7 +48,7 @@
    Extensions           -- R [ KW["extensions"] KW[":"] _1 ],
    Description          -- R [ KW["description"] KW[":"] _1 ],
    Table                -- R [ KW["table"] KW[":"] _1 ],
-   UnmanagedTablePrefix -- R [ H [ KW["unmanaged"] KW["table"] ] H hs=0 [ KW[":"] _1 KW["*"] ] ],
+   UnmanagedTablePrefix -- R [ H [ KW["unmanaged"] KW["table"] ] KW[":"] H hs=0 [ _1 KW["*"] ] ],
    StartSymbols         -- R [ H [ KW["start"] KW["symbols"] ] KW[":"] _1 ],
    NoStartSymbols       -- KW["_"],
    URL                  -- R [ KW["url"] KW[":"] _1 ],

@@ -62,7 +62,7 @@ strategies
     if not(file-exists) then
       fatal-err(|"Accompanying .def file not found.")
     end;
-    verbose-msg(!"Found accompanying .def file: ", id)
+    verbose-msg(!"Found accompanying .def file:", id)
 
 strategies
 
@@ -94,8 +94,9 @@ strategies
         rules(StartSymbol := "Start")
       end;
       create-grammar;
-      create-trans;
-      input := <pack-default-sdf> FILE($[syntax/[<get-sdf-main-module>].sdf])
+      create-example-trans;
+      input @ FILE(inputname) := <pack-default-sdf> FILE($[syntax/[<get-sdf-main-module>].sdf]);
+      rules(DefaultDefFile := inputname)
     end;
     
     configure-main-descriptor;
@@ -133,7 +134,7 @@ strategies
     create-build-xml;
     create-builder-xml;
     create-example-file;
-    create-trans-helper;
+    create-common-trans;
     copy-jars;
     copy-def-file;
     
@@ -143,12 +144,11 @@ strategies
     not(
       <is-older-than> (
         <guarantee-extension(|"rtg")> <InputFile>
-      , [ <descriptor-name> "Outliner.generated.esv"
-        , <descriptor-name> "Outliner.esv"
-        , <descriptor-name> "Folding.generated.esv"
-        , <descriptor-name> "Folding.esv"
+      , [ $[editor/[<descriptor-name> "-Outliner.generated.esv"]]
+        , $[editor/[<descriptor-name> "-Folding.generated.esv"]]
+        , $[editor/[<descriptor-name> "-References.generated.esv"]]
         ]
-      ); debug(!"sorry boss these fiels are older")
+      )
     )
   
   // (Note that these xtc calls are intercepted by the Spoofax/IMP runtime.)

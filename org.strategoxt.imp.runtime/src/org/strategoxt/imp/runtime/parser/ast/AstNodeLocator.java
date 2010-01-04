@@ -39,6 +39,7 @@ public class AstNodeLocator implements ISourcePositionLocator {
 	}
 	
 	public int getStartOffset(Object token) {
+		// TODO: return -1 if not in the same AST as originating parse controller
 		if (token instanceof AstNode)
 			token = ((AstNode) token).getLeftIToken();
 

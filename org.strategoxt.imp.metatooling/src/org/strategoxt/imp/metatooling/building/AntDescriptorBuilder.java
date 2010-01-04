@@ -17,16 +17,31 @@ import org.strategoxt.imp.runtime.Environment;
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class AntDescriptorBuilder {
+	
+	private static volatile boolean active;
+	
 	public static void main(String[] args) {
 		if (args == null || args.length == 0)
 			throw new IllegalArgumentException("Descriptor file expected");
 		
+		if (DynamicDescriptorBuilder.getInstance().isAntBuildDisallowed())
+			throw new IllegalStateException("Cannot load new editor at this time: try again after background loading is completed");
+		
 		synchronized (Environment.getSyncRoot()) {
-			String descriptor = args[0];
-			
-			IResource source = getResource(getSourceDescriptor(descriptor));
-			DynamicDescriptorBuilder.getInstance().updateResource(source, new NullProgressMonitor());
+			active = true;
+			try {
+				String descriptor = args[0];
+				
+				IResource source = getResource(getSourceDescriptor(descriptor));
+				DynamicDescriptorBuilder.getInstance().updateResource(source, new NullProgressMonitor());
+			} finally {
+				active = false;
+			}
 		}
+	}
+	
+	public static boolean isActive() {
+		return active;
 	}
 
 	private static IResource getResource(String file) {

@@ -11,7 +11,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
@@ -21,7 +20,6 @@ import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -91,9 +89,9 @@ public class DynamicDescriptorLoader implements IResourceChangeListener {
 			Job job = new WorkspaceJob("Updating editor descriptor runtime") {
 				@Override
 				public IStatus runInWorkspace(IProgressMonitor monitor) {
-					// TODO: Finer-grained locking? (Seems to lead to deadlocks)
+					// TODO: Finer-grained locking? (that seems to lead to deadlocks)
 					synchronized (Environment.getSyncRoot()) {
-						monitor.beginTask("", IProgressMonitor.UNKNOWN);
+						monitor.beginTask("Scanning workspace", IProgressMonitor.UNKNOWN);
 						postResourceChanged(event.getDelta(), monitor);
 						return Status.OK_STATUS;
 					}
@@ -144,8 +142,9 @@ public class DynamicDescriptorLoader implements IResourceChangeListener {
 				// TODO: Prevent duplicate builds triggered this way...?
 				DynamicDescriptorBuilder.getInstance().updateResource(source, monitor);
 			} else if (resource.exists()) {
-				monitor.subTask("Loading " + name);
+				monitor.setTaskName("Loading " + name);
 				loadPackedDescriptor(resource);
+				monitor.setTaskName(null);
 			}
 		} else if (name.endsWith(".tbl")) {
 			name = name.substring(0, name.length() - 4);
@@ -185,7 +184,7 @@ public class DynamicDescriptorLoader implements IResourceChangeListener {
 			reportError(source, "Internal error loading descriptor " + descriptor + ": " + e.getMessage(), e);
 			throw e;
 		} finally {
-			asyncMessageHandler.commitChanges();
+			asyncMessageHandler.commitAllChanges();
 		}
 	}
 	
@@ -208,33 +207,6 @@ public class DynamicDescriptorLoader implements IResourceChangeListener {
 		if (name.endsWith(".main.esv")) return packedDescriptor;
 		name = name.substring(0, name.length() - ".packed.esv".length());
 		return file.getParentFile().getParent() + "/editor/" + name + ".main.esv";
-	}
-	
-	public static IResource getTargetDescriptor(IResource mainDescriptor) {
-		String name = mainDescriptor.getName();
-		if (name.endsWith(".packed.esv")) return mainDescriptor;
-		name = name.substring(0, name.length() - ".main.esv".length());
-		IProject project = mainDescriptor.getProject();
-		IResource result = project.findMember("include/" + name + ".packed.esv");
-		
-		if (result == null) {
-			getInstance().forceNoUpdate(project.getFullPath() + "/include/" + name + ".packed.esv");
-			IResource includeDir = project.findMember("/include");
-			try {
-				if (includeDir == null) project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
-				else includeDir.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
-			} catch (CoreException e) {
-				Environment.logException("Exception when refreshing resources", e);
-			}
-			result = project.findMember("include/" + name + ".packed.esv");
-		}
-		
-		if (result == null) {
-			Environment.logException("Target descriptor not found", new FileNotFoundException("include/" + name + ".packed.esv"));
-			return mainDescriptor;
-		} else {
-			return result;
-		}
 	}
 	
 	private void reportError(final IResource descriptor, final String message, Throwable exception) {

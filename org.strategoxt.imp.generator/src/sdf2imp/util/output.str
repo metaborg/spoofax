@@ -3,10 +3,14 @@ module sdf2imp/util/output
 imports
   libstratego-gpp
   libstratego-sglr
+  libjava-front
   
   sdf2imp/lib/-
 
-  sdf2imp/util/pp
+  sdf2imp/options
+  sdf2imp/util/-
+  sdf2imp/services/create-main-descriptor
+  EditorService
 
 strategies
   
@@ -59,9 +63,8 @@ strategies
       fullpath := <conc-strings> (path, "/", filename)
     );
     
-    print-filename(|["editor"], filename);
-    
     if ResetFiles <+ <condition> fullpath then
+      print-filename(|["editor"], filename);
       new-contents;
       (
         ?Module(name, _ ,_);

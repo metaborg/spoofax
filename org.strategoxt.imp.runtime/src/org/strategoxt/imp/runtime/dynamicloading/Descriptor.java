@@ -9,6 +9,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -27,8 +29,8 @@ import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.RuntimeActivator;
+import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.services.MetaFileLanguageValidator;
-import org.strategoxt.imp.runtime.services.StrategoObserver;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -46,7 +48,11 @@ public class Descriptor {
 	
 	protected static final String DEFAULT_ICON_BUNDLE = RuntimeActivator.getInstance().getBundle().getSymbolicName();
 	
-	private final Map<AbstractService, Object> services = new WeakHashMap<AbstractService, Object>();
+	private final Map<IDynamicLanguageService, Object> activeServices =
+		Collections.synchronizedMap(new WeakHashMap<IDynamicLanguageService, Object>());
+	
+	private final Map<SGLRParseController, Map<Class, ILanguageService>> cachedServices =
+		Collections.synchronizedMap(new WeakHashMap<SGLRParseController, Map<Class, ILanguageService>>());
 	
 	private final List<AbstractServiceFactory> serviceFactories = new ArrayList<AbstractServiceFactory>();
 	
@@ -55,8 +61,6 @@ public class Descriptor {
 	private Language language;
 	
 	private IPath basePath;
-	
-	private StrategoObserver feedback;
 	
 	private Set<File> attachedFiles;
 	
@@ -81,50 +85,58 @@ public class Descriptor {
 		serviceFactories.add(new SyntaxPropertiesFactory());
 		serviceFactories.add(new TokenColorerFactory());
 		serviceFactories.add(new BuilderFactory());
+		serviceFactories.add(new ContentProposerFactory());
 	}
 	
 	/**
-	 * Uninitialize all dynamic services associated with this Descriptor,
+	 * Uninitialize all dynamic activeServices associated with this Descriptor,
 	 * and lazily initializes them to use the given new Descriptor.
 	 * 
 	 * @see AbstractService#reinitialize(Descriptor)
 	 */
 	public void reinitialize(Descriptor newDescriptor) throws BadDescriptorException {
-		// Note: may also be reinitialized with the same descriptor
-		for (AbstractService service : services.keySet())
-			service.reinitialize(newDescriptor);
-		attachedFiles = null;
+		synchronized (activeServices) {
+			// Note: may also be reinitialized with the same descriptor
+			for (IDynamicLanguageService service : activeServices.keySet())
+				service.reinitialize(newDescriptor);
+			attachedFiles = null;
+			cachedServices.clear();
+		}
 	}
 	
 	/**
-	 * Prepares editor services for reinitialization with a new descriptor.
+	 * Prepares editor activeServices for reinitialization with a new descriptor.
 	 */
 	public void prepareForReinitialize() {
-		for (AbstractService service : services.keySet())
-			service.prepareForReinitialize();
+		synchronized (activeServices) {
+			for (IDynamicLanguageService service : activeServices.keySet())
+				service.prepareForReinitialize();
+		}
 	}
 	
 	// LOADING SERVICES
 	
 	/**
 	 * Creates a new service of a particular type.
-	 * 
-	 * @see #addInitializedService(AbstractService)
-	 *      Must be called for dynamic _wrapper_ services as soon as they are fully initialized.
 	 */
-	public synchronized<T extends ILanguageService> T createService(Class<T> type)
+	public synchronized<T extends ILanguageService> T createService(Class<T> type, SGLRParseController controller)
 			throws BadDescriptorException {
-		
+
 		boolean foundFactory = false;
-		
-		// TODO: caching of builders and reference resolvers?
 		
 		try {
 			for (AbstractServiceFactory<T> factory : serviceFactories) {
 				if (factory.canCreate(type)) {
-					T result = factory.create(this);
-					foundFactory = true;
-					if (result != null) return result;
+					synchronized (factory) {
+						T result = getCachedService(type, controller);
+						if (result != null) return result;
+						result = factory.create(this, controller);
+						if (result != null) {
+							addKnownService(type, controller, result, factory.isCached() && controller != null);
+							return result;
+						}
+						foundFactory = true;
+					}
 				}
 			}
 		} catch (RuntimeException e) {
@@ -137,21 +149,38 @@ public class Descriptor {
 		else
 			throw new IllegalStateException("Could not create an editor service for " + type.getSimpleName());
 	}
-	
-	public StrategoObserver getStrategoObserver() throws BadDescriptorException {
-		if (feedback == null)
-			feedback = new StrategoObserverFactory().create(this);
-		return feedback;
+
+	@SuppressWarnings("unchecked")
+	private<T> T getCachedService(Class<T> type, SGLRParseController controller) {
+		Map<Class, ILanguageService> cache = cachedServices.get(controller);
+		T result = cache == null ? null : (T) cache.get(type);
+		return result;
+	}
+
+	private void addKnownService(Class type, SGLRParseController controller, ILanguageService service, boolean isCached) {
+		if (service instanceof IDynamicLanguageService)
+			activeServices.put((IDynamicLanguageService) service, null);
+		if (isCached) {
+			Map<Class, ILanguageService> cache = cachedServices.get(controller);
+			if (cache == null) {
+				cache = Collections.synchronizedMap(new HashMap<Class, ILanguageService>());
+				cachedServices.put(controller, cache);
+			}
+			cache.put(type, service);
+		}
 	}
 	
-	public void addInitializedService(AbstractService service) {
-		services.put(service, null);
+	public void addActiveService(IDynamicLanguageService service) {
+		activeServices.put(service, null);
 	}
 	
-	public void addInitializedServices(Descriptor descriptor) {
-		for (AbstractService service : descriptor.services.keySet()) {
-			services.put(service, null);
-		} 
+	public void addActiveServices(Descriptor descriptor) {
+		// We only copy the active services here; the service cache may be invalid
+		synchronized (descriptor.activeServices) {
+			for (IDynamicLanguageService service : descriptor.activeServices.keySet()) {
+				activeServices.put(service, null);
+			}
+		}
 	}
 	
 	public IStrategoAppl getDocument() {
@@ -201,7 +230,7 @@ public class Descriptor {
 	protected Class<?> getAttachmentProvider() {
 		try {
 			if (attachmentProvider == null)
-				attachmentProvider = createService(IParseController.class).getClass();
+				attachmentProvider = createService(IParseController.class, null).getClass();
 			return attachmentProvider;
 		} catch (BadDescriptorException e) { // Unexpected exception
 			Environment.logException("Unable to instantiate parse controller class", e);

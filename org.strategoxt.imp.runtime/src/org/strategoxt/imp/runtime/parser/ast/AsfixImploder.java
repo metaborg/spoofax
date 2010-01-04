@@ -5,9 +5,6 @@ import static org.spoofax.jsglr.Term.*;
 import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.*;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Map;
-import java.util.WeakHashMap;
 
 import lpg.runtime.IToken;
 import lpg.runtime.PrsStream;
@@ -34,6 +31,7 @@ import aterm.pure.ATermListImpl;
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
 public class AsfixImploder {
+
 	private static final int EXPECTED_NODE_CHILDREN = 5;
 	
 	protected static final int PARSE_TREE = 0;
@@ -49,9 +47,6 @@ public class AsfixImploder {
 	protected static final int PROD_ATTRS = 2;
 	
 	private static final int NONE = -1;
-	
-	private static final Map<ATerm, AstNode> implodedCache =
-		Collections.synchronizedMap(new WeakHashMap<ATerm, AstNode>());
 	
 	protected final AstNodeFactory factory = new AstNodeFactory();
 	
@@ -79,9 +74,8 @@ public class AsfixImploder {
 		
 		// TODO: Return null if imploded tree has null constructor??
 		
-		AstNode result = implodedCache.get(asfix);
-		if (result != null && tokenizer.getStartOffset() != 0) // HACK: tokenizer is sometimes cached empty?
-			return result;
+		if (tokenizer.getCachedAst() != null)
+			return tokenizer.getCachedAst();
 		
 		Debug.startTimer();
 
@@ -89,9 +83,10 @@ public class AsfixImploder {
 			throw new IllegalArgumentException("Parse tree expected");
 		
 		if (offset != 0 || tokenizer.getStartOffset() != 0)
-			throw new IllegalStateException("Race condition in AsfixImploder");
+			throw new IllegalStateException("Race condition in AsfixImploder (" + tokenizer.getLexStream().getFileName() + "; might be caused by stack overflow)");
 		
 		ATerm top = (ATerm) asfix.getChildAt(PARSE_TREE);
+		AstNode result;
 		offset = 0;
 		inLexicalContext = false;
 		
@@ -108,9 +103,7 @@ public class AsfixImploder {
 			Debug.log("Parsed " + result.toString());
 		}
 		
-		implodedCache.put(asfix, result);
-		assert implodedCache.get(asfix) == result;
-
+		tokenizer.setCachedAst(result);
 		return result;
 	}
 	

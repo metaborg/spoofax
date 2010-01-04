@@ -17,7 +17,7 @@ import org.strategoxt.imp.runtime.Environment;
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 @SuppressWarnings("restriction")
-class SidePaneEditorHelper {
+public class SidePaneEditorHelper {
 	
 	private EditorStack oldStack;
 	
@@ -38,7 +38,9 @@ class SidePaneEditorHelper {
 	}
 	
 	public void internalOpenSidePane() throws Throwable {
-		assert EditorState.isUIThread();
+		if (!EditorState.isUIThread())
+			throw new IllegalStateException("Must be called from the UI thread");
+		
 		IWorkbenchPage page =
 			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 
@@ -73,7 +75,7 @@ class SidePaneEditorHelper {
 		try {
 			oldStack.setFocus();
 		} catch (Throwable t) {
-			Environment.logException("Could not close side pane", t);			
+			Environment.logException("Could not restore focus from side pane", t);			
 		}
 	}
 	

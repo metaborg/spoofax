@@ -101,7 +101,7 @@ strategies
     basetime := <file-exists; modification-time> file;
     !otherfiles;
     list-loop(
-      <lt> (basetime, <file-exists; modification-time>)
+      <lt> (basetime, <file-exists < modification-time + verbose-msg(!"Does not exist:", id); fail>)
     )
     
 

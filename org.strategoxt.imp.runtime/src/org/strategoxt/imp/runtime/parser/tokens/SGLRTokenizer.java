@@ -7,15 +7,20 @@ import lpg.runtime.LexStream;
 import lpg.runtime.PrsStream;
 import lpg.runtime.Token;
 
+import org.strategoxt.imp.runtime.parser.ast.AstNode;
+
 /**
  * Wrapper class to add tokens to an LPG PrsStream.
  * 
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
 public class SGLRTokenizer {
+	
 	private final LexStream lexStream = new LexStream();
 	
 	private final PrsStream parseStream = new PrsStream(lexStream);
+	
+	private AstNode cachedAst;
 	
 	/** Start of the last token */
 	private int startOffset;
@@ -37,6 +42,14 @@ public class SGLRTokenizer {
 	
 	public PrsStream getParseStream() {
 		return parseStream;
+	}
+	
+	public AstNode getCachedAst() {
+		return cachedAst;
+	}
+	
+	public void setCachedAst(AstNode cachedAst) {
+		this.cachedAst = cachedAst;
 	}
 	
 	public LexStream getLexStream() {
@@ -105,12 +118,12 @@ public class SGLRTokenizer {
 		boolean onlySeenWhitespace = Character.isWhitespace(lexStream.getCharValue(endOffset));
 		
 		while (endOffset + 1 < lexStream.getStreamLength()) {
-			boolean isWhitespace = isWhitespaceChar(endOffset+1);
+			char next = lexStream.getCharValue(endOffset+1);
 			
 			if (onlySeenWhitespace) {
-				onlySeenWhitespace = isWhitespace;
+				onlySeenWhitespace = Character.isWhitespace(next);
 				offset++;
-			} else if (isWhitespace) {
+			} else if (!Character.isLetterOrDigit(next)) {
 				break;
 			}
 			
@@ -118,12 +131,6 @@ public class SGLRTokenizer {
 		}
 		
 		return new Token(parseStream, offset, endOffset, TK_ERROR.ordinal());
-	}
-
-	private boolean isWhitespaceChar(int streamPos) {
-		char c = lexStream.getCharValue(streamPos);
-		boolean isWhitespace = Character.isWhitespace(c);
-		return isWhitespace;
 	}
 	
 	/**
@@ -202,6 +209,9 @@ public class SGLRTokenizer {
 	public IToken makeErrorTokenBackwards(int offset) {
 		int beginOffset = offset;
 		boolean onlySeenWhitespace = true;
+		
+		while (offset >= lexStream.getStreamLength())
+			offset--;
 		
 		while (beginOffset > 0) {
 			char c = lexStream.getCharValue(beginOffset - 1);

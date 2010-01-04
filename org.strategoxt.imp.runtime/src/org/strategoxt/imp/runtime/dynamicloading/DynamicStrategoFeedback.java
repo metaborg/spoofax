@@ -19,7 +19,7 @@ public class DynamicStrategoFeedback extends AbstractService<StrategoObserver> i
 	}
 
 	public void update(IParseController parseController, IProgressMonitor monitor) {
-		initialize(parseController.getLanguage());
+		initialize(parseController);
 		getWrapped().update(parseController, monitor);
 	}
 

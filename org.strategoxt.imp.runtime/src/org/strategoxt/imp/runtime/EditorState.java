@@ -27,6 +27,7 @@ import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.dynamicloading.DynamicParseController;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
+import org.strategoxt.imp.runtime.parser.ast.AstNode;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
@@ -127,7 +128,7 @@ public class EditorState {
 	/**
 	 * @see SGLRParseController#getCurrentAst
 	 */
-	public final IStrategoAstNode getCurrentAst() {
+	public final AstNode getCurrentAst() {
 		return getParseController().getCurrentAst();
 	}
 	
@@ -162,7 +163,7 @@ public class EditorState {
 			return null;
 		
 		IToken start = getParseController().getTokenIterator(new Region(selection.x, 0), true).next();
-		IToken end = getParseController().getTokenIterator(new Region(selection.x + selection.y - 1, 0), true).next();
+		IToken end = getParseController().getTokenIterator(new Region(selection.x + selection.y, 0), true).next();
 		
 		IPrsStream tokens = start.getIPrsStream();
 		int layout = TokenKind.TK_LAYOUT.ordinal();

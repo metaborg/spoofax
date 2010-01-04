@@ -5,6 +5,9 @@ imports
 
 exports
 
+  sorts
+    CompletionAnno
+
   syntax
   
     "references" <SectionName-LEX> <LAYOUT?-CF> <SemanticRule*-CF> -> <Section-CF> {cons("References")}
@@ -18,6 +21,14 @@ exports
     "occurrences" -> <ReservedName-CF>
 
   context-free syntax
+
+    "completion" "proposer" ":" StrategoCall -> SemanticRule {cons("CompletionProposer")}
+
+    "completion" "lexical" ":" PropertyValue -> SemanticRule {cons("CompletionLexical")}
+
+    "completion" "keyword" ":" PropertyValue CompletionAnno -> SemanticRule {cons("CompletionKeyword")}
+
+    "completion" "trigger" ":" PropertyValue CompletionAnno -> SemanticRule {cons("CompletionTrigger")}
   
     "reference"  SemanticNode ":" StrategoCall StrategoCall -> SemanticRule {cons("ReferenceHoverRule"), deprecated}
 
@@ -35,3 +46,7 @@ exports
     "builder"    -> StrategoCall {reject}
     "occurrence" -> StrategoCall {reject}
     ReservedName -> StrategoCall {reject}
+
+                -> CompletionAnno {cons("None")}
+    "(disable)" -> CompletionAnno {cons("Disable")}
+    "(disable)" -> PropertyValue {reject}

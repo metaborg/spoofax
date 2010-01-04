@@ -17,9 +17,11 @@ exports
 
   syntax  
   
-    "~//" <CommentLine[[E]]-LEX> -> <E-CF> {cons("CommentLine")}
+    "~//"  <CommentLine[[E]]-LEX> -> <E-CF> {cons("CommentLine"), prefer}
+    "~~//" <CommentLine[[E]]-LEX> -> <E-CF> {cons("CommentLine")}
   
   context-free syntax
   
-    "~\n" -> E {cons("EmptyLine"), avoid}
+    "~\n"  -> E {cons("EmptyLine"), avoid}
+    "~~\n" -> E {cons("EmptyLine")}
 

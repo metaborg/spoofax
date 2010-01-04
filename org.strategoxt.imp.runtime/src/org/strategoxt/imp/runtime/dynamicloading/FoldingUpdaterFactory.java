@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.eclipse.imp.services.IFoldingUpdater;
 import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.services.FoldingUpdater;
 import org.strategoxt.imp.runtime.services.NodeMapping;
 
@@ -15,16 +16,12 @@ import static org.strategoxt.imp.runtime.dynamicloading.TermReader.*;
  */
 public class FoldingUpdaterFactory extends AbstractServiceFactory<IFoldingUpdater> {
 	
-	@Override
-	public Class<IFoldingUpdater> getCreatedType() {
-		return IFoldingUpdater.class;
+	public FoldingUpdaterFactory() {
+		super(IFoldingUpdater.class);
 	}
 
-	/**
-	 * @see Descriptor#createService(Class)
-	 */
 	@Override
-	public IFoldingUpdater create(Descriptor d) throws BadDescriptorException {
+	public IFoldingUpdater create(Descriptor d, SGLRParseController controller) throws BadDescriptorException {
 		// TODO: "FoldAll" folding rules
 		
 		List<NodeMapping> folded = new ArrayList<NodeMapping>(); 

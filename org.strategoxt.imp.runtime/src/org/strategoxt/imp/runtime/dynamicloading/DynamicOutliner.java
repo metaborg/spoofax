@@ -19,7 +19,7 @@ public class DynamicOutliner extends AbstractService<IOutliner> implements IOutl
 	}
 
 	public void createOutlinePresentation(IParseController controller, int offset) {
-		initialize(controller.getLanguage());
+		initialize(controller);
 		
 		if (editor != null) getWrapped().setEditor(editor);
 		if (tree != null) getWrapped().setTree(tree);

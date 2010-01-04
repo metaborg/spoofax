@@ -69,6 +69,10 @@ public class NodeMapping<T> {
 		return null;
 	}
 	
+	public T getAttribute() {
+		return attribute;
+	}
+	
 	public static<T> T getFirstAttribute(List<NodeMapping<T>> mappings, String constructor, String sort, int tokenKind) {
 		for (int i = 0; i < mappings.size(); i++) {
 			T result = mappings.get(i).getAttribute(constructor, sort, tokenKind);

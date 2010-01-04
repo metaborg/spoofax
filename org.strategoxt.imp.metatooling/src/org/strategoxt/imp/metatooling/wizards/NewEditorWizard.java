@@ -1,5 +1,7 @@
 package org.strategoxt.imp.metatooling.wizards;
 
+import static org.eclipse.core.resources.IResource.*;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -12,8 +14,10 @@ import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
@@ -180,9 +184,8 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 				DynamicDescriptorLoader.getInstance().forceUpdate(descriptor);
 				monitor.worked(2);
 
-				project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
+				//project.refreshLocal(DEPTH_INFINITE, new NullProgressMonitor());
 				monitor.worked(1);
-
 			}
 		} finally {
 			Job.getJobManager().endRule(root);
@@ -197,7 +200,26 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 		EditorState.asyncOpenEditor(display, project.getFile("/syntax/" + languageName +  ".sdf"), true);
 		monitor.worked(1);
 		EditorState.asyncOpenEditor(display, project.getFile("/test/example." + extensions.split(",")[0]), false);
+		refreshProject(project);
 		monitor.done();
+	}
+
+	private void refreshProject(final IProject project) {
+		// We schedule a project refresh to make all ".generated" files readable
+		Job job = new Job("Refreshing project") {
+			@Override
+			protected IStatus run(IProgressMonitor monitor) {
+				synchronized (Environment.getSyncRoot()) {}; // wait for update thread
+				try {
+					project.refreshLocal(DEPTH_INFINITE, new NullProgressMonitor());
+				} catch (CoreException e) {
+					// Ignore
+				}
+				return Status.OK_STATUS;
+			}
+		};
+		job.setSystem(true);
+		job.schedule(5000); 
 	}
  	
  	private static String toStrategoName(String languageName) {

@@ -9,7 +9,6 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.spoofax.interpreter.library.IOperatorRegistry;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.parser.JSGLRI;
 import org.strategoxt.imp.runtime.parser.ast.AsfixImploder;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
 import org.strategoxt.imp.runtime.parser.ast.RootAstNode;
@@ -45,13 +44,13 @@ public class IMPImplodeAsfixStrategy extends implode_asfix_1_0 {
 		char[] inputChars = mappings.getInputChars(asfix);
 		ATerm asfixATerm = mappings.getInputTerm(asfix);
 		File inputFile = mappings.getInputFile(asfix);
+		SGLRTokenizer tokenizer = mappings.getTokenizer(asfix);
 		
 		if (inputChars == null || asfix == null) {
 			Environment.logException("Could not find origin term for asfix tree (did it change after parsing?)");
 			return outer.invoke(context, asfix, implodeConcreteSyntax);
 		}
 		
-		SGLRTokenizer tokenizer = JSGLRI.getTokenizer(asfixATerm);
 		AstNode result = imploder.implode(asfixATerm, tokenizer);
 		result = RootAstNode.makeRoot(result, getResource(inputFile));
 		return result.getTerm();

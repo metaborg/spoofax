@@ -198,13 +198,13 @@ public class NewEditorWizardPage extends WizardPage {
 			return;
 		}
 		if (getInputExtensions().indexOf(".") != -1 || getInputExtensions().replace('\\', '/').indexOf("/") != -1
-				|| getInputExtensions().indexOf(":") > -1){
+				|| getInputExtensions().indexOf(":") > -1) {
 			setErrorStatus("File extension must be valid");
 			return;
 		}
 
 		IWorkspace workspace = ResourcesPlugin.getWorkspace();
-		if (workspace.getRoot().getProject(getInputLanguageName()).exists()) {
+		if (workspace.getRoot().getProject(getInputProjectName()).exists()) {
 			setErrorStatus("A project with this name already exists");
 			return;
 		}

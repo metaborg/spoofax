@@ -18,8 +18,10 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.interpreter.terms.TermConverter;
 import org.spoofax.jsglr.BadTokenException;
+import org.spoofax.jsglr.MultiBadTokenException;
 import org.spoofax.jsglr.ParseTimeoutException;
 import org.spoofax.jsglr.RecoveryConnector;
+import org.spoofax.jsglr.RegionRecovery;
 import org.spoofax.jsglr.TokenExpectedException;
 import org.strategoxt.imp.generator.sdf2imp;
 import org.strategoxt.imp.generator.simplify_ambiguity_report_0_0;
@@ -98,6 +100,8 @@ public class ParseErrorHandler {
 	private volatile int additionsVersionId;
 	
 	private List<Runnable> errorReports = new ArrayList<Runnable>();
+	
+	private boolean rushNextUpdate;
 
 	public ParseErrorHandler(SGLRParseController source) {
 		this.source = source;
@@ -116,13 +120,20 @@ public class ParseErrorHandler {
 	}
 	
 	/**
+	 * Sets whether to report the next batch of delayed errors directly. 
+	 */
+	public void setRushNextUpdate(boolean rushNextUpdate) {
+		this.rushNextUpdate = rushNextUpdate;
+	}
+	
+	/**
 	 * Report WATER + INSERT errors from parse tree
 	 */
-	public void gatherNonFatalErrors(SGLRTokenizer tokenizer, ATerm top) {
+	public void gatherNonFatalErrors(char[] inputChars, SGLRTokenizer tokenizer, ATerm top) {
 		try {
 			errorReports.clear();
 			offset = 0;
-			reportSkippedFragments(tokenizer);
+			reportSkippedFragments(inputChars, tokenizer);
 			ATermAppl asfix = termAt(top, 0);
 			reportRecoveredErrors(tokenizer, asfix, 0, 0);
 		} catch (RuntimeException e) {
@@ -177,8 +188,15 @@ public class ParseErrorHandler {
 		handler.commitAdditions();
 	}
 
-	public void scheduleCommitAdditions() {
-		assert errorReports.isEmpty() : "Deletions must be committed first";
+	/**
+	 * Schedules delayed error marking for errors not committed yet.
+	 * 
+	 * @see AstMessageHandler#commitAllChanges()
+	 */
+	public void scheduleCommitAllChanges() {
+		for (Runnable marker : errorReports) {
+			marker.run();
+		}
 
 		final int expectedVersion = ++additionsVersionId;
 
@@ -215,7 +233,12 @@ public class ParseErrorHandler {
 			}
 		};
 		job.setSystem(true);
-		job.schedule((long) (PARSE_ERROR_DELAY * (isRecoveryAvailable ? 1 : 1.5)));
+		if (rushNextUpdate) {
+			rushNextUpdate = false;
+			job.schedule(0);
+		} else {
+			job.schedule((long) (PARSE_ERROR_DELAY * (isRecoveryAvailable ? 1 : 1.5)));
+		}
 	}
 	
 	public void abortScheduledCommit() {
@@ -342,25 +365,23 @@ public class ParseErrorHandler {
 		return message == null ? amb.toString() : ((IStrategoString) message).stringValue();
 	}
 	
-	private void reportSkippedFragments(SGLRTokenizer tokenizer) {
-		char[] inputChars = tokenizer.getLexStream().getInputChars();
+	private void reportSkippedFragments(char[] inputChars, SGLRTokenizer tokenizer) {
+		char[] processedChars = tokenizer.getLexStream().getInputChars();
 
-		for (int i = 0; i < inputChars.length; i++) {
-			char c = inputChars[i];
+		for (int i = 0; i < processedChars.length; i++) {
+			char c = processedChars[i];
 			if (c == SKIPPED_CHAR) {
 				// Recovered by skipping a region
 				int beginSkipped = i;
 				int endSkipped = i;
-				while (++i < inputChars.length) {
-					c = inputChars[i];
+				while (++i < processedChars.length) {
+					c = processedChars[i];
 					if (c == SKIPPED_CHAR)
 						endSkipped = i;
 					else if (!RecoveryConnector.isLayoutCharacter(c))
 						break;
 				}
-				IToken token = tokenizer.makeErrorToken(beginSkipped, endSkipped);
-				tokenizer.changeTokenKinds(beginSkipped, endSkipped, TokenKind.TK_LAYOUT, TokenKind.TK_ERROR);
-				reportErrorAtTokens(token, token, UNEXPECTED_REGION);
+				reportSkippedFragment(inputChars, tokenizer, beginSkipped, endSkipped);
 			} else if (c == UNEXPECTED_EOF_CHAR) {
 				// Recovered using a forced reduction
 				IToken token = tokenizer.makeErrorTokenBackwards(i);
@@ -371,10 +392,27 @@ public class ParseErrorHandler {
 		
 		// Report forced reductions
 		int treeEnd = tokenizer.getParseStream().getTokenAt(tokenizer.getParseStream().getStreamLength() - 1).getEndOffset();
-		if (treeEnd < inputChars.length) {
-			IToken token = tokenizer.makeErrorToken(treeEnd + 1, inputChars.length);
+		if (treeEnd < processedChars.length) {
+			IToken token = tokenizer.makeErrorToken(treeEnd + 1, processedChars.length);
 			reportErrorAtTokens(token, token, "Could not parse the remainder of this file");
-			tokenizer.changeTokenKinds(treeEnd + 1, inputChars.length, TokenKind.TK_LAYOUT, TokenKind.TK_ERROR);
+			tokenizer.changeTokenKinds(treeEnd + 1, processedChars.length, TokenKind.TK_LAYOUT, TokenKind.TK_ERROR);
+		}
+	}
+
+	private void reportSkippedFragment(char[] inputChars, SGLRTokenizer tokenizer, int beginSkipped, int endSkipped) {
+		IToken token = tokenizer.makeErrorToken(beginSkipped, endSkipped);
+		tokenizer.changeTokenKinds(beginSkipped, endSkipped, TokenKind.TK_LAYOUT, TokenKind.TK_ERROR);
+		reportErrorAtTokens(token, token, UNEXPECTED_REGION);
+		int line = token.getLine();
+		int endLine = token.getEndLine() + RegionRecovery.NR_OF_LINES_TILL_SUCCESS; 
+		for (BadTokenException e : source.getParser().getParser().getCollectedErrors()) {
+			if (e.getLineNumber() >= line && e.getLineNumber() <= endLine) {
+				char[] processedChars = tokenizer.getLexStream().getInputChars();
+				tokenizer.getLexStream().setInputChars(inputChars);
+				tokenizer.getLexStream().setInputChars(inputChars);
+				reportError(tokenizer, (Exception) e); // use double dispatch
+				tokenizer.getLexStream().setInputChars(processedChars);
+			}
 		}
 	}
 		
@@ -389,23 +427,43 @@ public class ParseErrorHandler {
 		IToken token = tokenizer.makeErrorToken(exception.getOffset());
 		String message = exception.isEOFToken()
 			? exception.getShortMessage()
-			: "'" + token + "' not expected here";
+			: "Syntax error near unexpected token '" + token + "'";
 		reportErrorAtTokens(token, token, message);
 	}
 	
+	public void reportError(SGLRTokenizer tokenizer, MultiBadTokenException exception) {
+		for (BadTokenException e : exception.getCauses()) {
+			reportError(tokenizer, (Exception) e); // use double dispatch
+		}
+	}
+	
 	public void reportError(SGLRTokenizer tokenizer, ParseTimeoutException exception) {
-		Environment.logException(exception);
 		String message = "Internal parsing error: " + exception.getMessage();
 		reportErrorAtFirstLine(message);
+		reportError(tokenizer, (MultiBadTokenException) exception);
+		setRushNextUpdate(true);
 	}
 	 
 	public void reportError(SGLRTokenizer tokenizer, Exception exception) {
-		String message = "Internal parsing error: " + exception;
-		Environment.logException("Internal parsing error", exception);
-		reportErrorAtFirstLine(message);
+		try {
+			throw exception;
+		} catch (ParseTimeoutException e) {
+			reportError(tokenizer, (ParseTimeoutException) exception);
+		} catch (TokenExpectedException e) {
+			reportError(tokenizer, (TokenExpectedException) exception);
+		} catch (MultiBadTokenException e) {
+			reportError(tokenizer, (MultiBadTokenException) exception);
+		} catch (BadTokenException e) {
+			reportError(tokenizer, (BadTokenException) exception);
+		} catch (Exception e) {
+			String message = "Internal parsing error: " + exception;
+			Environment.logException("Internal parsing error: " + exception.getMessage(), exception);
+			reportErrorAtFirstLine(message);
+		}
 	}
 	
 	private void reportErrorAtTokens(final IToken left, final IToken right, String message) {
+		assert source.getParseLock().isHeldByCurrentThread();
 		final String message2 = message + getErrorExplanation();
 		
 		errorReports.add(new Runnable() {
@@ -416,6 +474,8 @@ public class ParseErrorHandler {
 	}
 	
 	private void reportWarningAtTokens(final IToken left, final IToken right, final String message) {
+		assert source.getParseLock().isHeldByCurrentThread();
+
 		errorReports.add(new Runnable() {
 			public void run() {
 				handler.addMarker(source.getResource(), left, right, message, IMarker.SEVERITY_WARNING);
@@ -424,6 +484,7 @@ public class ParseErrorHandler {
 	}
 	
 	private void reportErrorAtFirstLine(String message) {
+		assert source.getParseLock().isHeldByCurrentThread();
 		final String message2 = message + getErrorExplanation();
 		
 		errorReports.add(new Runnable() {

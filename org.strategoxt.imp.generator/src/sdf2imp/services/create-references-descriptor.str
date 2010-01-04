@@ -2,8 +2,15 @@ module sdf2imp/services/create-references-descriptor
 
 imports
   libstratego-lib
+  libstratego-sdf
   
   sdf2imp/util/-
+  sdf2imp/main
+
+signature constructors
+
+  lit  : Term -> Term
+  prod : Term * Term * Term -> Term
 
 strategies
 
@@ -16,19 +23,30 @@ strategies
         imports <descriptor-name> "-References.generated"
         
         references
-          ~
-          ~// This file can be used for custom reference resolving,
-          ~// hover help, occurrence highlighting rules.
-          ~// See the imported file for a brief introduction and examples.
-          ~
+          ~~
+          ~~// This file can be used for custom reference resolving,
+          ~~// hover help, occurrence highlighting rules.
+          ~~// See the imported file for a brief introduction and examples.
+          ~~
+        references // new heading: ensure proper pretty printer table layout
+          ~~
+          completion proposer: editor-complete
+          completion lexical: [A-Za-z0-9_]+
+          ~~
           reference _ : editor-resolve
           hover     _ : editor-hover
       ]|
     );
+    create-derived-references-descriptor
     
+  create-derived-references-descriptor =
+    not(is-heuristic-services-needed);
+    verbose-msg(!"Skipping", <descriptor-name> "-References.generated")
+  <+
     output-derived-descriptor-file(
       <descriptor-name> "-References.generated"
     ,
+      completion-rules := <collect-all-keywords; map(keyword-to-completion-rule)>;
       !|[
         module <descriptor-name> "-References.generated"
         
@@ -53,7 +71,51 @@ strategies
           ~//   hover      FunctionCall : hover-help-function-call
           ~//   occurrence _            : find-occurrences
           ~
-          ~// The reference resolver, hover help, and occurences service may use any
-          ~// dynamic rules created by the analysis service.
+          ~// Content completion can be defined using the following declarations:
+          ~//
+          ~//   completion proposer : completion-function-call  
+          ~//   completion lexical  : [A-Za-z0-9_]+
+          ~//   completion keyword  : "keyword"
+          ~//
+          ~// This sets completion-function-call as the completion strategy,
+          ~// and declares that [A-Za-z0-9_]+ may be used as a lexical pattern
+          ~// to parse identifiers (used when the input file has syntax errors).
+          ~// It also defines a keyword completion for the keyword "keyword."
+          ~
+          ~~// All semantic services may make use of the
+          ~~// dynamic rules created by the observer.
+
+        references
+
+          ~
+          ~*completion-rules
       ]|
     )
+
+  keyword-to-completion-rule:
+    keyword -> |[ completion keyword : ~String(keyword) ]|
+
+  collect-all-keywords =
+    (InputFile <+ DefaultDefFile);
+    parse-sdf-definition-file;
+    collect-all(?prod(<pattern-to-keywords>, _, _));
+    concat;
+    make-set
+
+  pattern-to-keywords =
+    pattern-to-keywords-1 <+ pattern-to-keywords-2 <+ []
+
+  pattern-to-keywords-1:
+    [lit(lit) | p*] -> [keyword | <pattern-to-keywords> p'*]
+    where
+      <is-proper-keyword> lit
+    with
+      keyword-suffix := <take-while(lit(is-proper-keyword))> p*; 
+      keyword        := <map(?lit(<id>)); separate-by(|" "); concat-strings> [lit(lit) | keyword-suffix];
+      p'*            := <drop-while(?lit(_))> p*
+
+  pattern-to-keywords-2:
+    [_ | p*] -> <pattern-to-keywords> p*
+
+  is-proper-keyword =
+    explode-string; one(is-alpha); not("")

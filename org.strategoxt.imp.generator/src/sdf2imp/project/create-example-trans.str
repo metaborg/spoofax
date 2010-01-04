@@ -1,23 +1,22 @@
-module sdf2imp/project/create-trans
+module sdf2imp/project/create-example-trans
 
 imports
   sdf2imp/util/-
 
 strategies
-  
+
   trans-module-name =
      get-sdf-main-module;
      lower-case;
      cify
   
-  create-trans =
+  create-example-trans =
     <file-exists> <conc-strings> ("trans/", <trans-module-name>, ".str")
   <+
     name     := <trans-module-name>;
     sdf-name := <get-sdf-main-module>;
     
-    <output-text-file(|["trans"], <conc-strings> (name, ".str"))>
-
+<output-text-file(|["trans"], $[[name].str])>
 ${module {name}
 
 imports
@@ -25,113 +24,147 @@ imports
   libstratego-gpp
   libstratego-aterm
   include/{sdf-name}
-  include/entities
+  lib/editor-common
+  check
+  generate
 
-rules // Main editor interface (defined by the {sdf-name}-Builders/-References.esv files)
+rules // Main editor interface (defined by editor/{sdf-name}-Builders and -References.esv)
   
-  /**
-   * Analyzes the current program.
-   * Returns a tuple with errors, warnings, and notes;
-   * each a list of (term, message) tuples or simply (message) terms.
-   */
+  // Analyzes the current program, returning a tuple with errors, warnings, and notes;
+  // each a list of (term, message) tuples or simply (message) terms.
   editor-analyze:
     (ast, path, project-path) -> (errors, warnings, notes)
     with
       // Ensure all dynamic rules are properly scoped
       try(dr-scope-all-end);
-      dr-scope-all-start;
-      // Analysis: record all entity declarations
-      alltd(record-entity)
+      dr-scope-all-start
     with
-      // Collect all feedback markers
+      analyze;
       errors   := <collect-all(constraint-error, conc)> ast;
       warnings := <collect-all(constraint-warning, conc)> ast;
       notes    := <collect-all(constraint-note, conc)> ast
+  
+  // Transforms a selection to Java
+  generate-java:
+    (selected, position, ast, path, project-path) -> (filename, result)
+    with
+      filename := <guarantee-extension(|"java")> path;
+      result   := <to-java> selected
+  
+  // Prints the abstract syntax ATerm of a selection.
+  generate-aterm:
+    (selected, position, ast, path, project-path) -> (filename, result)
+    with
+      filename := <guarantee-extension(|"aterm")> path;
+      result   := selected // we just return the input term
+  
+  // Resolves a reference when the user control-clicks or presses F3 in the editor.
+  // Only succeeds for nodes of the form Type(_) for which GetEntity is defined.
+  editor-resolve:
+    (node, position, ast, path, project-path) -> target
+    where
+      <debug(!"Resolve: ")> node; 
+      Type(type) := node; 
+      target     := <GetEntity> type
 
-  /**
-   * Records the definition of an entity in a dynamic rule GetEntity.
-   */
+  // Returns "hover help" information for a particular node in the editor.
+  // For references, this rule is invoked using the resolved term.
+  editor-hover:
+    (target, position, ast, path, project-path) -> $[Hover help: [<write-to-string> target]]
+
+  // Completes an identifier when the user presses control-space
+  // (the completion identifier in the AST provides additional context information)
+  editor-complete:
+    (Type(COMPLETION(prefix)), position, ast, path, project-path) ->
+    [(["String"], ""), (["Int"], "") | proposals]
+    where
+      all-entities := <all-keys-GetEntity>;
+      proposals    := <map(entity-name-to-proposal)> all-entities
+
+  entity-name-to-proposal:
+    x -> ([x], "")
+};
+
+if not(<file-exists> "trans/generate.str") then
+  <output-text-file(|["trans"], "generate.str")>
+${module generate
+
+imports
+  libstratego-lib
+  libstratego-gpp
+  libstratego-aterm
+  include/{sdf-name}
+  lib/editor-common
+
+rules
+
+  to-java:
+    Module(x, d*) ->
+    $[ package [x];
+       
+       [d'*]
+     ]
+    with
+      d'* := <to-java> d*
+  
+  to-java:
+    Entity(x, p*) ->
+    $[ class [x] ${$
+           [p'*]
+       $}$
+     ]
+    with
+      p'* := <to-java> p*
+
+  to-java:
+    Property(x, Type(t)) -> $[
+      private [t] [x];
+      
+      public [t] get_[x] ${$
+          return [x];
+      $}$
+      
+      public [t] set_[x] ([t] [x]) ${$
+          this.[x] = [x];    
+      $}$
+  ]
+  
+  to-java:
+    Type(t) -> t
+
+  to-java:
+    t* -> <map(to-java)> t*
+}
+end;
+
+if not(<file-exists> "trans/check.str") then
+  <output-text-file(|["trans"], "check.str")>
+${module check
+
+imports
+  libstratego-lib
+  include/{sdf-name}
+  lib/editor-common
+
+rules
+
+  // Analysis: does a topdown traversal of the tree,
+  // and try to apply the record-entity rule.
+  analyze =
+    topdown(try(record-entity))
+
+  // Records the definition of an entity in a dynamic rule GetEntity.
   record-entity:
     Entity(x, body) -> Entity(x, body)
     with
       rules(
         GetEntity :+ x -> x
       )
-  
-  /**
-   * Resolves a reference when the user control-clicks or presses F3 in the editor.
-   * For the entities language, we only resolve references for Type(_) nodes.
-   */
-  editor-resolve:
-    (Type(type), position, ast, path, project-path) -> target
-    where
-      // This rule only successfully evaluates if it can 
-      // lookup the entity for this type, as recorded in record-entity.
-      target := <GetEntity> type
 
-  /**
-   * Returns "hover help" information for a particular node in the editor.
-   * For references, this rule is invoked using the resolved term.
-   */
-  editor-hover:
-    (target, position, ast, path, project-path) -> $[Hover help: [<write-to-string> target]]
-  
-  /**
-   * Transforms a selection to Java.
-   */
-  generate-java:
-    (selected, position, ast, path, project-path) -> (filename, result)
-    with
-      filename := <guarantee-extension(|"java")> path;
-      result   := <bottomup(try(to-java))> selected
-  
-  /**
-   * Prints the abstract syntax ATerm of a selection.
-   */
-  generate-aterm:
-    (selected, position, ast, path, project-path) -> (filename, result-string)
-    with
-      filename      := <guarantee-extension(|"aterm")> path;
-      result-string := <pp-aterm-box; box2text-string(|120)> selected
-
-rules // Code generation
-
-  to-java:
-    Module(x, d*) ->
-    $[ package [x];
-       
-       [d*]
-     ]
-  
-  to-java:
-    Entity(x, p*) ->
-    $[ class [x] ${$
-           [p*]
-       $}$
-     ]
-
-  to-java:
-    Property(x, t) -> $[
-      private [t] [x];
-      
-      public [t] get_[x] ${$
-          return [x];  
-      $}$
-      
-      public [t] set_[x] ([t] [x]) ${$
-          this.[x] = [x];    
-      $}$
-    ]    
-  
- to-java:
-    Type(t) -> t
-
-rules // Semantic rules
+rules
     
-  /**
-   * Reports an error if a property type is undefined.
-   * This error is reported on the type name.
-   */
+  // Reports an error if a property type is undefined.
+  // This error is reported on the type name 'type'.
   constraint-error:
     Property(x, Type(type)) -> (type, $[Type [type] is not defined])
     where
@@ -139,12 +172,9 @@ rules // Semantic rules
       not(!type => "Int");
       not(<GetEntity> type) // no entity for this type
   
-  /**
-   * Reports an error if an entity is defined more than once.
-   * This constraint is implemented by testing if the "bag" of
-   * all entities x is not a singleton list.
-   * This error is reported on the entity name x.
-   */
+  // Reports an error if an entity is defined more than once.
+  // This constraint is implemented by testing if the "bag" of
+  // all entities x is not a singleton list.
   constraint-error:
     Entity(x, _) -> (x, $[Duplicate entity name])
     where
@@ -157,28 +187,100 @@ rules // Semantic rules
   
   constraint-note:
     Module(x @ "example", _) -> (x, $[This is just an example program in the "entities" language
-                                     (this note is defined in trans/{name}.str) ])
-
+                                      (this note is defined in trans/check.str) ])
 }
+end
 
-  create-trans-helper =
-    <file-exists> "include/entities.str"
-  <+
+  create-common-trans =
     name     := <trans-module-name>;
     sdf-name := <get-sdf-main-module>;
-    <output-text-file(|["include"], "entities.str")>
-    ${module entities
 
-      signature constructors
+if not(<file-exists> "lib/editor-common.str") then
+try(<file-exists <+ mkdir> "lib");
+// TODO: regenerate editor-common.str every time, but only if it changed to avoid unecessary builds
+<output-text-file(|["lib"], "editor-common.str")>
+${module lib/editor-common
 
-        // Below are copies of the signatures of the terms used in example
-        // trans/{name}.str file. These definitions should also be automatically 
-        // generated in the imported include/{sdf-name}.str module. However,
-        // to ensure that the example transformation doesn't break when the
-        // syntax is changed, we also hard-coded them here.
+strategies
+
+  desugar-position(desugar|ast):
+    position -> position'
+    where
+      ast'  := <at-position(!<id>${$MARKER()$}$|position)> ast;
+      ast'' := <topdown(repeat(preserve-annos(desugar)))> ast';
+      position' := <position-of-term({$[{?_{a*}; <one(?MARKER())> a*}]})> ast''
+   
+  at-position(s|position):
+    c#(t*) -> t'
+    where
+      !position => [i | position']
+    where
+      t' := c#(<at-index(at-position(s|position'))> (i, t*))
+
+  at-position(s|position):
+    t -> t'
+    where
+      !position => [];
+      t' := <s> t
+
+  position-of-term(is-term):
+    t -> []
+    where
+      is-term
+  
+  position-of-term(is-term):
+    _#(t*) -> <position-of-term(is-term|0)> t*
+  
+  position-of-term(is-term|start-index):
+    [t | t*] -> position
+    where
+      if i* := <position-of-term(is-term)> t then
+        position := [start-index | i*]
+      else
+        position := <position-of-term(is-term | <inc> start-index)> t*
+      end
+
+  term-at-position(|position):
+    t -> t'
+    where
+      at-position(?t'|position) 
+
+  parent-at-position(|position):
+    t -> t'
+    where
+      !position => [i, _];
+      t' := <subterm-at(|i)> t
+  
+  parent-at-position(|position):
+    t -> <parent-at-position(|position')> t'
+    where
+      !position => [i | position' @ [_, _ | _]];
+      t' := <subterm-at(|i)> t
+
+  subterm-at(|index):
+    _#(t*) -> <index(|<inc> index)> t*
+  {"" /* TODO: pretty-printer
+  // Pretty prints the {sdf-name} language to a string
+  pp-{name}-string =
+    ast2abox(|[<import-term(include/{sdf-name}.generated.pp.af)>,
+               <import-term(include/{sdf-name}.pp.af)>]);
+    box2text-string(|100)*/
+  }
+signature constructors
+
+  COMPLETION : String -> Term
+  UNKNOWN    : Term   -> Term
+  MARKER     : Term
+
+  // Below are copies of the signatures of the terms used in example
+  // trans/{name}.str file. These definitions should also be automatically 
+  // generated in the imported include/{sdf-name}.str module. However,
+  // to ensure that the example transformation doesn't break when the
+  // syntax is changed, we also hard-coded them here.
           
-        Module   : ID * List(Entity)   -> Module
-        Entity   : ID * List(Property) -> Entity
-        Property : ID * Type           -> Property
-        Type     : ID                  -> Type
-    }
+  Module   : ID * List(Entity)   -> Module
+  Entity   : ID * List(Property) -> Entity
+  Property : ID * Type           -> Property
+  Type     : ID                  -> Type
+}
+end

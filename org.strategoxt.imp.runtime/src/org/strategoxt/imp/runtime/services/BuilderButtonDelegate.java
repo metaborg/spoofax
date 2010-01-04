@@ -95,7 +95,7 @@ public class BuilderButtonDelegate extends AbstractHandler implements IWorkbench
 	private IBuilderMap getBuilders(EditorState editor) {
 		IBuilderMap builders;
 		try {
-			builders = editor.getDescriptor().createService(IBuilderMap.class);
+			builders = editor.getDescriptor().createService(IBuilderMap.class, editor.getParseController());
 		} catch (BadDescriptorException e) {
 			Environment.logException("Could not load builder", e);
 			openError("Could not load builders");

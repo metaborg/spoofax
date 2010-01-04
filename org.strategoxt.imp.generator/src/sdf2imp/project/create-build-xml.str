@@ -14,7 +14,7 @@ strategies
   create-build-xml =
     // Note that we cannot call this file build.xml,
     // as Eclipse will delete it as it deploys plugins
-    create-build-common-xml;
+    create-build-generated-xml;
     <file-exists> "build.main.xml"
   <+
     name       := <get-sdf-main-module>;
@@ -59,27 +59,25 @@ strategies
         </condition>
         <property name="build.strategoxt.stratego" location="${user.home}/.nix-profile/bin"/>
     
-        <import file="build.common.xml"/>
+        <import file="build.generated.xml"/>
     
         <!-- Main target -->
-        <target name="all" depends="spoofaximp"/>
+        <target name="all" depends="spoofaximp.default"/>
     </project>
     <%
   
-  create-build-common-xml =
-    <file-exists> "build.common.xml"
-  <+
+  create-build-generated-xml =
     name       := <get-sdf-main-module>;
     name'      := <trans-module-name>;
     classname  := <get-main-class-name>;
     pkgname    := <BasePackage <+ default-package-name>;
     
-    <output-xml-file(|[], "build.common.xml")>
+    <output-xml-file(|[], "build.generated.xml")>
     %>
     <?xml version="1.0" encoding="UTF-8"?>
-    <project name="common">
+    <project name="build.generated">
     
-        <target name="spoofaximp" depends="stratego.ctree,sdf2table,sdf2imp"/>
+        <target name="spoofaximp.default" depends="sdf2table,ppgen,stratego.ctree,sdf2imp"/>
     
         <!-- Initialization -->
         <available file="${trans}/${strmodule}.str" property="build.stratego.enabled"/>
@@ -269,7 +267,7 @@ strategies
         </target>
     
         <!-- Stratego to Java interpreter -->
-        <target name="stratego.ctree" depends="rtg2sig,ppgen">
+        <target name="stratego.ctree" depends="rtg2sig">
             <dependset>
                 <srcfileset dir="${basedir}">
                     <include name="**/*.str"/>
@@ -287,7 +285,7 @@ strategies
         </target>
     
         <!-- Stratego to Java compiler -->
-        <target name="stratego.jar" depends="rtg2sig,ppgen">
+        <target name="stratego.jar" depends="rtg2sig">
             <dependset>
                 <srcfileset dir="${basedir}">
                     <include name="**/*.str"/>
@@ -301,7 +299,7 @@ strategies
                 <param name="build.stratego.extraargs" value="-la java-front"/>
                 <param name="build.stratego.extension" value="java"/>
             </antcall>
-            <javac classpath="utils/strategoxt.jar${externaljarimport}" srcdir="${src-gen}/trans" destdir="${build}" source="1.5" target="1.5" debug="on"/>
+            <javac classpath="utils/strategoxt.jar:${src-gen}${externaljarimport}" srcdir="${src-gen}" includes="trans/**" destdir="${build}" source="1.5" target="1.5" debug="on"/>
             <jar basedir="${build}" includes="trans/**" destfile="${include}/${strmodule}.jar"/>
         </target>
             
@@ -334,7 +332,7 @@ strategies
         </target>
         
         <!-- Helper target for calling the stratego compiler -->
-        <target name="stratego.c.helper" depends="rtg2sig,ppgen" if="build.stratego.enabled">
+        <target name="stratego.c.helper" depends="rtg2sig" if="build.stratego.enabled">
             <apply executable="${build.strategoxt.stratego}/${build.stratego.compiler}" dest="${build.stratego.outputpath}" failonerror="true">
                 <arg value="-i"/>
                 <srcfile/>

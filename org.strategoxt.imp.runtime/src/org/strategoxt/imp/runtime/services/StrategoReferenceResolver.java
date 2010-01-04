@@ -11,12 +11,14 @@ import org.eclipse.imp.services.IReferenceResolver;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.Debug;
+import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class StrategoReferenceResolver implements IReferenceResolver {
+	
 	private final StrategoObserver observer;
 	
 	private final List<NodeMapping<String>> resolverFunctions;
@@ -45,10 +47,12 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 			return null;
 		}
 		
-		IStrategoTerm resultTerm = observer.invokeSilent(function, node);
-		if (resultTerm == null && !observer.isUpdateStarted())
-			observer.scheduleUpdate(parseController);
-		return observer.getAstNode(resultTerm);
+		synchronized (Environment.getSyncRoot()) {
+			IStrategoTerm resultTerm = observer.invokeSilent(function, node);
+			if (resultTerm == null && !observer.isUpdateScheduled())
+				observer.scheduleUpdate(parseController);
+			return observer.getAstNode(resultTerm);
+		}
 	}
 
 	public String getLinkText(Object oNode) {
@@ -61,13 +65,15 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 			return null;
 		}
 		
-		IStrategoTerm result = observer.invokeSilent(function, node);
-		if (result == null) {
-			return null;
-		} else if (isTermString(result)) {
-			return ((IStrategoString) result).stringValue();
-		} else {
-			return result.toString();
+		synchronized (observer.getSyncRoot()) {
+			IStrategoTerm result = observer.invokeSilent(function, node);
+			if (result == null) {
+				return null;
+			} else if (isTermString(result)) {
+				return ((IStrategoString) result).stringValue();
+			} else {
+				return result.toString();
+			}
 		}
 	}
 	

@@ -2,7 +2,9 @@ package org.strategoxt.imp.runtime.dynamicloading;
 
 import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.language.Language;
+import org.eclipse.imp.parser.IParseController;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.parser.SGLRParseController;
 
 /**
  * Dynamic service proxy base class: implements an editor service
@@ -12,7 +14,8 @@ import org.strategoxt.imp.runtime.Environment;
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class AbstractService<T extends ILanguageService> {
+public class AbstractService<T extends ILanguageService> implements IDynamicLanguageService {
+
 	private final Class<T> serviceType;
 	
 	private T wrapped;
@@ -20,6 +23,8 @@ public class AbstractService<T extends ILanguageService> {
 	private Throwable notLoadingCause;
 	
 	private Language language;
+	
+	private SGLRParseController parseController;
 	
 	protected AbstractService(Class<T> serviceType) {
 		this.serviceType = serviceType;
@@ -36,7 +41,7 @@ public class AbstractService<T extends ILanguageService> {
 				Descriptor desc = Environment.getDescriptor(getLanguage());
 				if(desc == null)
 					throw new IllegalStateException("Language '" + getLanguage().getName() + "' not registered");
-				wrapped = desc.createService(serviceType);
+				wrapped = desc.createService(serviceType, parseController);
 			} catch (Exception e) {
 				setNotLoadingCause(e);
 				Environment.logException("Unable to dynamically initialize service of type " + serviceType.getSimpleName(), e);
@@ -62,8 +67,19 @@ public class AbstractService<T extends ILanguageService> {
 		return language != null && Environment.getDescriptor(language) != null;
 	}
 	
-	public void initialize(Language language) {
+	public void initialize(IParseController controller) {
+		initialize(controller, controller.getLanguage());
+	}
+	
+	@Deprecated
+	protected void initialize(Language language) {
+		initialize(null, language);
+	}
+
+	protected void initialize(IParseController controller, Language language) {
 		// (Thrown exceptions are shown directly in the editor view.)
+		if (controller instanceof DynamicParseController)
+			this.parseController = (SGLRParseController) ((DynamicParseController) controller).getWrapped();
 		this.language = language;
 		if (getWrapped() == null) // (trigger descriptor init)
 			throw new RuntimeException("Failed to initialize language " + language.getName());
@@ -72,13 +88,9 @@ public class AbstractService<T extends ILanguageService> {
 		Descriptor descriptor = Environment.getDescriptor(language);
 		if (descriptor == null)
 			throw new RuntimeException("No definition for language '" + language.getName() + "'; try re-opening the editor");
-		descriptor.addInitializedService(this);
+		descriptor.addActiveService(this);
 	}
 	
-	/**
-	 * Uninitializes the reference to the class that implements this service,
-	 * ensuring it is reinitialized on use, using the given new Descriptor.
-	 */
 	public void reinitialize(Descriptor newDescriptor) throws BadDescriptorException {
 		wrapped = null;
 		language = newDescriptor.getLanguage();

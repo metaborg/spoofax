@@ -24,6 +24,9 @@ public class AmbAsfixImploder extends AsfixImploder {
 	
 	@Override
 	protected AstNode implodeAppl(ATerm term) {
+		// TODO: Stack-optimize AsfixImploder
+		//       crunch long AmbAsfixImploder.implodeAppl->AsfixImploder.implodeAppl->.implodeChildNodes chains
+		//       by eliminating this method and by maybe inlining implodeChildNodes
 		ATermAppl appl = resolveAmbiguities(term);
 		
 		if (appl.getName().equals("amb"))

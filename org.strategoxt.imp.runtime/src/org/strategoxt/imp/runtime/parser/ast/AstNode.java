@@ -23,7 +23,7 @@ import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
  *
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
-public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
+public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode, Cloneable {
 	// Globally unique object (circumvent interning)
 
 	/** The sort name for strings. */
@@ -32,7 +32,7 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 	// TODO2: Read-only array list
 	static final ArrayList<AstNode> EMPTY_LIST = new ArrayList<AstNode>(0);
 	
-	protected final ArrayList<AstNode> children;
+	private ArrayList<AstNode> children;
 	
 	private final String sort;
 	
@@ -73,7 +73,7 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 	
 	// (concrete type exposed by IAst interface)
 	public final ArrayList<AstNode> getChildren() {
-		assert EMPTY_LIST.size() == 0;
+		assert EMPTY_LIST.size() == 0 && (children.size() == 0 || children.get(0).getParent() == this);
 		
 		return children;
 	}
@@ -102,7 +102,7 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 		return parent;
 	}
 
-	private void setParent(AstNode value) {
+	public void setParent(AstNode value) {
 		parent = value;
 	}
 	
@@ -145,11 +145,15 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 		this.rightToken = rightToken;
 		this.children = children;
 		
-		if (leftToken != null)
-			setReferences(leftToken, rightToken, children);
+		assert leftToken != null && rightToken != null;
+		setReferences(leftToken, rightToken, children);
 	}
 
 	private void setReferences(IToken leftToken, IToken rightToken, ArrayList<AstNode> children) {
+		overrideReferences(leftToken, rightToken, children, null);
+	}
+	
+	protected void overrideReferences(IToken leftToken, IToken rightToken, ArrayList<AstNode> children, AstNode oldNode) {
 		IPrsStream parseStream = leftToken.getIPrsStream();
 		int tokenIndex = leftToken.getTokenIndex();
 		int endTokenIndex = rightToken.getTokenIndex();
@@ -157,14 +161,14 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 		// Set ast node for tokens before children, and set parent references
 		for (int childIndex = 0, size = children.size(); childIndex < size; childIndex++) {
 			AstNode child = children.get(childIndex);
-			child.setParent(this);
+			child.parent = this;
 			
 			int childStart = child.getLeftIToken().getTokenIndex();
 			int childEnd = child.getRightIToken().getTokenIndex();
 			
 			while (tokenIndex < childStart) {
 				SGLRToken token = (SGLRToken) parseStream.getTokenAt(tokenIndex++);
-				if (token.getAstNode() == null)
+				if (token.getAstNode() == oldNode)
 					token.setAstNode(this);
 			}
 			
@@ -174,7 +178,8 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 		// Set ast node for tokens after children
 		while (tokenIndex <= endTokenIndex) {
 			SGLRToken token = (SGLRToken) parseStream.getTokenAt(tokenIndex++);
-			token.setAstNode(this);
+			if (token.getAstNode() == oldNode)
+				token.setAstNode(this);
 		}
 	}
 	
@@ -184,7 +189,28 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode {
 		return children.iterator();
 	}
 	
-	// map(getSort)
+	@Override
+	@Deprecated
+	/**
+	 * @deprecated Does not clone the tokens, which still point back to the original.
+	 */
+	public AstNode clone() {
+		try {
+			AstNode result = (AstNode) super.clone();
+			ArrayList<AstNode> children = result.children;
+			ArrayList<AstNode> newChildren = new ArrayList<AstNode>(children.size());
+			for (int i = 0, size = children.size(); i < size; i++) {
+				AstNode newChild = children.get(i).clone();
+				newChild.parent = result;
+				newChildren.add(newChild);
+			}
+			result.children = newChildren;
+			return result;
+		} catch (CloneNotSupportedException e) {
+			throw new IllegalStateException(e);
+		}
+	}
+	
 	public static List<String> getSorts(List<? extends AstNode> children) {
   	  List<String> result = new ArrayList<String>(children.size());
   	  

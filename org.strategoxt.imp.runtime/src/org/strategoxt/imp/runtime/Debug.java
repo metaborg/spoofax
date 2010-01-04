@@ -1,5 +1,6 @@
 package org.strategoxt.imp.runtime;
 
+import java.io.PrintStream;
 import java.util.Stack;
 
 /**
@@ -11,6 +12,8 @@ public class Debug {
 	public static final boolean ENABLED = Debug.class.desiredAssertionStatus();
 	
 	private static ThreadLocal<Stack<Long>> timers = new ThreadLocal<Stack<Long>>();
+	
+	private static PrintStream stdout = System.out; // store to avoid Ant's override
 
 	public static Stack<Long> getTimers() {
 		Stack<Long> result = timers.get();
@@ -30,7 +33,7 @@ public class Debug {
 				message.append(s);
 			}
 			
-			System.out.println(message);
+			stdout.println(message);
 		}
 	}
 	

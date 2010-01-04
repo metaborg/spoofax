@@ -2,6 +2,7 @@ package org.strategoxt.imp.runtime;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
 import java.util.Collections;
 import java.util.HashMap;
@@ -66,6 +67,8 @@ public final class Environment {
 	
 	private final static WrappedAstNodeFactory wrappedAstNodeFactory;
 	
+	private final static PrintStream STDERR = System.err; // avoid deadlocky ant override
+	
 	private static Thread mainThread;
 	
 	static {
@@ -97,6 +100,7 @@ public final class Environment {
 	 * between the main thread and the workspace thread.
 	 */
 	public static Object getSyncRoot() {
+		// TODO: disallow main thread locking everywhere except in the startup loader?
 		return Environment.class;
 	}
 	
@@ -170,9 +174,8 @@ public final class Environment {
 				
 				@Override
 				public IStrategoTerm current() {
-					synchronized (getSyncRoot()) {
-						return super.current();
-					}
+					assertLock();
+					return super.current();
 				}
 			};
 		
@@ -220,7 +223,7 @@ public final class Environment {
 		descriptors.put(language.getName(), descriptor);
 		
 		if (oldDescriptor != null) {
-			descriptor.addInitializedServices(oldDescriptor);
+			descriptor.addActiveServices(oldDescriptor);
 			oldDescriptor.reinitialize(descriptor);
 		}
 	}
@@ -258,11 +261,13 @@ public final class Environment {
 	
 	public static void logException(String message, Throwable t) {
 		if (Debug.ENABLED) {
-			if (message != null) System.err.println(message);
+			if (message != null) STDERR.println(message);
 			t.printStackTrace();
 		}
+		if (message == null) message = t.getLocalizedMessage();
 		Status status = new Status(IStatus.ERROR, RuntimeActivator.PLUGIN_ID, 0, message, t);
-		RuntimeActivator.getInstance().getLog().log(status);
+		RuntimeActivator activator = RuntimeActivator.getInstance();
+		if (activator != null) activator.getLog().log(status);
 	}
 	
 	public static void logException(String message) {
@@ -274,9 +279,10 @@ public final class Environment {
 	}
 	
 	public static void logWarning(String message) {
-		if (Debug.ENABLED) System.err.println("Warning: " + message);
+		if (Debug.ENABLED) STDERR.println("Warning: " + message);
 		Status status = new Status(IStatus.WARNING, RuntimeActivator.PLUGIN_ID, 0, message, null);
-		RuntimeActivator.getInstance().getLog().log(status);
+		RuntimeActivator activator = RuntimeActivator.getInstance();
+		if (activator != null) activator.getLog().log(status);
 	}
 
 	public static void asynOpenErrorDialog(final String caption, final String message, final Throwable exception) {

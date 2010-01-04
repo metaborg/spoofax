@@ -10,6 +10,7 @@ import org.eclipse.imp.services.ITokenColorer;
 import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.swt.SWT;
 import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.services.LazyColor;
 import org.strategoxt.imp.runtime.services.LazyTextAttribute;
 import org.strategoxt.imp.runtime.services.TextAttributeMapping;
@@ -22,13 +23,12 @@ import org.strategoxt.imp.runtime.services.TokenColorer;
  */
 class TokenColorerFactory extends AbstractServiceFactory<ITokenColorer> {
 	
-	@Override
-	public Class<ITokenColorer> getCreatedType() {
-		return ITokenColorer.class;
+	public TokenColorerFactory() {
+		super(ITokenColorer.class, true);
 	}
 	
 	@Override
-	public ITokenColorer create(Descriptor descriptor) throws BadDescriptorException {
+	public ITokenColorer create(Descriptor descriptor, SGLRParseController controller) throws BadDescriptorException {
 		IStrategoAppl doc = descriptor.getDocument();
 		
 		List<TextAttributeMapping> tokenMappings = new ArrayList<TextAttributeMapping>();

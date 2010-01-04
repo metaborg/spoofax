@@ -53,6 +53,10 @@ public class JSGLRI extends AbstractSGLRI {
 		parser.asyncAbort();
 	}
 	
+	protected SGLR getParser() {
+		return parser;
+	}
+	
 	/**
 	 * @see SGLR#setRecoverHandler(RecoverAlgorithm)
 	 */

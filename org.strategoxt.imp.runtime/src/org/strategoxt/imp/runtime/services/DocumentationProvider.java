@@ -19,7 +19,7 @@ public class DocumentationProvider implements IDocumentationProvider {
 		
 		Language language = parseController.getLanguage();
 		references = ServiceFactory.getInstance().getReferenceResolver(language);
-		((AbstractService) references).initialize(language);
+		((AbstractService) references).initialize(parseController);
 	}
 
 	public String getDocumentation(Object target, IParseController parseController) {

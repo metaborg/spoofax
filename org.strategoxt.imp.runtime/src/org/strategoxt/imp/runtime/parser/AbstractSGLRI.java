@@ -7,7 +7,6 @@ import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
-import java.util.WeakHashMap;
 
 import lpg.runtime.ILexStream;
 import lpg.runtime.Monitor;
@@ -39,11 +38,9 @@ import aterm.ATerm;
  */ 
 public abstract class AbstractSGLRI implements IParser {
 	
+	@SuppressWarnings("unused")
 	private static final Map<CachingKey, ATerm> parsedCache =
 		Collections.synchronizedMap(new WeakValueHashMap<CachingKey, ATerm>());
-	
-	private static final Map<ATerm, SGLRTokenizer> tokenizerCache =
-		Collections.synchronizedMap(new WeakHashMap<ATerm, SGLRTokenizer>());
 	
 	private final SGLRParseController controller;
 	
@@ -51,6 +48,7 @@ public abstract class AbstractSGLRI implements IParser {
 	
 	private final char[] buffer = new char[2048];
 	
+	@SuppressWarnings("unused")
 	private final Object parseTableId;
 	
 	private AsfixImploder imploder;
@@ -61,7 +59,7 @@ public abstract class AbstractSGLRI implements IParser {
 	
 	// Simple accessors
 	
-	protected SGLRTokenizer getTokenizer() {
+	public SGLRTokenizer getTokenizer() {
 		return currentTokenizer; 
 	}
 
@@ -168,20 +166,23 @@ public abstract class AbstractSGLRI implements IParser {
 	public ATerm parseNoImplode(char[] inputChars, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 		
-		CachingKey cachingKey = new CachingKey(parseTableId, startSymbol, inputChars);
+		/* UNDONE: disabled the parse cache for now
+		 * TODO: revise parse cache?
+		CachingKey cachingKey = new CachingKey(parseTableId, startSymbol, inputChars, filename);
 		ATerm result = parsedCache.get(cachingKey);
 		if (result != null) {
 			currentTokenizer = getTokenizer(result);
 			assert currentTokenizer != null;
 			return result;
 		}
+		*/
 		
 		Debug.startTimer();
 		try {
 			currentTokenizer = new SGLRTokenizer(inputChars, filename);
-			result = doParseNoImplode(inputChars, filename);
-			parsedCache.put(cachingKey, result);
-			putTokenizer(result, currentTokenizer);
+			ATerm result = doParseNoImplode(inputChars, filename);
+			// parsedCache.put(cachingKey, result);
+			// putTokenizer(result, currentTokenizer);
 		
 			return result;
 		} finally {
@@ -192,21 +193,6 @@ public abstract class AbstractSGLRI implements IParser {
 	@Deprecated
 	public void reset(ILexStream lexStream) {
 		throw new UnsupportedOperationException();
-	}
-
-	/**
-	 * Retrieve the original tokenizer for an asfix tree,
-	 * if available.
-	 */
-	public static SGLRTokenizer getTokenizer(ATerm asfix) {
-		return tokenizerCache.get(asfix);
-	}
-
-	/**
-	 * Store the original tokenizer for an asfix tree.
-	 */
-	public static SGLRTokenizer putTokenizer(ATerm asfix, SGLRTokenizer tokenizer) {
-		return tokenizerCache.put(asfix, tokenizer);
 	}
 	
 	protected abstract ATerm doParseNoImplode(char[] inputChars, String filename)
@@ -260,11 +246,13 @@ class CachingKey {
 	private Object parseTable;
 	private String startSymbol;
 	private char[] input;
+	private String filename; // essential to keep a consistent ast/tokens/resource mapping 
 	
-	public CachingKey(Object parseTable, String startSymbol, char[] input) {
+	public CachingKey(Object parseTable, String startSymbol, char[] input, String filename) {
 		this.parseTable = parseTable;
 		this.startSymbol = startSymbol;
 		this.input = input;
+		this.filename = filename;
 	}
 
 	@Override
@@ -272,13 +260,16 @@ class CachingKey {
 		CachingKey other = (CachingKey) obj;
 		return parseTable.equals(other.parseTable)
 			&& Arrays.equals(input, other.input)
+			&& (filename == null ? other.filename == null : filename.equals(other.filename))
 			&& (startSymbol == null ? other.startSymbol == null : startSymbol.equals(other.startSymbol));
 	}
 	
 	@Override
 	public int hashCode() {
 		// (Ignores parse table hash code)
-		return 12125125 * (startSymbol == null ? 42 : startSymbol.hashCode())
+		return 12125125
+			* (startSymbol == null ? 42 : startSymbol.hashCode())
+			* (filename == null ? 42 : filename.hashCode())
 			^ Arrays.hashCode(input);
 	}
 }

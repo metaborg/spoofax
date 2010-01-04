@@ -11,6 +11,9 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.swt.graphics.Color;
+import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
+import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
@@ -19,7 +22,10 @@ import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class TokenColorer implements ITokenColorer {
+	
 	private final List<TextAttributeMapping> envMappings, nodeMappings, tokenMappings;
+	
+	private boolean isLazyColorsInited;
 	
 	public List<TextAttributeMapping> getTokenMappings() {
 		return tokenMappings;
@@ -39,6 +45,35 @@ public class TokenColorer implements ITokenColorer {
 		this.tokenMappings = tokenMappings;
 		this.nodeMappings = nodeMappings;
 		this.envMappings = envMappings;
+	} 
+
+	/**
+	 * Initializes lazily loaded Color objects (avoiding a potential deadlock when used before PresentationController acquires its lock).
+	 */
+	public static void initLazyColors(SGLRParseController controller) {
+		try {
+			ITokenColorer colorer = Environment.getDescriptor(controller.getLanguage()).createService(ITokenColorer.class, controller);
+			if (colorer instanceof TokenColorer)
+				((TokenColorer) colorer).initLazyColors();
+		} catch (BadDescriptorException e) {
+			Environment.logException("Could not initialize colorer", e);
+		}
+	}
+	
+	public void initLazyColors() {
+		if (isLazyColorsInited) return;
+		initLazyColors(envMappings);
+		initLazyColors(nodeMappings);
+		initLazyColors(tokenMappings);
+		isLazyColorsInited = true;
+	}
+
+	private void initLazyColors(List<TextAttributeMapping> mappings) {
+		for (TextAttributeMapping mapping : mappings) {
+			TextAttribute attribute = mapping.getAttribute().get();
+			attribute.getBackground();
+			attribute.getForeground();
+		}
 	}
 
 	public TextAttribute getColoring(IParseController controller, Object oToken) {

@@ -63,7 +63,7 @@ public class StrategoConsole {
 	/**
 	 * Gets or opens the Eclipse console for this plugin.
 	 */
-	private static MessageConsole getConsole() {
+	private synchronized static MessageConsole getConsole() {
 		IConsoleManager consoles = ConsolePlugin.getDefault().getConsoleManager();
 		for (IConsole console: consoles.getConsoles()) {
 			if (StrategoConsole.CONSOLE_NAME.equals(console.getName()))

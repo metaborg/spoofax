@@ -19,7 +19,8 @@ import org.strategoxt.imp.runtime.parser.ast.AstNode;
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
 public class Outliner extends org.eclipse.imp.services.base.OutlinerBase {
-	// TODO: Re-implement outline based on TreeModelBuilderBase 
+	// TODO: Re-implement outline based on TreeModelBuilderBase, ILabelProvider
+	//       to get the nice quick outline feature
 	
 	/*
 	 * A shadow copy of the outline stack maintained in the super class,

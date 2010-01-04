@@ -1,4 +1,4 @@
-module sdf2imp/project/create-project-file
+module sdf2imp/project/create-builder-xml
     
 imports
   sdf2imp/util/-
@@ -37,7 +37,9 @@ $[ <?xml version="1.0" encoding="UTF-8" standalone="no"?>
     project-name]/editor/[sdf-name]-Outliner.generated.esv&quot; type=&quot;1&quot;/&gt;&#10;&lt;item factoryID=&quot;org.eclipse.ui.internal.model.ResourceFactory&quot; path=&quot;/[
     project-name]/editor/[sdf-name]-References.generated.esv&quot; type=&quot;1&quot;/&gt;&#10;&lt;item factoryID=&quot;org.eclipse.ui.internal.model.ResourceFactory&quot; path=&quot;/[
     project-name]/editor/[sdf-name]-Syntax.generated.esv&quot; type=&quot;1&quot;/&gt;&#10;&lt;item factoryID=&quot;org.eclipse.ui.internal.model.ResourceFactory&quot; path=&quot;/[
+    project-name]/lib/editor-common.str&quot; type=&quot;1&quot;/&gt;&#10;&lt;item factoryID=&quot;org.eclipse.ui.internal.model.ResourceFactory&quot; path=&quot;/[
     project-name]/editor/java&quot; type=&quot;2&quot;/&gt;&#10;&lt;item factoryID=&quot;org.eclipse.ui.internal.model.ResourceFactory&quot; path=&quot;/[
+    project-name]/build.generated.xml&quot; type=&quot;1&quot;/&gt;&#10;&lt;item factoryID=&quot;org.eclipse.ui.internal.model.ResourceFactory&quot; path=&quot;/[
     project-name]/utils&quot; type=&quot;2&quot;/&gt;&#10;&lt;/launchConfigurationWorkingSet&gt;}"/>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
 <listEntry value="/[project-name]/build.main.xml"/>

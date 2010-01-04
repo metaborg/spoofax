@@ -108,7 +108,7 @@ public class DynamicParseController extends AbstractService<IParseController> im
 		if (!isInitialized()) {
 			Language language = findLanguage(filePath);
 			
-			initialize(language);
+			initialize(null, language);
 		}
 		
 		// (Re)store these inputs in case the parse controller has been dynamically reloaded
