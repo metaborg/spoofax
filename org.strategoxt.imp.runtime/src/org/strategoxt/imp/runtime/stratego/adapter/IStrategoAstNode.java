@@ -7,6 +7,7 @@ import lpg.runtime.IAst;
 import org.eclipse.core.resources.IResource;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.strategoxt.imp.runtime.parser.SGLRParseController;
 
 /**
  * Interface for an AST node that can be converted into an ATerm. 
@@ -29,6 +30,11 @@ public interface IStrategoAstNode extends IAst {
 	
 	IResource getResource();
 	
+	SGLRParseController getParseController();
+	
+	/**
+	 * Retrieves the input string for this AST node.
+	 */
 	String yield();
 	
 	// SPECIALIZED FROM PARENT INTERFACE

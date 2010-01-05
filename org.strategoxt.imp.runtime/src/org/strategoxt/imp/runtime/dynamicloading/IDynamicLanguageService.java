@@ -1,14 +1,11 @@
 package org.strategoxt.imp.runtime.dynamicloading;
 
 import org.eclipse.imp.language.ILanguageService;
-import org.eclipse.imp.parser.IParseController;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public interface IDynamicLanguageService extends ILanguageService {
-
-	void initialize(IParseController controller);
 
 	void prepareForReinitialize();
 	

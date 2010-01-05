@@ -15,6 +15,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermPrinter;
 import org.spoofax.interpreter.terms.InlinePrinter;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 
@@ -69,6 +70,10 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode, Clone
 	
 	public IResource getResource() {
 		return getRoot().getResource();
+	}
+	
+	public SGLRParseController getParseController() {
+		return getRoot().getParseController();
 	}
 	
 	// (concrete type exposed by IAst interface)
@@ -189,18 +194,19 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode, Clone
 		return children.iterator();
 	}
 	
-	@Override
-	@Deprecated
 	/**
-	 * @deprecated Does not clone the tokens, which still point back to the original.
+	 * Creates a "deep" clone of this AstNode,
+	 * but maintains a shallow clone of all tokens,
+	 * which still point back to the original AST.
 	 */
-	public AstNode clone() {
+	public AstNode cloneIgnoreTokens() {
+		// TODO: create a better AstNode.clone() method? this is a bit of a cop-out...
 		try {
 			AstNode result = (AstNode) super.clone();
 			ArrayList<AstNode> children = result.children;
 			ArrayList<AstNode> newChildren = new ArrayList<AstNode>(children.size());
 			for (int i = 0, size = children.size(); i < size; i++) {
-				AstNode newChild = children.get(i).clone();
+				AstNode newChild = children.get(i).cloneIgnoreTokens();
 				newChild.parent = result;
 				newChildren.add(newChild);
 			}

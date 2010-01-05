@@ -541,10 +541,6 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	public void prepareForReinitialize() {
 		// Do nothing
 	}
-	
-	public void initialize(IParseController controller) {
-		// Unused
-	}
 
 	public void reinitialize(Descriptor newDescriptor) throws BadDescriptorException {
 		synchronized (getSyncRoot()) {

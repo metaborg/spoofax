@@ -6,6 +6,7 @@ import org.eclipse.imp.services.ITokenColorer;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.TextAttribute;
+import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
 import org.strategoxt.imp.runtime.EditorState;
@@ -58,8 +59,11 @@ public class DynamicTokenColorer extends AbstractService<ITokenColorer> implemen
 		}
 
 		try {
-			if (lastEditor != null && !lastEditor.getTitleImage().isDisposed())
-				lastEditor.updateColoring(new Region(0, lastEditor.getServiceControllerManager().getSourceViewer().getDocument().getLength()));
+			if (lastEditor != null && !lastEditor.getTitleImage().isDisposed()) {
+				ISourceViewer sourceViewer = lastEditor.getServiceControllerManager().getSourceViewer();
+				if (sourceViewer.getDocument() != null)
+					lastEditor.updateColoring(new Region(0, sourceViewer.getDocument().getLength()));
+			}
 		} catch (NullPointerException e) {
 			// TODO: find out what's causing this NPE
 		}

@@ -130,11 +130,11 @@ public class ContentProposer implements IContentProposer {
 		controller.getParseLock().lock();
 		try {
 			if (completionFunction == null && controller.getCurrentAst() != null) {
-				ast = controller.getCurrentAst().clone();
+				ast = controller.getCurrentAst().cloneIgnoreTokens();
 			} else {
 				ast = parser.parse(document.toCharArray(), controller.getPath().toPortableString());
 				lastParserAst = controller.getCurrentAst();
-				lastCompletionAst = ast.clone();
+				lastCompletionAst = ast.cloneIgnoreTokens();
 			}
 		} catch (SGLRException e) {
 			Environment.logException("Could not reparse input for content completion", e);
@@ -268,7 +268,7 @@ public class ContentProposer implements IContentProposer {
 	private RootAstNode getPreviousAst(SGLRParseController parser) {
 		return parser.getCurrentAst() == lastParserAst
 				? lastCompletionAst
-				: lastParserAst.clone();
+				: lastParserAst.cloneIgnoreTokens();
 	}
 
 	private static SGLRParseController getParser(IParseController controller) {

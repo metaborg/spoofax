@@ -16,7 +16,6 @@ import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
-import org.strategoxt.imp.runtime.parser.ast.AstNode;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 
 /**
@@ -30,7 +29,6 @@ public class ReferenceResolverDelegate extends AbstractHandler {
 		final EditorState editor = EditorState.getActiveEditor();
 		if (editor != null) {
 			// Can't run this in the main thread since we're acquiring the environment lock
-			IStrategoAstNode ast = editor.getCurrentAst();
 			final IStrategoAstNode reference = editor.getSelectionAst(false);
 			new Job("Go to definition") {
 				@Override

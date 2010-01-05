@@ -12,6 +12,7 @@ import lpg.runtime.ILexStream;
 import lpg.runtime.Monitor;
 import lpg.runtime.PrsStream;
 
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
@@ -156,7 +157,9 @@ public abstract class AbstractSGLRI implements IParser {
 	 */
 	protected RootAstNode internalImplode(ATerm asfix) {
 		AstNode imploded = imploder.implode(asfix, currentTokenizer);
-		return RootAstNode.makeRoot(imploded, getController() == null ? null : getController().getResource());
+		SGLRParseController controller = getController() == null ? null : getController();
+		IResource resource = controller == null ? null : controller.getResource();
+		return RootAstNode.makeRoot(imploded, controller, resource);
 	}
 	
 	/**

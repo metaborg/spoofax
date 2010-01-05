@@ -52,7 +52,7 @@ public class IMPImplodeAsfixStrategy extends implode_asfix_1_0 {
 		}
 		
 		AstNode result = imploder.implode(asfixATerm, tokenizer);
-		result = RootAstNode.makeRoot(result, getResource(inputFile));
+		result = RootAstNode.makeRoot(result, null, getResource(inputFile));
 		return result.getTerm();
 		
 		// TODO: Make a RootAstNode object from this tree and for IMPSGLRIPrimitive
