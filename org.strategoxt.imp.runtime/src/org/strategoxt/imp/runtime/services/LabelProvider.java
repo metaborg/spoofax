@@ -44,10 +44,8 @@ public class LabelProvider implements ILabelProvider {
 			return node.getChildren().get(0).getChildren().get(3).toString();
 		} else if ("ClassDec".equals(constructor)) {
 			return node.getChildren().get(0).getChildren().get(1).toString();
-		} else if ("Rules".equals(constructor)) {
-			return "rules";
-		} else if ("Strategies".equals(constructor)) {
-			return "strategies";
+		} else if (node.getChildren().size() == 1 && node.getChildren().get(0).isList()) {
+			return node.getLeftIToken().toString(); // e.g., "rules", "strategies"
 		} else {
 			return getIdentifier(node);
 		}

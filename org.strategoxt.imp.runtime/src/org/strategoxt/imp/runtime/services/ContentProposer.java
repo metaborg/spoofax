@@ -42,7 +42,7 @@ import org.strategoxt.imp.runtime.parser.ast.StringAstNode;
 /**
  * Content completion.
  * 
- * Works in 6 steps:
+ * Works in 6 or so steps:
  * 
  * 1. control-space/completion token event
  * 2. create source text with "_CONTENT_COMPLETE_a124142_" dummy literal
@@ -80,11 +80,15 @@ public class ContentProposer implements IContentProposer {
 	
 	private RootAstNode lastCompletionAst;
 	
-	private String lastDocumentWithoutIdentifier;
+	private AstNode lastCompletionNode;
+	
+	private String lastDocument;
 	
 	private AstNode currentCompletionNode;
 	
 	private String currentCompletionPrefix;
+	
+	private String lastCompletionPrefix;
 	
 	public ContentProposer(StrategoObserver observer, String completionFunction, Pattern completionLexical, String[] keywords) {
 		this.observer = observer;
@@ -94,6 +98,8 @@ public class ContentProposer implements IContentProposer {
 	}
 	
 	public ICompletionProposal[] getContentProposals(IParseController controller, int offset, ITextViewer viewer) {
+		lastCompletionNode = currentCompletionNode;
+		lastCompletionPrefix = currentCompletionPrefix;
 		currentCompletionNode = null;
 		String document = viewer.getDocument().get();
 		
@@ -108,6 +114,9 @@ public class ContentProposer implements IContentProposer {
 			else
 				return createErrorProposal("No proposals available - could not identify proposal context", offset);
 		}
+		
+		if (currentCompletionPrefix.length() > 0 && !completionLexical.matcher(currentCompletionPrefix).matches())
+			Environment.logWarning("Identifier does not match completion lexical pattern: '" + currentCompletionPrefix + "'");
 
 		ICompletionProposal[] results = toProposals(invokeCompletionFunction(), document, offset);
 		
@@ -287,11 +296,41 @@ public class ContentProposer implements IContentProposer {
 		return new ICompletionProposal[] { new ErrorProposal(error, offset) };
 	}
 
+	/**
+	 * Reuse the previous AST if the user just added or deleted a single character.
+	 */
 	private RootAstNode tryReusePreviousAst(int offset, String document) {
-		String documentWithoutIdentifier = document.substring(0, offset) + document.substring(offset);
-		if (documentWithoutIdentifier.equals(lastDocumentWithoutIdentifier)) {
-			replacePrefix(currentCompletionNode, getPrefix(offset, document));
-			return lastCompletionAst;
+		if (offset == 0) return null;
+		if (lastCompletionNode != null && lastDocument.length() == document.length() - 1) {
+			String newCharacter = document.substring(offset - 1, offset);
+			String previousDocument = lastDocument.substring(0, offset - 1) + newCharacter + lastDocument.substring(offset - 1);
+			if (document.equals(previousDocument))
+				return reusePreviousAst(document, lastCompletionPrefix + newCharacter);
+		} else if (lastCompletionNode != null && lastCompletionPrefix.length() > 0 && lastDocument.length() == document.length() + 1) {
+			String previousDocument = lastDocument.substring(0, offset) + lastDocument.substring(offset + 1);
+			if (document.equals(previousDocument))
+				return reusePreviousAst(document, lastCompletionPrefix.substring(0, lastCompletionPrefix.length() - 1));
+		}
+		System.err.println("AWWWW ... NO REUSE");
+		lastDocument = document;
+		return null;
+	}
+
+	private RootAstNode reusePreviousAst(String document, String prefix) {
+		currentCompletionPrefix = prefix;
+		lastDocument = document;
+		String prefixInAst = sanitizePrefix(currentCompletionPrefix);
+		if (prefixInAst == null)
+			return null;
+		currentCompletionNode = lastCompletionNode;
+		replacePrefix(currentCompletionNode, prefixInAst);
+		return lastCompletionAst;
+	}
+
+	private String sanitizePrefix(String prefix) {
+		Matcher matcher = completionLexical.matcher(prefix);
+		if (matcher.lookingAt()) {
+			return prefix.substring(0, matcher.end());
 		} else {
 			return null;
 		}
@@ -348,8 +387,6 @@ public class ContentProposer implements IContentProposer {
 		children.add(new StringAstNode(prefix, null, left, right));
 		currentCompletionPrefix = prefix;
 		currentCompletionNode = new AstNode(null, left, right, COMPLETION_CONSTRUCTOR, children);
-		if (prefix.length() > 0 && !completionLexical.matcher(prefix).matches())
-			Environment.logWarning("Identifier does not match completion lexical pattern: '" + prefix + "'");
 		return currentCompletionNode;
 	}
 	
@@ -390,7 +427,7 @@ public class ContentProposer implements IContentProposer {
 	}
 	
 	private void replacePrefix(AstNode completionNode, String prefix) {
-		if (completionNode.getConstructor() == COMPLETION_UNKNOWN)
+		if (completionNode.getConstructor() != COMPLETION_CONSTRUCTOR)
 			completionNode = completionNode.getChildren().get(0);
 		StringAstNode prefixNode = (StringAstNode) completionNode.getChildren().get(0);
 		prefixNode.setValue(prefix);

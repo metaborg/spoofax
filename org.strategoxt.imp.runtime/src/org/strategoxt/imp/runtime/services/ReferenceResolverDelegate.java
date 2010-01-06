@@ -53,7 +53,7 @@ public class ReferenceResolverDelegate extends AbstractHandler {
 				return;
 			
 			int targetStart = locator.getStartOffset(target) < 0 ? 0 : locator.getStartOffset(target);
-			int targetLength = targetStart == 0 ? 0 : locator.getEndOffset(target) - targetStart + 1;
+			int targetLength = 0; // targetStart == 0 ? 0 : locator.getEndOffset(target) - targetStart + 1;
 			IPath path = locator.getPath(target);
 			
 			openLink(new TargetLink(reference.toString(), 0, 0, path, targetStart, targetLength, null));
