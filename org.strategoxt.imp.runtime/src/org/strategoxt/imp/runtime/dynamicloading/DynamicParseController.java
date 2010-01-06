@@ -18,6 +18,7 @@ import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 import org.strategoxt.imp.runtime.EditorState;
+import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 
 /**
@@ -67,8 +68,10 @@ public class DynamicParseController extends AbstractService<IParseController> im
 		
 		IParseController result = super.getWrapped(); 
 
-		if (lastEditor == null && EditorState.isUIThread())
+		if (lastEditor == null && EditorState.isUIThread()) {
 			lastEditor = EditorState.getEditorFor(this);
+			ContentProposerFactory.eagerInit(Environment.getDescriptor(getLanguage()), result, lastEditor);
+		}
 		return result;
 	}
 
@@ -126,8 +129,10 @@ public class DynamicParseController extends AbstractService<IParseController> im
 	public void reinitialize(Descriptor newDescriptor) throws BadDescriptorException {
 		super.reinitialize(newDescriptor);
 		isReinitialized = true;
-		if (lastEditor != null)
+		if (lastEditor != null) {
 			lastEditor.scheduleParserUpdate(REINIT_PARSE_DELAY);
+			ContentProposerFactory.eagerInit(Environment.getDescriptor(getLanguage()), getWrapped(), lastEditor);
+		}
 	}
 
 	public Object parse(String input, IProgressMonitor monitor) {

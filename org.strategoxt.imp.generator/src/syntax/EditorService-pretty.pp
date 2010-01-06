@@ -4,6 +4,7 @@
    CompletionProposer   -- R [ H [ KW["completion"] KW["proposer"] ] KW[":"] _1 ],
    CompletionLexical    -- R [ H [ KW["completion"] KW["lexical"] ] KW[":"] _1 ],
    CompletionKeyword    -- R [ H [ KW["completion"] KW["keyword"] ] KW[":"] H [ _1 _2 ] ],
+   CompletionTrigger    -- R [ H [ KW["completion"] KW["trigger"] ] KW[":"] H [ _1 _2 ] ],
    HoverRule            -- R [ H [ KW["hover"]     _1 ] KW[":"] _2 ],
    OccurrenceRule       -- R [ H [ KW["occurrence"] _1 ] H [ KW[":"] _2 ] ],
    SemanticProvider     -- R [ H [ KW["provider" ] ] KW[":"] _1 ],

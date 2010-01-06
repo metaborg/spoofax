@@ -22,7 +22,7 @@ strategies
           ~~
           ~~// This file can be used for custom analysis and builder rules.
           ~~// See the imported file for a brief introduction and examples.
-        builders // new heading: ensure proper pretty printer table layout
+        builders
           ~~
           provider: ~provider
           observer: editor-analyze

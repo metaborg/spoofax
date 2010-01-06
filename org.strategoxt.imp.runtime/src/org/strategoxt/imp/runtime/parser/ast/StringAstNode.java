@@ -27,6 +27,10 @@ public class StringAstNode extends AstNode {
 		return value = SGLRToken.toString(getLeftIToken(), getRightIToken());
 	}
 
+	public void setValue(String value) {
+		this.value = value;
+	}
+
 	@Override
 	public String yield() {
 		return getValue();

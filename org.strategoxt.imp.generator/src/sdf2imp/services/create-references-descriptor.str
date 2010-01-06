@@ -28,10 +28,11 @@ strategies
           ~~// hover help, occurrence highlighting rules.
           ~~// See the imported file for a brief introduction and examples.
           ~~
-        references // new heading: ensure proper pretty printer table layout
+        references
           ~~
           completion proposer: editor-complete
           completion lexical: [A-Za-z0-9_]+
+          completion trigger: ":"
           ~~
           reference _ : editor-resolve
           hover     _ : editor-hover
@@ -75,12 +76,15 @@ strategies
           ~//
           ~//   completion proposer : completion-function-call  
           ~//   completion lexical  : [A-Za-z0-9_]+
+          ~//   completion trigger  : "\."
           ~//   completion keyword  : "keyword"
           ~//
           ~// This sets completion-function-call as the completion strategy,
           ~// and declares that [A-Za-z0-9_]+ may be used as a lexical pattern
           ~// to parse identifiers (used when the input file has syntax errors).
-          ~// It also defines a keyword completion for the keyword "keyword."
+          ~// The completion trigger uses a regular expression to specify that  
+          ~// completions should be proposed as the user types ".".
+          ~// Finally, the above also defines a completion for the keyword "keyword."
           ~
           ~~// All semantic services may make use of the
           ~~// dynamic rules created by the observer.

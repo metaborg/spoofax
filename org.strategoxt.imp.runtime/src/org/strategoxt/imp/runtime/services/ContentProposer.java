@@ -24,6 +24,7 @@ import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.widgets.Display;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -56,6 +57,8 @@ import org.strategoxt.imp.runtime.parser.ast.StringAstNode;
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class ContentProposer implements IContentProposer {
+
+	public static String COMPLETION_TOKEN = "CONTENTCOMPLETE" + Math.abs(new Random().nextInt());
 	
 	private static final String COMPLETION_CONSTRUCTOR = "COMPLETION";
 	
@@ -77,6 +80,8 @@ public class ContentProposer implements IContentProposer {
 	
 	private RootAstNode lastCompletionAst;
 	
+	private String lastDocumentWithoutIdentifier;
+	
 	private AstNode currentCompletionNode;
 	
 	private String currentCompletionPrefix;
@@ -91,12 +96,11 @@ public class ContentProposer implements IContentProposer {
 	public ICompletionProposal[] getContentProposals(IParseController controller, int offset, ITextViewer viewer) {
 		currentCompletionNode = null;
 		String document = viewer.getDocument().get();
-		String completionToken = createCompletionToken();
 		
-		if (!completionLexical.matcher(completionToken).matches())
+		if (!completionLexical.matcher(COMPLETION_TOKEN).matches())
 			return createErrorProposal("No proposals available - completion lexical must allow letters and numbers", offset);
 		
-		constructAst(getParser(controller), offset, document, completionToken);
+		constructAst(getParser(controller), offset, document);
 		
 		if (currentCompletionNode == null) {
 			if (lastCompletionAst == null && lastParserAst == null)
@@ -107,49 +111,56 @@ public class ContentProposer implements IContentProposer {
 
 		ICompletionProposal[] results = toProposals(invokeCompletionFunction(), document, offset);
 		
+		/* UNDONE: automatic proposal insertion
 		if (results.length == 1 && results[0] instanceof SourceProposal) {
 			results[0].apply(viewer.getDocument());
 			Point selection = ((SourceProposal) results[0]).getSelection(viewer.getDocument());
 			viewer.setSelectedRange(selection.x, selection.y);
 			return null;
 		}
+		*/
+		
 		return results;
     }
 
-	public static String createCompletionToken() {
-		return "CONTENTCOMPLETE" + Math.abs(new Random().nextInt());
+	private RootAstNode constructAst(SGLRParseController controller, int offset, String document) {
+		this.parser = controller;
+		RootAstNode ast = tryReusePreviousAst(offset, document);
+		if (ast != null) return ast;
+
+		String documentWithToken = document.substring(0, offset) + COMPLETION_TOKEN + document.substring(offset);
+		ast = parse(controller, offset, documentWithToken);
+		if (ast == null) return null;
+		
+		RootAstNode result = identifyCompletionNode(ast, COMPLETION_TOKEN);
+		if (currentCompletionNode == null) result = insertNewCompletionNode(ast, offset, document);
+		return result;
 	}
 
-	private RootAstNode constructAst(SGLRParseController controller, int offset, String document, String completionToken) {
-		this.parser = controller;
-		document = document.substring(0, offset) + completionToken + document.substring(offset);
+	private RootAstNode parse(SGLRParseController controller, int offset, String document) {
 		JSGLRI parser = controller.getParser();
-		RootAstNode ast;
+		RootAstNode result;
 		
 		controller.scheduleParserUpdate(DynamicParseController.REINIT_PARSE_DELAY, true);
 		controller.getParseLock().lock();
 		try {
 			if (completionFunction == null && controller.getCurrentAst() != null) {
-				ast = controller.getCurrentAst().cloneIgnoreTokens();
+				// Don't reparse for keyword completion
+				result = controller.getCurrentAst().cloneIgnoreTokens();
 			} else {
-				ast = parser.parse(document.toCharArray(), controller.getPath().toPortableString());
+				result = parser.parse(document.toCharArray(), controller.getPath().toPortableString());
 				lastParserAst = controller.getCurrentAst();
-				lastCompletionAst = ast.cloneIgnoreTokens();
+				lastCompletionAst = result.cloneIgnoreTokens();
 			}
 		} catch (SGLRException e) {
 			Environment.logException("Could not reparse input for content completion", e);
-			ast = getPreviousAst(controller);
+			result = forceUseMostRecentAst(controller, offset, document);
 		} catch (IOException e) {
 			Environment.logException("Could not reparse input for content completion", e);
-			ast = getPreviousAst(controller);
+			result = forceUseMostRecentAst(controller, offset, document);
 		} finally {
 			controller.getParseLock().unlock();
 		}
-
-		if (ast == null) return null;
-		
-		RootAstNode result = identifyCompletionNode(ast, completionToken);
-		if (currentCompletionNode == null) result = insertNewCompletionNode(ast, offset, document);
 		return result;
 	}
 
@@ -157,9 +168,20 @@ public class ContentProposer implements IContentProposer {
 		if (completionFunction == null) {
 			return Environment.getTermFactory().makeList();
 		} else {
-			synchronized (observer.getSyncRoot()) {
-				return observer.invokeSilent(completionFunction, currentCompletionNode);
+			// TODO: is using this lock in the main thread a deadlock risk?
+			//       and does syncExec mitigate that risk?
+			// TODO: apply syncExec in other cases where a lock is used in the main thread?
+			class Runner implements Runnable {
+				IStrategoTerm result;
+				public void run() {
+					synchronized (observer.getSyncRoot()) {
+						result = observer.invokeSilent(completionFunction, currentCompletionNode);
+					}
+				}
 			}
+			Runner runner = new Runner();
+			Display.getCurrent().syncExec(runner);
+			return runner.result;
 		}
 	}
 	
@@ -264,11 +286,26 @@ public class ContentProposer implements IContentProposer {
 	private ICompletionProposal[] createErrorProposal(String error, int offset) {
 		return new ICompletionProposal[] { new ErrorProposal(error, offset) };
 	}
+
+	private RootAstNode tryReusePreviousAst(int offset, String document) {
+		String documentWithoutIdentifier = document.substring(0, offset) + document.substring(offset);
+		if (documentWithoutIdentifier.equals(lastDocumentWithoutIdentifier)) {
+			replacePrefix(currentCompletionNode, getPrefix(offset, document));
+			return lastCompletionAst;
+		} else {
+			return null;
+		}
+	}
 	
-	private RootAstNode getPreviousAst(SGLRParseController parser) {
-		return parser.getCurrentAst() == lastParserAst
-				? lastCompletionAst
-				: lastParserAst.cloneIgnoreTokens();
+	private RootAstNode forceUseMostRecentAst(SGLRParseController parser, int offset, String document) {
+		if (parser.getCurrentAst() != lastParserAst) { // parser has a more recent AST
+			lastParserAst = parser.getCurrentAst();
+			lastCompletionAst = parser.getCurrentAst();
+			currentCompletionNode = null;
+		} else {
+			replacePrefix(currentCompletionNode, getPrefix(offset, document));
+		}
+		return lastCompletionAst;
 	}
 
 	private static SGLRParseController getParser(IParseController controller) {
@@ -350,6 +387,13 @@ public class ContentProposer implements IContentProposer {
 				return document.substring(prefixStart + 1, offset);
 		}
 		return document.substring(0, offset);
+	}
+	
+	private void replacePrefix(AstNode completionNode, String prefix) {
+		if (completionNode.getConstructor() == COMPLETION_UNKNOWN)
+			completionNode = completionNode.getChildren().get(0);
+		StringAstNode prefixNode = (StringAstNode) completionNode.getChildren().get(0);
+		prefixNode.setValue(prefix);
 	}
 	
 	private void insertNewCompletionNode(AstNode node, String prefix) {

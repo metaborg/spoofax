@@ -11,6 +11,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.model.ISourceProject;
+import org.eclipse.imp.parser.IParseController;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.Region;
 import org.eclipse.swt.graphics.Point;
@@ -71,7 +72,10 @@ public class EditorState {
 	 * 
 	 * @throws IllegalStateException  if not called from the UI thread
 	 */
-	public static EditorState getEditorFor(DynamicParseController parseController) {
+	public static EditorState getEditorFor(IParseController parseController) {
+		if (parseController instanceof SGLRParseController)
+			return ((SGLRParseController) parseController).getEditor();
+		
 		EditorState activeEditor = getActiveEditor();
 		if (activeEditor != null && activeEditor.getEditor().getParseController() == parseController)
 			return activeEditor;
