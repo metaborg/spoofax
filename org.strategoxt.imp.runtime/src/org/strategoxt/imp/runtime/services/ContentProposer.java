@@ -114,9 +114,6 @@ public class ContentProposer implements IContentProposer {
 			else
 				return createErrorProposal("No proposals available - could not identify proposal context", offset);
 		}
-		
-		if (currentCompletionPrefix.length() > 0 && !completionLexical.matcher(currentCompletionPrefix).matches())
-			Environment.logWarning("Identifier does not match completion lexical pattern: '" + currentCompletionPrefix + "'");
 
 		ICompletionProposal[] results = toProposals(invokeCompletionFunction(), document, offset);
 		
@@ -311,7 +308,6 @@ public class ContentProposer implements IContentProposer {
 			if (document.equals(previousDocument))
 				return reusePreviousAst(document, lastCompletionPrefix.substring(0, lastCompletionPrefix.length() - 1));
 		}
-		System.err.println("AWWWW ... NO REUSE");
 		lastDocument = document;
 		return null;
 	}

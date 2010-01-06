@@ -232,6 +232,7 @@ public class DynamicDescriptorBuilder {
 		IResource includeDir = project.findMember("include");
 		IResource editorDir = project.findMember("editor");
 		IResource buildFile = project.findMember("build.generated.xml");
+		IResource cacheDir = project.findMember(".cache");
 
 		if (!(includeDir instanceof IContainer && editorDir instanceof IContainer))
 			throw new IOException("/include and /editor directories must exist");
@@ -248,6 +249,8 @@ public class DynamicDescriptorBuilder {
 			if (buildFile != null)
 				buildFile.setDerived(true);
 		}
+		
+		if (cacheDir.exists()) cacheDir.setDerived(true);
 	}
 	
 	public IResource getTargetDescriptor(IResource mainDescriptor) {
