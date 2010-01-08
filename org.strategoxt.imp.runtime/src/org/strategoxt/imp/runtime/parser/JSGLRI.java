@@ -8,10 +8,8 @@ import lpg.runtime.IPrsStream;
 import org.spoofax.jsglr.BadTokenException;
 import org.spoofax.jsglr.Disambiguator;
 import org.spoofax.jsglr.FilterException;
-import org.spoofax.jsglr.NoRecovery;
 import org.spoofax.jsglr.NoRecoveryRulesException;
 import org.spoofax.jsglr.ParseTable;
-import org.spoofax.jsglr.RecoverAlgorithm;
 import org.spoofax.jsglr.SGLR;
 import org.spoofax.jsglr.SGLRException;
 import org.spoofax.jsglr.TokenExpectedException;
@@ -29,7 +27,7 @@ public class JSGLRI extends AbstractSGLRI {
 	
 	private ParseTable parseTable;
 	
-	private RecoverAlgorithm recoverHandler = new NoRecovery();
+	private boolean useRecovery = false;
 	
 	private SGLR parser;
 	
@@ -58,11 +56,11 @@ public class JSGLRI extends AbstractSGLRI {
 	}
 	
 	/**
-	 * @see SGLR#setRecoverHandler(RecoverAlgorithm)
+	 * @see SGLR#setUseStructureRecovery(boolean)
 	 */
-	public void setRecoverHandler(RecoverAlgorithm recoverHandler) throws NoRecoveryRulesException {
-		this.recoverHandler = recoverHandler;
-		parser.setRecoverHandler(recoverHandler);
+	public void setUseRecovery(boolean useRecovery) throws NoRecoveryRulesException {
+		this.useRecovery = useRecovery;
+		parser.setUseStructureRecovery(useRecovery);
 	}
 	
 	public ParseTable getParseTable() {
@@ -97,7 +95,7 @@ public class JSGLRI extends AbstractSGLRI {
 		if (disambiguator != null) parser.setDisambiguator(disambiguator);
 		else disambiguator = parser.getDisambiguator();
 		try {
-			parser.setRecoverHandler(recoverHandler);
+			setUseRecovery(useRecovery);
 		} catch (NoRecoveryRulesException e) {
 			// Already handled/logged this error in setRecoverHandler()
 		}

@@ -12,7 +12,6 @@ import org.spoofax.jsglr.Disambiguator;
 import org.spoofax.jsglr.NoRecoveryRulesException;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.SGLRException;
-import org.spoofax.jsglr.StructureRecoveryAlgorithm;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.JSGLRI;
 import org.strategoxt.lang.LazyTerm;
@@ -52,7 +51,7 @@ public class IMPParseStringPTPrimitive extends JSGLR_parse_string_pt_compat {
 		String path = getLastPath();		
 		JSGLRI parser = new JSGLRI(table, startSymbol);
 		try {
-			parser.setRecoverHandler(new StructureRecoveryAlgorithm());
+			parser.setUseRecovery(true);
 		} catch (NoRecoveryRulesException e) {
 			if (!isNoRecoveryWarned.containsKey(table)) {
 				Environment.logException(NAME + ": warning - no recovery rules available in parse table", e);

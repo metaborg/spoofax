@@ -14,7 +14,6 @@ import org.spoofax.jsglr.InvalidParseTableException;
 import org.spoofax.jsglr.NoRecoveryRulesException;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.SGLRException;
-import org.spoofax.jsglr.StructureRecoveryAlgorithm;
 import org.strategoxt.imp.editors.stratego.StrategoSugarParseController;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.JSGLRI;
@@ -64,7 +63,7 @@ public class IMPParseStrategoFileStrategy extends parse_stratego_file_0_0 {
 		try {
 			Language strategoSugar = LanguageRegistry.findLanguage(StrategoSugarParseController.LANGUAGE);
 			JSGLRI parser = new JSGLRI(Environment.getParseTable(strategoSugar), "Module");
-			if (parser.getParseTable().hasRecovers()) parser.setRecoverHandler(new StructureRecoveryAlgorithm());
+			if (parser.getParseTable().hasRecovers()) parser.setUseRecovery(true);
 			return parser;
 		} catch (NoRecoveryRulesException e) {
 			throw new StrategoException("Could not load stratego parse table", e);

@@ -9,7 +9,6 @@ import org.spoofax.jsglr.Disambiguator;
 import org.spoofax.jsglr.InvalidParseTableException;
 import org.spoofax.jsglr.NoRecoveryRulesException;
 import org.spoofax.jsglr.ParseTable;
-import org.spoofax.jsglr.RecoverAlgorithm;
 import org.spoofax.jsglr.SGLRException;
 import org.spoofax.jsglr.TokenExpectedException;
 import org.strategoxt.imp.runtime.Environment;
@@ -41,9 +40,9 @@ public class StandAloneSGLRI {
 		}
 	}
 	
-	public void setRecoverHandler(RecoverAlgorithm recoverHandler) throws NoRecoveryRulesException {
+	public void setUseRecovery(boolean useRecovery) throws NoRecoveryRulesException {
 		if (parser instanceof JSGLRI) {
-			((JSGLRI) parser).setRecoverHandler(recoverHandler);
+			((JSGLRI) parser).setUseRecovery(useRecovery);
 		} else {
 			throw new UnsupportedOperationException("C-SGLR does not support error recovery");
 		}

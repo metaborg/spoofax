@@ -33,7 +33,6 @@ import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.ParseTimeoutException;
 import org.spoofax.jsglr.SGLRException;
 import org.spoofax.jsglr.StartSymbolException;
-import org.spoofax.jsglr.StructureRecoveryAlgorithm;
 import org.spoofax.jsglr.TokenExpectedException;
 import org.spoofax.jsglr.Tools;
 import org.strategoxt.imp.runtime.Debug;
@@ -174,7 +173,7 @@ public class SGLRParseController implements IParseController {
 		parser = new JSGLRI(table, startSymbol, this, tokenManager);
 		parser.setKeepAmbiguities(true);
 		try {
-			parser.setRecoverHandler(new StructureRecoveryAlgorithm());
+			parser.setUseRecovery(true);
 		} catch (NoRecoveryRulesException e) {
 			Environment.logException("No recovery rules available for " + language.getName() + " editor", e);
 		}
