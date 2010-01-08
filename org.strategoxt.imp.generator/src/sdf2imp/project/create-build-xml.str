@@ -318,6 +318,7 @@ strategies
                 <arg line="${externaljarflags}"/>
                 <arg line="${externaldefimport}"/>
             </java>
+            <delete file="${include}/${strmodule}.rtree" failonerror="false"/>
             <mkdir dir="${build}/trans"/>
         </target>
                 
