@@ -1,7 +1,8 @@
 package org.strategoxt.imp.runtime.services;
 
-import static org.spoofax.interpreter.core.Tools.*;
-import static org.spoofax.interpreter.terms.IStrategoTerm.*;
+import static org.spoofax.interpreter.core.Tools.termAt;
+import static org.spoofax.interpreter.terms.IStrategoTerm.LIST;
+import static org.spoofax.interpreter.terms.IStrategoTerm.TUPLE;
 
 import java.io.File;
 import java.io.IOException;
@@ -205,7 +206,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		try {
 			URL[] classpath = new URL[jars.size()];
 			for (int i = 0; i < classpath.length; i++) {
-				classpath[i] = descriptor.getBasePath().append(jars.get(i)).toFile().toURL();
+				classpath[i] = descriptor.getBasePath().append(jars.get(i)).toFile().toURI().toURL();
 			}
 			runtime.loadJars(classpath);
 		} catch (SecurityException e) {

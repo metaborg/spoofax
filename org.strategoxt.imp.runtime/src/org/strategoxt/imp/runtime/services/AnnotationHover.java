@@ -39,7 +39,7 @@ public class AnnotationHover extends DefaultAnnotationHover implements IAnnotati
 		if (annotations == null) return;
 		for (Iterator<Annotation> iter = annotations.iterator(); iter.hasNext(); ) {
     		Annotation annotation = iter.next();
-    		if (annotation instanceof ILineDiffInfo)
+    		if (annotation.getText() == null || annotation instanceof ILineDiffInfo)
     			iter.remove();
     	}
 	}
