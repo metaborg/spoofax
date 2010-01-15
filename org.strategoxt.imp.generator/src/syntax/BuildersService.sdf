@@ -25,3 +25,4 @@ exports
     "(realtime)"   -> BuilderOption {cons("RealTime")}
     "(persistent)" -> BuilderOption {cons("Persistent")}
     "(meta)"       -> BuilderOption {cons("Meta")}
+    "(cursor)"     -> BuilderOption {cons("Cursor")}

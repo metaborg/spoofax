@@ -1,6 +1,9 @@
 package org.strategoxt.imp.runtime.stratego;
 
+import static java.util.Arrays.asList;
+
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -9,6 +12,9 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.AbstractVisitor;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
+import org.strategoxt.imp.runtime.parser.ast.AstNodeFactory;
+import org.strategoxt.imp.runtime.parser.ast.ListAstNode;
+import org.strategoxt.imp.runtime.parser.ast.SubListAstNode;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 
 /**
@@ -23,6 +29,8 @@ public class StrategoTermPath {
 	}
 	
 	public static IStrategoList createPath(IStrategoAstNode node) {
+		if (node instanceof SubListAstNode)
+			node = ((SubListAstNode) node).getCompleteList();
 		LinkedList<IStrategoTerm> results = new LinkedList<IStrategoTerm>();
 		
 		while (node.getParent() != null) {
@@ -37,6 +45,8 @@ public class StrategoTermPath {
 	}
 	
 	public static List<Integer> createPathList(IStrategoAstNode node) {
+		if (node instanceof SubListAstNode)
+			node = ((SubListAstNode) node).getCompleteList();
 		LinkedList<Integer> results = new LinkedList<Integer>();
 		
 		while (node.getParent() != null) {
@@ -58,9 +68,44 @@ public class StrategoTermPath {
 	}
 
 	/**
+	 * Find the common ancestor of two AST nodes, creating a SubListAstNode if they are in the same list ancestor.
+	 */
+	public static IStrategoAstNode findCommonAncestor(IStrategoAstNode node1, IStrategoAstNode node2) {
+		if (node1 == null) return node2;
+		if (node2 == null) return node1;
+		
+		LinkedHashSet<IStrategoAstNode> node1Ancestors = new LinkedHashSet<IStrategoAstNode>();
+		for (IStrategoAstNode n = node1; n != null; n = n.getParent())
+			node1Ancestors.add(n);
+		
+		for (IStrategoAstNode n = node2, n2Child = node2; n != null; n2Child = n, n = n.getParent())
+			if (node1Ancestors.contains(n)) {
+				return tryCreateListCommonAncestor(n, node1Ancestors, n2Child);
+			}
+		
+		throw new IllegalStateException("Could not find common ancestor for nodes: " + node1 + "," + node2);
+	}
+	
+	private static IStrategoAstNode tryCreateListCommonAncestor(IStrategoAstNode commonAncestor, LinkedHashSet<IStrategoAstNode> ancestors1, IStrategoAstNode child2) {
+		if (commonAncestor != child2 && ((AstNode) commonAncestor).isList()) {
+			List<IStrategoAstNode> ancestors1List = asList(ancestors1.toArray(new IStrategoAstNode[ancestors1.size()]));
+			int i = ancestors1List.indexOf(commonAncestor);
+			if (i == 0)
+				return commonAncestor;
+			IStrategoAstNode child1 = ancestors1List.get(i - 1);
+			return new AstNodeFactory().createSublist((ListAstNode) commonAncestor, child1, child2); 
+		} else {
+			return commonAncestor;
+		}
+	}
+
+	/**
 	 * Attempts to find a corresponding selection subtree in a new ast.
 	 */
 	public static IStrategoAstNode findCorrespondingSubtree(IStrategoAstNode newAst, IStrategoAstNode selection) {
+		if (selection instanceof SubListAstNode)
+			return findCorrespondingSublist(newAst, (SubListAstNode) selection);
+		
 		IStrategoAstNode oldAst = getRoot(selection);
 		IStrategoAstNode oldParent = oldAst;
 		IStrategoAstNode newParent = newAst;
@@ -109,6 +154,12 @@ public class StrategoTermPath {
 		}
 		
 		return newAst;
+	}
+
+	private static IStrategoAstNode findCorrespondingSublist(IStrategoAstNode newAst, SubListAstNode selection) {
+		IStrategoAstNode start = findCorrespondingSubtree(newAst, selection.getFirstChild());
+		IStrategoAstNode end = findCorrespondingSubtree(newAst, selection.getLastChild());
+		return findCommonAncestor(start, end);
 	}
 
 	private static boolean constructorEquals(IStrategoAstNode first, IStrategoAstNode second) {

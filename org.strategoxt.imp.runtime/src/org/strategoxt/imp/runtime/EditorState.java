@@ -1,8 +1,5 @@
 package org.strategoxt.imp.runtime;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import lpg.runtime.IPrsStream;
 import lpg.runtime.IToken;
 
@@ -31,6 +28,7 @@ import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
+import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 
 /**
@@ -180,18 +178,7 @@ public class EditorState {
 		IStrategoAstNode startNode = ((SGLRToken) start).getAstNode();
 		IStrategoAstNode endNode = ((SGLRToken) end).getAstNode();
 
-		return findCommonAncestor(startNode, endNode);
-	}
-
-	private static IStrategoAstNode findCommonAncestor(IStrategoAstNode node1, IStrategoAstNode node2) {
-		Set<IStrategoAstNode> node1Ancestors = new HashSet<IStrategoAstNode>();
-		for (IStrategoAstNode n = node1; n != null; n = n.getParent())
-			node1Ancestors.add(n);
-		
-		for (IStrategoAstNode n = node2; n != null; n = n.getParent())
-			if (node1Ancestors.contains(n)) return n;
-		
-		throw new IllegalStateException("Could not find common ancestor for nodes: " + node1 + "," + node2);
+		return StrategoTermPath.findCommonAncestor(startNode, endNode);
 	}
 
 	/**

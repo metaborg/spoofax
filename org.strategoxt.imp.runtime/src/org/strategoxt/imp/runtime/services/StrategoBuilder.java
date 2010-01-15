@@ -50,14 +50,17 @@ public class StrategoBuilder implements IBuilder {
 	
 	private final boolean openEditor;
 	
+	private final boolean cursor;
+	
 	private final boolean persistent;
 	
-	public StrategoBuilder(StrategoObserver observer, String caption, String builderRule, boolean openEditor, boolean realTime, boolean persistent) {
+	public StrategoBuilder(StrategoObserver observer, String caption, String builderRule, boolean openEditor, boolean realTime, boolean cursor, boolean persistent) {
 		this.observer = observer;
 		this.caption = caption;
 		this.builderRule = builderRule;
 		this.openEditor = openEditor;
 		this.realTime = realTime;
+		this.cursor = cursor;
 		this.persistent = persistent;
 	}
 	
@@ -74,7 +77,7 @@ public class StrategoBuilder implements IBuilder {
 		synchronized (observer.getSyncRoot()) {
 			try {
 				if (node == null) {
-					node = editor.getSelectionAst(true);
+					node = editor.getSelectionAst(!cursor);
 					if (node == null) node = editor.getParseController().getCurrentAst();
 				}
 				if (node == null) {

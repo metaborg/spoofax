@@ -38,6 +38,7 @@ public class BuilderFactory extends AbstractServiceFactory<IBuilderMap> {
 			boolean realTime = false;
 			boolean persistent = false;
 			boolean meta = false;
+			boolean cursor = false;
 			
 			for (IStrategoTerm option : options.getAllSubterms()) {
 				String type = cons(option);
@@ -49,12 +50,14 @@ public class BuilderFactory extends AbstractServiceFactory<IBuilderMap> {
 					persistent = true;
 				} else if (type.equals("Meta")) {
 					meta = true;
+				} else if (type.equals("Cursor")) {
+					cursor = true;
 				} else {
 					throw new BadDescriptorException("Unknown builder annotation: " + type);
 				}
 			}
 			if (!meta || d.isDynamicallyLoaded())			
-				builders.add(new StrategoBuilder(feedback, caption, strategy, openEditor, realTime, persistent));
+				builders.add(new StrategoBuilder(feedback, caption, strategy, openEditor, realTime, cursor, persistent));
 		}
 		
 		return new BuilderMap(builders);

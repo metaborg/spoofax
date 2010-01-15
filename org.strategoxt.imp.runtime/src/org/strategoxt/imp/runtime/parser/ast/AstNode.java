@@ -78,7 +78,7 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode, Clone
 	
 	// (concrete type exposed by IAst interface)
 	public final ArrayList<AstNode> getChildren() {
-		assert EMPTY_LIST.size() == 0 && (children.size() == 0 || children.get(0).getParent() == this);
+		assert EMPTY_LIST.size() == 0 && (children.size() == 0 || children.get(0).getParent() == this || this instanceof SubListAstNode);
 		
 		return children;
 	}
@@ -158,6 +158,9 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode, Clone
 		overrideReferences(leftToken, rightToken, children, null);
 	}
 	
+	/**
+	 * Set/override references to parent nodes.
+	 */
 	protected void overrideReferences(IToken leftToken, IToken rightToken, ArrayList<AstNode> children, AstNode oldNode) {
 		IPrsStream parseStream = leftToken.getIPrsStream();
 		int tokenIndex = leftToken.getTokenIndex();

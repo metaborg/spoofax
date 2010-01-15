@@ -272,7 +272,7 @@
             commandId="org.strategoxt.imp.runtime.transformCommand"
             contextId="org.eclipse.ui.textEditorScope"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-            sequence="CTRL+T"/>
+            sequence="M1+T"/>
       <key
             commandId="org.eclipse.ui.project.buildProject"
             contextId="org.eclipse.ui.contexts.window"
