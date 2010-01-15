@@ -78,9 +78,9 @@ public class AbstractService<T extends ILanguageService> implements IDynamicLang
 
 	protected void initialize(IParseController controller, Language language) {
 		// (Thrown exceptions are shown directly in the editor view.)
+		this.language = language;
 		if (controller instanceof DynamicParseController)
 			this.parseController = (SGLRParseController) ((DynamicParseController) controller).getWrapped();
-		this.language = language;
 		if (getWrapped() == null) // (trigger descriptor init)
 			throw new RuntimeException("Failed to initialize language " + language.getName());
 		if (!this.language.getName().equals(language.getName()))
