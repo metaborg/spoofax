@@ -178,7 +178,7 @@ public class NewEditorWizardPage extends WizardPage {
 			setErrorStatus("Project name must be valid");
 			return;
 		}
-		if (!toLanguageName(getInputLanguageName()).equals(getInputLanguageName())) {
+		if (!toLanguageName(getInputLanguageName()).equalsIgnoreCase(getInputLanguageName())) {
 			setErrorStatus("Language name must be valid");
 			return;
 		}
@@ -187,8 +187,9 @@ public class NewEditorWizardPage extends WizardPage {
 			setErrorStatus("Package name must be specified");
 			return;
 		}
-		if (!getInputPackageName().toLowerCase().equals(toPackageName(getInputPackageName()))
-				|| getInputPackageName().indexOf("..") != -1) {
+		if (!getInputPackageName().equalsIgnoreCase(toPackageName(getInputPackageName()))
+				|| getInputPackageName().indexOf("..") != -1
+				|| getInputPackageName().endsWith(".")) {
 			setErrorStatus("Package name must be valid");
 			return;
 		}
@@ -227,7 +228,6 @@ public class NewEditorWizardPage extends WizardPage {
 	}
 
 	private static String toLanguageName(String name) {
-		// TODO: be more flexible in language names
 		char[] input = name.replace(' ', '-').toCharArray();
 		StringBuilder output = new StringBuilder();
 		int i = 0;
@@ -249,7 +249,22 @@ public class NewEditorWizardPage extends WizardPage {
 	}
 	
 	private static String toPackageName(String name) {
-		return toLanguageName(name).toLowerCase().replace('-', '_');
+		char[] input = name.replace(' ', '-').toCharArray();
+		StringBuilder output = new StringBuilder();
+		int i = 0;
+		while (i < input.length) {
+			char c = input[i++];
+			if (Character.isLetter(c) || c == '.' || c == '_') {
+				output.append(c);
+				break;
+			}
+		}
+		while (i < input.length) {
+			char c = input[i++];
+			if (Character.isLetterOrDigit(c) || c == '.' || c == '_')
+				output.append(c);
+		}
+		return output.toString();
 	}
 	
 	private static String toExtension(String name) {
