@@ -116,7 +116,7 @@ public final class Environment {
 		// TODO: disallow main thread locking everywhere except in the startup loader?
 		if (!isInitialized && EditorState.isUIThread())
 			isInitialized = true;
-		else if (!Thread.holdsLock(Environment.class) && EditorState.isUIThread())
+		else if (!Thread.holdsLock(Environment.class) && EditorState.isUIThread() && Debug.ENABLED)
 			Environment.logWarning("Acquired environment lock from main thread");
 		return Environment.class;
 	}

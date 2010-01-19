@@ -11,8 +11,12 @@ import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.contentassist.ICompletionProposalExtension6;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.jface.viewers.StyledString.Styler;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.TextStyle;
+import org.eclipse.swt.widgets.Display;
 import org.spoofax.interpreter.terms.IStrategoList;
 
 /**
@@ -21,6 +25,12 @@ import org.spoofax.interpreter.terms.IStrategoList;
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class ContentProposal extends SourceProposal implements ICompletionProposalExtension6 {
+
+	private static Color identifierColor;
+	
+	private static Color keywordColor;
+	
+	private static Font keywordFont;
 	
 	private final ContentProposer proposer;
 	
@@ -38,6 +48,10 @@ public class ContentProposal extends SourceProposal implements ICompletionPropos
 		super(proposal, newText, prefix, region, addlInfo);
 		this.proposer = proposer;
 		this.newTextParts = newTextParts;
+	}
+
+	private boolean isKeywordProposal() {
+		return newTextParts == null;
 	}
 
 	@Override
@@ -75,15 +89,39 @@ public class ContentProposal extends SourceProposal implements ICompletionPropos
 
 		@Override
 		public void applyStyles(TextStyle style) {
-			// TODO: styles for keywords, identifiers, and other
-			style.foreground = style.foreground;
+			if (isKeywordProposal()) { // keyword proposal
+				style.font = getKeywordFont();
+				style.foreground = getKeywordColor();
+			} else if (newTextParts.size() == 1) { // identifier proposal
+				style.foreground = getIdentifierColor();
+			}
 		}
 		
+		private Color getIdentifierColor() {
+			if (identifierColor == null)
+				identifierColor = new Color(Display.getCurrent(), 64, 64, 255);
+			return identifierColor;
+		}
+		
+		private Color getKeywordColor() {
+			if (keywordColor == null)
+				keywordColor = new Color(Display.getCurrent(), 127, 0, 85);
+			return keywordColor;
+		}
+		
+		private Font getKeywordFont() {
+			if (keywordFont == null)
+				keywordFont = new Font(Display.getCurrent(), "Courier new", 13, SWT.BOLD);
+			return keywordFont;
+		}
 	}
 	
 	@Override
 	public boolean equals(Object obj) {
-		return obj instanceof ContentProposal && ((ContentProposal) obj).getDisplayString().equals(getDisplayString());
+		if (!(obj instanceof ContentProposal))
+			return false;
+		ContentProposal other = (ContentProposal) obj;
+		return other.getDisplayString().equals(getDisplayString()) && isKeywordProposal() == other.isKeywordProposal();
 	}
 	
 	@Override
