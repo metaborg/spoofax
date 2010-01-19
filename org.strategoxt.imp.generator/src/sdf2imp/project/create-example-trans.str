@@ -207,7 +207,7 @@ strategies
     position -> position'
     where
       ast'  := <at-position(!<id>${$MARKER()$}$|position)> ast;
-      ast'' := <topdown(repeat(preserve-annos(desugar)))> ast';
+      ast'' := <topdown(repeat(preserve-annos(${$?x; desugar; not(?x)$}$)))> ast';
       position' := <position-of-term({$[{?_{a*}; <one(?MARKER())> a*}]})> ast''
    
   at-position(s|position):
