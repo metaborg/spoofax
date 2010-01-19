@@ -1,13 +1,17 @@
 package org.strategoxt.imp.metatooling.loading;
 
-import static org.eclipse.core.resources.IMarker.*;
-import static org.eclipse.core.resources.IResourceDelta.*;
+import static org.eclipse.core.resources.IMarker.SEVERITY_ERROR;
+import static org.eclipse.core.resources.IResourceDelta.CONTENT;
+import static org.eclipse.core.resources.IResourceDelta.MOVED_FROM;
+import static org.eclipse.core.resources.IResourceDelta.MOVED_TO;
+import static org.eclipse.core.resources.IResourceDelta.REPLACED;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Queue;
 import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
@@ -22,6 +26,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.spoofax.ArrayDeque;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.metatooling.building.DynamicDescriptorBuilder;
 import org.strategoxt.imp.runtime.Environment;
@@ -38,13 +43,20 @@ import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
  */
 public class DynamicDescriptorLoader implements IResourceChangeListener {
 	
+	private static final int SCHEDULE_DELAY = 300;
+	
 	private static final DynamicDescriptorLoader instance = new DynamicDescriptorLoader();
+	
+	private final Queue<IResourceChangeEvent> asyncEventQueue =
+		new ArrayDeque<IResourceChangeEvent>();
 	
 	private final Set<String> asyncIgnoreOnce =
 		Collections.synchronizedSet(new HashSet<String>());
 	
 	private final AstMessageHandler asyncMessageHandler =
 		new AstMessageHandler(AstMessageHandler.ANALYSIS_MARKER_TYPE);
+	
+	private boolean isAsyncEventHandlerActive;
 	
 	private DynamicDescriptorLoader() {
 		// use getInstance() instead
@@ -86,20 +98,41 @@ public class DynamicDescriptorLoader implements IResourceChangeListener {
 		if (event.getType() == IResourceChangeEvent.POST_CHANGE && isSignificantChange(event.getDelta())) {
 			// TODO: aggregate multiple events into a single job?
 			//       this seems to spawn way to many threads
-			Job job = new WorkspaceJob("Updating editor descriptor runtime") {
-				@Override
-				public IStatus runInWorkspace(IProgressMonitor monitor) {
-					// TODO: Finer-grained locking? (that seems to lead to deadlocks)
-					synchronized (Environment.getSyncRoot()) {
+			synchronized (asyncEventQueue) {
+				asyncEventQueue.add(event);
+				if (!isAsyncEventHandlerActive)
+					startEventHandler(event);
+			}
+		}
+	}
+
+	private void startEventHandler(IResourceChangeEvent event) {
+		isAsyncEventHandlerActive = true;
+		Job job = new WorkspaceJob("Updating editor descriptor runtime") {
+			@Override
+			public IStatus runInWorkspace(IProgressMonitor monitor) {
+				// TODO: Finer-grained locking? (that seems to lead to deadlocks)
+				synchronized (Environment.getSyncRoot()) {
+					for (;;) {
+	 					IResourceChangeEvent event;
+						synchronized (asyncEventQueue) {
+							if (asyncEventQueue.isEmpty()) {
+								isAsyncEventHandlerActive = false;
+								return Status.OK_STATUS;
+							}
+							event = asyncEventQueue.remove();
+						}
+						// (monitor updates acquire display lock)
 						monitor.beginTask("Scanning workspace", IProgressMonitor.UNKNOWN);
 						postResourceChanged(event.getDelta(), monitor);
-						return Status.OK_STATUS;
 					}
 				}
-			};
-			job.setRule(event.getResource());
-			job.schedule();
-		}
+			}
+		};
+		// UNDONE: locking the workspace is a clear deadlock risk
+		//         (so locking small parts is likely almost as bad)
+		// job.setRule(/*event.getResource()*/ResourcesPlugin.getWorkspace().getRoot());
+		job.schedule(SCHEDULE_DELAY);
 	}
 	
 	public void postResourceChanged(IResourceDelta delta, IProgressMonitor monitor) {

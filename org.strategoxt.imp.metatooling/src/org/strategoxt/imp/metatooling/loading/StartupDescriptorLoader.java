@@ -55,19 +55,19 @@ public class StartupDescriptorLoader {
 	*/
 	
 	private static void loadAllServices() {
-		for (final IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
-			if (project.isOpen()) {
-				try {
-					synchronized (Environment.getSyncRoot()) {
+		synchronized (Environment.getSyncRoot()) {
+			for (final IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
+				if (project.isOpen()) {
+					try {
 						project.accept(new IResourceVisitor() {
 							public boolean visit(IResource resource) throws CoreException {
 								loader.updateResource(resource, new NullProgressMonitor(), true);
 								return true;
 							}
 						});
+					} catch (CoreException e) {
+						Environment.logException("Error loading descriptors for project " + project.getName(), e);
 					}
-				} catch (CoreException e) {
-					Environment.logException("Error loading descriptors for project " + project.getName(), e);
 				}
 			}
 		}

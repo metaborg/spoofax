@@ -71,6 +71,8 @@ public final class Environment {
 	
 	private static Thread mainThread;
 	
+	private static boolean isInitialized;
+	
 	static {
 		wrappedFactory = new UnsharedWrappedATermFactory();
 		factory = new PureFactory();
@@ -80,15 +82,26 @@ public final class Environment {
 		unmanagedTables = Collections.synchronizedMap(new HashMap<String, ParseTableProvider>());
 		wrappedAstNodeFactory = new WrappedAstNodeFactory();
 		atermConverter = new ATermConverter(factory, wrappedAstNodeFactory, true);
-		// TODO: report missing -Xss option; only complain about server mode in meta editor
-		if (!isServerMode()) logWarning("Ensure eclipse is started with -vmwargs -server for best performance");
+		checkJVMOptions();
 	}
-	
-	private static boolean isServerMode() {
+
+	private static void checkJVMOptions() {
+		boolean ssOption = false;
+		boolean serverOption = false;
+		boolean mxOption = false;
+		
 		for (String arg : ManagementFactory.getRuntimeMXBean().getInputArguments()) {
-			if (arg.startsWith("-server")) return true;
+			if (arg.startsWith("-server")) serverOption = true;
+			if (arg.startsWith("-Xss") || arg.startsWith("-ss")) ssOption = true;
+			if (arg.startsWith("-Xmx") || arg.startsWith("-mx")) mxOption = true;
 		}
-		return false;
+		
+		if (!serverOption)
+			Environment.logWarning("Make sure Eclipse is started with -vmwargs -server (can be set in eclipse.ini) for best performance");
+		if (!mxOption)
+			Environment.logWarning("Make sure Eclipse is started with -vmargs -Xmx 512m (can be set in eclipse.ini) for at least 512 MiB heap space");
+		if (!ssOption)
+			Environment.logWarning("Make sure Eclipse is started with -vmargs -Xss 8m (can be set in eclipse.ini) for an 8 MiB stack size");
 	}
 	
 	// TODO: Split up shared and non-shared environment entities?
@@ -101,6 +114,10 @@ public final class Environment {
 	 */
 	public static Object getSyncRoot() {
 		// TODO: disallow main thread locking everywhere except in the startup loader?
+		if (!isInitialized && EditorState.isUIThread())
+			isInitialized = true;
+		else if (!Thread.holdsLock(Environment.class) && EditorState.isUIThread())
+			Environment.logWarning("Acquired environment lock from main thread");
 		return Environment.class;
 	}
 	
@@ -110,7 +127,9 @@ public final class Environment {
 	
 	private static void initMainThread() {
 		Thread thread = Thread.currentThread();
-		if (thread.getName().equals("main"))
+		// TODO: is main thread == EditorState.isUIThread() thread?
+		//       because the OSX main thread seems to be "Thread-0"
+		if ("main".equals(thread.getName()) || EditorState.isUIThread())
 			mainThread = thread;
 	}
 	
@@ -152,11 +171,11 @@ public final class Environment {
 	
 	// ENVIRONMENT ACCESS AND MANIPULATION
 	
-	public static synchronized HybridInterpreter createInterpreter() {
+	public static HybridInterpreter createInterpreter() {
 		return createInterpreter(false);
 	}
 
-	public static synchronized HybridInterpreter createInterpreter(boolean noGlobalLock) {
+	public static HybridInterpreter createInterpreter(boolean noGlobalLock) {
 		HybridInterpreter result =	noGlobalLock
 			? new HybridInterpreter(getTermFactory())
 			: new HybridInterpreter(getTermFactory()) {
@@ -194,7 +213,7 @@ public final class Environment {
 		return result;
 	}
 	
-	public static synchronized ParseTable registerParseTable(Language language, InputStream parseTable)
+	public static ParseTable registerParseTable(Language language, InputStream parseTable)
 			throws IOException, InvalidParseTableException {
 		
 		Debug.startTimer();
@@ -280,7 +299,7 @@ public final class Environment {
 	
 	public static void logWarning(String message) {
 		if (Debug.ENABLED) STDERR.println("Warning: " + message);
-		Status status = new Status(IStatus.WARNING, RuntimeActivator.PLUGIN_ID, 0, message, null);
+		Status status = new Status(IStatus.WARNING, RuntimeActivator.PLUGIN_ID, 0, message, new RuntimeException(message));
 		RuntimeActivator activator = RuntimeActivator.getInstance();
 		if (activator != null) activator.getLog().log(status);
 	}

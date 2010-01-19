@@ -112,7 +112,7 @@ public class JSGLRI extends AbstractSGLRI {
 		try {
 			return parser.parse(inputStream, getStartSymbol());
 		} catch (FilterException e) {
-			if (parser.getDisambiguator().getFilterPriorities()) {
+			if (e.getCause() == null && parser.getDisambiguator().getFilterPriorities()) {
 				Environment.logException("Parse filter failure - disabling priority filters and trying again", e);
 				getDisambiguator().setFilterPriorities(false);
 				try {

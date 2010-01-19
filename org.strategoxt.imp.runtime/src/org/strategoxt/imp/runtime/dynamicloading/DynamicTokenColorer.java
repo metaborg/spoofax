@@ -10,7 +10,6 @@ import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
 import org.strategoxt.imp.runtime.EditorState;
-import org.strategoxt.imp.runtime.Environment;
 
 /**
  * Dynamic proxy class to a token colorer.
@@ -31,7 +30,7 @@ public class DynamicTokenColorer extends AbstractService<ITokenColorer> implemen
 
 	public DynamicTokenColorer() {
 		super(ITokenColorer.class);
-		if (Environment.isMainThread())
+		if (EditorState.isUIThread())
 			getGrayColor(); // initialize color while we're in the SWT main thread
 	}
 	

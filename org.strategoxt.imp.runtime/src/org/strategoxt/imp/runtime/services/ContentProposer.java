@@ -1,7 +1,10 @@
 package org.strategoxt.imp.runtime.services;
 
-import static org.spoofax.interpreter.core.Tools.*;
-import static org.spoofax.interpreter.terms.IStrategoTerm.*;
+import static org.spoofax.interpreter.core.Tools.asJavaString;
+import static org.spoofax.interpreter.core.Tools.termAt;
+import static org.spoofax.interpreter.terms.IStrategoTerm.LIST;
+import static org.spoofax.interpreter.terms.IStrategoTerm.STRING;
+import static org.spoofax.interpreter.terms.IStrategoTerm.TUPLE;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -16,19 +19,16 @@ import java.util.regex.Pattern;
 import lpg.runtime.IToken;
 
 import org.eclipse.imp.editor.ErrorProposal;
-import org.eclipse.imp.editor.SourceProposal;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.services.IContentProposer;
-import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.widgets.Display;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.SGLRException;
+import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.DynamicParseController;
 import org.strategoxt.imp.runtime.parser.JSGLRI;
@@ -63,6 +63,8 @@ public class ContentProposer implements IContentProposer {
 	private static final String COMPLETION_CONSTRUCTOR = "COMPLETION";
 	
 	private static final String COMPLETION_UNKNOWN = "NOCONTEXT";
+
+	private static final long REINIT_PARSE_DELAY = 4000;
 	
 	private final StringBuilder proposalBuilder = new StringBuilder();
 	
@@ -128,6 +130,18 @@ public class ContentProposer implements IContentProposer {
 		
 		return results;
     }
+	
+	protected Pattern getCompletionLexical() {
+		return completionLexical;
+	}
+	
+	protected SGLRParseController getParser() {
+		return parser;
+	}
+	
+	protected StrategoObserver getObserver() {
+		return observer;
+	}
 
 	private RootAstNode constructAst(SGLRParseController controller, int offset, String document) {
 		this.parser = controller;
@@ -147,23 +161,30 @@ public class ContentProposer implements IContentProposer {
 		JSGLRI parser = controller.getParser();
 		RootAstNode result;
 		
-		controller.scheduleParserUpdate(DynamicParseController.REINIT_PARSE_DELAY, true);
+		controller.scheduleParserUpdate(REINIT_PARSE_DELAY, true);
+		Debug.startTimer();
 		controller.getParseLock().lock();
+		Debug.stopTimer("Completion acquired parse lock");
 		try {
 			if (completionFunction == null && controller.getCurrentAst() != null) {
 				// Don't reparse for keyword completion
 				result = controller.getCurrentAst().cloneIgnoreTokens();
 			} else {
-				result = parser.parse(document.toCharArray(), controller.getPath().toPortableString());
+				Debug.startTimer();
+				try {
+					result = parser.parse(document.toCharArray(), controller.getPath().toPortableString());
+				} finally {
+					Debug.stopTimer("Completion parsed");
+				}
 				lastParserAst = controller.getCurrentAst();
 				lastCompletionAst = result.cloneIgnoreTokens();
 			}
 		} catch (SGLRException e) {
 			Environment.logException("Could not reparse input for content completion", e);
-			result = forceUseMostRecentAst(controller, offset, document);
+			result = forceUseOldAst(controller, offset, document);
 		} catch (IOException e) {
 			Environment.logException("Could not reparse input for content completion", e);
-			result = forceUseMostRecentAst(controller, offset, document);
+			result = forceUseOldAst(controller, offset, document);
 		} finally {
 			controller.getParseLock().unlock();
 		}
@@ -175,8 +196,6 @@ public class ContentProposer implements IContentProposer {
 			return Environment.getTermFactory().makeList();
 		} else {
 			// TODO: is using this lock in the main thread a deadlock risk?
-			//       and does syncExec mitigate that risk?
-			// TODO: apply syncExec in other cases where a lock is used in the main thread?
 			class Runner implements Runnable {
 				IStrategoTerm result;
 				public void run() {
@@ -186,32 +205,34 @@ public class ContentProposer implements IContentProposer {
 				}
 			}
 			Runner runner = new Runner();
-			Display.getCurrent().syncExec(runner);
+			
+			// UNDONE: causes deadlock with updater thread
+			//         (which acquires the display lock to display monitor updates)
+			//if (EditorState.isUIThread()) {
+			//	Display.getCurrent().syncExec(runner);	
+			//} else {
+				runner.run();
+			//}
 			return runner.result;
 		}
 	}
 	
-	private ICompletionProposal[] toProposals(IStrategoTerm term, String document, int offset) {
-		if (term == null)
+	private ICompletionProposal[] toProposals(IStrategoTerm proposals, String document, int offset) {
+		Debug.startTimer();
+		if (proposals == null)
 			return createErrorProposal("No proposals available - completion strategy failed", offset);
 		
 		String error = "No proposals available - '" + completionFunction
 				+ "' did not return a ([proposal], description) list";
-		Set<IStrategoTerm> resultTerms = new HashSet<IStrategoTerm>(term.getSubtermCount());
 
-		if (term.getTermType() != LIST)
+		if (proposals.getTermType() != LIST)
 			return createErrorProposal(error, offset);
-		
-		// Create a set first, removing duplicates
-		for (IStrategoList cons = (IStrategoList) term; !cons.isEmpty(); cons = cons.tail()) {
-			IStrategoTerm proposal = cons.head();
-			resultTerms.add(proposal);
-		}
 		
 		Region offsetRegion = new Region(offset, 0);
 		Set<ICompletionProposal> results = getKeywordProposals(document, currentCompletionPrefix, offsetRegion, offset);
 
-		for (IStrategoTerm proposal : resultTerms) {
+		for (IStrategoList cons = (IStrategoList) proposals; !cons.isEmpty(); cons = cons.tail()) {
+			IStrategoTerm proposal = cons.head();
 			if (proposal.getTermType() != TUPLE || proposal.getSubtermCount() != 2
 					|| termAt(proposal, 0).getTermType() != LIST
 					|| termAt(proposal, 1).getTermType() != STRING)
@@ -221,7 +242,7 @@ public class ContentProposer implements IContentProposer {
 			if (newTextParts.isEmpty() || !newText.startsWith(currentCompletionPrefix))
 				continue;
 			IStrategoString description = termAt(proposal, 1);
-			results.add(new SPISourceProposal(newText, newText, currentCompletionPrefix, offsetRegion, newTextParts, description.stringValue())); 
+			results.add(new ContentProposal(this, newText, newText, currentCompletionPrefix, offsetRegion, newTextParts, description.stringValue())); 
 		}
 		
 		return toSortedArray(results);
@@ -247,17 +268,6 @@ public class ContentProposer implements IContentProposer {
 		}
 		return proposalBuilder.toString();
 	}
-
-	private Point proposalPartsToSelection(IStrategoList proposalParts, int offset) {
-		int i = asJavaString(proposalParts.head()).length();
-		for (IStrategoList cons = proposalParts.tail(); !cons.isEmpty(); cons = cons.tail()) {
-			String part = asJavaString(cons.head());
-			if (completionLexical.matcher(part).matches())
-				return new Point(offset + i, part.length());
-			i += part.length();
-		}
-		return new Point(offset + i, 0);
-	}
 	
 	private Set<ICompletionProposal> getKeywordProposals(String document, String prefix, Region offsetRegion, int offset) {
 		Set<ICompletionProposal> results = new HashSet<ICompletionProposal>();
@@ -267,7 +277,7 @@ public class ContentProposer implements IContentProposer {
 		for (String proposal : keywords) {
 			Matcher matcher = completionLexical.matcher(proposal);
 			if (!specialCharsOnly && proposal.regionMatches(true, 0, prefix, 0, prefix.length())) {
-				results.add(new SPISourceProposal(proposal, proposal, prefix, offsetRegion,
+				results.add(new ContentProposal(this, proposal, proposal, prefix, offsetRegion,
 						offset + proposal.length() - prefix.length(), ""));
 			} else if (matcher.find() && (matcher.start() > 0 || matcher.end() < proposal.length())) {
 				// Handle completion literals with special characters, like "(disabled)"
@@ -279,7 +289,7 @@ public class ContentProposer implements IContentProposer {
 						String subProposal = proposal.substring(matcher.start());
 						if (!specialCharsOnly) results.clear();
 						specialCharsOnly = true;
-						results.add(new SPISourceProposal(proposal, subProposal, prefix,
+						results.add(new ContentProposal(this, proposal, subProposal, prefix,
 								offsetRegion, offset + matcher.end() - matcher.start() - prefix.length(), ""));
 						continue proposals;
 					}
@@ -299,14 +309,18 @@ public class ContentProposer implements IContentProposer {
 	private RootAstNode tryReusePreviousAst(int offset, String document) {
 		if (offset == 0) return null;
 		if (lastCompletionNode != null && lastDocument.length() == document.length() - 1) {
+			// Reuse document, ignoring latest typed character
 			String newCharacter = document.substring(offset - 1, offset);
 			String previousDocument = lastDocument.substring(0, offset - 1) + newCharacter + lastDocument.substring(offset - 1);
 			if (document.equals(previousDocument))
 				return reusePreviousAst(document, lastCompletionPrefix + newCharacter);
 		} else if (lastCompletionNode != null && lastCompletionPrefix.length() > 0 && lastDocument.length() == document.length() + 1) {
+			// Reuse document, ignoring previously typed character
 			String previousDocument = lastDocument.substring(0, offset) + lastDocument.substring(offset + 1);
 			if (document.equals(previousDocument))
 				return reusePreviousAst(document, lastCompletionPrefix.substring(0, lastCompletionPrefix.length() - 1));
+		} else if (lastCompletionNode != null && lastDocument.equals(document)) {
+			return reusePreviousAst(document, lastCompletionPrefix);
 		}
 		lastDocument = document;
 		return null;
@@ -325,19 +339,23 @@ public class ContentProposer implements IContentProposer {
 
 	private String sanitizePrefix(String prefix) {
 		Matcher matcher = completionLexical.matcher(prefix);
-		if (matcher.lookingAt()) {
+		if (prefix.length() == 0) {
+			return "";
+		} else if (matcher.lookingAt()) {
 			return prefix.substring(0, matcher.end());
 		} else {
 			return null;
 		}
 	}
 	
-	private RootAstNode forceUseMostRecentAst(SGLRParseController parser, int offset, String document) {
+	private RootAstNode forceUseOldAst(SGLRParseController parser, int offset, String document) {
 		if (parser.getCurrentAst() != lastParserAst) { // parser has a more recent AST
 			lastParserAst = parser.getCurrentAst();
 			lastCompletionAst = parser.getCurrentAst();
 			currentCompletionNode = null;
 		} else {
+			if (currentCompletionNode == null)
+				return null;
 			replacePrefix(currentCompletionNode, getPrefix(offset, document));
 		}
 		return lastCompletionAst;
@@ -453,41 +471,4 @@ public class ContentProposer implements IContentProposer {
 		return;
 	}
 	
-	/**
-	 * A content proposal that selects the lexical at the cursor location.
-	 * 
-	 * @author Lennart Kats <lennart add lclnet.nl>
-	 */
-	private class SPISourceProposal extends SourceProposal {
-		
-		private final IStrategoList newTextParts;
-		
-		public SPISourceProposal(String proposal, String newText, String prefix, Region region,
-				int cursorLoc, String addlInfo) {
-			super(proposal, newText, prefix, region, cursorLoc, addlInfo);
-			this.newTextParts = null;
-		}
-
-		public SPISourceProposal(String proposal, String newText, String prefix, Region region, 
-				IStrategoList newTextParts, String addlInfo) {
-			super(proposal, newText, prefix, region, addlInfo);
-			this.newTextParts = newTextParts;
-		}
-
-		@Override
-		public Point getSelection(IDocument document) {
-			if (newTextParts == null)
-				return super.getSelection(document);
-			else
-				return proposalPartsToSelection(newTextParts, getRange().getOffset() - getPrefix().length());
-		}
-		
-		@Override
-		public void apply(IDocument document) {
-			super.apply(document);
-			observer.setRushNextUpdate(true);
-			parser.getErrorHandler().setRushNextUpdate(true);
-			parser.scheduleParserUpdate(0, false);
-		}
-	}
 }

@@ -99,7 +99,8 @@ public class EditorState {
 	// ACCESSORS
 	
 	public static boolean isUIThread() {
-		return Display.getCurrent() != null;
+		// return Display.getCurrent() != null; // may exist in multiple threads
+		return PlatformUI.getWorkbench().getActiveWorkbenchWindow() != null;
 	}
 
 	public UniversalEditor getEditor() {

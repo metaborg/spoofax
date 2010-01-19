@@ -51,6 +51,7 @@ public class DescriptorFactory {
 		basePath = basePath.removeLastSegments(2); // strip off /include/filename.main.esv
 		Debug.log("Loading editor services for ", descriptor.getName());
 		
+		// TODO: Optimize - lazily load parse table using ParseTableProvider?
 		Descriptor result = load(descriptor.getContents(true), null, basePath);
 		assert source.getName().endsWith(".main.esv");
 		oldDescriptors.put(source, result);
@@ -96,12 +97,10 @@ public class DescriptorFactory {
 			init();
 			input = new PushbackInputStream(input, 100);
 			
-			synchronized (Environment.getSyncRoot()) {
-				IStrategoAppl document = tryReadTerm((PushbackInputStream) input);
-				if (document == null)
-					document = (IStrategoAppl) descriptorParser.parse(input, "(descriptor)").getTerm();
-				return new Descriptor(document);
-			}
+			IStrategoAppl document = tryReadTerm((PushbackInputStream) input);
+			if (document == null)
+				document = (IStrategoAppl) descriptorParser.parse(input, "(descriptor)").getTerm();
+			return new Descriptor(document);
 		} catch (SGLRException e) {
 			throw new BadDescriptorException("Could not parse descriptor file", e);
 		}

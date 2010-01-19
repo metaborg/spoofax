@@ -67,14 +67,17 @@ public class ContentProposerListener implements ITextListener {
 	
 	private boolean matchesPatterns(IDocument document, int offset) throws BadLocationException {
 		for (Pattern pattern : patterns) {
+			boolean foundNewLine = false;
 			for (int startOffset = offset; startOffset >= 0; startOffset--) {
 				String substring = document.get(startOffset, offset - startOffset + 1);
 				if (pattern.matcher(substring).matches()) {
 					return true;
 				}
 				char c = substring.charAt(0);
-				if (c == '\n' || c == '\r')
-					break; // looked back far enough
+				if (c == '\n' /*|| c == '\r'*/) {
+					if (foundNewLine) break; // looked back far enough
+					foundNewLine = true;
+				}
 			}
 		}
 		return false;
