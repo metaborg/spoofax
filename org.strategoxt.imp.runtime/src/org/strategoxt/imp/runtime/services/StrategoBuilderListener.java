@@ -24,8 +24,8 @@ public class StrategoBuilderListener implements IModelListener {
 	/**
 	 * Maps target editors to their builder listener.
 	 */
-	private static final Map<UniversalEditor, StrategoBuilderListener> asyncListeners =
-		new WeakHashMap<UniversalEditor, StrategoBuilderListener>();
+	private static final Map<IEditorPart, StrategoBuilderListener> asyncListeners =
+		new WeakHashMap<IEditorPart, StrategoBuilderListener>();
 	
 	private final String builder;
 	
@@ -57,9 +57,29 @@ public class StrategoBuilderListener implements IModelListener {
 			StrategoBuilderListener listener = asyncListeners.get(editor);
 			if (listener != null) listener.setEnabled(false);
 			listener = new StrategoBuilderListener(editor, target, file, builder, node);
-			asyncListeners.put(editor, listener);
+			asyncListeners.put(target, listener);
 			editor.addModelListener(listener);
 		}
+	}
+	
+	public static StrategoBuilderListener getListener(IEditorPart targetEditor) {
+		synchronized (asyncListeners) {
+			return asyncListeners.get(targetEditor);
+		}
+	}
+	
+	/**
+	 * Gets the source editor for this builder, if has not been garbage collected.
+	 */
+	public UniversalEditor getSourceEditor() {
+		return editor.get();
+	}
+	
+	/**
+	 * Gets the target editor for this builder, if has not been garbage collected.
+	 */
+	public IEditorPart getTargetEditor() {
+		return targetEditor.get();
 	}
 	
 	public AnalysisRequired getAnalysisRequired() {

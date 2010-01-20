@@ -58,6 +58,8 @@ import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 import org.strategoxt.imp.runtime.stratego.adapter.WrappedAstNode;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.StrategoException;
+import org.strategoxt.stratego_aterm.implode_aterm_0_0;
+import org.strategoxt.stratego_aterm.stratego_aterm;
 import org.strategoxt.stratego_lib.set_config_0_0;
 
 /**
@@ -405,7 +407,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		return invoke(function, input, node.getResource());
 	}
 
-	private static IStrategoTerm makeInputTerm(IStrategoAstNode node, boolean includeSubNode) {
+	protected IStrategoTuple makeInputTerm(IStrategoAstNode node, boolean includeSubNode) {
 		ITermFactory factory = Environment.getTermFactory();
 		String path = node.getResource().getProjectRelativePath().toPortableString();
 		String absolutePath = node.getResource().getProject().getLocation().toOSString();
@@ -426,6 +428,30 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 					factory.makeString(absolutePath)
 				};
 			return factory.makeTuple(inputParts);
+		}
+	}
+
+	protected IStrategoTuple makeATermInputTerm(IStrategoAstNode node, boolean includeSubNode) {
+		assert Thread.holdsLock(getSyncRoot());
+		stratego_aterm.init(runtime.getCompiledContext());
+		
+		ITermFactory factory = Environment.getTermFactory();
+		String path = node.getResource().getProjectRelativePath().toPortableString();
+		String absolutePath = node.getResource().getProject().getLocation().toOSString();
+		
+		if (includeSubNode) {
+			IStrategoTerm term = node.getTerm();
+			// TODO: implement position term paths for ATerm builders
+			IStrategoTerm[] inputParts = {
+					implode_aterm_0_0.instance.invoke(runtime.getCompiledContext(), term),
+					factory.makeString("POSITIONS NOT IMPLEMENTED FOR ATERM BUILDERS"),
+					getRoot(node).getTerm(),
+					factory.makeString(path),
+					factory.makeString(absolutePath)
+				};
+			return factory.makeTuple(inputParts);
+		} else {
+			throw new org.spoofax.NotImplementedException();
 		}
 	}
 	

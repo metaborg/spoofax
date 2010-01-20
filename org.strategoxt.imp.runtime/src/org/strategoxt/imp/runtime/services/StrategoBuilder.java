@@ -1,6 +1,10 @@
 package org.strategoxt.imp.runtime.services;
 
-import static org.spoofax.interpreter.core.Tools.*;
+import static org.spoofax.interpreter.core.Tools.asJavaString;
+import static org.spoofax.interpreter.core.Tools.isTermAppl;
+import static org.spoofax.interpreter.core.Tools.isTermString;
+import static org.spoofax.interpreter.core.Tools.isTermTuple;
+import static org.spoofax.interpreter.core.Tools.termAt;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -54,7 +58,9 @@ public class StrategoBuilder implements IBuilder {
 	
 	private final boolean persistent;
 	
-	public StrategoBuilder(StrategoObserver observer, String caption, String builderRule, boolean openEditor, boolean realTime, boolean cursor, boolean persistent) {
+	private final boolean operateOnATerms;
+	
+	public StrategoBuilder(StrategoObserver observer, String caption, String builderRule, boolean openEditor, boolean realTime, boolean cursor, boolean persistent, boolean operateOnATerms) {
 		this.observer = observer;
 		this.caption = caption;
 		this.builderRule = builderRule;
@@ -62,6 +68,7 @@ public class StrategoBuilder implements IBuilder {
 		this.realTime = realTime;
 		this.cursor = cursor;
 		this.persistent = persistent;
+		this.operateOnATerms = operateOnATerms;
 	}
 	
 	public String getCaption() {
@@ -85,7 +92,10 @@ public class StrategoBuilder implements IBuilder {
 					return;
 				}
 				
-				IStrategoTerm resultTerm = observer.invoke(builderRule, node);
+				IStrategoTerm inputTerm = operateOnATerms
+						? observer.makeATermInputTerm(node, true) 
+						: observer.makeInputTerm(node, true);
+				IStrategoTerm resultTerm = observer.invoke(builderRule, inputTerm, node.getResource());
 				if (resultTerm == null) {
 					observer.reportRewritingFailed();
 					Environment.logException("Builder failed:\n" + observer.getLog());
