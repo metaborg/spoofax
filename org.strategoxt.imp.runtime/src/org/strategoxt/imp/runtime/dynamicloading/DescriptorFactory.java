@@ -110,7 +110,7 @@ public class DescriptorFactory {
 		byte[] buffer = new byte[6];
 		int bufferSize = input.read(buffer);
 		if (bufferSize != -1) input.unread(buffer, 0, bufferSize);
-		if ((bufferSize == 6 && buffer.toString().equals("Module")) || BAFReader.isBinaryATerm(input)) { 
+		if ((bufferSize == 6 && new String(buffer).equals("Module")) || BAFReader.isBinaryATerm(input)) { 
 			return (IStrategoAppl) Environment.getTermFactory().parseFromStream(input);
 		} else {
 			return null;

@@ -38,6 +38,8 @@ import org.strategoxt.imp.runtime.parser.ast.AstNode;
 import org.strategoxt.imp.runtime.parser.ast.ListAstNode;
 import org.strategoxt.imp.runtime.parser.ast.RootAstNode;
 import org.strategoxt.imp.runtime.parser.ast.StringAstNode;
+import org.strategoxt.lang.Term;
+import org.strategoxt.lang.terms.TermFactory;
 
 /**
  * Content completion.
@@ -201,6 +203,10 @@ public class ContentProposer implements IContentProposer {
 				public void run() {
 					synchronized (observer.getSyncRoot()) {
 						result = observer.invokeSilent(completionFunction, currentCompletionNode);
+						if (result == null) {
+							observer.reportRewritingFailed();
+							result = TermFactory.EMPTY_LIST;
+						}
 					}
 				}
 			}
@@ -219,8 +225,6 @@ public class ContentProposer implements IContentProposer {
 	
 	private ICompletionProposal[] toProposals(IStrategoTerm proposals, String document, int offset) {
 		Debug.startTimer();
-		if (proposals == null)
-			return createErrorProposal("No proposals available - completion strategy failed", offset);
 		
 		String error = "No proposals available - '" + completionFunction
 				+ "' did not return a ([proposal], description) list";

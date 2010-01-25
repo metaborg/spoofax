@@ -57,6 +57,7 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 
 	public String getLinkText(Object oNode) {
 		IStrategoAstNode node = getReferencedNode(oNode);
+		if (node == null) return null;
 		
 		String function = NodeMapping.getFirstAttribute(helpFunctions, node.getConstructor(), null, 0);
 		if (function == null) function = wildcardHelperFunction;

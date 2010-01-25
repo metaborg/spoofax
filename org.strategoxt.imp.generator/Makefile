@@ -37,8 +37,7 @@ JAVAC=`if which ecj >/dev/null; then echo ecj; else echo javac; fi`
 STRJ=`if which strj >/dev/null; then echo strj; elif [ -e strategoxt.jar ]; then echo java -server -Xss4m -jar strategoxt.jar; else echo Please install strj or put strategoxt.jar into the current directory. >&2; exit 1; fi`
 
 SDFINCLUDES = \
-    -Idef ${HOME}/.nix-profile/share/java-front/Stratego-Java-EBlock.def \
-    -Idef ${HOME}/opt/java-front/share/java-front/Stratego-Java-EBlock.def
+    -Idef ${HOME}/.nix-profile/share/java-front/Stratego-Java-EBlock.def
 
 # I don't care much for nullary constructor warnings unless it's about lowercase ones, such as 'start'
 STRCSTFU=2>&1 | grep -vE 'warning ] Nullary constructor .*[A-Z]|warning ] multiple external| \[ExtSDef\(|stratego-trm|module-name-checked|module-name-checked"' \
@@ -67,12 +66,12 @@ check : sdf2imp syntax \
 
 sdf2imp : $(RTREES) $(SYNTAX) Makefile src/include/rtg.tbl
 	strc -i src/sdf2imp.str -o $@ $(STRINCLUDES) $(STRCFLAGS) -m main-sdf2imp \
-	     -la ${HOME}/.nix-profile/lib/libjava-front.la $(STRCSTFU)
-	rm sdf2imp.c sdf2imp.lo sdf2imp.o
+	     -la ${HOME}/.nix-profile/lib/libjava-front.la
+	rm -f sdf2imp.c sdf2imp.lo sdf2imp.o
 
 src-gen/org/strategoxt/imp/generator/sdf2imp.java : $(RTREES) $(SYNTAX) Makefile src/include/rtg.tbl
 	$(STRJ) -clean -O 3 -i src/sdf2imp.str -o $@ $(STRINCLUDES) $(STRCFLAGS) -m main-sdf2imp \
-	        -la java-front --library -p org.strategoxt.imp.generator $(STRCSTFU)
+	        -la java-front --library -p org.strategoxt.imp.generator
 
 lib/sdf2imp.jar : src-gen/org/strategoxt/imp/generator/sdf2imp.java
 	strj-jar -i $< -o $@ -cp src-gen
