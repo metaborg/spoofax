@@ -441,10 +441,9 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		
 		if (includeSubNode) {
 			IStrategoTerm term = node.getTerm();
-			// TODO: implement position term paths for ATerm builders
 			IStrategoTerm[] inputParts = {
 					implode_aterm_0_0.instance.invoke(runtime.getCompiledContext(), term),
-					factory.makeString("POSITIONS NOT IMPLEMENTED FOR ATERM BUILDERS"),
+					StrategoTermPath.createPathFromParsedATerm(node, runtime.getCompiledContext()),
 					getRoot(node).getTerm(),
 					factory.makeString(path),
 					factory.makeString(absolutePath)

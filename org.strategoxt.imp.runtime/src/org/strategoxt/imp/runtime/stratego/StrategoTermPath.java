@@ -9,13 +9,21 @@ import java.util.List;
 
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.strategoxt.imp.generator.position_of_term_1_0;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.AbstractVisitor;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
 import org.strategoxt.imp.runtime.parser.ast.AstNodeFactory;
 import org.strategoxt.imp.runtime.parser.ast.ListAstNode;
 import org.strategoxt.imp.runtime.parser.ast.SubListAstNode;
+import org.strategoxt.imp.runtime.services.ContentProposer;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
+import org.strategoxt.imp.runtime.stratego.adapter.IWrappedAstNode;
+import org.strategoxt.lang.Context;
+import org.strategoxt.lang.Strategy;
+import org.strategoxt.stratego_aterm.explode_aterm_0_0;
+import org.strategoxt.stratego_aterm.implode_aterm_0_0;
+import org.strategoxt.stratego_lib.oncetd_1_0;
 
 /**
  * Maintains aterm paths, lists of nodes on the path to the root from a given AST node.
@@ -57,6 +65,35 @@ public class StrategoTermPath {
 		}
 		
 		return results;
+	}
+	
+	/**
+	 * Creates a term path given the AST Node of a parsed ATerm file.
+	 * The resulting path relates to the actual AST, ignoring the 'appl' etc constructors
+	 * of the ATerm syntax.
+	 */
+	public static IStrategoList createPathFromParsedATerm(final IStrategoAstNode node, Context context) {
+		IStrategoTerm top = node.getRoot().getTerm();
+		final IStrategoTerm marker = context.getFactory().makeString(ContentProposer.COMPLETION_TOKEN);
+		top = oncetd_1_0.instance.invoke(context, top, new Strategy() {
+			@Override
+			public IStrategoTerm invoke(Context context, IStrategoTerm current) {
+				if (current instanceof IWrappedAstNode && ((IWrappedAstNode) current).getNode() == node) {
+					return explode_aterm_0_0.instance.invoke(context, marker);
+				} else {
+					return null;
+				}
+			}
+		});
+		top = implode_aterm_0_0.instance.invoke(context, top);
+		IStrategoTerm result = position_of_term_1_0.instance.invoke(context, top, new Strategy() {
+			@Override
+			public IStrategoTerm invoke(Context context, IStrategoTerm current) {
+				return marker.equals(current) ? current : null;
+			}
+		});
+		assert result != null;
+		return (IStrategoList) result;
 	}
 
 	private static int indexOfIdentical(List<?> children, IStrategoAstNode node) {

@@ -56,6 +56,10 @@ public class IMPParseStrategoFileStrategy extends parse_stratego_file_0_0 {
 			return null;
 		} catch (IOException e) {
 			return null;
+		} catch (RuntimeException e) {
+			context.getIOAgent().getOutputStream(IOAgent.CONST_STDERR).println("parse-stratego-file (" + file + "): " + e.getMessage());
+			Environment.logException("Parsing of " + file + " failed", e);
+			return null;
 		}
 	}
 

@@ -38,7 +38,6 @@ import org.strategoxt.imp.runtime.parser.ast.AstNode;
 import org.strategoxt.imp.runtime.parser.ast.ListAstNode;
 import org.strategoxt.imp.runtime.parser.ast.RootAstNode;
 import org.strategoxt.imp.runtime.parser.ast.StringAstNode;
-import org.strategoxt.lang.Term;
 import org.strategoxt.lang.terms.TermFactory;
 
 /**

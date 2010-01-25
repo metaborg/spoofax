@@ -37,6 +37,8 @@ public interface IStrategoAstNode extends IAst {
 	 */
 	String yield();
 	
+	IStrategoAstNode getRoot();
+	
 	// SPECIALIZED FROM PARENT INTERFACE
 	
 	IStrategoAstNode getNextAst();

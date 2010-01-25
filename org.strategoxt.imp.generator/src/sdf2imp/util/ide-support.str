@@ -4,8 +4,8 @@
 module sdf2imp/util/ide-support
 
 imports
-
   libstratego-lib
+  libstratego-sglr
 
 strategies
 
@@ -41,3 +41,22 @@ strategies
 
   simplify-ambiguity-element:
     x#(_) -> x
+
+rules
+
+  position-of-term(is-term):
+    t -> []
+    where
+      is-term
+  
+  position-of-term(is-term):
+    _#(t*) -> <position-of-term(is-term|0)> t*
+  
+  position-of-term(is-term|start-index):
+    [t | t*] -> position
+    where
+      if i* := <position-of-term(is-term)> t then
+        position := [start-index | i*]
+      else
+        position := <position-of-term(is-term | <inc> start-index)> t*
+      end
