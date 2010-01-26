@@ -15,6 +15,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.services.BuilderMap;
+import org.strategoxt.imp.runtime.services.CustomStrategyBuilder;
 import org.strategoxt.imp.runtime.services.IBuilder;
 import org.strategoxt.imp.runtime.services.IBuilderMap;
 import org.strategoxt.imp.runtime.services.StrategoBuilder;
@@ -27,23 +28,26 @@ import org.strategoxt.imp.runtime.services.StrategoObserver;
 public class BuilderFactory extends AbstractServiceFactory<IBuilderMap> {
 	
 	public BuilderFactory() {
-		super(IBuilderMap.class, true);
+		super(IBuilderMap.class, false); // not cached; depends on derived editor relation
 	}
 
 	@Override
 	public IBuilderMap create(Descriptor d, SGLRParseController controller) throws BadDescriptorException {
 		Set<IBuilder> builders = new LinkedHashSet<IBuilder>();
 		
-		if (d.getLanguage().getName().equals("ATerm"))
-			addSourceBuilders(controller, builders);
+		EditorState derivedFromEditor = getDerivedFromEditor(controller);
+		
+		if (d.isATermEditor() && derivedFromEditor != null)
+			addDerivedBuilders(derivedFromEditor, builders);
 
-		addBuilders(d, controller, builders, false);
+		addBuilders(d, controller, builders, null);
+		addCustomStrategyBuilder(d, controller, builders, derivedFromEditor);
 		
 		return new BuilderMap(builders);
 	}
 
 	private static void addBuilders(Descriptor d, SGLRParseController controller, Set<IBuilder> builders,
-			boolean operateOnATerms) throws BadDescriptorException {
+			EditorState derivedFromEditor) throws BadDescriptorException {
 		
 		StrategoObserver feedback = d.createService(StrategoObserver.class, controller);
 		
@@ -75,24 +79,40 @@ public class BuilderFactory extends AbstractServiceFactory<IBuilderMap> {
 				}
 			}
 			if (!meta || d.isDynamicallyLoaded())			
-				builders.add(new StrategoBuilder(feedback, caption, strategy, openEditor, realTime, cursor, persistent, operateOnATerms));
+				builders.add(new StrategoBuilder(feedback, caption, strategy, openEditor, realTime, cursor, persistent, derivedFromEditor));
 		}
 	}
 
-	private static void addSourceBuilders(SGLRParseController controller, Set<IBuilder> builders)
+	private static void addDerivedBuilders(EditorState derivedFromEditor, Set<IBuilder> builders)
 			throws BadDescriptorException {
 		
+		if (derivedFromEditor != null)
+			addBuilders(derivedFromEditor.getDescriptor(), derivedFromEditor.getParseController(), builders, derivedFromEditor);
+	}
+
+	private static void addCustomStrategyBuilder(Descriptor d, SGLRParseController controller,
+			Set<IBuilder> builders, EditorState derivedFromEditor) throws BadDescriptorException {
+		
+		if (d.isATermEditor() && derivedFromEditor != null) {
+			StrategoObserver feedback = derivedFromEditor.getDescriptor().createService(StrategoObserver.class, controller);
+			builders.add(new CustomStrategyBuilder(feedback, derivedFromEditor));
+		} else if (d.isDynamicallyLoaded()) {
+			StrategoObserver feedback = d.createService(StrategoObserver.class, controller);
+			builders.add(new CustomStrategyBuilder(feedback, null));
+		}
+	}
+
+	private static EditorState getDerivedFromEditor(SGLRParseController controller) {
 		if (controller.getEditor() == null || controller.getEditor().getEditor() == null)
-			return;
+			return null;
 		UniversalEditor editor = controller.getEditor().getEditor();
 		StrategoBuilderListener listener = StrategoBuilderListener.getListener(editor);
 		if (listener == null)
-			return;
+			return null;
 		UniversalEditor sourceEditor = listener.getSourceEditor();
 		if (sourceEditor == null)
-			return;
-		EditorState sourceEditorState = EditorState.getEditorFor(sourceEditor.getParseController());
-		addBuilders(sourceEditorState.getDescriptor(), sourceEditorState.getParseController(), builders, true);
+			return null;
+		return EditorState.getEditorFor(sourceEditor.getParseController());
 	}
 
 }

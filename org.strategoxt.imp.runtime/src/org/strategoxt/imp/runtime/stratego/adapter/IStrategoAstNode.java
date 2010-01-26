@@ -39,6 +39,8 @@ public interface IStrategoAstNode extends IAst {
 	
 	IStrategoAstNode getRoot();
 	
+	boolean isList();
+	
 	// SPECIALIZED FROM PARENT INTERFACE
 	
 	IStrategoAstNode getNextAst();

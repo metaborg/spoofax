@@ -440,11 +440,11 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		String absolutePath = node.getResource().getProject().getLocation().toOSString();
 		
 		if (includeSubNode) {
-			IStrategoTerm term = node.getTerm();
+			node = getImplodableNode(node);
 			IStrategoTerm[] inputParts = {
-					implode_aterm_0_0.instance.invoke(runtime.getCompiledContext(), term),
+					implodeATerm(node.getTerm()),
 					StrategoTermPath.createPathFromParsedATerm(node, runtime.getCompiledContext()),
-					getRoot(node).getTerm(),
+					implodeATerm(getRoot(node).getTerm()),
 					factory.makeString(path),
 					factory.makeString(absolutePath)
 				};
@@ -452,6 +452,20 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		} else {
 			throw new org.spoofax.NotImplementedException();
 		}
+	}
+
+	protected IStrategoTerm implodeATerm(IStrategoTerm term) {
+		return implode_aterm_0_0.instance.invoke(runtime.getCompiledContext(), term);
+	}
+
+	protected IStrategoAstNode getImplodableNode(IStrategoAstNode node) {
+		if (node.isList() && node.getChildren().size() == 1)
+			node = (IStrategoAstNode) node.getChildren().get(0);
+		for (; node != null; node = node.getParent()) {
+			if (implodeATerm(node.getTerm()) != null)
+				return node;
+		}
+		throw new IllegalStateException("Could not identify selected AST node from ATerm editor");
 	}
 	
 	/**
@@ -560,7 +574,8 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	
 	public HybridInterpreter getRuntime() {
 		assert Thread.holdsLock(getSyncRoot());
-		
+		if (runtime == null) init(new NullProgressMonitor());
+		if (runtime == null) initRuntime(new NullProgressMonitor()); // create empty runtime
 		return runtime;
 	}
 

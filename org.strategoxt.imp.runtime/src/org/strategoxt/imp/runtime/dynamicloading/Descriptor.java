@@ -214,6 +214,14 @@ public class Descriptor {
 		return dynamicallyLoaded;
 	}
 	
+	public boolean isATermEditor() {
+		try {
+			return "ATerm".equals(getLanguage().getName());
+		} catch (BadDescriptorException e) {
+			return false;
+		}
+	}
+	
 	public void setDynamicallyLoaded(boolean dynamicallyLoaded) {
 		this.dynamicallyLoaded = dynamicallyLoaded;
 	}

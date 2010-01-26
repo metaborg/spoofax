@@ -86,14 +86,12 @@ public class StrategoTermPath {
 			}
 		});
 		top = implode_aterm_0_0.instance.invoke(context, top);
-		IStrategoTerm result = position_of_term_1_0.instance.invoke(context, top, new Strategy() {
+		return (IStrategoList) position_of_term_1_0.instance.invoke(context, top, new Strategy() {
 			@Override
 			public IStrategoTerm invoke(Context context, IStrategoTerm current) {
 				return marker.equals(current) ? current : null;
 			}
 		});
-		assert result != null;
-		return (IStrategoList) result;
 	}
 
 	private static int indexOfIdentical(List<?> children, IStrategoAstNode node) {

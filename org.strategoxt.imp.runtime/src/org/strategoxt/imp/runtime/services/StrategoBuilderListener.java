@@ -29,7 +29,7 @@ public class StrategoBuilderListener implements IModelListener {
 	
 	private final String builder;
 	
-	private final WeakReference<UniversalEditor> editor;
+	private WeakReference<UniversalEditor> editor;
 	
 	private final WeakReference<IEditorPart> targetEditor;
 	
@@ -52,13 +52,14 @@ public class StrategoBuilderListener implements IModelListener {
 		this.selection = selection;
 	}
 
-	public static void addListener(UniversalEditor editor, IEditorPart target, IFile file, String builder, IStrategoAstNode node) {
+	public static StrategoBuilderListener addListener(UniversalEditor editor, IEditorPart target, IFile file, String builder, IStrategoAstNode node) {
 		synchronized (asyncListeners) {
 			StrategoBuilderListener listener = asyncListeners.get(editor);
 			if (listener != null) listener.setEnabled(false);
 			listener = new StrategoBuilderListener(editor, target, file, builder, node);
 			asyncListeners.put(target, listener);
 			editor.addModelListener(listener);
+			return listener;
 		}
 	}
 	
@@ -73,6 +74,10 @@ public class StrategoBuilderListener implements IModelListener {
 	 */
 	public UniversalEditor getSourceEditor() {
 		return editor.get();
+	}
+	
+	public void setSourceEditor(UniversalEditor editor) {
+		this.editor = new WeakReference<UniversalEditor>(editor);
 	}
 	
 	/**

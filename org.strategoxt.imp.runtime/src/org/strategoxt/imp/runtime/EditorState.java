@@ -154,26 +154,28 @@ public class EditorState {
 	/**
 	 * Gets the abstract syntax subtree for the selection in the editor.
 	 * 
-	 * @param ignoreEmptyEmpySelection
+	 * @param ignoreEmptyEmptySelection
 	 *            If true, null is returned if the selection is 0 characters wide.
 	 * 
 	 * @see SGLRParseController#getCurrentAst()
 	 *            Gets the entire AST.
 	 */
-	public final synchronized IStrategoAstNode getSelectionAst(boolean ignoreEmptyEmpySelection) {
+	public final synchronized IStrategoAstNode getSelectionAst(boolean ignoreEmptyEmptySelection) {
 		Point selection = getEditor().getSelection();
-		if (ignoreEmptyEmpySelection && selection.y == 0)
+		if (ignoreEmptyEmptySelection && selection.y == 0)
 			return null;
 		
 		IToken start = getParseController().getTokenIterator(new Region(selection.x, 0), true).next();
-		IToken end = getParseController().getTokenIterator(new Region(selection.x + selection.y, 0), true).next();
+		IToken end = getParseController().getTokenIterator(new Region(selection.x + selection.y - 1, 0), true).next();
 		
 		IPrsStream tokens = start.getIPrsStream();
 		int layout = TokenKind.TK_LAYOUT.ordinal();
+		int eof = TokenKind.TK_EOF.ordinal();
+		
 		while (start.getKind() == layout && start.getTokenIndex() < tokens.getSize())
 			start = tokens.getTokenAt(start.getTokenIndex() + 1);
 		
-		while (end.getKind() == layout && end.getTokenIndex() > 0)
+		while ((end.getKind() == layout || end.getKind() == eof) && end.getTokenIndex() > 0)
 			end = tokens.getTokenAt(end.getTokenIndex() - 1);
 		
 		IStrategoAstNode startNode = ((SGLRToken) start).getAstNode();

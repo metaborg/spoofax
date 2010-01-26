@@ -48,7 +48,7 @@ public class StrategoBuilder implements IBuilder {
 
 	private final String caption;
 	
-	private final String builderRule;
+	private String builderRule;
 	
 	private final boolean realTime;
 	
@@ -58,9 +58,17 @@ public class StrategoBuilder implements IBuilder {
 	
 	private final boolean persistent;
 	
-	private final boolean operateOnATerms;
+	private final EditorState derivedFromEditor;
 	
-	public StrategoBuilder(StrategoObserver observer, String caption, String builderRule, boolean openEditor, boolean realTime, boolean cursor, boolean persistent, boolean operateOnATerms) {
+	/**
+	 * Creates a new Stratego builder.
+	 * 
+	 * @param derivedFromEditor  The editor the present editor is derived from, if the present editor is an ATerm editor.
+	 */
+	public StrategoBuilder(StrategoObserver observer, String caption, String builderRule,
+			boolean openEditor, boolean realTime, boolean cursor, boolean persistent,
+			EditorState derivedFromEditor) {
+		
 		this.observer = observer;
 		this.caption = caption;
 		this.builderRule = builderRule;
@@ -68,15 +76,32 @@ public class StrategoBuilder implements IBuilder {
 		this.realTime = realTime;
 		this.cursor = cursor;
 		this.persistent = persistent;
-		this.operateOnATerms = operateOnATerms;
+		this.derivedFromEditor = derivedFromEditor;
 	}
 	
 	public String getCaption() {
 		return caption;
 	}
 	
+	public String getBuilderRule() {
+		return builderRule;
+	}
+	
+	protected StrategoObserver getObserver() {
+		return observer;
+	}
+	
+	protected EditorState getDerivedFromEditor() {
+		return derivedFromEditor;
+	}
+	
+	protected void setBuilderRule(String builderRule) {
+		this.builderRule = builderRule;
+	}
+	
 	public void execute(EditorState editor, IStrategoAstNode node, IFile errorReportFile, boolean isRebuild) {
 		// TODO: refactor
+		assert derivedFromEditor == null || editor.getDescriptor().isATermEditor();
 		String filename = null;
 		String result = null;
 		String errorReport = null;
@@ -92,10 +117,7 @@ public class StrategoBuilder implements IBuilder {
 					return;
 				}
 				
-				IStrategoTerm inputTerm = operateOnATerms
-						? observer.makeATermInputTerm(node, true) 
-						: observer.makeInputTerm(node, true);
-				IStrategoTerm resultTerm = observer.invoke(builderRule, inputTerm, node.getResource());
+				IStrategoTerm resultTerm = invokeObserver(node);
 				if (resultTerm == null) {
 					observer.reportRewritingFailed();
 					Environment.logException("Builder failed:\n" + observer.getLog());
@@ -159,14 +181,29 @@ public class StrategoBuilder implements IBuilder {
 				if (openEditor && !isRebuild) {
 					IEditorPart target = openEditor(file, realTime);
 					if (!persistent) new File(file.getLocationURI()).delete();
-					if (realTime)
+					// Create a listene *and* editor-derived editor relation
+					StrategoBuilderListener listener = 
 						StrategoBuilderListener.addListener(editor.getEditor(), target, file, getCaption(), node);
+					if (!realTime || editor == target || derivedFromEditor != null)
+						listener.setEnabled(false);
+					if (derivedFromEditor != null) // ensure we get builders from the source
+						listener.setSourceEditor(derivedFromEditor.getEditor());
 				}
 			}
 		} catch (CoreException e) {
 			Environment.logException("Builder failed", e);
 			openError(editor, "Failed (see error log): " + e.getMessage());
 		}
+	}
+
+	protected IStrategoTerm invokeObserver(IStrategoAstNode node) throws UndefinedStrategyException,
+			InterpreterErrorExit, InterpreterExit, InterpreterException {
+		
+		IStrategoTerm inputTerm = derivedFromEditor != null
+				? observer.makeATermInputTerm(node, true) 
+				: observer.makeInputTerm(node, true);
+		IStrategoTerm result = observer.invoke(builderRule, inputTerm, node.getResource());
+		return result;
 	}
 
 	private IStrategoString ppATerm(IStrategoTerm term) {
