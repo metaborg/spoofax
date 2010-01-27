@@ -75,7 +75,7 @@ public class IMPParseStrategoFileStrategy extends parse_stratego_file_0_0 {
 	}
 
 	private JSGLRI processMetaFile(String file, JSGLRI parser) throws InvalidParseTableException {
-		String metaFileName = file.substring(file.length() - 4) + ".meta";
+		String metaFileName = file.substring(0, file.length() - 4) + ".meta";
 		MetaFile metaFile = MetaFile.read(metaFileName);
 		ParseTable table = null;
 		if (metaFile != null) {
