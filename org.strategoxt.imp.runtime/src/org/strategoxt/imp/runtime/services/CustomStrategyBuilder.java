@@ -75,7 +75,9 @@ public class CustomStrategyBuilder extends StrategoBuilder {
 			InterpreterException {
 
 		// Try invoke using (term)
-		IStrategoTerm input = getObserver().implodeATerm(getObserver().getImplodableNode(node).getTerm());
+		IStrategoTerm input = getDerivedFromEditor() == null
+				? node.getTerm()
+				: getObserver().implodeATerm(getObserver().getImplodableNode(node).getTerm());
 		IStrategoTerm result = getObserver().invoke(getBuilderRule(), input, node.getResource());
 		if (result != null) return addFileName(result, node.getResource());
 		String[] trace1 = getObserver().getRuntime().getCompiledContext().getTrace();
@@ -94,20 +96,25 @@ public class CustomStrategyBuilder extends StrategoBuilder {
 	
 	private IStrategoTuple addFileName(IStrategoTerm result, IResource resource) {
 		ITermFactory factory = getObserver().getRuntime().getFactory();
-		// TODO: name like foo.1.aterm, foo.2.aterm, etc.
 		IPath source = resource.getProjectRelativePath().removeFileExtension();
+		String target = addCounter(source).addFileExtension("aterm").toPortableString();
+		return factory.makeTuple(factory.makeString(target), result);
+	}
+
+	private IPath addCounter(IPath path) {
+		if (getDerivedFromEditor() == null)
+			return path;
 		String counter = "2";
-		if (source.getFileExtension() != null) {
+		if (path.getFileExtension() != null) {
 			try {
-				int prevCounter = Integer.parseInt(source.getFileExtension());
-				source.removeFileExtension();
+				int prevCounter = Integer.parseInt(path.getFileExtension());
+				path.removeFileExtension();
 				counter = String.valueOf(prevCounter + 1);
 			} catch (NumberFormatException e) {
 				// Leave the counter at 2
 			}
 		}
-		String target = source.addFileExtension(counter + "." + "aterm").toPortableString();
-		return factory.makeTuple(factory.makeString(target), result);
+		return path.addFileExtension(counter);
 	}
 
 	private void setInitialValue(EditorState editor, String value) {
