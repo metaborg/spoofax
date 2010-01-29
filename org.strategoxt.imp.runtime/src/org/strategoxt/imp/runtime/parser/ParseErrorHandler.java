@@ -284,7 +284,7 @@ public class ParseErrorHandler {
 		}
 		
 		//post visit: report error				
-		if (isErrorProduction(attrs, WATER)) {
+		if (isErrorProduction(attrs, WATER) || isRejectProduction(attrs)) {
 			IToken token = tokenizer.makeErrorToken(startOffset, offset - 1);
 			tokenizer.changeTokenKinds(startOffset, offset - 1, TokenKind.TK_LAYOUT, TokenKind.TK_ERROR);
 			reportErrorAtTokens(token, token, UNEXPECTED_TOKEN_PREFIX + token + UNEXPECTED_TOKEN_POSTFIX);
@@ -513,13 +513,27 @@ public class ParseErrorHandler {
 			while (!attrList.isEmpty()) {
 				ATermAppl attr = (ATermAppl) attrList.getFirst();
 				attrList = attrList.getNext();
-				if (attr.getName().equals("term")) {
+				if (attr.getChildCount() == 1 && attr.getName().equals("term")) {
 					ATermAppl details = applAt(attr, 0);
 					if (details.getName().equals("cons")) {
 						details = applAt(details, 0);					
 						return details.getName().equals(consName);
 					}
 				}
+			}
+		}
+		return false;
+	}
+	
+	private static boolean isRejectProduction(ATermAppl attrs) {	
+		if ("attrs".equals(attrs.getName())) {
+			ATermList attrList = termAt(attrs, 0);
+		
+			while (!attrList.isEmpty()) {
+				ATermAppl attr = (ATermAppl) attrList.getFirst();
+				attrList = attrList.getNext();
+				if (attr.getChildCount() == 0 &&  attr.getName().equals("reject"))
+					return true;
 			}
 		}
 		return false;
