@@ -38,6 +38,7 @@ import org.spoofax.jsglr.Tools;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.SWTSafeLock;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.dynamicloading.DynamicParseController;
@@ -66,7 +67,7 @@ public class SGLRParseController implements IParseController {
 	
 	private final TokenKindManager tokenManager = new TokenKindManager();
 	
-	private final ReentrantLock parseLock = new ReentrantLock(true);
+	private final SWTSafeLock parseLock = new SWTSafeLock(true);
 	
 	private final JSGLRI parser;
 	
@@ -265,6 +266,7 @@ public class SGLRParseController implements IParseController {
 			}
 			
 			//if (isStartupParsed) Job.getJobManager().endRule(resource);
+			isAborted = false;
 			parseLock.unlock();
 		}
 
@@ -272,12 +274,10 @@ public class SGLRParseController implements IParseController {
 	}
 	
 	public void scheduleParserUpdate(long delay, boolean abortFirst) {
-		if (abortFirst) {
+		if (abortFirst && parseLock.isLocked()) {
 			isAborted = true;
-			getParser().asyncAbort();
-			parseLock.lock();
-			isAborted = false;
-			parseLock.unlock();
+			if (!parseLock.isLocked())
+				isAborted = false;
 		}
 		if (getEditor() != null)
 			getEditor().scheduleParserUpdate(delay);

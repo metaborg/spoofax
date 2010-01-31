@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import lpg.runtime.IAst;
 
@@ -46,6 +45,7 @@ import org.strategoxt.imp.generator.sdf2imp;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.SWTSafeLock;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.dynamicloading.IDynamicLanguageService;
@@ -81,7 +81,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	
 	private final AstMessageHandler messages = new AstMessageHandler(AstMessageHandler.ANALYSIS_MARKER_TYPE);
 	
-	private Lock observerSchedulerLock = new ReentrantLock();
+	private Lock observerSchedulerLock = new SWTSafeLock(true);
 	
 	private Job asyncObserverScheduler;
 	
