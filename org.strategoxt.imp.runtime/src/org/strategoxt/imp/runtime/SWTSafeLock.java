@@ -33,6 +33,7 @@ public class SWTSafeLock extends ReentrantLock {
 	public void lock() {
 		if (Environment.isMainThread()) {
 			try {
+				// TODO: Could the SWTSafeLock cause trouble, e.g. by launching multiple content proposers?
 				while (!tryLock(EVENT_RATE, TimeUnit.MILLISECONDS)) {
 					while (Display.getCurrent().readAndDispatch());
 				}
