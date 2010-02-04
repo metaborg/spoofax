@@ -87,6 +87,8 @@ public class ContentProposer implements IContentProposer {
 	
 	private String lastDocument;
 	
+	private int lastOffset;
+	
 	private AstNode currentCompletionNode;
 	
 	private String currentCompletionPrefix;
@@ -311,27 +313,30 @@ public class ContentProposer implements IContentProposer {
 	 */
 	private RootAstNode tryReusePreviousAst(int offset, String document) {
 		if (offset == 0) return null;
-		if (lastCompletionNode != null && lastDocument.length() == document.length() - 1) {
+		if (lastCompletionNode != null && lastDocument.length() == document.length() - 1 && lastOffset == offset - 1) {
 			// Reuse document, ignoring latest typed character
 			String newCharacter = document.substring(offset - 1, offset);
 			String previousDocument = lastDocument.substring(0, offset - 1) + newCharacter + lastDocument.substring(offset - 1);
 			if (document.equals(previousDocument))
-				return reusePreviousAst(document, lastCompletionPrefix + newCharacter);
-		} else if (lastCompletionNode != null && lastCompletionPrefix.length() > 0 && lastDocument.length() == document.length() + 1) {
+				return reusePreviousAst(offset, document, lastCompletionPrefix + newCharacter);
+		} else if (lastCompletionNode != null && lastCompletionPrefix.length() > 0
+				&& lastDocument.length() == document.length() + 1 && lastOffset == offset + 1) {
 			// Reuse document, ignoring previously typed character
 			String previousDocument = lastDocument.substring(0, offset) + lastDocument.substring(offset + 1);
 			if (document.equals(previousDocument))
-				return reusePreviousAst(document, lastCompletionPrefix.substring(0, lastCompletionPrefix.length() - 1));
-		} else if (lastCompletionNode != null && lastDocument.equals(document)) {
-			return reusePreviousAst(document, lastCompletionPrefix);
+				return reusePreviousAst(offset, document, lastCompletionPrefix.substring(0, lastCompletionPrefix.length() - 1));
+		} else if (lastCompletionNode != null && lastDocument.equals(document) && offset == lastOffset) {
+			return reusePreviousAst(offset, document, lastCompletionPrefix);
 		}
 		lastDocument = document;
+		lastOffset = offset;
 		return null;
 	}
 
-	private RootAstNode reusePreviousAst(String document, String prefix) {
+	private RootAstNode reusePreviousAst(int offset, String document, String prefix) {
 		currentCompletionPrefix = prefix;
 		lastDocument = document;
+		lastOffset = offset;
 		String prefixInAst = sanitizePrefix(currentCompletionPrefix);
 		if (prefixInAst == null)
 			return null;
