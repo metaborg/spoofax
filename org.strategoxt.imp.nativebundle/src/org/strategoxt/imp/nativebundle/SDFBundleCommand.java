@@ -1,11 +1,12 @@
 package org.strategoxt.imp.nativebundle;
 
-import static org.spoofax.interpreter.terms.IStrategoTerm.*;
+import static org.spoofax.interpreter.terms.IStrategoTerm.LIST;
+import static org.spoofax.interpreter.terms.IStrategoTerm.STRING;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.PrintStream;
+import java.io.Writer;
 import java.net.URL;
 import java.util.Arrays;
 
@@ -141,10 +142,10 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 		
 		try {
 			if (commandArgs == null) return false;
-			PrintStream out = io.getOutputStream(IOAgent.CONST_STDOUT);
-			PrintStream err = io.getOutputStream(IOAgent.CONST_STDERR);
+			Writer out = io.getWriter(IOAgent.CONST_STDOUT);
+			Writer err = io.getWriter(IOAgent.CONST_STDERR);
 
-			err.println(("Invoking native tool " + binaryPath + command + binaryExtension + " " + Arrays.toString(argList)));
+			err.write("Invoking native tool " + binaryPath + command + binaryExtension + " " + Arrays.toString(argList) + "\n");
 			int result = new NativeCallHelper().call(commandArgs, null, new File(io.getWorkingDir()), out, err);
 			if (result != 0) {
 				Environment.logException("Native tool " + command
@@ -168,8 +169,8 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 	
 	private boolean makeExecutable(IOAgent io, String command) {
 		try {
-			PrintStream out = io.getOutputStream(IOAgent.CONST_STDOUT);
-			PrintStream err = io.getOutputStream(IOAgent.CONST_STDERR);
+			Writer out = io.getWriter(IOAgent.CONST_STDOUT);
+			Writer err = io.getWriter(IOAgent.CONST_STDERR);
 			command = binaryPath + command + binaryExtension;
 			// /bin/sh should exist even on NixOS
 			String[] commandArgs = { "/bin/sh", "-c", "chmod +x \"" + command + "\"" };

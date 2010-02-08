@@ -5,7 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.io.PrintStream;
+import java.io.Writer;
 
 import org.spoofax.interpreter.library.LoggingIOAgent;
 import org.strategoxt.imp.runtime.Debug;
@@ -57,17 +57,17 @@ public class EditorIOAgent extends LoggingIOAgent {
 	}
 	
 	@Override
-	public PrintStream getOutputStream(int fd) {
+	public Writer getWriter(int fd) {
 		// TODO: close console streams after use?
 		// TODO: show console during wizard
 		if (fd == CONST_STDOUT && isActivateConsoleEnabled()) {
 			StrategoConsole.activateConsole(true);
-			return StrategoConsole.getOutputStream();
+			return StrategoConsole.getOutputWriter();
 		} else if (fd == CONST_STDERR && isActivateConsoleEnabled()) {
 			StrategoConsole.activateConsole(true);
-			return StrategoConsole.getErrorStream();
+			return StrategoConsole.getErrorWriter();
 		} else {
-			return super.getOutputStream(fd);
+			return super.getWriter(fd);
 		}
 	}
 

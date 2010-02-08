@@ -1,13 +1,12 @@
 package org.strategoxt.imp.metatooling.stratego;
 
-import static org.spoofax.interpreter.terms.IStrategoTerm.*;
+import static org.spoofax.interpreter.terms.IStrategoTerm.STRING;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
-import org.spoofax.interpreter.library.IOAgent;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.InvalidParseTableException;
@@ -47,17 +46,17 @@ public class IMPParseStrategoFileStrategy extends parse_stratego_file_0_0 {
 				if (stream != null) stream.close();
 			}
 		} catch (SGLRException e) {
-			context.getIOAgent().getOutputStream(IOAgent.CONST_STDERR).println("parse-stratego-file (" + file + "): " + e.getMessage());
+			context.getIOAgent().printError("parse-stratego-file (" + file + "): " + e.getMessage());
 			Environment.logException("Parsing of " + file + " failed", e);
 			return null;
 		} catch (InvalidParseTableException e) {
-			context.getIOAgent().getOutputStream(IOAgent.CONST_STDERR).println("parse-stratego-file (" + file + "): " + e.getMessage());
+			context.getIOAgent().printError("parse-stratego-file (" + file + "): " + e.getMessage());
 			Environment.logException("Parsing of " + file + " failed", e);
 			return null;
 		} catch (IOException e) {
 			return null;
 		} catch (RuntimeException e) {
-			context.getIOAgent().getOutputStream(IOAgent.CONST_STDERR).println("parse-stratego-file (" + file + "): " + e.getMessage());
+			context.getIOAgent().printError("parse-stratego-file (" + file + "): " + e.getMessage());
 			Environment.logException("Parsing of " + file + " failed", e);
 			return null;
 		}

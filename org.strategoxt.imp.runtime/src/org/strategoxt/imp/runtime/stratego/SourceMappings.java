@@ -1,9 +1,8 @@
 package org.strategoxt.imp.runtime.stratego;
 
-import static org.spoofax.interpreter.terms.IStrategoTerm.*;
+import static org.spoofax.interpreter.terms.IStrategoTerm.APPL;
 
 import java.io.File;
-import java.io.InputStream;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -20,7 +19,7 @@ import aterm.ATerm;
  */
 public class SourceMappings {
 	
-	private final Map<InputStream, File> inputFileMap = new WeakHashMap<InputStream, File>();
+	private final Map<Integer, File> inputFileMap = new WeakHashMap<Integer, File>();
 	
 	private final Map<IStrategoString, File> stringInputFileMap = new WeakHashMap<IStrategoString, File>();
 	
@@ -32,8 +31,8 @@ public class SourceMappings {
 
 	private final Map<IStrategoTerm, SGLRTokenizer> tokenizerMap = new WeakHashMap<IStrategoTerm, SGLRTokenizer>();
 
-	public File putInputFile(InputStream stream, File file) {
-		return inputFileMap.put(stream, file);
+	public File putInputFile(int fd, File file) {
+		return inputFileMap.put(fd, file);
 	}
 
 	public File putInputFile(IStrategoString string, File file) {
@@ -56,8 +55,8 @@ public class SourceMappings {
 		return tokenizerMap.put(asfix, tokenizer);
 	}
 	
-	public File getInputFile(InputStream stream) {
-		return inputFileMap.get(stream);
+	public File getInputFile(int fd) {
+		return inputFileMap.get(fd);
 	}
 	
 	public File getInputFile(IStrategoString string) {

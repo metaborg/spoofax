@@ -1,6 +1,6 @@
 package org.strategoxt.imp.runtime.stratego;
 
-import java.io.InputStream;
+import java.io.IOException;
 
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.terms.IStrategoString;
@@ -18,11 +18,11 @@ public class IMPReadTextFromStream extends SSL_EXT_read_text_from_stream {
 	}
 
 	@Override
-	protected IStrategoString call(IContext env, InputStream input) {
-		final IStrategoString result = super.call(env, input);
+	protected IStrategoString call(IContext env, int fd) throws IOException {
+		final IStrategoString result = super.call(env, fd);
 		if (result == null) return null;
 		
-		mappings.putInputFile(result, mappings.getInputFile(input));
+		mappings.putInputFile(result, mappings.getInputFile(fd));
 		
 		return result;
 	}

@@ -1,7 +1,5 @@
 package org.strategoxt.imp.runtime.stratego;
 
-import java.io.InputStream;
-
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.library.IOAgent;
 import org.spoofax.interpreter.library.ssl.SSLLibrary;
@@ -24,8 +22,7 @@ public class IMPOpenFile extends SSL_fopen {
 		IStrategoInt result = super.call(env, fn, mode);
 		if (result == null) return null;
 		IOAgent io = SSLLibrary.instance(env).getIOAgent();
-		InputStream stream = io.getInputStream(result.intValue());
-		mappings.putInputFile(stream, io.openFile(fn));
+		mappings.putInputFile(result.intValue(), io.openFile(fn));
 		return result;
 	}
 

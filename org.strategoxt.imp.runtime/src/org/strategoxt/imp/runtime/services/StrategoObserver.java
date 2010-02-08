@@ -31,7 +31,6 @@ import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.core.StackTracer;
 import org.spoofax.interpreter.core.UndefinedStrategyException;
-import org.spoofax.interpreter.library.IOAgent;
 import org.spoofax.interpreter.library.LoggingIOAgent;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
@@ -316,7 +315,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	public void reportRewritingFailed() {
 		assert Thread.holdsLock(getSyncRoot());
 		StackTracer trace = runtime.getContext().getStackTracer();
-		runtime.getIOAgent().getOutputStream(IOAgent.CONST_STDERR).println(
+		runtime.getIOAgent().printError(
 				trace.getTraceDepth() != 0 ? "rewriting failed, trace:" : "rewriting failed");
 		trace.printStackTrace();
 		if (descriptor.isDynamicallyLoaded())
@@ -524,18 +523,18 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			Environment.logException("Runtime exited when evaluating strategy " + function, e);
 		} catch (UndefinedStrategyException e) {
 			// Note that this condition may also be reached when the semantic service hasn't been loaded yet
-			runtime.getIOAgent().getOutputStream(IOAgent.CONST_STDERR).println("Internal error: strategy does not exist: " + function);
+			runtime.getIOAgent().printError("Internal error: strategy does not exist: " + function);
 			Environment.logException("Strategy does not exist: " + function, e);
 		} catch (InterpreterException e) {
-			runtime.getIOAgent().getOutputStream(IOAgent.CONST_STDERR).println("Internal error evaluating " + function + " (see error log)");
+			runtime.getIOAgent().printError("Internal error evaluating " + function + " (see error log)");
 			Environment.logException("Internal error evaluating strategy " + function, e);
 			if (descriptor.isDynamicallyLoaded()) StrategoConsole.activateConsole();
 		} catch (RuntimeException e) {
-			runtime.getIOAgent().getOutputStream(IOAgent.CONST_STDERR).println("Internal error evaluating " + function + " (see error log)");
+			runtime.getIOAgent().printError("Internal error evaluating " + function + " (see error log)");
 			Environment.logException("Internal error evaluating strategy " + function, e);
 			if (descriptor.isDynamicallyLoaded()) StrategoConsole.activateConsole();
 		} catch (Error e) { // e.g. NoClassDefFoundError due to bad/missing stratego jar
-			runtime.getIOAgent().getOutputStream(IOAgent.CONST_STDERR).println("Internal error evaluating " + function + " (see error log)");
+			runtime.getIOAgent().printError("Internal error evaluating " + function + " (see error log)");
 			Environment.logException("Internal error evaluating strategy " + function, e);
 			if (descriptor.isDynamicallyLoaded()) StrategoConsole.activateConsole();
 		}

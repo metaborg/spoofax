@@ -1,6 +1,7 @@
 package org.strategoxt.imp.runtime.stratego;
 
-import java.io.PrintStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -31,32 +32,32 @@ public class StrategoConsole {
 	
 	private static MessageConsole lastConsole;
 	
-	private static PrintStream lastConsoleOutputStream;
+	private static Writer lastConsoleOutputWriter;
 	
-	private static PrintStream lastConsoleErrorStream;
+	private static Writer lastConsoleErrorWriter;
 
-	public static PrintStream getErrorStream() {
+	public static Writer getErrorWriter() {
 		MessageConsole console = getConsole();
-		if (console == lastConsole && lastConsoleErrorStream != null) {
-			return lastConsoleErrorStream;
+		if (console == lastConsole && lastConsoleErrorWriter != null) {
+			return lastConsoleErrorWriter;
 		} else {
 			IOConsoleOutputStream stream = console.newOutputStream();
 			// A red color doesn't seem to make sense for Stratego
 			// stream.setColor(DebugUIPlugin.getPreferenceColor(IDebugPreferenceConstants.CONSOLE_SYS_ERR_COLOR));
-			lastConsoleErrorStream = new PrintStream(stream);
+			lastConsoleErrorWriter = new OutputStreamWriter(stream);
 			lastConsole = console;
-			return lastConsoleErrorStream;
+			return lastConsoleErrorWriter;
 		}
 	}
 
-	public static PrintStream getOutputStream() {
+	public static Writer getOutputWriter() {
 		MessageConsole console = getConsole();
-		if (console == lastConsole && lastConsoleOutputStream != null) {
-			return lastConsoleOutputStream;
+		if (console == lastConsole && lastConsoleOutputWriter != null) {
+			return lastConsoleOutputWriter;
 		} else {
-			lastConsoleOutputStream = new PrintStream(console.newOutputStream());
+			lastConsoleOutputWriter = new OutputStreamWriter(console.newOutputStream());
 			lastConsole = console;
-			return lastConsoleOutputStream;
+			return lastConsoleOutputWriter;
 		}
 	}
 
