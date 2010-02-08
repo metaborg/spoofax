@@ -86,7 +86,7 @@ strategies
       fullpath := <conc-strings> (path, "/", filename)
     );
     
-    pp-descriptor-to-string;
+    write-to-string; // pp-descriptor-to-string;
     print-filename(|[path], filename);
     output-text-file'(|[path], filename)
   
