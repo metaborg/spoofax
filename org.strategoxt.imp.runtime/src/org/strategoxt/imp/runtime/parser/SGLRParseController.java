@@ -229,8 +229,7 @@ public class SGLRParseController implements IParseController {
 			Debug.startTimer();
 			
 			if (monitor.isCanceled()) return null;
-			ATerm asfix;
-			asfix = parseNoImplode(inputChars, filename);
+			ATerm asfix = parseNoImplode(inputChars, filename);
 			if (monitor.isCanceled()) return null;
 			RootAstNode ast = parser.internalImplode(asfix);
 
@@ -293,9 +292,10 @@ public class SGLRParseController implements IParseController {
 				// try again without the standard start symbol
 				parser.setStartSymbol(null);
 				return parser.parseNoImplode(inputChars, filename);
+			} else {
+				throw new SGLRException(e.getParser(), e.getMessage(), e);
 			}
 		}
-		return null;
 	}
 
 	private void processMetaFile() {

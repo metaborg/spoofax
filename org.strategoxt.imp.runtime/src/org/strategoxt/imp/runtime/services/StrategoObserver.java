@@ -530,11 +530,11 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			Environment.logException("Internal error evaluating strategy " + function, e);
 			if (descriptor.isDynamicallyLoaded()) StrategoConsole.activateConsole();
 		} catch (RuntimeException e) {
-			runtime.getIOAgent().printError("Internal error evaluating " + function + " (see error log)");
+			if (runtime != null) runtime.getIOAgent().printError("Internal error evaluating " + function + " (see error log)");
 			Environment.logException("Internal error evaluating strategy " + function, e);
 			if (descriptor.isDynamicallyLoaded()) StrategoConsole.activateConsole();
 		} catch (Error e) { // e.g. NoClassDefFoundError due to bad/missing stratego jar
-			runtime.getIOAgent().printError("Internal error evaluating " + function + " (see error log)");
+			if (runtime != null) runtime.getIOAgent().printError("Internal error evaluating " + function + " (see error log)");
 			Environment.logException("Internal error evaluating strategy " + function, e);
 			if (descriptor.isDynamicallyLoaded()) StrategoConsole.activateConsole();
 		}
