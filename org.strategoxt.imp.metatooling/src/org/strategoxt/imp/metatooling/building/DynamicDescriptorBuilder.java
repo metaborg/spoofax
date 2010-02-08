@@ -216,10 +216,18 @@ public class DynamicDescriptorBuilder {
 		try {
 			// Ant thread holds resource lock and wants environment; avoid deadlock
 			// FIXME: ant thread deadlock can only be really avoided with a proper ReentrantLock environment lock
-			antBuildDisallowed = true;
-			if (includeDir == null) project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
-			else includeDir.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
+			if (includeDir == null) {
+				antBuildDisallowed = true;
+				Thread.sleep(10);
+				project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
+			} else if (project.findMember("include/" + name + ".packed.esv") == null) {
+				antBuildDisallowed = true;
+				Thread.sleep(10);
+				includeDir.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
+			}
 		} catch (CoreException e) {
+			Environment.logException("Exception when refreshing resources", e);
+		} catch (InterruptedException e) {
 			Environment.logException("Exception when refreshing resources", e);
 		} finally {
 			antBuildDisallowed = false;
