@@ -76,7 +76,8 @@ public class ContentProposerFactory extends AbstractServiceFactory<IContentPropo
 			if (result.matcher("").matches())
 				throw new PatternSyntaxException("Completion lexical matches the empty string", completionLexical, 0);
 			if (!result.matcher(ContentProposer.COMPLETION_TOKEN).matches())
-				throw new PatternSyntaxException("Completion lexical allow letters and numbers", completionLexical, 0);
+				throw new PatternSyntaxException("Completion lexical must allow letters and numbers (e.g., "
+						+ ContentProposer.COMPLETION_TOKEN + ")", completionLexical, 0);
 			return result;
 		} catch (PatternSyntaxException e) {
 			throw new BadDescriptorException("Illegal completion lexical in editor descriptor", e);

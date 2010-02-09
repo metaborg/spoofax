@@ -127,6 +127,7 @@ src/include/rtg.tbl : ~/.nix-profile/share/sdf/stratego-regular/rtg.tbl
 	baf2trm  -i $< -o $@ # cp $< $@
 
 new-libs :
-	rm -rf $(BRIDGE)/permissive-grammars/trans/make-permissive/bin
-	make jar -C $(BRIDGE)/permissive-grammars/trans/make-permissive
 	cp $(BRIDGE)/permissive-grammars/trans/make-permissive/bin/*.jar lib
+	cp $(ASTER)/trans/java/aster.jar lib
+
+#	make jar -C $(BRIDGE)/permissive-grammars/trans/make-permissive
