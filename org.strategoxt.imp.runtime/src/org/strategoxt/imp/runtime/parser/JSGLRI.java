@@ -33,6 +33,8 @@ public class JSGLRI extends AbstractSGLRI {
 	
 	private Disambiguator disambiguator;
 	
+	private int timeout;
+	
 	// Initialization and parsing
 	
 	public JSGLRI(ParseTable parseTable, String startSymbol,
@@ -80,6 +82,11 @@ public class JSGLRI extends AbstractSGLRI {
 		resetState();
 	}
 	
+	public void setTimeout(int timeout) {
+		this.timeout = timeout;
+		resetState();
+	}
+	
 	@Override
 	protected ATerm doParseNoImplode(char[] inputChars, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
@@ -92,6 +99,7 @@ public class JSGLRI extends AbstractSGLRI {
 	 */
 	void resetState() {
 		parser = Environment.createSGLR(parseTable);
+		parser.setTimeout(timeout);
 		if (disambiguator != null) parser.setDisambiguator(disambiguator);
 		else disambiguator = parser.getDisambiguator();
 		try {

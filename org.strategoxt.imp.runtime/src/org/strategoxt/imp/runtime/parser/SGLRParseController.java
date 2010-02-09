@@ -34,7 +34,6 @@ import org.spoofax.jsglr.ParseTimeoutException;
 import org.spoofax.jsglr.SGLRException;
 import org.spoofax.jsglr.StartSymbolException;
 import org.spoofax.jsglr.TokenExpectedException;
-import org.spoofax.jsglr.Tools;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
@@ -150,13 +149,6 @@ public class SGLRParseController implements IParseController {
     public EditorState getEditor() {
 		return editor;
 	}
-	
-	// Parsing and initialization
-    
-    static {
-    	// if (!Debug.ENABLED)
-    		Tools.setTimeout(PARSE_TIMEOUT);
-    }
     
     /**
      * Create a new SGLRParseController.
@@ -173,6 +165,7 @@ public class SGLRParseController implements IParseController {
     	ParseTable table = Environment.getParseTable(language);
 		parser = new JSGLRI(table, startSymbol, this, tokenManager);
 		parser.setKeepAmbiguities(true);
+		parser.setTimeout(PARSE_TIMEOUT);
 		try {
 			parser.setUseRecovery(true);
 		} catch (NoRecoveryRulesException e) {
