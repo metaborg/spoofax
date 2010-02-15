@@ -26,8 +26,8 @@ strategies
           ~~
           provider: ~provider
           observer: editor-analyze
-          builder: "Generate Java code" = generate-java  (openeditor) (realtime)
-          builder: "Show ATerm"         = generate-aterm (openeditor) (realtime) (meta)
+          builder: "Generate Java code"   = generate-java  (openeditor) (realtime)
+          builder: "Show abstract syntax" = generate-aterm (openeditor) (realtime) (meta)
       ]|
     );
     
