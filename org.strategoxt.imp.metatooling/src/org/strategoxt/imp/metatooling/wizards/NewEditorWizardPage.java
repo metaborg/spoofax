@@ -140,21 +140,21 @@ public class NewEditorWizardPage extends WizardPage {
 			ignoreEvents = false;
 			distributeLanguageName();
 		}
-		if (!isInputExtensionsChanged || getInputExtensions().length() == 0
-				|| getInputExtensions().equals(toExtension(getInputProjectName()))) {
+		if (!isInputPackageNameChanged || getInputPackageName().length() == 0
+				|| getInputPackageName().equals(toPackageName(getInputProjectName()))) {
 			ignoreEvents = true;
-			inputExtensions.setText(toExtension(getInputProjectName()));
-			isInputExtensionsChanged = false;
+			inputPackageName.setText(toPackageName(getInputProjectName()));
+			isInputPackageNameChanged = false;
 			ignoreEvents = false;
 		}
 	}
 
 	private void distributeLanguageName() {
-		if (!isInputPackageNameChanged || getInputPackageName().length() == 0
-				|| getInputPackageName().equals(toPackageName(getInputLanguageName()))) {
+		if (!isInputExtensionsChanged || getInputExtensions().length() == 0
+				|| getInputExtensions().equals(toExtension(getInputLanguageName()))) {
 			ignoreEvents = true;
-			inputPackageName.setText(toPackageName(getInputLanguageName()));
-			isInputPackageNameChanged = false;
+			inputExtensions.setText(toExtension(getInputLanguageName()));
+			isInputExtensionsChanged = false;
 			ignoreEvents = false;
 		}
 	}
