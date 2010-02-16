@@ -274,9 +274,19 @@
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="M1+T"/>
       <key
+            commandId="org.strategoxt.imp.runtime.transformCommand"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="CTRL+T"/>
+      <key
             commandId="org.eclipse.ui.project.buildProject"
             contextId="org.eclipse.ui.contexts.window"
             sequence="M1+M3+B"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration" />
+      <key
+            commandId="org.eclipse.ui.project.buildProject"
+            contextId="org.eclipse.ui.contexts.window"
+            sequence="CTRL+ALT+B"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration" />
       <key
             commandId="org.strategoxt.imp.runtime.resolveReferenceCommand"

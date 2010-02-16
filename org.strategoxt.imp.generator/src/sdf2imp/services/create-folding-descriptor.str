@@ -39,12 +39,14 @@ strategies
         
         folding Default folding definitions
           ~
-          ~// Folding rules indicate grammar productions to be foldable,
-          ~// and take one of the following forms, and :
+          ~// Folding rules indicate which syntactic constructs can be folded,
+          ~// and take one of the following forms:
           ~//
-          ~//   - <sort>.<constructor>
-          ~//   - <sort>._,
-          ~//   - _.<constructor>
+          ~//   <sort>.<constructor>
+          ~//
+          ~//   <sort>._
+          ~//
+          ~//   _.<constructor>
           ~
           ~*<id>
       ]|
