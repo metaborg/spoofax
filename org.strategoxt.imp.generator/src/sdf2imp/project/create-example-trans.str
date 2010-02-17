@@ -149,14 +149,17 @@ imports
 rules
 
   // Analysis: does a topdown traversal of the tree,
-  // and try to apply the record-entity rule.
-  analyze =
-    topdown(try(record-entity))
+  // and tries to apply the record-entity rule.
+  analyze:
+    t -> t
+    with
+      <topdown(try(record-entity))> t
 
   // Records the definition of an entity in a dynamic rule GetEntity.
   record-entity:
     Entity(x, body) -> Entity(x, body)
     with
+      // For a name 'x', GetEntity will return the original 'x' tree node
       rules(
         GetEntity :+ x -> x
       )
