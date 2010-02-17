@@ -47,6 +47,15 @@ strategies
           ~//   <sort>._
           ~//
           ~//   _.<constructor>
+          ~//
+          ~// To indicate that an element should always be folded, add
+          ~// a (folded) annotation:
+          ~//
+          ~//   _.Imports (folded)
+          ~//
+          ~// To disable a folding rule defined elsewhere, add a (disabled) annotation:
+          ~//
+          ~//   Definition._ (disabled)
           ~
           ~*<id>
       ]|

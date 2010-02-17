@@ -37,7 +37,7 @@
    AttributeRef         -- _1,
    FoldRuleAll          -- H [ KW["all"] _1 _2 ],
    FoldRule             -- H [ _1 _2 ],
-   Disable              -- KW["(disable)"],
+   Disable              -- KW["(disabled)"],
    Folded               -- KW["(folded)"],
    None                 -- ,
    OutlineRule          -- _1,
