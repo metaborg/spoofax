@@ -401,10 +401,9 @@ public class ParseErrorHandler {
 
 	private void reportSkippedFragment(char[] inputChars, SGLRTokenizer tokenizer, int beginSkipped, int endSkipped) {
 		IToken token = tokenizer.makeErrorToken(beginSkipped, endSkipped);
-		tokenizer.changeTokenKinds(beginSkipped, endSkipped, TokenKind.TK_LAYOUT, TokenKind.TK_ERROR);
-		reportErrorAtTokens(token, token, UNEXPECTED_REGION);
 		int line = token.getLine();
-		int endLine = token.getEndLine() + RegionRecovery.NR_OF_LINES_TILL_SUCCESS; 
+		int endLine = token.getEndLine() + RegionRecovery.NR_OF_LINES_TILL_SUCCESS;
+		boolean reportedErrors = false;
 		for (BadTokenException e : source.getParser().getParser().getCollectedErrors()) {
 			if (e.getLineNumber() >= line && e.getLineNumber() <= endLine) {
 				char[] processedChars = tokenizer.getLexStream().getInputChars();
@@ -412,7 +411,13 @@ public class ParseErrorHandler {
 				tokenizer.getLexStream().setInputChars(inputChars);
 				reportError(tokenizer, (Exception) e); // use double dispatch
 				tokenizer.getLexStream().setInputChars(processedChars);
+				reportedErrors = true;
 			}
+		}
+		if (!reportedErrors || tokenizer.getLexStream().getLineNumberOfCharAt(beginSkipped) !=
+				tokenizer.getLexStream().getLineNumberOfCharAt(endSkipped)) {
+			tokenizer.changeTokenKinds(beginSkipped, endSkipped, TokenKind.TK_LAYOUT, TokenKind.TK_ERROR);
+			reportErrorAtTokens(token, token, UNEXPECTED_REGION);
 		}
 	}
 		
