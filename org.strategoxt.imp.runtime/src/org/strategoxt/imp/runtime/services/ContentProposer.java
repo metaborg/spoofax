@@ -38,6 +38,7 @@ import org.strategoxt.imp.runtime.parser.ast.AstNode;
 import org.strategoxt.imp.runtime.parser.ast.ListAstNode;
 import org.strategoxt.imp.runtime.parser.ast.RootAstNode;
 import org.strategoxt.imp.runtime.parser.ast.StringAstNode;
+import org.strategoxt.imp.runtime.stratego.adapter.WrappedAstNodeFactory;
 import org.strategoxt.lang.terms.TermFactory;
 
 /**
@@ -232,22 +233,40 @@ public class ContentProposer implements IContentProposer {
 
 		if (proposals.getTermType() != LIST)
 			return createErrorProposal(error, offset);
-		
+
+		WrappedAstNodeFactory factory = Environment.getTermFactory();
+		IStrategoString emptyString = factory.makeString("");
 		Region offsetRegion = new Region(offset, 0);
 		Set<ICompletionProposal> results = getKeywordProposals(document, currentCompletionPrefix, offsetRegion, offset);
 
 		for (IStrategoList cons = (IStrategoList) proposals; !cons.isEmpty(); cons = cons.tail()) {
 			IStrategoTerm proposal = cons.head();
-			if (proposal.getTermType() != TUPLE || proposal.getSubtermCount() != 2
-					|| termAt(proposal, 0).getTermType() != LIST
-					|| termAt(proposal, 1).getTermType() != STRING)
-				return createErrorProposal(error, offset);
-			IStrategoList newTextParts = termAt(proposal, 0);
-			String newText = proposalPartsToString(newTextParts);
+			String newText;
+			IStrategoList newTextParts;
+			IStrategoString description;
+			
+			if (proposal.getTermType() == STRING) {
+				newTextParts = factory.makeList(proposal);
+				newText = ((IStrategoString) proposal).stringValue();
+				description = emptyString;
+			} else {
+				IStrategoTerm newTextTerm = termAt(proposal, 0);
+				if (proposal.getTermType() != TUPLE || proposal.getSubtermCount() != 2
+						|| (newTextTerm.getTermType() != LIST && termAt(proposal, 0).getTermType() != STRING)
+						|| termAt(proposal, 1).getTermType() != STRING)
+					return createErrorProposal(error, offset);
+				if (newTextTerm.getTermType() == LIST) {
+					newTextParts = (IStrategoList) newTextTerm;
+					newText = proposalPartsToString(newTextParts);
+				} else {
+					newTextParts = factory.makeList(newTextTerm);
+					newText = ((IStrategoString) newTextTerm).stringValue();
+				}
+				description = termAt(proposal, 1);
+			}
 			if (newTextParts.isEmpty() || !newText.startsWith(currentCompletionPrefix))
 				continue;
-			IStrategoString description = termAt(proposal, 1);
-			results.add(new ContentProposal(this, newText, newText, currentCompletionPrefix, offsetRegion, newTextParts, description.stringValue())); 
+			results.add(new ContentProposal(this, newText, newText, currentCompletionPrefix, offsetRegion, newTextParts, description.stringValue()));
 		}
 		
 		return toSortedArray(results);

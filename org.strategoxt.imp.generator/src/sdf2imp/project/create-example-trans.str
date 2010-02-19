@@ -76,13 +76,9 @@ rules // Main editor interface (defined by editor/{sdf-name}-Builders and -Refer
   // (the completion identifier in the AST provides additional context information)
   editor-complete:
     (Type(COMPLETION(prefix)), position, ast, path, project-path) ->
-    [(["String"], ""), (["Int"], "") | proposals]
+    ["String", "Int" | proposals]
     where
-      all-entities := <all-keys-GetEntity>;
-      proposals    := <map(entity-name-to-proposal)> all-entities
-
-  entity-name-to-proposal:
-    x -> ([x], "")
+      proposals := <all-keys-GetEntity>
 };
 
 if not(<file-exists> "trans/generate.str") then
@@ -204,6 +200,18 @@ try(<file-exists <+ mkdir> "lib");
 <output-text-file(|["lib"], "editor-common.str")>
 ${module lib/editor-common
 
+imports
+  libstratego-lib
+  libstratego-sglr
+
+strategies
+
+  parse-file =
+    parse-file(|<import-term(include/{sdf-name}.tbl)>)
+
+  parse-string =
+    parse-string(|<import-term(include/{sdf-name}.tbl)>)
+  
 strategies
 
   desugar-position(desugar|ast):
