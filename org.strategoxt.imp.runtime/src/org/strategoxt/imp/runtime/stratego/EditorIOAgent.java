@@ -22,6 +22,8 @@ public class EditorIOAgent extends LoggingIOAgent {
 	private Descriptor descriptor;
 	
 	private boolean alwaysActivateConsole;
+
+	private String projectPath;
 	
 	public void setDescriptor(Descriptor descriptor) {
 		this.descriptor = descriptor;
@@ -77,5 +79,13 @@ public class EditorIOAgent extends LoggingIOAgent {
 	
 	public void setAlwaysActivateConsole(boolean alwaysShowConsole) {
 		this.alwaysActivateConsole = alwaysShowConsole;
+	}
+
+	public void setProjectPath(String projectPath) {
+		this.projectPath = projectPath;
+	}
+	
+	public String getProjectPath() {
+		return projectPath;
 	}
 }

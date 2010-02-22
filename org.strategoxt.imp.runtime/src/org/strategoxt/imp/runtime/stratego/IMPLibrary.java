@@ -11,6 +11,7 @@ public class IMPLibrary extends AbstractStrategoOperatorRegistry {
 	
 	public IMPLibrary() {
 		add(new SubtermPrimitive());
+		add(new ProjectPathPrimitive());
 	}
 
 	public String getOperatorRegistryName() {

@@ -24,7 +24,7 @@ imports
   libstratego-gpp
   libstratego-aterm
   include/{sdf-name}
-  lib/editor-common
+  lib/editor-common.generated
   check
   generate
 
@@ -90,7 +90,7 @@ imports
   libstratego-gpp
   libstratego-aterm
   include/{sdf-name}
-  lib/editor-common
+  lib/editor-common.generated
 
 rules
 
@@ -140,7 +140,7 @@ ${module check
 imports
   libstratego-lib
   include/{sdf-name}
-  lib/editor-common
+  lib/editor-common.generated
 
 rules
 
@@ -159,7 +159,6 @@ rules
       rules(
         GetEntity :+ x -> x
       )
-
 rules
     
   // Reports an error if a property type is undefined.
@@ -194,11 +193,10 @@ end
     name     := <trans-module-name>;
     sdf-name := <get-sdf-main-module>;
 
-if not(<file-exists> "lib/editor-common.str") then
 try(<file-exists <+ mkdir> "lib");
 // TODO: regenerate editor-common.str every time, but only if it changed to avoid unecessary builds
-<output-text-file(|["lib"], "editor-common.str")>
-${module lib/editor-common
+<output-text-file(|["lib"], "editor-common.generated.str")>
+${module lib/editor-common.generated
 
 imports
   libstratego-lib
@@ -212,6 +210,75 @@ strategies
   parse-string =
     parse-string(|<import-term(include/{sdf-name}.tbl)>)
   
+strategies
+  
+  /**
+   * Processes an import during semantic analysis.
+   * Ensures proper caching of files and prevents
+   * processing duplicate imports more than once.
+   *
+   * @param resolve-path  Resolves the filesystem path of this import
+   * @param parse-file    Parses a file (optionally removing definition bodies
+   *                      so only signatures are stored in the cache)
+   * @param record-declarations
+   *                      Performs semantic analysis on a tree
+   */
+  open-import(resolve-path, parse-file, record-declarations):
+    import -> import
+    where
+      if not(!import => COMPLETION(_)) then
+        path       := <resolve-path> import;
+        cache-path := <import-cache-path> path;
+        if not(<IsImported> path) then
+          rules(
+            IsImported: path
+          );
+          if <is-newer> (cache-path, path) then
+            file := <ReadFromFile> cache-path
+          else
+            file := <parse-file> path;
+            if <file-exists> path then
+              // Only cache if on filesystem (e.g., ignore libstratego-lib)
+              <WriteToBinaryFile> (cache-path, file)
+            end        
+          end;
+          ${$| CurrentFile:
+            rules(CurrentFile := path);
+            <record-declarations> file
+          |$}$
+        end
+      end
+
+  open-wildcard-import(resolve-path, parse-file, record-declarations, is-source-file):
+    import -> import
+    where
+      if not(!import => COMPLETION(_)) then
+        path := <resolve-path> import;
+        readdir;
+        list-loop(
+          if is-source-file then
+            <open-import(resolve-path, parse-file, record-declarations)>
+              $[[path]/[<id>]]
+          <+
+            try(?one-failed)
+          end
+        );
+        not(!one-failed)
+      end
+  
+  import-cache-path:
+    full-path -> cache-path
+    with
+      project-path := <prim("SSL_EXT_projectpath")>;
+      cache-dir    := <file-exists <+ mkdir> $[[project-path]/.cache];
+      full-path'   := <string-replace(|"/", "+"); string-replace(|"{"\\\\"}", "+"); string-replace(|":", "+")> full-path;
+      cache-path   := $[[cache-dir]/[full-path'].sig]
+
+  is-newer:
+    (file1, file2) -> <id>
+    where
+      <gt> (<file-exists; modification-time> file1, <file-exists; modification-time> file2) 
+
 strategies
 
   desugar-position(desugar|ast):
@@ -294,4 +361,3 @@ signature constructors
   Property : ID * Type           -> Property
   Type     : ID                  -> Type
 }
-end

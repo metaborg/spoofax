@@ -60,7 +60,7 @@ public class IMPImplodeAsfixStrategy extends implode_asfix_1_0 {
 		//       some other cookie that traces back the tree to the file
 	}
 
-	private static IResource getResource(File file) {
+	public static IResource getResource(File file) {
 		URI uri = file.toURI();
 		IWorkspace workspace = ResourcesPlugin.getWorkspace();
 		IResource[] resources = workspace.getRoot().findFilesForLocationURI(uri);

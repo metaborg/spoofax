@@ -2,6 +2,7 @@ package org.strategoxt.imp.metatooling.stratego;
 
 import static org.spoofax.interpreter.terms.IStrategoTerm.STRING;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -18,6 +19,7 @@ import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.JSGLRI;
 import org.strategoxt.imp.runtime.parser.ast.RootAstNode;
 import org.strategoxt.imp.runtime.services.MetaFile;
+import org.strategoxt.imp.runtime.stratego.IMPImplodeAsfixStrategy;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.StrategoException;
 import org.strategoxt.strc.parse_stratego_file_0_0;
@@ -41,6 +43,7 @@ public class IMPParseStrategoFileStrategy extends parse_stratego_file_0_0 {
 			try {
 				stream = context.getIOAgent().openInputStream(file);
 				RootAstNode ast = parser.parse(stream, file);
+				ast.setResource(IMPImplodeAsfixStrategy.getResource(new File(file)));
 				return ast.getTerm();
 			} finally {
 				if (stream != null) stream.close();

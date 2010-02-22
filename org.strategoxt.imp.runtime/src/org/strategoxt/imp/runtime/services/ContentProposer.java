@@ -249,6 +249,10 @@ public class ContentProposer implements IContentProposer {
 				newTextParts = factory.makeList(proposal);
 				newText = ((IStrategoString) proposal).stringValue();
 				description = emptyString;
+			} else if (proposal.getTermType() == LIST) {
+				newTextParts = (IStrategoList) proposal;
+				newText = proposalPartsToString(newTextParts);
+				description = emptyString;
 			} else {
 				IStrategoTerm newTextTerm = termAt(proposal, 0);
 				if (proposal.getTermType() != TUPLE || proposal.getSubtermCount() != 2

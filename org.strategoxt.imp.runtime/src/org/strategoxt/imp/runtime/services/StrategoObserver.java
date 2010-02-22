@@ -18,7 +18,6 @@ import lpg.runtime.IAst;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -483,8 +482,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			//       (e.g., overriding Context.lookupPrimitive to throw an OperationCanceledException) 
 			
 			runtime.setCurrent(term);
-			IPath path = resource.getLocation();
-			initRuntimePath(path.removeLastSegments(1));
+			initRuntimePath(resource);
 
 			((LoggingIOAgent) runtime.getIOAgent()).clearLog();
 			boolean success = runtime.invoke(function);
@@ -553,12 +551,14 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		}
 	}
 	
-	private void initRuntimePath(IPath workingDir) {
+	private void initRuntimePath(IResource resource) {
 		assert Thread.holdsLock(getSyncRoot());
 		
 		try {
-			runtime.getIOAgent().setWorkingDir(workingDir.toOSString());
-			((EditorIOAgent) runtime.getIOAgent()).setDescriptor(descriptor);
+			EditorIOAgent io = (EditorIOAgent) runtime.getIOAgent();
+			io.setWorkingDir(resource.getLocation().removeLastSegments(1).toOSString());
+			io.setProjectPath(resource.getProject().getLocation().toOSString());
+			io.setDescriptor(descriptor);
 		} catch (IOException e) {
 			Environment.logException("Could not set Stratego working directory", e);
 			throw new RuntimeException(e);

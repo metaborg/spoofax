@@ -287,8 +287,8 @@ strategies
         </target>
     
         <target name="stratego.aster.helper" unless="aster-output.uptodate">
-            <apply executable="java">
-                <arg line="-jar utils/aster.jar"/>
+            <apply executable="java" failonerror="true">
+                <arg line="-Xss8m -Xmx768m -client -jar utils/aster.jar"/>
                 <arg value="-i"/>
                 <fileset dir="${basedir}">
                     <include name="**/*.astr"/>

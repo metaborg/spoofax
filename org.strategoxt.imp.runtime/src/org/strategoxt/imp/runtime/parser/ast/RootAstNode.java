@@ -7,11 +7,15 @@ public class RootAstNode extends AstNode {
 	
 	private final SGLRParseController controller;
 	
-	private final IResource resource;
+	private IResource resource;
 	
 	@Override
 	public IResource getResource() {
 		return resource;
+	}
+	
+	public void setResource(IResource resource) {
+		this.resource = resource;
 	}
 	
 	@Override
