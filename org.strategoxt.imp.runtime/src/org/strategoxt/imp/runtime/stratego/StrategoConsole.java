@@ -1,5 +1,7 @@
 package org.strategoxt.imp.runtime.stratego;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 
@@ -44,7 +46,7 @@ public class StrategoConsole {
 			IOConsoleOutputStream stream = console.newOutputStream();
 			// A red color doesn't seem to make sense for Stratego
 			// stream.setColor(DebugUIPlugin.getPreferenceColor(IDebugPreferenceConstants.CONSOLE_SYS_ERR_COLOR));
-			lastConsoleErrorWriter = new OutputStreamWriter(stream);
+			lastConsoleErrorWriter = new AutoFlushOutputStreamWriter(stream);
 			lastConsole = console;
 			return lastConsoleErrorWriter;
 		}
@@ -55,7 +57,7 @@ public class StrategoConsole {
 		if (console == lastConsole && lastConsoleOutputWriter != null) {
 			return lastConsoleOutputWriter;
 		} else {
-			lastConsoleOutputWriter = new OutputStreamWriter(console.newOutputStream());
+			lastConsoleOutputWriter = new AutoFlushOutputStreamWriter(console.newOutputStream());
 			lastConsole = console;
 			return lastConsoleOutputWriter;
 		}
@@ -123,4 +125,34 @@ public class StrategoConsole {
 		job.schedule();
 	}
 
+	/**
+	 * An OutputStreamWriter that automatically flushes its buffer.
+	 * 
+	 * @author Lennart Kats <lennart add lclnet.nl>
+	 */
+	private static class AutoFlushOutputStreamWriter extends OutputStreamWriter {
+
+		public AutoFlushOutputStreamWriter(OutputStream out) {
+			super(out);
+		}
+		
+		@Override
+		public void write(String str, int off, int len) throws IOException {
+			super.write(str, off, len);
+			super.flush();
+		}
+		
+		@Override
+		public void write(char[] cbuf, int off, int len) throws IOException {
+			super.write(cbuf, off, len);
+			super.flush();
+		}
+		
+		@Override
+		public void write(int c) throws IOException {
+			super.write(c);
+			super.flush();
+		}
+		
+	}
 }
