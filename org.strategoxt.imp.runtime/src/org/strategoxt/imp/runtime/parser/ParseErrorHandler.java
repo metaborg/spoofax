@@ -414,9 +414,9 @@ public class ParseErrorHandler {
 				reportedErrors = true;
 			}
 		}
+		tokenizer.changeTokenKinds(beginSkipped, endSkipped, TokenKind.TK_LAYOUT, TokenKind.TK_ERROR);
 		if (!reportedErrors || tokenizer.getLexStream().getLineNumberOfCharAt(beginSkipped) !=
 				tokenizer.getLexStream().getLineNumberOfCharAt(endSkipped)) {
-			tokenizer.changeTokenKinds(beginSkipped, endSkipped, TokenKind.TK_LAYOUT, TokenKind.TK_ERROR);
 			reportErrorAtTokens(token, token, UNEXPECTED_REGION);
 		}
 	}
