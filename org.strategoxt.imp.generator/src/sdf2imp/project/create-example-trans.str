@@ -194,7 +194,6 @@ end
     sdf-name := <get-sdf-main-module>;
 
 try(<file-exists <+ mkdir> "lib");
-// TODO: regenerate editor-common.str every time, but only if it changed to avoid unecessary builds
 <output-text-file(|["lib"], "editor-common.generated.str")>
 ${module lib/editor-common.generated
 
