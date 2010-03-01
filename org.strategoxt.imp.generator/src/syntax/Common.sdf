@@ -3,7 +3,7 @@ module Common
 exports
 
   sorts
-    Id IdStar Int STRING String Node Sort Constructor ConstructorId
+    Id IdStar Int STRING CHAR BACKSLASH String Node Sort Constructor ConstructorId
     ReservedName SectionName ModuleName Section Eof
     Ws ShortCom LongCom CommChar
 
@@ -12,7 +12,11 @@ exports
     [a-zA-Z][a-zA-Z0-9\'\-\_]*     -> Id
     [a-zA-Z][a-zA-Z0-9\'\-\_]* "*" -> IdStar
     "-"? [0-9]+                    -> Int
-    "\"" ~[\"\n]* "\""             -> STRING
+    "\"" CHAR* "\""                -> STRING
+    ~[\"\n\\]                      -> CHAR
+    "\\\""                         -> CHAR
+    BACKSLASH                      -> CHAR
+    "\\"                           -> BACKSLASH
     
     ~[\n\r]*                       -> SectionName
 
@@ -33,6 +37,7 @@ exports
     Id          -/- [a-zA-Z0-9\'\-\_]
     SectionName -/- ~[\n\r]
     Asterisk    -/- [\/]
+    BACKSLASH   -/- [\"]
     Eof         -/- ~[]
 
   context-free restrictions

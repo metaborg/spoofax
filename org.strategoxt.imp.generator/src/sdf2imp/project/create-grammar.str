@@ -42,43 +42,51 @@ exports
     <file-exists> <conc-strings> ("syntax/Common.sdf")
   <+
     <output-text-file(|["syntax"], "Common.sdf")>
-(
 // TODO: FLOAT
-"module Common
+${module Common
 
 exports
 
-  sorts
-    ID INT STRING StringChar CommentChar
-
   lexical syntax
   
-    [a-zA-Z][a-zA-Z0-9\\_]* -> ID
-    \"-\"? [0-9]+            -> INT
+    [a-zA-Z][a-zA-Z0-9\_]* -> ID
+    "-"? [0-9]+            -> INT
     
-    \"\\\"\" StringChar* \"\\\"\" -> STRING
-    ~[\\\"\\n]               -> StringChar
-    \"\\\\\\\"\"                -> StringChar
+    "\"" StringChar* "\"" -> STRING
+    ~[\"\n]               -> StringChar
+    "\\\""                -> StringChar
+    BackSlashChar         -> StringChar
+    "\\"                  -> BackSlashChar
     
-    [\\ \\t\\n\\r] -> LAYOUT
+    [\ \t\n\r] -> LAYOUT
     
-    [\\*]                             -> CommentChar
-    \"/*\" (~[\\*] | CommentChar)* \"*/\" -> LAYOUT
-    \"//\" ~[\\n\\r]* ([\\n\\r] | EOF)     -> LAYOUT
+    [\*]                             -> CommentChar
+    "/*" (~[\*] | CommentChar)* "*/" -> LAYOUT
+    "//" ~[\n\r]* ([\n\r] | EOF)     -> LAYOUT
     
     -> EOF
   
   lexical restrictions
   
-    CommentChar -/- [\\/]
-    INT         -/- [0-9]
-    ID          -/- [a-zA-Z0-9\\_]
-    EOF         -/- ~[]
+    %% Ensure greedy matching for lexicals
+  
+    CommentChar   -/- [\/]
+    INT           -/- [0-9]
+    ID            -/- [a-zA-Z0-9\_]
+    
+    %% EOF may not be followed by any char
+    
+    EOF           -/- ~[]
+
+    %% Backslash chars in strings may not be followed by " 
+    
+    BackSlashChar -/- [\"]
 
   context-free restrictions
+  
+    %% Ensure greedy matching for comments
 
-    LAYOUT? -/- [\\ \\t\\n\\r]
-    LAYOUT? -/- [\\/].[\\/]
-    LAYOUT? -/- [\\/].[\\*]
-"
-)
+    LAYOUT? -/- [\ \t\n\r]
+    LAYOUT? -/- [\/].[\/]
+    LAYOUT? -/- [\/].[\*]
+}
