@@ -94,14 +94,14 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 	}
 
 	public void verifyKey(VerifyEvent event) {
-		String input = new String(new char[] { event.character });
-		Point selection = getEditor().getSelection();
-		ISourceViewer viewer = getEditor().getServiceControllerManager()
-				.getSourceViewer();
 		try {
+			String input = new String(new char[] { event.character });
+			Point selection = getEditor().getSelection();
+			ISourceViewer viewer = getEditor().getServiceControllerManager().getSourceViewer();
 			if (indentAfterNewline(viewer, viewer.getDocument(), selection.x, selection.y, input)
 					|| insertClosingFence(viewer, viewer.getDocument(), selection.x, selection.y, input)
-					|| skipClosingFence(viewer, viewer.getDocument(), selection.x, selection.y, input))
+					|| skipClosingFence(viewer, viewer.getDocument(), selection.x, selection.y, input)
+					|| undoClosingFence(viewer, viewer.getDocument(), selection.x, selection.y, input))
 				event.doit = false;
 		} catch (BadLocationException e) {
 			Environment.logException("Could not determine auto edit strategy", e);
@@ -232,6 +232,16 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 		} else {
 			lastAutoInsertedFenceCount = 0;
 		}
+		return false;
+	}
+	
+	/**
+	 * Undo automatically inserted closing fences when the user
+	 * deletes the opening fence.
+	 */
+	protected boolean undoClosingFence(ISourceViewer viewer, IDocument document, int offset, int length, String input) throws BadLocationException {
+		// TODO:  Undo automatically inserted closing fences when the user deletes the opening fence
+		//        Would only really work with single-char fences
 		return false;
 	}
 	
