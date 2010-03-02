@@ -67,13 +67,8 @@ public class AbstractService<T extends ILanguageService> implements IDynamicLang
 		return language != null && Environment.getDescriptor(language) != null;
 	}
 	
-	public void initialize(IParseController controller) {
+	public final void initialize(IParseController controller) {
 		initialize(controller, controller.getLanguage());
-	}
-	
-	@Deprecated
-	protected void initialize(Language language) {
-		initialize(null, language);
 	}
 
 	protected void initialize(IParseController controller, Language language) {

@@ -71,8 +71,15 @@ public class EditorState {
 	 * @throws IllegalStateException  if not called from the UI thread
 	 */
 	public static EditorState getEditorFor(IParseController parseController) {
+		assert !(parseController instanceof SGLRParseController)
+			|| !((SGLRParseController) parseController).isReplaced();
+		
 		if (parseController instanceof SGLRParseController)
 			return ((SGLRParseController) parseController).getEditor();
+		if (parseController instanceof DynamicParseController) {
+			EditorState result = ((DynamicParseController) parseController).getLastEditor();
+			if (result != null) return result;
+		}
 		
 		EditorState activeEditor = getActiveEditor();
 		if (activeEditor != null && activeEditor.getEditor().getParseController() == parseController)

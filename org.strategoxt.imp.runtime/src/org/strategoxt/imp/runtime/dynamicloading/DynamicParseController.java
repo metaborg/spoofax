@@ -97,7 +97,13 @@ public class DynamicParseController extends AbstractService<IParseController> im
 		return getWrapped().getProject();
 	}
 	
-	protected EditorState getLastEditor() {
+	/**
+	 * Gets the editor for this parse controller, if it was already known.
+	 * 
+	 * @see EditorState#getEditorFor(IParseController) to get the actual editor
+	 */
+	public EditorState getLastEditor() {
+		// (must be a simple accessor: used in EditorState.getEditorFor()
 		return lastEditor;
 	}
 

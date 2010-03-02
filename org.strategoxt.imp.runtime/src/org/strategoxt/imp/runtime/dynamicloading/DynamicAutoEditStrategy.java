@@ -3,6 +3,7 @@
  */
 package org.strategoxt.imp.runtime.dynamicloading;
 
+import org.eclipse.imp.language.Language;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.services.IAutoEditStrategy;
 import org.eclipse.jface.text.DocumentCommand;
@@ -32,8 +33,8 @@ public class DynamicAutoEditStrategy extends AbstractService<IAutoEditStrategy>
 	}
 	
 	@Override
-	public void initialize(IParseController controller) {
-		super.initialize(controller);
+	protected void initialize(IParseController controller, Language language) {
+		super.initialize(controller, language);
 		IAutoEditStrategy wrapped = getWrapped();
 		if (wrapped instanceof AutoEditStrategy)
 			((AutoEditStrategy) wrapped).initialize(controller);
