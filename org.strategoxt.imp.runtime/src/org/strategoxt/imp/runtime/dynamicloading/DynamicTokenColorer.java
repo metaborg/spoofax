@@ -10,6 +10,7 @@ import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
 import org.strategoxt.imp.runtime.EditorState;
+import org.strategoxt.imp.runtime.Environment;
 
 /**
  * Dynamic proxy class to a token colorer.
@@ -65,6 +66,7 @@ public class DynamicTokenColorer extends AbstractService<ITokenColorer> implemen
 			}
 		} catch (NullPointerException e) {
 			// TODO: find out what's causing this NPE
+			Environment.logException("Exception when reinitializing token colorer", e);
 		}
 	}
 	

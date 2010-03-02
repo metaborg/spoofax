@@ -1,6 +1,8 @@
 package org.strategoxt.imp.runtime.services;
 
 import static java.lang.Math.min;
+import static org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS;
+import static org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH;
 import static org.eclipse.ui.texteditor.ITextEditorExtension3.SMART_INSERT;
 
 import java.util.regex.Matcher;
@@ -24,12 +26,10 @@ import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.custom.VerifyKeyListener;
 import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
 import org.spoofax.NotImplementedException;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
-import static org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants.*;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -471,7 +471,7 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 						continue;
 					case TK_NUMBER: case TK_OPERATOR:
 					case TK_VAR: case TK_EOF: case TK_UNKNOWN: case TK_RESERVED:
-					case TK_NO_TOKEN_KIND:
+					case TK_NO_TOKEN_KIND: case TK_KEYWORD:
 						continue;
 					default:
 						Environment.logException("Uknown token kind: " + token.getKind());
@@ -486,7 +486,7 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 	 */
 	private static boolean isSameLine(IDocument document, int offset, IToken token) {
 		try {
-			return document.getLineOfOffset(offset) == token.getLine();
+			return document.getLineOfOffset(offset) + 1 == token.getLine();
 		} catch (BadLocationException e) {
 			return false;
 		}
