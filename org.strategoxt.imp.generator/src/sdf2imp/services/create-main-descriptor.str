@@ -32,20 +32,21 @@ strategies
       imports
         <descriptor-name> "-Builders"
         <descriptor-name> "-Colorer"
+        <descriptor-name> "-Completions"
         <descriptor-name> "-Folding"
         <descriptor-name> "-Outliner"
         <descriptor-name> "-References"
         <descriptor-name> "-Syntax"
       
       language General properties
-        ~
+        ~~
         name:    ~name
         id:      ~pkgname
         extends: Root
-        ~
+        ~~
         description: <conc-strings> ("\"Spoofax/IMP-generated editor for the ", name, " language\"")
         url: http://strategoxt.org
-        ~
+        ~~
         extensions: ~extensions
         table:  ~parsetable
         start symbols: ~*startsymbols

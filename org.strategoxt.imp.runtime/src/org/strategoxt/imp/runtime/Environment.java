@@ -97,7 +97,7 @@ public final class Environment {
 		}
 		
 		if (!serverOption)
-			Environment.logWarning("Make sure Eclipse is started with -vmwargs -server (can be set in eclipse.ini) for best performance");
+			Environment.logWarning("Make sure Eclipse is started with -vmargs -server (can be set in eclipse.ini) for best performance");
 		if (!mxOption)
 			Environment.logWarning("Make sure Eclipse is started with -vmargs -Xmx 512m (can be set in eclipse.ini) for at least 512 MiB heap space");
 		if (!ssOption)

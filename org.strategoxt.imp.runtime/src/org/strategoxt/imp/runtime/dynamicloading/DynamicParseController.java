@@ -70,7 +70,9 @@ public class DynamicParseController extends AbstractService<IParseController> im
 
 		if (lastEditor == null && EditorState.isUIThread()) {
 			lastEditor = EditorState.getEditorFor(this);
-			ContentProposerFactory.eagerInit(Environment.getDescriptor(getLanguage()), result, lastEditor);
+			Descriptor descriptor = Environment.getDescriptor(getLanguage());
+			ContentProposerFactory.eagerInit(descriptor, result, lastEditor);
+			AutoEditStrategyFactory.eagerInit(descriptor, result, lastEditor);
 		}
 		return result;
 	}
@@ -131,7 +133,9 @@ public class DynamicParseController extends AbstractService<IParseController> im
 		isReinitialized = true;
 		if (lastEditor != null) {
 			lastEditor.scheduleParserUpdate(REINIT_PARSE_DELAY);
-			ContentProposerFactory.eagerInit(Environment.getDescriptor(getLanguage()), getWrapped(), lastEditor);
+			Descriptor descriptor = Environment.getDescriptor(getLanguage());
+			ContentProposerFactory.eagerInit(descriptor, getWrapped(), lastEditor);
+			AutoEditStrategyFactory.eagerInit(descriptor, getWrapped(), lastEditor);
 		}
 	}
 

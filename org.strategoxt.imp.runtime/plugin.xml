@@ -64,7 +64,7 @@
    <extension
          point="org.eclipse.imp.runtime.autoEditStrategy">
       <autoEditStrategy
-            class="org.eclipse.imp.services.base.DefaultAutoIndentStrategy"
+            class="org.strategoxt.imp.runtime.dynamicloading.DynamicAutoEditStrategy"
             language="DynamicRoot">
       </autoEditStrategy>
    </extension>

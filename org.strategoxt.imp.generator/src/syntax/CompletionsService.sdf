@@ -1,0 +1,43 @@
+module CompletionsService
+
+imports
+  SemanticServices
+
+exports
+
+  sorts
+    CompletionAnno
+
+  syntax
+  
+    "completions" <SectionName-LEX> <LAYOUT?-CF> <SemanticRule*-CF> -> <Section-CF> {cons("Completions")}
+
+    "completions" -> <ReservedName-CF>
+
+  context-free syntax
+
+    "completion" "proposer" ":" StrategoCall -> SemanticRule {cons("CompletionProposer")}
+
+    "completion" "lexical" ":" PropertyValue -> SemanticRule {cons("IdentifierLexical"), deprecated("Use 'identifier lexical' instead")}
+
+    "identifier" "lexical" ":" PropertyValue -> SemanticRule {cons("IdentifierLexical")}
+
+    "completion" "keyword" ":" PropertyValue CompletionAnno -> SemanticRule {cons("CompletionKeyword")}
+    
+    "completion" "template" ":" PropertyValue String+ -> SemanticRule {cons("CompletionTemplate")}
+
+    "completion" "trigger" ":" PropertyValue CompletionAnno -> SemanticRule {cons("CompletionTrigger")}
+  
+  context-free syntax
+  
+    "completions" -> StrategoCall {reject}
+    "completion"  -> StrategoCall {reject}
+    "identifier"  -> StrategoCall {reject}
+    "observer"    -> StrategoCall {reject}
+    "builder"     -> StrategoCall {reject}
+    "occurrence"  -> StrategoCall {reject}
+    ReservedName  -> StrategoCall {reject}
+
+                 -> CompletionAnno {cons("None")}
+    "(disable)"  -> CompletionAnno {cons("Disable")}
+    "(disable)"  -> PropertyValue {reject}

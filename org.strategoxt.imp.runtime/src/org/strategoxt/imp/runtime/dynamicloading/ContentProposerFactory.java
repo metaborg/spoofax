@@ -1,7 +1,9 @@
 package org.strategoxt.imp.runtime.dynamicloading;
 
-import static org.spoofax.interpreter.core.Tools.*;
-import static org.strategoxt.imp.runtime.dynamicloading.TermReader.*;
+import static org.spoofax.interpreter.core.Tools.termAt;
+import static org.strategoxt.imp.runtime.dynamicloading.TermReader.collectTerms;
+import static org.strategoxt.imp.runtime.dynamicloading.TermReader.cons;
+import static org.strategoxt.imp.runtime.dynamicloading.TermReader.termContents;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -12,9 +14,12 @@ import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.services.IContentProposer;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.spoofax.interpreter.terms.IStrategoList;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
+import org.strategoxt.imp.runtime.services.ContentProposalTemplate;
 import org.strategoxt.imp.runtime.services.ContentProposer;
 import org.strategoxt.imp.runtime.services.ContentProposerListener;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
@@ -23,8 +28,6 @@ import org.strategoxt.imp.runtime.services.StrategoObserver;
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class ContentProposerFactory extends AbstractServiceFactory<IContentProposer> {
-
-	private static final String DEFAULT_LEXICAL = "[A-Za-z_0-9]+";
 	
 	public ContentProposerFactory() {
 		super(IContentProposer.class, true);
@@ -53,13 +56,17 @@ public class ContentProposerFactory extends AbstractServiceFactory<IContentPropo
 		String completionFunction = descriptor.getProperty("CompletionProposer", null);
 		StrategoObserver feedback = descriptor.createService(StrategoObserver.class, controller);
 
-		Pattern completionPattern = readCompletionPattern(descriptor);		
+		Pattern identifierLexical = SyntaxPropertiesFactory.readIdentifierLexical(descriptor, true);
 		Set<String> completionKeywords = readCompletionKeywords(descriptor);
+		ContentProposalTemplate[] templates = readCompletionTemplates(descriptor);
+		for (ContentProposalTemplate template : templates) {
+			completionKeywords.remove(template.getPrefix());
+		}
 		String[] keywords = completionKeywords.toArray(new String[0]);
 
 		registerListener(descriptor, controller);
 		
-		return new ContentProposer(feedback, completionFunction, completionPattern, keywords);
+		return new ContentProposer(feedback, completionFunction, identifierLexical, keywords, templates);
 	}
 
 	private static void registerListener(Descriptor descriptor, SGLRParseController controller)
@@ -67,21 +74,6 @@ public class ContentProposerFactory extends AbstractServiceFactory<IContentPropo
 		ISourceViewer viewer = controller.getEditor().getEditor().getServiceControllerManager().getSourceViewer();
 		Set<Pattern> triggers = readTriggers(descriptor);
 		ContentProposerListener.register(triggers, viewer);
-	}
-
-	private static Pattern readCompletionPattern(Descriptor descriptor) throws BadDescriptorException {
-		try {
-			String completionLexical = descriptor.getProperty("CompletionLexical", DEFAULT_LEXICAL);
-			Pattern result = Pattern.compile(completionLexical);
-			if (result.matcher("").matches())
-				throw new PatternSyntaxException("Completion lexical matches the empty string", completionLexical, 0);
-			if (!result.matcher(ContentProposer.COMPLETION_TOKEN).matches())
-				throw new PatternSyntaxException("Completion lexical must allow letters and numbers (e.g., "
-						+ ContentProposer.COMPLETION_TOKEN + ")", completionLexical, 0);
-			return result;
-		} catch (PatternSyntaxException e) {
-			throw new BadDescriptorException("Illegal completion lexical in editor descriptor", e);
-		}
 	}
 
 	private static Set<String> readCompletionKeywords(Descriptor descriptor) {
@@ -96,6 +88,20 @@ public class ContentProposerFactory extends AbstractServiceFactory<IContentPropo
 				results.add(literal);
 		}
 		return results;
+	}
+
+	private static ContentProposalTemplate[] readCompletionTemplates(Descriptor descriptor) {
+		Set<ContentProposalTemplate> results = new HashSet<ContentProposalTemplate>();
+
+		for (IStrategoAppl template : collectTerms(descriptor.getDocument(), "CompletionTemplate")) {
+			IStrategoTerm prefixTerm = termAt(template, 0);
+			String prefix = termContents(prefixTerm);
+			IStrategoList completionParts = termAt(template, 1);
+			completionParts = Environment.getTermFactory().makeListCons(prefixTerm, completionParts);
+			results.add(new ContentProposalTemplate(prefix, completionParts));
+		}
+		
+		return results.toArray(new ContentProposalTemplate[0]);
 	}
 
 	private static Set<Pattern> readTriggers(Descriptor descriptor) throws BadDescriptorException {

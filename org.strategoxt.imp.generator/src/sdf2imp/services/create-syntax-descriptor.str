@@ -18,6 +18,7 @@ strategies
         language
           ~
           ~// This file can be used for custom syntax rules.
+          ~//
           ~// See the imported file for a brief introduction and examples.
       ]|
     );
@@ -31,10 +32,22 @@ strategies
         
         language Syntax properties (static defaults)
           ~
+          ~// Comment constructs:
           line comment: "//"
           block comment: "/*" * "*/"
+          ~
+          ~// Fences (used for matching,
+          ~// inserting, indenting brackets):
           fences: [  ]
                   (  )
                   {  }
+          ~
+          ~// Automatic indent hints
+          ~// (indent after these tokens):
+          indent after: "="
+                        ":"
+          ~
+          ~// Regular expression for identifiers:
+          identifier lexical: "[A-Za-z0-9_]+"
       ]|
     )

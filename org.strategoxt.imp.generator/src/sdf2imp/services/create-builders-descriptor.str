@@ -21,6 +21,7 @@ strategies
         builders
           ~~
           ~~// This file can be used for custom analysis and builder rules.
+          ~~//
           ~~// See the imported file for a brief introduction and examples.
         builders
           ~~
@@ -43,14 +44,14 @@ strategies
           ~//
           ~//   provider : stratego-program.ctree
           ~//   provider : stratego-library.jar
-          ~
+          ~//
           ~// Analysis is carried out by a Stratego rule that can be selected as follows:
           ~//
           ~//   observer : analysis-rule
           ~//
           ~// Any dynamic rules set in the analysis may be used by other semantic services,
           ~// such as reference resolving or the builders.
-          ~
+          ~//
           ~// Builders may carry out custom transformations on a file or selection.
           ~// (At run-time, they can be accessed using the toolbar button with the star icon.)
           ~// Builders can be specified as follows:

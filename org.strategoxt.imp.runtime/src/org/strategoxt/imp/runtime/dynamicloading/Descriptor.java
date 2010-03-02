@@ -87,6 +87,7 @@ public class Descriptor {
 		serviceFactories.add(new BuilderFactory());
 		serviceFactories.add(new ContentProposerFactory());
 		serviceFactories.add(new LabelProviderFactory());
+		serviceFactories.add(new AutoEditStrategyFactory());
 	}
 	
 	/**

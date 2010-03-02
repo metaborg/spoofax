@@ -7,7 +7,7 @@ exports
   sorts
   
     LanguageProperty PropertyValue NoContinuation PropertyValues URL
-    FenceDef BlockCommentDef PropertyKeyword
+    FenceDef BlockCommentDef PropertyKeyword IndentDedf
   
   syntax
   
@@ -17,13 +17,13 @@ exports
   
   lexical syntax
     
-    ~[\ \t\n\r\,\:\"]+  -> PropertyValue {avoid}
+    ~[\ \t\n\r\,\:\"\=]+ -> PropertyValue {avoid}
 
     ~[\ \t\n\r\,\/\:]+ "://" ~[\ \t\n\r]+ -> URL
   
   lexical restrictions
   
-  	PropertyValue -/- ~[\ \t\n\r\,\:\"]
+  	PropertyValue -/- ~[\ \t\n\r\,\:\"\=]
   	URL           -/- ~[\ \t\n\r]
   
   context-free syntax
@@ -43,16 +43,28 @@ exports
     "url"             ":" URL            -> LanguageProperty {cons("URL")}
     "extends"         ":" PropertyValues -> LanguageProperty {cons("Extends")}
     "aliases"         ":" PropertyValues -> LanguageProperty {cons("Aliases")} %% deprecated
-    "unmanaged" "table" ":" Id "*"        -> LanguageProperty {cons("UnmanagedTablePrefix")}
+    "unmanaged" "table" ":" Id "*"       -> LanguageProperty {cons("UnmanagedTablePrefix")}
    
      %% Syntax properties
      
-     "line"  "comment" ":" PropertyValue   -> LanguageProperty {cons("LineCommentPrefix")}
-     "block" "comment" ":" BlockCommentDef -> LanguageProperty {cons("BlockCommentDefs")}
-     "fences"          ":" FenceDef*       -> LanguageProperty {cons("FenceDefs")}
+     "line"  "comment" ":" PropertyValue      -> LanguageProperty {cons("LineCommentPrefix")}
+     "block" "comment" ":" BlockCommentDef    -> LanguageProperty {cons("BlockCommentDefs")}
+     "fences"          ":" FenceDef*          -> LanguageProperty {cons("FenceDefs")}
+     "indent" "after"  ":" IndentDef*         -> LanguageProperty {cons("IndentDefs")}
+     "identifier" "lexical" ":" PropertyValue -> LanguageProperty {cons("IdentifierLexical")}
      
      PropertyValue PropertyValue  PropertyValue -> BlockCommentDef {cons("BlockCommentDef")}
      PropertyValue NoContinuation PropertyValue -> BlockCommentDef {cons("BlockCommentDef")}
                                                 -> NoContinuation {cons("NoContinuation")}
      
      PropertyValue PropertyValue -> FenceDef {cons("FenceDef")}
+     PropertyValue               -> IndentDef {cons("IndentDef")}
+     
+     %% Avoid ambiguities with fencedef pairs
+     "fences"     -> PropertyValue {reject}
+     "identifier" -> PropertyValue {reject}
+     "indent"     -> PropertyValue {reject}
+     "fences"     -> PropertyValue {reject}
+     "line"       -> PropertyValue {reject}
+     "block"      -> PropertyValue {reject}
+     

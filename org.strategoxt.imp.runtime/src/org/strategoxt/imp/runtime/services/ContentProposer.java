@@ -62,6 +62,8 @@ public class ContentProposer implements IContentProposer {
 
 	public static String COMPLETION_TOKEN = "CONTENTCOMPLETE" + Math.abs(new Random().nextInt());
 	
+	private static final boolean IGNORE_TEMPLATE_PREFIX_CASE = false;
+	
 	private static final String COMPLETION_CONSTRUCTOR = "COMPLETION";
 	
 	private static final String COMPLETION_UNKNOWN = "NOCONTEXT";
@@ -74,9 +76,11 @@ public class ContentProposer implements IContentProposer {
 	
 	private final String completionFunction;
 	
-	private final Pattern completionLexical;
+	private final Pattern identifierLexical;
 	
 	private final String[] keywords;
+	
+	private final ContentProposalTemplate[] templates;
 	
 	private SGLRParseController parser;
 	
@@ -96,11 +100,12 @@ public class ContentProposer implements IContentProposer {
 	
 	private String lastCompletionPrefix;
 	
-	public ContentProposer(StrategoObserver observer, String completionFunction, Pattern completionLexical, String[] keywords) {
+	public ContentProposer(StrategoObserver observer, String completionFunction, Pattern identifierLexical, String[] keywords, ContentProposalTemplate[] templates) {
 		this.observer = observer;
 		this.completionFunction = completionFunction;
-		this.completionLexical = completionLexical;
+		this.identifierLexical = identifierLexical;
 		this.keywords = keywords;
+		this.templates = templates;
 	}
 	
 	public ICompletionProposal[] getContentProposals(IParseController controller, int offset, ITextViewer viewer) {
@@ -109,7 +114,7 @@ public class ContentProposer implements IContentProposer {
 		currentCompletionNode = null;
 		String document = viewer.getDocument().get();
 		
-		if (!completionLexical.matcher(COMPLETION_TOKEN).matches())
+		if (!identifierLexical.matcher(COMPLETION_TOKEN).matches())
 			return createErrorProposal("No proposals available - completion lexical must allow letters and numbers", offset);
 		
 		constructAst(getParser(controller), offset, document);
@@ -136,7 +141,7 @@ public class ContentProposer implements IContentProposer {
     }
 	
 	protected Pattern getCompletionLexical() {
-		return completionLexical;
+		return identifierLexical;
 	}
 	
 	protected SGLRParseController getParser() {
@@ -237,7 +242,8 @@ public class ContentProposer implements IContentProposer {
 		WrappedAstNodeFactory factory = Environment.getTermFactory();
 		IStrategoString emptyString = factory.makeString("");
 		Region offsetRegion = new Region(offset, 0);
-		Set<ICompletionProposal> results = getKeywordProposals(document, currentCompletionPrefix, offsetRegion, offset);
+
+		Set<ICompletionProposal> results = getKeywordAndTemplateProposals(document, currentCompletionPrefix, offsetRegion, offset);
 
 		for (IStrategoList cons = (IStrategoList) proposals; !cons.isEmpty(); cons = cons.tail()) {
 			IStrategoTerm proposal = cons.head();
@@ -251,7 +257,7 @@ public class ContentProposer implements IContentProposer {
 				description = emptyString;
 			} else if (proposal.getTermType() == LIST) {
 				newTextParts = (IStrategoList) proposal;
-				newText = proposalPartsToString(newTextParts);
+				newText = proposalPartsToDisplayString(newTextParts);
 				description = emptyString;
 			} else {
 				IStrategoTerm newTextTerm = termAt(proposal, 0);
@@ -261,7 +267,7 @@ public class ContentProposer implements IContentProposer {
 					return createErrorProposal(error, offset);
 				if (newTextTerm.getTermType() == LIST) {
 					newTextParts = (IStrategoList) newTextTerm;
-					newText = proposalPartsToString(newTextParts);
+					newText = proposalPartsToDisplayString(newTextParts);
 				} else {
 					newTextParts = factory.makeList(newTextTerm);
 					newText = ((IStrategoString) newTextTerm).stringValue();
@@ -275,6 +281,20 @@ public class ContentProposer implements IContentProposer {
 		
 		return toSortedArray(results);
 	}
+	
+	private String proposalPartsToDisplayString(IStrategoList proposalParts) {
+		proposalBuilder.setLength(0);
+		for (IStrategoList cons = proposalParts; !cons.isEmpty(); cons = cons.tail()) {
+			IStrategoTerm part = cons.head();
+			if (part.getTermType() != STRING) return null;
+			proposalBuilder.append(asJavaString(part));
+		}
+		if (proposalBuilder.indexOf("\n") != 0 || proposalBuilder.indexOf("\t") != 0) {
+			return asJavaString(proposalParts.head());
+		} else {
+			return proposalBuilder.toString();
+		}
+	}
 
 	private static ICompletionProposal[] toSortedArray(Set<ICompletionProposal> results) {
 		ICompletionProposal[] resultArray = results.toArray(new ICompletionProposal[results.size()]);
@@ -287,43 +307,60 @@ public class ContentProposer implements IContentProposer {
 		return resultArray;
 	}
 	
-	private String proposalPartsToString(IStrategoList proposalParts) {
-		proposalBuilder.setLength(0);
-		for (IStrategoList cons = proposalParts; !cons.isEmpty(); cons = cons.tail()) {
-			IStrategoTerm part = cons.head();
-			if (part.getTermType() != STRING) return null;
-			proposalBuilder.append(asJavaString(part));
-		}
-		return proposalBuilder.toString();
-	}
-	
-	private Set<ICompletionProposal> getKeywordProposals(String document, String prefix, Region offsetRegion, int offset) {
+	private Set<ICompletionProposal> getKeywordAndTemplateProposals(String document, String prefix, Region offsetRegion, int offset) {
 		Set<ICompletionProposal> results = new HashSet<ICompletionProposal>();
-		boolean specialCharsOnly = false;
+		boolean backTrackResultsOnly = false;
 		
-	proposals:
 		for (String proposal : keywords) {
-			Matcher matcher = completionLexical.matcher(proposal);
-			if (!specialCharsOnly && proposal.regionMatches(true, 0, prefix, 0, prefix.length())) {
-				results.add(new ContentProposal(this, proposal, proposal, prefix, offsetRegion,
-						offset + proposal.length() - prefix.length(), ""));
-			} else if (matcher.find() && (matcher.start() > 0 || matcher.end() < proposal.length())) {
-				// Handle completion literals with special characters, like "(disabled)"
-				if (matcher.start() == 0 && !matcher.find(matcher.end()))
-					continue;
-				do {
-					if (document.regionMatches(offset - matcher.start() - prefix.length(), proposal, 0, matcher.start()) 
-							&& proposal.regionMatches(matcher.start(), prefix, 0, prefix.length())) {
-						String subProposal = proposal.substring(matcher.start());
-						if (!specialCharsOnly) results.clear();
-						specialCharsOnly = true;
-						results.add(new ContentProposal(this, proposal, subProposal, prefix,
-								offsetRegion, offset + matcher.end() - matcher.start() - prefix.length(), ""));
-						continue proposals;
-					}
-				} while (matcher.find(matcher.end()));
+			if (!backTrackResultsOnly && proposal.regionMatches(IGNORE_TEMPLATE_PREFIX_CASE, 0, prefix, 0, prefix.length())) {
+				if (prefix.length() > 0 || identifierLexical.matcher(proposal).lookingAt())
+					results.add(new ContentProposal(this, proposal, proposal, prefix, offsetRegion,
+							offset + proposal.length() - prefix.length(), ""));
+			} else {
+				Matcher matcher = identifierLexical.matcher(proposal);
+				if (matcher.find() && (matcher.start() > 0 || matcher.end() < proposal.length())) {
+					// Handle completion literals with special characters, like "(disabled)"
+					if (matcher.start() == 0 && !matcher.find(matcher.end()))
+						continue;
+					do {
+						if (document.regionMatches(offset - matcher.start() - prefix.length(), proposal, 0, matcher.start()) 
+								&& proposal.regionMatches(matcher.start(), prefix, 0, prefix.length())) {
+							String subProposal = proposal.substring(matcher.start());
+							if (!backTrackResultsOnly) results.clear();
+							backTrackResultsOnly = true;
+							results.add(new ContentProposal(this, proposal, subProposal, prefix,
+									offsetRegion, offset + matcher.end() - matcher.start() - prefix.length(), ""));
+							break;
+						}
+					} while (matcher.find(matcher.end()));
+				}
 			}
 		}
+		
+		for (ContentProposalTemplate proposal : templates) {
+			String proposalPrefix = proposal.getPrefix();
+			if (!backTrackResultsOnly && proposalPrefix.regionMatches(IGNORE_TEMPLATE_PREFIX_CASE, 0, prefix, 0, prefix.length())) {
+				results.add(new ContentProposal(this, proposal.getPrefix(), proposal, prefix, offsetRegion));
+			} else {
+				Matcher matcher = identifierLexical.matcher(proposalPrefix);
+				if (matcher.find() && (matcher.start() > 0 || matcher.end() < proposalPrefix.length())) {
+					// Handle completion literals with special characters, like "(disabled)"
+					if (matcher.start() == 0 && !matcher.find(matcher.end()))
+						continue;
+					do {
+						if (document.regionMatches(offset - matcher.start() - prefix.length(), proposalPrefix, 0, matcher.start()) 
+								&& proposalPrefix.regionMatches(matcher.start(), prefix, 0, prefix.length())) {
+							String subProposal = proposalPrefix.substring(matcher.start());
+							if (!backTrackResultsOnly) results.clear();
+							backTrackResultsOnly = true;
+							results.add(new ContentProposal(this, subProposal, proposal, prefix, offsetRegion));
+							break;
+						}
+					} while (matcher.find(matcher.end()));
+				}
+			}
+		}
+		
 		return results;
 	}
 
@@ -369,7 +406,7 @@ public class ContentProposer implements IContentProposer {
 	}
 
 	private String sanitizePrefix(String prefix) {
-		Matcher matcher = completionLexical.matcher(prefix);
+		Matcher matcher = identifierLexical.matcher(prefix);
 		if (prefix.length() == 0) {
 			return "";
 		} else if (matcher.lookingAt()) {
@@ -465,7 +502,7 @@ public class ContentProposer implements IContentProposer {
 		int prefixStart = offset;
 		while (--prefixStart >= 0) {
 			String prefix = document.substring(prefixStart, offset);
-			if (!completionLexical.matcher(prefix).matches())
+			if (!identifierLexical.matcher(prefix).matches())
 				return document.substring(prefixStart + 1, offset);
 		}
 		return document.substring(0, offset);

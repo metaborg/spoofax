@@ -120,6 +120,7 @@ strategies
     create-colorer-descriptor;
     create-builders-descriptor;
     create-references-descriptor;
+    create-completions-descriptor;
 
     create-packed-descriptor-file;
     
@@ -146,7 +147,7 @@ strategies
         <guarantee-extension(|"rtg")> <InputFile>
       , [ $[editor/[<descriptor-name> "-Outliner.generated.esv"]]
         , $[editor/[<descriptor-name> "-Folding.generated.esv"]]
-        , $[editor/[<descriptor-name> "-References.generated.esv"]]
+        , $[editor/[<descriptor-name> "-Completions.generated.esv"]]
         ]
       )
     )

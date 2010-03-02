@@ -3,9 +3,12 @@
  */
 package org.strategoxt.imp.runtime.services;
 
-import static org.spoofax.interpreter.core.Tools.asJavaString;
+import static org.eclipse.core.runtime.Platform.OS_MACOSX;
+import static org.strategoxt.imp.runtime.dynamicloading.TermReader.termContents;
 
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.imp.editor.SourceProposal;
+import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.contentassist.ICompletionProposalExtension6;
@@ -18,6 +21,8 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.TextStyle;
 import org.eclipse.swt.widgets.Display;
 import org.spoofax.interpreter.terms.IStrategoList;
+import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.strategoxt.imp.runtime.Environment;
 
 /**
  * A content proposal that selects the lexical at the cursor location.
@@ -25,6 +30,8 @@ import org.spoofax.interpreter.terms.IStrategoList;
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class ContentProposal extends SourceProposal implements ICompletionProposalExtension6 {
+	
+	private static final boolean USE_BIG_FONT = Platform.getOS() == OS_MACOSX;
 
 	private static Color identifierColor;
 	
@@ -36,36 +43,72 @@ public class ContentProposal extends SourceProposal implements ICompletionPropos
 	
 	private final IStrategoList newTextParts;
 	
+	private final ContentProposalTemplate template;
+	
+	/**
+	 * Creates a new keyword-based content proposal.
+	 */
 	public ContentProposal(ContentProposer proposer, String proposal, String newText, String prefix, Region region,
 			int cursorLoc, String addlInfo) {
+		
 		super(proposal, newText, prefix, region, cursorLoc, addlInfo);
 		this.proposer = proposer;
 		this.newTextParts = null;
+		this.template = null;
+	}
+	
+	/**
+	 * Creates a new template-based content proposal.
+	 */
+	public ContentProposal(ContentProposer proposer, String proposalPrefix,
+			ContentProposalTemplate proposal, String prefix, Region region) {
+		
+		super(proposal.getName(), proposalPrefix, prefix, region, null);
+		this.proposer = proposer;
+		this.newTextParts = proposal.getCompletionParts();
+		this.template = proposal;
 	}
 
+	/**
+	 * Creates a new semantic content proposal.
+	 */
 	public ContentProposal(ContentProposer proposer, String proposal, String newText, String prefix, Region region, 
 			IStrategoList newTextParts, String addlInfo) {
+		
 		super(proposal, newText, prefix, region, addlInfo);
+		assert newTextParts != null;
 		this.proposer = proposer;
 		this.newTextParts = newTextParts;
+		this.template = null;
 	}
 
 	private boolean isKeywordProposal() {
 		return newTextParts == null;
 	}
 
-	@Override
-	public Point getSelection(IDocument document) {
-		if (newTextParts == null)
-			return super.getSelection(document);
-		else
-			return proposalPartsToSelection(newTextParts, getRange().getOffset() - getPrefix().length());
+	private boolean isTemplateProposal() {
+		return template != null;
 	}
 
-	private Point proposalPartsToSelection(IStrategoList proposalParts, int offset) {
-		int i = asJavaString(proposalParts.head()).length();
+	@Override
+	public Point getSelection(IDocument document) {
+		if (newTextParts == null) {
+			return super.getSelection(document);
+		} else {
+			return proposalPartsToSelection(document, newTextParts, getRange().getOffset() - getPrefix().length());
+		}
+	}
+	
+	@Override
+	public String getAdditionalProposalInfo() {
+		// TODO: support newlines and tabs in proposal descriptions?
+		return template != null ? template.getDescription() : super.getAdditionalProposalInfo();
+	}
+
+	private Point proposalPartsToSelection(IDocument document, IStrategoList proposalParts, int offset) {
+		int i = termContents(proposalParts.head()).length();
 		for (IStrategoList cons = proposalParts.tail(); !cons.isEmpty(); cons = cons.tail()) {
-			String part = asJavaString(cons.head());
+			String part = proposalPartToString(document, cons.head());
 			if (proposer.getCompletionLexical().matcher(part).matches())
 				return new Point(offset + i, part.length());
 			i += part.length();
@@ -73,12 +116,44 @@ public class ContentProposal extends SourceProposal implements ICompletionPropos
 		return new Point(offset + i, 0);
 	}
 	
+	private String proposalPartsToString(IDocument document, IStrategoList proposalParts) {
+		StringBuilder result = new StringBuilder();
+		for (IStrategoList cons = proposalParts; !cons.isEmpty(); cons = cons.tail()) {
+			result.append(proposalPartToString(document, cons.head()));
+		}
+		return result.toString();
+	}
+	
+	private String proposalPartToString(IDocument document, IStrategoTerm part) {
+		try {
+			String lineStart = AutoEditStrategy.getLineBeforeOffset(document, getRange().getOffset());
+			return AutoEditStrategy.formatInsertedText(termContents(part), lineStart);
+		} catch (BadLocationException e) {
+			Environment.logException("Could not format completion fragment", e);
+			return termContents(part);
+		}
+	}
+	
 	@Override
 	public void apply(IDocument document) {
-		super.apply(document);
+		try {
+	        Region range = getRange();
+			String newText = newTextParts == null
+					? getNewText()
+					: proposalPartsToString(document, newTextParts);
+			document.replace(range.getOffset(), range.getLength(), newText.substring(getPrefix().length()));
+		} catch (BadLocationException e) {
+			Environment.logException("Could not apply content proposal", e);
+		}
 		proposer.getObserver().setRushNextUpdate(true);
 		proposer.getParser().getErrorHandler().setRushNextUpdate(true);
 		proposer.getParser().scheduleParserUpdate(0, false);
+	}
+	
+	@Override
+	public String getNewText() {
+		assert newTextParts == null : "Don't use me if newTextParts != null";
+		return super.getNewText();
 	}
 
 	public StyledString getStyledDisplayString() {
@@ -89,7 +164,7 @@ public class ContentProposal extends SourceProposal implements ICompletionPropos
 
 		@Override
 		public void applyStyles(TextStyle style) {
-			if (isKeywordProposal()) { // keyword proposal
+			if (isKeywordProposal() || isTemplateProposal()) {
 				style.font = getKeywordFont();
 				style.foreground = getKeywordColor();
 			} else if (newTextParts.size() == 1) { // identifier proposal
@@ -110,8 +185,12 @@ public class ContentProposal extends SourceProposal implements ICompletionPropos
 		}
 		
 		private Font getKeywordFont() {
+			// HACK: hardcoded font size
+			// TODO: use non-hard coded font?
+	        //       e.g. FontData[] fontData= JFaceResources.getFontDescriptor("org.eclipse.jdt.ui.editors.textfont").getFontData();
+			//            if (fontData != null && fontData.length > 0) ...
 			if (keywordFont == null)
-				keywordFont = new Font(Display.getCurrent(), "Courier new", 13, SWT.BOLD);
+				keywordFont = new Font(Display.getCurrent(), "Courier new", USE_BIG_FONT ? 13 : 12, SWT.BOLD);
 			return keywordFont;
 		}
 	}
