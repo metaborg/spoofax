@@ -28,7 +28,7 @@ public class AutoEditStrategyFactory extends AbstractServiceFactory<IAutoEditStr
 			throws BadDescriptorException {
 		
 		ILanguageSyntaxProperties syntax = descriptor.createService(ILanguageSyntaxProperties.class, controller);
-		return new AutoEditStrategy(controller, syntax);
+		return new AutoEditStrategy(syntax);
 	}
 	
 	/**
@@ -40,12 +40,10 @@ public class AutoEditStrategyFactory extends AbstractServiceFactory<IAutoEditStr
 			for (IAutoEditStrategy autoEdit : autoEdits) {
 				if (autoEdit instanceof DynamicAutoEditStrategy) {
 					DynamicAutoEditStrategy dynAutoEdit = (DynamicAutoEditStrategy) autoEdit;
-					if (!dynAutoEdit.isInitialized()) {
-						dynAutoEdit.initialize(controller);
-						ISourceViewer viewer = editor.getEditor().getServiceControllerManager().getSourceViewer();
-						if (viewer instanceof ITextViewerExtension)
-							((ITextViewerExtension) viewer).prependVerifyKeyListener(dynAutoEdit);
-					}
+					dynAutoEdit.initialize(controller);
+					ISourceViewer viewer = editor.getEditor().getServiceControllerManager().getSourceViewer();
+					if (viewer instanceof ITextViewerExtension)
+						((ITextViewerExtension) viewer).prependVerifyKeyListener(dynAutoEdit);
 				}
 			}
 		}

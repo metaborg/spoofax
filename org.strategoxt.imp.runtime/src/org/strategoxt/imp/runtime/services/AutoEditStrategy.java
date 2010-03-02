@@ -35,9 +35,7 @@ import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
-	
-	private final IParseController controller;
-	
+		
 	private final ILanguageSyntaxProperties syntax;
 	
 	private final String[][] allFences;
@@ -47,6 +45,8 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 	private final int maxCloseFenceLength;
 	
 	private static UniversalEditor lastEditor;
+	
+	private IParseController controller;
 	
 	private UniversalEditor editor;
 	
@@ -58,8 +58,7 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 	
 	private String lastAutoInsertedFenceLineEnd;
 
-	public AutoEditStrategy(IParseController controller, ILanguageSyntaxProperties syntax) {
-		this.controller = controller;
+	public AutoEditStrategy(ILanguageSyntaxProperties syntax) {
 		this.syntax = syntax;
 		
 		allFences = syntax instanceof SyntaxProperties
@@ -77,6 +76,10 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 		
 		this.maxOpenFenceLength = maxOpenFenceLength;
 		this.maxCloseFenceLength = maxCloseFenceLength;
+	}
+	
+	public void initialize(IParseController controller) {
+		this.controller = controller;
 	}
 	
 	public void customizeDocumentCommand(IDocument document, DocumentCommand command) {

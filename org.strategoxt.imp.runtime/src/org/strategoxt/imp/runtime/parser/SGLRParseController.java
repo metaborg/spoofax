@@ -95,6 +95,8 @@ public class SGLRParseController implements IParseController {
 	private volatile boolean disallowColorer;
 	
 	private volatile boolean isAborted;
+	
+	private boolean isReplaced;
 
 	// Simple accessors
 	
@@ -105,6 +107,7 @@ public class SGLRParseController implements IParseController {
 	 * @return The parsed AST, or null if the file could not be parsed (yet).
 	 */
 	public final RootAstNode getCurrentAst() {
+		assert !isReplaced();
 		if (currentAst == null) forceInitialParse();
 		return currentAst;
 	}
@@ -123,6 +126,14 @@ public class SGLRParseController implements IParseController {
 	
 	public ParseErrorHandler getErrorHandler() {
 		return errorHandler;
+	}
+	
+	/**
+	 * Returns true if the given parse controller has been replaced by
+	 * a newly loaded instance.
+	 */
+	public boolean isReplaced() {
+		return isReplaced;
 	}
 
 	/**
@@ -184,6 +195,7 @@ public class SGLRParseController implements IParseController {
     }
 
 	public AstNode parse(String input, final IProgressMonitor monitor) {
+		assert !isReplaced();
 		disallowColorer = true;
 		boolean wasStartupParsed = isStartupParsed;
 		isStartupParsed = true; // Eagerly init this to avoid the main thread acquiring our lock			

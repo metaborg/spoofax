@@ -125,6 +125,8 @@ public class Descriptor {
 			throws BadDescriptorException {
 
 		boolean foundFactory = false;
+		assert controller == null || !controller.isReplaced()
+			: "Stale SGLRParseController given to Descriptor.createService() - service didn't call initialize()?";
 		
 		try {
 			for (AbstractServiceFactory<T> factory : serviceFactories) {
