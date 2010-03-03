@@ -97,8 +97,9 @@ public class ContentProposerFactory extends AbstractServiceFactory<IContentPropo
 			IStrategoTerm prefixTerm = termAt(template, 0);
 			String prefix = termContents(prefixTerm);
 			IStrategoList completionParts = termAt(template, 1);
+			IStrategoTerm anno = termAt(template, 2);
 			completionParts = Environment.getTermFactory().makeListCons(prefixTerm, completionParts);
-			results.add(new ContentProposalTemplate(prefix, completionParts));
+			results.add(new ContentProposalTemplate(prefix, completionParts, "Blank".equals(cons(anno))));
 		}
 		
 		return results.toArray(new ContentProposalTemplate[0]);

@@ -16,10 +16,13 @@ public class ContentProposalTemplate {
 	private final String prefix;
 	
 	private final IStrategoList completionParts;
+	
+	private final boolean blankLineRequired;
 
-	public ContentProposalTemplate(String prefix, IStrategoList completionParts) {
+	public ContentProposalTemplate(String prefix, IStrategoList completionParts, boolean blankLineRequired) {
 		this.prefix = prefix;
 		this.completionParts = completionParts;
+		this.blankLineRequired = blankLineRequired;
 	}
 
 	public String getPrefix() {
@@ -28,6 +31,10 @@ public class ContentProposalTemplate {
 
 	public IStrategoList getCompletionParts() {
 		return completionParts;
+	}
+	
+	public boolean isBlankLineRequired() {
+		return blankLineRequired;
 	}
 
 	public String getDescription() {

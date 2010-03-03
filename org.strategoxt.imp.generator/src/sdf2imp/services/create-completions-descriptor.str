@@ -31,8 +31,8 @@ strategies
         completions
           ~~
           ~// Syntax completion:
-          completion template: "module " "m"
-          completion template: "entity " "e" " {}"
+          completion template: "module " <m>        (blank)
+          completion template: "entity " <e> " {}"  (blank)
           ~~
           ~// Semantic (identifier) completion:
           completion proposer: editor-complete
@@ -57,12 +57,17 @@ strategies
           ~// Syntactic content completion can be defined as follows:
           ~//
           ~//   completion keyword  : "keyword"
-          ~//   completion template : "if " "e" " then\n\ts\nend"
+          ~//   completion template : "if " <e> " then\n\t" <s> "\nend"
           ~//
           ~// This defines keyword completion for "keyword" and
           ~// a template completion for the "if" keyword (note the use of \n, \t, and spaces).
-          ~// In this template, the text selection expands to the "e" identifier
-          ~// if it matches the identifier lexical of YourLanguage-Syntax.esv.
+          ~// In this template, the text selection expands to the "e" placeholder identifier
+          ~// enclosed in <> brackets.
+          ~//
+          ~// Use the (blank) annotation if you want a template completion only to
+          ~// appear on blank lines:
+          ~//
+          ~//   completion template: "section" <title> "\n\t" (blank)
           ~//
           ~// Semantic content completion can be defined as follows:
           ~//

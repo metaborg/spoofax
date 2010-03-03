@@ -311,6 +311,7 @@ public class ContentProposer implements IContentProposer {
 		Set<ICompletionProposal> results = new HashSet<ICompletionProposal>();
 		boolean backTrackResultsOnly = false;
 		
+		// TODO: simplify - turn completion keywords in completion templates?
 		for (String proposal : keywords) {
 			if (!backTrackResultsOnly && proposal.regionMatches(IGNORE_TEMPLATE_PREFIX_CASE, 0, prefix, 0, prefix.length())) {
 				if (prefix.length() > 0 || identifierLexical.matcher(proposal).lookingAt())
@@ -325,6 +326,7 @@ public class ContentProposer implements IContentProposer {
 					do {
 						if (document.regionMatches(offset - matcher.start() - prefix.length(), proposal, 0, matcher.start()) 
 								&& proposal.regionMatches(matcher.start(), prefix, 0, prefix.length())) {
+							
 							String subProposal = proposal.substring(matcher.start());
 							if (!backTrackResultsOnly) results.clear();
 							backTrackResultsOnly = true;
@@ -340,7 +342,8 @@ public class ContentProposer implements IContentProposer {
 		for (ContentProposalTemplate proposal : templates) {
 			String proposalPrefix = proposal.getPrefix();
 			if (!backTrackResultsOnly && proposalPrefix.regionMatches(IGNORE_TEMPLATE_PREFIX_CASE, 0, prefix, 0, prefix.length())) {
-				results.add(new ContentProposal(this, proposal.getPrefix(), proposal, prefix, offsetRegion));
+				if (!proposal.isBlankLineRequired() || isBlankBeforeOffset(document, offset - prefix.length()))
+					results.add(new ContentProposal(this, proposal.getPrefix(), proposal, prefix, offsetRegion));
 			} else {
 				Matcher matcher = identifierLexical.matcher(proposalPrefix);
 				if (matcher.find() && (matcher.start() > 0 || matcher.end() < proposalPrefix.length())) {
@@ -350,6 +353,8 @@ public class ContentProposer implements IContentProposer {
 					do {
 						if (document.regionMatches(offset - matcher.start() - prefix.length(), proposalPrefix, 0, matcher.start()) 
 								&& proposalPrefix.regionMatches(matcher.start(), prefix, 0, prefix.length())) {
+							
+							// TODO: respect proposal.isBlankLineRequired() here?
 							String subProposal = proposalPrefix.substring(matcher.start());
 							if (!backTrackResultsOnly) results.clear();
 							backTrackResultsOnly = true;
@@ -362,6 +367,17 @@ public class ContentProposer implements IContentProposer {
 		}
 		
 		return results;
+	}
+
+	private static boolean isBlankBeforeOffset(String document, int offset) {
+		for (int i = offset - 1; i > 0; i--) {
+			switch (document.charAt(i)) {
+				case ' ': case '\t': continue;
+				case '\n': return true;
+				default: return false;
+			}
+		}
+		return true;
 	}
 
 	private ICompletionProposal[] createErrorProposal(String error, int offset) {

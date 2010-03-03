@@ -23,6 +23,7 @@ import org.eclipse.swt.widgets.Display;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.dynamicloading.TermReader;
 
 /**
  * A content proposal that selects the lexical at the cursor location.
@@ -108,8 +109,10 @@ public class ContentProposal extends SourceProposal implements ICompletionPropos
 	private Point proposalPartsToSelection(IDocument document, IStrategoList proposalParts, int offset) {
 		int i = termContents(proposalParts.head()).length();
 		for (IStrategoList cons = proposalParts.tail(); !cons.isEmpty(); cons = cons.tail()) {
-			String part = proposalPartToString(document, cons.head());
-			if (proposer.getCompletionLexical().matcher(part).matches())
+			IStrategoTerm partTerm = cons.head();
+			String part = proposalPartToString(document, partTerm);
+			if ("Placeholder".equals(TermReader.cons(partTerm)) 
+					|| proposer.getCompletionLexical().matcher(part).matches())
 				return new Point(offset + i, part.length());
 			i += part.length();
 		}

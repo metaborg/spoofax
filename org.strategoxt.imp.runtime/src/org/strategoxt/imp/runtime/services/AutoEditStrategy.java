@@ -440,6 +440,7 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 		return null;
 	}
 	
+	@SuppressWarnings("unused")
 	private String getMatchingOpenFence(String text) {
 		if (text.length() > maxCloseFenceLength)
 			return null;

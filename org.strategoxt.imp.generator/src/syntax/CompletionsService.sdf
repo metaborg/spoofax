@@ -6,7 +6,7 @@ imports
 exports
 
   sorts
-    CompletionAnno
+    CompletionPart CompletionAnno
 
   syntax
   
@@ -24,7 +24,7 @@ exports
 
     "completion" "keyword" ":" PropertyValue CompletionAnno -> SemanticRule {cons("CompletionKeyword")}
     
-    "completion" "template" ":" PropertyValue String+ CompletionAnno -> SemanticRule {cons("CompletionTemplate")}
+    "completion" "template" ":" PropertyValue CompletionPart+ CompletionAnno -> SemanticRule {cons("CompletionTemplate")}
 
     "completion" "trigger" ":" PropertyValue CompletionAnno -> SemanticRule {cons("CompletionTrigger")}
   
@@ -37,6 +37,9 @@ exports
     "builder"     -> StrategoCall {reject}
     "occurrence"  -> StrategoCall {reject}
     ReservedName  -> StrategoCall {reject}
+    
+    String      -> CompletionPart
+    Placeholder -> CompletionPart {cons("Placeholder")}
 
                  -> CompletionAnno {cons("None")}
     "(disabled)" -> CompletionAnno {cons("Disable")}
@@ -44,3 +47,9 @@ exports
     "(blank)"    -> CompletionAnno {cons("Blank")}
     "(blank)"    -> PropertyValue {reject}
     "(disable)"  -> PropertyValue {reject}
+
+  lexical syntax
+    
+    "<" PlaceholderChar* ">" -> Placeholder
+    ~[\>\n]                  -> PlaceholderChar
+    
