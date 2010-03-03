@@ -204,10 +204,16 @@ imports
 strategies
 
   parse-file =
-    parse-file(|<import-term(include/{sdf-name}.tbl)>)
+    parse-file(
+      strsglr-perror, strsglr-report-parse-error
+    | <import-term(include/{sdf-name}.tbl)>
+    )
 
   parse-string =
-    parse-string(|<import-term(include/{sdf-name}.tbl)>)
+    parse-string(
+      strsglr-perror, strsglr-report-parse-error
+    | <import-term(include/{sdf-name}.tbl)>
+    )
   
 strategies
   
