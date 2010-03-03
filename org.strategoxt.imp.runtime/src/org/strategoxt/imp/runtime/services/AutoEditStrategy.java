@@ -23,6 +23,8 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.source.ISourceViewer;
+import org.eclipse.swt.custom.ST;
+import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.custom.VerifyKeyListener;
 import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.graphics.Point;
@@ -98,11 +100,16 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 			String input = new String(new char[] { event.character });
 			Point selection = getEditor().getSelection();
 			ISourceViewer viewer = getEditor().getServiceControllerManager().getSourceViewer();
-			if (indentAfterNewline(viewer, viewer.getDocument(), selection.x, selection.y, input)
-					|| insertClosingFence(viewer, viewer.getDocument(), selection.x, selection.y, input)
-					|| skipClosingFence(viewer, viewer.getDocument(), selection.x, selection.y, input)
-					|| undoClosingFence(viewer, viewer.getDocument(), selection.x, selection.y, input))
+			if (event.widget instanceof StyledText && indentAfterNewline(viewer, viewer.getDocument(), selection.x, selection.y, input)) {
+				// Make sure caret is visible (urgh)
+				((StyledText) event.widget).invokeAction(ST.LINE_UP);
+				((StyledText) event.widget).invokeAction(ST.LINE_DOWN);
 				event.doit = false;
+			} else if (insertClosingFence(viewer, viewer.getDocument(), selection.x, selection.y, input)
+					|| skipClosingFence(viewer, viewer.getDocument(), selection.x, selection.y, input)
+					|| undoClosingFence(viewer, viewer.getDocument(), selection.x, selection.y, input)) {
+				event.doit = false;
+			}
 		} catch (BadLocationException e) {
 			Environment.logException("Could not determine auto edit strategy", e);
 		} catch (RuntimeException e) {
@@ -111,6 +118,9 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 	}
 
 	protected void indentPastedContent(IDocument document, DocumentCommand command) throws BadLocationException {
+		// UNDONE: Disabled smart pasting for now
+		if ("true".equals("true"))
+			return;
 		if (isIndentable(command)) {
 			String lineStart = getLineBeforeOffset(document, command.offset);
 			if (lineStart.trim().length() > 0) {
@@ -120,8 +130,8 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 				return;
 			}
 			String indentation = getIndentation(lineStart);
-			if (isCloseFenceLine(lineStart))
-				indentation += createIndentationLevel();
+			//if (isCloseFenceLine(lineStart)) (noop with above sanity check)
+			//	indentation += createIndentationLevel();
 			command.text = setIndentation(command.text, indentation);
 		}
 	}
@@ -150,6 +160,7 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 				document.replace(offset, length, upToCursor);
 			}
 			viewer.setSelectedRange(offset + upToCursor.length(), 0);
+			// viewer.setSelectedRange(offset - 1, 0);
 			return true;
 		}
 		return false;
