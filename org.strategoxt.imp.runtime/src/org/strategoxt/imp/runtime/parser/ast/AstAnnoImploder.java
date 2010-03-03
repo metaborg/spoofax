@@ -1,6 +1,7 @@
 package org.strategoxt.imp.runtime.parser.ast;
 
-import static org.spoofax.jsglr.Term.*;
+import static org.spoofax.jsglr.Term.termAt;
+import static org.spoofax.jsglr.Term.toInt;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -8,14 +9,13 @@ import java.util.List;
 import lpg.runtime.IToken;
 
 import org.spoofax.NotImplementedException;
+import org.strategoxt.imp.runtime.Environment;
 
 import aterm.ATerm;
 import aterm.ATermAppl;
-import aterm.ATermFactory;
 import aterm.ATermInt;
 import aterm.ATermList;
 import aterm.ATermPlaceholder;
-import aterm.pure.PureFactory;
 
 
 /**
@@ -27,8 +27,6 @@ import aterm.pure.PureFactory;
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class AstAnnoImploder {
-	
-	private final ATermFactory atermFactory = new PureFactory();
 
 	private final AstNodeFactory factory;
 	
@@ -48,7 +46,7 @@ public class AstAnnoImploder {
 		String astString = ast.toString();
 		if (astString.startsWith("\"") && astString.endsWith("\"")) {
 			astString = astString.substring(1, astString.length() - 1);
-			ast = atermFactory.parse(astString);
+			ast = Environment.getATermFactory().parse(astString);
 		}
 		
 		return toAstNode(ast, sort);
