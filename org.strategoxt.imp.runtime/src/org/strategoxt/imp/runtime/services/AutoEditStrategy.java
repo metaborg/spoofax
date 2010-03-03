@@ -149,12 +149,15 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 			String lineStart = getLineBeforeOffset(document, offset);
 			String lineEnd = getLineAfterOffset(document, offset, length);
 			String upToCursor;
-			if (isCloseFenceLine(lineEnd)) {
-				upToCursor = "\n" + getIndentation(lineStart, true) + createIndentationLevel();
-				document.replace(offset, length, upToCursor + "\n" + getIndentation(lineStart, true));
-			} else if (isOpenFenceLine(lineStart)) {
-				upToCursor = "\n" + getIndentation(lineStart, true) + createIndentationLevel();
-				document.replace(offset, length, upToCursor);
+			String closeFence = getCloseFenceForOpenFenceLine(lineStart);
+			if (closeFence != null) {
+				if (isCloseFenceLine(lineEnd, closeFence)) {
+					upToCursor = "\n" + getIndentation(lineStart, true) + createIndentationLevel();
+					document.replace(offset, length, upToCursor + "\n" + getIndentation(lineStart, true));
+				} else {
+					upToCursor = "\n" + getIndentation(lineStart, true) + createIndentationLevel();
+					document.replace(offset, length, upToCursor);
+				}
 			} else {
 				upToCursor = "\n" + getIndentation(lineStart, true);
 				document.replace(offset, length, upToCursor);
@@ -384,9 +387,11 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 	 * Tests if the line ends with an opening fence,
 	 * ignoring whitespace, comments, and lexicals.
 	 * 
+	 * @return the matching closing fence, or null if no open fence on this line
+	 * 
 	 * @see stripCommentsAndLayout(String)
 	 */
-	private boolean isOpenFenceLine(String line) {
+	private String getCloseFenceForOpenFenceLine(String line) {
 		line = stripCommentsAndLayout(line);
 		for (int i = 1; i <= maxOpenFenceLength && i <= line.length(); i++) {
 			int offset = line.length() - i;
@@ -394,9 +399,9 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 			String closeFence = getMatchingCloseFence(openFence);
 			if (closeFence != null
 					&& (!isIdentifier(openFence) || offset == 0 || !isIdentifier(line.substring(offset - 1, offset))))
-				return true;
+				return closeFence;
 		}
-		return false;
+		return null;
 	}
 	
 	/**
@@ -405,12 +410,11 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 	 * 
 	 * @see stripCommentsAndLayout(String)
 	 */
-	private boolean isCloseFenceLine(String line) {
+	private boolean isCloseFenceLine(String line, String fence) {
 		line = stripCommentsAndLayout(line);
 		for (int i = 1; i <= maxCloseFenceLength && i <= line.length(); i++) {
 			String closeFence = line.substring(0, i);
-			String openFence = getMatchingOpenFence(closeFence);
-			if (openFence != null
+			if (closeFence.equals(fence)
 					&& (!isIdentifier(closeFence) || i == line.length() || !isIdentifier(line.substring(i, i + 1))))
 				return true;
 		}
