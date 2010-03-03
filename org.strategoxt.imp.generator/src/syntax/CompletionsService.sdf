@@ -24,7 +24,7 @@ exports
 
     "completion" "keyword" ":" PropertyValue CompletionAnno -> SemanticRule {cons("CompletionKeyword")}
     
-    "completion" "template" ":" PropertyValue String+ -> SemanticRule {cons("CompletionTemplate")}
+    "completion" "template" ":" PropertyValue String+ CompletionAnno -> SemanticRule {cons("CompletionTemplate")}
 
     "completion" "trigger" ":" PropertyValue CompletionAnno -> SemanticRule {cons("CompletionTrigger")}
   
@@ -39,5 +39,8 @@ exports
     ReservedName  -> StrategoCall {reject}
 
                  -> CompletionAnno {cons("None")}
-    "(disable)"  -> CompletionAnno {cons("Disable")}
+    "(disabled)" -> CompletionAnno {cons("Disable")}
+    "(disable)"  -> CompletionAnno {cons("Disable"), deprecated("Use (disabled) instead")}
+    "(blank)"    -> CompletionAnno {cons("Blank")}
+    "(blank)"    -> PropertyValue {reject}
     "(disable)"  -> PropertyValue {reject}

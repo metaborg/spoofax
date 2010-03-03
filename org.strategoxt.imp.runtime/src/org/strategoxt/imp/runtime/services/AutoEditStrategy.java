@@ -140,13 +140,13 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 			String lineEnd = getLineAfterOffset(document, offset, length);
 			String upToCursor;
 			if (isCloseFenceLine(lineEnd)) {
-				upToCursor = "\n" + getIndentation(lineStart) + createIndentationLevel();
-				document.replace(offset, length, upToCursor + "\n" + getIndentation(lineStart));
+				upToCursor = "\n" + getIndentation(lineStart, true) + createIndentationLevel();
+				document.replace(offset, length, upToCursor + "\n" + getIndentation(lineStart, true));
 			} else if (isOpenFenceLine(lineStart)) {
-				upToCursor = "\n" + getIndentation(lineStart) + createIndentationLevel();
+				upToCursor = "\n" + getIndentation(lineStart, true) + createIndentationLevel();
 				document.replace(offset, length, upToCursor);
 			} else {
-				upToCursor = "\n" + getIndentation(lineStart);
+				upToCursor = "\n" + getIndentation(lineStart, true);
 				document.replace(offset, length, upToCursor);
 			}
 			viewer.setSelectedRange(offset + upToCursor.length(), 0);
@@ -193,7 +193,7 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 	}
 
 	public static String formatInsertedText(String text, String lineStart) {
-		return text.replace("\\n", "\n" + getIndentation(lineStart))
+		return text.replace("\\n", "\n" + getIndentation(lineStart, true))
 				.replace("\\t", createIndentationLevel())
 				.replace("\\\"", "\"")
 				.replace("\\\\", "\\");
@@ -349,12 +349,22 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 	}
 	
 	private static String getIndentation(String line) {
+		return getIndentation(line, false);
+	}
+	
+	private static String getIndentation(String line, boolean considerPrefix) {
 		int i = 0;
 		
+		// HACK: support Stratego-like prefix semicolons
+		if (considerPrefix)
+			line = line.replace(';', ' ').replace(',', ' ');
+		
 		for (int length = line.length(); i < length; i++) {
-			if (line.charAt(i) != ' ' && line.charAt(i) != '\t')
+			char c = line.charAt(i);
+			if (c != ' ' && c != '\t') {
 				return line.substring(0, i);
-		} 
+			}
+		}
 		
 		return i == line.length() ? line : "";
 	}
