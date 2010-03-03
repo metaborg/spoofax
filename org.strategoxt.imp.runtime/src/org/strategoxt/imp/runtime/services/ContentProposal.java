@@ -4,6 +4,8 @@
 package org.strategoxt.imp.runtime.services;
 
 import static org.eclipse.core.runtime.Platform.OS_MACOSX;
+import static org.spoofax.interpreter.core.Tools.termAt;
+import static org.strategoxt.imp.runtime.dynamicloading.TermReader.cons;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.termContents;
 
 import org.eclipse.core.runtime.Platform;
@@ -21,9 +23,9 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.TextStyle;
 import org.eclipse.swt.widgets.Display;
 import org.spoofax.interpreter.terms.IStrategoList;
+import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.dynamicloading.TermReader;
 
 /**
  * A content proposal that selects the lexical at the cursor location.
@@ -111,7 +113,7 @@ public class ContentProposal extends SourceProposal implements ICompletionPropos
 		for (IStrategoList cons = proposalParts.tail(); !cons.isEmpty(); cons = cons.tail()) {
 			IStrategoTerm partTerm = cons.head();
 			String part = proposalPartToString(document, partTerm);
-			if ("Placeholder".equals(TermReader.cons(partTerm)) 
+			if ("Placeholder".equals(cons(partTerm)) 
 					|| proposer.getCompletionLexical().matcher(part).matches())
 				return new Point(offset + i, part.length());
 			i += part.length();
@@ -130,7 +132,14 @@ public class ContentProposal extends SourceProposal implements ICompletionPropos
 	private String proposalPartToString(IDocument document, IStrategoTerm part) {
 		try {
 			String lineStart = AutoEditStrategy.getLineBeforeOffset(document, getRange().getOffset());
-			return AutoEditStrategy.formatInsertedText(termContents(part), lineStart);
+			if ("Placeholder".equals(cons(part))) {
+				IStrategoString placeholder = termAt(part, 0);
+				String contents = placeholder.stringValue();
+				contents = contents.substring(1, contents.length() - 1); // strip < >
+				return AutoEditStrategy.formatInsertedText(contents, lineStart);
+			} else {
+				return AutoEditStrategy.formatInsertedText(termContents(part), lineStart);
+			}
 		} catch (BadLocationException e) {
 			Environment.logException("Could not format completion fragment", e);
 			return termContents(part);
