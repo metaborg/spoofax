@@ -1,11 +1,7 @@
 package org.strategoxt.imp.runtime.stratego;
 
 import java.io.File;
-import java.net.URI;
 
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IWorkspace;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.spoofax.interpreter.library.IOperatorRegistry;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.Environment;
@@ -52,24 +48,11 @@ public class IMPImplodeAsfixStrategy extends implode_asfix_1_0 {
 		}
 		
 		AstNode result = imploder.implode(asfixATerm, tokenizer);
-		result = RootAstNode.makeRoot(result, null, getResource(inputFile));
+		result = RootAstNode.makeRoot(result, null, RefreshResourcePrimitive.getResource(inputFile));
 		return result.getTerm();
 		
 		// TODO: Make a RootAstNode object from this tree and for IMPSGLRIPrimitive
 		//       which either refers to a (possibly fresh) ParseController or
 		//       some other cookie that traces back the tree to the file
-	}
-
-	public static IResource getResource(File file) {
-		URI uri = file.toURI();
-		IWorkspace workspace = ResourcesPlugin.getWorkspace();
-		IResource[] resources = workspace.getRoot().findFilesForLocationURI(uri);
-		if (resources.length == 0) {
-			Environment.logWarning("Parsed file not in workspace: " + file);
-			return null;
-		}
-
-		IResource resource = resources[0];
-		return resource;
 	}
 }

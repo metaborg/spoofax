@@ -37,3 +37,10 @@ strategies
       <not(string-starts-with(|"\""))> string
     with
       string' := <conc-strings> ("\"", string, "\"")
+  
+  pp-fix-string-quotes:
+    Placeholder(string) -> Placeholder(string')
+    where
+      <not(string-starts-with(|"<"))> string
+    with
+      string' := <conc-strings> ("<", string, ">")

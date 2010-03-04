@@ -219,7 +219,7 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 			}
 		};
 		job.setSystem(true);
-		job.schedule(5000); 
+		job.schedule(5000);
 	}
  	
  	private static String toStrategoName(String languageName) {

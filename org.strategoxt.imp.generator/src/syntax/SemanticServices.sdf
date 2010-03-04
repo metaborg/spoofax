@@ -6,7 +6,7 @@ imports
 exports
 
   sorts
-    SemanticRule SemanticNode StrategoId StrategoCall
+    SemanticRule SemanticNode StrategoId StrategoCall OnSaveAnno
 
   lexical syntax
 
@@ -24,5 +24,9 @@ exports
     "provider"     PropertyValue -> SemanticRule {cons("SemanticProvider"), deprecated("Use 'provider :'")}
     "provider" ":" PropertyValue -> SemanticRule {cons("SemanticProvider")}
 
+    "on" "save" ":" StrategoCall OnSaveAnno -> SemanticRule {cons("OnSave")}
+
              StrategoId -> StrategoCall {cons("Strategy")}
     "id" "." StrategoId -> StrategoCall {cons("Attribute")}
+    
+                        -> OnSaveAnno {cons("None")}

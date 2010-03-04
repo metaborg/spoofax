@@ -240,33 +240,39 @@ public class StrategoBuilder implements IBuilder {
 		assert !Thread.holdsLock(observer.getSyncRoot()) || Thread.holdsLock(Environment.getSyncRoot())
 			: "Acquiring a resource lock can cause a deadlock";
 
+		/* TODO: update editor contents instead of file?
+		if (file.exists()):
+		if (editor.getEditor().getTitleImage().isDisposed()) {
+			InputStream resultStream = new ByteArrayInputStream(contents.getBytes());
+			file.setContents(resultStream, true, true, null);
+			...save...
+		} else {
+			Job job = new UIJob("Update derived editor") {
+				@Override
+				public IStatus runInUIThread(IProgressMonitor monitor) {
+					try {
+						editor.getDocument().set(contents);
+						...save...
+		                ...ensure listener knows updated time stamp...
+					} catch (RuntimeException e) {
+						Environment.logException("Could not update derived editor", e);
+					}
+					return Status.OK_STATUS;
+				}
+			};
+			job.setSystem(true);
+			job.schedule();
+		}
+		*/
+		setFileContentsDirect(file, contents);
+	}
+
+	public static void setFileContentsDirect(IFile file, final String contents) throws CoreException {
 		InputStream resultStream = new ByteArrayInputStream(contents.getBytes());
 		if (file.exists()) {
 			file.setContents(resultStream, true, true, null);
 			
-			/* TODO: update editor contents instead of file?
-			if (editor.getEditor().getTitleImage().isDisposed()) {
-				InputStream resultStream = new ByteArrayInputStream(contents.getBytes());
-				file.setContents(resultStream, true, true, null);
-				...save...
-			} else {
-				Job job = new UIJob("Update derived editor") {
-					@Override
-					public IStatus runInUIThread(IProgressMonitor monitor) {
-						try {
-							editor.getDocument().set(contents);
-							...save...
-			                ...ensure listener knows updated time stamp...
-						} catch (RuntimeException e) {
-							Environment.logException("Could not update derived editor", e);
-						}
-						return Status.OK_STATUS;
-					}
-				};
-				job.setSystem(true);
-				job.schedule();
-			}
-			*/
+
 		} else {
 			file.create(resultStream, true, null);
 			// UNDONE: file.setDerived(!persistent); // marks it as "derived" for life, even after editing...

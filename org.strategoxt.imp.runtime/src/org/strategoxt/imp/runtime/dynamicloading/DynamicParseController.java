@@ -73,6 +73,7 @@ public class DynamicParseController extends AbstractService<IParseController> im
 			Descriptor descriptor = Environment.getDescriptor(getLanguage());
 			ContentProposerFactory.eagerInit(descriptor, result, lastEditor);
 			AutoEditStrategyFactory.eagerInit(descriptor, result, lastEditor);
+			OnSaveServiceFactory.eagerInit(descriptor, result, lastEditor);
 		}
 		return result;
 	}
@@ -142,6 +143,7 @@ public class DynamicParseController extends AbstractService<IParseController> im
 			Descriptor descriptor = Environment.getDescriptor(getLanguage());
 			ContentProposerFactory.eagerInit(descriptor, getWrapped(), lastEditor);
 			AutoEditStrategyFactory.eagerInit(descriptor, getWrapped(), lastEditor);
+			OnSaveServiceFactory.eagerInit(descriptor, getWrapped(), lastEditor);
 		}
 	}
 

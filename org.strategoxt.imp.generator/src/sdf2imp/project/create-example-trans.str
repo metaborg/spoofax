@@ -211,7 +211,7 @@ strategies
 
   parse-string =
     parse-string(
-      strsglr-perror, strsglr-report-parse-error
+      strsglr-report-parse-error
     | <import-term(include/{sdf-name}.tbl)>
     )
   
@@ -283,6 +283,11 @@ strategies
     (file1, file2) -> <id>
     where
       <gt> (<file-exists; modification-time> file1, <file-exists; modification-time> file2) 
+
+strategies
+  
+  refresh-workspace-file:
+    f -> <prim("SSL_EXT_refreshresource", f)>
 
 strategies
 

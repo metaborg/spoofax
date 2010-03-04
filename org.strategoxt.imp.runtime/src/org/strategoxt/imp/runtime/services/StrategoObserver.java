@@ -280,7 +280,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		
 		try {
 			synchronized (getSyncRoot()) {
-				feedback = invokeSilent(feedbackFunction, ast.getResource(), makeInputTerm(ast, false));
+				feedback = invokeSilent(feedbackFunction, makeInputTerm(ast, false), ast.getResource());
 	
 				if (feedback == null) {
 					reportRewritingFailed();
@@ -499,7 +499,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	 * @see #getAstNode(IStrategoTerm)  To retrieve the AST node associated with the resulting term.
 	 */
 	public IStrategoTerm invokeSilent(String function, IStrategoAstNode node) {
-		return invokeSilent(function, node.getResource(), makeInputTerm(node, true));
+		return invokeSilent(function, makeInputTerm(node, true), node.getResource());
 	}
 	
 	/**
@@ -507,7 +507,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	 * given a particular working directory.
 	 * Logs and swallows all exceptions.
 	 */
-	public IStrategoTerm invokeSilent(String function, IResource resource, IStrategoTerm input) {
+	public IStrategoTerm invokeSilent(String function, IStrategoTerm input, IResource resource) {
 		assert Thread.holdsLock(getSyncRoot());
 		IStrategoTerm result = null;
 		
