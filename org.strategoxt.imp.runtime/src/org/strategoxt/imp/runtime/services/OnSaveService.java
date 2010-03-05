@@ -69,7 +69,6 @@ public class OnSaveService implements IDocumentListener, ILanguageService {
 				String file = asJavaString(termAt(result, 0));
 				String contents = asJavaString(termAt(result, 1));
 				IResource resource = RefreshResourcePrimitive.getResource(runtime.getRuntime().getContext(), file);
-				// TODO: write contents to file
 				try {
 					StrategoBuilder.setFileContentsDirect((IFile) resource, contents);
 				} catch (CoreException e) {
