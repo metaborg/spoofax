@@ -242,11 +242,13 @@ public class ContentProposer implements IContentProposer {
 		WrappedAstNodeFactory factory = Environment.getTermFactory();
 		IStrategoString emptyString = factory.makeString("");
 		Region offsetRegion = new Region(offset, 0);
-
-		Set<ICompletionProposal> results = getKeywordAndTemplateProposals(document, currentCompletionPrefix, offsetRegion, offset);
+		String prefix = currentCompletionPrefix;
+		
+		Set<ICompletionProposal> results = getKeywordAndTemplateProposals(document, prefix, offsetRegion, offset);
 
 		for (IStrategoList cons = (IStrategoList) proposals; !cons.isEmpty(); cons = cons.tail()) {
 			IStrategoTerm proposal = cons.head();
+			boolean confirmed = false;
 			String newText;
 			IStrategoList newTextParts;
 			IStrategoString description;
@@ -257,6 +259,11 @@ public class ContentProposer implements IContentProposer {
 				description = emptyString;
 			} else if (proposal.getTermType() == LIST) {
 				newTextParts = (IStrategoList) proposal;
+				String head = newTextParts.size() == 0 ? "" : asJavaString(newTextParts.head());
+				if (head.length() >= prefix.length()) {
+					if (head.startsWith(prefix)) confirmed = true;
+					else continue;
+				}
 				newText = proposalPartsToDisplayString(newTextParts);
 				description = emptyString;
 			} else {
@@ -267,6 +274,11 @@ public class ContentProposer implements IContentProposer {
 					return createErrorProposal(error, offset);
 				if (newTextTerm.getTermType() == LIST) {
 					newTextParts = (IStrategoList) newTextTerm;
+					String head = newTextParts.size() == 0 ? "" : asJavaString(newTextParts.head());
+					if (head.length() >= prefix.length()) {
+						if (head.startsWith(prefix)) confirmed = true;
+						else continue;
+					}
 					newText = proposalPartsToDisplayString(newTextParts);
 				} else {
 					newTextParts = factory.makeList(newTextTerm);
@@ -274,9 +286,9 @@ public class ContentProposer implements IContentProposer {
 				}
 				description = termAt(proposal, 1);
 			}
-			if (newTextParts.isEmpty() || !newText.startsWith(currentCompletionPrefix))
+			if (!confirmed && (newTextParts.isEmpty() || !newText.startsWith(prefix)))
 				continue;
-			results.add(new ContentProposal(this, newText, newText, currentCompletionPrefix, offsetRegion, newTextParts, description.stringValue()));
+			results.add(new ContentProposal(this, newText, newText, prefix, offsetRegion, newTextParts, description.stringValue()));
 		}
 		
 		return toSortedArray(results);
@@ -289,7 +301,7 @@ public class ContentProposer implements IContentProposer {
 			if (part.getTermType() != STRING) return null;
 			proposalBuilder.append(asJavaString(part));
 		}
-		if (proposalBuilder.indexOf("\n") != 0 || proposalBuilder.indexOf("\t") != 0) {
+		if (proposalBuilder.indexOf("\\n") != -1 || proposalBuilder.indexOf("\\t") != -1) {
 			return asJavaString(proposalParts.head());
 		} else {
 			return proposalBuilder.toString();
