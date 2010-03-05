@@ -77,7 +77,7 @@ public class OnSaveService implements IDocumentListener, ILanguageService {
 				}
 			} else if (!"None".equals(cons(result))) {
 				if (editor.getDescriptor().isDynamicallyLoaded())
-					Environment.logException("Unexpected result from 'on save' strategy: should be None() or (\"filename\", \"contents\"): " + result);
+					Environment.logWarning("Unexpected result from 'on save' strategy: should be None() or (\"filename\", \"contents\"): " + result);
 			}
 		}
 	}
