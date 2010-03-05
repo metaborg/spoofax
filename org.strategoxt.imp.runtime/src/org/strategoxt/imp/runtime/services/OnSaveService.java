@@ -7,6 +7,7 @@ import static org.spoofax.interpreter.core.Tools.asJavaString;
 import static org.spoofax.interpreter.core.Tools.isTermString;
 import static org.spoofax.interpreter.core.Tools.isTermTuple;
 import static org.spoofax.interpreter.core.Tools.termAt;
+import static org.strategoxt.imp.runtime.dynamicloading.TermReader.cons;
 
 import java.io.File;
 
@@ -74,6 +75,9 @@ public class OnSaveService implements IDocumentListener, ILanguageService {
 				} catch (CoreException e) {
 					Environment.logException("Problem when handling on save event", e);
 				}
+			} else if (!"None".equals(cons(result))) {
+				if (editor.getDescriptor().isDynamicallyLoaded())
+					Environment.logException("Unexpected result from 'on save' strategy: should be None() or (\"filename\", \"contents\"): " + result);
 			}
 		}
 	}
