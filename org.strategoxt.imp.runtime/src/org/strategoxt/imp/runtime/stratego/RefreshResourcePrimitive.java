@@ -53,7 +53,7 @@ public class RefreshResourcePrimitive extends AbstractPrimitive {
 			return false;
 		
 		// Cannot acquire a workspace lock here:
-		// the Ant acquires 1) a workspace lock and 2) the environment lock
+		// the Ant thread acquires 1) a workspace lock and 2) the environment lock
 		// we cannot go against that order here or would risk a deadlock
 		
 		Job job = new Job("Refreshing resource") {
@@ -91,8 +91,7 @@ public class RefreshResourcePrimitive extends AbstractPrimitive {
 			return null;
 		}
 	
-		IResource resource = resources[0];
-		return resource;
+		return resources[0];
 	}
 
 }
