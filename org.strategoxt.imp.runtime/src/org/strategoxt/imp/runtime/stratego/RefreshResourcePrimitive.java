@@ -77,8 +77,8 @@ public class RefreshResourcePrimitive extends AbstractPrimitive {
 	public static IResource getResource(IContext env, String file) {
 		IOAgent agent = SSLLibrary.instance(env).getIOAgent();
 		File file2 = new File(file);
-		if (!file2.exists())
-			file2 = new File(agent.getWorkingDir() + "/" + file);
+		if (!file2.exists() && agent instanceof EditorIOAgent)
+			file2 = new File(((EditorIOAgent) agent).getProjectPath() + "/" + file);
 		return getResource(file2);
 	}
 

@@ -11,6 +11,7 @@ import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.jface.text.ITextViewerExtension;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.strategoxt.imp.runtime.EditorState;
+import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.services.AutoEditStrategy;
 
@@ -42,8 +43,11 @@ public class AutoEditStrategyFactory extends AbstractServiceFactory<IAutoEditStr
 					DynamicAutoEditStrategy dynAutoEdit = (DynamicAutoEditStrategy) autoEdit;
 					dynAutoEdit.initialize(controller);
 					ISourceViewer viewer = editor.getEditor().getServiceControllerManager().getSourceViewer();
-					if (viewer instanceof ITextViewerExtension)
+					if (viewer instanceof ITextViewerExtension) {
 						((ITextViewerExtension) viewer).prependVerifyKeyListener(dynAutoEdit);
+					} else {
+						Environment.logException("Text viewer does not implement ITextViewerExtension interface; cannot enable auto editing");
+					}
 				}
 			}
 		}

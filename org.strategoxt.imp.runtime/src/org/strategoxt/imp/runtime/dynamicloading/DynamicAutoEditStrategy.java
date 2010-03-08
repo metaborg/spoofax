@@ -27,7 +27,11 @@ public class DynamicAutoEditStrategy extends AbstractService<IAutoEditStrategy>
 	}
 
 	public void verifyKey(VerifyEvent event) {
+		// HACK: AutoEditStrategy might not always be initialized, make sure it is
 		IAutoEditStrategy wrapped = getWrapped();
+		if (wrapped instanceof AutoEditStrategy)
+			((AutoEditStrategy) wrapped).initialize(internalGetParseController());
+		
 		if (wrapped instanceof VerifyKeyListener)
 			((VerifyKeyListener) wrapped).verifyKey(event);
 	}

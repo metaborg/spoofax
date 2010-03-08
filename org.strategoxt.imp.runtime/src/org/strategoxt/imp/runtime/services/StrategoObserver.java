@@ -262,7 +262,6 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 
 	public void update(IParseController parseController, IProgressMonitor monitor) {
 		isUpdateStarted = true;
-		
 		IStrategoAstNode ast = (IStrategoAstNode) parseController.getCurrentAst();
 		if (ast == null || ast.getConstructor() == null)
 			return;

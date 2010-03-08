@@ -367,10 +367,10 @@ public class ContentProposer implements IContentProposer {
 								&& proposalPrefix.regionMatches(matcher.start(), prefix, 0, prefix.length())) {
 							
 							// TODO: respect proposal.isBlankLineRequired() here?
-							String subProposal = proposalPrefix.substring(matcher.start());
+							String bigPrefix = proposalPrefix.substring(0, matcher.start() + prefix.length());
 							if (!backTrackResultsOnly) results.clear();
 							backTrackResultsOnly = true;
-							results.add(new ContentProposal(this, subProposal, proposal, prefix, offsetRegion));
+							results.add(new ContentProposal(this, proposal.getPrefix(), proposal, bigPrefix, offsetRegion));
 							break;
 						}
 					} while (matcher.find(matcher.end()));
@@ -548,7 +548,7 @@ public class ContentProposer implements IContentProposer {
 		AstNode newNode = createCompletionNode(prefix, node.getLeftIToken(), node.getRightIToken());
 		ArrayList<AstNode> newNodeContainer = new ArrayList<AstNode>(1);
 		newNodeContainer.add(newNode);
-		newNode = new AstNode(null, node.getLeftIToken(), node.getRightIToken(), COMPLETION_UNKNOWN, newNodeContainer);
+		currentCompletionNode = newNode = new AstNode(null, node.getLeftIToken(), node.getRightIToken(), COMPLETION_UNKNOWN, newNodeContainer);
 		
 		// Insert the node in a list near the textual input location
 		if (node instanceof ListAstNode) {

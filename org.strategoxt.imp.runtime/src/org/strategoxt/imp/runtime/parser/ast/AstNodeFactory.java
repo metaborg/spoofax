@@ -66,17 +66,20 @@ public class AstNodeFactory {
 		return result;
 	}
 	
-	public AstNode createSublist(ListAstNode list, IStrategoAstNode startChild, IStrategoAstNode endChild) {
+	public AstNode createSublist(ListAstNode list, IStrategoAstNode startChild, IStrategoAstNode endChild, boolean cloneFirst) {
 		ArrayList<AstNode> children = new ArrayList<AstNode>();
 		int startOffset = list.getChildren().indexOf(startChild);
 		int endOffset = list.getChildren().indexOf(endChild);
 		
 		for (int i = startOffset; i <= endOffset; i++) {
-			children.add(list.getChildren().get(i));
+			AstNode child = list.getChildren().get(i);
+			assert child.getParent() != null;
+			children.add(child);
 		}
 		
 		AstNode result = new SubListAstNode(list, list.getElementSort(), startChild.getLeftIToken(), endChild.getLeftIToken(), children);
-		list.overrideReferences(list.getLeftIToken(), list.getRightIToken(), list.getChildren(), result);
+		if (cloneFirst) result = result.cloneIgnoreTokens();
+		list.overrideReferences(list.getLeftIToken(), list.getRightIToken(), children, result);
 		result.setParent(list);
 		return result;
 	}

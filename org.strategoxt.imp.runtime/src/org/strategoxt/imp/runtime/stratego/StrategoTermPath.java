@@ -128,7 +128,7 @@ public class StrategoTermPath {
 			if (i == 0)
 				return commonAncestor;
 			IStrategoAstNode child1 = ancestors1List.get(i - 1);
-			return new AstNodeFactory().createSublist((ListAstNode) commonAncestor, child1, child2); 
+			return new AstNodeFactory().createSublist((ListAstNode) commonAncestor, child1, child2, true); 
 		} else {
 			return commonAncestor;
 		}

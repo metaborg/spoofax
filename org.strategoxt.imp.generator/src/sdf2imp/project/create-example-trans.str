@@ -287,7 +287,7 @@ strategies
 strategies
   
   refresh-workspace-file:
-    f -> <prim("SSL_EXT_refreshresource", f)>
+    path -> <prim("SSL_EXT_refreshresource", path)>
 
 strategies
 
@@ -357,7 +357,7 @@ strategies
 signature constructors
 
   COMPLETION : String -> Term
-  UNKNOWN    : Term   -> Term
+  NOCONTEXT  : Term   -> Term
   MARKER     : Term
 
   // Below are copies of the signatures of the terms used in example

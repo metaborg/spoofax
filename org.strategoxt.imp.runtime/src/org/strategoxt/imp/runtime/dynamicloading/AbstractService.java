@@ -63,6 +63,10 @@ public class AbstractService<T extends ILanguageService> implements IDynamicLang
 		return language;
 	}
 	
+	SGLRParseController internalGetParseController() {
+		return parseController;
+	}
+	
 	public boolean isInitialized() {
 		return language != null && Environment.getDescriptor(language) != null;
 	}
