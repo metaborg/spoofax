@@ -313,7 +313,7 @@ public class ContentProposer implements IContentProposer {
 		
 		Arrays.sort(resultArray, new Comparator<ICompletionProposal>() {
 			public int compare(ICompletionProposal o1, ICompletionProposal o2) {
-				return o1.getDisplayString().compareTo(o2.getDisplayString());
+				return o1.getDisplayString().compareToIgnoreCase(o2.getDisplayString());
 			}
 		});
 		return resultArray;
@@ -329,7 +329,7 @@ public class ContentProposer implements IContentProposer {
 				if (prefix.length() > 0 || identifierLexical.matcher(proposal).lookingAt())
 					results.add(new ContentProposal(this, proposal, proposal, prefix, offsetRegion,
 							offset + proposal.length() - prefix.length(), ""));
-			} else {
+			} /*else*/ {
 				Matcher matcher = identifierLexical.matcher(proposal);
 				if (matcher.find() && (matcher.start() > 0 || matcher.end() < proposal.length())) {
 					// Handle completion literals with special characters, like "(disabled)"
@@ -356,7 +356,7 @@ public class ContentProposer implements IContentProposer {
 			if (!backTrackResultsOnly && proposalPrefix.regionMatches(IGNORE_TEMPLATE_PREFIX_CASE, 0, prefix, 0, prefix.length())) {
 				if (!proposal.isBlankLineRequired() || isBlankBeforeOffset(document, offset - prefix.length()))
 					results.add(new ContentProposal(this, proposal.getPrefix(), proposal, prefix, offsetRegion));
-			} else {
+			} /*else*/ {
 				Matcher matcher = identifierLexical.matcher(proposalPrefix);
 				if (matcher.find() && (matcher.start() > 0 || matcher.end() < proposalPrefix.length())) {
 					// Handle completion literals with special characters, like "(disabled)"

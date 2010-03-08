@@ -3,9 +3,12 @@
  */
 package org.strategoxt.imp.runtime.services;
 
+import static org.spoofax.interpreter.core.Tools.termAt;
+import static org.strategoxt.imp.runtime.dynamicloading.TermReader.cons;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.termContents;
 
 import org.spoofax.interpreter.terms.IStrategoList;
+import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 /**
@@ -40,7 +43,14 @@ public class ContentProposalTemplate {
 	public String getDescription() {
 		StringBuilder result = new StringBuilder();
 		for (IStrategoTerm part : completionParts.getAllSubterms()) {
-			result.append(termContents(part));
+			if ("Placeholder".equals(cons(part))) {
+				IStrategoString placeholder = termAt(part, 0);
+				String contents = placeholder.stringValue();
+				contents = contents.substring(1, contents.length() - 1); // strip < >
+				result.append(contents);
+			} else {
+				result.append(termContents(part));
+			}
 		}
 		return AutoEditStrategy.formatInsertedText(result.toString(), "");
 	}
