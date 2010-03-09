@@ -355,7 +355,8 @@ public class ContentProposer implements IContentProposer {
 			String proposalPrefix = proposal.getPrefix();
 			if (!backTrackResultsOnly && proposalPrefix.regionMatches(IGNORE_TEMPLATE_PREFIX_CASE, 0, prefix, 0, prefix.length())) {
 				if (!proposal.isBlankLineRequired() || isBlankBeforeOffset(document, offset - prefix.length()))
-					results.add(new ContentProposal(this, proposal.getPrefix(), proposal, prefix, offsetRegion));
+					if (prefix.length() > 0 || identifierLexical.matcher(proposal.getPrefix()).lookingAt())
+						results.add(new ContentProposal(this, proposal.getPrefix(), proposal, prefix, offsetRegion));
 			} /*else*/ {
 				Matcher matcher = identifierLexical.matcher(proposalPrefix);
 				if (matcher.find() && (matcher.start() > 0 || matcher.end() < proposalPrefix.length())) {
