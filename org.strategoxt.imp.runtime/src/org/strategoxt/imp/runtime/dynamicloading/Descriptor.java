@@ -98,9 +98,11 @@ public class Descriptor {
 	 * @see AbstractService#reinitialize(Descriptor)
 	 */
 	public void reinitialize(Descriptor newDescriptor) throws BadDescriptorException {
+		// Note: may also be reinitialized with the same descriptor
 		synchronized (activeServices) {
-			// Note: may also be reinitialized with the same descriptor
-			for (IDynamicLanguageService service : activeServices.keySet())
+			// Copy the list of services since reinitialize() might chage it
+			IDynamicLanguageService[] currentServices = activeServices.keySet().toArray(new IDynamicLanguageService[0]);
+			for (IDynamicLanguageService service : currentServices)
 				service.reinitialize(newDescriptor);
 			attachedFiles = null;
 			cachedServices.clear();
