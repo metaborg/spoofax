@@ -229,7 +229,7 @@ strategies
    *                      Performs semantic analysis on a tree
    */
   open-import(resolve-path, parse-file, record-declarations):
-    import -> file'
+    import -> import
     where
       if not(!import => COMPLETION(_)) then
         path       := <resolve-path> import;
@@ -249,7 +249,7 @@ strategies
           end;
           ${$| CurrentFile:
             rules(CurrentFile := path);
-            file' := <record-declarations> file
+            <record-declarations> file
           |$}$
         end
       end
