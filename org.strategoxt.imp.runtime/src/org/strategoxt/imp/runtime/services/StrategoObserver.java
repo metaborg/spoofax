@@ -128,7 +128,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		return ((EditorIOAgent) runtime.getIOAgent()).getLog().trim();
 	}
 	
-	private void init(IProgressMonitor monitor) {
+	private void initialize(IProgressMonitor monitor) {
 		assert Thread.holdsLock(getSyncRoot());
 		
 		HybridInterpreter prototype = cachedRuntimes.get(descriptor);
@@ -160,6 +160,19 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		
 		monitor.subTask(null);
 		cachedRuntimes.put(descriptor, runtime);
+	}
+	
+	/**
+	 * Uninitializes the observer and its descriptor runtime.
+	 */
+	public void uninitialize() {
+		HybridInterpreter cachedRuntime = cachedRuntimes.remove(descriptor);
+		if (cachedRuntime != null) {
+			cachedRuntime.uninit();
+		} else if (runtime != null) {
+			runtime.uninit();
+			runtime = null;
+		}
 	}
 
 	private void initRuntime(IProgressMonitor monitor) {
@@ -473,7 +486,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			throws UndefinedStrategyException, InterpreterErrorExit, InterpreterExit, InterpreterException {
 		
 		synchronized (getSyncRoot()) {
-			if (runtime == null) init(new NullProgressMonitor());
+			if (runtime == null) initialize(new NullProgressMonitor());
 			if (runtime == null) return null;
 			
 		    Debug.startTimer();
@@ -572,7 +585,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	
 	public HybridInterpreter getRuntime() {
 		assert Thread.holdsLock(getSyncRoot());
-		if (runtime == null) init(new NullProgressMonitor());
+		if (runtime == null) initialize(new NullProgressMonitor());
 		if (runtime == null) initRuntime(new NullProgressMonitor()); // create empty runtime
 		return runtime;
 	}

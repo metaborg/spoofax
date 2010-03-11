@@ -22,5 +22,12 @@ public class DynamicStrategoFeedback extends AbstractService<StrategoObserver> i
 		initialize(parseController);
 		getWrapped().update(parseController, monitor);
 	}
+	
+	@Override
+	public void reinitialize(Descriptor newDescriptor) throws BadDescriptorException {
+		if (isInitialized())
+			getWrapped().uninitialize();
+		super.reinitialize(newDescriptor);
+	}
 
 }
