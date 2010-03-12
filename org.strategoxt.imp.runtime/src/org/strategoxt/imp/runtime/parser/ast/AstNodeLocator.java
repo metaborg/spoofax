@@ -6,6 +6,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.editor.ModelTreeNode;
 import org.eclipse.imp.parser.ISourcePositionLocator;
+import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
@@ -54,10 +55,17 @@ public class AstNodeLocator implements ISourcePositionLocator {
 			node = impObjectToAstNode(element);
 			token = (SGLRToken) node.getLeftIToken();
 		}
-		// Should return -1 if not using the same controller, per HyperLinkDetector
-		return node == null || node.getParseController() == controller
+		
+		try {
+			// Should return -1 if not using the same controller, per HyperLinkDetector
+			return node == null || node.getParseController() == controller
 				? token.getStartOffset()
 				: -1;
+		} catch (IllegalStateException e) {
+			// HACK: avoid this exception here (Spoofax/49)
+			Environment.logException("Could not determine parse controller", e);
+			return token.getStartOffset();
+		}
 	}
 
 	public int getEndOffset(Object element) {
