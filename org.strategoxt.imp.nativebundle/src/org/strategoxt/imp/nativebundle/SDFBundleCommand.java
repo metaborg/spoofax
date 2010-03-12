@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.io.Writer;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Platform;
@@ -145,8 +147,12 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 			Writer out = io.getWriter(IOAgent.CONST_STDOUT);
 			Writer err = io.getWriter(IOAgent.CONST_STDERR);
 
+			String[] environment = Platform.getOS() == Platform.OS_WIN32
+				? createWindowsEnvironment()
+				: null;
+			
 			err.write("Invoking native tool " + binaryPath + command + binaryExtension + " " + Arrays.toString(argList) + "\n");
-			int result = new NativeCallHelper().call(commandArgs, null, new File(io.getWorkingDir()), out, err);
+			int result = new NativeCallHelper().call(commandArgs, environment, new File(io.getWorkingDir()), out, err);
 			if (result != 0) {
 				Environment.logException("Native tool " + command
 						+ " exited with error code " + result
@@ -167,6 +173,17 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 		}
 	}
 	
+	private String[] createWindowsEnvironment() {
+		Map<String, String> envp = System.getenv();
+		envp.put("nodosfilewarning", "1");
+		String[] env = new String[envp.size()];
+		int i = 0;
+		for (Entry<String, String> entry : envp.entrySet()) {
+			env[i++] = entry.getKey() + "=" + entry.getValue();
+		}
+		return env;
+	}
+
 	private boolean makeExecutable(IOAgent io, String command) {
 		try {
 			Writer out = io.getWriter(IOAgent.CONST_STDOUT);
