@@ -140,16 +140,15 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 
 	private boolean invoke(Context context, String command, IStrategoTerm[] argList) {
 		String[] commandArgs = SSL_EXT_call.toCommandArgs(binaryPath + command, argList);
+		String[] environment = Platform.getOS() == Platform.OS_WIN32
+			? createWindowsEnvironment()
+			: null;
 		IOAgent io = context.getIOAgent();
 		
 		try {
 			if (commandArgs == null) return false;
 			Writer out = io.getWriter(IOAgent.CONST_STDOUT);
 			Writer err = io.getWriter(IOAgent.CONST_STDERR);
-
-			String[] environment = Platform.getOS() == Platform.OS_WIN32
-				? createWindowsEnvironment()
-				: null;
 			
 			err.write("Invoking native tool " + binaryPath + command + binaryExtension + " " + Arrays.toString(argList) + "\n");
 			int result = new NativeCallHelper().call(commandArgs, environment, new File(io.getWorkingDir()), out, err);
@@ -157,31 +156,34 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 				Environment.logException("Native tool " + command
 						+ " exited with error code " + result
 						+ "\nCommand:\n  " + Arrays.toString(commandArgs)
+						+ "\nEnvironment:\n " + Arrays.toString(environment)
 						+ "\nWorking dir:\n  " + io.getWorkingDir());
 			}
 			return result == 0;
 		} catch (IOException e) {
 			throw new StrategoException("Could not call native tool " + command
 					+ "\nCommand:\n  " + Arrays.toString(commandArgs)
+					+ "\nEnvironment:\n " + Arrays.toString(environment)
 					+ "\nWorking dir:\n  " + io.getWorkingDir(), e);
 		} catch (InterruptedException e) {
 			throw new StrategoException("Could not call " + command, e);
 		} catch (RuntimeException e) {
 			throw new StrategoException("Could not call native tool " + command
 					+ "\nCommand:\n  " + Arrays.toString(commandArgs)
+					+ "\nEnvironment:\n " + Arrays.toString(environment)
 					+ "\nWorking dir:\n  " + io.getWorkingDir(), e);
 		}
 	}
 	
 	private String[] createWindowsEnvironment() {
 		Map<String, String> envp = System.getenv();
-		envp.put("nodosfilewarning", "1");
-		String[] env = new String[envp.size()];
+		envp.put("CYGWIN", "nodosfilewarning");
+		String[] result = new String[envp.size()];
 		int i = 0;
 		for (Entry<String, String> entry : envp.entrySet()) {
-			env[i++] = entry.getKey() + "=" + entry.getValue();
+			result[i++] = entry.getKey() + "=" + entry.getValue();
 		}
-		return env;
+		return result;
 	}
 
 	private boolean makeExecutable(IOAgent io, String command) {
