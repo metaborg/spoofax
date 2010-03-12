@@ -215,6 +215,12 @@ strategies
     | <import-term(include/{sdf-name}.tbl)>
     )
   
+  parse-stream =
+    parse-stream(
+      strsglr-report-parse-error
+    | <import-term(include/{sdf-name}.tbl)>
+    )
+
 strategies
   
   /**
