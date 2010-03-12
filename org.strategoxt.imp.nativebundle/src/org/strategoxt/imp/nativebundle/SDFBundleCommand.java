@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -176,7 +177,7 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 	}
 	
 	private String[] createWindowsEnvironment() {
-		Map<String, String> envp = System.getenv();
+		Map<String, String> envp = new HashMap<String, String>(System.getenv());
 		envp.put("CYGWIN", "nodosfilewarning");
 		String[] result = new String[envp.size()];
 		int i = 0;
