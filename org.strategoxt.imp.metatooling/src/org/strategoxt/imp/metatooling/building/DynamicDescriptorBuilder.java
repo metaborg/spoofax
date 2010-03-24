@@ -239,8 +239,8 @@ public class DynamicDescriptorBuilder {
 		
 		IResource includeDir = project.findMember("include");
 		IResource editorDir = project.findMember("editor");
-		IResource buildFile = project.findMember("build.generated.xml");
-		IResource editorCommonFile = project.findMember("lib/build.generated.xml");
+		// IResource buildFile = project.findMember("build.generated.xml");
+		// IResource editorCommonFile = project.findMember("lib/editor-common.generated.str");
 		IResource cacheDir = project.findMember(".cache");
 
 		if (!(includeDir instanceof IContainer && editorDir instanceof IContainer))
@@ -255,12 +255,12 @@ public class DynamicDescriptorBuilder {
 				if (member.getName().endsWith(".generated.esv"))
 					member.setDerived(true);
 			}
-			if (buildFile != null)
-				buildFile.setDerived(true);
+			//if (buildFile != null)
+			//	buildFile.setDerived(true);
 		}
 		
 		if (cacheDir != null && cacheDir.exists()) cacheDir.setDerived(true);
-		if (editorCommonFile != null && editorCommonFile.exists()) editorCommonFile.setDerived(true);
+		//if (editorCommonFile != null && editorCommonFile.exists()) editorCommonFile.setDerived(true);
 	}
 	
 	public IResource getTargetDescriptor(IResource mainDescriptor) {
