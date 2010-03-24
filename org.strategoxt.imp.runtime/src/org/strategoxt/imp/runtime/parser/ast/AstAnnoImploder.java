@@ -110,6 +110,7 @@ public class AstAnnoImploder {
 	}
 	
 	private AstNode listToAstNode(ATerm term, String sort) {
+		// TODO: Fishy (Spoofax/49)
 		ATermList list = (ATermList) term;
 		ArrayList<AstNode> children = new ArrayList<AstNode>(list.getChildCount());
 		for (int i = 0; i < term.getChildCount(); i++) {

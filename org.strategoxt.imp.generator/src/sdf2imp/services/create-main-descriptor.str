@@ -49,5 +49,5 @@ strategies
         ~~
         extensions: ~extensions
         table:  ~parsetable
-        start symbols: ~*startsymbols
+        start symbols: ~*startsymbols TODO: can I just comment these out?
     ]|

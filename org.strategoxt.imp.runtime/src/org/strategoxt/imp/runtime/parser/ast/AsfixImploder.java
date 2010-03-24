@@ -100,7 +100,8 @@ public class AsfixImploder {
 		
 		if (Debug.ENABLED) {
 			Debug.stopTimer("Parse tree imploded");
-			Debug.log("Parsed " + result.toString());
+			// Disabled; printing big trees causes delays
+			// Debug.log("Parsed " + result.toString());
 		}
 		
 		tokenizer.setCachedAst(result);

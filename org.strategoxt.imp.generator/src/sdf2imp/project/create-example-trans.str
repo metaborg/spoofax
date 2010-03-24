@@ -120,7 +120,7 @@ rules
           return [x];
       $}$
       
-      public [t] set_[x] ([t] [x]) ${$
+      public void set_[x] ([t] [x]) ${$
           this.[x] = [x];    
       $}$
   ]
@@ -280,10 +280,12 @@ strategies
   import-cache-path:
     full-path -> cache-path
     with
-      project-path := <prim("SSL_EXT_projectpath")>;
+      project-path := <project-path>;
       cache-dir    := <file-exists <+ mkdir> $[[project-path]/.cache];
       full-path'   := <string-replace(|"/", "+"); string-replace(|"{"\\\\"}", "+"); string-replace(|":", "+")> full-path;
       cache-path   := $[[cache-dir]/[full-path'].sig]
+
+  project-path = prim("SSL_EXT_projectpath")
 
   is-newer:
     (file1, file2) -> <id>
