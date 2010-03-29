@@ -47,6 +47,12 @@ strategies
       );
       <sdf2imp> FILE(esv)
   
+  /*
+  sdf2imp-static-files =
+    create-build-xml;
+    create-common-trans // needs name and project-name
+  */
+  
   // FIXME: dirty hack for getting the .def file
   //        (should do this based on the esv contents instead...)
   find-def-file =

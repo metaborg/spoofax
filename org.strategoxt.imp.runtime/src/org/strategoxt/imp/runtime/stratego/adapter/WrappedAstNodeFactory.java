@@ -67,7 +67,8 @@ public class WrappedAstNodeFactory extends TermFactory implements ITermFactory {
 		
 		// TODO: Optimize - create a WrappedAstNodeAppl with initialized kids field instead
 		//       (but ensure it maintains hte WrappedAstNodeLink.ensureLinks behavior)
-		IStrategoAppl result = makeAppl(constructor, ensureLinks(kids, oldTerm));
+		IStrategoList annos = oldTerm.getAnnotations();
+		IStrategoAppl result = makeAppl(constructor, ensureLinks(kids, oldTerm), annos);
 		
 		return (IStrategoAppl) ensureLink(result, oldTerm);
 	}
@@ -76,7 +77,8 @@ public class WrappedAstNodeFactory extends TermFactory implements ITermFactory {
 	public IStrategoTuple replaceTuple(IStrategoTerm[] kids, IStrategoTuple old) {
 		// TODO: Optimize - create a WrappedAstNodeTuple with initialized kids field instead
 		//       (but ensure it maintains hte WrappedAstNodeLink.ensureLinks behavior)
-		return (IStrategoTuple) ensureLink(makeTuple(ensureLinks(kids, old)), old);
+		IStrategoList annos = old.getAnnotations();
+		return (IStrategoTuple) ensureLink(makeTuple(ensureLinks(kids, old), annos), old);
 	}
 	
 	@Override
@@ -85,7 +87,7 @@ public class WrappedAstNodeFactory extends TermFactory implements ITermFactory {
 		//       (but ensure it maintains hte WrappedAstNodeLink.ensureLinks behavior)
 		// return (IStrategoList) ensureLink(makeList(ensureLinks(kids, old)), old);
 		assert terms.length == old.getSubtermCount();
-		return replaceList(terms, 0, old);
+		return replaceList(terms, 0, old, old.getAnnotations());
 	}
 
 	/**
@@ -103,19 +105,19 @@ public class WrappedAstNodeFactory extends TermFactory implements ITermFactory {
 		}
 	}
 	
-	private IStrategoList replaceList(IStrategoTerm[] terms, int index, IStrategoList old) {
+	private IStrategoList replaceList(IStrategoTerm[] terms, int index, IStrategoList old, IStrategoList annos) {
 		if (index == terms.length) {
 			assert old.isEmpty();
 			return EMPTY_LIST; // we don't bother linking empty lists	 
 		} else {
 			IStrategoTerm head = ensureLink(terms[index], old.head());
-			IStrategoList tail = replaceList(terms, index + 1, old.tail());
+			IStrategoList tail = replaceList(terms, index + 1, old.tail(), null);
 			if (old instanceof WrappedAstNodeList) {
 				WrappedAstNodeList oldList = (WrappedAstNodeList) old;
 				return new WrappedAstNodeList(oldList.getNode(), oldList.getOffset(), head, tail);
 			} else {
 				// UNDONE: assert !(old instanceof IWrappedAstNode);
-				return makeListCons(head, tail);
+				return makeListCons(head, tail, annos);
 			}
 		}
 	}
