@@ -1,6 +1,3 @@
-/**
- * 
- */
 package org.strategoxt.imp.runtime.stratego;
 
 import static org.eclipse.core.resources.IResource.DEPTH_INFINITE;
