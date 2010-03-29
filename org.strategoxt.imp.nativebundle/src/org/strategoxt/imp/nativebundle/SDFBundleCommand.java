@@ -65,6 +65,9 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 	}
 	
 	public String getBinaryPath() throws IOException, UnsupportedOperationException {
+		if (System.getenv("SPOOFAX_NATIVE_PATH") != null)
+			return System.getenv("SPOOFAX_NATIVE_PATH");
+		
 		String os = Platform.getOS();
 		String subdir;
 		if (os.equals(Platform.OS_LINUX)) {
