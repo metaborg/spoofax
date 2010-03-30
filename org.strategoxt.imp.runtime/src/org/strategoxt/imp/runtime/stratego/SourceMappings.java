@@ -1,14 +1,16 @@
 package org.strategoxt.imp.runtime.stratego;
 
-import static org.spoofax.interpreter.terms.IStrategoTerm.APPL;
+import static org.spoofax.interpreter.core.Tools.isTermAppl;
 
 import java.io.File;
 import java.util.Map;
 import java.util.WeakHashMap;
 
+import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
+import org.strategoxt.lang.terms.StrategoWrapped;
 
 import aterm.ATerm;
 
@@ -21,7 +23,7 @@ public class SourceMappings {
 	
 	private final Map<Integer, File> inputFileMap = new WeakHashMap<Integer, File>();
 	
-	private final Map<IStrategoString, File> stringInputFileMap = new WeakHashMap<IStrategoString, File>();
+	private final Map<MappableKey, File> stringInputFileMap = new WeakHashMap<MappableKey, File>();
 	
 	private final Map<IStrategoTerm, File> asfixInputFileMap = new WeakHashMap<IStrategoTerm, File>();
 	
@@ -35,11 +37,11 @@ public class SourceMappings {
 		return inputFileMap.put(fd, file);
 	}
 
-	public File putInputFile(IStrategoString string, File file) {
-		return stringInputFileMap.put(string, file);
+	public File putInputFile(MappableString string, File file) {
+		return stringInputFileMap.put(string.identityKey, file);
 	}
 	
-	public File putInputFile(IStrategoTerm asfix, File file) {
+	public File putInputFile(IStrategoAppl asfix, File file) {
 		return asfixInputFileMap.put(asfix, file);
 	}
 
@@ -60,11 +62,16 @@ public class SourceMappings {
 	}
 	
 	public File getInputFile(IStrategoString string) {
-		return stringInputFileMap.get(string);
+		if (string instanceof MappableString) {
+			MappableKey key = ((MappableString) string).identityKey;
+			return stringInputFileMap.get(key);
+		} else {
+			return null;
+		}
 	}
 	
-	public File getInputFile(IStrategoTerm asfix) {
-		assert asfix.getTermType() == APPL;
+	public File getInputFile(IStrategoAppl asfix) {
+		assert isTermAppl(asfix);
 		return asfixInputFileMap.get(asfix);
 	}
 	
@@ -78,5 +85,26 @@ public class SourceMappings {
 	
 	public SGLRTokenizer getTokenizer(IStrategoTerm asfix) {
 		return tokenizerMap.get(asfix);
+	}
+	
+	/**
+	 * @author Lennart Kats <lennart add lclnet.nl>
+	 */
+	public static class MappableString extends StrategoWrapped {
+
+		final MappableKey identityKey = new MappableKey();
+		
+		public MappableString(IStrategoString wrapped) {
+			super(wrapped);
+		}
+
+		@Override
+		public int getStorageType() {
+			return IMMUTABLE;
+		}
+	}
+	
+	private static class MappableKey {
+		// Just used for identity hashcode and equals implementation
 	}
 }

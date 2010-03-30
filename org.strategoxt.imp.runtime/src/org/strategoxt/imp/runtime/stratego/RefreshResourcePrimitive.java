@@ -80,6 +80,10 @@ public class RefreshResourcePrimitive extends AbstractPrimitive {
 	}
 
 	public static IResource getResource(File file) {
+		if (file == null) {
+			assert false : "file should not be null";
+			return null;
+		}
 		URI uri = file.toURI();
 		IWorkspace workspace = ResourcesPlugin.getWorkspace();
 		IResource[] resources = workspace.getRoot().findFilesForLocationURI(uri);

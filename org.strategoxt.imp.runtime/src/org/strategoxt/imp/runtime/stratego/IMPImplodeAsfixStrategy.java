@@ -3,6 +3,7 @@ package org.strategoxt.imp.runtime.stratego;
 import java.io.File;
 
 import org.spoofax.interpreter.library.IOperatorRegistry;
+import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.AsfixImploder;
@@ -39,7 +40,9 @@ public class IMPImplodeAsfixStrategy extends implode_asfix_1_0 {
 		SourceMappings mappings = ((IMPJSGLRLibrary) library).getMappings();
 		char[] inputChars = mappings.getInputChars(asfix);
 		ATerm asfixATerm = mappings.getInputTerm(asfix);
-		File inputFile = mappings.getInputFile(asfix);
+		File inputFile = asfix instanceof IStrategoAppl
+				? mappings.getInputFile((IStrategoAppl) asfix)
+				: null;
 		SGLRTokenizer tokenizer = mappings.getTokenizer(asfix);
 		
 		if (inputChars == null || asfix == null) {

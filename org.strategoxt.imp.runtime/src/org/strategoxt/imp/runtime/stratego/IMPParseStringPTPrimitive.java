@@ -1,11 +1,13 @@
 package org.strategoxt.imp.runtime.stratego;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.InterpreterException;
+import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.Disambiguator;
@@ -62,16 +64,20 @@ public class IMPParseStringPTPrimitive extends JSGLR_parse_string_pt_compat {
 		char[] inputChars = input.toCharArray();
 		
 		final ATerm asfix = parser.parseNoImplode(inputChars, path);
-		IStrategoTerm result = new LazyTerm() {
+		IStrategoAppl result = new LazyTerm() {
 			@Override
 			protected IStrategoTerm init() {
 				return Environment.getATermConverter().convert(asfix);
 			}
 		};
 
+		File inputFile = mappings.getInputFile(inputTerm);
+		if (inputFile == null)
+			Environment.logWarning("Could not determine original file name for parsed string");
+		
 		mappings.putInputTerm(result, asfix);
 		mappings.putInputChars(result, inputChars);
-		mappings.putInputFile(result, mappings.getInputFile(inputTerm));
+		mappings.putInputFile(result, inputFile);
 		mappings.putTokenizer(result, parser.getTokenizer());
 		
 		return result;

@@ -31,6 +31,7 @@ import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.core.StackTracer;
 import org.spoofax.interpreter.core.UndefinedStrategyException;
 import org.spoofax.interpreter.library.LoggingIOAgent;
+import org.spoofax.interpreter.library.jsglr.JSGLRLibrary;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -135,7 +136,10 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		
 		HybridInterpreter prototype = cachedRuntimes.get(descriptor);
 		if (prototype != null) {
-			runtime = new HybridInterpreter(prototype, IMPJSGLRLibrary.REGISTRY_NAME, IMPLibrary.REGISTRY_NAME);
+			runtime = new HybridInterpreter(prototype,
+					IMPJSGLRLibrary.REGISTRY_NAME, // is spoofax-specific
+					JSGLRLibrary.REGISTRY_NAME,    // connected to the library above
+					IMPLibrary.REGISTRY_NAME);     // also used
 			return;
 		}
 		

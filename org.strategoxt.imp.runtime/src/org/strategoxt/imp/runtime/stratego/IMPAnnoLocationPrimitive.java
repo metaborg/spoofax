@@ -1,8 +1,11 @@
 package org.strategoxt.imp.runtime.stratego;
 
+import java.io.File;
+
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.stratego.Strategy;
+import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.lang.compat.sglr.STRSGLR_anno_location;
@@ -35,9 +38,13 @@ public class IMPAnnoLocationPrimitive extends STRSGLR_anno_location {
 		if (oldChars == null) return true;
 
 		ATerm newAsfixTerm = Environment.getATermConverter().convert(newAsfix);
+		File inputFile = oldAsfix instanceof IStrategoAppl
+			? mappings.getInputFile((IStrategoAppl) oldAsfix)
+			: null;
 		mappings.putInputChars(newAsfix, oldChars);
 		mappings.putInputTerm(newAsfix, newAsfixTerm);
-		mappings.putInputFile(newAsfix, mappings.getInputFile(oldAsfix));
+		if (newAsfix instanceof IStrategoAppl)
+			mappings.putInputFile((IStrategoAppl) newAsfix, inputFile);
 		mappings.putTokenizer(newAsfix, mappings.getTokenizer(oldAsfix));
 		
 		return true;

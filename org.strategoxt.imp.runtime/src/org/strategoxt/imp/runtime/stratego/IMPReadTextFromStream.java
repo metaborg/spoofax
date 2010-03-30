@@ -19,12 +19,15 @@ public class IMPReadTextFromStream extends SSL_EXT_read_text_from_stream {
 
 	@Override
 	protected IStrategoString call(IContext env, int fd) throws IOException {
-		final IStrategoString result = super.call(env, fd);
+		IStrategoString result = super.call(env, fd);
 		if (result == null) return null;
 		
-		mappings.putInputFile(result, mappings.getInputFile(fd));
+		// Wrap in an unshared object; strings may be shared
+		// TODO: use identity hash code or something?
+		SourceMappings.MappableString mappableResult = new SourceMappings.MappableString(result); 
+		mappings.putInputFile(mappableResult, mappings.getInputFile(fd));
 		
-		return result;
+		return mappableResult;
 	}
 
 }

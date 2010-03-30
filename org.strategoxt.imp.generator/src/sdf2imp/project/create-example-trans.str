@@ -35,10 +35,7 @@ rules // Main editor interface (defined by editor/{sdf-name}-Builders and -Refer
   editor-analyze:
     (ast, path, project-path) -> (errors, warnings, notes)
     with
-      // Ensure all dynamic rules are properly scoped
-      try(dr-scope-all-end);
-      dr-scope-all-start
-    with
+      editor-init;
       analyze;
       errors   := <collect-all(constraint-error, conc)> ast;
       warnings := <collect-all(constraint-warning, conc)> ast;
@@ -293,6 +290,11 @@ strategies
       <gt> (<file-exists; modification-time> file1, <file-exists; modification-time> file2) 
 
 strategies
+  
+  editor-init =
+    // Ensure all dynamic rules are properly scoped
+    try(dr-scope-all-end);
+    dr-scope-all-start
   
   refresh-workspace-file:
     path -> <prim("SSL_EXT_refreshresource", path)>
