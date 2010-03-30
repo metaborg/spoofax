@@ -50,6 +50,8 @@ import org.strategoxt.imp.runtime.dynamicloading.IDynamicLanguageService;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
+import org.strategoxt.imp.runtime.stratego.IMPJSGLRLibrary;
+import org.strategoxt.imp.runtime.stratego.IMPLibrary;
 import org.strategoxt.imp.runtime.stratego.StrategoConsole;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
@@ -133,7 +135,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		
 		HybridInterpreter prototype = cachedRuntimes.get(descriptor);
 		if (prototype != null) {
-			runtime = new HybridInterpreter(prototype);
+			runtime = new HybridInterpreter(prototype, IMPJSGLRLibrary.REGISTRY_NAME, IMPLibrary.REGISTRY_NAME);
 			return;
 		}
 		
@@ -497,6 +499,8 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			initRuntimePath(resource);
 
 			((LoggingIOAgent) runtime.getIOAgent()).clearLog();
+			assert runtime.getCompiledContext().getOperatorRegistry(IMPJSGLRLibrary.REGISTRY_NAME)
+					instanceof IMPJSGLRLibrary;
 			boolean success = runtime.invoke(function);
 			
 			Debug.stopTimer("Evaluated strategy " + function + (success ? "" : " (failed)"));

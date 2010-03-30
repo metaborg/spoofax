@@ -208,6 +208,7 @@ public final class Environment {
 		assert result.getContext().lookupOperator(IMPParseStringPTPrimitive.NAME) instanceof IMPParseStringPTPrimitive;
 		assert result.getCompiledContext().lookupPrimitive(IMPParseStringPTPrimitive.NAME) instanceof IMPParseStringPTPrimitive;
 		assert result.getCompiledContext().lookupPrimitive(IMPOpenFile.NAME) instanceof IMPOpenFile;
+		assert result.getCompiledContext().getOperatorRegistry(IMPJSGLRLibrary.REGISTRY_NAME) instanceof IMPJSGLRLibrary;
 		result.setIOAgent(new EditorIOAgent());
 		
 		return result;
