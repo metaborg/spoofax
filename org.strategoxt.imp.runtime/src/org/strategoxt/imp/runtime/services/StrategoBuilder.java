@@ -56,6 +56,8 @@ public class StrategoBuilder implements IBuilder {
 	
 	private final boolean cursor;
 	
+	private final boolean source;
+	
 	private final boolean persistent;
 	
 	private final EditorState derivedFromEditor;
@@ -66,7 +68,7 @@ public class StrategoBuilder implements IBuilder {
 	 * @param derivedFromEditor  The editor the present editor is derived from, if the present editor is an ATerm editor.
 	 */
 	public StrategoBuilder(StrategoObserver observer, String caption, String builderRule,
-			boolean openEditor, boolean realTime, boolean cursor, boolean persistent,
+			boolean openEditor, boolean realTime, boolean cursor, boolean source, boolean persistent,
 			EditorState derivedFromEditor) {
 		
 		this.observer = observer;
@@ -75,6 +77,7 @@ public class StrategoBuilder implements IBuilder {
 		this.openEditor = openEditor;
 		this.realTime = realTime;
 		this.cursor = cursor;
+		this.source = source;
 		this.persistent = persistent;
 		this.derivedFromEditor = derivedFromEditor;
 	}
@@ -200,8 +203,8 @@ public class StrategoBuilder implements IBuilder {
 			InterpreterErrorExit, InterpreterExit, InterpreterException {
 		
 		IStrategoTerm inputTerm = derivedFromEditor != null
-				? observer.makeATermInputTerm(node, true) 
-				: observer.makeInputTerm(node, true);
+				? observer.makeATermInputTerm(node, true, derivedFromEditor.getResource()) 
+				: observer.makeInputTerm(node, true, source);
 		IStrategoTerm result = observer.invoke(builderRule, inputTerm, node.getResource());
 		return result;
 	}
@@ -225,7 +228,8 @@ public class StrategoBuilder implements IBuilder {
 		
 		if (EditorState.isUIThread()) {
 			// Only show if builder runs interactively (and not from the StrategoBuilderListener background builder)
-			Status status = new Status(IStatus.ERROR, RuntimeActivator.PLUGIN_ID, e.getLocalizedMessage(), e);
+			String message = e.getLocalizedMessage() == null ? e.getMessage() : e.getLocalizedMessage();
+			Status status = new Status(IStatus.ERROR, RuntimeActivator.PLUGIN_ID, message, e);
 			ErrorDialog.openError(editor.getEditor().getSite().getShell(), caption, null, status);
 		}
 	}

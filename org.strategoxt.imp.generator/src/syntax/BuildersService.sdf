@@ -26,3 +26,4 @@ exports
     "(persistent)" -> BuilderOption {cons("Persistent")}
     "(meta)"       -> BuilderOption {cons("Meta")}
     "(cursor)"     -> BuilderOption {cons("Cursor")}
+    "(source)"     -> BuilderOption {cons("Source")}

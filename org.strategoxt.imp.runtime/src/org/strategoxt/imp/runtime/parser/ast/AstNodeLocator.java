@@ -20,10 +20,10 @@ import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
  */
 public class AstNodeLocator implements ISourcePositionLocator {
 	
-	private final SGLRParseController controller;
+	//private final SGLRParseController controller;
 	
 	public AstNodeLocator(SGLRParseController controller) {
-		this.controller = controller;
+		//this.controller = controller;
 	}
 
 	public IStrategoAstNode findNode(Object root, int startOffset, int endOffset) {
@@ -57,10 +57,11 @@ public class AstNodeLocator implements ISourcePositionLocator {
 		}
 		
 		try {
-			// Should return -1 if not using the same controller, per HyperLinkDetector
-			return node == null || node.getParseController() == controller
-				? token.getStartOffset()
-				: -1;
+			// UNDONE: Should return -1 if not using the same controller, per HyperLinkDetector
+			// return node == null || node.getParseController() == controller
+			// 	? token.getStartOffset()
+			// 	: -1;
+			return token.getStartOffset();
 		} catch (IllegalStateException e) {
 			// HACK: avoid this exception here (Spoofax/49)
 			Environment.logException("Could not determine parse controller", e);

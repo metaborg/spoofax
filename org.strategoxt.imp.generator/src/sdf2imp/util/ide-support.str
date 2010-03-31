@@ -62,3 +62,21 @@ rules
       else
         position := <position-of-term(is-term | <inc> start-index)> t*
       end
+
+  term-at-position(|position):
+    t -> t'
+    where
+      at-position(?t'|position)
+   
+  at-position(s|position):
+    c#(t*) -> t'
+    where
+      !position => [i | position']
+    where
+      t' := c#(<at-index(at-position(s|position'))> (i, t*))
+
+  at-position(s|position):
+    t -> t'
+    where
+      !position => [];
+      t' := <s> t

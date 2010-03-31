@@ -10,6 +10,7 @@ import java.util.List;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.generator.position_of_term_1_0;
+import org.strategoxt.imp.generator.term_at_position_0_1;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.AbstractVisitor;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
@@ -92,6 +93,56 @@ public class StrategoTermPath {
 				return marker.equals(current) ? current : null;
 			}
 		});
+	}
+	
+	/**
+	 * Determine the path to a term in 'ast' with origin 'origin'.
+	 */
+	public static IStrategoList getTermPathWithOrigin(Context context, IStrategoTerm ast, IStrategoAstNode origin) {
+		if (ast == null)
+			return null;
+		
+		final IStrategoAstNode originChild = origin.getChildren().size() == 0
+				? null
+				: (IStrategoAstNode) origin.getChildren().get(0);
+		
+		class TestOrigin extends Strategy {
+			IStrategoAstNode origin;
+			IStrategoAstNode nextBest;
+			
+			@Override
+			public IStrategoTerm invoke(Context context, IStrategoTerm current) {
+				if (current instanceof IWrappedAstNode) {
+					IStrategoAstNode currentOrigin = ((IWrappedAstNode) current).getNode();
+					if (currentOrigin == origin) return current;
+					List children = currentOrigin.getChildren();
+					if (nextBest == null && originChild != null) {
+						for (int i = 0; i < children.size(); i++)
+							if (children.get(i) == originChild)
+								nextBest = currentOrigin;
+					}
+				}
+				return null;
+			}
+		}
+		TestOrigin testOrigin = new TestOrigin();
+		testOrigin.origin = origin;
+		
+		IStrategoTerm perfectMatch = position_of_term_1_0.instance.invoke(context, ast, testOrigin);
+		if (perfectMatch != null) {
+			return (IStrategoList) perfectMatch;
+		} else if (testOrigin.nextBest != null) {
+			Environment.logWarning("Could not determine term corresponding to " + origin.toString() + " in resulting AST; using next best match " + testOrigin.nextBest);
+			testOrigin.origin = testOrigin.nextBest;
+			return (IStrategoList) position_of_term_1_0.instance.invoke(context, ast, testOrigin);
+		} else {
+			Environment.logWarning("Could not determine term corresponding to " + origin.toString() + " in resulting AST");
+			return null;
+		}
+	}
+
+	public static IStrategoTerm getTermAtPath(Context context, IStrategoTerm term, IStrategoList path) {
+		return term_at_position_0_1.instance.invoke(context, term, path);
 	}
 
 	private static int indexOfIdentical(List<?> children, IStrategoAstNode node) {

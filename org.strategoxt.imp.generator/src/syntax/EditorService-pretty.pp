@@ -20,6 +20,7 @@
    RealTime             -- KW["(realtime)"],
    Persistent           -- KW["(persistent)"],
    Meta                 -- KW["(meta)"],
+   Source               -- KW["(source)"],
    Cursor               -- KW["(cursor)"],
    Strategy             -- _1,
    Attribute            -- H hs=0 [ KW["id"] KW["."] _1 ],

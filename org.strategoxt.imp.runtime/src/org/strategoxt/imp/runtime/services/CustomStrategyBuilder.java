@@ -34,7 +34,8 @@ public class CustomStrategyBuilder extends StrategoBuilder {
 		synchronizedMap(new HashMap<String, String>());
 	
 	public CustomStrategyBuilder(StrategoObserver observer, EditorState derivedFromEditor) {
-		super(observer, "Apply custom rule...", null, true, true, false, false, derivedFromEditor);
+		// TODO: reconsider source = false here?
+		super(observer, "Apply custom rule...", null, true, true, false, false, false, derivedFromEditor);
 	}
 	
 	@Override

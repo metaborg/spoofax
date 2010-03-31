@@ -61,6 +61,7 @@ public class BuilderFactory extends AbstractServiceFactory<IBuilderMap> {
 			boolean persistent = false;
 			boolean meta = false;
 			boolean cursor = false;
+			boolean source = false;
 			
 			for (IStrategoTerm option : options.getAllSubterms()) {
 				String type = cons(option);
@@ -74,12 +75,14 @@ public class BuilderFactory extends AbstractServiceFactory<IBuilderMap> {
 					meta = true;
 				} else if (type.equals("Cursor")) {
 					cursor = true;
+				} else if (type.equals("Source")) {
+					source = true;
 				} else {
 					throw new BadDescriptorException("Unknown builder annotation: " + type);
 				}
 			}
 			if (!meta || d.isDynamicallyLoaded())			
-				builders.add(new StrategoBuilder(feedback, caption, strategy, openEditor, realTime, cursor, persistent, derivedFromEditor));
+				builders.add(new StrategoBuilder(feedback, caption, strategy, openEditor, realTime, cursor, source, persistent, derivedFromEditor));
 		}
 	}
 

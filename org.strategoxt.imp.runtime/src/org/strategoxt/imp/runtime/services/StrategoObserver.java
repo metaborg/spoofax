@@ -1,8 +1,10 @@
 package org.strategoxt.imp.runtime.services;
 
+import static org.spoofax.interpreter.core.Tools.isTermTuple;
 import static org.spoofax.interpreter.core.Tools.termAt;
 import static org.spoofax.interpreter.terms.IStrategoTerm.LIST;
 import static org.spoofax.interpreter.terms.IStrategoTerm.TUPLE;
+import static org.strategoxt.imp.runtime.dynamicloading.TermReader.cons;
 
 import java.io.File;
 import java.io.IOException;
@@ -77,6 +79,9 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	
 	private static Map<Descriptor, HybridInterpreter> cachedRuntimes =
 		Collections.synchronizedMap(new WeakHashMap<Descriptor, HybridInterpreter>());
+	
+	private final Map<IResource, IStrategoTerm> resultingAsts =
+		new WeakHashMap<IResource, IStrategoTerm>();
 	
 	private final String feedbackFunction;
 	
@@ -298,6 +303,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		
 		try {
 			synchronized (getSyncRoot()) {
+				resultingAsts.remove(ast.getResource());
 				feedback = invokeSilent(feedbackFunction, makeInputTerm(ast, false), ast.getResource());
 	
 				if (feedback == null) {
@@ -365,6 +371,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		messages.clearMarkers(resource);
 
 		try {
+			feedback = extractResultingAST(resource, feedback);
 			if (feedback.getTermType() == TUPLE
 					&& termAt(feedback, 0).getTermType() == LIST
 					&& termAt(feedback, 1).getTermType() == LIST
@@ -382,6 +389,20 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			}
 		} finally {
 			messages.commitAllChanges();
+		}
+	}
+	
+	private IStrategoTerm extractResultingAST(IResource resource, IStrategoTerm feedback) {
+		if (isTermTuple(feedback) && feedback.getSubtermCount() == 4
+				&& (!"None".equals(cons(feedback.getSubterm(0))) || feedback.getSubterm(0).getSubtermCount() > 0)) {
+			resultingAsts.put(resource, feedback.getSubterm(0));
+			
+			IStrategoTuple newFeedback = Environment.getTermFactory().makeTuple(
+					feedback.getSubterm(1), feedback.getSubterm(2), feedback.getSubterm(3));
+			return newFeedback;
+		} else {
+			resultingAsts.remove(resource);
+			return feedback;
 		}
 	}
 	
@@ -423,16 +444,43 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		return invoke(function, input, node.getResource());
 	}
 
-	protected IStrategoTuple makeInputTerm(IStrategoAstNode node, boolean includeSubNode) {
+	/**
+	 * Create an input term for a control rule.
+	 */
+	public IStrategoTuple makeInputTerm(IStrategoAstNode node, boolean includeSubNode) {
+		return makeInputTerm(node, includeSubNode, false);
+	}
+	
+	/**
+	 * Create an input term for a control rule.
+	 */
+	public IStrategoTuple makeInputTerm(IStrategoAstNode node, boolean includeSubNode, boolean useSourceAst) {
+		assert Thread.holdsLock(getSyncRoot());
+		
+		Context context = getRuntime().getCompiledContext();
+		IStrategoTerm resultingAst = useSourceAst ? null : resultingAsts.get(node.getResource());
+		IStrategoList termPath = StrategoTermPath.getTermPathWithOrigin(context, resultingAst, node);
+		IStrategoTerm targetTerm;
+		IStrategoTerm rootTerm;
+		
+		if (termPath != null) {
+			targetTerm = StrategoTermPath.getTermAtPath(context, resultingAst, termPath);
+			rootTerm = resultingAst;
+		} else {
+			targetTerm = node.getTerm();
+			termPath = StrategoTermPath.createPath(node);
+			rootTerm = getRoot(node).getTerm();
+		}
+		
 		ITermFactory factory = Environment.getTermFactory();
 		String path = node.getResource().getProjectRelativePath().toPortableString();
 		String absolutePath = node.getResource().getProject().getLocation().toOSString();
 		
 		if (includeSubNode) {
 			IStrategoTerm[] inputParts = {
-					node.getTerm(),
-					StrategoTermPath.createPath(node),
-					getRoot(node).getTerm(),
+					targetTerm,
+					termPath,
+					rootTerm,
 					factory.makeString(path),
 					factory.makeString(absolutePath)
 				};
@@ -447,13 +495,17 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		}
 	}
 
-	protected IStrategoTuple makeATermInputTerm(IStrategoAstNode node, boolean includeSubNode) {
+	/**
+	 * Create an input term for a control rule,
+	 * based on the ATerm syntax of the AST of the source file.
+	 */
+	public IStrategoTuple makeATermInputTerm(IStrategoAstNode node, boolean includeSubNode, IResource resource) {
 		assert Thread.holdsLock(getSyncRoot());
 		stratego_aterm.init(runtime.getCompiledContext());
 		
 		ITermFactory factory = Environment.getTermFactory();
-		String path = node.getResource().getProjectRelativePath().toPortableString();
-		String absolutePath = node.getResource().getProject().getLocation().toOSString();
+		String path = resource.getProjectRelativePath().toPortableString();
+		String absolutePath = resource.getProject().getLocation().toOSString();
 		
 		if (includeSubNode) {
 			node = getImplodableNode(node);
