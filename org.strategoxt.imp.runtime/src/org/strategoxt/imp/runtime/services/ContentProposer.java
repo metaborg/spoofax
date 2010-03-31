@@ -209,7 +209,8 @@ public class ContentProposer implements IContentProposer {
 				IStrategoTerm result;
 				public void run() {
 					synchronized (observer.getSyncRoot()) {
-						result = observer.invokeSilent(completionFunction, currentCompletionNode);
+						IStrategoTerm input = observer.makeInputTerm(currentCompletionNode, true, false);
+						result = observer.invokeSilent(completionFunction, input, currentCompletionNode.getResource());
 						if (result == null) {
 							observer.reportRewritingFailed();
 							result = TermFactory.EMPTY_LIST;
@@ -538,8 +539,12 @@ public class ContentProposer implements IContentProposer {
 	}
 	
 	private void replacePrefix(AstNode completionNode, String prefix) {
-		if (completionNode.getConstructor() != COMPLETION_CONSTRUCTOR)
-			completionNode = completionNode.getChildren().get(0);
+		if (completionNode.getConstructor() != COMPLETION_CONSTRUCTOR) {
+			for (Object child : completionNode.getChildren()) {
+				if (((AstNode) child).getConstructor() == COMPLETION_CONSTRUCTOR)
+					completionNode = (AstNode) child;
+			}
+		}
 		StringAstNode prefixNode = (StringAstNode) completionNode.getChildren().get(0);
 		prefixNode.setValue(prefix);
 	}
