@@ -42,6 +42,8 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 	
 	private final xtc_command_1_0 proceed = xtc_command_1_0.instance;
 	
+	private final String[] windowsEnvironment = createWindowsEnvironment();
+	
 	private String binaryPath;
 	
 	private String binaryExtension;
@@ -148,7 +150,7 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 		//String[] environment = Platform.getOS() == Platform.OS_WIN32
 		//	? createWindowsEnvironment()
 		//	: null;
-		String[] environment = createWindowsEnvironment();
+		String[] environment = windowsEnvironment;
 		IOAgent io = context.getIOAgent();
 		
 		try {
@@ -181,7 +183,7 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 		}
 	}
 	
-	private String[] createWindowsEnvironment() {
+	private static String[] createWindowsEnvironment() {
 		Map<String, String> envp = new HashMap<String, String>(System.getenv());
 		envp.put("CYGWIN", "nodosfilewarning");
 		String[] result = new String[envp.size()];

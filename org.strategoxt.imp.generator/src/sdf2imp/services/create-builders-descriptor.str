@@ -73,9 +73,10 @@ strategies
           ~//   (persistent)  Indicates that the resulting file should be saved to disk.
           ~//   (realtime)    Indicates that the resulting editor should be updated in real-time
           ~//                 as the source file is edited.
+          ~//   (source)      Always apply this builder to the source AST, not to the AST
+          ~//                 after it has been analyzed/desugared by the observer.
           ~//
-          ~// The 'on save' handler can be used  to generate code as files
-          ~// are saved:
+          ~// The 'on save' handler can be used  to generate code as files are saved:
           ~//   
           ~//   on save : generate-java
       ]|
