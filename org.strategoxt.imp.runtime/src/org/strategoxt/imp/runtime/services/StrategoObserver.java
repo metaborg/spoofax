@@ -595,8 +595,8 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			Environment.logException("Runtime exited when evaluating strategy " + function, e);
 		} catch (UndefinedStrategyException e) {
 			// Note that this condition may also be reached when the semantic service hasn't been loaded yet
-			runtime.getIOAgent().printError("Internal error: strategy does not exist: " + function);
-			Environment.logException("Strategy does not exist: " + function, e);
+			runtime.getIOAgent().printError("Internal error: strategy does not exist: " + e.getMessage());
+			Environment.logException("Strategy does not exist: " + e.getMessage(), e);
 		} catch (InterpreterException e) {
 			runtime.getIOAgent().printError("Internal error evaluating " + function + " (see error log)");
 			Environment.logException("Internal error evaluating strategy " + function, e);
