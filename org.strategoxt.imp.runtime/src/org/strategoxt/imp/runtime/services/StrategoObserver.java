@@ -145,6 +145,8 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 					IMPJSGLRLibrary.REGISTRY_NAME, // is spoofax-specific
 					JSGLRLibrary.REGISTRY_NAME,    // connected to the library above
 					IMPLibrary.REGISTRY_NAME);     // also used
+			IMPJSGLRLibrary parseLibrary = ((IMPJSGLRLibrary) runtime.getContext().getOperatorRegistry(IMPJSGLRLibrary.REGISTRY_NAME));
+			parseLibrary.addOverrides(runtime.getCompiledContext());
 			return;
 		}
 		

@@ -204,6 +204,7 @@ public final class Environment {
 		IMPJSGLRLibrary impSglrLibrary = new IMPJSGLRLibrary(sglrLibrary);
 		result.addOperatorRegistry(impSglrLibrary);
 		result.addOperatorRegistry(new IMPLibrary());
+		// (all libraries added here must also be in StrategoObserver.initialize())
 		impSglrLibrary.addOverrides(result.getCompiledContext());
 		assert result.getContext().lookupOperator(IMPParseStringPTPrimitive.NAME) instanceof IMPParseStringPTPrimitive;
 		assert result.getCompiledContext().lookupPrimitive(IMPParseStringPTPrimitive.NAME) instanceof IMPParseStringPTPrimitive;
