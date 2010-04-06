@@ -77,7 +77,12 @@ public class WrappedAstNodeLink extends WrappedAstNodeParent implements IWrapped
 	}
 
 	@Override
-	public int hashFunction() {
+	protected final int hashFunction() {
+		throw new UnsupportedOperationException();
+	}
+	
+	@Override
+	public int hashCode() {
 		return wrapped.hashCode();
 	}
 

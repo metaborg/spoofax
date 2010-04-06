@@ -51,9 +51,9 @@ public class WrappedAstNodeAppl extends WrappedAstNodeParent implements IStrateg
 	public void prettyPrint(ITermPrinter pp) {
 		final String name = constructor.getName() == null ? "<#null>" : constructor.getName();
 		pp.print(name);
-		pp.print("(");
 		final IStrategoTerm[] kids = getAllSubterms();
 		if (kids.length > 0) {
+			pp.print("(");
 			pp.indent(name.length());
 			if (kids[0] == null) {
 				pp.print("<#null>");
@@ -68,8 +68,8 @@ public class WrappedAstNodeAppl extends WrappedAstNodeParent implements IStrateg
 					kids[i].prettyPrint(pp);
 			}
 			pp.outdent(name.length());
+			pp.println(")");
 		}
-		pp.println(")");
 		printAnnotations(pp);
 	}
 

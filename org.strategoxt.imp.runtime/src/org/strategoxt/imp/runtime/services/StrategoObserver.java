@@ -590,7 +590,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		} catch (InterpreterExit e) {
 			if (descriptor.isDynamicallyLoaded()) StrategoConsole.activateConsole();
 			messages.clearMarkers(resource);
-			messages.addMarkerFirstLine(resource, "Analysis failed (see error log)", IMarker.SEVERITY_ERROR);
+			messages.addMarkerFirstLine(resource, "Analysis failed (" + name(e) + "; see error log)", IMarker.SEVERITY_ERROR);
 			messages.commitAllChanges();
 			Environment.logException("Runtime exited when evaluating strategy " + function, e);
 		} catch (UndefinedStrategyException e) {
@@ -598,20 +598,24 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			runtime.getIOAgent().printError("Internal error: strategy does not exist: " + e.getMessage());
 			Environment.logException("Strategy does not exist: " + e.getMessage(), e);
 		} catch (InterpreterException e) {
-			runtime.getIOAgent().printError("Internal error evaluating " + function + " (see error log)");
+			runtime.getIOAgent().printError("Internal error evaluating " + function + " (" + name(e) + "; see error log)");
 			Environment.logException("Internal error evaluating strategy " + function, e);
 			if (descriptor.isDynamicallyLoaded()) StrategoConsole.activateConsole();
 		} catch (RuntimeException e) {
-			if (runtime != null) runtime.getIOAgent().printError("Internal error evaluating " + function + " (see error log)");
+			if (runtime != null) runtime.getIOAgent().printError("Internal error evaluating " + function + " (" + name(e) + "; see error log)");
 			Environment.logException("Internal error evaluating strategy " + function, e);
 			if (descriptor.isDynamicallyLoaded()) StrategoConsole.activateConsole();
 		} catch (Error e) { // e.g. NoClassDefFoundError due to bad/missing stratego jar
-			if (runtime != null) runtime.getIOAgent().printError("Internal error evaluating " + function + " (see error log)");
+			if (runtime != null) runtime.getIOAgent().printError("Internal error evaluating " + function + " (" + name(e) + "; see error log)");
 			Environment.logException("Internal error evaluating strategy " + function, e);
 			if (descriptor.isDynamicallyLoaded()) StrategoConsole.activateConsole();
 		}
 		
 		return result;
+	}
+	
+	private static String name(Throwable e) {
+		return e.getClass().getSimpleName();
 	}
 
 	public IAst getAstNode(IStrategoTerm term) {

@@ -23,9 +23,14 @@ public class SGLRToken extends Token {
 	public void setAstNode(AstNode value) {
 		astNode = value;
 	}
+	
+	@Override
+	public String toString() {
+		return toString(this, this);
+	}
 
 	public static String toString(IToken left, IToken right) {
-		ILexStream lex = left.getIPrsStream().getILexStream();
+		ILexStream lex = left.getILexStream();
 		
 		int length = right.getEndOffset() - left.getStartOffset() + 1;
 		StringBuilder result = new StringBuilder(length);

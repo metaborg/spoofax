@@ -195,7 +195,7 @@ public class StrategoBuilder implements IBuilder {
 			}
 		} catch (CoreException e) {
 			Environment.logException("Builder failed", e);
-			openError(editor, "Failed (see error log): " + e.getMessage());
+			openError(editor, "Builder failed (" + e.getClass().getName() + "; see error log): " + e.getMessage());
 		}
 	}
 

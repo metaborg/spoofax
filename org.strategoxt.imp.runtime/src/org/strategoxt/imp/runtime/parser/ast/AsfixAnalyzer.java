@@ -1,6 +1,7 @@
 package org.strategoxt.imp.runtime.parser.ast;
 
 import static org.spoofax.jsglr.Term.applAt;
+import jjtraveler.Visitable;
 import aterm.ATermAppl;
 
 public class AsfixAnalyzer {
@@ -55,6 +56,13 @@ public class AsfixAnalyzer {
 	 */
 	public static boolean isVariableNode(ATermAppl rhs) {
 		return "varsym".equals(rhs.getName());
+	}
+
+	public static boolean isLexLayout(ATermAppl rhs) {
+		if (rhs.getChildCount() != 1) return false;
+		Visitable child = rhs.getChildAt(0);
+		return child instanceof ATermAppl && "layout".equals(((ATermAppl) child).getName())
+			&& "lex".equals(rhs.getName());
 	}
 
 }

@@ -125,7 +125,13 @@ public class WrappedAstNodeFactory extends TermFactory implements ITermFactory {
 	private IStrategoList replaceList(IStrategoList terms, IStrategoList old) {
 		if (terms.isEmpty()) {
 			assert old.isEmpty();
-			return EMPTY_LIST; // we don't bother linking empty lists	 
+			// We don't bother linking empty lists
+			IStrategoList annos = terms.getAnnotations();
+			if (annos == EMPTY_LIST) {
+				return EMPTY_LIST;
+			} else {
+				return (IStrategoList) annotateTerm(EMPTY_LIST, annos);
+			} 
 		} else {
 			IStrategoTerm head = ensureLink(terms.head(), old.head());
 			IStrategoList tail = replaceList(terms.tail(), old.tail());

@@ -13,6 +13,12 @@ public class IMPLibrary extends AbstractStrategoOperatorRegistry {
 		add(new SubtermPrimitive());
 		add(new ProjectPathPrimitive());
 		add(new RefreshResourcePrimitive());
+		add(new OriginLocationPrimitive());
+		add(new OriginStripPrimitive());
+		add(new OriginTermPrimitive());
+		add(new OriginTextPrimitive());
+		add(new OriginEqualPrimitive());
+		add(new OriginSurroundingCommentsPrimitive());
 	}
 
 	public String getOperatorRegistryName() {

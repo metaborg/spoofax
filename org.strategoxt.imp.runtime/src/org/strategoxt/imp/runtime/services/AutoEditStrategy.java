@@ -1,11 +1,12 @@
 package org.strategoxt.imp.runtime.services;
 
 import static java.lang.Math.min;
+import static org.eclipse.ui.texteditor.ITextEditorExtension3.*;
 import static org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS;
 import static org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH;
-import static org.eclipse.ui.texteditor.ITextEditorExtension3.SMART_INSERT;
 
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import lpg.runtime.IAst;
 import lpg.runtime.IPrsStream;
@@ -188,7 +189,8 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 				String openFence = document.get(offset - i, i) + input;
 				String closeFence = getMatchingCloseFence(openFence);
 				if (closeFence != null) {
-					if (isParsedAsLexicalOrLayout(document, offset, input))
+					if (isParsedAsLexicalOrLayout(document, offset, input)
+							|| isIdentifierAfterOffset(document, offset))
 						return false;
 					String lineStart = getLineBeforeOffset(document, offset);
 					closeFence = formatInsertedText(closeFence, lineStart);
@@ -203,6 +205,26 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 				}
 			}
  		}
+		return false;
+	}
+	
+	private boolean isIdentifierAfterOffset(IDocument document, int offset) throws BadLocationException {
+		final int ASSUMED_IDENTIFIER_SIZE = 6;
+
+		if (syntax instanceof SyntaxProperties) {
+			Pattern identifierPattern = ((SyntaxProperties) syntax).getIdentifierLexical();
+		
+			for (int i = offset, max = document.getLength(); i < max; i++) {
+				char c = document.getChar(i);
+				if (c == '\n' || c == '\r')
+					return false;
+				if (Character.isWhitespace(c))
+					continue;
+				int end = min(max, i + ASSUMED_IDENTIFIER_SIZE);
+				String word = document.get(i, end - i);
+				return identifierPattern.matcher(word).lookingAt();
+			}
+		}
 		return false;
 	}
 
@@ -287,7 +309,7 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 				&& text.trim().length() > 0;
 	}
 	
-	private static String setIndentation(String text, String indentation) {
+	public static String setIndentation(String text, String indentation) {
 		String oldIndentation = getMultiLineIndentation(text);
 		text = removeIndentation(text, oldIndentation.toCharArray());
 		

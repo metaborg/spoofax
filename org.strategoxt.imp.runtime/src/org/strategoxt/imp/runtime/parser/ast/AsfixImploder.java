@@ -1,8 +1,13 @@
 package org.strategoxt.imp.runtime.parser.ast;
 
-import static java.lang.Math.*;
-import static org.spoofax.jsglr.Term.*;
-import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.*;
+import static java.lang.Math.max;
+import static org.spoofax.jsglr.Term.applAt;
+import static org.spoofax.jsglr.Term.asAppl;
+import static org.spoofax.jsglr.Term.intAt;
+import static org.spoofax.jsglr.Term.isAppl;
+import static org.spoofax.jsglr.Term.isInt;
+import static org.spoofax.jsglr.Term.termAt;
+import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.TK_LAYOUT;
 
 import java.util.ArrayList;
 
@@ -15,7 +20,6 @@ import org.spoofax.jsglr.RecoveryConnector;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ParseErrorHandler;
-import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
 
@@ -112,16 +116,20 @@ public class AsfixImploder {
 	 * Implode any appl(_, _).
 	 */
 	protected AstNode implodeAppl(ATerm term) {
+		// Note that this method significantly impacts our stack usage;
+		// method extraction should be carefully considered...
+		
 		ATermAppl appl = resolveAmbiguities(term);
+		if (appl.getName().equals("amb"))
+			return implodeAmbAppl(appl);
+		
 		ATermAppl prod = termAt(appl, APPL_PROD);
 		ATermList lhs = termAt(prod, PROD_LHS);
 		ATermAppl rhs = termAt(prod, PROD_RHS);
 		ATermAppl attrs = termAt(prod, PROD_ATTRS);
 		ATermList contents = termAt(appl, APPL_CONTENTS);
-		ATermList annos = appl.getAnnotations();
-		// TODO: use annos as annotations for resulting terms
-		
 		IToken prevToken = tokenizer.currentToken();
+		int lastOffset = offset;
 		
 		// Enter lexical context if this is a lex node
 		boolean lexicalStart = !inLexicalContext && AsfixAnalyzer.isLexicalNode(rhs);
@@ -129,7 +137,7 @@ public class AsfixImploder {
 		if (lexicalStart) inLexicalContext = true;
 		
 		if (!inLexicalContext && "sort".equals(rhs.getName()) && lhs.getLength() == 1 && termAt(contents, 0).getType() == ATerm.INT) {
-			return setAnnos(createIntTerminal(contents, rhs), annos);
+			return setAnnos(createIntTerminal(contents, rhs), appl.getAnnotations());
 		}
 		
 		boolean isList = !inLexicalContext && AsfixAnalyzer.isList(rhs);
@@ -137,17 +145,56 @@ public class AsfixImploder {
 		
 		if (isVar) inLexicalContext = true;
 		
-		// Recurse the tree (and set children if applicable)
-		ArrayList<AstNode> children =
-			implodeChildNodes(contents);
+		ArrayList<AstNode> children = null;
+		if (!inLexicalContext)
+			children = new ArrayList<AstNode>(max(EXPECTED_NODE_CHILDREN, contents.getChildCount()));
+
+		// Recurse
+		for (int i = 0; i < contents.getLength(); i++) {
+			ATerm child = contents.elementAt(i);
+			if (isInt(child)) {
+				consumeLexicalChar((ATermInt) child);
+			} else {
+				AstNode childNode = implodeAppl(child);
+				if (childNode != null) children.add(childNode);
+			}
+		}
 		
 		if (lexicalStart || isVar) {
-			return setAnnos(createStringTerminal(lhs, rhs, attrs), annos);
+			return setAnnos(createStringTerminal(lhs, rhs, attrs), appl.getAnnotations());
 		} else if (inLexicalContext) {
+			// Create separate tokens for >1 char layout lexicals (e.g., comments)
+			if (offset > lastOffset + 1 && AsfixAnalyzer.isLexLayout(rhs)) {
+				tokenizer.makeToken(lastOffset, TK_LAYOUT, false);
+				tokenizer.makeToken(offset, TK_LAYOUT, false);
+			}
 			return null; // don't create tokens inside lexical context; just create one big token at the top
 		} else {
-			return setAnnos(createNodeOrInjection(lhs, rhs, attrs, prevToken, children, isList), annos);
+			return setAnnos(createNodeOrInjection(lhs, rhs, attrs, prevToken, children, isList), appl.getAnnotations());
 		}
+	}
+	
+	protected AmbAstNode implodeAmbAppl(ATermAppl node) { 
+		final ATermListImpl ambs = termAt(node, 0);
+		final ArrayList<AstNode> results = new ArrayList<AstNode>();
+		
+		final int oldOffset = offset;
+		final int oldBeginOffset = tokenizer.getStartOffset();
+		final boolean oldLexicalContext = inLexicalContext;
+		
+		for (ATerm amb : ambs) {
+			// Restore lexical state for each branch
+			offset = oldOffset;
+			tokenizer.setStartOffset(oldBeginOffset);
+			inLexicalContext = oldLexicalContext;
+			
+			AstNode result = implodeAppl(amb);
+			if (result == null)
+				return null;
+			results.add(result);
+		}
+		
+		return new AmbAstNode(results);
 	}
 	
 	private AstNode setAnnos(AstNode node, ATermList annos) {
@@ -158,33 +205,10 @@ public class AsfixImploder {
 		return node;
 	}
 
-	protected ArrayList<AstNode> implodeChildNodes(ATermList contents) {
-		ArrayList<AstNode> results = inLexicalContext
-				? null
-				: new ArrayList<AstNode>(
-						min(EXPECTED_NODE_CHILDREN, contents.getChildCount()));
-
-		for (int i = 0; i < contents.getLength(); i++) {
-			ATerm child = contents.elementAt(i);
-
-			if (isInt(child)) {
-				consumeLexicalChar((ATermInt) child);
-			} else {
-				// Recurse
-				AstNode childNode = implodeAppl(child);
-
-				if (childNode != null)
-					results.add(childNode);
-			}
-		}
-
-		return results;
-	}
-
 	private AstNode createStringTerminal(ATermList lhs, ATermAppl rhs, ATermAppl attrs) {
 		inLexicalContext = false;
-		IToken token = tokenizer.makeToken(offset, tokenManager.getTokenKind(lhs, rhs), true);
 		String sort = reader.getSort(rhs);
+		IToken token = tokenizer.makeToken(offset, tokenManager.getTokenKind(lhs, rhs), sort != null);
 		
 		if (sort == null) return null;
 		
@@ -284,7 +308,7 @@ public class AsfixImploder {
 				char c = result.charAt(i);
 				if (c != ' ' && c != '\t') result.setCharAt(i, ' ');
 			}
-			result.append(SGLRToken.toString(startToken, startToken));
+			result.append(startToken.toString());
 			return result.toString();
 		} else {
 			return null; // lazily load token string value

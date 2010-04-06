@@ -1,8 +1,8 @@
 package org.strategoxt.imp.runtime.parser.ast;
 
-import static org.spoofax.jsglr.Term.*;
-
-import java.util.ArrayList;
+import static org.spoofax.jsglr.Term.asAppl;
+import static org.spoofax.jsglr.Term.isAppl;
+import static org.spoofax.jsglr.Term.termAt;
 
 import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
 
@@ -20,42 +20,6 @@ public class AmbAsfixImploder extends AsfixImploder {
 
 	public AmbAsfixImploder(TokenKindManager tokenManager) {
 		super(tokenManager);
-	}
-	
-	@Override
-	protected AstNode implodeAppl(ATerm term) {
-		// TODO: Stack-optimize AsfixImploder
-		//       crunch long AmbAsfixImploder.implodeAppl->AsfixImploder.implodeAppl->.implodeChildNodes chains
-		//       by eliminating this method and by maybe inlining implodeChildNodes
-		ATermAppl appl = resolveAmbiguities(term);
-		
-		if (appl.getName().equals("amb"))
-			return implodeAmbAppl(appl);
-		else
-			return super.implodeAppl(term);
-	}
-	
-	protected AmbAstNode implodeAmbAppl(ATermAppl node) { 
-		final ATermListImpl ambs = termAt(node, 0);
-		final ArrayList<AstNode> results = new ArrayList<AstNode>();
-		
-		final int oldOffset = offset;
-		final int oldBeginOffset = tokenizer.getStartOffset();
-		final boolean oldLexicalContext = inLexicalContext;
-		
-		for (ATerm amb : ambs) {
-			// Restore lexical state for each branch
-			offset = oldOffset;
-			tokenizer.setStartOffset(oldBeginOffset);
-			inLexicalContext = oldLexicalContext;
-			
-			AstNode result = implodeAppl(amb);
-			if (result == null)
-				return null;
-			results.add(result);
-		}
-		
-		return new AmbAstNode(results);
 	}
 	
 	/**
