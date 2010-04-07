@@ -11,6 +11,7 @@ import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermPrinter;
+import org.strategoxt.lang.terms.StrategoTerm;
 import org.strategoxt.lang.terms.TermFactory;
 
 /**
@@ -61,19 +62,7 @@ public class WrappedAstNodeLink extends WrappedAstNodeParent implements IWrapped
 
 	@Override
 	protected boolean doSlowMatch(IStrategoTerm second, int commonStorageType) {
-		IStrategoTerm wrapped = getWrapped();
-		IStrategoList annotations = getAnnotations();
-		IStrategoList secondAnnotations = second.getAnnotations();
-		
-		if (annotations != secondAnnotations && !annotations.match(secondAnnotations))
-        	return false;
-		
-		if (annotations.isEmpty()) {
-			return wrapped.match(second);
-		} else {
-			second = factory.annotateTerm(second, TermFactory.EMPTY_LIST);
-			return wrapped.match(second);
-		}
+		return wrapped == second || wrapped.match(this);
 	}
 
 	@Override
