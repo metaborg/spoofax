@@ -25,6 +25,7 @@ import org.eclipse.imp.parser.SimpleAnnotationTypeInfo;
 import org.eclipse.imp.services.IAnnotationTypeInfo;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.ITextPresentationListener;
 import org.eclipse.jface.text.Region;
 import org.spoofax.jsglr.BadTokenException;
 import org.spoofax.jsglr.InvalidParseTableException;
@@ -89,6 +90,8 @@ public class SGLRParseController implements IParseController {
 	private MetaFile metaFile;
 	
 	private Exception unmanagedParseTableMismatch;
+	
+	private ITextPresentationListener colorerBlocker;
 	
 	private volatile boolean isStartupParsed;
 	
@@ -414,21 +417,22 @@ public class SGLRParseController implements IParseController {
 	 * Gets the token iterator for this parse controller. The current
 	 * implementation assumes it is only used for syntax highlighting.
 	 * 
-	 * @return The token iterator, or an empty token iterator if coloring is not
-	 *         allowed or no parse stream is available the time of invocation
+	 * @return The token iterator, or an empty token iterator
+	 * 
+	 * @throws OperationCanceledException
+	 *             Thrown if coloring is not allowed or no parse stream is
+	 *             available at the time of invocation.
 	 */
 	public Iterator<IToken> getTokenIterator(IRegion region) {
 		return getTokenIterator(region, false);
 	}
-	
 	
 	public Iterator<IToken> getTokenIterator(IRegion region, boolean force) {
 		// Threading concerns:
 		// - the colorer runs in the main thread and should not be blocked by ANY lock
 		// - CANNOT acquire parse lock:
 		//   - a parser thread with a parse lock may forceRecolor(), acquiring the colorer queue lock 
-		//   - a parser thread with a parse lock may need main thread acess to report locks
-		
+		//   - a parser thread with a parse lock may need main thread acess to report errors
 		
 		IPrsStream stream = currentParseStream;
 		

@@ -20,6 +20,7 @@ import org.eclipse.jface.text.Region;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
+import org.strategoxt.imp.runtime.services.TokenColorerHelper;
 
 /**
  * Dynamic proxy class to a parse controller.
@@ -51,10 +52,12 @@ public class DynamicParseController extends AbstractService<IParseController> im
 	 * in case this is not statically known.
 	 */
 	private Language findLanguage(IPath filePath) {
-		if (lastEditor == null && EditorState.isUIThread())
-			lastEditor = EditorState.getEditorFor(this);
-		if (lastEditor != null)
-			return lastEditor.getLanguage();
+		// Best to not set lastEditor here; only in getWrapped()
+		EditorState editor = lastEditor;
+		if (editor == null && EditorState.isUIThread())
+			editor = EditorState.getEditorFor(this);
+		if (editor != null)
+			return editor.getLanguage();
 		
 		// No active editor; try the registry instead
 		return LanguageRegistry.findLanguage(filePath, null);
@@ -70,10 +73,13 @@ public class DynamicParseController extends AbstractService<IParseController> im
 
 		if (lastEditor == null && EditorState.isUIThread()) {
 			lastEditor = EditorState.getEditorFor(this);
-			Descriptor descriptor = Environment.getDescriptor(getLanguage());
-			ContentProposerFactory.eagerInit(descriptor, result, lastEditor);
-			AutoEditStrategyFactory.eagerInit(descriptor, result, lastEditor);
-			OnSaveServiceFactory.eagerInit(descriptor, result, lastEditor);
+			if (lastEditor != null) {
+				Descriptor descriptor = Environment.getDescriptor(getLanguage());
+				ContentProposerFactory.eagerInit(descriptor, result, lastEditor);
+				AutoEditStrategyFactory.eagerInit(descriptor, result, lastEditor);
+				OnSaveServiceFactory.eagerInit(descriptor, result, lastEditor);
+				TokenColorerHelper.register(lastEditor, (SGLRParseController) result);
+			}
 		}
 		return result;
 	}
@@ -136,6 +142,8 @@ public class DynamicParseController extends AbstractService<IParseController> im
 	
 	@Override
 	public void reinitialize(Descriptor newDescriptor) throws BadDescriptorException {
+		if (isInitialized() && getLastEditor() != null)
+			TokenColorerHelper.unregister(getLastEditor());
 		super.reinitialize(newDescriptor);
 		isReinitialized = true;
 		if (lastEditor != null) {

@@ -24,7 +24,11 @@ import lpg.runtime.IToken;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceRunnable;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.parser.IMessageHandler;
@@ -61,7 +65,15 @@ public class AstMessageHandler {
 	
 	private final String markerType;
 
-	private final Set<IMarker> asyncActiveMarkers = new HashSet<IMarker>();
+	/**
+	 * A set of all active markers.
+	 * Should be locked using synchronized(asyncActiveMarkers),
+	 * but care should be taken not to acquire workspace locks
+	 * (as done by setAttributes()) or wait for the main thread
+	 * (as done by some other attribute methods) when in a
+	 * synchronized lock.
+	 */
+	private volatile Set<IMarker> asyncActiveMarkers = new HashSet<IMarker>();
 	
 	private final Map<MarkerSignature, IMarker> markersToReuse = new HashMap<MarkerSignature, IMarker>();
 	
@@ -222,21 +234,26 @@ public class AstMessageHandler {
 	 * @see #commitAllChanges()  To commit the changes made by this action.
 	 */
 	public void clearAllMarkers() {
+		// Copy the active markers so we only need to synchronize here,
+		// and not in the loop (risking deadlocks)
+		Set<IMarker> toDelete;
 		synchronized (asyncActiveMarkers) {
-			for (IMarker marker : asyncActiveMarkers) {
-				try {
-					markersToReuse.put(new MarkerSignature(marker), marker);
-					for (IMarker otherMarker : marker.getResource().findMarkers(markerType, true, 0)) {
-						IMarker dupe = markersToReuse.put(new MarkerSignature(otherMarker), otherMarker);
-						if (dupe != null) markersToDelete.add(dupe);
-					}
-				} catch (CoreException e) {
-					Environment.logException("Unable find related markers: " + marker, e);
-				}
-			}
-			asyncActiveMarkers.clear();
-			markersToAdd.clear();
+			toDelete = asyncActiveMarkers;
+			asyncActiveMarkers = null;
 		}
+		
+		for (IMarker marker : toDelete) {
+			try {
+				markersToReuse.put(new MarkerSignature(marker), marker);
+				for (IMarker otherMarker : marker.getResource().findMarkers(markerType, true, 0)) {
+					IMarker dupe = markersToReuse.put(new MarkerSignature(otherMarker), otherMarker);
+					if (dupe != null) markersToDelete.add(dupe);
+				}
+			} catch (CoreException e) {
+				Environment.logException("Unable find related markers: " + marker, e);
+			}
+		}
+		markersToAdd.clear();
 	}
 	
 	/**
@@ -266,8 +283,12 @@ public class AstMessageHandler {
 	 * deletes markers as instructed using clearMarkers().
 	 */
 	public void commitAllChanges() {
-		commitAdditions();
-		commitDeletions();
+		runInWorkspace(new Runnable() {
+			public void run() {
+				commitAdditions();
+				commitDeletions();
+			}
+		});
 	}
 
 	/**
@@ -275,10 +296,14 @@ public class AstMessageHandler {
 	 */
 	public void commitDeletions() {
 		try {
-			deleteMarkers(markersToReuse.values());
-			markersToReuse.clear();
-			deleteMarkers(markersToDelete);
-			markersToDelete.clear();
+			runInWorkspace(new Runnable() {
+				public void run() {
+					deleteMarkers(markersToReuse.values());
+					markersToReuse.clear();
+					deleteMarkers(markersToDelete);
+					markersToDelete.clear();
+				}
+			});
 		} catch (RuntimeException e) {
 			Environment.logException("Unable to clear markers", e);
 		}
@@ -286,19 +311,34 @@ public class AstMessageHandler {
 	
 	/**
 	 * Commit any newly added error markers that are on lines with 
-	 * that previously had or currently have other error markers\
+	 * that previously had or currently have other error markers
 	 * (these should typically not be displayed using a delay).
 	 * 
 	 * If this method is not called, multi-error line markers will still be
 	 * added by {@link #commitAdditions()}.
 	 */
 	public void commitMultiErrorLineAdditions() {
+		runInWorkspace(new Runnable() {
+			public void run() {
+				commitMultiErrorLineAdditionsInWS();
+			}
+		});
+	}
+	
+	private void commitMultiErrorLineAdditionsInWS() {	
 		assert !Thread.holdsLock(asyncActiveMarkers) : "Potential deadlock: need main thread access for markers";
+
+		// Clone active markers so we only need to synchronize here
+		// and not in markerExistsOnSameLine
+		Set<IMarker> activeMarkers;
+		synchronized (asyncActiveMarkers) {
+			activeMarkers = new HashSet<IMarker>(asyncActiveMarkers);
+		}
 		
 		Iterator<MarkerSignature> signatures = markersToAdd.iterator();
 		while (signatures.hasNext()) {
 			MarkerSignature signature = signatures.next();
-			if (markerExistsOnSameLine(signature)) {
+			if (markerExistsOnSameLine(signature, activeMarkers)) {
 				try {
 					IMarker marker = signature.getResource().createMarker(markerType);
 					marker.setAttributes(signature.getAttributes(), signature.getValues());
@@ -313,31 +353,29 @@ public class AstMessageHandler {
 		}
 	}
 	
-	private boolean markerExistsOnSameLine(MarkerSignature signature) {
+	private boolean markerExistsOnSameLine(MarkerSignature signature, Set<IMarker> activeMarkers) {
 		// TODO: optimize markerExistsOnSameLine()?
-		synchronized (asyncActiveMarkers) {
-			IResource resource = signature.getResource();
-			int line = signature.getLine();
-			for (IMarker marker : asyncActiveMarkers) {
-				if (marker.getResource().equals(resource)
-						&& marker.getAttribute(IMarker.LINE_NUMBER, -1) == line) {
-					return true;
-				}
+		IResource resource = signature.getResource();
+		int line = signature.getLine();
+		for (IMarker marker : activeMarkers) {
+			if (marker.getResource().equals(resource)
+					&& marker.getAttribute(IMarker.LINE_NUMBER, -1) == line) {
+				return true;
 			}
-			for (IMarker marker : markersToReuse.values()) {
-				if (marker.getResource().equals(resource)
-						&& marker.getAttribute(IMarker.LINE_NUMBER, -1) == line) {
-					return true;
-				}
-			}
-			for (IMarker marker : markersToDelete) {
-				if (marker.getResource().equals(resource)
-						&& marker.getAttribute(IMarker.LINE_NUMBER, -1) == line) {
-					return true;
-				}
-			}
-			return false;
 		}
+		for (IMarker marker : markersToReuse.values()) {
+			if (marker.getResource().equals(resource)
+					&& marker.getAttribute(IMarker.LINE_NUMBER, -1) == line) {
+				return true;
+			}
+		}
+		for (IMarker marker : markersToDelete) {
+			if (marker.getResource().equals(resource)
+					&& marker.getAttribute(IMarker.LINE_NUMBER, -1) == line) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	/**
@@ -352,7 +390,7 @@ public class AstMessageHandler {
 	/**
 	 * Commit any newly added error markers.
 	 * Can be invoked asynchronously, but care should be taken
-	 * that only one thread can access the input list. 
+	 * that only one thread can access the 'markers' input list. 
 	 */
 	public List<IMarker> asyncCommitAdditions(List<MarkerSignature> markers) {
 		Environment.assertNotMainThread();
@@ -361,7 +399,21 @@ public class AstMessageHandler {
 		return commitAdditions(markers);
 	}
 
-	private List<IMarker> commitAdditions(List<MarkerSignature> markers) {
+	private List<IMarker> commitAdditions(final List<MarkerSignature> markers) {
+		class Action implements Runnable {
+			List<IMarker> results;
+			
+			public void run() {
+				results = commitAdditionsInWS(markers);
+			}
+		};
+		
+		Action action = new Action();
+		runInWorkspace(action);
+		return action.results;
+	}
+
+	private List<IMarker> commitAdditionsInWS(List<MarkerSignature> markers) {
 		assert !Environment.isMainThread() || !Thread.holdsLock(asyncActiveMarkers) : "Potential deadlock"; 
 
 		List<IMarker> results = new ArrayList<IMarker>();
@@ -408,6 +460,18 @@ public class AstMessageHandler {
 	
 	public List<MarkerSignature> getAdditions() {
 		return markersToAdd;
+	}
+	
+	private static void runInWorkspace(final Runnable action) {
+		try {
+			ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
+				public void run(IProgressMonitor monitor) throws CoreException {
+					action.run();
+				}
+			}, null, IWorkspace.AVOID_UPDATE, new NullProgressMonitor());
+		} catch (CoreException e) {
+			Environment.logException("Exception in message handler", e);
+		}
 	}
 
 	/**
