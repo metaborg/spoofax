@@ -2,6 +2,7 @@ package org.strategoxt.imp.runtime.stratego.adapter;
 
 import java.util.ArrayList;
 
+import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 /**
@@ -13,8 +14,12 @@ public abstract class WrappedAstNodeParent extends WrappedAstNode {
 
 	IStrategoTerm[] subterms;
 	
+	protected WrappedAstNodeParent(IStrategoAstNode node, IStrategoList annotations) {
+		super(node);
+	}
+	
 	protected WrappedAstNodeParent(IStrategoAstNode node) {
-		super( node);
+		super(node);
 	}
 
 	@Override

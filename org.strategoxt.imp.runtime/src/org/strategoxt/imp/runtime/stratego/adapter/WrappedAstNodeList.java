@@ -33,8 +33,8 @@ public class WrappedAstNodeList extends WrappedAstNode implements IStrategoList 
 	/**
 	 * Creates a new WrappedAstNodeList with the given head and tail.
 	 */
-	protected WrappedAstNodeList(IStrategoAstNode node, int offset, IStrategoTerm head, IStrategoList tail) {
-		super(node);
+	protected WrappedAstNodeList(IStrategoAstNode node, int offset, IStrategoTerm head, IStrategoList tail, IStrategoList annos) {
+		super(node, annos);
 		this.factory = null;
 		this.offset = offset;
 		this.head = head;

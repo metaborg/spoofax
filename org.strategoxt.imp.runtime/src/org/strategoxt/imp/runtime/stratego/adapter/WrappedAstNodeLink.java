@@ -11,8 +11,6 @@ import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermPrinter;
-import org.strategoxt.lang.terms.StrategoTerm;
-import org.strategoxt.lang.terms.TermFactory;
 
 /**
  * A wrapper class linking any {@link IStrategoTerm} to an {@link IAst} node.
@@ -30,11 +28,10 @@ public class WrappedAstNodeLink extends WrappedAstNodeParent implements IWrapped
 	private final IStrategoTerm wrapped;
 	
 	protected WrappedAstNodeLink(WrappedAstNodeFactory factory, IStrategoTerm term, IWrappedAstNode origin) {
-		super(origin.getNode());
+		super(origin.getNode(), term.getAnnotations());
 		this.factory = factory;
 		this.wrapped = term;
 		this.origin = origin;
-		internalSetAnnotations(term.getAnnotations());
 		
 		assert !(wrapped instanceof IWrappedAstNode) : "Already wrapped";
 		assert wrapped.getTermType() != LIST || origin.getTermType() != LIST

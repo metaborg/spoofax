@@ -99,22 +99,29 @@ public class WrappedAstNodeFactory extends TermFactory implements ITermFactory {
 	public IStrategoTerm makeLink(IStrategoTerm term, IWrappedAstNode origin) {
 		if (term.getTermType() == LIST && term.getSubtermCount() == origin.getSubtermCount()
 				&& origin.getTermType() == LIST) {
-			return replaceList((IStrategoList) term, (IStrategoList) origin);
+			return makeListLink((IStrategoList) term, (IStrategoList) origin);
 		} else {
 			return new WrappedAstNodeLink(this, term, origin);
 		}
 	}
 	
+	/**
+	 * Replaces all subterms in a list,
+	 * maintaining only the outer annotations.
+	 */
 	private IStrategoList replaceList(IStrategoTerm[] terms, int index, IStrategoList old, IStrategoList annos) {
 		if (index == terms.length) {
 			assert old.isEmpty();
-			return EMPTY_LIST; // we don't bother linking empty lists	 
+			 // we don't bother linking empty lists
+			return annos == null
+				? EMPTY_LIST
+				: (IStrategoList) annotateTerm(EMPTY_LIST, annos); 
 		} else {
 			IStrategoTerm head = ensureLink(terms[index], old.head());
 			IStrategoList tail = replaceList(terms, index + 1, old.tail(), null);
 			if (old instanceof WrappedAstNodeList) {
 				WrappedAstNodeList oldList = (WrappedAstNodeList) old;
-				return new WrappedAstNodeList(oldList.getNode(), oldList.getOffset(), head, tail);
+				return new WrappedAstNodeList(oldList.getNode(), oldList.getOffset(), head, tail, annos);
 			} else {
 				// UNDONE: assert !(old instanceof IWrappedAstNode);
 				return makeListCons(head, tail, annos);
@@ -122,26 +129,33 @@ public class WrappedAstNodeFactory extends TermFactory implements ITermFactory {
 		}
 	}
 	
-	private IStrategoList replaceList(IStrategoList terms, IStrategoList old) {
-		if (terms.isEmpty()) {
+	/**
+	 * Adds origin tracking information to all subterms of a list.
+	 * May add origin tracking information to list Cons nodes.
+	 */
+	private IStrategoList makeListLink(IStrategoList terms, IStrategoList old) {
+		if (terms instanceof IWrappedAstNode) {
+			assert terms.getStorageType() != MUTABLE; // children will be wrapped as well
+			return terms;
+		} else if (terms.isEmpty()) {
 			assert old.isEmpty();
 			// We don't bother linking empty lists
-			IStrategoList annos = terms.getAnnotations();
-			if (annos == EMPTY_LIST) {
-				return EMPTY_LIST;
-			} else {
-				return (IStrategoList) annotateTerm(EMPTY_LIST, annos);
-			} 
+			return terms;
 		} else {
-			IStrategoTerm head = ensureLink(terms.head(), old.head());
-			IStrategoList tail = replaceList(terms.tail(), old.tail());
+			IStrategoTerm head = terms.head();
+			IStrategoList tail = terms.tail();
+			IStrategoTerm newHead = ensureLink(head, old.head());
+			IStrategoList newTail = makeListLink(tail, old.tail());
+			
+			/* UNDONE: Origin tracking for Cons nodes
+			           (relatively expensive, and who cares about them?)
 			if (old instanceof WrappedAstNodeList) {
 				WrappedAstNodeList oldList = (WrappedAstNodeList) old;
-				return new WrappedAstNodeList(oldList.getNode(), oldList.getOffset(), head, tail);
-			} else {
-				// UNDONE: assert !(old instanceof IWrappedAstNode);
-				return makeListCons(head, tail);
+				return new WrappedAstNodeList(oldList.getNode(), oldList.getOffset(), head, tail, terms.getAnnotations());
 			}
+			*/
+			if (head == newHead && tail == newTail) return terms;
+			return makeListCons(newHead, newTail);
 		}
 	}
 	
@@ -165,6 +179,7 @@ public class WrappedAstNodeFactory extends TermFactory implements ITermFactory {
 	
 	protected IStrategoTerm ensureLink(IStrategoTerm term, IStrategoTerm oldTerm) {
 		if (term instanceof IWrappedAstNode) {
+			assert term.getStorageType() != MUTABLE; // children will be wrapped as well
 			return term;
 		} else if (oldTerm instanceof IWrappedAstNode) {
 			return makeLink(term, (IWrappedAstNode) oldTerm);

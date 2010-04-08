@@ -17,8 +17,12 @@ public abstract class WrappedAstNode extends StrategoTerm implements IWrappedAst
 		return node;
 	}
 	
-	protected WrappedAstNode(IStrategoAstNode node) {
-		super(null);
+	public WrappedAstNode(IStrategoAstNode node) {
+		this(node, null);
+	}
+	
+	public WrappedAstNode(IStrategoAstNode node, IStrategoList annotations) {
+		super(annotations);
 		this.node = node;
 		assert node != null;
 	}
