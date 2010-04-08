@@ -318,8 +318,9 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 
 	private static String removeIndentation(String text, char[] indentation) {
 		StringBuilder result = new StringBuilder();
+		int tabWidth = getTabWidth();
 		for (String line : text.split("\n")) {
-			result.append(removeSingleLineIndentation(line, indentation) + "\n");
+			result.append(removeSingleLineIndentation(line, indentation, tabWidth) + "\n");
 		}
 		result.deleteCharAt(result.length() - 1);
 		
@@ -327,7 +328,7 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 		return text;
 	}
 
-	private static String removeSingleLineIndentation(String line, char[] indentation) {
+	private static String removeSingleLineIndentation(String line, char[] indentation, int tabWidth) {
 		int lineOffset = 0;
 		for (char charToStrip : indentation) {
 			if (lineOffset == line.length())
@@ -337,7 +338,7 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 					lineOffset++;
 				} else {
 					// TODO: Better support for mixed tabs and spaces when pasting text?
-					for (int i = 0; i < PreferenceCache.tabWidth; i++) {
+					for (int i = 0; i < tabWidth; i++) {
 						if (line.charAt(lineOffset) != ' ')
 							break;
 						lineOffset++;
@@ -375,13 +376,17 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 	}
 
 	private static String createSpacesIndentationLevel() {
-		IPreferenceStore preferences = lastEditor.getThePreferenceStore();
 		StringBuilder result = new StringBuilder();
-		int tabWidth = preferences.getInt(EDITOR_TAB_WIDTH); // PreferenceCache.tabWidth;
+		int tabWidth = getTabWidth();
 		for (int i = 0; i < tabWidth; i++) {
 			result.append(' ');
 		}
 		return result.toString();
+	}
+	
+	private static int getTabWidth() {
+		IPreferenceStore preferences = lastEditor.getThePreferenceStore();
+		return preferences.getInt(EDITOR_TAB_WIDTH); // PreferenceCache.tabWidth;
 	}
 	
 	private static String getIndentation(String line) {
