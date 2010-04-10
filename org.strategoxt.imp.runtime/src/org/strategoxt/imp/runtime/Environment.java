@@ -99,9 +99,9 @@ public final class Environment {
 		if (!serverOption)
 			Environment.logWarning("Make sure Eclipse is started with -vmargs -server (can be set in eclipse.ini) for best performance");
 		if (!mxOption)
-			Environment.logWarning("Make sure Eclipse is started with -vmargs -Xmx 512m (can be set in eclipse.ini) for at least 512 MiB heap space");
+			Environment.logWarning("Make sure Eclipse is started with -vmargs -Xmx1024m (can be set in eclipse.ini) for at least 1024 MiB heap space (adjust downwards for low-memory systems)");
 		if (!ssOption)
-			Environment.logWarning("Make sure Eclipse is started with -vmargs -Xss 8m (can be set in eclipse.ini) for an 8 MiB stack size");
+			Environment.logWarning("Make sure Eclipse is started with -vmargs -Xss8m (can be set in eclipse.ini) for an 8 MiB stack size");
 	}
 	
 	// TODO: Split up shared and non-shared environment entities?

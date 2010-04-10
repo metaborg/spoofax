@@ -15,7 +15,7 @@ public abstract class WrappedAstNodeParent extends WrappedAstNode {
 	IStrategoTerm[] subterms;
 	
 	protected WrappedAstNodeParent(IStrategoAstNode node, IStrategoList annotations) {
-		super(node);
+		super(node, annotations);
 	}
 	
 	protected WrappedAstNodeParent(IStrategoAstNode node) {

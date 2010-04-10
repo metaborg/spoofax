@@ -1,9 +1,9 @@
 package org.strategoxt.imp.runtime.services;
 
 import static java.lang.Math.min;
-import static org.eclipse.ui.texteditor.ITextEditorExtension3.*;
 import static org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS;
 import static org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH;
+import static org.eclipse.ui.texteditor.ITextEditorExtension3.SMART_INSERT;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -14,7 +14,6 @@ import lpg.runtime.IToken;
 
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.parser.IParseController;
-import org.eclipse.imp.preferences.PreferenceCache;
 import org.eclipse.imp.services.IAutoEditStrategy;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.jface.preference.IPreferenceStore;

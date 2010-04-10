@@ -155,7 +155,7 @@ public class WrappedAstNodeFactory extends TermFactory implements ITermFactory {
 			}
 			*/
 			if (head == newHead && tail == newTail) return terms;
-			return makeListCons(newHead, newTail);
+			return makeListCons(newHead, newTail, terms.getAnnotations());
 		}
 	}
 	
