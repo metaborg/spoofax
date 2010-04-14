@@ -1,5 +1,7 @@
 package org.strategoxt.imp.runtime.stratego;
 
+import static org.spoofax.interpreter.core.Tools.isTermAppl;
+
 import java.io.File;
 
 import org.spoofax.interpreter.library.IOperatorRegistry;
@@ -40,7 +42,7 @@ public class IMPImplodeAsfixStrategy extends implode_asfix_1_0 {
 		SourceMappings mappings = ((IMPJSGLRLibrary) library).getMappings();
 		char[] inputChars = mappings.getInputChars(asfix);
 		ATerm asfixATerm = mappings.getInputTerm(asfix);
-		File inputFile = asfix instanceof IStrategoAppl
+		File inputFile = isTermAppl(asfix)
 				? mappings.getInputFile((IStrategoAppl) asfix)
 				: null;
 		SGLRTokenizer tokenizer = mappings.getTokenizer(asfix);
@@ -53,9 +55,5 @@ public class IMPImplodeAsfixStrategy extends implode_asfix_1_0 {
 		AstNode result = imploder.implode(asfixATerm, tokenizer);
 		result = RootAstNode.makeRoot(result, null, RefreshResourcePrimitive.getResource(inputFile));
 		return result.getTerm();
-		
-		// TODO: Make a RootAstNode object from this tree and for IMPSGLRIPrimitive
-		//       which either refers to a (possibly fresh) ParseController or
-		//       some other cookie that traces back the tree to the file
 	}
 }

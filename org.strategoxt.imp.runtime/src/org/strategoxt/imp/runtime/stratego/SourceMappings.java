@@ -1,6 +1,8 @@
 package org.strategoxt.imp.runtime.stratego;
 
 import static org.spoofax.interpreter.core.Tools.isTermAppl;
+import static org.spoofax.interpreter.core.Tools.isTermString;
+import static org.strategoxt.imp.runtime.stratego.SourceMappings.MappableTerm.*;
 
 import java.io.File;
 import java.util.Map;
@@ -25,36 +27,38 @@ public class SourceMappings {
 	
 	private final Map<MappableKey, File> stringInputFileMap = new WeakHashMap<MappableKey, File>();
 	
-	private final Map<IStrategoTerm, File> asfixInputFileMap = new WeakHashMap<IStrategoTerm, File>();
+	private final Map<MappableKey, File> asfixInputFileMap = new WeakHashMap<MappableKey, File>();
 	
-	private final Map<IStrategoTerm, char[]> inputCharMap = new WeakHashMap<IStrategoTerm, char[]>();
+	private final Map<MappableKey, char[]> inputCharMap = new WeakHashMap<MappableKey, char[]>();
 
-	private final Map<IStrategoTerm, ATerm> inputTermMap = new WeakHashMap<IStrategoTerm, ATerm>();
+	private final Map<MappableKey, ATerm> inputTermMap = new WeakHashMap<MappableKey, ATerm>();
 
-	private final Map<IStrategoTerm, SGLRTokenizer> tokenizerMap = new WeakHashMap<IStrategoTerm, SGLRTokenizer>();
+	private final Map<MappableKey, SGLRTokenizer> tokenizerMap = new WeakHashMap<MappableKey, SGLRTokenizer>();
 
 	public File putInputFile(int fd, File file) {
 		return inputFileMap.put(fd, file);
 	}
 
-	public File putInputFile(MappableString string, File file) {
-		return stringInputFileMap.put(string.identityKey, file);
+	public File putInputFileForString(MappableTerm string, File file) {
+		assert isTermString(string);
+		return stringInputFileMap.put(string.key, file);
 	}
 	
-	public File putInputFile(IStrategoAppl asfix, File file) {
-		return asfixInputFileMap.put(asfix, file);
+	public File putInputFileForTree(MappableTerm asfix, File file) {
+		assert isTermAppl(asfix);
+		return asfixInputFileMap.put(asfix.key, file);
 	}
 
-	public char[] putInputChars(IStrategoTerm asfix, char[] inputChars) {
-		return inputCharMap.put(asfix, inputChars);
+	public char[] putInputChars(MappableTerm asfix, char[] inputChars) {
+		return inputCharMap.put(asfix.key, inputChars);
 	}
 
-	public ATerm putInputTerm(IStrategoTerm asfix, ATerm asfixATerm) {
-		return inputTermMap.put(asfix, asfixATerm);
+	public ATerm putInputTerm(MappableTerm asfix, ATerm asfixATerm) {
+		return inputTermMap.put(asfix.key, asfixATerm);
 	}
 	
-	public SGLRTokenizer putTokenizer(IStrategoTerm asfix, SGLRTokenizer tokenizer) {
-		return tokenizerMap.put(asfix, tokenizer);
+	public SGLRTokenizer putTokenizer(MappableTerm asfix, SGLRTokenizer tokenizer) {
+		return tokenizerMap.put(asfix.key, tokenizer);
 	}
 	
 	public File getInputFile(int fd) {
@@ -62,39 +66,37 @@ public class SourceMappings {
 	}
 	
 	public File getInputFile(IStrategoString string) {
-		if (string instanceof MappableString) {
-			MappableKey key = ((MappableString) string).identityKey;
-			return stringInputFileMap.get(key);
-		} else {
-			return null;
-		}
+		return getValue(stringInputFileMap, string);
 	}
 	
 	public File getInputFile(IStrategoAppl asfix) {
 		assert isTermAppl(asfix);
-		return asfixInputFileMap.get(asfix);
+		return getValue(asfixInputFileMap, asfix);
 	}
 	
 	public char[] getInputChars(IStrategoTerm asfix) {
-		return inputCharMap.get(asfix);
+		return getValue(inputCharMap, asfix);
 	}
 	
 	public ATerm getInputTerm(IStrategoTerm asfix) {
-		return inputTermMap.get(asfix);
+		return getValue(inputTermMap, asfix);
 	}
 	
 	public SGLRTokenizer getTokenizer(IStrategoTerm asfix) {
-		return tokenizerMap.get(asfix);
+		return getValue(tokenizerMap, asfix);
 	}
 	
 	/**
+	 * A wrapped term that provides a key with identity equality semantics
+	 * for use in Map implementations where identity equality is preferred.
+	 * 
 	 * @author Lennart Kats <lennart add lclnet.nl>
 	 */
-	public static class MappableString extends StrategoWrapped {
+	public static class MappableTerm extends StrategoWrapped {
 
-		final MappableKey identityKey = new MappableKey();
+		private final MappableKey key = new MappableKey();
 		
-		public MappableString(IStrategoString wrapped) {
+		public MappableTerm(IStrategoTerm wrapped) {
 			super(wrapped);
 		}
 
@@ -102,9 +104,17 @@ public class SourceMappings {
 		public int getStorageType() {
 			return IMMUTABLE;
 		}
+		
+		public static<T> T getValue(Map<? extends MappableKey, T> map, IStrategoTerm term) {
+			if (term instanceof MappableTerm) {
+				return map.get(((MappableTerm) term).key);
+			} else {
+				return null;
+			}
+		}
 	}
 	
-	private static class MappableKey {
+	public static class MappableKey {
 		// Just used for identity hashcode and equals implementation
 	}
 }

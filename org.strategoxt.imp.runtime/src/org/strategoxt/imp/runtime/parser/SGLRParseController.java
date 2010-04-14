@@ -25,7 +25,6 @@ import org.eclipse.imp.parser.SimpleAnnotationTypeInfo;
 import org.eclipse.imp.services.IAnnotationTypeInfo;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.jface.text.IRegion;
-import org.eclipse.jface.text.ITextPresentationListener;
 import org.eclipse.jface.text.Region;
 import org.spoofax.jsglr.BadTokenException;
 import org.spoofax.jsglr.InvalidParseTableException;
@@ -89,9 +88,7 @@ public class SGLRParseController implements IParseController {
 	
 	private MetaFile metaFile;
 	
-	private Exception unmanagedParseTableMismatch;
-	
-	private ITextPresentationListener colorerBlocker;
+	private Exception unmanagedParseTableMismatch;;
 	
 	private volatile boolean isStartupParsed;
 	

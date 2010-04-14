@@ -24,8 +24,8 @@ public class IMPReadTextFromStream extends SSL_EXT_read_text_from_stream {
 		
 		// Wrap in an unshared object; strings may be shared
 		// TODO: use identity hash code or something?
-		SourceMappings.MappableString mappableResult = new SourceMappings.MappableString(result); 
-		mappings.putInputFile(mappableResult, mappings.getInputFile(fd));
+		SourceMappings.MappableTerm mappableResult = new SourceMappings.MappableTerm(result); 
+		mappings.putInputFileForString(mappableResult, mappings.getInputFile(fd));
 		
 		return mappableResult;
 	}
