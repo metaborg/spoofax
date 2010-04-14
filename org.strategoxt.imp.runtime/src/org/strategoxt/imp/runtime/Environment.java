@@ -19,6 +19,7 @@ import org.spoofax.interpreter.adapter.aterm.UnsharedWrappedATermFactory;
 import org.spoofax.interpreter.adapter.aterm.WrappedATermFactory;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
+import org.spoofax.interpreter.library.jsglr.JSGLRLibrary;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.InvalidParseTableException;
 import org.spoofax.jsglr.ParseTable;
@@ -198,6 +199,7 @@ public final class Environment {
 				}
 			};
 		
+		result.getCompiledContext().getExceptionHandler().setEnabled(false);
 		result.getCompiledContext().registerComponent("stratego_lib"); // ensure op. registry available
 		result.getCompiledContext().registerComponent("stratego_sglr"); // ensure op. registry available
 		SGLRCompatLibrary sglrLibrary = (SGLRCompatLibrary) result.getContext().getOperatorRegistry(SGLRCompatLibrary.REGISTRY_NAME);
@@ -212,6 +214,17 @@ public final class Environment {
 		assert result.getCompiledContext().getOperatorRegistry(IMPJSGLRLibrary.REGISTRY_NAME) instanceof IMPJSGLRLibrary;
 		result.setIOAgent(new EditorIOAgent());
 		
+		return result;
+	}
+
+	public static HybridInterpreter createInterpreter(HybridInterpreter prototype) {
+		HybridInterpreter result = new HybridInterpreter(prototype,
+				IMPJSGLRLibrary.REGISTRY_NAME, // is spoofax-specific
+				JSGLRLibrary.REGISTRY_NAME,    // connected to the library above
+				IMPLibrary.REGISTRY_NAME);     // also used
+		result.getCompiledContext().getExceptionHandler().setEnabled(false);
+		IMPJSGLRLibrary parseLibrary = ((IMPJSGLRLibrary) result.getContext().getOperatorRegistry(IMPJSGLRLibrary.REGISTRY_NAME));
+		parseLibrary.addOverrides(result.getCompiledContext());
 		return result;
 	}
 	

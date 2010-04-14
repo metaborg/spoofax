@@ -33,7 +33,6 @@ import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.core.StackTracer;
 import org.spoofax.interpreter.core.UndefinedStrategyException;
 import org.spoofax.interpreter.library.LoggingIOAgent;
-import org.spoofax.interpreter.library.jsglr.JSGLRLibrary;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -54,7 +53,6 @@ import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.IMPJSGLRLibrary;
-import org.strategoxt.imp.runtime.stratego.IMPLibrary;
 import org.strategoxt.imp.runtime.stratego.StrategoConsole;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
@@ -141,12 +139,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		
 		HybridInterpreter prototype = cachedRuntimes.get(descriptor);
 		if (prototype != null) {
-			runtime = new HybridInterpreter(prototype,
-					IMPJSGLRLibrary.REGISTRY_NAME, // is spoofax-specific
-					JSGLRLibrary.REGISTRY_NAME,    // connected to the library above
-					IMPLibrary.REGISTRY_NAME);     // also used
-			IMPJSGLRLibrary parseLibrary = ((IMPJSGLRLibrary) runtime.getContext().getOperatorRegistry(IMPJSGLRLibrary.REGISTRY_NAME));
-			parseLibrary.addOverrides(runtime.getCompiledContext());
+			runtime = Environment.createInterpreter(prototype);
 			return;
 		}
 		
