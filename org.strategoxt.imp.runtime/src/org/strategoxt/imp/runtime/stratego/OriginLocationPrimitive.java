@@ -20,12 +20,12 @@ public class OriginLocationPrimitive extends AbstractOriginPrimitive {
 	protected IStrategoTerm call(IContext env, IWrappedAstNode node) {
 		ITermFactory factory = env.getFactory();
 		IToken start = node.getNode().getLeftIToken();
-		IToken end = node.getNode().getLeftIToken();
+		IToken end = node.getNode().getRightIToken(); //FIXME: getRightIToken() gives the first token of the last LIST element 
 		return factory.makeTuple(
 				factory.makeInt(start.getLine()),
 				factory.makeInt(start.getColumn()),
-				factory.makeInt(end.getLine()),
-				factory.makeInt(end.getColumn()));
+				factory.makeInt(end.getEndLine()),
+				factory.makeInt(end.getEndColumn()));
 	}
 
 }
