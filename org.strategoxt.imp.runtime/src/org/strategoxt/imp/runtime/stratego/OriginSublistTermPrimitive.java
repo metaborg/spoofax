@@ -9,6 +9,8 @@ import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.strategoxt.imp.runtime.parser.ast.AstNode;
+import org.strategoxt.imp.runtime.parser.ast.AstNodeFactory;
 import org.strategoxt.imp.runtime.parser.ast.ListAstNode;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 import org.strategoxt.imp.runtime.stratego.adapter.IWrappedAstNode;
@@ -57,7 +59,7 @@ public class OriginSublistTermPrimitive extends AbstractPrimitive {
 				return false;
 		}
 		IStrategoAstNode lastChildNode=((IWrappedAstNode)list.get(list.size()-1)).getNode();
-		ListAstNode result = (ListAstNode)StrategoTermPath.findCommonAncestor(firstChildNode, lastChildNode);
+		AstNode result =new AstNodeFactory().createSublist((ListAstNode) commonParentList, firstChildNode, lastChildNode, true); 
 		if (result == null) 
 			return false;
 		env.setCurrent(result.getTerm());
