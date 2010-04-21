@@ -1,6 +1,5 @@
 package org.strategoxt.imp.runtime.stratego;
 
-import static org.spoofax.interpreter.core.Tools.isTermString;
 import lpg.runtime.ILexStream;
 
 import org.spoofax.interpreter.core.IContext;
@@ -9,8 +8,6 @@ import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.EditorState;
-import org.strategoxt.lang.terms.StrategoInt;
-import org.strategoxt.lang.terms.StrategoTuple;
 
 /**
  * Returns the textfragment that corresponds to the current file

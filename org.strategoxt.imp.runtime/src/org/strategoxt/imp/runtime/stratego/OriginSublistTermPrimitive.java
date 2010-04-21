@@ -30,7 +30,9 @@ public class OriginSublistTermPrimitive extends AbstractPrimitive {
 	
 	@Override
 	public final boolean call(IContext env, Strategy[] svars, IStrategoTerm[] tvars) {
-		if (!isTermString(tvars[0]) || !(tvars[1] instanceof IStrategoList))
+		if (!isTermString(tvars[0]) || !(tvars[1] instanceof IStrategoList))//|| (tvars[1].getTermType()!= IStrategoTerm.LIST)
+			return false;
+		if(tvars[1].getTermType()!= IStrategoTerm.LIST)
 			return false;
 		IStrategoList list=(IStrategoList)tvars[1];
 		if(list.isEmpty())
