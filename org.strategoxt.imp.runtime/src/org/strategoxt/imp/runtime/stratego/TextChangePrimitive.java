@@ -70,7 +70,7 @@ public class TextChangePrimitive extends AbstractPrimitive {
 				int col_start=((StrategoInt)tuple.get(1)).intValue();
 				int line_end=((StrategoInt)tuple.get(2)).intValue()-1;
 				int col_end=((StrategoInt)tuple.get(3)).intValue();
-				position_start=lexStream.getLineOffset(line_start)+col_start;
+				position_start=lexStream.getLineOffset(line_start)+col_start; //FIXME deal with bad location
 				position_end=lexStream.getLineOffset(line_end)+col_end+1;
 			}
 		}

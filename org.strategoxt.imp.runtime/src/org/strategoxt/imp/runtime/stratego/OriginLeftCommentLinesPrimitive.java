@@ -57,7 +57,12 @@ public class OriginLeftCommentLinesPrimitive extends AbstractPrimitive {
 		}
 		if(comment!=null && (previousNodeToken==null || previousNodeToken.getEndLine() < comment.getLine())){
 			String commentText=tokenStream.getTokenText(comment.getTokenIndex());
-			return env.getFactory().makeString(commentText.trim());
+			return env.getFactory().makeTuple(
+					env.getFactory().makeInt(comment.getStartOffset()),
+					env.getFactory().makeInt(comment.getEndOffset()),
+					env.getFactory().makeString(commentText)
+			);
+			//return env.getFactory().makeString(commentText.trim());
 		}
 		return null;
 	}

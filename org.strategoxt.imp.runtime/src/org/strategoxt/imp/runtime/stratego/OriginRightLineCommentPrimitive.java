@@ -60,7 +60,12 @@ public class OriginRightLineCommentPrimitive extends AbstractPrimitive {
 			for (IToken comm_txt : comments) {
 				commentText+=tokenStream.getTokenText(comm_txt.getTokenIndex());
 			}
-			return env.getFactory().makeString(commentText.replaceAll("\\s+$", ""));
+			return env.getFactory().makeTuple(
+					env.getFactory().makeInt(comments.get(0).getStartOffset()),
+					env.getFactory().makeInt(comments.get(comments.size()-1).getEndOffset()),
+					env.getFactory().makeString(commentText.replaceAll("\\s+$", ""))
+			);
+			//return env.getFactory().makeString(commentText.replaceAll("\\s+$", ""));
 		}
 		return null;
 	}

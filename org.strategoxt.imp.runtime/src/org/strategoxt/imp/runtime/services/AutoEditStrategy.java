@@ -32,6 +32,7 @@ import org.spoofax.NotImplementedException;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
+import org.strategoxt.stratego_lib.getenv_0_0;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -384,7 +385,13 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 	}
 	
 	private static int getTabWidth() {
-		IPreferenceStore preferences = lastEditor.getThePreferenceStore();
+		IPreferenceStore preferences;
+		if(lastEditor!=null){
+			preferences = lastEditor.getThePreferenceStore();
+		}
+		else{
+			preferences = EditorState.getActiveEditor().getEditor().getThePreferenceStore();
+		}
 		return preferences.getInt(EDITOR_TAB_WIDTH); // PreferenceCache.tabWidth;
 	}
 	
