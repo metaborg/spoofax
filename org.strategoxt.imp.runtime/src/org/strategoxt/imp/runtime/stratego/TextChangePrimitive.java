@@ -49,15 +49,6 @@ public class TextChangePrimitive extends AbstractPrimitive {
 		if(tvars[0] instanceof IWrappedAstNode){
 			position_start=((IWrappedAstNode)tvars[0]).getNode().getLeftIToken().getStartOffset();
 			position_end=((IWrappedAstNode)tvars[0]).getNode().getRightIToken().getEndOffset()+1;
-			//FIXME: getRightIToken() gives the first token of the last list element instead of the last token.
-			//This code block is a workaround
-			if(tvars[0] instanceof WrappedAstNodeList){
-				ArrayList childNodes=((IWrappedAstNode)tvars[0]).getNode().getChildren();
-				if(!childNodes.isEmpty()){
-					IStrategoAstNode lastChild=(IStrategoAstNode)childNodes.get(childNodes.size()-1);
-					position_end=lastChild.getRightIToken().getEndOffset()+1;
-				}
-			}
 		}
 		else{
 			StrategoTuple tuple=(StrategoTuple)tvars[0];

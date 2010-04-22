@@ -78,7 +78,7 @@ public class AstNodeFactory {
 		}
 		
 		AstNode result = new SubListAstNode(list, list.getElementSort(),
-				startChild.getLeftIToken(), endChild.getLeftIToken(), children, startOffset);
+				startChild.getLeftIToken(), endChild.getRightIToken(), children, startOffset);
 		if (cloneFirst) result = result.cloneIgnoreTokens();
 		list.overrideReferences(list.getLeftIToken(), list.getRightIToken(), children, result);
 		result.setParent(list);
