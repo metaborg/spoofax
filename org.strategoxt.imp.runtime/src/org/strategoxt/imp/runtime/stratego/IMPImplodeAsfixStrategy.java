@@ -1,7 +1,5 @@
 package org.strategoxt.imp.runtime.stratego;
 
-import static org.spoofax.interpreter.core.Tools.isTermAppl;
-
 import java.io.File;
 
 import org.spoofax.interpreter.library.IOperatorRegistry;
@@ -42,9 +40,7 @@ public class IMPImplodeAsfixStrategy extends implode_asfix_1_0 {
 		SourceMappings mappings = ((IMPJSGLRLibrary) library).getMappings();
 		char[] inputChars = mappings.getInputChars(asfix);
 		ATerm asfixATerm = mappings.getInputTerm(asfix);
-		File inputFile = isTermAppl(asfix)
-				? mappings.getInputFile((IStrategoAppl) asfix)
-				: null;
+		File inputFile = mappings.getInputFile((IStrategoAppl) asfix);
 		SGLRTokenizer tokenizer = mappings.getTokenizer(asfix);
 		
 		if (inputChars == null || asfix == null) {

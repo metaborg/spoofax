@@ -32,7 +32,7 @@ strategies
           builder: "Generate Java code"   = generate-java  (openeditor) (realtime)
           builder: "Show abstract syntax" = generate-aterm (openeditor) (realtime) (meta) (source)
           ~~
-          on save: generate-java
+          ~// on save: generate-java
       ]|
     );
     

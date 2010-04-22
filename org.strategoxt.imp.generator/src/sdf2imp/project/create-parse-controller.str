@@ -15,6 +15,9 @@ strategies
 
   create-parse-controller =
     // TODO: do not overwrite existing parse controller
+    //       or add a comment explaining it's always overwritten and users
+    //       can add a new class if they want to as long as they reference
+    //       it from plugin.xml
     x_name  := <parse-controller-name>;
     pkgname := <get-package-name>;
     table   := <get-sdf-main-module>;

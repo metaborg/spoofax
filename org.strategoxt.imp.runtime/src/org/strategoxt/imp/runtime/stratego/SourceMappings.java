@@ -1,8 +1,7 @@
 package org.strategoxt.imp.runtime.stratego;
 
-import static org.spoofax.interpreter.core.Tools.isTermAppl;
 import static org.spoofax.interpreter.core.Tools.isTermString;
-import static org.strategoxt.imp.runtime.stratego.SourceMappings.MappableTerm.*;
+import static org.strategoxt.imp.runtime.stratego.SourceMappings.MappableTerm.getValue;
 
 import java.io.File;
 import java.util.Map;
@@ -12,7 +11,7 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
-import org.strategoxt.lang.terms.StrategoWrapped;
+import org.strategoxt.lang.LazyTerm;
 
 import aterm.ATerm;
 
@@ -45,7 +44,7 @@ public class SourceMappings {
 	}
 	
 	public File putInputFileForTree(MappableTerm asfix, File file) {
-		assert isTermAppl(asfix);
+		// assert isTermAppl(asfix);
 		return asfixInputFileMap.put(asfix.key, file);
 	}
 
@@ -70,7 +69,7 @@ public class SourceMappings {
 	}
 	
 	public File getInputFile(IStrategoAppl asfix) {
-		assert isTermAppl(asfix);
+		// assert isTermAppl(asfix);
 		return getValue(asfixInputFileMap, asfix);
 	}
 	
@@ -92,17 +91,29 @@ public class SourceMappings {
 	 * 
 	 * @author Lennart Kats <lennart add lclnet.nl>
 	 */
-	public static class MappableTerm extends StrategoWrapped {
+	public static class MappableTerm extends LazyTerm {
 
 		private final MappableKey key = new MappableKey();
 		
+		private final IStrategoTerm wrapped;
+		
 		public MappableTerm(IStrategoTerm wrapped) {
-			super(wrapped);
+			this.wrapped = wrapped;
+		}
+		
+		@Override
+		protected IStrategoTerm init() {
+			return wrapped;
 		}
 
 		@Override
 		public int getStorageType() {
 			return IMMUTABLE;
+		}
+		
+		@Override
+		public int getTermType() {
+			return wrapped.getTermType();
 		}
 		
 		public static<T> T getValue(Map<? extends MappableKey, T> map, IStrategoTerm term) {
