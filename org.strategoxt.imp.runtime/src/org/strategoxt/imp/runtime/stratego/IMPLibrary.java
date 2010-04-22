@@ -27,6 +27,7 @@ public class IMPLibrary extends AbstractStrategoOperatorRegistry {
 		add(new TextChangePrimitive());
 		add(new OriginPositionToLocationPrimitive());
 		add(new OriginSourceTextPrimitive());
+		add(new SelectedFromToPrimitive());
 	}
 
 	public String getOperatorRegistryName() {

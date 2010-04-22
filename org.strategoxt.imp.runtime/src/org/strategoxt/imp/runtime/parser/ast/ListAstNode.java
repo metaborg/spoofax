@@ -38,4 +38,12 @@ public class ListAstNode extends AstNode {
 		}
 		printer.print("]");
 	}
+	
+	public AstNode getFirstChild() {
+		return getChildren().get(0);
+	}
+	
+	public AstNode getLastChild() {
+		return getChildren().get(getChildren().size() - 1);
+	}
 }

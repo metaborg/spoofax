@@ -38,18 +38,15 @@ public class StrategoTermPath {
 	}
 	
 	public static IStrategoList createPath(IStrategoAstNode node) {
-		if (node instanceof SubListAstNode)
-			node = ((SubListAstNode) node).getCompleteList();
+		List<Integer> pathInts=createPathList(node);
+		return toStrategoPath(pathInts);
+	}
+
+	public static IStrategoList toStrategoPath(List<Integer> pathInts) {
 		LinkedList<IStrategoTerm> results = new LinkedList<IStrategoTerm>();
-		
-		while (node.getParent() != null) {
-			IStrategoAstNode parent = node.getParent();
-			ArrayList children = parent.getChildren();
-			int index = indexOfIdentical(children, node);
-			results.addFirst(Environment.getTermFactory().makeInt(index));
-			node = node.getParent();
+		for (int i = 0; i < pathInts.size(); i++) {
+			results.add(Environment.getTermFactory().makeInt(pathInts.get(i)));
 		}
-		
 		return Environment.getTermFactory().makeList(results);
 	}
 	
@@ -64,7 +61,6 @@ public class StrategoTermPath {
 			results.addFirst(Integer.valueOf(index));
 			node = node.getParent();
 		}
-		
 		return results;
 	}
 	
