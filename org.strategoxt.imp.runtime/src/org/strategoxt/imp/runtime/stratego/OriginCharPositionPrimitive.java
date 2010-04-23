@@ -18,8 +18,8 @@ public class OriginCharPositionPrimitive extends AbstractOriginPrimitive {
 	@Override
 	protected IStrategoTerm call(IContext env, IWrappedAstNode node) {
 		ITermFactory factory = env.getFactory();
-		int start = node.getNode().getLeftIToken().getStartOffset();
-		int end = node.getNode().getRightIToken().getEndOffset();
+		int start = node.getNode().getLeftIToken().getStartOffset();//inclusive start
+		int end = node.getNode().getRightIToken().getEndOffset()+1; //exclusive end
 		return factory.makeTuple(
 				factory.makeInt(start),
 				factory.makeInt(end)

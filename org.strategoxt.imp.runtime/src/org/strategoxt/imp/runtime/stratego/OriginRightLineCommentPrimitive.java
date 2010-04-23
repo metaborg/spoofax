@@ -64,7 +64,7 @@ public class OriginRightLineCommentPrimitive extends AbstractPrimitive {
 			int endPosCorrection=commentText.length()-lo_correctedText.length();
 			return env.getFactory().makeTuple(
 					env.getFactory().makeInt(comments.get(0).getStartOffset()),
-					env.getFactory().makeInt(comments.get(comments.size()-1).getEndOffset()-endPosCorrection),
+					env.getFactory().makeInt(comments.get(comments.size()-1).getEndOffset()+1-endPosCorrection),
 					env.getFactory().makeString(lo_correctedText)
 			);
 			//return env.getFactory().makeString(commentText.replaceAll("\\s+$", ""));

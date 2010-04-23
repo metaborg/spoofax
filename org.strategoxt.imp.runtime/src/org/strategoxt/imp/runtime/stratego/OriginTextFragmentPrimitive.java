@@ -46,7 +46,7 @@ private static final String NAME = "SSL_EXT_origin_textfragment";
 		if(!(position.get(0) instanceof StrategoInt && position.get(1) instanceof StrategoInt))
 			return null;
 		int pos_start=((StrategoInt)position.get(0)).intValue();
-		int pos_end=((StrategoInt)position.get(1)).intValue();
+		int pos_end=((StrategoInt)position.get(1)).intValue()-1;//exclusive
 		ILexStream lexStream= EditorState.getActiveEditor().getParseController().getCurrentAst().getLeftIToken().getILexStream();
 		if(isBadLocation(pos_start, pos_end, lexStream))
 			return null;

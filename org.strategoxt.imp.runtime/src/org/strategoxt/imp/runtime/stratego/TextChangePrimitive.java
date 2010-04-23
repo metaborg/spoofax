@@ -54,7 +54,7 @@ public class TextChangePrimitive extends AbstractPrimitive {
 			StrategoTuple tuple=(StrategoTuple)tvars[0];
 			if(tuple.size()==2){
 				position_start=((StrategoInt)tuple.get(0)).intValue();
-				position_end=((StrategoInt)tuple.get(1)).intValue();
+				position_end=((StrategoInt)tuple.get(1)).intValue()-1; //exclusive end pos
 			}
 			if(tuple.size()==4){
 				int line_start=((StrategoInt)tuple.get(0)).intValue()-1;
