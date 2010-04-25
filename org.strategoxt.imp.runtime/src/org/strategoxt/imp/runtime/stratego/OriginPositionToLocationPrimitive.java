@@ -29,7 +29,7 @@ public class OriginPositionToLocationPrimitive extends AbstractPrimitive {
 			return false;
 		int position=((StrategoInt)tvars[0]).intValue();
 		ILexStream lexStream= EditorState.getActiveEditor().getParseController().getCurrentAst().getLeftIToken().getILexStream();
-		if(isBadLocation(position, lexStream))
+		if(TextPositions.isNotInTextRange(position, lexStream))
 			return false;
 		int col=lexStream.getColumnOfCharAt(position);
 		int line=lexStream.getLineNumberOfCharAt(position);
@@ -40,9 +40,4 @@ public class OriginPositionToLocationPrimitive extends AbstractPrimitive {
 		env.setCurrent(result);
 		return true;
 	}
-
-	private boolean isBadLocation(int pos, ILexStream lexStream) {
-		return pos < 0 || pos >= lexStream.getStreamLength();
-	}
-
 }

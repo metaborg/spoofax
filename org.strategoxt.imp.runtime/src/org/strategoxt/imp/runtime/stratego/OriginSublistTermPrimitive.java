@@ -28,6 +28,7 @@ public class OriginSublistTermPrimitive extends AbstractPrimitive {
 		super(NAME, 0, 2);
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public final boolean call(IContext env, Strategy[] svars, IStrategoTerm[] tvars) {
 		if (!isTermString(tvars[0]) || !(tvars[1] instanceof IStrategoList))//|| (tvars[1].getTermType()!= IStrategoTerm.LIST)

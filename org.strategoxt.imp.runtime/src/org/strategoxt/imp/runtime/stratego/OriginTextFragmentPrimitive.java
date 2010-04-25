@@ -48,7 +48,7 @@ private static final String NAME = "SSL_EXT_origin_textfragment";
 		int pos_start=((StrategoInt)position.get(0)).intValue();
 		int pos_end=((StrategoInt)position.get(1)).intValue()-1;//exclusive
 		ILexStream lexStream= EditorState.getActiveEditor().getParseController().getCurrentAst().getLeftIToken().getILexStream();
-		if(isBadLocation(pos_start, pos_end, lexStream))
+		if(TextPositions.isUnvalidInterval(pos_start, pos_end, lexStream))
 			return null;
 		String textfragment=lexStream.toString(pos_start, pos_end);
 		return textfragment;
@@ -64,16 +64,9 @@ private static final String NAME = "SSL_EXT_origin_textfragment";
 		ILexStream lexStream= EditorState.getActiveEditor().getParseController().getCurrentAst().getLeftIToken().getILexStream();
 		int pos_start=lexStream.getLineOffset(line_start)+col_start; //FIXME: bad location
 		int pos_end=lexStream.getLineOffset(line_end)+col_end;
-		if(isBadLocation(pos_start, pos_end, lexStream))
+		if(TextPositions.isUnvalidInterval(pos_start, pos_end, lexStream))
 			return null;
 		String textfragment=lexStream.toString(pos_start, pos_end);
 		return textfragment;
 	}
-
-	private boolean isBadLocation(int pos_start, int pos_end, ILexStream lexStream) {
-		return pos_start < 0 || pos_start > pos_end || pos_end >= lexStream.getStreamLength();
-	}
-	
-	
-
 }

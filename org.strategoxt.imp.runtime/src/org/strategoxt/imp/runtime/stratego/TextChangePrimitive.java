@@ -47,8 +47,8 @@ public class TextChangePrimitive extends AbstractPrimitive {
 		int position_start = -1;
 		int position_end = -1;
 		if(tvars[0] instanceof IWrappedAstNode){
-			position_start=((IWrappedAstNode)tvars[0]).getNode().getLeftIToken().getStartOffset();
-			position_end=((IWrappedAstNode)tvars[0]).getNode().getRightIToken().getEndOffset()+1;
+			position_start=TextPositions.getStartPosNode(((IWrappedAstNode)tvars[0]).getNode());
+			position_end=TextPositions.getEndPosNode(((IWrappedAstNode)tvars[0]).getNode());
 		}
 		else{
 			StrategoTuple tuple=(StrategoTuple)tvars[0];
@@ -68,7 +68,7 @@ public class TextChangePrimitive extends AbstractPrimitive {
 		String text = ((IStrategoString)tvars[1]).stringValue();
 		try {
 			IDocument doc = editor.getDocument();
-			if(isBadLocation(position_start, position_end, lexStream))
+			if(TextPositions.isUnvalidInterval(position_start, position_end, lexStream))
 				return false;
 			doc.replace(position_start, position_end-position_start, text);
 		} 
@@ -91,9 +91,4 @@ public class TextChangePrimitive extends AbstractPrimitive {
 		}
 		return true;
 	}
-	
-	private boolean isBadLocation(int pos_start, int pos_end, ILexStream lexStream) {
-		return pos_start < 0 || pos_start > pos_end || pos_end >= lexStream.getStreamLength();
-	}
-
 }

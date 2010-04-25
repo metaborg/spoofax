@@ -1,5 +1,8 @@
 package org.strategoxt.imp.runtime.stratego;
 
+import java.util.ArrayList;
+
+import lpg.runtime.ILexStream;
 import lpg.runtime.IPrsStream;
 import lpg.runtime.IToken;
 
@@ -38,33 +41,17 @@ public class OriginLeftCommentLinesPrimitive extends AbstractPrimitive {
 	}
 	
 	private IStrategoTerm call(IContext env, IWrappedAstNode node) {		
-		IToken start = node.getNode().getLeftIToken(); 
-		IPrsStream tokenStream=start.getIPrsStream();
-		IToken comment=null;
-		IToken previousNodeToken=null;
-		int tokenIndex=start.getTokenIndex()-1;
-		while(tokenIndex>=0 && previousNodeToken==null){
-			IToken tok=tokenStream.getTokenAt(tokenIndex);
-			if(!SGLRToken.isWhiteSpace(tok)){
-				if(comment==null && TokenKind.valueOf(tok.getKind())==TokenKind.TK_LAYOUT){
-					comment=tok;
-				}
-				if(TokenKind.valueOf(tok.getKind())!=TokenKind.TK_LAYOUT){
-					previousNodeToken=tok;
-				}
-			}
-			tokenIndex--;
-		}
-		if(comment!=null && (previousNodeToken==null || previousNodeToken.getEndLine() < comment.getLine())){
-			String commentText=tokenStream.getTokenText(comment.getTokenIndex());
+		int commentStart=TextPositions.getStartPosCommentBefore(node.getNode());
+		int commentEnd=TextPositions.getEndPosCommentBefore(node.getNode());
+		if(commentStart>0){
+			ILexStream lexStream=node.getNode().getLeftIToken().getILexStream();
+			String commentText=lexStream.toString(commentStart, commentEnd-1);
 			return env.getFactory().makeTuple(
-					env.getFactory().makeInt(comment.getStartOffset()),
-					env.getFactory().makeInt(comment.getEndOffset()+1),
+					env.getFactory().makeInt(commentStart),
+					env.getFactory().makeInt(commentEnd),
 					env.getFactory().makeString(commentText)
 			);
-			//return env.getFactory().makeString(commentText.trim());
 		}
 		return null;
 	}
-
 }
