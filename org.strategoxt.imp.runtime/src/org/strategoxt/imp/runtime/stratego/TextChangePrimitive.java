@@ -1,9 +1,6 @@
 package org.strategoxt.imp.runtime.stratego;
 
 import static org.spoofax.interpreter.core.Tools.isTermString;
-
-import java.util.ArrayList;
-
 import lpg.runtime.ILexStream;
 
 import org.eclipse.jface.text.BadLocationException;
@@ -14,9 +11,7 @@ import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.EditorState;
-import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 import org.strategoxt.imp.runtime.stratego.adapter.IWrappedAstNode;
-import org.strategoxt.imp.runtime.stratego.adapter.WrappedAstNodeList;
 import org.strategoxt.lang.terms.StrategoInt;
 import org.strategoxt.lang.terms.StrategoTuple;
 

@@ -1,8 +1,5 @@
 package org.strategoxt.imp.runtime.stratego;
 
-import static org.spoofax.interpreter.core.Tools.isTermString;
-
-import java.util.ArrayList;
 import java.util.List;
 
 import org.spoofax.interpreter.core.IContext;
@@ -11,12 +8,8 @@ import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.EditorState;
-import org.strategoxt.imp.runtime.parser.ast.AstNode;
-import org.strategoxt.imp.runtime.parser.ast.AstNodeFactory;
-import org.strategoxt.imp.runtime.parser.ast.ListAstNode;
 import org.strategoxt.imp.runtime.parser.ast.SubListAstNode;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
-import org.strategoxt.imp.runtime.stratego.adapter.IWrappedAstNode;
 
 /**
  * Returns the start and end position of the selection
