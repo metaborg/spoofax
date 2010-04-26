@@ -66,15 +66,14 @@ public class TextPositions {
 	}
 
 	private static IToken getPrevAstToken(IToken start) {
-		IToken prevNonLayout=null;
 		IPrsStream tokenStream=start.getIPrsStream();
 		for (int i = start.getTokenIndex()-1; i >= 0; i--) {
 			IToken preceedingTok=tokenStream.getTokenAt(i);
-			if(!SGLRToken.isWhiteSpace(preceedingTok)){
-				prevNonLayout=preceedingTok;
+			if(!isLayout(preceedingTok)){
+				return preceedingTok;
 			}
 		}
-		return prevNonLayout;
+		return null;
 	}
 
 	
@@ -87,11 +86,11 @@ public class TextPositions {
 			IToken tok=tokenStream.getTokenAt(tokenIndex);
 			if(tok.getLine() > start.getEndLine())
 				return startPos;
+			if(isLayout(tok) && !SGLRToken.isWhiteSpace(tok)){
+				return startPositionAfterTrim(tok);
+			}	
 			if(!isLayout(tok))
 				return -1;
-			if(!SGLRToken.isWhiteSpace(tok)){
-				startPos=startPositionAfterTrim(tok);
-			}	
 			tokenIndex++;
 		}
 		return -1;

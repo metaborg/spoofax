@@ -62,8 +62,8 @@ private static final String NAME = "SSL_EXT_origin_textfragment";
 		int line_end=((StrategoInt)position.get(2)).intValue();
 		int col_end=((StrategoInt)position.get(3)).intValue();
 		ILexStream lexStream= EditorState.getActiveEditor().getParseController().getCurrentAst().getLeftIToken().getILexStream();
-		int pos_start=lexStream.getLineOffset(line_start)+col_start; //FIXME: bad location
-		int pos_end=lexStream.getLineOffset(line_end)+col_end;
+		int pos_start=lexStream.getLineOffset(line_start-1)+col_start; //FIXME: bad location
+		int pos_end=lexStream.getLineOffset(line_end-1)+col_end;
 		if(TextPositions.isUnvalidInterval(pos_start, pos_end, lexStream))
 			return null;
 		String textfragment=lexStream.toString(pos_start, pos_end);
