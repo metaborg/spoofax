@@ -169,6 +169,8 @@ public class StrategoBuilder implements IBuilder {
 				reportGenericException(editor, e);
 			} catch (RuntimeException e) {
 				reportGenericException(editor, e);
+			} catch (Error e) {
+				reportGenericException(editor, e);
 			}
 		}
 
@@ -221,7 +223,7 @@ public class StrategoBuilder implements IBuilder {
 		return Environment.getATermConverter().convert(term).toString();
 	}
 
-	private void reportGenericException(EditorState editor, Exception e) {
+	private void reportGenericException(EditorState editor, Throwable e) {
 		boolean isDynamic = editor.getDescriptor().isDynamicallyLoaded();
 		Environment.logException("Builder failed for " + (isDynamic ? "" : "non-") + "dynamically loaded editor", e);
 		if (isDynamic) StrategoConsole.activateConsole();

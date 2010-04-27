@@ -50,34 +50,40 @@ public class OnSaveService implements IDocumentListener, ILanguageService {
 	public void documentChanged(DocumentEvent event) {
 		if (function == null) return;
 		
-		synchronized (Environment.getSyncRoot()) {
-			AstNode ast = editor.getCurrentAst();
-			// IStrategoTerm result = runtime.invokeSilent(function, runtime.makeInputTerm(ast, false), ast.getResource());
-			IStrategoTerm result = runtime.invokeSilent(function, ast);
-			if (result == null) {
-				runtime.reportRewritingFailed();
-				String log = runtime.getLog();
-				Environment.logException(log.length() == 0 ? "Analysis failed" : "Analysis failed:\n" + log);
-			} else if (isTermString(result)) {
-				// Function's returning a filename
-				String file = asJavaString(termAt(result, 0));
-				if (new File(file).exists())
-					RefreshResourcePrimitive.call(runtime.getRuntime().getContext(), file);	
-			} else if (isTermTuple(result) && result.getSubtermCount() == 2 && isTermString(termAt(result, 0)) && isTermString(termAt(result, 1))) {
-				// Function's returning a tuple like a builder
-				// let's be friendly and try to refresh the file
-				String file = asJavaString(termAt(result, 0));
-				String contents = asJavaString(termAt(result, 1));
-				IResource resource = RefreshResourcePrimitive.getResource(runtime.getRuntime().getContext(), file);
-				try {
-					StrategoBuilder.setFileContentsDirect((IFile) resource, contents);
-				} catch (CoreException e) {
-					Environment.logException("Problem when handling on save event", e);
+		try {
+			synchronized (Environment.getSyncRoot()) {
+				AstNode ast = editor.getCurrentAst();
+				// IStrategoTerm result = runtime.invokeSilent(function, runtime.makeInputTerm(ast, false), ast.getResource());
+				IStrategoTerm result = runtime.invokeSilent(function, ast);
+				if (result == null) {
+					runtime.reportRewritingFailed();
+					String log = runtime.getLog();
+					Environment.logException(log.length() == 0 ? "Analysis failed" : "Analysis failed:\n" + log);
+				} else if (isTermString(result)) {
+					// Function's returning a filename
+					String file = asJavaString(termAt(result, 0));
+					if (new File(file).exists())
+						RefreshResourcePrimitive.call(runtime.getRuntime().getContext(), file);	
+				} else if (isTermTuple(result) && result.getSubtermCount() == 2 && isTermString(termAt(result, 0)) && isTermString(termAt(result, 1))) {
+					// Function's returning a tuple like a builder
+					// let's be friendly and try to refresh the file
+					String file = asJavaString(termAt(result, 0));
+					String contents = asJavaString(termAt(result, 1));
+					IResource resource = RefreshResourcePrimitive.getResource(runtime.getRuntime().getContext(), file);
+					try {
+						StrategoBuilder.setFileContentsDirect((IFile) resource, contents);
+					} catch (CoreException e) {
+						Environment.logException("Problem when handling on save event", e);
+					}
+				} else if (!"None".equals(cons(result))) {
+					if (editor.getDescriptor().isDynamicallyLoaded())
+						Environment.logWarning("Unexpected result from 'on save' strategy: should be None() or (\"filename\", \"contents\"): " + result);
 				}
-			} else if (!"None".equals(cons(result))) {
-				if (editor.getDescriptor().isDynamicallyLoaded())
-					Environment.logWarning("Unexpected result from 'on save' strategy: should be None() or (\"filename\", \"contents\"): " + result);
 			}
+		} catch (RuntimeException e) {
+			Environment.logException("Exception in OnSaveService", e);
+		} catch (Error e) {
+			Environment.logException("Exception in OnSaveService", e);
 		}
 	}
 

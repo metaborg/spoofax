@@ -566,7 +566,14 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	 * @see #getAstNode(IStrategoTerm)  To retrieve the AST node associated with the resulting term.
 	 */
 	public IStrategoTerm invokeSilent(String function, IStrategoAstNode node) {
-		return invokeSilent(function, makeInputTerm(node, true), node.getResource());
+		try {
+			return invokeSilent(function, makeInputTerm(node, true), node.getResource());
+		} catch (RuntimeException e) {
+			if (runtime != null) runtime.getIOAgent().printError("Internal error evaluating " + function + " (" + name(e) + "; see error log)");
+			Environment.logException("Internal error evaluating strategy " + function, e);
+			if (descriptor.isDynamicallyLoaded()) StrategoConsole.activateConsole();
+			return null;
+		}
 	}
 	
 	/**
