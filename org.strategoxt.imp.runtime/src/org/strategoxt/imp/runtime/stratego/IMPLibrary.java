@@ -25,7 +25,6 @@ public class IMPLibrary extends AbstractStrategoOperatorRegistry {
 		add(new OriginCommentBeforePrimitive());
 		add(new OriginCommentAfterPrimitive());
 		add(new TextChangePrimitive());
-		add(new OriginPositionToLocationPrimitive());
 		add(new OriginSourceTextPrimitive());
 		add(new SelectedFromToPrimitive());
 		add(new OriginRootPrimitive());
