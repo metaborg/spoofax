@@ -6,19 +6,20 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.imp.runtime.stratego.adapter.IWrappedAstNode;
 
 /**
- * @author Lennart Kats <lennart add lclnet.nl>
+ * Returns the tuple (offset-start, offset-end) for an ast-node
+ * @author Maartje de Jonge
  */
-public class OriginPositionLayoutIncludedPrimitive extends AbstractOriginPrimitive {
+public class OriginOffsetPrimitive extends AbstractOriginPrimitive {
 
-	public OriginPositionLayoutIncludedPrimitive() {
-		super("SSL_EXT_origin_pos_layout_included");
+	public OriginOffsetPrimitive() {
+		super("SSL_EXT_origin_offset");
 	}
 
 	@Override
 	protected IStrategoTerm call(IContext env, IWrappedAstNode node) {
 		ITermFactory factory = env.getFactory();
-		int start = TextPositions.getStartPosNodeWithLayout(node.getNode());
-		int end =  TextPositions.getEndPosNodeWithLayout(node.getNode());
+		int start = TextPositions.getStartPosNode(node.getNode());
+		int end =  TextPositions.getEndPosNode(node.getNode());
 		return factory.makeTuple(
 				factory.makeInt(start),
 				factory.makeInt(end)

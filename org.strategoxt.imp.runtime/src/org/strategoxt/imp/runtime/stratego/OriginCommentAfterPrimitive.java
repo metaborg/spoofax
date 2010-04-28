@@ -12,12 +12,12 @@ import org.strategoxt.imp.runtime.stratego.adapter.IWrappedAstNode;
  * Extracts all comment lines directly after the current node on the same line
  * @author Maartje de Jonge
  */
-public class OriginRightLineCommentPrimitive extends AbstractPrimitive {
+public class OriginCommentAfterPrimitive extends AbstractPrimitive {
 	
-	private static final String NAME = "SSL_EXT_origin_right_comment";
+	private static final String NAME = "SSL_EXT_origin_comment_after";
 	
 
-	public OriginRightLineCommentPrimitive() {
+	public OriginCommentAfterPrimitive() {
 		super(NAME, 0, 1);
 	}
 	

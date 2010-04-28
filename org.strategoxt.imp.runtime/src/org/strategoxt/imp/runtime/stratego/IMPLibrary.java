@@ -14,7 +14,7 @@ public class IMPLibrary extends AbstractStrategoOperatorRegistry {
 		add(new ProjectPathPrimitive());
 		add(new RefreshResourcePrimitive());
 		add(new OriginLocationPrimitive());
-		add(new OriginCharPositionPrimitive());
+		add(new OriginOffsetPrimitive());
 		add(new OriginStripPrimitive());
 		add(new OriginTermPrimitive());
 		add(new OriginSublistTermPrimitive());
@@ -22,14 +22,14 @@ public class IMPLibrary extends AbstractStrategoOperatorRegistry {
 		add(new OriginTextFragmentPrimitive());
 		add(new OriginEqualPrimitive());
 		add(new OriginSurroundingCommentsPrimitive());
-		add(new OriginLeftCommentLinesPrimitive());
-		add(new OriginRightLineCommentPrimitive());
+		add(new OriginCommentBeforePrimitive());
+		add(new OriginCommentAfterPrimitive());
 		add(new TextChangePrimitive());
 		add(new OriginPositionToLocationPrimitive());
 		add(new OriginSourceTextPrimitive());
 		add(new SelectedFromToPrimitive());
 		add(new OriginRootPrimitive());
-		add(new OriginPositionLayoutIncludedPrimitive());
+		add(new OriginOffsetWithLayoutPrimitive());
 	}
 
 	public String getOperatorRegistryName() {
