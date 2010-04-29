@@ -2,6 +2,7 @@ package org.strategoxt.imp.runtime.stratego;
 
 import static java.util.Arrays.asList;
 
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -155,21 +156,21 @@ public class StrategoTermPath {
 		if (node1 == null) return node2;
 		if (node2 == null) return node1;
 		
-		LinkedHashSet<IStrategoAstNode> node1Ancestors = new LinkedHashSet<IStrategoAstNode>();
+		List<IStrategoAstNode> node1Ancestors = new ArrayList<IStrategoAstNode>();
 		for (IStrategoAstNode n = node1; n != null; n = n.getParent())
 			node1Ancestors.add(n);
 		
 		for (IStrategoAstNode n = node2, n2Child = node2; n != null; n2Child = n, n = n.getParent())
 			if (node1Ancestors.contains(n)) {
-				return tryCreateListCommonAncestor(n, node1Ancestors, n2Child);
+				if(node1Ancestors.get(node1Ancestors.indexOf(n))==n)
+					return tryCreateListCommonAncestor(n, node1Ancestors, n2Child);
 			}
 		
 		throw new IllegalStateException("Could not find common ancestor for nodes: " + node1 + "," + node2);
 	}
 	
-	private static IStrategoAstNode tryCreateListCommonAncestor(IStrategoAstNode commonAncestor, LinkedHashSet<IStrategoAstNode> ancestors1, IStrategoAstNode child2) {
+	private static IStrategoAstNode tryCreateListCommonAncestor(IStrategoAstNode commonAncestor, List<IStrategoAstNode> ancestors1List, IStrategoAstNode child2) {
 		if (commonAncestor != child2 && ((AstNode) commonAncestor).isList()) {
-			List<IStrategoAstNode> ancestors1List = asList(ancestors1.toArray(new IStrategoAstNode[ancestors1.size()]));
 			int i = ancestors1List.indexOf(commonAncestor);
 			if (i == 0)
 				return commonAncestor;
