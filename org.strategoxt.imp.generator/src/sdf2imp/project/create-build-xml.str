@@ -7,9 +7,6 @@ imports
 strategies
 
   // TODO: -XX:+TieredCompilation in Java 7?
-  
-  // TODO: first ensure .packed.esv is built, then load it
-  //       maybe first call the thing on ${basedir}/editor/${esvmodule}.main.esv then on ${include}/${esvmodule}.packed.esv
 
   create-build-xml =
     // Note that we cannot call this file build.xml,
@@ -77,7 +74,7 @@ strategies
     <?xml version="1.0" encoding="UTF-8"?>
     <project name="build.generated">
     
-        <target name="spoofaximp.default" depends="utils-files,sdf2table,ppgen,stratego.aster,stratego.ctree,sdf2imp"/>
+        <target name="spoofaximp.default" depends="utils-files,sdf2table,ppgen,pppack,stratego.aster,stratego.ctree,sdf2imp,refresh"/>
     
         <!-- Initialization -->
         <available file="${trans}/${strmodule}.str" property="build.stratego.enabled"/>
@@ -108,8 +105,21 @@ strategies
             </java>
         </target>
         
+        <target name="refresh" if="eclipse.running">
+            <eclipse.convertPath fileSystemPath="${basedir}" property="projectdir" />
+            <eclipse.refreshLocal resource="${projectdir}/include" depth="infinite" />
+            <eclipse.refreshLocal resource="${projectdir}/syntax/${sdfmodule}.pp.generated" depth="infinite" />
+            <eclipse.refreshLocal resource="${projectdir}/lib/editor-common.generated.str" depth="infinite" />
+            <eclipse.refreshLocal resource="${projectdir}/build.generated.xml" depth="infinite" />
+            <eclipse.refreshLocal resource="${projectdir}/editor/${sdfmodule}-Builders.generated.esv" depth="infinite" />
+            <eclipse.refreshLocal resource="${projectdir}/editor/${sdfmodule}-Colorer.generated.esv" depth="infinite" />
+            <eclipse.refreshLocal resource="${projectdir}/editor/${sdfmodule}-Completions.generated.esv" depth="infinite" />
+            <eclipse.refreshLocal resource="${projectdir}/editor/${sdfmodule}-Folding.generated.esv" depth="infinite" />
+            <eclipse.refreshLocal resource="${projectdir}/editor/${sdfmodule}-References.generated.esv" depth="infinite" />
+            <eclipse.refreshLocal resource="${projectdir}/editor/${sdfmodule}-Syntax.generated.esv" depth="infinite" />
+        </target>
+        
         <target name="sdf2imp.standalone" unless="eclipse.running" depends="sdf2rtg">
-            <echo message="Property eclipse.running is not set; assuming Eclipse is not running"/>
             <java classname="org.strategoxt.imp.generator.sdf2imp" failonerror="true">
                 <arg value="-i"/>
                 <arg value="${basedir}/editor/${esvmodule}.main.esv"/>
@@ -171,7 +181,7 @@ strategies
         </target>
     
         <target name="pack-sdf.helper" unless="pack-sdf.available">
-            <java classname="start" failonerror="true">
+            <java classname="run" failonerror="true">
                 <arg value="org.strategoxt.tools.main-pack-sdf"/>
                 <arg value="-i"/>
                 <arg value="${syntax}/${sdfmodule}.sdf"/>
@@ -203,7 +213,7 @@ strategies
         </target>
     
         <target name="rtg2sig.helper" unless="rtg2sig.available">
-            <java classname="start" failonerror="true">
+            <java classname="run" failonerror="true">
                 <arg value="org.strategoxt.tools.main-rtg2sig"/>
                 <arg value="-i"/>
                 <arg value="${include}/${sdfmodule}.rtg"/>
@@ -224,7 +234,7 @@ strategies
         </target>
     
         <target name="sdf2rtg.helper" unless="sdf2rtg.available">
-            <java classname="start" failonerror="true">
+            <java classname="run" failonerror="true">
                 <arg value="org.strategoxt.tools.main-sdf2rtg"/>
                 <arg value="-i"/>
                 <arg value="${include}/${sdfmodule}.def"/>
@@ -241,29 +251,49 @@ strategies
         <target name="ppgen" if="build.stratego.enabled" depends="pack-sdf">
             <dependset>
                 <srcfileset file="${include}/${sdfmodule}.def"/>
-                <targetfileset file="${include}/${sdfmodule}.pp"/>
-                <targetfileset file="${include}/${sdfmodule}.pp.af"/>
+                <targetfileset file="${syntax}/${sdfmodule}.generated.pp"/>
+                <targetfileset file="${include}/${sdfmodule}.generated.pp.af"/>
             </dependset>
-            <available file="${include}/${sdfmodule}.pp" property="ppgen.available"/>
+            <available file="${include}/${sdfmodule}.generated.pp.af" property="ppgen.available"/>
             <antcall target="ppgen.helper"/>
         </target>
     
         <target name="ppgen.helper" unless="ppgen.available">
             <!-- Any failures here are ignored; they are only a problem when imported from Stratego -->
-            <java classname="start" failonerror="false">
+            <java classname="run" failonerror="false">
                 <arg value="org.strategoxt.tools.main-ppgen"/>
                 <arg value="-i"/>
                 <arg value="${include}/${sdfmodule}.def"/>
                 <arg value="-o"/>
-                <arg value="${include}/${sdfmodule}.pp.af"/>
+                <arg value="${include}/${sdfmodule}.generated.pp.af"/>
                 <arg value="-t"/>
             </java>
-            <java classname="start" failonerror="false">
-                <arg value="org.strategoxt.tools.pp-pp-table"/>
+            <java classname="run" failonerror="false">
+                <arg value="org.strategoxt.tools.main-pp-pp-table"/>
                 <arg value="-i"/>
-                <arg value="${include}/${sdfmodule}.pp.af"/>
+                <arg value="${include}/${sdfmodule}.generated.pp.af"/>
                 <arg value="-o"/>
-                <arg value="${include}/${sdfmodule}.pp"/>
+                <arg value="${syntax}/${sdfmodule}.generated.pp"/>
+            </java>
+        </target>
+        
+        <target name="pppack" if="build.stratego.enabled" depends="pack-sdf">
+            <dependset>
+                <srcfileset file="${syntax}/${sdfmodule}.pp"/>
+                <targetfileset file="${include}/${sdfmodule}.pp.af"/>
+            </dependset>
+            <available file="${include}/${sdfmodule}.pp.af" property="pppack.available"/>
+            <available file="${syntax}/${sdfmodule}.pp" property="pppack.source-available"/>
+            <antcall target="pppack.helper"/>
+        </target>
+    
+        <target name="pppack.helper" unless="pppack.available" if="pppack.source-available">
+            <java classname="run">
+                <arg value="org.strategoxt.tools.main-parse-pp-table"/>
+                <arg value="-i"/>
+                <arg value="${syntax}/${sdfmodule}.pp"/>
+                <arg value="-o"/>
+                <arg value="${include}/${sdfmodule}.pp.af"/>
             </java>
         </target>
     

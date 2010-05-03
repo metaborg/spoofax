@@ -128,4 +128,5 @@ strategies
   is-prefixed-keyword =
     explode-string;
     where([not(is-alpha) | id]); // not("")
-    one(is-alpha)
+    one(is-alpha);
+    not(one("\"" + "\\")) // only allow stringchars for pretty-printing

@@ -155,6 +155,7 @@ public class DynamicDescriptorBuilder {
 			//context.getExceptionHandler().setEnabled(true);
 			return sdf2imp_jvm_0_0.instance.invoke(context, input);
 		} catch (StrategoErrorExit e) {
+			context.printStackTrace();
 			Environment.logException("Fatal error in dynamic builder, log:\n" + agent.getLog().trim(), e);
 			reportError(mainFile, "Fatal error in descriptor " + mainFile + ": " + e.getMessage(), e);
 			return null;
@@ -239,6 +240,7 @@ public class DynamicDescriptorBuilder {
 		
 		IResource includeDir = project.findMember("include");
 		IResource editorDir = project.findMember("editor");
+		IResource syntaxDir = project.findMember("editor");
 		// IResource buildFile = project.findMember("build.generated.xml");
 		// IResource editorCommonFile = project.findMember("lib/editor-common.generated.str");
 		IResource cacheDir = project.findMember(".cache");
@@ -257,6 +259,11 @@ public class DynamicDescriptorBuilder {
 			}
 			//if (buildFile != null)
 			//	buildFile.setDerived(true);
+		}
+		
+		for (IResource member : ((IContainer) syntaxDir).members()) {
+			if (member.getName().endsWith(".generated.pp"))
+				member.setDerived(true);
 		}
 		
 		if (cacheDir != null && cacheDir.exists()) cacheDir.setDerived(true);

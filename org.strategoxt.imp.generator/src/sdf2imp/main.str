@@ -100,6 +100,7 @@ strategies
         rules(StartSymbol := "Start")
       end;
       create-grammar;
+      create-pp-table;
       create-example-trans;
       input @ FILE(inputname) := <pack-default-sdf> FILE($[syntax/[<get-sdf-main-module>].sdf]);
       rules(DefaultDefFile := inputname)
@@ -145,7 +146,7 @@ strategies
     copy-jars;
     copy-def-file;
     
-    say(!"SUCCESS: completed with 0 fatal errors.")
+    say(!"Completed with 0 fatal errors.")
 
   is-heuristic-services-needed =
     not(

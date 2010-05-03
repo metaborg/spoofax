@@ -29,7 +29,8 @@ strategies
       not([])
     )
   <+
-    fatal-err-msg(|"No legal start symbol specified")
+    (StartSymbol <+ !None());
+    fatal-err(|["No legal start symbol specified in ", <get-sdf-main-module>, " esv definition"])
   
   heuristic-register-production =
     try(

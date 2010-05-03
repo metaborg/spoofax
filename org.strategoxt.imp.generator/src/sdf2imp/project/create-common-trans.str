@@ -16,26 +16,35 @@ ${module lib/editor-common.generated
 imports
   libstratego-lib
   libstratego-sglr
+  libstratego-gpp
 
 strategies
 
-  parse-file =
+  parse-file = parse-{name}-file
+  parse-{name}-file =
     parse-file(
       strsglr-perror, strsglr-report-parse-error
     | <import-term(include/{sdf-name}.tbl)>
     )
 
-  parse-string =
+  parse-string = parse-{name}-string
+  parse-{name}-string =
     parse-string(
       strsglr-report-parse-error
     | <import-term(include/{sdf-name}.tbl)>
     )
   
-  parse-stream =
+  parse-stream = parse-{name}-stream
+  parse-{name}-stream =
     parse-stream(
       strsglr-report-parse-error
     | <import-term(include/{sdf-name}.tbl)>
     )
+
+  pp-{name}-string =
+    ast2abox(|[<import-term(include/{sdf-name}.generated.pp.af)>,
+               <import-term(include/{sdf-name}.pp.af)>]);
+    box2text-string(|100)
 
 strategies
   
@@ -200,13 +209,7 @@ strategies
 
   subterm-at(|index):
     _#(t*) -> <index(|<inc> index)> t*
-  {"" /* TODO: pretty-printer
-  // Pretty prints the {sdf-name} language to a string
-  pp-{name}-string =
-    ast2abox(|[<import-term(include/{sdf-name}.generated.pp.af)>,
-               <import-term(include/{sdf-name}.pp.af)>]);
-    box2text-string(|100)*/
-  }
+  
 signature constructors
 
   COMPLETION : String -> Term

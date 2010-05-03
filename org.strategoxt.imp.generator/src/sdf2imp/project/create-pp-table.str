@@ -1,0 +1,16 @@
+module sdf2imp/project/create-pp-table
+
+imports
+  sdf2imp/util/-
+
+strategies
+
+  create-pp-table =
+    <file-exists> <conc-strings> ("syntax/", <get-sdf-main-module>, ".pp")
+  <+
+    name        := <get-sdf-main-module>;
+    
+    <output-text-file(|["syntax"], <conc-strings> (name, ".pp"))>
+    ${ %% Pretty printing table (see also {name}.generated.pp)
+       []
+     }

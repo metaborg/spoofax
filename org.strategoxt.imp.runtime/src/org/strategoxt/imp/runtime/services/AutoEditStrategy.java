@@ -32,7 +32,6 @@ import org.spoofax.NotImplementedException;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
-import org.strategoxt.stratego_lib.getenv_0_0;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -178,6 +177,8 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 		//    insert only if "\bif" is typed
 		
 		// TODO: respect Eclipse preference for inserting brackets
+		
+		// TODO: don't insert closing brackets in front of opening brackets, e.g.: ()(
 
 		String lineEnd = getLineAfterOffset(document, offset, length);
 		if (getEditor().getInsertMode() == SMART_INSERT

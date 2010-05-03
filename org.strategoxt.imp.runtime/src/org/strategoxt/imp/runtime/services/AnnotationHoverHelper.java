@@ -10,7 +10,6 @@ import org.eclipse.imp.services.IDocumentationProvider;
 import org.eclipse.imp.services.IHoverHelper;
 import org.eclipse.imp.services.IReferenceResolver;
 import org.eclipse.imp.services.base.HoverHelperBase;
-import org.eclipse.imp.utils.HTMLPrinter;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.ISourceViewer;
@@ -48,17 +47,7 @@ public class AnnotationHoverHelper extends HoverHelperBase implements IHoverHelp
        	IDocumentationProvider docProvider= ServiceFactory.getInstance().getDocumentationProvider(fLanguage);
        	String doc= (docProvider != null) ? docProvider.getDocumentation(target, parseController) : null;			
 
-       	if (doc != null)
-       		return doc;
-
-       	if (target==selNode)
-       		return null;
-
-       	StringBuffer buffer= new StringBuffer();
-
-       	HTMLPrinter.addSmallHeader(buffer, target.toString());
-       	HTMLPrinter.addParagraph(buffer, doc);
-       	return buffer.toString();
+       	return doc;
 	}
 
 }
