@@ -185,7 +185,8 @@ public class StrategoBuilder implements IBuilder {
 				// TODO: if not persistent, create IEditorInput from result String
 				if (openEditor && !isRebuild) {
 					IEditorPart target = openEditor(file, realTime);
-					if (!persistent) new File(file.getLocationURI()).delete();
+					// UNDONE: don't delete non-persistent files for now since it causes problem with workspace auto-refresh
+					// if (!persistent) new File(file.getLocationURI()).delete();
 					// Create a listene *and* editor-derived editor relation
 					StrategoBuilderListener listener = 
 						StrategoBuilderListener.addListener(editor.getEditor(), target, file, getCaption(), node);
