@@ -35,9 +35,9 @@ public class StrategoConsole {
 	
 	private static MessageConsole lastConsole;
 	
-	private static Writer lastConsoleOutputWriter;
+	private static AutoFlushOutputStreamWriter lastConsoleOutputWriter;
 	
-	private static Writer lastConsoleErrorWriter;
+	private static AutoFlushOutputStreamWriter lastConsoleErrorWriter;
 
 	public static Writer getErrorWriter() {
 		MessageConsole console = getConsole();
@@ -62,6 +62,14 @@ public class StrategoConsole {
 			lastConsole = console;
 			return lastConsoleOutputWriter;
 		}
+	}
+	
+	public static OutputStream getErrorStream() {
+		return ((AutoFlushOutputStreamWriter) getErrorWriter()).stream;
+	}
+	
+	public static OutputStream getOutputStream() {
+		return ((AutoFlushOutputStreamWriter) getOutputWriter()).stream;
 	}
 
 	/**
@@ -134,9 +142,12 @@ public class StrategoConsole {
 	 * @author Lennart Kats <lennart add lclnet.nl>
 	 */
 	private static class AutoFlushOutputStreamWriter extends OutputStreamWriter {
+		
+		final OutputStream stream;
 
-		public AutoFlushOutputStreamWriter(OutputStream out) {
-			super(out);
+		public AutoFlushOutputStreamWriter(OutputStream stream) {
+			super(stream);
+			this.stream = stream;
 		}
 		
 		@Override
