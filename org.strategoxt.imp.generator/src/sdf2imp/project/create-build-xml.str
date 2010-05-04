@@ -256,6 +256,8 @@ strategies
             </dependset>
             <available file="${include}/${sdfmodule}.generated.pp.af" property="ppgen.available"/>
             <antcall target="ppgen.helper"/>
+            <available file="${include}/${sdfmodule}.generated.pp.af" property="ppgen.available"/>
+            <antcall target="ppgen.helper.fallback"/>
         </target>
     
         <target name="ppgen.helper" unless="ppgen.available">
@@ -276,25 +278,35 @@ strategies
                 <arg value="${syntax}/${sdfmodule}.generated.pp"/>
             </java>
         </target>
+    
+        <target name="ppgen.helper.fallback" unless="ppgen.available">
+            <echo file="${include}/${sdfmodule}.generated.pp.af" message="PP-Table([])"/>
+        </target>
         
         <target name="pppack" if="build.stratego.enabled" depends="pack-sdf">
             <dependset>
                 <srcfileset file="${syntax}/${sdfmodule}.pp"/>
                 <targetfileset file="${include}/${sdfmodule}.pp.af"/>
             </dependset>
-            <available file="${include}/${sdfmodule}.pp.af" property="pppack.available"/>
             <available file="${syntax}/${sdfmodule}.pp" property="pppack.source-available"/>
+            <available file="${include}/${sdfmodule}.pp.af" property="pppack.available"/>
             <antcall target="pppack.helper"/>
+            <available file="${include}/${sdfmodule}.pp.af" property="pppack.available"/>
+            <antcall target="pppack.helper.fallback"/>
         </target>
     
         <target name="pppack.helper" unless="pppack.available" if="pppack.source-available">
-            <java classname="run">
+            <java classname="run" failonerror="true">
                 <arg value="org.strategoxt.tools.main-parse-pp-table"/>
                 <arg value="-i"/>
                 <arg value="${syntax}/${sdfmodule}.pp"/>
                 <arg value="-o"/>
                 <arg value="${include}/${sdfmodule}.pp.af"/>
             </java>
+        </target>
+    
+        <target name="pppack.helper.fallback" unless="pppack.available">
+            <echo file="${include}/${sdfmodule}.pp.af" message="PP-Table([])"/>
         </target>
     
         <!-- Aster to Stratego -->

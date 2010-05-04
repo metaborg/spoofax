@@ -2,8 +2,6 @@ package org.strategoxt.imp.runtime.parser.ast;
 
 import java.util.ArrayList;
 
-import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
-
 import lpg.runtime.IToken;
 
 /**
