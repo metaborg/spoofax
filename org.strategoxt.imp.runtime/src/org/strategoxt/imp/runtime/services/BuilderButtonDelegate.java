@@ -5,6 +5,7 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.imp.ui.DefaultPartListener;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ActionContributionItem;
 import org.eclipse.jface.action.IAction;
@@ -14,12 +15,14 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowPulldownDelegate;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.RuntimeActivator;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
+import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 
 /**
  * Implements a dropdown button with builder actions.
@@ -28,14 +31,28 @@ import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
  */
 public class BuilderButtonDelegate extends AbstractHandler implements IWorkbenchWindowPulldownDelegate {
 	
-	// TODO: IWorkbenchWindowPulldownDelegate?
-	
 	private static String lastAction;
 	
 	private Menu menu;
 
 	public void init(IWorkbenchWindow window) {
 		// Initialized using getMenu()
+		window.getPartService().addPartListener(new DefaultPartListener() {
+			@Override			
+			public void partActivated(IWorkbenchPart part) {
+				EditorState editor = EditorState.getActiveEditor();
+				if (editor != null) {
+					Descriptor d = editor.getDescriptor();
+					String caption = d.getBuilderCaption();
+					// TODO: Spoofax/1: Transform menu customization for Spoofax/IMP editor builders
+					if (caption == null) {
+						// set "Transform" as caption
+					} else {
+						// set caption as caption
+					}
+				}
+			}
+		});
 	}
 
 	public void run(IAction action) {

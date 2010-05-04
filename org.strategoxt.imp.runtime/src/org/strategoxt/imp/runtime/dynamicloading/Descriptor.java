@@ -62,6 +62,8 @@ public class Descriptor {
 	
 	private IPath basePath;
 	
+	private String builderCaption;
+	
 	private Set<File> attachedFiles;
 	
 	private Class<?> attachmentProvider;
@@ -350,6 +352,12 @@ public class Descriptor {
 			file += ".tbl";
 		return file;
 	}
+	
+	public String getBuilderCaption() {
+		if (builderCaption == null)
+			builderCaption = getProperty("BuilderCaption", "");
+		return builderCaption.length() == 0 ? null : builderCaption;
+	}
 
 	private String getPPTableName() throws BadDescriptorException {
 		String file = getProperty("PPTable", getProperty("LanguageName"));
@@ -385,14 +393,14 @@ public class Descriptor {
 		return attachedFiles;
 	}
 
-	protected String getProperty(String name) throws BadDescriptorException {
+	public String getProperty(String name) throws BadDescriptorException {
 		String result = getProperty(name, null);
 		if (result == null)
 			throw new BadDescriptorException("Property " + name + " not specified");
 		return result;
 	}
 
-	protected String getProperty(String name, String defaultValue) {
+	public String getProperty(String name, String defaultValue) {
 		IStrategoAppl result = findTerm(document, name);
 		if (result == null)
 			return defaultValue;

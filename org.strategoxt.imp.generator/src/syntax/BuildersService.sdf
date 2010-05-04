@@ -19,7 +19,7 @@ exports
     
     "observer" ":" StrategoCall                           -> SemanticRule {cons("SemanticObserver")}
     "builder"  ":" String "=" StrategoCall BuilderOption* -> SemanticRule {cons("Builder")}
-    
+    "builder" "caption" ":" PropertyValue                 -> SemanticRule {cons("BuilderCaption")}
     
     "(openeditor)" -> BuilderOption {cons("OpenEditor")}
     "(realtime)"   -> BuilderOption {cons("RealTime")}
