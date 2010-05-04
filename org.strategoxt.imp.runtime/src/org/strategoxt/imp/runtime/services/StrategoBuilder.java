@@ -7,7 +7,6 @@ import static org.spoofax.interpreter.core.Tools.isTermTuple;
 import static org.spoofax.interpreter.core.Tools.termAt;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.InputStream;
 
 import org.eclipse.core.resources.IFile;
@@ -58,6 +57,7 @@ public class StrategoBuilder implements IBuilder {
 	
 	private final boolean source;
 	
+	@SuppressWarnings("unused")
 	private final boolean persistent;
 	
 	private final EditorState derivedFromEditor;

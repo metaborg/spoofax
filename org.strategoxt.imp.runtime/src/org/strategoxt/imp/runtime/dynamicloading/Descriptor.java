@@ -393,14 +393,14 @@ public class Descriptor {
 		return attachedFiles;
 	}
 
-	public String getProperty(String name) throws BadDescriptorException {
+	protected String getProperty(String name) throws BadDescriptorException {
 		String result = getProperty(name, null);
 		if (result == null)
 			throw new BadDescriptorException("Property " + name + " not specified");
 		return result;
 	}
 
-	public String getProperty(String name, String defaultValue) {
+	protected String getProperty(String name, String defaultValue) {
 		IStrategoAppl result = findTerm(document, name);
 		if (result == null)
 			return defaultValue;
