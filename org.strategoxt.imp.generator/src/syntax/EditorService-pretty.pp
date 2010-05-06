@@ -4,6 +4,7 @@
    CompletionProposer   -- R [ H [ KW["completion"] KW["proposer"] ] KW[":"] _1 ],
    CompletionLexical    -- R [ H [ KW["completion"] KW["lexical"] ] KW[":"] _1 ],
    IdentifierLexical    -- R [ H [ KW["identifier"] KW["lexical"] ] KW[":"] _1 ],
+   Placeholder          -- H hs=0 [ _1 ],
    CompletionKeyword    -- R [ H [ KW["completion"] KW["keyword"] ] KW[":"] H [ _1 _2 ] ],
    CompletionTemplate   -- R [ H [ KW["completion"] KW["template"] ] KW[":"] H [ _1 _2 _3 ] ],
    CompletionTemplate.2:iter-star -- _1,
