@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -51,8 +52,14 @@ public class Descriptor {
 	private final Map<IDynamicLanguageService, Object> activeServices =
 		Collections.synchronizedMap(new WeakHashMap<IDynamicLanguageService, Object>());
 	
-	private final Map<SGLRParseController, Map<Class, ILanguageService>> cachedServices =
-		Collections.synchronizedMap(new WeakHashMap<SGLRParseController, Map<Class, ILanguageService>>());
+	/**
+	 * We have to use a WeakReference here, because there's many references from a value to its key.
+	 * For example, many language services have a reference to an AST node, which (eventually) has a reference to
+	 * the root ast node, which has a reference back to the SGLRParseController. See the implementation note on
+	 * http://java.sun.com/j2se/1.5.0/docs/api/java/util/WeakHashMap.html
+	 */
+	private final Map<SGLRParseController, WeakReference<Map<Class<? extends ILanguageService>, ILanguageService>>> cachedServices =
+		Collections.synchronizedMap(new WeakHashMap<SGLRParseController, WeakReference<Map<Class<? extends ILanguageService>, ILanguageService>>>());
 	
 	private final List<AbstractServiceFactory> serviceFactories = new ArrayList<AbstractServiceFactory>();
 	
@@ -159,21 +166,26 @@ public class Descriptor {
 			throw new IllegalStateException("Could not create an editor service for " + type.getSimpleName());
 	}
 
+	private Map<Class<? extends ILanguageService>, ILanguageService> getCachedServicesForController(SGLRParseController controller) {
+		WeakReference<Map<Class<? extends ILanguageService>, ILanguageService>> ref = this.cachedServices.get(controller);
+		return ref != null ? ref.get() : null;
+	}
+	
 	@SuppressWarnings("unchecked")
-	private<T> T getCachedService(Class<T> type, SGLRParseController controller) {
-		Map<Class, ILanguageService> cache = cachedServices.get(controller);
+	private <T> T getCachedService(Class<T> type, SGLRParseController controller) {
+		Map<Class<? extends ILanguageService>, ILanguageService> cache = getCachedServicesForController(controller);
 		T result = cache == null ? null : (T) cache.get(type);
 		return result;
 	}
 
-	private void addKnownService(Class type, SGLRParseController controller, ILanguageService service, boolean isCached) {
+	private <T extends ILanguageService> void addKnownService(Class<T> type, SGLRParseController controller, ILanguageService service, boolean isCached) {
 		if (service instanceof IDynamicLanguageService)
 			activeServices.put((IDynamicLanguageService) service, null);
 		if (isCached) {
-			Map<Class, ILanguageService> cache = cachedServices.get(controller);
+			Map<Class<? extends ILanguageService>, ILanguageService> cache = getCachedServicesForController(controller);
 			if (cache == null) {
-				cache = Collections.synchronizedMap(new HashMap<Class, ILanguageService>());
-				cachedServices.put(controller, cache);
+				cache = Collections.synchronizedMap(new HashMap<Class<? extends ILanguageService>, ILanguageService>());
+				cachedServices.put(controller, new WeakReference<Map<Class<? extends ILanguageService>, ILanguageService>>(cache));
 			}
 			cache.put(type, service);
 		}
