@@ -93,7 +93,7 @@ strategies
         readdir;
         list-loop(
           if is-source-file then
-            <open-import(resolve-path, parse-file, record-declarations)>
+            <open-import(id, parse-file, record-declarations)>
               $[[path]/[<id>]]
           <+
             try(?one-failed)

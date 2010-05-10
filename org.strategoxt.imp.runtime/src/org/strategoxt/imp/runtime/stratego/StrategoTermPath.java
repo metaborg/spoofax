@@ -1,9 +1,6 @@
 package org.strategoxt.imp.runtime.stratego;
 
-import static java.util.Arrays.asList;
-
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 
