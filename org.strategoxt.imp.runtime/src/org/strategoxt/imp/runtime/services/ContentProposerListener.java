@@ -1,8 +1,6 @@
 package org.strategoxt.imp.runtime.services;
 
-import java.util.Map;
 import java.util.Set;
-import java.util.WeakHashMap;
 import java.util.regex.Pattern;
 
 import org.eclipse.jface.text.BadLocationException;
@@ -12,6 +10,7 @@ import org.eclipse.jface.text.ITextOperationTarget;
 import org.eclipse.jface.text.TextEvent;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.WeakWeakMap;
 
 /**
  * Activates the content proposer based on text events.
@@ -20,8 +19,8 @@ import org.strategoxt.imp.runtime.Environment;
  */
 public class ContentProposerListener implements ITextListener {
 	
-	private static final Map<ISourceViewer, ContentProposerListener> asyncListeners =
-		new WeakHashMap<ISourceViewer, ContentProposerListener>();
+	private static final WeakWeakMap<ISourceViewer, ContentProposerListener> asyncListeners =
+		new WeakWeakMap<ISourceViewer, ContentProposerListener>();
 	
 	private final Set<Pattern> patterns;
 	

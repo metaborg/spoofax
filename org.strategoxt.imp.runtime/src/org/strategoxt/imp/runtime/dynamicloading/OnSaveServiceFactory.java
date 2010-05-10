@@ -8,13 +8,13 @@ import static org.spoofax.interpreter.core.Tools.termAt;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.findTerm;
 
 import java.util.Map;
-import java.util.WeakHashMap;
 
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.parser.IParseController;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.WeakWeakMap;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.services.OnSaveService;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
@@ -25,7 +25,7 @@ import org.strategoxt.imp.runtime.services.StrategoObserver;
 public class OnSaveServiceFactory extends AbstractServiceFactory<OnSaveService> {
 	
 	private static final Map<UniversalEditor, OnSaveService> registeredServices =
-		synchronizedMap(new WeakHashMap<UniversalEditor, OnSaveService>());
+		synchronizedMap(new WeakWeakMap<UniversalEditor, OnSaveService>());
 
 	public OnSaveServiceFactory() {
 		super(OnSaveService.class, false);
@@ -43,7 +43,7 @@ public class OnSaveServiceFactory extends AbstractServiceFactory<OnSaveService> 
 		return new OnSaveService(feedback, function);
 	}
 
-	public static void eagerInit(Descriptor descriptor, IParseController controller,
+	public static synchronized void eagerInit(Descriptor descriptor, IParseController controller,
 			EditorState editor) {
 		
 		try {

@@ -32,8 +32,8 @@ public class IMPParseStringPTPrimitive extends JSGLR_parse_string_pt_compat {
 	
 	private final SourceMappings mappings;
 	
-	private Map<ParseTable, ParseTable> isNoRecoveryWarned =
-		new WeakHashMap<ParseTable, ParseTable>();
+	private Map<ParseTable, Object> isNoRecoveryWarned =
+		new WeakHashMap<ParseTable, Object>();
 
 	protected IMPParseStringPTPrimitive(ATermFactory atermFactory, Disambiguator filterSettings, 
 			SourceMappings mappings) {
@@ -59,7 +59,7 @@ public class IMPParseStringPTPrimitive extends JSGLR_parse_string_pt_compat {
 			assert table.hashCode() == System.identityHashCode(table);
 			if (!isNoRecoveryWarned.containsKey(table)) {
 				Environment.logException(NAME + ": warning - no recovery rules available in parse table", e);
-				isNoRecoveryWarned.put(table, table);
+				isNoRecoveryWarned.put(table, null);
 			}
 		}
 		char[] inputChars = input.toCharArray();

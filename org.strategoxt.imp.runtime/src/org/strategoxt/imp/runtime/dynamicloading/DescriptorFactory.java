@@ -11,7 +11,6 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.language.Language;
-import org.jboss.util.collection.WeakValueHashMap;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.jsglr.InvalidParseTableException;
 import org.spoofax.jsglr.ParseTable;
@@ -20,6 +19,7 @@ import org.strategoxt.imp.generator.sdf2imp;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.JSGLRI;
+import org.strategoxt.lang.WeakValueHashMap;
 import org.strategoxt.lang.terms.BAFReader;
 
 /**

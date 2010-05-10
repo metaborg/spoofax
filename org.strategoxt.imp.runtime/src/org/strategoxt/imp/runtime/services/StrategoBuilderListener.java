@@ -1,8 +1,6 @@
 package org.strategoxt.imp.runtime.services;
 
 import java.lang.ref.WeakReference;
-import java.util.Map;
-import java.util.WeakHashMap;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -12,6 +10,7 @@ import org.eclipse.imp.parser.IParseController;
 import org.eclipse.ui.IEditorPart;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.WeakWeakMap;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
@@ -24,8 +23,8 @@ public class StrategoBuilderListener implements IModelListener {
 	/**
 	 * Maps target editors to their builder listener.
 	 */
-	private static final Map<IEditorPart, StrategoBuilderListener> asyncListeners =
-		new WeakHashMap<IEditorPart, StrategoBuilderListener>();
+	private static final WeakWeakMap<IEditorPart, StrategoBuilderListener> asyncListeners =
+		new WeakWeakMap<IEditorPart, StrategoBuilderListener>();
 	
 	private final String builder;
 	
