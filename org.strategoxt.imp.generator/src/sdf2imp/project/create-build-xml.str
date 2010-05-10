@@ -118,6 +118,7 @@ strategies
             <eclipse.refreshLocal resource="${projectdir}/editor/${sdfmodule}-Folding.generated.esv" depth="infinite" />
             <eclipse.refreshLocal resource="${projectdir}/editor/${sdfmodule}-References.generated.esv" depth="infinite" />
             <eclipse.refreshLocal resource="${projectdir}/editor/${sdfmodule}-Syntax.generated.esv" depth="infinite" />
+            <eclipse.refreshLocal resource="${build}" depth="infinite" />
         </target>
         
         <target name="sdf2imp.standalone" unless="eclipse.running" depends="sdf2rtg">
@@ -376,6 +377,9 @@ strategies
                 <param name="build.stratego.extraargs" value="-la java-front"/>
                 <param name="build.stratego.extension" value="java"/>
             </antcall>
+            <delete>
+              <fileset dir="${build}" includes="trans/**" />
+            </delete>
             <javac classpath="utils/strategoxt.jar:${src-gen}${externaljarimport}" srcdir="${src-gen}" includes="trans/**" destdir="${build}" source="1.5" target="1.5" debug="on"/>
             <jar basedir="${build}" includes="trans/**" destfile="${include}/${strmodule}.jar"/>
         </target>
