@@ -299,7 +299,7 @@ public final class Environment {
 			t.printStackTrace();
 		}
 		if (message == null) message = t.getLocalizedMessage() == null ? t.getMessage() : t.getLocalizedMessage();
-		Status status = new Status(IStatus.ERROR, RuntimeActivator.PLUGIN_ID, 0, message, null);
+		Status status = new Status(IStatus.ERROR, RuntimeActivator.PLUGIN_ID, 0, message, t);
 		RuntimeActivator activator = RuntimeActivator.getInstance();
 		if (activator != null) activator.getLog().log(status);
 	}
