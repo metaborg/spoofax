@@ -10,6 +10,7 @@ public class IMPLibrary extends AbstractStrategoOperatorRegistry {
 	public static final String REGISTRY_NAME = "sdf2imp";
 	
 	public IMPLibrary() {
+		add(new DialogPrimitive());
 		add(new SubtermPrimitive());
 		add(new ProjectPathPrimitive());
 		add(new RefreshResourcePrimitive());

@@ -109,10 +109,13 @@ public class TextPositions {
 		int lineNr=endTok.getEndLine();
 		IToken nextTok=tokStream.getTokenAt(endTok.getTokenIndex()+1);
 		while(nextTok.getTokenIndex()<tokStream.getTokens().size()-1){
-			if(nextTok.getLine()>lineNr)
-				return tokStream.getLineOffset(lineNr)+1;
-			if(!SGLRToken.isWhiteSpace(nextTok))
-				return nextTok.getStartOffset();
+			//if(nextTok.getLine()>lineNr)
+				//return tokStream.getLineOffset(lineNr)+1;
+			if(!SGLRToken.isWhiteSpace(nextTok)){
+				if(nextTok.getLine() == endTok.getEndLine())
+					return nextTok.getStartOffset();
+				return tokStream.getLineOffset(nextTok.getLine()-1)+1;
+			}
 			nextTok=tokStream.getTokenAt(nextTok.getTokenIndex()+1);
 		}
 		if(isLayout(nextTok))

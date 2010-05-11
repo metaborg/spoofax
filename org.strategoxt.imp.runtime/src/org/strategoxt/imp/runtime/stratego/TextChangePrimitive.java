@@ -21,6 +21,7 @@ import org.strategoxt.lang.terms.StrategoTuple;
  * a. (AstNode, "textfragment") of 
  * b. ((offset, end-offset), "textfragment") of
  * c. ((l, c, end-l, end-c), "textfragment")
+ * d. ("textfragment")
  * @author Maartje de Jonge
  */
 public class TextChangePrimitive extends AbstractPrimitive {
@@ -33,15 +34,19 @@ public class TextChangePrimitive extends AbstractPrimitive {
 	
 	@Override
 	public final boolean call(IContext env, Strategy[] svars, IStrategoTerm[] tvars) {
-		if (tvars.length!=2 || !isTermString(tvars[1]))
-			return false;
-		if(!(tvars[0] instanceof IWrappedAstNode || islocationTuple(tvars[0])))
-			return false;
 		EditorState editor = EditorState.getActiveEditor();
 		ILexStream lexStream= editor.getParseController().getCurrentAst().getLeftIToken().getILexStream();
 		int position_start = -1;
 		int position_end = -1;
-		if(tvars[0] instanceof IWrappedAstNode){
+		if (tvars.length!=2 || !isTermString(tvars[1]))
+			return false;
+		if(!(tvars[0] instanceof IWrappedAstNode || islocationTuple(tvars[0]) || isEmptyString(tvars[0])))
+			return false;
+		if (isTermString(tvars[0])){
+			position_start = 0;
+			position_end= lexStream.getStreamLength()-1;
+		}
+		else if(tvars[0] instanceof IWrappedAstNode){
 			position_start=TextPositions.getStartPosNode(((IWrappedAstNode)tvars[0]).getNode());
 			position_end=TextPositions.getEndPosNode(((IWrappedAstNode)tvars[0]).getNode());
 		}
@@ -60,11 +65,20 @@ public class TextChangePrimitive extends AbstractPrimitive {
 				position_end=lexStream.getLineOffset(line_end)+col_end+1;
 			}
 		}
+		if(TextPositions.isUnvalidInterval(position_start, position_end, lexStream))
+			return false;
 		String text = ((IStrategoString)tvars[1]).stringValue();
+		return applyTextChange(editor, position_start, position_end, text);
+	}
+
+	private boolean isEmptyString(IStrategoTerm tvar) {
+		return (isTermString(tvar) && ((IStrategoString)tvar).stringValue().equals(""));
+	}
+
+	private boolean applyTextChange(EditorState editor, int position_start, int position_end,
+			String text) {
 		try {
 			IDocument doc = editor.getDocument();
-			if(TextPositions.isUnvalidInterval(position_start, position_end, lexStream))
-				return false;
 			doc.replace(position_start, position_end-position_start, text);
 		} 
 		catch (BadLocationException e) {
