@@ -106,7 +106,7 @@ public class TextPositions {
 			endTok=node.getRightIToken();
 		}
 		IPrsStream tokStream=endTok.getIPrsStream();
-		int lineNr=endTok.getEndLine();
+		// int lineNr=endTok.getEndLine();
 		IToken nextTok=tokStream.getTokenAt(endTok.getTokenIndex()+1);
 		while(nextTok.getTokenIndex()<tokStream.getTokens().size()-1){
 			//if(nextTok.getLine()>lineNr)

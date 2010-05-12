@@ -1,24 +1,22 @@
 package org.strategoxt.imp.runtime.stratego;
 
+import static org.spoofax.interpreter.core.Tools.isTermList;
+import static org.spoofax.interpreter.core.Tools.isTermString;
+
 import org.eclipse.jface.dialogs.InputDialog;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
-
-import static org.spoofax.interpreter.core.Tools.*;
 
 //example: div = ?(x,y); (prim("SSL_divi",x,y) <+ prim("SSL_divr",x,y))
 //example: opendialog = prim("SSL_EXT_opendialog",id,"bla") 
 
 /**
- * @author Lennart Kats <lennart add lclnet.nl>
+ * @author Maartje de Jonge
  */
 public class DialogPrimitive extends AbstractPrimitive {
 
