@@ -197,7 +197,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 						factory.makeString(descriptor.getLanguage().getName()));
 				set_config_0_0.instance.invoke(runtime.getCompiledContext(), programName);
 			} catch (BadDescriptorException e) {
-				// Ignore
+				// Ignore; use default program name
 			}
 			monitor.subTask("Loading analysis runtime components");
 		}
