@@ -313,8 +313,12 @@ public final class Environment {
 	}
 	
 	public static void logWarning(String message) {
+		logWarning(message, new RuntimeException(message));
+	}
+	
+	public static void logWarning(String message, Exception e) {
 		if (Debug.ENABLED) STDERR.println("Warning: " + message);
-		Status status = new Status(IStatus.WARNING, RuntimeActivator.PLUGIN_ID, 0, message, new RuntimeException(message));
+		Status status = new Status(IStatus.WARNING, RuntimeActivator.PLUGIN_ID, 0, message, e);
 		RuntimeActivator activator = RuntimeActivator.getInstance();
 		if (activator != null) activator.getLog().log(status);
 	}

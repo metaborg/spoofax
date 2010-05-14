@@ -295,11 +295,12 @@ public class SGLRParseController implements IParseController {
 			if (metaFile != null) {
 				// Unmanaged parse tables may have different start symbols;
 				// try again without the standard start symbol
-				parser.setStartSymbol(null);
-				return parser.parseNoImplode(inputChars, filename);
 			} else {
-				throw new SGLRException(e.getParser(), e.getMessage(), e);
+				// Be forgiving: user probably specified an inconsistent strat symbol in the ESV
+				Environment.logWarning("Incorrect start symbol specified in editor descriptor", e);
 			}
+			parser.setStartSymbol(null);
+			return parser.parseNoImplode(inputChars, filename);
 		}
 	}
 
