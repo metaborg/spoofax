@@ -109,6 +109,7 @@ strategies
         <target name="refresh" if="eclipse.running">
             <eclipse.convertPath fileSystemPath="${basedir}" property="projectdir" />
             <eclipse.refreshLocal resource="${projectdir}/include" depth="infinite" />
+            <eclipse.refreshLocal resource="${projectdir}/utils" depth="infinite" />
             <eclipse.refreshLocal resource="${projectdir}/syntax/${sdfmodule}.pp.generated" depth="infinite" />
             <eclipse.refreshLocal resource="${projectdir}/lib/editor-common.generated.str" depth="infinite" />
             <eclipse.refreshLocal resource="${projectdir}/build.generated.xml" depth="infinite" />
