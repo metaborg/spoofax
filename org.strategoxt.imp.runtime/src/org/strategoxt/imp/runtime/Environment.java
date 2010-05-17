@@ -6,7 +6,9 @@ import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IStatus;
@@ -264,14 +266,14 @@ public final class Environment {
 	
 	public static void registerUnmanagedParseTable(String name, IFile file) {
 		unmanagedTables.put(name, new ParseTableProvider(file));
-		synchronized (descriptors) { // object is its own syncroot, per JavaDoc
-			for (Descriptor descriptor : descriptors.values()) {
-				if (descriptor.isUsedForUnmanagedParseTable(name)) {
-					try {
-						descriptor.reinitialize(descriptor);
-					} catch (BadDescriptorException e) {
-						Environment.logException("Could not reinitialize descriptor", e);
-					}
+		// Avoid maintaining lock (Spoofax/126)
+		Set<Descriptor> currentDescriptors = new HashSet<Descriptor>(descriptors.values());
+		for (Descriptor descriptor : currentDescriptors) {
+			if (descriptor.isUsedForUnmanagedParseTable(name)) {
+				try {
+					descriptor.reinitialize(descriptor);
+				} catch (BadDescriptorException e) {
+					Environment.logException("Could not reinitialize descriptor", e);
 				}
 			}
 		}
