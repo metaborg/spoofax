@@ -267,8 +267,9 @@ public final class Environment {
 	public static void registerUnmanagedParseTable(String name, IFile file) {
 		unmanagedTables.put(name, new ParseTableProvider(file));
 		// Avoid maintaining lock (Spoofax/126)
+		Set<Descriptor> currentDescriptors;
 		synchronized (descriptors) {
-			Set<Descriptor> currentDescriptors = new HashSet<Descriptor>(descriptors.values());
+			currentDescriptors = new HashSet<Descriptor>(descriptors.values());
 		}
 		for (Descriptor descriptor : currentDescriptors) {
 			if (descriptor.isUsedForUnmanagedParseTable(name)) {
