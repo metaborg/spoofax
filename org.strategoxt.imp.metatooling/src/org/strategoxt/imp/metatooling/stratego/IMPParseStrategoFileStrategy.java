@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.spoofax.interpreter.terms.IStrategoString;
@@ -16,6 +17,7 @@ import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.SGLRException;
 import org.strategoxt.imp.editors.stratego.StrategoSugarParseController;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.parser.JSGLRI;
 import org.strategoxt.imp.runtime.parser.ast.RootAstNode;
 import org.strategoxt.imp.runtime.services.MetaFile;
@@ -72,6 +74,16 @@ public class IMPParseStrategoFileStrategy extends parse_stratego_file_0_0 {
 			if (parser.getParseTable().hasRecovers()) parser.setUseRecovery(true);
 			return parser;
 		} catch (NoRecoveryRulesException e) {
+			throw new StrategoException("Could not load stratego parse table", e);
+		} catch (BadDescriptorException e) {
+			throw new StrategoException("Could not load stratego parse table", e);
+		} catch (InvalidParseTableException e) {
+			throw new StrategoException("Could not load stratego parse table", e);
+		} catch (IOException e) {
+			throw new StrategoException("Could not load stratego parse table", e);
+		} catch (CoreException e) {
+			throw new StrategoException("Could not load stratego parse table", e);
+		} catch (RuntimeException e) {
 			throw new StrategoException("Could not load stratego parse table", e);
 		}
 	}

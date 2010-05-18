@@ -7,10 +7,19 @@ import org.spoofax.interpreter.terms.ITermPrinter;
 import lpg.runtime.IToken;
 
 public class ListAstNode extends AstNode {
+	
 	private final String elementSort;
 	
 	public String getElementSort() {
 		return elementSort;
+	}
+	
+	/**
+	 * @deprecated Use #getElementSort() to get the element sort instead.
+	 */
+	@Override @Deprecated
+	public String getSort() {
+		return super.getSort();
 	}
 	
 	@Override

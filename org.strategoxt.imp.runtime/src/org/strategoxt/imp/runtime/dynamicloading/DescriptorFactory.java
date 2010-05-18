@@ -12,7 +12,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.language.Language;
 import org.spoofax.interpreter.terms.IStrategoAppl;
-import org.spoofax.jsglr.InvalidParseTableException;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.SGLRException;
 import org.strategoxt.imp.generator.sdf2imp;
@@ -38,7 +37,8 @@ public class DescriptorFactory {
 		if (descriptorParser != null) return;
 		try {
 			InputStream stream = sdf2imp.class.getResourceAsStream("/EditorService.tbl");
-			ParseTable table = Environment.registerParseTable(Descriptor.DESCRIPTOR_LANGUAGE, stream);
+			ParseTable table = Environment.loadParseTable(stream);
+			Environment.registerParseTable(Descriptor.DESCRIPTOR_LANGUAGE, new ParseTableProvider(table));
 			descriptorParser = new JSGLRI(table, "Module");
 		} catch (Throwable e) {
 			Environment.logException("Could not initialize the Descriptor class.", e);
@@ -83,8 +83,7 @@ public class DescriptorFactory {
 		Language language = result.getLanguage();
 		
 		if (parseTable == null) parseTable = result.openParseTableStream();
-		registerParseTable(language, parseTable);
-		
+		Environment.registerParseTable(language, new ParseTableProvider(result));		
 		Environment.registerDescriptor(language, result);
 		registry.register(result);
 		
@@ -94,12 +93,13 @@ public class DescriptorFactory {
 	
 	public static Descriptor parse(InputStream input) throws BadDescriptorException, IOException {
 		try {
-			init();
 			input = new PushbackInputStream(input, 100);
 			
 			IStrategoAppl document = tryReadTerm((PushbackInputStream) input);
-			if (document == null)
+			if (document == null) {
+				init();
 				document = (IStrategoAppl) descriptorParser.parse(input, "(descriptor)").getTerm();
+			}
 			return new Descriptor(document);
 		} catch (SGLRException e) {
 			throw new BadDescriptorException("Could not parse descriptor file", e);
@@ -116,16 +116,6 @@ public class DescriptorFactory {
 			return (IStrategoAppl) Environment.getTermFactory().parseFromStream(input);
 		} else {
 			return null;
-		}
-	}
-
-	private static void registerParseTable(Language language, InputStream table) throws BadDescriptorException {
-		try {
-			Environment.registerParseTable(language, table);
-		} catch (IOException e) {
-			throw new BadDescriptorException("Could not load editor service parse table", e);
-		} catch (InvalidParseTableException e) {
-			throw new BadDescriptorException("Could not load editor service parse table", e);
 		}
 	}
 }

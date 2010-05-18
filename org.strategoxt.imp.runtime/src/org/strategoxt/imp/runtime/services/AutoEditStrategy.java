@@ -5,6 +5,7 @@ import static org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceCon
 import static org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH;
 import static org.eclipse.ui.texteditor.ITextEditorExtension3.SMART_INSERT;
 
+import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -54,11 +55,15 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 	
 	private int lastAutoInsertedFenceLine;
 	
-	private int lastAutoInsertedFenceCount;
+	private int lastAutoInsertedFencesLength;
 	
 	private String lastAutoInsertedFenceLineStart;
 	
 	private String lastAutoInsertedFenceLineEnd;
+
+	private boolean allowAutoRemoveFence;
+	
+	private Stack<Integer> lastAutoInsertionOpenFences = new Stack<Integer>();
 
 	public AutoEditStrategy(ILanguageSyntaxProperties syntax) {
 		this.syntax = syntax;
@@ -178,7 +183,8 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 		
 		// TODO: respect Eclipse preference for inserting brackets
 		
-		// TODO: don't insert closing brackets in front of opening brackets, e.g.: ()(
+		if (input.length() == 0)
+			return false;
 
 		String lineEnd = getLineAfterOffset(document, offset, length);
 		if (getEditor().getInsertMode() == SMART_INSERT
@@ -189,9 +195,10 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 			for (int i = min(maxOpenFenceLength - 1, offset); i >= 0; i--) {
 				String openFence = document.get(offset - i, i) + input;
 				String closeFence = getMatchingCloseFence(openFence);
-				if (closeFence != null) {
+				if (closeFence != null && closeFence.length() > 0) {
 					if (isParsedAsLexicalOrLayout(document, offset, input)
-							|| isIdentifierAfterOffset(document, offset))
+							|| isIdentifierAfterOffset(document, offset)
+							|| isFenceAfterOffset(document, offset, openFence))
 						return false;
 					String lineStart = getLineBeforeOffset(document, offset);
 					closeFence = formatInsertedText(closeFence, lineStart);
@@ -201,7 +208,12 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 					lastAutoInsertedFenceLine = document.getLineOfOffset(offset);
 					lastAutoInsertedFenceLineStart = lineStart;
 					lastAutoInsertedFenceLineEnd = closeFence + lineEnd;
-					lastAutoInsertedFenceCount++;
+					if (lastAutoInsertedFencesLength == 0)
+						allowAutoRemoveFence = true;
+					lastAutoInsertedFencesLength += closeFence.length();
+					allowAutoRemoveFence = allowAutoRemoveFence
+							&& openFence.length() == 1 && closeFence.length() == 1;
+					lastAutoInsertionOpenFences.push(offset - i + input.length());
 					return true;
 				}
 			}
@@ -227,6 +239,23 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 			}
 		}
 		return false;
+	}
+	
+	/**
+	 * Tests if the line starts with a particular closing fence,
+	 * ignoring whitespace, comments, and lexicals.
+	 * 
+	 * @see stripCommentsAndLayout(String){
+	 */
+	private boolean isFenceAfterOffset(IDocument document, int offset, String fence) throws BadLocationException {
+		for (int max = document.getLength(); offset < max; offset++) {
+			char c = document.getChar(offset);
+			if (c == '\n' || c == '\r' || !Character.isWhitespace(c))
+				break;
+		}
+		
+		int endOffset = offset + fence.length();
+		return endOffset < document.getLength() && document.get(offset, endOffset - offset).equals(fence);
 	}
 
 	public static String formatInsertedText(String text, String lineStart) {
@@ -254,20 +283,24 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 	 * types them in again.
 	 */
 	protected boolean skipClosingFence(ISourceViewer viewer, IDocument document, int offset, int length, String input) throws BadLocationException {
-		if (lastAutoInsertedFenceCount > 0 && document.getLineOfOffset(offset) == lastAutoInsertedFenceLine) {
+		if (lastAutoInsertedFencesLength > 0 && document.getLineOfOffset(offset) == lastAutoInsertedFenceLine) {
 			String lineEnd = getLineAfterOffset(document, offset, length);
 			if (lastAutoInsertedFenceLineEnd.startsWith(input)
 					&& lineEnd.equals(lastAutoInsertedFenceLineEnd)
 					&& getLineBeforeOffset(document, offset).startsWith(lastAutoInsertedFenceLineStart)) {
 				lastAutoInsertedFenceLineEnd = lastAutoInsertedFenceLineEnd.substring(input.length());
-				lastAutoInsertedFenceCount--;
+				lastAutoInsertedFencesLength--;
+				if (!lastAutoInsertionOpenFences.isEmpty())
+					lastAutoInsertionOpenFences.pop();
 				viewer.setSelectedRange(offset + input.length(), length);
 				return true;
 			} else if (!lineEnd.endsWith(lastAutoInsertedFenceLineEnd)) {
-				lastAutoInsertedFenceCount = 0;
+				lastAutoInsertedFencesLength = 0;
+				lastAutoInsertionOpenFences.clear();
 			}
 		} else {
-			lastAutoInsertedFenceCount = 0;
+			lastAutoInsertedFencesLength = 0;
+			lastAutoInsertionOpenFences.clear();
 		}
 		return false;
 	}
@@ -277,8 +310,25 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 	 * deletes the opening fence.
 	 */
 	protected boolean undoClosingFence(ISourceViewer viewer, IDocument document, int offset, int length, String input) throws BadLocationException {
-		// TODO:  Undo automatically inserted closing fences when the user deletes the opening fence
-		//        Would only really work with single-char fences
+		if (lastAutoInsertedFencesLength > 0 && allowAutoRemoveFence
+				&& document.getLineOfOffset(offset) == lastAutoInsertedFenceLine) {
+			if ("\b".equals(input)) {
+				String deletedChar = document.get(offset - 1, 1);
+				String closeFence = document.get(offset, 1);
+				String expectedCloseFence = getMatchingCloseFence(deletedChar);
+				if (offset == lastAutoInsertionOpenFences.peek() && closeFence.equals(expectedCloseFence)) {
+					lastAutoInsertedFencesLength--;
+					lastAutoInsertedFenceLineEnd = lastAutoInsertedFenceLineEnd.substring(1);
+					lastAutoInsertionOpenFences.pop();
+					if (getLineBeforeOffset(document, offset).equals(lastAutoInsertedFenceLineStart))
+						lastAutoInsertedFenceLineStart = lastAutoInsertedFenceLineStart.substring(0, lastAutoInsertedFenceLineStart.length() - 1);
+					document.replace(offset - 1, 2, "");
+					return true;
+				}
+			} else if (!lastAutoInsertionOpenFences.isEmpty() && lastAutoInsertionOpenFences.peek() > offset) {
+				allowAutoRemoveFence = false;
+			}
+		}
 		return false;
 	}
 	
@@ -439,7 +489,7 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 	}
 	
 	/**
-	 * Tests if the line starts with a closing fence,
+	 * Tests if the line starts with a particular closing fence,
 	 * ignoring whitespace, comments, and lexicals.
 	 * 
 	 * @see stripCommentsAndLayout(String)
@@ -540,7 +590,7 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 							continue;
 						}
 						*/
-						if (isSameLine(document, offset, token))
+						if (isSameLine(document, offset, token) && isIdentifier(token.toString())) // sanity check
 							return true; // either a string or just not a keyword
 						continue;
 					case TK_NUMBER: case TK_OPERATOR:

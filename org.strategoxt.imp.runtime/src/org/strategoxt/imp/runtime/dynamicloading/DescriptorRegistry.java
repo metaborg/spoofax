@@ -47,6 +47,7 @@ public class DescriptorRegistry {
 				return (EditorDescriptor) editor;
 		}
 
+		
 		throw new IllegalStateException("Could not find editor descriptor for universal editor");
 	}
 	

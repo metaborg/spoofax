@@ -220,6 +220,7 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode, Clone
 		}
 	}
 	
+	@Deprecated
 	public static List<String> getSorts(List<? extends AstNode> children) {
   	  List<String> result = new ArrayList<String>(children.size());
   	  

@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.imp.language.Language;
@@ -62,7 +63,7 @@ public final class Environment {
 	
 	private final static ParseTableManager parseTableManager;
 	
-	private final static Map<String, ParseTable> parseTables;
+	private final static Map<String, ParseTableProvider> parseTables;
 	
 	private final static Map<String, ParseTableProvider> unmanagedTables;
 	
@@ -80,7 +81,7 @@ public final class Environment {
 		wrappedFactory = new UnsharedWrappedATermFactory();
 		factory = new PureFactory();
 		parseTableManager = new ParseTableManager(factory);
-		parseTables = Collections.synchronizedMap(new HashMap<String, ParseTable>());
+		parseTables = Collections.synchronizedMap(new HashMap<String, ParseTableProvider>());
 		descriptors = Collections.synchronizedMap(new HashMap<String, Descriptor>());
 		unmanagedTables = Collections.synchronizedMap(new HashMap<String, ParseTableProvider>());
 		wrappedAstNodeFactory = new WrappedAstNodeFactory();
@@ -230,20 +231,20 @@ public final class Environment {
 		return result;
 	}
 	
-	public static ParseTable registerParseTable(Language language, InputStream parseTable)
-			throws IOException, InvalidParseTableException {
-		
-		Debug.startTimer();
-		ParseTable table = parseTableManager.loadFromStream(parseTable);	
-		if (language != null) {
-			parseTables.put(language.getName(), table);
-			Debug.stopTimer("Parse table loaded: " + language.getName());
-		}
+	public static ParseTableProvider registerParseTable(Language language, ParseTableProvider table) {
+		parseTables.put(language.getName(), table);
 		return table;
 	}
 	
-	public static ParseTable getParseTable(Language language) {
-		ParseTable table = parseTables.get(language.getName());
+	public static ParseTable loadParseTable(InputStream stream) throws IOException, InvalidParseTableException {
+		return parseTableManager.loadFromStream(stream);
+	}
+	
+	public static ParseTable getParseTable(Language language)
+			throws BadDescriptorException, InvalidParseTableException,
+			       IOException, CoreException, IllegalStateException {
+		
+		ParseTable table = parseTables.get(language.getName()).get();
 		
 		if (table == null)
 			throw new IllegalStateException("Parse table not available: " + language.getName());

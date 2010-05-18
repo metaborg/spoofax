@@ -1,7 +1,14 @@
 package org.strategoxt.imp.runtime.dynamicloading;
 
+import java.io.IOException;
+
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.imp.language.Language;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
+import org.spoofax.jsglr.InvalidParseTableException;
+import org.spoofax.jsglr.ParseTable;
+import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 
 /**
@@ -16,7 +23,20 @@ public class ParseControllerFactory extends AbstractServiceFactory<IParseControl
 	@Override
 	public IParseController create(Descriptor descriptor, SGLRParseController controller) throws BadDescriptorException {
 		ILanguageSyntaxProperties syntaxProperties = descriptor.createService(ILanguageSyntaxProperties.class, controller);
-		return new SGLRParseController(descriptor.getLanguage(), syntaxProperties, descriptor.getStartSymbols());
+		Language language = descriptor.getLanguage();
+		ParseTable table;
+		try {
+			table = Environment.getParseTable(language);
+		} catch (InvalidParseTableException e) {
+			throw new BadDescriptorException("Could not load parse table for " + language.getName(), e);
+		} catch (IOException e) {
+			throw new BadDescriptorException("Could not load parse table for " + language.getName(), e);
+		} catch (CoreException e) {
+			throw new BadDescriptorException("Could not load parse table for " + language.getName(), e);
+		} catch (RuntimeException e) {
+			throw new BadDescriptorException("Could not load parse table for " + language.getName(), e);
+		}
+		return new SGLRParseController(language, table, syntaxProperties, descriptor.getStartSymbols());
 	}
 
 }

@@ -224,11 +224,13 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	
 	private void loadJars(List<String> jars) {
 		try {
+			Debug.startTimer("Loading Stratego modules " + jars);
 			URL[] classpath = new URL[jars.size()];
 			for (int i = 0; i < classpath.length; i++) {
 				classpath[i] = descriptor.getBasePath().append(jars.get(i)).toFile().toURI().toURL();
 			}
 			runtime.loadJars(classpath);
+			Debug.stopTimer("Successfully loaded " + jars);
 		} catch (SecurityException e) {
 			Environment.logException("Error loading compiler service providers " + jars, e);
 			if (descriptor.isDynamicallyLoaded())

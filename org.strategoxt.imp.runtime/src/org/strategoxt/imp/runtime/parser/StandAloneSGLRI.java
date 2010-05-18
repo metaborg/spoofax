@@ -12,6 +12,7 @@ import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.SGLRException;
 import org.spoofax.jsglr.TokenExpectedException;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.dynamicloading.ParseTableProvider;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 
 /**
@@ -34,9 +35,11 @@ public class StandAloneSGLRI {
 		if (useCSGLR) {
 			parser = new CSGLRI(parseTable, startSymbol);
 		} else {
+			// TODO: don't register tables for StandAloneSGLRI?
 			Language lang = new StandAloneLanguage(language);
-			ParseTable table = Environment.registerParseTable(lang, parseTable);
-			parser = new JSGLRI(table, startSymbol);			
+			ParseTable table = Environment.loadParseTable(parseTable);
+			Environment.registerParseTable(lang, new ParseTableProvider(table));
+			parser = new JSGLRI(table, startSymbol);
 		}
 	}
 	

@@ -9,6 +9,7 @@ import static org.spoofax.interpreter.terms.IStrategoTerm.TUPLE;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Random;
@@ -20,6 +21,7 @@ import lpg.runtime.IToken;
 
 import org.eclipse.imp.editor.ErrorProposal;
 import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.eclipse.imp.services.IContentProposer;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Region;
@@ -117,7 +119,7 @@ public class ContentProposer implements IContentProposer {
 		if (!identifierLexical.matcher(COMPLETION_TOKEN).matches())
 			return createErrorProposal("No proposals available - completion lexical must allow letters and numbers", offset);
 		
-		constructAst(getParser(controller), offset, document);
+		RootAstNode ast = constructAst(getParser(controller), offset, document);
 		
 		if (currentCompletionNode == null) {
 			if (lastCompletionAst == null && lastParserAst == null)
@@ -133,9 +135,12 @@ public class ContentProposer implements IContentProposer {
 			results[0].apply(viewer.getDocument());
 			Point selection = ((SourceProposal) results[0]).getSelection(viewer.getDocument());
 			viewer.setSelectedRange(selection.x, selection.y);
+			insertImmediatelyOnce = false;
 			return null;
 		}
 		*/
+		//System.out.println("SORTS: " + getSortsAtCursor(currentCompletionNode));
+		System.out.println("SORTS: " + getSortsAtCursor(controller, ast, offset));
 		
 		return results;
     }
@@ -571,6 +576,37 @@ public class ContentProposer implements IContentProposer {
 			}
 		}
 		return;
+	}
+	
+	// TODO: get *all* sorts at cursor by looking at the parse tree?
+	private Set<String> getSortsAtCursor(IParseController controller, RootAstNode ast, int offset) {
+		//if (node.getConstructor().equals(COMPLETION_UNKNOWN))
+		//	return Collections.emptySet();
+		
+		ISourcePositionLocator locator = controller.getSourcePositionLocator();
+		AstNode node = (AstNode) locator.findNode(ast, offset);
+		if (node == null) return Collections.emptySet();
+		
+		Set<String> results = new HashSet<String>();
+
+		IToken rightToken = node.getRightIToken();
+
+		// Follow the (labeled) injection chain upwards
+		do {
+			if (node.isList()) {
+				results.add(((ListAstNode) node).getElementSort());
+			} else if (node.getSort() != null) {
+				results.add(node.getSort());
+			}
+			node = node.getParent();
+		} while (node != null && node.getRightIToken() == rightToken);
+		
+		if (node != null && node.isList()) {
+			// Add sort of container list with elements after current node
+			results.add(((ListAstNode) node).getElementSort());
+		}
+		
+		return results;
 	}
 	
 }

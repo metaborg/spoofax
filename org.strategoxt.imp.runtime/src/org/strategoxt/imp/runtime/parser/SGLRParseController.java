@@ -162,19 +162,18 @@ public class SGLRParseController implements IParseController {
 	}
     
     /**
-     * Create a new SGLRParseController.
+     * Creates a new SGLRParseController.
      * 
      * @param language      The name of the language, as registered in the {@link LanguageRegistry}.
      * @param startSymbol	The start symbol of this grammar, or null.
      */
-    public SGLRParseController(Language language, ILanguageSyntaxProperties syntaxProperties,
+    public SGLRParseController(Language language, ParseTable table, ILanguageSyntaxProperties syntaxProperties,
 			String startSymbol) {
     	
     	this.language = language;
     	this.syntaxProperties = syntaxProperties;
     	
-    	ParseTable table = Environment.getParseTable(language);
-		parser = new JSGLRI(table, startSymbol, this, tokenManager);
+    	parser = new JSGLRI(table, startSymbol, this, tokenManager);
 		parser.setKeepAmbiguities(true);
 		parser.setTimeout(PARSE_TIMEOUT);
 		try {
@@ -183,8 +182,27 @@ public class SGLRParseController implements IParseController {
 			Environment.logException("No recovery rules available for " + language.getName() + " editor", e);
 		}
     }
+    
+    /**
+     * Creates a new SGLRParseController, throwing any parse table loading exceptions as runtime exceptions.
+     * 
+     * @deprecated Use {@link #SGLRParseController(Language, ParseTable, ILanguageSyntaxProperties, String)} instead.
+     */
+    @Deprecated
+    public SGLRParseController(Language language, ILanguageSyntaxProperties syntaxProperties, String startSymbol) {
+    	this(language, getTableSwallowExceptions(language), syntaxProperties, startSymbol);
+    }
 
-    public void initialize(IPath filePath, ISourceProject project, IMessageHandler messages) {
+    private static ParseTable getTableSwallowExceptions(Language language) {
+		try {
+			return Environment.getParseTable(language);
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+	}
+
+	public void initialize(IPath filePath, ISourceProject project, IMessageHandler messages) {
 		this.path = filePath;
 		this.project = project;
     }
@@ -317,7 +335,7 @@ public class SGLRParseController implements IParseController {
 				metaFile = null;
 			}
 			if (metaFile == null) {
-				parser.setParseTable(Environment.getParseTable(getLanguage()));
+				parser.setParseTable(getTableSwallowExceptions(getLanguage()));
 				parser.getDisambiguator().setHeuristicFilters(false);
 			} else {
 				ParseTable table = Environment.getUnmanagedParseTable(metaFile.getLanguage() + "-Permissive");
