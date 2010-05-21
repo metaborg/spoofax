@@ -72,10 +72,15 @@ rules // Main editor interface (defined by editor/{sdf-name}-Builders and -Refer
   // Completes an identifier when the user presses control-space
   // (the completion identifier in the AST provides additional context information)
   editor-complete:
-    (Type(COMPLETION(prefix)), position, ast, path, project-path) ->
+    (node, position, ast, path, project-path) ->
     ["String", "Int" | proposals]
     where
-      proposals := <all-keys-GetEntity>
+      debug(!"Complete: ")> node;
+      parent := <parent-at-position(|position)>;
+      <debug(!"Parent:  ")> parent;
+      if !node => Type(COMPLETION(prefix)) then
+        proposals := <all-keys-GetEntity>
+      end
 };
 
 if not(<file-exists> "trans/generate.str") then
