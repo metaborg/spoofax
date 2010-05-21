@@ -382,6 +382,10 @@ strategies
               <fileset dir="${build}" includes="trans/**" />
             </delete>
             <javac classpath="utils/strategoxt.jar:${src-gen}${externaljarimport}" srcdir="${src-gen}" includes="trans/**" destdir="${build}" source="1.5" target="1.5" debug="on"/>
+            <!-- copy imported terms -->
+            <copy todir="${build}/trans">
+              <fileset dir="${src-gen}/trans" excludes="**/*.java" />
+            </copy>
             <jar basedir="${build}" includes="trans/**" destfile="${include}/${strmodule}.jar"/>
         </target>
             
