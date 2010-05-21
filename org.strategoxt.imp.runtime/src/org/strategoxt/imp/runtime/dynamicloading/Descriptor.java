@@ -33,7 +33,7 @@ import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.RuntimeActivator;
-import org.strategoxt.imp.runtime.WeakWeakMap;
+import org.strategoxt.imp.runtime.WeakSoftMap;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.services.MetaFileLanguageValidator;
 
@@ -63,7 +63,7 @@ public class Descriptor {
 	 * http://java.sun.com/j2se/1.5.0/docs/api/java/util/WeakHashMap.html
 	 */
 	private final Map<SGLRParseController, Map<Class, ILanguageService>> cachedServices =
-		Collections.synchronizedMap(new WeakWeakMap<SGLRParseController, Map<Class, ILanguageService>>());
+		Collections.synchronizedMap(new WeakSoftMap<SGLRParseController, Map<Class, ILanguageService>>());
 	
 	private final List<AbstractServiceFactory> serviceFactories = new ArrayList<AbstractServiceFactory>();
 	

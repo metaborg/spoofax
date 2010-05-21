@@ -19,6 +19,7 @@ import java.util.regex.Pattern;
 
 import lpg.runtime.IToken;
 
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.imp.editor.ErrorProposal;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.parser.ISourcePositionLocator;
@@ -128,7 +129,7 @@ public class ContentProposer implements IContentProposer {
 				return createErrorProposal("No proposals available - could not identify proposal context", offset);
 		}
 
-		ICompletionProposal[] results = toProposals(invokeCompletionFunction(), document, offset);
+		ICompletionProposal[] results = toProposals(invokeCompletionFunction(controller), document, offset);
 		
 		/* UNDONE: automatic proposal insertion
 		if (results.length == 1 && results[0] instanceof SourceProposal) {
@@ -205,7 +206,7 @@ public class ContentProposer implements IContentProposer {
 		return result;
 	}
 
-	private IStrategoTerm invokeCompletionFunction() {
+	private IStrategoTerm invokeCompletionFunction(final IParseController controller) {
 		if (completionFunction == null) {
 			return Environment.getTermFactory().makeList();
 		} else {
@@ -214,6 +215,9 @@ public class ContentProposer implements IContentProposer {
 				IStrategoTerm result;
 				public void run() {
 					synchronized (observer.getSyncRoot()) {
+						if (!observer.isUpdateScheduled()) {
+							observer.update(controller, new NullProgressMonitor());
+						}
 						IStrategoTerm input = observer.makeInputTerm(currentCompletionNode, true, false);
 						result = observer.invokeSilent(completionFunction, input, currentCompletionNode.getResource());
 						if (result == null) {

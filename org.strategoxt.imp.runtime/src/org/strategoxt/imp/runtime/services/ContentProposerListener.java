@@ -10,7 +10,7 @@ import org.eclipse.jface.text.ITextOperationTarget;
 import org.eclipse.jface.text.TextEvent;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.WeakWeakMap;
+import org.strategoxt.imp.runtime.WeakSoftMap;
 
 /**
  * Activates the content proposer based on text events.
@@ -19,8 +19,8 @@ import org.strategoxt.imp.runtime.WeakWeakMap;
  */
 public class ContentProposerListener implements ITextListener {
 	
-	private static final WeakWeakMap<ISourceViewer, ContentProposerListener> asyncListeners =
-		new WeakWeakMap<ISourceViewer, ContentProposerListener>();
+	private static final WeakSoftMap<ISourceViewer, ContentProposerListener> asyncListeners =
+		new WeakSoftMap<ISourceViewer, ContentProposerListener>();
 	
 	private final Set<Pattern> patterns;
 	

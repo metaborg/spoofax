@@ -14,7 +14,7 @@ import org.eclipse.imp.parser.IParseController;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.WeakWeakMap;
+import org.strategoxt.imp.runtime.WeakSoftMap;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.services.OnSaveService;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
@@ -25,7 +25,7 @@ import org.strategoxt.imp.runtime.services.StrategoObserver;
 public class OnSaveServiceFactory extends AbstractServiceFactory<OnSaveService> {
 	
 	private static final Map<UniversalEditor, OnSaveService> registeredServices =
-		synchronizedMap(new WeakWeakMap<UniversalEditor, OnSaveService>());
+		synchronizedMap(new WeakSoftMap<UniversalEditor, OnSaveService>());
 
 	public OnSaveServiceFactory() {
 		super(OnSaveService.class, false);

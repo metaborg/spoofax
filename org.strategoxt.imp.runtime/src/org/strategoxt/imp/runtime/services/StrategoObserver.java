@@ -46,7 +46,7 @@ import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.SWTSafeLock;
-import org.strategoxt.imp.runtime.WeakWeakMap;
+import org.strategoxt.imp.runtime.WeakSoftMap;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.dynamicloading.IDynamicLanguageService;
@@ -77,7 +77,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	public static final int OBSERVER_DELAY = 600;
 	
 	private static Map<Descriptor, HybridInterpreter> cachedRuntimes =
-		Collections.synchronizedMap(new WeakWeakMap<Descriptor, HybridInterpreter>());
+		Collections.synchronizedMap(new WeakSoftMap<Descriptor, HybridInterpreter>());
 	
 	private final Map<IResource, IStrategoTerm> resultingAsts =
 		new WeakHashMap<IResource, IStrategoTerm>();

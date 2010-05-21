@@ -6,6 +6,7 @@ import java.util.List;
 
 import lpg.runtime.IAst;
 
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.services.IReferenceResolver;
 import org.spoofax.interpreter.terms.IStrategoString;
@@ -48,9 +49,10 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 		}
 		
 		synchronized (Environment.getSyncRoot()) {
+			if (!observer.isUpdateScheduled()) {
+				observer.update(parseController, new NullProgressMonitor());
+			}
 			IStrategoTerm resultTerm = observer.invokeSilent(function, node);
-			if (resultTerm == null && !observer.isUpdateScheduled())
-				observer.scheduleUpdate(parseController);
 			return observer.getAstNode(resultTerm);
 		}
 	}
