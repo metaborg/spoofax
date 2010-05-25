@@ -119,7 +119,10 @@ strategies
             <eclipse.refreshLocal resource="${projectdir}/editor/${sdfmodule}-Folding.generated.esv" depth="infinite" />
             <eclipse.refreshLocal resource="${projectdir}/editor/${sdfmodule}-References.generated.esv" depth="infinite" />
             <eclipse.refreshLocal resource="${projectdir}/editor/${sdfmodule}-Syntax.generated.esv" depth="infinite" />
-            <eclipse.refreshLocal resource="${build}" depth="infinite" />
+            <eclipse.convertPath fileSystemPath="${src-gen}" property="eclipse.path.src-gen" />
+            <eclipse.refreshLocal resource="${eclipse.path.src-gen}" depth="infinite" />
+            <eclipse.convertPath fileSystemPath="${build}" property="eclipse.path.build" />
+            <eclipse.refreshLocal resource="${eclipse.path.build}" depth="infinite" />
         </target>
         
         <target name="sdf2imp.standalone" unless="eclipse.running" depends="sdf2rtg">
