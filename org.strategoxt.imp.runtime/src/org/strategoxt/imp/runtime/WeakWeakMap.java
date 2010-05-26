@@ -18,11 +18,11 @@ import org.strategoxt.lang.WeakValueHashMap;
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class WeakSoftMap<K,V> implements Map<K,V> {
+public class WeakWeakMap<K,V> implements Map<K,V> {
 	
 	private final WeakHashMap<K, SoftReference<V>> map = new WeakHashMap<K, SoftReference<V>>();
 	
-	public WeakSoftMap() {
+	public WeakWeakMap() {
 		// Construct new instance
 	}
 
