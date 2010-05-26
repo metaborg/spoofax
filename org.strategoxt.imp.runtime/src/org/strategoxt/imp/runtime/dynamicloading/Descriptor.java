@@ -53,14 +53,19 @@ public class Descriptor {
 	
 	protected static final String DEFAULT_ICON_BUNDLE = RuntimeActivator.getInstance().getBundle().getSymbolicName();
 	
+	/**
+	 * A set of all active services for a given descriptor.
+	 * (Implemented as a map from services to null.)
+	 */
 	private final Map<IDynamicLanguageService, Object> activeServices =
 		Collections.synchronizedMap(new WeakHashMap<IDynamicLanguageService, Object>());
 	
-	/*
-	 * We have to use a WeakReference here, because there's many references from a value to its key.
-	 * For example, many language services have a reference to an AST node, which (eventually) has a reference to
-	 * the root ast node, which has a reference back to the SGLRParseController. See the implementation note on
-	 * http://java.sun.com/j2se/1.5.0/docs/api/java/util/WeakHashMap.html
+	/**
+	 * A per-editor map for all services marked as cacheable.
+	 * 
+	 * Only using weak keys and values can ensure that these services
+	 * are garbage collected, as many language services refer to
+	 * their parse controller (or AST), which is used as the key in this map. 
 	 */
 	private final Map<SGLRParseController, Map<Class, ILanguageService>> cachedServices =
 		Collections.synchronizedMap(new WeakSoftMap<SGLRParseController, Map<Class, ILanguageService>>());
@@ -152,7 +157,7 @@ public class Descriptor {
 						if (result != null) return result;
 						result = factory.create(this, controller);
 						if (result != null) {
-							addKnownService(type, controller, result, factory.isCached() && controller != null);
+							addKnownService(type, controller, result, factory.isCachable() && controller != null);
 							return result;
 						}
 						foundFactory = true;
@@ -177,10 +182,10 @@ public class Descriptor {
 		return result;
 	}
 
-	private void addKnownService(Class type, SGLRParseController controller, ILanguageService service, boolean isCached) {
+	private void addKnownService(Class type, SGLRParseController controller, ILanguageService service, boolean isCachable) {
 		if (service instanceof IDynamicLanguageService)
 			activeServices.put((IDynamicLanguageService) service, null);
-		if (isCached) {
+		if (isCachable) {
 			Map<Class, ILanguageService> cache = cachedServices.get(controller);
 			if (cache == null) {
 				cache = Collections.synchronizedMap(new HashMap<Class, ILanguageService>());

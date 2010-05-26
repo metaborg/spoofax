@@ -10,16 +10,16 @@ public abstract class AbstractServiceFactory<T extends ILanguageService> {
 	
 	private final Class<T> serviceType;
 	
-	private final boolean isCached;
+	private final boolean isCachable;
 
 	/**
-	 * @param isCached
+	 * @param isCachable
 	 *            Determines whether this service should be cached. In most
 	 *            cases, cached services should be thread-safe.
 	 */
-	public AbstractServiceFactory(Class<T> serviceType, boolean isCached) {
+	public AbstractServiceFactory(Class<T> serviceType, boolean isCachable) {
 		this.serviceType = serviceType;
-		this.isCached = isCached;
+		this.isCachable = isCachable;
 	}
 
 	public AbstractServiceFactory(Class<T> serviceType) {
@@ -35,8 +35,8 @@ public abstract class AbstractServiceFactory<T extends ILanguageService> {
 	 */
 	public abstract T create(Descriptor descriptor, SGLRParseController controller) throws BadDescriptorException;
 	
-	public boolean isCached() {
-		return isCached;
+	public final boolean isCachable() {
+		return isCachable;
 	}
 	
 	/**

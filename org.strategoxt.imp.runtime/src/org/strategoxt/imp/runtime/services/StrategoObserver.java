@@ -98,6 +98,8 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	
 	private volatile boolean rushNextUpdate;
 	
+	private boolean wasExceptionLogged;
+	
 	public StrategoObserver(Descriptor descriptor, String feedbackFunction) {
 		this.descriptor = descriptor;
 		this.feedbackFunction = feedbackFunction;
@@ -307,7 +309,8 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 				if (feedback == null) {
 					reportRewritingFailed();
 					String log = getLog();
-					Environment.logException(log.length() == 0 ? "Analysis failed" : "Analysis failed:\n" + log);
+					if (!wasExceptionLogged || log.length() > 0)
+						Environment.logException(log.length() == 0 ? "Analysis failed" : "Analysis failed:\n" + log);
 					messages.clearMarkers(ast.getResource());
 					messages.addMarkerFirstLine(ast.getResource(), "Analysis failed (see error log)", IMarker.SEVERITY_ERROR);
 					messages.commitAllChanges();
@@ -589,11 +592,14 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		IStrategoTerm result = null;
 		
 		try {
+			wasExceptionLogged = true;
 			result = invoke(function, input, resource);
+			wasExceptionLogged = false;
 		} catch (InterpreterExit e) {
 			if (descriptor.isDynamicallyLoaded()) StrategoConsole.activateConsole();
 			messages.clearMarkers(resource);
-			messages.addMarkerFirstLine(resource, "Analysis failed (" + name(e) + "; see error log)", IMarker.SEVERITY_ERROR);
+			if (!(e instanceof InterpreterErrorExit))
+				messages.addMarkerFirstLine(resource, "Analysis failed (" + name(e) + "; see error log)", IMarker.SEVERITY_ERROR);
 			messages.commitAllChanges();
 			Environment.logException("Runtime exited when evaluating strategy " + function, e);
 		} catch (UndefinedStrategyException e) {

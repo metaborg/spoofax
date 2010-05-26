@@ -1,8 +1,7 @@
 package org.strategoxt.imp.metatooling.wizards;
 
-import static org.eclipse.core.resources.IResource.*;
+import static org.eclipse.core.resources.IResource.DEPTH_INFINITE;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
@@ -16,7 +15,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -134,22 +132,7 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 
 		agent.setWorkingDir(project.getLocation().toOSString());
 		try {
-			String jar1 = org.strategoxt.stratego_lib.Main.class.getProtectionDomain().getCodeSource().getLocation().getFile();
-			String jar2 = make_permissive.class.getProtectionDomain().getCodeSource().getLocation().getFile();
-			String jar3 = sdf2imp.class.getProtectionDomain().getCodeSource().getLocation().getFile();
-			if (Platform.getOS().equals(Platform.OS_WIN32)) { // FIXME: proper paths on Windows
-				jar1 = jar1.substring(1);
-				jar2 = jar2.substring(1);
-				jar3 = jar3.substring(1);
-			}
-			if (!jar1.endsWith(".jar")) { // ensure correct jar at development time
-				String jar1a = jar1 + "/../strategoxt.jar";
-				if (new File(jar1a).exists()) jar1 = jar1a;
-				jar1a = jar1 + "/java/strategoxt.jar";
-				if (new File(jar1a).exists()) jar1 = jar1a;
-			}
-			assert jar1.endsWith(".jar") && jar2.endsWith(".jar") && jar3.endsWith(".jar") : "Library files are not in JAR"; // please refresh the strj projectin Eclipse
-			sdf2imp.mainNoExit(context, "-m", languageName, "-pn", projectName, "-n", packageName, "-e", extensions, "--verbose", "2", "-jar", jar1, jar2, jar3);
+			sdf2imp.mainNoExit(context, "-m", languageName, "-pn", projectName, "-n", packageName, "-e", extensions, "--verbose", "2");
 		} catch (StrategoErrorExit e) {
 			Environment.logException(e);
 			throw new StrategoException("Project builder failed: " + e.getMessage() + "\nLog follows:\n\n"

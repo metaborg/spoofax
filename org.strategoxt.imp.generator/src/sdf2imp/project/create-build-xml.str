@@ -74,7 +74,7 @@ strategies
     <?xml version="1.0" encoding="UTF-8"?>
     <project name="build.generated">
     
-        <target name="spoofaximp.default" depends="utils-files,sdf2table,ppgen,pppack,stratego.aster,stratego.ctree,sdf2imp,refresh"/>
+        <target name="spoofaximp.default" depends="sdf2table,ppgen,pppack,stratego.aster,stratego.ctree,sdf2imp,refresh"/>
     
         <!-- Initialization -->
         <available file="${trans}/${strmodule}.str" property="build.stratego.enabled"/>
@@ -109,7 +109,6 @@ strategies
         <target name="refresh" if="eclipse.running">
             <eclipse.convertPath fileSystemPath="${basedir}" property="projectdir" />
             <eclipse.refreshLocal resource="${projectdir}/include" depth="infinite" />
-            <eclipse.refreshLocal resource="${projectdir}/utils" depth="infinite" />
             <eclipse.refreshLocal resource="${projectdir}/syntax/${sdfmodule}.pp.generated" depth="infinite" />
             <eclipse.refreshLocal resource="${projectdir}/lib/editor-common.generated.str" depth="infinite" />
             <eclipse.refreshLocal resource="${projectdir}/build.generated.xml" depth="infinite" />
@@ -167,7 +166,7 @@ strategies
             </java>
         </target>
 
-        <target name="utils-files">
+        <target name="utils-files"> <!-- only useful for builds outside of Eclipse -->
             <mkdir dir="utils"/>
             <copy file="${eclipse.spoofaximp.jars}/make_permissive.jar" todir="utils" failonerror="false"/>
             <copy file="${eclipse.spoofaximp.jars}/sdf2imp.jar" todir="utils" failonerror="false"/>
@@ -318,6 +317,9 @@ strategies
         <!-- Aster to Stratego -->
         <target name="stratego.aster">
             <available file="${trans}/${strmodule}.rtree" property="aster-output.available"/>
+            <pathconvert property="aster-input" setonempty="false" pathsep=" ">
+                <path><fileset dir="${basedir}" includes="*.astr" /></path>
+            </pathconvert>
             <dependset>
                 <srcfileset dir="${basedir}">
                     <include name="**/*.astr"/>
@@ -334,14 +336,13 @@ strategies
             <antcall target="stratego.aster.helper"/>
         </target>
     
-        <target name="stratego.aster.helper" unless="aster-output.uptodate">
-            <apply executable="java" failonerror="true">
-                <arg line="-Xss8m -Xmx768m -client -jar utils/aster.jar"/>
+        <target name="stratego.aster.helper" if="aster-input" unless="aster-output.uptodate">
+            <java classname="org.strategoxt.aster.Main" failonerror="true">
                 <arg value="-i"/>
                 <fileset dir="${basedir}">
                     <include name="**/*.astr"/>
                 </fileset>
-            </apply>
+            </java>
         </target>
     
         <!-- Stratego to Java interpreter -->

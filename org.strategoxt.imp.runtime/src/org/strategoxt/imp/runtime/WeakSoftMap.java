@@ -23,7 +23,7 @@ public class WeakSoftMap<K,V> implements Map<K,V> {
 	private final WeakHashMap<K, SoftReference<V>> map = new WeakHashMap<K, SoftReference<V>>();
 	
 	public WeakSoftMap() {
-		// Construct new WeakWeakMap
+		// Construct new instance
 	}
 
 	public void clear() {

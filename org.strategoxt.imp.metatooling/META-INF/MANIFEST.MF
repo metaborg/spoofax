@@ -30,7 +30,8 @@ Require-Bundle: org.strategoxt.imp.runtime,
  org.strategoxt.imp.editors.stratego,
  org.strategoxt.imp.editors.aterm,
  org.eclipse.ant.core,
- org.strategoxt.imp.nativebundle
+ org.strategoxt.imp.nativebundle,
+ org.strategoxt.imp.editors.aster
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Bundle-Activator: org.strategoxt.imp.metatooling.MetatoolingActivator
 Bundle-ActivationPolicy: lazy
