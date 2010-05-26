@@ -11,6 +11,7 @@ import lpg.runtime.IToken;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -97,6 +98,8 @@ public class SGLRParseController implements IParseController {
 	private volatile boolean isAborted;
 	
 	private boolean isReplaced;
+	
+	private boolean performInitialUpdate;
 
 	// Simple accessors
 	
@@ -148,9 +151,13 @@ public class SGLRParseController implements IParseController {
     
     public IFile getResource() {
     	IPath path = getPath();
-		IProject project = getProject().getRawProject();
-		path = path.removeFirstSegments(path.matchingFirstSegments(project.getLocation()));
-		return project.getFile(path);
+    	if (getProject() == null) {
+    		return ResourcesPlugin.getWorkspace().getRoot().getFile(path);	// TODO: out-of-workspace files
+    	} else {
+    		IProject project = getProject().getRawProject();
+    		path = path.removeFirstSegments(path.matchingFirstSegments(project.getLocation()));
+    		return project.getFile(path);
+    	}
     }
     
     public void setEditor(EditorState editor) {
@@ -160,6 +167,14 @@ public class SGLRParseController implements IParseController {
     public EditorState getEditor() {
 		return editor;
 	}
+    
+    public boolean getPerformInitialUpdate() {
+    	return this.performInitialUpdate;
+    }
+    
+    public void setPerformInitialUpdate(boolean performInitialUpdate) {
+    	this.performInitialUpdate = performInitialUpdate;
+    }
     
     /**
      * Creates a new SGLRParseController.
@@ -172,6 +187,7 @@ public class SGLRParseController implements IParseController {
     	
     	this.language = language;
     	this.syntaxProperties = syntaxProperties;
+    	this.performInitialUpdate = true;
     	
     	parser = new JSGLRI(table, startSymbol, this, tokenManager);
 		parser.setKeepAmbiguities(true);
@@ -282,7 +298,9 @@ public class SGLRParseController implements IParseController {
 			reportException(errorHandler, e);
 		} finally {
 			try {
-				onParseCompleted(monitor, wasStartupParsed);
+				if (this.performInitialUpdate) {
+					onParseCompleted(monitor, wasStartupParsed);
+				}
 			} catch (RuntimeException e) {
 				Environment.logException("Exception in post-parse events", e);
 			}

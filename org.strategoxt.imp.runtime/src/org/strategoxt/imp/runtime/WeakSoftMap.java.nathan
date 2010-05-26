@@ -1,0 +1,129 @@
+package org.strategoxt.imp.runtime;
+
+import java.lang.ref.SoftReference;
+import java.lang.ref.WeakReference;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.WeakHashMap;
+
+import org.spoofax.NotImplementedException;
+import org.strategoxt.lang.WeakValueHashMap;
+
+/**
+ * A WeakHashMap that uses weak reference keys and soft reference values.
+ * 
+ * @see WeakHashMap
+ * @see WeakValueHashMap
+ * 
+ * @author Lennart Kats <lennart add lclnet.nl>
+ */
+public class WeakSoftMap<K,V> implements Map<K,V> {
+	
+	private final WeakHashMap<K, WeakReference<V>> weakMap = new WeakHashMap<K, WeakReference<V>>();
+	private final WeakHashMap<K, SoftReference<V>> softMap = new WeakHashMap<K, SoftReference<V>>();
+	private final WeakHashMap<K, Long> accessTimes = new WeakHashMap<K, Long>(); 
+	private long lastCheck = 0;
+	
+	public final static long CLEANUP_TIME = 5000;
+	public final static long SOFT_TO_WEAK_TIME = 5000;
+	
+	public WeakSoftMap() {
+		// Construct new WeakWeakMap
+	}
+
+	public void clear() {
+		weakMap.clear();
+		softMap.clear();
+		accessTimes.clear();
+	}
+
+	public boolean containsKey(Object key) {
+		return weakMap.containsKey(key);
+	}
+
+	public boolean containsValue(Object value) {
+		// Can't do this using reference equality and no reference given
+		throw new UnsupportedOperationException();
+	}
+
+	public Set<java.util.Map.Entry<K, V>> entrySet() {
+		throw new NotImplementedException();
+	}
+
+	private void access(K key, V value) {
+		accessTimes.put(key, new Long(System.currentTimeMillis()));
+		softMap.put(key, new SoftReference<V>(value));
+	}
+	
+	public V get(Object key) {
+		WeakReference<V> ref = weakMap.get(key);
+		if (ref != null) {
+			access((K)key, ref.get());
+		}
+		cleanup();
+		return ref == null ? null : ref.get();
+	}
+	
+	/**
+	 * Cleanup the oldest references.
+	 */
+	public void cleanup() {
+		long currentDate = System.currentTimeMillis();
+		if (lastCheck != 0 && currentDate - lastCheck < CLEANUP_TIME)
+			return;
+		
+		Set<K> copy = new HashSet<K>(softMap.keySet());
+		for(K key : copy) {
+			long accessTime = accessTimes.get(key);
+			if (currentDate - accessTime > SOFT_TO_WEAK_TIME) {
+				// Clear soft reference; first garbage collect will remove the weak ref.
+				System.out.println(" Moving from soft to weak, age = " + (currentDate - accessTime));
+				softMap.remove(key);
+			}
+		}
+		lastCheck = currentDate;
+	}
+
+	public boolean isEmpty() {
+		return weakMap.isEmpty();
+	}
+
+	public Set<K> keySet() {
+		return weakMap.keySet();
+	}
+
+	public V put(K key, V value) {
+		if (value == null)
+			throw new IllegalArgumentException("Value cannot be null");
+		WeakReference<V> existing = weakMap.put(key, new WeakReference<V>(value));
+		access(key, value);
+		return existing == null ? null : existing.get();
+	}
+
+	public void putAll(Map<? extends K, ? extends V> m) {
+		throw new NotImplementedException();
+	}
+
+	public V remove(Object key) {
+		WeakReference<V> existing = weakMap.remove(key);
+		accessTimes.remove(key);
+		softMap.remove(key);
+		return existing == null ? null : existing.get();
+	}
+
+	public int size() {
+		return weakMap.size();
+	}
+
+	public Collection<V> values() {
+		Collection<WeakReference<V>> results = weakMap.values();
+		Set<V> copy = new HashSet<V>(results.size());
+		for (WeakReference<V> resultRef : results) {
+			V result = resultRef == null ? null : resultRef.get();
+			if (result != null) copy.add(result);
+		}
+		return copy;
+	}
+}
