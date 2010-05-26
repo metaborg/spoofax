@@ -14,7 +14,6 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -33,9 +32,9 @@ import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.RuntimeActivator;
-import org.strategoxt.imp.runtime.WeakSoftMap;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.services.MetaFileLanguageValidator;
+import org.strategoxt.lang.WeakValueHashMap;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -68,7 +67,7 @@ public class Descriptor {
 	 * their parse controller (or AST), which is used as the key in this map. 
 	 */
 	private final Map<SGLRParseController, Map<Class, ILanguageService>> cachedServices =
-		Collections.synchronizedMap(new WeakSoftMap<SGLRParseController, Map<Class, ILanguageService>>());
+		Collections.synchronizedMap(new WeakHashMap<SGLRParseController, Map<Class, ILanguageService>>());
 	
 	private final List<AbstractServiceFactory> serviceFactories = new ArrayList<AbstractServiceFactory>();
 	
@@ -118,7 +117,7 @@ public class Descriptor {
 	public void reinitialize(Descriptor newDescriptor) throws BadDescriptorException {
 		// Note: may also be reinitialized with the same descriptor
 		synchronized (activeServices) {
-			// Copy the list of services since reinitialize() might chage it
+			// Copy the list of services since reinitialize() might change it
 			IDynamicLanguageService[] currentServices = activeServices.keySet().toArray(new IDynamicLanguageService[0]);
 			for (IDynamicLanguageService service : currentServices)
 				service.reinitialize(newDescriptor);
@@ -188,7 +187,7 @@ public class Descriptor {
 		if (isCachable) {
 			Map<Class, ILanguageService> cache = cachedServices.get(controller);
 			if (cache == null) {
-				cache = Collections.synchronizedMap(new HashMap<Class, ILanguageService>());
+				cache = Collections.synchronizedMap(new WeakValueHashMap<Class, ILanguageService>());
 				cachedServices.put(controller, cache);
 			}
 			cache.put(type, service);
