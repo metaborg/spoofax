@@ -377,20 +377,26 @@ strategies
             </dependset>
             <available file="${src-gen}/trans/Main.java" property="strc-java.available"/>
             <antcall target="copy-jar"/>
+            <antcall target="stratego.jar.deletehelper"/>
             <antcall target="stratego.jvm.helper">
                 <param name="build.stratego.outputpath" value="${src-gen}/trans"/>
                 <param name="build.stratego.extraargs" value="-la java-front"/>
                 <param name="build.stratego.extension" value="java"/>
             </antcall>
-            <delete>
-              <fileset dir="${build}" includes="trans/**" />
-            </delete>
             <javac classpath="utils/strategoxt.jar:${src-gen}${externaljarimport}" srcdir="${src-gen}" includes="trans/**" destdir="${build}" source="1.5" target="1.5" debug="on"/>
             <!-- copy imported terms -->
             <copy todir="${build}/trans">
-              <fileset dir="${src-gen}/trans" excludes="**/*.java" />
+                <fileset dir="${src-gen}/trans" excludes="**/*.java"/>
             </copy>
             <jar basedir="${build}" includes="trans/**" destfile="${include}/${strmodule}.jar"/>
+            <delete><fileset dir="${build}" includes="trans/**"/></delete>
+        </target>
+        
+        <target name="stratego.jar.deletehelper" unless="strc-java.available">
+            <delete>
+                <fileset dir="${src-gen}" includes="trans/**"/>
+                <fileset dir="${build}" includes="trans/**"/>
+            </delete>
         </target>
             
         <target name="stratego.jvm.helper" unless="strc-java.available" if="build.stratego.enabled">

@@ -12,7 +12,6 @@ strategies
 "source.. = editor/java/
 output.. = bin/
 bin.includes = META-INF/,\\
-               .,\\
                plugin.xml,\\
                include/,\\
                bin/,\\
