@@ -76,7 +76,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	// TODO: separate delay for error markers?
 	public static final int OBSERVER_DELAY = 600;
 	
-	private static Map<Descriptor, HybridInterpreter> cachedRuntimes =
+	private static Map<Descriptor, HybridInterpreter> runtimePrototypes =
 		Collections.synchronizedMap(new WeakWeakMap<Descriptor, HybridInterpreter>());
 	
 	private final Map<IResource, IStrategoTerm> resultingAsts =
@@ -140,9 +140,9 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	private void initialize(IProgressMonitor monitor) {
 		assert Thread.holdsLock(getSyncRoot());
 		
-		HybridInterpreter prototype = cachedRuntimes.get(descriptor);
+		HybridInterpreter prototype = runtimePrototypes.get(descriptor);
 		if (prototype != null) {
-			runtime = Environment.createInterpreter(prototype);
+			runtime = Environment.createInterpreterFromPrototype(prototype);
 			return;
 		}
 		
@@ -154,10 +154,10 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		for (File file : descriptor.getAttachedFiles()) {
 			String filename = file.toString();
 			if (filename.endsWith(".ctree")) {
-				initRuntime(monitor);
+				createEmptyRuntime(monitor);
 				loadCTree(filename);
 			} else if (filename.endsWith(".jar")) {
-				initRuntime(monitor);
+				createEmptyRuntime(monitor);
 				jars.add(filename);
 			} else if (filename.endsWith(".str")) {
 				Environment.asynOpenErrorDialog("Loading analysis components", "Cannot use .str files as a provider: please specify a .ctree or .jar file instead (usually built in /include/)", null);
@@ -168,23 +168,22 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		Debug.stopTimer("Loaded analysis components");
 		
 		monitor.subTask(null);
-		cachedRuntimes.put(descriptor, runtime);
+		runtimePrototypes.put(descriptor, runtime);
 	}
 	
 	/**
-	 * Uninitializes the observer and its descriptor runtime.
+	 * Uninitializes the observer.
 	 */
 	public void uninitialize() {
-		HybridInterpreter cachedRuntime = cachedRuntimes.remove(descriptor);
-		if (cachedRuntime != null) {
-			cachedRuntime.uninit();
-		} else if (runtime != null) {
+		// Removing it from the shared cache is sort of pointless and could be dangerous
+		// HybridInterpreter cachedRuntime = cachedRuntimes.remove(descriptor);
+		if (runtime != null) {
 			runtime.uninit();
 			runtime = null;
 		}
 	}
 
-	private void initRuntime(IProgressMonitor monitor) {
+	private void createEmptyRuntime(IProgressMonitor monitor) {
 		assert Thread.holdsLock(getSyncRoot());
 		
 		if (runtime == null) {
@@ -192,15 +191,6 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			runtime = Environment.createInterpreter(getSyncRoot() != Environment.getSyncRoot());
 			runtime.init();
 			Debug.stopTimer("Created new Stratego runtime instance");
-			try {
-				ITermFactory factory = runtime.getFactory();
-				IStrategoTuple programName = factory.makeTuple(
-						factory.makeString("program"),
-						factory.makeString(descriptor.getLanguage().getName()));
-				set_config_0_0.instance.invoke(runtime.getCompiledContext(), programName);
-			} catch (BadDescriptorException e) {
-				// Ignore; use default program name
-			}
 			monitor.subTask("Loading analysis runtime components");
 		}
 	}
@@ -553,7 +543,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			//       (e.g., overriding Context.lookupPrimitive to throw an OperationCanceledException) 
 			
 			runtime.setCurrent(term);
-			initRuntimePath(resource);
+			configureRuntime(resource);
 
 			((LoggingIOAgent) runtime.getIOAgent()).clearLog();
 			assert runtime.getCompiledContext().getOperatorRegistry(IMPJSGLRLibrary.REGISTRY_NAME)
@@ -638,8 +628,18 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		}
 	}
 	
-	private void initRuntimePath(IResource resource) {
+	private void configureRuntime(IResource resource) {
 		assert Thread.holdsLock(getSyncRoot());
+		
+		try {
+			ITermFactory factory = runtime.getFactory();
+			IStrategoTuple programName = factory.makeTuple(
+					factory.makeString("program"),
+					factory.makeString(descriptor.getLanguage().getName()));
+			set_config_0_0.instance.invoke(runtime.getCompiledContext(), programName);
+		} catch (BadDescriptorException e) {
+			// Ignore; use default program name
+		}
 		
 		try {
 			EditorIOAgent io = (EditorIOAgent) runtime.getIOAgent();
@@ -661,7 +661,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	public HybridInterpreter getRuntime() {
 		assert Thread.holdsLock(getSyncRoot());
 		if (runtime == null) initialize(new NullProgressMonitor());
-		if (runtime == null) initRuntime(new NullProgressMonitor()); // create empty runtime
+		if (runtime == null) createEmptyRuntime(new NullProgressMonitor()); // create empty runtime
 		return runtime;
 	}
 
@@ -671,7 +671,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 
 	public void reinitialize(Descriptor newDescriptor) throws BadDescriptorException {
 		synchronized (getSyncRoot()) {
-			cachedRuntimes.remove(descriptor);
+			runtimePrototypes.remove(descriptor);
 			runtime = null;
 			descriptor = newDescriptor;
 		}
