@@ -177,7 +177,7 @@ public class ContentProposal extends SourceProposal implements ICompletionPropos
 		@Override
 		public void applyStyles(TextStyle style) {
 			if (isKeywordProposal() || isTemplateProposal()) {
-				style.font = getKeywordFont();
+				// UNDONE: style.font = getKeywordFont();
 				style.foreground = getKeywordColor();
 			} else if (newTextParts.size() == 1) { // identifier proposal
 				style.foreground = getIdentifierColor();
@@ -196,6 +196,7 @@ public class ContentProposal extends SourceProposal implements ICompletionPropos
 			return keywordColor;
 		}
 		
+		@SuppressWarnings("unused")
 		private Font getKeywordFont() {
 			// HACK: hardcoded font size
 			// TODO: use non-hard coded font?
