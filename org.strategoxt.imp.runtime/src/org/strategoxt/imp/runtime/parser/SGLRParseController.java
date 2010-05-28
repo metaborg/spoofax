@@ -377,8 +377,6 @@ public class SGLRParseController implements IParseController {
 		if (!monitor.isCanceled() && currentParseStream != null)
 			forceRecolor(wasStartupParsed);
 		
-		// TODO: Delay parse error markers for newly typed text
-		
 		// Threading concerns:
 		// must never block the main thread with a lock here since
 		// it must be available to draw error markers

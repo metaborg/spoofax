@@ -8,19 +8,24 @@ import static org.strategoxt.imp.runtime.dynamicloading.TermReader.cons;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.ref.SoftReference;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.concurrent.locks.Lock;
 
 import lpg.runtime.IAst;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
 import org.spoofax.interpreter.core.InterpreterErrorExit;
@@ -41,13 +46,13 @@ import org.strategoxt.imp.generator.sdf2imp;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.SWTSafeLock;
 import org.strategoxt.imp.runtime.WeakWeakMap;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.dynamicloading.IDynamicLanguageService;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
-import org.strategoxt.imp.runtime.services.StrategoAnalysisQueue.UpdateJob;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.IMPJSGLRLibrary;
 import org.strategoxt.imp.runtime.stratego.StrategoConsole;
@@ -82,15 +87,17 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	
 	private final AstMessageHandler messages = new AstMessageHandler(AstMessageHandler.ANALYSIS_MARKER_TYPE);
 	
-	private HybridInterpreter runtime;
+	private Lock observerSchedulerLock = new SWTSafeLock(true);
+	
+	private Job asyncObserverScheduler;
+	
+	private SoftReference<HybridInterpreter> cachedRuntime;
 	
 	private volatile Descriptor descriptor;
 	
 	private volatile boolean isUpdateStarted;
 	
 	private volatile boolean rushNextUpdate;
-	
-	private UpdateJob updateJob;
 	
 	private boolean wasExceptionLogged;
 	
@@ -126,70 +133,60 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		return Environment.getSyncRoot();
 	}
 
-	public String getLog() {
+	public String getLog(HybridInterpreter runtime) {
 		assert Thread.holdsLock(getSyncRoot());
-		return ((EditorIOAgent) runtime.getIOAgent()).getLog().trim();
+		return runtime == null ? null : ((EditorIOAgent) runtime.getIOAgent()).getLog().trim();
 	}
 	
-	private void initialize(IProgressMonitor monitor) {
+	private HybridInterpreter initRuntime(IProgressMonitor monitor) {
 		assert Thread.holdsLock(getSyncRoot());
 		
-		HybridInterpreter prototype = runtimePrototypes.get(descriptor);
-		if (prototype != null) {
-			runtime = Environment.createInterpreterFromPrototype(prototype);
-			return;
-		}
+		HybridInterpreter result = runtimePrototypes.get(descriptor);
 		
-		monitor.subTask("Loading analysis runtime");
-		
-		Debug.startTimer();
-		List<String> jars = new ArrayList<String>();
-		
-		for (File file : descriptor.getAttachedFiles()) {
-			String filename = file.toString();
-			if (filename.endsWith(".ctree")) {
-				createEmptyRuntime(monitor);
-				loadCTree(filename);
-			} else if (filename.endsWith(".jar")) {
-				createEmptyRuntime(monitor);
-				jars.add(filename);
-			} else if (filename.endsWith(".str")) {
-				Environment.asynOpenErrorDialog("Loading analysis components", "Cannot use .str files as a provider: please specify a .ctree or .jar file instead (usually built in /include/)", null);
+		if (result != null) {
+			result = Environment.createInterpreterFromPrototype(result);
+		} else {
+			monitor.subTask("Loading analysis runtime");
+			
+			Debug.startTimer();
+			List<String> jars = new ArrayList<String>();
+			
+			for (File file : descriptor.getAttachedFiles()) {
+				String filename = file.toString();
+				if (filename.endsWith(".ctree")) {
+					if (result == null) result = createRuntime(monitor);
+					loadCTree(result, filename);
+				} else if (filename.endsWith(".jar")) {
+					if (result == null) result = createRuntime(monitor);
+					jars.add(filename);
+				} else if (filename.endsWith(".str")) {
+					Environment.asynOpenErrorDialog("Loading analysis components", "Cannot use .str files as a provider: please specify a .ctree or .jar file instead (usually built in /include/)", null);
+				}
 			}
+			
+			if (!jars.isEmpty()) loadJars(result, jars);
+			Debug.stopTimer("Loaded analysis components");
+			monitor.subTask(null);
 		}
 		
-		if (!jars.isEmpty()) loadJars(jars);
-		Debug.stopTimer("Loaded analysis components");
-		
-		monitor.subTask(null);
-		runtimePrototypes.put(descriptor, runtime);
+		cachedRuntime = new SoftReference<HybridInterpreter>(result);
+		return result;
 	}
 	
 	/**
 	 * Uninitializes the observer.
 	 */
 	public void uninitialize() {
-		// Removing it from the shared cache is sort of pointless and could be dangerous
-		// HybridInterpreter cachedRuntime = cachedRuntimes.remove(descriptor);
-		if (runtime != null) {
+		// Not removing the prototype; might be useful elsewhere
+		// HybridInterpreter cachedRuntime = runtimePrototypes.remove(descriptor);
+		if (cachedRuntime != null) {
+			HybridInterpreter runtime = cachedRuntime.get();
 			runtime.uninit();
-			runtime = null;
+			cachedRuntime.clear();
 		}
 	}
 
-	private void createEmptyRuntime(IProgressMonitor monitor) {
-		assert Thread.holdsLock(getSyncRoot());
-		
-		if (runtime == null) {
-			Debug.startTimer();
-			runtime = Environment.createInterpreter(getSyncRoot() != Environment.getSyncRoot());
-			runtime.init();
-			Debug.stopTimer("Created new Stratego runtime instance");
-			monitor.subTask("Loading analysis runtime components");
-		}
-	}
-
-	private void loadCTree(String filename) {
+	private void loadCTree(HybridInterpreter runtime, String filename) {
 		try {
 			Debug.startTimer("Loading Stratego module ", filename);
 			assert getSyncRoot() == Environment.getSyncRoot() || !Thread.holdsLock(Environment.getSyncRoot());
@@ -208,7 +205,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		}
 	}
 	
-	private void loadJars(List<String> jars) {
+	private void loadJars(HybridInterpreter runtime, List<String> jars) {
 		try {
 			Debug.startTimer("Loading Stratego modules " + jars);
 			URL[] classpath = new URL[jars.size()];
@@ -232,27 +229,54 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		}
 	}
 
+	private HybridInterpreter createRuntime(IProgressMonitor monitor) {
+		assert Thread.holdsLock(getSyncRoot());
+		
+		Debug.startTimer();
+		HybridInterpreter result = Environment.createInterpreter(getSyncRoot() != Environment.getSyncRoot());
+		result.init();
+		Debug.stopTimer("Created new Stratego runtime instance");
+		monitor.subTask("Loading analysis runtime components");
+		return result;
+	}
+
 	/**
 	 * Starts a new update() operation, asynchronously.
 	 */
 	public void scheduleUpdate(final IParseController parseController) {
-		
 		isUpdateStarted = true;
-
-		StrategoAnalysisQueue queue = StrategoAnalysisQueueFactory.getInstance();
-		if (this.updateJob != null) {
-			this.updateJob.cancel();
-		}
 		
-		if (this.rushNextUpdate) {
-			this.updateJob = queue.queue(this, parseController, 0);
-		} else {
-			this.updateJob = queue.queue(this, parseController, OBSERVER_DELAY);
+		observerSchedulerLock.lock();
+		try {
+			if (asyncObserverScheduler != null)
+				asyncObserverScheduler.cancel();
+				
+			// TODO: reuse observer schedulers; just rename them and set a new parsecontroller
+			asyncObserverScheduler = new Job("Analyzing updates to " + parseController.getPath().lastSegment()) {
+				@Override
+				public IStatus run(IProgressMonitor monitor) {
+					monitor.beginTask("", IProgressMonitor.UNKNOWN);
+					update(parseController, monitor);
+					return Status.OK_STATUS;
+				}
+			};
+			
+			// UNDONE: observer job is no longer a WorkspaceJob
+			//         thus avoiding analysis delays and progress view spamming 
+			// asyncObserverScheduler.setRule(parseController.getProject().getResource());
+			asyncObserverScheduler.setSystem(true);
+			if (rushNextUpdate) {
+				rushNextUpdate = false;
+				asyncObserverScheduler.schedule(0);
+			} else {
+				asyncObserverScheduler.schedule(OBSERVER_DELAY);
+			}
+		} finally {
+			observerSchedulerLock.unlock();
 		}
-		
 	}
 
-	public void update(IParseController parseController, IProgressMonitor monitor) {
+	public void update(HybridInterpreter runtime, IParseController parseController, IProgressMonitor monitor) {
 		isUpdateStarted = true;
 		IStrategoAstNode ast = (IStrategoAstNode) parseController.getCurrentAst();
 		if (ast == null || ast.getConstructor() == null)
@@ -276,7 +300,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	
 				if (feedback == null) {
 					reportRewritingFailed();
-					String log = getLog();
+					String log = getLog(runtime);
 					if (!wasExceptionLogged || log.length() > 0)
 						Environment.logException(log.length() == 0 ? "Analysis failed" : "Analysis failed:\n" + log);
 					messages.clearMarkers(ast.getResource());
@@ -331,7 +355,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	}
 	*/
 
-	public void presentToUser(IResource resource, IStrategoTerm feedback) {
+	private void presentToUser(IResource resource, IStrategoTerm feedback) {
 		assert Thread.holdsLock(getSyncRoot());
 		assert feedback != null;
 
@@ -341,7 +365,6 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 
 		try {
 			feedback = extractResultingAST(resource, feedback);
-			
 			if (feedback.getTermType() == TUPLE
 					&& termAt(feedback, 0).getTermType() == LIST
 					&& termAt(feedback, 1).getTermType() == LIST
@@ -522,19 +545,15 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			//       (e.g., overriding Context.lookupPrimitive to throw an OperationCanceledException) 
 			
 			runtime.setCurrent(term);
-			configureRuntime(resource);
+			configureRuntime(runtime, resource);
 
 			((LoggingIOAgent) runtime.getIOAgent()).clearLog();
 			assert runtime.getCompiledContext().getOperatorRegistry(IMPJSGLRLibrary.REGISTRY_NAME)
 					instanceof IMPJSGLRLibrary;
 			boolean success = runtime.invoke(function);
 			
-			// Cleanup input term.
-			IStrategoTerm result = runtime.current();
-			runtime.setCurrent(null);
-			
 			Debug.stopTimer("Evaluated strategy " + function + (success ? "" : " (failed)"));
-			return success ? result : null;
+			return success ? runtime.current() : null;
 		}
 	}
 
@@ -611,9 +630,10 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		}
 	}
 	
-	private void configureRuntime(IResource resource) {
+	private void configureRuntime(HybridInterpreter runtime, IResource resource) {
 		assert Thread.holdsLock(getSyncRoot());
 		
+
 		try {
 			ITermFactory factory = runtime.getFactory();
 			IStrategoTuple programName = factory.makeTuple(
@@ -644,7 +664,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	public HybridInterpreter getRuntime() {
 		assert Thread.holdsLock(getSyncRoot());
 		if (runtime == null) initialize(new NullProgressMonitor());
-		if (runtime == null) createEmptyRuntime(new NullProgressMonitor()); // create empty runtime
+		if (runtime == null) getRuntime(new NullProgressMonitor()); // create empty runtime
 		return runtime;
 	}
 

@@ -116,24 +116,27 @@ public class Descriptor {
 	 */
 	public void reinitialize(Descriptor newDescriptor) throws BadDescriptorException {
 		// Note: may also be reinitialized with the same descriptor
-		synchronized (activeServices) {
-			// Copy the list of services since reinitialize() might change it
-			IDynamicLanguageService[] currentServices = activeServices.keySet().toArray(new IDynamicLanguageService[0]);
-			for (IDynamicLanguageService service : currentServices)
-				service.reinitialize(newDescriptor);
-			attachedFiles = null;
-			cachedServices.clear();
+		IDynamicLanguageService[] currentServices;
+		synchronized (activeServices) { // defensively copy
+			currentServices = activeServices.keySet().toArray(new IDynamicLanguageService[0]);
 		}
+		for (IDynamicLanguageService service : currentServices) {
+			service.reinitialize(newDescriptor);
+		}
+		attachedFiles = null;
+		cachedServices.clear();
 	}
 	
 	/**
 	 * Prepares editor activeServices for reinitialization with a new descriptor.
 	 */
 	public void prepareForReinitialize() {
-		synchronized (activeServices) {
-			for (IDynamicLanguageService service : activeServices.keySet())
-				service.prepareForReinitialize();
+		IDynamicLanguageService[] currentServices;
+		synchronized (activeServices) { // defensively copy
+			currentServices = activeServices.keySet().toArray(new IDynamicLanguageService[0]);
 		}
+		for (IDynamicLanguageService service : currentServices)
+			service.prepareForReinitialize();
 	}
 	
 	// LOADING SERVICES

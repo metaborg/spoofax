@@ -220,7 +220,7 @@ public final class Environment {
 		return result;
 	}
 
-	public static HybridInterpreter createInterpreter(HybridInterpreter prototype) {
+	public static HybridInterpreter createInterpreterFromPrototype(HybridInterpreter prototype) {
 		HybridInterpreter result = new HybridInterpreter(prototype,
 				IMPJSGLRLibrary.REGISTRY_NAME, // is spoofax-specific
 				JSGLRLibrary.REGISTRY_NAME,    // connected to the library above
