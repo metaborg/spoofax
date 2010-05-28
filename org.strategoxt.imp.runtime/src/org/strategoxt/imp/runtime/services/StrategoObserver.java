@@ -335,6 +335,17 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		assert Thread.holdsLock(getSyncRoot());
 		assert feedback != null;
 
+		if (feedback instanceof IStrategoString) {
+			String status = ((IStrategoString)feedback).stringValue();
+			if (status.equals("BACKGROUNDED")) {
+				// Trigger update when needed
+				isUpdateStarted = false;
+				return;
+			} else {
+				throw new StrategoException("Illegal status from " + feedbackFunction + ": " + status);
+			}
+		}
+		
 		// TODO: use FileTrackingIOAgent to find out what to clear
 		// UNDONE: messages.clearAllMarkers();
 		messages.clearMarkers(resource);
