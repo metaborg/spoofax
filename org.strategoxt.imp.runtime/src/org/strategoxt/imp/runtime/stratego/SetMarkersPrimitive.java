@@ -27,6 +27,7 @@ public class SetMarkersPrimitive extends AbstractPrimitive {
 		
 		WrappedAstNode appl = (WrappedAstNode)tvars[0]; 
 		IStrategoAstNode ast = appl.getNode();
+		assert (ast.getResource() != null);
 		
 		IOAgent agent = SSLLibrary.instance(env).getIOAgent();
 		if (!(agent instanceof EditorIOAgent)) return false;
@@ -34,7 +35,12 @@ public class SetMarkersPrimitive extends AbstractPrimitive {
 		StrategoAnalysisJob job = ((EditorIOAgent)agent).getJob();
 		
 		StrategoObserver observer = job.getObserver();
+		
+		// HACK: presentToUser runs a feedback postprocess strategy which calls primitives witch set env.current()
+		// (nested primitives...)
+		IStrategoTerm previousTerm = env.current();
 		observer.presentToUser(ast.getResource(), env.current());
+		env.setCurrent(previousTerm);
 		
 		return true;
 	}
