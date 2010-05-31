@@ -226,4 +226,36 @@ signature constructors
   Entity   : ID * List(Property) -> Entity
   Property : ID * Type           -> Property
   Type     : ID                  -> Type
+
+strategies
+  
+  // Set markers for a given file. Use when checking files from a queued strategy.
+  // Current term: (ast-desugared, errors, warnings, notes) tuple
+  // ast: the root node of the file to set markers on 
+  set-markers(|ast) = prim("SSL_EXT_set_markers", ast)
+
+  // Indicate that one or more files need analysis. 
+  // Current term: ss a list of absolute file paths, or a single absolute file path to analyze
+  queue-analysis = 
+       (is-list; list-loop(queue-analysis))
+    <+ prim("SSL_EXT_queue_analysis")
+
+  // Set the total number of work units to complete. Can be called multiple times. 
+  // Current term: number of work units (int).
+  set-total-work-units = prim("SSL_EXT_set_total_work_units")
+  
+  // Complete one work unit and update progress monitors.
+  // Current term: ignored
+  complete-work-unit = prim("SSL_EXT_complete_work_unit")
+  
+  // Queue a strategy for background processing with a progress indicator.
+  // Current term: the term to pass to the background strategy
+  // s: the strategy, as string
+  // description: name of the task (will be shown in progress view)
+  queue-strategy(|s,description) = prim("SSL_EXT_queue_strategy", s, description)
+  
+  // Return the result of this strategy to indicate a non-completed (backgrounded) analysis.
+  // Editor services (hover, resolve) will be delayed until a complete analysis is performed. 
+  set-analysis-backgrounded = !"BACKGROUNDED"
+  
 }
