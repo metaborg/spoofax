@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.concurrent.locks.Lock;
 
 import lpg.runtime.IAst;
 
@@ -41,6 +42,7 @@ import org.strategoxt.imp.generator.sdf2imp;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.SWTSafeLock;
 import org.strategoxt.imp.runtime.WeakWeakMap;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
@@ -89,6 +91,8 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	private volatile boolean isUpdateStarted;
 	
 	private volatile boolean rushNextUpdate;
+	
+	private Lock observerSchedulerLock = new SWTSafeLock(true);
 	
 	private UpdateJob updateJob;
 	
@@ -234,20 +238,26 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 
 	/**
 	 * Starts a new update() operation, asynchronously.
+	 * Can be called from multiple threads.
 	 */
 	public void scheduleUpdate(final IParseController parseController) {
 		
 		isUpdateStarted = true;
 
-		StrategoAnalysisQueue queue = StrategoAnalysisQueueFactory.getInstance();
-		if (this.updateJob != null) {
-			this.updateJob.cancel();
-		}
-		
-		if (this.rushNextUpdate) {
-			this.updateJob = queue.queue(this, parseController, 0);
-		} else {
-			this.updateJob = queue.queue(this, parseController, OBSERVER_DELAY);
+		observerSchedulerLock.lock();
+		try {
+			StrategoAnalysisQueue queue = StrategoAnalysisQueueFactory.getInstance();
+			if (this.updateJob != null) {
+				this.updateJob.cancel();
+			}
+			
+			if (this.rushNextUpdate) {
+				this.updateJob = queue.queue(this, parseController, 0);
+			} else {
+				this.updateJob = queue.queue(this, parseController, OBSERVER_DELAY);
+			}
+		} finally {
+			observerSchedulerLock.unlock();
 		}
 		
 	}
