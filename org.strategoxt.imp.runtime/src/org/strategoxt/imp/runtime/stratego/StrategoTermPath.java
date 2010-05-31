@@ -95,6 +95,11 @@ public class StrategoTermPath {
 		if (ast == null)
 			return null;
 		
+		if (origin instanceof ListAstNode) {
+			// Lists have no origin information; don't try to find the node.
+			return null;
+		}
+		
 		final IStrategoAstNode originChild = origin.getChildren().size() == 0
 				? null
 				: (IStrategoAstNode) origin.getChildren().get(0);
