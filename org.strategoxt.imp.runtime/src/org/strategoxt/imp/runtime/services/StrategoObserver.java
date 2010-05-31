@@ -21,10 +21,7 @@ import lpg.runtime.IAst;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
 import org.spoofax.interpreter.core.InterpreterErrorExit;
@@ -52,6 +49,7 @@ import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.dynamicloading.IDynamicLanguageService;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
+import org.strategoxt.imp.runtime.services.StrategoAnalysisQueue.UpdateJob;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.IMPJSGLRLibrary;
 import org.strategoxt.imp.runtime.stratego.StrategoConsole;
@@ -86,10 +84,6 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	
 	private final AstMessageHandler messages = new AstMessageHandler(AstMessageHandler.ANALYSIS_MARKER_TYPE);
 	
-	private Lock observerSchedulerLock = new SWTSafeLock(true);
-	
-	private Job asyncObserverScheduler;
-	
 	private HybridInterpreter runtime;
 	
 	private volatile Descriptor descriptor;
@@ -97,6 +91,10 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	private volatile boolean isUpdateStarted;
 	
 	private volatile boolean rushNextUpdate;
+	
+	private Lock observerSchedulerLock = new SWTSafeLock(true);
+	
+	private UpdateJob updateJob;
 	
 	private boolean wasExceptionLogged;
 	
@@ -240,38 +238,28 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 
 	/**
 	 * Starts a new update() operation, asynchronously.
+	 * Can be called from multiple threads.
 	 */
 	public void scheduleUpdate(final IParseController parseController) {
-		isUpdateStarted = true;
 		
+		isUpdateStarted = true;
+
 		observerSchedulerLock.lock();
 		try {
-			if (asyncObserverScheduler != null)
-				asyncObserverScheduler.cancel();
-				
-			// TODO: reuse observer schedulers; just rename them and set a new parsecontroller
-			asyncObserverScheduler = new Job("Analyzing updates to " + parseController.getPath().lastSegment()) {
-				@Override
-				public IStatus run(IProgressMonitor monitor) {
-					monitor.beginTask("", IProgressMonitor.UNKNOWN);
-					update(parseController, monitor);
-					return Status.OK_STATUS;
-				}
-			};
+			StrategoAnalysisQueue queue = StrategoAnalysisQueueFactory.getInstance();
+			if (this.updateJob != null) {
+				this.updateJob.cancel();
+			}
 			
-			// UNDONE: observer job is no longer a WorkspaceJob
-			//         thus avoiding analysis delays and progress view spamming 
-			// asyncObserverScheduler.setRule(parseController.getProject().getResource());
-			asyncObserverScheduler.setSystem(true);
-			if (rushNextUpdate) {
-				rushNextUpdate = false;
-				asyncObserverScheduler.schedule(0);
+			if (this.rushNextUpdate) {
+				this.updateJob = queue.queue(this, parseController, 0);
 			} else {
-				asyncObserverScheduler.schedule(OBSERVER_DELAY);
+				this.updateJob = queue.queue(this, parseController, OBSERVER_DELAY);
 			}
 		} finally {
 			observerSchedulerLock.unlock();
 		}
+		
 	}
 
 	public void update(IParseController parseController, IProgressMonitor monitor) {
@@ -353,16 +341,28 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	}
 	*/
 
-	private void presentToUser(IResource resource, IStrategoTerm feedback) {
+	public void presentToUser(IResource resource, IStrategoTerm feedback) {
 		assert Thread.holdsLock(getSyncRoot());
 		assert feedback != null;
 
+		if (feedback instanceof IStrategoString) {
+			String status = ((IStrategoString)feedback).stringValue();
+			if (status.equals("BACKGROUNDED")) {
+				// Trigger update when needed
+				isUpdateStarted = false;
+				return;
+			} else {
+				throw new StrategoException("Illegal status from " + feedbackFunction + ": " + status);
+			}
+		}
+		
 		// TODO: use FileTrackingIOAgent to find out what to clear
 		// UNDONE: messages.clearAllMarkers();
 		messages.clearMarkers(resource);
 
 		try {
 			feedback = extractResultingAST(resource, feedback);
+			
 			if (feedback.getTermType() == TUPLE
 					&& termAt(feedback, 0).getTermType() == LIST
 					&& termAt(feedback, 1).getTermType() == LIST
@@ -550,8 +550,12 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 					instanceof IMPJSGLRLibrary;
 			boolean success = runtime.invoke(function);
 			
+			// Cleanup input term.
+			IStrategoTerm result = runtime.current();
+			runtime.setCurrent(null);
+			
 			Debug.stopTimer("Evaluated strategy " + function + (success ? "" : " (failed)"));
-			return success ? runtime.current() : null;
+			return success ? result : null;
 		}
 	}
 

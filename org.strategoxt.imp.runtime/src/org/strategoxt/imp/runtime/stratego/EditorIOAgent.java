@@ -11,6 +11,7 @@ import java.io.Writer;
 import org.spoofax.interpreter.library.LoggingIOAgent;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
+import org.strategoxt.imp.runtime.services.StrategoAnalysisJob;
 
 /**
  * This class overrides the default IOAgent to support attached files in editor plugins,
@@ -25,6 +26,8 @@ public class EditorIOAgent extends LoggingIOAgent {
 	private boolean alwaysActivateConsole;
 
 	private String projectPath;
+	
+	private StrategoAnalysisJob job;
 	
 	public void setDescriptor(Descriptor descriptor) {
 		this.descriptor = descriptor;
@@ -102,5 +105,13 @@ public class EditorIOAgent extends LoggingIOAgent {
 	
 	public String getProjectPath() {
 		return projectPath;
+	}
+	
+	public void setJob(StrategoAnalysisJob job) {
+		this.job = job;
+	}
+	
+	public StrategoAnalysisJob getJob() {
+		return this.job;
 	}
 }
