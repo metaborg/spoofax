@@ -84,6 +84,8 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	
 	private final AstMessageHandler messages = new AstMessageHandler(AstMessageHandler.ANALYSIS_MARKER_TYPE);
 	
+	private final Lock observerSchedulerLock = new SWTSafeLock(true);
+	
 	private HybridInterpreter runtime;
 	
 	private volatile Descriptor descriptor;
@@ -91,8 +93,6 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	private volatile boolean isUpdateStarted;
 	
 	private volatile boolean rushNextUpdate;
-	
-	private Lock observerSchedulerLock = new SWTSafeLock(true);
 	
 	private UpdateJob updateJob;
 	

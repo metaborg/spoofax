@@ -99,7 +99,7 @@ public class SGLRParseController implements IParseController {
 	
 	private boolean isReplaced;
 	
-	private boolean performInitialUpdate;
+	private volatile boolean performInitialUpdate;
 
 	// Simple accessors
 	
@@ -381,7 +381,7 @@ public class SGLRParseController implements IParseController {
 		// must never block the main thread with a lock here since
 		// it must be available to draw error markers
 		
-		if (!Environment.isMainThread() || !isStartupParsed) {
+		if (!Environment.isMainThread() || !wasStartupParsed) {
 			if (!monitor.isCanceled() && !Thread.holdsLock(Environment.getSyncRoot())) {
 				// Note that a resource lock is acquired here
 				errorHandler.commitMultiErrorLineAdditions();

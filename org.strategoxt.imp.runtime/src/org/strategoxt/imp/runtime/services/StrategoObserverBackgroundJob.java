@@ -7,6 +7,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.imp.parser.IParseController;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 
@@ -44,8 +45,7 @@ public class StrategoObserverBackgroundJob implements StrategoAnalysisJob {
 			observer.invoke(strategyName, term, project);
 		    
 		} catch (Exception e) {
-			// hmm.
-			e.printStackTrace();
+			Environment.logException("Background job failed", e);
 		}
 		
 		return Status.OK_STATUS;

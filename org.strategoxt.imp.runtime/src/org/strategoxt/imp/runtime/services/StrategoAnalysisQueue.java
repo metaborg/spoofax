@@ -150,7 +150,7 @@ public class StrategoAnalysisQueue {
 	 * Indicates whether a job is currently running.
 	 * Only one job can be running at any given time.
 	 */
-	private boolean running = false;
+	private volatile boolean running = false;
 
 	private void wake() {
 		if (running)
