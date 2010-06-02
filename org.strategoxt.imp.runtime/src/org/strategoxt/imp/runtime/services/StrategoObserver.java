@@ -166,7 +166,8 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		Debug.stopTimer("Loaded analysis components");
 		
 		monitor.subTask(null);
-		runtimePrototypes.put(descriptor, runtime);
+		if (runtime != null)
+			runtimePrototypes.put(descriptor, runtime);
 	}
 	
 	/**

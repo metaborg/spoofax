@@ -59,7 +59,7 @@ public class WrappedAstNodeLink extends WrappedAstNodeParent implements IWrapped
 
 	@Override
 	protected boolean doSlowMatch(IStrategoTerm second, int commonStorageType) {
-		return wrapped == second || wrapped.match(this);
+		return wrapped == second || wrapped.match(second);
 	}
 
 	@Override
