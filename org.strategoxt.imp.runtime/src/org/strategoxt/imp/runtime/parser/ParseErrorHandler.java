@@ -155,10 +155,7 @@ public class ParseErrorHandler {
 		assert source.getParseLock().isHeldByCurrentThread();
 		assert !Thread.holdsLock(Environment.getSyncRoot()) : "Potential deadlock";
 		
-		for (Runnable marker : errorReports) {
-			marker.run();
-		}
-		errorReports.clear();
+		processErrorReportsQueue();
 		handler.commitDeletions();
 	}
 	
@@ -170,10 +167,7 @@ public class ParseErrorHandler {
 		assert source.getParseLock().isHeldByCurrentThread();
 		assert !Thread.holdsLock(Environment.getSyncRoot()) : "Potential deadlock";
 
-		for (Runnable marker : errorReports) {
-			marker.run();
-		}
-		errorReports.clear();
+		processErrorReportsQueue();
 		handler.commitMultiErrorLineAdditions();
 	}
 
@@ -194,9 +188,7 @@ public class ParseErrorHandler {
 	 * @see AstMessageHandler#commitAllChanges()
 	 */
 	public void scheduleCommitAllChanges() {
-		for (Runnable marker : errorReports) {
-			marker.run();
-		}
+		processErrorReportsQueue();
 
 		final int expectedVersion = ++additionsVersionId;
 
@@ -239,6 +231,13 @@ public class ParseErrorHandler {
 		} else {
 			job.schedule((long) (PARSE_ERROR_DELAY * (isRecoveryAvailable ? 1 : 1.5)));
 		}
+	}
+
+	private void processErrorReportsQueue() {
+		for (Runnable marker : errorReports) {
+			marker.run();
+		}
+		errorReports.clear();
 	}
 	
 	public void abortScheduledCommit() {

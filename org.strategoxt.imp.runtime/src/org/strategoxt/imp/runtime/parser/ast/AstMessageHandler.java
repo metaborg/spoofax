@@ -46,7 +46,11 @@ import org.strategoxt.imp.runtime.stratego.adapter.IWrappedAstNode;
 
 /**
  * Reports messages for a group of files, associating
- * errors and other markers with AST nodes. 
+ * errors and other markers with AST nodes.
+ * 
+ * Threading concerns: should be synchronized externally.
+ * Individual methods may document particular threading concerns
+ * and exceptions to this rule.
  * 
  * @see IMessageHandler		Handles message reporting for single files.
  * 
@@ -80,6 +84,8 @@ public class AstMessageHandler {
 	private final List<IMarker> markersToDelete = new ArrayList<IMarker>();
 	
 	private final List<MarkerSignature> markersToAdd = new ArrayList<MarkerSignature>();
+	
+	private boolean initMarkersToReuse = false;
 	
 	public AstMessageHandler(String markerType) {
 		this.markerType = markerType;
@@ -263,11 +269,14 @@ public class AstMessageHandler {
 	 */
 	public void clearMarkers(IResource file) {
 		try {
-			IMarker[] markers = file.findMarkers(markerType, true, 0);
-			for (IMarker marker : markers) {
-				IMarker dupe = markersToReuse.put(new MarkerSignature(marker), marker);
-				if (dupe != null) markersToDelete.add(dupe);
+			if (initMarkersToReuse) {
+				IMarker[] markers = file.findMarkers(markerType, true, 0);
+				for (IMarker marker : markers) {
+					IMarker dupe = markersToReuse.put(new MarkerSignature(marker), marker);
+					if (dupe != null) markersToDelete.add(dupe);
+				}
 			}
+			initMarkersToReuse = true; // redraw markers the first time, then reuse them
 			Iterator<MarkerSignature> markersToAdd = this.markersToAdd.iterator();
 			while (markersToAdd.hasNext()) {
 				MarkerSignature marker = markersToAdd.next();
@@ -298,8 +307,10 @@ public class AstMessageHandler {
 		try {
 			runInWorkspace(new Runnable() {
 				public void run() {
+					// Delete reusable markers that were not reused
 					deleteMarkers(markersToReuse.values());
 					markersToReuse.clear();
+					// Delete non-reusable non-reused markers
 					deleteMarkers(markersToDelete);
 					markersToDelete.clear();
 				}
