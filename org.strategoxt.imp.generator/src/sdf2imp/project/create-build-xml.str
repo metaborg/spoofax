@@ -17,7 +17,6 @@ strategies
     name       := <get-sdf-main-module>;
     name'      := <trans-module-name>;
     classname  := <get-main-class-name>;
-    pkgname    := <BasePackage <+ default-package-name>;
     
     <output-xml-file(|[], "build.main.xml")>
     %>
@@ -70,7 +69,6 @@ strategies
     name       := <get-sdf-main-module>;
     name'      := <trans-module-name>;
     classname  := <get-main-class-name>;
-    pkgname    := <BasePackage <+ default-package-name>;
     
     <output-xml-file(|[], "build.generated.xml")>
     %>
