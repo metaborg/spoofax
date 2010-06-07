@@ -26,6 +26,7 @@ strategies
         
         <!-- Key input modules -->
         <property name="sdfmodule" value="<%= name %>"/>
+        <property name="metasdfmodule" value="Stratego-<%= name %>"/>
         <property name="esvmodule" value="<%= name %>"/>
         <property name="strmodule" value="<%= name' %>"/>
     
@@ -40,8 +41,10 @@ strategies
         
         <!-- Imports -->
         <property name="build.sdf.imports" value=""/>
-        <property name="build.stratego.args" value="--library
-                        -I &quot;${trans}&quot; -I &quot;${basedir}&quot;
+        <property name="build.stratego.args" value="
+                        --library
+                        -I &quot;${trans}&quot;
+                        -I &quot;${basedir}&quot;
                         -la stratego-lib -la stratego-sglr -la stratego-gpp -la stratego-xtc -la stratego-aterm"/>
         
         <!-- External .def and .jar locations
@@ -59,7 +62,7 @@ strategies
         <import file="build.generated.xml"/>
     
         <!-- Main target -->
-        <target name="all" depends="spoofaximp.default"/>
+        <target name="all" depends="spoofaximp.default.ctree"/>
     </project>
     <%
   
@@ -73,8 +76,10 @@ strategies
     %>
     <?xml version="1.0" encoding="UTF-8"?>
     <project name="build.generated">
-    
-        <target name="spoofaximp.default" depends="sdf2table,ppgen,pppack,stratego.aster,stratego.ctree,sdf2imp,refresh"/>
+
+        <target name="spoofaximp.default" depends="spoofaximp.default.ctree"/>
+        <target name="spoofaximp.default.ctree" depends="sdf2table,meta-sdf2table,ppgen,pppack,stratego.aster,stratego.ctree,sdf2imp,refresh"/>
+        <target name="spoofaximp.default.jar"   depends="sdf2table,meta-sdf2table,ppgen,pppack,stratego.aster,stratego.jar,  sdf2imp,refresh"/>
     
         <!-- Initialization -->
         <available file="${trans}/${strmodule}.str" property="build.stratego.enabled"/>
@@ -147,6 +152,14 @@ strategies
             </apply>
         </target>
         
+        <target name="meta-sdf2table">
+            <fail unless="eclipse.spoofaximp.jars" message="Property eclipse.spoofaximp.jars must point to the directory containing StrategoMix.def"/>
+            <antcall target="sdf2table">
+                <param name="sdfmodule" value="${metasdfmodule}"/>
+                <param name="build.sdf.imports" value="-Idef &quot;${eclipse.spoofaximp.jars}/StrategoMix.def&quot; ${build.sdf.imports}"/>
+            </antcall>
+        </target>
+        
         <target name="make-permissive" depends="pack-sdf,copy-sdf">
             <dependset>
                 <srcfileset file="${include}/${sdfmodule}.def"/>
@@ -194,6 +207,8 @@ strategies
                 <arg value="${include}/${sdfmodule}.def"/>
                 <arg value="-I"/>
                 <arg value="${syntax}"/>
+                <arg value="-I"/>
+                <arg value="${utils}"/>
                 <arg value="-I"/>
                 <arg value="${lib}"/>
                 <arg line="${build.sdf.imports}"/>
@@ -414,6 +429,7 @@ strategies
                 <arg line="${build.stratego.extraargs}"/>
                 <arg line="${externaljarflags}"/>
                 <arg line="${externaldefimport}"/>
+                <arg line="-I &quot;${lib}&quot; --cache-dir &quot;${basedir}/.cache&quot;"/>
             </java>
             <delete file="${include}/${strmodule}.rtree" failonerror="false"/>
             <mkdir dir="${build}/trans"/>
@@ -439,6 +455,7 @@ strategies
                 <arg line="${build.stratego.args}"/>
                 <arg line="${build.stratego.extraargs}"/>
                 <arg line="${externaldefimport}"/>
+                <arg line="-I &quot;${lib}&quot; --cache-dir &quot;${basedir}/.cache&quot;"/>
                 
                 <fileset file="${trans}/${strmodule}.str"/>
                 <mapper type="glob" from="*.str" to="*.${build.stratego.extension}"/>

@@ -30,7 +30,13 @@ public class StrategoAnalysisQueue {
 
 	private static final long serialVersionUID = 1L;
 
-	PriorityBlockingQueue<UpdateJob> queue;
+	private final PriorityBlockingQueue<UpdateJob> queue;
+
+	/*
+	 * Indicates whether a job is currently running.
+	 * Only one job can be running at any given time.
+	 */
+	private volatile boolean running = false;
 
 	public class UpdateJob extends Job {
 
@@ -146,12 +152,6 @@ public class StrategoAnalysisQueue {
 
 	}
 
-	/*
-	 * Indicates whether a job is currently running.
-	 * Only one job can be running at any given time.
-	 */
-	private volatile boolean running = false;
-
 	private void wake() {
 		if (running)
 			return;
@@ -188,8 +188,7 @@ public class StrategoAnalysisQueue {
 	 */
 	public UpdateJob queueAnalysis(IPath path, IProject project) {
 
-		StrategoObserverBackgroundUpdateJob job = new StrategoObserverBackgroundUpdateJob();
-		job.setup(path, project);
+		StrategoObserverBackgroundUpdateJob job = new StrategoObserverBackgroundUpdateJob(path, project);
 
 		UpdateJob updateJob = new UpdateJob(job, path, UpdateJob.BACKGROUND, true, 0);
 		add(updateJob);

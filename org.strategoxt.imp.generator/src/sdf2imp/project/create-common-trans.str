@@ -69,15 +69,15 @@ strategies
           rules(
             IsImported: path
           );
-          if <is-newer> (cache-path, path) then
+          ( <is-newer> (cache-path, path);
             file := <ReadFromFile> cache-path
-          else
+          <+
             file := <parse-file> path;
             if <file-exists> path then
               // Only cache if on filesystem (e.g., ignore libstratego-lib)
               <WriteToBinaryFile> (cache-path, file)
             end        
-          end;
+          );
           ${$| CurrentFile:
             rules(CurrentFile := path);
             <record-declarations> file

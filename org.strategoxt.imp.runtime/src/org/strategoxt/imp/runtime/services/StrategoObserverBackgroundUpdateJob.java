@@ -23,23 +23,13 @@ import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 
 public class StrategoObserverBackgroundUpdateJob implements StrategoAnalysisJob {
 
-	IPath path;
-	IProject project;
-	StrategoProgressMonitor progress;
-	StrategoObserver observer;
-	SGLRParseController parseController;
+	private final IPath path;
+	private final IProject project;
+	private StrategoProgressMonitor progress;
+	private StrategoObserver observer;
+	private SGLRParseController parseController;
 	
-	/**
-	 * Constructor
-	 */
-	public StrategoObserverBackgroundUpdateJob() {
-	}
-	
-	/**
-	 * Setup
-	 * @param path
-	 */
-	public void setup(IPath path, IProject project) {
+	public StrategoObserverBackgroundUpdateJob(IPath path, IProject project) {
 		this.path = path;
 		this.project = project;
 	}
