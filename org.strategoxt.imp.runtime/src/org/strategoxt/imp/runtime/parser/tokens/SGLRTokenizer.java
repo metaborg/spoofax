@@ -1,6 +1,9 @@
 package org.strategoxt.imp.runtime.parser.tokens;
 
-import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.*;
+import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.TK_EOF;
+import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.TK_ERROR;
+import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.TK_RESERVED;
+import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.valueOf;
 import lpg.runtime.IPrsStream;
 import lpg.runtime.IToken;
 import lpg.runtime.LexStream;
@@ -149,19 +152,24 @@ public class SGLRTokenizer {
 		return new Token(parseStream, beginOffset, endOffset, TK_ERROR.ordinal());
 	}
 	
+	/**
+	 * Changes the token kinds of existing tokens.
+	 */
 	public void changeTokenKinds(int beginOffset, int endOffset, TokenKind fromKind, TokenKind toKind) {
 		// FIXME: changeTokenKinds sometimes changes the token kinds of comments just adjacent to erroneous regions
+		//        (not sure if it still does that with the 0.5.1 tokenization changes)
 		int fromOrdinal = fromKind.ordinal();
 		IPrsStream tokens = lexStream.getIPrsStream();
 		for (int i = 0, end = tokens.getSize(); i < end; i++) {
 			IToken token = tokens.getIToken(i);
-			if (token.getEndOffset() >= beginOffset && token.getKind() == fromOrdinal)
+			if (token.getEndOffset() >= beginOffset && token.getKind() == fromOrdinal) {
 				token.setKind(toKind.ordinal());
+			}
 			if (token.getEndOffset() >= endOffset)
 				return;
 		}
 	}
-	
+
 	/**
 	 * Creates an error token on stream part, backwards skipping whitespace
 	 * 

@@ -53,7 +53,8 @@ public class OnSaveService implements IDocumentListener, ILanguageService {
 		try {
 			synchronized (Environment.getSyncRoot()) {
 				AstNode ast = editor.getCurrentAst();
-				// IStrategoTerm result = runtime.invokeSilent(function, runtime.makeInputTerm(ast, false), ast.getResource());
+				if (ast == null) return;
+				
 				IStrategoTerm result = runtime.invokeSilent(function, ast);
 				if (result == null) {
 					runtime.reportRewritingFailed();

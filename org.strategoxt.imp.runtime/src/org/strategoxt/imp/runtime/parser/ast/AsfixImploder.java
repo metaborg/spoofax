@@ -7,7 +7,9 @@ import static org.spoofax.jsglr.Term.intAt;
 import static org.spoofax.jsglr.Term.isAppl;
 import static org.spoofax.jsglr.Term.isInt;
 import static org.spoofax.jsglr.Term.termAt;
+import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.TK_ERROR;
 import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.TK_LAYOUT;
+import static org.strategoxt.imp.runtime.parser.tokens.TokenKindManager.isKeywordChar;
 
 import java.util.ArrayList;
 
@@ -20,6 +22,7 @@ import org.spoofax.jsglr.RecoveryConnector;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ParseErrorHandler;
+import org.strategoxt.imp.runtime.parser.tokens.KeywordRecognizer;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
 
@@ -65,7 +68,7 @@ public class AsfixImploder {
 	
 	private int nonMatchingOffset = NONE;
 	
-	private char nonMatchingChar, nonMatchingCharExpected;
+	private char nonMatchingChar, nonMatchingCharExpected, prevChar;
 	
 	protected boolean inLexicalContext;
 	
@@ -167,6 +170,12 @@ public class AsfixImploder {
 			if (offset > lastOffset + 1 && AsfixAnalyzer.isLexLayout(rhs)) {
 				tokenizer.makeToken(lastOffset, TK_LAYOUT, false);
 				tokenizer.makeToken(offset, TK_LAYOUT, false);
+			} else {
+				String sort = reader.getSort(rhs);
+				if ("WATERTOKEN".equals(sort) || "WATERTOKENSEPARATOR".equals(sort)) {
+					tokenizer.makeToken(lastOffset, TK_LAYOUT, false);
+					tokenizer.makeToken(offset, TK_ERROR, false);
+				}
 			}
 			return null; // don't create tokens inside lexical context; just create one big token at the top
 		} else {
@@ -443,6 +452,7 @@ public class AsfixImploder {
 				// for later error reporting. (Cannot modify the immutable
 				// parse tree here; changing the original stream instead.)
 				inputChars[offset] = ParseErrorHandler.SKIPPED_CHAR;
+				createSkippedToken(inputChars, inputChar);
 				offset++;
 			} else {
 				// UNDONE: Strict lexical stream checking
@@ -461,6 +471,29 @@ public class AsfixImploder {
 			}
 		} else {
 			offset++;
+		}
+		prevChar = inputChar;
+	}
+
+	/**
+	 * Creates an artificial token at keyword boundaries
+	 * inside skipped regions of code.
+	 * Required for keyword highlighting with {@link KeywordRecognizer}.
+	 */
+	private void createSkippedToken(char[] inputChars, char inputChar) {
+		boolean isInputKeywordChar = isKeywordChar(inputChar);
+		if (offset > 0) {
+			if ((isInputKeywordChar && !isKeywordChar(prevChar))
+					|| (!isInputKeywordChar && isKeywordChar(prevChar))) {
+				tokenizer.makeToken(offset - 1, TK_ERROR, false);
+			}
+		}
+		if (offset + 1 < inputChars.length) {
+			char nextChar = inputChars[offset + 1];
+			if ((isInputKeywordChar && !isKeywordChar(nextChar))
+					|| (!isInputKeywordChar && isKeywordChar(nextChar))) {
+				tokenizer.makeToken(offset + 1, TK_ERROR, false);
+			}
 		}
 	}
 }

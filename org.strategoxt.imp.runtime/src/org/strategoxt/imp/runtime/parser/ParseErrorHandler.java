@@ -373,12 +373,15 @@ public class ParseErrorHandler {
 				// Recovered by skipping a region
 				int beginSkipped = i;
 				int endSkipped = i;
+				processedChars[i] = inputChars[i]; // restore input char
 				while (++i < processedChars.length) {
 					c = processedChars[i];
-					if (c == SKIPPED_CHAR)
+					if (c == SKIPPED_CHAR) {
 						endSkipped = i;
-					else if (!RecoveryConnector.isLayoutCharacter(c))
+						processedChars[i] = inputChars[i]; // restore input char
+					} else if (!RecoveryConnector.isLayoutCharacter(c)) {
 						break;
+					}
 				}
 				reportSkippedFragment(inputChars, tokenizer, beginSkipped, endSkipped);
 			} else if (c == UNEXPECTED_EOF_CHAR) {

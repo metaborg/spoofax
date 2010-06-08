@@ -14,6 +14,7 @@ import org.eclipse.swt.graphics.Color;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
+import org.strategoxt.imp.runtime.parser.tokens.KeywordRecognizer;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
@@ -23,7 +24,11 @@ import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
  */
 public class TokenColorer implements ITokenColorer {
 	
+	private final SGLRParseController controller;
+	
 	private final List<TextAttributeMapping> envMappings, nodeMappings, tokenMappings;
+	
+	private KeywordRecognizer keywordRecognizer;
 	
 	private boolean isLazyColorsInited;
 	
@@ -39,9 +44,13 @@ public class TokenColorer implements ITokenColorer {
 		return envMappings;
 	}
 	
-	public TokenColorer(List<TextAttributeMapping> envMappings, List<TextAttributeMapping> nodeMappings,
+	public TokenColorer(
+			SGLRParseController controller,
+			List<TextAttributeMapping> envMappings,
+			List<TextAttributeMapping> nodeMappings,
 			List<TextAttributeMapping> tokenMappings) {
 		
+		this.controller = controller;
 		this.tokenMappings = tokenMappings;
 		this.nodeMappings = nodeMappings;
 		this.envMappings = envMappings;
@@ -95,6 +104,8 @@ public class TokenColorer implements ITokenColorer {
 			// Don't treat whitespace layout as comments, to avoid italics in text that
 			// was just typed in
 			tokenKind = TokenKind.TK_UNKNOWN.ordinal();
+		} else if (tokenKind == TokenKind.TK_ERROR.ordinal() && isKeyword(token)) {
+			tokenKind = TokenKind.TK_KEYWORD.ordinal();
 		}
 		 
 		TextAttribute tokenColor = getColoring(tokenMappings, constructor, sort, tokenKind);
@@ -111,6 +122,13 @@ public class TokenColorer implements ITokenColorer {
 		
 		if (result == null) return null;
 		else return noWhitespaceBackground(result, token, tokenKind);
+	}
+	
+	private boolean isKeyword(IToken token) {
+		if (keywordRecognizer == null)
+			keywordRecognizer = KeywordRecognizer.create(Environment.getDescriptor(controller.getLanguage()));
+		String tokenString = token.toString().trim();
+		return keywordRecognizer.isKeyword(tokenString);
 	}
 
 	private TextAttribute getColoring(List<TextAttributeMapping> mappings, String constructor, String sort, int tokenKind) {

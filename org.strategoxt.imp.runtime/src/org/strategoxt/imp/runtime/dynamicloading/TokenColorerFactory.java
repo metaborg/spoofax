@@ -50,7 +50,7 @@ class TokenColorerFactory extends AbstractServiceFactory<ITokenColorer> {
 			}
 		}
 		
-		return new TokenColorer(envMappings, nodeMappings, tokenMappings);
+		return new TokenColorer(controller, envMappings, nodeMappings, tokenMappings);
 	}
 
 	private static void addMapping(IStrategoAppl rule, List<TextAttributeMapping> mappings,
