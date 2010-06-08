@@ -166,17 +166,7 @@ public class AsfixImploder {
 		if (lexicalStart || isVar) {
 			return setAnnos(createStringTerminal(lhs, rhs, attrs), appl.getAnnotations());
 		} else if (inLexicalContext) {
-			// Create separate tokens for >1 char layout lexicals (e.g., comments)
-			if (offset > lastOffset + 1 && AsfixAnalyzer.isLexLayout(rhs)) {
-				tokenizer.makeToken(lastOffset, TK_LAYOUT, false);
-				tokenizer.makeToken(offset, TK_LAYOUT, false);
-			} else {
-				String sort = reader.getSort(rhs);
-				if ("WATERTOKEN".equals(sort) || "WATERTOKENSEPARATOR".equals(sort)) {
-					tokenizer.makeToken(lastOffset, TK_LAYOUT, false);
-					tokenizer.makeToken(offset, TK_ERROR, false);
-				}
-			}
+			createLayoutToken(rhs, lastOffset);
 			return null; // don't create tokens inside lexical context; just create one big token at the top
 		} else {
 			return setAnnos(createNodeOrInjection(lhs, rhs, attrs, prevToken, children, isList), appl.getAnnotations());
@@ -493,6 +483,24 @@ public class AsfixImploder {
 			if ((isInputKeywordChar && !isKeywordChar(nextChar))
 					|| (!isInputKeywordChar && isKeywordChar(nextChar))) {
 				tokenizer.makeToken(offset + 1, TK_ERROR, false);
+			}
+		}
+	}
+
+	/**
+	 * Creates an artificial token for every water-based recovery
+	 * and for comments within layout.
+	 */
+	private void createLayoutToken(ATermAppl rhs, int lastOffset) {
+		// Create separate tokens for >1 char layout lexicals (e.g., comments)
+		if (offset > lastOffset + 1 && AsfixAnalyzer.isLexLayout(rhs)) {
+			tokenizer.makeToken(lastOffset, TK_LAYOUT, false);
+			tokenizer.makeToken(offset, TK_LAYOUT, false);
+		} else {
+			String sort = reader.getSort(rhs);
+			if ("WATERTOKEN".equals(sort) || "WATERTOKENSEPARATOR".equals(sort)) {
+				tokenizer.makeToken(lastOffset, TK_LAYOUT, false);
+				tokenizer.makeToken(offset, TK_ERROR, false);
 			}
 		}
 	}
