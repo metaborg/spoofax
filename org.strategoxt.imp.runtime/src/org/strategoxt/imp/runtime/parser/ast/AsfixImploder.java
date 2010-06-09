@@ -476,7 +476,7 @@ public class AsfixImploder {
 	 */
 	private void createSkippedToken(char[] inputChars, char inputChar) {
 		boolean isInputKeywordChar = isKeywordChar(inputChar);
-		if (offset > 0) {
+		if (offset > 0 && offset - 1 > tokenizer.getStartOffset()) {
 			if ((isInputKeywordChar && !isKeywordChar(prevChar))
 					|| (!isInputKeywordChar && isKeywordChar(prevChar))) {
 				tokenizer.makeToken(offset - 1, TK_ERROR, false);
