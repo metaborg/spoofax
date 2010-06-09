@@ -290,6 +290,8 @@ public class SGLRParseController implements IParseController {
 				reportException(errorHandler, unmanagedParseTableMismatch);
 		} catch (SGLRException e) {
 			reportException(errorHandler, e);
+			if (unmanagedParseTableMismatch != null)
+				reportException(errorHandler, unmanagedParseTableMismatch);
 		} catch (IOException e) {
 			reportException(errorHandler, e);
 		} catch (OperationCanceledException e) {

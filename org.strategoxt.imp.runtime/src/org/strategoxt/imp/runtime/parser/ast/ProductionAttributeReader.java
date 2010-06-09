@@ -1,10 +1,12 @@
 package org.strategoxt.imp.runtime.parser.ast;
 
+import static org.strategoxt.imp.runtime.Environment.getATermFactory;
 import static org.spoofax.jsglr.Term.*;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import aterm.AFun;
 import aterm.ATerm;
 import aterm.ATermAppl;
 import aterm.ATermList;
@@ -15,6 +17,26 @@ import aterm.ATermList;
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
 public class ProductionAttributeReader {
+	
+	protected static final AFun SORT_FUN = getATermFactory().makeAFun("sort", 1, false);
+	
+	protected static final AFun PARAMETERIZED_SORT_FUN =
+		getATermFactory().makeAFun("parameterized-sort", 2, false);
+	
+	protected static final AFun ATTRS_FUN = getATermFactory().makeAFun("attrs", 1, false);
+	
+	protected static final AFun NO_ATTRS_FUN = getATermFactory().makeAFun("no-attrs", 0, false);
+	
+	protected static final AFun PREFER_FUN = getATermFactory().makeAFun("prefer", 0, false);
+	
+	protected static final AFun AVOID_FUN = getATermFactory().makeAFun("avoid", 0, false);
+	
+	private static final AFun VARSYM_FUN = getATermFactory().makeAFun("varsym", 1, false);
+	
+	private static final AFun ALT_FUN = getATermFactory().makeAFun("alt", 2, false);
+	
+	private static final AFun CHAR_CLASS_FUN = getATermFactory().makeAFun("char-class", 1, false);
+	
 	private static final int PARAMETRIZED_SORT_NAME = 0;
 	
 	private static final int PARAMETRIZED_SORT_ARGS = 1;
@@ -32,8 +54,8 @@ public class ProductionAttributeReader {
 	
 	// FIXME: support meta-var constructors
 	public String getMetaVarConstructor(ATermAppl rhs) {
-		if (rhs.getChildCount() == 1 && "varsym".equals(rhs.getName())) {
-			return ((ATermAppl) rhs.getChildAt(0)).getName().startsWith("iter")
+		if (rhs.getChildCount() == 1 && VARSYM_FUN == rhs.getAFun()) {
+			return AsfixAnalyzer.isIterFun(((ATermAppl) rhs.getChildAt(0)).getAFun())
 					? "meta-listvar"
 					: "meta-var";
 		}
@@ -50,7 +72,7 @@ public class ProductionAttributeReader {
 
 	/** Return the contents of a term attribute (e.g., "cons"), or null if not found. */
 	private static ATerm getAttribute(ATermAppl attrs, String attrName) {
-		if (attrs.getName().equals("no-attrs"))
+		if (attrs.getAFun() == NO_ATTRS_FUN)
 			return null;
 		
 		ATermList list = termAt(attrs, 0);
@@ -87,15 +109,15 @@ public class ProductionAttributeReader {
     
     private String getSortUncached(ATermAppl node) {
     	for (ATerm current = node; current.getChildCount() > 0 && isAppl(current); current = termAt(current, 0)) {
-    		String cons = asAppl(current).getName();
-			if (cons.equals("sort"))
+    		AFun cons = asAppl(current).getAFun();
+			if (cons == SORT_FUN)
     			return applAt(current, 0).getName();
-    		if (cons.equals("alt"))
-    			return getAltSortName(current);
-    		if (cons.equals("parameterized-sort"))
+    		if (cons == PARAMETERIZED_SORT_FUN)
     			return getParameterizedSortName(current);
-    		if (cons.equals("char-class"))
+    		if (cons == CHAR_CLASS_FUN)
     			return null;
+    		if (cons == ALT_FUN)
+    			return getAltSortName(current);
     	}
     	
     	return null;

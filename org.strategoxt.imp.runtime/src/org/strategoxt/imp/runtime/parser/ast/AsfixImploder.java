@@ -7,6 +7,8 @@ import static org.spoofax.jsglr.Term.intAt;
 import static org.spoofax.jsglr.Term.isAppl;
 import static org.spoofax.jsglr.Term.isInt;
 import static org.spoofax.jsglr.Term.termAt;
+import static org.strategoxt.imp.runtime.parser.ast.AsfixAnalyzer.*;
+import static org.strategoxt.imp.runtime.parser.ast.ProductionAttributeReader.*;
 import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.TK_ERROR;
 import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.TK_LAYOUT;
 import static org.strategoxt.imp.runtime.parser.tokens.TokenKindManager.isKeywordChar;
@@ -123,7 +125,7 @@ public class AsfixImploder {
 		// method extraction should be carefully considered...
 		
 		ATermAppl appl = resolveAmbiguities(term);
-		if (appl.getName().equals("amb"))
+		if (AMB_FUN == appl.getAFun())
 			return implodeAmbAppl(appl);
 		
 		ATermAppl prod = termAt(appl, APPL_PROD);
@@ -139,7 +141,9 @@ public class AsfixImploder {
 		
 		if (lexicalStart) inLexicalContext = true;
 		
-		if (!inLexicalContext && "sort".equals(rhs.getName()) && lhs.getLength() == 1 && termAt(contents, 0).getType() == ATerm.INT) {
+		if (!inLexicalContext
+				&& (SORT_FUN == rhs.getAFun() || PARAMETERIZED_SORT_FUN == rhs.getAFun())
+				&& lhs.getLength() == 1 && termAt(contents, 0).getType() == ATerm.INT) {
 			return setAnnos(createIntTerminal(contents, rhs), appl.getAnnotations());
 		}
 		
@@ -246,7 +250,7 @@ public class AsfixImploder {
 				return createAstNonTerminal(rhs, prevToken, children, ast);
 			} else if (children.size() == 0) {
 				return createNode(attrs, sort, "None", prevToken, children, false);
-			} else if ("opt".equals(applAt(rhs, 0).getName())) {
+			} else if (OPT_FUN == applAt(rhs, 0).getAFun()) {
 				assert children.size() == 1;
 				AstNode child = children.get(0);
 				return new AstNode(sort, child.getLeftIToken(), child.getRightIToken(), "Some", children);
@@ -326,7 +330,7 @@ public class AsfixImploder {
 	 * Resolve or ignore any ambiguities in the parse tree.
 	 */
 	protected ATermAppl resolveAmbiguities(final ATerm node) {
-		if (!"amb".equals(((ATermAppl) node).getName()))
+		if (AMB_FUN != ((ATermAppl) node).getAFun())
 			return (ATermAppl) node;
 		
 		final ATermListImpl ambs = termAt(node, 0);
@@ -342,14 +346,14 @@ public class AsfixImploder {
 			ATermAppl appl = termAt(prod, APPL_PROD);
 			ATermAppl attrs = termAt(appl, PROD_ATTRS);
 			
-			if ("attrs".equals(attrs.getName())) {
+			if (ATTRS_FUN == attrs.getAFun()) {
 				ATermList attrList = termAt(attrs, 0);
 				
 				for (int j = 0; j < attrList.getLength(); j++) {
 					ATerm attr = termAt(attrList, j);
-					if (isAppl(attr) && "prefer".equals(asAppl(attr).getName())) {
+					if (isAppl(attr) && PREFER_FUN == asAppl(attr).getAFun()) {
 						return prod;
-					} else if (isAppl(attr) && "avoid".equals(asAppl(attr).getName())) {
+					} else if (isAppl(attr) && AVOID_FUN == asAppl(attr).getAFun()) {
 						continue alts;
 					}
 				}

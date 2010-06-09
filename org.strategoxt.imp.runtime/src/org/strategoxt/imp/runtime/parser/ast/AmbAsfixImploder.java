@@ -3,6 +3,7 @@ package org.strategoxt.imp.runtime.parser.ast;
 import static org.spoofax.jsglr.Term.asAppl;
 import static org.spoofax.jsglr.Term.isAppl;
 import static org.spoofax.jsglr.Term.termAt;
+import static org.strategoxt.imp.runtime.parser.ast.AsfixAnalyzer.AMB_FUN;
 
 import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
 
@@ -30,7 +31,7 @@ public class AmbAsfixImploder extends AsfixImploder {
 	@Override
 	protected ATermAppl resolveAmbiguities(ATerm node) {
 		// TODO: disable when prefer/avoid disambiguation works in Disambiguator
-		if (!"amb".equals(((ATermAppl) node).getName()))
+		if (AMB_FUN != ((ATermAppl) node).getAFun())
 			return (ATermAppl) node;
 		
 		final ATermListImpl ambs = termAt(node, 0);
@@ -40,7 +41,7 @@ public class AmbAsfixImploder extends AsfixImploder {
 			ATermAppl amb = resolveAmbiguities(termAt(ambs, i));
 			ambs.setSubTerm(i, amb);
 			
-			if (!amb.getName().equals("amb")) {
+			if (AMB_FUN != amb.getAFun()) {
 	            ATermAppl appl = termAt(amb, APPL_PROD);
 	            ATermAppl attrs = termAt(appl, PROD_ATTRS);
 	            

@@ -1,37 +1,74 @@
 package org.strategoxt.imp.runtime.parser.ast;
 
 import static org.spoofax.jsglr.Term.applAt;
+import static org.strategoxt.imp.runtime.Environment.getATermFactory;
 import jjtraveler.Visitable;
+import aterm.AFun;
 import aterm.ATermAppl;
 
 public class AsfixAnalyzer {
+	
+	protected static final AFun AMB_FUN = getATermFactory().makeAFun("amb", 1, false);
+	
+	protected static final AFun OPT_FUN = getATermFactory().makeAFun("opt", 1, false);
+	
+	private static final AFun CF_FUN = getATermFactory().makeAFun("cf", 1, false);
+	
+	private static final AFun LEX_FUN = getATermFactory().makeAFun("lex", 1, false);
+	
+	private static final AFun LIT_FUN = getATermFactory().makeAFun("lit", 1, false);
+	
+	private static final AFun CILIT_FUN = getATermFactory().makeAFun("cilit", 1, false);
+	
+	private static final AFun VARSYM_FUN = getATermFactory().makeAFun("varsym", 1, false);
+	
+	private static final AFun LAYOUT_FUN = getATermFactory().makeAFun("layout", 0, false);
+	
+	private static final AFun SEQ_FUN = getATermFactory().makeAFun("seq", 2, false);
+	
+	private static final AFun ITER_FUN = getATermFactory().makeAFun("iter", 1, false);
+	
+	private static final AFun ITER_STAR_FUN = getATermFactory().makeAFun("iter-star", 1, false);
+	
+	private static final AFun ITER_PLUS_FUN = getATermFactory().makeAFun("iter-plus", 1, false);
+	
+	private static final AFun ITER_SEP_FUN = getATermFactory().makeAFun("iter-sep", 2, false);
+	
+	private static final AFun ITER_STAR_SEP_FUN = getATermFactory().makeAFun("iter-star-sep", 2, false);
+	
+	private static final AFun ITER_PLUS_SEP_FUN = getATermFactory().makeAFun("iter-plus-sep", 2, false);
 
 	public static boolean isLayout(ATermAppl sort) {
 		ATermAppl details = applAt(sort, 0);
 		
-		if (details.getName().equals("opt"))
+		if (OPT_FUN == details.getAFun())
 			details = applAt(details, 0);
 		
-		return details.getName().equals("layout");
+		return LAYOUT_FUN == details.getAFun();
 	}
 
 	public static boolean isLiteral(ATermAppl sort) {
-		return sort.getName().equals("lit") || sort.getName().equals("cilit");
+		AFun fun = sort.getAFun();
+		return LIT_FUN == fun || CILIT_FUN == fun;
 	}
 
 	public static boolean isList(ATermAppl sort) {
-		ATermAppl details = sort.getName().equals("cf")
+		ATermAppl details = CF_FUN == sort.getAFun()
 		                  ? applAt(sort, 0)
 		                  : sort;
 		              	
-	  	if (details.getName().equals("opt"))
+	  	if (details.getAFun() == OPT_FUN)
 	  		details = applAt(details, 0);
 	  	
-		String name = details.getName();
+		AFun fun = details.getAFun();
 		
-		return name.equals("iter") || name.equals("iter-star")  || name.equals("iter-plus")
-				|| name.equals("iter-sep") || name.equals("seq") || name.equals("iter-star-sep")
-				|| name.equals("iter-plus-sep");
+		 // FIXME: Spoofax/159: AsfixImploder creates tuples instead of lists for seqs
+		return isIterFun(fun) || SEQ_FUN == fun;
+	}
+
+	public static boolean isIterFun(AFun fun) {
+		return ITER_FUN == fun || ITER_STAR_FUN == fun || ITER_PLUS_FUN == fun
+				|| ITER_SEP_FUN == fun || ITER_STAR_SEP_FUN == fun || ITER_PLUS_SEP_FUN == fun;
 	}
 
 	/**
@@ -44,7 +81,7 @@ public class AsfixAnalyzer {
 	 * @return true if the current node is lexical.
 	 */
 	public static boolean isLexicalNode(ATermAppl rhs) {
-		return ("lex".equals(rhs.getName()) || isLiteral(rhs)
+		return (LEX_FUN == rhs.getAFun() || isLiteral(rhs)
 		    || isLayout(rhs));
 	}
 
@@ -55,14 +92,14 @@ public class AsfixAnalyzer {
 	 * @return true if the current node is lexical.
 	 */
 	public static boolean isVariableNode(ATermAppl rhs) {
-		return "varsym".equals(rhs.getName());
+		return VARSYM_FUN == rhs.getAFun();
 	}
 
 	public static boolean isLexLayout(ATermAppl rhs) {
 		if (rhs.getChildCount() != 1) return false;
 		Visitable child = rhs.getChildAt(0);
-		return child instanceof ATermAppl && "layout".equals(((ATermAppl) child).getName())
-			&& "lex".equals(rhs.getName());
+		return child instanceof ATermAppl && LAYOUT_FUN == ((ATermAppl) child).getAFun()
+			&& LEX_FUN == rhs.getAFun();
 	}
 
 }

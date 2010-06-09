@@ -33,6 +33,7 @@ public class SGLRToken extends Token {
 		ILexStream lex = left.getILexStream();
 		
 		int length = right.getEndOffset() - left.getStartOffset() + 1;
+		if (length < 1) return "";
 		StringBuilder result = new StringBuilder(length);
 		
 		for (int i = left.getStartOffset(), end = right.getEndOffset(); i <= end; i++) {
