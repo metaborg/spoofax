@@ -266,11 +266,9 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	public void update(IParseController parseController, IProgressMonitor monitor) {
 		isUpdateStarted = true;
 		IStrategoAstNode ast = (IStrategoAstNode) parseController.getCurrentAst();
-		if (ast == null || ast.getConstructor() == null)
-			return;
-		
-		if (feedbackFunction == null) {
-			messages.clearMarkers(ast.getResource());
+		if (ast == null || ast.getConstructor() == null || feedbackFunction == null
+				|| isRecoveryFailed(parseController)) {
+			messages.clearMarkers(((SGLRParseController) parseController).getResource());
 			messages.commitDeletions();
 			return;
 		}
@@ -302,6 +300,11 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			// System.out.println("OBSERVED " + System.currentTimeMillis()); // DEBUG
 			// processEditorRecolorEvents(parseController);
 		}
+	}
+
+	private static boolean isRecoveryFailed(IParseController parseController) {
+		return parseController instanceof SGLRParseController
+				&& ((SGLRParseController) parseController).getErrorHandler().isRecoveryFailed();
 	}
 
 	@Deprecated

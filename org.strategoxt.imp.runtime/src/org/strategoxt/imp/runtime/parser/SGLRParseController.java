@@ -273,7 +273,7 @@ public class SGLRParseController implements IParseController {
 			RootAstNode ast = parser.internalImplode(asfix);
 
 			errorHandler.clearErrors();
-			errorHandler.setRecoveryAvailable(true);
+			errorHandler.setRecoveryFailed(false);
 			errorHandler.gatherNonFatalErrors(originalInputChars, parser.getTokenizer(), asfix);
 			
 			currentAst = ast;
@@ -408,7 +408,7 @@ public class SGLRParseController implements IParseController {
 
 	private void reportException(ParseErrorHandler errorHandler, Exception e) {
 		errorHandler.clearErrors();
-		errorHandler.setRecoveryAvailable(false);
+		errorHandler.setRecoveryFailed(true);
 		errorHandler.reportError(parser.getTokenizer(), e);
 	}
 

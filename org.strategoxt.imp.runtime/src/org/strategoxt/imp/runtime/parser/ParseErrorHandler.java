@@ -91,7 +91,7 @@ public class ParseErrorHandler {
 	
 	private final SGLRParseController source;
 	
-	private boolean isRecoveryAvailable = true;
+	private volatile boolean isRecoveryFailed = true;
 	
 	private int offset;
 	
@@ -115,8 +115,12 @@ public class ParseErrorHandler {
 	 * Informs the parse error handler that recovery is unavailable.
 	 * This information is reflected in any parse error messages.
 	 */
-	public void setRecoveryAvailable(boolean recoveryAvailable) {
-		this.isRecoveryAvailable = recoveryAvailable;
+	public void setRecoveryFailed(boolean recoveryFailed) {
+		this.isRecoveryFailed = recoveryFailed;
+	}
+	
+	public boolean isRecoveryFailed() {
+		return isRecoveryFailed;
 	}
 	
 	/**
@@ -229,7 +233,7 @@ public class ParseErrorHandler {
 			rushNextUpdate = false;
 			job.schedule(0);
 		} else {
-			job.schedule((long) (PARSE_ERROR_DELAY * (isRecoveryAvailable ? 1 : 1.5)));
+			job.schedule((long) (PARSE_ERROR_DELAY * (isRecoveryFailed ? 1.5 : 1)));
 		}
 	}
 
@@ -503,8 +507,8 @@ public class ParseErrorHandler {
 
 	private String getErrorExplanation() {
 		final String message2;
-		if (!isRecoveryAvailable) {
-			message2 = " (recovery unavailable)";
+		if (!isRecoveryFailed) {
+			message2 = " (recovery failed)";
 		} else if (!source.getParser().getParseTable().hasRecovers()) {
 			message2 = " (no recovery rules in parse table)";
 		} else {
