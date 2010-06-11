@@ -402,7 +402,8 @@ strategies
             <copy todir="${build}/trans">
                 <fileset dir="${src-gen}/trans" excludes="**/*.java"/>
             </copy>
-            <jar basedir="${build}" includes="trans/**" destfile="${include}/${strmodule}.jar"/>
+            <jar basedir="${build}" includes="trans/**" destfile="${include}/${strmodule}.tmp.jar"/>
+            <move file="${include}/${strmodule}.tmp.jar" tofile="${include}/${strmodule}.jar"/>
             <delete><fileset dir="${build}" includes="trans/**"/></delete>
         </target>
         
