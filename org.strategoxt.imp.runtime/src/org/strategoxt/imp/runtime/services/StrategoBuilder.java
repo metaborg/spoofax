@@ -7,6 +7,7 @@ import static org.spoofax.interpreter.core.Tools.isTermTuple;
 import static org.spoofax.interpreter.core.Tools.termAt;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.InputStream;
 
 import org.eclipse.core.resources.IFile;
@@ -180,6 +181,10 @@ public class StrategoBuilder implements IBuilder {
 			}
 		
 			if (result != null) {
+				if (new File(filename).isAbsolute()) {
+					openError(editor, "Builder failed: result filename must have a project-relative path: " + filename);
+					return;
+				}
 				IFile file = editor.getProject().getRawProject().getFile(filename);
 				setFileContents(editor, file, result);
 				// TODO: if not persistent, create IEditorInput from result String
