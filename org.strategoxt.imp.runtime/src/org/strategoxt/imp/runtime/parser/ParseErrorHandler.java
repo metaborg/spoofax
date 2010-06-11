@@ -296,7 +296,7 @@ public class ParseErrorHandler {
 			tokenizer.changeTokenKinds(startOffset, offset - 1, TokenKind.TK_LAYOUT, TokenKind.TK_ERROR);
 			reportErrorAtTokens(token, token, "Syntax error, closing of '" + token + "' is expected here");
 		} else if (isErrorProduction(attrs, INSERT)) {
-			IToken token = tokenizer.makeErrorTokenSkipLayout(startOffset, offset + 1, outerStartOffset2);
+			IToken token = tokenizer.makeErrorTokenSkipLayout(startOffset, offset, outerStartOffset2);
 			String inserted = "token";
 			if (rhs.getName().equals("lit")) {
 				inserted = applAt(rhs, 0).getName();
@@ -507,7 +507,7 @@ public class ParseErrorHandler {
 
 	private String getErrorExplanation() {
 		final String message2;
-		if (!isRecoveryFailed) {
+		if (isRecoveryFailed) {
 			message2 = " (recovery failed)";
 		} else if (!source.getParser().getParseTable().hasRecovers()) {
 			message2 = " (no recovery rules in parse table)";

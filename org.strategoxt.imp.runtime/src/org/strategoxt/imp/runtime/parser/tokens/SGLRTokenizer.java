@@ -137,7 +137,7 @@ public class SGLRTokenizer {
 	}
 	
 	/**
-	 * Creates an error token on stream part
+	 * Creates an error token, trying to avoid including whitespace.
 	 */
 	public IToken makeErrorToken(int beginOffset, int endOffset) {		
 		while (beginOffset < endOffset && Character.isWhitespace(lexStream.getCharValue(beginOffset)))
@@ -148,6 +148,9 @@ public class SGLRTokenizer {
 			endOffset = lexStream.getStreamLength();
 			beginOffset = Math.min(beginOffset, endOffset);
 		}
+		
+		if (beginOffset > endOffset && beginOffset > 0)
+			beginOffset = endOffset - 1;
 
 		return new Token(parseStream, beginOffset, endOffset, TK_ERROR.ordinal());
 	}
@@ -190,18 +193,24 @@ public class SGLRTokenizer {
 			int offset = beginOffset - skipLength - 1;
 			char c = lexStream.getCharValue(offset);
 			if (!Character.isWhitespace(c)) {
-			    if (newlineSkipLength != -1) {
+			    if (newlineSkipLength == -1) {
+			    	if (skipLength >= 1 && endOffset == beginOffset) {
+				    	// Report in whitespace just after the current token
+			    		return new Token(parseStream, beginOffset - skipLength, endOffset - skipLength, TK_ERROR.ordinal());
+			    	}
+			    	break;
+			    } else {
 			        if (lexStream.getLine(offset) != lexStream.getLine(outerBeginOffset)) {
 	                    // Report the error at the next newline
 			        	// if the outer construct started on a different line
 			            skipLength = newlineSkipLength;
+			            break;
 			        } else {
 			        	// Skip to the previous token at the end of this line
 			        	// if the outer construct started on the same line
 			        	return makeErrorTokenBackwards(beginOffset - skipLength);
 			        }
 			    }
-				break;
 			}
 			if (c == '\n')
 			    newlineSkipLength = skipLength;
