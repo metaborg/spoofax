@@ -24,7 +24,8 @@ public class AntDescriptorBuilder {
 		if (args == null || args.length == 0)
 			throw new IllegalArgumentException("Descriptor file expected");
 		
-		if (DynamicDescriptorBuilder.getInstance().isAntBuildDisallowed())
+		DynamicDescriptorBuilder builder = DynamicDescriptorBuilder.getInstance();
+		if (builder.isAntBuildDisallowed())
 			throw new IllegalStateException("Cannot load new editor at this time: try again after background loading is completed");
 		
 		synchronized (Environment.getSyncRoot()) {
@@ -33,7 +34,9 @@ public class AntDescriptorBuilder {
 				String descriptor = args[0];
 				
 				IResource source = getResource(getSourceDescriptor(descriptor));
-				DynamicDescriptorBuilder.getInstance().updateResource(source, new NullProgressMonitor());
+				boolean success = builder.updateResource(source, new NullProgressMonitor());
+				if (!success)
+					System.exit(1);
 			} finally {
 				active = false;
 			}

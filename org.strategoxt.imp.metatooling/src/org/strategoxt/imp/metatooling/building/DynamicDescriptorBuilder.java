@@ -74,15 +74,18 @@ public class DynamicDescriptorBuilder {
 		return antBuildDisallowed;
 	}
 
-	public void updateResource(IResource resource, IProgressMonitor monitor) {
+	/**
+	 * @return <code>true</code> if the resource was a descriptor and it was successfully reloaded.
+	 */
+	public boolean updateResource(IResource resource, IProgressMonitor monitor) {
 		IPath location = resource.getRawLocation();
-		if (location == null) return;
+		if (location == null) return false;
 		
 		try {
 			// System.err.println("Resource changed: " + resource.getName()); // DEBUG
 			if (resource.exists() && isMainFile(resource)) {
 				monitor.setTaskName("Building " + resource.getName());
-				buildDescriptor(resource, monitor);
+				return buildDescriptor(resource, monitor);
 			}
 			
 		} catch (RuntimeException e) {
@@ -92,12 +95,15 @@ public class DynamicDescriptorBuilder {
 			reportError(resource, "Unable to build descriptor for " + resource, e);
 			Environment.logException("Unable to build descriptor for " + resource, e);
 		}
+		return false;
 	}
 
 	/**
 	 * Build and load a descriptor file.
+	 * 
+	 * @return <code>true</code> if the descriptor was successfully loaded.
 	 */
-	private void buildDescriptor(IResource mainFile, IProgressMonitor monitor) {
+	private boolean buildDescriptor(IResource mainFile, IProgressMonitor monitor) {
 		try {
 			Environment.assertLock();
 			
@@ -118,7 +124,7 @@ public class DynamicDescriptorBuilder {
 				Environment.logException("Unable to build descriptor:\n" + log);
 				messageHandler.addMarkerFirstLine(mainFile, "Unable to build descriptor (see error log)", SEVERITY_ERROR);
 				// UNDONE: StrategoConsole.activateConsole(); (not good for ant triggered builds)
-				return;
+				return false;
 			}
 			
 			monitor.setTaskName("Loading " + mainFile.getName());
@@ -126,10 +132,12 @@ public class DynamicDescriptorBuilder {
 				System.err.println("Loading new editor services");
 			DynamicDescriptorLoader.getInstance().loadPackedDescriptor(getTargetDescriptor(mainFile));
 			monitor.setTaskName(null);
+			return true;
 			
 		} catch (IOException e) {
 			Environment.logException("Unable to build descriptor for " + mainFile, e);
 			messageHandler.addMarkerFirstLine(mainFile, "Internal error building descriptor (see error log)", SEVERITY_ERROR);
+			return false;
 		}
 	}
 

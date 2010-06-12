@@ -1,7 +1,9 @@
 package org.strategoxt.imp.runtime.parser;
 
-import static java.lang.Math.*;
-import static org.spoofax.jsglr.Term.*;
+import static java.lang.Math.min;
+import static org.spoofax.jsglr.Term.applAt;
+import static org.spoofax.jsglr.Term.listAt;
+import static org.spoofax.jsglr.Term.termAt;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -84,6 +86,11 @@ public class ParseErrorHandler {
 	public static final String UNEXPECTED_REGION = "Could not parse this fragment: misplaced construct(s)";
 	
 	public static final int PARSE_ERROR_DELAY = min(StrategoObserver.OBSERVER_DELAY + 50, 800);
+	
+	private static final int LARGE_REGION_SIZE = 8;
+	
+	private static final String LARGE_REGION_START =
+		"Region could not be parsed because of subsequent syntax error(s) indicated below";
 	
 	private static Context asyncAmbReportingContext;
 	
@@ -409,21 +416,25 @@ public class ParseErrorHandler {
 		IToken token = tokenizer.makeErrorToken(beginSkipped, endSkipped);
 		int line = token.getLine();
 		int endLine = token.getEndLine() + RegionRecovery.NR_OF_LINES_TILL_SUCCESS;
-		boolean reportedErrors = false;
+		int reportedLine = -1;
 		for (BadTokenException e : source.getParser().getParser().getCollectedErrors()) {
 			if (e.getLineNumber() >= line && e.getLineNumber() <= endLine) {
 				char[] processedChars = tokenizer.getLexStream().getInputChars();
 				tokenizer.getLexStream().setInputChars(inputChars);
-				tokenizer.getLexStream().setInputChars(inputChars);
 				reportError(tokenizer, (Exception) e); // use double dispatch
 				tokenizer.getLexStream().setInputChars(processedChars);
-				reportedErrors = true;
+				if (reportedLine == -1)
+					reportedLine = e.getLineNumber();
 			}
 		}
 		tokenizer.changeTokenKinds(beginSkipped, endSkipped, TokenKind.TK_LAYOUT, TokenKind.TK_ERROR);
-		if (!reportedErrors) {
-			// report entire region
+		if (reportedLine == -1) {
+			// Report entire region
 			reportErrorAtTokens(token, token, UNEXPECTED_REGION);
+		} else if (reportedLine - line >= LARGE_REGION_SIZE) {
+			IToken firstToken = token.getIPrsStream().getTokenAtCharacter(beginSkipped);
+			IToken lastToken = tokenizer.getLastTokenOnSameLine(firstToken);
+			reportErrorAtTokens(firstToken, lastToken, LARGE_REGION_START);
 		}
 	}
 		

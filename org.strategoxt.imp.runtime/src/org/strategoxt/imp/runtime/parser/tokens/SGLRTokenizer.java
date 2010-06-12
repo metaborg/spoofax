@@ -72,7 +72,7 @@ public class SGLRTokenizer {
 	}
 	
 	public SGLRToken makeToken(int endOffset, TokenKind kind, boolean allowEmptyToken) {
-		if (!allowEmptyToken && startOffset == endOffset) // empty token
+		if (!allowEmptyToken && startOffset >= endOffset) // empty token
 			return null;
 		
 		//if (Debug.ENABLED) {
@@ -244,6 +244,19 @@ public class SGLRTokenizer {
 		}
 		
 		return new Token(parseStream, beginOffset, offset, TK_ERROR.ordinal());
+	}
+	
+	public IToken getLastTokenOnSameLine(IToken token) {
+		IPrsStream stream = token.getIPrsStream();
+		int i = token.getTokenIndex();
+		int line = stream.getEndLine(i);
+		IToken result = token;
+		IToken current = token;
+		while (current.getKind() != TokenKind.TK_EOF.ordinal() && current.getEndLine() == line) {
+			result = current;
+			current = stream.getTokenAt(++i); 
+		}
+		return result;
 	}
 	
 	public static String dumpToString(IToken left, IToken right) {

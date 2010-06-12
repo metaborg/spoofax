@@ -104,7 +104,7 @@ strategies
         <target name="sdf2imp" depends="sdf2table,sdf2imp.eclipse,sdf2imp.standalone"/>
         
         <target name="sdf2imp.eclipse" if="eclipse.running" depends="sdf2rtg">
-            <java classname="org.strategoxt.imp.metatooling.building.AntDescriptorBuilder">
+            <java classname="org.strategoxt.imp.metatooling.building.AntDescriptorBuilder" failonerror="true">
                 <arg value="${include}/${esvmodule}.packed.esv"/>
             </java>
         </target>

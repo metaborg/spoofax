@@ -498,12 +498,14 @@ public class AsfixImploder {
 	private void createLayoutToken(ATermAppl rhs, int lastOffset) {
 		// Create separate tokens for >1 char layout lexicals (e.g., comments)
 		if (offset > lastOffset + 1 && AsfixAnalyzer.isLexLayout(rhs)) {
-			tokenizer.makeToken(lastOffset, TK_LAYOUT, false);
+			if (tokenizer.getStartOffset() <= lastOffset)
+				tokenizer.makeToken(lastOffset, TK_LAYOUT, false);
 			tokenizer.makeToken(offset, TK_LAYOUT, false);
 		} else {
 			String sort = reader.getSort(rhs);
 			if ("WATERTOKEN".equals(sort) || "WATERTOKENSEPARATOR".equals(sort)) {
-				tokenizer.makeToken(lastOffset, TK_LAYOUT, false);
+				if (tokenizer.getStartOffset() <= lastOffset)
+					tokenizer.makeToken(lastOffset, TK_LAYOUT, false);
 				tokenizer.makeToken(offset, TK_ERROR, false);
 			}
 		}
