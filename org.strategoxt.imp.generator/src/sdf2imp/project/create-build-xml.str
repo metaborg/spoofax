@@ -92,6 +92,9 @@ strategies
         <condition property="externaljarflags" value="${externaljarflags}" else="">
             <isset property="externaljarflags"/>
         </condition>
+        <condition property="metasdfmodule.available" value="1">
+            <available file="${syntax}/${metasdfmodule}.sdf"/>
+        </condition>
         <mkdir dir="${build}"/>
         <mkdir dir="${src-gen}"/>
         <mkdir dir="${dist}"/>
@@ -149,7 +152,7 @@ strategies
             </apply>
         </target>
         
-        <target name="meta-sdf2table">
+        <target name="meta-sdf2table" if="metasdfmodule.available">
             <fail unless="eclipse.spoofaximp.jars" message="Property eclipse.spoofaximp.jars must point to the directory containing StrategoMix.def"/>
             <antcall target="sdf2table">
                 <param name="sdfmodule" value="${metasdfmodule}"/>
@@ -196,6 +199,9 @@ strategies
         </target>
     
         <target name="pack-sdf.helper" unless="pack-sdf.available">
+            <condition property="utils-include" value="-I ${utils}" else="">
+                <available file="${utils}"/>
+            </condition>
             <java classname="run" failonerror="true">
                 <arg value="org.strategoxt.tools.main-pack-sdf"/>
                 <arg value="-i"/>
@@ -205,9 +211,8 @@ strategies
                 <arg value="-I"/>
                 <arg value="${syntax}"/>
                 <arg value="-I"/>
-                <arg value="${utils}"/>
-                <arg value="-I"/>
                 <arg value="${lib}"/>
+                <arg line="${utils-include}"/>
                 <arg line="${build.sdf.imports}"/>
             </java>
         </target>
