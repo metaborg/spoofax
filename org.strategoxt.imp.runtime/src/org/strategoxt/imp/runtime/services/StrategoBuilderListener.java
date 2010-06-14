@@ -8,6 +8,7 @@ import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.texteditor.AbstractTextEditor;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.WeakWeakMap;
@@ -99,7 +100,7 @@ public class StrategoBuilderListener implements IModelListener {
 		IEditorPart targetEditor = this.targetEditor.get();
 		
 		if (!enabled || editor == null || targetEditor == null || targetEditor.isDirty()
-				|| targetEditor.getTitleImage().isDisposed() // editor closed
+				|| isEditorClosed(targetEditor) 
 				|| targetFile.getLocalTimeStamp() > lastChanged) {
 			enabled = false;
 			selection = null;
@@ -108,6 +109,13 @@ public class StrategoBuilderListener implements IModelListener {
 		} else {
 			return true;
 		}
+	}
+
+	private static boolean isEditorClosed(IEditorPart editor) {
+		return (editor.getTitleImage() != null && editor.getTitleImage().isDisposed())
+			|| editor.getEditorInput() == null
+			|| editor.getSite() == null
+			|| (editor instanceof AbstractTextEditor && ((AbstractTextEditor) editor).getDocumentProvider() == null);
 	}
 
 	public void update(IParseController parseController, IProgressMonitor monitor) {

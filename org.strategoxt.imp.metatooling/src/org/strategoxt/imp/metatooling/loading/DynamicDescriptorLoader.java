@@ -108,7 +108,7 @@ public class DynamicDescriptorLoader implements IResourceChangeListener {
 
 	private void startEventHandler(IResourceChangeEvent event) {
 		isAsyncEventHandlerActive = true;
-		Job job = new WorkspaceJob("Updating editor descriptor runtime") {
+		Job job = new WorkspaceJob("Loading editor descriptors") {
 			@Override
 			public IStatus runInWorkspace(IProgressMonitor monitor) {
 				// TODO: Finer-grained locking? (that seems to lead to deadlocks)
