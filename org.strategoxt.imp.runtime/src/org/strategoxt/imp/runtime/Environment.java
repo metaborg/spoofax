@@ -240,16 +240,16 @@ public final class Environment {
 		return parseTableManager.loadFromStream(stream);
 	}
 	
-	public static ParseTable getParseTable(Language language)
+	public static ParseTableProvider getParseTableProvider(Language language)
 			throws BadDescriptorException, InvalidParseTableException,
 			       IOException, CoreException, IllegalStateException {
 		
-		ParseTable table = parseTables.get(language.getName()).get();
+		ParseTableProvider result = parseTables.get(language.getName());
 		
-		if (table == null)
+		if (result == null)
 			throw new IllegalStateException("Parse table not available: " + language.getName());
 			
-		return table;
+		return result;
 	}
 	
 	public static void registerDescriptor(Language language, Descriptor descriptor)

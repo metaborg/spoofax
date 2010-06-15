@@ -42,6 +42,7 @@ import org.strategoxt.imp.runtime.SWTSafeLock;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.dynamicloading.DynamicParseController;
+import org.strategoxt.imp.runtime.dynamicloading.ParseTableProvider;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
 import org.strategoxt.imp.runtime.parser.ast.AstNodeLocator;
 import org.strategoxt.imp.runtime.parser.ast.RootAstNode;
@@ -182,7 +183,7 @@ public class SGLRParseController implements IParseController {
      * @param language      The name of the language, as registered in the {@link LanguageRegistry}.
      * @param startSymbol	The start symbol of this grammar, or null.
      */
-    public SGLRParseController(Language language, ParseTable table, ILanguageSyntaxProperties syntaxProperties,
+    public SGLRParseController(Language language, ParseTableProvider table, ILanguageSyntaxProperties syntaxProperties,
 			String startSymbol) {
     	
     	this.language = language;
@@ -199,6 +200,12 @@ public class SGLRParseController implements IParseController {
 		}
     }
     
+    @Deprecated
+    public SGLRParseController(Language language, ParseTable table, ILanguageSyntaxProperties syntaxProperties,
+			String startSymbol) {
+    	this(language, new ParseTableProvider(table), syntaxProperties, startSymbol);
+    }
+    
     /**
      * Creates a new SGLRParseController, throwing any parse table loading exceptions as runtime exceptions.
      * 
@@ -209,9 +216,9 @@ public class SGLRParseController implements IParseController {
     	this(language, getTableSwallowExceptions(language), syntaxProperties, startSymbol);
     }
 
-    private static ParseTable getTableSwallowExceptions(Language language) {
+    private static ParseTableProvider getTableSwallowExceptions(Language language) {
 		try {
-			return Environment.getParseTable(language);
+			return Environment.getParseTableProvider(language);
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException(e);

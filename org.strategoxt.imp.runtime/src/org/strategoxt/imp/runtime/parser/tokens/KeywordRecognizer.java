@@ -53,7 +53,7 @@ public class KeywordRecognizer {
 		if (result == null) {
 			try {
 				Debug.startTimer();
-				ParseTable table = Environment.getParseTable(d.getLanguage());
+				ParseTable table = Environment.getParseTableProvider(d.getLanguage()).get();
 				Debug.stopTimer("Keyword recognizer loaded for " + d.getLanguage().getName());
 				result = new KeywordRecognizer(table);
 				cache.put(d, result);

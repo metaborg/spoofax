@@ -631,7 +631,11 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		if (term instanceof WrappedAstNode) {
 			return ((WrappedAstNode) term).getNode();
 		} else {
-			Environment.logException("Resolved reference is not associated with an AST node " + term);
+			if (descriptor.isDynamicallyLoaded()) {
+				Environment.logWarning("Resolved reference is not associated with an AST node " + term);
+			} else {
+				Environment.logException("Resolved reference is not associated with an AST node " + term);
+			}
 			return null;
 		}
 	}

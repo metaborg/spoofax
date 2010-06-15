@@ -70,7 +70,7 @@ public class IMPParseStrategoFileStrategy extends parse_stratego_file_0_0 {
 	private JSGLRI getStrategoParser() {
 		try {
 			Language strategoSugar = LanguageRegistry.findLanguage(StrategoSugarParseController.LANGUAGE);
-			JSGLRI parser = new JSGLRI(Environment.getParseTable(strategoSugar), "Module");
+			JSGLRI parser = new JSGLRI(Environment.getParseTableProvider(strategoSugar), "Module");
 			if (parser.getParseTable().hasRecovers()) parser.setUseRecovery(true);
 			return parser;
 		} catch (NoRecoveryRulesException e) {

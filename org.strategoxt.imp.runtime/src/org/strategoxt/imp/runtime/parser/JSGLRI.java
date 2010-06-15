@@ -14,6 +14,7 @@ import org.spoofax.jsglr.SGLR;
 import org.spoofax.jsglr.SGLRException;
 import org.spoofax.jsglr.TokenExpectedException;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.dynamicloading.ParseTableProvider;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
 
 import aterm.ATerm;
@@ -25,7 +26,7 @@ import aterm.ATerm;
  */ 
 public class JSGLRI extends AbstractSGLRI {
 	
-	private ParseTable parseTable;
+	private ParseTableProvider parseTable;
 	
 	private boolean useRecovery = false;
 	
@@ -37,7 +38,7 @@ public class JSGLRI extends AbstractSGLRI {
 	
 	// Initialization and parsing
 	
-	public JSGLRI(ParseTable parseTable, String startSymbol,
+	public JSGLRI(ParseTableProvider parseTable, String startSymbol,
 			SGLRParseController controller, TokenKindManager tokenManager) {
 		super(controller, tokenManager, startSymbol, parseTable);
 		
@@ -45,8 +46,17 @@ public class JSGLRI extends AbstractSGLRI {
 		resetState();
 	}
 	
-	public JSGLRI(ParseTable parseTable, String startSymbol) {
+	public JSGLRI(ParseTable parseTable, String startSymbol,
+			SGLRParseController controller, TokenKindManager tokenManager) {
+		this(new ParseTableProvider(parseTable), startSymbol, controller, tokenManager);
+	}
+	
+	public JSGLRI(ParseTableProvider parseTable, String startSymbol) {
 		this(parseTable, startSymbol, null, new TokenKindManager());
+	}
+	
+	public JSGLRI(ParseTable parseTable, String startSymbol) {
+		this(new ParseTableProvider(parseTable), startSymbol);
 	}
 	
 	public void asyncAbort() {
@@ -66,7 +76,11 @@ public class JSGLRI extends AbstractSGLRI {
 	}
 	
 	public ParseTable getParseTable() {
-		return parseTable;
+		try {
+			return parseTable.get();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 	
 	public Disambiguator getDisambiguator() {
@@ -78,6 +92,11 @@ public class JSGLRI extends AbstractSGLRI {
 	}
 	
 	public void setParseTable(ParseTable parseTable) {
+		this.parseTable = new ParseTableProvider(parseTable);
+		resetState();
+	}
+	
+	public void setParseTable(ParseTableProvider parseTable) {
 		this.parseTable = parseTable;
 		resetState();
 	}
@@ -98,7 +117,7 @@ public class JSGLRI extends AbstractSGLRI {
 	 * Resets the state of this parser, reinitializing the SGLR instance
 	 */
 	void resetState() {
-		parser = Environment.createSGLR(parseTable);
+		parser = Environment.createSGLR(getParseTable());
 		parser.setTimeout(timeout);
 		if (disambiguator != null) parser.setDisambiguator(disambiguator);
 		else disambiguator = parser.getDisambiguator();
