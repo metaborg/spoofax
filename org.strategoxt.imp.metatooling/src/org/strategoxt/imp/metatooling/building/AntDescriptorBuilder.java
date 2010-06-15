@@ -3,6 +3,7 @@ package org.strategoxt.imp.metatooling.building;
 import static org.strategoxt.imp.metatooling.loading.DynamicDescriptorLoader.*;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 
 import org.eclipse.core.resources.IResource;
@@ -48,7 +49,13 @@ public class AntDescriptorBuilder {
 	}
 
 	private static IResource getResource(String file) {
-		URI uri = new File(file).toURI();
+		File fileRef = new File(file);
+		try {
+			fileRef = fileRef.getCanonicalFile();
+		} catch (IOException e) {
+			Environment.logException(e);
+		}
+		URI uri = fileRef.toURI();
 		IWorkspace workspace = ResourcesPlugin.getWorkspace();
 		IResource[] resources = workspace.getRoot().findFilesForLocationURI(uri);
 		if (resources.length == 0)

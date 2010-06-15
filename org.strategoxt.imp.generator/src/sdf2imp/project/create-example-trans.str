@@ -33,7 +33,7 @@ rules // Main editor interface (defined by editor/{sdf-name}-Builders and -Refer
   // Analyzes the current program, returning a tuple with errors, warnings, and notes;
   // each a list of (term, message) tuples or simply (message) terms.
   editor-analyze:
-    (ast, path, project-path) -> (errors, warnings, notes)
+    (ast, path, project-path) -> (ast, errors, warnings, notes)
     with
       editor-init;
       analyze;
