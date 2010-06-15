@@ -602,18 +602,22 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			Environment.logException("Runtime exited when evaluating strategy " + function, e);
 		} catch (UndefinedStrategyException e) {
 			// Note that this condition may also be reached when the semantic service hasn't been loaded yet
-			runtime.getIOAgent().printError("Internal error: strategy does not exist or is defined in a module that is not imported: " + e.getMessage());
+			if (descriptor.isDynamicallyLoaded())
+				runtime.getIOAgent().printError("Internal error: strategy does not exist or is defined in a module that is not imported: " + e.getMessage());
 			Environment.logException("Strategy does not exist: " + e.getMessage(), e);
 		} catch (InterpreterException e) {
-			runtime.getIOAgent().printError("Internal error evaluating " + function + " (" + name(e) + "; see error log)");
+			if (descriptor.isDynamicallyLoaded())
+				runtime.getIOAgent().printError("Internal error evaluating " + function + " (" + name(e) + "; see error log)");
 			Environment.logException("Internal error evaluating strategy " + function, e);
 			if (descriptor.isDynamicallyLoaded()) StrategoConsole.activateConsole();
 		} catch (RuntimeException e) {
-			if (runtime != null) runtime.getIOAgent().printError("Internal error evaluating " + function + " (" + name(e) + "; see error log)");
+			if (runtime != null && descriptor.isDynamicallyLoaded())
+				runtime.getIOAgent().printError("Internal error evaluating " + function + " (" + name(e) + "; see error log)");
 			Environment.logException("Internal error evaluating strategy " + function, e);
 			if (descriptor.isDynamicallyLoaded()) StrategoConsole.activateConsole();
 		} catch (Error e) { // e.g. NoClassDefFoundError due to bad/missing stratego jar
-			if (runtime != null) runtime.getIOAgent().printError("Internal error evaluating " + function + " (" + name(e) + "; see error log)");
+			if (runtime != null && descriptor.isDynamicallyLoaded())
+				runtime.getIOAgent().printError("Internal error evaluating " + function + " (" + name(e) + "; see error log)");
 			Environment.logException("Internal error evaluating strategy " + function, e);
 			if (descriptor.isDynamicallyLoaded()) StrategoConsole.activateConsole();
 		}
