@@ -81,6 +81,8 @@
          name="Parse error"
          point="org.eclipse.core.resources.markers">
     		<persistent value="true" />
+        <super type="org.eclipse.core.resources.problemmarker"/>
+        <super type="org.eclipse.core.resources.textmarker"/>
    </extension>
    
    <extension
@@ -94,7 +96,7 @@
    
    <extension
       point="org.eclipse.ui.editors.annotationTypes">
-   <!-- (ignore any reference errors here *sigh*) -->
+   <!-- (ignore any reference warnings here *sigh*) -->
    <type
       name="org.strategoxt.imp.runtime.parseerror"
       super="org.eclipse.ui.workbench.texteditor.error"
@@ -113,6 +115,12 @@
       markerType="org.strategoxt.imp.runtime.analysismarker"
       markerSeverity="2">
    </type>
+   </extension>
+   
+   <extension point="org.eclipse.ui.ide.markerResolution">
+      <markerResolutionGenerator
+         markerType="org.strategoxt.imp.runtime.parsemarker"
+         class="org.strategoxt.imp.runtime.parser.AmbSuggestionGenerator"/>
    </extension>
 
    <extension
