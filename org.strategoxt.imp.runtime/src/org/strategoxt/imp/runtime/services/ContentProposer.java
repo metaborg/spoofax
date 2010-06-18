@@ -140,7 +140,8 @@ public class ContentProposer implements IContentProposer {
 			return null;
 		}
 		*/
-		System.out.println("SORTS: " + getSortsAtCursor(controller, ast, offset));
+		if (Debug.ENABLED)
+			System.out.println("SORTS: " + getSortsAtCursor(controller, ast, offset));
 		
 		return results;
     }

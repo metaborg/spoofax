@@ -181,7 +181,7 @@ rules
   constraint-warning:
     Entity(x, _) -> (x, $[Entity names must start with a capital])
     where
-      not(<explode-string; Hd; is-upper> x)
+      not(<string-starts-with-capital> x)
   
   constraint-note:
     Module(x @ "example", _) -> (x, $[This is just an example program in the "entities" language

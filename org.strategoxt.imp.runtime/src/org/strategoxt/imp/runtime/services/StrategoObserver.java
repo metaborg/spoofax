@@ -55,7 +55,7 @@ import org.strategoxt.imp.runtime.stratego.IMPJSGLRLibrary;
 import org.strategoxt.imp.runtime.stratego.StrategoConsole;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
-import org.strategoxt.imp.runtime.stratego.adapter.WrappedAstNode;
+import org.strategoxt.imp.runtime.stratego.adapter.IWrappedAstNode;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.StrategoException;
 import org.strategoxt.stratego_aterm.implode_aterm_0_0;
@@ -629,19 +629,25 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		return e.getClass().getSimpleName();
 	}
 
-	public IAst getAstNode(IStrategoTerm term) {
+	public IAst getAstNode(IStrategoTerm term, boolean tryArguments) {
 		if (term == null) return null;
 			
-		if (term instanceof WrappedAstNode) {
-			return ((WrappedAstNode) term).getNode();
-		} else {
-			if (descriptor.isDynamicallyLoaded()) {
-				Environment.logWarning("Resolved reference is not associated with an AST node " + term);
-			} else {
-				Environment.logException("Resolved reference is not associated with an AST node " + term);
+		if (term instanceof IWrappedAstNode) {
+			return ((IWrappedAstNode) term).getNode();
+		} else if (tryArguments) {
+			for (IStrategoTerm subterm : term.getAllSubterms()) {
+				if (subterm instanceof IWrappedAstNode) {
+					Environment.logWarning("Resolved reference is not associated with an AST node " + term + " used child " + subterm + "instead");
+					return ((IWrappedAstNode) subterm).getNode();
+				}
 			}
-			return null;
 		}
+		if (descriptor.isDynamicallyLoaded()) {
+			Environment.logWarning("Resolved reference is not associated with an AST node " + term);
+		} else {
+			Environment.logException("Resolved reference is not associated with an AST node " + term);
+		}
+		return null;
 	}
 	
 	private void configureRuntime(IResource resource) {

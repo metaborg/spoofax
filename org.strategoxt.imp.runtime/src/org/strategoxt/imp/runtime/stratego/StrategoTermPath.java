@@ -1,5 +1,7 @@
 package org.strategoxt.imp.runtime.stratego;
 
+import static java.lang.Math.max;
+
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -204,10 +206,11 @@ public class StrategoTermPath {
 			}
 			IStrategoAstNode oldSubtree = (IStrategoAstNode) oldParent.getChildren().get(i);
 			IStrategoAstNode newSubtree;
-			if (i >= newParent.getChildren().size()) {
-				if (i == 0) // fallback
-					return findIdenticalSubtree(oldAst, newAst, selection);
-				newSubtree = (IStrategoAstNode) newParent.getChildren().get(--i);
+			if (i > newParent.getChildren().size()) {
+				return findIdenticalSubtree(oldAst, newAst, selection);
+			} else if (oldParent.getChildren().size() > newParent.getChildren().size()) {
+				i = max(0, i - (oldParent.getChildren().size() - newParent.getChildren().size()));
+				newSubtree = (IStrategoAstNode) newParent.getChildren().get(i);
 			} else if (i > newParent.getChildren().size()) {
 				return findIdenticalSubtree(oldAst, newAst, selection);
 			} else {
