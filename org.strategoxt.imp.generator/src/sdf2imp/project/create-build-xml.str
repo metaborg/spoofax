@@ -126,7 +126,9 @@ strategies
             <eclipse.refreshLocal resource="${eclipse.path.src-gen}" depth="infinite" />
             <eclipse.convertPath fileSystemPath="${build}" property="eclipse.path.build" />
             <eclipse.refreshLocal resource="${eclipse.path.build}" depth="infinite" />
+            <!-- Might cause the editor to be reloaded?
             <eclipse.refreshLocal resource="${projectdir}/include" depth="infinite" />
+            -->
         </target>
         
         <target name="sdf2imp.standalone" unless="eclipse.running" depends="sdf2rtg">

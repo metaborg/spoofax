@@ -27,7 +27,7 @@ strategies
     verbose-msg(!"Using main module", get-sdf-main-module);
     
     require-option(
-      where(StartSymbol) <+ rules(StartSymbol := <find-start-symbol>)
+      where(StartSymbol) <+ rules(StartSymbol := <parameterized-sort-to-rtg-sort> <find-start-symbol>)
     | <NoExistingDescriptor < !"Start symbols (-s)" + !"language start symbols">
     );
     
