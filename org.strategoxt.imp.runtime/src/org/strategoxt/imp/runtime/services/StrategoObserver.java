@@ -86,6 +86,8 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	
 	private final Lock observerSchedulerLock = new SWTSafeLock(true);
 	
+	private final FileCopier fileCopier = new FileCopier();
+	
 	private HybridInterpreter runtime;
 	
 	private volatile Descriptor descriptor;
@@ -218,7 +220,9 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			Debug.startTimer("Loading Stratego modules " + jars);
 			URL[] classpath = new URL[jars.size()];
 			for (int i = 0; i < classpath.length; i++) {
-				classpath[i] = descriptor.getBasePath().append(jars.get(i)).toFile().toURI().toURL();
+				File file = descriptor.getBasePath().append(jars.get(i)).toFile();
+				file = fileCopier.copyToTempFile(file);
+				classpath[i] = file.toURI().toURL();
 			}
 			runtime.loadJars(classpath);
 			Debug.stopTimer("Successfully loaded " + jars);
