@@ -221,7 +221,8 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			URL[] classpath = new URL[jars.size()];
 			for (int i = 0; i < classpath.length; i++) {
 				File file = descriptor.getBasePath().append(jars.get(i)).toFile();
-				file = fileCopier.copyToTempFile(file);
+				if (descriptor.isDynamicallyLoaded())
+					file = fileCopier.copyToTempFile(file);
 				classpath[i] = file.toURI().toURL();
 			}
 			runtime.loadJars(classpath);
@@ -642,7 +643,8 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			for (IStrategoTerm subterm : term.getAllSubterms()) {
 				if (subterm instanceof IWrappedAstNode) {
 					Environment.logWarning("Resolved reference is not associated with an AST node " + term + " used child " + subterm + "instead");
-					return ((IWrappedAstNode) subterm).getNode();
+					IStrategoAstNode result = ((IWrappedAstNode) subterm).getNode();
+					return result.getParent() != null ? result.getParent() : result;
 				}
 			}
 		}
