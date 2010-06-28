@@ -131,9 +131,6 @@ public class JSGLRI extends AbstractSGLRI {
 	private ATerm doParseNoImplode(InputStream inputStream, char[] inputChars)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 		
-		// FIXME: Some bug in JSGLR is causing its state to get corrupted; must reset it every parse
-		resetState();
-		
 		// Read stream using tokenizer/lexstream
 		
 		try {
@@ -150,6 +147,9 @@ public class JSGLRI extends AbstractSGLRI {
 			} else {
 				throw new FilterException(e.getParser(), e.getMessage(), e);
 			}
+		} finally {
+			// FIXME: Some bug in JSGLR is causing its state to get corrupted; must reset it every parse
+			resetState();
 		}
 	}
 }
