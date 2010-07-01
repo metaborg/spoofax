@@ -218,7 +218,7 @@
          id="org.strategoxt.imp.runtime.analysiswarningmarkerspec"
          point="org.eclipse.ui.editors.markerAnnotationSpecification">
       <specification
-            annotationType="org.strategoxt.imp.runtime.analysiserror"
+            annotationType="org.strategoxt.imp.runtime.analysiswarning"
             colorPreferenceKey="spiAnalysisAnnotationColor"
             colorPreferenceValue="255,148,127"
             contributesToHeader="true"
