@@ -77,8 +77,8 @@
    </extension>
    
    <extension
-         id="org.strategoxt.imp.runtime.parsemarker"
-         name="Parse error"
+         id="parsemarker"
+         name="org.strategoxt.imp.runtime.parsemarker"
          point="org.eclipse.core.resources.markers">
     		<persistent value="true" />
         <super type="org.eclipse.core.resources.problemmarker"/>
@@ -86,8 +86,8 @@
    </extension>
    
    <extension
-         id="org.strategoxt.imp.runtime.analysismarker"
-         name="Parse error"
+         id="analysismarker"
+         name="org.strategoxt.imp.runtime.analysismarker"
          point="org.eclipse.core.resources.markers">
     		<persistent value="true" />
             <super type="org.eclipse.core.resources.problemmarker"/>
@@ -96,7 +96,6 @@
    
    <extension
       point="org.eclipse.ui.editors.annotationTypes">
-   <!-- (ignore any reference warnings here *sigh*) -->
    <type
       name="org.strategoxt.imp.runtime.parseerror"
       super="org.eclipse.ui.workbench.texteditor.error"
@@ -110,8 +109,14 @@
       markerSeverity="1">
    </type>
    <type
-      name="org.strategoxt.imp.runtime.analysisannotation"
+      name="org.strategoxt.imp.runtime.analysiserror"
       super="org.eclipse.ui.workbench.texteditor.error"
+      markerType="org.strategoxt.imp.runtime.analysismarker"
+      markerSeverity="2">
+   </type>
+   <type
+      name="org.strategoxt.imp.runtime.analysiswarning"
+      super="org.eclipse.ui.workbench.texteditor.warning"
       markerType="org.strategoxt.imp.runtime.analysismarker"
       markerSeverity="2">
    </type>
@@ -124,7 +129,7 @@
    </extension>
 
    <extension
-         id="org.strategoxt.imp.runtime.parsemarkerspec"
+         id="org.strategoxt.imp.runtime.parseerrormarkerspec"
          point="org.eclipse.ui.editors.markerAnnotationSpecification">
       <specification
             annotationType="org.strategoxt.imp.runtime.parseerror"
@@ -151,10 +156,9 @@
             colorPreferenceValue="255,128,147"/>
    </extension>
 
-   <!-- TODO: proper red and orange colors for errors and warnings?   -->
    <!-- Note that post-deployment colors may differ from debug colors -->
    <extension
-         id="org.strategoxt.imp.runtime.parsemarkerspec"
+         id="org.strategoxt.imp.runtime.parsewarningmarkerspec"
          point="org.eclipse.ui.editors.markerAnnotationSpecification">
       <specification
             annotationType="org.strategoxt.imp.runtime.parsewarning"
@@ -182,12 +186,41 @@
    </extension>
 
    <extension
-         id="org.strategoxt.imp.runtime.analysismarkerspec"
+         id="org.strategoxt.imp.runtime.analysiserrormarkerspec"
          point="org.eclipse.ui.editors.markerAnnotationSpecification">
       <specification
-            annotationType="org.strategoxt.imp.runtime.analysisannotation"
+            annotationType="org.strategoxt.imp.runtime.analysiserror"
             colorPreferenceKey="spiAnalysisAnnotationColor"
             colorPreferenceValue="255,128,147"
+            contributesToHeader="true"
+            highlightPreferenceKey="analysisAnnotationHighlightKey"
+            highlightPreferenceValue="false"
+            includeOnPreferencePage="false"
+            isGoToNextNavigationTarget="true"
+            isGoToNextNavigationTargetKey="analysisAnnotationIsGotoNextKey"
+            isGoToPreviousNavigationTarget="true"
+            isGoToPreviousNavigationTargetKey="analysisAnnotationIsGotoPrevKey"
+            label="Spoofax/IMP Analysis Annotation"
+            overviewRulerPreferenceKey="analysisAnnotationOverviewKey"
+            overviewRulerPreferenceValue="true"
+            presentationLayer="5"
+            showInNextPrevDropdownToolbarAction="true"
+            symbolicIcon="error"
+            textPreferenceKey="analysisAnnotationTextKey"
+            textPreferenceValue="true"
+            textStylePreferenceKey="analysisAnnotationTextStyleKey"
+            textStylePreferenceValue="SQUIGGLES"
+            verticalRulerPreferenceKey="analysisAnnotationVerticalKey"
+            verticalRulerPreferenceValue="true"/>
+   </extension>
+
+   <extension
+         id="org.strategoxt.imp.runtime.analysiswarningmarkerspec"
+         point="org.eclipse.ui.editors.markerAnnotationSpecification">
+      <specification
+            annotationType="org.strategoxt.imp.runtime.analysiserror"
+            colorPreferenceKey="spiAnalysisAnnotationColor"
+            colorPreferenceValue="255,148,127"
             contributesToHeader="true"
             highlightPreferenceKey="analysisAnnotationHighlightKey"
             highlightPreferenceValue="false"

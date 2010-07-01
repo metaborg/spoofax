@@ -73,8 +73,11 @@ public class StrategoAnalysisQueue {
 			IStatus status;
 			try {
 				status = runInternal(monitor);
-			} catch (Throwable t) {
-				Environment.logException("Error running scheduled analysis", t);
+			} catch (Exception e) {
+				Environment.logException("Error running scheduled analysis", e);
+				status = Status.CANCEL_STATUS;
+			} catch (Error e) {
+				Environment.logException("Error running scheduled analysis", e);
 				status = Status.CANCEL_STATUS;
 			}
 

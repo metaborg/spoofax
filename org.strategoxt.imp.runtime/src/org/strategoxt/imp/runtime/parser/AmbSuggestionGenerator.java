@@ -1,11 +1,9 @@
 package org.strategoxt.imp.runtime.parser;
 
-import static org.eclipse.core.resources.IMarker.SEVERITY;
-import static org.eclipse.core.resources.IMarker.SEVERITY_ERROR;
-import static org.eclipse.core.resources.IMarker.SEVERITY_WARNING;
-
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.IMarkerResolution;
+import org.eclipse.ui.IMarkerResolution2;
 import org.eclipse.ui.IMarkerResolutionGenerator2;
 
 /**
@@ -14,14 +12,41 @@ import org.eclipse.ui.IMarkerResolutionGenerator2;
 public class AmbSuggestionGenerator implements IMarkerResolutionGenerator2 {
 
 	public boolean hasResolutions(IMarker marker) {
-		if (marker.getAttribute(SEVERITY, SEVERITY_ERROR) != SEVERITY_WARNING)
-			return false;
 		return false;
 	}
 
 	public IMarkerResolution[] getResolutions(IMarker marker) {
-		// TODO Auto-generated method stub
-		return null;
+		return new IMarkerResolution[] {
+			new DemoResolution("label", "description")
+		};
 	}
 
+	private static class DemoResolution implements IMarkerResolution2 {
+		String label;
+		String description;
+		
+		public DemoResolution(String label, String description) {
+			this.label = label;
+			this.description = description;
+		}
+		
+		public String getDescription() {
+			return description;
+		}
+		
+		public String getLabel() {
+			return label;
+		}
+		
+		public Image getImage() {
+			// TODO: Quick fix image
+			return null;
+		}
+
+		public void run(IMarker marker) {
+			// TODO: run quick fix?
+		}
+		
+	}
+	
 }
