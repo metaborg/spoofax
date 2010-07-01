@@ -85,8 +85,6 @@ public class AstMessageHandler {
 	
 	private final List<MarkerSignature> markersToAdd = new ArrayList<MarkerSignature>();
 	
-	private boolean initMarkersToReuse = false;
-	
 	public AstMessageHandler(String markerType) {
 		this.markerType = markerType;
 	}
@@ -269,14 +267,11 @@ public class AstMessageHandler {
 	 */
 	public void clearMarkers(IResource file) {
 		try {
-			if (initMarkersToReuse) {
-				IMarker[] markers = file.findMarkers(markerType, true, 0);
-				for (IMarker marker : markers) {
-					IMarker dupe = markersToReuse.put(new MarkerSignature(marker), marker);
-					if (dupe != null) markersToDelete.add(dupe);
-				}
+			IMarker[] markers = file.findMarkers(markerType, true, 0);
+			for (IMarker marker : markers) {
+				IMarker dupe = markersToReuse.put(new MarkerSignature(marker), marker);
+				if (dupe != null) markersToDelete.add(dupe);
 			}
-			initMarkersToReuse = true; // redraw markers the first time, then reuse them
 			Iterator<MarkerSignature> markersToAdd = this.markersToAdd.iterator();
 			while (markersToAdd.hasNext()) {
 				MarkerSignature marker = markersToAdd.next();

@@ -72,6 +72,7 @@ public class FoldingUpdater extends FolderBase {
 	public void makeCompleteAnnotation(IToken firstToken, IToken lastToken) {
 		final int start = firstToken.getEndOffset();
 		int end = -1;
+		if (start == -1) return; // empty starting token
 
 		if (firstToken.getLine() != lastToken.getLine()) {
 			// Consume any layout tokens at the end of our AST node until the

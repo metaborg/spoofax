@@ -317,6 +317,7 @@ public class StrategoBuilder implements IBuilder {
 		IEditorPart result = null;
 		try {
 			result = IDE.openEditor(page, file, !realTime);
+			if (sidePane != null) sidePane.setOpenedEditor(result);
 		} finally {
 			if (result == null && sidePane != null) sidePane.undoOpenSidePane();
 		}

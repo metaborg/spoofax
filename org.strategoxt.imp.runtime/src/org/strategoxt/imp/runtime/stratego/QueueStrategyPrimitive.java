@@ -7,6 +7,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.jobs.Job;
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.library.AbstractPrimitive;
@@ -14,10 +15,10 @@ import org.spoofax.interpreter.library.ssl.SSLLibrary;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.services.StrategoAnalysisQueueFactory;
 import org.strategoxt.imp.runtime.services.StrategoObserverBackgroundJob;
-import org.strategoxt.imp.runtime.services.StrategoAnalysisQueue.UpdateJob;
 
 /**
  * @author Nathan Bruning
@@ -25,8 +26,10 @@ import org.strategoxt.imp.runtime.services.StrategoAnalysisQueue.UpdateJob;
  */
 public class QueueStrategyPrimitive extends AbstractPrimitive {
 
+	private static final String NAME = "SSL_EXT_queue_strategy";
+	
 	QueueStrategyPrimitive() {
-		super("SSL_EXT_queue_strategy", 0, 2);
+		super(NAME, 0, 2);
 	}
 	
 	/**
@@ -54,13 +57,13 @@ public class QueueStrategyPrimitive extends AbstractPrimitive {
 			StrategoObserverBackgroundJob job = new StrategoObserverBackgroundJob(strategyName, term, descriptor);
 			job.setup(project);
 			
-			UpdateJob updateJob = StrategoAnalysisQueueFactory.getInstance().queue(job, project);
+			Job updateJob = StrategoAnalysisQueueFactory.getInstance().queue(job, project);
 			updateJob.setName(jobDescription);
 			
 			return true;
 			
 		} catch (ClassCastException e) {
-			// Wrong term input.
+			Environment.logException(NAME + ": invalid arguments", e);
 		}
 		return false;
 		

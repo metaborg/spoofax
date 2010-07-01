@@ -342,7 +342,7 @@ public class SGLRParseController implements IParseController {
 				// try again without the standard start symbol
 			} else {
 				// Be forgiving: user probably specified an inconsistent strat symbol in the ESV
-				Environment.logWarning("Incorrect start symbol specified in editor descriptor", e);
+				Environment.logWarning("Incorrect start symbol specified in editor descriptor:" + parser.getStartSymbol(), e);
 			}
 			parser.setStartSymbol(null);
 			return parser.parseNoImplode(inputChars, filename);

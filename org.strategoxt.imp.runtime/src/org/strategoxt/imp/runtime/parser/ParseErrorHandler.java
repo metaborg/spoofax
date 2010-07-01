@@ -352,7 +352,10 @@ public class ParseErrorHandler {
 			sdf2imp.init(asyncAmbReportingContext);
 		}
 
-		assert !Thread.holdsLock(Environment.getSyncRoot()) : "Potential deadlock";
+		if (Thread.holdsLock(Environment.getSyncRoot())) {
+			// Potential deadlock (occurs when parsing a file for the first time, when it's probably safe)
+			return amb.toString();
+		}
 		
 		synchronized (asyncAmbReportingContext) {
 			ITermFactory factory = asyncAmbReportingContext.getFactory();

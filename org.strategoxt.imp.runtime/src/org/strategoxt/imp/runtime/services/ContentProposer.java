@@ -271,7 +271,7 @@ public class ContentProposer implements IContentProposer {
 				newTextParts = (IStrategoList) proposal;
 				String head = newTextParts.size() == 0 ? "" : asJavaString(newTextParts.head());
 				if (head.length() >= prefix.length()) {
-					if (head.startsWith(prefix)) confirmed = true;
+					if (startsWithCaseInsensitive(head, prefix)) confirmed = true;
 					else continue;
 				}
 				newText = proposalPartsToDisplayString(newTextParts);
@@ -286,7 +286,7 @@ public class ContentProposer implements IContentProposer {
 					newTextParts = (IStrategoList) newTextTerm;
 					String head = newTextParts.size() == 0 ? "" : asJavaString(newTextParts.head());
 					if (head.length() >= prefix.length()) {
-						if (head.startsWith(prefix)) confirmed = true;
+						if (startsWithCaseInsensitive(head, prefix)) confirmed = true;
 						else continue;
 					}
 					newText = proposalPartsToDisplayString(newTextParts);
@@ -296,12 +296,16 @@ public class ContentProposer implements IContentProposer {
 				}
 				description = termAt(proposal, 1);
 			}
-			if (!confirmed && (newTextParts.isEmpty() || !newText.startsWith(prefix)))
+			if (!confirmed && (newTextParts.isEmpty() || !startsWithCaseInsensitive(newText,prefix)))
 				continue;
 			results.add(new ContentProposal(this, newText, newText, prefix, offsetRegion, newTextParts, description.stringValue()));
 		}
 		
 		return toSortedArray(results);
+	}
+	
+	private static boolean startsWithCaseInsensitive(String s, String prefix) {
+		return s.length() >= prefix.length() && s.regionMatches(true, 0, prefix, 0, prefix.length());
 	}
 	
 	private String proposalPartsToDisplayString(IStrategoList proposalParts) {
@@ -539,10 +543,14 @@ public class ContentProposer implements IContentProposer {
 	
 	private String getPrefix(int offset, String document) {
 		int prefixStart = offset;
+		int lastGoodPrefixStart = offset + 1;
 		while (--prefixStart >= 0) {
 			String prefix = document.substring(prefixStart, offset);
-			if (!identifierLexical.matcher(prefix).matches())
-				return document.substring(prefixStart + 1, offset);
+			if (identifierLexical.matcher(prefix).matches()) {
+				lastGoodPrefixStart = prefixStart;
+			} else if (prefix.charAt(0) == '\n') {
+				return document.substring(lastGoodPrefixStart, offset);
+			}
 		}
 		return document.substring(0, offset);
 	}

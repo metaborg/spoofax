@@ -11,6 +11,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.imp.parser.IParseController;
+import org.strategoxt.imp.runtime.Environment;
 
 /**
  * A workbench-global queue of Stratego operations.
@@ -38,29 +39,27 @@ public class StrategoAnalysisQueue {
 	 */
 	private volatile boolean running = false;
 
-	public class UpdateJob extends Job {
+	private class UpdateJob extends Job {
 
-		StrategoAnalysisJob job;
+		private static final int BACKGROUND = LONG;
 
-		int priority;
+		private final StrategoAnalysisJob job;
 
-		long delay;
-
-		static final int INTERACTIVE = 0;
-
-		static final int BACKGROUND = 100;
+		private final long delay;
+		
+		private boolean cancelled;
 
 		protected UpdateJob(StrategoAnalysisJob job, IPath path, int priority, boolean isSystem,
 				long delay) {
 			super("");
 			this.job = job;
-			this.priority = priority;
 			this.delay = delay;
 
 			// Should be set before scheduling the job
 			this.setName(JOB_DESCRIPTION + path);
 
 			setSystem(isSystem);
+			setPriority(priority);
 		}
 
 		final static String JOB_DESCRIPTION = "Analyzing updates to ";
@@ -75,7 +74,7 @@ public class StrategoAnalysisQueue {
 			try {
 				status = runInternal(monitor);
 			} catch (Throwable t) {
-				t.printStackTrace(); // TODO: show
+				Environment.logException("Error running scheduled analysis", t);
 				status = Status.CANCEL_STATUS;
 			}
 
@@ -95,6 +94,15 @@ public class StrategoAnalysisQueue {
 
 		public void scheduleWithDelay() {
 			super.schedule(this.delay);
+		}
+		
+		@Override
+		protected void canceling() {
+			cancelled = true;
+		}
+		
+		public boolean isCancelled() {
+			return cancelled;
 		}
 
 	}
@@ -158,14 +166,12 @@ public class StrategoAnalysisQueue {
 
 		UpdateJob job = queue.poll();
 		if (job != null) {
-			run(job);
+			if (job.isCancelled()) {
+				wake();
+			} else {
+				job.scheduleWithDelay(); // calls wake()
+			}
 		}
-	}
-
-	private void run(UpdateJob job) {
-
-		job.scheduleWithDelay();
-
 	}
 
 	protected static IPath fullPathToWorkspaceLocal(IPath fullPath) {

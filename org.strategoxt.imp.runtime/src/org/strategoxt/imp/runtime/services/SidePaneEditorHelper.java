@@ -1,8 +1,13 @@
 package org.strategoxt.imp.runtime.services;
 
+import java.lang.ref.WeakReference;
+
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.internal.EditorAreaHelper;
+import org.eclipse.ui.internal.EditorPane;
 import org.eclipse.ui.internal.EditorSashContainer;
 import org.eclipse.ui.internal.EditorStack;
 import org.eclipse.ui.internal.WorkbenchPage;
@@ -18,6 +23,10 @@ import org.strategoxt.imp.runtime.Environment;
  */
 @SuppressWarnings("restriction")
 public class SidePaneEditorHelper {
+	
+	private static EditorStack previousNewStack;
+	
+	private static WeakReference<IEditorPart> previousNewEditor;
 	
 	private EditorStack oldStack;
 	
@@ -48,14 +57,7 @@ public class SidePaneEditorHelper {
 		
 		// Find an existing stack next to the active editor
 		oldStack = editorArea.getActiveWorkbook();
-		newStack = null;
-		for (Object stack : editorArea.getWorkbooks()) {
-			if (stack != oldStack) { // good, other stack
-				newStack = (EditorStack) stack;
-				if (newStack.getParent() == oldStack.getParent())
-					break; // just perfect!
-			}
-		}
+		newStack = findReusableStack(editorArea);
 		
 		if (newStack == null) {
 			// Create a new stack
@@ -69,14 +71,58 @@ public class SidePaneEditorHelper {
 		}
 		
 		newStack.setFocus();
+		previousNewEditor = null;
+	}
+
+	private EditorStack findReusableStack(EditorAreaHelper editorArea) {
+		EditorStack result = null;
+		boolean foundGoodMatch = false;
+		IEditorPart previousNewEditor =
+			SidePaneEditorHelper.previousNewEditor == null
+					? null
+					: SidePaneEditorHelper.previousNewEditor.get();
+		
+		for (Object stackObject : editorArea.getWorkbooks()) {
+			if (!(stackObject instanceof EditorStack))
+				continue;
+			EditorStack stack = (EditorStack) stackObject;
+			if (stack != oldStack) { // good, other stack
+				if (previousNewEditor != null && contains(stack.getEditors(), previousNewEditor)) {
+					return stack;
+				} else if (stack == previousNewStack) {
+					result = stack;
+					foundGoodMatch = true;
+				} else if (!foundGoodMatch && stack.getParent() == oldStack.getParent()) {
+					result = stack;
+					foundGoodMatch = true;
+				} else if (!foundGoodMatch) {
+					result = stack;
+				}
+			}
+		}
+		
+		return result;
+	}
+	
+	private static boolean contains(EditorPane[] array, IEditorPart member) {
+		for (int i = 0; i < array.length; i++) {
+			IEditorReference ref = array[i].getEditorReference();
+			if (ref.getEditor(false) == member) return true;
+		}
+		return false;
 	}
 	
 	public void restoreFocus() {
 		try {
+			previousNewStack = newStack;
 			oldStack.setFocus();
 		} catch (Throwable t) {
 			Environment.logException("Could not restore focus from side pane", t);			
 		}
+	}
+	
+	public void setOpenedEditor(IEditorPart editor) {
+		previousNewEditor = editor == null ? null : new WeakReference<IEditorPart>(editor);
 	}
 	
 	public void undoOpenSidePane() {

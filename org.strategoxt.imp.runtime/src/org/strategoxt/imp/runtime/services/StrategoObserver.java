@@ -22,6 +22,7 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
 import org.spoofax.interpreter.core.InterpreterErrorExit;
@@ -40,7 +41,6 @@ import org.strategoxt.IncompatibleJarException;
 import org.strategoxt.imp.generator.postprocess_feedback_results_0_0;
 import org.strategoxt.imp.generator.sdf2imp;
 import org.strategoxt.imp.runtime.Debug;
-import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.SWTSafeLock;
 import org.strategoxt.imp.runtime.WeakWeakMap;
@@ -49,7 +49,6 @@ import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.dynamicloading.IDynamicLanguageService;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
-import org.strategoxt.imp.runtime.services.StrategoAnalysisQueue.UpdateJob;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.IMPJSGLRLibrary;
 import org.strategoxt.imp.runtime.stratego.StrategoConsole;
@@ -96,7 +95,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	
 	private volatile boolean rushNextUpdate;
 	
-	private UpdateJob updateJob;
+	private Job updateJob;
 	
 	private boolean wasExceptionLogged;
 	
@@ -297,30 +296,20 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 					messages.addMarkerFirstLine(ast.getResource(), "Analysis failed (see error log)", IMarker.SEVERITY_ERROR);
 					messages.commitAllChanges();
 				} else if (!monitor.isCanceled()) {
-					// TODO: figure out how this was supposed to be synchronized
+					// TODO: figure out how this was supposed to be synchronized??
 					presentToUser(ast.getResource(), feedback);
 				}
 			}
 		} finally {
 			// System.out.println("OBSERVED " + System.currentTimeMillis()); // DEBUG
 			// processEditorRecolorEvents(parseController);
+            // AstMessageHandler.processAllEditorRecolorEvents();
 		}
 	}
 
 	private static boolean isRecoveryFailed(IParseController parseController) {
 		return parseController instanceof SGLRParseController
 				&& ((SGLRParseController) parseController).getErrorHandler().isRecoveryFailed();
-	}
-
-	@Deprecated
-	@SuppressWarnings("unused")
-	private void processEditorRecolorEvents(IParseController parseController) {
-		if (parseController instanceof SGLRParseController) {
-			EditorState editor = ((SGLRParseController) parseController).getEditor();
-			if (editor != null)
-				AstMessageHandler.processEditorRecolorEvents(editor.getEditor());
-		}
-		AstMessageHandler.processAllEditorRecolorEvents();
 	}
 
 	public void reportRewritingFailed() {
