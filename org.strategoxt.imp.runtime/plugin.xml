@@ -118,7 +118,7 @@
       name="org.strategoxt.imp.runtime.analysiswarning"
       super="org.eclipse.ui.workbench.texteditor.warning"
       markerType="org.strategoxt.imp.runtime.analysismarker"
-      markerSeverity="2">
+      markerSeverity="1">
    </type>
    </extension>
    
