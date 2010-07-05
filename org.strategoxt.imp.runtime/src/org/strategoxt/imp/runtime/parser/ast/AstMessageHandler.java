@@ -470,11 +470,17 @@ public class AstMessageHandler {
 	
 	private static void runInWorkspace(final Runnable action) {
 		try {
-			ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
-				public void run(IProgressMonitor monitor) throws CoreException {
-					action.run();
-				}
-			}, null, IWorkspace.AVOID_UPDATE, new NullProgressMonitor());
+			if (Environment.isMainThread()) {
+				// When Eclipse is starting, just run it as it is to avoid a lockup
+				action.run();
+			} else {
+				ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
+						public void run(IProgressMonitor monitor) {
+							action.run();
+						}
+					}, null, IWorkspace.AVOID_UPDATE, new NullProgressMonitor()
+					);
+			}
 		} catch (CoreException e) {
 			Environment.logException("Exception in message handler", e);
 		}
