@@ -264,10 +264,13 @@ public class AstMessageHandler {
 	 */
 	public void clearMarkers(IResource file) {
 		try {
-			IMarker[] markers = file.findMarkers(markerType, true, 0);
-			for (IMarker marker : markers) {
+			for (IMarker marker : file.findMarkers(markerType, true, 0)) {
 				IMarker dupe = markersToReuse.put(new MarkerSignature(marker), marker);
 				if (dupe != null) markersToDelete.add(dupe);
+			}
+			for (IMarker marker : file.findMarkers(GENERIC_PROBLEM, true, 0)) {
+				// Remove legacy markers (Spoofax/195)
+				markersToDelete.add(marker);
 			}
 			Iterator<MarkerSignature> markersToAdd = this.markersToAdd.iterator();
 			while (markersToAdd.hasNext()) {
