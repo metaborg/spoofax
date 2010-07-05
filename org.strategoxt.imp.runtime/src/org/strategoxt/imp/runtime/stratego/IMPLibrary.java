@@ -13,6 +13,7 @@ public class IMPLibrary extends AbstractStrategoOperatorRegistry {
 		add(new DialogPrimitive());
 		add(new SubtermPrimitive());
 		add(new ProjectPathPrimitive());
+		add(new PluginPathPrimitive());
 		add(new RefreshResourcePrimitive());
 		add(new OriginLocationPrimitive());
 		add(new OriginOffsetPrimitive());

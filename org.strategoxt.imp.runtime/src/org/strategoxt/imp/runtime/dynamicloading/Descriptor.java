@@ -218,6 +218,9 @@ public class Descriptor {
 		this.basePath = basePath;
 	}
 	
+	/**
+	 * Gets the directory location of the editor plugin.
+	 */
 	public IPath getBasePath() {
 		if (basePath == null) {
 			Class attachmentProvider = getAttachmentProvider();
