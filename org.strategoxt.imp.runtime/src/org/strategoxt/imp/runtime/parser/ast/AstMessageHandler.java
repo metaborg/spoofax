@@ -1,8 +1,8 @@
 package org.strategoxt.imp.runtime.parser.ast;
 
-import static org.eclipse.core.resources.IMarker.*;
-import static org.spoofax.interpreter.core.Tools.*;
-import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.*;
+import static org.eclipse.core.resources.IMarker.PRIORITY_HIGH;
+import static org.spoofax.interpreter.core.Tools.termAt;
+import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.TK_ERROR;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -268,7 +268,7 @@ public class AstMessageHandler {
 				IMarker dupe = markersToReuse.put(new MarkerSignature(marker), marker);
 				if (dupe != null) markersToDelete.add(dupe);
 			}
-			for (IMarker marker : file.findMarkers(GENERIC_PROBLEM, true, 0)) {
+			for (IMarker marker : file.findMarkers(GENERIC_PROBLEM, false, 0)) {
 				// Remove legacy markers (Spoofax/195)
 				markersToDelete.add(marker);
 			}
@@ -464,23 +464,38 @@ public class AstMessageHandler {
 		return asyncActiveMarkers;
 	}
 	
-	public List<MarkerSignature> getAdditions() {
-		return markersToAdd;
+	public final String getMarkerType() {
+		return markerType;
 	}
+	
+	/**
+	 * Returns a copy of the list of markers scheduled to be added.
+	 */
+	public List<MarkerSignature> getAdditions() {
+		return new ArrayList<MarkerSignature>(markersToAdd);
+	}
+	
+	/*
+	 * Returns a copy of the list of markers scheduled to be deleted.
+	 * 
+	 * @param includeReuseCandidates  Whether or not to include markers potentially reusable for addition.
+	 *
+	public List<IMarker> getDeletions(boolean includeReuseCandidates) {
+		ArrayList<IMarker> results = new ArrayList<IMarker>(markersToDelete);
+		if (includeReuseCandidates)
+			results.addAll(markersToReuse.values());
+		return results;
+	}
+	 */
 	
 	private static void runInWorkspace(final Runnable action) {
 		try {
-			if (Environment.isMainThread()) {
-				// When Eclipse is starting, just run it as it is to avoid a lockup
-				action.run();
-			} else {
-				ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
-						public void run(IProgressMonitor monitor) {
-							action.run();
-						}
-					}, null, IWorkspace.AVOID_UPDATE, new NullProgressMonitor()
-					);
-			}
+			ResourcesPlugin.getWorkspace().run(new IWorkspaceRunnable() {
+					public void run(IProgressMonitor monitor) {
+						action.run();
+					}
+				}, null, IWorkspace.AVOID_UPDATE, new NullProgressMonitor()
+				);
 		} catch (CoreException e) {
 			Environment.logException("Exception in message handler", e);
 		}
