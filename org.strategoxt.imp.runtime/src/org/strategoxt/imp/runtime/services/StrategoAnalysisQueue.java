@@ -1,5 +1,6 @@
 package org.strategoxt.imp.runtime.services;
 
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.PriorityBlockingQueue;
 
 import org.eclipse.core.resources.IProject;
@@ -12,6 +13,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.imp.parser.IParseController;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.MonitorStateWatchDog;
 
 /**
  * A workbench-global queue of Stratego operations.
@@ -67,13 +69,16 @@ public class StrategoAnalysisQueue {
 		@Override
 		protected IStatus run(IProgressMonitor monitor) {
 
-			running = true; // atomic
+			running = true;
+			if (!isSystem())
+				MonitorStateWatchDog.protect(this, monitor, job.getObserver());
 
-			// Set name
 			IStatus status;
 			try {
-				status = runInternal(monitor);
-			} catch (Exception e) {
+				status = job.analyze(monitor);
+			} catch (CancellationException e) {
+				status = Status.CANCEL_STATUS;
+			} catch (RuntimeException e) {
 				Environment.logException("Error running scheduled analysis", e);
 				status = Status.CANCEL_STATUS;
 			} catch (Error e) {
@@ -86,13 +91,6 @@ public class StrategoAnalysisQueue {
 			wake();
 
 			return status;
-		}
-
-		private IStatus runInternal(IProgressMonitor monitor) {
-
-			IStatus status = job.analyze(monitor);
-			return status;
-
 		}
 
 		public void scheduleWithDelay() {
@@ -132,10 +130,10 @@ public class StrategoAnalysisQueue {
 		StrategoObserverUpdateJob job = new StrategoObserverUpdateJob(observer);
 		job.setup(parseController);
 
-		// UNDONE: observer job is no longer a WorkspaceJob
-		// thus avoiding analysis delays and progress view spamming
-		// setRule(parseController.getProject().getResource());
-		UpdateJob updateJob = new UpdateJob(job, path, UpdateJob.INTERACTIVE, true, delay);
+		// To avoid progress view spamming, we only show jobs in the progress view if they have been
+		// dynamically loaded
+		boolean isSystemJob = !Environment.getDescriptor(parseController.getLanguage()).isDynamicallyLoaded();
+		UpdateJob updateJob = new UpdateJob(job, path, UpdateJob.INTERACTIVE, isSystemJob, delay);
 		add(updateJob);
 		return updateJob;
 

@@ -203,10 +203,8 @@ public class ParseErrorHandler {
 
 		final int expectedVersion = ++additionsVersionId;
 
-		List<MarkerSignature> markers = handler.getAdditions();
+		final List<MarkerSignature> markers = handler.getAdditions();
 		if (markers.isEmpty()) return;
-
-		final List<MarkerSignature> safeMarkers = new ArrayList<MarkerSignature>(markers);
 		
 		Job job = new Job("Report parse errors") {
 			@Override
@@ -219,10 +217,10 @@ public class ParseErrorHandler {
 					synchronized (handler.getSyncRoot()) {
 						if (additionsVersionId != expectedVersion) return Status.OK_STATUS;
 	
-						List<IMarker> markers = handler.asyncCommitAdditions(safeMarkers);
+						List<IMarker> addedMarkers = handler.asyncCommitAdditions(markers);
 						
 						if (additionsVersionId != expectedVersion)
-							handler.asyncDeleteMarkers(markers); // rollback
+							handler.asyncDeleteMarkers(addedMarkers); // rollback
 					}
 					//source.forceRecolor(); // Adding markers corrupts coloring sometimes
 					//EditorState editor = source.getEditor();

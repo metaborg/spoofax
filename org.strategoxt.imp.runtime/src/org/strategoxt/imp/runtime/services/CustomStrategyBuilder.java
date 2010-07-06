@@ -39,13 +39,13 @@ public class CustomStrategyBuilder extends StrategoBuilder {
 	}
 	
 	@Override
-	public void execute(EditorState editor, IStrategoAstNode node, IFile errorReportFile,
+	public void scheduleExecute(EditorState editor, IStrategoAstNode node, IFile errorReportFile,
 			boolean isRebuild) {
 		
 		String builderRule = inputBuilderRule(editor);
 		if (builderRule != null) {
 			setBuilderRule(builderRule);
-			super.execute(editor, node, errorReportFile, isRebuild);
+			super.scheduleExecute(editor, node, errorReportFile, isRebuild);
 		}
 	}
 	

@@ -9,17 +9,23 @@ import static org.spoofax.interpreter.core.Tools.termAt;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.util.Map;
+import java.util.WeakHashMap;
+import java.util.concurrent.CancellationException;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
+import org.eclipse.ui.progress.UIJob;
 import org.spoofax.interpreter.core.InterpreterErrorExit;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
@@ -28,6 +34,7 @@ import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.MonitorStateWatchDog;
 import org.strategoxt.imp.runtime.RuntimeActivator;
 import org.strategoxt.imp.runtime.dynamicloading.TermReader;
 import org.strategoxt.imp.runtime.stratego.StrategoConsole;
@@ -62,6 +69,10 @@ public class StrategoBuilder implements IBuilder {
 	private final boolean persistent;
 	
 	private final EditorState derivedFromEditor;
+	
+	// Since StrategoBuilders are not persistent (per constructor of BuilderFactory)
+	// we maintain a map with running jobs in a static field
+	private static Map<String, Job> activeJobs = new WeakHashMap<String, Job>();
 	
 	/**
 	 * Creates a new Stratego builder.
@@ -103,7 +114,39 @@ public class StrategoBuilder implements IBuilder {
 		this.builderRule = builderRule;
 	}
 	
-	public void execute(EditorState editor, IStrategoAstNode node, IFile errorReportFile, boolean isRebuild) {
+	public void scheduleExecute(final EditorState editor, IStrategoAstNode node,
+			final IFile errorReportFile, final boolean isRebuild) {
+
+		String displayCaption = caption.endsWith("...")
+			? caption.substring(caption.length() - 3)
+			: caption;
+		
+		Job lastJob = activeJobs.get(caption);
+		if (lastJob != null && lastJob.getState() != Job.NONE) {
+			openError(editor, "Already running: " + displayCaption);
+			return;
+		}
+		
+		if (node == null) {
+			node = editor.getSelectionAst(!cursor);
+			if (node == null) node = editor.getParseController().getCurrentAst();
+		}
+		
+		final IStrategoAstNode node2 = node;
+			
+		Job job = new Job("Executing " + displayCaption) {
+			@Override
+			protected IStatus run(IProgressMonitor monitor) {
+				MonitorStateWatchDog.protect(this, monitor, observer);
+				execute(editor, node2, errorReportFile, isRebuild);
+				return monitor.isCanceled() ? Status.CANCEL_STATUS : Status.OK_STATUS;
+			}
+		};
+		job.schedule();
+		activeJobs.put(caption, job);
+	}
+	
+	private void execute(EditorState editor, IStrategoAstNode node, IFile errorReportFile, boolean isRebuild) {
 		// TODO: refactor
 		assert derivedFromEditor == null || editor.getDescriptor().isATermEditor();
 		String filename = null;
@@ -112,10 +155,6 @@ public class StrategoBuilder implements IBuilder {
 		
 		synchronized (observer.getSyncRoot()) {
 			try {
-				if (node == null) {
-					node = editor.getSelectionAst(!cursor);
-					if (node == null) node = editor.getParseController().getCurrentAst();
-				}
 				if (node == null) {
 					openError(editor, "Editor is still analyzing");
 					return;
@@ -168,6 +207,8 @@ public class StrategoBuilder implements IBuilder {
 				reportGenericException(editor, e);
 			} catch (InterpreterException e) {
 				reportGenericException(editor, e);
+			} catch (CancellationException e) {
+				return;
 			} catch (RuntimeException e) {
 				reportGenericException(editor, e);
 			} catch (Error e) {
@@ -189,7 +230,24 @@ public class StrategoBuilder implements IBuilder {
 				setFileContents(editor, file, result);
 				// TODO: if not persistent, create IEditorInput from result String
 				if (openEditor && !isRebuild) {
+					scheduleOpenEditorAndListener(editor, node, file);
+				}
+			}
+		} catch (CoreException e) {
+			Environment.logException("Builder failed", e);
+			openError(editor, "Builder failed (" + e.getClass().getName() + "; see error log): " + e.getMessage());
+		}
+	}
+
+	private void scheduleOpenEditorAndListener(final EditorState editor, final IStrategoAstNode node, final IFile file)
+			throws PartInitException {
+		
+		Job job = new UIJob("Opening editor") {
+			@Override
+			public IStatus runInUIThread(IProgressMonitor monitor) {
+				try {
 					IEditorPart target = openEditor(file, realTime);
+				
 					// UNDONE: don't delete non-persistent files for now since it causes problem with workspace auto-refresh
 					// if (!persistent) new File(file.getLocationURI()).delete();
 					// Create a listene *and* editor-derived editor relation
@@ -199,12 +257,15 @@ public class StrategoBuilder implements IBuilder {
 						listener.setEnabled(false);
 					if (derivedFromEditor != null) // ensure we get builders from the source
 						listener.setSourceEditor(derivedFromEditor.getEditor());
+				} catch (PartInitException e) {
+					Environment.logException("Builder failed", e);
+					openError(editor, "Builder failed (" + e.getClass().getName() + "; see error log): " + e.getMessage());
 				}
+				return Status.OK_STATUS;
 			}
-		} catch (CoreException e) {
-			Environment.logException("Builder failed", e);
-			openError(editor, "Builder failed (" + e.getClass().getName() + "; see error log): " + e.getMessage());
-		}
+		};
+		job.setSystem(true);
+		job.schedule();
 	}
 
 	protected IStrategoTerm invokeObserver(IStrategoAstNode node) throws UndefinedStrategyException,
@@ -243,9 +304,13 @@ public class StrategoBuilder implements IBuilder {
 	}
 	
 	private void openError(EditorState editor, String message) {
-		Status status = new Status(IStatus.ERROR, RuntimeActivator.PLUGIN_ID, message);
-		ErrorDialog.openError(editor.getEditor().getSite().getShell(),
-				caption, null, status);
+		try {
+			Status status = new Status(IStatus.ERROR, RuntimeActivator.PLUGIN_ID, message);
+			ErrorDialog.openError(editor.getEditor().getSite().getShell(),
+					caption, null, status);
+		} catch (RuntimeException e) {
+			Environment.logException("Problem reporting error: " + message);
+		}
 	}
 
 	private void setFileContents(final EditorState editor, IFile file, final String contents) throws CoreException {

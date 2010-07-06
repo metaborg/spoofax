@@ -11,5 +11,5 @@ public interface IBuilder {
 
 	String getCaption();
 	
-	void execute(EditorState editor, IStrategoAstNode ast, IFile errorReportFile, boolean isRebuild);
+	void scheduleExecute(EditorState editor, IStrategoAstNode ast, IFile errorReportFile, boolean isRebuild);
 }

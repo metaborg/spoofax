@@ -2,6 +2,7 @@ package org.strategoxt.imp.runtime.dynamicloading;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 
 import org.eclipse.imp.editor.UniversalEditor;
@@ -56,7 +57,7 @@ public class DescriptorRegistry {
 		//       there should be some accessor in Descriptor that gives me this info
 		
 		Language language = descriptor.getLanguage();
-		LanguageRegistry.registerLanguage(language);
+		registerWithImp(language);
 		
 		// After IMP modifies the Eclipse editor registry, we queue another job
 		// to make sure it's all okay.
@@ -64,6 +65,25 @@ public class DescriptorRegistry {
 			asyncAddedLanguages.add(language);
 		}
 		Display.getDefault().asyncExec(new AsyncEditorRegisterer());
+	}
+
+	private void registerWithImp(Language language) {
+		final int TRIES = 10;
+		final int SLEEP = 500;
+		
+		for (int i = 0; i < TRIES; i++) {
+			try {
+				LanguageRegistry.registerLanguage(language);
+				return;
+			} catch (ConcurrentModificationException e) {
+				// Loop
+				try {
+					Thread.sleep(SLEEP);
+				} catch (InterruptedException e2) {
+					throw new RuntimeException(e2);
+				}
+			}
+		}
 	}
 
 	/**

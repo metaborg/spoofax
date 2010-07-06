@@ -21,6 +21,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
+import org.eclipse.ui.texteditor.AbstractTextEditor;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.dynamicloading.DynamicParseController;
@@ -189,6 +190,13 @@ public class EditorState {
 		IStrategoAstNode endNode = ((SGLRToken) end).getAstNode();
 
 		return StrategoTermPath.findCommonAncestor(startNode, endNode);
+	}
+
+	public static boolean isEditorOpen(IEditorPart editor) {
+		return !((editor.getTitleImage() != null && editor.getTitleImage().isDisposed())
+			|| editor.getEditorInput() == null
+			|| editor.getSite() == null
+			|| (editor instanceof AbstractTextEditor && ((AbstractTextEditor) editor).getDocumentProvider() == null));
 	}
 
 	/**

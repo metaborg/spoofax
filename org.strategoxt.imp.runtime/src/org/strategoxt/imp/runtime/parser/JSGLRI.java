@@ -59,10 +59,6 @@ public class JSGLRI extends AbstractSGLRI {
 		this(new ParseTableProvider(parseTable), startSymbol);
 	}
 	
-	public void asyncAbort() {
-		parser.asyncAbort();
-	}
-	
 	protected SGLR getParser() {
 		return parser;
 	}

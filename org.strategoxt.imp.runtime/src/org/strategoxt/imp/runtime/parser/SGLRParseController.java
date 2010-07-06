@@ -387,10 +387,11 @@ public class SGLRParseController implements IParseController {
 			forceRecolor(wasStartupParsed);
 		
 		// Threading concerns:
-		// must never block the main thread with a lock here since
-		// it must be available to draw error markers
+		// - must never block the main thread with a lock here since
+		//   it must be available to draw error markers
+		// - must not acquire resource locks when Eclipse is starting
 		
-		if (!Environment.isMainThread() || !wasStartupParsed) {
+		if (!Environment.isMainThread()) {
 			if (!monitor.isCanceled() && !Thread.holdsLock(Environment.getSyncRoot())) {
 				// Note that a resource lock is acquired here
 				errorHandler.commitMultiErrorLineAdditions();

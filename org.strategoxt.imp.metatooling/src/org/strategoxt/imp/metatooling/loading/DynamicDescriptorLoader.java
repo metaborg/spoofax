@@ -11,15 +11,16 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -34,6 +35,7 @@ import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.dynamicloading.DescriptorFactory;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
+import org.strategoxt.imp.runtime.parser.ast.MarkerSignature;
 
 /**
  * This class updates any editors in the environment,
@@ -217,8 +219,31 @@ public class DynamicDescriptorLoader implements IResourceChangeListener {
 			reportError(source, "Internal error loading descriptor " + descriptor + ": " + e.getMessage(), e);
 			throw e;
 		} finally {
-			asyncMessageHandler.commitAllChanges();
+			scheduleReplaceMessages(source, descriptor);
 		}
+	}
+
+	/**
+	 * Deletes all old messages on the descriptor resources, and adds the new messages.
+	 */
+	private void scheduleReplaceMessages(final IResource file1, final IResource file2) {
+		final List<MarkerSignature> additions = asyncMessageHandler.getAdditions();
+		Job job = new WorkspaceJob("Message handler for dynamic descriptor loader") {
+			@Override
+			public IStatus runInWorkspace(IProgressMonitor monitor) throws CoreException {
+				String markerType = asyncMessageHandler.getMarkerType();
+				for (IMarker marker : file1.findMarkers(markerType, true, 0))
+					marker.delete();
+				for (IMarker marker : file2.findMarkers(markerType, true, 0))
+					marker.delete();
+				synchronized (asyncMessageHandler.getSyncRoot()) {
+					asyncMessageHandler.asyncCommitAdditions(additions);
+				}
+				return Status.OK_STATUS;
+			}
+		};
+		job.setSystem(false);
+		job.schedule();
 	}
 	
 	public static IResource getSourceDescriptor(IResource packedDescriptor) {
@@ -248,20 +273,7 @@ public class DynamicDescriptorLoader implements IResourceChangeListener {
 		if (exception != null)
 			Environment.asynOpenErrorDialog("Dynamic editor descriptor loading", message, exception);
 		
-		if (ResourcesPlugin.getWorkspace().isTreeLocked()) {
-			Job job = new WorkspaceJob("Add error marker") {
-				{ setSystem(true); } // don't show to user
-				@Override
-				public IStatus runInWorkspace(IProgressMonitor monitor) {
-					asyncMessageHandler.addMarkerFirstLine(descriptor, message, SEVERITY_ERROR);
-					return Status.OK_STATUS;
-				}
-			};
-			job.setRule(descriptor);
-			job.schedule();
-		} else {
-			asyncMessageHandler.addMarkerFirstLine(descriptor, message, SEVERITY_ERROR);
-		}
+		asyncMessageHandler.addMarkerFirstLine(descriptor, message, SEVERITY_ERROR);
 	}
 	
 	private void reportError(final IResource descriptor, final IStrategoTerm offendingTerm, final String message, final Throwable exception) {
@@ -270,19 +282,6 @@ public class DynamicDescriptorLoader implements IResourceChangeListener {
 		if (exception != null)
 			Environment.asynOpenErrorDialog("Dynamic editor descriptor loading", message, exception);
 
-		if (ResourcesPlugin.getWorkspace().isTreeLocked()) {
-			Job job = new WorkspaceJob("Add error marker") {
-				{ setSystem(true); } // don't show to user
-				@Override
-				public IStatus runInWorkspace(IProgressMonitor monitor) {
-					asyncMessageHandler.addMarker(descriptor, offendingTerm, message, SEVERITY_ERROR);
-					return Status.OK_STATUS;
-				}
-			};
-			job.setRule(descriptor);
-			job.schedule();
-		} else {
-			asyncMessageHandler.addMarkerFirstLine(descriptor, message, SEVERITY_ERROR);
-		}
+		asyncMessageHandler.addMarkerFirstLine(descriptor, message, SEVERITY_ERROR);
 	}
 }

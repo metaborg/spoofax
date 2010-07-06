@@ -69,7 +69,6 @@ public class SourceMappings {
 	}
 	
 	public File getInputFile(IStrategoAppl asfix) {
-		// assert isTermAppl(asfix);
 		return getValue(asfixInputFileMap, asfix);
 	}
 	

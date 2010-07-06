@@ -25,6 +25,7 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
+import org.spoofax.IAsyncCancellable;
 import org.spoofax.interpreter.core.InterpreterErrorExit;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
@@ -68,7 +69,7 @@ import org.strategoxt.stratego_lib.set_config_0_0;
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class StrategoObserver implements IDynamicLanguageService, IModelListener {
+public class StrategoObserver implements IDynamicLanguageService, IModelListener, IAsyncCancellable {
 	
 	// TODO: separate delay for error markers?
 	public static final int OBSERVER_DELAY = 600;
@@ -660,7 +661,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		
 		try {
 			EditorIOAgent io = (EditorIOAgent) runtime.getIOAgent();
-			io.setWorkingDir(resource.getLocation().removeLastSegments(1).toOSString());
+			io.setWorkingDir(resource.getProject().getLocation().toOSString());
 			io.setProjectPath(resource.getProject().getLocation().toOSString());
 			io.setDescriptor(descriptor);
 		} catch (IOException e) {
@@ -692,6 +693,17 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			runtime = null;
 			descriptor = newDescriptor;
 		}
+	}
+
+	public void asyncCancel() {
+		IAsyncCancellable canceller = this.runtime;
+		if (canceller != null) canceller.asyncCancel();
+	}
+
+	public void asyncCancelReset() {
+		IAsyncCancellable canceller = this.runtime;
+		if (canceller != null) canceller.asyncCancelReset();
+		
 	}
 
 }
