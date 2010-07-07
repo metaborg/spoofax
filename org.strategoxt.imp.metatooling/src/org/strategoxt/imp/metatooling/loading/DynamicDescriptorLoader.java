@@ -242,7 +242,7 @@ public class DynamicDescriptorLoader implements IResourceChangeListener {
 				return Status.OK_STATUS;
 			}
 		};
-		job.setSystem(false);
+		job.setSystem(true);
 		job.schedule();
 	}
 	
