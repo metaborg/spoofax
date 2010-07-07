@@ -114,7 +114,7 @@ public class StrategoBuilder implements IBuilder {
 		this.builderRule = builderRule;
 	}
 	
-	public void scheduleExecute(final EditorState editor, IStrategoAstNode node,
+	public Job scheduleExecute(final EditorState editor, IStrategoAstNode node,
 			final IFile errorReportFile, final boolean isRebuild) {
 
 		String displayCaption = caption.endsWith("...")
@@ -123,8 +123,9 @@ public class StrategoBuilder implements IBuilder {
 		
 		Job lastJob = activeJobs.get(caption);
 		if (lastJob != null && lastJob.getState() != Job.NONE) {
-			openError(editor, "Already running: " + displayCaption);
-			return;
+			if (!isRebuild)
+				openError(editor, "Already running: " + displayCaption);
+			return null;
 		}
 		
 		if (node == null) {
@@ -142,8 +143,10 @@ public class StrategoBuilder implements IBuilder {
 				return monitor.isCanceled() ? Status.CANCEL_STATUS : Status.OK_STATUS;
 			}
 		};
+		job.setUser(true);
 		job.schedule();
 		activeJobs.put(caption, job);
+		return job;
 	}
 	
 	private void execute(EditorState editor, IStrategoAstNode node, IFile errorReportFile, boolean isRebuild) {

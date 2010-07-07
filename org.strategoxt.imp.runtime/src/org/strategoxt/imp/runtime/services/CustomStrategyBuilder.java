@@ -11,6 +11,7 @@ import java.util.Map;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.IInputValidator;
 import org.eclipse.jface.dialogs.InputDialog;
 import org.spoofax.interpreter.core.InterpreterErrorExit;
@@ -39,13 +40,15 @@ public class CustomStrategyBuilder extends StrategoBuilder {
 	}
 	
 	@Override
-	public void scheduleExecute(EditorState editor, IStrategoAstNode node, IFile errorReportFile,
+	public Job scheduleExecute(EditorState editor, IStrategoAstNode node, IFile errorReportFile,
 			boolean isRebuild) {
 		
 		String builderRule = inputBuilderRule(editor);
 		if (builderRule != null) {
 			setBuilderRule(builderRule);
-			super.scheduleExecute(editor, node, errorReportFile, isRebuild);
+			return super.scheduleExecute(editor, node, errorReportFile, isRebuild);
+		} else {
+			return null;
 		}
 	}
 	

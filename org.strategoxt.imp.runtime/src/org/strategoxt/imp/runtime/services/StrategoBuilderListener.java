@@ -4,6 +4,7 @@ import java.lang.ref.WeakReference;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
@@ -126,15 +127,19 @@ public class StrategoBuilderListener implements IModelListener {
 			    throw new RuntimeException("No builder exists with this name: " + this.builder);
 			
 			IStrategoAstNode newSelection = findNewSelection(editor);
+			Job job;
 			if (newSelection != null) {
-				builder.scheduleExecute(editor, selection = newSelection, targetFile, true);
+				job = builder.scheduleExecute(editor, selection = newSelection, targetFile, true);
 			} else {
-				builder.scheduleExecute(editor, editor.getParseController().getCurrentAst(), targetFile, true);
+				job = builder.scheduleExecute(editor, editor.getParseController().getCurrentAst(), targetFile, true);
 			}
+			job.join(); // wait to get new time stamp
 
 		} catch (BadDescriptorException e) {
 			Environment.logException("Could not update derived editor for " + editor.getResource(), e);
 		} catch (RuntimeException e) {
+			Environment.logException("Could not update derived editor for " + editor.getResource(), e);
+		} catch (InterruptedException e) {
 			Environment.logException("Could not update derived editor for " + editor.getResource(), e);
 		} finally {
 			if (targetFile.exists()) lastChanged = targetFile.getLocalTimeStamp();
