@@ -24,7 +24,7 @@ private static final String NAME = "SSL_EXT_origin_textfragment";
 		super(NAME, 0, 2);
 	}
 	
-	@Override //TODO support (l,c,end-l,end-c)[see TextChangePrimitive]
+	@Override 
 	public final boolean call(IContext env, Strategy[] svars, IStrategoTerm[] tvars) {
 		if (!isTermString(tvars[0]) || !(tvars[1] instanceof StrategoTuple))
 			return false;

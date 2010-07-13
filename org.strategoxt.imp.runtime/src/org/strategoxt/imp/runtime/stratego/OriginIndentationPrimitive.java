@@ -8,21 +8,17 @@ import org.strategoxt.imp.runtime.stratego.adapter.IWrappedAstNode;
 /**
  * @author Maartje de Jonge
  */
-public class OriginOffsetWithLayoutPrimitive extends AbstractOriginPrimitive {
+public class OriginIndentationPrimitive extends AbstractOriginPrimitive {
 
-	public OriginOffsetWithLayoutPrimitive() {
-		super("SSL_EXT_origin_offset_with_layout");
+	public OriginIndentationPrimitive() {
+		super("SSL_EXT_origin_indentation");
 	}
 
 	@Override
 	protected IStrategoTerm call(IContext env, IWrappedAstNode node) {
+		DocumentaryStructure loStructure=new DocumentaryStructure(node);
 		ITermFactory factory = env.getFactory();
-		int start = TextPositions.getStartPosNodeWithLayout(node.getNode());
-		int end =  TextPositions.getEndPosNodeWithLayout(node.getNode());
-		return factory.makeTuple(
-				factory.makeInt(start),
-				factory.makeInt(end)
-		);
+		return factory.makeString(loStructure.getIndentNode());
 	}
 
 }

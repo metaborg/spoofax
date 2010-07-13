@@ -42,21 +42,21 @@ public class TextChangePrimitive extends AbstractPrimitive {
 			return false;
 		if(!(tvars[0] instanceof IWrappedAstNode || islocationTuple(tvars[0]) || isEmptyString(tvars[0])))
 			return false;
-		if (isTermString(tvars[0])){
+		if (isTermString(tvars[0])){//d: sourcetext
 			position_start = 0;
 			position_end= lexStream.getStreamLength()-1;
 		}
-		else if(tvars[0] instanceof IWrappedAstNode){
+		else if(tvars[0] instanceof IWrappedAstNode){ //a: node-fragment
 			position_start=TextPositions.getStartPosNode(((IWrappedAstNode)tvars[0]).getNode());
 			position_end=TextPositions.getEndPosNode(((IWrappedAstNode)tvars[0]).getNode());
 		}
 		else{
 			StrategoTuple tuple=(StrategoTuple)tvars[0];
-			if(tuple.size()==2){
+			if(tuple.size()==2){//b. (offset, end-offset)
 				position_start=((StrategoInt)tuple.get(0)).intValue();
 				position_end=((StrategoInt)tuple.get(1)).intValue()-1; //exclusive end pos
 			}
-			if(tuple.size()==4){
+			if(tuple.size()==4){//c. (l,c,end-l,end-c)
 				int line_start=((StrategoInt)tuple.get(0)).intValue()-1;
 				int col_start=((StrategoInt)tuple.get(1)).intValue();
 				int line_end=((StrategoInt)tuple.get(2)).intValue()-1;
@@ -68,24 +68,27 @@ public class TextChangePrimitive extends AbstractPrimitive {
 		if(TextPositions.isUnvalidInterval(position_start, position_end, lexStream))
 			return false;
 		String text = ((IStrategoString)tvars[1]).stringValue();
-		return applyTextChange(editor, position_start, position_end, text);
+		try {
+			applyTextChange(editor, position_start, position_end, text);
+			IStrategoString result = env.getFactory().makeString(editor.getDocument().get());
+			env.setCurrent(result);
+			return true;
+		} 
+		catch (BadLocationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return false;
+		}
 	}
 
 	private boolean isEmptyString(IStrategoTerm tvar) {
 		return (isTermString(tvar) && ((IStrategoString)tvar).stringValue().equals(""));
 	}
 
-	private boolean applyTextChange(EditorState editor, int position_start, int position_end,
-			String text) {
-		try {
-			IDocument doc = editor.getDocument();
-			doc.replace(position_start, position_end-position_start, text);
-		} 
-		catch (BadLocationException e) {
-			e.printStackTrace();
-			return false;
-		}
-		return true;
+	private void applyTextChange(EditorState editor, int position_start, int position_end,
+			String text) throws BadLocationException {
+		IDocument doc = editor.getDocument();
+		doc.replace(position_start, position_end+1-position_start, text);		
 	}
 
 	private boolean islocationTuple(IStrategoTerm term) {

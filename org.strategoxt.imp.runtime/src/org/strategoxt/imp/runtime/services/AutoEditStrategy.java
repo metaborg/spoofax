@@ -435,7 +435,7 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 		return result.toString();
 	}
 	
-	private static int getTabWidth() {
+	public static int getTabWidth() {
 		IPreferenceStore preferences;
 		if(lastEditor!=null){
 			preferences = lastEditor.getThePreferenceStore();

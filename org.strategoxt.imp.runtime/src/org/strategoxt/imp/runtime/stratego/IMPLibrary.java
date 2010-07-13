@@ -31,14 +31,14 @@ public class IMPLibrary extends AbstractStrategoOperatorRegistry {
 		add(new SelectedFromToPrimitive());
 		add(new OriginRootPrimitive());
 		add(new OriginOffsetWithLayoutPrimitive());
-		
 		add(new QueueAnalysisPrimitive());
 		add(new QueueStrategyPrimitive());
 		add(new SetMarkersPrimitive());
 		
 		add(new SetTotalWorkUnitsPrimitive());
 		add(new CompleteWorkUnitPrimitive());
-		
+		add(new OriginIndentationPrimitive());
+		add(new OriginSeperatingWhitespacePrimitive());
 	}
 
 	public String getOperatorRegistryName() {
