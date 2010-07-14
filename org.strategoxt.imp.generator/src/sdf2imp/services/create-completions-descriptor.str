@@ -11,6 +11,8 @@ signature constructors
 
   lit  : Term -> Term
   prod : Term * Term * Term -> Term
+  deprecated : Term
+  deprecated : Term -> Term
 
 strategies
 
@@ -36,7 +38,7 @@ strategies
           ~~
           ~// Semantic (identifier) completion:
           completion proposer: editor-complete
-          completion trigger: ": "
+          completion trigger: ":"
       ]|
     );
     create-derived-completions-descriptor
@@ -105,6 +107,12 @@ strategies
     collect-all(?prod(<pattern-to-keywords>, _, _));
     concat;
     make-set
+
+  prod-to-keywords:
+    prod(pattern, _, attrs) -> keywords
+    where
+      keywords := <pattern-to-keywords> pattern;
+      not(!attrs => attrs(<one(term(?deprecated() + ?deprecated(_)))>))
 
   pattern-to-keywords =
     pattern-to-keywords-1 <+ pattern-to-keywords-2 <+ []

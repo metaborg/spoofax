@@ -102,6 +102,8 @@ public class SGLRParseController implements IParseController {
 	
 	private volatile boolean performInitialUpdate;
 
+	private volatile long initialReschedule;
+
 	// Simple accessors
 	
 	/**
@@ -163,6 +165,10 @@ public class SGLRParseController implements IParseController {
     
     public void setEditor(EditorState editor) {
 		this.editor = editor;
+		if (initialReschedule != 0) {
+			scheduleParserUpdate(initialReschedule, false);
+			initialReschedule = 0;
+		}
 	}
     
     public EditorState getEditor() {
@@ -282,6 +288,7 @@ public class SGLRParseController implements IParseController {
 			errorHandler.clearErrors();
 			errorHandler.setRecoveryFailed(false);
 			errorHandler.gatherNonFatalErrors(originalInputChars, parser.getTokenizer(), asfix);
+			parser.resetState(); // clean up memory
 			
 			currentAst = ast;
 			currentParseStream = parser.getParseStream();
@@ -328,8 +335,12 @@ public class SGLRParseController implements IParseController {
 			if (!parseLock.isLocked())
 				isAborted = false;
 		}
-		if (getEditor() != null)
+		if (getEditor() != null) {
 			getEditor().scheduleParserUpdate(delay);
+		} else {
+			// Reschedule after fully initialized
+			initialReschedule = delay;
+		}
 	}
 
 	private ATerm parseNoImplode(char[] inputChars, String filename)
@@ -406,7 +417,8 @@ public class SGLRParseController implements IParseController {
 				errorHandler.scheduleCommitAllChanges();
 		} else {
 			// Report errors again later when not in main thread
-			// (this state shouldn't be reachable from normal operation)
+			// (this state shouldn't be reachable from normal operation,
+			//  or maybe just for newly opened editors)
 			scheduleParserUpdate(DynamicParseController.REINIT_PARSE_DELAY, false);
 		}
 		

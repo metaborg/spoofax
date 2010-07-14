@@ -144,7 +144,7 @@ public class EditorState {
 	}
 	
 	public void scheduleParserUpdate(long delay) {
-		if (!getEditor().getTitleImage().isDisposed())
+		if (isEditorOpen(editor))
 			getEditor().fParserScheduler.schedule(delay);
 	}
 	

@@ -1,7 +1,7 @@
 package org.strategoxt.imp.metatooling.building;
 
-import static org.eclipse.core.resources.IMarker.*;
-import static org.strategoxt.imp.metatooling.loading.DynamicDescriptorLoader.*;
+import static org.eclipse.core.resources.IMarker.SEVERITY_ERROR;
+import static org.strategoxt.imp.metatooling.loading.DynamicDescriptorLoader.getSourceDescriptor;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -31,9 +31,9 @@ import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.StrategoErrorExit;
 import org.strategoxt.lang.StrategoExit;
-import org.strategoxt.permissivegrammars.make_permissive;
 import org.strategoxt.stratego_lib.dr_scope_all_end_0_0;
 import org.strategoxt.stratego_lib.dr_scope_all_start_0_0;
+import org.strategoxt.stratego_lib.stratego_lib;
 
 /**
  * Runs the project generator on modified editor descriptors.
@@ -57,8 +57,9 @@ public class DynamicDescriptorBuilder {
 		try {
 			agent = new EditorIOAgent();
 			context = new Context(Environment.getTermFactory(), agent);
-			context.registerClassLoader(make_permissive.class.getClassLoader());
+			context.registerClassLoader(sdf2imp.class.getClassLoader());
 			sdf2imp.init(context);
+			assert sdf2imp._consSdfMainModuleFlag_0 != null && stratego_lib._consAlert_0 != null;
 			
 		} catch (Throwable e) { // (catch classes not loading, etc.)
 			Environment.logException("Unable to initialize dynamic builder", e);
@@ -243,6 +244,7 @@ public class DynamicDescriptorBuilder {
 		}
 	}
 
+	@SuppressWarnings("deprecation") // use the Eclipse 3.5 and lower compatible API
 	private static void setDerivedResources(IProject project) throws CoreException,
 			IOException {
 		

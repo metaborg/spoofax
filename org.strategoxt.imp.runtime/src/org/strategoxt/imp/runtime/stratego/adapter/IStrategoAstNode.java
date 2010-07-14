@@ -20,6 +20,8 @@ public interface IStrategoAstNode extends IAst {
 	
 	IStrategoTerm getTerm();
 	
+	int getTermType();
+	
 	IStrategoList getAnnotations();
 	
 	String getConstructor();

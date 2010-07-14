@@ -35,6 +35,10 @@ public class AstNodeFactory {
 		return new StringAstNode(value, sort, token, token);
 	}
 	
+	public TupleAstNode createTuple(String elementSort, IToken leftToken, IToken rightToken, ArrayList<AstNode> children) {
+		return new TupleAstNode(elementSort, leftToken, rightToken, children);
+	}
+	
 	/**
 	 * Create a new AST node list. 
 	 */

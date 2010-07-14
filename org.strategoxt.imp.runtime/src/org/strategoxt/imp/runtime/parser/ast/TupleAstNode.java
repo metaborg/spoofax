@@ -7,12 +7,20 @@ import lpg.runtime.IToken;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermPrinter;
 
-public class ListAstNode extends AstNode {
+/**
+ * @author Lennart Kats <lennart add lclnet.nl>
+ */
+public class TupleAstNode extends AstNode {
+	
+	public static String CONSTRUCTOR = "";
 	
 	private final String elementSort;
-	
-	public String getElementSort() {
-		return elementSort;
+
+	public TupleAstNode(String elementSort, IToken leftToken, IToken rightToken,
+			ArrayList<AstNode> children) {
+		
+		super(elementSort + "*", leftToken, rightToken, CONSTRUCTOR, children);
+		this.elementSort = elementSort;
 	}
 	
 	/**
@@ -23,22 +31,13 @@ public class ListAstNode extends AstNode {
 		return super.getSort();
 	}
 	
-	@Override
-	public boolean isList() {
-		return true;
-	}
-
-	public ListAstNode(String elementSort, IToken leftToken, IToken rightToken,
-			ArrayList<AstNode> children) {
-		
-		super(elementSort + "*", leftToken, rightToken, "[]", children);
-		
-		this.elementSort = elementSort;
+	public String getElementSort() {
+		return elementSort;
 	}
 	
 	@Override
 	public void prettyPrint(ITermPrinter printer) {
-		printer.print("[");
+		printer.print("(");
 		if (getChildren().size() > 0) {
 			getChildren().get(0).prettyPrint(printer);
 			for (int i = 1; i < getChildren().size(); i++) {
@@ -46,19 +45,12 @@ public class ListAstNode extends AstNode {
 				getChildren().get(i).prettyPrint(printer);
 			}
 		}
-		printer.print("]");
-	}
-	
-	public AstNode getFirstChild() {
-		return getChildren().get(0);
-	}
-	
-	public AstNode getLastChild() {
-		return getChildren().get(getChildren().size() - 1);
+		printer.print(")");
 	}
 
 	@Override
 	public int getTermType() {
-		return IStrategoTerm.LIST;
+		return IStrategoTerm.TUPLE;
 	}
+
 }

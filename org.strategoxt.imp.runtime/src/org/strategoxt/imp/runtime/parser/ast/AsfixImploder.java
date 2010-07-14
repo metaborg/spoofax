@@ -242,32 +242,35 @@ public class AsfixImploder {
 		
 		if(constructor == null) {
 			if (isList) {
-				return createNode(attrs, sort, null, prevToken, children, true);
+				return createNode(attrs, sort, null, prevToken, children, true, false);
 			}
 			
 			ATerm ast = reader.getAstAttribute(attrs);
 			if (ast != null) {
 				return createAstNonTerminal(rhs, prevToken, children, ast);
-			} else if (children.size() == 0) {
-				return createNode(attrs, sort, "None", prevToken, children, false);
 			} else if (OPT_FUN == applAt(rhs, 0).getAFun()) {
-				assert children.size() == 1;
-				AstNode child = children.get(0);
-				return new AstNode(sort, child.getLeftIToken(), child.getRightIToken(), "Some", children);
-			} else {
+				if (children.size() == 0) {
+					return createNode(attrs, sort, "None", prevToken, children, false, false);
+				} else {
+					assert children.size() == 1;
+					return createNode(attrs, sort, "Some", prevToken, children, false, false);
+				}
+			} else if (children.size() == 1) {
 				// Injection
-				assert children.size() == 1;
 				return children.get(0);
+			} else {
+				// Constructor-less application (tuple)
+				return createNode(attrs, sort, TupleAstNode.CONSTRUCTOR, prevToken, children, false, true);
 			}
 		} else {
 			tokenizer.makeToken(offset, tokenManager.getTokenKind(lhs, rhs));
-			return createNode(attrs, sort, constructor, prevToken, children, isList);
+			return createNode(attrs, sort, constructor, prevToken, children, isList, false);
 		}
 	}
 
 	/** Implode a context-free node. */
 	private AstNode createNode(ATermAppl attrs, String sort, String constructor, IToken prevToken,
-			ArrayList<AstNode> children, boolean isList) {
+			ArrayList<AstNode> children, boolean isList, boolean isTuple) {
 		
 		IToken left = getStartToken(prevToken);
 		IToken right = getEndToken(left, tokenizer.currentToken());

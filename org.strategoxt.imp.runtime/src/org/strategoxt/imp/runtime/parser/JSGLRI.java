@@ -129,6 +129,9 @@ public class JSGLRI extends AbstractSGLRI {
 		
 		// Read stream using tokenizer/lexstream
 		
+		// FIXME: Some bug in JSGLR is causing its state to get corrupted; must reset it every parse
+		// (must do this beforehand to keep getCollectedErrors() intact afterwards)
+		resetState();
 		try {
 			return parser.parse(inputStream, getStartSymbol());
 		} catch (FilterException e) {
@@ -143,9 +146,6 @@ public class JSGLRI extends AbstractSGLRI {
 			} else {
 				throw new FilterException(e.getParser(), e.getMessage(), e);
 			}
-		} finally {
-			// FIXME: Some bug in JSGLR is causing its state to get corrupted; must reset it every parse
-			resetState();
 		}
 	}
 }

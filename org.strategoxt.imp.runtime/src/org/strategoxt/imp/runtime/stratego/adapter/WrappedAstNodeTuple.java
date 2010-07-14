@@ -12,7 +12,7 @@ public class WrappedAstNodeTuple extends WrappedAstNodeParent implements IStrate
 
 	protected WrappedAstNodeTuple(IStrategoAstNode node) {
 		super(node);
-		node.setConstructor("()"); // ensure interned string is used
+		node.setConstructor(""); // ensure interned string is used
 	}
 
 	@Override

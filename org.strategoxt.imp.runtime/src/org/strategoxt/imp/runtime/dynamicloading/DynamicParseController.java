@@ -72,15 +72,21 @@ public class DynamicParseController extends AbstractService<IParseController> im
 
 		if (lastEditor == null && EditorState.isUIThread()) {
 			lastEditor = EditorState.getEditorFor(this);
-			if (lastEditor != null) {
-				Descriptor descriptor = Environment.getDescriptor(getLanguage());
-				ContentProposerFactory.eagerInit(descriptor, result, lastEditor);
-				AutoEditStrategyFactory.eagerInit(descriptor, result, lastEditor);
-				OnSaveServiceFactory.eagerInit(descriptor, result, lastEditor);
-				TokenColorerHelper.register(lastEditor, (SGLRParseController) result);
-			}
+			if (lastEditor != null)
+				initializeEagerServices(result);
 		}
 		return result;
+	}
+
+	private void initializeEagerServices(IParseController parser) {
+		assert lastEditor != null;
+		if (parser instanceof SGLRParseController)
+			((SGLRParseController) parser).setEditor(lastEditor);
+		Descriptor descriptor = Environment.getDescriptor(getLanguage());
+		ContentProposerFactory.eagerInit(descriptor, parser, lastEditor);
+		AutoEditStrategyFactory.eagerInit(descriptor, parser, lastEditor);
+		OnSaveServiceFactory.eagerInit(descriptor, parser, lastEditor);
+		TokenColorerHelper.register(lastEditor, (SGLRParseController) parser);
 	}
 
 	public IAnnotationTypeInfo getAnnotationTypeInfo() {
@@ -156,8 +162,6 @@ public class DynamicParseController extends AbstractService<IParseController> im
 
 	public Object parse(String input, IProgressMonitor monitor) {
 		IParseController parser = getWrapped();
-		if (parser instanceof SGLRParseController)
-			((SGLRParseController) parser).setEditor(lastEditor);
 		
 		Object result = parser.parse(input, monitor);
 		if (isReinitialized && lastEditor != null) {

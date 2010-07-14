@@ -1,6 +1,11 @@
 package org.strategoxt.imp.runtime.stratego.adapter;
 
-import static org.spoofax.interpreter.terms.IStrategoTerm.*;
+import static org.spoofax.interpreter.terms.IStrategoTerm.APPL;
+import static org.spoofax.interpreter.terms.IStrategoTerm.INT;
+import static org.spoofax.interpreter.terms.IStrategoTerm.LIST;
+import static org.spoofax.interpreter.terms.IStrategoTerm.MUTABLE;
+import static org.spoofax.interpreter.terms.IStrategoTerm.STRING;
+import static org.spoofax.interpreter.terms.IStrategoTerm.TUPLE;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
@@ -8,9 +13,6 @@ import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.strategoxt.imp.runtime.parser.ast.IntAstNode;
-import org.strategoxt.imp.runtime.parser.ast.ListAstNode;
-import org.strategoxt.imp.runtime.parser.ast.StringAstNode;
 import org.strategoxt.lang.terms.TermFactory;
 
 /**
@@ -23,18 +25,26 @@ public class WrappedAstNodeFactory extends TermFactory implements ITermFactory {
 	
 	public IStrategoTerm wrap(IStrategoAstNode node) {
 		IStrategoTerm result;
-		if (node instanceof IntAstNode) {
-			result = new WrappedAstNodeInt(node);
-		} else if (node instanceof StringAstNode) {
-			result = new WrappedAstNodeString(node);
-		} else if (node instanceof ListAstNode) {
-			result = new WrappedAstNodeList(this, node, 0);
-		} else {
-			// TODO: ensure maximal sharing of node constructors
-			//       (term constructors are also maximally shared!)
-			result = "()".equals(node.getConstructor())
-				? new WrappedAstNodeTuple(node)
-				: new WrappedAstNodeAppl(this, node);
+		switch (node.getTermType()) {
+			case INT:
+				result = new WrappedAstNodeInt(node);
+				break;
+			case STRING:
+				result = new WrappedAstNodeString(node);
+				break;
+			case LIST:
+				result = new WrappedAstNodeList(this, node, 0);
+				break;
+			case APPL:
+				result = "".equals(node.getConstructor())
+					? new WrappedAstNodeTuple(node)
+					: new WrappedAstNodeAppl(this, node);
+				break;
+			case TUPLE:
+				result = new WrappedAstNodeTuple(node);
+				break;
+			default:
+				throw new IllegalStateException("Could not convert node of type " + node.getClass().getName() + " to a term");
 		}
 		IStrategoList annos = node.getAnnotations();
 		if (annos != null)

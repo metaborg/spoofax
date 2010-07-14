@@ -52,7 +52,9 @@ public class ContentProposerListener implements ITextListener {
 	public void textChanged(TextEvent event) {
 		try {
 			if (event.getDocumentEvent() != null // not just a visual change
-					&& event.getText() != null && event.getText().length() == 1 // single keypress
+					&& event.getText() != null
+					&& (event.getText().length() == 1 // single keypress
+							|| AutoEditStrategy.pollJustReceivedKeyEvent())
 					&& matchesPatterns(event.getDocumentEvent().getDocument(), event.getOffset())) {
 				viewer.setSelectedRange(event.getOffset() + 1, 0);
 				((ITextOperationTarget) viewer).doOperation(ISourceViewer.CONTENTASSIST_PROPOSALS);

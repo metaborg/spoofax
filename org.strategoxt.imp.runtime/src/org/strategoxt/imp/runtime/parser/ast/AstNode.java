@@ -83,6 +83,10 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode, Clone
 		return children;
 	}
 
+	public int getTermType() {
+		return IStrategoTerm.APPL;
+	}
+
 	/** Get the leftmost token associated with this node. */
 	public IToken getLeftIToken() {
 		return leftToken;

@@ -215,7 +215,7 @@ public class WrappedAstNodeLink extends WrappedAstNodeParent implements IWrapped
 
 	public double realValue() {
 		if (getTermType() != REAL)
-			throw new AnnotationWrapperException("Called realValue() on a term that is not of type APPL");
+			throw new AnnotationWrapperException("Called realValue() on a term that is not of type REAL");
 		return ((IStrategoReal) wrapped).realValue();
 	}
 

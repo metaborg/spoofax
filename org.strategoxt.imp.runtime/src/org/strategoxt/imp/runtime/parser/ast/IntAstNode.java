@@ -1,5 +1,6 @@
 package org.strategoxt.imp.runtime.parser.ast;
 
+import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermPrinter;
 
 import lpg.runtime.IToken;
@@ -31,5 +32,10 @@ public class IntAstNode extends AstNode {
 	@Override
 	public void prettyPrint(ITermPrinter printer) {
 		printer.print(String.valueOf(getValue()));
+	}
+
+	@Override
+	public int getTermType() {
+		return IStrategoTerm.INT;
 	}
 }

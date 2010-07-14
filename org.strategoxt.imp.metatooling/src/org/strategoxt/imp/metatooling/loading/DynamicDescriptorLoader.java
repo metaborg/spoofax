@@ -156,8 +156,8 @@ public class DynamicDescriptorLoader implements IResourceChangeListener {
 		return (flags & CONTENT) == CONTENT
 			|| (flags & MOVED_TO) == MOVED_TO
 			|| (flags & MOVED_FROM) == MOVED_FROM
-			|| (flags & REPLACED) == REPLACED
-			|| (flags == 0);
+			|| (flags & REPLACED) == REPLACED;
+			// UNDONE: || (flags == 0) (one known instance: when markers were added/removed)
 	}
 	
 	public void updateResource(IResource resource, IProgressMonitor monitor, boolean startup) {

@@ -2,6 +2,8 @@ package org.strategoxt.imp.runtime.parser.ast;
 
 import java.util.ArrayList;
 
+import org.spoofax.interpreter.terms.IStrategoTerm;
+
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */
@@ -21,6 +23,11 @@ public class AmbAstNode extends AstNode {
 		ArrayList<AstNode> result = new ArrayList<AstNode>(1);
 		result.add(node);
 		return result;
+	}
+
+	@Override
+	public int getTermType() {
+		return IStrategoTerm.APPL;
 	}
 
 }

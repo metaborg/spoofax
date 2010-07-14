@@ -1,9 +1,10 @@
 package org.strategoxt.imp.runtime.parser.ast;
 
+import lpg.runtime.IToken;
+
+import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermPrinter;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
-
-import lpg.runtime.IToken;
 
 /**
  * A String terminal AST node.
@@ -42,5 +43,10 @@ public class StringAstNode extends AstNode {
 		printer.print("\"");
 		printer.print(getValue().replace("\"", "\\\""));
 		printer.print("\"");
+	}
+
+	@Override
+	public int getTermType() {
+		return IStrategoTerm.STRING;
 	}
 }

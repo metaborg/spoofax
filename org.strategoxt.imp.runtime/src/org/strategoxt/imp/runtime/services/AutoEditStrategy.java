@@ -38,6 +38,8 @@ import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
+	
+	private static boolean justReceivedKeyEvent;
 		
 	private final ILanguageSyntaxProperties syntax;
 	
@@ -110,16 +112,24 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 				((StyledText) event.widget).invokeAction(ST.LINE_UP);
 				((StyledText) event.widget).invokeAction(ST.LINE_DOWN);
 				event.doit = false;
+				justReceivedKeyEvent = true;
 			} else if (insertClosingFence(viewer, viewer.getDocument(), selection.x, selection.y, input)
 					|| skipClosingFence(viewer, viewer.getDocument(), selection.x, selection.y, input)
 					|| undoClosingFence(viewer, viewer.getDocument(), selection.x, selection.y, input)) {
 				event.doit = false;
+				justReceivedKeyEvent = true;
 			}
 		} catch (BadLocationException e) {
 			Environment.logException("Could not determine auto edit strategy", e);
 		} catch (RuntimeException e) {
 			Environment.logException("Could not apply auto edit strategy", e);
 		}
+	}
+	
+	protected static boolean pollJustReceivedKeyEvent() {
+		boolean result = justReceivedKeyEvent;
+		justReceivedKeyEvent = false;
+		return result;
 	}
 
 	protected void indentPastedContent(IDocument document, DocumentCommand command) throws BadLocationException {
