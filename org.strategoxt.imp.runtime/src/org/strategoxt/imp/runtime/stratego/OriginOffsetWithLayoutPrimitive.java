@@ -16,12 +16,11 @@ public class OriginOffsetWithLayoutPrimitive extends AbstractOriginPrimitive {
 
 	@Override
 	protected IStrategoTerm call(IContext env, IWrappedAstNode node) {
+		DocumentaryStructure loStructure=new DocumentaryStructure(node);
 		ITermFactory factory = env.getFactory();
-		int start = TextPositions.getStartPosNodeWithLayout(node.getNode());
-		int end =  TextPositions.getEndPosNodeWithLayout(node.getNode());
 		return factory.makeTuple(
-				factory.makeInt(start),
-				factory.makeInt(end)
+				factory.makeInt(loStructure.textWithLayout().getStart()),
+				factory.makeInt(loStructure.textWithLayout().getEnd())
 		);
 	}
 

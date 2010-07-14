@@ -18,13 +18,51 @@ public class DocumentaryStructure {
 	private ArrayList<IToken> commentsBefore;
 	private ArrayList<IToken> commentsAfter;
 	private String indentNode;
+	private int indentValueNode;
+	private int startLayoutBefore;
+	private IStrategoAstNode node;
+	
+	public TextFragment textWithLayout(){
+		TextFragment originText=new TextFragment();
+		originText.setStart(startLayoutBefore);
+		TextFragment commentAfter = getCommentsAfter();
+		if(commentAfter==null){
+			originText.setEnd(node.getRightIToken().getEndOffset()+1);
+		}
+		else{
+			originText.setEnd(commentAfter.getEnd());
+			if(commentAfter.getText(getLexStream()).endsWith("\n") 
+					&& originText.getText(getLexStream()).startsWith("\n")){
+				originText.setStart(startLayoutBefore+1); //correction in case the line-comment ends with \n
+			}
+		}
+		return originText;
+	}
+
+	private ILexStream getLexStream() {
+		return node.getLeftIToken().getILexStream();
+	}
+	
+	public TextFragment getCommentsBefore() {
+		return createTextFragment(this.commentsBefore);
+	}
+
+	public TextFragment getCommentsAfter() {
+		return createTextFragment(this.commentsAfter);
+	}
+
+	private TextFragment createTextFragment(ArrayList<IToken> tokenList) {
+		if(tokenList.isEmpty())
+			return null;
+		TextFragment commentBlock=new TextFragment();
+		commentBlock.setStart(tokenList.get(0).getStartOffset());
+		commentBlock.setEnd(tokenList.get(tokenList.size()-1).getEndOffset());
+		return commentBlock;
+	}
 	
 	public String getIndentNode() {
 		return indentNode;
 	}
-
-	private int indentValueNode;
-
 	
 	public String getSeperatingWhitespace() {
 		return seperatingWhitespace;
@@ -32,7 +70,8 @@ public class DocumentaryStructure {
 	
 	public DocumentaryStructure(IWrappedAstNode node) {
 		initialize();
-		analysize(node.getNode());
+		this.node=node.getNode();
+		analysize();
 	}
 	
 	private void initialize() {
@@ -41,6 +80,7 @@ public class DocumentaryStructure {
 		indentNode="";
 		indentValueNode=0;
 		seperatingWhitespace=" ";
+		startLayoutBefore=-1;
 	}
 
 	private IToken getPrecedingNonLOToken(IToken startToken){
@@ -56,8 +96,8 @@ public class DocumentaryStructure {
 		return null;
 	}
 	
-	private void analysize(IStrategoAstNode node){
-		setCommentsBefore(node);
+	private void analysize(){
+		setCommentsBefore();
 		IToken startToken = node.getLeftIToken();
 		IPrsStream tokenStream=startToken.getIPrsStream();
 		indentNode=getIndentation(getLineText(tokenStream, startToken.getLine()));
@@ -66,10 +106,10 @@ public class DocumentaryStructure {
 		System.out.println("["+seperatingWhitespace+"]");
 		System.out.println("["+indentNode+"]");
 		System.out.println("["+indentValueNode+"]");
-		setCommentsAfter(node);
+		setCommentsAfter();
 	}
 
-	private void setCommentsAfter(IStrategoAstNode node) {
+	private void setCommentsAfter() {
 		IToken startToken = node.getRightIToken();
 		IPrsStream tokenStream=startToken.getIPrsStream();
 		ArrayList<IToken> followingComments=new ArrayList<IToken>();
@@ -90,7 +130,7 @@ public class DocumentaryStructure {
 		return tokenStream.getTokenAt(nextToken.getTokenIndex()+1);
 	}
 
-	private void setCommentsBefore(IStrategoAstNode node) {
+	private void setCommentsBefore() {
 		IToken startToken = node.getLeftIToken();
 		IPrsStream tokenStream=startToken.getIPrsStream();
 
@@ -175,6 +215,7 @@ public class DocumentaryStructure {
 		}
 		else
 			seperatingWhitespace=" ";
+		startLayoutBefore=startOffsetSepWS;
 	}
 
 	private String correctWSIndentation(String line, String indent) {
@@ -300,10 +341,15 @@ public class DocumentaryStructure {
 		public String getText(ILexStream lexStream) {
 			if(start==end)
 				return "";
-			if(TextPositions.isUnvalidInterval(start, end, lexStream))
+			if(DocumentaryStructure.isUnvalidInterval(start, end, lexStream))
 				return null;
 			String textfragment=lexStream.toString(start, end-1);
 			return textfragment;
 		}
+
+	}
+	
+	public static boolean isUnvalidInterval(int pos_start, int pos_end, ILexStream lexStream) {
+		return pos_start < 0 || pos_start > pos_end || pos_end >= lexStream.getStreamLength();
 	}
 }

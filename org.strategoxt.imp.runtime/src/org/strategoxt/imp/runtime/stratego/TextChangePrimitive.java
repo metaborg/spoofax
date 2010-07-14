@@ -47,11 +47,11 @@ public class TextChangePrimitive extends AbstractPrimitive {
 		StrategoTuple tuple=(StrategoTuple)tvars[1];
 		position_start=((StrategoInt)tuple.get(0)).intValue();
 		position_end=((StrategoInt)tuple.get(1)).intValue()-1; //exclusive end pos
-		if(position_start==-1 && position_end==-1){
+		if(position_start< 0 && position_end < 0){
 			position_start=0;
 			position_end=lexStream.getStreamLength()-1;
 		}
-		if(TextPositions.isUnvalidInterval(position_start, position_end, lexStream))
+		if(DocumentaryStructure.isUnvalidInterval(position_start, position_end, lexStream))
 			return false;
 		String text = ((IStrategoString)tvars[2]).stringValue();
 		try {
