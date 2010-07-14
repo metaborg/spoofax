@@ -51,7 +51,7 @@ public class TextChangePrimitive extends AbstractPrimitive {
 			position_start=0;
 			position_end=lexStream.getStreamLength()-1;
 		}
-		if(DocumentaryStructure.isUnvalidInterval(position_start, position_end, lexStream))
+		if(DocumentStructure.isUnvalidInterval(position_start, position_end, lexStream))
 			return false;
 		String text = ((IStrategoString)tvars[2]).stringValue();
 		try {

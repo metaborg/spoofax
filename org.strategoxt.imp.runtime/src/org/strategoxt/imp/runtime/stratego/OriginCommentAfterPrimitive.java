@@ -4,7 +4,7 @@ import lpg.runtime.ILexStream;
 
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.strategoxt.imp.runtime.stratego.DocumentaryStructure.TextFragment;
+import org.strategoxt.imp.runtime.stratego.DocumentStructure.TextFragment;
 import org.strategoxt.imp.runtime.stratego.adapter.IWrappedAstNode;
 
 /**
@@ -19,7 +19,7 @@ public class OriginCommentAfterPrimitive extends AbstractOriginPrimitive {
 
 	@Override
 	protected IStrategoTerm call(IContext env, IWrappedAstNode node) {
-		DocumentaryStructure loStructure=new DocumentaryStructure(node);
+		DocumentStructure loStructure=new DocumentStructure(node);
 		TextFragment commentBlock=loStructure.getCommentsAfter();
 		if(commentBlock==null)
 			return null;

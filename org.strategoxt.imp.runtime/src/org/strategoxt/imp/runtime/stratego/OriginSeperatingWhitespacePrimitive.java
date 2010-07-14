@@ -16,7 +16,7 @@ public class OriginSeperatingWhitespacePrimitive extends AbstractOriginPrimitive
 
 	@Override
 	protected IStrategoTerm call(IContext env, IWrappedAstNode node) {
-		DocumentaryStructure loStructure=new DocumentaryStructure(node);
+		DocumentStructure loStructure=new DocumentStructure(node);
 		ITermFactory factory = env.getFactory();
 		return factory.makeString(loStructure.getSeperatingWhitespace());
 	}

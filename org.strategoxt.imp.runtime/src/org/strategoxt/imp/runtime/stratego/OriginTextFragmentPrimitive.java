@@ -46,7 +46,7 @@ private static final String NAME = "SSL_EXT_origin_textfragment";
 		int pos_end=((StrategoInt)position.get(1)).intValue()-1;//exclusive
 		ILexStream lexStream = ((IWrappedAstNode)position.get(2)).getNode().getLeftIToken().getILexStream();
 		//ILexStream lexStream= EditorState.getActiveEditor().getParseController().getCurrentAst().getLeftIToken().getILexStream();
-		if(DocumentaryStructure.isUnvalidInterval(pos_start, pos_end, lexStream))
+		if(DocumentStructure.isUnvalidInterval(pos_start, pos_end, lexStream))
 			return null;
 		String textfragment=lexStream.toString(pos_start, pos_end);
 		return textfragment;

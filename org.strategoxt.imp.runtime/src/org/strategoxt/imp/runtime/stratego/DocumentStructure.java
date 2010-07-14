@@ -6,13 +6,12 @@ import lpg.runtime.ILexStream;
 import lpg.runtime.IPrsStream;
 import lpg.runtime.IToken;
 
-import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 import org.strategoxt.imp.runtime.stratego.adapter.IWrappedAstNode;
 
-public class DocumentaryStructure {
+public class DocumentStructure {
 	
 	private String seperatingWhitespace;
 	private ArrayList<IToken> commentsBefore;
@@ -68,7 +67,7 @@ public class DocumentaryStructure {
 		return seperatingWhitespace;
 	}
 	
-	public DocumentaryStructure(IWrappedAstNode node) {
+	public DocumentStructure(IWrappedAstNode node) {
 		initialize();
 		this.node=node.getNode();
 		analysize();
@@ -341,7 +340,7 @@ public class DocumentaryStructure {
 		public String getText(ILexStream lexStream) {
 			if(start==end)
 				return "";
-			if(DocumentaryStructure.isUnvalidInterval(start, end, lexStream))
+			if(DocumentStructure.isUnvalidInterval(start, end, lexStream))
 				return null;
 			String textfragment=lexStream.toString(start, end-1);
 			return textfragment;
