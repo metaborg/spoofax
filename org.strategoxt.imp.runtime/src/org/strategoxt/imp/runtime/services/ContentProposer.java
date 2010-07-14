@@ -543,7 +543,7 @@ public class ContentProposer implements IContentProposer {
 	
 	private String getPrefix(int offset, String document) {
 		int prefixStart = offset;
-		int lastGoodPrefixStart = offset + 1;
+		int lastGoodPrefixStart = offset;
 		while (--prefixStart >= 0) {
 			String prefix = document.substring(prefixStart, offset);
 			if (identifierLexical.matcher(prefix).matches()) {

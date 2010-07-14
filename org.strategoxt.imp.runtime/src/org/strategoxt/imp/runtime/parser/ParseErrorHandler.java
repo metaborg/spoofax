@@ -420,6 +420,8 @@ public class ParseErrorHandler {
 		int reportedLine = -1;
 		for (BadTokenException e : source.getParser().getParser().getCollectedErrors()) {
 			if (e.getLineNumber() >= line && e.getLineNumber() <= endLine) {
+				// tokenizer.getLexStream().getInputChars() may contain SKIPPED_CHAR characters,
+				// so we switch it with inputChars
 				char[] processedChars = tokenizer.getLexStream().getInputChars();
 				tokenizer.getLexStream().setInputChars(inputChars);
 				reportError(tokenizer, (Exception) e); // use double dispatch
@@ -464,7 +466,18 @@ public class ParseErrorHandler {
 		String message = "Internal parsing error: " + exception.getMessage();
 		reportErrorAtFirstLine(message);
 		reportError(tokenizer, (MultiBadTokenException) exception);
+		reportCollectedErrorsDirectly(tokenizer);
 		setRushNextUpdate(true);
+	}
+	
+	private void reportCollectedErrorsDirectly(SGLRTokenizer tokenizer) {
+		for (BadTokenException e : source.getParser().getParser().getCollectedErrors()) {
+			// tokenizer.getLexStream().getInputChars() may contain SKIPPED_CHAR characters,
+			// so we have to use the message provided by the exceptions directly
+			IToken token = tokenizer.makeErrorToken(e.getOffset());
+			String message = e.getMessage();
+			reportErrorAtTokens(token, token, message);
+		}
 	}
 	 
 	public void reportError(SGLRTokenizer tokenizer, Exception exception) {
@@ -482,6 +495,7 @@ public class ParseErrorHandler {
 			String message = "Internal parsing error: " + exception;
 			Environment.logException("Internal parsing error: " + exception.getMessage(), exception);
 			reportErrorAtFirstLine(message);
+			reportCollectedErrorsDirectly(tokenizer);
 		}
 	}
 	
