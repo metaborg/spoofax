@@ -48,7 +48,7 @@ public class AnnotationHover extends DefaultAnnotationHover implements IAnnotati
 		StringBuffer result = new StringBuffer();
 		addPageProlog(result);
 		result.append("<p>");
-		result.append(/*convertToHTMLContent*/(annotations.get(0).getText())); // UNDONE: Moved to StrategoObserver
+		result.append(convertToHTMLContent(annotations.get(0).getText()));
 		result.append("</p>");
 		addPageEpilog(result);
     	return result.toString();
