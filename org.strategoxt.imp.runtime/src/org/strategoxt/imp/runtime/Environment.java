@@ -202,6 +202,7 @@ public final class Environment {
 				}
 			};
 		
+		result.getCompiledContext().getCompatManager().setATermFactory(getATermFactory());
 		result.getCompiledContext().getExceptionHandler().setEnabled(false);
 		result.getCompiledContext().registerComponent("stratego_lib"); // ensure op. registry available
 		result.getCompiledContext().registerComponent("stratego_sglr"); // ensure op. registry available
@@ -225,6 +226,7 @@ public final class Environment {
 				IMPJSGLRLibrary.REGISTRY_NAME, // is spoofax-specific
 				JSGLRLibrary.REGISTRY_NAME,    // connected to the library above
 				IMPLibrary.REGISTRY_NAME);     // also used
+		result.getCompiledContext().getCompatManager().setATermFactory(getATermFactory());
 		result.getCompiledContext().getExceptionHandler().setEnabled(false);
 		IMPJSGLRLibrary parseLibrary = ((IMPJSGLRLibrary) result.getContext().getOperatorRegistry(IMPJSGLRLibrary.REGISTRY_NAME));
 		parseLibrary.addOverrides(result.getCompiledContext());

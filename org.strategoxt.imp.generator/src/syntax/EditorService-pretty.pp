@@ -8,6 +8,8 @@
    CompletionKeyword    -- R [ H [ KW["completion"] KW["keyword"] ] KW[":"] H [ _1 _2 ] ],
    CompletionTemplate   -- R [ H [ KW["completion"] KW["template"] ] KW[":"] H [ _1 _2 _3 ] ],
    CompletionTemplate.2:iter-star -- _1,
+   CompletionTemplateWithSort   -- R [ H [ KW["completion"] KW["template"] ] KW[":"] H [ _1 KW["="] _1 _2 _3 ] ],
+   CompletionTemplateWithSort.3:iter-star -- _1,
    CompletionTrigger    -- R [ H [ KW["completion"] KW["trigger"] ] KW[":"] H [ _1 _2 ] ],
    HoverRule            -- R [ H [ KW["hover"]     _1 ] KW[":"] _2 ],
    OccurrenceRule       -- R [ H [ KW["occurrence"] _1 ] H [ KW[":"] _2 ] ],

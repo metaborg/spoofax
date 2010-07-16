@@ -57,6 +57,7 @@ public class DynamicDescriptorBuilder {
 		try {
 			agent = new EditorIOAgent();
 			context = new Context(Environment.getTermFactory(), agent);
+			context.getCompatManager().setATermFactory(Environment.getATermFactory());
 			context.registerClassLoader(sdf2imp.class.getClassLoader());
 			sdf2imp.init(context);
 			assert sdf2imp._consSdfMainModuleFlag_0 != null && stratego_lib._consAlert_0 != null;

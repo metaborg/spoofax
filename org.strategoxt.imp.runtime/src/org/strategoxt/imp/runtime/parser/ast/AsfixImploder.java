@@ -81,6 +81,10 @@ public class AsfixImploder {
 	public AstNode implode(ATerm asfix, SGLRTokenizer tokenizer) {
 		this.tokenizer = tokenizer;
 		
+		// FIXME: static fields are used in helper classes that refer to Environment.getATermFactory()
+		if (asfix.getFactory() != Environment.getATermFactory())
+			throw new IllegalArgumentException("Argument ATerm does not use the Environment.getATermFactory() factory");
+		
 		// TODO: Return null if imploded tree has null constructor??
 		
 		if (tokenizer.getCachedAst() != null)

@@ -25,6 +25,7 @@ import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.parser.SimpleAnnotationTypeInfo;
 import org.eclipse.imp.services.IAnnotationTypeInfo;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 import org.spoofax.jsglr.BadTokenException;
@@ -64,7 +65,7 @@ import aterm.ATerm;
  */
 public class SGLRParseController implements IParseController {
 	
-	private static final int PARSE_TIMEOUT = 4 * 1000;
+	private static final int PARSE_TIMEOUT = 6 * 1000;
 	
 	private final TokenKindManager tokenManager = new TokenKindManager();
 	
@@ -488,9 +489,11 @@ public class SGLRParseController implements IParseController {
 		//   - a parser thread with a parse lock may forceRecolor(), acquiring the colorer queue lock 
 		//   - a parser thread with a parse lock may need main thread acess to report errors
 		
-		IPrsStream stream = currentParseStream;
+		IPrsStream stream = currentParseStream;		
+		IDocument document = editor == null ? null : editor.getDocument();
 		
-		if (!force && (stream == null || disallowColorer || (editor != null && stream.getILexStream().getStreamLength() != editor.getDocument().getLength()))) {
+		if (!force && (stream == null || disallowColorer
+				|| (document != null && stream.getILexStream().getStreamLength() != document.getLength()))) {
 			return SGLRTokenIterator.EMPTY;
 		} else if (stream.getTokens().size() == 0 || getCurrentAst() == null) {
 			// Parse hasn't succeeded yet, consider the entire stream as one big token

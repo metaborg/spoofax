@@ -18,14 +18,21 @@ public class ContentProposalTemplate {
 	
 	private final String prefix;
 	
+	private final String sort;
+	
 	private final IStrategoList completionParts;
 	
 	private final boolean blankLineRequired;
 
-	public ContentProposalTemplate(String prefix, IStrategoList completionParts, boolean blankLineRequired) {
+	public ContentProposalTemplate(String prefix, String sort, IStrategoList completionParts, boolean blankLineRequired) {
 		this.prefix = prefix;
+		this.sort = sort;
 		this.completionParts = completionParts;
 		this.blankLineRequired = blankLineRequired;
+	}
+	
+	public String getSort() {
+		return sort;
 	}
 
 	public String getPrefix() {

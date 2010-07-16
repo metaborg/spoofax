@@ -169,9 +169,9 @@ public class DocumentStructure {
 			precedingToken = tokenStream.getTokenAt(loopIndex);
 		}
 		//System.out.println("comm before: ");
-		for (IToken commentTok : precedingComments) {
+		//for (IToken commentTok : precedingComments) {
 			//System.out.println(commentTok.toString());
-		}	
+		//}	
 		//System.out.println();
 		
 		//Comments may attach to sublists rather then single nodes

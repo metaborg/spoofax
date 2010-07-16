@@ -17,5 +17,5 @@ exports
 
   context-free syntax
 
-    Node               -> OutlineRule {cons("OutlineRule"), prefer}
-    Term[StrategoExpr] -> OutlineRule {cons("OutlineRule")}
+    Node                 -> OutlineRule {cons("OutlineRule"), prefer}
+    Term[[StrategoExpr]] -> OutlineRule {cons("OutlineRule")}

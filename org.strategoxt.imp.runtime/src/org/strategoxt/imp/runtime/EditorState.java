@@ -156,7 +156,7 @@ public class EditorState {
 	 */
 	public IDocument getDocument() {
 		IDocumentProvider provider = getEditor().getDocumentProvider();
-		return provider.getDocument(getEditor().getEditorInput());
+		return provider == null ? null : provider.getDocument(getEditor().getEditorInput());
 	}
 	
 	/**

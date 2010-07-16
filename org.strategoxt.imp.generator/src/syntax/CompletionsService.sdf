@@ -25,6 +25,8 @@ exports
     "completion" "keyword" ":" PropertyValue CompletionAnno -> SemanticRule {cons("CompletionKeyword")}
     
     "completion" "template" ":" PropertyValue CompletionPart+ CompletionAnno -> SemanticRule {cons("CompletionTemplate")}
+    
+    "completion" "template" ":" Sort "=" PropertyValue CompletionPart+ CompletionAnno -> SemanticRule {cons("CompletionTemplateWithSort")}
 
     "completion" "trigger" ":" PropertyValue CompletionAnno -> SemanticRule {cons("CompletionTrigger")}
   

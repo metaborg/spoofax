@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.eclipse.imp.services.IFoldingUpdater;
 import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.services.FoldingUpdater;
 import org.strategoxt.imp.runtime.services.NodeMapping;
@@ -39,6 +40,7 @@ public class FoldingUpdaterFactory extends AbstractServiceFactory<IFoldingUpdate
 				folded.remove(mapping);
 				defaultFolded.remove(mapping);
 			} else {
+				Environment.logWarning("Unknown folding rule type:" + type);
 				defaultFolded.add(mapping);
 			}
 		}
