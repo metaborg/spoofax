@@ -42,8 +42,7 @@ public class DialogPrimitive extends AbstractPrimitive {
 		
 		synchronized (Environment.getSyncRoot()) {
 			InputDialog dialog = new InputDialog(null, title.stringValue(), message.stringValue(), input.stringValue(), null);
-			if (dialog.open() == InputDialog.OK) {				
-				System.out.println("GELUKT");
+			if (dialog.open() == InputDialog.OK) {
 				String userInput=dialog.getValue();		
 				env.setCurrent(env.getFactory().makeString(userInput));
 				return true;
