@@ -10,9 +10,9 @@ import static org.spoofax.interpreter.core.Tools.termAt;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.cons;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.jface.text.DocumentEvent;
@@ -70,9 +70,11 @@ public class OnSaveService implements IDocumentListener, ILanguageService {
 					// let's be friendly and try to refresh the file
 					String file = asJavaString(termAt(result, 0));
 					String contents = asJavaString(termAt(result, 1));
-					IResource resource = RefreshResourcePrimitive.getResource(runtime.getRuntime().getContext(), file);
 					try {
-						StrategoBuilder.setFileContentsDirect((IFile) resource, contents);
+						IFile resource = RefreshResourcePrimitive.getResource(runtime.getRuntime().getContext(), file);
+						StrategoBuilder.setFileContentsDirect(resource, contents);
+					} catch (FileNotFoundException e) {
+						Environment.logException("Problem when handling on save event", e);
 					} catch (CoreException e) {
 						Environment.logException("Problem when handling on save event", e);
 					}

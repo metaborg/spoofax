@@ -5,8 +5,10 @@ import static org.spoofax.interpreter.core.Tools.asJavaString;
 import static org.spoofax.interpreter.core.Tools.isTermString;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.net.URI;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -23,7 +25,6 @@ import org.spoofax.interpreter.library.IOAgent;
 import org.spoofax.interpreter.library.ssl.SSLLibrary;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.strategoxt.imp.runtime.Environment;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -45,9 +46,12 @@ public class RefreshResourcePrimitive extends AbstractPrimitive {
 	}
 
 	public static boolean call(IContext env, String file) {
-		final IResource resource = getResource(env, file);
-		if (resource == null)
+		final IResource resource;
+		try {
+			resource = getResource(env, file);
+		} catch (FileNotFoundException e) {
 			return false;
+		}
 		
 		// Cannot acquire a workspace lock here:
 		// the Ant thread acquires 1) a workspace lock and 2) the environment lock
@@ -71,27 +75,24 @@ public class RefreshResourcePrimitive extends AbstractPrimitive {
 		return true;
 	}
 
-	public static IResource getResource(IContext env, String file) {
+	public static IFile getResource(IContext env, String file) throws FileNotFoundException {
 		IOAgent agent = SSLLibrary.instance(env).getIOAgent();
 		File file2 = new File(file);
-		if (!file2.exists() && agent instanceof EditorIOAgent)
-			file2 = new File(((EditorIOAgent) agent).getProjectPath() + "/" + file);
+		if (!file2.isAbsolute())
+			file2 = new File(agent.getWorkingDir() + "/" + file);
 		return getResource(file2);
 	}
 
-	public static IResource getResource(File file) {
+	public static IFile getResource(File file) throws FileNotFoundException {
 		if (file == null) {
 			assert false : "file should not be null";
 			return null;
 		}
 		URI uri = file.toURI();
 		IWorkspace workspace = ResourcesPlugin.getWorkspace();
-		IResource[] resources = workspace.getRoot().findFilesForLocationURI(uri);
-		if (resources.length == 0) {
-			Environment.logWarning("File not in workspace: " + file);
-			return null;
-		}
-	
+		IFile[] resources = workspace.getRoot().findFilesForLocationURI(uri);
+		if (resources.length == 0)
+			throw new FileNotFoundException("File not in workspace: " + file);
 		return resources[0];
 	}
 

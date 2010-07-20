@@ -7,7 +7,7 @@ import static org.spoofax.interpreter.core.Tools.isTermTuple;
 import static org.spoofax.interpreter.core.Tools.termAt;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -37,6 +37,7 @@ import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.MonitorStateWatchDog;
 import org.strategoxt.imp.runtime.RuntimeActivator;
 import org.strategoxt.imp.runtime.dynamicloading.TermReader;
+import org.strategoxt.imp.runtime.stratego.RefreshResourcePrimitive;
 import org.strategoxt.imp.runtime.stratego.StrategoConsole;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 import org.strategoxt.lang.Context;
@@ -152,7 +153,7 @@ public class StrategoBuilder implements IBuilder {
 	private void execute(EditorState editor, IStrategoAstNode node, IFile errorReportFile, boolean isRebuild) {
 		// TODO: refactor
 		assert derivedFromEditor == null || editor.getDescriptor().isATermEditor();
-		String filename = null;
+		IFile file = null;
 		String result = null;
 		String errorReport = null;
 		
@@ -176,34 +177,15 @@ public class StrategoBuilder implements IBuilder {
 				if (isTermAppl(resultTerm) && "None".equals(TermReader.cons(resultTerm))) {
 					return;
 				} else if (!isTermTuple(resultTerm) || !isTermString(termAt(resultTerm, 0))) {
-					Environment.logException("Illegal builder result (must be a filename/string tuple)");
-					openError(editor, "Illegal builder result (must be a filename/string tuple): " + resultTerm);
+					Environment.logException("Illegal builder result (must be a filename/string tuple or None())");
+					openError(editor, "Illegal builder result (must be a filename/string tuple or None()): " + resultTerm);
 				}
 	
-				IStrategoTerm filenameTerm = termAt(resultTerm, 0);
-				filename = asJavaString(filenameTerm);
+				file = getFile(resultTerm);
+				result = getResultString(resultTerm);
 				
-				resultTerm = termAt(resultTerm, 1);
-				resultTerm = try_1_0.instance.invoke(observer.getRuntime().getCompiledContext(),
-						resultTerm, concat_strings_0_0.instance);
-				
-				if (resultTerm != null && filename != null) {
-					result = isTermString(resultTerm) 
-						? asJavaString(resultTerm)
-						: ppATerm(resultTerm).stringValue();
-				}
 			} catch (InterpreterErrorExit e) {
-				Environment.logException("Builder failed:\n" + observer.getLog(), e);
-				if (editor.getDescriptor().isDynamicallyLoaded()) StrategoConsole.activateConsole();
-				if (errorReportFile == null || !openEditor) {
-					openError(editor, e.getMessage());
-				} else {
-					// UNDONE: Printing stack trace in editor
-					// ByteArrayOutputStream trace = new ByteArrayOutputStream();
-					// observer.getRuntime().getCompiledContext().printStackTrace(new PrintStream(trace), false);
-					errorReport = e.getMessage();
-					if (e.getTerm() != null) errorReport += "\n\t" + toEscapedString(ppATerm(e.getTerm()));
-				}
+				errorReport = reportErrorExit(e, editor, errorReportFile);
 			} catch (UndefinedStrategyException e) {
 				reportGenericException(editor, e);
 			} catch (InterpreterExit e) {
@@ -212,6 +194,8 @@ public class StrategoBuilder implements IBuilder {
 				reportGenericException(editor, e);
 			} catch (CancellationException e) {
 				return;
+			} catch (FileNotFoundException e) {
+				reportGenericException(editor, e);
 			} catch (RuntimeException e) {
 				reportGenericException(editor, e);
 			} catch (Error e) {
@@ -225,11 +209,6 @@ public class StrategoBuilder implements IBuilder {
 			}
 		
 			if (result != null) {
-				if (new File(filename).isAbsolute()) {
-					openError(editor, "Builder failed: result filename must have a project-relative path: " + filename);
-					return;
-				}
-				IFile file = editor.getProject().getRawProject().getFile(filename);
 				setFileContents(editor, file, result);
 				// TODO: if not persistent, create IEditorInput from result String
 				if (openEditor && !isRebuild) {
@@ -240,6 +219,37 @@ public class StrategoBuilder implements IBuilder {
 			Environment.logException("Builder failed", e);
 			openError(editor, "Builder failed (" + e.getClass().getName() + "; see error log): " + e.getMessage());
 		}
+	}
+
+	private String reportErrorExit(InterpreterErrorExit e, EditorState editor, IFile errorReportFile) {
+		Environment.logException("Builder failed:\n" + observer.getLog(), e);
+		if (editor.getDescriptor().isDynamicallyLoaded()) StrategoConsole.activateConsole();
+		if (errorReportFile == null || !openEditor) {
+			openError(editor, e.getMessage());
+			return null;
+		} else {
+			// UNDONE: Printing stack trace in editor
+			// ByteArrayOutputStream trace = new ByteArrayOutputStream();
+			// observer.getRuntime().getCompiledContext().printStackTrace(new PrintStream(trace), false);
+			String errorReport = e.getMessage();
+			if (e.getTerm() != null) errorReport += "\n\t" + toEscapedString(ppATerm(e.getTerm()));
+			return errorReport;
+		}
+	}
+
+	private IFile getFile(IStrategoTerm resultTerm) throws FileNotFoundException {
+		String filename = asJavaString(termAt(resultTerm, 0));
+		IFile result = RefreshResourcePrimitive.getResource(
+				observer.getRuntime().getContext(), filename);
+		return result;
+	}
+
+	private String getResultString(IStrategoTerm resultTerm) {
+		resultTerm = termAt(resultTerm, 1);
+		resultTerm = try_1_0.instance.invoke(observer.getRuntime().getCompiledContext(),
+				resultTerm, concat_strings_0_0.instance);
+		
+		return isTermString(resultTerm) ? asJavaString(resultTerm) : ppATerm(resultTerm).stringValue();
 	}
 
 	private void scheduleOpenEditorAndListener(final EditorState editor, final IStrategoAstNode node, final IFile file)
@@ -317,7 +327,7 @@ public class StrategoBuilder implements IBuilder {
 	}
 
 	private void setFileContents(final EditorState editor, IFile file, final String contents) throws CoreException {
-		assert !Thread.holdsLock(observer.getSyncRoot()) || Thread.holdsLock(Environment.getSyncRoot())
+		assert !Thread.holdsLock(observer.getSyncRoot()) && !Thread.holdsLock(Environment.getSyncRoot())
 			: "Acquiring a resource lock can cause a deadlock";
 
 		/* TODO: update editor contents instead of file?
@@ -351,8 +361,6 @@ public class StrategoBuilder implements IBuilder {
 		InputStream resultStream = new ByteArrayInputStream(contents.getBytes());
 		if (file.exists()) {
 			file.setContents(resultStream, true, true, null);
-			
-
 		} else {
 			file.create(resultStream, true, null);
 			// UNDONE: file.setDerived(!persistent); // marks it as "derived" for life, even after editing...

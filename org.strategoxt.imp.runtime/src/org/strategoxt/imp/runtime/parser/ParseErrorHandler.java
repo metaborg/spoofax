@@ -345,7 +345,9 @@ public class ParseErrorHandler {
 
 	private String ambToString(ATermAppl amb) {
 		if (asyncAmbReportingContext == null) {
-			asyncAmbReportingContext = stratego_sglr.init();
+			Context context = new Context();
+			context.getCompatManager().setATermFactory(Environment.getATermFactory());
+			asyncAmbReportingContext = stratego_sglr.init(context);
 			stratego_aterm.init(asyncAmbReportingContext);
 			sdf2imp.init(asyncAmbReportingContext);
 		}
