@@ -17,25 +17,44 @@ public class DocumentStructure {
 	private ArrayList<IToken> commentsBefore;
 	private ArrayList<IToken> commentsAfter;
 	private String indentNode;
-	private int indentValueNode;
-	private int startLayoutBefore;
 	private IStrategoAstNode node;
 	
 	public TextFragment textWithLayout(){
 		TextFragment originText=new TextFragment();
-		originText.setStart(startLayoutBefore);
-		TextFragment commentAfter = getCommentsAfter();
-		if(commentAfter==null){
-			originText.setEnd(node.getRightIToken().getEndOffset()+1);
-		}
-		else{
-			originText.setEnd(commentAfter.getEnd());
-			if(commentAfter.getText(getLexStream()).endsWith("\n") 
-					&& originText.getText(getLexStream()).startsWith("\n")){
-				originText.setStart(startLayoutBefore+1); //correction in case the line-comment ends with \n
-			}
-		}
+		originText.setStart(getLayoutStart());
+		originText.setEnd(getLayoutEnd());
 		return originText;
+	}
+
+	private int getLayoutEnd() {
+		int endOffset;
+		if(!commentsAfter.isEmpty())
+			endOffset=commentsAfter.get(commentsAfter.size()-1).getEndOffset()+1;
+		else
+			endOffset=node.getRightIToken().getEndOffset()+1;
+		int lookForward=endOffset-1;
+		do{
+			if(getLexStream().getCharValue(endOffset)=='\n')
+				endOffset=lookForward+1;
+			lookForward++;
+		} while(lookForward < getLexStream().getStreamLength() && isSpaceChar(getLexStream().getCharValue(lookForward)));
+		return endOffset;
+	}
+
+	private int getLayoutStart() {
+		int startOffset;
+		if(!commentsBefore.isEmpty())
+			startOffset=commentsBefore.get(0).getStartOffset();
+		else
+			startOffset=node.getLeftIToken().getStartOffset();
+		while (startOffset>0 && isSpaceChar(getLexStream().getCharValue(startOffset-1))) {
+			startOffset--;
+		}
+		return startOffset;
+	}
+	
+	private boolean isSpaceChar(int c){
+		return (c=='\t' || c==' ');
 	}
 
 	private ILexStream getLexStream() {
@@ -55,7 +74,7 @@ public class DocumentStructure {
 			return null;
 		TextFragment commentBlock=new TextFragment();
 		commentBlock.setStart(tokenList.get(0).getStartOffset());
-		commentBlock.setEnd(tokenList.get(tokenList.size()-1).getEndOffset());
+		commentBlock.setEnd(tokenList.get(tokenList.size()-1).getEndOffset()+1);
 		return commentBlock;
 	}
 	
@@ -77,9 +96,7 @@ public class DocumentStructure {
 		commentsAfter=new ArrayList<IToken>();
 		commentsBefore=new ArrayList<IToken>();
 		indentNode="";
-		indentValueNode=0;
 		seperatingWhitespace=" ";
-		startLayoutBefore=-1;
 	}
 
 	private IToken getPrecedingNonLOToken(IToken startToken){
@@ -99,12 +116,10 @@ public class DocumentStructure {
 		setCommentsBefore();
 		IToken startToken = node.getLeftIToken();
 		IPrsStream tokenStream=startToken.getIPrsStream();
-		indentNode=getIndentation(getLineText(tokenStream, startToken.getLine()));
-		indentValueNode=getIndentValue(getLineText(tokenStream, startToken.getLine()));
+		if (atLineStart(startToken)) {
+			indentNode = getIndentation(getLineText(tokenStream, startToken.getLine()));
+		}
 		setSeperatingWhitespace(startToken);
-		System.out.println("["+seperatingWhitespace+"]");
-		System.out.println("["+indentNode+"]");
-		System.out.println("["+indentValueNode+"]");
 		setCommentsAfter();
 	}
 
@@ -120,7 +135,7 @@ public class DocumentStructure {
 		}
 		if(isEOFToken(nextToken) || nextToken.getLine() > startToken.getLine() || isLiteralToken(nextToken))
 			commentsAfter=followingComments; //TODO: <node> <literal> <comment> <newline> (typical pattern for seperators)
-		System.out.println(commentsAfter);
+		//System.out.println(commentsAfter);
 	}
 
 	private IToken getNextToken(IPrsStream tokenStream, IToken nextToken) {
@@ -168,11 +183,6 @@ public class DocumentStructure {
 			loopIndex--;
 			precedingToken = tokenStream.getTokenAt(loopIndex);
 		}
-		//System.out.println("comm before: ");
-		//for (IToken commentTok : precedingComments) {
-			//System.out.println(commentTok.toString());
-		//}	
-		//System.out.println();
 		
 		//Comments may attach to sublists rather then single nodes
 		if(!precedingComments.isEmpty()){
@@ -214,7 +224,6 @@ public class DocumentStructure {
 		}
 		else
 			seperatingWhitespace=" ";
-		startLayoutBefore=startOffsetSepWS;
 	}
 
 	private String correctWSIndentation(String line, String indent) {
@@ -250,6 +259,13 @@ public class DocumentStructure {
 		//if(emptyLineOffset>=0)
 			//System.out.println(new TextFragment(emptyLineOffset, emptyLineOffset+10).getText());
 		return emptyLineOffset;
+	}
+	
+	private boolean atLineStart(IToken startToken) {
+		IPrsStream tokenStream = startToken.getIPrsStream();
+		int start=tokenStream.getLineOffset(startToken.getLine()-1)+1;
+		TextFragment prefix=new TextFragment(start, startToken.getStartOffset());
+		return prefix.getText(getLexStream()).trim().length()==0;
 	}
 
 	private String getLineText(IPrsStream tokenStream, int lindex) {
@@ -305,7 +321,7 @@ public class DocumentStructure {
 		return TokenKind.valueOf(tok.getKind())==TokenKind.TK_EOF;
 	}
 	
-	private static boolean isLayoutToken(IToken tok) {
+	public static boolean isLayoutToken(IToken tok) {
 		return TokenKind.valueOf(tok.getKind())==TokenKind.TK_LAYOUT;
 	}
 	
