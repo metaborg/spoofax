@@ -78,7 +78,7 @@ public class RefreshResourcePrimitive extends AbstractPrimitive {
 	public static IFile getResource(IContext env, String file) throws FileNotFoundException {
 		IOAgent agent = SSLLibrary.instance(env).getIOAgent();
 		File file2 = new File(file);
-		if (!file2.isAbsolute())
+		if (!file2.exists() && !file2.isAbsolute())
 			file2 = new File(agent.getWorkingDir() + "/" + file);
 		return getResource(file2);
 	}

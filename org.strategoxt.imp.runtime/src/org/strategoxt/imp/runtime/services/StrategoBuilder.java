@@ -13,10 +13,12 @@ import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.concurrent.CancellationException;
 
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.ErrorDialog;
@@ -358,12 +360,28 @@ public class StrategoBuilder implements IBuilder {
 	}
 
 	public static void setFileContentsDirect(IFile file, final String contents) throws CoreException {
+		assert !Thread.holdsLock(Environment.getSyncRoot());
 		InputStream resultStream = new ByteArrayInputStream(contents.getBytes());
 		if (file.exists()) {
 			file.setContents(resultStream, true, true, null);
 		} else {
+			createDirs(file.getParent());
 			file.create(resultStream, true, null);
 			// UNDONE: file.setDerived(!persistent); // marks it as "derived" for life, even after editing...
+		}
+	}
+	
+	private static void createDirs(IContainer dir) throws CoreException {
+		assert !Thread.holdsLock(Environment.getSyncRoot());
+		if (dir == null) {
+			return;
+		} else if (!dir.exists()) {
+			createDirs(dir.getParent());
+			dir.refreshLocal(0, new NullProgressMonitor());
+			if (!dir.exists()) {
+				dir.getLocation().toFile().mkdir();
+				dir.refreshLocal(0, new NullProgressMonitor());
+			}
 		}
 	}
 
