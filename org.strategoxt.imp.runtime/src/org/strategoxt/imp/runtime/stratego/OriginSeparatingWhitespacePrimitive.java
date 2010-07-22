@@ -8,10 +8,10 @@ import org.strategoxt.imp.runtime.stratego.adapter.IWrappedAstNode;
 /**
  * @author Maartje de Jonge
  */
-public class OriginSeperatingWhitespacePrimitive extends AbstractOriginPrimitive {
+public class OriginSeparatingWhitespacePrimitive extends AbstractOriginPrimitive {
 
-	public OriginSeperatingWhitespacePrimitive() {
-		super("SSL_EXT_origin_seperating_whitespace");
+	public OriginSeparatingWhitespacePrimitive() {
+		super("SSL_EXT_origin_separating_whitespace");
 	}
 
 	@Override

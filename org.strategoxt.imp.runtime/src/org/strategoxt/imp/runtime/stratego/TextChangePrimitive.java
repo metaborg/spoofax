@@ -70,7 +70,7 @@ public class TextChangePrimitive extends AbstractPrimitive {
 	private String applyTextChange(EditorState editor, final int position_start, final int position_end,
 			final String text) throws BadLocationException {
 		final IDocument doc = editor.getDocument();
-		Job job = new UIJob("name") {
+		Job job = new UIJob("apply textchange") {
 			
 			@Override
 			public IStatus runInUIThread(IProgressMonitor monitor) {
@@ -78,7 +78,7 @@ public class TextChangePrimitive extends AbstractPrimitive {
 					doc.replace(position_start, position_end+1-position_start, text);
 				} catch (BadLocationException e) {
 					// TODO Auto-generated catch block
-					Environment.logException("Oei@!", e);
+					Environment.logException("Bad location of the replaced fragment", e);
 				}
 				return Status.OK_STATUS;
 			}

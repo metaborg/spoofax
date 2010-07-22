@@ -28,7 +28,7 @@ public class IMPLibrary extends AbstractStrategoOperatorRegistry {
 		add(new OriginCommentAfterPrimitive());
 		add(new TextChangePrimitive());
 		add(new OriginSourceTextPrimitive());
-		add(new SelectedFromToPrimitive());
+		add(new OriginPositionPrimitive());
 		add(new OriginRootPrimitive());
 		add(new OriginOffsetWithLayoutPrimitive());
 		add(new QueueAnalysisPrimitive());
@@ -38,7 +38,7 @@ public class IMPLibrary extends AbstractStrategoOperatorRegistry {
 		add(new SetTotalWorkUnitsPrimitive());
 		add(new CompleteWorkUnitPrimitive());
 		add(new OriginIndentationPrimitive());
-		add(new OriginSeperatingWhitespacePrimitive());
+		add(new OriginSeparatingWhitespacePrimitive());
 		add(new OriginSeparatorPrimitive());
 	}
 
