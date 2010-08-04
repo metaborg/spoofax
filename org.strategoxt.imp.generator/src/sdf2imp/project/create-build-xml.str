@@ -434,7 +434,7 @@ strategies
                 <arg line="${build.stratego.extraargs}"/>
                 <arg line="${externaljarflags}"/>
                 <arg line="${externaldefimport}"/>
-                <arg line="-I &quot;${lib}&quot; --cache-dir &quot;${basedir}/.cache&quot;"/>
+                <arg line="-I &quot;${lib}&quot; -I &quot;${include}&quot;  --cache-dir &quot;${basedir}/.cache&quot;"/>
             </java>
             <delete file="${include}/${strmodule}.rtree" failonerror="false"/>
             <mkdir dir="${build}/trans"/>
