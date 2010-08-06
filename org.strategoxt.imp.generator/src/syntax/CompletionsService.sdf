@@ -24,9 +24,12 @@ exports
 
     "completion" "keyword" ":" PropertyValue CompletionAnno -> SemanticRule {cons("CompletionKeyword")}
     
-    "completion" "template" ":" PropertyValue CompletionPart+ CompletionAnno -> SemanticRule {cons("CompletionTemplate")}
+    "completion" "template" ":" String CompletionPart+ CompletionAnno -> SemanticRule {cons("CompletionTemplate")}
     
-    "completion" "template" ":" Sort "=" PropertyValue CompletionPart+ CompletionAnno -> SemanticRule {cons("CompletionTemplateWithSort")}
+    %% Deprecated: conflicts with content completion
+    "completion" "template" ":" PropertyValue CompletionPart+ CompletionAnno -> SemanticRule {cons("CompletionTemplate"), avoid, deprecated("Add quotes to the starting literal")}
+    
+    "completion" "template" ":" Sort "=" String CompletionPart+ CompletionAnno -> SemanticRule {cons("CompletionTemplateWithSort")}
 
     "completion" "trigger" ":" PropertyValue CompletionAnno -> SemanticRule {cons("CompletionTrigger")}
   
@@ -49,6 +52,8 @@ exports
     "(blank)"    -> CompletionAnno {cons("Blank")}
     "(blank)"    -> PropertyValue {reject}
     "(disable)"  -> PropertyValue {reject}
+    "completion" -> PropertyValue {reject}
+    "identifier" -> PropertyValue {reject}
 
   lexical syntax
     

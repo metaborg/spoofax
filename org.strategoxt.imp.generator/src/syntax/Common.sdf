@@ -51,6 +51,9 @@ exports
     Id     -> Sort {cons("Sort")}
     Id "*" -> Sort {cons("ListSort")}
     STRING -> String {cons("String")}
+    
+    %% nice, but makes C-SGLR fail to parse create-builders-desciptor.str properly
+    %%        -> String {recover, avoid, ast("String(\"\")")}
 
     Sort "." "_" -> Sort {bracket}
     
