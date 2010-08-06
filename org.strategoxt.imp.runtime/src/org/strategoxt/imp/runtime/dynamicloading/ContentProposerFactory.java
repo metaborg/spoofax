@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.services.IContentProposer;
 import org.eclipse.jface.text.source.ISourceViewer;
@@ -71,9 +72,15 @@ public class ContentProposerFactory extends AbstractServiceFactory<IContentPropo
 
 	private static void registerListener(Descriptor descriptor, SGLRParseController controller)
 			throws BadDescriptorException {
-		ISourceViewer viewer = controller.getEditor().getEditor().getServiceControllerManager().getSourceViewer();
-		Set<Pattern> triggers = readTriggers(descriptor);
-		ContentProposerListener.register(triggers, viewer);
+		
+		try {
+			UniversalEditor editor = controller.getEditor().getEditor();
+			ISourceViewer viewer = editor.getServiceControllerManager().getSourceViewer();
+			Set<Pattern> triggers = readTriggers(descriptor);
+			ContentProposerListener.register(triggers, viewer);
+		} catch (RuntimeException e) {
+			Environment.logWarning("Exception while trying to register content proposer listener", e);
+		}
 	}
 
 	private static Set<String> readCompletionKeywords(Descriptor descriptor) {

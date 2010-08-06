@@ -345,7 +345,8 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 	private UniversalEditor getEditor() {
 		assert controller != null;
 		if (editor == null) {
-			editor = EditorState.getEditorFor(controller).getEditor();
+			EditorState editorState = EditorState.getEditorFor(controller);
+			editor = editorState.getEditor();
 			lastEditor = editor;
 		}
 		return editor;

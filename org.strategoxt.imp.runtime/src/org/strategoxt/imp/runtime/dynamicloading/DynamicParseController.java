@@ -152,11 +152,8 @@ public class DynamicParseController extends AbstractService<IParseController> im
 		super.reinitialize(newDescriptor);
 		isReinitialized = true;
 		if (lastEditor != null) {
+			initializeEagerServices(getWrapped());
 			lastEditor.scheduleParserUpdate(REINIT_PARSE_DELAY);
-			Descriptor descriptor = Environment.getDescriptor(getLanguage());
-			ContentProposerFactory.eagerInit(descriptor, getWrapped(), lastEditor);
-			AutoEditStrategyFactory.eagerInit(descriptor, getWrapped(), lastEditor);
-			OnSaveServiceFactory.eagerInit(descriptor, getWrapped(), lastEditor);
 		}
 	}
 

@@ -261,6 +261,10 @@ public class AsfixImploder {
 				}
 			} else if (children.size() == 1) {
 				// Injection
+				// TODO: efficiently store injection sort for use by content completion?
+				//       would be needed to distinguish FoldingRules and Sorts in "folding" sections...
+				//       maybe only if the content proposer demands it?
+				// TODO: also, avoid semantics for deprecated?
 				return children.get(0);
 			} else {
 				// Constructor-less application (tuple)

@@ -75,8 +75,11 @@ public class EditorState {
 		assert !(parseController instanceof SGLRParseController)
 			|| !((SGLRParseController) parseController).isReplaced();
 		
-		if (parseController instanceof SGLRParseController)
+		if (parseController instanceof SGLRParseController
+				&& ((SGLRParseController) parseController).getEditor() != null) {
 			return ((SGLRParseController) parseController).getEditor();
+		}
+		
 		if (parseController instanceof DynamicParseController) {
 			EditorState result = ((DynamicParseController) parseController).getLastEditor();
 			if (result != null) return result;
@@ -93,8 +96,6 @@ public class EditorState {
 					IWorkbenchPart editor = reference.getPart(false);
 					if (editor instanceof UniversalEditor
 							&& ((UniversalEditor) editor).getParseController() == parseController) {
-						// HACK: showChangeInformation(false)
-						((UniversalEditor) editor).showChangeInformation(false);
 						return new EditorState((UniversalEditor) editor);
 					}
 				}

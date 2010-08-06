@@ -46,6 +46,7 @@ public class AstAnnoImploder {
 		String astString = ast.toString();
 		if (astString.startsWith("\"") && astString.endsWith("\"")) {
 			astString = astString.substring(1, astString.length() - 1);
+			astString = astString.replace("\\\\", "\\").replace("\\\"", "\"");
 			ast = Environment.getATermFactory().parse(astString);
 		}
 		
@@ -106,7 +107,11 @@ public class AstAnnoImploder {
 		for (int i = 0; i < appl.getChildCount(); i++) {
 			children.add(toAstNode(termAt(appl, i), null));
 		}
-		return factory.createNonTerminal(sort, appl.getName(), leftToken, rightToken, children);
+		if (appl.isQuoted()) {
+			return factory.createStringTerminal(appl.getName(), sort, leftToken);
+		} else {
+			return factory.createNonTerminal(sort, appl.getName(), leftToken, rightToken, children);
+		}
 	}
 	
 	private AstNode listToAstNode(ATerm term, String sort) {

@@ -31,6 +31,7 @@ import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.AsfixAnalyzer;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
 import org.strategoxt.imp.runtime.parser.ast.MarkerSignature;
+import org.strategoxt.imp.runtime.parser.ast.ProductionAttributeReader;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
@@ -96,6 +97,8 @@ public class ParseErrorHandler {
 	
 	private final AstMessageHandler handler = new AstMessageHandler(AstMessageHandler.PARSE_MARKER_TYPE);
 	
+	private final ProductionAttributeReader prodReader = new ProductionAttributeReader();
+
 	private final SGLRParseController source;
 	
 	private volatile boolean isRecoveryFailed = true;
@@ -291,22 +294,30 @@ public class ParseErrorHandler {
 			}
 		}
 		
-		//post visit: report error				
-		if (isErrorProduction(attrs, WATER) || isRejectProduction(attrs)) {
+		//post visit: report error
+		String cons = prodReader.getConsAttribute(attrs);
+		if (WATER.equals(cons)
+				|| prodReader.getAttribute(attrs, "reject") != null) {
 			IToken token = tokenizer.makeErrorToken(startOffset, offset - 1);
 			tokenizer.changeTokenKinds(startOffset, offset - 1, TokenKind.TK_LAYOUT, TokenKind.TK_ERROR);
 			reportErrorAtTokens(token, token, UNEXPECTED_TOKEN_PREFIX + token + UNEXPECTED_TOKEN_POSTFIX);
-		} else if (isErrorProduction(attrs, INSERT_END)) {
+		} else if (INSERT_END.equals(cons)) {
 			IToken token = tokenizer.makeErrorToken(startOffset, offset - 1);
 			tokenizer.changeTokenKinds(startOffset, offset - 1, TokenKind.TK_LAYOUT, TokenKind.TK_ERROR);
 			reportErrorAtTokens(token, token, "Syntax error, closing of '" + token + "' is expected here");
-		} else if (isErrorProduction(attrs, INSERT)) {
+		} else if (INSERT.equals(cons)
+				|| (prodReader.getAttribute(attrs, "recover") != null
+				    && !prodReader.getSort(rhs).startsWith(WATER))) {
 			IToken token = tokenizer.makeErrorTokenSkipLayout(startOffset, offset, outerStartOffset2);
-			String inserted = "token";
+			String inserted;
 			if (rhs.getName().equals("lit")) {
 				inserted = applAt(rhs, 0).getName();
 			} else if (rhs.getName().equals("char-class")) {
 				inserted = toString(listAt(rhs, 0));
+			} else {
+				inserted = prodReader.getSort(rhs);
+				if (inserted == null)
+					inserted = "token";
 			}
 			if (token.getLine() == tokenizer.getLexStream().getLine(outerStartOffset2) && !token.toString().equals(inserted)) {
 				reportErrorAtTokens(token, token, "Syntax error, expected: '" + inserted + "'");
@@ -543,39 +554,6 @@ public class ParseErrorHandler {
 			message2 = "";
 		}
 		return message2;
-	}
-	
-	private static boolean isErrorProduction(ATermAppl attrs, String consName) {		
-		if ("attrs".equals(attrs.getName())) {
-			ATermList attrList = termAt(attrs, 0);
-		
-			while (!attrList.isEmpty()) {
-				ATermAppl attr = (ATermAppl) attrList.getFirst();
-				attrList = attrList.getNext();
-				if (attr.getChildCount() == 1 && attr.getName().equals("term")) {
-					ATermAppl details = applAt(attr, 0);
-					if (details.getName().equals("cons")) {
-						details = applAt(details, 0);					
-						return details.getName().equals(consName);
-					}
-				}
-			}
-		}
-		return false;
-	}
-	
-	private static boolean isRejectProduction(ATermAppl attrs) {	
-		if ("attrs".equals(attrs.getName())) {
-			ATermList attrList = termAt(attrs, 0);
-		
-			while (!attrList.isEmpty()) {
-				ATermAppl attr = (ATermAppl) attrList.getFirst();
-				attrList = attrList.getNext();
-				if (attr.getChildCount() == 0 &&  attr.getName().equals("reject"))
-					return true;
-			}
-		}
-		return false;
 	}
 	
 	private static String getDeprecatedProductionMessage(ATermAppl attrs) {

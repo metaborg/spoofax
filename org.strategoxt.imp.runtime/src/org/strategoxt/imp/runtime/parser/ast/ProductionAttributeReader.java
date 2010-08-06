@@ -71,7 +71,7 @@ public class ProductionAttributeReader {
 	}
 
 	/** Return the contents of a term attribute (e.g., "cons"), or null if not found. */
-	private static ATerm getAttribute(ATermAppl attrs, String attrName) {
+	public ATerm getAttribute(ATermAppl attrs, String attrName) {
 		if (attrs.getAFun() == NO_ATTRS_FUN)
 			return null;
 		

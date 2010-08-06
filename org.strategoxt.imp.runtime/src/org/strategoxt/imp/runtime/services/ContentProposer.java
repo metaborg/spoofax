@@ -41,6 +41,7 @@ import org.strategoxt.imp.runtime.parser.ast.AstNode;
 import org.strategoxt.imp.runtime.parser.ast.ListAstNode;
 import org.strategoxt.imp.runtime.parser.ast.RootAstNode;
 import org.strategoxt.imp.runtime.parser.ast.StringAstNode;
+import org.strategoxt.imp.runtime.stratego.StrategoConsole;
 import org.strategoxt.imp.runtime.stratego.adapter.WrappedAstNodeFactory;
 import org.strategoxt.lang.terms.TermFactory;
 
@@ -121,13 +122,25 @@ public class ContentProposer implements IContentProposer {
 			return createErrorProposal("No proposals available - completion lexical must allow letters and numbers", offset);
 		
 		RootAstNode ast = constructAst(getParser(controller), offset, document);
-		
+		Set<String> sorts = getSortsAtCursor(controller, ast, offset);
 		if (currentCompletionNode == null) {
+			// TODO: allow syntactic completions for start symbol
 			if (lastCompletionAst == null && lastParserAst == null)
 				return createErrorProposal("No proposals available - syntax errors", offset);
 			else
 				return createErrorProposal("No proposals available - could not identify proposal context", offset);
 		}
+
+		if (Environment.getDescriptor(controller.getLanguage()).isDynamicallyLoaded()) {
+			try {
+				StrategoConsole.getOutputWriter().write(
+					":: Completion triggered for: " + currentCompletionNode
+					+ (Debug.ENABLED ? " (candidate sorts: " + sorts + ")\n" : ""));
+			} catch (IOException e) {
+				// No matter
+			}
+		}
+
 
 		ICompletionProposal[] results = toProposals(invokeCompletionFunction(controller), document, offset);
 		
@@ -140,8 +153,6 @@ public class ContentProposer implements IContentProposer {
 			return null;
 		}
 		*/
-		if (Debug.ENABLED)
-			System.out.println("SORTS: " + getSortsAtCursor(controller, ast, offset));
 		
 		return results;
     }
@@ -590,7 +601,7 @@ public class ContentProposer implements IContentProposer {
 		return;
 	}
 	
-	// TODO: get *all* sorts at cursor by looking at the parse tree?
+	// TODO: get *all* sorts at cursor by looking at the parse tree? or by storing injections in the AST?
 	private Set<String> getSortsAtCursor(IParseController controller, RootAstNode ast, int offset) {
 		//if (node.getConstructor().equals(COMPLETION_UNKNOWN))
 		//	return Collections.emptySet();
