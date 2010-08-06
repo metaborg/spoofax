@@ -74,8 +74,8 @@ strategies
     <project name="build.generated">
 
         <target name="spoofaximp.default" depends="spoofaximp.default.ctree"/>
-        <target name="spoofaximp.default.ctree" depends="sdf2table,meta-sdf2table,ppgen,pppack,stratego.aster,stratego.ctree,sdf2imp,refresh"/>
-        <target name="spoofaximp.default.jar"   depends="sdf2table,meta-sdf2table,ppgen,pppack,stratego.aster,stratego.jar,  sdf2imp,refresh"/>
+        <target name="spoofaximp.default.ctree" depends="check-classpath,sdf2table,meta-sdf2table,ppgen,pppack,stratego.aster,stratego.ctree,sdf2imp,refresh"/>
+        <target name="spoofaximp.default.jar"   depends="check-classpath,sdf2table,meta-sdf2table,ppgen,pppack,stratego.aster,stratego.jar,  sdf2imp,refresh"/>
     
         <!-- Initialization -->
         <available file="${trans}/${strmodule}.str" property="build.stratego.enabled"/>
@@ -139,6 +139,22 @@ strategies
                 <arg value="${include}/${sdfmodule}.tbl"/>
             </java>
         </target>
+        
+        <target name="check-classpath">
+            <available classname="org.strategoxt.imp.metatooling.building.AntDescriptorBuilder" property="check-classpath.available"/>
+            <antcall target="check-classpath.helper"/>  
+        </target>
+  
+        <target name="check-classpath.helper" unless="check-classpath.available">
+            <echo level="error" message="Could not load the Spoofax plugin loading classes."/>
+            <echo level="error" message="Make sure it is on the class path."/>
+            <echo level="error" message=""/>               
+            <echo level="error" message="In Eclipse, make sure the Ant builder is configured properly:"/>
+            <echo level="error" message="right-click on build.main.xml, go to Run as, Ant build..., JRE tab,"/>
+            <echo level="error" message="and ensure Run in the same JRE as the workspace is selected"/>
+            <echo level="error" message="alternatively, build the project using Build Project in the Project menu"/>
+            <fail/>
+        </target>
     
         <target name="sdf2table" depends="make-permissive">
             <apply executable="${build.strategoxt.sdf}sdf2table" dest="${include}" failonerror="true">
@@ -160,6 +176,12 @@ strategies
                 <param name="sdfmodule" value="${metasdfmodule}"/>
                 <param name="build.sdf.imports" value="-Idef &quot;${eclipse.spoofaximp.jars}/StrategoMix.def&quot; ${build.sdf.imports}"/>
             </antcall>
+            <antcall target="meta-sdf2table.helper"/>
+        </target>
+        
+        <target name="meta-sdf2table.helper" if="eclipse.running">
+           <eclipse.convertPath fileSystemPath="${include}" property="includeresource" />
+           <eclipse.refreshLocal resource="${includeresource}/${metasdfmodule}.tbl" depth="infinite" />
         </target>
         
         <target name="make-permissive" depends="pack-sdf,copy-sdf">
