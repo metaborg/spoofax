@@ -2,9 +2,14 @@ package org.strategoxt.imp.metatooling.wizards;
 
 import static org.eclipse.core.resources.IResource.DEPTH_INFINITE;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.lang.reflect.InvocationTargetException;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
@@ -42,7 +47,7 @@ import org.strategoxt.permissivegrammars.make_permissive;
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class NewEditorWizard extends Wizard implements INewWizard {
-
+	
 	private final NewEditorWizardPage input = new NewEditorWizardPage();
 	
 	private IProject lastProject;
@@ -159,6 +164,7 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 				
 				monitor.setTaskName("Building and loading example editor");
 				project.build(IncrementalProjectBuilder.FULL_BUILD, null);
+				updateProjectBuilder(project, languageName);
 				monitor.worked(6);
 
 				// TODO: Optimize - don't reload editor (already done from Ant file)
@@ -187,8 +193,32 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 		refreshProject(project);
 		monitor.done();
 	}
+	
+	/**
+	 * Change the project build configuration to work with the Ant builder after the project
+	 * has been initially built (see create-builder-xml.str).
+	 */
+	private static void updateProjectBuilder(IProject project, String languageName) throws IOException, CoreException {
+		IFile builderConfig = project.getFile(".externalToolBuilders/" + languageName + " build.main.xml.launch");
+		String contents = readString(builderConfig.getContents(true));
+		contents = contents.replaceAll("build_project", "project_loc");
+		builderConfig.setContents(new ByteArrayInputStream(contents.getBytes()), true, false, null);
+	}
 
-	private void refreshProject(final IProject project) {
+	private static String readString(InputStream stream) throws IOException {
+		char[] buffer = new char[2048];
+        StringBuilder result = new StringBuilder();
+		Reader reader = new InputStreamReader(stream);
+		try {
+	        for (int read = 0; read != -1; read = reader.read(buffer))
+	            result.append(buffer, 0, read);
+	        return result.toString();
+		} finally {
+			reader.close();
+		}
+	}
+
+	private static void refreshProject(final IProject project) {
 		// We schedule a project refresh to make all ".generated" files readable
 		Job job = new Job("Refreshing project") {
 			@Override

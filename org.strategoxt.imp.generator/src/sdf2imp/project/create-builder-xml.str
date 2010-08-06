@@ -25,6 +25,9 @@ strategies
     //   are multiple projects
     // - PROJECT_ATTR seems to be ignored
     //
+    // To somewhat accomodate for this, we change the variable to project_loc
+    // after the project has been initially built in NewEditorWizard.
+    //
     // The property org.eclipse.ui.externaltools.ATTR_WORKING_DIRECTORY may be optional,
     // at least for Ant builds.
     
