@@ -147,7 +147,7 @@ strategies
     copy-jars;
     copy-def-file;
     
-    say(!"Completed with 0 fatal errors.")
+    say(!"Build succesful.")
 
   is-heuristic-services-needed =
     not(
