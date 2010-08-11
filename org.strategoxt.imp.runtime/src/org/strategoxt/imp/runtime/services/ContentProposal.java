@@ -42,6 +42,8 @@ public class ContentProposal extends SourceProposal implements ICompletionPropos
 	
 	private static Font keywordFont;
 	
+	private static volatile boolean justApplied; 
+	
 	private final ContentProposer proposer;
 	
 	private final IStrategoList newTextParts;
@@ -153,6 +155,7 @@ public class ContentProposal extends SourceProposal implements ICompletionPropos
 			String newText = newTextParts == null
 					? getNewText()
 					: proposalPartsToString(document, newTextParts);
+			justApplied = true;
 			document.replace(range.getOffset(), range.getLength(), newText.substring(getPrefix().length()));
 		} catch (BadLocationException e) {
 			Environment.logException("Could not apply content proposal", e);
@@ -160,6 +163,12 @@ public class ContentProposal extends SourceProposal implements ICompletionPropos
 		proposer.getObserver().setRushNextUpdate(true);
 		proposer.getParser().getErrorHandler().setRushNextUpdate(true);
 		proposer.getParser().scheduleParserUpdate(0, false);
+	}
+	
+	protected static boolean pollJustApplied() {
+		boolean result = justApplied;
+		justApplied = false;
+		return result;
 	}
 	
 	@Override

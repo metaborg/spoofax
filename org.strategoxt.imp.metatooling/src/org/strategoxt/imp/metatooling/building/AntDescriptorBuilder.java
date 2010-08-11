@@ -29,7 +29,8 @@ public class AntDescriptorBuilder {
 		if (builder.isAntBuildDisallowed())
 			throw new IllegalStateException("Cannot load new editor at this time: try again after background loading is completed");
 		
-		synchronized (Environment.getSyncRoot()) {
+		Environment.getStrategoLock().lock();
+		try {
 			active = true;
 			try {
 				String descriptor = args[0];
@@ -41,6 +42,8 @@ public class AntDescriptorBuilder {
 			} finally {
 				active = false;
 			}
+		} finally {
+			Environment.getStrategoLock().unlock();
 		}
 	}
 	

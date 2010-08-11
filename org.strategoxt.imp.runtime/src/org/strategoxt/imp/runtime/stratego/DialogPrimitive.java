@@ -40,17 +40,21 @@ public class DialogPrimitive extends AbstractPrimitive {
 		IStrategoString input = (IStrategoString)tvars[2]; 
 		
 		
-		synchronized (Environment.getSyncRoot()) {
+		Environment.getStrategoLock().lock();
+		try {
 			InputDialog dialog = new InputDialog(null, title.stringValue(), message.stringValue(), input.stringValue(), null);
 			if (dialog.open() == InputDialog.OK) {
 				String userInput=dialog.getValue();		
 				env.setCurrent(env.getFactory().makeString(userInput));
 				return true;
 			} 
+		} finally {
+			Environment.getStrategoLock().unlock();
 		}
 		return false;
 		/*
-		synchronized (Environment.getSyncRoot()) {
+		Environment.getStrategoLock().lock();
+		try {
 			//open dialog
 			Display display = new Display();
 		    final Shell shell = new Shell(display);

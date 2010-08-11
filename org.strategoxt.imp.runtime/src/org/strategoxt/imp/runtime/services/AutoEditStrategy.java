@@ -39,7 +39,7 @@ import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
  */
 public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 	
-	private static boolean justReceivedKeyEvent;
+	private static boolean justProcessedKeyEvent;
 		
 	private final ILanguageSyntaxProperties syntax;
 	
@@ -107,28 +107,29 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 			String input = new String(new char[] { event.character });
 			Point selection = getEditor().getSelection();
 			ISourceViewer viewer = getEditor().getServiceControllerManager().getSourceViewer();
-			if (event.widget instanceof StyledText && indentAfterNewline(viewer, viewer.getDocument(), selection.x, selection.y, input)) {
+			if (event.widget instanceof StyledText
+					&& indentAfterNewline(viewer, viewer.getDocument(), selection.x, selection.y, input)) {
 				// Make sure caret is visible (urgh)
 				((StyledText) event.widget).invokeAction(ST.LINE_UP);
 				((StyledText) event.widget).invokeAction(ST.LINE_DOWN);
 				event.doit = false;
-				justReceivedKeyEvent = true;
 			} else if (insertClosingFence(viewer, viewer.getDocument(), selection.x, selection.y, input)
 					|| skipClosingFence(viewer, viewer.getDocument(), selection.x, selection.y, input)
 					|| undoClosingFence(viewer, viewer.getDocument(), selection.x, selection.y, input)) {
 				event.doit = false;
-				justReceivedKeyEvent = true;
 			}
 		} catch (BadLocationException e) {
 			Environment.logException("Could not determine auto edit strategy", e);
+			justProcessedKeyEvent = false;
 		} catch (RuntimeException e) {
 			Environment.logException("Could not apply auto edit strategy", e);
+			justProcessedKeyEvent = false;
 		}
 	}
 	
-	protected static boolean pollJustReceivedKeyEvent() {
-		boolean result = justReceivedKeyEvent;
-		justReceivedKeyEvent = false;
+	protected static boolean pollJustProcessedKeyEvent() {
+		boolean result = justProcessedKeyEvent;
+		justProcessedKeyEvent = false;
 		return result;
 	}
 
@@ -161,6 +162,7 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 		//   "\"" "\""
 		//   (may be very tricky, when detecting if something is a closing " or opening ")
 		if (input.equals("\n") || input.equals("\r") || input.equals("\r\n")) {
+			justProcessedKeyEvent = true;
 			String lineStart = getLineBeforeOffset(document, offset);
 			String lineEnd = getLineAfterOffset(document, offset, length);
 			String upToCursor;
@@ -210,6 +212,7 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 							|| isIdentifierAfterOffset(document, offset)
 							|| isFenceAfterOffset(document, offset, openFence))
 						return false;
+					justProcessedKeyEvent = true;
 					String lineStart = getLineBeforeOffset(document, offset);
 					closeFence = formatInsertedText(closeFence, lineStart);
 					document.replace(offset, 0, input + closeFence);
@@ -298,6 +301,7 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 			if (lastAutoInsertedFenceLineEnd.startsWith(input)
 					&& lineEnd.equals(lastAutoInsertedFenceLineEnd)
 					&& getLineBeforeOffset(document, offset).startsWith(lastAutoInsertedFenceLineStart)) {
+				justProcessedKeyEvent = true;
 				lastAutoInsertedFenceLineEnd = lastAutoInsertedFenceLineEnd.substring(input.length());
 				lastAutoInsertedFencesLength--;
 				if (!lastAutoInsertionOpenFences.isEmpty())
@@ -327,6 +331,7 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 				String closeFence = document.get(offset, 1);
 				String expectedCloseFence = getMatchingCloseFence(deletedChar);
 				if (offset == lastAutoInsertionOpenFences.peek() && closeFence.equals(expectedCloseFence)) {
+					justProcessedKeyEvent = true;
 					lastAutoInsertedFencesLength--;
 					lastAutoInsertedFenceLineEnd = lastAutoInsertedFenceLineEnd.substring(1);
 					lastAutoInsertionOpenFences.pop();

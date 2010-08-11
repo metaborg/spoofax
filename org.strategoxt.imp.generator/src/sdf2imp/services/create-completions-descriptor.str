@@ -32,11 +32,11 @@ strategies
           ~~
         completions
           ~~
-          ~// Syntax completion:
+          ~~// Syntax completion:
           completion template: "module " <m>        (blank)
           completion template: "entity " <e> " {}"  (blank)
           ~~
-          ~// Semantic (identifier) completion:
+          ~~// Semantic (identifier) completion:
           completion proposer: editor-complete
           completion trigger: ":"
       ]|

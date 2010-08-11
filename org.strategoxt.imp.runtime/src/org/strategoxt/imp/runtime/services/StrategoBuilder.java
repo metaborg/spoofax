@@ -159,7 +159,8 @@ public class StrategoBuilder implements IBuilder {
 		String result = null;
 		String errorReport = null;
 		
-		synchronized (observer.getSyncRoot()) {
+		observer.getLock().lock();
+		try {
 			try {
 				if (node == null) {
 					openError(editor, "Editor is still analyzing");
@@ -203,6 +204,8 @@ public class StrategoBuilder implements IBuilder {
 			} catch (Error e) {
 				reportGenericException(editor, e);
 			}
+		} finally {
+			observer.getLock().unlock();
 		}
 
 		try {
@@ -329,7 +332,7 @@ public class StrategoBuilder implements IBuilder {
 	}
 
 	private void setFileContents(final EditorState editor, IFile file, final String contents) throws CoreException {
-		assert !Thread.holdsLock(observer.getSyncRoot()) && !Thread.holdsLock(Environment.getSyncRoot())
+		assert !observer.getLock().isHeldByCurrentThread() && !Environment.getStrategoLock().isHeldByCurrentThread()
 			: "Acquiring a resource lock can cause a deadlock";
 
 		/* TODO: update editor contents instead of file?
@@ -360,7 +363,7 @@ public class StrategoBuilder implements IBuilder {
 	}
 
 	public static void setFileContentsDirect(IFile file, final String contents) throws CoreException {
-		assert !Thread.holdsLock(Environment.getSyncRoot());
+		assert !Environment.getStrategoLock().isHeldByCurrentThread();
 		InputStream resultStream = new ByteArrayInputStream(contents.getBytes());
 		if (file.exists()) {
 			file.setContents(resultStream, true, true, null);
@@ -372,7 +375,7 @@ public class StrategoBuilder implements IBuilder {
 	}
 	
 	private static void createDirs(IContainer dir) throws CoreException {
-		assert !Thread.holdsLock(Environment.getSyncRoot());
+		assert !Environment.getStrategoLock().isHeldByCurrentThread();
 		if (dir == null) {
 			return;
 		} else if (!dir.exists()) {
@@ -390,7 +393,7 @@ public class StrategoBuilder implements IBuilder {
 	 * (Asynchronous) exceptions are swallowed and logged.
 	 */
 	private IEditorPart openEditor(IFile file, boolean realTime) throws PartInitException {
-		assert !Thread.holdsLock(observer.getSyncRoot()) || Thread.holdsLock(Environment.getSyncRoot())
+		assert !observer.getLock().isHeldByCurrentThread() || Environment.getStrategoLock().isHeldByCurrentThread()
 			: "Opening a new editor and acquiring a resource lock can cause a deadlock";
 		
 		// TODO: non-persistent editor: WorkBenchPage.openEditor with a custom IEditorInput?

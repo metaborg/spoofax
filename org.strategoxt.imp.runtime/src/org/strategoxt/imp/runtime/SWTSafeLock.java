@@ -18,6 +18,8 @@ import org.eclipse.swt.widgets.Display;
 public class SWTSafeLock extends ReentrantLock {
 
 	private static final long serialVersionUID = 1448450448343689240L;
+	
+	private static final long INITIAL_TIMEOUT = 30000;
 
 	private static final long EVENT_RATE = 50;
 	
@@ -34,8 +36,11 @@ public class SWTSafeLock extends ReentrantLock {
 		if (Environment.isMainThread()) {
 			try {
 				// TODO: Could the SWTSafeLock cause trouble, e.g. by launching multiple content proposers?
-				while (!tryLock(EVENT_RATE, TimeUnit.MILLISECONDS)) {
-					while (Display.getCurrent().readAndDispatch());
+				//       Let's use an INITIAL_TIMEOUT to be safe
+				if (!tryLock(INITIAL_TIMEOUT, TimeUnit.MILLISECONDS)) {
+					do {
+						while (Display.getCurrent().readAndDispatch());
+					} while (!tryLock(EVENT_RATE, TimeUnit.MILLISECONDS));
 				}
 			} catch (InterruptedException e) {
 				throw new RuntimeException(e);

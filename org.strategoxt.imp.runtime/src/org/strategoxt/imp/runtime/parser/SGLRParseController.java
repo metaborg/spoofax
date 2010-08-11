@@ -404,7 +404,7 @@ public class SGLRParseController implements IParseController {
 		// - must not acquire resource locks when Eclipse is starting
 		
 		if (!Environment.isMainThread()) {
-			if (!monitor.isCanceled() && !Thread.holdsLock(Environment.getSyncRoot())) {
+			if (!monitor.isCanceled() && !Environment.getStrategoLock().isHeldByCurrentThread()) {
 				// Note that a resource lock is acquired here
 				errorHandler.commitMultiErrorLineAdditions();
 				errorHandler.commitDeletions();

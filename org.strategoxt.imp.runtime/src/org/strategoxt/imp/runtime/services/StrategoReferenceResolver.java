@@ -1,6 +1,6 @@
 package org.strategoxt.imp.runtime.services;
 
-import static org.spoofax.interpreter.core.Tools.*;
+import static org.spoofax.interpreter.core.Tools.isTermString;
 
 import java.util.List;
 
@@ -12,7 +12,6 @@ import org.eclipse.imp.services.IReferenceResolver;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.Debug;
-import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 
 /**
@@ -48,12 +47,15 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 			return null;
 		}
 		
-		synchronized (Environment.getSyncRoot()) {
+		observer.getLock().lock();
+		try {
 			if (!observer.isUpdateScheduled()) {
 				observer.update(parseController, new NullProgressMonitor());
 			}
 			IStrategoTerm resultTerm = observer.invokeSilent(function, node);
 			return observer.getAstNode(resultTerm, true);
+		} finally {
+			observer.getLock().unlock();
 		}
 	}
 
@@ -69,7 +71,8 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 			return null;
 		}
 		
-		synchronized (observer.getSyncRoot()) {
+		observer.getLock().lock();
+		try {
 			IStrategoTerm result = observer.invokeSilent(function, node);
 			if (result == null) {
 				return null;
@@ -78,6 +81,8 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 			} else {
 				return result.toString();
 			}
+		} finally {
+			observer.getLock().unlock();
 		}
 	}
 	

@@ -87,8 +87,11 @@ public class StandAloneSGLRI {
 	public IStrategoAstNode parse(char[] input, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 		
-		synchronized (Environment.getSyncRoot()) {
+		Environment.getStrategoLock().lock();
+		try {
 			return parser.parse(input, filename);
+		} finally {
+			Environment.getStrategoLock().unlock();
 		}
 	}
 	

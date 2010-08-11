@@ -24,12 +24,16 @@ exports
 
     "completion" "keyword" ":" PropertyValue CompletionAnno -> SemanticRule {cons("CompletionKeyword")}
     
-    "completion" "template" ":" String CompletionPart+ CompletionAnno -> SemanticRule {cons("CompletionTemplate")}
+    "completion" "template" ":" String CompletionPart* CompletionAnno -> SemanticRule {cons("CompletionTemplate")}
     
     %% Deprecated: conflicts with content completion
     "completion" "template" ":" PropertyValue CompletionPart+ CompletionAnno -> SemanticRule {cons("CompletionTemplate"), avoid, deprecated("Add quotes to the starting literal")}
     
-    "completion" "template" ":" Sort "=" String CompletionPart+ CompletionAnno -> SemanticRule {cons("CompletionTemplateWithSort")}
+    "completion" "template" ":" Sort "=" String CompletionPart* CompletionAnno -> SemanticRule {cons("CompletionTemplateWithSort")}
+    
+    %% Used as content completion triggers
+    "completion" "template" ":" PropertyValue CompletionPart* CompletionAnno -> SemanticRule {cons("CompletionTemplate"), recover, avoid}
+    "completion" "template" ":" Sort "=" PropertyValue CompletionPart* CompletionAnno -> SemanticRule {cons("CompletionTemplateWithSort"), recover, avoid}
 
     "completion" "trigger" ":" PropertyValue CompletionAnno -> SemanticRule {cons("CompletionTrigger")}
   
@@ -53,6 +57,8 @@ exports
     "(blank)"    -> PropertyValue {reject}
     "(disable)"  -> PropertyValue {reject}
     "completion" -> PropertyValue {reject}
+    "template"   -> PropertyValue {reject}
+    "trigger"    -> PropertyValue {reject}
     "identifier" -> PropertyValue {reject}
 
   lexical syntax

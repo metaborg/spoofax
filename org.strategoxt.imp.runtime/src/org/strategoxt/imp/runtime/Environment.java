@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
@@ -77,6 +78,8 @@ public final class Environment {
 	
 	private static boolean isInitialized;
 	
+	private static SWTSafeLock lock = new SWTSafeLock();
+	
 	static {
 		wrappedFactory = new UnsharedWrappedATermFactory();
 		factory = new PureFactory();
@@ -109,24 +112,24 @@ public final class Environment {
 	}
 	
 	// TODO: Split up shared and non-shared environment entities?
-	
-	// LOCKING
-	
-	/**
-	 * Gets the object to lock on for environment entities shared
-	 * between the main thread and the workspace thread.
-	 */
+
+	@Deprecated
 	public static Object getSyncRoot() {
-		// TODO: disallow main thread locking everywhere except in the startup loader?
-		if (!isInitialized && EditorState.isUIThread())
+		throw new UnsupportedOperationException("Use getStrategoLock() instead with a try/finally clause for locking");
+	}
+	
+	public static ReentrantLock getStrategoLock() {
+		if (!isInitialized && EditorState.isUIThread()) {
 			isInitialized = true;
-		else if (!Thread.holdsLock(Environment.class) && EditorState.isUIThread() && Debug.ENABLED)
+		} else if (Debug.ENABLED && !lock.isHeldByCurrentThread() && EditorState.isUIThread()) {
 			Environment.logWarning("Acquired environment lock from main thread");
-		return Environment.class;
+		}
+		return lock;
 	}
 	
 	public static void assertLock() {
-		assert Thread.holdsLock(getSyncRoot()) : "Please use the course-grained Environment.getSyncRoot() lock";
+		assert getStrategoLock().isHeldByCurrentThread() :
+			"Please use the course-grained Environment.getStrategoLock() lock";
 	}
 	
 	private static void initMainThread() {
@@ -161,6 +164,7 @@ public final class Environment {
 	}
 	
 	public static ATermConverter getATermConverter() {
+		assert getStrategoLock().isHeldByCurrentThread();
 	    return atermConverter;
 	}
 	

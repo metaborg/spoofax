@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import lpg.runtime.IAst;
 
@@ -123,22 +124,18 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		this.rushNextUpdate = rushNextUpdate;
 	}
 	
-	public AstMessageHandler getMessages() {
-		return messages;
-	}
-	
-	public Object getSyncRoot() {
+	public ReentrantLock getLock() {
 		 // TODO: *maybe* use descriptor as syncroot? deadlocky?
-		return Environment.getSyncRoot();
+		return Environment.getStrategoLock();
 	}
 
 	public String getLog() {
-		assert Thread.holdsLock(getSyncRoot());
+		assert getLock().isHeldByCurrentThread();
 		return ((EditorIOAgent) runtime.getIOAgent()).getLog().trim();
 	}
 	
 	private void initialize(IProgressMonitor monitor) {
-		assert Thread.holdsLock(getSyncRoot());
+		assert getLock().isHeldByCurrentThread();
 		
 		HybridInterpreter prototype = runtimePrototypes.get(descriptor);
 		if (prototype != null) {
@@ -185,11 +182,11 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	}
 
 	private void createEmptyRuntime(IProgressMonitor monitor) {
-		assert Thread.holdsLock(getSyncRoot());
+		assert getLock().isHeldByCurrentThread();
 		
 		if (runtime == null) {
 			Debug.startTimer();
-			runtime = Environment.createInterpreter(getSyncRoot() != Environment.getSyncRoot());
+			runtime = Environment.createInterpreter(getLock() != Environment.getStrategoLock());
 			runtime.init();
 			Debug.stopTimer("Created new Stratego runtime instance");
 			monitor.subTask("Loading analysis runtime components");
@@ -199,9 +196,12 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	private void loadCTree(String filename) {
 		try {
 			Debug.startTimer("Loading Stratego module ", filename);
-			assert getSyncRoot() == Environment.getSyncRoot() || !Thread.holdsLock(Environment.getSyncRoot());
-			synchronized (Environment.getSyncRoot()) {
+			assert getLock() == Environment.getStrategoLock() || !Environment.getStrategoLock().isHeldByCurrentThread();
+			Environment.getStrategoLock().lock();
+			try {
 				runtime.load(descriptor.openAttachment(filename));
+			} finally {
+				Environment.getStrategoLock().unlock();
 			}
 			Debug.stopTimer("Successfully loaded " +  filename);
 		} catch (InterpreterException e) {
@@ -284,7 +284,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		IStrategoTerm feedback = null;
 		
 		try {
-			synchronized (getSyncRoot()) {
+			synchronized (getLock()) {
 				resultingAsts.remove(ast.getResource());
 				feedback = invokeSilent(feedbackFunction, makeInputTerm(ast, false), ast.getResource());
 	
@@ -296,11 +296,12 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 					messages.clearMarkers(ast.getResource());
 					messages.addMarkerFirstLine(ast.getResource(), "Analysis failed (see error log)", IMarker.SEVERITY_ERROR);
 					messages.commitAllChanges();
-				} else if (!monitor.isCanceled()) {
-					// TODO: figure out how this was supposed to be synchronized??
-					presentToUser(ast.getResource(), feedback);
 				}
 			}
+		 	if (feedback != null && !monitor.isCanceled()) {
+				// TODO: figure out how this was supposed to be synchronized??
+				presentToUser(ast.getResource(), feedback);
+		 	}
 		} finally {
 			// System.out.println("OBSERVED " + System.currentTimeMillis()); // DEBUG
 			// processEditorRecolorEvents(parseController);
@@ -314,7 +315,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	}
 
 	public void reportRewritingFailed() {
-		assert Thread.holdsLock(getSyncRoot());
+		assert getLock().isHeldByCurrentThread();
 		StackTracer trace = runtime.getContext().getStackTracer();
 		runtime.getIOAgent().printError(
 				trace.getTraceDepth() != 0 ? "rewriting failed, trace:" : "rewriting failed");
@@ -341,7 +342,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	*/
 
 	public void presentToUser(IResource resource, IStrategoTerm feedback) {
-		assert Thread.holdsLock(getSyncRoot());
+		assert getLock().isHeldByCurrentThread();
 		assert feedback != null;
 
 		if (feedback instanceof IStrategoString) {
@@ -397,7 +398,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	}
 	
 	private final void feedbackToMarkers(IResource resource, IStrategoList feedbacks, int severity) {
-		assert Thread.holdsLock(getSyncRoot());
+		assert getLock().isHeldByCurrentThread();
 		
 		Context context = runtime.getCompiledContext();
 		sdf2imp.init(context);
@@ -445,7 +446,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	 * Create an input term for a control rule.
 	 */
 	public IStrategoTuple makeInputTerm(IStrategoAstNode node, boolean includeSubNode, boolean useSourceAst) {
-		assert Thread.holdsLock(getSyncRoot());
+		assert getLock().isHeldByCurrentThread();
 		
 		Context context = getRuntime().getCompiledContext();
 		IStrategoTerm resultingAst = useSourceAst ? null : resultingAsts.get(node.getResource());
@@ -490,7 +491,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	 * based on the ATerm syntax of the AST of the source file.
 	 */
 	public IStrategoTuple makeATermInputTerm(IStrategoAstNode node, boolean includeSubNode, IResource resource) {
-		assert Thread.holdsLock(getSyncRoot());
+		assert getLock().isHeldByCurrentThread();
 		stratego_aterm.init(runtime.getCompiledContext());
 		
 		ITermFactory factory = Environment.getTermFactory();
@@ -533,7 +534,8 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	public IStrategoTerm invoke(String function, IStrategoTerm term, IResource resource)
 			throws UndefinedStrategyException, InterpreterErrorExit, InterpreterExit, InterpreterException {
 		
-		synchronized (getSyncRoot()) {
+		getLock().lock();
+		try {
 			if (runtime == null) initialize(new NullProgressMonitor());
 			if (runtime == null) return null;
 			
@@ -555,6 +557,8 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			
 			Debug.stopTimer("Evaluated strategy " + function + (success ? "" : " (failed)"));
 			return success ? result : null;
+		} finally {
+			getLock().unlock();
 		}
 	}
 
@@ -581,7 +585,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	 * Logs and swallows all exceptions.
 	 */
 	public IStrategoTerm invokeSilent(String function, IStrategoTerm input, IResource resource) {
-		assert Thread.holdsLock(getSyncRoot());
+		assert getLock().isHeldByCurrentThread();
 		IStrategoTerm result = null;
 		
 		try {
@@ -647,7 +651,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	}
 	
 	private void configureRuntime(IResource resource) {
-		assert Thread.holdsLock(getSyncRoot());
+		assert getLock().isHeldByCurrentThread();
 		
 		try {
 			ITermFactory factory = runtime.getFactory();
@@ -677,7 +681,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	}
 	
 	public HybridInterpreter getRuntime() {
-		assert Thread.holdsLock(getSyncRoot());
+		assert getLock().isHeldByCurrentThread();
 		if (runtime == null) initialize(new NullProgressMonitor());
 		if (runtime == null) createEmptyRuntime(new NullProgressMonitor()); // create empty runtime
 		return runtime;
@@ -688,10 +692,13 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	}
 
 	public void reinitialize(Descriptor newDescriptor) throws BadDescriptorException {
-		synchronized (getSyncRoot()) {
+		getLock().lock();
+		try {
 			runtimePrototypes.remove(descriptor);
 			runtime = null;
 			descriptor = newDescriptor;
+		} finally {
+			getLock().unlock();
 		}
 	}
 

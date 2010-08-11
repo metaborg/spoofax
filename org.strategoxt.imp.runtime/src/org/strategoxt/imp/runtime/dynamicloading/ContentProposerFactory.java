@@ -110,9 +110,9 @@ public class ContentProposerFactory extends AbstractServiceFactory<IContentPropo
 		}
 
 		for (IStrategoAppl template : collectTerms(descriptor.getDocument(), "CompletionTemplateWithSort")) {
-			IStrategoTerm prefixTerm = termAt(template, 0);
+			String sort = termContents(termAt(template, 0));
+			IStrategoTerm prefixTerm = termAt(template, 1);
 			String prefix = termContents(prefixTerm);
-			String sort = termContents(termAt(template, 1));
 			IStrategoList completionParts = termAt(template, 2);
 			IStrategoTerm anno = termAt(template, 3);
 			completionParts = Environment.getTermFactory().makeListCons(prefixTerm, completionParts);

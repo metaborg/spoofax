@@ -55,7 +55,8 @@ public class StartupDescriptorLoader {
 	*/
 	
 	private static void loadAllServices() {
-		synchronized (Environment.getSyncRoot()) {
+		Environment.getStrategoLock().lock();
+		try {
 			for (final IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
 				if (project.isOpen()) {
 					try {
@@ -70,6 +71,8 @@ public class StartupDescriptorLoader {
 					}
 				}
 			}
+		} finally {
+			Environment.getStrategoLock().unlock();
 		}
 	}
 }

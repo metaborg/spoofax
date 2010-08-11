@@ -23,11 +23,14 @@ public class StrategoObserverUpdateJob implements StrategoAnalysisJob {
 	
 	public IStatus analyze(IProgressMonitor monitor) {
 		
-		synchronized (observer.getSyncRoot()) {
+		observer.getLock().lock();
+		try {
 			this.progress = new StrategoProgressMonitor(monitor);
 			((EditorIOAgent)observer.getRuntime().getIOAgent()).setJob(this);
 			observer.update(parseController, monitor);
 			return Status.OK_STATUS;
+		} finally {
+			observer.getLock().unlock();
 		}
 		
 	}

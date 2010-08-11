@@ -42,7 +42,7 @@ exports
     QuotedTerm -> Color {cons("FromMetaExpr")}
     QuotedTerm -> Font  {cons("FromMetaExpr")}
     QuotedTerm -> SectionName {cons("FromMetaExpr")}
-    QuotedTerm -> SemanticRule {cons("FromMetaExpr")}
+    QuotedTerm -> SemanticRule {cons("FromMetaExpr"), avoid}
     
     QuotedTerms -> OutlineRule*   {cons("FromMetaExpr")}
     QuotedTerms -> ColorRule*     {cons("FromMetaExpr")}

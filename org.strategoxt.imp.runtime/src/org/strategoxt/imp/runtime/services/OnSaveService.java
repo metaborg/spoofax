@@ -51,7 +51,8 @@ public class OnSaveService implements IDocumentListener, ILanguageService {
 		if (function == null) return;
 		
 		try {
-			synchronized (Environment.getSyncRoot()) {
+			Environment.getStrategoLock().lock();
+			try {
 				AstNode ast = editor.getCurrentAst();
 				if (ast == null) return;
 				
@@ -82,6 +83,8 @@ public class OnSaveService implements IDocumentListener, ILanguageService {
 					if (editor.getDescriptor().isDynamicallyLoaded())
 						Environment.logWarning("Unexpected result from 'on save' strategy: should be None() or (\"filename\", \"contents\"): " + result);
 				}
+			} finally {
+				Environment.getStrategoLock().unlock();
 			}
 		} catch (RuntimeException e) {
 			Environment.logException("Exception in OnSaveService", e);

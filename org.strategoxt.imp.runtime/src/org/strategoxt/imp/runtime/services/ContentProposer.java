@@ -9,7 +9,6 @@ import static org.spoofax.interpreter.terms.IStrategoTerm.TUPLE;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Random;
@@ -22,7 +21,6 @@ import lpg.runtime.IToken;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.imp.editor.ErrorProposal;
 import org.eclipse.imp.parser.IParseController;
-import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.eclipse.imp.services.IContentProposer;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Region;
@@ -38,6 +36,7 @@ import org.strategoxt.imp.runtime.parser.JSGLRI;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.parser.ast.AbstractVisitor;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
+import org.strategoxt.imp.runtime.parser.ast.AstSortInspector;
 import org.strategoxt.imp.runtime.parser.ast.ListAstNode;
 import org.strategoxt.imp.runtime.parser.ast.RootAstNode;
 import org.strategoxt.imp.runtime.parser.ast.StringAstNode;
@@ -122,7 +121,7 @@ public class ContentProposer implements IContentProposer {
 			return createErrorProposal("No proposals available - completion lexical must allow letters and numbers", offset);
 		
 		RootAstNode ast = constructAst(getParser(controller), offset, document);
-		Set<String> sorts = getSortsAtCursor(controller, ast, offset);
+		Set<String> sorts = new AstSortInspector(ast).getSortsAtOffset(offset);
 		if (currentCompletionNode == null) {
 			// TODO: allow syntactic completions for start symbol
 			if (lastCompletionAst == null && lastParserAst == null)
@@ -135,14 +134,15 @@ public class ContentProposer implements IContentProposer {
 			try {
 				StrategoConsole.getOutputWriter().write(
 					":: Completion triggered for: " + currentCompletionNode
-					+ (Debug.ENABLED ? " (candidate sorts: " + sorts + ")\n" : ""));
+					+ " (candidate sorts: " + sorts + ")\n");
+				StrategoConsole.activateConsole(true);
 			} catch (IOException e) {
-				// No matter
+				Environment.logWarning("Could not write to console", e);
 			}
 		}
 
 
-		ICompletionProposal[] results = toProposals(invokeCompletionFunction(controller), document, offset);
+		ICompletionProposal[] results = toProposals(invokeCompletionFunction(controller), document, offset, sorts);
 		
 		/* UNDONE: automatic proposal insertion
 		if (results.length == 1 && results[0] instanceof SourceProposal) {
@@ -221,11 +221,15 @@ public class ContentProposer implements IContentProposer {
 		if (completionFunction == null) {
 			return Environment.getTermFactory().makeList();
 		} else {
-			// TODO: is using this lock in the main thread a deadlock risk?
+			// FIXME: Using the environment lock for content completion
+			//        The problem here is really that content completion shouldn't
+			//        run in the main thread. It might be possible to spawn a new
+			//        thread and then invoke content completion again when it's done.
 			class Runner implements Runnable {
 				IStrategoTerm result;
 				public void run() {
-					synchronized (observer.getSyncRoot()) {
+					observer.getLock().lock();
+					try {
 						if (!observer.isUpdateScheduled()) {
 							observer.update(controller, new NullProgressMonitor());
 						}
@@ -235,6 +239,8 @@ public class ContentProposer implements IContentProposer {
 							observer.reportRewritingFailed();
 							result = TermFactory.EMPTY_LIST;
 						}
+					} finally {
+						observer.getLock().unlock();
 					}
 				}
 			}
@@ -251,7 +257,7 @@ public class ContentProposer implements IContentProposer {
 		}
 	}
 	
-	private ICompletionProposal[] toProposals(IStrategoTerm proposals, String document, int offset) {
+	private ICompletionProposal[] toProposals(IStrategoTerm proposals, String document, int offset, Set<String> sorts) {
 		Debug.startTimer();
 		
 		String error = "No proposals available - '" + completionFunction
@@ -265,7 +271,7 @@ public class ContentProposer implements IContentProposer {
 		Region offsetRegion = new Region(offset, 0);
 		String prefix = currentCompletionPrefix;
 		
-		Set<ICompletionProposal> results = getKeywordAndTemplateProposals(document, prefix, offsetRegion, offset);
+		Set<ICompletionProposal> results = getKeywordAndTemplateProposals(document, prefix, offsetRegion, offset, sorts);
 
 		for (IStrategoList cons = (IStrategoList) proposals; !cons.isEmpty(); cons = cons.tail()) {
 			IStrategoTerm proposal = cons.head();
@@ -344,7 +350,9 @@ public class ContentProposer implements IContentProposer {
 		return resultArray;
 	}
 	
-	private Set<ICompletionProposal> getKeywordAndTemplateProposals(String document, String prefix, Region offsetRegion, int offset) {
+	private Set<ICompletionProposal> getKeywordAndTemplateProposals(String document, String prefix,
+			Region offsetRegion, int offset, Set<String> sorts) {
+		
 		Set<ICompletionProposal> results = new HashSet<ICompletionProposal>();
 		boolean backTrackResultsOnly = false;
 		
@@ -378,6 +386,8 @@ public class ContentProposer implements IContentProposer {
 		
 		for (ContentProposalTemplate proposal : templates) {
 			String proposalPrefix = proposal.getPrefix();
+			if (proposal.getSort() != null && !sorts.contains(proposal.getSort()))
+				continue;
 			if (!backTrackResultsOnly && proposalPrefix.regionMatches(IGNORE_TEMPLATE_PREFIX_CASE, 0, prefix, 0, prefix.length())) {
 				if (!proposal.isBlankLineRequired() || isBlankBeforeOffset(document, offset - prefix.length()))
 					if (prefix.length() > 0 || identifierLexical.matcher(proposal.getPrefix()).lookingAt())
@@ -579,57 +589,27 @@ public class ContentProposer implements IContentProposer {
 	
 	private void insertNewCompletionNode(AstNode node, String prefix) {
 		// Create a new UNKNOWN(COMPLETION(prefix)) node
-		AstNode newNode = createCompletionNode(prefix, node.getLeftIToken(), node.getRightIToken());
+		AstNode result = createCompletionNode(prefix, node.getLeftIToken(), node.getRightIToken());
 		ArrayList<AstNode> newNodeContainer = new ArrayList<AstNode>(1);
-		newNodeContainer.add(newNode);
-		currentCompletionNode = newNode = new AstNode(null, node.getLeftIToken(), node.getRightIToken(), COMPLETION_UNKNOWN, newNodeContainer);
+		newNodeContainer.add(result);
+		currentCompletionNode = result = new AstNode(null, node.getLeftIToken(), node.getRightIToken(), COMPLETION_UNKNOWN, newNodeContainer);
 		
 		// Insert the node in a list near the textual input location
 		if (node instanceof ListAstNode) {
-			node.getChildren().add(newNode);
-			newNode.setParent(node);
+			node.getChildren().add(result);
+			result.setParent(node);
 			return;
 		}
 		for (AstNode parent = node.getParent(); parent != null; node = parent, parent = parent.getParent()) {
 			if (parent instanceof ListAstNode) {
 				int i = parent.getChildren().indexOf(node);
-				parent.getChildren().add(i + 1, newNode);
-				newNode.setParent(parent);
+				parent.getChildren().add(i + 1, result);
+				result.setParent(parent);
 				return;
 			}
 		}
+		result.setParent(node.getRoot());
 		return;
-	}
-	
-	// TODO: get *all* sorts at cursor by looking at the parse tree? or by storing injections in the AST?
-	private Set<String> getSortsAtCursor(IParseController controller, RootAstNode ast, int offset) {
-		//if (node.getConstructor().equals(COMPLETION_UNKNOWN))
-		//	return Collections.emptySet();
-		
-		ISourcePositionLocator locator = controller.getSourcePositionLocator();
-		AstNode node = (AstNode) locator.findNode(ast, offset);
-		if (node == null) return Collections.emptySet();
-		
-		Set<String> results = new HashSet<String>();
-
-		IToken rightToken = node.getRightIToken();
-
-		// Follow the (labeled) injection chain upwards
-		do {
-			if (node.isList()) {
-				results.add(((ListAstNode) node).getElementSort());
-			} else if (node.getSort() != null) {
-				results.add(node.getSort());
-			}
-			node = node.getParent();
-		} while (node != null && node.getRightIToken() == rightToken);
-		
-		if (node != null && node.isList()) {
-			// Add sort of container list with elements after current node
-			results.add(((ListAstNode) node).getElementSort());
-		}
-		
-		return results;
 	}
 	
 }

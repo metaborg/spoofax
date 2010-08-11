@@ -167,7 +167,7 @@ public class ParseErrorHandler {
 		//     at least for files with an in-workspace editor(?)
 		//   - also see SGLRParseController.onParseCompleted
 		assert source.getParseLock().isHeldByCurrentThread();
-		assert !Thread.holdsLock(Environment.getSyncRoot()) : "Potential deadlock";
+		assert !Environment.getStrategoLock().isHeldByCurrentThread() : "Potential deadlock";
 		
 		processErrorReportsQueue();
 		handler.commitDeletions();
@@ -179,7 +179,7 @@ public class ParseErrorHandler {
 	public void commitMultiErrorLineAdditions() {
 		// Threading concerns: see commitDeletions()
 		assert source.getParseLock().isHeldByCurrentThread();
-		assert !Thread.holdsLock(Environment.getSyncRoot()) : "Potential deadlock";
+		assert !Environment.getStrategoLock().isHeldByCurrentThread() : "Potential deadlock";
 
 		processErrorReportsQueue();
 		handler.commitMultiErrorLineAdditions();
@@ -191,7 +191,7 @@ public class ParseErrorHandler {
 	public void commitAdditions() {
 		// Threading concerns: see commitDeletions()
 		assert source.getParseLock().isHeldByCurrentThread();
-		assert !Thread.holdsLock(Environment.getSyncRoot()) : "Potential deadlock";
+		assert !Environment.getStrategoLock().isHeldByCurrentThread() : "Potential deadlock";
 		
 		handler.commitAdditions();
 	}
@@ -363,7 +363,7 @@ public class ParseErrorHandler {
 			sdf2imp.init(asyncAmbReportingContext);
 		}
 
-		if (Thread.holdsLock(Environment.getSyncRoot())) {
+		if (Environment.getStrategoLock().isHeldByCurrentThread()) {
 			// Potential deadlock (occurs when parsing a file for the first time, when it's probably safe)
 			return amb.toString();
 		}
@@ -372,8 +372,11 @@ public class ParseErrorHandler {
 			ITermFactory factory = asyncAmbReportingContext.getFactory();
 			IStrategoTerm result;
 			
-			synchronized (Environment.getSyncRoot()) {
+			Environment.getStrategoLock().lock();
+			try {
 				result = TermConverter.convert(factory, Environment.getATermConverter().convert(amb));
+			} finally {
+				Environment.getStrategoLock().unlock();
 			}
 			
 			result = factory.makeAppl(factory.makeConstructor("parsetree", 2), result, factory.makeInt(2));

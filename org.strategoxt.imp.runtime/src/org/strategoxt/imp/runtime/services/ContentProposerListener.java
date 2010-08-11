@@ -54,9 +54,10 @@ public class ContentProposerListener implements ITextListener {
 			if (event.getDocumentEvent() != null // not just a visual change
 					&& event.getText() != null
 					&& (event.getText().length() == 1 // single keypress
-							|| AutoEditStrategy.pollJustReceivedKeyEvent())
-					&& matchesPatterns(event.getDocumentEvent().getDocument(), event.getOffset())) {
-				viewer.setSelectedRange(event.getOffset() + 1, 0);
+							|| AutoEditStrategy.pollJustProcessedKeyEvent()
+							|| ContentProposal.pollJustApplied())
+					&& matchesPatterns(event.getDocumentEvent().getDocument(), event.getOffset() + event.getText().length())) {
+				viewer.setSelectedRange(event.getOffset() + event.getText().length(), 0);
 				((ITextOperationTarget) viewer).doOperation(ISourceViewer.CONTENTASSIST_PROPOSALS);
 			}
 		} catch (BadLocationException e) {
@@ -69,8 +70,8 @@ public class ContentProposerListener implements ITextListener {
 	private boolean matchesPatterns(IDocument document, int offset) throws BadLocationException {
 		for (Pattern pattern : patterns) {
 			boolean foundNewLine = false;
-			for (int startOffset = offset; startOffset >= 0; startOffset--) {
-				String substring = document.get(startOffset, offset - startOffset + 1);
+			for (int startOffset = offset - 1; startOffset >= 0; startOffset--) {
+				String substring = document.get(startOffset, offset - startOffset);
 				if (pattern.matcher(substring).matches()) {
 					return true;
 				}

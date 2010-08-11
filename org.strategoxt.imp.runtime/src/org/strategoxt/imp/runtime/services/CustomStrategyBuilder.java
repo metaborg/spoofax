@@ -62,7 +62,8 @@ public class CustomStrategyBuilder extends StrategoBuilder {
 				}
 			};
 		
-		synchronized (getObserver().getSyncRoot()) {
+		getObserver().getLock().lock();
+		try {
 			InputDialog dialog = new InputDialog(null, "Apply custom rule", "Enter the name of the rewrite rule or strategy to apply", getInitialValue(editor), validator);
 			if (dialog.open() == InputDialog.OK) {
 				setInitialValue(editor, dialog.getValue());
@@ -70,6 +71,8 @@ public class CustomStrategyBuilder extends StrategoBuilder {
 			} else {
 				return null;
 			}
+		} finally {
+			getObserver().getLock().unlock();
 		}
 	}
 	

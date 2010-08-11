@@ -157,7 +157,8 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 		try {
 			monitor.setTaskName("Acquiring environment lock");
 			monitor.worked(1);
-			synchronized (Environment.getSyncRoot()) { // avoid background editor loading
+			Environment.getStrategoLock().lock();
+			try { // avoid background editor loading
 				monitor.setTaskName("Loading new resources");
 				project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
 				monitor.worked(1);
@@ -176,6 +177,8 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 
 				//project.refreshLocal(DEPTH_INFINITE, new NullProgressMonitor());
 				monitor.worked(1);
+			} finally {
+				Environment.getStrategoLock().unlock();
 			}
 		} finally {
 			Job.getJobManager().endRule(root);
@@ -223,7 +226,9 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 		Job job = new Job("Refreshing project") {
 			@Override
 			protected IStatus run(IProgressMonitor monitor) {
-				synchronized (Environment.getSyncRoot()) {}; // wait for update thread
+				// Wait for update thread
+				Environment.getStrategoLock().lock();
+				Environment.getStrategoLock().unlock();
 				try {
 					project.refreshLocal(DEPTH_INFINITE, new NullProgressMonitor());
 				} catch (CoreException e) {

@@ -73,10 +73,13 @@ public class DynamicDescriptorLoader implements IResourceChangeListener {
 	 * and ignore it at the next resource event arrives.
 	 */
 	public void forceUpdate(IResource resource) {
-		synchronized (Environment.getSyncRoot()) {
+		Environment.getStrategoLock().lock();
+		try {
 			assert resource.toString().endsWith(".packed.esv");
 			forceNoUpdate(resource);
 			loadPackedDescriptor(resource);
+		} finally {
+			Environment.getStrategoLock().unlock();
 		}
 	}
 
@@ -91,8 +94,11 @@ public class DynamicDescriptorLoader implements IResourceChangeListener {
 	 * Ignores the specified descriptor at the next resource event arrives.
 	 */
 	public void forceNoUpdate(String file) {
-		synchronized (Environment.getSyncRoot()) {
+		Environment.getStrategoLock().lock();
+		try {
 			asyncIgnoreOnce.add(file);
+		} finally {
+			Environment.getStrategoLock().unlock();
 		}
 	}
 
@@ -114,7 +120,8 @@ public class DynamicDescriptorLoader implements IResourceChangeListener {
 			@Override
 			public IStatus runInWorkspace(IProgressMonitor monitor) {
 				// TODO: Finer-grained locking? (that seems to lead to deadlocks)
-				synchronized (Environment.getSyncRoot()) {
+				Environment.getStrategoLock().lock();
+				try {
 					for (;;) {
 	 					IResourceChangeEvent event;
 						synchronized (asyncEventQueue) {
@@ -128,6 +135,8 @@ public class DynamicDescriptorLoader implements IResourceChangeListener {
 						monitor.beginTask("Scanning workspace", IProgressMonitor.UNKNOWN);
 						postResourceChanged(event.getDelta(), monitor);
 					}
+				} finally {
+					Environment.getStrategoLock().unlock();
 				}
 			}
 		};

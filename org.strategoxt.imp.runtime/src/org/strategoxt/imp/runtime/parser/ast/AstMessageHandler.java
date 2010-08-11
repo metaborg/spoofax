@@ -536,7 +536,7 @@ public class AstMessageHandler {
 	 */
 	@Deprecated
 	public static void processEditorRecolorEvents(UniversalEditor universalEditor) {
-		assert !Thread.holdsLock(Environment.getSyncRoot()) : "Potential deadlock";
+		assert !Environment.getStrategoLock().isHeldByCurrentThread() : "Potential deadlock";
 		try {
 			IModelListener presentation = universalEditor.getServiceControllerManager().getPresentationController();
 			presentation.update(universalEditor.getParseController(), new NullProgressMonitor());
