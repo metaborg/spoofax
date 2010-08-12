@@ -70,8 +70,9 @@ public class StrategoAnalysisQueue {
 		protected IStatus run(IProgressMonitor monitor) {
 
 			running = true;
+			MonitorStateWatchDog protector = new MonitorStateWatchDog(this, monitor, job.getObserver());
 			if (!isSystem())
-				MonitorStateWatchDog.protect(this, monitor, job.getObserver());
+				protector.beginProtect();
 
 			IStatus status;
 			try {
@@ -84,6 +85,9 @@ public class StrategoAnalysisQueue {
 			} catch (Error e) {
 				Environment.logException("Error running scheduled analysis", e);
 				status = Status.CANCEL_STATUS;
+			} finally {
+				if (!isSystem())
+					protector.endProtect();
 			}
 
 			// Run next task

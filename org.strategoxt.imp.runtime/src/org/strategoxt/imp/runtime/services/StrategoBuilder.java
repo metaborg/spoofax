@@ -141,9 +141,13 @@ public class StrategoBuilder implements IBuilder {
 		Job job = new Job("Executing " + displayCaption) {
 			@Override
 			protected IStatus run(IProgressMonitor monitor) {
-				MonitorStateWatchDog.protect(this, monitor, observer);
-				execute(editor, node2, errorReportFile, isRebuild);
-				return monitor.isCanceled() ? Status.CANCEL_STATUS : Status.OK_STATUS;
+				MonitorStateWatchDog protector = new MonitorStateWatchDog(this, monitor, observer);
+				try {
+					execute(editor, node2, errorReportFile, isRebuild);
+					return monitor.isCanceled() ? Status.CANCEL_STATUS : Status.OK_STATUS;
+				} finally {
+					protector.endProtect();
+				}
 			}
 		};
 		job.setUser(true);
