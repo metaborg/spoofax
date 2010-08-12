@@ -205,13 +205,11 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			}
 			Debug.stopTimer("Successfully loaded " +  filename);
 		} catch (InterpreterException e) {
-			Environment.logException(new BadDescriptorException("Error loading compiler service provider " + filename, e));
-			if (descriptor.isDynamicallyLoaded())
-				Environment.asynOpenErrorDialog("Dynamic descriptor loading", "Error loading compiler service provider " + filename, e);
+			reportLoadException(e, filename);
 		} catch (IOException e) {
-			Environment.logException(new BadDescriptorException("Could not load compiler service provider " + filename, e));
-			if (descriptor.isDynamicallyLoaded())
-				Environment.asynOpenErrorDialog("Dynamic descriptor loading", "Error loading compiler service provider " + filename, e);
+			reportLoadException(e, filename);
+		} catch (RuntimeException e) {
+			reportLoadException(e, filename);
 		}
 	}
 	
@@ -228,18 +226,22 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			runtime.loadJars(classpath);
 			Debug.stopTimer("Successfully loaded " + jars);
 		} catch (SecurityException e) {
-			Environment.logException("Error loading compiler service providers " + jars, e);
-			if (descriptor.isDynamicallyLoaded())
-				Environment.asynOpenErrorDialog("Dynamic descriptor loading", "Error loading compiler service providers " + jars, e);
+			reportLoadException(e, jars);
 		} catch (IncompatibleJarException e) {
-			Environment.logException("Error loading compiler service providers " + jars, e);
-			if (descriptor.isDynamicallyLoaded())
-				Environment.asynOpenErrorDialog("Dynamic descriptor loading", "Error loading compiler service providers " + jars, e);
+			reportLoadException(e, jars);
 		} catch (IOException e) {
-			Environment.logException("Error loading compiler service providers " + jars, e);
-			if (descriptor.isDynamicallyLoaded())
-				Environment.asynOpenErrorDialog("Dynamic descriptor loading", "Error loading compiler service providers " + jars, e);
+			reportLoadException(e, jars);
+		} catch (Error e) {
+			reportLoadException(e, jars);
+		} catch (RuntimeException e) {
+			reportLoadException(e, jars);
 		}
+	}
+
+	private void reportLoadException(Throwable e, Object source) {
+		Environment.logException(new BadDescriptorException("Could not load compiler service provider(s): " + source, e));
+		if (descriptor.isDynamicallyLoaded())
+			Environment.asynOpenErrorDialog("Dynamic descriptor loading", "Error loading compiler service provider(s): " + source, e);
 	}
 
 	/**
