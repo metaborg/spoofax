@@ -121,7 +121,7 @@ public class ContentProposer implements IContentProposer {
 			return createErrorProposal("No proposals available - completion lexical must allow letters and numbers", offset);
 		
 		RootAstNode ast = constructAst(getParser(controller), offset, document);
-		Set<String> sorts = new AstSortInspector(ast).getSortsAtOffset(offset);
+		Set<String> sorts = new AstSortInspector(ast).getSortsAtOffset(offset - currentCompletionPrefix.length(), offset);
 		if (currentCompletionNode == null)
 			return getParseFailureProposals(controller, document, offset, sorts);
 
@@ -407,7 +407,7 @@ public class ContentProposer implements IContentProposer {
 				continue;
 			if (!backTrackResultsOnly && proposalPrefix.regionMatches(IGNORE_TEMPLATE_PREFIX_CASE, 0, prefix, 0, prefix.length())) {
 				if (!proposal.isBlankLineRequired() || isBlankBeforeOffset(document, offset - prefix.length()))
-					if (prefix.length() > 0 || identifierLexical.matcher(proposal.getPrefix()).lookingAt())
+					if (prefix.length() > 0 || identifierLexical.matcher(proposalPrefix).lookingAt() || proposalPrefix.length() == 0)
 						results.add(new ContentProposal(this, proposal.getPrefix(), proposal, prefix, offsetRegion));
 			} /*else*/ {
 				Matcher matcher = identifierLexical.matcher(proposalPrefix);

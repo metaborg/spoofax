@@ -63,6 +63,6 @@ public class ContentProposalTemplate {
 	}
 	
 	public String getName() {
-		return getPrefix();
+		return getPrefix().length() == 0 ? getDescription() : getPrefix().replace("\\n", "").replace("\\t", "  ");
 	}
 }

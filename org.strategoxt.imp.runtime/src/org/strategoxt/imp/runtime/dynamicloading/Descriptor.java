@@ -112,6 +112,8 @@ public class Descriptor {
 	 * Uninitialize all dynamic activeServices associated with this Descriptor,
 	 * and lazily initializes them to use the given new Descriptor.
 	 * 
+	 * Must be preceded by a call to {@link #prepareForReinitialize()}. 
+	 * 
 	 * @see AbstractService#reinitialize(Descriptor)
 	 */
 	public void reinitialize(Descriptor newDescriptor) throws BadDescriptorException {

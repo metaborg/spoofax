@@ -1,10 +1,7 @@
 package org.strategoxt.imp.metatooling.loading;
 
 import static org.eclipse.core.resources.IMarker.SEVERITY_ERROR;
-import static org.eclipse.core.resources.IResourceDelta.CONTENT;
-import static org.eclipse.core.resources.IResourceDelta.MOVED_FROM;
-import static org.eclipse.core.resources.IResourceDelta.MOVED_TO;
-import static org.eclipse.core.resources.IResourceDelta.REPLACED;
+import static org.eclipse.core.resources.IResourceDelta.*;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -103,8 +100,8 @@ public class DynamicDescriptorLoader implements IResourceChangeListener {
 	}
 
 	public void resourceChanged(final IResourceChangeEvent event) {
-		if (event.getType() == IResourceChangeEvent.POST_CHANGE && isSignificantChange(event.getDelta())) {
-			// TODO: aggregate multiple events into a single job?
+		if (event.getType() == IResourceChangeEvent.POST_CHANGE  && isSignificantChangeDeep(event.getDelta())) {
+			// TODO: Optimize - aggregate multiple events into a single job?
 			//       this seems to spawn way to many threads
 			synchronized (asyncEventQueue) {
 				asyncEventQueue.add(event);
@@ -165,8 +162,19 @@ public class DynamicDescriptorLoader implements IResourceChangeListener {
 		return (flags & CONTENT) == CONTENT
 			|| (flags & MOVED_TO) == MOVED_TO
 			|| (flags & MOVED_FROM) == MOVED_FROM
-			|| (flags & REPLACED) == REPLACED;
+			|| (flags & REPLACED) == REPLACED
+			|| (flags & ADDED) == ADDED;
 			// UNDONE: || (flags == 0) (one known instance: when markers were added/removed)
+	}
+
+	private static boolean isSignificantChangeDeep(IResourceDelta delta) {
+		if (isSignificantChange(delta)) {
+			return true;
+		} else {
+			for (IResourceDelta child : delta.getAffectedChildren())
+				if (isSignificantChangeDeep(child)) return true;
+		}
+		return false;
 	}
 	
 	public void updateResource(IResource resource, IProgressMonitor monitor, boolean startup) {

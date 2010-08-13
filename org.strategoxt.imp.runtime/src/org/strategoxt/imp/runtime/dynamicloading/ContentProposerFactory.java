@@ -24,6 +24,7 @@ import org.strategoxt.imp.runtime.services.ContentProposalTemplate;
 import org.strategoxt.imp.runtime.services.ContentProposer;
 import org.strategoxt.imp.runtime.services.ContentProposerListener;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
+import org.strategoxt.imp.runtime.stratego.adapter.WrappedAstNodeFactory;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -99,23 +100,30 @@ public class ContentProposerFactory extends AbstractServiceFactory<IContentPropo
 
 	private static ContentProposalTemplate[] readCompletionTemplates(Descriptor descriptor) {
 		Set<ContentProposalTemplate> results = new HashSet<ContentProposalTemplate>();
-
+		WrappedAstNodeFactory factory = Environment.getTermFactory();
+		
 		for (IStrategoAppl template : collectTerms(descriptor.getDocument(), "CompletionTemplate")) {
 			IStrategoTerm prefixTerm = termAt(template, 0);
-			String prefix = termContents(prefixTerm);
+			boolean noPrefix = "Placeholder".equals(cons(prefixTerm));
+			String prefix = noPrefix ? "" : termContents(prefixTerm);
 			IStrategoList completionParts = termAt(template, 1);
 			IStrategoTerm anno = termAt(template, 2);
-			completionParts = Environment.getTermFactory().makeListCons(prefixTerm, completionParts);
+			completionParts = factory.makeListCons(prefixTerm, completionParts);
+			if (noPrefix)
+				completionParts = factory.makeListCons(factory.makeString(""), completionParts);
 			results.add(new ContentProposalTemplate(prefix, null, completionParts, "Blank".equals(cons(anno))));
 		}
 
 		for (IStrategoAppl template : collectTerms(descriptor.getDocument(), "CompletionTemplateWithSort")) {
 			String sort = termContents(termAt(template, 0));
 			IStrategoTerm prefixTerm = termAt(template, 1);
-			String prefix = termContents(prefixTerm);
+			boolean noPrefix = "Placeholder".equals(cons(prefixTerm));
+			String prefix = noPrefix ? "" : termContents(prefixTerm);
 			IStrategoList completionParts = termAt(template, 2);
 			IStrategoTerm anno = termAt(template, 3);
-			completionParts = Environment.getTermFactory().makeListCons(prefixTerm, completionParts);
+			completionParts = factory.makeListCons(prefixTerm, completionParts);
+			if (noPrefix)
+				completionParts = factory.makeListCons(factory.makeString(""), completionParts);
 			results.add(new ContentProposalTemplate(prefix, sort, completionParts, "Blank".equals(cons(anno))));
 		}
 		

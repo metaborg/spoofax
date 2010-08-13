@@ -281,6 +281,7 @@ public final class Environment {
 		for (Descriptor descriptor : currentDescriptors) {
 			if (descriptor.isUsedForUnmanagedParseTable(name)) {
 				try {
+					descriptor.prepareForReinitialize();
 					descriptor.reinitialize(descriptor);
 				} catch (BadDescriptorException e) {
 					Environment.logException("Could not reinitialize descriptor", e);
