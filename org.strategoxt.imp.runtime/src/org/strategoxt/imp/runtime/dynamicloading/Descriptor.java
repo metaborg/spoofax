@@ -230,7 +230,7 @@ public class Descriptor {
 		return basePath;
 	}
 	
-	public String getStartSymbols() {
+	public String getStartSymbol() {
 		return getProperty("StartSymbols", null);
 	}
 	

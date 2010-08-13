@@ -122,25 +122,10 @@ public class ContentProposer implements IContentProposer {
 		
 		RootAstNode ast = constructAst(getParser(controller), offset, document);
 		Set<String> sorts = new AstSortInspector(ast).getSortsAtOffset(offset);
-		if (currentCompletionNode == null) {
-			// TODO: allow syntactic completions for start symbol
-			if (lastCompletionAst == null && lastParserAst == null)
-				return createErrorProposal("No proposals available - syntax errors", offset);
-			else
-				return createErrorProposal("No proposals available - could not identify proposal context", offset);
-		}
+		if (currentCompletionNode == null)
+			return getParseFailureProposals(controller, document, offset, sorts);
 
-		if (Environment.getDescriptor(controller.getLanguage()).isDynamicallyLoaded()) {
-			try {
-				StrategoConsole.getOutputWriter().write(
-					":: Completion triggered for: " + currentCompletionNode
-					+ " (candidate sorts: " + sorts + ")\n");
-				StrategoConsole.activateConsole(true);
-			} catch (IOException e) {
-				Environment.logWarning("Could not write to console", e);
-			}
-		}
-
+		printCompletionTip(controller, sorts);
 
 		ICompletionProposal[] results = toProposals(invokeCompletionFunction(controller), document, offset, sorts);
 		
@@ -156,6 +141,38 @@ public class ContentProposer implements IContentProposer {
 		
 		return results;
     }
+
+	private ICompletionProposal[] getParseFailureProposals(IParseController controller,
+			String document, int offset, Set<String> sorts) {
+		
+		String startSymbol = Environment.getDescriptor(controller.getLanguage()).getStartSymbol();
+		
+		if (startSymbol != null && document.trim().indexOf('\n') == -1) {
+			currentCompletionPrefix = getPrefix(offset, document);
+			sorts.add(startSymbol);
+			printCompletionTip(controller, sorts);
+			ICompletionProposal[] proposals = toProposals(TermFactory.EMPTY_LIST, document, offset, sorts);
+			if (proposals.length != 0) return proposals;
+		}
+		if (lastCompletionAst == null && lastParserAst == null) {
+			return createErrorProposal("No proposals available - syntax errors", offset);
+		} else {
+			return createErrorProposal("No proposals available - could not identify proposal context", offset);
+		}
+	}
+
+	private void printCompletionTip(IParseController controller, Set<String> sorts) {
+		if (Environment.getDescriptor(controller.getLanguage()).isDynamicallyLoaded()) {
+			try {
+				StrategoConsole.getOutputWriter().write(
+					":: Completion triggered for: " + currentCompletionNode
+					+ " (candidate sorts: " + sorts + ")\n");
+				StrategoConsole.activateConsole(true);
+			} catch (IOException e) {
+				Environment.logWarning("Could not write to console", e);
+			}
+		}
+	}
 	
 	protected Pattern getCompletionLexical() {
 		return identifierLexical;

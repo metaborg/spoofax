@@ -51,13 +51,15 @@ public class ContentProposerListener implements ITextListener {
 
 	public void textChanged(TextEvent event) {
 		try {
+			boolean keyPressEvent = AutoEditStrategy.pollJustProcessedKeyEvent();
+			boolean insertionEvent = ContentProposal.pollJustApplied();
+			int eventLength = event.getText() == null || !insertionEvent ? 1 : event.getText().length();
 			if (event.getDocumentEvent() != null // not just a visual change
 					&& event.getText() != null
 					&& (event.getText().length() == 1 // single keypress
-							|| AutoEditStrategy.pollJustProcessedKeyEvent()
-							|| ContentProposal.pollJustApplied())
-					&& matchesPatterns(event.getDocumentEvent().getDocument(), event.getOffset() + event.getText().length())) {
-				viewer.setSelectedRange(event.getOffset() + event.getText().length(), 0);
+							|| keyPressEvent || insertionEvent)
+					&& matchesPatterns(event.getDocumentEvent().getDocument(), event.getOffset() + eventLength)) {
+				viewer.setSelectedRange(event.getOffset() + eventLength, 0);
 				((ITextOperationTarget) viewer).doOperation(ISourceViewer.CONTENTASSIST_PROPOSALS);
 			}
 		} catch (BadLocationException e) {

@@ -1,7 +1,7 @@
 package org.strategoxt.imp.runtime.parser.ast;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -28,7 +28,7 @@ public class AstSortInspector {
 		//if (node.getConstructor().equals(COMPLETION_UNKNOWN))
 		//	return Collections.emptySet();
 		
-		if (ast == null) return Collections.emptySet();
+		if (ast == null) return new HashSet<String>();
 		ISourcePositionLocator locator = ast.getParseController().getSourcePositionLocator();
 		AstNode node = (AstNode) locator.findNode(ast, offset);
 		if (node == null) node = ast;

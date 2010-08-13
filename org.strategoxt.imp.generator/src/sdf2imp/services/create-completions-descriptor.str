@@ -33,11 +33,17 @@ strategies
         completions
           ~~
           ~~// Syntax completion:
-          completion template: "module " <m>        (blank)
-          completion template: "entity " <e> " {}"  (blank)
+          ~~
+          completion template : Module =
+            "module " <m> (blank)
+          ~~
+          completion template : Definition =
+            "entity " <e> " {}"  (blank)
           ~~
           ~~// Semantic (identifier) completion:
+          ~~
           completion proposer: editor-complete
+          ~~
           completion trigger: ":"
       ]|
     );
@@ -69,7 +75,13 @@ strategies
           ~// Use the (blank) annotation if you want a template completion only to
           ~// appear on blank lines:
           ~//
-          ~//   completion template: "section" <title> "\n\t" (blank)
+          ~//   completion template: "section " <title> "\n\t" (blank)
+          ~//
+          ~// Finally, you can specify a specific SDF sort for which a completion
+          ~// rule should trigger as follows:
+          ~//
+          ~//   completion template : Section =
+          ~//     "section " <title> "\n\t" (blank)
           ~//
           ~// Semantic content completion can be defined as follows:
           ~//
