@@ -24,12 +24,12 @@ exports
 
     "completion" "keyword" ":" PropertyValue CompletionAnno -> SemanticRule {cons("CompletionKeyword")}
     
-    "completion" "template" ":" String CompletionPart* CompletionAnno -> SemanticRule {cons("CompletionTemplate")}
+    "completion" "template" ":" CompletionPart CompletionPart* CompletionAnno -> SemanticRule {cons("CompletionTemplate")}
     
     %% Deprecated: conflicts with content completion
-    "completion" "template" ":" PropertyValue CompletionPart+ CompletionAnno -> SemanticRule {cons("CompletionTemplate"), avoid, deprecated("Add quotes to the starting literal")}
+    "completion" "template" ":" Id CompletionPart+ CompletionAnno -> SemanticRule {cons("CompletionTemplate"), avoid, deprecated("Add quotes to the starting literal")}
     
-    "completion" "template" ":" Sort "=" String CompletionPart* CompletionAnno -> SemanticRule {cons("CompletionTemplateWithSort")}
+    "completion" "template" ":" Sort "=" CompletionPart CompletionPart* CompletionAnno -> SemanticRule {cons("CompletionTemplateWithSort")}
     
     %% Used as content completion triggers
     "completion" "template" ":" PropertyValue CompletionPart* CompletionAnno -> SemanticRule {cons("CompletionTemplate"), recover, avoid}

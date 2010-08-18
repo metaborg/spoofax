@@ -27,6 +27,7 @@ strategies
     verbose-msg(!"Using main module", get-sdf-main-module);
     
     require-option(
+      // Still compulsory for sdf2rtg (StrategoXT/8??)
       where(StartSymbol) <+ rules(StartSymbol := <parameterized-sort-to-rtg-sort> <find-start-symbol>)
     | <NoExistingDescriptor < !"Start symbols (-s)" + !"language start symbols">
     );
@@ -77,7 +78,9 @@ strategies
     collect-one(?LanguageName(<id>))
 
   find-start-symbol =
-    collect-one(?StartSymbols(Values(<id>)));
+    collect-one(?StartSymbols(<id>));
+    try(?Values(<id>));
+    try(map(?Sort(<id>)));
     separate-by(|",");
     concat-strings
 
