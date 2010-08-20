@@ -135,12 +135,15 @@ public class DynamicParseController extends AbstractService<IParseController> im
 		}
 		
 		// (Re)store these inputs in case the parse controller has been dynamically reloaded
-		if (filePath == null) filePath = this.filePath;
-		else this.filePath = filePath;
-		if (project == null) project = this.project;
-		else this.project = project;
-		if (handler == null) handler = this.handler;
-		else this.handler = handler;
+		if (filePath == null) {
+			filePath = this.filePath;
+			project = this.project; // might be null if not an ISourceProject
+			handler = this.handler;
+		} else {
+			this.filePath = filePath;
+			this.project = project;
+			this.handler = handler;
+		}
 		
 		super.getWrapped().initialize(filePath, project, handler);
 	}

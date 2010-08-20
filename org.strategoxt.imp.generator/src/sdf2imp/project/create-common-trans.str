@@ -113,6 +113,8 @@ strategies
   project-path = prim("SSL_EXT_projectpath")
   
   plugin-path = prim("SSL_EXT_pluginpath")
+  
+  candidate-sorts = prim("SSL_EXT_candidatesorts")
 
   is-newer:
     (file1, file2) -> <id>

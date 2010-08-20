@@ -451,7 +451,8 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		assert getLock().isHeldByCurrentThread();
 		
 		Context context = getRuntime().getCompiledContext();
-		IStrategoTerm resultingAst = useSourceAst ? null : resultingAsts.get(node.getResource());
+		IResource resource = node.getResource();
+		IStrategoTerm resultingAst = useSourceAst ? null : resultingAsts.get(resource);
 		IStrategoList termPath = StrategoTermPath.getTermPathWithOrigin(context, resultingAst, node);
 		IStrategoTerm targetTerm;
 		IStrategoTerm rootTerm;
@@ -466,8 +467,8 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		}
 		
 		ITermFactory factory = Environment.getTermFactory();
-		String path = node.getResource().getProjectRelativePath().toPortableString();
-		String absolutePath = node.getResource().getProject().getLocation().toOSString();
+		String path = resource.getProjectRelativePath().toPortableString();
+		String absolutePath = tryGetProjectPath(resource);
 		
 		if (includeSubNode) {
 			IStrategoTerm[] inputParts = {
@@ -486,6 +487,12 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 				};
 			return factory.makeTuple(inputParts);
 		}
+	}
+
+	private static String tryGetProjectPath(IResource resource) {
+		return resource.getProject() != null && resource.getProject().exists()
+				? resource.getProject().getLocation().toOSString()
+				: resource.getFullPath().removeLastSegments(1).toOSString();
 	}
 
 	/**
@@ -667,8 +674,8 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		
 		try {
 			EditorIOAgent io = (EditorIOAgent) runtime.getIOAgent();
-			io.setWorkingDir(resource.getProject().getLocation().toOSString());
-			io.setProjectPath(resource.getProject().getLocation().toOSString());
+			io.setWorkingDir(tryGetProjectPath(resource));
+			io.setProjectPath(tryGetProjectPath(resource));
 			io.setDescriptor(descriptor);
 		} catch (IOException e) {
 			Environment.logException("Could not set Stratego working directory", e);

@@ -40,6 +40,7 @@ import org.strategoxt.imp.runtime.parser.ast.AstSortInspector;
 import org.strategoxt.imp.runtime.parser.ast.ListAstNode;
 import org.strategoxt.imp.runtime.parser.ast.RootAstNode;
 import org.strategoxt.imp.runtime.parser.ast.StringAstNode;
+import org.strategoxt.imp.runtime.stratego.CandidateSortsPrimitive;
 import org.strategoxt.imp.runtime.stratego.StrategoConsole;
 import org.strategoxt.imp.runtime.stratego.adapter.WrappedAstNodeFactory;
 import org.strategoxt.lang.terms.TermFactory;
@@ -127,7 +128,7 @@ public class ContentProposer implements IContentProposer {
 
 		printCompletionTip(controller, sorts);
 
-		ICompletionProposal[] results = toProposals(invokeCompletionFunction(controller), document, offset, sorts);
+		ICompletionProposal[] results = toProposals(invokeCompletionFunction(controller, sorts), document, offset, sorts);
 		
 		/* UNDONE: automatic proposal insertion
 		if (results.length == 1 && results[0] instanceof SourceProposal) {
@@ -234,7 +235,7 @@ public class ContentProposer implements IContentProposer {
 		return result;
 	}
 
-	private IStrategoTerm invokeCompletionFunction(final IParseController controller) {
+	private IStrategoTerm invokeCompletionFunction(final IParseController controller, final Set<String> sorts) {
 		if (completionFunction == null) {
 			return Environment.getTermFactory().makeList();
 		} else {
@@ -247,6 +248,7 @@ public class ContentProposer implements IContentProposer {
 				public void run() {
 					observer.getLock().lock();
 					try {
+						CandidateSortsPrimitive.setCandidateSorts(sorts);
 						if (!observer.isUpdateScheduled()) {
 							observer.update(controller, new NullProgressMonitor());
 						}

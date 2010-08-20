@@ -101,8 +101,6 @@ public class DynamicDescriptorLoader implements IResourceChangeListener {
 
 	public void resourceChanged(final IResourceChangeEvent event) {
 		if (event.getType() == IResourceChangeEvent.POST_CHANGE  && isSignificantChangeDeep(event.getDelta())) {
-			// TODO: Optimize - aggregate multiple events into a single job?
-			//       this seems to spawn way to many threads
 			synchronized (asyncEventQueue) {
 				asyncEventQueue.add(event);
 				if (!isAsyncEventHandlerActive)
@@ -171,37 +169,45 @@ public class DynamicDescriptorLoader implements IResourceChangeListener {
 		if (isSignificantChange(delta)) {
 			return true;
 		} else {
-			for (IResourceDelta child : delta.getAffectedChildren())
-				if (isSignificantChangeDeep(child)) return true;
+			for (IResourceDelta child : delta.getAffectedChildren()) {
+				if (isSignificantChangeDeep(child) && isSignificantName(delta.getResource().getName()))
+					return true;
+			}
 		}
 		return false;
+	}
+
+	private static boolean isSignificantName(String name) {
+		return name.endsWith(".packed.esv") || name.endsWith(".tbl");
 	}
 	
 	public void updateResource(IResource resource, IProgressMonitor monitor, boolean startup) {
 		Environment.assertLock();
 		
 		String name = resource.getName();
-		if (name.endsWith(".packed.esv")) {
-			IResource source = getSourceDescriptor(resource);
-			
-			if (asyncIgnoreOnce.remove(resource.getFullPath().toString()))
-				return;
-			
-			if (!source.equals(resource) && source.exists() && !startup) {
-				// Try to build using the .main.esv instead;
-				// the build.xml file may touch the .packed.esv file
-				// to signal a rebuild is necessary
-				// TODO: Prevent duplicate builds triggered this way...?
-				DynamicDescriptorBuilder.getInstance().updateResource(source, monitor);
-			} else if (resource.exists()) {
-				monitor.setTaskName("Loading " + name);
-				loadPackedDescriptor(resource);
-				monitor.setTaskName(null);
+		if (isSignificantName(name)) {
+			if (name.endsWith(".packed.esv")) {
+				IResource source = getSourceDescriptor(resource);
+				
+				if (asyncIgnoreOnce.remove(resource.getFullPath().toString()))
+					return;
+				
+				if (!source.equals(resource) && source.exists() && !startup) {
+					// Try to build using the .main.esv instead;
+					// the build.xml file may touch the .packed.esv file
+					// to signal a rebuild is necessary
+					// TODO: Prevent duplicate builds triggered this way...?
+					DynamicDescriptorBuilder.getInstance().updateResource(source, monitor);
+				} else if (resource.exists()) {
+					monitor.setTaskName("Loading " + name);
+					loadPackedDescriptor(resource);
+					monitor.setTaskName(null);
+				}
+			} else if (name.endsWith(".tbl")) {
+				name = name.substring(0, name.length() - 4);
+				if (resource instanceof IFile)
+					Environment.registerUnmanagedParseTable(name, (IFile) resource);
 			}
-		} else if (name.endsWith(".tbl")) {
-			name = name.substring(0, name.length() - 4);
-			if (resource instanceof IFile)
-				Environment.registerUnmanagedParseTable(name, (IFile) resource);
 		}
 	}
 

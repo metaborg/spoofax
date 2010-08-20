@@ -98,7 +98,7 @@ public final class Environment {
 		boolean mxOption = false;
 		
 		for (String arg : ManagementFactory.getRuntimeMXBean().getInputArguments()) {
-			if (arg.startsWith("-server")) serverOption = true;
+			if (arg.startsWith("-Xserver") || arg.startsWith("-server")) serverOption = true;
 			if (arg.startsWith("-Xss") || arg.startsWith("-ss")) ssOption = true;
 			if (arg.startsWith("-Xmx") || arg.startsWith("-mx")) mxOption = true;
 		}

@@ -34,6 +34,7 @@ public class IMPLibrary extends AbstractStrategoOperatorRegistry {
 		add(new QueueAnalysisPrimitive());
 		add(new QueueStrategyPrimitive());
 		add(new SetMarkersPrimitive());
+		add(new CandidateSortsPrimitive());
 		
 		add(new SetTotalWorkUnitsPrimitive());
 		add(new CompleteWorkUnitPrimitive());

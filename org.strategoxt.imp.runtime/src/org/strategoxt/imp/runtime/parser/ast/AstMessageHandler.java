@@ -278,7 +278,7 @@ public class AstMessageHandler {
 				if (marker.getResource().equals(file)) markersToAdd.remove(); 
 			}
 		} catch (CoreException e) {
-			Environment.logException("Unable to clear existing markers for file:" + file.getName(), e);
+			Environment.logException("Unable to clear existing markers for file: " + file.getName(), e);
 		}		
 	}
 	

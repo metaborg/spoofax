@@ -156,7 +156,8 @@ public class SGLRParseController implements IParseController {
     public IFile getResource() {
     	IPath path = getPath();
     	if (getProject() == null) {
-    		return ResourcesPlugin.getWorkspace().getRoot().getFile(path);	// TODO: out-of-workspace files
+    		// HACK: out-of-project resource (Spoofax/95)
+    		return ResourcesPlugin.getWorkspace().getRoot().getFile(path);
     	} else {
     		IProject project = getProject().getRawProject();
     		path = path.removeFirstSegments(path.matchingFirstSegments(project.getLocation()));
