@@ -74,8 +74,8 @@ strategies
     <project name="build.generated">
 
         <target name="spoofaximp.default" depends="spoofaximp.default.ctree"/>
-        <target name="spoofaximp.default.ctree" depends="check-classpath,sdf2table,meta-sdf2table,ppgen,pppack,stratego.aster,stratego.ctree,sdf2imp,refresh"/>
-        <target name="spoofaximp.default.jar"   depends="check-classpath,sdf2table,meta-sdf2table,ppgen,pppack,stratego.aster,stratego.jar,  sdf2imp,refresh"/>
+        <target name="spoofaximp.default.ctree" depends="check-classpath,sdf2table,meta-sdf2table,ppgen,pppack,stratego.aster,stratego.ctree,java.jar,sdf2imp,refresh"/>
+        <target name="spoofaximp.default.jar"   depends="check-classpath,sdf2table,meta-sdf2table,ppgen,pppack,stratego.aster,stratego.jar,  java.jar,sdf2imp,refresh"/>
     
         <!-- Initialization -->
         <available file="${trans}/${strmodule}.str" property="build.stratego.enabled"/>
@@ -95,6 +95,8 @@ strategies
         <condition property="metasdfmodule.available" value="1">
             <available file="${syntax}/${metasdfmodule}.sdf"/>
         </condition>
+        
+        <fail unless="build" message="Please use build.main.xml to build this project or configure the required properties manually"/>
         <mkdir dir="${build}"/>
         <mkdir dir="${src-gen}"/>
         <mkdir dir="${dist}"/>
@@ -384,6 +386,10 @@ strategies
                     <include name="**/*.astr"/>
                 </fileset>
             </java>
+        </target>
+        
+        <target name="java.jar">
+            <jar basedir="${build}" excludes="trans/**" update="true" destfile="${include}/${strmodule}-java.jar"/>
         </target>
     
         <!-- Stratego to Java interpreter -->

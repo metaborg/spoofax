@@ -1,0 +1,56 @@
+module sdf2imp/project/create-java-strategy
+
+imports
+  sdf2imp/util/-
+
+strategies
+  
+  create-java-strategy =
+    create-java-strategy-1;
+    create-java-strategy-2
+
+  create-java-strategy-1 =
+    <file-exists> "editor/java/InteropRegisterer.java"
+  <+
+    pkgname := <get-package-name>;
+    
+    <output-java-file> |[
+       package pkgname;
+
+       import org.strategoxt.lang.JavaInteropRegisterer;
+       import org.strategoxt.lang.Strategy;
+
+       public class InteropRegisterer extends JavaInteropRegisterer {
+
+         public InteropRegisterer() {
+           super(new Strategy[] { java_strategy_0_0.instance });
+         }
+       }
+    ]|
+  
+  create-java-strategy-2 =
+    <file-exists> "editor/java/java_strategy_0_0.java"
+  <+
+    pkgname := <get-package-name>;
+    
+    <output-java-file>
+    |[ package pkgname;
+
+       import org.spoofax.interpreter.terms.IStrategoTerm;
+       import org.spoofax.interpreter.terms.ITermFactory;
+       import org.strategoxt.lang.Context;
+       import org.strategoxt.lang.Strategy;
+       
+       public class java_strategy_0_0 extends Strategy {
+         
+         public static java_strategy_0_0 instance = new java_strategy_0_0();
+       
+         @Override
+         public IStrategoTerm invoke(Context context, IStrategoTerm current) {
+           context.getIOAgent().printError("Input for java-strategy: " + current);
+           ITermFactory factory = context.getFactory();
+           return factory.makeString("Goodbye world");
+         }
+       
+       }
+    ]|
