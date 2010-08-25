@@ -37,7 +37,7 @@ public class WrappedAstNodeLink extends WrappedAstNodeParent implements IWrapped
 		assert wrapped.getTermType() != LIST || origin.getTermType() != LIST
 				|| wrapped.getSubtermCount() == 0
 				|| wrapped.getSubtermCount() != origin.getSubtermCount()
-				: "Track lists using WrappedAstNodeList / WrappedAstNOdeFactory.makeLink()";
+				: "Track lists using WrappedAstNodeList / WrappedAstNodeFactory.makeLink()";
 	}
 	
 	public final IStrategoTerm getWrapped() {
@@ -76,7 +76,7 @@ public class WrappedAstNodeLink extends WrappedAstNodeParent implements IWrapped
 	public IStrategoTerm[] getAllSubterms() {
 		if (subterms == null)
 			subterms = ensureChildLinks(wrapped.getAllSubterms());
-		return subterms;
+		return getTermType() == LIST ? subterms.clone() : subterms; // IStrategoList contract is to copy the array
 	}
 
 	/**
@@ -101,7 +101,8 @@ public class WrappedAstNodeLink extends WrappedAstNodeParent implements IWrapped
 	}
 	
 	private IStrategoTerm ensureChildLink(IStrategoTerm kid, int index) {
-		if (kid instanceof IWrappedAstNode) {
+		if (kid instanceof IWrappedAstNode
+				|| index >= origin.getSubtermCount()) {
 			return kid;
 		} else {
 			return factory.ensureLink(kid, origin.getSubterm(index));
