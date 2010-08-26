@@ -75,7 +75,6 @@ rules // Main editor interface (defined by editor/{sdf-name}-Builders and -Refer
     (node, position, ast, path, project-path) ->
     ["String", "Int" | proposals]
     where
-      <debug(!"Complete: ")> node;
       if !node => Type(COMPLETION(prefix)) then
         proposals := <all-keys-GetEntity>
       end
