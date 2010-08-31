@@ -34,10 +34,12 @@ public class DocumentStructure {
 			endOffset=node.getRightIToken().getEndOffset()+1;
 		int lookForward=endOffset-1;
 		do{
-			if(getLexStream().getCharValue(endOffset)=='\n')
+			if(getLexStream().getCharValue(lookForward)=='\n'){
 				endOffset=lookForward+1;
+				break;
+			}
 			lookForward++;
-		} while(lookForward < getLexStream().getStreamLength() && isSpaceChar(getLexStream().getCharValue(lookForward)));
+		} while(lookForward < getLexStream().getStreamLength() && Character.isWhitespace(getLexStream().getCharValue(lookForward)));
 		return endOffset;
 	}
 
