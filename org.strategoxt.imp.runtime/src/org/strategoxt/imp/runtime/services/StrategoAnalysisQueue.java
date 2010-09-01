@@ -13,6 +13,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.imp.parser.IParseController;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.MonitorStateWatchDog;
 
 /**
  * A workbench-global queue of Stratego operations.
@@ -40,7 +41,7 @@ public class StrategoAnalysisQueue {
 	 */
 	private volatile boolean running = false;
 
-	private class UpdateJob extends Job {
+	protected class UpdateJob extends Job {
 
 		private static final int BACKGROUND = LONG;
 
@@ -49,6 +50,8 @@ public class StrategoAnalysisQueue {
 		private final long delay;
 		
 		private boolean cancelled;
+		
+		private MonitorStateWatchDog protector;
 
 		protected UpdateJob(StrategoAnalysisJob job, IPath path, int priority, boolean isSystem,
 				long delay) {
@@ -69,11 +72,9 @@ public class StrategoAnalysisQueue {
 		protected IStatus run(IProgressMonitor monitor) {
 
 			running = true;
-			/* May cause Spoofax/227
-			MonitorStateWatchDog protector = new MonitorStateWatchDog(this, monitor, job.getObserver());
+			protector = new MonitorStateWatchDog(this, monitor, job.getObserver());
 			if (!isSystem())
 				protector.beginProtect();
-			*/
 
 			IStatus status;
 			try {
@@ -87,10 +88,8 @@ public class StrategoAnalysisQueue {
 				Environment.logException("Error running scheduled analysis", e);
 				status = Status.CANCEL_STATUS;
 			} finally {
-				/*
 				if (!isSystem())
 					protector.endProtect();
-				*/
 			}
 
 			// Run next task
@@ -102,6 +101,12 @@ public class StrategoAnalysisQueue {
 
 		public void scheduleWithDelay() {
 			super.schedule(this.delay);
+		}
+		
+		public void cancelNonImmediate() {
+			if (protector != null)
+				protector.endProtect();
+			cancel();
 		}
 		
 		@Override

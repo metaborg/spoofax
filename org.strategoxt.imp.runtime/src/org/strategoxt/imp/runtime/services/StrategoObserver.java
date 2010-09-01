@@ -23,7 +23,6 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
 import org.spoofax.IAsyncCancellable;
@@ -51,6 +50,7 @@ import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.dynamicloading.IDynamicLanguageService;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
+import org.strategoxt.imp.runtime.services.StrategoAnalysisQueue.UpdateJob;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.IMPJSGLRLibrary;
 import org.strategoxt.imp.runtime.stratego.StrategoConsole;
@@ -97,7 +97,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	
 	private volatile boolean rushNextUpdate;
 	
-	private Job updateJob;
+	private UpdateJob updateJob;
 	
 	private boolean wasExceptionLogged;
 	
@@ -256,7 +256,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		try {
 			StrategoAnalysisQueue queue = StrategoAnalysisQueueFactory.getInstance();
 			if (this.updateJob != null) {
-				this.updateJob.cancel();
+				this.updateJob.cancelNonImmediate();
 			}
 			
 			if (this.rushNextUpdate) {

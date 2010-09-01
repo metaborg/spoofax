@@ -414,7 +414,7 @@ strategies
             <available file="${include}/${strmodule}.ctree" property="strc-java.available"/>
             <antcall target="copy-jar"/>
             <antcall target="stratego.jvm.helper">
-                <param name="build.stratego.outputpath" value="${include}/${strmodule}.ctree"/>
+                <param name="build.stratego.outputfile" value="${include}/${strmodule}.ctree"/>
                 <param name="build.stratego.extraargs" value="-F"/>
             </antcall>
         </target>
