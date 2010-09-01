@@ -1,6 +1,7 @@
 module project/create-build-xml
 
 imports
+  sdf2imp/options
   sdf2imp/util/-
   sdf2imp/project/create-example-trans
 
@@ -9,7 +10,6 @@ strategies
   create-build-xml =
     // Note that we cannot call this file build.xml,
     // as Eclipse will delete it as it deploys plugins
-    create-build-generated-xml;
     <file-exists> "build.main.xml"
   <+
     name       := <get-sdf-main-module>;
@@ -44,7 +44,7 @@ strategies
                         -I &quot;${basedir}&quot;
                         -la stratego-lib -la stratego-sglr -la stratego-gpp -la stratego-xtc -la stratego-aterm"/>
         
-        <!-- External .def and .jar locations
+        <!-- Optional: external .def and .jar locations
         <property name="externaldef" location="syntax/${sdfmodule}.def"/>
         <property name="externaljar" value="../lib.jar"/>
         <property name="externaljarflags" value="-la org.lib"/>
@@ -67,6 +67,8 @@ strategies
     name       := <get-sdf-main-module>;
     name'      := <trans-module-name>;
     classname  := <get-main-class-name>;
+    pkgname    := <get-package-name-text>;
+    pkgdir     := <string-replace(|".", "/")> pkgname;
     
     <output-xml-file(|[], "build.generated.xml")>
     %>
@@ -78,6 +80,13 @@ strategies
         <target name="spoofaximp.default.jar"   depends="check-classpath,sdf2table,meta-sdf2table,ppgen,pppack,stratego.aster,stratego.jar,  java.jar,sdf2imp,refresh"/>
     
         <!-- Initialization -->
+        <available file="${build}/<%= pkgdir %>/strategies/Main.class" property="java.jar.enabled"/>
+        <condition property="java.jar.import" value="-la <%= pkgname %>.strategies" else="">
+            <isset property="java.jar.enabled"/>
+        </condition>
+        <condition property="java.jar.classpath" value=":${include}/${strmodule}-java.jar" else="">
+            <isset property="java.jar.enabled"/>
+        </condition>
         <available file="${trans}/${strmodule}.str" property="build.stratego.enabled"/>
         <dirname property="externaldefdir" file="${externaldef}"/>
         <condition property="externaldefimport" value="-I ${externaldefdir}" else="">
@@ -388,7 +397,7 @@ strategies
             </java>
         </target>
         
-        <target name="java.jar">
+        <target name="java.jar" if="java.jar.enabled">
             <jar basedir="${build}" excludes="trans/**" update="true" destfile="${include}/${strmodule}-java.jar"/>
         </target>
     
@@ -405,10 +414,8 @@ strategies
             <available file="${include}/${strmodule}.ctree" property="strc-java.available"/>
             <antcall target="copy-jar"/>
             <antcall target="stratego.jvm.helper">
-                <param name="build.stratego.outputpath" value="${include}"/>
+                <param name="build.stratego.outputpath" value="${include}/${strmodule}.ctree"/>
                 <param name="build.stratego.extraargs" value="-F"/>
-                <param name="build.stratego.extension" value="ctree"/>
-                <param name="build.stratego.compiler" value="strc"/>
             </antcall>
         </target>
     
@@ -426,11 +433,10 @@ strategies
             <antcall target="copy-jar"/>
             <antcall target="stratego.jar.deletehelper"/>
             <antcall target="stratego.jvm.helper">
-                <param name="build.stratego.outputpath" value="${src-gen}/trans"/>
-                <param name="build.stratego.extraargs" value="-la java-front"/>
-                <param name="build.stratego.extension" value="java"/>
+                <param name="build.stratego.outputfile" value="${src-gen}/trans/Main.java"/>
+                <param name="build.stratego.extraargs" value="-la java-front ${java.jar.import}"/>
             </antcall>
-            <javac classpath="utils/strategoxt.jar:${src-gen}${externaljarimport}" srcdir="${src-gen}" includes="trans/**" destdir="${build}" source="1.5" target="1.5" debug="on"/>
+            <javac classpath="utils/strategoxt.jar:${src-gen}${externaljarimport}${java.jar.classpath}" srcdir="${src-gen}" includes="trans/**" destdir="${build}" source="1.5" target="1.5" debug="on"/>
             <!-- copy imported terms -->
             <copy todir="${build}/trans">
                 <fileset dir="${src-gen}/trans" excludes="**/*.java"/>
@@ -453,7 +459,7 @@ strategies
                 <arg value="-i"/>
                 <arg value="${trans}/${strmodule}.str"/>
                 <arg value="-o"/>
-                <arg value="${build.stratego.outputpath}/${strmodule}.${build.stratego.extension}"/>
+                <arg value="${build.stratego.outputfile}"/>
                 <arg value="-p"/>
                 <arg value="trans"/>
                 <arg value="--library"/>
@@ -462,7 +468,7 @@ strategies
                 <arg line="${build.stratego.extraargs}"/>
                 <arg line="${externaljarflags}"/>
                 <arg line="${externaldefimport}"/>
-                <arg line="-I &quot;${lib}&quot; -I &quot;${include}&quot;  --cache-dir &quot;${basedir}/.cache&quot;"/>
+                <arg line="-I &quot;${lib}&quot; -I &quot;${include}&quot; --cache-dir &quot;${basedir}/.cache&quot;"/>
             </java>
             <delete file="${include}/${strmodule}.rtree" failonerror="false"/>
             <mkdir dir="${build}/trans"/>
@@ -501,18 +507,3 @@ strategies
         </target>
     </project>
     <%
-
-/*
-        <available file="${build.strategoxt.stratego}/strj" property="build.stratego.usenativestrj"/>
-
-        <target name="stratego.java.native" if="build.stratego.usenativestrj">
-            <antcall target="stratego.c.helper">
-                <param name="build.stratego.outputpath" value="${src-gen}/trans"/>
-                <param name="build.stratego.extraargs" value="-la java-front -p trans"/>
-                <param name="build.stratego.extension" value="java"/>
-                <param name="build.stratego.compiler" value="strj"/>
-            </antcall>
-            <javac classpath="utils/strategoxt.jar${externaljarimport}" srcdir="${src-gen}/trans" destdir="${build}" source="1.5" debug="on"/>
-            <jar basedir="${build}" includes="trans/**" destfile="${include}/${strmodule}.jar"/>
-        </target>
-*/

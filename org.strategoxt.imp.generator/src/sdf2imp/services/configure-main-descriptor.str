@@ -60,7 +60,8 @@ strategies
                fatal-err-msg(|["Could not import module ", m])
              end
            where
-             not(<eq> (<main-descriptor-name>, m)) // silently ignore non-main import fails
+             not(<eq> (<main-descriptor-name>, m)); // silently ignore non-main import fails
+             warn(|["Could not import module", m]) //DEBUG
        );
        main-descriptor-name;
        input-descriptor-file;

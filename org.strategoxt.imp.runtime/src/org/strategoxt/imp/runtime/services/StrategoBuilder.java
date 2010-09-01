@@ -9,6 +9,8 @@ import static org.spoofax.interpreter.core.Tools.termAt;
 import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.Writer;
 import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.concurrent.CancellationException;
@@ -32,6 +34,7 @@ import org.spoofax.interpreter.core.InterpreterErrorExit;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.core.UndefinedStrategyException;
+import org.spoofax.interpreter.library.IOAgent;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.EditorState;
@@ -315,7 +318,13 @@ public class StrategoBuilder implements IBuilder {
 	private void reportGenericException(EditorState editor, Throwable e) {
 		boolean isDynamic = editor.getDescriptor().isDynamicallyLoaded();
 		Environment.logException("Builder failed for " + (isDynamic ? "" : "non-") + "dynamically loaded editor", e);
-		if (isDynamic) StrategoConsole.activateConsole();
+		if (isDynamic) {
+			Writer writer = observer.getRuntime().getIOAgent().getWriter(IOAgent.CONST_STDERR);
+			PrintWriter printWriter = new PrintWriter(writer);
+			e.printStackTrace(printWriter);
+			printWriter.flush();
+			StrategoConsole.activateConsole();
+		}
 		
 		if (EditorState.isUIThread()) {
 			// Only show if builder runs interactively (and not from the StrategoBuilderListener background builder)

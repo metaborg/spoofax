@@ -103,6 +103,7 @@ strategies
       create-grammar;
       create-pp-table;
       create-example-trans;
+      create-java-strategy;
       input @ FILE(inputname) := <pack-default-sdf> FILE($[syntax/[<get-sdf-main-module>].sdf]);
       rules(DefaultDefFile := inputname)
     end;
@@ -141,10 +142,10 @@ strategies
     create-manifest;
     create-plugin-xml;
     create-build-xml;
+    create-build-generated-xml;
     create-builder-xml;
     create-example-file;
     create-common-trans;
-    create-java-strategy;
     copy-jars;
     copy-def-file;
     

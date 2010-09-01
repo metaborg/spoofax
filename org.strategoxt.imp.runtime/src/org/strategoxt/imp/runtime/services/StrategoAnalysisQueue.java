@@ -13,7 +13,6 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.imp.parser.IParseController;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.MonitorStateWatchDog;
 
 /**
  * A workbench-global queue of Stratego operations.
@@ -70,9 +69,11 @@ public class StrategoAnalysisQueue {
 		protected IStatus run(IProgressMonitor monitor) {
 
 			running = true;
+			/* May cause Spoofax/227
 			MonitorStateWatchDog protector = new MonitorStateWatchDog(this, monitor, job.getObserver());
 			if (!isSystem())
 				protector.beginProtect();
+			*/
 
 			IStatus status;
 			try {
@@ -86,8 +87,10 @@ public class StrategoAnalysisQueue {
 				Environment.logException("Error running scheduled analysis", e);
 				status = Status.CANCEL_STATUS;
 			} finally {
+				/*
 				if (!isSystem())
 					protector.endProtect();
+				*/
 			}
 
 			// Run next task

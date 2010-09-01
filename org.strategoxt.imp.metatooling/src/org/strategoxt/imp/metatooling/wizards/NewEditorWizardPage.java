@@ -264,7 +264,8 @@ public class NewEditorWizardPage extends WizardPage {
 			if (Character.isLetterOrDigit(c) || c == '.' || c == '_')
 				output.append(c);
 		}
-		return output.toString();
+		String result = output.toString().replaceAll("\\.(?=\\.|[0-9]|\\Z)", "");
+		return result;
 	}
 	
 	private static String toExtension(String name) {

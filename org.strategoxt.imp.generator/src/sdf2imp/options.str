@@ -98,6 +98,9 @@ strategies
     string-tokenize('.');
     map(!Id(<id>));
     !PackageName(<id>)
+    
+  get-package-name-text =
+    BasePackage <+ default-package-name
   
   default-package-name =
     get-sdf-main-module;
