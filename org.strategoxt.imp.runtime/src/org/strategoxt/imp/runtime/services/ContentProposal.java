@@ -222,7 +222,9 @@ public class ContentProposal extends SourceProposal implements ICompletionPropos
 		if (!(obj instanceof ContentProposal))
 			return false;
 		ContentProposal other = (ContentProposal) obj;
-		return other.getDisplayString().equals(getDisplayString()) && isKeywordProposal() == other.isKeywordProposal();
+		return other.getDisplayString().equals(getDisplayString())
+			&& other.newTextParts.equals(newTextParts) 
+			&& isKeywordProposal() == other.isKeywordProposal();
 	}
 	
 	@Override
