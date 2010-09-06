@@ -1,8 +1,9 @@
 package org.strategoxt.imp.metatooling.building;
 
-import static org.strategoxt.imp.metatooling.loading.DynamicDescriptorLoader.*;
+import static org.strategoxt.imp.metatooling.loading.DynamicDescriptorLoader.getSourceDescriptor;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 
@@ -36,9 +37,16 @@ public class AntDescriptorBuilder {
 				String descriptor = args[0];
 				
 				IResource source = getResource(getSourceDescriptor(descriptor));
-				boolean success = builder.updateResource(source, new NullProgressMonitor());
-				if (!success)
+				if (!source.exists()) {
+					Environment.logException("Could not find source descriptor:" + source, new FileNotFoundException(source.getFullPath().toOSString()));
+					System.err.println("Build failed: could not find source descriptor " + source);
 					System.exit(1);
+				}
+				boolean success = builder.updateResource(source, new NullProgressMonitor());
+				if (!success) {
+					System.err.println("Build failed; see error log.");
+					System.exit(1);
+				}
 			} finally {
 				active = false;
 			}
