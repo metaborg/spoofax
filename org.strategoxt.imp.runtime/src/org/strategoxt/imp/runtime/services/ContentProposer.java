@@ -165,9 +165,14 @@ public class ContentProposer implements IContentProposer {
 	private void printCompletionTip(IParseController controller, Set<String> sorts) {
 		if (Environment.getDescriptor(controller.getLanguage()).isDynamicallyLoaded()) {
 			try {
+				String parseErrorHelp = currentCompletionNode != null
+					&& currentCompletionNode.getConstructor() == COMPLETION_UNKNOWN
+					? "\n   (context could not be parsed with this grammar; consider experimenting\n   with additional productions for this partial construct, possibly\n   marked with a {recover} annotation.)"
+					: "";
 				StrategoConsole.getOutputWriter().write(
 					":: Completion triggered for: " + currentCompletionNode
-					+ " (candidate sorts: " + sorts + ")\n");
+					+ parseErrorHelp
+					+ " (candidate sorts: " + sorts + ")" + "\n");
 				StrategoConsole.activateConsole(true);
 			} catch (IOException e) {
 				Environment.logWarning("Could not write to console", e);
