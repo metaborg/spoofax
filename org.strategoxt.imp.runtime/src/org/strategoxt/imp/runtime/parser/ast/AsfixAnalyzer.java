@@ -1,9 +1,13 @@
 package org.strategoxt.imp.runtime.parser.ast;
 
 import static org.spoofax.jsglr.Term.applAt;
+import static org.spoofax.jsglr.Term.asAppl;
+import static org.spoofax.jsglr.Term.isAppl;
+import static org.spoofax.jsglr.Term.termAt;
 import static org.strategoxt.imp.runtime.Environment.getATermFactory;
 import jjtraveler.Visitable;
 import aterm.AFun;
+import aterm.ATerm;
 import aterm.ATermAppl;
 
 public class AsfixAnalyzer {
@@ -39,12 +43,14 @@ public class AsfixAnalyzer {
 	private static final AFun ITER_PLUS_SEP_FUN = getATermFactory().makeAFun("iter-plus-sep", 2, false);
 
 	public static boolean isLayout(ATermAppl sort) {
-		ATermAppl details = applAt(sort, 0);
+		ATerm details = termAt(sort, 0);
+		if (!isAppl(details))
+			return false;
 		
-		if (OPT_FUN == details.getAFun())
+		if (OPT_FUN == asAppl(details).getAFun())
 			details = applAt(details, 0);
 		
-		return LAYOUT_FUN == details.getAFun();
+		return LAYOUT_FUN == asAppl(details).getAFun();
 	}
 
 	public static boolean isLiteral(ATermAppl sort) {
