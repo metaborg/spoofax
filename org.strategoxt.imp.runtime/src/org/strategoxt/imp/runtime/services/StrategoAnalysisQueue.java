@@ -90,11 +90,11 @@ public class StrategoAnalysisQueue {
 			} finally {
 				if (!isSystem())
 					protector.endProtect();
+				
+				// Run next task
+				running = false;
+				wake();
 			}
-
-			// Run next task
-			running = false;
-			wake();
 
 			return status;
 		}

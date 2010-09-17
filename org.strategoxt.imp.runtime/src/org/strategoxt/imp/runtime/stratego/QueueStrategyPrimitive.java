@@ -3,6 +3,7 @@
  */
 package org.strategoxt.imp.runtime.stratego;
 
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
@@ -49,11 +50,7 @@ public class QueueStrategyPrimitive extends AbstractPrimitive {
 			IStrategoTerm term = env.current();
 			Descriptor descriptor = agent.getDescriptor();
 			
-			IPath projectPath = new Path(agent.getProjectPath());
-			IPath workspacePath = ResourcesPlugin.getWorkspace().getRoot().getLocation();
-			IPath workspaceLocalPath = projectPath.removeFirstSegments(projectPath.matchingFirstSegments(workspacePath));
-			IProject project = ResourcesPlugin.getWorkspace().getRoot().findMember(workspaceLocalPath).getProject();
-			
+			IProject project = agent.getProject();
 			StrategoObserverBackgroundJob job = new StrategoObserverBackgroundJob(strategyName, term, descriptor);
 			job.setup(project);
 			

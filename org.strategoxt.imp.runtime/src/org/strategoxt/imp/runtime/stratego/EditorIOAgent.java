@@ -7,7 +7,12 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
+import java.net.URI;
+import java.net.URISyntaxException;
 
+import org.eclipse.core.resources.IContainer;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.spoofax.interpreter.library.LoggingIOAgent;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
@@ -113,5 +118,30 @@ public class EditorIOAgent extends LoggingIOAgent {
 	
 	public StrategoAnalysisJob getJob() {
 		return this.job;
+	}
+	
+	/**
+	 * Find the IProject for this agent.
+	 * If no project is found for this agent, the given IPath is used.
+	 * @param file
+	 */
+	public IProject getProject() {
+
+		IProject project = null;
+		try {
+			IContainer[] containers = 
+				ResourcesPlugin.getWorkspace().getRoot().findContainersForLocationURI(new URI("file://" + getProjectPath()));
+			for(IContainer container : containers) {
+				if (container instanceof IProject) {
+					project = (IProject)container;
+				}
+			}
+
+		} catch (URISyntaxException e) {
+			e.printStackTrace();
+		}
+		
+		return project;
+		
 	}
 }
