@@ -40,11 +40,14 @@ public class LabelProvider implements ILabelProvider {
 		// HACK: Hardcoded outlining, until we have support for patterns
 		String constructor = node == null ? null : node.getConstructor();
 		
-		if ("MethodDec".equals(constructor)) {
+		if ("MethodDec".equals(constructor)
+				&& node.getChildren().size() > 0 && node.getChildren().get(0).getChildren().size() > 3) {
 			return node.getChildren().get(0).getChildren().get(3).toString();
-		} else if ("ClassDec".equals(constructor)) {
+		} else if ("ClassDec".equals(constructor)
+				&& node.getChildren().size() > 0 && node.getChildren().get(0).getChildren().size() > 1) {
 			return node.getChildren().get(0).getChildren().get(1).toString();
-		} else if (node.getChildren().size() == 1 && node.getChildren().get(0).isList()) {
+		} else if (node.getChildren().size() == 1
+				&& node.getChildren().size() > 0 && node.getChildren().get(0).isList()) {
 			return node.getLeftIToken().toString(); // e.g., "rules", "strategies"
 		} else {
 			return getIdentifier(node);
