@@ -40,10 +40,10 @@ public class StrategoObserverBackgroundUpdateJob implements StrategoAnalysisJob 
 		
 		try {
 			
-			IPath fullPath = project.getFullPath().append(path);
+			IPath absolutePath = project == null ? path : project.getLocation().append(path);
 			
 			// Get descriptor
-			Language lang = LanguageRegistry.findLanguage(fullPath, null);
+			Language lang = LanguageRegistry.findLanguage(absolutePath, null);
 			Descriptor descriptor = Environment.getDescriptor(lang); 
 			
 			// Get parse controller
@@ -54,9 +54,6 @@ public class StrategoObserverBackgroundUpdateJob implements StrategoAnalysisJob 
 			parseController.setPerformInitialUpdate(false);
 			
 			// Read file
-			IPath absolutePath = project == null ? path : project.getFullPath().append(path);
-			absolutePath = ResourcesPlugin.getWorkspace().getRoot().getLocation().append(absolutePath);
-			
 			File file = absolutePath.toFile();
 			byte[] buffer = new byte[(int) file.length()];
 		    BufferedInputStream f = new BufferedInputStream(new FileInputStream(file));

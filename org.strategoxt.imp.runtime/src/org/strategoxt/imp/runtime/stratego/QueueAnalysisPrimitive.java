@@ -4,7 +4,6 @@
 package org.strategoxt.imp.runtime.stratego;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.spoofax.interpreter.core.IContext;
@@ -60,16 +59,14 @@ public class QueueAnalysisPrimitive extends AbstractPrimitive {
 		if (!(agent instanceof EditorIOAgent) || ((EditorIOAgent) agent).getProjectPath() == null) {
 			throw new InterpreterException("Agent not instanceof EditorIOAgent or not in project.");
 		}
-		String projectPathStr = ((EditorIOAgent)agent).getProjectPath();
+		EditorIOAgent editorAgent = (EditorIOAgent)agent;
 		
 		// Make path project local
+		String projectPathStr = editorAgent.getProjectPath();
 		IPath projectPath = new Path(projectPathStr); 
 		IPath projectRelativePath = filePath.removeFirstSegments(filePath.matchingFirstSegments(projectPath)); 
-		
-		// Fetch project
-		IPath workspacePath = ResourcesPlugin.getWorkspace().getRoot().getLocation();
-		IPath workspaceLocalPath = projectPath.removeFirstSegments(projectPath.matchingFirstSegments(workspacePath));
-		IProject project = ResourcesPlugin.getWorkspace().getRoot().findMember(workspaceLocalPath).getProject();
+
+		IProject project = editorAgent.getProject();
 		
 		StrategoAnalysisQueueFactory.getInstance().queueAnalysis(projectRelativePath, project);
 		
