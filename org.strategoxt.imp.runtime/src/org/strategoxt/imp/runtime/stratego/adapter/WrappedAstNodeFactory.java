@@ -36,7 +36,8 @@ public class WrappedAstNodeFactory extends TermFactory implements ITermFactory {
 				result = new WrappedAstNodeList(this, node, 0);
 				break;
 			case APPL:
-				result = "".equals(node.getConstructor())
+				String constructor = node.getConstructor();
+				result = constructor == null || constructor.length() == 0
 					? new WrappedAstNodeTuple(node)
 					: new WrappedAstNodeAppl(this, node);
 				break;
