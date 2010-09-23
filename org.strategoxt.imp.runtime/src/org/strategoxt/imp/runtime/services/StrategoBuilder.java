@@ -189,6 +189,7 @@ public class StrategoBuilder implements IBuilder {
 				} else if (!isTermTuple(resultTerm) || !isTermString(termAt(resultTerm, 0))) {
 					Environment.logException("Illegal builder result (must be a filename/string tuple or None())");
 					openError(editor, "Illegal builder result (must be a filename/string tuple or None()): " + resultTerm);
+					return;
 				}
 	
 				file = getFile(resultTerm);
