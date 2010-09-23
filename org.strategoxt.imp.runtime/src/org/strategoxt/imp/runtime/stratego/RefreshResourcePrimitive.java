@@ -8,7 +8,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URI;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -75,7 +74,7 @@ public class RefreshResourcePrimitive extends AbstractPrimitive {
 		return true;
 	}
 
-	public static IFile getResource(IContext env, String file) throws FileNotFoundException {
+	public static IResource getResource(IContext env, String file) throws FileNotFoundException {
 		IOAgent agent = SSLLibrary.instance(env).getIOAgent();
 		File file2 = new File(file);
 		if (!file2.exists() && !file2.isAbsolute())
@@ -83,14 +82,14 @@ public class RefreshResourcePrimitive extends AbstractPrimitive {
 		return getResource(file2);
 	}
 
-	public static IFile getResource(File file) throws FileNotFoundException {
+	public static IResource getResource(File file) throws FileNotFoundException {
 		if (file == null) {
 			assert false : "file should not be null";
 			return null;
 		}
 		URI uri = file.toURI();
 		IWorkspace workspace = ResourcesPlugin.getWorkspace();
-		IFile[] resources = workspace.getRoot().findFilesForLocationURI(uri);
+		IResource[] resources = workspace.getRoot().findContainersForLocationURI(uri);
 		if (resources.length == 0)
 			throw new FileNotFoundException("File not in workspace: " + file);
 		return resources[0];

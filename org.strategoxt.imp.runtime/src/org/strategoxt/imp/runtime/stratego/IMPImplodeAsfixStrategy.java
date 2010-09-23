@@ -3,7 +3,7 @@ package org.strategoxt.imp.runtime.stratego;
 import java.io.File;
 import java.io.FileNotFoundException;
 
-import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 import org.spoofax.interpreter.library.IOperatorRegistry;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -51,7 +51,7 @@ public class IMPImplodeAsfixStrategy extends implode_asfix_1_0 {
 		}
 		
 		AstNode result = imploder.implode(asfixATerm, tokenizer);
-		IFile resource;
+		IResource resource;
 		try {
 			resource = RefreshResourcePrimitive.getResource(inputFile);
 		} catch (FileNotFoundException e) {
