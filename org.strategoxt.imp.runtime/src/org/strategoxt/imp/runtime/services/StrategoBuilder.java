@@ -252,7 +252,7 @@ public class StrategoBuilder implements IBuilder {
 
 	private IFile getFile(IStrategoTerm resultTerm) throws FileNotFoundException {
 		String filename = asJavaString(termAt(resultTerm, 0));
-		IFile result = RefreshResourcePrimitive.getResource(
+		IFile result = RefreshResourcePrimitive.getFile(
 				observer.getRuntime().getContext(), filename);
 		return result;
 	}

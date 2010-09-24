@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URI;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -74,6 +75,16 @@ public class RefreshResourcePrimitive extends AbstractPrimitive {
 		return true;
 	}
 
+	public static IFile getFile(IContext env, String file) throws FileNotFoundException {
+		
+		IResource res = getResource(env, file);
+		if (res.getType() == IResource.FILE) {
+			return (IFile)res;
+		}
+		throw new FileNotFoundException("Resource is not a file: " + file);
+		
+	}
+	
 	public static IResource getResource(IContext env, String file) throws FileNotFoundException {
 		IOAgent agent = SSLLibrary.instance(env).getIOAgent();
 		File file2 = new File(file);

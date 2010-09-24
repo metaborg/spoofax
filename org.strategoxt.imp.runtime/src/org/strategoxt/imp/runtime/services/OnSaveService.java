@@ -72,7 +72,7 @@ public class OnSaveService implements IDocumentListener, ILanguageService {
 					String file = asJavaString(termAt(result, 0));
 					String contents = asJavaString(termAt(result, 1));
 					try {
-						IFile resource = RefreshResourcePrimitive.getResource(runtime.getRuntime().getContext(), file);
+						IFile resource = RefreshResourcePrimitive.getFile(runtime.getRuntime().getContext(), file);
 						StrategoBuilder.setFileContentsDirect(resource, contents);
 					} catch (FileNotFoundException e) {
 						Environment.logException("Problem when handling on save event", e);
