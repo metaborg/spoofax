@@ -1,6 +1,7 @@
 package org.strategoxt.imp.runtime.services;
 
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.PriorityBlockingQueue;
 
 import org.eclipse.core.resources.IProject;
@@ -34,6 +35,8 @@ public class StrategoAnalysisQueue {
 	private static final long serialVersionUID = 1L;
 
 	private final PriorityBlockingQueue<UpdateJob> queue;
+	
+	private final ConcurrentHashMap<IPath,UpdateJob> pendingUpdates = new ConcurrentHashMap<IPath, UpdateJob>();
 
 	/*
 	 * Indicates whether a job is currently running.
@@ -52,13 +55,16 @@ public class StrategoAnalysisQueue {
 		private boolean cancelled;
 		
 		private MonitorStateWatchDog protector;
+		
+		private IPath path;
 
 		protected UpdateJob(StrategoAnalysisJob job, IPath path, int priority, boolean isSystem,
 				long delay) {
 			super("");
 			this.job = job;
 			this.delay = delay;
-
+			this.path = path;
+		
 			// Should be set before scheduling the job
 			this.setName(JOB_DESCRIPTION + path);
 
@@ -78,6 +84,7 @@ public class StrategoAnalysisQueue {
 
 			IStatus status;
 			try {
+				pendingUpdates.remove(this.path);
 				status = job.analyze(monitor);
 			} catch (CancellationException e) {
 				status = Status.CANCEL_STATUS;
@@ -208,8 +215,14 @@ public class StrategoAnalysisQueue {
 	public UpdateJob queueAnalysis(IPath path, IProject project) {
 
 		StrategoObserverBackgroundUpdateJob job = new StrategoObserverBackgroundUpdateJob(path, project);
-
-		UpdateJob updateJob = new UpdateJob(job, path, UpdateJob.BACKGROUND, true, 0);
+		
+		// See if an update is already pending for this path
+		IPath absolutePath = project.getLocation().append(path);
+		UpdateJob pendingUpdate = pendingUpdates.get(absolutePath);
+		if (pendingUpdate != null) return pendingUpdate;
+		
+		UpdateJob updateJob = new UpdateJob(job, absolutePath, UpdateJob.BACKGROUND, true, 0);
+		pendingUpdates.put(absolutePath, updateJob);
 		add(updateJob);
 		wake();
 
