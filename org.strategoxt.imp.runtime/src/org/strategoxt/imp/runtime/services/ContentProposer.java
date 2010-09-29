@@ -122,7 +122,8 @@ public class ContentProposer implements IContentProposer {
 			return createErrorProposal("No proposals available - completion lexical must allow letters and numbers", offset);
 		
 		RootAstNode ast = constructAst(getParser(controller), offset, document);
-		Set<String> sorts = new AstSortInspector(ast).getSortsAtOffset(offset - currentCompletionPrefix.length(), offset);
+		int prefixLength = currentCompletionPrefix == null ? 0 : currentCompletionPrefix.length();
+		Set<String> sorts = new AstSortInspector(ast).getSortsAtOffset(offset - prefixLength, offset);
 		if (currentCompletionNode == null)
 			return getParseFailureProposals(controller, document, offset, sorts);
 
