@@ -48,6 +48,9 @@ public class StrategoObserverBackgroundUpdateJob implements StrategoAnalysisJob 
 			// Get parse controller
 			parseController = descriptor.createService(SGLRParseController.class, null);
 			observer = descriptor.createService(StrategoObserver.class, parseController);
+			
+			this.observer.getLock().lock();
+			
 			((EditorIOAgent)observer.getRuntime().getIOAgent()).setJob(this);
 			// Don't perform initial (foreground) update
 			parseController.setPerformInitialUpdate(false);
@@ -70,6 +73,8 @@ public class StrategoObserverBackgroundUpdateJob implements StrategoAnalysisJob 
 		} catch (Exception e) {
 			// hmm.
 			e.printStackTrace();
+		} finally {
+			observer.getLock().unlock();
 		}
 		
 		return Status.OK_STATUS;

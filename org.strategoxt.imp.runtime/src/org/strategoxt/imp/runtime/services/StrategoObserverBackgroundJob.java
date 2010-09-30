@@ -41,11 +41,15 @@ public class StrategoObserverBackgroundJob implements StrategoAnalysisJob {
 			
 			// Get parse controller
 			observer = descriptor.createService(StrategoObserver.class, null);
+			observer.getLock().lock();
+			
 			((EditorIOAgent)observer.getRuntime().getIOAgent()).setJob(this);
 			observer.invoke(strategyName, term, project);
 		    
 		} catch (Exception e) {
 			Environment.logException("Background job failed", e);
+		} finally {
+			observer.getLock().unlock();
 		}
 		
 		return Status.OK_STATUS;
