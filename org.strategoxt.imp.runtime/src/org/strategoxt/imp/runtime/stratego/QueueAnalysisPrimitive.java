@@ -14,6 +14,7 @@ import org.spoofax.interpreter.library.ssl.SSLLibrary;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.services.StrategoAnalysisQueueFactory;
 
 /**
@@ -61,13 +62,21 @@ public class QueueAnalysisPrimitive extends AbstractPrimitive {
 		}
 		EditorIOAgent editorAgent = (EditorIOAgent)agent;
 		
-		// Make path project local
-		String projectPathStr = editorAgent.getProjectPath();
-		IPath projectPath = new Path(projectPathStr); 
-		IPath projectRelativePath = filePath.removeFirstSegments(filePath.matchingFirstSegments(projectPath)); 
-
 		IProject project = editorAgent.getProject();
 		
+		String projectPathStr = editorAgent.getProjectPath();
+		IPath projectPath = new Path(projectPathStr); 
+		
+		if (filePath.isAbsolute()) {
+			// Test if in project; can't parse it otherwise
+			if (!projectPath.isPrefixOf(filePath)) {
+				Environment.logException("Trying to analyze out-of-project file: " + filePath);
+				return;
+			}
+		}
+		
+		// Make path project local
+		IPath projectRelativePath = filePath.removeFirstSegments(filePath.matchingFirstSegments(projectPath)); 
 		StrategoAnalysisQueueFactory.getInstance().queueAnalysis(projectRelativePath, project);
 		
 	}
