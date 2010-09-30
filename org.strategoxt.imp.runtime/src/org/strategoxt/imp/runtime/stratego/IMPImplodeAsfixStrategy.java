@@ -53,7 +53,7 @@ public class IMPImplodeAsfixStrategy extends implode_asfix_1_0 {
 		AstNode result = imploder.implode(asfixATerm, tokenizer);
 		IResource resource;
 		try {
-			resource = RefreshResourcePrimitive.getResource(inputFile);
+			resource = EditorIOAgent.getResource(inputFile);
 		} catch (FileNotFoundException e) {
 			resource = null;
 		}

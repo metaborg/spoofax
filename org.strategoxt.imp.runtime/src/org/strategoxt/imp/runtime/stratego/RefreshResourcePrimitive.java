@@ -4,14 +4,9 @@ import static org.eclipse.core.resources.IResource.DEPTH_INFINITE;
 import static org.spoofax.interpreter.core.Tools.asJavaString;
 import static org.spoofax.interpreter.core.Tools.isTermString;
 
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.net.URI;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IWorkspace;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -21,8 +16,6 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.library.AbstractPrimitive;
-import org.spoofax.interpreter.library.IOAgent;
-import org.spoofax.interpreter.library.ssl.SSLLibrary;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
@@ -48,7 +41,7 @@ public class RefreshResourcePrimitive extends AbstractPrimitive {
 	public static boolean call(IContext env, String file) {
 		final IResource resource;
 		try {
-			resource = getResource(env, file);
+			resource = EditorIOAgent.getResource(env, file);
 		} catch (FileNotFoundException e) {
 			return false;
 		}
@@ -73,37 +66,6 @@ public class RefreshResourcePrimitive extends AbstractPrimitive {
 		job.setSystem(true);
 		job.schedule(0);
 		return true;
-	}
-
-	public static IFile getFile(IContext env, String file) throws FileNotFoundException {
-		
-		IResource res = getResource(env, file);
-		if (res.getType() == IResource.FILE) {
-			return (IFile)res;
-		}
-		throw new FileNotFoundException("Resource is not a file: " + file);
-		
-	}
-	
-	public static IResource getResource(IContext env, String file) throws FileNotFoundException {
-		IOAgent agent = SSLLibrary.instance(env).getIOAgent();
-		File file2 = new File(file);
-		if (!file2.exists() && !file2.isAbsolute())
-			file2 = new File(agent.getWorkingDir() + "/" + file);
-		return getResource(file2);
-	}
-
-	public static IResource getResource(File file) throws FileNotFoundException {
-		if (file == null) {
-			assert false : "file should not be null";
-			return null;
-		}
-		URI uri = file.toURI();
-		IWorkspace workspace = ResourcesPlugin.getWorkspace();
-		IResource[] resources = workspace.getRoot().findContainersForLocationURI(uri);
-		if (resources.length == 0)
-			throw new FileNotFoundException("File not in workspace: " + file);
-		return resources[0];
 	}
 
 }

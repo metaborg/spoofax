@@ -42,7 +42,7 @@ import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.MonitorStateWatchDog;
 import org.strategoxt.imp.runtime.RuntimeActivator;
 import org.strategoxt.imp.runtime.dynamicloading.TermReader;
-import org.strategoxt.imp.runtime.stratego.RefreshResourcePrimitive;
+import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.StrategoConsole;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 import org.strategoxt.lang.Context;
@@ -252,7 +252,7 @@ public class StrategoBuilder implements IBuilder {
 
 	private IFile getFile(IStrategoTerm resultTerm) throws FileNotFoundException {
 		String filename = asJavaString(termAt(resultTerm, 0));
-		IFile result = RefreshResourcePrimitive.getFile(
+		IFile result = EditorIOAgent.getFile(
 				observer.getRuntime().getContext(), filename);
 		return result;
 	}

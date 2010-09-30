@@ -21,6 +21,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
+import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.RefreshResourcePrimitive;
 
 /**
@@ -72,7 +73,7 @@ public class OnSaveService implements IDocumentListener, ILanguageService {
 					String file = asJavaString(termAt(result, 0));
 					String contents = asJavaString(termAt(result, 1));
 					try {
-						IFile resource = RefreshResourcePrimitive.getFile(runtime.getRuntime().getContext(), file);
+						IFile resource = EditorIOAgent.getFile(runtime.getRuntime().getContext(), file);
 						StrategoBuilder.setFileContentsDirect(resource, contents);
 					} catch (FileNotFoundException e) {
 						Environment.logException("Problem when handling on save event", e);
