@@ -114,7 +114,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	 * Returns a value indicating whether or not an analysis has
 	 * been scheduled or completed at this point.
 	 * 
-	 * @return true if update() or asyncUpdate() have been called.
+	 * @return true if update() or scheduleUpdate() have been called.
 	 */
 	public boolean isUpdateScheduled() {
 		return isUpdateStarted;
@@ -286,7 +286,8 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		IStrategoTerm feedback = null;
 		
 		try {
-			synchronized (getLock()) {
+			getLock().lock();
+			try {
 				resultingAsts.remove(ast.getResource());
 				feedback = invokeSilent(feedbackFunction, makeInputTerm(ast, false), ast.getResource());
 	
@@ -299,6 +300,8 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 					messages.addMarkerFirstLine(ast.getResource(), "Analysis failed (see error log)", IMarker.SEVERITY_ERROR);
 					messages.commitAllChanges();
 				}
+			} finally {
+				getLock().unlock();
 			}
 		 	if (feedback != null && !monitor.isCanceled()) {
 				// TODO: figure out how this was supposed to be synchronized??

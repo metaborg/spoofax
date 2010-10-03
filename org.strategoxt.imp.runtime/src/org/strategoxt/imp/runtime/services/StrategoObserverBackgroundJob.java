@@ -49,7 +49,7 @@ public class StrategoObserverBackgroundJob implements StrategoAnalysisJob {
 		} catch (Exception e) {
 			Environment.logException("Background job failed", e);
 		} finally {
-			observer.getLock().unlock();
+			if (observer != null) observer.getLock().unlock();
 		}
 		
 		return Status.OK_STATUS;

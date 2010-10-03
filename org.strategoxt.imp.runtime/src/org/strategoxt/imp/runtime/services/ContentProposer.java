@@ -211,7 +211,7 @@ public class ContentProposer implements IContentProposer {
 		JSGLRI parser = controller.getParser();
 		RootAstNode result;
 		
-		controller.scheduleParserUpdate(REINIT_PARSE_DELAY, true);
+		controller.scheduleParserUpdate(REINIT_PARSE_DELAY, true); // cancel current parse
 		Debug.startTimer();
 		controller.getParseLock().lock();
 		Debug.stopTimer("Completion acquired parse lock");

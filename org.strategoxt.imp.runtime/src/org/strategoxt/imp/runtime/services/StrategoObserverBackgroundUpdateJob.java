@@ -49,32 +49,33 @@ public class StrategoObserverBackgroundUpdateJob implements StrategoAnalysisJob 
 			parseController = descriptor.createService(SGLRParseController.class, null);
 			observer = descriptor.createService(StrategoObserver.class, parseController);
 			
-			this.observer.getLock().lock();
+			observer.getLock().lock();
+			try {
+				((EditorIOAgent)observer.getRuntime().getIOAgent()).setJob(this);
+				// Don't perform initial (foreground) update
+				parseController.setPerformInitialUpdate(false);
+				
+				// Read file
+				File file = absolutePath.toFile();
+				byte[] buffer = new byte[(int) file.length()];
+			    BufferedInputStream f = new BufferedInputStream(new FileInputStream(file));
+			    f.read(buffer);
+			    String input = new String(buffer);
 			
-			((EditorIOAgent)observer.getRuntime().getIOAgent()).setJob(this);
-			// Don't perform initial (foreground) update
-			parseController.setPerformInitialUpdate(false);
-			
-			// Read file
-			File file = absolutePath.toFile();
-			byte[] buffer = new byte[(int) file.length()];
-		    BufferedInputStream f = new BufferedInputStream(new FileInputStream(file));
-		    f.read(buffer);
-		    String input = new String(buffer);
-		
-		    // Parse file
-		    ISourceProject sproject = ModelFactory.open(project);
-		    
-		    parseController.initialize(path, sproject, null);
-		    parseController.parse(input, new NullProgressMonitor());
-			
-		    observer.update(parseController, monitor);
+			    // Parse file
+			    ISourceProject sproject = ModelFactory.open(project);
+			    
+			    parseController.initialize(path, sproject, null);
+			    parseController.parse(input, new NullProgressMonitor());
+				
+			    observer.update(parseController, monitor);
+			} finally {
+				observer.getLock().unlock();
+			}
 		    
 		} catch (Exception e) {
 			// hmm.
 			e.printStackTrace();
-		} finally {
-			observer.getLock().unlock();
 		}
 		
 		return Status.OK_STATUS;
