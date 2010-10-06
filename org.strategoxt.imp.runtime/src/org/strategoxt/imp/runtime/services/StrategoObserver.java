@@ -369,6 +369,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			feedback = extractResultingAST(resource, feedback);
 			
 			if (feedback.getTermType() == TUPLE
+					&& feedback.getSubtermCount() == 3
 					&& termAt(feedback, 0).getTermType() == LIST
 					&& termAt(feedback, 1).getTermType() == LIST
 					&& termAt(feedback, 2).getTermType() == LIST) {
