@@ -213,6 +213,10 @@ public class StrategoAnalysisQueue {
 	 * @return the update job
 	 */
 	public UpdateJob queueAnalysis(IPath path, IProject project) {
+		if (path == null)
+			throw new IllegalArgumentException("path cannot be null");
+		if (project == null)
+			throw new IllegalArgumentException("project cannot be null");
 
 		StrategoObserverBackgroundUpdateJob job = new StrategoObserverBackgroundUpdateJob(path, project);
 		

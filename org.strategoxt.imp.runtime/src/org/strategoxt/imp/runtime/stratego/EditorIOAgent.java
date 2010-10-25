@@ -8,9 +8,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.net.URI;
-import java.net.URISyntaxException;
 
-import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -37,6 +35,8 @@ public class EditorIOAgent extends LoggingIOAgent {
 	private boolean alwaysActivateConsole;
 
 	private String projectPath;
+	
+	private IProject project;
 	
 	private StrategoAnalysisJob job;
 	
@@ -110,6 +110,10 @@ public class EditorIOAgent extends LoggingIOAgent {
 		this.alwaysActivateConsole = alwaysShowConsole;
 	}
 
+	/**
+	 * Sets the path of the current project, if available.
+	 * Should be an OS path for compatibility.
+	 */
 	public void setProjectPath(String projectPath) {
 		this.projectPath = projectPath;
 	}
@@ -127,28 +131,14 @@ public class EditorIOAgent extends LoggingIOAgent {
 	}
 	
 	/**
-	 * Find the IProject for this agent.
-	 * If no project is found for this agent, the given IPath is used.
-	 * @param file
+	 * Gets the IProject for this agent.
 	 */
 	public IProject getProject() {
-
-		IProject project = null;
-		try {
-			IContainer[] containers = 
-				ResourcesPlugin.getWorkspace().getRoot().findContainersForLocationURI(new URI("file://" + getProjectPath()));
-			for(IContainer container : containers) {
-				if (container instanceof IProject) {
-					project = (IProject)container;
-				}
-			}
-
-		} catch (URISyntaxException e) {
-			e.printStackTrace();
-		}
-		
 		return project;
-		
+	}
+	
+	public void setProject(IProject project) {
+		this.project = project;
 	}
 
 	public static IFile getFile(IContext env, String file) throws FileNotFoundException {

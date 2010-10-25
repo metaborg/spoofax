@@ -680,6 +680,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			EditorIOAgent io = (EditorIOAgent) runtime.getIOAgent();
 			io.setWorkingDir(tryGetProjectPath(resource));
 			io.setProjectPath(tryGetProjectPath(resource));
+			io.setProject(resource.getProject());
 			io.setDescriptor(descriptor);
 		} catch (IOException e) {
 			Environment.logException("Could not set Stratego working directory", e);
