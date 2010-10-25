@@ -226,8 +226,11 @@ strategies
     
         <target name="pack-sdf" unless="externaldef">
             <dependset>
-                <srcfileset dir="${syntax}">
+                <srcfileset dir="${basedir}">
                     <include name="**/*.sdf"/>
+                </srcfileset>
+                <srcfileset dir="${lib}">
+                    <include name="**/*.def"/>
                 </srcfileset>
                 <targetfileset file="${include}/${sdfmodule}.def"/>
             </dependset>
