@@ -611,26 +611,26 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			if (!(e instanceof InterpreterErrorExit))
 				messages.addMarkerFirstLine(resource, "Analysis failed (" + name(e) + "; see error log)", IMarker.SEVERITY_ERROR);
 			messages.commitAllChanges();
-			Environment.logException("Runtime exited when evaluating strategy " + function, e);
+			Environment.logException("Runtime exited when evaluating strategy " + function, runtime.getCompiledContext(), e);
 		} catch (UndefinedStrategyException e) {
 			// Note that this condition may also be reached when the semantic service hasn't been loaded yet
 			if (descriptor.isDynamicallyLoaded())
 				runtime.getIOAgent().printError("Internal error: strategy does not exist or is defined in a module that is not imported: " + e.getMessage());
-			Environment.logException("Strategy does not exist: " + e.getMessage(), e);
+			Environment.logException("Strategy does not exist: " + e.getMessage(), runtime.getCompiledContext(), e);
 		} catch (InterpreterException e) {
 			if (descriptor.isDynamicallyLoaded())
 				runtime.getIOAgent().printError("Internal error evaluating " + function + " (" + name(e) + "; see error log)");
-			Environment.logException("Internal error evaluating strategy " + function, e);
+			Environment.logException("Internal error evaluating strategy " + function, runtime.getCompiledContext(), e);
 			if (descriptor.isDynamicallyLoaded()) StrategoConsole.activateConsole();
 		} catch (RuntimeException e) {
 			if (runtime != null && descriptor.isDynamicallyLoaded())
 				runtime.getIOAgent().printError("Internal error evaluating " + function + " (" + name(e) + "; see error log)");
-			Environment.logException("Internal error evaluating strategy " + function, e);
+			Environment.logException("Internal error evaluating strategy " + function, runtime.getCompiledContext(), e);
 			if (descriptor.isDynamicallyLoaded()) StrategoConsole.activateConsole();
 		} catch (Error e) { // e.g. NoClassDefFoundError due to bad/missing stratego jar
 			if (runtime != null && descriptor.isDynamicallyLoaded())
 				runtime.getIOAgent().printError("Internal error evaluating " + function + " (" + name(e) + "; see error log)");
-			Environment.logException("Internal error evaluating strategy " + function, e);
+			Environment.logException("Internal error evaluating strategy " + function, runtime.getCompiledContext(), e);
 			if (descriptor.isDynamicallyLoaded()) StrategoConsole.activateConsole();
 		}
 		

@@ -23,6 +23,7 @@ import org.spoofax.interpreter.adapter.aterm.UnsharedWrappedATermFactory;
 import org.spoofax.interpreter.adapter.aterm.WrappedATermFactory;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
+import org.spoofax.interpreter.core.StackTracer;
 import org.spoofax.interpreter.library.jsglr.JSGLRLibrary;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.InvalidParseTableException;
@@ -312,6 +313,18 @@ public final class Environment {
 			t.printStackTrace();
 		}
 		if (message == null) message = t.getLocalizedMessage() == null ? t.getMessage() : t.getLocalizedMessage();
+		Status status = new Status(IStatus.ERROR, RuntimeActivator.PLUGIN_ID, 0, message, t);
+		RuntimeActivator activator = RuntimeActivator.getInstance();
+		if (activator != null) activator.getLog().log(status);
+	}
+	
+	public static void logException(String message, StackTracer tracer, Throwable t) {
+		if (Debug.ENABLED) {
+			if (message != null) STDERR.println(message);
+			t.printStackTrace();
+		}
+		if (message == null) message = t.getLocalizedMessage() == null ? t.getMessage() : t.getLocalizedMessage();
+		message = message + "\n" + tracer.getTraceString();
 		Status status = new Status(IStatus.ERROR, RuntimeActivator.PLUGIN_ID, 0, message, t);
 		RuntimeActivator activator = RuntimeActivator.getInstance();
 		if (activator != null) activator.getLog().log(status);
