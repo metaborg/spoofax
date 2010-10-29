@@ -107,7 +107,7 @@ src/include/sdf2imp.ctree : sdf2imp
 	parse-unit --no-heuristic-filters -i $< -p src/syntax/EditorService.tbl
 
 %.runsh : %.sh
-	sh $<
+	$<
 
 src/syntax/EditorService.def : src/syntax/EditorService.sdf $(SDFS)
 	pack-sdf -i $< -o $@ -I src/syntax

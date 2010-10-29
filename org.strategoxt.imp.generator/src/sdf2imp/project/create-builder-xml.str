@@ -13,6 +13,9 @@ strategies
   create-builder-xml =
     <file-exists> $[.externalToolBuilders/[<builder-xml-name>]]
   <+
+    not(ProjectName);
+    warn-msg(|$[Project name not specified, cannot regenerate [<builder-xml-name>]])
+  <+
     // We use plain text since the XML pretty printer has problems with this file.
     //
     // - It seems that when a project is initially being built,
