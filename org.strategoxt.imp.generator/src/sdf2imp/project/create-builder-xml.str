@@ -16,7 +16,9 @@ strategies
     // We use plain text since the XML pretty printer has problems with this file.
     //
     // - It seems that when a project is initially being built,
-    //   only ${build_project} works, and ${project_loc} doesn't.  
+    //   only ${build_project} works, and ${project_loc} doesn't. 
+    // - ${project_loc} also doesn't work when a project has
+    //   just been imported from version control or the file system
     // - Variable ${build_project} prevents the Ant builder
     //   from detecting that this launch file belongs to the
     //   corresponding build.main.xml.
@@ -25,11 +27,12 @@ strategies
     //   are multiple projects
     // - PROJECT_ATTR seems to be ignored
     //
-    // To somewhat accomodate for this, we change the variable to project_loc
-    // after the project has been initially built in NewEditorWizard.
+    // Because of these issues we hardcode the project name in this file for now.
     //
     // The property org.eclipse.ui.externaltools.ATTR_WORKING_DIRECTORY may be optional,
     // at least for Ant builds.
+    
+    project-name := <ProjectName>;
     
     <output-text-file(|[".externalToolBuilders"], <builder-xml-name>)> 
 $[ <?xml version="1.0" encoding="UTF-8" standalone="no"?>
@@ -50,8 +53,8 @@ $[ <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <stringAttribute key="org.eclipse.jdt.launching.SOURCE_PATH_PROVIDER" value="org.eclipse.ant.ui.AntClasspathProvider"/>
 <stringAttribute key="org.eclipse.ui.externaltools.ATTR_ANT_TARGETS" value="all,"/>
 <stringAttribute key="org.eclipse.ui.externaltools.ATTR_LAUNCH_CONFIGURATION_BUILD_SCOPE" value="${none}"/>
-<stringAttribute key="org.eclipse.ui.externaltools.ATTR_LOCATION" value="${build_project}/build.main.xml"/>
-<stringAttribute key="org.eclipse.ui.externaltools.ATTR_WORKING_DIRECTORY" value="${build_project}"/>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_LOCATION" value="${workspace_loc:/[project-name]/build.main.xml}"/>
+<stringAttribute key="org.eclipse.ui.externaltools.ATTR_WORKING_DIRECTORY" value="${workspace_loc:/[project-name]}"/>
 <stringAttribute key="process_factory_id" value="org.eclipse.ant.ui.remoteAntProcessFactory"/>
 </launchConfiguration>
 ]
