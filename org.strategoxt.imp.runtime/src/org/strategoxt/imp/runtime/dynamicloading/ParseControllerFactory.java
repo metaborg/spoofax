@@ -35,7 +35,10 @@ public class ParseControllerFactory extends AbstractServiceFactory<IParseControl
 		} catch (RuntimeException e) {
 			throw new BadDescriptorException("Could not load parse table for " + language.getName(), e);
 		}
-		return new SGLRParseController(language, table, syntaxProperties, descriptor.getStartSymbol());
+		SGLRParseController result = new SGLRParseController(language, table, syntaxProperties, descriptor.getStartSymbol());
+		if (table.isDynamic())
+			table.setController(result);
+		return result;
 	}
 
 }

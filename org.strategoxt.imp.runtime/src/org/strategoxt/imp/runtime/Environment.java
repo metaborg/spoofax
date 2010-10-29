@@ -1,5 +1,6 @@
 package org.strategoxt.imp.runtime;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
@@ -33,6 +34,7 @@ import org.spoofax.jsglr.SGLR;
 import org.strategoxt.HybridInterpreter;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
+import org.strategoxt.imp.runtime.dynamicloading.DynamicParseTableProvider;
 import org.strategoxt.imp.runtime.dynamicloading.ParseTableProvider;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.IMPJSGLRLibrary;
@@ -247,16 +249,25 @@ public final class Environment {
 		return parseTableManager.loadFromStream(stream);
 	}
 	
+	public static ParseTable loadParseTable(String filename) throws FileNotFoundException, IOException, InvalidParseTableException {
+		return parseTableManager.loadFromFile(filename);
+	}
+	
 	public static ParseTableProvider getParseTableProvider(Language language)
 			throws BadDescriptorException, InvalidParseTableException,
 			       IOException, CoreException, IllegalStateException {
 		
-		ParseTableProvider result = parseTables.get(language.getName());
-		
-		if (result == null)
-			throw new IllegalStateException("Parse table not available: " + language.getName());
+		String function = getDescriptor(language).getParseTableProviderFunction();
+		if (function != null) {
+			return new DynamicParseTableProvider(getDescriptor(language), function);
+		} else {
+			ParseTableProvider result = parseTables.get(language.getName());
 			
-		return result;
+			if (result == null)
+				throw new IllegalStateException("Parse table not available: " + language.getName());
+			
+			return result;
+		}
 	}
 	
 	public static void registerDescriptor(Language language, Descriptor descriptor)

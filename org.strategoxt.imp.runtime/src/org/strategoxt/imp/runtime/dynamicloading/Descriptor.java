@@ -376,6 +376,10 @@ public class Descriptor {
 		return file;
 	}
 	
+	public String getParseTableProviderFunction() throws BadDescriptorException {
+		return getProperty("TableProvider", null);
+	}
+	
 	public String getBuilderCaption() {
 		if (builderCaption == null)
 			builderCaption = getProperty("BuilderCaption", "");

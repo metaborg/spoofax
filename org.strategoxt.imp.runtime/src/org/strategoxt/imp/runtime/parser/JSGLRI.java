@@ -1,5 +1,6 @@
 package org.strategoxt.imp.runtime.parser;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -106,7 +107,7 @@ public class JSGLRI extends AbstractSGLRI {
 	protected ATerm doParseNoImplode(char[] inputChars, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 		
-		return doParseNoImplode(toByteStream(inputChars), inputChars);
+		return doParseNoImplode(toByteStream(inputChars), inputChars, filename);
 	}
 	
 	/**
@@ -124,13 +125,16 @@ public class JSGLRI extends AbstractSGLRI {
 		}
 	}
 	
-	private ATerm doParseNoImplode(InputStream inputStream, char[] inputChars)
+	private ATerm doParseNoImplode(InputStream inputStream, char[] inputChars, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 		
 		// Read stream using tokenizer/lexstream
 		
 		// FIXME: Some bug in JSGLR is causing its state to get corrupted; must reset it every parse
 		// (must do this beforehand to keep getCollectedErrors() intact afterwards)
+		if (parseTable.isDynamic()) {
+			parseTable.initialize(new File(filename));
+		}
 		resetState();
 		try {
 			return parser.parse(inputStream, getStartSymbol());

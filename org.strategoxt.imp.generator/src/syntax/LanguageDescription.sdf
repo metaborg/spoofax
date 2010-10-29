@@ -1,6 +1,7 @@
 module LanguageDescription
 
-imports Common
+imports
+	Common SemanticServices
 
 exports
   
@@ -38,6 +39,7 @@ exports
     "extensions"      ":" PropertyValues -> LanguageProperty {cons("Extensions")}
     "description"     ":" PropertyValue  -> LanguageProperty {cons("Description")}
     "table"           ":" PropertyValue  -> LanguageProperty {cons("Table")}
+    "table" "provider" ":" StrategoCall  -> LanguageProperty {cons("TableProvider")}
     "start" "symbols" ":" Sort*          -> LanguageProperty {cons("StartSymbols")}
     "start" "symbols" ":" PropertyValues -> LanguageProperty {cons("StartSymbols"), avoid}
     "url"             ":" URL            -> LanguageProperty {cons("URL")}
