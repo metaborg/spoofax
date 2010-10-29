@@ -14,13 +14,10 @@ strategies
     <conc-strings> (<get-main-class-name>, "ParseController")
 
   create-parse-controller =
-    // TODO: do not overwrite existing parse controller
-    //       or add a comment explaining it's always overwritten and users
-    //       can add a new class if they want to as long as they reference
-    //       it from plugin.xml
-    x_name  := <parse-controller-name>;
-    pkgname := <get-package-name>;
-    table   := <get-sdf-main-module>;
+    x_name           := <parse-controller-name>;
+    x_namegenerated  := <conc-strings> (x_name, "Generated");
+    pkgname          := <get-package-name>;
+    table            := <get-sdf-main-module>;
     
     <output-java-file> |[
       package pkgname;
@@ -34,7 +31,7 @@ strategies
       import org.strategoxt.imp.runtime.dynamicloading.DescriptorFactory;
       import org.strategoxt.imp.runtime.dynamicloading.DynamicParseController;
       
-      public class x_name extends DynamicParseController {
+      public class x_namegenerated extends DynamicParseController {
 
         public static final String LANGUAGE = new String("~table");
 
@@ -106,4 +103,13 @@ strategies
           super.setNotLoadingCause(value);
         }
       }
-    ]|
+    ]|;
+    
+    default-class := |[
+      package pkgname;
+      
+      public class x_name extends x_namegenerated {}
+    ]|;
+    if not(<file-exists> <java-to-path> default-class) then
+      <output-java-file> default-class
+    end

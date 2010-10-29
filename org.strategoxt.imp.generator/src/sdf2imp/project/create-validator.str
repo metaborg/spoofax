@@ -12,12 +12,11 @@ strategies
     <conc-strings> (<get-main-class-name>, "Validator")
 
   create-validator =
-    // TODO: do not overwrite existing validator
     x_name   := <validator-name>;
     x_parser := <parse-controller-name>;
     pkgname  := <get-package-name>;
     
-    <output-java-file> |[
+    default-class := |[
       package pkgname;
 
       import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
@@ -30,4 +29,7 @@ strategies
               return x_parser.getDescriptor();
           }
       }
-    ]|
+    ]|;
+    if not(<file-exists> <java-to-path> default-class) then
+      <output-java-file> default-class
+    end

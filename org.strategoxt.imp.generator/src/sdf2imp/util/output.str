@@ -100,13 +100,7 @@ strategies
 strategies
   
   output-java-file =
-    where(
-      ?class;
-      path := <create-dirs> ["editor", "java" | <to-package-name>];
-      fullpath := <conc-strings> (path, "/", <class-name> class, ".java")
-    );
-    
-    output-java-file(|fullpath)
+    output-java-file(|<java-to-path>)
 
   output-java-file(|filename) =
     print-filename(|["editor", "java" | <to-package-name>], <base-filename> filename);
@@ -118,6 +112,13 @@ strategies
     );
     
     output-text-file'(|filename)
+  
+  java-to-path:
+    class -> fullpath
+    where
+      path     := <create-dirs> ["editor", "java" | <to-package-name>];
+      fullpath := <conc-strings> (path, "/", <class-name> class, ".java")
+    
 
   output-xml-file(|pathparts, filename) =
     print-filename(|pathparts, filename);
