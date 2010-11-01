@@ -10,7 +10,7 @@ imports
   CompletionsService
   BuildersService
 
-exports
+hiddens
 
   context-free start-symbols
     Module
