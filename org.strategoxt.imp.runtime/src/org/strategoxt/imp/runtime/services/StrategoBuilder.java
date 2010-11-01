@@ -44,6 +44,7 @@ import org.strategoxt.imp.runtime.RuntimeActivator;
 import org.strategoxt.imp.runtime.dynamicloading.TermReader;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.StrategoConsole;
+import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 import org.strategoxt.lang.Context;
 import org.strategoxt.stratego_aterm.aterm_escape_strings_0_0;
@@ -297,6 +298,7 @@ public class StrategoBuilder implements IBuilder {
 	protected IStrategoTerm invokeObserver(IStrategoAstNode node) throws UndefinedStrategyException,
 			InterpreterErrorExit, InterpreterExit, InterpreterException {
 		
+		node = StrategoTermPath.getMatchingAncestor(node);
 		IStrategoTerm inputTerm = derivedFromEditor != null
 				? observer.makeATermInputTerm(node, true, derivedFromEditor.getResource()) 
 				: observer.makeInputTerm(node, true, source);

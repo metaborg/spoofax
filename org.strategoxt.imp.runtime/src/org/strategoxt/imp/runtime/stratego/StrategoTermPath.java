@@ -344,4 +344,21 @@ public class StrategoTermPath {
 			return false;
 		}
 	}
+	
+	/**
+	 * Gets the node furthest up the ancestor chain that
+	 * has either the same character offsets or has only one
+	 * child with the same character offsets as the node given.
+	 */
+	public static final IStrategoAstNode getMatchingAncestor(IStrategoAstNode oNode) {
+		IStrategoAstNode result = oNode;
+		int startOffset = result.getLeftIToken().getStartOffset();
+		int endOffset = result.getRightIToken().getEndOffset();
+		while (result.getParent() != null
+				&& (result.getParent().getChildren().size() <= 1 
+						|| (result.getParent().getLeftIToken().getStartOffset() >= startOffset
+							&& result.getParent().getRightIToken().getEndOffset() <= endOffset)))
+			result = result.getParent();
+		return result;
+	}
 }

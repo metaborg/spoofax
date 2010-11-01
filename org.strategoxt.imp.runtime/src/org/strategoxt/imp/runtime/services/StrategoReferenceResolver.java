@@ -12,6 +12,7 @@ import org.eclipse.imp.services.IReferenceResolver;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.Debug;
+import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 
 /**
@@ -38,7 +39,7 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 	}
 
 	public IAst getLinkTarget(Object oNode, IParseController parseController) {
-		IStrategoAstNode node = getReferencedNode(oNode);
+		IStrategoAstNode node = StrategoTermPath.getMatchingAncestor((IStrategoAstNode) oNode);
 		
 		String function = NodeMapping.getFirstAttribute(resolverFunctions, node.getConstructor(), node.getSort(), 0);
 		if (function == null) function = wildcardResolverFunction;
@@ -60,7 +61,7 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 	}
 
 	public String getLinkText(Object oNode) {
-		IStrategoAstNode node = getReferencedNode(oNode);
+		IStrategoAstNode node = StrategoTermPath.getMatchingAncestor((IStrategoAstNode) oNode);
 		if (node == null)
 			return null;
 		
@@ -84,12 +85,5 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 		} finally {
 			observer.getLock().unlock();
 		}
-	}
-	
-	private static final IStrategoAstNode getReferencedNode(Object oNode) {
-		IStrategoAstNode result = (IStrategoAstNode) oNode;
-		while (result != null && result.getConstructor() == null)
-			result = result.getParent();
-		return result;
 	}
 }
