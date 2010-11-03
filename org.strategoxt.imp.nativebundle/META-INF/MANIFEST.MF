@@ -12,4 +12,3 @@ Require-Bundle: org.spoofax.aterm,
  org.eclipse.core.runtime,
  org.strategoxt.imp.runtime
 Export-Package: org.strategoxt.imp.nativebundle
-Bundle-Vendor: Spoofax.org

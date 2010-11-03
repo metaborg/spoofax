@@ -9,6 +9,9 @@ import java.io.IOException;
 import java.io.Writer;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Platform;
@@ -38,6 +41,8 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 	private static final boolean ENABLED = true;
 	
 	private final xtc_command_1_0 proceed = xtc_command_1_0.instance;
+	
+	private final String[] windowsEnvironment = createWindowsEnvironment();
 	
 	private String binaryPath;
 	
@@ -70,11 +75,11 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 		if (os.equals(Platform.OS_LINUX)) {
 			subdir = "linux";
 		} else if (os.equals(Platform.OS_WIN32)){
-			subdir = "windows";
+			subdir = "cygwin";
 		} else if (os.equals(Platform.OS_MACOSX)) {
 			subdir = "macosx";
 		} else {
-			throw new UnsupportedOperationException("Platform is not supported: " + Platform.getOS());
+			throw new UnsupportedOperationException("Platform is not supported"); // TODO: print platform
 		}
 		
 		URL url = Activator.getInstance().getContext().getBundle().getResource(NATIVE_PATH + subdir);
@@ -141,6 +146,11 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 
 	private boolean invoke(Context context, String command, IStrategoTerm[] argList) {
 		String[] commandArgs = SSL_EXT_call.toCommandArgs(binaryPath + command, argList);
+		// Disabled this check since Windows x64 might identify differently?
+		//String[] environment = Platform.getOS() == Platform.OS_WIN32
+		//	? createWindowsEnvironment()
+		//	: null;
+		String[] environment = windowsEnvironment;
 		IOAgent io = context.getIOAgent();
 		
 		try {
@@ -149,25 +159,39 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 			Writer err = io.getWriter(IOAgent.CONST_STDERR);
 			
 			err.write("Invoking native tool " + binaryPath + command + binaryExtension + " " + Arrays.toString(argList) + "\n");
-			int result = new NativeCallHelper().call(commandArgs, new File(io.getWorkingDir()), out, err);
+			int result = new NativeCallHelper().call(commandArgs, environment, new File(io.getWorkingDir()), out, err);
 			if (result != 0) {
 				Environment.logException("Native tool " + command
 						+ " exited with error code " + result
 						+ "\nCommand:\n  " + Arrays.toString(commandArgs)
+						+ "\nEnvironment:\n " + Arrays.toString(environment)
 						+ "\nWorking dir:\n  " + io.getWorkingDir());
 			}
 			return result == 0;
 		} catch (IOException e) {
 			throw new StrategoException("Could not call native tool " + command
 					+ "\nCommand:\n  " + Arrays.toString(commandArgs)
+					+ "\nEnvironment:\n " + Arrays.toString(environment)
 					+ "\nWorking dir:\n  " + io.getWorkingDir(), e);
 		} catch (InterruptedException e) {
 			throw new StrategoException("Could not call " + command, e);
 		} catch (RuntimeException e) {
 			throw new StrategoException("Could not call native tool " + command
 					+ "\nCommand:\n  " + Arrays.toString(commandArgs)
+					+ "\nEnvironment:\n " + Arrays.toString(environment)
 					+ "\nWorking dir:\n  " + io.getWorkingDir(), e);
 		}
+	}
+	
+	private static String[] createWindowsEnvironment() {
+		Map<String, String> envp = new HashMap<String, String>(System.getenv());
+		envp.put("CYGWIN", "nodosfilewarning");
+		String[] result = new String[envp.size()];
+		int i = 0;
+		for (Entry<String, String> entry : envp.entrySet()) {
+			result[i++] = entry.getKey() + "=" + entry.getValue();
+		}
+		return result;
 	}
 
 	private boolean makeExecutable(IOAgent io, String command) {
