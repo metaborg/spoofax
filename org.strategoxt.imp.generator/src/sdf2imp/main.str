@@ -148,6 +148,7 @@ strategies
     create-common-trans;
     copy-jars;
     copy-def-file;
+    create-jdt-prefs;
     
     say(!"Build succesful.")
 
