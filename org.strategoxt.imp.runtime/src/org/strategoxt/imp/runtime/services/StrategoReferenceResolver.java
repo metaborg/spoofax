@@ -39,7 +39,7 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 	}
 
 	public IAst getLinkTarget(Object oNode, IParseController parseController) {
-		IStrategoAstNode node = StrategoTermPath.getMatchingAncestor((IStrategoAstNode) oNode);
+		IStrategoAstNode node = StrategoTermPath.getMatchingAncestor((IStrategoAstNode) oNode, true);
 		
 		String function = NodeMapping.getFirstAttribute(resolverFunctions, node.getConstructor(), node.getSort(), 0);
 		if (function == null) function = wildcardResolverFunction;
@@ -61,7 +61,7 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 	}
 
 	public String getLinkText(Object oNode) {
-		IStrategoAstNode node = StrategoTermPath.getMatchingAncestor((IStrategoAstNode) oNode);
+		IStrategoAstNode node = StrategoTermPath.getMatchingAncestor((IStrategoAstNode) oNode, true);
 		if (node == null)
 			return null;
 		

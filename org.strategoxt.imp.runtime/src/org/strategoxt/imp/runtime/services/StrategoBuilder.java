@@ -298,7 +298,7 @@ public class StrategoBuilder implements IBuilder {
 	protected IStrategoTerm invokeObserver(IStrategoAstNode node) throws UndefinedStrategyException,
 			InterpreterErrorExit, InterpreterExit, InterpreterException {
 		
-		node = StrategoTermPath.getMatchingAncestor(node);
+		node = StrategoTermPath.getMatchingAncestor(node, false);
 		IStrategoTerm inputTerm = derivedFromEditor != null
 				? observer.makeATermInputTerm(node, true, derivedFromEditor.getResource()) 
 				: observer.makeInputTerm(node, true, source);
