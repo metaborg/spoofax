@@ -495,8 +495,8 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 
 	private static String tryGetProjectPath(IResource resource) {
 		return resource.getProject() != null && resource.getProject().exists()
-				? resource.getProject().getLocation().toOSString()
-				: resource.getFullPath().removeLastSegments(1).toOSString();
+				? resource.getProject().getLocation().toString()
+				: resource.getFullPath().removeLastSegments(1).toString();
 	}
 
 	/**
