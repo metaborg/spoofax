@@ -221,7 +221,7 @@ public class AsfixImploder {
 		
 		// Debug.log("Creating node ", sort, " from ", SGLRTokenizer.dumpToString(token));
 		
-		AstNode result = factory.createStringTerminal(getPaddedLexicalValue(attrs, token), sort, token);
+		AstNode result = factory.createStringTerminal(sort, getPaddedLexicalValue(attrs, token), token);
 		String constructor = reader.getMetaVarConstructor(rhs);
 		if (constructor != null) {
 			ArrayList<AstNode> children = new ArrayList<AstNode>(1);
@@ -295,7 +295,7 @@ public class AsfixImploder {
 		} else if (constructor == null && children.size() == 1 && children.get(0).getSort() == AstNode.STRING_SORT) {
 			// Child node was a <string> node (rare case); unpack it and create a new terminal
 			assert left == right && children.get(0).getChildren().size() == 0;
-			return factory.createStringTerminal(getPaddedLexicalValue(attrs, left), sort, left);
+			return factory.createStringTerminal(sort, getPaddedLexicalValue(attrs, left), left);
 		} else {
 			return factory.createNonTerminal(sort, constructor, left, right, children);
 		}

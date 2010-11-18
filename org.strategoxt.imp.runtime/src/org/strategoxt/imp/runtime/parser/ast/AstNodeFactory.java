@@ -31,7 +31,7 @@ public class AstNodeFactory {
 	/**
 	 * Create a new terminal AST node for a string token.
 	 */
-	public final StringAstNode createStringTerminal(String value, String sort, IToken token) {
+	public final StringAstNode createStringTerminal(String sort, String value, IToken token) {
 		return new StringAstNode(value, sort, token, token);
 	}
 	

@@ -8,15 +8,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
-import lpg.runtime.ILexStream;
-import lpg.runtime.Monitor;
-import lpg.runtime.PrsStream;
+import lpg.runtime.IPrsStream;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
-import org.eclipse.imp.parser.IParser;
 import org.spoofax.jsglr.BadTokenException;
 import org.spoofax.jsglr.SGLRException;
 import org.spoofax.jsglr.TokenExpectedException;
@@ -37,7 +34,7 @@ import aterm.ATerm;
  *
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */ 
-public abstract class AbstractSGLRI implements IParser {
+public abstract class AbstractSGLRI {
 	
 	@SuppressWarnings("unused")
 	private static final Map<CachingKey, ATerm> parsedCache =
@@ -71,7 +68,7 @@ public abstract class AbstractSGLRI implements IParser {
 	/**
 	 * Get the current parsestream.
 	 */
-	public PrsStream getParseStream() {
+	public IPrsStream getParseStream() {
 		SGLRTokenizer tokenizer = getTokenizer();
 		if (tokenizer == null) return null;
 		return tokenizer.getParseStream();
@@ -193,11 +190,6 @@ public abstract class AbstractSGLRI implements IParser {
 		}
 	}
 	
-	@Deprecated
-	public void reset(ILexStream lexStream) {
-		throw new UnsupportedOperationException();
-	}
-	
 	protected abstract ATerm doParseNoImplode(char[] inputChars, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException;
 
@@ -222,23 +214,6 @@ public abstract class AbstractSGLRI implements IParser {
 			bytes[i] = (byte) chars[i];
 		
 		return new ByteArrayInputStream(bytes);
-	}
-	
-	// LPG legacy / compatibility
-
-	@Deprecated
-	public Object parser(Monitor monitor, int error_repair_count) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Deprecated
-	public String[] orderedTerminalSymbols() {
-		return null; // should map token kinds to names
-	}
-
-	@Deprecated
-	public int numTokenKinds() {
-		return 10;
 	}
 }
 

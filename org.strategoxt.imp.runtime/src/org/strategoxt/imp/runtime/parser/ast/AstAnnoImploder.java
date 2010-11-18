@@ -108,7 +108,7 @@ public class AstAnnoImploder {
 			children.add(toAstNode(termAt(appl, i), null));
 		}
 		if (appl.isQuoted()) {
-			return factory.createStringTerminal(appl.getName(), sort, leftToken);
+			return factory.createStringTerminal(sort, appl.getName(), leftToken);
 		} else {
 			return factory.createNonTerminal(sort, appl.getName(), leftToken, rightToken, children);
 		}
