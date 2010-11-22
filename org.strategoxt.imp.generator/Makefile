@@ -1,5 +1,9 @@
 # HACK: Assume nix installation in Makefile
 
+STRATEGOXT ?= ${HOME}/.nix-profile
+JAVA_FRONT ?= ${HOME}/.nix-profile
+SDF        ?= ${HOME}/.nix-profile
+
 STRS     = $(wildcard src/*.str) \
            $(wildcard src/sdf2imp/*.str) \
            $(wildcard src/sdf2imp/lib/*.str) \
@@ -23,13 +27,13 @@ STRCFLAGS = \
     -la stratego-rtg \
     -la stratego-sdf \
     -la stratego-aterm \
-    -I ${HOME}/.nix-profile/share/java-front \
-    -I ${HOME}/.nix-profile/share/gpp \
-    -I ${HOME}/.nix-profile/share/xml-front \
-    -I ${HOME}/.nix-profile/share/sdf-tools \
-    -I ${HOME}/.nix-profile/share/stratego-front \
-    -I ${HOME}/.nix-profile/share/xtc \
-    -I ${HOME}/.nix-profile/share/pgen \
+    -I ${JAVA_FRONT}/share/java-front \
+    -I ${STRATEGOXT}/share/gpp \
+    -I ${STRATEGOXT}/share/xml-front \
+    -I ${STRATEGOXT}/share/sdf-tools \
+    -I ${STRATEGOXT}/share/stratego-front \
+    -I ${STRATEGOXT}/share/xtc \
+    -I ${SDF}/share/pgen \
     `pkg-config --variable=strcxtcflags strategoxt`
 
 JAVACFLAGS=-J-Xmx256m -J-Xms100m -J-server -J-XX:+UseParallelGC -cp strategoxt.jar -source 5 -nowarn
@@ -37,18 +41,18 @@ JAVAC=`if which ecj >/dev/null; then echo ecj; else echo javac; fi`
 STRJ=`if which strj >/dev/null; then echo strj; elif [ -e strategoxt.jar ]; then echo java -server -Xss4m -jar strategoxt.jar; else echo Please install strj or put strategoxt.jar into the current directory. >&2; exit 1; fi`
 
 SDFINCLUDES = \
-    -Idef ${HOME}/.nix-profile/share/java-front/Stratego-Java-EBlock.def
+    -Idef ${JAVA_FRONT}/share/java-front/Stratego-Java-EBlock.def
 
 # I don't care much for nullary constructor warnings unless it's about lowercase ones, such as 'start'
 STRCSTFU=2>&1 | grep -vE 'warning ] Nullary constructor .*[A-Z]|warning ] multiple external| \[ExtSDef\(|stratego-trm|module-name-checked|module-name-checked"' \
                  >&2
 
 STRINCLUDES = \
-	-I ${HOME}/.nix-profile/share/sdf/xml-front \
-	-I ${HOME}/.nix-profile/share/sdf/gpp \
-	-I ${HOME}/.nix-profile/share/sdf/stratego-regular \
-	-I ${HOME}/.nix-profile/share/sdf/sdf-front \
-	-I ${HOME}/.nix-profile/share/java-front \
+	-I ${STRATEGOXT}/share/sdf/xml-front \
+	-I ${STRATEGOXT}/share/sdf/gpp \
+	-I ${STRATEGOXT}/share/sdf/stratego-regular \
+	-I ${STRATEGOXT}/share/sdf/sdf-front \
+	-I ${JAVA_FRONT}/share/java-front \
 	-I src/syntax \
     `pkg-config --variable=strcflags java-front`
 
@@ -66,7 +70,7 @@ check : sdf2imp syntax \
 
 sdf2imp : $(RTREES) $(SYNTAX) Makefile src/include/rtg.tbl
 	strc -i src/sdf2imp.str -o $@ $(STRINCLUDES) $(STRCFLAGS) -m main-sdf2imp \
-	     -la ${HOME}/.nix-profile/lib/libjava-front.la
+	     -la ${JAVA_FRONT}/lib/libjava-front.la
 	rm -f sdf2imp.c sdf2imp.lo sdf2imp.o
 
 src-gen/org/strategoxt/imp/generator/sdf2imp.java : $(RTREES) $(SYNTAX) Makefile src/include/rtg.tbl
@@ -122,7 +126,7 @@ src/syntax/Stratego-Java-EditorService.tbl : src/syntax/Stratego-Java-EditorServ
 	sdf2table -m Stratego-Java-EditorService -i $< -o $@
 
 # We need a better solution for this
-src/include/rtg.tbl : ~/.nix-profile/share/sdf/stratego-regular/rtg.tbl
+src/include/rtg.tbl : ${STRATEGOXT}/share/sdf/stratego-regular/rtg.tbl
 	[ -e src/include ] || mkdir src/include
 	baf2trm  -i $< -o $@ # cp $< $@
 
