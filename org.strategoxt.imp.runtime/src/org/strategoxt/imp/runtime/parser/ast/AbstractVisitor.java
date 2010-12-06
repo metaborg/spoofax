@@ -18,9 +18,12 @@ public abstract class AbstractVisitor implements IAstVisitor {
 	}
 }
 
-// Local interface avoids abstract methods and subsequent @Override annotations
+// Local interface avoids abstract methods and subsequent @Override annotation requirement
 
 interface IAstVisitor extends lpg.runtime.IAstVisitor {
+	/**
+	 * @return true if this node should be visited and post-visited.
+	 */
 	boolean preVisit(AstNode node);
 
 	void postVisit(AstNode node);

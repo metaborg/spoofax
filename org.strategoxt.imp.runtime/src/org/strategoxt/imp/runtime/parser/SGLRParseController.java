@@ -65,7 +65,7 @@ import aterm.ATerm;
  */
 public class SGLRParseController implements IParseController {
 	
-	private static final int PARSE_TIMEOUT = 6 * 1000;
+	private static final int PARSE_TIMEOUT = 20 * 1000;
 	
 	private final TokenKindManager tokenManager = new TokenKindManager();
 	
