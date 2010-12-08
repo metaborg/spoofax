@@ -76,8 +76,8 @@ strategies
     <project name="build.generated">
 
         <target name="spoofaximp.default" depends="spoofaximp.default.ctree"/>
-        <target name="spoofaximp.default.ctree" depends="check-classpath,sdf2table,meta-sdf2table,ppgen,pppack,stratego.aster,stratego.ctree,java.jar,sdf2imp,refresh"/>
-        <target name="spoofaximp.default.jar"   depends="check-classpath,sdf2table,meta-sdf2table,ppgen,pppack,stratego.aster,stratego.jar,  java.jar,sdf2imp,refresh"/>
+        <target name="spoofaximp.default.ctree" depends="check-classpath,init,sdf2table,meta-sdf2table,ppgen,pppack,stratego.aster,stratego.ctree,java.jar,sdf2imp,refresh"/>
+        <target name="spoofaximp.default.jar"   depends="check-classpath,init,sdf2table,meta-sdf2table,ppgen,pppack,stratego.aster,stratego.jar,  java.jar,sdf2imp,refresh"/>
     
         <!-- Initialization -->
         <available file="${build}/<%= pkgdir %>/strategies/Main.class" property="java.jar.enabled"/>
@@ -156,6 +156,13 @@ strategies
         <target name="check-classpath">
             <available classname="org.strategoxt.imp.generator.sdf2imp" property="check-classpath.available"/>
             <antcall target="check-classpath.helper"/>  
+        </target>
+        
+        <target name="init" if="eclipse.running">
+            <!-- refresh one file/dir in the project to trigger an Ant rebuild with the next build command -->
+            <java classname="org.strategoxt.imp.metatooling.building.AntForceRefreshScheduler" failonerror="false">
+                <arg value="${include}"/>
+            </java>
         </target>
   
         <target name="check-classpath.helper" unless="check-classpath.available">
