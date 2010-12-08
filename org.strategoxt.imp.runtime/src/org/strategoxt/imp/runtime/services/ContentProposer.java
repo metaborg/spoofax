@@ -168,7 +168,7 @@ public class ContentProposer implements IContentProposer {
 			try {
 				String parseErrorHelp = currentCompletionNode != null
 					&& currentCompletionNode.getConstructor() == COMPLETION_UNKNOWN
-					? "\n   (context could not be parsed with this grammar; consider experimenting\n   with additional productions for this partial construct, possibly\n   marked with a {recover} annotation.)"
+					? "\n   (context could not be parsed with this grammar; see the FAQ.)"
 					: "";
 				StrategoConsole.getOutputWriter().write(
 					":: Completion triggered for: " + currentCompletionNode
