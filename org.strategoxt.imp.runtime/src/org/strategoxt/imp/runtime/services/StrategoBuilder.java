@@ -260,8 +260,6 @@ public class StrategoBuilder implements IBuilder {
 
 	private String getResultString(IStrategoTerm resultTerm) {
 		resultTerm = termAt(resultTerm, 1);
-		resultTerm = try_1_0.instance.invoke(observer.getRuntime().getCompiledContext(),
-				resultTerm, concat_strings_0_0.instance);
 		
 		return isTermString(resultTerm) ? asJavaString(resultTerm) : ppATerm(resultTerm).stringValue();
 	}
