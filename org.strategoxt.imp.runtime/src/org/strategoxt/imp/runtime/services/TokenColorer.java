@@ -109,7 +109,8 @@ public class TokenColorer implements ITokenColorer {
 		}
 		 
 		TextAttribute tokenColor = getColoring(tokenMappings, constructor, sort, tokenKind);
-		if (nodeColor == null) nodeColor = getColoring(nodeMappings, constructor, sort, tokenKind);
+		if (nodeColor == null && tokenKind != TokenKind.TK_LAYOUT.ordinal())
+			nodeColor = getColoring(nodeMappings, constructor, sort, tokenKind);
 		TextAttribute result = mergeStyles(nodeColor, tokenColor);
 		
 		if (node != null) {
