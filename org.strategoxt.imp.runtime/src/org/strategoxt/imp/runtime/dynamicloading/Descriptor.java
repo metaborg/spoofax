@@ -267,7 +267,7 @@ public class Descriptor {
 	/**
 	 * Gets the class that provides access to any attached files in its enclosing JAR file.
 	 */
-	protected Class<?> getAttachmentProvider() {
+	public Class<?> getAttachmentProvider() {
 		try {
 			if (attachmentProvider == null)
 				attachmentProvider = createService(IParseController.class, null).getClass();

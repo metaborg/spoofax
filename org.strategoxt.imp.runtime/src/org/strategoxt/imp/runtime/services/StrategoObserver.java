@@ -223,7 +223,8 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 					file = fileCopier.copyToTempFile(file);
 				classpath[i] = file.toURI().toURL();
 			}
-			runtime.loadJars(classpath);
+			ClassLoader loader = descriptor.getAttachmentProvider().getClassLoader();
+			runtime.loadJars(loader, classpath);
 			Debug.stopTimer("Successfully loaded " + jars);
 		} catch (SecurityException e) {
 			reportLoadException(e, jars);
