@@ -27,7 +27,9 @@ public class StrategoBuilderListener implements IModelListener {
 	private static final WeakWeakMap<IEditorPart, StrategoBuilderListener> asyncListeners =
 		new WeakWeakMap<IEditorPart, StrategoBuilderListener>();
 	
-	private final String builder;
+	private final String builderName;
+
+	private final Object builderData;
 	
 	private WeakReference<UniversalEditor> editor;
 	
@@ -42,17 +44,18 @@ public class StrategoBuilderListener implements IModelListener {
 	private boolean enabled = true;
 	
 	private StrategoBuilderListener(UniversalEditor editor, IEditorPart targetEditor, IFile targetFile,
-			String builder, IStrategoAstNode selection) {
+			IBuilder builder, IStrategoAstNode selection) {
 		
 		this.editor = new WeakReference<UniversalEditor>(editor);
 		this.targetEditor = new WeakReference<IEditorPart>(targetEditor);
-		this.builder = builder;
+		this.builderName = builder.getCaption();
+		this.builderData = builder.getData();
 		this.targetFile = targetFile;
 		this.lastChanged = targetFile.getLocalTimeStamp();
 		this.selection = selection;
 	}
 
-	public static StrategoBuilderListener addListener(UniversalEditor editor, IEditorPart target, IFile file, String builder, IStrategoAstNode node) {
+	public static StrategoBuilderListener addListener(UniversalEditor editor, IEditorPart target, IFile file, IBuilder builder, IStrategoAstNode node) {
 		synchronized (asyncListeners) {
 			StrategoBuilderListener listener = asyncListeners.get(editor);
 			if (listener != null) listener.setEnabled(false);
@@ -122,9 +125,10 @@ public class StrategoBuilderListener implements IModelListener {
 		
 		try {
 			IBuilderMap builders = editor.getDescriptor().createService(IBuilderMap.class, editor.getParseController());
-			IBuilder builder = builders.get(this.builder);
+			IBuilder builder = builders.get(this.builderName);
 			if (builder == null)
-			    throw new RuntimeException("No builder exists with this name: " + this.builder);
+			    throw new RuntimeException("No builder exists with this name: " + this.builderName);
+			builder.setData(builderData);
 			
 			IStrategoAstNode newSelection = findNewSelection(editor);
 			Job job;

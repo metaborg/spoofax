@@ -34,6 +34,8 @@ public class CustomStrategyBuilder extends StrategoBuilder {
 	private static final Map<String, String> initialValues =
 		synchronizedMap(new HashMap<String, String>());
 	
+	private String inputtedBuilderRule;
+	
 	public CustomStrategyBuilder(StrategoObserver observer, EditorState derivedFromEditor) {
 		// TODO: reconsider source = true here?
 		super(observer, "Apply custom rule...", null, true, true, false, true, false, derivedFromEditor);
@@ -52,7 +54,19 @@ public class CustomStrategyBuilder extends StrategoBuilder {
 		}
 	}
 	
+	@Override
+	public Object getData() {
+		return inputtedBuilderRule;
+	}
+	
+	@Override
+	public void setData(Object data) {
+		inputtedBuilderRule = (String) data;
+	}
+	
 	private String inputBuilderRule(EditorState editor) {
+		if (inputtedBuilderRule != null)
+			return inputtedBuilderRule;
 		IInputValidator validator = 
 			new IInputValidator() {
 				public String isValid(String name) {
@@ -67,7 +81,7 @@ public class CustomStrategyBuilder extends StrategoBuilder {
 			InputDialog dialog = new InputDialog(null, "Apply custom rule", "Enter the name of the rewrite rule or strategy to apply", getInitialValue(editor), validator);
 			if (dialog.open() == InputDialog.OK) {
 				setInitialValue(editor, dialog.getValue());
-				return dialog.getValue();
+				return inputtedBuilderRule = dialog.getValue();
 			} else {
 				return null;
 			}

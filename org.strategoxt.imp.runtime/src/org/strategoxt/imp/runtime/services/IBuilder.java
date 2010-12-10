@@ -13,4 +13,8 @@ public interface IBuilder {
 	String getCaption();
 	
 	Job scheduleExecute(EditorState editor, IStrategoAstNode ast, IFile errorReportFile, boolean isRebuild);
+
+	Object getData();
+	
+	void setData(Object data);
 }
