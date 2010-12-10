@@ -137,7 +137,8 @@ public class StrategoBuilderListener implements IModelListener {
 			} else {
 				job = builder.scheduleExecute(editor, editor.getParseController().getCurrentAst(), targetFile, true);
 			}
-			job.join(); // wait to get new time stamp
+			if (job != null)
+				job.join(); // wait to get new time stamp
 
 		} catch (BadDescriptorException e) {
 			Environment.logException("Could not update derived editor for " + editor.getResource(), e);
