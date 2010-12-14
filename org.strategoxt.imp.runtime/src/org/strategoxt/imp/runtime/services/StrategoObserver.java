@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -223,8 +224,12 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 					file = fileCopier.copyToTempFile(file);
 				classpath[i] = file.toURI().toURL();
 			}
-			ClassLoader loader = descriptor.getAttachmentProvider().getClassLoader();
-			runtime.loadJars(loader, classpath);
+			Class<?> attachments = descriptor.getAttachmentProvider();
+			Debug.log("Loading JARs from " + Arrays.toString(classpath));
+			Debug.log("Parent class loader: ", attachments.getName() + "; " + attachments.getClassLoader().getClass().getName());
+			// TODO: Use plugin's parent class loader? (Spoofax/322)
+			// runtime.loadJars(attachments.getClassLoader(), classpath);
+			runtime.loadJars(getClass().getClassLoader(), classpath);
 			Debug.stopTimer("Successfully loaded " + jars);
 		} catch (SecurityException e) {
 			reportLoadException(e, jars);
