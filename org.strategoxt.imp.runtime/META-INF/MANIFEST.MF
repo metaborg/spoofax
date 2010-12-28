@@ -5,7 +5,7 @@ Bundle-SymbolicName: org.strategoxt.imp.runtime;singleton:=true
 Bundle-Version: 0.1.1.qualifier
 Require-Bundle: org.eclipse.imp.runtime,
  org.spoofax.aterm,
- org.spoofax.jsglr,
+ org.spoofax.jsglr;bundle-version="0.3.0",
  org.spoofax.interpreter.core,
  org.spoofax.interpreter.adapter.aterm,
  org.spoofax.interpreter.library.jsglr,
