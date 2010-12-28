@@ -8,9 +8,9 @@ import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.terms.StrategoInt;
+import org.spoofax.terms.StrategoTuple;
 import org.strategoxt.imp.runtime.stratego.adapter.IWrappedAstNode;
-import org.strategoxt.lang.terms.StrategoInt;
-import org.strategoxt.lang.terms.StrategoTuple;
 
 /**
  * Returns the textfragment that corresponds to the given char position (offset, offset-end)

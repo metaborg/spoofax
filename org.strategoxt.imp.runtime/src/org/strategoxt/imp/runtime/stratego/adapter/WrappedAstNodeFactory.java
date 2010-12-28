@@ -13,7 +13,7 @@ import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.strategoxt.lang.terms.TermFactory;
+import org.spoofax.terms.TermFactory;
 
 /**
  * A factory creating ATerms from AST nodes.

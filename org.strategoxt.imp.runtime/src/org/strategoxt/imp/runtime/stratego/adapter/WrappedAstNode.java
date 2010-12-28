@@ -2,9 +2,9 @@ package org.strategoxt.imp.runtime.stratego.adapter;
 
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.terms.StrategoTerm;
+import org.spoofax.terms.TermFactory;
 import org.spoofax.terms.io.InlinePrinter;
-import org.strategoxt.lang.terms.StrategoTerm;
-import org.strategoxt.lang.terms.TermFactory;
 
 public abstract class WrappedAstNode extends StrategoTerm implements IWrappedAstNode, IStrategoTerm, Cloneable {
 	

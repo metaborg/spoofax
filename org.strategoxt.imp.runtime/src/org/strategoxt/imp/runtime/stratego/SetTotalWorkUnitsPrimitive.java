@@ -7,9 +7,9 @@ import org.spoofax.interpreter.library.IOAgent;
 import org.spoofax.interpreter.library.ssl.SSLLibrary;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.terms.StrategoInt;
 import org.strategoxt.imp.runtime.services.StrategoAnalysisJob;
 import org.strategoxt.imp.runtime.services.StrategoProgressMonitor;
-import org.strategoxt.lang.terms.StrategoInt;
 
 public class SetTotalWorkUnitsPrimitive extends AbstractPrimitive {
 

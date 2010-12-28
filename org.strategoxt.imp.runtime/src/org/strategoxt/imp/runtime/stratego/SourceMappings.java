@@ -10,8 +10,8 @@ import java.util.WeakHashMap;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.terms.LazyTerm;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
-import org.strategoxt.lang.terms.LazyTerm;
 
 import aterm.ATerm;
 
