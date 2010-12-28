@@ -2,7 +2,7 @@ package org.strategoxt.imp.runtime.stratego.adapter;
 
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.interpreter.terms.InlinePrinter;
+import org.spoofax.terms.io.InlinePrinter;
 import org.strategoxt.lang.terms.StrategoTerm;
 import org.strategoxt.lang.terms.TermFactory;
 

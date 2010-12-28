@@ -14,12 +14,12 @@ import org.eclipse.imp.language.Language;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.jsglr.ParseTable;
 import org.spoofax.jsglr.SGLRException;
+import org.spoofax.terms.io.baf.BAFReader;
 import org.strategoxt.imp.generator.sdf2imp;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.JSGLRI;
 import org.strategoxt.lang.WeakValueHashMap;
-import org.strategoxt.lang.terms.BAFReader;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>

@@ -13,7 +13,7 @@ import org.eclipse.core.resources.IResource;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermPrinter;
-import org.spoofax.interpreter.terms.InlinePrinter;
+import org.spoofax.terms.io.InlinePrinter;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;

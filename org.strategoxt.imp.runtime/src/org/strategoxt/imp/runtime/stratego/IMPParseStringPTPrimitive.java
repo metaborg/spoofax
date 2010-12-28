@@ -16,8 +16,8 @@ import org.spoofax.jsglr.SGLRException;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.JSGLRI;
 import org.strategoxt.imp.runtime.stratego.SourceMappings.MappableTerm;
-import org.strategoxt.lang.LazyTerm;
 import org.strategoxt.lang.compat.sglr.JSGLR_parse_string_pt_compat;
+import org.strategoxt.lang.terms.LazyTerm;
 
 import aterm.ATerm;
 import aterm.ATermFactory;
