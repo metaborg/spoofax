@@ -29,18 +29,17 @@ public class DocumentStructure {
 	private int getLayoutEnd() {
 		int endOffset;
 		if(!commentsAfter.isEmpty())
-			endOffset=commentsAfter.get(commentsAfter.size()-1).getEndOffset()+1;
+			endOffset=commentsAfter.get(commentsAfter.size()-1).getEndOffset();
 		else
-			endOffset=node.getRightIToken().getEndOffset()+1;
-		int lookForward=endOffset-1;
+			endOffset=node.getRightIToken().getEndOffset();
+		int lookForward=endOffset;
 		do{
 			if(getLexStream().getCharValue(lookForward)=='\n'){
-				endOffset=lookForward+1;
-				break;
+				endOffset=lookForward;
 			}
 			lookForward++;
 		} while(lookForward < getLexStream().getStreamLength() && Character.isWhitespace(getLexStream().getCharValue(lookForward)));
-		return endOffset;
+		return endOffset+1; //exclusive end
 	}
 
 	private int getLayoutStart() {
@@ -298,11 +297,11 @@ public class DocumentStructure {
 				result+=4;//TODO: use editor settings 
 			}
 			else if (c=='\n')
-				return 0;//empty lines have 0 indent
+				return -1;//empty lines have -1 indent
 			if (!Character.isWhitespace(c))
 				return result;
 		}
-		return 0;
+		return -1;
 	}
 	
 	private static String getIndentation(String line) {
@@ -326,6 +325,7 @@ public class DocumentStructure {
 	public static boolean isLayoutToken(IToken tok) {
 		return TokenKind.valueOf(tok.getKind())==TokenKind.TK_LAYOUT;
 	}
+	
 	
 	public class TextFragment{
 		private int start;
