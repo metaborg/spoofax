@@ -17,7 +17,7 @@ import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 import org.strategoxt.stratego_sglr.implode_asfix_1_0;
 
-import aterm.ATerm;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -41,7 +41,7 @@ public class IMPImplodeAsfixStrategy extends implode_asfix_1_0 {
 		
 		SourceMappings mappings = ((IMPJSGLRLibrary) library).getMappings();
 		char[] inputChars = mappings.getInputChars(asfix);
-		ATerm asfixATerm = mappings.getInputTerm(asfix);
+		IStrategoTerm asfixIStrategoTerm = mappings.getInputTerm(asfix);
 		File inputFile = mappings.getInputFile((IStrategoAppl) asfix);
 		SGLRTokenizer tokenizer = mappings.getTokenizer(asfix);
 		
@@ -50,7 +50,7 @@ public class IMPImplodeAsfixStrategy extends implode_asfix_1_0 {
 			return outer.invoke(context, asfix, implodeConcreteSyntax);
 		}
 		
-		AstNode result = imploder.implode(asfixATerm, tokenizer);
+		AstNode result = imploder.implode(asfixIStrategoTerm, tokenizer);
 		IResource resource;
 		try {
 			resource = EditorIOAgent.getResource(inputFile);

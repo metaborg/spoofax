@@ -1,16 +1,13 @@
 package org.strategoxt.imp.runtime.parser.ast;
 
-import static org.spoofax.jsglr.Term.asAppl;
-import static org.spoofax.jsglr.Term.isAppl;
-import static org.spoofax.jsglr.Term.termAt;
+import static org.spoofax.terms.Term.termAt;
 import static org.strategoxt.imp.runtime.parser.ast.AsfixAnalyzer.AMB_FUN;
 
+import org.spoofax.interpreter.terms.IStrategoList;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
 
-import aterm.ATerm;
 import aterm.ATermAppl;
-import aterm.ATermList;
-import aterm.pure.ATermListImpl;
 
 /**
  * An asfix imploder class that can also produce ambiguous nodes.
@@ -26,15 +23,15 @@ public class AmbAsfixImploder extends AsfixImploder {
 	/**
 	 * Resolve or ambiguities with avoid/prefer annotations.
 	 * 
-	 * @see org.strategoxt.imp.runtime.parser.ast.AsfixImploder#resolveAmbiguities(aterm.ATerm)
+	 * @see org.strategoxt.imp.runtime.parser.ast.AsfixImploder#resolveAmbiguities(org.spoofax.interpreter.terms.IStrategoTerm)
 	 */
 	@Override
-	protected ATermAppl resolveAmbiguities(ATerm node) {
+	protected ATermAppl resolveAmbiguities(IStrategoTerm node) {
 		// TODO: disable when prefer/avoid disambiguation works in Disambiguator
 		if (AMB_FUN != ((ATermAppl) node).getAFun())
 			return (ATermAppl) node;
 		
-		final ATermListImpl ambs = termAt(node, 0);
+		final IStrategoList ambs = termAt(node, 0);
 		
 	alts:
 		for (int i = 0; i < ambs.getLength(); i++) {
@@ -46,10 +43,10 @@ public class AmbAsfixImploder extends AsfixImploder {
 	            ATermAppl attrs = termAt(appl, PROD_ATTRS);
 	            
 	            if ("attrs".equals(attrs.getName())) {
-	                ATermList attrList = termAt(attrs, 0);
+	                IStrategoList attrList = termAt(attrs, 0);
 	                
 	                for (int j = 0; j < attrList.getLength(); j++) {
-	                    ATerm attr = termAt(attrList, j);
+	                    IStrategoTerm attr = termAt(attrList, j);
 	                    if (isAppl(attr) && "prefer".equals(asAppl(attr).getName())) {
 	                        return resolveAmbiguities(amb);
 	                    } else if (isAppl(attr) && "avoid".equals(asAppl(attr).getName())) {

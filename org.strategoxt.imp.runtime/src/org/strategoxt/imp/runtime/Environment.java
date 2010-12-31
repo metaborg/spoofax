@@ -19,18 +19,15 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.imp.language.Language;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.swt.widgets.Display;
-import org.spoofax.interpreter.adapter.aterm.ATermConverter;
-import org.spoofax.interpreter.adapter.aterm.UnsharedWrappedATermFactory;
-import org.spoofax.interpreter.adapter.aterm.WrappedATermFactory;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.core.StackTracer;
 import org.spoofax.interpreter.library.jsglr.JSGLRLibrary;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.jsglr.InvalidParseTableException;
-import org.spoofax.jsglr.ParseTable;
-import org.spoofax.jsglr.ParseTableManager;
-import org.spoofax.jsglr.SGLR;
+import org.spoofax.jsglr.client.InvalidParseTableException;
+import org.spoofax.jsglr.client.ParseTable;
+import org.spoofax.jsglr.io.ParseTableManager;
+import org.spoofax.jsglr.io.SGLR;
 import org.strategoxt.HybridInterpreter;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
@@ -44,11 +41,8 @@ import org.strategoxt.imp.runtime.stratego.IMPParseStringPTPrimitive;
 import org.strategoxt.imp.runtime.stratego.adapter.WrappedAstNodeFactory;
 import org.strategoxt.lang.compat.sglr.SGLRCompatLibrary;
 
-import aterm.ATermFactory;
-import aterm.pure.PureFactory;
-
 /**
- * Environment class that maintains a maximally shared ATerm environment and
+ * Environment class that maintains a term factories, languages, and
  * parse tables, shared by any editors or other plugins.
  *
  * Methods in this class are either synchronized on the {@link #getSyncRoot()}
@@ -58,12 +52,6 @@ import aterm.pure.PureFactory;
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
 public final class Environment {
-	
-	private final static WrappedATermFactory wrappedFactory;
-		
-	private final static ATermFactory factory;
-	
-	private final static ATermConverter atermConverter;
 	
 	private final static ParseTableManager parseTableManager;
 	
@@ -84,14 +72,11 @@ public final class Environment {
 	private static SWTSafeLock lock = new SWTSafeLock();
 	
 	static {
-		wrappedFactory = new UnsharedWrappedATermFactory();
-		factory = new PureFactory();
-		parseTableManager = new ParseTableManager(factory);
-		parseTables = Collections.synchronizedMap(new HashMap<String, ParseTableProvider>());
 		descriptors = Collections.synchronizedMap(new HashMap<String, Descriptor>());
 		unmanagedTables = Collections.synchronizedMap(new HashMap<String, ParseTableProvider>());
 		wrappedAstNodeFactory = new WrappedAstNodeFactory();
-		atermConverter = new ATermConverter(factory, wrappedAstNodeFactory, true);
+		parseTableManager = new ParseTableManager(wrappedAstNodeFactory);
+		parseTables = Collections.synchronizedMap(new HashMap<String, ParseTableProvider>());
 		checkJVMOptions();
 	}
 
@@ -159,25 +144,11 @@ public final class Environment {
 		// (no state; no assertion)
 		return wrappedAstNodeFactory;
 	}
-
-	public static WrappedATermFactory getWrappedATermFactory() {
-		// (stateful factory)
-		assertLock();
-		return wrappedFactory;
-	}
 	
-	public static ATermConverter getATermConverter() {
-		assert getStrategoLock().isHeldByCurrentThread();
-	    return atermConverter;
-	}
-	
-	public static ATermFactory getATermFactory() {
-	    return factory;
-	}
-	
+	@Deprecated
 	public static SGLR createSGLR(ParseTable parseTable) {
 		// (no state; no assertion)
-		return new SGLR(factory, parseTable);
+		return new SGLR(parseTable);
 	}
 	
 	// ENVIRONMENT ACCESS AND MANIPULATION
@@ -209,7 +180,6 @@ public final class Environment {
 				}
 			};
 		
-		result.getCompiledContext().getCompatManager().setATermFactory(getATermFactory());
 		result.getCompiledContext().getExceptionHandler().setEnabled(false);
 		result.getCompiledContext().registerComponent("stratego_lib"); // ensure op. registry available
 		result.getCompiledContext().registerComponent("stratego_sglr"); // ensure op. registry available
@@ -233,7 +203,6 @@ public final class Environment {
 				IMPJSGLRLibrary.REGISTRY_NAME, // is spoofax-specific
 				JSGLRLibrary.REGISTRY_NAME,    // connected to the library above
 				IMPLibrary.REGISTRY_NAME);     // also used
-		result.getCompiledContext().getCompatManager().setATermFactory(getATermFactory());
 		result.getCompiledContext().getExceptionHandler().setEnabled(false);
 		IMPJSGLRLibrary parseLibrary = ((IMPJSGLRLibrary) result.getContext().getOperatorRegistry(IMPJSGLRLibrary.REGISTRY_NAME));
 		parseLibrary.addOverrides(result.getCompiledContext());

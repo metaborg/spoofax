@@ -6,7 +6,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermPrinter;
 
 /**
- * A constructor application AST node wrapped into an ATerm.
+ * A constructor application AST node wrapped into an IStrategoTerm.
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  * @author Karl Trygve Kalleberg <karltk add strategoxt.org>

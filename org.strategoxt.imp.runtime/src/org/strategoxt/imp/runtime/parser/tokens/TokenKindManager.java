@@ -1,12 +1,12 @@
 package org.strategoxt.imp.runtime.parser.tokens;
 
-import static org.spoofax.jsglr.Term.*;
+import static org.spoofax.terms.Term.*;
 
 import org.strategoxt.imp.runtime.parser.ast.AsfixAnalyzer;
 
-import aterm.ATerm;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 import aterm.ATermAppl;
-import aterm.ATermList;
+import org.spoofax.interpreter.terms.IStrategoList;
 
 import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.*;
 
@@ -29,7 +29,7 @@ public class TokenKindManager {
 	/**
 	 * Get the token kind for a given sort.
 	 */
-	public TokenKind getTokenKind(ATermList pattern, ATermAppl sort) {
+	public TokenKind getTokenKind(IStrategoList pattern, ATermAppl sort) {
 		// TODO2: Optimization - cache default token kinds?
 		
 		if (AsfixAnalyzer.isLayout(sort)) {
@@ -86,14 +86,14 @@ public class TokenKindManager {
 		return Character.isLetterOrDigit(c) || c == '_';
 	}
 	
-	protected static boolean isStringLiteral(ATermList pattern) {
+	protected static boolean isStringLiteral(IStrategoList pattern) {
 		return topdownHasSpaces(pattern);
 	}
 	
-	private static boolean topdownHasSpaces(ATerm term) {
+	private static boolean topdownHasSpaces(IStrategoTerm term) {
 		// Return true if any character range of this contains spaces
 		for (int i = 0; i < term.getChildCount(); i++) {
-			ATerm child = termAt(term, i);
+			IStrategoTerm child = termAt(term, i);
 			if (isAppl(child) && asAppl(child).getName().equals("range")) {
 				int start = intAt(child, RANGE_START);
 				int end = intAt(child, RANGE_END);
@@ -106,16 +106,16 @@ public class TokenKindManager {
 		return false;
 	}
 	
-	protected static boolean isNumberLiteral(ATermList pattern) {
-		ATerm range = getFirstRange(pattern);
+	protected static boolean isNumberLiteral(IStrategoList pattern) {
+		IStrategoTerm range = getFirstRange(pattern);
 		
 		return range != null && intAt(range, RANGE_START) == '0' && intAt(range, RANGE_END) == '9';
 	}
 	
-	private static ATerm getFirstRange(ATerm term) {
+	private static IStrategoTerm getFirstRange(IStrategoTerm term) {
 		// Get very first character range in this term
 		for (int i = 0; i < term.getChildCount(); i++) {
-			ATerm child = termAt(term, i);
+			IStrategoTerm child = termAt(term, i);
 			if (isAppl(child) && asAppl(child).getName().equals("range")) {
 				return child;
 			} else {

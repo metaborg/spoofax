@@ -98,7 +98,7 @@ public class CustomStrategyBuilder extends StrategoBuilder {
 		// Try invoke using (term)
 		IStrategoTerm input = getDerivedFromEditor() == null
 				? node.getTerm()
-				: getObserver().implodeATerm(getObserver().getImplodableNode(node).getTerm());
+				: getObserver().implodeIStrategoTerm(getObserver().getImplodableNode(node).getTerm());
 		IStrategoTerm result = getObserver().invoke(getBuilderRule(), input, node.getResource());
 		if (result != null) return addFileName(result, node.getResource());
 		String[] trace1 = getObserver().getRuntime().getCompiledContext().getTrace();

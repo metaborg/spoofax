@@ -11,19 +11,19 @@ import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.Disambiguator;
 import org.spoofax.jsglr.NoRecoveryRulesException;
-import org.spoofax.jsglr.ParseTable;
-import org.spoofax.jsglr.SGLRException;
+import org.spoofax.jsglr.client.ParseTable;
+import org.spoofax.jsglr.shared.SGLRException;
 import org.spoofax.terms.LazyTerm;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.JSGLRI;
 import org.strategoxt.imp.runtime.stratego.SourceMappings.MappableTerm;
 import org.strategoxt.lang.compat.sglr.JSGLR_parse_string_pt_compat;
 
-import aterm.ATerm;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 import aterm.ATermFactory;
 
 /**
- * Parses strings to asfix trees, caching the internal ATerm
+ * Parses strings to asfix trees, caching the internal IStrategoTerm
  * for implosion with {@link IMPImplodeAsfixStrategy}. 
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -64,7 +64,7 @@ public class IMPParseStringPTPrimitive extends JSGLR_parse_string_pt_compat {
 		}
 		char[] inputChars = input.toCharArray();
 		
-		final ATerm asfix = parser.parseNoImplode(inputChars, path);
+		final IStrategoTerm asfix = parser.parseNoImplode(inputChars, path);
 		MappableTerm result = new MappableTerm(new LazyTerm() {
 			@Override
 			protected IStrategoTerm init() {

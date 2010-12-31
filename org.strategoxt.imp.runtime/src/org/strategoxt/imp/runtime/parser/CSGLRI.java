@@ -8,12 +8,12 @@ import java.io.OutputStream;
 
 import lpg.runtime.IPrsStream;
 
-import org.spoofax.jsglr.SGLRException;
+import org.spoofax.jsglr.shared.SGLRException;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
 import org.strategoxt.lang.compat.NativeCallHelper;
 
-import aterm.ATerm;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 import aterm.ATermAppl;
 import aterm.ATermFactory;
 
@@ -66,7 +66,7 @@ public class CSGLRI extends AbstractSGLRI {
 	}
 
 	@Override
-	protected ATerm doParseNoImplode(char[] inputChars, String filename) throws SGLRException, IOException {
+	protected IStrategoTerm doParseNoImplode(char[] inputChars, String filename) throws SGLRException, IOException {
 		ATermFactory factory = Environment.getATermFactory();
 		File outputFile = File.createTempFile("parserOutput", null);
 		File inputFile = filename == null || !new File(filename).exists()

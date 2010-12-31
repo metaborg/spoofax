@@ -1,7 +1,7 @@
 package org.strategoxt.imp.runtime.parser.tokens;
 
 import static java.util.Collections.synchronizedMap;
-import static org.spoofax.jsglr.Term.termAt;
+import static org.spoofax.terms.Term.termAt;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -9,13 +9,13 @@ import java.util.Set;
 import java.util.WeakHashMap;
 
 import org.spoofax.jsglr.Label;
-import org.spoofax.jsglr.ParseTable;
+import org.spoofax.jsglr.client.ParseTable;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 
 import aterm.AFun;
-import aterm.ATerm;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 import aterm.ATermAppl;
 
 /**
@@ -36,7 +36,7 @@ public class KeywordRecognizer {
 		if (table != null) {
 			for (Label l : table.getLabels()) {
 				if (l != null) {
-					ATerm rhs = termAt(l.getProduction(), 1);
+					IStrategoTerm rhs = termAt(l.getProduction(), 1);
 					if (rhs instanceof ATermAppl && ((ATermAppl) rhs).getAFun() == litFun) {
 						ATermAppl lit = termAt(rhs, 0);
 						String litString = lit.getName();

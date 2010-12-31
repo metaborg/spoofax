@@ -6,19 +6,17 @@ import java.io.InputStream;
 
 import lpg.runtime.IPrsStream;
 
-import org.spoofax.jsglr.BadTokenException;
-import org.spoofax.jsglr.Disambiguator;
-import org.spoofax.jsglr.FilterException;
-import org.spoofax.jsglr.NoRecoveryRulesException;
-import org.spoofax.jsglr.ParseTable;
-import org.spoofax.jsglr.SGLR;
-import org.spoofax.jsglr.SGLRException;
-import org.spoofax.jsglr.TokenExpectedException;
+import org.spoofax.jsglr.client.Disambiguator;
+import org.spoofax.jsglr.client.FilterException;
+import org.spoofax.jsglr.client.NoRecoveryRulesException;
+import org.spoofax.jsglr.client.ParseTable;
+import org.spoofax.jsglr.io.SGLR;
+import org.spoofax.jsglr.shared.BadTokenException;
+import org.spoofax.jsglr.shared.SGLRException;
+import org.spoofax.jsglr.shared.TokenExpectedException;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.ParseTableProvider;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
-
-import aterm.ATerm;
 
 /**
  * IMP IParser implementation using JSGLR, imploding parse trees to AST nodes and tokens.
@@ -104,7 +102,7 @@ public class JSGLRI extends AbstractSGLRI {
 	}
 	
 	@Override
-	protected ATerm doParseNoImplode(char[] inputChars, String filename)
+	protected IStrategoTerm doParseNoImplode(char[] inputChars, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 		
 		return doParseNoImplode(toByteStream(inputChars), inputChars, filename);
@@ -125,7 +123,7 @@ public class JSGLRI extends AbstractSGLRI {
 		}
 	}
 	
-	private ATerm doParseNoImplode(InputStream inputStream, char[] inputChars, String filename)
+	private IStrategoTerm doParseNoImplode(InputStream inputStream, char[] inputChars, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 		
 		// Read stream using tokenizer/lexstream

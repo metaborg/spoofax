@@ -10,7 +10,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 
 /**
- * Interface for an AST node that can be converted into an ATerm. 
+ * Interface for an AST node that can be converted into an IStrategoTerm. 
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */

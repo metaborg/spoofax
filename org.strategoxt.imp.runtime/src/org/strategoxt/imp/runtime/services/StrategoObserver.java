@@ -507,7 +507,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 
 	/**
 	 * Create an input term for a control rule,
-	 * based on the ATerm syntax of the AST of the source file.
+	 * based on the IStrategoTerm syntax of the AST of the source file.
 	 */
 	public IStrategoTuple makeATermInputTerm(IStrategoAstNode node, boolean includeSubNode, IResource resource) {
 		assert getLock().isHeldByCurrentThread();
@@ -520,9 +520,9 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		if (includeSubNode) {
 			node = getImplodableNode(node);
 			IStrategoTerm[] inputParts = {
-					implodeATerm(node.getTerm()),
-					StrategoTermPath.createPathFromParsedATerm(node, runtime.getCompiledContext()),
-					implodeATerm(getRoot(node).getTerm()),
+					implodeIStrategoTerm(node.getTerm()),
+					StrategoTermPath.createPathFromParsedIStrategoTerm(node, runtime.getCompiledContext()),
+					implodeIStrategoTerm(getRoot(node).getTerm()),
 					factory.makeString(path),
 					factory.makeString(absolutePath)
 				};
@@ -532,7 +532,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		}
 	}
 
-	protected IStrategoTerm implodeATerm(IStrategoTerm term) {
+	protected IStrategoTerm implodeIStrategoTerm(IStrategoTerm term) {
 		return implode_aterm_0_0.instance.invoke(runtime.getCompiledContext(), term);
 	}
 
@@ -540,10 +540,10 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		if (node.isList() && node.getChildren().size() == 1)
 			node = (IStrategoAstNode) node.getChildren().get(0);
 		for (; node != null; node = node.getParent()) {
-			if (implodeATerm(node.getTerm()) != null)
+			if (implodeIStrategoTerm(node.getTerm()) != null)
 				return node;
 		}
-		throw new IllegalStateException("Could not identify selected AST node from ATerm editor");
+		throw new IllegalStateException("Could not identify selected AST node from IStrategoTerm editor");
 	}
 	
 	/**

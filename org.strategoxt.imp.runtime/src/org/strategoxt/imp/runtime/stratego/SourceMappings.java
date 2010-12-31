@@ -13,7 +13,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.LazyTerm;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
 
-import aterm.ATerm;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 
 /**
  * Maintains mappings between input streams, parse trees, etc. and their origins.
@@ -30,7 +30,7 @@ public class SourceMappings {
 	
 	private final Map<MappableKey, char[]> inputCharMap = new WeakHashMap<MappableKey, char[]>();
 
-	private final Map<MappableKey, ATerm> inputTermMap = new WeakHashMap<MappableKey, ATerm>();
+	private final Map<MappableKey, IStrategoTerm> inputTermMap = new WeakHashMap<MappableKey, IStrategoTerm>();
 
 	private final Map<MappableKey, SGLRTokenizer> tokenizerMap = new WeakHashMap<MappableKey, SGLRTokenizer>();
 
@@ -52,8 +52,8 @@ public class SourceMappings {
 		return inputCharMap.put(asfix.key, inputChars);
 	}
 
-	public ATerm putInputTerm(MappableTerm asfix, ATerm asfixATerm) {
-		return inputTermMap.put(asfix.key, asfixATerm);
+	public IStrategoTerm putInputTerm(MappableTerm asfix, IStrategoTerm asfixIStrategoTerm) {
+		return inputTermMap.put(asfix.key, asfixIStrategoTerm);
 	}
 	
 	public SGLRTokenizer putTokenizer(MappableTerm asfix, SGLRTokenizer tokenizer) {
@@ -76,7 +76,7 @@ public class SourceMappings {
 		return getValue(inputCharMap, asfix);
 	}
 	
-	public ATerm getInputTerm(IStrategoTerm asfix) {
+	public IStrategoTerm getInputTerm(IStrategoTerm asfix) {
 		return getValue(inputTermMap, asfix);
 	}
 	

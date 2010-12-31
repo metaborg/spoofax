@@ -28,7 +28,7 @@ import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.jsglr.SGLRException;
+import org.spoofax.jsglr.shared.SGLRException;
 import org.spoofax.terms.TermFactory;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;

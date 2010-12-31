@@ -1,15 +1,15 @@
 package org.strategoxt.imp.runtime.parser.ast;
 
 import static org.strategoxt.imp.runtime.Environment.getATermFactory;
-import static org.spoofax.jsglr.Term.*;
+import static org.spoofax.terms.Term.*;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import aterm.AFun;
-import aterm.ATerm;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 import aterm.ATermAppl;
-import aterm.ATermList;
+import org.spoofax.interpreter.terms.IStrategoList;
 
 /**
  * Extracts attributes from parse table productions.
@@ -48,7 +48,7 @@ public class ProductionAttributeReader {
 	private final Map<ATermAppl, String> sortCache = new HashMap<ATermAppl, String>();
 
 	public String getConsAttribute(ATermAppl attrs) {
-		ATerm consAttr = getAttribute(attrs, "cons");
+		IStrategoTerm consAttr = getAttribute(attrs, "cons");
 		return consAttr == null ? null : ((ATermAppl) consAttr).getName();
 	}
 	
@@ -62,7 +62,7 @@ public class ProductionAttributeReader {
 		return null;
 	}
 	
-	public ATerm getAstAttribute(ATermAppl attrs) {
+	public IStrategoTerm getAstAttribute(ATermAppl attrs) {
 		return getAttribute(attrs, "ast");
 	}
 	
@@ -71,14 +71,14 @@ public class ProductionAttributeReader {
 	}
 
 	/** Return the contents of a term attribute (e.g., "cons"), or null if not found. */
-	public ATerm getAttribute(ATermAppl attrs, String attrName) {
+	public IStrategoTerm getAttribute(ATermAppl attrs, String attrName) {
 		if (attrs.getAFun() == NO_ATTRS_FUN)
 			return null;
 		
-		ATermList list = termAt(attrs, 0);
+		IStrategoList list = termAt(attrs, 0);
 		
 		for (int i = 0; i < list.getLength(); i++) {
-			ATerm attr = list.elementAt(i);
+			IStrategoTerm attr = list.elementAt(i);
 			
 			if (attr instanceof ATermAppl) {
 				ATermAppl namedAttr = (ATermAppl) attr;
@@ -108,7 +108,7 @@ public class ProductionAttributeReader {
     }
     
     private String getSortUncached(ATermAppl node) {
-    	for (ATerm current = node; current.getChildCount() > 0 && isAppl(current); current = termAt(current, 0)) {
+    	for (IStrategoTerm current = node; current.getChildCount() > 0 && isAppl(current); current = termAt(current, 0)) {
     		AFun cons = asAppl(current).getAFun();
 			if (cons == SORT_FUN)
     			return applAt(current, 0).getName();
@@ -123,13 +123,13 @@ public class ProductionAttributeReader {
     	return null;
     }
     
-    private static String getParameterizedSortName(ATerm node) {
+    private static String getParameterizedSortName(IStrategoTerm node) {
     	StringBuilder result = new StringBuilder();
     	
     	result.append(applAt(node, PARAMETRIZED_SORT_NAME).getName());
     	result.append('_');
     	
-		ATermList args = termAt(node, PARAMETRIZED_SORT_ARGS);
+		IStrategoList args = termAt(node, PARAMETRIZED_SORT_ARGS);
 		
         for (ATermAppl arg = (ATermAppl) args.getFirst(); !args.getNext().isEmpty(); args = args.getNext()) {
 			result.append(arg.getName());
@@ -138,7 +138,7 @@ public class ProductionAttributeReader {
 		return result.toString();
     }
     
-    private String getAltSortName(ATerm node) {
+    private String getAltSortName(IStrategoTerm node) {
 		String left = getSort(applAt(node, ALT_SORT_LEFT));
 		String right = getSort(applAt(node, ALT_SORT_RIGHT));
 		

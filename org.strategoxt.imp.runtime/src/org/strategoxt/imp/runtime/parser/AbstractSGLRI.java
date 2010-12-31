@@ -14,9 +14,9 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
-import org.spoofax.jsglr.BadTokenException;
-import org.spoofax.jsglr.SGLRException;
-import org.spoofax.jsglr.TokenExpectedException;
+import org.spoofax.jsglr.shared.BadTokenException;
+import org.spoofax.jsglr.shared.SGLRException;
+import org.spoofax.jsglr.shared.TokenExpectedException;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.parser.ast.AmbAsfixImploder;
 import org.strategoxt.imp.runtime.parser.ast.AsfixImploder;
@@ -27,7 +27,7 @@ import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
 import org.strategoxt.lang.WeakValueHashMap;
 
-import aterm.ATerm;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 
 /**
  * IMP IParser implementation for SGLR, imploding parse trees to AST nodes and tokens.
@@ -37,8 +37,8 @@ import aterm.ATerm;
 public abstract class AbstractSGLRI {
 	
 	@SuppressWarnings("unused")
-	private static final Map<CachingKey, ATerm> parsedCache =
-		Collections.synchronizedMap(new WeakValueHashMap<CachingKey, ATerm>());
+	private static final Map<CachingKey, IStrategoTerm> parsedCache =
+		Collections.synchronizedMap(new WeakValueHashMap<CachingKey, IStrategoTerm>());
 	
 	private final SGLRParseController controller;
 	
@@ -116,7 +116,7 @@ public abstract class AbstractSGLRI {
 	protected RootAstNode parse(char[] inputChars, String filename, IProgressMonitor monitor)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 
-		ATerm asfix = parseNoImplode(inputChars, filename);
+		IStrategoTerm asfix = parseNoImplode(inputChars, filename);
 		if (monitor.isCanceled())
 			throw new OperationCanceledException();
 		return internalImplode(asfix);
@@ -152,7 +152,7 @@ public abstract class AbstractSGLRI {
 	 * 
 	 * @note May only work with the latest parse tree produced.
 	 */
-	protected RootAstNode internalImplode(ATerm asfix) {
+	protected RootAstNode internalImplode(IStrategoTerm asfix) {
 		AstNode imploded = imploder.implode(asfix, currentTokenizer);
 		SGLRParseController controller = getController() == null ? null : getController();
 		IResource resource = controller == null ? null : controller.getResource();
@@ -163,13 +163,13 @@ public abstract class AbstractSGLRI {
 	 * Parse an input, returning the AST and initializing the parse stream.
 	 * Also initializes a new tokenizer for the given input.
 	 */ 
-	public ATerm parseNoImplode(char[] inputChars, String filename)
+	public IStrategoTerm parseNoImplode(char[] inputChars, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 		
 		/* UNDONE: disabled the parse cache for now
 		 * TODO: revise parse cache?
 		CachingKey cachingKey = new CachingKey(parseTableId, startSymbol, inputChars, filename);
-		ATerm result = parsedCache.get(cachingKey);
+		IStrategoTerm result = parsedCache.get(cachingKey);
 		if (result != null) {
 			currentTokenizer = getTokenizer(result);
 			assert currentTokenizer != null;
@@ -180,7 +180,7 @@ public abstract class AbstractSGLRI {
 		Debug.startTimer();
 		try {
 			currentTokenizer = new SGLRTokenizer(inputChars, filename);
-			ATerm result = doParseNoImplode(inputChars, filename);
+			IStrategoTerm result = doParseNoImplode(inputChars, filename);
 			// parsedCache.put(cachingKey, result);
 			// putTokenizer(result, currentTokenizer);
 		
@@ -190,7 +190,7 @@ public abstract class AbstractSGLRI {
 		}
 	}
 	
-	protected abstract ATerm doParseNoImplode(char[] inputChars, String filename)
+	protected abstract IStrategoTerm doParseNoImplode(char[] inputChars, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException;
 
 	private char[] toCharArray(InputStream input) throws IOException {

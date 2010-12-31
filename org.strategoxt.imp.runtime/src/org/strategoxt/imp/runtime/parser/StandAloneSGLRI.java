@@ -4,13 +4,13 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.eclipse.imp.language.Language;
-import org.spoofax.jsglr.BadTokenException;
+import org.spoofax.jsglr.shared.BadTokenException;
 import org.spoofax.jsglr.Disambiguator;
-import org.spoofax.jsglr.InvalidParseTableException;
+import org.spoofax.jsglr.client.InvalidParseTableException;
 import org.spoofax.jsglr.NoRecoveryRulesException;
-import org.spoofax.jsglr.ParseTable;
-import org.spoofax.jsglr.SGLRException;
-import org.spoofax.jsglr.TokenExpectedException;
+import org.spoofax.jsglr.client.ParseTable;
+import org.spoofax.jsglr.shared.SGLRException;
+import org.spoofax.jsglr.shared.TokenExpectedException;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.ParseTableProvider;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;

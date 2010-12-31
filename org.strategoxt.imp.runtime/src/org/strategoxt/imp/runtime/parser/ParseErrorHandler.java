@@ -1,9 +1,9 @@
 package org.strategoxt.imp.runtime.parser;
 
 import static java.lang.Math.min;
-import static org.spoofax.jsglr.Term.applAt;
-import static org.spoofax.jsglr.Term.listAt;
-import static org.spoofax.jsglr.Term.termAt;
+import static org.spoofax.terms.Term.applAt;
+import static org.spoofax.terms.Term.listAt;
+import static org.spoofax.terms.Term.termAt;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,12 +19,12 @@ import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.interpreter.terms.TermConverter;
-import org.spoofax.jsglr.BadTokenException;
+import org.spoofax.jsglr.shared.BadTokenException;
 import org.spoofax.jsglr.MultiBadTokenException;
 import org.spoofax.jsglr.ParseTimeoutException;
 import org.spoofax.jsglr.RecoveryConnector;
 import org.spoofax.jsglr.RegionRecovery;
-import org.spoofax.jsglr.TokenExpectedException;
+import org.spoofax.jsglr.shared.TokenExpectedException;
 import org.strategoxt.imp.generator.sdf2imp;
 import org.strategoxt.imp.generator.simplify_ambiguity_report_0_0;
 import org.strategoxt.imp.runtime.Environment;
@@ -40,10 +40,10 @@ import org.strategoxt.stratego_aterm.stratego_aterm;
 import org.strategoxt.stratego_sglr.implode_asfix_0_0;
 import org.strategoxt.stratego_sglr.stratego_sglr;
 
-import aterm.ATerm;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 import aterm.ATermAppl;
 import aterm.ATermInt;
-import aterm.ATermList;
+import org.spoofax.interpreter.terms.IStrategoList;
 
 /**
  * SGLR parse error reporting for a particular SGLR Parse controller and file. 
@@ -143,7 +143,7 @@ public class ParseErrorHandler {
 	/**
 	 * Report WATER + INSERT errors from parse tree
 	 */
-	public void gatherNonFatalErrors(char[] inputChars, SGLRTokenizer tokenizer, ATerm top) {
+	public void gatherNonFatalErrors(char[] inputChars, SGLRTokenizer tokenizer, IStrategoTerm top) {
 		try {
 			errorReports.clear();
 			offset = 0;
@@ -267,7 +267,7 @@ public class ParseErrorHandler {
 		
 		if ("amb".equals(term.getAFun().getName())) {
 			// Report errors in first ambiguous branch and update offset
-			ATermList ambs = termAt(term, 0);
+			IStrategoList ambs = termAt(term, 0);
 			reportRecoveredErrors(tokenizer, (ATermAppl) ambs.getFirst(), startOffset, outerStartOffset);
 			
 			reportAmbiguity(tokenizer, term, startOffset);
@@ -277,7 +277,7 @@ public class ParseErrorHandler {
 		ATermAppl prod = termAt(term, 0);
 		ATermAppl rhs = termAt(prod, 1);
 		ATermAppl attrs = termAt(prod, 2);
-		ATermList contents = termAt(term, 1);
+		IStrategoList contents = termAt(term, 1);
 		boolean lexicalStart = false;
 		
 		if (!inLexicalContext && AsfixAnalyzer.isLexicalNode(rhs) || AsfixAnalyzer.isVariableNode(rhs)) {
@@ -286,8 +286,8 @@ public class ParseErrorHandler {
 		
 		// Recursively visit the subtree and update the offset
 		for (int i = 0; i < contents.getLength(); i++) {
-			ATerm child = contents.elementAt(i);
-			if (child.getType() == ATerm.INT) {
+			IStrategoTerm child = contents.elementAt(i);
+			if (child.getType() == IStrategoTerm.INT) {
 				offset += 1;				
 			} else {
 				reportRecoveredErrors(tokenizer, (ATermAppl) child, startOffset, outerStartOffset);
@@ -334,7 +334,7 @@ public class ParseErrorHandler {
 		if (lexicalStart) inLexicalContext = false;
 	}
 	
-	private static String toString(ATermList chars) {
+	private static String toString(IStrategoList chars) {
 		// TODO: move to SSL_implode_string.call() ?
         StringBuilder result = new StringBuilder(chars.getLength());
 
@@ -561,7 +561,7 @@ public class ParseErrorHandler {
 	
 	private static String getDeprecatedProductionMessage(ATermAppl attrs) {
 		if ("attrs".equals(attrs.getName())) {
-			ATermList attrList = termAt(attrs, 0);
+			IStrategoList attrList = termAt(attrs, 0);
 			while (!attrList.isEmpty()) {
 				ATermAppl attr = (ATermAppl) attrList.getFirst();
 				attrList = attrList.getNext();

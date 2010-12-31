@@ -1,12 +1,12 @@
 package org.strategoxt.imp.runtime.parser.ast;
 
 import static java.lang.Math.max;
-import static org.spoofax.jsglr.Term.applAt;
-import static org.spoofax.jsglr.Term.asAppl;
-import static org.spoofax.jsglr.Term.intAt;
-import static org.spoofax.jsglr.Term.isAppl;
-import static org.spoofax.jsglr.Term.isInt;
-import static org.spoofax.jsglr.Term.termAt;
+import static org.spoofax.terms.Term.applAt;
+import static org.spoofax.terms.Term.asAppl;
+import static org.spoofax.terms.Term.intAt;
+import static org.spoofax.terms.Term.isAppl;
+import static org.spoofax.terms.Term.isInt;
+import static org.spoofax.terms.Term.termAt;
 import static org.strategoxt.imp.runtime.parser.ast.AsfixAnalyzer.*;
 import static org.strategoxt.imp.runtime.parser.ast.ProductionAttributeReader.*;
 import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.TK_ERROR;
@@ -28,11 +28,11 @@ import org.strategoxt.imp.runtime.parser.tokens.KeywordRecognizer;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
 
-import aterm.ATerm;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 import aterm.ATermAppl;
 import aterm.ATermInt;
-import aterm.ATermList;
-import aterm.pure.ATermListImpl;
+import org.spoofax.interpreter.terms.IStrategoList;
+import aterm.pure.IStrategoList;
 
 /**
  * Implodes an Asfix tree to AstNode nodes and IToken tokens.
@@ -78,12 +78,12 @@ public class AsfixImploder {
 		this.tokenManager = tokenManager;
 	}
 	
-	public AstNode implode(ATerm asfix, SGLRTokenizer tokenizer) {
+	public AstNode implode(IStrategoTerm asfix, SGLRTokenizer tokenizer) {
 		this.tokenizer = tokenizer;
 		
 		// FIXME: static fields are used in helper classes that refer to Environment.getATermFactory()
 		if (asfix.getFactory() != Environment.getATermFactory())
-			throw new IllegalArgumentException("Argument ATerm does not use the Environment.getATermFactory() factory");
+			throw new IllegalArgumentException("Argument IStrategoTerm does not use the Environment.getATermFactory() factory");
 		
 		// TODO: Return null if imploded tree has null constructor??
 		
@@ -98,7 +98,7 @@ public class AsfixImploder {
 		if (offset != 0 || tokenizer.getStartOffset() != 0)
 			throw new IllegalStateException("Race condition in AsfixImploder (" + tokenizer.getLexStream().getFileName() + "; might be caused by stack overflow)");
 		
-		ATerm top = (ATerm) asfix.getChildAt(PARSE_TREE);
+		IStrategoTerm top = (IStrategoTerm) asfix.getChildAt(PARSE_TREE);
 		AstNode result;
 		offset = 0;
 		inLexicalContext = false;
@@ -124,7 +124,7 @@ public class AsfixImploder {
 	/**
 	 * Implode any appl(_, _).
 	 */
-	protected AstNode implodeAppl(ATerm term) {
+	protected AstNode implodeAppl(IStrategoTerm term) {
 		// Note that this method significantly impacts our stack usage;
 		// method extraction should be carefully considered...
 		
@@ -133,10 +133,10 @@ public class AsfixImploder {
 			return implodeAmbAppl(appl);
 		
 		ATermAppl prod = termAt(appl, APPL_PROD);
-		ATermList lhs = termAt(prod, PROD_LHS);
+		IStrategoList lhs = termAt(prod, PROD_LHS);
 		ATermAppl rhs = termAt(prod, PROD_RHS);
 		ATermAppl attrs = termAt(prod, PROD_ATTRS);
-		ATermList contents = termAt(appl, APPL_CONTENTS);
+		IStrategoList contents = termAt(appl, APPL_CONTENTS);
 		IToken prevToken = tokenizer.currentToken();
 		int lastOffset = offset;
 		
@@ -147,7 +147,7 @@ public class AsfixImploder {
 		
 		if (!inLexicalContext
 				&& (SORT_FUN == rhs.getAFun() || PARAMETERIZED_SORT_FUN == rhs.getAFun())
-				&& lhs.getLength() == 1 && termAt(contents, 0).getType() == ATerm.INT) {
+				&& lhs.getLength() == 1 && termAt(contents, 0).getType() == IStrategoTerm.INT) {
 			return setAnnos(createIntTerminal(contents, rhs), appl.getAnnotations());
 		}
 		
@@ -162,7 +162,7 @@ public class AsfixImploder {
 
 		// Recurse
 		for (int i = 0; i < contents.getLength(); i++) {
-			ATerm child = contents.elementAt(i);
+			IStrategoTerm child = contents.elementAt(i);
 			if (isInt(child)) {
 				consumeLexicalChar((ATermInt) child);
 			} else {
@@ -182,14 +182,14 @@ public class AsfixImploder {
 	}
 	
 	protected AmbAstNode implodeAmbAppl(ATermAppl node) { 
-		final ATermListImpl ambs = termAt(node, 0);
+		final IStrategoList ambs = termAt(node, 0);
 		final ArrayList<AstNode> results = new ArrayList<AstNode>();
 		
 		final int oldOffset = offset;
 		final int oldBeginOffset = tokenizer.getStartOffset();
 		final boolean oldLexicalContext = inLexicalContext;
 		
-		for (ATerm amb : ambs) {
+		for (IStrategoTerm amb : ambs) {
 			// Restore lexical state for each branch
 			offset = oldOffset;
 			tokenizer.setStartOffset(oldBeginOffset);
@@ -204,7 +204,7 @@ public class AsfixImploder {
 		return new AmbAstNode(results);
 	}
 	
-	private AstNode setAnnos(AstNode node, ATermList annos) {
+	private AstNode setAnnos(AstNode node, IStrategoList annos) {
 		if (node != null && annos != null && !annos.isEmpty()) {
 			IStrategoTerm termAnnos = Environment.getATermConverter().convert(annos);
 			node.setAnnotations((IStrategoList) termAnnos);
@@ -212,7 +212,7 @@ public class AsfixImploder {
 		return node;
 	}
 
-	private AstNode createStringTerminal(ATermList lhs, ATermAppl rhs, ATermAppl attrs) {
+	private AstNode createStringTerminal(IStrategoList lhs, ATermAppl rhs, ATermAppl attrs) {
 		inLexicalContext = false;
 		String sort = reader.getSort(rhs);
 		IToken token = tokenizer.makeToken(offset, tokenManager.getTokenKind(lhs, rhs), sort != null);
@@ -231,14 +231,14 @@ public class AsfixImploder {
 		return result;
 	}
 	
-	private IntAstNode createIntTerminal(ATermList contents, ATermAppl rhs) {
+	private IntAstNode createIntTerminal(IStrategoList contents, ATermAppl rhs) {
 		IToken token = tokenizer.makeToken(offset, tokenManager.getTokenKind(contents, rhs), true);
 		String sort = reader.getSort(rhs);
 		int value = intAt(contents, 0);
 		return factory.createIntTerminal(sort, token, value);
 	}
 
-	private AstNode createNodeOrInjection(ATermList lhs, ATermAppl rhs, ATermAppl attrs,
+	private AstNode createNodeOrInjection(IStrategoList lhs, ATermAppl rhs, ATermAppl attrs,
 			IToken prevToken, ArrayList<AstNode> children, boolean isList) {
 		
 		String constructor = reader.getConsAttribute(attrs);
@@ -249,7 +249,7 @@ public class AsfixImploder {
 				return createNode(attrs, sort, null, prevToken, children, true, false);
 			}
 			
-			ATerm ast = reader.getAstAttribute(attrs);
+			IStrategoTerm ast = reader.getAstAttribute(attrs);
 			if (ast != null) {
 				return createAstNonTerminal(rhs, prevToken, children, ast);
 			} else if (OPT_FUN == applAt(rhs, 0).getAFun()) {
@@ -330,7 +330,7 @@ public class AsfixImploder {
 	}
 
 	/** Implode a context-free node with an {ast} annotation. */
-	private AstNode createAstNonTerminal(ATermAppl rhs, IToken prevToken, ArrayList<AstNode> children, ATerm ast) {
+	private AstNode createAstNonTerminal(ATermAppl rhs, IToken prevToken, ArrayList<AstNode> children, IStrategoTerm ast) {
 		IToken left = getStartToken(prevToken);
 		IToken right = getEndToken(left, tokenizer.currentToken());
 		AstAnnoImploder imploder = new AstAnnoImploder(factory, children, left, right);
@@ -340,11 +340,11 @@ public class AsfixImploder {
 	/**
 	 * Resolve or ignore any ambiguities in the parse tree.
 	 */
-	protected ATermAppl resolveAmbiguities(final ATerm node) {
+	protected ATermAppl resolveAmbiguities(final IStrategoTerm node) {
 		if (AMB_FUN != ((ATermAppl) node).getAFun())
 			return (ATermAppl) node;
 		
-		final ATermListImpl ambs = termAt(node, 0);
+		final IStrategoList ambs = termAt(node, 0);
 		
 		ATermAppl lastNonAvoid = null;
 		ATermAppl firstOption = null;
@@ -358,10 +358,10 @@ public class AsfixImploder {
 			ATermAppl attrs = termAt(appl, PROD_ATTRS);
 			
 			if (ATTRS_FUN == attrs.getAFun()) {
-				ATermList attrList = termAt(attrs, 0);
+				IStrategoList attrList = termAt(attrs, 0);
 				
 				for (int j = 0; j < attrList.getLength(); j++) {
-					ATerm attr = termAt(attrList, j);
+					IStrategoTerm attr = termAt(attrList, j);
 					if (isAppl(attr) && PREFER_FUN == asAppl(attr).getAFun()) {
 						return prod;
 					} else if (isAppl(attr) && AVOID_FUN == asAppl(attr).getAFun()) {
@@ -385,10 +385,10 @@ public class AsfixImploder {
 		}
 	}
 	
-	private static void reportUnresolvedAmb(ATermList ambs) {
+	private static void reportUnresolvedAmb(IStrategoList ambs) {
 		Debug.log("Ambiguity found during implosion: ");
 		
-		for (ATerm amb : ambs) {
+		for (IStrategoTerm amb : ambs) {
 			String ambString = amb.toString();
 			if (ambString.length() > 1000) ambString = ambString.substring(0, 1000) + "...";
 			Debug.log("  amb: ", ambString);

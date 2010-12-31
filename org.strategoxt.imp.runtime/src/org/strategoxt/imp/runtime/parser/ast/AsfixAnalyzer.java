@@ -1,13 +1,13 @@
 package org.strategoxt.imp.runtime.parser.ast;
 
-import static org.spoofax.jsglr.Term.applAt;
-import static org.spoofax.jsglr.Term.asAppl;
-import static org.spoofax.jsglr.Term.isAppl;
-import static org.spoofax.jsglr.Term.termAt;
+import static org.spoofax.terms.Term.applAt;
+import static org.spoofax.terms.Term.asAppl;
+import static org.spoofax.terms.Term.isAppl;
+import static org.spoofax.terms.Term.termAt;
 import static org.strategoxt.imp.runtime.Environment.getATermFactory;
 import jjtraveler.Visitable;
 import aterm.AFun;
-import aterm.ATerm;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 import aterm.ATermAppl;
 
 public class AsfixAnalyzer {
@@ -43,7 +43,7 @@ public class AsfixAnalyzer {
 	private static final AFun ITER_PLUS_SEP_FUN = getATermFactory().makeAFun("iter-plus-sep", 2, false);
 
 	public static boolean isLayout(ATermAppl sort) {
-		ATerm details = termAt(sort, 0);
+		IStrategoTerm details = termAt(sort, 0);
 		if (!isAppl(details))
 			return false;
 		

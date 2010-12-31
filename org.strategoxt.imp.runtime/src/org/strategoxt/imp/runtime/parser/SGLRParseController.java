@@ -28,14 +28,14 @@ import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
-import org.spoofax.jsglr.BadTokenException;
-import org.spoofax.jsglr.InvalidParseTableException;
+import org.spoofax.jsglr.shared.BadTokenException;
+import org.spoofax.jsglr.client.InvalidParseTableException;
 import org.spoofax.jsglr.NoRecoveryRulesException;
-import org.spoofax.jsglr.ParseTable;
+import org.spoofax.jsglr.client.ParseTable;
 import org.spoofax.jsglr.ParseTimeoutException;
-import org.spoofax.jsglr.SGLRException;
+import org.spoofax.jsglr.shared.SGLRException;
 import org.spoofax.jsglr.StartSymbolException;
-import org.spoofax.jsglr.TokenExpectedException;
+import org.spoofax.jsglr.shared.TokenExpectedException;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
@@ -55,7 +55,7 @@ import org.strategoxt.imp.runtime.services.MetaFile;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.services.TokenColorer;
 
-import aterm.ATerm;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 
 /**
  * IMP parse controller for an SGLR parser; instantiated for a particular source file.
@@ -283,7 +283,7 @@ public class SGLRParseController implements IParseController {
 			Debug.startTimer();
 			
 			if (monitor.isCanceled()) return null;
-			ATerm asfix = parseNoImplode(inputChars, filename);
+			IStrategoTerm asfix = parseNoImplode(inputChars, filename);
 			if (monitor.isCanceled()) return null;
 			RootAstNode ast = parser.internalImplode(asfix);
 
@@ -345,7 +345,7 @@ public class SGLRParseController implements IParseController {
 		}
 	}
 
-	private ATerm parseNoImplode(char[] inputChars, String filename)
+	private IStrategoTerm parseNoImplode(char[] inputChars, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 		try {
 			return parser.parseNoImplode(inputChars, filename);

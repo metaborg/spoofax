@@ -119,7 +119,6 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 		EditorIOAgent agent = new EditorIOAgent();
 		agent.setAlwaysActivateConsole(true);
 		Context context = new Context(Environment.getTermFactory(), agent);
-		context.getCompatManager().setATermFactory(Environment.getATermFactory());
 		context.registerClassLoader(make_permissive.class.getClassLoader());
 		sdf2imp.init(context);
 		monitor.worked(1);

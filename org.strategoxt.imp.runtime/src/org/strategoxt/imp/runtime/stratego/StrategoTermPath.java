@@ -64,11 +64,11 @@ public class StrategoTermPath {
 	}
 	
 	/**
-	 * Creates a term path given the AST Node of a parsed ATerm file.
+	 * Creates a term path given the AST Node of a parsed IStrategoTerm file.
 	 * The resulting path relates to the actual AST, ignoring the 'appl' etc constructors
-	 * of the ATerm syntax.
+	 * of the IStrategoTerm syntax.
 	 */
-	public static IStrategoList createPathFromParsedATerm(final IStrategoAstNode node, Context context) {
+	public static IStrategoList createPathFromParsedIStrategoTerm(final IStrategoAstNode node, Context context) {
 		IStrategoTerm top = node.getRoot().getTerm();
 		final IStrategoTerm marker = context.getFactory().makeString(ContentProposer.COMPLETION_TOKEN);
 		top = oncetd_1_0.instance.invoke(context, top, new Strategy() {

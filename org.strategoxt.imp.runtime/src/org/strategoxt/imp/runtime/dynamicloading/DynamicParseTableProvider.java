@@ -8,7 +8,7 @@ import java.io.IOException;
 
 import org.eclipse.core.resources.IResource;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.jsglr.InvalidParseTableException;
+import org.spoofax.jsglr.client.InvalidParseTableException;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.services.StrategoObserver;

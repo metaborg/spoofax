@@ -82,7 +82,7 @@ public class StrategoBuilder implements IBuilder {
 	/**
 	 * Creates a new Stratego builder.
 	 * 
-	 * @param derivedFromEditor  The editor the present editor is derived from, if the present editor is an ATerm editor.
+	 * @param derivedFromEditor  The editor the present editor is derived from, if the present editor is an IStrategoTerm editor.
 	 */
 	public StrategoBuilder(StrategoObserver observer, String caption, String builderRule,
 			boolean openEditor, boolean realTime, boolean cursor, boolean source, boolean persistent,
@@ -253,7 +253,7 @@ public class StrategoBuilder implements IBuilder {
 			// ByteArrayOutputStream trace = new ByteArrayOutputStream();
 			// observer.getRuntime().getCompiledContext().printStackTrace(new PrintStream(trace), false);
 			String errorReport = e.getMessage();
-			if (e.getTerm() != null) errorReport += "\n\t" + toEscapedString(ppATerm(e.getTerm()));
+			if (e.getTerm() != null) errorReport += "\n\t" + toEscapedString(ppIStrategoTerm(e.getTerm()));
 			return errorReport;
 		}
 	}
@@ -268,7 +268,7 @@ public class StrategoBuilder implements IBuilder {
 	private String getResultString(IStrategoTerm resultTerm) {
 		resultTerm = termAt(resultTerm, 1);
 		
-		return isTermString(resultTerm) ? asJavaString(resultTerm) : ppATerm(resultTerm).stringValue();
+		return isTermString(resultTerm) ? asJavaString(resultTerm) : ppIStrategoTerm(resultTerm).stringValue();
 	}
 
 	private void scheduleOpenEditorAndListener(final EditorState editor, final IStrategoAstNode node, final IFile file)
@@ -311,7 +311,7 @@ public class StrategoBuilder implements IBuilder {
 		return result;
 	}
 
-	private IStrategoString ppATerm(IStrategoTerm term) {
+	private IStrategoString ppIStrategoTerm(IStrategoTerm term) {
 		Context context = observer.getRuntime().getCompiledContext();
 		term = aterm_escape_strings_0_0.instance.invoke(context, term);
 		term = pp_aterm_box_0_0.instance.invoke(context, term);

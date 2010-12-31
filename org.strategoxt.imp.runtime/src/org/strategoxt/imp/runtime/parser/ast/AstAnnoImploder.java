@@ -1,7 +1,7 @@
 package org.strategoxt.imp.runtime.parser.ast;
 
-import static org.spoofax.jsglr.Term.termAt;
-import static org.spoofax.jsglr.Term.toInt;
+import static org.spoofax.terms.Term.termAt;
+import static org.spoofax.terms.Term.toInt;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,10 +11,10 @@ import lpg.runtime.IToken;
 import org.spoofax.NotImplementedException;
 import org.strategoxt.imp.runtime.Environment;
 
-import aterm.ATerm;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 import aterm.ATermAppl;
 import aterm.ATermInt;
-import aterm.ATermList;
+import org.spoofax.interpreter.terms.IStrategoList;
 import aterm.ATermPlaceholder;
 
 
@@ -41,7 +41,7 @@ public class AstAnnoImploder {
 		this.rightToken = rightToken;
 	}
 	
-	public AstNode implode(ATerm ast, String sort) {
+	public AstNode implode(IStrategoTerm ast, String sort) {
 		// Placeholder terms are represented as strings; must parse them and fill in their arguments
 		String astString = ast.toString();
 		if (astString.startsWith("\"") && astString.endsWith("\"")) {
@@ -53,22 +53,22 @@ public class AstAnnoImploder {
 		return toAstNode(ast, sort);
 	}
 	
-	private AstNode toAstNode(ATerm term, String sort) {
+	private AstNode toAstNode(IStrategoTerm term, String sort) {
 		switch (term.getType()) {
-			case ATerm.PLACEHOLDER:
+			case IStrategoTerm.PLACEHOLDER:
 				return placeholderToAstNode(term, sort);
 				
-			case ATerm.APPL:
+			case IStrategoTerm.APPL:
 				return applToAstNode(term, sort);
 				
-			case ATerm.LIST:
+			case IStrategoTerm.LIST:
 				return listToAstNode(term, sort);
 				
-			case ATerm.INT:
+			case IStrategoTerm.INT:
 				ATermInt i = (ATermInt) term;
 				return factory.createIntTerminal(sort, leftToken, i.getInt());
 				
-			case ATerm.REAL:
+			case IStrategoTerm.REAL:
 				throw new NotImplementedException("reals in {ast} attribute");
 				
 			default:
@@ -76,14 +76,14 @@ public class AstAnnoImploder {
 		}
 	}
 	
-	private AstNode placeholderToAstNode(ATerm placeholder, String sort) {
-		ATerm term = ((ATermPlaceholder) placeholder).getPlaceholder();
-		if (term.getType() == ATerm.INT) {
+	private AstNode placeholderToAstNode(IStrategoTerm placeholder, String sort) {
+		IStrategoTerm term = ((ATermPlaceholder) placeholder).getPlaceholder();
+		if (term.getType() == IStrategoTerm.INT) {
 			int id = toInt(term);
 			if (1 <= id && id <= placeholderValues.size()) {
 				return placeholderValues.get(id - 1);
 			}
-		} else if (term.getType() == ATerm.APPL) {
+		} else if (term.getType() == IStrategoTerm.APPL) {
 			String type = ((ATermAppl) term).getName();
 			if ("conc".equals(type) && term.getChildCount() == 2) {
 				AstNode left = toAstNode(termAt(term, 0), null);
@@ -101,7 +101,7 @@ public class AstAnnoImploder {
 		throw new IllegalStateException("Error in syntax definition: illegal placeholder in {ast} attribute: " + placeholder);
 	}
 	
-	private AstNode applToAstNode(ATerm term, String sort) {
+	private AstNode applToAstNode(IStrategoTerm term, String sort) {
 		ATermAppl appl = (ATermAppl) term;
 		ArrayList<AstNode> children = new ArrayList<AstNode>(appl.getChildCount());
 		for (int i = 0; i < appl.getChildCount(); i++) {
@@ -114,9 +114,9 @@ public class AstAnnoImploder {
 		}
 	}
 	
-	private AstNode listToAstNode(ATerm term, String sort) {
+	private AstNode listToAstNode(IStrategoTerm term, String sort) {
 		// TODO: Fishy (Spoofax/49)
-		ATermList list = (ATermList) term;
+		IStrategoList list = (IStrategoList) term;
 		ArrayList<AstNode> children = new ArrayList<AstNode>(list.getChildCount());
 		for (int i = 0; i < term.getChildCount(); i++) {
 			children.add(toAstNode(termAt(term, i), null));

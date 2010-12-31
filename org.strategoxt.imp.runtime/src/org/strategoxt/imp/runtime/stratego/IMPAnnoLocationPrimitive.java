@@ -13,7 +13,7 @@ import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.stratego.SourceMappings.MappableTerm;
 import org.strategoxt.lang.compat.sglr.STRSGLR_anno_location;
 
-import aterm.ATerm;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -43,7 +43,7 @@ public class IMPAnnoLocationPrimitive extends STRSGLR_anno_location {
 		if (oldChars == null)
 			return true;
 
-		ATerm newAsfixTerm = Environment.getATermConverter().convert(newAsfix);
+		IStrategoTerm newAsfixTerm = Environment.getATermConverter().convert(newAsfix);
 		File inputFile = oldAsfix instanceof IStrategoAppl
 			? mappings.getInputFile((IStrategoAppl) oldAsfix)
 			: null;
