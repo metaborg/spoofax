@@ -12,11 +12,11 @@ import org.eclipse.imp.editor.TargetLink;
 import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.eclipse.imp.services.IReferenceResolver;
 import org.eclipse.ui.progress.UIJob;
+import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
-import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 
 /**
  * Handles the "go to definition" command.
@@ -29,7 +29,7 @@ public class ReferenceResolverDelegate extends AbstractHandler {
 		final EditorState editor = EditorState.getActiveEditor();
 		if (editor != null) {
 			// Can't run this in the main thread since we're acquiring the environment lock
-			final IStrategoAstNode reference = editor.getSelectionAst(false);
+			final ISimpleTerm reference = editor.getSelectionAst(false);
 			new Job("Go to definition") {
 				@Override
 				protected IStatus run(IProgressMonitor monitor) {
@@ -42,7 +42,7 @@ public class ReferenceResolverDelegate extends AbstractHandler {
 		return null;
 	}
 
-	private void followLink(EditorState editor, IStrategoAstNode reference) {
+	private void followLink(EditorState editor, ISimpleTerm reference) {
 		try {
 			SGLRParseController controller = editor.getParseController();
 			ISourcePositionLocator locator = controller.getSourcePositionLocator();

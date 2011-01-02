@@ -19,7 +19,6 @@ import org.strategoxt.imp.editors.stratego.StrategoSugarParseController;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.parser.JSGLRI;
-import org.strategoxt.imp.runtime.parser.ast.RootAstNode;
 import org.strategoxt.imp.runtime.services.MetaFile;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.lang.Context;
@@ -44,9 +43,9 @@ public class IMPParseStrategoFileStrategy extends parse_stratego_file_0_0 {
 			InputStream stream = null;
 			try {
 				stream = context.getIOAgent().openInputStream(file);
-				RootAstNode ast = parser.parse(stream, file);
+				IStrategoTerm ast = parser.parse(stream, file);
 				ast.setResource(EditorIOAgent.getResource(new File(file)));
-				return ast.getTerm();
+				return ast;
 			} finally {
 				if (stream != null) stream.close();
 			}

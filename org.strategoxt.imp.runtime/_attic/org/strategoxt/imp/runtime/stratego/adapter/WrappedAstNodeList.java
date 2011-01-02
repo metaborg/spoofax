@@ -24,7 +24,7 @@ public class WrappedAstNodeList extends WrappedAstNode implements IStrategoList 
 	/**
 	 * Creates a new WrappedAstNodeList with lazily initialized subterms.
 	 */
-	protected WrappedAstNodeList(WrappedAstNodeFactory factory, IStrategoAstNode node, int offset) {
+	protected WrappedAstNodeList(WrappedAstNodeFactory factory, ISimpleTerm node, int offset) {
 		super(node);
 		this.factory = factory;
 		this.offset = offset;
@@ -33,19 +33,19 @@ public class WrappedAstNodeList extends WrappedAstNode implements IStrategoList 
 	/**
 	 * Creates a new WrappedAstNodeList with the given head and tail.
 	 */
-	protected WrappedAstNodeList(IStrategoAstNode node, int offset, IStrategoTerm head, IStrategoList tail, IStrategoList annos) {
+	protected WrappedAstNodeList(ISimpleTerm node, int offset, IStrategoTerm head, IStrategoList tail, IStrategoList annos) {
 		super(node, annos);
 		this.factory = null;
 		this.offset = offset;
 		this.head = head;
 		this.tail = tail;
-		assert getSubtermCount() == node.getChildren().size() - offset;
+		assert getSubtermCount() == node.getSubtermCount() - offset;
 	}
 
 	public final IStrategoTerm head() {
 		if (head == null) {
 			ArrayList children = getNode().getChildren();
-			head = ((IStrategoAstNode) children.get(offset)).getTerm();
+			head = ((ISimpleTerm) children.get(offset));
 		}
 		return head;
 	}
@@ -99,7 +99,7 @@ public class WrappedAstNodeList extends WrappedAstNode implements IStrategoList 
 			ArrayList children = getNode().getChildren();
 			IStrategoTerm[] results = new IStrategoTerm[children.size() - offset];
 			for (int i = 0; i < results.length; i++) {
-				results[i] = ((IStrategoAstNode) children.get(i + offset)).getTerm();
+				results[i] = ((ISimpleTerm) children.get(i + offset));
 			}
 			return results;
 		} else {
@@ -117,12 +117,12 @@ public class WrappedAstNodeList extends WrappedAstNode implements IStrategoList 
 	
 	@Override
 	public IStrategoTerm getSubterm(int index) {
-		return ((IStrategoAstNode) getNode().getAllChildren().get(index + offset)).getTerm();
+		return ((ISimpleTerm) getNode().getAllChildren().get(index + offset));
 	}
 	
 	@Override
 	public int getSubtermCount() {
-		return getNode().getChildren().size() - offset;
+		return getNode().getSubtermCount() - offset;
 	}
 
 	public final IStrategoTerm get(int index) {
@@ -172,7 +172,7 @@ public class WrappedAstNodeList extends WrappedAstNode implements IStrategoList 
 			int size = children.size() - offset;
 			if (size == 0) return prime * prime * result;
 
-			head = ((IStrategoAstNode) children.get(offset)).getTerm();
+			head = ((ISimpleTerm) children.get(offset));
 			result = prime * result + head.hashCode();
 		} else {
 			result = prime * result + head.hashCode();

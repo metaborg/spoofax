@@ -14,11 +14,11 @@ public abstract class WrappedAstNodeParent extends WrappedAstNode {
 
 	IStrategoTerm[] subterms;
 	
-	protected WrappedAstNodeParent(IStrategoAstNode node, IStrategoList annotations) {
+	protected WrappedAstNodeParent(ISimpleTerm node, IStrategoList annotations) {
 		super(node, annotations);
 	}
 	
-	protected WrappedAstNodeParent(IStrategoAstNode node) {
+	protected WrappedAstNodeParent(ISimpleTerm node) {
 		super(node);
 	}
 
@@ -32,7 +32,7 @@ public abstract class WrappedAstNodeParent extends WrappedAstNode {
 		
 		
 		for (int i = 0; i < size; i++) {
-			result[i] = ((IStrategoAstNode) children.get(i)).getTerm();
+			result[i] = ((ISimpleTerm) children.get(i));
 		}
 		
 		return subterms = result;
@@ -41,7 +41,7 @@ public abstract class WrappedAstNodeParent extends WrappedAstNode {
 	@Override
 	public IStrategoTerm getSubterm(int index) {
 		if (subterms == null) {
-			return ((IStrategoAstNode) getNode().getChildren().get(index)).getTerm();
+			return ((ISimpleTerm) getNode().getSubterm(index));
 		} else {
 			if (-1 < index && index < subterms.length)
 				return subterms[index];
@@ -52,6 +52,6 @@ public abstract class WrappedAstNodeParent extends WrappedAstNode {
 
 	@Override
 	public int getSubtermCount() {
-		return subterms != null ? subterms.length : getNode().getChildren().size();
+		return subterms != null ? subterms.length : getNode().getSubtermCount();
 	}
 }

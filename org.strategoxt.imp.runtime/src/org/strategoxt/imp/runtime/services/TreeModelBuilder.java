@@ -5,9 +5,8 @@ import java.util.Stack;
 
 import org.eclipse.imp.services.ILabelProvider;
 import org.eclipse.imp.services.base.TreeModelBuilderBase;
-import org.strategoxt.imp.runtime.parser.ast.AbstractVisitor;
-import org.strategoxt.imp.runtime.parser.ast.AstNode;
-import org.strategoxt.imp.runtime.parser.ast.RootAstNode;
+import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.terms.TermVisitor;
 
 /**
  * Base class for an outliner.
@@ -24,7 +23,7 @@ public class TreeModelBuilder extends TreeModelBuilderBase {
 	 *  should be the most efficient and simple way of determining
 	 *  whether an outline item should be popped.)
 	 */
-	private final Stack<AstNode> treeStack = new Stack<AstNode>();
+	private final Stack<IStrategoTerm> treeStack = new Stack<IStrategoTerm>();
 	
 	private final List<NodeMapping> rules;
 	
@@ -35,15 +34,14 @@ public class TreeModelBuilder extends TreeModelBuilderBase {
 		this.labelProvider = labelProvider;
 	}	
 	
-    private class TreeModelVisitor extends AbstractVisitor {
-		public boolean preVisit(AstNode node) {
+    private class TreeModelVisitor extends TermVisitor {
+		public void preVisit(IStrategoTerm node) {
 			if (NodeMapping.hasAttribute(rules, node.getConstructor(), node.getSort(), 0))
 				startItem(node);
-			
-			return true;
 		}
 
-		public void postVisit(AstNode node) {
+		@Override
+		public void postVisit(IStrategoTerm node) {
 			endItem(node);
 		}
 	}
@@ -52,12 +50,12 @@ public class TreeModelBuilder extends TreeModelBuilderBase {
 	
 	@Override
 	public void visitTree(Object node) {
-		((AstNode) node).accept(new TreeModelVisitor());
+		new TreeModelVisitor().visit((IStrategoTerm) node);
 	}
 	
-	void startItem(AstNode node) {
+	void startItem(IStrategoTerm node) {
 		String label = labelProvider.getText(node);
-		if (treeStack.isEmpty() && node instanceof RootAstNode) {
+		if (treeStack.isEmpty() && node instanceof IStrategoTerm) {
 			// Skip the top node: already added by TreeModelBuilderBase
 		} else if (label == null || label.length() == 0) {
 			// Skip empty-label nodes
@@ -67,7 +65,7 @@ public class TreeModelBuilder extends TreeModelBuilderBase {
 		}
 	}
 	
-	void endItem(AstNode node) {
+	void endItem(IStrategoTerm node) {
 		if (!treeStack.isEmpty() && treeStack.peek() == node) {
 			popSubItem();
 			treeStack.pop();

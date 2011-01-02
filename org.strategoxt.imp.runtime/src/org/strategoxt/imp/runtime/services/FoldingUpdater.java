@@ -1,17 +1,16 @@
 package org.strategoxt.imp.runtime.services;
 
-import java.util.List;
+import static org.spoofax.jsglr.client.imploder.IToken.TK_LAYOUT;
 
-import lpg.runtime.ILexStream;
-import lpg.runtime.IPrsStream;
-import lpg.runtime.IToken;
+import java.util.List;
 
 import org.eclipse.core.runtime.AssertionFailedException;
 import org.eclipse.imp.services.base.FolderBase;
+import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.jsglr.client.imploder.IToken;
+import org.spoofax.jsglr.client.imploder.ITokenizer;
+import org.spoofax.terms.TermVisitor;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.parser.ast.AstNode;
-import org.strategoxt.imp.runtime.parser.ast.AbstractVisitor;
-import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.*;
 
 /**
  * Folding service. Includes special logic to deal with
@@ -20,7 +19,7 @@ import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.*;
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
 public class FoldingUpdater extends FolderBase {
-	private IPrsStream parseStream;
+	private ITokenizer parseStream;
 	
 	private final List<NodeMapping> folded;
 	private final List<NodeMapping> defaultFolded;
@@ -30,8 +29,8 @@ public class FoldingUpdater extends FolderBase {
 		this.defaultFolded = defaultFolded;
 	}
 	
-    private class FoldingVisitor extends AbstractVisitor {
-		public boolean preVisit(AstNode node) {
+    private class FoldingVisitor extends TermVisitor {
+		public void preVisit(IStrategoTerm node) {
           String constructor = node.getConstructor();
           String sort = node.getSort();
           
@@ -46,27 +45,21 @@ public class FoldingUpdater extends FolderBase {
         		  break;
         	  }
           }
-                    
-          return true;
         }
-
-		public void postVisit(AstNode node) {
-			// Nothing to see here; move along.
-		}
 	}
 
 	@Override
 	public void sendVisitorToAST(java.util.HashMap newAnnotations, java.util.List annotations,
 			java.lang.Object node) {
 		
-		AstNode astNode = (AstNode) node;
-		parseStream = astNode.getLeftIToken().getIPrsStream();
+		IStrategoTerm astNode = (IStrategoTerm) node;
+		parseStream = astNode.getLeftToken().getTokenizer();
 		
-		astNode.accept(new FoldingVisitor());
+		new FoldingVisitor().visit(astNode);
 	}
 
-	public void makeCompleteAnnotation(AstNode node) {
-		makeCompleteAnnotation(node.getLeftIToken(), node.getRightIToken());
+	public void makeCompleteAnnotation(IStrategoTerm node) {
+		makeCompleteAnnotation(node.getLeftToken(), node.getRightToken());
 	}
 
 	public void makeCompleteAnnotation(IToken firstToken, IToken lastToken) {
@@ -77,10 +70,10 @@ public class FoldingUpdater extends FolderBase {
 		if (firstToken.getLine() != lastToken.getLine()) {
 			// Consume any layout tokens at the end of our AST node until the
 			// next EOL
-			while (parseStream.getStreamLength() >= lastToken.getTokenIndex()) {
-				IToken next = parseStream.getTokenAt(lastToken.getTokenIndex() + 1);
+			while (parseStream.getStreamLength() >= lastToken.getIndex()) {
+				IToken next = parseStream.getTokenAt(lastToken.getIndex() + 1);
 
-				if (next.getKind() == TK_LAYOUT.ordinal()) {
+				if (next.getKind() == TK_LAYOUT) {
 					lastToken = next;
 					if ((end = getEndOfLinePosition(next)) != -1)
 						break;
@@ -104,10 +97,10 @@ public class FoldingUpdater extends FolderBase {
 	private int getEndOfLinePosition(IToken token) {
 		int end = token.getEndOffset();
 
-		ILexStream lexStream = parseStream.getILexStream();
+		String lexStream = parseStream.getInput();
 
 		for (int i = token.getStartOffset(); i <= end; i++) {
-			char c = lexStream.getCharValue(i);
+			char c = lexStream.charAt(i);
 			if (c == '\n' || c == '\r')
 				return i;
 		}

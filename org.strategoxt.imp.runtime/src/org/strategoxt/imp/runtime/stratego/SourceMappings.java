@@ -13,8 +13,6 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.LazyTerm;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
 
-import org.spoofax.interpreter.terms.IStrategoTerm;
-
 /**
  * Maintains mappings between input streams, parse trees, etc. and their origins.
  * 

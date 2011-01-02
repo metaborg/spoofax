@@ -18,13 +18,13 @@ import org.spoofax.interpreter.core.InterpreterErrorExit;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.core.UndefinedStrategyException;
+import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
-import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -42,7 +42,7 @@ public class CustomStrategyBuilder extends StrategoBuilder {
 	}
 	
 	@Override
-	public Job scheduleExecute(EditorState editor, IStrategoAstNode node, IFile errorReportFile,
+	public Job scheduleExecute(EditorState editor, ISimpleTerm node, IFile errorReportFile,
 			boolean isRebuild) {
 		
 		String builderRule = inputBuilderRule(editor);
@@ -91,14 +91,14 @@ public class CustomStrategyBuilder extends StrategoBuilder {
 	}
 	
 	@Override
-	protected IStrategoTerm invokeObserver(IStrategoAstNode node)
+	protected IStrategoTerm invokeObserver(ISimpleTerm node)
 			throws UndefinedStrategyException, InterpreterErrorExit, InterpreterExit,
 			InterpreterException {
 
 		// Try invoke using (term)
 		IStrategoTerm input = getDerivedFromEditor() == null
-				? node.getTerm()
-				: getObserver().implodeIStrategoTerm(getObserver().getImplodableNode(node).getTerm());
+				? node
+				: getObserver().implodeIStrategoTerm(getObserver().getImplodableNode(node));
 		IStrategoTerm result = getObserver().invoke(getBuilderRule(), input, node.getResource());
 		if (result != null) return addFileName(result, node.getResource());
 		String[] trace1 = getObserver().getRuntime().getCompiledContext().getTrace();

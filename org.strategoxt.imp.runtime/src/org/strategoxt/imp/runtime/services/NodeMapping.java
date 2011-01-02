@@ -1,19 +1,21 @@
 package org.strategoxt.imp.runtime.services;
 
-import static org.strategoxt.imp.runtime.dynamicloading.TermReader.*;
+import static org.spoofax.interpreter.core.Tools.termAt;
+import static org.strategoxt.imp.runtime.dynamicloading.TermReader.cons;
+import static org.strategoxt.imp.runtime.dynamicloading.TermReader.findTerm;
+import static org.strategoxt.imp.runtime.dynamicloading.TermReader.termContents;
 
 import java.util.List;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
-import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class NodeMapping<T> {
-	private final static int NO_TOKEN_KIND = TokenKind.TK_NO_TOKEN_KIND.ordinal();
+	private final static int NO_TOKEN_KIND = IToken.TK_NO_TOKEN_KIND;
 	
 	private final T attribute;
 	
@@ -27,7 +29,7 @@ public class NodeMapping<T> {
 		this.sort = sort;
 		
 		// We use ints for comparison with IMP's integer enum in IToken
-		this.tokenKind = tokenKind == null ? NO_TOKEN_KIND : tokenKind.ordinal();
+		this.tokenKind = tokenKind == null ? NO_TOKEN_KIND : tokenKind;
 	}
 	
 	protected NodeMapping(IStrategoTerm pattern, T attribute) throws BadDescriptorException {
@@ -45,7 +47,7 @@ public class NodeMapping<T> {
 		IStrategoAppl tokenTerm = findTerm(pattern, "Token");
 		String tokenKind = tokenTerm == null ? null : cons(termAt(tokenTerm, 0));
 		try {
-			return tokenKind == null ? null : TokenKind.valueOf(tokenKind);
+			return tokenKind == null ? null : IToken.valueOf(tokenKind);
 		} catch (IllegalArgumentException e) {
 			throw new BadDescriptorException("Could not set the coloring rule for token kind: " + tokenKind, e);
 		}
@@ -88,7 +90,7 @@ public class NodeMapping<T> {
 	
 	@Override
 	public String toString() {
-		return "(" + constructor + "," + sort + "," + TokenKind.valueOf(tokenKind).toString()
+		return "(" + constructor + "," + sort + "," + IToken.valueOf(tokenKind).toString()
 				+ " => " + attribute + ")";
 	}
 	

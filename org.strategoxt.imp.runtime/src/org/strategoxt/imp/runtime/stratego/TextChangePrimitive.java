@@ -1,7 +1,5 @@
 package org.strategoxt.imp.runtime.stratego;
 
-import lpg.runtime.ILexStream;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -18,11 +16,10 @@ import org.spoofax.terms.StrategoInt;
 import org.spoofax.terms.StrategoTuple;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.stratego.adapter.IWrappedAstNode;
 
 /**
  * Applies a text-change in the current document
- * Arguments: (AstNode, (offset, end-offset), "textfragment") 
+ * Arguments: (IStrategoTerm, (offset, end-offset), "textfragment") 
  * (ASTnode, -1,-1, textfragment) => replace complete file
  * @author Maartje de Jonge
  */
@@ -40,10 +37,10 @@ public class TextChangePrimitive extends AbstractPrimitive {
 		int position_end = -1;
 		if (tvars.length!=3)//!isTermString(tvars[1])
 			return false;
-		if(!(tvars[0] instanceof IWrappedAstNode && islocationTuple(tvars[1]) && tvars[2] instanceof IStrategoString))
+		if(!(tvars[0] instanceof IStrategoTerm && islocationTuple(tvars[1]) && tvars[2] instanceof IStrategoString))
 			return false;
-		EditorState editor = ((IWrappedAstNode)tvars[0]).getNode().getParseController().getEditor();
-		ILexStream lexStream = ((IWrappedAstNode)tvars[0]).getNode().getLeftIToken().getILexStream();
+		EditorState editor = ((IStrategoTerm)tvars[0]).getNode().getParseController().getEditor();
+		ILexStream lexStream = ((IStrategoTerm)tvars[0]).getNode().getLeftToken().getILexStream();
 		StrategoTuple tuple=(StrategoTuple)tvars[1];
 		position_start=((StrategoInt)tuple.get(0)).intValue();
 		position_end=((StrategoInt)tuple.get(1)).intValue()-1; //exclusive end pos

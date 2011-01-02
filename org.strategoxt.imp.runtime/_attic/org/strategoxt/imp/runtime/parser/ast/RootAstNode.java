@@ -3,7 +3,7 @@ package org.strategoxt.imp.runtime.parser.ast;
 import org.eclipse.core.resources.IResource;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 
-public class RootAstNode extends AstNode {
+public class IStrategoTerm extends IStrategoTerm {
 	
 	private final SGLRParseController controller;
 	
@@ -23,8 +23,8 @@ public class RootAstNode extends AstNode {
 		return controller;
 	}
 
-	protected RootAstNode(AstNode ast, SGLRParseController controller, IResource resource) {
-		super(ast.getSort(), ast.getLeftIToken(), ast.getRightIToken(), ast.getConstructor(),
+	protected IStrategoTerm(IStrategoTerm ast, SGLRParseController controller, IResource resource) {
+		super(ast.getSort(), ast.getLeftToken(), ast.getRightToken(), ast.getConstructor(),
 				ast.getChildren());
 		
 		this.resource = resource;
@@ -33,12 +33,12 @@ public class RootAstNode extends AstNode {
 		overrideReferences(getLeftIToken(), getRightIToken(), getChildren(), ast);
 	}
 	
-	public static RootAstNode makeRoot(AstNode ast, SGLRParseController controller, IResource resource) {
-		return new RootAstNode(ast, controller, resource);
+	public static IStrategoTerm makeRoot(IStrategoTerm ast, SGLRParseController controller, IResource resource) {
+		return new IStrategoTerm(ast, controller, resource);
 	}
 	
 	@Override
-	public RootAstNode cloneIgnoreTokens() {
-		return (RootAstNode) super.cloneIgnoreTokens();
+	public IStrategoTerm cloneIgnoreTokens() {
+		return (IStrategoTerm) super.cloneIgnoreTokens();
 	}
 }

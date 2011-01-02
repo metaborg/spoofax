@@ -8,26 +8,19 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
-import lpg.runtime.IPrsStream;
-
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
+import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.jsglr.client.imploder.ITokenizer;
+import org.spoofax.jsglr.client.imploder.TokenKindManager;
 import org.spoofax.jsglr.shared.BadTokenException;
 import org.spoofax.jsglr.shared.SGLRException;
 import org.spoofax.jsglr.shared.TokenExpectedException;
 import org.strategoxt.imp.runtime.Debug;
-import org.strategoxt.imp.runtime.parser.ast.AmbAsfixImploder;
-import org.strategoxt.imp.runtime.parser.ast.AsfixImploder;
-import org.strategoxt.imp.runtime.parser.ast.AstNode;
-import org.strategoxt.imp.runtime.parser.ast.RootAstNode;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
-import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
-import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
 import org.strategoxt.lang.WeakValueHashMap;
-
-import org.spoofax.interpreter.terms.IStrategoTerm;
 
 /**
  * IMP IParser implementation for SGLR, imploding parse trees to AST nodes and tokens.
@@ -62,16 +55,14 @@ public abstract class AbstractSGLRI {
 	}
 
 	public int getEOFTokenKind() {
-		return TokenKind.TK_EOF.ordinal();
+		return IToken.TK_EOF;
 	}
 
-	/**
-	 * Get the current parsestream.
-	 */
-	public IPrsStream getParseStream() {
+	@Deprecated
+	public ITokenizer getParseStream() {
 		SGLRTokenizer tokenizer = getTokenizer();
 		if (tokenizer == null) return null;
-		return tokenizer.getParseStream();
+		return tokenizer;
 	}
 	
 	public SGLRParseController getController() {
@@ -113,7 +104,7 @@ public abstract class AbstractSGLRI {
 	 * 
 	 * @return  The abstract syntax tree.
 	 */
-	protected RootAstNode parse(char[] inputChars, String filename, IProgressMonitor monitor)
+	protected IStrategoTerm parse(char[] inputChars, String filename, IProgressMonitor monitor)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 
 		IStrategoTerm asfix = parseNoImplode(inputChars, filename);
@@ -127,7 +118,7 @@ public abstract class AbstractSGLRI {
 	 * 
 	 * @return  The abstract syntax tree.
 	 */
-	public RootAstNode parse(char[] inputChars, String filename)
+	public IStrategoTerm parse(char[] inputChars, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 
 		return parse(inputChars, filename, new NullProgressMonitor());
@@ -141,7 +132,7 @@ public abstract class AbstractSGLRI {
 	 * 
 	 * @return  The abstract syntax tree.
 	 */
-	public final RootAstNode parse(InputStream input, String filename)
+	public final IStrategoTerm parse(InputStream input, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 		
 		return parse(toCharArray(input), filename);
@@ -152,11 +143,11 @@ public abstract class AbstractSGLRI {
 	 * 
 	 * @note May only work with the latest parse tree produced.
 	 */
-	protected RootAstNode internalImplode(IStrategoTerm asfix) {
-		AstNode imploded = imploder.implode(asfix, currentTokenizer);
+	protected IStrategoTerm internalImplode(IStrategoTerm asfix) {
+		IStrategoTerm imploded = imploder.implode(asfix, currentTokenizer);
 		SGLRParseController controller = getController() == null ? null : getController();
 		IResource resource = controller == null ? null : controller.getResource();
-		return RootAstNode.makeRoot(imploded, controller, resource);
+		return IStrategoTerm.makeRoot(imploded, controller, resource);
 	}
 	
 	/**

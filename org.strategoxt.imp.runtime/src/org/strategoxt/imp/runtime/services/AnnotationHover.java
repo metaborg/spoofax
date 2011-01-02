@@ -1,6 +1,7 @@
 package org.strategoxt.imp.runtime.services;
 
-import static org.eclipse.imp.utils.HTMLPrinter.*;
+import static org.eclipse.imp.utils.HTMLPrinter.addPageEpilog;
+import static org.eclipse.imp.utils.HTMLPrinter.addPageProlog;
 
 import java.util.Collections;
 import java.util.Iterator;

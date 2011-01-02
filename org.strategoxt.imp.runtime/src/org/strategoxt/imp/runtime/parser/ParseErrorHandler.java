@@ -1,49 +1,40 @@
 package org.strategoxt.imp.runtime.parser;
 
 import static java.lang.Math.min;
-import static org.spoofax.terms.Term.applAt;
-import static org.spoofax.terms.Term.listAt;
 import static org.spoofax.terms.Term.termAt;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import lpg.runtime.IToken;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.interpreter.terms.TermConverter;
+import org.spoofax.jsglr.client.MultiBadTokenException;
+import org.spoofax.jsglr.client.ParseTimeoutException;
+import org.spoofax.jsglr.client.RecoveryConnector;
+import org.spoofax.jsglr.client.RegionRecovery;
+import org.spoofax.jsglr.client.imploder.IToken;
+import org.spoofax.jsglr.client.imploder.ProductionAttributeReader;
 import org.spoofax.jsglr.shared.BadTokenException;
-import org.spoofax.jsglr.MultiBadTokenException;
-import org.spoofax.jsglr.ParseTimeoutException;
-import org.spoofax.jsglr.RecoveryConnector;
-import org.spoofax.jsglr.RegionRecovery;
 import org.spoofax.jsglr.shared.TokenExpectedException;
 import org.strategoxt.imp.generator.sdf2imp;
 import org.strategoxt.imp.generator.simplify_ambiguity_report_0_0;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.parser.ast.AsfixAnalyzer;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
 import org.strategoxt.imp.runtime.parser.ast.MarkerSignature;
-import org.strategoxt.imp.runtime.parser.ast.ProductionAttributeReader;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
-import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.lang.Context;
 import org.strategoxt.stratego_aterm.stratego_aterm;
 import org.strategoxt.stratego_sglr.implode_asfix_0_0;
 import org.strategoxt.stratego_sglr.stratego_sglr;
-
-import org.spoofax.interpreter.terms.IStrategoTerm;
-import aterm.ATermAppl;
-import aterm.ATermInt;
-import org.spoofax.interpreter.terms.IStrategoList;
 
 /**
  * SGLR parse error reporting for a particular SGLR Parse controller and file. 
@@ -265,10 +256,10 @@ public class ParseErrorHandler {
 		// TODO: Nicer error messages; merge consecutive error tokens etc.
 		int startOffset = offset;
 		
-		if ("amb".equals(term.getAFun().getName())) {
+		if ("amb".equals(term.getIStrategoConstructor().getName())) {
 			// Report errors in first ambiguous branch and update offset
 			IStrategoList ambs = termAt(term, 0);
-			reportRecoveredErrors(tokenizer, (ATermAppl) ambs.getFirst(), startOffset, outerStartOffset);
+			reportRecoveredErrors(tokenizer, (ATermAppl) ambs.head(), startOffset, outerStartOffset);
 			
 			reportAmbiguity(tokenizer, term, startOffset);
 			return;
@@ -299,11 +290,11 @@ public class ParseErrorHandler {
 		if (WATER.equals(cons)
 				|| prodReader.getAttribute(attrs, "reject") != null) {
 			IToken token = tokenizer.makeErrorToken(startOffset, offset - 1);
-			tokenizer.changeTokenKinds(startOffset, offset - 1, TokenKind.TK_LAYOUT, TokenKind.TK_ERROR);
+			tokenizer.changeTokenKinds(startOffset, offset - 1, IToken.TK_LAYOUT, IToken.TK_ERROR);
 			reportErrorAtTokens(token, token, UNEXPECTED_TOKEN_PREFIX + token + UNEXPECTED_TOKEN_POSTFIX);
 		} else if (INSERT_END.equals(cons)) {
 			IToken token = tokenizer.makeErrorToken(startOffset, offset - 1);
-			tokenizer.changeTokenKinds(startOffset, offset - 1, TokenKind.TK_LAYOUT, TokenKind.TK_ERROR);
+			tokenizer.changeTokenKinds(startOffset, offset - 1, IToken.TK_LAYOUT, IToken.TK_ERROR);
 			reportErrorAtTokens(token, token, "Syntax error, closing of '" + token + "' is expected here");
 		} else if (INSERT.equals(cons)
 				|| (prodReader.getAttribute(attrs, "recover") != null
@@ -338,10 +329,10 @@ public class ParseErrorHandler {
 		// TODO: move to SSL_implode_string.call() ?
         StringBuilder result = new StringBuilder(chars.getLength());
 
-        while (chars.getFirst() != null) {
-        	ATermInt v = (ATermInt) chars.getFirst();
+        while (chars.head() != null) {
+        	ATermInt v = (ATermInt) chars.head();
             result.append((char) v.getInt());
-            chars = chars.getNext();
+            chars = chars.tail();
         }
         
         return result.toString();
@@ -425,7 +416,7 @@ public class ParseErrorHandler {
 		if (treeEnd < processedChars.length) {
 			IToken token = tokenizer.makeErrorToken(treeEnd + 1, processedChars.length);
 			reportErrorAtTokens(token, token, "Could not parse the remainder of this file");
-			tokenizer.changeTokenKinds(treeEnd + 1, processedChars.length, TokenKind.TK_LAYOUT, TokenKind.TK_ERROR);
+			tokenizer.changeTokenKinds(treeEnd + 1, processedChars.length, IToken.TK_LAYOUT, IToken.TK_ERROR);
 		}
 	}
 
@@ -446,12 +437,12 @@ public class ParseErrorHandler {
 					reportedLine = e.getLineNumber();
 			}
 		}
-		tokenizer.changeTokenKinds(beginSkipped, endSkipped, TokenKind.TK_LAYOUT, TokenKind.TK_ERROR);
+		tokenizer.changeTokenKinds(beginSkipped, endSkipped, IToken.TK_LAYOUT, IToken.TK_ERROR);
 		if (reportedLine == -1) {
 			// Report entire region
 			reportErrorAtTokens(token, token, UNEXPECTED_REGION);
 		} else if (reportedLine - line >= LARGE_REGION_SIZE) {
-			IToken firstToken = token.getIPrsStream().getTokenAtCharacter(beginSkipped);
+			IToken firstToken = token.getTokenizer().getTokenAt(beginSkipped);
 			IToken lastToken = tokenizer.getLastTokenOnSameLine(firstToken);
 			reportErrorAtTokens(firstToken, lastToken, LARGE_REGION_START);
 		}
@@ -563,8 +554,8 @@ public class ParseErrorHandler {
 		if ("attrs".equals(attrs.getName())) {
 			IStrategoList attrList = termAt(attrs, 0);
 			while (!attrList.isEmpty()) {
-				ATermAppl attr = (ATermAppl) attrList.getFirst();
-				attrList = attrList.getNext();
+				ATermAppl attr = (ATermAppl) attrList.head();
+				attrList = attrList.tail();
 				if (attr.getName().equals("term")) {
 					ATermAppl details = applAt(attr, 0);
 					if (details.getName().equals("deprecated")) {

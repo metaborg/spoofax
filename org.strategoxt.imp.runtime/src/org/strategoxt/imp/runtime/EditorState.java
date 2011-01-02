@@ -1,8 +1,5 @@
 package org.strategoxt.imp.runtime;
 
-import lpg.runtime.IPrsStream;
-import lpg.runtime.IToken;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.imp.editor.UniversalEditor;
@@ -23,14 +20,15 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
 import org.eclipse.ui.texteditor.IDocumentProvider;
+import org.spoofax.interpreter.terms.ISimpleTerm;
+import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.jsglr.client.imploder.IToken;
+import org.spoofax.jsglr.client.imploder.ITokenizer;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.dynamicloading.DynamicParseController;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
-import org.strategoxt.imp.runtime.parser.ast.AstNode;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
-import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
-import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 
 /**
  * Helper class for accessing the active editor.
@@ -140,7 +138,7 @@ public class EditorState {
 	/**
 	 * @see SGLRParseController#getCurrentAst
 	 */
-	public final AstNode getCurrentAst() {
+	public final IStrategoTerm getCurrentAst() {
 		return getParseController().getCurrentAst();
 	}
 	
@@ -169,7 +167,7 @@ public class EditorState {
 	 * @see SGLRParseController#getCurrentAst()
 	 *            Gets the entire AST.
 	 */
-	public final synchronized IStrategoAstNode getSelectionAst(boolean ignoreEmptyEmptySelection) {
+	public final synchronized ISimpleTerm getSelectionAst(boolean ignoreEmptyEmptySelection) {
 		Point selection = getEditor().getSelection();
 		if (ignoreEmptyEmptySelection && selection.y == 0)
 			return null;
@@ -177,18 +175,18 @@ public class EditorState {
 		IToken start = getParseController().getTokenIterator(new Region(selection.x, 0), true).next();
 		IToken end = getParseController().getTokenIterator(new Region(selection.x + selection.y - 1, 0), true).next();
 		
-		IPrsStream tokens = start.getIPrsStream();
-		int layout = TokenKind.TK_LAYOUT.ordinal();
-		int eof = TokenKind.TK_EOF.ordinal();
+		ITokenizer tokens = start.getTokenizer();
+		int layout = IToken.TK_LAYOUT;
+		int eof = IToken.TK_EOF;
 		
-		while (start.getKind() == layout && start.getTokenIndex() < tokens.getSize())
-			start = tokens.getTokenAt(start.getTokenIndex() + 1);
+		while (start.getKind() == layout && start.getIndex() < tokens.getTokenCount())
+			start = tokens.getTokenAt(start.getIndex() + 1);
 		
-		while ((end.getKind() == layout || end.getKind() == eof) && end.getTokenIndex() > 0)
-			end = tokens.getTokenAt(end.getTokenIndex() - 1);
+		while ((end.getKind() == layout || end.getKind() == eof) && end.getIndex() > 0)
+			end = tokens.getTokenAt(end.getIndex() - 1);
 		
-		IStrategoAstNode startNode = ((SGLRToken) start).getAstNode();
-		IStrategoAstNode endNode = ((SGLRToken) end).getAstNode();
+		ISimpleTerm startNode = ((SGLRToken) start).getAstNode();
+		ISimpleTerm endNode = ((SGLRToken) end).getAstNode();
 
 		return StrategoTermPath.findCommonAncestor(startNode, endNode);
 	}

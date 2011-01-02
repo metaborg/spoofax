@@ -94,7 +94,7 @@ public class TokenKindManager {
 		// Return true if any character range of this contains spaces
 		for (int i = 0; i < term.getChildCount(); i++) {
 			IStrategoTerm child = termAt(term, i);
-			if (isAppl(child) && asAppl(child).getName().equals("range")) {
+			if (isTermAppl(child) && asAppl(child).getName().equals("range")) {
 				int start = intAt(child, RANGE_START);
 				int end = intAt(child, RANGE_END);
 				if (start <= ' ' && ' ' <= end) return true;
@@ -116,7 +116,7 @@ public class TokenKindManager {
 		// Get very first character range in this term
 		for (int i = 0; i < term.getChildCount(); i++) {
 			IStrategoTerm child = termAt(term, i);
-			if (isAppl(child) && asAppl(child).getName().equals("range")) {
+			if (isTermAppl(child) && asAppl(child).getName().equals("range")) {
 				return child;
 			} else {
 				child = getFirstRange(child);

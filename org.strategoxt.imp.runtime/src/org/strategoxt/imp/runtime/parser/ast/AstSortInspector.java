@@ -5,10 +5,9 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import lpg.runtime.IPrsStream;
-
 import org.eclipse.imp.parser.ISourcePositionLocator;
-import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
+import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.jsglr.client.imploder.ITokenizer;
 
 /**
  * Identifies the possible sorts of a symbol inserted at
@@ -18,9 +17,9 @@ import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
  */
 public class AstSortInspector {
 	
-	private final RootAstNode ast;
+	private final IStrategoTerm ast;
 
-	public AstSortInspector(RootAstNode ast) {
+	public AstSortInspector(IStrategoTerm ast) {
 		this.ast = ast;
 	}
 	
@@ -29,7 +28,7 @@ public class AstSortInspector {
 	public Set<String> getSortsAtOffset(int startOffset, int endOffset) {
 		if (ast == null) return new HashSet<String>();
 		ISourcePositionLocator locator = ast.getParseController().getSourcePositionLocator();
-		AstNode node = (AstNode) locator.findNode(ast, endOffset);
+		IStrategoTerm node = (IStrategoTerm) locator.findNode(ast, endOffset);
 		if (node == null) node = ast;
 
 		int startToken = getNonLayoutTokenLeftOf(node);
@@ -37,12 +36,12 @@ public class AstSortInspector {
 		Set<String> results = getSortsOfOptionalChildren(node, startOffset, endOffset);
 		
 		boolean isOptNode = false;
-		boolean skipNonOptNodes = node.getRightIToken().getEndOffset() > endOffset && !results.isEmpty();
+		boolean skipNonOptNodes = node.getRightToken().getEndOffset() > endOffset && !results.isEmpty();
 
 		// Follow the (labeled) injection chain upwards
 		do {
-			AstNode parent = node.getParent();
-			if (!skipNonOptNodes && node.getLeftIToken().getTokenIndex() > startToken) {
+			IStrategoTerm parent = node.getParent();
+			if (!skipNonOptNodes && node.getLeftToken().getIndex() > startToken) {
 				if (node.isList()) {
 					isOptNode = true;
 					results.add(((ListAstNode) node).getElementSort());
@@ -59,7 +58,7 @@ public class AstSortInspector {
 				if (node.isList()) results.add(((ListAstNode) node).getElementSort());
 			}
 			node = parent;
-		} while (node != null && node.getRightIToken().getTokenIndex() < endToken);
+		} while (node != null && node.getRightToken().getIndex() < endToken);
 		
 		if (node != null && node.isList() && !skipNonOptNodes) {
 			// Add sort of container list with elements after current node
@@ -70,13 +69,13 @@ public class AstSortInspector {
 		return results;
 	}
 
-	private Set<String> getSortsOfOptionalChildren(AstNode node, int startOffset, int endOffset) {
+	private Set<String> getSortsOfOptionalChildren(IStrategoTerm node, int startOffset, int endOffset) {
 		// TODO: detect 'opt' optionals in addition to list children?
 		// TODO: somehow behave differently in case the completion resulted in a syntax error?
 		//       the skipNonOptNodes thing which mosly addresses this
-		IPrsStream tokens = ast.getRightIToken().getIPrsStream();
+		ITokenizer tokens = ast.getRightToken().getTokenizer();
 		Set<String> results = new LinkedHashSet<String>();
-		for (AstNode child : node.getChildren()) {
+		for (IStrategoTerm child : node.getChildren()) {
 			if (child.isList()) {
 				int startToken = getNonLayoutTokenLeftOf(child);
 				int endToken = getNonLayoutTokenRightOf(child);
@@ -90,32 +89,32 @@ public class AstSortInspector {
 		return results;
 	}
 
-	private int getNonLayoutTokenLeftOf(AstNode node) {
-		int result = node.getLeftIToken().getTokenIndex();
-		IPrsStream tokens = ast.getRightIToken().getIPrsStream();
+	private int getNonLayoutTokenLeftOf(IStrategoTerm node) {
+		int result = node.getLeftToken().getIndex();
+		ITokenizer tokens = ast.getRightToken().getTokenizer();
 		while (--result >= 0) {
 			int kind = tokens.getTokenAt(result).getKind();
-			if (kind != TokenKind.TK_LAYOUT.ordinal() && kind != TokenKind.TK_ERROR.ordinal())
+			if (kind != IToken.TK_LAYOUT && kind != IToken.TK_ERROR)
 				break;
 		}
 		return result;
 	}
 
-	private int getNonLayoutTokenRightOf(AstNode node) {
-		int result = node.getRightIToken().getTokenIndex();
-		IPrsStream tokens = ast.getRightIToken().getIPrsStream();
+	private int getNonLayoutTokenRightOf(IStrategoTerm node) {
+		int result = node.getRightToken().getIndex();
+		ITokenizer tokens = ast.getRightToken().getTokenizer();
 		while (++result < tokens.getStreamLength()) {
 			int kind = tokens.getTokenAt(result).getKind();
-			if (kind != TokenKind.TK_LAYOUT.ordinal() && kind != TokenKind.TK_ERROR.ordinal())
+			if (kind != IToken.TK_LAYOUT && kind != IToken.TK_ERROR)
 				break;
 		}
 		return result;
 	}
 
-	private static AstNode getNextSibling(AstNode node) {
-		AstNode parent = node.getParent();
+	private static IStrategoTerm getNextSibling(IStrategoTerm node) {
+		IStrategoTerm parent = node.getParent();
 		if (parent == null) return null;
-		ArrayList<AstNode> children = parent.getChildren();
+		ArrayList<IStrategoTerm> children = parent.getChildren();
 		int siblingIndex = children.indexOf(node) + 1;
 		if (siblingIndex >= children.size()) return null;
 		return children.get(siblingIndex);

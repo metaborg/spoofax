@@ -2,7 +2,7 @@ package org.strategoxt.imp.runtime.parser.ast;
 
 import static org.eclipse.core.resources.IMarker.PRIORITY_HIGH;
 import static org.spoofax.interpreter.core.Tools.termAt;
-import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.TK_ERROR;
+import static org.spoofax.jsglr.client.imploder.IToken.TK_ERROR;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -17,9 +17,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import lpg.runtime.IAst;
-import lpg.runtime.IToken;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -38,11 +35,11 @@ import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
+import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.jsglr.client.imploder.IToken;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
-import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
-import org.strategoxt.imp.runtime.stratego.adapter.IWrappedAstNode;
 
 /**
  * Reports messages for a group of files, associating
@@ -94,13 +91,13 @@ public class AstMessageHandler {
 	public void addMarker(IResource resource, IStrategoTerm term, String message,
 			int severity) {
 		
-		IAst node = minimizeMarkerSize(getClosestAstNode(term));
+		ISimpleTerm node = minimizeMarkerSize(getClosestAstNode(term));
 
 		if (node == null) {
 			addMarkerFirstLine(resource, message, severity);
 			Environment.logException("Term is not associated with an AST node, cannot report feedback message: "
 							+ term + " - " + message);
-		} else if (((IStrategoAstNode) node).getResource() == null) {
+		} else if (((ISimpleTerm) node).getResource() == null) {
             Environment.logException("Term is not associated with a workspace file, cannot report feedback message: "
                     + term + " - " + message);
 		} else {
@@ -113,16 +110,16 @@ public class AstMessageHandler {
 	 * 
 	 * @param severity  The severity of this warning, one of {@link IMarker#SEVERITY_ERROR}, WARNING, or INFO.
 	 */
-	public void addMarker(IAst node, String message, int severity) {
-		if (!(node instanceof IStrategoAstNode)) {
+	public void addMarker(ISimpleTerm node, String message, int severity) {
+		if (!(node instanceof ISimpleTerm)) {
 			Environment.logException("Cannot annotate a node of type " + node.getClass().getSimpleName() + ": " + node);
 			return;
 		}
 		
-		IToken left = node.getLeftIToken();
-		IToken right = node.getRightIToken();
+		IToken left = node.getLeftToken();
+		IToken right = node.getRightToken();
 
-		IResource file = ((IStrategoAstNode) node).getResource();
+		IResource file = ((ISimpleTerm) node).getResource();
 		
 		addMarker(file, left, right, message, severity);
 	}
@@ -171,7 +168,7 @@ public class AstMessageHandler {
 				BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
 				String firstLine = reader.readLine();
 				if (firstLine != null) {
-					IToken errorToken = new SGLRToken(null, 0, firstLine.length(), TK_ERROR.ordinal());
+					IToken errorToken = new SGLRToken(null, 0, firstLine.length(), TK_ERROR);
 					addMarker(file, errorToken, errorToken, message, severity);				
 				} else {
 					addMarkerNoLocation(file, message, severity);
@@ -196,26 +193,26 @@ public class AstMessageHandler {
 	 * Given an stratego term, give the first AST node associated
 	 * with any of its subterms, doing a depth-first search.
 	 */
-	private static IAst getClosestAstNode(IStrategoTerm term) {
-	    if (term instanceof IWrappedAstNode) {
-	        return ((IWrappedAstNode) term).getNode();
+	private static ISimpleTerm getClosestAstNode(IStrategoTerm term) {
+	    if (term instanceof IStrategoTerm) {
+	        return ((IStrategoTerm) term).getNode();
 	    } else if (term == null) {
 	    	return null;
 	    } else {
 	        for (int i = 0; i < term.getSubtermCount(); i++) {
-	        	IAst result = getClosestAstNode(termAt(term, i));
+	        	ISimpleTerm result = getClosestAstNode(termAt(term, i));
 	            if (result != null) return result;
 	        }
 	        return null;
 	    }
 	}
 	
-	private static IAst minimizeMarkerSize(IAst node) {
+	private static ISimpleTerm minimizeMarkerSize(ISimpleTerm node) {
 		// TODO: prefer lexical nodes when minimizing marker size? (e.g., not 'private')
 		if (node == null) return null;
-		while (node.getLeftIToken().getLine() < node.getRightIToken().getEndLine()) {
-			if (node.getChildren().size() == 0) break;
-			node = (IAst) node.getChildren().get(0);
+		while (node.getLeftToken().getLine() < node.getRightToken().getEndLine()) {
+			if (node.getSubtermCount() == 0) break;
+			node = (ISimpleTerm) node.getSubterm(0);
 		}
 		return node;
 	}
@@ -224,7 +221,7 @@ public class AstMessageHandler {
 	 * Add a marker to a file, without having a specific location associated to it.
 	 */
 	private void addMarkerNoLocation(IResource file, String message, int severity) {
-		IToken errorToken = new SGLRToken(null, 0, 0, TK_ERROR.ordinal());
+		IToken errorToken = new SGLRToken(null, 0, 0, TK_ERROR);
 		addMarker(file, errorToken, errorToken, message, severity);
 	}
 	

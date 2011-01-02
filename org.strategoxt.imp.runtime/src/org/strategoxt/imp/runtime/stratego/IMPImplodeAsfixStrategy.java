@@ -7,17 +7,12 @@ import org.eclipse.core.resources.IResource;
 import org.spoofax.interpreter.library.IOperatorRegistry;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.jsglr.client.imploder.TokenKindManager;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.parser.ast.AsfixImploder;
-import org.strategoxt.imp.runtime.parser.ast.AstNode;
-import org.strategoxt.imp.runtime.parser.ast.RootAstNode;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
-import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 import org.strategoxt.stratego_sglr.implode_asfix_1_0;
-
-import org.spoofax.interpreter.terms.IStrategoTerm;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -50,14 +45,14 @@ public class IMPImplodeAsfixStrategy extends implode_asfix_1_0 {
 			return outer.invoke(context, asfix, implodeConcreteSyntax);
 		}
 		
-		AstNode result = imploder.implode(asfixIStrategoTerm, tokenizer);
+		IStrategoTerm result = imploder.implode(asfixIStrategoTerm, tokenizer);
 		IResource resource;
 		try {
 			resource = EditorIOAgent.getResource(inputFile);
 		} catch (FileNotFoundException e) {
 			resource = null;
 		}
-		result = RootAstNode.makeRoot(result, null, resource);
-		return result.getTerm();
+		result = IStrategoTerm.makeRoot(result, null, resource);
+		return result;
 	}
 }

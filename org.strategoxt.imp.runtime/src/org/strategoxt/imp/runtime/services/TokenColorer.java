@@ -2,22 +2,19 @@ package org.strategoxt.imp.runtime.services;
 
 import java.util.List;
 
-import lpg.runtime.IAst;
-import lpg.runtime.IToken;
-
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.services.ITokenColorer;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.swt.graphics.Color;
+import org.spoofax.interpreter.terms.ISimpleTerm;
+import org.spoofax.jsglr.client.KeywordRecognizer;
+import org.spoofax.jsglr.client.imploder.IToken;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
-import org.strategoxt.imp.runtime.parser.tokens.KeywordRecognizer;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
-import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
-import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -87,7 +84,7 @@ public class TokenColorer implements ITokenColorer {
 
 	public TextAttribute getColoring(IParseController controller, Object oToken) {
 		SGLRToken token = (SGLRToken) oToken;
-		IStrategoAstNode node = token.getAstNode();
+		ISimpleTerm node = token.getAstNode();
 		TextAttribute nodeColor = null;
 		int tokenKind = token.getKind();
 		
@@ -100,16 +97,16 @@ public class TokenColorer implements ITokenColorer {
 		String sort = node == null ? null : node.getSort();
 		String constructor = node == null ? null : node.getConstructor();
 		
-		if (tokenKind == TokenKind.TK_LAYOUT.ordinal() && SGLRToken.isWhiteSpace(token)) {
+		if (tokenKind == IToken.TK_LAYOUT && SGLRToken.isWhiteSpace(token)) {
 			// Don't treat whitespace layout as comments, to avoid italics in text that
 			// was just typed in
-			tokenKind = TokenKind.TK_UNKNOWN.ordinal();
-		} else if (tokenKind == TokenKind.TK_ERROR.ordinal() && isKeyword(token)) {
-			tokenKind = TokenKind.TK_KEYWORD.ordinal();
+			tokenKind = IToken.TK_UNKNOWN;
+		} else if (tokenKind == IToken.TK_ERROR && isKeyword(token)) {
+			tokenKind = IToken.TK_KEYWORD;
 		}
 		 
 		TextAttribute tokenColor = getColoring(tokenMappings, constructor, sort, tokenKind);
-		if (nodeColor == null && tokenKind != TokenKind.TK_LAYOUT.ordinal())
+		if (nodeColor == null && tokenKind != IToken.TK_LAYOUT)
 			nodeColor = getColoring(nodeMappings, constructor, sort, tokenKind);
 		TextAttribute result = mergeStyles(nodeColor, tokenColor);
 		
@@ -141,7 +138,7 @@ public class TokenColorer implements ITokenColorer {
 		return null;
 	}
 
-	private TextAttribute addEnvColoring(TextAttribute attribute, IStrategoAstNode node, int tokenKind) {
+	private TextAttribute addEnvColoring(TextAttribute attribute, ISimpleTerm node, int tokenKind) {
 		TextAttribute envColor = null;
 		
 		// TODO: Optimize - don't traverse up the tree to color every node
@@ -184,7 +181,7 @@ public class TokenColorer implements ITokenColorer {
 		if (attribute.getBackground() == null) {
 			// _lastBackground = WHITE;
 			return attribute;
-		} else if (tokenKind == TokenKind.TK_LAYOUT.ordinal() && SGLRToken.indexOf(token, '\n') != -1) {			
+		} else if (tokenKind == IToken.TK_LAYOUT && SGLRToken.indexOf(token, '\n') != -1) {			
 			attribute = new TextAttribute(attribute.getForeground(), null, attribute.getStyle());
 		}
 
@@ -199,8 +196,8 @@ public class TokenColorer implements ITokenColorer {
 		// Always damage the complete source
 		// TODO: Is always damaging the complete source still necessary??
 		// Right now, TokenColorerHelper.isParserBasedPresentation() depends on this property
-		IAst ast = (IAst) parseController.getCurrentAst();
-		return new Region(0, ast.getRightIToken().getIPrsStream().getILexStream().getStreamLength() - 1);
+		ISimpleTerm ast = (ISimpleTerm) parseController.getCurrentAst();
+		return new Region(0, ast.getRightToken().getTokenizer().getILexStream().getStreamLength() - 1);
 		// return seed;
 	}
 }

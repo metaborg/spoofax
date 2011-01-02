@@ -4,16 +4,16 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.eclipse.imp.language.Language;
-import org.spoofax.jsglr.shared.BadTokenException;
-import org.spoofax.jsglr.Disambiguator;
+import org.spoofax.interpreter.terms.ISimpleTerm;
+import org.spoofax.jsglr.client.Disambiguator;
 import org.spoofax.jsglr.client.InvalidParseTableException;
-import org.spoofax.jsglr.NoRecoveryRulesException;
+import org.spoofax.jsglr.client.NoRecoveryRulesException;
 import org.spoofax.jsglr.client.ParseTable;
+import org.spoofax.jsglr.shared.BadTokenException;
 import org.spoofax.jsglr.shared.SGLRException;
 import org.spoofax.jsglr.shared.TokenExpectedException;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.ParseTableProvider;
-import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 
 /**
  * A stand-alone SGLR parsing class that uses the Spoofax/IMP imploder and AST classes.
@@ -78,13 +78,13 @@ public class StandAloneSGLRI {
 	
 	// Parsing
 	
-	public IStrategoAstNode parse(InputStream input, String filename)
+	public ISimpleTerm parse(InputStream input, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 		
 		return parser.parse(input, filename);
 	}
 	
-	public IStrategoAstNode parse(char[] input, String filename)
+	public ISimpleTerm parse(char[] input, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 		
 		Environment.getStrategoLock().lock();

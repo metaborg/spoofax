@@ -28,17 +28,17 @@ public class AmbAsfixImploder extends AsfixImploder {
 	@Override
 	protected ATermAppl resolveAmbiguities(IStrategoTerm node) {
 		// TODO: disable when prefer/avoid disambiguation works in Disambiguator
-		if (AMB_FUN != ((ATermAppl) node).getAFun())
+		if (AMB_FUN != ((ATermAppl) node).getIStrategoConstructor())
 			return (ATermAppl) node;
 		
 		final IStrategoList ambs = termAt(node, 0);
 		
 	alts:
-		for (int i = 0; i < ambs.getLength(); i++) {
+		for (int i = 0; i < ambs.size(); i++) {
 			ATermAppl amb = resolveAmbiguities(termAt(ambs, i));
 			ambs.setSubTerm(i, amb);
 			
-			if (AMB_FUN != amb.getAFun()) {
+			if (AMB_FUN != amb.getIStrategoConstructor()) {
 	            ATermAppl appl = termAt(amb, APPL_PROD);
 	            ATermAppl attrs = termAt(appl, PROD_ATTRS);
 	            
@@ -47,9 +47,9 @@ public class AmbAsfixImploder extends AsfixImploder {
 	                
 	                for (int j = 0; j < attrList.getLength(); j++) {
 	                    IStrategoTerm attr = termAt(attrList, j);
-	                    if (isAppl(attr) && "prefer".equals(asAppl(attr).getName())) {
+	                    if (isTermAppl(attr) && "prefer".equals(asAppl(attr).getName())) {
 	                        return resolveAmbiguities(amb);
-	                    } else if (isAppl(attr) && "avoid".equals(asAppl(attr).getName())) {
+	                    } else if (isTermAppl(attr) && "avoid".equals(asAppl(attr).getName())) {
 	                        ambs.remove(amb);
 	                        continue alts;
 	                    }

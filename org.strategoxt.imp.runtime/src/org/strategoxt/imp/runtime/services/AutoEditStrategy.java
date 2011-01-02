@@ -4,14 +4,21 @@ import static java.lang.Math.min;
 import static org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS;
 import static org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH;
 import static org.eclipse.ui.texteditor.ITextEditorExtension3.SMART_INSERT;
+import static org.spoofax.jsglr.client.imploder.IToken.TK_EOF;
+import static org.spoofax.jsglr.client.imploder.IToken.TK_ERROR;
+import static org.spoofax.jsglr.client.imploder.IToken.TK_IDENTIFIER;
+import static org.spoofax.jsglr.client.imploder.IToken.TK_KEYWORD;
+import static org.spoofax.jsglr.client.imploder.IToken.TK_LAYOUT;
+import static org.spoofax.jsglr.client.imploder.IToken.TK_NUMBER;
+import static org.spoofax.jsglr.client.imploder.IToken.TK_OPERATOR;
+import static org.spoofax.jsglr.client.imploder.IToken.TK_RESERVED;
+import static org.spoofax.jsglr.client.imploder.IToken.TK_STRING;
+import static org.spoofax.jsglr.client.imploder.IToken.TK_UNKNOWN;
+import static org.spoofax.jsglr.client.imploder.IToken.TK_VAR;
 
 import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import lpg.runtime.IAst;
-import lpg.runtime.IPrsStream;
-import lpg.runtime.IToken;
 
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.parser.IParseController;
@@ -30,9 +37,11 @@ import org.eclipse.swt.custom.VerifyKeyListener;
 import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.graphics.Point;
 import org.spoofax.NotImplementedException;
+import org.spoofax.interpreter.terms.ISimpleTerm;
+import org.spoofax.jsglr.client.imploder.IToken;
+import org.spoofax.jsglr.client.imploder.ITokenizer;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -573,15 +582,15 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 		// TODO: better robustness of isParsedAsLexicalOrLayout if parsed AST is not up to date (like ContentProposer has)
 		if (controller.getCurrentAst() == null)
 			return false;
-		IAst node = (IAst) controller.getSourcePositionLocator().findNode(controller.getCurrentAst(), offset);
+		ISimpleTerm node = (ISimpleTerm) controller.getSourcePositionLocator().findNode(controller.getCurrentAst(), offset);
 		if (node == null)
 			return false;
-		IPrsStream tokens = node.getLeftIToken().getIPrsStream();
+		ITokenizer tokens = node.getLeftToken().getTokenizer();
 		
-		for (int i = node.getLeftIToken().getTokenIndex(), max = node.getRightIToken().getTokenIndex(); i <= max; i++) {
-			IToken token = tokens.getIToken(i);
+		for (int i = node.getLeftToken().getIndex(), max = node.getRightToken().getIndex(); i <= max; i++) {
+			IToken token = tokens.getTokenAt(i);
 			if (token.getStartOffset() <= offset && offset <= token.getEndOffset()) {
-				switch (TokenKind.valueOf(token.getKind())) {
+				switch (token.getKind()) {
 					case TK_STRING:
 						if (isSameLine(document, offset, token))
 							return true;
@@ -611,7 +620,7 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 						continue;
 					case TK_NUMBER: case TK_OPERATOR:
 					case TK_VAR: case TK_EOF: case TK_UNKNOWN: case TK_RESERVED:
-					case TK_NO_TOKEN_KIND: case TK_KEYWORD:
+					case TK_KEYWORD:
 						continue;
 					default:
 						Environment.logException("Uknown token kind: " + token.getKind());

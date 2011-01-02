@@ -1,5 +1,8 @@
 package org.strategoxt.imp.runtime.dynamicloading;
 
+import static org.spoofax.interpreter.core.Tools.termAt;
+import static org.strategoxt.imp.runtime.dynamicloading.TermReader.collectTerms;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,8 +12,6 @@ import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.services.FoldingUpdater;
 import org.strategoxt.imp.runtime.services.NodeMapping;
-
-import static org.strategoxt.imp.runtime.dynamicloading.TermReader.*;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>

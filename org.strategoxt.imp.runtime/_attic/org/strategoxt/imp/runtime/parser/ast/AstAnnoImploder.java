@@ -6,7 +6,7 @@ import static org.spoofax.terms.Term.toInt;
 import java.util.ArrayList;
 import java.util.List;
 
-import lpg.runtime.IToken;
+import org.spoofax.jsglr.client.imploder.IToken;
 
 import org.spoofax.NotImplementedException;
 import org.strategoxt.imp.runtime.Environment;
@@ -22,7 +22,7 @@ import aterm.ATermPlaceholder;
  * Implodes {ast} annotations in asfix trees.
  * 
  * Note that this class assigns a null sort to all children
- * of the constructed AstNode.
+ * of the constructed IStrategoTerm.
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
@@ -30,18 +30,18 @@ public class AstAnnoImploder {
 
 	private final AstNodeFactory factory;
 	
-	private final List<AstNode> placeholderValues;
+	private final List<IStrategoTerm> placeholderValues;
 	
 	private final IToken leftToken, rightToken;
 	
-	public AstAnnoImploder(AstNodeFactory factory, List<AstNode> placeholderValues, IToken leftToken, IToken rightToken) {
+	public AstAnnoImploder(AstNodeFactory factory, List<IStrategoTerm> placeholderValues, IToken leftToken, IToken rightToken) {
 		this.factory = factory;
 		this.placeholderValues = placeholderValues;
 		this.leftToken = leftToken;
 		this.rightToken = rightToken;
 	}
 	
-	public AstNode implode(IStrategoTerm ast, String sort) {
+	public IStrategoTerm implode(IStrategoTerm ast, String sort) {
 		// Placeholder terms are represented as strings; must parse them and fill in their arguments
 		String astString = ast.toString();
 		if (astString.startsWith("\"") && astString.endsWith("\"")) {
@@ -53,7 +53,7 @@ public class AstAnnoImploder {
 		return toAstNode(ast, sort);
 	}
 	
-	private AstNode toAstNode(IStrategoTerm term, String sort) {
+	private IStrategoTerm toAstNode(IStrategoTerm term, String sort) {
 		switch (term.getType()) {
 			case IStrategoTerm.PLACEHOLDER:
 				return placeholderToAstNode(term, sort);
@@ -76,7 +76,7 @@ public class AstAnnoImploder {
 		}
 	}
 	
-	private AstNode placeholderToAstNode(IStrategoTerm placeholder, String sort) {
+	private IStrategoTerm placeholderToAstNode(IStrategoTerm placeholder, String sort) {
 		IStrategoTerm term = ((ATermPlaceholder) placeholder).getPlaceholder();
 		if (term.getType() == IStrategoTerm.INT) {
 			int id = toInt(term);
@@ -86,10 +86,10 @@ public class AstAnnoImploder {
 		} else if (term.getType() == IStrategoTerm.APPL) {
 			String type = ((ATermAppl) term).getName();
 			if ("conc".equals(type) && term.getChildCount() == 2) {
-				AstNode left = toAstNode(termAt(term, 0), null);
-				AstNode right = toAstNode(termAt(term, 1), null);
-				if (left instanceof ListAstNode && right instanceof ListAstNode) {
-					ArrayList<AstNode> children = left.getChildren();
+				IStrategoTerm left = toAstNode(termAt(term, 0), null);
+				IStrategoTerm right = toAstNode(termAt(term, 1), null);
+				if (isTermList(left) && isTermList(right)) {
+					ArrayList<IStrategoTerm> children = left.getChildren();
 					children.addAll(right.getChildren());
 					return new ListAstNode(sort, leftToken, rightToken, children);
 				}
@@ -101,9 +101,9 @@ public class AstAnnoImploder {
 		throw new IllegalStateException("Error in syntax definition: illegal placeholder in {ast} attribute: " + placeholder);
 	}
 	
-	private AstNode applToAstNode(IStrategoTerm term, String sort) {
+	private IStrategoTerm applToAstNode(IStrategoTerm term, String sort) {
 		ATermAppl appl = (ATermAppl) term;
-		ArrayList<AstNode> children = new ArrayList<AstNode>(appl.getChildCount());
+		ArrayList<IStrategoTerm> children = new ArrayList<IStrategoTerm>(appl.getChildCount());
 		for (int i = 0; i < appl.getChildCount(); i++) {
 			children.add(toAstNode(termAt(appl, i), null));
 		}
@@ -114,10 +114,10 @@ public class AstAnnoImploder {
 		}
 	}
 	
-	private AstNode listToAstNode(IStrategoTerm term, String sort) {
+	private IStrategoTerm listToAstNode(IStrategoTerm term, String sort) {
 		// TODO: Fishy (Spoofax/49)
 		IStrategoList list = (IStrategoList) term;
-		ArrayList<AstNode> children = new ArrayList<AstNode>(list.getChildCount());
+		ArrayList<IStrategoTerm> children = new ArrayList<IStrategoTerm>(list.getChildCount());
 		for (int i = 0; i < term.getChildCount(); i++) {
 			children.add(toAstNode(termAt(term, i), null));
 		}

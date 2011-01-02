@@ -6,16 +6,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import lpg.runtime.IPrsStream;
-
+import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.jsglr.client.imploder.ITokenizer;
+import org.spoofax.jsglr.client.imploder.TokenKindManager;
 import org.spoofax.jsglr.shared.SGLRException;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
 import org.strategoxt.lang.compat.NativeCallHelper;
-
-import org.spoofax.interpreter.terms.IStrategoTerm;
-import aterm.ATermAppl;
-import aterm.ATermFactory;
 
 /**
  * IMP IParser implementation using the native C version of SGLR, imploding
@@ -67,7 +64,7 @@ public class CSGLRI extends AbstractSGLRI {
 
 	@Override
 	protected IStrategoTerm doParseNoImplode(char[] inputChars, String filename) throws SGLRException, IOException {
-		ATermFactory factory = Environment.getATermFactory();
+		ITermFactory factory = Environment.getTermFactory();
 		File outputFile = File.createTempFile("parserOutput", null);
 		File inputFile = filename == null || !new File(filename).exists()
 				? streamToTempFile(toByteStream(inputChars))
@@ -100,7 +97,7 @@ public class CSGLRI extends AbstractSGLRI {
 	}
 	
 	@Deprecated
-	public IPrsStream getIPrsStream() {
+	public ITokenizer getTokenizer() {
 		throw new UnsupportedOperationException();
 	}
 

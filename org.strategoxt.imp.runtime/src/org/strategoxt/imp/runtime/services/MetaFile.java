@@ -1,7 +1,7 @@
 package org.strategoxt.imp.runtime.services;
 
-import static org.spoofax.interpreter.core.Tools.*;
-import static org.spoofax.interpreter.terms.IStrategoTerm.*;
+import static org.spoofax.interpreter.core.Tools.termAt;
+import static org.spoofax.interpreter.terms.IStrategoTerm.APPL;
 
 import java.io.File;
 import java.io.IOException;

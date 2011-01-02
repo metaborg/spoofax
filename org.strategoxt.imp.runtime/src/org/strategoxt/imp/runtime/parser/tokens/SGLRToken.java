@@ -1,12 +1,9 @@
 package org.strategoxt.imp.runtime.parser.tokens;
 
-import lpg.runtime.ILexStream;
-import lpg.runtime.IPrsStream;
-import lpg.runtime.IToken;
-import lpg.runtime.Token;
-
-import org.strategoxt.imp.runtime.parser.ast.AstNode;
-import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
+import org.spoofax.interpreter.terms.ISimpleTerm;
+import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.jsglr.client.imploder.IToken;
+import org.spoofax.jsglr.client.imploder.ITokenizer;
 
 /**
  * An SGLR token. Maintains a link to its associated AST node.
@@ -14,13 +11,13 @@ import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
 public class SGLRToken extends Token {
-	private AstNode astNode;
+	private IStrategoTerm astNode;
 
-	public IStrategoAstNode getAstNode() {
+	public ISimpleTerm getAstNode() {
 		return astNode;
 	}
 
-	public void setAstNode(AstNode value) {
+	public void setAstNode(IStrategoTerm value) {
 		astNode = value;
 	}
 	
@@ -60,7 +57,7 @@ public class SGLRToken extends Token {
 		return true;
 	}
 
-	public SGLRToken(IPrsStream parseStream, int startOffset, int endOffset, int kind) {
+	public SGLRToken(ITokenizer parseStream, int startOffset, int endOffset, int kind) {
 		super(parseStream, startOffset, endOffset, kind);
 	}
 }

@@ -35,6 +35,7 @@ import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.core.UndefinedStrategyException;
 import org.spoofax.interpreter.library.IOAgent;
+import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.EditorState;
@@ -45,7 +46,6 @@ import org.strategoxt.imp.runtime.dynamicloading.TermReader;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.StrategoConsole;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
-import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 import org.strategoxt.lang.Context;
 import org.strategoxt.stratego_aterm.aterm_escape_strings_0_0;
 import org.strategoxt.stratego_aterm.pp_aterm_box_0_0;
@@ -128,7 +128,7 @@ public class StrategoBuilder implements IBuilder {
 		this.builderRule = builderRule;
 	}
 	
-	public Job scheduleExecute(final EditorState editor, IStrategoAstNode node,
+	public Job scheduleExecute(final EditorState editor, ISimpleTerm node,
 			final IFile errorReportFile, final boolean isRebuild) {
 
 		String displayCaption = caption.endsWith("...")
@@ -147,7 +147,7 @@ public class StrategoBuilder implements IBuilder {
 			if (node == null) node = editor.getParseController().getCurrentAst();
 		}
 		
-		final IStrategoAstNode node2 = node;
+		final ISimpleTerm node2 = node;
 			
 		Job job = new Job("Executing " + displayCaption) {
 			@Override
@@ -167,7 +167,7 @@ public class StrategoBuilder implements IBuilder {
 		return job;
 	}
 	
-	private void execute(EditorState editor, IStrategoAstNode node, IFile errorReportFile, boolean isRebuild) {
+	private void execute(EditorState editor, ISimpleTerm node, IFile errorReportFile, boolean isRebuild) {
 		// TODO: refactor
 		assert derivedFromEditor == null || editor.getDescriptor().isATermEditor();
 		IFile file = null;
@@ -253,7 +253,7 @@ public class StrategoBuilder implements IBuilder {
 			// ByteArrayOutputStream trace = new ByteArrayOutputStream();
 			// observer.getRuntime().getCompiledContext().printStackTrace(new PrintStream(trace), false);
 			String errorReport = e.getMessage();
-			if (e.getTerm() != null) errorReport += "\n\t" + toEscapedString(ppIStrategoTerm(e.getTerm()));
+			if (e != null) errorReport += "\n\t" + toEscapedString(ppIStrategoTerm(e));
 			return errorReport;
 		}
 	}
@@ -271,7 +271,7 @@ public class StrategoBuilder implements IBuilder {
 		return isTermString(resultTerm) ? asJavaString(resultTerm) : ppIStrategoTerm(resultTerm).stringValue();
 	}
 
-	private void scheduleOpenEditorAndListener(final EditorState editor, final IStrategoAstNode node, final IFile file)
+	private void scheduleOpenEditorAndListener(final EditorState editor, final ISimpleTerm node, final IFile file)
 			throws PartInitException {
 		
 		Job job = new UIJob("Opening editor") {
@@ -300,7 +300,7 @@ public class StrategoBuilder implements IBuilder {
 		job.schedule();
 	}
 
-	protected IStrategoTerm invokeObserver(IStrategoAstNode node) throws UndefinedStrategyException,
+	protected IStrategoTerm invokeObserver(ISimpleTerm node) throws UndefinedStrategyException,
 			InterpreterErrorExit, InterpreterExit, InterpreterException {
 		
 		node = StrategoTermPath.getMatchingAncestor(node, false);

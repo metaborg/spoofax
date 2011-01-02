@@ -3,11 +3,10 @@ package org.strategoxt.imp.runtime.stratego.adapter;
 import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermPrinter;
-import org.strategoxt.imp.runtime.parser.ast.IntAstNode;
 
 public class WrappedAstNodeInt extends WrappedAstNode implements IStrategoInt {
 	
-	protected WrappedAstNodeInt(IStrategoAstNode node) {
+	protected WrappedAstNodeInt(ISimpleTerm node) {
 		super(node);
 		assert node instanceof IntAstNode;
 	}

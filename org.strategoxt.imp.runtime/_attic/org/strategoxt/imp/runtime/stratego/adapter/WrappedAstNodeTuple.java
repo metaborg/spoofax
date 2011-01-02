@@ -10,7 +10,7 @@ import org.spoofax.interpreter.terms.ITermPrinter;
  */
 public class WrappedAstNodeTuple extends WrappedAstNodeParent implements IStrategoTuple {
 
-	protected WrappedAstNodeTuple(IStrategoAstNode node) {
+	protected WrappedAstNodeTuple(ISimpleTerm node) {
 		super(node);
 		node.setConstructor(""); // ensure interned string is used
 	}

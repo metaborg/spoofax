@@ -6,45 +6,45 @@ import org.spoofax.terms.StrategoTerm;
 import org.spoofax.terms.TermFactory;
 import org.spoofax.terms.io.InlinePrinter;
 
-public abstract class WrappedAstNode extends StrategoTerm implements IWrappedAstNode, IStrategoTerm, Cloneable {
+public abstract class WrappedAstNode extends StrategoTerm implements IStrategoTerm, IStrategoTerm, Cloneable {
 	
-	private final IStrategoAstNode node;
+	private final ISimpleTerm node;
 	
 	/**
 	 * Gets the node or origin node associated with this term.
 	 */
-	public final IStrategoAstNode getNode() {
+	public final ISimpleTerm getNode() {
 		return node;
 	}
 	
-	public WrappedAstNode(IStrategoAstNode node) {
+	public WrappedAstNode(ISimpleTerm node) {
 		this(node, null);
 	}
 	
-	public WrappedAstNode(IStrategoAstNode node, IStrategoList annotations) {
+	public WrappedAstNode(ISimpleTerm node, IStrategoList annotations) {
 		super(annotations);
 		this.node = node;
 		assert node != null;
 	}
 	
 	public final int getStorageType() {
-		// All WrappedAstNodes wrap around an immutable AstNode,
-		// and cannot have non-AstNode children.
+		// All WrappedAstNodes wrap around an immutable IStrategoTerm,
+		// and cannot have non-IStrategoTerm children.
 		return IMMUTABLE;
 	}
 
 	public IStrategoTerm[] getAllSubterms() {
-		assert node.getChildren().size() == 0;
+		assert node.getSubtermCount() == 0;
 		return TermFactory.EMPTY;
 	}
 
 	public IStrategoTerm getSubterm(int index) {
-		assert node.getChildren().size() == 0;
+		assert node.getSubtermCount() == 0;
         throw new IndexOutOfBoundsException();
 	}
 
 	public int getSubtermCount() {
-		assert node.getChildren().size() == 0;
+		assert node.getSubtermCount() == 0;
 		return 0;
 	}
 	

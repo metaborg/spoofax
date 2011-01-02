@@ -1,6 +1,6 @@
 package org.strategoxt.imp.runtime.parser.ast;
 
-import lpg.runtime.IToken;
+import org.spoofax.jsglr.client.imploder.IToken;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermPrinter;
@@ -11,7 +11,7 @@ import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
  * 
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
-public class StringAstNode extends AstNode {
+public class StringAstNode extends IStrategoTerm {
 	private String value;
 
 	/**

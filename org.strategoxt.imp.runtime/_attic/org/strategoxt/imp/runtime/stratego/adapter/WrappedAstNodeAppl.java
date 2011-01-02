@@ -15,10 +15,10 @@ public class WrappedAstNodeAppl extends WrappedAstNodeParent implements IStrateg
     
 	private final IStrategoConstructor constructor;
 	
-	protected WrappedAstNodeAppl(WrappedAstNodeFactory factory, IStrategoAstNode node) {
+	protected WrappedAstNodeAppl(WrappedAstNodeFactory factory, ISimpleTerm node) {
 		super(node);
 		
-		constructor = factory.makeConstructor(node.getConstructor(), node.getChildren().size());
+		constructor = factory.makeConstructor(node.getConstructor(), node.getSubtermCount());
 		node.setConstructor(constructor.getName()); // ensure shared string is used
 	}
 

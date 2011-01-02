@@ -1,6 +1,7 @@
 package org.strategoxt.imp.runtime.dynamicloading;
 
-import static org.spoofax.interpreter.terms.IStrategoTerm.*;
+import static org.spoofax.interpreter.terms.IStrategoTerm.APPL;
+import static org.spoofax.interpreter.terms.IStrategoTerm.STRING;
 
 import java.util.ArrayList;
 

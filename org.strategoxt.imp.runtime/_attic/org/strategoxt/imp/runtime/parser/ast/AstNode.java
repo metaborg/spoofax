@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import lpg.runtime.IAst;
+import lpg.runtime.ISimpleTerm;
 import lpg.runtime.IAstVisitor;
-import lpg.runtime.IPrsStream;
-import lpg.runtime.IToken;
+import org.spoofax.jsglr.client.imploder.ITokenizer;
+import org.spoofax.jsglr.client.imploder.IToken;
 
 import org.eclipse.core.resources.IResource;
 import org.spoofax.interpreter.terms.IStrategoList;
@@ -17,23 +17,23 @@ import org.spoofax.terms.io.InlinePrinter;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
-import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
+import org.strategoxt.imp.runtime.stratego.adapter.ISimpleTerm;
 
 /**
  * A node of an SGLR abstract syntax tree.
  *
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
-public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode, Cloneable {
+public class IStrategoTerm implements ISimpleTerm, Iterable<IStrategoTerm>, ISimpleTerm, Cloneable {
 	// Globally unique object (circumvent interning)
 
 	/** The sort name for strings. */
 	public static final String STRING_SORT = new String("<string>");
 
 	// TODO2: Read-only array list
-	static final ArrayList<AstNode> EMPTY_LIST = new ArrayList<AstNode>(0);
+	static final ArrayList<IStrategoTerm> EMPTY_LIST = new ArrayList<IStrategoTerm>(0);
 	
-	private ArrayList<AstNode> children;
+	private ArrayList<IStrategoTerm> children;
 	
 	private final String sort;
 	
@@ -43,7 +43,7 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode, Clone
 	
 	private IToken leftToken, rightToken;
 	
-	private AstNode parent;
+	private IStrategoTerm parent;
 	
 	private IStrategoList annotations;
 		
@@ -76,8 +76,8 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode, Clone
 		return getRoot().getParseController();
 	}
 	
-	// (concrete type exposed by IAst interface)
-	public final ArrayList<AstNode> getChildren() {
+	// (concrete type exposed by ISimpleTerm interface)
+	public final ArrayList<IStrategoTerm> getChildren() {
 		assert EMPTY_LIST.size() == 0 && (children.size() == 0 || children.get(0).getParent() == this || this instanceof SubListAstNode);
 		
 		return children;
@@ -107,22 +107,22 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode, Clone
 		rightToken = value;
 	}
 
-	public AstNode getParent() {
+	public IStrategoTerm getParent() {
 		return parent;
 	}
 
-	public void setParent(AstNode value) {
+	public void setParent(IStrategoTerm value) {
 		parent = value;
 	}
 	
-	public RootAstNode getRoot() {
-		AstNode result = this;
+	public IStrategoTerm getRoot() {
+		IStrategoTerm result = this;
 		while (result.getParent() != null)
 			result = result.getParent();
-		if (!(result instanceof RootAstNode))
-			throw new IllegalStateException("Tree not initialized using RootAstNode.create()");
+		if (!(result instanceof IStrategoTerm))
+			throw new IllegalStateException("Tree not initialized using IStrategoTerm.create()");
 		else
-			return (RootAstNode) result;
+			return (IStrategoTerm) result;
 	}
 	
 	public IStrategoList getAnnotations() {
@@ -133,7 +133,7 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode, Clone
 		this.annotations = annotations;
 	}
 	
-	public IStrategoTerm getTerm() {
+	public IStrategoTerm {
 		if (term != null) return term;
 		else return Environment.getTermFactory().wrap(this);
 	}
@@ -143,8 +143,8 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode, Clone
 	/**
 	 * Create a new AST node and set it to be the parent node of its children.
 	 */
-	public AstNode(String sort, IToken leftToken, IToken rightToken, String constructor,
-			ArrayList<AstNode> children) {
+	public IStrategoTerm(String sort, IToken leftToken, IToken rightToken, String constructor,
+			ArrayList<IStrategoTerm> children) {
 		
 		assert children != null;
 		
@@ -158,25 +158,25 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode, Clone
 		setReferences(leftToken, rightToken, children);
 	}
 
-	private void setReferences(IToken leftToken, IToken rightToken, ArrayList<AstNode> children) {
+	private void setReferences(IToken leftToken, IToken rightToken, ArrayList<IStrategoTerm> children) {
 		overrideReferences(leftToken, rightToken, children, null);
 	}
 	
 	/**
 	 * Set/override references to parent nodes.
 	 */
-	protected void overrideReferences(IToken leftToken, IToken rightToken, ArrayList<AstNode> children, AstNode oldNode) {
-		IPrsStream parseStream = leftToken.getIPrsStream();
-		int tokenIndex = leftToken.getTokenIndex();
-		int endTokenIndex = rightToken.getTokenIndex();
+	protected void overrideReferences(IToken leftToken, IToken rightToken, ArrayList<IStrategoTerm> children, IStrategoTerm oldNode) {
+		ITokenizer parseStream = leftToken.getTokenizer();
+		int tokenIndex = leftToken.getIndex();
+		int endTokenIndex = rightToken.getIndex();
 
 		// Set ast node for tokens before children, and set parent references
 		for (int childIndex = 0, size = children.size(); childIndex < size; childIndex++) {
-			AstNode child = children.get(childIndex);
+			IStrategoTerm child = children.get(childIndex);
 			child.parent = this;
 			
-			int childStart = child.getLeftIToken().getTokenIndex();
-			int childEnd = child.getRightIToken().getTokenIndex();
+			int childStart = child.getLeftToken().getIndex();
+			int childEnd = child.getRightToken().getIndex();
 			
 			while (tokenIndex < childStart) {
 				SGLRToken token = (SGLRToken) parseStream.getTokenAt(tokenIndex++);
@@ -197,23 +197,23 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode, Clone
 	
 	// General access
 	
-	public Iterator<AstNode> iterator() {
+	public Iterator<IStrategoTerm> iterator() {
 		return children.iterator();
 	}
 	
 	/**
-	 * Creates a "deep" clone of this AstNode,
+	 * Creates a "deep" clone of this IStrategoTerm,
 	 * but maintains a shallow clone of all tokens,
 	 * which still point back to the original AST.
 	 */
-	public AstNode cloneIgnoreTokens() {
-		// TODO: create a better AstNode.clone() method? this is a bit of a cop-out...
+	public IStrategoTerm cloneIgnoreTokens() {
+		// TODO: create a better IStrategoTerm.clone() method? this is a bit of a cop-out...
 		try {
-			AstNode result = (AstNode) super.clone();
-			ArrayList<AstNode> children = result.children;
-			ArrayList<AstNode> newChildren = new ArrayList<AstNode>(children.size());
+			IStrategoTerm result = (IStrategoTerm) super.clone();
+			ArrayList<IStrategoTerm> children = result.children;
+			ArrayList<IStrategoTerm> newChildren = new ArrayList<IStrategoTerm>(children.size());
 			for (int i = 0, size = children.size(); i < size; i++) {
-				AstNode newChild = children.get(i).cloneIgnoreTokens();
+				IStrategoTerm newChild = children.get(i).cloneIgnoreTokens();
 				newChild.parent = result;
 				newChildren.add(newChild);
 			}
@@ -225,10 +225,10 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode, Clone
 	}
 	
 	@Deprecated
-	public static List<String> getSorts(List<? extends AstNode> children) {
+	public static List<String> getSorts(List<? extends IStrategoTerm> children) {
   	  List<String> result = new ArrayList<String>(children.size());
   	  
-  	  for (AstNode node : children) {
+  	  for (IStrategoTerm node : children) {
   		  result.add(node.getSort());
   	  }
   	  
@@ -237,13 +237,13 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode, Clone
 	
 	@Override
 	public int hashCode() {
-		return getTerm().hashCode();
+		return.hashCode();
 	}
 	
 	@Override
 	public boolean equals(Object obj) {
-		if (obj instanceof IStrategoAstNode) {
-			return this == obj || ((IStrategoAstNode) obj).getTerm().equals(getTerm());
+		if (obj instanceof ISimpleTerm) {
+			return this == obj || ((ISimpleTerm) obj).equals);
 		} else {
 			return false;
 		}
@@ -269,7 +269,7 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode, Clone
 	 * @deprecated  Unused; ATermAstNode does not include null children.
 	 */
 	@Deprecated
-	public ArrayList<AstNode> getAllChildren() {
+	public ArrayList<IStrategoTerm> getAllChildren() {
 		return getChildren();
 	}
 
@@ -284,7 +284,7 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode, Clone
 	}
 
 	@Deprecated
-	public AstNode getNextAst() {
+	public IStrategoTerm getNextAst() {
 		return null;
 	}
 
@@ -306,11 +306,11 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode, Clone
 		//sb.append(':');
 		//sb.append(sort);
 		printer.print("(");
-		if (getChildren().size() > 0) {
-			getChildren().get(0).prettyPrint(printer);
-			for (int i = 1; i < getChildren().size(); i++) {
+		if (getSubtermCount() > 0) {
+			getSubterm(0).prettyPrint(printer);
+			for (int i = 1; i < getSubtermCount(); i++) {
 				printer.print(",");
-				getChildren().get(i).prettyPrint(printer);
+				getSubterm(i).prettyPrint(printer);
 			}
 		}
 		printer.print(")");
@@ -320,6 +320,6 @@ public class AstNode implements IAst, Iterable<AstNode>, IStrategoAstNode, Clone
 	 * Return the input string that formed this AST.
 	 */
 	public String yield() {
-		return getLeftIToken().getIPrsStream().toString(getLeftIToken(), getRightIToken());
+		return getLeftIToken().getTokenizer().toString(getLeftIToken(), getRightIToken());
 	}
 }

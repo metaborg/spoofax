@@ -2,7 +2,7 @@ package org.strategoxt.imp.runtime.stratego.adapter;
 
 import java.util.ArrayList;
 
-import lpg.runtime.IAst;
+import lpg.runtime.ISimpleTerm;
 
 import org.eclipse.core.resources.IResource;
 import org.spoofax.interpreter.terms.IStrategoList;
@@ -14,11 +14,11 @@ import org.strategoxt.imp.runtime.parser.SGLRParseController;
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public interface IStrategoAstNode extends IAst {
+public interface ISimpleTerm extends ISimpleTerm {
 	
-	// TODO: Make independent from IAst interface??
+	// TODO: Make independent from ISimpleTerm interface??
 	
-	IStrategoTerm getTerm();
+	IStrategoTerm;
 	
 	int getTermType();
 	
@@ -39,17 +39,17 @@ public interface IStrategoAstNode extends IAst {
 	 */
 	String yield();
 	
-	IStrategoAstNode getRoot();
+	ISimpleTerm getRoot();
 	
 	boolean isList();
 	
 	// SPECIALIZED FROM PARENT INTERFACE
 	
-	IStrategoAstNode getNextAst();
+	ISimpleTerm getNextAst();
     
-	IStrategoAstNode getParent();
+	ISimpleTerm getParent();
 	
-	// getChildren() is also published here to avoid dependencies on IAst
-	// (concrete, unparameterized type exposed by IAst interface)
+	// getChildren() is also published here to avoid dependencies on ISimpleTerm
+	// (concrete, unparameterized type exposed by ISimpleTerm interface)
 	ArrayList getChildren();
 }

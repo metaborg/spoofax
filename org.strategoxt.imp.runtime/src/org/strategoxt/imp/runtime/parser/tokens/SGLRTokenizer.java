@@ -1,29 +1,25 @@
 package org.strategoxt.imp.runtime.parser.tokens;
 
-import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.TK_EOF;
-import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.TK_ERROR;
-import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.TK_RESERVED;
-import static org.strategoxt.imp.runtime.parser.tokens.TokenKind.valueOf;
-import lpg.runtime.IPrsStream;
-import lpg.runtime.IToken;
-import lpg.runtime.LexStream;
-import lpg.runtime.PrsStream;
-import lpg.runtime.Token;
+import static org.spoofax.jsglr.client.imploder.IToken.TK_EOF;
+import static org.spoofax.jsglr.client.imploder.IToken.TK_ERROR;
+import static org.spoofax.jsglr.client.imploder.IToken.TK_RESERVED;
 
-import org.strategoxt.imp.runtime.parser.ast.AstNode;
+import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.jsglr.client.imploder.IToken;
+import org.spoofax.jsglr.client.imploder.ITokenizer;
 
 /**
  * Wrapper class to add tokens to an LPG PrsStream.
  * 
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
-public class SGLRTokenizer {
+public class SGLRTokenizer implements ITokenizer {
 	
 	private final LexStream lexStream = new LexStream();
 	
 	private final PrsStream parseStream = new PrsStream(lexStream);
 	
-	private AstNode cachedAst;
+	private IStrategoTerm cachedAst;
 	
 	/** Start of the last token */
 	private int startOffset;
@@ -47,11 +43,11 @@ public class SGLRTokenizer {
 		return parseStream;
 	}
 	
-	public AstNode getCachedAst() {
+	public IStrategoTerm getCachedAst() {
 		return cachedAst;
 	}
 	
-	public void setCachedAst(AstNode cachedAst) {
+	public void setCachedAst(IStrategoTerm cachedAst) {
 		this.cachedAst = cachedAst;
 	}
 	
@@ -77,14 +73,14 @@ public class SGLRTokenizer {
 		
 		//if (Debug.ENABLED) {
 			assert endOffset >= startOffset || (kind == TK_RESERVED && startOffset == 0);
-		//	if (parseStream.getTokens().size() > 0) {
-		//		IToken lastToken = (IToken) parseStream.getTokens().get(parseStream.getTokens().size() - 1); 
-		//		assert lastToken.getKind() == TK_RESERVED.ordinal()
+		//	if (parseStream.getTokenCount() > 0) {
+		//		IToken lastToken = (IToken) parseStream.getTokens().get(parseStream.getTokenCount() - 1); 
+		//		assert lastToken.getKind() == TK_RESERVED
 		//			|| (lastToken.getStartOffset() + lastToken.getEndOffset()) == startOffset;
 		//	}
 		//}
 		
-		SGLRToken token = new SGLRToken(parseStream, startOffset, endOffset - 1, kind.ordinal());
+		SGLRToken token = new SGLRToken(parseStream, startOffset, endOffset - 1, kind);
 		token.setTokenIndex(parseStream.getSize());
 		
 		// Add token and increment the stream size(!)
@@ -105,7 +101,7 @@ public class SGLRTokenizer {
 	 * Creates an error token from existing tokens.
 	 */
 	public IToken makeErrorToken(IToken left, IToken right) {
-		return new Token(parseStream, left.getStartOffset(), right.getEndOffset(), TK_ERROR.ordinal());
+		return new Token(parseStream, left.getStartOffset(), right.getEndOffset(), TK_ERROR);
 	}
 	
 	/**
@@ -133,7 +129,7 @@ public class SGLRTokenizer {
 			endOffset++;
 		}
 		
-		return new Token(parseStream, offset, endOffset, TK_ERROR.ordinal());
+		return new Token(parseStream, offset, endOffset, TK_ERROR);
 	}
 	
 	/**
@@ -152,7 +148,7 @@ public class SGLRTokenizer {
 		if (beginOffset > endOffset && beginOffset > 0)
 			beginOffset = endOffset - 1;
 
-		return new Token(parseStream, beginOffset, endOffset, TK_ERROR.ordinal());
+		return new Token(parseStream, beginOffset, endOffset, TK_ERROR);
 	}
 	
 	/**
@@ -161,12 +157,12 @@ public class SGLRTokenizer {
 	public void changeTokenKinds(int beginOffset, int endOffset, TokenKind fromKind, TokenKind toKind) {
 		// FIXME: changeTokenKinds sometimes changes the token kinds of comments just adjacent to erroneous regions
 		//        (not sure if it still does that with the 0.5.1 tokenization changes)
-		int fromOrdinal = fromKind.ordinal();
-		IPrsStream tokens = lexStream.getIPrsStream();
-		for (int i = 0, end = tokens.getSize(); i < end; i++) {
-			IToken token = tokens.getIToken(i);
+		int fromOrdinal = fromKind;
+		ITokenizer tokens = lexStream.getTokenizer();
+		for (int i = 0, end = tokens.getTokenCount(); i < end; i++) {
+			IToken token = tokens.getTokenAt(i);
 			if (token.getEndOffset() >= beginOffset && token.getKind() == fromOrdinal) {
-				token.setKind(toKind.ordinal());
+				token.setKind(toKind);
 			}
 			if (token.getEndOffset() >= endOffset)
 				return;
@@ -196,7 +192,7 @@ public class SGLRTokenizer {
 			    if (newlineSkipLength == -1) {
 			    	if (skipLength >= 1 && endOffset == beginOffset) {
 				    	// Report in whitespace just after the current token
-			    		return new Token(parseStream, beginOffset - skipLength, endOffset - skipLength, TK_ERROR.ordinal());
+			    		return new Token(parseStream, beginOffset - skipLength, endOffset - skipLength, TK_ERROR);
 			    	}
 			    	break;
 			    } else {
@@ -243,16 +239,16 @@ public class SGLRTokenizer {
 			beginOffset--;
 		}
 		
-		return new Token(parseStream, beginOffset, offset, TK_ERROR.ordinal());
+		return new Token(parseStream, beginOffset, offset, TK_ERROR);
 	}
 	
 	public IToken getLastTokenOnSameLine(IToken token) {
-		IPrsStream stream = token.getIPrsStream();
-		int i = token.getTokenIndex();
+		ITokenizer stream = token.getTokenizer();
+		int i = token.getIndex();
 		int line = stream.getEndLine(i);
 		IToken result = token;
 		IToken current = token;
-		while (current.getKind() != TokenKind.TK_EOF.ordinal() && current.getEndLine() == line) {
+		while (current.getKind() != IToken.TK_EOF && current.getEndLine() == line) {
 			result = current;
 			current = stream.getTokenAt(++i); 
 		}
@@ -261,10 +257,10 @@ public class SGLRTokenizer {
 	
 	public static String dumpToString(IToken left, IToken right) {
 		StringBuilder result = new StringBuilder();
-		int last = right.getTokenIndex();
+		int last = right.getIndex();
 		
-		for (int i = left.getTokenIndex(); i <= last; i++) {
-			IToken token = left.getIPrsStream().getTokenAt(i);
+		for (int i = left.getIndex(); i <= last; i++) {
+			IToken token = left.getTokenizer().getTokenAt(i);
 			result.append(valueOf(token.getKind()));
 			result.append(":");
 			result.append(token.toString().replace("\n","\\n").replace("\r","\\r"));

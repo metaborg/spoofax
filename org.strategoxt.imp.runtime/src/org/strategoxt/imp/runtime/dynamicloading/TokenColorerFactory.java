@@ -1,7 +1,10 @@
 package org.strategoxt.imp.runtime.dynamicloading;
 
-import static org.spoofax.interpreter.core.Tools.*;
-import static org.strategoxt.imp.runtime.dynamicloading.TermReader.*;
+import static org.spoofax.interpreter.core.Tools.termAt;
+import static org.strategoxt.imp.runtime.dynamicloading.TermReader.collectTerms;
+import static org.strategoxt.imp.runtime.dynamicloading.TermReader.cons;
+import static org.strategoxt.imp.runtime.dynamicloading.TermReader.parseIntAt;
+import static org.strategoxt.imp.runtime.dynamicloading.TermReader.termContents;
 
 import java.util.ArrayList;
 import java.util.List;

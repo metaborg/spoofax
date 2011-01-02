@@ -17,6 +17,7 @@ import org.eclipse.jface.text.source.ISourceViewer;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
@@ -24,7 +25,6 @@ import org.strategoxt.imp.runtime.services.ContentProposalTemplate;
 import org.strategoxt.imp.runtime.services.ContentProposer;
 import org.strategoxt.imp.runtime.services.ContentProposerListener;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
-import org.strategoxt.imp.runtime.stratego.adapter.WrappedAstNodeFactory;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -100,7 +100,7 @@ public class ContentProposerFactory extends AbstractServiceFactory<IContentPropo
 
 	private static ContentProposalTemplate[] readCompletionTemplates(Descriptor descriptor) {
 		Set<ContentProposalTemplate> results = new HashSet<ContentProposalTemplate>();
-		WrappedAstNodeFactory factory = Environment.getTermFactory();
+		ITermFactory factory = Environment.getTermFactory();
 		
 		for (IStrategoAppl template : collectTerms(descriptor.getDocument(), "CompletionTemplate")) {
 			IStrategoTerm prefixTerm = termAt(template, 0);

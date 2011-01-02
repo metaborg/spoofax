@@ -3,14 +3,14 @@ package org.strategoxt.imp.runtime.parser.ast;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermPrinter;
 
-import lpg.runtime.IToken;
+import org.spoofax.jsglr.client.imploder.IToken;
 
 /**
  * An integer terminal AST node (representing a single character).
  * 
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
-public class IntAstNode extends AstNode {
+public class IntAstNode extends IStrategoTerm {
 	private final int value;
 
 	public IntAstNode(String sort, IToken leftToken, IToken rightToken, int value) {

@@ -1,15 +1,15 @@
 package org.strategoxt.imp.runtime.parser.ast;
 
-import lpg.runtime.IToken;
-
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.editor.ModelTreeNode;
 import org.eclipse.imp.parser.ISourcePositionLocator;
+import org.spoofax.interpreter.terms.ISimpleTerm;
+import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.jsglr.client.imploder.IToken;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
-import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 
 /**
  * Ast locator: mapping source positions to AST nodes,
@@ -26,12 +26,12 @@ public class AstNodeLocator implements ISourcePositionLocator {
 		//this.controller = controller;
 	}
 
-	public IStrategoAstNode findNode(Object root, int startOffset, int endOffset) {
-		IStrategoAstNode ast = impObjectToAstNode(root);
+	public ISimpleTerm findNode(Object root, int startOffset, int endOffset) {
+		ISimpleTerm ast = impObjectToAstNode(root);
 		
-		if (ast.getLeftIToken().getStartOffset() <= startOffset && endOffset <= ast.getRightIToken().getEndOffset()) {
+		if (ast.getLeftToken().getStartOffset() <= startOffset && endOffset <= ast.getRightToken().getEndOffset()) {
 		    for (Object child : ast.getChildren()) {
-		        IStrategoAstNode candidate = findNode(child, startOffset, endOffset);
+		        ISimpleTerm candidate = findNode(child, startOffset, endOffset);
 		        if (candidate != null)
 		            return candidate;
 		    }
@@ -41,19 +41,19 @@ public class AstNodeLocator implements ISourcePositionLocator {
 		}
 	}
 	
-	public IStrategoAstNode findNode(Object root, int offset) {
+	public ISimpleTerm findNode(Object root, int offset) {
 		return findNode(root, offset, offset);
 	}
 	
 	public int getStartOffset(Object element) {
 		SGLRToken token;
-		IStrategoAstNode node;
+		ISimpleTerm node;
 		if (element instanceof IToken) {
 			token = (SGLRToken) element;
 			node = token.getAstNode();
 		} else {
 			node = impObjectToAstNode(element);
-			token = (SGLRToken) node.getLeftIToken();
+			token = (SGLRToken) node.getLeftToken();
 		}
 		
 		try {
@@ -74,8 +74,8 @@ public class AstNodeLocator implements ISourcePositionLocator {
 		if (element instanceof IToken) {
 			token = (SGLRToken) element;
 		} else {
-			AstNode node = impObjectToAstNode(element);
-			token = node.getRightIToken();
+			IStrategoTerm node = impObjectToAstNode(element);
+			token = node.getRightToken();
 		}
 
 		return token.getEndOffset();
@@ -90,7 +90,7 @@ public class AstNodeLocator implements ISourcePositionLocator {
 		return resource.getLocation();
 	}
 
-	public static AstNode impObjectToAstNode(Object element) {
+	public static IStrategoTerm impObjectToAstNode(Object element) {
 		if (element instanceof ModelTreeNode) {
 			element = ((ModelTreeNode) element).getASTNode();
 			if (element instanceof ModelTreeNode)
@@ -98,7 +98,7 @@ public class AstNodeLocator implements ISourcePositionLocator {
 		}
 		if (element instanceof SGLRToken)
 			element = ((SGLRToken) element).getAstNode();
-		return (AstNode) element;
+		return (IStrategoTerm) element;
 	}
 	
 }

@@ -1,10 +1,9 @@
 package org.strategoxt.imp.runtime.stratego;
 
 import org.spoofax.interpreter.core.IContext;
+import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
-import org.strategoxt.imp.runtime.stratego.adapter.IWrappedAstNode;
 
 /**
  * Returns the tuple (offset-start, offset-end) for an ast-node
@@ -17,7 +16,7 @@ public class OriginOffsetPrimitive extends AbstractOriginPrimitive {
 	}
 
 	@Override
-	protected IStrategoTerm call(IContext env, IWrappedAstNode node) {
+	protected IStrategoTerm call(IContext env, IStrategoTerm node) {
 		ITermFactory factory = env.getFactory();
 		int start = getStartPosNode(node.getNode());
 		int end =  getEndPosNode(node.getNode());
@@ -27,11 +26,11 @@ public class OriginOffsetPrimitive extends AbstractOriginPrimitive {
 		);
 	}
 	
-	private static int getStartPosNode(IStrategoAstNode node){
-		return node.getLeftIToken().getStartOffset();//inclusive start
+	private static int getStartPosNode(ISimpleTerm node){
+		return node.getLeftToken().getStartOffset();//inclusive start
 	}
 
-	private static int getEndPosNode(IStrategoAstNode node){
-		return node.getRightIToken().getEndOffset()+1; //exclusive end
+	private static int getEndPosNode(ISimpleTerm node){
+		return node.getRightToken().getEndOffset()+1; //exclusive end
 	}
 }

@@ -14,7 +14,7 @@ import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 
-import aterm.AFun;
+import aterm.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import aterm.ATermAppl;
 
@@ -28,7 +28,7 @@ public class KeywordRecognizer {
 	private static final Map<Descriptor, KeywordRecognizer> cache =
 		synchronizedMap(new WeakHashMap<Descriptor, KeywordRecognizer>());
 	
-	private static final AFun litFun = Environment.getATermFactory().makeAFun("lit", 1, false);
+	private static final IStrategoConstructor litFun = Environment.getATermFactory().makeIStrategoConstructor("lit", 1, false);
 	
 	private final Set<String> keywords = new HashSet<String>();
 	
@@ -37,7 +37,7 @@ public class KeywordRecognizer {
 			for (Label l : table.getLabels()) {
 				if (l != null) {
 					IStrategoTerm rhs = termAt(l.getProduction(), 1);
-					if (rhs instanceof ATermAppl && ((ATermAppl) rhs).getAFun() == litFun) {
+					if (rhs instanceof ATermAppl && ((ATermAppl) rhs).getIStrategoConstructor() == litFun) {
 						ATermAppl lit = termAt(rhs, 0);
 						String litString = lit.getName();
 						if (TokenKindManager.isKeyword(litString))

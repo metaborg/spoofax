@@ -1,7 +1,6 @@
 package org.strategoxt.imp.runtime.stratego;
 
 import static org.spoofax.interpreter.core.Tools.isTermString;
-import lpg.runtime.ILexStream;
 
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.library.AbstractPrimitive;
@@ -10,7 +9,6 @@ import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.StrategoInt;
 import org.spoofax.terms.StrategoTuple;
-import org.strategoxt.imp.runtime.stratego.adapter.IWrappedAstNode;
 
 /**
  * Returns the textfragment that corresponds to the given char position (offset, offset-end)
@@ -44,8 +42,8 @@ private static final String NAME = "SSL_EXT_origin_textfragment";
 			return null;
 		int pos_start=((StrategoInt)position.get(0)).intValue();
 		int pos_end=((StrategoInt)position.get(1)).intValue()-1;//exclusive
-		ILexStream lexStream = ((IWrappedAstNode)position.get(2)).getNode().getLeftIToken().getILexStream();
-		//ILexStream lexStream= EditorState.getActiveEditor().getParseController().getCurrentAst().getLeftIToken().getILexStream();
+		ILexStream lexStream = ((IStrategoTerm)position.get(2)).getNode().getLeftToken().getILexStream();
+		//ILexStream lexStream= EditorState.getActiveEditor().getParseController().getCurrentAst().getLeftToken().getILexStream();
 		if(DocumentStructure.isUnvalidInterval(pos_start, pos_end, lexStream))
 			return null;
 		String textfragment=lexStream.toString(pos_start, pos_end);
@@ -56,6 +54,6 @@ private static final String NAME = "SSL_EXT_origin_textfragment";
 		return !(
 				position.get(0) instanceof StrategoInt && 
 				position.get(1) instanceof StrategoInt &&
-				position.get(2) instanceof IWrappedAstNode);
+				position.get(2) instanceof IStrategoTerm);
 	}
 }

@@ -1,6 +1,6 @@
 package org.strategoxt.imp.runtime.stratego.adapter;
 
-import lpg.runtime.IAst;
+import lpg.runtime.ISimpleTerm;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
@@ -13,27 +13,27 @@ import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermPrinter;
 
 /**
- * A wrapper class linking any {@link IStrategoTerm} to an {@link IAst} node.
+ * A wrapper class linking any {@link IStrategoTerm} to an {@link ISimpleTerm} node.
  * 
- * @see WrappedAstNodeFactory#makeLink(IStrategoTerm, IWrappedAstNode)
+ * @see WrappedAstNodeFactory#makeLink(IStrategoTerm, IStrategoTerm)
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class WrappedAstNodeLink extends WrappedAstNodeParent implements IWrappedAstNode, IStrategoTerm, IStrategoList, IStrategoAppl, IStrategoTuple, IStrategoInt, IStrategoReal, IStrategoString {
+public class WrappedAstNodeLink extends WrappedAstNodeParent implements IStrategoTerm, IStrategoTerm, IStrategoList, IStrategoAppl, IStrategoTuple, IStrategoInt, IStrategoReal, IStrategoString {
 	
 	private final WrappedAstNodeFactory factory;
 	
-	private final IWrappedAstNode origin; // = node + offset for lists
+	private final IStrategoTerm origin; // = node + offset for lists
 	
 	private final IStrategoTerm wrapped;
 	
-	protected WrappedAstNodeLink(WrappedAstNodeFactory factory, IStrategoTerm term, IWrappedAstNode origin) {
+	protected WrappedAstNodeLink(WrappedAstNodeFactory factory, IStrategoTerm term, IStrategoTerm origin) {
 		super(origin.getNode(), term.getAnnotations());
 		this.factory = factory;
 		this.wrapped = term;
 		this.origin = origin;
 		
-		assert !(wrapped instanceof IWrappedAstNode) : "Already wrapped";
+		assert !(wrapped instanceof IStrategoTerm) : "Already wrapped";
 		assert wrapped.getTermType() != LIST || origin.getTermType() != LIST
 				|| wrapped.getSubtermCount() == 0
 				|| wrapped.getSubtermCount() != origin.getSubtermCount()
@@ -87,7 +87,7 @@ public class WrappedAstNodeLink extends WrappedAstNodeParent implements IWrapped
 			return kids;
 		
 		for (int i = 0; i < kids.length; i++) {
-			if (!(kids[i] instanceof IWrappedAstNode)) {
+			if (!(kids[i] instanceof IStrategoTerm)) {
 				IStrategoTerm[] newKids = new IStrategoTerm[kids.length];
 				System.arraycopy(kids, 0, newKids, 0, i);
 				newKids[i] = ensureChildLink(kids[i], i);
@@ -101,7 +101,7 @@ public class WrappedAstNodeLink extends WrappedAstNodeParent implements IWrapped
 	}
 	
 	private IStrategoTerm ensureChildLink(IStrategoTerm kid, int index) {
-		if (kid instanceof IWrappedAstNode
+		if (kid instanceof IStrategoTerm
 				|| index >= origin.getSubtermCount()) {
 			return kid;
 		} else {

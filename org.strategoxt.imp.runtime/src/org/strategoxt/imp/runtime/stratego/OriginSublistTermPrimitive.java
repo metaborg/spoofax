@@ -7,13 +7,10 @@ import java.util.ArrayList;
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.stratego.Strategy;
+import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.strategoxt.imp.runtime.parser.ast.AstNode;
-import org.strategoxt.imp.runtime.parser.ast.AstNodeFactory;
-import org.strategoxt.imp.runtime.parser.ast.ListAstNode;
-import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
-import org.strategoxt.imp.runtime.stratego.adapter.IWrappedAstNode;
+import org.strategoxt.imp.runtime.parser.ast.SubListAstNode;
 
 /**
  * Returns the (sub)list with origin nodes by mapping all subterms of a list one by one.
@@ -39,13 +36,13 @@ public class OriginSublistTermPrimitive extends AbstractPrimitive {
 		if(list.isEmpty())
 			return false;
 		for (IStrategoTerm child : list.getAllSubterms()) {
-			if(!(child instanceof IWrappedAstNode))
+			if(!(child instanceof IStrategoTerm))
 				return false;
 		}
-		IStrategoAstNode firstChildNode=((IWrappedAstNode)list.get(0)).getNode();
-		IStrategoAstNode commonParentList=firstChildNode.getParent();
-		ArrayList<IStrategoAstNode> childNodes=commonParentList.getChildren();
-		if(!(commonParentList instanceof ListAstNode))
+		ISimpleTerm firstChildNode=((IStrategoTerm)list.get(0)).getNode();
+		ISimpleTerm commonParentList=firstChildNode.getParent();
+		ArrayList<ISimpleTerm> childNodes=commonParentList.getChildren();
+		if(!(isTermList(commonParentList)))
 			return false;
 		int startIndex=-1;
 		for (int i = 0; i < childNodes.size(); i++) {
@@ -57,15 +54,15 @@ public class OriginSublistTermPrimitive extends AbstractPrimitive {
 		for (int i = 0; i < list.size(); i++) {
 			if(childNodes.size()<=i+startIndex)
 				return false;
-			IStrategoAstNode childNode=((IWrappedAstNode)list.get(i)).getNode();
+			ISimpleTerm childNode=((IStrategoTerm)list.get(i)).getNode();
 			if(childNodes.get(i+startIndex)!=childNode)
 				return false;
 		}
-		IStrategoAstNode lastChildNode=((IWrappedAstNode)list.get(list.size()-1)).getNode();
-		AstNode result =new AstNodeFactory().createSublist((ListAstNode) commonParentList, firstChildNode, lastChildNode, true); 
+		ISimpleTerm lastChildNode=((IStrategoTerm)list.get(list.size()-1)).getNode();
+		IStrategoTerm result = SubListAstNode.createSublist((ListAstNode) commonParentList, firstChildNode, lastChildNode, true); 
 		if (result == null) 
 			return false;
-		env.setCurrent(result.getTerm());
+		env.setCurrent(result);
 		return true;
 	}
 	

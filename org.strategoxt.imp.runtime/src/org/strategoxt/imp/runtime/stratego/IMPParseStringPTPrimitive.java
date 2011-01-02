@@ -9,8 +9,8 @@ import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.jsglr.Disambiguator;
-import org.spoofax.jsglr.NoRecoveryRulesException;
+import org.spoofax.jsglr.client.Disambiguator;
+import org.spoofax.jsglr.client.NoRecoveryRulesException;
 import org.spoofax.jsglr.client.ParseTable;
 import org.spoofax.jsglr.shared.SGLRException;
 import org.spoofax.terms.LazyTerm;
@@ -18,9 +18,6 @@ import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.JSGLRI;
 import org.strategoxt.imp.runtime.stratego.SourceMappings.MappableTerm;
 import org.strategoxt.lang.compat.sglr.JSGLR_parse_string_pt_compat;
-
-import org.spoofax.interpreter.terms.IStrategoTerm;
-import aterm.ATermFactory;
 
 /**
  * Parses strings to asfix trees, caching the internal IStrategoTerm

@@ -4,19 +4,19 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
-import lpg.runtime.IPrsStream;
-
+import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.Disambiguator;
 import org.spoofax.jsglr.client.FilterException;
 import org.spoofax.jsglr.client.NoRecoveryRulesException;
 import org.spoofax.jsglr.client.ParseTable;
+import org.spoofax.jsglr.client.imploder.ITokenizer;
+import org.spoofax.jsglr.client.imploder.TokenKindManager;
 import org.spoofax.jsglr.io.SGLR;
 import org.spoofax.jsglr.shared.BadTokenException;
 import org.spoofax.jsglr.shared.SGLRException;
 import org.spoofax.jsglr.shared.TokenExpectedException;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.ParseTableProvider;
-import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
 
 /**
  * IMP IParser implementation using JSGLR, imploding parse trees to AST nodes and tokens.
@@ -82,8 +82,8 @@ public class JSGLRI extends AbstractSGLRI {
 		return disambiguator;
 	}
 	
-	public IPrsStream getIPrsStream() {
-		return super.getController().getIPrsStream();
+	public ITokenizer getTokenizer() {
+		return super.getController().getTokenizer();
 	}
 	
 	public void setParseTable(ParseTable parseTable) {

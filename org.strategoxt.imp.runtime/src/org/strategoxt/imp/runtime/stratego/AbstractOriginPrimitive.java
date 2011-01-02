@@ -4,7 +4,6 @@ import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.strategoxt.imp.runtime.stratego.adapter.IWrappedAstNode;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -18,8 +17,8 @@ public abstract class AbstractOriginPrimitive extends AbstractPrimitive {
 	@Override
 	public final boolean call(IContext env, Strategy[] svars, IStrategoTerm[] tvars) {
 		
-		if (tvars[0] instanceof IWrappedAstNode) {
-			IStrategoTerm result = call(env, (IWrappedAstNode) tvars[0]);
+		if (tvars[0] instanceof IStrategoTerm) {
+			IStrategoTerm result = call(env, (IStrategoTerm) tvars[0]);
 			if (result != null) {
 				env.setCurrent(result);
 				return true;
@@ -28,5 +27,5 @@ public abstract class AbstractOriginPrimitive extends AbstractPrimitive {
 		return false;
 	}
 	
-	protected abstract IStrategoTerm call(IContext env, IWrappedAstNode node);
+	protected abstract IStrategoTerm call(IContext env, IStrategoTerm node);
 }

@@ -1,7 +1,11 @@
 package org.strategoxt.imp.metatooling.loading;
 
 import static org.eclipse.core.resources.IMarker.SEVERITY_ERROR;
-import static org.eclipse.core.resources.IResourceDelta.*;
+import static org.eclipse.core.resources.IResourceDelta.ADDED;
+import static org.eclipse.core.resources.IResourceDelta.CONTENT;
+import static org.eclipse.core.resources.IResourceDelta.MOVED_FROM;
+import static org.eclipse.core.resources.IResourceDelta.MOVED_TO;
+import static org.eclipse.core.resources.IResourceDelta.REPLACED;
 
 import java.io.File;
 import java.io.FileNotFoundException;

@@ -6,11 +6,10 @@ import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.library.IOAgent;
 import org.spoofax.interpreter.library.ssl.SSLLibrary;
 import org.spoofax.interpreter.stratego.Strategy;
+import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.services.StrategoAnalysisJob;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
-import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
-import org.strategoxt.imp.runtime.stratego.adapter.WrappedAstNode;
 
 public class SetMarkersPrimitive extends AbstractPrimitive {
 
@@ -26,7 +25,7 @@ public class SetMarkersPrimitive extends AbstractPrimitive {
 			return false;
 		
 		WrappedAstNode appl = (WrappedAstNode)tvars[0]; 
-		IStrategoAstNode ast = appl.getNode();
+		ISimpleTerm ast = appl.getNode();
 		assert (ast.getResource() != null);
 		
 		IOAgent agent = SSLLibrary.instance(env).getIOAgent();

@@ -4,16 +4,14 @@ import static org.spoofax.interpreter.core.Tools.isTermString;
 
 import java.util.List;
 
-import lpg.runtime.IAst;
-
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.services.IReferenceResolver;
+import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
-import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -38,8 +36,8 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 		wildcardHelperFunction = NodeMapping.getFirstAttribute(helpFunctions, "_", null, 0);
 	}
 
-	public IAst getLinkTarget(Object oNode, IParseController parseController) {
-		IStrategoAstNode node = StrategoTermPath.getMatchingAncestor((IStrategoAstNode) oNode, true);
+	public ISimpleTerm getLinkTarget(Object oNode, IParseController parseController) {
+		ISimpleTerm node = StrategoTermPath.getMatchingAncestor((ISimpleTerm) oNode, true);
 		
 		String function = NodeMapping.getFirstAttribute(resolverFunctions, node.getConstructor(), node.getSort(), 0);
 		if (function == null) function = wildcardResolverFunction;
@@ -61,7 +59,7 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 	}
 
 	public String getLinkText(Object oNode) {
-		IStrategoAstNode node = StrategoTermPath.getMatchingAncestor((IStrategoAstNode) oNode, true);
+		ISimpleTerm node = StrategoTermPath.getMatchingAncestor((ISimpleTerm) oNode, true);
 		if (node == null)
 			return null;
 		

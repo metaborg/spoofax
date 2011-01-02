@@ -13,8 +13,6 @@ import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.stratego.SourceMappings.MappableTerm;
 import org.strategoxt.lang.compat.sglr.STRSGLR_anno_location;
 
-import org.spoofax.interpreter.terms.IStrategoTerm;
-
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */

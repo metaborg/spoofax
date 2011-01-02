@@ -6,9 +6,6 @@ import java.io.InputStreamReader;
 import java.util.Iterator;
 import java.util.concurrent.locks.ReentrantLock;
 
-import lpg.runtime.IPrsStream;
-import lpg.runtime.IToken;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -28,13 +25,17 @@ import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
-import org.spoofax.jsglr.shared.BadTokenException;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.InvalidParseTableException;
-import org.spoofax.jsglr.NoRecoveryRulesException;
+import org.spoofax.jsglr.client.NoRecoveryRulesException;
 import org.spoofax.jsglr.client.ParseTable;
-import org.spoofax.jsglr.ParseTimeoutException;
+import org.spoofax.jsglr.client.ParseTimeoutException;
+import org.spoofax.jsglr.client.StartSymbolException;
+import org.spoofax.jsglr.client.imploder.IToken;
+import org.spoofax.jsglr.client.imploder.ITokenizer;
+import org.spoofax.jsglr.client.imploder.TokenKindManager;
+import org.spoofax.jsglr.shared.BadTokenException;
 import org.spoofax.jsglr.shared.SGLRException;
-import org.spoofax.jsglr.StartSymbolException;
 import org.spoofax.jsglr.shared.TokenExpectedException;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.EditorState;
@@ -44,18 +45,12 @@ import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.dynamicloading.DynamicParseController;
 import org.strategoxt.imp.runtime.dynamicloading.ParseTableProvider;
-import org.strategoxt.imp.runtime.parser.ast.AstNode;
 import org.strategoxt.imp.runtime.parser.ast.AstNodeLocator;
-import org.strategoxt.imp.runtime.parser.ast.RootAstNode;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenIterator;
-import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
-import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
 import org.strategoxt.imp.runtime.services.MetaFile;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.services.TokenColorer;
-
-import org.spoofax.interpreter.terms.IStrategoTerm;
 
 /**
  * IMP parse controller for an SGLR parser; instantiated for a particular source file.
@@ -79,9 +74,9 @@ public class SGLRParseController implements IParseController {
 	
 	private final ParseErrorHandler errorHandler = new ParseErrorHandler(this);
 	
-	private volatile RootAstNode currentAst;
+	private volatile IStrategoTerm currentAst;
 	
-	private volatile IPrsStream currentParseStream;
+	private volatile ITokenizer currentParseStream;
 	
 	private ISourceProject project;
 	
@@ -113,7 +108,7 @@ public class SGLRParseController implements IParseController {
 	 * 
 	 * @return The parsed AST, or null if the file could not be parsed (yet).
 	 */
-	public final RootAstNode getCurrentAst() {
+	public final IStrategoTerm getCurrentAst() {
 		assert !isReplaced();
 		if (currentAst == null) forceInitialParse();
 		return currentAst;
@@ -239,11 +234,11 @@ public class SGLRParseController implements IParseController {
     }
     
     @Deprecated
-    public final AstNode parse(String input, boolean scanOnly, IProgressMonitor monitor) {
+    public final IStrategoTerm parse(String input, boolean scanOnly, IProgressMonitor monitor) {
     	return parse(input, monitor);
     }
 
-	public AstNode parse(String input, final IProgressMonitor monitor) {
+	public IStrategoTerm parse(String input, final IProgressMonitor monitor) {
 		assert !isReplaced();
 		disallowColorer = true;
 		boolean wasStartupParsed = isStartupParsed;
@@ -285,7 +280,7 @@ public class SGLRParseController implements IParseController {
 			if (monitor.isCanceled()) return null;
 			IStrategoTerm asfix = parseNoImplode(inputChars, filename);
 			if (monitor.isCanceled()) return null;
-			RootAstNode ast = parser.internalImplode(asfix);
+			IStrategoTerm ast = parser.internalImplode(asfix);
 
 			errorHandler.clearErrors();
 			errorHandler.setRecoveryFailed(false);
@@ -490,16 +485,16 @@ public class SGLRParseController implements IParseController {
 		//   - a parser thread with a parse lock may forceRecolor(), acquiring the colorer queue lock 
 		//   - a parser thread with a parse lock may need main thread acess to report errors
 		
-		IPrsStream stream = currentParseStream;		
+		ITokenizer stream = currentParseStream;		
 		IDocument document = editor == null ? null : editor.getDocument();
 		
 		if (!force && (stream == null || disallowColorer
 				|| (document != null && stream.getILexStream().getStreamLength() != document.getLength()))) {
 			return SGLRTokenIterator.EMPTY;
-		} else if (stream.getTokens().size() == 0 || getCurrentAst() == null) {
+		} else if (stream.getTokenCount() == 0 || getCurrentAst() == null) {
 			// Parse hasn't succeeded yet, consider the entire stream as one big token
 			stream.addToken(new SGLRToken(stream, region.getOffset(), stream.getStreamLength() - 1,
-					TokenKind.TK_UNKNOWN.ordinal()));
+					IToken.TK_UNKNOWN));
 		}
 		
 		// UNDONE: Cannot disable colorer afterwards, need it to remove error markers
@@ -523,7 +518,7 @@ public class SGLRParseController implements IParseController {
 		}
 	}
 
-	protected IPrsStream getIPrsStream() {
+	protected ITokenizer getTokenizer() {
 		return currentParseStream;
 	}
 	

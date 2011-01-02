@@ -24,10 +24,12 @@ import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.core.StackTracer;
 import org.spoofax.interpreter.library.jsglr.JSGLRLibrary;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.InvalidParseTableException;
 import org.spoofax.jsglr.client.ParseTable;
 import org.spoofax.jsglr.io.ParseTableManager;
 import org.spoofax.jsglr.io.SGLR;
+import org.spoofax.terms.TermFactory;
 import org.strategoxt.HybridInterpreter;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
@@ -38,7 +40,6 @@ import org.strategoxt.imp.runtime.stratego.IMPJSGLRLibrary;
 import org.strategoxt.imp.runtime.stratego.IMPLibrary;
 import org.strategoxt.imp.runtime.stratego.IMPOpenFile;
 import org.strategoxt.imp.runtime.stratego.IMPParseStringPTPrimitive;
-import org.strategoxt.imp.runtime.stratego.adapter.WrappedAstNodeFactory;
 import org.strategoxt.lang.compat.sglr.SGLRCompatLibrary;
 
 /**
@@ -61,7 +62,7 @@ public final class Environment {
 	
 	private final static Map<String, Descriptor> descriptors;
 	
-	private final static WrappedAstNodeFactory wrappedAstNodeFactory;
+	private final static ITermFactory termFactory;
 	
 	private final static PrintStream STDERR = System.err; // avoid deadlocky ant override
 	
@@ -74,8 +75,8 @@ public final class Environment {
 	static {
 		descriptors = Collections.synchronizedMap(new HashMap<String, Descriptor>());
 		unmanagedTables = Collections.synchronizedMap(new HashMap<String, ParseTableProvider>());
-		wrappedAstNodeFactory = new WrappedAstNodeFactory();
-		parseTableManager = new ParseTableManager(wrappedAstNodeFactory);
+		termFactory = new TermFactory();
+		parseTableManager = new ParseTableManager(termFactory);
 		parseTables = Collections.synchronizedMap(new HashMap<String, ParseTableProvider>());
 		checkJVMOptions();
 	}
@@ -140,9 +141,9 @@ public final class Environment {
 	
 	// BASIC ACCESSORS
 	
-	public static WrappedAstNodeFactory getTermFactory() {
+	public static ITermFactory getTermFactory() {
 		// (no state; no assertion)
-		return wrappedAstNodeFactory;
+		return termFactory;
 	}
 	
 	@Deprecated

@@ -3,13 +3,12 @@ package org.strategoxt.imp.runtime.stratego.adapter;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermPrinter;
-import org.strategoxt.imp.runtime.parser.ast.StringAstNode;
 
 public class WrappedAstNodeString extends WrappedAstNode implements IStrategoString {
 	
-	protected WrappedAstNodeString(IStrategoAstNode node) {
+	protected WrappedAstNodeString(ISimpleTerm node) {
 		super(node);
-		assert node instanceof StringAstNode;
+		assert isTermString(node);
 	}
 
 	public String stringValue() {

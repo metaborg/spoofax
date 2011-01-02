@@ -6,7 +6,7 @@ import static org.spoofax.terms.Term.*;
 import java.util.HashMap;
 import java.util.Map;
 
-import aterm.AFun;
+import aterm.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import aterm.ATermAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
@@ -18,24 +18,24 @@ import org.spoofax.interpreter.terms.IStrategoList;
  */
 public class ProductionAttributeReader {
 	
-	protected static final AFun SORT_FUN = getATermFactory().makeAFun("sort", 1, false);
+	protected static final IStrategoConstructor SORT_FUN = getATermFactory().makeIStrategoConstructor("sort", 1, false);
 	
-	protected static final AFun PARAMETERIZED_SORT_FUN =
-		getATermFactory().makeAFun("parameterized-sort", 2, false);
+	protected static final IStrategoConstructor PARAMETERIZED_SORT_FUN =
+		getATermFactory().makeIStrategoConstructor("parameterized-sort", 2, false);
 	
-	protected static final AFun ATTRS_FUN = getATermFactory().makeAFun("attrs", 1, false);
+	protected static final IStrategoConstructor ATTRS_FUN = getATermFactory().makeIStrategoConstructor("attrs", 1, false);
 	
-	protected static final AFun NO_ATTRS_FUN = getATermFactory().makeAFun("no-attrs", 0, false);
+	protected static final IStrategoConstructor NO_ATTRS_FUN = getATermFactory().makeIStrategoConstructor("no-attrs", 0, false);
 	
-	protected static final AFun PREFER_FUN = getATermFactory().makeAFun("prefer", 0, false);
+	protected static final IStrategoConstructor PREFER_FUN = getATermFactory().makeIStrategoConstructor("prefer", 0, false);
 	
-	protected static final AFun AVOID_FUN = getATermFactory().makeAFun("avoid", 0, false);
+	protected static final IStrategoConstructor AVOID_FUN = getATermFactory().makeIStrategoConstructor("avoid", 0, false);
 	
-	private static final AFun VARSYM_FUN = getATermFactory().makeAFun("varsym", 1, false);
+	private static final IStrategoConstructor VARSYM_FUN = getATermFactory().makeIStrategoConstructor("varsym", 1, false);
 	
-	private static final AFun ALT_FUN = getATermFactory().makeAFun("alt", 2, false);
+	private static final IStrategoConstructor ALT_FUN = getATermFactory().makeIStrategoConstructor("alt", 2, false);
 	
-	private static final AFun CHAR_CLASS_FUN = getATermFactory().makeAFun("char-class", 1, false);
+	private static final IStrategoConstructor CHAR_CLASS_FUN = getATermFactory().makeIStrategoConstructor("char-class", 1, false);
 	
 	private static final int PARAMETRIZED_SORT_NAME = 0;
 	
@@ -54,8 +54,8 @@ public class ProductionAttributeReader {
 	
 	// FIXME: support meta-var constructors
 	public String getMetaVarConstructor(ATermAppl rhs) {
-		if (rhs.getChildCount() == 1 && VARSYM_FUN == rhs.getAFun()) {
-			return AsfixAnalyzer.isIterFun(((ATermAppl) rhs.getChildAt(0)).getAFun())
+		if (rhs.getChildCount() == 1 && VARSYM_FUN == rhs.getIStrategoConstructor()) {
+			return AsfixAnalyzer.isIterFun(((ATermAppl) rhs.getChildAt(0)).getIStrategoConstructor())
 					? "meta-listvar"
 					: "meta-var";
 		}
@@ -72,7 +72,7 @@ public class ProductionAttributeReader {
 
 	/** Return the contents of a term attribute (e.g., "cons"), or null if not found. */
 	public IStrategoTerm getAttribute(ATermAppl attrs, String attrName) {
-		if (attrs.getAFun() == NO_ATTRS_FUN)
+		if (attrs.getIStrategoConstructor() == NO_ATTRS_FUN)
 			return null;
 		
 		IStrategoList list = termAt(attrs, 0);
@@ -108,8 +108,8 @@ public class ProductionAttributeReader {
     }
     
     private String getSortUncached(ATermAppl node) {
-    	for (IStrategoTerm current = node; current.getChildCount() > 0 && isAppl(current); current = termAt(current, 0)) {
-    		AFun cons = asAppl(current).getAFun();
+    	for (IStrategoTerm current = node; current.getChildCount() > 0 && isTermAppl(current); current = termAt(current, 0)) {
+    		IStrategoConstructor cons = asAppl(current).getIStrategoConstructor();
 			if (cons == SORT_FUN)
     			return applAt(current, 0).getName();
     		if (cons == PARAMETERIZED_SORT_FUN)
@@ -131,7 +131,7 @@ public class ProductionAttributeReader {
     	
 		IStrategoList args = termAt(node, PARAMETRIZED_SORT_ARGS);
 		
-        for (ATermAppl arg = (ATermAppl) args.getFirst(); !args.getNext().isEmpty(); args = args.getNext()) {
+        for (ATermAppl arg = (ATermAppl) args.head(); !args.tail().isEmpty(); args = args.tail()) {
 			result.append(arg.getName());
 		}
 		
