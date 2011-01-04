@@ -17,7 +17,7 @@ public class OriginTextPrimitive extends AbstractOriginPrimitive {
 	@Override
 	protected IStrategoTerm call(IContext env, IWrappedAstNode node) {
 		String result = node.getNode().yield();
-		result = AutoEditStrategy.setIndentation(result, "");
+		//result = AutoEditStrategy.setIndentation(result, "");
 		return env.getFactory().makeString(result);
 	}
 
