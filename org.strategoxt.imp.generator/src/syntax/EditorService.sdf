@@ -9,6 +9,7 @@ imports
   ReferencesService
   CompletionsService
   BuildersService
+  RefactoringsService
 
 hiddens
 
