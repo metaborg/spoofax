@@ -1,0 +1,23 @@
+module RefactoringsService
+
+imports
+  SemanticServices
+  BuildersService
+
+exports
+  
+  syntax
+  
+    "refactorings" <SectionName-LEX> <LAYOUT?-CF> <SemanticRule*-CF> -> <Section-CF> {cons("Refactorings")}
+
+    "refactorings" -> <ReservedName-CF>
+  
+  context-free syntax
+  	
+  	"pp-table" ":" StrategoCall -> SemanticRule {cons("PPTable")}
+  	"pretty-print" ":" StrategoCall -> SemanticRule {cons("PrettyPrint")}
+    "refactoring"  ":" String "=" SemanticNode+ "->" StrategoCall BuilderOption* -> SemanticRule {cons("Refactoring")}
+  
+    %%"refactoring"  ":" String "=" Node "->" StrategoCall -> SemanticRule {cons("Refactoring")} 
+    %% Node defines on what sorts/constructors the refactoring can be defiend
+    

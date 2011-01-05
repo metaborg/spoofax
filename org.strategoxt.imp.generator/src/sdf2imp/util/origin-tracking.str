@@ -1,0 +1,218 @@
+module sdf2imp/util/origin-tracking
+
+strategies //origin tracking strategies
+
+/* origin strategies from lib-editor extended with sublist support*/
+origin-term      = support-sublist(prim("SSL_EXT_origin_term", <id>))
+origin-text      = support-sublist(prim("SSL_EXT_origin_text", <id>))
+origin-equal(|t) = support-sublist(prim("SSL_EXT_origin_equal", <id>, t))
+
+origin-equal=
+	?(t1,t2);
+	<origin-equal(|t1)> t2
+	
+origin-equivalent=
+	?(t1,t2);
+	<eq>(<origin-term> t1, <origin-term> t2)
+	
+origin-equivalent(|t1):
+	t2 -> <origin-equivalent> (t1,t2)
+	
+origin-set-relation(|or-node) =
+	?node;
+	!Some(or-node); 
+	all(!node); 
+	?Some(<id>)
+
+/**
+ * Returns the origin-term of a sublist
+ * @type List(Aterm) -> List(Aterm)
+ */
+origin-sublist-term = 
+	prim("SSL_EXT_origin_sublist_term","", <id>)
+
+/**
+ * Returns the start- and end- offset of the AST node
+ * @type ATerm -> (Int, Int)
+ */
+origin-offset = 
+	support-sublist(prim-origin-offset)
+
+/**
+ * Returns the start- and end- offset of the AST node, 
+ * including comments, indentation and separating whitespace
+ * @type ATerm -> (Int, Int)
+ */
+origin-offset-with-layout = 
+	support-sublist(prim-origin-offset-with-layout)
+
+/**
+ * Returns the start- and end- offset of the AST node,
+ * including comments
+ * @type ATerm -> (Int, Int)
+ */
+origin-offset-with-comments:
+	node -> (start-offset, end-offset)
+	where
+		start-offset:=<(origin-offset-comment-before <+ origin-offset); Fst> node;
+		end-offset:=<(origin-offset-comment-after <+ origin-offset); Snd> node	
+	
+/**
+ * Returns the start- and end- offset of the preceding comments
+ * that refer to the AST node (or sublist)
+ * Fails if comment does not exist
+ * @type ATerm -> (Int, Int)
+ */
+origin-offset-comment-before = 
+	support-sublist(prim-origin-offset-comment-before)
+
+/**
+ * Returns the start- and end- offset of the succeeding comments
+ * that refer to the AST node (or sublist)
+ * Fails if comment does not exist
+ * @type ATerm -> (Int, Int)
+ */
+origin-offset-comment-after = 
+	support-sublist(prim-origin-offset-comment-after)
+
+/**
+ * succeeds if the origin term of the node has associated comments
+ */
+origin-has-comments =
+	origin-offset-comment-before <+
+	origin-offset-comment-after
+
+/**
+ * Returns the indentation (string) of the start-line of the node. 
+ * For empty lists, the parent indentation + an additional tab is returned
+ * @type ATerm -> String
+ */
+origin-indent-node = 
+	try(Hd); //first element of (sub)list
+	prim-origin-indent-node
+
+/**
+ * Returns the value of the indentation of the startline 
+ * @type ATerm -> Int
+ */
+origin-indent-value-node=
+	origin-indent-node;
+	explode-string;
+	take-while(?' '<+?'\t');
+	foldr(!0, add, (?' ';!1) <+ (?'\t';tabsize))
+
+/**
+ * Returns the whitespace preceding the node (without the indentation). 
+ * @type ATerm -> String
+ */
+origin-separating-ws = 
+	support-sublist(prim-origin-separating-ws)
+
+/**
+ * Returns the separator location connected to list element or sublist
+ * @type ATerm -> (Int, Int)
+ */
+origin-separator-offset =  
+	origin-separator;
+	!(<Fst>, <Snd>)
+
+/**
+ * Returns the separator location + nearby ws and comments
+ * connected to list element or sublist
+ * @type ATerm -> (Int, Int)
+ */
+ origin-separator-offset-with-lo =
+	origin-separator-with-lo;
+	!(<Fst>, <Snd>)
+	
+/**
+ * Returns the separator connected to list element or sublist
+ * @type ATerm -> String
+ */
+origin-separator-text = 
+	origin-separator; 
+	Third
+
+/**
+ * Returns the separator text + nearby ws and comments 
+ * connected to list element or sublist
+ * @type ATerm -> String
+ */
+origin-separator-text-with-lo = 
+	origin-separator-with-lo; 
+	Third
+
+origin-separator-with-lo=
+	support-sublist(prim-origin-separator-with-lo)
+
+origin-separator=
+	support-sublist(prim-origin-separator)
+
+/**
+ * Returns the textfragment of the AST node,
+ * including comments
+ * @type ATerm -> (Int, Int)
+ */
+origin-text-with-comments=
+	?node;
+	offset := <origin-offset-with-comments> node;
+	<origin-textfragment> (<Fst> offset, <Snd> offset, node)
+
+/**
+ * Returns the textfragment from (inclusive) start- to (exclusive) end- offset. 
+ * Fails if the offsets do not correspond to a valid location in the source text
+ * @type (Int, Int, node) -> String
+ */
+origin-textfragment=
+	?(x,y, node);
+	!(x,y,<origin-term> node);
+	prim-origin-textfragment
+
+prim-origin-textfragment= prim("SSL_EXT_origin_textfragment","", <id>)
+
+/**
+ * Returns the text of the source file 
+ * @type Term -> String
+ */
+origin-sourcetext= prim("SSL_EXT_origin_sourcetext", <id>)
+
+strategies //primitives
+
+prim-origin-offset= prim("SSL_EXT_origin_offset", <id>)
+
+prim-origin-offset-with-layout= prim("SSL_EXT_origin_offset_with_layout", <id>) 
+
+prim-origin-offset-comment-before = prim("SSL_EXT_origin_comment_before", <id>) 
+
+prim-origin-offset-comment-after= prim("SSL_EXT_origin_comment_after", <id>) 
+
+prim-origin-indent-node= prim("SSL_EXT_origin_indentation", <id>)
+//todo? implement (indent empty list: parent + tab)
+
+prim-origin-separating-ws= prim("SSL_EXT_origin_separating_whitespace", <id>)
+	
+prim-origin-separator=
+	prim("SSL_EXT_origin_separator", <id>)
+
+prim-origin-separator-with-lo=
+	prim("SSL_EXT_origin_separator_with_lo", <id>)
+
+strategies //editor settings
+
+/**
+ * Returns the tabsize used in the editor. 
+ * @type  -> Int
+ */
+tabsize=!4 //TODO: use spoofax editor settings
+
+
+strategies //helpers
+
+/**
+ * Treats sublists as origin terms
+ * @param strategy to apply on an origin term 
+ * @type ATerm -> ATerm
+ */
+support-sublist(s)=
+	try(?[h|[]]; !h); 
+	((origin-sublist-term; s) <+s)

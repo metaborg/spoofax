@@ -16,6 +16,10 @@ import org.spoofax.terms.StrategoInt;
 import org.spoofax.terms.StrategoTuple;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
+import org.strategoxt.imp.runtime.stratego.adapter.IWrappedAstNode;
+import org.strategoxt.lang.terms.StrategoInt;
+import org.strategoxt.lang.terms.StrategoTuple;
 
 /**
  * Applies a text-change in the current document
@@ -64,7 +68,17 @@ public class TextChangePrimitive extends AbstractPrimitive {
 		}
 	}
 	
-	private String applyTextChange(EditorState editor, final int position_start, final int position_end,
+	public static String applyTextChange(EditorState editor,IStrategoAstNode node,
+			final String text) throws BadLocationException {
+		return applyTextChange(
+			editor, 
+			node.getLeftIToken().getStartOffset(), 
+			node.getRightIToken().getEndOffset(), 
+			text
+		);
+	}
+	
+	public static String applyTextChange(EditorState editor, final int position_start, final int position_end,
 			final String text) throws BadLocationException {
 		final IDocument doc = editor.getDocument();
 		Job job = new UIJob("apply textchange") {
@@ -72,7 +86,7 @@ public class TextChangePrimitive extends AbstractPrimitive {
 			@Override
 			public IStatus runInUIThread(IProgressMonitor monitor) {
 				try {
-					doc.replace(position_start, position_end+1-position_start, text);
+					doc.replace(position_start, position_end-position_start, text);
 				} catch (BadLocationException e) {
 					// TODO Auto-generated catch block
 					Environment.logException("Bad location of the replaced fragment", e);

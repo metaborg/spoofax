@@ -19,5 +19,4 @@ public class OriginSeparatingWhitespacePrimitive extends AbstractOriginPrimitive
 		ITermFactory factory = env.getFactory();
 		return factory.makeString(loStructure.getSeperatingWhitespace());
 	}
-
 }

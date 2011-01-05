@@ -12,7 +12,6 @@ exports
 
     [a-zA-Z\_] [a-zA-Z0-9\'\-\_]* -> StrategoId
   
-    Node -> SemanticNode
     "_"  -> SemanticNode
 
   lexical restrictions
@@ -20,7 +19,8 @@ exports
     StrategoId -/- [a-zA-Z0-9\'\-\_]
 
   context-free syntax
-
+     
+     Node -> SemanticNode
     "provider"     PropertyValue -> SemanticRule {cons("SemanticProvider"), deprecated("Use 'provider :'")}
     "provider" ":" PropertyValue -> SemanticRule {cons("SemanticProvider")}
 

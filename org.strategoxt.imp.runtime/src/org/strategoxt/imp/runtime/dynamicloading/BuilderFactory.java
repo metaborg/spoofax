@@ -5,6 +5,7 @@ import static org.strategoxt.imp.runtime.dynamicloading.TermReader.collectTerms;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.cons;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.termContents;
 
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -13,14 +14,23 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.EditorState;
+import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
+import org.strategoxt.imp.runtime.parser.ast.AstNode;
+import org.strategoxt.imp.runtime.parser.ast.AstNodeFactory;
+import org.strategoxt.imp.runtime.parser.ast.ListAstNode;
+import org.strategoxt.imp.runtime.parser.ast.SubListAstNode;
 import org.strategoxt.imp.runtime.services.BuilderMap;
 import org.strategoxt.imp.runtime.services.CustomStrategyBuilder;
 import org.strategoxt.imp.runtime.services.IBuilder;
 import org.strategoxt.imp.runtime.services.IBuilderMap;
+import org.strategoxt.imp.runtime.services.NodeMapping;
 import org.strategoxt.imp.runtime.services.StrategoBuilder;
 import org.strategoxt.imp.runtime.services.StrategoBuilderListener;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
+import org.strategoxt.imp.runtime.services.StrategoRefactoring;
+import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
+import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -42,7 +52,7 @@ public class BuilderFactory extends AbstractServiceFactory<IBuilderMap> {
 
 		addBuilders(d, controller, builders, null);
 		addCustomStrategyBuilder(d, controller, builders, derivedFromEditor);
-		
+		addRefactorings(d, controller, builders);
 		return new BuilderMap(builders);
 	}
 
@@ -85,12 +95,96 @@ public class BuilderFactory extends AbstractServiceFactory<IBuilderMap> {
 				builders.add(new StrategoBuilder(feedback, caption, strategy, openEditor, realTime, cursor, source, persistent, derivedFromEditor));
 		}
 	}
+	
+	private static void addRefactorings(Descriptor d, SGLRParseController controller, Set<IBuilder> builders) throws BadDescriptorException {
+				
+		StrategoObserver feedback = d.createService(StrategoObserver.class, controller);
+		
+		IStrategoAppl ppTableTerm = TermReader.findTerm(d.getDocument(), "PPTable");
+		String ppTable=null;
+		if (ppTableTerm !=null)
+			ppTable=termContents(termAt(ppTableTerm, 0));
+		IStrategoAppl ppStrategyTerm = TermReader.findTerm(d.getDocument(), "PrettyPrint");
+		String ppStrategy=null;
+		if(ppStrategyTerm!=null)
+			ppStrategy=termContents(termAt(ppStrategyTerm, 0));
+		
+		for (IStrategoAppl builder : collectTerms(d.getDocument(), "Refactoring")) {
+			
+			boolean isDefined = isDefinedOnSelection(builder);
+			if(isDefined){
+				String caption = termContents(termAt(builder, 0));
+				String strategy = termContents(termAt(builder, 2));
+				IStrategoList options = termAt(builder, 3);			
+				boolean cursor = false;
+				boolean source = false;
+				boolean meta = false;
+				for (IStrategoTerm option : options.getAllSubterms()) {
+					String type = cons(option);
+					if (type.equals("Cursor")) {
+						cursor = true;
+					} else if (type.equals("Source")) {
+						source = true;
+					} else if (type.equals("Meta")) {
+						meta = true;
+					} else if (
+							type.equals("OpenEditor") ||
+							type.equals("RealTime") ||
+							type.equals("Persistent")
+						){
+						Environment.logWarning("Unused builder annotation '"+ type + "' in '" + caption +"'");
+					}
+					else {
+						throw new BadDescriptorException("Unknown builder annotation: " + type);
+					}
+				}
+				if (!meta || d.isDynamicallyLoaded()){			
+					builders.add(
+						new StrategoRefactoring(
+							feedback, 
+							caption, 
+							strategy,
+							cursor, 
+							source, 
+							ppTable,
+							ppStrategy,
+							controller.getResource()
+						)
+					);
+				}
+			}
+		}
+	}
+
+	private static boolean isDefinedOnSelection(IStrategoAppl builder)
+			throws BadDescriptorException {
+		ArrayList<NodeMapping<String>> mappings=new ArrayList<NodeMapping<String>>();
+		for (IStrategoTerm semanticNode : termAt(builder,1).getAllSubterms()) {
+			NodeMapping<String> aMapping = NodeMapping.create(semanticNode, "");
+			mappings.add(aMapping);
+		}
+		EditorState editor = EditorState.getActiveEditor();
+		IStrategoAstNode node= editor.getSelectionAst(false); SubListAstNode l;
+		IStrategoAstNode ancestor = StrategoTermPath.getMatchingAncestor(node, false);
+		IStrategoAstNode selectionNode = node;
+		boolean isMatch=false;
+		do {
+			isMatch= NodeMapping.getFirstAttribute(mappings, selectionNode.getConstructor(), selectionNode.getSort(), 0)!=null;
+			selectionNode=selectionNode.getParent();
+		} while(!isMatch && selectionNode!=null && selectionNode!=ancestor.getParent());
+		//Sublist with single element
+		if(!isMatch && (!(ancestor instanceof ListAstNode)) && ancestor.getParent() instanceof ListAstNode){
+			AstNode singleElementList= new AstNodeFactory().createSublist((ListAstNode)ancestor.getParent(), ancestor, ancestor, true);
+			isMatch= NodeMapping.getFirstAttribute(mappings, singleElementList.getConstructor(), singleElementList.getSort(), 0)!=null;
+		}
+		return isMatch;
+	}
 
 	private static void addDerivedBuilders(EditorState derivedFromEditor, Set<IBuilder> builders)
-			throws BadDescriptorException {
-		
-		if (derivedFromEditor != null)
+			throws BadDescriptorException {		
+		if (derivedFromEditor != null){
 			addBuilders(derivedFromEditor.getDescriptor(), derivedFromEditor.getParseController(), builders, derivedFromEditor);
+		}
 	}
 
 	private static void addCustomStrategyBuilder(Descriptor d, SGLRParseController controller,
