@@ -16,7 +16,8 @@ import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.ParseTableProvider;
 
 /**
- * A stand-alone SGLR parsing class that uses the Spoofax/IMP imploder and AST classes.
+ * A stand-alone SGLR parsing class that uses the Spoofax/IMP term
+ * classes and attachments.
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
@@ -69,9 +70,7 @@ public class StandAloneSGLRI {
 		parser.setStartSymbol(startSymbol);
 	}
 	
-	/**
-	 * Sets whether to keep any unresolved ambiguities. Default true.
-	 */
+	@Deprecated
 	public void setKeepAmbiguities(boolean value) {
 		parser.setKeepAmbiguities(value);
 	}
@@ -84,15 +83,10 @@ public class StandAloneSGLRI {
 		return parser.parse(input, filename);
 	}
 	
-	public ISimpleTerm parse(char[] input, String filename)
+	public ISimpleTerm parse(String input, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 		
-		Environment.getStrategoLock().lock();
-		try {
-			return parser.parse(input, filename);
-		} finally {
-			Environment.getStrategoLock().unlock();
-		}
+		return parser.parse(input, filename);
 	}
 	
 	private static class StandAloneLanguage extends Language {

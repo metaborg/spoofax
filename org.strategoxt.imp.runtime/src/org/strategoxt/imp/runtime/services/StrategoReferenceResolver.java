@@ -1,6 +1,7 @@
 package org.strategoxt.imp.runtime.services;
 
 import static org.spoofax.interpreter.core.Tools.isTermString;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getSort;
 
 import java.util.List;
 
@@ -39,7 +40,7 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 	public ISimpleTerm getLinkTarget(Object oNode, IParseController parseController) {
 		ISimpleTerm node = StrategoTermPath.getMatchingAncestor((ISimpleTerm) oNode, true);
 		
-		String function = NodeMapping.getFirstAttribute(resolverFunctions, node.getConstructor(), node.getSort(), 0);
+		String function = NodeMapping.getFirstAttribute(resolverFunctions, node.getConstructor(), getSort(node), 0);
 		if (function == null) function = wildcardResolverFunction;
 		if (function == null || function.equals("_")) {
 			Debug.log("No reference resolver available for node of type ", node.getConstructor());

@@ -1,5 +1,8 @@
 package org.strategoxt.imp.runtime.stratego;
 
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
+
 import java.util.ArrayList;
 
 import org.spoofax.interpreter.terms.ISimpleTerm;
@@ -28,7 +31,7 @@ public class DocumentStructure {
 		if(!commentsAfter.isEmpty())
 			endOffset=commentsAfter.get(commentsAfter.size()-1).getEndOffset()+1;
 		else
-			endOffset=node.getRightToken().getEndOffset()+1;
+			endOffset=getRightToken(node).getEndOffset()+1;
 		int lookForward=endOffset-1;
 		do{
 			if(getLexStream().getCharValue(lookForward)=='\n'){
@@ -36,7 +39,7 @@ public class DocumentStructure {
 				break;
 			}
 			lookForward++;
-		} while(lookForward < getLexStream().getStreamLength() && Character.isWhitespace(getLexStream().getCharValue(lookForward)));
+		} while(lookForward < getLexStream().getTokenCount() && Character.isWhitespace(getLexStream().getCharValue(lookForward)));
 		return endOffset;
 	}
 
@@ -45,7 +48,7 @@ public class DocumentStructure {
 		if(!commentsBefore.isEmpty())
 			startOffset=commentsBefore.get(0).getStartOffset();
 		else
-			startOffset=node.getLeftToken().getStartOffset();
+			startOffset=getLeftToken(node).getStartOffset();
 		while (startOffset>0 && isSpaceChar(getLexStream().getCharValue(startOffset-1))) {
 			startOffset--;
 		}
@@ -57,7 +60,7 @@ public class DocumentStructure {
 	}
 
 	private ILexStream getLexStream() {
-		return node.getLeftToken().getILexStream();
+		return getLeftToken(node).getInput();
 	}
 	
 	public TextFragment getCommentsBefore() {
@@ -113,7 +116,7 @@ public class DocumentStructure {
 	
 	private void analysize(){
 		setCommentsBefore();
-		IToken startToken = node.getLeftToken();
+		IToken startToken = getLeftToken(node);
 		ITokenizer tokenStream=startToken.getTokenizer();
 		if (atLineStart(startToken)) {
 			indentNode = getIndentation(getLineText(tokenStream, startToken.getLine()));
@@ -123,7 +126,7 @@ public class DocumentStructure {
 	}
 
 	private void setCommentsAfter() {
-		IToken startToken = node.getRightToken();
+		IToken startToken = getRightToken(node);
 		ITokenizer tokenStream=startToken.getTokenizer();
 		ArrayList<IToken> followingComments=new ArrayList<IToken>();
 		IToken nextToken=getNextToken(tokenStream, startToken);
@@ -144,7 +147,7 @@ public class DocumentStructure {
 	}
 
 	private void setCommentsBefore() {
-		IToken startToken = node.getLeftToken();
+		IToken startToken = getLeftToken(node);
 		ITokenizer tokenStream=startToken.getTokenizer();
 
 		//preceding non-layout token
@@ -192,7 +195,7 @@ public class DocumentStructure {
 				String commentLine=getLineText(tokenStream, lindex);
 				String nodeLine=getLineText(tokenStream, startToken.getLine());
 				//System.out.println(commentLine);
-				String followingLine = getLineText(tokenStream, node.getRightToken().getEndLine()+1);
+				String followingLine = getLineText(tokenStream, getRightToken(node).getEndLine()+1);
 				//System.out.println(followingLine);
 				if(getIndentValue(precedingLine)< getIndentValue(commentLine) && getIndentValue(nodeLine) > getIndentValue(followingLine)){
 					//System.out.println("Comment refers to node");
@@ -213,7 +216,7 @@ public class DocumentStructure {
 		else
 			endOffsetSepWS=commentsBefore.get(0).getStartOffset();
 		int startOffsetSepWS=endOffsetSepWS;
-		ILexStream lexStream=startToken.getILexStream();
+		ILexStream lexStream=startToken.getInput();
 		while (startOffsetSepWS > 0 && (Character.isWhitespace(lexStream.getCharValue(startOffsetSepWS-1)))) {
 			startOffsetSepWS--;
 		}
@@ -246,7 +249,7 @@ public class DocumentStructure {
 					start=0;
 				TextFragment line=new TextFragment(start, tokenStream.getLineOffset(i));
 				//System.out.println(line.getText());
-				boolean isEmptyLine=line.getText(startToken.getILexStream()).trim().equals("");
+				boolean isEmptyLine=line.getText(startToken.getInput()).trim().equals("");
 				if(isEmptyLine){
 					emptyLineOffset=start;
 					break;
@@ -275,10 +278,10 @@ public class DocumentStructure {
 			start=0;
 		int end=tokenStream.getLineOffset(lindex);
 		if(lindex==tokenStream.getLineCount()+1){//lastline
-			end=tokenStream.getILexStream().getStreamLength()-1;
+			end=tokenStream.getInput().getTokenCount()-1;
 		}
 		TextFragment line=new TextFragment(start, end);				
-		String lineText=line.getText(tokenStream.getILexStream());
+		String lineText=line.getText(tokenStream.getInput());
 		return lineText;
 	}
 	
@@ -313,15 +316,15 @@ public class DocumentStructure {
 	}
 	
 	private static boolean isLiteralToken(IToken tok) {
-		return IToken.valueOf(tok.getKind())==IToken.TK_OPERATOR;
+		return tok.getKind() == IToken.TK_OPERATOR;
 	}
 	
 	private static boolean isEOFToken(IToken tok) {
-		return IToken.valueOf(tok.getKind())==IToken.TK_EOF;
+		return tok.getKind() == IToken.TK_EOF;
 	}
 	
 	public static boolean isLayoutToken(IToken tok) {
-		return IToken.valueOf(tok.getKind())==IToken.TK_LAYOUT;
+		return tok.getKind() == IToken.TK_LAYOUT;
 	}
 	
 	public class TextFragment{
@@ -352,7 +355,7 @@ public class DocumentStructure {
 			end=endOffset;
 		}
 		
-		public String getText(ILexStream lexStream) {
+		public String getText(ITokenizer lexStream) {
 			if(start==end)
 				return "";
 			if(DocumentStructure.isUnvalidInterval(start, end, lexStream))
@@ -363,7 +366,7 @@ public class DocumentStructure {
 
 	}
 	
-	public static boolean isUnvalidInterval(int pos_start, int pos_end, ILexStream lexStream) {
-		return pos_start < 0 || pos_start > pos_end || pos_end >= lexStream.getStreamLength();
+	public static boolean isUnvalidInterval(int pos_start, int pos_end, ITokenizer lexStream) {
+		return pos_start < 0 || pos_start > pos_end || pos_end >= lexStream.getTokenCount();
 	}
 }

@@ -9,6 +9,8 @@ import java.util.List;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.jsglr.client.imploder.IToken;
+import org.spoofax.jsglr.client.imploder.Token;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 
 /**
@@ -28,7 +30,6 @@ public class NodeMapping<T> {
 		this.constructor = constructor;
 		this.sort = sort;
 		
-		// We use ints for comparison with IMP's integer enum in IToken
 		this.tokenKind = tokenKind == null ? NO_TOKEN_KIND : tokenKind;
 	}
 	
@@ -90,7 +91,7 @@ public class NodeMapping<T> {
 	
 	@Override
 	public String toString() {
-		return "(" + constructor + "," + sort + "," + IToken.valueOf(tokenKind).toString()
+		return "(" + constructor + "," + sort + "," + Token.tokenKindToString(tokenKind).toString()
 				+ " => " + attribute + ")";
 	}
 	

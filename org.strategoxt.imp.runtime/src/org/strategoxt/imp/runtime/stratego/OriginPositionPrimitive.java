@@ -19,16 +19,16 @@ public class OriginPositionPrimitive extends AbstractOriginPrimitive {
 	}
 
 	@Override
-	protected IStrategoTerm call(IContext env, IStrategoTerm node) {
+	protected IStrategoTerm call(IContext env, IStrategoTerm origin) {
 		IStrategoList pos;
-		ISimpleTerm parent = node.getNode().getParent();
+		ISimpleTerm parent = origin.getNode().getParent();
 		if(parent instanceof SubListAstNode){
-			List<Integer> posSublistElement = StrategoTermPath.createPathList(node.getNode());
+			List<Integer> posSublistElement = StrategoTermPath.createPathList(origin.getNode());
 			int posInCompleteList = ((SubListAstNode)parent).getIndexStart() + posSublistElement.get(posSublistElement.size()-1);
 			pos=createPathToSublistChild((SubListAstNode)parent, posInCompleteList);
 		}
 		else{
-			pos=StrategoTermPath.createPath(node.getNode());
+			pos=StrategoTermPath.createPath(origin.getNode());
 		}
 		return pos;
 	}

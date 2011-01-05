@@ -31,6 +31,7 @@ import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
 import org.strategoxt.imp.runtime.parser.ast.MarkerSignature;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
+import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 import org.strategoxt.lang.Context;
 import org.strategoxt.stratego_aterm.stratego_aterm;
 import org.strategoxt.stratego_sglr.implode_asfix_0_0;
@@ -304,7 +305,7 @@ public class ParseErrorHandler {
 			if (rhs.getName().equals("lit")) {
 				inserted = applAt(rhs, 0).getName();
 			} else if (rhs.getName().equals("char-class")) {
-				inserted = toString(listAt(rhs, 0));
+				inserted = tokenKindToString(listAt(rhs, 0));
 			} else {
 				inserted = prodReader.getSort(rhs);
 				if (inserted == null)
@@ -412,7 +413,7 @@ public class ParseErrorHandler {
 		}
 		
 		// Report forced reductions
-		int treeEnd = tokenizer.getParseStream().getTokenAt(tokenizer.getParseStream().getStreamLength() - 1).getEndOffset();
+		int treeEnd = tokenizer.getParseStream().getTokenAt(tokenizer.getParseStream().getTokenCount() - 1).getEndOffset();
 		if (treeEnd < processedChars.length) {
 			IToken token = tokenizer.makeErrorToken(treeEnd + 1, processedChars.length);
 			reportErrorAtTokens(token, token, "Could not parse the remainder of this file");

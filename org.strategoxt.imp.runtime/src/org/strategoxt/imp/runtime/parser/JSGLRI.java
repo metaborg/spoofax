@@ -2,15 +2,12 @@ package org.strategoxt.imp.runtime.parser;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.Disambiguator;
 import org.spoofax.jsglr.client.FilterException;
 import org.spoofax.jsglr.client.NoRecoveryRulesException;
 import org.spoofax.jsglr.client.ParseTable;
-import org.spoofax.jsglr.client.imploder.ITokenizer;
-import org.spoofax.jsglr.client.imploder.TokenKindManager;
 import org.spoofax.jsglr.io.SGLR;
 import org.spoofax.jsglr.shared.BadTokenException;
 import org.spoofax.jsglr.shared.SGLRException;
@@ -38,24 +35,24 @@ public class JSGLRI extends AbstractSGLRI {
 	// Initialization and parsing
 	
 	public JSGLRI(ParseTableProvider parseTable, String startSymbol,
-			SGLRParseController controller, TokenKindManager tokenManager) {
-		super(controller, tokenManager, startSymbol, parseTable);
+			SGLRParseController controller) {
+		super(parseTable, startSymbol, controller);
 		
 		this.parseTable = parseTable;
 		resetState();
 	}
 	
-	public JSGLRI(ParseTable parseTable, String startSymbol,
-			SGLRParseController controller, TokenKindManager tokenManager) {
-		this(new ParseTableProvider(parseTable), startSymbol, controller, tokenManager);
+	public JSGLRI(ParseTableProvider parseTable, String startSymbol) {
+		this(parseTable, startSymbol, null);
 	}
 	
-	public JSGLRI(ParseTableProvider parseTable, String startSymbol) {
-		this(parseTable, startSymbol, null, new TokenKindManager());
+	public JSGLRI(ParseTable parseTable, String startSymbol,
+			SGLRParseController controller) {
+		this(new ParseTableProvider(parseTable), startSymbol, controller);
 	}
 	
 	public JSGLRI(ParseTable parseTable, String startSymbol) {
-		this(new ParseTableProvider(parseTable), startSymbol);
+		this(new ParseTableProvider(parseTable), startSymbol, null);
 	}
 	
 	protected SGLR getParser() {
@@ -82,10 +79,6 @@ public class JSGLRI extends AbstractSGLRI {
 		return disambiguator;
 	}
 	
-	public ITokenizer getTokenizer() {
-		return super.getController().getTokenizer();
-	}
-	
 	public void setParseTable(ParseTable parseTable) {
 		this.parseTable = new ParseTableProvider(parseTable);
 		resetState();
@@ -99,13 +92,6 @@ public class JSGLRI extends AbstractSGLRI {
 	public void setTimeout(int timeout) {
 		this.timeout = timeout;
 		resetState();
-	}
-	
-	@Override
-	protected IStrategoTerm doParseNoImplode(char[] inputChars, String filename)
-			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
-		
-		return doParseNoImplode(toByteStream(inputChars), inputChars, filename);
 	}
 	
 	/**
@@ -123,25 +109,25 @@ public class JSGLRI extends AbstractSGLRI {
 		}
 	}
 	
-	private IStrategoTerm doParseNoImplode(InputStream inputStream, char[] inputChars, String filename)
+	@Override
+	protected IStrategoTerm doParseAndImplode(String input, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 		
 		// Read stream using tokenizer/lexstream
 		
-		// FIXME: Some bug in JSGLR is causing its state to get corrupted; must reset it every parse
-		// (must do this beforehand to keep getCollectedErrors() intact afterwards)
 		if (parseTable.isDynamic()) {
 			parseTable.initialize(new File(filename));
+			resetState();
 		}
-		resetState();
+		
 		try {
-			return parser.parse(inputStream, getStartSymbol());
+			return (IStrategoTerm) parser.parse(input, getStartSymbol());
 		} catch (FilterException e) {
 			if (e.getCause() == null && parser.getDisambiguator().getFilterPriorities()) {
 				Environment.logException("Parse filter failure - disabling priority filters and trying again", e);
 				getDisambiguator().setFilterPriorities(false);
 				try {
-					return parser.parse(inputStream, getStartSymbol());
+					return (IStrategoTerm) parser.parse(input, getStartSymbol());
 				} finally {
 					getDisambiguator().setFilterPriorities(true);
 				}

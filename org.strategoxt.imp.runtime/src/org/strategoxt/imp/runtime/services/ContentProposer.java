@@ -5,7 +5,16 @@ import static org.spoofax.interpreter.core.Tools.termAt;
 import static org.spoofax.interpreter.terms.IStrategoTerm.LIST;
 import static org.spoofax.interpreter.terms.IStrategoTerm.STRING;
 import static org.spoofax.interpreter.terms.IStrategoTerm.TUPLE;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getSort;
+import static org.spoofax.terms.Term.isTermList;
 import static org.spoofax.terms.Term.isTermString;
+import static org.spoofax.terms.Term.tryGetConstructor;
+import static org.spoofax.terms.attachments.ParentAttachment.getParent;
+import static org.spoofax.terms.attachments.ParentAttachment.setParent;
+import static org.spoofax.terms.attachments.ParentAttachment.getRoot;
+import static org.strategoxt.imp.runtime.Environment.getTermFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -24,6 +33,7 @@ import org.eclipse.imp.services.IContentProposer;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
+import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -39,6 +49,7 @@ import org.strategoxt.imp.runtime.parser.JSGLRI;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.parser.ast.AstSortInspector;
 import org.strategoxt.imp.runtime.stratego.CandidateSortsPrimitive;
+import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 import org.strategoxt.imp.runtime.stratego.StrategoConsole;
 
 /**
@@ -64,9 +75,11 @@ public class ContentProposer implements IContentProposer {
 	
 	private static final boolean IGNORE_TEMPLATE_PREFIX_CASE = false;
 	
-	private static final String COMPLETION_CONSTRUCTOR = "COMPLETION";
+	private static final IStrategoConstructor COMPLETION_CONSTRUCTOR =
+		getTermFactory().makeConstructor("COMPLETION", 0);
 	
-	private static final String COMPLETION_UNKNOWN = "NOCONTEXT";
+	private static final IStrategoConstructor COMPLETION_UNKNOWN =
+		getTermFactory().makeConstructor("NOCONTEXT", 0);
 
 	private static final long REINIT_PARSE_DELAY = 4000;
 	
@@ -163,7 +176,7 @@ public class ContentProposer implements IContentProposer {
 		if (Environment.getDescriptor(controller.getLanguage()).isDynamicallyLoaded()) {
 			try {
 				String parseErrorHelp = currentCompletionNode != null
-					&& currentCompletionNode.getConstructor() == COMPLETION_UNKNOWN
+					&& tryGetConstructor(currentCompletionNode) == COMPLETION_UNKNOWN
 					? "\n   (context could not be parsed with this grammar; see the FAQ.)"
 					: "";
 				StrategoConsole.getOutputWriter().write(
@@ -255,7 +268,7 @@ public class ContentProposer implements IContentProposer {
 							observer.update(controller, new NullProgressMonitor());
 						}
 						IStrategoTerm input = observer.makeInputTerm(currentCompletionNode, true, false);
-						result = observer.invokeSilent(completionFunction, input, currentCompletionNode.getResource());
+						result = observer.invokeSilent(completionFunction, input, SourceAttachment.getResource(currentCompletionNode));
 						if (result == null) {
 							observer.reportRewritingFailed();
 							result = TermFactory.EMPTY_LIST;
@@ -536,11 +549,11 @@ public class ContentProposer implements IContentProposer {
 	}
 
 	private void replaceCompletionNode(IStrategoTerm node, String value) {
-		ArrayList<IStrategoTerm> siblings = node.getParent().getChildren();
+		ArrayList<IStrategoTerm> siblings = getParent(node).getChildren();
 		int siblingIndex = siblings.indexOf(node);
-		IStrategoTerm newNode = createCompletionNode(value, node.getLeftToken(), node.getRightToken());
-		newNode.setParent(node.getParent());
-		currentCompletionNode = node.getParent(); // add a bit of context
+		IStrategoTerm newNode = createCompletionNode(value, getLeftToken(node), getRightToken(node));
+		setParent(newNode, getParent(node));
+		currentCompletionNode = getParent(node); // add a bit of context
 		siblings.set(siblingIndex, newNode);
 	}
 
@@ -557,8 +570,8 @@ public class ContentProposer implements IContentProposer {
 			IStrategoTerm targetNode, lastNode;
 			
 			public void preVisit(IStrategoTerm node) {
-				if (node.getLeftToken().getStartOffset() <= offset
-						&& offset <= node.getRightToken().getEndOffset()) {
+				if (getLeftToken(node).getStartOffset() <= offset
+						&& offset <= getRightToken(node).getEndOffset()) {
 					targetNode = node;
 				}
 				lastNode = node;
@@ -600,26 +613,26 @@ public class ContentProposer implements IContentProposer {
 	
 	private void insertNewCompletionNode(IStrategoTerm node, String prefix) {
 		// Create a new UNKNOWN(COMPLETION(prefix)) node
-		IStrategoTerm result = createCompletionNode(prefix, node.getLeftToken(), node.getRightToken());
+		IStrategoTerm result = createCompletionNode(prefix, getLeftToken(node), getRightToken(node));
 		ArrayList<IStrategoTerm> newNodeContainer = new ArrayList<IStrategoTerm>(1);
 		newNodeContainer.add(result);
-		currentCompletionNode = result = new IStrategoTerm(null, node.getLeftToken(), node.getRightToken(), COMPLETION_UNKNOWN, newNodeContainer);
+		currentCompletionNode = result = new IStrategoTerm(null, getLeftToken(node), getRightToken(node), COMPLETION_UNKNOWN, newNodeContainer);
 		
 		// Insert the node in a list near the textual input location
 		if (isTermList(node)) {
 			node.getChildren().add(result);
-			result.setParent(node);
+			setParent(result, node);
 			return;
 		}
-		for (IStrategoTerm parent = node.getParent(); parent != null; node = parent, parent = parent.getParent()) {
+		for (IStrategoTerm parent = getParent(node); parent != null; node = parent, parent = getParent(parent)) {
 			if (isTermList(parent)) {
 				int i = parent.getChildren().indexOf(node);
 				parent.getChildren().add(i + 1, result);
-				result.setParent(parent);
+				setParent(result, parent);
 				return;
 			}
 		}
-		result.setParent(node.getRoot());
+		setParent(result, getRoot(node));
 		return;
 	}
 	

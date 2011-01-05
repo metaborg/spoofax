@@ -1,5 +1,9 @@
 package org.strategoxt.imp.runtime.parser.ast;
 
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
+import static org.spoofax.terms.attachments.ParentAttachment.getParent;
+
 import java.util.ArrayList;
 
 import org.spoofax.interpreter.terms.ISimpleTerm;
@@ -11,7 +15,7 @@ import org.spoofax.jsglr.client.imploder.IToken;
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class SubListAstNode extends ListAstNode {
+public class SubListAstNode extends ListAstNode implements IStrategoList {
 
 	private final ListAstNode completeList;
 
@@ -24,15 +28,15 @@ public class SubListAstNode extends ListAstNode {
 		
 		for (int i = startOffset; i <= endOffset; i++) {
 			IStrategoTerm child = list.getSubterm(i);
-			assert child.getParent() != null;
+			assert getParent(child) != null;
 			children.add(child);
 		}
 		
 		IStrategoTerm result = new SubListAstNode(list, list.getElementSort(),
-				startChild.getLeftToken(), endChild.getRightToken(), children, startOffset);
+				getLeftToken(startChild), getRightToken(endChild), children, startOffset);
 		if (cloneFirst) result = result.cloneIgnoreTokens();
-		list.overrideReferences(list.getLeftToken(), list.getRightToken(), children, result);
-		result.setParent(list);
+		list.overrideReferences(getLeftToken(list), getRightToken(list), children, result);
+		setParent(result, list);
 		return result;
 	}
 

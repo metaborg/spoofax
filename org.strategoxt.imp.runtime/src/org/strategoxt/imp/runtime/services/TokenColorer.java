@@ -1,5 +1,10 @@
 package org.strategoxt.imp.runtime.services;
 
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getSort;
+import static org.spoofax.terms.Term.tryGetConstructor;
+import static org.spoofax.terms.attachments.ParentAttachment.getParent;
+
 import java.util.List;
 
 import org.eclipse.imp.parser.IParseController;
@@ -84,18 +89,18 @@ public class TokenColorer implements ITokenColorer {
 
 	public TextAttribute getColoring(IParseController controller, Object oToken) {
 		SGLRToken token = (SGLRToken) oToken;
-		ISimpleTerm node = token.getAstNode();
+		IStrategoTerm node = token.getAstNode();
 		TextAttribute nodeColor = null;
 		int tokenKind = token.getKind();
 		
 		// Use the parent of string/int terminal nodes
-		if (node != null && node.getConstructor() == null && node.getParent() != null) {
-			nodeColor = getColoring(nodeMappings, null, node.getSort(), tokenKind);
-			node = node.getParent();
+		if (tryGetConstructor(node) == null && getParent(node) != null) {
+			nodeColor = getColoring(nodeMappings, null, getSort(node), tokenKind);
+			node = getParent(node);
 		}
 		
-		String sort = node == null ? null : node.getSort();
-		String constructor = node == null ? null : node.getConstructor();
+		String sort = node == null ? null : getSort(node);
+		String constructor = tryGetConstructor(node);
 		
 		if (tokenKind == IToken.TK_LAYOUT && SGLRToken.isWhiteSpace(token)) {
 			// Don't treat whitespace layout as comments, to avoid italics in text that
@@ -143,9 +148,9 @@ public class TokenColorer implements ITokenColorer {
 		
 		// TODO: Optimize - don't traverse up the tree to color every node
 		
-		while (node.getParent() != null && (envColor == null || hasBlankFields(attribute))) {
-			node = node.getParent();
-			String sort = node.getSort();
+		while (getParent(node) != null && (envColor == null || hasBlankFields(attribute))) {
+			node = getParent(node);
+			String sort = getSort(node);
 			String constructor = node.getConstructor();
 
 			envColor = getColoring(envMappings, constructor, sort, tokenKind);
@@ -197,7 +202,7 @@ public class TokenColorer implements ITokenColorer {
 		// TODO: Is always damaging the complete source still necessary??
 		// Right now, TokenColorerHelper.isParserBasedPresentation() depends on this property
 		ISimpleTerm ast = (ISimpleTerm) parseController.getCurrentAst();
-		return new Region(0, ast.getRightToken().getTokenizer().getILexStream().getStreamLength() - 1);
+		return new Region(0, getRightToken(ast).getTokenizer().getInput().getTokenCount() - 1);
 		// return seed;
 	}
 }

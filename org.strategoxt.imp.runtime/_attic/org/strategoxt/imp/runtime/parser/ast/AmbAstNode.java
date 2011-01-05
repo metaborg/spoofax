@@ -10,7 +10,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 public class AmbAstNode extends IStrategoTerm {
 
 	public AmbAstNode(ListAstNode children) {
-		super(children.getElementSort(), children.getLeftToken(), children.getRightToken(),
+		super(children.getElementSort(), getLeftToken(children), getRightToken(children),
 				"amb", makeList(children));
 	}
 

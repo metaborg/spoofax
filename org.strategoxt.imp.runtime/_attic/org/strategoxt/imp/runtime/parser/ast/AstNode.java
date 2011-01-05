@@ -229,7 +229,7 @@ public class IStrategoTerm implements ISimpleTerm, Iterable<IStrategoTerm>, ISim
   	  List<String> result = new ArrayList<String>(children.size());
   	  
   	  for (IStrategoTerm node : children) {
-  		  result.add(node.getSort());
+  		  result.add(getSort(node));
   	  }
   	  
   	  return result;

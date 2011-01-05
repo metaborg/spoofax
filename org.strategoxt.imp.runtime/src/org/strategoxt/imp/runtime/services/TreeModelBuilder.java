@@ -1,10 +1,15 @@
 package org.strategoxt.imp.runtime.services;
 
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getSort;
+import static org.spoofax.terms.Term.tryGetConstructor;
+import static org.spoofax.terms.attachments.ParentAttachment.getParent;
+
 import java.util.List;
 import java.util.Stack;
 
 import org.eclipse.imp.services.ILabelProvider;
 import org.eclipse.imp.services.base.TreeModelBuilderBase;
+import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.TermVisitor;
 
@@ -36,8 +41,12 @@ public class TreeModelBuilder extends TreeModelBuilderBase {
 	
     private class TreeModelVisitor extends TermVisitor {
 		public void preVisit(IStrategoTerm node) {
-			if (NodeMapping.hasAttribute(rules, node.getConstructor(), node.getSort(), 0))
-				startItem(node);
+			IStrategoConstructor cons = tryGetConstructor(node);
+			if (cons != null) {
+				String consName = cons.getName();
+				if (NodeMapping.hasAttribute(rules, consName, getSort(node), 0))
+					startItem(node);
+			}
 		}
 
 		@Override
@@ -55,7 +64,7 @@ public class TreeModelBuilder extends TreeModelBuilderBase {
 	
 	void startItem(IStrategoTerm node) {
 		String label = labelProvider.getText(node);
-		if (treeStack.isEmpty() && node instanceof IStrategoTerm) {
+		if (treeStack.isEmpty() && getParent(node) == null) {
 			// Skip the top node: already added by TreeModelBuilderBase
 		} else if (label == null || label.length() == 0) {
 			// Skip empty-label nodes

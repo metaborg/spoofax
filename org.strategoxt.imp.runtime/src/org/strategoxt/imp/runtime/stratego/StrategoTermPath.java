@@ -1,6 +1,9 @@
 package org.strategoxt.imp.runtime.stratego;
 
 import static java.lang.Math.max;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
+import static org.spoofax.terms.attachments.ParentAttachment.getParent;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -10,6 +13,7 @@ import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.SimpleTermVisitor;
+import org.spoofax.terms.attachments.ParentAttachment;
 import org.strategoxt.imp.generator.position_of_term_1_0;
 import org.strategoxt.imp.generator.term_at_position_0_1;
 import org.strategoxt.imp.runtime.Environment;
@@ -50,11 +54,11 @@ public class StrategoTermPath {
 			node = ((SubListAstNode) node).getCompleteList();
 		LinkedList<Integer> results = new LinkedList<Integer>();
 		
-		while (node.getParent() != null) {
-			ISimpleTerm parent = node.getParent();
+		while (getParent(node) != null) {
+			ISimpleTerm parent = getParent(node);
 			int index = indexOfIdentical(parent.getChildren(), node);
 			results.addFirst(Integer.valueOf(index));
-			node = node.getParent();
+			node = getParent(node);
 		}
 		return results;
 	}
@@ -65,7 +69,7 @@ public class StrategoTermPath {
 	 * of the IStrategoTerm syntax.
 	 */
 	public static IStrategoList createPathFromParsedIStrategoTerm(final ISimpleTerm node, Context context) {
-		IStrategoTerm top = node.getRoot();
+		IStrategoTerm top = ParentAttachment.getRoot(node);
 		final IStrategoTerm marker = context.getFactory().makeString(ContentProposer.COMPLETION_TOKEN);
 		top = oncetd_1_0.instance.invoke(context, top, new Strategy() {
 			@Override
@@ -157,10 +161,10 @@ public class StrategoTermPath {
 		if (node2 == null) return node1;
 		
 		List<ISimpleTerm> node1Ancestors = new ArrayList<ISimpleTerm>();
-		for (ISimpleTerm n = node1; n != null; n = n.getParent())
+		for (ISimpleTerm n = node1; n != null; n = getParent(n))
 			node1Ancestors.add(n);
 		
-		for (ISimpleTerm n = node2, n2Child = node2; n != null; n2Child = n, n = n.getParent())
+		for (ISimpleTerm n = node2, n2Child = node2; n != null; n2Child = n, n = getParent(n))
 			if (node1Ancestors.contains(n)) {
 				if(node1Ancestors.get(node1Ancestors.indexOf(n))==n)
 					return tryCreateListCommonAncestor(n, node1Ancestors, n2Child);
@@ -284,8 +288,8 @@ public class StrategoTermPath {
 
 	private static ISimpleTerm getRoot(ISimpleTerm selection) {
 		ISimpleTerm result = selection;
-		while (result.getParent() != null)
-			result = result.getParent();
+		while (getParent(result) != null)
+			result = getParent(result);
 		return result;
 	}
 
@@ -346,17 +350,17 @@ public class StrategoTermPath {
 	 *             Also fetch the first parent if it has multiple children (e.g., Call("foo", "bar")).
 	 */
 	public static final ISimpleTerm getMatchingAncestor(ISimpleTerm oNode, boolean allowMultiChildParent) {
-		if (allowMultiChildParent && oNode.getConstructor() == null && oNode.getParent() != null)
-			return oNode.getParent();
+		if (allowMultiChildParent && oNode.getConstructor() == null && getParent(oNode) != null)
+			return getParent(oNode);
 		
 		ISimpleTerm result = oNode;
-		int startOffset = result.getLeftToken().getStartOffset();
-		int endOffset = result.getRightToken().getEndOffset();
-		while (result.getParent() != null
-				&& (result.getParent().getSubtermCount() <= 1 
-						|| (result.getParent().getLeftToken().getStartOffset() >= startOffset
-							&& result.getParent().getRightToken().getEndOffset() <= endOffset)))
-			result = result.getParent();
+		int startOffset = getLeftToken(result).getStartOffset();
+		int endOffset = getRightToken(result).getEndOffset();
+		while (getParent(result) != null
+				&& (getParent(result).getSubtermCount() <= 1 
+						|| (getLeftToken(getParent(result)).getStartOffset() >= startOffset
+							&& getRightToken(getParent(result)).getEndOffset() <= endOffset)))
+			result = getParent(result);
 		return result;
 	}
 }

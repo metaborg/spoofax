@@ -15,6 +15,8 @@ import static org.spoofax.jsglr.client.imploder.IToken.TK_RESERVED;
 import static org.spoofax.jsglr.client.imploder.IToken.TK_STRING;
 import static org.spoofax.jsglr.client.imploder.IToken.TK_UNKNOWN;
 import static org.spoofax.jsglr.client.imploder.IToken.TK_VAR;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
 
 import java.util.Stack;
 import java.util.regex.Matcher;
@@ -585,9 +587,9 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 		ISimpleTerm node = (ISimpleTerm) controller.getSourcePositionLocator().findNode(controller.getCurrentAst(), offset);
 		if (node == null)
 			return false;
-		ITokenizer tokens = node.getLeftToken().getTokenizer();
+		ITokenizer tokens = getLeftToken(node).getTokenizer();
 		
-		for (int i = node.getLeftToken().getIndex(), max = node.getRightToken().getIndex(); i <= max; i++) {
+		for (int i = getLeftToken(node).getIndex(), max = getRightToken(node).getIndex(); i <= max; i++) {
 			IToken token = tokens.getTokenAt(i);
 			if (token.getStartOffset() <= offset && offset <= token.getEndOffset()) {
 				switch (token.getKind()) {

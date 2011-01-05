@@ -28,7 +28,7 @@ public class TupleAstNode extends IStrategoTerm {
 	 */
 	@Override @Deprecated
 	public String getSort() {
-		return super.getSort();
+		return getSort(super);
 	}
 	
 	public String getElementSort() {

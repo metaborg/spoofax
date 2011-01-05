@@ -4,6 +4,8 @@ import static org.spoofax.interpreter.core.Tools.isTermTuple;
 import static org.spoofax.interpreter.core.Tools.termAt;
 import static org.spoofax.interpreter.terms.IStrategoTerm.LIST;
 import static org.spoofax.interpreter.terms.IStrategoTerm.TUPLE;
+import static org.spoofax.terms.Term.tryGetConstructor;
+import static org.spoofax.terms.attachments.ParentAttachment.getParent;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.cons;
 
 import java.io.File;
@@ -53,6 +55,7 @@ import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
 import org.strategoxt.imp.runtime.services.StrategoAnalysisQueue.UpdateJob;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.IMPJSGLRLibrary;
+import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 import org.strategoxt.imp.runtime.stratego.StrategoConsole;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 import org.strategoxt.lang.Context;
@@ -276,7 +279,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	public void update(IParseController parseController, IProgressMonitor monitor) {
 		isUpdateStarted = true;
 		ISimpleTerm ast = (ISimpleTerm) parseController.getCurrentAst();
-		if (ast == null || ast.getConstructor() == null || feedbackFunction == null
+		if (ast == null || tryGetConstructor(ast) == null || feedbackFunction == null
 				|| isRecoveryFailed(parseController)) {
 			messages.clearMarkers(((SGLRParseController) parseController).getResource());
 			messages.commitDeletions();
@@ -291,16 +294,16 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		try {
 			getLock().lock();
 			try {
-				resultingAsts.remove(ast.getResource());
-				feedback = invokeSilent(feedbackFunction, makeInputTerm(ast, false), ast.getResource());
+				resultingAsts.remove(SourceAttachment.getResource(ast));
+				feedback = invokeSilent(feedbackFunction, makeInputTerm(ast, false), SourceAttachment.getResource(ast));
 	
 				if (feedback == null) {
 					reportRewritingFailed();
 					String log = getLog();
 					if (!wasExceptionLogged || log.length() > 0)
 						Environment.logException(log.length() == 0 ? "Analysis failed" : "Analysis failed:\n" + log);
-					messages.clearMarkers(ast.getResource());
-					messages.addMarkerFirstLine(ast.getResource(), "Analysis failed (see error log)", IMarker.SEVERITY_ERROR);
+					messages.clearMarkers(SourceAttachment.getResource(ast));
+					messages.addMarkerFirstLine(SourceAttachment.getResource(ast), "Analysis failed (see error log)", IMarker.SEVERITY_ERROR);
 					messages.commitAllChanges();
 				}
 			} finally {
@@ -308,7 +311,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			}
 		 	if (feedback != null && !monitor.isCanceled()) {
 				// TODO: figure out how this was supposed to be synchronized??
-				presentToUser(ast.getResource(), feedback);
+				presentToUser(SourceAttachment.getResource(ast), feedback);
 		 	}
 		} finally {
 			// System.out.println("OBSERVED " + System.currentTimeMillis()); // DEBUG
@@ -441,7 +444,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			throws UndefinedStrategyException, InterpreterErrorExit, InterpreterExit, InterpreterException {
 
 		IStrategoTerm input = makeInputTerm(node, true);
-		return invoke(function, input, node.getResource());
+		return invoke(function, input, SourceAttachment.getResource(node));
 	}
 
 	/**
@@ -458,7 +461,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		assert getLock().isHeldByCurrentThread();
 		
 		Context context = getRuntime().getCompiledContext();
-		IResource resource = node.getResource();
+		IResource resource = SourceAttachment.getResource(node);
 		IStrategoTerm resultingAst = useSourceAst ? null : resultingAsts.get(resource);
 		IStrategoList termPath = StrategoTermPath.getTermPathWithOrigin(context, resultingAst, node);
 		IStrategoTerm targetTerm;
@@ -517,9 +520,9 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		if (includeSubNode) {
 			node = getImplodableNode(node);
 			IStrategoTerm[] inputParts = {
-					implodeIStrategoTerm(node),
+					implodeATerm(node),
 					StrategoTermPath.createPathFromParsedIStrategoTerm(node, runtime.getCompiledContext()),
-					implodeIStrategoTerm(getRoot(node)),
+					implodeATerm(getRoot(node)),
 					factory.makeString(path),
 					factory.makeString(absolutePath)
 				};
@@ -529,15 +532,15 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		}
 	}
 
-	protected IStrategoTerm implodeIStrategoTerm(IStrategoTerm term) {
+	protected IStrategoTerm implodeATerm(IStrategoTerm term) {
 		return implode_aterm_0_0.instance.invoke(runtime.getCompiledContext(), term);
 	}
 
 	protected ISimpleTerm getImplodableNode(ISimpleTerm node) {
 		if (node.isList() && node.getSubtermCount() == 1)
-			node = (ISimpleTerm) node.getSubterm(0);
-		for (; node != null; node = node.getParent()) {
-			if (implodeIStrategoTerm(node) != null)
+			node = node.getSubterm(0);
+		for (; node != null; node = getParent(node)) {
+			if (implodeATerm(node) != null)
 				return node;
 		}
 		throw new IllegalStateException("Could not identify selected AST node from IStrategoTerm editor");
@@ -586,7 +589,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	 */
 	public IStrategoTerm invokeSilent(String function, ISimpleTerm node) {
 		try {
-			return invokeSilent(function, makeInputTerm(node, true), node.getResource());
+			return invokeSilent(function, makeInputTerm(node, true), SourceAttachment.getResource(node));
 		} catch (RuntimeException e) {
 			if (runtime != null) runtime.getIOAgent().printError("Internal error evaluating " + function + " (" + name(e) + "; see error log)");
 			Environment.logException("Internal error evaluating strategy " + function, e);
@@ -654,7 +657,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 				if (subterm instanceof IStrategoTerm) {
 					Environment.logWarning("Resolved reference is not associated with an AST node " + term + " used child " + subterm + "instead");
 					ISimpleTerm result = ((IStrategoTerm) subterm).getNode();
-					return result.getParent() != null ? result.getParent() : result;
+					return getParent(result) != null ? getParent(result) : result;
 				}
 			}
 		}
@@ -692,8 +695,8 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	}
 	
 	private static ISimpleTerm getRoot(ISimpleTerm node) {
-		while (node.getParent() != null)
-			node = node.getParent();
+		while (getParent(node) != null)
+			node = getParent(node);
 		return node;
 	}
 	

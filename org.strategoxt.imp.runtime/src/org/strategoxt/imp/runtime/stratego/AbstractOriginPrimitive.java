@@ -1,5 +1,7 @@
 package org.strategoxt.imp.runtime.stratego;
 
+import static org.spoofax.terms.attachments.OriginAttachment.getOrigin;
+
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.stratego.Strategy;
@@ -17,8 +19,8 @@ public abstract class AbstractOriginPrimitive extends AbstractPrimitive {
 	@Override
 	public final boolean call(IContext env, Strategy[] svars, IStrategoTerm[] tvars) {
 		
-		if (tvars[0] instanceof IStrategoTerm) {
-			IStrategoTerm result = call(env, (IStrategoTerm) tvars[0]);
+		if (getOrigin(tvars[0]) != null) {
+			IStrategoTerm result = call(env, getOrigin(tvars[0]));
 			if (result != null) {
 				env.setCurrent(result);
 				return true;
@@ -27,5 +29,5 @@ public abstract class AbstractOriginPrimitive extends AbstractPrimitive {
 		return false;
 	}
 	
-	protected abstract IStrategoTerm call(IContext env, IStrategoTerm node);
+	protected abstract IStrategoTerm call(IContext env, IStrategoTerm origin);
 }

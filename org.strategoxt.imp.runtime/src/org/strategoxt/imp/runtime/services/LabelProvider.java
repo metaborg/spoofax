@@ -2,6 +2,9 @@ package org.strategoxt.imp.runtime.services;
 
 import static org.spoofax.jsglr.client.imploder.IToken.TK_IDENTIFIER;
 import static org.spoofax.jsglr.client.imploder.IToken.TK_STRING;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getSort;
 
 import org.eclipse.imp.services.ILabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
@@ -28,7 +31,7 @@ public class LabelProvider implements ILabelProvider {
 		if (caption == null) {
 			Environment.logException(
 				"Unable to infer the caption of this AST node: " +
-				node.getSort() + "." + node.getConstructor()
+				getSort(node) + "." + node.getConstructor()
 			);
 			caption = node.getConstructor();
 		}
@@ -49,16 +52,16 @@ public class LabelProvider implements ILabelProvider {
 			return node.getSubterm(0).getSubterm(1).toString();
 		} else if (node.getSubtermCount() == 1
 				&& node.getSubtermCount() > 0 && node.getSubterm(0).isList()) {
-			return node.getLeftToken().toString(); // e.g., "rules", "strategies"
+			return getLeftToken(node).toString(); // e.g., "rules", "strategies"
 		} else {
 			return getIdentifier(node);
 		}
 	}
 	
 	private String getIdentifier(IStrategoTerm node) {
-		ITokenizer stream = node.getLeftToken().getTokenizer();
-		int i = node.getLeftToken().getIndex();
-		int end = node.getRightToken().getIndex();
+		ITokenizer stream = getLeftToken(node).getTokenizer();
+		int i = getLeftToken(node).getIndex();
+		int end = getRightToken(node).getIndex();
 		
 		do {
 			IToken token = stream.getTokenAt(i);

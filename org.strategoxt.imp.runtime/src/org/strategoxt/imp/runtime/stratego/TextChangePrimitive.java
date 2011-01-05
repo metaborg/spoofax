@@ -40,13 +40,13 @@ public class TextChangePrimitive extends AbstractPrimitive {
 		if(!(tvars[0] instanceof IStrategoTerm && islocationTuple(tvars[1]) && tvars[2] instanceof IStrategoString))
 			return false;
 		EditorState editor = ((IStrategoTerm)tvars[0]).getNode().getParseController().getEditor();
-		ILexStream lexStream = ((IStrategoTerm)tvars[0]).getNode().getLeftToken().getILexStream();
+		ILexStream lexStream = ((IStrategoTerm)tvars[0]).getNode().getLeftToken().getInput();
 		StrategoTuple tuple=(StrategoTuple)tvars[1];
 		position_start=((StrategoInt)tuple.get(0)).intValue();
 		position_end=((StrategoInt)tuple.get(1)).intValue()-1; //exclusive end pos
 		if(position_start< 0 && position_end < 0){
 			position_start=0;
-			position_end=lexStream.getStreamLength()-1;
+			position_end=lexStream.getTokenCount()-1;
 		}
 		if(DocumentStructure.isUnvalidInterval(position_start, position_end, lexStream))
 			return false;

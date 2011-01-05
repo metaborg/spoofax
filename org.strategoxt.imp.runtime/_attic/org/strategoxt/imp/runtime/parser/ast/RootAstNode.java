@@ -24,7 +24,7 @@ public class IStrategoTerm extends IStrategoTerm {
 	}
 
 	protected IStrategoTerm(IStrategoTerm ast, SGLRParseController controller, IResource resource) {
-		super(ast.getSort(), ast.getLeftToken(), ast.getRightToken(), ast.getConstructor(),
+		super(getSort(ast), getLeftToken(ast), getRightToken(ast), ast.getConstructor(),
 				ast.getChildren());
 		
 		this.resource = resource;

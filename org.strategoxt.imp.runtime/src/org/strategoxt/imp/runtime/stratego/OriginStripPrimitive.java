@@ -14,10 +14,10 @@ public class OriginStripPrimitive extends AbstractOriginPrimitive {
 	}
 
 	@Override
-	protected IStrategoTerm call(IContext env, IStrategoTerm node) {
+	protected IStrategoTerm call(IContext env, IStrategoTerm origin) {
 		// We just convert it to a normal term and hope it won't
 		// go original later.
-		return TermConverter.convert(env.getFactory(), node);
+		return TermConverter.convert(env.getFactory(), origin);
 	}
 
 }

@@ -1,6 +1,9 @@
 package org.strategoxt.imp.runtime.services;
 
 import static org.spoofax.jsglr.client.imploder.IToken.TK_LAYOUT;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getSort;
 
 import java.util.List;
 
@@ -32,7 +35,7 @@ public class FoldingUpdater extends FolderBase {
     private class FoldingVisitor extends TermVisitor {
 		public void preVisit(IStrategoTerm node) {
           String constructor = node.getConstructor();
-          String sort = node.getSort();
+          String sort = getSort(node);
           
           if (NodeMapping.hasAttribute(folded, constructor, sort, 0))
         	  makeCompleteAnnotation(node);
@@ -53,13 +56,13 @@ public class FoldingUpdater extends FolderBase {
 			java.lang.Object node) {
 		
 		IStrategoTerm astNode = (IStrategoTerm) node;
-		parseStream = astNode.getLeftToken().getTokenizer();
+		parseStream = getLeftToken(astNode).getTokenizer();
 		
 		new FoldingVisitor().visit(astNode);
 	}
 
 	public void makeCompleteAnnotation(IStrategoTerm node) {
-		makeCompleteAnnotation(node.getLeftToken(), node.getRightToken());
+		makeCompleteAnnotation(getLeftToken(node), getRightToken(node));
 	}
 
 	public void makeCompleteAnnotation(IToken firstToken, IToken lastToken) {
@@ -70,7 +73,7 @@ public class FoldingUpdater extends FolderBase {
 		if (firstToken.getLine() != lastToken.getLine()) {
 			// Consume any layout tokens at the end of our AST node until the
 			// next EOL
-			while (parseStream.getStreamLength() >= lastToken.getIndex()) {
+			while (parseStream.getTokenCount() >= lastToken.getIndex()) {
 				IToken next = parseStream.getTokenAt(lastToken.getIndex() + 1);
 
 				if (next.getKind() == TK_LAYOUT) {

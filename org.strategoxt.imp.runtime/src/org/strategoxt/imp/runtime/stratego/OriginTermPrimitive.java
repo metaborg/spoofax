@@ -13,8 +13,8 @@ public class OriginTermPrimitive extends AbstractOriginPrimitive {
 	}
 
 	@Override
-	protected IStrategoTerm call(IContext env, IStrategoTerm node) {
-		return node.getNode();
+	protected IStrategoTerm call(IContext env, IStrategoTerm origin) {
+		return origin.getNode();
 	}
 
 }

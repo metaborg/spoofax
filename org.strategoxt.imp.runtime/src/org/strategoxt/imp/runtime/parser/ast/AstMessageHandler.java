@@ -3,6 +3,9 @@ package org.strategoxt.imp.runtime.parser.ast;
 import static org.eclipse.core.resources.IMarker.PRIORITY_HIGH;
 import static org.spoofax.interpreter.core.Tools.termAt;
 import static org.spoofax.jsglr.client.imploder.IToken.TK_ERROR;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
+import static org.strategoxt.imp.runtime.stratego.SourceAttachment.getResource;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -38,8 +41,10 @@ import org.eclipse.ui.PlatformUI;
 import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.IToken;
+import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
+import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 
 /**
  * Reports messages for a group of files, associating
@@ -97,7 +102,7 @@ public class AstMessageHandler {
 			addMarkerFirstLine(resource, message, severity);
 			Environment.logException("Term is not associated with an AST node, cannot report feedback message: "
 							+ term + " - " + message);
-		} else if (((ISimpleTerm) node).getResource() == null) {
+		} else if (getResource(node) == null) {
             Environment.logException("Term is not associated with a workspace file, cannot report feedback message: "
                     + term + " - " + message);
 		} else {
@@ -111,15 +116,15 @@ public class AstMessageHandler {
 	 * @param severity  The severity of this warning, one of {@link IMarker#SEVERITY_ERROR}, WARNING, or INFO.
 	 */
 	public void addMarker(ISimpleTerm node, String message, int severity) {
-		if (!(node instanceof ISimpleTerm)) {
-			Environment.logException("Cannot annotate a node of type " + node.getClass().getSimpleName() + ": " + node);
+		if (ImploderAttachment.get(node) == null) {
+			Environment.logException("Cannot annotate a tokenless node of type " + node.getClass().getSimpleName() + ": " + node);
 			return;
 		}
 		
-		IToken left = node.getLeftToken();
-		IToken right = node.getRightToken();
+		IToken left = getLeftToken(node);
+		IToken right = getRightToken(node);
 
-		IResource file = ((ISimpleTerm) node).getResource();
+		IResource file = getResource(node);
 		
 		addMarker(file, left, right, message, severity);
 	}
@@ -210,7 +215,7 @@ public class AstMessageHandler {
 	private static ISimpleTerm minimizeMarkerSize(ISimpleTerm node) {
 		// TODO: prefer lexical nodes when minimizing marker size? (e.g., not 'private')
 		if (node == null) return null;
-		while (node.getLeftToken().getLine() < node.getRightToken().getEndLine()) {
+		while (getLeftToken(node).getLine() < getRightToken(node).getEndLine()) {
 			if (node.getSubtermCount() == 0) break;
 			node = (ISimpleTerm) node.getSubterm(0);
 		}

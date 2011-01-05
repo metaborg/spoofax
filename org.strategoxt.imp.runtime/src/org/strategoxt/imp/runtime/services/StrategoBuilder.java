@@ -44,6 +44,7 @@ import org.strategoxt.imp.runtime.MonitorStateWatchDog;
 import org.strategoxt.imp.runtime.RuntimeActivator;
 import org.strategoxt.imp.runtime.dynamicloading.TermReader;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
+import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 import org.strategoxt.imp.runtime.stratego.StrategoConsole;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 import org.strategoxt.lang.Context;
@@ -249,12 +250,7 @@ public class StrategoBuilder implements IBuilder {
 			openError(editor, e.getMessage());
 			return null;
 		} else {
-			// UNDONE: Printing stack trace in editor
-			// ByteArrayOutputStream trace = new ByteArrayOutputStream();
-			// observer.getRuntime().getCompiledContext().printStackTrace(new PrintStream(trace), false);
-			String errorReport = e.getMessage();
-			if (e != null) errorReport += "\n\t" + toEscapedString(ppIStrategoTerm(e));
-			return errorReport;
+			return e.getLocalizedMessage();
 		}
 	}
 
@@ -268,7 +264,7 @@ public class StrategoBuilder implements IBuilder {
 	private String getResultString(IStrategoTerm resultTerm) {
 		resultTerm = termAt(resultTerm, 1);
 		
-		return isTermString(resultTerm) ? asJavaString(resultTerm) : ppIStrategoTerm(resultTerm).stringValue();
+		return isTermString(resultTerm) ? asJavaString(resultTerm) : ppATerm(resultTerm).stringValue();
 	}
 
 	private void scheduleOpenEditorAndListener(final EditorState editor, final ISimpleTerm node, final IFile file)
@@ -307,20 +303,16 @@ public class StrategoBuilder implements IBuilder {
 		IStrategoTerm inputTerm = derivedFromEditor != null
 				? observer.makeATermInputTerm(node, true, derivedFromEditor.getResource()) 
 				: observer.makeInputTerm(node, true, source);
-		IStrategoTerm result = observer.invoke(builderRule, inputTerm, node.getResource());
+		IStrategoTerm result = observer.invoke(builderRule, inputTerm, SourceAttachment.getResource(node));
 		return result;
 	}
 
-	private IStrategoString ppIStrategoTerm(IStrategoTerm term) {
+	private IStrategoString ppATerm(IStrategoTerm term) {
 		Context context = observer.getRuntime().getCompiledContext();
 		term = aterm_escape_strings_0_0.instance.invoke(context, term);
 		term = pp_aterm_box_0_0.instance.invoke(context, term);
 		term = box2text_string_0_1.instance.invoke(context, term, Environment.getTermFactory().makeInt(120));
 		return (IStrategoString) term;
-	}
-
-	private static String toEscapedString(IStrategoString term) {
-		return Environment.getATermConverter().convert(term).toString();
 	}
 
 	private void reportGenericException(EditorState editor, Throwable e) {

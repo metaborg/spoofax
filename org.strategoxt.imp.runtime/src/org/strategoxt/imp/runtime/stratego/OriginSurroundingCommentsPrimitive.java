@@ -3,7 +3,10 @@ package org.strategoxt.imp.runtime.stratego;
 import static java.util.Collections.synchronizedMap;
 import static org.spoofax.interpreter.core.Tools.asJavaString;
 import static org.spoofax.interpreter.core.Tools.isTermString;
-import static org.strategoxt.imp.runtime.parser.tokens.SGLRToken.isWhiteSpace;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
+import static org.spoofax.jsglr.client.imploder.Token.isWhiteSpace;
+import static org.spoofax.terms.attachments.ParentAttachment.getParent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,6 +33,7 @@ import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
 import org.strategoxt.imp.runtime.services.SyntaxProperties;
+
 
 /**
  * Extracts all block comments between the previous sibling and the current node,
@@ -76,10 +80,10 @@ public class OriginSurroundingCommentsPrimitive extends AbstractPrimitive {
 	 * @return A list with all comments surrounding the node, or null if none found.
 	 */
 	public static IStrategoList getSurroundingComments(Language language, ISimpleTerm node, boolean filter) {
-		final ISimpleTerm parent = node.getParent();
+		final ISimpleTerm parent = getParent(node);
 		final ISimpleTerm container = getNonListContainer(parent);
-		final IToken leftToken = node.getLeftToken();
-		final IToken rightToken = node.getRightToken();
+		final IToken leftToken = getLeftToken(node);
+		final IToken rightToken = getRightToken(node);
 		final ITokenizer tokens = leftToken.getTokenizer();
 		final int layoutKind = IToken.TK_LAYOUT;
 		final int leftIndex = leftToken.getIndex();
@@ -92,7 +96,7 @@ public class OriginSurroundingCommentsPrimitive extends AbstractPrimitive {
 		
 		// Collect all tokens between the previous and the current node,
 		// and those between the current and the next sibling node
-		for (int i = prefixIndex, end = tokens.getStreamLength(); i < end; i++) {
+		for (int i = prefixIndex, end = tokens.getTokenCount(); i < end; i++) {
 			IToken current = tokens.getTokenAt(i);
 			if (i > rightIndex && !belongsToEither(current, parent, container))
 				break;
@@ -117,7 +121,7 @@ public class OriginSurroundingCommentsPrimitive extends AbstractPrimitive {
 
 	private static ISimpleTerm getNonListContainer(ISimpleTerm node) {
 		while (node != null && node.isList())
-			node = node.getParent();
+			node = getParent(node);
 		return node;
 	}
 

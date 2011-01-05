@@ -1,5 +1,8 @@
 package org.strategoxt.imp.runtime.stratego;
 
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
+
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -16,10 +19,10 @@ public class OriginOffsetPrimitive extends AbstractOriginPrimitive {
 	}
 
 	@Override
-	protected IStrategoTerm call(IContext env, IStrategoTerm node) {
+	protected IStrategoTerm call(IContext env, IStrategoTerm origin) {
 		ITermFactory factory = env.getFactory();
-		int start = getStartPosNode(node.getNode());
-		int end =  getEndPosNode(node.getNode());
+		int start = getStartPosNode(origin.getNode());
+		int end =  getEndPosNode(origin.getNode());
 		return factory.makeTuple(
 				factory.makeInt(start),
 				factory.makeInt(end)
@@ -27,10 +30,10 @@ public class OriginOffsetPrimitive extends AbstractOriginPrimitive {
 	}
 	
 	private static int getStartPosNode(ISimpleTerm node){
-		return node.getLeftToken().getStartOffset();//inclusive start
+		return getLeftToken(node).getStartOffset();//inclusive start
 	}
 
 	private static int getEndPosNode(ISimpleTerm node){
-		return node.getRightToken().getEndOffset()+1; //exclusive end
+		return getRightToken(node).getEndOffset()+1; //exclusive end
 	}
 }

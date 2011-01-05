@@ -11,6 +11,7 @@ import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.parser.ast.SubListAstNode;
+import static org.spoofax.terms.attachments.ParentAttachment.getParent;
 
 /**
  * Returns the (sub)list with origin nodes by mapping all subterms of a list one by one.
@@ -40,7 +41,7 @@ public class OriginSublistTermPrimitive extends AbstractPrimitive {
 				return false;
 		}
 		ISimpleTerm firstChildNode=((IStrategoTerm)list.get(0)).getNode();
-		ISimpleTerm commonParentList=firstChildNode.getParent();
+		ISimpleTerm commonParentList=getParent(firstChildNode);
 		ArrayList<ISimpleTerm> childNodes=commonParentList.getChildren();
 		if(!(isTermList(commonParentList)))
 			return false;

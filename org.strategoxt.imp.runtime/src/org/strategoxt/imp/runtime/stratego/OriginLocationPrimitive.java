@@ -15,10 +15,10 @@ public class OriginLocationPrimitive extends AbstractOriginPrimitive {
 	}
 
 	@Override
-	protected IStrategoTerm call(IContext env, IStrategoTerm node) {
+	protected IStrategoTerm call(IContext env, IStrategoTerm origin) {
 		ITermFactory factory = env.getFactory();
-		IToken start = node.getNode().getLeftToken();
-		IToken end = node.getNode().getRightToken();  
+		IToken start = origin.getNode().getLeftToken();
+		IToken end = origin.getNode().getRightToken();  
 		return factory.makeTuple(
 				factory.makeInt(start.getLine()),
 				factory.makeInt(start.getColumn()),

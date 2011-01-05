@@ -21,6 +21,7 @@ import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.parser.JSGLRI;
 import org.strategoxt.imp.runtime.services.MetaFile;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
+import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.StrategoException;
 import org.strategoxt.strc.parse_stratego_file_0_0;
@@ -44,7 +45,7 @@ public class IMPParseStrategoFileStrategy extends parse_stratego_file_0_0 {
 			try {
 				stream = context.getIOAgent().openInputStream(file);
 				IStrategoTerm ast = parser.parse(stream, file);
-				ast.setResource(EditorIOAgent.getResource(new File(file)));
+				SourceAttachment.setSource(ast, EditorIOAgent.getResource(new File(file)), null);
 				return ast;
 			} finally {
 				if (stream != null) stream.close();

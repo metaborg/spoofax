@@ -194,7 +194,6 @@ public class SGLRParseController implements IParseController {
     	this.performInitialUpdate = true;
     	
     	parser = new JSGLRI(table, startSymbol, this, tokenManager);
-		parser.setKeepAmbiguities(true);
 		parser.setTimeout(PARSE_TIMEOUT);
 		try {
 			parser.setUseRecovery(true);
@@ -489,11 +488,11 @@ public class SGLRParseController implements IParseController {
 		IDocument document = editor == null ? null : editor.getDocument();
 		
 		if (!force && (stream == null || disallowColorer
-				|| (document != null && stream.getILexStream().getStreamLength() != document.getLength()))) {
+				|| (document != null && stream.getInput().getTokenCount() != document.getLength()))) {
 			return SGLRTokenIterator.EMPTY;
 		} else if (stream.getTokenCount() == 0 || getCurrentAst() == null) {
 			// Parse hasn't succeeded yet, consider the entire stream as one big token
-			stream.addToken(new SGLRToken(stream, region.getOffset(), stream.getStreamLength() - 1,
+			stream.addToken(new SGLRToken(stream, region.getOffset(), stream.getTokenCount() - 1,
 					IToken.TK_UNKNOWN));
 		}
 		
@@ -512,7 +511,7 @@ public class SGLRParseController implements IParseController {
 			disallowColorer = false;
 			TokenColorer.initLazyColors(this);
 			if (editor != null)
-				editor.getEditor().updateColoring(new Region(0, currentParseStream.getStreamLength() - 1));
+				editor.getEditor().updateColoring(new Region(0, currentParseStream.getTokenCount() - 1));
 		} catch (RuntimeException e) {
 			Environment.logException("Could reschedule syntax highlighter", e);
 		}

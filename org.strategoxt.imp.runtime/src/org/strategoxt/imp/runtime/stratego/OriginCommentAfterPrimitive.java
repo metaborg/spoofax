@@ -15,12 +15,12 @@ public class OriginCommentAfterPrimitive extends AbstractOriginPrimitive {
 	}
 
 	@Override
-	protected IStrategoTerm call(IContext env, IStrategoTerm node) {
-		DocumentStructure loStructure=new DocumentStructure(node);
+	protected IStrategoTerm call(IContext env, IStrategoTerm origin) {
+		DocumentStructure loStructure=new DocumentStructure(origin);
 		TextFragment commentBlock=loStructure.getCommentsAfter();
 		if(commentBlock==null)
 			return null;
-		ILexStream lexStream=node.getNode().getLeftToken().getILexStream();
+		ILexStream lexStream=origin.getNode().getLeftToken().getInput();
 		return env.getFactory().makeTuple(
 				env.getFactory().makeInt(commentBlock.getStart()),
 				env.getFactory().makeInt(commentBlock.getEnd()),

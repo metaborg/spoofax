@@ -20,7 +20,7 @@ public class ListAstNode extends IStrategoTerm {
 	 */
 	@Override @Deprecated
 	public String getSort() {
-		return super.getSort();
+		return getSort(super);
 	}
 	
 	@Override

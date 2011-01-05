@@ -27,9 +27,12 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.InvalidParseTableException;
 import org.spoofax.jsglr.client.ParseTable;
+import org.spoofax.jsglr.client.imploder.TermTreeFactory;
+import org.spoofax.jsglr.client.imploder.TreeBuilder;
 import org.spoofax.jsglr.io.ParseTableManager;
 import org.spoofax.jsglr.io.SGLR;
 import org.spoofax.terms.TermFactory;
+import org.spoofax.terms.attachments.ParentTermFactory;
 import org.strategoxt.HybridInterpreter;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
@@ -146,10 +149,10 @@ public final class Environment {
 		return termFactory;
 	}
 	
-	@Deprecated
 	public static SGLR createSGLR(ParseTable parseTable) {
 		// (no state; no assertion)
-		return new SGLR(parseTable);
+		TermTreeFactory factory = new TermTreeFactory(new ParentTermFactory(getTermFactory()));
+		return new SGLR(new TreeBuilder(factory), parseTable);
 	}
 	
 	// ENVIRONMENT ACCESS AND MANIPULATION

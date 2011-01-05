@@ -1,6 +1,6 @@
 package org.strategoxt.imp.runtime.parser;
 
-import java.io.ByteArrayInputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -9,21 +9,19 @@ import java.util.Collections;
 import java.util.Map;
 
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.jsglr.client.imploder.ITokenizer;
-import org.spoofax.jsglr.client.imploder.TokenKindManager;
+import org.spoofax.jsglr.client.imploder.IToken;
+import org.spoofax.jsglr.io.FileTools;
 import org.spoofax.jsglr.shared.BadTokenException;
 import org.spoofax.jsglr.shared.SGLRException;
 import org.spoofax.jsglr.shared.TokenExpectedException;
-import org.strategoxt.imp.runtime.Debug;
-import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
+import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 import org.strategoxt.lang.WeakValueHashMap;
 
 /**
- * IMP IParser implementation for SGLR, imploding parse trees to AST nodes and tokens.
+ * An abstract imploding SGLR parser class.
  *
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */ 
@@ -34,35 +32,16 @@ public abstract class AbstractSGLRI {
 		Collections.synchronizedMap(new WeakValueHashMap<CachingKey, IStrategoTerm>());
 	
 	private final SGLRParseController controller;
-	
-	private final TokenKindManager tokenManager;
-	
-	private final char[] buffer = new char[2048];
-	
+		
 	@SuppressWarnings("unused")
 	private final Object parseTableId;
 	
-	private AsfixImploder imploder;
-	
 	private String startSymbol;
 	
-	private SGLRTokenizer currentTokenizer;
-	
 	// Simple accessors
-	
-	public SGLRTokenizer getTokenizer() {
-		return currentTokenizer; 
-	}
 
 	public int getEOFTokenKind() {
 		return IToken.TK_EOF;
-	}
-
-	@Deprecated
-	public ITokenizer getParseStream() {
-		SGLRTokenizer tokenizer = getTokenizer();
-		if (tokenizer == null) return null;
-		return tokenizer;
 	}
 	
 	public SGLRParseController getController() {
@@ -77,24 +56,18 @@ public abstract class AbstractSGLRI {
 		this.startSymbol = startSymbol;
 	}
 	
-	/**
-	 * Sets whether to keep any unresolved ambiguities. Default true.
-	 */
+	@Deprecated
 	public void setKeepAmbiguities(boolean value) {
-		imploder = value
-			? new AmbAsfixImploder(tokenManager)
-			: new AsfixImploder(tokenManager);
+		if (!value)
+			throw new UnsupportedOperationException();
 	}
 	
 	// Initialization and parsing
 	
-	public AbstractSGLRI(SGLRParseController controller, TokenKindManager tokenManager, String startSymbol, Object parseTableId) {
+	public AbstractSGLRI(Object parseTableId, String startSymbol, SGLRParseController controller) {
 		this.controller = controller;
 		this.startSymbol = startSymbol;
-		this.tokenManager = tokenManager;
 		this.parseTableId = parseTableId;
-
-		imploder = new AmbAsfixImploder(tokenManager);
 	}
 	
 	// Parsing
@@ -104,24 +77,32 @@ public abstract class AbstractSGLRI {
 	 * 
 	 * @return  The abstract syntax tree.
 	 */
-	protected IStrategoTerm parse(char[] inputChars, String filename, IProgressMonitor monitor)
+	public IStrategoTerm parse(String input, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
+		
+		
+		/* UNDONE: disabled the parse cache for now
+		 * TODO: revise parse cache?
+		CachingKey cachingKey = new CachingKey(parseTableId, startSymbol, inputChars, filename);
+		IStrategoTerm result = parsedCache.get(cachingKey);
+		if (result != null) {
+			currentTokenizer = getTokenizer(result);
+			assert currentTokenizer != null;
+			return result;
+		}
+		*/
 
-		IStrategoTerm asfix = parseNoImplode(inputChars, filename);
-		if (monitor.isCanceled())
+		IStrategoTerm result = doParseAndImplode(input, filename);
+		if (new NullProgressMonitor().isCanceled())
 			throw new OperationCanceledException();
-		return internalImplode(asfix);
-	}
-	
-	/**
-	 * Parse an input, returning the AST and initializing the parse stream.
-	 * 
-	 * @return  The abstract syntax tree.
-	 */
-	public IStrategoTerm parse(char[] inputChars, String filename)
-			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
-
-		return parse(inputChars, filename, new NullProgressMonitor());
+		SGLRParseController controller = getController() == null ? null : getController();
+		IResource resource = controller == null ? null : controller.getResource();
+		SourceAttachment.setSource(result, resource, controller);
+		
+		// parsedCache.put(cachingKey, result);
+		// putTokenizer(result, currentTokenizer);
+		
+		return result;
 	}
 	
 	/**
@@ -135,77 +116,12 @@ public abstract class AbstractSGLRI {
 	public final IStrategoTerm parse(InputStream input, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 		
-		return parse(toCharArray(input), filename);
+		String inputString = FileTools.loadFileAsString(new BufferedReader(new InputStreamReader(input)));
+		return parse(inputString, filename);
 	}
 	
-	/**
-	 * Implodes a parse tree that was just produced.
-	 * 
-	 * @note May only work with the latest parse tree produced.
-	 */
-	protected IStrategoTerm internalImplode(IStrategoTerm asfix) {
-		IStrategoTerm imploded = imploder.implode(asfix, currentTokenizer);
-		SGLRParseController controller = getController() == null ? null : getController();
-		IResource resource = controller == null ? null : controller.getResource();
-		return IStrategoTerm.makeRoot(imploded, controller, resource);
-	}
-	
-	/**
-	 * Parse an input, returning the AST and initializing the parse stream.
-	 * Also initializes a new tokenizer for the given input.
-	 */ 
-	public IStrategoTerm parseNoImplode(char[] inputChars, String filename)
-			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
-		
-		/* UNDONE: disabled the parse cache for now
-		 * TODO: revise parse cache?
-		CachingKey cachingKey = new CachingKey(parseTableId, startSymbol, inputChars, filename);
-		IStrategoTerm result = parsedCache.get(cachingKey);
-		if (result != null) {
-			currentTokenizer = getTokenizer(result);
-			assert currentTokenizer != null;
-			return result;
-		}
-		*/
-		
-		Debug.startTimer();
-		try {
-			currentTokenizer = new SGLRTokenizer(inputChars, filename);
-			IStrategoTerm result = doParseNoImplode(inputChars, filename);
-			// parsedCache.put(cachingKey, result);
-			// putTokenizer(result, currentTokenizer);
-		
-			return result;
-		} finally {
-			Debug.stopTimer("File parsed");
-		}
-	}
-	
-	protected abstract IStrategoTerm doParseNoImplode(char[] inputChars, String filename)
+	protected abstract IStrategoTerm doParseAndImplode(String inputChars, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException;
-
-	private char[] toCharArray(InputStream input) throws IOException {
-		StringBuilder copy = new StringBuilder();
-		InputStreamReader reader = new InputStreamReader(input);
-		
-		for (int read = 0; read != -1; read = reader.read(buffer))
-			copy.append(buffer, 0, read);
-		
-		char[] chars = new char[copy.length()];
-		copy.getChars(0, copy.length(), chars, 0);
-		
-		return chars;
-	}
-	
-	protected static ByteArrayInputStream toByteStream(char[] chars) {
-		// FIXME: AbstractSGLRI.toByteStream() breaks extended ASCII support
-		byte[] bytes = new byte[chars.length];
-		
-		for (int i = 0; i < bytes.length; i++)
-			bytes[i] = (byte) chars[i];
-		
-		return new ByteArrayInputStream(bytes);
-	}
 }
 
 /**

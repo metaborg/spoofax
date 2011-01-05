@@ -1,5 +1,9 @@
 package org.strategoxt.imp.runtime.parser.ast;
 
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
+import static org.strategoxt.imp.runtime.stratego.SourceAttachment.getResource;
+
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.editor.ModelTreeNode;
@@ -29,7 +33,7 @@ public class AstNodeLocator implements ISourcePositionLocator {
 	public ISimpleTerm findNode(Object root, int startOffset, int endOffset) {
 		ISimpleTerm ast = impObjectToAstNode(root);
 		
-		if (ast.getLeftToken().getStartOffset() <= startOffset && endOffset <= ast.getRightToken().getEndOffset()) {
+		if (getLeftToken(ast).getStartOffset() <= startOffset && endOffset <= getRightToken(ast).getEndOffset()) {
 		    for (Object child : ast.getChildren()) {
 		        ISimpleTerm candidate = findNode(child, startOffset, endOffset);
 		        if (candidate != null)
@@ -53,7 +57,7 @@ public class AstNodeLocator implements ISourcePositionLocator {
 			node = token.getAstNode();
 		} else {
 			node = impObjectToAstNode(element);
-			token = (SGLRToken) node.getLeftToken();
+			token = (SGLRToken) getLeftToken(node);
 		}
 		
 		try {
@@ -75,7 +79,7 @@ public class AstNodeLocator implements ISourcePositionLocator {
 			token = (SGLRToken) element;
 		} else {
 			IStrategoTerm node = impObjectToAstNode(element);
-			token = node.getRightToken();
+			token = getRightToken(node);
 		}
 
 		return token.getEndOffset();
@@ -86,7 +90,7 @@ public class AstNodeLocator implements ISourcePositionLocator {
 	}
 	
 	public IPath getPath(Object element) {
-		IResource resource = impObjectToAstNode(element).getResource();
+		IResource resource = getResource(impObjectToAstNode(element));
 		return resource.getLocation();
 	}
 

@@ -7,6 +7,7 @@ import static org.spoofax.jsglr.client.imploder.IToken.TK_RESERVED;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.ITokenizer;
+import org.spoofax.jsglr.client.imploder.Token;
 
 /**
  * Wrapper class to add tokens to an LPG PrsStream.
@@ -17,7 +18,7 @@ public class SGLRTokenizer implements ITokenizer {
 	
 	private final LexStream lexStream = new LexStream();
 	
-	private final PrsStream parseStream = new PrsStream(lexStream);
+	private final ITokenizer parseStream = new PrsStream(lexStream);
 	
 	private IStrategoTerm cachedAst;
 	
@@ -39,7 +40,7 @@ public class SGLRTokenizer implements ITokenizer {
 		return parseStream.getTokenAt(parseStream.getSize() - 1);
 	}
 	
-	public PrsStream getParseStream() {
+	public ITokenizer getParseStream() {
 		return parseStream;
 	}
 	
@@ -108,15 +109,15 @@ public class SGLRTokenizer implements ITokenizer {
 	 * Creates an error token up to the next whitespace character.
 	 */
 	public IToken makeErrorToken(int offset) {		
-		if (offset == lexStream.getStreamLength())
+		if (offset == lexStream.getTokenCount())
 		    return makeErrorTokenBackwards(offset - 1);
-		if (offset > lexStream.getStreamLength())
-			return makeErrorTokenBackwards(lexStream.getStreamLength() - 1);
+		if (offset > lexStream.getTokenCount())
+			return makeErrorTokenBackwards(lexStream.getTokenCount() - 1);
 
 		int endOffset = offset;
 		boolean onlySeenWhitespace = Character.isWhitespace(lexStream.getCharValue(endOffset));
 		
-		while (endOffset + 1 < lexStream.getStreamLength()) {
+		while (endOffset + 1 < lexStream.getTokenCount()) {
 			char next = lexStream.getCharValue(endOffset+1);
 			
 			if (onlySeenWhitespace) {
@@ -140,8 +141,8 @@ public class SGLRTokenizer implements ITokenizer {
 			beginOffset++;
 		
 		// FIXME: error markers at last character of file don't show up?
-		if (endOffset > lexStream.getStreamLength()) {
-			endOffset = lexStream.getStreamLength();
+		if (endOffset > lexStream.getTokenCount()) {
+			endOffset = lexStream.getTokenCount();
 			beginOffset = Math.min(beginOffset, endOffset);
 		}
 		
@@ -177,8 +178,8 @@ public class SGLRTokenizer implements ITokenizer {
      * @param outerBeginOffset  The begin offset of the enclosing construct.
 	 */
 	public IToken makeErrorTokenSkipLayout(int beginOffset, int endOffset, int outerBeginOffset) {	    
-		if (endOffset >= lexStream.getStreamLength()) {
-			endOffset = lexStream.getStreamLength() - 1;
+		if (endOffset >= lexStream.getTokenCount()) {
+			endOffset = lexStream.getTokenCount() - 1;
 			beginOffset = Math.min(beginOffset, endOffset);
 		}
 
@@ -223,7 +224,7 @@ public class SGLRTokenizer implements ITokenizer {
 		int beginOffset = offset;
 		boolean onlySeenWhitespace = true;
 		
-		while (offset >= lexStream.getStreamLength())
+		while (offset >= lexStream.getTokenCount())
 			offset--;
 		
 		while (beginOffset > 0) {
@@ -261,7 +262,7 @@ public class SGLRTokenizer implements ITokenizer {
 		
 		for (int i = left.getIndex(); i <= last; i++) {
 			IToken token = left.getTokenizer().getTokenAt(i);
-			result.append(valueOf(token.getKind()));
+			result.append(Token.tokenKindToString(token.getKind()));
 			result.append(":");
 			result.append(token.toString().replace("\n","\\n").replace("\r","\\r"));
 			if (i < last) result.append(", ");

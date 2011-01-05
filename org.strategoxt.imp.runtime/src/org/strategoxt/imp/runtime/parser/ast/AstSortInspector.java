@@ -1,5 +1,11 @@
 package org.strategoxt.imp.runtime.parser.ast;
 
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getSort;
+import static org.spoofax.terms.attachments.ParentAttachment.getParent;
+import static org.strategoxt.imp.runtime.stratego.SourceAttachment.getParseController;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -7,6 +13,7 @@ import java.util.Set;
 
 import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.ITokenizer;
 
 /**
@@ -27,7 +34,7 @@ public class AstSortInspector {
 	//       (see AsfixImploder)
 	public Set<String> getSortsAtOffset(int startOffset, int endOffset) {
 		if (ast == null) return new HashSet<String>();
-		ISourcePositionLocator locator = ast.getParseController().getSourcePositionLocator();
+		ISourcePositionLocator locator = getParseController(ast).getSourcePositionLocator();
 		IStrategoTerm node = (IStrategoTerm) locator.findNode(ast, endOffset);
 		if (node == null) node = ast;
 
@@ -36,18 +43,18 @@ public class AstSortInspector {
 		Set<String> results = getSortsOfOptionalChildren(node, startOffset, endOffset);
 		
 		boolean isOptNode = false;
-		boolean skipNonOptNodes = node.getRightToken().getEndOffset() > endOffset && !results.isEmpty();
+		boolean skipNonOptNodes = getRightToken(node).getEndOffset() > endOffset && !results.isEmpty();
 
 		// Follow the (labeled) injection chain upwards
 		do {
-			IStrategoTerm parent = node.getParent();
-			if (!skipNonOptNodes && node.getLeftToken().getIndex() > startToken) {
+			IStrategoTerm parent = getParent(node);
+			if (!skipNonOptNodes && getLeftToken(node).getIndex() > startToken) {
 				if (node.isList()) {
 					isOptNode = true;
 					results.add(((ListAstNode) node).getElementSort());
-				} else if (node.getSort() != null) {
-					if (node.getSort().equals("Some")) isOptNode = true;
-					results.add(node.getSort());
+				} else if (getSort(node) != null) {
+					if (getSort(node).equals("Some")) isOptNode = true;
+					results.add(getSort(node));
 				}
 			} else if (parent != null && parent.isList()) {
 				if (!skipNonOptNodes)
@@ -58,7 +65,7 @@ public class AstSortInspector {
 				if (node.isList()) results.add(((ListAstNode) node).getElementSort());
 			}
 			node = parent;
-		} while (node != null && node.getRightToken().getIndex() < endToken);
+		} while (node != null && getRightToken(node).getIndex() < endToken);
 		
 		if (node != null && node.isList() && !skipNonOptNodes) {
 			// Add sort of container list with elements after current node
@@ -73,7 +80,7 @@ public class AstSortInspector {
 		// TODO: detect 'opt' optionals in addition to list children?
 		// TODO: somehow behave differently in case the completion resulted in a syntax error?
 		//       the skipNonOptNodes thing which mosly addresses this
-		ITokenizer tokens = ast.getRightToken().getTokenizer();
+		ITokenizer tokens = getRightToken(ast).getTokenizer();
 		Set<String> results = new LinkedHashSet<String>();
 		for (IStrategoTerm child : node.getChildren()) {
 			if (child.isList()) {
@@ -81,7 +88,7 @@ public class AstSortInspector {
 				int endToken = getNonLayoutTokenRightOf(child);
 				
 				if ((startToken < 0 || tokens.getTokenAt(startToken).getEndOffset() < startOffset)
-						&& (endToken >= tokens.getStreamLength() || tokens.getTokenAt(endToken).getStartOffset() >= endOffset)) {
+						&& (endToken >= tokens.getTokenCount() || tokens.getTokenAt(endToken).getStartOffset() >= endOffset)) {
 					results.add(((ListAstNode) child).getElementSort());
 				}
 			}
@@ -90,8 +97,8 @@ public class AstSortInspector {
 	}
 
 	private int getNonLayoutTokenLeftOf(IStrategoTerm node) {
-		int result = node.getLeftToken().getIndex();
-		ITokenizer tokens = ast.getRightToken().getTokenizer();
+		int result = getLeftToken(node).getIndex();
+		ITokenizer tokens = getRightToken(ast).getTokenizer();
 		while (--result >= 0) {
 			int kind = tokens.getTokenAt(result).getKind();
 			if (kind != IToken.TK_LAYOUT && kind != IToken.TK_ERROR)
@@ -101,9 +108,9 @@ public class AstSortInspector {
 	}
 
 	private int getNonLayoutTokenRightOf(IStrategoTerm node) {
-		int result = node.getRightToken().getIndex();
-		ITokenizer tokens = ast.getRightToken().getTokenizer();
-		while (++result < tokens.getStreamLength()) {
+		int result = getRightToken(node).getIndex();
+		ITokenizer tokens = getRightToken(ast).getTokenizer();
+		while (++result < tokens.getTokenCount()) {
 			int kind = tokens.getTokenAt(result).getKind();
 			if (kind != IToken.TK_LAYOUT && kind != IToken.TK_ERROR)
 				break;
@@ -112,7 +119,7 @@ public class AstSortInspector {
 	}
 
 	private static IStrategoTerm getNextSibling(IStrategoTerm node) {
-		IStrategoTerm parent = node.getParent();
+		IStrategoTerm parent = getParent(node);
 		if (parent == null) return null;
 		ArrayList<IStrategoTerm> children = parent.getChildren();
 		int siblingIndex = children.indexOf(node) + 1;
