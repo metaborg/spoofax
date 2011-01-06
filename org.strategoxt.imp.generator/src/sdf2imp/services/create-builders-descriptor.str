@@ -17,7 +17,7 @@ strategies
       !|[
         module <descriptor-name> "-Builders"
         
-        imports <descriptor-name> "-Builders.generated"
+        imports <descriptor-name> "-Builders.generated" //Test
         
         builders
           ~~
@@ -34,7 +34,19 @@ strategies
           builder: "Generate Java code (for selection)"   = generate-java  (openeditor) (realtime)
           builder: "Show abstract syntax (for selection)" = generate-aterm (openeditor) (realtime) (meta) (source)
           ~~
+           
+        refactorings
+          ~~
+            
+          pp-table: get-pp-table
+          pretty-print: prettyprint
+          ~~
+          refactoring: "Rename Entity" = ID -> rename-entity (source) (cursor)
+          refactoring: "Extract Entity" = Property* -> extract-entity (source) 
+
+          ~~
           ~// on save: generate-java
+                
       ]|
     );
     
@@ -78,6 +90,18 @@ strategies
           ~//   (source)      Always apply this builder to the source AST, not to the AST
           ~//                 after it has been analyzed/desugared by the observer.
           ~//
+          ~// Refactorings are used for transformations that modify the original source code;
+          ~// the original layout is preserved for unchanged fragments,
+          ~// while newly inserted nodes are pretty printed using a custom pretty-print strategy, 
+          ~// or the layout definitions in the pp-table.
+          ~//   pp-table: get-pp-table
+          ~//   pretty-print: prettyprint
+          ~//
+          ~// Refactorings can be specified as shown below, whereby Property* indicates on which constructs the
+          ~// refactoring is specified (<sort>.<constructor>).
+          ~// 
+          ~//   refactoring: "Extract Entity" = Property* -> extract-entity (source)
+          ~// 
           ~// The 'on save' handler can be used  to generate code as files are saved:
           ~//   
           ~//   on save : generate-java
