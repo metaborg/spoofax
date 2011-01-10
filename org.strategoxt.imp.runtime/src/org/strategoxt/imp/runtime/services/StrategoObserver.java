@@ -224,7 +224,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 					file = fileCopier.copyToTempFile(file);
 				classpath[i] = file.toURI().toURL();
 			}
-			Class<?> attachments = descriptor.getAttachmentProvider();
+			Class attachments = descriptor.getAttachmentProvider();
 			Debug.log("Loading JARs from " + Arrays.toString(classpath));
 			Debug.log("Parent class loader: ", attachments.getName() + "; " + attachments.getClassLoader().getClass().getName());
 			// TODO: Use plugin's parent class loader? (Spoofax/322)
