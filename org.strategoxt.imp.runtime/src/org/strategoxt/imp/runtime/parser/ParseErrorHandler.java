@@ -88,8 +88,6 @@ public class ParseErrorHandler {
 	private static Context asyncAmbReportingContext;
 	
 	private final AstMessageHandler handler = new AstMessageHandler(AstMessageHandler.PARSE_MARKER_TYPE);
-	
-	private final ProductionAttributeReader prodReader = new ProductionAttributeReader();
 
 	private final SGLRParseController source;
 	
@@ -135,7 +133,7 @@ public class ParseErrorHandler {
 	/**
 	 * Report WATER + INSERT errors from parse tree
 	 */
-	public void gatherNonFatalErrors(char[] inputChars, SGLRTokenizer tokenizer, IStrategoTerm top) {
+	public void gatherNonFatalErrors(ITokenizer tokenizer, IStrategoTerm top) {
 		try {
 			errorReports.clear();
 			offset = 0;

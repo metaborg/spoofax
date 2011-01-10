@@ -159,7 +159,7 @@ public class SGLRTokenizer implements ITokenizer {
 		// FIXME: changeTokenKinds sometimes changes the token kinds of comments just adjacent to erroneous regions
 		//        (not sure if it still does that with the 0.5.1 tokenization changes)
 		int fromOrdinal = fromKind;
-		ITokenizer tokens = lexStream.getTokenizer();
+		ITokenizer tokens = lexStream.getCurrentTokenizer();
 		for (int i = 0, end = tokens.getTokenCount(); i < end; i++) {
 			IToken token = tokens.getTokenAt(i);
 			if (token.getEndOffset() >= beginOffset && token.getKind() == fromOrdinal) {

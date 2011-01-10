@@ -33,6 +33,7 @@ import org.spoofax.jsglr.client.ParseTimeoutException;
 import org.spoofax.jsglr.client.StartSymbolException;
 import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.ITokenizer;
+import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.jsglr.client.imploder.TokenKindManager;
 import org.spoofax.jsglr.shared.BadTokenException;
 import org.spoofax.jsglr.shared.SGLRException;
@@ -61,8 +62,6 @@ import org.strategoxt.imp.runtime.services.TokenColorer;
 public class SGLRParseController implements IParseController {
 	
 	private static final int PARSE_TIMEOUT = 20 * 1000;
-	
-	private final TokenKindManager tokenManager = new TokenKindManager();
 	
 	private final SWTSafeLock parseLock = new SWTSafeLock(true);
 	
@@ -193,7 +192,7 @@ public class SGLRParseController implements IParseController {
     	this.syntaxProperties = syntaxProperties;
     	this.performInitialUpdate = true;
     	
-    	parser = new JSGLRI(table, startSymbol, this, tokenManager);
+    	parser = new JSGLRI(table, startSymbol, this);
 		parser.setTimeout(PARSE_TIMEOUT);
 		try {
 			parser.setUseRecovery(true);
@@ -277,13 +276,13 @@ public class SGLRParseController implements IParseController {
 			Debug.startTimer();
 			
 			if (monitor.isCanceled()) return null;
-			IStrategoTerm asfix = parseNoImplode(inputChars, filename);
+			IStrategoTerm asfix = doParse(inputChars, filename);
 			if (monitor.isCanceled()) return null;
 			IStrategoTerm ast = parser.internalImplode(asfix);
 
 			errorHandler.clearErrors();
 			errorHandler.setRecoveryFailed(false);
-			errorHandler.gatherNonFatalErrors(originalInputChars, parser.getTokenizer(), asfix);
+			errorHandler.gatherNonFatalErrors(originalInputChars, parser.getCurrentTokenizer(), asfix);
 			parser.resetState(); // clean up memory
 			
 			currentAst = ast;
@@ -339,20 +338,20 @@ public class SGLRParseController implements IParseController {
 		}
 	}
 
-	private IStrategoTerm parseNoImplode(char[] inputChars, String filename)
+	private IStrategoTerm doParse(String input, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 		try {
-			return parser.parseNoImplode(inputChars, filename);
+			return parser.parse(input, filename);
 		} catch (StartSymbolException e) {
 			if (metaFile != null) {
 				// Unmanaged parse tables may have different start symbols;
 				// try again without the standard start symbol
 			} else {
-				// Be forgiving: user probably specified an inconsistent strat symbol in the ESV
+				// Be forgiving: user probably specified an inconsistent start symbol in the ESV
 				Environment.logWarning("Incorrect start symbol specified in editor descriptor:" + parser.getStartSymbol(), e);
 			}
 			parser.setStartSymbol(null);
-			return parser.parseNoImplode(inputChars, filename);
+			return parser.parse(input, filename);
 		}
 	}
 
@@ -425,7 +424,7 @@ public class SGLRParseController implements IParseController {
 	private void reportException(ParseErrorHandler errorHandler, Exception e) {
 		errorHandler.clearErrors();
 		errorHandler.setRecoveryFailed(true);
-		errorHandler.reportError(parser.getTokenizer(), e);
+		errorHandler.reportError(getCurrentTokenizer(), e);
 	}
 
 	private void scheduleObserverUpdate(ParseErrorHandler errorHandler) {
@@ -436,11 +435,11 @@ public class SGLRParseController implements IParseController {
 			if (feedback != null) feedback.scheduleUpdate(this);
 		} catch (BadDescriptorException e) {
 			Environment.logException("Unexpected error during analysis", e);
-			errorHandler.reportError(parser.getTokenizer(), e);
+			errorHandler.reportError(getCurrentTokenizer(), e);
 			// UNDONE: errorHandler.commitChanges(); (committed by scheduler)
 		} catch (RuntimeException e) {
 			Environment.logException("Unexpected exception during analysis", e);
-			errorHandler.reportError(parser.getTokenizer(), e);
+			errorHandler.reportError(getCurrentTokenizer(), e);
 			// UNDONE: errorHandler.commitChanges(); (committed by scheduler)
 		}
 	}
@@ -517,8 +516,9 @@ public class SGLRParseController implements IParseController {
 		}
 	}
 
-	protected ITokenizer getTokenizer() {
-		return currentParseStream;
+	protected ITokenizer getCurrentTokenizer() {
+		IStrategoTerm ast = getCurrentAst();
+		return ast == null ? null : ImploderAttachment.getLeftToken(ast).getTokenizer();
 	}
 	
 	private void forceInitialParse() {
