@@ -337,7 +337,6 @@ strategies
                 <arg value="${include}/${sdfmodule}.def"/>
                 <arg value="-o"/>
                 <arg value="${include}/${sdfmodule}.generated.pp.af"/>
-                <arg value="-t"/>
             </java>
             <java classname="run" failonerror="false">
                 <arg value="org.strategoxt.tools.main-pp-pp-table"/>
