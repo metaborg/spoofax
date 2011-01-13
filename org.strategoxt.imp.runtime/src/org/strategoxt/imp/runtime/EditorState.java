@@ -107,7 +107,12 @@ public class EditorState {
 	
 	public static boolean isUIThread() {
 		// return Display.getCurrent() != null; // may exist in multiple threads
-		return PlatformUI.getWorkbench().getActiveWorkbenchWindow() != null;
+		try {
+			return PlatformUI.getWorkbench().getActiveWorkbenchWindow() != null;
+		} catch (IllegalStateException e) {
+			// Eclipse not running
+			return false;
+		}
 	}
 
 	public UniversalEditor getEditor() {

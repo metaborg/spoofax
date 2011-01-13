@@ -11,7 +11,7 @@ import org.spoofax.interpreter.terms.IStrategoNamed;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.shared.SGLRException;
-import org.spoofax.terms.io.baf.TermReader;
+import org.spoofax.terms.io.binary.TermReader;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.lang.compat.NativeCallHelper;
 

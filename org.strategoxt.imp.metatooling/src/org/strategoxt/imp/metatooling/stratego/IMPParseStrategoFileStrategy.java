@@ -12,7 +12,6 @@ import org.eclipse.imp.language.LanguageRegistry;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.InvalidParseTableException;
-import org.spoofax.jsglr.client.NoRecoveryRulesException;
 import org.spoofax.jsglr.client.ParseTable;
 import org.spoofax.jsglr.shared.SGLRException;
 import org.strategoxt.imp.editors.stratego.StrategoSugarParseController;
@@ -73,8 +72,6 @@ public class IMPParseStrategoFileStrategy extends parse_stratego_file_0_0 {
 			JSGLRI parser = new JSGLRI(Environment.getParseTableProvider(strategoSugar), "Module");
 			if (parser.getParseTable().hasRecovers()) parser.setUseRecovery(true);
 			return parser;
-		} catch (NoRecoveryRulesException e) {
-			throw new StrategoException("Could not load stratego parse table", e);
 		} catch (BadDescriptorException e) {
 			throw new StrategoException("Could not load stratego parse table", e);
 		} catch (InvalidParseTableException e) {

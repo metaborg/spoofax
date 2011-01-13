@@ -19,7 +19,7 @@ public class IMPJSGLRLibrary extends SGLRCompatLibrary {
 	public IMPJSGLRLibrary(SGLRCompatLibrary sglrLibrary) {
 		super(Environment.getATermFactory());
 		
-		add(new IMPParseStringPTPrimitive(Environment.getATermFactory(), sglrLibrary.getFilterSettings(), mappings));
+		add(new IMPParseStringPTPrimitive(Environment.getATermFactory(), sglrLibrary.getFilterSettings(), sglrLibrary.getRecoveryEnabledSetting(), mappings));
 		add(new IMPAnnoLocationPrimitive(mappings));
 	}
 	

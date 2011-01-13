@@ -80,7 +80,6 @@ public abstract class AbstractSGLRI {
 	public IStrategoTerm parse(String input, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 		
-		
 		/* UNDONE: disabled the parse cache for now
 		 * TODO: revise parse cache?
 		CachingKey cachingKey = new CachingKey(parseTableId, startSymbol, inputChars, filename);

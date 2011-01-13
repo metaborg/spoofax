@@ -6,7 +6,6 @@ import java.io.IOException;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.Disambiguator;
 import org.spoofax.jsglr.client.FilterException;
-import org.spoofax.jsglr.client.NoRecoveryRulesException;
 import org.spoofax.jsglr.client.ParseTable;
 import org.spoofax.jsglr.io.SGLR;
 import org.spoofax.jsglr.shared.BadTokenException;
@@ -62,7 +61,7 @@ public class JSGLRI extends AbstractSGLRI {
 	/**
 	 * @see SGLR#setUseStructureRecovery(boolean)
 	 */
-	public void setUseRecovery(boolean useRecovery) throws NoRecoveryRulesException {
+	public void setUseRecovery(boolean useRecovery) {
 		this.useRecovery = useRecovery;
 		parser.setUseStructureRecovery(useRecovery);
 	}
@@ -102,11 +101,7 @@ public class JSGLRI extends AbstractSGLRI {
 		parser.setTimeout(timeout);
 		if (disambiguator != null) parser.setDisambiguator(disambiguator);
 		else disambiguator = parser.getDisambiguator();
-		try {
-			setUseRecovery(useRecovery);
-		} catch (NoRecoveryRulesException e) {
-			// Already handled/logged this error in setRecoverHandler()
-		}
+		setUseRecovery(useRecovery);
 	}
 	
 	@Override

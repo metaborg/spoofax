@@ -15,7 +15,7 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.jsglr.client.ParseTable;
 import org.spoofax.jsglr.shared.SGLRException;
 import org.spoofax.terms.io.baf.BAFReader;
-import org.spoofax.terms.io.baf.TermReader;
+import org.spoofax.terms.io.binary.TermReader;
 import org.strategoxt.imp.generator.sdf2imp;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
@@ -27,7 +27,19 @@ import org.strategoxt.lang.WeakValueHashMap;
  */
 public class DescriptorFactory {
 	
-	private static final DescriptorRegistry registry = new DescriptorRegistry();
+	private static final DescriptorRegistry registry;
+	
+	static {
+		DescriptorRegistry newRegistry;
+		try {
+			newRegistry = new DescriptorRegistry();
+		} catch (IllegalStateException e) {
+			// Eclipse was not initialized; ignore
+			Environment.logException("Could not initialize descriptor/editor registry", e);
+			newRegistry = null;
+		}
+		registry = newRegistry;
+	}
 	
 	private static JSGLRI descriptorParser;
 	
@@ -86,7 +98,7 @@ public class DescriptorFactory {
 		if (parseTable == null) parseTable = result.openParseTableStream();
 		Environment.registerParseTable(language, new ParseTableProvider(result));		
 		Environment.registerDescriptor(language, result);
-		registry.register(result);
+		if (registry != null) registry.register(result);
 		
 		Debug.stopTimer("Editor services loaded: " + result.getLanguage().getName());
 		return result;

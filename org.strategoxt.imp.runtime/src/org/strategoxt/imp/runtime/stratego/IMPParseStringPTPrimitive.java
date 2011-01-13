@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.InterpreterException;
@@ -33,8 +34,8 @@ public class IMPParseStringPTPrimitive extends JSGLR_parse_string_pt_compat {
 		new WeakHashMap<ParseTable, Object>();
 
 	protected IMPParseStringPTPrimitive(ATermFactory atermFactory, Disambiguator filterSettings, 
-			SourceMappings mappings) {
-		super(atermFactory, filterSettings);
+			AtomicBoolean recoveryEnabled, SourceMappings mappings) {
+		super(atermFactory, filterSettings, recoveryEnabled);
 		this.mappings = mappings;
 	}
 
@@ -51,7 +52,7 @@ public class IMPParseStringPTPrimitive extends JSGLR_parse_string_pt_compat {
 		String path = getLastPath();		
 		JSGLRI parser = new JSGLRI(table, startSymbol);
 		try {
-			parser.setUseRecovery(true);
+			parser.setUseRecovery(isRecoveryEnabled());
 		} catch (NoRecoveryRulesException e) {
 			assert table.hashCode() == System.identityHashCode(table);
 			if (!isNoRecoveryWarned.containsKey(table)) {

@@ -54,7 +54,7 @@ strategies
           number     : darkgreen
           var        : 255 0 100    italic
           operator   : 0 0 128
-          layout     : 100 100 0    italic
+          layout     : 63 127 95    italic
         
         colorer System colors
         ~~
