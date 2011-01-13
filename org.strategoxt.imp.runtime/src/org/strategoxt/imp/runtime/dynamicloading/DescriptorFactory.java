@@ -26,7 +26,19 @@ import org.strategoxt.lang.terms.BAFReader;
  */
 public class DescriptorFactory {
 	
-	private static final DescriptorRegistry registry = new DescriptorRegistry();
+	private static final DescriptorRegistry registry;
+	
+	static {
+		DescriptorRegistry newRegistry;
+		try {
+			newRegistry = new DescriptorRegistry();
+		} catch (IllegalStateException e) {
+			// Eclipse was not initialized; ignore
+			Environment.logException("Could not initialize descriptor/editor registry", e);
+			newRegistry = null;
+		}
+		registry = newRegistry;
+	}
 	
 	private static JSGLRI descriptorParser;
 	
@@ -85,7 +97,7 @@ public class DescriptorFactory {
 		if (parseTable == null) parseTable = result.openParseTableStream();
 		Environment.registerParseTable(language, new ParseTableProvider(result));		
 		Environment.registerDescriptor(language, result);
-		registry.register(result);
+		if (registry != null) registry.register(result);
 		
 		Debug.stopTimer("Editor services loaded: " + result.getLanguage().getName());
 		return result;

@@ -50,7 +50,17 @@ public class Descriptor {
 	
 	protected static final String DEFAULT_ICON = "icons/IMP-editor.gif";
 	
-	protected static final String DEFAULT_ICON_BUNDLE = RuntimeActivator.getInstance().getBundle().getSymbolicName();
+	protected static final String DEFAULT_ICON_BUNDLE;
+	
+	static {
+		if (RuntimeActivator.getInstance() != null) {
+			DEFAULT_ICON_BUNDLE = RuntimeActivator.getInstance().getBundle().getSymbolicName();
+		} else {
+			// Happens when ran outside of Eclipse
+			Environment.logException("Bundle not yet initialized when creating Descriptor");
+			DEFAULT_ICON_BUNDLE = null;
+		}
+	}
 	
 	/**
 	 * A set of all active services for a given descriptor.

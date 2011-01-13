@@ -14,6 +14,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.BadTokenException;
 import org.spoofax.jsglr.SGLRException;
 import org.spoofax.jsglr.TokenExpectedException;
@@ -131,6 +132,11 @@ public abstract class AbstractSGLRI {
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 
 		return parse(inputChars, filename, new NullProgressMonitor());
+	}
+	
+	// Preferred overload in new-terms branch
+	public IStrategoTerm parse(String inputChars, String filename) throws TokenExpectedException, BadTokenException, SGLRException, IOException {
+		return parse(inputChars.toCharArray(), filename).getTerm();
 	}
 	
 	/**
