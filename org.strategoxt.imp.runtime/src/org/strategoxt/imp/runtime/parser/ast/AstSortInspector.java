@@ -1,5 +1,6 @@
 package org.strategoxt.imp.runtime.parser.ast;
 
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getElementSort;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getSort;
@@ -51,25 +52,25 @@ public class AstSortInspector {
 			if (!skipNonOptNodes && getLeftToken(node).getIndex() > startToken) {
 				if (node.isList()) {
 					isOptNode = true;
-					results.add(((ListAstNode) node).getElementSort());
+					results.add(getElementSort(node));
 				} else if (getSort(node) != null) {
 					if (getSort(node).equals("Some")) isOptNode = true;
 					results.add(getSort(node));
 				}
 			} else if (parent != null && parent.isList()) {
 				if (!skipNonOptNodes)
-					results.add(((ListAstNode) parent).getElementSort());
+					results.add(getElementSort(parent));
 			}
 			// HACK: include element sort of sibling list
 			if (isOptNode && (node = getNextSibling(node)) != null) {
-				if (node.isList()) results.add(((ListAstNode) node).getElementSort());
+				if (node.isList()) results.add(getElementSort(node));
 			}
 			node = parent;
 		} while (node != null && getRightToken(node).getIndex() < endToken);
 		
 		if (node != null && node.isList() && !skipNonOptNodes) {
 			// Add sort of container list with elements after current node
-			results.add(((ListAstNode) node).getElementSort());
+			results.add(getElementSort(node));
 		}
 		
 		results.remove(null);
@@ -82,14 +83,14 @@ public class AstSortInspector {
 		//       the skipNonOptNodes thing which mosly addresses this
 		ITokenizer tokens = getRightToken(ast).getTokenizer();
 		Set<String> results = new LinkedHashSet<String>();
-		for (IStrategoTerm child : node.getChildren()) {
+		for (IStrategoTerm child : node.getAllSubterms()) {
 			if (child.isList()) {
 				int startToken = getNonLayoutTokenLeftOf(child);
 				int endToken = getNonLayoutTokenRightOf(child);
 				
 				if ((startToken < 0 || tokens.getTokenAt(startToken).getEndOffset() < startOffset)
 						&& (endToken >= tokens.getTokenCount() || tokens.getTokenAt(endToken).getStartOffset() >= endOffset)) {
-					results.add(((ListAstNode) child).getElementSort());
+					results.add(getElementSort(child));
 				}
 			}
 		}

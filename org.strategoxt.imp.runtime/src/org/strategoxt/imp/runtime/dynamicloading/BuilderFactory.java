@@ -1,6 +1,9 @@
 package org.strategoxt.imp.runtime.dynamicloading;
 
 import static org.spoofax.interpreter.core.Tools.termAt;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getSort;
+import static org.spoofax.terms.Term.tryGetConstructor;
+import static org.spoofax.terms.attachments.ParentAttachment.getParent;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.collectTerms;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.cons;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.termContents;
@@ -11,15 +14,12 @@ import java.util.Set;
 
 import org.eclipse.imp.editor.UniversalEditor;
 import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
-import org.strategoxt.imp.runtime.parser.ast.AstNode;
-import org.strategoxt.imp.runtime.parser.ast.AstNodeFactory;
-import org.strategoxt.imp.runtime.parser.ast.ListAstNode;
-import org.strategoxt.imp.runtime.parser.ast.SubListAstNode;
 import org.strategoxt.imp.runtime.services.BuilderMap;
 import org.strategoxt.imp.runtime.services.CustomStrategyBuilder;
 import org.strategoxt.imp.runtime.services.IBuilder;
@@ -30,7 +30,6 @@ import org.strategoxt.imp.runtime.services.StrategoBuilderListener;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.services.StrategoRefactoring;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
-import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -164,20 +163,27 @@ public class BuilderFactory extends AbstractServiceFactory<IBuilderMap> {
 			mappings.add(aMapping);
 		}
 		EditorState editor = EditorState.getActiveEditor();
-		IStrategoAstNode node= editor.getSelectionAst(false); SubListAstNode l;
-		IStrategoAstNode ancestor = StrategoTermPath.getMatchingAncestor(node, false);
-		IStrategoAstNode selectionNode = node;
+		IStrategoTerm node= editor.getSelectionAst(false);
+		IStrategoTerm ancestor = StrategoTermPath.getMatchingAncestor(node, false);
+		IStrategoTerm selectionNode = node;
 		boolean isMatch=false;
 		do {
-			isMatch= NodeMapping.getFirstAttribute(mappings, selectionNode.getConstructor(), selectionNode.getSort(), 0)!=null;
-			selectionNode=selectionNode.getParent();
-		} while(!isMatch && selectionNode!=null && selectionNode!=ancestor.getParent());
+			isMatch = NodeMapping.getFirstAttribute(mappings, tryGetName(selectionNode), getSort(selectionNode), 0)!=null;
+			selectionNode = getParent(selectionNode);
+		} while(!isMatch && selectionNode!=null && selectionNode!=getParent(ancestor));
 		//Sublist with single element
-		if(!isMatch && (!(ancestor instanceof ListAstNode)) && ancestor.getParent() instanceof ListAstNode){
-			AstNode singleElementList= new AstNodeFactory().createSublist((ListAstNode)ancestor.getParent(), ancestor, ancestor, true);
+		/* XXX: this makes no sense .. taking the constructor of a list?
+		if(!isMatch && (!isTermList(ancestor) && isTermList(getParent(ancestor)){
+			IStrategoTerm singleElementList= new AstNodeFactory().createSublist((ListAstNode)ancestor.getParent(), ancestor, ancestor, true);
 			isMatch= NodeMapping.getFirstAttribute(mappings, singleElementList.getConstructor(), singleElementList.getSort(), 0)!=null;
 		}
+		*/
 		return isMatch;
+	}
+	
+	private static String tryGetName(IStrategoTerm term) {
+		IStrategoConstructor cons = tryGetConstructor(term);
+		return cons == null ? null : cons.getName();
 	}
 
 	private static void addDerivedBuilders(EditorState derivedFromEditor, Set<IBuilder> builders)

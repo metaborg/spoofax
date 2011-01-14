@@ -202,7 +202,7 @@ public class TokenColorer implements ITokenColorer {
 		// TODO: Is always damaging the complete source still necessary??
 		// Right now, TokenColorerHelper.isParserBasedPresentation() depends on this property
 		ISimpleTerm ast = (ISimpleTerm) parseController.getCurrentAst();
-		return new Region(0, getRightToken(ast).getTokenizer().getInput().getTokenCount() - 1);
+		return new Region(0, getRightToken(ast).getTokenizer().getInput().length() - 1);
 		// return seed;
 	}
 }

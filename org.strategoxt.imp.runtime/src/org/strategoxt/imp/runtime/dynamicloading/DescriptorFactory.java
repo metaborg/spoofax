@@ -14,7 +14,6 @@ import org.eclipse.imp.language.Language;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.jsglr.client.ParseTable;
 import org.spoofax.jsglr.shared.SGLRException;
-import org.spoofax.terms.io.baf.BAFReader;
 import org.spoofax.terms.io.binary.TermReader;
 import org.strategoxt.imp.generator.sdf2imp;
 import org.strategoxt.imp.runtime.Debug;
@@ -125,7 +124,7 @@ public class DescriptorFactory {
 		byte[] buffer = new byte[6];
 		int bufferSize = input.read(buffer);
 		if (bufferSize != -1) input.unread(buffer, 0, bufferSize);
-		if ((bufferSize == 6 && new String(buffer).equals("Module")) || BAFReader.isBinaryATerm(input)) { 
+		if ((bufferSize == 6 && new String(buffer).equals("Module")) /* || BAFReader.isBinaryATerm(input)*/) { 
 			TermReader reader = new TermReader(Environment.getTermFactory());
 			return (IStrategoAppl) reader.parseFromStream(input);
 		} else {

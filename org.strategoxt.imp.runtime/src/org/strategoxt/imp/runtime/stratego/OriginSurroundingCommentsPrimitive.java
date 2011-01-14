@@ -54,7 +54,7 @@ public class OriginSurroundingCommentsPrimitive extends AbstractPrimitive {
 	
 	@Override
 	public final boolean call(IContext env, Strategy[] svars, IStrategoTerm[] tvars) {
-		if (!isTermString(tvars[0]) || !(tvars[1] instanceof IStrategoTerm))
+		if (!isTermString(tvars[0]) || !(tvars[1] instanceof OneOfThoseTermsWithOriginInformation))
 			return false;
 		
 		Language language = LanguageRegistry.findLanguage(asJavaString(tvars[0]));

@@ -1,5 +1,7 @@
 package org.strategoxt.imp.runtime.parser;
 
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getTokenizer;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -27,14 +29,12 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.InvalidParseTableException;
-import org.spoofax.jsglr.client.NoRecoveryRulesException;
 import org.spoofax.jsglr.client.ParseTable;
 import org.spoofax.jsglr.client.ParseTimeoutException;
 import org.spoofax.jsglr.client.StartSymbolException;
 import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.ITokenizer;
-import org.spoofax.jsglr.client.imploder.ImploderAttachment;
-import org.spoofax.jsglr.client.imploder.TokenKindManager;
+import org.spoofax.jsglr.client.imploder.NullTokenizer;
 import org.spoofax.jsglr.shared.BadTokenException;
 import org.spoofax.jsglr.shared.SGLRException;
 import org.spoofax.jsglr.shared.TokenExpectedException;
@@ -47,7 +47,6 @@ import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.dynamicloading.DynamicParseController;
 import org.strategoxt.imp.runtime.dynamicloading.ParseTableProvider;
 import org.strategoxt.imp.runtime.parser.ast.AstNodeLocator;
-import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenIterator;
 import org.strategoxt.imp.runtime.services.MetaFile;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
@@ -74,8 +73,6 @@ public class SGLRParseController implements IParseController {
 	private final ParseErrorHandler errorHandler = new ParseErrorHandler(this);
 	
 	private volatile IStrategoTerm currentAst;
-	
-	private volatile ITokenizer currentParseStream;
 	
 	private ISourceProject project;
 	
@@ -194,11 +191,9 @@ public class SGLRParseController implements IParseController {
     	
     	parser = new JSGLRI(table, startSymbol, this);
 		parser.setTimeout(PARSE_TIMEOUT);
-		try {
-			parser.setUseRecovery(true);
-		} catch (NoRecoveryRulesException e) {
-			Environment.logException("No recovery rules available for " + language.getName() + " editor", e);
-		}
+		parser.setUseRecovery(true);
+		if (!parser.getParseTable().hasRecovers())
+			Environment.logWarning("No recovery rules available for " + language.getName() + " editor");
     }
     
     @Deprecated
@@ -242,7 +237,6 @@ public class SGLRParseController implements IParseController {
 		boolean wasStartupParsed = isStartupParsed;
 		isStartupParsed = true; // Eagerly init this to avoid the main thread acquiring our lock			
 		if (input.length() == 0) {
-			currentParseStream = null;
 			return currentAst = null;
 		}
 		
@@ -269,24 +263,18 @@ public class SGLRParseController implements IParseController {
 			//System.out.println("PARSE! " + System.currentTimeMillis()); // DEBUG
 			
 			processMetaFile();
-			// XXX: input chars are changed by the asfix imploder, invalidating caching and requiring a clone here
-			char[] inputChars = input.toCharArray();
-			char[] originalInputChars = inputChars.clone();
 			
 			Debug.startTimer();
 			
 			if (monitor.isCanceled()) return null;
-			IStrategoTerm asfix = doParse(inputChars, filename);
-			if (monitor.isCanceled()) return null;
-			IStrategoTerm ast = parser.internalImplode(asfix);
+			IStrategoTerm result = doParse(input, filename);
 
 			errorHandler.clearErrors();
 			errorHandler.setRecoveryFailed(false);
-			errorHandler.gatherNonFatalErrors(originalInputChars, parser.getCurrentTokenizer(), asfix);
+			errorHandler.gatherNonFatalErrors(result);
 			parser.resetState(); // clean up memory
 			
-			currentAst = ast;
-			currentParseStream = parser.getParseStream();
+			currentAst = result;
 				
 			Debug.stopTimer("File parsed: " + filename);
 			
@@ -389,7 +377,7 @@ public class SGLRParseController implements IParseController {
 	private void onParseCompleted(final IProgressMonitor monitor, boolean wasStartupParsed) {
 		assert parseLock.isHeldByCurrentThread();
 		
-		if (!monitor.isCanceled() && currentParseStream != null)
+		if (!monitor.isCanceled() && getTokenizer(currentAst) != null)
 			forceRecolor(wasStartupParsed);
 		
 		// Threading concerns:
@@ -405,7 +393,7 @@ public class SGLRParseController implements IParseController {
 			}
 			
 			// Removed markers seem to require recoloring:
-			//if (!monitor.isCanceled() /*&& currentParseStream != null*/ && editor != null)
+			//if (!monitor.isCanceled() /*&& getTokenizer(currentAst) != null*/ && editor != null)
 			//	AstMessageHandler.processEditorRecolorEvents(editor.getEditor());
 			
 			if (!monitor.isCanceled())
@@ -483,16 +471,17 @@ public class SGLRParseController implements IParseController {
 		//   - a parser thread with a parse lock may forceRecolor(), acquiring the colorer queue lock 
 		//   - a parser thread with a parse lock may need main thread acess to report errors
 		
-		ITokenizer stream = currentParseStream;		
+		ITokenizer stream = getTokenizer(currentAst);		
 		IDocument document = editor == null ? null : editor.getDocument();
 		
 		if (!force && (stream == null || disallowColorer
-				|| (document != null && stream.getInput().getTokenCount() != document.getLength()))) {
+				|| (document != null && stream.getInput().length() != document.getLength()))) {
 			return SGLRTokenIterator.EMPTY;
 		} else if (stream.getTokenCount() == 0 || getCurrentAst() == null) {
-			// Parse hasn't succeeded yet, consider the entire stream as one big token
-			stream.addToken(new SGLRToken(stream, region.getOffset(), stream.getTokenCount() - 1,
-					IToken.TK_UNKNOWN));
+			/*// Parse hasn't succeeded yet, consider the entire stream as one big token
+			stream.addToken(new SGLRToken(stream, region.getOffset(), 0, 0, stream.getInput().length() - 1,
+					IToken.TK_UNKNOWN));*/
+			stream = new NullTokenizer(null, null);
 		}
 		
 		// UNDONE: Cannot disable colorer afterwards, need it to remove error markers
@@ -510,7 +499,7 @@ public class SGLRParseController implements IParseController {
 			disallowColorer = false;
 			TokenColorer.initLazyColors(this);
 			if (editor != null)
-				editor.getEditor().updateColoring(new Region(0, currentParseStream.getTokenCount() - 1));
+				editor.getEditor().updateColoring(new Region(0, getTokenizer(currentAst).getInput().length() - 1));
 		} catch (RuntimeException e) {
 			Environment.logException("Could reschedule syntax highlighter", e);
 		}
@@ -518,7 +507,7 @@ public class SGLRParseController implements IParseController {
 
 	protected ITokenizer getCurrentTokenizer() {
 		IStrategoTerm ast = getCurrentAst();
-		return ast == null ? null : ImploderAttachment.getLeftToken(ast).getTokenizer();
+		return ast == null ? null : getTokenizer(ast);
 	}
 	
 	private void forceInitialParse() {

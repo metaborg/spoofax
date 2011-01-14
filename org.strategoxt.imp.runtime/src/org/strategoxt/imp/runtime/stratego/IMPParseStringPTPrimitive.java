@@ -11,7 +11,6 @@ import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.Disambiguator;
-import org.spoofax.jsglr.client.NoRecoveryRulesException;
 import org.spoofax.jsglr.client.ParseTable;
 import org.spoofax.jsglr.shared.SGLRException;
 import org.spoofax.terms.LazyTerm;
@@ -51,18 +50,16 @@ public class IMPParseStringPTPrimitive extends JSGLR_parse_string_pt_compat {
 		String input = inputTerm.stringValue();
 		String path = getLastPath();		
 		JSGLRI parser = new JSGLRI(table, startSymbol);
-		try {
-			parser.setUseRecovery(isRecoveryEnabled());
-		} catch (NoRecoveryRulesException e) {
+		parser.setUseRecovery(isRecoveryEnabled());
+		if (!parser.getParseTable().hasRecovers())
 			assert table.hashCode() == System.identityHashCode(table);
 			if (!isNoRecoveryWarned.containsKey(table)) {
-				Environment.logException(NAME + ": warning - no recovery rules available in parse table", e);
+				Environment.logWarning("No recovery rules available in parse table for " + NAME);
 				isNoRecoveryWarned.put(table, null);
 			}
 		}
-		char[] inputChars = input.toCharArray();
 		
-		final IStrategoTerm asfix = parser.parseNoImplode(inputChars, path);
+		final IStrategoTerm asfix = parser.parseNoImplode(input, path);
 		MappableTerm result = new MappableTerm(new LazyTerm() {
 			@Override
 			protected IStrategoTerm init() {

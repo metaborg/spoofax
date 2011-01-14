@@ -199,7 +199,7 @@ public class AstMessageHandler {
 	 * with any of its subterms, doing a depth-first search.
 	 */
 	private static ISimpleTerm getClosestAstNode(IStrategoTerm term) {
-	    if (term instanceof IStrategoTerm) {
+	    if (term instanceof OneOfThoseTermsWithOriginInformation) {
 	        return ((IStrategoTerm) term).getNode();
 	    } else if (term == null) {
 	    	return null;
@@ -217,7 +217,7 @@ public class AstMessageHandler {
 		if (node == null) return null;
 		while (getLeftToken(node).getLine() < getRightToken(node).getEndLine()) {
 			if (node.getSubtermCount() == 0) break;
-			node = (ISimpleTerm) node.getSubterm(0);
+			node = node.getSubterm(0);
 		}
 		return node;
 	}

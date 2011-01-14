@@ -10,7 +10,7 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.imp.runtime.parser.ast.AstNode;
 import org.strategoxt.imp.runtime.parser.ast.AstNodeFactory;
 import org.strategoxt.imp.runtime.parser.ast.ListAstNode;
-import org.strategoxt.imp.runtime.parser.ast.SubListAstNode;
+import org.strategoxt.imp.runtime.parser.ast.StrategoSubList;
 import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 import org.strategoxt.imp.runtime.stratego.adapter.IWrappedAstNode;
 
@@ -31,17 +31,17 @@ public class OriginSeparatorWithLayoutPrimitive extends AbstractOriginPrimitive 
 	@Override
 	protected IStrategoTerm call(IContext env, IWrappedAstNode node) {
 		IStrategoAstNode originNode=node.getNode();
-		SubListAstNode sublist;
+		StrategoSubList sublist;
 		AstNode left;
 		AstNode right;
-		if(originNode instanceof SubListAstNode){
-			sublist = (SubListAstNode) originNode;							
+		if(originNode instanceof StrategoSubList){
+			sublist = (StrategoSubList) originNode;							
 		}
 		else{
 			IStrategoAstNode parent = node.getNode().getParent();
 			if(!(parent instanceof ListAstNode))
 				return null;
-			sublist = (SubListAstNode) new AstNodeFactory().createSublist((ListAstNode) parent, originNode, originNode, true);
+			sublist = (StrategoSubList) new AstNodeFactory().createSublist((ListAstNode) parent, originNode, originNode, true);
 		}
 		ListAstNode list = sublist.getCompleteList();
 		int lastIndexList = list.getChildren().size()-1;
@@ -58,9 +58,9 @@ public class OriginSeparatorWithLayoutPrimitive extends AbstractOriginPrimitive 
 		else
 			return null; //complete list has no separator
 		
-		IPrsStream tokens=left.getRightIToken().getIPrsStream();
-		int startTokenSearch = left.getRightIToken().getTokenIndex()+1;
-		int endTokenSearch = right.getLeftIToken().getTokenIndex()-1;
+		IPrsStream tokens=getRightToken(left).getIPrsStream();
+		int startTokenSearch = getRightToken(left).getTokenIndex()+1;
+		int endTokenSearch = getLeftToken(right).getTokenIndex()-1;
 		int startSeparation=-1;
 		int endSeparation=-1;
 		int loopIndex=startTokenSearch;
@@ -73,19 +73,19 @@ public class OriginSeparatorWithLayoutPrimitive extends AbstractOriginPrimitive 
 			}
 			loopIndex++;
 		}
-		ILexStream lex = originNode.getLeftIToken().getILexStream();
+		ILexStream lex = getLeftToken(originNode).getILexStream();
 		int endOfSep=endSeparation;
 		int startOfSep=startSeparation;
 		if(startSeparation!=-1){
 			if(sublist.getIndexStart() > 0){
-				String potentialLayout = lex.toString(left.getRightIToken().getEndOffset()+1, startOfSep-1);
+				String potentialLayout = lex.toString(getRightToken(left).getEndOffset()+1, startOfSep-1);
 				int newlineIndex=potentialLayout.lastIndexOf('\n');
 				if(newlineIndex>=0){
-					startOfSep=left.getRightIToken().getEndOffset()+1+newlineIndex+1;
+					startOfSep=getRightToken(left).getEndOffset()+1+newlineIndex+1;
 				}
 			}
 			if(!atEnd){
-				String potentialLayout_r = lex.toString(endOfSep, right.getLeftIToken().getStartOffset()-1);
+				String potentialLayout_r = lex.toString(endOfSep, getLeftToken(right).getStartOffset()-1);
 				int newlineIndex_r=potentialLayout_r.lastIndexOf('\n');
 				if(newlineIndex_r>=0){
 					endOfSep=endOfSep+1+newlineIndex_r;

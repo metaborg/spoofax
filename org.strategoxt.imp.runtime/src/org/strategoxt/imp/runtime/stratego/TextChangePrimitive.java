@@ -41,7 +41,7 @@ public class TextChangePrimitive extends AbstractPrimitive {
 		int position_end = -1;
 		if (tvars.length!=3)//!isTermString(tvars[1])
 			return false;
-		if(!(tvars[0] instanceof IStrategoTerm && islocationTuple(tvars[1]) && tvars[2] instanceof IStrategoString))
+		if(!(tvars[0] instanceof OneOfThoseTermsWithOriginInformation && islocationTuple(tvars[1]) && tvars[2] instanceof IStrategoString))
 			return false;
 		EditorState editor = ((IStrategoTerm)tvars[0]).getNode().getParseController().getEditor();
 		ILexStream lexStream = ((IStrategoTerm)tvars[0]).getNode().getLeftToken().getInput();
@@ -50,7 +50,7 @@ public class TextChangePrimitive extends AbstractPrimitive {
 		position_end=((StrategoInt)tuple.get(1)).intValue()-1; //exclusive end pos
 		if(position_start< 0 && position_end < 0){
 			position_start=0;
-			position_end=lexStream.getTokenCount()-1;
+			position_end=lexStream.getInput().length()-1;
 		}
 		if(DocumentStructure.isUnvalidInterval(position_start, position_end, lexStream))
 			return false;
@@ -72,8 +72,8 @@ public class TextChangePrimitive extends AbstractPrimitive {
 			final String text) throws BadLocationException {
 		return applyTextChange(
 			editor, 
-			node.getLeftIToken().getStartOffset(), 
-			node.getRightIToken().getEndOffset(), 
+			getLeftToken(node).getStartOffset(), 
+			getRightToken(node).getEndOffset(), 
 			text
 		);
 	}

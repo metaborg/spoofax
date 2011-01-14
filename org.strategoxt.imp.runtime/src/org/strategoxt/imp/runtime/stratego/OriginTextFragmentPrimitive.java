@@ -54,6 +54,6 @@ private static final String NAME = "SSL_EXT_origin_textfragment";
 		return !(
 				position.get(0) instanceof StrategoInt && 
 				position.get(1) instanceof StrategoInt &&
-				position.get(2) instanceof IStrategoTerm);
+				position.get(2) instanceof OneOfThoseTermsWithOriginInformation);
 	}
 }

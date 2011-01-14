@@ -22,8 +22,8 @@ public class OriginEqualPrimitive extends AbstractPrimitive {
 	}
 
 	private static boolean equal(IStrategoTerm t1, IStrategoTerm t2) {
-		boolean leftHasNode = t1 instanceof IStrategoTerm;
-		boolean rightHasNode = t2 instanceof IStrategoTerm;
+		boolean leftHasNode = t1 instanceof OneOfThoseTermsWithOriginInformation;
+		boolean rightHasNode = t2 instanceof OneOfThoseTermsWithOriginInformation;
 		if (leftHasNode && rightHasNode) {
 			return ((IStrategoTerm) t1).getNode() == ((IStrategoTerm) t2).getNode();
 		} else /* if (t1.getSubtermCount() > 0 && t2.getsu (leftHasNode && t1.getSubtermCount() > 0) {
@@ -38,7 +38,7 @@ public class OriginEqualPrimitive extends AbstractPrimitive {
 	/*
 	private static boolean equalChildTokens(IStrategoTerm t1, IStrategoTerm t2) {
 		IStrategoTerm child = termAt(t1, 0);
-		if (child instanceof IStrategoTerm) {
+		if (child instanceof OneOfThoseTermsWithOriginInformation) {
 			IToken start = t1.getNode().getLeftToken();
 			IToken startChild = ((IStrategoTerm) termAt(t1, 0)).getNode().getLeftToken();
 			if (start == startChild)

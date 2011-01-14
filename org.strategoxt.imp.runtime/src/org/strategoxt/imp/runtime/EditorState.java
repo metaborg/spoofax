@@ -20,7 +20,6 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
 import org.eclipse.ui.texteditor.IDocumentProvider;
-import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.ITokenizer;
@@ -172,7 +171,7 @@ public class EditorState {
 	 * @see SGLRParseController#getCurrentAst()
 	 *            Gets the entire AST.
 	 */
-	public final synchronized ISimpleTerm getSelectionAst(boolean ignoreEmptyEmptySelection) {
+	public final synchronized IStrategoTerm getSelectionAst(boolean ignoreEmptyEmptySelection) {
 		Point selection = getEditor().getSelection();
 		if (ignoreEmptyEmptySelection && selection.y == 0)
 			return null;
@@ -190,8 +189,8 @@ public class EditorState {
 		while ((end.getKind() == layout || end.getKind() == eof) && end.getIndex() > 0)
 			end = tokens.getTokenAt(end.getIndex() - 1);
 		
-		ISimpleTerm startNode = ((SGLRToken) start).getAstNode();
-		ISimpleTerm endNode = ((SGLRToken) end).getAstNode();
+		IStrategoTerm startNode = ((SGLRToken) start).getAstNode();
+		IStrategoTerm endNode = ((SGLRToken) end).getAstNode();
 
 		return StrategoTermPath.findCommonAncestor(startNode, endNode);
 	}

@@ -3,21 +3,23 @@ package org.strategoxt.imp.runtime.stratego;
 import static java.lang.Math.max;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
+import static org.spoofax.terms.Term.tryGetConstructor;
 import static org.spoofax.terms.attachments.ParentAttachment.getParent;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.spoofax.interpreter.terms.ISimpleTerm;
+import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.SimpleTermVisitor;
+import org.spoofax.terms.TermVisitor;
 import org.spoofax.terms.attachments.ParentAttachment;
 import org.strategoxt.imp.generator.position_of_term_1_0;
 import org.strategoxt.imp.generator.term_at_position_0_1;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.parser.ast.SubListAstNode;
+import org.strategoxt.imp.runtime.parser.ast.StrategoSubList;
 import org.strategoxt.imp.runtime.services.ContentProposer;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
@@ -36,7 +38,7 @@ public class StrategoTermPath {
 		// Constructed by a static constructor
 	}
 	
-	public static IStrategoList createPath(ISimpleTerm node) {
+	public static IStrategoList createPath(IStrategoTerm node) {
 		List<Integer> pathInts=createPathList(node);
 		return toStrategoPath(pathInts);
 	}
@@ -49,13 +51,13 @@ public class StrategoTermPath {
 		return Environment.getTermFactory().makeList(results);
 	}
 	
-	public static List<Integer> createPathList(ISimpleTerm node) {
-		if (node instanceof SubListAstNode)
-			node = ((SubListAstNode) node).getCompleteList();
+	public static List<Integer> createPathList(IStrategoTerm node) {
+		if (node instanceof StrategoSubList)
+			node = ((StrategoSubList) node).getCompleteList();
 		LinkedList<Integer> results = new LinkedList<Integer>();
 		
 		while (getParent(node) != null) {
-			ISimpleTerm parent = getParent(node);
+			IStrategoTerm parent = getParent(node);
 			int index = indexOfIdentical(parent.getChildren(), node);
 			results.addFirst(Integer.valueOf(index));
 			node = getParent(node);
@@ -68,13 +70,13 @@ public class StrategoTermPath {
 	 * The resulting path relates to the actual AST, ignoring the 'appl' etc constructors
 	 * of the IStrategoTerm syntax.
 	 */
-	public static IStrategoList createPathFromParsedIStrategoTerm(final ISimpleTerm node, Context context) {
+	public static IStrategoList createPathFromParsedIStrategoTerm(final IStrategoTerm node, Context context) {
 		IStrategoTerm top = ParentAttachment.getRoot(node);
 		final IStrategoTerm marker = context.getFactory().makeString(ContentProposer.COMPLETION_TOKEN);
 		top = oncetd_1_0.instance.invoke(context, top, new Strategy() {
 			@Override
 			public IStrategoTerm invoke(Context context, IStrategoTerm current) {
-				if (current instanceof IStrategoTerm && ((IStrategoTerm) current).getNode() == node) {
+				if (current instanceof OneOfThoseTermsWithOriginInformation && (current).getNode() == node) {
 					return explode_aterm_0_0.instance.invoke(context, marker);
 				} else {
 					return null;
@@ -93,7 +95,7 @@ public class StrategoTermPath {
 	/**
 	 * Determine the path to a term in 'ast' with origin 'origin'.
 	 */
-	public static IStrategoList getTermPathWithOrigin(Context context, IStrategoTerm ast, ISimpleTerm origin) {
+	public static IStrategoList getTermPathWithOrigin(Context context, IStrategoTerm ast, IStrategoTerm origin) {
 		if (ast == null)
 			return null;
 		
@@ -102,18 +104,18 @@ public class StrategoTermPath {
 			return null;
 		}
 		
-		final ISimpleTerm originChild = origin.getSubtermCount() == 0
+		final IStrategoTerm originChild = origin.getSubtermCount() == 0
 				? null
-				: (ISimpleTerm) origin.getSubterm(0);
+				: (IStrategoTerm) origin.getSubterm(0);
 		
 		class TestOrigin extends Strategy {
-			ISimpleTerm origin;
-			ISimpleTerm nextBest;
+			IStrategoTerm origin;
+			IStrategoTerm nextBest;
 			
 			@Override
 			public IStrategoTerm invoke(Context context, IStrategoTerm current) {
-				if (current instanceof IStrategoTerm) {
-					ISimpleTerm currentOrigin = ((IStrategoTerm) current).getNode();
+				if (current instanceof OneOfThoseTermsWithOriginInformation) {
+					IStrategoTerm currentOrigin = (current).getNode();
 					if (currentOrigin == origin) return current;
 					List children = currentOrigin.getChildren();
 					if (nextBest == null && originChild != null) {
@@ -145,10 +147,10 @@ public class StrategoTermPath {
 		return term_at_position_0_1.instance.invoke(context, term, path);
 	}
 
-	private static int indexOfIdentical(List<?> children, ISimpleTerm node) {
+	private static int indexOfIdentical(IStrategoTerm parent, IStrategoTerm node) {
 		int index = 0;
-		for (int size = children.size(); index < size; index++) {
-			if (children.get(index) == node) break;
+		for (int size = parent.getSubtermCount(); index < size; index++) {
+			if (parent.getSubterm(index) == node) break;
 		}
 		return index;
 	}
@@ -156,15 +158,15 @@ public class StrategoTermPath {
 	/**
 	 * Find the common ancestor of two AST nodes, creating a SubListAstNode if they are in the same list ancestor.
 	 */
-	public static ISimpleTerm findCommonAncestor(ISimpleTerm node1, ISimpleTerm node2) {
+	public static IStrategoTerm findCommonAncestor(IStrategoTerm node1, IStrategoTerm node2) {
 		if (node1 == null) return node2;
 		if (node2 == null) return node1;
 		
-		List<ISimpleTerm> node1Ancestors = new ArrayList<ISimpleTerm>();
-		for (ISimpleTerm n = node1; n != null; n = getParent(n))
+		List<IStrategoTerm> node1Ancestors = new ArrayList<IStrategoTerm>();
+		for (IStrategoTerm n = node1; n != null; n = getParent(n))
 			node1Ancestors.add(n);
 		
-		for (ISimpleTerm n = node2, n2Child = node2; n != null; n2Child = n, n = getParent(n))
+		for (IStrategoTerm n = node2, n2Child = node2; n != null; n2Child = n, n = getParent(n))
 			if (node1Ancestors.contains(n)) {
 				if(node1Ancestors.get(node1Ancestors.indexOf(n))==n)
 					return tryCreateListCommonAncestor(n, node1Ancestors, n2Child);
@@ -173,13 +175,13 @@ public class StrategoTermPath {
 		throw new IllegalStateException("Could not find common ancestor for nodes: " + node1 + "," + node2);
 	}
 	
-	private static ISimpleTerm tryCreateListCommonAncestor(ISimpleTerm commonAncestor, List<ISimpleTerm> ancestors1List, ISimpleTerm child2) {
-		if (commonAncestor != child2 && ((IStrategoTerm) commonAncestor).isList()) {
+	private static IStrategoTerm tryCreateListCommonAncestor(IStrategoTerm commonAncestor, List<IStrategoTerm> ancestors1List, IStrategoTerm child2) {
+		if (commonAncestor != child2 && commonAncestor.isList()) {
 			int i = ancestors1List.indexOf(commonAncestor);
 			if (i == 0)
 				return commonAncestor;
-			ISimpleTerm child1 = ancestors1List.get(i - 1);
-			return SubListAstNode.createSublist((ListAstNode) commonAncestor, child1, child2, true); 
+			IStrategoTerm child1 = ancestors1List.get(i - 1);
+			return StrategoSubList.createSublist((IStrategoList) commonAncestor, child1, child2, true); 
 		} else {
 			return commonAncestor;
 		}
@@ -188,13 +190,13 @@ public class StrategoTermPath {
 	/**
 	 * Attempts to find a corresponding selection subtree in a new ast.
 	 */
-	public static ISimpleTerm findCorrespondingSubtree(ISimpleTerm newAst, ISimpleTerm selection) {
-		if (selection instanceof SubListAstNode)
-			return findCorrespondingSublist(newAst, (SubListAstNode) selection);
+	public static IStrategoTerm findCorrespondingSubtree(IStrategoTerm newAst, IStrategoTerm selection) {
+		if (selection instanceof StrategoSubList)
+			return findCorrespondingSublist(newAst, (StrategoSubList) selection);
 		
-		ISimpleTerm oldAst = getRoot(selection);
-		ISimpleTerm oldParent = oldAst;
-		ISimpleTerm newParent = newAst;
+		IStrategoTerm oldAst = getRoot(selection);
+		IStrategoTerm oldParent = oldAst;
+		IStrategoTerm newParent = newAst;
 		
 		List<Integer> selectionPath = createPathList(selection);
 		
@@ -204,28 +206,28 @@ public class StrategoTermPath {
 				Environment.logException("Unable to recover old selection AST in " + oldParent, new ArrayIndexOutOfBoundsException(i));
 				return findIdenticalSubtree(oldAst, newAst, selection);
 			}
-			ISimpleTerm oldSubtree = (ISimpleTerm) oldParent.getSubterm(i);
-			ISimpleTerm newSubtree;
+			IStrategoTerm oldSubtree = oldParent.getSubterm(i);
+			IStrategoTerm newSubtree;
 			if (i > newParent.getSubtermCount()) {
 				return findIdenticalSubtree(oldAst, newAst, selection);
 			} else if (oldParent.getSubtermCount() > newParent.getSubtermCount()) {
 				i = max(0, i - (oldParent.getSubtermCount() - newParent.getSubtermCount()));
-				newSubtree = (ISimpleTerm) newParent.getSubterm(i);
+				newSubtree = newParent.getSubterm(i);
 			} else if (i > newParent.getSubtermCount()) {
 				return findIdenticalSubtree(oldAst, newAst, selection);
 			} else {
-				newSubtree = (ISimpleTerm) newParent.getSubterm(i);
+				newSubtree = newParent.getSubterm(i);
 			}
-			if (!constructorEquals(oldSubtree, newSubtree)) {
+			if (!constructorEqual(oldSubtree, newSubtree)) {
 				// First, try siblings instead
 				if (i + 1 < newParent.getSubtermCount()) {
-					newSubtree = (ISimpleTerm) newParent.getSubterm(i + 1);
-					if (oldSubtree.getConstructor().equals(newSubtree.getConstructor()))
+					newSubtree = newParent.getSubterm(i + 1);
+					if (constructorEqual(oldSubtree, newSubtree))
 						continue;
 				}
 				if (i > 0) {
-					newSubtree = (ISimpleTerm) newParent.getSubterm(i - 1);
-					if (oldSubtree.getConstructor().equals(newSubtree.getConstructor()))
+					newSubtree = newParent.getSubterm(i - 1);
+					if (constructorEqual(oldSubtree, newSubtree))
 						continue;
 				}
 				// Fallback
@@ -243,39 +245,40 @@ public class StrategoTermPath {
 		return newAst;
 	}
 
-	private static ISimpleTerm findCorrespondingSublist(ISimpleTerm newAst, SubListAstNode selection) {
-		ISimpleTerm start = findCorrespondingSubtree(newAst, selection.getFirstChild());
-		ISimpleTerm end = findCorrespondingSubtree(newAst, selection.getLastChild());
+	private static IStrategoTerm findCorrespondingSublist(IStrategoTerm newAst, StrategoSubList selection) {
+		IStrategoTerm start = findCorrespondingSubtree(newAst, selection.getFirstChild());
+		IStrategoTerm end = findCorrespondingSubtree(newAst, selection.getLastChild());
 		return findCommonAncestor(start, end);
 	}
 
-	private static boolean constructorEquals(ISimpleTerm first, ISimpleTerm second) {
-		return first.getConstructor() == null
-				? second.getConstructor() == null
-				: first.getConstructor().equals(second.getConstructor());
+	private static boolean constructorEqual(IStrategoTerm first, IStrategoTerm second) {
+		IStrategoConstructor firstCons = tryGetConstructor(first);
+		return firstCons == null
+				? tryGetConstructor(second) == null
+				: firstCons.equals(tryGetConstructor(second));
 	}
 
-	private static ISimpleTerm findCorrespondingSubtreeResult(
-			ISimpleTerm oldAst, ISimpleTerm newAst,
-			ISimpleTerm oldSubtree, ISimpleTerm newSubtree,
-			ISimpleTerm selection, ISimpleTerm newParent, int i) {
+	private static IStrategoTerm findCorrespondingSubtreeResult(
+			IStrategoTerm oldAst, IStrategoTerm newAst,
+			IStrategoTerm oldSubtree, IStrategoTerm newSubtree,
+			IStrategoTerm selection, IStrategoTerm newParent, int i) {
 		
 		if (!newSubtree.equals(oldSubtree)) {
 			// First, try siblings instead
 			if (i + 1 < newParent.getSubtermCount()) {
-				newSubtree = (ISimpleTerm) newParent.getSubterm(i + 1);
+				newSubtree = newParent.getSubterm(i + 1);
 				if (newSubtree.equals(oldSubtree)) return newSubtree;
 			}
 			if (i > 0) {
-				newSubtree = (ISimpleTerm) newParent.getSubterm(i - 1);
+				newSubtree = newParent.getSubterm(i - 1);
 				if (newSubtree.equals(oldSubtree)) return newSubtree;
 			}
 
-			ISimpleTerm exactMatch = findIdenticalSubtree(oldAst, newAst, selection);
+			IStrategoTerm exactMatch = findIdenticalSubtree(oldAst, newAst, selection);
 			if (exactMatch != null) return exactMatch;
 
-			newSubtree = (ISimpleTerm) newParent.getSubterm(i);
-			if (constructorEquals(newSubtree, oldSubtree)
+			newSubtree = newParent.getSubterm(i);
+			if (constructorEqual(newSubtree, oldSubtree)
 					&& (containsMultipleCopies(newAst, newSubtree)
 					    || findSubtree(oldAst, newSubtree, true) == null)) {
 				return newSubtree; // meh, close enough
@@ -286,8 +289,8 @@ public class StrategoTermPath {
 		return newSubtree;
 	}
 
-	private static ISimpleTerm getRoot(ISimpleTerm selection) {
-		ISimpleTerm result = selection;
+	private static IStrategoTerm getRoot(IStrategoTerm selection) {
+		IStrategoTerm result = selection;
 		while (getParent(result) != null)
 			result = getParent(result);
 		return result;
@@ -297,8 +300,8 @@ public class StrategoTermPath {
 	 * Finds a unique, identical 'selection' subtree in 'newAst.'
 	 * Returns null in case of multiple candidate subtrees.
 	 */
-	private static ISimpleTerm findIdenticalSubtree(ISimpleTerm oldAst,
-			ISimpleTerm newAst, ISimpleTerm selection) {
+	private static IStrategoTerm findIdenticalSubtree(IStrategoTerm oldAst,
+			IStrategoTerm newAst, IStrategoTerm selection) {
 		
 		if (containsMultipleCopies(oldAst, selection)) {
 			return null;
@@ -310,15 +313,15 @@ public class StrategoTermPath {
 	/**
 	 * Finds a single subtree equal to selection in the given ast.
 	 */
-	private static ISimpleTerm findSubtree(ISimpleTerm ast,
-			final ISimpleTerm selection, boolean allowMultipleResults) {
+	private static IStrategoTerm findSubtree(IStrategoTerm ast,
+			final IStrategoTerm selection, boolean allowMultipleResults) {
 		
 		// Visitor for collecting subtrees equal to the old selection  
-		class Visitor extends SimpleTermVisitor {
-			ISimpleTerm result = null;
+		class Visitor extends TermVisitor {
+			IStrategoTerm result = null;
 			boolean isMultiple;
 			
-			public void preVisit(ISimpleTerm node) {
+			public void preVisit(IStrategoTerm node) {
 				if (node.equals(selection)) {
 					if (result == null) result = node;
 					else isMultiple = true;
@@ -333,7 +336,7 @@ public class StrategoTermPath {
 		return !allowMultipleResults && visitor.isMultiple ? null : visitor.result;
 	}
 
-	private static boolean containsMultipleCopies(ISimpleTerm ast, ISimpleTerm subtree) {
+	private static boolean containsMultipleCopies(IStrategoTerm ast, IStrategoTerm subtree) {
 		if (findSubtree(ast, subtree, false) == null) {
 			return findSubtree(ast, subtree, true) != null;
 		} else {
@@ -349,11 +352,11 @@ public class StrategoTermPath {
 	 * @param allowMultiChildParent
 	 *             Also fetch the first parent if it has multiple children (e.g., Call("foo", "bar")).
 	 */
-	public static final ISimpleTerm getMatchingAncestor(ISimpleTerm oNode, boolean allowMultiChildParent) {
-		if (allowMultiChildParent && oNode.getConstructor() == null && getParent(oNode) != null)
+	public static final IStrategoTerm getMatchingAncestor(IStrategoTerm oNode, boolean allowMultiChildParent) {
+		if (allowMultiChildParent && tryGetConstructor(oNode) == null && getParent(oNode) != null)
 			return getParent(oNode);
 		
-		ISimpleTerm result = oNode;
+		IStrategoTerm result = oNode;
 		int startOffset = getLeftToken(result).getStartOffset();
 		int endOffset = getRightToken(result).getEndOffset();
 		while (getParent(result) != null

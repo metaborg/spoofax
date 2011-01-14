@@ -9,7 +9,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.ITokenizer;
-import org.strategoxt.imp.runtime.parser.ast.SubListAstNode;
+import org.strategoxt.imp.runtime.parser.ast.StrategoSubList;
 
 /**
  * @author Maartje de Jonge
@@ -28,17 +28,17 @@ public class OriginSeparatorPrimitive extends AbstractOriginPrimitive {
 	@Override
 	protected IStrategoTerm call(IContext env, IStrategoTerm origin) {
 		ISimpleTerm originNode=origin.getNode();
-		SubListAstNode sublist;
+		StrategoSubList sublist;
 		IStrategoTerm left;
 		IStrategoTerm right;
-		if(originNode instanceof SubListAstNode){
-			sublist = (SubListAstNode) originNode;							
+		if(originNode instanceof StrategoSubList){
+			sublist = (StrategoSubList) originNode;							
 		}
 		else{
 			ISimpleTerm parent = origin.getNode().getParent();
 			if(!(isTermList(parent)))
 				return null;
-			sublist = SubListAstNode.createSublist((ListAstNode) parent, originNode, originNode, true);
+			sublist = StrategoSubList.createSublist((ListAstNode) parent, originNode, originNode, true);
 		}
 		ListAstNode list = sublist.getCompleteList();
 		int lastIndexList = list.getSubtermCount()-1;

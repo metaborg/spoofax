@@ -21,7 +21,7 @@ import org.spoofax.jsglr.client.ParseTimeoutException;
 import org.spoofax.jsglr.client.RecoveryConnector;
 import org.spoofax.jsglr.client.RegionRecovery;
 import org.spoofax.jsglr.client.imploder.IToken;
-import org.spoofax.jsglr.client.imploder.ProductionAttributeReader;
+import org.spoofax.jsglr.client.imploder.ITokenizer;
 import org.spoofax.jsglr.shared.BadTokenException;
 import org.spoofax.jsglr.shared.TokenExpectedException;
 import org.strategoxt.imp.generator.sdf2imp;
@@ -29,9 +29,7 @@ import org.strategoxt.imp.generator.simplify_ambiguity_report_0_0;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
 import org.strategoxt.imp.runtime.parser.ast.MarkerSignature;
-import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
-import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 import org.strategoxt.lang.Context;
 import org.strategoxt.stratego_aterm.stratego_aterm;
 import org.strategoxt.stratego_sglr.implode_asfix_0_0;
@@ -133,7 +131,7 @@ public class ParseErrorHandler {
 	/**
 	 * Report WATER + INSERT errors from parse tree
 	 */
-	public void gatherNonFatalErrors(ITokenizer tokenizer, IStrategoTerm top) {
+	public void gatherNonFatalErrors(IStrategoTerm top) {
 		try {
 			errorReports.clear();
 			offset = 0;
@@ -251,7 +249,7 @@ public class ParseErrorHandler {
      * 
 	 * @param outerBeginOffset  The begin offset of the enclosing construct.
      */
-	private void reportRecoveredErrors(SGLRTokenizer tokenizer, ATermAppl term, int outerStartOffset, int outerStartOffset2) {
+	private void reportRecoveredErrors(ITokenizer tokenizer, ATermAppl term, int outerStartOffset, int outerStartOffset2) {
 		// TODO: Nicer error messages; merge consecutive error tokens etc.
 		int startOffset = offset;
 		
@@ -337,7 +335,7 @@ public class ParseErrorHandler {
         return result.toString();
     }
 	
-	private void reportAmbiguity(SGLRTokenizer tokenizer, ATermAppl amb, int startOffset) {
+	private void reportAmbiguity(ITokenizer tokenizer, ATermAppl amb, int startOffset) {
 		if (!inLexicalContext) {
 			IToken token = tokenizer.makeErrorToken(startOffset, offset - 1);
 			reportWarningAtTokens(token, token, "Fragment is ambiguous: " + ambToString(amb));
@@ -382,7 +380,7 @@ public class ParseErrorHandler {
 		return message == null ? amb.toString() : ((IStrategoString) message).stringValue();
 	}
 	
-	private void reportSkippedFragments(char[] inputChars, SGLRTokenizer tokenizer) {
+	private void reportSkippedFragments(char[] inputChars, ITokenizer tokenizer) {
 		char[] processedChars = tokenizer.getLexStream().getInputChars();
 
 		for (int i = 0; i < processedChars.length; i++) {
@@ -411,7 +409,7 @@ public class ParseErrorHandler {
 		}
 		
 		// Report forced reductions
-		int treeEnd = tokenizer.getParseStream().getTokenAt(tokenizer.getParseStream().getTokenCount() - 1).getEndOffset();
+		int treeEnd = tokenizer.getTokenAt(tokenizer.getTokenCount() - 1).getEndOffset();
 		if (treeEnd < processedChars.length) {
 			IToken token = tokenizer.makeErrorToken(treeEnd + 1, processedChars.length);
 			reportErrorAtTokens(token, token, "Could not parse the remainder of this file");
@@ -419,7 +417,7 @@ public class ParseErrorHandler {
 		}
 	}
 
-	private void reportSkippedFragment(char[] inputChars, SGLRTokenizer tokenizer, int beginSkipped, int endSkipped) {
+	private void reportSkippedFragment(char[] inputChars, ITokenizer tokenizer, int beginSkipped, int endSkipped) {
 		IToken token = tokenizer.makeErrorToken(beginSkipped, endSkipped);
 		int line = token.getLine();
 		int endLine = token.getEndLine() + RegionRecovery.NR_OF_LINES_TILL_SUCCESS;
@@ -447,14 +445,14 @@ public class ParseErrorHandler {
 		}
 	}
 		
-	public void reportError(SGLRTokenizer tokenizer, TokenExpectedException exception) {
+	public void reportError(ITokenizer tokenizer, TokenExpectedException exception) {
 		String message = exception.getShortMessage();
 		IToken token = tokenizer.makeErrorToken(exception.getOffset());
 		
 		reportErrorAtTokens(token, token, message);
 	}
 	
-	public void reportError(SGLRTokenizer tokenizer, BadTokenException exception) {
+	public void reportError(ITokenizer tokenizer, BadTokenException exception) {
 		IToken token = tokenizer.makeErrorToken(exception.getOffset());
 		String message = exception.isEOFToken()
 			? exception.getShortMessage()
@@ -462,13 +460,13 @@ public class ParseErrorHandler {
 		reportErrorAtTokens(token, token, message);
 	}
 	
-	public void reportError(SGLRTokenizer tokenizer, MultiBadTokenException exception) {
+	public void reportError(ITokenizer tokenizer, MultiBadTokenException exception) {
 		for (BadTokenException e : exception.getCauses()) {
 			reportError(tokenizer, (Exception) e); // use double dispatch
 		}
 	}
 	
-	public void reportError(SGLRTokenizer tokenizer, ParseTimeoutException exception) {
+	public void reportError(ITokenizer tokenizer, ParseTimeoutException exception) {
 		String message = "Internal parsing error: " + exception.getMessage();
 		reportErrorAtFirstLine(message);
 		reportError(tokenizer, (MultiBadTokenException) exception);
@@ -476,7 +474,7 @@ public class ParseErrorHandler {
 		setRushNextUpdate(true);
 	}
 	
-	private void reportCollectedErrorsDirectly(SGLRTokenizer tokenizer) {
+	private void reportCollectedErrorsDirectly(ITokenizer tokenizer) {
 		for (BadTokenException e : source.getParser().getParser().getCollectedErrors()) {
 			// tokenizer.getLexStream().getInputChars() may contain SKIPPED_CHAR characters,
 			// so we have to use the message provided by the exceptions directly
@@ -486,7 +484,7 @@ public class ParseErrorHandler {
 		}
 	}
 	 
-	public void reportError(SGLRTokenizer tokenizer, Exception exception) {
+	public void reportError(ITokenizer tokenizer, Exception exception) {
 		try {
 			throw exception;
 		} catch (ParseTimeoutException e) {

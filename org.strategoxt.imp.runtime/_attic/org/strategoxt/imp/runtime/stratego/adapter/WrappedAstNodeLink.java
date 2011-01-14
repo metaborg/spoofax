@@ -33,7 +33,7 @@ public class WrappedAstNodeLink extends WrappedAstNodeParent implements IStrateg
 		this.wrapped = term;
 		this.origin = origin;
 		
-		assert !(wrapped instanceof IStrategoTerm) : "Already wrapped";
+		assert !(wrapped instanceof OneOfThoseTermsWithOriginInformation) : "Already wrapped";
 		assert wrapped.getTermType() != LIST || origin.getTermType() != LIST
 				|| wrapped.getSubtermCount() == 0
 				|| wrapped.getSubtermCount() != origin.getSubtermCount()
@@ -87,7 +87,7 @@ public class WrappedAstNodeLink extends WrappedAstNodeParent implements IStrateg
 			return kids;
 		
 		for (int i = 0; i < kids.length; i++) {
-			if (!(kids[i] instanceof IStrategoTerm)) {
+			if (!(kids[i] instanceof OneOfThoseTermsWithOriginInformation)) {
 				IStrategoTerm[] newKids = new IStrategoTerm[kids.length];
 				System.arraycopy(kids, 0, newKids, 0, i);
 				newKids[i] = ensureChildLink(kids[i], i);
@@ -101,7 +101,7 @@ public class WrappedAstNodeLink extends WrappedAstNodeParent implements IStrateg
 	}
 	
 	private IStrategoTerm ensureChildLink(IStrategoTerm kid, int index) {
-		if (kid instanceof IStrategoTerm
+		if (kid instanceof OneOfThoseTermsWithOriginInformation
 				|| index >= origin.getSubtermCount()) {
 			return kid;
 		} else {

@@ -457,7 +457,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	/**
 	 * Create an input term for a control rule.
 	 */
-	public IStrategoTuple makeInputTerm(ISimpleTerm node, boolean includeSubNode, boolean useSourceAst) {
+	public IStrategoTuple makeInputTerm(IStrategoTerm node, boolean includeSubNode, boolean useSourceAst) {
 		assert getLock().isHeldByCurrentThread();
 		
 		Context context = getRuntime().getCompiledContext();
@@ -650,11 +650,11 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	public ISimpleTerm getAstNode(IStrategoTerm term, boolean tryArguments) {
 		if (term == null) return null;
 			
-		if (term instanceof IStrategoTerm) {
+		if (term instanceof OneOfThoseTermsWithOriginInformation) {
 			return ((IStrategoTerm) term).getNode();
 		} else if (tryArguments) {
 			for (IStrategoTerm subterm : term.getAllSubterms()) {
-				if (subterm instanceof IStrategoTerm) {
+				if (subterm instanceof OneOfThoseTermsWithOriginInformation) {
 					Environment.logWarning("Resolved reference is not associated with an AST node " + term + " used child " + subterm + "instead");
 					ISimpleTerm result = ((IStrategoTerm) subterm).getNode();
 					return getParent(result) != null ? getParent(result) : result;
@@ -692,12 +692,6 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			Environment.logException("Could not set Stratego working directory", e);
 			throw new RuntimeException(e);
 		}
-	}
-	
-	private static ISimpleTerm getRoot(ISimpleTerm node) {
-		while (getParent(node) != null)
-			node = getParent(node);
-		return node;
 	}
 	
 	public HybridInterpreter getRuntime() {

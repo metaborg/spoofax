@@ -16,7 +16,7 @@ public class OriginSourceTextPrimitive extends AbstractOriginPrimitive {
 	@Override
 	protected IStrategoTerm call(IContext env, IStrategoTerm origin) {
 		ILexStream lexStream = origin.getNode().getLeftToken().getInput();
-		String sourcetext=lexStream.toString(0, lexStream.getTokenCount()-1);
+		String sourcetext=lexStream.toString(0, lexStream.getInput().length()-1);
 		return env.getFactory().makeString(sourcetext);
 	}
 }

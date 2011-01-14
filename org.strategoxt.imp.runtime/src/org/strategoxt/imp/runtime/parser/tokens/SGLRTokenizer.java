@@ -8,21 +8,23 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.ITokenizer;
 import org.spoofax.jsglr.client.imploder.Token;
+import org.spoofax.jsglr.client.imploder.Tokenizer;
 
 /**
  * Wrapper class to add tokens to an LPG PrsStream.
  * 
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
-public class SGLRTokenizer implements ITokenizer {
+public class SGLRTokenizer extends Tokenizer {
 	
+	/*
 	private final LexStream lexStream = new LexStream();
 	
 	private final ITokenizer parseStream = new PrsStream(lexStream);
 	
 	private IStrategoTerm cachedAst;
 	
-	/** Start of the last token */
+	/** Start of the last token *
 	private int startOffset;
 	
 	public SGLRTokenizer(char[] input, String filename) {
@@ -100,14 +102,14 @@ public class SGLRTokenizer implements ITokenizer {
 	
 	/**
 	 * Creates an error token from existing tokens.
-	 */
+	 *
 	public IToken makeErrorToken(IToken left, IToken right) {
 		return new Token(parseStream, left.getStartOffset(), right.getEndOffset(), TK_ERROR);
 	}
 	
 	/**
 	 * Creates an error token up to the next whitespace character.
-	 */
+	 *
 	public IToken makeErrorToken(int offset) {		
 		if (offset == lexStream.getTokenCount())
 		    return makeErrorTokenBackwards(offset - 1);
@@ -135,7 +137,7 @@ public class SGLRTokenizer implements ITokenizer {
 	
 	/**
 	 * Creates an error token, trying to avoid including whitespace.
-	 */
+	 *
 	public IToken makeErrorToken(int beginOffset, int endOffset) {		
 		while (beginOffset < endOffset && Character.isWhitespace(lexStream.getCharValue(beginOffset)))
 			beginOffset++;
@@ -154,7 +156,7 @@ public class SGLRTokenizer implements ITokenizer {
 	
 	/**
 	 * Changes the token kinds of existing tokens.
-	 */
+	 *
 	public void changeTokenKinds(int beginOffset, int endOffset, TokenKind fromKind, TokenKind toKind) {
 		// FIXME: changeTokenKinds sometimes changes the token kinds of comments just adjacent to erroneous regions
 		//        (not sure if it still does that with the 0.5.1 tokenization changes)
@@ -176,7 +178,7 @@ public class SGLRTokenizer implements ITokenizer {
 	 * @param beginOffset       The begin offset of the erroneous location.
      * @param endOffset         The end offset of the erroneous location.
      * @param outerBeginOffset  The begin offset of the enclosing construct.
-	 */
+	 *
 	public IToken makeErrorTokenSkipLayout(int beginOffset, int endOffset, int outerBeginOffset) {	    
 		if (endOffset >= lexStream.getTokenCount()) {
 			endOffset = lexStream.getTokenCount() - 1;
@@ -219,7 +221,7 @@ public class SGLRTokenizer implements ITokenizer {
 	
 	/**
 	 * Creates an error token from the last whitespace character.
-	 */
+	 *
 	public IToken makeErrorTokenBackwards(int offset) {
 		int beginOffset = offset;
 		boolean onlySeenWhitespace = true;
@@ -274,4 +276,5 @@ public class SGLRTokenizer implements ITokenizer {
 	public static final String dumpToString(IToken token) {
 		return dumpToString(token, token);
 	}
+	*/
 }
