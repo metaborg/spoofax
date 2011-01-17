@@ -1,7 +1,15 @@
 package org.strategoxt.imp.runtime.parser;
 
 import static java.lang.Math.min;
-import static org.spoofax.terms.Term.termAt;
+import static org.spoofax.jsglr.client.imploder.AbstractTokenizer.findLeftMostTokenOnSameLine;
+import static org.spoofax.jsglr.client.imploder.AbstractTokenizer.findRightMostTokenOnSameLine;
+import static org.spoofax.jsglr.client.imploder.IToken.TK_EOF;
+import static org.spoofax.jsglr.client.imploder.IToken.TK_LAYOUT;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getTokenizer;
+import static org.spoofax.terms.Term.asJavaString;
+import static org.spoofax.terms.Term.tryGetConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,19 +19,16 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.spoofax.interpreter.terms.IStrategoList;
-import org.spoofax.interpreter.terms.IStrategoString;
+import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.interpreter.terms.ITermFactory;
-import org.spoofax.interpreter.terms.TermConverter;
 import org.spoofax.jsglr.client.MultiBadTokenException;
 import org.spoofax.jsglr.client.ParseTimeoutException;
-import org.spoofax.jsglr.client.RecoveryConnector;
 import org.spoofax.jsglr.client.RegionRecovery;
 import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.ITokenizer;
 import org.spoofax.jsglr.shared.BadTokenException;
 import org.spoofax.jsglr.shared.TokenExpectedException;
+import org.spoofax.terms.TermVisitor;
 import org.strategoxt.imp.generator.sdf2imp;
 import org.strategoxt.imp.generator.simplify_ambiguity_report_0_0;
 import org.strategoxt.imp.runtime.Environment;
@@ -32,7 +37,6 @@ import org.strategoxt.imp.runtime.parser.ast.MarkerSignature;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.lang.Context;
 import org.strategoxt.stratego_aterm.stratego_aterm;
-import org.strategoxt.stratego_sglr.implode_asfix_0_0;
 import org.strategoxt.stratego_sglr.stratego_sglr;
 
 /**
@@ -41,40 +45,6 @@ import org.strategoxt.stratego_sglr.stratego_sglr;
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
 public class ParseErrorHandler {
-	
-	/**
-	 * The constructor used for "water" recovery rules.
-	 */
-	public static final String WATER = "WATER";
-	
-	/**
-	 * The constructor used for "insertion" recovery rules.
-	 */
-	public static final String INSERT = "INSERTION";
-	
-	/**
-	 * The constructor used for "end insertion" recovery rules.
-	 */
-	public static final String INSERT_END = "INSERTEND";
-	
-	public static final String DEPRECATED = "deprecated";
-	
-	/**
-	 * The parse stream character that indicates a character has
-	 * been skipped by the parser.
-	 */
-	public static final char SKIPPED_CHAR = (char) -1;
-	
-	/**
-	 * The parse stream character that indicates EOF was unexpected.
-	 */
-	public static final char UNEXPECTED_EOF_CHAR = (char) -2;
-
-	public static final String UNEXPECTED_TOKEN_POSTFIX = "' not expected here";
-	
-	public static final String UNEXPECTED_TOKEN_PREFIX = "Syntax error, '";
-	
-	public static final String UNEXPECTED_REGION = "Could not parse this fragment: misplaced construct(s)";
 	
 	public static final int PARSE_ERROR_DELAY = min(StrategoObserver.OBSERVER_DELAY + 50, 800);
 	
@@ -85,15 +55,13 @@ public class ParseErrorHandler {
 	
 	private static Context asyncAmbReportingContext;
 	
+	private final IStrategoConstructor ambCons = Environment.getTermFactory().makeConstructor("amb", 0); 
+	
 	private final AstMessageHandler handler = new AstMessageHandler(AstMessageHandler.PARSE_MARKER_TYPE);
 
 	private final SGLRParseController source;
 	
 	private volatile boolean isRecoveryFailed = true;
-	
-	private int offset;
-	
-	private boolean inLexicalContext;
 	
 	private volatile int additionsVersionId;
 	
@@ -132,17 +100,116 @@ public class ParseErrorHandler {
 	 * Report WATER + INSERT errors from parse tree
 	 */
 	public void gatherNonFatalErrors(IStrategoTerm top) {
-		try {
-			errorReports.clear();
-			offset = 0;
-			reportSkippedFragments(inputChars, tokenizer);
-			ATermAppl asfix = termAt(top, 0);
-			reportRecoveredErrors(tokenizer, asfix, 0, 0);
-		} catch (RuntimeException e) {
-			reportError(tokenizer, e);
+		errorReports.clear();
+		ITokenizer tokenizer = getTokenizer(top);
+		for (int i = 0, max = tokenizer.getTokenCount(); i < max; i++) {
+			IToken token = tokenizer.getTokenAt(i);
+			String error = token.getError();
+			if (error != null) {
+				if (error == ITokenizer.ERROR_SKIPPED_REGION) {
+					// Find all tokens spanning this region
+					i = findRightMostWithSameError(token);
+					reportSkippedRegion(token, tokenizer.getTokenAt(i));
+				} else if (error.startsWith(ITokenizer.ERROR_WARNING_PREFIX)) {
+					// Find all tokens spanning this deprecation warning
+					i = findRightMostWithSameError(token);
+					reportWarningAtTokens(token, tokenizer.getTokenAt(i), error);
+				} else {
+					reportErrorNearOffset(tokenizer, token.getStartOffset(), error);
+				}
+			}
 		}
+		gatherAmbiguities(top);
+	}
+
+	private static int findRightMostWithSameError(IToken token) {
+		String error = token.getError();
+		ITokenizer tokenizer = token.getTokenizer();
+		int i = token.getIndex();
+		for (int max = tokenizer.getTokenCount(); i + 1 < max; i++) {
+			if (tokenizer.getTokenAt(i + 1).getError() != error)
+				break;
+		}
+		return i;
+	}
+
+    /**
+     * Report recoverable errors (e.g., inserted brackets).
+     * 
+	 * @param outerBeginOffset  The begin offset of the enclosing construct.
+     */
+	private void gatherAmbiguities(IStrategoTerm term) {
+		new TermVisitor() {
+			IStrategoTerm ambStart;
+			
+			public void preVisit(IStrategoTerm term) {
+				if (ambStart == null && ambCons == tryGetConstructor(term)) {
+					reportAmbiguity(term);
+					ambStart = term;
+				}
+			}
+			
+			@Override
+			public void postVisit(IStrategoTerm term) {
+				if (term == ambStart) ambStart = null;
+			}
+		}.visit(term);
 	}
 	
+	private void reportAmbiguity(IStrategoTerm amb) {
+		reportWarningAtTokens(getLeftToken(amb), getRightToken(amb),
+				"Fragment is ambiguous: " + ambToString(amb));
+	}
+
+	private String ambToString(IStrategoTerm amb) {
+		String result = amb.toString();
+		
+		if (!Environment.getStrategoLock().isHeldByCurrentThread()) {
+			// ^ avoid potential deadlock (occurs when parsing a file for the first time, when it's probably safe)
+			synchronized (ParseErrorHandler.class) {
+				Environment.getStrategoLock().lock();
+				try {
+					if (asyncAmbReportingContext == null) {
+						Context context = new Context();
+						asyncAmbReportingContext = stratego_sglr.init(context);
+						stratego_aterm.init(asyncAmbReportingContext);
+						sdf2imp.init(asyncAmbReportingContext);
+					}
+
+					IStrategoTerm message = simplify_ambiguity_report_0_0.instance.invoke(asyncAmbReportingContext, amb);
+					if (message != null)
+						result = asJavaString(message);
+				} finally {
+					Environment.getStrategoLock().unlock();
+				}
+			}
+		}
+		
+		return result.length() > 5000 ? result : result.substring(0, 5000) + "...";
+	}
+
+	private void reportSkippedRegion(IToken left, IToken right) {
+		// Find a parse failure(s) in the given token range
+		int line = left.getLine();
+		int endLine = right.getLine() + RegionRecovery.NR_OF_LINES_TILL_SUCCESS;
+		int reportedLine = -1;
+		for (BadTokenException e : source.getParser().getParser().getCollectedErrors()) {
+			if (e.getLineNumber() >= line && e.getLineNumber() <= endLine) {
+				reportException(left.getTokenizer(), e); // use double dispatch
+				if (reportedLine == -1)
+					reportedLine = e.getLineNumber();
+			}
+		}
+		if (reportedLine == -1) {
+			// Report entire region
+			reportErrorAtTokens(left, right, ITokenizer.ERROR_SKIPPED_REGION);
+		} else if (reportedLine - line >= LARGE_REGION_SIZE) {
+			// Warn at start of region
+			reportErrorAtTokens(findLeftMostTokenOnSameLine(left),
+					findRightMostTokenOnSameLine(left), LARGE_REGION_START);
+		}
+	}
+
 	/**
 	 * @see AstMessageHandler#commitDeletions()
 	 */
@@ -243,264 +310,91 @@ public class ParseErrorHandler {
 	public void abortScheduledCommit() {
 		additionsVersionId++;
 	}
-
-    /**
-     * Report recoverable errors (e.g., inserted brackets).
-     * 
-	 * @param outerBeginOffset  The begin offset of the enclosing construct.
-     */
-	private void reportRecoveredErrors(ITokenizer tokenizer, ATermAppl term, int outerStartOffset, int outerStartOffset2) {
-		// TODO: Nicer error messages; merge consecutive error tokens etc.
-		int startOffset = offset;
 		
-		if ("amb".equals(term.getIStrategoConstructor().getName())) {
-			// Report errors in first ambiguous branch and update offset
-			IStrategoList ambs = termAt(term, 0);
-			reportRecoveredErrors(tokenizer, (ATermAppl) ambs.head(), startOffset, outerStartOffset);
-			
-			reportAmbiguity(tokenizer, term, startOffset);
-			return;
-		}
-		
-		ATermAppl prod = termAt(term, 0);
-		ATermAppl rhs = termAt(prod, 1);
-		ATermAppl attrs = termAt(prod, 2);
-		IStrategoList contents = termAt(term, 1);
-		boolean lexicalStart = false;
-		
-		if (!inLexicalContext && AsfixAnalyzer.isLexicalNode(rhs) || AsfixAnalyzer.isVariableNode(rhs)) {
-			inLexicalContext = lexicalStart = true;
-		}
-		
-		// Recursively visit the subtree and update the offset
-		for (int i = 0; i < contents.getLength(); i++) {
-			IStrategoTerm child = contents.elementAt(i);
-			if (child.getType() == IStrategoTerm.INT) {
-				offset += 1;				
-			} else {
-				reportRecoveredErrors(tokenizer, (ATermAppl) child, startOffset, outerStartOffset);
-			}
-		}
-		
-		//post visit: report error
-		String cons = prodReader.getConsAttribute(attrs);
-		if (WATER.equals(cons)
-				|| prodReader.getAttribute(attrs, "reject") != null) {
-			IToken token = tokenizer.makeErrorToken(startOffset, offset - 1);
-			tokenizer.changeTokenKinds(startOffset, offset - 1, IToken.TK_LAYOUT, IToken.TK_ERROR);
-			reportErrorAtTokens(token, token, UNEXPECTED_TOKEN_PREFIX + token + UNEXPECTED_TOKEN_POSTFIX);
-		} else if (INSERT_END.equals(cons)) {
-			IToken token = tokenizer.makeErrorToken(startOffset, offset - 1);
-			tokenizer.changeTokenKinds(startOffset, offset - 1, IToken.TK_LAYOUT, IToken.TK_ERROR);
-			reportErrorAtTokens(token, token, "Syntax error, closing of '" + token + "' is expected here");
-		} else if (INSERT.equals(cons)
-				|| (prodReader.getAttribute(attrs, "recover") != null
-				    && !prodReader.getSort(rhs).startsWith(WATER))) {
-			IToken token = tokenizer.makeErrorTokenSkipLayout(startOffset, offset, outerStartOffset2);
-			String inserted;
-			if (rhs.getName().equals("lit")) {
-				inserted = applAt(rhs, 0).getName();
-			} else if (rhs.getName().equals("char-class")) {
-				inserted = tokenKindToString(listAt(rhs, 0));
-			} else {
-				inserted = prodReader.getSort(rhs);
-				if (inserted == null)
-					inserted = "token";
-			}
-			if (token.getLine() == tokenizer.getLexStream().getLine(outerStartOffset2) && !token.toString().equals(inserted)) {
-				reportErrorAtTokens(token, token, "Syntax error, expected: '" + inserted + "'");
-			} else {
-				// Had to backtrack to the last token of the current line,
-				// (or reporting a missing } at another })
-				reportErrorAtTokens(token, token, "Syntax error, insert '" + inserted + "' to complete construct");
-			}
-		} else if (getDeprecatedProductionMessage(attrs) != null) {
-			IToken token = tokenizer.makeErrorToken(startOffset, offset - 1);
-			reportWarningAtTokens(token, token, getDeprecatedProductionMessage(attrs));
-		}
-		
-		if (lexicalStart) inLexicalContext = false;
-	}
-	
-	private static String toString(IStrategoList chars) {
-		// TODO: move to SSL_implode_string.call() ?
-        StringBuilder result = new StringBuilder(chars.getLength());
-
-        while (chars.head() != null) {
-        	ATermInt v = (ATermInt) chars.head();
-            result.append((char) v.getInt());
-            chars = chars.tail();
-        }
-        
-        return result.toString();
-    }
-	
-	private void reportAmbiguity(ITokenizer tokenizer, ATermAppl amb, int startOffset) {
-		if (!inLexicalContext) {
-			IToken token = tokenizer.makeErrorToken(startOffset, offset - 1);
-			reportWarningAtTokens(token, token, "Fragment is ambiguous: " + ambToString(amb));
-		}
-	}
-
-	private String ambToString(ATermAppl amb) {
-		if (asyncAmbReportingContext == null) {
-			Context context = new Context();
-			context.getCompatManager().setATermFactory(Environment.getATermFactory());
-			asyncAmbReportingContext = stratego_sglr.init(context);
-			stratego_aterm.init(asyncAmbReportingContext);
-			sdf2imp.init(asyncAmbReportingContext);
-		}
-
-		if (Environment.getStrategoLock().isHeldByCurrentThread()) {
-			// Potential deadlock (occurs when parsing a file for the first time, when it's probably safe)
-			return amb.toString();
-		}
-		
-		synchronized (asyncAmbReportingContext) {
-			ITermFactory factory = asyncAmbReportingContext.getFactory();
-			IStrategoTerm result;
-			
-			Environment.getStrategoLock().lock();
-			try {
-				result = TermConverter.convert(factory, Environment.getATermConverter().convert(amb));
-			} finally {
-				Environment.getStrategoLock().unlock();
-			}
-			
-			result = factory.makeAppl(factory.makeConstructor("parsetree", 2), result, factory.makeInt(2));
-			result = implode_asfix_0_0.instance.invoke(asyncAmbReportingContext, result);
-			return ambToSimplifiedString(result);
-		}
-	}
-	
-	private static String ambToSimplifiedString(IStrategoTerm amb) {
-		assert Thread.holdsLock(asyncAmbReportingContext);
-		
-		IStrategoTerm message = simplify_ambiguity_report_0_0.instance.invoke(asyncAmbReportingContext, amb);
-		return message == null ? amb.toString() : ((IStrategoString) message).stringValue();
-	}
-	
-	private void reportSkippedFragments(char[] inputChars, ITokenizer tokenizer) {
-		char[] processedChars = tokenizer.getLexStream().getInputChars();
-
-		for (int i = 0; i < processedChars.length; i++) {
-			char c = processedChars[i];
-			if (c == SKIPPED_CHAR) {
-				// Recovered by skipping a region
-				int beginSkipped = i;
-				int endSkipped = i;
-				processedChars[i] = inputChars[i]; // restore input char
-				while (++i < processedChars.length) {
-					c = processedChars[i];
-					if (c == SKIPPED_CHAR) {
-						endSkipped = i;
-						processedChars[i] = inputChars[i]; // restore input char
-					} else if (!RecoveryConnector.isLayoutCharacter(c)) {
-						break;
-					}
-				}
-				reportSkippedFragment(inputChars, tokenizer, beginSkipped, endSkipped);
-			} else if (c == UNEXPECTED_EOF_CHAR) {
-				// Recovered using a forced reduction
-				IToken token = tokenizer.makeErrorTokenBackwards(i);
-				if (token.getStartOffset() == 0) break; // be less complainy about single-token files
-				reportErrorAtTokens(token, token, "End of file unexpected");
-			}
-		}
-		
-		// Report forced reductions
-		int treeEnd = tokenizer.getTokenAt(tokenizer.getTokenCount() - 1).getEndOffset();
-		if (treeEnd < processedChars.length) {
-			IToken token = tokenizer.makeErrorToken(treeEnd + 1, processedChars.length);
-			reportErrorAtTokens(token, token, "Could not parse the remainder of this file");
-			tokenizer.changeTokenKinds(treeEnd + 1, processedChars.length, IToken.TK_LAYOUT, IToken.TK_ERROR);
-		}
-	}
-
-	private void reportSkippedFragment(char[] inputChars, ITokenizer tokenizer, int beginSkipped, int endSkipped) {
-		IToken token = tokenizer.makeErrorToken(beginSkipped, endSkipped);
-		int line = token.getLine();
-		int endLine = token.getEndLine() + RegionRecovery.NR_OF_LINES_TILL_SUCCESS;
-		int reportedLine = -1;
-		for (BadTokenException e : source.getParser().getParser().getCollectedErrors()) {
-			if (e.getLineNumber() >= line && e.getLineNumber() <= endLine) {
-				// tokenizer.getLexStream().getInputChars() may contain SKIPPED_CHAR characters,
-				// so we switch it with inputChars
-				char[] processedChars = tokenizer.getLexStream().getInputChars();
-				tokenizer.getLexStream().setInputChars(inputChars);
-				reportError(tokenizer, (Exception) e); // use double dispatch
-				tokenizer.getLexStream().setInputChars(processedChars);
-				if (reportedLine == -1)
-					reportedLine = e.getLineNumber();
-			}
-		}
-		tokenizer.changeTokenKinds(beginSkipped, endSkipped, IToken.TK_LAYOUT, IToken.TK_ERROR);
-		if (reportedLine == -1) {
-			// Report entire region
-			reportErrorAtTokens(token, token, UNEXPECTED_REGION);
-		} else if (reportedLine - line >= LARGE_REGION_SIZE) {
-			IToken firstToken = token.getTokenizer().getTokenAt(beginSkipped);
-			IToken lastToken = tokenizer.getLastTokenOnSameLine(firstToken);
-			reportErrorAtTokens(firstToken, lastToken, LARGE_REGION_START);
-		}
-	}
-		
-	public void reportError(ITokenizer tokenizer, TokenExpectedException exception) {
+	private void reportTokenExpected(ITokenizer tokenizer, TokenExpectedException exception) {
 		String message = exception.getShortMessage();
-		IToken token = tokenizer.makeErrorToken(exception.getOffset());
-		
-		reportErrorAtTokens(token, token, message);
+		reportErrorNearOffset(tokenizer, exception.getOffset(), message);
 	}
 	
-	public void reportError(ITokenizer tokenizer, BadTokenException exception) {
-		IToken token = tokenizer.makeErrorToken(exception.getOffset());
+	private void reportBadToken(ITokenizer tokenizer, BadTokenException exception) {
 		String message = exception.isEOFToken()
 			? exception.getShortMessage()
-			: "Syntax error near unexpected token '" + token + "'";
-		reportErrorAtTokens(token, token, message);
+			: ITokenizer.ERROR_WATER_PREFIX + ": " + findNextNonEmptyToken(tokenizer.getTokenAtOffset(exception.getOffset()));
+		reportErrorNearOffset(tokenizer, exception.getOffset(), message);
 	}
 	
-	public void reportError(ITokenizer tokenizer, MultiBadTokenException exception) {
+	private void reportMultiBadToken(ITokenizer tokenizer, MultiBadTokenException exception) {
 		for (BadTokenException e : exception.getCauses()) {
-			reportError(tokenizer, (Exception) e); // use double dispatch
+			reportException(tokenizer, e); // use double dispatch
 		}
 	}
 	
-	public void reportError(ITokenizer tokenizer, ParseTimeoutException exception) {
+	private void reportTimeOut(ITokenizer tokenizer, ParseTimeoutException exception) {
 		String message = "Internal parsing error: " + exception.getMessage();
 		reportErrorAtFirstLine(message);
-		reportError(tokenizer, (MultiBadTokenException) exception);
-		reportCollectedErrorsDirectly(tokenizer);
+		reportMultiBadToken(tokenizer, exception);
+		reportAllParseFailures(tokenizer);
 		setRushNextUpdate(true);
 	}
 	
-	private void reportCollectedErrorsDirectly(ITokenizer tokenizer) {
+	private void reportAllParseFailures(ITokenizer tokenizer) {
 		for (BadTokenException e : source.getParser().getParser().getCollectedErrors()) {
 			// tokenizer.getLexStream().getInputChars() may contain SKIPPED_CHAR characters,
 			// so we have to use the message provided by the exceptions directly
-			IToken token = tokenizer.makeErrorToken(e.getOffset());
 			String message = e.getMessage();
-			reportErrorAtTokens(token, token, message);
+			reportErrorNearOffset(tokenizer, e.getOffset(), message);
 		}
 	}
-	 
-	public void reportError(ITokenizer tokenizer, Exception exception) {
+
+	public void reportException(ITokenizer tokenizer, Exception exception) {
 		try {
 			throw exception;
 		} catch (ParseTimeoutException e) {
-			reportError(tokenizer, (ParseTimeoutException) exception);
+			reportTimeOut(tokenizer, (ParseTimeoutException) exception);
 		} catch (TokenExpectedException e) {
-			reportError(tokenizer, (TokenExpectedException) exception);
+			reportTokenExpected(tokenizer, (TokenExpectedException) exception);
 		} catch (MultiBadTokenException e) {
-			reportError(tokenizer, (MultiBadTokenException) exception);
+			reportMultiBadToken(tokenizer, (MultiBadTokenException) exception);
 		} catch (BadTokenException e) {
-			reportError(tokenizer, (BadTokenException) exception);
+			reportBadToken(tokenizer, (BadTokenException) exception);
 		} catch (Exception e) {
 			String message = "Internal parsing error: " + exception;
 			Environment.logException("Internal parsing error: " + exception.getMessage(), exception);
 			reportErrorAtFirstLine(message);
-			reportCollectedErrorsDirectly(tokenizer);
+			reportAllParseFailures(tokenizer);
 		}
+	}
+
+	private void reportErrorNearOffset(ITokenizer tokenizer, int offset, String message) {
+		IToken errorToken = findReportableErrorToken(tokenizer.getTokenAtOffset(offset));
+		reportErrorAtTokens(errorToken, errorToken, message);
+	}
+	
+	private static IToken findReportableErrorToken(IToken token) {
+		ITokenizer tokenizer = token.getTokenizer();
+		// Search right
+		for (int i = token.getIndex(), max = tokenizer.getTokenCount(); i < max; i++) {
+			token = tokenizer.getTokenAt(i);
+			if (token.getKind() == TK_EOF) break;
+			if (token.getLength() != 0 && token.getKind() != TK_LAYOUT) return token;
+		}
+		// Search left
+		for (int i = token.getIndex(); i > 0; i--) {
+			token = tokenizer.getTokenAt(i);
+			if (token.getLength() != 0 && token.getKind() != TK_LAYOUT) return token;
+		}
+		// Give up
+		return token;
+	}
+	 
+	private static IToken findNextNonEmptyToken(IToken token) {
+		ITokenizer tokenizer = token.getTokenizer();
+		IToken result = null;
+		for (int i = token.getIndex(), max = tokenizer.getTokenCount(); i < max; i++) {
+			result = tokenizer.getTokenAt(i);
+			if (result.getLength() != 0) break;
+		}
+		return result;
 	}
 	
 	private void reportErrorAtTokens(final IToken left, final IToken right, String message) {
@@ -545,27 +439,5 @@ public class ParseErrorHandler {
 			message2 = "";
 		}
 		return message2;
-	}
-	
-	private static String getDeprecatedProductionMessage(ATermAppl attrs) {
-		if ("attrs".equals(attrs.getName())) {
-			IStrategoList attrList = termAt(attrs, 0);
-			while (!attrList.isEmpty()) {
-				ATermAppl attr = (ATermAppl) attrList.head();
-				attrList = attrList.tail();
-				if (attr.getName().equals("term")) {
-					ATermAppl details = applAt(attr, 0);
-					if (details.getName().equals("deprecated")) {
-						if (details.getChildCount() == 1) {
-							details = termAt(details, 0);
-							return "Deprecated syntactic construct:" + details.getName();
-						} else {
-							return "Deprecated syntactic construct";
-						}
-					}
-				}
-			}
-		}
-		return null;
 	}
 }

@@ -42,6 +42,7 @@ import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
+import org.spoofax.jsglr.client.imploder.Token;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
 import org.strategoxt.imp.runtime.stratego.SourceAttachment;
@@ -173,8 +174,8 @@ public class AstMessageHandler {
 				BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
 				String firstLine = reader.readLine();
 				if (firstLine != null) {
-					IToken errorToken = new SGLRToken(null, 0, firstLine.length(), TK_ERROR);
-					addMarker(file, errorToken, errorToken, message, severity);				
+					IToken errorToken = new Token(null, 0, 0, 0, 0, firstLine.length(), TK_ERROR);
+					addMarker(file, errorToken, errorToken, message, severity);
 				} else {
 					addMarkerNoLocation(file, message, severity);
 				}

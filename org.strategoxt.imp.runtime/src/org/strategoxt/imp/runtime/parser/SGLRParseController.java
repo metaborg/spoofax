@@ -412,7 +412,7 @@ public class SGLRParseController implements IParseController {
 	private void reportException(ParseErrorHandler errorHandler, Exception e) {
 		errorHandler.clearErrors();
 		errorHandler.setRecoveryFailed(true);
-		errorHandler.reportError(getCurrentTokenizer(), e);
+		errorHandler.reportException(getCurrentTokenizer(), e);
 	}
 
 	private void scheduleObserverUpdate(ParseErrorHandler errorHandler) {
@@ -423,11 +423,11 @@ public class SGLRParseController implements IParseController {
 			if (feedback != null) feedback.scheduleUpdate(this);
 		} catch (BadDescriptorException e) {
 			Environment.logException("Unexpected error during analysis", e);
-			errorHandler.reportError(getCurrentTokenizer(), e);
+			errorHandler.reportException(getCurrentTokenizer(), e);
 			// UNDONE: errorHandler.commitChanges(); (committed by scheduler)
 		} catch (RuntimeException e) {
 			Environment.logException("Unexpected exception during analysis", e);
-			errorHandler.reportError(getCurrentTokenizer(), e);
+			errorHandler.reportException(getCurrentTokenizer(), e);
 			// UNDONE: errorHandler.commitChanges(); (committed by scheduler)
 		}
 	}
