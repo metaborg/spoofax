@@ -348,7 +348,7 @@ public class StrategoBuilder implements IBuilder {
 			ErrorDialog.openError(editor.getEditor().getSite().getShell(),
 					caption, null, status);
 		} catch (RuntimeException e) {
-			Environment.logException("Problem reporting error: " + message);
+			Environment.logException("Problem reporting error: " + message, e);
 		}
 	}
 
