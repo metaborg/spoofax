@@ -90,7 +90,7 @@ public class DescriptorFactory {
 			throws BadDescriptorException, IOException {
 		
 		Debug.startTimer();
-		Descriptor result = parse(descriptor);
+		Descriptor result = parse(descriptor, basePath.toPortableString());
 		result.setBasePath(basePath);
 		Language language = result.getLanguage();
 		
@@ -103,14 +103,14 @@ public class DescriptorFactory {
 		return result;
 	}
 	
-	public static Descriptor parse(InputStream input) throws BadDescriptorException, IOException {
+	public static Descriptor parse(InputStream input, String filename) throws BadDescriptorException, IOException {
 		try {
 			input = new PushbackInputStream(input, 100);
 			
 			IStrategoAppl document = tryReadTerm((PushbackInputStream) input);
 			if (document == null) {
 				init();
-				document = (IStrategoAppl) descriptorParser.parse(input, "(descriptor)").getTerm();
+				document = (IStrategoAppl) descriptorParser.parse(input, filename).getTerm();
 			}
 			return new Descriptor(document);
 		} catch (SGLRException e) {
