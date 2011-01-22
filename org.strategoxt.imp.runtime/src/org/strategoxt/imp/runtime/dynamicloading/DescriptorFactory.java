@@ -90,7 +90,7 @@ public class DescriptorFactory {
 			throws BadDescriptorException, IOException {
 		
 		Debug.startTimer();
-		Descriptor result = parse(descriptor, basePath.toPortableString());
+		Descriptor result = parse(descriptor, basePath == null ? null : basePath.toPortableString());
 		result.setBasePath(basePath);
 		Language language = result.getLanguage();
 		
