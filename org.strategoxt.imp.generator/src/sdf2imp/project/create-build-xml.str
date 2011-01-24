@@ -335,6 +335,8 @@ strategies
                 <arg value="org.strategoxt.tools.main-ppgen"/>
                 <arg value="-i"/>
                 <arg value="${include}/${sdfmodule}.def"/>
+                <arg value="-t"/>
+                <arg value="-b"/>
                 <arg value="-o"/>
                 <arg value="${include}/${sdfmodule}.generated.pp.af"/>
             </java>
@@ -514,7 +516,8 @@ strategies
         
         <target name="clean" description="clean up">
             <delete dir="${build}"/>
-            <delete file="${src-gen}/trans/Main.java"/>
+            <delete file="${include}/${sdfmodule}.def"/>
+            <delete dir="${src-gen}/trans"/>
         </target>
     </project>
     <%

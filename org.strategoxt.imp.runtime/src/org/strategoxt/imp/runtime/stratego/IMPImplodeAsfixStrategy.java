@@ -61,14 +61,23 @@ public class IMPImplodeAsfixStrategy extends implode_asfix_1_0 {
 		SGLRTokenizer tokenizer = mappings.getTokenizer(asfix);
 		
 		if (inputChars == null || asfix == null) {
-			Environment.logException("Could not find origin term for asfix tree (did it change after parsing?)");
+			// HACK: stfu
+			boolean silent = false;
+			try {
+				silent = "Spoofax-Testing".equals(((EditorIOAgent) context.getIOAgent()).getDescriptor().getLanguage().getName());
+			} catch (BadDescriptorException e) {
+				// Ignore
+			}
+			if (!silent)
+				Environment.logWarning("Could not find origin term for asfix tree (did it change after parsing?)");
 			return outer.invoke(context, asfix, implodeConcreteSyntax);
 		}
 		
 		IStrategoTerm result = imploder.implode(asfixIStrategoTerm, tokenizer);
-		IResource resource;
+		IResource resource = null;
 		try {
-			resource = EditorIOAgent.getResource(inputFile);
+			if (inputFile != null)
+				resource = EditorIOAgent.getResource(inputFile);
 		} catch (FileNotFoundException e) {
 			resource = null;
 		}
