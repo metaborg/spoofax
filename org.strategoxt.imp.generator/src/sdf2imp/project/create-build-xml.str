@@ -516,7 +516,8 @@ strategies
         
         <target name="clean" description="clean up">
             <delete dir="${build}"/>
-            <delete file="${src-gen}/trans/Main.java"/>
+            <delete file="${include}/${sdfmodule}.def"/>
+            <delete dir="${src-gen}/trans"/>
         </target>
     </project>
     <%
