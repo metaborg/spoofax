@@ -2,9 +2,12 @@ package org.strategoxt.imp.runtime.stratego;
 
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getTokenizer;
+import static org.spoofax.terms.Term.isTermList;
+import static org.spoofax.terms.attachments.ParentAttachment.getParent;
 
 import org.spoofax.interpreter.core.IContext;
-import org.spoofax.interpreter.terms.ISimpleTerm;
+import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.imploder.IToken;
@@ -27,7 +30,7 @@ public class OriginSeparatorPrimitive extends AbstractOriginPrimitive {
 	 */
 	@Override
 	protected IStrategoTerm call(IContext env, IStrategoTerm origin) {
-		ISimpleTerm originNode=origin.getNode();
+		IStrategoTerm originNode=origin;
 		StrategoSubList sublist;
 		IStrategoTerm left;
 		IStrategoTerm right;
@@ -35,12 +38,12 @@ public class OriginSeparatorPrimitive extends AbstractOriginPrimitive {
 			sublist = (StrategoSubList) originNode;							
 		}
 		else{
-			ISimpleTerm parent = origin.getNode().getParent();
-			if(!(isTermList(parent)))
+			IStrategoTerm parent = getParent(origin);
+			if(parent == null || !isTermList(parent))
 				return null;
-			sublist = StrategoSubList.createSublist((ListAstNode) parent, originNode, originNode, true);
+			sublist = StrategoSubList.createSublist((IStrategoList) parent, originNode, originNode, true);
 		}
-		ListAstNode list = sublist.getCompleteList();
+		IStrategoList list = sublist.getCompleteList();
 		int lastIndexList = list.getSubtermCount()-1;
 		if(sublist.getIndexEnd() < lastIndexList){
 			left = sublist.getLastChild();
@@ -68,7 +71,7 @@ public class OriginSeparatorPrimitive extends AbstractOriginPrimitive {
 			}
 			loopIndex++;
 		}
-		ILexStream lex = getLeftToken(originNode).getInput();
+		ITokenizer lex = getTokenizer(originNode);
 		if(startSeparation!=-1){
 			ITermFactory factory = env.getFactory();
 			return factory.makeTuple(

@@ -1,5 +1,7 @@
 package org.strategoxt.imp.runtime.stratego;
 
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getTokenizer;
+
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.stratego.DocumentStructure.TextFragment;
@@ -20,7 +22,7 @@ public class OriginCommentBeforePrimitive extends AbstractOriginPrimitive {
 		TextFragment commentBlock=loStructure.getCommentsBefore();
 		if(commentBlock==null)
 			return null;
-		ILexStream lexStream=origin.getNode().getLeftToken().getInput();
+		String lexStream=getTokenizer(origin).getInput();
 		return env.getFactory().makeTuple(
 				env.getFactory().makeInt(commentBlock.getStart()),
 				env.getFactory().makeInt(commentBlock.getEnd()),

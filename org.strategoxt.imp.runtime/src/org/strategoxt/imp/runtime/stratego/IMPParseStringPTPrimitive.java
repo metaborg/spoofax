@@ -13,7 +13,6 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.Disambiguator;
 import org.spoofax.jsglr.client.ParseTable;
 import org.spoofax.jsglr.shared.SGLRException;
-import org.spoofax.terms.LazyTerm;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.JSGLRI;
 import org.strategoxt.imp.runtime.stratego.SourceMappings.MappableTerm;
@@ -32,9 +31,9 @@ public class IMPParseStringPTPrimitive extends JSGLR_parse_string_pt_compat {
 	private Map<ParseTable, Object> isNoRecoveryWarned =
 		new WeakHashMap<ParseTable, Object>();
 
-	protected IMPParseStringPTPrimitive(ATermFactory atermFactory, Disambiguator filterSettings, 
+	protected IMPParseStringPTPrimitive(Disambiguator filterSettings, 
 			AtomicBoolean recoveryEnabled, SourceMappings mappings) {
-		super(atermFactory, filterSettings, recoveryEnabled);
+		super(filterSettings, recoveryEnabled);
 		this.mappings = mappings;
 	}
 
@@ -51,7 +50,8 @@ public class IMPParseStringPTPrimitive extends JSGLR_parse_string_pt_compat {
 		String path = getLastPath();		
 		JSGLRI parser = new JSGLRI(table, startSymbol);
 		parser.setUseRecovery(isRecoveryEnabled());
-		if (!parser.getParseTable().hasRecovers())
+		parser.setImplodeEnabled(false);
+		if (!parser.getParseTable().hasRecovers()) {
 			assert table.hashCode() == System.identityHashCode(table);
 			if (!isNoRecoveryWarned.containsKey(table)) {
 				Environment.logWarning("No recovery rules available in parse table for " + NAME);
@@ -59,23 +59,16 @@ public class IMPParseStringPTPrimitive extends JSGLR_parse_string_pt_compat {
 			}
 		}
 		
-		final IStrategoTerm asfix = parser.parseNoImplode(input, path);
-		MappableTerm result = new MappableTerm(new LazyTerm() {
-			@Override
-			protected IStrategoTerm init() {
-				Environment.logWarning("Parse tree was converted to StrategoTerm format");
-				return Environment.getATermConverter().convert(asfix);
-			}
-		});
+		final IStrategoTerm asfix = parser.parse(input, path);
+		MappableTerm result = new MappableTerm(asfix);
 
 		File inputFile = mappings.getInputFile(inputTerm);
 		if (inputFile == null)
 			Environment.logWarning("Could not determine original file name for parsed string");
 		
 		mappings.putInputTerm(result, asfix);
-		mappings.putInputChars(result, inputChars);
+		mappings.putInputString(result, input);
 		mappings.putInputFileForTree(result, inputFile);
-		mappings.putTokenizer(result, parser.getCurrentTokenizer());
 		
 		return result;
 	}

@@ -1,6 +1,7 @@
 package org.strategoxt.imp.runtime.dynamicloading;
 
 import static org.spoofax.interpreter.core.Tools.termAt;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getFilename;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.collectTerms;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.concatTermStrings;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.cons;
@@ -432,8 +433,11 @@ public class Descriptor {
 
 	protected String getProperty(String name) throws BadDescriptorException {
 		String result = getProperty(name, null);
-		if (result == null)
-			throw new BadDescriptorException("Property " + name + " not specified");
+		if (result == null) {
+			String filename = getFilename(document);
+			String context = filename == null ? "" : " in " + filename;
+			throw new BadDescriptorException("Property " + name + " not specified" + context);
+		}
 		return result;
 	}
 
@@ -459,7 +463,7 @@ public class Descriptor {
 
 		String[] results = new String[list.size()];
 		for (int i = 0; i < results.length; i++)
-			results[i] = termContents(list.get(i));
+			results[i] = termContents(list.getSubterm(i));
 		
 		return results;
 	}

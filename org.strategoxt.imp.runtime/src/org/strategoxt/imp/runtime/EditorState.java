@@ -26,7 +26,6 @@ import org.spoofax.jsglr.client.imploder.ITokenizer;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.dynamicloading.DynamicParseController;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
-import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 
 /**
@@ -189,8 +188,8 @@ public class EditorState {
 		while ((end.getKind() == layout || end.getKind() == eof) && end.getIndex() > 0)
 			end = tokens.getTokenAt(end.getIndex() - 1);
 		
-		IStrategoTerm startNode = ((SGLRToken) start).getAstNode();
-		IStrategoTerm endNode = ((SGLRToken) end).getAstNode();
+		IStrategoTerm startNode = (IStrategoTerm) start.getAstNode();
+		IStrategoTerm endNode = (IStrategoTerm) end.getAstNode();
 
 		return StrategoTermPath.findCommonAncestor(startNode, endNode);
 	}

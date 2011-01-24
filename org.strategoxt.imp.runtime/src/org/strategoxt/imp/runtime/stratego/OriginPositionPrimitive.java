@@ -1,5 +1,7 @@
 package org.strategoxt.imp.runtime.stratego;
 
+import static org.spoofax.terms.attachments.ParentAttachment.getParent;
+
 import java.util.List;
 
 import org.spoofax.interpreter.core.IContext;
@@ -21,14 +23,14 @@ public class OriginPositionPrimitive extends AbstractOriginPrimitive {
 	@Override
 	protected IStrategoTerm call(IContext env, IStrategoTerm origin) {
 		IStrategoList pos;
-		ISimpleTerm parent = origin.getNode().getParent();
-		if(parent instanceof StrategoSubList){
-			List<Integer> posSublistElement = StrategoTermPath.createPathList(origin.getNode());
+		ISimpleTerm parent = getParent(origin);
+		if (parent instanceof StrategoSubList) {
+			List<Integer> posSublistElement = StrategoTermPath.createPathList(origin);
 			int posInCompleteList = ((StrategoSubList)parent).getIndexStart() + posSublistElement.get(posSublistElement.size()-1);
 			pos=createPathToSublistChild((StrategoSubList)parent, posInCompleteList);
 		}
 		else{
-			pos=StrategoTermPath.createPath(origin.getNode());
+			pos=StrategoTermPath.createPath(origin);
 		}
 		return pos;
 	}

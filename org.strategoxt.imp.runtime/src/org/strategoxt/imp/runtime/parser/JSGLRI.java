@@ -4,9 +4,11 @@ import java.io.File;
 import java.io.IOException;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.jsglr.client.Asfix2TreeBuilder;
 import org.spoofax.jsglr.client.Disambiguator;
 import org.spoofax.jsglr.client.FilterException;
 import org.spoofax.jsglr.client.ParseTable;
+import org.spoofax.jsglr.client.imploder.TreeBuilder;
 import org.spoofax.jsglr.io.SGLR;
 import org.spoofax.jsglr.shared.BadTokenException;
 import org.spoofax.jsglr.shared.SGLRException;
@@ -102,10 +104,14 @@ public class JSGLRI extends AbstractSGLRI {
 		if (disambiguator != null) parser.setDisambiguator(disambiguator);
 		else disambiguator = parser.getDisambiguator();
 		setUseRecovery(useRecovery);
+		if (!isImplodeEnabled())
+			parser.setTreeBuilder(new Asfix2TreeBuilder(Environment.getTermFactory()));
+		else
+			assert parser.getTreeBuilder() instanceof TreeBuilder;
 	}
 	
 	@Override
-	protected IStrategoTerm doParseAndImplode(String input, String filename)
+	protected IStrategoTerm doParse(String input, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 		
 		// Read stream using tokenizer/lexstream

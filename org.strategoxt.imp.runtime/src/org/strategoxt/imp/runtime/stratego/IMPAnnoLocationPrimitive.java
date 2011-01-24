@@ -9,7 +9,6 @@ import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.stratego.SourceMappings.MappableTerm;
 import org.strategoxt.lang.compat.sglr.STRSGLR_anno_location;
 
@@ -37,19 +36,17 @@ public class IMPAnnoLocationPrimitive extends STRSGLR_anno_location {
 		MappableTerm newAsfix = new MappableTerm(env.current());
 		env.setCurrent(newAsfix);
 		
-		char[] oldChars = mappings.getInputChars(oldAsfix);
+		String oldChars = mappings.getInputString(oldAsfix);
 		if (oldChars == null)
 			return true;
 
-		IStrategoTerm newAsfixTerm = Environment.getATermConverter().convert(newAsfix);
-		File inputFile = oldAsfix instanceof IStrategoAppl
+		File inputFile = isTermAppl(oldAsfix)
 			? mappings.getInputFile((IStrategoAppl) oldAsfix)
 			: null;
-		mappings.putInputChars(newAsfix, oldChars);
-		mappings.putInputTerm(newAsfix, newAsfixTerm);
+		mappings.putInputString(newAsfix, oldChars);
+		mappings.putInputTerm(newAsfix, newAsfix);
 		if (isTermAppl(newAsfix))
 			mappings.putInputFileForTree(newAsfix, inputFile);
-		mappings.putTokenizer(newAsfix, mappings.getTokenizer(oldAsfix));
 		
 		return true;
 	}

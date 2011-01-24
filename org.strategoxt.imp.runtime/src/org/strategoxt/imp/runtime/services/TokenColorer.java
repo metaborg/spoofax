@@ -3,6 +3,7 @@ package org.strategoxt.imp.runtime.services;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getSort;
 import static org.spoofax.terms.Term.tryGetConstructor;
+import static org.spoofax.terms.Term.tryGetName;
 import static org.spoofax.terms.attachments.ParentAttachment.getParent;
 
 import java.util.List;
@@ -14,23 +15,20 @@ import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.swt.graphics.Color;
 import org.spoofax.interpreter.terms.ISimpleTerm;
-import org.spoofax.jsglr.client.KeywordRecognizer;
+import org.spoofax.interpreter.terms.IStrategoConstructor;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.IToken;
+import org.spoofax.jsglr.client.imploder.Token;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
-import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class TokenColorer implements ITokenColorer {
 	
-	private final SGLRParseController controller;
-	
 	private final List<TextAttributeMapping> envMappings, nodeMappings, tokenMappings;
-	
-	private KeywordRecognizer keywordRecognizer;
 	
 	private boolean isLazyColorsInited;
 	
@@ -52,7 +50,6 @@ public class TokenColorer implements ITokenColorer {
 			List<TextAttributeMapping> nodeMappings,
 			List<TextAttributeMapping> tokenMappings) {
 		
-		this.controller = controller;
 		this.tokenMappings = tokenMappings;
 		this.nodeMappings = nodeMappings;
 		this.envMappings = envMappings;
@@ -88,8 +85,8 @@ public class TokenColorer implements ITokenColorer {
 	}
 
 	public TextAttribute getColoring(IParseController controller, Object oToken) {
-		SGLRToken token = (SGLRToken) oToken;
-		IStrategoTerm node = token.getAstNode();
+		IToken token = (IToken) oToken;
+		IStrategoTerm node = (IStrategoTerm) token.getAstNode();
 		TextAttribute nodeColor = null;
 		int tokenKind = token.getKind();
 		
@@ -100,13 +97,13 @@ public class TokenColorer implements ITokenColorer {
 		}
 		
 		String sort = node == null ? null : getSort(node);
-		String constructor = tryGetConstructor(node);
+		String constructor = tryGetName(node);
 		
-		if (tokenKind == IToken.TK_LAYOUT && SGLRToken.isWhiteSpace(token)) {
+		if ((tokenKind == IToken.TK_LAYOUT || tokenKind == IToken.TK_ERROR_LAYOUT) && Token.isWhiteSpace(token)) {
 			// Don't treat whitespace layout as comments, to avoid italics in text that
 			// was just typed in
 			tokenKind = IToken.TK_UNKNOWN;
-		} else if (tokenKind == IToken.TK_ERROR && isKeyword(token)) {
+		} else if (tokenKind == IToken.TK_ERROR_LAYOUT) {
 			tokenKind = IToken.TK_KEYWORD;
 		}
 		 
@@ -126,13 +123,6 @@ public class TokenColorer implements ITokenColorer {
 		if (result == null) return null;
 		else return noWhitespaceBackground(result, token, tokenKind);
 	}
-	
-	private boolean isKeyword(IToken token) {
-		if (keywordRecognizer == null)
-			keywordRecognizer = KeywordRecognizer.create(Environment.getDescriptor(controller.getLanguage()));
-		String tokenString = token.toString().trim();
-		return keywordRecognizer.isKeyword(tokenString);
-	}
 
 	private TextAttribute getColoring(List<TextAttributeMapping> mappings, String constructor, String sort, int tokenKind) {
 		for (TextAttributeMapping mapping : mappings) {
@@ -151,7 +141,8 @@ public class TokenColorer implements ITokenColorer {
 		while (getParent(node) != null && (envColor == null || hasBlankFields(attribute))) {
 			node = getParent(node);
 			String sort = getSort(node);
-			String constructor = node.getConstructor();
+			IStrategoConstructor termCons = tryGetConstructor((IStrategoTerm) node);
+			String constructor = termCons == null ? null : termCons.getName();
 
 			envColor = getColoring(envMappings, constructor, sort, tokenKind);
 			attribute = mergeStyles(envColor, attribute);
@@ -186,7 +177,7 @@ public class TokenColorer implements ITokenColorer {
 		if (attribute.getBackground() == null) {
 			// _lastBackground = WHITE;
 			return attribute;
-		} else if (tokenKind == IToken.TK_LAYOUT && SGLRToken.indexOf(token, '\n') != -1) {			
+		} else if (tokenKind == IToken.TK_LAYOUT && Token.indexOf(token, '\n') != -1) {			
 			attribute = new TextAttribute(attribute.getForeground(), null, attribute.getStyle());
 		}
 

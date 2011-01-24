@@ -1,7 +1,10 @@
 package org.strategoxt.imp.runtime.stratego;
 
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getTokenizer;
+
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.jsglr.client.imploder.ITokenizer;
 
 /**
  * Returns the file text
@@ -15,8 +18,8 @@ public class OriginSourceTextPrimitive extends AbstractOriginPrimitive {
 
 	@Override
 	protected IStrategoTerm call(IContext env, IStrategoTerm origin) {
-		ILexStream lexStream = origin.getNode().getLeftToken().getInput();
-		String sourcetext=lexStream.toString(0, lexStream.getInput().length()-1);
+		ITokenizer lexStream = getTokenizer(origin);
+		String sourcetext=lexStream.getInput();
 		return env.getFactory().makeString(sourcetext);
 	}
 }

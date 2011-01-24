@@ -7,7 +7,7 @@ package org.strategoxt.imp.runtime.parser.tokens;
  * 
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
-public enum TokenKind {	
+public enum int {	
 	/** Token kind for a generic identifier. */
 	TK_IDENTIFIER,
 	
@@ -42,7 +42,7 @@ public enum TokenKind {
 	
 	TK_NO_TOKEN_KIND;
 	
-	public static TokenKind valueOf(int ordinal) {
+	public static int valueOf(int ordinal) {
 		if (0 <= ordinal && ordinal < values().length)
 			return values()[ordinal];
 		else

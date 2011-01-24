@@ -1,5 +1,6 @@
 package org.strategoxt.imp.runtime.parser.tokens;
 
+/*
 import static org.spoofax.jsglr.client.imploder.IToken.TK_EOF;
 import static org.spoofax.jsglr.client.imploder.IToken.TK_ERROR;
 import static org.spoofax.jsglr.client.imploder.IToken.TK_RESERVED;
@@ -10,11 +11,11 @@ import org.spoofax.jsglr.client.imploder.ITokenizer;
 import org.spoofax.jsglr.client.imploder.Token;
 import org.spoofax.jsglr.client.imploder.Tokenizer;
 
-/**
+/*
  * Wrapper class to add tokens to an LPG PrsStream.
  * 
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
- */
+ *
 public class SGLRTokenizer extends Tokenizer {
 	
 	/*
@@ -70,7 +71,7 @@ public class SGLRTokenizer extends Tokenizer {
 		makeToken(startOffset + 1, TK_EOF, true);
 	}
 	
-	public SGLRToken makeToken(int endOffset, TokenKind kind, boolean allowEmptyToken) {
+	public SGLRToken makeToken(int endOffset, int kind, boolean allowEmptyToken) {
 		if (!allowEmptyToken && startOffset >= endOffset) // empty token
 			return null;
 		
@@ -96,7 +97,7 @@ public class SGLRTokenizer extends Tokenizer {
 	}
 	
 	// Bridge method
-	public final SGLRToken makeToken(int endOffset, TokenKind kind) {
+	public final SGLRToken makeToken(int endOffset, int kind) {
 		return makeToken(endOffset, kind, false);
 	}
 	
@@ -157,7 +158,7 @@ public class SGLRTokenizer extends Tokenizer {
 	/**
 	 * Changes the token kinds of existing tokens.
 	 *
-	public void changeTokenKinds(int beginOffset, int endOffset, TokenKind fromKind, TokenKind toKind) {
+	public void changeTokenKinds(int beginOffset, int endOffset, int fromKind, int toKind) {
 		// FIXME: changeTokenKinds sometimes changes the token kinds of comments just adjacent to erroneous regions
 		//        (not sure if it still does that with the 0.5.1 tokenization changes)
 		int fromOrdinal = fromKind;
@@ -276,5 +277,5 @@ public class SGLRTokenizer extends Tokenizer {
 	public static final String dumpToString(IToken token) {
 		return dumpToString(token, token);
 	}
-	*/
 }
+*/

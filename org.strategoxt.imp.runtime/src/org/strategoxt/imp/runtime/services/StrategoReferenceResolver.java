@@ -2,6 +2,7 @@ package org.strategoxt.imp.runtime.services;
 
 import static org.spoofax.interpreter.core.Tools.isTermString;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getSort;
+import static org.spoofax.terms.Term.tryGetName;
 
 import java.util.List;
 
@@ -38,12 +39,12 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 	}
 
 	public ISimpleTerm getLinkTarget(Object oNode, IParseController parseController) {
-		ISimpleTerm node = StrategoTermPath.getMatchingAncestor((ISimpleTerm) oNode, true);
+		IStrategoTerm node = StrategoTermPath.getMatchingAncestor((IStrategoTerm) oNode, true);
 		
-		String function = NodeMapping.getFirstAttribute(resolverFunctions, node.getConstructor(), getSort(node), 0);
+		String function = NodeMapping.getFirstAttribute(resolverFunctions, tryGetName(node), getSort(node), 0);
 		if (function == null) function = wildcardResolverFunction;
 		if (function == null || function.equals("_")) {
-			Debug.log("No reference resolver available for node of type ", node.getConstructor());
+			Debug.log("No reference resolver available for node of type ", tryGetName(node));
 			return null;
 		}
 		
@@ -60,14 +61,14 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 	}
 
 	public String getLinkText(Object oNode) {
-		ISimpleTerm node = StrategoTermPath.getMatchingAncestor((ISimpleTerm) oNode, true);
+		IStrategoTerm node = StrategoTermPath.getMatchingAncestor((IStrategoTerm) oNode, true);
 		if (node == null)
 			return null;
 		
-		String function = NodeMapping.getFirstAttribute(helpFunctions, node.getConstructor(), null, 0);
+		String function = NodeMapping.getFirstAttribute(helpFunctions, tryGetName(node), null, 0);
 		if (function == null) function = wildcardHelperFunction;
 		if (function == null || function.equals("_"))  {
-			Debug.log("No hover help available for node of type ", node.getConstructor());
+			Debug.log("No hover help available for node of type ", tryGetName(node));
 			return null;
 		}
 		

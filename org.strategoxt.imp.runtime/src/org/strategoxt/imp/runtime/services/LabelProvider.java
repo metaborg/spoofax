@@ -5,6 +5,7 @@ import static org.spoofax.jsglr.client.imploder.IToken.TK_STRING;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getSort;
+import static org.spoofax.terms.Term.tryGetName;
 
 import org.eclipse.imp.services.ILabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
@@ -31,9 +32,9 @@ public class LabelProvider implements ILabelProvider {
 		if (caption == null) {
 			Environment.logException(
 				"Unable to infer the caption of this AST node: " +
-				getSort(node) + "." + node.getConstructor()
+				getSort(node) + "." + tryGetName(node)
 			);
-			caption = node.getConstructor();
+			caption = tryGetName(node);
 		}
 		return caption;
 		
@@ -42,7 +43,7 @@ public class LabelProvider implements ILabelProvider {
 	private String getCaption(IStrategoTerm node) {
 		// TODO: add user-defined outline captions, perhaps just using Stratego
 		// HACK: Hardcoded outlining, until we have support for patterns
-		String constructor = node == null ? null : node.getConstructor();
+		String constructor = node == null ? null : tryGetName(node);
 		
 		if ("MethodDec".equals(constructor)
 				&& node.getSubtermCount() > 0 && node.getSubterm(0).getSubtermCount() > 3) {

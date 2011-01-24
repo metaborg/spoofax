@@ -4,8 +4,11 @@ import static org.spoofax.interpreter.core.Tools.isTermTuple;
 import static org.spoofax.interpreter.core.Tools.termAt;
 import static org.spoofax.interpreter.terms.IStrategoTerm.LIST;
 import static org.spoofax.interpreter.terms.IStrategoTerm.TUPLE;
-import static org.spoofax.terms.Term.tryGetConstructor;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.hasImploderOrigin;
+import static org.spoofax.terms.Term.isTermString;
+import static org.spoofax.terms.attachments.OriginAttachment.tryGetOrigin;
 import static org.spoofax.terms.attachments.ParentAttachment.getParent;
+import static org.spoofax.terms.attachments.ParentAttachment.getRoot;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.cons;
 
 import java.io.File;
@@ -278,8 +281,8 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 
 	public void update(IParseController parseController, IProgressMonitor monitor) {
 		isUpdateStarted = true;
-		ISimpleTerm ast = (ISimpleTerm) parseController.getCurrentAst();
-		if (ast == null || tryGetConstructor(ast) == null || feedbackFunction == null
+		IStrategoTerm ast = (IStrategoTerm) parseController.getCurrentAst();
+		if (ast == null /* UNDONE: || tryGetConstructor(ast) == null*/ || feedbackFunction == null
 				|| isRecoveryFailed(parseController)) {
 			messages.clearMarkers(((SGLRParseController) parseController).getResource());
 			messages.commitDeletions();
@@ -356,7 +359,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		assert getLock().isHeldByCurrentThread();
 		assert feedback != null;
 
-		if (feedback instanceof IStrategoString) {
+		if (isTermString(feedback)) {
 			String status = ((IStrategoString)feedback).stringValue();
 			if (status.equals("BACKGROUNDED")) {
 				// Trigger update when needed
@@ -440,7 +443,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	 * 
 	 * @see #getAstNode(IStrategoTerm)  To retrieve the AST node associated with the resulting term.
 	 */
-	public IStrategoTerm invoke(String function, ISimpleTerm node)
+	public IStrategoTerm invoke(String function, IStrategoTerm node)
 			throws UndefinedStrategyException, InterpreterErrorExit, InterpreterExit, InterpreterException {
 
 		IStrategoTerm input = makeInputTerm(node, true);
@@ -450,7 +453,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	/**
 	 * Create an input term for a control rule.
 	 */
-	public IStrategoTuple makeInputTerm(ISimpleTerm node, boolean includeSubNode) {
+	public IStrategoTuple makeInputTerm(IStrategoTerm node, boolean includeSubNode) {
 		return makeInputTerm(node, includeSubNode, false);
 	}
 	
@@ -509,7 +512,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	 * Create an input term for a control rule,
 	 * based on the IStrategoTerm syntax of the AST of the source file.
 	 */
-	public IStrategoTuple makeATermInputTerm(ISimpleTerm node, boolean includeSubNode, IResource resource) {
+	public IStrategoTuple makeATermInputTerm(IStrategoTerm node, boolean includeSubNode, IResource resource) {
 		assert getLock().isHeldByCurrentThread();
 		stratego_aterm.init(runtime.getCompiledContext());
 		
@@ -536,7 +539,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		return implode_aterm_0_0.instance.invoke(runtime.getCompiledContext(), term);
 	}
 
-	protected ISimpleTerm getImplodableNode(ISimpleTerm node) {
+	protected IStrategoTerm getImplodableNode(IStrategoTerm node) {
 		if (node.isList() && node.getSubtermCount() == 1)
 			node = node.getSubterm(0);
 		for (; node != null; node = getParent(node)) {
@@ -587,7 +590,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	 * 
 	 * @see #getAstNode(IStrategoTerm)  To retrieve the AST node associated with the resulting term.
 	 */
-	public IStrategoTerm invokeSilent(String function, ISimpleTerm node) {
+	public IStrategoTerm invokeSilent(String function, IStrategoTerm node) {
 		try {
 			return invokeSilent(function, makeInputTerm(node, true), SourceAttachment.getResource(node));
 		} catch (RuntimeException e) {
@@ -650,13 +653,13 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	public ISimpleTerm getAstNode(IStrategoTerm term, boolean tryArguments) {
 		if (term == null) return null;
 			
-		if (term instanceof OneOfThoseTermsWithOriginInformation) {
-			return ((IStrategoTerm) term).getNode();
+		if (hasImploderOrigin(term)) {
+			return tryGetOrigin(term);
 		} else if (tryArguments) {
 			for (IStrategoTerm subterm : term.getAllSubterms()) {
-				if (subterm instanceof OneOfThoseTermsWithOriginInformation) {
+				if (hasImploderOrigin(subterm)) {
 					Environment.logWarning("Resolved reference is not associated with an AST node " + term + " used child " + subterm + "instead");
-					ISimpleTerm result = ((IStrategoTerm) subterm).getNode();
+					ISimpleTerm result = tryGetOrigin(term);
 					return getParent(result) != null ? getParent(result) : result;
 				}
 			}

@@ -326,7 +326,7 @@
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration" />
       <key
             commandId="org.strategoxt.imp.runtime.resolveReferenceCommand"
-            contextId="org.eclipse.ui.textEditorScope"
+            contextId="org.eclipse.ui.contexts.window"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="F3"/>
    </extension>

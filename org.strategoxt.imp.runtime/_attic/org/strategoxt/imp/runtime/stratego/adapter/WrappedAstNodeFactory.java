@@ -23,7 +23,7 @@ import org.spoofax.terms.TermFactory;
  */
 public class WrappedAstNodeFactory extends TermFactory implements ITermFactory {
 	
-	public IStrategoTerm wrap(IStrategoAstNode node) {
+	public IStrategoTerm wrap(IStrategoTerm node) {
 		IStrategoTerm result;
 		switch (node.getTermType()) {
 			case INT:
@@ -53,7 +53,7 @@ public class WrappedAstNodeFactory extends TermFactory implements ITermFactory {
 		return result;
 	}
 	
-	protected IStrategoList wrapList(IStrategoAstNode node, int offset) {
+	protected IStrategoList wrapList(IStrategoTerm node, int offset) {
 		return new WrappedAstNodeList(this, node, offset);
 	}
 	
@@ -105,7 +105,7 @@ public class WrappedAstNodeFactory extends TermFactory implements ITermFactory {
 	 * @param origin
 	 *            The origin term. For lists, this must be the exact
 	 *            corresponding term with the same offset. Calling
-	 *            {@link IStrategoAstNode#getTerm()} won't suffice.
+	 *            {@link IStrategoTerm#getTerm()} won't suffice.
 	 */
 	public IStrategoTerm makeLink(IStrategoTerm term, IWrappedAstNode origin) {
 		if (term.getTermType() == LIST && term.getSubtermCount() == origin.getSubtermCount()

@@ -32,6 +32,8 @@ public abstract class AbstractSGLRI {
 		Collections.synchronizedMap(new WeakValueHashMap<CachingKey, IStrategoTerm>());
 	
 	private final SGLRParseController controller;
+	
+	private boolean implodeEnabled = true;
 		
 	@SuppressWarnings("unused")
 	private final Object parseTableId;
@@ -60,6 +62,14 @@ public abstract class AbstractSGLRI {
 	public void setKeepAmbiguities(boolean value) {
 		if (!value)
 			throw new UnsupportedOperationException();
+	}
+	
+	public void setImplodeEnabled(boolean implodeEnabled) {
+		this.implodeEnabled = implodeEnabled;
+	}
+	
+	public boolean isImplodeEnabled() {
+		return implodeEnabled;
 	}
 	
 	// Initialization and parsing
@@ -91,7 +101,7 @@ public abstract class AbstractSGLRI {
 		}
 		*/
 
-		IStrategoTerm result = doParseAndImplode(input, filename);
+		IStrategoTerm result = doParse(input, filename);
 		if (new NullProgressMonitor().isCanceled())
 			throw new OperationCanceledException();
 		SGLRParseController controller = getController() == null ? null : getController();
@@ -119,7 +129,7 @@ public abstract class AbstractSGLRI {
 		return parse(inputString, filename);
 	}
 	
-	protected abstract IStrategoTerm doParseAndImplode(String inputChars, String filename)
+	protected abstract IStrategoTerm doParse(String inputChars, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException;
 }
 

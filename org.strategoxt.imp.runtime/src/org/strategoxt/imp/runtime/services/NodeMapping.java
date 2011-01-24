@@ -1,6 +1,7 @@
 package org.strategoxt.imp.runtime.services;
 
 import static org.spoofax.interpreter.core.Tools.termAt;
+import static org.spoofax.jsglr.client.imploder.IToken.TK_NO_TOKEN_KIND;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.cons;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.findTerm;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.termContents;
@@ -9,7 +10,6 @@ import java.util.List;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.Token;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 
@@ -17,7 +17,6 @@ import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class NodeMapping<T> {
-	private final static int NO_TOKEN_KIND = IToken.TK_NO_TOKEN_KIND;
 	
 	private final T attribute;
 	
@@ -25,12 +24,11 @@ public class NodeMapping<T> {
 	
 	private final int tokenKind;
 	
-	public NodeMapping(String constructor, String sort, TokenKind tokenKind, T attribute) {
+	public NodeMapping(String constructor, String sort, int tokenKind, T attribute) {
 		this.attribute = attribute;
 		this.constructor = constructor;
 		this.sort = sort;
-		
-		this.tokenKind = tokenKind == null ? NO_TOKEN_KIND : tokenKind;
+		this.tokenKind = tokenKind;
 	}
 	
 	protected NodeMapping(IStrategoTerm pattern, T attribute) throws BadDescriptorException {
@@ -44,11 +42,11 @@ public class NodeMapping<T> {
 		return new NodeMapping<T>(pattern, attribute);
 	}
 	
-	private static TokenKind readTokenKind(IStrategoTerm pattern) throws BadDescriptorException {
+	private static int readTokenKind(IStrategoTerm pattern) throws BadDescriptorException {
 		IStrategoAppl tokenTerm = findTerm(pattern, "Token");
 		String tokenKind = tokenTerm == null ? null : cons(termAt(tokenTerm, 0));
 		try {
-			return tokenKind == null ? null : IToken.valueOf(tokenKind);
+			return Token.valueOf(tokenKind);
 		} catch (IllegalArgumentException e) {
 			throw new BadDescriptorException("Could not set the coloring rule for token kind: " + tokenKind, e);
 		}
@@ -64,7 +62,7 @@ public class NodeMapping<T> {
 	public T getAttribute(String constructor, String sort, int tokenKind) {
 		if (this.constructor == null || this.constructor.equals(constructor)) {
 			if (this.sort == null || this.sort.equals(sort)) {
-				if (this.tokenKind == NO_TOKEN_KIND || this.tokenKind == tokenKind) {
+				if (this.tokenKind == TK_NO_TOKEN_KIND || this.tokenKind == tokenKind) {
 					return attribute;
 				}
 			}

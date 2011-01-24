@@ -1,7 +1,6 @@
 package org.strategoxt.imp.runtime.stratego;
 
 import org.spoofax.interpreter.library.ssl.SSLLibrary;
-import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.compat.CompatLibrary;
 import org.strategoxt.lang.compat.sglr.SGLRCompatLibrary;
@@ -17,9 +16,7 @@ public class IMPJSGLRLibrary extends SGLRCompatLibrary {
 	private final SourceMappings mappings = new SourceMappings();
 
 	public IMPJSGLRLibrary(SGLRCompatLibrary sglrLibrary) {
-		super(Environment.getATermFactory());
-		
-		add(new IMPParseStringPTPrimitive(Environment.getATermFactory(), sglrLibrary.getFilterSettings(), sglrLibrary.getRecoveryEnabledSetting(), mappings));
+		add(new IMPParseStringPTPrimitive(sglrLibrary.getFilterSettings(), sglrLibrary.getRecoveryEnabledSetting(), mappings));
 		add(new IMPAnnoLocationPrimitive(mappings));
 	}
 	

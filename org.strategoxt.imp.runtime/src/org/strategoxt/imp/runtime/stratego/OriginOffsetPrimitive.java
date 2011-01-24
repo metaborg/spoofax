@@ -21,8 +21,8 @@ public class OriginOffsetPrimitive extends AbstractOriginPrimitive {
 	@Override
 	protected IStrategoTerm call(IContext env, IStrategoTerm origin) {
 		ITermFactory factory = env.getFactory();
-		int start = getStartPosNode(origin.getNode());
-		int end =  getEndPosNode(origin.getNode());
+		int start = getStartPosNode(origin);
+		int end =  getEndPosNode(origin);
 		return factory.makeTuple(
 				factory.makeInt(start),
 				factory.makeInt(end)

@@ -4,15 +4,16 @@ import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getElementSor
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getSort;
+import static org.spoofax.terms.Term.isTermList;
 import static org.spoofax.terms.attachments.ParentAttachment.getParent;
 import static org.strategoxt.imp.runtime.stratego.SourceAttachment.getParseController;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.eclipse.imp.parser.ISourcePositionLocator;
+import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.ITokenizer;
@@ -122,9 +123,14 @@ public class AstSortInspector {
 	private static IStrategoTerm getNextSibling(IStrategoTerm node) {
 		IStrategoTerm parent = getParent(node);
 		if (parent == null) return null;
-		ArrayList<IStrategoTerm> children = parent.getChildren();
-		int siblingIndex = children.indexOf(node) + 1;
-		if (siblingIndex >= children.size()) return null;
-		return children.get(siblingIndex);
+		if (isTermList(parent)) {
+			IStrategoList tail = ((IStrategoList) parent).tail();
+			return tail.isEmpty() ? null : tail.head();
+		} else {
+			for (int i = 0, max = parent.getSubtermCount() - 1; i < max; i++) {
+				if (parent.getSubterm(i) == node) return parent.getSubterm(i + 1);
+			}
+			return null;
+		}
 	}
 }

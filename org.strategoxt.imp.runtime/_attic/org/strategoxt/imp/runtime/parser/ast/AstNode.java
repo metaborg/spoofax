@@ -119,7 +119,7 @@ public class IStrategoTerm implements ISimpleTerm, Iterable<IStrategoTerm>, ISim
 		IStrategoTerm result = this;
 		while (result.getParent() != null)
 			result = result.getParent();
-		if (!(result instanceof OneOfThoseTermsWithOriginInformation))
+		if (!hasImploderOrigin(result))
 			throw new IllegalStateException("Tree not initialized using IStrategoTerm.create()");
 		else
 			return (IStrategoTerm) result;

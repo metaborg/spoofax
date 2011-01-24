@@ -18,7 +18,6 @@ import org.spoofax.interpreter.core.InterpreterErrorExit;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.core.UndefinedStrategyException;
-import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
@@ -43,7 +42,7 @@ public class CustomStrategyBuilder extends StrategoBuilder {
 	}
 	
 	@Override
-	public Job scheduleExecute(EditorState editor, ISimpleTerm node, IFile errorReportFile,
+	public Job scheduleExecute(EditorState editor, IStrategoTerm node, IFile errorReportFile,
 			boolean isRebuild) {
 		
 		String builderRule = inputBuilderRule(editor);
@@ -92,7 +91,7 @@ public class CustomStrategyBuilder extends StrategoBuilder {
 	}
 	
 	@Override
-	protected IStrategoTerm invokeObserver(ISimpleTerm node)
+	protected IStrategoTerm invokeObserver(IStrategoTerm node)
 			throws UndefinedStrategyException, InterpreterErrorExit, InterpreterExit,
 			InterpreterException {
 

@@ -3,7 +3,10 @@ package org.strategoxt.imp.runtime.stratego;
 import static java.lang.Math.max;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.hasImploderOrigin;
+import static org.spoofax.terms.Term.isTermList;
 import static org.spoofax.terms.Term.tryGetConstructor;
+import static org.spoofax.terms.attachments.OriginAttachment.tryGetOrigin;
 import static org.spoofax.terms.attachments.ParentAttachment.getParent;
 
 import java.util.ArrayList;
@@ -13,7 +16,6 @@ import java.util.List;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.terms.SimpleTermVisitor;
 import org.spoofax.terms.TermVisitor;
 import org.spoofax.terms.attachments.ParentAttachment;
 import org.strategoxt.imp.generator.position_of_term_1_0;
@@ -58,7 +60,7 @@ public class StrategoTermPath {
 		
 		while (getParent(node) != null) {
 			IStrategoTerm parent = getParent(node);
-			int index = indexOfIdentical(parent.getChildren(), node);
+			int index = indexOfIdentical(parent, node);
 			results.addFirst(Integer.valueOf(index));
 			node = getParent(node);
 		}
@@ -76,7 +78,7 @@ public class StrategoTermPath {
 		top = oncetd_1_0.instance.invoke(context, top, new Strategy() {
 			@Override
 			public IStrategoTerm invoke(Context context, IStrategoTerm current) {
-				if (current instanceof OneOfThoseTermsWithOriginInformation && (current).getNode() == node) {
+				if (hasImploderOrigin(current) && tryGetOrigin(current) == node) {
 					return explode_aterm_0_0.instance.invoke(context, marker);
 				} else {
 					return null;
@@ -114,13 +116,12 @@ public class StrategoTermPath {
 			
 			@Override
 			public IStrategoTerm invoke(Context context, IStrategoTerm current) {
-				if (current instanceof OneOfThoseTermsWithOriginInformation) {
-					IStrategoTerm currentOrigin = (current).getNode();
+				if (hasImploderOrigin(current)) {
+					IStrategoTerm currentOrigin = tryGetOrigin(current);
 					if (currentOrigin == origin) return current;
-					List children = currentOrigin.getChildren();
 					if (nextBest == null && originChild != null) {
-						for (int i = 0; i < children.size(); i++)
-							if (children.get(i) == originChild)
+						for (int i = 0, max = currentOrigin.getSubtermCount(); i < max; i++)
+							if (currentOrigin.getSubterm(i) == originChild)
 								nextBest = currentOrigin;
 					}
 				}

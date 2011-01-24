@@ -3,12 +3,13 @@ package org.strategoxt.imp.runtime.parser.ast;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getElementSort;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.putImploderAttachment;
+import static org.spoofax.terms.attachments.ParentAttachment.setParent;
 
 import java.util.ArrayList;
 
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.terms.StrategoListIterator;
 import org.spoofax.terms.StrategoWrapped;
 import org.spoofax.terms.attachments.ParentAttachment;
@@ -27,7 +28,7 @@ public class StrategoSubList extends StrategoWrapped implements IStrategoList {
 
 	private int indexEnd;
 	
-	public static IStrategoTerm createSublist(IStrategoList list, IStrategoTerm firstChild, IStrategoTerm lastChild, boolean updateParents) {
+	public static StrategoSubList createSublist(IStrategoList list, IStrategoTerm firstChild, IStrategoTerm lastChild, boolean updateParents) {
 		ArrayList<IStrategoTerm> children = new ArrayList<IStrategoTerm>();
 		boolean isStartChildFound = false;
 		int indexStart = 0;
@@ -49,7 +50,7 @@ public class StrategoSubList extends StrategoWrapped implements IStrategoList {
 		}
 		
 		IStrategoList wrapped = Environment.getTermFactory().makeList(children);
-		IStrategoList result = new StrategoSubList(list, wrapped, indexStart, indexEnd);
+		StrategoSubList result = new StrategoSubList(list, wrapped, indexStart, indexEnd);
 		
 		/* XXX: support updateParents again??
 		if (cloneFirst) result = result.cloneIgnoreTokens();
@@ -57,8 +58,8 @@ public class StrategoSubList extends StrategoWrapped implements IStrategoList {
 		setParent(result, list);
 		*/
 		
-		result.putAttachment(list.getAttachment(ParentAttachment.TYPE));
-		result.putAttachment(new ImploderAttachment(getElementSort(list), getLeftToken(firstChild), getRightToken(lastChild)));
+		setParent(result, ParentAttachment.get(list));
+		putImploderAttachment(result, true, getElementSort(list), getLeftToken(firstChild), getRightToken(lastChild));
 		return result;
 	}
 

@@ -1,5 +1,8 @@
 package org.strategoxt.imp.runtime.stratego;
 
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.hasImploderOrigin;
+import static org.spoofax.terms.attachments.OriginAttachment.tryGetOrigin;
+
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.stratego.Strategy;
@@ -22,10 +25,10 @@ public class OriginEqualPrimitive extends AbstractPrimitive {
 	}
 
 	private static boolean equal(IStrategoTerm t1, IStrategoTerm t2) {
-		boolean leftHasNode = t1 instanceof OneOfThoseTermsWithOriginInformation;
-		boolean rightHasNode = t2 instanceof OneOfThoseTermsWithOriginInformation;
+		boolean leftHasNode = hasImploderOrigin(t1);
+		boolean rightHasNode = hasImploderOrigin(t2);
 		if (leftHasNode && rightHasNode) {
-			return ((IStrategoTerm) t1).getNode() == ((IStrategoTerm) t2).getNode();
+			return tryGetOrigin(t1) == tryGetOrigin(t2);
 		} else /* if (t1.getSubtermCount() > 0 && t2.getsu (leftHasNode && t1.getSubtermCount() > 0) {
 			return equalChildTokens((IStrategoTerm) t1, t2);
 		} else if (rightHasNode && t2.getSubtermCount() > 0) {
@@ -38,7 +41,7 @@ public class OriginEqualPrimitive extends AbstractPrimitive {
 	/*
 	private static boolean equalChildTokens(IStrategoTerm t1, IStrategoTerm t2) {
 		IStrategoTerm child = termAt(t1, 0);
-		if (child instanceof OneOfThoseTermsWithOriginInformation) {
+		if (hasImploderOrigin(child)) {
 			IToken start = t1.getNode().getLeftToken();
 			IToken startChild = ((IStrategoTerm) termAt(t1, 0)).getNode().getLeftToken();
 			if (start == startChild)

@@ -35,7 +35,6 @@ import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.core.UndefinedStrategyException;
 import org.spoofax.interpreter.library.IOAgent;
-import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.EditorState;
@@ -129,7 +128,7 @@ public class StrategoBuilder implements IBuilder {
 		this.builderRule = builderRule;
 	}
 	
-	public Job scheduleExecute(final EditorState editor, ISimpleTerm node,
+	public Job scheduleExecute(final EditorState editor, IStrategoTerm node,
 			final IFile errorReportFile, final boolean isRebuild) {
 
 		String displayCaption = caption.endsWith("...")
@@ -148,7 +147,7 @@ public class StrategoBuilder implements IBuilder {
 			if (node == null) node = editor.getParseController().getCurrentAst();
 		}
 		
-		final ISimpleTerm node2 = node;
+		final IStrategoTerm node2 = node;
 			
 		Job job = new Job("Executing " + displayCaption) {
 			@Override
@@ -168,7 +167,7 @@ public class StrategoBuilder implements IBuilder {
 		return job;
 	}
 	
-	private void execute(EditorState editor, ISimpleTerm node, IFile errorReportFile, boolean isRebuild) {
+	private void execute(EditorState editor, IStrategoTerm node, IFile errorReportFile, boolean isRebuild) {
 		// TODO: refactor
 		assert derivedFromEditor == null || editor.getDescriptor().isATermEditor();
 		IFile file = null;
@@ -267,7 +266,7 @@ public class StrategoBuilder implements IBuilder {
 		return isTermString(resultTerm) ? asJavaString(resultTerm) : ppATerm(resultTerm).stringValue();
 	}
 
-	private void scheduleOpenEditorAndListener(final EditorState editor, final ISimpleTerm node, final IFile file)
+	private void scheduleOpenEditorAndListener(final EditorState editor, final IStrategoTerm node, final IFile file)
 			throws PartInitException {
 		
 		Job job = new UIJob("Opening editor") {
@@ -278,7 +277,7 @@ public class StrategoBuilder implements IBuilder {
 				
 					// UNDONE: don't delete non-persistent files for now since it causes problem with workspace auto-refresh
 					// if (!persistent) new File(file.getLocationURI()).delete();
-					// Create a listene *and* editor-derived editor relation
+					// Create a listener *and* editor-derived editor relation
 					StrategoBuilderListener listener = 
 						StrategoBuilderListener.addListener(editor.getEditor(), target, file, StrategoBuilder.this, node);
 					if (!realTime || editor == target || derivedFromEditor != null)
@@ -296,7 +295,7 @@ public class StrategoBuilder implements IBuilder {
 		job.schedule();
 	}
 
-	protected IStrategoTerm invokeObserver(ISimpleTerm node) throws UndefinedStrategyException,
+	protected IStrategoTerm invokeObserver(IStrategoTerm node) throws UndefinedStrategyException,
 			InterpreterErrorExit, InterpreterExit, InterpreterException {
 		
 		node = StrategoTermPath.getMatchingAncestor(node, false);

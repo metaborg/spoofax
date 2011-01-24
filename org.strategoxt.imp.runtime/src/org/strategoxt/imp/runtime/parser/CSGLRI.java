@@ -64,7 +64,7 @@ public class CSGLRI extends AbstractSGLRI {
 	}
 
 	@Override
-	protected IStrategoTerm doParseAndImplode(String inputChars, String filename) throws SGLRException, IOException {
+	protected IStrategoTerm doParse(String inputChars, String filename) throws SGLRException, IOException {
 		ITermFactory factory = Environment.getTermFactory();
 		File outputFile = File.createTempFile("parserOutput", null);
 		File inputFile = filename == null || !new File(filename).exists()
@@ -77,18 +77,20 @@ public class CSGLRI extends AbstractSGLRI {
 			String[] parseCommand = {
 					"sglr", "-p", parseTable.getAbsolutePath(),
 					"-i", inputFile.getAbsolutePath(),
-					"-o", tempFile.getAbsolutePath(),
+					"-o", isImplodeEnabled() ? tempFile.getAbsolutePath() : outputFile.getAbsolutePath(),
 					(startSymbol == null ? "" : "-s"),
 					(startSymbol == null ? "" : startSymbol),
 					"-2"
 			};
 			caller.call(parseCommand, null, System.out, System.err);
-			String[] implodeCommand = {
-					"implode-asfix",
-					"-i", tempFile.getAbsolutePath(),
-					"-o", outputFile.getAbsolutePath()
-			};
-			caller.call(implodeCommand, null, System.out, System.err);
+			if (isImplodeEnabled()) {
+				String[] implodeCommand = {
+						"implode-asfix",
+						"-i", tempFile.getAbsolutePath(),
+						"-o", outputFile.getAbsolutePath()
+				};
+				caller.call(implodeCommand, null, System.out, System.err);
+			}
 			
 			TermReader reader = new TermReader(factory);
 			IStrategoNamed result = (IStrategoNamed) reader.parseFromFile(outputFile.getAbsolutePath());

@@ -26,6 +26,7 @@ import org.spoofax.jsglr.client.ParseTimeoutException;
 import org.spoofax.jsglr.client.RegionRecovery;
 import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.ITokenizer;
+import org.spoofax.jsglr.client.imploder.Token;
 import org.spoofax.jsglr.shared.BadTokenException;
 import org.spoofax.jsglr.shared.TokenExpectedException;
 import org.spoofax.terms.TermVisitor;
@@ -392,7 +393,7 @@ public class ParseErrorHandler {
 		IToken result = null;
 		for (int i = token.getIndex(), max = tokenizer.getTokenCount(); i < max; i++) {
 			result = tokenizer.getTokenAt(i);
-			if (result.getLength() != 0) break;
+			if (result.getLength() != 0 && !Token.isWhiteSpace(result)) break;
 		}
 		return result;
 	}

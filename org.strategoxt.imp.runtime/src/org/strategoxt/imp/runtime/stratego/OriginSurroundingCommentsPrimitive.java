@@ -5,7 +5,9 @@ import static org.spoofax.interpreter.core.Tools.asJavaString;
 import static org.spoofax.interpreter.core.Tools.isTermString;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.hasImploderOrigin;
 import static org.spoofax.jsglr.client.imploder.Token.isWhiteSpace;
+import static org.spoofax.terms.attachments.OriginAttachment.tryGetOrigin;
 import static org.spoofax.terms.attachments.ParentAttachment.getParent;
 
 import java.util.ArrayList;
@@ -31,7 +33,6 @@ import org.spoofax.jsglr.client.imploder.ITokenizer;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
-import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
 import org.strategoxt.imp.runtime.services.SyntaxProperties;
 
 
@@ -54,7 +55,7 @@ public class OriginSurroundingCommentsPrimitive extends AbstractPrimitive {
 	
 	@Override
 	public final boolean call(IContext env, Strategy[] svars, IStrategoTerm[] tvars) {
-		if (!isTermString(tvars[0]) || !(tvars[1] instanceof OneOfThoseTermsWithOriginInformation))
+		if (!isTermString(tvars[0]) || !hasImploderOrigin(tvars[1]))
 			return false;
 		
 		Language language = LanguageRegistry.findLanguage(asJavaString(tvars[0]));
@@ -64,7 +65,7 @@ public class OriginSurroundingCommentsPrimitive extends AbstractPrimitive {
 			return false;
 		}
 		
-		IStrategoList result = getSurroundingComments(language, ((IStrategoTerm) tvars[1]).getNode(), true);
+		IStrategoList result = getSurroundingComments(language, tryGetOrigin(tvars[1]), true);
 		if (result == null) return false;
 		env.setCurrent(result);
 		return true;
@@ -206,7 +207,7 @@ public class OriginSurroundingCommentsPrimitive extends AbstractPrimitive {
 	private static int getPrefixIndex(ITokenizer tokens, int tokenIndex, ISimpleTerm parent, ISimpleTerm container) {
 		for (;;) {
 			if (tokenIndex == 0) return tokenIndex;
-			SGLRToken prevToken = (SGLRToken) tokens.getTokenAt(tokenIndex - 1);
+			IToken prevToken = tokens.getTokenAt(tokenIndex - 1);
 			if (!belongsToEither(prevToken, parent, container))
 				return tokenIndex;
 			tokenIndex--;
@@ -229,7 +230,7 @@ public class OriginSurroundingCommentsPrimitive extends AbstractPrimitive {
 	}
 
 	private static boolean belongsToEither(IToken current, ISimpleTerm parent, ISimpleTerm container) {
-		ISimpleTerm tokenNode = ((SGLRToken) current).getAstNode();
+		ISimpleTerm tokenNode = current.getAstNode();
 		return tokenNode == parent || tokenNode == container;
 	}
 

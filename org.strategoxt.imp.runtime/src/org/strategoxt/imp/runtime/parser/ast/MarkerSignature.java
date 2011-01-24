@@ -13,8 +13,8 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.spoofax.jsglr.client.imploder.IToken;
+import org.spoofax.jsglr.client.imploder.ITokenizer;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.parser.ParseErrorHandler;
 
 /**
  * Marker configuration attributes containment and comparison.
@@ -124,9 +124,8 @@ public class MarkerSignature {
 	}
 	
 	private static String removeSyntaxErrorDetails(String s) {
-		if (s.startsWith(ParseErrorHandler.UNEXPECTED_TOKEN_PREFIX)
-				&& s.endsWith(ParseErrorHandler.UNEXPECTED_TOKEN_POSTFIX)
-				|| s == ParseErrorHandler.UNEXPECTED_REGION) {
+		if (s.startsWith(ITokenizer.ERROR_GENERIC_PREFIX)
+				|| s == ITokenizer.ERROR_SKIPPED_REGION) {
 			return "<unexpected>";
 		} else {
 			return s;

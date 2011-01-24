@@ -28,12 +28,12 @@ public class WrappedAstNodeLink extends WrappedAstNodeParent implements IStrateg
 	private final IStrategoTerm wrapped;
 	
 	protected WrappedAstNodeLink(WrappedAstNodeFactory factory, IStrategoTerm term, IStrategoTerm origin) {
-		super(origin.getNode(), term.getAnnotations());
+		super(origin, term.getAnnotations());
 		this.factory = factory;
 		this.wrapped = term;
 		this.origin = origin;
 		
-		assert !(wrapped instanceof OneOfThoseTermsWithOriginInformation) : "Already wrapped";
+		assert !hasImploderOrigin(wrapped) : "Already wrapped";
 		assert wrapped.getTermType() != LIST || origin.getTermType() != LIST
 				|| wrapped.getSubtermCount() == 0
 				|| wrapped.getSubtermCount() != origin.getSubtermCount()
@@ -101,7 +101,7 @@ public class WrappedAstNodeLink extends WrappedAstNodeParent implements IStrateg
 	}
 	
 	private IStrategoTerm ensureChildLink(IStrategoTerm kid, int index) {
-		if (kid instanceof OneOfThoseTermsWithOriginInformation
+		if (hasImploderOrigin(kid)
 				|| index >= origin.getSubtermCount()) {
 			return kid;
 		} else {

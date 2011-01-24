@@ -1,6 +1,9 @@
 package org.strategoxt.imp.runtime.stratego;
 
 import static org.spoofax.interpreter.core.Tools.isTermString;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getTokenizer;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.hasImploderOrigin;
+import static org.spoofax.terms.attachments.OriginAttachment.tryGetOrigin;
 
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.library.AbstractPrimitive;
@@ -42,11 +45,11 @@ private static final String NAME = "SSL_EXT_origin_textfragment";
 			return null;
 		int pos_start=((StrategoInt)position.get(0)).intValue();
 		int pos_end=((StrategoInt)position.get(1)).intValue()-1;//exclusive
-		ILexStream lexStream = ((IStrategoTerm)position.get(2)).getNode().getLeftToken().getInput();
+		String lexStream = getTokenizer(tryGetOrigin(position.get(2))).getInput();
 		//ILexStream lexStream= EditorState.getActiveEditor().getParseController().getCurrentAst().getLeftToken().getILexStream();
 		if(DocumentStructure.isUnvalidInterval(pos_start, pos_end, lexStream))
 			return null;
-		String textfragment=lexStream.toString(pos_start, pos_end);
+		String textfragment=lexStream.substring(pos_start, pos_end - pos_start);
 		return textfragment;
 	}
 
@@ -54,6 +57,6 @@ private static final String NAME = "SSL_EXT_origin_textfragment";
 		return !(
 				position.get(0) instanceof StrategoInt && 
 				position.get(1) instanceof StrategoInt &&
-				position.get(2) instanceof OneOfThoseTermsWithOriginInformation);
+				hasImploderOrigin(position.get(2)));
 	}
 }

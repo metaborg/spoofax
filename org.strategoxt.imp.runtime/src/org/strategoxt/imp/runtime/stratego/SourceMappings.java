@@ -11,7 +11,6 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.LazyTerm;
-import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
 
 /**
  * Maintains mappings between input streams, parse trees, etc. and their origins.
@@ -26,11 +25,9 @@ public class SourceMappings {
 	
 	private final Map<MappableKey, File> asfixInputFileMap = new WeakHashMap<MappableKey, File>();
 	
-	private final Map<MappableKey, char[]> inputCharMap = new WeakHashMap<MappableKey, char[]>();
+	private final Map<MappableKey, String> inputCharMap = new WeakHashMap<MappableKey, String>();
 
 	private final Map<MappableKey, IStrategoTerm> inputTermMap = new WeakHashMap<MappableKey, IStrategoTerm>();
-
-	private final Map<MappableKey, SGLRTokenizer> tokenizerMap = new WeakHashMap<MappableKey, SGLRTokenizer>();
 
 	public File putInputFile(int fd, File file) {
 		return inputFileMap.put(fd, file);
@@ -46,16 +43,12 @@ public class SourceMappings {
 		return asfixInputFileMap.put(asfix.key, file);
 	}
 
-	public char[] putInputChars(MappableTerm asfix, char[] inputChars) {
+	public String putInputString(MappableTerm asfix, String inputChars) {
 		return inputCharMap.put(asfix.key, inputChars);
 	}
 
 	public IStrategoTerm putInputTerm(MappableTerm asfix, IStrategoTerm asfixIStrategoTerm) {
 		return inputTermMap.put(asfix.key, asfixIStrategoTerm);
-	}
-	
-	public SGLRTokenizer putTokenizer(MappableTerm asfix, SGLRTokenizer tokenizer) {
-		return tokenizerMap.put(asfix.key, tokenizer);
 	}
 	
 	public File getInputFile(int fd) {
@@ -70,16 +63,12 @@ public class SourceMappings {
 		return getValue(asfixInputFileMap, asfix);
 	}
 	
-	public char[] getInputChars(IStrategoTerm asfix) {
+	public String getInputString(IStrategoTerm asfix) {
 		return getValue(inputCharMap, asfix);
 	}
 	
 	public IStrategoTerm getInputTerm(IStrategoTerm asfix) {
 		return getValue(inputTermMap, asfix);
-	}
-	
-	public SGLRTokenizer getTokenizer(IStrategoTerm asfix) {
-		return getValue(tokenizerMap, asfix);
 	}
 	
 	/**

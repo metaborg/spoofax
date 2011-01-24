@@ -17,6 +17,8 @@ import org.spoofax.terms.attachments.TermAttachmentType;
  */
 public class SourceAttachment extends AbstractTermAttachment {
 	
+	private static final long serialVersionUID = -8114392265614382463L;
+
 	public static TermAttachmentType<SourceAttachment> TYPE =
 		TermAttachmentType.create(SourceAttachment.class);
 	
@@ -24,7 +26,7 @@ public class SourceAttachment extends AbstractTermAttachment {
 	
 	private final IParseController controller;
 
-	public SourceAttachment(IResource resource, IParseController controller) {
+	private SourceAttachment(IResource resource, IParseController controller) {
 		this.resource = resource;
 		this.controller = controller;
 	}

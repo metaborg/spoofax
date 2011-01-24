@@ -7,12 +7,10 @@ import static org.spoofax.interpreter.terms.IStrategoTerm.STRING;
 import static org.spoofax.interpreter.terms.IStrategoTerm.TUPLE;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
-import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getSort;
 import static org.spoofax.terms.Term.isTermList;
 import static org.spoofax.terms.Term.isTermString;
 import static org.spoofax.terms.Term.tryGetConstructor;
 import static org.spoofax.terms.attachments.ParentAttachment.getParent;
-import static org.spoofax.terms.attachments.ParentAttachment.setParent;
 import static org.spoofax.terms.attachments.ParentAttachment.getRoot;
 import static org.strategoxt.imp.runtime.Environment.getTermFactory;
 
@@ -21,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Random;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -33,6 +32,7 @@ import org.eclipse.imp.services.IContentProposer;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
+import org.spoofax.NotImplementedException;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
@@ -42,6 +42,7 @@ import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.shared.SGLRException;
 import org.spoofax.terms.TermFactory;
 import org.spoofax.terms.TermVisitor;
+import org.spoofax.terms.attachments.ParentAttachment;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.DynamicParseController;
@@ -51,6 +52,9 @@ import org.strategoxt.imp.runtime.parser.ast.AstSortInspector;
 import org.strategoxt.imp.runtime.stratego.CandidateSortsPrimitive;
 import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 import org.strategoxt.imp.runtime.stratego.StrategoConsole;
+import org.strategoxt.lang.Context;
+import org.strategoxt.lang.Strategy;
+import org.strategoxt.stratego_lib.topdown_1_0;
 
 /**
  * Content completion.
@@ -227,16 +231,16 @@ public class ContentProposer implements IContentProposer {
 		try {
 			if (completionFunction == null && controller.getCurrentAst() != null) {
 				// Don't reparse for keyword completion
-				result = controller.getCurrentAst().cloneIgnoreTokens();
+				result = controller.getCurrentAst();
 			} else {
 				Debug.startTimer();
 				try {
-					result = parser.parse(document.toCharArray(), controller.getPath().toPortableString());
+					result = parser.parse(document, controller.getPath().toPortableString());
 				} finally {
 					Debug.stopTimer("Completion parsed");
 				}
 				lastParserAst = controller.getCurrentAst();
-				lastCompletionAst = result.cloneIgnoreTokens();
+				lastCompletionAst = result;
 			}
 		} catch (SGLRException e) {
 			Environment.logException("Could not reparse input for content completion", e);
@@ -539,7 +543,7 @@ public class ContentProposer implements IContentProposer {
 				if (isTermString(node)) {
 					String value = ((IStrategoString) node).stringValue();
 					if (value.indexOf(completionToken) > -1) {
-						replaceCompletionNode(node, value.replace(completionToken, ""));
+						replaceCompletionNode(getRoot(node), node, value.replace(completionToken, ""));
 					}
 				}
 			}
@@ -547,22 +551,39 @@ public class ContentProposer implements IContentProposer {
 		new Visitor().visit(ast);
 		return ast;
 	}
-
-	private void replaceCompletionNode(IStrategoTerm node, String value) {
-		ArrayList<IStrategoTerm> siblings = getParent(node).getChildren();
-		int siblingIndex = siblings.indexOf(node);
-		IStrategoTerm newNode = createCompletionNode(value, getLeftToken(node), getRightToken(node));
-		setParent(newNode, getParent(node));
-		currentCompletionNode = getParent(node); // add a bit of context
-		siblings.set(siblingIndex, newNode);
+	
+	private IStrategoTerm replaceCompletionNode(IStrategoTerm tree, final IStrategoTerm node, final String value) {
+		throw new NotImplementedException();
+		/* TODO: implement missing ContentProposer bits
+		return topdown_1_0.instance.invoke(new Context(Environment.getTermFactory()), node,
+			new Strategy() {
+				@Override
+				public IStrategoTerm invoke(Context context, IStrategoTerm current) {
+					if (current == node) {
+						current = createCompletionNode(value, getLeftToken(node), getRightToken(node));
+						currentCompletionNode = getParent(current); // add a bit of context
+						if (currentCompletionNode == null) currentCompletionNode = current;
+					}
+					ParentAttachment parent = new ParentAttachment(parent, elementParent)
+					Iterator<IStrategoTerm> iterator = TermVisitor.tryGetListIterator(current); 
+					for (int i = 0, max = current.getSubtermCount(); i < max; i++) {
+						IStrategoTerm child = iterator == null ? current.getSubterm(i) : iterator.next();
+						
+					}
+				}
+			});
+			*/
 	}
 
 	private IStrategoTerm createCompletionNode(String prefix, IToken left, IToken right) {
+		throw new NotImplementedException();
+		/* TODO: implement missing ContentProposer bits
 		ArrayList<IStrategoTerm> children = new ArrayList<IStrategoTerm>();
 		children.add(new StringAstNode(prefix, null, left, right));
 		currentCompletionPrefix = prefix;
 		currentCompletionNode = new IStrategoTerm(null, left, right, COMPLETION_CONSTRUCTOR, children);
 		return currentCompletionNode;
+		*/
 	}
 	
 	private IStrategoTerm insertNewCompletionNode(IStrategoTerm ast, final int offset, String document) {
@@ -601,6 +622,8 @@ public class ContentProposer implements IContentProposer {
 	}
 	
 	private void replacePrefix(IStrategoTerm completionNode, String prefix) {
+		throw new NotImplementedException();
+		/* TODO: implement missing ContentProposer bits
 		if (completionNode.getConstructor() != COMPLETION_CONSTRUCTOR) {
 			for (Object child : completionNode.getChildren()) {
 				if (((IStrategoTerm) child).getConstructor() == COMPLETION_CONSTRUCTOR)
@@ -609,9 +632,12 @@ public class ContentProposer implements IContentProposer {
 		}
 		StringAstNode prefixNode = (StringAstNode) completionNode.getSubterm(0);
 		prefixNode.setValue(prefix);
+		*/
 	}
 	
 	private void insertNewCompletionNode(IStrategoTerm node, String prefix) {
+		throw new NotImplementedException();
+		/* TODO: implement missing ContentProposer bits
 		// Create a new UNKNOWN(COMPLETION(prefix)) node
 		IStrategoTerm result = createCompletionNode(prefix, getLeftToken(node), getRightToken(node));
 		ArrayList<IStrategoTerm> newNodeContainer = new ArrayList<IStrategoTerm>(1);
@@ -634,6 +660,7 @@ public class ContentProposer implements IContentProposer {
 		}
 		setParent(result, getRoot(node));
 		return;
+		*/
 	}
 	
 }

@@ -29,7 +29,7 @@ public class TokenKindManager {
 	/**
 	 * Get the token kind for a given sort.
 	 */
-	public TokenKind getTokenKind(IStrategoList pattern, ATermAppl sort) {
+	public int getTokenKind(IStrategoList pattern, ATermAppl sort) {
 		// TODO2: Optimization - cache default token kinds?
 		
 		if (AsfixAnalyzer.isLayout(sort)) {

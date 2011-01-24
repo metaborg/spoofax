@@ -5,6 +5,8 @@ import static org.spoofax.interpreter.core.Tools.termAt;
 import static org.spoofax.jsglr.client.imploder.IToken.TK_ERROR;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.hasImploderOrigin;
+import static org.spoofax.terms.attachments.OriginAttachment.tryGetOrigin;
 import static org.strategoxt.imp.runtime.stratego.SourceAttachment.getResource;
 
 import java.io.BufferedReader;
@@ -44,8 +46,6 @@ import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.jsglr.client.imploder.Token;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
-import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 
 /**
  * Reports messages for a group of files, associating
@@ -200,8 +200,8 @@ public class AstMessageHandler {
 	 * with any of its subterms, doing a depth-first search.
 	 */
 	private static ISimpleTerm getClosestAstNode(IStrategoTerm term) {
-	    if (term instanceof OneOfThoseTermsWithOriginInformation) {
-	        return ((IStrategoTerm) term).getNode();
+	    if (hasImploderOrigin(term)) {
+	        return tryGetOrigin(term);
 	    } else if (term == null) {
 	    	return null;
 	    } else {
@@ -216,7 +216,7 @@ public class AstMessageHandler {
 	private static ISimpleTerm minimizeMarkerSize(ISimpleTerm node) {
 		// TODO: prefer lexical nodes when minimizing marker size? (e.g., not 'private')
 		if (node == null) return null;
-		while (getLeftToken(node).getLine() < getRightToken(node).getEndLine()) {
+		while (getLeftToken(node).getLine() < getRightToken(node).getLine()) {
 			if (node.getSubtermCount() == 0) break;
 			node = node.getSubterm(0);
 		}
@@ -227,7 +227,7 @@ public class AstMessageHandler {
 	 * Add a marker to a file, without having a specific location associated to it.
 	 */
 	private void addMarkerNoLocation(IResource file, String message, int severity) {
-		IToken errorToken = new SGLRToken(null, 0, 0, TK_ERROR);
+		IToken errorToken = new Token(null, 0, 0, 0, 0, 0, TK_ERROR);
 		addMarker(file, errorToken, errorToken, message, severity);
 	}
 	

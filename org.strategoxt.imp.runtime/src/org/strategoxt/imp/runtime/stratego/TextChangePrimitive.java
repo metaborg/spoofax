@@ -1,5 +1,12 @@
 package org.strategoxt.imp.runtime.stratego;
 
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getTokenizer;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.hasImploderOrigin;
+import static org.spoofax.terms.attachments.OriginAttachment.tryGetOrigin;
+import static org.strategoxt.imp.runtime.stratego.SourceAttachment.getParseController;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -16,10 +23,7 @@ import org.spoofax.terms.StrategoInt;
 import org.spoofax.terms.StrategoTuple;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
-import org.strategoxt.imp.runtime.stratego.adapter.IWrappedAstNode;
-import org.strategoxt.lang.terms.StrategoInt;
-import org.strategoxt.lang.terms.StrategoTuple;
+import org.strategoxt.imp.runtime.parser.SGLRParseController;
 
 /**
  * Applies a text-change in the current document
@@ -41,16 +45,16 @@ public class TextChangePrimitive extends AbstractPrimitive {
 		int position_end = -1;
 		if (tvars.length!=3)//!isTermString(tvars[1])
 			return false;
-		if(!(tvars[0] instanceof OneOfThoseTermsWithOriginInformation && islocationTuple(tvars[1]) && tvars[2] instanceof IStrategoString))
+		if(!(hasImploderOrigin(tvars[0]) && islocationTuple(tvars[1]) && tvars[2] instanceof IStrategoString))
 			return false;
-		EditorState editor = ((IStrategoTerm)tvars[0]).getNode().getParseController().getEditor();
-		ILexStream lexStream = ((IStrategoTerm)tvars[0]).getNode().getLeftToken().getInput();
+		EditorState editor = ((SGLRParseController) getParseController(tryGetOrigin(tvars[0]))).getEditor();
+		String lexStream = getTokenizer(tryGetOrigin(tvars[0])).getInput();
 		StrategoTuple tuple=(StrategoTuple)tvars[1];
 		position_start=((StrategoInt)tuple.get(0)).intValue();
 		position_end=((StrategoInt)tuple.get(1)).intValue()-1; //exclusive end pos
 		if(position_start< 0 && position_end < 0){
 			position_start=0;
-			position_end=lexStream.getInput().length()-1;
+			position_end=lexStream.length()-1;
 		}
 		if(DocumentStructure.isUnvalidInterval(position_start, position_end, lexStream))
 			return false;
@@ -68,7 +72,7 @@ public class TextChangePrimitive extends AbstractPrimitive {
 		}
 	}
 	
-	public static String applyTextChange(EditorState editor,IStrategoAstNode node,
+	public static String applyTextChange(EditorState editor,IStrategoTerm node,
 			final String text) throws BadLocationException {
 		return applyTextChange(
 			editor, 
