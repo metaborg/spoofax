@@ -12,7 +12,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 
 /**
  * Term reading utility class, extending {@link org.spoofax.interpreter.core.Tools}
- * with new methods specific for reading descriptors.s
+ * with new methods specific for reading descriptors.
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */

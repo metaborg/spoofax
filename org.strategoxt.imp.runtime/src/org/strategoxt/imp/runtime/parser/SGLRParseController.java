@@ -377,7 +377,7 @@ public class SGLRParseController implements IParseController {
 	private void onParseCompleted(final IProgressMonitor monitor, boolean wasStartupParsed) {
 		assert parseLock.isHeldByCurrentThread();
 		
-		if (!monitor.isCanceled() && getTokenizer(currentAst) != null)
+		if (!monitor.isCanceled() && currentAst != null && getTokenizer(currentAst) != null)
 			forceRecolor(wasStartupParsed);
 		
 		// Threading concerns:
@@ -393,7 +393,7 @@ public class SGLRParseController implements IParseController {
 			}
 			
 			// Removed markers seem to require recoloring:
-			//if (!monitor.isCanceled() /*&& getTokenizer(currentAst) != null*/ && editor != null)
+			//if (!monitor.isCanceled() /*&& currentAst != null && getTokenizer(currentAst) != null*/ && editor != null)
 			//	AstMessageHandler.processEditorRecolorEvents(editor.getEditor());
 			
 			if (!monitor.isCanceled())
@@ -471,7 +471,7 @@ public class SGLRParseController implements IParseController {
 		//   - a parser thread with a parse lock may forceRecolor(), acquiring the colorer queue lock 
 		//   - a parser thread with a parse lock may need main thread acess to report errors
 		
-		ITokenizer stream = getTokenizer(currentAst);		
+		ITokenizer stream = currentAst == null ? null : getTokenizer(currentAst);
 		IDocument document = editor == null ? null : editor.getDocument();
 		
 		if (!force && (stream == null || disallowColorer
@@ -498,7 +498,7 @@ public class SGLRParseController implements IParseController {
 			// UNDONE: no longer acquiring parse lock from colorer
 			disallowColorer = false;
 			TokenColorer.initLazyColors(this);
-			if (editor != null)
+			if (editor != null && currentAst != null)
 				editor.getEditor().updateColoring(new Region(0, getTokenizer(currentAst).getInput().length() - 1));
 		} catch (RuntimeException e) {
 			Environment.logException("Could reschedule syntax highlighter", e);
