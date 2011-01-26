@@ -15,7 +15,7 @@ import org.spoofax.jsglr.client.ParseTable;
 import org.spoofax.jsglr.shared.SGLRException;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.JSGLRI;
-import org.strategoxt.lang.compat.sglr.JSGLR_parse_string_pt_compat;
+import org.strategoxt.lang.compat.sglr.JSGLR_parse_string_compat;
 
 /**
  * Parses strings to asfix trees, caching the internal IStrategoTerm
@@ -23,14 +23,14 @@ import org.strategoxt.lang.compat.sglr.JSGLR_parse_string_pt_compat;
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class IMPParseStringPTPrimitive extends JSGLR_parse_string_pt_compat {
-	
+public class IMPParseStringPrimitive extends JSGLR_parse_string_compat {
+
 	private final SourceMappings mappings;
 	
 	private Map<ParseTable, Object> isNoRecoveryWarned =
 		new WeakHashMap<ParseTable, Object>();
 
-	protected IMPParseStringPTPrimitive(Disambiguator filterSettings, 
+	protected IMPParseStringPrimitive(Disambiguator filterSettings, 
 			AtomicBoolean recoveryEnabled, SourceMappings mappings) {
 		super(filterSettings, recoveryEnabled);
 		this.mappings = mappings;
@@ -41,14 +41,11 @@ public class IMPParseStringPTPrimitive extends JSGLR_parse_string_pt_compat {
 			ParseTable table, String startSymbol)
 			throws InterpreterException, IOException, SGLRException {
 		
-		// TODO: completely rewrite this after implode-asfix is optimized to avoid parse tree construction in strj
-		//       for now, it's just a clone of IMPParseStringPrimitive...
-		
 		String input = inputTerm.stringValue();
 		String path = getLastPath();		
 		JSGLRI parser = new JSGLRI(table, startSymbol);
 		parser.setUseRecovery(isRecoveryEnabled());
-		parser.setImplodeEnabled(false);
+		parser.setImplodeEnabled(true);
 		if (isRecoveryEnabled() && !parser.getParseTable().hasRecovers()) {
 			assert table.hashCode() == System.identityHashCode(table);
 			if (!isNoRecoveryWarned.containsKey(table)) {

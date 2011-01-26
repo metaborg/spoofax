@@ -4,6 +4,7 @@ import static org.spoofax.interpreter.core.Tools.isTermString;
 import static org.strategoxt.imp.runtime.stratego.SourceMappings.MappableTerm.getValue;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -19,7 +20,11 @@ import org.spoofax.terms.LazyTerm;
  */
 public class SourceMappings {
 	
-	private final Map<Integer, File> inputFileMap = new WeakHashMap<Integer, File>();
+	private static final int FILE_DESCRIPTOR_EXPIRATION = 40;
+	
+	// TODO: use term attachments instead of weak hash maps..?
+	
+	private final Map<Integer, File> inputFileMap = new HashMap<Integer, File>();
 	
 	private final Map<MappableKey, File> stringInputFileMap = new WeakHashMap<MappableKey, File>();
 	
@@ -30,6 +35,10 @@ public class SourceMappings {
 	private final Map<MappableKey, IStrategoTerm> inputTermMap = new WeakHashMap<MappableKey, IStrategoTerm>();
 
 	public File putInputFile(int fd, File file) {
+		// HACK: crappy manual garbage collection		
+		if (fd - FILE_DESCRIPTOR_EXPIRATION >= 0)
+			inputFileMap.remove(fd - FILE_DESCRIPTOR_EXPIRATION);
+		
 		return inputFileMap.put(fd, file);
 	}
 

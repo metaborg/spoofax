@@ -74,6 +74,8 @@ public class SGLRParseController implements IParseController {
 	
 	private volatile IStrategoTerm currentAst;
 	
+	private volatile ITokenizer currentTokenizer;
+	
 	private ISourceProject project;
 	
 	private IPath path;
@@ -267,7 +269,9 @@ public class SGLRParseController implements IParseController {
 			Debug.startTimer();
 			
 			if (monitor.isCanceled()) return null;
+			currentTokenizer = new NullTokenizer(input, filename);
 			IStrategoTerm result = doParse(input, filename);
+			currentTokenizer = getTokenizer(result);
 
 			errorHandler.clearErrors();
 			errorHandler.setRecoveryFailed(false);
@@ -471,7 +475,7 @@ public class SGLRParseController implements IParseController {
 		//   - a parser thread with a parse lock may forceRecolor(), acquiring the colorer queue lock 
 		//   - a parser thread with a parse lock may need main thread acess to report errors
 		
-		ITokenizer stream = currentAst == null ? null : getTokenizer(currentAst);
+		ITokenizer stream = currentTokenizer;
 		IDocument document = editor == null ? null : editor.getDocument();
 		
 		if (!force && (stream == null || disallowColorer
@@ -481,7 +485,7 @@ public class SGLRParseController implements IParseController {
 			/*// Parse hasn't succeeded yet, consider the entire stream as one big token
 			stream.addToken(new SGLRToken(stream, region.getOffset(), 0, 0, stream.getInput().length() - 1,
 					IToken.TK_UNKNOWN));*/
-			stream = new NullTokenizer(null, null);
+			stream = new NullTokenizer(stream.getInput(), stream.getFilename());
 		}
 		
 		// UNDONE: Cannot disable colorer afterwards, need it to remove error markers
@@ -506,8 +510,7 @@ public class SGLRParseController implements IParseController {
 	}
 
 	protected ITokenizer getCurrentTokenizer() {
-		IStrategoTerm ast = getCurrentAst();
-		return ast == null ? null : getTokenizer(ast);
+		return currentTokenizer;
 	}
 	
 	private void forceInitialParse() {

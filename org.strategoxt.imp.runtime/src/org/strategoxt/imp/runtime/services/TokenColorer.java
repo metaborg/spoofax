@@ -103,7 +103,7 @@ public class TokenColorer implements ITokenColorer {
 			// Don't treat whitespace layout as comments, to avoid italics in text that
 			// was just typed in
 			tokenKind = IToken.TK_UNKNOWN;
-		} else if (tokenKind == IToken.TK_ERROR_LAYOUT) {
+		} else if (tokenKind == IToken.TK_ERROR_KEYWORD) {
 			tokenKind = IToken.TK_KEYWORD;
 		}
 		 

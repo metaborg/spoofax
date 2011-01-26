@@ -122,7 +122,7 @@ public class JSGLRI extends AbstractSGLRI {
 		}
 		
 		try {
-			return (IStrategoTerm) parser.parse(input, getStartSymbol());
+			return (IStrategoTerm) parser.parse(input, filename, getStartSymbol());
 		} catch (FilterException e) {
 			if (e.getCause() == null && parser.getDisambiguator().getFilterPriorities()) {
 				Environment.logException("Parse filter failure - disabling priority filters and trying again", e);

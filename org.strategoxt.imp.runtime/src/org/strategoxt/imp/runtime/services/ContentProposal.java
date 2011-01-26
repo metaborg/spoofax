@@ -161,8 +161,8 @@ public class ContentProposal extends SourceProposal implements ICompletionPropos
 			Environment.logException("Could not apply content proposal", e);
 		}
 		proposer.getObserver().setRushNextUpdate(true);
-		proposer.getParser().getErrorHandler().setRushNextUpdate(true);
-		proposer.getParser().scheduleParserUpdate(0, false);
+		proposer.getParser().getParser().getErrorHandler().setRushNextUpdate(true);
+		proposer.getParser().getParser().scheduleParserUpdate(0, false);
 	}
 	
 	protected static boolean pollJustApplied() {

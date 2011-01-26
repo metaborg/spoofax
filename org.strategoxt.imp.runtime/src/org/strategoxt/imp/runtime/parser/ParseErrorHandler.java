@@ -3,8 +3,6 @@ package org.strategoxt.imp.runtime.parser;
 import static java.lang.Math.min;
 import static org.spoofax.jsglr.client.imploder.AbstractTokenizer.findLeftMostTokenOnSameLine;
 import static org.spoofax.jsglr.client.imploder.AbstractTokenizer.findRightMostTokenOnSameLine;
-import static org.spoofax.jsglr.client.imploder.IToken.TK_EOF;
-import static org.spoofax.jsglr.client.imploder.IToken.TK_LAYOUT;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getTokenizer;
@@ -318,9 +316,14 @@ public class ParseErrorHandler {
 	}
 	
 	private void reportBadToken(ITokenizer tokenizer, BadTokenException exception) {
-		String message = exception.isEOFToken()
-			? exception.getShortMessage()
-			: ITokenizer.ERROR_WATER_PREFIX + ": " + findNextNonEmptyToken(tokenizer.getTokenAtOffset(exception.getOffset()));
+		String message;
+		if (exception.isEOFToken()) {
+			message = exception.getShortMessage();
+		} else {
+			IToken token = tokenizer.getTokenAtOffset(exception.getOffset());
+			token = findNextNonEmptyToken(token);
+			message = ITokenizer.ERROR_WATER_PREFIX + ": " + token.toString().trim();
+		}
 		reportErrorNearOffset(tokenizer, exception.getOffset(), message);
 	}
 	
@@ -367,25 +370,8 @@ public class ParseErrorHandler {
 	}
 
 	private void reportErrorNearOffset(ITokenizer tokenizer, int offset, String message) {
-		IToken errorToken = findReportableErrorToken(tokenizer.getTokenAtOffset(offset));
+		IToken errorToken = tokenizer.getErrorTokenOrAdjunct(offset);
 		reportErrorAtTokens(errorToken, errorToken, message);
-	}
-	
-	private static IToken findReportableErrorToken(IToken token) {
-		ITokenizer tokenizer = token.getTokenizer();
-		// Search right
-		for (int i = token.getIndex(), max = tokenizer.getTokenCount(); i < max; i++) {
-			token = tokenizer.getTokenAt(i);
-			if (token.getKind() == TK_EOF) break;
-			if (token.getLength() != 0 && token.getKind() != TK_LAYOUT) return token;
-		}
-		// Search left
-		for (int i = token.getIndex(); i > 0; i--) {
-			token = tokenizer.getTokenAt(i);
-			if (token.getLength() != 0 && token.getKind() != TK_LAYOUT) return token;
-		}
-		// Give up
-		return token;
 	}
 	 
 	private static IToken findNextNonEmptyToken(IToken token) {

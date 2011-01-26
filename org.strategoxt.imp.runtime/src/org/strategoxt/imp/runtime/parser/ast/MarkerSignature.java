@@ -125,7 +125,8 @@ public class MarkerSignature {
 	
 	private static String removeSyntaxErrorDetails(String s) {
 		if (s.startsWith(ITokenizer.ERROR_GENERIC_PREFIX)
-				|| s == ITokenizer.ERROR_SKIPPED_REGION) {
+				|| s == ITokenizer.ERROR_SKIPPED_REGION
+				|| s.startsWith(ITokenizer.ERROR_WATER_PREFIX)) {
 			return "<unexpected>";
 		} else {
 			return s;
