@@ -3,6 +3,8 @@ package org.strategoxt.imp.runtime.services;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
 import static org.spoofax.terms.Term.isTermString;
+import static org.spoofax.terms.Term.tryGetConstructor;
+import static org.spoofax.terms.attachments.ParentAttachment.getParent;
 import static org.spoofax.terms.attachments.ParentAttachment.getRoot;
 import static org.strategoxt.imp.runtime.Environment.getTermFactory;
 import static org.strategoxt.imp.runtime.services.ContentProposer.COMPLETION_TOKEN;
@@ -12,13 +14,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.imp.parser.IParseController;
-import org.spoofax.NotImplementedException;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.shared.SGLRException;
+import org.spoofax.terms.TermTransformer;
 import org.spoofax.terms.TermVisitor;
+import org.spoofax.terms.attachments.ParentTermFactory;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.DynamicParseController;
@@ -94,7 +96,7 @@ public class ContentProposerParser {
 		if (ast == null) return null;
 		
 		IStrategoTerm result = identifyCompletionNode(ast, COMPLETION_TOKEN);
-		if (completionNode == null) result = insertNewCompletionNode(ast, offset, document);
+		if (completionNode == null) result = addNoContextNode(ast, offset, document);
 		return result;
 	}
 
@@ -165,7 +167,7 @@ public class ContentProposerParser {
 		if (prefixInAst == null)
 			return null;
 		completionNode = lastCompletionNode;
-		replacePrefix(completionNode, prefixInAst);
+		putCompletionNode(completionNode, prefixInAst, false);
 		return lastCompletionAst;
 	}
 
@@ -188,7 +190,7 @@ public class ContentProposerParser {
 		} else {
 			if (completionNode == null)
 				return null;
-			replacePrefix(completionNode, readPrefix(offset, document));
+			putCompletionNode(completionNode, readPrefix(offset, document), false);
 		}
 		return lastCompletionAst;
 	}
@@ -205,7 +207,7 @@ public class ContentProposerParser {
 				if (isTermString(node)) {
 					String value = ((IStrategoString) node).stringValue();
 					if (value.indexOf(completionToken) > -1) {
-						replaceCompletionNode(getRoot(node), node, value.replace(completionToken, ""));
+						putCompletionNode(node, value.replace(completionToken, ""), false);
 					}
 				}
 			}
@@ -214,41 +216,55 @@ public class ContentProposerParser {
 		return ast;
 	}
 	
-	private IStrategoTerm replaceCompletionNode(IStrategoTerm tree, final IStrategoTerm node, final String value) {
-		throw new NotImplementedException();
-		/* TODO: implement missing ContentProposer bits
-		return topdown_1_0.instance.invoke(new Context(Environment.getTermFactory()), node,
-			new Strategy() {
-				@Override
-				public IStrategoTerm invoke(Context context, IStrategoTerm current) {
-					if (current == node) {
-						current = createCompletionNode(value, getLeftToken(node), getRightToken(node));
-						currentCompletionNode = getParent(current); // add a bit of context
-						if (currentCompletionNode == null) currentCompletionNode = current;
+	/**
+	 * Creates a new abstract syntax tree with the given node
+	 * replaced by a COMPLETION(prefix) term,
+	 * and assigns completionNode.
+	 */
+	private void putCompletionNode(IStrategoTerm node, final String prefix, final boolean noContext) {
+		final ParentTermFactory factory = new ParentTermFactory(Environment.getTermFactory());
+		
+		final IStrategoTerm targetNode = tryGetCompletionNodeWrappingTerm(node);
+		
+		new TermTransformer(factory, true) {
+			@Override
+			public IStrategoTerm preTransform(IStrategoTerm current) {
+				if (current == targetNode) {
+					IStrategoTerm prefixTerm = factory.makeString(prefix);
+					completionPrefix = prefix;
+					IStrategoTerm result;
+					IStrategoTerm completionTerm = factory.makeAppl(COMPLETION_CONSTRUCTOR, prefixTerm);
+					if (noContext) {
+						result = factory.makeAppl(COMPLETION_UNKNOWN, completionTerm);
+						completionNode = result;
+					} else {
+						result = completionTerm;
+						completionNode = getParent(result) == null ? result : getParent(result); // add a bit of context
 					}
-					ParentAttachment parent = new ParentAttachment(parent, elementParent)
-					Iterator<IStrategoTerm> iterator = TermVisitor.tryGetListIterator(current); 
-					for (int i = 0, max = current.getSubtermCount(); i < max; i++) {
-						IStrategoTerm child = iterator == null ? current.getSubterm(i) : iterator.next();
-						
-					}
+					factory.copyAttachments(current, result, true);
+					factory.copyAttachments(current, completionTerm, true);
+					factory.copyAttachments(current, prefixTerm, true);
+					return result;
+				} else {
+					return current;
 				}
-			});
-			*/
+			}
+		}.transform(getRoot(node));
+			
 	}
 
-	private IStrategoTerm createCompletionNode(String prefix, IToken left, IToken right) {
-		throw new NotImplementedException();
-		/* TODO: implement missing ContentProposer bits
-		ArrayList<IStrategoTerm> children = new ArrayList<IStrategoTerm>();
-		children.add(new StringAstNode(prefix, null, left, right));
-		currentCompletionPrefix = prefix;
-		currentCompletionNode = new IStrategoTerm(null, left, right, COMPLETION_CONSTRUCTOR, children);
-		return currentCompletionNode;
-		*/
+	private IStrategoTerm tryGetCompletionNodeWrappingTerm(IStrategoTerm node) {
+		if (tryGetConstructor(node) != COMPLETION_CONSTRUCTOR) {
+			for (IStrategoTerm child : node.getAllSubterms()) {
+				if (tryGetConstructor(child) == COMPLETION_CONSTRUCTOR)
+					node = child;
+			}
+		}
+		assert getParent(node) == null || tryGetConstructor(getParent(node)) != COMPLETION_CONSTRUCTOR;
+		return node;
 	}
 	
-	private IStrategoTerm insertNewCompletionNode(IStrategoTerm ast, final int offset, String document) {
+	private IStrategoTerm addNoContextNode(IStrategoTerm ast, final int offset, String document) {
 		class Visitor extends TermVisitor {
 			IStrategoTerm targetNode, lastNode;
 			
@@ -262,13 +278,18 @@ public class ContentProposerParser {
 		}
 		Visitor visitor = new Visitor();
 		visitor.visit(ast);
-		if (visitor.targetNode != null)
-			insertNewCompletionNode(visitor.targetNode, readPrefix(offset, document));
-		else
-			insertNewCompletionNode(visitor.lastNode, readPrefix(offset, document));
+		if (visitor.targetNode != null) {
+			putCompletionNode(visitor.targetNode, readPrefix(offset, document), true);
+		} else {
+			putCompletionNode(visitor.lastNode, readPrefix(offset, document), true);
+		}
 		return ast;
 	}
 	
+	/**
+	 * Read the identifier at the offset location, using
+	 * the identifier lexical regular expression.
+	 */
 	public String readPrefix(int offset, String document) {
 		int prefixStart = offset;
 		int lastGoodPrefixStart = offset;
@@ -281,48 +302,6 @@ public class ContentProposerParser {
 			}
 		}
 		return document.substring(0, offset);
-	}
-	
-	private void replacePrefix(IStrategoTerm completionNode, String prefix) {
-		throw new NotImplementedException();
-		/* TODO: implement missing ContentProposer bits
-		if (completionNode.getConstructor() != COMPLETION_CONSTRUCTOR) {
-			for (Object child : completionNode.getChildren()) {
-				if (((IStrategoTerm) child).getConstructor() == COMPLETION_CONSTRUCTOR)
-					completionNode = (IStrategoTerm) child;
-			}
-		}
-		StringAstNode prefixNode = (StringAstNode) completionNode.getSubterm(0);
-		prefixNode.setValue(prefix);
-		*/
-	}
-	
-	private void insertNewCompletionNode(IStrategoTerm node, String prefix) {
-		throw new NotImplementedException();
-		/* TODO: implement missing ContentProposer bits
-		// Create a new UNKNOWN(COMPLETION(prefix)) node
-		IStrategoTerm result = createCompletionNode(prefix, getLeftToken(node), getRightToken(node));
-		ArrayList<IStrategoTerm> newNodeContainer = new ArrayList<IStrategoTerm>(1);
-		newNodeContainer.add(result);
-		currentCompletionNode = result = new IStrategoTerm(null, getLeftToken(node), getRightToken(node), COMPLETION_UNKNOWN, newNodeContainer);
-		
-		// Insert the node in a list near the textual input location
-		if (isTermList(node)) {
-			node.getChildren().add(result);
-			setParent(result, node);
-			return;
-		}
-		for (IStrategoTerm parent = getParent(node); parent != null; node = parent, parent = getParent(parent)) {
-			if (isTermList(parent)) {
-				int i = parent.getChildren().indexOf(node);
-				parent.getChildren().add(i + 1, result);
-				setParent(result, parent);
-				return;
-			}
-		}
-		setParent(result, getRoot(node));
-		return;
-		*/
 	}
 	
 }

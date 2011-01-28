@@ -317,7 +317,7 @@ public class ParseErrorHandler {
 	
 	private void reportBadToken(ITokenizer tokenizer, BadTokenException exception) {
 		String message;
-		if (exception.isEOFToken()) {
+		if (exception.isEOFToken() || tokenizer.getTokenCount() <= 1) {
 			message = exception.getShortMessage();
 		} else {
 			IToken token = tokenizer.getTokenAtOffset(exception.getOffset());
