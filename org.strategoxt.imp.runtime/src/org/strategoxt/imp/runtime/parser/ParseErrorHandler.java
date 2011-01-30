@@ -4,17 +4,13 @@ import static java.lang.Math.min;
 import static org.spoofax.jsglr.Term.applAt;
 import static org.spoofax.jsglr.Term.listAt;
 import static org.spoofax.jsglr.Term.termAt;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import lpg.runtime.IToken;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.ui.progress.UIJob;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
@@ -29,8 +25,8 @@ import org.strategoxt.imp.generator.sdf2imp;
 import org.strategoxt.imp.generator.simplify_ambiguity_report_0_0;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.AsfixAnalyzer;
+import org.strategoxt.imp.runtime.parser.ast.AstMessageBatch;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
-import org.strategoxt.imp.runtime.parser.ast.MarkerSignature;
 import org.strategoxt.imp.runtime.parser.ast.ProductionAttributeReader;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
 import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
@@ -109,8 +105,6 @@ public class ParseErrorHandler {
 	
 	private volatile int additionsVersionId;
 	
-	private List<Runnable> errorReports = new ArrayList<Runnable>();
-	
 	private boolean rushNextUpdate;
 
 	public ParseErrorHandler(SGLRParseController source) {
@@ -118,6 +112,8 @@ public class ParseErrorHandler {
 	}
 	
 	public void clearErrors() {
+		assert source.getParseLock().isHeldByCurrentThread();
+		
 		handler.clearMarkers(source.getResource());
 	}
 	
@@ -144,8 +140,9 @@ public class ParseErrorHandler {
 	 * Report WATER + INSERT errors from parse tree
 	 */
 	public void gatherNonFatalErrors(char[] inputChars, SGLRTokenizer tokenizer, ATerm top) {
+		assert source.getParseLock().isHeldByCurrentThread();
+		
 		try {
-			errorReports.clear();
 			offset = 0;
 			reportSkippedFragments(inputChars, tokenizer);
 			ATermAppl asfix = termAt(top, 0);
@@ -156,102 +153,57 @@ public class ParseErrorHandler {
 	}
 	
 	/**
-	 * @see AstMessageHandler#commitDeletions()
-	 */
-	public void commitDeletions() {
-		//   - must not be synchronized; uses resource lock
-		//   - when ran directly from the main thread, it may block other
-		//     UI threads that already have a lock on my resource,
-		//     but are waiting to run in the UI thread themselves
-		//   - reporting errors at startup may trigger the above condition,
-		//     at least for files with an in-workspace editor(?)
-		//   - also see SGLRParseController.onParseCompleted
-		assert source.getParseLock().isHeldByCurrentThread();
-		assert !Environment.getStrategoLock().isHeldByCurrentThread() : "Potential deadlock";
-		
-		processErrorReportsQueue();
-		handler.commitDeletions();
-	}
-	
-	/**
-	 * @see AstMessageHandler#commitMultiErrorLineAdditions()
-	 */
-	public void commitMultiErrorLineAdditions() {
-		// Threading concerns: see commitDeletions()
-		assert source.getParseLock().isHeldByCurrentThread();
-		assert !Environment.getStrategoLock().isHeldByCurrentThread() : "Potential deadlock";
-
-		processErrorReportsQueue();
-		handler.commitMultiErrorLineAdditions();
-	}
-
-	/**
-	 * @see AstMessageHandler#commitAdditions()
-	 */
-	public void commitAdditions() {
-		// Threading concerns: see commitDeletions()
-		assert source.getParseLock().isHeldByCurrentThread();
-		assert !Environment.getStrategoLock().isHeldByCurrentThread() : "Potential deadlock";
-		
-		handler.commitAdditions();
-	}
-
-	/**
 	 * Schedules delayed error marking for errors not committed yet.
 	 * 
 	 * @see AstMessageHandler#commitAllChanges()
 	 */
 	public void scheduleCommitAllChanges() {
-		processErrorReportsQueue();
-
-		final int expectedVersion = ++additionsVersionId;
-
-		final List<MarkerSignature> markers = handler.getAdditions();
-		if (markers.isEmpty()) return;
+		assert source.getParseLock().isHeldByCurrentThread();
 		
-		Job job = new Job("Report parse errors") {
+		final int expectedVersion = ++additionsVersionId;
+		final AstMessageBatch batch = handler.closeBatch();
+		final boolean wasRushNextUpdate = rushNextUpdate;
+		
+		rushNextUpdate = false;
+		
+		if (batch.isEmpty()) return;
+		
+		UIJob immediateJob = new UIJob("Report parse errors") {
 			@Override
-			protected IStatus run(IProgressMonitor monitor2) {
+			public IStatus runInUIThread(IProgressMonitor monitor) {
+				// Commit additions that can reuse an existing marker,
+				// additions on the same line as an existing marker and
+				// deletions immediately.
 				if (additionsVersionId != expectedVersion) return Status.OK_STATUS;
+				batch.commitReuseableAdditions();
+				batch.commitMultiErrorLineAdditions();
+				batch.commitDeletions();
+
+				if (batch.isEmpty()) return Status.OK_STATUS;
 				
-				source.getParseLock().lock();
-				try {
-					if (additionsVersionId != expectedVersion) return Status.OK_STATUS;
-					synchronized (handler.getSyncRoot()) {
-						if (additionsVersionId != expectedVersion) return Status.OK_STATUS;
-	
-						List<IMarker> addedMarkers = handler.asyncCommitAdditions(markers);
-						
-						if (additionsVersionId != expectedVersion)
-							handler.asyncDeleteMarkers(addedMarkers); // rollback
-					}
-					//source.forceRecolor(); // Adding markers corrupts coloring sometimes
-					//EditorState editor = source.getEditor();
-					//if (editor != null)
-					//	AstMessageHandler.processEditorRecolorEvents(editor.getEditor());
-				} finally {
-					source.getParseLock().unlock();
+				if (wasRushNextUpdate) {
+					batch.commitAdditions();
+				} else {
+					UIJob delayedJob = new UIJob("Report parse errors") {
+						@Override
+						public IStatus runInUIThread(IProgressMonitor monitor) {
+							// Commit all other additions after a delay.
+							// (to prevent flickering error markers)
+							if (additionsVersionId != expectedVersion) return Status.OK_STATUS;
+							batch.commitAdditions();
+							return Status.OK_STATUS;
+						}
+					};
+					delayedJob.setSystem(true);
+					delayedJob.schedule((long) (PARSE_ERROR_DELAY * (isRecoveryFailed ? 1.5 : 1)));
 				}
-				
 				return Status.OK_STATUS;
 			}
 		};
-		job.setSystem(true);
-		if (rushNextUpdate) {
-			rushNextUpdate = false;
-			job.schedule(0);
-		} else {
-			job.schedule((long) (PARSE_ERROR_DELAY * (isRecoveryFailed ? 1.5 : 1)));
-		}
+		immediateJob.setSystem(true);
+		immediateJob.schedule(0);
 	}
 
-	private void processErrorReportsQueue() {
-		for (Runnable marker : errorReports) {
-			marker.run();
-		}
-		errorReports.clear();
-	}
-	
 	public void abortScheduledCommit() {
 		additionsVersionId++;
 	}
@@ -519,33 +471,21 @@ public class ParseErrorHandler {
 		assert source.getParseLock().isHeldByCurrentThread();
 		final String message2 = message + getErrorExplanation();
 		
-		errorReports.add(new Runnable() {
-			public void run() {
-				handler.addMarker(source.getResource(), left, right, message2, IMarker.SEVERITY_ERROR);
-			}
-		});
+		handler.addMarker(source.getResource(), left, right, message2, IMarker.SEVERITY_ERROR);
 	}
 	
 	private void reportWarningAtTokens(final IToken left, final IToken right, final String message) {
 		assert source.getParseLock().isHeldByCurrentThread();
 
-		errorReports.add(new Runnable() {
-			public void run() {
-				handler.addMarker(source.getResource(), left, right, message, IMarker.SEVERITY_WARNING);
-			}
-		});
+		handler.addMarker(source.getResource(), left, right, message, IMarker.SEVERITY_WARNING);
 	}
 	
 	private void reportErrorAtFirstLine(String message) {
 		assert source.getParseLock().isHeldByCurrentThread();
 		final String message2 = message + getErrorExplanation();
 		
-		errorReports.add(new Runnable() {
-			public void run() {
-				handler.addMarkerFirstLine(source.getResource(), message2, IMarker.SEVERITY_ERROR);
-			}
-		});
-	}	
+		handler.addMarkerFirstLine(source.getResource(), message2, IMarker.SEVERITY_ERROR);
+	}
 
 	private String getErrorExplanation() {
 		final String message2;

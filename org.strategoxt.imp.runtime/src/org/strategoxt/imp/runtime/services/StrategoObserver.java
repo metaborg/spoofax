@@ -282,7 +282,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		if (ast == null || ast.getConstructor() == null || feedbackFunction == null
 				|| isRecoveryFailed(parseController)) {
 			messages.clearMarkers(((SGLRParseController) parseController).getResource());
-			messages.commitDeletions();
+			messages.commitAllChanges();
 			return;
 		}
 			
