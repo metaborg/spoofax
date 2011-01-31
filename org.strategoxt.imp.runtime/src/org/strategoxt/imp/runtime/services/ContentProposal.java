@@ -160,9 +160,7 @@ public class ContentProposal extends SourceProposal implements ICompletionPropos
 		} catch (BadLocationException e) {
 			Environment.logException("Could not apply content proposal", e);
 		}
-		proposer.getObserver().setRushNextUpdate(true);
-		proposer.getParser().getErrorHandler().setRushNextUpdate(true);
-		proposer.getParser().scheduleParserUpdate(0, false);
+		proposer.proposalApplied();
 	}
 	
 	protected static boolean pollJustApplied() {

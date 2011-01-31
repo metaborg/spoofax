@@ -185,14 +185,12 @@ public class ContentProposer implements IContentProposer {
 		return identifierLexical;
 	}
 	
-	protected SGLRParseController getParser() {
-		return parser;
+	protected void proposalApplied() {
+		observer.setRushNextUpdate(true);
+		parser.getErrorHandler().setRushNextUpdate(true);
+		parser.scheduleParserUpdate(0, false);
 	}
 	
-	protected StrategoObserver getObserver() {
-		return observer;
-	}
-
 	private RootAstNode constructAst(SGLRParseController controller, int offset, String document) {
 		this.parser = controller;
 		RootAstNode ast = tryReusePreviousAst(offset, document);
@@ -466,14 +464,17 @@ public class ContentProposer implements IContentProposer {
 			// Reuse document, ignoring latest typed character
 			String newCharacter = document.substring(offset - 1, offset);
 			String previousDocument = lastDocument.substring(0, offset - 1) + newCharacter + lastDocument.substring(offset - 1);
-			if (document.equals(previousDocument))
+			if (documentsSufficientlyEqual(document, previousDocument, offset)) {
 				return reusePreviousAst(offset, document, lastCompletionPrefix + newCharacter);
+			}
 		} else if (lastCompletionNode != null && lastCompletionPrefix.length() > 0
 				&& lastDocument.length() == document.length() + 1 && lastOffset == offset + 1) {
 			// Reuse document, ignoring previously typed character
-			String previousDocument = lastDocument.substring(0, offset) + lastDocument.substring(offset + 1);
-			if (document.equals(previousDocument))
+			String oldCharacter = lastDocument.substring(offset, offset + 1);
+			String currentDocument = document.substring(0, offset) + oldCharacter + document.substring(offset);
+			if (documentsSufficientlyEqual(currentDocument, lastDocument, offset + 1)) {
 				return reusePreviousAst(offset, document, lastCompletionPrefix.substring(0, lastCompletionPrefix.length() - 1));
+			}
 		} else if (lastCompletionNode != null && lastDocument.equals(document) && offset == lastOffset) {
 			return reusePreviousAst(offset, document, lastCompletionPrefix);
 		}
@@ -481,7 +482,35 @@ public class ContentProposer implements IContentProposer {
 		lastOffset = offset;
 		return null;
 	}
-
+	
+	/**
+	 * @return Whether doc1 and doc2 are equal disregarding the last
+	 * identifierLexical immediately before offset. If there is no
+	 * identifierLexical at that place in either document, false is returned.
+	 */
+	private boolean documentsSufficientlyEqual(String doc1, String doc2, int offset) {
+		String s1 = removeLastOccurrenceOfPatternBeforeIndex(identifierLexical, doc1, offset);
+		String s2 = removeLastOccurrenceOfPatternBeforeIndex(identifierLexical, doc2, offset);
+		if (s1 == null || s2 == null) return false;
+		return s1.equals(s2);
+	}
+	
+	/**
+	 * @return s with the occurrence of p immediately before endIndex removed,
+	 * or null if p does not match before endIndex. Note: only examines the
+	 * last 50 characters of s.
+	 */
+	private static String removeLastOccurrenceOfPatternBeforeIndex(Pattern p, String s, int endIndex) {
+		int beginIndex = Math.max(0, endIndex - 50);
+		Matcher m = p.matcher(s.substring(beginIndex, endIndex));
+		while (m.find()) {
+			if (m.end() == endIndex - beginIndex) {
+				return s.substring(0, beginIndex + m.start()) + s.substring(endIndex);
+			}
+		}
+		return null;
+	}
+	
 	private RootAstNode reusePreviousAst(int offset, String document, String prefix) {
 		currentCompletionPrefix = prefix;
 		lastDocument = document;
