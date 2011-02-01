@@ -12,12 +12,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
@@ -35,8 +33,8 @@ import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.dynamicloading.DescriptorFactory;
+import org.strategoxt.imp.runtime.parser.ast.AstMessageBatch;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
-import org.strategoxt.imp.runtime.parser.ast.MarkerSignature;
 
 /**
  * This class updates any editors in the environment,
@@ -254,18 +252,12 @@ public class DynamicDescriptorLoader implements IResourceChangeListener {
 	 * Deletes all old messages on the descriptor resources, and adds the new messages.
 	 */
 	private void scheduleReplaceMessages(final IResource file1, final IResource file2) {
-		final List<MarkerSignature> additions = asyncMessageHandler.getAdditions();
+		final AstMessageBatch batch = asyncMessageHandler.closeBatch();
 		Job job = new WorkspaceJob("Message handler for dynamic descriptor loader") {
 			@Override
 			public IStatus runInWorkspace(IProgressMonitor monitor) throws CoreException {
-				String markerType = asyncMessageHandler.getMarkerType();
-				for (IMarker marker : file1.findMarkers(markerType, true, 0))
-					marker.delete();
-				for (IMarker marker : file2.findMarkers(markerType, true, 0))
-					marker.delete();
-				synchronized (asyncMessageHandler.getSyncRoot()) {
-					asyncMessageHandler.asyncCommitAdditions(additions);
-				}
+				batch.commitDeletions();
+				batch.commitAdditions();
 				return Status.OK_STATUS;
 			}
 		};

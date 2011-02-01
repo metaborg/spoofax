@@ -148,11 +148,13 @@ public class ContentProposer implements IContentProposer {
 	protected ContentProposerParser getParser() {
 		return parser;
 	}
-	
-	protected StrategoObserver getObserver() {
-		return observer;
+		
+	protected void onProposalApplied() {
+		observer.setRushNextUpdate(true);
+		parser.getParser().getErrorHandler().setRushNextUpdate(true);
+		parser.getParser().scheduleParserUpdate(0, false);
 	}
-
+	
 	private IStrategoTerm invokeCompletionFunction(final IParseController controller, final Set<String> sorts) {
 		if (completionFunction == null) {
 			return Environment.getTermFactory().makeList();

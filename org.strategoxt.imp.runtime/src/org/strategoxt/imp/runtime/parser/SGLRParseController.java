@@ -44,7 +44,6 @@ import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.SWTSafeLock;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
-import org.strategoxt.imp.runtime.dynamicloading.DynamicParseController;
 import org.strategoxt.imp.runtime.dynamicloading.ParseTableProvider;
 import org.strategoxt.imp.runtime.parser.ast.AstNodeLocator;
 import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenIterator;
@@ -384,30 +383,8 @@ public class SGLRParseController implements IParseController {
 		if (!monitor.isCanceled() && currentAst != null && getTokenizer(currentAst) != null)
 			forceRecolor(wasStartupParsed);
 		
-		// Threading concerns:
-		// - must never block the main thread with a lock here since
-		//   it must be available to draw error markers
-		// - must not acquire resource locks when Eclipse is starting
-		
-		if (!Environment.isMainThread()) {
-			if (!monitor.isCanceled() && !Environment.getStrategoLock().isHeldByCurrentThread()) {
-				// Note that a resource lock is acquired here
-				errorHandler.commitMultiErrorLineAdditions();
-				errorHandler.commitDeletions();
-			}
-			
-			// Removed markers seem to require recoloring:
-			//if (!monitor.isCanceled() /*&& currentAst != null && getTokenizer(currentAst) != null*/ && editor != null)
-			//	AstMessageHandler.processEditorRecolorEvents(editor.getEditor());
-			
-			if (!monitor.isCanceled())
-				errorHandler.scheduleCommitAllChanges();
-		} else {
-			// Report errors again later when not in main thread
-			// (this state shouldn't be reachable from normal operation,
-			//  or maybe just for newly opened editors)
-			scheduleParserUpdate(DynamicParseController.REINIT_PARSE_DELAY, false);
-		}
+		if (!monitor.isCanceled())
+			errorHandler.scheduleCommitAllChanges();
 		
 		if (!monitor.isCanceled())
 			scheduleObserverUpdate(errorHandler);
