@@ -1,6 +1,7 @@
 package org.strategoxt.imp.runtime.stratego;
 
 import static org.spoofax.interpreter.core.Tools.isTermString;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getImploderOrigin;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.hasImploderOrigin;
 import static org.spoofax.terms.Term.isTermList;
 import static org.spoofax.terms.attachments.OriginAttachment.tryGetOrigin;
@@ -57,15 +58,15 @@ public class OriginSublistTermPrimitive extends AbstractPrimitive {
 		// XXX: Maartje - many of these primitives don't check hasImploderOrigin() before getting the origin...
 		//      What if a term has no origin?!
 		//      Before, this could result in a ClassCastException. now, with tryGetOrigin, you just get a non-origin term.
-		//      Or with getOrigin(), you get null
+		//      Or with getOrigin()/getImploderOrigin(), you get null
 		for (int i = 0; i < list.size(); i++) {
 			if(childNodes.size()<=i+startIndex)
 				return false;
-			IStrategoTerm childNode=tryGetOrigin(list.getSubterm(i));
+			IStrategoTerm childNode=getImploderOrigin(list.getSubterm(i));
 			if(childNodes.get(i+startIndex)!=childNode)
 				return false;
 		}
-		IStrategoTerm lastChildNode= tryGetOrigin(list.getSubterm(list.size()-1));
+		IStrategoTerm lastChildNode= getImploderOrigin(list.getSubterm(list.size()-1));
 		IStrategoTerm result = StrategoSubList.createSublist((IStrategoList) commonParentList, firstChildNode, lastChildNode, true); 
 		if (result == null) 
 			return false;

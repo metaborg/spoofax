@@ -27,6 +27,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.InvalidParseTableException;
 import org.spoofax.jsglr.client.ParseTable;
+import org.spoofax.jsglr.client.imploder.ImploderOriginTermFactory;
 import org.spoofax.jsglr.client.imploder.TermTreeFactory;
 import org.spoofax.jsglr.client.imploder.TreeBuilder;
 import org.spoofax.jsglr.io.ParseTableManager;
@@ -149,6 +150,10 @@ public final class Environment {
 		return termFactory;
 	}
 	
+	public static ITermFactory getTermFactory(boolean originFactory) {
+		return originFactory ? new ImploderOriginTermFactory(termFactory) : termFactory;
+	}
+	
 	public static SGLR createSGLR(ParseTable parseTable) {
 		// (no state; no assertion)
 		TermTreeFactory factory = new TermTreeFactory(new ParentTermFactory(getTermFactory()));
@@ -163,8 +168,8 @@ public final class Environment {
 
 	public static HybridInterpreter createInterpreter(boolean noGlobalLock) {
 		HybridInterpreter result =	noGlobalLock
-			? new HybridInterpreter(getTermFactory())
-			: new HybridInterpreter(getTermFactory()) {
+			? new HybridInterpreter(getTermFactory(true))
+			: new HybridInterpreter(getTermFactory(true)) {
 				@Override
 				public boolean invoke(String name) throws InterpreterExit, InterpreterException {
 					assertLock();

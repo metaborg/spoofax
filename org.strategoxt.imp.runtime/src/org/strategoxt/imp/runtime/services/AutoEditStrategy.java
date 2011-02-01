@@ -269,7 +269,7 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 	 * Tests if the line starts with a particular closing fence,
 	 * ignoring whitespace, comments, and lexicals.
 	 * 
-	 * @see stripCommentsAndLayout(String){
+	 * @see #stripCommentsAndLayout(String)
 	 */
 	private boolean isFenceAfterOffset(IDocument document, int offset, String fence) throws BadLocationException {
 		for (int max = document.getLength(); offset < max; offset++) {
@@ -500,7 +500,7 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 	 * 
 	 * @return the matching closing fence, or null if no open fence on this line
 	 * 
-	 * @see stripCommentsAndLayout(String)
+	 * @see #stripCommentsAndLayout(String)
 	 */
 	private String getCloseFenceForOpenFenceLine(String line) {
 		line = stripCommentsAndLayout(line);
@@ -519,7 +519,7 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 	 * Tests if the line starts with a particular closing fence,
 	 * ignoring whitespace, comments, and lexicals.
 	 * 
-	 * @see stripCommentsAndLayout(String)
+	 * @see #stripCommentsAndLayout(String)
 	 */
 	private boolean isCloseFenceLine(String line, String fence) {
 		line = stripCommentsAndLayout(line);

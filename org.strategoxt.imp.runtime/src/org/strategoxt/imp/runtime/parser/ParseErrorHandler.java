@@ -106,14 +106,16 @@ public class ParseErrorHandler {
 			String error = token.getError();
 			if (error != null) {
 				if (error == ITokenizer.ERROR_SKIPPED_REGION) {
-					// Find all tokens spanning this region
-					i = findRightMostWithSameError(token);
+					i = findRightMostWithSameError(token, null);
 					reportSkippedRegion(token, tokenizer.getTokenAt(i));
 				} else if (error.startsWith(ITokenizer.ERROR_WARNING_PREFIX)) {
-					// Find all tokens spanning this deprecation warning
-					i = findRightMostWithSameError(token);
+					i = findRightMostWithSameError(token, null);
 					reportWarningAtTokens(token, tokenizer.getTokenAt(i), error);
+				} else if (error.startsWith(ITokenizer.ERROR_WATER_PREFIX)) {
+					i = findRightMostWithSameError(token, ITokenizer.ERROR_WATER_PREFIX);
+					reportErrorAtTokens(token, tokenizer.getTokenAt(i), error);
 				} else {
+					i = findRightMostWithSameError(token, null);
 					reportErrorNearOffset(tokenizer, token.getStartOffset(), error);
 				}
 			}
@@ -121,12 +123,14 @@ public class ParseErrorHandler {
 		gatherAmbiguities(top);
 	}
 
-	private static int findRightMostWithSameError(IToken token) {
-		String error = token.getError();
+	private static int findRightMostWithSameError(IToken token, String prefix) {
+		String expectedError = token.getError();
 		ITokenizer tokenizer = token.getTokenizer();
 		int i = token.getIndex();
 		for (int max = tokenizer.getTokenCount(); i + 1 < max; i++) {
-			if (tokenizer.getTokenAt(i + 1).getError() != error)
+			String error = tokenizer.getTokenAt(i + 1).getError();
+			if (error != expectedError
+					&& (error == null || prefix == null || !error.startsWith(prefix)))
 				break;
 		}
 		return i;

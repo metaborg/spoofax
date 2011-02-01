@@ -659,7 +659,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			for (IStrategoTerm subterm : term.getAllSubterms()) {
 				if (hasImploderOrigin(subterm)) {
 					Environment.logWarning("Resolved reference is not associated with an AST node " + term + " used child " + subterm + "instead");
-					ISimpleTerm result = tryGetOrigin(term);
+					ISimpleTerm result = tryGetOrigin(subterm);
 					return getParent(result) != null ? getParent(result) : result;
 				}
 			}

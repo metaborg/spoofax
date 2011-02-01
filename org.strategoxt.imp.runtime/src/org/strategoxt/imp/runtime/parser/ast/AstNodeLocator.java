@@ -14,6 +14,7 @@ import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.IToken;
+import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 
@@ -40,9 +41,12 @@ public class AstNodeLocator implements ISourcePositionLocator {
 			for (int i = 0, max = ast.getSubtermCount(); i < max; i++) {
 				ISimpleTerm child = iterator == null ? ast.getSubterm(i) : iterator.next();
 		        ISimpleTerm candidate = findNode(child, startOffset, endOffset);
-		        if (candidate != null)
+		        if (candidate != null) {
+		        	assert ImploderAttachment.get(candidate) != null;
 		            return candidate;
+		        }
 		    }
+			assert ImploderAttachment.get(ast) != null;
 		    return ast;
 		} else {
 		    return null;
@@ -53,7 +57,7 @@ public class AstNodeLocator implements ISourcePositionLocator {
 		return findNode(root, offset, offset);
 	}
 	
-	public int getStartOffset(Object element) {
+	public int getStartOffset(final Object element) {
 		IToken token;
 		ISimpleTerm node;
 		if (element instanceof IToken) {

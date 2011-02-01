@@ -8,11 +8,13 @@ import org.spoofax.jsglr.client.Asfix2TreeBuilder;
 import org.spoofax.jsglr.client.Disambiguator;
 import org.spoofax.jsglr.client.FilterException;
 import org.spoofax.jsglr.client.ParseTable;
+import org.spoofax.jsglr.client.imploder.TermTreeFactory;
 import org.spoofax.jsglr.client.imploder.TreeBuilder;
 import org.spoofax.jsglr.io.SGLR;
 import org.spoofax.jsglr.shared.BadTokenException;
 import org.spoofax.jsglr.shared.SGLRException;
 import org.spoofax.jsglr.shared.TokenExpectedException;
+import org.spoofax.terms.attachments.ParentTermFactory;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.ParseTableProvider;
 
@@ -27,7 +29,7 @@ public class JSGLRI extends AbstractSGLRI {
 	
 	private boolean useRecovery = false;
 	
-	private SGLR parser;
+	private final SGLR parser;
 	
 	private Disambiguator disambiguator;
 	
@@ -40,6 +42,7 @@ public class JSGLRI extends AbstractSGLRI {
 		super(parseTable, startSymbol, controller);
 		
 		this.parseTable = parseTable;
+		this.parser = Environment.createSGLR(getParseTable());
 		resetState();
 	}
 	
@@ -99,15 +102,19 @@ public class JSGLRI extends AbstractSGLRI {
 	 * Resets the state of this parser, reinitializing the SGLR instance
 	 */
 	void resetState() {
-		parser = Environment.createSGLR(getParseTable());
+		// UNDONE: reinitializing parser instance each run
+		// parser = Environment.createSGLR(getParseTable());
 		parser.setTimeout(timeout);
 		if (disambiguator != null) parser.setDisambiguator(disambiguator);
 		else disambiguator = parser.getDisambiguator();
 		setUseRecovery(useRecovery);
-		if (!isImplodeEnabled())
+		if (!isImplodeEnabled()) {
 			parser.setTreeBuilder(new Asfix2TreeBuilder(Environment.getTermFactory()));
-		else
+		} else {
 			assert parser.getTreeBuilder() instanceof TreeBuilder;
+			assert ((TermTreeFactory) ((TreeBuilder) parser.getTreeBuilder()).getFactory()).getOriginalTermFactory()
+				instanceof ParentTermFactory;
+		}
 	}
 	
 	@Override

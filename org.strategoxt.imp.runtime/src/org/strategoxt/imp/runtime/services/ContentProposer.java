@@ -39,18 +39,6 @@ import org.strategoxt.imp.runtime.stratego.StrategoConsole;
 /**
  * Content completion.
  * 
- * Works in 6 or so conceptual steps:
- * 
- * 1. control-space/completion token event
- * 2. create source text with "_CONTENT_COMPLETE_a124142_" dummy literal
- * 3a parse to AST (only use it for content completion because of dummy literal)
- * 3b or, force-insert dummy literal if not found in ast
- * 3c or, if parsing fails, use an old AST and apply 3b
- * 4. analyze complete file:
- *    store completion suggestions for dummy literal in dyn rule and return it
- * 5. present completion suggestions to user
- * 6. reparse and reanalyze to fix position info
- * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class ContentProposer implements IContentProposer {

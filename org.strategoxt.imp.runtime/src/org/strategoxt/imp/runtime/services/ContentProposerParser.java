@@ -35,7 +35,7 @@ import org.strategoxt.imp.runtime.parser.SGLRParseController;
 public class ContentProposerParser {
 	
 	protected static final IStrategoConstructor COMPLETION_CONSTRUCTOR =
-		getTermFactory().makeConstructor("COMPLETION", 0);
+		getTermFactory().makeConstructor("COMPLETION", 1);
 	
 	protected static final IStrategoConstructor COMPLETION_UNKNOWN =
 		getTermFactory().makeConstructor("NOCONTEXT", 0);
@@ -201,19 +201,22 @@ public class ContentProposerParser {
 		return (SGLRParseController) controller;
 	}
 	
-	private IStrategoTerm identifyCompletionNode(IStrategoTerm ast, final String completionToken) {
-		class Visitor extends TermVisitor {	
+	private IStrategoTerm identifyCompletionNode(final IStrategoTerm ast, final String completionToken) {
+		class Visitor extends TermVisitor {
+			IStrategoTerm result = ast;
 			public void preVisit(IStrategoTerm node) {
 				if (isTermString(node)) {
 					String value = ((IStrategoString) node).stringValue();
 					if (value.indexOf(completionToken) > -1) {
 						putCompletionNode(node, value.replace(completionToken, ""), false);
+						result = getRoot(completionNode);
 					}
 				}
 			}
 		}
-		new Visitor().visit(ast);
-		return ast;
+		Visitor visitor = new Visitor();
+		visitor.visit(ast);
+		return visitor.result;
 	}
 	
 	/**
@@ -232,25 +235,20 @@ public class ContentProposerParser {
 				if (current == targetNode) {
 					IStrategoTerm prefixTerm = factory.makeString(prefix);
 					completionPrefix = prefix;
-					IStrategoTerm result;
 					IStrategoTerm completionTerm = factory.makeAppl(COMPLETION_CONSTRUCTOR, prefixTerm);
-					if (noContext) {
-						result = factory.makeAppl(COMPLETION_UNKNOWN, completionTerm);
-						completionNode = result;
-					} else {
-						result = completionTerm;
-						completionNode = getParent(result) == null ? result : getParent(result); // add a bit of context
-					}
-					factory.copyAttachments(current, result, true);
+					completionNode = noContext ? factory.makeAppl(COMPLETION_UNKNOWN, completionTerm) : completionTerm;
+					factory.copyAttachments(current, completionNode, true);
 					factory.copyAttachments(current, completionTerm, true);
 					factory.copyAttachments(current, prefixTerm, true);
-					return result;
+					return completionNode;
 				} else {
 					return current;
 				}
 			}
 		}.transform(getRoot(node));
-			
+
+		if (!noContext && getParent(completionNode) != null)
+			completionNode = getParent(completionNode); // add a bit of context
 	}
 
 	private IStrategoTerm tryGetCompletionNodeWrappingTerm(IStrategoTerm node) {
