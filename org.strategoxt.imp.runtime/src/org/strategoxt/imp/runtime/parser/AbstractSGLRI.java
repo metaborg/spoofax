@@ -118,7 +118,7 @@ public abstract class AbstractSGLRI {
 	 * Parse an input, returning the AST and initializing the parse stream.
 	 * Also initializes a new tokenizer for the given input.
 	 * 
-	 * @note This redirects to the preferred {@link #parse(char[], String)} method.
+	 * @note This redirects to the preferred {@link #parse(String, String)} method.
 	 * 
 	 * @return  The abstract syntax tree.
 	 */

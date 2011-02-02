@@ -63,8 +63,6 @@ public class SGLRParseController implements IParseController {
 	
 	private final SWTSafeLock parseLock = new SWTSafeLock(true);
 	
-	private final JSGLRI parser;
-	
 	private final Language language;
 	
 	private final ILanguageSyntaxProperties syntaxProperties;
@@ -74,6 +72,8 @@ public class SGLRParseController implements IParseController {
 	private volatile IStrategoTerm currentAst;
 	
 	private volatile ITokenizer currentTokenizer;
+	
+	private JSGLRI parser;
 	
 	private ISourceProject project;
 	
@@ -117,6 +117,10 @@ public class SGLRParseController implements IParseController {
 	
 	public final JSGLRI getParser() {
 		return parser;
+	}
+	
+	public final void setParser(JSGLRI parser) {
+		this.parser = parser;
 	}
 	
 	public ReentrantLock getParseLock() {
@@ -450,7 +454,7 @@ public class SGLRParseController implements IParseController {
 		// - the colorer runs in the main thread and should not be blocked by ANY lock
 		// - CANNOT acquire parse lock:
 		//   - a parser thread with a parse lock may forceRecolor(), acquiring the colorer queue lock 
-		//   - a parser thread with a parse lock may need main thread acess to report errors
+		//   - a parser thread with a parse lock may need main thread access to report errors
 		
 		ITokenizer stream = currentTokenizer;
 		IDocument document = editor == null ? null : editor.getDocument();
