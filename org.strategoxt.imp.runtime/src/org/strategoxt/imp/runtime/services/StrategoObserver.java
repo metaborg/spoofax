@@ -441,7 +441,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	/**
 	 * Invoke a Stratego function with a specific AST node as its input.
 	 * 
-	 * @see #getAstNode(IStrategoTerm)  To retrieve the AST node associated with the resulting term.
+	 * @see #getAstNode(IStrategoTerm, boolean)  To retrieve the AST node associated with the resulting term.
 	 */
 	public IStrategoTerm invoke(String function, IStrategoTerm node)
 			throws UndefinedStrategyException, InterpreterErrorExit, InterpreterExit, InterpreterException {
@@ -588,7 +588,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	 * Invoke a Stratego function with a specific AST node as its input,
 	 * logging and swallowing all exceptions.
 	 * 
-	 * @see #getAstNode(IStrategoTerm)  To retrieve the AST node associated with the resulting term.
+	 * @see #getAstNode(IStrategoTerm, boolean)  To retrieve the AST node associated with the resulting term.
 	 */
 	public IStrategoTerm invokeSilent(String function, IStrategoTerm node) {
 		try {

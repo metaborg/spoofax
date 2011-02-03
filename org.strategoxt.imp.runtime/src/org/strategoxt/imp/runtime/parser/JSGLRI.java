@@ -63,6 +63,11 @@ public class JSGLRI extends AbstractSGLRI {
 		return parser;
 	}
 	
+	@Override
+	public void setStartSymbol(String startSymbol) {
+		super.setStartSymbol(startSymbol);
+	}
+	
 	/**
 	 * @see SGLR#setUseStructureRecovery(boolean)
 	 */

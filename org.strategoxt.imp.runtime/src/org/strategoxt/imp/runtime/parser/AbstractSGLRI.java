@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
@@ -28,8 +27,8 @@ import org.strategoxt.lang.WeakValueHashMap;
 public abstract class AbstractSGLRI {
 	
 	@SuppressWarnings("unused")
-	private static final Map<CachingKey, IStrategoTerm> parsedCache =
-		Collections.synchronizedMap(new WeakValueHashMap<CachingKey, IStrategoTerm>());
+	private static final Map<ParseCacheKey, IStrategoTerm> parseCache =
+		Collections.synchronizedMap(new WeakValueHashMap<ParseCacheKey, IStrategoTerm>());
 	
 	private final SGLRParseController controller;
 	
@@ -129,41 +128,6 @@ public abstract class AbstractSGLRI {
 		return parse(inputString, filename);
 	}
 	
-	protected abstract IStrategoTerm doParse(String inputChars, String filename)
+	protected abstract IStrategoTerm doParse(String input, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException;
-}
-
-/**
- * A tuple class. Gotta love the Java.
- */
-class CachingKey {
-	private Object parseTable;
-	private String startSymbol;
-	private char[] input;
-	private String filename; // essential to keep a consistent ast/tokens/resource mapping 
-	
-	public CachingKey(Object parseTable, String startSymbol, char[] input, String filename) {
-		this.parseTable = parseTable;
-		this.startSymbol = startSymbol;
-		this.input = input;
-		this.filename = filename;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		CachingKey other = (CachingKey) obj;
-		return parseTable.equals(other.parseTable)
-			&& Arrays.equals(input, other.input)
-			&& (filename == null ? other.filename == null : filename.equals(other.filename))
-			&& (startSymbol == null ? other.startSymbol == null : startSymbol.equals(other.startSymbol));
-	}
-	
-	@Override
-	public int hashCode() {
-		// (Ignores parse table hash code)
-		return 12125125
-			* (startSymbol == null ? 42 : startSymbol.hashCode())
-			* (filename == null ? 42 : filename.hashCode())
-			^ Arrays.hashCode(input);
-	}
 }

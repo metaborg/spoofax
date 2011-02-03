@@ -35,7 +35,7 @@ import org.strategoxt.imp.runtime.parser.SGLRParseController;
 public class ContentProposerParser {
 	
 	protected static final IStrategoConstructor COMPLETION_CONSTRUCTOR =
-		getTermFactory().makeConstructor("COMPLETION", 0);
+		getTermFactory().makeConstructor("COMPLETION", 1);
 	
 	protected static final IStrategoConstructor COMPLETION_UNKNOWN =
 		getTermFactory().makeConstructor("NOCONTEXT", 0);
