@@ -49,8 +49,8 @@ exports
 
   lexical syntax
   
-    [a-zA-Z][a-zA-Z0-9\_]* -> ID
-    "-"? [0-9]+            -> INT
+    [a-zA-Z\255][a-zA-Z0-9\_\255\254]* -> ID
+    "-"? [0-9]+                        -> INT
     
     "\"" StringChar* "\"" -> STRING
     ~[\"\n]               -> StringChar
