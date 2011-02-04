@@ -18,8 +18,7 @@ import org.strategoxt.imp.runtime.parser.JSGLRI;
 import org.strategoxt.lang.compat.sglr.JSGLR_parse_string_compat;
 
 /**
- * Parses strings to asfix trees, caching the internal IStrategoTerm
- * for implosion with {@link IMPImplodeAsfixStrategy}. 
+ * Parses strings to abstract syntax trees. 
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */

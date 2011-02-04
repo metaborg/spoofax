@@ -57,7 +57,7 @@ public class SourceAttachment extends AbstractTermAttachment {
 	 * Sets the resource for a term tree.
 	 * Should only be applied to the root of a tree.
 	 */
-	public static void setSource(ISimpleTerm term, IResource resource, IParseController controller) {
+	public static void putSource(ISimpleTerm term, IResource resource, IParseController controller) {
 		ISimpleTerm root = ParentAttachment.getRoot(term);
 		assert term == root;
 		root.putAttachment(new SourceAttachment(resource, controller));

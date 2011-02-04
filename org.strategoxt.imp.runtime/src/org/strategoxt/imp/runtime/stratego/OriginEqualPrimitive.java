@@ -1,6 +1,5 @@
 package org.strategoxt.imp.runtime.stratego;
 
-import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getImploderOrigin;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.hasImploderOrigin;
 import static org.spoofax.terms.attachments.OriginAttachment.tryGetOrigin;
 
@@ -9,7 +8,6 @@ import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
-import org.spoofax.terms.attachments.OriginAttachment;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>

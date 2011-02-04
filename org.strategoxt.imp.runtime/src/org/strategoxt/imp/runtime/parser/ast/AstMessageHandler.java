@@ -80,7 +80,7 @@ public class AstMessageHandler {
 
 		if (node == null) {
 			addMarkerFirstLine(resource, message, severity);
-			Environment.logException("Term is not associated with an AST node, cannot report feedback message: "
+			Environment.logWarning("Term is not associated with an AST node, cannot report feedback message: "
 							+ term + " - " + message);
 		} else if (getResource(node) == null) {
             Environment.logException("Term is not associated with a workspace file, cannot report feedback message: "

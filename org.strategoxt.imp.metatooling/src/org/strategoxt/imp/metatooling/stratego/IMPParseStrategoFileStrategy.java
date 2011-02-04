@@ -44,7 +44,7 @@ public class IMPParseStrategoFileStrategy extends parse_stratego_file_0_0 {
 			try {
 				stream = context.getIOAgent().openInputStream(file);
 				IStrategoTerm ast = parser.parse(stream, file);
-				SourceAttachment.setSource(ast, EditorIOAgent.getResource(new File(file)), null);
+				SourceAttachment.putSource(ast, EditorIOAgent.getResource(new File(file)), null);
 				return ast;
 			} finally {
 				if (stream != null) stream.close();

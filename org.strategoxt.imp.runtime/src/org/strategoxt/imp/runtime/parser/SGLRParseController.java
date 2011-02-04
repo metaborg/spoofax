@@ -149,6 +149,10 @@ public class SGLRParseController implements IParseController {
 			: project.getRawProject().getLocation().append(path);
     }
     
+    public final IPath getRelativePath() {
+    	return path;
+    }
+    
     public IFile getResource() {
     	IPath path = getPath();
     	if (getProject() == null) {
