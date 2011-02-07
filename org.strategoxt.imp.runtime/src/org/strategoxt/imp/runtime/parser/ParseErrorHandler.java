@@ -50,7 +50,7 @@ public class ParseErrorHandler {
 	
 	private static Context asyncAmbReportingContext;
 	
-	private final IStrategoConstructor ambCons = Environment.getTermFactory().makeConstructor("amb", 0); 
+	private final IStrategoConstructor ambCons = Environment.getTermFactory().makeConstructor("amb", 1); 
 	
 	private final AstMessageHandler handler = new AstMessageHandler(AstMessageHandler.PARSE_MARKER_TYPE);
 
@@ -184,7 +184,7 @@ public class ParseErrorHandler {
 			}
 		}
 		
-		return result.length() > 5000 ? result : result.substring(0, 5000) + "...";
+		return result.length() > 5000 ? result.substring(0, 5000) + "..." : result;
 	}
 
 	private void reportSkippedRegion(IToken left, IToken right) {

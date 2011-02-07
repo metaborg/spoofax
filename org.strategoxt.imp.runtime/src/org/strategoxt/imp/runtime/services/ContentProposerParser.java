@@ -38,7 +38,7 @@ public class ContentProposerParser {
 		getTermFactory().makeConstructor("COMPLETION", 1);
 	
 	protected static final IStrategoConstructor COMPLETION_UNKNOWN =
-		getTermFactory().makeConstructor("NOCONTEXT", 0);
+		getTermFactory().makeConstructor("NOCONTEXT", 1);
 
 	private static final long REINIT_PARSE_DELAY = 4000;
 	

@@ -199,7 +199,8 @@ public class SGLRParseController implements IParseController {
     	this.performInitialUpdate = true;
     	
     	parser = new JSGLRI(table, startSymbol, this);
-		parser.setTimeout(PARSE_TIMEOUT);
+    	if (!Debug.ENABLED)
+    		parser.setTimeout(PARSE_TIMEOUT);
 		parser.setUseRecovery(true);
 		if (!parser.getParseTable().hasRecovers())
 			Environment.logWarning("No recovery rules available for " + language.getName() + " editor");

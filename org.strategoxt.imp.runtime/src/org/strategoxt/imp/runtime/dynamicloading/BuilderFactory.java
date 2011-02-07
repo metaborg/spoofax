@@ -51,7 +51,8 @@ public class BuilderFactory extends AbstractServiceFactory<IBuilderMap> {
 
 		addBuilders(d, controller, builders, null);
 		addCustomStrategyBuilder(d, controller, builders, derivedFromEditor);
-		addRefactorings(d, controller, builders);
+		if (EditorState.isUIThread()) // don't show for background (realtime) builders; not threadsafe
+			addRefactorings(d, controller, builders);
 		return new BuilderMap(builders);
 	}
 
@@ -162,6 +163,7 @@ public class BuilderFactory extends AbstractServiceFactory<IBuilderMap> {
 			NodeMapping<String> aMapping = NodeMapping.create(semanticNode, "");
 			mappings.add(aMapping);
 		}
+		// XXX: the builder doesn't run in the UI thread for real-time builds
 		EditorState editor = EditorState.getActiveEditor();
 		IStrategoTerm node= editor.getSelectionAst(false);
 		IStrategoTerm ancestor = StrategoTermPath.getMatchingAncestor(node, false);

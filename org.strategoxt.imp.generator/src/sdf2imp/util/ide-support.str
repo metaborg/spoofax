@@ -28,7 +28,10 @@ strategies
     end
   
   simplify-ambiguity-report:
-    amb(a*) -> $[either [a'*]]
+  	amb([]) -> $[ambiguity in literal or layout]
+  
+  simplify-ambiguity-report:
+    amb(a* @ [_ | _]) -> $[either [a'*]]
     where
       !a*;
       map(try(?ToMetaExpr(<id>)));
