@@ -1,19 +1,19 @@
 package org.strategoxt.imp.runtime.services;
 
 import static org.spoofax.interpreter.core.Tools.isTermString;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getSort;
+import static org.spoofax.terms.Term.tryGetName;
 
 import java.util.List;
-
-import lpg.runtime.IAst;
 
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.services.IReferenceResolver;
+import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
-import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -38,13 +38,13 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 		wildcardHelperFunction = NodeMapping.getFirstAttribute(helpFunctions, "_", null, 0);
 	}
 
-	public IAst getLinkTarget(Object oNode, IParseController parseController) {
-		IStrategoAstNode node = StrategoTermPath.getMatchingAncestor((IStrategoAstNode) oNode, true);
+	public ISimpleTerm getLinkTarget(Object oNode, IParseController parseController) {
+		IStrategoTerm node = StrategoTermPath.getMatchingAncestor((IStrategoTerm) oNode, true);
 		
-		String function = NodeMapping.getFirstAttribute(resolverFunctions, node.getConstructor(), node.getSort(), 0);
+		String function = NodeMapping.getFirstAttribute(resolverFunctions, tryGetName(node), getSort(node), 0);
 		if (function == null) function = wildcardResolverFunction;
 		if (function == null || function.equals("_")) {
-			Debug.log("No reference resolver available for node of type ", node.getConstructor());
+			Debug.log("No reference resolver available for node of type ", tryGetName(node));
 			return null;
 		}
 		
@@ -61,14 +61,14 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 	}
 
 	public String getLinkText(Object oNode) {
-		IStrategoAstNode node = StrategoTermPath.getMatchingAncestor((IStrategoAstNode) oNode, true);
+		IStrategoTerm node = StrategoTermPath.getMatchingAncestor((IStrategoTerm) oNode, true);
 		if (node == null)
 			return null;
 		
-		String function = NodeMapping.getFirstAttribute(helpFunctions, node.getConstructor(), null, 0);
+		String function = NodeMapping.getFirstAttribute(helpFunctions, tryGetName(node), null, 0);
 		if (function == null) function = wildcardHelperFunction;
 		if (function == null || function.equals("_"))  {
-			Debug.log("No hover help available for node of type ", node.getConstructor());
+			Debug.log("No hover help available for node of type ", tryGetName(node));
 			return null;
 		}
 		

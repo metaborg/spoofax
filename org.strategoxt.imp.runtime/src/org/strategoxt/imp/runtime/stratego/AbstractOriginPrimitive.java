@@ -1,10 +1,12 @@
 package org.strategoxt.imp.runtime.stratego;
 
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.hasImploderOrigin;
+import static org.spoofax.terms.attachments.OriginAttachment.tryGetOrigin;
+
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.strategoxt.imp.runtime.stratego.adapter.IWrappedAstNode;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -18,8 +20,8 @@ public abstract class AbstractOriginPrimitive extends AbstractPrimitive {
 	@Override
 	public final boolean call(IContext env, Strategy[] svars, IStrategoTerm[] tvars) {
 		
-		if (tvars[0] instanceof IWrappedAstNode) {
-			IStrategoTerm result = call(env, (IWrappedAstNode) tvars[0]);
+		if (hasImploderOrigin(tvars[0])) {
+			IStrategoTerm result = call(env, tryGetOrigin(tvars[0]));
 			if (result != null) {
 				env.setCurrent(result);
 				return true;
@@ -28,5 +30,5 @@ public abstract class AbstractOriginPrimitive extends AbstractPrimitive {
 		return false;
 	}
 	
-	protected abstract IStrategoTerm call(IContext env, IWrappedAstNode node);
+	protected abstract IStrategoTerm call(IContext env, IStrategoTerm origin);
 }

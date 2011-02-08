@@ -1,10 +1,13 @@
 package org.strategoxt.imp.runtime.stratego;
 
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.hasImploderOrigin;
+import static org.spoofax.terms.attachments.OriginAttachment.tryGetOrigin;
+
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.strategoxt.imp.runtime.stratego.adapter.IWrappedAstNode;
+import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -23,25 +26,23 @@ public class OriginEqualPrimitive extends AbstractPrimitive {
 	}
 
 	private static boolean equal(IStrategoTerm t1, IStrategoTerm t2) {
-		boolean leftHasNode = t1 instanceof IWrappedAstNode;
-		boolean rightHasNode = t2 instanceof IWrappedAstNode;
-		if (leftHasNode && rightHasNode) {
-			return ((IWrappedAstNode) t1).getNode() == ((IWrappedAstNode) t2).getNode();
-		} else /* if (t1.getSubtermCount() > 0 && t2.getsu (leftHasNode && t1.getSubtermCount() > 0) {
-			return equalChildTokens((IWrappedAstNode) t1, t2);
-		} else if (rightHasNode && t2.getSubtermCount() > 0) {
-			return equalChildTokens((IWrappedAstNode) t2, t1);
-		} else */ {
-			return false;
-		}
+		if (t1 == t2)
+			return hasImploderOrigin(t1);
+		
+		ImploderAttachment origin1 = ImploderAttachment.get(tryGetOrigin(t1));
+		if (origin1 == null) return false;
+		if (t1 == t2) return true;
+		
+		ImploderAttachment origin2 = ImploderAttachment.get(tryGetOrigin(t1));
+		return origin1 == origin2;
 	}
 
 	/*
-	private static boolean equalChildTokens(IWrappedAstNode t1, IStrategoTerm t2) {
+	private static boolean equalChildTokens(IStrategoTerm t1, IStrategoTerm t2) {
 		IStrategoTerm child = termAt(t1, 0);
-		if (child instanceof IWrappedAstNode) {
-			IToken start = t1.getNode().getLeftIToken();
-			IToken startChild = ((IWrappedAstNode) termAt(t1, 0)).getNode().getLeftIToken();
+		if (hasImploderOrigin(child)) {
+			IToken start = t1.getNode().getLeftToken();
+			IToken startChild = ((IStrategoTerm) termAt(t1, 0)).getNode().getLeftToken();
 			if (start == startChild)
 				return equal(termAt(t1, 0), t2);
 		}

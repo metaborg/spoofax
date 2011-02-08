@@ -9,12 +9,12 @@ import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.ui.IEditorPart;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.WeakWeakMap;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
-import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -37,14 +37,14 @@ public class StrategoBuilderListener implements IModelListener {
 	
 	private final IFile targetFile;
 
-	private IStrategoAstNode selection;
+	private IStrategoTerm selection;
 	
 	private long lastChanged;
 	
 	private boolean enabled = true;
 	
 	private StrategoBuilderListener(UniversalEditor editor, IEditorPart targetEditor, IFile targetFile,
-			IBuilder builder, IStrategoAstNode selection) {
+			IBuilder builder, IStrategoTerm selection) {
 		
 		this.editor = new WeakReference<UniversalEditor>(editor);
 		this.targetEditor = new WeakReference<IEditorPart>(targetEditor);
@@ -55,7 +55,7 @@ public class StrategoBuilderListener implements IModelListener {
 		this.selection = selection;
 	}
 
-	public static StrategoBuilderListener addListener(UniversalEditor editor, IEditorPart target, IFile file, IBuilder builder, IStrategoAstNode node) {
+	public static StrategoBuilderListener addListener(UniversalEditor editor, IEditorPart target, IFile file, IBuilder builder, IStrategoTerm node) {
 		synchronized (asyncListeners) {
 			StrategoBuilderListener listener = asyncListeners.get(editor);
 			if (listener != null) listener.setEnabled(false);
@@ -130,7 +130,7 @@ public class StrategoBuilderListener implements IModelListener {
 			    throw new RuntimeException("No builder exists with this name: " + this.builderName);
 			builder.setData(builderData);
 			
-			IStrategoAstNode newSelection = findNewSelection(editor);
+			IStrategoTerm newSelection = findNewSelection(editor);
 			Job job;
 			if (newSelection != null) {
 				job = builder.scheduleExecute(editor, selection = newSelection, targetFile, true);
@@ -154,9 +154,9 @@ public class StrategoBuilderListener implements IModelListener {
 		}
 	}
 	
-	private IStrategoAstNode findNewSelection(EditorState editor) {
+	private IStrategoTerm findNewSelection(EditorState editor) {
 		if (selection == null) return null;
-		IStrategoAstNode newAst = editor.getParseController().getCurrentAst();
+		IStrategoTerm newAst = editor.getParseController().getCurrentAst();
 		if (newAst == null) return null;
 		return StrategoTermPath.findCorrespondingSubtree(newAst, selection);
 	}

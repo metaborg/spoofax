@@ -1,11 +1,10 @@
 package org.strategoxt.imp.runtime.stratego;
 
-import lpg.runtime.ILexStream;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getTokenizer;
 
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.stratego.DocumentStructure.TextFragment;
-import org.strategoxt.imp.runtime.stratego.adapter.IWrappedAstNode;
 
 /**
  * Extracts all comment lines directly in front of the current node
@@ -18,12 +17,12 @@ public class OriginCommentBeforePrimitive extends AbstractOriginPrimitive {
 	}
 
 	@Override
-	protected IStrategoTerm call(IContext env, IWrappedAstNode node) {
-		DocumentStructure loStructure=new DocumentStructure(node);
+	protected IStrategoTerm call(IContext env, IStrategoTerm origin) {
+		DocumentStructure loStructure=new DocumentStructure(origin);
 		TextFragment commentBlock=loStructure.getCommentsBefore();
 		if(commentBlock==null)
 			return null;
-		ILexStream lexStream=node.getNode().getLeftIToken().getILexStream();
+		String lexStream=getTokenizer(origin).getInput();
 		return env.getFactory().makeTuple(
 				env.getFactory().makeInt(commentBlock.getStart()),
 				env.getFactory().makeInt(commentBlock.getEnd()),

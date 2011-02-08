@@ -5,9 +5,11 @@ import static org.spoofax.interpreter.core.Tools.termAt;
 import static org.spoofax.interpreter.terms.IStrategoTerm.LIST;
 import static org.spoofax.interpreter.terms.IStrategoTerm.STRING;
 import static org.spoofax.interpreter.terms.IStrategoTerm.TUPLE;
+import static org.spoofax.terms.Term.tryGetConstructor;
+import static org.strategoxt.imp.runtime.services.ContentProposerParser.COMPLETION_UNKNOWN;
+import static org.strategoxt.imp.runtime.stratego.SourceAttachment.getResource;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -15,8 +17,6 @@ import java.util.Random;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import lpg.runtime.IToken;
 
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.imp.editor.ErrorProposal;
@@ -28,37 +28,16 @@ import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.jsglr.SGLRException;
+import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.terms.TermFactory;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.dynamicloading.DynamicParseController;
-import org.strategoxt.imp.runtime.parser.JSGLRI;
-import org.strategoxt.imp.runtime.parser.SGLRParseController;
-import org.strategoxt.imp.runtime.parser.ast.AbstractVisitor;
-import org.strategoxt.imp.runtime.parser.ast.AstNode;
 import org.strategoxt.imp.runtime.parser.ast.AstSortInspector;
-import org.strategoxt.imp.runtime.parser.ast.ListAstNode;
-import org.strategoxt.imp.runtime.parser.ast.RootAstNode;
-import org.strategoxt.imp.runtime.parser.ast.StringAstNode;
 import org.strategoxt.imp.runtime.stratego.CandidateSortsPrimitive;
 import org.strategoxt.imp.runtime.stratego.StrategoConsole;
-import org.strategoxt.imp.runtime.stratego.adapter.WrappedAstNodeFactory;
-import org.strategoxt.lang.terms.TermFactory;
 
 /**
  * Content completion.
- * 
- * Works in 6 or so steps:
- * 
- * 1. control-space/completion token event
- * 2. create source text with "_CONTENT_COMPLETE_a124142_" dummy literal
- * 3a parse to AST (only use it for content completion because of dummy literal)
- * 3b force-insert dummy literal if not found in ast
- * 3c if parsing fails, use an old AST and apply 3b
- * 4. analyze complete file:
- *    store completion suggestions for dummy literal in dyn rule and return it
- * 5. present completion suggestions to user
- * 6. reparse and reanalyze to fix position info
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
@@ -67,12 +46,6 @@ public class ContentProposer implements IContentProposer {
 	public static String COMPLETION_TOKEN = "CONTENTCOMPLETE" + Math.abs(new Random().nextInt());
 	
 	private static final boolean IGNORE_TEMPLATE_PREFIX_CASE = false;
-	
-	private static final String COMPLETION_CONSTRUCTOR = "COMPLETION";
-	
-	private static final String COMPLETION_UNKNOWN = "NOCONTEXT";
-
-	private static final long REINIT_PARSE_DELAY = 4000;
 	
 	private final StringBuilder proposalBuilder = new StringBuilder();
 	
@@ -86,23 +59,7 @@ public class ContentProposer implements IContentProposer {
 	
 	private final ContentProposalTemplate[] templates;
 	
-	private SGLRParseController parser;
-	
-	private RootAstNode lastParserAst;
-	
-	private RootAstNode lastCompletionAst;
-	
-	private AstNode lastCompletionNode;
-	
-	private String lastDocument;
-	
-	private int lastOffset;
-	
-	private AstNode currentCompletionNode;
-	
-	private String currentCompletionPrefix;
-	
-	private String lastCompletionPrefix;
+	private final ContentProposerParser parser; // mutable state
 	
 	public ContentProposer(StrategoObserver observer, String completionFunction, Pattern identifierLexical, String[] keywords, ContentProposalTemplate[] templates) {
 		this.observer = observer;
@@ -110,26 +67,27 @@ public class ContentProposer implements IContentProposer {
 		this.identifierLexical = identifierLexical;
 		this.keywords = keywords;
 		this.templates = templates;
+		this.parser = new ContentProposerParser(identifierLexical);
 	}
 	
 	public ICompletionProposal[] getContentProposals(IParseController controller, int offset, ITextViewer viewer) {
-		lastCompletionNode = currentCompletionNode;
-		lastCompletionPrefix = currentCompletionPrefix;
-		currentCompletionNode = null;
 		String document = viewer.getDocument().get();
 		
 		if (!identifierLexical.matcher(COMPLETION_TOKEN).matches())
 			return createErrorProposal("No proposals available - completion lexical must allow letters and numbers", offset);
 		
-		RootAstNode ast = constructAst(getParser(controller), offset, document);
-		int prefixLength = currentCompletionPrefix == null ? 0 : currentCompletionPrefix.length();
+		boolean avoidReparse = completionFunction == null && templates.length == 0;
+		IStrategoTerm ast = parser.parse(controller, offset, document, avoidReparse);
+		int prefixLength = parser.getCompletionPrefix() == null ? 0 : parser.getCompletionPrefix().length();
 		Set<String> sorts = new AstSortInspector(ast).getSortsAtOffset(offset - prefixLength, offset);
-		if (currentCompletionNode == null)
+		if (parser.getCompletionNode() == null)
 			return getParseFailureProposals(controller, document, offset, sorts);
 
 		printCompletionTip(controller, sorts);
 
-		ICompletionProposal[] results = toProposals(invokeCompletionFunction(controller, sorts), document, offset, sorts);
+		ICompletionProposal[] results =
+			toProposals(invokeCompletionFunction(controller, sorts), document,
+					parser.getCompletionPrefix(), offset, sorts);
 		
 		/* UNDONE: automatic proposal insertion
 		if (results.length == 1 && results[0] instanceof SourceProposal) {
@@ -150,13 +108,14 @@ public class ContentProposer implements IContentProposer {
 		String startSymbol = Environment.getDescriptor(controller.getLanguage()).getStartSymbol();
 		
 		if (startSymbol != null && document.trim().indexOf('\n') == -1) {
-			currentCompletionPrefix = getPrefix(offset, document);
+			// Empty document completion
+			String prefix = parser.readPrefix(offset, document);
 			sorts.add(startSymbol);
 			printCompletionTip(controller, sorts);
-			ICompletionProposal[] proposals = toProposals(TermFactory.EMPTY_LIST, document, offset, sorts);
+			ICompletionProposal[] proposals = toProposals(TermFactory.EMPTY_LIST, document, prefix, offset, sorts);
 			if (proposals.length != 0) return proposals;
 		}
-		if (lastCompletionAst == null && lastParserAst == null) {
+		if (parser.isFatalSyntaxError()) {
 			return createErrorProposal("No proposals available - syntax errors", offset);
 		} else {
 			return createErrorProposal("No proposals available - could not identify proposal context", offset);
@@ -166,8 +125,9 @@ public class ContentProposer implements IContentProposer {
 	private void printCompletionTip(IParseController controller, Set<String> sorts) {
 		if (Environment.getDescriptor(controller.getLanguage()).isDynamicallyLoaded()) {
 			try {
+				IStrategoTerm currentCompletionNode = parser.getCompletionNode();
 				String parseErrorHelp = currentCompletionNode != null
-					&& currentCompletionNode.getConstructor() == COMPLETION_UNKNOWN
+					&& tryGetConstructor(currentCompletionNode) == COMPLETION_UNKNOWN
 					? "\n   (context could not be parsed with this grammar; see the FAQ.)"
 					: "";
 				StrategoConsole.getOutputWriter().write(
@@ -185,60 +145,16 @@ public class ContentProposer implements IContentProposer {
 		return identifierLexical;
 	}
 	
-	protected void proposalApplied() {
+	protected ContentProposerParser getParser() {
+		return parser;
+	}
+		
+	protected void onProposalApplied() {
 		observer.setRushNextUpdate(true);
-		parser.getErrorHandler().setRushNextUpdate(true);
-		parser.scheduleParserUpdate(0, false);
+		parser.getParser().getErrorHandler().setRushNextUpdate(true);
+		parser.getParser().scheduleParserUpdate(0, false);
 	}
 	
-	private RootAstNode constructAst(SGLRParseController controller, int offset, String document) {
-		this.parser = controller;
-		RootAstNode ast = tryReusePreviousAst(offset, document);
-		if (ast != null) return ast;
-
-		String documentWithToken = document.substring(0, offset) + COMPLETION_TOKEN + document.substring(offset);
-		ast = parse(controller, offset, documentWithToken);
-		if (ast == null) return null;
-		
-		RootAstNode result = identifyCompletionNode(ast, COMPLETION_TOKEN);
-		if (currentCompletionNode == null) result = insertNewCompletionNode(ast, offset, document);
-		return result;
-	}
-
-	private RootAstNode parse(SGLRParseController controller, int offset, String document) {
-		JSGLRI parser = controller.getParser();
-		RootAstNode result;
-		
-		controller.scheduleParserUpdate(REINIT_PARSE_DELAY, true); // cancel current parse
-		Debug.startTimer();
-		controller.getParseLock().lock();
-		Debug.stopTimer("Completion acquired parse lock");
-		try {
-			if (completionFunction == null && controller.getCurrentAst() != null) {
-				// Don't reparse for keyword completion
-				result = controller.getCurrentAst().cloneIgnoreTokens();
-			} else {
-				Debug.startTimer();
-				try {
-					result = parser.parse(document.toCharArray(), controller.getPath().toPortableString());
-				} finally {
-					Debug.stopTimer("Completion parsed");
-				}
-				lastParserAst = controller.getCurrentAst();
-				lastCompletionAst = result.cloneIgnoreTokens();
-			}
-		} catch (SGLRException e) {
-			Environment.logException("Could not reparse input for content completion", e);
-			result = forceUseOldAst(controller, offset, document);
-		} catch (IOException e) {
-			Environment.logException("Could not reparse input for content completion", e);
-			result = forceUseOldAst(controller, offset, document);
-		} finally {
-			controller.getParseLock().unlock();
-		}
-		return result;
-	}
-
 	private IStrategoTerm invokeCompletionFunction(final IParseController controller, final Set<String> sorts) {
 		if (completionFunction == null) {
 			return Environment.getTermFactory().makeList();
@@ -256,8 +172,8 @@ public class ContentProposer implements IContentProposer {
 						if (!observer.isUpdateScheduled()) {
 							observer.update(controller, new NullProgressMonitor());
 						}
-						IStrategoTerm input = observer.makeInputTerm(currentCompletionNode, true, false);
-						result = observer.invokeSilent(completionFunction, input, currentCompletionNode.getResource());
+						IStrategoTerm input = observer.makeInputTerm(parser.getCompletionNode(), true, false);
+						result = observer.invokeSilent(completionFunction, input, getResource(parser.getCompletionNode()));
 						if (result == null) {
 							observer.reportRewritingFailed();
 							result = TermFactory.EMPTY_LIST;
@@ -280,7 +196,7 @@ public class ContentProposer implements IContentProposer {
 		}
 	}
 	
-	private ICompletionProposal[] toProposals(IStrategoTerm proposals, String document, int offset, Set<String> sorts) {
+	private ICompletionProposal[] toProposals(IStrategoTerm proposals, String document, String prefix, int offset, Set<String> sorts) {
 		Debug.startTimer();
 		
 		String error = "No proposals available - '" + completionFunction
@@ -289,10 +205,9 @@ public class ContentProposer implements IContentProposer {
 		if (proposals.getTermType() != LIST)
 			return createErrorProposal(error, offset);
 
-		WrappedAstNodeFactory factory = Environment.getTermFactory();
+		ITermFactory factory = Environment.getTermFactory();
 		IStrategoString emptyString = factory.makeString("");
 		Region offsetRegion = new Region(offset, 0);
-		String prefix = currentCompletionPrefix;
 		
 		Set<ICompletionProposal> results = getKeywordAndTemplateProposals(document, prefix, offsetRegion, offset, sorts);
 
@@ -380,6 +295,7 @@ public class ContentProposer implements IContentProposer {
 		boolean backTrackResultsOnly = false;
 		
 		// TODO: simplify - turn completion keywords in completion templates?
+		//       right now we have code clone mccabe insanity...
 		for (String proposal : keywords) {
 			if (!backTrackResultsOnly && proposal.regionMatches(IGNORE_TEMPLATE_PREFIX_CASE, 0, prefix, 0, prefix.length())) {
 				if (prefix.length() > 0 || identifierLexical.matcher(proposal).lookingAt())
@@ -453,217 +369,6 @@ public class ContentProposer implements IContentProposer {
 
 	private ICompletionProposal[] createErrorProposal(String error, int offset) {
 		return new ICompletionProposal[] { new ErrorProposal(error, offset) };
-	}
-
-	/**
-	 * Reuse the previous AST if the user just added or deleted a single character.
-	 */
-	private RootAstNode tryReusePreviousAst(int offset, String document) {
-		if (offset == 0) return null;
-		if (lastCompletionNode != null && lastDocument.length() == document.length() - 1 && lastOffset == offset - 1) {
-			// Reuse document, ignoring latest typed character
-			String newCharacter = document.substring(offset - 1, offset);
-			String previousDocument = lastDocument.substring(0, offset - 1) + newCharacter + lastDocument.substring(offset - 1);
-			if (documentsSufficientlyEqual(document, previousDocument, offset)) {
-				return reusePreviousAst(offset, document, lastCompletionPrefix + newCharacter);
-			}
-		} else if (lastCompletionNode != null && lastCompletionPrefix.length() > 0
-				&& lastDocument.length() == document.length() + 1 && lastOffset == offset + 1) {
-			// Reuse document, ignoring previously typed character
-			String oldCharacter = lastDocument.substring(offset, offset + 1);
-			String currentDocument = document.substring(0, offset) + oldCharacter + document.substring(offset);
-			if (documentsSufficientlyEqual(currentDocument, lastDocument, offset + 1)) {
-				return reusePreviousAst(offset, document, lastCompletionPrefix.substring(0, lastCompletionPrefix.length() - 1));
-			}
-		} else if (lastCompletionNode != null && lastDocument.equals(document) && offset == lastOffset) {
-			return reusePreviousAst(offset, document, lastCompletionPrefix);
-		}
-		lastDocument = document;
-		lastOffset = offset;
-		return null;
-	}
-	
-	/**
-	 * @return Whether doc1 and doc2 are equal disregarding the last
-	 * identifierLexical immediately before offset. If there is no
-	 * identifierLexical at that place in either document, false is returned.
-	 */
-	private boolean documentsSufficientlyEqual(String doc1, String doc2, int offset) {
-		String s1 = removeLastOccurrenceOfPatternBeforeIndex(identifierLexical, doc1, offset);
-		String s2 = removeLastOccurrenceOfPatternBeforeIndex(identifierLexical, doc2, offset);
-		if (s1 == null || s2 == null) return false;
-		return s1.equals(s2);
-	}
-	
-	/**
-	 * @return s with the occurrence of p immediately before endIndex removed,
-	 * or null if p does not match before endIndex. Note: only examines the
-	 * last 50 characters of s.
-	 */
-	private static String removeLastOccurrenceOfPatternBeforeIndex(Pattern p, String s, int endIndex) {
-		int beginIndex = Math.max(0, endIndex - 50);
-		Matcher m = p.matcher(s.substring(beginIndex, endIndex));
-		while (m.find()) {
-			if (m.end() == endIndex - beginIndex) {
-				return s.substring(0, beginIndex + m.start()) + s.substring(endIndex);
-			}
-		}
-		return null;
-	}
-	
-	private RootAstNode reusePreviousAst(int offset, String document, String prefix) {
-		currentCompletionPrefix = prefix;
-		lastDocument = document;
-		lastOffset = offset;
-		String prefixInAst = sanitizePrefix(currentCompletionPrefix);
-		if (prefixInAst == null)
-			return null;
-		currentCompletionNode = lastCompletionNode;
-		replacePrefix(currentCompletionNode, prefixInAst);
-		return lastCompletionAst;
-	}
-
-	private String sanitizePrefix(String prefix) {
-		Matcher matcher = identifierLexical.matcher(prefix);
-		if (prefix.length() == 0) {
-			return "";
-		} else if (matcher.lookingAt()) {
-			return prefix.substring(0, matcher.end());
-		} else {
-			return null;
-		}
-	}
-	
-	private RootAstNode forceUseOldAst(SGLRParseController parser, int offset, String document) {
-		if (parser.getCurrentAst() != lastParserAst) { // parser has a more recent AST
-			lastParserAst = parser.getCurrentAst();
-			lastCompletionAst = parser.getCurrentAst();
-			currentCompletionNode = null;
-		} else {
-			if (currentCompletionNode == null)
-				return null;
-			replacePrefix(currentCompletionNode, getPrefix(offset, document));
-		}
-		return lastCompletionAst;
-	}
-
-	private static SGLRParseController getParser(IParseController controller) {
-		if (controller instanceof DynamicParseController)
-			controller = ((DynamicParseController) controller).getWrapped();
-		return (SGLRParseController) controller;
-	}
-	
-	private RootAstNode identifyCompletionNode(RootAstNode ast, final String completionToken) {
-		class Visitor extends AbstractVisitor {	
-			public boolean preVisit(AstNode node) {
-				if (node instanceof StringAstNode) {
-					String value = ((StringAstNode) node).getValue();
-					if (value.indexOf(completionToken) > -1) {
-						replaceCompletionNode(node, value.replace(completionToken, ""));
-					}
-				}
-				return true;
-			}
-			
-			public void postVisit(AstNode node) {
-				// Unused
-			}
-		}
-		ast.accept(new Visitor());
-		return ast;
-	}
-
-	private void replaceCompletionNode(AstNode node, String value) {
-		ArrayList<AstNode> siblings = node.getParent().getChildren();
-		int siblingIndex = siblings.indexOf(node);
-		AstNode newNode = createCompletionNode(value, node.getLeftIToken(), node.getRightIToken());
-		newNode.setParent(node.getParent());
-		currentCompletionNode = node.getParent(); // add a bit of context
-		siblings.set(siblingIndex, newNode);
-	}
-
-	private AstNode createCompletionNode(String prefix, IToken left, IToken right) {
-		ArrayList<AstNode> children = new ArrayList<AstNode>();
-		children.add(new StringAstNode(prefix, null, left, right));
-		currentCompletionPrefix = prefix;
-		currentCompletionNode = new AstNode(null, left, right, COMPLETION_CONSTRUCTOR, children);
-		return currentCompletionNode;
-	}
-	
-	private RootAstNode insertNewCompletionNode(RootAstNode ast, final int offset, String document) {
-		class Visitor extends AbstractVisitor {
-			AstNode targetNode, lastNode;
-			
-			public boolean preVisit(AstNode node) {
-				if (node.getLeftIToken().getStartOffset() <= offset
-						&& offset <= node.getRightIToken().getEndOffset()) {
-					targetNode = node;
-				}
-				lastNode = node;
-				return true;
-			}
-			
-			public void postVisit(AstNode node) {
-				// Unused
-			}
-		}
-		Visitor visitor = new Visitor();
-		ast.accept(visitor);
-		if (visitor.targetNode != null)
-			insertNewCompletionNode(visitor.targetNode, getPrefix(offset, document));
-		else
-			insertNewCompletionNode(visitor.lastNode, getPrefix(offset, document));
-		return ast;
-	}
-	
-	private String getPrefix(int offset, String document) {
-		int prefixStart = offset;
-		int lastGoodPrefixStart = offset;
-		while (--prefixStart >= 0) {
-			String prefix = document.substring(prefixStart, offset);
-			if (identifierLexical.matcher(prefix).matches()) {
-				lastGoodPrefixStart = prefixStart;
-			} else if (prefix.charAt(0) == '\n') {
-				return document.substring(lastGoodPrefixStart, offset);
-			}
-		}
-		return document.substring(0, offset);
-	}
-	
-	private void replacePrefix(AstNode completionNode, String prefix) {
-		if (completionNode.getConstructor() != COMPLETION_CONSTRUCTOR) {
-			for (Object child : completionNode.getChildren()) {
-				if (((AstNode) child).getConstructor() == COMPLETION_CONSTRUCTOR)
-					completionNode = (AstNode) child;
-			}
-		}
-		StringAstNode prefixNode = (StringAstNode) completionNode.getChildren().get(0);
-		prefixNode.setValue(prefix);
-	}
-	
-	private void insertNewCompletionNode(AstNode node, String prefix) {
-		// Create a new UNKNOWN(COMPLETION(prefix)) node
-		AstNode result = createCompletionNode(prefix, node.getLeftIToken(), node.getRightIToken());
-		ArrayList<AstNode> newNodeContainer = new ArrayList<AstNode>(1);
-		newNodeContainer.add(result);
-		currentCompletionNode = result = new AstNode(null, node.getLeftIToken(), node.getRightIToken(), COMPLETION_UNKNOWN, newNodeContainer);
-		
-		// Insert the node in a list near the textual input location
-		if (node instanceof ListAstNode) {
-			node.getChildren().add(result);
-			result.setParent(node);
-			return;
-		}
-		for (AstNode parent = node.getParent(); parent != null; node = parent, parent = parent.getParent()) {
-			if (parent instanceof ListAstNode) {
-				int i = parent.getChildren().indexOf(node);
-				parent.getChildren().add(i + 1, result);
-				result.setParent(parent);
-				return;
-			}
-		}
-		result.setParent(node.getRoot());
-		return;
 	}
 	
 }

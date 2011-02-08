@@ -1,13 +1,20 @@
 package org.strategoxt.imp.runtime.parser.ast;
 
-import static org.eclipse.core.resources.IMarker.*;
-import lpg.runtime.IToken;
+import static org.eclipse.core.resources.IMarker.CHAR_END;
+import static org.eclipse.core.resources.IMarker.CHAR_START;
+import static org.eclipse.core.resources.IMarker.LINE_NUMBER;
+import static org.eclipse.core.resources.IMarker.MESSAGE;
+import static org.eclipse.core.resources.IMarker.PRIORITY;
+import static org.eclipse.core.resources.IMarker.SEVERITY;
+import static org.eclipse.core.resources.IMarker.SEVERITY_ERROR;
+import static org.eclipse.core.resources.IMarker.TRANSIENT;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.spoofax.jsglr.client.imploder.IToken;
+import org.spoofax.jsglr.client.imploder.ITokenizer;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.parser.ParseErrorHandler;
 
 /**
  * Marker configuration attributes containment and comparison.
@@ -117,9 +124,9 @@ public class MarkerSignature {
 	}
 	
 	private static String removeSyntaxErrorDetails(String s) {
-		if (s.startsWith(ParseErrorHandler.UNEXPECTED_TOKEN_PREFIX)
-				&& s.endsWith(ParseErrorHandler.UNEXPECTED_TOKEN_POSTFIX)
-				|| s == ParseErrorHandler.UNEXPECTED_REGION) {
+		if (s.startsWith(ITokenizer.ERROR_GENERIC_PREFIX)
+				|| s == ITokenizer.ERROR_SKIPPED_REGION
+				|| s.startsWith(ITokenizer.ERROR_WATER_PREFIX)) {
 			return "<unexpected>";
 		} else {
 			return s;

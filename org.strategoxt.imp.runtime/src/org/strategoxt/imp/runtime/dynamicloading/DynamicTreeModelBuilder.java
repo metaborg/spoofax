@@ -1,5 +1,7 @@
 package org.strategoxt.imp.runtime.dynamicloading;
 
+import static org.strategoxt.imp.runtime.stratego.SourceAttachment.*;
+
 import org.eclipse.imp.editor.ModelTreeNode;
 import org.eclipse.imp.services.base.TreeModelBuilderBase;
 import org.strategoxt.imp.runtime.parser.ast.AstNodeLocator;
@@ -14,7 +16,7 @@ public class DynamicTreeModelBuilder extends TreeModelBuilderBase implements IDy
 	@Override
 	public ModelTreeNode buildTree(Object root) {
 		if (root == null) return super.buildTree(root); // HACK
-		service.initialize(AstNodeLocator.impObjectToAstNode(root).getParseController());
+		service.initialize(getParseController(AstNodeLocator.impObjectToAstNode(root)));
 		return service.getWrapped().buildTree(root);
 	}
 	

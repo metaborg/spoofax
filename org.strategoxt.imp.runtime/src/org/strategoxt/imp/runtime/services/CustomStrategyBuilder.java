@@ -24,7 +24,7 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
-import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
+import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -42,7 +42,7 @@ public class CustomStrategyBuilder extends StrategoBuilder {
 	}
 	
 	@Override
-	public Job scheduleExecute(EditorState editor, IStrategoAstNode node, IFile errorReportFile,
+	public Job scheduleExecute(EditorState editor, IStrategoTerm node, IFile errorReportFile,
 			boolean isRebuild) {
 		
 		String builderRule = inputBuilderRule(editor);
@@ -91,16 +91,16 @@ public class CustomStrategyBuilder extends StrategoBuilder {
 	}
 	
 	@Override
-	protected IStrategoTerm invokeObserver(IStrategoAstNode node)
+	protected IStrategoTerm invokeObserver(IStrategoTerm node)
 			throws UndefinedStrategyException, InterpreterErrorExit, InterpreterExit,
 			InterpreterException {
 
 		// Try invoke using (term)
 		IStrategoTerm input = getDerivedFromEditor() == null
-				? node.getTerm()
-				: getObserver().implodeATerm(getObserver().getImplodableNode(node).getTerm());
-		IStrategoTerm result = getObserver().invoke(getBuilderRule(), input, node.getResource());
-		if (result != null) return addFileName(result, node.getResource());
+				? node
+				: getObserver().implodeATerm(getObserver().getImplodableNode(node));
+		IStrategoTerm result = getObserver().invoke(getBuilderRule(), input, SourceAttachment.getResource(node));
+		if (result != null) return addFileName(result, SourceAttachment.getResource(node));
 		String[] trace1 = getObserver().getRuntime().getCompiledContext().getTrace();
 		
 		// Try invoke using (term, ast, ...) tuple

@@ -1,6 +1,7 @@
 package org.strategoxt.imp.runtime.dynamicloading;
 
-import static org.spoofax.interpreter.terms.IStrategoTerm.*;
+import static org.spoofax.interpreter.terms.IStrategoTerm.APPL;
+import static org.spoofax.interpreter.terms.IStrategoTerm.STRING;
 
 import java.util.ArrayList;
 
@@ -11,7 +12,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 
 /**
  * Term reading utility class, extending {@link org.spoofax.interpreter.core.Tools}
- * with new methods specific for reading descriptors.s
+ * with new methods specific for reading descriptors.
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */

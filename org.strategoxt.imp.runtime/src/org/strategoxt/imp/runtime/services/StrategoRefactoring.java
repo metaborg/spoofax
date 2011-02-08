@@ -4,6 +4,8 @@ import static org.spoofax.interpreter.core.Tools.asJavaString;
 import static org.spoofax.interpreter.core.Tools.isTermAppl;
 import static org.spoofax.interpreter.core.Tools.isTermTuple;
 import static org.spoofax.interpreter.core.Tools.termAt;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.hasImploderOrigin;
+import static org.strategoxt.imp.runtime.stratego.SourceAttachment.getResource;
 
 import java.io.PrintWriter;
 import java.io.Writer;
@@ -35,8 +37,6 @@ import org.strategoxt.imp.runtime.dynamicloading.TermReader;
 import org.strategoxt.imp.runtime.stratego.StrategoConsole;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 import org.strategoxt.imp.runtime.stratego.TextChangePrimitive;
-import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
-import org.strategoxt.imp.runtime.stratego.adapter.IWrappedAstNode;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
@@ -107,7 +107,7 @@ public class StrategoRefactoring implements IBuilder { //TODO extract "AbstractS
 		this.builderRule = builderRule;
 	}
 	
-	public Job scheduleExecute(final EditorState editor, IStrategoAstNode node,
+	public Job scheduleExecute(final EditorState editor, IStrategoTerm node,
 			final IFile errorReportFile, final boolean isRebuild) {
 		
 		String displayCaption = caption.endsWith("...")
@@ -126,7 +126,7 @@ public class StrategoRefactoring implements IBuilder { //TODO extract "AbstractS
 			if (node == null) node = editor.getParseController().getCurrentAst();
 		}
 		
-		final IStrategoAstNode node2 = node;
+		final IStrategoTerm node2 = node;
 			
 		Job job = new Job("Executing " + displayCaption) {
 			@Override
@@ -146,7 +146,7 @@ public class StrategoRefactoring implements IBuilder { //TODO extract "AbstractS
 		return job;
 	}
 	
-	private void execute(EditorState editor, IStrategoAstNode node, IFile errorReportFile, boolean isRebuild) {
+	private void execute(EditorState editor, IStrategoTerm node, IFile errorReportFile, boolean isRebuild) {
 		IStrategoTerm builderResult=null;
 		IStrategoTerm textReplaceTerm=null;
 		//IFile file = null;
@@ -204,7 +204,7 @@ public class StrategoRefactoring implements IBuilder { //TODO extract "AbstractS
 		}		
 	}
 
-	private IStrategoTerm getBuilderResult(EditorState editor, IStrategoAstNode node)
+	private IStrategoTerm getBuilderResult(EditorState editor, IStrategoTerm node)
 			throws UndefinedStrategyException, InterpreterErrorExit, InterpreterExit,
 			InterpreterException {
 		IStrategoTerm resultTerm;
@@ -230,7 +230,7 @@ public class StrategoRefactoring implements IBuilder { //TODO extract "AbstractS
 	private boolean isInvalidResultTerm(IStrategoTerm resultTerm) {
 		return 
 			!isTermTuple(resultTerm) || 
-			!(termAt(resultTerm, 0) instanceof IWrappedAstNode) ||
+			!hasImploderOrigin(termAt(resultTerm, 0)) ||
 			resultTerm.getSubtermCount()!=2;
 	}
 	
@@ -257,11 +257,11 @@ public class StrategoRefactoring implements IBuilder { //TODO extract "AbstractS
 		return textreplace;
 	}
 
-	protected IStrategoTerm invokeObserver(IStrategoAstNode node) throws UndefinedStrategyException,
+	protected IStrategoTerm invokeObserver(IStrategoTerm node) throws UndefinedStrategyException,
 			InterpreterErrorExit, InterpreterExit, InterpreterException {
 		node = StrategoTermPath.getMatchingAncestor(node, false);
 		IStrategoTerm inputTerm = observer.makeInputTerm(node, true, source);
-		IStrategoTerm result = observer.invoke(builderRule, inputTerm, node.getResource());
+		IStrategoTerm result = observer.invoke(builderRule, inputTerm, getResource(node));
 		return result;
 	}
 

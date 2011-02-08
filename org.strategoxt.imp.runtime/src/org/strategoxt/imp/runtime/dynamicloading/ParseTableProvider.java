@@ -6,8 +6,8 @@ import java.io.InputStream;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
-import org.spoofax.jsglr.InvalidParseTableException;
-import org.spoofax.jsglr.ParseTable;
+import org.spoofax.jsglr.client.InvalidParseTableException;
+import org.spoofax.jsglr.client.ParseTable;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;

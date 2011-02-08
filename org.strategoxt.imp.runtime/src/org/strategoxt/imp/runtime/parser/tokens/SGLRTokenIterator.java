@@ -1,13 +1,11 @@
 package org.strategoxt.imp.runtime.parser.tokens;
 
 import java.util.Iterator;
-import java.util.List;
 import java.util.NoSuchElementException;
 
-import lpg.runtime.IPrsStream;
-import lpg.runtime.IToken;
-
 import org.eclipse.jface.text.IRegion;
+import org.spoofax.jsglr.client.imploder.IToken;
+import org.spoofax.jsglr.client.imploder.ITokenizer;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -30,38 +28,38 @@ public class SGLRTokenIterator implements Iterator<IToken> {
 	
 	private final int lastIndex;
 	
-	private final IPrsStream stream;
+	private final ITokenizer stream;
 	
 	private int index;
 	
-	public SGLRTokenIterator(IPrsStream stream, IRegion region) {
+	public SGLRTokenIterator(ITokenizer stream, IRegion region) {
 		this.stream = stream;
 		index = getStartIndex(stream, region);
 		lastIndex = getLastIndex(stream, region);
 	}
 
-	private static int getStartIndex(IPrsStream stream, IRegion region) {
-		int result = Math.abs(stream.getTokenIndexAtCharacter(region.getOffset()));
-		if (result == 0)
+	private static int getStartIndex(ITokenizer stream, IRegion region) {
+		IToken resultToken = stream.getTokenAtOffset(region.getOffset());
+		int result = resultToken == null ? -1 : resultToken.getIndex();
+		if (result < 1)
 			result = 1; // skip reserved initial token
 		return result;
 	}
 
-	private static int getLastIndex(IPrsStream stream, IRegion region) {
-		List tokens = stream.getTokens();
+	private static int getLastIndex(ITokenizer tokens, IRegion region) {
 		int end = region.getOffset() + region.getLength() + 1;
 		
-		int result = stream.getStreamLength();
+		int result = tokens.getTokenCount();
 		while (--result > 0) {
-			IToken token = (IToken) tokens.get(result);
-			if (token.getKind() == TokenKind.TK_EOF.ordinal())
+			IToken token = tokens.getTokenAt(result);
+			if (token.getKind() == IToken.TK_EOF)
 				break;
 		}
-		if (result == 0 && stream.getStreamLength() > 20)
+		if (result == 0 && tokens.getTokenCount() > 20)
 			throw new IllegalStateException("No EOF token in parse stream");
 
 		while (--result > 0) {
-			IToken token = (IToken) tokens.get(result);
+			IToken token = tokens.getTokenAt(result);
 			if (token.getEndOffset() <= end)
 				break;
 		}

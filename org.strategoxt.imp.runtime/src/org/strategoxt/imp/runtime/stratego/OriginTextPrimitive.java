@@ -1,9 +1,11 @@
 package org.strategoxt.imp.runtime.stratego;
 
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getTokenizer;
+
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.strategoxt.imp.runtime.services.AutoEditStrategy;
-import org.strategoxt.imp.runtime.stratego.adapter.IWrappedAstNode;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -15,8 +17,8 @@ public class OriginTextPrimitive extends AbstractOriginPrimitive {
 	}
 
 	@Override
-	protected IStrategoTerm call(IContext env, IWrappedAstNode node) {
-		String result = node.getNode().yield();
+	protected IStrategoTerm call(IContext env, IStrategoTerm origin) {
+		String result = getTokenizer(origin).toString(getLeftToken(origin), getRightToken(origin));
 		//result = AutoEditStrategy.setIndentation(result, "");
 		return env.getFactory().makeString(result);
 	}

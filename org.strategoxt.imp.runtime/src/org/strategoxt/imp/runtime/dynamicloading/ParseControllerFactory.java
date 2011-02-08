@@ -6,7 +6,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
-import org.spoofax.jsglr.InvalidParseTableException;
+import org.spoofax.jsglr.client.InvalidParseTableException;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 

@@ -10,22 +10,15 @@ import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.jsglr.Disambiguator;
-import org.spoofax.jsglr.NoRecoveryRulesException;
-import org.spoofax.jsglr.ParseTable;
-import org.spoofax.jsglr.SGLRException;
+import org.spoofax.jsglr.client.Disambiguator;
+import org.spoofax.jsglr.client.ParseTable;
+import org.spoofax.jsglr.shared.SGLRException;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.JSGLRI;
-import org.strategoxt.imp.runtime.stratego.SourceMappings.MappableTerm;
-import org.strategoxt.lang.LazyTerm;
 import org.strategoxt.lang.compat.sglr.JSGLR_parse_string_pt_compat;
 
-import aterm.ATerm;
-import aterm.ATermFactory;
-
 /**
- * Parses strings to asfix trees, caching the internal ATerm
- * for implosion with {@link IMPImplodeAsfixStrategy}. 
+ * Parses strings to asfix trees.
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
@@ -36,9 +29,9 @@ public class IMPParseStringPTPrimitive extends JSGLR_parse_string_pt_compat {
 	private Map<ParseTable, Object> isNoRecoveryWarned =
 		new WeakHashMap<ParseTable, Object>();
 
-	protected IMPParseStringPTPrimitive(ATermFactory atermFactory, Disambiguator filterSettings, 
+	protected IMPParseStringPTPrimitive(Disambiguator filterSettings, 
 			AtomicBoolean recoveryEnabled, SourceMappings mappings) {
-		super(atermFactory, filterSettings, recoveryEnabled);
+		super(filterSettings, recoveryEnabled);
 		this.mappings = mappings;
 	}
 
@@ -47,42 +40,25 @@ public class IMPParseStringPTPrimitive extends JSGLR_parse_string_pt_compat {
 			ParseTable table, String startSymbol)
 			throws InterpreterException, IOException, SGLRException {
 		
-		// TODO: new "jsglr enable recovery" strategy in jsglr-parser.str
-		// FIXME: recovery is always enabled in Stratego right now
-		//        (and once it isn't, how would caching factor into that?)
+		// TODO: completely rewrite this after implode-asfix is optimized to avoid parse tree construction in strj
+		//       for now, it's just a clone of IMPParseStringPrimitive...
 		
 		String input = inputTerm.stringValue();
 		String path = getLastPath();		
 		JSGLRI parser = new JSGLRI(table, startSymbol);
-		try {
-			parser.setUseRecovery(isRecoveryEnabled());
-		} catch (NoRecoveryRulesException e) {
+		parser.setUseRecovery(isRecoveryEnabled());
+		parser.setImplodeEnabled(false);
+		if (isRecoveryEnabled() && !parser.getParseTable().hasRecovers()) {
 			assert table.hashCode() == System.identityHashCode(table);
 			if (!isNoRecoveryWarned.containsKey(table)) {
-				Environment.logException(NAME + ": warning - no recovery rules available in parse table", e);
+				Environment.logWarning("No recovery rules available in parse table for " + NAME);
 				isNoRecoveryWarned.put(table, null);
 			}
 		}
-		char[] inputChars = input.toCharArray();
 		
-		final ATerm asfix = parser.parseNoImplode(inputChars, path);
-		MappableTerm result = new MappableTerm(new LazyTerm() {
-			@Override
-			protected IStrategoTerm init() {
-				Environment.logWarning("Parse tree was converted to StrategoTerm format");
-				return Environment.getATermConverter().convert(asfix);
-			}
-		});
-
 		File inputFile = mappings.getInputFile(inputTerm);
-		if (inputFile == null)
-			Environment.logWarning("Could not determine original file name for parsed string");
+		if (inputFile != null) path = inputFile.getAbsolutePath();
 		
-		mappings.putInputTerm(result, asfix);
-		mappings.putInputChars(result, inputChars);
-		mappings.putInputFileForTree(result, inputFile);
-		mappings.putTokenizer(result, parser.getTokenizer());
-		
-		return result;
+		return parser.parse(input, path);
 	}
 }

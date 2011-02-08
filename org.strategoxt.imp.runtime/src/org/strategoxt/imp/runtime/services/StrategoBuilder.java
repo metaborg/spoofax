@@ -43,9 +43,9 @@ import org.strategoxt.imp.runtime.MonitorStateWatchDog;
 import org.strategoxt.imp.runtime.RuntimeActivator;
 import org.strategoxt.imp.runtime.dynamicloading.TermReader;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
+import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 import org.strategoxt.imp.runtime.stratego.StrategoConsole;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
-import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 import org.strategoxt.lang.Context;
 import org.strategoxt.stratego_aterm.aterm_escape_strings_0_0;
 import org.strategoxt.stratego_aterm.pp_aterm_box_0_0;
@@ -82,7 +82,7 @@ public class StrategoBuilder implements IBuilder {
 	/**
 	 * Creates a new Stratego builder.
 	 * 
-	 * @param derivedFromEditor  The editor the present editor is derived from, if the present editor is an ATerm editor.
+	 * @param derivedFromEditor  The editor the present editor is derived from, if the present editor is an IStrategoTerm editor.
 	 */
 	public StrategoBuilder(StrategoObserver observer, String caption, String builderRule,
 			boolean openEditor, boolean realTime, boolean cursor, boolean source, boolean persistent,
@@ -128,7 +128,7 @@ public class StrategoBuilder implements IBuilder {
 		this.builderRule = builderRule;
 	}
 	
-	public Job scheduleExecute(final EditorState editor, IStrategoAstNode node,
+	public Job scheduleExecute(final EditorState editor, IStrategoTerm node,
 			final IFile errorReportFile, final boolean isRebuild) {
 
 		String displayCaption = caption.endsWith("...")
@@ -147,7 +147,7 @@ public class StrategoBuilder implements IBuilder {
 			if (node == null) node = editor.getParseController().getCurrentAst();
 		}
 		
-		final IStrategoAstNode node2 = node;
+		final IStrategoTerm node2 = node;
 			
 		Job job = new Job("Executing " + displayCaption) {
 			@Override
@@ -167,7 +167,7 @@ public class StrategoBuilder implements IBuilder {
 		return job;
 	}
 	
-	private void execute(EditorState editor, IStrategoAstNode node, IFile errorReportFile, boolean isRebuild) {
+	private void execute(EditorState editor, IStrategoTerm node, IFile errorReportFile, boolean isRebuild) {
 		// TODO: refactor
 		assert derivedFromEditor == null || editor.getDescriptor().isATermEditor();
 		IFile file = null;
@@ -249,12 +249,7 @@ public class StrategoBuilder implements IBuilder {
 			openError(editor, e.getMessage());
 			return null;
 		} else {
-			// UNDONE: Printing stack trace in editor
-			// ByteArrayOutputStream trace = new ByteArrayOutputStream();
-			// observer.getRuntime().getCompiledContext().printStackTrace(new PrintStream(trace), false);
-			String errorReport = e.getMessage();
-			if (e.getTerm() != null) errorReport += "\n\t" + toEscapedString(ppATerm(e.getTerm()));
-			return errorReport;
+			return e.getLocalizedMessage();
 		}
 	}
 
@@ -271,7 +266,7 @@ public class StrategoBuilder implements IBuilder {
 		return isTermString(resultTerm) ? asJavaString(resultTerm) : ppATerm(resultTerm).stringValue();
 	}
 
-	private void scheduleOpenEditorAndListener(final EditorState editor, final IStrategoAstNode node, final IFile file)
+	private void scheduleOpenEditorAndListener(final EditorState editor, final IStrategoTerm node, final IFile file)
 			throws PartInitException {
 		
 		Job job = new UIJob("Opening editor") {
@@ -282,7 +277,7 @@ public class StrategoBuilder implements IBuilder {
 				
 					// UNDONE: don't delete non-persistent files for now since it causes problem with workspace auto-refresh
 					// if (!persistent) new File(file.getLocationURI()).delete();
-					// Create a listene *and* editor-derived editor relation
+					// Create a listener *and* editor-derived editor relation
 					StrategoBuilderListener listener = 
 						StrategoBuilderListener.addListener(editor.getEditor(), target, file, StrategoBuilder.this, node);
 					if (!realTime || editor == target || derivedFromEditor != null)
@@ -300,14 +295,14 @@ public class StrategoBuilder implements IBuilder {
 		job.schedule();
 	}
 
-	protected IStrategoTerm invokeObserver(IStrategoAstNode node) throws UndefinedStrategyException,
+	protected IStrategoTerm invokeObserver(IStrategoTerm node) throws UndefinedStrategyException,
 			InterpreterErrorExit, InterpreterExit, InterpreterException {
 		
 		node = StrategoTermPath.getMatchingAncestor(node, false);
 		IStrategoTerm inputTerm = derivedFromEditor != null
 				? observer.makeATermInputTerm(node, true, derivedFromEditor.getResource()) 
 				: observer.makeInputTerm(node, true, source);
-		IStrategoTerm result = observer.invoke(builderRule, inputTerm, node.getResource());
+		IStrategoTerm result = observer.invoke(builderRule, inputTerm, SourceAttachment.getResource(node));
 		return result;
 	}
 
@@ -317,10 +312,6 @@ public class StrategoBuilder implements IBuilder {
 		term = pp_aterm_box_0_0.instance.invoke(context, term);
 		term = box2text_string_0_1.instance.invoke(context, term, Environment.getTermFactory().makeInt(120));
 		return (IStrategoString) term;
-	}
-
-	private static String toEscapedString(IStrategoString term) {
-		return Environment.getATermConverter().convert(term).toString();
 	}
 
 	private void reportGenericException(EditorState editor, Throwable e) {

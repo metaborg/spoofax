@@ -1,18 +1,17 @@
 package org.strategoxt.imp.runtime.stratego;
 
-import lpg.runtime.ILexStream;
-import lpg.runtime.IPrsStream;
-import lpg.runtime.IToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getTokenizer;
+import static org.spoofax.terms.attachments.ParentAttachment.getParent;
 
 import org.spoofax.interpreter.core.IContext;
+import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.strategoxt.imp.runtime.parser.ast.AstNode;
-import org.strategoxt.imp.runtime.parser.ast.AstNodeFactory;
-import org.strategoxt.imp.runtime.parser.ast.ListAstNode;
-import org.strategoxt.imp.runtime.parser.ast.SubListAstNode;
-import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
-import org.strategoxt.imp.runtime.stratego.adapter.IWrappedAstNode;
+import org.spoofax.jsglr.client.imploder.IToken;
+import org.spoofax.jsglr.client.imploder.ITokenizer;
+import org.strategoxt.imp.runtime.parser.ast.StrategoSubList;
 
 /**
  * @author Maartje de Jonge
@@ -29,38 +28,38 @@ public class OriginSeparatorWithLayoutPrimitive extends AbstractOriginPrimitive 
 	 * Returns null if the separator can not be found.
 	 */
 	@Override
-	protected IStrategoTerm call(IContext env, IWrappedAstNode node) {
-		IStrategoAstNode originNode=node.getNode();
-		SubListAstNode sublist;
-		AstNode left;
-		AstNode right;
-		if(originNode instanceof SubListAstNode){
-			sublist = (SubListAstNode) originNode;							
+	protected IStrategoTerm call(IContext env, IStrategoTerm origin) {
+		IStrategoTerm originNode=origin;
+		StrategoSubList sublist;
+		IStrategoTerm left;
+		IStrategoTerm right;
+		if(originNode instanceof StrategoSubList){
+			sublist = (StrategoSubList) originNode;							
 		}
 		else{
-			IStrategoAstNode parent = node.getNode().getParent();
-			if(!(parent instanceof ListAstNode))
+			IStrategoTerm parent = getParent(origin);
+			if(parent == null || !parent.isList())
 				return null;
-			sublist = (SubListAstNode) new AstNodeFactory().createSublist((ListAstNode) parent, originNode, originNode, true);
+			sublist = StrategoSubList.createSublist((IStrategoList) parent, originNode, originNode, true);
 		}
-		ListAstNode list = sublist.getCompleteList();
-		int lastIndexList = list.getChildren().size()-1;
+		IStrategoList list = sublist.getCompleteList();
+		int lastIndexList = list.getSubtermCount()-1;
 		boolean atEnd=false;
 		if(sublist.getIndexEnd() < lastIndexList){
 			left = sublist.getLastChild();
-			right = list.getChildren().get(sublist.getIndexEnd()+1);
+			right = list.getSubterm(sublist.getIndexEnd()+1);
 		}
 		else if(sublist.getIndexStart() > 0){
 			right = sublist.getFirstChild();
-			left = list.getChildren().get(sublist.getIndexStart()-1);
+			left = list.getSubterm(sublist.getIndexStart()-1);
 			atEnd=true;
 		}
 		else
 			return null; //complete list has no separator
 		
-		IPrsStream tokens=left.getRightIToken().getIPrsStream();
-		int startTokenSearch = left.getRightIToken().getTokenIndex()+1;
-		int endTokenSearch = right.getLeftIToken().getTokenIndex()-1;
+		ITokenizer tokens=getTokenizer(left);
+		int startTokenSearch = getRightToken(left).getIndex()+1;
+		int endTokenSearch = getLeftToken(right).getIndex()-1;
 		int startSeparation=-1;
 		int endSeparation=-1;
 		int loopIndex=startTokenSearch;
@@ -73,19 +72,19 @@ public class OriginSeparatorWithLayoutPrimitive extends AbstractOriginPrimitive 
 			}
 			loopIndex++;
 		}
-		ILexStream lex = originNode.getLeftIToken().getILexStream();
+		ITokenizer lex = getTokenizer(originNode);
 		int endOfSep=endSeparation;
 		int startOfSep=startSeparation;
 		if(startSeparation!=-1){
 			if(sublist.getIndexStart() > 0){
-				String potentialLayout = lex.toString(left.getRightIToken().getEndOffset()+1, startOfSep-1);
+				String potentialLayout = lex.toString(getRightToken(left).getEndOffset()+1, startOfSep-1);
 				int newlineIndex=potentialLayout.lastIndexOf('\n');
 				if(newlineIndex>=0){
-					startOfSep=left.getRightIToken().getEndOffset()+1+newlineIndex+1;
+					startOfSep=getRightToken(left).getEndOffset()+1+newlineIndex+1;
 				}
 			}
 			if(!atEnd){
-				String potentialLayout_r = lex.toString(endOfSep, right.getLeftIToken().getStartOffset()-1);
+				String potentialLayout_r = lex.toString(endOfSep, getLeftToken(right).getStartOffset()-1);
 				int newlineIndex_r=potentialLayout_r.lastIndexOf('\n');
 				if(newlineIndex_r>=0){
 					endOfSep=endOfSep+1+newlineIndex_r;

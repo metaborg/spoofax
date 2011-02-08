@@ -12,14 +12,14 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.language.Language;
 import org.spoofax.interpreter.terms.IStrategoAppl;
-import org.spoofax.jsglr.ParseTable;
-import org.spoofax.jsglr.SGLRException;
+import org.spoofax.jsglr.client.ParseTable;
+import org.spoofax.jsglr.shared.SGLRException;
+import org.spoofax.terms.io.binary.TermReader;
 import org.strategoxt.imp.generator.sdf2imp;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.JSGLRI;
 import org.strategoxt.lang.WeakValueHashMap;
-import org.strategoxt.lang.terms.BAFReader;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -110,7 +110,7 @@ public class DescriptorFactory {
 			IStrategoAppl document = tryReadTerm((PushbackInputStream) input);
 			if (document == null) {
 				init();
-				document = (IStrategoAppl) descriptorParser.parse(input, filename).getTerm();
+				document = (IStrategoAppl) descriptorParser.parse(input, filename);
 			}
 			return new Descriptor(document);
 		} catch (SGLRException e) {
@@ -124,8 +124,9 @@ public class DescriptorFactory {
 		byte[] buffer = new byte[6];
 		int bufferSize = input.read(buffer);
 		if (bufferSize != -1) input.unread(buffer, 0, bufferSize);
-		if ((bufferSize == 6 && new String(buffer).equals("Module")) || BAFReader.isBinaryATerm(input)) { 
-			return (IStrategoAppl) Environment.getTermFactory().parseFromStream(input);
+		if ((bufferSize == 6 && new String(buffer).equals("Module")) /* || BAFReader.isBinaryATerm(input)*/) { 
+			TermReader reader = new TermReader(Environment.getTermFactory());
+			return (IStrategoAppl) reader.parseFromStream(input);
 		} else {
 			return null;
 		}

@@ -11,17 +11,16 @@ import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.jsglr.InvalidParseTableException;
-import org.spoofax.jsglr.NoRecoveryRulesException;
-import org.spoofax.jsglr.ParseTable;
-import org.spoofax.jsglr.SGLRException;
+import org.spoofax.jsglr.client.InvalidParseTableException;
+import org.spoofax.jsglr.client.ParseTable;
+import org.spoofax.jsglr.shared.SGLRException;
 import org.strategoxt.imp.editors.stratego.StrategoSugarParseController;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.parser.JSGLRI;
-import org.strategoxt.imp.runtime.parser.ast.RootAstNode;
 import org.strategoxt.imp.runtime.services.MetaFile;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
+import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.StrategoException;
 import org.strategoxt.strc.parse_stratego_file_0_0;
@@ -44,9 +43,9 @@ public class IMPParseStrategoFileStrategy extends parse_stratego_file_0_0 {
 			InputStream stream = null;
 			try {
 				stream = context.getIOAgent().openInputStream(file);
-				RootAstNode ast = parser.parse(stream, file);
-				ast.setResource(EditorIOAgent.getResource(new File(file)));
-				return ast.getTerm();
+				IStrategoTerm ast = parser.parse(stream, file);
+				SourceAttachment.putSource(ast, EditorIOAgent.getResource(new File(file)), null);
+				return ast;
 			} finally {
 				if (stream != null) stream.close();
 			}
@@ -73,8 +72,6 @@ public class IMPParseStrategoFileStrategy extends parse_stratego_file_0_0 {
 			JSGLRI parser = new JSGLRI(Environment.getParseTableProvider(strategoSugar), "Module");
 			if (parser.getParseTable().hasRecovers()) parser.setUseRecovery(true);
 			return parser;
-		} catch (NoRecoveryRulesException e) {
-			throw new StrategoException("Could not load stratego parse table", e);
 		} catch (BadDescriptorException e) {
 			throw new StrategoException("Could not load stratego parse table", e);
 		} catch (InvalidParseTableException e) {

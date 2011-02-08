@@ -4,16 +4,14 @@ import static org.spoofax.interpreter.core.Tools.isTermString;
 import static org.strategoxt.imp.runtime.stratego.SourceMappings.MappableTerm.getValue;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.WeakHashMap;
 
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.strategoxt.imp.runtime.parser.tokens.SGLRTokenizer;
-import org.strategoxt.lang.LazyTerm;
-
-import aterm.ATerm;
+import org.spoofax.terms.LazyTerm;
 
 /**
  * Maintains mappings between input streams, parse trees, etc. and their origins.
@@ -22,19 +20,25 @@ import aterm.ATerm;
  */
 public class SourceMappings {
 	
-	private final Map<Integer, File> inputFileMap = new WeakHashMap<Integer, File>();
+	private static final int FILE_DESCRIPTOR_EXPIRATION = 40;
+	
+	// TODO: use term attachments instead of weak hash maps..?
+	
+	private final Map<Integer, File> inputFileMap = new HashMap<Integer, File>();
 	
 	private final Map<MappableKey, File> stringInputFileMap = new WeakHashMap<MappableKey, File>();
 	
 	private final Map<MappableKey, File> asfixInputFileMap = new WeakHashMap<MappableKey, File>();
 	
-	private final Map<MappableKey, char[]> inputCharMap = new WeakHashMap<MappableKey, char[]>();
+	private final Map<MappableKey, String> inputCharMap = new WeakHashMap<MappableKey, String>();
 
-	private final Map<MappableKey, ATerm> inputTermMap = new WeakHashMap<MappableKey, ATerm>();
-
-	private final Map<MappableKey, SGLRTokenizer> tokenizerMap = new WeakHashMap<MappableKey, SGLRTokenizer>();
+	private final Map<MappableKey, IStrategoTerm> inputTermMap = new WeakHashMap<MappableKey, IStrategoTerm>();
 
 	public File putInputFile(int fd, File file) {
+		// HACK: crappy manual garbage collection		
+		if (fd - FILE_DESCRIPTOR_EXPIRATION >= 0)
+			inputFileMap.remove(fd - FILE_DESCRIPTOR_EXPIRATION);
+		
 		return inputFileMap.put(fd, file);
 	}
 
@@ -48,16 +52,12 @@ public class SourceMappings {
 		return asfixInputFileMap.put(asfix.key, file);
 	}
 
-	public char[] putInputChars(MappableTerm asfix, char[] inputChars) {
+	public String putInputString(MappableTerm asfix, String inputChars) {
 		return inputCharMap.put(asfix.key, inputChars);
 	}
 
-	public ATerm putInputTerm(MappableTerm asfix, ATerm asfixATerm) {
-		return inputTermMap.put(asfix.key, asfixATerm);
-	}
-	
-	public SGLRTokenizer putTokenizer(MappableTerm asfix, SGLRTokenizer tokenizer) {
-		return tokenizerMap.put(asfix.key, tokenizer);
+	public IStrategoTerm putInputTerm(MappableTerm asfix, IStrategoTerm asfixIStrategoTerm) {
+		return inputTermMap.put(asfix.key, asfixIStrategoTerm);
 	}
 	
 	public File getInputFile(int fd) {
@@ -72,16 +72,12 @@ public class SourceMappings {
 		return getValue(asfixInputFileMap, asfix);
 	}
 	
-	public char[] getInputChars(IStrategoTerm asfix) {
+	public String getInputString(IStrategoTerm asfix) {
 		return getValue(inputCharMap, asfix);
 	}
 	
-	public ATerm getInputTerm(IStrategoTerm asfix) {
+	public IStrategoTerm getInputTerm(IStrategoTerm asfix) {
 		return getValue(inputTermMap, asfix);
-	}
-	
-	public SGLRTokenizer getTokenizer(IStrategoTerm asfix) {
-		return getValue(tokenizerMap, asfix);
 	}
 	
 	/**

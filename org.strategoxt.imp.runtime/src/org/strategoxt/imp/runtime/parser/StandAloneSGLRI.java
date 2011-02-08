@@ -4,19 +4,19 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.eclipse.imp.language.Language;
-import org.spoofax.jsglr.BadTokenException;
-import org.spoofax.jsglr.Disambiguator;
-import org.spoofax.jsglr.InvalidParseTableException;
-import org.spoofax.jsglr.NoRecoveryRulesException;
-import org.spoofax.jsglr.ParseTable;
-import org.spoofax.jsglr.SGLRException;
-import org.spoofax.jsglr.TokenExpectedException;
+import org.spoofax.interpreter.terms.ISimpleTerm;
+import org.spoofax.jsglr.client.Disambiguator;
+import org.spoofax.jsglr.client.InvalidParseTableException;
+import org.spoofax.jsglr.client.ParseTable;
+import org.spoofax.jsglr.shared.BadTokenException;
+import org.spoofax.jsglr.shared.SGLRException;
+import org.spoofax.jsglr.shared.TokenExpectedException;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.ParseTableProvider;
-import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 
 /**
- * A stand-alone SGLR parsing class that uses the Spoofax/IMP imploder and AST classes.
+ * A stand-alone SGLR parsing class that uses the Spoofax/IMP term
+ * classes and attachments.
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
@@ -43,7 +43,7 @@ public class StandAloneSGLRI {
 		}
 	}
 	
-	public void setUseRecovery(boolean useRecovery) throws NoRecoveryRulesException {
+	public void setUseRecovery(boolean useRecovery) {
 		if (parser instanceof JSGLRI) {
 			((JSGLRI) parser).setUseRecovery(useRecovery);
 		} else {
@@ -69,30 +69,23 @@ public class StandAloneSGLRI {
 		parser.setStartSymbol(startSymbol);
 	}
 	
-	/**
-	 * Sets whether to keep any unresolved ambiguities. Default true.
-	 */
+	@Deprecated
 	public void setKeepAmbiguities(boolean value) {
 		parser.setKeepAmbiguities(value);
 	}
 	
 	// Parsing
 	
-	public IStrategoAstNode parse(InputStream input, String filename)
+	public ISimpleTerm parse(InputStream input, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 		
 		return parser.parse(input, filename);
 	}
 	
-	public IStrategoAstNode parse(char[] input, String filename)
+	public ISimpleTerm parse(String input, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 		
-		Environment.getStrategoLock().lock();
-		try {
-			return parser.parse(input, filename);
-		} finally {
-			Environment.getStrategoLock().unlock();
-		}
+		return parser.parse(input, filename);
 	}
 	
 	private static class StandAloneLanguage extends Language {

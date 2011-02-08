@@ -20,7 +20,6 @@ import org.eclipse.jface.text.IDocumentListener;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.parser.ast.AstNode;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.RefreshResourcePrimitive;
 
@@ -54,7 +53,7 @@ public class OnSaveService implements IDocumentListener, ILanguageService {
 		try {
 			Environment.getStrategoLock().lock();
 			try {
-				AstNode ast = editor.getCurrentAst();
+				IStrategoTerm ast = editor.getCurrentAst();
 				if (ast == null) return;
 				
 				IStrategoTerm result = runtime.invokeSilent(function, ast);

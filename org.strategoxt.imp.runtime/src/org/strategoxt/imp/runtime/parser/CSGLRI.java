@@ -1,21 +1,19 @@
 package org.strategoxt.imp.runtime.parser;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import lpg.runtime.IPrsStream;
-
-import org.spoofax.jsglr.SGLRException;
+import org.spoofax.interpreter.terms.IStrategoNamed;
+import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.jsglr.shared.SGLRException;
+import org.spoofax.terms.io.binary.TermReader;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.parser.tokens.TokenKindManager;
 import org.strategoxt.lang.compat.NativeCallHelper;
-
-import aterm.ATerm;
-import aterm.ATermAppl;
-import aterm.ATermFactory;
 
 /**
  * IMP IParser implementation using the native C version of SGLR, imploding
@@ -36,15 +34,15 @@ public class CSGLRI extends AbstractSGLRI {
 	
 	private final File parseTable;
 	
-	public CSGLRI(InputStream parseTable, String startSymbol, SGLRParseController controller, TokenKindManager tokenManager) throws IOException {
-		super(controller, tokenManager, startSymbol, parseTable);
+	public CSGLRI(InputStream parseTable, String startSymbol, SGLRParseController controller) throws IOException {
+		super(parseTable, startSymbol, controller);
 		
 		// Write this parse table (which may come from a JAR) to disk
 		this.parseTable = streamToTempFile(parseTable);
 	}
 
 	public CSGLRI(InputStream parseTable, String startSymbol) throws IOException {
-		this(parseTable, startSymbol, null, new TokenKindManager());
+		this(parseTable, startSymbol, null);
 	}
 	
 	private File streamToTempFile(InputStream input) throws IOException {
@@ -66,8 +64,8 @@ public class CSGLRI extends AbstractSGLRI {
 	}
 
 	@Override
-	protected ATerm doParseNoImplode(char[] inputChars, String filename) throws SGLRException, IOException {
-		ATermFactory factory = Environment.getATermFactory();
+	protected IStrategoTerm doParse(String inputChars, String filename) throws SGLRException, IOException {
+		ITermFactory factory = Environment.getTermFactory();
 		File outputFile = File.createTempFile("parserOutput", null);
 		File inputFile = filename == null || !new File(filename).exists()
 				? streamToTempFile(toByteStream(inputChars))
@@ -75,17 +73,27 @@ public class CSGLRI extends AbstractSGLRI {
 		String startSymbol = getStartSymbol();
 				
 		try {
-			String[] commandArgs = {
+			File tempFile = File.createTempFile("csglri", null);
+			String[] parseCommand = {
 					"sglr", "-p", parseTable.getAbsolutePath(),
 					"-i", inputFile.getAbsolutePath(),
-					"-o", outputFile.getAbsolutePath(),
+					"-o", isImplodeEnabled() ? tempFile.getAbsolutePath() : outputFile.getAbsolutePath(),
 					(startSymbol == null ? "" : "-s"),
 					(startSymbol == null ? "" : startSymbol),
 					"-2"
 			};
-			caller.call(commandArgs, null, System.out, System.err);
+			caller.call(parseCommand, null, System.out, System.err);
+			if (isImplodeEnabled()) {
+				String[] implodeCommand = {
+						"implode-asfix",
+						"-i", tempFile.getAbsolutePath(),
+						"-o", outputFile.getAbsolutePath()
+				};
+				caller.call(implodeCommand, null, System.out, System.err);
+			}
 			
-			ATermAppl result = (ATermAppl) factory.readFromFile(outputFile.getAbsolutePath());
+			TermReader reader = new TermReader(factory);
+			IStrategoNamed result = (IStrategoNamed) reader.parseFromFile(outputFile.getAbsolutePath());
 			
 			if ("error".equals(result.getName()))
 				throw new SGLRException(null, "CSGLR Parse error: " + result); // (actual error isn't extracted atm)
@@ -99,9 +107,14 @@ public class CSGLRI extends AbstractSGLRI {
 		}
 	}
 	
-	@Deprecated
-	public IPrsStream getIPrsStream() {
-		throw new UnsupportedOperationException();
+	private static ByteArrayInputStream toByteStream(String text) {
+		// FIXME: CSGLRI.toByteStream() breaks extended ASCII support
+		byte[] bytes = new byte[text.length()];
+		
+		for (int i = 0; i < bytes.length; i++)
+			bytes[i] = (byte) text.charAt(i);
+		
+		return new ByteArrayInputStream(bytes);
 	}
 
 }

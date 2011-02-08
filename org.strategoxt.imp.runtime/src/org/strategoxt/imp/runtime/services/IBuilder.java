@@ -2,8 +2,8 @@ package org.strategoxt.imp.runtime.services;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.jobs.Job;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.EditorState;
-import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -12,7 +12,7 @@ public interface IBuilder {
 
 	String getCaption();
 	
-	Job scheduleExecute(EditorState editor, IStrategoAstNode ast, IFile errorReportFile, boolean isRebuild);
+	Job scheduleExecute(EditorState editor, IStrategoTerm ast, IFile errorReportFile, boolean isRebuild);
 
 	Object getData();
 	

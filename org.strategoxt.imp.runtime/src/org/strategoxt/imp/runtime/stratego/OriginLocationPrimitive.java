@@ -1,11 +1,12 @@
 package org.strategoxt.imp.runtime.stratego;
 
-import lpg.runtime.IToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
 
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.strategoxt.imp.runtime.stratego.adapter.IWrappedAstNode;
+import org.spoofax.jsglr.client.imploder.IToken;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -17,10 +18,10 @@ public class OriginLocationPrimitive extends AbstractOriginPrimitive {
 	}
 
 	@Override
-	protected IStrategoTerm call(IContext env, IWrappedAstNode node) {
+	protected IStrategoTerm call(IContext env, IStrategoTerm origin) {
 		ITermFactory factory = env.getFactory();
-		IToken start = node.getNode().getLeftIToken();
-		IToken end = node.getNode().getRightIToken();  
+		IToken start = getLeftToken(origin);
+		IToken end = getRightToken(origin);  
 		return factory.makeTuple(
 				factory.makeInt(start.getLine()),
 				factory.makeInt(start.getColumn()),

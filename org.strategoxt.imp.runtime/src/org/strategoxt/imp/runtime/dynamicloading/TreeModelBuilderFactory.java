@@ -1,6 +1,6 @@
 package org.strategoxt.imp.runtime.dynamicloading;
 
-import static org.strategoxt.imp.runtime.dynamicloading.TermReader.*;
+import static org.strategoxt.imp.runtime.dynamicloading.TermReader.collectTerms;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -3,16 +3,18 @@ package org.strategoxt.imp.runtime.stratego;
 import static java.util.Collections.synchronizedMap;
 import static org.spoofax.interpreter.core.Tools.asJavaString;
 import static org.spoofax.interpreter.core.Tools.isTermString;
-import static org.strategoxt.imp.runtime.parser.tokens.SGLRToken.isWhiteSpace;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.hasImploderOrigin;
+import static org.spoofax.jsglr.client.imploder.Token.isWhiteSpace;
+import static org.spoofax.terms.attachments.OriginAttachment.tryGetOrigin;
+import static org.spoofax.terms.attachments.ParentAttachment.getParent;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.regex.Pattern;
-
-import lpg.runtime.IPrsStream;
-import lpg.runtime.IToken;
 
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
@@ -22,17 +24,17 @@ import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.library.ssl.SSLLibrary;
 import org.spoofax.interpreter.stratego.Strategy;
+import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.jsglr.client.imploder.IToken;
+import org.spoofax.jsglr.client.imploder.ITokenizer;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
-import org.strategoxt.imp.runtime.parser.tokens.SGLRToken;
-import org.strategoxt.imp.runtime.parser.tokens.TokenKind;
 import org.strategoxt.imp.runtime.services.SyntaxProperties;
-import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
-import org.strategoxt.imp.runtime.stratego.adapter.IWrappedAstNode;
+
 
 /**
  * Extracts all block comments between the previous sibling and the current node,
@@ -53,7 +55,7 @@ public class OriginSurroundingCommentsPrimitive extends AbstractPrimitive {
 	
 	@Override
 	public final boolean call(IContext env, Strategy[] svars, IStrategoTerm[] tvars) {
-		if (!isTermString(tvars[0]) || !(tvars[1] instanceof IWrappedAstNode))
+		if (!isTermString(tvars[0]) || !hasImploderOrigin(tvars[1]))
 			return false;
 		
 		Language language = LanguageRegistry.findLanguage(asJavaString(tvars[0]));
@@ -63,7 +65,7 @@ public class OriginSurroundingCommentsPrimitive extends AbstractPrimitive {
 			return false;
 		}
 		
-		IStrategoList result = getSurroundingComments(language, ((IWrappedAstNode) tvars[1]).getNode(), true);
+		IStrategoList result = getSurroundingComments(language, tryGetOrigin(tvars[1]), true);
 		if (result == null) return false;
 		env.setCurrent(result);
 		return true;
@@ -78,15 +80,15 @@ public class OriginSurroundingCommentsPrimitive extends AbstractPrimitive {
 	 * 
 	 * @return A list with all comments surrounding the node, or null if none found.
 	 */
-	public static IStrategoList getSurroundingComments(Language language, IStrategoAstNode node, boolean filter) {
-		final IStrategoAstNode parent = node.getParent();
-		final IStrategoAstNode container = getNonListContainer(parent);
-		final IToken leftToken = node.getLeftIToken();
-		final IToken rightToken = node.getRightIToken();
-		final IPrsStream tokens = leftToken.getIPrsStream();
-		final int layoutKind = TokenKind.TK_LAYOUT.ordinal();
-		final int leftIndex = leftToken.getTokenIndex();
-		final int rightIndex = rightToken.getTokenIndex();
+	public static IStrategoList getSurroundingComments(Language language, ISimpleTerm node, boolean filter) {
+		final ISimpleTerm parent = getParent(node);
+		final ISimpleTerm container = getNonListContainer(parent);
+		final IToken leftToken = getLeftToken(node);
+		final IToken rightToken = getRightToken(node);
+		final ITokenizer tokens = leftToken.getTokenizer();
+		final int layoutKind = IToken.TK_LAYOUT;
+		final int leftIndex = leftToken.getIndex();
+		final int rightIndex = rightToken.getIndex();
 		final int prefixIndex = getPrefixIndex(tokens, leftIndex, parent, container);
 		
 		// Lazily allocate candidates
@@ -95,7 +97,7 @@ public class OriginSurroundingCommentsPrimitive extends AbstractPrimitive {
 		
 		// Collect all tokens between the previous and the current node,
 		// and those between the current and the next sibling node
-		for (int i = prefixIndex, end = tokens.getStreamLength(); i < end; i++) {
+		for (int i = prefixIndex, end = tokens.getTokenCount(); i < end; i++) {
 			IToken current = tokens.getTokenAt(i);
 			if (i > rightIndex && !belongsToEither(current, parent, container))
 				break;
@@ -118,9 +120,9 @@ public class OriginSurroundingCommentsPrimitive extends AbstractPrimitive {
 		return extractComments(language, leftIndex, rightIndex, candidate, candidates, filter);
 	}
 
-	private static IStrategoAstNode getNonListContainer(IStrategoAstNode node) {
+	private static ISimpleTerm getNonListContainer(ISimpleTerm node) {
 		while (node != null && node.isList())
-			node = node.getParent();
+			node = getParent(node);
 		return node;
 	}
 
@@ -164,12 +166,12 @@ public class OriginSurroundingCommentsPrimitive extends AbstractPrimitive {
 		String blockEnd = syntax.getBlockCommentEnd();
 		
 		if (text.startsWith(linePrefix)) {
-			if (token.getTokenIndex() < leftIndex)
+			if (token.getIndex() < leftIndex)
 				return null;
 			if (!filter) return text;
 			return text.substring(linePrefix.length()).trim();
 		} else if (text.startsWith(blockStart) && text.endsWith(blockEnd)) {
-			if (token.getTokenIndex() > rightIndex)
+			if (token.getIndex() > rightIndex)
 				return null;
 			if (!filter) return text;
 			return extractBlockComment(text, blockStart, blockMiddle, blockEnd);
@@ -202,10 +204,10 @@ public class OriginSurroundingCommentsPrimitive extends AbstractPrimitive {
 	/**
 	 * Gets the index of the first token after the previous sibling node.
 	 */
-	private static int getPrefixIndex(IPrsStream tokens, int tokenIndex, IStrategoAstNode parent, IStrategoAstNode container) {
+	private static int getPrefixIndex(ITokenizer tokens, int tokenIndex, ISimpleTerm parent, ISimpleTerm container) {
 		for (;;) {
 			if (tokenIndex == 0) return tokenIndex;
-			SGLRToken prevToken = (SGLRToken) tokens.getTokenAt(tokenIndex - 1);
+			IToken prevToken = tokens.getTokenAt(tokenIndex - 1);
 			if (!belongsToEither(prevToken, parent, container))
 				return tokenIndex;
 			tokenIndex--;
@@ -227,8 +229,8 @@ public class OriginSurroundingCommentsPrimitive extends AbstractPrimitive {
 		return result != null ? result : new SyntaxProperties(null, null, null, null, null, null, null);
 	}
 
-	private static boolean belongsToEither(IToken current, IStrategoAstNode parent, IStrategoAstNode container) {
-		IStrategoAstNode tokenNode = ((SGLRToken) current).getAstNode();
+	private static boolean belongsToEither(IToken current, ISimpleTerm parent, ISimpleTerm container) {
+		ISimpleTerm tokenNode = current.getAstNode();
 		return tokenNode == parent || tokenNode == container;
 	}
 

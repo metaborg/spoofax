@@ -19,18 +19,21 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.imp.language.Language;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.swt.widgets.Display;
-import org.spoofax.interpreter.adapter.aterm.ATermConverter;
-import org.spoofax.interpreter.adapter.aterm.UnsharedWrappedATermFactory;
-import org.spoofax.interpreter.adapter.aterm.WrappedATermFactory;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.core.StackTracer;
 import org.spoofax.interpreter.library.jsglr.JSGLRLibrary;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.jsglr.InvalidParseTableException;
-import org.spoofax.jsglr.ParseTable;
-import org.spoofax.jsglr.ParseTableManager;
-import org.spoofax.jsglr.SGLR;
+import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.jsglr.client.InvalidParseTableException;
+import org.spoofax.jsglr.client.ParseTable;
+import org.spoofax.jsglr.client.imploder.ImploderOriginTermFactory;
+import org.spoofax.jsglr.client.imploder.TermTreeFactory;
+import org.spoofax.jsglr.client.imploder.TreeBuilder;
+import org.spoofax.jsglr.io.ParseTableManager;
+import org.spoofax.jsglr.io.SGLR;
+import org.spoofax.terms.TermFactory;
+import org.spoofax.terms.attachments.ParentTermFactory;
 import org.strategoxt.HybridInterpreter;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
@@ -41,14 +44,10 @@ import org.strategoxt.imp.runtime.stratego.IMPJSGLRLibrary;
 import org.strategoxt.imp.runtime.stratego.IMPLibrary;
 import org.strategoxt.imp.runtime.stratego.IMPOpenFile;
 import org.strategoxt.imp.runtime.stratego.IMPParseStringPTPrimitive;
-import org.strategoxt.imp.runtime.stratego.adapter.WrappedAstNodeFactory;
 import org.strategoxt.lang.compat.sglr.SGLRCompatLibrary;
 
-import aterm.ATermFactory;
-import aterm.pure.PureFactory;
-
 /**
- * Environment class that maintains a maximally shared ATerm environment and
+ * Environment class that maintains a term factories, languages, and
  * parse tables, shared by any editors or other plugins.
  *
  * Methods in this class are either synchronized on the {@link #getSyncRoot()}
@@ -59,12 +58,6 @@ import aterm.pure.PureFactory;
  */
 public final class Environment {
 	
-	private final static WrappedATermFactory wrappedFactory;
-		
-	private final static ATermFactory factory;
-	
-	private final static ATermConverter atermConverter;
-	
 	private final static ParseTableManager parseTableManager;
 	
 	private final static Map<String, ParseTableProvider> parseTables;
@@ -73,7 +66,7 @@ public final class Environment {
 	
 	private final static Map<String, Descriptor> descriptors;
 	
-	private final static WrappedAstNodeFactory wrappedAstNodeFactory;
+	private final static ITermFactory termFactory;
 	
 	private final static PrintStream STDERR = System.err; // avoid deadlocky ant override
 	
@@ -84,14 +77,11 @@ public final class Environment {
 	private static SWTSafeLock lock = new SWTSafeLock();
 	
 	static {
-		wrappedFactory = new UnsharedWrappedATermFactory();
-		factory = new PureFactory();
-		parseTableManager = new ParseTableManager(factory);
-		parseTables = Collections.synchronizedMap(new HashMap<String, ParseTableProvider>());
 		descriptors = Collections.synchronizedMap(new HashMap<String, Descriptor>());
 		unmanagedTables = Collections.synchronizedMap(new HashMap<String, ParseTableProvider>());
-		wrappedAstNodeFactory = new WrappedAstNodeFactory();
-		atermConverter = new ATermConverter(factory, wrappedAstNodeFactory, true);
+		termFactory = new TermFactory();
+		parseTableManager = new ParseTableManager(termFactory);
+		parseTables = Collections.synchronizedMap(new HashMap<String, ParseTableProvider>());
 		checkJVMOptions();
 	}
 
@@ -155,29 +145,19 @@ public final class Environment {
 	
 	// BASIC ACCESSORS
 	
-	public static WrappedAstNodeFactory getTermFactory() {
+	public static ITermFactory getTermFactory() {
 		// (no state; no assertion)
-		return wrappedAstNodeFactory;
-	}
-
-	public static WrappedATermFactory getWrappedATermFactory() {
-		// (stateful factory)
-		assertLock();
-		return wrappedFactory;
+		return termFactory;
 	}
 	
-	public static ATermConverter getATermConverter() {
-		assert getStrategoLock().isHeldByCurrentThread();
-	    return atermConverter;
-	}
-	
-	public static ATermFactory getATermFactory() {
-	    return factory;
+	public static ITermFactory getTermFactory(boolean originFactory) {
+		return originFactory ? new ImploderOriginTermFactory(termFactory) : termFactory;
 	}
 	
 	public static SGLR createSGLR(ParseTable parseTable) {
 		// (no state; no assertion)
-		return new SGLR(factory, parseTable);
+		TermTreeFactory factory = new TermTreeFactory(new ParentTermFactory(getTermFactory()));
+		return new SGLR(new TreeBuilder(factory), parseTable);
 	}
 	
 	// ENVIRONMENT ACCESS AND MANIPULATION
@@ -188,8 +168,8 @@ public final class Environment {
 
 	public static HybridInterpreter createInterpreter(boolean noGlobalLock) {
 		HybridInterpreter result =	noGlobalLock
-			? new HybridInterpreter(getTermFactory())
-			: new HybridInterpreter(getTermFactory()) {
+			? new HybridInterpreter(getTermFactory(true))
+			: new HybridInterpreter(getTermFactory(true)) {
 				@Override
 				public boolean invoke(String name) throws InterpreterExit, InterpreterException {
 					assertLock();
@@ -209,7 +189,6 @@ public final class Environment {
 				}
 			};
 		
-		result.getCompiledContext().getCompatManager().setATermFactory(getATermFactory());
 		result.getCompiledContext().getExceptionHandler().setEnabled(false);
 		result.getCompiledContext().registerComponent("stratego_lib"); // ensure op. registry available
 		result.getCompiledContext().registerComponent("stratego_sglr"); // ensure op. registry available
@@ -233,7 +212,6 @@ public final class Environment {
 				IMPJSGLRLibrary.REGISTRY_NAME, // is spoofax-specific
 				JSGLRLibrary.REGISTRY_NAME,    // connected to the library above
 				IMPLibrary.REGISTRY_NAME);     // also used
-		result.getCompiledContext().getCompatManager().setATermFactory(getATermFactory());
 		result.getCompiledContext().getExceptionHandler().setEnabled(false);
 		IMPJSGLRLibrary parseLibrary = ((IMPJSGLRLibrary) result.getContext().getOperatorRegistry(IMPJSGLRLibrary.REGISTRY_NAME));
 		parseLibrary.addOverrides(result.getCompiledContext());

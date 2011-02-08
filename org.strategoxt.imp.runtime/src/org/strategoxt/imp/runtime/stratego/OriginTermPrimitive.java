@@ -2,7 +2,6 @@ package org.strategoxt.imp.runtime.stratego;
 
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.strategoxt.imp.runtime.stratego.adapter.IWrappedAstNode;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -14,8 +13,8 @@ public class OriginTermPrimitive extends AbstractOriginPrimitive {
 	}
 
 	@Override
-	protected IStrategoTerm call(IContext env, IWrappedAstNode node) {
-		return node.getNode().getTerm();
+	protected IStrategoTerm call(IContext env, IStrategoTerm origin) {
+		return origin;
 	}
 
 }

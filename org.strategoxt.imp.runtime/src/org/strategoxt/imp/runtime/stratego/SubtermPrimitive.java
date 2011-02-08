@@ -1,12 +1,15 @@
 package org.strategoxt.imp.runtime.stratego;
 
+import static org.spoofax.interpreter.core.Tools.isTermAppl;
+import static org.spoofax.interpreter.core.Tools.isTermInt;
+import static org.spoofax.interpreter.core.Tools.isTermList;
+import static org.spoofax.interpreter.core.Tools.javaInt;
+
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-
-import static org.spoofax.interpreter.core.Tools.*;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>

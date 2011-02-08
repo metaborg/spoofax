@@ -1,19 +1,21 @@
 package org.strategoxt.imp.runtime.stratego;
 
 import static org.spoofax.interpreter.core.Tools.isTermString;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getImploderOrigin;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.hasImploderOrigin;
+import static org.spoofax.terms.Term.isTermList;
+import static org.spoofax.terms.attachments.OriginAttachment.tryGetOrigin;
+import static org.spoofax.terms.attachments.ParentAttachment.getParent;
 
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.strategoxt.imp.runtime.parser.ast.AstNode;
-import org.strategoxt.imp.runtime.parser.ast.AstNodeFactory;
-import org.strategoxt.imp.runtime.parser.ast.ListAstNode;
-import org.strategoxt.imp.runtime.stratego.adapter.IStrategoAstNode;
-import org.strategoxt.imp.runtime.stratego.adapter.IWrappedAstNode;
+import org.strategoxt.imp.runtime.parser.ast.StrategoSubList;
 
 /**
  * Returns the (sub)list with origin nodes by mapping all subterms of a list one by one.
@@ -28,10 +30,9 @@ public class OriginSublistTermPrimitive extends AbstractPrimitive {
 		super(NAME, 0, 2);
 	}
 	
-	@SuppressWarnings("unchecked")
 	@Override
 	public final boolean call(IContext env, Strategy[] svars, IStrategoTerm[] tvars) {
-		if (!isTermString(tvars[0]) || !(tvars[1] instanceof IStrategoList))//|| (tvars[1].getTermType()!= IStrategoTerm.LIST)
+		if (!isTermString(tvars[0]) || !isTermList(tvars[1]))//|| (tvars[1].getTermType()!= IStrategoTerm.LIST)
 			return false;
 		if(tvars[1].getTermType()!= IStrategoTerm.LIST)
 			return false;
@@ -39,13 +40,13 @@ public class OriginSublistTermPrimitive extends AbstractPrimitive {
 		if(list.isEmpty())
 			return false;
 		for (IStrategoTerm child : list.getAllSubterms()) {
-			if(!(child instanceof IWrappedAstNode))
+			if(!hasImploderOrigin(child))
 				return false;
 		}
-		IStrategoAstNode firstChildNode=((IWrappedAstNode)list.get(0)).getNode();
-		IStrategoAstNode commonParentList=firstChildNode.getParent();
-		ArrayList<IStrategoAstNode> childNodes=commonParentList.getChildren();
-		if(!(commonParentList instanceof ListAstNode))
+		IStrategoTerm firstChildNode= tryGetOrigin(list.getSubterm(0));
+		IStrategoTerm commonParentList=getParent(firstChildNode);
+		List<IStrategoTerm> childNodes= Arrays.asList(commonParentList.getAllSubterms());
+		if(!(isTermList(commonParentList)))
 			return false;
 		int startIndex=-1;
 		for (int i = 0; i < childNodes.size(); i++) {
@@ -54,18 +55,22 @@ public class OriginSublistTermPrimitive extends AbstractPrimitive {
 				break;
 			}
 		}
+		// XXX: Maartje - many of these primitives don't check hasImploderOrigin() before getting the origin...
+		//      What if a term has no origin?!
+		//      Before, this could result in a ClassCastException. now, with tryGetOrigin, you just get a non-origin term.
+		//      Or with getOrigin()/getImploderOrigin(), you get null
 		for (int i = 0; i < list.size(); i++) {
 			if(childNodes.size()<=i+startIndex)
 				return false;
-			IStrategoAstNode childNode=((IWrappedAstNode)list.get(i)).getNode();
+			IStrategoTerm childNode=getImploderOrigin(list.getSubterm(i));
 			if(childNodes.get(i+startIndex)!=childNode)
 				return false;
 		}
-		IStrategoAstNode lastChildNode=((IWrappedAstNode)list.get(list.size()-1)).getNode();
-		AstNode result =new AstNodeFactory().createSublist((ListAstNode) commonParentList, firstChildNode, lastChildNode, true); 
+		IStrategoTerm lastChildNode= getImploderOrigin(list.getSubterm(list.size()-1));
+		IStrategoTerm result = StrategoSubList.createSublist((IStrategoList) commonParentList, firstChildNode, lastChildNode, true); 
 		if (result == null) 
 			return false;
-		env.setCurrent(result.getTerm());
+		env.setCurrent(result);
 		return true;
 	}
 	
