@@ -10,6 +10,7 @@ import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.util.Map;
 import java.util.WeakHashMap;
@@ -376,8 +377,14 @@ public class StrategoBuilder implements IBuilder {
 
 	public static void setFileContentsDirect(IFile file, final String contents) throws CoreException {
 		assert !Environment.getStrategoLock().isHeldByCurrentThread();
-		InputStream resultStream = new ByteArrayInputStream(contents.getBytes());
+		InputStream resultStream;
+		try {
+			resultStream = new ByteArrayInputStream(contents.getBytes("UTF-8"));
+		} catch (UnsupportedEncodingException e) {
+			throw new RuntimeException(e);
+		}
 		if (file.exists()) {
+			file.setCharset("UTF-8", null);
 			file.setContents(resultStream, true, true, null);
 		} else {
 			createDirs(file.getParent());
