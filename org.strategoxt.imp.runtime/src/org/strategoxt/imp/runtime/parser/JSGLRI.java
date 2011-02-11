@@ -29,7 +29,7 @@ public class JSGLRI extends AbstractSGLRI {
 	
 	private boolean useRecovery = false;
 	
-	private final SGLR parser;
+	private SGLR parser;
 	
 	private Disambiguator disambiguator;
 	
@@ -107,8 +107,10 @@ public class JSGLRI extends AbstractSGLRI {
 	 * Resets the state of this parser, reinitializing the SGLR instance
 	 */
 	void resetState() {
-		// UNDONE: reinitializing parser instance each run
-		// parser = Environment.createSGLR(getParseTable());
+		// Reinitialize parser if parsetable changed (due to .meta file)
+		if (getParseTable() != parser.getParseTable()) {
+			parser = Environment.createSGLR(getParseTable());
+		}
 		parser.setTimeout(timeout);
 		if (disambiguator != null) parser.setDisambiguator(disambiguator);
 		else disambiguator = parser.getDisambiguator();
