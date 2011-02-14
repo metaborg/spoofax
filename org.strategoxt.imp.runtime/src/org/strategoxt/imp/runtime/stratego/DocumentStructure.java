@@ -34,13 +34,16 @@ public class DocumentStructure {
 		else
 			endOffset=getRightToken(node).getEndOffset();
 		int lookForward=endOffset;
+		if(lookForward>=getLexStream().length()-1){
+			return getLexStream().length();
+		}
 		do{
 			if(getLexStream().charAt(lookForward)=='\n'){
 				endOffset=lookForward;
 			}
 			lookForward++;
 		} while(lookForward < getLexStream().length() && Character.isWhitespace(getLexStream().charAt(lookForward)));
-		return endOffset+1; //exclusive end
+		return lookForward; //endOffset+1
 	}
 
 	private int getLayoutStart() {
@@ -93,6 +96,13 @@ public class DocumentStructure {
 		initialize();
 		this.node= tryGetOrigin(node);
 		analysize();
+		System.out.println("sep-ws: "+"$"+seperatingWhitespace+"$");
+		if(getCommentsBefore()!=null)
+			System.out.println(getCommentsBefore().getText(getLexStream()));
+		if(getCommentsAfter()!=null)
+			System.out.println(getCommentsAfter().getText(getLexStream()));
+		System.out.println("indent: "+"$"+indentNode+"$");
+		System.out.println(textWithLayout().getText(getLexStream()));
 	}
 	
 	private void initialize() {
@@ -178,8 +188,10 @@ public class DocumentStructure {
 			endIndex=precedingNonLayoutToken.getIndex()+1;
 		else
 			endIndex=0;
-		int loopIndex=startToken.getIndex()-1;
-		IToken precedingToken=tokenStream.getTokenAt(loopIndex);
+		int loopIndex=startToken.getIndex()-1;		
+		IToken precedingToken=null;
+		if(loopIndex>=endIndex)
+			precedingToken=tokenStream.getTokenAt(loopIndex);
 		while (loopIndex>=endIndex && precedingToken.getStartOffset()>= Math.max(emptyLineOffset, eolOffset) && isLayoutToken(precedingToken)) {
 			if (!Token.isWhiteSpace(precedingToken))
 				precedingComments.add(0, precedingToken); 
@@ -222,7 +234,7 @@ public class DocumentStructure {
 			startOffsetSepWS--;
 		}
 		if(endOffsetSepWS-1 > startOffsetSepWS){
-			seperatingWhitespace=lexStream.substring(startOffsetSepWS, endOffsetSepWS-startOffsetSepWS);
+			seperatingWhitespace=lexStream.substring(startOffsetSepWS, endOffsetSepWS);
 			seperatingWhitespace=correctWSIndentation(seperatingWhitespace, ""); //removes indentation
 		}
 		else
@@ -265,25 +277,19 @@ public class DocumentStructure {
 	}
 	
 	private boolean atLineStart(IToken startToken) {
-		ITokenizer tokenStream = startToken.getTokenizer();
-		int start=tokenStream.getLineAtOffset(startToken.getLine()-1)+1;
-		TextFragment prefix=new TextFragment(start, startToken.getStartOffset());
-		return prefix.getText(getLexStream()).trim().length()==0;
+		int offset=startToken.getStartOffset()-1;
+		while (offset>=0 && isSpaceChar(getLexStream().charAt(offset))) {
+			offset--;
+		}
+		return offset<=0 || getLexStream().charAt(offset)=='\n';
 	}
 
 	private String getLineText(ITokenizer tokenStream, int lindex) {
-		if(lindex<=0)
+		String[] lines= getLexStream().split("\n");
+		if(lindex<0 || lindex>=lines.length)
 			return null;
-		int start=tokenStream.getLineAtOffset(lindex-1)+1;
-		if(lindex-1==0)//first line
-			start=0;
-		int end=tokenStream.getLineAtOffset(lindex);
-		if(lindex==tokenStream.getEndLine()){
-			end=tokenStream.getInput().length()-1;
-		}
-		TextFragment line=new TextFragment(start, end);				
-		String lineText=line.getText(tokenStream.getInput());
-		return lineText;
+		return lines[lindex];
+
 	}
 	
 	private static int getIndentValue(String line) {
@@ -362,13 +368,13 @@ public class DocumentStructure {
 				return "";
 			if(DocumentStructure.isUnvalidInterval(start, end, lexStream))
 				return null;
-			String textfragment=lexStream.substring(start, end - start);
+			String textfragment=lexStream.substring(start, end);
 			return textfragment;
 		}
 
 	}
 	
 	public static boolean isUnvalidInterval(int pos_start, int pos_end, String lexStream) {
-		return pos_start < 0 || pos_start > pos_end || pos_end >= lexStream.length();
+		return pos_start < 0 || pos_start > pos_end || pos_end > lexStream.length();
 	}
 }
