@@ -1,8 +1,8 @@
 [
    PPTable                                -- R [ H [KW["pp-table"]] KW[":"] _1],
    PrettyPrint                            -- R [ H [KW["pretty-print"]] KW[":"] _1],
-   Refactoring                            -- R [ H [ KW["refactoring"]] KW[":"] _1 H [ KW["="] _2 KW["->"] _3 _4] ],
-   Refactoring.2:iter                     -- _1,
+   Refactoring                            -- R [ H [ KW["refactoring"] _1 ]  KW[":"] _2 H [  KW["="] _3 _4] ],
+   Refactoring.1:iter-star                -- _1,
    Refactoring.4:iter-star                -- _1,
    Refactorings                           -- V is=2 [H hs=0 [KW["refactorings"] _1] A(l,l,l,l,l,l) [_2]],
    ReferenceHoverRule   -- R [ H [ KW["reference"] _1 ] KW[":"] H [ _2 _3 ] ],

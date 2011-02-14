@@ -16,7 +16,7 @@ exports
   	
   	"pp-table" ":" StrategoCall -> SemanticRule {cons("PPTable")}
   	"pretty-print" ":" StrategoCall -> SemanticRule {cons("PrettyPrint")}
-    "refactoring"  ":" String "=" SemanticNode+ "->" StrategoCall BuilderOption* -> SemanticRule {cons("Refactoring")}
+    "refactoring"  SemanticNode* ":" String "="   StrategoCall BuilderOption* -> SemanticRule {cons("Refactoring")}
   
     %%"refactoring"  ":" String "=" Node "->" StrategoCall -> SemanticRule {cons("Refactoring")} 
     %% Node defines on what sorts/constructors the refactoring can be defiend
