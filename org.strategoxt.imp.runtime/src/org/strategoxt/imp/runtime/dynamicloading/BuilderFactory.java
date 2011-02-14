@@ -110,10 +110,8 @@ public class BuilderFactory extends AbstractServiceFactory<IBuilderMap> {
 			ppStrategy=termContents(termAt(ppStrategyTerm, 0));
 		
 		for (IStrategoAppl builder : collectTerms(d.getDocument(), "Refactoring")) {
-			
-			boolean isDefined = isDefinedOnSelection(builder);
-			if(isDefined){
-				String caption = termContents(termAt(builder, 0));
+			if(isDefinedOnSelection(builder)){
+				String caption = termContents(termAt(builder, 1));
 				String strategy = termContents(termAt(builder, 2));
 				IStrategoList options = termAt(builder, 3);			
 				boolean cursor = false;
@@ -159,9 +157,12 @@ public class BuilderFactory extends AbstractServiceFactory<IBuilderMap> {
 	private static boolean isDefinedOnSelection(IStrategoAppl builder)
 			throws BadDescriptorException {
 		ArrayList<NodeMapping<String>> mappings=new ArrayList<NodeMapping<String>>();
-		for (IStrategoTerm semanticNode : termAt(builder,1).getAllSubterms()) {
+		for (IStrategoTerm semanticNode : termAt(builder,0).getAllSubterms()) {
 			NodeMapping<String> aMapping = NodeMapping.create(semanticNode, "");
 			mappings.add(aMapping);
+		}
+		if(mappings.size()==0){
+			return true; //no sort restriction specified
 		}
 		// XXX: the builder doesn't run in the UI thread for real-time builds
 		EditorState editor = EditorState.getActiveEditor();
