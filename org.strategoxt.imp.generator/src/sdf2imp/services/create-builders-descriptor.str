@@ -41,8 +41,8 @@ strategies
           pp-table: get-pp-table
           pretty-print: prettyprint
           ~~
-          refactoring: "Rename Entity" = ID -> rename-entity (source) (cursor)
-          refactoring: "Extract Entity" = Property* -> extract-entity (source) 
+          refactoring ID: "Rename Entity" = rename-entity (source) (cursor)
+          refactoring Property*: "Extract Entity" =  extract-entity (source) 
 
           ~~
           ~// on save: generate-java
@@ -100,7 +100,7 @@ strategies
           ~// Refactorings can be specified as shown below, whereby Property* indicates on which constructs the
           ~// refactoring is specified (<sort>.<constructor>).
           ~// 
-          ~//   refactoring: "Extract Entity" = Property* -> extract-entity (source)
+          ~//   refactoring Property*: "Extract Entity" =  extract-entity (source)
           ~// 
           ~// The 'on save' handler can be used  to generate code as files are saved:
           ~//   
