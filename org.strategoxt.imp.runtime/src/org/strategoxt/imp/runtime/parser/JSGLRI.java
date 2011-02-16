@@ -8,8 +8,11 @@ import org.spoofax.jsglr.client.Asfix2TreeBuilder;
 import org.spoofax.jsglr.client.Disambiguator;
 import org.spoofax.jsglr.client.FilterException;
 import org.spoofax.jsglr.client.ParseTable;
+import org.spoofax.jsglr.client.imploder.ITreeFactory;
 import org.spoofax.jsglr.client.imploder.TermTreeFactory;
 import org.spoofax.jsglr.client.imploder.TreeBuilder;
+import org.spoofax.jsglr.client.incremental.IncrementalSGLR;
+import org.spoofax.jsglr.client.incremental.IncrementalSortSet;
 import org.spoofax.jsglr.io.SGLR;
 import org.spoofax.jsglr.shared.BadTokenException;
 import org.spoofax.jsglr.shared.SGLRException;
@@ -31,6 +34,8 @@ public class JSGLRI extends AbstractSGLRI {
 	
 	private SGLR parser;
 	
+	private IncrementalSGLR incrementalParser;
+	
 	private Disambiguator disambiguator;
 	
 	private int timeout;
@@ -43,6 +48,9 @@ public class JSGLRI extends AbstractSGLRI {
 		
 		this.parseTable = parseTable;
 		this.parser = Environment.createSGLR(getParseTable());
+		ITreeFactory factory = ((TreeBuilder) parser.getTreeBuilder()).getFactory();
+		this.incrementalParser = new IncrementalSGLR<IStrategoTerm>(parser, null, factory, IncrementalSortSet.read(getParseTable()));
+		// TODO: use IncrementalSGLR
 		resetState();
 	}
 	

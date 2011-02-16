@@ -137,6 +137,10 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		assert getLock().isHeldByCurrentThread();
 		return ((EditorIOAgent) runtime.getIOAgent()).getLog().trim();
 	}
+
+	public AstMessageHandler getMessages() {
+		return messages;
+	}
 	
 	private void initialize(IProgressMonitor monitor) {
 		assert getLock().isHeldByCurrentThread();
@@ -729,5 +733,4 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		if (canceller != null) canceller.asyncCancelReset();
 		
 	}
-
 }

@@ -43,14 +43,18 @@ exports
   <+
     <output-text-file(|["syntax"], "Common.sdf")>
 // TODO: FLOAT
+
+// MAYBE: unicode ID: 
+//   [a-zA-Z\192-\252\255][a-zA-Z0-9\_\192-\252\254\255]* -> UID
+
 ${module Common
 
 exports
 
   lexical syntax
   
-    [a-zA-Z\255][a-zA-Z0-9\_\255\254]* -> ID
-    "-"? [0-9]+                        -> INT
+    [a-zA-Z][a-zA-Z0-9]* -> ID
+    "-"? [0-9]+          -> INT
     
     "\"" StringChar* "\"" -> STRING
     ~[\"\n]               -> StringChar

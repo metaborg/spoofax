@@ -3,6 +3,7 @@ package org.strategoxt.imp.runtime.services;
 import java.util.regex.Pattern;
 
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
+import org.spoofax.jsglr.client.incremental.CommentDamageExpander;
 
 public class SyntaxProperties implements ILanguageSyntaxProperties {
 	
@@ -68,6 +69,10 @@ public class SyntaxProperties implements ILanguageSyntaxProperties {
 	public String getIdentifierConstituentChars() {
 		// Unused (could be sort of derived from getIdentifierLexical() by testing all chars)
 		return null;
+	}
+	
+	public CommentDamageExpander toCommentDamageExpander() {
+		return new CommentDamageExpander(getBlockCommentStart(), getBlockCommentEnd());
 	}
 	
 }

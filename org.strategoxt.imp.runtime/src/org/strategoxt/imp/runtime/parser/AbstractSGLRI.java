@@ -91,6 +91,7 @@ public abstract class AbstractSGLRI {
 		
 		/* UNDONE: disabled the parse cache for now
 		 * TODO: revise parse cache?
+		 *       (should still be disabled for testing language)
 		CachingKey cachingKey = new CachingKey(parseTableId, startSymbol, inputChars, filename);
 		IStrategoTerm result = parsedCache.get(cachingKey);
 		if (result != null) {
