@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.jface.text.DocumentEvent;
@@ -20,8 +21,10 @@ import org.eclipse.jface.text.IDocumentListener;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.RefreshResourcePrimitive;
+import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -61,6 +64,10 @@ public class OnSaveService implements IDocumentListener, ILanguageService {
 					runtime.reportRewritingFailed();
 					String log = runtime.getLog();
 					Environment.logException(log.length() == 0 ? "Analysis failed" : "Analysis failed:\n" + log);
+					AstMessageHandler messages = runtime.getMessages();
+					messages.clearMarkers(SourceAttachment.getResource(ast));
+					messages.addMarkerFirstLine(SourceAttachment.getResource(ast), "Analysis failed (see error log)", IMarker.SEVERITY_ERROR);
+					messages.commitAllChanges();
 				} else if (isTermString(result)) {
 					// Function's returning a filename
 					String file = asJavaString(termAt(result, 0));
