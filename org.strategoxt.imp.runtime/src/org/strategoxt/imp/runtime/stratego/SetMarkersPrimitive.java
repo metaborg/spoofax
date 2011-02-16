@@ -14,7 +14,7 @@ import org.strategoxt.imp.runtime.services.StrategoObserver;
 public class SetMarkersPrimitive extends AbstractPrimitive {
 
 	public SetMarkersPrimitive() {
-		super("SSL_EXT_set_markers", 0, 2);
+		super("SSL_EXT_set_markers", 0, 1);
 	}
 
 	@Override
@@ -24,20 +24,20 @@ public class SetMarkersPrimitive extends AbstractPrimitive {
 		IResource resource = SourceAttachment.getResource(tvars[0]);
 		if (resource == null)
 			return false;
-		
+
 		IOAgent agent = SSLLibrary.instance(env).getIOAgent();
 		if (!(agent instanceof EditorIOAgent)) return false;
-		
+
 		StrategoAnalysisJob job = ((EditorIOAgent)agent).getJob();
-		
+
 		StrategoObserver observer = job.getObserver();
-		
+
 		// HACK: presentToUser runs a feedback postprocess strategy which calls primitives witch set env.current()
 		// (nested primitives...)
 		IStrategoTerm previousTerm = env.current();
 		observer.presentToUser(resource, env.current());
 		env.setCurrent(previousTerm);
-		
+
 		return true;
 	}
 
