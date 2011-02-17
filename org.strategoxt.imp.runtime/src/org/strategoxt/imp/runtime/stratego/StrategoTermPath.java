@@ -167,11 +167,11 @@ public class StrategoTermPath {
 		for (IStrategoTerm n = node1; n != null; n = getParent(n))
 			node1Ancestors.add(n);
 		
-		for (IStrategoTerm n = node2, n2Child = node2; n != null; n2Child = n, n = getParent(n))
-			if (node1Ancestors.contains(n)) {
-				if(node1Ancestors.get(node1Ancestors.indexOf(n))==n)
-					return tryCreateListCommonAncestor(n, node1Ancestors, n2Child);
-			}
+		for (IStrategoTerm n = node2, n2Child = node2; n != null; n2Child = n, n = getParent(n)) {
+			int node1Index = node1Ancestors.indexOf(n);
+			if(node1Index != -1 && node1Ancestors.get(node1Index) == n) // this is a common ancestor, by reference equality
+				return tryCreateListCommonAncestor(n, node1Ancestors, n2Child);
+		}
 		
 		throw new IllegalStateException("Could not find common ancestor for nodes: " + node1 + "," + node2);
 	}
@@ -349,6 +349,7 @@ public class StrategoTermPath {
 	 * Gets the node furthest up the ancestor chain that
 	 * has either the same character offsets or has only one
 	 * child with the same character offsets as the node given.
+	 * Won't traverse up list parents.
 	 * 
 	 * @param allowMultiChildParent
 	 *             Also fetch the first parent if it has multiple children (e.g., Call("foo", "bar")).
@@ -361,6 +362,7 @@ public class StrategoTermPath {
 		int startOffset = getLeftToken(result).getStartOffset();
 		int endOffset = getRightToken(result).getEndOffset();
 		while (getParent(result) != null
+				&& !getParent(result).isList()
 				&& (getParent(result).getSubtermCount() <= 1 
 						|| (getLeftToken(getParent(result)).getStartOffset() >= startOffset
 							&& getRightToken(getParent(result)).getEndOffset() <= endOffset)))

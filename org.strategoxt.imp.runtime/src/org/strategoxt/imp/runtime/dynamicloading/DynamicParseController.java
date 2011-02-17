@@ -19,6 +19,7 @@ import org.eclipse.jface.text.Region;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
+import org.strategoxt.imp.runtime.services.StrategoObserverPartListener;
 import org.strategoxt.imp.runtime.services.TokenColorerHelper;
 
 /**
@@ -86,7 +87,8 @@ public class DynamicParseController extends AbstractService<IParseController> im
 		ContentProposerFactory.eagerInit(descriptor, parser, lastEditor);
 		AutoEditStrategyFactory.eagerInit(descriptor, parser, lastEditor);
 		OnSaveServiceFactory.eagerInit(descriptor, parser, lastEditor);
-		TokenColorerHelper.register(lastEditor, (SGLRParseController) parser);
+		TokenColorerHelper.register((SGLRParseController) parser, lastEditor);
+		StrategoObserverPartListener.register(descriptor, lastEditor);
 	}
 
 	public IAnnotationTypeInfo getAnnotationTypeInfo() {

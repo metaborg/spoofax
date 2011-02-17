@@ -45,6 +45,7 @@ public class TermReader extends Tools {
 		if (term.getTermType() == IStrategoTerm.APPL && cons(term).equals(constructor))
 			results.add((IStrategoAppl) term);
 		
+		// TODO: optimize: use TermVisitor, avoid indexed access to long lists
 		for (int i = 0; i < term.getSubtermCount(); i++) {
 			collectTerms(termAt(term, i), constructor, results);
 		}

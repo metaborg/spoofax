@@ -28,7 +28,7 @@ public class TokenColorerHelper implements ITextPresentationListener {
 		// Not using controller atm
 	}
 	
-	public static void register(EditorState editor, SGLRParseController controller) {
+	public static void register(SGLRParseController controller, EditorState editor) {
 		ISourceViewer viewer = editor.getEditor().getServiceControllerManager().getSourceViewer();
 		if (helpers.get(viewer) == null && viewer instanceof ITextViewerExtension4) {
 			TokenColorerHelper listener = new TokenColorerHelper(controller);
