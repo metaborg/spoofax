@@ -220,13 +220,13 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 				String closeFence = getMatchingCloseFence(openFence);
 				if (closeFence != null && closeFence.length() > 0) {
 					if (isParsedAsLexicalOrLayout(document, offset, input)
-							|| isIdentifierAfterOffset(document, offset)
-							|| isFenceAfterOffset(document, offset, openFence))
+							|| isIdentifierAfterOffset(document, offset + length)
+							|| isOpenFenceAfterOffset(document, offset + length))
 						return false;
 					justProcessedKeyEvent = true;
 					String lineStart = getLineBeforeOffset(document, offset);
 					closeFence = formatInsertedText(closeFence, lineStart);
-					document.replace(offset, 0, input + closeFence);
+					document.replace(offset, length, input + closeFence);
 					IRegion selection = getInsertedTextSelection(offset + input.length(), closeFence);
 					viewer.setSelectedRange(selection.getOffset(), selection.getLength());
 					lastAutoInsertedFenceLine = document.getLineOfOffset(offset);
@@ -266,7 +266,20 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 	}
 	
 	/**
-	 * Tests if the line starts with a particular closing fence,
+	 * Tests {@link #isFenceAfterOffset()} succeeds for any of the opening fences.
+	 * Inefficient. 
+	 */
+	private boolean isOpenFenceAfterOffset(IDocument document, int offset) throws BadLocationException {
+		for (String[] fencePair : allFences) {
+			String openFence = fencePair[0];
+			if (isFenceAfterOffset(document, offset, openFence))
+				return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * Tests if the offset starts with a particular closing fence,
 	 * ignoring whitespace, comments, and lexicals.
 	 * 
 	 * @see #stripCommentsAndLayout(String)
