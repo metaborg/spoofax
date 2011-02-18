@@ -101,6 +101,7 @@ public abstract class AbstractSGLRI {
 		}
 		*/
 
+		assert getController() == null || getController().getParseLock().isHeldByCurrentThread();
 		IStrategoTerm result = doParse(input, filename);
 		if (new NullProgressMonitor().isCanceled())
 			throw new OperationCanceledException();

@@ -43,7 +43,9 @@ public class StrategoObserverPartListener extends DefaultPartListener {
 			page.removePartListener(oldListener);
 		}
 		
-		page.addPartListener(new StrategoObserverPartListener(descriptor, editor));
+		StrategoObserverPartListener newListener = new StrategoObserverPartListener(descriptor, editor);
+		page.addPartListener(newListener);
+		asyncListeners.put(page, newListener);
 	}
 	
 	@Override

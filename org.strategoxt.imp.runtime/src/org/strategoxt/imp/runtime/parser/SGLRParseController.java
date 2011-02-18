@@ -341,6 +341,7 @@ public class SGLRParseController implements IParseController {
 	private IStrategoTerm doParse(String input, String filename)
 			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
 		try {
+			assert parseLock.isHeldByCurrentThread();
 			return parser.parse(input, filename);
 		} catch (StartSymbolException e) {
 			if (metaFile != null) {
