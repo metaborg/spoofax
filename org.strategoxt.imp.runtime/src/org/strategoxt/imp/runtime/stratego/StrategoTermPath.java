@@ -355,6 +355,8 @@ public class StrategoTermPath {
 	 *             Also fetch the first parent if it has multiple children (e.g., Call("foo", "bar")).
 	 */
 	public static final IStrategoTerm getMatchingAncestor(IStrategoTerm oNode, boolean allowMultiChildParent) {
+		if (oNode.isList()) return oNode;
+		
 		if (allowMultiChildParent && tryGetConstructor(oNode) == null && getParent(oNode) != null)
 			return getParent(oNode);
 		

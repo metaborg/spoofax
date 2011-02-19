@@ -8,7 +8,6 @@ import static org.spoofax.jsglr.client.imploder.ImploderAttachment.hasImploderOr
 import static org.spoofax.terms.Term.isTermString;
 import static org.spoofax.terms.attachments.OriginAttachment.tryGetOrigin;
 import static org.spoofax.terms.attachments.ParentAttachment.getParent;
-import static org.spoofax.terms.attachments.ParentAttachment.getRoot;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.cons;
 
 import java.io.File;
@@ -60,11 +59,8 @@ import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.IMPJSGLRLibrary;
 import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 import org.strategoxt.imp.runtime.stratego.StrategoConsole;
-import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.StrategoException;
-import org.strategoxt.stratego_aterm.implode_aterm_0_0;
-import org.strategoxt.stratego_aterm.stratego_aterm;
 import org.strategoxt.stratego_lib.set_config_0_0;
 
 /**
@@ -94,6 +90,8 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	private final FileCopier fileCopier = new FileCopier();
 	
 	private HybridInterpreter runtime;
+	
+	private InputTermBuilder inputBuilder;
 	
 	private volatile Descriptor descriptor;
 	
@@ -139,7 +137,16 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	}
 
 	public AstMessageHandler getMessages() {
+		assert getLock().isHeldByCurrentThread();
 		return messages;
+	}
+	
+	public InputTermBuilder getInputBuilder() {
+		assert getLock().isHeldByCurrentThread();
+		if (inputBuilder == null || inputBuilder.getRuntime() != getRuntime()) {
+			inputBuilder = new InputTermBuilder(getRuntime(), resultingAsts);
+		}
+		return inputBuilder;
 	}
 	
 	private void initialize(IProgressMonitor monitor) {
@@ -263,6 +270,8 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	 */
 	public void scheduleUpdate(final IParseController parseController) {
 		
+		assert parseController instanceof SGLRParseController; // assumption made in other methods...
+		
 		isUpdateStarted = true;
 
 		observerSchedulerLock.lock();
@@ -302,7 +311,8 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			getLock().lock();
 			try {
 				resultingAsts.remove(SourceAttachment.getResource(ast));
-				feedback = invokeSilent(feedbackFunction, makeInputTerm(ast, false), SourceAttachment.getResource(ast));
+				feedback = invokeSilent(feedbackFunction,
+						getInputBuilder().makeInputTerm(ast, false), SourceAttachment.getResource(ast));
 	
 				if (feedback == null) {
 					reportRewritingFailed();
@@ -450,107 +460,8 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	public IStrategoTerm invoke(String function, IStrategoTerm node)
 			throws UndefinedStrategyException, InterpreterErrorExit, InterpreterExit, InterpreterException {
 
-		IStrategoTerm input = makeInputTerm(node, true);
+		IStrategoTerm input = getInputBuilder().makeInputTerm(node, true);
 		return invoke(function, input, SourceAttachment.getResource(node));
-	}
-
-	/**
-	 * Create an input term for a control rule.
-	 */
-	public IStrategoTuple makeInputTerm(IStrategoTerm node, boolean includeSubNode) {
-		return makeInputTerm(node, includeSubNode, false);
-	}
-	
-	/**
-	 * Create an input term for a control rule.
-	 */
-	public IStrategoTuple makeInputTerm(IStrategoTerm node, boolean includeSubNode, boolean useSourceAst) {
-		assert getLock().isHeldByCurrentThread();
-		
-		Context context = getRuntime().getCompiledContext();
-		IResource resource = SourceAttachment.getResource(node);
-		IStrategoTerm resultingAst = useSourceAst ? null : resultingAsts.get(resource);
-		IStrategoList termPath = StrategoTermPath.getTermPathWithOrigin(context, resultingAst, node);
-		IStrategoTerm targetTerm;
-		IStrategoTerm rootTerm;
-		
-		if (termPath != null) {
-			targetTerm = StrategoTermPath.getTermAtPath(context, resultingAst, termPath);
-			rootTerm = resultingAst;
-		} else {
-			targetTerm = node;
-			termPath = StrategoTermPath.createPath(node);
-			rootTerm = getRoot(node);
-		}
-		
-		ITermFactory factory = Environment.getTermFactory();
-		String path = resource.getProjectRelativePath().toPortableString();
-		String absolutePath = tryGetProjectPath(resource);
-		
-		if (includeSubNode) {
-			IStrategoTerm[] inputParts = {
-					targetTerm,
-					termPath,
-					rootTerm,
-					factory.makeString(path),
-					factory.makeString(absolutePath)
-				};
-			return factory.makeTuple(inputParts);
-		} else {
-			IStrategoTerm[] inputParts = {
-					node,
-					factory.makeString(path),
-					factory.makeString(absolutePath)
-				};
-			return factory.makeTuple(inputParts);
-		}
-	}
-
-	private static String tryGetProjectPath(IResource resource) {
-		return resource.getProject() != null && resource.getProject().exists()
-				? resource.getProject().getLocation().toString()
-				: resource.getFullPath().removeLastSegments(1).toString();
-	}
-
-	/**
-	 * Create an input term for a control rule,
-	 * based on the IStrategoTerm syntax of the AST of the source file.
-	 */
-	public IStrategoTuple makeATermInputTerm(IStrategoTerm node, boolean includeSubNode, IResource resource) {
-		assert getLock().isHeldByCurrentThread();
-		stratego_aterm.init(runtime.getCompiledContext());
-		
-		ITermFactory factory = Environment.getTermFactory();
-		String path = resource.getProjectRelativePath().toPortableString();
-		String absolutePath = resource.getProject().getLocation().toOSString();
-		
-		if (includeSubNode) {
-			node = getImplodableNode(node);
-			IStrategoTerm[] inputParts = {
-					implodeATerm(node),
-					StrategoTermPath.createPathFromParsedIStrategoTerm(node, runtime.getCompiledContext()),
-					implodeATerm(getRoot(node)),
-					factory.makeString(path),
-					factory.makeString(absolutePath)
-				};
-			return factory.makeTuple(inputParts);
-		} else {
-			throw new org.spoofax.NotImplementedException();
-		}
-	}
-
-	protected IStrategoTerm implodeATerm(IStrategoTerm term) {
-		return implode_aterm_0_0.instance.invoke(runtime.getCompiledContext(), term);
-	}
-
-	protected IStrategoTerm getImplodableNode(IStrategoTerm node) {
-		if (node.isList() && node.getSubtermCount() == 1)
-			node = node.getSubterm(0);
-		for (; node != null; node = getParent(node)) {
-			if (implodeATerm(node) != null)
-				return node;
-		}
-		throw new IllegalStateException("Could not identify selected AST node from IStrategoTerm editor");
 	}
 	
 	/**
@@ -596,7 +507,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	 */
 	public IStrategoTerm invokeSilent(String function, IStrategoTerm node) {
 		try {
-			return invokeSilent(function, makeInputTerm(node, true), SourceAttachment.getResource(node));
+			return invokeSilent(function, getInputBuilder().makeInputTerm(node, true), SourceAttachment.getResource(node));
 		} catch (RuntimeException e) {
 			if (runtime != null) runtime.getIOAgent().printError("Internal error evaluating " + function + " (" + name(e) + "; see error log)");
 			Environment.logException("Internal error evaluating strategy " + function, e);
@@ -691,8 +602,8 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		
 		try {
 			EditorIOAgent io = (EditorIOAgent) runtime.getIOAgent();
-			io.setWorkingDir(tryGetProjectPath(resource));
-			io.setProjectPath(tryGetProjectPath(resource));
+			io.setWorkingDir(getInputBuilder().tryGetProjectPath(resource));
+			io.setProjectPath(getInputBuilder().tryGetProjectPath(resource));
 			io.setProject(resource.getProject());
 			io.setDescriptor(descriptor);
 		} catch (IOException e) {

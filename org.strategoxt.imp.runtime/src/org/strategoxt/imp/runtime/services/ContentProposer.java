@@ -172,7 +172,7 @@ public class ContentProposer implements IContentProposer {
 						if (!observer.isUpdateScheduled()) {
 							observer.update(controller, new NullProgressMonitor());
 						}
-						IStrategoTerm input = observer.makeInputTerm(parser.getCompletionNode(), true, false);
+						IStrategoTerm input = observer.getInputBuilder().makeInputTerm(parser.getCompletionNode(), true, false);
 						result = observer.invokeSilent(completionFunction, input, getResource(parser.getCompletionNode()));
 						if (result == null) {
 							observer.reportRewritingFailed();

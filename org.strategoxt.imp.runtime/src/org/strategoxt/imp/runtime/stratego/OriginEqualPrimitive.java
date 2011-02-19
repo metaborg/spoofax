@@ -26,14 +26,11 @@ public class OriginEqualPrimitive extends AbstractPrimitive {
 	}
 
 	private static boolean equal(IStrategoTerm t1, IStrategoTerm t2) {
-		if (t1 == t2)
-			return hasImploderOrigin(t1);
-		
 		ImploderAttachment origin1 = ImploderAttachment.get(tryGetOrigin(t1));
 		if (origin1 == null) return false;
 		if (t1 == t2) return true;
 		
-		ImploderAttachment origin2 = ImploderAttachment.get(tryGetOrigin(t1));
+		ImploderAttachment origin2 = ImploderAttachment.get(tryGetOrigin(t2));
 		return origin1 == origin2;
 	}
 

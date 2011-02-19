@@ -96,9 +96,10 @@ public class CustomStrategyBuilder extends StrategoBuilder {
 			InterpreterException {
 
 		// Try invoke using (term)
+		InputTermBuilder inputBuilder = getObserver().getInputBuilder();
 		IStrategoTerm input = getDerivedFromEditor() == null
 				? node
-				: getObserver().implodeATerm(getObserver().getImplodableNode(node));
+				: inputBuilder.implodeATerm(inputBuilder.getImplodableNode(node));
 		IStrategoTerm result = getObserver().invoke(getBuilderRule(), input, SourceAttachment.getResource(node));
 		if (result != null) return addFileName(result, SourceAttachment.getResource(node));
 		String[] trace1 = getObserver().getRuntime().getCompiledContext().getTrace();

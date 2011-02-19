@@ -260,7 +260,7 @@ public class StrategoRefactoring implements IBuilder { //TODO extract "AbstractS
 	protected IStrategoTerm invokeObserver(IStrategoTerm node) throws UndefinedStrategyException,
 			InterpreterErrorExit, InterpreterExit, InterpreterException {
 		node = StrategoTermPath.getMatchingAncestor(node, false);
-		IStrategoTerm inputTerm = observer.makeInputTerm(node, true, source);
+		IStrategoTerm inputTerm = observer.getInputBuilder().makeInputTerm(node, true, source);
 		IStrategoTerm result = observer.invoke(builderRule, inputTerm, getResource(node));
 		return result;
 	}
