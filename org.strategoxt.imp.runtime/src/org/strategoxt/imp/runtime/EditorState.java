@@ -23,9 +23,11 @@ import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.ITokenizer;
+import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.dynamicloading.DynamicParseController;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
+import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 
 /**
@@ -101,6 +103,17 @@ public class EditorState {
 		return null;
 	}
 	
+	public static EditorState getEditorFor(IWorkbenchPart part) {
+		if (part instanceof UniversalEditor) {
+			UniversalEditor editor = (UniversalEditor) part;
+			IParseController controller = editor.getParseController();
+			if (controller instanceof DynamicParseController) {
+				return new EditorState(editor);
+			}
+		}
+		return null;
+	}
+	
 	// ACCESSORS
 	
 	public static boolean isUIThread() {
@@ -148,6 +161,16 @@ public class EditorState {
 	public void scheduleParserUpdate(long delay) {
 		if (isEditorOpen(editor))
 			getEditor().fParserScheduler.schedule(delay);
+	}
+	
+	public void scheduleAnalysis() {
+		try {
+			SGLRParseController controller = getParseController();
+			StrategoObserver observer = getDescriptor().createService(StrategoObserver.class, controller);
+			observer.scheduleUpdate(controller);
+		} catch (BadDescriptorException e) {
+			Environment.logException("Could not schedule analysis", e);
+		}
 	}
 	
 	/**

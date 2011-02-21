@@ -1,5 +1,8 @@
 package org.strategoxt.imp.runtime.services;
 
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
+import static org.spoofax.terms.Term.tryGetConstructor;
 import static org.spoofax.terms.attachments.ParentAttachment.getParent;
 import static org.spoofax.terms.attachments.ParentAttachment.getRoot;
 
@@ -140,5 +143,32 @@ public class InputTermBuilder {
 				return node;
 		}
 		throw new IllegalStateException("Could not identify selected AST node from IStrategoTerm editor");
+	}
+
+	/**
+	 * Gets the node furthest up the ancestor chain that
+	 * has either the same character offsets or has only one
+	 * child with the same character offsets as the node given.
+	 * Won't traverse up list parents.
+	 * 
+	 * @param allowMultiChildParent
+	 *             Also fetch the first parent if it has multiple children (e.g., Call("foo", "bar")).
+	 */
+	public static final IStrategoTerm getMatchingAncestor(IStrategoTerm oNode, boolean allowMultiChildParent) {
+		if (oNode.isList()) return oNode;
+		
+		if (allowMultiChildParent && tryGetConstructor(oNode) == null && getParent(oNode) != null)
+			return getParent(oNode);
+		
+		IStrategoTerm result = oNode;
+		int startOffset = getLeftToken(result).getStartOffset();
+		int endOffset = getRightToken(result).getEndOffset();
+		while (getParent(result) != null
+				&& !getParent(result).isList()
+				&& (getParent(result).getSubtermCount() <= 1 
+						|| (getLeftToken(getParent(result)).getStartOffset() >= startOffset
+							&& getRightToken(getParent(result)).getEndOffset() <= endOffset)))
+			result = getParent(result);
+		return result;
 	}
 }

@@ -13,7 +13,6 @@ import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.Debug;
-import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -39,7 +38,7 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 	}
 
 	public ISimpleTerm getLinkTarget(Object oNode, IParseController parseController) {
-		IStrategoTerm node = StrategoTermPath.getMatchingAncestor((IStrategoTerm) oNode, true);
+		IStrategoTerm node = InputTermBuilder.getMatchingAncestor((IStrategoTerm) oNode, true);
 		
 		String function = NodeMapping.getFirstAttribute(resolverFunctions, tryGetName(node), getSort(node), 0);
 		if (function == null) function = wildcardResolverFunction;
@@ -61,7 +60,7 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 	}
 
 	public String getLinkText(Object oNode) {
-		IStrategoTerm node = StrategoTermPath.getMatchingAncestor((IStrategoTerm) oNode, true);
+		IStrategoTerm node = InputTermBuilder.getMatchingAncestor((IStrategoTerm) oNode, true);
 		if (node == null)
 			return null;
 		

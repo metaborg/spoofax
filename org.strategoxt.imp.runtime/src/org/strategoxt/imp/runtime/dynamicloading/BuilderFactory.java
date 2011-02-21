@@ -24,12 +24,12 @@ import org.strategoxt.imp.runtime.services.BuilderMap;
 import org.strategoxt.imp.runtime.services.CustomStrategyBuilder;
 import org.strategoxt.imp.runtime.services.IBuilder;
 import org.strategoxt.imp.runtime.services.IBuilderMap;
+import org.strategoxt.imp.runtime.services.InputTermBuilder;
 import org.strategoxt.imp.runtime.services.NodeMapping;
 import org.strategoxt.imp.runtime.services.StrategoBuilder;
 import org.strategoxt.imp.runtime.services.StrategoBuilderListener;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.services.StrategoRefactoring;
-import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -167,7 +167,7 @@ public class BuilderFactory extends AbstractServiceFactory<IBuilderMap> {
 		// XXX: the builder doesn't run in the UI thread for real-time builds
 		EditorState editor = EditorState.getActiveEditor();
 		IStrategoTerm node= editor.getSelectionAst(false);
-		IStrategoTerm ancestor = StrategoTermPath.getMatchingAncestor(node, false);
+		IStrategoTerm ancestor = InputTermBuilder.getMatchingAncestor(node, false);
 		IStrategoTerm selectionNode = node;
 		boolean isMatch=false;
 		do {

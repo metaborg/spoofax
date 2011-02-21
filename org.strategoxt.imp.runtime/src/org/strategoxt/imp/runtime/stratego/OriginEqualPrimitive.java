@@ -1,6 +1,5 @@
 package org.strategoxt.imp.runtime.stratego;
 
-import static org.spoofax.jsglr.client.imploder.ImploderAttachment.hasImploderOrigin;
 import static org.spoofax.terms.attachments.OriginAttachment.tryGetOrigin;
 
 import org.spoofax.interpreter.core.IContext;

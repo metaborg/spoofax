@@ -35,7 +35,6 @@ import org.strategoxt.imp.runtime.MonitorStateWatchDog;
 import org.strategoxt.imp.runtime.RuntimeActivator;
 import org.strategoxt.imp.runtime.dynamicloading.TermReader;
 import org.strategoxt.imp.runtime.stratego.StrategoConsole;
-import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 import org.strategoxt.imp.runtime.stratego.TextChangePrimitive;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
@@ -259,7 +258,7 @@ public class StrategoRefactoring implements IBuilder { //TODO extract "AbstractS
 
 	protected IStrategoTerm invokeObserver(IStrategoTerm node) throws UndefinedStrategyException,
 			InterpreterErrorExit, InterpreterExit, InterpreterException {
-		node = StrategoTermPath.getMatchingAncestor(node, false);
+		node = InputTermBuilder.getMatchingAncestor(node, false);
 		IStrategoTerm inputTerm = observer.getInputBuilder().makeInputTerm(node, true, source);
 		IStrategoTerm result = observer.invoke(builderRule, inputTerm, getResource(node));
 		return result;
