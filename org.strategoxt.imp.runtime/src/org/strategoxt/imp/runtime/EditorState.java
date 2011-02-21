@@ -199,7 +199,7 @@ public class EditorState {
 			return null;
 		
 		IToken start = getParseController().getTokenIterator(new Region(selection.x, 0), true).next();
-		IToken end = getParseController().getTokenIterator(new Region(selection.x + selection.y - 1, 0), true).next();
+		IToken end = getParseController().getTokenIterator(new Region(selection.x + selection.y, 0), true).next();
 		
 		ITokenizer tokens = start.getTokenizer();
 		int layout = IToken.TK_LAYOUT;

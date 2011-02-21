@@ -4,7 +4,7 @@ import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getElementSor
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.putImploderAttachment;
-import static org.spoofax.terms.attachments.ParentAttachment.setParent;
+import static org.spoofax.terms.attachments.ParentAttachment.putParent;
 
 import java.util.ArrayList;
 
@@ -58,7 +58,7 @@ public class StrategoSubList extends StrategoWrapped implements IStrategoList {
 		setParent(result, list);
 		*/
 		
-		setParent(result, ParentAttachment.get(list));
+		putParent(result, ParentAttachment.get(list));
 		putImploderAttachment(result, true, getElementSort(list), getLeftToken(firstChild), getRightToken(lastChild));
 		return result;
 	}
