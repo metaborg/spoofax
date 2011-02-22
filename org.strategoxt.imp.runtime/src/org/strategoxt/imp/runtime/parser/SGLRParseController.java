@@ -491,7 +491,6 @@ public class SGLRParseController implements IParseController {
 			// UNDONE: no longer acquiring parse lock from colorer
 			disallowColorer = false;
 			TokenColorer.initLazyColors(this);
-			System.out.println(editor);
 			if (editor == null) {
 				// Editor wasn't initialized yet (Spoofax/348)
 				scheduleParserUpdate(REPARSE_DELAY, false);
