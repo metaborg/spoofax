@@ -112,7 +112,9 @@ public class ParseErrorHandler {
 					reportErrorAtTokens(token, tokenizer.getTokenAt(i), error);
 				} else {
 					i = findRightMostWithSameError(token, null);
-					reportErrorNearOffset(tokenizer, token.getStartOffset(), error);
+					// UNDONE: won't work for multi-token errors (as seen in SugarJ)
+					// reportErrorNearOffset(tokenizer, token.getStartOffset(), error);
+					reportErrorAtTokens(token, tokenizer.getTokenAt(i), error);
 				}
 			}
 		}

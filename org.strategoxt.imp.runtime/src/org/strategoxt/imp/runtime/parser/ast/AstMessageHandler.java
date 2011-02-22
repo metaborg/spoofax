@@ -119,6 +119,8 @@ public class AstMessageHandler {
 			Environment.logException("Could not create error marker: " + message, new FileNotFoundException(file.toString()));
 			return;
 		}
+		if (left != right && left.getLength() == 1 && left.toString().equals("\n"))
+			left = left.getTokenizer().getTokenAt(left.getIndex() + 1);
 		MarkerSignature signature = new MarkerSignature(file, left, right, message, severity, PRIORITY_HIGH, false);
 		currentBatch.addMarker(signature); // add later
 	}
