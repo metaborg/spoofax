@@ -61,6 +61,8 @@ public class SGLRParseController implements IParseController {
 	
 	private static final int PARSE_TIMEOUT = 20 * 1000;
 	
+	private static final int REPARSE_DELAY = 1 * 1000;
+	
 	private final SWTSafeLock parseLock = new SWTSafeLock(true);
 	
 	private final Language language;
@@ -79,7 +81,7 @@ public class SGLRParseController implements IParseController {
 	
 	private IPath path;
 	
-	private EditorState editor;
+	private volatile EditorState editor;
 	
 	private MetaFile metaFile;
 	
@@ -489,8 +491,13 @@ public class SGLRParseController implements IParseController {
 			// UNDONE: no longer acquiring parse lock from colorer
 			disallowColorer = false;
 			TokenColorer.initLazyColors(this);
-			if (editor != null && currentAst != null)
+			System.out.println(editor);
+			if (editor == null) {
+				// Editor wasn't initialized yet (Spoofax/348)
+				scheduleParserUpdate(REPARSE_DELAY, false);
+			} else if (currentAst != null) {
 				editor.getEditor().updateColoring(new Region(0, getTokenizer(currentAst).getInput().length() - 1));
+			}
 		} catch (RuntimeException e) {
 			Environment.logException("Could reschedule syntax highlighter", e);
 		}
