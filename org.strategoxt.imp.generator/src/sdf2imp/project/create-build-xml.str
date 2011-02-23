@@ -98,6 +98,9 @@ strategies
         <condition property="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter">
             <isset property="eclipse.running"/>
         </condition>
+        <condition property="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter">
+            <available classname="org.eclipse.jdt.core.JDTCompilerAdapter"/>
+        </condition>
         <condition property="externaljarflags" value="${externaljarflags}" else="">
             <isset property="externaljarflags"/>
         </condition>
