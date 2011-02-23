@@ -113,7 +113,6 @@ public class ParseErrorHandler {
 				} else {
 					i = findRightMostWithSameError(token, null);
 					// UNDONE: won't work for multi-token errors (as seen in SugarJ)
-					// reportErrorNearOffset(tokenizer, token.getStartOffset(), error);
 					reportErrorAtTokens(token, tokenizer.getTokenAt(i), error);
 				}
 			}
@@ -194,7 +193,7 @@ public class ParseErrorHandler {
 		int line = left.getLine();
 		int endLine = right.getLine() + RegionRecovery.NR_OF_LINES_TILL_SUCCESS;
 		int reportedLine = -1;
-		for (BadTokenException e : source.getParser().getParser().getCollectedErrors()) {
+		for (BadTokenException e : source.getParser().getCollectedErrors()) {
 			if (e.getLineNumber() >= line && e.getLineNumber() <= endLine) {
 				reportException(left.getTokenizer(), e); // use double dispatch
 				if (reportedLine == -1)
@@ -343,9 +342,13 @@ public class ParseErrorHandler {
 	
 	private void reportErrorAtTokens(final IToken left, final IToken right, String message) {
 		assert source.getParseLock().isHeldByCurrentThread();
-		final String message2 = message + getErrorExplanation();
 		
-		handler.addMarker(source.getResource(), left, right, message2, IMarker.SEVERITY_ERROR);
+		if (left.getStartOffset() > right.getEndOffset()) {
+			reportErrorNearOffset(left.getTokenizer(), left.getStartOffset(), message);
+		} else {
+			String message2 = message + getErrorExplanation();
+			handler.addMarker(source.getResource(), left, right, message2, IMarker.SEVERITY_ERROR);
+		}
 	}
 	
 	private void reportWarningAtTokens(final IToken left, final IToken right, final String message) {

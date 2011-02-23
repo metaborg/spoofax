@@ -2,6 +2,7 @@ package org.strategoxt.imp.runtime.parser;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Set;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.Asfix2TreeBuilder;
@@ -67,8 +68,12 @@ public class JSGLRI extends AbstractSGLRI {
 		this(new ParseTableProvider(parseTable), startSymbol, null);
 	}
 	
-	protected SGLR getParser() {
+	public SGLR getParser() {
 		return parser;
+	}
+	
+	public Set<BadTokenException> getCollectedErrors() {
+		return getParser().getCollectedErrors();
 	}
 	
 	@Override
