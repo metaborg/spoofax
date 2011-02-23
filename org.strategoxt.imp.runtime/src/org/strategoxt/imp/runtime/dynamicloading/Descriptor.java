@@ -82,7 +82,7 @@ public class Descriptor {
 	
 	private final List<AbstractServiceFactory> serviceFactories = new ArrayList<AbstractServiceFactory>();
 	
-	private final IStrategoAppl document;
+	private IStrategoAppl document;
 	
 	private Language language;
 	
@@ -196,6 +196,10 @@ public class Descriptor {
 		T result = cache == null ? null : (T) cache.get(type);
 		return result;
 	}
+	
+	protected void simpleClearCache(SGLRParseController controller) {
+		cachedServices.remove(controller);
+	}
 
 	private void addKnownService(Class type, SGLRParseController controller, ILanguageService service, boolean isCachable) {
 		if (service instanceof IDynamicLanguageService)
@@ -223,8 +227,12 @@ public class Descriptor {
 		}
 	}
 	
-	public IStrategoAppl getDocument() {
+	public final IStrategoAppl getDocument() {
 		return document;
+	}
+	
+	protected void setDocument(IStrategoAppl document) {
+		this.document = document;
 	}
 	
 	protected void setBasePath(IPath basePath) {
