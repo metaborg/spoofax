@@ -198,7 +198,23 @@ public class Descriptor {
 	}
 	
 	protected void simpleClearCache(SGLRParseController controller) {
-		cachedServices.remove(controller);
+		Map<Class, ILanguageService> services = cachedServices.remove(controller);
+		if (services == null) return;
+		/*
+		for (AbstractServiceFactory<?> factory : serviceFactories) {
+			ILanguageService service = services.get(factory.getServiceType());
+			if (service instanceof IDynamicLanguageService) {
+		*/
+		for (IDynamicLanguageService service : activeServices.keySet()) {
+			try {
+				if (service instanceof AbstractService &&
+					controller == ((AbstractService) service).internalGetParseController()) {
+					service.reinitialize(this);
+				}
+			} catch (BadDescriptorException e) {
+				Environment.logWarning("Unable to reinitialize service", e);
+			}
+		}
 	}
 
 	private void addKnownService(Class type, SGLRParseController controller, ILanguageService service, boolean isCachable) {

@@ -45,4 +45,8 @@ public abstract class AbstractServiceFactory<T extends ILanguageService> {
 	public boolean canCreate(Class<T> c) {
 		return serviceType.isAssignableFrom(c);
 	}
+	
+	public Class<T> getServiceType() {
+		return serviceType;
+	}
 }
