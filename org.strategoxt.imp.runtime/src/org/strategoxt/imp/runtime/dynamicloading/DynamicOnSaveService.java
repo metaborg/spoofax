@@ -5,15 +5,14 @@ package org.strategoxt.imp.runtime.dynamicloading;
 
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocumentListener;
-import org.strategoxt.imp.runtime.services.OnSaveService;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class DynamicOnSaveService extends AbstractService<OnSaveService> implements IDocumentListener {
+public class DynamicOnSaveService extends AbstractService<IOnSaveService> implements IDocumentListener {
 
 	public DynamicOnSaveService() {
-		super(OnSaveService.class);
+		super(IOnSaveService.class);
 	}
 
 	public void documentAboutToBeChanged(DocumentEvent event) {

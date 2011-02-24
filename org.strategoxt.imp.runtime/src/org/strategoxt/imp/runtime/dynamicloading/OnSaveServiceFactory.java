@@ -22,17 +22,17 @@ import org.strategoxt.imp.runtime.services.StrategoObserver;
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class OnSaveServiceFactory extends AbstractServiceFactory<OnSaveService> {
+public class OnSaveServiceFactory extends AbstractServiceFactory<IOnSaveService> {
 	
-	private static final Map<UniversalEditor, OnSaveService> registeredServices =
-		synchronizedMap(new WeakWeakMap<UniversalEditor, OnSaveService>());
+	private static final Map<UniversalEditor, IOnSaveService> registeredServices =
+		synchronizedMap(new WeakWeakMap<UniversalEditor, IOnSaveService>());
 
 	public OnSaveServiceFactory() {
-		super(OnSaveService.class, false);
+		super(IOnSaveService.class, false);
 	}
 
 	@Override
-	public OnSaveService create(Descriptor descriptor, SGLRParseController controller)
+	public IOnSaveService create(Descriptor descriptor, SGLRParseController controller)
 			throws BadDescriptorException {
 		
 		IStrategoAppl onsave = findTerm(descriptor.getDocument(), "OnSave");
@@ -48,9 +48,9 @@ public class OnSaveServiceFactory extends AbstractServiceFactory<OnSaveService> 
 		
 		try {
 			if (editor != null && controller instanceof SGLRParseController) {
-				OnSaveService oldService = registeredServices.get(editor.getEditor());
+				IOnSaveService oldService = registeredServices.get(editor.getEditor());
 				editor.getEditor().removeOnSaveListener(oldService);
-				OnSaveService newService = descriptor.createService(OnSaveService.class, (SGLRParseController) controller);
+				IOnSaveService newService = descriptor.createService(IOnSaveService.class, (SGLRParseController) controller);
 				newService.initialize(editor);
 				registeredServices.put(editor.getEditor(), newService);
 				editor.getEditor().addOnSaveListener(newService);
