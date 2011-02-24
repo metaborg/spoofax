@@ -89,6 +89,8 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	
 	private final FileCopier fileCopier = new FileCopier();
 	
+	private boolean isPrototypeAllowed = true;
+	
 	private HybridInterpreter runtime;
 	
 	private InputTermBuilder inputBuilder;
@@ -110,6 +112,10 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 
 	public final AnalysisRequired getAnalysisRequired() {
 		return AnalysisRequired.TYPE_ANALYSIS;
+	}
+	
+	public void setPrototypeAllowed(boolean isPrototypeAllowed) {
+		this.isPrototypeAllowed = isPrototypeAllowed;
 	}
 	
 	/**
@@ -153,7 +159,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		assert getLock().isHeldByCurrentThread();
 		
 		HybridInterpreter prototype = runtimePrototypes.get(descriptor);
-		if (prototype != null) {
+		if (isPrototypeAllowed && prototype != null) {
 			runtime = Environment.createInterpreterFromPrototype(prototype);
 			return;
 		}
@@ -180,7 +186,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		Debug.stopTimer("Loaded analysis components");
 		
 		monitor.subTask(null);
-		if (runtime != null)
+		if (isPrototypeAllowed && runtime != null)
 			runtimePrototypes.put(descriptor, runtime);
 	}
 	
@@ -623,11 +629,11 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		// Do nothing
 	}
 
-	public void reinitialize(Descriptor newDescriptor) throws BadDescriptorException {
+	public void reinitialize(Descriptor newDescriptor)  {
 		getLock().lock();
 		try {
-			runtimePrototypes.remove(descriptor);
 			runtime = null;
+			runtimePrototypes.remove(descriptor);
 			descriptor = newDescriptor;
 		} finally {
 			getLock().unlock();
