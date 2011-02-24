@@ -15,6 +15,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -201,15 +202,23 @@ public class Descriptor {
 		cachedServices.remove(controller);
 	}
 	
-	protected List<IDynamicLanguageService> getActiveServices(SGLRParseController controller) {
+	protected Iterable<IDynamicLanguageService> getActiveServices(SGLRParseController controller) {
 		List<IDynamicLanguageService> results = new ArrayList<IDynamicLanguageService>();
-		for (IDynamicLanguageService service : activeServices.keySet()) {
-			if (service instanceof AbstractService &&
-				controller == ((AbstractService) service).internalGetParseController()) {
-				results.add(service);
+		synchronized (activeServices) {
+			for (IDynamicLanguageService service : activeServices.keySet()) {
+				if (service instanceof AbstractService &&
+					controller == ((AbstractService) service).internalGetParseController()) {
+					results.add(service);
+				}
 			}
+			return results;
 		}
-		return results;
+	}
+	
+	protected final Iterable<IDynamicLanguageService> getActiveServices() {
+		synchronized (activeServices) {
+			return new HashSet<IDynamicLanguageService>(activeServices.keySet());
+		}
 	}
 
 	private void addKnownService(Class type, SGLRParseController controller, ILanguageService service, boolean isCachable) {

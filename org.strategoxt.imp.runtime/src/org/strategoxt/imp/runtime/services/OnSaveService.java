@@ -52,6 +52,8 @@ public class OnSaveService implements IOnSaveService {
 	public void documentChanged(DocumentEvent event) {
 		if (function == null) return;
 		
+		String contents = event.getDocument().get();
+		
 		try {
 			Environment.getStrategoLock().lock();
 			try {
@@ -76,10 +78,10 @@ public class OnSaveService implements IOnSaveService {
 					// Function's returning a tuple like a builder
 					// let's be friendly and try to refresh the file
 					String file = asJavaString(termAt(result, 0));
-					String contents = asJavaString(termAt(result, 1));
+					String newContents = asJavaString(termAt(result, 1));
 					try {
 						IFile resource = EditorIOAgent.getFile(runtime.getRuntime().getContext(), file);
-						StrategoBuilder.setFileContentsDirect(resource, contents);
+						StrategoBuilder.setFileContentsDirect(resource, newContents);
 					} catch (FileNotFoundException e) {
 						Environment.logException("Problem when handling on save event", e);
 					} catch (CoreException e) {
