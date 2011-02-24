@@ -111,7 +111,7 @@ public class BuilderFactory extends AbstractServiceFactory<IBuilderMap> {
 		
 		for (IStrategoAppl builder : collectTerms(d.getDocument(), "Refactoring")) {
 			if(isDefinedOnSelection(builder)){
-				String caption = termContents(termAt(builder, 1));
+				String caption = termContents(termAt(builder, 0));
 				String strategy = termContents(termAt(builder, 2));
 				IStrategoList options = termAt(builder, 3);			
 				boolean cursor = false;
@@ -167,6 +167,10 @@ public class BuilderFactory extends AbstractServiceFactory<IBuilderMap> {
 		// XXX: the builder doesn't run in the UI thread for real-time builds
 		EditorState editor = EditorState.getActiveEditor();
 		IStrategoTerm node= editor.getSelectionAst(false);
+		
+		if (node == null)
+			return false;
+		
 		IStrategoTerm ancestor = InputTermBuilder.getMatchingAncestor(node, false);
 		IStrategoTerm selectionNode = node;
 		boolean isMatch=false;

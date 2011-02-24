@@ -239,7 +239,9 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			Debug.startTimer("Loading Stratego modules " + jars);
 			URL[] classpath = new URL[jars.size()];
 			for (int i = 0; i < classpath.length; i++) {
-				File file = descriptor.getBasePath().append(jars.get(i)).toFile();
+				File file = new File(jars.get(i));
+				if (!file.isAbsolute())
+				  file = descriptor.getBasePath().append(file.getPath()).toFile();
 				if (descriptor.isDynamicallyLoaded())
 					file = fileCopier.copyToTempFile(file);
 				classpath[i] = file.toURI().toURL();
