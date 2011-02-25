@@ -25,8 +25,9 @@ public class TermReader extends Tools {
 		if (term.getTermType() == IStrategoTerm.APPL && cons(term).equals(constructor))
 			return (IStrategoAppl) term;
 		
-		for (int i = 0; i < term.getSubtermCount(); i++) {
-			IStrategoAppl result = findTerm(termAt(term, i), constructor);
+		IStrategoTerm[] subterms = term.getAllSubterms();
+		for (int i = subterms.length - 1; i >= 0; i--) {
+			IStrategoAppl result = findTerm(subterms[i], constructor);
 			if (result != null) return result;
 		}
 		
