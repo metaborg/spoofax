@@ -444,9 +444,16 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		feedbacks = postProcessFeedback(feedbacks, context);
 		
 	    for (IStrategoTerm feedback : feedbacks.getAllSubterms()) {
-	        IStrategoTerm term = termAt(feedback, 0);
-			IStrategoString messageTerm = termAt(feedback, 1);
-			String message = messageTerm.stringValue();
+	    	IStrategoTerm term;
+	    	String message;
+	    	if (isTermTuple(feedback) && feedback.getSubtermCount() == 2) {
+	    		term = termAt(feedback, 0);
+	    		IStrategoString messageTerm = termAt(feedback, 1);
+	    		message = messageTerm.stringValue();
+	    	} else {
+	    		term = feedback;
+	    		message = feedback.toString() + " (no tree node indicated)";
+	    	}
 			
 			messages.addMarker(resource, term, message, severity);
 	    }

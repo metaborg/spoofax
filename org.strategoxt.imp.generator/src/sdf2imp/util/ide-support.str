@@ -14,8 +14,9 @@ strategies
     (is-list <+ ![<id>]);
     flatten-list;
     map(
-      (is-tuple <+ !(<id>, <id>));
-      (id, postprocess-feedback-message)
+      try(
+        (id, postprocess-feedback-message)
+      )
     )
   
   internal postprocess-feedback-message =
