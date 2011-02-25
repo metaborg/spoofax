@@ -253,6 +253,7 @@ public class Descriptor {
 	
 	protected void setDocument(IStrategoAppl document) {
 		this.document = document;
+		attachedFiles = null;
 	}
 	
 	protected void setBasePath(IPath basePath) {

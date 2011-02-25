@@ -91,7 +91,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	
 	private boolean isPrototypeAllowed = true;
 	
-	private HybridInterpreter runtime;
+	private volatile HybridInterpreter runtime;
 	
 	private InputTermBuilder inputBuilder;
 	
@@ -184,6 +184,8 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		
 		if (!jars.isEmpty()) loadJars(jars);
 		Debug.stopTimer("Loaded analysis components");
+		
+		descriptor.addActiveService(this);
 		
 		monitor.subTask(null);
 		if (isPrototypeAllowed && runtime != null)
@@ -632,13 +634,15 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	}
 
 	public void reinitialize(Descriptor newDescriptor)  {
-		getLock().lock();
-		try {
-			runtime = null;
-			runtimePrototypes.remove(descriptor);
-			descriptor = newDescriptor;
-		} finally {
-			getLock().unlock();
+		runtimePrototypes.remove(descriptor);
+		if (runtime != null) {
+			getLock().lock();
+			try {
+				runtime = null;
+				descriptor = newDescriptor;
+			} finally {
+				getLock().unlock();
+			}
 		}
 	}
 
