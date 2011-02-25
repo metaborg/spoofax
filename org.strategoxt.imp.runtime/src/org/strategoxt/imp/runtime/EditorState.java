@@ -31,11 +31,11 @@ import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 
 /**
- * Helper class for accessing the active editor.
+ * Helper class for accessing an active editor.
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class EditorState {
+public class EditorState extends FileState {
 	
 	private final UniversalEditor editor;
 	
@@ -130,6 +130,7 @@ public class EditorState {
 		return editor;
 	}
 	
+	@Override
 	public SGLRParseController getParseController() {
 		DynamicParseController wrapper = (DynamicParseController) getEditor().getParseController();
 		return (SGLRParseController) wrapper.getWrapped();
