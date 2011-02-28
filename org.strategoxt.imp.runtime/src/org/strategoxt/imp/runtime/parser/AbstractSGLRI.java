@@ -107,7 +107,8 @@ public abstract class AbstractSGLRI {
 			throw new OperationCanceledException();
 		SGLRParseController controller = getController() == null ? null : getController();
 		IResource resource = controller == null ? null : controller.getResource();
-		SourceAttachment.putSource(result, resource, controller);
+		if (controller != null || resource != null)
+			SourceAttachment.putSource(result, resource, controller);
 		
 		// parsedCache.put(cachingKey, result);
 		// putTokenizer(result, currentTokenizer);

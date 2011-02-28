@@ -8,6 +8,10 @@ import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getTokenizer;
 import static org.spoofax.terms.Term.asJavaString;
 import static org.spoofax.terms.Term.tryGetConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -18,6 +22,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.MultiBadTokenException;
 import org.spoofax.jsglr.client.ParseTimeoutException;
 import org.spoofax.jsglr.client.RegionRecovery;
+import org.spoofax.jsglr.client.SGLR;
 import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.ITokenizer;
 import org.spoofax.jsglr.client.imploder.Token;
@@ -191,15 +196,13 @@ public class ParseErrorHandler {
 	private void reportSkippedRegion(IToken left, IToken right) {
 		// Find a parse failure(s) in the given token range
 		int line = left.getLine();
-		int endLine = right.getLine() + RegionRecovery.NR_OF_LINES_TILL_SUCCESS;
 		int reportedLine = -1;
-		for (BadTokenException e : source.getParser().getCollectedErrors()) {
-			if (e.getLineNumber() >= line && e.getLineNumber() <= endLine) {
-				reportException(left.getTokenizer(), e); // use double dispatch
-				if (reportedLine == -1)
-					reportedLine = e.getLineNumber();
-			}
+		for (BadTokenException e : getCollectedErrorsInRegion(source.getParser(), left, right, true)) {
+			reportException(left.getTokenizer(), e); // use double dispatch
+			if (reportedLine == -1)
+				reportedLine = e.getLineNumber();
 		}
+			
 		if (reportedLine == -1) {
 			// Report entire region
 			reportErrorAtTokens(left, right, ITokenizer.ERROR_SKIPPED_REGION);
@@ -208,6 +211,18 @@ public class ParseErrorHandler {
 			reportErrorAtTokens(findLeftMostTokenOnSameLine(left),
 					findRightMostTokenOnSameLine(left), LARGE_REGION_START);
 		}
+	}
+	
+	private static List<BadTokenException> getCollectedErrorsInRegion(JSGLRI parser, IToken left, IToken right, boolean alsoOutside) {
+		assert JSGLRI.class.isInstance(parser) : "required for SugarJ, as it overrides getCollectedErrors()";
+		List<BadTokenException> results = new ArrayList<BadTokenException>();
+		int line = left.getLine();
+		int endLine = right.getLine() + (alsoOutside ? RegionRecovery.NR_OF_LINES_TILL_SUCCESS : 0);
+		for (BadTokenException e : parser.getCollectedErrors()) {
+			if (e.getLineNumber() >= line && e.getLineNumber() <= endLine)
+				results.add(e);
+		}
+		return results;
 	}
 
 	/**

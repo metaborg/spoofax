@@ -77,8 +77,8 @@ public class InputTermBuilder {
 		}
 		
 		ITermFactory factory = Environment.getTermFactory();
-		String path = resource.getProjectRelativePath().toPortableString();
-		String absolutePath = tryGetProjectPath(resource);
+		String path = resource == null ? "input" : resource.getProjectRelativePath().toPortableString();
+		String absolutePath = resource == null ? "." : tryGetProjectPath(resource);
 		
 		if (includeSubNode) {
 			IStrategoTerm[] inputParts = {

@@ -29,6 +29,7 @@ public class SourceAttachment extends AbstractTermAttachment {
 	private SourceAttachment(IResource resource, IParseController controller) {
 		this.resource = resource;
 		this.controller = controller;
+		assert resource != null;
 	}
 	
 	public IResource getResource() {
