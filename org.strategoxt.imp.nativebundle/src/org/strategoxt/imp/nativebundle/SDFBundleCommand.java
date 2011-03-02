@@ -144,7 +144,7 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 			: null;
 	}
 
-	private boolean invoke(Context context, String command, IStrategoTerm[] argList) {
+	public boolean invoke(Context context, String command, IStrategoTerm[] argList) {
 		String[] commandArgs = SSL_EXT_call.toCommandArgs(binaryPath + command, argList);
 		// Disabled this check since Windows x64 might identify differently?
 		//String[] environment = Platform.getOS() == Platform.OS_WIN32
