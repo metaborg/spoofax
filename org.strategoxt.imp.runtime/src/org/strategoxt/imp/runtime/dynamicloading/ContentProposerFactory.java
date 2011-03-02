@@ -136,6 +136,8 @@ public class ContentProposerFactory extends AbstractServiceFactory<IContentPropo
 		for (IStrategoAppl trigger : collectTerms(descriptor.getDocument(), "CompletionTrigger")) {
 			try {
 				String pattern = termContents(termAt(trigger, 0));
+				if (".".equals(pattern))
+					pattern = "\\."; // common mistake
 				Pattern compiledPattern = Pattern.compile(pattern);
 				results.add(compiledPattern);
 			} catch (PatternSyntaxException e) {
