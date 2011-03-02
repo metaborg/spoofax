@@ -13,12 +13,14 @@ import org.spoofax.jsglr.client.imploder.ITreeFactory;
 import org.spoofax.jsglr.client.imploder.TermTreeFactory;
 import org.spoofax.jsglr.client.imploder.TreeBuilder;
 import org.spoofax.jsglr.client.incremental.IncrementalSGLR;
+import org.spoofax.jsglr.client.incremental.IncrementalSGLRException;
 import org.spoofax.jsglr.client.incremental.IncrementalSortSet;
 import org.spoofax.jsglr.io.SGLR;
 import org.spoofax.jsglr.shared.BadTokenException;
 import org.spoofax.jsglr.shared.SGLRException;
 import org.spoofax.jsglr.shared.TokenExpectedException;
 import org.spoofax.terms.attachments.ParentTermFactory;
+import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.ParseTableProvider;
 
@@ -35,7 +37,7 @@ public class JSGLRI extends AbstractSGLRI {
 	
 	private SGLR parser;
 	
-	private IncrementalSGLR incrementalParser;
+	private IncrementalSGLR<IStrategoTerm> incrementalParser;
 	
 	private Disambiguator disambiguator;
 	
@@ -49,9 +51,6 @@ public class JSGLRI extends AbstractSGLRI {
 		
 		this.parseTable = parseTable;
 		this.parser = Environment.createSGLR(getParseTable());
-		ITreeFactory factory = ((TreeBuilder) parser.getTreeBuilder()).getFactory();
-		this.incrementalParser = new IncrementalSGLR<IStrategoTerm>(parser, null, factory, IncrementalSortSet.read(getParseTable()));
-		// TODO: use IncrementalSGLR
 		resetState();
 	}
 	
@@ -132,8 +131,12 @@ public class JSGLRI extends AbstractSGLRI {
 			parser.setTreeBuilder(new Asfix2TreeBuilder(Environment.getTermFactory()));
 		} else {
 			assert parser.getTreeBuilder() instanceof TreeBuilder;
-			assert ((TermTreeFactory) ((TreeBuilder) parser.getTreeBuilder()).getFactory()).getOriginalTermFactory()
+			@SuppressWarnings("unchecked")
+			ITreeFactory<IStrategoTerm> treeFactory = ((TreeBuilder) parser.getTreeBuilder()).getFactory();
+			assert ((TermTreeFactory) treeFactory).getOriginalTermFactory()
 				instanceof ParentTermFactory;
+			if (incrementalParser == null || incrementalParser.getParser().getParseTable() != parser.getParseTable())
+				incrementalParser = new IncrementalSGLR<IStrategoTerm>(parser, null, treeFactory, IncrementalSortSet.read(getParseTable()));
 		}
 	}
 	
@@ -149,18 +152,50 @@ public class JSGLRI extends AbstractSGLRI {
 		}
 		
 		try {
-			return (IStrategoTerm) parser.parse(input, filename, getStartSymbol());
+			Debug.startTimer();
+			IStrategoTerm result;
+			try {
+				result = (IStrategoTerm) parser.parse(input, filename, getStartSymbol());
+			} finally {
+				Debug.stopTimer("File parsed: " + new File(filename).getName());
+			}
+
+			testIncrementalParser(input, filename, result);
+			return result;
 		} catch (FilterException e) {
 			if (e.getCause() == null && parser.getDisambiguator().getFilterPriorities()) {
 				Environment.logException("Parse filter failure - disabling priority filters and trying again", e);
 				getDisambiguator().setFilterPriorities(false);
 				try {
-					return (IStrategoTerm) parser.parse(input, filename, getStartSymbol());
+					IStrategoTerm result = (IStrategoTerm) parser.parse(input, filename, getStartSymbol());
+					return result;
 				} finally {
 					getDisambiguator().setFilterPriorities(true);
 				}
 			} else {
 				throw new FilterException(e.getParser(), e.getMessage(), e);
+			}
+		}
+	}
+
+	private void testIncrementalParser(String input, String filename, IStrategoTerm expected) {
+		if (!incrementalParser.getIncrementalSorts().isEmpty()) {
+			Debug.startTimer();
+			try {
+				IStrategoTerm incrementalResult = incrementalParser.parseIncremental(input, filename, getStartSymbol());
+				if (!incrementalResult.equals(expected)) {
+					Environment.logWarning("Incremental parser result inconsistent:\n\n"
+							+ incrementalResult + "\n\nvs. non-incremental:\n\n"
+							+ expected + "\n\n"
+							+ "from:\n\n" + input
+							+ "\n\nwith sorts " + incrementalParser.getIncrementalSorts());
+				}
+			} catch (IncrementalSGLRException e) {
+				Debug.log("Could not incrementally parse AST");
+			} catch (SGLRException e) {
+				Environment.logWarning("Exception in incremental parser", e);
+			} finally {
+				Debug.stopTimer("Incrementally parsed: " + new File(filename).getName());
 			}
 		}
 	}

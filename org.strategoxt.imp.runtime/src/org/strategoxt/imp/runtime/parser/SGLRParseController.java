@@ -276,8 +276,6 @@ public class SGLRParseController implements IParseController {
 			
 			processMetaFile();
 			
-			Debug.startTimer();
-			
 			if (monitor.isCanceled()) return null;
 			currentTokenizer = new NullTokenizer(input, filename);
 			IStrategoTerm result = doParse(input, filename);
@@ -286,11 +284,9 @@ public class SGLRParseController implements IParseController {
 			errorHandler.clearErrors();
 			errorHandler.setRecoveryFailed(false);
 			errorHandler.gatherNonFatalErrors(result);
-			parser.resetState(); // clean up memory
+			// UNDONE: parser.resetState(); // clean up memory
 			
 			currentAst = result;
-				
-			Debug.stopTimer("File parsed: " + filename);
 			
 			// TODO: is coloring, then error marking best?
 			
@@ -316,11 +312,11 @@ public class SGLRParseController implements IParseController {
 				}
 			} catch (RuntimeException e) {
 				Environment.logException("Exception in post-parse events", e);
+			} finally {
+				//if (isStartupParsed) Job.getJobManager().endRule(resource);
+				isAborted = false;
+				parseLock.unlock();
 			}
-			
-			//if (isStartupParsed) Job.getJobManager().endRule(resource);
-			isAborted = false;
-			parseLock.unlock();
 		}
 
 		return monitor.isCanceled() ? null : currentAst;
