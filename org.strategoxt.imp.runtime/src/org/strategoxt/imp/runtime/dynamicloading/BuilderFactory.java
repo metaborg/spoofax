@@ -111,7 +111,7 @@ public class BuilderFactory extends AbstractServiceFactory<IBuilderMap> {
 		
 		for (IStrategoAppl builder : collectTerms(d.getDocument(), "Refactoring")) {
 			if(isDefinedOnSelection(builder)){
-				String caption = termContents(termAt(builder, 0));
+				String caption = termContents(termAt(builder, 1));
 				String strategy = termContents(termAt(builder, 2));
 				IStrategoList options = termAt(builder, 3);			
 				boolean cursor = false;

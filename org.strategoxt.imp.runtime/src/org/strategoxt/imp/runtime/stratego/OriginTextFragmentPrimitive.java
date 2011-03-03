@@ -44,12 +44,12 @@ private static final String NAME = "SSL_EXT_origin_textfragment";
 		if(checkTuple(position))
 			return null;
 		int pos_start=((StrategoInt)position.get(0)).intValue();
-		int pos_end=((StrategoInt)position.get(1)).intValue()-1;//exclusive
+		int pos_end=((StrategoInt)position.get(1)).intValue();//exclusive
 		String lexStream = getTokenizer(tryGetOrigin(position.get(2))).getInput();
 		//ILexStream lexStream= EditorState.getActiveEditor().getParseController().getCurrentAst().getLeftToken().getILexStream();
 		if(DocumentStructure.isUnvalidInterval(pos_start, pos_end, lexStream))
 			return null;
-		String textfragment=lexStream.substring(pos_start, pos_end - pos_start);
+		String textfragment=lexStream.substring(pos_start, pos_end);
 		return textfragment;
 	}
 

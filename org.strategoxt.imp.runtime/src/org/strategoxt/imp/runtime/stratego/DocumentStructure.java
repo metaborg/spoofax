@@ -313,6 +313,8 @@ public class DocumentStructure {
 	}
 	
 	private static String getIndentation(String line) {
+		if(line==null)
+			return "";
 		for (int i = 0; i < line.length(); i++) {
 			char c = line.charAt(i);
 			if (c != ' ' && c != '\t') {
