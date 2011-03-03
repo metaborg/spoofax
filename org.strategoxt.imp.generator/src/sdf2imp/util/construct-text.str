@@ -1,9 +1,9 @@
-module sdf2imp/util/construct-text
+module lib/construct-text
 
 imports 
   libstratego-lib 
   libstratego-gpp
-  sdf2imp/util/origin-tracking 
+  lib/origin-tracking 
 
 rules //API for text reconstruction
 
@@ -29,7 +29,12 @@ construct-textual-change(pp|pp-table):
 			pp <+ (ast2abox(|[pp-table]); box2text-string(|100))|
 			pp-table
 		)
-	> REPLACEMENT(oldnode, origin-tracked-node)
+	> REPLACEMENT(oldnode, <construct-text-by-compare(pp|pp-table)> (oldnode, newnode))
+
+construct-textual-change(pp|pp-table):
+	(oldnode, newnode) -> (0, 0, "")
+	where
+		<eq> (oldnode, newnode)
 	
 rules //text reconstruction for AST nodes
 
@@ -41,7 +46,7 @@ rules //text reconstruction for AST nodes
  * @param pretty-print table
  * @type node -> String
  */
-construct-text(pp|pp-table) =
+construct-text(pp|pp-table) = 
 	construct-text-from-origin(pp|pp-table) <+
 	construct-text-for-primitive <+
 	construct-text-base-list(pp|pp-table) <+
@@ -56,10 +61,14 @@ construct-text-for-primitive=
 	 
 construct-text-from-origin(pp|pp-table):
 	node -> text
-	where 
+	where
 		origin-node:=<origin-term> node; 
 		<same-signature <+ unmodified-list> (node, origin-node);
-		ast-changes:=<collect-ast-changes> (origin-node, node); //debug(!"ast-changes: ");
+		text := <construct-text-by-compare(pp|pp-table)> (origin-node, node)
+		
+construct-text-by-compare(pp|pp-table): (origin-node, node) -> text
+	where
+		ast-changes:=<collect-ast-changes> (origin-node, node); debug(!"ast-changes: ");
 		text-changes:=<map(ast-change-to-text-change(pp|pp-table)); flatten-list> ast-changes;
 		text:=<
 			apply-text-changes; 
