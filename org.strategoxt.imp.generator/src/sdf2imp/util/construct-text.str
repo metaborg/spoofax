@@ -1,9 +1,9 @@
-module lib/construct-text
+module sdf2imp/util/construct-text
 
 imports 
   libstratego-lib 
   libstratego-gpp
-  lib/origin-tracking 
+  sdf2imp/util/origin-tracking 
 
 rules //API for text reconstruction
 
