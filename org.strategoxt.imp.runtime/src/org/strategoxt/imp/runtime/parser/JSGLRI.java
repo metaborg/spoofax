@@ -1,3 +1,4 @@
+
 package org.strategoxt.imp.runtime.parser;
 
 import java.io.File;
@@ -160,7 +161,8 @@ public class JSGLRI extends AbstractSGLRI {
 				Debug.stopTimer("File parsed: " + new File(filename).getName());
 			}
 
-			testIncrementalParser(input, filename, result);
+			// UNDONE: disabled incremental parser for now
+			// testIncrementalParser(input, filename, result);
 			return result;
 		} catch (FilterException e) {
 			if (e.getCause() == null && parser.getDisambiguator().getFilterPriorities()) {
@@ -182,6 +184,7 @@ public class JSGLRI extends AbstractSGLRI {
 		if (!incrementalParser.getIncrementalSorts().isEmpty()) {
 			Debug.startTimer();
 			try {
+				IStrategoTerm oldAst = incrementalParser.getLastAst();
 				IStrategoTerm incrementalResult = incrementalParser.parseIncremental(input, filename, getStartSymbol());
 				if (!incrementalResult.equals(expected)) {
 					Environment.logWarning("Incremental parser result inconsistent:\n\n"
@@ -194,6 +197,10 @@ public class JSGLRI extends AbstractSGLRI {
 				Debug.log("Could not incrementally parse AST");
 			} catch (SGLRException e) {
 				Environment.logWarning("Exception in incremental parser", e);
+			} catch (RuntimeException e) {
+				Environment.logWarning("Exception in incremental parser", e);
+			} catch (Error e) {
+				Environment.logException("Exception in incremental parser", e);
 			} finally {
 				Debug.stopTimer("Incrementally parsed: " + new File(filename).getName());
 			}

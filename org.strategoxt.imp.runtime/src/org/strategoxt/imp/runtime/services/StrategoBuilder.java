@@ -310,7 +310,7 @@ public class StrategoBuilder implements IBuilder {
 		Context context = observer.getRuntime().getCompiledContext();
 		term = aterm_escape_strings_0_0.instance.invoke(context, term);
 		term = pp_aterm_box_0_0.instance.invoke(context, term);
-		term = box2text_string_0_1.instance.invoke(context, term, Environment.getTermFactory().makeInt(120));
+		term = box2text_string_0_1.instance.invoke(context, term, Environment.getTermFactory().makeInt(80));
 		return (IStrategoString) term;
 	}
 

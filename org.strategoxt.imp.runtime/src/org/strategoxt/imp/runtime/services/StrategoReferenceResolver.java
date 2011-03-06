@@ -19,6 +19,8 @@ import org.strategoxt.imp.runtime.Debug;
  */
 public class StrategoReferenceResolver implements IReferenceResolver {
 	
+	public static boolean ALLOW_MULTI_CHILD_PARENT = true; // TODO: set to false for reference resolving??
+	
 	private final StrategoObserver observer;
 	
 	private final List<NodeMapping<String>> resolverFunctions;
@@ -38,7 +40,8 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 	}
 
 	public ISimpleTerm getLinkTarget(Object oNode, IParseController parseController) {
-		IStrategoTerm node = InputTermBuilder.getMatchingAncestor((IStrategoTerm) oNode, true);
+		IStrategoTerm innerNode = (IStrategoTerm) oNode;
+		IStrategoTerm node = InputTermBuilder.getMatchingAncestor(innerNode, true);
 		
 		String function = NodeMapping.getFirstAttribute(resolverFunctions, tryGetName(node), getSort(node), 0);
 		if (function == null) function = wildcardResolverFunction;
@@ -53,6 +56,7 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 				observer.update(parseController, new NullProgressMonitor());
 			}
 			IStrategoTerm resultTerm = observer.invokeSilent(function, node);
+			if (resultTerm == null) resultTerm = observer.invokeSilent(function, innerNode);
 			return observer.getAstNode(resultTerm, true);
 		} finally {
 			observer.getLock().unlock();
@@ -60,7 +64,8 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 	}
 
 	public String getLinkText(Object oNode) {
-		IStrategoTerm node = InputTermBuilder.getMatchingAncestor((IStrategoTerm) oNode, true);
+		IStrategoTerm innerNode = (IStrategoTerm) oNode;
+		IStrategoTerm node = InputTermBuilder.getMatchingAncestor(innerNode, ALLOW_MULTI_CHILD_PARENT);
 		if (node == null)
 			return null;
 		
@@ -74,6 +79,7 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 		observer.getLock().lock();
 		try {
 			IStrategoTerm result = observer.invokeSilent(function, node);
+			if (result == null) result = observer.invokeSilent(function, innerNode);
 			if (result == null) {
 				return null;
 			} else if (isTermString(result)) {

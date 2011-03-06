@@ -36,13 +36,18 @@ public class InputTermBuilder {
 	
 	private final Map<IResource, IStrategoTerm> resultingAsts;
 	
+	private final IStrategoTerm resultingAst;
+	
 	public InputTermBuilder(HybridInterpreter runtime, Map<IResource, IStrategoTerm> resultingAsts) {
 		this.runtime = runtime;
 		this.resultingAsts = resultingAsts;
+		this.resultingAst = null;
 	}
 	
-	public InputTermBuilder(HybridInterpreter runtime) {
-		this(runtime, EMPTY_MAP);
+	public InputTermBuilder(HybridInterpreter runtime, IStrategoTerm resultingAst) {
+		this.runtime = runtime;
+		this.resultingAsts = EMPTY_MAP;
+		this.resultingAst = resultingAst;
 	}
 	
 	public HybridInterpreter getRuntime() {
@@ -63,6 +68,7 @@ public class InputTermBuilder {
 		Context context = runtime.getCompiledContext();
 		IResource resource = SourceAttachment.getResource(node);
 		IStrategoTerm resultingAst = useSourceAst ? null : resultingAsts.get(resource);
+		if (!useSourceAst && this.resultingAst != null) resultingAst = this.resultingAst;
 		IStrategoList termPath = StrategoTermPath.getTermPathWithOrigin(context, resultingAst, node);
 		IStrategoTerm targetTerm;
 		IStrategoTerm rootTerm;

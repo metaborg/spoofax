@@ -408,11 +408,7 @@ strategies
         <target name="stratego.aster.helper" if="aster-input" unless="aster-output.uptodate">
             <java classname="org.strategoxt.aster.Main" failonerror="true">
                 <arg value="-i"/>
-                <fileset dir="${basedir}">
-                    <include name="**/*.astr"/>
-                    <!-- FIXME: doesn't work with filenames that contain spaces... -->
-                    <arg line="${aster-input}"/>
-                </fileset>
+                <arg line="${aster-input}"/>
             </java>
         </target>
         
