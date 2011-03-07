@@ -8,8 +8,11 @@ import java.util.Collections;
 import java.util.Map;
 
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.Path;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.io.FileTools;
@@ -107,6 +110,10 @@ public abstract class AbstractSGLRI {
 			throw new OperationCanceledException();
 		SGLRParseController controller = getController() == null ? null : getController();
 		IResource resource = controller == null ? null : controller.getResource();
+		if(resource==null){
+			IPath path = new Path(filename).makeRelativeTo(ResourcesPlugin.getWorkspace().getRoot().getLocation());
+			resource=ResourcesPlugin.getWorkspace().getRoot().getFile(path);
+		}
 		if (controller != null || resource != null)
 			SourceAttachment.putSource(result, resource, controller);
 		

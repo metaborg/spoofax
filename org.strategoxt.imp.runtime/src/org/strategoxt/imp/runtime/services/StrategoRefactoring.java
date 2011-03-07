@@ -13,29 +13,41 @@ import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.concurrent.CancellationException;
 
+import org.eclipse.core.filebuffers.FileBuffers;
+import org.eclipse.core.filebuffers.ITextFileBuffer;
+import org.eclipse.core.filebuffers.ITextFileBufferManager;
+import org.eclipse.core.filebuffers.LocationKind;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.ui.progress.UIJob;
 import org.spoofax.interpreter.core.InterpreterErrorExit;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.core.UndefinedStrategyException;
 import org.spoofax.interpreter.library.IOAgent;
+import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.terms.attachments.OriginAttachment;
 import org.strategoxt.imp.generator.construct_textual_change_1_1;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.MonitorStateWatchDog;
 import org.strategoxt.imp.runtime.RuntimeActivator;
 import org.strategoxt.imp.runtime.dynamicloading.TermReader;
+import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.stratego.StrategoConsole;
-import org.strategoxt.imp.runtime.stratego.TextChangePrimitive;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
@@ -177,9 +189,12 @@ public class StrategoRefactoring implements IBuilder { //TODO extract "AbstractS
 					endLocation=Tools.asJavaInt(termAt(textReplaceTerm, 1));
 					resultText = asJavaString(termAt(textReplaceTerm, 2));
 					try {		
-						TextChangePrimitive.applyTextChange(editor, startLocation, endLocation, resultText); //TODO refactor text-change handling (in files)
+						applyTextChange(editor, termAt(builderResult,0), startLocation, endLocation, resultText); //TODO refactor text-change handling (in files)
 					} catch (BadLocationException e) {
 						reportGenericException(editor, e);
+					} catch (CoreException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
 				}					
 			} catch (InterpreterErrorExit e) {
@@ -202,6 +217,42 @@ public class StrategoRefactoring implements IBuilder { //TODO extract "AbstractS
 			observer.getLock().unlock();
 		}		
 	}
+	
+	public static void applyTextChange(EditorState editor, ISimpleTerm originalTerm, final int position_start, final int position_end,
+			final String text) throws BadLocationException, CoreException {
+		SGLRParseController controller = editor.getParseController();
+		ISourcePositionLocator locator = controller.getSourcePositionLocator();
+		final IPath path = locator.getPath(OriginAttachment.tryGetOrigin((IStrategoTerm) originalTerm));
+		final IPath wsPath =path.makeRelativeTo(ResourcesPlugin.getWorkspace().getRoot().getLocation());
+		Job job = new UIJob("apply textchange") {
+			
+			@Override
+			public IStatus runInUIThread(IProgressMonitor monitor) {
+				ITextFileBufferManager manager= FileBuffers.getTextFileBufferManager();
+				try {
+					manager.connect(wsPath, LocationKind.IFILE, monitor);
+					ITextFileBuffer buffer= manager.getTextFileBuffer(wsPath, LocationKind.IFILE);
+					IDocument doc = buffer.getDocument();
+					doc.replace(position_start, position_end-position_start, text);
+					buffer.commit(monitor, true); 
+				} catch (BadLocationException e) {
+					Environment.logException("Bad location of the replaced fragment", e);
+				} catch (CoreException e) {
+					Environment.logException("Exception occurred while updating filecontents", e);
+				} finally {
+					try {
+						manager.disconnect(wsPath, LocationKind.IFILE, monitor);
+					} catch (CoreException e) {
+						Environment.logException("Exception occurred while updating filecontents", e);
+					}
+				}
+				return Status.OK_STATUS;
+			}
+		};
+		job.setSystem(true);
+		job.schedule();
+	}
+
 
 	private IStrategoTerm getBuilderResult(EditorState editor, IStrategoTerm node)
 			throws UndefinedStrategyException, InterpreterErrorExit, InterpreterExit,
