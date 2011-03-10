@@ -156,7 +156,7 @@ strategies
     ['*' | c*] -> <ltrim(' ' + '\t' + '\n' + '\r')> c*
   
   origin-track-forced(s) =
-    !Some(<id>); all(s); ?Some(<id>)
+    ![<id>]; all(s); ?[<id>]
 
 strategies
 
