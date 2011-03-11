@@ -1,12 +1,12 @@
 package org.strategoxt.imp.runtime.parser;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Collections;
 import java.util.Map;
-
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
@@ -110,7 +110,7 @@ public abstract class AbstractSGLRI {
 			throw new OperationCanceledException();
 		SGLRParseController controller = getController() == null ? null : getController();
 		IResource resource = controller == null ? null : controller.getResource();
-		if(resource==null){
+		if(resource==null && filename !=null && new File(filename).exists()){
 			IPath path = new Path(filename).makeRelativeTo(ResourcesPlugin.getWorkspace().getRoot().getLocation());
 			resource=ResourcesPlugin.getWorkspace().getRoot().getFile(path);
 		}
