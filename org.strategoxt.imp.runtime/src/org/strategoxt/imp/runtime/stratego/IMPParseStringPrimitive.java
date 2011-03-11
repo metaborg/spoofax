@@ -29,9 +29,12 @@ public class IMPParseStringPrimitive extends JSGLR_parse_string_compat {
 	private Map<ParseTable, Object> isNoRecoveryWarned =
 		new WeakHashMap<ParseTable, Object>();
 
+	private final Disambiguator filterSettings;
+
 	protected IMPParseStringPrimitive(Disambiguator filterSettings, 
 			AtomicBoolean recoveryEnabled, SourceMappings mappings) {
 		super(filterSettings, recoveryEnabled);
+		this.filterSettings = filterSettings;
 		this.mappings = mappings;
 	}
 
@@ -40,10 +43,13 @@ public class IMPParseStringPrimitive extends JSGLR_parse_string_compat {
 			ParseTable table, String startSymbol)
 			throws InterpreterException, IOException, SGLRException {
 		
+		// TODO: Optimize - cache tree builder... (like in superclass)
+		
 		String input = inputTerm.stringValue();
 		String path = getLastPath();		
 		JSGLRI parser = new JSGLRI(table, startSymbol);
 		parser.setUseRecovery(isRecoveryEnabled());
+		parser.setDisambiguator(filterSettings);
 		parser.setImplodeEnabled(true);
 		if (isRecoveryEnabled() && !parser.getParseTable().hasRecovers()) {
 			assert table.hashCode() == System.identityHashCode(table);

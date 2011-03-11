@@ -101,6 +101,10 @@ public class JSGLRI extends AbstractSGLRI {
 		return disambiguator;
 	}
 	
+	public void setDisambiguator(Disambiguator disambiguator) {
+		this.disambiguator = disambiguator;
+	}
+	
 	public void setParseTable(ParseTable parseTable) {
 		this.parseTable = new ParseTableProvider(parseTable);
 		resetState();

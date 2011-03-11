@@ -29,9 +29,12 @@ public class IMPParseStringPTPrimitive extends JSGLR_parse_string_pt_compat {
 	private Map<ParseTable, Object> isNoRecoveryWarned =
 		new WeakHashMap<ParseTable, Object>();
 
+	private final Disambiguator filterSettings;
+
 	protected IMPParseStringPTPrimitive(Disambiguator filterSettings, 
 			AtomicBoolean recoveryEnabled, SourceMappings mappings) {
 		super(filterSettings, recoveryEnabled);
+		this.filterSettings = filterSettings;
 		this.mappings = mappings;
 	}
 
@@ -47,6 +50,7 @@ public class IMPParseStringPTPrimitive extends JSGLR_parse_string_pt_compat {
 		String path = getLastPath();		
 		JSGLRI parser = new JSGLRI(table, startSymbol);
 		parser.setUseRecovery(isRecoveryEnabled());
+		parser.setDisambiguator(filterSettings);
 		parser.setImplodeEnabled(false);
 		if (isRecoveryEnabled() && !parser.getParseTable().hasRecovers()) {
 			assert table.hashCode() == System.identityHashCode(table);
