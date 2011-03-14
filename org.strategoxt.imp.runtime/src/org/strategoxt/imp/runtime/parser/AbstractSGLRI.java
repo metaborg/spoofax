@@ -8,17 +8,15 @@ import java.io.InputStreamReader;
 import java.util.Collections;
 import java.util.Map;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
-import org.eclipse.core.runtime.Path;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.io.FileTools;
 import org.spoofax.jsglr.shared.BadTokenException;
 import org.spoofax.jsglr.shared.SGLRException;
 import org.spoofax.jsglr.shared.TokenExpectedException;
+import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 import org.strategoxt.lang.WeakValueHashMap;
 
@@ -110,9 +108,11 @@ public abstract class AbstractSGLRI {
 			throw new OperationCanceledException();
 		SGLRParseController controller = getController() == null ? null : getController();
 		IResource resource = controller == null ? null : controller.getResource();
-		if(resource==null && filename !=null && new File(filename).exists()){
-			IPath path = new Path(filename).makeRelativeTo(ResourcesPlugin.getWorkspace().getRoot().getLocation());
-			resource=ResourcesPlugin.getWorkspace().getRoot().getFile(path);
+		if(resource==null && filename !=null) {
+			File file = new File(filename);
+			if (file.exists()) {
+				resource = EditorIOAgent.getResource(file);
+			}
 		}
 		if (controller != null || resource != null)
 			SourceAttachment.putSource(result, resource, controller);
