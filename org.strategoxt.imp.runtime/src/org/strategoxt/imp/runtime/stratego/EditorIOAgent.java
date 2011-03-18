@@ -172,4 +172,11 @@ public class EditorIOAgent extends LoggingIOAgent {
 		assert resources.length == 1;
 		return resources[0];
 	}
+	
+	public static boolean isResource(File file){
+		URI uri = file.toURI();
+		IWorkspace workspace = ResourcesPlugin.getWorkspace();
+		IResource[] resources = workspace.getRoot().findContainersForLocationURI(uri);
+		return resources.length > 0;
+	}
 }

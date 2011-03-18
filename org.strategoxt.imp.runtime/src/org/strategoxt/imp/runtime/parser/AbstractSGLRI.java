@@ -110,7 +110,7 @@ public abstract class AbstractSGLRI {
 		IResource resource = controller == null ? null : controller.getResource();
 		if(resource==null && filename !=null) {
 			File file = new File(filename);
-			if (file.exists()) {
+			if (file.exists() && EditorIOAgent.isResource(file)) {
 				resource = EditorIOAgent.getResource(file);
 			}
 		}
