@@ -138,24 +138,25 @@ public class ContentProposerParser {
 	 * Reuse the previous AST if the user just added or deleted a single character.
 	 */
 	private IStrategoTerm tryReusePreviousAst(int offset, String document) {
-		if (offset == 0) return null;
-		if (lastCompletionNode != null && lastDocument.length() == document.length() - 1 && lastOffset == offset - 1) {
-			// Reuse document, ignoring latest typed character
-			String newCharacter = document.substring(offset - 1, offset);
-			String previousDocument = lastDocument.substring(0, offset - 1) + newCharacter + lastDocument.substring(offset - 1);
-			if (documentsSufficientlyEqual(document, previousDocument, offset)) {
-				return reusePreviousAst(offset, document, lastCompletionPrefix + newCharacter);
+		if (offset != 0 && lastCompletionNode != null) {
+			if (lastDocument.length() == document.length() - 1 && lastOffset == offset - 1) {
+				// Reuse document, ignoring latest typed character
+				String newCharacter = document.substring(offset - 1, offset);
+				String previousDocument = lastDocument.substring(0, offset - 1) + newCharacter + lastDocument.substring(offset - 1);
+				if (documentsSufficientlyEqual(document, previousDocument, offset)) {
+					return reusePreviousAst(offset, document, lastCompletionPrefix + newCharacter);
+				}
+			} else if (lastCompletionPrefix.length() > 0
+					&& lastDocument.length() == document.length() + 1 && lastOffset == offset + 1) {
+				// Reuse document, ignoring previously typed character
+				String oldCharacter = lastDocument.substring(offset, offset + 1);
+				String currentDocument = document.substring(0, offset) + oldCharacter + document.substring(offset);
+				if (documentsSufficientlyEqual(currentDocument, lastDocument, offset + 1)) {
+					return reusePreviousAst(offset, document, lastCompletionPrefix.substring(0, lastCompletionPrefix.length() - 1));
+				}
+			} else if (lastDocument.equals(document) && offset == lastOffset) {
+				return reusePreviousAst(offset, document, lastCompletionPrefix);
 			}
-		} else if (lastCompletionNode != null && lastCompletionPrefix.length() > 0
-				&& lastDocument.length() == document.length() + 1 && lastOffset == offset + 1) {
-			// Reuse document, ignoring previously typed character
-			String oldCharacter = lastDocument.substring(offset, offset + 1);
-			String currentDocument = document.substring(0, offset) + oldCharacter + document.substring(offset);
-			if (documentsSufficientlyEqual(currentDocument, lastDocument, offset + 1)) {
-				return reusePreviousAst(offset, document, lastCompletionPrefix.substring(0, lastCompletionPrefix.length() - 1));
-			}
-		} else if (lastCompletionNode != null && lastDocument.equals(document) && offset == lastOffset) {
-			return reusePreviousAst(offset, document, lastCompletionPrefix);
 		}
 		lastDocument = document;
 		lastOffset = offset;
