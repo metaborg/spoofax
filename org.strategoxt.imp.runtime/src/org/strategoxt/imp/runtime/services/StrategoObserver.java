@@ -604,7 +604,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		return null;
 	}
 	
-	private void configureRuntime(IResource resource) {
+	public void configureRuntime(IResource resource) {
 		assert getLock().isHeldByCurrentThread();
 		
 		try {

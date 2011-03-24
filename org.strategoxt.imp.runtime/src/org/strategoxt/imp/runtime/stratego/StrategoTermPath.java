@@ -16,6 +16,7 @@ import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.TermVisitor;
 import org.spoofax.terms.attachments.ParentAttachment;
+import org.strategoxt.imp.generator.generator;
 import org.strategoxt.imp.generator.position_of_term_1_0;
 import org.strategoxt.imp.generator.term_at_position_0_1;
 import org.strategoxt.imp.runtime.Environment;
@@ -129,6 +130,7 @@ public class StrategoTermPath {
 		TestOrigin testOrigin = new TestOrigin();
 		testOrigin.origin = origin;
 		
+		generator.init(context);
 		IStrategoTerm perfectMatch = position_of_term_1_0.instance.invoke(context, ast, testOrigin);
 		if (perfectMatch != null) {
 			return (IStrategoList) perfectMatch;

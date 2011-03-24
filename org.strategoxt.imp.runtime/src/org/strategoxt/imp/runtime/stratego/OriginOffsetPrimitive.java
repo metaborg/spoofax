@@ -13,7 +13,7 @@ import org.spoofax.interpreter.terms.ITermFactory;
  * @author Maartje de Jonge
  */
 public class OriginOffsetPrimitive extends AbstractOriginPrimitive {
-
+	
 	public OriginOffsetPrimitive() {
 		super("SSL_EXT_origin_offset");
 	}
@@ -34,6 +34,7 @@ public class OriginOffsetPrimitive extends AbstractOriginPrimitive {
 	}
 
 	private static int getEndPosNode(ISimpleTerm node){
+		// XXX: why deviate from the normal inclusive end offset convention??
 		return getRightToken(node).getEndOffset()+1; //exclusive end
 	}
 }
