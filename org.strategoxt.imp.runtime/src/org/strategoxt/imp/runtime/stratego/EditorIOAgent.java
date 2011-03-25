@@ -175,7 +175,13 @@ public class EditorIOAgent extends LoggingIOAgent {
 	
 	public static boolean isResource(File file){
 		URI uri = file.toURI();
-		IWorkspace workspace = ResourcesPlugin.getWorkspace();
+		IWorkspace workspace; 
+	    try {
+	    	workspace = ResourcesPlugin.getWorkspace();
+	    } catch (IllegalStateException e) {
+	    	// there is no workspace, i.e. not running as a plug-in
+	    	return false;
+	    }
 		IResource[] resources = workspace.getRoot().findContainersForLocationURI(uri);
 		return resources.length > 0;
 	}

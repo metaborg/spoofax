@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.eclipse.core.runtime.FileLocator;
-import org.eclipse.core.runtime.Platform;
 import org.spoofax.interpreter.library.IOAgent;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
@@ -55,8 +54,7 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 		binaryPath = getBinaryPath();
 		binaryExtension = getBinaryExtension();
 		
-		String os = Platform.getOS();
-		if (os.equals(Platform.OS_LINUX) || os.equals(Platform.OS_MACOSX)) {
+		if (isLinuxOS() || isMacOS()) {
 			EditorIOAgent agent = new EditorIOAgent();
 			boolean success = makeExecutable(agent, "sdf2table") && makeExecutable(agent, "implodePT");
 			if (!success)
@@ -70,30 +68,40 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 		if (System.getenv("SPOOFAX_NATIVE_PATH") != null)
 			return System.getenv("SPOOFAX_NATIVE_PATH");
 		
-		String os = Platform.getOS();
 		String subdir;
-		if (os.equals(Platform.OS_LINUX)) {
+		if (isLinuxOS()) {
 			subdir = "linux";
-		} else if (os.equals(Platform.OS_WIN32)){
+		} else if (isWindowsOS()) {
 			subdir = "cygwin";
-		} else if (os.equals(Platform.OS_MACOSX)) {
+		} else if (isMacOS()){
 			subdir = "macosx";
 		} else {
 			throw new UnsupportedOperationException("Platform is not supported"); // TODO: print platform
 		}
 		
-		URL url = Activator.getInstance().getContext().getBundle().getResource(NATIVE_PATH + subdir);
-		File result = new File(FileLocator.toFileURL(url).getPath());
+		File result; 
+		if (Activator.getInstance() != null) {
+			URL url = Activator.getInstance().getContext().getBundle().getResource(NATIVE_PATH + subdir);
+			result = new File(FileLocator.toFileURL(url).getPath());
+		}
+		else {
+			URL url = getClass().getClassLoader().getResource(NATIVE_PATH + subdir);
+			result = new File(url.getPath());
+		}
+		
 		if (!result.exists())
 			throw new FileNotFoundException(result.getAbsolutePath());
 		return result.getAbsolutePath() + File.separator;
 	}
 	
 	public String getBinaryExtension() {
-		return Platform.getOS().equals(Platform.OS_WIN32) ? ".exe" : "";
+		return isWindowsOS() ? ".exe" : "";
 	}
 	
 	public static SDFBundleCommand getInstance() {
+		if (!(instance instanceof SDFBundleCommand))
+			instance = new SDFBundleCommand();
+		
 		return (SDFBundleCommand) instance;
 	}
 	
@@ -105,12 +113,12 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 			init();
 		} catch (IOException e) {
 			Environment.logException("Could not determine the binary path for the native tool bundle (" 
-					+ Platform.getOS() + "/" + Platform.getOSArch()
+					+ System.getProperty("os.name") + "/" + System.getProperty("os.arch")
 					+ ")", e);
 			return proceed.invoke(context, args, commandStrategy);
 		} catch (RuntimeException e) {
-			Environment.logException("Failed to initialize the native tool bundle (" + Platform.getOS()
-					+ "/" + Platform.getOSArch() + ")", e);
+			Environment.logException("Failed to initialize the native tool bundle (" + System.getProperty("os.name")
+					+ "/" + System.getProperty("os.arch") + ")", e);
 			return proceed.invoke(context, args, commandStrategy);
 		}
 		
@@ -130,8 +138,7 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 		if (args.getTermType() != LIST)
 			return null;
 		
-		String os = Platform.getOS();
-		if (os.equals(Platform.OS_LINUX) || os.equals(Platform.OS_MACOSX)) {
+		if (isLinuxOS() || isMacOS()) {
 			if (!makeExecutable(context.getIOAgent(), command)) {
 				EditorIOAgent io = (EditorIOAgent) context.getIOAgent();
 				Environment.logException("chmod of " + binaryPath + command + binaryExtension + " failed, log:\n" + io.getLog());
@@ -147,7 +154,7 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 	public boolean invoke(Context context, String command, IStrategoTerm[] argList) {
 		String[] commandArgs = SSL_EXT_call.toCommandArgs(binaryPath + command, argList);
 		// Disabled this check since Windows x64 might identify differently?
-		//String[] environment = Platform.getOS() == Platform.OS_WIN32
+		//String[] environment = isWindowsOS()
 		//	? createWindowsEnvironment()
 		//	: null;
 		String[] environment = windowsEnvironment;
@@ -210,5 +217,18 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 			Environment.logException("chmod failed: /bin/sh -c \"chmod +x " + command + "\"", e);
 			return false;
 		}
+	}
+	
+	private boolean isLinuxOS() {
+		String os = System.getProperty("os.name").toLowerCase();
+		return os.contains("nix") || os.contains("nux");
+	}
+
+	private boolean isWindowsOS() {
+		return System.getProperty("os.name").toLowerCase().contains("win");
+	}
+
+	private boolean isMacOS() {
+		return System.getProperty("os.name").toLowerCase().contains("mac");
 	}
 }
