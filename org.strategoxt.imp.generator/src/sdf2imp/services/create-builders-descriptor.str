@@ -39,10 +39,8 @@ strategies
           ~~
             
           pp-table: get-pp-table
-          pretty-print: prettyprint
           ~~
           refactoring ID: "Rename Entity" = rename-entity (source) (cursor)
-          refactoring Property*: "Extract Entity" =  extract-entity (source) 
 
           ~~
           ~// on save: generate-java

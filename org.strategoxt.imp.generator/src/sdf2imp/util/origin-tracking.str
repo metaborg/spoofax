@@ -11,13 +11,6 @@ origin-equal=
 	?(t1,t2);
 	<origin-equal(|t1)> t2
 	
-origin-equivalent=
-	?(t1,t2);
-	<eq>(<origin-term> t1, <origin-term> t2)
-	
-origin-equivalent(|t1):
-	t2 -> <origin-equivalent> (t1,t2)
-	
 origin-set-relation(|or-node) =
 	?node;
 	!Some(or-node); 

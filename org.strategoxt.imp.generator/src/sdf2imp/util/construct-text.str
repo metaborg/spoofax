@@ -29,12 +29,17 @@ construct-textual-change(pp|pp-table):
 			pp <+ (ast2abox(|[pp-table]); box2text-string(|100))|
 			pp-table
 		)
-	> REPLACEMENT(oldnode, <construct-text-by-compare(pp|pp-table)> (oldnode, newnode))
+	> REPLACEMENT(oldnode, <construct-text-by-compare(
+		pp <+ (ast2abox(|[pp-table]); box2text-string(|100))|
+		pp-table)> (oldnode, newnode)) //TODO: refactor
 
 construct-textual-change(pp|pp-table):
 	(oldnode, newnode) -> (0, 0, "")
 	where
 		<eq> (oldnode, newnode)
+
+construct-textual-change(pp|pp-table) =
+	map(construct-textual-change(pp|pp-table))
 	
 rules //text reconstruction for AST nodes
 
@@ -69,10 +74,10 @@ construct-text-from-origin(pp|pp-table):
 construct-text-by-compare(pp|pp-table): (origin-node, node) -> text
 	where
 		ast-changes:=<collect-ast-changes> (origin-node, node); //debug(!"ast-changes: ");
-		text-changes:=<map(ast-change-to-text-change(pp|pp-table)); flatten-list> ast-changes;
+		text-changes:=<map(ast-change-to-text-change(pp|pp-table)); flatten-list> ast-changes; //debug(!"txt-changes: ");
 		text:=<
-			apply-text-changes; 
-			remove-indentation(|<origin-indent-value-node> node)
+			apply-text-changes; //debug(!"applied: ");
+			remove-indentation(|<origin-indent-value-node> node) //;debug(!"indent-corr: ")
 		>(text-changes, <origin-text-with-comments> node, <origin-offset-with-comments> node)					
 
 construct-text-base-list(pp|pp-table)=
@@ -351,16 +356,28 @@ collect-ast-changes-in-list-insert-at-end(|oldlist)=
 
 rules //helpers compare nodes
 	
-same-signature=
+same-signature =
 	?(trm1, trm2);
-	<eq>(<get-constructor> trm1, <get-constructor> trm2);
-	<eq>(<get-arguments; length> trm1, <get-arguments; length> trm2);
-	<not(is-list)> trm1; <not(is-list)> trm2
+	where(
+		<eq>(<get-constructor> trm1, <get-constructor> trm2);
+		<eq>(<get-arguments; length> trm1, <get-arguments; length> trm2);
+		<not(is-list)> trm1; <not(is-list)> trm2
+	)
 	
 unmodified-list=
 	?(lst1, lst2);
 	<zip; map(equal <+ origin-equivalent)> (lst1, lst2)
 
+origin-equivalent=
+	?(t1,t2);
+	where(
+		<eq>(<origin-term> t1, <origin-term> t2) <+
+		<same-signature; all(not(origin-term))> (t1,t2)
+	) 
+	
+origin-equivalent(|t1):
+	t2 -> <origin-equivalent> (t1,t2)
+	
 rules //translating ast-changes to text changes
 
 rules //Replacement
@@ -496,7 +513,7 @@ apply-text-changes:
 	(text-changes, text, offset) -> changed-text
 	where 
 		start-offset:=<Fst> offset;
-		ordered-text-changes:=<filter(is-modification); sort-list(LSort(compare-text-change))> text-changes;
+		ordered-text-changes:=<make-set; filter(is-modification); sort-list(LSort(compare-text-change))> text-changes;
 		changed-text:= <foldr(!(start-offset, text), apply-textual-change); Snd> ordered-text-changes
 
 apply-textual-change:
@@ -517,16 +534,12 @@ replace-in-text:
 		(heads, suffix):=<split-at(|pos-end)> old-chars; 
 		result-text:=<conc-strings> (<implode-string> prefix, text-change, <implode-string> suffix) 
 		
-compare-text-change= 
+compare-text-change = 
 		?(((start-x, end-x),x), ((start-y, end-y),y));
 		not(
 			<lt> (start-x, start-y) <+ 
 			<eq> (start-x, start-y); <lt> (end-x, end-y)
 		)
 
-is-modification=
-		?((start-x, end-x),x); 
-		not(
-			<eq> (start-x, end-x); 
-			<eq> (x, "") 
-		)
+is-modification =
+	not(?((t, t),"")) 

@@ -27,7 +27,6 @@ imports
   lib/editor-common.generated
   check
   generate
-  prettyprint
   refactorings
 
 rules // Main editor interface (defined by editor/{sdf-name}-Builders and -References.esv)
@@ -203,77 +202,17 @@ imports
 strategies //renaming
  
 rename-entity:
-  (selected, position, ast, path, project-path) -> (ast, new-ast)
-  with  	
-    old-name:=<get-selected-name(|position)> ast;
-    new-name:=<input-dialog>("rename", "Rename Entity:", ""); 
-    new-ast:=<topdown(try(rename-type(|old-name, new-name)))> ast
-
-get-selected-name(|position):
-  ast -> name
-    where
-	  <term-at-position(|position); ?Type(name)> ast <+
-	  <parent-at-position(|position); ?Entity(name, _)> ast 
+  (selected-name, position, ast, path, project-path) -> [(ast, new-ast)]
+  with
+  	<parent-at-position(|position); (?Entity(_,_) <+ ?Type(_))> ast;
+    new-name:=<input-dialog>("{<get-sdf-main-module>}", "rename", "Rename Entity:", ""); 
+    new-ast:=<topdown(try(rename-type(|selected-name, new-name)))> ast
 
 rename-type(|old-name, new-name):
   Entity(old-name, y) -> Entity(new-name, y)
 
 rename-type(|old-name, new-name):
   Type(old-name) -> Type(new-name)
-	
-  
-strategies //extraction
-
-extract-entity:
-  (selected, position, ast, path, project-path) -> (ast, new-ast)
-  with
-    if <is-list> selected then
-  	  properties:= selected;
-  	  insert-position:=<init; at-last(map(inc))> position
-    else //single property selected
-  	  properties:=<![selected]>;
-  	  insert-position:=<init; init; at-last(map(inc))> position
-    end;
-    entity-name:=<input-dialog>("extract", "Extract Entity:", "<Entity Name>");
-    prop-name:=<lower-case> entity-name;
-    new-ast:=<
-      alltd(replace-sublist(?properties|[Property(prop-name, entity-name)]));
-      insert-elem(|insert-position, Entity(entity-name, properties))
-    > ast	
-
-}
-end;
-
-if not(<file-exists> "trans/prettyprint.str") then
-  <output-text-file(|["trans"], "prettyprint.str")>
-${module prettyprint
-
-imports
-  include/{sdf-name}
-
-strategies //custom strategy for code formatting
-  
-prettyprint:
-  Module(x, y) ->
-  $[module [x]
-  	
-    [<map(prettyprint); separate-by(|"\n\n"); concat-strings> y]]
-    
-prettyprint:
-  Entity(x, y) ->
-  $[entity [x]${$
-      [<map(prettyprint); separate-by(|"\n"); concat-strings> y]
-    $}$]
-    
-prettyprint:
-  Property(x, y) -> $[[x] : [<prettyprint> y]]
-  
-prettyprint:
-  Type(t) -> $[[t]]
-	
-prettyprint=
-  where(is-string <+ is-num)
 
 }
 end
-

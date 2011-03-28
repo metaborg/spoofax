@@ -320,16 +320,19 @@ insert-sublist(|pos, elems)=
 strategies //user-input
 
 /**
- * Opens an input dialog for one string value
- * @type (String, String, String) -> String
+ * Opens an input dialog for one string value that represents an identifier
+ * The language is used to check if the input value matches the identifier pattern
+ * @type (String, String, String, String) -> String
  */
 input-dialog:
-  (title, label, default-value) -> <prim("SSL_EXT_opendialog", title, label, default-value)>
+  (language, title, label, default-value) -> <prim("SSL_EXT_newnamedialog", language, title, label, default-value)>
   
+input-dialog:
+  (title, label, default-value) -> <input-dialog>("", title, label, default-value)
 
 strategies //pp-table
 	
 get-pp-table=
-  import-term(include/EntityRefactorings.generated.pp.af)
+  import-term(include/{sdf-name}.generated.pp.af)
 	
 }
