@@ -20,6 +20,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
+import org.strategoxt.imp.runtime.parser.ast.StrategoSubList;
 import org.strategoxt.imp.runtime.services.BuilderMap;
 import org.strategoxt.imp.runtime.services.CustomStrategyBuilder;
 import org.strategoxt.imp.runtime.services.IBuilder;
@@ -109,8 +110,10 @@ public class BuilderFactory extends AbstractServiceFactory<IBuilderMap> {
 		if(ppStrategyTerm!=null)
 			ppStrategy=termContents(termAt(ppStrategyTerm, 0));
 		
+		IStrategoTerm node = controller.getEditor().getSelectionAst(false);
 		for (IStrategoAppl builder : collectTerms(d.getDocument(), "Refactoring")) {
-			if(isDefinedOnSelection(builder)){
+			IStrategoTerm[] semanticNodes = termAt(builder,0).getAllSubterms();
+			if(getMatchingSelectionNode(semanticNodes, node) != null){
 				String caption = termContents(termAt(builder, 1));
 				String strategy = termContents(termAt(builder, 2));
 				IStrategoList options = termAt(builder, 3);			
@@ -146,7 +149,8 @@ public class BuilderFactory extends AbstractServiceFactory<IBuilderMap> {
 							source, 
 							ppTable,
 							ppStrategy,
-							controller.getResource()
+							controller.getResource(), 
+							semanticNodes
 						)
 					);
 				}
@@ -154,43 +158,9 @@ public class BuilderFactory extends AbstractServiceFactory<IBuilderMap> {
 		}
 	}
 
-	private static boolean isDefinedOnSelection(IStrategoAppl builder)
+	private static IStrategoTerm getMatchingSelectionNode(IStrategoTerm[] semanticNodes, IStrategoTerm node)
 			throws BadDescriptorException {
-		ArrayList<NodeMapping<String>> mappings=new ArrayList<NodeMapping<String>>();
-		for (IStrategoTerm semanticNode : termAt(builder,0).getAllSubterms()) {
-			NodeMapping<String> aMapping = NodeMapping.create(semanticNode, "");
-			mappings.add(aMapping);
-		}
-		if(mappings.size()==0){
-			return true; //no sort restriction specified
-		}
-		// XXX: the builder doesn't run in the UI thread for real-time builds
-		EditorState editor = EditorState.getActiveEditor();
-		IStrategoTerm node= editor.getSelectionAst(false);
-		
-		if (node == null)
-			return false;
-		
-		IStrategoTerm ancestor = InputTermBuilder.getMatchingAncestor(node, false);
-		IStrategoTerm selectionNode = node;
-		boolean isMatch=false;
-		do {
-			isMatch = NodeMapping.getFirstAttribute(mappings, tryGetName(selectionNode), getSort(selectionNode), 0)!=null;
-			selectionNode = getParent(selectionNode);
-		} while(!isMatch && selectionNode!=null && selectionNode!=getParent(ancestor));
-		//Sublist with single element
-		/* XXX: this makes no sense .. taking the constructor of a list?
-		if(!isMatch && (!isTermList(ancestor) && isTermList(getParent(ancestor)){
-			IStrategoTerm singleElementList= new AstNodeFactory().createSublist((ListAstNode)ancestor.getParent(), ancestor, ancestor, true);
-			isMatch= NodeMapping.getFirstAttribute(mappings, singleElementList.getConstructor(), singleElementList.getSort(), 0)!=null;
-		}
-		*/
-		return isMatch;
-	}
-	
-	private static String tryGetName(IStrategoTerm term) {
-		IStrategoConstructor cons = tryGetConstructor(term);
-		return cons == null ? null : cons.getName();
+		return InputTermBuilder.getMatchingNode(semanticNodes, node, false);
 	}
 
 	private static void addDerivedBuilders(EditorState derivedFromEditor, Set<IBuilder> builders)

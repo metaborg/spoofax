@@ -36,6 +36,7 @@ public class StrategoSubList extends StrategoWrapped implements IStrategoList {
 
 		int i = 0;
 		for (IStrategoTerm child : StrategoListIterator.iterable(list)) {
+			i++;
 			if (child == firstChild) {
 				indexStart = i;
 				isStartChildFound = true;

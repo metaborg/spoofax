@@ -10,7 +10,7 @@ public class IMPLibrary extends AbstractStrategoOperatorRegistry {
 	public static final String REGISTRY_NAME = "sdf2imp";
 	
 	public IMPLibrary() {
-		add(new DialogPrimitive());
+		add(new NameDialogPrimitive());
 		add(new SubtermPrimitive());
 		add(new ProjectPathPrimitive());
 		add(new PluginPathPrimitive());
@@ -27,9 +27,7 @@ public class IMPLibrary extends AbstractStrategoOperatorRegistry {
 		add(new OriginCommentBeforePrimitive());
 		add(new OriginCommentAfterPrimitive());
 		add(new TextChangePrimitive());
-		add(new OriginSourceTextPrimitive());
 		add(new OriginPositionPrimitive());
-		add(new OriginRootPrimitive());
 		add(new OriginOffsetWithLayoutPrimitive());
 		add(new QueueAnalysisPrimitive());
 		add(new QueueStrategyPrimitive());
@@ -42,6 +40,8 @@ public class IMPLibrary extends AbstractStrategoOperatorRegistry {
 		add(new OriginSeparatingWhitespacePrimitive());
 		add(new OriginSeparatorPrimitive());
 		add(new OriginSeparatorWithLayoutPrimitive());
+		add(new SaveAllResourcesPrimitive());
+		add(new MessageDialogPrimitive());
 	}
 
 	public String getOperatorRegistryName() {

@@ -2,20 +2,25 @@ package org.strategoxt.imp.runtime.services;
 
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getSort;
 import static org.spoofax.terms.Term.tryGetConstructor;
 import static org.spoofax.terms.attachments.ParentAttachment.getParent;
 import static org.spoofax.terms.attachments.ParentAttachment.getRoot;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
 
 import org.eclipse.core.resources.IResource;
+import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.HybridInterpreter;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
+import org.strategoxt.imp.runtime.parser.ast.StrategoSubList;
 import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 import org.strategoxt.lang.Context;
@@ -176,5 +181,63 @@ public class InputTermBuilder {
 							&& getRightToken(getParent(result)).getEndOffset() <= endOffset)))
 			result = getParent(result);
 		return result;
+	}
+
+	/**
+	 * Gets a node that has either the same character offsets or has only one
+	 * child with the same character offsets as the node given,
+	 * meeting the additional criteria that this node matches the semantic nodes. 
+	 * Returns null in case no match is found
+	 * 
+	 * @param semanticNodes
+	 *             Define Sorts and/or Constructors that shold apply. (example: Stm+ ID)
+	 * @param allowMultiChildParent
+	 *             Also fetch the first parent if it has multiple children (e.g., Call("foo", "bar")).
+	 */
+	public static final IStrategoTerm getMatchingNode(IStrategoTerm[] semanticNodes,
+			IStrategoTerm node, boolean allowMultiChildParent) throws BadDescriptorException {
+		if (node == null)
+			return null;
+		IStrategoTerm ancestor = InputTermBuilder.getMatchingAncestor(node, allowMultiChildParent);
+		IStrategoTerm selectionNode = node;
+		ArrayList<NodeMapping<String>> mappings = new ArrayList<NodeMapping<String>>();
+		for (IStrategoTerm semanticNode : semanticNodes) {
+			NodeMapping<String> aMapping = NodeMapping.create(semanticNode, "");
+			mappings.add(aMapping);
+		}
+		if (mappings.size() == 0) {
+			return ancestor; // no sort restriction specified, so use policy to
+							 // return the node furthest up the ancestor
+							 // chain
+		}
+		boolean isMatch = isMatchOnConstructorOrSort(mappings, selectionNode);
+		while (!isMatch && selectionNode != null && selectionNode != getParent(ancestor)) {
+			selectionNode = getParent(selectionNode);
+			isMatch = isMatchOnConstructorOrSort(mappings, selectionNode);
+		}
+		/* XXX: this makes no sense .. taking the constructor of a list? */
+		// Creates a sublist with single element.
+		// Usecase: extract refactoring is defined on a (sub)list (refactoring
+		// X+: ...) and should be applicable when only one X is selected
+		if (!isMatch && !ancestor.isList() && getParent(ancestor).isList()) {
+			selectionNode = StrategoSubList.createSublist((IStrategoList) getParent(ancestor),
+					ancestor, ancestor, true);
+			isMatch = isMatchOnConstructorOrSort(mappings, selectionNode);
+		}
+		if (isMatch) {
+			return selectionNode;
+		}
+		return null;
+	}
+
+	private static boolean isMatchOnConstructorOrSort(ArrayList<NodeMapping<String>> mappings,
+			IStrategoTerm selectionNode) {
+		return NodeMapping.getFirstAttribute(mappings, tryGetName(selectionNode),
+				getSort(selectionNode), 0) != null;
+	}
+
+	private static String tryGetName(IStrategoTerm term) {
+		IStrategoConstructor cons = tryGetConstructor(term);
+		return cons == null ? null : cons.getName();
 	}
 }

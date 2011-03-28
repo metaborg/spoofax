@@ -2,6 +2,7 @@ package org.strategoxt.imp.runtime.services;
 
 import static org.spoofax.interpreter.core.Tools.asJavaString;
 import static org.spoofax.interpreter.core.Tools.isTermAppl;
+import static org.spoofax.interpreter.core.Tools.isTermList;
 import static org.spoofax.interpreter.core.Tools.isTermTuple;
 import static org.spoofax.interpreter.core.Tools.termAt;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.hasImploderOrigin;
@@ -19,14 +20,12 @@ import org.eclipse.core.filebuffers.ITextFileBufferManager;
 import org.eclipse.core.filebuffers.LocationKind;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
@@ -37,7 +36,6 @@ import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.core.UndefinedStrategyException;
 import org.spoofax.interpreter.library.IOAgent;
-import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.attachments.OriginAttachment;
 import org.strategoxt.imp.generator.construct_textual_change_1_1;
@@ -45,8 +43,9 @@ import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.MonitorStateWatchDog;
 import org.strategoxt.imp.runtime.RuntimeActivator;
+import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.TermReader;
-import org.strategoxt.imp.runtime.parser.SGLRParseController;
+import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 import org.strategoxt.imp.runtime.stratego.StrategoConsole;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
@@ -76,13 +75,15 @@ public class StrategoRefactoring implements IBuilder { //TODO extract "AbstractS
 	
 	private final boolean source;
 	
+	private final IStrategoTerm[] semanticNodes;
+	
 	/**
 	 * Creates a new Stratego refactoring.
 	 */
 	public StrategoRefactoring(StrategoObserver observer, String caption, String builderRule,
 			boolean cursor, boolean source,
 			String ppTable, String ppStrategy,
-			IResource resource) { //TODO Check if the refactoring is defined for the given Sort-Constructor
+			IResource resource, IStrategoTerm[] semanticNodes) { //TODO Check if the refactoring is defined for the given Sort-Constructor
 		this.cursor=cursor;
 		this.source=source;
 		this.ppTable=ppTable;
@@ -91,6 +92,7 @@ public class StrategoRefactoring implements IBuilder { //TODO extract "AbstractS
 		this.caption = caption;
 		this.builderRule = builderRule;
 		this.resource=resource;
+		this.semanticNodes = semanticNodes;
 	}
 	
 	public String getCaption() {
@@ -151,7 +153,7 @@ public class StrategoRefactoring implements IBuilder { //TODO extract "AbstractS
 				}
 			}
 		};
-		job.setUser(true);
+		//job.setUser(true);
 		job.schedule();
 		activeJobs.put(caption, job);
 		return job;
@@ -162,18 +164,14 @@ public class StrategoRefactoring implements IBuilder { //TODO extract "AbstractS
 		IStrategoTerm textReplaceTerm=null;
 		//IFile file = null;
 
-		String resultText = null;
-		int startLocation = -1;
-		int endLocation = -1;
-
 		observer.getLock().lock();
 		try {
 			try {
 				builderResult = getBuilderResult(editor, node);
 				if(builderResult!=null){	
-					if (isInvalidResultTerm(builderResult)) { //TODO: multifile support [(fname, oldnode, newnode), ...]
-						Environment.logException("Illegal refactoring result (must be a tuple '(original-node, newnode)')");
-						openError(editor, "Illegal refactoring result (must be a tuple '(original-node, newnode)': )" + builderResult);
+					if (!isValidResultTerm(builderResult)) {
+						Environment.logException("Illegal refactoring result (must be a list with tuples '(original-node, newnode)')");
+						openError(editor, "Illegal refactoring result (must be a list with tuples '(original-node, newnode)': )" + builderResult);
 						return;
 					}
 					textReplaceTerm=getTextReplacement(builderResult);
@@ -184,18 +182,11 @@ public class StrategoRefactoring implements IBuilder { //TODO extract "AbstractS
 							observer.scheduleUpdate(editor.getParseController());
 						return;
 					}
-					//file = ...;
-					startLocation=Tools.asJavaInt(termAt(textReplaceTerm, 0));
-					endLocation=Tools.asJavaInt(termAt(textReplaceTerm, 1));
-					resultText = asJavaString(termAt(textReplaceTerm, 2));
-					try {		
-						applyTextChange(editor, termAt(builderResult,0), startLocation, endLocation, resultText); //TODO refactor text-change handling (in files)
-					} catch (BadLocationException e) {
-						reportGenericException(editor, e);
-					} catch (CoreException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+					assert(textReplaceTerm.getSubtermCount() == builderResult.getSubtermCount());
+					//TODO: check locations to make sure that all changes can be applied (or none)
+					for (int i = 0; i < builderResult.getSubtermCount(); i++) {
+						applyTextChange(termAt(builderResult.getSubterm(i),0), textReplaceTerm.getSubterm(i));							
+					}					
 				}					
 			} catch (InterpreterErrorExit e) {
 				reportGenericException(editor, e);
@@ -218,12 +209,13 @@ public class StrategoRefactoring implements IBuilder { //TODO extract "AbstractS
 		}		
 	}
 	
-	public static void applyTextChange(EditorState editor, ISimpleTerm originalTerm, final int position_start, final int position_end,
-			final String text) throws BadLocationException, CoreException {
-		SGLRParseController controller = editor.getParseController();
-		ISourcePositionLocator locator = controller.getSourcePositionLocator();
-		final IPath path = locator.getPath(OriginAttachment.tryGetOrigin((IStrategoTerm) originalTerm));
-		final IPath wsPath =path.makeRelativeTo(ResourcesPlugin.getWorkspace().getRoot().getLocation());
+	private void applyTextChange(IStrategoTerm originalTerm, IStrategoTerm textReplaceTerm) {
+		final int startLocation=Tools.asJavaInt(termAt(textReplaceTerm, 0));
+		final int endLocation=Tools.asJavaInt(termAt(textReplaceTerm, 1));
+		final String resultText = asJavaString(termAt(textReplaceTerm, 2));
+		final IStrategoTerm originTerm = OriginAttachment.tryGetOrigin(originalTerm);
+		final IPath wsPath = SourceAttachment.getResource(originTerm).getFullPath();
+		
 		Job job = new UIJob("apply textchange") {
 			
 			@Override
@@ -233,7 +225,7 @@ public class StrategoRefactoring implements IBuilder { //TODO extract "AbstractS
 					manager.connect(wsPath, LocationKind.IFILE, monitor);
 					ITextFileBuffer buffer= manager.getTextFileBuffer(wsPath, LocationKind.IFILE);
 					IDocument doc = buffer.getDocument();
-					doc.replace(position_start, position_end-position_start, text);
+					doc.replace(startLocation, endLocation - startLocation, resultText);
 					buffer.commit(monitor, true); 
 				} catch (BadLocationException e) {
 					Environment.logException("Bad location of the replaced fragment", e);
@@ -250,9 +242,8 @@ public class StrategoRefactoring implements IBuilder { //TODO extract "AbstractS
 			}
 		};
 		job.setSystem(true);
-		job.schedule();
+		job.schedule();		
 	}
-
 
 	private IStrategoTerm getBuilderResult(EditorState editor, IStrategoTerm node)
 			throws UndefinedStrategyException, InterpreterErrorExit, InterpreterExit,
@@ -277,11 +268,23 @@ public class StrategoRefactoring implements IBuilder { //TODO extract "AbstractS
 		return resultTerm;
 	}
 
-	private boolean isInvalidResultTerm(IStrategoTerm resultTerm) {
+	private boolean isValidResultTerm(IStrategoTerm resultTerm) {
+		if(isTermList(resultTerm)){
+			for (int i = 0; i < resultTerm.getSubtermCount(); i++) {
+				if(!isAstChangeTuple(resultTerm.getSubterm(i))){
+					return false;
+				}
+			}
+			return true;
+		}
+		return false;
+	}
+	
+	private boolean isAstChangeTuple(IStrategoTerm resultTerm) {
 		return 
-			!isTermTuple(resultTerm) || 
-			!hasImploderOrigin(termAt(resultTerm, 0)) ||
-			resultTerm.getSubtermCount()!=2;
+			isTermTuple(resultTerm) && 
+			hasImploderOrigin(termAt(resultTerm, 0)) &&
+			resultTerm.getSubtermCount()==2;
 	}
 	
 	private IStrategoTerm getTextReplacement(IStrategoTerm resultTuple) {
@@ -309,7 +312,13 @@ public class StrategoRefactoring implements IBuilder { //TODO extract "AbstractS
 
 	protected IStrategoTerm invokeObserver(IStrategoTerm node) throws UndefinedStrategyException,
 			InterpreterErrorExit, InterpreterExit, InterpreterException {
-		node = InputTermBuilder.getMatchingAncestor(node, false);
+		//node = InputTermBuilder.getMatchingAncestor(node, false);
+		try {
+			node = InputTermBuilder.getMatchingNode(semanticNodes, node, false);
+		} catch (BadDescriptorException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		IStrategoTerm inputTerm = observer.getInputBuilder().makeInputTerm(node, true, source);
 		IStrategoTerm result = observer.invoke(builderRule, inputTerm, getResource(node));
 		return result;
