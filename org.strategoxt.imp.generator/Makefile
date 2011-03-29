@@ -4,6 +4,8 @@ STRATEGOXT ?= ${HOME}/.nix-profile
 JAVA_FRONT ?= ${HOME}/.nix-profile
 SDF        ?= ${HOME}/.nix-profile
 
+export PKG_CONFIG_PATH += ${STRATEGOXT}/lib/pkgconfig:${JAVA_FRONT}/lib/pkgconfig:${SDF}/lib/pkgconfig
+
 STRS     = $(wildcard src/*.str) \
            $(wildcard src/sdf2imp/*.str) \
            $(wildcard src/sdf2imp/lib/*.str) \
@@ -19,7 +21,7 @@ SDFS     = $(wildcard src/syntax/*.sdf)
 SYNTAX   = src/syntax/EditorService.tbl src/syntax/EditorService.pp src/syntax/EditorService-pretty.pp.af src/syntax/EditorService.str src/syntax/Stratego-Java-EditorService.tbl
 
 STRCFLAGS = \
-	-la stratego-xtc \
+    -la stratego-xtc \
     -la stratego-lib \
     -la stratego-gpp \
     -la stratego-tool-doc \
@@ -54,7 +56,7 @@ STRINCLUDES = \
 	-I ${STRATEGOXT}/share/sdf/sdf-front \
 	-I ${JAVA_FRONT}/share/java-front \
 	-I src/syntax \
-    `pkg-config --variable=strcflags java-front`
+	`pkg-config --variable=strcflags java-front`
 
 all : sdf2imp java jar syntax
 
