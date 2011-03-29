@@ -28,6 +28,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.language.Language;
+import org.eclipse.imp.language.ServiceFactory;
 import org.eclipse.imp.parser.IParseController;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
@@ -156,7 +157,23 @@ public class Descriptor {
 	// LOADING SERVICES
 	
 	/**
+	 * Creates a new parse controller for this descriptor's language.
+	 * May be a {@link DynamicParseController} or possibly a custom
+	 * implementation of {@link IParseController}.
+	 */
+	public IParseController createParseController() throws BadDescriptorException {
+		IParseController result = ServiceFactory.getInstance().getParseController(getLanguage());
+		if (result instanceof DynamicParseController) {
+			((DynamicParseController) result).initialize(null, getLanguage());
+		}
+		return result;
+	}
+	
+	/**
 	 * Creates a new service of a particular type.
+	 * 
+	 * For parse controllers, {@link #createParseController()}
+	 * should be used instead, as these may have custom Java implementations.
 	 */
 	public synchronized<T extends ILanguageService> T createService(Class<T> type, SGLRParseController controller)
 			throws BadDescriptorException {
@@ -309,8 +326,14 @@ public class Descriptor {
 	 */
 	public Class<?> getAttachmentProvider() {
 		try {
-			if (attachmentProvider == null)
-				attachmentProvider = createService(IParseController.class, null).getClass();
+			if (attachmentProvider == null) {
+				// might be better, but unnecessary as long as setAttachmentProvider is called
+				// IParseController parser = createParseController();
+				// if (parser instanceof DynamicParseController)
+				// 	parser = ((DynamicParseController) parser).getWrapped();
+				IParseController parser = createService(IParseController.class, null);
+				attachmentProvider = parser.getClass();
+			}
 			return attachmentProvider;
 		} catch (BadDescriptorException e) { // Unexpected exception
 			Environment.logException("Unable to instantiate parse controller class", e);

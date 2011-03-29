@@ -7,10 +7,9 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.source.ISourceViewer;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.widgets.Display;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.services.TokenColorer;
 
 /**
  * Dynamic proxy class to a token colorer.
@@ -21,10 +20,6 @@ import org.strategoxt.imp.runtime.Environment;
  */
 public class DynamicTokenColorer extends AbstractService<ITokenColorer> implements ITokenColorer {
 	
-	private static final int GRAY_COMPONENT = 96;
-	
-	private static volatile Color gray;
-	
 	private IParseController lastParseController;
 	
 	private volatile boolean isReinitializing;
@@ -32,7 +27,7 @@ public class DynamicTokenColorer extends AbstractService<ITokenColorer> implemen
 	public DynamicTokenColorer() {
 		super(ITokenColorer.class);
 		if (EditorState.isUIThread())
-			getGrayColor(); // initialize color while we're in the SWT main thread
+			TokenColorer.getGrayColor(); // initialize color while we're in the SWT main thread
 	}
 	
 	public IRegion calculateDamageExtent(IRegion seed, IParseController controller) {
@@ -45,7 +40,7 @@ public class DynamicTokenColorer extends AbstractService<ITokenColorer> implemen
 		if (!isInitialized()) initialize(controller);
 		lastParseController = controller;
 		TextAttribute result = getWrapped().getColoring(controller, token);
-		if (isReinitializing) result = toGray(result);
+		if (isReinitializing) result = TokenColorer.toGray(result);
 		return result;
 	}
 	
@@ -74,21 +69,5 @@ public class DynamicTokenColorer extends AbstractService<ITokenColorer> implemen
 	public void reinitialize(Descriptor newDescriptor) throws BadDescriptorException {
 		super.reinitialize(newDescriptor);
 		isReinitializing = false;
-	}
-
-	private TextAttribute toGray(TextAttribute attribute) {
-		return attribute == null
-				? new TextAttribute(getGrayColor())
-				: new TextAttribute(getGrayColor(), attribute.getBackground(), attribute.getStyle(), attribute.getFont());
-	}
-	
-	private static Color getGrayColor() {
-		if (gray == null) {
-			synchronized (DynamicTokenColorer.class) {
-				if (gray == null)
-					gray = new Color(Display.getCurrent(), GRAY_COMPONENT, GRAY_COMPONENT, GRAY_COMPONENT);
-			}
-		}
-		return gray;
 	}
 }

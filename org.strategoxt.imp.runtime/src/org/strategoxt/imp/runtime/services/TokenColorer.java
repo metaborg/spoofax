@@ -14,6 +14,7 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.widgets.Display;
 import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -21,12 +22,17 @@ import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.Token;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
+import org.strategoxt.imp.runtime.dynamicloading.DynamicTokenColorer;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class TokenColorer implements ITokenColorer {
+	
+	private static final int GRAY_COMPONENT = 110;
+	
+	private static volatile Color gray;
 	
 	private final List<TextAttributeMapping> envMappings, nodeMappings, tokenMappings;
 	
@@ -105,6 +111,8 @@ public class TokenColorer implements ITokenColorer {
 			tokenKind = IToken.TK_UNKNOWN;
 		} else if (tokenKind == IToken.TK_ERROR_KEYWORD) {
 			tokenKind = IToken.TK_KEYWORD;
+		} else if (tokenKind == IToken.TK_ESCAPE_OPERATOR) {
+			return new TextAttribute(getGrayColor());
 		}
 		 
 		TextAttribute tokenColor = getColoring(tokenMappings, constructor, sort, tokenKind);
@@ -195,5 +203,21 @@ public class TokenColorer implements ITokenColorer {
 		ISimpleTerm ast = (ISimpleTerm) parseController.getCurrentAst();
 		return new Region(0, getRightToken(ast).getTokenizer().getInput().length() - 1);
 		// return seed;
+	}
+
+	public static TextAttribute toGray(TextAttribute attribute) {
+		return attribute == null
+				? new TextAttribute(getGrayColor())
+				: new TextAttribute(getGrayColor(), attribute.getBackground(), attribute.getStyle(), attribute.getFont());
+	}
+	
+	public static Color getGrayColor() {
+		if (gray == null) {
+			synchronized (DynamicTokenColorer.class) {
+				if (gray == null)
+					gray = new Color(Display.getCurrent(), GRAY_COMPONENT, GRAY_COMPONENT, GRAY_COMPONENT);
+			}
+		}
+		return gray;
 	}
 }
