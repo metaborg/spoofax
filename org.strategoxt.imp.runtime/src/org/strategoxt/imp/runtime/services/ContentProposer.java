@@ -75,13 +75,13 @@ public class ContentProposer implements IContentProposer {
 		int prefixLength = parser.getCompletionPrefix() == null ? 0 : parser.getCompletionPrefix().length();
 		Set<String> sorts = new AstSortInspector(ast).getSortsAtOffset(offset - prefixLength, offset);
 		if (parser.getCompletionNode() == null)
-			return getParseFailureProposals(controller, document, offset, sorts);
+			return getParseFailureProposals(controller, document, offset, sorts, viewer);
 
 		printCompletionTip(controller, sorts);
 
 		ICompletionProposal[] results =
 			computeAllCompletionProposals(invokeCompletionFunction(controller, sorts), document,
-					parser.getCompletionPrefix(), offset, sorts);
+					parser.getCompletionPrefix(), offset, sorts, viewer);
 
 		// TVO: there is an interface for this AFAIK
 		/* UNDONE: automatic proposal insertion
@@ -98,7 +98,7 @@ public class ContentProposer implements IContentProposer {
     }
 
 	private ICompletionProposal[] getParseFailureProposals(IParseController controller,
-			String document, int offset, Set<String> sorts) {
+			String document, int offset, Set<String> sorts, ITextViewer viewer) {
 
 		String startSymbol = Environment.getDescriptor(controller.getLanguage()).getStartSymbol();
 
@@ -107,7 +107,7 @@ public class ContentProposer implements IContentProposer {
 			String prefix = parser.readPrefix(offset, document);
 			sorts.add(startSymbol);
 			printCompletionTip(controller, sorts);
-			ICompletionProposal[] proposals = computeAllCompletionProposals(TermFactory.EMPTY_LIST, document, prefix, offset, sorts);
+			ICompletionProposal[] proposals = computeAllCompletionProposals(TermFactory.EMPTY_LIST, document, prefix, offset, sorts, viewer);
 			if (proposals.length != 0) return proposals;
 		}
 		if (parser.isFatalSyntaxError()) {
@@ -191,7 +191,7 @@ public class ContentProposer implements IContentProposer {
 		}
 	}
 
-	private ICompletionProposal[] computeAllCompletionProposals(IStrategoTerm proposals, String document, String prefix, int offset, Set<String> sorts) {
+	private ICompletionProposal[] computeAllCompletionProposals(IStrategoTerm proposals, String document, String prefix, int offset, Set<String> sorts, ITextViewer viewer) {
 
 		// dynamically computed blueprints, i.e. from semantic analysis
 		Set<Completion> results = toCompletions(proposals, document, prefix, offset, sorts);
@@ -206,7 +206,7 @@ public class ContentProposer implements IContentProposer {
 		// static blueprints, i.e. keywords and templates
 		results.addAll(templates);
 
-		return filterCompletions(results, document, prefix, offset, sorts);
+		return filterCompletions(results, document, prefix, offset, sorts, viewer);
 	}
 
 	private Set<Completion> toCompletions(IStrategoTerm proposals, String document, String prefix, int offset, Set<String> sorts) {
@@ -278,7 +278,7 @@ public class ContentProposer implements IContentProposer {
 	}
 
 	private ICompletionProposal[] filterCompletions(Set<Completion> completions, String document, String prefix,
-			int offset, Set<String> sorts) {
+			int offset, Set<String> sorts, ITextViewer viewer) {
 
 		final ArrayList<ICompletionProposal> results = new ArrayList<ICompletionProposal>();
 		final Region offsetRegion = new Region(offset, 0);
@@ -291,7 +291,7 @@ public class ContentProposer implements IContentProposer {
 			if (!backTrackResultsOnly && proposalPrefix.regionMatches(IGNORE_TEMPLATE_PREFIX_CASE, 0, prefix, 0, prefix.length())) {
 				if (!proposal.isBlankLineRequired() || isBlankBeforeOffset(document, offset - prefix.length()))
 					if (prefix.length() > 0 || identifierLexical.matcher(proposalPrefix).lookingAt() || proposalPrefix.length() == 0)
-						results.add(new ContentProposal(this, proposal, prefix, offsetRegion));
+						results.add(new ContentProposal(this, proposal, prefix, offsetRegion, viewer));
 			} /*else*/ {
 				Matcher matcher = identifierLexical.matcher(proposalPrefix);
 				if (matcher.find() && (matcher.start() > 0 || matcher.end() < proposalPrefix.length())) {
@@ -306,7 +306,7 @@ public class ContentProposer implements IContentProposer {
 							String bigPrefix = proposalPrefix.substring(0, matcher.start() + prefix.length());
 							if (!backTrackResultsOnly) results.clear();
 							backTrackResultsOnly = true;
-							results.add(new ContentProposal(this, proposal, bigPrefix, offsetRegion));
+							results.add(new ContentProposal(this, proposal, bigPrefix, offsetRegion, viewer));
 							break;
 						}
 					} while (matcher.find(matcher.end()));
