@@ -213,7 +213,6 @@ public class ContentProposer implements IContentProposer {
 
 		for (IStrategoList cons = (IStrategoList) proposals; !cons.isEmpty(); cons = cons.tail()) {
 			IStrategoTerm proposal = cons.head();
-			boolean confirmed = false;
 			String newText;
 			IStrategoList newTextParts;
 			IStrategoString description;
@@ -224,26 +223,16 @@ public class ContentProposer implements IContentProposer {
 				description = emptyString;
 			} else if (proposal.getTermType() == LIST) {
 				newTextParts = (IStrategoList) proposal;
-				String head = newTextParts.size() == 0 ? "" : asJavaString(newTextParts.head());
-				if (head.length() >= prefix.length()) {
-					if (startsWithCaseInsensitive(head, prefix)) confirmed = true;
-					else continue;
-				}
 				newText = proposalPartsToDisplayString(newTextParts);
 				description = emptyString;
 			} else {
 				IStrategoTerm newTextTerm = termAt(proposal, 0);
 				if (proposal.getTermType() != TUPLE || proposal.getSubtermCount() != 2
-						|| (newTextTerm.getTermType() != LIST && termAt(proposal, 0).getTermType() != STRING)
+						|| (newTextTerm.getTermType() != LIST && newTextTerm.getTermType() != STRING)
 						|| termAt(proposal, 1).getTermType() != STRING)
 					return createErrorProposal(error, offset);
 				if (newTextTerm.getTermType() == LIST) {
 					newTextParts = (IStrategoList) newTextTerm;
-					String head = newTextParts.size() == 0 ? "" : asJavaString(newTextParts.head());
-					if (head.length() >= prefix.length()) {
-						if (startsWithCaseInsensitive(head, prefix)) confirmed = true;
-						else continue;
-					}
 					newText = proposalPartsToDisplayString(newTextParts);
 				} else {
 					newTextParts = factory.makeList(newTextTerm);
@@ -251,7 +240,7 @@ public class ContentProposer implements IContentProposer {
 				}
 				description = termAt(proposal, 1);
 			}
-			if (!confirmed && (newTextParts.isEmpty() || !startsWithCaseInsensitive(newText,prefix)))
+			if (newTextParts.isEmpty() || !startsWithCaseInsensitive(newText,prefix))
 				continue;
 			results.add(new ContentProposal(this, newText, newText, prefix, offsetRegion, newTextParts, description.stringValue()));
 		}
