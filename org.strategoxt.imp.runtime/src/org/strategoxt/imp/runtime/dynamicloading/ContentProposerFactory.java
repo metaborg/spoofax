@@ -21,7 +21,7 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
-import org.strategoxt.imp.runtime.services.ContentProposalTemplate;
+import org.strategoxt.imp.runtime.services.Completion;
 import org.strategoxt.imp.runtime.services.ContentProposer;
 import org.strategoxt.imp.runtime.services.ContentProposerListener;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
@@ -30,7 +30,7 @@ import org.strategoxt.imp.runtime.services.StrategoObserver;
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class ContentProposerFactory extends AbstractServiceFactory<IContentProposer> {
-	
+
 	public ContentProposerFactory() {
 		super(IContentProposer.class, true);
 	}
@@ -52,28 +52,32 @@ public class ContentProposerFactory extends AbstractServiceFactory<IContentPropo
 			Environment.logException("Could not eagerly initialize the content proposal service", e);
 		}
 	}
-	
+
 	@Override
 	public IContentProposer create(Descriptor descriptor, SGLRParseController controller) throws BadDescriptorException {
 		String completionFunction = descriptor.getProperty("CompletionProposer", null);
 		StrategoObserver feedback = descriptor.createService(StrategoObserver.class, controller);
 
 		Pattern identifierLexical = SyntaxPropertiesFactory.readIdentifierLexical(descriptor, true);
+
 		Set<String> completionKeywords = readCompletionKeywords(descriptor);
-		ContentProposalTemplate[] templates = readCompletionTemplates(descriptor);
-		for (ContentProposalTemplate template : templates) {
+		Set<Completion> templates = readCompletionTemplates(descriptor);
+
+		for (Completion template : templates) {
 			completionKeywords.remove(template.getPrefix());
 		}
-		String[] keywords = completionKeywords.toArray(new String[0]);
+		for (String keyword : completionKeywords) {
+			templates.add(Completion.makeKeyword(keyword));
+		}
 
 		registerListener(descriptor, controller);
-		
-		return new ContentProposer(feedback, completionFunction, identifierLexical, keywords, templates);
+
+		return new ContentProposer(feedback, completionFunction, identifierLexical, templates);
 	}
 
 	private static void registerListener(Descriptor descriptor, SGLRParseController controller)
 			throws BadDescriptorException {
-		
+
 		try {
 			UniversalEditor editor = controller.getEditor().getEditor();
 			ISourceViewer viewer = editor.getServiceControllerManager().getSourceViewer();
@@ -86,7 +90,7 @@ public class ContentProposerFactory extends AbstractServiceFactory<IContentPropo
 
 	private static Set<String> readCompletionKeywords(Descriptor descriptor) {
 		Set<String> results = new HashSet<String>();
-		
+
 		for (IStrategoAppl keyword : collectTerms(descriptor.getDocument(), "CompletionKeyword")) {
 			String literal = termContents(termAt(keyword, 0));
 			IStrategoAppl type = termAt(keyword, 1);
@@ -98,9 +102,9 @@ public class ContentProposerFactory extends AbstractServiceFactory<IContentPropo
 		return results;
 	}
 
-	private static ContentProposalTemplate[] readCompletionTemplates(Descriptor descriptor) {
-		Set<ContentProposalTemplate> results = new HashSet<ContentProposalTemplate>();
-		
+	private static Set<Completion> readCompletionTemplates(Descriptor descriptor) {
+		Set<Completion> results = new HashSet<Completion>();
+
 		for (IStrategoAppl template : collectTerms(descriptor.getDocument(), "CompletionTemplate")) {
 			results.add(parseContentProposalTemplate(template, 0, null));
 		}
@@ -109,11 +113,11 @@ public class ContentProposerFactory extends AbstractServiceFactory<IContentPropo
 			String sort = termContents(termAt(template, 0));
 			results.add(parseContentProposalTemplate(template, 1, sort));
 		}
-		
-		return results.toArray(new ContentProposalTemplate[0]);
+
+		return results;
 	}
 
-	private static ContentProposalTemplate parseContentProposalTemplate(IStrategoAppl template, int index, String sort) {
+	private static Completion parseContentProposalTemplate(IStrategoAppl template, int index, String sort) {
 		ITermFactory factory = Environment.getTermFactory();
 		IStrategoTerm prefixTerm = termAt(template, index + 0);
 		boolean noPrefix = "Placeholder".equals(cons(prefixTerm));
@@ -123,12 +127,12 @@ public class ContentProposerFactory extends AbstractServiceFactory<IContentPropo
 		completionParts = factory.makeListCons(prefixTerm, completionParts);
 		if (noPrefix)
 			completionParts = factory.makeListCons(factory.makeString(""), completionParts);
-		return new ContentProposalTemplate(prefix, sort, completionParts, "Blank".equals(cons(anno)));
+		return Completion.makeTemplate(prefix, sort, completionParts, "Blank".equals(cons(anno)));
 	}
 
 	private static Set<Pattern> readTriggers(Descriptor descriptor) throws BadDescriptorException {
 		Set<Pattern> results = new HashSet<Pattern>();
-		
+
 		for (IStrategoAppl trigger : collectTerms(descriptor.getDocument(), "CompletionTrigger")) {
 			try {
 				String pattern = termContents(termAt(trigger, 0));

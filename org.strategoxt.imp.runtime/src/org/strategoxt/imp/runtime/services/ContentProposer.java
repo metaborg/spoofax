@@ -1,6 +1,5 @@
 package org.strategoxt.imp.runtime.services;
 
-import static org.spoofax.interpreter.core.Tools.asJavaString;
 import static org.spoofax.interpreter.core.Tools.termAt;
 import static org.spoofax.interpreter.terms.IStrategoTerm.LIST;
 import static org.spoofax.interpreter.terms.IStrategoTerm.STRING;
@@ -10,6 +9,7 @@ import static org.strategoxt.imp.runtime.services.ContentProposerParser.COMPLETI
 import static org.strategoxt.imp.runtime.stratego.SourceAttachment.getResource;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -30,7 +30,6 @@ import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.TermFactory;
-import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.AstSortInspector;
 import org.strategoxt.imp.runtime.stratego.CandidateSortsPrimitive;
@@ -38,45 +37,40 @@ import org.strategoxt.imp.runtime.stratego.StrategoConsole;
 
 /**
  * Content completion.
- * 
+ *
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class ContentProposer implements IContentProposer {
 
 	public static String COMPLETION_TOKEN = "CONTENTCOMPLETE" + Math.abs(new Random().nextInt());
-	
+
 	private static final boolean IGNORE_TEMPLATE_PREFIX_CASE = false;
-	
-	private final StringBuilder proposalBuilder = new StringBuilder();
-	
+
 	private final StrategoObserver observer;
-	
+
 	private final String completionFunction;
-	
+
 	private final Pattern identifierLexical;
-	
-	private final String[] keywords;
-	
-	private final ContentProposalTemplate[] templates;
-	
+
+	private final Set<Completion> templates;
+
 	private final ContentProposerParser parser; // mutable state
-	
-	public ContentProposer(StrategoObserver observer, String completionFunction, Pattern identifierLexical, String[] keywords, ContentProposalTemplate[] templates) {
+
+	public ContentProposer(StrategoObserver observer, String completionFunction, Pattern identifierLexical, Set<Completion> templates) {
 		this.observer = observer;
 		this.completionFunction = completionFunction;
 		this.identifierLexical = identifierLexical;
-		this.keywords = keywords;
 		this.templates = templates;
 		this.parser = new ContentProposerParser(identifierLexical);
 	}
-	
+
 	public ICompletionProposal[] getContentProposals(IParseController controller, int offset, ITextViewer viewer) {
 		String document = viewer.getDocument().get();
-		
+
 		if (!identifierLexical.matcher(COMPLETION_TOKEN).matches())
 			return createErrorProposal("No proposals available - completion lexical must allow letters and numbers", offset);
-		
-		boolean avoidReparse = completionFunction == null && templates.length == 0;
+
+		boolean avoidReparse = completionFunction == null && templates.size() == 0;
 		IStrategoTerm ast = parser.parse(controller, offset, document, avoidReparse);
 		int prefixLength = parser.getCompletionPrefix() == null ? 0 : parser.getCompletionPrefix().length();
 		Set<String> sorts = new AstSortInspector(ast).getSortsAtOffset(offset - prefixLength, offset);
@@ -86,9 +80,10 @@ public class ContentProposer implements IContentProposer {
 		printCompletionTip(controller, sorts);
 
 		ICompletionProposal[] results =
-			toProposals(invokeCompletionFunction(controller, sorts), document,
+			computeAllCompletionProposals(invokeCompletionFunction(controller, sorts), document,
 					parser.getCompletionPrefix(), offset, sorts);
-		
+
+		// TVO: there is an interface for this AFAIK
 		/* UNDONE: automatic proposal insertion
 		if (results.length == 1 && results[0] instanceof SourceProposal) {
 			results[0].apply(viewer.getDocument());
@@ -98,21 +93,21 @@ public class ContentProposer implements IContentProposer {
 			return null;
 		}
 		*/
-		
+
 		return results;
     }
 
 	private ICompletionProposal[] getParseFailureProposals(IParseController controller,
 			String document, int offset, Set<String> sorts) {
-		
+
 		String startSymbol = Environment.getDescriptor(controller.getLanguage()).getStartSymbol();
-		
+
 		if (startSymbol != null && document.trim().indexOf('\n') == -1) {
 			// Empty document completion
 			String prefix = parser.readPrefix(offset, document);
 			sorts.add(startSymbol);
 			printCompletionTip(controller, sorts);
-			ICompletionProposal[] proposals = toProposals(TermFactory.EMPTY_LIST, document, prefix, offset, sorts);
+			ICompletionProposal[] proposals = computeAllCompletionProposals(TermFactory.EMPTY_LIST, document, prefix, offset, sorts);
 			if (proposals.length != 0) return proposals;
 		}
 		if (parser.isFatalSyntaxError()) {
@@ -140,21 +135,21 @@ public class ContentProposer implements IContentProposer {
 			}
 		}
 	}
-	
+
 	protected Pattern getCompletionLexical() {
 		return identifierLexical;
 	}
-	
+
 	protected ContentProposerParser getParser() {
 		return parser;
 	}
-		
+
 	protected void onProposalApplied() {
 		observer.setRushNextUpdate(true);
 		parser.getParser().getErrorHandler().setRushNextUpdate(true);
 		parser.getParser().scheduleParserUpdate(0, false);
 	}
-	
+
 	private IStrategoTerm invokeCompletionFunction(final IParseController controller, final Set<String> sorts) {
 		if (completionFunction == null) {
 			return Environment.getTermFactory().makeList();
@@ -184,91 +179,96 @@ public class ContentProposer implements IContentProposer {
 				}
 			}
 			Runner runner = new Runner();
-			
+
 			// UNDONE: causes deadlock with updater thread
 			//         (which acquires the display lock to display monitor updates)
 			//if (EditorState.isUIThread()) {
-			//	Display.getCurrent().syncExec(runner);	
+			//	Display.getCurrent().syncExec(runner);
 			//} else {
 				runner.run();
 			//}
 			return runner.result;
 		}
 	}
-	
-	private ICompletionProposal[] toProposals(IStrategoTerm proposals, String document, String prefix, int offset, Set<String> sorts) {
-		Debug.startTimer();
-		
-		String error = "No proposals available - '" + completionFunction
-				+ "' did not return a ([proposal], description) list";
+
+	private ICompletionProposal[] computeAllCompletionProposals(IStrategoTerm proposals, String document, String prefix, int offset, Set<String> sorts) {
+
+		// dynamically computed blueprints, i.e. from semantic analysis
+		Set<Completion> results = toCompletions(proposals, document, prefix, offset, sorts);
+
+		if (results == null) {
+			String error = "No proposals available - '" + completionFunction
+					+ "' did not return a ([proposal], description) list";
+
+			return createErrorProposal(error, offset);
+		}
+
+		// static blueprints, i.e. keywords and templates
+		results.addAll(templates);
+
+		return filterCompletions(results, document, prefix, offset, sorts);
+	}
+
+	private Set<Completion> toCompletions(IStrategoTerm proposals, String document, String prefix, int offset, Set<String> sorts) {
 
 		if (proposals.getTermType() != LIST)
-			return createErrorProposal(error, offset);
+			return null;
 
-		ITermFactory factory = Environment.getTermFactory();
-		IStrategoString emptyString = factory.makeString("");
-		Region offsetRegion = new Region(offset, 0);
-		
-		Set<ICompletionProposal> results = getKeywordAndTemplateProposals(document, prefix, offsetRegion, offset, sorts);
+		final ITermFactory factory = Environment.getTermFactory();
+		final IStrategoString emptyString = factory.makeString("");
+		final Set<Completion> results = new HashSet<Completion>();
 
 		for (IStrategoList cons = (IStrategoList) proposals; !cons.isEmpty(); cons = cons.tail()) {
 			IStrategoTerm proposal = cons.head();
-			String newText;
 			IStrategoList newTextParts;
 			IStrategoString description;
-			
-			if (proposal.getTermType() == STRING) {
-				newTextParts = factory.makeList(proposal);
-				newText = ((IStrategoString) proposal).stringValue();
-				description = emptyString;
-			} else if (proposal.getTermType() == LIST) {
-				newTextParts = (IStrategoList) proposal;
-				newText = proposalPartsToDisplayString(newTextParts);
-				description = emptyString;
-			} else {
-				IStrategoTerm newTextTerm = termAt(proposal, 0);
-				if (proposal.getTermType() != TUPLE || proposal.getSubtermCount() != 2
-						|| (newTextTerm.getTermType() != LIST && newTextTerm.getTermType() != STRING)
-						|| termAt(proposal, 1).getTermType() != STRING)
-					return createErrorProposal(error, offset);
-				if (newTextTerm.getTermType() == LIST) {
-					newTextParts = (IStrategoList) newTextTerm;
-					newText = proposalPartsToDisplayString(newTextParts);
-				} else {
-					newTextParts = factory.makeList(newTextTerm);
-					newText = ((IStrategoString) newTextTerm).stringValue();
-				}
-				description = termAt(proposal, 1);
+
+			switch (proposal.getTermType()) {
+				case STRING:
+					newTextParts = factory.makeList(proposal);
+					description = emptyString;
+					break;
+
+				case LIST:
+					newTextParts = (IStrategoList) proposal;
+					description = emptyString;
+					break;
+
+				case TUPLE:
+					if (proposal.getSubtermCount() != 2)
+						return null;
+					IStrategoTerm newTextTerm = termAt(proposal, 0);
+					switch (newTextTerm.getTermType()) {
+						case STRING: newTextParts = factory.makeList(newTextTerm); break;
+						case LIST:   newTextParts = (IStrategoList) newTextTerm;   break;
+						default:     return null;
+					}
+					description = termAt(proposal, 1);
+					break;
+
+				default:
+					return null;
 			}
-			if (newTextParts.isEmpty() || !startsWithCaseInsensitive(newText,prefix))
-				continue;
-			results.add(new ContentProposal(this, newText, newText, prefix, offsetRegion, newTextParts, description.stringValue()));
+
+			// empty list of new text parts is wrong
+			if (newTextParts.isEmpty() || termAt(newTextParts, 0).getTermType() != STRING) {
+				return null;
+			}
+
+			// description must be a string
+			if (description.getTermType() != STRING) {
+				return null;
+			}
+
+			results.add(Completion.makeSemantic(newTextParts, description.stringValue()));
 		}
-		
-		return toSortedArray(results);
-	}
-	
-	private static boolean startsWithCaseInsensitive(String s, String prefix) {
-		return s.length() >= prefix.length() && s.regionMatches(true, 0, prefix, 0, prefix.length());
-	}
-	
-	private String proposalPartsToDisplayString(IStrategoList proposalParts) {
-		proposalBuilder.setLength(0);
-		for (IStrategoList cons = proposalParts; !cons.isEmpty(); cons = cons.tail()) {
-			IStrategoTerm part = cons.head();
-			if (part.getTermType() != STRING) return null;
-			proposalBuilder.append(asJavaString(part));
-		}
-		if (proposalBuilder.indexOf("\\n") != -1 || proposalBuilder.indexOf("\\t") != -1) {
-			return asJavaString(proposalParts.head());
-		} else {
-			return proposalBuilder.toString();
-		}
+
+		return results;
 	}
 
-	private static ICompletionProposal[] toSortedArray(Set<ICompletionProposal> results) {
+	private static ICompletionProposal[] toSortedArray(ArrayList<ICompletionProposal> results) {
 		ICompletionProposal[] resultArray = results.toArray(new ICompletionProposal[results.size()]);
-		
+
 		Arrays.sort(resultArray, new Comparator<ICompletionProposal>() {
 			public int compare(ICompletionProposal o1, ICompletionProposal o2) {
 				return o1.getDisplayString().compareToIgnoreCase(o2.getDisplayString());
@@ -276,50 +276,22 @@ public class ContentProposer implements IContentProposer {
 		});
 		return resultArray;
 	}
-	
-	private Set<ICompletionProposal> getKeywordAndTemplateProposals(String document, String prefix,
-			Region offsetRegion, int offset, Set<String> sorts) {
-		
-		Set<ICompletionProposal> results = new HashSet<ICompletionProposal>();
+
+	private ICompletionProposal[] filterCompletions(Set<Completion> completions, String document, String prefix,
+			int offset, Set<String> sorts) {
+
+		final ArrayList<ICompletionProposal> results = new ArrayList<ICompletionProposal>();
+		final Region offsetRegion = new Region(offset, 0);
 		boolean backTrackResultsOnly = false;
-		
-		// TODO: simplify - turn completion keywords in completion templates?
-		//       right now we have code clone mccabe insanity...
-		for (String proposal : keywords) {
-			if (!backTrackResultsOnly && proposal.regionMatches(IGNORE_TEMPLATE_PREFIX_CASE, 0, prefix, 0, prefix.length())) {
-				if (prefix.length() > 0 || identifierLexical.matcher(proposal).lookingAt())
-					results.add(new ContentProposal(this, proposal, proposal, prefix, offsetRegion,
-							offset + proposal.length() - prefix.length(), ""));
-			} /*else*/ {
-				Matcher matcher = identifierLexical.matcher(proposal);
-				if (matcher.find() && (matcher.start() > 0 || matcher.end() < proposal.length())) {
-					// Handle completion literals with special characters, like "(disabled)"
-					if (matcher.start() == 0 && !matcher.find(matcher.end()))
-						continue;
-					do {
-						if (document.regionMatches(offset - matcher.start() - prefix.length(), proposal, 0, matcher.start()) 
-								&& proposal.regionMatches(matcher.start(), prefix, 0, prefix.length())) {
-							
-							String subProposal = proposal.substring(matcher.start());
-							if (!backTrackResultsOnly) results.clear();
-							backTrackResultsOnly = true;
-							results.add(new ContentProposal(this, proposal, subProposal, prefix,
-									offsetRegion, offset + matcher.end() - matcher.start() - prefix.length(), ""));
-							break;
-						}
-					} while (matcher.find(matcher.end()));
-				}
-			}
-		}
-		
-		for (ContentProposalTemplate proposal : templates) {
+
+		for (Completion proposal : completions) {
 			String proposalPrefix = proposal.getPrefix();
 			if (proposal.getSort() != null && !sorts.contains(proposal.getSort()))
 				continue;
 			if (!backTrackResultsOnly && proposalPrefix.regionMatches(IGNORE_TEMPLATE_PREFIX_CASE, 0, prefix, 0, prefix.length())) {
 				if (!proposal.isBlankLineRequired() || isBlankBeforeOffset(document, offset - prefix.length()))
 					if (prefix.length() > 0 || identifierLexical.matcher(proposalPrefix).lookingAt() || proposalPrefix.length() == 0)
-						results.add(new ContentProposal(this, proposal.getPrefix(), proposal, prefix, offsetRegion));
+						results.add(new ContentProposal(this, proposal, prefix, offsetRegion));
 			} /*else*/ {
 				Matcher matcher = identifierLexical.matcher(proposalPrefix);
 				if (matcher.find() && (matcher.start() > 0 || matcher.end() < proposalPrefix.length())) {
@@ -327,22 +299,22 @@ public class ContentProposer implements IContentProposer {
 					if (matcher.start() == 0 && !matcher.find(matcher.end()))
 						continue;
 					do {
-						if (document.regionMatches(offset - matcher.start() - prefix.length(), proposalPrefix, 0, matcher.start()) 
+						if (document.regionMatches(offset - matcher.start() - prefix.length(), proposalPrefix, 0, matcher.start())
 								&& proposalPrefix.regionMatches(matcher.start(), prefix, 0, prefix.length())) {
-							
+
 							// TODO: respect proposal.isBlankLineRequired() here?
 							String bigPrefix = proposalPrefix.substring(0, matcher.start() + prefix.length());
 							if (!backTrackResultsOnly) results.clear();
 							backTrackResultsOnly = true;
-							results.add(new ContentProposal(this, proposal.getPrefix(), proposal, bigPrefix, offsetRegion));
+							results.add(new ContentProposal(this, proposal, bigPrefix, offsetRegion));
 							break;
 						}
 					} while (matcher.find(matcher.end()));
 				}
 			}
 		}
-		
-		return results;
+
+		return toSortedArray(results);
 	}
 
 	private static boolean isBlankBeforeOffset(String document, int offset) {
@@ -359,5 +331,5 @@ public class ContentProposer implements IContentProposer {
 	private ICompletionProposal[] createErrorProposal(String error, int offset) {
 		return new ICompletionProposal[] { new ErrorProposal(error, offset) };
 	}
-	
+
 }
