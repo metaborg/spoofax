@@ -100,34 +100,30 @@ public class ContentProposerFactory extends AbstractServiceFactory<IContentPropo
 
 	private static ContentProposalTemplate[] readCompletionTemplates(Descriptor descriptor) {
 		Set<ContentProposalTemplate> results = new HashSet<ContentProposalTemplate>();
-		ITermFactory factory = Environment.getTermFactory();
 		
 		for (IStrategoAppl template : collectTerms(descriptor.getDocument(), "CompletionTemplate")) {
-			IStrategoTerm prefixTerm = termAt(template, 0);
-			boolean noPrefix = "Placeholder".equals(cons(prefixTerm));
-			String prefix = noPrefix ? "" : termContents(prefixTerm);
-			IStrategoList completionParts = termAt(template, 1);
-			IStrategoTerm anno = termAt(template, 2);
-			completionParts = factory.makeListCons(prefixTerm, completionParts);
-			if (noPrefix)
-				completionParts = factory.makeListCons(factory.makeString(""), completionParts);
-			results.add(new ContentProposalTemplate(prefix, null, completionParts, "Blank".equals(cons(anno))));
+			results.add(parseContentProposalTemplate(template, 0, null));
 		}
 
 		for (IStrategoAppl template : collectTerms(descriptor.getDocument(), "CompletionTemplateWithSort")) {
 			String sort = termContents(termAt(template, 0));
-			IStrategoTerm prefixTerm = termAt(template, 1);
-			boolean noPrefix = "Placeholder".equals(cons(prefixTerm));
-			String prefix = noPrefix ? "" : termContents(prefixTerm);
-			IStrategoList completionParts = termAt(template, 2);
-			IStrategoTerm anno = termAt(template, 3);
-			completionParts = factory.makeListCons(prefixTerm, completionParts);
-			if (noPrefix)
-				completionParts = factory.makeListCons(factory.makeString(""), completionParts);
-			results.add(new ContentProposalTemplate(prefix, sort, completionParts, "Blank".equals(cons(anno))));
+			results.add(parseContentProposalTemplate(template, 1, sort));
 		}
 		
 		return results.toArray(new ContentProposalTemplate[0]);
+	}
+
+	private static ContentProposalTemplate parseContentProposalTemplate(IStrategoAppl template, int index, String sort) {
+		ITermFactory factory = Environment.getTermFactory();
+		IStrategoTerm prefixTerm = termAt(template, index + 0);
+		boolean noPrefix = "Placeholder".equals(cons(prefixTerm));
+		String prefix = noPrefix ? "" : termContents(prefixTerm);
+		IStrategoList completionParts = termAt(template, index + 1);
+		IStrategoTerm anno = termAt(template, index + 2);
+		completionParts = factory.makeListCons(prefixTerm, completionParts);
+		if (noPrefix)
+			completionParts = factory.makeListCons(factory.makeString(""), completionParts);
+		return new ContentProposalTemplate(prefix, sort, completionParts, "Blank".equals(cons(anno)));
 	}
 
 	private static Set<Pattern> readTriggers(Descriptor descriptor) throws BadDescriptorException {
