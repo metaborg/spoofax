@@ -25,6 +25,7 @@ import org.eclipse.imp.services.IContentProposer;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
+import org.eclipse.swt.graphics.Point;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -281,8 +282,11 @@ public class ContentProposer implements IContentProposer {
 			int offset, Set<String> sorts, ITextViewer viewer) {
 
 		final ArrayList<ICompletionProposal> results = new ArrayList<ICompletionProposal>();
-		final Region offsetRegion = new Region(offset, 0);
+		final Point selection = viewer.getSelectedRange();
+		final Region offsetRegion = new Region(selection.x, selection.y);
 		boolean backTrackResultsOnly = false;
+
+		assert offset == offsetRegion.getOffset();
 
 		for (Completion proposal : completions) {
 			String proposalPrefix = proposal.getPrefix();
