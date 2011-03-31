@@ -6,7 +6,9 @@ import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.parser.IParseController;
+import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Display;
@@ -20,6 +22,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
 import org.eclipse.ui.texteditor.IDocumentProvider;
+import org.eclipse.ui.texteditor.ITextEditor;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.ITokenizer;
@@ -239,6 +242,19 @@ public class EditorState extends FileState {
 	}
 
 	/**
+	 * Asynchronously opens or activates an editor and jump to specified offset.
+	 * 
+	 * Exceptions are swallowed and logged.
+	 */
+	public static void asyncOpenEditor(Display display, final IFile file, final int offset, final boolean activate) {
+		display.asyncExec(new Runnable() {
+			public void run() {
+				openEditor(file, offset, activate);
+			}
+		});
+	}
+
+	/**
 	 * Opens a new editor. Must be invoked from the UI thread.
 	 * 
 	 * PartInitExceptions are swallowed and logged.
@@ -251,6 +267,25 @@ public class EditorState extends FileState {
 			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 		try {
 			IDE.openEditor(page, file, UniversalEditor.EDITOR_ID, activate);
+		} catch (PartInitException e) {
+			Environment.logException("Cannot open an editor for " + file, e);
+		}
+	}
+	
+	/**
+	 * Opens a new editor and jump to offset. Must be invoked from the UI thread.
+	 * 
+	 * PartInitExceptions are swallowed and logged.
+	 */
+	public static void openEditor(final IFile file, final int offset, final boolean activate) {
+		if (!isUIThread())
+			throw new IllegalStateException("Must be called from UI thread");
+		
+		IWorkbenchPage page =
+			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+		try {
+			ITextEditor ite = (ITextEditor) IDE.openEditor(page, file, UniversalEditor.EDITOR_ID, activate);
+			ite.selectAndReveal(offset, 0);
 		} catch (PartInitException e) {
 			Environment.logException("Cannot open an editor for " + file, e);
 		}
