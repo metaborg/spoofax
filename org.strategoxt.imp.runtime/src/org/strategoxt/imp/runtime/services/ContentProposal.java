@@ -156,16 +156,18 @@ public class ContentProposal extends SourceProposal implements ICompletionPropos
 	@Override
 	public void apply(IDocument document) {
 		try {
-	        Region range = getRange();
-			String newText = newTextParts == null
+			final Region range = getRange();
+			final String newText = newTextParts == null
 					? getNewText()
 					: proposalPartsToString(document, newTextParts);
+			final String prefix = getPrefix();
 			justApplied = true;
-			document.replace(range.getOffset(), range.getLength(), newText.substring(getPrefix().length()));
+			assert document.get(range.getOffset() - prefix.length(), prefix.length()).equals(prefix);
+			document.replace(range.getOffset(), range.getLength(), newText.substring(prefix.length()));
 
 			if (newTextParts != null) {
-				Point selection = proposalPartsToSelection(document, newTextParts, range.getOffset() - getPrefix().length());
-				goToLinkedMode(viewer, range.getOffset() - getPrefix().length(), document, selection.x, newTextParts);
+				Point selection = proposalPartsToSelection(document, newTextParts, range.getOffset() - prefix.length());
+				goToLinkedMode(viewer, range.getOffset() - prefix.length(), document, selection.x, newTextParts);
 			}
 
 		} catch (BadLocationException e) {

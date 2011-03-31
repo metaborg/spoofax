@@ -29,55 +29,55 @@ import org.strategoxt.imp.runtime.parser.SGLRParseController;
 
 /**
  * Content completion parsing and tree construction
- * 
+ *
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class ContentProposerParser {
-	
+
 	protected static final IStrategoConstructor COMPLETION_CONSTRUCTOR =
 		getTermFactory().makeConstructor("COMPLETION", 1);
-	
+
 	protected static final IStrategoConstructor COMPLETION_UNKNOWN =
 		getTermFactory().makeConstructor("NOCONTEXT", 1);
 
 	private static final long REINIT_PARSE_DELAY = 4000;
-	
+
 	private final Pattern identifierLexical;
-	
+
 	private SGLRParseController parser;
-	
+
 	private IStrategoTerm lastParserAst;
-	
+
 	private IStrategoTerm lastCompletionAst;
-	
+
 	private IStrategoTerm lastCompletionNode;
-	
+
 	private String lastCompletionPrefix;
-	
+
 	private String lastDocument;
-	
+
 	private int lastOffset;
-	
+
 	private IStrategoTerm completionNode;
-	
+
 	private String completionPrefix;
-	
+
 	public ContentProposerParser(Pattern identifierLexical) {
 		this.identifierLexical = identifierLexical;
 	}
-	
+
 	protected SGLRParseController getParser() {
 		return parser;
 	}
-	
+
 	public IStrategoTerm getCompletionNode() {
 		return completionNode;
 	}
-	
+
 	public String getCompletionPrefix() {
 		return completionPrefix;
 	}
-	
+
 	public boolean isFatalSyntaxError() {
 		return lastCompletionAst == null && lastParserAst == null && completionNode == null;
 	}
@@ -86,7 +86,7 @@ public class ContentProposerParser {
 		lastCompletionNode = completionNode;
 		lastCompletionPrefix = completionPrefix;
 		completionNode = null;
-		
+
 		SGLRParseController controller = this.parser = getParser(icontroller);
 		IStrategoTerm ast = tryReusePreviousAst(offset, document);
 		if (ast != null) return ast;
@@ -94,8 +94,8 @@ public class ContentProposerParser {
 		String documentWithToken = document.substring(0, offset) + COMPLETION_TOKEN + document.substring(offset);
 		ast = parse(controller, offset, documentWithToken, avoidReparse);
 		if (ast == null) return null;
-		
-		IStrategoTerm result = identifyCompletionNode(ast, COMPLETION_TOKEN);
+
+		IStrategoTerm result = identifyCompletionNode(ast, offset, document, COMPLETION_TOKEN);
 		if (completionNode == null) result = addNoContextNode(ast, offset, document);
 		return result;
 	}
@@ -103,7 +103,7 @@ public class ContentProposerParser {
 	private IStrategoTerm parse(SGLRParseController controller, int offset, String document, boolean avoidReparse) {
 		JSGLRI parser = controller.getParser();
 		IStrategoTerm result;
-		
+
 		controller.scheduleParserUpdate(REINIT_PARSE_DELAY, true); // cancel current parse
 		Debug.startTimer();
 		controller.getParseLock().lock();
@@ -162,7 +162,7 @@ public class ContentProposerParser {
 		lastOffset = offset;
 		return null;
 	}
-	
+
 	/**
 	 * @return Whether doc1 and doc2 are equal disregarding the last
 	 * identifierLexical immediately before offset. If there is no
@@ -174,7 +174,7 @@ public class ContentProposerParser {
 		if (s1 == null || s2 == null) return false;
 		return s1.equals(s2);
 	}
-	
+
 	/**
 	 * @return s with the occurrence of p immediately before endIndex removed,
 	 * or null if p does not match before endIndex. Note: only examines the
@@ -190,7 +190,7 @@ public class ContentProposerParser {
 		}
 		return null;
 	}
-	
+
 	private IStrategoTerm reusePreviousAst(int offset, String document, String prefix) {
 		completionPrefix = prefix;
 		lastDocument = document;
@@ -213,7 +213,7 @@ public class ContentProposerParser {
 			return null;
 		}
 	}
-	
+
 	private IStrategoTerm forceUseOldAst(SGLRParseController parser, int offset, String document) {
 		if (parser.getCurrentAst() != lastParserAst) { // parser has a more recent AST
 			lastParserAst = parser.getCurrentAst();
@@ -232,15 +232,15 @@ public class ContentProposerParser {
 			controller = ((DynamicParseController) controller).getWrapped();
 		return (SGLRParseController) controller;
 	}
-	
-	private IStrategoTerm identifyCompletionNode(final IStrategoTerm ast, final String completionToken) {
+
+	private IStrategoTerm identifyCompletionNode(final IStrategoTerm ast, final int offset, final String document, final String completionToken) {
 		class Visitor extends TermVisitor {
 			IStrategoTerm result = ast;
 			public void preVisit(IStrategoTerm node) {
 				if (isTermString(node)) {
 					String value = ((IStrategoString) node).stringValue();
 					if (value.indexOf(completionToken) > -1) {
-						putCompletionNode(node, value.replace(completionToken, ""), false);
+						putCompletionNode(node, readPrefix(offset, document), false);
 						result = getRoot(completionNode);
 					}
 				}
@@ -250,7 +250,7 @@ public class ContentProposerParser {
 		visitor.visit(ast);
 		return visitor.result;
 	}
-	
+
 	/**
 	 * Creates a new abstract syntax tree with the given node
 	 * replaced by a COMPLETION(prefix) term,
@@ -258,9 +258,9 @@ public class ContentProposerParser {
 	 */
 	private void putCompletionNode(IStrategoTerm node, final String prefix, final boolean noContext) {
 		final ParentTermFactory factory = new ParentTermFactory(Environment.getTermFactory());
-		
+
 		final IStrategoTerm targetNode = tryGetCompletionNodeWrappingTerm(node);
-		
+
 		new TermTransformer(factory, true) {
 			@Override
 			public IStrategoTerm preTransform(IStrategoTerm current) {
@@ -293,11 +293,11 @@ public class ContentProposerParser {
 		assert getParent(node) == null || tryGetConstructor(getParent(node)) != COMPLETION_CONSTRUCTOR;
 		return node;
 	}
-	
+
 	private IStrategoTerm addNoContextNode(IStrategoTerm ast, final int offset, String document) {
 		class Visitor extends TermVisitor {
 			IStrategoTerm targetNode, lastNode;
-			
+
 			public void preVisit(IStrategoTerm node) {
 				if (getLeftToken(node).getStartOffset() <= offset
 						&& offset <= getRightToken(node).getEndOffset()) {
@@ -315,7 +315,7 @@ public class ContentProposerParser {
 		}
 		return ast;
 	}
-	
+
 	/**
 	 * Read the identifier at the offset location, using
 	 * the identifier lexical regular expression.
@@ -333,5 +333,5 @@ public class ContentProposerParser {
 		}
 		return document.substring(0, offset);
 	}
-	
+
 }
