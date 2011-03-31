@@ -71,7 +71,7 @@ public class ContentProposal extends SourceProposal implements ICompletionPropos
 	}
 
 	private Point proposalPartsToSelection(IDocument document, IStrategoList proposalParts, int offset) {
-		int i = termContents(proposalParts.head()).length();
+		int i = AutoEditStrategy.formatInsertedText(termContents(proposalParts.head()), "").length();
 		for (IStrategoList cons = proposalParts.tail(); !cons.isEmpty(); cons = cons.tail()) {
 			IStrategoTerm partTerm = cons.head();
 			String part = proposalPartToString(document, partTerm);
