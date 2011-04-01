@@ -118,19 +118,4 @@ public class Completion {
 		return AutoEditStrategy.formatInsertedText(result.toString(), "");
 	}
 
-	@Override
-	public boolean equals(Object obj) {
-		if (obj == this) return true;
-		if (!(obj instanceof Completion)) return false;
-		final Completion that = (Completion) obj;
-		return this.getName().equals(that.getName())
-			&& ((this.getNewTextParts() == null && that.getNewTextParts() == null)
-					|| (this.getNewTextParts() != null && this.getNewTextParts().equals(that.getNewTextParts())));
-	}
-
-	@Override
-	public int hashCode() {
-		return this.getName().hashCode();
-	}
-
 }

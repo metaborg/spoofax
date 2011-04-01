@@ -226,4 +226,23 @@ public class ContentProposal implements ICompletionProposal, ICompletionProposal
 	public IContextInformation getContextInformation() {
 		return null;
 	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == this) return true;
+		if (!(obj instanceof ContentProposal)) return false;
+		final ContentProposal that = (ContentProposal) obj;
+		return equals(this.getDisplayString(), that.getDisplayString())
+			&& equals(this.completion.getNewTextParts(), that.completion.getNewTextParts());
+	}
+
+	// TODO: move to some utility class/library
+	private static final boolean equals(Object a, Object b) {
+		return (a == null && b == null) || (a != null && a.equals(b));
+	}
+
+	@Override
+	public int hashCode() {
+		return this.getDisplayString().hashCode();
+	}
 }

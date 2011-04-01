@@ -9,7 +9,6 @@ import static org.strategoxt.imp.runtime.services.ContentProposerParser.COMPLETI
 import static org.strategoxt.imp.runtime.stratego.SourceAttachment.getResource;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -269,7 +268,7 @@ public class ContentProposer implements IContentProposer {
 		return results;
 	}
 
-	private static ICompletionProposal[] toSortedArray(ArrayList<ICompletionProposal> results) {
+	private static ICompletionProposal[] toSortedArray(Set<ICompletionProposal> results) {
 		ICompletionProposal[] resultArray = results.toArray(new ICompletionProposal[results.size()]);
 
 		Arrays.sort(resultArray, new Comparator<ICompletionProposal>() {
@@ -283,7 +282,7 @@ public class ContentProposer implements IContentProposer {
 	private ICompletionProposal[] filterCompletions(Set<Completion> completions, String document, String prefix,
 			int offset, Set<String> sorts, ITextViewer viewer) {
 
-		final ArrayList<ICompletionProposal> results = new ArrayList<ICompletionProposal>();
+		final Set<ICompletionProposal> results = new HashSet<ICompletionProposal>();
 		final Point selection = viewer.getSelectedRange();
 		final Position offsetPosition = new Position(selection.x, selection.y);
 		boolean backTrackResultsOnly = false;
