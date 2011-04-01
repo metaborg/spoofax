@@ -9,7 +9,7 @@ exports
     CompletionPart CompletionAnno
 
   syntax
-  
+
     "completions" <SectionName-LEX> <LAYOUT?-CF> <SemanticRule*-CF> -> <Section-CF> {cons("Completions")}
 
     "completions" -> <ReservedName-CF>
@@ -23,22 +23,22 @@ exports
     "identifier" "lexical" ":" PropertyValue -> SemanticRule {cons("IdentifierLexical")}
 
     "completion" "keyword" ":" PropertyValue CompletionAnno -> SemanticRule {cons("CompletionKeyword")}
-    
+
     "completion" "template" ":" CompletionPart CompletionPart* CompletionAnno -> SemanticRule {cons("CompletionTemplate")}
-    
+
     %% Deprecated: conflicts with content completion
     "completion" "template" ":" Id CompletionPart+ CompletionAnno -> SemanticRule {cons("CompletionTemplate"), avoid, deprecated("Add quotes to the starting literal")}
-    
+
     "completion" "template" ":" Sort "=" CompletionPart CompletionPart* CompletionAnno -> SemanticRule {cons("CompletionTemplateWithSort")}
-    
+
     %% Used as content completion triggers
     "completion" "template" ":" PropertyValue CompletionPart* CompletionAnno -> SemanticRule {cons("CompletionTemplate"), recover, avoid}
     "completion" "template" ":" Sort "=" PropertyValue CompletionPart* CompletionAnno -> SemanticRule {cons("CompletionTemplateWithSort"), recover, avoid}
 
     "completion" "trigger" ":" PropertyValue CompletionAnno -> SemanticRule {cons("CompletionTrigger")}
-  
+
   context-free syntax
-  
+
     "completions" -> StrategoCall {reject}
     "completion"  -> StrategoCall {reject}
     "identifier"  -> StrategoCall {reject}
@@ -46,9 +46,10 @@ exports
     "builder"     -> StrategoCall {reject}
     "occurrence"  -> StrategoCall {reject}
     ReservedName  -> StrategoCall {reject}
-    
+
     String      -> CompletionPart
     Placeholder -> CompletionPart {cons("Placeholder")}
+    "(cursor)"  -> CompletionPart {cons("Cursor")}
 
                  -> CompletionAnno {cons("None")}
     "(disabled)" -> CompletionAnno {cons("Disable")}
@@ -62,7 +63,7 @@ exports
     "identifier" -> PropertyValue {reject}
 
   lexical syntax
-    
+
     "<" PlaceholderChar* ">" -> Placeholder
     ~[\>\n]                  -> PlaceholderChar
-    
+

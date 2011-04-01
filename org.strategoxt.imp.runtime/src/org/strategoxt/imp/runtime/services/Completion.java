@@ -107,7 +107,11 @@ public class Completion {
 				String contents = placeholder.stringValue();
 				contents = contents.substring(1, contents.length() - 1); // strip < >
 				result.append(contents);
-			} else {
+			}
+			else if ("Cursor".equals(cons(part))) {
+				// do nothing
+			}
+			else {
 				result.append(termContents(part));
 			}
 		}

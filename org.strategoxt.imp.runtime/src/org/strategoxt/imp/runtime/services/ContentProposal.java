@@ -75,6 +75,9 @@ public class ContentProposal extends SourceProposal implements ICompletionPropos
 		for (IStrategoList cons = proposalParts; !cons.isEmpty(); cons = cons.tail()) {
 			IStrategoTerm partTerm = cons.head();
 			String part = proposalPartToString(document, partTerm);
+			if ("Cursor".equals(cons(partTerm))) {
+				return new Point(offset + i, 0);
+			}
 			i += part.length();
 		}
 		return new Point(offset + i, 0);
@@ -96,7 +99,11 @@ public class ContentProposal extends SourceProposal implements ICompletionPropos
 				String contents = placeholder.stringValue();
 				contents = contents.substring(1, contents.length() - 1); // strip < >
 				return AutoEditStrategy.formatInsertedText(contents, lineStart);
-			} else {
+			}
+			else if ("Cursor".equals(cons(part))) {
+				return "";
+			}
+			else {
 				return AutoEditStrategy.formatInsertedText(termContents(part), lineStart);
 			}
 		} catch (BadLocationException e) {
@@ -105,7 +112,13 @@ public class ContentProposal extends SourceProposal implements ICompletionPropos
 		}
 	}
 
-	private LinkedModeModel buildLinkedModeModel(IDocument document, int offset, IStrategoList proposalParts) throws BadLocationException {
+	private static class LinkedModeModelAndExitPos {
+		public LinkedModeModel model;
+		public int exitPos;
+	}
+
+	private LinkedModeModelAndExitPos buildLinkedModeModel(IDocument document, int offset, IStrategoList proposalParts) throws BadLocationException {
+		LinkedModeModelAndExitPos result = new LinkedModeModelAndExitPos();
 		HashMap<String, LinkedPositionGroup> groups = new HashMap<String, LinkedPositionGroup>();
 		int i = 0;
 		for (IStrategoList cons = proposalParts; !cons.isEmpty(); cons = cons.tail()) {
@@ -119,27 +132,34 @@ public class ContentProposal extends SourceProposal implements ICompletionPropos
 					group = new LinkedPositionGroup();
 					groups.put(part, group);
 				}
-				group.addPosition(new LinkedPosition(document, offset + i, part.length(), 0));
+				group.addPosition(new LinkedPosition(document, offset + i, part.length(), group.isEmpty() ? 0 : LinkedPositionGroup.NO_STOP));
+			}
+			else if ("Cursor".equals(cons(partTerm))) {
+				result.exitPos = offset + i;
 			}
 			i += part.length();
+		}
+		if (result.exitPos == 0) {
+			result.exitPos = offset + i;
 		}
 		if (!groups.isEmpty()) {
 			LinkedModeModel model = new LinkedModeModel();
 			for (LinkedPositionGroup group : groups.values()) {
 				model.addGroup(group);
 			}
-			return model;
+			result.model = model;
 		}
-		return null;
+		return result;
 	}
 
-	private void goToLinkedMode(ITextViewer viewer, int offset, IDocument doc, int exitPos, IStrategoList proposalParts) throws BadLocationException {
-		final LinkedModeModel model = buildLinkedModeModel(doc, offset, proposalParts);
+	private void goToLinkedMode(ITextViewer viewer, int offset, IDocument doc, IStrategoList proposalParts) throws BadLocationException {
+		final LinkedModeModelAndExitPos result = buildLinkedModeModel(doc, offset, proposalParts);
+		final LinkedModeModel model = result.model;
 		if (model != null) {
 			model.forceInstall();
 
 			final LinkedModeUI ui = new EditorLinkedModeUI(model, viewer);
-			ui.setExitPosition(viewer, exitPos, 0, Integer.MAX_VALUE);
+			ui.setExitPosition(viewer, result.exitPos, 0, Integer.MAX_VALUE);
 
 			final Job job = new UIJob("going into linked mode") {
 				@Override
@@ -166,8 +186,7 @@ public class ContentProposal extends SourceProposal implements ICompletionPropos
 			document.replace(range.getOffset(), range.getLength(), newText.substring(prefix.length()));
 
 			if (newTextParts != null) {
-				Point selection = proposalPartsToSelection(document, newTextParts, range.getOffset() - prefix.length());
-				goToLinkedMode(viewer, range.getOffset() - prefix.length(), document, selection.x, newTextParts);
+				goToLinkedMode(viewer, range.getOffset() - prefix.length(), document, newTextParts);
 			}
 
 		} catch (BadLocationException e) {

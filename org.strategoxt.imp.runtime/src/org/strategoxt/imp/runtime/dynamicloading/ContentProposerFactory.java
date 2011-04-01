@@ -120,13 +120,11 @@ public class ContentProposerFactory extends AbstractServiceFactory<IContentPropo
 	private static Completion parseContentProposalTemplate(IStrategoAppl template, int index, String sort) {
 		ITermFactory factory = Environment.getTermFactory();
 		IStrategoTerm prefixTerm = termAt(template, index + 0);
-		boolean noPrefix = "Placeholder".equals(cons(prefixTerm));
+		boolean noPrefix = !"String".equals(cons(prefixTerm));
 		String prefix = noPrefix ? "" : termContents(prefixTerm);
 		IStrategoList completionParts = termAt(template, index + 1);
 		IStrategoTerm anno = termAt(template, index + 2);
 		completionParts = factory.makeListCons(prefixTerm, completionParts);
-		if (noPrefix)
-			completionParts = factory.makeListCons(factory.makeString(""), completionParts);
 		return Completion.makeTemplate(prefix, sort, completionParts, "Blank".equals(cons(anno)));
 	}
 
