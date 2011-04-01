@@ -10,17 +10,19 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.imp.editor.SourceProposal;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextViewer;
-import org.eclipse.jface.text.Region;
+import org.eclipse.jface.text.Position;
+import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.ICompletionProposalExtension6;
+import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.link.LinkedModeModel;
 import org.eclipse.jface.text.link.LinkedModeUI;
 import org.eclipse.jface.text.link.LinkedPosition;
 import org.eclipse.jface.text.link.LinkedPositionGroup;
 import org.eclipse.jface.viewers.StyledString;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.ui.progress.UIJob;
 import org.eclipse.ui.texteditor.link.EditorLinkedModeUI;
@@ -35,36 +37,46 @@ import org.strategoxt.imp.runtime.Environment;
  * @author Lennart Kats <lennart add lclnet.nl>
  * @author Tobi Vollebregt
  */
-public class ContentProposal extends SourceProposal implements ICompletionProposalExtension6 {
+public class ContentProposal implements ICompletionProposal, ICompletionProposalExtension6 {
 
 	private static volatile boolean justApplied;
 
 	private final ContentProposer proposer;
 
-	private final IStrategoList newTextParts;
-
 	private final Completion completion;
+
+	private final String prefix;
 
 	private final ITextViewer viewer;
 
-	public ContentProposal(ContentProposer proposer, Completion completion, String prefix, Region region, ITextViewer viewer) {
-		super(completion.getName(), completion.getPrefix(), prefix, region, null);
-		this.proposer = proposer;
-		this.newTextParts = completion.getNewTextParts();
-		this.completion = completion;
-		this.viewer = viewer;
+	private Position position;
+
+	// Must be settable to get rid of constructor circular dependency with ProposalPosition
+	public void setPosition(Position position) {
+		this.position = position;
 	}
 
-	@Override
+	public ContentProposal(ContentProposer proposer, Completion completion, String prefix, Position position, ITextViewer viewer) {
+		this.proposer = proposer;
+		this.completion = completion;
+		this.prefix = prefix;
+		this.viewer = viewer;
+		this.position = position;
+	}
+
+	public ContentProposal(ContentProposer proposer, Completion completion, String prefix, ITextViewer viewer) {
+		this(proposer, completion, prefix, null, viewer);
+	}
+
 	public Point getSelection(IDocument document) {
+		final IStrategoList newTextParts = completion.getNewTextParts();
 		if (newTextParts == null) {
-			return super.getSelection(document);
+			return new Point(position.getOffset() + position.getLength() - prefix.length(), 0);
 		} else {
-			return proposalPartsToSelection(document, newTextParts, getRange().getOffset() - getPrefix().length());
+			return proposalPartsToSelection(document, newTextParts, position.getOffset() - prefix.length());
 		}
 	}
 
-	@Override
 	public String getAdditionalProposalInfo() {
 		// TODO: support newlines and tabs in proposal descriptions?
 		return completion.getDescription();
@@ -93,7 +105,7 @@ public class ContentProposal extends SourceProposal implements ICompletionPropos
 
 	private String proposalPartToString(IDocument document, IStrategoTerm part) {
 		try {
-			String lineStart = AutoEditStrategy.getLineBeforeOffset(document, getRange().getOffset());
+			String lineStart = AutoEditStrategy.getLineBeforeOffset(document, position.getOffset());
 			if ("Placeholder".equals(cons(part))) {
 				IStrategoString placeholder = termAt(part, 0);
 				String contents = placeholder.stringValue();
@@ -173,20 +185,18 @@ public class ContentProposal extends SourceProposal implements ICompletionPropos
 		}
 	}
 
-	@Override
 	public void apply(IDocument document) {
 		try {
-			final Region range = getRange();
+			final IStrategoList newTextParts = completion.getNewTextParts();
 			final String newText = newTextParts == null
-					? getNewText()
+					? completion.getPrefix()
 					: proposalPartsToString(document, newTextParts);
-			final String prefix = getPrefix();
 			justApplied = true;
-			assert document.get(range.getOffset() - prefix.length(), prefix.length()).equals(prefix);
-			document.replace(range.getOffset(), range.getLength(), newText.substring(prefix.length()));
+			assert document.get(position.getOffset() - prefix.length(), prefix.length()).equals(prefix);
+			document.replace(position.getOffset(), position.getLength(), newText.substring(prefix.length()));
 
 			if (newTextParts != null) {
-				goToLinkedMode(viewer, range.getOffset() - prefix.length(), document, newTextParts);
+				goToLinkedMode(viewer, position.getOffset() - prefix.length(), document, newTextParts);
 			}
 
 		} catch (BadLocationException e) {
@@ -201,13 +211,19 @@ public class ContentProposal extends SourceProposal implements ICompletionPropos
 		return result;
 	}
 
-	@Override
-	public String getNewText() {
-		assert newTextParts == null : "Don't use me if newTextParts != null";
-		return super.getNewText();
+	public String getDisplayString() {
+		return completion.getName();
 	}
 
 	public StyledString getStyledDisplayString() {
 		return completion.getStyledName();
+	}
+
+	public Image getImage() {
+		return null;
+	}
+
+	public IContextInformation getContextInformation() {
+		return null;
 	}
 }

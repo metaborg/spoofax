@@ -23,7 +23,7 @@ import org.eclipse.imp.editor.ErrorProposal;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.services.IContentProposer;
 import org.eclipse.jface.text.ITextViewer;
-import org.eclipse.jface.text.Region;
+import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.swt.graphics.Point;
 import org.spoofax.interpreter.terms.IStrategoList;
@@ -283,10 +283,10 @@ public class ContentProposer implements IContentProposer {
 
 		final ArrayList<ICompletionProposal> results = new ArrayList<ICompletionProposal>();
 		final Point selection = viewer.getSelectedRange();
-		final Region offsetRegion = new Region(selection.x, selection.y);
+		final Position offsetPosition = new Position(selection.x, selection.y);
 		boolean backTrackResultsOnly = false;
 
-		assert offset == offsetRegion.getOffset();
+		assert offset == offsetPosition.getOffset();
 
 		for (Completion proposal : completions) {
 			String proposalPrefix = proposal.getPrefix();
@@ -295,7 +295,7 @@ public class ContentProposer implements IContentProposer {
 			if (!backTrackResultsOnly && proposalPrefix.regionMatches(IGNORE_TEMPLATE_PREFIX_CASE, 0, prefix, 0, prefix.length())) {
 				if (!proposal.isBlankLineRequired() || isBlankBeforeOffset(document, offset - prefix.length()))
 					if (prefix.length() > 0 || identifierLexical.matcher(proposalPrefix).lookingAt() || proposalPrefix.length() == 0)
-						results.add(new ContentProposal(this, proposal, prefix, offsetRegion, viewer));
+						results.add(new ContentProposal(this, proposal, prefix, offsetPosition, viewer));
 			} /*else*/ {
 				Matcher matcher = identifierLexical.matcher(proposalPrefix);
 				if (matcher.find() && (matcher.start() > 0 || matcher.end() < proposalPrefix.length())) {
@@ -310,7 +310,7 @@ public class ContentProposer implements IContentProposer {
 							String bigPrefix = proposalPrefix.substring(0, matcher.start() + prefix.length());
 							if (!backTrackResultsOnly) results.clear();
 							backTrackResultsOnly = true;
-							results.add(new ContentProposal(this, proposal, bigPrefix, offsetRegion, viewer));
+							results.add(new ContentProposal(this, proposal, bigPrefix, offsetPosition, viewer));
 							break;
 						}
 					} while (matcher.find(matcher.end()));
