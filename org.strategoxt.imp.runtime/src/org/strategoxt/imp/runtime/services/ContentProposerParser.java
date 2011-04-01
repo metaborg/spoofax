@@ -14,6 +14,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.imp.parser.IParseController;
+import org.eclipse.jface.text.Position;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -56,7 +57,7 @@ public class ContentProposerParser {
 
 	private String lastDocument;
 
-	private int lastOffset;
+	private Position lastSelection;
 
 	private IStrategoTerm completionNode;
 
@@ -82,16 +83,18 @@ public class ContentProposerParser {
 		return lastCompletionAst == null && lastParserAst == null && completionNode == null;
 	}
 
-	public IStrategoTerm parse(IParseController icontroller, int offset, String document, boolean avoidReparse) {
+	public IStrategoTerm parse(IParseController icontroller, Position selection, String document, boolean avoidReparse) {
+		final int offset = selection.getOffset();
+
 		lastCompletionNode = completionNode;
 		lastCompletionPrefix = completionPrefix;
 		completionNode = null;
 
 		SGLRParseController controller = this.parser = getParser(icontroller);
-		IStrategoTerm ast = tryReusePreviousAst(offset, document);
+		IStrategoTerm ast = tryReusePreviousAst(selection, document);
 		if (ast != null) return ast;
 
-		String documentWithToken = document.substring(0, offset) + COMPLETION_TOKEN + document.substring(offset);
+		String documentWithToken = document.substring(0, offset) + COMPLETION_TOKEN + document.substring(offset + selection.getLength());
 		ast = parse(controller, offset, documentWithToken, avoidReparse);
 		if (ast == null) return null;
 
@@ -137,29 +140,38 @@ public class ContentProposerParser {
 	/**
 	 * Reuse the previous AST if the user just added or deleted a single character.
 	 */
-	private IStrategoTerm tryReusePreviousAst(int offset, String document) {
+	private IStrategoTerm tryReusePreviousAst(Position selection, String document) {
+		final int offset = selection.getOffset();
 		if (offset != 0 && lastCompletionNode != null) {
-			if (lastDocument.length() == document.length() - 1 && lastOffset == offset - 1) {
-				// Reuse document, ignoring latest typed character
-				String newCharacter = document.substring(offset - 1, offset);
-				String previousDocument = lastDocument.substring(0, offset - 1) + newCharacter + lastDocument.substring(offset - 1);
-				if (documentsSufficientlyEqual(document, previousDocument, offset)) {
-					return reusePreviousAst(offset, document, lastCompletionPrefix + newCharacter);
+			final int lastOffset = lastSelection.getOffset();
+			if (lastSelection.getLength() == 0 && selection.getLength() == 0) {
+				// No selection present.
+				if (lastDocument.length() == document.length() - 1 && lastOffset == offset - 1) {
+					// Reuse document, ignoring latest typed character
+					String newCharacter = document.substring(offset - 1, offset);
+					String previousDocument = lastDocument.substring(0, offset - 1) + newCharacter + lastDocument.substring(offset - 1);
+					if (documentsSufficientlyEqual(document, previousDocument, offset)) {
+						return reusePreviousAst(selection, document, lastCompletionPrefix + newCharacter);
+					}
+				} else if (lastCompletionPrefix.length() > 0
+						&& lastDocument.length() == document.length() + 1 && lastOffset == offset + 1) {
+					// Reuse document, ignoring previously typed character
+					String oldCharacter = lastDocument.substring(offset, offset + 1);
+					String currentDocument = document.substring(0, offset) + oldCharacter + document.substring(offset);
+					if (documentsSufficientlyEqual(currentDocument, lastDocument, offset + 1)) {
+						return reusePreviousAst(selection, document, lastCompletionPrefix.substring(0, lastCompletionPrefix.length() - 1));
+					}
+				} else if (lastDocument.equals(document) && offset == lastOffset) {
+					return reusePreviousAst(selection, document, lastCompletionPrefix);
 				}
-			} else if (lastCompletionPrefix.length() > 0
-					&& lastDocument.length() == document.length() + 1 && lastOffset == offset + 1) {
-				// Reuse document, ignoring previously typed character
-				String oldCharacter = lastDocument.substring(offset, offset + 1);
-				String currentDocument = document.substring(0, offset) + oldCharacter + document.substring(offset);
-				if (documentsSufficientlyEqual(currentDocument, lastDocument, offset + 1)) {
-					return reusePreviousAst(offset, document, lastCompletionPrefix.substring(0, lastCompletionPrefix.length() - 1));
-				}
-			} else if (lastDocument.equals(document) && offset == lastOffset) {
-				return reusePreviousAst(offset, document, lastCompletionPrefix);
+			}
+			else {
+				// Selection present.
+				// Probably not worth bothering with reuse here.
 			}
 		}
 		lastDocument = document;
-		lastOffset = offset;
+		lastSelection = selection;
 		return null;
 	}
 
@@ -191,27 +203,13 @@ public class ContentProposerParser {
 		return null;
 	}
 
-	private IStrategoTerm reusePreviousAst(int offset, String document, String prefix) {
+	private IStrategoTerm reusePreviousAst(Position selection, String document, String prefix) {
 		completionPrefix = prefix;
 		lastDocument = document;
-		lastOffset = offset;
-		String prefixInAst = sanitizePrefix(completionPrefix);
-		if (prefixInAst == null)
-			return null;
+		lastSelection = selection;
 		completionNode = lastCompletionNode;
-		putCompletionNode(completionNode, prefixInAst, false);
+		putCompletionNode(completionNode, prefix, false);
 		return lastCompletionAst;
-	}
-
-	private String sanitizePrefix(String prefix) {
-		Matcher matcher = identifierLexical.matcher(prefix);
-		if (prefix.length() == 0) {
-			return "";
-		} else if (matcher.lookingAt()) {
-			return prefix.substring(0, matcher.end());
-		} else {
-			return null;
-		}
 	}
 
 	private IStrategoTerm forceUseOldAst(SGLRParseController parser, int offset, String document) {

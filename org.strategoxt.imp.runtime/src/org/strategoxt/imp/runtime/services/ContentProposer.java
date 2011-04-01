@@ -67,12 +67,14 @@ public class ContentProposer implements IContentProposer {
 
 	public ICompletionProposal[] getContentProposals(IParseController controller, int offset, ITextViewer viewer) {
 		String document = viewer.getDocument().get();
+		Point selectedRange = viewer.getSelectedRange();
+		Position selection = new Position(selectedRange.x, selectedRange.y);
 
 		if (!identifierLexical.matcher(COMPLETION_TOKEN).matches())
 			return createErrorProposal("No proposals available - completion lexical must allow letters and numbers", offset);
 
 		boolean avoidReparse = completionFunction == null && templates.size() == 0;
-		IStrategoTerm ast = parser.parse(controller, offset, document, avoidReparse);
+		IStrategoTerm ast = parser.parse(controller, selection, document, avoidReparse);
 		int prefixLength = parser.getCompletionPrefix() == null ? 0 : parser.getCompletionPrefix().length();
 		Set<String> sorts = new AstSortInspector(ast).getSortsAtOffset(offset - prefixLength, offset);
 		if (parser.getCompletionNode() == null)
