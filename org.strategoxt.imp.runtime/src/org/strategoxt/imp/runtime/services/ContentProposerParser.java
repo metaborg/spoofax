@@ -16,6 +16,7 @@ import java.util.regex.Pattern;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.jface.text.Position;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
+import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.shared.SGLRException;
@@ -234,14 +235,21 @@ public class ContentProposerParser {
 	private IStrategoTerm identifyCompletionNode(final IStrategoTerm ast, final int offset, final String document, final String completionToken) {
 		class Visitor extends TermVisitor {
 			IStrategoTerm result = ast;
-			public void preVisit(IStrategoTerm node) {
-				if (isTermString(node)) {
-					String value = ((IStrategoString) node).stringValue();
+			public void preVisit(IStrategoTerm term) {
+				if (isTermString(term)) {
+					String value = ((IStrategoString) term).stringValue();
 					if (value.indexOf(completionToken) > -1) {
-						putCompletionNode(node, readPrefix(offset, document), false);
+						putCompletionNode(term, readPrefix(offset, document), false);
 						result = getRoot(completionNode);
 					}
 				}
+			}
+			
+			@Override
+			public void postVisit(IStrategoTerm term) {
+				// Visit annotations; testing language puts ast nodes in there
+				if (!term.getAnnotations().isEmpty())
+					visit(term.getAnnotations());
 			}
 		}
 		Visitor visitor = new Visitor();
