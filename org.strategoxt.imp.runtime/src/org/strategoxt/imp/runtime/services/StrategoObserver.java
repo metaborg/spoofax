@@ -616,7 +616,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 
 	public void configureRuntime(IProject project, String projectPath) {
 		try {
-			ITermFactory factory = runtime.getFactory();
+			ITermFactory factory = getRuntime().getFactory();
 			IStrategoTuple programName = factory.makeTuple(
 					factory.makeString("program"),
 					factory.makeString(descriptor.getLanguage().getName()));
