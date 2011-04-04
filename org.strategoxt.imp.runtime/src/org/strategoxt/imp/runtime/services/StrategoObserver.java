@@ -23,6 +23,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -604,9 +605,16 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		return null;
 	}
 	
-	public void configureRuntime(IResource resource) {
+	private void configureRuntime(IResource resource) {
 		assert getLock().isHeldByCurrentThread();
 		
+		String projectPath = getInputBuilder().tryGetProjectPath(resource);
+		IProject project = resource.getProject();
+		
+		configureRuntime(project, projectPath);
+	}
+
+	public void configureRuntime(IProject project, String projectPath) {
 		try {
 			ITermFactory factory = runtime.getFactory();
 			IStrategoTuple programName = factory.makeTuple(
@@ -619,9 +627,9 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		
 		try {
 			EditorIOAgent io = (EditorIOAgent) runtime.getIOAgent();
-			io.setWorkingDir(getInputBuilder().tryGetProjectPath(resource));
-			io.setProjectPath(getInputBuilder().tryGetProjectPath(resource));
-			io.setProject(resource.getProject());
+			io.setWorkingDir(projectPath);
+			io.setProjectPath(projectPath);
+			io.setProject(project);
 			io.setDescriptor(descriptor);
 		} catch (IOException e) {
 			Environment.logException("Could not set Stratego working directory", e);
