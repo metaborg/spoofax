@@ -45,6 +45,8 @@ public class OriginSublistTermPrimitive extends AbstractPrimitive {
 		}
 		IStrategoTerm firstChildNode= tryGetOrigin(list.getSubterm(0));
 		IStrategoTerm commonParentList=getParent(firstChildNode);
+		if(commonParentList == null)
+			return false;
 		List<IStrategoTerm> childNodes= Arrays.asList(commonParentList.getAllSubterms());
 		if(!(isTermList(commonParentList)))
 			return false;
