@@ -422,7 +422,7 @@ strategies
                 <srcfileset dir="${basedir}">
                     <include name="**/*.str"/>
                     <include name="**/*.astr"/>
-                    <exclude name="lib/editor-common.generated.str"/>
+                    <exclude name="lib/*.generated.str"/>
                 </srcfileset>
                 <targetfileset file="${include}/${strmodule}.ctree"/>
             </dependset>
@@ -440,7 +440,7 @@ strategies
                 <srcfileset dir="${basedir}">
                     <include name="**/*.str"/>
                     <include name="**/*.astr"/>
-                    <exclude name="lib/editor-common.generated.str"/>
+                    <exclude name="lib/*.generated.str"/>
                 </srcfileset>
                 <targetfileset file="${src-gen}/trans/Main.java"/>
             </dependset>
