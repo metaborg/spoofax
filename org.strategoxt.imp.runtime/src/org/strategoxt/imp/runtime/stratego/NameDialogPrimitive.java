@@ -82,7 +82,7 @@ public class NameDialogPrimitive extends AbstractPrimitive {
 		OverrideInputPrimitive override = (OverrideInputPrimitive) registry.get(OverrideInputPrimitive.NAME);
 		String overridden = override.getOverrideValue();
 		if (overridden != null) {
-			env.getFactory().makeString(overridden);
+			env.setCurrent(env.getFactory().makeString(overridden));
 			return true;
 		} else {
 			return false;

@@ -16,7 +16,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
  */
 public class OverrideInputPrimitive extends AbstractPrimitive {
 
-	public static final String NAME = "SSL_ext_overrideinput";
+	public static final String NAME = "SSL_EXT_overrideinput";
 	
 	private String lastOverride;
 	

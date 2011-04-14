@@ -17,6 +17,7 @@ import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.jsglr.client.imploder.IToken;
 import org.strategoxt.HybridInterpreter;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
@@ -172,7 +173,9 @@ public class InputTermBuilder {
 			return getParent(oNode);
 		
 		IStrategoTerm result = oNode;
-		int startOffset = getLeftToken(result).getStartOffset();
+		IToken left = getLeftToken(result);
+		if (left == null) return oNode;
+		int startOffset = left.getStartOffset();
 		int endOffset = getRightToken(result).getEndOffset();
 		while (getParent(result) != null
 				&& !getParent(result).isList()
