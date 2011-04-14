@@ -19,7 +19,7 @@ import org.strategoxt.imp.runtime.Debug;
  */
 public class StrategoReferenceResolver implements IReferenceResolver {
 	
-	public static boolean ALLOW_MULTI_CHILD_PARENT = true; // TODO: set to false for reference resolving??
+	public static boolean ALLOW_MULTI_CHILD_PARENT = false;
 	
 	private final StrategoObserver observer;
 	
@@ -41,7 +41,7 @@ public class StrategoReferenceResolver implements IReferenceResolver {
 
 	public ISimpleTerm getLinkTarget(Object oNode, IParseController parseController) {
 		IStrategoTerm innerNode = (IStrategoTerm) oNode;
-		IStrategoTerm node = InputTermBuilder.getMatchingAncestor(innerNode, true);
+		IStrategoTerm node = InputTermBuilder.getMatchingAncestor(innerNode, ALLOW_MULTI_CHILD_PARENT);
 		
 		String function = NodeMapping.getFirstAttribute(resolverFunctions, tryGetName(node), getSort(node), 0);
 		if (function == null) function = wildcardResolverFunction;
