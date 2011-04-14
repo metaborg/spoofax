@@ -77,7 +77,7 @@ strategies
 
         <target name="spoofaximp.default" depends="spoofaximp.default.ctree"/>
         <target name="spoofaximp.default.ctree" depends="check-classpath,init,sdf2table,meta-sdf2table,ppgen,pppack,stratego.aster,java.jar,stratego.ctree,sdf2imp,refresh"/>
-        <target name="spoofaximp.default.jar"   depends="check-classpath,init,sdf2table,meta-sdf2table,ppgen,pppack,stratego.aster,java.jar,stratego.jar,  sdf2imp,refresh"/>
+        <target name="spoofaximp.default.jar"   depends="check-classpath,init,sdf2table,meta-sdf2table,ppgen,pppack,stratego.aster,java.jar,stratego.jar.helper,sdf2imp,refresh"/>
     
         <!-- Initialization -->
         <available file="${build}/<%= pkgdir %>/strategies/Main.class" property="java.jar.enabled"/>
@@ -89,7 +89,7 @@ strategies
         </condition>
         <available file="${trans}/${strmodule}.str" property="build.stratego.enabled"/>
         <dirname property="externaldefdir" file="${externaldef}"/>
-        <condition property="externaldefimport" value="-I ${externaldefdir}" else="">
+        <condition property="externaldefimport" value="-I &quot;${externaldefdir}&quot;" else="">
             <isset property="externaldef"/>
         </condition>
         <condition property="externaljarimport" value=":${externaljar}" else="">
@@ -489,6 +489,156 @@ strategies
             <mkdir dir="${build}/trans"/>
         </target>
                 
+        <!-- begin: targets used for adding debugging instrumentation to stratego -->
+        
+		<!-- 
+			if "debug.the.debug.transformer" is set, debug the debug instrumentation, do not output rtree-files, but str-files
+			Only used by stratego.jvm.helper.debug 
+		-->
+		<condition property="transformer-output" value="" else="--output-rtree">
+			<isset property="debug.the.debug.transformer"/>
+		</condition>
+		
+		<!-- 
+			if debug.the.debug.transformer is set then the debug.transformer outputs str files, so the strj-compiler should accept a str-file.
+			if debug.the.debug.transformer is NOT set then the debug.transformer outputs rtree files (much faster generated), so the strj-compiler should accept a rtree-file
+			Only used by stratego.jvm.helper.debug
+		-->
+		<condition property="strj.input.file.type" value="str" else="rtree">
+			<isset property="debug.the.debug.transformer"/>
+		</condition>
+        
+        <!-- value determines which target will be executed.
+        	If the file ".debugmode" can be found in the project root call stratego.jar.debug
+        	else call stratego.jar
+        -->
+        <condition property="stratego.jar.target" value="call.stratego.jar.debug" else="call.stratego.jar">
+            <available file=".debugmode"/>
+        </condition>
+		
+		<!-- will save the stratego files with debug info in this folder -->
+		<property name="trans-debug" location="trans-debug"/>
+		
+		<!-- this helper target determines what target to call, based on debug.build.enabled -->
+		<target name="stratego.jar.helper">
+			<antcall target="${stratego.jar.target}" />
+		</target>
+		
+		<!-- call stratego.jar unless debug.build.enabled property is set --> 
+		<target name="call.stratego.jar" depends="stratego.jar">
+			<echo message="call.stratego.jar - ${stratego.jar.target}"/>
+		</target>
+		
+		<!-- call stratego.jar.debug when debug.build.enabled property is set -->
+		<target name="call.stratego.jar.debug" depends="stratego.jar.debug">
+			<echo message="call.stratego.jar.debug - ${stratego.jar.target}"/>
+		</target>
+		
+		<!-- copy stratego runtime jars to utils folder -->
+		<target name="utils-files-debug" depends="utils-files">
+			<copy file="${eclipse.spoofaximp.stratego-debug-runtime-jar}" todir="utils" failonerror="false"/>
+			<copy file="${eclipse.spoofaximp.stratego-debug-runtime-java-jar}" todir="utils" failonerror="false"/>
+		</target>
+		
+	    <!-- Stratego to Java compiler with debugging capabilities -->
+	    <target name="stratego.jar.debug" depends="rtg2sig,utils-files-debug">
+	        <dependset>
+	            <srcfileset dir="${basedir}">
+	                <include name="**/*.str"/>
+	                <include name="**/*.astr"/>
+	                <exclude name="lib/editor-common.generated.str"/>
+	            </srcfileset>
+	            <targetfileset file="${src-gen}/trans/Main.java"/>
+	        </dependset>
+	        <available file="${src-gen}/trans/Main.java" property="strc-java.available"/>
+	        <antcall target="copy-jar"/>
+	        <antcall target="stratego.jar.deletehelper"/>
+	    	<!-- compile stratego to java -->
+	        <antcall target="stratego.jvm.helper.debug">
+	            <param name="build.stratego.outputfile" value="${src-gen}/trans/Main.java"/>
+	            <param name="build.stratego.extraargs" value="-la java-front ${java.jar.import}"/>
+	        </antcall>
+	    	<!-- compile java to class -->
+	        <javac 
+	        	destdir="${build}" 
+	        	source="1.5" 
+	        	target="1.5" 
+	        	debug="on">
+	    		<!-- attribute in javac: srcdir="${src-gen}" -->
+	    		<src path="${src-gen}"/>
+	        	<!-- attribute in javac: classpath="utils/strategoxt.jar:${src-gen}${externaljarimport}${java.jar.classpath}"  -->
+	        	<classpath>
+	        		<pathelement path="utils/strategoxt.jar:${src-gen}${externaljarimport}${java.jar.classpath}"/> <!-- the path attribute accepts colon- or semicolon-separated lists of locations -->
+	        		<pathelement location="utils/stratego-debug-runtime.jar"/> <!-- The location attribute specifies a single file or directory relative to the project's base directory (or an absolute filename) -->
+	        		<pathelement location="utils/stratego-debug-runtime-java.jar"/>
+	        	</classpath>
+	        	<!-- attribute in javac: includes="trans/**"  -->
+	        	<include name="trans/**"/>
+	    	</javac>
+	        <!-- copy imported terms -->
+	        <copy todir="${build}/trans">
+	            <fileset dir="${src-gen}/trans" excludes="**/*.java"/>
+	        </copy>
+	    	<!-- create a jar from the class files -->
+	        <jar basedir="${build}" includes="trans/**" destfile="${include}/${strmodule}.tmp.jar"/>
+	        <move file="${include}/${strmodule}.tmp.jar" tofile="${include}/${strmodule}.jar"/>
+	        <delete><fileset dir="${build}" includes="trans/**"/></delete>
+	    </target>
+		
+		<!-- instrument the stratego program and compile it to java -->
+	    <target name="stratego.jvm.helper.debug" unless="strc-java.available" if="build.stratego.enabled">
+	    	<echo message="generate stratego with debug information" />
+	    	<echo message="${basedir}"/>
+	    	<available classname="org.strategoxt.imp.debug.stratego.transformer.trans.Main" property="transformer.available"/>
+	    	<!-- add debug information -->
+	  		<java classname="org.strategoxt.imp.debug.stratego.transformer.trans.Main" failonerror="true" fork="true">
+	  		     <classpath>
+					<pathelement location="${eclipse.spoofaximp.stratego-transformer-jar}"/>
+	  		     	<pathelement location="${eclipse.spoofaximp.stratego-transformer-java-jar}"/>
+	  		     	<pathelement location="${eclipse.spoofaximp.strategojar}" />
+	  		     </classpath>
+	  			<arg value="-i"/>
+	  			<arg value="${trans}/${strmodule}.str"/>
+	  			<arg value="--gen-dir"/>
+	  			<arg value="${trans-debug}"/>
+	  			<arg value="--base-dir"/> <!-- set the basedir to the project dir -->
+	  			<arg value="${basedir}"/>
+	  			<!-- "arg line='val'" val should contain space-separated arguments --> 
+	  			<arg line="--charoffset-converter --fail-catch ${transformer-output}" />
+	  			
+	  			<!-- arguments should start with two '-'-characters -->
+	  			<!-- <arg value="-charoffset-converter"/> --> <!-- create charoffset table -->
+	  			<!-- <arg value="-fail-catch"/>  --> <!-- catch failures in where/with-clauses in rules -->
+	  			<!-- <arg value="-output-rtree"/> --> 
+	    	</java>
+	    	<!-- now compile instrumented stratego to java -->
+	        <delete file="${include}/${strmodule}.rtree" failonerror="false"/>
+	        <java classname="org.strategoxt.strj.Main" failonerror="true">
+	            <arg value="-i"/>
+	            <arg value="${trans-debug}/trans/${strmodule}.{strj.input.file.type}"/>
+	            <arg value="-o"/>
+	            <arg value="${build.stratego.outputfile}"/>
+	            <arg value="-p"/>
+	            <arg value="trans"/>
+	            <arg value="--library"/>
+	            <arg value="--clean"/>
+	            <arg line="${build.stratego.args}"/>
+	            <arg line="${build.stratego.extraargs}"/>
+	            <arg line="${externaljarflags}"/>
+	            <arg line="${externaldefimport}"/>
+	            <arg line="-I &quot;${lib}&quot; -I &quot;${include}&quot; --cache-dir &quot;${basedir}/.cache&quot;"/>
+	        	<!-- put strategodebuglib.rtree on the include path -->
+	        	<arg line="-I &quot;${eclipse.spoofaximp.strategodebuglib-folder}&quot;" />
+	        	<arg line="-la org.strategoxt.imp.debug.stratego.runtime.trans" />
+	        </java>
+	        <delete file="${include}/${strmodule}.rtree" failonerror="false"/>
+	        <mkdir dir="${build}/trans"/>
+	    </target>
+        
+        
+        <!-- end: targets used for adding debugging instrumentation to stratego -->
+
+
         <!-- Stratego to C-based native executable -->
         <target name="stratego.c">
             <antcall target="stratego.c.helper">
