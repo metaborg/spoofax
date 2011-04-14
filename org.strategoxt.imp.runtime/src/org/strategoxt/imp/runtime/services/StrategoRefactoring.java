@@ -53,7 +53,10 @@ import org.strategoxt.lang.Strategy;
 /**
  * @author Maartje
  */
-public class StrategoRefactoring implements IBuilder { //TODO extract "AbstractStrategoBuilder"
+public class StrategoRefactoring implements IBuilder {
+	
+	// TODO extract "AbstractStrategoBuilder"
+	//      this is code duplication hell :(
 	
 	private final String ppTable;
 	
@@ -343,14 +346,18 @@ public class StrategoRefactoring implements IBuilder { //TODO extract "AbstractS
 		}
 	}
 	
-	private void openError(EditorState editor, String message) {
-		try {
-			Status status = new Status(IStatus.ERROR, RuntimeActivator.PLUGIN_ID, message);
-			ErrorDialog.openError(editor.getEditor().getSite().getShell(),
-					caption, null, status);
-		} catch (RuntimeException e) {
-			Environment.logException("Problem reporting error: " + message);
-		}
+	private void openError(final EditorState editor, final String message) {
+		Job job = new UIJob("Reporting error") {
+			@Override
+			public IStatus runInUIThread(IProgressMonitor monitor) {
+				Status status = new Status(IStatus.ERROR, RuntimeActivator.PLUGIN_ID, message);
+				ErrorDialog.openError(editor.getEditor().getSite().getShell(),
+						caption, null, status);
+				return Status.OK_STATUS;
+			}
+		};
+		job.setSystem(true);
+		job.schedule();
 	}
 	
 	@Override

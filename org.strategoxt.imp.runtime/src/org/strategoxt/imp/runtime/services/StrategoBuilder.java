@@ -333,14 +333,18 @@ public class StrategoBuilder implements IBuilder {
 		}
 	}
 	
-	private void openError(EditorState editor, String message) {
-		try {
-			Status status = new Status(IStatus.ERROR, RuntimeActivator.PLUGIN_ID, message);
-			ErrorDialog.openError(editor.getEditor().getSite().getShell(),
-					caption, null, status);
-		} catch (RuntimeException e) {
-			Environment.logException("Problem reporting error: " + message, e);
-		}
+	private void openError(final EditorState editor, final String message) {
+		Job job = new UIJob("Reporting error") {
+			@Override
+			public IStatus runInUIThread(IProgressMonitor monitor) {
+				Status status = new Status(IStatus.ERROR, RuntimeActivator.PLUGIN_ID, message);
+				ErrorDialog.openError(editor.getEditor().getSite().getShell(),
+						caption, null, status);
+				return Status.OK_STATUS;
+			}
+		};
+		job.setSystem(true);
+		job.schedule();
 	}
 
 	private void setFileContents(final EditorState editor, IFile file, final String contents) throws CoreException {
