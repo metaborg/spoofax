@@ -18,6 +18,7 @@ import org.eclipse.ui.progress.UIJob;
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.library.AbstractPrimitive;
+import org.spoofax.interpreter.library.IOperatorRegistry;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -40,6 +41,10 @@ public class NameDialogPrimitive extends AbstractPrimitive {
 	@Override
 	public boolean call(final IContext env, Strategy[] svars, IStrategoTerm[] tvars)
 			throws InterpreterException {		
+		
+		if (fetchOverriddenValue(env))
+			return true;
+		
 		for (int i = 0; i < tvars.length; i++) {
 			if (!isTermString(tvars[i])) return false;			
 		}
@@ -67,10 +72,21 @@ public class NameDialogPrimitive extends AbstractPrimitive {
 		try {
 			job.join();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Environment.logException("Interrupted", e);
 		}
 		return job.getResult()==Status.OK_STATUS && dialogResultOk[0]==true;
+	}
+
+	private boolean fetchOverriddenValue(final IContext env) {
+		IOperatorRegistry registry = env.getOperatorRegistry(IMPLibrary.REGISTRY_NAME);
+		OverrideInputPrimitive override = (OverrideInputPrimitive) registry.get(OverrideInputPrimitive.NAME);
+		String overridden = override.getOverrideValue();
+		if (overridden != null) {
+			env.getFactory().makeString(overridden);
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	private IInputValidator getIdentifierValidator(final Language language) {
@@ -107,8 +123,7 @@ public class NameDialogPrimitive extends AbstractPrimitive {
 			pt = Environment.getParseTableProvider(language).get();
 			return pt.getKeywordRecognizer();
 		} catch (Exception e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			Environment.logException("Could not fetch keyword recognizer", e1);
 			return null;
 		} 
 	}

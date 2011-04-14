@@ -1,6 +1,5 @@
 package org.strategoxt.imp.runtime.stratego;
 
-import static org.spoofax.interpreter.core.Tools.isTermList;
 import static org.spoofax.interpreter.core.Tools.isTermString;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -8,17 +7,15 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.IDialogConstants;
-import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.progress.UIJob;
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.library.AbstractPrimitive;
-import org.spoofax.interpreter.stratego.Fail;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.strategoxt.imp.runtime.Environment;
 
 /**
  * @author Maartje de Jonge
@@ -66,8 +63,7 @@ public class MessageDialogPrimitive extends AbstractPrimitive {
 		try {
 			job.join();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Environment.logException("Interrupted", e);
 		}
 		return job.getResult()==Status.OK_STATUS && dialogResultOk[0]==true;
 	}
