@@ -1,5 +1,6 @@
 package org.strategoxt.imp.runtime;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -14,6 +15,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.imp.language.Language;
@@ -22,6 +24,7 @@ import org.eclipse.swt.widgets.Display;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.core.StackTracer;
+import org.spoofax.interpreter.library.IOAgent;
 import org.spoofax.interpreter.library.jsglr.JSGLRLibrary;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
@@ -35,6 +38,7 @@ import org.spoofax.jsglr.io.SGLR;
 import org.spoofax.terms.TermFactory;
 import org.spoofax.terms.attachments.ParentTermFactory;
 import org.strategoxt.HybridInterpreter;
+import org.strategoxt.imp.debug.core.str.launching.DebuggableHybridInterpreter;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.dynamicloading.DynamicParseTableProvider;
@@ -58,6 +62,8 @@ import org.strategoxt.lang.compat.sglr.SGLRCompatLibrary;
  */
 public final class Environment {
 	
+	public static boolean DEBUG_INTERPRETER_ENABLED = true; // set to false to disable the creation of a DebuggableHybridInterpreter
+	
 	private final static ParseTableManager parseTableManager;
 	
 	private final static Map<String, ParseTableProvider> parseTables;
@@ -65,7 +71,7 @@ public final class Environment {
 	private final static Map<String, ParseTableProvider> unmanagedTables;
 	
 	private final static Map<String, Descriptor> descriptors;
-	
+
 	private final static ITermFactory termFactory;
 	
 	private final static PrintStream STDERR = System.err; // avoid deadlocky ant override
@@ -165,30 +171,67 @@ public final class Environment {
 	public static HybridInterpreter createInterpreter() {
 		return createInterpreter(false);
 	}
+	
+	private static HybridInterpreter createHybridInterpreter(boolean noGlobalLock)
+	{
+		HybridInterpreter result = noGlobalLock
+		? new HybridInterpreter(getTermFactory(true))
+		: new HybridInterpreter(getTermFactory(true)) {
+			@Override
+			public boolean invoke(String name) throws InterpreterExit, InterpreterException {
+				assertLock();
+				return super.invoke(name);
+			}
+			
+			@Override
+			public void load(IStrategoTerm program) throws InterpreterException {
+				assertLock();
+				super.load(program);
+			}
+			
+			@Override
+			public IStrategoTerm current() {
+				assertLock();
+				return super.current();
+			}
+		};
+		return result;
+	}
+	
+	private static DebuggableHybridInterpreter createDebuggableHybridInterpreter(boolean noGlobalLock)
+	{
+		DebuggableHybridInterpreter result = noGlobalLock
+		? new DebuggableHybridInterpreter(getTermFactory(true))
+		: new DebuggableHybridInterpreter(getTermFactory(true)) {
+			@Override
+			public boolean invoke(String name) throws InterpreterExit, InterpreterException {
+				assertLock();
+				return super.invoke(name);
+			}
+			
+			@Override
+			public void load(IStrategoTerm program) throws InterpreterException {
+				assertLock();
+				super.load(program);
+			}
+			
+			@Override
+			public IStrategoTerm current() {
+				assertLock();
+				return super.current();
+			}
+		};
+		return result;
+	}
 
 	public static HybridInterpreter createInterpreter(boolean noGlobalLock) {
-		HybridInterpreter result =	noGlobalLock
-			? new HybridInterpreter(getTermFactory(true))
-			: new HybridInterpreter(getTermFactory(true)) {
-				@Override
-				public boolean invoke(String name) throws InterpreterExit, InterpreterException {
-					assertLock();
-					return super.invoke(name);
-				}
-				
-				@Override
-				public void load(IStrategoTerm program) throws InterpreterException {
-					assertLock();
-					super.load(program);
-				}
-				
-				@Override
-				public IStrategoTerm current() {
-					assertLock();
-					return super.current();
-				}
-			};
-		
+		HybridInterpreter result = null;
+		if (DEBUG_INTERPRETER_ENABLED)
+		{
+			result = createDebuggableHybridInterpreter(noGlobalLock);
+		} else {
+			result = createHybridInterpreter(noGlobalLock);
+		}
 		result.getCompiledContext().getExceptionHandler().setEnabled(false);
 		result.getCompiledContext().registerComponent("stratego_lib"); // ensure op. registry available
 		result.getCompiledContext().registerComponent("stratego_sglr"); // ensure op. registry available
@@ -207,7 +250,24 @@ public final class Environment {
 		return result;
 	}
 
+	/**
+	 * Creates a new Interpreter using the given Interpreter as prototype.
+	 */
 	public static HybridInterpreter createInterpreterFromPrototype(HybridInterpreter prototype) {
+		HybridInterpreter result = null;
+		if (DEBUG_INTERPRETER_ENABLED)
+		{
+			// create a DebuggableHybridInterpreter from the prototype
+			result = createDebuggableHybridInterpreterFromPrototype(prototype);
+		} else {
+			// create a normal HybridInterpreter from the prototype
+			result = createHybridInterpreterFromPrototype(prototype);
+		}
+		return result;
+	}
+	
+	private static HybridInterpreter createHybridInterpreterFromPrototype(HybridInterpreter prototype)
+	{
 		HybridInterpreter result = new HybridInterpreter(prototype,
 				IMPJSGLRLibrary.REGISTRY_NAME, // is spoofax-specific
 				JSGLRLibrary.REGISTRY_NAME,    // connected to the library above
@@ -215,6 +275,28 @@ public final class Environment {
 		result.getCompiledContext().getExceptionHandler().setEnabled(false);
 		IMPJSGLRLibrary parseLibrary = ((IMPJSGLRLibrary) result.getContext().getOperatorRegistry(IMPJSGLRLibrary.REGISTRY_NAME));
 		parseLibrary.addOverrides(result.getCompiledContext());
+		return result;
+	}
+	
+	/**
+	 * TODO: For now ignore the prototype as the actual HybridInterpreter will be run in another VM. 
+	 */
+	private static DebuggableHybridInterpreter createDebuggableHybridInterpreterFromPrototype(HybridInterpreter prototype)
+	{
+		DebuggableHybridInterpreter result = new DebuggableHybridInterpreter(prototype,
+				IMPJSGLRLibrary.REGISTRY_NAME, // is spoofax-specific
+				JSGLRLibrary.REGISTRY_NAME,    // connected to the library above
+				IMPLibrary.REGISTRY_NAME);     // also used
+		result.getCompiledContext().getExceptionHandler().setEnabled(false);
+		IMPJSGLRLibrary parseLibrary = ((IMPJSGLRLibrary) result.getContext().getOperatorRegistry(IMPJSGLRLibrary.REGISTRY_NAME));
+		parseLibrary.addOverrides(result.getCompiledContext());
+		
+		IOAgent agent = prototype.getIOAgent();
+		if (agent instanceof EditorIOAgent)
+		{
+			EditorIOAgent eioAgent = (EditorIOAgent) agent;
+			result.setProjectpath(eioAgent.getProjectPath());
+		}
 		return result;
 	}
 	
@@ -277,6 +359,27 @@ public final class Environment {
 					Environment.logException("Could not reinitialize descriptor", e);
 				}
 			}
+		}
+	}
+	
+	/**
+	 * Returns true if the given Descriptor allows debugging.
+	 * 
+	 * Place a file in the project dir with the name ".debugmode". This tells the ant build script we want to enable debugging.
+	 * 
+	 * @param descriptor
+	 * @return Returns true if the given Descriptor allows debugging.
+	 */
+	public static boolean allowsDebugging(Descriptor descriptor)
+	{
+		IPath debugModeFile = descriptor.getBasePath().append(".debugmode");
+		File file = new File(debugModeFile.toOSString());
+		if (file.exists())
+		{
+			// enable debugging for the developer
+			return true;
+		} else {
+			return false;
 		}
 	}
 	

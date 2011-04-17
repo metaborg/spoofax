@@ -105,10 +105,12 @@ public class BuilderButtonDelegate extends AbstractHandler implements IWorkbench
 			// item.fill(menu, Action.AS_PUSH_BUTTON);
 			item.fill(menu, menu.getItemCount());
 		}
+		// TODO: only add the debug menu-item to the transform menu when it is defined in the language description
+		//addDebugModeMenuItem();
 		
 		dummy.dispose();
 	}
-
+	
 	private IBuilderMap getBuilders(EditorState editor) {
 		IBuilderMap builders;
 		try {

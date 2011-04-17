@@ -1,32 +1,26 @@
 package org.strategoxt.imp.runtime.dynamicloading;
 
 import static org.spoofax.interpreter.core.Tools.termAt;
-import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getSort;
-import static org.spoofax.terms.Term.tryGetConstructor;
-import static org.spoofax.terms.attachments.ParentAttachment.getParent;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.collectTerms;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.cons;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.termContents;
 
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.eclipse.imp.editor.UniversalEditor;
 import org.spoofax.interpreter.terms.IStrategoAppl;
-import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
-import org.strategoxt.imp.runtime.parser.ast.StrategoSubList;
 import org.strategoxt.imp.runtime.services.BuilderMap;
 import org.strategoxt.imp.runtime.services.CustomStrategyBuilder;
+import org.strategoxt.imp.runtime.services.DebugModeBuilder;
 import org.strategoxt.imp.runtime.services.IBuilder;
 import org.strategoxt.imp.runtime.services.IBuilderMap;
 import org.strategoxt.imp.runtime.services.InputTermBuilder;
-import org.strategoxt.imp.runtime.services.NodeMapping;
 import org.strategoxt.imp.runtime.services.StrategoBuilder;
 import org.strategoxt.imp.runtime.services.StrategoBuilderListener;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
@@ -54,6 +48,10 @@ public class BuilderFactory extends AbstractServiceFactory<IBuilderMap> {
 		addCustomStrategyBuilder(d, controller, builders, derivedFromEditor);
 		if (EditorState.isUIThread()) // don't show for background (realtime) builders; not threadsafe
 			addRefactorings(d, controller, builders);
+		if (Environment.allowsDebugging(d)) // Descriptor allows debugging)
+		{
+			addDebugModeBuilder(d, controller, builders, derivedFromEditor);
+		}
 		return new BuilderMap(builders);
 	}
 
@@ -182,6 +180,18 @@ public class BuilderFactory extends AbstractServiceFactory<IBuilderMap> {
 		}
 	}
 
+	/**
+	 * Adds a Debug Mode Builder, if debug mode is allowed the user can choose to enable stratego debugging.
+	 * If debugging is enabled, a new JVM is started for every strategy invoke resulting in major performance drops.
+	 * The user can also disable Debug mode, without needing to rebuil the project. 
+	 */
+	private static void addDebugModeBuilder(Descriptor d, SGLRParseController controller,
+			Set<IBuilder> builders, EditorState derivedFromEditor) throws BadDescriptorException
+	{
+		StrategoObserver feedback = d.createService(StrategoObserver.class, controller);
+		builders.add(new DebugModeBuilder(feedback));
+	}
+	
 	private static EditorState getDerivedFromEditor(SGLRParseController controller) {
 		if (controller.getEditor() == null || controller.getEditor().getEditor() == null)
 			return null;
