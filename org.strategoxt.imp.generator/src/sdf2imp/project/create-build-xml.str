@@ -615,7 +615,7 @@ strategies
 	        <delete file="${include}/${strmodule}.rtree" failonerror="false"/>
 	        <java classname="org.strategoxt.strj.Main" failonerror="true">
 	            <arg value="-i"/>
-	            <arg value="${trans-debug}/trans/${strmodule}.{strj.input.file.type}"/>
+	            <arg value="${trans-debug}/trans/${strmodule}.${strj.input.file.type}"/>
 	            <arg value="-o"/>
 	            <arg value="${build.stratego.outputfile}"/>
 	            <arg value="-p"/>
