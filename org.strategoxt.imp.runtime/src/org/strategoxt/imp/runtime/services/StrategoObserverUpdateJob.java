@@ -31,7 +31,7 @@ public class StrategoObserverUpdateJob implements StrategoAnalysisJob {
 			return Status.OK_STATUS;
 		} finally {
 			observer.getLock().unlock();
-		}
+ 		}
 		
 	}
 

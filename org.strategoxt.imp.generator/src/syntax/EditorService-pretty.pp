@@ -22,6 +22,7 @@
    OccurrenceRule       -- R [ H [ KW["occurrence"] _1 ] H [ KW[":"] _2 ] ],
    SemanticProvider     -- R [ H [ KW["provider"] ] KW[":"] _1 ],
    OnSave               -- R [ H [ KW["on"] KW["save"] ] KW[":"] _1 _2 ],
+   Disambiguator        -- R [ H [ KW["disambiguator"] ] KW[":"] _1 ],
    SemanticObserver     -- R [ H [ KW["observer"] ]  KW[":"] _1 ],
    Builder              -- R [ H [ KW["builder"] ]   KW[":"] _1 H [ KW["="] _2 _3 ] ],
    Builder.3:iter-star  -- _1,

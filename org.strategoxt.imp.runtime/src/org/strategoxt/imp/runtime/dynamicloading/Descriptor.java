@@ -498,12 +498,16 @@ public class Descriptor {
 		if (result == null)
 			return defaultValue;
 
-		if (termAt(result, 0).getTermType() == IStrategoTerm.APPL
-				&& cons(termAt(result, 0)).equals("Values")) {
-			return concatTermStrings(termAt(result, 0));
-		} else {
-			return termContents(result);
+		return termContents(result);
+	}
+
+	protected String[] getProperties(String name) {
+		List<IStrategoAppl> resultTerms = collectTerms(document, name);
+		String[] results = new String[resultTerms.size()];
+		for (int i = 0, max = results.length; i < max; i++) {
+			results[i] = termContents(resultTerms.get(i));
 		}
+		return results;
 	}
 
 	protected String[] getPropertyArray(String name) {

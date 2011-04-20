@@ -2,6 +2,7 @@ package org.strategoxt.imp.runtime.dynamicloading;
 
 import static org.spoofax.interpreter.terms.IStrategoTerm.APPL;
 import static org.spoofax.interpreter.terms.IStrategoTerm.STRING;
+import static org.spoofax.terms.Term.tryGetName;
 
 import java.util.ArrayList;
 
@@ -59,6 +60,8 @@ public class TermReader extends Tools {
 		
 		if (t.getTermType() == STRING) {
 			result = asJavaString(t);
+		} else if (t.getSubtermCount() == 1 && "Values".equals(tryGetName(t))) {
+			return concatTermStrings(listAt(t, 0));
 		} else if (t.getTermType() == APPL && t.getSubtermCount() == 1 && termAt(t, 0).getTermType() == STRING) {
 			result = asJavaString(termAt(t, 0));
 		} else if (t.getTermType() == APPL && t.getSubtermCount() == 1) {
@@ -73,16 +76,15 @@ public class TermReader extends Tools {
 		return result;
 	}
 
-	public static String concatTermStrings(IStrategoTerm values) {
-		IStrategoList list = termAt(values, 0);
+	public static String concatTermStrings(IStrategoList values) {
 		StringBuilder results = new StringBuilder();
 		
-		if (list.getSubtermCount() > 0)
-			results.append(termContents(termAt(list, 0)));
+		if (values.getSubtermCount() > 0)
+			results.append(termContents(termAt(values, 0)));
 		
-		for (int i = 1; i <  list.getSubtermCount(); i++) {
+		for (int i = 1; i <  values.getSubtermCount(); i++) {
 			results.append(',');
-			results.append(termContents(termAt(list, i)));
+			results.append(termContents(termAt(values, i)));
 		}
 		return results.toString();
 	}

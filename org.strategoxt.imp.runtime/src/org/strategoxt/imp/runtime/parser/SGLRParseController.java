@@ -61,7 +61,7 @@ public class SGLRParseController implements IParseController {
 	
 	private static final int PARSE_TIMEOUT = 20 * 1000;
 	
-	private static final int REPARSE_DELAY = 1 * 1000;
+	public static final int REPARSE_DELAY = 1 * 1000;
 	
 	private final SWTSafeLock parseLock = new SWTSafeLock(true);
 	
@@ -98,6 +98,8 @@ public class SGLRParseController implements IParseController {
 	private volatile boolean performInitialUpdate;
 
 	private volatile long initialReschedule;
+
+	private CustomDisambiguator disambiguator;
 
 	// Simple accessors
 	
@@ -284,6 +286,9 @@ public class SGLRParseController implements IParseController {
 			currentTokenizer = new NullTokenizer(input, filename);
 			IStrategoTerm result = doParse(input, filename);
 			currentTokenizer = getTokenizer(result);
+			
+			if (disambiguator != null)
+				result = disambiguator.disambiguate(result);
 
 			errorHandler.clearErrors();
 			errorHandler.setRecoveryFailed(false);
@@ -538,5 +543,9 @@ public class SGLRParseController implements IParseController {
 		        result.append(buffer, 0, read);
 		
 		return result.toString();
+	}
+
+	public void setCustomDisambiguator(CustomDisambiguator disambiguator) {
+		this.disambiguator = disambiguator;
 	}
 }

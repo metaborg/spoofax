@@ -46,6 +46,7 @@ exports
     "extends"         ":" PropertyValues -> LanguageProperty {cons("Extends")}
     "aliases"         ":" PropertyValues -> LanguageProperty {cons("Aliases")} %% deprecated
     "unmanaged" "table" ":" Id "*"       -> LanguageProperty {cons("UnmanagedTablePrefix")}
+    "disambiguator"   ":" StrategoCall   -> LanguageProperty {cons("Disambiguator")}
    
      %% Syntax properties
      
