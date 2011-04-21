@@ -131,20 +131,25 @@ public class ContentProposal implements ICompletionProposal, ICompletionProposal
 	}
 
 	private LinkedModeModelAndExitPos buildLinkedModeModel(IDocument document, int offset, IStrategoList proposalParts) throws BadLocationException {
+		boolean shouldLinkPlaceholders = completion.shouldLinkPlaceholders();
 		LinkedModeModelAndExitPos result = new LinkedModeModelAndExitPos();
-		HashMap<String, LinkedPositionGroup> groups = new HashMap<String, LinkedPositionGroup>();
+		HashMap<Object, LinkedPositionGroup> groups = new HashMap<Object, LinkedPositionGroup>();
 		int i = 0;
+
 		for (IStrategoList cons = proposalParts; !cons.isEmpty(); cons = cons.tail()) {
 			IStrategoTerm partTerm = cons.head();
 			String part = proposalPartToString(document, partTerm);
+
 			if ("Placeholder".equals(cons(partTerm)) || "PlaceholderWithSort".equals(cons(partTerm))
 					// HACK: we should migrate to semantic completion returning Placeholder cons too when it wants placeholders
 					|| (cons != proposalParts && proposer.getCompletionLexical().matcher(part).matches())) {
 				LinkedPositionGroup group = groups.get(part);
-				if (group == null) {
+
+				if (group == null || !shouldLinkPlaceholders) {
 					group = new LinkedPositionGroup();
-					groups.put(part, group);
+					groups.put(shouldLinkPlaceholders ? part : new Object(), group);
 				}
+
 				if (partTerm.getSubtermCount() == 2 && group.isEmpty()) {
 					IStrategoString sortTerm = termAt(partTerm, 1);
 					ICompletionProposal[] choices = proposer.getTemplateProposalsForSort(sortTerm.stringValue(), viewer);
@@ -161,11 +166,14 @@ public class ContentProposal implements ICompletionProposal, ICompletionProposal
 			else if ("Cursor".equals(cons(partTerm))) {
 				result.exitPos = offset + i;
 			}
+
 			i += part.length();
 		}
+
 		if (result.exitPos == 0) {
 			result.exitPos = offset + i;
 		}
+
 		if (!groups.isEmpty()) {
 			LinkedModeModel model = new LinkedModeModel();
 			for (LinkedPositionGroup group : groups.values()) {
@@ -173,6 +181,7 @@ public class ContentProposal implements ICompletionProposal, ICompletionProposal
 			}
 			result.model = model;
 		}
+
 		return result;
 	}
 
@@ -204,8 +213,7 @@ public class ContentProposal implements ICompletionProposal, ICompletionProposal
 					? completion.getPrefix()
 					: proposalPartsToString(document, newTextParts);
 			justApplied = true;
-			assert document.get(position.getOffset() - prefix.length(), prefix.length()).equals(prefix);
-			document.replace(position.getOffset(), position.getLength(), newText.substring(prefix.length()));
+			document.replace(position.getOffset() - prefix.length(), position.getLength() + prefix.length(), newText);
 
 			if (newTextParts != null) {
 				goToLinkedMode(viewer, position.getOffset() - prefix.length(), document, newTextParts);

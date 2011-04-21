@@ -18,6 +18,13 @@
    CompletionTemplateWithSort   -- R [ V is=2 [ H [ KW["completion"] KW["template"] KW[":"] _1 KW["="]] ]
                                                 H [ _2 _3 _4 ] ],
    CompletionTemplateWithSort.3:iter-star -- _1,
+   CompletionTemplateEx -- R [ V is=2 [ H [ KW["completion"] KW["template"] _1 KW[":"] _2 ]
+                                        H [ _3 _4 ] ] ],
+   CompletionTemplateEx.1:iter-star       -- _1,
+   CompletionTemplateEx.3:iter            -- _1,
+   CompletionTemplateEx.4:iter-star       -- _1,
+   NoCompletionPrefix                     -- ,
+   CompletionPrefix                       -- _1 KW["="],
    CompletionTrigger    -- R [ H [ KW["completion"] KW["trigger"] ] KW[":"] H [ _1 _2 ] ],
    HoverRule            -- R [ H [ KW["hover"]     _1 ] KW[":"] _2 ],
    OccurrenceRule       -- R [ H [ KW["occurrence"] _1 ] H [ KW[":"] _2 ] ],

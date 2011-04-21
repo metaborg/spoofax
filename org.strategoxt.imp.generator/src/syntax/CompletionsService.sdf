@@ -22,20 +22,25 @@ exports
 
     "identifier" "lexical" ":" PropertyValue -> SemanticRule {cons("IdentifierLexical")}
 
-    "completion" "keyword" ":" PropertyValue CompletionAnno -> SemanticRule {cons("CompletionKeyword")}
-
-    "completion" "template" ":" CompletionPart CompletionPart* CompletionAnno -> SemanticRule {cons("CompletionTemplate")}
+    "completion" "keyword" ":" PropertyValue OptCompletionAnno -> SemanticRule {cons("CompletionKeyword")}
 
     %% Deprecated: conflicts with content completion
-    "completion" "template" ":" Id CompletionPart+ CompletionAnno -> SemanticRule {cons("CompletionTemplate"), avoid, deprecated("Add quotes to the starting literal")}
+    "completion" "template" ":" Id CompletionPart+ OptCompletionAnno -> SemanticRule {cons("CompletionTemplate"), avoid, deprecated("Add quotes to the starting literal")}
 
-    "completion" "template" ":" Sort "=" CompletionPart CompletionPart* CompletionAnno -> SemanticRule {cons("CompletionTemplateWithSort")}
+    %% Deprecated: replaced by CompletionTemplateEx
+    "completion" "template" ":" Sort "=" CompletionPart CompletionPart* OptCompletionAnno -> SemanticRule {cons("CompletionTemplateWithSort"), avoid, deprecated("Move the sort before ':' and remove '='")}
 
     %% Used as content completion triggers
-    "completion" "template" ":" PropertyValue CompletionPart* CompletionAnno -> SemanticRule {cons("CompletionTemplate"), recover, avoid}
-    "completion" "template" ":" Sort "=" PropertyValue CompletionPart* CompletionAnno -> SemanticRule {cons("CompletionTemplateWithSort"), recover, avoid}
+    %% "completion" "template" PropertyValue CompletionPart* OptCompletionAnno -> SemanticRule {cons("CompletionTemplate"), recover, avoid}
+    "completion" "template" Sort* ":" PropertyValue CompletionPart* CompletionAnno* -> SemanticRule {cons("CompletionTemplateEx"), recover, avoid}
 
-    "completion" "trigger" ":" PropertyValue CompletionAnno -> SemanticRule {cons("CompletionTrigger")}
+    "completion" "trigger" ":" PropertyValue OptCompletionAnno -> SemanticRule {cons("CompletionTrigger")}
+
+    %% New completion template
+    "completion" "template" Sort* ":" CompletionPrefix CompletionPart+ CompletionAnno* -> SemanticRule {cons("CompletionTemplateEx")}
+
+               -> CompletionPrefix {cons("NoCompletionPrefix")}
+    String "=" -> CompletionPrefix {cons("CompletionPrefix")}
 
   context-free syntax
 
@@ -52,12 +57,16 @@ exports
     "(cursor)"  -> CompletionPart {cons("Cursor")}
     PlaceholderWithSortPrefix Id ">" -> CompletionPart {cons("PlaceholderWithSort")}
 
-                 -> CompletionAnno {cons("None")}
+                   -> OptCompletionAnno {cons("None")}
+    CompletionAnno -> OptCompletionAnno
+
     "(disabled)" -> CompletionAnno {cons("Disable")}
     "(disable)"  -> CompletionAnno {cons("Disable"), deprecated("Use (disabled) instead")}
     "(blank)"    -> CompletionAnno {cons("Blank")}
+    "(linked)"   -> CompletionAnno {cons("Linked")}
     "(blank)"    -> PropertyValue {reject}
     "(disable)"  -> PropertyValue {reject}
+    "(linked)"   -> PropertyValue {reject}
     "completion" -> PropertyValue {reject}
     "template"   -> PropertyValue {reject}
     "trigger"    -> PropertyValue {reject}

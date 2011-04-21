@@ -114,18 +114,47 @@ public class ContentProposerFactory extends AbstractServiceFactory<IContentPropo
 			results.add(parseContentProposalTemplate(template, 1, sort));
 		}
 
+		for (IStrategoAppl template : collectTerms(descriptor.getDocument(), "CompletionTemplateEx")) {
+			parseContentProposalTemplateEx(template, results);
+		}
+
 		return results;
 	}
 
 	private static Completion parseContentProposalTemplate(IStrategoAppl template, int index, String sort) {
 		ITermFactory factory = Environment.getTermFactory();
 		IStrategoTerm prefixTerm = termAt(template, index + 0);
-		boolean noPrefix = !"String".equals(cons(prefixTerm));
-		String prefix = noPrefix ? "" : termContents(prefixTerm);
 		IStrategoList completionParts = termAt(template, index + 1);
 		IStrategoTerm anno = termAt(template, index + 2);
 		completionParts = factory.makeListCons(prefixTerm, completionParts);
-		return Completion.makeTemplate(prefix, sort, completionParts, "Blank".equals(cons(anno)));
+		return Completion.makeTemplate(null, sort, completionParts, "Blank".equals(cons(anno)), false);
+	}
+
+	private static void parseContentProposalTemplateEx(IStrategoAppl template, Set<Completion> results) {
+		IStrategoList parts = termAt(template, 2);
+		String prefix = termContents(termAt(template, 1));
+		IStrategoList annos = termAt(template, 3);
+		boolean blank = isConsInList(annos, "Blank");
+		boolean linked = isConsInList(annos, "Linked");
+
+		IStrategoList sorts = termAt(template, 0);
+		if (sorts.isEmpty()) {
+			results.add(Completion.makeTemplate(prefix, null, parts, blank, linked));
+		}
+		else {
+			for (; !sorts.isEmpty(); sorts = sorts.tail()) {
+				String sort = termContents(sorts.head());
+				results.add(Completion.makeTemplate(prefix, sort, parts, blank, linked));
+			}
+		}
+	}
+
+	private static boolean isConsInList(IStrategoList list, String cons) {
+		for (; !list.isEmpty(); list = list.tail()) {
+			IStrategoTerm term = list.head();
+			if (cons.equals(cons(term))) return true;
+		}
+		return false;
 	}
 
 	private static Set<Pattern> readTriggers(Descriptor descriptor) throws BadDescriptorException {

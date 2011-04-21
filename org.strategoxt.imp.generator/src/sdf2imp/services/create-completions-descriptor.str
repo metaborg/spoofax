@@ -3,7 +3,7 @@ module sdf2imp/services/create-completions-descriptor
 imports
   libstratego-lib
   libstratego-sdf
-  
+
   sdf2imp/util/-
   sdf2imp/main
 
@@ -21,9 +21,9 @@ strategies
       <descriptor-name> "-Completions"
     , !|[
         module <descriptor-name> "-Completions"
-        
+
         imports <descriptor-name> "-Completions.generated"
-        
+
         completions
           ~~
           ~~// This file is used to define content completion.
@@ -34,13 +34,13 @@ strategies
           ~~
           ~~// Syntax completion:
           ~~
-          completion template : Start =
+          completion template Start :
             "module " <m> (blank)
           ~~
-          completion template : Definition =
-            "entity " <e> " {}"  (blank)
+          completion template Definition :
+            "entity " <e> " {" (cursor) "}"  (blank)
           ~~
-          completion template : Property =
+          completion template Property : "prop" =
             <x> " : " <T>  (blank)
           ~~
         completions
@@ -52,7 +52,7 @@ strategies
       ]|
     );
     create-derived-completions-descriptor
-    
+
   create-derived-completions-descriptor =
     not(is-heuristic-services-needed);
     verbose-msg(!"Skipping", <descriptor-name> "-Completions.generated")
@@ -63,7 +63,7 @@ strategies
       completion-rules := <collect-all-keywords; map(keyword-to-completion-rule)>;
       !|[
         module <descriptor-name> "-Completions.generated"
-        
+
         completions
           ~
           ~// Syntactic content completion can be defined as follows:
@@ -81,21 +81,26 @@ strategies
           ~//
           ~//   completion template: "section " <title> "\n\t" (blank)
           ~//
-          ~// Finally, you can specify a specific SDF sort for which a completion
+          ~// You can specify a specific SDF sort for which a completion
           ~// rule should trigger as follows:
           ~//
-          ~//   completion template : Section =
+          ~//   completion template Section :
           ~//     "section " <title> "\n\t" (blank)
+          ~//
+          ~// Finally, you can override the prefix of the completion:
+          ~//
+          ~//   completion template Statement : "assignment" =
+          ~//     <x> " = " <y> (blank)
           ~//
           ~// Semantic content completion can be defined as follows:
           ~//
-          ~//   completion proposer : completion-function-call  
+          ~//   completion proposer : completion-function-call
           ~//   completion trigger  : "\."
           ~//
           ~// This sets completion-function-call as the completion strategy,
           ~// and declares that [A-Za-z0-9_]+ may be used as a lexical pattern
           ~// to parse identifiers (used to set the text selection with suggestions).
-          ~// The completion trigger uses a regular expression to specify that  
+          ~// The completion trigger uses a regular expression to specify that
           ~// completions should be proposed as the user types ".".
           ~//
           ~// Completions make use of the identifier lexical defined in YourLanguage-Syntax.esv
@@ -138,7 +143,7 @@ strategies
     where
       <is-prefixed-keyword> lit
     with
-      keyword-suffix := <take-while(lit(is-prefixed-keyword))> p*; 
+      keyword-suffix := <take-while(lit(is-prefixed-keyword))> p*;
       keyword        := <map(?lit(<id>)); separate-by(|" "); concat-strings> [lit(lit) | keyword-suffix];
       p'*            := <drop-while(?lit(_))> p*
 
