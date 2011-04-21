@@ -21,6 +21,7 @@ import org.eclipse.jface.text.link.LinkedModeModel;
 import org.eclipse.jface.text.link.LinkedModeUI;
 import org.eclipse.jface.text.link.LinkedPosition;
 import org.eclipse.jface.text.link.LinkedPositionGroup;
+import org.eclipse.jface.text.link.ProposalPosition;
 import org.eclipse.jface.viewers.StyledString;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
@@ -64,8 +65,8 @@ public class ContentProposal implements ICompletionProposal, ICompletionProposal
 		this.position = position;
 	}
 
-	public ContentProposal(ContentProposer proposer, Completion completion, String prefix, ITextViewer viewer) {
-		this(proposer, completion, prefix, null, viewer);
+	public ContentProposal(ContentProposer proposer, Completion completion, ITextViewer viewer) {
+		this(proposer, completion, "", null, viewer);
 	}
 
 	public Point getSelection(IDocument document) {
@@ -106,7 +107,7 @@ public class ContentProposal implements ICompletionProposal, ICompletionProposal
 	private String proposalPartToString(IDocument document, IStrategoTerm part) {
 		try {
 			String lineStart = AutoEditStrategy.getLineBeforeOffset(document, position.getOffset());
-			if ("Placeholder".equals(cons(part))) {
+			if ("Placeholder".equals(cons(part)) || "PlaceholderWithSort".equals(cons(part))) {
 				IStrategoString placeholder = termAt(part, 0);
 				String contents = placeholder.stringValue();
 				contents = contents.substring(1, contents.length() - 1); // strip < >
@@ -136,7 +137,7 @@ public class ContentProposal implements ICompletionProposal, ICompletionProposal
 		for (IStrategoList cons = proposalParts; !cons.isEmpty(); cons = cons.tail()) {
 			IStrategoTerm partTerm = cons.head();
 			String part = proposalPartToString(document, partTerm);
-			if ("Placeholder".equals(cons(partTerm))
+			if ("Placeholder".equals(cons(partTerm)) || "PlaceholderWithSort".equals(cons(partTerm))
 					// HACK: we should migrate to semantic completion returning Placeholder cons too when it wants placeholders
 					|| (cons != proposalParts && proposer.getCompletionLexical().matcher(part).matches())) {
 				LinkedPositionGroup group = groups.get(part);
@@ -144,7 +145,18 @@ public class ContentProposal implements ICompletionProposal, ICompletionProposal
 					group = new LinkedPositionGroup();
 					groups.put(part, group);
 				}
-				group.addPosition(new LinkedPosition(document, offset + i, part.length(), group.isEmpty() ? 0 : LinkedPositionGroup.NO_STOP));
+				if (partTerm.getSubtermCount() == 2 && group.isEmpty()) {
+					IStrategoString sortTerm = termAt(partTerm, 1);
+					ICompletionProposal[] choices = proposer.getTemplateProposalsForSort(sortTerm.stringValue(), viewer);
+					LinkedPosition position = new ProposalPosition(document, offset + i, part.length(), 0, choices);
+					for (ICompletionProposal proposal : choices) {
+						((ContentProposal)proposal).setPosition(position);
+					}
+					group.addPosition(position);
+				}
+				else {
+					group.addPosition(new LinkedPosition(document, offset + i, part.length(), group.isEmpty() ? 0 : LinkedPositionGroup.NO_STOP));
+				}
 			}
 			else if ("Cursor".equals(cons(partTerm))) {
 				result.exitPos = offset + i;

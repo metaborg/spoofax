@@ -97,7 +97,17 @@ public class ContentProposer implements IContentProposer {
 		*/
 
 		return results;
-    }
+	}
+
+	public ICompletionProposal[] getTemplateProposalsForSort(String wantedSort, ITextViewer viewer) {
+		Set<ICompletionProposal> results = new HashSet<ICompletionProposal>();
+		for (Completion proposal : templates) {
+			if (wantedSort.equals(proposal.getSort())) {
+				results.add(new ContentProposal(this, proposal, viewer));
+			}
+		}
+		return toSortedArray(results);
+	}
 
 	private ICompletionProposal[] getParseFailureProposals(IParseController controller,
 			String document, int offset, Set<String> sorts, ITextViewer viewer) {

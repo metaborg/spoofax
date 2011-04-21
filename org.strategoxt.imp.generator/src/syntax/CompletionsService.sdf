@@ -50,6 +50,7 @@ exports
     String      -> CompletionPart
     Placeholder -> CompletionPart {cons("Placeholder")}
     "(cursor)"  -> CompletionPart {cons("Cursor")}
+    PlaceholderWithSortPrefix Id ">" -> CompletionPart {cons("PlaceholderWithSort")}
 
                  -> CompletionAnno {cons("None")}
     "(disabled)" -> CompletionAnno {cons("Disable")}
@@ -64,6 +65,6 @@ exports
 
   lexical syntax
 
+    "<" PlaceholderChar* ":" -> PlaceholderWithSortPrefix
     "<" PlaceholderChar* ">" -> Placeholder
-    ~[\>\n]                  -> PlaceholderChar
-
+    ~[\:\>\n]                -> PlaceholderChar

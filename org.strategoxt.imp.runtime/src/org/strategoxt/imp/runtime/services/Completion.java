@@ -102,7 +102,7 @@ public class Completion {
 			return null;
 		StringBuilder result = new StringBuilder();
 		for (IStrategoTerm part : newTextParts.getAllSubterms()) {
-			if ("Placeholder".equals(cons(part))) {
+			if ("Placeholder".equals(cons(part)) || "PlaceholderWithSort".equals(cons(part))) {
 				IStrategoString placeholder = termAt(part, 0);
 				String contents = placeholder.stringValue();
 				contents = contents.substring(1, contents.length() - 1); // strip < >
