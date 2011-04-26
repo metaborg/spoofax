@@ -70,7 +70,7 @@ public class TermReader extends Tools {
 			return null;
 		}
 		
-		if (result.startsWith("\"") && result.endsWith("\""))
+		if (result.startsWith("\"") && result.endsWith("\"") && result.length() > 1)
 			result = result.substring(1, result.length() - 1).replace("\\\\", "\"");
 		
 		return result;
