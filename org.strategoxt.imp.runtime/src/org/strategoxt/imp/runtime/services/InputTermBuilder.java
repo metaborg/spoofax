@@ -193,7 +193,7 @@ public class InputTermBuilder {
 	 * Returns null in case no match is found
 	 * 
 	 * @param semanticNodes
-	 *             Define Sorts and/or Constructors that shold apply. (example: Stm+ ID)
+	 *             Define Sorts and/or Constructors that should apply. (example: Stm+ ID)
 	 * @param allowMultiChildParent
 	 *             Also fetch the first parent if it has multiple children (e.g., Call("foo", "bar")).
 	 */
