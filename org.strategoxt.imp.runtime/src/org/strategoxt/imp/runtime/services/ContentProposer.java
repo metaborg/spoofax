@@ -308,24 +308,34 @@ public class ContentProposer implements IContentProposer {
 					if (proposal.isSemantic() || prefix.length() > 0 || identifierLexical.matcher(proposalPrefix).lookingAt() || proposalPrefix.length() == 0)
 						results.add(new ContentProposal(this, proposal, prefix, offsetPosition, viewer));
 			} /*else*/ {
-				Matcher matcher = identifierLexical.matcher(proposalPrefix);
-				if (matcher.find() && (matcher.start() > 0 || matcher.end() < proposalPrefix.length())) {
-					// Handle completion literals with special characters, like "(disabled)"
-					if (matcher.start() == 0 && !matcher.find(matcher.end()))
-						continue;
-					do {
-						if (document.regionMatches(offset - matcher.start() - prefix.length(), proposalPrefix, 0, matcher.start())
-								&& proposalPrefix.regionMatches(matcher.start(), prefix, 0, prefix.length())) {
-
-							// TODO: respect proposal.isBlankLineRequired() here?
-							String bigPrefix = proposalPrefix.substring(0, matcher.start() + prefix.length());
-							if (!backTrackResultsOnly) results.clear();
-							backTrackResultsOnly = true;
-							results.add(new ContentProposal(this, proposal, bigPrefix, offsetPosition, viewer));
-							break;
-						}
-					} while (matcher.find(matcher.end()));
-				}
+				// find longest match of proposal in document
+				// start at length - 2 to exclude proposals that already are fully part of the document
+				for (int i = proposalPrefix.length() - 2; i >= 0; i--)
+					if (document.regionMatches(true, offset - i, proposalPrefix, 0, i)) {
+						if (!backTrackResultsOnly) results.clear();
+						backTrackResultsOnly = true;
+						results.add(new ContentProposal(this, proposal, proposalPrefix.substring(0, i), offsetPosition, viewer));
+						break;
+					}
+				
+//				Matcher matcher = identifierLexical.matcher(proposalPrefix);
+//				if (matcher.find() && (matcher.start() > 0 || matcher.end() < proposalPrefix.length())) {
+//					// Handle completion literals with special characters, like "(disabled)"
+//					if (matcher.start() == 0 && !matcher.find(matcher.end()))
+//						continue;
+//					do {
+//						if (document.regionMatches(offset - matcher.start() - prefix.length(), proposalPrefix, 0, matcher.start())
+//								&& proposalPrefix.regionMatches(matcher.start(), prefix, 0, prefix.length())) {
+//
+//							// TODO: respect proposal.isBlankLineRequired() here?
+//							String bigPrefix = proposalPrefix.substring(0, matcher.start() + prefix.length());
+//							if (!backTrackResultsOnly) results.clear();
+//							backTrackResultsOnly = true;
+//							results.add(new ContentProposal(this, proposal, bigPrefix, offsetPosition, viewer));
+//							break;
+//						}
+//					} while (matcher.find(matcher.end()));
+//				}
 			}
 		}
 
