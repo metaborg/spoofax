@@ -96,13 +96,13 @@ public class DocumentStructure {
 		initialize();
 		this.node= tryGetOrigin(node);
 		analysize();
-		System.out.println("sep-ws: "+"$"+seperatingWhitespace+"$");
-		if(getCommentsBefore()!=null)
-			System.out.println(getCommentsBefore().getText(getLexStream()));
-		if(getCommentsAfter()!=null)
-			System.out.println(getCommentsAfter().getText(getLexStream()));
-		System.out.println("indent: "+"$"+indentNode+"$");
-		System.out.println(textWithLayout().getText(getLexStream()));
+		//System.out.println("sep-ws: "+"$"+seperatingWhitespace+"$");
+		//if(getCommentsBefore()!=null)
+			//System.out.println(getCommentsBefore().getText(getLexStream()));
+		//if(getCommentsAfter()!=null)
+			//System.out.println(getCommentsAfter().getText(getLexStream()));
+		//System.out.println("indent: "+"$"+indentNode+"$");
+		//System.out.println(textWithLayout().getText(getLexStream()));
 	}
 	
 	private void initialize() {
