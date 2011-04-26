@@ -309,8 +309,7 @@ public class ContentProposer implements IContentProposer {
 						results.add(new ContentProposal(this, proposal, prefix, offsetPosition, viewer));
 			} /*else*/ {
 				// find longest match of proposal in document
-				// start at length - 2 to exclude proposals that already are fully part of the document
-				for (int i = proposalPrefix.length() - 2; i >= 0; i--)
+				for (int i = proposalPrefix.length() - 1; i >= 0; i--)
 					if (document.regionMatches(true, offset - i, proposalPrefix, 0, i)) {
 						if (!backTrackResultsOnly) results.clear();
 						backTrackResultsOnly = true;
