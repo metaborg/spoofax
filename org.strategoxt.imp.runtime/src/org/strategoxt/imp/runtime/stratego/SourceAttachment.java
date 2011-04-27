@@ -10,6 +10,7 @@ import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.terms.attachments.AbstractTermAttachment;
 import org.spoofax.terms.attachments.ParentAttachment;
 import org.spoofax.terms.attachments.TermAttachmentType;
+import org.spoofax.terms.attachments.VolatileTermAttachmentType;
 
 /** 
  * A tree-wide source resource and parse controller attachment.
@@ -24,7 +25,7 @@ public class SourceAttachment extends AbstractTermAttachment {
 	private static final long serialVersionUID = -8114392265614382463L;
 
 	public static TermAttachmentType<SourceAttachment> TYPE =
-		TermAttachmentType.create(SourceAttachment.class);
+		new VolatileTermAttachmentType<SourceAttachment>(SourceAttachment.class);
 	
 	private final IResource resource;
 	
