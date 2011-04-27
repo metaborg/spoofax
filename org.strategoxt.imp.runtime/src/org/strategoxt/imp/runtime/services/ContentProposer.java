@@ -119,7 +119,7 @@ public class ContentProposer implements IContentProposer {
 			String prefix = parser.readPrefix(offset, document);
 			sorts.add(startSymbol);
 			printCompletionTip(controller, sorts);
-			ICompletionProposal[] proposals = computeAllCompletionProposals(TermFactory.EMPTY_LIST, document, prefix, offset, sorts, viewer);
+			ICompletionProposal[] proposals = computeAllCompletionProposals(Environment.getTermFactory().makeList(), document, prefix, offset, sorts, viewer);
 			if (proposals.length != 0) return proposals;
 		}
 		if (parser.isFatalSyntaxError()) {
