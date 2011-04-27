@@ -28,7 +28,6 @@ import java.util.jar.JarFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -75,7 +74,6 @@ import org.strategoxt.imp.runtime.stratego.StrategoConsole;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.StrategoException;
 import org.strategoxt.stratego_lib.set_config_0_0;
-import org.strategoxt.stratego_lib.system_about_0_0;
 
 /**
  * Basic Stratego feedback (i.e., errors and warnings) provider.
@@ -584,8 +582,10 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			    feedbackToMarkers(resource, warnings, IMarker.SEVERITY_WARNING);
 			    feedbackToMarkers(resource, notes, IMarker.SEVERITY_INFO);
 			} else {
-				// Throw an exception to trigger an Eclipse pop-up  
-				throw new StrategoException("Illegal output from " + feedbackFunction + " (should be (errors,warnings,notes) tuple: " + feedback);
+				Environment.logException("Incorrect output from analysis function: " + feedbackFunction);
+				messages.addMarkerFirstLine(resource, "Analysis failed: " + feedbackFunction +
+						" should return (errors,warnings,notes) or (ast,errors,warnings,notes) tuple ",
+						IMarker.SEVERITY_ERROR);
 			}
 		} finally {
 			messages.commitAllChanges();
