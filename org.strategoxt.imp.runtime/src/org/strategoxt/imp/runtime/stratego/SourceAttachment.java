@@ -1,8 +1,12 @@
 package org.strategoxt.imp.runtime.stratego;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+
 import org.eclipse.core.resources.IResource;
 import org.eclipse.imp.parser.IParseController;
 import org.spoofax.interpreter.terms.ISimpleTerm;
+import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.terms.attachments.AbstractTermAttachment;
 import org.spoofax.terms.attachments.ParentAttachment;
 import org.spoofax.terms.attachments.TermAttachmentType;
@@ -46,7 +50,16 @@ public class SourceAttachment extends AbstractTermAttachment {
 
 	public static IResource getResource(ISimpleTerm term) {
 		SourceAttachment resource = ParentAttachment.getRoot(term).getAttachment(TYPE);
-		return resource == null ? null : resource.resource;
+		if (resource == null) {
+			String file = ImploderAttachment.getFilename(term);
+			try {
+				return file == null ? null : EditorIOAgent.getResource(new File(file));
+			} catch (FileNotFoundException e) {
+				return null;
+			}
+		} else {
+			return resource.resource;
+		}
 	}
 
 	public static IParseController getParseController(ISimpleTerm term) {

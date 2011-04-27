@@ -99,7 +99,7 @@ public class AstNodeLocator implements ISourcePositionLocator {
 	
 	public IPath getPath(Object element) {
 		IResource resource = getResource(impObjectToAstNode(element));
-		return resource.getLocation();
+		return resource == null ? null : resource.getLocation();
 	}
 
 	public static IStrategoTerm impObjectToAstNode(Object element) {
