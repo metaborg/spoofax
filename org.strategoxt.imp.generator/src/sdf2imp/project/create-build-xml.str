@@ -92,8 +92,11 @@ strategies
         <condition property="externaldefimport" value="-I &quot;${externaldefdir}&quot;" else="">
             <isset property="externaldef"/>
         </condition>
-        <condition property="externaljarimport" value=":${externaljar}" else="">
+        <condition property="externaljarimport1" value=":${externaljar}" else="">
             <isset property="externaljar"/>
+        </condition>
+        <condition property="externaljarimport2" value=":${externaljarx}" else="">
+            <isset property="externaljarx"/>
         </condition>
         <condition property="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter">
             <isset property="eclipse.running"/>
@@ -451,7 +454,7 @@ strategies
                 <param name="build.stratego.outputfile" value="${src-gen}/trans/Main.java"/>
                 <param name="build.stratego.extraargs" value="-la java-front ${java.jar.import}"/>
             </antcall>
-            <javac classpath="utils/strategoxt.jar:${src-gen}${externaljarimport}${java.jar.classpath}" srcdir="${src-gen}" includes="trans/**" destdir="${build}" source="1.5" target="1.5" debug="on"/>
+            <javac classpath="utils/strategoxt.jar:${src-gen}${externaljarimport1}${externaljarimport2}${java.jar.classpath}" srcdir="${src-gen}" includes="trans/**" destdir="${build}" source="1.5" target="1.5" debug="on"/>
             <!-- copy imported terms -->
             <copy todir="${build}/trans">
                 <fileset dir="${src-gen}/trans" excludes="**/*.java"/>
@@ -566,9 +569,9 @@ strategies
 	        	debug="on">
 	    		<!-- attribute in javac: srcdir="${src-gen}" -->
 	    		<src path="${src-gen}"/>
-	        	<!-- attribute in javac: classpath="utils/strategoxt.jar:${src-gen}${externaljarimport}${java.jar.classpath}"  -->
+	        	<!-- attribute in javac: classpath="utils/strategoxt.jar:${src-gen}${externaljarimport1}${externaljarimport2}${java.jar.classpath}"  -->
 	        	<classpath>
-	        		<pathelement path="utils/strategoxt.jar:${src-gen}${externaljarimport}${java.jar.classpath}"/> <!-- the path attribute accepts colon- or semicolon-separated lists of locations -->
+	        		<pathelement path="utils/strategoxt.jar:${src-gen}${externaljarimport1}${externaljarimport2}${java.jar.classpath}"/> <!-- the path attribute accepts colon- or semicolon-separated lists of locations -->
 	        		<pathelement location="utils/stratego-debug-runtime.jar"/> <!-- The location attribute specifies a single file or directory relative to the project's base directory (or an absolute filename) -->
 	        		<pathelement location="utils/stratego-debug-runtime-java.jar"/>
 	        	</classpath>
