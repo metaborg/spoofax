@@ -195,7 +195,8 @@ public class AstMessageHandler {
 	}
 	
 	public void clearMarkers(IResource file) {
-		currentBatch.clearMarkers(file);
+		if (file.exists())
+		  currentBatch.clearMarkers(file);
 	}
 	
 	public final String getMarkerType() {
