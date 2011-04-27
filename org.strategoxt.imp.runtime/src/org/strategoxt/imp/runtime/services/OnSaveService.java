@@ -52,7 +52,7 @@ public class OnSaveService implements IOnSaveService {
 	public void documentChanged(DocumentEvent event) {
 		if (function == null) return;
 		
-		String contents = event.getDocument().get();
+		//String contents = event.getDocument().get();
 		
 		try {
 			Environment.getStrategoLock().lock();
