@@ -270,6 +270,13 @@ public class DynamicDescriptorLoader implements IResourceChangeListener {
 		if (name.endsWith(".main.esv")) return packedDescriptor;
 		name = name.substring(0, name.length() - ".packed.esv".length());
 		IResource result = packedDescriptor.getParent().getParent().findMember("editor/" + name + ".main.esv");
+		if ( result == null)
+		{
+			// Fallback to  shadowdir structure. 
+			// HACK : Dont like this dependency i.e. hard-coding of path (.shadowdir). 
+			// TODO : Make it configurable somehow
+			result = packedDescriptor.getParent().getParent().findMember("include/" + name +".main.esv");
+		}	
 		if (result == null) {
 			Environment.logException("Source descriptor not found", new FileNotFoundException("include/" + name + ".packed.esv"));
 			return packedDescriptor;
