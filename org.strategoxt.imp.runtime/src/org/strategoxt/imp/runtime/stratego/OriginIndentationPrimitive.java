@@ -1,6 +1,7 @@
 package org.strategoxt.imp.runtime.stratego;
 
 import org.spoofax.interpreter.core.IContext;
+import org.spoofax.interpreter.library.jsglr.origin.AbstractOriginPrimitive;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 

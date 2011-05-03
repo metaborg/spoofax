@@ -7,6 +7,7 @@ import static org.spoofax.terms.Term.isTermList;
 import static org.spoofax.terms.attachments.ParentAttachment.getParent;
 
 import org.spoofax.interpreter.core.IContext;
+import org.spoofax.interpreter.library.jsglr.origin.AbstractOriginPrimitive;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;

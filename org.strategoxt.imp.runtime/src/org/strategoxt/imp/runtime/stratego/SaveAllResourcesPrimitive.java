@@ -1,6 +1,5 @@
 package org.strategoxt.imp.runtime.stratego;
 
-import static org.spoofax.interpreter.core.Tools.asJavaString;
 import static org.spoofax.interpreter.core.Tools.isTermString;
 
 import org.eclipse.core.runtime.IProgressMonitor;

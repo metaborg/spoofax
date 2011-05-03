@@ -3,6 +3,7 @@ package org.strategoxt.imp.runtime.stratego;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
 
 import org.spoofax.interpreter.core.IContext;
+import org.spoofax.interpreter.library.jsglr.origin.AbstractOriginPrimitive;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.stratego.DocumentStructure.TextFragment;
 
