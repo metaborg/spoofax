@@ -118,18 +118,26 @@ public class StrategoTermPath {
 				if (hasImploderOrigin(current)) {
 					IStrategoTerm currentOrigin = tryGetOrigin(current);
 					if (currentOrigin == origin) return current;
+					// sets a term as 'nextBest' if one of the subterms of its origin-term is the originChild
 					if (nextBest == null && originChild != null) {
 						for (int i = 0, max = currentOrigin.getSubtermCount(); i < max; i++)
 							if (currentOrigin.getSubterm(i) == originChild)
 								nextBest = currentOrigin;
 					}
 				}
+				else { // sets a term as 'nextBest' in case no origin term exists, but one of its subterms is origin-related to the originChild
+					if (current == origin) return current;
+					if (nextBest == null && originChild != null) {
+						for (int i = 0, max = current.getSubtermCount(); i < max; i++)
+							if (tryGetOrigin(current.getSubterm(i)) == originChild)
+								nextBest = current;
+					}					
+				}
 				return null;
 			}
 		}
 		TestOrigin testOrigin = new TestOrigin();
-		testOrigin.origin = origin;
-		
+		testOrigin.origin = origin;		
 		generator.init(context);
 		IStrategoTerm perfectMatch = position_of_term_1_0.instance.invoke(context, ast, testOrigin);
 		if (perfectMatch != null) {
