@@ -7,7 +7,8 @@ import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getTokenizer;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.putImploderAttachment;
 import static org.spoofax.terms.TermVisitor.tryGetListIterator;
 import static org.spoofax.terms.attachments.OriginAttachment.getOrigin;
-import static org.strategoxt.imp.runtime.stratego.SourceAttachment.*;
+import static org.strategoxt.imp.runtime.stratego.SourceAttachment.getParseController;
+import static org.strategoxt.imp.runtime.stratego.SourceAttachment.getResource;
 
 import java.lang.ref.WeakReference;
 import java.util.Iterator;
@@ -19,11 +20,12 @@ import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.jsglr.client.imploder.Tokenizer;
 import org.spoofax.terms.attachments.OriginAttachment;
+import org.spoofax.terms.attachments.ParentAttachment;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.stratego.SourceAttachment;
+import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 
 /**
  * A class that uses the language runtime to disambiguate an AST.
@@ -82,9 +84,19 @@ public class CustomDisambiguator {
 		getTokenizer(oldTerm).setAst(newTerm);
 		getTokenizer(oldTerm).initAstNodeBinding();
 		SourceAttachment.putSource(newTerm, getResource(oldTerm), getParseController(oldTerm));
+		reinitParents(newTerm);
 		return newTerm;
 	}
 	
+	private static void reinitParents(IStrategoTerm parent) {
+		Iterator<IStrategoTerm> iterator = tryGetListIterator(parent); 
+		for (int i = 0, max = parent.getSubtermCount(); i < max; i++) {
+			IStrategoTerm child = iterator == null ? parent.getSubterm(i) : iterator.next();
+			ParentAttachment.putParent(child, parent, null);
+			reinitParents(child);
+		}
+	}
+
 	/**
 	 * Assign tokens to this term and all subterms, using the origin tokens or the given tokens.
 	 * 
