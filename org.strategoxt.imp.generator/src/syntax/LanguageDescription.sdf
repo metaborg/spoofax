@@ -70,4 +70,5 @@ exports
      "fences"     -> PropertyValue {reject}
      "line"       -> PropertyValue {reject}
      "block"      -> PropertyValue {reject}
+     "unmanaged"  -> Sort {reject}
      
