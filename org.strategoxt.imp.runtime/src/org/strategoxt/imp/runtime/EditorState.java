@@ -6,9 +6,7 @@ import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.parser.IParseController;
-import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Display;
@@ -203,7 +201,7 @@ public class EditorState extends FileState {
 			return null;
 		
 		IToken start = getParseController().getTokenIterator(new Region(selection.x, 0), true).next();
-		IToken end = getParseController().getTokenIterator(new Region(selection.x + selection.y-1, 0), true).next();
+		IToken end = getParseController().getTokenIterator(new Region(selection.x + Math.max(0, selection.y-1), 0), true).next();
 		
 		ITokenizer tokens = start.getTokenizer();
 		int layout = IToken.TK_LAYOUT;
