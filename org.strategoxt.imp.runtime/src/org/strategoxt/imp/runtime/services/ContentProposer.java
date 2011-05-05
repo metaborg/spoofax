@@ -14,7 +14,6 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -218,7 +217,10 @@ public class ContentProposer implements IContentProposer {
 		// static blueprints, i.e. keywords and templates
 		results.addAll(templates);
 
-		return filterCompletions(results, document, prefix, offset, sorts, viewer);
+		Point selection = viewer.getSelectedRange();
+		Position offsetPosition = new Position(selection.x, selection.y);
+
+		return filterCompletions(results, document, prefix, offsetPosition, sorts, viewer);
 	}
 
 	private Set<Completion> toCompletions(IStrategoTerm proposals, String document, String prefix, int offset, Set<String> sorts) {
@@ -289,15 +291,12 @@ public class ContentProposer implements IContentProposer {
 		return resultArray;
 	}
 
-	private ICompletionProposal[] filterCompletions(Set<Completion> completions, String document, String prefix,
-			int offset, Set<String> sorts, ITextViewer viewer) {
+	ICompletionProposal[] filterCompletions(Set<Completion> completions, String document, String prefix,
+			Position offsetPosition, Set<String> sorts, ITextViewer viewer) {
 
 		final Set<ICompletionProposal> results = new HashSet<ICompletionProposal>();
-		final Point selection = viewer.getSelectedRange();
-		final Position offsetPosition = new Position(selection.x, selection.y);
+		final int offset = offsetPosition.getOffset();
 		boolean backTrackResultsOnly = false;
-
-		assert offset == offsetPosition.getOffset();
 
 		for (Completion proposal : completions) {
 			String proposalPrefix = proposal.getPrefix();
@@ -305,18 +304,19 @@ public class ContentProposer implements IContentProposer {
 				continue;
 			if (!backTrackResultsOnly && proposalPrefix.regionMatches(IGNORE_TEMPLATE_PREFIX_CASE, 0, prefix, 0, prefix.length())) {
 				if (!proposal.isBlankLineRequired() || isBlankBeforeOffset(document, offset - prefix.length()))
-					if (proposal.isSemantic() || prefix.length() > 0 || identifierLexical.matcher(proposalPrefix).lookingAt() || proposalPrefix.length() == 0)
+					if (proposal.isSemantic() || prefix.length() > 0 || proposalPrefix.length() == 0 || identifierLexical.matcher(proposalPrefix).lookingAt())
 						results.add(new ContentProposal(this, proposal, prefix, offsetPosition, viewer));
-			} /*else*/ {
+			}
+			if (prefix.length() == 0) {
 				// find longest match of proposal in document
-				for (int i = proposalPrefix.length() - 1; i >= 0; i--)
+				for (int i = proposalPrefix.length() - 1; i > 0; i--) {
 					if (document.regionMatches(true, offset - i, proposalPrefix, 0, i)) {
 						if (!backTrackResultsOnly) results.clear();
 						backTrackResultsOnly = true;
 						results.add(new ContentProposal(this, proposal, proposalPrefix.substring(0, i), offsetPosition, viewer));
 						break;
 					}
-				
+				}
 //				Matcher matcher = identifierLexical.matcher(proposalPrefix);
 //				if (matcher.find() && (matcher.start() > 0 || matcher.end() < proposalPrefix.length())) {
 //					// Handle completion literals with special characters, like "(disabled)"

@@ -32,11 +32,28 @@ public class Completion {
 		return new Completion(literal, null, null, KEYWORD, null, keywordColor);
 	}
 
+	// for testing
+	static Completion makeTemplate(String prefix, String sort) {
+		return new Completion(prefix, sort, null, TEMPLATE, null, keywordColor);
+	}
+
+	// for testing
+	static Completion makeTemplate(String prefix, String sort, boolean blankLineRequired) {
+		int flags = TEMPLATE;
+		if (blankLineRequired) flags |= BLANK_LINE_REQUIRED;
+		return new Completion(prefix, sort, null, flags, null, keywordColor);
+	}
+
 	public static Completion makeTemplate(String prefix, String sort, IStrategoList completionParts, boolean blankLineRequired, boolean linkPlaceholders) {
 		int flags = TEMPLATE;
 		if (blankLineRequired) flags |= BLANK_LINE_REQUIRED;
 		if (linkPlaceholders)  flags |= LINK_PLACEHOLDERS;
 		return new Completion(prefix, sort, completionParts, flags, null, keywordColor);
+	}
+	
+	// for testing
+	static Completion makeSemantic(String prefix, String description) {
+		return new Completion(prefix, null, null, SEMANTIC, description, null);
 	}
 
 	public static Completion makeSemantic(IStrategoList completionParts, String description) {
