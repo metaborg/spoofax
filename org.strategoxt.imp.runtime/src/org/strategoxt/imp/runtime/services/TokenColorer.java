@@ -13,6 +13,7 @@ import org.eclipse.imp.services.ITokenColorer;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.TextAttribute;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
 import org.spoofax.interpreter.terms.ISimpleTerm;
@@ -170,10 +171,13 @@ public class TokenColorer implements ITokenColorer {
 
 		Color fg = master.getForeground();
 		Color bg = master.getBackground();
+		
+		int style = Math.max(master.getStyle() & SWT.BOLD, slave.getStyle() & SWT.BOLD)
+		          + Math.max(master.getStyle() & SWT.ITALIC, slave.getStyle() & SWT.ITALIC);
 
-		if (fg == null || bg == null) {
+		if (fg == null || bg == null || style != master.getStyle()) {
 			return new TextAttribute(fg == null ? slave.getForeground() : fg, bg == null ? slave
-					.getBackground() : bg, master.getStyle());
+					.getBackground() : bg, style);
 		} else {
 			return master;
 		}
