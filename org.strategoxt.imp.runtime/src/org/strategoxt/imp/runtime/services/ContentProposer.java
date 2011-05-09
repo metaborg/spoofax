@@ -304,7 +304,7 @@ public class ContentProposer implements IContentProposer {
 				continue;
 			if (!backTrackResultsOnly && proposalPrefix.regionMatches(IGNORE_TEMPLATE_PREFIX_CASE, 0, prefix, 0, prefix.length())) {
 				if (!proposal.isBlankLineRequired() || isBlankBeforeOffset(document, offset - prefix.length()))
-					if (proposal.isSemantic() || prefix.length() > 0 || proposalPrefix.length() == 0 || identifierLexical.matcher(proposalPrefix).lookingAt())
+					//if (proposal.isSemantic() || prefix.length() > 0 || proposalPrefix.length() == 0 || identifierLexical.matcher(proposalPrefix).lookingAt())
 						results.add(new ContentProposal(this, proposal, prefix, offsetPosition, viewer));
 			}
 			if (prefix.length() == 0) {
