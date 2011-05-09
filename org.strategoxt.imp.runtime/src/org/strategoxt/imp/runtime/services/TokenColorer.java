@@ -172,8 +172,7 @@ public class TokenColorer implements ITokenColorer {
 		Color fg = master.getForeground();
 		Color bg = master.getBackground();
 		
-		int style = Math.max(master.getStyle() & SWT.BOLD, slave.getStyle() & SWT.BOLD)
-		          + Math.max(master.getStyle() & SWT.ITALIC, slave.getStyle() & SWT.ITALIC);
+		int style = master.getStyle() | slave.getStyle();
 
 		if (fg == null || bg == null || style != master.getStyle()) {
 			return new TextAttribute(fg == null ? slave.getForeground() : fg, bg == null ? slave
