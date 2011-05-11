@@ -13,6 +13,7 @@ import org.eclipse.swt.graphics.Image;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.ITokenizer;
+import org.spoofax.terms.attachments.ParentAttachment;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.AstNodeLocator;
 
@@ -47,12 +48,12 @@ public class LabelProvider implements ILabelProvider {
 		
 		if ("MethodDec".equals(constructor)
 				&& node.getSubtermCount() > 0 && node.getSubterm(0).getSubtermCount() > 3) {
-			return node.getSubterm(0).getSubterm(3).toString();
+			return getIdentifier(node.getSubterm(0).getSubterm(3));
 		} else if ("ClassDec".equals(constructor)
 				&& node.getSubtermCount() > 0 && node.getSubterm(0).getSubtermCount() > 1) {
-			return node.getSubterm(0).getSubterm(1).toString();
+			return getIdentifier(node.getSubterm(0).getSubterm(1));
 		} else if (node.getSubtermCount() == 1
-				&& node.getSubtermCount() > 0 && node.getSubterm(0).isList()) {
+				&& node.getSubterm(0).isList()) {
 			return getLeftToken(node).toString(); // e.g., "rules", "strategies"
 		} else {
 			return getIdentifier(node);
@@ -67,9 +68,29 @@ public class LabelProvider implements ILabelProvider {
 		do {
 			IToken token = stream.getTokenAt(i);
 			int kind = token.getKind();
-
-			if (kind == TK_IDENTIFIER || kind == TK_STRING)
-				return token.toString();
+			
+			if (kind == TK_IDENTIFIER || kind == TK_STRING) {
+				
+				/*
+				 * heuristics: optional tokens are not representative labels
+				 *  => Figure out whether the token occurs in a 'Some' node.
+				 */
+				if (!(token.getAstNode() instanceof IStrategoTerm))
+					return token.toString();
+				IStrategoTerm term = (IStrategoTerm) token.getAstNode();
+				
+				boolean isOptional = false;
+				while (term != null && !term.equals(node)) {
+					if ("Some".equals(tryGetName(term))) {
+						isOptional = true;
+						break;
+					}
+					term = ParentAttachment.getParent(term);
+				}
+				
+				if (!isOptional)
+					return token.toString();
+			}
 			
 		} while (i++ < end);
 		
