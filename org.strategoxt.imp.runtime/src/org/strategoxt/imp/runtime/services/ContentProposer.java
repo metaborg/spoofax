@@ -140,7 +140,9 @@ public class ContentProposer implements IContentProposer {
 					":: Completion triggered for: " + currentCompletionNode
 					+ parseErrorHelp
 					+ " (candidate sorts: " + sorts + ")" + "\n");
-				StrategoConsole.activateConsole(true);
+
+				// why would you want to do that?
+				// StrategoConsole.activateConsole(true);
 			} catch (IOException e) {
 				Environment.logWarning("Could not write to console", e);
 			}
