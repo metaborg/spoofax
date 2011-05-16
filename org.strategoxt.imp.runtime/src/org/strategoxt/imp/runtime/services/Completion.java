@@ -57,9 +57,8 @@ public class Completion {
 	}
 
 	public static Completion makeSemantic(IStrategoList completionParts, String description) {
-		final String prefix = ((IStrategoString) completionParts.head()).stringValue();
 		final LazyColor color = completionParts.size() == 1 ? identifierColor : null; // identifier proposal?
-		return new Completion(prefix, null, completionParts, SEMANTIC, description, color);
+		return new Completion(null, null, completionParts, SEMANTIC, description, color);
 	}
 
 	private final String prefix;
@@ -78,6 +77,7 @@ public class Completion {
 
 	private final LazyColor color;
 
+	// prefix overrides the default prefix (calculated from newTextParts)
 	protected Completion(String prefix, String sort, IStrategoList newTextParts, int flags, String description, LazyColor color) {
 		this.prefix = prefix != null ? prefix : getPrefix(newTextParts);
 		this.sort = sort;
@@ -91,7 +91,8 @@ public class Completion {
 
 	private static String getPrefix(IStrategoList completionParts) {
 		IStrategoTerm prefixTerm = completionParts.head();
-		boolean noPrefix = !"String".equals(cons(prefixTerm));
+		boolean noPrefix = prefixTerm.getTermType() != IStrategoTerm.STRING
+				&& !"String".equals(cons(prefixTerm));
 		return noPrefix ? "" : termContents(prefixTerm);
 	}
 
