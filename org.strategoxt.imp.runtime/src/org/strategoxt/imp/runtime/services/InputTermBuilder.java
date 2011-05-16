@@ -213,12 +213,11 @@ public class InputTermBuilder {
 							 // return the node furthest up the ancestor
 							 // chain
 		}
-		boolean isMatch = isMatchOnConstructorOrSort(mappings, selectionNode);
+		boolean isMatch = false;
 		while (!isMatch && selectionNode != null && selectionNode != getParent(ancestor)) {
-			selectionNode = getParent(selectionNode);
 			isMatch = isMatchOnConstructorOrSort(mappings, selectionNode);
+			selectionNode = getParent(selectionNode);
 		}
-		/* XXX: this makes no sense .. taking the constructor of a list? */
 		// Creates a sublist with single element.
 		// Usecase: extract refactoring is defined on a (sub)list (refactoring
 		// X+: ...) and should be applicable when only one X is selected

@@ -46,8 +46,12 @@ public class BuilderFactory extends AbstractServiceFactory<IBuilderMap> {
 
 		addBuilders(d, controller, builders, null);
 		addCustomStrategyBuilder(d, controller, builders, derivedFromEditor);
-		if (EditorState.isUIThread()) // don't show for background (realtime) builders; not threadsafe
-			addRefactorings(d, controller, builders);
+		try {
+			if (EditorState.isUIThread()) // don't show for background (realtime) builders; not threadsafe
+				addRefactorings(d, controller, builders);
+		} catch (RuntimeException e) { // defensive coding...
+			Environment.logException("Could not determine possible refactorings", e);
+		}
 		if (Environment.allowsDebugging(d)) // Descriptor allows debugging)
 		{
 			addDebugModeBuilder(d, controller, builders, derivedFromEditor);
