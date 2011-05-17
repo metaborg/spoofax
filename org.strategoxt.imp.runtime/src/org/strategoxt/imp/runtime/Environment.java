@@ -85,7 +85,7 @@ public final class Environment {
 	static {
 		descriptors = Collections.synchronizedMap(new HashMap<String, Descriptor>());
 		unmanagedTables = Collections.synchronizedMap(new HashMap<String, ParseTableProvider>());
-		termFactory = new TermFactory();
+		termFactory = new TermFactory().getFactoryWithStorageType(IStrategoTerm.MUTABLE);
 		parseTableManager = new ParseTableManager(termFactory);
 		parseTables = Collections.synchronizedMap(new HashMap<String, ParseTableProvider>());
 		checkJVMOptions();

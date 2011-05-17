@@ -89,6 +89,7 @@ public class InputTermBuilder {
 		}
 		
 		ITermFactory factory = Environment.getTermFactory();
+		assert factory.getDefaultStorageType() == IStrategoTerm.MUTABLE;
 		String path = resource == null ? "input" : resource.getProjectRelativePath().toPortableString();
 		String absolutePath = resource == null ? "." : tryGetProjectPath(resource);
 		
