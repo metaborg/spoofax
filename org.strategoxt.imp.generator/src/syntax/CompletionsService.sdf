@@ -28,7 +28,7 @@ exports
     "completion" "template" ":" Id CompletionPart+ OptCompletionAnno -> SemanticRule {cons("CompletionTemplate"), avoid, deprecated("Add quotes to the starting literal")}
 
     %% Deprecated: replaced by CompletionTemplateEx
-    "completion" "template" ":" Sort "=" CompletionPart CompletionPart* OptCompletionAnno -> SemanticRule {cons("CompletionTemplateWithSort"), avoid, deprecated("Move the sort before ':' and remove '='")}
+    "completion" "template" ":" Sort "=" CompletionPart CompletionPart* OptCompletionAnno -> SemanticRule {cons("CompletionTemplateWithSort"), avoid} %% deprecated("Move the sort before ':' and remove '='")
 
     %% Used as content completion triggers
     %% "completion" "template" PropertyValue CompletionPart* OptCompletionAnno -> SemanticRule {cons("CompletionTemplate"), recover, avoid}
