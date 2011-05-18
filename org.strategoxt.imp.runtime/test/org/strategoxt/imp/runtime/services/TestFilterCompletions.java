@@ -81,7 +81,7 @@ public class TestFilterCompletions {
 	public void testNonIdentifier() {
 		completions.add(Completion.makeTemplate(", avoid", null));
 		filterCompletions("", "", 0, 0, noSorts);
-		assertEquals(1, results.length);
+		assertEquals(0, results.length);
 	}
 	
 	@Test
