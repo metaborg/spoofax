@@ -387,7 +387,7 @@ public class StrategoBuilder implements IBuilder {
 			throw new RuntimeException(e);
 		}
 		if (file.exists()) {
-			file.setCharset("UTF-8", null);
+			// UNDONE: file.setCharset("UTF-8", null); // not allowed for existing file?
 			file.setContents(resultStream, true, true, null);
 		} else {
 			createDirs(file.getParent());
