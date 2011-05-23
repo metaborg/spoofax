@@ -80,7 +80,11 @@ public class ContentProposal implements ICompletionProposal, ICompletionProposal
 
 	public String getAdditionalProposalInfo() {
 		// TODO: support newlines and tabs in proposal descriptions?
-		return completion.getDescription();
+		return escapeHtml(completion.getDescription());
+	}
+	
+	private String escapeHtml(String input) {
+		return input.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
 	}
 
 	private Point proposalPartsToSelection(IDocument document, IStrategoList proposalParts, int offset) {
