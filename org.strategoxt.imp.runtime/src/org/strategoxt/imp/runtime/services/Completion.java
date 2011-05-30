@@ -85,7 +85,7 @@ public class Completion {
 		this.newText = buildNewText();
 		this.flags = flags;
 		this.description = description;
-		this.name = prefix != null ? prefix : buildName();
+		this.name = prefix != null && prefix.matches(".*[a-zA-Z].*") ? prefix : buildName();
 		this.color = color;
 	}
 
