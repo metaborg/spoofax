@@ -14,13 +14,11 @@ strategies
       extension  := <string-tokenize(|[',']); Hd> extensions
     );
     
-    // (the XML pretty printer has problems with this file, so it's printed as text instead)
     <output-text-file(|["test"], <add-extension> ("example", extension))>
-    <conc-strings>
-(
-"module example
-
-// Example \"", name, "\" program (see syntax/", name, ".sdf for the grammar)
+$[/**
+ * Example [name] program.
+ */  
+module example
 
 entity User {
   name     : String
@@ -35,5 +33,30 @@ entity BlogPosting {
 
 entity URL {
   location : String
-}"
-)
+}
+];
+    
+    <output-text-file(|["test"], <add-extension> ("test-example", "spt"))>
+$</**
+ * Unit tests for the <name> language.
+ */
+module test-example
+
+language <name>
+
+setup Common [[
+  module example
+]]
+
+test Simple entity [[
+  entity User {
+    name : String
+  }
+]] 0 errors
+
+test Entity with reference to non-existing entity [[
+  entity User {
+    name : Strin
+  }
+]] 1 error
+>
