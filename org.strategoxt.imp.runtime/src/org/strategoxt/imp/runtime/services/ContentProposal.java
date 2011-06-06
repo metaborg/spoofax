@@ -84,6 +84,7 @@ public class ContentProposal implements ICompletionProposal, ICompletionProposal
 	}
 	
 	private String escapeHtml(String input) {
+		if (input == null) return null;
 		return input.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
 	}
 
