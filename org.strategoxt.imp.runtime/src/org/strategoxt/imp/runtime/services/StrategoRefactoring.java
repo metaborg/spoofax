@@ -1,62 +1,42 @@
 package org.strategoxt.imp.runtime.services;
 
-import static org.spoofax.interpreter.core.Tools.asJavaString;
-import static org.spoofax.interpreter.core.Tools.isTermAppl;
 import static org.spoofax.interpreter.core.Tools.isTermList;
 import static org.spoofax.interpreter.core.Tools.isTermTuple;
 import static org.spoofax.interpreter.core.Tools.termAt;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.hasImploderOrigin;
-import static org.strategoxt.imp.runtime.stratego.SourceAttachment.getResource;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
 
-import java.io.PrintWriter;
-import java.io.Writer;
-import java.util.Map;
-import java.util.WeakHashMap;
-import java.util.concurrent.CancellationException;
+import java.util.Collection;
+import java.util.HashSet;
 
-import org.eclipse.core.filebuffers.FileBuffers;
-import org.eclipse.core.filebuffers.ITextFileBuffer;
-import org.eclipse.core.filebuffers.ITextFileBufferManager;
-import org.eclipse.core.filebuffers.LocationKind;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jface.dialogs.ErrorDialog;
-import org.eclipse.jface.text.BadLocationException;
-import org.eclipse.jface.text.IDocument;
-import org.eclipse.ui.progress.UIJob;
+import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.ltk.core.refactoring.Change;
+import org.eclipse.ltk.core.refactoring.CompositeChange;
+import org.eclipse.ltk.core.refactoring.Refactoring;
+import org.eclipse.ltk.core.refactoring.RefactoringStatus;
+import org.eclipse.ltk.core.refactoring.TextFileChange;
+import org.eclipse.text.edits.MultiTextEdit;
+import org.eclipse.text.edits.ReplaceEdit;
 import org.spoofax.interpreter.core.InterpreterErrorExit;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.core.UndefinedStrategyException;
-import org.spoofax.interpreter.library.IOAgent;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.attachments.OriginAttachment;
 import org.strategoxt.imp.generator.construct_textual_change_1_1;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.MonitorStateWatchDog;
-import org.strategoxt.imp.runtime.RuntimeActivator;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
-import org.strategoxt.imp.runtime.dynamicloading.TermReader;
 import org.strategoxt.imp.runtime.stratego.SourceAttachment;
-import org.strategoxt.imp.runtime.stratego.StrategoConsole;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
-/**
- * @author Maartje
- */
-public class StrategoRefactoring implements IBuilder {
-	
-	// TODO extract "AbstractStrategoBuilder"
-	//      this is code duplication hell :(
+public class StrategoRefactoring extends Refactoring implements IRefactoring {
 	
 	private final String ppTable;
 	
@@ -66,27 +46,42 @@ public class StrategoRefactoring implements IBuilder {
 
 	private final String caption;
 	
-	private String builderRule;
+	private final String builderRule;
 			
-	private final IResource resource;
-	
-	// Since StrategoRefactorings are not persistent (per constructor of BuilderFactory)
-	// we maintain a map with running jobs in a static field
-	private static Map<String, Job> activeJobs = new WeakHashMap<String, Job>();
-	
 	private final boolean cursor;
 	
 	private final boolean source;
 	
 	private final IStrategoTerm[] semanticNodes;
+		
+	protected IStrategoTerm userInput;
+
+	private IStrategoTerm node;
 	
-	/**
-	 * Creates a new Stratego refactoring.
-	 */
+	private Collection<TextFileChange> fileChanges;
+
+	public String getCaption() {
+		return caption;
+	}
+
+	public String getActionDefinitionId() {
+		// TODO 
+		return "org.eclipse.jdt.ui.edit.text.java.rename.element";
+	}
+
+	public void setUserInputTerm(IStrategoTerm inputTerm) {
+		userInput = inputTerm;
+	}
+	
+	public void prepareExecute(EditorState editor) {
+		this.node = getSelectionNode(editor);
+		fileChanges.clear();
+		userInput = null;
+	}
+
 	public StrategoRefactoring(StrategoObserver observer, String caption, String builderRule,
-			boolean cursor, boolean source,
-			String ppTable, String ppStrategy,
-			IResource resource, IStrategoTerm[] semanticNodes) { //TODO Check if the refactoring is defined for the given Sort-Constructor
+			boolean cursor, boolean source, String ppTable, String ppStrategy,
+			IStrategoTerm[] semanticNodes) {
 		this.cursor=cursor;
 		this.source=source;
 		this.ppTable=ppTable;
@@ -94,200 +89,188 @@ public class StrategoRefactoring implements IBuilder {
 		this.observer = observer;
 		this.caption = caption;
 		this.builderRule = builderRule;
-		this.resource=resource;
 		this.semanticNodes = semanticNodes;
+		fileChanges = new HashSet<TextFileChange>();
 	}
 	
-	public String getCaption() {
+	@Override
+	public String getName() {
 		return caption;
 	}
 	
-	public Object getData() {
-		// Data not used for normal builders
-		return null;
+	@Override
+	public RefactoringStatus checkInitialConditions(IProgressMonitor pm) throws CoreException, OperationCanceledException {
+		RefactoringStatus status = new RefactoringStatus();
+		if(node == null)
+			status.merge(RefactoringStatus.createFatalErrorStatus("Editor is still analyzing"));	
+		return status;
 	}
-	
-	public void setData(Object data) {
-		// Data not used for normal builders
-	}
-	
-	public String getBuilderRule() {
-		return builderRule;
-	}
-	
-	protected StrategoObserver getObserver() {
-		return observer;
-	}
-		
-	protected void setBuilderRule(String builderRule) {
-		this.builderRule = builderRule;
-	}
-	
-	public Job scheduleExecute(final EditorState editor, IStrategoTerm node,
-			final IFile errorReportFile, final boolean isRebuild) {
-		
-		String displayCaption = caption.endsWith("...")
-			? caption.substring(caption.length() - 3)
-			: caption;
-		
-		Job lastJob = activeJobs.get(caption);
-		if (lastJob != null && lastJob.getState() != Job.NONE) {
-			if (!isRebuild)
-				openError(editor, "Already running: " + displayCaption);
-			return null;
-		}
-		
-		if (node == null) {
-			node = editor.getSelectionAst(!cursor);
-			if (node == null) node = editor.getParseController().getCurrentAst();
-		}
-		
-		final IStrategoTerm node2 = node;
-			
-		Job job = new Job("Executing " + displayCaption) {
-			@Override
-			protected IStatus run(IProgressMonitor monitor) {
-				MonitorStateWatchDog protector = new MonitorStateWatchDog(this, monitor, observer);
-				try {
-					execute(editor, node2, errorReportFile, isRebuild);
-					return monitor.isCanceled() ? Status.CANCEL_STATUS : Status.OK_STATUS;
-				} finally {
-					protector.endProtect();
-				}
-			}
-		};
-		//job.setUser(true);
-		job.schedule();
-		activeJobs.put(caption, job);
-		return job;
-	}
-	
-	private void execute(EditorState editor, IStrategoTerm node, IFile errorReportFile, boolean isRebuild) {
-		IStrategoTerm builderResult=null;
-		IStrategoTerm textReplaceTerm=null;
-		//IFile file = null;
 
-		observer.getLock().lock();
+	@Override
+	public RefactoringStatus checkFinalConditions(IProgressMonitor pm)
+			throws CoreException, OperationCanceledException {
+		final RefactoringStatus status= new RefactoringStatus();
+		observer.getLock().lock();		
+		pm.beginTask("Checking postconditions...", 2);
+		IStrategoTerm builderResult = null;
+		IStrategoTerm astChanges = null;
+		IStrategoTerm textReplaceTerm = null;
+		IStrategoTerm warnings = null;
+		IStrategoTerm errors = null;
 		try {
-			try {
-				builderResult = getBuilderResult(editor, node);
-				if(builderResult!=null){	
-					if (!isValidResultTerm(builderResult)) {
-						Environment.logException("Illegal refactoring result (must be a list with tuples '(original-node, newnode)')");
-						openError(editor, "Illegal refactoring result (must be a list with tuples '(original-node, newnode)': )" + builderResult);
-						return;
-					}
-					textReplaceTerm=getTextReplacement(builderResult);
-					if(textReplaceTerm==null){
-						observer.reportRewritingFailed();
-						Environment.logException("Text-reconstruction unexpectedly fails, did you specify a valid pp-table?: \n"+ observer.getLog());
-						if (!observer.isUpdateScheduled())
-							observer.scheduleUpdate(editor.getParseController());
-						return;
-					}
-					assert(textReplaceTerm.getSubtermCount() == builderResult.getSubtermCount());
-					//TODO: check locations to make sure that all changes can be applied (or none)
-					for (int i = 0; i < builderResult.getSubtermCount(); i++) {
-						applyTextChange(termAt(builderResult.getSubterm(i),0), textReplaceTerm.getSubterm(i));							
-					}					
-				}					
-			} catch (InterpreterErrorExit e) {
-				reportGenericException(editor, e);
-			} catch (UndefinedStrategyException e) {
-				reportGenericException(editor, e);
-			} catch (InterpreterExit e) {
-				reportGenericException(editor, e);
-			} catch (InterpreterException e) {
-				reportGenericException(editor, e);
-			} catch (CancellationException e) {
-				return;
-			} catch (RuntimeException e) {
-				reportGenericException(editor, e);
-			} catch (Error e) {
-				reportGenericException(editor, e);
-			}			
-			
-		} finally {
+			builderResult = getBuilderResult();
+			if(builderResult == null){
+				observer.reportRewritingFailed();
+				String errorMessage = "Refactoring application failed: '" + caption + "'";
+				Environment.logException(errorMessage);
+				return RefactoringStatus.createFatalErrorStatus(errorMessage);					
+			}	
+			if (!isValidResultTerm(builderResult)) {
+				String errorMessage = "Illegal refactoring result. Expected: '([(original-node, newnode), ... ], warnings, errors, fatal-errors)'";
+				Environment.logException(errorMessage);
+				return RefactoringStatus.createFatalErrorStatus(errorMessage);
+			}
+			astChanges = builderResult.getSubterm(0);
+			warnings = builderResult.getSubterm(1);
+			errors = builderResult.getSubterm(2);
+			updateStatus(status, errors, RefactoringStatus.ERROR);
+			updateStatus(status, warnings, RefactoringStatus.WARNING);
+			textReplaceTerm = getTextReplacement(astChanges);
+			if (textReplaceTerm == null) {
+				observer.reportRewritingFailed();
+				String errorMessage = "Text-reconstruction unexpectedly fails, did you specify a valid pp-table?: \n"+ observer.getLog();
+				Environment.logException(errorMessage);
+				return RefactoringStatus.createFatalErrorStatus(errorMessage);
+			}
+			assert(textReplaceTerm.getSubtermCount() == astChanges.getSubtermCount());
+			for (int i = 0; i < astChanges.getSubtermCount(); i++) {
+				TextFileChange fChange = createTextChange(termAt(astChanges.getSubterm(i),0), textReplaceTerm.getSubterm(i));	
+				fileChanges.add(fChange);
+			}
+		} finally { 
 			observer.getLock().unlock();
-		}		
+			pm.done();
+		}
+		return status;
+	}
+
+	private void updateStatus(RefactoringStatus status, IStrategoTerm errors, int severity) {
+		for (int i = 0; i < errors.getSubtermCount(); i++) {
+			IStrategoTerm error = errors.getSubterm(i);
+			String message = formatErrorMessage(error);
+			switch (severity) {
+				case RefactoringStatus.WARNING:
+					status.merge(RefactoringStatus.createWarningStatus(message));		
+					break;
+				case RefactoringStatus.ERROR:
+					status.merge(RefactoringStatus.createErrorStatus(message));		
+					break;
+				default:
+					assert(false);
+					break;
+			}			
+		}
+	}
+
+	private String formatErrorMessage(IStrategoTerm error) {
+		if(Tools.isTermString(error))
+			return Tools.asJavaString(error);
+		String message = Tools.asJavaString(error.getSubterm(1));
+		if(hasImploderOrigin(error)){
+			IStrategoTerm origin = OriginAttachment.getOrigin(error.getSubterm(0));
+			int line = getLeftToken(origin).getLine();
+			int column = getLeftToken(origin).getColumn();
+			String fileName = SourceAttachment.getResource(origin).getName(); //project-relative-path?
+			return fileName +" ("+ line +"," + column +"): "+ message;
+		}
+		return message;
+	}
+
+	@Override
+	public Change createChange(IProgressMonitor monitor) throws CoreException, OperationCanceledException {
+		try {
+			monitor.beginTask("Creating change...", 1);
+			CompositeChange change= new CompositeChange(getName(), fileChanges.toArray(new Change[fileChanges.size()])); 			
+			return change;
+		} finally {
+			monitor.done();
+		}
 	}
 	
-	private void applyTextChange(IStrategoTerm originalTerm, IStrategoTerm textReplaceTerm) {
-		final int startLocation=Tools.asJavaInt(termAt(textReplaceTerm, 0));
-		final int endLocation=Tools.asJavaInt(termAt(textReplaceTerm, 1));
-		final String resultText = asJavaString(termAt(textReplaceTerm, 2));
-		final IStrategoTerm originTerm = OriginAttachment.tryGetOrigin(originalTerm);
-		final IPath wsPath = SourceAttachment.getResource(originTerm).getFullPath();
-		
-		Job job = new UIJob("apply textchange") {
-			
-			@Override
-			public IStatus runInUIThread(IProgressMonitor monitor) {
-				ITextFileBufferManager manager= FileBuffers.getTextFileBufferManager();
-				try {
-					manager.connect(wsPath, LocationKind.IFILE, monitor);
-					ITextFileBuffer buffer= manager.getTextFileBuffer(wsPath, LocationKind.IFILE);
-					IDocument doc = buffer.getDocument();
-					doc.replace(startLocation, endLocation - startLocation, resultText);
-					buffer.commit(monitor, true); 
-				} catch (BadLocationException e) {
-					Environment.logException("Bad location of the replaced fragment", e);
-				} catch (CoreException e) {
-					Environment.logException("Exception occurred while updating filecontents", e);
-				} finally {
-					try {
-						manager.disconnect(wsPath, LocationKind.IFILE, monitor);
-					} catch (CoreException e) {
-						Environment.logException("Exception occurred while updating filecontents", e);
-					}
-				}
-				return Status.OK_STATUS;
-			}
-		};
-		job.setSystem(true);
-		job.schedule();		
+	private IStrategoTerm getSelectionNode(EditorState editor) {
+		IStrategoTerm node = editor.getSelectionAst(!cursor);
+		if (node == null) node = editor.getParseController().getCurrentAst();
+		try {
+			node = InputTermBuilder.getMatchingNode(semanticNodes, node, false);
+		} catch (BadDescriptorException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return node;
+	}
+	
+	private IStrategoTerm getBuilderResult() {
+		IStrategoTerm inputTerm = observer.getInputBuilder().makeInputTermRefactoring(userInput, node, true, source);
+		IStrategoTerm result = null;
+		try {
+			result = observer.invoke(builderRule, inputTerm, getResource());
+		} catch (InterpreterErrorExit e) {
+			Environment.logException("Builder failed", e);
+			e.printStackTrace();
+		} catch (UndefinedStrategyException e) {
+			Environment.logException("Builder failed", e);
+			e.printStackTrace();
+		} catch (InterpreterExit e) {
+			Environment.logException("Builder failed", e);
+			e.printStackTrace();
+		} catch (InterpreterException e) {
+			Environment.logException("Builder failed", e);
+			e.printStackTrace();
+		}
+		return result;
 	}
 
-	private IStrategoTerm getBuilderResult(EditorState editor, IStrategoTerm node)
-			throws UndefinedStrategyException, InterpreterErrorExit, InterpreterExit,
-			InterpreterException {
-		IStrategoTerm resultTerm;
-		if (node == null) {
-			openError(editor, "Editor is still analyzing");
-			return null;
-		}
-		resultTerm = invokeObserver(node);
-		if (resultTerm == null) {
-			observer.reportRewritingFailed();
-			Environment.logException("Builder failed:\n" + observer.getLog());
-			if (!observer.isUpdateScheduled())
-				observer.scheduleUpdate(editor.getParseController());
-			openError(editor, "Builder failed (see error log)");
-			return null;
-		}
-		if (isTermAppl(resultTerm) && "None".equals(TermReader.cons(resultTerm))) {
-			return null;
-		} 
-		return resultTerm;
+	private IResource getResource() {
+		return SourceAttachment.getResource(node);
 	}
-
+	
 	private boolean isValidResultTerm(IStrategoTerm resultTerm) {
-		if(isTermList(resultTerm)){
-			for (int i = 0; i < resultTerm.getSubtermCount(); i++) {
-				if(!isAstChangeTuple(resultTerm.getSubterm(i))){
-					return false;
-				}
-			}
-			return true;
+		for (int i = 1; i < resultTerm.getSubtermCount(); i++) {
+			if(!isErrorTermList(resultTerm.getSubterm(i)))
+				return false;
 		}
-		return false;
+		return isTermTuple(resultTerm) 
+			&& resultTerm.getSubtermCount() == 3 
+			&& isValidAstChangeList(resultTerm.getSubterm(0));
 	}
-	
-	private boolean isAstChangeTuple(IStrategoTerm resultTerm) {
+
+	private boolean isErrorTermList(IStrategoTerm errorMessages) {
+		for (int i = 0; i < errorMessages.getSubtermCount(); i++) {
+			if(!isErrorTerm(errorMessages.getSubterm(i)))
+				return false;
+		}
+		return Tools.isTermList(errorMessages);
+	}
+
+	private boolean isErrorTerm(IStrategoTerm errorMessage) {
+		return Tools.isTermString(errorMessage) 
+		|| (isTermTuple(errorMessage) && errorMessage.getSubtermCount() == 2);
+	}
+
+	private boolean isValidAstChangeList(IStrategoTerm astChanges) {
+		for (int i = 0; i < astChanges.getSubtermCount(); i++) {
+			if(!isTupleWithOrigin(astChanges.getSubterm(i))){
+				return false;
+			}
+		}
+		return isTermList(astChanges);
+	}
+
+	private boolean isTupleWithOrigin(IStrategoTerm resultTerm) {
 		return 
 			isTermTuple(resultTerm) && 
-			hasImploderOrigin(termAt(resultTerm, 0)) &&
-			resultTerm.getSubtermCount()==2;
+			resultTerm.getSubtermCount()==2 &&
+			hasImploderOrigin(termAt(resultTerm, 0));
 	}
 	
 	private IStrategoTerm getTextReplacement(IStrategoTerm resultTuple) {
@@ -295,7 +278,7 @@ public class StrategoRefactoring implements IBuilder {
 		if (ppTable == null)
 			ppTableTerm=observer.getRuntime().getCompiledContext().getFactory().makeString("");
 		else {
-			ppTableTerm = observer.invokeSilent(ppTable, null, resource);
+			ppTableTerm = observer.invokeSilent(ppTable, null, getResource());
 		}
 		IStrategoTerm textreplace=construct_textual_change_1_1.instance.invoke(
 				observer.getRuntime().getCompiledContext(), 
@@ -304,7 +287,7 @@ public class StrategoRefactoring implements IBuilder {
 					@Override
 					public IStrategoTerm invoke(Context context, IStrategoTerm current) {
 						if (ppStrategy!=null)
-							return observer.invokeSilent(ppStrategy, current, resource);
+							return observer.invokeSilent(ppStrategy, current, getResource());
 						return null;
 					}
 				},
@@ -312,56 +295,19 @@ public class StrategoRefactoring implements IBuilder {
 			);
 		return textreplace;
 	}
-
-	protected IStrategoTerm invokeObserver(IStrategoTerm node) throws UndefinedStrategyException,
-			InterpreterErrorExit, InterpreterExit, InterpreterException {
-		//node = InputTermBuilder.getMatchingAncestor(node, false);
-		try {
-			node = InputTermBuilder.getMatchingNode(semanticNodes, node, false);
-		} catch (BadDescriptorException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		IStrategoTerm inputTerm = observer.getInputBuilder().makeInputTerm(node, true, source);
-		IStrategoTerm result = observer.invoke(builderRule, inputTerm, getResource(node));
-		return result;
-	}
-
-	private void reportGenericException(EditorState editor, Throwable e) {
-		boolean isDynamic = editor.getDescriptor().isDynamicallyLoaded();
-		Environment.logException("Builder failed for " + (isDynamic ? "" : "non-") + "dynamically loaded editor", e);
-		if (isDynamic) {
-			Writer writer = observer.getRuntime().getIOAgent().getWriter(IOAgent.CONST_STDERR);
-			PrintWriter printWriter = new PrintWriter(writer);
-			e.printStackTrace(printWriter);
-			printWriter.flush();
-			StrategoConsole.activateConsole();
-		}
-		
-		if (EditorState.isUIThread()) {
-			// Only show if builder runs interactively (and not from the StrategoBuilderListener background builder)
-			String message = e.getLocalizedMessage() == null ? e.getMessage() : e.getLocalizedMessage();
-			Status status = new Status(IStatus.ERROR, RuntimeActivator.PLUGIN_ID, message, e);
-			ErrorDialog.openError(editor.getEditor().getSite().getShell(), caption, null, status);
-		}
-	}
 	
-	private void openError(final EditorState editor, final String message) {
-		Job job = new UIJob("Reporting error") {
-			@Override
-			public IStatus runInUIThread(IProgressMonitor monitor) {
-				Status status = new Status(IStatus.ERROR, RuntimeActivator.PLUGIN_ID, message);
-				ErrorDialog.openError(editor.getEditor().getSite().getShell(),
-						caption, null, status);
-				return Status.OK_STATUS;
-			}
-		};
-		job.setSystem(true);
-		job.schedule();
-	}
-	
-	@Override
-	public String toString() {
-		return "Refactoring: " + builderRule + " - " + caption; 
+	private TextFileChange createTextChange(IStrategoTerm originalTerm, IStrategoTerm textReplaceTerm) {
+		final int startLocation=Tools.asJavaInt(termAt(textReplaceTerm, 0));
+		final int endLocation=Tools.asJavaInt(termAt(textReplaceTerm, 1));
+		final String resultText = Tools.asJavaString(termAt(textReplaceTerm, 2));
+		final IStrategoTerm originTerm = OriginAttachment.tryGetOrigin(originalTerm);
+		final IFile file = (IFile)SourceAttachment.getResource(originTerm);
+
+		TextFileChange textChange = new TextFileChange("", file); 
+		textChange.setTextType(file.getFileExtension());
+		MultiTextEdit edit= new MultiTextEdit();
+		edit.addChild(new ReplaceEdit(startLocation, endLocation - startLocation, resultText));
+		textChange.setEdit(edit);
+		return textChange;
 	}
 }

@@ -66,7 +66,7 @@ public class InputTermBuilder {
 	public IStrategoTuple makeInputTerm(IStrategoTerm node, boolean includeSubNode) {
 		return makeInputTerm(node, includeSubNode, false);
 	}
-	
+
 	/**
 	 * Create an input term for a control rule.
 	 */
@@ -110,6 +110,15 @@ public class InputTermBuilder {
 				};
 			return factory.makeTuple(inputParts);
 		}
+	}
+
+	public IStrategoTerm makeInputTermRefactoring(IStrategoTerm userInput, IStrategoTerm node, boolean includeSubNode, boolean source) {
+		IStrategoTuple tuple = makeInputTerm(node, includeSubNode, source);
+		ITermFactory factory = Environment.getTermFactory();
+		IStrategoTerm[] inputParts = new IStrategoTerm[tuple.getSubtermCount() + 1];
+		inputParts[0] = userInput;
+		System.arraycopy(tuple.getAllSubterms(), 0, inputParts, 1, tuple.getSubtermCount());
+		return factory.makeTuple(inputParts); 
 	}
 
 	protected String tryGetProjectPath(IResource resource) {

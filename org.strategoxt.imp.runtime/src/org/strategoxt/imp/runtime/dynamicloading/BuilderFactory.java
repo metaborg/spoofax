@@ -20,11 +20,9 @@ import org.strategoxt.imp.runtime.services.CustomStrategyBuilder;
 import org.strategoxt.imp.runtime.services.DebugModeBuilder;
 import org.strategoxt.imp.runtime.services.IBuilder;
 import org.strategoxt.imp.runtime.services.IBuilderMap;
-import org.strategoxt.imp.runtime.services.InputTermBuilder;
 import org.strategoxt.imp.runtime.services.StrategoBuilder;
 import org.strategoxt.imp.runtime.services.StrategoBuilderListener;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
-import org.strategoxt.imp.runtime.services.StrategoRefactoring;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -46,12 +44,6 @@ public class BuilderFactory extends AbstractServiceFactory<IBuilderMap> {
 
 		addBuilders(d, controller, builders, null);
 		addCustomStrategyBuilder(d, controller, builders, derivedFromEditor);
-		try {
-			if (EditorState.isUIThread()) // don't show for background (realtime) builders; not threadsafe
-				addRefactorings(d, controller, builders);
-		} catch (RuntimeException e) { // defensive coding...
-			Environment.logException("Could not determine possible refactorings", e);
-		}
 		if (Environment.allowsDebugging(d)) // Descriptor allows debugging)
 		{
 			addDebugModeBuilder(d, controller, builders, derivedFromEditor);
@@ -99,72 +91,6 @@ public class BuilderFactory extends AbstractServiceFactory<IBuilderMap> {
 		}
 	}
 	
-	private static void addRefactorings(Descriptor d, SGLRParseController controller, Set<IBuilder> builders) throws BadDescriptorException {
-				
-		StrategoObserver feedback = d.createService(StrategoObserver.class, controller);
-		
-		IStrategoAppl ppTableTerm = TermReader.findTerm(d.getDocument(), "PPTable");
-		String ppTable=null;
-		if (ppTableTerm !=null)
-			ppTable=termContents(termAt(ppTableTerm, 0));
-		IStrategoAppl ppStrategyTerm = TermReader.findTerm(d.getDocument(), "PrettyPrint");
-		String ppStrategy=null;
-		if(ppStrategyTerm!=null)
-			ppStrategy=termContents(termAt(ppStrategyTerm, 0));
-		
-		IStrategoTerm node = controller.getEditor().getSelectionAst(false);
-		for (IStrategoAppl builder : collectTerms(d.getDocument(), "Refactoring")) {
-			IStrategoTerm[] semanticNodes = termAt(builder,0).getAllSubterms();
-			if(getMatchingSelectionNode(semanticNodes, node) != null){
-				String caption = termContents(termAt(builder, 1));
-				String strategy = termContents(termAt(builder, 2));
-				IStrategoList options = termAt(builder, 3);			
-				boolean cursor = false;
-				boolean source = false;
-				boolean meta = false;
-				for (IStrategoTerm option : options.getAllSubterms()) {
-					String type = cons(option);
-					if (type.equals("Cursor")) {
-						cursor = true;
-					} else if (type.equals("Source")) {
-						source = true;
-					} else if (type.equals("Meta")) {
-						meta = true;
-					} else if (
-							type.equals("OpenEditor") ||
-							type.equals("RealTime") ||
-							type.equals("Persistent")
-						){
-						Environment.logWarning("Unused builder annotation '"+ type + "' in '" + caption +"'");
-					}
-					else {
-						throw new BadDescriptorException("Unknown builder annotation: " + type);
-					}
-				}
-				if (!meta || d.isDynamicallyLoaded()){			
-					builders.add(
-						new StrategoRefactoring(
-							feedback, 
-							caption, 
-							strategy,
-							cursor, 
-							source, 
-							ppTable,
-							ppStrategy,
-							controller.getResource(), 
-							semanticNodes
-						)
-					);
-				}
-			}
-		}
-	}
-
-	private static IStrategoTerm getMatchingSelectionNode(IStrategoTerm[] semanticNodes, IStrategoTerm node)
-			throws BadDescriptorException {
-		return InputTermBuilder.getMatchingNode(semanticNodes, node, false);
-	}
-
 	private static void addDerivedBuilders(EditorState derivedFromEditor, Set<IBuilder> builders)
 			throws BadDescriptorException {		
 		if (derivedFromEditor != null){

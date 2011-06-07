@@ -1,8 +1,5 @@
 package org.strategoxt.imp.runtime.services;
 
-import org.eclipse.core.commands.AbstractHandler;
-import org.eclipse.core.commands.ExecutionEvent;
-import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.imp.ui.DefaultPartListener;
@@ -10,9 +7,7 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ActionContributionItem;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.dialogs.ErrorDialog;
-import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.ui.IWorkbenchPart;
@@ -29,12 +24,9 @@ import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class BuilderButtonDelegate extends AbstractHandler implements IWorkbenchWindowPulldownDelegate {
+public class BuilderButtonDelegate extends ToolbarButtonDelegate implements IWorkbenchWindowPulldownDelegate {
 	
-	private static String lastAction;
-	
-	private Menu menu;
-
+	@Override
 	public void init(IWorkbenchWindow window) {
 		// Initialized using getMenu()
 		window.getPartService().addPartListener(new DefaultPartListener() {
@@ -55,13 +47,13 @@ public class BuilderButtonDelegate extends AbstractHandler implements IWorkbench
 		});
 	}
 
-	public void run(IAction action) {
+	@Override
+	public void run(IAction action) {		
 		EditorState editor = EditorState.getActiveEditor();
 		if (editor == null) {
 			openError("No builders defined for this editor");
 			return;
 		}
-		
 		IBuilderMap builders = getBuilders(editor);
 		IBuilder builder = builders.get(lastAction);
 		if (builder == null && builders.getAll().size() > 0) {
@@ -74,16 +66,8 @@ public class BuilderButtonDelegate extends AbstractHandler implements IWorkbench
 		}
 	}
 
-	public Object execute(ExecutionEvent event) throws ExecutionException {
-		run(null);
-		return null;
-	}
-	
-	public void selectionChanged(IAction action, ISelection selection) {
-		// Unused
-	}
-		
-	private void populateMenu(Menu menu) {
+	@Override
+	protected void populateMenu(Menu menu) {
 		MenuItem dummy = new MenuItem(menu, SWT.PUSH);
 		dummy.setText("No builders defined for this editor");
 		
@@ -122,28 +106,4 @@ public class BuilderButtonDelegate extends AbstractHandler implements IWorkbench
 		}
 		return builders;
 	}
-
-	private void openError(String message) {
-		Status status = new Status(IStatus.ERROR, RuntimeActivator.PLUGIN_ID, message);
-		ErrorDialog.openError(null, "Spoofax/IMP builder", null, status);
-	}
-		
-	@Override
-	public void dispose() {
-		if (menu != null) {
-			menu.dispose();
-			menu = null;
-		}
-		super.dispose();
-	}
-
-	public Menu getMenu(Control parent) {
-		if (menu != null) {
-			menu.dispose();
-		}
-		menu = new Menu(parent);
-		populateMenu(menu);
-		return menu;
-	}
-
 }

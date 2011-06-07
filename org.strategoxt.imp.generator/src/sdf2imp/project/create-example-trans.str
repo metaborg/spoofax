@@ -198,20 +198,26 @@ imports
   lib/refactor-common.generated
   include/{sdf-name}
   lib/editor-common.generated  
+  entitiesrefactorings
 
 rules
  
   rename-entity:
-    (selected-name, position, ast, path, project-path) -> [(ast, new-ast)]
+    (newname, selected-name, position, ast, path, project-path) -> ([(ast, new-ast)], warnings, errors)
     with
-      new-name := <input-dialog> ("{<get-sdf-main-module>}", "rename", "Rename entity:", ""); 
-      new-ast  := <topdown(try(rename-type(|selected-name, new-name)))> ast
+      new-ast  := <topdown(try(rename-type(|selected-name, newname)))> ast; 
+      (warnings, errors) := <semantic-constraint-issues> (ast, new-ast)
 
   rename-type(|old-name, new-name):
     Entity(old-name, y) -> Entity(new-name, y)
 
   rename-type(|old-name, new-name):
     Type(old-name) -> Type(new-name)
-
+    
+  semantic-constraint-issues:
+    (ast, new-ast) -> (<diff>(new-warnings, warnings), <diff>(new-errors, errors))
+    where
+    	(_, errors, warnings, _) := <editor-analyze> (ast, "", "");
+    	(_, new-errors, new-warnings, _) := <editor-analyze> (new-ast, "", "")
 }
 end

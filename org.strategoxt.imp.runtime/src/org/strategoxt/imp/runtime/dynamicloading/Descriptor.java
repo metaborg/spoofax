@@ -36,6 +36,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.RuntimeActivator;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
+import org.strategoxt.imp.runtime.services.IRefactoringMap;
 import org.strategoxt.imp.runtime.services.MetaFileLanguageValidator;
 import org.strategoxt.lang.WeakValueHashMap;
 
@@ -115,6 +116,7 @@ public class Descriptor {
 		serviceFactories.add(new SyntaxPropertiesFactory());
 		serviceFactories.add(new TokenColorerFactory());
 		serviceFactories.add(new BuilderFactory());
+		serviceFactories.add(new RefactoringFactory());
 		serviceFactories.add(new ContentProposerFactory());
 		serviceFactories.add(new LabelProviderFactory());
 		serviceFactories.add(new AutoEditStrategyFactory());
