@@ -184,7 +184,7 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 		if(Tools.isTermString(error))
 			return Tools.asJavaString(error);
 		String message = Tools.asJavaString(error.getSubterm(1));
-		if(hasImploderOrigin(error)){
+		if(hasImploderOrigin(error.getSubterm(0))){
 			IStrategoTerm origin = OriginAttachment.getOrigin(error.getSubterm(0));
 			int line = getLeftToken(origin).getLine();
 			int column = getLeftToken(origin).getColumn();
