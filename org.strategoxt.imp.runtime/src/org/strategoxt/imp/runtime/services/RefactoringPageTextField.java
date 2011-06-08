@@ -17,7 +17,7 @@ public class RefactoringPageTextField extends UserInputWizardPage {
 
 	private Text fNameField;
 	private String labelText = "&New name:";
-	String defaultName = "<newname>";
+	String defaultName = "";
 
 	public RefactoringPageTextField(String name) {
 		super(name);

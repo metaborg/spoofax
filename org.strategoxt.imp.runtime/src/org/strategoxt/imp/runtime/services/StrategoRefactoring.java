@@ -115,8 +115,9 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 		IStrategoTerm builderResult = null;
 		IStrategoTerm astChanges = null;
 		IStrategoTerm textReplaceTerm = null;
-		IStrategoTerm warnings = null;
+		IStrategoTerm fatalErrors = null;
 		IStrategoTerm errors = null;
+		IStrategoTerm warnings = null;
 		try {
 			builderResult = getBuilderResult();
 			if(builderResult == null){
@@ -126,13 +127,15 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 				return RefactoringStatus.createFatalErrorStatus(errorMessage);					
 			}	
 			if (!isValidResultTerm(builderResult)) {
-				String errorMessage = "Illegal refactoring result. Expected: '([(original-node, newnode), ... ], warnings, errors, fatal-errors)'";
+				String errorMessage = "Illegal refactoring result. Expected: '([(original-node, newnode), ... ], fatal-errors, errors, warnings)'";
 				Environment.logException(errorMessage);
 				return RefactoringStatus.createFatalErrorStatus(errorMessage);
 			}
 			astChanges = builderResult.getSubterm(0);
-			warnings = builderResult.getSubterm(1);
+			fatalErrors = builderResult.getSubterm(1);
 			errors = builderResult.getSubterm(2);
+			warnings = builderResult.getSubterm(3);
+			updateStatus(status, fatalErrors, RefactoringStatus.FATAL);
 			updateStatus(status, errors, RefactoringStatus.ERROR);
 			updateStatus(status, warnings, RefactoringStatus.WARNING);
 			textReplaceTerm = getTextReplacement(astChanges);
@@ -164,6 +167,9 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 					break;
 				case RefactoringStatus.ERROR:
 					status.merge(RefactoringStatus.createErrorStatus(message));		
+					break;
+				case RefactoringStatus.FATAL:
+					status.merge(RefactoringStatus.createFatalErrorStatus(message));		
 					break;
 				default:
 					assert(false);
@@ -240,7 +246,7 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 				return false;
 		}
 		return isTermTuple(resultTerm) 
-			&& resultTerm.getSubtermCount() == 3 
+			&& resultTerm.getSubtermCount() == 4 
 			&& isValidAstChangeList(resultTerm.getSubterm(0));
 	}
 
