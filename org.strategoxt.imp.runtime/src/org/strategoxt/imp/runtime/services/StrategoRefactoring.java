@@ -138,6 +138,8 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 			updateStatus(status, fatalErrors, RefactoringStatus.FATAL);
 			updateStatus(status, errors, RefactoringStatus.ERROR);
 			updateStatus(status, warnings, RefactoringStatus.WARNING);
+			if(status.hasFatalError())
+				return status; //no need to calculate text changes
 			textReplaceTerm = getTextReplacement(astChanges);
 			if (textReplaceTerm == null) {
 				observer.reportRewritingFailed();
