@@ -1,5 +1,10 @@
 package org.strategoxt.imp.runtime.services;
 
+import java.util.regex.Pattern;
+
+import org.eclipse.imp.language.Language;
+import org.eclipse.imp.language.ServiceFactory;
+import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ActionContributionItem;
 import org.eclipse.jface.action.IAction;
@@ -13,6 +18,7 @@ import org.eclipse.ui.internal.KeyBindingService;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
+import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.eclipse.ltk.core.refactoring.Refactoring;
 import org.eclipse.ltk.ui.refactoring.RefactoringWizard;
 import org.eclipse.ltk.ui.refactoring.RefactoringWizardOpenOperation;
@@ -40,7 +46,11 @@ public class RefactoringButtonDelegate extends ToolbarButtonDelegate implements 
 
 	private void executeRefactoring(EditorState editor, IRefactoring refactoring) {
 		refactoring.prepareExecute(editor);
-		StrategoRefactoringWizard wizard = new StrategoRefactoringWizard((StrategoRefactoring) refactoring, refactoring.getCaption()); 
+		StrategoRefactoringWizard wizard = new StrategoRefactoringWizard(
+			(StrategoRefactoring) refactoring, 
+			refactoring.getCaption(),
+			getIdPattern(editor.getDescriptor())
+		);
 		RefactoringWizardOpenOperation operation= new RefactoringWizardOpenOperation(wizard);
 		Shell shell = editor.getEditor().getSite().getShell();
 		try {
@@ -49,6 +59,20 @@ public class RefactoringButtonDelegate extends ToolbarButtonDelegate implements 
 			// Do nothing
 		}
 	}
+	
+	private static Pattern getIdPattern(Descriptor descriptor) {
+		SyntaxProperties syntax = null;
+		if (descriptor != null) {
+			try {
+				syntax = (SyntaxProperties) descriptor.createService(ILanguageSyntaxProperties.class, null);
+			} catch (BadDescriptorException e) {
+				Environment.logException("Could not read syntax properties", e);
+				e.printStackTrace();
+			}
+		} 
+		return syntax != null ? syntax.getIdentifierLexical() : null;
+	}
+
 
 	@Override
 	protected void populateMenu(Menu menu) {

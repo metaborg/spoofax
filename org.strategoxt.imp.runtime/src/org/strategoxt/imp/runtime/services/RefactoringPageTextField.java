@@ -1,5 +1,8 @@
 package org.strategoxt.imp.runtime.services;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.ui.refactoring.UserInputWizardPage;
 import org.eclipse.swt.SWT;
@@ -15,12 +18,15 @@ import org.strategoxt.imp.runtime.Environment;
 
 public class RefactoringPageTextField extends UserInputWizardPage {
 
-	private Text fNameField;
+	private final Pattern idPattern;
+	
+	private Text identifierField;
 	private String labelText = "&New name:";
-	String defaultName = "";
+	private String defaultName = "";
 
-	public RefactoringPageTextField(String name) {
-		super(name);
+	public RefactoringPageTextField(Pattern idPattern) {
+		super("SpoofaxRefactoringInputPage");
+		this.idPattern = idPattern; 
 	}
 
 	public void createControl(Composite parent) {
@@ -32,15 +38,15 @@ public class RefactoringPageTextField extends UserInputWizardPage {
 		Label label= new Label(result, SWT.NONE);
 		label.setText(labelText);
 
-		fNameField= createNameField(result);
-		fNameField.setText(defaultName);
-		fNameField.addModifyListener(new ModifyListener() {
+		identifierField= createNameField(result);
+		identifierField.setText(defaultName);
+		identifierField.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent event) {
 				handleInputChanged();
 			}
 		});
-		fNameField.setFocus();
-		fNameField.selectAll();
+		identifierField.setFocus();
+		identifierField.selectAll();
 		handleInputChanged();
 	}
 
@@ -55,19 +61,37 @@ public class RefactoringPageTextField extends UserInputWizardPage {
 	}
 
 	void handleInputChanged() {
-		RefactoringStatus status= new RefactoringStatus();
-		StrategoRefactoring refactoring = getStrategoRefactoring();
-
-		ITermFactory factory = Environment.getTermFactory();
-		refactoring.setUserInputTerm(factory.makeString(fNameField.getText()));
-		//check all input fields
-		setPageComplete(!status.hasError());
+		RefactoringStatus status = validateUserInput();
+		//set message
 		int severity= status.getSeverity();
 		String message= status.getMessageMatchingSeverity(severity);
-		if (severity >= RefactoringStatus.INFO) {
+		if (severity >= RefactoringStatus.INFO && message != "") {
 			setMessage(message, severity);
 		} else {
-			setMessage("", NONE); //$NON-NLS-1$
+			setMessage("", NONE);
 		}
+		setPageComplete(!status.hasError());
+		
+		//set userinput value
+		StrategoRefactoring refactoring = getStrategoRefactoring();
+		ITermFactory factory = Environment.getTermFactory();
+		refactoring.setUserInputTerm(factory.makeString(identifierField.getText()));
+	}
+
+	private RefactoringStatus validateUserInput() {
+		String inputString = identifierField.getText();
+		if (idPattern != null){
+			Matcher matcher = idPattern.matcher(inputString);
+			if(!(matcher.matches())){
+				if(inputString.trim().equals("")){
+					return RefactoringStatus.createErrorStatus(""); //suppress error messages for empty fields
+				}
+				String errorMessage = "Error: name should match identifier pattern '" + 
+				idPattern.pattern() + "', defined in <myLanguage>-Syntax.esv file."; 
+				return RefactoringStatus.createErrorStatus(errorMessage);
+			}
+		}
+		//todo: warnings for all empty fields?
+		return new RefactoringStatus();
 	}
 }
