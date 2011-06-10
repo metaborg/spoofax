@@ -224,7 +224,7 @@ public class InputTermBuilder {
 							 // chain
 		}
 		boolean isMatch = isMatchOnConstructorOrSort(mappings, selectionNode);
-		while (!isMatch && selectionNode != getParent(ancestor)) {
+		while (!isMatch && selectionNode != null && selectionNode != getParent(ancestor)) {
 			selectionNode = getParent(selectionNode);
 			isMatch = isMatchOnConstructorOrSort(mappings, selectionNode);
 		}
@@ -244,8 +244,8 @@ public class InputTermBuilder {
 
 	private static boolean isMatchOnConstructorOrSort(ArrayList<NodeMapping<String>> mappings,
 			IStrategoTerm selectionNode) {
-		return NodeMapping.getFirstAttribute(mappings, tryGetName(selectionNode),
-				getSort(selectionNode), 0) != null;
+		return selectionNode != null &&
+			NodeMapping.getFirstAttribute(mappings, tryGetName(selectionNode), getSort(selectionNode), 0) != null;
 	}
 
 	private static String tryGetName(IStrategoTerm term) {
