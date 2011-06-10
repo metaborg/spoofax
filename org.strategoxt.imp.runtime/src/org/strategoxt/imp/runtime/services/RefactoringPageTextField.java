@@ -14,19 +14,22 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.jsglr.client.KeywordRecognizer;
 import org.strategoxt.imp.runtime.Environment;
 
 public class RefactoringPageTextField extends UserInputWizardPage {
 
 	private final Pattern idPattern;
+	private final KeywordRecognizer keywordRecognizer;
 	
 	private Text identifierField;
 	private String labelText = "&New name:";
 	private String defaultName = "";
 
-	public RefactoringPageTextField(Pattern idPattern) {
+	public RefactoringPageTextField(Pattern idPattern, KeywordRecognizer keywordRecognizer) {
 		super("SpoofaxRefactoringInputPage");
 		this.idPattern = idPattern; 
+		this.keywordRecognizer = keywordRecognizer;
 	}
 
 	public void createControl(Composite parent) {
@@ -86,10 +89,14 @@ public class RefactoringPageTextField extends UserInputWizardPage {
 				if(inputString.trim().equals("")){
 					return RefactoringStatus.createErrorStatus(""); //suppress error messages for empty fields
 				}
-				String errorMessage = "Error: name should match identifier pattern '" + 
+				String errorMessage = "Name should match identifier pattern '" + 
 				idPattern.pattern() + "', defined in <myLanguage>-Syntax.esv file."; 
 				return RefactoringStatus.createErrorStatus(errorMessage);
 			}
+		}
+		if(keywordRecognizer !=null &&  keywordRecognizer.isKeyword(inputString)){
+			String errorMessage = "This name is used as a keyword.";					
+			return RefactoringStatus.createErrorStatus(errorMessage);
 		}
 		//todo: warnings for all empty fields?
 		return new RefactoringStatus();

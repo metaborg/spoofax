@@ -15,6 +15,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IKeyBindingService;
 import org.eclipse.ui.IWorkbenchWindowPulldownDelegate;
 import org.eclipse.ui.internal.KeyBindingService;
+import org.spoofax.jsglr.client.KeywordRecognizer;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
@@ -49,7 +50,8 @@ public class RefactoringButtonDelegate extends ToolbarButtonDelegate implements 
 		StrategoRefactoringWizard wizard = new StrategoRefactoringWizard(
 			(StrategoRefactoring) refactoring, 
 			refactoring.getCaption(),
-			getIdPattern(editor.getDescriptor())
+			getIdPattern(editor),
+			getKeywordRecognizer(editor)
 		);
 		RefactoringWizardOpenOperation operation= new RefactoringWizardOpenOperation(wizard);
 		Shell shell = editor.getEditor().getSite().getShell();
@@ -60,7 +62,8 @@ public class RefactoringButtonDelegate extends ToolbarButtonDelegate implements 
 		}
 	}
 	
-	private static Pattern getIdPattern(Descriptor descriptor) {
+	private static Pattern getIdPattern(EditorState editor) {
+		Descriptor descriptor = editor.getDescriptor();
 		SyntaxProperties syntax = null;
 		if (descriptor != null) {
 			try {
@@ -71,6 +74,17 @@ public class RefactoringButtonDelegate extends ToolbarButtonDelegate implements 
 			}
 		} 
 		return syntax != null ? syntax.getIdentifierLexical() : null;
+	}
+
+	private KeywordRecognizer getKeywordRecognizer(EditorState editor) {
+		try {
+			return editor.getParseController().getParser().getParseTable().getKeywordRecognizer();
+		}
+		catch (Exception e){
+			Environment.logException("Could not fetch keyword recognizer", e);
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 
