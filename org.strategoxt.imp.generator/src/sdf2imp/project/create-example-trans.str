@@ -198,7 +198,7 @@ imports
   lib/refactor-common.generated
   include/{sdf-name}
   lib/editor-common.generated  
-  entitiesrefactorings
+  {name}
 
 rules
  
