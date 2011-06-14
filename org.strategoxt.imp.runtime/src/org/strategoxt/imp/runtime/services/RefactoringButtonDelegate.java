@@ -111,6 +111,7 @@ public class RefactoringButtonDelegate extends ToolbarButtonDelegate implements 
 			action.setActionDefinitionId(refactoring.getActionDefinitionId());
 			editor.getEditor().getSite().getKeyBindingService().registerAction(action);
 			ActionContributionItem item = new ActionContributionItem(action);
+			item.getAction().setEnabled(refactoring.isDefinedOnSelection(editor));
 			item.fill(menu, menu.getItemCount());
 		}		
 		dummy.dispose();

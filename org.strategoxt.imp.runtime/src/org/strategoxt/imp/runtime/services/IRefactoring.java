@@ -14,5 +14,7 @@ public interface IRefactoring {
 	String getName();
 
 	void prepareExecute(EditorState editor);
+	
+	boolean isDefinedOnSelection(EditorState editor);
 
 }

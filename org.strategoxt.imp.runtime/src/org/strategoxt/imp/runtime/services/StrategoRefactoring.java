@@ -60,6 +60,11 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 	
 	private Collection<TextFileChange> fileChanges;
 
+	public boolean isDefinedOnSelection(EditorState editor) {
+		// TODO Auto-generated method stub
+		return getSelectionNode(editor) != null;
+	}
+
 	public String getCaption() {
 		return caption;
 	}
@@ -102,7 +107,7 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 	public RefactoringStatus checkInitialConditions(IProgressMonitor pm) throws CoreException, OperationCanceledException {
 		RefactoringStatus status = new RefactoringStatus();
 		if(node == null)
-			status.merge(RefactoringStatus.createFatalErrorStatus("Editor is still analyzing"));	
+			status.merge(RefactoringStatus.createFatalErrorStatus("Refactoring is not defined for the current selection."));	
 		return status;
 	}
 
