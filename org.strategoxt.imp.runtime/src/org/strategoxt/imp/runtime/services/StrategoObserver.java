@@ -289,8 +289,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 						break;
 					}
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					Environment.logException("Failed to determine debugger status", e);
 				}
 			}
 		}
@@ -328,26 +327,21 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		//  provider : include/stratego-debug-runtime-java.jar
 		//  provider : include/stratego-debug-runtime.jar
 		boolean allowsDebugging = Environment.allowsDebugging(this.descriptor);
-		try {
-			System.out.println(this.descriptor.getLanguage().getName() + " " + allowsDebugging);
-			if (allowsDebugging)
+		
+		if (allowsDebugging)
+		{
+			IPath utilsPath = this.descriptor.getBasePath().append("utils");
+			boolean javajarExists = utilsPath.append("stratego-debug-runtime-java.jar").toFile().exists();
+			boolean jarExists = utilsPath.append("stratego-debug-runtime.jar").toFile().exists();
+			if (!javajarExists || !jarExists)
 			{
-				IPath utilsPath = this.descriptor.getBasePath().append("utils");
-				boolean javajarExists = utilsPath.append("stratego-debug-runtime-java.jar").toFile().exists();
-				boolean jarExists = utilsPath.append("stratego-debug-runtime.jar").toFile().exists();
-				if (!javajarExists || !jarExists)
-				{
-					// one of the required jars does not exist!
-					// make sure the project builds jars instead of ctree's!
-					System.err.println("Debug runtime jars not found! Please rebuild with jars instead of ctree's");
-				} else {
-					jars.add("utils/stratego-debug-runtime-java.jar");
-					jars.add("utils/stratego-debug-runtime.jar");
-				}
+				// one of the required jars does not exist!
+				// make sure the project builds jars instead of ctree's!
+				System.err.println("Debug runtime jars not found! Please rebuild with jars instead of ctree's");
+			} else {
+				jars.add("utils/stratego-debug-runtime-java.jar");
+				jars.add("utils/stratego-debug-runtime.jar");
 			}
-		} catch (BadDescriptorException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 		
 		if (!jars.isEmpty()) loadJars(jars);

@@ -216,8 +216,7 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 		try {
 			node = InputTermBuilder.getMatchingNode(semanticNodes, node, false);
 		} catch (BadDescriptorException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Environment.logException("Failed to get selection", e);
 		}
 		return node;
 	}

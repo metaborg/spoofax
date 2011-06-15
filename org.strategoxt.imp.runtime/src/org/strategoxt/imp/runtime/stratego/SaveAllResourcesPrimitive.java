@@ -14,6 +14,7 @@ import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.strategoxt.imp.runtime.Environment;
 
 /**
  * @author Maartje de Jonge
@@ -44,8 +45,7 @@ public class SaveAllResourcesPrimitive extends AbstractPrimitive {
 		try {
 			job.join();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Environment.logException(e);
 		}
 		return job.getResult()==Status.OK_STATUS;
 	}

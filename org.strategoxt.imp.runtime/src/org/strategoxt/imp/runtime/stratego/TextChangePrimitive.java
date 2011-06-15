@@ -64,10 +64,8 @@ public class TextChangePrimitive extends AbstractPrimitive {
 			IStrategoString result = env.getFactory().makeString(newContent);
 			env.setCurrent(result);
 			return true;
-		} 
-		catch (BadLocationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		}  catch (BadLocationException e) {
+			Environment.logException("Text change primitive failed", e);
 			return false;
 		}
 	}
@@ -92,7 +90,6 @@ public class TextChangePrimitive extends AbstractPrimitive {
 				try {
 					doc.replace(position_start, position_end-position_start, text);
 				} catch (BadLocationException e) {
-					// TODO Auto-generated catch block
 					Environment.logException("Bad location of the replaced fragment", e);
 				}
 				return Status.OK_STATUS;
