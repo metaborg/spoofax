@@ -31,12 +31,11 @@ public class StrategoSubList extends StrategoWrapped implements IStrategoList {
 	public static StrategoSubList createSublist(IStrategoList list, IStrategoTerm firstChild, IStrategoTerm lastChild, boolean updateParents) {
 		ArrayList<IStrategoTerm> children = new ArrayList<IStrategoTerm>();
 		boolean isStartChildFound = false;
-		int indexStart = 0;
-		int indexEnd = 0;
+		int indexStart = -1;
+		int indexEnd = -1;
 
 		int i = 0;
 		for (IStrategoTerm child : StrategoListIterator.iterable(list)) {
-			i++;
 			if (child == firstChild) {
 				indexStart = i;
 				isStartChildFound = true;
@@ -48,8 +47,9 @@ public class StrategoSubList extends StrategoWrapped implements IStrategoList {
 					break;
 				}
 			}
+			i++;
 		}
-		
+		assert(0 <+ indexStart && indexStart <= indexEnd);
 		IStrategoList wrapped = Environment.getTermFactory().makeList(children);
 		StrategoSubList result = new StrategoSubList(list, wrapped, indexStart, indexEnd);
 		
@@ -84,10 +84,10 @@ public class StrategoSubList extends StrategoWrapped implements IStrategoList {
 	}
 
 	public IStrategoTerm getFirstChild() {
-		return getSubterm(indexStart);
+		return getSubterm(0);
 	}
 
 	public IStrategoTerm getLastChild() {
-		return getSubterm(indexEnd);
+		return getSubterm(getSubtermCount()-1);
 	}
 }

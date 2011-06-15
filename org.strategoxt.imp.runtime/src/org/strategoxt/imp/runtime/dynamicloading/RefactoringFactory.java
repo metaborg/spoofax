@@ -50,57 +50,48 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 		String ppStrategy=null;
 		if(ppStrategyTerm!=null)
 			ppStrategy=termContents(termAt(ppStrategyTerm, 0));		
-		IStrategoTerm node = controller.getEditor().getSelectionAst(false);
 		for (IStrategoAppl builder : collectTerms(d.getDocument(), "Refactoring")) {
 			IStrategoTerm[] semanticNodes = termAt(builder,0).getAllSubterms();
-			if(getMatchingSelectionNode(semanticNodes, node) != null){
-				String caption = termContents(termAt(builder, 1));
-				String strategy = termContents(termAt(builder, 2));
-				IStrategoList options = termAt(builder, 3);			
-				boolean cursor = false;
-				boolean source = false;
-				boolean meta = false;
-				for (IStrategoTerm option : options.getAllSubterms()) {
-					String type = cons(option);
-					if (type.equals("Cursor")) {
-						cursor = true;
-					} else if (type.equals("Source")) {
-						source = true;
-					} else if (type.equals("Meta")) {
-						meta = true;
-					} else if (
-							type.equals("OpenEditor") ||
-							type.equals("RealTime") ||
-							type.equals("Persistent")
-						){
-						Environment.logWarning("Unused builder annotation '"+ type + "' in '" + caption +"'");
-					}
-					else {
-						throw new BadDescriptorException("Unknown builder annotation: " + type);
-					}
+			String caption = termContents(termAt(builder, 1));
+			String strategy = termContents(termAt(builder, 2));
+			IStrategoList options = termAt(builder, 3);			
+			boolean cursor = false;
+			boolean source = false;
+			boolean meta = false;
+			for (IStrategoTerm option : options.getAllSubterms()) {
+				String type = cons(option);
+				if (type.equals("Cursor")) {
+					cursor = true;
+				} else if (type.equals("Source")) {
+					source = true;
+				} else if (type.equals("Meta")) {
+					meta = true;
+				} else if (
+						type.equals("OpenEditor") ||
+						type.equals("RealTime") ||
+						type.equals("Persistent")
+					){
+					Environment.logWarning("Unused builder annotation '"+ type + "' in '" + caption +"'");
 				}
-				if (!meta || d.isDynamicallyLoaded()){			
-					refactorings.add(
-						new StrategoRefactoring(
-							feedback, 
-							caption, 
-							strategy,
-							cursor, 
-							source, 
-							ppTable,
-							ppStrategy,
-							semanticNodes
-						)
-					);
+				else {
+					throw new BadDescriptorException("Unknown builder annotation: " + type);
 				}
+			}
+			if (!meta || d.isDynamicallyLoaded()){			
+				refactorings.add(
+					new StrategoRefactoring(
+						feedback, 
+						caption, 
+						strategy,
+						cursor, 
+						source, 
+						ppTable,
+						ppStrategy,
+						semanticNodes
+					)
+				);
 			}
 		}
 		return refactorings;
 	}
-
-	private static IStrategoTerm getMatchingSelectionNode(IStrategoTerm[] semanticNodes,
-			IStrategoTerm node) throws BadDescriptorException {
-		return InputTermBuilder.getMatchingNode(semanticNodes, node, false);
-	}
-
 }
