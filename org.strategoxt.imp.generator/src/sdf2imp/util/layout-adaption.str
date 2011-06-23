@@ -1,0 +1,256 @@
+module sdf2imp/util/layout-adaption
+
+imports
+	sdf2imp/util/construct-text
+	sdf2imp/util/origin-strategies
+		
+rules //rules that translate AST-changes to Textual changes
+
+ast-change-to-text-change(pp):
+	DELETION(origin-lst) -> tc-deletion
+	with 
+		tc-deletion := <create-textchange-delete> origin-lst
+
+ast-change-to-text-change(pp):
+	REPLACEMENT(origin-node, new-node) -> tc-replacement 
+	with 
+		tc-replacement := <create-textchange-replace(pp)> (origin-node, new-node) 
+
+ast-change-to-text-change(pp):
+	INSERT_BEFORE(origin-elem, new-elems) -> tc-insert-before
+	with
+		tc-insert-before := <create-textchange-insert-before(pp)> (origin-elem, new-elems)
+
+ast-change-to-text-change(pp):
+	INSERT_AT_END(origin-elem, new-elems) -> tc-insert-at-end
+	with
+		tc-insert-at-end := <create-textchange-insert-at-end(pp)> (origin-elem, new-elems)
+	
+create-textchange-delete:
+	origin-elems -> (start-offset, end-offset, "")
+	where
+		start-offset := <origin-deletion-start-offset> origin-elems; 
+		end-offset   := <origin-deletion-end-offset> origin-elems
+		
+create-textchange-replace(pp):
+	(origin-node, new-node) -> (start-offset, end, indented-text)
+	where
+		start-offset := <origin-start-offset> origin-node;
+		end   := <origin-end-offset> origin-node;
+		text  := <construct-text(pp)> new-node; //TODO: comments new node?
+		indented-text := <adapt-indentation(|origin-node, new-node)> text
+
+create-textchange-insert-before(pp):
+	(origin-node, new-elems) -> (offset, offset, insert-text)
+	where
+		offset := <origin-insert-before-offset> origin-node;
+		new-elems-text := <map(construct-text-list-element(pp|origin-node))> new-elems;
+		insert-text := <concat-strings> new-elems-text
+
+create-textchange-insert-at-end(pp):
+	(origin-node, new-elems) -> (offset, offset, insert-text)
+	where
+		offset := <origin-insert-at-end-offset> origin-node;
+		new-elems-text := <at-init(
+			construct-text-list-element(pp|origin-node), 
+			construct-text-list-element-last(pp|origin-node))
+		> new-elems;
+		insert-text := <add-separation-before> (origin-node, <concat-strings> new-elems-text)
+
+rules //helper rules layout
+
+construct-text-list-element(pp|origin-node):
+	elem -> elem-text
+	where
+		text := <construct-text(pp)> elem; 
+		layout-before := <layout-prefix> elem; 
+		indented-prefix-text := <conc-strings; adapt-indentation(|origin-node, elem)> (layout-before, text); 
+		comments-after := <comments-after; adapt-indentation(|origin-node, elem)> elem; 
+		separation := <origin-separation> origin-node; 
+		layout-after := <create-separation-after> (separation, comments-after); 
+		elem-text := <conc-strings> (indented-prefix-text, layout-after) 
+
+construct-text-list-element-last(pp|origin-node):
+	elem -> elem-text
+	where
+		text := <construct-text(pp)> elem;
+		layout-before := <layout-prefix> elem;
+		indented-prefix-text := <conc-strings; adapt-indentation(|origin-node, elem)> (layout-before, text);
+		comments-after := <comments-after; adapt-indentation(|origin-node, elem)> elem;
+		elem-text := <concat-strings> [indented-prefix-text, " ", comments-after]
+
+
+rules //helper rules indentation
+
+/*
+ * replaces indent of the new constructed text (retrieved from new-node)
+ * with indent appropriate for insertion position (retrieved from origin-node) 
+ */
+adapt-indentation(|origin-node, new-node):
+	text -> indented-text
+	where 
+		indent-string-new := <origin-indent> origin-node; 
+		indent-string-old := <origin-indent <+ !""> new-node;
+		indented-text := <replace-indentation(|indent-string-new, indent-string-old)> text
+		
+replace-indentation(|new-indent, old-indent):
+	text -> indented-text
+	where
+		indent-value-old := <indent-value> old-indent;
+		indented-text := <
+			remove-indentation(|indent-value-old); 
+			prefix-lines(|new-indent);
+			trim-chars(?' ' <+ ?'\t'); //first line is not indented
+			ltrim-chars(?'\n') //do not remove line comment end
+		> text
+
+/**
+ * Returns the value of the indentation of the startline 
+ * @type ATerm -> Int
+ */
+indent-value:
+	indent-string -> indent-value
+	where
+		indent-value := <explode-string;
+		take-while(?' '<+?'\t');
+		foldr(!0, add, (?' ';!1) <+ (?'\t'; TABSIZE))> indent-string
+	
+remove-indentation(|n):
+	txt -> dedented-txt
+	where
+		dedented-txt := <all-lines(string-as-chars(dedent-line-chars(|n)))> txt
+		
+dedent-line-chars(|n):
+	chars -> dedented-chars
+	where
+		(
+			<lt> (n,0); 
+			indent := <copy-char; explode-string> (<abs>n, ' '); 
+			dedented-chars := <conc>(indent,chars)
+		)<+
+		(
+			<gt> (n,0);
+			<?[' '|tail]> chars;
+			dedented-chars := <dedent-line-chars(|<dec> n)> tail
+		)<+
+		(
+			<gt> (n,0);
+			<?['\t'|tail]> chars; 
+			dedented-chars := <dedent-line-chars(|<subt> (n, <TABSIZE>))> tail				
+		)<+
+		dedented-chars := chars
+
+
+rules // helper rules separation	
+
+add-separation-before =
+	add-separation-before-1 <+ //correct line comment
+	add-separation-before-2
+	
+add-separation-before-1: //corrects for newline in case the text is inserted after a line comment
+	(origin-node, text-inserted-after) -> txt-with-separation
+	where
+		<origin-text-with-layout; string-ends-with(|"\n")> origin-node;
+		(start-separation, end-separation) := <split-before>(<origin-separation> origin-node, "\n");
+		<string-as-chars(map(is-whitespace))> start-separation;
+		txt-with-separation := <concat-strings> [<string-as-chars(Tl)> end-separation, text-inserted-after, "\n"]
+
+add-separation-before-2:
+	(origin-node, text-inserted-after) -> txt-with-separation
+	where
+		txt-with-separation := <conc-strings> (<origin-separation> origin-node, text-inserted-after)
+
+//("/n  ,  ", "//bla /n") -> " //bla /n  ,  "
+//(",/n  ", "//bla /n") -> " , //bla /n  "
+//("/n  ", "//bla /n") -> " //bla /n  "
+create-separation-after:
+	(separation, comments-after) -> txt-between
+	where 
+		<string-ends-with(|"\n")> comments-after;
+		(start-separation, end-separation) := <split-before>(separation, "\n");
+		txt-between := <concat-strings> [start-separation, " ", comments-after, <string-as-chars(Tl)> end-separation]
+		
+
+//("/n  ,  ", "/*bla*/") -> " /*bla*/ /n  ,  "
+//(",/n  ", "/*bla*/") -> " , /*bla*/ /n  "
+//("/n  ", "/*bla*/") -> " /*bla*/ /n  "
+create-separation-after:
+	(separation, comments-after) -> txt-between
+	where
+		<not(string-ends-with(|"\n"))> comments-after;
+		(start-separation, end-separation) := <split-before>(separation, "\n");
+		txt-between := <concat-strings> [start-separation, comments-after, end-separation]
+
+//("  ", "/*bla*/") -> " /*bla*/  "
+//(",  ", "/*bla*/") -> " /*bla*/,  "
+//("  ", "//bla /n") -> " //bla /n  "
+//(",  ", "//bla /n") -> " //bla /n,  "
+create-separation-after:
+	(separation, comments-after) -> txt-between
+	where 
+		<not(is-substring(!"\n"))> separation;
+		txt-between := <concat-strings> [" ", comments-after, separation]
+
+
+rules //Applying the textual modifications
+
+/*
+ * Applies textchanges (src-offset, text) to a textfragment with a given src-offset  
+ * @type (List(((Int,Int), String)), String, Int) -> String
+ */
+apply-text-changes:
+	(text-changes, text, start-offset) -> changed-text
+	where 
+		ordered-text-changes := <make-set; filter(is-modification); sort-list(LSort(compare-text-change))> text-changes;
+		<assert-valid-textual-changes> ordered-text-changes;
+		changed-text := <foldr(!(start-offset, text), apply-textual-change); Snd> ordered-text-changes
+
+apply-textual-change:
+	(change, text-info) -> (char-pos, result-text)
+	where 
+		<?(char-pos, text-fragment)> text-info; 
+		<?(change-start, change-end, change-text)> change; 
+		pos-start := <subt>(change-start, char-pos);
+		pos-end := <subt>(change-end, char-pos); <string-length> text-fragment;
+		result-text:=<replace-in-text>
+			(text-fragment, change-text, pos-start, pos-end) 
+
+replace-in-text:
+	(old-text, text-change, pos-start, pos-end) -> result-text
+	where 
+		old-chars := <explode-string> old-text; 
+		(prefix, tail) := <split-at(|pos-start)> old-chars; 
+		(heads, suffix) := <split-at(|pos-end)> old-chars; 
+		result-text := <conc-strings> (<implode-string> prefix, text-change, <implode-string> suffix) 
+		
+compare-text-change = 
+		?(((start-x, end-x),x), ((start-y, end-y),y));
+		not(
+			<lt> (start-x, start-y) <+ 
+			<eq> (start-x, start-y); <lt> (end-x, end-y)
+		)
+
+is-modification =
+	not(?(t, t,""))
+
+rules //assert wellformedness of textual change list (unwellformed lists lead to unexpected text modifications)
+
+assert-valid-textual-changes =
+	assert-no-overlap;
+	assert-valid-offset
+	
+assert-no-overlap:
+	txt-changes@[(_, end-offset, _), (start-offset, _, _)|_] -> txt-changes
+	with
+		<leq> (end-offset, start-offset);
+		<at-tail(assert-no-overlap)> txt-changes
+		
+assert-no-overlap =
+	?[(_, _, _)] <+ ?[]
+
+assert-valid-offset =
+	map(assert-valid-offset)
+
+assert-valid-offset =
+	?(s,e,_);
+	with(<leq>(s,e))

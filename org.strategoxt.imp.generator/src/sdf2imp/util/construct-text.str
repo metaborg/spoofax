@@ -1,545 +1,284 @@
 module sdf2imp/util/construct-text
 
-imports 
-  libstratego-lib 
-  libstratego-gpp
-  sdf2imp/util/origin-tracking 
+imports
+	libstratego-lib 
+	libstratego-gpp
+	sdf2imp/util/layout-adaption
+	sdf2imp/util/origin-tracking
 
-rules //API for text reconstruction
+rules //interface
+
+// backwards compatibility
+//TODO: change refactoring esv, geen pp-table meer
+construct-textual-change(pp|pp-table)=
+	construct-textual-change(pp <+ (ast2abox(|[pp-table]); box2text-string(|100)))
 
 /*
  * Constructs the textual change associated with 
- * the transformation that replaces a (sub)term (oldnode) with a new (sub)term (newnode).
+ * the transformation that replaces a (sub)term 'oldnode' with a new (sub)term 'newnode'.
  * @param custom pp strategy used to construct the text fragment for nodes that miss origin information
- * @param pp-table used to get separator information (and as backup for text construction)
- * @type (original-node, new-node) -> ((Int,Int), String)
+ * pp strategy is assumed to be homomorphic (except for lists separators that require parent node information)
+ * @type (original-node, new-node) -> (Int,Int, String)
  */	
-construct-textual-change(pp|pp-table):
-	(oldnode, newnode) -> (start-offset, end-offset, newText)
+construct-textual-change(pp):
+	t@(oldnode, newnode) -> (start-offset, end-offset, newText)
 	where
-		if <origin-term> newnode then
-			origin-tracked-node:=newnode
-		else
-			origin-tracked-node:=<origin-set-relation(|oldnode)> newnode
-		end
+		<is-tuple> t;
+		<has-origin-term> oldnode		
+	with
+		reconstructed-text := <construct-text-from-old(pp)> (oldnode, newnode); 
+		(start-offset, end-offset, newText) := <ast-change-to-text-change(pp)> REPLACEMENT(oldnode, reconstructed-text)
+
+construct-textual-change(pp):
+	t@(oldnode, newnode) -> (0, 0, "")
 	where
-		((start-offset, end-offset), newText):=
-	<
-		ast-change-to-text-change(
-			pp <+ (ast2abox(|[pp-table]); box2text-string(|100))|
-			pp-table
-		)
-	> REPLACEMENT(oldnode, <construct-text-by-compare(
-		pp <+ (ast2abox(|[pp-table]); box2text-string(|100))|
-		pp-table)> (oldnode, newnode)) //TODO: refactor
+		<is-tuple> t;
+		<equal> (oldnode, newnode)
 
-construct-textual-change(pp|pp-table):
-	(oldnode, newnode) -> (0, 0, "")
+construct-textual-change(pp) =
+	map(construct-textual-change(pp))
+
+//treat olnode as a candidate origin term to protect against loss of origin (and to preserve sugar in first diff)
+construct-text-from-old(pp):
+	(oldnode, newnode) -> reconstructed-text
 	where
-		<eq> (oldnode, newnode)
+		reconstructed-text := <construct-text-from-origin(pp)> (oldnode, newnode) <+ //possible desugared
+		reconstructed-text := <construct-text-from-origin(pp)> (<where(not(is-origin-term)); origin-term> oldnode, newnode) <+
+		reconstructed-text := <construct-text(pp)> newnode
 
-construct-textual-change(pp|pp-table) =
-	map(construct-textual-change(pp|pp-table))
-	
-rules //text reconstruction for AST nodes
+rules //text-reconstruction
 
-/**
- * Constructs the (dedented) textfragment for a node, using source fragments when possible.
- * The textfragment includes (surrounding) comments, 
- * and the start indentation is removed from all lines.
- * @param pretty-print strategy
- * @param pretty-print table
- * @type node -> String
- */
-construct-text(pp|pp-table) = 
-	construct-text-from-origin(pp|pp-table) <+
-	construct-text-for-primitive <+
-	construct-text-base-list(pp|pp-table) <+
-	construct-text-by-pp-rec(pp|pp-table) <+
-	construct-text-by-pp(pp|pp-table)
+construct-text(pp) = 
+	is-string <+
+	int-to-string <+
+	construct-text-from-origin-desugared(pp) <+
+	construct-text-from-origin(pp) <+
+	construct-text-by-pp(pp) <+
+	pp
 
-construct-text-for-primitive=
-	?node;
-	(is-string <+ 
-	int-to-string);
-	add-origin-comments(|node)  
-	 
-construct-text-from-origin(pp|pp-table):
+construct-text-from-origin-desugared(pp) = 
+	fail //TODO: (<origin term; desugar>, <id>) resugar?
+
+construct-text-from-origin(pp):
+	node -> <construct-text-from-origin(pp)> (origin-node, node)
+	where
+		origin-node := <origin-term> node
+
+//list must be constructed with comments that preceed the first element or succeed the last element
+//(otherwise insert-at-end gives problems)
+construct-text-from-origin(pp):
+	lst -> <construct-text-with-comments(pp|"")> (origin-lst, lst)
+	where
+		origin-lst := <find-origin-sublist> lst
+
+construct-text-from-origin(pp):
+	t@(origin-node, node) -> text
+	where //guarantees that node can be formatted from the origin node, preventing non-termination
+		<is-tuple> t; 
+		<has-origin-term> origin-node;
+		ast-changes := <collect-ast-changes(in-parent-context(|origin-node))> (origin-node, node); debug(!"ast-changes: ");
+		<is-terminating-diff(|node)> ast-changes //prevent non termination
+	with
+		text-changes := <map(ast-change-to-text-change(pp))> ast-changes; debug(!"txt-changes: ");
+		text := <apply-text-changes>(text-changes, <origin-text> origin-node, <origin-start-offset> origin-node)		
+
+construct-text-by-pp(pp):
 	node -> text
 	where
-		origin-node:=<origin-term> node; 
-		<same-signature <+ unmodified-list> (node, origin-node);
-		text := <construct-text-by-compare(pp|pp-table)> (origin-node, node)
-		
-construct-text-by-compare(pp|pp-table): (origin-node, node) -> text
-	where
-		ast-changes:=<collect-ast-changes> (origin-node, node); //debug(!"ast-changes: ");
-		text-changes:=<map(ast-change-to-text-change(pp|pp-table)); flatten-list> ast-changes; //debug(!"txt-changes: ");
-		text:=<
-			apply-text-changes; //debug(!"applied: ");
-			remove-indentation(|<origin-indent-value-node> node) //;debug(!"indent-corr: ")
-		>(text-changes, <origin-text-with-comments> node, <origin-offset-with-comments> node)					
+		text := <all(alltd(construct-text-with-comments(pp|<DEFAULT-INDENT>))); pp> node
+		//text := <alltd(construct-text-with-comments(pp|<DEFAULT-INDENT>)); pp> node
 
-construct-text-base-list(pp|pp-table)=
-	construct-list-fragments-base(pp|pp-table) <+ 
-	(?[h|[]]; !h)
-	
-construct-text-by-pp-rec(pp|pp-table):
-	node -> text
-	where
-	text:=<
-		all(try(
-			(is-list; construct-list-fragments(pp|pp-table); map(trim-chars(is-whitespace-char))) <+
-			(not(is-list); construct-text(pp|pp-table); trim-chars(is-whitespace-char))
-		)); 
-		pp;
-		trim-chars(is-whitespace-char <+?'\n');
-		add-origin-comments(|node)
-	> node
+construct-text-with-comments-desugared = 
+	fail //TODO: first try text reconstruction on desugared, then try on origin (list)
 
-construct-text-by-pp(pp|pp-table):
-	node -> <
-		pp; 
-		trim-chars(is-whitespace-char <+?'\n');
-		add-origin-comments(|node)
-	> node
-	
-add-origin-comments(|node): 
-	text -> commented-text
+construct-text-with-comments(pp|default-indent):
+	node -> <construct-text-with-comments(pp|default-indent)> (origin-node, node)
+	where
+		origin-node := <origin-term <+ find-origin-sublist> node
+
+construct-text-with-comments(pp|default-indent):
+	t@(origin-node, node) -> node-text
 	where 
-		if
-			<origin-has-comments> node
-		then
-			commented-text:=<
-				apply-text-changes; 
-				remove-indentation(|<origin-indent-value-node> node)
-			>(
-				[(
-					<origin-offset> node, 
-					<prefix-lines(|<origin-indent-node> node); trim-leading-whitespace>text
-				)], 
-				<origin-text-with-comments> node, 
-				<origin-offset-with-comments> node
-			)					
-		else
-			commented-text:=text
-		end
-
-rules //text reconstruction for AST Lists
-
-/**
- * Constructs the textfragment for a list term consisting of a mix of elements with/without origin info.
- * Sublist textfragments are constructed from origin or by pp and separated by the given separation.
- * @param pretty-print strategy
- * @param pretty-print table
- * @param separation between the textual representation of the elements
- * @type List -> String
- */
-construct-list-text(pp|pp-table, sep):
-	lst -> <
-		construct-list-fragments(pp|pp-table);
-		map(trim-leading-whitespace);
-		concat-fragments(|sep)
-	> lst
-
-/**
- * Constructs a list with textfragments that represent sublists of the original list
- * @type List(Node)[lenth n] -> List(String)[length <= n]
- */
-construct-list-fragments(pp|pp-table)=
- 	at-suffix(
- 		where(origin-sublist-term<+<eq>(<length>, 1)); 
- 		![<id>]
- 	); 
- 	(init,last):=<split-init-last>;
- 	![
- 		<	if ?[] <+ ?[_] <+ origin-sublist-term then 
- 				construct-list-fragments-base(pp|pp-table) 
- 			else
- 				construct-list-fragments(pp|pp-table)
- 			end
- 		> init,
- 		<construct-list-fragments-base(pp|pp-table)> last
- 	];
- 	flatten-list 
-
-construct-list-fragments-base(pp|pp-table):
-	[] -> []
-	
-construct-list-fragments-base(pp|pp-table):
-	lst -> [<construct-text-from-origin(pp|pp-table)> lst]
-	where
-		<is-list> lst
-
-construct-list-fragments-base(pp|pp-table):
-	[h|[]] -> [<construct-text(pp|pp-table)> h]
-
-rules //helpers text reconstruction
-concat-fragments(|seperation)= 
-	separate-by(|seperation); 
-	concat-strings
-	
-is-whitespace-char=
-	?'\t' <+' '
-
-remove-indentation(|n)=
-	all-lines(string-as-chars(dedent-line-chars(|n)));
-	trim-chars(?' ' <+ ?'\t')//<+ ?'\n'
-		
-dedent-line-chars(|n):
-	chars -> dedented-chars
-	where
-		(
-			<lt> (n,0); 
-			indent:=<copy-char; explode-string> (<abs>n, ' '); 
-			dedented-chars:=<conc>(indent,chars)
-		)<+
-		(
-			<gt> (n,0);
-			<?[' '|tail]> chars;
-			dedented-chars:=<dedent-line-chars(|<dec> n)> tail
-		)<+
-		(
-			<gt> (n,0);
-			<?['\t'|tail]> chars; 
-			dedented-chars:=<dedent-line-chars(|<subt> (n, <tabsize>))> tail				
-		)<+
-		dedented-chars:=chars
-
-rules // ast-diff
+		<is-tuple> t;
+		<has-origin-term> origin-node
+	with //termination check is not needed (we need to Replace to keep comments), since it is called on a subterm in construct-text-by-pp
+		ast-changes := <collect-ast-changes(in-parent-context(|origin-node))> (origin-node, node); debug(!"--ast-changes: ");
+		text-changes := <map(ast-change-to-text-change(pp))> ast-changes; debug(!"--txt-changes: ");
+		full-text := <origin-text-with-layout> origin-node; 
+		full-text-start-offset := <origin-layout-prefix-start-offset> origin-node; 
+		modified-full-text := <apply-text-changes>(text-changes, full-text, full-text-start-offset);
+		node-text := <replace-indentation(|default-indent, <origin-indent <+ !""> origin-node)> modified-full-text
 
 signature constructors //signatures for AST changes
-	INSERT_AT_END : OldList * NewSubList -> AST_CHANGE
-	INSERT_BEFORE : OldNode * NewSubList -> AST_CHANGE
-	DETETION : OldNode -> AST_CHANGE
-	REPLACEMENT : OldNode * NewNode -> AST_CHANGE
+	DELETION      : OldList -> AST_CHANGE
+	REPLACEMENT   : OldNode * NewNode -> AST_CHANGE //TODO: REPLACEMENT_IN_LIST, REPLACEMENT + bracket insertion for REPLACEMENT
+	INSERT_BEFORE : OldNode * NewList -> AST_CHANGE
+	INSERT_AT_END : OldNode * NewList -> AST_CHANGE
 
-	//with parent path to lookup separator for list elements
-	INSERT_AT_END : ParentPath * OldList * NewSubList -> AST_CHANGE
-	INSERT_BEFORE : ParentPath * OldNode * NewSubList -> AST_CHANGE
-	REPLACEMENT : ParentPath * OldNode * NewNode -> AST_CHANGE
+rules //ast-diff
 
-
-rules //collecting ast changes
-
-/**
- * Constructs the diff between two AST nodes in terms of replacements, list insertions and list deletions.
- * List elements are matched based on origin-relation or identity
- * @type (Node1, Node2) -> List(AST_CHANGE)
- */
-collect-ast-changes:
-	(oldTrm, newTrm) -> ast-changes
-	where
-		if <eq> (oldTrm, newTrm) then //stop for equal nodes
-			ast-changes:=[]			
-		else if <same-signature <+ unmodified-list> (oldTrm, newTrm) then //recursively compare child nodes
-			ast-changes:=<
-				zip;
-				map-with-index(collect-ast-changes-keep-parent-path(|oldTrm)); 
-				flatten-list
-			>(<get-arguments> oldTrm, <get-arguments> newTrm)  
-		else if <is-list> oldTrm; <is-list> newTrm then //compare lists
-			ast-changes:=<collect-ast-changes-in-list> (oldTrm, newTrm) 
-		else
-			ast-changes:=[REPLACEMENT(oldTrm, newTrm)] //AST node replacement 
-		end
-		end
-		end
-
-/**
- * Constructs the diff between two AST nodes in terms of replacements, list insertions and list deletions.
- * Parent path (constructor of parent node + index) is preserved 
- * in case the separator must be looked up in the pp-table.
- * @param parent node
- * @type (Node1, Node2) -> List(AST_CHANGE)
- */		
-collect-ast-changes-keep-parent-path(|parent):
-	(index, (old-child, new-child)) -> result
-	where
-		parent-path:=(<get-constructor> parent, index);
-		if 
-			<lt>(<length> old-child,2); 
-			<gt>(<length> new-child,1) 
-		then  //separator can not be looked up in the original list
-			result:=<
-				collect-ast-changes-in-list;
-				map(try(
-					\INSERT_BEFORE(v, w) -> INSERT_BEFORE(parent-path, v, w)\ <+
-					\INSERT_AT_END(x, y) -> INSERT_AT_END(parent-path, x, y)\ <+
-					\REPLACEMENT(t, u) -> REPLACEMENT(parent-path, t, u)\
-				))
-			> (old-child, new-child)
-		else if 
-			<not(is-list)> old-child;
-			<gt>(<length> new-child,1)
-		then //separator can not be looked up in the original list
-			result:=[REPLACEMENT(parent-path, old-child, new-child)]
-		else 
-			result:=<collect-ast-changes> (old-child, new-child)
-		end
-		end
-
-collect-ast-changes-in-list=
-	?(oldlist,newlist);
-	collect-ast-changes-in-list(|oldlist); 
-	where(
-		<at-least-one-match>(oldlist, newlist) //deleting old elements + inserting new elements gives a separation problem
-	)
-
-collect-ast-changes-in-list=
-	?(oldlist,newlist);
-	![REPLACEMENT(oldlist, newlist)];
-	where(
-		<is-list> oldlist; 
-		<is-list> newlist;
-		<not(at-least-one-match)> (oldlist, newlist)
-	)
+collect-ast-changes(in-local-context) = 
+	where(is-tuple); 
+	(collect-ast-changes-eq <+
+	collect-ast-changes-rec-node(in-local-context) <+
+	collect-ast-changes-rec-list(in-local-context) <+
+	collect-ast-changes-replace(in-local-context))
 	
-at-least-one-match=
-	?([h|tail], newlist);
-	(<fetch(
-		where(equal(|h)<+origin-equivalent(|h))
-	)> newlist <+ 
-	<at-least-one-match> (tail, newlist))
+collect-ast-changes-eq:
+	(origin-node, node) -> []
+	where
+		<equal> (origin-node, node)
 
-/*
- * Compare lists and return insertions, deletions and replacements of elements
- */		
-collect-ast-changes-in-list(|oldlist)=
-	collect-ast-changes-in-list-insert-at-end(|oldlist) <+
-	collect-ast-changes-in-list-match-header(|oldlist) <+
-	collect-ast-changes-in-list-no-header-match(|oldlist)
+collect-ast-changes-rec-node(in-local-context):
+	(origin-node, node) -> ast-changes
+	where
+		<same-signature <+ ?([_],[_])> (origin-node, node);
+		arg-tuples := <zip>(<get-arguments> origin-node, <get-arguments> node); 
+		ast-changes := <map(collect-ast-changes(in-local-context)); flatten-list> arg-tuples 
+	where
+		<map(in-local-context)> ast-changes
+ 
+collect-ast-changes-rec-list(in-local-context):
+	(origin-lst, lst) -> ast-changes
+	where 
+		<is-list> lst;
+		<is-list> origin-lst;
+		<not(violates-homomorphism-list)> (origin-lst, lst)
+	where
+		ast-changes := <
+			list-diff(in-local-context|origin-lst);
+			filter(not(?INSERT_BEFORE(_, [])));
+			filter(not(?INSERT_AT_END(_, [])))
+		> (origin-lst, lst)
+	where
+		<map(in-local-context)> ast-changes
 
-//header element old elems exists in new elems
-//ex. ([a,b,c], [x,y,a',b']) -> [InsertBefore([x,y]), <collext-ast-changes>(a,a'), <collect-ast-changes-in-list>([b,c], [b'])]
-collect-ast-changes-in-list-match-header(|oldlist)=
-	?([old-h|old-tail], new-elems);
-	(before, new-h, after):=<split-fetch-keep(
-		where(equal(|old-h) <+ origin-equivalent(|old-h))
-	)> new-elems;
-	ast-changes:=<flatten-list>[
-		<collect-ast-changes>(old-h, new-h),
-		<collect-ast-changes-in-list(|oldlist)>(old-tail, after)
-	];
-	if <not(?[])> before then
-		![INSERT_BEFORE(old-h, before)|ast-changes]
-	end
+collect-ast-changes-replace(in-local-context):
+	(origin-node, node) -> [REPLACEMENT(origin-node, node)]
+	where
+		<has-origin-term> origin-node;
+		<not(is-list)> node; //list-text can only be constructed in a context  
+		<in-local-context> REPLACEMENT(origin-node, node)
 
-collect-ast-changes-in-list-match-header(|oldlist, new-elems):
-	old-elems -> <collect-ast-changes-in-list-match-header(|oldlist)> (old-elems, new-elems)
+rules //validity
 
-//header element old elems is deleted
-//ex. ([a,b,c,d,e], [x,y,c',d']) -> [D([a,b]), <coll-l>([c,d,e],[x,y,c'd'])]
-collect-ast-changes-in-list-no-header-match(|oldlist)=
-	?(old-elems, new-elems);
-	resolved-suffix:=<at-suffix(collect-ast-changes-in-list-match-header(|oldlist, new-elems); ![<id>])> old-elems;
-	![DETETION(<init> resolved-suffix), <last> resolved-suffix];
-	flatten-list
-
-//all-old-elems-deleted
-//ex. ([a,b,c], [x,y,z]) -> [Del(a,b,c), <coll-ch> ([], [x,y,z])]
-collect-ast-changes-in-list-no-header-match(|oldlist)=
-	?(old-elems, new-elems);
-	where(not(at-least-one-match()));
-	![DETETION(old-elems), <collect-ast-changes-in-list-insert-at-end(|oldlist)> ([], new-elems)];
-	flatten-list
-
-//collects remaining new elems as insertions
-//ex. ([], [x,y]) -> Iend([x,y])
-collect-ast-changes-in-list-insert-at-end(|oldlist)= 
-	?([], new-elems); 
-	if <?[_|_]> new-elems then
-		![INSERT_AT_END(oldlist, new-elems)]
-	else
-		![]
-	end
-
-rules //helpers compare nodes
+//desugaring: changes must fall inside region of original text
+//issue: is it correct if we simply filter context sensitive changes?
+in-parent-context(|origin-parent):
+	ast-change -> ast-change
+	where 
+		start-offset-node := <origin-deletion-start-offset> origin-parent; 
+		end-offset-node := <origin-deletion-end-offset> origin-parent; 
+		start-offset-change := <get-arguments; Hd; origin-start-offset> ast-change; 
+		end-offset-change := <get-arguments; Hd; origin-end-offset> ast-change; 
+		<leq> (start-offset-node, start-offset-change); 
+		<leq> (end-offset-change, end-offset-node) 
+		
 	
-same-signature =
-	?(trm1, trm2);
+rules //list diff
+
+list-diff(in-local-context|origin-lst) =
+	list-diff-fuzzy(in-local-context|origin-lst) <+
+	list-diff-origin-related(in-local-context|origin-lst) 
+	
+list-diff-fuzzy(in-local-context|origin-lst):
+	([origin-elem|origin-rest], [new-elem|new-rest]) -> ast-changes
+	where
+		<is-deletion(|new-rest)> origin-elem;
+		<is-insertion(|origin-rest)> new-elem;
+		<is-related-to-fuzzy(|origin-elem)> new-elem //fuzzy to prevent deletion + insertion
+	with
+		ast-changes := <flatten-list>[
+			<collect-ast-changes(in-local-context)>(origin-elem, new-elem)|
+			<list-diff(in-local-context|origin-lst)> (origin-rest, new-rest)
+		]
+
+list-diff-origin-related(in-local-context|origin-lst): 
+	(origin-elems, new-elems) -> ast-changes
+	where
+		deleted-elems := <take-while(is-deletion(|new-elems))> origin-elems; 
+		origin-rest := <drop-while(is-deletion(|new-elems))>;
+		<not(?[])> deleted-elems 
+	with
+		ast-changes := <flatten-list>[DELETION(deleted-elems)|<list-diff(in-local-context|origin-lst)> (origin-rest, new-elems)]
+
+
+list-diff-origin-related(in-local-context|origin-lst):
+	([origin-elem|origin-rest], new-elems) -> ast-changes
+	where
+		(inserted, elem, rest) := <split-fetch-keep(is-related-to(|origin-elem))> new-elems
+	with
+		ast-changes := <flatten-list>[
+			INSERT_BEFORE(origin-elem, inserted), 
+			<collect-ast-changes(in-local-context)>(origin-elem, elem)|
+			<list-diff(in-local-context|origin-lst)> (origin-rest, rest)
+		]
+
+list-diff-origin-related(in-local-context|origin-lst):
+	([], new-elems) -> [INSERT_AT_END(origin-lst, new-elems)]
+
+
+rules //helper rules text construction
+
+find-origin-sublist:
+	lst -> sublst
+	where
+		at-suffix(sublst := <origin-sublist-term; ?[_,_|_]>) <+
+		sublst := <init; find-origin-sublist> lst
+
+is-terminating-diff(|newnode):
+	ast-changes -> ast-changes
+	where
+		<not(fetch(?REPLACEMENT(_, newnode)))> ast-changes 
+		//lists are constructed from their elements, so non-termination is not a problem for insertion
+
+rules //helper rules diff
+	
+same-signature:
+	t@(trm1, trm2) -> (trm1, trm2)
 	where(
+		<is-tuple> t;
 		<eq>(<get-constructor> trm1, <get-constructor> trm2);
 		<eq>(<get-arguments; length> trm1, <get-arguments; length> trm2);
-		<not(is-list)> trm1; <not(is-list)> trm2
+		<not(is-list)> trm1
 	)
-	
-unmodified-list=
-	?(lst1, lst2);
-	<zip; map(equal <+ origin-equivalent)> (lst1, lst2)
 
-origin-equivalent=
-	?(t1,t2);
-	where(
-		<eq>(<origin-term> t1, <origin-term> t2) <+
-		<same-signature; all(not(origin-term))> (t1,t2)
-	) 
-	
-origin-equivalent(|t1):
-	t2 -> <origin-equivalent> (t1,t2)
-	
-rules //translating ast-changes to text changes
+violates-homomorphism-list =
+	?([],[_,_|_]) <+ 
+	?([_],[_,_|_]) <+
+	(?([ortrm],[newtrm]); where(not(<is-related-to-fuzzy(|ortrm)> newtrm)))  //insertion constructs list with 2 elements from list with one element 
 
-rules //Replacement
-	
-ast-change-to-text-change(pp|pp-table):
-	REPLACEMENT(parent-path, old-trm, new-trm) -> <ast-change-to-text-change(pp|pp-table, separator)> REPLACEMENT(old-trm, new-trm)
+is-insertion(|origin-elems):
+	new-elem -> new-elem
+	where
+		<?[or-elem|tail]> origin-elems;
+		<not(is-related-to(|or-elem))> new-elem;
+		<is-insertion(|tail)> new-elem
+
+is-insertion(|origin-elems) =
+	<?[]> origin-elems
+
+is-deletion(|new-elems) = 
+	?origin-elem;
+	<not(fetch(is-related-to(|origin-elem)))> new-elems
+
+is-related-to(|origin-node):
+	node -> node
+	where
+		<equal> (origin-node, node) <+
+		<equal> (<origin-term> origin-node, node) <+
+		<equal>(<origin-term> origin-node, <origin-term> node)
+
+is-related-to:
+	(origin-node, node) -> (origin-node, node)
+	where
+		<is-related-to(|origin-node)> node
+
+//related via child
+is-related-to-fuzzy(|origin-node):
+	node -> node
 	where 
-		separator:=<get-separator-from-table(|pp-table) <+ !""> parent-path
-
-ast-change-to-text-change(pp|pp-table):
-	REPLACEMENT(old-trm, new-trm) -> <ast-change-to-text-change(pp|pp-table, sep)> REPLACEMENT(old-trm, new-trm)
-	where
-		 sep:=<last; origin-separator-text> old-trm <+
-		 sep:=<fetch-elem(origin-term); origin-separator-text> new-trm <+
-		 sep:= ""
-
-ast-change-to-text-change(pp|pp-table, sep):
-	REPLACEMENT(old-trm, new-trm) -> (offset, txt)
-	where
-		if <origin-has-comments> new-trm then
-			offset:=<origin-offset-with-comments> old-trm
-		else
-			offset:=<origin-offset> old-trm
-		end;
-		ws-sep:=<origin-separating-ws <+ !" "> new-trm;
-		txt:=<
-			(construct-list-text(pp|pp-table, <conc-strings>(sep, ws-sep)) <+ construct-text(pp|pp-table));
-			prefix-lines(|<origin-indent-node> old-trm);
-			trim-leading-whitespace 
-		> new-trm 
-
-rules //Deletion
-	
-ast-change-to-text-change(pp|pp-table):
-	DETETION(old-trm) -> deletions
-	where
-		offset:=<origin-offset-with-layout> old-trm;
-		txt:="";
-		if 
-			separator-offset:=<origin-separator-offset-with-lo> old-trm
-		then
-			deletions:=[(offset, txt), (separator-offset,"")]
-		else
-			deletions:=(offset, txt)
-		end
-		
-rules //Insert Before
-	
-ast-change-to-text-change(pp|pp-table):
-	INSERT_BEFORE(old-node, new-sublist) -> <ast-change-to-text-change(pp|pp-table, sep)> INSERT_BEFORE(old-node, new-sublist)
-	where
-		sep:= <origin-separator-text <+ !""> old-node
-
-ast-change-to-text-change(pp|pp-table):
-	INSERT_BEFORE(parent-path, old-list, new-sublist) -> 
-		<ast-change-to-text-change(pp|pp-table, separator)> INSERT_BEFORE(old-list, new-sublist)
-		where
-			separator:=<get-separator-from-table(|pp-table) <+ !""> parent-path
-
-ast-change-to-text-change(pp|pp-table, sep):
-	INSERT_BEFORE(old-node, new-sublist) -> (insert-offset, new-text)
-	where
-		indent:=<origin-indent-node> old-node; 
-		seperation := <conc-strings>(
-			sep, 
-			<origin-separating-ws <+ !" "> old-node
-		); 
-		constructed-text := <
-			construct-list-text(pp|pp-table, seperation);
-			prefix-lines(|indent);
-			trim-leading-whitespace
-		> new-sublist;
-		new-text:=<concat-strings> [constructed-text, seperation, indent]; 
-		start-offset-oldnode:=<origin-offset-with-comments; Fst> old-node; 
-		insert-offset:=(start-offset-oldnode, start-offset-oldnode)
-
-rules //Insert At End
-
-ast-change-to-text-change(pp|pp-table):
-	INSERT_AT_END(old-list, new-sublist) -> <ast-change-to-text-change(pp|pp-table, sep)> INSERT_AT_END(old-list, new-sublist)
-	where
-		sep:=<try(last); (origin-separator-text <+ !"")> old-list
-
-ast-change-to-text-change(pp|pp-table):
-	INSERT_AT_END(parent-path, old-list, new-sublist) -> 
-		<ast-change-to-text-change(pp|pp-table, separator)> INSERT_AT_END(old-list, new-sublist)
-		where
-			separator:=<get-separator-from-table(|pp-table) <+ !""> parent-path
-	
-ast-change-to-text-change(pp|pp-table, sep):
-	INSERT_AT_END(old-list, new-sublist) -> (insert-offset, new-text)
-	where 
-		indent := <try(last); origin-indent-node> old-list; 
-		seperation := <conc-strings>(
-			sep, 
-			<try(last); origin-separating-ws<+!" "> old-list
-		); 
-		constructed-text := <
-			construct-list-text(pp|pp-table, seperation);
-			prefix-lines(|indent)
-		> new-sublist;
-		if <not(?[])> old-list then  
-			new-text := <conc-strings> (seperation, constructed-text)
-		else
-			new-text :=constructed-text
-		end;
-		offset-end-list := <try(last); origin-offset-with-comments; Snd> old-list; 
-		insert-offset := (offset-end-list, offset-end-list)
-
-rules //helpers ast-change-to-text-change
-
-get-separator-from-table(|tbl):
- 	(cons-name, argnr) -> separator
- 	where 
- 	arg-nr-string:=<int-to-string> argnr;
- 	separator:=<
- 		<collect-one(?PP-Entry(Path(cons-name,[selector(arg-nr-string, "iter-star-sep")]),x))> tbl;
- 		!x;
- 		filter(not(Arg("1")));
- 		box2text-string(|100);
- 		un-double-quote; 
- 		trim-whitespace
- 	>
-
-
-rules //Applying the textual modifications
-
-/*
- * Applies textchanges (src-offset, text) to a textfragment with a given src-offset  
- * @type (List(((Int,Int), String)), String, Int) -> String
- */
-apply-text-changes:
-	(text-changes, text, offset) -> changed-text
-	where 
-		start-offset:=<Fst> offset;
-		ordered-text-changes:=<make-set; filter(is-modification); sort-list(LSort(compare-text-change))> text-changes;
-		changed-text:= <foldr(!(start-offset, text), apply-textual-change); Snd> ordered-text-changes
-
-apply-textual-change:
-	(change, text-info) -> (char-pos, result-text)
-	where 
-		<?(char-pos, text-fragment)> text-info; 
-		<?((change-start, change-end), change-text)> change; 
-		pos-start:=<subt>(change-start, char-pos); 
-		pos-end:=<subt>(change-end, char-pos); 
-		result-text:=<replace-in-text>
-			(text-fragment, change-text, pos-start, pos-end) 
-
-replace-in-text:
-	(old-text, text-change, pos-start, pos-end) -> result-text
-	where
-		old-chars:=<explode-string> old-text; 
-		(prefix, tail):=<split-at(|pos-start)> old-chars; 
-		(heads, suffix):=<split-at(|pos-end)> old-chars; 
-		result-text:=<conc-strings> (<implode-string> prefix, text-change, <implode-string> suffix) 
-		
-compare-text-change = 
-		?(((start-x, end-x),x), ((start-y, end-y),y));
-		not(
-			<lt> (start-x, start-y) <+ 
-			<eq> (start-x, start-y); <lt> (end-x, end-y)
-		)
-
-is-modification =
-	not(?((t, t),"")) 
+		<not(has-origin-term)> node;
+		arg-tuples := <zip>(<get-arguments> origin-node, <get-arguments> node);
+		<map(is-related-to <+ (Snd; not(has-origin-term)))> arg-tuples;
+		<fetch(is-related-to)> arg-tuples
