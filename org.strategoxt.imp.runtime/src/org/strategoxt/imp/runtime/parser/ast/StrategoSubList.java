@@ -49,7 +49,7 @@ public class StrategoSubList extends StrategoWrapped implements IStrategoList {
 			}
 			i++;
 		}
-		assert(0 <+ indexStart && indexStart <= indexEnd);
+		assert(0 <= indexStart && indexStart <= indexEnd);
 		IStrategoList wrapped = Environment.getTermFactory().makeList(children);
 		StrategoSubList result = new StrategoSubList(list, wrapped, indexStart, indexEnd);
 		
