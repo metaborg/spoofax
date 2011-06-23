@@ -76,10 +76,10 @@ construct-text-from-origin(pp):
 	where //guarantees that node can be formatted from the origin node, preventing non-termination
 		<is-tuple> t; 
 		<has-origin-term> origin-node;
-		ast-changes := <collect-ast-changes(in-parent-context(|origin-node))> (origin-node, node); debug(!"ast-changes: ");
+		ast-changes := <collect-ast-changes(in-parent-context(|origin-node))> (origin-node, node); //debug(!"ast-changes: ");
 		<is-terminating-diff(|node)> ast-changes //prevent non termination
 	with
-		text-changes := <map(ast-change-to-text-change(pp))> ast-changes; debug(!"txt-changes: ");
+		text-changes := <map(ast-change-to-text-change(pp))> ast-changes; //debug(!"txt-changes: ");
 		text := <apply-text-changes>(text-changes, <origin-text> origin-node, <origin-start-offset> origin-node)		
 
 construct-text-by-pp(pp):
@@ -102,8 +102,8 @@ construct-text-with-comments(pp|default-indent):
 		<is-tuple> t;
 		<has-origin-term> origin-node
 	with //termination check is not needed (we need to Replace to keep comments), since it is called on a subterm in construct-text-by-pp
-		ast-changes := <collect-ast-changes(in-parent-context(|origin-node))> (origin-node, node); debug(!"--ast-changes: ");
-		text-changes := <map(ast-change-to-text-change(pp))> ast-changes; debug(!"--txt-changes: ");
+		ast-changes := <collect-ast-changes(in-parent-context(|origin-node))> (origin-node, node); //debug(!"--ast-changes: ");
+		text-changes := <map(ast-change-to-text-change(pp))> ast-changes; //debug(!"--txt-changes: ");
 		full-text := <origin-text-with-layout> origin-node; 
 		full-text-start-offset := <origin-layout-prefix-start-offset> origin-node; 
 		modified-full-text := <apply-text-changes>(text-changes, full-text, full-text-start-offset);
