@@ -1,6 +1,5 @@
 package org.strategoxt.imp.runtime.stratego;
 
-import static org.spoofax.interpreter.core.Tools.isTermString;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getImploderOrigin;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.hasImploderOrigin;
 import static org.spoofax.terms.Term.isTermList;
@@ -27,16 +26,16 @@ public class OriginSublistTermPrimitive extends AbstractPrimitive {
 	private static final String NAME = "SSL_EXT_origin_sublist_term";
 
 	public OriginSublistTermPrimitive() {
-		super(NAME, 0, 2);
+		super(NAME, 0, 1);
 	}
 	
 	@Override
 	public final boolean call(IContext env, Strategy[] svars, IStrategoTerm[] tvars) {
-		if (!isTermString(tvars[0]) || !isTermList(tvars[1]))//|| (tvars[1].getTermType()!= IStrategoTerm.LIST)
+		if (!isTermList(tvars[0]))
 			return false;
-		if(tvars[1].getTermType()!= IStrategoTerm.LIST)
+		if(tvars[0].getTermType() != IStrategoTerm.LIST)
 			return false;
-		IStrategoList list=(IStrategoList)tvars[1];
+		IStrategoList list=(IStrategoList)tvars[0];
 		if(list.isEmpty())
 			return false;
 		for (IStrategoTerm child : list.getAllSubterms()) {
@@ -45,11 +44,9 @@ public class OriginSublistTermPrimitive extends AbstractPrimitive {
 		}
 		IStrategoTerm firstChildNode= tryGetOrigin(list.getSubterm(0));
 		IStrategoTerm commonParentList=getParent(firstChildNode);
-		if(commonParentList == null)
+		if(commonParentList == null || !(isTermList(commonParentList)))
 			return false;
 		List<IStrategoTerm> childNodes= Arrays.asList(commonParentList.getAllSubterms());
-		if(!(isTermList(commonParentList)))
-			return false;
 		int startIndex=-1;
 		for (int i = 0; i < childNodes.size(); i++) {
 			if(childNodes.get(i)==firstChildNode){
@@ -57,10 +54,6 @@ public class OriginSublistTermPrimitive extends AbstractPrimitive {
 				break;
 			}
 		}
-		// XXX: Maartje - many of these primitives don't check hasImploderOrigin() before getting the origin...
-		//      What if a term has no origin?!
-		//      Before, this could result in a ClassCastException. now, with tryGetOrigin, you just get a non-origin term.
-		//      Or with getOrigin()/getImploderOrigin(), you get null
 		for (int i = 0; i < list.size(); i++) {
 			if(childNodes.size()<=i+startIndex)
 				return false;

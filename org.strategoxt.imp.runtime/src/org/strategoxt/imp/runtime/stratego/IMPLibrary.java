@@ -15,14 +15,6 @@ public class IMPLibrary extends AbstractStrategoOperatorRegistry {
 		add(new ProjectPathPrimitive());
 		add(new PluginPathPrimitive());
 		add(new RefreshResourcePrimitive());
-		add(new OriginSublistTermPrimitive());
-		add(new OriginTextFragmentPrimitive());
-		add(new OriginSurroundingCommentsPrimitive());
-		add(new OriginCommentBeforePrimitive());
-		add(new OriginCommentAfterPrimitive());
-		add(new TextChangePrimitive());
-		add(new OriginPositionPrimitive());
-		add(new OriginOffsetWithLayoutPrimitive());
 		add(new QueueAnalysisPrimitive());
 		add(new QueueStrategyPrimitive());
 		add(new SetMarkersPrimitive());
@@ -30,14 +22,22 @@ public class IMPLibrary extends AbstractStrategoOperatorRegistry {
 		
 		add(new SetTotalWorkUnitsPrimitive());
 		add(new CompleteWorkUnitPrimitive());
-		add(new OriginIndentationPrimitive());
-		add(new OriginSeparatingWhitespacePrimitive());
-		add(new OriginSeparatorPrimitive());
-		add(new OriginSeparatorWithLayoutPrimitive());
 		add(new SaveAllResourcesPrimitive());
 		add(new MessageDialogPrimitive());
 		add(new LanguageDescriptionPrimitive());
 		add(new OverrideInputPrimitive());
+
+		add(new OriginSublistTermPrimitive());
+		add(new OriginSurroundingCommentsPrimitive());
+		add(new OriginLayoutPrefixPrimitive());
+		add(new OriginCommentsAfterPrimitive());
+		add(new OriginCommentsBeforePrimitive());
+		add(new OriginIndentationPrimitive());
+		add(new OriginSeparationPrimitive());
+		add(new OriginDeletionOffsetPrimitive());
+		add(new OriginInsertBeforeOffsetPrimitive());
+		add(new OriginInsertAtEndOffsetPrimitive());
+		add(new OriginTextWithLayoutPrimitive());
 	}
 
 	public String getOperatorRegistryName() {

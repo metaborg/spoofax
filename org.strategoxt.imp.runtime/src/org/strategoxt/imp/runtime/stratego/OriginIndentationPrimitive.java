@@ -6,6 +6,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
 /**
+ * Returns indentation of the line where the node starts 
  * @author Maartje de Jonge
  */
 public class OriginIndentationPrimitive extends AbstractOriginPrimitive {
@@ -16,9 +17,9 @@ public class OriginIndentationPrimitive extends AbstractOriginPrimitive {
 
 	@Override
 	protected IStrategoTerm call(IContext env, IStrategoTerm origin) {
-		DocumentStructure loStructure=new DocumentStructure(origin);
+		LayoutStructure loStructure = new LayoutStructure(origin);
 		ITermFactory factory = env.getFactory();
-		return factory.makeString(loStructure.getIndentNode());
+		return factory.makeString(loStructure.getIndentation());
 	}
 
 }
