@@ -2,7 +2,7 @@ module sdf2imp/util/layout-adaption
 
 imports
 	sdf2imp/util/construct-text
-	sdf2imp/util/origin-strategies
+	sdf2imp/util/origin-tracking
 		
 rules //rules that translate AST-changes to Textual changes
 
