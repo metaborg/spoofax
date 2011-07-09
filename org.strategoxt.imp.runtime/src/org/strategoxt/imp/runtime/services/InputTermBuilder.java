@@ -91,8 +91,32 @@ public class InputTermBuilder {
 			return makeInputTermSourceAst(node, includeSubNode);
 		DesugaredOriginAttachment.setAllTermsAsDesugaredOrigins(resultingAst);
 		IStrategoTerm targetTerm = StrategoTermPath.getTermAtPath(context, resultingAst, termPath);
+		if(node instanceof StrategoSubList){
+			if(!(targetTerm instanceof IStrategoList))
+				return makeInputTermSourceAst(node, includeSubNode);
+			targetTerm = mkSubListTarget(resultingAst, (IStrategoList)targetTerm, (StrategoSubList)node);
+			if(targetTerm == null) //only accept sublists that correspond to selection
+				return makeInputTermSourceAst(node, includeSubNode); 
+		}
 		IStrategoTerm rootTerm = resultingAst;		
 		return makeInputTerm(node, includeSubNode, termPath, targetTerm, rootTerm);
+	}
+
+	private IStrategoTerm mkSubListTarget(IStrategoTerm resultingAst, IStrategoList targetTerm, StrategoSubList node) {
+		IStrategoTerm firstChild = getResultingTerm(resultingAst, node.getFirstChild());
+		IStrategoTerm lastChild = getResultingTerm(resultingAst, node.getLastChild());
+		if(firstChild == null || lastChild == null)
+			return null;
+		return StrategoSubList.createSublist(targetTerm, firstChild, lastChild, false);
+	}
+
+	private IStrategoTerm getResultingTerm(IStrategoTerm resultingAst, IStrategoTerm originTerm) {
+		Context context = runtime.getCompiledContext();
+		IStrategoList pathFirstChild = StrategoTermPath.getTermPathWithOrigin(context, resultingAst, originTerm);
+		IStrategoTerm firstChild = null;
+		if(pathFirstChild != null)
+			firstChild = StrategoTermPath.getTermAtPath(context, resultingAst, pathFirstChild);
+		return firstChild;
 	}
 
 	public IStrategoTuple makeInputTermSourceAst(IStrategoTerm node, boolean includeSubNode) {

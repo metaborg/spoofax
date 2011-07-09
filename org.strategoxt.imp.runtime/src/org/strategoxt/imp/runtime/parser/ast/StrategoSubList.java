@@ -10,6 +10,7 @@ import java.util.ArrayList;
 
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.terms.StrategoListIterator;
 import org.spoofax.terms.StrategoWrapped;
 import org.spoofax.terms.attachments.ParentAttachment;
@@ -58,9 +59,15 @@ public class StrategoSubList extends StrategoWrapped implements IStrategoList {
 		list.overrideReferences(getLeftToken(list), getRightToken(list), children, result);
 		setParent(result, list);
 		*/
-		
 		putParent(result, ParentAttachment.get(list));
-		putImploderAttachment(result, true, getElementSort(list), getLeftToken(firstChild), getRightToken(lastChild));
+		if(ImploderAttachment.get(firstChild) != null && ImploderAttachment.get(lastChild) != null)
+			putImploderAttachment(
+				result, 
+				true, 
+				getElementSort(list), 
+				getLeftToken(firstChild), 
+				getRightToken(lastChild)
+			);
 		return result;
 	}
 
