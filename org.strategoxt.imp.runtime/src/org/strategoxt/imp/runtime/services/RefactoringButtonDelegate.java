@@ -1,28 +1,17 @@
 package org.strategoxt.imp.runtime.services;
 
-import java.util.regex.Pattern;
-
-import org.eclipse.imp.language.Language;
-import org.eclipse.imp.language.ServiceFactory;
-import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.ActionContributionItem;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.ltk.ui.refactoring.RefactoringWizardOpenOperation;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.IKeyBindingService;
 import org.eclipse.ui.IWorkbenchWindowPulldownDelegate;
-import org.eclipse.ui.internal.KeyBindingService;
-import org.spoofax.jsglr.client.KeywordRecognizer;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
-import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
-import org.eclipse.ltk.core.refactoring.Refactoring;
-import org.eclipse.ltk.ui.refactoring.RefactoringWizard;
-import org.eclipse.ltk.ui.refactoring.RefactoringWizardOpenOperation;
 
 public class RefactoringButtonDelegate extends ToolbarButtonDelegate implements IWorkbenchWindowPulldownDelegate {
 
@@ -49,44 +38,16 @@ public class RefactoringButtonDelegate extends ToolbarButtonDelegate implements 
 		refactoring.prepareExecute(editor);
 		StrategoRefactoringWizard wizard = new StrategoRefactoringWizard(
 			(StrategoRefactoring) refactoring, 
-			refactoring.getCaption(),
-			getIdPattern(editor),
-			getKeywordRecognizer(editor)
+			refactoring.getCaption()
 		);
 		RefactoringWizardOpenOperation operation= new RefactoringWizardOpenOperation(wizard);
 		Shell shell = editor.getEditor().getSite().getShell();
 		try {
 			operation.run(shell, refactoring.getCaption());
-		} catch (InterruptedException exception) {
-			// Do nothing
-		}
-	}
-	
-	private static Pattern getIdPattern(EditorState editor) {
-		Descriptor descriptor = editor.getDescriptor();
-		SyntaxProperties syntax = null;
-		if (descriptor != null) {
-			try {
-				syntax = (SyntaxProperties) descriptor.createService(ILanguageSyntaxProperties.class, null);
-			} catch (BadDescriptorException e) {
-				Environment.logException("Could not read syntax properties", e);
-				e.printStackTrace();
-			}
-		} 
-		return syntax != null ? syntax.getIdentifierLexical() : null;
-	}
-
-	private KeywordRecognizer getKeywordRecognizer(EditorState editor) {
-		try {
-			return editor.getParseController().getParser().getParseTable().getKeywordRecognizer();
-		}
-		catch (Exception e){
-			Environment.logException("Could not fetch keyword recognizer", e);
+		} catch (Exception e) {
 			e.printStackTrace();
-			return null;
 		}
 	}
-
 
 	@Override
 	protected void populateMenu(Menu menu) {

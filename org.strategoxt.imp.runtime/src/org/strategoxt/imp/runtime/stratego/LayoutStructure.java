@@ -10,7 +10,9 @@ import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.ITokenizer;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.jsglr.client.imploder.Token;
+import org.spoofax.terms.attachments.OriginAttachment;
 import org.strategoxt.imp.runtime.parser.ast.StrategoSubList;
+import org.strategoxt.stratego_lib.assert_1_0;
 
 /**
  * Provides access to the layout structure (text fragments and offsets) surrounding a node
@@ -35,12 +37,26 @@ public class LayoutStructure {
 	private int prefixSeparationStartIndex; //valid index (0 if node contains leftmost token)
 
 	public LayoutStructure(IStrategoTerm node) {
-		this.node = node;
-		tokens = getLeftToken(node).getTokenizer();
+		this.node = ImploderAttachment.getImploderOrigin(node);
 		listParent = getParentList(); //could be null
+		assertImploderInfo();
+		tokens = getLeftToken(node).getTokenizer();
 		analyzeSuffix();
 		analyzePrefix();
 		//logAnalysisResults();
+	}
+
+	private void assertImploderInfo() {
+		assert (node != null) : 
+			"Error: Layout analysis can only be applied to nodes with associated origin term";
+		if(listParent != null){
+			assert (ImploderAttachment.hasImploderOrigin(listParent)) :
+				"Unexpected Error: list-parent of imploder-origin must have imploder info";
+			for (int i = 0; i < listParent.getSubtermCount(); i++) {
+				assert (ImploderAttachment.hasImploderOrigin(listParent.getSubterm(i))) :
+					"Unexpected Error: subterms of origin-list must have imploder info";
+			}
+		}
 	}
 
 	/**

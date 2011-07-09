@@ -8,12 +8,14 @@ import static org.spoofax.terms.attachments.OriginAttachment.tryGetOrigin;
 import static org.spoofax.terms.attachments.ParentAttachment.getParent;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.terms.TermFactory;
 import org.spoofax.terms.TermVisitor;
 import org.spoofax.terms.attachments.ParentAttachment;
 import org.strategoxt.imp.generator.generator;
@@ -101,7 +103,15 @@ public class StrategoTermPath {
 			return null;
 		
 		if (isTermList(origin)) {
-			// Lists have no origin information; don't try to find the node.
+			// Lists have no origin information, try to find the node by its first child.
+			if (origin.getSubtermCount() > 0) {
+				IStrategoList subtermPath = getTermPathWithOrigin(context, ast, origin.getSubterm(0));
+				if (subtermPath != null){
+					IStrategoTerm[] originPath = Arrays.copyOf(subtermPath.getAllSubterms(), subtermPath.getSubtermCount()-1);
+					TermFactory factory = new TermFactory();
+					return factory.makeList(originPath);
+				}
+			}
 			return null;
 		}
 		

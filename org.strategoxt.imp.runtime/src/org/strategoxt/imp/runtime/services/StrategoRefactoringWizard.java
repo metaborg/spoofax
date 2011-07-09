@@ -1,19 +1,16 @@
 package org.strategoxt.imp.runtime.services;
 
-import java.util.regex.Pattern;
-
 import org.eclipse.ltk.ui.refactoring.RefactoringWizard;
-import org.spoofax.jsglr.client.KeywordRecognizer;
 
 
 public class StrategoRefactoringWizard extends RefactoringWizard {
 	
-	RefactoringPageTextField inputPage;
+	StrategoRefactoringPage inputPage;
 	
-	public StrategoRefactoringWizard(StrategoRefactoring refactoring, String pageTitle, Pattern idPattern, KeywordRecognizer keywordRecognizer) {
+	public StrategoRefactoringWizard(StrategoRefactoring refactoring, String pageTitle) {
 		super(refactoring, DIALOG_BASED_USER_INTERFACE | PREVIEW_EXPAND_FIRST_NODE);
 		setDefaultPageTitle(pageTitle);
-		inputPage = new RefactoringPageTextField(idPattern, keywordRecognizer);
+		inputPage = new StrategoRefactoringPage();
 	}
 
 	@Override

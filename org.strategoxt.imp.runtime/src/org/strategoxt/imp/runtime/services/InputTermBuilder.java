@@ -18,6 +18,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.imploder.IToken;
+import org.spoofax.terms.attachments.DesugaredOriginAttachment;
 import org.strategoxt.HybridInterpreter;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
@@ -78,8 +79,8 @@ public class InputTermBuilder {
 		IStrategoList termPath = StrategoTermPath.getTermPathWithOrigin(context, resultingAst, node);
 		IStrategoTerm targetTerm;
 		IStrategoTerm rootTerm;
-		
 		if (termPath != null) {
+			DesugaredOriginAttachment.setAllTermsAsDesugaredOrigins(resultingAst);
 			targetTerm = StrategoTermPath.getTermAtPath(context, resultingAst, termPath);
 			rootTerm = resultingAst;
 		} else {

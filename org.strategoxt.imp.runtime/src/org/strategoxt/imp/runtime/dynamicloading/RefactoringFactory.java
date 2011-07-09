@@ -5,9 +5,14 @@ import static org.spoofax.interpreter.core.Tools.termAt;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.collectTerms;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.cons;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.termContents;
+
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import java.util.regex.Pattern;
 
+import org.eclipse.imp.language.Language;
+import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.ltk.ui.refactoring.RefactoringWizardOpenOperation;
@@ -15,6 +20,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.jsglr.client.KeywordRecognizer;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
@@ -24,7 +30,9 @@ import org.strategoxt.imp.runtime.services.InputTermBuilder;
 import org.strategoxt.imp.runtime.services.RefactoringMap;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.services.StrategoRefactoring;
+import org.strategoxt.imp.runtime.services.StrategoRefactoringIdentifierInput;
 import org.strategoxt.imp.runtime.services.StrategoRefactoringWizard;
+import org.strategoxt.imp.runtime.services.SyntaxProperties;
 
 public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> {
 
@@ -54,7 +62,9 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 			IStrategoTerm[] semanticNodes = termAt(builder,0).getAllSubterms();
 			String caption = termContents(termAt(builder, 1));
 			String strategy = termContents(termAt(builder, 2));
-			IStrategoList options = termAt(builder, 3);			
+			ArrayList<StrategoRefactoringIdentifierInput> inputFields = 
+				getInputFields(builder, controller.getEditor());
+			IStrategoList options = termAt(builder, 3);
 			boolean cursor = false;
 			boolean source = false;
 			boolean meta = false;
@@ -87,11 +97,63 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 						source, 
 						ppTable,
 						ppStrategy,
-						semanticNodes
+						semanticNodes,
+						inputFields
 					)
 				);
 			}
 		}
 		return refactorings;
 	}
+	
+	private static ArrayList<StrategoRefactoringIdentifierInput> getInputFields(
+			IStrategoAppl builder, EditorState editor) {
+		ArrayList<StrategoRefactoringIdentifierInput> inputFields = new ArrayList<StrategoRefactoringIdentifierInput>();
+		//TODO: read them from builder
+		StrategoRefactoringIdentifierInput idInput1 = 
+			new StrategoRefactoringIdentifierInput(
+				"New name", 
+				"", 
+				getIdPattern(editor), 
+				getKeywordRecognizer(editor),
+				getLanguageName(editor)
+			);
+		inputFields.add(idInput1);
+		return inputFields;
+	}
+
+	private static String getLanguageName(EditorState editor) {
+		try {
+			return editor.getDescriptor().getLanguage().getName();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return "<MyLanguage>";
+		}
+	}
+
+	private static Pattern getIdPattern(EditorState editor) {
+		Descriptor descriptor = editor.getDescriptor();
+		SyntaxProperties syntax = null;
+		if (descriptor != null) {
+			try {
+				syntax = (SyntaxProperties) descriptor.createService(ILanguageSyntaxProperties.class, null);
+			} catch (BadDescriptorException e) {
+				Environment.logException("Could not read syntax properties", e);
+				e.printStackTrace();
+			}
+		} 
+		return syntax != null ? syntax.getIdentifierLexical() : null;
+	}
+
+	private static KeywordRecognizer getKeywordRecognizer(EditorState editor) {
+		try {
+			return editor.getParseController().getParser().getParseTable().getKeywordRecognizer();
+		}
+		catch (Exception e){
+			Environment.logException("Could not fetch keyword recognizer", e);
+			e.printStackTrace();
+			return null;
+		}
+	}
+
 }
