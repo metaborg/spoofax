@@ -72,25 +72,42 @@ public class InputTermBuilder {
 	 * Create an input term for a control rule.
 	 */
 	public IStrategoTuple makeInputTerm(IStrategoTerm node, boolean includeSubNode, boolean useSourceAst) {
-		Context context = runtime.getCompiledContext();
-		IResource resource = SourceAttachment.getResource(node);
-		IStrategoTerm resultingAst = useSourceAst ? null : resultingAsts.get(resource);
-		if (!useSourceAst && this.resultingAst != null) resultingAst = this.resultingAst;
-		IStrategoList termPath = StrategoTermPath.getTermPathWithOrigin(context, resultingAst, node);
-		IStrategoTerm targetTerm;
-		IStrategoTerm rootTerm;
-		if (termPath != null) {
-			DesugaredOriginAttachment.setAllTermsAsDesugaredOrigins(resultingAst);
-			targetTerm = StrategoTermPath.getTermAtPath(context, resultingAst, termPath);
-			rootTerm = resultingAst;
-		} else {
-			targetTerm = node;
-			termPath = StrategoTermPath.createPath(node);
-			rootTerm = getRoot(node);
+		if(useSourceAst)
+			return makeInputTermSourceAst(node, includeSubNode);
+		return makeInputTermResultingAst(node, includeSubNode);
+	}
+
+	public IStrategoTuple makeInputTermResultingAst(IStrategoTerm node, boolean includeSubNode) {
+		IStrategoTerm resultingAst; 
+		if (this.resultingAst != null) 
+			resultingAst = this.resultingAst;
+		else {
+			IResource resource = SourceAttachment.getResource(node);
+			resultingAst = resultingAsts.get(resource);
 		}
-		
+		Context context = runtime.getCompiledContext();
+		IStrategoList termPath = StrategoTermPath.getTermPathWithOrigin(context, resultingAst, node);
+		if (termPath == null)
+			return makeInputTermSourceAst(node, includeSubNode);
+		DesugaredOriginAttachment.setAllTermsAsDesugaredOrigins(resultingAst);
+		IStrategoTerm targetTerm = StrategoTermPath.getTermAtPath(context, resultingAst, termPath);
+		IStrategoTerm rootTerm = resultingAst;		
+		return makeInputTerm(node, includeSubNode, termPath, targetTerm, rootTerm);
+	}
+
+	public IStrategoTuple makeInputTermSourceAst(IStrategoTerm node, boolean includeSubNode) {
+		IStrategoTerm targetTerm = node;
+		IStrategoList termPath = StrategoTermPath.createPath(node);
+		IStrategoTerm rootTerm = getRoot(node);
+		return makeInputTerm(node, includeSubNode, termPath, targetTerm, rootTerm);
+	}
+
+	private IStrategoTuple makeInputTerm(IStrategoTerm node, boolean includeSubNode,
+			IStrategoList termPath, IStrategoTerm targetTerm,
+			IStrategoTerm rootTerm) {
 		ITermFactory factory = Environment.getTermFactory();
 		assert factory.getDefaultStorageType() == IStrategoTerm.MUTABLE;
+		IResource resource = SourceAttachment.getResource(node);
 		String path = resource == null ? "input" : resource.getProjectRelativePath().toPortableString();
 		String absolutePath = resource == null ? "." : tryGetProjectPath(resource);
 		
