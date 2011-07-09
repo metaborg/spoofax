@@ -26,7 +26,7 @@ construct-textual-change(pp):
 		<is-tuple> t;
 		<has-origin-term> oldnode		
 	with
-		reconstructed-text := <construct-text-from-old(pp)> (oldnode, newnode); 
+		reconstructed-text := <topdown(try(strip-annos)); construct-text-from-old(pp)> (oldnode, newnode); 
 		(start-offset, end-offset, newText) := <ast-change-to-text-change(pp)> REPLACEMENT(oldnode, reconstructed-text)
 
 construct-textual-change(pp):
@@ -56,8 +56,11 @@ construct-text(pp) =
 	construct-text-by-pp(pp) <+
 	pp
 
-construct-text-from-origin-desugared(pp) = 
-	fail //TODO: (<origin term; desugar>, <id>) resugar?
+construct-text-from-origin-desugared(pp):
+	node -> <construct-text-from-origin(pp)> (origin-desugared-node, node)
+	where 
+		origin-desugared-node := <origin-term-desugared; topdown(try(strip-annos))> node 
+	//TODO: apply-resugaring here?
 
 construct-text-from-origin(pp):
 	node -> <construct-text-from-origin(pp)> (origin-node, node)
