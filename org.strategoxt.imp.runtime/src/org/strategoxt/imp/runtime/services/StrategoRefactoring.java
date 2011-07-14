@@ -3,12 +3,11 @@ package org.strategoxt.imp.runtime.services;
 import static org.spoofax.interpreter.core.Tools.isTermList;
 import static org.spoofax.interpreter.core.Tools.isTermTuple;
 import static org.spoofax.interpreter.core.Tools.termAt;
-import static org.spoofax.jsglr.client.imploder.ImploderAttachment.hasImploderOrigin;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.hasImploderOrigin;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 
 import org.eclipse.core.resources.IFile;
@@ -28,12 +27,10 @@ import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.core.UndefinedStrategyException;
-import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.TermFactory;
-import org.spoofax.terms.attachments.DesugaredOriginAttachment;
 import org.spoofax.terms.attachments.OriginAttachment;
 import org.strategoxt.imp.generator.construct_textual_change_1_1;
 import org.strategoxt.imp.runtime.EditorState;
@@ -44,9 +41,7 @@ import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
 public class StrategoRefactoring extends Refactoring implements IRefactoring {
-	
-	private final String ppTable;
-	
+		
 	private final String ppStrategy;
 	
 	private final StrategoObserver observer;
@@ -92,11 +87,10 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 	}
 
 	public StrategoRefactoring(StrategoObserver observer, String caption, String builderRule,
-			boolean cursor, boolean source, String ppTable, String ppStrategy,
+			boolean cursor, boolean source, String ppStrategy,
 			IStrategoTerm[] semanticNodes, ArrayList<StrategoRefactoringIdentifierInput> inputFields) {
 		this.cursor=cursor;
 		this.source=source;
-		this.ppTable=ppTable;
 		this.ppStrategy=ppStrategy;
 		this.observer = observer;
 		this.caption = caption;
@@ -233,7 +227,7 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 		IStrategoTerm userInputTerm = mkInputTerm();
 		IStrategoTerm inputTerm = observer.getInputBuilder().makeInputTermRefactoring(userInputTerm, node, true, source);
 		
-		DesugaredOriginAttachment.setAllTermsAsDesugaredOrigins(inputTerm.getSubterm(3));
+		//DesugaredOriginAttachment.setAllTermsAsDesugaredOrigins(inputTerm.getSubterm(3));
 		
 		IStrategoTerm result = null;
 		try {
@@ -318,12 +312,6 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 	}
 	
 	private IStrategoTerm getTextReplacement(IStrategoTerm resultTuple) {
-		IStrategoTerm ppTableTerm;
-		if (ppTable == null)
-			ppTableTerm=observer.getRuntime().getCompiledContext().getFactory().makeString("");
-		else {
-			ppTableTerm = observer.invokeSilent(ppTable, null, getResource());
-		}
 		IStrategoTerm textreplace=construct_textual_change_1_1.instance.invoke(
 				observer.getRuntime().getCompiledContext(), 
 				resultTuple, 
@@ -334,8 +322,7 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 							return observer.invokeSilent(ppStrategy, current, getResource());
 						return null;
 					}
-				},
-				ppTableTerm
+				}
 			);
 		return textreplace;
 	}

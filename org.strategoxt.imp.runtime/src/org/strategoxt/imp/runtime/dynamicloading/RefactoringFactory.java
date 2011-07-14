@@ -11,12 +11,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import org.eclipse.imp.language.Language;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
-import org.eclipse.jface.action.Action;
-import org.eclipse.jface.action.IAction;
-import org.eclipse.ltk.ui.refactoring.RefactoringWizardOpenOperation;
-import org.eclipse.swt.widgets.Shell;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -26,12 +21,10 @@ import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.services.IRefactoring;
 import org.strategoxt.imp.runtime.services.IRefactoringMap;
-import org.strategoxt.imp.runtime.services.InputTermBuilder;
 import org.strategoxt.imp.runtime.services.RefactoringMap;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.services.StrategoRefactoring;
 import org.strategoxt.imp.runtime.services.StrategoRefactoringIdentifierInput;
-import org.strategoxt.imp.runtime.services.StrategoRefactoringWizard;
 import org.strategoxt.imp.runtime.services.SyntaxProperties;
 
 public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> {
@@ -50,14 +43,12 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 	private static Set<IRefactoring> collectRefactorings(Descriptor d, SGLRParseController controller) throws BadDescriptorException {
 		Set<IRefactoring> refactorings = new LinkedHashSet<IRefactoring>();
 		StrategoObserver feedback = d.createService(StrategoObserver.class, controller);
-		IStrategoAppl ppTableTerm = TermReader.findTerm(d.getDocument(), "PPTable");
-		String ppTable=null;
-		if (ppTableTerm !=null)
-			ppTable=termContents(termAt(ppTableTerm, 0));
 		IStrategoAppl ppStrategyTerm = TermReader.findTerm(d.getDocument(), "PrettyPrint");
-		String ppStrategy=null;
-		if(ppStrategyTerm!=null)
-			ppStrategy=termContents(termAt(ppStrategyTerm, 0));		
+		String ppStrategy = null;
+		if(ppStrategyTerm != null)
+			ppStrategy=termContents(termAt(ppStrategyTerm, 0));
+		else
+			ppStrategy = ("pp-" + d.getLanguage().getName() + "-string").toLowerCase();
 		for (IStrategoAppl builder : collectTerms(d.getDocument(), "Refactoring")) {
 			IStrategoTerm[] semanticNodes = termAt(builder,0).getAllSubterms();
 			String caption = termContents(termAt(builder, 1));
@@ -95,7 +86,6 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 						strategy,
 						cursor, 
 						source, 
-						ppTable,
 						ppStrategy,
 						semanticNodes,
 						inputFields

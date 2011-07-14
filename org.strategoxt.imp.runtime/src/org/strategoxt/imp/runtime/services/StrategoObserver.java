@@ -51,6 +51,7 @@ import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.terms.attachments.OriginTermFactory;
 import org.strategoxt.HybridInterpreter;
 import org.strategoxt.IncompatibleJarException;
 import org.strategoxt.imp.debug.core.str.launching.DebuggableHybridInterpreter;
@@ -118,7 +119,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	private UpdateJob updateJob;
 	
 	private boolean wasExceptionLogged;
-	
+		
 	/**
 	 * Value is true when the user enabled debugging for this language.
 	 * 
@@ -483,9 +484,12 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			getLock().lock();
 			try {
 				resultingAsts.remove(SourceAttachment.getResource(ast));
-				feedback = invokeSilent(feedbackFunction,
-						getInputBuilder().makeInputTerm(ast, false), SourceAttachment.getResource(ast));
-	
+				feedback = invokeSilent(
+					feedbackFunction,
+					getInputBuilder().makeInputTerm(ast, false), 
+					SourceAttachment.getResource(ast),
+					true
+				);	
 				if (feedback == null) {
 					reportRewritingFailed();
 					String log = getLog();
@@ -500,6 +504,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			}
 		 	if (feedback != null && !monitor.isCanceled()) {
 				// TODO: figure out how this was supposed to be synchronized??
+				//DesugaredOriginAttachment.setAllTermsAsDesugaredOrigins(feedback.getSubterm(0));
 				presentToUser(SourceAttachment.getResource(ast), feedback);
 		 	}
 		} finally {
@@ -651,7 +656,12 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	 */
 	public IStrategoTerm invoke(String function, IStrategoTerm term, IResource resource)
 			throws UndefinedStrategyException, InterpreterErrorExit, InterpreterExit, InterpreterException {
-		
+		return invoke(function, term, resource, false);
+	}
+
+	private IStrategoTerm invoke(String function, IStrategoTerm term, IResource resource,
+			boolean assignDesugaredOrigins) throws InterpreterErrorExit, InterpreterExit,
+			UndefinedStrategyException, InterpreterException {
 		getLock().lock();
 		try {
 			if (runtime == null) initialize(new NullProgressMonitor());
@@ -675,7 +685,14 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 				// to prevent exessive use of cpu and memory (each invoke will start a new VM!)
 				((DebuggableHybridInterpreter) runtime).setDebugLaunchEnabled(this.isDebuggerEnabled());
 			}
-			boolean success = runtime.invoke(function);
+			boolean success = false;
+	    	if (runtime.getFactory() instanceof OriginTermFactory){
+	    		((OriginTermFactory)runtime.getFactory()).setAssignDesugaredOrigins(assignDesugaredOrigins);
+	    		success = runtime.invoke(function);
+	    		((OriginTermFactory)runtime.getFactory()).setAssignDesugaredOrigins(false);
+	    	}
+	    	else
+	    		success = runtime.invoke(function);
 			
 			// Cleanup input term.
 			IStrategoTerm result = runtime.current();
@@ -711,12 +728,16 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	 * Logs and swallows all exceptions.
 	 */
 	public IStrategoTerm invokeSilent(String function, IStrategoTerm input, IResource resource) {
+		return invokeSilent(function, input, resource, false);
+	}
+
+	private IStrategoTerm invokeSilent(String function, IStrategoTerm input, IResource resource,
+			boolean assignDesugaredOrigins) {
 		assert getLock().isHeldByCurrentThread();
 		IStrategoTerm result = null;
-		
 		try {
 			wasExceptionLogged = true;
-			result = invoke(function, input, resource);
+			result = invoke(function, input, resource, assignDesugaredOrigins);
 			wasExceptionLogged = false;
 		} catch (InterpreterExit e) {
 			if (descriptor.isDynamicallyLoaded()) StrategoConsole.activateConsole();
