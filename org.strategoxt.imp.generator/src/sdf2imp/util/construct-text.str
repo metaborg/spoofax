@@ -6,6 +6,30 @@ imports
 	sdf2imp/util/layout-adaption
 	sdf2imp/util/origin-tracking
 
+signature constructors
+  Parenthetical : Unknown -> Unknown
+
+rules //Parenthetical
+
+  origin-indent = ?Parenthetical(<origin-indent>)
+
+rules //pp rules for default nodes 
+	  
+  pp-default(pp):
+  	Parenthetical(node) -> <concat-strings> ["(", <pp> node, ")"]
+  
+  pp-default(pp):
+  	None() -> ""
+
+  pp-default(pp):
+  	Some(x) -> <pp> x
+
+  //pp-default(pp): amb([h|tail])
+
+  pp-default(pp) = is-string
+
+  pp-default(pp) = int-to-string
+  
 rules //interface
 
 // backwards compatibility
@@ -49,8 +73,7 @@ construct-text-from-old(pp):
 rules //text-reconstruction
 
 construct-text(pp) = 
-	is-string <+
-	int-to-string <+
+	pp-default(construct-text(pp)) <+ //Parenthesis, None, ...
 	construct-text-from-origin-desugared(pp) <+
 	construct-text-from-origin(pp) <+
 	construct-text-by-pp(pp) <+
@@ -59,14 +82,16 @@ construct-text(pp) =
 construct-text-from-origin-desugared(pp):
 	node -> <construct-text-from-origin(pp)> (origin-desugared-node, node)
 	where 
-		origin-desugared-node := <origin-term-desugared; topdown(try(strip-annos))> node 
+		origin-desugared-node := <origin-term-desugared; topdown(try(strip-annos))> node
 	//TODO: apply-resugaring here?
+		//; <debug(!"          desugared: ")> origin-desugared-node
+		//; <origin-term; debug(!"origin of desugared: ")> origin-desugared-node
 
 construct-text-from-origin(pp):
 	node -> <construct-text-from-origin(pp)> (origin-node, node)
 	where
 		origin-node := <origin-term> node
-
+ 
 //list must be constructed with comments that preceed the first element or succeed the last element
 //(otherwise insert-at-end gives problems)
 construct-text-from-origin(pp):
@@ -77,27 +102,42 @@ construct-text-from-origin(pp):
 construct-text-from-origin(pp):
 	t@(origin-node, node) -> text
 	where //guarantees that node can be formatted from the origin node, preventing non-termination
-		<is-tuple> t; 
+		<is-tuple> t; debug(!"ast-changes?: ");
 		<has-origin-term> origin-node;
-		ast-changes := <collect-ast-changes(in-parent-context(|origin-node))> (origin-node, node); //debug(!"ast-changes: ");
+		ast-changes := <collect-ast-changes(in-parent-context(|origin-node))> (origin-node, node); 
 		<is-terminating-diff(|node)> ast-changes //prevent non termination
+		; debug(!"ast-changes!: ")
 	with
-		text-changes := <map(ast-change-to-text-change(pp))> ast-changes; //debug(!"txt-changes: ");
+		text-changes := <map(ast-change-to-text-change(pp))> ast-changes; debug(!"txt-changes: ");
 		text := <apply-text-changes>(text-changes, <origin-text> origin-node, <origin-start-offset> origin-node)		
 
 construct-text-by-pp(pp):
 	node -> text
 	where
-		text := <all(alltd(construct-text-with-comments(pp|<DEFAULT-INDENT>))); pp> node
-		//text := <alltd(construct-text-with-comments(pp|<DEFAULT-INDENT>)); pp> node
+		text := <
+			all(alltd(construct-text-with-comments(pp|<DEFAULT-INDENT>))); 
+			topdown(try(pp-default(pp))); //handle brackets
+			pp
+		> node
 
-construct-text-with-comments-desugared = 
-	fail //TODO: first try text reconstruction on desugared, then try on origin (list)
+construct-text-with-comments(pp|default-indent) = 
+	construct-text-with-comments-desugared(pp|default-indent) <+
+	construct-text-with-comments-origin(pp|default-indent)
 
-construct-text-with-comments(pp|default-indent):
+construct-text-with-comments-desugared(pp|default-indent):
+	node -> <construct-text-with-comments(pp|default-indent)> (origin-desugared-node, node)
+	where 
+		origin-desugared-node := <origin-term-desugared; topdown(try(strip-annos))> node;
+		<same-signature> (origin-desugared-node, node)
+
+construct-text-with-comments-origin(pp|default-indent):
 	node -> <construct-text-with-comments(pp|default-indent)> (origin-node, node)
 	where
 		origin-node := <origin-term <+ find-origin-sublist> node
+
+//construct-text-with-comments(pp|default-indent): Parentetical(node) -> ...
+// on this moment the parenthesis will be placed on the layouted text, 
+// which is awful. It should be: {indent + comments before}{(}{node-text}{)}{comments after} 
 
 construct-text-with-comments(pp|default-indent):
 	t@(origin-node, node) -> node-text
@@ -105,8 +145,8 @@ construct-text-with-comments(pp|default-indent):
 		<is-tuple> t;
 		<has-origin-term> origin-node
 	with //termination check is not needed (we need to Replace to keep comments), since it is called on a subterm in construct-text-by-pp
-		ast-changes := <collect-ast-changes(in-parent-context(|origin-node))> (origin-node, node); //debug(!"--ast-changes: ");
-		text-changes := <map(ast-change-to-text-change(pp))> ast-changes; //debug(!"--txt-changes: ");
+		ast-changes := <collect-ast-changes(in-parent-context(|origin-node))> (origin-node, node); debug(!"--ast-changes: ");
+		text-changes := <map(ast-change-to-text-change(pp))> ast-changes; debug(!"--txt-changes: ");
 		full-text := <origin-text-with-layout> origin-node; 
 		full-text-start-offset := <origin-layout-prefix-start-offset> origin-node; 
 		modified-full-text := <apply-text-changes>(text-changes, full-text, full-text-start-offset);
@@ -122,11 +162,17 @@ rules //ast-diff
 
 collect-ast-changes(in-local-context) = 
 	where(is-tuple); 
+	try(remove-superfluous-parentethical);
 	(collect-ast-changes-eq <+
 	collect-ast-changes-rec-node(in-local-context) <+
 	collect-ast-changes-rec-list(in-local-context) <+
 	collect-ast-changes-replace(in-local-context))
-	
+
+remove-superfluous-parentethical:
+	(origin-node, Parenthetical(node)) -> (origin-node, node)
+	where //apparently, parenthesis already in source
+		<same-signature> (origin-node, node)
+
 collect-ast-changes-eq:
 	(origin-node, node) -> []
 	where
@@ -180,9 +226,9 @@ in-parent-context(|origin-parent):
 	
 rules //list diff
 
-list-diff(in-local-context|origin-lst) =
-	list-diff-fuzzy(in-local-context|origin-lst) <+
-	list-diff-origin-related(in-local-context|origin-lst) 
+list-diff(in-local-context|origin-lst) = 
+	(list-diff-fuzzy(in-local-context|origin-lst) <+
+	list-diff-origin-related(in-local-context|origin-lst)) 
 	
 list-diff-fuzzy(in-local-context|origin-lst):
 	([origin-elem|origin-rest], [new-elem|new-rest]) -> ast-changes
@@ -198,13 +244,12 @@ list-diff-fuzzy(in-local-context|origin-lst):
 
 list-diff-origin-related(in-local-context|origin-lst): 
 	(origin-elems, new-elems) -> ast-changes
-	where
-		deleted-elems := <take-while(is-deletion(|new-elems))> origin-elems; 
-		origin-rest := <drop-while(is-deletion(|new-elems))>;
+	where 
+		deleted-elems := <take-while(is-deletion(|new-elems))> origin-elems;  
+		origin-rest := <drop-while(is-deletion(|new-elems))> origin-elems;
 		<not(?[])> deleted-elems 
 	with
 		ast-changes := <flatten-list>[DELETION(deleted-elems)|<list-diff(in-local-context|origin-lst)> (origin-rest, new-elems)]
-
 
 list-diff-origin-related(in-local-context|origin-lst):
 	([origin-elem|origin-rest], new-elems) -> ast-changes
@@ -245,6 +290,11 @@ same-signature:
 		<eq>(<get-arguments; length> trm1, <get-arguments; length> trm2);
 		<not(is-list)> trm1
 	)
+
+same-signature(|t1):
+	t -> t
+	where
+		<same-signature> (t1,t)
 
 violates-homomorphism-list =
 	?([],[_,_|_]) <+ 
