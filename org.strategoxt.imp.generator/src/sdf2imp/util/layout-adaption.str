@@ -66,9 +66,9 @@ construct-text-list-element(pp|origin-node):
 		layout-before := <layout-prefix> elem; 
 		indented-prefix-text := <conc-strings; adapt-indentation(|origin-node, elem)> (layout-before, text); 
 		comments-after := <comments-after; adapt-indentation(|origin-node, elem)> elem; 
-		separation := <origin-separation> origin-node; debug(!"1|");
-		layout-after := <create-separation-after> (separation, comments-after); debug(!"2|");
-		elem-text := <conc-strings> (indented-prefix-text, layout-after) ;debug(!"3|")
+		separation := <origin-separation> origin-node;
+		layout-after := <create-separation-after> (separation, comments-after);
+		elem-text := <conc-strings> (indented-prefix-text, layout-after)
 
 construct-text-list-element-last(pp|origin-node):
 	elem -> elem-text
