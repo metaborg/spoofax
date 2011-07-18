@@ -13,6 +13,7 @@ import java.util.HashSet;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.ltk.core.refactoring.Change;
@@ -27,12 +28,13 @@ import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.core.UndefinedStrategyException;
+import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.TermFactory;
 import org.spoofax.terms.attachments.OriginAttachment;
-import org.strategoxt.imp.generator.construct_textual_change_1_1;
+import org.strategoxt.imp.generator.construct_textual_change_1_0;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
@@ -61,6 +63,8 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 	public ArrayList<StrategoRefactoringIdentifierInput> getInputFields() {
 		return inputFields;
 	}
+	
+	private ArrayList<IPath> affectedFilePaths;
 
 	private IStrategoTerm node;
 	
@@ -82,7 +86,8 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 	
 	public void prepareExecute(EditorState editor) {
 		this.node = getSelectionNode(editor);
-		fileChanges.clear();
+		this.fileChanges.clear();
+		this.affectedFilePaths.clear();
 		//inputFields.clear(); set default values?
 	}
 
@@ -96,8 +101,9 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 		this.caption = caption;
 		this.builderRule = builderRule;
 		this.semanticNodes = semanticNodes;
-		fileChanges = new HashSet<TextFileChange>();
+		this.fileChanges = new HashSet<TextFileChange>();
 		this.inputFields = inputFields;
+		this.affectedFilePaths = new ArrayList<IPath>();
 	}
 	
 	@Override
@@ -139,6 +145,8 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 				return RefactoringStatus.createFatalErrorStatus(errorMessage);
 			}
 			astChanges = builderResult.getSubterm(0);
+			fillAffectedFilePaths(astChanges);
+			//if(1<2) return RefactoringStatus.createFatalErrorStatus("TEST");
 			fatalErrors = builderResult.getSubterm(1);
 			errors = builderResult.getSubterm(2);
 			warnings = builderResult.getSubterm(3);
@@ -254,18 +262,14 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 			inputTerms[i] = inputFields.get(i).getInputValue();
 		}
 		ITermFactory factory = Environment.getTermFactory();
-		try {
-			IStrategoTuple inputTuple = factory.makeTuple(inputTerms, TermFactory.EMPTY_LIST);
-			return inputTuple;
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			return null;
+		if(inputTerms.length == 0) {
+			IStrategoConstructor noneCons = factory.makeConstructor("None", 0);
+			return factory.makeAppl(noneCons);
 		}
-		catch (AssertionError err) {
-			err.printStackTrace();
-			return null;
-		}
+		if(inputTerms.length == 1)
+			return inputTerms[0];
+		IStrategoTuple inputTuple = factory.makeTuple(inputTerms, TermFactory.EMPTY_LIST);
+		return inputTuple;
 	}
 
 	private IResource getResource() {
@@ -312,7 +316,7 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 	}
 	
 	private IStrategoTerm getTextReplacement(IStrategoTerm resultTuple) {
-		IStrategoTerm textreplace=construct_textual_change_1_1.instance.invoke(
+		IStrategoTerm textreplace=construct_textual_change_1_0.instance.invoke(
 				observer.getRuntime().getCompiledContext(), 
 				resultTuple, 
 				new Strategy() {
@@ -341,4 +345,21 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 		textChange.setEdit(edit);
 		return textChange;
 	}
+
+	private void fillAffectedFilePaths(IStrategoTerm astChanges) {
+		affectedFilePaths.clear();
+		for (int i = 0; i < astChanges.getSubtermCount(); i++) {
+			IStrategoTerm affectedTerm = termAt(astChanges.getSubterm(i),0);
+			IStrategoTerm affectedOrigin = OriginAttachment.tryGetOrigin(affectedTerm);
+			IResource file = SourceAttachment.getResource(affectedOrigin);
+			assert(file != null) : "File of affected term is unknown";
+			IPath path = file.getProjectRelativePath();
+			affectedFilePaths.add(path);
+		}
+	}
+
+	public ArrayList<IPath> getRelativePathsOfAffectedFiles() {
+		return affectedFilePaths;
+	}
+	
 }

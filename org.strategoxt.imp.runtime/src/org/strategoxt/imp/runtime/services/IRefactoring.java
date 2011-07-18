@@ -1,5 +1,8 @@
 package org.strategoxt.imp.runtime.services;
 
+import java.util.ArrayList;
+
+import org.eclipse.core.runtime.IPath;
 import org.strategoxt.imp.runtime.EditorState;
 
 /**
@@ -17,4 +20,5 @@ public interface IRefactoring {
 	
 	boolean isDefinedOnSelection(EditorState editor);
 
+	ArrayList<IPath> getRelativePathsOfAffectedFiles();
 }
