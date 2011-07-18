@@ -38,7 +38,7 @@ STRCFLAGS = \
     -I ${SDF}/share/pgen \
     `pkg-config --variable=strcxtcflags strategoxt`
 
-JAVACFLAGS=-J-Xmx256m -J-Xms100m -J-server -J-XX:+UseParallelGC -cp strategoxt.jar -source 5 -nowarn
+export JAVACFLAGS=-J-Xmx1024m -J-Xms100m -J-server -J-XX:+UseParallelGC -cp strategoxt.jar -source 5 -nowarn
 JAVAC=`if which ecj >/dev/null; then echo ecj; else echo javac; fi`
 STRJ=`if which strj >/dev/null; then echo strj; elif [ -e strategoxt.jar ]; then echo java -server -Xss4m -jar strategoxt.jar; else echo Please install strj or put strategoxt.jar into the current directory. >&2; exit 1; fi`
 
@@ -79,7 +79,7 @@ src-gen/org/strategoxt/imp/generator/sdf2imp.java : $(RTREES) $(SYNTAX) Makefile
 	$(STRJ) -clean -O 3 -i src/sdf2imp.str -o $@ $(STRINCLUDES) $(STRCFLAGS) -m main-sdf2imp \
 	        -la java-front --library -p org.strategoxt.imp.generator
 
-lib/sdf2imp.jar : src-gen/org/strategoxt/imp/generator/sdf2imp.java
+lib/sdf2imp.jar : src-gen/org/strategoxt/imp/generator/sdf2imp.java 
 	strj-jar -i $< -o $@ -cp src-gen
 
 syntax : $(SYNTAX)
