@@ -38,7 +38,7 @@ STRCFLAGS = \
     -I ${SDF}/share/pgen \
     `pkg-config --variable=strcxtcflags strategoxt`
 
-export JAVACFLAGS=-J-Xmx1024m -J-Xms100m -J-server -J-XX:+UseParallelGC -cp strategoxt.jar -source 5 -nowarn
+export JAVACFLAGS=-J-Xmx1024m -J-Xms100m -J-server -J-XX:+UseParallelGC -cp strategoxt.jar
 JAVAC=`if which ecj >/dev/null; then echo ecj; else echo javac; fi`
 STRJ=`if which strj >/dev/null; then echo strj; elif [ -e strategoxt.jar ]; then echo java -server -Xss4m -jar strategoxt.jar; else echo Please install strj or put strategoxt.jar into the current directory. >&2; exit 1; fi`
 
