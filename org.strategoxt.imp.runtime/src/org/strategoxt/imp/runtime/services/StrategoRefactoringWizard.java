@@ -15,6 +15,11 @@ public class StrategoRefactoringWizard extends RefactoringWizard {
 
 	@Override
 	protected void addUserInputPages() {
-		addPage(inputPage);
+		if(hasUserInputValues())
+			addPage(inputPage);
+	}
+
+	private boolean hasUserInputValues() {
+		return ((StrategoRefactoring)getRefactoring()).getInputFields().size() > 0;
 	}
 }

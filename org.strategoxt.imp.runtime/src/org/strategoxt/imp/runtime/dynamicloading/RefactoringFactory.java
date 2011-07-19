@@ -49,13 +49,13 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 			ppStrategy=termContents(termAt(ppStrategyTerm, 0));
 		else
 			ppStrategy = ("pp-" + d.getLanguage().getName() + "-string").toLowerCase();
-		for (IStrategoAppl builder : collectTerms(d.getDocument(), "Refactoring")) {
-			IStrategoTerm[] semanticNodes = termAt(builder,0).getAllSubterms();
-			String caption = termContents(termAt(builder, 1));
-			String strategy = termContents(termAt(builder, 2));
+		for (IStrategoAppl aRefactoring : collectTerms(d.getDocument(), "Refactoring")) {
+			IStrategoTerm[] semanticNodes = termAt(aRefactoring,0).getAllSubterms();
+			String caption = termContents(termAt(aRefactoring, 1));
+			String strategy = termContents(termAt(aRefactoring, 2));
+			IStrategoList options = termAt(aRefactoring, 3);
 			ArrayList<StrategoRefactoringIdentifierInput> inputFields = 
-				getInputFields(builder, controller.getEditor());
-			IStrategoList options = termAt(builder, 3);
+				getInputFields(aRefactoring, controller.getEditor());
 			boolean cursor = false;
 			boolean source = false;
 			boolean meta = false;
@@ -97,7 +97,37 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 	}
 	
 	private static ArrayList<StrategoRefactoringIdentifierInput> getInputFields(
-			IStrategoAppl builder, EditorState editor) {
+			IStrategoAppl aRefactoring, EditorState editor) {
+		ArrayList<StrategoRefactoringIdentifierInput> inputFields = new ArrayList<StrategoRefactoringIdentifierInput>();
+		if(aRefactoring.getSubtermCount() < 5)
+			return inputFields;
+		IStrategoTerm lstInputFields = termAt(aRefactoring, 4);
+		for (int i = 0; i < lstInputFields.getSubtermCount(); i++) {
+			IStrategoAppl input = TermReader.applAt(lstInputFields, i);
+			if(TermReader.hasConstructor(input, "IdInputField")){
+				String label = termContents(termAt(input,0));
+				String defaultValue = "";
+				if(input.getSubtermCount() > 1)
+					defaultValue = termContents(termAt(input,1)); //TODO: Strategy OR String
+				StrategoRefactoringIdentifierInput idInput = 
+					new StrategoRefactoringIdentifierInput(
+						label, 
+						defaultValue, 
+						getIdPattern(editor), 
+						getKeywordRecognizer(editor),
+						getLanguageName(editor)
+					);
+				inputFields.add(idInput);
+			}
+			//TODO other input types
+			//TODO pattern
+		}
+		return inputFields;
+	}
+
+	/*
+	private static ArrayList<StrategoRefactoringIdentifierInput> getInputFields(
+			IStrategoAppl aRefactoring, EditorState editor) {
 		ArrayList<StrategoRefactoringIdentifierInput> inputFields = new ArrayList<StrategoRefactoringIdentifierInput>();
 		//TODO: read them from builder
 		StrategoRefactoringIdentifierInput idInput1 = 
@@ -110,7 +140,7 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 			);
 		inputFields.add(idInput1);
 		return inputFields;
-	}
+	}*/
 
 	private static String getLanguageName(EditorState editor) {
 		try {
