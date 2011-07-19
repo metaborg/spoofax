@@ -14,9 +14,27 @@ exports
   
   context-free syntax
   	
-  	"pp-table" ":" StrategoCall -> SemanticRule {cons("PPTable")}
+  	"pp-table" ":" StrategoCall     -> SemanticRule {cons("PPTable"), deprecated("use 'pretty-print' instead")}
   	"pretty-print" ":" StrategoCall -> SemanticRule {cons("PrettyPrint")}
-    "refactoring"  SemanticNode* ":" String "="   StrategoCall BuilderOption* -> SemanticRule {cons("Refactoring")}
+    "refactoring" SemanticNode* ":" String "=" StrategoCall BuilderOption* "input" InputField+ 
+    								-> SemanticRule {cons("Refactoring")}
+    "refactoring" SemanticNode* ":" String "=" StrategoCall BuilderOption*  
+    								-> SemanticRule {cons("Refactoring")} 
+    								%% TODO: None should be []
+    
+    %% identifier input field, text input field + validation of idpattern, keywords 
+    "identifier" ":" String                  -> InputField {cons("IdInputField")}
+    "identifier" ":" String "=" String       -> InputField {cons("IdInputField")}
+    "identifier" ":" String "=" StrategoCall -> InputField {cons("IdInputField")}
+    
+    %% text input field 
+    "text" ":" String                  -> InputField {ast("TextInputField(<1>, \"\")")}
+    "text" ":" String "=" String       -> InputField {cons("TextInputField")}
+    "text" ":" String "=" StrategoCall -> InputField {cons("TextInputField")}
+
+    %% boolean input field 
+    %% boolean choice input field 
+    %% ...
   
      %% Avoid ambiguities with semantic nodes
      "pp-table"  -> SemanticNode {reject}
