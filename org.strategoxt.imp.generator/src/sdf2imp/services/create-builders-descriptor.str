@@ -14,6 +14,7 @@ strategies
       <descriptor-name> "-Builders"
     , provider1 := <conc-strings> ("include/", <trans-module-name>, ".ctree");
       provider2 := <conc-strings> ("include/", <trans-module-name>, "-java.jar");
+      pp-strategy := $[pp-[<trans-module-name>]-string];
       !|[
         module <descriptor-name> "-Builders"
         
@@ -21,7 +22,7 @@ strategies
         
         builders
           ~~
-          ~~// This file can be used for custom analysis and builder rules.
+          ~~// This file can be used for custom analysis, builder and refactoring rules.
           ~~//
           ~~// See the imported file for a brief introduction and examples.
         builders
@@ -36,15 +37,11 @@ strategies
           ~~
            
         refactorings
-          ~~
-            
-          pp-table: get-pp-table
-          ~~
+          pretty-print: ~pp-strategy
           refactoring ID: "Rename Entity" = rename-entity (source) (cursor)
-
-          ~~
+          input
+          	identifier: "new name" = ""
           ~// on save: generate-java
-                
       ]|
     );
     
@@ -88,17 +85,19 @@ strategies
           ~//   (source)      Always apply this builder to the source AST, not to the AST
           ~//                 after it has been analyzed/desugared by the observer.
           ~//
-          ~// Refactorings are used for transformations that modify the original source code;
-          ~// the original layout is preserved for unchanged fragments,
-          ~// while newly inserted nodes are pretty printed using a custom pretty-print strategy, 
-          ~// or the layout definitions in the pp-table.
-          ~//   pp-table: get-pp-table
-          ~//   pretty-print: prettyprint
-          ~//
+          ~// Refactorings are used for transformations that modify the original source code,
+          ~// while preserving the layout. A custom pretty-print strategy is used to format newly inserted nodes.
           ~// Refactorings can be specified as shown below, whereby Property* indicates on which constructs the
           ~// refactoring is specified (<sort>.<constructor>).
+          ~//
+          ~// refactorings
+          ~//
+          ~//   pretty-print: prettyprint
           ~// 
           ~//   refactoring Property*: "Extract Entity" =  extract-entity (source)
+          ~//   input
+          ~//     identifier: "entity name" = ""
+          ~//     identifier: "property name" = ""
           ~// 
           ~// The 'on save' handler can be used  to generate code as files are saved:
           ~//   
