@@ -16,13 +16,18 @@ exports
   	
   	"pp-table" ":" StrategoCall     -> SemanticRule {cons("PPTable"), deprecated("use 'pretty-print' instead")}
   	"pretty-print" ":" StrategoCall -> SemanticRule {cons("PrettyPrint")}
-    "refactoring" SemanticNode* ":" String "=" StrategoCall BuilderOption* "input" InputField+ 
+
+    "refactoring" SemanticNode* ":" String "=" StrategoCall BuilderOption* UIOption* 
     								-> SemanticRule {cons("Refactoring")}
-    "refactoring" SemanticNode* ":" String "=" StrategoCall BuilderOption*  
-    								-> SemanticRule {cons("Refactoring")} 
-    								%% TODO: None should be []
     
-    %% identifier input field, text input field + validation of idpattern, keywords 
+    "shortcut" ":" KeyBinding -> UIOption {cons("Shortcut")}
+    RefactoringKeyBinding -> KeyBinding {cons("KeyBinding")}
+    "shortcut" ":" InteractionId -> UIOption {cons("Shortcut")}
+    String -> InteractionId {cons("InteractionId")}
+          
+    "input" InputField+ -> UIOption {cons("UserInput")}
+    
+    %% identifier input field [= text field + validation] 
     "identifier" ":" String                  -> InputField {cons("IdInputField")}
     "identifier" ":" String "=" String       -> InputField {cons("IdInputField")}
     "identifier" ":" String "=" StrategoCall -> InputField {cons("IdInputField")}
@@ -33,10 +38,26 @@ exports
     "text" ":" String "=" StrategoCall -> InputField {cons("TextInputField")}
 
     %% boolean input field 
-    %% boolean choice input field 
-    %% ...
+    %% choice input field 
+    %% list input field
   
      %% Avoid ambiguities with semantic nodes
      "pp-table"  -> SemanticNode {reject}
      "pretty-print"  -> SemanticNode {reject}
      "refactoring"  -> SemanticNode {reject}
+
+lexical syntax
+	
+     %% Predefined Keybindings
+     "Shift+Alt+R"  -> RefactoringKeyBinding  %% Rename
+     "Shift+Alt+I"  -> RefactoringKeyBinding  %% Inline
+     "Shift+Alt+M"  -> RefactoringKeyBinding  %% Extract
+     "Shift+Alt+V"  -> RefactoringKeyBinding  %% Move
+     "Shift+Alt+C"  -> RefactoringKeyBinding  %% Change Signature
+     "Shift+Alt+L"  -> RefactoringKeyBinding  %% Extract Local Variabele
+     "Shift+Ctrl+F" -> RefactoringKeyBinding  %% Format
+     "Ctrl+I"       -> RefactoringKeyBinding  %% Correct Indentation
+     "Shift+Ctrl+C" -> RefactoringKeyBinding  %% Toggle Comment
+     "Shift+Alt+J"  -> RefactoringKeyBinding  %% Generate Element Comment
+     "Shift+Ctrl+M" -> RefactoringKeyBinding  %% Add Import
+     "Shift+Ctrl+O" -> RefactoringKeyBinding  %% Organize Imports
