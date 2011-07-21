@@ -44,6 +44,8 @@ import org.strategoxt.lang.Strategy;
 
 public class StrategoRefactoring extends Refactoring implements IRefactoring {
 		
+	private final String actionDefinitionId;
+
 	private final String ppStrategy;
 	
 	private final StrategoObserver observer;
@@ -59,10 +61,6 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 	private final IStrategoTerm[] semanticNodes;
 			
 	protected final ArrayList<StrategoRefactoringIdentifierInput> inputFields;
-
-	public ArrayList<StrategoRefactoringIdentifierInput> getInputFields() {
-		return inputFields;
-	}
 	
 	private ArrayList<IPath> affectedFilePaths;
 
@@ -81,9 +79,13 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 
 	public String getActionDefinitionId() {
 		// TODO 
-		return "org.eclipse.jdt.ui.edit.text.java.rename.element";
+		return actionDefinitionId;
 	}
-	
+
+	public ArrayList<StrategoRefactoringIdentifierInput> getInputFields() {
+		return inputFields;
+	}
+
 	public void prepareExecute(EditorState editor) {
 		this.node = getSelectionNode(editor);
 		this.fileChanges.clear();
@@ -93,7 +95,7 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 
 	public StrategoRefactoring(StrategoObserver observer, String caption, String builderRule,
 			boolean cursor, boolean source, String ppStrategy,
-			IStrategoTerm[] semanticNodes, ArrayList<StrategoRefactoringIdentifierInput> inputFields) {
+			IStrategoTerm[] semanticNodes, ArrayList<StrategoRefactoringIdentifierInput> inputFields, String actionDefinitionId) {
 		this.cursor=cursor;
 		this.source=source;
 		this.ppStrategy=ppStrategy;
@@ -104,6 +106,7 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 		this.fileChanges = new HashSet<TextFileChange>();
 		this.inputFields = inputFields;
 		this.affectedFilePaths = new ArrayList<IPath>();
+		this.actionDefinitionId = actionDefinitionId;
 	}
 	
 	@Override

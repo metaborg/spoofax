@@ -11,6 +11,9 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import javax.swing.text.JTextComponent.KeyBinding;
+
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
@@ -54,8 +57,11 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 			String caption = termContents(termAt(aRefactoring, 1));
 			String strategy = termContents(termAt(aRefactoring, 2));
 			IStrategoList options = termAt(aRefactoring, 3);
+			IStrategoTerm userInteractions = termAt(aRefactoring, 4);
 			ArrayList<StrategoRefactoringIdentifierInput> inputFields = 
-				getInputFields(aRefactoring, controller.getEditor());
+				getInputFields(userInteractions, controller.getEditor());
+			String actionDefinitionId = getKeyBinding(userInteractions);
+			//actionDefinitionId = "org.eclipse.jdt.ui.edit.text.java.rename.element";
 			boolean cursor = false;
 			boolean source = false;
 			boolean meta = false;
@@ -88,7 +94,8 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 						source, 
 						ppStrategy,
 						semanticNodes,
-						inputFields
+						inputFields,
+						actionDefinitionId
 					)
 				);
 			}
@@ -96,31 +103,42 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 		return refactorings;
 	}
 	
+	private static String getKeyBinding(IStrategoTerm userInteractions) {
+		IStrategoTerm keybinding = TermReader.findTerm(userInteractions, "KeyBinding");
+		if(keybinding != null)
+			return TermReader.termContents(keybinding);
+		IStrategoTerm interactionId = TermReader.findTerm(userInteractions, "InteractionId");
+		if(interactionId != null)
+			return TermReader.termContents(interactionId);
+		return null;
+	}
+
 	private static ArrayList<StrategoRefactoringIdentifierInput> getInputFields(
-			IStrategoAppl aRefactoring, EditorState editor) {
+			IStrategoTerm userInteractions, EditorState editor) {
 		ArrayList<StrategoRefactoringIdentifierInput> inputFields = new ArrayList<StrategoRefactoringIdentifierInput>();
-		if(aRefactoring.getSubtermCount() < 5)
-			return inputFields;
-		IStrategoTerm lstInputFields = termAt(aRefactoring, 4);
-		for (int i = 0; i < lstInputFields.getSubtermCount(); i++) {
-			IStrategoAppl input = TermReader.applAt(lstInputFields, i);
-			if(TermReader.hasConstructor(input, "IdInputField")){
-				String label = termContents(termAt(input,0));
-				String defaultValue = "";
-				if(input.getSubtermCount() > 1)
-					defaultValue = termContents(termAt(input,1)); //TODO: Strategy OR String
-				StrategoRefactoringIdentifierInput idInput = 
-					new StrategoRefactoringIdentifierInput(
-						label, 
-						defaultValue, 
-						getIdPattern(editor), 
-						getKeywordRecognizer(editor),
-						getLanguageName(editor)
-					);
-				inputFields.add(idInput);
+		IStrategoTerm userInput = TermReader.findTerm(userInteractions, "UserInput");
+		if(userInput != null){
+			IStrategoTerm userInputList = userInput.getSubterm(0);
+			for (int i = 0; i < userInputList.getSubtermCount(); i++) {
+				IStrategoAppl input = TermReader.applAt(userInputList, i);
+				if(TermReader.hasConstructor(input, "IdInputField")){
+					String label = termContents(termAt(input,0));
+					String defaultValue = "";
+					if(input.getSubtermCount() > 1)
+						defaultValue = termContents(termAt(input,1)); //TODO: Strategy OR String
+					StrategoRefactoringIdentifierInput idInput = 
+						new StrategoRefactoringIdentifierInput(
+							label, 
+							defaultValue, 
+							getIdPattern(editor), 
+							getKeywordRecognizer(editor),
+							getLanguageName(editor)
+						);
+					inputFields.add(idInput);
+				}
+				//TODO other input types
+				//TODO pattern
 			}
-			//TODO other input types
-			//TODO pattern
 		}
 		return inputFields;
 	}
