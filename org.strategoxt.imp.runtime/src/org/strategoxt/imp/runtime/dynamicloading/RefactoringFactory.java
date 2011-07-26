@@ -7,14 +7,20 @@ import static org.strategoxt.imp.runtime.dynamicloading.TermReader.cons;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.termContents;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import javax.swing.text.JTextComponent.KeyBinding;
-
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
+import org.eclipse.ltk.ui.refactoring.RefactoringWizardOpenOperation;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.PlatformUI;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -25,13 +31,15 @@ import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.services.IRefactoring;
 import org.strategoxt.imp.runtime.services.IRefactoringMap;
 import org.strategoxt.imp.runtime.services.RefactoringMap;
+import org.strategoxt.imp.runtime.services.StrategoAnalysisQueueFactory;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.services.StrategoRefactoring;
 import org.strategoxt.imp.runtime.services.StrategoRefactoringIdentifierInput;
+import org.strategoxt.imp.runtime.services.StrategoRefactoringWizard;
 import org.strategoxt.imp.runtime.services.SyntaxProperties;
 
 public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> {
-
+	
 	public RefactoringFactory() {
 		super(IRefactoringMap.class, false); // not cached; depends on derived editor relation
 	}
@@ -40,7 +48,63 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 	public IRefactoringMap create(Descriptor descriptor, SGLRParseController controller)
 			throws BadDescriptorException {
 		Set<IRefactoring> refactorings = collectRefactorings(descriptor, controller);
+		setRefactoringActions(controller.getEditor(), refactorings);
 		return new RefactoringMap(refactorings);
+	}
+	
+	/**
+	 * Eagerly initializes refactorings so that they can be triggered by their shortcuts.
+	 */
+	public static void eagerInit(Descriptor descriptor, IParseController controller, final EditorState editor) {
+		Set<IRefactoring> refactorings = new HashSet<IRefactoring>();
+		if (editor != null && controller instanceof SGLRParseController) {
+			try {
+				refactorings = collectRefactorings(descriptor, (SGLRParseController) controller);
+				setRefactoringActions(editor, refactorings);
+			} catch (BadDescriptorException e) {
+				Environment.logException("Could not eagerly initialize the content proposal service", e);
+			}
+		}
+	}
+
+	private static void setRefactoringActions(final EditorState editor, Set<IRefactoring> refactorings) {
+		for (final IRefactoring refactoring : refactorings) {
+			IAction action = new Action(refactoring.getCaption()) {
+				@Override
+				public void run() {
+					executeRefactoring(editor, refactoring);
+				}
+			};
+			action.setActionDefinitionId(refactoring.getActionDefinitionId());
+			editor.getEditor().getSite().getKeyBindingService().registerAction(action);
+			refactoring.setAction(action);
+		}
+	}
+	
+	private static void executeRefactoring(EditorState editor, IRefactoring refactoring) {
+		PlatformUI.getWorkbench().saveAllEditors(false);
+		refactoring.prepareExecute(editor);
+		StrategoRefactoringWizard wizard = new StrategoRefactoringWizard(
+			(StrategoRefactoring) refactoring, 
+			refactoring.getCaption()
+		);
+		RefactoringWizardOpenOperation operation= new RefactoringWizardOpenOperation(wizard);
+		Shell shell = editor.getEditor().getSite().getShell();
+		try {
+			operation.run(shell, refactoring.getCaption());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		queueAnalysisAffectedFiles(refactoring, editor);
+	}
+
+	//Queue analysis for affected asts, 
+	//dyn rules may be out of sync after re-analysis asts + abort refactoring)
+	private static void queueAnalysisAffectedFiles(IRefactoring refactoring, EditorState editor) {		
+		IProject project = editor.getProject().getRawProject();
+		for (IPath projectRelativePath : refactoring.getRelativePathsOfAffectedFiles()) {
+			StrategoAnalysisQueueFactory.getInstance().queueAnalysis(projectRelativePath, project);			
+		}
 	}
 
 	private static Set<IRefactoring> collectRefactorings(Descriptor d, SGLRParseController controller) throws BadDescriptorException {
@@ -142,23 +206,6 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 		}
 		return inputFields;
 	}
-
-	/*
-	private static ArrayList<StrategoRefactoringIdentifierInput> getInputFields(
-			IStrategoAppl aRefactoring, EditorState editor) {
-		ArrayList<StrategoRefactoringIdentifierInput> inputFields = new ArrayList<StrategoRefactoringIdentifierInput>();
-		//TODO: read them from builder
-		StrategoRefactoringIdentifierInput idInput1 = 
-			new StrategoRefactoringIdentifierInput(
-				"New name", 
-				"", 
-				getIdPattern(editor), 
-				getKeywordRecognizer(editor),
-				getLanguageName(editor)
-			);
-		inputFields.add(idInput1);
-		return inputFields;
-	}*/
 
 	private static String getLanguageName(EditorState editor) {
 		try {

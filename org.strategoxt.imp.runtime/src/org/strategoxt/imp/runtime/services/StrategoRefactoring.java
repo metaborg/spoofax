@@ -16,6 +16,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.jface.action.IAction;
 import org.eclipse.ltk.core.refactoring.Change;
 import org.eclipse.ltk.core.refactoring.CompositeChange;
 import org.eclipse.ltk.core.refactoring.Refactoring;
@@ -67,6 +68,8 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 	private IStrategoTerm node;
 	
 	private Collection<TextFileChange> fileChanges;
+	
+	private IAction action;
 
 	public boolean isDefinedOnSelection(EditorState editor) {
 		// TODO Auto-generated method stub
@@ -84,6 +87,15 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 
 	public ArrayList<StrategoRefactoringIdentifierInput> getInputFields() {
 		return inputFields;
+	}
+	
+	public void setAction(IAction action) {
+		this.action = action;
+	}
+
+	public IAction getAction() {
+		assert(action != null) : "refactoring action is not set";
+		return action;
 	}
 
 	public void prepareExecute(EditorState editor) {
