@@ -27,6 +27,9 @@ public class IMPLibrary extends AbstractStrategoOperatorRegistry {
 		add(new LanguageDescriptionPrimitive());
 		add(new OverrideInputPrimitive());
 
+		add(new InSelectedFragmentPrimitive());
+		add(new OriginNonLayoutTokensPrimitive());
+
 		//origin term strategies
 		add(new OriginSublistTermPrimitive());
 		add(new OriginDesugaredTermPrimitive());
@@ -42,7 +45,7 @@ public class IMPLibrary extends AbstractStrategoOperatorRegistry {
 		add(new OriginDeletionOffsetPrimitive());
 		add(new OriginInsertBeforeOffsetPrimitive());
 		add(new OriginInsertAtEndOffsetPrimitive());
-		add(new OriginTextWithLayoutPrimitive());		
+		add(new OriginTextWithLayoutPrimitive());				
 	}
 
 	public String getOperatorRegistryName() {
