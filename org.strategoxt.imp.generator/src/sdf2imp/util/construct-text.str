@@ -104,7 +104,7 @@ construct-text-from-origin(pp):
 	where //guarantees that node can be formatted from the origin node, preventing non-termination
 		<is-tuple> t; //debug(!"ast-changes?: ");
 		<has-origin-term> origin-node;
-		ast-changes := <collect-ast-changes(in-parent-context(|origin-node))> (origin-node, node); 
+		ast-changes := <collect-ast-changes> (origin-node, node); 
 		<is-terminating-diff(|node)> ast-changes //prevent non termination
 		//; debug(!"ast-changes!: ")
 	with
@@ -145,7 +145,7 @@ construct-text-with-comments(pp|default-indent):
 		<is-tuple> t;
 		<has-origin-term> origin-node
 	with //termination check is not needed (we need to Replace to keep comments), since it is called on a subterm in construct-text-by-pp
-		ast-changes := <collect-ast-changes(in-parent-context(|origin-node))> (origin-node, node); //debug(!"--ast-changes: ");
+		ast-changes := <collect-ast-changes> (origin-node, node); //debug(!"--ast-changes: ");
 		text-changes := <map(ast-change-to-text-change(pp))> ast-changes; //debug(!"--txt-changes: ");
 		full-text := <origin-text-with-layout> origin-node; 
 		full-text-start-offset := <origin-layout-prefix-start-offset> origin-node; 
@@ -160,13 +160,14 @@ signature constructors //signatures for AST changes
 
 rules //ast-diff
 
-collect-ast-changes(in-local-context) = 
+collect-ast-changes = 
 	where(is-tuple); 
 	try(remove-superfluous-parentethical);
 	(collect-ast-changes-eq <+
-	collect-ast-changes-rec-node(in-local-context) <+
-	collect-ast-changes-rec-list(in-local-context) <+
-	collect-ast-changes-replace(in-local-context))
+	collect-ast-changes-rec-node <+
+	collect-ast-changes-rec-list <+
+	collect-ast-changes-resugared <+
+	collect-ast-changes-replace)
 
 remove-superfluous-parentethical:
 	(origin-node, Parenthetical(node)) -> (origin-node, node)
@@ -178,16 +179,14 @@ collect-ast-changes-eq:
 	where
 		<equal> (origin-node, node)
 
-collect-ast-changes-rec-node(in-local-context):
+collect-ast-changes-rec-node:
 	(origin-node, node) -> ast-changes
 	where
 		<same-signature <+ ?([_],[_])> (origin-node, node);
 		arg-tuples := <zip>(<get-arguments> origin-node, <get-arguments> node); 
-		ast-changes := <map(collect-ast-changes(in-local-context)); flatten-list> arg-tuples 
-	where
-		<map(in-local-context)> ast-changes
+		ast-changes := <map(collect-ast-changes); flatten-list> arg-tuples 
  
-collect-ast-changes-rec-list(in-local-context):
+collect-ast-changes-rec-list:
 	(origin-lst, lst) -> ast-changes
 	where 
 		<is-list> lst;
@@ -195,22 +194,28 @@ collect-ast-changes-rec-list(in-local-context):
 		<not(violates-homomorphism-list)> (origin-lst, lst)
 	where
 		ast-changes := <
-			list-diff(in-local-context|origin-lst);
+			list-diff(|origin-lst);
 			filter(not(?INSERT_BEFORE(_, [])));
 			filter(not(?INSERT_AT_END(_, [])))
 		> (origin-lst, lst)
-	where
-		<map(in-local-context)> ast-changes
 
-collect-ast-changes-replace(in-local-context):
+collect-ast-changes-resugared:
+	(origin-node, node) -> ast-changes
+	where
+		ast-changes := <collect-ast-changes-rec-node> (origin-node, <origin-term> node)
+	where
+		<is-origin-term-desugared> node;
+		<not(is-origin-term)> node
+
+collect-ast-changes-replace:
 	(origin-node, node) -> [REPLACEMENT(origin-node, node)]
 	where
 		<has-origin-term> origin-node;
-		<not(is-list)> node; //list-text can only be constructed in a context  
-		<in-local-context> REPLACEMENT(origin-node, node)
+		<not(is-list)> node //list-text can only be constructed in a context  
 
 rules //validity
 
+/*
 //desugaring: changes must fall inside region of original text
 //issue: is it correct if we simply filter context sensitive changes?
 in-parent-context(|origin-parent):
@@ -219,18 +224,19 @@ in-parent-context(|origin-parent):
 		start-offset-node := <origin-deletion-start-offset> origin-parent; 
 		end-offset-node := <origin-deletion-end-offset> origin-parent; 
 		start-offset-change := <get-arguments; Hd; origin-start-offset> ast-change; 
-		end-offset-change := <get-arguments; Hd; origin-end-offset> ast-change; 
+		end-offset-change := <get-arguments; Hd; origin-end-offset> ast-change
+	where 
 		<leq> (start-offset-node, start-offset-change); 
 		<leq> (end-offset-change, end-offset-node) 
-		
+*/
 	
 rules //list diff
 
-list-diff(in-local-context|origin-lst) = 
-	(list-diff-fuzzy(in-local-context|origin-lst) <+
-	list-diff-origin-related(in-local-context|origin-lst)) 
+list-diff(|origin-lst) = 
+	(list-diff-fuzzy(|origin-lst) <+
+	list-diff-origin-related(|origin-lst)) 
 	
-list-diff-fuzzy(in-local-context|origin-lst):
+list-diff-fuzzy(|origin-lst):
 	([origin-elem|origin-rest], [new-elem|new-rest]) -> ast-changes
 	where
 		<is-deletion(|new-rest)> origin-elem;
@@ -238,31 +244,31 @@ list-diff-fuzzy(in-local-context|origin-lst):
 		<is-related-to-fuzzy(|origin-elem)> new-elem //fuzzy to prevent deletion + insertion
 	with
 		ast-changes := <flatten-list>[
-			<collect-ast-changes(in-local-context)>(origin-elem, new-elem)|
-			<list-diff(in-local-context|origin-lst)> (origin-rest, new-rest)
+			<collect-ast-changes>(origin-elem, new-elem)|
+			<list-diff(|origin-lst)> (origin-rest, new-rest)
 		]
 
-list-diff-origin-related(in-local-context|origin-lst): 
+list-diff-origin-related(|origin-lst): 
 	(origin-elems, new-elems) -> ast-changes
 	where 
 		deleted-elems := <take-while(is-deletion(|new-elems))> origin-elems;  
 		origin-rest := <drop-while(is-deletion(|new-elems))> origin-elems;
 		<not(?[])> deleted-elems 
 	with
-		ast-changes := <flatten-list>[DELETION(deleted-elems)|<list-diff(in-local-context|origin-lst)> (origin-rest, new-elems)]
+		ast-changes := <flatten-list>[DELETION(deleted-elems)|<list-diff(|origin-lst)> (origin-rest, new-elems)]
 
-list-diff-origin-related(in-local-context|origin-lst):
+list-diff-origin-related(|origin-lst):
 	([origin-elem|origin-rest], new-elems) -> ast-changes
 	where
 		(inserted, elem, rest) := <split-fetch-keep(is-related-to(|origin-elem))> new-elems
 	with
 		ast-changes := <flatten-list>[
 			INSERT_BEFORE(origin-elem, inserted), 
-			<collect-ast-changes(in-local-context)>(origin-elem, elem)|
-			<list-diff(in-local-context|origin-lst)> (origin-rest, rest)
+			<collect-ast-changes>(origin-elem, elem)|
+			<list-diff(|origin-lst)> (origin-rest, rest)
 		]
 
-list-diff-origin-related(in-local-context|origin-lst):
+list-diff-origin-related(|origin-lst):
 	([], new-elems) -> [INSERT_AT_END(origin-lst, new-elems)]
 
 

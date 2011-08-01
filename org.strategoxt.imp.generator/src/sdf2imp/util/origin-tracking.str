@@ -35,6 +35,7 @@ origin-deletion-end-offset = origin-deletion-offset; Snd
 origin-layout-prefix-start-offset = origin-insert-before-offset
 
 is-origin-term = <equal> (<origin-term>, <id>)
+is-origin-term-desugared = <equal> (<origin-term-desugared>, <id>)
 has-origin-term = where(origin-term)
 has-origin-sublist-term = where(origin-sublist-term)
 is-origin-sublist-term = <equal> (<origin-sublist-term>, <id>)
