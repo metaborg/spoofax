@@ -21,6 +21,7 @@ Require-Bundle: org.eclipse.imp.runtime,
  org.eclipse.debug.ui,
  org.spoofax.compiler,
  org.strategoxt.imp.generator,
+ org.strategoxt.imp.spoofax.generator,
  org.spoofax.terms,
  org.strategoxt.strj,
  org.strategoxt.imp.debug.core
