@@ -10,15 +10,23 @@ import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.strategoxt.imp.metatooling.loading.DynamicDescriptorLoader;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 
 /**
- * Triggers descriptor building and loading from an Ant build file.
+ * Triggers spoofaxlang building and loading from an Ant build file.
  */
-public class AntSpxDescriptorBuilder {
 
+public class AntSpxDescriptorBuilder {
+	
+	//TODO :  Set Derived Resources 
+	//TODO :  Adding auto-generating the derived entries
+	
 	private static volatile boolean active;
 
 	public static void main(String[] args) {
@@ -56,6 +64,7 @@ public class AntSpxDescriptorBuilder {
 			}
 		} finally {
 			Environment.getStrategoLock().unlock();
+			
 		}
 	}
 
@@ -63,6 +72,7 @@ public class AntSpxDescriptorBuilder {
 	public static boolean isActive() {
 		return active;
 	}
+	
 
 	private static IResource getResource(String file) {
 		File fileRef = new File(file);

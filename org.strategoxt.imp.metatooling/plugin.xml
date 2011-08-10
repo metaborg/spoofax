@@ -33,6 +33,19 @@
       </wizard>
    </extension>
    <extension
+         point="org.eclipse.ui.newWizards">
+      <primaryWizard
+            id="org.strategoxt.imp.metatooling.wizards.NewSpxEditorWizard">
+      </primaryWizard>
+      <wizard
+            class="org.strategoxt.imp.metatooling.wizards.NewSpxEditorWizard"
+            icon="icons/sample.gif"
+            id="org.strategoxt.imp.metatooling.wizards.NewSpxEditorWizard"
+            name="Spoofax/IMP(Spoofaxlang) editor project"
+            project="true">
+      </wizard>
+   </extension>
+   <extension
          point="org.eclipse.ant.core.antProperties">
       <antProperty
             class="org.strategoxt.imp.metatooling.NativePrefixAntPropertyProvider"
