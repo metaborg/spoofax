@@ -22,7 +22,13 @@ import org.strategoxt.lang.StrategoExit;
 import org.strategoxt.stratego_lib.dr_scope_all_end_0_0;
 import org.strategoxt.stratego_lib.dr_scope_all_start_0_0;
 
+/**
+ * Triggers spoofaxlang building and loading from an Ant build file.
+ */
 public class AntSpxGenerateArtefacts {
+	//TODO :  Set Derived Resources 
+	//TODO :  Adding auto-generating the derived entries
+
 	private static volatile boolean active;
 	
 	public static boolean isActive() {
@@ -108,8 +114,10 @@ public class AntSpxGenerateArtefacts {
 				dr_scope_all_start_0_0.instance.invoke(contextSpoofaxLang, input);
 				
 				try {
-					
+					System.out.println("Compiling SPX files and generating intermediate artefacts.");
+					System.out.println("Invoking build-spoofaxlang-jvm.");
 					build_spoofaxlang_jvm_0_0.instance.invoke( contextSpoofaxLang , input);
+					System.out.println("Intermediate artefacts have been generated successfully.");
 					
 				} catch (StrategoErrorExit e) {
 					Environment.logException(e);

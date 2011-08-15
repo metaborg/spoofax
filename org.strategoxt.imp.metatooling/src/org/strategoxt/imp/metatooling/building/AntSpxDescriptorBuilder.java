@@ -19,13 +19,11 @@ import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 
 /**
- * Triggers spoofaxlang building and loading from an Ant build file.
+ * Triggers loading ESV from an Ant build file.
+ * 
+ * @author Lennart Kats <lennart add lclnet.nl>
  */
-
-public class AntSpxDescriptorBuilder {
-	
-	//TODO :  Set Derived Resources 
-	//TODO :  Adding auto-generating the derived entries
+public class AntSpxDescriptorBuilder { 
 	
 	private static volatile boolean active;
 
