@@ -44,14 +44,21 @@ public class JSGLRI extends AbstractSGLRI {
 	
 	private int timeout;
 	
+	private int cursorLocation;
+	
 	// Initialization and parsing
 	
+	public void setCursorLocation(int cursorLocation) {
+		this.cursorLocation = cursorLocation;
+	}
+
 	public JSGLRI(ParseTableProvider parseTable, String startSymbol,
 			SGLRParseController controller) {
 		super(parseTable, startSymbol, controller);
 		
 		this.parseTable = parseTable;
 		this.parser = Environment.createSGLR(getParseTable());
+		this.cursorLocation = Integer.MAX_VALUE;
 		resetState();
 	}
 	
@@ -160,7 +167,11 @@ public class JSGLRI extends AbstractSGLRI {
 			Debug.startTimer();
 			IStrategoTerm result;
 			try {
-				result = (IStrategoTerm) parser.parse(input, filename, getStartSymbol());
+				//TODO: completionMode true or false depends on whether this method is called via CompletionParser
+				// true means all completion productions are enabled
+				// false means that only wellformed productions are enabled
+				// Idee: mark wellformed productions as {completion, recover} and treat them as completion
+				result = (IStrategoTerm) parser.parse(input, filename, getStartSymbol(), true, cursorLocation);
 			} finally {
 				Debug.stopTimer("File parsed: " + new File(filename).getName());
 			}

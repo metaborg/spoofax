@@ -44,6 +44,7 @@ import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.ITokenizer;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.parser.SGLRParseController;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -116,7 +117,9 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 	public void verifyKey(VerifyEvent event) {
 		try {
 			String input = new String(new char[] { event.character });
-			Point selection = getEditor().getSelection();
+			Point selection = getEditor().getSelection(); 
+			if(controller instanceof SGLRParseController)
+				((SGLRParseController)controller).getParser().setCursorLocation(selection.x);
 			ISourceViewer viewer = getEditor().getServiceControllerManager().getSourceViewer();
 			if (event.widget instanceof StyledText
 					&& indentAfterNewline(viewer, viewer.getDocument(), selection.x, selection.y, input)) {
