@@ -63,6 +63,8 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 				setRefactoringActions(editor, refactorings);
 			} catch (BadDescriptorException e) {
 				Environment.logException("Could not eagerly initialize the refactoring service", e);
+			} catch (RuntimeException e) {
+				Environment.logException("Could not eagerly initialize the refactoring service", e);
 			}
 		}
 	}
