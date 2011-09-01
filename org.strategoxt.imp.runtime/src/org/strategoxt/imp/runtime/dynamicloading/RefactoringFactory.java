@@ -62,7 +62,7 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 				refactorings = collectRefactorings(descriptor, (SGLRParseController) controller);
 				setRefactoringActions(editor, refactorings);
 			} catch (BadDescriptorException e) {
-				Environment.logException("Could not eagerly initialize the content proposal service", e);
+				Environment.logException("Could not eagerly initialize the refactoring service", e);
 			}
 		}
 	}
