@@ -43,6 +43,7 @@ import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.dynamicloading.DynamicParseTableProvider;
 import org.strategoxt.imp.runtime.dynamicloading.ParseTableProvider;
+import org.strategoxt.imp.runtime.services.MetaFileLanguageValidator;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.IMPJSGLRLibrary;
 import org.strategoxt.imp.runtime.stratego.IMPLibrary;
@@ -394,7 +395,11 @@ public final class Environment {
 	}
 	
 	public static Descriptor getDescriptor(Language language) {
-		return descriptors.get(language.getName());
+		// HACK: in case language is only known by IMP but not loaded, use the validator
+		if (language.getValidator() instanceof MetaFileLanguageValidator) 
+			((MetaFileLanguageValidator) language.getValidator()).getDescriptor();
+		Descriptor result = descriptors.get(language.getName());
+		return result;
 	}
 	
 	// ERROR HANDLING
