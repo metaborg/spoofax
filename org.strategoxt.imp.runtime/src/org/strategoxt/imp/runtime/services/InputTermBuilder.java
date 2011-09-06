@@ -276,6 +276,11 @@ public class InputTermBuilder {
 					ancestor, ancestor, true);
 			isMatch = isMatchOnConstructorOrSort(mappings, selectionNode);
 		}
+		//some tolerance for example when method name is selected instead of method
+		while (!isMatch && selectionNode != null && !selectionNode.isList() && getParent(selectionNode) != null && !getParent(selectionNode).isList()) {
+			selectionNode = getParent(selectionNode);
+			isMatch = isMatchOnConstructorOrSort(mappings, selectionNode);
+		}
 		if (isMatch) {
 			return selectionNode;
 		}
