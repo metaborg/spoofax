@@ -8,7 +8,6 @@ import static org.spoofax.terms.attachments.OriginAttachment.tryGetOrigin;
 import static org.spoofax.terms.attachments.ParentAttachment.getParent;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -107,7 +106,14 @@ public class StrategoTermPath {
 			if (origin.getSubtermCount() > 0) {
 				IStrategoList subtermPath = getTermPathWithOrigin(context, ast, origin.getSubterm(0));
 				if (subtermPath != null){
-					IStrategoTerm[] originPath = Arrays.copyOf(subtermPath.getAllSubterms(), subtermPath.getSubtermCount()-1);
+					// Arrays.copyOf is Java 1.6
+					//IStrategoTerm[] originPath = Arrays.copyOf(subtermPath.getAllSubterms(), subtermPath.getSubtermCount()-1);
+					IStrategoTerm[] allSubterms = subtermPath.getAllSubterms();
+					IStrategoTerm[] originPath = new IStrategoTerm[subtermPath.getSubtermCount()-1];
+					for (int i = 0; i < originPath.length; ++i) {
+						originPath[i] = allSubterms[i];
+					}
+
 					TermFactory factory = new TermFactory();
 					return factory.makeList(originPath);
 				}
