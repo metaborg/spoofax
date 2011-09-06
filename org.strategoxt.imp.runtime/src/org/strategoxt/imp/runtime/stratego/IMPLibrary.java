@@ -45,7 +45,9 @@ public class IMPLibrary extends AbstractStrategoOperatorRegistry {
 		add(new OriginDeletionOffsetPrimitive());
 		add(new OriginInsertBeforeOffsetPrimitive());
 		add(new OriginInsertAtEndOffsetPrimitive());
-		add(new OriginTextWithLayoutPrimitive());				
+		add(new OriginTextWithLayoutPrimitive());
+
+		add(new OriginLanguagePrimitive());
 	}
 
 	public String getOperatorRegistryName() {
