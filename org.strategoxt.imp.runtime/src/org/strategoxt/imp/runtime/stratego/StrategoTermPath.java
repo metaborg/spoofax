@@ -110,10 +110,7 @@ public class StrategoTermPath {
 					//IStrategoTerm[] originPath = Arrays.copyOf(subtermPath.getAllSubterms(), subtermPath.getSubtermCount()-1);
 					IStrategoTerm[] allSubterms = subtermPath.getAllSubterms();
 					IStrategoTerm[] originPath = new IStrategoTerm[subtermPath.getSubtermCount()-1];
-					for (int i = 0; i < originPath.length; ++i) {
-						originPath[i] = allSubterms[i];
-					}
-
+					System.arraycopy(allSubterms, 0, originPath, 0, originPath.length);
 					TermFactory factory = new TermFactory();
 					return factory.makeList(originPath);
 				}
