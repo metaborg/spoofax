@@ -34,7 +34,7 @@ create-textchange-delete:
 		
 create-textchange-replace(pp):
 	(origin-node, new-node) -> (start-offset, end, indented-text)
-	where
+	where 
 		start-offset := <origin-start-offset> origin-node;
 		end   := <origin-end-offset> origin-node;
 		text  := <construct-text(pp)> new-node; //TODO: comments new node?
@@ -100,8 +100,7 @@ replace-indentation(|new-indent, old-indent):
 		indented-text := <
 			remove-indentation(|indent-value-old); 
 			prefix-lines(|new-indent);
-			trim-chars(?' ' <+ ?'\t'); //first line is not indented
-			ltrim-chars(?'\n') //do not remove line comment end
+			ltrim-chars(?' ' <+ ?'\t' <+ ?'\n') //first line is not indented
 		> text
 
 /**
