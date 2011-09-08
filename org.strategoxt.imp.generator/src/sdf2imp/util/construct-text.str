@@ -51,7 +51,9 @@ construct-textual-change(pp):
 		<has-origin-term> oldnode		
 	with
 		reconstructed-text := <topdown(try(strip-annos)); construct-text-from-old(pp)> (oldnode, newnode); 
-		(start-offset, end-offset, newText) := <ast-change-to-text-change(pp)> REPLACEMENT(oldnode, reconstructed-text)
+		r-text := <origin-set-relation>(newnode, reconstructed-text);
+		(start-offset, end-offset, newText) := <ast-change-to-text-change(pp)> REPLACEMENT(oldnode, r-text)
+		
 
 construct-textual-change(pp):
 	t@(oldnode, newnode) -> (0, 0, "")
@@ -109,7 +111,7 @@ construct-text-from-origin(pp):
 		//; debug(!"ast-changes!: ")
 	with
 		text-changes := <map(ast-change-to-text-change(pp))> ast-changes; //debug(!"txt-changes: ");
-		text := <apply-text-changes>(text-changes, <origin-text> origin-node, <origin-start-offset> origin-node)		
+		text := <apply-text-changes>(text-changes, <origin-text> origin-node, <origin-start-offset> origin-node)
 
 construct-text-by-pp(pp):
 	node -> text

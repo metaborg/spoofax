@@ -12,7 +12,7 @@ ast-change-to-text-change(pp):
 		tc-deletion := <create-textchange-delete> origin-lst
 
 ast-change-to-text-change(pp):
-	REPLACEMENT(origin-node, new-node) -> tc-replacement 
+	REPLACEMENT(origin-node, new-node) ->  tc-replacement 
 	with 
 		tc-replacement := <create-textchange-replace(pp)> (origin-node, new-node) 
 
