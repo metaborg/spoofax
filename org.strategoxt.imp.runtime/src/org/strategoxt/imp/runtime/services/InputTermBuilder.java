@@ -18,10 +18,11 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.imploder.IToken;
+import org.spoofax.jsglr.client.imploder.TermTreeFactory;
 import org.strategoxt.HybridInterpreter;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
-import org.strategoxt.imp.runtime.parser.ast.StrategoSubList;
+import org.spoofax.terms.StrategoSubList;
 import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 import org.strategoxt.lang.Context;
@@ -105,7 +106,7 @@ public class InputTermBuilder {
 		IStrategoTerm lastChild = getResultingTerm(resultingAst, node.getLastChild());
 		if(firstChild == null || lastChild == null)
 			return null;
-		return StrategoSubList.createSublist(targetTerm, firstChild, lastChild, false);
+		return new TermTreeFactory(Environment.getTermFactory()).createSublist(targetTerm, firstChild, lastChild); 
 	}
 
 	private IStrategoTerm getResultingTerm(IStrategoTerm resultingAst, IStrategoTerm originTerm) {
@@ -272,8 +273,7 @@ public class InputTermBuilder {
 		// Usecase: extract refactoring is defined on a (sub)list (refactoring
 		// X+: ...) and should be applicable when only one X is selected
 		if (!isMatch && !ancestor.isList() && getParent(ancestor) != null && getParent(ancestor).isList()) {
-			selectionNode = StrategoSubList.createSublist((IStrategoList) getParent(ancestor),
-					ancestor, ancestor, true);
+			selectionNode = new TermTreeFactory(Environment.getTermFactory()).createSublist((IStrategoList) getParent(ancestor), ancestor, ancestor); 
 			isMatch = isMatchOnConstructorOrSort(mappings, selectionNode);
 		}
 		//some tolerance for example when method name is selected instead of method

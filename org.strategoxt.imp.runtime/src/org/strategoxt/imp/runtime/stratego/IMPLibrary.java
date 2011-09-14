@@ -27,25 +27,9 @@ public class IMPLibrary extends AbstractStrategoOperatorRegistry {
 		add(new LanguageDescriptionPrimitive());
 		add(new OverrideInputPrimitive());
 
-		add(new InSelectedFragmentPrimitive());
-		add(new OriginNonLayoutTokensPrimitive());
-
-		//origin term strategies
-		add(new OriginSublistTermPrimitive());
-		add(new OriginDesugaredTermPrimitive());
-		add(new OriginTermFuzzyPrimitive());
-		
-		//layout strategies
 		add(new OriginSurroundingCommentsPrimitive());
-		add(new OriginLayoutPrefixPrimitive());
-		add(new OriginCommentsAfterPrimitive());
-		add(new OriginCommentsBeforePrimitive());
-		add(new OriginIndentationPrimitive());
-		add(new OriginSeparationPrimitive());
-		add(new OriginDeletionOffsetPrimitive());
-		add(new OriginInsertBeforeOffsetPrimitive());
-		add(new OriginInsertAtEndOffsetPrimitive());
-		add(new OriginTextWithLayoutPrimitive());
+
+		add(new InSelectedFragmentPrimitive());
 
 		add(new OriginLanguagePrimitive());
 	}

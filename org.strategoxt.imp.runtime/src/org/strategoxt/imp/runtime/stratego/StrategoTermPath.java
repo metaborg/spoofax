@@ -14,6 +14,7 @@ import java.util.List;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.jsglr.client.imploder.TermTreeFactory;
 import org.spoofax.terms.TermFactory;
 import org.spoofax.terms.TermVisitor;
 import org.spoofax.terms.attachments.ParentAttachment;
@@ -21,7 +22,7 @@ import org.strategoxt.imp.generator.generator;
 import org.strategoxt.imp.generator.position_of_term_1_0;
 import org.strategoxt.imp.generator.term_at_position_0_1;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.parser.ast.StrategoSubList;
+import org.spoofax.terms.StrategoSubList;
 import org.strategoxt.imp.runtime.services.ContentProposer;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
@@ -205,7 +206,7 @@ public class StrategoTermPath {
 			if (i == 0)
 				return commonAncestor;
 			IStrategoTerm child1 = ancestors1List.get(i - 1);
-			return StrategoSubList.createSublist((IStrategoList) commonAncestor, child1, child2, true); 
+			return new TermTreeFactory(Environment.getTermFactory()).createSublist((IStrategoList) commonAncestor, child1, child2); 
 		} else {
 			return commonAncestor;
 		}
