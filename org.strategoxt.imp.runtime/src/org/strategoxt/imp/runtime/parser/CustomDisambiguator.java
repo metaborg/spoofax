@@ -29,36 +29,36 @@ import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 
 /**
  * A class that uses the language runtime to disambiguate an AST.
- * 
+ *
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class CustomDisambiguator {
 
 	private final SGLRParseController controller;
-	
+
 	private final String[] functions;
-	
+
 	private WeakReference<StrategoObserver> runtime;
-	
+
 	public CustomDisambiguator(SGLRParseController controller, String[] functions) {
 		this.controller = controller;
 		this.functions = functions;
 	}
-	
+
 	public IStrategoTerm disambiguate(IStrategoTerm ast) {
 		if (functions.length == 0)
 			return ast;
-		
+
 		if (Environment.isMainThread()) {
-			// Shouldn't acquire environment lock from main thread 
+			// Shouldn't acquire environment lock from main thread
 			controller.scheduleParserUpdate(SGLRParseController.REPARSE_DELAY, false);
 			throw new OperationCanceledException("Cannot parse and disambiguate from main thread");
 		}
-		
+
 		StrategoObserver myRuntime = getRuntime();
 		if (myRuntime == null)
 			return ast;
-		
+
 		myRuntime.getLock().lock();
 		try {
 			IResource resource = getResource(ast);
@@ -75,21 +75,22 @@ public class CustomDisambiguator {
 		} finally {
 			myRuntime.getLock().unlock();
 		}
-		
+
 		return ast;
 	}
-	
+
 	private static IStrategoTerm transferAttachments(final IStrategoTerm oldTerm, IStrategoTerm newTerm) {
 		reinitTokens(newTerm, getLeftToken(oldTerm), getRightToken(oldTerm));
 		getTokenizer(oldTerm).setAst(newTerm);
 		getTokenizer(oldTerm).initAstNodeBinding();
-		SourceAttachment.putSource(newTerm, getResource(oldTerm), getParseController(oldTerm));
+		ParentAttachment.putParent(newTerm, null, null);
 		reinitParents(newTerm);
+		SourceAttachment.putSource(newTerm, getResource(oldTerm), getParseController(oldTerm));
 		return newTerm;
 	}
-	
+
 	private static void reinitParents(IStrategoTerm parent) {
-		Iterator<IStrategoTerm> iterator = tryGetListIterator(parent); 
+		Iterator<IStrategoTerm> iterator = tryGetListIterator(parent);
 		for (int i = 0, max = parent.getSubtermCount(); i < max; i++) {
 			IStrategoTerm child = iterator == null ? parent.getSubterm(i) : iterator.next();
 			ParentAttachment.putParent(child, parent, null);
@@ -99,7 +100,7 @@ public class CustomDisambiguator {
 
 	/**
 	 * Assign tokens to this term and all subterms, using the origin tokens or the given tokens.
-	 * 
+	 *
 	 * @param left  The left token to use if no token can be identified for this term.
 	 * @param right The right token to use if no token can be identified for this term.
 	 */
@@ -118,9 +119,9 @@ public class CustomDisambiguator {
 			}
 		}
 		term.removeAttachment(OriginAttachment.TYPE);
-		
+
 		// Recurse
-		Iterator<IStrategoTerm> iterator = tryGetListIterator(term); 
+		Iterator<IStrategoTerm> iterator = tryGetListIterator(term);
 		for (int i = 0, max = term.getSubtermCount(); i < max; i++) {
 			IStrategoTerm child = iterator == null ? term.getSubterm(i) : iterator.next();
 			reinitTokens(child, left, right);
