@@ -349,6 +349,7 @@ public class SGLRParseController implements IParseController {
 			if (metaFile != null) {
 				// Unmanaged parse tables may have different start symbols;
 				// try again without the standard start symbol
+				parser.setStartSymbol(null);
 			} else {
 				// Be forgiving: user probably specified an inconsistent start symbol in the ESV
 				Environment.logWarning("Incorrect start symbol specified in editor descriptor:" + parser.getStartSymbol(), e);
