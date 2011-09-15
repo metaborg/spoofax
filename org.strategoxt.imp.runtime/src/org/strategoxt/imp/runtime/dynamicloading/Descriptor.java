@@ -292,7 +292,12 @@ public class Descriptor {
 	}
 	
 	public String getStartSymbol() {
-		return getProperty("StartSymbols", null);
+		IStrategoAppl result = findTerm(document, "StartSymbols");
+		if (result == null)
+			return null;
+
+		// FIXME: support more than one start symbol
+		return termContents(termAt(termAt(result, 0), 0));
 	}
 	
 	public boolean isUsedForUnmanagedParseTable(String languageName) {

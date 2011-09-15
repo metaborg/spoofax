@@ -353,8 +353,16 @@ public class SGLRParseController implements IParseController {
 				// Be forgiving: user probably specified an inconsistent start symbol in the ESV
 				Environment.logWarning("Incorrect start symbol specified in editor descriptor:" + parser.getStartSymbol(), e);
 			}
-			parser.setStartSymbol(null);
-			return parser.parse(input, filename);
+			String startSymbol = parser.getStartSymbol();
+			try {
+				parser.setStartSymbol(null);
+				return parser.parse(input, filename);
+			} finally {
+				// Always reset the original start symbol!
+				// Otherwise a single parse that triggers a StartSymbolException
+				// will permanently handicap the parser...
+				parser.setStartSymbol(startSymbol);
+			}
 		}
 	}
 
