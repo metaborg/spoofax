@@ -99,8 +99,6 @@ public class SGLRParseController implements IParseController {
 
 	private volatile long initialReschedule;
 
-	private CustomDisambiguator disambiguator;
-
 	// Simple accessors
 	
 	/**
@@ -287,9 +285,6 @@ public class SGLRParseController implements IParseController {
 			IStrategoTerm result = doParse(input, filename);
 			currentTokenizer = getTokenizer(result);
 			
-			if (disambiguator != null)
-				result = disambiguator.disambiguate(result);
-
 			errorHandler.clearErrors();
 			errorHandler.setRecoveryFailed(false);
 			errorHandler.gatherNonFatalErrors(result);
@@ -543,9 +538,5 @@ public class SGLRParseController implements IParseController {
 		        result.append(buffer, 0, read);
 		
 		return result.toString();
-	}
-
-	public void setCustomDisambiguator(CustomDisambiguator disambiguator) {
-		this.disambiguator = disambiguator;
 	}
 }

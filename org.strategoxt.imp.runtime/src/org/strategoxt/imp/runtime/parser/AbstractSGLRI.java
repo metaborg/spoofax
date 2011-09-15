@@ -72,6 +72,12 @@ public abstract class AbstractSGLRI {
 		return implodeEnabled;
 	}
 	
+	public void setCustomDisambiguator(CustomDisambiguator disambiguator) {
+		this.disambiguator = disambiguator;
+	}
+	
+	private CustomDisambiguator disambiguator;
+	
 	// Initialization and parsing
 	
 	public AbstractSGLRI(Object parseTableId, String startSymbol, SGLRParseController controller) {
@@ -116,6 +122,9 @@ public abstract class AbstractSGLRI {
 		}
 		if (controller != null || resource != null)
 			SourceAttachment.putSource(result, resource, controller);
+		
+		if (disambiguator != null)
+			result = disambiguator.disambiguate(result);
 		
 		// parsedCache.put(cachingKey, result);
 		// putTokenizer(result, currentTokenizer);

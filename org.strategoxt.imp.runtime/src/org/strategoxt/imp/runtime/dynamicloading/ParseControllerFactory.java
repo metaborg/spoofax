@@ -37,7 +37,7 @@ public class ParseControllerFactory extends AbstractServiceFactory<IParseControl
 			throw new BadDescriptorException("Could not load parse table for " + language.getName(), e);
 		}
 		SGLRParseController result = new SGLRParseController(language, table, syntaxProperties, descriptor.getStartSymbol());
-		result.setCustomDisambiguator(new CustomDisambiguator(result, descriptor.getProperties("Disambiguator")));
+		result.getParser().setCustomDisambiguator(new CustomDisambiguator(result, descriptor.getProperties("Disambiguator")));
 		if (table.isDynamic())
 			table.setController(result);
 		return result;
