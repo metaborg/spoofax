@@ -455,6 +455,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			}
 			
 			if (this.rushNextUpdate) {
+				this.rushNextUpdate = false;
 				this.updateJob = queue.queue(this, parseController, 0);
 			} else {
 				this.updateJob = queue.queue(this, parseController, OBSERVER_DELAY);
