@@ -330,10 +330,12 @@ strategies
             </dependset>
             <available file="${include}/${sdfmodule}-parenthesize.str" property="sdf2parenthesize.available"/>
             <antcall target="sdf2parenthesize.helper"/>
+            <available file="${include}/${sdfmodule}-parenthesize.str" property="sdf2parenthesize.available"/>
+            <antcall target="sdf2parenthesize.helper.fallback"/>
         </target>
 
         <target name="sdf2parenthesize.helper" unless="sdf2parenthesize.available">
-            <java classname="run" failonerror="true">
+            <java classname="run" failonerror="false">
                 <arg value="org.strategoxt.tools.main-sdf2parenthesize"/>
                 <arg value="-i"/>
                 <arg value="${include}/${sdfmodule}.def"/>
@@ -353,6 +355,10 @@ strategies
                 <arg value="include/${sdfmodule}"/>
             </java>
         </target>
+
+    	<target name="sdf2parenthesize.helper.fallback" unless="sdf2parenthesize.available">
+        	<echo file="${include}/${sdfmodule}-parenthesize.str" message="module include/${sdfmodule}-parenthesize rules parenthesize-${sdfmodule} = id"/>
+    	</target>
         
         <target name="ppgen" if="build.stratego.enabled" depends="pack-sdf">
             <dependset>
