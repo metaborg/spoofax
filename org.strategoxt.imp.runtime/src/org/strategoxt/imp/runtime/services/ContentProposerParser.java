@@ -10,13 +10,11 @@ import static org.strategoxt.imp.runtime.Environment.getTermFactory;
 import static org.strategoxt.imp.runtime.services.ContentProposer.COMPLETION_TOKEN;
 
 import java.io.IOException;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.jface.text.Position;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
-import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.shared.SGLRException;
@@ -33,6 +31,7 @@ import org.strategoxt.imp.runtime.parser.SGLRParseController;
  * Content completion parsing and tree construction
  *
  * @author Lennart Kats <lennart add lclnet.nl>
+ * @author Tobi Vollebregt
  */
 public class ContentProposerParser {
 
@@ -48,17 +47,9 @@ public class ContentProposerParser {
 
 	private SGLRParseController parser;
 
-	private IStrategoTerm lastParserAst;
+	private ContentProposerAstReuser astReuser;
 
-	private IStrategoTerm lastCompletionAst;
-
-	private IStrategoTerm lastCompletionNode;
-
-	private String lastCompletionPrefix;
-
-	private String lastDocument;
-
-	private Position lastSelection;
+	private IStrategoTerm completionAst;
 
 	private IStrategoTerm completionNode;
 
@@ -66,6 +57,7 @@ public class ContentProposerParser {
 
 	public ContentProposerParser(Pattern identifierLexical) {
 		this.identifierLexical = identifierLexical;
+		this.astReuser = new ContentProposerAstReuser(identifierLexical);
 	}
 
 	protected SGLRParseController getParser() {
@@ -81,32 +73,58 @@ public class ContentProposerParser {
 	}
 
 	public boolean isFatalSyntaxError() {
-		return lastCompletionAst == null && lastParserAst == null && completionNode == null;
+		return completionAst == null;
 	}
 
 	public IStrategoTerm parse(IParseController icontroller, Position selection, String document, boolean avoidReparse) {
 		final int offset = selection.getOffset();
 
-		lastCompletionNode = completionNode;
-		lastCompletionPrefix = completionPrefix;
+		completionAst = null;
 		completionNode = null;
+		completionPrefix = null;
 
 		SGLRParseController controller = this.parser = getParser(icontroller);
-		IStrategoTerm ast = tryReusePreviousAst(selection, document);
-		if (ast != null) return ast;
 
+		// Try to reuse previous AST.
+		completionAst = astReuser.tryReusePreviousAst(selection, document);
+
+		if (completionAst != null) {
+			// We're lucky => re-put completionNode with the new prefix and return.
+			completionPrefix = astReuser.getCompletionPrefix();
+			completionNode = astReuser.getCompletionNode();
+
+			completionNode = putCompletionNode(completionNode, completionPrefix, false);
+			completionAst = getRoot(completionNode);
+
+			return completionAst;
+		}
+
+		// Build document with completion token.
 		String documentWithToken = document.substring(0, offset) + COMPLETION_TOKEN + document.substring(offset + selection.getLength());
-		ast = parse(controller, offset, documentWithToken, avoidReparse);
-		if (ast == null) return null;
 
-		IStrategoTerm result = identifyCompletionNode(ast, offset, document, COMPLETION_TOKEN);
-		if (completionNode == null) result = addNoContextNode(ast, offset, document);
-		return result;
+		// Parse.
+		completionAst = parse(controller, documentWithToken, avoidReparse);
+		if (completionAst != null) {
+			completionPrefix = readPrefix(offset, document);
+			completionNode = identifyAndPutCompletionNode(completionAst, completionPrefix, COMPLETION_TOKEN);
+
+			if (completionNode == null) {
+				// Can't find COMPLETION_TOKEN...
+				completionNode = putNoContextCompletionNode(completionAst, completionPrefix, offset);
+			}
+			completionAst = getRoot(completionNode);
+
+			astReuser.storeAstForReuse(completionAst, completionNode, completionPrefix);
+
+			return completionAst;
+		}
+
+		return null;
 	}
 
-	private IStrategoTerm parse(SGLRParseController controller, int offset, String document, boolean avoidReparse) {
+	private static IStrategoTerm parse(SGLRParseController controller, String document, boolean avoidReparse) {
 		JSGLRI parser = controller.getParser();
-		IStrategoTerm result;
+		IStrategoTerm result = null;
 
 		controller.scheduleParserUpdate(REINIT_PARSE_DELAY, true); // cancel current parse
 		Debug.startTimer();
@@ -123,107 +141,17 @@ public class ContentProposerParser {
 				} finally {
 					Debug.stopTimer("Completion parsed");
 				}
-				lastParserAst = controller.getCurrentAst();
-				lastCompletionAst = result;
 			}
 		} catch (SGLRException e) {
 			Environment.logException("Could not reparse input for content completion", e);
-			result = forceUseOldAst(controller, offset, document);
 		} catch (IOException e) {
 			Environment.logException("Could not reparse input for content completion", e);
-			result = forceUseOldAst(controller, offset, document);
 		} finally {
 			controller.getParseLock().unlock();
 		}
+		// Replaces former forceUseOldAst
+		if (result == null) result = controller.getCurrentAst();
 		return result;
-	}
-
-	/**
-	 * Reuse the previous AST if the user just added or deleted a single character.
-	 */
-	private IStrategoTerm tryReusePreviousAst(Position selection, String document) {
-		final int offset = selection.getOffset();
-		if (offset != 0 && lastCompletionNode != null) {
-			final int lastOffset = lastSelection.getOffset();
-			if (lastSelection.getLength() == 0 && selection.getLength() == 0) {
-				// No selection present.
-				if (lastDocument.length() == document.length() - 1 && lastOffset == offset - 1) {
-					// Reuse document, ignoring latest typed character
-					String newCharacter = document.substring(offset - 1, offset);
-					String previousDocument = lastDocument.substring(0, offset - 1) + newCharacter + lastDocument.substring(offset - 1);
-					if (documentsSufficientlyEqual(document, previousDocument, offset)) {
-						return reusePreviousAst(selection, document, lastCompletionPrefix + newCharacter);
-					}
-				} else if (lastCompletionPrefix.length() > 0
-						&& lastDocument.length() == document.length() + 1 && lastOffset == offset + 1) {
-					// Reuse document, ignoring previously typed character
-					String oldCharacter = lastDocument.substring(offset, offset + 1);
-					String currentDocument = document.substring(0, offset) + oldCharacter + document.substring(offset);
-					if (documentsSufficientlyEqual(currentDocument, lastDocument, offset + 1)) {
-						return reusePreviousAst(selection, document, lastCompletionPrefix.substring(0, lastCompletionPrefix.length() - 1));
-					}
-				} else if (lastDocument.equals(document) && offset == lastOffset) {
-					return reusePreviousAst(selection, document, lastCompletionPrefix);
-				}
-			}
-			else {
-				// Selection present.
-				// Probably not worth bothering with reuse here.
-			}
-		}
-		lastDocument = document;
-		lastSelection = selection;
-		return null;
-	}
-
-	/**
-	 * @return Whether doc1 and doc2 are equal disregarding the last
-	 * identifierLexical immediately before offset. If there is no
-	 * identifierLexical at that place in either document, false is returned.
-	 */
-	private boolean documentsSufficientlyEqual(String doc1, String doc2, int offset) {
-		String s1 = removeLastOccurrenceOfPatternBeforeIndex(identifierLexical, doc1, offset);
-		String s2 = removeLastOccurrenceOfPatternBeforeIndex(identifierLexical, doc2, offset);
-		if (s1 == null || s2 == null) return false;
-		return s1.equals(s2);
-	}
-
-	/**
-	 * @return s with the occurrence of p immediately before endIndex removed,
-	 * or null if p does not match before endIndex. Note: only examines the
-	 * last 50 characters of s.
-	 */
-	private static String removeLastOccurrenceOfPatternBeforeIndex(Pattern p, String s, int endIndex) {
-		int beginIndex = Math.max(0, endIndex - 50);
-		Matcher m = p.matcher(s.substring(beginIndex, endIndex));
-		while (m.find()) {
-			if (m.end() == endIndex - beginIndex) {
-				return s.substring(0, beginIndex + m.start()) + s.substring(endIndex);
-			}
-		}
-		return null;
-	}
-
-	private IStrategoTerm reusePreviousAst(Position selection, String document, String prefix) {
-		completionPrefix = prefix;
-		lastDocument = document;
-		lastSelection = selection;
-		completionNode = lastCompletionNode;
-		putCompletionNode(completionNode, prefix, false);
-		return lastCompletionAst;
-	}
-
-	private IStrategoTerm forceUseOldAst(SGLRParseController parser, int offset, String document) {
-		if (parser.getCurrentAst() != lastParserAst) { // parser has a more recent AST
-			lastParserAst = parser.getCurrentAst();
-			lastCompletionAst = parser.getCurrentAst();
-			completionNode = null;
-		} else {
-			if (completionNode == null)
-				return null;
-			putCompletionNode(completionNode, readPrefix(offset, document), false);
-		}
-		return lastCompletionAst;
 	}
 
 	private static SGLRParseController getParser(IParseController controller) {
@@ -232,64 +160,73 @@ public class ContentProposerParser {
 		return (SGLRParseController) controller;
 	}
 
-	private IStrategoTerm identifyCompletionNode(final IStrategoTerm ast, final int offset, final String document, final String completionToken) {
+	private static IStrategoTerm identifyAndPutCompletionNode(final IStrategoTerm ast, final String prefix, final String completionToken) {
 		class Visitor extends TermVisitor {
-			IStrategoTerm result = ast;
+			IStrategoTerm newCompletionNode;
+
 			public void preVisit(IStrategoTerm term) {
 				if (isTermString(term)) {
 					String value = ((IStrategoString) term).stringValue();
 					if (value.indexOf(completionToken) > -1) {
-						putCompletionNode(term, readPrefix(offset, document), false);
-						result = getRoot(completionNode);
+						newCompletionNode = putCompletionNode(term, prefix, false);
 					}
 				}
 			}
-			
+
 			@Override
 			public void postVisit(IStrategoTerm term) {
 				// Visit annotations; testing language puts ast nodes in there
 				if (!term.getAnnotations().isEmpty())
 					visit(term.getAnnotations());
 			}
-		}
+		};
 		Visitor visitor = new Visitor();
 		visitor.visit(ast);
-		return visitor.result;
+		return visitor.newCompletionNode;
 	}
 
 	/**
 	 * Creates a new abstract syntax tree with the given node
-	 * replaced by a COMPLETION(prefix) term,
-	 * and assigns completionNode.
+	 * replaced by a COMPLETION(prefix) term.
 	 */
-	private void putCompletionNode(IStrategoTerm node, final String prefix, final boolean noContext) {
+	private static IStrategoTerm putCompletionNode(IStrategoTerm node, final String prefix, final boolean noContext) {
 		final ParentTermFactory factory = new ParentTermFactory(Environment.getTermFactory());
 
 		final IStrategoTerm targetNode = tryGetCompletionNodeWrappingTerm(node);
 
-		new TermTransformer(factory, true) {
+		class Transformer extends TermTransformer {
+			IStrategoTerm newCompletionNode;
+
+			public Transformer() {
+				super(factory, true);
+			}
+
 			@Override
 			public IStrategoTerm preTransform(IStrategoTerm current) {
 				if (current == targetNode) {
 					IStrategoTerm prefixTerm = factory.makeString(prefix);
-					completionPrefix = prefix;
 					IStrategoTerm completionTerm = factory.makeAppl(COMPLETION_CONSTRUCTOR, prefixTerm);
-					completionNode = noContext ? factory.makeAppl(COMPLETION_UNKNOWN, completionTerm) : completionTerm;
-					factory.copyAttachments(current, completionNode, true);
+					newCompletionNode = noContext ? factory.makeAppl(COMPLETION_UNKNOWN, completionTerm) : completionTerm;
+					factory.copyAttachments(current, newCompletionNode, true);
 					factory.copyAttachments(current, completionTerm, true);
 					factory.copyAttachments(current, prefixTerm, true);
-					return completionNode;
+					return newCompletionNode;
 				} else {
 					return current;
 				}
 			}
-		}.transform(getRoot(node));
+		}
 
-		if (!noContext && getParent(completionNode) != null)
-			completionNode = getParent(completionNode); // add a bit of context
+		Transformer trans = new Transformer();
+		trans.transform(getRoot(node));
+
+		if (!noContext && getParent(trans.newCompletionNode) != null)
+			trans.newCompletionNode = getParent(trans.newCompletionNode); // add a bit of context
+
+		return trans.newCompletionNode;
 	}
 
-	private IStrategoTerm tryGetCompletionNodeWrappingTerm(IStrategoTerm node) {
+	private static IStrategoTerm tryGetCompletionNodeWrappingTerm(IStrategoTerm node) {
 		if (tryGetConstructor(node) != COMPLETION_CONSTRUCTOR) {
 			for (IStrategoTerm child : node.getAllSubterms()) {
 				if (tryGetConstructor(child) == COMPLETION_CONSTRUCTOR)
@@ -300,7 +237,11 @@ public class ContentProposerParser {
 		return node;
 	}
 
-	private IStrategoTerm addNoContextNode(IStrategoTerm ast, final int offset, String document) {
+	/**
+	 * Add NOCONTEXT(COMPLETION(...)) node based on token positions.
+	 * This is used if completionToken can't be found in the AST.
+	 */
+	private static IStrategoTerm putNoContextCompletionNode(final IStrategoTerm ast, final String prefix, final int offset) {
 		class Visitor extends TermVisitor {
 			IStrategoTerm targetNode, lastNode;
 
@@ -315,11 +256,10 @@ public class ContentProposerParser {
 		Visitor visitor = new Visitor();
 		visitor.visit(ast);
 		if (visitor.targetNode != null) {
-			putCompletionNode(visitor.targetNode, readPrefix(offset, document), true);
+			return putCompletionNode(visitor.targetNode, prefix, true);
 		} else {
-			putCompletionNode(visitor.lastNode, readPrefix(offset, document), true);
+			return putCompletionNode(visitor.lastNode, prefix, true);
 		}
-		return ast;
 	}
 
 	/**
@@ -339,5 +279,4 @@ public class ContentProposerParser {
 		}
 		return document.substring(0, offset);
 	}
-
 }
