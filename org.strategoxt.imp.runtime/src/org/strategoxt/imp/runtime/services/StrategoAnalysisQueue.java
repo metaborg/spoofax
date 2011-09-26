@@ -26,13 +26,11 @@ import org.strategoxt.imp.runtime.MonitorStateWatchDog;
  */
 public class StrategoAnalysisQueue {
 
-	/**
+	/*
 	 * TODO: - remove background jobs if a foreground job is started for the
 	 * same file - stop analyzing on a workspace close (/eclipse exit) -
 	 * interrupt background jobs for foreground jobs ?
 	 */
-
-	private static final long serialVersionUID = 1L;
 
 	private final PriorityBlockingQueue<UpdateJob> queue;
 	
@@ -60,13 +58,10 @@ public class StrategoAnalysisQueue {
 
 		protected UpdateJob(StrategoAnalysisJob job, IPath path, int priority, boolean isSystem,
 				long delay) {
-			super("");
+			super(JOB_DESCRIPTION + path);
 			this.job = job;
 			this.delay = delay;
 			this.path = path;
-		
-			// Should be set before scheduling the job
-			this.setName(JOB_DESCRIPTION + path);
 
 			setSystem(isSystem);
 			setPriority(priority);
@@ -79,8 +74,6 @@ public class StrategoAnalysisQueue {
 
 			running = true;
 			protector = new MonitorStateWatchDog(this, monitor, job.getObserver());
-			if (!isSystem())
-				protector.beginProtect();
 
 			IStatus status;
 			try {
@@ -95,8 +88,7 @@ public class StrategoAnalysisQueue {
 				Environment.logException("Error running scheduled analysis", e);
 				status = Status.CANCEL_STATUS;
 			} finally {
-				if (!isSystem())
-					protector.endProtect();
+				protector.endProtect();
 				
 				// Run next task
 				running = false;
