@@ -85,8 +85,6 @@ import org.strategoxt.stratego_lib.set_config_0_0;
  */
 public class StrategoObserver implements IDynamicLanguageService, IModelListener, IAsyncCancellable {
 	
-	public long time = System.currentTimeMillis();
-	
 	// TODO: separate delay for error markers?
 	public static final int OBSERVER_DELAY = 600;
 	
