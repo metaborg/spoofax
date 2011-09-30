@@ -275,13 +275,6 @@
                toolbarPath="spoofax"
                tooltip="Apply transformation to file in current editor"/>
                <!-- TODO: icon="icons/builder.png" -->
-         <action
-               class="org.strategoxt.imp.runtime.services.RefactoringButtonDelegate"
-               id="org.strategoxt.imp.runtime.stratego.refactoring"
-               label="Refactor"
-               style="pulldown"
-               toolbarPath="spoofax"
-               tooltip="Apply refactoring to file in current editor"/>
       </actionSet>
    </extension>
    <extension
@@ -350,6 +343,14 @@
       <initializer
             class="org.strategoxt.imp.runtime.PreferenceInitializer">
       </initializer>
+   </extension>
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            allPopups="true"
+            class="org.strategoxt.imp.runtime.services.RefactoringContributionFactory"
+            locationURI="popup:org.eclipse.ui.popup.any?before=additions">
+      </menuContribution>
    </extension>
    
 </plugin>
