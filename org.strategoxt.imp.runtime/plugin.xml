@@ -337,5 +337,19 @@
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="F3"/>
    </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            class="org.strategoxt.imp.runtime.SpoofaxPreferencePage"
+            id="org.strategoxt.imp.runtime.SpoofaxPreferencePage"
+            name="Spoofax Preferences">
+      </page>
+   </extension>
+   <extension
+         point="org.eclipse.core.runtime.preferences">
+      <initializer
+            class="org.strategoxt.imp.runtime.PreferenceInitializer">
+      </initializer>
+   </extension>
    
 </plugin>

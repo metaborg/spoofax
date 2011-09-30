@@ -78,6 +78,8 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 	private boolean allowAutoRemoveFence;
 	
 	private Stack<Integer> lastAutoInsertionOpenFences = new Stack<Integer>();
+	
+	private EditScenarioCollector editScenarioCollector;
 
 	public AutoEditStrategy(ILanguageSyntaxProperties syntax) {
 		this.syntax = syntax;
@@ -97,6 +99,7 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 		
 		this.maxOpenFenceLength = maxOpenFenceLength;
 		this.maxCloseFenceLength = maxCloseFenceLength;
+		editScenarioCollector = new EditScenarioCollector();
 	}
 	
 	public void initialize(IParseController controller) {
@@ -118,8 +121,10 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 		try {
 			String input = new String(new char[] { event.character });
 			Point selection = getEditor().getSelection(); 
-			if(controller instanceof SGLRParseController)
+			if(controller instanceof SGLRParseController) {
 				((SGLRParseController)controller).getParser().setCursorLocation(selection.x);
+				editScenarioCollector.collectEditorFile(((SGLRParseController)controller).getCurrentAst());
+			}
 			ISourceViewer viewer = getEditor().getServiceControllerManager().getSourceViewer();
 			if (event.widget instanceof StyledText
 					&& indentAfterNewline(viewer, viewer.getDocument(), selection.x, selection.y, input)) {
