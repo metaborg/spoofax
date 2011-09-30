@@ -16,6 +16,9 @@ exports
   	
   	"pp-table" ":" StrategoCall     -> SemanticRule {cons("PPTable"), deprecated("use 'pretty-print' instead")}
   	"pretty-print" ":" StrategoCall -> SemanticRule {cons("PrettyPrint")}
+ 	"parenthesize" ":" StrategoCall -> SemanticRule {cons("Parenthesize")}
+ 	"override" "reconstruction" ":" StrategoCall -> SemanticRule {cons("OverrideReconstruction")}
+ 	"resugar" ":" StrategoCall -> SemanticRule {cons("Resugar")}
 
     "refactoring" SemanticNode* ":" String "=" StrategoCall BuilderOption* UIOption* 
     								-> SemanticRule {cons("Refactoring")}

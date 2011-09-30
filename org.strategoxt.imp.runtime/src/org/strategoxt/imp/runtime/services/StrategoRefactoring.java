@@ -36,6 +36,7 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.TermFactory;
 import org.spoofax.terms.attachments.OriginAttachment;
 import org.strategoxt.imp.generator.construct_textual_change_1_0;
+import org.strategoxt.imp.generator.construct_textual_change_4_0;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
@@ -48,7 +49,13 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 	private final String actionDefinitionId;
 
 	private final String ppStrategy;
-	
+
+	private final String parenthesizeStrategy;
+
+	private final String overrideReconstructionStrategy;
+
+	private final String resugarStrategy;
+
 	private final StrategoObserver observer;
 
 	private final String caption;
@@ -106,11 +113,14 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 	}
 
 	public StrategoRefactoring(StrategoObserver observer, String caption, String builderRule,
-			boolean cursor, boolean source, String ppStrategy,
+			boolean cursor, boolean source, String ppStrategy, String parenthesize, String violatesHomomorphism, String resugar,
 			IStrategoTerm[] semanticNodes, ArrayList<StrategoRefactoringIdentifierInput> inputFields, String actionDefinitionId) {
 		this.cursor=cursor;
 		this.source=source;
-		this.ppStrategy=ppStrategy;
+		this.ppStrategy = ppStrategy;
+		this.parenthesizeStrategy = parenthesize;
+		this.overrideReconstructionStrategy = violatesHomomorphism;
+		this.resugarStrategy = resugar;
 		this.observer = observer;
 		this.caption = caption;
 		this.builderRule = builderRule;
@@ -173,7 +183,7 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 			textReplaceTerm = getTextReplacement(astChanges);
 			if (textReplaceTerm == null) {
 				observer.reportRewritingFailed();
-				String errorMessage = "Text-reconstruction unexpectedly fails, did you specify a valid pp-table?: \n"+ observer.getLog();
+				String errorMessage = "Text-reconstruction unexpectedly fails, did you specify a suitable pretty-print strategy?: \n"+ observer.getLog();
 				Environment.logException(errorMessage);
 				return RefactoringStatus.createFatalErrorStatus(errorMessage);
 			}
@@ -331,19 +341,26 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 	}
 	
 	private IStrategoTerm getTextReplacement(IStrategoTerm resultTuple) {
-		IStrategoTerm textreplace=construct_textual_change_1_0.instance.invoke(
+		IStrategoTerm textreplace=construct_textual_change_4_0.instance.invoke(
 				observer.getRuntime().getCompiledContext(), 
 				resultTuple, 
-				new Strategy() {
-					@Override
-					public IStrategoTerm invoke(Context context, IStrategoTerm current) {
-						if (ppStrategy!=null)
-							return observer.invokeSilent(ppStrategy, current, getResource());
-						return null;
-					}
-				}
+				createStrategy(ppStrategy),
+				createStrategy(parenthesizeStrategy),
+				createStrategy(overrideReconstructionStrategy),
+				createStrategy(resugarStrategy)
 			);
 		return textreplace;
+	}
+
+	public Strategy createStrategy(final String sname) {
+		return new Strategy() {
+			@Override
+			public IStrategoTerm invoke(Context context, IStrategoTerm current) {
+				if (sname!=null)
+					return observer.invokeSilent(sname, current, getResource());
+				return null;
+			}
+		};
 	}
 	
 	private TextFileChange createTextChange(IStrategoTerm originalTerm, IStrategoTerm textReplaceTerm) {

@@ -6,25 +6,25 @@ imports
 		
 rules //rules that translate AST-changes to Textual changes
 
-ast-change-to-text-change(pp):
+ast-change-to-text-change(pp, override-reconstruction, resugar):
 	DELETION(origin-lst) -> tc-deletion
 	with 
 		tc-deletion := <create-textchange-delete> origin-lst
 
-ast-change-to-text-change(pp):
+ast-change-to-text-change(pp, override-reconstruction, resugar):
 	REPLACEMENT(origin-node, new-node) ->  tc-replacement 
 	with 
-		tc-replacement := <create-textchange-replace(pp)> (origin-node, new-node) 
+		tc-replacement := <create-textchange-replace(pp, override-reconstruction, resugar)> (origin-node, new-node) 
 
-ast-change-to-text-change(pp):
+ast-change-to-text-change(pp, override-reconstruction, resugar):
 	INSERT_BEFORE(origin-elem, new-elems) -> tc-insert-before
 	with
-		tc-insert-before := <create-textchange-insert-before(pp)> (origin-elem, new-elems)
+		tc-insert-before := <create-textchange-insert-before(pp, override-reconstruction, resugar)> (origin-elem, new-elems)
 
-ast-change-to-text-change(pp):
+ast-change-to-text-change(pp, override-reconstruction, resugar):
 	INSERT_AT_END(origin-elem, new-elems) -> tc-insert-at-end
 	with
-		tc-insert-at-end := <create-textchange-insert-at-end(pp)> (origin-elem, new-elems)
+		tc-insert-at-end := <create-textchange-insert-at-end(pp, override-reconstruction, resugar)> (origin-elem, new-elems)
 	
 create-textchange-delete:
 	origin-elems -> (start-offset, end-offset, "")
@@ -32,52 +32,52 @@ create-textchange-delete:
 		start-offset := <origin-deletion-start-offset> origin-elems; 
 		end-offset   := <origin-deletion-end-offset> origin-elems
 		
-create-textchange-replace(pp):
+create-textchange-replace(pp, override-reconstruction, resugar):
 	(origin-node, new-node) -> (start-offset, end, indented-text)
-	where 
+	where  
 		start-offset := <origin-start-offset> origin-node;
 		end   := <origin-end-offset> origin-node;
-		text  := <construct-text(pp)> new-node; //TODO: comments new node?
-		indented-text := <adapt-indentation(|origin-node, new-node)> text
+		text  := <construct-text(pp, override-reconstruction, resugar)> new-node;
+		indented-text := <adapt-indentation(|origin-node)> text
 
-create-textchange-insert-before(pp):
+create-textchange-insert-before(pp, override-reconstruction, resugar):
 	(origin-node, new-elems) -> (offset, offset, insert-text)
-	where
+	where 
 		offset := <origin-insert-before-offset> origin-node;
-		new-elems-text := <map(construct-text-list-element(pp|origin-node))> new-elems;
+		new-elems-text := <map(construct-text-list-element(pp, override-reconstruction, resugar|origin-node))> new-elems;
 		insert-text := <concat-strings> new-elems-text
 
-create-textchange-insert-at-end(pp):
+create-textchange-insert-at-end(pp, override-reconstruction, resugar):
 	(origin-node, new-elems) -> (offset, offset, insert-text)
-	where
+	where 
 		offset := <origin-insert-at-end-offset> origin-node;
 		new-elems-text := <at-init(
-			construct-text-list-element(pp|origin-node), 
-			construct-text-list-element-last(pp|origin-node))
+			construct-text-list-element(pp, override-reconstruction, resugar|origin-node), 
+			construct-text-list-element-last(pp, override-reconstruction, resugar|origin-node))
 		> new-elems;
 		insert-text := <add-separation-before> (origin-node, <concat-strings> new-elems-text)
 
 rules //helper rules layout
 
-construct-text-list-element(pp|origin-node):
+construct-text-list-element(pp, override-reconstruction, resugar|origin-node):
 	elem -> elem-text
 	where
-		text := <construct-text(pp)> elem; 
-		layout-before := <layout-prefix> elem; 
-		indented-prefix-text := <conc-strings; adapt-indentation(|origin-node, elem)> (layout-before, text); 
-		comments-after := <comments-after; adapt-indentation(|origin-node, elem)> elem; 
+		text := <construct-text(pp, override-reconstruction, resugar)> elem; 
+		layout-before := <layout-prefix; correct-indentation(|elem)> elem;
+		indented-prefix-text := <conc-strings; adapt-indentation(|origin-node)> (layout-before, text); 
+		comments-after := <comments-after; correct-indentation(|elem); adapt-indentation(|origin-node)> elem;
 		separation := <origin-separation> origin-node;
 		layout-after := <create-separation-after> (separation, comments-after);
 		elem-text := <conc-strings> (indented-prefix-text, layout-after)
 
-construct-text-list-element-last(pp|origin-node):
+construct-text-list-element-last(pp, override-reconstruction, resugar|origin-node):
 	elem -> elem-text
 	where
-		text := <construct-text(pp)> elem;
-		layout-before := <layout-prefix> elem;
-		indented-prefix-text := <conc-strings; adapt-indentation(|origin-node, elem)> (layout-before, text);
-		comments-after := <comments-after; adapt-indentation(|origin-node, elem)> elem;
-		elem-text := <concat-strings> [indented-prefix-text, " ", comments-after]
+		text := <construct-text(pp, override-reconstruction, resugar)> elem;
+		layout-before := <layout-prefix; correct-indentation(|elem)> elem;
+		indented-prefix-text := <conc-strings; adapt-indentation(|origin-node)> (layout-before, text);
+		comments-after := <comments-after; correct-indentation(|elem); adapt-indentation(|origin-node)> elem;
+		elem-text := <concat-strings; trim-trailing-whitespace> [indented-prefix-text, " ", comments-after]
 
 
 rules //helper rules indentation
@@ -86,12 +86,18 @@ rules //helper rules indentation
  * replaces indent of the new constructed text (retrieved from new-node)
  * with indent appropriate for insertion position (retrieved from origin-node) 
  */
-adapt-indentation(|origin-node, new-node):
+adapt-indentation(|origin-node):
 	text -> indented-text
-	where 
+	where
 		indent-string-new := <origin-indent> origin-node; 
-		indent-string-old := <origin-indent <+ !""> new-node;
-		indented-text := <replace-indentation(|indent-string-new, indent-string-old)> text
+		indented-text := <replace-indentation(|indent-string-new, "")> text
+
+correct-indentation(|origin-node):
+	txt -> indent-corrected-text
+	where
+		indent-string := <origin-indent <+ !""> origin-node;
+		indent-corrected-text := <replace-indentation(|"", indent-string)> txt
+
 		
 replace-indentation(|new-indent, old-indent):
 	text -> indented-text
@@ -178,7 +184,8 @@ create-separation-after:
 	where
 		<not(string-ends-with(|"\n"))> comments-after;
 		(start-separation, end-separation) := <split-before>(separation, "\n");
-		txt-between := <concat-strings> [start-separation, comments-after, end-separation]
+		comments-after-separated := <?"" <+ <conc-strings>(" ", <id>)> comments-after;
+		txt-between := <concat-strings> [start-separation, comments-after-separated, end-separation]
 
 //("  ", "/*bla*/") -> " /*bla*/  "
 //(",  ", "/*bla*/") -> " /*bla*/,  "
@@ -239,9 +246,10 @@ assert-valid-textual-changes =
 	assert-valid-offset
 	
 assert-no-overlap:
-	txt-changes@[(_, end-offset, _), (start-offset, _, _)|_] -> txt-changes
+	txt-changes@[(start-offset, end-offset, _), (start-offset', _, _)|_] -> txt-changes
 	with
-		<leq> (end-offset, start-offset);
+		<lt> (start-offset, start-offset');
+		<leq> (end-offset, start-offset');
 		<at-tail(assert-no-overlap)> txt-changes
 		
 assert-no-overlap =

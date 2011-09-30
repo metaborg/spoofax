@@ -112,12 +112,10 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 	private static Set<IRefactoring> collectRefactorings(Descriptor d, SGLRParseController controller) throws BadDescriptorException {
 		Set<IRefactoring> refactorings = new LinkedHashSet<IRefactoring>();
 		StrategoObserver feedback = d.createService(StrategoObserver.class, controller);
-		IStrategoAppl ppStrategyTerm = TermReader.findTerm(d.getDocument(), "PrettyPrint");
-		String ppStrategy = null;
-		if(ppStrategyTerm != null)
-			ppStrategy=termContents(termAt(ppStrategyTerm, 0));
-		else
-			ppStrategy = ("pp-" + d.getLanguage().getName() + "-string").toLowerCase();
+		String ppStrategy = getPPStrategy(d);
+		String parenthesize = getParenthesizeStrategy(d);
+		String overrideReconstruction = getOverrideReconstructionStrategy(d);
+		String resugar = getResugarStrategy(d);
 		for (IStrategoAppl aRefactoring : collectTerms(d.getDocument(), "Refactoring")) {
 			IStrategoTerm[] semanticNodes = termAt(aRefactoring,0).getAllSubterms();
 			String caption = termContents(termAt(aRefactoring, 1));
@@ -159,6 +157,9 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 						cursor, 
 						source, 
 						ppStrategy,
+						parenthesize,
+						overrideReconstruction,
+						resugar,
 						semanticNodes,
 						inputFields,
 						actionDefinitionId
@@ -168,7 +169,40 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 		}
 		return refactorings;
 	}
-	
+
+	public static String getPPStrategy(Descriptor d) throws BadDescriptorException {
+		String ppStrategy = getHelperStrategyName(d, "PrettyPrint");
+		if(ppStrategy == null)
+			ppStrategy = ("pp-" + d.getLanguage().getName() + "-string").toLowerCase();
+		return ppStrategy;
+	}
+
+	public static String getParenthesizeStrategy(Descriptor d) throws BadDescriptorException {
+		String parenthesizeStrategy = getHelperStrategyName(d, "Parenthesize");
+		if(parenthesizeStrategy == null)
+			parenthesizeStrategy = ("parenthesize-" + d.getLanguage().getName());
+		return parenthesizeStrategy;
+	}
+
+	public static String getOverrideReconstructionStrategy(Descriptor d) throws BadDescriptorException {
+		String overrideReconstructionStrategy = getHelperStrategyName(d, "OverrideReconstruction");
+		return overrideReconstructionStrategy;
+	}
+
+	public static String getResugarStrategy(Descriptor d) throws BadDescriptorException {
+		String resugarStrategy = getHelperStrategyName(d, "Resugar");
+		return resugarStrategy;
+	}
+
+	public static String getHelperStrategyName(Descriptor d, String strategyTermCons) {
+		IStrategoAppl strategyTerm = TermReader.findTerm(d.getDocument(), strategyTermCons);
+		String strategyName = null;
+		if(strategyTerm != null)
+			strategyName=termContents(termAt(strategyTerm, 0));
+		return strategyName;
+	}
+
+
 	private static String getKeyBinding(IStrategoTerm userInteractions) {
 		IStrategoTerm keybinding = TermReader.findTerm(userInteractions, "KeyBinding");
 		if(keybinding != null)

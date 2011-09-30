@@ -12,7 +12,7 @@ origin-term-desugared = prim("SSL_EXT_origin_term_desugared", <id>)
 origin-term-fuzzy = prim("SSL_EXT_origin_term_fuzzy", <id>)
 
 origin-text   = origin-support-sublist(prim("SSL_EXT_origin_text", <id>))
-origin-offset = origin-support-sublist(prim("SSL_EXT_origin_offset", <id>)) //exclusive already in Spoofax. TODO: inclusive in Spoofax
+origin-offset = origin-support-sublist(prim("SSL_EXT_origin_offset", <id>)) 
 origin-indent = origin-support-sublist(prim("SSL_EXT_origin_indentation", <id>))
 origin-separation = origin-support-sublist(prim("SSL_EXT_origin_separation", <id>)) //only succeeds if list >=2 elems
 origin-layout-prefix = origin-support-sublist(prim("SSL_EXT_origin_layout_prefix", <id>))
@@ -50,10 +50,13 @@ origin-set-relation:
 	where
 		origin-tracked-node := <!Some(<id>); all(!new-node); ?Some(<id>)> origin-node
 
+origin-track-forced(s) =
+	![<id>]; all(s); ?[<id>]
+
 rules //support default values for non-origin elements
 			
 TABSIZE = !4
-DEFAULT-INDENT = !"  "
+DEFAULT-INDENT = !"\t" //HACK: this is used in case multiline subterm texts are pretty-printed
 
 layout-prefix = origin-layout-prefix <+ !""
 comments-after = origin-comments-after <+ !""
