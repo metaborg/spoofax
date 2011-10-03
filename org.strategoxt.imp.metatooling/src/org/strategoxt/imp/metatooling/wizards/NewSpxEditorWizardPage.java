@@ -42,8 +42,8 @@ public class NewSpxEditorWizardPage extends WizardPage {
 	 */
 	public NewSpxEditorWizardPage() {
 		super("wizardPage");
-		setTitle("Spoofax/IMP(SpoofaxLang) Editor Project (beta version)");
-		setDescription("This wizard creates a new Spoofax/IMP editor project (Powered by SpoofaxLang). Currently it is in beta version.");
+		setTitle("SpoofaxLang Editor Project (beta)");
+		setDescription("This wizard creates a new Spoofax editor project (using SpoofaxLang). Currently in beta.");
 	}
 
 	/**

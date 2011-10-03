@@ -28,7 +28,7 @@
             class="org.strategoxt.imp.metatooling.wizards.NewEditorWizard"
             icon="icons/sample.gif"
             id="org.strategoxt.imp.metatooling.wizards.NewEditorWizard"
-            name="Spoofax/IMP editor project"
+            name="Spoofax editor project"
             project="true">
       </wizard>
    </extension>
@@ -41,7 +41,7 @@
             class="org.strategoxt.imp.metatooling.wizards.NewSpxEditorWizard"
             icon="icons/sample.gif"
             id="org.strategoxt.imp.metatooling.wizards.NewSpxEditorWizard"
-            name="Spoofax/IMP(Spoofaxlang) editor project"
+            name="SpoofaxLang editor project (beta)"
             project="true">
       </wizard>
    </extension>
