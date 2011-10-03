@@ -178,7 +178,7 @@ public class StrategoBuilder implements IBuilder {
 		try {
 			try {
 				if (node == null) {
-					openError(editor, "Editor is still analyzing");
+					openError(editor, "Editor is still parsing or analyzing");
 					return;
 				}
 				
