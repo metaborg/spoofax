@@ -123,7 +123,7 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 			Point selection = getEditor().getSelection(); 
 			if(controller instanceof SGLRParseController) {
 				((SGLRParseController)controller).getParser().setCursorLocation(selection.x);
-				editScenarioCollector.collectEditorFile(((SGLRParseController)controller).getCurrentAst());
+				editScenarioCollector.collectEditorFile(((SGLRParseController)controller).getCurrentAst(), selection.x);
 			}
 			ISourceViewer viewer = getEditor().getServiceControllerManager().getSourceViewer();
 			if (event.widget instanceof StyledText

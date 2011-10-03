@@ -25,11 +25,15 @@ public class EditScenarioCollector {
 	
 	public EditScenarioCollector(){
 		oldTokens = null;
+		startNewEditSession();
+	}
+
+	public void startNewEditSession() {
 		editNumber = 1;
 		editSession = UUID.randomUUID().toString();
 	}
 	
-	public void collectEditorFile(IStrategoTerm parseResult) {
+	public void collectEditorFile(IStrategoTerm parseResult, int cursorLoc) {
 		IPreferenceStore store = RuntimeActivator.getInstance().getPreferenceStore();
 		if(!store.getBoolean(SpoofaxPreferencePage.COLLECT_EDIT_SCENARIOS)){
 			return;
@@ -46,7 +50,7 @@ public class EditScenarioCollector {
 			for (int i = editNumberString.length(); i < 5; i++) {
 				editNumberString = "0" + editNumberString;
 			}
-			final String fileName = "edit_" + editNumberString + "_err_" + nrOfSyntaxErrors + "_dist_"+ editDistance + "." + resource.getFileExtension();
+			final String fileName = "edit_" + editNumberString + "_err_" + nrOfSyntaxErrors + "_dist_"+ editDistance + "_cursor_" + cursorLoc +"." + resource.getFileExtension();
 			final IPath projectPath = resource.getProject().getLocation();
 			final IPath editSessionPath = projectPath.append("edit-scenarios").append(editSession);
 			try {
@@ -69,6 +73,9 @@ public class EditScenarioCollector {
 			}
 			oldTokens = tokens;
 			editNumber ++;
+			if(editNumber > 10000){
+				startNewEditSession();
+			}
 		}
 	}
 
