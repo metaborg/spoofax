@@ -75,7 +75,7 @@ public class ContentProposer implements IContentProposer {
 		IStrategoTerm ast = parser.parse(controller, selection, document, avoidReparse);
 		int prefixLength = parser.getCompletionPrefix() == null ? 0 : parser.getCompletionPrefix().length();
 		Set<String> sorts = new AstSortInspector(ast).getSortsAtOffset(
-				offset - prefixLength, offset + COMPLETION_TOKEN.length() - 1);
+				offset - prefixLength, offset + COMPLETION_TOKEN.length());
 		if (parser.getCompletionNode() == null)
 			return getParseFailureProposals(controller, document, offset, sorts, viewer);
 
