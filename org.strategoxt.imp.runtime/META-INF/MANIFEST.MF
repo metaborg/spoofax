@@ -25,7 +25,7 @@ Require-Bundle: org.eclipse.imp.runtime,
  org.spoofax.terms,
  org.strategoxt.strj,
  org.strategoxt.imp.debug.core,
- org.eclipse.core.expressions;bundle-version="3.4.200"
+ org.eclipse.core.expressions
 Export-Package: org.strategoxt.imp.runtime,
  org.strategoxt.imp.runtime.dynamicloading,
  org.strategoxt.imp.runtime.parser,
