@@ -335,7 +335,7 @@
       <page
             class="org.strategoxt.imp.runtime.SpoofaxPreferencePage"
             id="org.strategoxt.imp.runtime.SpoofaxPreferencePage"
-            name="Spoofax Preferences">
+            name="Spoofax">
       </page>
    </extension>
    <extension
