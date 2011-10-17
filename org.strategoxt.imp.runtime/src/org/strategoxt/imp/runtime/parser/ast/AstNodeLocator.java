@@ -15,6 +15,7 @@ import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
+import org.spoofax.jsglr.client.imploder.Tokenizer;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 
@@ -33,10 +34,15 @@ public class AstNodeLocator implements ISourcePositionLocator {
 		//this.controller = controller;
 	}
 
+	/**
+	 * @param endOffset  The end offset (inclusive).
+	 */
 	public ISimpleTerm findNode(Object root, int startOffset, int endOffset) {
 		ISimpleTerm ast = impObjectToAstNode(root);
 		
-		if (getLeftToken(ast).getStartOffset() <= startOffset && endOffset <= getRightToken(ast).getEndOffset()) {
+		if (getLeftToken(ast).getStartOffset() <= startOffset
+				&& (endOffset <= getRightToken(ast).getEndOffset()
+						|| isPartOfListSuffixAt(ast, endOffset))) {
 			Iterator<ISimpleTerm> iterator = tryGetListIterator(ast); 
 			for (int i = 0, max = ast.getSubtermCount(); i < max; i++) {
 				ISimpleTerm child = iterator == null ? ast.getSubterm(i) : iterator.next();
@@ -52,9 +58,17 @@ public class AstNodeLocator implements ISourcePositionLocator {
 		    return null;
 		}
 	}
+
+	/**
+	 * Tests if an end offset is part of a list suffix
+	 * (considers the layout following the list also part of the list).
+	 */
+	private static boolean isPartOfListSuffixAt(ISimpleTerm node, final int offset) {
+		return node.isList() && offset <= Tokenizer.findRightMostLayoutToken(getRightToken(node)).getEndOffset();
+	}
 	
 	public ISimpleTerm findNode(Object root, int offset) {
-		return findNode(root, offset, offset);
+		return findNode(root, offset, offset - 1);
 	}
 	
 	public int getStartOffset(final Object element) {

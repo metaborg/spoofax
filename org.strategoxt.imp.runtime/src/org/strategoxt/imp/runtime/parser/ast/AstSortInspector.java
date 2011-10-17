@@ -32,14 +32,29 @@ public class AstSortInspector {
 		this.ast = ast;
 	}
 	
+	/**
+	 * @param startOffset The start offset.
+	 * @param endOffset   The end offset (inclusive).
+	 */
+	public Set<String> getSortsAtOffset(int startOffset, int endOffset) {
+		return getSortsAt(startOffset, endOffset, null);
+	}
+	
 	// TODO: get *all* sorts at cursor by looking at the parse tree? or by storing injections in the AST?
 	//       (see AsfixImploder)
-	public Set<String> getSortsAtOffset(int startOffset, int endOffset) {
+	/**
+	 * @param startOffset The start offset.
+	 * @param endOffset   The end offset (inclusive).
+	 */
+	public Set<String> getSortsAt(int startOffset, int endOffset, IStrategoTerm node) {
 		if (ast == null) return new HashSet<String>();
-		ISourcePositionLocator locator = getParseController(ast).getSourcePositionLocator();
-		IStrategoTerm node = (IStrategoTerm) locator.findNode(ast, endOffset);
-		if (node == null) node = ast;
 
+		if (node == null) {
+			ISourcePositionLocator locator = getParseController(ast).getSourcePositionLocator();
+			node = (IStrategoTerm) locator.findNode(ast, endOffset);
+			if (node == null) node = ast;
+		}
+		
 		int startToken = getNonLayoutTokenLeftOf(node);
 		int endToken = getNonLayoutTokenRightOf(node);
 		Set<String> results = getSortsOfOptionalChildren(node, startOffset, endOffset);
@@ -51,13 +66,9 @@ public class AstSortInspector {
 		do {
 			IStrategoTerm parent = getParent(node);
 			if (!skipNonOptNodes && getLeftToken(node).getIndex() > startToken) {
-				if (node.isList()) {
+				if (node.isList() || (getSort(node) != null) && getSort(node).equals("Some"))
 					isOptNode = true;
-					results.add(getElementSort(node));
-				} else if (getSort(node) != null) {
-					if (getSort(node).equals("Some")) isOptNode = true;
-					results.add(getSort(node));
-				}
+				results.add(getElementSort(node));
 			} else if (parent != null && parent.isList()) {
 				if (!skipNonOptNodes)
 					results.add(getElementSort(parent));
@@ -78,6 +89,9 @@ public class AstSortInspector {
 		return results;
 	}
 
+	/**
+	 * @param endOffset   The end offset (inclusive).
+	 */
 	private Set<String> getSortsOfOptionalChildren(IStrategoTerm node, int startOffset, int endOffset) {
 		// TODO: detect 'opt' optionals in addition to list children?
 		// TODO: somehow behave differently in case the completion resulted in a syntax error?

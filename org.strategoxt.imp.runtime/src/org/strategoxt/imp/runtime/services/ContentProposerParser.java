@@ -17,6 +17,7 @@ import org.eclipse.jface.text.Position;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.jsglr.client.imploder.Tokenizer;
 import org.spoofax.jsglr.shared.SGLRException;
 import org.spoofax.terms.TermTransformer;
 import org.spoofax.terms.TermVisitor;
@@ -35,10 +36,10 @@ import org.strategoxt.imp.runtime.parser.SGLRParseController;
  */
 public class ContentProposerParser {
 
-	protected static final IStrategoConstructor COMPLETION_CONSTRUCTOR =
+	public static final IStrategoConstructor COMPLETION_CONSTRUCTOR =
 		getTermFactory().makeConstructor("COMPLETION", 1);
 
-	protected static final IStrategoConstructor COMPLETION_UNKNOWN =
+	public static final IStrategoConstructor COMPLETION_UNKNOWN =
 		getTermFactory().makeConstructor("NOCONTEXT", 1);
 
 	private static final long REINIT_PARSE_DELAY = 4000;
@@ -247,7 +248,7 @@ public class ContentProposerParser {
 
 			public void preVisit(IStrategoTerm node) {
 				if (getLeftToken(node).getStartOffset() <= offset
-						&& offset <= getRightToken(node).getEndOffset()) {
+						&& (offset <= getRightToken(node).getEndOffset() || isPartOfListSuffixAt(node, offset))) {
 					targetNode = node;
 				}
 				lastNode = node;
@@ -260,6 +261,14 @@ public class ContentProposerParser {
 		} else {
 			return putCompletionNode(visitor.lastNode, prefix, true);
 		}
+	}
+
+	/**
+	 * Tests if an end offset is part of a list suffix
+	 * (considers the layout following the list also part of the list).
+	 */
+	protected static boolean isPartOfListSuffixAt(IStrategoTerm node, final int offset) {
+		return node.isList() && offset <= Tokenizer.findRightMostLayoutToken(getRightToken(node)).getEndOffset();
 	}
 
 	/**
