@@ -16,14 +16,22 @@ import java.util.Random;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.ISchedulingRule;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.imp.editor.ErrorProposal;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.services.IContentProposer;
+import org.eclipse.jface.text.ITextOperationTarget;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
+import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.ui.progress.UIJob;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -38,6 +46,7 @@ import org.strategoxt.imp.runtime.stratego.StrategoConsole;
  * Content completion.
  *
  * @author Lennart Kats <lennart add lclnet.nl>
+ * @author Tobi Vollebregt
  */
 public class ContentProposer implements IContentProposer {
 
@@ -55,6 +64,25 @@ public class ContentProposer implements IContentProposer {
 
 	private final ContentProposerParser parser; // mutable state
 
+	// ensures only one completion job runs at a time
+	private ISchedulingRule serializeJobs = new ISchedulingRule() {
+		public boolean isConflicting(ISchedulingRule arg0) {
+			return arg0 == serializeJobs;
+		}
+		public boolean contains(ISchedulingRule arg0) {
+			return arg0 == serializeJobs;
+		}
+	};
+
+	// protects results, lastDocument, and lastSelection
+	private Object lock = new Object();
+
+	private ICompletionProposal[] results;
+
+	private String lastDocument;
+
+	private Position lastSelection;
+
 	public ContentProposer(StrategoObserver observer, String completionFunction, Pattern identifierLexical, Set<Completion> templates) {
 		this.observer = observer;
 		this.completionFunction = completionFunction;
@@ -63,27 +91,105 @@ public class ContentProposer implements IContentProposer {
 		this.parser = new ContentProposerParser(identifierLexical);
 	}
 
-	public ICompletionProposal[] getContentProposals(IParseController controller, int offset, ITextViewer viewer) {
-		String document = viewer.getDocument().get();
-		Point selectedRange = viewer.getSelectedRange();
-		Position selection = new Position(selectedRange.x, selectedRange.y);
+	public ICompletionProposal[] getContentProposals(final IParseController controller, final int offset, final ITextViewer viewer) {
+		final String document = viewer.getDocument().get();
+		final Point selectedRange = viewer.getSelectedRange();
+		final Position selection = new Position(selectedRange.x, selectedRange.y);
 
-		if (!identifierLexical.matcher(COMPLETION_TOKEN).matches())
-			return createErrorProposal("No proposals available - completion lexical must allow letters and numbers", offset);
+		synchronized(lock) {
+			// Any past result waiting?
+			if (results != null) {
+				ICompletionProposal[] tmpResults = results;
+				results = null;
 
-		boolean avoidReparse = completionFunction == null && templates.size() == 0;
-		IStrategoTerm ast = parser.parse(controller, selection, document, avoidReparse);
-		int prefixLength = parser.getCompletionPrefix() == null ? 0 : parser.getCompletionPrefix().length();
-		Set<String> sorts = new AstSortInspector(ast).getSortsAt(
-				offset - prefixLength, offset + COMPLETION_TOKEN.length() - 1, parser.getCompletionNode());
-		if (parser.getCompletionNode() == null)
-			return getParseFailureProposals(controller, document, offset, sorts, viewer);
+				// Return that result when still valid.
+				if (document.equals(lastDocument) && selection.equals(lastSelection)) {
+					return tmpResults;
+				}
+			}
 
-		printCompletionTip(controller, sorts);
+			// No => kick off a new calculation.
+			lastDocument = document;
+			lastSelection = selection;
+		}
 
-		ICompletionProposal[] results =
-			computeAllCompletionProposals(invokeCompletionFunction(controller, sorts), document,
-					parser.getCompletionPrefix(), offset, sorts, viewer);
+		if (!identifierLexical.matcher(COMPLETION_TOKEN).matches()) {
+			return createErrorProposal("No proposals available - completion lexical must allow letters and numbers", selection);
+		}
+
+		Job job = new Job("Computing content proposals") {
+			private boolean shouldBeCancelled(IProgressMonitor monitor) {
+				return monitor.isCanceled()
+						|| !document.equals(lastDocument)
+						|| !selection.equals(lastSelection);
+			}
+
+			@Override
+			public IStatus run(IProgressMonitor monitor) {
+				// A new request for proposals may have come in before we even started...
+				synchronized (lock) {
+					if (shouldBeCancelled(monitor))
+						return Status.CANCEL_STATUS;
+				}
+
+				// Parse, takes parse lock.
+				// parse might be skipped if ContentProposerParser figures it can reuse the previous AST
+				boolean avoidReparse = completionFunction == null && templates.size() == 0;
+				IStrategoTerm ast = parser.parse(controller, selection, document, avoidReparse);
+				int prefixLength = parser.getCompletionPrefix() == null ? 0 : parser.getCompletionPrefix().length();
+				Set<String> sorts = new AstSortInspector(ast).getSortsAt(offset - prefixLength, offset + COMPLETION_TOKEN.length() - 1, parser.getCompletionNode());
+				IStrategoTerm completionNode = parser.getCompletionNode();
+
+				// Still continue?
+				synchronized (lock) {
+					if (shouldBeCancelled(monitor))
+						return Status.CANCEL_STATUS;
+				}
+
+				// Invoke completion strategy, takes observer lock. 
+				ICompletionProposal[] tmpResults;
+
+				if (completionNode == null) {
+					tmpResults = getParseFailureProposals(
+							controller, document, selection, sorts, viewer);
+				} else {
+					printCompletionTip(controller, sorts);
+
+					tmpResults = computeAllCompletionProposals(
+							invokeCompletionFunction(controller, completionNode, sorts), document,
+							parser.getCompletionPrefix(), selection, sorts, viewer);
+				}
+
+				// Store results only if still not cancelled.
+				synchronized(lock) {
+					if (shouldBeCancelled(monitor)) {
+						return Status.CANCEL_STATUS;
+					} else {
+						results = tmpResults;
+					}
+				}
+
+				// Re-trigger completion.
+				// Next invocation of getContentProposals will return the results.
+				UIJob job = new UIJob("Re-triggering content assist") {
+					@Override
+					public IStatus runInUIThread(IProgressMonitor monitor) {
+						((ITextOperationTarget) viewer).doOperation(ISourceViewer.CONTENTASSIST_PROPOSALS);
+						return Status.OK_STATUS;
+					}
+				};
+				job.setSystem(true);
+				job.setPriority(Job.INTERACTIVE);
+				job.schedule();
+
+				return Status.OK_STATUS;
+			}
+		};
+
+		job.setSystem(true);
+		job.setPriority(Job.INTERACTIVE);
+		job.setRule(serializeJobs);
+		job.schedule();
 
 		// TVO: there is an interface for this AFAIK
 		/* UNDONE: automatic proposal insertion
@@ -96,7 +202,7 @@ public class ContentProposer implements IContentProposer {
 		}
 		*/
 
-		return results;
+		return null;
 	}
 
 	public ICompletionProposal[] getTemplateProposalsForSort(String wantedSort, ITextViewer viewer) {
@@ -110,22 +216,22 @@ public class ContentProposer implements IContentProposer {
 	}
 
 	private ICompletionProposal[] getParseFailureProposals(IParseController controller,
-			String document, int offset, Set<String> sorts, ITextViewer viewer) {
+			String document, Position selection, Set<String> sorts, ITextViewer viewer) {
 
 		String startSymbol = Environment.getDescriptor(controller.getLanguage()).getStartSymbol();
 
 		if (startSymbol != null && document.trim().indexOf('\n') == -1) {
 			// Empty document completion
-			String prefix = parser.readPrefix(offset, document);
+			String prefix = parser.readPrefix(selection.getOffset(), document);
 			sorts.add(startSymbol);
 			printCompletionTip(controller, sorts);
-			ICompletionProposal[] proposals = computeAllCompletionProposals(Environment.getTermFactory().makeList(), document, prefix, offset, sorts, viewer);
+			ICompletionProposal[] proposals = computeAllCompletionProposals(Environment.getTermFactory().makeList(), document, prefix, selection, sorts, viewer);
 			if (proposals.length != 0) return proposals;
 		}
 		if (parser.isFatalSyntaxError()) {
-			return createErrorProposal("No proposals available - syntax errors", offset);
+			return createErrorProposal("No proposals available - syntax errors", selection);
 		} else {
-			return createErrorProposal("No proposals available - could not identify proposal context", offset);
+			return createErrorProposal("No proposals available - could not identify proposal context", selection);
 		}
 	}
 
@@ -164,69 +270,49 @@ public class ContentProposer implements IContentProposer {
 		parser.getParser().scheduleParserUpdate(0, false);
 	}
 
-	private IStrategoTerm invokeCompletionFunction(final IParseController controller, final Set<String> sorts) {
+	private IStrategoTerm invokeCompletionFunction(final IParseController controller, IStrategoTerm completionNode, final Set<String> sorts) {
 		if (completionFunction == null) {
-			return Environment.getTermFactory().makeList();
+			return TermFactory.EMPTY_LIST;
 		} else {
-			// FIXME: Using the environment lock for content completion
-			//        The problem here is really that content completion shouldn't
-			//        run in the main thread. It might be possible to spawn a new
-			//        thread and then invoke content completion again when it's done.
-			class Runner implements Runnable {
-				IStrategoTerm result;
-				public void run() {
-					observer.getLock().lock();
-					try {
-						CandidateSortsPrimitive.setCandidateSorts(sorts);
-						if (!observer.isUpdateScheduled()) {
-							observer.update(controller, new NullProgressMonitor());
-						}
-						IStrategoTerm input = observer.getInputBuilder().makeInputTerm(parser.getCompletionNode(), true, false);
-						result = observer.invokeSilent(completionFunction, input, getResource(parser.getCompletionNode()));
-						if (result == null) {
-							observer.reportRewritingFailed();
-							result = TermFactory.EMPTY_LIST;
-						}
-					} finally {
-						observer.getLock().unlock();
-					}
+			IStrategoTerm result;
+			observer.getLock().lock();
+			try {
+				CandidateSortsPrimitive.setCandidateSorts(sorts);
+				if (!observer.isUpdateScheduled()) {
+					observer.update(controller, new NullProgressMonitor());
 				}
+				IStrategoTerm input = observer.getInputBuilder().makeInputTerm(completionNode, true, false);
+				result = observer.invokeSilent(completionFunction, input, getResource(completionNode));
+				if (result == null) {
+					observer.reportRewritingFailed();
+					result = TermFactory.EMPTY_LIST;
+				}
+			} finally {
+				observer.getLock().unlock();
 			}
-			Runner runner = new Runner();
-
-			// UNDONE: causes deadlock with updater thread
-			//         (which acquires the display lock to display monitor updates)
-			//if (EditorState.isUIThread()) {
-			//	Display.getCurrent().syncExec(runner);
-			//} else {
-				runner.run();
-			//}
-			return runner.result;
+			return result;
 		}
 	}
 
-	private ICompletionProposal[] computeAllCompletionProposals(IStrategoTerm proposals, String document, String prefix, int offset, Set<String> sorts, ITextViewer viewer) {
+	private ICompletionProposal[] computeAllCompletionProposals(IStrategoTerm proposals, String document, String prefix, Position selection, Set<String> sorts, ITextViewer viewer) {
 
 		// dynamically computed blueprints, i.e. from semantic analysis
-		Set<Completion> results = toCompletions(proposals, document, prefix, offset, sorts);
+		Set<Completion> results = toCompletions(proposals, document, prefix, selection, sorts);
 
 		if (results == null) {
 			String error = "No proposals available - '" + completionFunction
 					+ "' did not return a ([proposal], description) list";
 
-			return createErrorProposal(error, offset);
+			return createErrorProposal(error, selection);
 		}
 
 		// static blueprints, i.e. keywords and templates
 		results.addAll(templates);
 
-		Point selection = viewer.getSelectedRange();
-		Position offsetPosition = new Position(selection.x, selection.y);
-
-		return filterCompletions(results, document, prefix, offsetPosition, sorts, viewer);
+		return filterCompletions(results, document, prefix, selection, sorts, viewer);
 	}
 
-	private Set<Completion> toCompletions(IStrategoTerm proposals, String document, String prefix, int offset, Set<String> sorts) {
+	private Set<Completion> toCompletions(IStrategoTerm proposals, String document, String prefix, Position selection, Set<String> sorts) {
 
 		if (proposals.getTermType() != LIST)
 			return null;
@@ -355,8 +441,8 @@ public class ContentProposer implements IContentProposer {
 		return true;
 	}
 
-	private ICompletionProposal[] createErrorProposal(String error, int offset) {
-		return new ICompletionProposal[] { new ErrorProposal(error, offset) };
+	private ICompletionProposal[] createErrorProposal(String error, Position selection) {
+		return new ICompletionProposal[] { new ErrorProposal(error, selection.getOffset()) };
 	}
 
 }
