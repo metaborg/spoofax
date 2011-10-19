@@ -14,6 +14,9 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -83,6 +86,8 @@ public class ContentProposer implements IContentProposer {
 
 	private Position lastSelection;
 
+	private final BlockingQueue<ICompletionProposal[]> resultsQueue = new ArrayBlockingQueue<ICompletionProposal[]>(1);
+
 	public ContentProposer(StrategoObserver observer, String completionFunction, Pattern identifierLexical, Set<Completion> templates) {
 		this.observer = observer;
 		this.completionFunction = completionFunction;
@@ -119,6 +124,8 @@ public class ContentProposer implements IContentProposer {
 
 		Job job = new Job("Computing content proposals") {
 			private boolean shouldBeCancelled(IProgressMonitor monitor) {
+				// Job should be cancelled when lastDocument or lastSelection
+				// has been updated by a new call to getContentProposals.
 				return monitor.isCanceled()
 						|| !document.equals(lastDocument)
 						|| !selection.equals(lastSelection);
@@ -132,8 +139,8 @@ public class ContentProposer implements IContentProposer {
 						return Status.CANCEL_STATUS;
 				}
 
-				// Parse, takes parse lock.
-				// parse might be skipped if ContentProposerParser figures it can reuse the previous AST
+				// Parse (takes parse lock).
+				// Parse might be skipped if ContentProposerParser figures it can reuse the previous AST.
 				boolean avoidReparse = completionFunction == null && templates.size() == 0;
 				IStrategoTerm ast = parser.parse(controller, selection, document, avoidReparse);
 				int prefixLength = parser.getCompletionPrefix() == null ? 0 : parser.getCompletionPrefix().length();
@@ -146,7 +153,7 @@ public class ContentProposer implements IContentProposer {
 						return Status.CANCEL_STATUS;
 				}
 
-				// Invoke completion strategy, takes observer lock. 
+				// Invoke completion strategy (takes observer lock).
 				ICompletionProposal[] tmpResults;
 
 				if (completionNode == null) {
@@ -158,6 +165,12 @@ public class ContentProposer implements IContentProposer {
 					tmpResults = computeAllCompletionProposals(
 							invokeCompletionFunction(controller, completionNode, sorts), document,
 							parser.getCompletionPrefix(), selection, sorts, viewer);
+				}
+
+				// Offer results to getContentProposals, it might still be waiting.
+				// If the offer fails, don't re-trigger completion when we got no results.
+				if (resultsQueue.offer(tmpResults) || tmpResults == null || tmpResults.length == 0) {
+					return Status.OK_STATUS;
 				}
 
 				// Store results only if still not cancelled.
@@ -189,20 +202,32 @@ public class ContentProposer implements IContentProposer {
 		job.setSystem(true);
 		job.setPriority(Job.INTERACTIVE);
 		job.setRule(serializeJobs);
+		resultsQueue.clear();
 		job.schedule();
 
-		// TVO: there is an interface for this AFAIK
-		/* UNDONE: automatic proposal insertion
-		if (results.length == 1 && results[0] instanceof SourceProposal) {
-			results[0].apply(viewer.getDocument());
-			Point selection = ((SourceProposal) results[0]).getSelection(viewer.getDocument());
-			viewer.setSelectedRange(selection.x, selection.y);
-			insertImmediatelyOnce = false;
+		try {
+			// Wait up to 500 ms, maybe the job finishes quickly.
+			// This greatly reduces "flickering" of the completion popup
+			// when it is open while typing text or moving the cursor.
+			ICompletionProposal[] tmpResults = resultsQueue.poll(500, TimeUnit.MILLISECONDS);
+
+			// Block the queue by putting a dummy element in it.
+			// This will signal the job to re-trigger content assist.
+			if (!resultsQueue.offer(new ICompletionProposal[0])) {
+				// If offer fails then the job finished between the poll and the offer.
+				tmpResults = resultsQueue.poll();
+			}
+
+			// If tmpResults == null, then popup goes away,
+			// will pop up again when the job finishes.
+
+			// Returning a "Be patient" ErrorProposal here doesn't work:
+			// the completion re-trigger is ignored if the popup is open...
+
+			return tmpResults;
+		} catch (InterruptedException e) {
 			return null;
 		}
-		*/
-
-		return null;
 	}
 
 	public ICompletionProposal[] getTemplateProposalsForSort(String wantedSort, ITextViewer viewer) {
