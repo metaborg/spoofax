@@ -50,7 +50,7 @@ public class EditScenarioCollector {
 			for (int i = editNumberString.length(); i < 5; i++) {
 				editNumberString = "0" + editNumberString;
 			}
-			final String fileName = "edit_" + editNumberString + "_err_" + nrOfSyntaxErrors + "_dist_"+ editDistance + "_cursor_" + cursorLoc +"." + resource.getFileExtension();
+			final String fileName = "edit_" + editNumberString + "_err_" + nrOfSyntaxErrors + "_dist_"+ editDistance + "_cursor_" + cursorLoc +"." + resource.getFileExtension() + ".scn";
 			final IPath projectPath = resource.getProject().getLocation();
 			final IPath editSessionPath = projectPath.append("edit-scenarios").append(editSession);
 			try {
