@@ -3,8 +3,6 @@ package org.strategoxt.imp.runtime.dynamicloading;
 import static org.spoofax.interpreter.core.Tools.termAt;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getFilename;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.collectTerms;
-import static org.strategoxt.imp.runtime.dynamicloading.TermReader.concatTermStrings;
-import static org.strategoxt.imp.runtime.dynamicloading.TermReader.cons;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.findTerm;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.termContents;
 
@@ -32,11 +30,9 @@ import org.eclipse.imp.language.ServiceFactory;
 import org.eclipse.imp.parser.IParseController;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
-import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.RuntimeActivator;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
-import org.strategoxt.imp.runtime.services.IRefactoringMap;
 import org.strategoxt.imp.runtime.services.MetaFileLanguageValidator;
 import org.strategoxt.lang.WeakValueHashMap;
 

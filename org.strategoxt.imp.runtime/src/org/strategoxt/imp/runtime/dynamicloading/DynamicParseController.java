@@ -33,6 +33,8 @@ public class DynamicParseController extends AbstractService<IParseController> im
 	
 	public static final int REINIT_PARSE_DELAY = 100;
 	
+	private static String TESTING_LANGUAGE_NAME = "Spoofax-Testing";
+	
 	private EditorState lastEditor;
 	
 	private IPath filePath;
@@ -155,11 +157,31 @@ public class DynamicParseController extends AbstractService<IParseController> im
 	public void reinitialize(Descriptor newDescriptor) throws BadDescriptorException {
 		if (isInitialized() && getLastEditor() != null)
 			TokenColorerHelper.unregister(getLastEditor());
-		super.reinitialize(newDescriptor);
+		
+		if (!isTestingFragmentDescriptor(newDescriptor))
+			super.reinitialize(newDescriptor);
 		isReinitialized = true;
 		if (lastEditor != null) {
 			initializeEagerServices(getWrapped());
 			lastEditor.scheduleParserUpdate(REINIT_PARSE_DELAY);
+		}
+	}
+
+	/**
+	 * Tests if the descriptor to reinitialize is
+	 * in fact a descriptor for a fragment language
+	 * in the testing language.
+	 */
+	private boolean isTestingFragmentDescriptor(Descriptor newDescriptor) {
+		try {
+			return getLanguage() != null
+				&& getLanguage().getName().equals(TESTING_LANGUAGE_NAME)
+				&& !newDescriptor.getLanguage().getName().equals(TESTING_LANGUAGE_NAME);
+		} catch (BadDescriptorException e) {
+			return false;
+		} catch (RuntimeException e) {
+			Environment.logWarning("Unexpected exception", e);
+			return false;
 		}
 	}
 
