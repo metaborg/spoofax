@@ -187,6 +187,15 @@ public class ContentProposer implements IContentProposer {
 				UIJob job = new UIJob("Re-triggering content assist") {
 					@Override
 					public IStatus runInUIThread(IProgressMonitor monitor) {
+						// Don't re-trigger if document/selection changed
+						// between scheduling and execution of this UIJob.
+						synchronized(lock) {
+							if (shouldBeCancelled(monitor)
+									|| !viewer.getDocument().get().equals(document)
+									|| !viewer.getSelectedRange().equals(selectedRange)) {
+								return Status.CANCEL_STATUS;
+							}
+						}
 						((ITextOperationTarget) viewer).doOperation(ISourceViewer.CONTENTASSIST_PROPOSALS);
 						return Status.OK_STATUS;
 					}
