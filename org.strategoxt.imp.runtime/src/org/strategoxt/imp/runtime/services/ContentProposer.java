@@ -191,6 +191,7 @@ public class ContentProposer implements IContentProposer {
 						// between scheduling and execution of this UIJob.
 						synchronized(lock) {
 							if (shouldBeCancelled(monitor)
+									|| viewer.getDocument() == null
 									|| !viewer.getDocument().get().equals(document)
 									|| !viewer.getSelectedRange().equals(selectedRange)) {
 								return Status.CANCEL_STATUS;
