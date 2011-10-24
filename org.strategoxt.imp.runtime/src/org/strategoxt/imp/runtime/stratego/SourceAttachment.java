@@ -52,6 +52,11 @@ public class SourceAttachment extends AbstractTermAttachment {
 	public static IResource getResource(ISimpleTerm term) {
 		SourceAttachment resource = ParentAttachment.getRoot(term).getAttachment(TYPE);
 		if (resource == null) {
+			while (term.getAttachment(ImploderAttachment.TYPE) == null && term.getSubtermCount() > 0)
+				term = term.getSubterm(0);
+			if (term.getAttachment(ImploderAttachment.TYPE) == null)
+				return null;
+			
 			String file = ImploderAttachment.getFilename(term);
 			try {
 				return file == null ? null : EditorIOAgent.getResource(new File(file));

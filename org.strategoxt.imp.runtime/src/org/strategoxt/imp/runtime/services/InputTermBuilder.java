@@ -6,6 +6,7 @@ import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getSort;
 import static org.spoofax.terms.Term.tryGetConstructor;
 import static org.spoofax.terms.attachments.ParentAttachment.getParent;
 import static org.spoofax.terms.attachments.ParentAttachment.getRoot;
+import static org.spoofax.terms.attachments.OriginAttachment.tryGetOrigin;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -224,15 +225,15 @@ public class InputTermBuilder {
 			return getParent(oNode);
 		
 		IStrategoTerm result = oNode;
-		IToken left = getLeftToken(result);
+		IToken left = getLeftToken(tryGetOrigin(result));
 		if (left == null) return oNode;
 		int startOffset = left.getStartOffset();
-		int endOffset = getRightToken(result).getEndOffset();
+		int endOffset = getRightToken(tryGetOrigin(result)).getEndOffset();
 		while (getParent(result) != null
 				&& !getParent(result).isList()
 				&& (getParent(result).getSubtermCount() <= 1 
-						|| (getLeftToken(getParent(result)).getStartOffset() >= startOffset
-							&& getRightToken(getParent(result)).getEndOffset() <= endOffset)))
+						|| (getLeftToken(tryGetOrigin(getParent(result))).getStartOffset() >= startOffset
+							&& getRightToken(tryGetOrigin(getParent(result))).getEndOffset() <= endOffset)))
 			result = getParent(result);
 		return result;
 	}

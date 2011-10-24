@@ -250,7 +250,6 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	
 	/**
 	 * Returns the Spoofax language descript project this observer is associated with.
-	 * @return
 	 */
 	public IProject getProject()
 	{
@@ -469,7 +468,8 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		IStrategoTerm ast = (IStrategoTerm) parseController.getCurrentAst();
 		if (ast == null /* UNDONE: || tryGetConstructor(ast) == null*/ || feedbackFunction == null
 				|| isRecoveryFailed(parseController)) {
-			messages.clearMarkers(((SGLRParseController) parseController).getResource());
+			if (parseController instanceof SGLRParseController)
+				messages.clearMarkers(((SGLRParseController) parseController).getResource());
 			messages.commitAllChanges();
 			return;
 		}
