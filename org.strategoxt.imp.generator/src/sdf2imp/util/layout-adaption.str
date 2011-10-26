@@ -225,8 +225,8 @@ replace-in-text:
 	(old-text, text-change, pos-start, pos-end) -> result-text
 	where 
 		old-chars := <explode-string> old-text; 
-		(prefix, tail) := <split-at(|pos-start)> old-chars; 
-		(heads, suffix) := <split-at(|pos-end)> old-chars; 
+		(prefix, _) := <split-at(|pos-start)> old-chars; 
+		(_, suffix) := <split-at(|pos-end)> old-chars; 
 		result-text := <conc-strings> (<implode-string> prefix, text-change, <implode-string> suffix) 
 		
 compare-text-change = 
