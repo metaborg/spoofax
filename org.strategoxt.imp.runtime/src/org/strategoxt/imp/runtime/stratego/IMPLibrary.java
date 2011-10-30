@@ -12,6 +12,7 @@ public class IMPLibrary extends AbstractStrategoOperatorRegistry {
 	public IMPLibrary() {
 		add(new NameDialogPrimitive());
 		add(new SubtermPrimitive());
+		add(new TermPathPrimitive());
 		add(new ProjectPathPrimitive());
 		add(new PluginPathPrimitive());
 		add(new RefreshResourcePrimitive());
