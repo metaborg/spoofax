@@ -11,7 +11,9 @@ import static org.strategoxt.imp.runtime.stratego.SourceAttachment.getResource;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -39,6 +41,8 @@ import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.jsglr.client.ParseTable;
+import org.spoofax.jsglr.client.incremental.IncrementalSortSet;
 import org.spoofax.terms.TermFactory;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.AstSortInspector;
@@ -56,6 +60,9 @@ public class ContentProposer implements IContentProposer {
 	public static String COMPLETION_TOKEN = "CONTENTCOMPLETE" + Math.abs(new Random().nextInt());
 
 	private static final boolean IGNORE_TEMPLATE_PREFIX_CASE = false;
+
+	// cached mapping from sort to all sorts injecting into that sort
+	private final Map<String, Set<String>> injections;
 
 	private final StrategoObserver observer;
 
@@ -89,6 +96,7 @@ public class ContentProposer implements IContentProposer {
 	private final BlockingQueue<ICompletionProposal[]> resultsQueue = new ArrayBlockingQueue<ICompletionProposal[]>(1);
 
 	public ContentProposer(StrategoObserver observer, String completionFunction, Pattern identifierLexical, Set<Completion> templates) {
+		this.injections = new HashMap<String, Set<String>>();
 		this.observer = observer;
 		this.completionFunction = completionFunction;
 		this.identifierLexical = identifierLexical;
@@ -241,12 +249,26 @@ public class ContentProposer implements IContentProposer {
 	}
 
 	public ICompletionProposal[] getTemplateProposalsForSort(String wantedSort, ITextViewer viewer) {
-		Set<ICompletionProposal> results = new HashSet<ICompletionProposal>();
+		// Add templates for sorts injected into wantedSort.
+		//  `sort -> wantedSort' => add templates for sort
+		//  `sub -> sort' => add templates for sub too
+
+		final Set<ICompletionProposal> results = new HashSet<ICompletionProposal>();
+		Set<String> wantedSorts = injections.get(wantedSort);
+
+		if (wantedSorts == null) {
+			final ParseTable pt = parser.getParser().getParser().getParseTable();
+			final IncrementalSortSet iss = IncrementalSortSet.create(pt, true, false, wantedSort);
+			wantedSorts = iss.getIncrementalSorts();
+			injections.put(wantedSort, wantedSorts);
+		}
+
 		for (Completion proposal : templates) {
-			if (wantedSort.equals(proposal.getSort())) {
+			if (wantedSorts.contains(proposal.getSort())) {
 				results.add(new ContentProposal(this, proposal, viewer));
 			}
 		}
+
 		return toSortedArray(results);
 	}
 
