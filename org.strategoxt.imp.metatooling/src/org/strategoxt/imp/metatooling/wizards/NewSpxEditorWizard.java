@@ -30,7 +30,7 @@ import org.strategoxt.imp.spoofax.generator.SpoofaxGenerator;
 import org.strategoxt.imp.metatooling.building.AntSpxGenerateArtefacts;
 import org.strategoxt.imp.metatooling.loading.DynamicDescriptorLoader;
 import org.strategoxt.imp.runtime.EditorState;
-import org.strategoxt.imp.editors.spoofax.trans.*;
+import org.strategoxt.imp.editors.spoofax.*;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.lang.Context;
