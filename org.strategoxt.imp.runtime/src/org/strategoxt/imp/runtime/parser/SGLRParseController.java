@@ -5,6 +5,7 @@ import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getTokenizer;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.util.Iterator;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -281,6 +282,8 @@ public class SGLRParseController implements IParseController {
 			processMetaFile();
 			
 			if (monitor.isCanceled()) return null;
+			if (Environment.getDescriptor(language).isUnicodeFlattened())
+				input = flattenUnicode(input);
 			currentTokenizer = new NullTokenizer(input, filename);
 			IStrategoTerm result = doParse(input, filename);
 			currentTokenizer = getTokenizer(result);
@@ -324,6 +327,14 @@ public class SGLRParseController implements IParseController {
 		}
 
 		return monitor.isCanceled() ? null : currentAst;
+	}
+	
+	private static String flattenUnicode(String s) {
+		try {
+			return new String(s.getBytes("UTF-8"), "ISO-8859-1");
+		} catch (UnsupportedEncodingException e) {
+			throw new RuntimeException(e);
+		} 
 	}
 	
 	public void scheduleParserUpdate(long delay, boolean abortFirst) {

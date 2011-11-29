@@ -47,6 +47,7 @@ exports
     "aliases"         ":" PropertyValues -> LanguageProperty {cons("Aliases")} %% deprecated
     "unmanaged" "table" ":" Id "*"       -> LanguageProperty {cons("UnmanagedTablePrefix")}
     "disambiguator"   ":" StrategoCall   -> LanguageProperty {cons("Disambiguator")}
+    "unicode" "flatten" ":" TrueOrFalse  -> LanguageProperty {cons("FlattenUnicode")}
    
      %% Syntax properties
      
@@ -72,3 +73,5 @@ exports
      "block"      -> PropertyValue {reject}
      "unmanaged"  -> Sort {reject}
      
+     "true"  -> TrueOrFalse {cons("True")}
+     "false" -> TrueOrFalse {cons("False")}

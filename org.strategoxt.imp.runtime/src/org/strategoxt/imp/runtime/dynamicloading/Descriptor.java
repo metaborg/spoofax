@@ -30,6 +30,7 @@ import org.eclipse.imp.language.ServiceFactory;
 import org.eclipse.imp.parser.IParseController;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
+import org.spoofax.terms.Term;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.RuntimeActivator;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
@@ -311,6 +312,11 @@ public class Descriptor {
 		} catch (BadDescriptorException e) {
 			return false;
 		}
+	}
+	
+	public boolean isUnicodeFlattened() {
+		ArrayList<IStrategoAppl> flattened = TermReader.collectTerms(document, "FlattenUnicode");
+		return !flattened.isEmpty() && !"False".equals(Term.tryGetName(flattened.get(0).getSubterm(0)));
 	}
 	
 	public void setDynamicallyLoaded(boolean dynamicallyLoaded) {

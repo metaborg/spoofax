@@ -40,7 +40,7 @@ strategies
           completion template Definition :
             "entity " <e> " {" (cursor) "}"  (blank)
           ~~
-          completion template Property : "property" =
+          completion template Property : "property : Type" =
             <x> " : " <T>  (blank)
           ~~
         completions
