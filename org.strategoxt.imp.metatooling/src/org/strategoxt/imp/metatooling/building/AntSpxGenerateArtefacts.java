@@ -61,11 +61,16 @@ public class AntSpxGenerateArtefacts {
 		if (args == null || args.length == 0)
 			throw new IllegalArgumentException("Project Work Directory is missing. ");
 
+		
 		final String workingDirectoryArg = args[0];
 		final IResource file = EditorIOAgent.getResource(new File(workingDirectoryArg));
-
+		String buildStrategy = "-i"; 
+		
+		if (args.length >1)
+			buildStrategy = args[1];
+		
 		Environment.getStrategoLock().lock();
-			try {
+		try {
 			if (!isActive())
 			{
 				active = true;
@@ -80,7 +85,7 @@ public class AntSpxGenerateArtefacts {
 					agent.setAlwaysActivateConsole(true);
 					agent.setWorkingDir(file.getLocation().toOSString());
 
-					boolean success = generateArtefacts(file, new NullProgressMonitor() , agent);
+					boolean success = generateArtefacts(file, new NullProgressMonitor() , agent,buildStrategy);
 					if (!success) {
 						System.err.println("Build failed; see error log.");
 						System.exit(1);
@@ -96,7 +101,7 @@ public class AntSpxGenerateArtefacts {
 	}
 
 	
-	public static boolean generateArtefacts(IResource file, IProgressMonitor monitor , EditorIOAgent agent) {
+	public static boolean generateArtefacts(IResource file, IProgressMonitor monitor , EditorIOAgent agent,  String buildStrategy) {
 		
 		IPath location = file.getLocation();
 		if (location == null) return false;
@@ -110,13 +115,16 @@ public class AntSpxGenerateArtefacts {
 				spoofaxlang.init(contextSpoofaxLang);
 				
 				IStrategoString input = contextSpoofaxLang.getFactory().makeString(file.getLocation().toOSString());
+				IStrategoString buildStrategyTerm = contextSpoofaxLang.getFactory().makeString(buildStrategy);
+				
+				
 				dr_scope_all_start_0_0.instance.invoke(contextSpoofaxLang, input);
 				
 				try {
 					System.out.println("Compiling SPX files and generating intermediate artefacts.");
 					System.out.println("Invoking build-spoofaxlang-jvm.");
 				
-					build_spoofaxlang_jvm_0_0.instance.invoke( contextSpoofaxLang , input);
+					build_spoofaxlang_jvm_0_0.instance.invoke( contextSpoofaxLang , contextSpoofaxLang.getFactory().makeTuple(input, buildStrategyTerm));
 					System.out.println("Intermediate artefacts have been generated successfully.");
 					
 				} catch (StrategoErrorExit e) {
@@ -129,8 +137,7 @@ public class AntSpxGenerateArtefacts {
 								+ agent.getLog(), e);
 					}
 				}
-				finally 
-				{
+				finally {
 					dr_scope_all_end_0_0.instance.invoke(contextSpoofaxLang, input);
 				}
 				
