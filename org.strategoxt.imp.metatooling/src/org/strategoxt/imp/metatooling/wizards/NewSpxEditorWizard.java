@@ -5,6 +5,7 @@ import static org.eclipse.core.resources.IResource.DEPTH_INFINITE;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
@@ -25,21 +26,15 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 import org.spoofax.interpreter.core.Interpreter;
-import org.spoofax.interpreter.terms.IStrategoString;
-import org.strategoxt.imp.spoofax.generator.SpoofaxGenerator;
-import org.strategoxt.imp.metatooling.building.AntSpxGenerateArtefacts;
-import org.strategoxt.imp.metatooling.loading.DynamicDescriptorLoader;
 import org.strategoxt.imp.runtime.EditorState;
-import org.strategoxt.imp.editors.spoofax.*;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
+import org.strategoxt.imp.spoofax.generator.SpoofaxGenerator;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.StrategoErrorExit;
 import org.strategoxt.lang.StrategoException;
 import org.strategoxt.lang.StrategoExit;
 import org.strategoxt.permissivegrammars.make_permissive;
-import org.strategoxt.stratego_lib.dr_scope_all_end_0_0;
-import org.strategoxt.stratego_lib.dr_scope_all_start_0_0;
 
 /**
  * A wizard for creating new Spoofax/IMP projects using SPX Language .
@@ -150,10 +145,20 @@ public class NewSpxEditorWizard extends Wizard implements INewWizard {
 						+ agent.getLog(), e);
 			}
 		}
-		AntSpxGenerateArtefacts.generateArtefacts(project , monitor, agent);
+		monitor.worked(8);
 		
-		monitor.worked(3);
-		refreshProject(project);
+		if ( !project.isSynchronized(DEPTH_INFINITE))
+		{
+			project.refreshLocal(DEPTH_INFINITE, new NullProgressMonitor());
+			
+			IFolder srcFolder = project.getFolder("src");
+			srcFolder.touch(new NullProgressMonitor());
+			srcFolder.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
+			
+		}
+		
+		//AntSpxGenerateArtefacts.generateArtefacts(project , monitor, agent);
+		//project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
 		
 		monitor.setTaskName("Acquiring workspace lock"); // need root lock for builder
 		IWorkspaceRoot root = project.getWorkspace().getRoot();
@@ -169,6 +174,7 @@ public class NewSpxEditorWizard extends Wizard implements INewWizard {
 				
 				monitor.worked(1);
 				
+				
 				monitor.setTaskName("Building and loading example editor");
 				project.build(IncrementalProjectBuilder.FULL_BUILD, null);
 				monitor.worked(6);
@@ -180,10 +186,9 @@ public class NewSpxEditorWizard extends Wizard implements INewWizard {
 				//IResource descriptor = project.findMember("include/" + languageName + ".packed.esv");
 				//DynamicDescriptorLoader.getInstance().forceUpdate(descriptor);
 				monitor.worked(2);
-
 				project.refreshLocal(DEPTH_INFINITE, new NullProgressMonitor());
 				monitor.worked(1);
-			
+				
 			} finally {
 				Environment.getStrategoLock().unlock();
 			}
@@ -191,19 +196,21 @@ public class NewSpxEditorWizard extends Wizard implements INewWizard {
 			Job.getJobManager().endRule(root);
 		}
 
-		monitor.setTaskName("Opening editor tabs");
+		monitor.setTaskName("Opening editor tabs. Please rebuild the whole project.");
 		Display display = getShell().getDisplay();
 		EditorState.asyncOpenEditor(display, project.getFile("/src/" + (languageName+"-descriptor").toLowerCase() +  ".spx"), true);
 		monitor.worked(2);
 		EditorState.asyncOpenEditor(display, project.getFile("/src/" + (languageName+"-definitions").toLowerCase() +  ".spx"), true);
-		monitor.worked(1);
+		monitor.worked(2);
 		EditorState.asyncOpenEditor(display, project.getFile("/test/example." + extensions.split(",")[0]), false);
 		refreshProject(project);
 	
+		monitor.worked(2);
+	
 		monitor.done();
 	}
-
-	private static void refreshProject(final IProject project) {
+ 	
+ 	private static void refreshProject(final IProject project) {
 		// We schedule a project refresh to make all ".generated" files readable
 		Job job = new Job("Refreshing project") {
 			@Override
@@ -227,6 +234,7 @@ public class NewSpxEditorWizard extends Wizard implements INewWizard {
  		return Interpreter.cify(languageName.toLowerCase()).replace('-', '_');
  	}
 
+ 	
 	/*
 	private void throwCoreException(String message) throws CoreException {
 		IStatus status =

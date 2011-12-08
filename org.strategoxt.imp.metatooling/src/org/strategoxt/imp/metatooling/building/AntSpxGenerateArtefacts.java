@@ -65,7 +65,7 @@ public class AntSpxGenerateArtefacts {
 		final IResource file = EditorIOAgent.getResource(new File(workingDirectoryArg));
 
 		Environment.getStrategoLock().lock();
-		try {
+			try {
 			if (!isActive())
 			{
 				active = true;
@@ -85,8 +85,6 @@ public class AntSpxGenerateArtefacts {
 						System.err.println("Build failed; see error log.");
 						System.exit(1);
 					}
-
-
 				} finally {
 					active = false;
 				}
@@ -97,6 +95,7 @@ public class AntSpxGenerateArtefacts {
 		}
 	}
 
+	
 	public static boolean generateArtefacts(IResource file, IProgressMonitor monitor , EditorIOAgent agent) {
 		
 		IPath location = file.getLocation();
@@ -116,6 +115,7 @@ public class AntSpxGenerateArtefacts {
 				try {
 					System.out.println("Compiling SPX files and generating intermediate artefacts.");
 					System.out.println("Invoking build-spoofaxlang-jvm.");
+				
 					build_spoofaxlang_jvm_0_0.instance.invoke( contextSpoofaxLang , input);
 					System.out.println("Intermediate artefacts have been generated successfully.");
 					
