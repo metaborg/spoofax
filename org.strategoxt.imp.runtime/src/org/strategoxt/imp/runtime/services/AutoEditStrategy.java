@@ -587,9 +587,12 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 	 * Dumb stripping of comments and layout, ignoring string literals and the like.
 	 */
 	private String stripCommentsAndLayout(String line) {
-		int lineCommentStart = line.indexOf(syntax.getSingleLineCommentPrefix());
-		if (lineCommentStart != -1)
-			line = line.substring(0, lineCommentStart);
+		final String singleLineCommentPrefix = syntax.getSingleLineCommentPrefix();
+		if (singleLineCommentPrefix != null) {
+			int lineCommentStart = line.indexOf(singleLineCommentPrefix);
+			if (lineCommentStart != -1)
+				line = line.substring(0, lineCommentStart);
+		}
 		// TODO: strip block comments
 		return line.trim();
 	}
