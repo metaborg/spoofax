@@ -2,6 +2,7 @@ package org.strategoxt.imp.metatooling.building;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
@@ -10,11 +11,18 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.imp.language.Language;
+import org.eclipse.imp.language.LanguageRegistry;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.strategoxt.imp.editors.spoofax.generated.build_spoofaxlang_jvm_0_0;
 import org.strategoxt.imp.editors.spoofax.generated.spoofaxlang;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
+import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
+import org.strategoxt.imp.runtime.parser.SGLRParseController;
+import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
+import org.strategoxt.imp.runtime.stratego.IMPLibrary;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.StrategoErrorExit;
 import org.strategoxt.lang.StrategoException;
@@ -58,17 +66,18 @@ public class AntSpxGenerateArtefacts {
 	}
 	
 	public static void main(String[] args) throws Exception{
+		
 		if (args == null || args.length == 0)
 			throw new IllegalArgumentException("Project Work Directory is missing. ");
 
-		
 		final String workingDirectoryArg = args[0];
 		final IResource file = EditorIOAgent.getResource(new File(workingDirectoryArg));
 		String buildStrategy = "-i"; 
-		
+
 		if (args.length >1)
 			buildStrategy = args[1];
-		
+
+
 		Environment.getStrategoLock().lock();
 		try {
 			if (!isActive())
@@ -80,12 +89,11 @@ public class AntSpxGenerateArtefacts {
 						System.err.println("Build failed: could not find  project at following location :" + file.getLocation());
 						System.exit(1);
 					}
+					IPath absolutePath = file.getLocation();
+					//StrategoObserver observer = newStrategoObserverOf(SpoofaxLangParseController.LANGUAGE);
 
-					EditorIOAgent agent = new EditorIOAgent();
-					agent.setAlwaysActivateConsole(true);
-					agent.setWorkingDir(file.getLocation().toOSString());
+					boolean success = generateArtefacts(file, new NullProgressMonitor() , newEditorIOAgent(absolutePath, null), buildStrategy);
 
-					boolean success = generateArtefacts(file, new NullProgressMonitor() , agent,buildStrategy);
 					if (!success) {
 						System.err.println("Build failed; see error log.");
 						System.exit(1);
@@ -99,20 +107,50 @@ public class AntSpxGenerateArtefacts {
 			refresh(file);
 		}
 	}
+	
+	private static  StrategoObserver newStrategoObserverOf(String languageName) throws BadDescriptorException{
+		// Get descriptor
+		Language lang = LanguageRegistry.findLanguage(languageName);
+		Descriptor descriptor = Environment.getDescriptor(lang); 
+					
+		// Get parse controller
+		SGLRParseController parseController = descriptor.createService(SGLRParseController.class, null);
+		StrategoObserver observer = descriptor.createService(StrategoObserver.class, parseController);
 
+		return observer;
+	}
+	
+	private  static EditorIOAgent newEditorIOAgent(IPath location , StrategoObserver observer) throws FileNotFoundException, IOException{
+	
+		EditorIOAgent agent = new EditorIOAgent();
+		agent.setAlwaysActivateConsole(true);
+		agent.setWorkingDir(location.toOSString());
+		agent.setProjectPath(location.toOSString());
+		
+
+		//  TODO FIX : imploder attachment is while project is built from ant script.
+		//  hence, adding an stratego observer is not adding any value
+		
+		//	observer.getRuntime().setIOAgent(agent);
+		//	((EditorIOAgent)observer.getRuntime().getIOAgent()).setJob(new StrategoObserverUpdateJob(observer));
+
+		return agent;
+	}
 	
 	public static boolean generateArtefacts(IResource file, IProgressMonitor monitor , EditorIOAgent agent,  String buildStrategy) {
 		
-		IPath location = file.getLocation();
-		if (location == null) return false;
+		IPath absoluteProjectLocation = file.getLocation();
+		if (absoluteProjectLocation == null) return false;
 	
 		try {
 			monitor.setTaskName("Generating artefacts for following spx project:  " + file.getName());
 			
 			if (file.exists() ) {
+				
 				Context contextSpoofaxLang = new Context(Environment.getTermFactory(), agent);
-				contextSpoofaxLang.registerClassLoader(spoofaxlang.class.getClassLoader());
+				contextSpoofaxLang.addOperatorRegistry(new IMPLibrary());
 				spoofaxlang.init(contextSpoofaxLang);
+				
 				
 				IStrategoString input = contextSpoofaxLang.getFactory().makeString(file.getLocation().toOSString());
 				IStrategoString buildStrategyTerm = contextSpoofaxLang.getFactory().makeString(buildStrategy);
