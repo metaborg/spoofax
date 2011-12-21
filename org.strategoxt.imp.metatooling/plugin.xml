@@ -32,6 +32,7 @@
             project="true">
       </wizard>
    </extension>
+   <!-- disabled for release version
    <extension
          point="org.eclipse.ui.newWizards">
       <primaryWizard
@@ -45,6 +46,7 @@
             project="true">
       </wizard>
    </extension>
+   -->
    <extension
          point="org.eclipse.ant.core.antProperties">
       <antProperty
