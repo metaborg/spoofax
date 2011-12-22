@@ -128,7 +128,7 @@ public class AntSpxGenerateArtefacts {
 		agent.setProjectPath(location.toOSString());
 		
 
-		//  TODO FIX : imploder attachment is while project is built from ant script.
+		//  TODO FIX : imploder attachment is null while project is built from ant script.
 		//  hence, adding an stratego observer is not adding any value
 		
 		//	observer.getRuntime().setIOAgent(agent);
