@@ -15,7 +15,7 @@ import org.spoofax.jsglr.client.ParseTable;
 import org.spoofax.jsglr.shared.SGLRException;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.JSGLRI;
-import org.strategoxt.lang.compat.sglr.JSGLR_parse_string_compat;
+import org.spoofax.interpreter.library.jsglr.JSGLR_parse_string_compat;
 
 /**
  * Parses strings to abstract syntax trees. 

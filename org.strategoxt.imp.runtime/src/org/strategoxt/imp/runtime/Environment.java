@@ -49,7 +49,6 @@ import org.strategoxt.imp.runtime.stratego.IMPJSGLRLibrary;
 import org.strategoxt.imp.runtime.stratego.IMPLibrary;
 import org.strategoxt.imp.runtime.stratego.IMPOpenFile;
 import org.strategoxt.imp.runtime.stratego.IMPParseStringPTPrimitive;
-import org.strategoxt.lang.compat.sglr.SGLRCompatLibrary;
 
 /**
  * Environment class that maintains a term factories, languages, and
@@ -236,7 +235,7 @@ public final class Environment {
 		result.getCompiledContext().getExceptionHandler().setEnabled(false);
 		result.getCompiledContext().registerComponent("stratego_lib"); // ensure op. registry available
 		result.getCompiledContext().registerComponent("stratego_sglr"); // ensure op. registry available
-		SGLRCompatLibrary sglrLibrary = (SGLRCompatLibrary) result.getContext().getOperatorRegistry(SGLRCompatLibrary.REGISTRY_NAME);
+		JSGLRLibrary sglrLibrary = (JSGLRLibrary) result.getContext().getOperatorRegistry(JSGLRLibrary.REGISTRY_NAME);
 		IMPJSGLRLibrary impSglrLibrary = new IMPJSGLRLibrary(sglrLibrary);
 		result.addOperatorRegistry(impSglrLibrary);
 		result.addOperatorRegistry(new IMPLibrary());
