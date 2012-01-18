@@ -88,6 +88,8 @@ public class SourceMappings {
 	 */
 	public static class MappableTerm extends LazyTerm {
 
+		private static final long serialVersionUID = 5591282118361686366L;
+
 		private final MappableKey key = new MappableKey();
 		
 		private final IStrategoTerm wrapped;

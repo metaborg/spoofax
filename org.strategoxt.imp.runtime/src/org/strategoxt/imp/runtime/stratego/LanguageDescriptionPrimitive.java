@@ -16,8 +16,6 @@ import org.spoofax.interpreter.stratego.Strategy;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.strategoxt.imp.runtime.EditorState;
-import org.strategoxt.imp.runtime.Environment;
 
 /**
  * Returns the language description for the current file
