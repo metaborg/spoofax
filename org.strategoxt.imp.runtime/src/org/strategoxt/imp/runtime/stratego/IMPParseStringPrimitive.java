@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.InterpreterException;
+import org.spoofax.interpreter.library.jsglr.STRSGLR_parse_string;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.Disambiguator;
@@ -23,14 +24,13 @@ import org.spoofax.jsglr.shared.SGLRException;
 import org.spoofax.jsglr.shared.TokenExpectedException;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.JSGLRI;
-import org.spoofax.interpreter.library.jsglr.STRSGLR_parse_string_pt;
 
 /**
  * Parses strings to abstract syntax trees. 
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class IMPParseStringPrimitive extends STRSGLR_parse_string_pt {
+public class IMPParseStringPrimitive extends STRSGLR_parse_string {
 
 	private final SourceMappings mappings;
 	
