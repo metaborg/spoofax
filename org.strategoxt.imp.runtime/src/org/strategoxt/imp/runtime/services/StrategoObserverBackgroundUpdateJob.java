@@ -43,6 +43,10 @@ public class StrategoObserverBackgroundUpdateJob implements StrategoAnalysisJob 
 			
 			// Get descriptor
 			Language lang = LanguageRegistry.findLanguage(absolutePath, null);
+			if (lang == null) {
+				Environment.logException("Could not determine language for queued analysis of " + absolutePath);
+				return Status.OK_STATUS;
+			}
 			Descriptor descriptor = Environment.getDescriptor(lang); 
 			
 			// Get parse controller
