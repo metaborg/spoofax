@@ -14,20 +14,23 @@ import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.Disambiguator;
+import org.spoofax.jsglr.client.ITreeBuilder;
 import org.spoofax.jsglr.client.ParseTable;
+import org.spoofax.jsglr.client.imploder.TermTreeFactory;
+import org.spoofax.jsglr.client.imploder.TreeBuilder;
 import org.spoofax.jsglr.shared.BadTokenException;
 import org.spoofax.jsglr.shared.SGLRException;
 import org.spoofax.jsglr.shared.TokenExpectedException;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.JSGLRI;
-import org.spoofax.interpreter.library.jsglr.JSGLR_parse_string_compat;
+import org.spoofax.interpreter.library.jsglr.STRSGLR_parse_string_pt;
 
 /**
  * Parses strings to abstract syntax trees. 
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class IMPParseStringPrimitive extends JSGLR_parse_string_compat {
+public class IMPParseStringPrimitive extends STRSGLR_parse_string_pt {
 
 	private final SourceMappings mappings;
 	
@@ -67,4 +70,10 @@ public class IMPParseStringPrimitive extends JSGLR_parse_string_compat {
 			throw new SGLRException(parser.getParser(), e.getMessage(), e);
 		}
 	}
+	
+	@Override
+	protected ITreeBuilder createTreeBuilder(IContext env) {
+		return new TreeBuilder(new TermTreeFactory(env.getFactory()));
+	}
+
 }
