@@ -132,7 +132,7 @@ public class InputTermBuilder {
 		ITermFactory factory = Environment.getTermFactory();
 		assert factory.getDefaultStorageType() == IStrategoTerm.MUTABLE;
 		IResource resource = SourceAttachment.getResource(node);
-		String path = resource == null ? "input" : resource.getProjectRelativePath().toPortableString();
+		String path = resource == null ? "string" : resource.getProjectRelativePath().toPortableString();
 		String absolutePath = resource == null ? "." : tryGetProjectPath(resource);
 		
 		if (includeSubNode) {
