@@ -6,6 +6,7 @@ Bundle-Version: 0.1.1.qualifier
 Require-Bundle: org.eclipse.imp.runtime,
  org.spoofax.jsglr;bundle-version="0.3.0",
  org.spoofax.interpreter.core,
+ org.spoofax.interpreter.ui,
  org.spoofax.interpreter.library.jsglr,
  org.eclipse.core.runtime,
  org.eclipse.core.resources,

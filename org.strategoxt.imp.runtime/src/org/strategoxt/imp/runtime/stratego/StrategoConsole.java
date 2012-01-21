@@ -18,9 +18,11 @@ import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.IConsoleConstants;
 import org.eclipse.ui.console.IConsoleManager;
 import org.eclipse.ui.console.IConsoleView;
+import org.eclipse.ui.console.IOConsole;
 import org.eclipse.ui.console.IOConsoleOutputStream;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.progress.UIJob;
+import org.spoofax.interpreter.ui.SpoofaxConsole;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 
@@ -31,16 +33,16 @@ import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
  */
 public class StrategoConsole {
 
-	private static final String CONSOLE_NAME = "Spoofax/IMP console";
+	private static final String CONSOLE_NAME = SpoofaxConsole.CONSOLE_NAME;
 	
-	private static MessageConsole lastConsole;
+	private static IOConsole lastConsole;
 	
 	private static AutoFlushOutputStreamWriter lastConsoleOutputWriter;
 	
 	private static AutoFlushOutputStreamWriter lastConsoleErrorWriter;
 
 	public static Writer getErrorWriter() {
-		MessageConsole console = getConsole();
+		IOConsole console = getConsole();
 		if (console == lastConsole && lastConsoleErrorWriter != null) {
 			return lastConsoleErrorWriter;
 		} else {
@@ -54,7 +56,7 @@ public class StrategoConsole {
 	}
 
 	public static Writer getOutputWriter() {
-		MessageConsole console = getConsole();
+		IOConsole console = getConsole();
 		if (console == lastConsole && lastConsoleOutputWriter != null) {
 			return lastConsoleOutputWriter;
 		} else {
@@ -75,11 +77,11 @@ public class StrategoConsole {
 	/**
 	 * Gets or opens the Eclipse console for this plugin.
 	 */
-	private synchronized static MessageConsole getConsole() {
+	private synchronized static IOConsole getConsole() {
 		IConsoleManager consoles = ConsolePlugin.getDefault().getConsoleManager();
 		for (IConsole console: consoles.getConsoles()) {
 			if (StrategoConsole.CONSOLE_NAME.equals(console.getName()))
-				return (MessageConsole) console;
+				return (IOConsole) console;
 		}
 		// No console found, so create a new one
 		MessageConsole result = new MessageConsole(StrategoConsole.CONSOLE_NAME, null);
@@ -115,7 +117,7 @@ public class StrategoConsole {
 			@Override
 			public IStatus runInUIThread(IProgressMonitor monitor) {
 				final String ID = IConsoleConstants.ID_CONSOLE_VIEW;
-				MessageConsole console = StrategoConsole.getConsole();
+				IOConsole console = StrategoConsole.getConsole();
 				if (consoleViewOnly) {
 					console.activate();
 					return Status.OK_STATUS;
