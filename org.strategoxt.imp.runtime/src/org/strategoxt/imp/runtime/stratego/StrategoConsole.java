@@ -13,16 +13,13 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.console.ConsolePlugin;
-import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.IConsoleConstants;
-import org.eclipse.ui.console.IConsoleManager;
 import org.eclipse.ui.console.IConsoleView;
 import org.eclipse.ui.console.IOConsole;
 import org.eclipse.ui.console.IOConsoleOutputStream;
-import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.progress.UIJob;
 import org.spoofax.interpreter.ui.SpoofaxConsole;
+import org.spoofax.interpreter.ui.SpoofaxConsoleFactory;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 
@@ -32,8 +29,6 @@ import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class StrategoConsole {
-
-	private static final String CONSOLE_NAME = SpoofaxConsole.CONSOLE_NAME;
 	
 	private static IOConsole lastConsole;
 	
@@ -77,15 +72,13 @@ public class StrategoConsole {
 	/**
 	 * Gets or opens the Eclipse console for this plugin.
 	 */
-	private synchronized static IOConsole getConsole() {
-		IConsoleManager consoles = ConsolePlugin.getDefault().getConsoleManager();
-		for (IConsole console: consoles.getConsoles()) {
-			if (StrategoConsole.CONSOLE_NAME.equals(console.getName()))
-				return (IOConsole) console;
+	private static synchronized IOConsole getConsole() {
+		SpoofaxConsoleFactory factory = new SpoofaxConsoleFactory();
+		SpoofaxConsole result = factory.getExistingConsole(); 
+		if (result == null) {
+			factory.openConsole();
+			result = factory.getExistingConsole();
 		}
-		// No console found, so create a new one
-		MessageConsole result = new MessageConsole(StrategoConsole.CONSOLE_NAME, null);
-		consoles.addConsoles(new IConsole[] { result });
 		return result;
 	}
 	
