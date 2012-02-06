@@ -71,7 +71,7 @@ public class OnSaveService implements IOnSaveService {
 					messages.commitAllChanges();
 				} else if (isTermString(result)) {
 					// Function's returning a filename
-					String file = asJavaString(termAt(result, 0));
+					String file = asJavaString(result);
 					if (new File(file).exists())
 						RefreshResourcePrimitive.call(runtime.getRuntime().getContext(), file);	
 				} else if (isTermTuple(result) && result.getSubtermCount() == 2 && isTermString(termAt(result, 0)) && isTermString(termAt(result, 1))) {
