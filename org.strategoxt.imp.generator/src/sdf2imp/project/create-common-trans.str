@@ -144,6 +144,9 @@ strategies
   origin-column    = origin-location => (_, <id>, _, _)
   origin-strip     = prim("SSL_EXT_origin_strip", <id>)
   origin-equal(|t) = prim("SSL_EXT_origin_equal", <id>, t)
+
+  origin-language =
+    prim("SSL_EXT_origin_language", <id>)
   
   origin-surrounding-comments =
     prim("SSL_EXT_origin_surrounding_comments", "{sdf-name}", <id>)
