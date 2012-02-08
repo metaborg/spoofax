@@ -34,6 +34,7 @@ public class StartupDescriptorLoader {
 		
 			loadAllServices();
 			
+			// (note: don't set eventMask parameter; Eclipse will ignore some events)
 			ResourcesPlugin.getWorkspace().addResourceChangeListener(loader);
 			
 		} catch (RuntimeException e) {
