@@ -180,6 +180,11 @@ public class SGLRParseController implements IParseController {
 		}
 	}
     
+    /**
+     * Returns the editor for this parse controller.
+     * Only available if an editor has been assigned to it,
+     * which happens after the editor first launches the parser.
+     */
     public EditorState getEditor() {
 		return editor;
 	}

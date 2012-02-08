@@ -78,8 +78,7 @@ public class StrategoObserverBackgroundUpdateJob implements StrategoAnalysisJob 
 			}
 		    
 		} catch (Exception e) {
-			// hmm.
-			e.printStackTrace();
+			Environment.logException("Background job failed", e);
 		}
 		
 		return Status.OK_STATUS;

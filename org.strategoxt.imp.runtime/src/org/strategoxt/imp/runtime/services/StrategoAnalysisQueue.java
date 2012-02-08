@@ -13,6 +13,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.imp.parser.IParseController;
+import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.MonitorStateWatchDog;
 
@@ -221,6 +222,8 @@ public class StrategoAnalysisQueue {
 		pendingUpdates.put(absolutePath, updateJob);
 		add(updateJob);
 		wake();
+		
+		Debug.log("Background analysis queued for " + absolutePath);
 
 		return updateJob;
 	}

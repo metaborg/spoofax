@@ -157,6 +157,9 @@ public class EditorIOAgent extends LoggingIOAgent {
 		return getResource(file2);
 	}
 
+	/**
+	 * @throws FileNotFoundException  if the file does not exist in the workspace
+	 */
 	public static IResource getResource(File file) throws FileNotFoundException {
 		if (file == null) {
 			assert false : "file should not be null";
@@ -184,5 +187,25 @@ public class EditorIOAgent extends LoggingIOAgent {
 	    }
 		IResource[] resources = workspace.getRoot().findContainersForLocationURI(uri);
 		return resources.length > 0;
+	}
+	
+	/**
+	 * Gets the project that corresponds to the given file path.
+	 * If the file does not exist, its parent is recursively tried instead.
+	 * If it still won't exist, a {@link FileNotFoundException} is thrown.
+	 * 
+	 * @throws FileNotFoundException 
+	 *           If the file has no parent directory that is in the workspace. 
+	 */
+	public static IProject getProject(File file) throws FileNotFoundException {
+		File original = file;
+		while (!file.exists()) {
+			file = file.getParentFile();
+			if (file == null) {
+				throw new FileNotFoundException("File not found: " + original);
+			}
+		}
+		IResource resource = getResource(file);
+		return resource.getProject();
 	}
 }

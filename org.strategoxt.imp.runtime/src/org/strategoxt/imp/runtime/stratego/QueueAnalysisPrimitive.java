@@ -23,8 +23,10 @@ import org.strategoxt.imp.runtime.services.StrategoAnalysisQueueFactory;
  */
 public class QueueAnalysisPrimitive extends AbstractPrimitive {
 
+	public static final String NAME = "SSL_EXT_queue_analysis";
+	
 	QueueAnalysisPrimitive() {
-		super("SSL_EXT_queue_analysis", 0, 0);
+		super(NAME, 0, 0);
 	}
 	
 	/**

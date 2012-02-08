@@ -26,6 +26,7 @@ import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.core.StackTracer;
 import org.spoofax.interpreter.library.IOAgent;
 import org.spoofax.interpreter.library.jsglr.JSGLRLibrary;
+import org.spoofax.interpreter.library.language.NotificationCenter;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.InvalidParseTableException;
@@ -49,6 +50,8 @@ import org.strategoxt.imp.runtime.stratego.IMPJSGLRLibrary;
 import org.strategoxt.imp.runtime.stratego.IMPLibrary;
 import org.strategoxt.imp.runtime.stratego.IMPOpenFile;
 import org.strategoxt.imp.runtime.stratego.IMPParseStringPTPrimitive;
+import org.strategoxt.imp.runtime.stratego.FileNotificationServer;
+import org.strategoxt.imp.runtime.stratego.QueueAnalysisService;
 
 /**
  * Environment class that maintains a term factories, languages, and
@@ -88,26 +91,6 @@ public final class Environment {
 		termFactory = new TermFactory().getFactoryWithStorageType(IStrategoTerm.MUTABLE);
 		parseTableManager = new ParseTableManager(termFactory);
 		parseTables = Collections.synchronizedMap(new HashMap<String, ParseTableProvider>());
-		checkJVMOptions();
-	}
-
-	private static void checkJVMOptions() {
-		boolean ssOption = false;
-		boolean serverOption = false;
-		boolean mxOption = false;
-		
-		for (String arg : ManagementFactory.getRuntimeMXBean().getInputArguments()) {
-			if (arg.startsWith("-Xserver") || arg.startsWith("-server")) serverOption = true;
-			if (arg.startsWith("-Xss") || arg.startsWith("-ss")) ssOption = true;
-			if (arg.startsWith("-Xmx") || arg.startsWith("-mx")) mxOption = true;
-		}
-		
-		if (!serverOption)
-			Environment.logWarning("Make sure Eclipse is started with -vmargs -server (can be set in eclipse.ini) for best performance");
-		if (!mxOption)
-			Environment.logWarning("Make sure Eclipse is started with -vmargs -Xmx1024m (can be set in eclipse.ini) for at least 1024 MiB heap space (adjust downwards for low-memory systems)");
-		if (!ssOption)
-			Environment.logWarning("Make sure Eclipse is started with -vmargs -Xss8m (can be set in eclipse.ini) for an 8 MiB stack size");
 	}
 	
 	// TODO: Split up shared and non-shared environment entities?
