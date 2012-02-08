@@ -30,16 +30,13 @@ import org.strategoxt.imp.runtime.Environment;
  */
 public class FileNotificationServer implements IResourceChangeListener {
 	
-	public static final int SIGNIFICANT_CHANGES =
-			CONTENT | MOVED_TO | MOVED_FROM | REPLACED | ADDED |
-			ADDED | REMOVED | CHANGED;
-	
 	private FileNotificationServer() {
 		// Use the statics
 	}
 
 	public static void init() {
-		ResourcesPlugin.getWorkspace().addResourceChangeListener(new FileNotificationServer(), SIGNIFICANT_CHANGES);
+		// (note: don't set eventMask parameter; Eclipse will ignore some events)
+		ResourcesPlugin.getWorkspace().addResourceChangeListener(new FileNotificationServer());
 
 		NotificationCenter.putObserver(null, null, new QueueAnalysisService());
 	}
