@@ -100,7 +100,7 @@ public class CustomStrategyBuilder extends StrategoBuilder {
 		IStrategoTerm input = getDerivedFromEditor() == null
 				? node
 				: inputBuilder.implodeATerm(inputBuilder.getImplodableNode(node));
-		IStrategoTerm result = getObserver().invoke(getBuilderRule(), input, SourceAttachment.getResource(node));
+		IStrategoTerm result = getObserver().invoke(getBuilderRule(), input, SourceAttachment.getFile(node));
 		if (result != null) return addFileName(result, SourceAttachment.getResource(node));
 		String[] trace1 = getObserver().getRuntime().getCompiledContext().getTrace();
 		

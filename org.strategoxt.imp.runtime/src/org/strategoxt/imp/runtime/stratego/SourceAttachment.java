@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.parser.IParseController;
 import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
@@ -70,6 +71,12 @@ public class SourceAttachment extends AbstractTermAttachment {
 		} else {
 			return resource.resource;
 		}
+	}
+	
+	public static File getFile(ISimpleTerm term) {
+		IPath path = getResource(term).getLocation();
+		if (path == null) path = getResource(term).getFullPath();
+		return path.toFile();
 	}
 
 	public static IParseController getParseController(ISimpleTerm term) {

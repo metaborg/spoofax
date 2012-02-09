@@ -6,7 +6,7 @@ import static org.spoofax.interpreter.terms.IStrategoTerm.STRING;
 import static org.spoofax.interpreter.terms.IStrategoTerm.TUPLE;
 import static org.spoofax.terms.Term.tryGetConstructor;
 import static org.strategoxt.imp.runtime.services.ContentProposerParser.COMPLETION_UNKNOWN;
-import static org.strategoxt.imp.runtime.stratego.SourceAttachment.getResource;
+import static org.strategoxt.imp.runtime.stratego.SourceAttachment.getFile;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -339,7 +339,7 @@ public class ContentProposer implements IContentProposer {
 					observer.update(controller, new NullProgressMonitor());
 				}
 				IStrategoTerm input = observer.getInputBuilder().makeInputTerm(completionNode, true, false);
-				result = observer.invokeSilent(completionFunction, input, getResource(completionNode));
+				result = observer.invokeSilent(completionFunction, input, getFile(completionNode));
 				if (result == null) {
 					observer.reportRewritingFailed();
 					result = TermFactory.EMPTY_LIST;

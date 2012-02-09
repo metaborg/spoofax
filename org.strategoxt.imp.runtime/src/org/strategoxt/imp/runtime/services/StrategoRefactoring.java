@@ -6,6 +6,7 @@ import static org.spoofax.interpreter.core.Tools.termAt;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.hasImploderOrigin;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -35,7 +36,6 @@ import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.TermFactory;
 import org.spoofax.terms.attachments.OriginAttachment;
-import org.strategoxt.imp.generator.construct_textual_change_1_0;
 import org.strategoxt.imp.generator.construct_textual_change_4_0;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
@@ -264,7 +264,7 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 		
 		IStrategoTerm result = null;
 		try {
-			result = observer.invoke(builderRule, inputTerm, getResource());
+			result = observer.invoke(builderRule, inputTerm, getFile());
 		} catch (InterpreterErrorExit e) {
 			Environment.logException("Builder failed", e);
 			e.printStackTrace();
@@ -297,8 +297,8 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 		return inputTuple;
 	}
 
-	private IResource getResource() {
-		return SourceAttachment.getResource(node);
+	private File getFile() {
+		return SourceAttachment.getFile(node);
 	}
 	
 	private boolean isValidResultTerm(IStrategoTerm resultTerm) {
@@ -357,7 +357,7 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 			@Override
 			public IStrategoTerm invoke(Context context, IStrategoTerm current) {
 				if (sname!=null)
-					return observer.invokeSilent(sname, current, getResource());
+					return observer.invokeSilent(sname, current, getFile());
 				return null;
 			}
 		};

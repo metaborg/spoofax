@@ -7,13 +7,14 @@ import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getTokenizer;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.putImploderAttachment;
 import static org.spoofax.terms.TermVisitor.tryGetListIterator;
 import static org.spoofax.terms.attachments.OriginAttachment.getOrigin;
+import static org.strategoxt.imp.runtime.stratego.SourceAttachment.getFile;
 import static org.strategoxt.imp.runtime.stratego.SourceAttachment.getParseController;
 import static org.strategoxt.imp.runtime.stratego.SourceAttachment.getResource;
 
+import java.io.File;
 import java.lang.ref.WeakReference;
 import java.util.Iterator;
 
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.IToken;
@@ -22,10 +23,10 @@ import org.spoofax.jsglr.client.imploder.Tokenizer;
 import org.spoofax.terms.attachments.OriginAttachment;
 import org.spoofax.terms.attachments.ParentAttachment;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.stratego.SourceAttachment;
-import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 
 /**
  * A class that uses the language runtime to disambiguate an AST.
@@ -61,10 +62,10 @@ public class CustomDisambiguator {
 
 		myRuntime.getLock().lock();
 		try {
-			IResource resource = getResource(ast);
+			File file = getFile(ast);
 			for (String f : functions) {
 				IStrategoTerm input = myRuntime.getInputBuilder().makeInputTerm(ast, false);
-				IStrategoTerm result = myRuntime.invokeSilent(f, input, resource);
+				IStrategoTerm result = myRuntime.invokeSilent(f, input, file);
 				if (result == null) {
 					myRuntime.reportRewritingFailed();
 					Environment.logException("Disambiguation failed (see error log)");

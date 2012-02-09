@@ -302,7 +302,7 @@ public class StrategoBuilder implements IBuilder {
 		IStrategoTerm inputTerm = derivedFromEditor != null
 				? observer.getInputBuilder().makeATermInputTerm(node, true, derivedFromEditor.getResource()) 
 				: observer.getInputBuilder().makeInputTerm(node, true, source);
-		IStrategoTerm result = observer.invoke(builderRule, inputTerm, SourceAttachment.getResource(node));
+		IStrategoTerm result = observer.invoke(builderRule, inputTerm, SourceAttachment.getFile(node));
 		return result;
 	}
 

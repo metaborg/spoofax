@@ -7,7 +7,7 @@ import static org.eclipse.core.resources.IResourceDelta.CONTENT;
 import static org.eclipse.core.resources.IResourceDelta.MOVED_FROM;
 import static org.eclipse.core.resources.IResourceDelta.MOVED_TO;
 import static org.eclipse.core.resources.IResourceDelta.REMOVED;
-import static org.eclipse.core.resources.IResourceDelta.REPLACED;
+import static org.eclipse.core.resources.IResourceDelta.*;
 
 import java.net.URI;
 
@@ -65,13 +65,20 @@ public class FileNotificationServer implements IResourceChangeListener {
 	}
 
 	public static boolean isSignificantChange(IResourceDelta delta) {
-		int flags = delta.getFlags();
-		return (flags & ADDED) == ADDED
-			|| (flags & REMOVED) == REMOVED
-			|| (flags & CHANGED) == CHANGED
-			|| (flags & CONTENT) == CONTENT
-			|| (flags & MOVED_TO) == MOVED_TO
-			|| (flags & MOVED_FROM) == MOVED_FROM
-			|| (flags & REPLACED) == REPLACED;
+		switch (delta.getKind()) {
+			case ADDED: case REMOVED:
+				return true;
+			case CHANGED:
+				int flags = delta.getFlags();
+				return (flags & CONTENT) == CONTENT
+						|| (flags & MOVED_TO) == MOVED_TO
+						|| (flags & MOVED_FROM) == MOVED_FROM
+						|| (flags & REPLACED) == REPLACED;
+			case NO_CHANGE:
+				return false;
+			default:
+				assert false : "Unknown state";
+				return false;
+		}
 	}
 }

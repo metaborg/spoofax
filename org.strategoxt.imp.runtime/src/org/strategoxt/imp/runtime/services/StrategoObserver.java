@@ -13,6 +13,7 @@ import static org.strategoxt.imp.runtime.dynamicloading.TermReader.cons;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.termContents;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -486,7 +487,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 				feedback = invokeSilent(
 					feedbackFunction,
 					getInputBuilder().makeInputTerm(ast, false), 
-					SourceAttachment.getResource(ast),
+					SourceAttachment.getFile(ast),
 					true
 				);	
 				if (feedback == null) {
@@ -646,19 +647,19 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			throws UndefinedStrategyException, InterpreterErrorExit, InterpreterExit, InterpreterException {
 
 		IStrategoTerm input = getInputBuilder().makeInputTerm(node, true);
-		return invoke(function, input, SourceAttachment.getResource(node));
+		return invoke(function, input, SourceAttachment.getFile(node));
 	}
 	
 	/**
 	 * Invoke a Stratego function with a specific term its input,
 	 * given a particular working directory.
 	 */
-	public IStrategoTerm invoke(String function, IStrategoTerm term, IResource resource)
+	public IStrategoTerm invoke(String function, IStrategoTerm term, File file)
 			throws UndefinedStrategyException, InterpreterErrorExit, InterpreterExit, InterpreterException {
-		return invoke(function, term, resource, false);
+		return invoke(function, term, file, false);
 	}
 
-	private IStrategoTerm invoke(String function, IStrategoTerm term, IResource resource,
+	private IStrategoTerm invoke(String function, IStrategoTerm term, File file,
 			boolean assignDesugaredOrigins) throws InterpreterErrorExit, InterpreterExit,
 			UndefinedStrategyException, InterpreterException {
 		getLock().lock();
@@ -671,7 +672,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			//       (e.g., overriding Context.lookupPrimitive to throw an OperationCanceledException) 
 			
 			runtime.setCurrent(term);
-			configureRuntime(resource);
+			configureRuntime(file);
 
 			((LoggingIOAgent) runtime.getIOAgent()).clearLog();
 			assert runtime.getCompiledContext().getOperatorRegistry(IMPJSGLRLibrary.REGISTRY_NAME)
@@ -712,7 +713,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	 */
 	public IStrategoTerm invokeSilent(String function, IStrategoTerm node) {
 		try {
-			return invokeSilent(function, getInputBuilder().makeInputTerm(node, true), SourceAttachment.getResource(node));
+			return invokeSilent(function, getInputBuilder().makeInputTerm(node, true), SourceAttachment.getFile(node));
 		} catch (RuntimeException e) {
 			if (runtime != null) runtime.getIOAgent().printError("Internal error evaluating " + function + " (" + name(e) + "; see error log)");
 			Environment.logException("Internal error evaluating strategy " + function, e);
@@ -726,24 +727,28 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	 * given a particular working directory.
 	 * Logs and swallows all exceptions.
 	 */
-	public IStrategoTerm invokeSilent(String function, IStrategoTerm input, IResource resource) {
-		return invokeSilent(function, input, resource, false);
+	public IStrategoTerm invokeSilent(String function, IStrategoTerm input, File file) {
+		return invokeSilent(function, input, file, false);
 	}
 
-	private IStrategoTerm invokeSilent(String function, IStrategoTerm input, IResource resource,
+	private IStrategoTerm invokeSilent(String function, IStrategoTerm input, File file,
 			boolean assignDesugaredOrigins) {
 		assert getLock().isHeldByCurrentThread();
 		IStrategoTerm result = null;
 		try {
 			wasExceptionLogged = true;
-			result = invoke(function, input, resource, assignDesugaredOrigins);
+			result = invoke(function, input, file, assignDesugaredOrigins);
 			wasExceptionLogged = false;
 		} catch (InterpreterExit e) {
 			if (descriptor.isDynamicallyLoaded()) StrategoConsole.activateConsole();
-			messages.clearMarkers(resource);
-			if (!(e instanceof InterpreterErrorExit))
-				messages.addMarkerFirstLine(resource, "Analysis failed (" + name(e) + "; see error log)", IMarker.SEVERITY_ERROR);
-			messages.commitAllChanges();
+			try {
+				messages.clearMarkers(EditorIOAgent.getResource(file));
+				if (!(e instanceof InterpreterErrorExit))
+					messages.addMarkerFirstLine(EditorIOAgent.getResource(file), "Analysis failed (" + name(e) + "; see error log)", IMarker.SEVERITY_ERROR);
+				messages.commitAllChanges();
+			} catch (FileNotFoundException f) {
+				// No resource for file
+			}
 			Environment.logException("Runtime exited when evaluating strategy " + function, runtime.getCompiledContext(), e);
 		} catch (UndefinedStrategyException e) {
 			// Note that this condition may also be reached when the semantic service hasn't been loaded yet
@@ -796,11 +801,18 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		return null;
 	}
 	
-	private void configureRuntime(IResource resource) {
+	private void configureRuntime(File file) {
 		assert getLock().isHeldByCurrentThread();
 		
-		String projectPath = getInputBuilder().tryGetProjectPath(resource);
-		IProject project = resource.getProject();
+		IProject project;
+		String projectPath;
+		try {
+			project = EditorIOAgent.getProject(file);
+			projectPath = project.getLocation().toString();
+		} catch (FileNotFoundException e) {
+			project = null;
+			projectPath = "";
+		}
 		
 		configureRuntime(project, projectPath);
 	}

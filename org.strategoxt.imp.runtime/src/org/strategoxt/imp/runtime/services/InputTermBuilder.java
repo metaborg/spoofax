@@ -4,15 +4,19 @@ import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getSort;
 import static org.spoofax.terms.Term.tryGetConstructor;
+import static org.spoofax.terms.attachments.OriginAttachment.tryGetOrigin;
 import static org.spoofax.terms.attachments.ParentAttachment.getParent;
 import static org.spoofax.terms.attachments.ParentAttachment.getRoot;
-import static org.spoofax.terms.attachments.OriginAttachment.tryGetOrigin;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
 
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -20,10 +24,11 @@ import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.TermTreeFactory;
+import org.spoofax.terms.StrategoSubList;
 import org.strategoxt.HybridInterpreter;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
-import org.spoofax.terms.StrategoSubList;
+import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 import org.strategoxt.lang.Context;
@@ -131,9 +136,18 @@ public class InputTermBuilder {
 			IStrategoTerm rootTerm) {
 		ITermFactory factory = Environment.getTermFactory();
 		assert factory.getDefaultStorageType() == IStrategoTerm.MUTABLE;
-		IResource resource = SourceAttachment.getResource(node);
-		String path = resource == null ? "string" : resource.getProjectRelativePath().toPortableString();
-		String absolutePath = resource == null ? "." : tryGetProjectPath(resource);
+		File file = SourceAttachment.getFile(node);
+		IPath project = tryGetProjectPath(file);
+		String path, projectPath;
+		if (file != null && project != null) {
+			projectPath = project.toPortableString();
+			IPath fullPath = new Path(file.toString());
+			path = fullPath.removeFirstSegments(fullPath.matchingFirstSegments(project)).toPortableString();
+			assert !new File(path).isAbsolute();
+		} else {
+			projectPath = ".";
+			path = "string";
+		}
 		
 		if (includeSubNode) {
 			IStrategoTerm[] inputParts = {
@@ -141,16 +155,25 @@ public class InputTermBuilder {
 					termPath,
 					rootTerm,
 					factory.makeString(path),
-					factory.makeString(absolutePath)
+					factory.makeString(projectPath)
 				};
 			return factory.makeTuple(inputParts);
 		} else {
 			IStrategoTerm[] inputParts = {
 					node,
 					factory.makeString(path),
-					factory.makeString(absolutePath)
+					factory.makeString(projectPath)
 				};
 			return factory.makeTuple(inputParts);
+		}
+	}
+
+	private IPath tryGetProjectPath(File file) {
+		try {
+			if (file == null) return null;
+			return EditorIOAgent.getProject(file).getLocation();
+		} catch (FileNotFoundException e) {
+			return null;
 		}
 	}
 
