@@ -141,7 +141,7 @@ public class InputTermBuilder {
 		String path, projectPath;
 		if (file != null && project != null) {
 			projectPath = project.toPortableString();
-			IPath fullPath = new Path(file.toString());
+			IPath fullPath = new Path(file.getAbsolutePath());
 			path = fullPath.removeFirstSegments(fullPath.matchingFirstSegments(project)).toPortableString();
 			assert !new File(path).isAbsolute();
 		} else {
