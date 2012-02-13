@@ -85,6 +85,7 @@ public class StrategoObserverBackgroundUpdateJob implements StrategoAnalysisJob 
 			    observer.update(parseController, monitor);
 			} finally {
 				observer.getLock().unlock();
+				observer.uninitialize();
 			}
 		    
 		} catch (ModelException e) {
