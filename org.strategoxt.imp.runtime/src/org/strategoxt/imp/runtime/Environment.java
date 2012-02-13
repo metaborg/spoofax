@@ -65,7 +65,7 @@ import org.strategoxt.imp.runtime.stratego.QueueAnalysisService;
  */
 public final class Environment {
 	
-	public static boolean DEBUG_INTERPRETER_ENABLED = true; // set to false to disable the creation of a DebuggableHybridInterpreter
+	public static boolean DEBUG_INTERPRETER_ENABLED = false; // set to false to disable the creation of a DebuggableHybridInterpreter
 	
 	private final static ParseTableManager parseTableManager;
 	
