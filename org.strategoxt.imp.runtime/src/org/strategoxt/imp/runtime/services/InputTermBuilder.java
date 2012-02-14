@@ -201,7 +201,7 @@ public class InputTermBuilder {
 		
 		ITermFactory factory = Environment.getTermFactory();
 		String path = resource.getProjectRelativePath().toPortableString();
-		String absolutePath = resource.getProject().getLocation().toOSString();
+		String absolutePath = resource.getProject().getLocation().toPortableString();
 		
 		if (includeSubNode) {
 			node = getImplodableNode(node);

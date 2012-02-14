@@ -140,6 +140,10 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		this.isPrototypeAllowed = isPrototypeAllowed;
 	}
 	
+	public IStrategoTerm getResultingAst(IResource resource) {
+		return resultingAsts.get(resource);
+	}
+	
 	/**
 	 * Returns a value indicating whether or not an analysis has
 	 * been scheduled or completed at this point.

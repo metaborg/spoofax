@@ -74,8 +74,10 @@ public class SourceAttachment extends AbstractTermAttachment {
 	}
 	
 	public static File getFile(ISimpleTerm term) {
-		IPath path = getResource(term).getLocation();
-		if (path == null) path = getResource(term).getFullPath();
+		IResource resource = getResource(term);
+		if (resource == null) return null;
+		IPath path = resource.getLocation();
+		if (path == null) path = resource.getFullPath();
 		return path.toFile();
 	}
 
