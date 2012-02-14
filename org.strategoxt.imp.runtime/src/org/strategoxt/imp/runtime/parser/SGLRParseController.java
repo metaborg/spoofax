@@ -462,7 +462,7 @@ public class SGLRParseController implements IParseController {
 	}
 	
 	public AstNodeLocator getSourcePositionLocator() {
-		return new AstNodeLocator(this);
+		return new AstNodeLocator();
 	}
 	
 	public ILanguageSyntaxProperties getSyntaxProperties() {
