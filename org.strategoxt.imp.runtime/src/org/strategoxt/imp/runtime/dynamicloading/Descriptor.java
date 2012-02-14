@@ -481,7 +481,7 @@ public class Descriptor {
 		try {
 			attachedFiles.add(new File(getParseTableName()));
 			attachedFiles.add(new File(getPPTableName()));
-		} catch (Exception e) {
+		} catch (BadDescriptorException e) {
 			// Ignore missing language name here
 		}
 

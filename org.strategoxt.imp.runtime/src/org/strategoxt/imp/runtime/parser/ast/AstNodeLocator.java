@@ -17,7 +17,6 @@ import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.jsglr.client.imploder.Tokenizer;
 import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.parser.SGLRParseController;
 
 /**
  * Ast locator: mapping source positions to AST nodes,
@@ -28,17 +27,15 @@ import org.strategoxt.imp.runtime.parser.SGLRParseController;
  */
 public class AstNodeLocator implements ISourcePositionLocator {
 	
-	//private final SGLRParseController controller;
-	
-	public AstNodeLocator(SGLRParseController controller) {
-		//this.controller = controller;
+	public AstNodeLocator() {
+		// Default constructor
 	}
 
 	/**
 	 * @param endOffset  The end offset (inclusive).
 	 */
-	public ISimpleTerm findNode(Object root, int startOffset, int endOffset) {
-		ISimpleTerm ast = impObjectToAstNode(root);
+	public IStrategoTerm findNode(Object root, int startOffset, int endOffset) {
+		IStrategoTerm ast = impObjectToAstNode(root);
 		
 		if (getLeftToken(ast).getStartOffset() <= startOffset
 				&& (endOffset <= getRightToken(ast).getEndOffset()
@@ -46,7 +43,7 @@ public class AstNodeLocator implements ISourcePositionLocator {
 			Iterator<ISimpleTerm> iterator = tryGetListIterator(ast); 
 			for (int i = 0, max = ast.getSubtermCount(); i < max; i++) {
 				ISimpleTerm child = iterator == null ? ast.getSubterm(i) : iterator.next();
-		        ISimpleTerm candidate = findNode(child, startOffset, endOffset);
+				IStrategoTerm candidate = findNode(child, startOffset, endOffset);
 		        if (candidate != null) {
 		        	assert ImploderAttachment.get(candidate) != null;
 		            return candidate;
