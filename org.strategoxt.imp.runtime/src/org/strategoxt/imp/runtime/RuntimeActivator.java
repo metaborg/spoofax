@@ -7,9 +7,16 @@ import java.lang.management.ManagementFactory;
 import java.net.URL;
 
 import org.eclipse.core.runtime.FileLocator;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.strategoxt.imp.generator.sdf2imp;
 import org.strategoxt.imp.runtime.stratego.FileNotificationServer;
+import org.strategoxt.lang.StrategoExit;
+import org.strategoxt.strj.strj;
 
 public class RuntimeActivator extends AbstractUIPlugin {
 	
@@ -22,9 +29,39 @@ public class RuntimeActivator extends AbstractUIPlugin {
 
 		FileNotificationServer.init();
 		checkJVMOptions();
-		
-		// Trigger static initialization in this safe context
-		Environment.getStrategoLock(); 
+		precacheStratego();
+	}
+
+	/**
+	 * Make sure strj and sdf2imp run at least once
+	 * to speed up first project build or project wizard.
+	 */
+	private void precacheStratego() {
+		Job job = new Job("Spoofax/Stratego initialization") {
+			@Override
+			protected IStatus run(IProgressMonitor monitor) {
+				try {
+					Debug.startTimer();
+					Environment.getStrategoLock().lock();
+					try {
+						strj.mainNoExit("--version");
+					} catch (StrategoExit e) {
+						// Success!
+					}
+					try {
+						sdf2imp.mainNoExit("--version");
+					} catch (StrategoExit e) {
+						// Success!
+					}
+					Debug.stopTimer("Pre-initialized Stratego compiler");
+				} finally {
+					Environment.getStrategoLock().unlock();
+				}
+				return Status.OK_STATUS;
+			}
+		};
+		job.setSystem(true);
+		job.schedule();
 	}
 
 	private static void checkJVMOptions() {

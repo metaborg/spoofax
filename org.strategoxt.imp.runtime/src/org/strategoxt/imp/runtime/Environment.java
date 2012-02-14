@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
-import java.lang.management.ManagementFactory;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -26,7 +25,6 @@ import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.core.StackTracer;
 import org.spoofax.interpreter.library.IOAgent;
 import org.spoofax.interpreter.library.jsglr.JSGLRLibrary;
-import org.spoofax.interpreter.library.language.NotificationCenter;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.InvalidParseTableException;
@@ -50,8 +48,6 @@ import org.strategoxt.imp.runtime.stratego.IMPJSGLRLibrary;
 import org.strategoxt.imp.runtime.stratego.IMPLibrary;
 import org.strategoxt.imp.runtime.stratego.IMPOpenFile;
 import org.strategoxt.imp.runtime.stratego.IMPParseStringPTPrimitive;
-import org.strategoxt.imp.runtime.stratego.FileNotificationServer;
-import org.strategoxt.imp.runtime.stratego.QueueAnalysisService;
 
 /**
  * Environment class that maintains a term factories, languages, and
