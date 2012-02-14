@@ -25,6 +25,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
+import org.strategoxt.imp.runtime.dynamicloading.DynamicParseController;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.SourceAttachment;
@@ -59,7 +60,7 @@ public class StrategoObserverBackgroundUpdateJob implements StrategoAnalysisJob 
 			Descriptor descriptor = Environment.getDescriptor(lang); 
 			
 			// Get parse controller
-			parseController = descriptor.createService(SGLRParseController.class, null);
+			parseController = asSGLRParseController(descriptor.createParseController());
 			observer = descriptor.createService(StrategoObserver.class, parseController);
 			
 			observer.getLock().lock();
@@ -95,6 +96,16 @@ public class StrategoObserverBackgroundUpdateJob implements StrategoAnalysisJob 
 		
 		return Status.OK_STATUS;
 		
+	}
+
+	private SGLRParseController asSGLRParseController(IParseController controller) throws BadDescriptorException {
+		if (controller instanceof DynamicParseController)
+			controller = ((DynamicParseController) controller).getWrapped();
+		if (controller instanceof SGLRParseController) {
+			return (SGLRParseController) controller;
+		} else {
+			throw new BadDescriptorException("SGLRParseController expected: " + controller.getClass().getName());
+		}
 	}
 
 	private static IStrategoTerm makeFakeAST(SGLRParseController controller, File file) {
