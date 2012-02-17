@@ -126,7 +126,7 @@ construct-text-by-pp(pp, override-reconstruction, resugar):
 	node -> text
 	where 
 		text := <
-			all(alltd(construct-text-with-comments(pp, override-reconstruction, resugar|<DEFAULT-INDENT>))); 
+			all(alltd(is-string <+ construct-text-with-comments(pp, override-reconstruction, resugar|<DEFAULT-INDENT>))); 
 			topdown(try(pp-default(pp))); //handle brackets
 			pp
 		> node
