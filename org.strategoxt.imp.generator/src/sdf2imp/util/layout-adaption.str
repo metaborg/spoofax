@@ -33,10 +33,10 @@ create-textchange-delete:
 		end-offset   := <origin-deletion-end-offset> origin-elems
 		
 create-textchange-replace(pp, override-reconstruction, resugar):
-	(origin-node, new-node) -> (start-offset, end, indented-text)
+	(origin-node, new-node) -> (start-offset, end-offset, indented-text)
 	where  
 		start-offset := <origin-start-offset> origin-node;
-		end   := <origin-end-offset> origin-node;
+		end-offset   := <origin-end-offset> origin-node;
 		text  := <construct-text(pp, override-reconstruction, resugar)> new-node;
 		indented-text := <adapt-indentation(|origin-node)> text
 
