@@ -142,6 +142,7 @@ strategies
   origin-location  = prim("SSL_EXT_origin_location", <id>)
   origin-line      = origin-location => (<id>, _, _, _)
   origin-column    = origin-location => (_, <id>, _, _)
+  origin-file      = prim("SSL_EXT_origin_file", <id>)
   origin-strip     = prim("SSL_EXT_origin_strip", <id>)
   origin-equal(|t) = prim("SSL_EXT_origin_equal", <id>, t)
 
