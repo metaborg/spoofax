@@ -43,15 +43,15 @@ public class QueueAnalysisService implements INotificationService {
 		}
 	}
 
+	/**
+	 * Notify changes of all files in a project,
+	 * as long as they are known to have an index associated with them.
+	 */
 	public void notifyNewProject(URI project) {
 		Debug.log("Loading uninitialized project ", project);
 		notifyNewProjectFiles(new File(project));
 	}
 
-	/**
-	 * Notify changes of all files in the project,
-	 * as long as they are known to have an index associated with them.
-	 */
 	private void notifyNewProjectFiles(File file) {
 		if (file.isFile()) {
 			if (isIndexedFile(new Path(file.getAbsolutePath())))

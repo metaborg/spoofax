@@ -54,7 +54,7 @@ public class FileNotificationServer implements IResourceChangeListener {
 					IResource resource = delta.getResource();
 					if (isSignificantChange(delta) && LanguageRegistry.findLanguage(resource.getLocation(), null) != null) {
 						URI uri = resource.getLocationURI();
-						NotificationCenter.notifyChanges(uri, null);
+						NotificationCenter.notifyFileChanges(uri, null);
 					}
 					return true;
 				}
