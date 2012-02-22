@@ -6,8 +6,9 @@ import static org.eclipse.core.resources.IResourceDelta.CHANGED;
 import static org.eclipse.core.resources.IResourceDelta.CONTENT;
 import static org.eclipse.core.resources.IResourceDelta.MOVED_FROM;
 import static org.eclipse.core.resources.IResourceDelta.MOVED_TO;
+import static org.eclipse.core.resources.IResourceDelta.NO_CHANGE;
 import static org.eclipse.core.resources.IResourceDelta.REMOVED;
-import static org.eclipse.core.resources.IResourceDelta.*;
+import static org.eclipse.core.resources.IResourceDelta.REPLACED;
 
 import java.net.URI;
 
@@ -18,6 +19,7 @@ import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.spoofax.interpreter.library.language.NotificationCenter;
 import org.strategoxt.imp.runtime.Environment;
@@ -52,7 +54,9 @@ public class FileNotificationServer implements IResourceChangeListener {
 			delta.accept(new IResourceDeltaVisitor() {
 				public boolean visit(IResourceDelta delta) throws CoreException {
 					IResource resource = delta.getResource();
-					if (isSignificantChange(delta) && LanguageRegistry.findLanguage(resource.getLocation(), null) != null) {
+					if (isSignificantChange(delta)
+							&& !isIgnoredChange(resource)
+							&& LanguageRegistry.findLanguage(resource.getLocation(), null) != null) {
 						URI uri = resource.getLocationURI();
 						NotificationCenter.notifyFileChanges(uri, null);
 					}
@@ -80,5 +84,16 @@ public class FileNotificationServer implements IResourceChangeListener {
 				assert false : "Unknown state";
 				return false;
 		}
+	}
+	
+	private static boolean isIgnoredChange(IResource resource) {
+		IPath path = resource.getProjectRelativePath();
+		if (path.segmentCount() > 1) {
+			String base = path.segment(0);
+			if (".cache".equals(base) || ".shadowdir".equals(base)
+					|| "include".equals(base) || "bin".equals(base))
+				return true;
+		}
+		return false;
 	}
 }
