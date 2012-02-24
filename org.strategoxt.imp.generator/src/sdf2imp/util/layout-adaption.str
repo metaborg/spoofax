@@ -207,7 +207,7 @@ rules //Applying the textual modifications
 apply-text-changes:
 	(text-changes, text, start-offset) -> changed-text
 	where 
-		ordered-text-changes := <make-set; filter(is-modification); sort-list(LSort(compare-text-change))> text-changes;
+		ordered-text-changes := <make-set; filter(is-modification); qsort(compare-text-change)> text-changes;
 		<assert-valid-textual-changes> ordered-text-changes;
 		changed-text := <foldr(!(start-offset, text), apply-textual-change); Snd> ordered-text-changes
 
@@ -230,7 +230,7 @@ replace-in-text:
 		result-text := <conc-strings> (<implode-string> prefix, text-change, <implode-string> suffix) 
 		
 compare-text-change = 
-		?(((start-x, end-x),x), ((start-y, end-y),y));
+		?((start-x, end-x, x), (start-y, end-y, y));
 		not(
 			<lt> (start-x, start-y) <+ 
 			<eq> (start-x, start-y); <lt> (end-x, end-y)
