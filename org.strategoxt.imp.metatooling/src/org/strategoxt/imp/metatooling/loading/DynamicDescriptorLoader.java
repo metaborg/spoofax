@@ -99,7 +99,7 @@ public class DynamicDescriptorLoader implements IResourceChangeListener {
 	}
 
 	public void resourceChanged(final IResourceChangeEvent event) {
-		if (event.getType() == IResourceChangeEvent.POST_CHANGE) {
+		if (event.getType() == IResourceChangeEvent.POST_CHANGE  && isSignificantChangeDeep(event.getDelta())) {
 			synchronized (asyncEventQueue) {
 				asyncEventQueue.add(event);
 				if (!isAsyncEventHandlerActive)
@@ -154,6 +154,20 @@ public class DynamicDescriptorLoader implements IResourceChangeListener {
 		} catch (CoreException e) {
 			Environment.logException("Exception when processing fileystem events", e);
 		}
+	}
+
+	private static boolean isSignificantChangeDeep(IResourceDelta delta) {
+		class IsSignificantVisitor implements IResourceDeltaVisitor {
+			boolean result;
+			public boolean visit(IResourceDelta delta) throws CoreException {
+				if (FileNotificationServer.isSignificantChange(delta) && isSignificantName(delta.getResource().getName())) {
+					result = true;
+				}
+				return true;
+			}
+		}
+		IsSignificantVisitor visitor = new IsSignificantVisitor();
+		return visitor.result;
 	}
 
 	private static boolean isSignificantName(String name) {
