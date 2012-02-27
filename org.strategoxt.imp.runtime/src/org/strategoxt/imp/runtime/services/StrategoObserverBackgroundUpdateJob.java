@@ -26,6 +26,7 @@ import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.dynamicloading.DynamicParseController;
+import org.strategoxt.imp.runtime.dynamicloading.IOnSaveService;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.SourceAttachment;
@@ -34,13 +35,15 @@ public class StrategoObserverBackgroundUpdateJob implements StrategoAnalysisJob 
 
 	private final IPath path;
 	private final IProject project;
+	private final boolean triggerOnSave;
 	private StrategoProgressMonitor progress;
 	private StrategoObserver observer;
 	private SGLRParseController parseController;
 	
-	public StrategoObserverBackgroundUpdateJob(IPath path, IProject project) {
+	public StrategoObserverBackgroundUpdateJob(IPath path, IProject project, boolean triggerOnSave) {
 		this.path = path;
 		this.project = project;
+		this.triggerOnSave = true;
 	}
 	
 	public IStatus analyze(IProgressMonitor monitor) {
@@ -62,6 +65,7 @@ public class StrategoObserverBackgroundUpdateJob implements StrategoAnalysisJob 
 			// Get parse controller
 			parseController = asSGLRParseController(descriptor.createParseController());
 			observer = descriptor.createService(StrategoObserver.class, parseController);
+			IOnSaveService onSave = descriptor.createService(IOnSaveService.class, parseController);
 			
 			observer.getLock().lock();
 			try {
@@ -84,6 +88,8 @@ public class StrategoObserverBackgroundUpdateJob implements StrategoAnalysisJob 
 			    }
 				
 			    observer.update(parseController, monitor);
+			    if (triggerOnSave)
+			    	onSave.invokeOnSave(ast);
 			} finally {
 				observer.getLock().unlock();
 			}

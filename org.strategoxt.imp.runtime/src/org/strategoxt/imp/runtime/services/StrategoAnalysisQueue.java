@@ -203,15 +203,16 @@ public class StrategoAnalysisQueue {
 	 * Queue background analysis for a given file.
 	 * @param path the file's path
 	 * @param project the file's project
+	 * @param triggerOnSave whether to trigger an "on save" event
 	 * @return the update job
 	 */
-	public UpdateJob queueAnalysis(IPath path, IProject project) {
+	public UpdateJob queueAnalysis(IPath path, IProject project, boolean triggerOnSave) {
 		if (path == null)
 			throw new IllegalArgumentException("path cannot be null");
 		if (project == null)
 			throw new IllegalArgumentException("project cannot be null");
 
-		StrategoObserverBackgroundUpdateJob job = new StrategoObserverBackgroundUpdateJob(path, project);
+		StrategoObserverBackgroundUpdateJob job = new StrategoObserverBackgroundUpdateJob(path, project, triggerOnSave);
 		
 		// See if an update is already pending for this path
 		IPath absolutePath = project.getLocation().append(path);

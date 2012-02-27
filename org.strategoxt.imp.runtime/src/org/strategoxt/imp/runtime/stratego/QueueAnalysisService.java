@@ -34,7 +34,7 @@ public class QueueAnalysisService implements INotificationService {
 			if (LanguageRegistry.findLanguage(path, null) != null) {
 				IPath relPath = path.removeFirstSegments(path.matchingFirstSegments(project.getLocation()));
 				assert !relPath.isAbsolute();
-				StrategoAnalysisQueueFactory.getInstance().queueAnalysis(relPath, project);
+				StrategoAnalysisQueueFactory.getInstance().queueAnalysis(relPath, project, true);
 			}
 		} catch (FileNotFoundException e) {
 			Environment.logException("Background language service failed", e);

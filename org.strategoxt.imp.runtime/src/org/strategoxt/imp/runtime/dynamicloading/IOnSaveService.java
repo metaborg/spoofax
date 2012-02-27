@@ -2,6 +2,7 @@ package org.strategoxt.imp.runtime.dynamicloading;
 
 import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.jface.text.IDocumentListener;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.EditorState;
 
 /**
@@ -10,4 +11,6 @@ import org.strategoxt.imp.runtime.EditorState;
 public interface IOnSaveService extends IDocumentListener, ILanguageService {
 	
 	 void initialize(EditorState editor);
+	 
+	 void invokeOnSave(IStrategoTerm ast);
 }

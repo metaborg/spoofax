@@ -79,7 +79,7 @@ public class QueueAnalysisPrimitive extends AbstractPrimitive {
 		
 		// Make path project local
 		IPath projectRelativePath = filePath.removeFirstSegments(filePath.matchingFirstSegments(projectPath)); 
-		StrategoAnalysisQueueFactory.getInstance().queueAnalysis(projectRelativePath, project);
+		StrategoAnalysisQueueFactory.getInstance().queueAnalysis(projectRelativePath, project, false);
 		
 	}
 	

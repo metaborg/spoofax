@@ -92,7 +92,8 @@ public class FileNotificationServer implements IResourceChangeListener {
 		if (path.segmentCount() > 1) {
 			String base = path.segment(0);
 			if (".cache".equals(base) || ".shadowdir".equals(base)
-					|| "include".equals(base) || "bin".equals(base))
+					|| "include".equals(base) || "bin".equals(base)
+					|| ".spxcache".equals(base))
 				return true;
 		}
 		return false;

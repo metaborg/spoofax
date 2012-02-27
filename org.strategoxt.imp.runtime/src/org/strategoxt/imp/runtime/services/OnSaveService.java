@@ -53,11 +53,15 @@ public class OnSaveService implements IOnSaveService {
 		if (function == null) return;
 		
 		//String contents = event.getDocument().get();
-		
+
+		IStrategoTerm ast = editor.getCurrentAst();
+		invokeOnSave(ast);
+	}
+
+	public void invokeOnSave(IStrategoTerm ast) {
 		try {
 			Environment.getStrategoLock().lock();
 			try {
-				IStrategoTerm ast = editor.getCurrentAst();
 				if (ast == null) return;
 				
 				IStrategoTerm result = runtime.invokeSilent(function, ast);
@@ -88,7 +92,7 @@ public class OnSaveService implements IOnSaveService {
 						Environment.logException("Problem when handling on save event", e);
 					}
 				} else if (!"None".equals(cons(result))) {
-					if (editor.getDescriptor().isDynamicallyLoaded())
+					if (editor != null && editor.getDescriptor().isDynamicallyLoaded())
 						Environment.logWarning("Unexpected result from 'on save' strategy: should be None() or (\"filename\", \"contents\"): " + result);
 				}
 			} finally {

@@ -105,7 +105,7 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 	private static void queueAnalysisAffectedFiles(IRefactoring refactoring, EditorState editor) {		
 		IProject project = editor.getProject().getRawProject();
 		for (IPath projectRelativePath : refactoring.getRelativePathsOfAffectedFiles()) {
-			StrategoAnalysisQueueFactory.getInstance().queueAnalysis(projectRelativePath, project);			
+			StrategoAnalysisQueueFactory.getInstance().queueAnalysis(projectRelativePath, project, true);			
 		}
 	}
 
