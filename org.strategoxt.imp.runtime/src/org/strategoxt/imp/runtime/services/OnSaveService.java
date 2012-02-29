@@ -10,7 +10,7 @@ import static org.spoofax.interpreter.core.Tools.termAt;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.cons;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -86,7 +86,7 @@ public class OnSaveService implements IOnSaveService {
 					try {
 						IFile resource = EditorIOAgent.getFile(runtime.getRuntime().getContext(), file);
 						StrategoBuilder.setFileContentsDirect(resource, newContents);
-					} catch (FileNotFoundException e) {
+					} catch (IOException e) {
 						Environment.logException("Problem when handling on save event", e);
 					} catch (CoreException e) {
 						Environment.logException("Problem when handling on save event", e);

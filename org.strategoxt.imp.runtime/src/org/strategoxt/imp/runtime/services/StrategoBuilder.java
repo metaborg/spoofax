@@ -6,8 +6,11 @@ import static org.spoofax.interpreter.core.Tools.isTermString;
 import static org.spoofax.interpreter.core.Tools.isTermTuple;
 import static org.spoofax.interpreter.core.Tools.termAt;
 
+import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
@@ -236,6 +239,9 @@ public class StrategoBuilder implements IBuilder {
 					scheduleOpenEditorAndListener(editor, node, file);
 				}
 			}
+		} catch (IOException e) {
+			Environment.logException("Builder failed", e);
+			openError(editor, "Builder failed (" + e.getClass().getName() + "; see error log): " + e.getMessage());
 		} catch (CoreException e) {
 			Environment.logException("Builder failed", e);
 			openError(editor, "Builder failed (" + e.getClass().getName() + "; see error log): " + e.getMessage());
@@ -347,10 +353,7 @@ public class StrategoBuilder implements IBuilder {
 		job.schedule();
 	}
 
-	private void setFileContents(final EditorState editor, IFile file, final String contents) throws CoreException {
-		assert !observer.getLock().isHeldByCurrentThread() && !Environment.getStrategoLock().isHeldByCurrentThread()
-			: "Acquiring a resource lock can cause a deadlock";
-
+	private void setFileContents(final EditorState editor, IFile file, final String contents) throws CoreException, IOException {
 		/* TODO: update editor contents instead of file?
 		if (file.exists()):
 		if (editor.getEditor().getTitleImage().isDisposed()) {
@@ -378,8 +381,24 @@ public class StrategoBuilder implements IBuilder {
 		setFileContentsDirect(file, contents);
 	}
 
-	public static void setFileContentsDirect(IFile file, final String contents) throws CoreException {
-		assert !Environment.getStrategoLock().isHeldByCurrentThread();
+	public static void setFileContentsDirect(IFile file, final String contents) throws CoreException, IOException {
+		if (!Environment.getStrategoLock().isHeldByCurrentThread()) {
+			// Use proper Eclipse API when safe
+			setResourceContents(file, contents);
+		} else {
+			// Fall back to Java file API
+			Writer writer = new BufferedWriter(new FileWriter(file.getLocation().toFile()));
+			try {
+				writer.write(contents);
+			} finally {
+				writer.close();
+			}
+		}
+	}
+
+	private static void setResourceContents(IFile file, final String contents) throws CoreException {
+		assert !Environment.getStrategoLock().isHeldByCurrentThread()
+			: "Acquiring a resource lock can cause a deadlock";
 		InputStream resultStream;
 		try {
 			resultStream = new ByteArrayInputStream(contents.getBytes("UTF-8"));
