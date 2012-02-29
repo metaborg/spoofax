@@ -389,8 +389,7 @@ public final class Environment {
 		}
 		if (message == null) message = t.getLocalizedMessage() == null ? t.getMessage() : t.getLocalizedMessage();
 		Status status = new Status(IStatus.ERROR, RuntimeActivator.PLUGIN_ID, 0, message, t);
-		RuntimeActivator activator = RuntimeActivator.getInstance();
-		if (activator != null) activator.getLog().log(status);
+		RuntimeActivator.tryLog(status);
 	}
 	
 	public static void logException(String message, StackTracer tracer, Throwable t) {
@@ -401,8 +400,7 @@ public final class Environment {
 		if (message == null) message = t.getLocalizedMessage() == null ? t.getMessage() : t.getLocalizedMessage();
 		message = message + "\n" + tracer.getTraceString();
 		Status status = new Status(IStatus.ERROR, RuntimeActivator.PLUGIN_ID, 0, message, t);
-		RuntimeActivator activator = RuntimeActivator.getInstance();
-		if (activator != null) activator.getLog().log(status);
+		RuntimeActivator.tryLog(status);
 	}
 	
 	public static void logException(String message) {
@@ -420,8 +418,7 @@ public final class Environment {
 	public static void logWarning(String message, Exception e) {
 		if (Debug.ENABLED) STDERR.println("Warning: " + message);
 		Status status = new Status(IStatus.WARNING, RuntimeActivator.PLUGIN_ID, 0, message, e);
-		RuntimeActivator activator = RuntimeActivator.getInstance();
-		if (activator != null) activator.getLog().log(status);
+		RuntimeActivator.tryLog(status);
 	}
 
 	public static void asynOpenErrorDialog(final String caption, final String message, final Throwable exception) {

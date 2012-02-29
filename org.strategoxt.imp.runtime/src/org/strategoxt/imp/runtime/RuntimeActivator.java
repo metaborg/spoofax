@@ -101,4 +101,17 @@ public class RuntimeActivator extends AbstractUIPlugin {
         
         return result;
 	}
+	
+	public static void tryLog(IStatus status) {
+		RuntimeActivator instance = getInstance();
+		if (instance != null) {
+			try {
+				instance.getLog().log(status);
+			} catch (RuntimeException e) {
+				// Seems to happen as of 3.7, shouldn't
+				e.printStackTrace();
+			}
+		}
+	}
 }
+
