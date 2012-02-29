@@ -59,11 +59,11 @@ public class OnSaveService implements IOnSaveService {
 	}
 
 	public void invokeOnSave(IStrategoTerm ast) {
+        if (ast == null || function == null) return;
+        
 		try {
 			Environment.getStrategoLock().lock();
 			try {
-				if (ast == null) return;
-				
 				IStrategoTerm result = runtime.invokeSilent(function, ast);
 				if (result == null) {
 					runtime.reportRewritingFailed();
