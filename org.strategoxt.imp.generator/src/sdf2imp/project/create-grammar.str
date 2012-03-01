@@ -7,7 +7,8 @@ strategies
 
   create-grammar =
     create-grammar-main;
-    create-grammar-common
+    create-grammar-common;
+    create-grammar-sig
   
   create-grammar-main =
     <file-exists> <conc-strings> ("syntax/", <get-sdf-main-module>, ".sdf")
@@ -94,3 +95,12 @@ exports
     LAYOUT? -/- [\/].[\/]
     LAYOUT? -/- [\/].[\*]
 }
+  
+  create-grammar-sig =
+    <file-exists> $["include/[<get-sdf-main-module>].str"]
+  <+
+    <output-text-file(|["include"], $[[<get-sdf-main-module>].str])> $[
+      module include/[<get-sdf-main-module>]
+      
+      // (to be generated)
+    ]
