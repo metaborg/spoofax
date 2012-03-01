@@ -43,7 +43,7 @@ public class StrategoObserverBackgroundUpdateJob implements StrategoAnalysisJob 
 	public StrategoObserverBackgroundUpdateJob(IPath path, IProject project, boolean triggerOnSave) {
 		this.path = path;
 		this.project = project;
-		this.triggerOnSave = true;
+		this.triggerOnSave = triggerOnSave;
 	}
 	
 	public IStatus analyze(IProgressMonitor monitor) {

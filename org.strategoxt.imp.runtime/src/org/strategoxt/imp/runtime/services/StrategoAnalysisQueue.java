@@ -125,6 +125,15 @@ public class StrategoAnalysisQueue {
 		this.queue = new PriorityBlockingQueue<UpdateJob>();
 	}
 
+	
+	/**
+	 * @return Number of pending updates.
+	 */
+	public int pendingUpdatesSize()
+	{
+		return pendingUpdates.size();
+	}
+	
 	/**
 	 * Queue analysis of the file, interactively. Used for analyzing the contents of the current editor.
 	 * @param observer the file's observer
