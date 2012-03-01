@@ -12,6 +12,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.imp.language.Language;
 import org.eclipse.imp.parser.IParseController;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
@@ -127,11 +128,21 @@ public class StrategoAnalysisQueue {
 
 	
 	/**
-	 * @return Number of pending updates.
+	 * Gets the number of pending background analyses for given project and language.
+	 * @param project 	Only files in this project are considered.
+	 * @param lang		Only files of this language are considered.
+	 * @return Number of pending background analyses for given project and language.
 	 */
-	public int pendingUpdatesSize()
+	public int pendingBackgroundAnalyses(IProject project, Language lang)
 	{
-		return pendingUpdates.size();
+		int size = 0;
+		
+		for(IPath path : pendingUpdates.keySet())
+			if(lang.hasExtension(path.getFileExtension()) && 
+					project.findMember(path.makeRelativeTo(project.getLocation())) != null)
+				++size;
+		
+		return size;
 	}
 	
 	/**

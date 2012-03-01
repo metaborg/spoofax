@@ -251,6 +251,10 @@ strategies
   queue-analysis = 
        (is-list; list-loop(queue-analysis))
     <+ prim("SSL_EXT_queue_analysis")
+    
+  // Gets the number of background analyses for currenct project and language.
+  // Current term: ignored
+  analysis-count = prim("SSL_EXT_queue_analysis_count")
 
   // Set the total number of work units to complete. Can be called multiple times. 
   // Current term: number of work units (int).
