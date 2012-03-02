@@ -1,0 +1,42 @@
+module sdf2imp/project/create-index-libraries
+
+imports
+  sdf2imp/util/-
+
+strategies
+
+  create-index-library =
+	try(<file-exists <+ mkdir> "lib");
+	<output-text-file(|["lib"], "index-library.generated.str")>
+${module lib/index-library.generated
+
+imports
+  libstratego-lib
+  lib/editor-common.generated
+
+}
+
+  create-analysis-library =
+	try(<file-exists <+ mkdir> "lib");
+	<output-text-file(|["lib"], "analysis-library.generated.str")>
+${module lib/analysis-library.generated
+ 
+imports
+  libstratego-lib
+  lib/editor-common.generated
+  lib/index-library.generated
+  
+}
+
+  create-compilation-library =
+	try(<file-exists <+ mkdir> "lib");
+	<output-text-file(|["lib"], "compilation-library.generated.str")>
+${module lib/compilation-library.generated
+
+imports
+  libstratego-lib
+  lib/editor-common.generated
+  lib/index-library.generated
+  lib/analysis-library.generated
+    
+}

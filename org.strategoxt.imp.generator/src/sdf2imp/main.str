@@ -146,6 +146,11 @@ strategies
     create-builder-xml;
     create-example-file;
     create-common-trans;
+    
+    create-index-library;
+    create-analysis-library;
+    create-compilation-library;
+    
     copy-jars;
     copy-def-file;
     create-jdt-prefs;
