@@ -212,6 +212,23 @@ rules // Other
 }
 end;
 
+if not(<file-exists> "trans/analysis-manual.str") then
+  <output-text-file(|["trans"], "analysis-manual.str")>
+${module analysis-manual
+
+imports
+  include/{sdf-name}
+  lib/analysis-auto.generated
+  lib/index-library.generated
+  lib/analysis-library.generated
+
+rules // Adjust lookup
+
+  // Add primitive types to type lookup.
+  adjust-index-lookup(target |namespace, path, prefix): 
+    Type(<target>) ->  [Def([Type(), "Int"]), Def([Type(), "String"]), [Type() | path]]
+}
+end;
 
 if not(<file-exists> "trans/refactor.str") then
   <output-text-file(|["trans"], "refactor.str")>

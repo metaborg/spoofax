@@ -1267,8 +1267,6 @@ rules // On save handling
   commit-and-compile:
     (_, path, project-path) -> <id>
     with
-      <debug(!\"Commit and compile: \")> $[[project-path]/[path]]
-    with
       index-commit
     with
       index-schedule-compilation
