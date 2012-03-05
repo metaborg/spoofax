@@ -104,7 +104,7 @@ strategies
       create-pp-table;
       create-example-trans;
       create-java-strategy;
-      input @ FILE(inputname) := <pack-default-sdf> FILE($[syntax/[<get-sdf-main-module>]-old.sdf]);
+      input @ FILE(inputname) := <pack-default-sdf> FILE($[syntax/[<get-sdf-main-module>].sdf]);
       rules(DefaultDefFile := inputname)
     end;
     
@@ -192,8 +192,4 @@ strategies
     with
       def := $[include/[<get-sdf-main-module>].def];
       <file-exists <+ mkdir> "include";
-      
-      <pack-sdf(|[IncludeDir("syntax")])> FILE(sdf) => (_, def-asfix);
-      stream := <fopen> (def, "w");
-      <asfix-yield(|stream)> def-asfix;
-      <fclose> stream
+      <call> ("org.strategoxt.tools.main-pack-sdf", ["-i", sdf, "-o", def])

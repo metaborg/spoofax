@@ -6,37 +6,9 @@ imports
 strategies
 
   create-grammar =
-    create-grammar-main-old;
     create-grammar-main;
     create-grammar-common;
     create-grammar-sig
-  
-  create-grammar-main-old =
-    <file-exists> <conc-strings> ("syntax/", <get-sdf-main-module>, "-old.sdf")
-  <+
-    name        := <get-sdf-main-module>;
-    startsymbol := <StartSymbol>;
-    
-    <output-text-file(|["syntax"], <conc-strings> (name, "-old.sdf"))>
-$[%% Old grammar for the [name] language
-%% By default, based on an example "entities" syntax
-module [name]-old
-
-imports Common
-
-exports
-
-  context-free start-symbols
-  
-    [startsymbol]
-
-  context-free syntax
-  
-    "module" ID Definition*       -> Start {cons("Module")}
-    "entity" ID "{" Property* "}" -> Definition {cons("Entity")}
-    ID ":" Type                   -> Property {cons("Property")}
-    ID                            -> Type {cons("Type")}
-]
   
   create-grammar-main =
     <file-exists> <conc-strings> ("syntax/", <get-sdf-main-module>, ".sdf")
