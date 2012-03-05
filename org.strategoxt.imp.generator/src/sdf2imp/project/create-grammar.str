@@ -20,7 +20,7 @@ strategies
     <output-text-file(|["syntax"], <conc-strings> (name, "-old.sdf"))>
 $[%% Old grammar for the [name] language
 %% By default, based on an example "entities" syntax
-module [name]
+module [name]-old
 
 imports Common
 
