@@ -32,8 +32,9 @@ strategies
           ~~
           observer: editor-analyze
           ~~
-          builder: "Generate Java code (for selection)"   = generate-java  (openeditor) (realtime)
-          builder: "Show abstract syntax (for selection)" = generate-aterm (openeditor) (realtime) (meta) (source)
+          builder: "Generate Java code (for selection)"            = generate-java  (openeditor) (realtime)
+          builder: "Show abstract syntax (for selection)"          = generate-aterm (openeditor) (realtime) (meta) (source)
+          builder: "Show analyzed abstract syntax (for selection)" = generate-analyzed (openeditor) (realtime) (meta) (source)
           ~~
            
         refactorings
@@ -42,7 +43,8 @@ strategies
           shortcut: "org.eclipse.jdt.ui.edit.text.java.rename.element"
           input
           	identifier: "new name" = ""
-          ~// on save: generate-java
+          ~~
+          on save: index-on-save
       ]|
     );
     
@@ -115,6 +117,6 @@ strategies
           ~// 
           ~// The 'on save' handler can be used  to generate code as files are saved:
           ~//   
-          ~//   on save : generate-java
+          ~//   on save : index-on-save
       ]|
     )

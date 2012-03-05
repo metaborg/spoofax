@@ -25,6 +25,11 @@ imports
   libstratego-aterm
   include/{sdf-name}
   lib/editor-common.generated
+  lib/analysis-auto.generated
+  lib/index-library.generated
+  lib/analysis-library.generated
+  lib/compilation-library.generated
+  analysis-manual
   check
   generate
   refactor
@@ -37,7 +42,7 @@ rules // Main editor interface (defined by editor/{sdf-name}-Builders and -Refer
     (ast, path, project-path) -> (ast, errors, warnings, notes)
     with
       editor-init;
-      analyze;
+      analyze-top;
       errors   := <collect-all(constraint-error, conc)> ast;
       warnings := <collect-all(constraint-warning, conc)> ast;
       notes    := <collect-all(constraint-note, conc)> ast
@@ -55,15 +60,22 @@ rules // Main editor interface (defined by editor/{sdf-name}-Builders and -Refer
     with
       filename := <guarantee-extension(|"aterm")> path;
       result   := selected // we just return the input term
+      
+  // Prints the analyzed abstract syntax ATerm of a selection.
+  generate-analyzed:
+    (selected, position, ast, path, project-path) -> (filename, result)
+    with
+      editor-init;
+      filename := <guarantee-extension(|"analyzed.aterm")> path;
+      result   := <analyze-top> (selected, path, project-path)
   
   // Resolves a reference when the user control-clicks or presses F3 in the editor.
-  // Only succeeds for nodes of the form Type(_) for which GetEntity is defined.
   editor-resolve:
     (node, position, ast, path, project-path) -> target
     where
-      <debug(!"Resolve: ")> node; 
-      Type(type) := node; 
-      target     := <GetEntity> type
+      language  := <index-origin-language> ast;
+      index-setup(|language, [project-path], $[[project-path]/[path]]);
+      target    := <index-lookup> node
 
   // Returns "hover help" information for a particular node in the editor.
   // For references, this rule is invoked using the resolved term.
@@ -73,12 +85,21 @@ rules // Main editor interface (defined by editor/{sdf-name}-Builders and -Refer
   // Completes an identifier when the user presses control-space
   // (the completion identifier in the AST provides additional context information)
   editor-complete:
-    (node, position, ast, path, project-path) ->
-    ["String", "Int" | proposals]
+    (node, position, ast, path, project-path) -> proposals'
     where
-      if !node => Type(COMPLETION(prefix)) then
-        proposals := <all-keys-GetEntity>
-      end
+      editor-init;
+      ast'              := <analyze-top> (ast, path, project-path);
+      x                 := <collect-one(?COMPLETION(_))> ast';
+      COMPLETION(name)  := x;
+      (
+        proposals       := <index-lookup-all-levels(|name)> x
+      <+ 
+        proposals       := []
+      );
+      proposals'        := <map(def-to-name)> proposals
+
+  def-to-name:
+    Def([namespace, name | _]) -> name
 };
 
 if not(<file-exists> "trans/generate.str") then
@@ -91,8 +112,23 @@ imports
   libstratego-aterm
   include/{sdf-name}
   lib/editor-common.generated
+  lib/compilation-library.generated
 
-rules
+rules // Incremental code generation of project using compilation library.
+      
+  index-compile-ast(|file, subfile, project-path):
+    ast -> None()
+    with
+      java := <to-java> ast;
+      full-path := <dirname> file;
+      filename := <guarantee-extension(|"java")> <base-filename> file;
+      writePath := $[[full-path]/];
+      writeFile :=  $[[writePath][filename]];
+      try(<mkdir> writePath);
+      <fclose> <fputs> (java, <fopen> (writeFile, "w"));
+      <debug> $[Compiling to [writeFile]]
+
+rules // Transformation to java strings.
 
   to-java:
     Module(x, d*) ->
@@ -141,42 +177,29 @@ imports
   libstratego-lib
   include/{sdf-name}
   lib/editor-common.generated
+  lib/analysis-auto.generated
+  lib/index-library.generated
+  lib/analysis-library.generated
 
-rules
-
-  // Analysis: does a topdown traversal of the tree,
-  // and tries to apply the record-entity rule.
-  analyze:
-    t -> t
-    with
-      <topdown(try(record-entity))> t
-
-  // Records the definition of an entity in a dynamic rule GetEntity.
-  record-entity:
-    Entity(x, body) -> Entity(x, body)
-    with
-      // For a name 'x', GetEntity will return the original 'x' tree node
-      rules(
-        GetEntity :+ x -> x
-      )
-rules
-    
-  // Reports an error if a property type is undefined.
-  // This error is reported on the type name 'type'.
-  constraint-error:
-    Property(x, Type(type)) -> (type, $[Type [type] is not defined])
-    where
-      not(!type => "String"); // String and Int are built-in types
-      not(!type => "Int");
-      not(<GetEntity> type) // no entity for this type
+rules // Resolving
   
-  // Reports an error if an entity is defined more than once.
-  // This constraint is implemented by testing if the "bag" of
-  // all entities x is not a singleton list.
   constraint-error:
-    Entity(x, _) -> (x, $[Duplicate entity name])
+    x{"{[Unresolved(t) | _]}"} -> (x, $[Unable to resolve.])
+    
+rules // Duplicates
+    
+  is-unique-namespace = ?Type()
+  is-unique-namespace = ?Property()
+      
+  constraint-error:
+    definition -> (definition, $[Duplicate definition])
     where
-      not(<bagof-GetEntity> x => [_])
+      key{"{[ns|_]}"} := <nam-get-definition-key> definition;
+      <is-unique-namespace> ns;
+      definitions := <index-lookup-all> key;
+      <gt> (<length> definitions, 1)
+    
+rules // Other
   
   constraint-warning:
     Entity(x, _) -> (x, $[Entity names must start with a capital])
