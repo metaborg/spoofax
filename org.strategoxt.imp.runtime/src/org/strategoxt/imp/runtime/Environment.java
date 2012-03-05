@@ -87,6 +87,7 @@ public final class Environment {
 		termFactory = new TermFactory().getFactoryWithStorageType(IStrategoTerm.MUTABLE);
 		parseTableManager = new ParseTableManager(termFactory);
 		parseTables = Collections.synchronizedMap(new HashMap<String, ParseTableProvider>());
+		RuntimeActivator.getInstance().postInit();
 	}
 	
 	// TODO: Split up shared and non-shared environment entities?

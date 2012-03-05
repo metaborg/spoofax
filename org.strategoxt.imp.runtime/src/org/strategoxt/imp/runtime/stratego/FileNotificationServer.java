@@ -1,6 +1,6 @@
 package org.strategoxt.imp.runtime.stratego;
 
-import static org.eclipse.core.resources.IResourceChangeEvent.POST_CHANGE;
+import static org.eclipse.core.resources.IResourceChangeEvent.POST_BUILD;
 import static org.eclipse.core.resources.IResourceDelta.ADDED;
 import static org.eclipse.core.resources.IResourceDelta.CHANGED;
 import static org.eclipse.core.resources.IResourceDelta.CONTENT;
@@ -44,7 +44,7 @@ public class FileNotificationServer implements IResourceChangeListener {
 	}
 
 	public void resourceChanged(IResourceChangeEvent event) {
-		if (event.getType() == POST_CHANGE) {
+		if (event.getType() == POST_BUILD) {
 			postResourceChanged(event.getDelta());
 		}
 	}

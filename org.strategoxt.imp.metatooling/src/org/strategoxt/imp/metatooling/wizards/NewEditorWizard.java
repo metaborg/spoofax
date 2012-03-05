@@ -111,7 +111,7 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 	}
 	
  	private void doFinish(String languageName, String projectName, String packageName, String extensions, IProgressMonitor monitor) throws IOException, CoreException {
-		final int TASK_COUNT = 20;
+		final int TASK_COUNT = 22;
 		lastProject = null;
 		monitor.beginTask("Creating " + languageName + " project", TASK_COUNT);
 		
@@ -155,7 +155,7 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 			try { // avoid background editor loading
 				monitor.setTaskName("Loading new resources");
 				project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
-				monitor.worked(1);
+				monitor.worked(3);
 				
 				monitor.setTaskName("Building and loading example editor");
 				project.build(IncrementalProjectBuilder.FULL_BUILD, null);

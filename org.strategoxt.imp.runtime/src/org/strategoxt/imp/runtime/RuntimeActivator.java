@@ -28,8 +28,14 @@ public class RuntimeActivator extends AbstractUIPlugin {
 		instance = this;
 
 		FileNotificationServer.init();
-		checkJVMOptions();
+	}
+	
+	/**
+	 * Initialization after RuntimeActivator has been instantiated.
+	 */
+	void postInit() {
 		precacheStratego();
+		checkJVMOptions();
 	}
 
 	/**
@@ -64,7 +70,11 @@ public class RuntimeActivator extends AbstractUIPlugin {
 		job.schedule();
 	}
 
-	private static void checkJVMOptions() {
+	/**
+	 * Checks Eclipse's JVM command-line options.
+	 * Can only be called after RuntimeActivator has been initialized.
+	 */
+	private void checkJVMOptions() {
 		boolean ssOption = false;
 		boolean serverOption = false;
 		boolean mxOption = false;
@@ -104,13 +114,16 @@ public class RuntimeActivator extends AbstractUIPlugin {
 	
 	public static void tryLog(IStatus status) {
 		RuntimeActivator instance = getInstance();
-		if (instance != null) {
+		if (instance != null && instance.getBundle() != null) {
 			try {
 				instance.getLog().log(status);
 			} catch (RuntimeException e) {
-				// Seems to happen as of 3.7, shouldn't
+				System.err.println("Logged exception:");
 				e.printStackTrace();
 			}
+		} else {
+			System.err.println("Logged exception:");
+			status.getException().printStackTrace();
 		}
 	}
 }
