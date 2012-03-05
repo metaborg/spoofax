@@ -45,18 +45,52 @@ module test-example
 language <name>
 
 setup Common [[
-  module example
+  module test
 ]]
 
 test Simple entity [[
   entity User {
-    name : String
+    name  : String
+    other : User
   }
 ]] 0 errors
 
-test Entity with reference to non-existing entity [[
+test Resolve type fails [[
   entity User {
-    name : Strin
+    name  : Strin
+    other : Use
   }
-]] 1 error
+]] 2 errors
+
+test Duplicate entity fails [[
+  entity User {}
+  entity User {}
+]] 2 errors
+
+test Duplicate property fails [[
+  entity User {
+  	name : String
+  	name : String
+  }
+]] 2 errors
+
+test Resolve type [[
+  entity [[User]] {}
+  
+  entity Owner {
+    owns : [[User]]
+  }
+]] resolve #2 to #1
+
+test Complete primitive type [[
+  entity User {
+    name : [[Str]]
+  }
+]] complete to "String"
+
+test Complete user type [[
+  entity User {
+    owner : [[Us]]
+  }
+]] complete to "User"
 >

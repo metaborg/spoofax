@@ -33,7 +33,7 @@ exports
   
     "module" Module@=ID Definition*       -> Start {"Module", scope(Type)}
     "entity" Type@=ID "{" Property* "}"   -> Definition {"Entity", scope(Property)}
-    Property@=ID ":" Type@Type            -> Property {"Property"}
+    Property@=ID ":" Type                 -> Property {"Property"}
     Type@ID                               -> Type {"Type"}
 ]
   
