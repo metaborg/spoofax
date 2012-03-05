@@ -227,6 +227,7 @@ signature constructors
   COMPLETION : String -> Term
   NOCONTEXT  : Term   -> Term
   MARKER     : Term
+  True       : Term
 
   // Below are copies of the signatures of the terms used in example
   // trans/{name}.str file. These definitions should also be automatically 
