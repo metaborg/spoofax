@@ -104,7 +104,7 @@ strategies
       create-pp-table;
       create-example-trans;
       create-java-strategy;
-      input @ FILE(inputname) := <pack-default-sdf> FILE($[syntax/[<get-sdf-main-module>].sdf]);
+      input @ FILE(inputname) := <pack-default-sdf> FILE($[syntax/[<get-sdf-main-module>]-old.sdf]);
       rules(DefaultDefFile := inputname)
     end;
     
