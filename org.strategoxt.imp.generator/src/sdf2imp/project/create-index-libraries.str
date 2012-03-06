@@ -5,6 +5,68 @@ imports
 
 strategies
 
+  create-analysis-auto-placeholder = 
+  	try(<file-exists <+ mkdir> "lib");
+  	sdf-name := <get-sdf-main-module>;
+	<output-text-file(|["lib"], "analysis-auto.generated.str")>
+<conc-strings> ("module lib/analysis-auto.generated
+
+signature
+  constructors
+    Module   : Namespace
+    Property : Namespace
+    Type     : Namespace
+
+
+imports
+  include/", sdf-name, "
+
+
+rules
+
+  nam-get-scope-types :
+    Module(_, _) -> [Type()]
+
+  nam-get-scope-types :
+    Entity(_, _) -> [Property()]
+
+  nam-get-definition-key :
+    Module(x, _) -> x
+
+  nam-get-definition :
+    Module(x, _) -> <nam-get-def(|Module())> x
+
+  nam-get-definition-key :
+    Entity(x, _) -> x
+
+  nam-get-definition :
+    Entity(x, _) -> <nam-get-def(|Type())> x
+
+  nam-get-definition-key :
+    Property(x, _) -> x
+
+  nam-get-definition :
+    Property(x, _) -> <nam-get-def(|Property())> x
+
+  nam-annotate-names(|def-path):
+    Module(s_1422, t_1422) -> Module(s_1422{def-path}, t_1422)
+
+  nam-annotate-names(|def-path):
+    Entity(q_1422, r_1422) -> Entity(q_1422{def-path}, r_1422)
+
+  nam-annotate-names(|def-path):
+    Property(o_1422, p_1422) -> Property(o_1422{def-path}, p_1422)
+
+  nam-annotate-names(|def-path):
+    Type(n_1422) -> Type(<nam-annotate-use(|Type())> n_1422)
+
+  nam-get-def(|n) =
+    fail
+
+  nam-annotate-use(|n) =
+    fail
+")	
+
   create-index-library =
 	try(<file-exists <+ mkdir> "lib");
 	<output-text-file(|["lib"], "index-library.generated.str")>

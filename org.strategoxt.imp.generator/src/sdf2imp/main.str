@@ -147,6 +147,7 @@ strategies
     create-example-file;
     create-common-trans;
     
+    create-analysis-auto-placeholder;
     create-index-library;
     create-analysis-library;
     create-compilation-library;
