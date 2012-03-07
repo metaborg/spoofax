@@ -231,7 +231,7 @@ replace-in-text:
 		
 has-smaller-offset = 
 		?((start-x, end-x, x), (start-y, end-y, y));
-		not(
+		where(
 			<lt> (start-x, start-y) <+ 
 			<eq> (start-x, start-y); <lt> (end-x, end-y)
 		)
