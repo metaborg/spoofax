@@ -6,6 +6,8 @@ imports
 strategies
 
   create-analysis-auto-placeholder = 
+  	<file-exists> "lib/analysis-auto.generated.str"
+  <+
   	try(<file-exists <+ mkdir> "lib");
   	sdf-name := <get-sdf-main-module>;
 	<output-text-file(|["lib"], "analysis-auto.generated.str")>
