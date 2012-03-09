@@ -10,7 +10,8 @@ import static org.eclipse.core.resources.IResourceDelta.NO_CHANGE;
 import static org.eclipse.core.resources.IResourceDelta.REMOVED;
 import static org.eclipse.core.resources.IResourceDelta.REPLACED;
 
-import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
@@ -21,6 +22,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.language.LanguageRegistry;
+import org.spoofax.interpreter.library.language.INotificationService.FileSubfile;
 import org.spoofax.interpreter.library.language.NotificationCenter;
 import org.strategoxt.imp.runtime.Environment;
 
@@ -51,6 +53,8 @@ public class FileNotificationServer implements IResourceChangeListener {
 
 	private void postResourceChanged(IResourceDelta delta) {
 		try {
+			final List<FileSubfile> changedFiles = new ArrayList<FileSubfile>();
+
 			delta.accept(new IResourceDeltaVisitor() {
 				public boolean visit(IResourceDelta delta) throws CoreException {
 					IResource resource = delta.getResource();
@@ -58,12 +62,13 @@ public class FileNotificationServer implements IResourceChangeListener {
 							&& !isIgnoredChange(resource)
 							&& resource.getLocation() != null
 							&& LanguageRegistry.findLanguage(resource.getLocation(), null) != null) {
-						URI uri = resource.getLocationURI();
-						NotificationCenter.notifyFileChanges(uri, null);
+						changedFiles.add(new FileSubfile(resource.getLocationURI(), null));
 					}
 					return true;
 				}
 			});
+			
+			NotificationCenter.notifyFileChanges(changedFiles.toArray(new FileSubfile[0]));
 		} catch (CoreException e) {
 			Environment.logException("Exception when processing fileystem events", e);
 		}

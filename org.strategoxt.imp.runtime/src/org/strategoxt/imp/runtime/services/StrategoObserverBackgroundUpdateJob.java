@@ -33,15 +33,15 @@ import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 
 public class StrategoObserverBackgroundUpdateJob implements StrategoAnalysisJob {
 
-	private final IPath path;
+	private final IPath[] paths;
 	private final IProject project;
 	private final boolean triggerOnSave;
 	private StrategoProgressMonitor progress;
 	private StrategoObserver observer;
 	private SGLRParseController parseController;
 	
-	public StrategoObserverBackgroundUpdateJob(IPath path, IProject project, boolean triggerOnSave) {
-		this.path = path;
+	public StrategoObserverBackgroundUpdateJob(IPath[] paths, IProject project, boolean triggerOnSave) {
+		this.paths = paths;
 		this.project = project;
 		this.triggerOnSave = triggerOnSave;
 	}
@@ -50,6 +50,15 @@ public class StrategoObserverBackgroundUpdateJob implements StrategoAnalysisJob 
 		
 		this.progress = new StrategoProgressMonitor(monitor);
 		
+		for(IPath path : paths)
+			analyzeFile(path, monitor);
+		
+		return Status.OK_STATUS;
+		
+	}
+	
+	private void analyzeFile(IPath path, IProgressMonitor monitor)
+	{
 		try {
 			
 			IPath absolutePath = project == null ? path : project.getLocation().append(path);
@@ -58,7 +67,7 @@ public class StrategoObserverBackgroundUpdateJob implements StrategoAnalysisJob 
 			Language lang = LanguageRegistry.findLanguage(absolutePath, null);
 			if (lang == null) {
 				Environment.logException("Could not determine language for queued analysis of " + absolutePath);
-				return Status.OK_STATUS;
+				return;
 			}
 			Descriptor descriptor = Environment.getDescriptor(lang); 
 			
@@ -99,9 +108,6 @@ public class StrategoObserverBackgroundUpdateJob implements StrategoAnalysisJob 
 		} catch (BadDescriptorException e) {
 			Environment.logException("Background job failed", e);
 		}
-		
-		return Status.OK_STATUS;
-		
 	}
 
 	private SGLRParseController asSGLRParseController(IParseController controller) throws BadDescriptorException {
@@ -141,7 +147,8 @@ public class StrategoObserverBackgroundUpdateJob implements StrategoAnalysisJob 
 	}
 
 	public IPath getPath() {
-		return this.path;
+		// HACK: Return first path as path..
+		return this.paths[0];
 	}
 
 	public StrategoProgressMonitor getProgressMonitor() {

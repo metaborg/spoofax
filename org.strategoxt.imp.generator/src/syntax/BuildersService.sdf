@@ -17,9 +17,11 @@ exports
 
   context-free syntax
     
-    "observer" ":" StrategoCall                           -> SemanticRule {cons("SemanticObserver")}
+    "observer" ":" StrategoCall ObserverOption*           -> SemanticRule {cons("SemanticObserver")}
     "builder"  ":" String "=" StrategoCall BuilderOption* -> SemanticRule {cons("Builder")}
     "builder" "caption" ":" PropertyValue                 -> SemanticRule {cons("BuilderCaption")}
+    
+    "(multifile)"  -> ObserverOption {cons("MultiFile")}
     
     "(openeditor)" -> BuilderOption {cons("OpenEditor")}
     "(realtime)"   -> BuilderOption {cons("RealTime")}

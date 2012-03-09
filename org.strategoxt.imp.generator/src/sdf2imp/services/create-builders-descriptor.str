@@ -68,6 +68,10 @@ strategies
           ~// Any dynamic rules set in the analysis may be used by other semantic services,
           ~// such as reference resolving or the builders.
           ~//
+          ~// The (multifile) annotation can be added to an observer to indcate that this
+          ~// observer will receive a list of files if multiple files change, instead of running
+          ~// the observer on every file separately.
+          ~//
           ~// Builders may carry out custom transformations on a file or selection.
           ~// (At run-time, they can be accessed using the toolbar button with the star icon.)
           ~// Builders can be specified as follows:

@@ -97,6 +97,8 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	
 	private final String feedbackFunction;
 	
+	private final boolean multifile;
+	
 	private final AstMessageHandler messages = new AstMessageHandler(AstMessageHandler.ANALYSIS_MARKER_TYPE);
 	
 	private final Lock observerSchedulerLock = new SWTSafeLock(true);
@@ -127,9 +129,10 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	 */
 	private volatile boolean isDebuggerEnabled = false;
 	
-	public StrategoObserver(Descriptor descriptor, String feedbackFunction) {
+	public StrategoObserver(Descriptor descriptor, String feedbackFunction, boolean multifile) {
 		this.descriptor = descriptor;
 		this.feedbackFunction = feedbackFunction;
+		this.multifile = multifile;
 	}
 
 	public final AnalysisRequired getAnalysisRequired() {

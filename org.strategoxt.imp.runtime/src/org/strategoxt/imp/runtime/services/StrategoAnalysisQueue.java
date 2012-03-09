@@ -221,6 +221,7 @@ public class StrategoAnalysisQueue {
 
 	/**
 	 * Queue background analysis for a given file.
+	 * 
 	 * @param path the file's path
 	 * @param project the file's project
 	 * @param triggerOnSave whether to trigger an "on save" event
@@ -232,7 +233,8 @@ public class StrategoAnalysisQueue {
 		if (project == null)
 			throw new IllegalArgumentException("project cannot be null");
 
-		StrategoObserverBackgroundUpdateJob job = new StrategoObserverBackgroundUpdateJob(path, project, triggerOnSave);
+		StrategoObserverBackgroundUpdateJob job = 
+				new StrategoObserverBackgroundUpdateJob(new IPath[] {path}, project, triggerOnSave);
 		
 		// See if an update is already pending for this path
 		IPath absolutePath = project.getLocation().append(path);
@@ -245,6 +247,30 @@ public class StrategoAnalysisQueue {
 		wake();
 		
 		Debug.log("Background analysis queued for " + absolutePath);
+
+		return updateJob;
+	}
+	
+	/**
+	 * Queue background analysis for a given files.
+	 * 
+	 * @param paths the file paths
+	 * @param project the file's project
+	 * @param triggerOnSave whether to trigger an "on save" event
+	 * @return the update job
+	 */
+	public UpdateJob queueAnalysis(IPath[] paths, IProject project, boolean triggerOnSave) {
+		if (paths == null || paths.length == 0)
+			throw new IllegalArgumentException("paths cannot be null or empty");
+		if (project == null)
+			throw new IllegalArgumentException("project cannot be null");
+
+		StrategoObserverBackgroundUpdateJob job = new StrategoObserverBackgroundUpdateJob(paths, project, triggerOnSave);
+		
+		IPath absolutePath = project.getLocation().append(paths[0]); // HACK: Use first path as path..
+		UpdateJob updateJob = new UpdateJob(job, absolutePath, UpdateJob.BACKGROUND, true, 0);
+		add(updateJob);
+		wake();
 
 		return updateJob;
 	}

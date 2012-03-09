@@ -3,6 +3,8 @@ package org.strategoxt.imp.runtime.stratego;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IPath;
@@ -26,21 +28,54 @@ import org.strategoxt.imp.runtime.services.StrategoAnalysisQueueFactory;
 public class QueueAnalysisService implements INotificationService {
 
 	public void notifyFileChanges(URI file, String subfile) {
-		assert file.isAbsolute();
 		try {
 			IProject project = EditorIOAgent.getProject(new File(file));
-			IPath path = new Path(file.getPath());
-			
-			if (LanguageRegistry.findLanguage(path, null) != null) {
-				IPath relPath = path.removeFirstSegments(path.matchingFirstSegments(project.getLocation()));
-				assert !relPath.isAbsolute();
-				StrategoAnalysisQueueFactory.getInstance().queueAnalysis(relPath, project, true);
-			}
+			IPath relPath = relativePath(file, subfile);
+			StrategoAnalysisQueueFactory.getInstance().queueAnalysis(relPath, project, true);
 		} catch (FileNotFoundException e) {
 			Environment.logException("Background language service failed", e);
 		} catch (RuntimeException e) {
 			Environment.logException("Background language service failed", e);
 		}
+	}
+	
+	public void notifyFileChanges(FileSubfile[] files) {
+		if(files.length == 0)
+			return;
+		
+		List<IPath> relativePaths = new ArrayList<IPath>(files.length);
+		for(FileSubfile file : files) {
+			try {
+				IPath path = relativePath(file.file, file.subfile);
+				if(path != null)
+					relativePaths.add(path);
+			} catch (FileNotFoundException e) {
+				// Ignore exception, path is not added.
+			}
+		}
+		
+		try {
+			// TODO: assuming all projects are the same, is that fine?
+			IProject project = EditorIOAgent.getProject(new File(files[0].file));
+			StrategoAnalysisQueueFactory.getInstance().queueAnalysis(relativePaths.toArray(new IPath[0]), project, true);
+		} catch (FileNotFoundException e) {
+			Environment.logException("Background language service failed", e);
+		}
+	}
+	
+	private IPath relativePath(URI file, String subfile) throws FileNotFoundException {
+		assert file.isAbsolute();
+		
+		IProject project = EditorIOAgent.getProject(new File(file));
+		IPath path = new Path(file.getPath());
+		if(LanguageRegistry.findLanguage(path, null) != null)
+		{
+			IPath relPath = path.removeFirstSegments(path.matchingFirstSegments(project.getLocation()));
+			assert !relPath.isAbsolute();
+			return relPath;
+		}
+		
+		return null;
 	}
 
 	/**
