@@ -21,7 +21,9 @@ import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.model.ModelFactory;
 import org.eclipse.imp.model.ModelFactory.ModelException;
 import org.eclipse.imp.parser.IParseController;
+import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
@@ -55,10 +57,16 @@ public class StrategoObserverBackgroundUpdateJob implements StrategoAnalysisJob 
 			StrategoObserver observerNoParseController = getObserverNoParseController();
 			
 			if(paths.length == 1 || !observerNoParseController.isMultiFile()) {
+				this.progress.setSubTasks(paths.length);
+				
 				for(IPath path : paths)
+				{
 					analyzeFile(path, monitor);
+					this.progress.completeTask();
+				}
 			} else {
-				// TODO: Send file list to observer.
+				this.observer = observerNoParseController;
+				analyzeMultiFile(observerNoParseController);
 			}
 			
 		} catch (BadDescriptorException e) {
@@ -120,6 +128,22 @@ public class StrategoObserverBackgroundUpdateJob implements StrategoAnalysisJob 
 			Environment.logException("Background job failed", e);
 		} catch (BadDescriptorException e) {
 			Environment.logException("Background job failed", e);
+		}
+	}
+	
+	private void analyzeMultiFile(StrategoObserver observer) {
+		ITermFactory factory = Environment.getTermFactory();
+		IStrategoTerm[] terms = new IStrategoTerm[paths.length];
+		for(int i = 0; i < paths.length; ++i) {
+			terms[i] = factory.makeString(paths[i].toPortableString());
+		}
+		IStrategoList files = factory.makeList(terms);
+		
+		observer.getLock().lock();
+		try {
+			observer.invokeFeedbackSilent(files);
+		} finally {
+			observer.getLock().unlock();
 		}
 	}
 	
