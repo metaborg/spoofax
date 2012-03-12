@@ -27,6 +27,7 @@ import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.dynamicloading.DynamicParseController;
 import org.strategoxt.imp.runtime.dynamicloading.IOnSaveService;
+import org.strategoxt.imp.runtime.dynamicloading.StrategoObserverFactory;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.SourceAttachment;
@@ -50,8 +51,20 @@ public class StrategoObserverBackgroundUpdateJob implements StrategoAnalysisJob 
 		
 		this.progress = new StrategoProgressMonitor(monitor);
 		
-		for(IPath path : paths)
-			analyzeFile(path, monitor);
+		try {
+			StrategoObserver observerNoParseController = getObserverNoParseController();
+			
+			if(paths.length == 1 || !observerNoParseController.isMultiFile()) {
+				for(IPath path : paths)
+					analyzeFile(path, monitor);
+			} else {
+				// TODO: Send file list to observer.
+			}
+			
+		} catch (BadDescriptorException e) {
+			Environment.logException("Background job failed", e);
+		}
+		
 		
 		return Status.OK_STATUS;
 		
@@ -108,6 +121,20 @@ public class StrategoObserverBackgroundUpdateJob implements StrategoAnalysisJob 
 		} catch (BadDescriptorException e) {
 			Environment.logException("Background job failed", e);
 		}
+	}
+	
+	private StrategoObserver getObserverNoParseController() throws BadDescriptorException {
+		IPath absolutePath = project == null ? getPath() : project.getLocation().append(getPath());
+		Language lang = LanguageRegistry.findLanguage(absolutePath, null);
+		if (lang == null) {
+			Environment.logException("Could not determine language for queued analysis of " + absolutePath);
+			return null;
+		}
+		Descriptor descriptor = Environment.getDescriptor(lang); 
+		
+		StrategoObserverFactory fac = new StrategoObserverFactory();
+		// HACK: Create observer without parse controller.
+		return fac.create(descriptor, null);
 	}
 
 	private SGLRParseController asSGLRParseController(IParseController controller) throws BadDescriptorException {

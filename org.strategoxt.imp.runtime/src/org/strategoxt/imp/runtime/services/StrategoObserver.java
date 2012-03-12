@@ -192,6 +192,10 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		return isDebuggerEnabled;
 	}
 	
+	public boolean isMultiFile() {
+		return multifile;
+	}
+	
 	public void setDebuggerEnabled(boolean isDebuggerEnabled) {
 		this.isDebuggerEnabled = isDebuggerEnabled;
 	}
