@@ -68,7 +68,8 @@ public class FileNotificationServer implements IResourceChangeListener {
 				}
 			});
 			
-			NotificationCenter.notifyFileChanges(changedFiles.toArray(new FileSubfile[0]));
+			if(changedFiles.size() > 0)
+				NotificationCenter.notifyFileChanges(changedFiles.toArray(new FileSubfile[0]));
 		} catch (CoreException e) {
 			Environment.logException("Exception when processing fileystem events", e);
 		}

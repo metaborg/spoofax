@@ -59,7 +59,6 @@ public class QueueAnalysisPrimitive extends AbstractPrimitive {
 	private IPath relativePath(IStrategoString fileString, IProject project) throws InterpreterException {
 		try {
 			URI file = new URI(fileString.stringValue());
-			assert file.isAbsolute();
 			IPath path = new Path(file.toString());
 			if(LanguageRegistry.findLanguage(path, null) != null)
 			{
