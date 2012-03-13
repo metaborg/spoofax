@@ -25,19 +25,23 @@ public class StrategoObserverFactory extends AbstractServiceFactory<StrategoObse
 		// TODO: Sharing of FeedBack instances??
 		//       Each file should have its own Context, I guess, but not its own HybridInterpreter
 		IStrategoAppl observer = findTerm(descriptor.getDocument(), "SemanticObserver");
-		String observerFunction = termContents(termAt(observer, 0));
+		String observerFunction = null;
 		boolean multifile = false;
-		try {
-			IStrategoList options = termAt(observer, 1);
-			for (IStrategoTerm option : options.getAllSubterms()) {
-				String type = cons(option);
-				if (type.equals("MultiFile")) {
-					multifile = true;
+		
+		if(observer != null) {
+			observerFunction = termContents(termAt(observer, 0));
+			try {
+				IStrategoList options = termAt(observer, 1);
+				for (IStrategoTerm option : options.getAllSubterms()) {
+					String type = cons(option);
+					if (type.equals("MultiFile")) {
+						multifile = true;
+					}
 				}
+				
+			} catch (Exception e) {
+				// Ignore exception, multifile stays false.
 			}
-			
-		} catch (Exception e) {
-			// Ignore exception, multifile stays false.
 		}
 
 		return new StrategoObserver(descriptor, observerFunction, multifile);
