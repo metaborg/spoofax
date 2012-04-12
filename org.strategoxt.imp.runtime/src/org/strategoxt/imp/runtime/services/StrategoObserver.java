@@ -789,6 +789,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	public void invokeFeedbackSilent(IStrategoTerm node) {
 		if (runtime == null) initialize(new NullProgressMonitor());
 		if (runtime == null) return;
+		assert getLock().isHeldByCurrentThread();
 		runtime.setCurrent(node);
 		try {
 			runtime.invoke(feedbackFunction);
