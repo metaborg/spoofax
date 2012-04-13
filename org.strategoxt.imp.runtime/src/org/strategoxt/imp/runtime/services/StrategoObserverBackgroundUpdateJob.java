@@ -135,7 +135,7 @@ public class StrategoObserverBackgroundUpdateJob implements StrategoAnalysisJob 
 		ITermFactory factory = Environment.getTermFactory();
 		IStrategoTerm[] terms = new IStrategoTerm[paths.length];
 		for(int i = 0; i < paths.length; ++i) {
-			terms[i] = factory.makeString(paths[i].toPortableString());
+			terms[i] = factory.makeString(paths[i].setDevice("").toPortableString());
 		}
 		IStrategoList files = factory.makeList(terms);
 		
