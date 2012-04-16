@@ -54,7 +54,7 @@ public class StrategoObserverBackgroundUpdateJob implements StrategoAnalysisJob 
 		this.progress = new StrategoProgressMonitor(monitor);
 		
 		try {
-			StrategoObserver observerNoParseController = getObserverNoParseController();
+			StrategoObserver observerNoParseController = createObserverNoParseController();
 			
 			if(paths.length == 1 || !observerNoParseController.isMultiFile()) {
 				this.progress.setSubTasks(paths.length);
@@ -73,9 +73,7 @@ public class StrategoObserverBackgroundUpdateJob implements StrategoAnalysisJob 
 			Environment.logException("Background job failed", e);
 		}
 		
-		
 		return Status.OK_STATUS;
-		
 	}
 	
 	private void analyzeFile(IPath path, IProgressMonitor monitor)
@@ -139,15 +137,18 @@ public class StrategoObserverBackgroundUpdateJob implements StrategoAnalysisJob 
 		}
 		IStrategoList files = factory.makeList(terms);
 		
-		observer.getLock().lock();
 		try {
-			observer.invokeFeedbackSilent(files);
+			observer.getLock().lock();
+			((EditorIOAgent)observer.getRuntime().getIOAgent()).setJob(this);
+			observer.invoke(observer.getFeedbackFunction(), files, project.getLocation().toFile());
+		} catch (Exception e) {
+			Environment.logException("Background job failed", e);
 		} finally {
-			observer.getLock().unlock();
+			if (observer != null) observer.getLock().unlock();
 		}
 	}
 	
-	private StrategoObserver getObserverNoParseController() throws BadDescriptorException {
+	private StrategoObserver createObserverNoParseController() throws BadDescriptorException {
 		IPath absolutePath = project == null ? getPath() : project.getLocation().append(getPath());
 		Language lang = LanguageRegistry.findLanguage(absolutePath, null);
 		if (lang == null) {
@@ -157,7 +158,6 @@ public class StrategoObserverBackgroundUpdateJob implements StrategoAnalysisJob 
 		Descriptor descriptor = Environment.getDescriptor(lang); 
 		
 		StrategoObserverFactory fac = new StrategoObserverFactory();
-		// HACK: Create observer without parse controller.
 		return fac.create(descriptor, null);
 	}
 
