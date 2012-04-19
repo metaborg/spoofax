@@ -1,6 +1,7 @@
 package org.strategoxt.imp.runtime.stratego;
 
 import static org.eclipse.core.resources.IResourceChangeEvent.POST_CHANGE;
+import static org.eclipse.core.resources.IResourceChangeEvent.PRE_CLOSE;
 import static org.eclipse.core.resources.IResourceDelta.ADDED;
 import static org.eclipse.core.resources.IResourceDelta.CHANGED;
 import static org.eclipse.core.resources.IResourceDelta.CONTENT;
@@ -34,6 +35,8 @@ import org.strategoxt.imp.runtime.Environment;
  */
 public class FileNotificationServer implements IResourceChangeListener {
 	
+	private boolean projectClosed = false;
+	
 	private FileNotificationServer() {
 		// Use the statics
 	}
@@ -46,8 +49,15 @@ public class FileNotificationServer implements IResourceChangeListener {
 	}
 
 	public void resourceChanged(IResourceChangeEvent event) {
-		if (event.getType() == POST_CHANGE) {
-			postResourceChanged(event.getDelta());
+		switch(event.getType()) {
+			case POST_CHANGE:
+				if(!projectClosed)
+					postResourceChanged(event.getDelta());
+				projectClosed = false;
+				break;
+			case PRE_CLOSE:
+				projectClosed = true;
+				break;
 		}
 	}
 

@@ -57,7 +57,7 @@ public class QueueAnalysisService implements INotificationService {
 		try {
 			// TODO: assuming all projects are the same, is that fine?
 			IProject project = EditorIOAgent.getProject(new File(files[0].file));
-			StrategoAnalysisQueueFactory.getInstance().queueAnalysis(relativePaths.toArray(new IPath[0]), project, true);
+			StrategoAnalysisQueueFactory.getInstance().queueAnalysis(relativePaths.toArray(new IPath[0]), project, false);
 		} catch (FileNotFoundException e) {
 			Environment.logException("Background language service failed", e);
 		}
