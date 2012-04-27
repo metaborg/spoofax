@@ -50,7 +50,7 @@
    <extension
          point="org.eclipse.imp.runtime.labelProvider">
       <labelProvider
-            class="org.strategoxt.imp.runtime.services.LabelProvider"
+            class="org.strategoxt.imp.runtime.dynamicloading.DynamicLabelProvider"
             language="DynamicRoot">
       </labelProvider>
    </extension>
