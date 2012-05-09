@@ -41,3 +41,5 @@ Bundle-ActivationPolicy: lazy
 Bundle-Activator: org.strategoxt.imp.runtime.RuntimeActivator
 Import-Package: org.eclipse.ltk.core.refactoring,
  org.eclipse.ltk.ui.refactoring
+Eclipse-BuddyPolicy: registered
+
