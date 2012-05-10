@@ -150,6 +150,7 @@ strategies
     create-analysis-auto-placeholder;
     create-index-library;
     create-analysis-library;
+    create-analysis-internal-library;
     create-compilation-library;
     
     copy-jars;

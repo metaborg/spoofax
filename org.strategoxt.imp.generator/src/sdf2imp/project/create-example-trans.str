@@ -28,59 +28,76 @@ imports
   lib/analysis-auto.generated
   lib/index-library.generated
   lib/analysis-library.generated
+  lib/analysis-library-internal.generated
   lib/compilation-library.generated
   analysis-manual
   check
   generate
   refactor
 
-rules // Main editor interface (defined by editor/{sdf-name}-Builders and -References.esv)
+rules // Analysis
   
-  // Analyzes the current program, returning a tuple with errors, warnings, and notes;
-  // each a list of (term, message) tuples or simply (message) terms.
+  // Analyzes the current program, returning a tuple with the analyzed AST, errors, warnings, notes and
+  // files that should be re-analyzed.
+  analyze:
+    (ast, path, project-path) -> (ast'', errors, warnings, notes, filesToAnalyze')
+    with
+      ast'                    := <id> ast; // Optional AST desugaring
+      (ast'', filesToAnalyze) := <analyze-top(|<language>)> (ast', path, project-path);
+      index-transaction(
+        errors                := <collect-all(constraint-error, conc)> ast'';
+        warnings              := <collect-all(constraint-warning, conc)> ast'';
+        notes                 := <collect-all(constraint-note, conc)> ast''
+      );
+      filesToAnalyze'         := <make-set> <map(index-filepair-to-file)> filesToAnalyze
+
+  // Main entry point for analyzes, called when a single file is opened in the editor.
   editor-analyze:
     (ast, path, project-path) -> (ast', errors, warnings, notes)
     with
       editor-init;
-      ast'     := <analyze-top>;
-      errors   := <collect-all(constraint-error, conc)> ast';
-      warnings := <collect-all(constraint-warning, conc)> ast';
-      notes    := <collect-all(constraint-note, conc)> ast'
-  
-  // Transforms a selection to Java
-  generate-java:
-    (selected, position, ast, path, project-path) -> (filename, result)
-    with
-      filename := <guarantee-extension(|"java")> path;
-      result   := <to-java> selected
-  
-  // Prints the abstract syntax ATerm of a selection.
-  generate-aterm:
-    (selected, position, ast, path, project-path) -> (filename, result)
-    with
-      filename := <guarantee-extension(|"aterm")> path;
-      result   := selected // we just return the input term
+      (ast', errors, warnings, notes, filesToAnalyze) := <analyze> (ast, path, project-path);
+      <try(editor-queue-analysis)> filesToAnalyze
       
-  // Prints the analyzed abstract syntax ATerm of a selection.
-  generate-analyzed:
-    (selected, position, ast, path, project-path) -> (filename, result)
+  // Main entry point for analyzes, called when multiple files have changed. 
+  editor-analyze:
+    files -> None()
+    where
+      not(is-tuple)
     with
-      editor-init;
-      filename := <guarantee-extension(|"analyzed.aterm")> path;
-      result   := <analyze-top> (selected, path, project-path)
+      index-setup(|<language>, [<project-path>], ".");
+      disable-commit-and-compile // Disable compilation during analysis.
+    with
+      editor-queue-analysis
+    with
+      // Enable and trigger compilation after all files have been analysed.
+      <enable-commit-and-compile> <language>;
+      <trigger-commit-and-compile> <language>
+      
+  // Called when current file is saved.
+  editor-save:
+    (_, _, _, _, _) -> None()
+    with
+      index-setup(|<language>, [<project-path>], ".");
+      <trigger-commit-and-compile> <language>
+
+rules // Editor services
   
   // Resolves a reference when the user control-clicks or presses F3 in the editor.
   editor-resolve:
     (node, position, ast, path, project-path) -> target
     where
-      language  := <index-origin-language> ast;
-      index-setup(|language, [project-path], $[[project-path]/[path]]);
-      target    := <index-lookup> node
+      index-setup(|<language>, [project-path], $[[project-path]/[path]]);
+      index-transaction(
+        target := <index-lookup> node
+      )
 
   // Returns "hover help" information for a particular node in the editor.
   // For references, this rule is invoked using the resolved term.
   editor-hover:
-    (target, position, ast, path, project-path) -> $[Hover help: [<write-to-string> target]]
+    (target, position, ast, path, project-path) -> $[[uriString]]
+    where
+      uriString := <index-uri-to-string> <index-uri> <index-find-key> target
 
   // Completes an identifier when the user presses control-space
   // (the completion identifier in the AST provides additional context information)
@@ -88,18 +105,72 @@ rules // Main editor interface (defined by editor/{sdf-name}-Builders and -Refer
     (node, position, ast, path, project-path) -> proposals'
     where
       editor-init;
-      ast'              := <analyze-top> (ast, path, project-path);
-      x                 := <collect-one(?COMPLETION(_))> ast';
-      COMPLETION(name)  := x;
-      (
-        proposals       := <index-lookup-all-levels(|name)> x
-      <+ 
-        proposals       := []
+      (ast', _) := <analyze-top(|<language>)> (ast, path, project-path);
+      item@COMPLETION(name) := <collect-one(?COMPLETION(_))> ast';
+      index-transaction(
+        (<index-lookup-all-levels(|name)> item <+ ![]) => proposals
       );
-      proposals'        := <map(def-to-name)> proposals
+      proposals' := <map(index-uri-name)> proposals
 
-  def-to-name:
-    Def([namespace, name | _]) -> name
+rules // Debugging
+  
+  // Prints the abstract syntax ATerm of a selection.
+  generate-aterm:
+    (selected, position, ast, path, project-path) -> (filename, result)
+    with
+      filename := <guarantee-extension(|"aterm")> path;
+      result   := selected
+      
+  // Prints the analyzed annotated abstract syntax ATerm of a selection.
+  generate-analyzed:
+    (selected, position, ast, path, project-path) -> (filename, result)
+    with
+      editor-init;
+      filename := <guarantee-extension(|"analyzed.aterm")> path;
+      result   := <analyze-top(|<language>)> (selected, path, project-path)   
+      
+  // Prints the definition annotated abstract syntax ATerm of a selection.
+  generate-deffed:
+    (selected, position, ast, path, project-path) -> (filename, result)
+    with
+      index-setup(|<language>, [project-path], $[[project-path]/[path]]);
+      filename := <guarantee-extension(|"aterm")> path;
+      result   := <analyze-defs(|Anon(), Anon())> selected
+      
+  // Prints the entries in the index of the current file.
+  index-currentfile:
+    (selected, position, ast, path, project-path) -> (filename, result)
+    with
+      index-setup(|<language>, [project-path], $[[project-path]/[path]]);
+      filename := <guarantee-extension(|"index.currentfile.aterm")> path;
+      result   := <index-get-all-in-file> path
+      
+  // Prints the entries in the index of all files.
+  index-allfiles:
+    (selected, position, ast, path, project-path) -> (filename, result)
+    with
+      index-setup(|<language>, [project-path], $[[project-path]/[path]]);
+      filename := <guarantee-extension(|"index.allfiles.aterm")> path;
+      result   := <map(\filename -> (filename, <index-get-all-in-file> filename)\)> <index-get-all-files>
+      
+  // Cleans all data from the index.
+  index-cleanall:
+    (selected, position, ast, path, project-path)  -> None()
+    with
+      index-setup(|<language>, [project-path], $[[project-path]/[path]]);
+      index-clear
+    
+rules // Utility
+  
+  // Queue parallel analysis for given list of files.
+  editor-queue-analysis = 
+    not(?[]); queue-strategy(|"editor-parallel-analyze", "Analyzing files")
+      
+  // Executes parallel analysis using the index library.
+  editor-parallel-analyze:
+    files -> None()
+    with
+      index-parallel-analyze-files(analyze)
 };
 
 if not(<file-exists> "trans/generate.str") then
@@ -116,7 +187,7 @@ imports
 
 rules // Incremental code generation of project using compilation library.
       
-  index-compile-ast(|file, subfile, project-path):
+  index-compile-ast(|file, subfile):
     ast -> None()
     with
       java := <to-java> ast;
@@ -129,6 +200,9 @@ rules // Incremental code generation of project using compilation library.
       <debug> $[Compiling to [writeFile]]
 
 rules // Transformation to java strings.
+
+  to-java:
+    [_] -> <concat-strings> <map(to-java)>
 
   to-java:
     Module(x, d*) ->
