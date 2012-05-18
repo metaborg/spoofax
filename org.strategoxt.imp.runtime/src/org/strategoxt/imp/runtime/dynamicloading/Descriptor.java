@@ -118,6 +118,7 @@ public class Descriptor {
 		serviceFactories.add(new ContentProposerFactory());
 		serviceFactories.add(new AutoEditStrategyFactory());
 		serviceFactories.add(new OnSaveServiceFactory());
+		serviceFactories.add(new TextReplacerFactory());
 	}
 	
 	/**
