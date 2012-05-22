@@ -35,15 +35,16 @@ strategies
           builder: "Generate Java code (for selection)"            = generate-java  (openeditor) (realtime)
           builder: "Show abstract syntax (for selection)"          = generate-aterm (openeditor) (realtime) (meta) (source)
           builder: "Show analyzed abstract syntax (for selection)" = generate-analyzed (openeditor) (realtime) (meta) (source)
+          builder: "Show index entries for current file"           = index-currentfile (openeditor) (realtime) (meta) (source)
+          builder: "Show index entries for all files"              = index-allfiles (openeditor) (realtime) (meta) (source)
+          builder: "Clear index"                                   = index-cleanall (meta) (source)
           ~~
-           
         refactorings
           pretty-print: ~pp-strategy
           refactoring ID: "Rename Entity" = rename-entity (source) (cursor)
           shortcut: "org.eclipse.jdt.ui.edit.text.java.rename.element"
           input
           	identifier: "new name" = ""
-          ~~
           on save: editor-save
       ]|
     );
