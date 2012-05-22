@@ -101,6 +101,9 @@ signature constructors
   Global : List(UriPart) -> Summary
   Global : List(UriPart) * List(Summary) -> Summary
   
+  // None namespace
+  None   : Namespace
+  
 rules // Index management
    
   /**
@@ -678,25 +681,62 @@ rules // Index utility
    * Converts a file ((file, subfile) tuple) to a string.
    *
    * Example:
-   *   <index-file-to-string> (\"fullpath/file.ext\", \"\") => \"fullpath/file.ext\"
+   *   <index-file-to-string> (\"fullpath/file.ext\", []) => \"fullpath/file.ext\"
    *
-   * @type (file, \"\") -> file
+   * @type (file, []) -> file
    */
   index-file-to-string:
-    (file, \"\") -> file
+    (file, []) -> file
     
   /**
    * Converts a file ((file, subfile) tuple) to a string.
    *
    * Example:
-   *   <index-file-to-string> (\"fullpath/file.ext\", \"subfile\") => \"fullpath/file.ext@subfile\"
+   *   <index-file-to-string> (\"fullpath/file.ext\", [Entity(), \"Foo\" \"Bar\"]) => \"fullpath/file.ext@Entity://Foo.Bar\"
    *
    * @type (file, subfile) -> str
    */
   index-file-to-string:
-    (file, subfile) -> <concat-strings> [file, \"@\", subfile]
+    (file, subfile) -> <concat-strings> [file, \"@\", <index-uri-to-string> subfile]
     where
-      not(\"\" := subfile)
+      not([] := subfile)
+
+  /**
+   * Converts a file to a URI.
+   *
+   * Example:
+   *   <index-file-to-uri> \"fullpath/file.ext\" => [None(), \"fullpath/file.ext\"]
+   *
+   * @type file -> uri
+   */      
+  index-file-to-uri:
+    file -> [None(), file]
+    where
+      not(<is-tuple> file)
+      
+  /**
+   * Converts a file ((file, subfile) tuple) to a URI.
+   *
+   * Example:
+   *   <index-file-to-uri> (\"fullpath/file.ext\", []) => [None(), \"fullpath/file.ext]
+   *
+   * @type (file, subfile) -> uri
+   */      
+  index-file-to-uri:
+    (file, []) -> [None(), file]
+    
+  /**
+   * Converts a file ((file, subfile) tuple) to a URI.
+   *
+   * Example:
+   *   <index-file-to-uri> (\"fullpath/file.ext\", [Entity(), \"Foo\" \"Bar\"]) => [Entity(), \"Foo\", \"Bar\", \"fullpath/file.ext\"]
+   *
+   * @type (file, subfile) -> uri
+   */      
+  index-file-to-uri:
+    (file, subfile) -> <conc> ([file], subfile)
+    where
+      not([] := subfile)
       
 /** @internal */
 rules // URI and value projections
@@ -917,7 +957,7 @@ rules // Analysis traversals
           <analyze-top-internal(|phase, language, project-path, full-path)> astsFilePairs
       else
         Results(ast', _, _, _, _, _, filesToAnalyze) := 
-          <analyze-top-internal(|phase, language, project-path, full-path)> [(ast, (full-path, \"\"))]
+          <analyze-top-internal(|phase, language, project-path, full-path)> [(ast, (full-path, []))]
       end
   
 rules // Parallel analysis
@@ -1446,7 +1486,7 @@ rules // Analysis traversals
   analyze-top-store-ast:
     (ast, file) -> <id>
     with
-      <index-set-global(|[<index-file-to-string> file, \"ast\"])> ast
+      <index-set-global(|<conc> (<index-file-to-uri> file, [\"ast\"]))> ast
       
   /**
    * Identifies all definitions in the tree and annotates them with their URI.
@@ -1678,6 +1718,14 @@ rules // Diffs
       // Files to analyze
       analyzeFiles := <make-set> <remove-all(fake-file)> dependentFiles;
       analyzeFiles' := analyzeFiles;
+      // TODO: Is this extra check needed?
+      /*if <getfirst(index-get-file-revision; \\r -> (r, revision)\\; gt)> analyzeFiles then
+        // Add current file if the current file has read information from another file with a higher revision.
+        // This indicates that potentially outdated information was read.
+        analyzeFiles' := [file|analyzeFiles]
+      else
+        analyzeFiles' := analyzeFiles
+      end;*/
       
       // Files to compile
       changedAstFiles := <filter(analyze-astdiff)> astFilePairs;
@@ -1693,7 +1741,7 @@ rules // Diffs
   analyze-astdiff:
     (ast, file) -> file
     where
-      name := [<index-file-to-string> file, \"ast-checksum\"];
+      name := <conc> (<index-file-to-uri> file, [\"ast-checksum\"]);
       newChecksum := <checksum> ast;
       if oldChecksum := <index-get-global(|name)> then
         <index-set-global(|name)> newChecksum;
@@ -1914,9 +1962,7 @@ rules // Internal helpers
   
   /** @internal */
   ast-uri-to-ast-file(|full-path):
-    (ast, uri) -> (ast, (full-path, uriStr))
-    with
-      (<index-uri-to-string> uri <+ !\"\") => uriStr
+    (ast, uri) -> (ast, (full-path, uri))
   
   /** @internal */     
   index-is-name-substring(|name):
@@ -2107,23 +2153,19 @@ rules // Compilation
       <set-total-work-units> <length> filteredFiles;
       
       // Compile the files
-      <filter(index-compilation-file(|language, project-path); complete-work-unit)> filteredFiles
+      <filter(index-compilation-file(|language, project-path); complete-work-unit)> <debug(!\"Files to compile: \")> filteredFiles
 
   /** @internal */
   index-compilation-file(|language, project-path):
     (path, subfile) -> None()
     with
-      // Parse and analyze ast.
-      ast                              := <parse-file> path;
-      ast'                             := <try(index-desugar-ast)> ast;
-      Results(ast'', _, _, _, _, _, _) := <analyze-top-internal(|Compile(), language, project-path, path)> [(ast', (path, subfile))]
-    with
+      ast := <index-get-global(|<conc> (<index-file-to-uri> (path, subfile), [\"ast\"]))>;
       {| Index-ReadSet:
         readSet := <new-iset>;
         rules(Index-ReadSet: _ -> readSet);
         
         // Compile file
-        <try(index-compile-ast(|path, subfile))> ast'';
+        <try(index-compile-ast(|path, subfile))> ast;
         
         // Store compile-time reads.
         reads := <iset-elements> readSet;
@@ -2157,7 +2199,7 @@ rules // On save handling
    * Compilation can be delayed by using disable-commit-and-compile. Compilation will be triggered when 
    * enable-commit-and-compile is called.
    *
-   * @type language -> ?language
+   * @type language -> language
    *
    * @see enable-commit-and-compile
    * @see disable-commit-and-compile
@@ -2182,10 +2224,10 @@ rules // On save handling
     index-enable-global(|\"delay-compile\")
   
   /**
-   * Cancels the commit and compilation delay. If commit and compilation was triggered during the delay, it
-   * is triggered now.
+   * Cancels the commit and compilation delay, requires target language as current term. 
+   * If commit and compilation was triggered during the delay, it is triggered now.
    *
-   * @type x -> x
+   * @type language -> language
    *
    * @see disable-commit-and-compile
    */
