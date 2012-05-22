@@ -196,8 +196,7 @@ rules // Incremental code generation of project using compilation library.
       writePath := $[[full-path]/];
       writeFile :=  $[[writePath][filename]];
       try(<mkdir> writePath);
-      <fclose> <fputs> (java, <fopen> (writeFile, "w"));
-      <debug> $[Compiling to [writeFile]]
+      <fclose> <fputs> (java, <fopen> (writeFile, "w"))
 
 rules // Transformation to java strings.
 
@@ -254,6 +253,7 @@ imports
   lib/analysis-auto.generated
   lib/index-library.generated
   lib/analysis-library.generated
+  lib/analysis-library-internal.generated
 
 rules // Resolving
   
@@ -295,6 +295,7 @@ imports
   lib/analysis-auto.generated
   lib/index-library.generated
   lib/analysis-library.generated
+  lib/analysis-library-internal.generated
 
 rules // Adjust lookup
 

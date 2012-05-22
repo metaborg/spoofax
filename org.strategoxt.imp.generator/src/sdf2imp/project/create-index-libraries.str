@@ -2153,7 +2153,7 @@ rules // Compilation
       <set-total-work-units> <length> filteredFiles;
       
       // Compile the files
-      <filter(index-compilation-file(|language, project-path); complete-work-unit)> <debug(!\"Files to compile: \")> filteredFiles
+      <filter(index-compilation-file(|language, project-path); complete-work-unit)> filteredFiles
 
   /** @internal */
   index-compilation-file(|language, project-path):
