@@ -251,14 +251,14 @@ rules // Index management
    * Starts a transaction, applies given strategy and ends the transaction. All index operations used from the given
    * strategy are thread safe.
    * 
-   * @param s The strategy to apply.
+   * @param s The strategy to apply. Transaction will still properly end if strategy fails.
    * @type x -> x'
    *
    * @see index-start-transaction
    * @see index-end-transaction
    */
   index-transaction(s) = 
-    prim(\"LANG_index_start_transaction\"); s; prim(\"LANG_index_end_transaction\")
+    prim(\"LANG_index_start_transaction\"); try(s); prim(\"LANG_index_end_transaction\")
   
 rules // Index querying
   
