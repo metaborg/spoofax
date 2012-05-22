@@ -241,6 +241,9 @@ signature constructors
   Entity   : ID * List(Property) -> Entity
   Property : ID * Type           -> Property
   Type     : ID                  -> Type
+  
+  Type     : Namespace
+  Property : Namespace
 
 strategies
   
