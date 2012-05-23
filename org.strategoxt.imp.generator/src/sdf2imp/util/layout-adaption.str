@@ -248,7 +248,7 @@ assert-valid-textual-changes =
 assert-no-overlap:
 	txt-changes@[(start-offset, end-offset, _), (start-offset', _, _)|_] -> txt-changes
 	with
-		<lt> (start-offset, start-offset');
+		<leq> (start-offset, start-offset');
 		<leq> (end-offset, start-offset');
 		<at-tail(assert-no-overlap)> txt-changes
 		
