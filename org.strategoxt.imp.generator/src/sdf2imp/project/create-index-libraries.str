@@ -956,8 +956,9 @@ rules // Analysis traversals
         Results(ast', _, _, _, _, _, filesToAnalyze) := 
           <analyze-top-internal(|phase, language, project-path, full-path)> astsFilePairs
       else
-        Results(ast', _, _, _, _, _, filesToAnalyze) := 
-          <analyze-top-internal(|phase, language, project-path, full-path)> [(ast, (full-path, []))]
+        Results(asts, _, _, _, _, _, filesToAnalyze) := 
+          <analyze-top-internal(|phase, language, project-path, full-path)> [(ast, full-path)];
+        ast' := <Hd> asts
       end
   
 rules // Parallel analysis
