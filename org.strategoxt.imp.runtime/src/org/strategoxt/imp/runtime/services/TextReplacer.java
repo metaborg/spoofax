@@ -1,15 +1,8 @@
 package org.strategoxt.imp.runtime.services;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.swt.widgets.Display;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.generator.construct_textual_change_4_0;
@@ -34,12 +27,11 @@ public class TextReplacer implements ITextReplacer {
 		this.controller = controller;
 	}
 
-	public void replaceText(IStrategoTerm resultTuple) {		
-		IStrategoTerm textreplace = null;
+	public void replaceText(IStrategoTerm resultTuple) {	
 		try {
 			File file = SourceAttachment.getFile(controller.getCurrentAst());
 			StrategoObserver observer = descriptor.createService(StrategoObserver.class, controller);
-			textreplace = construct_textual_change_4_0.instance.invoke(
+			IStrategoTerm textreplace = construct_textual_change_4_0.instance.invoke(
 					observer.getRuntime().getCompiledContext(), 
 					resultTuple, 
 					createStrategy(RefactoringFactory.getPPStrategy(descriptor), file, observer),
@@ -47,12 +39,16 @@ public class TextReplacer implements ITextReplacer {
 					createStrategy(RefactoringFactory.getOverrideReconstructionStrategy(descriptor), file, observer),
 					createStrategy(RefactoringFactory.getResugarStrategy(descriptor), file, observer)
 				);
+			final String result = ((IStrategoString) textreplace.getSubterm(0).getSubterm(2)).stringValue();
+			
+			Display.getDefault().syncExec(new Runnable() {
+				public void run() {
+					controller.getEditor().getDocument().set(result);
+				}
+			});
 		} catch (BadDescriptorException e) {
 			e.printStackTrace();
 		}
-		
-		writeToFile((IStrategoString) textreplace.getSubterm(0).getSubterm(2));
-		queueAnalysisAffectedFile();
 	}
 	
 	private Strategy createStrategy(final String sname, final File file, final StrategoObserver observer) {
@@ -64,31 +60,5 @@ public class TextReplacer implements ITextReplacer {
 				return null;
 			}
 		};
-	}
-	
-	// does this method exists already somewhere?
-	private void writeToFile(IStrategoString term) {
-		try {
-			File file = SourceAttachment.getFile(controller.getCurrentAst());
-			FileWriter fstream = new FileWriter(file);
-			BufferedWriter out = new BufferedWriter(fstream);
-			out.write(term.stringValue());
-			out.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-		IResource resource = controller.getResource();
-		try {
-			resource.refreshLocal(IResource.DEPTH_ZERO, new NullProgressMonitor());
-		} catch (CoreException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	private void queueAnalysisAffectedFile() {
-		IPath path = controller.getResource().getProjectRelativePath();
-		IProject project = controller.getEditor().getProject().getRawProject();
-		StrategoAnalysisQueueFactory.getInstance().queueAnalysis(path, project, true);
 	}
 }
