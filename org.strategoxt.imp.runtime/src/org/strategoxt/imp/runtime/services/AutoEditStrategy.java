@@ -469,7 +469,13 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 	}
 	
 	private static boolean useSpacesInsteadOfTabs() {
-		IPreferenceStore preferences = lastEditor.getThePreferenceStore();
+		IPreferenceStore preferences;
+		if(lastEditor!=null){
+			preferences = lastEditor.getThePreferenceStore();
+		}
+		else{
+			preferences = EditorState.getActiveEditor().getEditor().getThePreferenceStore();
+		}
 		return preferences != null && 
 			preferences.getBoolean(EDITOR_SPACES_FOR_TABS);
 	}
