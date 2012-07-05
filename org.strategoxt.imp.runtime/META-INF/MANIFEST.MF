@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Spoofax/IMP Runtime
 Bundle-SymbolicName: org.strategoxt.imp.runtime;singleton:=true
-Bundle-Version: 0.1.1.qualifier
+Bundle-Version: 0.1.2.qualifier
 Require-Bundle: org.eclipse.imp.runtime,
  org.spoofax.jsglr;bundle-version="0.3.0",
  org.spoofax.interpreter.core,
@@ -27,7 +27,10 @@ Require-Bundle: org.eclipse.imp.runtime,
  org.strategoxt.strj,
  org.strategoxt.imp.debug.core,
  org.eclipse.core.expressions,
- org.spoofax.interpreter.library.language;bundle-version="1.0.0"
+ org.spoofax.interpreter.library.language;bundle-version="1.0.0",
+ org.strategoxt.imp.runtime.sidebyside.main;bundle-version="0.0.1",
+ org.strategoxt.imp.runtime.sidebyside.legacy;bundle-version="0.0.1";resolution:=optional,
+ org.strategoxt.imp.runtime.sidebyside.latest;bundle-version="0.0.1"
 Export-Package: org.strategoxt.imp.runtime,
  org.strategoxt.imp.runtime.dynamicloading,
  org.strategoxt.imp.runtime.parser,
