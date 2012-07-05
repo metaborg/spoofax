@@ -6,4 +6,4 @@ Bundle-Version: 0.0.1.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-Vendor: Spoofax.org
 Export-Package: org.stratego.imp.runtime.services.sidebyside.main
-Require-Bundle: org.eclipse.ui;bundle-version="3.6.2"
+Require-Bundle: org.eclipse.ui
