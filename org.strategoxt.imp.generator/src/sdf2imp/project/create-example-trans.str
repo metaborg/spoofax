@@ -25,31 +25,31 @@ imports
   libstratego-aterm
   include/{sdf-name}
   lib/editor-common.generated
-  lib/analysis-auto.generated
   lib/index-library.generated
   lib/analysis-library.generated
   lib/analysis-library-internal.generated
   lib/compilation-library.generated
-  analysis-manual
+  lib/nbl-library.generated
+  names
   check
   generate
   refactor
 
 rules // Analysis
   
-  // Analyzes the current program, returning a tuple with the analyzed AST, errors, warnings, notes and
-  // files that should be re-analyzed.
+	// Analyzes the current program, returning a tuple with the analyzed AST, errors, warnings, notes and
+	// files that should be re-analyzed.
   analyze:
     (ast, path, project-path) -> (ast'', errors, warnings, notes, filesToAnalyze')
     with
       ast'                    := <id> ast; // Optional AST desugaring
       (ast'', filesToAnalyze) := <analyze-top(|<language>)> (ast', path, project-path);
       index-transaction(
-        errors                := <collect-all(constraint-error, conc)> ast'';
-        warnings              := <collect-all(constraint-warning, conc)> ast'';
-        notes                 := <collect-all(constraint-note, conc)> ast''
+	      errors                := <collect-all(constraint-error, conc)> ast'';
+	      warnings              := <collect-all(constraint-warning, conc)> ast'';
+	      notes                 := <collect-all(constraint-note, conc)> ast''
       );
-      filesToAnalyze'         := <make-set> <map(index-filepair-to-file)> filesToAnalyze
+      filesToAnalyze'         := <index-filepairs-to-files> filesToAnalyze
 
   // Main entry point for analyzes, called when a single file is opened in the editor.
   editor-analyze:
@@ -57,7 +57,7 @@ rules // Analysis
     with
       editor-init;
       (ast', errors, warnings, notes, filesToAnalyze) := <analyze> (ast, path, project-path);
-      <try(editor-queue-analysis)> filesToAnalyze
+      <try(editor-queue-analysis)> <remove-all(?path)> filesToAnalyze
       
   // Main entry point for analyzes, called when multiple files have changed. 
   editor-analyze:
@@ -65,7 +65,7 @@ rules // Analysis
     where
       not(is-tuple)
     with
-      index-setup(|<language>, [<project-path>], ".");
+    	index-setup(|<language>, [<project-path>], ".");
       disable-commit-and-compile // Disable compilation during analysis.
     with
       editor-queue-analysis
@@ -108,37 +108,37 @@ rules // Editor services
       (ast', _) := <analyze-top(|<language>)> (ast, path, project-path);
       item@COMPLETION(name) := <collect-one(?COMPLETION(_))> ast';
       index-transaction(
-        (<index-lookup-all-levels(|name)> item <+ ![]) => proposals
+        (<index-lookup-all(|name)> item <+ ![]) => proposals
       );
-      proposals' := <map(index-uri-name)> proposals
+      proposals' := <map(index-uri; index-uri-name)> proposals
 
 rules // Debugging
   
   // Prints the abstract syntax ATerm of a selection.
-  generate-aterm:
+  debug-generate-aterm:
     (selected, position, ast, path, project-path) -> (filename, result)
     with
       filename := <guarantee-extension(|"aterm")> path;
       result   := selected
       
+  // Prints the definition annotated abstract syntax ATerm of a selection.
+  debug-generate-deffed:
+    (selected, position, ast, path, project-path) -> (filename, result)
+    with
+      index-setup(|<language>, [project-path], $[[project-path]/[path]]);
+      filename := <guarantee-extension(|"aterm")> path;
+      result   := <analyze-defs> selected
+      
   // Prints the analyzed annotated abstract syntax ATerm of a selection.
-  generate-analyzed:
+  debug-generate-analyzed:
     (selected, position, ast, path, project-path) -> (filename, result)
     with
       editor-init;
       filename := <guarantee-extension(|"analyzed.aterm")> path;
       result   := <analyze-top(|<language>)> (selected, path, project-path)   
       
-  // Prints the definition annotated abstract syntax ATerm of a selection.
-  generate-deffed:
-    (selected, position, ast, path, project-path) -> (filename, result)
-    with
-      index-setup(|<language>, [project-path], $[[project-path]/[path]]);
-      filename := <guarantee-extension(|"aterm")> path;
-      result   := <analyze-defs(|Anon(), Anon())> selected
-      
   // Prints the entries in the index of the current file.
-  index-currentfile:
+  debug-index-show-current-file:
     (selected, position, ast, path, project-path) -> (filename, result)
     with
       index-setup(|<language>, [project-path], $[[project-path]/[path]]);
@@ -146,19 +146,33 @@ rules // Debugging
       result   := <index-get-all-in-file> path
       
   // Prints the entries in the index of all files.
-  index-allfiles:
+  debug-index-show-all-files:
     (selected, position, ast, path, project-path) -> (filename, result)
     with
       index-setup(|<language>, [project-path], $[[project-path]/[path]]);
       filename := <guarantee-extension(|"index.allfiles.aterm")> path;
       result   := <map(\filename -> (filename, <index-get-all-in-file> filename)\)> <index-get-all-files>
+
+  // Cleans current file from the index.
+  debug-index-clear-current:
+    (selected, position, ast, path, project-path)  -> None()
+    with
+      index-setup(|<language>, [project-path], $[[project-path]/[path]]);
+      <index-clear-file> $[[project-path]/[path]]
       
   // Cleans all data from the index.
-  index-cleanall:
+  debug-index-clear:
     (selected, position, ast, path, project-path)  -> None()
     with
       index-setup(|<language>, [project-path], $[[project-path]/[path]]);
       index-clear
+      
+  // Cleans all data from the index and re-analyzes every file.
+  debug-index-reload:
+    (selected, position, ast, path, project-path)  -> None()
+    with
+      index-setup(|<language>, [project-path], $[[project-path]/[path]]);
+      index-reload
     
 rules // Utility
   
@@ -250,29 +264,11 @@ imports
   libstratego-lib
   include/{sdf-name}
   lib/editor-common.generated
-  lib/analysis-auto.generated
   lib/index-library.generated
   lib/analysis-library.generated
   lib/analysis-library-internal.generated
+  lib/nbl-library.generated
 
-rules // Resolving
-  
-  constraint-error:
-    x{"{[Unresolved(t) | _]}"} -> (x, $[Unable to resolve.])
-    
-rules // Duplicates
-    
-  is-unique-namespace = ?Type()
-  is-unique-namespace = ?Property()
-      
-  constraint-error:
-    definition -> (definition, $[Duplicate definition])
-    where
-      key{"{[ns|_]}"} := <nam-get-definition-key> definition;
-      <is-unique-namespace> ns;
-      definitions := <index-lookup-all> key;
-      <gt> (<length> definitions, 1)
-    
 rules // Other
   
   constraint-warning:
@@ -283,25 +279,6 @@ rules // Other
   constraint-note:
     Module(x @ "example", _) -> (x, $[This is just an example program in the "entities" language
                                       (this note is defined in trans/check.str) ])
-}
-end;
-
-if not(<file-exists> "trans/analysis-manual.str") then
-  <output-text-file(|["trans"], "analysis-manual.str")>
-${module analysis-manual
-
-imports
-  include/{sdf-name}
-  lib/analysis-auto.generated
-  lib/index-library.generated
-  lib/analysis-library.generated
-  lib/analysis-library-internal.generated
-
-rules // Adjust lookup
-
-  // Add primitive types to type lookup.
-  adjust-index-lookup(target |namespace, path, prefix): 
-    Type(<target>) ->  [Def([Type(), "Int"]), Def([Type(), "String"]), [Type() | path]]
 }
 end;
 

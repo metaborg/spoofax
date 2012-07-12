@@ -30,14 +30,17 @@ strategies
           provider: ~provider1
           provider: ~provider2
           ~~
-          observer: editor-analyze
+          observer: editor-analyze (multifile)
           ~~
-          builder: "Generate Java code (for selection)"            = generate-java  (openeditor) (realtime)
-          builder: "Show abstract syntax (for selection)"          = generate-aterm (openeditor) (realtime) (meta) (source)
-          builder: "Show analyzed abstract syntax (for selection)" = generate-analyzed (openeditor) (realtime) (meta) (source)
-          builder: "Show index entries for current file"           = index-currentfile (openeditor) (realtime) (meta) (source)
-          builder: "Show index entries for all files"              = index-allfiles (openeditor) (realtime) (meta) (source)
-          builder: "Clear index"                                   = index-cleanall (meta) (source)
+          builder: "Generate Java code" = generate-java  (openeditor) (realtime)
+				  builder: "Show abstract syntax" = debug-generate-aterm (openeditor) (realtime) (meta) (source)
+				  builder: "Show deffed syntax" = debug-generate-deffed (openeditor) (realtime) (meta) (source)
+				  builder: "Show analyzed syntax" = debug-generate-analyzed (openeditor) (realtime) (meta) (source)
+				  builder: "Show index entries for current file" = debug-index-show-current-file (openeditor) (realtime) (meta) (source)
+				  builder: "Show index entries for all files" = debug-index-show-all-files (openeditor) (realtime) (meta) (source)
+				  builder: "Clear index for current file" = debug-index-clear-current (meta) (source)
+				  builder: "Clear index" = debug-index-clear (meta) (source)
+				  builder: "Reload index" = debug-index-reload (meta) (source)
           ~~
         refactorings
           pretty-print: ~pp-strategy
@@ -122,6 +125,6 @@ strategies
           ~// 
           ~// The 'on save' handler can be used  to generate code as files are saved:
           ~//   
-          ~//   on save : index-on-save
+          ~//   on save : editor-save
       ]|
     )

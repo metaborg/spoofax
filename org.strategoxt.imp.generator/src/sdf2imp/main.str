@@ -104,6 +104,8 @@ strategies
       create-pp-table;
       create-example-trans;
       create-java-strategy;
+      create-example-nd;
+      create-placeholder-compiled-nd;
       input @ FILE(inputname) := <pack-default-sdf> FILE($[syntax/[<get-sdf-main-module>].sdf]);
       rules(DefaultDefFile := inputname)
     end;
@@ -147,11 +149,11 @@ strategies
     create-example-file;
     create-common-trans;
     
-    create-analysis-auto-placeholder;
     create-index-library;
     create-analysis-library;
     create-analysis-internal-library;
     create-compilation-library;
+    create-nbl-library;
     
     copy-jars;
     copy-def-file;
