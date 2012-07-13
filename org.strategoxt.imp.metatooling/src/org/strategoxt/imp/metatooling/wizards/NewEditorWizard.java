@@ -183,7 +183,7 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 		monitor.worked(1);
 		EditorState.asyncOpenEditor(display, project.getFile("/editor/" + languageName +  ".main.esv"), true);
 		monitor.worked(1);
-		EditorState.asyncOpenEditor(display, project.getFile("/trans/names.str"), true);
+		EditorState.asyncOpenEditor(display, project.getFile("/trans/names.nd"), true);
 		monitor.worked(1);
 		EditorState.asyncOpenEditor(display, project.getFile("/syntax/" + languageName +  ".sdf"), true);
 		monitor.worked(1);
