@@ -936,7 +936,7 @@ rules // Analysis traversals
           <analyze-top-internal(|phase, language, project-path, full-path)> astsFilePairs
       else
         Results(asts, _, _, _, _, _, filesToAnalyze) := 
-          <analyze-top-internal(|phase, language, project-path, full-path)> [(ast, full-path)];
+          <analyze-top-internal(|phase, language, project-path, full-path)> [(ast, (full-path, []))];
         ast' := <Hd> asts // Always returns a list of 1 AST if there is no splitter, so take the head.
       end
   
