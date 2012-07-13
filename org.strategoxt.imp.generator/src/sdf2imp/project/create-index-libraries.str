@@ -1550,7 +1550,7 @@ rules // Analysis traversals
     (ast, file) -> <id>
     where
       <is-string> file;
-      <index-add(|full-path)> AST([AST()], ast)
+      <index-add(|full-path)> AST([], ast)
       
   /**
    * Identifies all definitions in the tree and annotates them with their URI.
