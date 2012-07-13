@@ -15,9 +15,6 @@ ${module names
 imports
 	
 	include/{sdf-name}
-	lib/analysis-library.generated
-  lib/analysis-library-internal.generated
-  lib/index-library.generated
 	
 namespaces
 	
@@ -52,13 +49,13 @@ rules
 ${module names
 
 imports
-
-
-imports
-  include/{sdf-name}
   lib/analysis-library.generated
   lib/analysis-library-internal.generated
   lib/index-library.generated
+  
+
+imports
+  include/{sdf-name}
 
 
 signature
