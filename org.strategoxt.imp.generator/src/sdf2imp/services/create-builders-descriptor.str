@@ -32,7 +32,6 @@ strategies
           ~~
           observer: editor-analyze (multifile)
           ~~
-          builder: "Generate Java code" = generate-java  (openeditor) (realtime)
 				  builder: "Show abstract syntax" = debug-generate-aterm (openeditor) (realtime) (meta) (source)
 				  builder: "Show deffed syntax" = debug-generate-deffed (openeditor) (realtime) (meta) (source)
 				  builder: "Show analyzed syntax" = debug-generate-analyzed (openeditor) (realtime) (meta) (source)
