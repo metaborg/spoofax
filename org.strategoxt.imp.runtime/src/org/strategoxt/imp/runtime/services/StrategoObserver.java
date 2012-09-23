@@ -207,39 +207,34 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	
 	/**
 	 * Returns true if the Language Descriptor uses a ctree as provider.
+	 * The check is based on the file extension of a provider.
 	 * @return
 	 */
-	private boolean usesCTrees()
-	{
-		//List<File> providers = new ArrayList<File>();
+	private boolean usesCTrees() {
 		for (IStrategoAppl s : collectTerms(this.descriptor.getDocument(), "SemanticProvider")) {
 			IPath p = new Path(termContents(s));
-			if ("ctree".equals(p.getFileExtension()))
-			{
-				//providers.add();
+			if ("ctree".equals(p.getFileExtension())) {
 				return true;
 			}
 		}
 		return false;
-		
 	}
 	
 	
-	public boolean needsProjectRebuild() throws CoreException
-	{
-		// check if the spoofax project is already built with debug info
-		// if not try to rebuild
-		// only rebuild when we are not using ctree's.
-		// the debugger will be enabled
-		// check if the project was already build with debug information
-		// if it isn't, then rebuild the project
+	/**
+	 * Returns true if the Spoofax Project requires a rebuild before we can use the Stratego debugging features.
+	 * 
+	 * First check if the spoofax project is already built with debug info.
+	 * If not only suggest a rebuild when the project is not using ctree's, because debug mode doesn't support them.
+	 * @return 
+	 * @throws CoreException
+	 */
+	public boolean needsProjectRebuild() throws CoreException {
 		if (!(this.runtime instanceof DebuggableHybridInterpreter)) {
-			// runtime is not a DebuggableHybridInterpreter the language was not loaded with debug information.
-			// rebuild the project
+			// The this.runtime is not a DebuggableHybridInterpreter, the language was not loaded with debug information.
+			// We need to rebuild the project.
 			return true;
-			//rebuild(monitor);
-		} else
-		{
+		} else {
 			// .debugmode was found and debug mode is enabled.
 			// Now check if the project was also build with debug information
 			DebuggableHybridInterpreter dhi = (DebuggableHybridInterpreter) this.runtime;
@@ -247,8 +242,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			boolean needsRebuilding = !this.operatesOnDebugBuild(loadedJars);
 			boolean usesCTree = this.usesCTrees();
 			
-			if (usesCTree)
-			{
+			if (usesCTree) {
 				// please use jars, debug instrumentation is not included for ctrees in the build.main.xml
 				String message = "Please change the providers in the Builders.esv from ctree-files to jar-files, debug instrumentation currently only supports jar-files.";
 				Status status = new Status(Status.ERROR, RuntimeActivator.PLUGIN_ID, message);
@@ -265,13 +259,10 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	}
 	
 	/**
-	 * Returns the Spoofax language descript project this observer is associated with.
+	 * Returns the Spoofax language description project this observer is associated with.
 	 */
-	public IProject getProject()
-	{
+	public IProject getProject() {
 		IPath path = this.descriptor.getBasePath();
-		//System.out.println(path);
-		//System.out.println(path.lastSegment());
 		IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(path.lastSegment());
 		return project;
 	}
@@ -283,22 +274,18 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	 * @param classpaths
 	 * @return
 	 */
-	private boolean operatesOnDebugBuild(List<IPath> classpaths)
-	{
+	private boolean operatesOnDebugBuild(List<IPath> classpaths) {
 		// try to find the HybridInterpreterDebugRuntime class in the jars on the classpath
 		// http://stackoverflow.com/questions/176527/how-can-i-enumerate-all-classes-in-a-package-and-add-them-to-a-list
 		boolean foundHIDR = false; // try if org.strategoxt.imp.debug.stratego.runtime.strategies.HybridInterpreterDebugRuntime is found in a jar
-		for(IPath path : classpaths)
-		{
+		for(IPath path : classpaths) {
 			// if path ends with .jar, then try to find the class
-			if (path.getFileExtension().equals("jar"))
-			{
+			if (path.getFileExtension().equals("jar")) {
 				try {
 					JarFile jarFile = new JarFile(path.toFile());
 					
 					java.util.zip.ZipEntry hidrClassEntry = jarFile.getEntry("org/strategoxt/imp/debug/stratego/runtime/strategies/HybridInterpreterDebugRuntime.class");
-					if (hidrClassEntry != null)
-					{
+					if (hidrClassEntry != null) {
 						foundHIDR = true;
 						break;
 					}
@@ -693,11 +680,10 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			assert runtime.getCompiledContext().getOperatorRegistry(IMPJSGLRLibrary.REGISTRY_NAME)
 					instanceof IMPJSGLRLibrary;
 			boolean isDebugModeAllowed = Environment.allowsDebugging(this.descriptor);
-			if (isDebugModeAllowed && runtime instanceof DebuggableHybridInterpreter)
-			{
+			if (isDebugModeAllowed && runtime instanceof DebuggableHybridInterpreter) {
 				// enable the debugger, otherwise it would just do a normal invoke
 				// TODO: check if we allow the invoke, the number of simultaneous invokes may have an upper limit
-				// to prevent exessive use of cpu and memory (each invoke will start a new VM!)
+				// to prevent excessive use of CPU and memory (each invoke will start a new VM!)
 				((DebuggableHybridInterpreter) runtime).setDebugLaunchEnabled(this.isDebuggerEnabled());
 			}
 			boolean success = false;
@@ -855,8 +841,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		}
 		
 		// TODO: RLINDEMAN: set the project path and the language name
-		if (runtime instanceof DebuggableHybridInterpreter)
-		{
+		if (runtime instanceof DebuggableHybridInterpreter) {
 			((DebuggableHybridInterpreter) runtime).setProjectpath(projectPath);
 		}
 	}
