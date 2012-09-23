@@ -61,7 +61,10 @@ import org.strategoxt.imp.runtime.stratego.IMPParseStringPTPrimitive;
  */
 public final class Environment {
 	
-	public static boolean DEBUG_INTERPRETER_ENABLED = false; // set to false to disable the creation of a DebuggableHybridInterpreter
+	/**
+	 * Global setting to enable the Stratego Debugger feature.
+	 */
+	public static boolean DEBUG_INTERPRETER_ENABLED = true;
 	
 	private final static ParseTableManager parseTableManager;
 	
