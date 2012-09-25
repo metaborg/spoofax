@@ -28,6 +28,7 @@ import org.spoofax.jsglr.client.KeywordRecognizer;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
+import org.strategoxt.imp.runtime.services.StrategoTextChangeCalculator;
 import org.strategoxt.imp.runtime.services.IRefactoring;
 import org.strategoxt.imp.runtime.services.IRefactoringMap;
 import org.strategoxt.imp.runtime.services.RefactoringMap;
@@ -112,10 +113,7 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 	private static Set<IRefactoring> collectRefactorings(Descriptor d, SGLRParseController controller) throws BadDescriptorException {
 		Set<IRefactoring> refactorings = new LinkedHashSet<IRefactoring>();
 		StrategoObserver feedback = d.createService(StrategoObserver.class, controller);
-		String ppStrategy = getPPStrategy(d);
-		String parenthesize = getParenthesizeStrategy(d);
-		String overrideReconstruction = getOverrideReconstructionStrategy(d);
-		String resugar = getResugarStrategy(d);
+		StrategoTextChangeCalculator textChangeCalculator = createTextChangeCalculator(d);
 		for (IStrategoAppl aRefactoring : collectTerms(d.getDocument(), "Refactoring")) {
 			IStrategoTerm[] semanticNodes = termAt(aRefactoring,0).getAllSubterms();
 			String caption = termContents(termAt(aRefactoring, 1));
@@ -156,10 +154,7 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 						strategy,
 						cursor, 
 						source, 
-						ppStrategy,
-						parenthesize,
-						overrideReconstruction,
-						resugar,
+						textChangeCalculator,
 						semanticNodes,
 						inputFields,
 						actionDefinitionId
@@ -168,6 +163,16 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 			}
 		}
 		return refactorings;
+	}
+
+	private static StrategoTextChangeCalculator createTextChangeCalculator(Descriptor d)
+			throws BadDescriptorException {
+		String ppStrategy = getPPStrategy(d);
+		String parenthesize = getParenthesizeStrategy(d);
+		String overrideReconstruction = getOverrideReconstructionStrategy(d);
+		String resugar = getResugarStrategy(d);
+		StrategoTextChangeCalculator textChangeCalculator = new StrategoTextChangeCalculator(ppStrategy, parenthesize, overrideReconstruction, resugar);
+		return textChangeCalculator;
 	}
 
 	public static String getPPStrategy(Descriptor d) throws BadDescriptorException {
