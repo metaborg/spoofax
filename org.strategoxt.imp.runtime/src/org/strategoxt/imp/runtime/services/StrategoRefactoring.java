@@ -40,11 +40,10 @@ import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 
 public class StrategoRefactoring extends Refactoring implements IRefactoring {
 		
-	private final String actionDefinitionId;
+	//refactoring specific fields
+	private final String actionDefinitionId; //Keybinding
 
-	private final StrategoObserver observer;
-
-	private final String caption;
+	private final String caption; 
 	
 	private final String builderRule;
 			
@@ -56,18 +55,29 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 			
 	protected final ArrayList<StrategoRefactoringIdentifierInput> inputFields;
 	
-	private ArrayList<IPath> affectedFilePaths;
-
-	private IStrategoTerm node;
 	
-	private Collection<TextFileChange> fileChanges;
-	
-	private IAction action;
-	
+	// language specific
 	private final StrategoTextChangeCalculator textChangeCalculator;
 
+	
+	// selected node when refactoring is triggered, calculated from user selection
+	private IStrategoTerm node;
+
+	
+	// results
+	private ArrayList<IPath> affectedFilePaths;
+
+	private Collection<TextFileChange> fileChanges;
+
+
+	// others
+	private final StrategoObserver observer;
+
+	private IAction action;
+	
+
+	
 	public boolean isDefinedOnSelection(EditorState editor) {
-		// TODO Auto-generated method stub
 		return getSelectionNode(editor) != null;
 	}
 
