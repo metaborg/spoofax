@@ -191,11 +191,15 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 
 	public static String getOverrideReconstructionStrategy(Descriptor d) throws BadDescriptorException {
 		String overrideReconstructionStrategy = getHelperStrategyName(d, "OverrideReconstruction");
+		if(overrideReconstructionStrategy == null)
+			overrideReconstructionStrategy = "fail";
 		return overrideReconstructionStrategy;
 	}
 
 	public static String getResugarStrategy(Descriptor d) throws BadDescriptorException {
 		String resugarStrategy = getHelperStrategyName(d, "Resugar");
+		if(resugarStrategy == null)
+			resugarStrategy = "fail";
 		return resugarStrategy;
 	}
 

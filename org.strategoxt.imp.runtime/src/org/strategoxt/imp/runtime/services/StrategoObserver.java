@@ -178,6 +178,15 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	
 	public InputTermBuilder getInputBuilder() {
 		assert getLock().isHeldByCurrentThread();
+		if(resultingAsts == null || resultingAsts.isEmpty()){
+			try{
+				this.update(descriptor.createParseController(), new NullProgressMonitor());
+			}
+			catch (Exception e) {
+				// TODO: handle exception
+			}
+			
+		}
 		if (inputBuilder == null || inputBuilder.getRuntime() != getRuntime()) {
 			inputBuilder = new InputTermBuilder(getRuntime(), resultingAsts);
 		}
