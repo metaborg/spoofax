@@ -11,16 +11,20 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.text.IRegion;
 import org.eclipse.ltk.core.refactoring.Change;
 import org.eclipse.ltk.core.refactoring.CompositeChange;
+import org.eclipse.ltk.core.refactoring.FileStatusContext;
 import org.eclipse.ltk.core.refactoring.Refactoring;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
+import org.eclipse.ltk.core.refactoring.RefactoringStatusContext;
 import org.eclipse.ltk.core.refactoring.TextFileChange;
 import org.spoofax.interpreter.core.InterpreterErrorExit;
 import org.spoofax.interpreter.core.InterpreterException;
@@ -31,6 +35,7 @@ import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.terms.TermFactory;
 import org.spoofax.terms.attachments.OriginAttachment;
 import org.strategoxt.imp.runtime.EditorState;
@@ -190,23 +195,44 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 
 	private void updateStatus(RefactoringStatus status, IStrategoTerm errors, int severity) {
 		for (int i = 0; i < errors.getSubtermCount(); i++) {
-			IStrategoTerm error = errors.getSubterm(i);
+			final IStrategoTerm error = errors.getSubterm(i);
 			String message = formatErrorMessage(error);
+			RefactoringStatusContext context = getRefactoringStatusContext(error);
 			switch (severity) {
 				case RefactoringStatus.WARNING:
-					status.merge(RefactoringStatus.createWarningStatus(message));		
+					status.merge(RefactoringStatus.createWarningStatus(message, context));		
 					break;
 				case RefactoringStatus.ERROR:
-					status.merge(RefactoringStatus.createErrorStatus(message));		
+					status.merge(RefactoringStatus.createErrorStatus(message, context));		
 					break;
 				case RefactoringStatus.FATAL:
-					status.merge(RefactoringStatus.createFatalErrorStatus(message));		
+					status.merge(RefactoringStatus.createFatalErrorStatus(message, context));		
 					break;
 				default:
 					assert(false);
 					break;
 			}			
 		}
+	}
+
+	private RefactoringStatusContext getRefactoringStatusContext(final IStrategoTerm error) {
+		RefactoringStatusContext context =  null;
+		if(hasImploderOrigin(error.getSubterm(0))){
+			final IStrategoTerm origin = OriginAttachment.getOrigin(error.getSubterm(0));
+			final IFile file = (IFile)SourceAttachment.getResource(origin);
+			final int startOffset = ImploderAttachment.getLeftToken(origin).getStartOffset();
+			final int endOffset = ImploderAttachment.getRightToken(origin).getEndOffset();
+			context = new FileStatusContext(file, new IRegion() {
+				public int getOffset() {
+					return startOffset;
+				}
+				
+				public int getLength() {
+					return Math.max(endOffset - startOffset, 1);
+				}
+			});
+		}
+		return context;
 	}
 
 	private String formatErrorMessage(IStrategoTerm error) {
