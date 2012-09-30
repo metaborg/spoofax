@@ -228,7 +228,7 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 				}
 				
 				public int getLength() {
-					return Math.max(endOffset - startOffset, 1);
+					return Math.max(endOffset - startOffset + 1, 1);
 				}
 			});
 		}
