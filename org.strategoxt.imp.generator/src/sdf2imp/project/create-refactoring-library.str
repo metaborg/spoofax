@@ -7,18 +7,18 @@ strategies
 
 create-behavior-preservation =
 try(<file-exists <+ mkdir> "lib-refactoring");
-<output-text-file(|["lib-refactoring"], "behavior-preservation.str")>
+<output-text-file(|["lib-refactoring"], "behavior-preservation.generated.str")>
 ${/** 
 * Use this module to detect semantic constraint and namebinding violations, 
 * i.e. report preservation errors for name collisions and newly introduced/solved constraint violations.
 */
-module lib-refactoring/behavior-preservation
+module lib-refactoring/behavior-preservation.generated
 
 imports
   lib/editor-common.generated
   lib/analysis-library.generated
-  lib-refactoring/namebinding-preservation
-  lib-refactoring/correctness-preservation
+  lib-refactoring/namebinding-preservation.generated
+  lib-refactoring/correctness-preservation.generated
 
 strategies
 
@@ -131,14 +131,14 @@ strategies
 
 create-namebinding-preservation =
 try(<file-exists <+ mkdir> "lib-refactoring");
-<output-text-file(|["lib-refactoring"], "namebinding-preservation.str")>
+<output-text-file(|["lib-refactoring"], "namebinding-preservation.generated.str")>
 "/** 
 * Use this module to detect namebinding violations, 
 * i.e. report preservation errors for name collisions.
 * REMARK: Only use this module in case semantic correctness preservation is not checked.
 * Otherwise, use behavior-preservation.str
 */
-module lib-refactoring/namebinding-preservation
+module lib-refactoring/namebinding-preservation.generated
 
 imports
   libstratego-lib
@@ -309,14 +309,14 @@ strategies
 
 create-correctness-preservation =
 try(<file-exists <+ mkdir> "lib-refactoring");
-<output-text-file(|["lib-refactoring"], "correctness-preservation.str")>
+<output-text-file(|["lib-refactoring"], "correctness-preservation.generated.str")>
 ${/** 
 * Use this module to detect semantic constraint violations, 
 * i.e. report preservation errors/warnings for newly introduced or solved constraint errors/warnings.
 * REMARK: Only use this module in case nambinding preservations are not checked.
 * Otherwise, use behavior-preservation.str
 */
-module lib-refactoring/correctness-preservation
+module lib-refactoring/correctness-preservation.generated
 
 imports
   libstratego-lib

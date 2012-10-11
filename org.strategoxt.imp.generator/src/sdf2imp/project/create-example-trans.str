@@ -287,7 +287,7 @@ if not(<file-exists> "trans/refactor.str") then
 "module refactor
 
 imports
-  lib-refactoring/behavior-preservation
+  lib-refactoring/behavior-preservation.generated
   check
   lib/nbl-library.generated
 
