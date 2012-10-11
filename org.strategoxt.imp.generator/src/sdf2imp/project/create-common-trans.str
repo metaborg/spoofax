@@ -148,8 +148,13 @@ strategies
   origin-strip     = prim("SSL_EXT_origin_strip", <id>)
   origin-equal(|t) = prim("SSL_EXT_origin_equal", <id>, t)
 
+  origin-language-description =
+    prim("SSL_EXT_languagedescription", <id>)
+
   origin-language =
-    prim("SSL_EXT_origin_language", <id>)
+    origin-file; 
+    origin-language-description;
+    Fst
   
   origin-surrounding-comments =
     prim("SSL_EXT_origin_surrounding_comments", "{sdf-name}", <id>)
@@ -165,6 +170,13 @@ strategies
   origin-track-forced(s) =
     ![<id>]; all(s); ?[<id>]
 
+  origin-relative-path:
+    trm -> rel-path
+    where
+      full-path := <origin-file> trm;
+      len-project-prefix := <project-path; string-length; inc>;
+      rel-path := <string-as-chars(drop(|len-project-prefix))> full-path
+      
 strategies
 
   desugar-position(desugar|ast):

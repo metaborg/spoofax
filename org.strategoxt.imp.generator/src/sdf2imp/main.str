@@ -155,6 +155,10 @@ strategies
     create-compilation-library;
     create-nbl-library;
     
+    create-behavior-preservation;
+    create-namebinding-preservation;
+    create-correctness-preservation;
+    
     copy-jars;
     copy-def-file;
     create-jdt-prefs;
