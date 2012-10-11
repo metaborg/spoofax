@@ -43,7 +43,7 @@ strategies
           ~~
         refactorings
           pretty-print: ~pp-strategy
-          refactoring ID: "Rename Entity" = rename-entity (source) (cursor)
+          refactoring ID: "Rename Entity" = rename-refactoring (cursor)
           shortcut: "org.eclipse.jdt.ui.edit.text.java.rename.element"
           input
           	identifier: "new name" = ""
