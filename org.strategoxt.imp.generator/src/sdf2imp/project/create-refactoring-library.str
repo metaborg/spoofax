@@ -387,7 +387,7 @@ strategies
     (old-issues, new-issues) -> <conc> (introduced-issues, solved-issues)
     where
       introduced-issues := <diff(is-same-issue)> (new-issues, old-issues);
-      solved-issues     := <diff(is-same-issue); map(!(<Fst>, $[Solved: [<Snd>]]))> (old-issues, new-issues)
+      solved-issues     := <diff(is-same-issue); map(!(<Fst>, $[SOLVED, [<Snd>]]))> (old-issues, new-issues)
   
   is-same-issue:
     issue-tuple@((trm1, message1), (trm2, message2)) -> issue-tuple
