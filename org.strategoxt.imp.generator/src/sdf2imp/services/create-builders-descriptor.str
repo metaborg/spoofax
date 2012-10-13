@@ -44,7 +44,8 @@ strategies
         refactorings
           pretty-print: ~pp-strategy
           refactoring ID: "Rename Entity" = rename-refactoring (cursor)
-          shortcut: "org.eclipse.jdt.ui.edit.text.java.rename.element"
+          shortcut : Shift + Alt + R
+          ~//shortcut: "org.eclipse.jdt.ui.edit.text.java.rename.element"
           input
           	identifier: "new name" = ""
           on save: editor-save
@@ -56,6 +57,20 @@ strategies
     ,
       !|[
         module <descriptor-name> "-Builders.generated"
+        
+        keybindings Predefined Keybindings
+          ~
+		  Shift + Alt + R  = "org.eclipse.jdt.ui.edit.text.java.rename.element" ~//Rename
+		  Shift + Alt + I  = "org.eclipse.jdt.ui.edit.text.java.inline" ~// Inline
+		  Shift + Alt + M  = "org.eclipse.jdt.ui.edit.text.java.extract.method" ~// Extract
+		  Shift + Alt + V  = "org.eclipse.jdt.ui.move.method" ~// Move
+		  Shift + Alt + C  = "org.eclipse.jdt.ui.change.method.signature" ~// Change Signature
+		  Shift + Alt + L  = "org.eclipse.jdt.ui.edit.text.java.extract.local.variable" ~// Extract Local Variabele
+		  Shift + Ctrl + F = "org.eclipse.jdt.ui.edit.text.java.format" ~// Format
+		  Ctrl + I         = "org.eclipse.jdt.ui.edit.text.java.indent"   ~// Correct Indentation
+		  Shift + Ctrl + C = "org.eclipse.jdt.ui.edit.text.java.toggle.comment" ~// Toggle Comment
+		  Shift + Ctrl + M = "org.eclipse.jdt.ui.edit.text.java.add.import" ~// Add Import
+		  Shift + Ctrl + O = "org.eclipse.jdt.ui.edit.text.java.organize.imports" ~// Organize Imports
         
         builders
           ~
