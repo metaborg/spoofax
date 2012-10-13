@@ -7,6 +7,7 @@ import static org.strategoxt.imp.runtime.dynamicloading.TermReader.cons;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.termContents;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -111,6 +112,7 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 	}
 
 	private static Set<IRefactoring> collectRefactorings(Descriptor d, SGLRParseController controller) throws BadDescriptorException {
+		HashMap<IStrategoTerm, String> keybindings = getKeybindings(d);
 		Set<IRefactoring> refactorings = new LinkedHashSet<IRefactoring>();
 		StrategoObserver feedback = d.createService(StrategoObserver.class, controller);
 		StrategoTextChangeCalculator textChangeCalculator = createTextChangeCalculator(d);
@@ -122,7 +124,7 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 			IStrategoTerm userInteractions = termAt(aRefactoring, 4);
 			ArrayList<StrategoRefactoringIdentifierInput> inputFields = 
 				getInputFields(userInteractions, controller.getEditor());
-			String actionDefinitionId = getKeyBinding(userInteractions);
+			String actionDefinitionId = getActionDefinitionId(userInteractions, keybindings);
 			//actionDefinitionId = "org.eclipse.jdt.ui.edit.text.java.rename.element";
 			boolean cursor = false;
 			boolean source = false;
@@ -163,6 +165,16 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 			}
 		}
 		return refactorings;
+	}
+
+	private static HashMap<IStrategoTerm, String> getKeybindings(Descriptor d) {
+		HashMap<IStrategoTerm, String> keybindings = new HashMap<IStrategoTerm, String>();
+		for (IStrategoAppl aBinding : collectTerms(d.getDocument(), "KeyBinding")) {
+			IStrategoTerm key = termAt(aBinding, 0);
+			String value = termContents(termAt(aBinding, 1));
+			keybindings.put(key, value);
+		}
+		return keybindings;
 	}
 
 	private static StrategoTextChangeCalculator createTextChangeCalculator(Descriptor d)
@@ -212,10 +224,10 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 	}
 
 
-	private static String getKeyBinding(IStrategoTerm userInteractions) {
-		IStrategoTerm keybinding = TermReader.findTerm(userInteractions, "KeyBinding");
-		if(keybinding != null)
-			return TermReader.termContents(keybinding);
+	private static String getActionDefinitionId(IStrategoTerm userInteractions, HashMap<IStrategoTerm, String> keybindings) {
+		IStrategoTerm keycombination = TermReader.findTerm(userInteractions, "KeyCombination");
+		if(keycombination != null)
+			return keybindings.get(keycombination);
 		IStrategoTerm interactionId = TermReader.findTerm(userInteractions, "InteractionId");
 		if(interactionId != null)
 			return TermReader.termContents(interactionId);
