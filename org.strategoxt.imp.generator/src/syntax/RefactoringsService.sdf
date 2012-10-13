@@ -11,6 +11,10 @@ exports
     "refactorings" <SectionName-LEX> <LAYOUT?-CF> <SemanticRule*-CF> -> <Section-CF> {cons("Refactorings")}
 
     "refactorings" -> <ReservedName-CF>
+
+    "keybindings" <SectionName-LEX> <LAYOUT?-CF> <KeyBinding*-CF> -> <Section-CF> {cons("KeyBindings")}
+    
+    "keybindings" -> <ReservedName-CF>
   
   context-free syntax
   	
@@ -23,8 +27,7 @@ exports
     "refactoring" SemanticNode* ":" String "=" StrategoCall BuilderOption* UIOption* 
     								-> SemanticRule {cons("Refactoring")}
     
-    "shortcut" ":" KeyBinding -> UIOption {cons("Shortcut")}
-    RefactoringKeyBinding -> KeyBinding {cons("KeyBinding")}
+    "shortcut" ":" KeyCombination -> UIOption {cons("Shortcut")}
     "shortcut" ":" InteractionId -> UIOption {cons("Shortcut")}
     String -> InteractionId {cons("InteractionId")}
           
@@ -49,18 +52,15 @@ exports
      "pretty-print"  -> SemanticNode {reject}
      "refactoring"  -> SemanticNode {reject}
 
-lexical syntax
+context-free syntax
 	
      %% Predefined Keybindings
-     "Shift+Alt+R"  -> RefactoringKeyBinding  %% Rename
-     "Shift+Alt+I"  -> RefactoringKeyBinding  %% Inline
-     "Shift+Alt+M"  -> RefactoringKeyBinding  %% Extract
-     "Shift+Alt+V"  -> RefactoringKeyBinding  %% Move
-     "Shift+Alt+C"  -> RefactoringKeyBinding  %% Change Signature
-     "Shift+Alt+L"  -> RefactoringKeyBinding  %% Extract Local Variabele
-     "Shift+Ctrl+F" -> RefactoringKeyBinding  %% Format
-     "Ctrl+I"       -> RefactoringKeyBinding  %% Correct Indentation
-     "Shift+Ctrl+C" -> RefactoringKeyBinding  %% Toggle Comment
-     "Shift+Alt+J"  -> RefactoringKeyBinding  %% Generate Element Comment
-     "Shift+Ctrl+M" -> RefactoringKeyBinding  %% Add Import
-     "Shift+Ctrl+O" -> RefactoringKeyBinding  %% Organize Imports
+    KeyCombination "=" String -> KeyBinding {cons("KeyBinding")} %% key binding (e.g., Shift + Alt + R = "org.eclipse.jdt.ui.edit.text.java.rename.element")
+    {Key "+"}+                -> KeyCombination {cons("KeyCombination")}   %% key combination (e.g., 'Shift + Alt + R')
+
+lexical syntax
+     
+     "Shift"  -> Key
+     "Alt"    -> Key
+     "Ctrl"   -> Key
+     [A-Z]    -> Key
