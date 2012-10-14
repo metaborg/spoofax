@@ -57,7 +57,7 @@ strategies
     ,
       !|[
         module <descriptor-name> "-Builders.generated"
-          ~~        
+
         keybindings Predefined Keybindings
           ~~
 		  Shift + Alt + R  = "org.eclipse.jdt.ui.edit.text.java.rename.element" //Rename
@@ -71,7 +71,7 @@ strategies
 		  Shift + Ctrl + C = "org.eclipse.jdt.ui.edit.text.java.toggle.comment" // Toggle Comment
 		  Shift + Ctrl + M = "org.eclipse.jdt.ui.edit.text.java.add.import" // Add Import
 		  Shift + Ctrl + O = "org.eclipse.jdt.ui.edit.text.java.organize.imports" // Organize Imports
-          ~~      
+		  
         builders
           ~
           ~// Building and analysis is defined in Stratego program or programs:
