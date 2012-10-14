@@ -29,6 +29,8 @@ import org.spoofax.jsglr.client.KeywordRecognizer;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
+import org.strategoxt.imp.runtime.services.IStrategoRefactoringInput;
+import org.strategoxt.imp.runtime.services.StrategoRefactoringTextInput;
 import org.strategoxt.imp.runtime.services.StrategoTextChangeCalculator;
 import org.strategoxt.imp.runtime.services.IRefactoring;
 import org.strategoxt.imp.runtime.services.IRefactoringMap;
@@ -122,7 +124,7 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 			String strategy = termContents(termAt(aRefactoring, 2));
 			IStrategoList options = termAt(aRefactoring, 3);
 			IStrategoTerm userInteractions = termAt(aRefactoring, 4);
-			ArrayList<StrategoRefactoringIdentifierInput> inputFields = 
+			ArrayList<IStrategoRefactoringInput> inputFields = 
 				getInputFields(userInteractions, controller.getEditor());
 			String actionDefinitionId = getActionDefinitionId(userInteractions, keybindings);
 			//actionDefinitionId = "org.eclipse.jdt.ui.edit.text.java.rename.element";
@@ -234,34 +236,55 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 		return null;
 	}
 
-	private static ArrayList<StrategoRefactoringIdentifierInput> getInputFields(
+	private static ArrayList<IStrategoRefactoringInput> getInputFields(
 			IStrategoTerm userInteractions, EditorState editor) {
-		ArrayList<StrategoRefactoringIdentifierInput> inputFields = new ArrayList<StrategoRefactoringIdentifierInput>();
+		ArrayList<IStrategoRefactoringInput> inputFields = new ArrayList<IStrategoRefactoringInput>();
 		IStrategoTerm userInput = TermReader.findTerm(userInteractions, "UserInput");
 		if(userInput != null){
 			IStrategoTerm userInputList = userInput.getSubterm(0);
 			for (int i = 0; i < userInputList.getSubtermCount(); i++) {
 				IStrategoAppl input = TermReader.applAt(userInputList, i);
-				if(TermReader.hasConstructor(input, "IdInputField")){
-					String label = termContents(termAt(input,0));
-					String defaultValue = "";
-					if(input.getSubtermCount() > 1)
-						defaultValue = termContents(termAt(input,1)); //TODO: Strategy OR String
-					StrategoRefactoringIdentifierInput idInput = 
-						new StrategoRefactoringIdentifierInput(
-							label, 
-							defaultValue, 
-							getIdPattern(editor), 
-							getKeywordRecognizer(editor),
-							getLanguageName(editor)
-						);
-					inputFields.add(idInput);
-				}
+				tryAddIdentifierInput(editor, inputFields, input);
+				tryAddTextInput(inputFields, input);
 				//TODO other input types
 				//TODO pattern
 			}
 		}
 		return inputFields;
+	}
+
+	private static void tryAddIdentifierInput(EditorState editor,
+			ArrayList<IStrategoRefactoringInput> inputFields, IStrategoAppl input) {
+		if(TermReader.hasConstructor(input, "IdInputField")){
+			String label = termContents(termAt(input,0));
+			String defaultValue = "";
+			if(input.getSubtermCount() > 1)
+				defaultValue = termContents(termAt(input,1)); //TODO: Strategy OR String
+			StrategoRefactoringIdentifierInput idInput = 
+				new StrategoRefactoringIdentifierInput(
+					label, 
+					defaultValue, 
+					getIdPattern(editor), 
+					getKeywordRecognizer(editor),
+					getLanguageName(editor)
+				);
+			inputFields.add(idInput);
+		}
+	}
+
+	private static void tryAddTextInput(ArrayList<IStrategoRefactoringInput> inputFields, IStrategoAppl input) {
+		if(TermReader.hasConstructor(input, "TextInputField")){
+			String label = termContents(termAt(input,0));
+			String defaultValue = "";
+			if(input.getSubtermCount() > 1)
+				defaultValue = termContents(termAt(input,1)); //TODO: Strategy OR String
+			StrategoRefactoringTextInput textInput = 
+				new StrategoRefactoringTextInput(
+					label, 
+					defaultValue
+				);
+			inputFields.add(textInput);
+		}
 	}
 
 	private static String getLanguageName(EditorState editor) {

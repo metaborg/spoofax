@@ -34,7 +34,7 @@ exports
     "input" InputField+ -> UIOption {cons("UserInput")}
     
     %% identifier input field [= text field + validation] 
-    "identifier" ":" String                  -> InputField {cons("IdInputField")}
+    "identifier" ":" String                  -> InputField {ast("IdInputField(<1>, \"\")")}
     "identifier" ":" String "=" String       -> InputField {cons("IdInputField")}
     "identifier" ":" String "=" StrategoCall -> InputField {cons("IdInputField")}
     

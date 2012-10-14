@@ -58,7 +58,7 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 	
 	private final IStrategoTerm[] semanticNodes;
 			
-	protected final ArrayList<StrategoRefactoringIdentifierInput> inputFields;
+	protected final ArrayList<IStrategoRefactoringInput> inputFields;
 	
 	
 	// language specific
@@ -95,7 +95,7 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 		return actionDefinitionId;
 	}
 
-	public ArrayList<StrategoRefactoringIdentifierInput> getInputFields() {
+	public ArrayList<IStrategoRefactoringInput> getInputFields() {
 		return inputFields;
 	}
 	
@@ -117,7 +117,7 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 
 	public StrategoRefactoring(StrategoObserver observer, String caption, String builderRule,
 			boolean cursor, boolean source, StrategoTextChangeCalculator textChangeCalculator,
-			IStrategoTerm[] semanticNodes, ArrayList<StrategoRefactoringIdentifierInput> inputFields, String actionDefinitionId) {
+			IStrategoTerm[] semanticNodes, ArrayList<IStrategoRefactoringInput> inputFields, String actionDefinitionId) {
 		this.cursor=cursor;
 		this.source=source;
 		this.observer = observer;
