@@ -59,7 +59,7 @@ strategies
         module <descriptor-name> "-Builders.generated"
         
         keybindings Predefined Keybindings
-          ~
+        ~~
 		  Shift + Alt + R  = "org.eclipse.jdt.ui.edit.text.java.rename.element" ~//Rename
 		  Shift + Alt + I  = "org.eclipse.jdt.ui.edit.text.java.inline" ~// Inline
 		  Shift + Alt + M  = "org.eclipse.jdt.ui.edit.text.java.extract.method" ~// Extract
