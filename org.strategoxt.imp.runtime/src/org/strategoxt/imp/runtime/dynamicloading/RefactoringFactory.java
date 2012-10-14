@@ -30,6 +30,7 @@ import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.services.IStrategoRefactoringInput;
+import org.strategoxt.imp.runtime.services.StrategoRefactoringBooleanInput;
 import org.strategoxt.imp.runtime.services.StrategoRefactoringTextInput;
 import org.strategoxt.imp.runtime.services.StrategoTextChangeCalculator;
 import org.strategoxt.imp.runtime.services.IRefactoring;
@@ -246,6 +247,7 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 				IStrategoAppl input = TermReader.applAt(userInputList, i);
 				tryAddIdentifierInput(editor, inputFields, input);
 				tryAddTextInput(inputFields, input);
+				tryAddBooleanInput(inputFields, input);
 				//TODO other input types
 				//TODO pattern
 			}
@@ -284,6 +286,21 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 					defaultValue
 				);
 			inputFields.add(textInput);
+		}
+	}
+
+	private static void tryAddBooleanInput(ArrayList<IStrategoRefactoringInput> inputFields, IStrategoAppl input) {
+		if(TermReader.hasConstructor(input, "BooleanInputField")){
+			String label = termContents(termAt(input,0));
+			boolean defaultValue = false;
+			if(input.getSubtermCount() > 1 && TermReader.findTerm(input, "TrueValue") != null)
+				defaultValue = true; //TODO: Strategy OR String
+			StrategoRefactoringBooleanInput booleanInput = 
+				new StrategoRefactoringBooleanInput(
+					label, 
+					defaultValue
+				);
+			inputFields.add(booleanInput);
 		}
 	}
 
