@@ -45,7 +45,6 @@ strategies
           pretty-print: ~pp-strategy
           refactoring ID: "Rename Entity" = rename-refactoring (cursor)
           shortcut : Shift + Alt + R
-          ~//shortcut: "org.eclipse.jdt.ui.edit.text.java.rename.element"
           input
           	identifier: "new name" = ""
           on save: editor-save
@@ -57,7 +56,7 @@ strategies
     ,
       !|[
         module <descriptor-name> "-Builders.generated"
-		  
+
         builders
           ~
           ~// Building and analysis is defined in Stratego program or programs:
@@ -128,4 +127,3 @@ strategies
           ~//   on save : editor-save
       ]|
     )
-  
