@@ -43,6 +43,9 @@ import org.strategoxt.imp.runtime.services.StrategoRefactoringIdentifierInput;
 import org.strategoxt.imp.runtime.services.StrategoRefactoringWizard;
 import org.strategoxt.imp.runtime.services.SyntaxProperties;
 
+/**
+ * @author Maartje de Jonge
+ */
 public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> {
 	
 	public RefactoringFactory() {

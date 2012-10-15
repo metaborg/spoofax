@@ -2,7 +2,7 @@ module sdf2imp/services/create-refactorings-descriptor
 
 imports
   libstratego-lib
-  
+ 
   sdf2imp/util/-
   sdf2imp/services/common
   sdf2imp/project/create-example-trans
@@ -22,11 +22,11 @@ strategies
           ~~
           ~~// This file can be used for refactorings.
           ~~//
-          ~~// See the imported file for a brief introduction and examples.    
+          ~~// See the imported file for a brief introduction and examples.
         refactorings
-           ~~
+          ~~
           pretty-print: ~pp-strategy
-          ~~          
+          ~~
           refactoring ID: "Rename Entity" = rename-refactoring (cursor)
           shortcut : Shift + Alt + R
           input
@@ -43,7 +43,7 @@ strategies
         refactorings
           ~
           ~// Refactorings are used for transformations that modify the original source code,
-          ~// while preserving the layout and syntactic sugar. 
+          ~// while preserving the layout and syntactic sugar.
           ~// A custom pretty-print strategy (T -> String) is used to format newly inserted nodes,
           ~// a parenthesize strategy (T -> T) surrounds subterms with "Parenthetical(T)" when brackets are required,
           ~// resugar rules are required for desugarings that are not local-to-local or desugarings that duplicate terms
@@ -52,7 +52,7 @@ strategies
           ~// the resulting text will be indented according to its location.
           ~// This is sometimes needed in case the node text can not be reconstructed by replacing child texts 
           ~// in the original formatting.
-          ~//   
+          ~//
           ~// Refactorings can be specified as shown below, whereby Property* indicates on which constructs the
           ~// refactoring is specified (<sort>.<constructor>).
           ~//
