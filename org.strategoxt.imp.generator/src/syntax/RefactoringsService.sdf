@@ -29,6 +29,11 @@ exports
     
     "shortcut" ":" KeyCombination -> UIOption {cons("Shortcut")}
     "shortcut" ":" InteractionId -> UIOption {cons("Shortcut")}
+    
+    %% completion recover rules 
+    "shortcut" ":" -> UIOption {ast("Shortcut(KeyCombination([]))"), completion}
+    "shortcut" ":" Id -> UIOption {ast("Shortcut(KeyCombination(<1>))"), completion}
+
     String -> InteractionId {cons("InteractionId")}
           
     "input" InputField+ -> UIOption {cons("UserInput")}
