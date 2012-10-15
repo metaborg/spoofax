@@ -16,7 +16,7 @@ strategies
       !|[
         module <descriptor-name> "-Refactorings"
 
-        imports <descriptor-name> "-Refactorings.generated"
+        //imports <descriptor-name> "-Refactorings.generated"
 
         refactorings
           ~~
