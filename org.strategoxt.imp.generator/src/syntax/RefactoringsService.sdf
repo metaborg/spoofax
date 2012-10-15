@@ -48,8 +48,8 @@ exports
     "boolean" ":" String "=" BooleanValue -> InputField {cons("BooleanInputField")}
     "boolean" ":" String "=" StrategoCall -> InputField {cons("BooleanInputField")}
 
-     "true"  -> BooleanValue {cons("TrueValue")}
-     "false" ->  BooleanValue {cons("FalseValue")}
+     "true"  -> BooleanValue {cons("TrueValue"), prefer}
+     "false" ->  BooleanValue {cons("FalseValue"), prefer}
      
     %% choice input field 
     %% list input field
