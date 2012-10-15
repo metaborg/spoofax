@@ -36,9 +36,9 @@ public class StrategoRefactoringTextInput implements IStrategoRefactoringInput{
 				inputValue = textField.getText();
 			}
 		});
-//		if(modListener != null){
-//			textField.addModifyListener(modListener);
-//		}
+		if(modListener != null){
+			textField.addModifyListener(modListener);
+		}
 	}
 
 	public IStrategoTerm getInputValue() {
