@@ -15,6 +15,14 @@ public class StrategoRefactoringIdentifierInput extends StrategoRefactoringTextI
 	private final KeywordRecognizer keywordRecognizer;
 	private final String languageName;
 	
+	/**
+	 * Text input field with syntactic validation, input values must be valid identifiers according to the grammar.
+	 * @param label
+	 * @param defaultValue
+	 * @param idPattern
+	 * @param keywordRecognizer
+	 * @param languageName
+	 */
 	public StrategoRefactoringIdentifierInput(
 			String label, 
 			String defaultValue,
