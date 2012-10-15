@@ -17,7 +17,7 @@ import org.eclipse.jface.text.source.ISourceViewer;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
- */
+ */  
 public class AnnotationHover extends DefaultAnnotationHover implements IAnnotationHover {
     
 	@Override
