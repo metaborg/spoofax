@@ -17,6 +17,9 @@ import org.strategoxt.imp.runtime.RuntimeActivator;
 import org.strategoxt.imp.runtime.SpoofaxPreferencePage;
 import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 
+/**
+ * @author Maartje de Jonge
+ */
 public class EditScenarioCollector {
 	
 	private int editNumber;
