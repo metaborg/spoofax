@@ -14,7 +14,6 @@ strategies
       <descriptor-name> "-Builders"
     , provider1 := <conc-strings> ("include/", <trans-module-name>, ".ctree");
       provider2 := <conc-strings> ("include/", <trans-module-name>, "-java.jar");
-      pp-strategy := $[pp-[<trans-module-name>]-string];
       !|[
         module <descriptor-name> "-Builders"
         
@@ -22,7 +21,7 @@ strategies
         
         builders
           ~~
-          ~~// This file can be used for custom analysis, builder and refactoring rules.
+          ~~// This file can be used for custom analysis and builder rules.
           ~~//
           ~~// See the imported file for a brief introduction and examples.
         builders
@@ -41,12 +40,6 @@ strategies
 				  builder: "Clear index" = debug-index-clear (meta) (source)
 				  builder: "Reload index" = debug-index-reload (meta) (source)
           ~~
-        refactorings
-          pretty-print: ~pp-strategy
-          refactoring ID: "Rename Entity" = rename-refactoring (cursor)
-          shortcut : Shift + Alt + R
-          input
-          	identifier: "new name" = ""
           on save: editor-save
       ]|
     );
@@ -95,33 +88,6 @@ strategies
           ~//   (source)      Always apply this builder to the source AST, not to the AST
           ~//                 after it has been analyzed/desugared by the observer.
           ~//
-          ~// Refactorings are used for transformations that modify the original source code,
-          ~// while preserving the layout and syntactic sugar. 
-          ~// A custom pretty-print strategy (T -> String) is used to format newly inserted nodes,
-          ~// a parenthesize strategy (T -> T) surrounds subterms with "Parenthetical(T)" when brackets are required,
-          ~// resugar rules are required for desugarings that are not local-to-local or desugarings that duplicate terms
-          ~// as the 'l' in \l -> []\ => {l: ( l -> [] )}.
-          ~// Finally, text-reconstruction can be overruled with a strategy (T-old, T-new) -> <try(custom-pp)> T-new,
-          ~// the resulting text will be indented according to its location.
-          ~// This is sometimes needed in case the node text can not be reconstructed by replacing child texts 
-          ~// in the original formatting.
-          ~//   
-          ~// Refactorings can be specified as shown below, whereby Property* indicates on which constructs the
-          ~// refactoring is specified (<sort>.<constructor>).
-          ~//
-          ~// refactorings
-          ~//
-          ~//   pretty-print: prettyprint          
-          ~//   parenthesize: parenthesize
-          ~//   resugar: resugar-node
-          ~//   override reconstruction: disallow-reconstruction 
-          ~// 
-          ~//   refactoring Property*: "Extract Entity" =  extract-entity (source)
-          ~//     shortcut: Shift+Alt+M
-          ~//     input
-          ~//       identifier: "entity name" = ""
-          ~//       identifier: "property name" = ""
-          ~// 
           ~// The 'on save' handler can be used  to generate code as files are saved:
           ~//   
           ~//   on save : editor-save

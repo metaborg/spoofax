@@ -130,6 +130,7 @@ strategies
     create-outliner-descriptor;
     create-colorer-descriptor;
     create-builders-descriptor;
+    create-refactorings-descriptor;
     create-references-descriptor;
     create-completions-descriptor;
 

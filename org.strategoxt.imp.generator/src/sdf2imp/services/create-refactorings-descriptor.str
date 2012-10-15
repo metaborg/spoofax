@@ -1,0 +1,65 @@
+module sdf2imp/services/create-refactorings-descriptor
+
+imports
+  libstratego-lib
+  
+  sdf2imp/util/-
+  sdf2imp/services/common
+  sdf2imp/project/create-example-trans
+
+strategies
+
+  create-refactorings-descriptor =
+    output-initial-descriptor-file(
+      <descriptor-name> "-Refactorings"
+    , pp-strategy := $[pp-[<trans-module-name>]-string];
+      !|[
+        module <descriptor-name> "-Refactorings"
+        
+        imports <descriptor-name> "-Refactorings.generated"
+        
+        refactorings
+          pretty-print: ~pp-strategy
+          refactoring ID: "Rename Entity" = rename-refactoring (cursor)
+          shortcut : Shift + Alt + R
+          input
+          	identifier: "new name" = ""
+      ]|
+    );
+    
+    output-derived-descriptor-file(
+      <descriptor-name> "-Refactorings.generated"
+    ,
+      !|[
+        module <descriptor-name> "-Refactorings.generated"
+
+        refactorings
+          ~
+          ~// Refactorings are used for transformations that modify the original source code,
+          ~// while preserving the layout and syntactic sugar. 
+          ~// A custom pretty-print strategy (T -> String) is used to format newly inserted nodes,
+          ~// a parenthesize strategy (T -> T) surrounds subterms with "Parenthetical(T)" when brackets are required,
+          ~// resugar rules are required for desugarings that are not local-to-local or desugarings that duplicate terms
+          ~// as the 'l' in \l -> []\ => {l: ( l -> [] )}.
+          ~// Finally, text-reconstruction can be overruled with a strategy (T-old, T-new) -> <try(custom-pp)> T-new,
+          ~// the resulting text will be indented according to its location.
+          ~// This is sometimes needed in case the node text can not be reconstructed by replacing child texts 
+          ~// in the original formatting.
+          ~//   
+          ~// Refactorings can be specified as shown below, whereby Property* indicates on which constructs the
+          ~// refactoring is specified (<sort>.<constructor>).
+          ~//
+          ~// refactorings
+          ~//
+          ~//   pretty-print: prettyprint          
+          ~//   parenthesize: parenthesize
+          ~//   resugar: resugar-node
+          ~//   override reconstruction: disallow-reconstruction 
+          ~// 
+          ~//   refactoring Property*: "Extract Entity" =  extract-entity (source)
+          ~//     shortcut: Shift+Alt+M
+          ~//     input
+          ~//       identifier: "entity name" = ""
+          ~//       identifier: "property name" = ""
+      ]|
+    )
