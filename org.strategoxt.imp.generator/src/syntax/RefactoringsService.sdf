@@ -45,11 +45,11 @@ exports
 
     %% boolean input field 
     "boolean" ":" String                  -> InputField {ast("BooleanInputField(<1>, FalseValue()")}
-    "boolean" ":" String "=" BooleanValue -> InputField {cons("BooleanInputField")}
-    "boolean" ":" String "=" StrategoCall -> InputField {cons("BooleanInputField")}
+    "boolean" ":" String "=" BooleanValue -> InputField {cons("BooleanInputField"), prefer}
+    "boolean" ":" String "=" StrategoCall -> InputField {cons("BooleanInputField"), avoid}
 
-     "true"  -> BooleanValue {cons("TrueValue"), prefer}
-     "false" ->  BooleanValue {cons("FalseValue"), prefer}
+     "true"  -> BooleanValue {cons("TrueValue")}
+     "false" ->  BooleanValue {cons("FalseValue")}
      
     %% choice input field 
     %% list input field
