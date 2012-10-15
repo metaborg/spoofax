@@ -15,12 +15,12 @@ strategies
     , pp-strategy := $[pp-[<trans-module-name>]-string];
       !|[
         module <descriptor-name> "-Refactorings"
-        
+
         imports <descriptor-name> "-Refactorings.generated"
-        
+
         refactorings
           ~~
-          ~~// This file can be used for refactorings.
+          ~~// This file can be used for specification of refactorings.
           ~~//
           ~~// See the imported file for a brief introduction and examples.
         refactorings
@@ -30,7 +30,7 @@ strategies
           refactoring ID: "Rename Entity" = rename-refactoring (cursor)
           shortcut : Shift + Alt + R
           input
-          	identifier: "new name" = ""
+            identifier: "new name" = ""
       ]|
     );
     
@@ -43,30 +43,73 @@ strategies
         refactorings
           ~
           ~// Refactorings are used for transformations that modify the original source code,
-          ~// while preserving the layout and syntactic sugar.
-          ~// A custom pretty-print strategy (T -> String) is used to format newly inserted nodes,
-          ~// a parenthesize strategy (T -> T) surrounds subterms with "Parenthetical(T)" when brackets are required,
-          ~// resugar rules are required for desugarings that are not local-to-local or desugarings that duplicate terms
-          ~// as the 'l' in \l -> []\ => {l: ( l -> [] )}.
-          ~// Finally, text-reconstruction can be overruled with a strategy (T-old, T-new) -> <try(custom-pp)> T-new,
-          ~// the resulting text will be indented according to its location.
-          ~// This is sometimes needed in case the node text can not be reconstructed by replacing child texts 
-          ~// in the original formatting.
-          ~//
-          ~// Refactorings can be specified as shown below, whereby Property* indicates on which constructs the
-          ~// refactoring is specified (<sort>.<constructor>).
+          ~// while preserving the layout and syntactic sugar. Refactorings can be specified as follows:
           ~//
           ~// refactorings
           ~//
-          ~//   pretty-print: prettyprint          
-          ~//   parenthesize: parenthesize
-          ~//   resugar: resugar-node
-          ~//   override reconstruction: disallow-reconstruction 
-          ~// 
           ~//   refactoring Property*: "Extract Entity" =  extract-entity (source)
           ~//     shortcut: Shift+Alt+M
           ~//     input
           ~//       identifier: "entity name" = ""
           ~//       identifier: "property name" = ""
+          ~// 
+          ~// In this example, 
+          ~// Property* indicates on which constructs the refactoring is specified (<sort>.<constructor>),
+          ~// the caption "Extract Entity" is used in the refactor dropdown menu,
+          ~// the extract-entity rule is used to carry out the tranformation, 
+          ~// the shortcut element specifies the shortcut, 
+          ~// the (source) annotation specifies an additional setting for the refactoring application, and
+          ~// the input element configures the user input dialogue which in this case contains two identifier input fields.
+          ~// 
+          ~// Transformation rule:
+          ~// The transformation rule has the following signature. 
+          ~//   my-refactor-transformation: 
+          ~//   (user-input, selected, position, ast, path, project-path) -> (changes, fatal-errors, errors, warnings)
+          ~//
+          ~// Input dialogue: 
+          ~// Refactoring input definitions can specify any combination of input field types,
+          ~// adhering to the general schema <input-type> : <label-text> = <default-value>. 
+          ~// The following input types are supported:
+          ~//   text          Text input
+          ~//   identifier    Text input with syntactic validity check, i.e. the value must be a valid identifier
+          ~//   boolean       Checkbox input, (default)values are true or false
+          ~//
+          ~// Annotations:
+          ~// Refactoring definitions can specify any combination of the following annotations:
+          ~//   (cursor)      The builder should always transform the tree node at the cursor.
+          ~//   (meta)        Indicates the builder should only be available to meta-programmers
+          ~//                 (i.e., not when the plugin is deployed to end-users).
+          ~//   (source)      Always apply this builder to the source AST, not to the AST
+          ~//                 after it has been analyzed/desugared by the observer.
+          ~//
+          ~// Text reconstruction:
+          ~// Some additional strategies can be specified in the refactorings section to guide the text reconstruction algorithm.
+          ~//    pretty-print:   Newly inserted nodes are formatted according to a "custom" pretty-print strategy (T -> String)
+          ~//    resugar:        resugaring can be enforced with a strategy T -> T' that undoes the desugaring. 
+          ~//                    Resugaring is needed for desugarings that are not local-to-local, or 
+          ~//                    desugarings that duplicate terms such as the 'l' in \l -> []\ => {l: ( l -> [] )}.
+          ~//    override reconstruction:  text-reconstruction can be overruled with a strategy (T-old, T-new) -> <try(custom-pp)> T-new,
+          ~//                    the resulting text will be indented according to its location.
+          ~//
+          ~// Shortcuts:
+          ~// Existing shortcuts can be added to refactorings, directly or via a predefined keybinding, e.g.
+          ~// shortcut: "org.eclipse.jdt.ui.edit.text.java.extract.method", or shortcut: Shift+Alt+M
+          ~//
+          ~// Keybindings:
+          ~// We predefined a number of common refactoring shortcuts, see below.
+          
+        keybindings Predefined Keybindings
+        ~~
+          Shift + Alt + R  = "org.eclipse.jdt.ui.edit.text.java.rename.element" ~// Rename
+          Shift + Alt + I  = "org.eclipse.jdt.ui.edit.text.java.inline" ~// Inline
+          Shift + Alt + M  = "org.eclipse.jdt.ui.edit.text.java.extract.method" ~// Extract
+          Shift + Alt + V  = "org.eclipse.jdt.ui.move.method" ~// Move
+          Shift + Alt + C  = "org.eclipse.jdt.ui.change.method.signature" ~// Change Signature
+          Shift + Alt + L  = "org.eclipse.jdt.ui.edit.text.java.extract.local.variable" ~// Extract Local Variabele
+          Shift + Ctrl + F = "org.eclipse.jdt.ui.edit.text.java.format" ~// Format
+          Ctrl + I         = "org.eclipse.jdt.ui.edit.text.java.indent"   ~// Correct Indentation
+          Shift + Ctrl + C = "org.eclipse.jdt.ui.edit.text.java.toggle.comment" ~// Toggle Comment
+          Shift + Ctrl + M = "org.eclipse.jdt.ui.edit.text.java.add.import" ~// Add Import
+          Shift + Ctrl + O = "org.eclipse.jdt.ui.edit.text.java.organize.imports" ~// Organize Imports
       ]|
     )
