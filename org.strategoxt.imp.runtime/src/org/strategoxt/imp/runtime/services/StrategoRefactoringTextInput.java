@@ -12,6 +12,9 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.imp.runtime.Environment;
 
+/**
+ * @author Maartje de Jonge
+ */
 public class StrategoRefactoringTextInput implements IStrategoRefactoringInput{
 
 	protected final String labelText;

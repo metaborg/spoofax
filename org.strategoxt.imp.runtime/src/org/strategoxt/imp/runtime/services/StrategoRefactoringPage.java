@@ -10,6 +10,9 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 
+/**
+ * @author Maartje de Jonge
+ */
 public class StrategoRefactoringPage extends UserInputWizardPage {
 	
 	public StrategoRefactoringPage() {

@@ -5,6 +5,9 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.widgets.Composite;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
+/**
+ * @author Maartje de Jonge
+ */
 public interface IStrategoRefactoringInput {
 
 	public abstract void setInputArea(Composite result, ModifyListener modListener);

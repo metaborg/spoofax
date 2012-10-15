@@ -17,6 +17,9 @@ import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 
+/**
+ * @author Maartje de Jonge
+ */
 public class StrategoTextChangeCalculator {
 	
 	private final String ppStrategy;

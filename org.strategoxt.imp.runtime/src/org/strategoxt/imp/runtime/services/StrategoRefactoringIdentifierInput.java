@@ -6,6 +6,9 @@ import java.util.regex.Pattern;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.spoofax.jsglr.client.KeywordRecognizer;
 
+/**
+ * @author Maartje de Jonge
+ */
 public class StrategoRefactoringIdentifierInput extends StrategoRefactoringTextInput  {
 	
 	private final Pattern idPattern;

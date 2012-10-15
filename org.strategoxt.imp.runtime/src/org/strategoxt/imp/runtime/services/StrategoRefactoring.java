@@ -43,6 +43,9 @@ import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 
+/**
+ * @author Maartje de Jonge
+ */
 public class StrategoRefactoring extends Refactoring implements IRefactoring {
 		
 	//refactoring specific fields
