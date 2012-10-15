@@ -19,7 +19,14 @@ strategies
         imports <descriptor-name> "-Refactorings.generated"
         
         refactorings
+          ~~
+          ~~// This file can be used for refactorings.
+          ~~//
+          ~~// See the imported file for a brief introduction and examples.    
+        refactorings
+           ~~
           pretty-print: ~pp-strategy
+          ~~          
           refactoring ID: "Rename Entity" = rename-refactoring (cursor)
           shortcut : Shift + Alt + R
           input
