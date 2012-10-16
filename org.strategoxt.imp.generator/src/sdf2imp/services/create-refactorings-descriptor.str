@@ -16,7 +16,7 @@ strategies
       !|[
         module <descriptor-name> "-Refactorings"
 
-        //imports <descriptor-name> "-Refactorings.generated"
+        imports <descriptor-name> "-Refactorings.generated"
 
         refactorings
           ~~
@@ -98,7 +98,7 @@ strategies
           ~// Keybindings:
           ~// We predefined a number of common refactoring shortcuts, see below.
           
-        keybindings Predefined keybindings
+        keybindings Predefined Keybindings
 
           Shift + Alt + R  = "org.eclipse.jdt.ui.edit.text.java.rename.element" // Rename
           Shift + Alt + I  = "org.eclipse.jdt.ui.edit.text.java.inline" // Inline
