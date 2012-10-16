@@ -246,12 +246,20 @@ public class ContentProposerParser {
 		class Visitor extends TermVisitor {
 			IStrategoTerm targetNode, lastNode;
 
+
 			public void preVisit(IStrategoTerm node) {
-				if (getLeftToken(node).getStartOffset() <= offset
-						&& (offset <= getRightToken(node).getEndOffset() || isPartOfListSuffixAt(node, offset))) {
+				if (isInFragment(offset, node)) {
 					targetNode = node;
 				}
 				lastNode = node;
+			}
+
+			private boolean isInFragment(final int offset, IStrategoTerm node) {
+				if (getLeftToken(node).getStartOffset() <= offset && isPartOfListSuffixAt(node, offset))
+					return true;
+				if (getLeftToken(node).getStartOffset() >= offset && isPartOfListPrefixAt(node, offset))
+					return true;
+				return getLeftToken(node).getStartOffset() <= offset && offset <= getRightToken(node).getEndOffset();
 			}
 		}
 		Visitor visitor = new Visitor();
@@ -269,6 +277,14 @@ public class ContentProposerParser {
 	 */
 	protected static boolean isPartOfListSuffixAt(IStrategoTerm node, final int offset) {
 		return node.isList() && offset <= Tokenizer.findRightMostLayoutToken(getRightToken(node)).getEndOffset();
+	}
+	
+	/**
+	 * Tests if an offset is part of a list prefix
+	 * (considers the layout preceding the list also part of the list).
+	 */
+	protected static boolean isPartOfListPrefixAt(IStrategoTerm node, int offset) {
+		return node.isList() && offset >= Tokenizer.findLeftMostLayoutToken(getLeftToken(node)).getStartOffset();
 	}
 
 	/**
