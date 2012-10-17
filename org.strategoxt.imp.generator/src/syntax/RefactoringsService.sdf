@@ -76,17 +76,17 @@ lexical syntax
 context-free syntax 
 	    
     %%recover rules for completion
-    "shortcut" ":" Id -> UIOption {ast("Shortcut(KeyCombination(<1>))"), completion}    
-    "keybindings"  Id KeyBinding* -> Section {ast("KeyBindings(\"\", [KeyBinding(KeyCombination([<1>]), \"\")])"), completion}
-    "refactorings" Id SemanticRule* -> Section {ast("Refactorings(\"\", [Refactoring([],None(), None(), [],[])])"), completion}
+    "shortcut" ":" Id -> UIOption {ast("Shortcut(KeyCombination([<1>]))"), completion, avoid}    
+    "keybindings"  Id KeyBinding* -> Section {ast("KeyBindings(\"\", [KeyBinding(KeyCombination([<1>]), \"\")])"), completion, avoid}
+    "refactorings" Id SemanticRule* -> Section {ast("Refactorings(\"\", [Refactoring([],None(), None(), [],[])])"), completion, avoid}
 
     "refactoring" SemanticNode* ":" String "=" StrategoCall BuilderOption* "(" Id ")" BuilderOption* UIOption* -> 
-    SemanticRule {ast("Refactoring(<1>, <2>, <3>, [BuilderOption(Id)], <7>)"), completion}
+    SemanticRule {ast("Refactoring(<1>, <2>, <3>, [<5>], <7>)"), completion, avoid}
     
     "refactoring" SemanticNode* ":" String "=" StrategoCall BuilderOption* UIOption? Id UIOption? -> 
-    SemanticRule {ast("Refactoring(<1>, <2>, <3>, <4>, [UserInput(Id)])"), completion}
+    SemanticRule {ast("Refactoring(<1>, <2>, <3>, <4>, [<6>])"), completion, avoid}
     
-    "input" InputField* Id InputField* -> UIOption {ast("UserInput(InputField(<2>))")}
+    "input" InputField* Id InputField* -> UIOption {ast("UserInput([<2>])"), completion, avoid}
     
     -> "keybindings" {recover, reject}
     -> "refactorings" {recover, reject}
