@@ -7,11 +7,13 @@ import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.hasImploderOrigin;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -41,7 +43,9 @@ import org.spoofax.terms.attachments.OriginAttachment;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
+import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.SourceAttachment;
+import org.strategoxt.imp.runtime.stratego.StrategoConsole;
 
 /**
  * @author Maartje de Jonge
@@ -76,6 +80,8 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 	private ArrayList<IPath> affectedFilePaths;
 
 	private Collection<TextFileChange> fileChanges;
+	
+	private String transformationFailedMessage;
 
 
 	// others
@@ -112,6 +118,7 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 	}
 
 	public void prepareExecute(EditorState editor) {
+		this.transformationFailedMessage = "unknown error";
 		this.node = getSelectionNode(editor);
 		this.fileChanges.clear();
 		this.affectedFilePaths.clear();
@@ -162,7 +169,7 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 			builderResult = getBuilderResult();
 			if(builderResult == null){
 				observer.reportRewritingFailed();
-				String errorMessage = "Refactoring application failed: '" + caption + "'";
+				String errorMessage = "Refactoring application failed: '" + caption + "'. " + transformationFailedMessage;
 				Environment.logException(errorMessage);
 				return RefactoringStatus.createFatalErrorStatus(errorMessage);					
 			}	
@@ -277,27 +284,35 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 	private IStrategoTerm getBuilderResult() {
 		IStrategoTerm userInputTerm = mkInputTerm();
 		IStrategoTerm inputTerm = observer.getInputBuilder().makeInputTermRefactoring(userInputTerm, node, true, source);
-		
+		if(inputTerm == null){
+			transformationFailedMessage = "Input term could not be constructed. ";
+			return null;
+		}
 		//DesugaredOriginAttachment.setAllTermsAsDesugaredOrigins(inputTerm.getSubterm(3));
 		
 		IStrategoTerm result = null;
 		try {
 			result = observer.invoke(builderRule, inputTerm, getFile());
 		} catch (InterpreterErrorExit e) {
-			Environment.logException("Builder failed", e);
+			transformationFailedMessage = "Runtime exited when evaluating strategy " + builderRule;
+			Environment.logException("Refactoring failed, " + transformationFailedMessage, e);
 			e.printStackTrace();
 		} catch (UndefinedStrategyException e) {
-			Environment.logException("Builder failed", e);
+			transformationFailedMessage = "Strategy '"+ builderRule + "' does not exist or is defined in a module that is not imported";
+			Environment.logException("Refactoring failed, " + transformationFailedMessage, e);
 			e.printStackTrace();
 		} catch (InterpreterExit e) {
-			Environment.logException("Builder failed", e);
+			transformationFailedMessage = "Analysis failed (" + e.getClass().getSimpleName() + "; see error log)";
+			Environment.logException("Refactoring failed, " + transformationFailedMessage, e);
 			e.printStackTrace();
 		} catch (InterpreterException e) {
-			Environment.logException("Builder failed", e);
+			transformationFailedMessage = "Internal error evaluating strategy '" + builderRule + "'";
+			Environment.logException("Refactoring failed, " + transformationFailedMessage, e);
 			e.printStackTrace();
 		}
 		return result;
 	}
+	
 
 	private IStrategoTerm mkInputTerm() {
 		IStrategoTerm[] inputTerms = new IStrategoTerm[inputFields.size()];
