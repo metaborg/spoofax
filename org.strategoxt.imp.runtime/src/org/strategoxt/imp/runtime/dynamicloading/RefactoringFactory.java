@@ -42,6 +42,7 @@ import org.strategoxt.imp.runtime.services.StrategoRefactoring;
 import org.strategoxt.imp.runtime.services.StrategoRefactoringIdentifierInput;
 import org.strategoxt.imp.runtime.services.StrategoRefactoringWizard;
 import org.strategoxt.imp.runtime.services.SyntaxProperties;
+import org.strategoxt.stratego_lib.assert_1_0;
 
 /**
  * @author Maartje de Jonge
@@ -55,7 +56,7 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 	@Override
 	public IRefactoringMap create(Descriptor descriptor, SGLRParseController controller)
 			throws BadDescriptorException {
-		Set<IRefactoring> refactorings = collectRefactorings(descriptor, controller);
+		Set<IRefactoring> refactorings = collectRefactorings(descriptor, controller, controller.getEditor());
 		setRefactoringActions(controller.getEditor(), refactorings);
 		return new RefactoringMap(refactorings);
 	}
@@ -67,7 +68,7 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 		Set<IRefactoring> refactorings = new HashSet<IRefactoring>();
 		if (editor != null && controller instanceof SGLRParseController) {
 			try {
-				refactorings = collectRefactorings(descriptor, (SGLRParseController) controller);
+				refactorings = collectRefactorings(descriptor, (SGLRParseController) controller, editor);
 				setRefactoringActions(editor, refactorings);
 			} catch (BadDescriptorException e) {
 				Environment.logException("Could not eagerly initialize the refactoring service", e);
@@ -117,7 +118,7 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 		}
 	}
 
-	private static Set<IRefactoring> collectRefactorings(Descriptor d, SGLRParseController controller) throws BadDescriptorException {
+	private static Set<IRefactoring> collectRefactorings(Descriptor d, SGLRParseController controller, EditorState editor) throws BadDescriptorException {
 		HashMap<IStrategoTerm, String> keybindings = getKeybindings(d);
 		Set<IRefactoring> refactorings = new LinkedHashSet<IRefactoring>();
 		StrategoObserver feedback = d.createService(StrategoObserver.class, controller);
@@ -129,7 +130,7 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 			IStrategoList options = termAt(aRefactoring, 3);
 			IStrategoTerm userInteractions = termAt(aRefactoring, 4);
 			ArrayList<IStrategoRefactoringInput> inputFields = 
-				getInputFields(userInteractions, controller.getEditor());
+				getInputFields(userInteractions, editor);
 			String actionDefinitionId = getActionDefinitionId(userInteractions, keybindings);
 			//actionDefinitionId = "org.eclipse.jdt.ui.edit.text.java.rename.element";
 			boolean cursor = false;
@@ -260,6 +261,7 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 
 	private static void tryAddIdentifierInput(EditorState editor,
 			ArrayList<IStrategoRefactoringInput> inputFields, IStrategoAppl input) {
+		assert editor != null;
 		if(TermReader.hasConstructor(input, "IdInputField")){
 			String label = termContents(termAt(input,0));
 			String defaultValue = "";
