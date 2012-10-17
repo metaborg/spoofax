@@ -30,10 +30,6 @@ exports
     "shortcut" ":" KeyCombination -> UIOption {cons("Shortcut")}
     "shortcut" ":" InteractionId -> UIOption {cons("Shortcut")}
     
-    %% completion recover rules 
-    "shortcut" ":" -> UIOption {ast("Shortcut(KeyCombination([]))"), completion}
-    "shortcut" ":" Id -> UIOption {ast("Shortcut(KeyCombination(<1>))"), completion}
-
     String -> InteractionId {cons("InteractionId")}
           
     "input" InputField+ -> UIOption {cons("UserInput")}
@@ -76,3 +72,22 @@ lexical syntax
      "Alt"    -> Key
      "Ctrl"   -> Key
      [A-Z]    -> Key
+
+context-free syntax 
+	    
+    %%recover rules for completion
+    "shortcut" ":" Id -> UIOption {ast("Shortcut(KeyCombination(<1>))"), completion}    
+    "keybindings"  Id KeyBinding* -> Section {ast("KeyBindings(\"\", [KeyBinding(KeyCombination([<1>]), \"\")])"), completion}
+    "refactorings" Id SemanticRule* -> Section {ast("Refactorings(\"\", [Refactoring([],None(), None(), [],[])])"), completion}
+
+    "refactoring" SemanticNode* ":" String "=" StrategoCall BuilderOption* "(" Id ")" BuilderOption* UIOption* -> 
+    SemanticRule {ast("Refactoring(<1>, <2>, <3>, [BuilderOption(Id)], <7>)"), completion}
+    
+    "refactoring" SemanticNode* ":" String "=" StrategoCall BuilderOption* UIOption? Id UIOption? -> 
+    SemanticRule {ast("Refactoring(<1>, <2>, <3>, <4>, [UserInput(Id)])"), completion}
+    
+    "input" InputField* Id InputField* -> UIOption {ast("UserInput(InputField(<2>))")}
+    
+    -> "keybindings" {recover, reject}
+    -> "refactorings" {recover, reject}
+    -> "provider" {recover, reject}
