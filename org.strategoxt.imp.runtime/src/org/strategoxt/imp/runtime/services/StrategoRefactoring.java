@@ -285,6 +285,7 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 		IStrategoTerm userInputTerm = mkInputTerm();
 		IStrategoTerm inputTerm = observer.getInputBuilder().makeInputTermRefactoring(userInputTerm, node, true, source);
 		if(inputTerm == null){
+			//TODO error when the input term is constructed from source AST instead of analyzed AST
 			transformationFailedMessage = "Input term could not be constructed. ";
 			return null;
 		}
