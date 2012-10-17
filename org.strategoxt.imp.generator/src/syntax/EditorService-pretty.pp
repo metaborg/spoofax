@@ -10,7 +10,7 @@
    InteractionId                          -- _1,
    KeyCombination                         -- _1,
    KeyCombination.1:iter-star-sep         -- _1 KW[" + "],
-   KeyBinding                             -- R [ H [                   _1 ] KW[":"] H [ _2 ] ],
+   KeyBinding                             -- R [ H [                   _1 ] KW["="] H [ _2 ] ],
    KeyBindings                            -- V is=2 vs=1 [H hs=0 [KW["keybindings"] _1]  _2],
    UserInput                              -- V is=2 [H  [KW["input"]] _1],
    UserInput.1:iter                       -- _1,
