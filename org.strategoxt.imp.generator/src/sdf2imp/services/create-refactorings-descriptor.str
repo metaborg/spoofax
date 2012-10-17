@@ -96,7 +96,7 @@ strategies
           ~// shortcut: "org.eclipse.jdt.ui.edit.text.java.extract.method", or shortcut: Shift+Alt+M
           ~//
           ~// Keybindings:
-          ~// Keybindings are defined as <Key> + <Key> + <Key> -> "<action-definition-id>"
+          ~// Keybindings are defined as <Key> + <Key> + <Key> = "<action-definition-id>"
           ~// We predefined a number of common refactoring shortcuts, see below.
           
         keybindings Predefined Keybindings
@@ -112,6 +112,6 @@ strategies
           Shift + Ctrl + C = "org.eclipse.jdt.ui.edit.text.java.toggle.comment" // Toggle Comment
           Shift + Ctrl + M = "org.eclipse.jdt.ui.edit.text.java.add.import" // Add Import
           Shift + Ctrl + O = "org.eclipse.jdt.ui.edit.text.java.organize.imports" // Organize Imports
-      ]|
+      ]|  
     )
  
