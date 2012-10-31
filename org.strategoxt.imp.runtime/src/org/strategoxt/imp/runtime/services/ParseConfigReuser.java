@@ -32,6 +32,9 @@ public class ParseConfigReuser {
 	}
 	
 	public ArrayDeque<Frame> parsePrefix(SGLR parser, boolean useRecovery, boolean storeConfig, String document, int endOffset) {
+		if(endOffset <= 0){
+			return new ArrayDeque<Frame>();
+		}
 		assert document.length() >= endOffset - 1 || endOffset <=0;
 		ArrayDeque<Frame> newParserConfig = new ArrayDeque<Frame>();
 		if(document.startsWith(documentPrefix) && endOffset >= lastOffset){
