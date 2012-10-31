@@ -246,6 +246,6 @@ public class Completion {
     @Override
     public String toString() {
     	String listSortMarker = isListSort? "*" : ""; 
-    	return sort + listSortMarker + ": " + prefix + " = "  + newText;
+    	return sort + listSortMarker + ": \"" + prefix + "\" = "  + newText;
     }
 }
