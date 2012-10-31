@@ -559,6 +559,9 @@ public class SGLRParseController implements IParseController {
 	private String getContents() throws CoreException, IOException {
 		// This is not a bottleneck right now, but could be optimized to use something
 		// like descriptor.getParseController().lastEditor.getDocument().getContents()
+		if(getResource() == null){
+			return "";
+		}
 		InputStream input = getResource().getContents();
 		InputStreamReader reader = new InputStreamReader(input);
 		StringBuilder result = new StringBuilder();

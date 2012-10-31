@@ -42,7 +42,7 @@ public class TestFilterCompletions {
 	 * @param sorts    Sorts allowed at this position 
 	 */
 	void filterCompletions(String document, String prefix, int offset, int length, Set<String> sorts) {
-		results = cp.filterCompletions(completions, document, prefix, new Position(offset, length), sorts, null);
+		//results = cp.filterCompletions(completions, document, prefix, new Position(offset, length), sorts, null);
 	}
 
 	@Test

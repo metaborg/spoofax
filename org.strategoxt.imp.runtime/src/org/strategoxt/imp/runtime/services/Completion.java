@@ -18,6 +18,8 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
  */
 public class Completion {
 
+	private static final boolean IGNORE_TEMPLATE_PREFIX_CASE = false;
+
 	private static LazyColor keywordColor = new LazyColor(127, 0, 85);
 
 	private static LazyColor identifierColor = new LazyColor(64, 64, 255);
@@ -29,41 +31,43 @@ public class Completion {
 	private static final int SEMANTIC = 16;
 
 	public static Completion makeKeyword(String literal) {
-		return new Completion(literal, null, null, KEYWORD, null, keywordColor);
+		return new Completion(literal, null, false, null, KEYWORD, null, keywordColor);
 	}
 
 	// for testing
 	static Completion makeTemplate(String prefix, String sort) {
-		return new Completion(prefix, sort, null, TEMPLATE, null, keywordColor);
+		return new Completion(prefix, sort, false, null, TEMPLATE, null, keywordColor);
 	}
 
 	// for testing
 	static Completion makeTemplate(String prefix, String sort, boolean blankLineRequired) {
 		int flags = TEMPLATE;
 		if (blankLineRequired) flags |= BLANK_LINE_REQUIRED;
-		return new Completion(prefix, sort, null, flags, null, keywordColor);
+		return new Completion(prefix, sort, false, null, flags, null, keywordColor);
 	}
 
-	public static Completion makeTemplate(String prefix, String sort, IStrategoList completionParts, boolean blankLineRequired, boolean linkPlaceholders) {
+	public static Completion makeTemplate(String prefix, String sort, boolean isListSort, IStrategoList completionParts, boolean blankLineRequired, boolean linkPlaceholders) {
 		int flags = TEMPLATE;
 		if (blankLineRequired) flags |= BLANK_LINE_REQUIRED;
 		if (linkPlaceholders)  flags |= LINK_PLACEHOLDERS;
-		return new Completion(prefix, sort, completionParts, flags, null, keywordColor);
+		return new Completion(prefix, sort, isListSort, completionParts, flags, null, keywordColor);
 	}
 	
 	// for testing
 	static Completion makeSemantic(String prefix, String description) {
-		return new Completion(prefix, null, null, SEMANTIC, description, null);
+		return new Completion(prefix, null, false, null, SEMANTIC, description, null);
 	}
 
 	public static Completion makeSemantic(IStrategoList completionParts, String description) {
 		final LazyColor color = completionParts.size() == 1 ? identifierColor : null; // identifier proposal?
-		return new Completion(null, null, completionParts, SEMANTIC, description, color);
+		return new Completion(null, null, false, completionParts, SEMANTIC, description, color);
 	}
 
 	private final String prefix;
 
 	private final String sort;
+
+	private final boolean isListSort;
 
 	private final IStrategoList newTextParts;
 
@@ -78,15 +82,16 @@ public class Completion {
 	private final LazyColor color;
 
 	// prefix overrides the default prefix (calculated from newTextParts)
-	protected Completion(String prefix, String sort, IStrategoList newTextParts, int flags, String description, LazyColor color) {
+	protected Completion(String prefix, String sort, boolean isListSort, IStrategoList newTextParts, int flags, String description, LazyColor color) {
 		this.prefix = prefix != null ? prefix : getPrefix(newTextParts);
 		this.sort = sort;
+		this.isListSort = isListSort;
 		this.newTextParts = newTextParts;
-		this.newText = buildNewText();
 		this.flags = flags;
 		this.description = description;
-		this.name = prefix != null && prefix.matches(".*[a-zA-Z].*") ? prefix : buildName();
 		this.color = color;
+		this.newText = buildNewText();
+		this.name = prefix != null && prefix.matches(".*[a-zA-Z].*") ? prefix : buildName();
 	}
 
 	private static String getPrefix(IStrategoList completionParts) {
@@ -97,8 +102,12 @@ public class Completion {
 	}
 
 	private String buildNewText() {
-		if (newTextParts == null)
+		if (newTextParts == null){
+			if(this.isKeyword()){
+				return this.prefix;
+			}
 			return null;
+		}
 		StringBuilder result = new StringBuilder();
 		for (IStrategoTerm part : newTextParts.getAllSubterms()) {
 			if ("Placeholder".equals(cons(part)) || "PlaceholderWithSort".equals(cons(part))) {
@@ -126,6 +135,14 @@ public class Completion {
 		}
 	}
 
+	public boolean isListSort() {
+		return this.getSort() != null && this.isListSort;
+	}
+
+	public boolean extendsPrefix(String completionPrefix){
+		return getPrefix().regionMatches(IGNORE_TEMPLATE_PREFIX_CASE, 0, completionPrefix, 0, completionPrefix.length());		
+	}
+	
 	public final String getPrefix() {
 		return prefix;
 	}
@@ -181,5 +198,54 @@ public class Completion {
 			}
 		});
 	}
+	
 
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((description == null) ? 0 : description.hashCode());
+		result = prime * result + ((newText == null) ? 0 : newText.hashCode());
+		result = prime * result + ((prefix == null) ? 0 : prefix.hashCode());
+		result = prime * result + ((sort == null) ? 0 : sort.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Completion other = (Completion) obj;
+		if (description == null) {
+			if (other.description != null)
+				return false;
+		} else if (!description.equals(other.description))
+			return false;
+		if (newText == null) {
+			if (other.newText != null)
+				return false;
+		} else if (!newText.equals(other.newText))
+			return false;
+		if (prefix == null) {
+			if (other.prefix != null)
+				return false;
+		} else if (!prefix.equals(other.prefix))
+			return false;
+		if (sort == null) {
+			if (other.sort != null)
+				return false;
+		} else if (!sort.equals(other.sort))
+			return false;
+		return true;
+	}
+    
+    @Override
+    public String toString() {
+    	String listSortMarker = isListSort? "*" : ""; 
+    	return sort + listSortMarker + ": " + prefix + " = "  + newText;
+    }
 }

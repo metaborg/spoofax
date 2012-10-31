@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -25,6 +26,7 @@ import org.strategoxt.imp.generator.term_at_position_0_1;
 import org.strategoxt.imp.runtime.Environment;
 import org.spoofax.terms.StrategoSubList;
 import org.strategoxt.imp.runtime.services.ContentProposer;
+import org.strategoxt.imp.runtime.services.ContentProposerSemantic;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 import org.strategoxt.stratego_aterm.explode_aterm_0_0;
@@ -77,7 +79,7 @@ public class StrategoTermPath {
 	 */
 	public static IStrategoList createPathFromParsedIStrategoTerm(final IStrategoTerm node, Context context) {
 		IStrategoTerm top = ParentAttachment.getRoot(node);
-		final IStrategoTerm marker = context.getFactory().makeString(ContentProposer.COMPLETION_TOKEN);
+		final IStrategoTerm marker = context.getFactory().makeString(ContentProposerSemantic.COMPLETION_TOKEN);
 		top = oncetd_1_0.instance.invoke(context, top, new Strategy() {
 			@Override
 			public IStrategoTerm invoke(Context context, IStrategoTerm current) {
@@ -133,11 +135,24 @@ public class StrategoTermPath {
 				if (hasImploderOrigin(current)) {
 					IStrategoTerm currentOrigin = tryGetOrigin(current);
 					if (currentOrigin == origin1) return current;
+					IStrategoTerm currentImploderOrigin = ImploderAttachment.getImploderOrigin(currentOrigin);
+					IStrategoTerm imploderOrigin1 = ImploderAttachment.getImploderOrigin(origin1);
 					if (
-							ImploderAttachment.getLeftToken(currentOrigin).getIndex() == ImploderAttachment.getLeftToken(origin1).getIndex() &&
-							ImploderAttachment.getRightToken(currentOrigin).getIndex() == ImploderAttachment.getRightToken(origin1).getIndex() &&
-							currentOrigin.equals(origin1)
-					){ return current; }
+							ImploderAttachment.getLeftToken(currentImploderOrigin).getStartOffset() == ImploderAttachment.getLeftToken(imploderOrigin1).getStartOffset() &&
+							ImploderAttachment.getRightToken(currentImploderOrigin).getEndOffset() == ImploderAttachment.getRightToken(imploderOrigin1).getEndOffset()
+					){
+						if(currentOrigin.equals(origin1))
+							return current; 
+						if(current.getTermType() == origin1.getTermType()){
+							if(current.getTermType() == IStrategoTerm.APPL){
+								IStrategoAppl currentAppl = (IStrategoAppl)current;
+								IStrategoAppl origin1Appl = (IStrategoAppl)origin1;
+								if(currentAppl.getName().equals(origin1Appl.getName()) && currentAppl.getSubtermCount() == origin1Appl.getSubtermCount())
+									return current;
+							}
+							nextBest = current;							
+						}
+					}
 					// sets a term as 'nextBest' if one of the subterms of its origin-term is the originChild
 					if (nextBest == null && originChild != null) {
 						for (int i = 0, max = currentOrigin.getSubtermCount(); i < max; i++)

@@ -91,6 +91,11 @@ public class InputTermBuilder {
 			IResource resource = SourceAttachment.getResource(node);
 			resultingAst = resultingAsts.get(resource);
 		}
+		return makeInputTermResultingAst(resultingAst, node, includeSubNode);
+	}
+
+	public IStrategoTuple makeInputTermResultingAst(IStrategoTerm resultingAst,
+			IStrategoTerm node, boolean includeSubNode) {
 		Context context = runtime.getCompiledContext();
 		IStrategoList termPath = StrategoTermPath.getTermPathWithOrigin(context, resultingAst, node);
 		if (termPath == null)
@@ -278,11 +283,7 @@ public class InputTermBuilder {
 			return null;
 		IStrategoTerm ancestor = InputTermBuilder.getMatchingAncestor(node, allowMultiChildParent);
 		IStrategoTerm selectionNode = node;
-		ArrayList<NodeMapping<String>> mappings = new ArrayList<NodeMapping<String>>();
-		for (IStrategoTerm semanticNode : semanticNodes) {
-			NodeMapping<String> aMapping = NodeMapping.create(semanticNode, "");
-			mappings.add(aMapping);
-		}
+		ArrayList<NodeMapping<String>> mappings = createNodeMappings(semanticNodes);
 		if (mappings.size() == 0) {
 			return ancestor; // no sort restriction specified, so use policy to
 							 // return the node furthest up the ancestor
@@ -311,8 +312,21 @@ public class InputTermBuilder {
 		return null;
 	}
 
-	private static boolean isMatchOnConstructorOrSort(ArrayList<NodeMapping<String>> mappings,
-			IStrategoTerm selectionNode) {
+	public static ArrayList<NodeMapping<String>> createNodeMappings(IStrategoTerm[] semanticNodes){
+		ArrayList<NodeMapping<String>> mappings = new ArrayList<NodeMapping<String>>();
+		for (IStrategoTerm semanticNode : semanticNodes) {
+			NodeMapping<String> aMapping;
+			try {
+				aMapping = NodeMapping.create(semanticNode, "");
+				mappings.add(aMapping);
+			} catch (BadDescriptorException e) {
+				e.printStackTrace();
+			}
+		}
+		return mappings;
+	}
+
+	public static boolean isMatchOnConstructorOrSort(ArrayList<NodeMapping<String>> mappings, IStrategoTerm selectionNode) {
 		return selectionNode != null &&
 			NodeMapping.getFirstAttribute(mappings, tryGetName(selectionNode), getSort(selectionNode), 0) != null;
 	}

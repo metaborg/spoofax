@@ -13,6 +13,7 @@ import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.services.ContentProposer;
+import org.strategoxt.imp.runtime.services.ContentProposerSemantic;
 import org.strategoxt.imp.runtime.services.SyntaxProperties;
 
 /**
@@ -84,9 +85,9 @@ public class SyntaxPropertiesFactory extends AbstractServiceFactory<ILanguageSyn
 			Pattern result = Pattern.compile(completionLexical);
 			if (result.matcher("").matches())
 				throw new PatternSyntaxException("Identifier lexical matches the empty string", completionLexical, 0);
-			if (mustMatchCompletionLexical && !result.matcher(ContentProposer.COMPLETION_TOKEN).matches())
-				throw new PatternSyntaxException("Identifier lexical must allow letters and numbers (e.g., "
-						+ ContentProposer.COMPLETION_TOKEN + ")", completionLexical, 0);
+			if (mustMatchCompletionLexical && !result.matcher(ContentProposerSemantic.COMPLETION_TOKEN).matches())
+				throw new PatternSyntaxException("Identifier lexical must allow the completion token string: '"
+						+ ContentProposerSemantic.COMPLETION_TOKEN + "'", completionLexical, 0);
 			return result;
 		} catch (PatternSyntaxException e) {
 			throw new BadDescriptorException("Illegal completion lexical in editor descriptor", e);

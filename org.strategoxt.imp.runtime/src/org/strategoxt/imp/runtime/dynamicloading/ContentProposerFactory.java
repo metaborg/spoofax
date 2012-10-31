@@ -106,12 +106,13 @@ public class ContentProposerFactory extends AbstractServiceFactory<IContentPropo
 		Set<Completion> results = new HashSet<Completion>();
 
 		for (IStrategoAppl template : collectTerms(descriptor.getDocument(), "CompletionTemplate")) {
-			results.add(parseContentProposalTemplate(template, 0, null));
+			results.add(parseContentProposalTemplate(template, 0, null, false));
 		}
 
 		for (IStrategoAppl template : collectTerms(descriptor.getDocument(), "CompletionTemplateWithSort")) {
 			String sort = termContents(termAt(template, 0));
-			results.add(parseContentProposalTemplate(template, 1, sort));
+			boolean isListSort = TermReader.findTerm(template, "ListSort") != null;
+			results.add(parseContentProposalTemplate(template, 1, sort, isListSort));
 		}
 
 		for (IStrategoAppl template : collectTerms(descriptor.getDocument(), "CompletionTemplateEx")) {
@@ -121,13 +122,13 @@ public class ContentProposerFactory extends AbstractServiceFactory<IContentPropo
 		return results;
 	}
 
-	private static Completion parseContentProposalTemplate(IStrategoAppl template, int index, String sort) {
+	private static Completion parseContentProposalTemplate(IStrategoAppl template, int index, String sort, boolean isListSort) {
 		ITermFactory factory = Environment.getTermFactory();
 		IStrategoTerm prefixTerm = termAt(template, index + 0);
 		IStrategoList completionParts = termAt(template, index + 1);
 		IStrategoTerm anno = termAt(template, index + 2);
 		completionParts = factory.makeListCons(prefixTerm, completionParts);
-		return Completion.makeTemplate(null, sort, completionParts, "Blank".equals(cons(anno)), false);
+		return Completion.makeTemplate(null, sort, isListSort, completionParts, "Blank".equals(cons(anno)), false);
 	}
 
 	private static void parseContentProposalTemplateEx(IStrategoAppl template, Set<Completion> results) {
@@ -139,12 +140,13 @@ public class ContentProposerFactory extends AbstractServiceFactory<IContentPropo
 
 		IStrategoList sorts = termAt(template, 0);
 		if (sorts.isEmpty()) {
-			results.add(Completion.makeTemplate(prefix, null, parts, blank, linked));
+			results.add(Completion.makeTemplate(prefix, null, false, parts, blank, linked));
 		}
 		else {
 			for (; !sorts.isEmpty(); sorts = sorts.tail()) {
 				String sort = termContents(sorts.head());
-				results.add(Completion.makeTemplate(prefix, sort, parts, blank, linked));
+				boolean isListSort = TermReader.findTerm(sorts.head(), "ListSort") != null;
+				results.add(Completion.makeTemplate(prefix, sort, isListSort, parts, blank, linked));
 			}
 		}
 	}

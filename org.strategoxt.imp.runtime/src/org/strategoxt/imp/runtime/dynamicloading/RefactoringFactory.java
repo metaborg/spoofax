@@ -42,7 +42,6 @@ import org.strategoxt.imp.runtime.services.StrategoRefactoring;
 import org.strategoxt.imp.runtime.services.StrategoRefactoringIdentifierInput;
 import org.strategoxt.imp.runtime.services.StrategoRefactoringWizard;
 import org.strategoxt.imp.runtime.services.SyntaxProperties;
-import org.strategoxt.stratego_lib.assert_1_0;
 
 /**
  * @author Maartje de Jonge
