@@ -21,7 +21,6 @@ exports
           Node FoldingAnno -> FoldingRule {cons("FoldRule")}
     "all" Node FoldingAnno -> FoldingRule {cons("FoldRuleAll")}
 
-    "(disable)"  -> FoldingAnno {cons("Disable"), deprecated("Use (disabled) instead")}
     "(disabled)" -> FoldingAnno {cons("Disable")}
     "(folded)"   -> FoldingAnno {cons("Folded")}
                  -> FoldingAnno {cons("None")}

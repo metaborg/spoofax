@@ -8,7 +8,7 @@ exports
   
   syntax
   
-    "refactorings" <SectionName-LEX> <LAYOUT?-CF> <SemanticRule*-CF> -> <Section-CF> {cons("Refactorings")}
+    "refactorings" <SectionName-LEX> <LAYOUT?-CF> <RefactoringRule*-CF> -> <Section-CF> {cons("Refactorings")}
 
     "refactorings" -> <ReservedName-CF>
 
@@ -17,18 +17,16 @@ exports
     "keybindings" -> <ReservedName-CF>
   
   context-free syntax
-  	
-  	"pp-table" ":" StrategoCall     -> SemanticRule {cons("PPTable"), deprecated("use 'pretty-print' instead")}
-  	"pretty-print" ":" StrategoCall -> SemanticRule {cons("PrettyPrint")}
- 	"parenthesize" ":" StrategoCall -> SemanticRule {cons("Parenthesize")}
- 	"override" "reconstruction" ":" StrategoCall -> SemanticRule {cons("OverrideReconstruction")}
- 	"resugar" ":" StrategoCall -> SemanticRule {cons("Resugar")}
+  
+    "pretty-print" ":" StrategoCall              -> RefactoringRule {cons("PrettyPrint")}
+    "parenthesize" ":" StrategoCall              -> RefactoringRule {cons("Parenthesize")}
+    "override" "reconstruction" ":" StrategoCall -> RefactoringRule {cons("OverrideReconstruction")}
+    "resugar" ":" StrategoCall                   -> RefactoringRule {cons("Resugar")}
 
-    "refactoring" SemanticNode* ":" String "=" StrategoCall BuilderOption* UIOption* 
-    								-> SemanticRule {cons("Refactoring")}
+    "refactoring" SemanticNode* ":" String "=" StrategoCall BuilderOption* UIOption*  -> RefactoringRule {cons("Refactoring")}
     
     "shortcut" ":" KeyCombination -> UIOption {cons("Shortcut")}
-    "shortcut" ":" InteractionId -> UIOption {cons("Shortcut")}
+    "shortcut" ":" InteractionId  -> UIOption {cons("Shortcut")}
     
     String -> InteractionId {cons("InteractionId")}
           
@@ -37,57 +35,38 @@ exports
     %% identifier input field [= text field + validation] 
     "identifier" ":" String                  -> InputField {ast("IdInputField(<1>, \"\")")}
     "identifier" ":" String "=" String       -> InputField {cons("IdInputField")}
-    "identifier" ":" String "=" StrategoCall -> InputField {cons("IdInputField")}
+    %%"identifier" ":" String "=" StrategoCall -> InputField {cons("IdInputField")}
     
     %% text input field 
     "text" ":" String                  -> InputField {ast("TextInputField(<1>, \"\")")}
     "text" ":" String "=" String       -> InputField {cons("TextInputField")}
-    "text" ":" String "=" StrategoCall -> InputField {cons("TextInputField")}
+    %%"text" ":" String "=" StrategoCall -> InputField {cons("TextInputField")}
 
     %% boolean input field 
     "boolean" ":" String                  -> InputField {ast("BooleanInputField(<1>, FalseValue()")}
     "boolean" ":" String "=" BooleanValue -> InputField {cons("BooleanInputField"), prefer}
-    "boolean" ":" String "=" StrategoCall -> InputField {cons("BooleanInputField"), avoid}
+    %%"boolean" ":" String "=" StrategoCall -> InputField {cons("BooleanInputField"), avoid}
 
-     "true"  -> BooleanValue {cons("TrueValue")}
-     "false" ->  BooleanValue {cons("FalseValue")}
+    "true"  -> BooleanValue {cons("TrueValue")}
+    "false" ->  BooleanValue {cons("FalseValue")}
      
     %% choice input field 
     %% list input field
   
      %% Avoid ambiguities with semantic nodes
-     "pp-table"  -> SemanticNode {reject}
-     "pretty-print"  -> SemanticNode {reject}
-     "refactoring"  -> SemanticNode {reject}
+    "pp-table"      -> SemanticNode {reject}
+    "pretty-print"  -> SemanticNode {reject}
+    "refactoring"   -> SemanticNode {reject}
 
 context-free syntax
-	
-     %% Predefined Keybindings
+
+    %% Predefined Keybindings
     KeyCombination "=" String -> KeyBinding {cons("KeyBinding")} %% key binding (e.g., Shift + Alt + R = "org.eclipse.jdt.ui.edit.text.java.rename.element")
     {Key "+"}+                -> KeyCombination {cons("KeyCombination")}   %% key combination (e.g., 'Shift + Alt + R')
 
 lexical syntax
      
-     "Shift"  -> Key
-     "Alt"    -> Key
-     "Ctrl"   -> Key
-     [A-Z]    -> Key
-
-context-free syntax 
-	    
-    %%recover rules for completion
-    "shortcut" ":" Id -> UIOption {ast("Shortcut(KeyCombination([<1>]))"), completion, avoid}    
-    "keybindings"  Id KeyBinding* -> Section {ast("KeyBindings(\"\", [KeyBinding(KeyCombination([<1>]), \"\")])"), completion, avoid}
-    "refactorings" Id SemanticRule* -> Section {ast("Refactorings(\"\", [Refactoring([],None(), None(), [],[])])"), completion, avoid}
-
-    "refactoring" SemanticNode* ":" String "=" StrategoCall BuilderOption* "(" Id ")" BuilderOption* UIOption* -> 
-    SemanticRule {ast("Refactoring(<1>, <2>, <3>, [<5>], <7>)"), completion, avoid}
-    
-    "refactoring" SemanticNode* ":" String "=" StrategoCall BuilderOption* UIOption? Id UIOption? -> 
-    SemanticRule {ast("Refactoring(<1>, <2>, <3>, <4>, [<6>])"), completion, avoid}
-    
-    "input" InputField* Id InputField* -> UIOption {ast("UserInput([<2>])"), completion, avoid}
-    
-    -> "keybindings" {recover, reject}
-    -> "refactorings" {recover, reject}
-    -> "provider" {recover, reject}
+    "Shift"  -> Key
+    "Alt"    -> Key
+    "Ctrl"   -> Key
+    [A-Z]    -> Key

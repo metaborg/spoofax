@@ -7,19 +7,18 @@ exports
   
   syntax
   
-    "builders" <SectionName-LEX> <LAYOUT?-CF> <SemanticRule*-CF> -> <Section-CF> {cons("Builders")}
+    "builders" <SectionName-LEX> <LAYOUT?-CF> <BuilderRule*-CF> -> <Section-CF> {cons("Builders")}
 
     "builders" -> <ReservedName-CF>
   
-    "analysis" <SectionName-LEX> <LAYOUT?-CF> <SemanticRule*-CF> -> <Section-CF> {cons("Builders"), deprecated("Use 'builders' instead")}
-
-    "analysis" -> <ReservedName-CF>
-
   context-free syntax
     
-    "observer" ":" StrategoCall ObserverOption*           -> SemanticRule {cons("SemanticObserver")}
-    "builder"  ":" String "=" StrategoCall BuilderOption* -> SemanticRule {cons("Builder")}
-    "builder" "caption" ":" PropertyValue                 -> SemanticRule {cons("BuilderCaption")}
+    "observer" ":" StrategoCall ObserverOption*                         -> BuilderRule {cons("SemanticObserver")}    
+    "provider" ":" PropertyValue                                        -> BuilderRule {cons("SemanticProvider")}
+    "on" "save" ":" StrategoCall OnSaveAnno                             -> BuilderRule {cons("OnSave")}
+    "builder"  ":" String "=" StrategoCall BuilderOption* -> BuilderRule {cons("Builder")}
+    %%"builder"  SemanticNode* ":" String "=" StrategoCall BuilderOption* -> BuilderRule {cons("Builder")}
+    "builder" "caption" ":" PropertyValue                               -> BuilderRule {cons("BuilderCaption")}
     
     "(multifile)"  -> ObserverOption {cons("MultiFile")}
     
@@ -29,3 +28,4 @@ exports
     "(meta)"       -> BuilderOption {cons("Meta")}
     "(cursor)"     -> BuilderOption {cons("Cursor")}
     "(source)"     -> BuilderOption {cons("Source")}
+        
