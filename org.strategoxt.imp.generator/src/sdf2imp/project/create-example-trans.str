@@ -103,10 +103,7 @@ rules // Editor services
   // (the completion identifier in the AST provides additional context information)
   editor-complete:
     (node, position, ast, path, project-path) -> proposals'
-    where
-      editor-init;
-      (ast', _) := <analyze-top(|<language>)> (ast, path, project-path);
-      item@COMPLETION(name) := <collect-one(?COMPLETION(_))> ast';
+      item@COMPLETION(name) := <collect-one(?COMPLETION(_))> node;
       index-transaction(
         (<index-lookup-all(|name)> item <+ ![]) => proposals
       );
