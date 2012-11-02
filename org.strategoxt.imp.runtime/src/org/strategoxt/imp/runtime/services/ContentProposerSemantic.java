@@ -64,8 +64,8 @@ public class ContentProposerSemantic {
 	public static final String COMPLETION_TOKEN = "completion123";
 
 	private static final long REINIT_PARSE_DELAY = 4000;
-
-	private static final int RIGHT_CONTEXT_SIZE = 80; //limit on suffix parsing
+	
+	private static final String WHITESPACE_SEPARATION = "     ";
 
 	private final StrategoObserver observer;
 
@@ -92,7 +92,7 @@ public class ContentProposerSemantic {
 	private String errorMessage; //error results
 
 	
-	private IStrategoTerm completionAST; //intermediate results
+	private IStrategoTerm currentAST; //intermediate results
 	
 	private int startOffsetCompletionToken; //intermediate results
 
@@ -111,7 +111,7 @@ public class ContentProposerSemantic {
 		this.completionContexts = new java.util.HashSet<IStrategoTerm>();
 		this.sglrReuser = sglrReuser;
 		
-		this.completionAST = null;
+		this.currentAST = null;
 		this.startOffsetCompletionToken = -1;
 	}
 
@@ -171,19 +171,15 @@ public class ContentProposerSemantic {
 		parseController.scheduleParserUpdate(REINIT_PARSE_DELAY, true); // cancel current parse
 		parseController.getParseLock().lock();
 		try {
-
-			//sets document
-			String document = documentPrefix + COMPLETION_TOKEN + documentSuffix;
-
 			//sets AST for document (possible a slightly inferior AST with the empty string parsed instead of the completion identifier) 
-			setCompletionAst(parseController, completionPrefix, document);
-			if(this.completionAST == null)
+			setCompletionAst(parseController, documentPrefix, completionPrefix, documentSuffix);
+			if(this.currentAST == null)
 				return new java.util.HashSet<IStrategoTerm>();
 
-			//constructed partial trees around cursor location
+			//constructed partial trees around cursor location. 
+			//Only take into account the left context, since the right context can not be trusted
 			//SGLR sglr = parseController.getParser().getParser();
-			completionContexts = parseCompletionContext(parseController, document);
-			
+			completionContexts = parseCompletionContext(parseController, documentPrefix + COMPLETION_TOKEN + WHITESPACE_SEPARATION);			
 		} catch (Exception e) {
 			this.errorMessage = "No semantic proposals available - syntax errors";
 			Environment.logException(errorMessage, e);
@@ -204,19 +200,21 @@ public class ContentProposerSemantic {
 				sglr.findLongestLeftContextReductions(
 					parserConfigDocumentPrefix,
 					getCompletionOffsetMid(),
-					getCompletionOffsetMid() + RIGHT_CONTEXT_SIZE,
+					document.length() - 2,
 					document
 		);
 		return completionContexts;
 	}
 
 
-	private void setCompletionAst(SGLRParseController parseController, String completionPrefix, String document) 
-			throws BadTokenException, TokenExpectedException, ParseException, SGLRException {
-		this.completionAST = null;
+	private void setCompletionAst(SGLRParseController parseController, String documentPrefix, String completionPrefix, String documentSuffix) 
+			throws BadTokenException, TokenExpectedException, ParseException, SGLRException {		
+		this.currentAST = null;
+		//sets document
+		String document = documentPrefix + COMPLETION_TOKEN + documentSuffix;
 		if(completionPrefix.equals("") && document.length() < 2500){
 			try{
-				completionAST = parseController.parse(document, new NullProgressMonitor());
+				currentAST = parseController.parse(document, new NullProgressMonitor());
 				//(IStrategoTerm)sglr.parse(document, null, parseController.getParser().getStartSymbol(), true, this.completionTokenOffset);
 				return;
 			} catch (Exception e) {
@@ -225,7 +223,7 @@ public class ContentProposerSemantic {
 		}
 		//Better performance but less precise in case the completion-prefix is empty.
 		//That is, the empty string is parsed at the cursor location instead of the completion token.
-		completionAST = parseController.getCurrentAst(); 
+		currentAST = parseController.getCurrentAst(); 
 	}
 
 	private Set<IStrategoTerm> filterLeafnodes(Set<IStrategoTerm> completionContexts) {
@@ -310,7 +308,7 @@ public class ContentProposerSemantic {
 	}
 	
 	private IStrategoTerm constructASTForContext(IStrategoTerm completionContext) {
-		IStrategoTerm newCompletionAST = ((StrategoTerm)this.completionAST).clone(false);
+		IStrategoTerm newCompletionAST = ((StrategoTerm)this.currentAST).clone(false);
 		String sort = ImploderAttachment.getSort(completionContext);
 		IStrategoTerm nodeContext = findCompletionContext(newCompletionAST, sort);
 		if(nodeContext != null){
