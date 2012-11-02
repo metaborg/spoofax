@@ -64,3 +64,6 @@ exports
     "<" PlaceholderChar* ":" -> PlaceholderWithSortPrefix
     "<" PlaceholderChar* ">" -> Placeholder
     ~[\:\>\n]                -> PlaceholderChar
+
+lexical restrictions
+  "completions" "completion" "template" -/- [A-Za-z0-9\_]

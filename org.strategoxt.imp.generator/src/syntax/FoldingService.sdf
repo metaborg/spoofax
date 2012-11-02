@@ -24,3 +24,6 @@ exports
     "(disabled)" -> FoldingAnno {cons("Disable")}
     "(folded)"   -> FoldingAnno {cons("Folded")}
                  -> FoldingAnno {cons("None")}
+
+lexical restrictions
+  "all" "folding" -/- [A-Za-z0-9\_]

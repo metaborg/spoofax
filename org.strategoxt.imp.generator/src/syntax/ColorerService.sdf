@@ -64,3 +64,6 @@ exports
     "_"            -> AttributeId {reject}
     Font           -> AttributeId {reject}
     "environment"  -> AttributeId {reject}
+
+lexical restrictions
+  "environment" "colorer" "bold" "italic" -/- [A-Za-z0-9\_]

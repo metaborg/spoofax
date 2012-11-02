@@ -57,6 +57,10 @@ exports
     "pp-table"      -> SemanticNode {reject}
     "pretty-print"  -> SemanticNode {reject}
     "refactoring"   -> SemanticNode {reject}
+    "refactorings" -> StrategoCall {reject}
+    "refactoring"  -> StrategoCall {reject}
+    "pretty-print"  -> StrategoCall {reject}
+    "keybindings"  -> StrategoCall {reject}
 
 context-free syntax
 
@@ -70,3 +74,8 @@ lexical syntax
     "Alt"    -> Key
     "Ctrl"   -> Key
     [A-Z]    -> Key
+    
+lexical restrictions
+  "refactoring" "refactorings" "keybindings" "override" "input" "true" "false" -/- [A-Za-z0-9\_]
+
+
