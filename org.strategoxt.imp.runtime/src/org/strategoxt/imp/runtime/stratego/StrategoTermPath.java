@@ -137,7 +137,9 @@ public class StrategoTermPath {
 					if (currentOrigin == origin1) return current;
 					IStrategoTerm currentImploderOrigin = ImploderAttachment.getImploderOrigin(currentOrigin);
 					IStrategoTerm imploderOrigin1 = ImploderAttachment.getImploderOrigin(origin1);
-					if (
+					if (	
+							currentImploderOrigin != null &&
+							imploderOrigin1 != null &&
 							ImploderAttachment.getLeftToken(currentImploderOrigin).getStartOffset() == ImploderAttachment.getLeftToken(imploderOrigin1).getStartOffset() &&
 							ImploderAttachment.getRightToken(currentImploderOrigin).getEndOffset() == ImploderAttachment.getRightToken(imploderOrigin1).getEndOffset()
 					){

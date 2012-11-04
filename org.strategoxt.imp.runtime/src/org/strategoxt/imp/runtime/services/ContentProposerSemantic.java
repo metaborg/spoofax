@@ -13,16 +13,18 @@ import static org.strategoxt.imp.runtime.stratego.SourceAttachment.getFile;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
-import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.imp.parser.IParseController;
 import org.spoofax.interpreter.core.InterpreterErrorExit;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.core.UndefinedStrategyException;
+import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
@@ -30,14 +32,10 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.Frame;
-import org.spoofax.jsglr.client.ParseException;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.jsglr.client.imploder.Tokenizer;
 import org.spoofax.jsglr.io.SGLR;
 import org.spoofax.jsglr.shared.ArrayDeque;
-import org.spoofax.jsglr.shared.BadTokenException;
-import org.spoofax.jsglr.shared.SGLRException;
-import org.spoofax.jsglr.shared.TokenExpectedException;
 import org.spoofax.terms.StrategoTerm;
 import org.spoofax.terms.TermFactory;
 import org.spoofax.terms.TermTransformer;
@@ -102,7 +100,7 @@ public class ContentProposerSemantic {
 	public ContentProposerSemantic(StrategoObserver observer, String completionFunction, IStrategoTerm[] semanticNodes, ParseConfigReuser sglrReuser){
 		this.completionFunction = completionFunction;
 		this.observer = observer;
-		this.semanticNodes = semanticNodes;
+		this.semanticNodes = extendWithInjections(semanticNodes);
 		this.documentPrefix = "";
 		this.documentSuffix = "";
 		this.proposals = new java.util.HashSet<Completion>();
@@ -115,7 +113,6 @@ public class ContentProposerSemantic {
 		this.startOffsetCompletionToken = -1;
 	}
 
-
 	public Set<Completion> getSemanticCompletions(IParseController controller, String documentPrefix, String completionPrefix, String documentSuffix) { 
 		this.results = null;
 		if(!this.documentPrefix.equals(documentPrefix) || !this.documentSuffix.equals(documentSuffix)){ 
@@ -125,23 +122,33 @@ public class ContentProposerSemantic {
 			errorMessage = null;
 			
 			//calculate 'empty string' proposals
-			Set<IStrategoTerm> inputTerms = constructCompletionInputTerms(ContentProposer.getParser(controller), documentPrefix, completionPrefix, documentSuffix);
-			Set<IStrategoTerm> proposalLists = constructOutputTerms(controller, inputTerms);						
-			Set<Completion> proposals = constructProposals(proposalLists);
+			Set<Completion> proposals = calculateProposals(controller, documentPrefix, completionPrefix, documentSuffix, this.semanticNodes, false);
 
 			//store results for reuse
 			this.proposals = proposals;
 			this.documentPrefix = documentPrefix;
 			this.documentSuffix = documentSuffix;
-			
-			//store results for print tip
-			setCompletionContexts(inputTerms);
 		}	
 		this.results = filterProposals(completionPrefix);
 		return this.results;
 	}
+
+
+	private Set<Completion> calculateProposals(IParseController controller, String documentPrefix,
+			String completionPrefix, String documentSuffix, IStrategoTerm[] semanticNodes, boolean isRequiredMatch) {
+		Set<IStrategoTerm> inputTerms = constructCompletionInputTerms(ContentProposer.getParser(controller), 
+				documentPrefix, completionPrefix, documentSuffix, semanticNodes, isRequiredMatch);
+		Set<IStrategoTerm> proposalLists = constructOutputTerms(controller, inputTerms);						
+		Set<Completion> proposals = constructProposals(proposalLists);
+
+		//store results for print tip
+		setCompletionContexts(inputTerms);
+		return proposals;
+	}
 		
-	private Set<IStrategoTerm> constructCompletionInputTerms(SGLRParseController parseController, String documentPrefix, String completionPrefix, String documentSuffix) {	
+	private Set<IStrategoTerm> constructCompletionInputTerms(SGLRParseController parseController, 
+			String documentPrefix, String completionPrefix, String documentSuffix, 
+			IStrategoTerm[] semanticNodes, boolean isRequiredMatch) {	
 
 		this.startOffsetCompletionToken = documentPrefix.length(); 
 
@@ -150,10 +157,10 @@ public class ContentProposerSemantic {
 		//so that they can be used as input to the editor-complete rule.
 		//Also constructs and stores the AST of the document with the completion token filled in.
 		Set<IStrategoTerm> completionContexts = constructCompletionContexts(parseController, documentPrefix, completionPrefix, documentSuffix); 
-		completionContexts = filterLeafnodes(completionContexts); //remove IStrategoString("completion123"), not sufficient context, apparently a identifier is not expected 
-		completionContexts = removeDuplicatedTerms(completionContexts); //example: [Sort(Id("c123")), Id("c123"), "x"] => [Sort(Id("c123"))]
-		completionContexts = focusCompletionContexts(completionContexts); //example: Module( ...Assign(Var("i"), FunCall(Var("c123"))) ...) => FunCall(Var("c123"))
-					
+		
+		ArrayList<NodeMapping<String>> mappings = InputTermBuilder.createNodeMappings(semanticNodes);
+		completionContexts = focusCompletionContexts(completionContexts, mappings, isRequiredMatch); 
+		
 		//System.out.println(completionContexts);
 
 		//Build input tuples for editor-complete rule, e.g. (analyzed-context, position, analyzed-ast, path, project-path)
@@ -172,7 +179,7 @@ public class ContentProposerSemantic {
 		parseController.getParseLock().lock();
 		try {
 			//sets AST for document (possible a slightly inferior AST with the empty string parsed instead of the completion identifier) 
-			setCompletionAst(parseController, documentPrefix, completionPrefix, documentSuffix);
+			currentAST = parseController.getCurrentAst(); 
 			if(this.currentAST == null)
 				return new java.util.HashSet<IStrategoTerm>();
 
@@ -206,84 +213,47 @@ public class ContentProposerSemantic {
 		return completionContexts;
 	}
 
-
-	private void setCompletionAst(SGLRParseController parseController, String documentPrefix, String completionPrefix, String documentSuffix) 
-			throws BadTokenException, TokenExpectedException, ParseException, SGLRException {		
-		this.currentAST = null;
-		//sets document
-		String document = documentPrefix + COMPLETION_TOKEN + documentSuffix;
-		if(completionPrefix.equals("") && document.length() < 2500){
-			try{
-				currentAST = parseController.parse(document, new NullProgressMonitor());
-				//(IStrategoTerm)sglr.parse(document, null, parseController.getParser().getStartSymbol(), true, this.completionTokenOffset);
-				return;
-			} catch (Exception e) {
-				//try completion AST of parse controller
-			}
-		}
-		//Better performance but less precise in case the completion-prefix is empty.
-		//That is, the empty string is parsed at the cursor location instead of the completion token.
-		currentAST = parseController.getCurrentAst(); 
-	}
-
-	private Set<IStrategoTerm> filterLeafnodes(Set<IStrategoTerm> completionContexts) {
+	private Set<IStrategoTerm> focusCompletionContexts(Set<IStrategoTerm> completionContexts, 
+			ArrayList<NodeMapping<String>> mappings, boolean isRequiredMatch) {
 		Set<IStrategoTerm> result = new java.util.HashSet<IStrategoTerm>();
 		for (IStrategoTerm subtree : completionContexts) {
-			if(subtree.getSubtermCount() > 0)
-				result.add(subtree);
-		}
-		return result;
-	}
-
-	private Set<IStrategoTerm> removeDuplicatedTerms(Set<IStrategoTerm> reductions) {
-		ArrayList<IStrategoTerm> reductionList = new ArrayList<IStrategoTerm>(reductions);
-		for (IStrategoTerm trm : reductionList) {
-			if(reductions.contains(trm) && reductions.size() > 1) //i.e., trm has not already been removed, possible removal terms
-				reductions = removeDuplicatedTerms(trm.getAllSubterms(), reductions);
-		}
-		return reductions;
-	}
-	
-	private Set<IStrategoTerm> removeDuplicatedTerms(IStrategoTerm[] coveredTerms, Set<IStrategoTerm> reductions) {
-		if(reductions.size() <= 1)
-			return reductions; 
-		for (int i = 0; i < coveredTerms.length; i++) {
-			IStrategoTerm trm = coveredTerms[i];
-			reductions.remove(trm);
-		}
-		for (int i = 0; i < coveredTerms.length; i++) {
-			IStrategoTerm trm = coveredTerms[i];
-			reductions = removeDuplicatedTerms(trm.getAllSubterms(), reductions);
-		}
-		return reductions;
-	}
-
-
-	private Set<IStrategoTerm> focusCompletionContexts(Set<IStrategoTerm> completionContexts) {		
-		ArrayList<NodeMapping<String>> mappings = InputTermBuilder.createNodeMappings(this.semanticNodes);
-		Set<IStrategoTerm> result = new java.util.HashSet<IStrategoTerm>();
-		for (IStrategoTerm subtree : completionContexts) {
-			result.add(focusCompletionContext(mappings, subtree));
+			IStrategoTerm focusedContext = focusCompletionContext(subtree, mappings, isRequiredMatch);
+			if(focusedContext != null)
+				result.add(focusedContext);
 		}
 		return result;
 	}
 	
-	private IStrategoTerm focusCompletionContext(ArrayList<NodeMapping<String>> mappings, IStrategoTerm completionContext) {
-		if(InputTermBuilder.isMatchOnConstructorOrSort(mappings, completionContext))
-			return completionContext;
-		for (int i = 0; i < completionContext.getSubtermCount(); i++) {
-			IStrategoTerm subTerm = completionContext.getSubterm(i);
+	private IStrategoTerm focusCompletionContext(IStrategoTerm term, 
+			ArrayList<NodeMapping<String>> mappings, boolean isRequiredMatch) {
+		if(isSortConstructorMatch(term, mappings))
+			return term; //largest syntactic construct that matches sort and form
+		for (int i = 0; i < term.getSubtermCount(); i++) {
+			IStrategoTerm subTerm = term.getSubterm(i);
 			int startOffset = getStartOffset(subTerm);
 			int endOffset = getEndOffset(subTerm);
 			if(startOffset <= getCompletionOffsetMid() && getCompletionOffsetMid() <= endOffset){
-				return focusCompletionContext(mappings, subTerm);
+				IStrategoTerm childResult = focusCompletionContext(subTerm, mappings, isRequiredMatch);
+				if(childResult != null)
+					return childResult;
 			}
 		}
-		if(completionContext.getSubtermCount() == 0 && ParentAttachment.getParent(completionContext) != null)
-			return ParentAttachment.getParent(completionContext); //add a bit of context
-		return completionContext;
+		if(!checkSortCriterion(term, mappings, isRequiredMatch))
+			return null;
+		if(term.getSubtermCount() == 0)
+			return null; //a bit of context is required
+		return term;
 	}
 
+
+	private boolean isSortConstructorMatch(IStrategoTerm term,
+			ArrayList<NodeMapping<String>> mappings) {
+		return InputTermBuilder.isMatchOnConstructorOrSort(mappings, term);
+	}
+
+	private boolean checkSortCriterion(IStrategoTerm trm, ArrayList<NodeMapping<String>> mappings, boolean isRequiredMatch){
+		return !isRequiredMatch || isSortConstructorMatch(trm, mappings);
+	}
 	
 	private Set<IStrategoTerm> constructInputTerms(Set<IStrategoTerm> completionContexts) {
 		Set<IStrategoTerm> inputTerms = new java.util.HashSet<IStrategoTerm>();
@@ -706,6 +676,48 @@ public class ContentProposerSemantic {
 	protected static boolean isPartOfListPrefixAt(IStrategoTerm node, int offset) {
 		return node.isList() && offset >= Tokenizer.findLeftMostLayoutToken(getLeftToken(node)).getStartOffset();
 	}
+	
+	private IStrategoTerm[] extendWithInjections(IStrategoTerm[] semanticNodes) {
+		final ParentTermFactory factory = new ParentTermFactory(Environment.getTermFactory());
+		Set<String> additionalSorts = new HashSet<String>();
+		for (IStrategoTerm semanticNode : semanticNodes) {
+			if(TermReader.hasConstructor((IStrategoAppl)semanticNode, "Sort")){
+				String sort = TermReader.termContents(semanticNode);
+				additionalSorts.addAll(sglrReuser.getInjectionsFor(sort));
+				additionalSorts.remove(sort);
+			}
+		}
+
+		IStrategoTerm[] result = Arrays.copyOf(semanticNodes, additionalSorts.size() + semanticNodes.length);
+		int index = semanticNodes.length;
+		for (String srt : additionalSorts) {
+			result[index] =  factory.makeAppl(
+				factory.makeConstructor("Sort", 1), 
+				factory.makeList(factory.makeString(srt))
+			);
+			index++;
+		}
+		return result;
+	}
 
 
+
+//
+//	public Set<Completion> getSemanticProposalsForSort(IParseController controller, String sort, String programPrefix, String trustedSuffix) {
+//		final ParentTermFactory factory = new ParentTermFactory(Environment.getTermFactory());
+//		
+//		Set<String> injections = sglrReuser.getInjectionsFor(sort);
+//		Iterator<String> itInjections = injections.iterator();
+//		
+//		IStrategoTerm[] semanticSorts = new IStrategoTerm[injections.size()];
+//		for (int i = 0; i < semanticSorts.length; i++) {
+//			semanticSorts[i] =  factory.makeAppl(
+//				factory.makeConstructor("Sort", 1), 
+//				factory.makeList(factory.makeString(itInjections.next()))
+//			);
+//		}
+//
+//		//calculate 'empty string' proposals
+//		return calculateProposals(controller, programPrefix, "", trustedSuffix, semanticSorts, true);
+//	}
 }

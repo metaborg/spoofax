@@ -21,7 +21,7 @@ exports
 
     "completion" "trigger" ":" PropertyValue OptCompletionAnno -> CompletionRule {cons("CompletionTrigger")}
 
-    "completion" "proposer" ":" StrategoCall -> CompletionRule {cons("CompletionProposer")}
+    "completion" "proposer" SemanticNode* ":" StrategoCall -> CompletionRule {cons("CompletionProposer")}
 
     "completion" "keyword" ":" PropertyValue OptCompletionAnno -> CompletionRule {cons("CompletionKeyword")}
 

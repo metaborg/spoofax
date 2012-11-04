@@ -113,7 +113,7 @@ public class SGLRParseController implements IParseController {
 		if (currentAst == null) forceInitialParse();
 		return currentAst;
 	}
-	
+		
 	public void internalSetAst(IStrategoTerm ast) {
 		currentAst = ast;
 		errorHandler.setRecoveryFailed(false);

@@ -55,24 +55,29 @@ public class ContentProposerFactory extends AbstractServiceFactory<IContentPropo
 
 	@Override
 	public IContentProposer create(Descriptor descriptor, SGLRParseController controller) throws BadDescriptorException {
-		String completionFunction = descriptor.getProperty("CompletionProposer", null);
+		IStrategoAppl aCompletionProposer = TermReader.findTerm(descriptor.getDocument(), "CompletionProposer");
+		IStrategoTerm[] semanticNodes;
+		String completionFunction;
+		if(aCompletionProposer.getSubtermCount()>=2){
+			semanticNodes = termAt(aCompletionProposer, 0).getAllSubterms();
+			completionFunction = termContents(termAt(aCompletionProposer, 1));
+		}
+		else { //backwards compatibility
+			semanticNodes = new IStrategoTerm[0];
+			completionFunction = termContents(termAt(aCompletionProposer, 0));			
+		}
 		StrategoObserver feedback = descriptor.createService(StrategoObserver.class, controller);
-
 		Pattern identifierLexical = SyntaxPropertiesFactory.readIdentifierLexical(descriptor, true);
-
 		Set<String> completionKeywords = readCompletionKeywords(descriptor);
 		Set<Completion> templates = readCompletionTemplates(descriptor);
-
 		for (Completion template : templates) {
 			completionKeywords.remove(template.getPrefix());
 		}
 		for (String keyword : completionKeywords) {
 			templates.add(Completion.makeKeyword(keyword));
 		}
-
 		registerListener(descriptor, controller);
-
-		return new ContentProposer(feedback, completionFunction, identifierLexical, templates);
+		return new ContentProposer(controller, feedback, completionFunction, semanticNodes, identifierLexical, templates);
 	}
 
 	private static void registerListener(Descriptor descriptor, SGLRParseController controller)

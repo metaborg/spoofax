@@ -1,6 +1,12 @@
 package org.strategoxt.imp.runtime.services;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
 import org.spoofax.jsglr.client.Frame;
+import org.spoofax.jsglr.client.ParseTable;
+import org.spoofax.jsglr.client.incremental.IncrementalSortSet;
 import org.spoofax.jsglr.io.SGLR;
 import org.spoofax.jsglr.shared.ArrayDeque;
 
@@ -17,6 +23,10 @@ public class ParseConfigReuser {
 
 	private ArrayDeque<Frame> parserConfig;
 
+	private final Map<String, Set<String>> injections; // cached mapping from sort to all sorts injecting into that sort, e.g. ClassBodyDec -> MethodDec
+	
+	private final ParseTable pt;
+
 	public String getDocumentPrefix() {
 		return documentPrefix;
 	}
@@ -25,10 +35,12 @@ public class ParseConfigReuser {
 		return lastOffset;
 	}
 
-	public ParseConfigReuser(){
+	public ParseConfigReuser(ParseTable pt){
 		this.documentPrefix = "";
 		this.lastOffset = Integer.MAX_VALUE;
 		this.parserConfig = null;
+		this.injections = new HashMap<String, Set<String>>();
+		this.pt = pt;
 	}
 	
 	public ArrayDeque<Frame> parsePrefix(SGLR parser, boolean useRecovery, boolean storeConfig, String document, int endOffset) {
@@ -70,5 +82,15 @@ public class ParseConfigReuser {
 		ArrayDeque<Frame> stackNodes = new ArrayDeque<Frame>();
 		stackNodes.addAll(parserConfig);
 		return stackNodes;
+	}
+
+	public Set<String> getInjectionsFor(String wantedSort) {
+		Set<String> wantedSorts = injections.get(wantedSort);
+		if (wantedSorts == null) {
+			final IncrementalSortSet iss = IncrementalSortSet.create(pt, true, false, wantedSort);
+			wantedSorts = iss.getIncrementalSorts();
+			injections.put(wantedSort, wantedSorts);
+		}
+		return wantedSorts;
 	}
 }

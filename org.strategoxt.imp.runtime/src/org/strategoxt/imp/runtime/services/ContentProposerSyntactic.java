@@ -49,17 +49,12 @@ public class ContentProposerSyntactic {
 
 	private final Map<String, Boolean> testedSorts; //for reuse purpose
 	
-	private final Map<String, Set<String>> injections; // cached mapping from sort to all sorts injecting into that sort, e.g. ClassBodyDec -> MethodDec
-	
-	
-	
 	public ContentProposerSyntactic(Set<Completion> templates, ParseConfigReuser sglrReuser){
 		this.templates = removeArtificialSortTemplates(templates);
 		this.errorMessage = null;
 		this.acceptedProposals = new java.util.HashSet<Completion>();
 		this.rejectedProposals = new java.util.HashSet<Completion>();
 		this.sglrReuser = sglrReuser;
-		this.injections = new HashMap<String, Set<String>>();
 		this.testedSorts = new HashMap<String, Boolean>();
 	}
 	
@@ -121,8 +116,7 @@ public class ContentProposerSyntactic {
 	}
 
 
-	private boolean checkSyntacticContext(SGLRParseController parseController, String documentPrefix,
-			Completion proposal, String documentSuffix) {		
+	private boolean checkSyntacticContext(SGLRParseController parseController, String documentPrefix, Completion proposal, String documentSuffix) {						
 		SGLR parser = new SGLR(parseController.getParser().getParser().getTreeBuilder(), parseController.getParser().getParser().getParseTable());
 		parseController.scheduleParserUpdate(REINIT_PARSE_DELAY, true); // cancel current parse
 		parseController.getParseLock().lock();
@@ -169,13 +163,20 @@ public class ContentProposerSyntactic {
 	private String createProposalParseString(Completion proposal) {
 		String sort = proposal.getSort();
 		String proposalString; 
-		if(proposal.getSort() != null){
-			proposalString = ARTIFICIAL_SORT_STRING_START + sort + ARTIFICIAL_SORT_STRING_END;
+		if(sort != null){
+			proposalString = createArtificialParseStringForSort(sort);
 		}
 		else{
 			proposalString = proposal.getNewText();
 		}
 		assert proposalString != null;
+		return proposalString;
+	}
+
+	public static String createArtificialParseStringForSort(String sort) {
+		if(sort == null || sort.equals(""))
+			return null;
+		String proposalString = ARTIFICIAL_SORT_STRING_START + sort + ARTIFICIAL_SORT_STRING_END;
 		return proposalString;
 	}
 
@@ -273,20 +274,13 @@ public class ContentProposerSyntactic {
 		return templatesWithoutSort;
 	}
 	
-	public Set<Completion> getTemplateProposalsForSort(SGLRParseController parseController, String wantedSort, ITextViewer viewer) {
+	public Set<Completion> getTemplateProposalsForSort(SGLRParseController parseController, String wantedSort) {
 		// Add templates for sorts injected into wantedSort.
 		//  `sort -> wantedSort' => add templates for sort
 		//  `sub -> sort' => add templates for sub too
 
 		final Set<Completion> results = new HashSet<Completion>();
-		Set<String> wantedSorts = injections.get(wantedSort);
-
-		if (wantedSorts == null) {
-			final ParseTable pt = parseController.getParser().getParseTable();
-			final IncrementalSortSet iss = IncrementalSortSet.create(pt, true, false, wantedSort);
-			wantedSorts = iss.getIncrementalSorts();
-			injections.put(wantedSort, wantedSorts);
-		}
+		Set<String> wantedSorts = sglrReuser.getInjectionsFor(wantedSort); //injections.get(wantedSort);
 
 		for (Completion proposal : templates) {
 			if (wantedSorts.contains(proposal.getSort())) {

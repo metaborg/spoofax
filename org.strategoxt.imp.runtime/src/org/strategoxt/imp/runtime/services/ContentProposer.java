@@ -26,6 +26,7 @@ import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.ui.progress.UIJob;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.jsglr.client.ParseTable;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.DynamicParseController;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
@@ -89,14 +90,16 @@ public class ContentProposer implements IContentProposer {
 		return identifierLexical;
 	}
 
-	public ContentProposer(StrategoObserver observer, String completionFunction, Pattern identifierLexical, Set<Completion> templates) {
+	public ContentProposer(SGLRParseController parseController, StrategoObserver observer, String completionFunction, 
+			IStrategoTerm[] semanticNodes, Pattern identifierLexical, Set<Completion> templates) {
 		this.observer = observer;
 		this.identifierLexical = identifierLexical;
 		
 		//share the same reuser for performance
-		ParseConfigReuser sglrReuser = new ParseConfigReuser();		
+		ParseTable pt = parseController != null? parseController.getParser().getParseTable() : null;
+		ParseConfigReuser sglrReuser = new ParseConfigReuser(pt);		
 		this.syntacticProposer = new ContentProposerSyntactic(templates, sglrReuser);
-		this.semanticProposer = new ContentProposerSemantic(observer, completionFunction, new IStrategoTerm[0], sglrReuser); //TODO semantic nodes
+		this.semanticProposer = new ContentProposerSemantic(observer, completionFunction, semanticNodes, sglrReuser); //TODO semantic nodes
 	}
 
 	public ICompletionProposal[] getContentProposals(final IParseController controller, final int offset, final ITextViewer viewer) {
@@ -261,7 +264,7 @@ public class ContentProposer implements IContentProposer {
 	}
 	
 	public ContentProposal[] getTemplateProposalsForSort(String wantedSort, ITextViewer viewer) {
-		Set<Completion> templatesForSort = syntacticProposer.getTemplateProposalsForSort(getParser(controller), wantedSort, viewer);
+		Set<Completion> templatesForSort = syntacticProposer.getTemplateProposalsForSort(getParser(controller), wantedSort);
 		final Set<ContentProposal> results = new HashSet<ContentProposal>();
 		for (Completion proposal : templatesForSort) {
 			results.add(new ContentProposal(this, proposal, viewer));

@@ -29,7 +29,7 @@ public class TestFilterCompletions {
 
 	@Before
 	public void setUp() throws Exception {
-		cp = new ContentProposer(null, null, identifierLexical, null);
+		cp = new ContentProposer(null, null, null, identifierLexical, null);
 		completions = new HashSet<Completion>();
 		results = null;
 	}
