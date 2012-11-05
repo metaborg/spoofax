@@ -15,10 +15,10 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 import org.eclipse.imp.parser.IParseController;
+import org.eclipse.jface.text.rules.EndOfLineRule;
 import org.spoofax.interpreter.core.InterpreterErrorExit;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
@@ -64,6 +64,8 @@ public class ContentProposerSemantic {
 	private static final long REINIT_PARSE_DELAY = 4000;
 	
 	private static final String WHITESPACE_SEPARATION = "     ";
+	
+	private static final int RIGHT_CONTEXT_SIZE = 40;
 
 	private final StrategoObserver observer;
 
@@ -186,7 +188,12 @@ public class ContentProposerSemantic {
 			//constructed partial trees around cursor location. 
 			//Only take into account the left context, since the right context can not be trusted
 			//SGLR sglr = parseController.getParser().getParser();
-			completionContexts = parseCompletionContext(parseController, documentPrefix + COMPLETION_TOKEN + WHITESPACE_SEPARATION);			
+			String documentFromPrefix = documentPrefix + COMPLETION_TOKEN + WHITESPACE_SEPARATION;
+			completionContexts = parseCompletionContext(parseController, documentFromPrefix, documentFromPrefix.length() - 2);			
+			String fullDocument = documentPrefix + COMPLETION_TOKEN + documentSuffix;
+			int endOffset = Math.min(fullDocument.length() - 2, (documentPrefix + COMPLETION_TOKEN).length() + RIGHT_CONTEXT_SIZE);
+			Set<IStrategoTerm> moreCompletionContexts = parseCompletionContext(parseController, fullDocument, endOffset);
+			completionContexts.addAll(moreCompletionContexts);
 		} catch (Exception e) {
 			this.errorMessage = "No semantic proposals available - syntax errors";
 			Environment.logException(errorMessage, e);
@@ -196,7 +203,7 @@ public class ContentProposerSemantic {
 		return completionContexts;
 	}
 
-	private Set<IStrategoTerm> parseCompletionContext(SGLRParseController parseController, String document) {
+	private Set<IStrategoTerm> parseCompletionContext(SGLRParseController parseController, String document, int endOffset) {
 		Set<IStrategoTerm> completionContexts;
 		SGLR sglr = new SGLR(parseController.getParser().getParser().getTreeBuilder(), parseController.getParser().getParser().getParseTable());
 		sglr.setCompletionParse(true, getCompletionOffsetMid());
@@ -207,7 +214,7 @@ public class ContentProposerSemantic {
 				sglr.findLongestLeftContextReductions(
 					parserConfigDocumentPrefix,
 					getCompletionOffsetMid(),
-					document.length() - 2,
+					endOffset,
 					document
 		);
 		return completionContexts;
