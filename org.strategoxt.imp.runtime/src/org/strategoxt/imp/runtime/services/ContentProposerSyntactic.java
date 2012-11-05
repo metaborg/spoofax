@@ -5,10 +5,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
-import org.eclipse.jface.text.ITextViewer;
+
 import org.spoofax.jsglr.client.Frame;
-import org.spoofax.jsglr.client.ParseTable;
-import org.spoofax.jsglr.client.incremental.IncrementalSortSet;
 import org.spoofax.jsglr.io.SGLR;
 import org.spoofax.jsglr.shared.ArrayDeque;
 import org.strategoxt.imp.runtime.Environment;

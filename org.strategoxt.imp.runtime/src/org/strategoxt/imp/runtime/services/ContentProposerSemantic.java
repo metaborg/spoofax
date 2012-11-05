@@ -18,7 +18,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.eclipse.imp.parser.IParseController;
-import org.eclipse.jface.text.rules.EndOfLineRule;
 import org.spoofax.interpreter.core.InterpreterErrorExit;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
