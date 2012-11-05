@@ -190,7 +190,7 @@ public class ContentProposerSemantic {
 			String documentFromPrefix = documentPrefix + COMPLETION_TOKEN + WHITESPACE_SEPARATION;
 			completionContexts = parseCompletionContext(parseController, documentFromPrefix, documentFromPrefix.length() - 2);			
 			String fullDocument = documentPrefix + COMPLETION_TOKEN + documentSuffix;
-			int endOffset = Math.min(fullDocument.length() - 2, (documentPrefix + COMPLETION_TOKEN).length() + RIGHT_CONTEXT_SIZE);
+			int endOffset = (documentPrefix + COMPLETION_TOKEN).length() + RIGHT_CONTEXT_SIZE;
 			Set<IStrategoTerm> moreCompletionContexts = parseCompletionContext(parseController, fullDocument, endOffset);
 			completionContexts.addAll(moreCompletionContexts);
 		} catch (Exception e) {
@@ -596,12 +596,24 @@ public class ContentProposerSemantic {
 			public IStrategoTerm preTransform(IStrategoTerm current) {
 				if (current == oldNode) {
 					replacementNode = newNode;
-					factory.copyAttachments(current, replacementNode, true);
+					if(replacementNode.getStorageType() == MUTABLE)
+						factory.copyAttachments(current, replacementNode, true);
 					return replacementNode;
 				} else {
 					return current;
 				}
 			}
+			@Override
+			public IStrategoTerm postTransform(IStrategoTerm current) {
+				if(current.getStorageType() != MUTABLE){
+					if(current.isList()){
+						return factory.makeList(current.getAllSubterms());
+					}
+					//assert false: "unexpected immutable term";
+				}					
+				return current;
+			}
+			
 		}
 
 		Transformer trans = new Transformer();
