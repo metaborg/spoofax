@@ -70,10 +70,7 @@ public class ContentProposerSemantic {
 
 	private final String completionFunction; //stratego rule that implements completion transformation
 
-	//TODO: let user specify what constructs are preferred as context, 
-	// e.g. Assign(y,Var(x)) may be more interesting than Var(x)
-	// because the type info of y can be taken into account
-	private final IStrategoTerm[] semanticNodes; //determine the syntactic context that is returned, e.g. the first term of the lhs of the rule
+	private final IStrategoTerm[] semanticNodes; //determine the syntactic context that is returned
 
 	
 	private ParseConfigReuser sglrReuser; //for reuse purpose
@@ -137,6 +134,9 @@ public class ContentProposerSemantic {
 
 	private Set<Completion> calculateProposals(IParseController controller, String documentPrefix,
 			String completionPrefix, String documentSuffix, IStrategoTerm[] semanticNodes, boolean isRequiredMatch) {
+		if(this.completionFunction == null || this.completionFunction.equals("")){
+			return new HashSet<Completion>();
+		}
 		Set<IStrategoTerm> inputTerms = constructCompletionInputTerms(ContentProposer.getParser(controller), 
 				documentPrefix, completionPrefix, documentSuffix, semanticNodes, isRequiredMatch);
 		Set<IStrategoTerm> proposalLists = constructOutputTerms(controller, inputTerms);						
@@ -181,9 +181,6 @@ public class ContentProposerSemantic {
 		try {
 			//sets AST for document (possible a slightly inferior AST with the empty string parsed instead of the completion identifier) 
 			currentAST = parseController.getCurrentAst(); 
-			if(this.currentAST == null)
-				return new java.util.HashSet<IStrategoTerm>();
-
 			//constructed partial trees around cursor location. 
 			//Only take into account the left context, since the right context can not be trusted
 			//SGLR sglr = parseController.getParser().getParser();
@@ -279,7 +276,7 @@ public class ContentProposerSemantic {
 			try {
 				observer.getLock().lock();
 				completionAST = analyzeAST(completionAST);
-				IStrategoTerm inputTerm = observer.getInputBuilder().makeInputTermResultingAst(completionAST, completionContext, true);
+				IStrategoTerm inputTerm = makeInputTerm(completionContext, completionAST);
 				if(inputTerm != null){
 					//completionContext is not in completionAST
 					inputTerms.add(inputTerm);
@@ -293,8 +290,21 @@ public class ContentProposerSemantic {
 		}
 		return inputTerms;
 	}
+
+	private IStrategoTerm makeInputTerm(IStrategoTerm completionContext, IStrategoTerm completionAST) {
+		if(completionAST == null){
+			final ParentTermFactory factory = new ParentTermFactory(Environment.getTermFactory());
+			return observer.getInputBuilder().makeInputTerm(
+				completionContext, true, factory.makeList(), completionContext, 
+				factory.makeAppl(factory.makeConstructor("None", 0), factory.makeList()));
+		}
+		IStrategoTerm inputTerm = observer.getInputBuilder().makeInputTermResultingAst(completionAST, completionContext, true);
+		return inputTerm;
+	}
 	
 	private IStrategoTerm constructASTForContext(IStrategoTerm completionContext) {
+		if(this.currentAST == null)
+			return null;
 		IStrategoTerm newCompletionAST = ((StrategoTerm)this.currentAST).clone(false);
 		String sort = ImploderAttachment.getSort(completionContext);
 		IStrategoTerm nodeContext = findCompletionContext(newCompletionAST, sort);
@@ -308,13 +318,13 @@ public class ContentProposerSemantic {
 				newCompletionAST = getRoot(replaceNode(nodeContext, insertedCompletionContext));			
 			}			
 		}
-		else{
-			final ParentTermFactory factory = new ParentTermFactory(Environment.getTermFactory());
-			IStrategoTerm[] terms = new IStrategoTerm[2];
-			terms[0] = newCompletionAST;
-			terms[1] = factory.makeAppl(COMPLETION_UNKNOWN, completionContext);
-			newCompletionAST = factory.makeTuple(terms);
-		}
+//		else {
+//			final ParentTermFactory factory = new ParentTermFactory(Environment.getTermFactory());
+//			IStrategoTerm[] terms = new IStrategoTerm[2];
+//			terms[0] = newCompletionAST;
+//			terms[1] = factory.makeAppl(COMPLETION_UNKNOWN, completionContext);
+//			newCompletionAST = factory.makeTuple(terms);
+//		}
 		return newCompletionAST;		
 	}
 
@@ -386,7 +396,7 @@ public class ContentProposerSemantic {
 		ArrayList<IStrategoTerm> elems = new ArrayList<IStrategoTerm>();
 		boolean isInserted = false;
 		for (int i = 0; i < list.getSubtermCount(); i++) {
-			int startOffset = this.getStartOffset(list.getSubterm(i));
+			int startOffset = getStartOffset(list.getSubterm(i));
 			if(!isInserted && getCompletionOffsetMid() <= startOffset){
 				elems.add(insertedElem);
 				isInserted = true;
@@ -400,12 +410,20 @@ public class ContentProposerSemantic {
 
 	private IStrategoTerm analyzeAST(IStrategoTerm ast) throws UndefinedStrategyException, //TODO let user specify analyze function in .esv
 			InterpreterErrorExit, InterpreterExit, InterpreterException {
-		IStrategoTuple inputTermAnalysis = observer.getInputBuilder().makeInputTerm(ast, false);
-		File file = SourceAttachment.getFile(ast);
-		IStrategoTerm analysisResult = observer.invoke(observer.getFeedbackFunction(), inputTermAnalysis, file);
-		ast = TermReader.termAt(analysisResult, 0);
-		setParents(ast);
-		return ast;
+		if(ast == null)
+			return null;
+		try {
+			IStrategoTuple inputTermAnalysis = observer.getInputBuilder().makeInputTerm(ast, false);
+			File file = SourceAttachment.getFile(ast);
+			IStrategoTerm analysisResult = observer.invoke(observer.getFeedbackFunction(), inputTermAnalysis, file);
+			IStrategoTerm astAnalyzed = TermReader.termAt(analysisResult, 0);
+			setParents(astAnalyzed);
+			return astAnalyzed;
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return ast;
+		}
 	}
 
 	private void setParents(IStrategoTerm term) {
@@ -718,9 +736,9 @@ public class ContentProposerSemantic {
 	 */
 	protected static boolean isAdjacentToEmptyStringProd(IStrategoTerm node, int offset) {
 		return 
-				getStartOffset(node) >= getEndOffset(node) &&  
+				getStartOffset(node) > getEndOffset(node) &&  
 				offset >= Tokenizer.findLeftMostLayoutToken(getLeftToken(node)).getStartOffset() &&
-		        offset >= Tokenizer.findLeftMostLayoutToken(getLeftToken(node)).getStartOffset();
+				offset <= Tokenizer.findRightMostLayoutToken(getRightToken(node)).getEndOffset();
 	}
 
 	private IStrategoTerm[] extendWithInjections(IStrategoTerm[] semanticNodes) {

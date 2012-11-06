@@ -136,7 +136,7 @@ public class InputTermBuilder {
 		return makeInputTerm(node, includeSubNode, termPath, targetTerm, rootTerm);
 	}
 
-	private IStrategoTuple makeInputTerm(IStrategoTerm node, boolean includeSubNode,
+	public IStrategoTuple makeInputTerm(IStrategoTerm node, boolean includeSubNode,
 			IStrategoList termPath, IStrategoTerm targetTerm,
 			IStrategoTerm rootTerm) {
 		ITermFactory factory = Environment.getTermFactory();
