@@ -66,8 +66,6 @@ public class ContentProposerSemantic {
 	
 	private static final String WHITESPACE_SEPARATION = "     ";
 	
-	private static final int RIGHT_CONTEXT_SIZE = 40;
-
 	private final StrategoObserver observer;
 
 	private final String completionFunction; //stratego rule that implements completion transformation
@@ -192,7 +190,9 @@ public class ContentProposerSemantic {
 			String documentFromPrefix = documentPrefix + COMPLETION_TOKEN + WHITESPACE_SEPARATION;
 			completionContexts = parseCompletionContext(parseController, documentFromPrefix, documentFromPrefix.length() - 2);			
 			String fullDocument = documentPrefix + COMPLETION_TOKEN + documentSuffix;
-			int endOffset = (documentPrefix + COMPLETION_TOKEN).length() + RIGHT_CONTEXT_SIZE;
+			int rightContextsize = gePositiontFirstNonLayoutCharacter(documentSuffix) + 3;
+			int endOffset = (documentPrefix + COMPLETION_TOKEN).length() + rightContextsize;
+			//required to support empty string insertion recoveries, e.g. "  -> COMPLETIONPREFIX"
 			Set<IStrategoTerm> moreCompletionContexts = parseCompletionContext(parseController, fullDocument, endOffset);
 			completionContexts.addAll(moreCompletionContexts);
 		} catch (Exception e) {
@@ -202,6 +202,15 @@ public class ContentProposerSemantic {
 			parseController.getParseLock().unlock();
 		}
 		return completionContexts;
+	}
+
+	private int gePositiontFirstNonLayoutCharacter(String str) {
+		for (int i = 0; i < str.length(); i++) {
+			if(!Character.isWhitespace(str.charAt(i))){
+				return i;
+			}
+		}
+		return -1;
 	}
 
 	private Set<IStrategoTerm> parseCompletionContext(SGLRParseController parseController, String document, int endOffset) {
