@@ -52,6 +52,8 @@ import org.strategoxt.imp.runtime.stratego.SourceAttachment;
  */
 public class ContentProposerSemantic {
 
+	private static final String COMPLETION_PREFIX = "COMPLETIONPREFIX";
+
 	public static final IStrategoConstructor COMPLETION_CONSTRUCTOR =
 			getTermFactory().makeConstructor("COMPLETION", 1);
 
@@ -288,7 +290,7 @@ public class ContentProposerSemantic {
 		String sort = ImploderAttachment.getSort(completionContext);
 		IStrategoTerm nodeContext = findCompletionContext(newCompletionAST, sort);
 		if(nodeContext != null){
-			if(hasSort(nodeContext, sort)){ 
+			if(hasSort(nodeContext, sort) || hasSort(nodeContext, COMPLETION_PREFIX)){ 
 				newCompletionAST = getRoot(replaceNode(nodeContext, completionContext));
 			}
 			else {
@@ -316,15 +318,19 @@ public class ContentProposerSemantic {
 					if(result != null){
 						return result; //term that covers the cursor offset and has the right sort
 					}
-					if(trm.isList()){
+					else if(trm.isList()){
 						IStrategoTerm altResult = findAlternateReplaceTerm(subterm, sort); 
 						if(altResult != null){
 							return altResult; //term nearby cursor offset with the right sort, subterm local (cursor offset) scope
 						}
 					}
+					else {
+						break;
+					}
+					
 				} 
 			}
-			if (hasSort(trm, sort)) {
+			if (hasSort(trm, sort) || hasSort(trm, COMPLETION_PREFIX)) {
 				return trm;
 			}
 			if(trm.isList()){
@@ -621,7 +627,7 @@ public class ContentProposerSemantic {
 		return trans.replacementNode;
 	}
 
-	private int getEndOffset(IStrategoTerm trm) {
+	private static int getEndOffset(IStrategoTerm trm) {
 		IStrategoTerm imploderOrigin = ImploderAttachment.getImploderOrigin(trm);
 		if(imploderOrigin == null){
 			if(trm.getSubtermCount() > 0)
@@ -631,7 +637,7 @@ public class ContentProposerSemantic {
 		return ImploderAttachment.getRightToken(imploderOrigin).getEndOffset();
 	}
 
-	private int getStartOffset(IStrategoTerm trm) {
+	private static int getStartOffset(IStrategoTerm trm) {
 		IStrategoTerm imploderOrigin = ImploderAttachment.getImploderOrigin(trm);
 		if(imploderOrigin == null){
 			if(trm.getSubtermCount() > 0)
@@ -676,6 +682,8 @@ public class ContentProposerSemantic {
 			return true;
 		if (startOffsetTrm >= this.startOffsetCompletionToken && isPartOfListPrefixAt(trm, this.startOffsetCompletionToken))
 			return true;
+		if(isAdjacentToEmptyStringProd(trm, this.startOffsetCompletionToken))
+			return true;
 		return startOffsetTrm <= this.startOffsetCompletionToken && this.startOffsetCompletionToken <= endOffsetTrm;
 	}
 	
@@ -694,7 +702,18 @@ public class ContentProposerSemantic {
 	protected static boolean isPartOfListPrefixAt(IStrategoTerm node, int offset) {
 		return node.isList() && offset >= Tokenizer.findLeftMostLayoutToken(getLeftToken(node)).getStartOffset();
 	}
-	
+
+	/**
+	 * Tests if an offset is part of a list prefix
+	 * (considers the layout preceding the list also part of the list).
+	 */
+	protected static boolean isAdjacentToEmptyStringProd(IStrategoTerm node, int offset) {
+		return 
+				getStartOffset(node) >= getEndOffset(node) &&  
+				offset >= Tokenizer.findLeftMostLayoutToken(getLeftToken(node)).getStartOffset() &&
+		        offset >= Tokenizer.findLeftMostLayoutToken(getLeftToken(node)).getStartOffset();
+	}
+
 	private IStrategoTerm[] extendWithInjections(IStrategoTerm[] semanticNodes) {
 		final ParentTermFactory factory = new ParentTermFactory(Environment.getTermFactory());
 		Set<String> additionalSorts = new HashSet<String>();

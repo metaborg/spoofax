@@ -309,7 +309,7 @@ public class ContentProposer implements IContentProposer {
 				return document.substring(lastGoodPrefixStart, offset);
 			}
 		}
-		return document.substring(0, offset);
+		return document.substring(lastGoodPrefixStart, offset);
 	}
 	
 	private void filterResultsOnPrefix(String completionPrefix, Position position, ITextViewer viewer) {
