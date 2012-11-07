@@ -22,6 +22,8 @@
    FalseValue                             -- H [KW["false"]],
    ReferenceHoverRule   -- R [ H [ KW["reference"] _1 ] KW[":"] H [ _2 _3 ] ],
    ReferenceRule        -- R [ H [ KW["reference"] _1 ] KW[":"] _2 ],
+   CompletionProposer   -- R [ H [ KW["completion"] KW["proposer"] _1 ] KW[":"] _2 ],
+   CompletionProposer.1:iter-star         -- _1,
    CompletionProposer   -- R [ H [ KW["completion"] KW["proposer"] ] KW[":"] _1 ],
    CompletionLexical    -- R [ H [ KW["completion"] KW["lexical"] ] KW[":"] _1 ],
    IdentifierLexical    -- R [ H [ KW["identifier"] KW["lexical"] ] KW[":"] _1 ],
