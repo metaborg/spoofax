@@ -85,8 +85,7 @@ public class DynamicParseController extends AbstractService<IParseController> im
 			 * 
 			 * This hack delays the eager initialization of services until we actually have a source viewer.
 			 */
-			if (lastEditor.getEditor().getServiceControllerManager().getSourceViewer() != null) {
-				if (lastEditor != null)
+			if (lastEditor != null && lastEditor.getEditor().getServiceControllerManager().getSourceViewer() != null) {
 					initializeEagerServices(result);
 			}else{
 				lastEditor = null;
