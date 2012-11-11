@@ -88,14 +88,21 @@ public class QueueAnalysisService implements INotificationService {
 	}
 
 	private void notifyNewProjectFiles(File file) {
-		if (file.isFile()) {
-			if (isIndexedFile(new Path(file.getAbsolutePath())))
-				notifyFileChanges(file.toURI(), null);
+		notifyFileChanges(getProjectFileSubfiles(file).toArray(new FileSubfile[0]));
+	}
+	
+	private List<FileSubfile> getProjectFileSubfiles(File file) {
+		List<FileSubfile> fileSubfiles = new ArrayList<FileSubfile>();
+		if(file.isFile()) {
+			if (isIndexedFile(new Path(file.getAbsolutePath()))) {
+				fileSubfiles.add(new FileSubfile(file.toURI(), null));
+			}
 		} else {
-			for (File child : file.listFiles()) {
-				notifyNewProjectFiles(child);
+			for(File child : file.listFiles()) {
+				fileSubfiles.addAll(getProjectFileSubfiles(child));
 			}
 		}
+		return fileSubfiles;
 	}
 
 	public static boolean isIndexedFile(IPath path) {
