@@ -12,8 +12,8 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.spoofax.interpreter.library.language.INotificationService;
+import org.spoofax.interpreter.library.language.IndexManager;
 import org.spoofax.interpreter.library.language.NotificationCenter;
-import org.spoofax.interpreter.library.language.SemanticIndexManager;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.services.StrategoAnalysisQueueFactory;
@@ -107,7 +107,7 @@ public class QueueAnalysisService implements INotificationService {
 
 	public static boolean isIndexedFile(IPath path) {
 		Language language = LanguageRegistry.findLanguage(path, null);
-		return language != null && SemanticIndexManager.isKnownIndexingLanguage(language.getName());
+		return language != null && IndexManager.isKnownIndexingLanguage(language.getName());
 	}
 	
 }
