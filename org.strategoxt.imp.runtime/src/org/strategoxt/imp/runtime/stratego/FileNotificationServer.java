@@ -23,8 +23,8 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.language.LanguageRegistry;
-import org.spoofax.interpreter.library.language.INotificationService.FileSubfile;
-import org.spoofax.interpreter.library.language.NotificationCenter;
+import org.spoofax.interpreter.library.index.NotificationCenter;
+import org.spoofax.interpreter.library.index.INotificationService.FileSubfile;
 import org.strategoxt.imp.runtime.Environment;
 
 /**
