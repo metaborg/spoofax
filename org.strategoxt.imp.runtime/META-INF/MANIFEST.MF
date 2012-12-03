@@ -27,10 +27,10 @@ Require-Bundle: org.eclipse.imp.runtime,
  org.strategoxt.strj,
  org.strategoxt.imp.debug.core,
  org.eclipse.core.expressions,
- org.spoofax.interpreter.library.language;bundle-version="1.0.0",
  org.strategoxt.imp.runtime.sidebyside.main;bundle-version="0.0.1",
  org.strategoxt.imp.runtime.sidebyside.legacy;bundle-version="0.0.1";resolution:=optional,
- org.strategoxt.imp.runtime.sidebyside.latest;bundle-version="0.0.1"
+ org.strategoxt.imp.runtime.sidebyside.latest;bundle-version="0.0.1",
+ org.spoofax.interpreter.library.index;bundle-version="1.0.0"
 Export-Package: org.strategoxt.imp.runtime,
  org.strategoxt.imp.runtime.dynamicloading,
  org.strategoxt.imp.runtime.parser,
