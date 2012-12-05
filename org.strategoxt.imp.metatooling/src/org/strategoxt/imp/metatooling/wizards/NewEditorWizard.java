@@ -73,11 +73,12 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 		final String projectName = input.getInputProjectName();
 		final String packageName = input.getInputPackageName();
 		final String extensions = input.getInputExtensions();
+		final boolean genIgnores = input.getInputIgnores();
 		
 		IRunnableWithProgress op = new IRunnableWithProgress() {
 			public void run(IProgressMonitor monitor) throws InvocationTargetException {
 				try {
-					doFinish(languageName, projectName, packageName, extensions, monitor);
+					doFinish(languageName, projectName, packageName, extensions, genIgnores, monitor);
 				} catch (Exception e) {
 					throw new InvocationTargetException(e);
 				} finally {
@@ -110,7 +111,7 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 		}
 	}
 	
- 	private void doFinish(String languageName, String projectName, String packageName, String extensions, IProgressMonitor monitor) throws IOException, CoreException {
+ 	private void doFinish(String languageName, String projectName, String packageName, String extensions, boolean genIgnores, IProgressMonitor monitor) throws IOException, CoreException {
 		final int TASK_COUNT = 22;
 		lastProject = null;
 		monitor.beginTask("Creating " + languageName + " project", TASK_COUNT);
@@ -132,7 +133,11 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 
 		agent.setWorkingDir(project.getLocation().toOSString());
 		try {
-			sdf2imp.mainNoExit(context, "-m", languageName, "-pn", projectName, "-n", packageName, "-e", extensions, "--verbose", "2");
+			if(genIgnores){
+				sdf2imp.mainNoExit(context, "-m", languageName, "-pn", projectName, "-n", packageName, "-e", extensions, "-vci", "--verbose", "2");
+			}else{
+				sdf2imp.mainNoExit(context, "-m", languageName, "-pn", projectName, "-n", packageName, "-e", extensions, "--verbose", "2");
+			}
 		} catch (StrategoErrorExit e) {
 			Environment.logException(e);
 			throw new StrategoException("Project builder failed: " + e.getMessage() + "\nLog follows:\n\n"

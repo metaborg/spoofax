@@ -1,0 +1,20 @@
+module sdf2imp/project/create-ignore-files
+    
+imports
+  sdf2imp/util/-
+
+strategies
+
+  create-ignore-files =
+  	not(GenerateVCIgnores)
+  	<+
+  	name       := <get-sdf-main-module>;
+  	<output-text-file(|[], ".gitignore")>
+    <conc-strings>
+(
+".cache
+bin
+editor/", name, "-*.generated.esv
+include/*
+syntax/", name, ".generated.pp"
+)

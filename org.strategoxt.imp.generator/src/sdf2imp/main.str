@@ -164,6 +164,8 @@ strategies
     copy-def-file;
     create-jdt-prefs;
     
+    create-ignore-files;
+    
     say(!"Build succesful.")
 
   is-heuristic-services-needed =

@@ -9,6 +9,7 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
@@ -28,6 +29,8 @@ public class NewEditorWizardPage extends WizardPage {
 	private Text inputPackageName;
 	
 	private Text inputExtensions;
+	
+	private Button inputIgnores;
 	
 	private boolean isInputProjectNameChanged;
 	
@@ -125,6 +128,11 @@ public class NewEditorWizardPage extends WizardPage {
 				}
 			}
 		});
+		
+
+		inputIgnores = new Button(container, SWT.CHECK);
+		inputIgnores.setText("&Generate .gitignore file");
+		inputIgnores.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 		setControl(container);
 		setPageComplete(false);
@@ -306,5 +314,9 @@ public class NewEditorWizardPage extends WizardPage {
 	
 	public String getInputExtensions() {
 		return inputExtensions.getText().trim();
+	}
+	
+	public boolean getInputIgnores() {
+		return inputIgnores.getSelection();
 	}
 }
