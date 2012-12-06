@@ -76,8 +76,34 @@ strategies
     <project name="build.generated">
 
         <target name="spoofaximp.default" depends="spoofaximp.default.ctree"/>
-        <target name="spoofaximp.default.ctree" depends="check-classpath,init,sdf2table,meta-sdf2table,ppgen,pppack,sdf2parenthesize,stratego.aster,java.jar,stratego.ctree,sdf2imp,refresh"/>
-        <target name="spoofaximp.default.jar"   depends="check-classpath,init,sdf2table,meta-sdf2table,ppgen,pppack,sdf2parenthesize,stratego.aster,java.jar,stratego.jar.helper,sdf2imp,refresh"/>
+        <target name="spoofaximp.default.ctree" depends="
+			check-classpath,
+			init,
+			sdf2table,
+			meta-sdf2table,
+			ppgen,
+			pppack,
+			sdf2imp.eclipse,
+			sdf2imp.standalone,
+			sdf2parenthesize,
+			stratego.aster,
+			java.jar,
+			stratego.ctree,
+			refresh" />
+        <target name="spoofaximp.default.jar" depends="
+			check-classpath,
+			init,
+			sdf2table,
+			meta-sdf2table,
+			ppgen,
+			pppack,
+			sdf2imp.eclipse,
+			sdf2imp.standalone,
+			sdf2parenthesize,
+			stratego.aster,
+			java.jar,
+			stratego.jar.helper,
+			refresh" />
     
         <!-- Initialization -->
         <available file="${src-gen}/<%= pkgdir %>/strategies/Main.java" property="java.jar.enabled"/>
@@ -119,7 +145,7 @@ strategies
         <mkdir dir="${lib}"/>
         <mkdir dir="${syntax}"/>
 
-        <target name="sdf2imp" depends="sdf2table,sdf2imp.eclipse,sdf2imp.standalone,sdf2parenthesize"/>
+        <!-- <target name="sdf2imp" depends="sdf2table,sdf2imp.eclipse,sdf2imp.standalone,sdf2parenthesize"/> -->
         
         <target name="sdf2imp.eclipse" if="eclipse.running" depends="sdf2rtg">
             <java classname="org.strategoxt.imp.metatooling.building.AntDescriptorBuilder" failonerror="true">
@@ -706,22 +732,39 @@ strategies
             </apply>
         </target>
         
-        <target name="clean" description="Selective clean up">
-            <delete dir="${build}"/>
-            <delete file="${include}/${sdfmodule}.def"/>
-            <delete file="${include}/${sdfmodule}-parenthesize.str"/>
-            <delete file="${include}/${sdfmodule}-Permissive.def"/>
-            <delete file="${include}/${sdfmodule}.generated.pp.af"/>
-            <delete file="${include}/${sdfmodule}.packed.esv"/>
-            <delete file="${include}/${sdfmodule}.pp.af"/>
-            <delete file="${include}/${sdfmodule}.rtg"/>
-            <delete file="${include}/${sdfmodule}.str"/>
-            <delete file="${include}/${sdfmodule}.tbl"/>
-            <delete file="${include}/${strmodule}.rtree"/>
-            <delete file="${include}/${strmodule}.ctree"/>
-            <delete file="${include}/${strmodule}.ctree.dep"/>
-            <delete file="${include}/${strmodule}.jar"/>
-            <delete dir="${src-gen}/trans"/>
-        </target>
+	<target name="clean" description="Clean project">
+		<delete dir="${build}" />
+		<delete dir=".cache" />
+		<delete file="${include}/${sdfmodule}.def" />
+		<delete file="${include}/${sdfmodule}-parenthesize.str" />
+		<delete file="${include}/${sdfmodule}-Permissive.def" />
+		<delete file="${include}/${sdfmodule}.generated.pp.af" />
+		<delete file="${include}/${sdfmodule}.packed.esv" />
+		<delete file="${include}/${sdfmodule}.pp.af" />
+		<delete file="${include}/${sdfmodule}.rtg" />
+		<delete file="${include}/${sdfmodule}.str" />
+		<delete file="${include}/${sdfmodule}.tbl" />
+		<delete file="${include}/${strmodule}.rtree" />
+		<delete file="${include}/${strmodule}.ctree" />
+		<delete file="${include}/${strmodule}.ctree.dep" />
+		<delete file="${include}/${strmodule}.jar" />
+		<delete>
+			<fileset dir="editor" includes="*.generated.esv"/>
+		</delete>
+		<delete dir="${src-gen}/trans" />
+		<delete file="editor/${sdfmodule}.generated.esv" />
+		<delete file="${syntax}/${sdfmodule}.generated.esv" />
+		<delete file="${syntax}/${sdfmodule}.generated.pp" />
+		<delete file="${include}/${metasdfmodule}-Permissive.def" />
+		<delete file="${include}/${metasdfmodule}.def" />
+		<delete file="${include}/${metasdfmodule}.tbl" />
+		<delete file=".settings/org.eclipse.jdt.core.prefs" />
+		<delete dir="utils" />
+		<delete>
+			<fileset dir="lib-refactoring" includes="*.generated.str" />
+			<fileset dir="${lib}" includes="*.generated.str" />
+		</delete>
+	</target>
+	
     </project>
     <%
