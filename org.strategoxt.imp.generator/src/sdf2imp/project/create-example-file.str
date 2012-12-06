@@ -6,7 +6,7 @@ imports
 strategies
 
   create-example-file =
-    not(NoExistingDescriptor)
+    (GenerateMinimal < id + not(NoExistingDescriptor))
   <+
     with(
       name       := <get-sdf-main-module>;

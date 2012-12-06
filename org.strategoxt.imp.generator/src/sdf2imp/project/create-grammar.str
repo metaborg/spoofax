@@ -15,9 +15,25 @@ strategies
   <+
     name        := <get-sdf-main-module>;
     startsymbol := <StartSymbol>;
-    
     <output-text-file(|["syntax"], <conc-strings> (name, ".sdf"))>
-$[%% Grammar for the [name] language
+    <(GenerateMinimal
+    	<
+!$[module [name]
+
+imports Common
+
+exports
+
+  context-free start-symbols
+  
+    [startsymbol]
+
+  context-free syntax
+  
+    -> Start {"Dummy"}
+]
+    	+
+!$[%% Grammar for the [name] language
 %% By default, based on an example "entities" syntax
 module [name]
 
@@ -36,6 +52,7 @@ exports
     ID ":" Type                   -> Property {"Property"}
     ID                            -> Type {"Type"}
 ]
+    )>
   
   create-grammar-common =
     <file-exists> <conc-strings> ("syntax/Common.sdf")

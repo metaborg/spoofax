@@ -13,6 +13,7 @@ strategies
   <+ jar-option
   <+ reset-files-option
   <+ gen-ignores-option
+  <+ gen-minimal-project
   <+ verbose-option
 
   input-file-option =
@@ -88,7 +89,13 @@ strategies
   	, rules(GenerateVCIgnores: _)
   	, !"-vci                 Enable generation of ignores for version control systems" 
   	)
-    
+  
+  gen-minimal-project = 
+  	Option(
+  	  "-min"
+  	, rules(GenerateMinimal: _)
+  	, !"-vci                 Generate only a minimal project" 
+  	)
   
   parameterized-sort-to-rtg-sort =
     // Module[StrategoHost] -> Module_StrategoHost

@@ -187,7 +187,25 @@ rules // Utility
 
 if not(<file-exists> "trans/generate.str") then
   <output-text-file(|["trans"], "generate.str")>
-${module generate
+<(GenerateMinimal
+  <
+!${module generate
+
+imports
+  libstratego-lib
+  libstratego-gpp
+  libstratego-aterm
+  include/{sdf-name}
+  lib/editor-common.generated
+  lib/compilation-library.generated
+
+rules // Incremental code generation of project using compilation library.
+      
+  // See lib/compilation-library.generated.str for documentation
+
+}
+  +
+!${module generate
 
 imports
   libstratego-lib
@@ -251,12 +269,38 @@ rules // Transformation to java strings.
 
   to-java:
     t* -> <map(to-java)> t*
-}
+})>
 end;
 
 if not(<file-exists> "trans/check.str") then
   <output-text-file(|["trans"], "check.str")>
-${module check
+  <(GenerateMinimal
+  <
+!${module check
+
+imports
+  libstratego-lib
+  include/{sdf-name}
+  lib/editor-common.generated
+  lib/index-library.generated
+  lib/analysis-library.generated
+  lib/analysis-library-internal.generated
+  lib/nbl-library.generated
+
+rules // Extensions for error/warning/note reporting
+  
+  constraint-error:
+  	_ -> <fail>
+ 
+  constraint-warning:
+  	_ -> <fail>
+  	
+  constraint-note:
+  	_ -> <fail>
+
+}
+  +
+!${module check
 
 imports
   libstratego-lib
@@ -277,12 +321,24 @@ rules // Other
   constraint-note:
     Module(x @ "example", _) -> (x, $[This is just an example program in the "entities" language
                                       (this note is defined in trans/check.str) ])
-}
+})>
 end;
 
 if not(<file-exists> "trans/refactor.str") then
   <output-text-file(|["trans"], "refactor.str")>
-"module refactor
+  <(GenerateMinimal
+  <
+!"module refactor
+
+imports
+  lib-refactoring/behavior-preservation.generated
+  check
+  lib/nbl-library.generated
+
+rules // Definitions of refactorings. Referenced from Minimal-Refactorings.esv
+"
+  +
+!"module refactor
 
 imports
   lib-refactoring/behavior-preservation.generated
@@ -303,5 +359,5 @@ rules
 
   rename-all(|newname, oldname):
     ast -> <alltd(preserve-annos((oldname -> newname)))> ast
-"
+")>
 end

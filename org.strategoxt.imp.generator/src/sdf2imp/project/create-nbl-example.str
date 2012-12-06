@@ -10,7 +10,21 @@ strategies
   <+
     sdf-name := <get-sdf-main-module>;
     <output-text-file(|["trans"], $[names.nd])>
-${module names
+    <(GenerateMinimal
+    <
+!${module names
+
+imports
+	
+	include/{sdf-name}
+	
+namespaces
+	
+rules
+
+}
++
+!${module names
 
 imports
 	
@@ -39,14 +53,38 @@ rules
 		refers to Entity x
 		refers to Entity "String"
 		refers to Entity "Int"
-}
+})>
 
   create-placeholder-compiled-nd =
     <file-exists> <conc-strings> ("trans/names.str")
   <+
     sdf-name := <get-sdf-main-module>;
     <output-text-file(|["trans"], $[names.str])>
-${module names
+    <(GenerateMinimal
+    <
+!${module names
+
+imports
+  lib/analysis-library.generated
+  lib/analysis-library-internal.generated
+  lib/index-library.generated
+
+imports
+  include/{sdf-name}
+
+
+signature
+  constructors
+    Type        : DefDataKind
+    Import      : DefDataKind
+    Transitive  : ImportAnno
+    CurrentFile : ImportAnno
+
+  constructors
+    
+}
++
+!${module names
 
 imports
   lib/analysis-library.generated
@@ -162,4 +200,4 @@ rules
                         , [Def([Entity(), "Int"])]
                         ]
     where <target__> x
-}
+})>
