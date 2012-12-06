@@ -145,7 +145,7 @@ strategies
         <mkdir dir="${lib}"/>
         <mkdir dir="${syntax}"/>
 
-        <!-- <target name="sdf2imp" depends="sdf2table,sdf2imp.eclipse,sdf2imp.standalone,sdf2parenthesize"/> -->
+        <target name="sdf2imp" depends="sdf2table,sdf2imp.eclipse,sdf2imp.standalone,sdf2parenthesize"/>
         
         <target name="sdf2imp.eclipse" if="eclipse.running" depends="sdf2rtg">
             <java classname="org.strategoxt.imp.metatooling.building.AntDescriptorBuilder" failonerror="true">
