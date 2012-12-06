@@ -709,8 +709,17 @@ strategies
         <target name="clean" description="Selective clean up">
             <delete dir="${build}"/>
             <delete file="${include}/${sdfmodule}.def"/>
+            <delete file="${include}/${sdfmodule}-parenthesize.str"/>
+            <delete file="${include}/${sdfmodule}-Permissive.def"/>
+            <delete file="${include}/${sdfmodule}.generated.pp.af"/>
+            <delete file="${include}/${sdfmodule}.packed.esv"/>
+            <delete file="${include}/${sdfmodule}.pp.af"/>
+            <delete file="${include}/${sdfmodule}.rtg"/>
+            <delete file="${include}/${sdfmodule}.str"/>
+            <delete file="${include}/${sdfmodule}.tbl"/>
             <delete file="${include}/${strmodule}.rtree"/>
             <delete file="${include}/${strmodule}.ctree"/>
+            <delete file="${include}/${strmodule}.ctree.dep"/>
             <delete file="${include}/${strmodule}.jar"/>
             <delete dir="${src-gen}/trans"/>
         </target>
