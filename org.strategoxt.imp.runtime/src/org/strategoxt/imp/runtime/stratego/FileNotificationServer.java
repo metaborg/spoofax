@@ -23,8 +23,8 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.language.LanguageRegistry;
+import org.spoofax.interpreter.library.index.FilePartition;
 import org.spoofax.interpreter.library.index.NotificationCenter;
-import org.spoofax.interpreter.library.index.INotificationService.FileSubfile;
 import org.strategoxt.imp.runtime.Environment;
 
 /**
@@ -63,7 +63,7 @@ public class FileNotificationServer implements IResourceChangeListener {
 
 	private void postResourceChanged(IResourceDelta delta) {
 		try {
-			final List<FileSubfile> changedFiles = new ArrayList<FileSubfile>();
+			final List<FilePartition> changedFiles = new ArrayList<FilePartition>();
 
 			delta.accept(new IResourceDeltaVisitor() {
 				public boolean visit(IResourceDelta delta) throws CoreException {
@@ -72,14 +72,14 @@ public class FileNotificationServer implements IResourceChangeListener {
 							&& !isIgnoredChange(resource)
 							&& resource.getLocation() != null
 							&& LanguageRegistry.findLanguage(resource.getLocation(), null) != null) {
-						changedFiles.add(new FileSubfile(resource.getLocationURI(), null));
+						changedFiles.add(new FilePartition(resource.getLocationURI(), null));
 					}
 					return true;
 				}
 			});
 			
 			if(changedFiles.size() > 0)
-				NotificationCenter.notifyFileChanges(changedFiles.toArray(new FileSubfile[0]));
+				NotificationCenter.notifyFileChanges(changedFiles.toArray(new FilePartition[0]));
 		} catch (CoreException e) {
 			Environment.logException("Exception when processing fileystem events", e);
 		}

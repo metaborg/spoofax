@@ -11,6 +11,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
+import org.spoofax.interpreter.library.index.FilePartition;
 import org.spoofax.interpreter.library.index.INotificationService;
 import org.spoofax.interpreter.library.index.IndexManager;
 import org.spoofax.interpreter.library.index.NotificationCenter;
@@ -27,7 +28,7 @@ import org.strategoxt.imp.runtime.services.StrategoAnalysisQueueFactory;
  */
 public class QueueAnalysisService implements INotificationService {
 
-	public void notifyFileChanges(URI file, String subfile) {
+	public void notifyChanges(URI file, String subfile) {
 		try {
 			IProject project = EditorIOAgent.getProject(new File(file));
 			IPath relPath = relativePath(file, subfile);
@@ -39,14 +40,14 @@ public class QueueAnalysisService implements INotificationService {
 		}
 	}
 	
-	public void notifyFileChanges(FileSubfile[] files) {
+	public void notifyChanges(FilePartition[] files) {
 		if(files.length == 0)
 			return;
 		
 		List<IPath> relativePaths = new ArrayList<IPath>(files.length);
-		for(FileSubfile file : files) {
+		for(FilePartition file : files) {
 			try {
-				IPath path = relativePath(file.file, file.subfile);
+				IPath path = relativePath(file.file, file.partition);
 				if(path != null)
 					relativePaths.add(path);
 			} catch (FileNotFoundException e) {
@@ -88,14 +89,14 @@ public class QueueAnalysisService implements INotificationService {
 	}
 
 	private void notifyNewProjectFiles(File file) {
-		notifyFileChanges(getProjectFileSubfiles(file).toArray(new FileSubfile[0]));
+		notifyChanges(getProjectFileSubfiles(file).toArray(new FilePartition[0]));
 	}
 	
-	private List<FileSubfile> getProjectFileSubfiles(File file) {
-		List<FileSubfile> fileSubfiles = new ArrayList<FileSubfile>();
+	private List<FilePartition> getProjectFileSubfiles(File file) {
+		List<FilePartition> fileSubfiles = new ArrayList<FilePartition>();
 		if(file.isFile()) {
 			if (isIndexedFile(new Path(file.getAbsolutePath()))) {
-				fileSubfiles.add(new FileSubfile(file.toURI(), null));
+				fileSubfiles.add(new FilePartition(file.toURI(), null));
 			}
 		} else {
 			for(File child : file.listFiles()) {

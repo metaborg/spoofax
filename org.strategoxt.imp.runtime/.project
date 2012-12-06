@@ -3,6 +3,7 @@
 	<name>org.strategoxt.imp.runtime</name>
 	<comment></comment>
 	<projects>
+		<project>org.spoofax.interpreter.library.index</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
