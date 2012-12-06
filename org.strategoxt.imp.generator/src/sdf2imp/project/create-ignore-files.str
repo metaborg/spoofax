@@ -22,7 +22,8 @@ include/",name,".generated.pp.af
 include/",name,".packed.esv
 include/",name,".pp.af
 include/",name,".rtg
-include/",name,".str"
+include/",name,".str
+"
 ), "include/",name,".tbl
 include/",name',".rtree
 include/",name',".ctree
