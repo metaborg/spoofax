@@ -20,68 +20,71 @@ import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.services.StrategoAnalysisQueueFactory;
 
 /**
- * A {@link INotificationService} that uses {@link StrategoAnalysisQueueFactory}.
+ * A {@link INotificationService} that uses {@link StrategoAnalysisQueueFactory}
+ * .
  * 
- * Receives notifications sent by {@link FileNotificationServer} to the {@link NotificationCenter}.
+ * Receives notifications sent by {@link FileNotificationServer} to the
+ * {@link NotificationCenter}.
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class QueueAnalysisService implements INotificationService {
 
-	public void notifyChanges(URI file, String subfile) {
+	public void notifyChanges(URI file, String subfile, boolean triggerOnSave) {
 		try {
 			IProject project = EditorIOAgent.getProject(new File(file));
 			IPath relPath = relativePath(file, subfile);
-			StrategoAnalysisQueueFactory.getInstance().queueAnalysis(relPath, project, true);
+			StrategoAnalysisQueueFactory.getInstance().queueAnalysis(relPath, project, triggerOnSave);
 		} catch (FileNotFoundException e) {
 			Environment.logException("Background language service failed", e);
 		} catch (RuntimeException e) {
 			Environment.logException("Background language service failed", e);
 		}
 	}
-	
-	public void notifyChanges(FilePartition[] files) {
-		if(files.length == 0)
+
+	public void notifyChanges(FilePartition[] files, boolean triggerOnSave) {
+		if (files.length == 0)
 			return;
-		
+
 		List<IPath> relativePaths = new ArrayList<IPath>(files.length);
-		for(FilePartition file : files) {
+		for (FilePartition file : files) {
 			try {
 				IPath path = relativePath(file.file, file.partition);
-				if(path != null)
+				if (path != null)
 					relativePaths.add(path);
 			} catch (FileNotFoundException e) {
 				// Ignore exception, path is not added.
 			}
 		}
-		
+
 		try {
 			// TODO: assuming all projects are the same, is that fine?
 			IProject project = EditorIOAgent.getProject(new File(files[0].file));
-			StrategoAnalysisQueueFactory.getInstance().queueAnalysis(relativePaths.toArray(new IPath[0]), project, false);
+			StrategoAnalysisQueueFactory.getInstance().queueAnalysis(
+					relativePaths.toArray(new IPath[0]), project, triggerOnSave);
 		} catch (FileNotFoundException e) {
 			Environment.logException("Background language service failed", e);
 		}
 	}
-	
+
 	private IPath relativePath(URI file, String subfile) throws FileNotFoundException {
 		assert file.isAbsolute();
-		
+
 		IProject project = EditorIOAgent.getProject(new File(file));
 		IPath path = new Path(file.getPath());
-		if(LanguageRegistry.findLanguage(path, null) != null)
-		{
-			IPath relPath = path.removeFirstSegments(path.matchingFirstSegments(project.getLocation()));
+		if (LanguageRegistry.findLanguage(path, null) != null) {
+			IPath relPath = path.removeFirstSegments(path.matchingFirstSegments(project
+					.getLocation()));
 			assert !relPath.isAbsolute();
 			return relPath;
 		}
-		
+
 		return null;
 	}
 
 	/**
-	 * Notify changes of all files in a project,
-	 * as long as they are known to have an index associated with them.
+	 * Notify changes of all files in a project, as long as they are known to
+	 * have an index associated with them.
 	 */
 	public void notifyNewProject(URI project) {
 		Debug.log("Loading uninitialized project ", project);
@@ -89,17 +92,17 @@ public class QueueAnalysisService implements INotificationService {
 	}
 
 	private void notifyNewProjectFiles(File file) {
-		notifyChanges(getProjectFileSubfiles(file).toArray(new FilePartition[0]));
+		notifyChanges(getProjectFileSubfiles(file).toArray(new FilePartition[0]), true);
 	}
-	
+
 	private List<FilePartition> getProjectFileSubfiles(File file) {
 		List<FilePartition> fileSubfiles = new ArrayList<FilePartition>();
-		if(file.isFile()) {
+		if (file.isFile()) {
 			if (isIndexedFile(new Path(file.getAbsolutePath()))) {
 				fileSubfiles.add(new FilePartition(file.toURI(), null));
 			}
 		} else {
-			for(File child : file.listFiles()) {
+			for (File child : file.listFiles()) {
 				fileSubfiles.addAll(getProjectFileSubfiles(child));
 			}
 		}
@@ -110,5 +113,5 @@ public class QueueAnalysisService implements INotificationService {
 		Language language = LanguageRegistry.findLanguage(path, null);
 		return language != null && IndexManager.isKnownIndexingLanguage(language.getName());
 	}
-	
+
 }
