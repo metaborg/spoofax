@@ -174,15 +174,21 @@ rules // Debugging
     
 rules // Utility
   
-  // Queue parallel analysis for given list of files.
+  // Queue analysis for given list of files.
   editor-queue-analysis = 
-    not(?[]); queue-strategy(|"editor-parallel-analyze", "Analyzing files")
+    not(?[]); queue-strategy(|"editor-sequential-analyze", "Analyzing files")
       
   // Executes parallel analysis using the index library.
   editor-parallel-analyze:
     files -> None()
     with
       index-parallel-analyze-files(analyze)
+      
+  // Executes sequential analysis using the index library.
+  editor-sequential-analyze:
+    files -> None()
+    with
+      index-sequential-analyze-files(analyze)
 };
 
 if not(<file-exists> "trans/generate.str") then
@@ -232,6 +238,9 @@ rules // Transformation to java strings.
 
   to-java:
     [_] -> <concat-strings> <map(to-java)>
+    
+  to-java:
+    () -> ""
 
   to-java:
     Module(x, d*) ->
