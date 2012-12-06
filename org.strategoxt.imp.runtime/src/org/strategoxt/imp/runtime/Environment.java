@@ -104,7 +104,7 @@ public final class Environment {
 		if (!isInitialized && EditorState.isUIThread()) {
 			isInitialized = true;
 		} else if (Debug.ENABLED && !lock.isHeldByCurrentThread() && EditorState.isUIThread()) {
-			Environment.logWarning("Acquired environment lock from main thread");
+			//Environment.logWarning("Acquired environment lock from main thread");
 		}
 		return lock;
 	}
