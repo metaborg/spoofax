@@ -12,6 +12,7 @@ strategies
     package     := <BasePackage <+ default-package-name>;
     project		:= <ProjectName>;
     builder-xml := <conc-strings> ("&lt;project&gt;/.externalToolBuilders/", <builder-xml-name>);
+    cleaner-xml := <conc-strings> ("&lt;project&gt;/.externalToolBuilders/", <cleaner-xml-name>);
     
     <output-xml-file(|[], ".project")>
     %>
@@ -35,6 +36,16 @@ strategies
                 </dictionary>
             </arguments>
         </buildCommand>
+        <buildCommand>
+			<name>org.eclipse.ui.externaltools.ExternalToolBuilder</name>
+			<triggers>clean,</triggers>
+			<arguments>
+				<dictionary>
+					<key>LaunchConfigHandle</key>
+					<value><%= cleaner-xml::cdata %></value>
+				</dictionary>
+			</arguments>
+		</buildCommand>
         <buildCommand>
           <name>org.eclipse.pde.ManifestBuilder</name>
           <arguments>

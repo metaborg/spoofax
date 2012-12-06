@@ -147,6 +147,7 @@ strategies
     create-build-xml;
     create-build-generated-xml;
     create-builder-xml;
+    create-cleaner-xml;
     create-example-file;
     create-common-trans;
     

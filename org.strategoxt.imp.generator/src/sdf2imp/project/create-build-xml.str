@@ -764,7 +764,13 @@ strategies
 			<fileset dir="lib-refactoring" includes="*.generated.str" />
 			<fileset dir="${lib}" includes="*.generated.str" />
 		</delete>
+		<antcall target="refresh-cleaned"/>
 	</target>
+	
+	<target name="refresh-cleaned" if="eclipse.running">
+        <eclipse.convertPath fileSystemPath="${basedir}" property="projectdir" />
+        <eclipse.refreshLocal resource="${projectdir}" depth="infinite" />
+    </target>
 	
     </project>
     <%
