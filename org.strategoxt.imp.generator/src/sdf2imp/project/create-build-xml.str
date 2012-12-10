@@ -88,8 +88,9 @@ strategies
 			sdf2parenthesize,
 			stratego.aster,
 			java.jar,
+			stratego.ctree,
 			refresh,
-			stratego.ctree" />
+			sdf2imp.eclipse.load" />
         <target name="spoofaximp.default.jar" depends="
 			check-classpath,
 			init,
@@ -103,7 +104,8 @@ strategies
 			stratego.aster,
 			java.jar,
 			stratego.jar.helper,
-			refresh" />
+			refresh,
+			sdf2imp.eclipse.load" />
     
         <!-- Initialization -->
         <available file="${src-gen}/<%= pkgdir %>/strategies/Main.java" property="java.jar.enabled"/>
@@ -152,6 +154,12 @@ strategies
                 <arg value="${include}/${esvmodule}.packed.esv"/>
             </java>
         </target>
+        
+        <target name="sdf2imp.eclipse.load" if="eclipse.running">
+		<java classname="org.strategoxt.imp.metatooling.loading.AntDescriptorLoader" failonerror="true">
+			<arg value="${include}/${esvmodule}.packed.esv" />
+		</java>
+	</target>
         
         <target name="refresh" if="eclipse.running">
             <eclipse.convertPath fileSystemPath="${basedir}" property="projectdir" />

@@ -2,15 +2,11 @@ package org.strategoxt.imp.metatooling.building;
 
 import static org.strategoxt.imp.metatooling.loading.DynamicDescriptorLoader.getSourceDescriptor;
 
-import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.net.URI;
 
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IWorkspace;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.strategoxt.imp.metatooling.utils.ResourceUtil;
 import org.strategoxt.imp.runtime.Environment;
 
 /**
@@ -36,7 +32,7 @@ public class AntDescriptorBuilder {
 			try {
 				String descriptor = args[0];
 				
-				IResource source = getResource(getSourceDescriptor(descriptor));
+				IResource source = ResourceUtil.getResource(getSourceDescriptor(descriptor));
 				if (!source.exists()) {
 					Environment.logException("Could not find source descriptor:" + source, new FileNotFoundException(source.getFullPath().toOSString()));
 					System.err.println("Build failed: could not find source descriptor " + source);
@@ -59,20 +55,5 @@ public class AntDescriptorBuilder {
 		return active;
 	}
 
-	private static IResource getResource(String file) {
-		File fileRef = new File(file);
-		try {
-			fileRef = fileRef.getCanonicalFile();
-		} catch (IOException e) {
-			Environment.logException(e);
-		}
-		URI uri = fileRef.toURI();
-		IWorkspace workspace = ResourcesPlugin.getWorkspace();
-		IResource[] resources = workspace.getRoot().findFilesForLocationURI(uri);
-		if (resources.length == 0)
-			throw new IllegalArgumentException("File not in workspace: " + file);
-
-		IResource resource = resources[0];
-		return resource;
-	}
+	
 }
