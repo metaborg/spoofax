@@ -88,8 +88,8 @@ strategies
 			sdf2parenthesize,
 			stratego.aster,
 			java.jar,
-			stratego.ctree,
-			refresh" />
+			refresh,
+			stratego.ctree" />
         <target name="spoofaximp.default.jar" depends="
 			check-classpath,
 			init,
