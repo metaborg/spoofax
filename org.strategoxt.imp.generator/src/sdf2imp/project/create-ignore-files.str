@@ -13,7 +13,7 @@ strategies
   	<output-text-file(|[], ".gitignore")>
     <conc-strings> (<conc-strings>
 (
-"bin,
+"bin
 .cache
 include/",name,".def
 include/",name,"-parenthesize.str
