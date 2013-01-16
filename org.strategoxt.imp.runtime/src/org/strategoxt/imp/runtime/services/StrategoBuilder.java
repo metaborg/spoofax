@@ -202,7 +202,7 @@ public class StrategoBuilder implements IBuilder {
 
 				if (isTermAppl(resultTerm) && "None".equals(TermReader.cons(resultTerm))) {
 					return;
-				} else if (!isTermTuple(resultTerm) || !isTermString(termAt(resultTerm, 0))) {
+				} else if (!isTermTuple(resultTerm) || resultTerm.getSubtermCount() == 0 || !isTermString(termAt(resultTerm, 0))) {
 					Environment
 							.logException("Illegal builder result (must be a filename/string tuple or None())");
 					openError(editor,
