@@ -264,7 +264,7 @@ rules // Transformation to java strings.
     Property(x, Type(t)) -> $[
       private [t] [x];
       
-      public [t] get_[x] ${$
+      public [t] get_[x]() ${$
           return [x];
       $}$
       
