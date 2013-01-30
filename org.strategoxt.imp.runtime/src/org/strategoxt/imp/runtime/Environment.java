@@ -90,7 +90,8 @@ public final class Environment {
 		termFactory = new TermFactory().getFactoryWithStorageType(IStrategoTerm.MUTABLE);
 		parseTableManager = new ParseTableManager(termFactory);
 		parseTables = Collections.synchronizedMap(new HashMap<String, ParseTableProvider>());
-		RuntimeActivator.getInstance().postInit();
+		// XXX: UNDONE. There doesn't seem to be a strong reason for eagerly loading the plugin.
+//		RuntimeActivator.getInstance().postInit();
 	}
 	
 	// TODO: Split up shared and non-shared environment entities?
