@@ -145,6 +145,7 @@ strategies
     create-manifest;
     create-plugin-xml;
     create-build-xml;
+    create-external-builder-xml;
     create-build-generated-xml;
     create-builder-xml;
     create-cleaner-xml;

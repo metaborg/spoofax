@@ -94,9 +94,9 @@ strategies
   	Option(
   	  "-min"
   	, rules(GenerateMinimal: _)
-  	, !"-vci                 Generate only a minimal project" 
+  	, !"-min                 Generate only a minimal project" 
   	)
-  
+  	
   parameterized-sort-to-rtg-sort =
     // Module[StrategoHost] -> Module_StrategoHost
     string-replace(|"[[", "_");
