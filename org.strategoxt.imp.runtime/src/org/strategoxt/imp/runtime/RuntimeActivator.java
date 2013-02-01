@@ -9,6 +9,8 @@ import java.net.URL;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.dialogs.MessageDialogWithToggle;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -25,10 +27,13 @@ public class RuntimeActivator extends AbstractUIPlugin {
 
 	private static RuntimeActivator plugin;
 
+	private static BundleContext context;
+
 	@Override
-	public void start(BundleContext context) throws Exception {
-		super.start(context);
+	public void start(BundleContext ctx) throws Exception {
+		super.start(ctx);
 		plugin = this;
+		context = ctx;
 		FileNotificationServer.init();
 
 		// precacheStratego();
@@ -82,7 +87,8 @@ public class RuntimeActivator extends AbstractUIPlugin {
 
 	/**
 	 * Checks Eclipse's JVM command-line options. Can only be called after
-	 * RuntimeActivator has been initialized. Should be called asynchronously from the UI thread otherwise will block.
+	 * RuntimeActivator has been initialized. Should be called asynchronously
+	 * from the UI thread otherwise will block.
 	 */
 	private void checkJVMOptions() {
 		boolean ssOption = false;
@@ -109,10 +115,18 @@ public class RuntimeActivator extends AbstractUIPlugin {
 				Environment
 						.logWarning("Make sure Eclipse is started with -vmargs -Xss8m (can be set in eclipse.ini) for an 8 MiB stack size");
 
-			final String version = getBundle().getHeaders().get("Bundle-Version");
-			final IPreferenceStore prefs = getPreferenceStore();
+			// final String version =
+			// getBundle().getHeaders().get("Bundle-Version");
+			// final String version =
+			// Platform.getBundle(PLUGIN_ID).getVersion().toString();
+			final String version = context.getBundle().getVersion().toString();
+			// final IPreferenceStore prefs = getPreferenceStore();
+			final IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode(PLUGIN_ID);
 
-			if (!prefs.getString(LAST_JVM_OPT_CHECK).equalsIgnoreCase(version)) {
+			// if
+			// (!prefs.getString(LAST_JVM_OPT_CHECK).equalsIgnoreCase(version))
+			// {
+			if (!prefs.get(LAST_JVM_OPT_CHECK, "").equalsIgnoreCase(version)) {
 				final StringBuilder msgBuilder = new StringBuilder(JVM_OPT_DIAG_MSG_PREFIX);
 				if (!serverOption)
 					msgBuilder.append("\n-server");
@@ -124,9 +138,10 @@ public class RuntimeActivator extends AbstractUIPlugin {
 						getWorkbench().getDisplay().getActiveShell(), JVM_OPTS_DIAG_TITLE,
 						msgBuilder.toString(), JVM_OPTS_DIAG_TOG_MSG, false, null, null);
 				if (diag.getToggleState()) {
-					prefs.setValue(LAST_JVM_OPT_CHECK, version);
-					 try {
-						InstanceScope.INSTANCE.getNode(PLUGIN_ID).flush();
+					// prefs.setValue(LAST_JVM_OPT_CHECK, version);
+					prefs.put(LAST_JVM_OPT_CHECK, version);
+					try {
+						prefs.flush();
 					} catch (BackingStoreException e) {
 						Environment.logException("Could not save preference store", e);
 					}
