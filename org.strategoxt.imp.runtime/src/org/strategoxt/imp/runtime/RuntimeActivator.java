@@ -9,12 +9,17 @@ import java.net.URL;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.Plugin;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.dialogs.MessageDialogWithToggle;
+import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.prefs.BackingStoreException;
+import org.osgi.service.prefs.Preferences;
 import org.strategoxt.imp.runtime.stratego.FileNotificationServer;
 
 public class RuntimeActivator extends AbstractUIPlugin {
@@ -119,11 +124,11 @@ public class RuntimeActivator extends AbstractUIPlugin {
 			// Platform.getBundle(PLUGIN_ID).getVersion().toString();
 			final String version = context.getBundle().getVersion().toString();
 			// final IPreferenceStore prefs = getPreferenceStore();
-			final IEclipsePreferences prefs = InstanceScope.INSTANCE.getNode(PLUGIN_ID);
+			// final IEclipsePreferences prefs =
+			// InstanceScope.INSTANCE.getNode(PLUGIN_ID);
+			final Preferences prefs = Platform.getPreferencesService().getRootNode()
+					.node(Plugin.PLUGIN_PREFERENCE_SCOPE).node(PLUGIN_ID);
 
-			// if
-			// (!prefs.getString(LAST_JVM_OPT_CHECK).equalsIgnoreCase(version))
-			// {
 			if (!prefs.get(LAST_JVM_OPT_CHECK, "").equalsIgnoreCase(version)) {
 				final StringBuilder msgBuilder = new StringBuilder(JVM_OPT_DIAG_MSG_PREFIX);
 				if (!serverOption)
@@ -132,11 +137,10 @@ public class RuntimeActivator extends AbstractUIPlugin {
 					msgBuilder.append("\n-Xmx1024m");
 				if (!ssOption)
 					msgBuilder.append("\n-Xss8m");
-				final MessageDialogWithToggle diag = MessageDialogWithToggle.openWarning(
-						getWorkbench().getDisplay().getActiveShell(), JVM_OPTS_DIAG_TITLE,
+				final MessageDialogWithToggle diag = MessageDialogWithToggle.openWarning(PlatformUI
+						.getWorkbench().getDisplay().getActiveShell(), JVM_OPTS_DIAG_TITLE,
 						msgBuilder.toString(), JVM_OPTS_DIAG_TOG_MSG, false, null, null);
 				if (diag.getToggleState()) {
-					// prefs.setValue(LAST_JVM_OPT_CHECK, version);
 					prefs.put(LAST_JVM_OPT_CHECK, version);
 					try {
 						prefs.flush();
