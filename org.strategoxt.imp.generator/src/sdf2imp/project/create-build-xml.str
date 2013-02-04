@@ -107,6 +107,20 @@ strategies
 			stratego.jar.helper,
 			refresh,
 			sdf2imp.eclipse.load" />
+        <target name="spoofaximp.default.nostr" depends="
+      check-classpath,
+      init,
+      sdf2table,
+      meta-sdf2table,
+      ppgen,
+      pppack,
+      sdf2imp.eclipse,
+      sdf2imp.standalone,
+      sdf2parenthesize,
+      stratego.aster,
+      java.jar,
+      refresh,
+      sdf2imp.eclipse.load"/>
     
         <!-- Initialization -->
         <available file="${src-gen}/<%= pkgdir %>/strategies/Main.java" property="java.jar.enabled"/>
