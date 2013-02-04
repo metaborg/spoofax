@@ -5,6 +5,7 @@ import java.util.WeakHashMap;
 
 import org.eclipse.imp.ui.DefaultPartListener;
 import org.eclipse.jface.text.DocumentEvent;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
@@ -32,16 +33,19 @@ public class StrategoObserverPartListener extends DefaultPartListener implements
 		if (editor == null) return;
 		
 		IWorkbenchPage page = editor.getEditor().getSite().getPage();
-
+		IDocument document = editor.getDocument();
+				
 		StrategoObserverPartListener oldListener = asyncListeners.get(page);
 		if (oldListener != null) {
 			page.removePartListener(oldListener);
-			editor.getDocument().removeDocumentListener(oldListener);
+			if(document != null)
+				document.removeDocumentListener(oldListener);
 		}
 		
 		StrategoObserverPartListener newListener = new StrategoObserverPartListener();
 		page.addPartListener(newListener);
-		editor.getDocument().addDocumentListener(newListener);
+		if(document != null)
+			document.addDocumentListener(newListener);
 		asyncListeners.put(page, newListener);
 	}
 	
