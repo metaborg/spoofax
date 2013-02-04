@@ -11,6 +11,9 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.ide.ResourceUtil;
 import org.spoofax.interpreter.library.index.FilePartition;
 import org.spoofax.interpreter.library.index.INotificationService;
 import org.spoofax.interpreter.library.index.IndexManager;
@@ -34,6 +37,11 @@ public class QueueAnalysisService implements INotificationService {
 		try {
 			IProject project = EditorIOAgent.getProject(new File(file));
 			IPath relPath = relativePath(file, subfile);
+
+			// Don't schedule analysis for a file in the active editor.
+			if(isActiveEditor(file))
+				return;
+			
 			StrategoAnalysisQueueFactory.getInstance().queueAnalysis(relPath, project, triggerOnSave);
 		} catch (FileNotFoundException e) {
 			Environment.logException("Background language service failed", e);
@@ -81,6 +89,15 @@ public class QueueAnalysisService implements INotificationService {
 
 		return null;
 	}
+	
+	private boolean isActiveEditor(URI file) {
+		IEditorPart editor = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
+		if(editor != null) {
+			URI openFileURI = ResourceUtil.getFile(editor.getEditorInput()).getLocationURI();
+			return openFileURI.equals(file);
+		}
+		return false;
+	}
 
 	/**
 	 * Notify changes of all files in a project, as long as they are known to
@@ -113,5 +130,4 @@ public class QueueAnalysisService implements INotificationService {
 		Language language = LanguageRegistry.findLanguage(path, null);
 		return language != null && IndexManager.isKnownIndexingLanguage(language.getName());
 	}
-
 }
