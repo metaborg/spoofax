@@ -494,6 +494,13 @@ strategies
     
         <!-- Stratego to Java interpreter -->
         <target name="stratego.ctree" depends="rtg2sig">
+            <fail message="Main stratego file '${strmodule}.str' not found.">
+                <condition>
+                    <not>
+                        <isset property="build.stratego.enabled"/>
+                    </not>
+                </condition>
+            </fail>
             <dependset>
                 <srcfileset dir="${basedir}">
                     <include name="**/*.str"/>
@@ -512,6 +519,13 @@ strategies
     
         <!-- Stratego to Java compiler -->
         <target name="stratego.jar" depends="rtg2sig,utils-files">
+            <fail message="Main stratego file '${strmodule}.str' not found.">
+                <condition>
+                    <not>
+                        <isset property="build.stratego.enabled"/>
+                    </not>
+                </condition>
+            </fail>
             <dependset>
                 <srcfileset dir="${basedir}">
                     <include name="**/*.str"/>
