@@ -44,10 +44,8 @@ public class StrategoObserverPartListener extends DefaultPartListener {
 	@Override
 	public void partBroughtToTop(IWorkbenchPart part) {
 		EditorState editor = EditorState.getEditorFor(part);
-		if (editor != null && !IndexManager.isKnownIndexingLanguage(editor.getLanguage().getName()))
-		{
+		if (editor != null && !IndexManager.isKnownIndexingLanguage(editor.getLanguage().getName())) {
 			editor.scheduleAnalysis();
-			org.strategoxt.imp.runtime.Environment.logWarning("Analyze " + part.getTitle());
 		}
 	}
 }
