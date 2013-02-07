@@ -105,7 +105,7 @@ public class DynamicParseController extends AbstractService<IParseController> im
 		TokenColorerHelper.register((SGLRParseController) parser, lastEditor);
 		StrategoObserverPartListener.register(lastEditor);
 		RefactoringFactory.eagerInit(descriptor, parser, lastEditor);
-		LabelProviderFactory.eagerInit(descriptor, parser, lastEditor);
+		
 	}
 
 	public IAnnotationTypeInfo getAnnotationTypeInfo() {

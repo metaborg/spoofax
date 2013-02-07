@@ -6,17 +6,14 @@ import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getSort;
 import static org.spoofax.terms.Term.tryGetName;
-import static org.spoofax.terms.Term.isTermString;
 
 import org.eclipse.imp.services.ILabelProvider;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.swt.graphics.Image;
-import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.ITokenizer;
 import org.spoofax.terms.attachments.ParentAttachment;
-import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.ast.AstNodeLocator;
 
@@ -26,19 +23,19 @@ import org.strategoxt.imp.runtime.parser.ast.AstNodeLocator;
  */
 public class LabelProvider implements ILabelProvider {
 
-	private final StrategoObserver observer;
-	private final String function;
-	
-	public LabelProvider() {
-		this.observer = null;
-		this.function = "";
-		Debug.log("label provider nullary");
-	}
-	
-	public LabelProvider(StrategoObserver observer, String function) {
-		this.observer = observer;
-		this.function = function;
-	}
+//	private final StrategoObserver observer;
+//	private final String function;
+//	
+//	public LabelProvider() {
+//		this.observer = null;
+//		this.function = "";
+//		Debug.log("label provider nullary");
+//	}
+//	
+//	public LabelProvider(StrategoObserver observer, String function) {
+//		this.observer = observer;
+//		this.function = function;
+//	}
 	
 	public Image getImage(Object element) {
 		return null;
@@ -47,24 +44,24 @@ public class LabelProvider implements ILabelProvider {
 	public String getText(Object element) {
 		IStrategoTerm node = AstNodeLocator.impObjectToAstNode(element);
 		
-		// try to apply label provider strategy
-		if (function != null) {
-			observer.getLock().lock();
-			try {
-				IStrategoTerm result = observer.invokeSilent(function, node);
-				if (result != null) {
-					if (isTermString(result)) {
-						return ((IStrategoString) result).stringValue();
-					} else {
-						return result.toString();
-					}
-				}
-			} finally {
-				observer.getLock().unlock();
-			}
-		}
-		
-		// fall back to generic code
+//		// try to apply label provider strategy
+//		if (function != null) {
+//			observer.getLock().lock();
+//			try {
+//				IStrategoTerm result = observer.invokeSilent(function, node);
+//				if (result != null) {
+//					if (isTermString(result)) {
+//						return ((IStrategoString) result).stringValue();
+//					} else {
+//						return result.toString();
+//					}
+//				}
+//			} finally {
+//				observer.getLock().unlock();
+//			}
+//		}
+//		
+//		// fall back to generic code
 		String caption = getCaption(node);
 		
 		if (caption == null) {

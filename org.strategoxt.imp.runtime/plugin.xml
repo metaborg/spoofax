@@ -49,8 +49,11 @@
    </extension>
    <extension
          point="org.eclipse.imp.runtime.labelProvider">
-      <labelProvider
+       <!--<labelProvider
             class="org.strategoxt.imp.runtime.dynamicloading.DynamicLabelProvider"
+            language="DynamicRoot">-->
+      <labelProvider
+            class="org.strategoxt.imp.runtime.services.LabelProvider"
             language="DynamicRoot">
       </labelProvider>
    </extension>
