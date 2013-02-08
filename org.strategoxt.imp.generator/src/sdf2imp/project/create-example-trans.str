@@ -104,7 +104,8 @@ rules // Editor services
   editor-complete:
     (node, position, ast, path, project-path) -> proposals'
     where
-      item@COMPLETION(name) := <collect-one(?COMPLETION(_))> node;
+      node' := <prim("SSL_EXT_clone_and_set_parents", <id>)> node; // Tree has changed, re-set parent pointers.	
+      item@COMPLETION(name) := <collect-one(?COMPLETION(_))> node';
       index-transaction(
         (<index-lookup-all(|name)> item <+ ![]) => proposals
       );
