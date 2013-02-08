@@ -42,7 +42,7 @@ strategies
                         --library
                         -I &quot;${trans}&quot;
                         -I &quot;${basedir}&quot;
-                        -la stratego-lib -la stratego-sglr -la stratego-gpp -la stratego-xtc -la stratego-aterm"/>
+                        -la stratego-lib -la stratego-sglr -la stratego-gpp -la stratego-xtc -la stratego-aterm -la stratego-parallel"/>
         
         <!-- Optional: external .def and .jar locations
         <property name="externaldef" location="syntax/${sdfmodule}.def"/>
@@ -55,8 +55,9 @@ strategies
             <isset property="eclipse.spoofaximp.nativeprefix"/>
         </condition>
         <property name="build.strategoxt.stratego" location="${user.home}/.nix-profile/bin"/>
-    
-        <import file="build.generated.xml"/>
+    		
+    		<!-- used for building inside of Eclipse -->
+        <import file="build.generated.xml"/>   
     
         <!-- Main target -->
         <target name="all" depends="spoofaximp.default.ctree"/>
@@ -76,8 +77,50 @@ strategies
     <project name="build.generated">
 
         <target name="spoofaximp.default" depends="spoofaximp.default.ctree"/>
-        <target name="spoofaximp.default.ctree" depends="check-classpath,init,sdf2table,meta-sdf2table,ppgen,pppack,stratego.aster,java.jar,stratego.ctree,sdf2imp,refresh"/>
-        <target name="spoofaximp.default.jar"   depends="check-classpath,init,sdf2table,meta-sdf2table,ppgen,pppack,stratego.aster,java.jar,stratego.jar.helper,sdf2imp,refresh"/>
+        <target name="spoofaximp.default.ctree" depends="
+			check-classpath,
+			init,
+			sdf2table,
+			meta-sdf2table,
+			ppgen,
+			pppack,
+			sdf2imp.eclipse,
+			sdf2imp.standalone,
+			sdf2parenthesize,
+			stratego.aster,
+			java.jar,
+			stratego.ctree,
+			refresh,
+			sdf2imp.eclipse.load" />
+        <target name="spoofaximp.default.jar" depends="
+			check-classpath,
+			init,
+			sdf2table,
+			meta-sdf2table,
+			ppgen,
+			pppack,
+			sdf2imp.eclipse,
+			sdf2imp.standalone,
+			sdf2parenthesize,
+			stratego.aster,
+			java.jar,
+			stratego.jar.helper,
+			refresh,
+			sdf2imp.eclipse.load" />
+        <target name="spoofaximp.default.nostr" depends="
+      check-classpath,
+      init,
+      sdf2table,
+      meta-sdf2table,
+      ppgen,
+      pppack,
+      sdf2imp.eclipse,
+      sdf2imp.standalone,
+      sdf2parenthesize,
+      stratego.aster,
+      java.jar,
+      refresh,
+      sdf2imp.eclipse.load"/>
     
         <!-- Initialization -->
         <available file="${src-gen}/<%= pkgdir %>/strategies/Main.java" property="java.jar.enabled"/>
@@ -126,6 +169,12 @@ strategies
                 <arg value="${include}/${esvmodule}.packed.esv"/>
             </java>
         </target>
+        
+        <target name="sdf2imp.eclipse.load" if="eclipse.running">
+		<java classname="org.strategoxt.imp.metatooling.loading.AntDescriptorLoader" failonerror="true">
+			<arg value="${include}/${esvmodule}.packed.esv" />
+		</java>
+	</target>
         
         <target name="refresh" if="eclipse.running">
             <eclipse.convertPath fileSystemPath="${basedir}" property="projectdir" />
@@ -234,6 +283,7 @@ strategies
             <copy file="${eclipse.spoofaximp.jars}/make_permissive.jar" todir="utils" failonerror="false"/>
             <copy file="${eclipse.spoofaximp.jars}/sdf2imp.jar" todir="utils" failonerror="false"/>
             <copy file="${eclipse.spoofaximp.jars}/aster.jar" todir="utils" failonerror="false"/>
+            <copy file="${eclipse.spoofaximp.jars}/StrategoMix.def" todir="utils" failonerror="false"/>
             <copy file="${eclipse.spoofaximp.strategojar}" todir="utils" failonerror="false"/>
         </target>
     
@@ -458,6 +508,13 @@ strategies
     
         <!-- Stratego to Java interpreter -->
         <target name="stratego.ctree" depends="rtg2sig">
+            <fail message="Main stratego file '${strmodule}.str' not found.">
+                <condition>
+                    <not>
+                        <isset property="build.stratego.enabled"/>
+                    </not>
+                </condition>
+            </fail>
             <dependset>
                 <srcfileset dir="${basedir}">
                     <include name="**/*.str"/>
@@ -476,6 +533,13 @@ strategies
     
         <!-- Stratego to Java compiler -->
         <target name="stratego.jar" depends="rtg2sig,utils-files">
+            <fail message="Main stratego file '${strmodule}.str' not found.">
+                <condition>
+                    <not>
+                        <isset property="build.stratego.enabled"/>
+                    </not>
+                </condition>
+            </fail>
             <dependset>
                 <srcfileset dir="${basedir}">
                     <include name="**/*.str"/>
@@ -706,10 +770,45 @@ strategies
             </apply>
         </target>
         
-        <target name="clean" description="clean up">
-            <delete dir="${build}"/>
-            <delete file="${include}/${sdfmodule}.def"/>
-            <delete dir="${src-gen}/trans"/>
-        </target>
+	<target name="clean" description="Clean project">
+		<delete dir="${build}" />
+		<delete dir=".cache" />
+		<delete file="${include}/${sdfmodule}.def" />
+		<delete file="${include}/${sdfmodule}-parenthesize.str" />
+		<delete file="${include}/${sdfmodule}-Permissive.def" />
+		<delete file="${include}/${sdfmodule}.generated.pp.af" />
+		<delete file="${include}/${sdfmodule}.packed.esv" />
+		<delete file="${include}/${sdfmodule}.pp.af" />
+		<delete file="${include}/${sdfmodule}.rtg" />
+		<delete file="${include}/${sdfmodule}.str" />
+		<delete file="${include}/${sdfmodule}.tbl" />
+		<delete file="${include}/${strmodule}.rtree" />
+		<delete file="${include}/${strmodule}.ctree" />
+		<delete file="${include}/${strmodule}.ctree.dep" />
+		<delete file="${include}/${strmodule}.jar" />
+		<delete>
+			<fileset dir="editor" includes="*.generated.esv"/>
+		</delete>
+		<delete dir="${src-gen}/trans" />
+		<delete file="editor/${sdfmodule}.generated.esv" />
+		<delete file="${syntax}/${sdfmodule}.generated.esv" />
+		<delete file="${syntax}/${sdfmodule}.generated.pp" />
+		<delete file="${include}/${metasdfmodule}-Permissive.def" />
+		<delete file="${include}/${metasdfmodule}.def" />
+		<delete file="${include}/${metasdfmodule}.tbl" />
+		<delete file=".settings/org.eclipse.jdt.core.prefs" />
+		<delete dir="utils" />
+		<delete>
+			<fileset dir="lib-refactoring" includes="*.generated.str" />
+			<fileset dir="${lib}" includes="*.generated.str" />
+		</delete>
+		<antcall target="refresh-cleaned"/>
+	</target>
+	
+	<target name="refresh-cleaned" if="eclipse.running">
+        <eclipse.convertPath fileSystemPath="${basedir}" property="projectdir" />
+        <eclipse.refreshLocal resource="${projectdir}" depth="infinite" />
+    </target>
+	
     </project>
     <%

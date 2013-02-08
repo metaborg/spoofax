@@ -19,7 +19,36 @@ strategies
   create-completions-descriptor =
     output-initial-descriptor-file(
       <descriptor-name> "-Completions"
-    , !|[
+    , completions-descriptor
+    );
+    create-derived-completions-descriptor
+
+
+  completions-descriptor =
+  	GenerateMinimal
+  	<
+  	!|[
+        module <descriptor-name> "-Completions"
+
+        imports <descriptor-name> "-Completions.generated"
+
+        completions
+          ~~
+          ~~// This file is used to define content completion.
+          ~~//
+          ~~// See the imported file for a brief introduction and examples.
+          ~~
+        completions
+          ~~
+        completions
+          ~~// Semantic (identifier) completion:
+          ~~
+          completion proposer: editor-complete
+          ~~
+          completion trigger: "."
+      ]|	
+  	+
+  	!|[
         module <descriptor-name> "-Completions"
 
         imports <descriptor-name> "-Completions.generated"
@@ -50,8 +79,6 @@ strategies
           ~~
           completion trigger: ":"
       ]|
-    );
-    create-derived-completions-descriptor
 
   create-derived-completions-descriptor =
     not(is-heuristic-services-needed);

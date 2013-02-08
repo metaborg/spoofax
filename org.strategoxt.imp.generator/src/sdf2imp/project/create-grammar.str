@@ -7,36 +7,52 @@ strategies
 
   create-grammar =
     create-grammar-main;
-    create-grammar-common
+    create-grammar-common;
+    create-grammar-sig
   
   create-grammar-main =
     <file-exists> <conc-strings> ("syntax/", <get-sdf-main-module>, ".sdf")
   <+
     name        := <get-sdf-main-module>;
     startsymbol := <StartSymbol>;
-    
     <output-text-file(|["syntax"], <conc-strings> (name, ".sdf"))>
-    <conc-strings>
-(
-"%% Grammar for the ", name, " language
-%% By default, based on an example \"entities\" syntax
-module ", name, "
+    <(GenerateMinimal
+    	<
+!$[module [name]
 
 imports Common
 
 exports
 
   context-free start-symbols
-    ", startsymbol, "
+  
+    [startsymbol]
 
   context-free syntax
   
-    \"module\" ID Definition*       -> ", startsymbol, " {cons(\"Module\")}
-    \"entity\" ID \"{\" Property* \"}\" -> Definition {cons(\"Entity\")}
-    ID \":\" Type                   -> Property {cons(\"Property\")}
-    ID                            -> Type {cons(\"Type\")}
-"
-)
+    -> Start {"Dummy"}
+]
+    	+
+!$[%% Grammar for the [name] language
+%% By default, based on an example "entities" syntax
+module [name]
+
+imports Common
+
+exports
+
+  context-free start-symbols
+  
+    [startsymbol]
+
+  context-free syntax
+  
+    "module" ID Definition*       -> Start {"Module"}
+    "entity" ID "{" Property* "}" -> Definition {"Entity"}
+    ID ":" Type                   -> Property {"Property"}
+    ID                            -> Type {"Type"}
+]
+    )>
   
   create-grammar-common =
     <file-exists> <conc-strings> ("syntax/Common.sdf")
@@ -94,3 +110,12 @@ exports
     LAYOUT? -/- [\/].[\/]
     LAYOUT? -/- [\/].[\*]
 }
+  
+  create-grammar-sig =
+    <file-exists> $["include/[<get-sdf-main-module>].str"]
+  <+
+    <output-text-file(|["include"], $[[<get-sdf-main-module>].str])> $[
+      module include/[<get-sdf-main-module>]
+      
+      // (to be generated)
+    ]

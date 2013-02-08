@@ -167,10 +167,6 @@ public class JSGLRI extends AbstractSGLRI {
 			Debug.startTimer();
 			IStrategoTerm result;
 			try {
-				//TODO: completionMode true or false depends on whether this method is called via CompletionParser
-				// true means all completion productions are enabled
-				// false means that only wellformed productions are enabled
-				// Idee: mark wellformed productions as {completion, recover} and treat them as completion
 				result = (IStrategoTerm) parser.parse(input, filename, getStartSymbol(), true, cursorLocation);
 			} finally {
 				Debug.stopTimer("File parsed: " + new File(filename).getName());

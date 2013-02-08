@@ -33,10 +33,10 @@ create-textchange-delete:
 		end-offset   := <origin-deletion-end-offset> origin-elems
 		
 create-textchange-replace(pp, override-reconstruction, resugar):
-	(origin-node, new-node) -> (start-offset, end, indented-text)
+	(origin-node, new-node) -> (start-offset, end-offset, indented-text)
 	where  
 		start-offset := <origin-start-offset> origin-node;
-		end   := <origin-end-offset> origin-node;
+		end-offset   := <origin-end-offset> origin-node;
 		text  := <construct-text(pp, override-reconstruction, resugar)> new-node;
 		indented-text := <adapt-indentation(|origin-node)> text
 
@@ -207,7 +207,7 @@ rules //Applying the textual modifications
 apply-text-changes:
 	(text-changes, text, start-offset) -> changed-text
 	where 
-		ordered-text-changes := <make-set; filter(is-modification); sort-list(LSort(compare-text-change))> text-changes;
+		ordered-text-changes := <make-set; filter(is-modification); qsort(has-smaller-offset)> text-changes;
 		<assert-valid-textual-changes> ordered-text-changes;
 		changed-text := <foldr(!(start-offset, text), apply-textual-change); Snd> ordered-text-changes
 
@@ -229,9 +229,9 @@ replace-in-text:
 		(_, suffix) := <split-at(|pos-end)> old-chars; 
 		result-text := <conc-strings> (<implode-string> prefix, text-change, <implode-string> suffix) 
 		
-compare-text-change = 
-		?(((start-x, end-x),x), ((start-y, end-y),y));
-		not(
+has-smaller-offset = 
+		?((start-x, end-x, x), (start-y, end-y, y));
+		where(
 			<lt> (start-x, start-y) <+ 
 			<eq> (start-x, start-y); <lt> (end-x, end-y)
 		)
@@ -248,7 +248,7 @@ assert-valid-textual-changes =
 assert-no-overlap:
 	txt-changes@[(start-offset, end-offset, _), (start-offset', _, _)|_] -> txt-changes
 	with
-		<lt> (start-offset, start-offset');
+		<leq> (start-offset, start-offset');
 		<leq> (end-offset, start-offset');
 		<at-tail(assert-no-overlap)> txt-changes
 		

@@ -6,24 +6,28 @@ import static org.spoofax.interpreter.core.Tools.termAt;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.hasImploderOrigin;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.text.IRegion;
 import org.eclipse.ltk.core.refactoring.Change;
 import org.eclipse.ltk.core.refactoring.CompositeChange;
+import org.eclipse.ltk.core.refactoring.FileStatusContext;
 import org.eclipse.ltk.core.refactoring.Refactoring;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
+import org.eclipse.ltk.core.refactoring.RefactoringStatusContext;
 import org.eclipse.ltk.core.refactoring.TextFileChange;
-import org.eclipse.text.edits.MultiTextEdit;
-import org.eclipse.text.edits.ReplaceEdit;
 import org.spoofax.interpreter.core.InterpreterErrorExit;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
@@ -33,32 +37,25 @@ import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.terms.TermFactory;
 import org.spoofax.terms.attachments.OriginAttachment;
-import org.strategoxt.imp.generator.construct_textual_change_1_0;
-import org.strategoxt.imp.generator.construct_textual_change_4_0;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
+import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.SourceAttachment;
-import org.strategoxt.lang.Context;
-import org.strategoxt.lang.Strategy;
+import org.strategoxt.imp.runtime.stratego.StrategoConsole;
 
+/**
+ * @author Maartje de Jonge
+ */
 public class StrategoRefactoring extends Refactoring implements IRefactoring {
 		
-	private final String actionDefinitionId;
+	//refactoring specific fields
+	private final String actionDefinitionId; //Keybinding
 
-	private final String ppStrategy;
-
-	private final String parenthesizeStrategy;
-
-	private final String overrideReconstructionStrategy;
-
-	private final String resugarStrategy;
-
-	private final StrategoObserver observer;
-
-	private final String caption;
+	private final String caption; 
 	
 	private final String builderRule;
 			
@@ -68,18 +65,33 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 	
 	private final IStrategoTerm[] semanticNodes;
 			
-	protected final ArrayList<StrategoRefactoringIdentifierInput> inputFields;
+	protected final ArrayList<IStrategoRefactoringInput> inputFields;
 	
+	
+	// language specific
+	private final StrategoTextChangeCalculator textChangeCalculator;
+
+	
+	// selected node when refactoring is triggered, calculated from user selection
+	private IStrategoTerm node;
+
+	
+	// results
 	private ArrayList<IPath> affectedFilePaths;
 
-	private IStrategoTerm node;
-	
 	private Collection<TextFileChange> fileChanges;
 	
-	private IAction action;
+	private String transformationFailedMessage;
 
+
+	// others
+	private final StrategoObserver observer;
+
+	private IAction action;
+	
+
+	
 	public boolean isDefinedOnSelection(EditorState editor) {
-		// TODO Auto-generated method stub
 		return getSelectionNode(editor) != null;
 	}
 
@@ -92,7 +104,7 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 		return actionDefinitionId;
 	}
 
-	public ArrayList<StrategoRefactoringIdentifierInput> getInputFields() {
+	public ArrayList<IStrategoRefactoringInput> getInputFields() {
 		return inputFields;
 	}
 	
@@ -106,6 +118,7 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 	}
 
 	public void prepareExecute(EditorState editor) {
+		this.transformationFailedMessage = "unknown error";
 		this.node = getSelectionNode(editor);
 		this.fileChanges.clear();
 		this.affectedFilePaths.clear();
@@ -113,18 +126,15 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 	}
 
 	public StrategoRefactoring(StrategoObserver observer, String caption, String builderRule,
-			boolean cursor, boolean source, String ppStrategy, String parenthesize, String violatesHomomorphism, String resugar,
-			IStrategoTerm[] semanticNodes, ArrayList<StrategoRefactoringIdentifierInput> inputFields, String actionDefinitionId) {
+			boolean cursor, boolean source, StrategoTextChangeCalculator textChangeCalculator,
+			IStrategoTerm[] semanticNodes, ArrayList<IStrategoRefactoringInput> inputFields, String actionDefinitionId) {
 		this.cursor=cursor;
 		this.source=source;
-		this.ppStrategy = ppStrategy;
-		this.parenthesizeStrategy = parenthesize;
-		this.overrideReconstructionStrategy = violatesHomomorphism;
-		this.resugarStrategy = resugar;
 		this.observer = observer;
 		this.caption = caption;
 		this.builderRule = builderRule;
 		this.semanticNodes = semanticNodes;
+		this.textChangeCalculator = textChangeCalculator;
 		this.fileChanges = new HashSet<TextFileChange>();
 		this.inputFields = inputFields;
 		this.affectedFilePaths = new ArrayList<IPath>();
@@ -152,7 +162,6 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 		pm.beginTask("Checking postconditions...", 2);
 		IStrategoTerm builderResult = null;
 		IStrategoTerm astChanges = null;
-		IStrategoTerm textReplaceTerm = null;
 		IStrategoTerm fatalErrors = null;
 		IStrategoTerm errors = null;
 		IStrategoTerm warnings = null;
@@ -160,7 +169,7 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 			builderResult = getBuilderResult();
 			if(builderResult == null){
 				observer.reportRewritingFailed();
-				String errorMessage = "Refactoring application failed: '" + caption + "'";
+				String errorMessage = "Refactoring application failed: '" + caption + "'. " + transformationFailedMessage;
 				Environment.logException(errorMessage);
 				return RefactoringStatus.createFatalErrorStatus(errorMessage);					
 			}	
@@ -180,17 +189,12 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 			updateStatus(status, warnings, RefactoringStatus.WARNING);
 			if(status.hasFatalError())
 				return status; //no need to calculate text changes
-			textReplaceTerm = getTextReplacement(astChanges);
-			if (textReplaceTerm == null) {
+			fileChanges = textChangeCalculator.getFileChanges(astChanges, observer);
+			if (fileChanges == null) {
 				observer.reportRewritingFailed();
 				String errorMessage = "Text-reconstruction unexpectedly fails, did you specify a suitable pretty-print strategy?: \n"+ observer.getLog();
 				Environment.logException(errorMessage);
 				return RefactoringStatus.createFatalErrorStatus(errorMessage);
-			}
-			assert(textReplaceTerm.getSubtermCount() == astChanges.getSubtermCount());
-			for (int i = 0; i < astChanges.getSubtermCount(); i++) {
-				TextFileChange fChange = createTextChange(termAt(astChanges.getSubterm(i),0), textReplaceTerm.getSubterm(i));	
-				fileChanges.add(fChange);
 			}
 		} finally { 
 			observer.getLock().unlock();
@@ -201,23 +205,44 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 
 	private void updateStatus(RefactoringStatus status, IStrategoTerm errors, int severity) {
 		for (int i = 0; i < errors.getSubtermCount(); i++) {
-			IStrategoTerm error = errors.getSubterm(i);
+			final IStrategoTerm error = errors.getSubterm(i);
 			String message = formatErrorMessage(error);
+			RefactoringStatusContext context = getRefactoringStatusContext(error);
 			switch (severity) {
 				case RefactoringStatus.WARNING:
-					status.merge(RefactoringStatus.createWarningStatus(message));		
+					status.merge(RefactoringStatus.createWarningStatus(message, context));		
 					break;
 				case RefactoringStatus.ERROR:
-					status.merge(RefactoringStatus.createErrorStatus(message));		
+					status.merge(RefactoringStatus.createErrorStatus(message, context));		
 					break;
 				case RefactoringStatus.FATAL:
-					status.merge(RefactoringStatus.createFatalErrorStatus(message));		
+					status.merge(RefactoringStatus.createFatalErrorStatus(message, context));		
 					break;
 				default:
 					assert(false);
 					break;
 			}			
 		}
+	}
+
+	private RefactoringStatusContext getRefactoringStatusContext(final IStrategoTerm error) {
+		RefactoringStatusContext context =  null;
+		if(hasImploderOrigin(error.getSubterm(0))){
+			final IStrategoTerm origin = OriginAttachment.getOrigin(error.getSubterm(0));
+			final IFile file = (IFile)SourceAttachment.getResource(origin);
+			final int startOffset = ImploderAttachment.getLeftToken(origin).getStartOffset();
+			final int endOffset = ImploderAttachment.getRightToken(origin).getEndOffset();
+			context = new FileStatusContext(file, new IRegion() {
+				public int getOffset() {
+					return startOffset;
+				}
+				
+				public int getLength() {
+					return Math.max(endOffset - startOffset + 1, 1);
+				}
+			});
+		}
+		return context;
 	}
 
 	private String formatErrorMessage(IStrategoTerm error) {
@@ -238,7 +263,7 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 	public Change createChange(IProgressMonitor monitor) throws CoreException, OperationCanceledException {
 		try {
 			monitor.beginTask("Creating change...", 1);
-			CompositeChange change= new CompositeChange(getName(), fileChanges.toArray(new Change[fileChanges.size()])); 			
+			CompositeChange change = new CompositeChange(getName(), fileChanges.toArray(new Change[fileChanges.size()])); 			
 			return change;
 		} finally {
 			monitor.done();
@@ -259,27 +284,36 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 	private IStrategoTerm getBuilderResult() {
 		IStrategoTerm userInputTerm = mkInputTerm();
 		IStrategoTerm inputTerm = observer.getInputBuilder().makeInputTermRefactoring(userInputTerm, node, true, source);
-		
+		if(inputTerm == null){
+			//TODO error when the input term is constructed from source AST instead of analyzed AST
+			transformationFailedMessage = "Input term could not be constructed. ";
+			return null;
+		}
 		//DesugaredOriginAttachment.setAllTermsAsDesugaredOrigins(inputTerm.getSubterm(3));
 		
 		IStrategoTerm result = null;
 		try {
-			result = observer.invoke(builderRule, inputTerm, getResource());
+			result = observer.invoke(builderRule, inputTerm, getFile());
 		} catch (InterpreterErrorExit e) {
-			Environment.logException("Builder failed", e);
+			transformationFailedMessage = "Runtime exited when evaluating strategy " + builderRule;
+			Environment.logException("Refactoring failed, " + transformationFailedMessage, e);
 			e.printStackTrace();
 		} catch (UndefinedStrategyException e) {
-			Environment.logException("Builder failed", e);
+			transformationFailedMessage = "Strategy '"+ builderRule + "' does not exist or is defined in a module that is not imported";
+			Environment.logException("Refactoring failed, " + transformationFailedMessage, e);
 			e.printStackTrace();
 		} catch (InterpreterExit e) {
-			Environment.logException("Builder failed", e);
+			transformationFailedMessage = "Analysis failed (" + e.getClass().getSimpleName() + "; see error log)";
+			Environment.logException("Refactoring failed, " + transformationFailedMessage, e);
 			e.printStackTrace();
 		} catch (InterpreterException e) {
-			Environment.logException("Builder failed", e);
+			transformationFailedMessage = "Internal error evaluating strategy '" + builderRule + "'";
+			Environment.logException("Refactoring failed, " + transformationFailedMessage, e);
 			e.printStackTrace();
 		}
 		return result;
 	}
+	
 
 	private IStrategoTerm mkInputTerm() {
 		IStrategoTerm[] inputTerms = new IStrategoTerm[inputFields.size()];
@@ -297,8 +331,8 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 		return inputTuple;
 	}
 
-	private IResource getResource() {
-		return SourceAttachment.getResource(node);
+	private File getFile() {
+		return SourceAttachment.getFile(node);
 	}
 	
 	private boolean isValidResultTerm(IStrategoTerm resultTerm) {
@@ -339,45 +373,7 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 			resultTerm.getSubtermCount()==2 &&
 			hasImploderOrigin(termAt(resultTerm, 0));
 	}
-	
-	private IStrategoTerm getTextReplacement(IStrategoTerm resultTuple) {
-		IStrategoTerm textreplace=construct_textual_change_4_0.instance.invoke(
-				observer.getRuntime().getCompiledContext(), 
-				resultTuple, 
-				createStrategy(ppStrategy),
-				createStrategy(parenthesizeStrategy),
-				createStrategy(overrideReconstructionStrategy),
-				createStrategy(resugarStrategy)
-			);
-		return textreplace;
-	}
-
-	public Strategy createStrategy(final String sname) {
-		return new Strategy() {
-			@Override
-			public IStrategoTerm invoke(Context context, IStrategoTerm current) {
-				if (sname!=null)
-					return observer.invokeSilent(sname, current, getResource());
-				return null;
-			}
-		};
-	}
-	
-	private TextFileChange createTextChange(IStrategoTerm originalTerm, IStrategoTerm textReplaceTerm) {
-		final int startLocation=Tools.asJavaInt(termAt(textReplaceTerm, 0));
-		final int endLocation=Tools.asJavaInt(termAt(textReplaceTerm, 1));
-		final String resultText = Tools.asJavaString(termAt(textReplaceTerm, 2));
-		final IStrategoTerm originTerm = OriginAttachment.tryGetOrigin(originalTerm);
-		final IFile file = (IFile)SourceAttachment.getResource(originTerm);
-
-		TextFileChange textChange = new TextFileChange("", file); 
-		textChange.setTextType(file.getFileExtension());
-		MultiTextEdit edit= new MultiTextEdit();
-		edit.addChild(new ReplaceEdit(startLocation, endLocation - startLocation, resultText));
-		textChange.setEdit(edit);
-		return textChange;
-	}
-
+		
 	private void fillAffectedFilePaths(IStrategoTerm astChanges) {
 		affectedFilePaths.clear();
 		for (int i = 0; i < astChanges.getSubtermCount(); i++) {

@@ -1,0 +1,403 @@
+module sdf2imp/project/create-refactoring-library
+
+imports
+  sdf2imp/util/-
+
+strategies
+
+create-behavior-preservation =
+try(<file-exists <+ mkdir> "lib-refactoring");
+<output-text-file(|["lib-refactoring"], "behavior-preservation.generated.str")>
+${/** 
+* Use this module to detect semantic constraint and namebinding violations, 
+* i.e. report preservation errors for name collisions and newly introduced/solved constraint violations.
+*/
+module lib-refactoring/behavior-preservation.generated
+
+imports
+  lib/editor-common.generated
+  lib/analysis-library.generated
+  lib-refactoring/namebinding-preservation.generated
+  lib-refactoring/correctness-preservation.generated
+
+strategies
+
+  /**
+   * Returns behavior preservation errors and warnings by analyzing the ast-changes.
+   * The analysis covers 1) name collision errors and 2) semantic-constraint errors and warnings
+   * 
+   * The list of AST changes must consist of tuples (term-before, term-after) whereby
+   * 1) term-before and term-after are the terms before, respectively after the refactoring transformation. 
+   * 2) both terms can be semantically analyzed by the "analyze-top" strategy
+   * 3) the term-after contains name annotations that express the EXPECTED binding structure
+   *    (typically obtained by preserving annos during transformation and setting annos for new inserted definitions) 
+   *
+   * Remark: performance can be improved in case the endangered names are known
+   * @see get-semantic-violations(constraint-error, constraint-warning, is-endangered-name)
+   *
+   * @type List(Tuple(ast-before, ast-after)) -> Tuple(List(errors), List(warnings))
+   * @param constraint-error    t -> (t, String)
+   * @param constraint-warning  t -> (t, String)
+   */
+  get-semantic-violations(constraint-error, constraint-warning) =
+    get-semantic-violations(analyze-ast, constraint-error, constraint-warning, id)
+
+  /**
+   * @see get-semantic-violations(constraint-error, constraint-warning)
+   *
+   * @type List(Tuple(ast-before, ast-after)) -> Tuple(List(errors), List(warnings))
+   * @param constraint-error    t -> (t, String)
+   * @param constraint-warning  t -> (t, String)
+   * @param is-endangered-name  String -> String
+   */
+  get-semantic-violations(constraint-error, constraint-warning, is-endangered-name) =
+    get-semantic-violations(analyze-ast, constraint-error, constraint-warning, is-endangered-name)
+
+  /**
+   * @see get-semantic-violations(constraint-error, constraint-warning)
+   *
+   * @type List(Tuple(ast-before, ast-after)) -> Tuple(List(errors), List(warnings))
+   * @param analyse             t -> t  sets namebinding annotation and prepares for checking semantic constraints
+   * @param constraint-error    t -> (t, String)
+   * @param constraint-warning  t -> (t, String)
+   * @param is-endangered-name  String -> String
+   */
+  get-semantic-violations(analyze, constraint-error, constraint-warning, is-endangered-name):
+    ast-changes -> 
+    <foldr(
+      !([],[]), 
+      tuple-conc, 
+      get-semantic-violations-astchange(
+      	analyze, 
+      	constraint-error, 
+      	constraint-warning, 
+      	is-endangered-name
+      )
+    )> ast-changes
+
+  /**
+   * Returns behavior preservation errors and warnings by analyzing the ast-change.
+   * The analysis covers 1) name collision errors and 2) semantic-constraint errors and warnings
+   * 
+   * The AST change must be a tuple (term-before, term-after) whereby
+   * 1) term-before and term-after are the terms before, respectively after the refactoring transformation. 
+   * 2) both terms can be semantically analyzed by the "analyze-top" strategy
+   * 3) the term-after contains name annotations that express the EXPECTED binding structure
+   *    (typically obtained by preserving annos during transformation and setting annos for new inserted definitions) 
+   *
+   * @type  Tuple(ast-before, ast-after) -> Tuple(List(errors), List(warnings))
+   * @param analyse             t -> t  sets namebinding annotation and prepares for checking semantic constraints
+   * @param constraint-error    t -> (t, String)
+   * @param constraint-warning  t -> (t, String)
+   * @param is-endangered-name  String -> String
+   */  
+  get-semantic-violations-astchange(analyze, constraint-error, constraint-warning, is-endangered-name):
+    (ast-before, ast-after) -> (errors, warnings)
+    where
+      ast-before-reanalyzed := <analyze> ast-before; //TODO: why needed?
+      //index-transaction(
+        errors-before   := <collect-all(constraint-error, conc)> ast-before-reanalyzed; 
+        warnings-before := <collect-all(constraint-warning, conc)> ast-before-reanalyzed; 
+      //);
+      //ast with name annotations that express the ACTUAL binding structure
+      ast-after-reanalyzed := <analyze> ast-after;
+      //index-transaction(
+        errors-after   := <collect-all(constraint-error, conc)> ast-after-reanalyzed;
+        warnings-after := <collect-all(constraint-warning, conc)> ast-after-reanalyzed;
+      //);
+      namebinding-preservation-errors := <binding-violation-errors(is-endangered-name)> (ast-after, ast-after-reanalyzed); 
+      correctness-preservation-errors := <semantic-constraint-preservation-issues> (errors-before, errors-after);
+      errors := <union(same-error-term)> (namebinding-preservation-errors, correctness-preservation-errors);
+      warnings := <semantic-constraint-preservation-issues> (warnings-before, warnings-after)
+
+  //report only one violation per term  
+  same-error-term:
+    err-tup@((t1,_), (t2,_)) -> err-tup
+    where
+      <origin-equal(|t1)> t2 <+
+      <origin-equal(|t2)> t1
+  
+  //based on analysis provided by index
+  analyze-ast = 
+  	topdown(strip-annos);
+    analyze-top(|
+      Editor(), 
+      <origin-language>, 
+      <origin-relative-path>, 
+      <project-path>
+    ); 
+    Fst
+}
+
+create-namebinding-preservation =
+try(<file-exists <+ mkdir> "lib-refactoring");
+<output-text-file(|["lib-refactoring"], "namebinding-preservation.generated.str")>
+"/** 
+* Use this module to detect namebinding violations, 
+* i.e. report preservation errors for name collisions.
+* REMARK: Only use this module in case semantic correctness preservation is not checked.
+* Otherwise, use behavior-preservation.str
+*/
+module lib-refactoring/namebinding-preservation.generated
+
+imports
+  libstratego-lib
+
+strategies
+
+  /**
+   * Returns name collision errors by comparing the expected binding structure with the actual binding structure.
+   * 
+   * 1) the lhs-term contains name annotations that express the EXPECTED binding structure
+   *    (typically obtained by preserving annos during transformation and setting annos for new inserted definitions)
+   * 2) @param analyze strategy sets the correct name annos for the lhs-term 
+   * 3) the @param analyze strategy preserves the abstract structure of the lhs-term
+   *
+   * @type  t -> List(errors)
+   * @param analyse             t -> t  sets namebinding annotation 
+   * @param is-endangered-name  String -> String
+   */
+  binding-violation-errors(analyze, is-endangered-name):
+    ast-expected-bindings -> <binding-violation-errors(is-endangered-name)> (ast-expected-bindings, ast-actual-bindings)
+    where
+    	ast-actual-bindings := <analyze> ast-expected-bindings
+
+  /**
+   * Returns name collision errors by comparing the expected binding structure with the actual binding structure.
+   * 
+   * The AST change must be a tuple (term-expected, term-actual) whereby
+   * 1) both terms have the same abstract structure
+   * 2) the term-expected contains name annotations that express the EXPECTED binding structure
+   *    (typically obtained by preserving annos during transformation and setting annos for new inserted definitions)
+   * 3) the term-actual contains name annotations that express the ACTUAL binding structure
+   *    (typically obtained by reanalyzing the term-expected)
+   *
+   * REMARK: to improve performance, @see binding-violation-errors(is-endangered-name)
+   *
+   * @type  Tuple(ast-expected, ast-actual) -> List(errors)
+   * @param analyse             t -> t  sets namebinding annotation 
+   */
+  binding-violation-errors:
+    (ast-expected-bindings, ast-actual-bindings) -> <binding-violation-errors(id)>
+
+  /**
+   * @see binding-violation-errors
+   *
+   * @type  Tuple(ast-expected, ast-actual) -> List(errors)
+   * @param analyse             t -> t  sets namebinding annotation 
+   * @param is-endangered-name  String -> String
+   */  
+  binding-violation-errors(is-endangered-name):
+    change-tuple@(ast-expected-bindings, ast-actual-bindings) -> all-binding-violations
+    where
+      all-binding-violations := <
+        binding-violations(is-endangered-name);
+        map(to-namebinding-error)
+      > change-tuple
+  
+  to-namebinding-error:
+    t{nb1, nb2} -> (<strip-annos>, $[Name collision with name '[<strip-annos>]'])
+    where
+      <not(?None())> nb1;
+      <not(?None())> nb2
+  
+  to-namebinding-error:
+    t{_, None()} -> (<strip-annos>, $[Variable becomes unbound '[<strip-annos>]'])
+  
+  to-namebinding-error:
+    t{None(), _} -> (<strip-annos>, $[Unbound variabele becomes bound '[<strip-annos>]'])
+  
+  binding-violations(is-endangered-name):
+    trees@(ast-expected-bindings, ast-actual-bindings) -> all-binding-violations
+    where
+      all-binding-violations := <
+        binding-compare-ast; 
+        binding-violations-on-compare-tree(is-endangered-name)
+      > trees
+  
+   //Constructs an AST with information about the original binding structure, and the new binding structure.
+   //Condition: @param1 and @param2 have the same structure and contain binding information.
+  binding-compare-ast:
+    (ast-expected-bindings, ast-actual-bindings) -> binding-compare-ast
+    where
+      binding-compare-ast := <merge-bindings>(ast-expected-bindings, ast-actual-bindings)
+      
+  merge-bindings =
+    merge-bindings-1 <+
+    merge-bindings-2 <+
+    merge-bindings-3 <+
+    merge-bindings-4
+  
+  merge-bindings-1:
+    (s1{nb1}, s2{nb2}) -> s1{nb1, nb2}
+    where
+      <is-string> s1;
+      <equal> (s1{},s2{})
+  
+  merge-bindings-2:
+    (s1{nb1}, s2) -> s1{nb1, None()}
+    where
+      <is-string> s1;
+      <equal> (s1{},s2{})
+  
+  merge-bindings-3:
+    (s1, s2{nb2}) -> s1{None(), nb2}
+    where
+      <is-string> s1;
+      <equal> (s1{},s2{})
+  
+  merge-bindings-4:
+    (c#(args1), c#(args2)) -> c#(args) 
+    where
+      args := <zip; map(merge-bindings)> (args1, args2)
+  
+  binding-mapping(is-endangered-name):
+    binding-compare-ast -> bindings-mapping
+    where
+      bindings-mapping := 
+        <collect-binding-pairs(is-endangered-name); make-set> binding-compare-ast
+  
+  collect-binding-pairs(is-endangered-name):
+    binding-compare-ast -> bindings-mapping
+    where
+      bindings-mapping := <
+        collect-all(is-string; ?_{_, _}; where(strip-annos; is-endangered-name), conc)
+      > binding-compare-ast
+  
+  binding-violations-on-compare-tree(is-endangered-name):
+    binding-compare-ast -> all-binding-violations
+    where
+      all-bindings := <
+        collect-binding-pairs(is-endangered-name)
+      > binding-compare-ast; 
+      binding-mapping := <make-set> all-bindings; 
+      binding-violations := <filter-violations> binding-mapping; 
+      all-binding-violations := <isect> (all-bindings, binding-violations) 
+        
+  filter-violations:
+    binding-mapping -> <concat> [broken-bindings, created-bindings, changed-bindings]
+    where
+      broken-bindings  := <filter-broken-bindings> binding-mapping;
+      created-bindings := <filter-created-bindings> binding-mapping;
+      changed-bindings := <filter-changed-bindings(|binding-mapping)> binding-mapping
+      
+  filter-changed-bindings(|binding-mapping): 
+    [t{nb1,nb2}|bindings] -> result
+    where 
+      binding-mapping' := <filter(not(?_{nb1,nb2}))> binding-mapping;
+      conflicts := <filter(?_{nb1,_} <+ ?_{_,nb2}); filter(not(?_{nb1,None()} <+ ?_{None(),nb2}))> binding-mapping;
+      switch <filter(not(?_{nb1,nb2}))> conflicts
+        case ?[]: //no violations
+          result := <filter-changed-bindings(|binding-mapping')> bindings
+        case where(fetch(?_{nb1,_})); where(fetch(?_{_,nb2})): //violated use-site
+          result := [t{nb1,nb2}|<filter-changed-bindings(|binding-mapping')> bindings]
+        case <equal>(t{nb1,nb2}, <last> conflicts): //declaration causes violation, but no use sites
+          result := [t{nb1,nb2}|<filter-changed-bindings(|binding-mapping')> bindings]
+        otherwise: //declaration that causes violations
+          result := <filter-changed-bindings(|binding-mapping)> bindings
+      end
+  
+  filter-changed-bindings(|binding-mapping):
+    [] -> []
+  
+  filter-broken-bindings =
+    filter(?_{_, None()})
+  
+  filter-created-bindings =
+    filter(?_{None(), _})"
+
+
+create-correctness-preservation =
+try(<file-exists <+ mkdir> "lib-refactoring");
+<output-text-file(|["lib-refactoring"], "correctness-preservation.generated.str")>
+${/** 
+* Use this module to detect semantic constraint violations, 
+* i.e. report preservation errors/warnings for newly introduced or solved constraint errors/warnings.
+* REMARK: Only use this module in case nambinding preservations are not checked.
+* Otherwise, use behavior-preservation.str
+*/
+module lib-refactoring/correctness-preservation.generated
+
+imports
+  libstratego-lib
+  lib/editor-common.generated
+
+strategies
+
+    /**
+   * Returns correctness preservation errors and warnings by analyzing the ast-change.
+   * The analysis covers semantic-constraint errors and warnings,
+   * reporting problems for 1) introduced and 2) (possible unintended) solved issues.
+   * 
+   * The AST changes must be a List of tuples (term-before, term-after) whereby
+   * 1) term-before and term-after are the terms before, respectively after the refactoring transformation. 
+   * 2) both terms can be semantically analyzed by the "analyze-top" strategy
+   *
+   * @type List(Tuple(ast-before, ast-after)) -> Tuple(List(errors), List(warnings))
+   * @param analyse             t -> t  sets namebinding annotation and prepares for checking semantic constraints
+   * @param constraint-error    t -> (t, String)
+   * @param constraint-warning  t -> (t, String)
+   */
+  get-correctness-violations(analyze, constraint-error, constraint-warning):
+    ast-changes -> 
+    <foldr(
+      !([],[]), 
+      tuple-conc, 
+      get-correctness-violations-astchange(
+      	analyze, 
+      	constraint-error, 
+      	constraint-warning
+      )
+  )> ast-changes
+
+	
+  /**
+   * Returns correctness preservation errors and warnings by analyzing the ast-change.
+   * The analysis covers semantic-constraint errors and warnings,
+   * reporting problems for 1) introduced and 2) (possible unintended) solved issues.
+   * 
+   * The AST change must be a tuple (term-before, term-after) whereby
+   * 1) term-before and term-after are the terms before, respectively after the refactoring transformation. 
+   * 2) both terms can be semantically analyzed by the "analyze-top" strategy
+   *
+   * @type  Tuple(ast-before, ast-after) -> Tuple(List(errors), List(warnings))
+   * @param analyse             t -> t   prepares for checking semantic constraints
+   * @param constraint-error    t -> (t, String)
+   * @param constraint-warning  t -> (t, String)
+   */  
+  get-correctness-violations-astchange(analyze, constraint-error, constraint-warning):
+    (ast-before, ast-after) -> (errors, warnings)
+    where
+      ast-before-reanalyzed := <analyze> ast-before; //TODO: why needed?
+      //index-transaction(
+        errors-before   := <collect-all(constraint-error, conc)> ast-before-reanalyzed; 
+        warnings-before := <collect-all(constraint-warning, conc)> ast-before-reanalyzed; 
+      //);
+      //ast with name annotations that express the ACTUAL binding structure
+      ast-after-reanalyzed := <analyze> ast-after;
+      //index-transaction(
+        errors-after   := <collect-all(constraint-error, conc)> ast-after-reanalyzed;
+        warnings-after := <collect-all(constraint-warning, conc)> ast-after-reanalyzed;
+      //);
+      errors := <semantic-constraint-preservation-issues> (errors-before, errors-after);
+      warnings := <semantic-constraint-preservation-issues> (warnings-before, warnings-after)
+
+
+  semantic-constraint-preservation-issues:
+    (old-issues, new-issues) -> <conc> (introduced-issues, solved-issues)
+    where
+      introduced-issues := <diff(is-same-issue)> (new-issues, old-issues);
+      solved-issues     := <diff(is-same-issue); map(!(<Fst>, $[SOLVED, [<Snd>]]))> (old-issues, new-issues)
+  
+  is-same-issue:
+    issue-tuple@((trm1, message1), (trm2, message2)) -> issue-tuple
+    where
+      <origin-equal(|trm1)> trm2 <+
+      <origin-equal(|trm2)> trm1
+    where
+      <equal> (message1, message2) <+
+      <equal> (<has-annos; get-annos> trm1, <get-annos> trm2)
+      
+  tuple-conc:
+    ((errs1, warns1),(errs2, warns2)) -> (<conc>(errs1, errs2), <conc>(warns1, warns2)) 
+}

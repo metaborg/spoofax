@@ -13,6 +13,9 @@ import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.RuntimeActivator;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 
+/**
+ * @author Maartje de Jonge
+ */
 public class RefactoringContributionFactory extends ExtensionContributionFactory {
 	
 	public RefactoringContributionFactory() {

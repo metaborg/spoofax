@@ -107,6 +107,7 @@ public class Descriptor {
 	private void initializeFactories() throws BadDescriptorException {
 		serviceFactories.add(new ParseControllerFactory());
 		serviceFactories.add(new FoldingUpdaterFactory());
+		serviceFactories.add(new LabelProviderFactory());
 		serviceFactories.add(new TreeModelBuilderFactory());
 		serviceFactories.add(new ReferenceResolverFactory());
 		serviceFactories.add(new StrategoObserverFactory());
@@ -115,9 +116,9 @@ public class Descriptor {
 		serviceFactories.add(new BuilderFactory());
 		serviceFactories.add(new RefactoringFactory());
 		serviceFactories.add(new ContentProposerFactory());
-		serviceFactories.add(new LabelProviderFactory());
 		serviceFactories.add(new AutoEditStrategyFactory());
 		serviceFactories.add(new OnSaveServiceFactory());
+		serviceFactories.add(new TextReplacerFactory());
 	}
 	
 	/**
@@ -481,7 +482,7 @@ public class Descriptor {
 		try {
 			attachedFiles.add(new File(getParseTableName()));
 			attachedFiles.add(new File(getPPTableName()));
-		} catch (Exception e) {
+		} catch (BadDescriptorException e) {
 			// Ignore missing language name here
 		}
 

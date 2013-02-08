@@ -1,26 +1,19 @@
 package org.strategoxt.imp.runtime;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.language.Language;
-import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.Region;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
 import org.eclipse.ui.texteditor.IDocumentProvider;
-import org.eclipse.ui.texteditor.ITextEditor;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.ITokenizer;
@@ -41,6 +34,7 @@ public class EditorState extends FileState {
 	private final UniversalEditor editor;
 	
 	public EditorState(UniversalEditor editor) {
+		super(getDescriptor(editor));
 		this.editor = editor;
 	}
 	
@@ -116,16 +110,6 @@ public class EditorState extends FileState {
 	}
 	
 	// ACCESSORS
-	
-	public static boolean isUIThread() {
-		// return Display.getCurrent() != null; // may exist in multiple threads
-		try {
-			return PlatformUI.getWorkbench().getActiveWorkbenchWindow() != null;
-		} catch (IllegalStateException e) {
-			// Eclipse not running
-			return false;
-		}
-	}
 
 	public UniversalEditor getEditor() {
 		return editor;
@@ -133,31 +117,17 @@ public class EditorState extends FileState {
 	
 	@Override
 	public SGLRParseController getParseController() {
-		DynamicParseController wrapper = (DynamicParseController) getEditor().getParseController();
+		DynamicParseController wrapper = (DynamicParseController) editor.getParseController();
 		return (SGLRParseController) wrapper.getWrapped();
 	}
 	
+	@Override
 	public Language getLanguage() {
 		return getEditor().fLanguage;
 	}
 	
-	public final Descriptor getDescriptor() {
-		return Environment.getDescriptor(getLanguage());
-	}
-
-	public final IResource getResource() {
-    	return getParseController().getResource();
-	}
-	
-	public final ISourceProject getProject() {
-		return getParseController().getProject();
-	}
-	
-	/**
-	 * @see SGLRParseController#getCurrentAst
-	 */
-	public final IStrategoTerm getCurrentAst() {
-		return getParseController().getCurrentAst();
+	private static Descriptor getDescriptor(UniversalEditor editor) {
+		return Environment.getDescriptor(editor.fLanguage);
 	}
 	
 	public void scheduleParserUpdate(long delay) {
@@ -224,68 +194,5 @@ public class EditorState extends FileState {
 			|| editor.getEditorInput() == null
 			|| editor.getSite() == null
 			|| (editor instanceof AbstractTextEditor && ((AbstractTextEditor) editor).getDocumentProvider() == null));
-	}
-
-	/**
-	 * Asynchronously opens or activates an editor.
-	 * 
-	 * Exceptions are swallowed and logged.
-	 */
-	public static void asyncOpenEditor(Display display, final IFile file, final boolean activate) {
-		display.asyncExec(new Runnable() {
-			public void run() {
-				openEditor(file, activate);
-			}
-		});
-	}
-
-	/**
-	 * Asynchronously opens or activates an editor and jump to specified offset.
-	 * 
-	 * Exceptions are swallowed and logged.
-	 */
-	public static void asyncOpenEditor(Display display, final IFile file, final int offset, final boolean activate) {
-		display.asyncExec(new Runnable() {
-			public void run() {
-				openEditor(file, offset, activate);
-			}
-		});
-	}
-
-	/**
-	 * Opens a new editor. Must be invoked from the UI thread.
-	 * 
-	 * PartInitExceptions are swallowed and logged.
-	 */
-	public static void openEditor(final IFile file, final boolean activate) {
-		if (!isUIThread())
-			throw new IllegalStateException("Must be called from UI thread");
-		
-		IWorkbenchPage page =
-			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-		try {
-			IDE.openEditor(page, file, UniversalEditor.EDITOR_ID, activate);
-		} catch (PartInitException e) {
-			Environment.logException("Cannot open an editor for " + file, e);
-		}
-	}
-	
-	/**
-	 * Opens a new editor and jump to offset. Must be invoked from the UI thread.
-	 * 
-	 * PartInitExceptions are swallowed and logged.
-	 */
-	public static void openEditor(final IFile file, final int offset, final boolean activate) {
-		if (!isUIThread())
-			throw new IllegalStateException("Must be called from UI thread");
-		
-		IWorkbenchPage page =
-			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-		try {
-			ITextEditor ite = (ITextEditor) IDE.openEditor(page, file, UniversalEditor.EDITOR_ID, activate);
-			ite.selectAndReveal(offset, 0);
-		} catch (PartInitException e) {
-			Environment.logException("Cannot open an editor for " + file, e);
-		}
 	}
 }

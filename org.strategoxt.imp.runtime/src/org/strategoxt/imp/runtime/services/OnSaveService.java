@@ -10,7 +10,7 @@ import static org.spoofax.interpreter.core.Tools.termAt;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.cons;
 
 import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -53,13 +53,17 @@ public class OnSaveService implements IOnSaveService {
 		if (function == null) return;
 		
 		//String contents = event.getDocument().get();
-		
+
+		IStrategoTerm ast = editor.getCurrentAst();
+		invokeOnSave(ast);
+	}
+
+	public void invokeOnSave(IStrategoTerm ast) {
+        if (ast == null || function == null) return;
+        
 		try {
 			Environment.getStrategoLock().lock();
 			try {
-				IStrategoTerm ast = editor.getCurrentAst();
-				if (ast == null) return;
-				
 				IStrategoTerm result = runtime.invokeSilent(function, ast);
 				if (result == null) {
 					runtime.reportRewritingFailed();
@@ -71,7 +75,7 @@ public class OnSaveService implements IOnSaveService {
 					messages.commitAllChanges();
 				} else if (isTermString(result)) {
 					// Function's returning a filename
-					String file = asJavaString(termAt(result, 0));
+					String file = asJavaString(result);
 					if (new File(file).exists())
 						RefreshResourcePrimitive.call(runtime.getRuntime().getContext(), file);	
 				} else if (isTermTuple(result) && result.getSubtermCount() == 2 && isTermString(termAt(result, 0)) && isTermString(termAt(result, 1))) {
@@ -82,13 +86,13 @@ public class OnSaveService implements IOnSaveService {
 					try {
 						IFile resource = EditorIOAgent.getFile(runtime.getRuntime().getContext(), file);
 						StrategoBuilder.setFileContentsDirect(resource, newContents);
-					} catch (FileNotFoundException e) {
+					} catch (IOException e) {
 						Environment.logException("Problem when handling on save event", e);
 					} catch (CoreException e) {
 						Environment.logException("Problem when handling on save event", e);
 					}
 				} else if (!"None".equals(cons(result))) {
-					if (editor.getDescriptor().isDynamicallyLoaded())
+					if (editor != null && editor.getDescriptor().isDynamicallyLoaded())
 						Environment.logWarning("Unexpected result from 'on save' strategy: should be None() or (\"filename\", \"contents\"): " + result);
 				}
 			} finally {

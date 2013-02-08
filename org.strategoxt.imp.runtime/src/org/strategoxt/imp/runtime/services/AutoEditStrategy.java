@@ -469,7 +469,13 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 	}
 	
 	private static boolean useSpacesInsteadOfTabs() {
-		IPreferenceStore preferences = lastEditor.getThePreferenceStore();
+		IPreferenceStore preferences;
+		if(lastEditor!=null){
+			preferences = lastEditor.getThePreferenceStore();
+		}
+		else{
+			preferences = EditorState.getActiveEditor().getEditor().getThePreferenceStore();
+		}
 		return preferences != null && 
 			preferences.getBoolean(EDITOR_SPACES_FOR_TABS);
 	}
@@ -587,9 +593,12 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 	 * Dumb stripping of comments and layout, ignoring string literals and the like.
 	 */
 	private String stripCommentsAndLayout(String line) {
-		int lineCommentStart = line.indexOf(syntax.getSingleLineCommentPrefix());
-		if (lineCommentStart != -1)
-			line = line.substring(0, lineCommentStart);
+		final String singleLineCommentPrefix = syntax.getSingleLineCommentPrefix();
+		if (singleLineCommentPrefix != null) {
+			int lineCommentStart = line.indexOf(singleLineCommentPrefix);
+			if (lineCommentStart != -1)
+				line = line.substring(0, lineCommentStart);
+		}
 		// TODO: strip block comments
 		return line.trim();
 	}

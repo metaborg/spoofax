@@ -32,6 +32,16 @@ rules //pp rules for default nodes
   
 rules //interface
 
+construct-text-from-source(pp, parenthesize, override-reconstruction, resugar):
+	t@(oldnode, newnode) -> newText
+	where
+		<is-tuple> t;
+		<has-origin-term> oldnode	
+	with
+		parenthesized-node := <try(parenthesize)> newnode;
+		reconstructed-text := <topdown(try(strip-annos)); construct-text-from-old(pp, override-reconstruction, resugar)> (oldnode, parenthesized-node); 
+		newText := <origin-set-relation>(parenthesized-node, reconstructed-text)
+
 /*
  * Constructs the textual change associated with 
  * the transformation that replaces a (sub)term 'oldnode' with a new (sub)term 'newnode'.
@@ -43,14 +53,9 @@ rules //interface
  * @type (original-node, new-node) -> (Int,Int, String)
  */	
 construct-textual-change(pp, parenthesize, override-reconstruction, resugar):
-	t@(oldnode, newnode) -> (start-offset, end-offset, newText)
+	(oldnode, newnode) -> (start-offset, end-offset, newText)
 	where
-		<is-tuple> t;
-		<has-origin-term> oldnode		
-	with
-		parenthesized-node := <try(parenthesize)> newnode;
-		reconstructed-text := <topdown(try(strip-annos)); construct-text-from-old(pp, override-reconstruction, resugar)> (oldnode, parenthesized-node); 
-		r-text := <origin-set-relation>(parenthesized-node, reconstructed-text);
+		r-text := <construct-text-from-source(pp, parenthesize, override-reconstruction, resugar)>(oldnode, newnode);
 		(start-offset, end-offset, newText) := <ast-change-to-text-change(pp, override-reconstruction, resugar)> REPLACEMENT(oldnode, r-text)
 		
 rules
@@ -121,7 +126,7 @@ construct-text-by-pp(pp, override-reconstruction, resugar):
 	node -> text
 	where 
 		text := <
-			all(alltd(construct-text-with-comments(pp, override-reconstruction, resugar|<DEFAULT-INDENT>))); 
+			all(alltd(is-string <+ construct-text-with-comments(pp, override-reconstruction, resugar|<DEFAULT-INDENT>))); 
 			topdown(try(pp-default(pp))); //handle brackets
 			pp
 		> node

@@ -7,6 +7,7 @@ import static org.strategoxt.imp.runtime.dynamicloading.TermReader.cons;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.termContents;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -28,6 +29,10 @@ import org.spoofax.jsglr.client.KeywordRecognizer;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
+import org.strategoxt.imp.runtime.services.IStrategoRefactoringInput;
+import org.strategoxt.imp.runtime.services.StrategoRefactoringBooleanInput;
+import org.strategoxt.imp.runtime.services.StrategoRefactoringTextInput;
+import org.strategoxt.imp.runtime.services.StrategoTextChangeCalculator;
 import org.strategoxt.imp.runtime.services.IRefactoring;
 import org.strategoxt.imp.runtime.services.IRefactoringMap;
 import org.strategoxt.imp.runtime.services.RefactoringMap;
@@ -38,6 +43,9 @@ import org.strategoxt.imp.runtime.services.StrategoRefactoringIdentifierInput;
 import org.strategoxt.imp.runtime.services.StrategoRefactoringWizard;
 import org.strategoxt.imp.runtime.services.SyntaxProperties;
 
+/**
+ * @author Maartje de Jonge
+ */
 public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> {
 	
 	public RefactoringFactory() {
@@ -47,7 +55,7 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 	@Override
 	public IRefactoringMap create(Descriptor descriptor, SGLRParseController controller)
 			throws BadDescriptorException {
-		Set<IRefactoring> refactorings = collectRefactorings(descriptor, controller);
+		Set<IRefactoring> refactorings = collectRefactorings(descriptor, controller, controller.getEditor());
 		setRefactoringActions(controller.getEditor(), refactorings);
 		return new RefactoringMap(refactorings);
 	}
@@ -59,7 +67,7 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 		Set<IRefactoring> refactorings = new HashSet<IRefactoring>();
 		if (editor != null && controller instanceof SGLRParseController) {
 			try {
-				refactorings = collectRefactorings(descriptor, (SGLRParseController) controller);
+				refactorings = collectRefactorings(descriptor, (SGLRParseController) controller, editor);
 				setRefactoringActions(editor, refactorings);
 			} catch (BadDescriptorException e) {
 				Environment.logException("Could not eagerly initialize the refactoring service", e);
@@ -105,26 +113,24 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 	private static void queueAnalysisAffectedFiles(IRefactoring refactoring, EditorState editor) {		
 		IProject project = editor.getProject().getRawProject();
 		for (IPath projectRelativePath : refactoring.getRelativePathsOfAffectedFiles()) {
-			StrategoAnalysisQueueFactory.getInstance().queueAnalysis(projectRelativePath, project);			
+			StrategoAnalysisQueueFactory.getInstance().queueAnalysis(projectRelativePath, project, true);			
 		}
 	}
 
-	private static Set<IRefactoring> collectRefactorings(Descriptor d, SGLRParseController controller) throws BadDescriptorException {
+	private static Set<IRefactoring> collectRefactorings(Descriptor d, SGLRParseController controller, EditorState editor) throws BadDescriptorException {
+		HashMap<IStrategoTerm, String> keybindings = getKeybindings(d);
 		Set<IRefactoring> refactorings = new LinkedHashSet<IRefactoring>();
 		StrategoObserver feedback = d.createService(StrategoObserver.class, controller);
-		String ppStrategy = getPPStrategy(d);
-		String parenthesize = getParenthesizeStrategy(d);
-		String overrideReconstruction = getOverrideReconstructionStrategy(d);
-		String resugar = getResugarStrategy(d);
+		StrategoTextChangeCalculator textChangeCalculator = createTextChangeCalculator(d);
 		for (IStrategoAppl aRefactoring : collectTerms(d.getDocument(), "Refactoring")) {
 			IStrategoTerm[] semanticNodes = termAt(aRefactoring,0).getAllSubterms();
 			String caption = termContents(termAt(aRefactoring, 1));
 			String strategy = termContents(termAt(aRefactoring, 2));
 			IStrategoList options = termAt(aRefactoring, 3);
 			IStrategoTerm userInteractions = termAt(aRefactoring, 4);
-			ArrayList<StrategoRefactoringIdentifierInput> inputFields = 
-				getInputFields(userInteractions, controller.getEditor());
-			String actionDefinitionId = getKeyBinding(userInteractions);
+			ArrayList<IStrategoRefactoringInput> inputFields = 
+				getInputFields(userInteractions, editor);
+			String actionDefinitionId = getActionDefinitionId(userInteractions, keybindings);
 			//actionDefinitionId = "org.eclipse.jdt.ui.edit.text.java.rename.element";
 			boolean cursor = false;
 			boolean source = false;
@@ -156,10 +162,7 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 						strategy,
 						cursor, 
 						source, 
-						ppStrategy,
-						parenthesize,
-						overrideReconstruction,
-						resugar,
+						textChangeCalculator,
 						semanticNodes,
 						inputFields,
 						actionDefinitionId
@@ -168,6 +171,26 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 			}
 		}
 		return refactorings;
+	}
+
+	private static HashMap<IStrategoTerm, String> getKeybindings(Descriptor d) {
+		HashMap<IStrategoTerm, String> keybindings = new HashMap<IStrategoTerm, String>();
+		for (IStrategoAppl aBinding : collectTerms(d.getDocument(), "KeyBinding")) {
+			IStrategoTerm key = termAt(aBinding, 0);
+			String value = termContents(termAt(aBinding, 1));
+			keybindings.put(key, value);
+		}
+		return keybindings;
+	}
+
+	private static StrategoTextChangeCalculator createTextChangeCalculator(Descriptor d)
+			throws BadDescriptorException {
+		String ppStrategy = getPPStrategy(d);
+		String parenthesize = getParenthesizeStrategy(d);
+		String overrideReconstruction = getOverrideReconstructionStrategy(d);
+		String resugar = getResugarStrategy(d);
+		StrategoTextChangeCalculator textChangeCalculator = new StrategoTextChangeCalculator(ppStrategy, parenthesize, overrideReconstruction, resugar);
+		return textChangeCalculator;
 	}
 
 	public static String getPPStrategy(Descriptor d) throws BadDescriptorException {
@@ -186,11 +209,15 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 
 	public static String getOverrideReconstructionStrategy(Descriptor d) throws BadDescriptorException {
 		String overrideReconstructionStrategy = getHelperStrategyName(d, "OverrideReconstruction");
+		if(overrideReconstructionStrategy == null)
+			overrideReconstructionStrategy = "fail";
 		return overrideReconstructionStrategy;
 	}
 
 	public static String getResugarStrategy(Descriptor d) throws BadDescriptorException {
 		String resugarStrategy = getHelperStrategyName(d, "Resugar");
+		if(resugarStrategy == null)
+			resugarStrategy = "fail";
 		return resugarStrategy;
 	}
 
@@ -203,44 +230,82 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 	}
 
 
-	private static String getKeyBinding(IStrategoTerm userInteractions) {
-		IStrategoTerm keybinding = TermReader.findTerm(userInteractions, "KeyBinding");
-		if(keybinding != null)
-			return TermReader.termContents(keybinding);
+	private static String getActionDefinitionId(IStrategoTerm userInteractions, HashMap<IStrategoTerm, String> keybindings) {
+		IStrategoTerm keycombination = TermReader.findTerm(userInteractions, "KeyCombination");
+		if(keycombination != null)
+			return keybindings.get(keycombination);
 		IStrategoTerm interactionId = TermReader.findTerm(userInteractions, "InteractionId");
 		if(interactionId != null)
 			return TermReader.termContents(interactionId);
 		return null;
 	}
 
-	private static ArrayList<StrategoRefactoringIdentifierInput> getInputFields(
+	private static ArrayList<IStrategoRefactoringInput> getInputFields(
 			IStrategoTerm userInteractions, EditorState editor) {
-		ArrayList<StrategoRefactoringIdentifierInput> inputFields = new ArrayList<StrategoRefactoringIdentifierInput>();
+		ArrayList<IStrategoRefactoringInput> inputFields = new ArrayList<IStrategoRefactoringInput>();
 		IStrategoTerm userInput = TermReader.findTerm(userInteractions, "UserInput");
 		if(userInput != null){
 			IStrategoTerm userInputList = userInput.getSubterm(0);
 			for (int i = 0; i < userInputList.getSubtermCount(); i++) {
 				IStrategoAppl input = TermReader.applAt(userInputList, i);
-				if(TermReader.hasConstructor(input, "IdInputField")){
-					String label = termContents(termAt(input,0));
-					String defaultValue = "";
-					if(input.getSubtermCount() > 1)
-						defaultValue = termContents(termAt(input,1)); //TODO: Strategy OR String
-					StrategoRefactoringIdentifierInput idInput = 
-						new StrategoRefactoringIdentifierInput(
-							label, 
-							defaultValue, 
-							getIdPattern(editor), 
-							getKeywordRecognizer(editor),
-							getLanguageName(editor)
-						);
-					inputFields.add(idInput);
-				}
+				tryAddIdentifierInput(editor, inputFields, input);
+				tryAddTextInput(inputFields, input);
+				tryAddBooleanInput(inputFields, input);
 				//TODO other input types
 				//TODO pattern
 			}
 		}
 		return inputFields;
+	}
+
+	private static void tryAddIdentifierInput(EditorState editor,
+			ArrayList<IStrategoRefactoringInput> inputFields, IStrategoAppl input) {
+		assert editor != null;
+		if(TermReader.hasConstructor(input, "IdInputField")){
+			String label = termContents(termAt(input,0));
+			String defaultValue = "";
+			if(input.getSubtermCount() > 1)
+				defaultValue = termContents(termAt(input,1)); //TODO: Strategy OR String
+			StrategoRefactoringIdentifierInput idInput = 
+				new StrategoRefactoringIdentifierInput(
+					label, 
+					defaultValue, 
+					getIdPattern(editor), 
+					getKeywordRecognizer(editor),
+					getLanguageName(editor)
+				);
+			inputFields.add(idInput);
+		}
+	}
+
+	private static void tryAddTextInput(ArrayList<IStrategoRefactoringInput> inputFields, IStrategoAppl input) {
+		if(TermReader.hasConstructor(input, "TextInputField")){
+			String label = termContents(termAt(input,0));
+			String defaultValue = "";
+			if(input.getSubtermCount() > 1)
+				defaultValue = termContents(termAt(input,1)); //TODO: Strategy OR String
+			StrategoRefactoringTextInput textInput = 
+				new StrategoRefactoringTextInput(
+					label, 
+					defaultValue
+				);
+			inputFields.add(textInput);
+		}
+	}
+
+	private static void tryAddBooleanInput(ArrayList<IStrategoRefactoringInput> inputFields, IStrategoAppl input) {
+		if(TermReader.hasConstructor(input, "BooleanInputField")){
+			String label = termContents(termAt(input,0));
+			boolean defaultValue = false;
+			if(input.getSubtermCount() > 1 && TermReader.findTerm(input, "TrueValue") != null)
+				defaultValue = true; //TODO: Strategy OR String
+			StrategoRefactoringBooleanInput booleanInput = 
+				new StrategoRefactoringBooleanInput(
+					label, 
+					defaultValue
+				);
+			inputFields.add(booleanInput);
+		}
 	}
 
 	private static String getLanguageName(EditorState editor) {

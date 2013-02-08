@@ -1,11 +1,6 @@
 package org.strategoxt.imp.metatooling.loading;
 
 import static org.eclipse.core.resources.IMarker.SEVERITY_ERROR;
-import static org.eclipse.core.resources.IResourceDelta.ADDED;
-import static org.eclipse.core.resources.IResourceDelta.CONTENT;
-import static org.eclipse.core.resources.IResourceDelta.MOVED_FROM;
-import static org.eclipse.core.resources.IResourceDelta.MOVED_TO;
-import static org.eclipse.core.resources.IResourceDelta.REPLACED;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -20,6 +15,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -35,6 +31,7 @@ import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.dynamicloading.DescriptorFactory;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageBatch;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
+import org.strategoxt.imp.runtime.stratego.FileNotificationServer;
 
 /**
  * This class updates any editors in the environment,
@@ -143,40 +140,34 @@ public class DynamicDescriptorLoader implements IResourceChangeListener {
 		job.schedule(SCHEDULE_DELAY);
 	}
 	
-	public void postResourceChanged(IResourceDelta delta, IProgressMonitor monitor) {
-		IResourceDelta[] children = delta.getAffectedChildren();
-		
-		if (children.length == 0) {		
-			IResource resource = delta.getResource();
-			if (isSignificantChange(delta))
-				updateResource(resource, monitor, false);
-		} else {
-			// Recurse
-			for (IResourceDelta child : children)
-				postResourceChanged(child, monitor);
+	public void postResourceChanged(IResourceDelta delta, final IProgressMonitor monitor) {
+		try {
+			delta.accept(new IResourceDeltaVisitor() {
+				public boolean visit(IResourceDelta delta) throws CoreException {
+					if (FileNotificationServer.isSignificantChange(delta)) {
+						IResource resource = delta.getResource();
+						updateResource(resource, monitor, false);
+					}
+					return true;
+				}
+			});
+		} catch (CoreException e) {
+			Environment.logException("Exception when processing fileystem events", e);
 		}
-	}
-
-	private static boolean isSignificantChange(IResourceDelta delta) {
-		int flags = delta.getFlags();
-		return (flags & CONTENT) == CONTENT
-			|| (flags & MOVED_TO) == MOVED_TO
-			|| (flags & MOVED_FROM) == MOVED_FROM
-			|| (flags & REPLACED) == REPLACED
-			|| (flags & ADDED) == ADDED;
-			// UNDONE: || (flags == 0) (one known instance: when markers were added/removed)
 	}
 
 	private static boolean isSignificantChangeDeep(IResourceDelta delta) {
-		if (isSignificantChange(delta)) {
-			return true;
-		} else {
-			for (IResourceDelta child : delta.getAffectedChildren()) {
-				if (isSignificantChangeDeep(child) && isSignificantName(delta.getResource().getName()))
-					return true;
+		class IsSignificantVisitor implements IResourceDeltaVisitor {
+			boolean result;
+			public boolean visit(IResourceDelta delta) throws CoreException {
+				if (FileNotificationServer.isSignificantChange(delta) && isSignificantName(delta.getResource().getName())) {
+					result = true;
+				}
+				return true;
 			}
 		}
-		return false;
+		IsSignificantVisitor visitor = new IsSignificantVisitor();
+		return visitor.result;
 	}
 
 	private static boolean isSignificantName(String name) {

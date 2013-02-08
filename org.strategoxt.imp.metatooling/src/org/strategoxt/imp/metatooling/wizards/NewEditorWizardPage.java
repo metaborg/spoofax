@@ -9,6 +9,7 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
@@ -17,6 +18,10 @@ import org.eclipse.swt.widgets.Text;
  * The "New" wizard page allows setting the container for the new file as well
  * as the file name. The page will only accept file name without the extension
  * OR with the extension that matches the expected one (esv).
+ * 
+ * @author Lennart Kats <lennart at lclnet.nl>
+ * @author Vlad Vergu <v.a.vergu at tudelft.nl>
+ * 
  */
 
 public class NewEditorWizardPage extends WizardPage {
@@ -28,6 +33,10 @@ public class NewEditorWizardPage extends WizardPage {
 	private Text inputPackageName;
 	
 	private Text inputExtensions;
+	
+	private Button inputIgnores;
+	
+	private Button inputMinimalProject; 
 	
 	private boolean isInputProjectNameChanged;
 	
@@ -125,7 +134,20 @@ public class NewEditorWizardPage extends WizardPage {
 				}
 			}
 		});
-
+		
+		inputIgnores = new Button(container, SWT.CHECK);
+		inputIgnores.setText("&Generate .gitignore file");
+		final GridData inputIgnores_gd = new GridData(GridData.FILL_HORIZONTAL);
+		inputIgnores_gd.horizontalSpan = 2;
+		inputIgnores.setLayoutData(inputIgnores_gd);
+		
+		
+		inputMinimalProject = new Button(container, SWT.CHECK);
+		inputMinimalProject.setText("&Generate minimal project only");
+		final GridData inputMinimalProject_gd = new GridData(GridData.FILL_HORIZONTAL);
+		inputMinimalProject_gd.horizontalSpan = 2;
+		inputMinimalProject.setLayoutData(inputMinimalProject_gd);
+		
 		setControl(container);
 		setPageComplete(false);
 		inputProjectName.setFocus();
@@ -306,5 +328,13 @@ public class NewEditorWizardPage extends WizardPage {
 	
 	public String getInputExtensions() {
 		return inputExtensions.getText().trim();
+	}
+	
+	public boolean getInputIgnores() {
+		return inputIgnores.getSelection();
+	}
+	
+	public boolean getInputMinimalProject() {
+		return inputMinimalProject.getSelection();
 	}
 }

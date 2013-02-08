@@ -45,6 +45,8 @@ strategies
     ast2abox(|[<import-term(include/{sdf-name}.generated.pp.af)>,
                <import-term(include/{sdf-name}.pp.af)>]);
     box2text-string(|100)
+    
+  language = !"{sdf-name}"
 
 strategies
   
@@ -142,8 +144,17 @@ strategies
   origin-location  = prim("SSL_EXT_origin_location", <id>)
   origin-line      = origin-location => (<id>, _, _, _)
   origin-column    = origin-location => (_, <id>, _, _)
+  origin-file      = prim("SSL_EXT_origin_file", <id>)
   origin-strip     = prim("SSL_EXT_origin_strip", <id>)
   origin-equal(|t) = prim("SSL_EXT_origin_equal", <id>, t)
+
+  origin-language-description =
+    prim("SSL_EXT_languagedescription", <id>)
+
+  origin-language =
+    origin-file; 
+    origin-language-description;
+    Fst
   
   origin-surrounding-comments =
     prim("SSL_EXT_origin_surrounding_comments", "{sdf-name}", <id>)
@@ -159,6 +170,13 @@ strategies
   origin-track-forced(s) =
     ![<id>]; all(s); ?[<id>]
 
+  origin-relative-path:
+    trm -> rel-path
+    where
+      full-path := <origin-file> trm;
+      len-project-prefix := <project-path; string-length; inc>;
+      rel-path := <string-as-chars(drop(|len-project-prefix))> full-path
+      
 strategies
 
   desugar-position(desugar|ast):
@@ -223,6 +241,7 @@ signature constructors
   COMPLETION : String -> Term
   NOCONTEXT  : Term   -> Term
   MARKER     : Term
+  True       : Term
 
   // Below are copies of the signatures of the terms used in example
   // trans/{name}.str file. These definitions should also be automatically 
@@ -234,6 +253,9 @@ signature constructors
   Entity   : ID * List(Property) -> Entity
   Property : ID * Type           -> Property
   Type     : ID                  -> Type
+  
+  Type     : Namespace
+  Property : Namespace
 
 strategies
   
@@ -247,6 +269,10 @@ strategies
   queue-analysis = 
        (is-list; list-loop(queue-analysis))
     <+ prim("SSL_EXT_queue_analysis")
+    
+  // Gets the number of background analyses for currenct project and language.
+  // Current term: ignored
+  analysis-count = prim("SSL_EXT_queue_analysis_count")
 
   // Set the total number of work units to complete. Can be called multiple times. 
   // Current term: number of work units (int).

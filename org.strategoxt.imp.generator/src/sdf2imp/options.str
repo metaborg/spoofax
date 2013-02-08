@@ -12,6 +12,8 @@ strategies
   <+ start-symbol-option
   <+ jar-option
   <+ reset-files-option
+  <+ gen-ignores-option
+  <+ gen-minimal-project
   <+ verbose-option
 
   input-file-option =
@@ -49,7 +51,7 @@ strategies
     , rules(ProjectName := <id>)
     , !"-pn <project name>    Set project name (optional)"
     )
-
+  	
   jar-option =
     MultiArgOption(
       "-jar"
@@ -80,7 +82,21 @@ strategies
     , rules(ResetFiles: _)
     , !"-r | --reset          Reset all generated files to their defaults"
     )
+    
+  gen-ignores-option =
+  	Option(
+  	  "-vci"
+  	, rules(GenerateVCIgnores: _)
+  	, !"-vci                 Enable generation of ignores for version control systems" 
+  	)
   
+  gen-minimal-project = 
+  	Option(
+  	  "-min"
+  	, rules(GenerateMinimal: _)
+  	, !"-min                 Generate only a minimal project" 
+  	)
+  	
   parameterized-sort-to-rtg-sort =
     // Module[StrategoHost] -> Module_StrategoHost
     string-replace(|"[[", "_");

@@ -14,7 +14,6 @@ strategies
       <descriptor-name> "-Builders"
     , provider1 := <conc-strings> ("include/", <trans-module-name>, ".ctree");
       provider2 := <conc-strings> ("include/", <trans-module-name>, "-java.jar");
-      pp-strategy := $[pp-[<trans-module-name>]-string];
       !|[
         module <descriptor-name> "-Builders"
         
@@ -22,7 +21,7 @@ strategies
         
         builders
           ~~
-          ~~// This file can be used for custom analysis, builder and refactoring rules.
+          ~~// This file can be used for custom analysis and builder rules.
           ~~//
           ~~// See the imported file for a brief introduction and examples.
         builders
@@ -30,19 +29,18 @@ strategies
           provider: ~provider1
           provider: ~provider2
           ~~
-          observer: editor-analyze
+          observer: editor-analyze (multifile)
           ~~
-          builder: "Generate Java code (for selection)"   = generate-java  (openeditor) (realtime)
-          builder: "Show abstract syntax (for selection)" = generate-aterm (openeditor) (realtime) (meta) (source)
+				  builder: "Show abstract syntax" = debug-generate-aterm (openeditor) (realtime) (meta) (source)
+				  builder: "Show deffed syntax" = debug-generate-deffed (openeditor) (realtime) (meta) (source)
+				  builder: "Show analyzed syntax" = debug-generate-analyzed (openeditor) (realtime) (meta) (source)
+				  builder: "Show index entries for current file" = debug-index-show-current-file (openeditor) (realtime) (meta) (source)
+				  builder: "Show index entries for all files" = debug-index-show-all-files (openeditor) (realtime) (meta) (source)
+				  builder: "Clear index for current file" = debug-index-clear-current (meta) (source)
+				  builder: "Clear index" = debug-index-clear (meta) (source)
+				  builder: "Reload index" = debug-index-reload (meta) (source)
           ~~
-           
-        refactorings
-          pretty-print: ~pp-strategy
-          refactoring ID: "Rename Entity" = rename-entity (source) (cursor)
-          shortcut: "org.eclipse.jdt.ui.edit.text.java.rename.element"
-          input
-          	identifier: "new name" = ""
-          ~// on save: generate-java
+          on save: editor-save
       ]|
     );
     
@@ -51,7 +49,7 @@ strategies
     ,
       !|[
         module <descriptor-name> "-Builders.generated"
-        
+
         builders
           ~
           ~// Building and analysis is defined in Stratego program or programs:
@@ -65,6 +63,10 @@ strategies
           ~//
           ~// Any dynamic rules set in the analysis may be used by other semantic services,
           ~// such as reference resolving or the builders.
+          ~//
+          ~// The (multifile) annotation can be added to an observer to indcate that this
+          ~// observer will receive a list of files if multiple files change, instead of running
+          ~// the observer on every file separately.
           ~//
           ~// Builders may carry out custom transformations on a file or selection.
           ~// (At run-time, they can be accessed using the toolbar button with the star icon.)
@@ -86,35 +88,8 @@ strategies
           ~//   (source)      Always apply this builder to the source AST, not to the AST
           ~//                 after it has been analyzed/desugared by the observer.
           ~//
-          ~// Refactorings are used for transformations that modify the original source code,
-          ~// while preserving the layout and syntactic sugar. 
-          ~// A custom pretty-print strategy (T -> String) is used to format newly inserted nodes,
-          ~// a parenthesize strategy (T -> T) surrounds subterms with "Parenthetical(T)" when brackets are required,
-          ~// resugar rules are required for desugarings that are not local-to-local or desugarings that duplicate terms
-          ~// as the 'l' in \l -> []\ => {l: ( l -> [] )}.
-          ~// Finally, text-reconstruction can be overruled with a strategy (T-old, T-new) -> <try(custom-pp)> T-new,
-          ~// the resulting text will be indented according to its location.
-          ~// This is sometimes needed in case the node text can not be reconstructed by replacing child texts 
-          ~// in the original formatting.
-          ~//   
-          ~// Refactorings can be specified as shown below, whereby Property* indicates on which constructs the
-          ~// refactoring is specified (<sort>.<constructor>).
-          ~//
-          ~// refactorings
-          ~//
-          ~//   pretty-print: prettyprint          
-          ~//   parenthesize: parenthesize
-          ~//   resugar: resugar-node
-          ~//   override reconstruction: disallow-reconstruction 
-          ~// 
-          ~//   refactoring Property*: "Extract Entity" =  extract-entity (source)
-          ~//     shortcut: Shift+Alt+M
-          ~//     input
-          ~//       identifier: "entity name" = ""
-          ~//       identifier: "property name" = ""
-          ~// 
           ~// The 'on save' handler can be used  to generate code as files are saved:
           ~//   
-          ~//   on save : generate-java
+          ~//   on save : editor-save
       ]|
     )

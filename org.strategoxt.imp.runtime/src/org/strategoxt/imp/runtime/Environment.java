@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
-import java.lang.management.ManagementFactory;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -49,7 +48,6 @@ import org.strategoxt.imp.runtime.stratego.IMPJSGLRLibrary;
 import org.strategoxt.imp.runtime.stratego.IMPLibrary;
 import org.strategoxt.imp.runtime.stratego.IMPOpenFile;
 import org.strategoxt.imp.runtime.stratego.IMPParseStringPTPrimitive;
-import org.strategoxt.lang.compat.sglr.SGLRCompatLibrary;
 
 /**
  * Environment class that maintains a term factories, languages, and
@@ -63,7 +61,10 @@ import org.strategoxt.lang.compat.sglr.SGLRCompatLibrary;
  */
 public final class Environment {
 	
-	public static boolean DEBUG_INTERPRETER_ENABLED = false; // set to false to disable the creation of a DebuggableHybridInterpreter
+	/**
+	 * Global setting to enable the Stratego Debugger feature.
+	 */
+	public static boolean DEBUG_INTERPRETER_ENABLED = true;
 	
 	private final static ParseTableManager parseTableManager;
 	
@@ -89,26 +90,8 @@ public final class Environment {
 		termFactory = new TermFactory().getFactoryWithStorageType(IStrategoTerm.MUTABLE);
 		parseTableManager = new ParseTableManager(termFactory);
 		parseTables = Collections.synchronizedMap(new HashMap<String, ParseTableProvider>());
-		checkJVMOptions();
-	}
-
-	private static void checkJVMOptions() {
-		boolean ssOption = false;
-		boolean serverOption = false;
-		boolean mxOption = false;
-		
-		for (String arg : ManagementFactory.getRuntimeMXBean().getInputArguments()) {
-			if (arg.startsWith("-Xserver") || arg.startsWith("-server")) serverOption = true;
-			if (arg.startsWith("-Xss") || arg.startsWith("-ss")) ssOption = true;
-			if (arg.startsWith("-Xmx") || arg.startsWith("-mx")) mxOption = true;
-		}
-		
-		if (!serverOption)
-			Environment.logWarning("Make sure Eclipse is started with -vmargs -server (can be set in eclipse.ini) for best performance");
-		if (!mxOption)
-			Environment.logWarning("Make sure Eclipse is started with -vmargs -Xmx1024m (can be set in eclipse.ini) for at least 1024 MiB heap space (adjust downwards for low-memory systems)");
-		if (!ssOption)
-			Environment.logWarning("Make sure Eclipse is started with -vmargs -Xss8m (can be set in eclipse.ini) for an 8 MiB stack size");
+		// XXX: UNDONE. There doesn't seem to be a strong reason for eagerly loading the plugin.
+//		RuntimeActivator.getInstance().postInit();
 	}
 	
 	// TODO: Split up shared and non-shared environment entities?
@@ -122,7 +105,7 @@ public final class Environment {
 		if (!isInitialized && EditorState.isUIThread()) {
 			isInitialized = true;
 		} else if (Debug.ENABLED && !lock.isHeldByCurrentThread() && EditorState.isUIThread()) {
-			Environment.logWarning("Acquired environment lock from main thread");
+			//Environment.logWarning("Acquired environment lock from main thread");
 		}
 		return lock;
 	}
@@ -236,7 +219,7 @@ public final class Environment {
 		result.getCompiledContext().getExceptionHandler().setEnabled(false);
 		result.getCompiledContext().registerComponent("stratego_lib"); // ensure op. registry available
 		result.getCompiledContext().registerComponent("stratego_sglr"); // ensure op. registry available
-		SGLRCompatLibrary sglrLibrary = (SGLRCompatLibrary) result.getContext().getOperatorRegistry(SGLRCompatLibrary.REGISTRY_NAME);
+		JSGLRLibrary sglrLibrary = (JSGLRLibrary) result.getContext().getOperatorRegistry(JSGLRLibrary.REGISTRY_NAME);
 		IMPJSGLRLibrary impSglrLibrary = new IMPJSGLRLibrary(sglrLibrary);
 		result.addOperatorRegistry(impSglrLibrary);
 		result.addOperatorRegistry(new IMPLibrary());
@@ -411,8 +394,7 @@ public final class Environment {
 		}
 		if (message == null) message = t.getLocalizedMessage() == null ? t.getMessage() : t.getLocalizedMessage();
 		Status status = new Status(IStatus.ERROR, RuntimeActivator.PLUGIN_ID, 0, message, t);
-		RuntimeActivator activator = RuntimeActivator.getInstance();
-		if (activator != null) activator.getLog().log(status);
+		RuntimeActivator.tryLog(status);
 	}
 	
 	public static void logException(String message, StackTracer tracer, Throwable t) {
@@ -423,8 +405,7 @@ public final class Environment {
 		if (message == null) message = t.getLocalizedMessage() == null ? t.getMessage() : t.getLocalizedMessage();
 		message = message + "\n" + tracer.getTraceString();
 		Status status = new Status(IStatus.ERROR, RuntimeActivator.PLUGIN_ID, 0, message, t);
-		RuntimeActivator activator = RuntimeActivator.getInstance();
-		if (activator != null) activator.getLog().log(status);
+		RuntimeActivator.tryLog(status);
 	}
 	
 	public static void logException(String message) {
@@ -442,8 +423,7 @@ public final class Environment {
 	public static void logWarning(String message, Exception e) {
 		if (Debug.ENABLED) STDERR.println("Warning: " + message);
 		Status status = new Status(IStatus.WARNING, RuntimeActivator.PLUGIN_ID, 0, message, e);
-		RuntimeActivator activator = RuntimeActivator.getInstance();
-		if (activator != null) activator.getLog().log(status);
+		RuntimeActivator.tryLog(status);
 	}
 
 	public static void asynOpenErrorDialog(final String caption, final String message, final Throwable exception) {

@@ -104,6 +104,8 @@ strategies
       create-pp-table;
       create-example-trans;
       create-java-strategy;
+      create-example-nd;
+      create-placeholder-compiled-nd;
       input @ FILE(inputname) := <pack-default-sdf> FILE($[syntax/[<get-sdf-main-module>].sdf]);
       rules(DefaultDefFile := inputname)
     end;
@@ -128,6 +130,7 @@ strategies
     create-outliner-descriptor;
     create-colorer-descriptor;
     create-builders-descriptor;
+    create-refactorings-descriptor;
     create-references-descriptor;
     create-completions-descriptor;
 
@@ -142,13 +145,28 @@ strategies
     create-manifest;
     create-plugin-xml;
     create-build-xml;
+    create-external-builder-xml;
     create-build-generated-xml;
     create-builder-xml;
+    create-cleaner-xml;
     create-example-file;
     create-common-trans;
+    
+    create-index-library;
+    create-analysis-library;
+    create-analysis-internal-library;
+    create-compilation-library;
+    create-nbl-library;
+    
+    create-behavior-preservation;
+    create-namebinding-preservation;
+    create-correctness-preservation;
+    
     copy-jars;
     copy-def-file;
     create-jdt-prefs;
+    
+    create-ignore-files;
     
     say(!"Build succesful.")
 
@@ -187,8 +205,4 @@ strategies
     with
       def := $[include/[<get-sdf-main-module>].def];
       <file-exists <+ mkdir> "include";
-      
-      <pack-sdf(|[IncludeDir("syntax")])> FILE(sdf) => (_, def-asfix);
-      stream := <fopen> (def, "w");
-      <asfix-yield(|stream)> def-asfix;
-      <fclose> stream
+      <call> ("org.strategoxt.tools.main-pack-sdf", ["-i", sdf, "-o", def])

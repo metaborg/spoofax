@@ -4,6 +4,8 @@ import static org.eclipse.core.resources.IResource.DEPTH_INFINITE;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -39,7 +41,8 @@ import org.strategoxt.permissivegrammars.make_permissive;
 /**
  * A wizard for creating new Spoofax/IMP projects.
  * 
- * @author Lennart Kats <lennart add lclnet.nl>
+ * @author Lennart Kats <lennart at lclnet.nl>
+ * @author Vlad Vergu <v.a.vergu at tudelft.nl>
  */
 public class NewEditorWizard extends Wizard implements INewWizard {
 	
@@ -73,11 +76,13 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 		final String projectName = input.getInputProjectName();
 		final String packageName = input.getInputPackageName();
 		final String extensions = input.getInputExtensions();
+		final boolean genIgnores = input.getInputIgnores();
+		final boolean genMinimal = input.getInputMinimalProject();
 		
 		IRunnableWithProgress op = new IRunnableWithProgress() {
 			public void run(IProgressMonitor monitor) throws InvocationTargetException {
 				try {
-					doFinish(languageName, projectName, packageName, extensions, monitor);
+					doFinish(languageName, projectName, packageName, extensions, genIgnores, genMinimal, monitor);
 				} catch (Exception e) {
 					throw new InvocationTargetException(e);
 				} finally {
@@ -110,8 +115,8 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 		}
 	}
 	
- 	private void doFinish(String languageName, String projectName, String packageName, String extensions, IProgressMonitor monitor) throws IOException, CoreException {
-		final int TASK_COUNT = 20;
+ 	private void doFinish(String languageName, String projectName, String packageName, String extensions, boolean genIgnores, boolean genMinimal, IProgressMonitor monitor) throws IOException, CoreException {
+		final int TASK_COUNT = 22;
 		lastProject = null;
 		monitor.beginTask("Creating " + languageName + " project", TASK_COUNT);
 		
@@ -132,7 +137,33 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 
 		agent.setWorkingDir(project.getLocation().toOSString());
 		try {
-			sdf2imp.mainNoExit(context, "-m", languageName, "-pn", projectName, "-n", packageName, "-e", extensions, "--verbose", "2");
+			final List<String> sdf2imp_switches = new ArrayList<String>();
+			// language name
+			sdf2imp_switches.add("-m");
+			sdf2imp_switches.add(languageName);
+			// project name
+			sdf2imp_switches.add("-pn");
+			sdf2imp_switches.add(projectName);
+			// package (java) name
+			sdf2imp_switches.add("-n");
+			sdf2imp_switches.add(packageName);
+			// target language file extensions
+			sdf2imp_switches.add("-e");
+			sdf2imp_switches.add(extensions);
+			// .gitignores
+			if(genIgnores)
+				sdf2imp_switches.add("-vci");
+			// minimal project
+			if(genMinimal)
+				sdf2imp_switches.add("-min");
+			
+			// verbosity of builder
+			sdf2imp_switches.add("--verbose");
+			sdf2imp_switches.add("2");
+			
+			sdf2imp.mainNoExit(context, sdf2imp_switches.toArray(new String[sdf2imp_switches.size()]));
+			
+//				sdf2imp.mainNoExit(context, "-m", languageName, "-pn", projectName, "-n", packageName, "-e", extensions, "-vci", "--verbose", "2");
 		} catch (StrategoErrorExit e) {
 			Environment.logException(e);
 			throw new StrategoException("Project builder failed: " + e.getMessage() + "\nLog follows:\n\n"
@@ -155,7 +186,7 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 			try { // avoid background editor loading
 				monitor.setTaskName("Loading new resources");
 				project.refreshLocal(IResource.DEPTH_INFINITE, new NullProgressMonitor());
-				monitor.worked(1);
+				monitor.worked(3);
 				
 				monitor.setTaskName("Building and loading example editor");
 				project.build(IncrementalProjectBuilder.FULL_BUILD, null);
@@ -180,12 +211,15 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 		monitor.setTaskName("Opening editor tabs");
 		Display display = getShell().getDisplay();
 		EditorState.asyncOpenEditor(display, project.getFile("/trans/" + toStrategoName(languageName) +  ".str"), true);
-		monitor.worked(2);
+		monitor.worked(1);
 		EditorState.asyncOpenEditor(display, project.getFile("/editor/" + languageName +  ".main.esv"), true);
+		monitor.worked(1);
+		EditorState.asyncOpenEditor(display, project.getFile("/trans/names.nd"), true);
 		monitor.worked(1);
 		EditorState.asyncOpenEditor(display, project.getFile("/syntax/" + languageName +  ".sdf"), true);
 		monitor.worked(1);
-		EditorState.asyncOpenEditor(display, project.getFile("/test/example." + extensions.split(",")[0]), false);
+		if(!genMinimal)
+			EditorState.asyncOpenEditor(display, project.getFile("/test/example." + extensions.split(",")[0]), false);
 		refreshProject(project);
 		monitor.done();
 	}

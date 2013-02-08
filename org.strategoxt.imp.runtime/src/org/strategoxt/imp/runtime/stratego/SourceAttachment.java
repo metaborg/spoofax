@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.parser.IParseController;
 import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
@@ -11,6 +12,8 @@ import org.spoofax.terms.attachments.AbstractTermAttachment;
 import org.spoofax.terms.attachments.ParentAttachment;
 import org.spoofax.terms.attachments.TermAttachmentType;
 import org.spoofax.terms.attachments.VolatileTermAttachmentType;
+import static org.spoofax.terms.attachments.OriginAttachment.*;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.*;
 
 /** 
  * A tree-wide source resource and parse controller attachment.
@@ -52,9 +55,11 @@ public class SourceAttachment extends AbstractTermAttachment {
 	public static IResource getResource(ISimpleTerm term) {
 		SourceAttachment resource = ParentAttachment.getRoot(term).getAttachment(TYPE);
 		if (resource == null) {
-			while (term.getAttachment(ImploderAttachment.TYPE) == null && term.getSubtermCount() > 0)
+			while (!hasImploderOrigin(term) && term.getSubtermCount() > 0)
 				term = term.getSubterm(0);
 			if (term.getAttachment(ImploderAttachment.TYPE) == null)
+				term = getOrigin(term);
+			if (term == null || term.getAttachment(ImploderAttachment.TYPE) == null)
 				return null;
 			
 			String file = ImploderAttachment.getFilename(term);
@@ -66,6 +71,14 @@ public class SourceAttachment extends AbstractTermAttachment {
 		} else {
 			return resource.resource;
 		}
+	}
+	
+	public static File getFile(ISimpleTerm term) {
+		IResource resource = getResource(term);
+		if (resource == null) return null;
+		IPath path = resource.getLocation();
+		if (path == null) path = resource.getFullPath();
+		return path.toFile();
 	}
 
 	public static IParseController getParseController(ISimpleTerm term) {

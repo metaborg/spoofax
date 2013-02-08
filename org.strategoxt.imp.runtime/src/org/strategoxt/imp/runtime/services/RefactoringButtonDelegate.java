@@ -10,6 +10,9 @@ import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 
+/**
+ * @author Maartje de Jonge
+ */
 public class RefactoringButtonDelegate extends ToolbarButtonDelegate implements IWorkbenchWindowPulldownDelegate {
 
 	@Override

@@ -4,12 +4,14 @@ imports
   EditorService
   
 %%Comments[Section]
-  Comments[SemanticRule]
+  Comments[BuilderRule]
+  Comments[CompletionRule]
+  Comments[RefactoringRule]
+  Comments[ReferenceRule]
   Comments[ColorRule]
   Comments[OutlineRule]
   Comments[FoldingRule]
   Comments[LanguageProperty]
-  Comments[ReferenceRule]
 
 exports
   context-free start-symbols Module[[StrategoHost]]
@@ -28,12 +30,20 @@ exports
     "descriptor" "|[" OutlineRule  "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
     "descriptor" "|[" ColorRule    "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
     "descriptor" "|[" FoldingRule  "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr"), avoid}
-    "descriptor" "|[" SemanticRule "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
+
+    "descriptor" "|[" BuilderRule "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
+    "descriptor" "|[" CompletionRule "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
+    "descriptor" "|[" RefactoringRule "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
+    "descriptor" "|[" ReferenceRule "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
     
                  "|[" OutlineRule  "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
                  "|[" ColorRule    "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
                  "|[" FoldingRule  "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr"), avoid}
-                 "|[" SemanticRule "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
+
+                 "|[" BuilderRule     "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
+                 "|[" CompletionRule  "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
+                 "|[" RefactoringRule "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
+                 "|[" ReferenceRule   "]|" -> Term[[StrategoHost]] {cons("ToMetaExpr")}
 
     QuotedTerm -> Id {cons("FromMetaExpr"), avoid}
     QuotedTerm -> PropertyValue {cons("FromMetaExpr"), avoid}
@@ -43,13 +53,21 @@ exports
     QuotedTerm -> Color {cons("FromMetaExpr")}
     QuotedTerm -> Font  {cons("FromMetaExpr")}
     QuotedTerm -> SectionName {cons("FromMetaExpr")}
-    QuotedTerm -> SemanticRule {cons("FromMetaExpr"), avoid}
+
+    QuotedTerm -> BuilderRule {cons("FromMetaExpr"), avoid}
+    QuotedTerm -> CompletionRule {cons("FromMetaExpr"), avoid}
+    QuotedTerm -> RefactoringRule {cons("FromMetaExpr"), avoid}
+    QuotedTerm -> ReferenceRule {cons("FromMetaExpr"), avoid}
     
     QuotedTerms -> OutlineRule*   {cons("FromMetaExpr")}
     QuotedTerms -> ColorRule*     {cons("FromMetaExpr")}
     QuotedTerms -> FoldingRule*   {cons("FromMetaExpr")}
     QuotedTerms -> PropertyValues {cons("FromMetaExpr")}
-    QuotedTerms -> SemanticRule*  {cons("FromMetaExpr")}
+
+    QuotedTerms -> BuilderRule*  {cons("FromMetaExpr")}
+    QuotedTerms -> CompletionRule*  {cons("FromMetaExpr")}
+    QuotedTerms -> RefactoringRule*  {cons("FromMetaExpr")}
+    QuotedTerms -> ReferenceRule*  {cons("FromMetaExpr")}
 
     "~"  Term[[StrategoHost]] -> QuotedTerm  {bracket}
     "~*" Term[[StrategoHost]] -> QuotedTerms {bracket}

@@ -2,10 +2,11 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Spoofax/IMP Runtime
 Bundle-SymbolicName: org.strategoxt.imp.runtime;singleton:=true
-Bundle-Version: 0.1.1.qualifier
+Bundle-Version: 0.1.2.qualifier
 Require-Bundle: org.eclipse.imp.runtime,
  org.spoofax.jsglr;bundle-version="0.3.0",
  org.spoofax.interpreter.core,
+ org.spoofax.interpreter.ui,
  org.spoofax.interpreter.library.jsglr,
  org.eclipse.core.runtime,
  org.eclipse.core.resources,
@@ -15,7 +16,7 @@ Require-Bundle: org.eclipse.imp.runtime,
  org.eclipse.jface.text,
  org.eclipse.ui.editors,
  org.eclipse.ui.workbench.texteditor,
- org.eclipse.ui,
+ org.eclipse.ui;bundle-version="3.4.0",
  org.eclipse.ui.ide,
  org.eclipse.ui.console,
  org.eclipse.debug.ui,
@@ -23,9 +24,13 @@ Require-Bundle: org.eclipse.imp.runtime,
  org.strategoxt.imp.generator,
  org.strategoxt.imp.spoofax.generator,
  org.spoofax.terms,
+ org.spoofax.interpreter.library.index,
  org.strategoxt.strj,
  org.strategoxt.imp.debug.core,
- org.eclipse.core.expressions
+ org.eclipse.core.expressions,
+ org.strategoxt.imp.runtime.sidebyside.main;bundle-version="0.0.1",
+ org.strategoxt.imp.runtime.sidebyside.legacy;bundle-version="0.0.1";resolution:=optional,
+ org.strategoxt.imp.runtime.sidebyside.latest;bundle-version="0.0.1"
 Export-Package: org.strategoxt.imp.runtime,
  org.strategoxt.imp.runtime.dynamicloading,
  org.strategoxt.imp.runtime.parser,
@@ -39,3 +44,5 @@ Bundle-ActivationPolicy: lazy
 Bundle-Activator: org.strategoxt.imp.runtime.RuntimeActivator
 Import-Package: org.eclipse.ltk.core.refactoring,
  org.eclipse.ltk.ui.refactoring
+Eclipse-BuddyPolicy: registered
+

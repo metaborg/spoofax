@@ -46,6 +46,10 @@ public class ContentProposal implements ICompletionProposal, ICompletionProposal
 
 	private final Completion completion;
 
+	public Completion getCompletion() {
+		return completion;
+	}
+
 	private final String prefix;
 
 	private final ITextViewer viewer;

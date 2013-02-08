@@ -19,15 +19,49 @@ import org.strategoxt.imp.runtime.parser.ast.AstNodeLocator;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
+ * @author Guido Wachsmuth <G.H.Wachsmuth add tudelft.nl>
  */
 public class LabelProvider implements ILabelProvider {
 
+//	private final StrategoObserver observer;
+//	private final String function;
+//	
+//	public LabelProvider() {
+//		this.observer = null;
+//		this.function = "";
+//		Debug.log("label provider nullary");
+//	}
+//	
+//	public LabelProvider(StrategoObserver observer, String function) {
+//		this.observer = observer;
+//		this.function = function;
+//	}
+	
 	public Image getImage(Object element) {
 		return null;
 	}
 
 	public String getText(Object element) {
 		IStrategoTerm node = AstNodeLocator.impObjectToAstNode(element);
+		
+//		// try to apply label provider strategy
+//		if (function != null) {
+//			observer.getLock().lock();
+//			try {
+//				IStrategoTerm result = observer.invokeSilent(function, node);
+//				if (result != null) {
+//					if (isTermString(result)) {
+//						return ((IStrategoString) result).stringValue();
+//					} else {
+//						return result.toString();
+//					}
+//				}
+//			} finally {
+//				observer.getLock().unlock();
+//			}
+//		}
+//		
+//		// fall back to generic code
 		String caption = getCaption(node);
 		
 		if (caption == null) {
@@ -42,7 +76,7 @@ public class LabelProvider implements ILabelProvider {
 	}
 
 	private String getCaption(IStrategoTerm node) {
-		// TODO: add user-defined outline captions, perhaps just using Stratego
+		// TODO Remove hack for hardcoded outline
 		// HACK: Hardcoded outlining, until we have support for patterns
 		String constructor = node == null ? null : tryGetName(node);
 		

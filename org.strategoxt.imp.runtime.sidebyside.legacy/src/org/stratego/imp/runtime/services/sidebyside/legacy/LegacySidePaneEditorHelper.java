@@ -1,4 +1,4 @@
-package org.strategoxt.imp.runtime.services;
+package org.stratego.imp.runtime.services.sidebyside.legacy;
 
 import java.lang.ref.WeakReference;
 
@@ -11,8 +11,7 @@ import org.eclipse.ui.internal.EditorPane;
 import org.eclipse.ui.internal.EditorSashContainer;
 import org.eclipse.ui.internal.EditorStack;
 import org.eclipse.ui.internal.WorkbenchPage;
-import org.strategoxt.imp.runtime.EditorState;
-import org.strategoxt.imp.runtime.Environment;
+import org.stratego.imp.runtime.services.sidebyside.main.SidePaneEditorHelper;
 
 /**
  * A helper class for opening editors side-by-side.
@@ -22,43 +21,32 @@ import org.strategoxt.imp.runtime.Environment;
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 @SuppressWarnings("restriction")
-public class SidePaneEditorHelper {
-	
-	private static EditorStack previousNewStack;
-	
-	private static WeakReference<IEditorPart> previousNewEditor;
-	
+public class LegacySidePaneEditorHelper extends SidePaneEditorHelper {
+
+	private EditorStack previousNewStack;
+
+	private WeakReference<IEditorPart> previousNewEditorRef;
+
 	private EditorStack oldStack;
-	
+
 	private EditorStack newStack;
-	
+
 	private EditorSashContainer layoutPart;
-	
+
 	private boolean isEmptyPane;
-	
-	private SidePaneEditorHelper() {
-		// Private
-	}
-	
-	public static SidePaneEditorHelper openSidePane() throws Throwable {
-		SidePaneEditorHelper cookie = new SidePaneEditorHelper();
-		cookie.internalOpenSidePane();
-		return cookie;
-	}
-	
+
 	public void internalOpenSidePane() throws Throwable {
-		if (!EditorState.isUIThread())
-			throw new IllegalStateException("Must be called from the UI thread");
-		
-		IWorkbenchPage page =
-			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+		// if (!EditorState.isUIThread())
+		// throw new IllegalStateException("Must be called from the UI thread");
+
+		IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 
 		EditorAreaHelper editorArea = ((WorkbenchPage) page).getEditorPresentation();
-		
+
 		// Find an existing stack next to the active editor
 		oldStack = editorArea.getActiveWorkbook();
 		newStack = findReusableStack(editorArea);
-		
+
 		if (newStack == null) {
 			// Create a new stack
 			layoutPart = (EditorSashContainer) editorArea.getLayoutPart();
@@ -69,19 +57,16 @@ public class SidePaneEditorHelper {
 		} else {
 			isEmptyPane = false;
 		}
-		
+
 		newStack.setFocus();
-		previousNewEditor = null;
+		previousNewEditorRef = null;
 	}
 
 	private EditorStack findReusableStack(EditorAreaHelper editorArea) {
 		EditorStack result = null;
 		boolean foundGoodMatch = false;
-		IEditorPart previousNewEditor =
-			SidePaneEditorHelper.previousNewEditor == null
-					? null
-					: SidePaneEditorHelper.previousNewEditor.get();
-		
+		IEditorPart previousNewEditor = previousNewEditorRef == null ? null : previousNewEditorRef.get();
+
 		for (Object stackObject : editorArea.getWorkbooks()) {
 			if (!(stackObject instanceof EditorStack))
 				continue;
@@ -100,37 +85,30 @@ public class SidePaneEditorHelper {
 				}
 			}
 		}
-		
+
 		return result;
 	}
-	
+
 	private static boolean contains(EditorPane[] array, IEditorPart member) {
 		for (int i = 0; i < array.length; i++) {
 			IEditorReference ref = array[i].getEditorReference();
-			if (ref.getEditor(false) == member) return true;
+			if (ref.getEditor(false) == member)
+				return true;
 		}
 		return false;
 	}
-	
-	public void restoreFocus() {
-		try {
-			previousNewStack = newStack;
-			oldStack.setFocus();
-		} catch (Throwable t) {
-			Environment.logException("Could not restore focus from side pane", t);			
-		}
+
+	public void restoreFocus() throws Throwable {
+		previousNewStack = newStack;
+		oldStack.setFocus();
 	}
-	
+
 	public void setOpenedEditor(IEditorPart editor) {
-		previousNewEditor = editor == null ? null : new WeakReference<IEditorPart>(editor);
+		previousNewEditorRef = editor == null ? null : new WeakReference<IEditorPart>(editor);
 	}
-	
-	public void undoOpenSidePane() {
-		try {
-			if (isEmptyPane)
-				layoutPart.remove(newStack);
-		} catch (Throwable t) {
-			Environment.logException("Could not close side pane", t);			
-		}
+
+	public void undoOpenSidePane() throws Throwable {
+		if (isEmptyPane)
+			layoutPart.remove(newStack);
 	}
 }

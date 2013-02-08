@@ -10,6 +10,9 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 
+/**
+ * @author Maartje de Jonge
+ */
 public class StrategoRefactoringPage extends UserInputWizardPage {
 	
 	public StrategoRefactoringPage() {
@@ -27,9 +30,9 @@ public class StrategoRefactoringPage extends UserInputWizardPage {
 				handleInputChanged();
 			}
 		};
-		ArrayList<StrategoRefactoringIdentifierInput> inputFields = 
+		ArrayList<IStrategoRefactoringInput> inputFields = 
 			getStrategoRefactoring().getInputFields();
-		for (StrategoRefactoringIdentifierInput input : inputFields) {
+		for (IStrategoRefactoringInput input : inputFields) {
 			input.setInputArea(result, modListener);
 		}
 		handleInputChanged();
@@ -54,7 +57,7 @@ public class StrategoRefactoringPage extends UserInputWizardPage {
 
 	private RefactoringStatus validateUserInput() {
 		RefactoringStatus status = new RefactoringStatus();
-		for (StrategoRefactoringIdentifierInput input : getStrategoRefactoring().getInputFields()) {
+		for (IStrategoRefactoringInput input : getStrategoRefactoring().getInputFields()) {
 			status.merge(input.validateUserInput());
 		}
 		return status;

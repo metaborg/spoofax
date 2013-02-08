@@ -2,7 +2,9 @@ package org.strategoxt.imp.runtime.services;
 
 import org.eclipse.ltk.ui.refactoring.RefactoringWizard;
 
-
+/**
+ * @author Maartje de Jonge
+ */
 public class StrategoRefactoringWizard extends RefactoringWizard {
 	
 	StrategoRefactoringPage inputPage;

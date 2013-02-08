@@ -9,9 +9,9 @@ import org.strategoxt.imp.runtime.parser.SGLRParseController;
 /**
  * Dynamic service proxy base class: implements an editor service
  * for the "Root" language, from which all dynamically loaded languages
- * inherit. The proxy class then allows it to be specialized for
- * the specific language on demand.  
- * 
+ * inherit. The proxy class then allows it to be specialized for the 
+ * specific language on demand.  
+ *   
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class AbstractService<T extends ILanguageService> implements IDynamicLanguageService {

@@ -31,6 +31,7 @@ strategies
       
       imports
         <descriptor-name> "-Builders"
+        <descriptor-name> "-Refactorings"
         <descriptor-name> "-Colorer"
         <descriptor-name> "-Completions"
         <descriptor-name> "-Folding"

@@ -17,6 +17,9 @@ import org.strategoxt.imp.runtime.RuntimeActivator;
 import org.strategoxt.imp.runtime.SpoofaxPreferencePage;
 import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 
+/**
+ * @author Maartje de Jonge
+ */
 public class EditScenarioCollector {
 	
 	private int editNumber;
@@ -65,10 +68,8 @@ public class EditScenarioCollector {
 				prs.print(tokens.getInput());
 				prs.close();
 			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (IOException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
 			oldTokens = tokens;

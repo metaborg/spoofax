@@ -3,8 +3,6 @@ package org.strategoxt.imp.runtime;
 import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
 import org.eclipse.jface.preference.IPreferenceStore;
 
-import org.strategoxt.imp.runtime.RuntimeActivator;
-
 /**
  * Class used to initialize default preference values.
  */

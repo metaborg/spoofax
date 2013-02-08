@@ -9,7 +9,6 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.ErrorDialog;
-import org.eclipse.ui.progress.UIJob;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
@@ -32,16 +31,17 @@ public class DebugModeBuilder implements IBuilder {
 	}
 
 	public String getCaption() {
-		if (this.observer.isDebuggerEnabled())
-		{
+		if (this.observer.isDebuggerEnabled()) {
 			return "Disable debug mode";
-		}
-		else
-		{
+		} else {
 			return "Enable debug mode";
 		}
 	}
 
+	/**
+	 * Only schedule a rebuild when the project really requires it.
+	 * A project requires a rebuild when it is in debug mode but the required classes are not loaded.
+	 */
 	public Job scheduleExecute(final EditorState editor, IStrategoTerm node,
 			final IFile errorReportFile, final boolean isRebuild) {
 		// ignore the parameters, we just want to toggle the debug mode and rebuild the project (if necessary)
@@ -49,18 +49,15 @@ public class DebugModeBuilder implements IBuilder {
 		boolean isDebuggerEnabled = observer.isDebuggerEnabled();
 		observer.setDebuggerEnabled(!isDebuggerEnabled); // toggle
 		boolean needsProjectRebuild = false;
-		if (observer.isDebuggerEnabled())
-		{
+		if (observer.isDebuggerEnabled()) {
 			try {
 				needsProjectRebuild = observer.needsProjectRebuild();
 			} catch (CoreException e) {
 				this.openError(editor, e.getMessage());
 			}
 		}
-		System.out.println("NEEDS REBUILD: " + needsProjectRebuild);
 		Job job = null;
-		if (needsProjectRebuild)
-		{
+		if (needsProjectRebuild) {
 			job = new Job("Executing " + displayCaption) {
 				@Override
 				protected IStatus run(IProgressMonitor monitor) {
@@ -87,8 +84,7 @@ public class DebugModeBuilder implements IBuilder {
 	private void execute(EditorState editor, IProgressMonitor monitor) {
 		// rebuild the project
 		IProject project = this.observer.getProject();
-		if (project != null)
-		{
+		if (project != null) {
 			int kind = IncrementalProjectBuilder.INCREMENTAL_BUILD;
 			//int kind = IncrementalProjectBuilder.FULL_BUILD;
 			

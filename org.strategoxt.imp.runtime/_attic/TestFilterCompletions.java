@@ -11,6 +11,7 @@ import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.junit.Before;
 import org.junit.Test;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 
 /**
  * Unit tests for the ContentProposer.filterCompletions method.
@@ -29,7 +30,7 @@ public class TestFilterCompletions {
 
 	@Before
 	public void setUp() throws Exception {
-		cp = new ContentProposer(null, null, identifierLexical, null);
+		cp = new ContentProposer(null, null, null, new IStrategoTerm[0], identifierLexical, null);
 		completions = new HashSet<Completion>();
 		results = null;
 	}

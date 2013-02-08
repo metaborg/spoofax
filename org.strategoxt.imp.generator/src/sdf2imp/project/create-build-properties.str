@@ -17,4 +17,5 @@ bin.includes = META-INF/,\\
                bin/,\\
                lib/,\\
                .
+bin.excludes = trans/
 "

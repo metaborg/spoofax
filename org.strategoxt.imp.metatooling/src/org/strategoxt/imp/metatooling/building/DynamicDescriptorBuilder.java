@@ -128,10 +128,6 @@ public class DynamicDescriptorBuilder {
 				return false;
 			}
 			
-			monitor.setTaskName("Loading " + mainFile.getName());
-			if (AntDescriptorBuilder.isActive())
-				System.err.println("Loading new editor services");
-			DynamicDescriptorLoader.getInstance().loadPackedDescriptor(getTargetDescriptor(mainFile));
 			monitor.setTaskName(null);
 			return true;
 			
@@ -141,6 +137,7 @@ public class DynamicDescriptorBuilder {
 			return false;
 		}
 	}
+	
 
 	/**
 	 * Invoke the Stratego-based descriptor builder.

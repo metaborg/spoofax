@@ -112,6 +112,8 @@ public abstract class AbstractSGLRI {
 		IStrategoTerm result = doParse(input, filename);
 		if (new NullProgressMonitor().isCanceled())
 			throw new OperationCanceledException();
+		if (result == null)
+			return null;
 		SGLRParseController controller = getController() == null ? null : getController();
 		IResource resource = controller == null ? null : controller.getResource();
 		if(resource==null && filename !=null) {

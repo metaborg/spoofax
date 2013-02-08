@@ -13,6 +13,7 @@ import static org.strategoxt.imp.runtime.dynamicloading.TermReader.cons;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.termContents;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -96,6 +97,8 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	
 	private final String feedbackFunction;
 	
+	private final boolean multifile;
+	
 	private final AstMessageHandler messages = new AstMessageHandler(AstMessageHandler.ANALYSIS_MARKER_TYPE);
 	
 	private final Lock observerSchedulerLock = new SWTSafeLock(true);
@@ -126,9 +129,10 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	 */
 	private volatile boolean isDebuggerEnabled = false;
 	
-	public StrategoObserver(Descriptor descriptor, String feedbackFunction) {
+	public StrategoObserver(Descriptor descriptor, String feedbackFunction, boolean multifile) {
 		this.descriptor = descriptor;
 		this.feedbackFunction = feedbackFunction;
+		this.multifile = multifile;
 	}
 
 	public final AnalysisRequired getAnalysisRequired() {
@@ -137,6 +141,10 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	
 	public void setPrototypeAllowed(boolean isPrototypeAllowed) {
 		this.isPrototypeAllowed = isPrototypeAllowed;
+	}
+	
+	public IStrategoTerm getResultingAst(IResource resource) {
+		return resultingAsts.get(resource);
 	}
 	
 	/**
@@ -170,6 +178,15 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	
 	public InputTermBuilder getInputBuilder() {
 		assert getLock().isHeldByCurrentThread();
+		if(resultingAsts == null || resultingAsts.isEmpty()){
+			try{
+				this.update(descriptor.createParseController(), new NullProgressMonitor());
+			}
+			catch (Exception e) {
+				// TODO: handle exception
+			}
+			
+		}
 		if (inputBuilder == null || inputBuilder.getRuntime() != getRuntime()) {
 			inputBuilder = new InputTermBuilder(getRuntime(), resultingAsts);
 		}
@@ -184,6 +201,14 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		return isDebuggerEnabled;
 	}
 	
+	public boolean isMultiFile() {
+		return multifile;
+	}
+	
+	public String getFeedbackFunction() {
+		return feedbackFunction;
+	}
+	
 	public void setDebuggerEnabled(boolean isDebuggerEnabled) {
 		this.isDebuggerEnabled = isDebuggerEnabled;
 	}
@@ -191,39 +216,34 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	
 	/**
 	 * Returns true if the Language Descriptor uses a ctree as provider.
+	 * The check is based on the file extension of a provider.
 	 * @return
 	 */
-	private boolean usesCTrees()
-	{
-		//List<File> providers = new ArrayList<File>();
+	private boolean usesCTrees() {
 		for (IStrategoAppl s : collectTerms(this.descriptor.getDocument(), "SemanticProvider")) {
 			IPath p = new Path(termContents(s));
-			if ("ctree".equals(p.getFileExtension()))
-			{
-				//providers.add();
+			if ("ctree".equals(p.getFileExtension())) {
 				return true;
 			}
 		}
 		return false;
-		
 	}
 	
 	
-	public boolean needsProjectRebuild() throws CoreException
-	{
-		// check if the spoofax project is already built with debug info
-		// if not try to rebuild
-		// only rebuild when we are not using ctree's.
-		// the debugger will be enabled
-		// check if the project was already build with debug information
-		// if it isn't, then rebuild the project
+	/**
+	 * Returns true if the Spoofax Project requires a rebuild before we can use the Stratego debugging features.
+	 * 
+	 * First check if the spoofax project is already built with debug info.
+	 * If not only suggest a rebuild when the project is not using ctree's, because debug mode doesn't support them.
+	 * @return 
+	 * @throws CoreException
+	 */
+	public boolean needsProjectRebuild() throws CoreException {
 		if (!(this.runtime instanceof DebuggableHybridInterpreter)) {
-			// runtime is not a DebuggableHybridInterpreter the language was not loaded with debug information.
-			// rebuild the project
+			// The this.runtime is not a DebuggableHybridInterpreter, the language was not loaded with debug information.
+			// We need to rebuild the project.
 			return true;
-			//rebuild(monitor);
-		} else
-		{
+		} else {
 			// .debugmode was found and debug mode is enabled.
 			// Now check if the project was also build with debug information
 			DebuggableHybridInterpreter dhi = (DebuggableHybridInterpreter) this.runtime;
@@ -231,8 +251,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			boolean needsRebuilding = !this.operatesOnDebugBuild(loadedJars);
 			boolean usesCTree = this.usesCTrees();
 			
-			if (usesCTree)
-			{
+			if (usesCTree) {
 				// please use jars, debug instrumentation is not included for ctrees in the build.main.xml
 				String message = "Please change the providers in the Builders.esv from ctree-files to jar-files, debug instrumentation currently only supports jar-files.";
 				Status status = new Status(Status.ERROR, RuntimeActivator.PLUGIN_ID, message);
@@ -249,13 +268,10 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	}
 	
 	/**
-	 * Returns the Spoofax language descript project this observer is associated with.
+	 * Returns the Spoofax language description project this observer is associated with.
 	 */
-	public IProject getProject()
-	{
+	public IProject getProject() {
 		IPath path = this.descriptor.getBasePath();
-		//System.out.println(path);
-		//System.out.println(path.lastSegment());
 		IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(path.lastSegment());
 		return project;
 	}
@@ -267,22 +283,18 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	 * @param classpaths
 	 * @return
 	 */
-	private boolean operatesOnDebugBuild(List<IPath> classpaths)
-	{
+	private boolean operatesOnDebugBuild(List<IPath> classpaths) {
 		// try to find the HybridInterpreterDebugRuntime class in the jars on the classpath
 		// http://stackoverflow.com/questions/176527/how-can-i-enumerate-all-classes-in-a-package-and-add-them-to-a-list
 		boolean foundHIDR = false; // try if org.strategoxt.imp.debug.stratego.runtime.strategies.HybridInterpreterDebugRuntime is found in a jar
-		for(IPath path : classpaths)
-		{
+		for(IPath path : classpaths) {
 			// if path ends with .jar, then try to find the class
-			if (path.getFileExtension().equals("jar"))
-			{
+			if (path.getFileExtension().equals("jar")) {
 				try {
 					JarFile jarFile = new JarFile(path.toFile());
 					
 					java.util.zip.ZipEntry hidrClassEntry = jarFile.getEntry("org/strategoxt/imp/debug/stratego/runtime/strategies/HybridInterpreterDebugRuntime.class");
-					if (hidrClassEntry != null)
-					{
+					if (hidrClassEntry != null) {
 						foundHIDR = true;
 						break;
 					}
@@ -411,7 +423,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			Class attachments = descriptor.getAttachmentProvider();
 			Debug.log("Loading JARs from " + Arrays.toString(classpath));
 			Debug.log("Parent class loader: ", attachments.getName() + "; " + attachments.getClassLoader().getClass().getName());
-			// TODO: Use plugin's parent class loader? (Spoofax/322)
+			// Use plugin's parent class loader? (Spoofax/322) => not needed anymore, fixed by Spoofax/522
 			// runtime.loadJars(attachments.getClassLoader(), classpath);
 			runtime.loadJars(getClass().getClassLoader(), classpath);
 			Debug.stopTimer("Successfully loaded " + jars);
@@ -486,7 +498,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 				feedback = invokeSilent(
 					feedbackFunction,
 					getInputBuilder().makeInputTerm(ast, false), 
-					SourceAttachment.getResource(ast),
+					SourceAttachment.getFile(ast),
 					true
 				);	
 				if (feedback == null) {
@@ -646,19 +658,19 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			throws UndefinedStrategyException, InterpreterErrorExit, InterpreterExit, InterpreterException {
 
 		IStrategoTerm input = getInputBuilder().makeInputTerm(node, true);
-		return invoke(function, input, SourceAttachment.getResource(node));
+		return invoke(function, input, SourceAttachment.getFile(node));
 	}
 	
 	/**
 	 * Invoke a Stratego function with a specific term its input,
 	 * given a particular working directory.
 	 */
-	public IStrategoTerm invoke(String function, IStrategoTerm term, IResource resource)
+	public IStrategoTerm invoke(String function, IStrategoTerm term, File file)
 			throws UndefinedStrategyException, InterpreterErrorExit, InterpreterExit, InterpreterException {
-		return invoke(function, term, resource, false);
+		return invoke(function, term, file, false);
 	}
 
-	private IStrategoTerm invoke(String function, IStrategoTerm term, IResource resource,
+	private IStrategoTerm invoke(String function, IStrategoTerm term, File file,
 			boolean assignDesugaredOrigins) throws InterpreterErrorExit, InterpreterExit,
 			UndefinedStrategyException, InterpreterException {
 		getLock().lock();
@@ -671,17 +683,16 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			//       (e.g., overriding Context.lookupPrimitive to throw an OperationCanceledException) 
 			
 			runtime.setCurrent(term);
-			configureRuntime(resource);
+			configureRuntime(file);
 
 			((LoggingIOAgent) runtime.getIOAgent()).clearLog();
 			assert runtime.getCompiledContext().getOperatorRegistry(IMPJSGLRLibrary.REGISTRY_NAME)
 					instanceof IMPJSGLRLibrary;
 			boolean isDebugModeAllowed = Environment.allowsDebugging(this.descriptor);
-			if (isDebugModeAllowed && runtime instanceof DebuggableHybridInterpreter)
-			{
+			if (isDebugModeAllowed && runtime instanceof DebuggableHybridInterpreter) {
 				// enable the debugger, otherwise it would just do a normal invoke
 				// TODO: check if we allow the invoke, the number of simultaneous invokes may have an upper limit
-				// to prevent exessive use of cpu and memory (each invoke will start a new VM!)
+				// to prevent excessive use of CPU and memory (each invoke will start a new VM!)
 				((DebuggableHybridInterpreter) runtime).setDebugLaunchEnabled(this.isDebuggerEnabled());
 			}
 			boolean success = false;
@@ -712,7 +723,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	 */
 	public IStrategoTerm invokeSilent(String function, IStrategoTerm node) {
 		try {
-			return invokeSilent(function, getInputBuilder().makeInputTerm(node, true), SourceAttachment.getResource(node));
+			return invokeSilent(function, getInputBuilder().makeInputTerm(node, true), SourceAttachment.getFile(node));
 		} catch (RuntimeException e) {
 			if (runtime != null) runtime.getIOAgent().printError("Internal error evaluating " + function + " (" + name(e) + "; see error log)");
 			Environment.logException("Internal error evaluating strategy " + function, e);
@@ -726,24 +737,28 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	 * given a particular working directory.
 	 * Logs and swallows all exceptions.
 	 */
-	public IStrategoTerm invokeSilent(String function, IStrategoTerm input, IResource resource) {
-		return invokeSilent(function, input, resource, false);
+	public IStrategoTerm invokeSilent(String function, IStrategoTerm input, File file) {
+		return invokeSilent(function, input, file, false);
 	}
 
-	private IStrategoTerm invokeSilent(String function, IStrategoTerm input, IResource resource,
+	private IStrategoTerm invokeSilent(String function, IStrategoTerm input, File file,
 			boolean assignDesugaredOrigins) {
 		assert getLock().isHeldByCurrentThread();
 		IStrategoTerm result = null;
 		try {
 			wasExceptionLogged = true;
-			result = invoke(function, input, resource, assignDesugaredOrigins);
+			result = invoke(function, input, file, assignDesugaredOrigins);
 			wasExceptionLogged = false;
 		} catch (InterpreterExit e) {
 			if (descriptor.isDynamicallyLoaded()) StrategoConsole.activateConsole();
-			messages.clearMarkers(resource);
-			if (!(e instanceof InterpreterErrorExit))
-				messages.addMarkerFirstLine(resource, "Analysis failed (" + name(e) + "; see error log)", IMarker.SEVERITY_ERROR);
-			messages.commitAllChanges();
+			try {
+				messages.clearMarkers(EditorIOAgent.getResource(file));
+				if (!(e instanceof InterpreterErrorExit))
+					messages.addMarkerFirstLine(EditorIOAgent.getResource(file), "Analysis failed (" + name(e) + "; see error log)", IMarker.SEVERITY_ERROR);
+				messages.commitAllChanges();
+			} catch (FileNotFoundException f) {
+				// No resource for file
+			}
 			Environment.logException("Runtime exited when evaluating strategy " + function, runtime.getCompiledContext(), e);
 		} catch (UndefinedStrategyException e) {
 			// Note that this condition may also be reached when the semantic service hasn't been loaded yet
@@ -796,11 +811,18 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		return null;
 	}
 	
-	private void configureRuntime(IResource resource) {
+	private void configureRuntime(File file) {
 		assert getLock().isHeldByCurrentThread();
 		
-		String projectPath = getInputBuilder().tryGetProjectPath(resource);
-		IProject project = resource.getProject();
+		IProject project;
+		String projectPath;
+		try {
+			project = EditorIOAgent.getProject(file);
+			projectPath = project.getLocation().toString();
+		} catch (FileNotFoundException e) {
+			project = null;
+			projectPath = "";
+		}
 		
 		configureRuntime(project, projectPath);
 	}
@@ -828,8 +850,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 		}
 		
 		// TODO: RLINDEMAN: set the project path and the language name
-		if (runtime instanceof DebuggableHybridInterpreter)
-		{
+		if (runtime instanceof DebuggableHybridInterpreter) {
 			((DebuggableHybridInterpreter) runtime).setProjectpath(projectPath);
 		}
 	}

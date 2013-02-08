@@ -4,15 +4,19 @@ import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getSort;
 import static org.spoofax.terms.Term.tryGetConstructor;
+import static org.spoofax.terms.attachments.OriginAttachment.tryGetOrigin;
 import static org.spoofax.terms.attachments.ParentAttachment.getParent;
 import static org.spoofax.terms.attachments.ParentAttachment.getRoot;
-import static org.spoofax.terms.attachments.OriginAttachment.tryGetOrigin;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
 
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Path;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -20,10 +24,11 @@ import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.TermTreeFactory;
+import org.spoofax.terms.StrategoSubList;
 import org.strategoxt.HybridInterpreter;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
-import org.spoofax.terms.StrategoSubList;
+import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 import org.strategoxt.lang.Context;
@@ -86,6 +91,11 @@ public class InputTermBuilder {
 			IResource resource = SourceAttachment.getResource(node);
 			resultingAst = resultingAsts.get(resource);
 		}
+		return makeInputTermResultingAst(resultingAst, node, includeSubNode);
+	}
+
+	public IStrategoTuple makeInputTermResultingAst(IStrategoTerm resultingAst,
+			IStrategoTerm node, boolean includeSubNode) {
 		Context context = runtime.getCompiledContext();
 		IStrategoList termPath = StrategoTermPath.getTermPathWithOrigin(context, resultingAst, node);
 		if (termPath == null)
@@ -126,14 +136,23 @@ public class InputTermBuilder {
 		return makeInputTerm(node, includeSubNode, termPath, targetTerm, rootTerm);
 	}
 
-	private IStrategoTuple makeInputTerm(IStrategoTerm node, boolean includeSubNode,
+	public IStrategoTuple makeInputTerm(IStrategoTerm node, boolean includeSubNode,
 			IStrategoList termPath, IStrategoTerm targetTerm,
 			IStrategoTerm rootTerm) {
 		ITermFactory factory = Environment.getTermFactory();
 		assert factory.getDefaultStorageType() == IStrategoTerm.MUTABLE;
-		IResource resource = SourceAttachment.getResource(node);
-		String path = resource == null ? "input" : resource.getProjectRelativePath().toPortableString();
-		String absolutePath = resource == null ? "." : tryGetProjectPath(resource);
+		File file = SourceAttachment.getFile(node);
+		IPath project = tryGetProjectPath(file);
+		String path, projectPath;
+		if (file != null && project != null) {
+			projectPath = project.toPortableString();
+			IPath fullPath = new Path(file.getAbsolutePath());
+			path = fullPath.removeFirstSegments(fullPath.matchingFirstSegments(project)).setDevice("").toPortableString();
+			assert !new File(path).isAbsolute();
+		} else {
+			projectPath = ".";
+			path = "string";
+		}
 		
 		if (includeSubNode) {
 			IStrategoTerm[] inputParts = {
@@ -141,16 +160,25 @@ public class InputTermBuilder {
 					termPath,
 					rootTerm,
 					factory.makeString(path),
-					factory.makeString(absolutePath)
+					factory.makeString(projectPath)
 				};
 			return factory.makeTuple(inputParts);
 		} else {
 			IStrategoTerm[] inputParts = {
 					node,
 					factory.makeString(path),
-					factory.makeString(absolutePath)
+					factory.makeString(projectPath)
 				};
 			return factory.makeTuple(inputParts);
+		}
+	}
+
+	private IPath tryGetProjectPath(File file) {
+		try {
+			if (file == null) return null;
+			return EditorIOAgent.getProject(file).getLocation();
+		} catch (FileNotFoundException e) {
+			return null;
 		}
 	}
 
@@ -178,7 +206,7 @@ public class InputTermBuilder {
 		
 		ITermFactory factory = Environment.getTermFactory();
 		String path = resource.getProjectRelativePath().toPortableString();
-		String absolutePath = resource.getProject().getLocation().toOSString();
+		String absolutePath = resource.getProject().getLocation().toPortableString();
 		
 		if (includeSubNode) {
 			node = getImplodableNode(node);
@@ -255,11 +283,7 @@ public class InputTermBuilder {
 			return null;
 		IStrategoTerm ancestor = InputTermBuilder.getMatchingAncestor(node, allowMultiChildParent);
 		IStrategoTerm selectionNode = node;
-		ArrayList<NodeMapping<String>> mappings = new ArrayList<NodeMapping<String>>();
-		for (IStrategoTerm semanticNode : semanticNodes) {
-			NodeMapping<String> aMapping = NodeMapping.create(semanticNode, "");
-			mappings.add(aMapping);
-		}
+		ArrayList<NodeMapping<String>> mappings = createNodeMappings(semanticNodes);
 		if (mappings.size() == 0) {
 			return ancestor; // no sort restriction specified, so use policy to
 							 // return the node furthest up the ancestor
@@ -288,8 +312,21 @@ public class InputTermBuilder {
 		return null;
 	}
 
-	private static boolean isMatchOnConstructorOrSort(ArrayList<NodeMapping<String>> mappings,
-			IStrategoTerm selectionNode) {
+	public static ArrayList<NodeMapping<String>> createNodeMappings(IStrategoTerm[] semanticNodes){
+		ArrayList<NodeMapping<String>> mappings = new ArrayList<NodeMapping<String>>();
+		for (IStrategoTerm semanticNode : semanticNodes) {
+			NodeMapping<String> aMapping;
+			try {
+				aMapping = NodeMapping.create(semanticNode, "");
+				mappings.add(aMapping);
+			} catch (BadDescriptorException e) {
+				e.printStackTrace();
+			}
+		}
+		return mappings;
+	}
+
+	public static boolean isMatchOnConstructorOrSort(ArrayList<NodeMapping<String>> mappings, IStrategoTerm selectionNode) {
 		return selectionNode != null &&
 			NodeMapping.getFirstAttribute(mappings, tryGetName(selectionNode), getSort(selectionNode), 0) != null;
 	}

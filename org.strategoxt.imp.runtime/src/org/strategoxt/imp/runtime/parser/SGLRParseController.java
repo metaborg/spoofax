@@ -98,8 +98,6 @@ public class SGLRParseController implements IParseController {
 	
 	private volatile boolean performInitialUpdate;
 
-	private volatile long initialReschedule;
-
 	// Simple accessors
 	
 	/**
@@ -112,6 +110,11 @@ public class SGLRParseController implements IParseController {
 		assert !isReplaced();
 		if (currentAst == null) forceInitialParse();
 		return currentAst;
+	}
+		
+	public void internalSetAst(IStrategoTerm ast) {
+		currentAst = ast;
+		errorHandler.setRecoveryFailed(false);
 	}
 
 	public final ISourceProject getProject() {
@@ -174,12 +177,14 @@ public class SGLRParseController implements IParseController {
     
     public void setEditor(EditorState editor) {
 		this.editor = editor;
-		if (initialReschedule != 0) {
-			scheduleParserUpdate(initialReschedule, false);
-			initialReschedule = 0;
-		}
+
 	}
     
+    /**
+     * Returns the editor for this parse controller.
+     * Only available if an editor has been assigned to it,
+     * which happens after the editor first launches the parser.
+     */
     public EditorState getEditor() {
 		return editor;
 	}
@@ -345,9 +350,6 @@ public class SGLRParseController implements IParseController {
 		}
 		if (getEditor() != null) {
 			getEditor().scheduleParserUpdate(delay);
-		} else {
-			// Reschedule after fully initialized
-			initialReschedule = delay;
 		}
 	}
 
@@ -452,7 +454,7 @@ public class SGLRParseController implements IParseController {
 	}
 	
 	public AstNodeLocator getSourcePositionLocator() {
-		return new AstNodeLocator(this);
+		return new AstNodeLocator();
 	}
 	
 	public ILanguageSyntaxProperties getSyntaxProperties() {
@@ -549,6 +551,9 @@ public class SGLRParseController implements IParseController {
 	private String getContents() throws CoreException, IOException {
 		// This is not a bottleneck right now, but could be optimized to use something
 		// like descriptor.getParseController().lastEditor.getDocument().getContents()
+		if(getResource() == null){
+			return "";
+		}
 		InputStream input = getResource().getContents();
 		InputStreamReader reader = new InputStreamReader(input);
 		StringBuilder result = new StringBuilder();

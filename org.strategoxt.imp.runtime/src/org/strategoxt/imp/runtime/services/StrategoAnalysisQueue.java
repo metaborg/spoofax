@@ -12,7 +12,9 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.imp.language.Language;
 import org.eclipse.imp.parser.IParseController;
+import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.MonitorStateWatchDog;
 
@@ -124,6 +126,25 @@ public class StrategoAnalysisQueue {
 		this.queue = new PriorityBlockingQueue<UpdateJob>();
 	}
 
+	
+	/**
+	 * Gets the number of pending background analyses for given project and language.
+	 * @param project 	Only files in this project are considered.
+	 * @param lang		Only files of this language are considered.
+	 * @return Number of pending background analyses for given project and language.
+	 */
+	public int pendingBackgroundAnalyses(IProject project, Language lang)
+	{
+		int size = 0;
+		
+		for(IPath path : pendingUpdates.keySet())
+			if(lang.hasExtension(path.getFileExtension()) && 
+					project.findMember(path.makeRelativeTo(project.getLocation())) != null)
+				++size;
+		
+		return size;
+	}
+	
 	/**
 	 * Queue analysis of the file, interactively. Used for analyzing the contents of the current editor.
 	 * @param observer the file's observer
@@ -200,17 +221,20 @@ public class StrategoAnalysisQueue {
 
 	/**
 	 * Queue background analysis for a given file.
+	 * 
 	 * @param path the file's path
 	 * @param project the file's project
+	 * @param triggerOnSave whether to trigger an "on save" event
 	 * @return the update job
 	 */
-	public UpdateJob queueAnalysis(IPath path, IProject project) {
+	public UpdateJob queueAnalysis(IPath path, IProject project, boolean triggerOnSave) {
 		if (path == null)
 			throw new IllegalArgumentException("path cannot be null");
 		if (project == null)
 			throw new IllegalArgumentException("project cannot be null");
 
-		StrategoObserverBackgroundUpdateJob job = new StrategoObserverBackgroundUpdateJob(path, project);
+		StrategoObserverBackgroundUpdateJob job = 
+				new StrategoObserverBackgroundUpdateJob(new IPath[] {path}, project, triggerOnSave);
 		
 		// See if an update is already pending for this path
 		IPath absolutePath = project.getLocation().append(path);
@@ -219,6 +243,32 @@ public class StrategoAnalysisQueue {
 		
 		UpdateJob updateJob = new UpdateJob(job, absolutePath, UpdateJob.BACKGROUND, true, 0);
 		pendingUpdates.put(absolutePath, updateJob);
+		add(updateJob);
+		wake();
+		
+		Debug.log("Background analysis queued for " + absolutePath);
+
+		return updateJob;
+	}
+	
+	/**
+	 * Queue background analysis for a given files.
+	 * 
+	 * @param paths the file paths
+	 * @param project the file's project
+	 * @param triggerOnSave whether to trigger an "on save" event
+	 * @return the update job
+	 */
+	public UpdateJob queueAnalysis(IPath[] paths, IProject project, boolean triggerOnSave) {
+		if (paths == null || paths.length == 0)
+			throw new IllegalArgumentException("paths cannot be null or empty");
+		if (project == null)
+			throw new IllegalArgumentException("project cannot be null");
+
+		StrategoObserverBackgroundUpdateJob job = new StrategoObserverBackgroundUpdateJob(paths, project, triggerOnSave);
+		
+		IPath absolutePath = project.getLocation().append(paths[0]); // HACK: Use first path as path..
+		UpdateJob updateJob = new UpdateJob(job, absolutePath, UpdateJob.BACKGROUND, true, 0);
 		add(updateJob);
 		wake();
 

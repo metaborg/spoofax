@@ -44,7 +44,7 @@ public class StrategoObserverBackgroundJob implements StrategoAnalysisJob {
 			observer.getLock().lock();
 			
 			((EditorIOAgent)observer.getRuntime().getIOAgent()).setJob(this);
-			observer.invoke(strategyName, term, project);
+			observer.invoke(strategyName, term, project.getLocation().toFile());
 		    
 		} catch (Exception e) {
 			Environment.logException("Background job failed", e);

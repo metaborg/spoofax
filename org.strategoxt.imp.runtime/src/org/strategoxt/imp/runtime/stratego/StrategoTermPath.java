@@ -11,9 +11,11 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.jsglr.client.imploder.TermTreeFactory;
 import org.spoofax.terms.TermFactory;
 import org.spoofax.terms.TermVisitor;
@@ -24,10 +26,12 @@ import org.strategoxt.imp.generator.term_at_position_0_1;
 import org.strategoxt.imp.runtime.Environment;
 import org.spoofax.terms.StrategoSubList;
 import org.strategoxt.imp.runtime.services.ContentProposer;
+import org.strategoxt.imp.runtime.services.ContentProposerSemantic;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 import org.strategoxt.stratego_aterm.explode_aterm_0_0;
 import org.strategoxt.stratego_aterm.implode_aterm_0_0;
+import org.strategoxt.stratego_lib.assert_1_0;
 import org.strategoxt.stratego_lib.oncetd_1_0;
 
 /**
@@ -75,7 +79,7 @@ public class StrategoTermPath {
 	 */
 	public static IStrategoList createPathFromParsedIStrategoTerm(final IStrategoTerm node, Context context) {
 		IStrategoTerm top = ParentAttachment.getRoot(node);
-		final IStrategoTerm marker = context.getFactory().makeString(ContentProposer.COMPLETION_TOKEN);
+		final IStrategoTerm marker = context.getFactory().makeString(ContentProposerSemantic.COMPLETION_TOKEN);
 		top = oncetd_1_0.instance.invoke(context, top, new Strategy() {
 			@Override
 			public IStrategoTerm invoke(Context context, IStrategoTerm current) {
@@ -101,7 +105,6 @@ public class StrategoTermPath {
 	public static IStrategoList getTermPathWithOrigin(Context context, IStrategoTerm ast, IStrategoTerm origin) {
 		if (ast == null)
 			return null;
-		
 		if (isTermList(origin)) {
 			// Lists have no origin information, try to find the node by its first child.
 			if (origin.getSubtermCount() > 0) {
@@ -124,14 +127,34 @@ public class StrategoTermPath {
 				: (IStrategoTerm) origin.getSubterm(0);
 		
 		class TestOrigin extends Strategy {
-			IStrategoTerm origin;
+			IStrategoTerm origin1;
 			IStrategoTerm nextBest;
 			
 			@Override
 			public IStrategoTerm invoke(Context context, IStrategoTerm current) {
 				if (hasImploderOrigin(current)) {
 					IStrategoTerm currentOrigin = tryGetOrigin(current);
-					if (currentOrigin == origin) return current;
+					if (currentOrigin == origin1) return current;
+					IStrategoTerm currentImploderOrigin = ImploderAttachment.getImploderOrigin(currentOrigin);
+					IStrategoTerm imploderOrigin1 = ImploderAttachment.getImploderOrigin(origin1);
+					if (	
+							currentImploderOrigin != null &&
+							imploderOrigin1 != null &&
+							ImploderAttachment.getLeftToken(currentImploderOrigin).getStartOffset() == ImploderAttachment.getLeftToken(imploderOrigin1).getStartOffset() &&
+							ImploderAttachment.getRightToken(currentImploderOrigin).getEndOffset() == ImploderAttachment.getRightToken(imploderOrigin1).getEndOffset()
+					){
+						if(currentOrigin.equals(origin1))
+							return current; 
+						if(current.getTermType() == origin1.getTermType()){
+							if(current.getTermType() == IStrategoTerm.APPL){
+								IStrategoAppl currentAppl = (IStrategoAppl)current;
+								IStrategoAppl origin1Appl = (IStrategoAppl)origin1;
+								if(currentAppl.getName().equals(origin1Appl.getName()) && currentAppl.getSubtermCount() == origin1Appl.getSubtermCount())
+									return current;
+							}
+							nextBest = current;							
+						}
+					}
 					// sets a term as 'nextBest' if one of the subterms of its origin-term is the originChild
 					if (nextBest == null && originChild != null) {
 						for (int i = 0, max = currentOrigin.getSubtermCount(); i < max; i++)
@@ -140,7 +163,7 @@ public class StrategoTermPath {
 					}
 				}
 				else { // sets a term as 'nextBest' in case no origin term exists, but one of its subterms is origin-related to the originChild
-					if (current == origin) return current;
+					if (current == origin1) return current;
 					if (nextBest == null && originChild != null) {
 						for (int i = 0, max = current.getSubtermCount(); i < max; i++)
 							if (tryGetOrigin(current.getSubterm(i)) == originChild)
@@ -151,14 +174,14 @@ public class StrategoTermPath {
 			}
 		}
 		TestOrigin testOrigin = new TestOrigin();
-		testOrigin.origin = origin;		
+		testOrigin.origin1 = origin;		
 		generator.init(context);
 		IStrategoTerm perfectMatch = position_of_term_1_0.instance.invoke(context, ast, testOrigin);
 		if (perfectMatch != null) {
 			return (IStrategoList) perfectMatch;
 		} else if (testOrigin.nextBest != null) {
 			Environment.logWarning("Could not determine term corresponding to " + origin.toString() + " in resulting AST; using next best match " + testOrigin.nextBest);
-			testOrigin.origin = testOrigin.nextBest;
+			testOrigin.origin1 = testOrigin.nextBest;
 			return (IStrategoList) position_of_term_1_0.instance.invoke(context, ast, testOrigin);
 		} else {
 			Environment.logWarning("Could not determine term corresponding to " + origin.toString() + " in resulting AST");

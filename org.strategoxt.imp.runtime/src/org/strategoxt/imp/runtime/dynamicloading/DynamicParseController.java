@@ -75,8 +75,21 @@ public class DynamicParseController extends AbstractService<IParseController> im
 
 		if (lastEditor == null && EditorState.isUIThread()) {
 			lastEditor = EditorState.getEditorFor(this);
-			if (lastEditor != null)
-				initializeEagerServices(result);
+			/**
+			 * XXX: Hack-fix for Spoofax/532 (http://yellowgrass.org/issue/Spoofax/532)
+			 * @author VladVergu
+			 * - Some service factories (eg AutoEditStrategyFactory.init()) require that the ISourceViewer 
+			 * is set on the editor.
+			 * - IMP initializes the parser controllers on TextEditor.createPartControl(), see org.eclipse.imp.runtime.UniversalEditor.createPartControl(...)
+			 * - the initialization sequence has changed between Eclipse 3.x and 4.x and the ISourceViewer is only initialized later
+			 * 
+			 * This hack delays the eager initialization of services until we actually have a source viewer.
+			 */
+			if (lastEditor != null && lastEditor.getEditor().getServiceControllerManager().getSourceViewer() != null) {
+					initializeEagerServices(result);
+			}else{
+				lastEditor = null;
+			}
 		}
 		return result;
 	}
@@ -92,6 +105,7 @@ public class DynamicParseController extends AbstractService<IParseController> im
 		TokenColorerHelper.register((SGLRParseController) parser, lastEditor);
 		StrategoObserverPartListener.register(lastEditor);
 		RefactoringFactory.eagerInit(descriptor, parser, lastEditor);
+		
 	}
 
 	public IAnnotationTypeInfo getAnnotationTypeInfo() {

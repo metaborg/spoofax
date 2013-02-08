@@ -17,7 +17,7 @@ import org.eclipse.jface.text.source.ISourceViewer;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
- */
+ */  
 public class AnnotationHover extends DefaultAnnotationHover implements IAnnotationHover {
     
 	@Override
@@ -49,7 +49,7 @@ public class AnnotationHover extends DefaultAnnotationHover implements IAnnotati
 		StringBuffer result = new StringBuffer();
 		addPageProlog(result);
 		result.append("<p>");
-		result.append(convertToHTMLContent(annotations.get(0).getText()));
+		result.append(annotations.get(0).getText());
 		result.append("</p>");
 		addPageEpilog(result);
     	return result.toString();
@@ -62,7 +62,7 @@ public class AnnotationHover extends DefaultAnnotationHover implements IAnnotati
 		Collections.reverse(annotations);
 		for (Annotation annotation : annotations) {
 			result.append("<li> ");
-			result.append(convertToHTMLContent(annotation.getText()));
+			result.append(annotation.getText());
 			result.append("</li>");
 		}
 		result.append("</ul>");
@@ -70,6 +70,7 @@ public class AnnotationHover extends DefaultAnnotationHover implements IAnnotati
     	return result.toString();
     }
 	
+	@Deprecated
 	public static String convertToHTMLContent(String content) {
 		return HTMLPrinter.convertToHTMLContent(content).replace("\n", "<br />");
 	}
