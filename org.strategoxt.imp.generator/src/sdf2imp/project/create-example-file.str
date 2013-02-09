@@ -81,4 +81,16 @@ test Resolve type [[
     owns : [[User]]
   }
 ]] resolve #2 to #1
+
+test Complete primitive type [[
+  entity User {
+    name : [[Str]]
+  }
+]] complete to "String"
+
+test Complete user type [[
+  entity User {
+    owner : [[Us]]
+  }
+]] complete to "User"
 >
