@@ -35,7 +35,7 @@ public class EditorState extends FileState {
 	
 	public EditorState(UniversalEditor editor) {
 		super(getDescriptor(editor));
-		this.editor = editor;
+		this.editor = editor; 
 	}
 	
 	// FACTORY METHODS
