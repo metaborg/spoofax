@@ -42,7 +42,8 @@ public class IMPParseStringPTPrimitive extends STRSGLR_parse_string_pt {
 	}
 
 	@Override
-	protected IStrategoTerm doParse(IContext env, IStrategoString inputTerm, ParseTable table, String startSymbol, String path) throws InterpreterException, TokenExpectedException, BadTokenException, SGLRException {
+	protected IStrategoTerm doParse(IContext env, IStrategoString inputTerm, ParseTable table, String startSymbol, String path) 
+			throws InterpreterException, TokenExpectedException, BadTokenException, SGLRException, InterruptedException {
 		
 		String input = Tools.asJavaString(inputTerm);
 		JSGLRI parser = new JSGLRI(table, startSymbol);

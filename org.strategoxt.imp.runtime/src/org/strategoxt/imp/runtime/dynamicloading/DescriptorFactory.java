@@ -115,6 +115,8 @@ public class DescriptorFactory {
 			return new Descriptor(document);
 		} catch (SGLRException e) {
 			throw new BadDescriptorException("Could not parse descriptor file", e);
+		} catch (InterruptedException e) {
+			throw new BadDescriptorException("Could not parse descriptor file", e);
 		} finally {
 			input.close();
 		}

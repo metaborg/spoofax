@@ -317,6 +317,8 @@ public class SGLRParseController implements IParseController {
 			return null;
 		} catch (RuntimeException e) {
 			reportException(errorHandler, e);
+		} catch (InterruptedException e) {
+			reportException(errorHandler, e);
 		} finally {
 			try {
 				if (this.performInitialUpdate) {
@@ -354,7 +356,7 @@ public class SGLRParseController implements IParseController {
 	}
 
 	private IStrategoTerm doParse(String input, String filename)
-			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
+			throws TokenExpectedException, BadTokenException, SGLRException, IOException, InterruptedException {
 		try {
 			assert parseLock.isHeldByCurrentThread();
 			return parser.parse(input, filename);

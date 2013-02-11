@@ -77,13 +77,13 @@ public class StandAloneSGLRI {
 	// Parsing
 	
 	public ISimpleTerm parse(InputStream input, String filename)
-			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
+			throws TokenExpectedException, BadTokenException, SGLRException, IOException, InterruptedException {
 		
 		return parser.parse(input, filename);
 	}
 	
 	public ISimpleTerm parse(String input, String filename)
-			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
+			throws TokenExpectedException, BadTokenException, SGLRException, IOException, InterruptedException {
 		
 		return parser.parse(input, filename);
 	}

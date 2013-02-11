@@ -154,7 +154,7 @@ public class JSGLRI extends AbstractSGLRI {
 	
 	@Override
 	protected IStrategoTerm doParse(String input, String filename)
-			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
+			throws TokenExpectedException, BadTokenException, SGLRException, IOException, InterruptedException {
 		
 		// Read stream using tokenizer/lexstream
 		
@@ -212,6 +212,8 @@ public class JSGLRI extends AbstractSGLRI {
 				Environment.logWarning("Exception in incremental parser", e);
 			} catch (Error e) {
 				Environment.logException("Exception in incremental parser", e);
+			} catch (InterruptedException e) {
+				Environment.logWarning("Exception in incremental parser", e);
 			} finally {
 				Debug.stopTimer("Incrementally parsed: " + new File(filename).getName());
 			}
