@@ -1466,8 +1466,8 @@ rules // Analysis traversals
         (added, removed) := ([], []);
         filesToAnalyze := []
       end
-    //with
-    //  <list-loop(analyze-top-store-ast(|full-path))> astFilePairs4
+    with
+      <list-loop(analyze-top-store-ast(|full-path))> astFilePairs4
       
   /**
    * Add URI annotations to each definition and unresolved URI annotations to each use site.
