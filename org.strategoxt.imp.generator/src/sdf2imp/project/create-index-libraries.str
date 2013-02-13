@@ -1540,9 +1540,13 @@ rules // Analysis traversals
    * @internal
    */   
   analyze-top-store-ast(|full-path):
-    (ast, (_, subfile)) -> <id>
+    (ast, (file, subfile)) -> <id>
     where
-      <index-add(|full-path)> AST(subfile, ast)
+    	if [] := subfile then
+          <index-add(|full-path)> AST(full-path, ast)
+    	else
+          <index-add(|full-path)> AST(subfile, ast)
+      end
 
   /**
    * Stores AST from file to the index.
@@ -2350,7 +2354,7 @@ rules // Compilation
   index-compilation-file:
     (path, subfile) -> None()
     with
-      asts := <index-get-all-values> AST(subfile, ());
+      asts := <index-get-all-values> AST(path, ());
       <map(index-compilation-ast(|path, subfile))> asts
       
   /** @internal */    
