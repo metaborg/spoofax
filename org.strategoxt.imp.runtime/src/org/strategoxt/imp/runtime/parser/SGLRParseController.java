@@ -98,6 +98,8 @@ public class SGLRParseController implements IParseController {
 	
 	private volatile boolean performInitialUpdate;
 
+	private volatile long initialReschedule;
+
 	// Simple accessors
 	
 	/**
@@ -177,7 +179,10 @@ public class SGLRParseController implements IParseController {
     
     public void setEditor(EditorState editor) {
 		this.editor = editor;
-
+		if (initialReschedule != 0) {
+			scheduleParserUpdate(initialReschedule, false);
+			initialReschedule = 0;
+		}
 	}
     
     /**
@@ -352,6 +357,9 @@ public class SGLRParseController implements IParseController {
 		}
 		if (getEditor() != null) {
 			getEditor().scheduleParserUpdate(delay);
+		} else {
+			// Reschedule after fully initialized
+			initialReschedule = delay;
 		}
 	}
 
