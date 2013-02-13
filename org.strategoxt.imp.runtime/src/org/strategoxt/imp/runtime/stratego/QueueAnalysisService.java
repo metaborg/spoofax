@@ -38,9 +38,10 @@ public class QueueAnalysisService implements INotificationService {
 			IProject project = EditorIOAgent.getProject(new File(file));
 			IPath relPath = relativePath(file, subfile);
 
+			// UNDONE to mitigate effects of http://yellowgrass.org/issue/Spoofax/262.
 			// Don't schedule analysis for a file in the active editor.
-			if(isActiveEditor(file))
-				return;
+			//if(isActiveEditor(file))
+			//	return;
 			
 			StrategoAnalysisQueueFactory.getInstance().queueAnalysis(relPath, project, triggerOnSave);
 		} catch (FileNotFoundException e) {
@@ -90,6 +91,7 @@ public class QueueAnalysisService implements INotificationService {
 		return null;
 	}
 	
+	@SuppressWarnings("unused")
 	private boolean isActiveEditor(URI file) {
 		IEditorPart editor = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
 		if(editor != null) {
