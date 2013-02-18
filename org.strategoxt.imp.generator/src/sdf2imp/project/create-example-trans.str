@@ -342,8 +342,6 @@ if not(<file-exists> "trans/refactor.str") then
 
 imports
   lib-refactoring/behavior-preservation.generated
-  check
-  lib/nbl-library.generated
 
 rules // Definitions of refactorings. Referenced from Minimal-Refactorings.esv
 "
@@ -353,6 +351,7 @@ rules // Definitions of refactorings. Referenced from Minimal-Refactorings.esv
 imports
   lib-refactoring/rename-refactoring.generated
   check
+  lib/nbl-library.generated
 
 rules
   
