@@ -624,6 +624,8 @@ rules //generic rename refactoring
   generic-rename-refactoring(desugar, s-constraint-error, s-constraint-warning):
     (newname, oldname, position, ast, path, project-path) -> (ast-change-tuples, [], all-errors, warnings)
     where
+      //Assumption: all files in project are indexed (or are in the analysis queue)!?
+      //TODO: Spoofax refactoring component must show waiting dialog in case the analysis queue is not empty
       index-setup(|<language>, [project-path], ".");
 
       //Get analyzed asts of all files that contain oldname + uri identifiers 
@@ -649,6 +651,6 @@ rules //generic rename refactoring
       //all errors
       all-errors := <concat> [file-errors-1, file-errors-2, errors];
       
-      //reanalyze (possible) changed files TODO: in Spoofax component?
-      <map(origin-file); queue-analysis> asts-after
+      // REMARK: all (possible) changed files are automatically queued for analysis in the Spoofax 
+      // refactoring component after the refactoring is executed or canceled by the user
 }
