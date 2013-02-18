@@ -351,23 +351,13 @@ rules // Definitions of refactorings. Referenced from Minimal-Refactorings.esv
 !"module refactor
 
 imports
-  lib-refactoring/behavior-preservation.generated
+  lib-refactoring/rename-refactoring.generated
   check
-  lib/nbl-library.generated
 
 rules
- 
+  
+  //multifile rename refactoring based in name index and name analysis
   rename-refactoring:
-    (newname, oldname{ref}, position, ast, path, project-path) -> 
-    (ast-changes, fatal-errors, errors, warnings)
-    where
-      ast-after := <rename-all(|newname, oldname{ref})> ast;
-      ast-changes := [(ast, ast-after)];
-      fatal-errors := [];
-      (errors, warnings) := 
-        <get-semantic-violations(constraint-error, constraint-warning, ?newname <+ ?oldname{})> ast-changes
-
-  rename-all(|newname, oldname):
-    ast -> <alltd(preserve-annos((oldname -> newname)))> ast
+    (newname, oldname{ref}, position, ast, path, project-path) -> <generic-rename-refactoring(id, constraint-error, constraint-warning)>
 ")>
 end

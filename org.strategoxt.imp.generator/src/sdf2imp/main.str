@@ -161,6 +161,9 @@ strategies
     create-behavior-preservation;
     create-namebinding-preservation;
     create-correctness-preservation;
+    create-analysis-multifile;
+    create-refactoring-files;
+    create-rename-refactoring;
     
     copy-jars;
     copy-def-file;
