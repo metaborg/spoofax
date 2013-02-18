@@ -490,7 +490,7 @@ rules //multifile name analysis
         (asts, _) := <unzip> astFilePairs4
       |}
     with
-      <list-loop(analyze-top-store-ast(|<{path: ((_, (path, _)) -> path)}>))> astFilePairs4"
+      <list-loop(analyze-top-store-ast(|language, <{path: ((_, (path, _)) -> path)}>))> astFilePairs4"
 
 create-refactoring-files =
 try(<file-exists <+ mkdir> "lib-refactoring");
