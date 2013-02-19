@@ -45,6 +45,7 @@ import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.stratego.SourceAttachment;
+import org.strategoxt.strc.throw_current_definition_1_1;
 
 /**
  * @author Maartje de Jonge
@@ -169,8 +170,7 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 				try {
 					Thread.sleep(100);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					throw new OperationCanceledException(e.getMessage());
 				}
 				int analysisJobCountOld = analysisJobCount;
 				analysisJobCount = StrategoAnalysisQueueFactory.getInstance().pendingBackgroundAnalyses(project, language);
