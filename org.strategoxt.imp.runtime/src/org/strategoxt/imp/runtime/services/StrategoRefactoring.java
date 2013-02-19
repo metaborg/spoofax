@@ -7,14 +7,11 @@ import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.hasImploderOrigin;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.logging.ErrorManager;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -22,7 +19,6 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
-import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.imp.language.Language;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.text.IRegion;
@@ -33,7 +29,6 @@ import org.eclipse.ltk.core.refactoring.Refactoring;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.core.refactoring.RefactoringStatusContext;
 import org.eclipse.ltk.core.refactoring.TextFileChange;
-import org.eclipse.ltk.internal.core.refactoring.RefactoringCoreMessages;
 import org.spoofax.interpreter.core.InterpreterErrorExit;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
@@ -49,9 +44,7 @@ import org.spoofax.terms.attachments.OriginAttachment;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
-import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.SourceAttachment;
-import org.strategoxt.imp.runtime.stratego.StrategoConsole;
 
 /**
  * @author Maartje de Jonge
@@ -173,7 +166,12 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 			pm.setTaskName("Analyzing files");
 			int waitingTime = 0;
 			while (analysisJobCount > 0 && waitingTime < 2500) {
-				Thread.sleep(100);
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 				int analysisJobCountOld = analysisJobCount;
 				analysisJobCount = StrategoAnalysisQueueFactory.getInstance().pendingBackgroundAnalyses(project, language);
 				if(analysisJobCountOld > analysisJobCount){
