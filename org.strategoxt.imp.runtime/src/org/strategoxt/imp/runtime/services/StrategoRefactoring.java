@@ -11,14 +11,19 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.logging.ErrorManager;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.imp.language.Language;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.ltk.core.refactoring.Change;
@@ -28,6 +33,7 @@ import org.eclipse.ltk.core.refactoring.Refactoring;
 import org.eclipse.ltk.core.refactoring.RefactoringStatus;
 import org.eclipse.ltk.core.refactoring.RefactoringStatusContext;
 import org.eclipse.ltk.core.refactoring.TextFileChange;
+import org.eclipse.ltk.internal.core.refactoring.RefactoringCoreMessages;
 import org.spoofax.interpreter.core.InterpreterErrorExit;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
@@ -88,6 +94,10 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 	private final StrategoObserver observer;
 
 	private IAction action;
+
+	private Language language;
+
+	private IProject project;
 	
 
 	
@@ -123,6 +133,9 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 		this.fileChanges.clear();
 		this.affectedFilePaths.clear();
 		//inputFields.clear(); set default values?
+		
+		this.language = editor.getLanguage();
+		this.project = editor.getProject().getRawProject();
 	}
 
 	public StrategoRefactoring(StrategoObserver observer, String caption, String builderRule,
@@ -151,6 +164,29 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 		RefactoringStatus status = new RefactoringStatus();
 		if(node == null)
 			status.merge(RefactoringStatus.createFatalErrorStatus("Refactoring is not defined for the current selection."));	
+		
+		int analysisJobCount = StrategoAnalysisQueueFactory.getInstance().pendingBackgroundAnalyses(project, language);
+		if(analysisJobCount > 0){
+			if (pm == null)
+				pm = new NullProgressMonitor();
+			pm.beginTask("", analysisJobCount);
+			pm.setTaskName("Analyzing files");
+			int waitingTime = 0;
+			while (analysisJobCount > 0 && waitingTime < 2500) {
+				Thread.sleep(100);
+				int analysisJobCountOld = analysisJobCount;
+				analysisJobCount = StrategoAnalysisQueueFactory.getInstance().pendingBackgroundAnalyses(project, language);
+				if(analysisJobCountOld > analysisJobCount){
+					pm.worked(analysisJobCountOld - analysisJobCount);
+				}
+				waitingTime += 100;
+			}
+			pm.done();
+			if(analysisJobCount > 0){
+				String errorMessage = "Background analysis jobs are still pending for " + analysisJobCount + " files. These are ignored by the refactoring.";
+				status.merge(RefactoringStatus.createErrorStatus(errorMessage));
+			}
+		}
 		return status;
 	}
 
