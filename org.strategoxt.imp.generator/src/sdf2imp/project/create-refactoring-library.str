@@ -649,7 +649,7 @@ rules //generic rename refactoring
       );
        
       //all errors
-      all-errors := <concat> [file-errors-1, file-errors-2, errors];
+      all-errors := <concat> [file-errors-1, file-errors-2, errors]
       
       // REMARK: all (possible) changed files are automatically queued for analysis in the Spoofax 
       // refactoring component after the refactoring is executed or canceled by the user
