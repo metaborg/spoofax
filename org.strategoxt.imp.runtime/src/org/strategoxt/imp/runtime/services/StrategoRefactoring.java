@@ -45,7 +45,6 @@ import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.stratego.SourceAttachment;
-import org.strategoxt.strc.throw_current_definition_1_1;
 
 /**
  * @author Maartje de Jonge
