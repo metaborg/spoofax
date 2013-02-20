@@ -109,7 +109,7 @@ public class FileNotificationServer implements IResourceChangeListener {
 			String base = path.segment(0);
 			if (".cache".equals(base) || ".shadowdir".equals(base)
 					|| "include".equals(base) || "bin".equals(base)
-					|| ".spxcache".equals(base))
+					|| ".spxcache".equals(base) || "__MACOS_X".equals(base))
 				return true;
 		}
 		return false;
