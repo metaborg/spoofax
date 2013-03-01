@@ -58,6 +58,15 @@ strategies
     		
     		<!-- used for building inside of Eclipse -->
         <import file="build.generated.xml"/>   
+
+			  <!-- The files for which the on-save handler is called before building -->
+			  <path id="call-onsave.files">
+			    <fileset dir=".">
+			      <include name="**/*.tmpl" />
+			      <include name="**/*.nd" />
+			      <include name="**/*.nab" />
+			    </fileset>
+			  </path>
     
         <!-- Main target -->
         <target name="all" depends="spoofaximp.default.ctree"/>
@@ -76,51 +85,54 @@ strategies
     <?xml version="1.0" encoding="UTF-8"?>
     <project name="build.generated">
 
-        <target name="spoofaximp.default" depends="spoofaximp.default.ctree"/>
-        <target name="spoofaximp.default.ctree" depends="
-			check-classpath,
-			init,
-			sdf2table,
-			meta-sdf2table,
-			ppgen,
-			pppack,
-			sdf2imp.eclipse,
-			sdf2imp.standalone,
-			sdf2parenthesize,
-			stratego.aster,
-			java.jar,
-			stratego.ctree,
-			refresh,
-			sdf2imp.eclipse.load" />
-        <target name="spoofaximp.default.jar" depends="
-			check-classpath,
-			init,
-			sdf2table,
-			meta-sdf2table,
-			ppgen,
-			pppack,
-			sdf2imp.eclipse,
-			sdf2imp.standalone,
-			sdf2parenthesize,
-			stratego.aster,
-			java.jar,
-			stratego.jar.helper,
-			refresh,
-			sdf2imp.eclipse.load" />
-        <target name="spoofaximp.default.nostr" depends="
-      check-classpath,
-      init,
-      sdf2table,
-      meta-sdf2table,
-      ppgen,
-      pppack,
-      sdf2imp.eclipse,
-      sdf2imp.standalone,
-      sdf2parenthesize,
-      stratego.aster,
-      java.jar,
-      refresh,
-      sdf2imp.eclipse.load"/>
+			  <target name="spoofaximp.default" depends="spoofaximp.default.ctree" />
+			  <target name="spoofaximp.default.ctree" depends="
+			      check-classpath,
+			      call-onsave,
+			      init,
+			      sdf2table,
+			      meta-sdf2table,
+			      ppgen,
+			      pppack,
+			      sdf2imp.eclipse,
+			      sdf2imp.standalone,
+			      sdf2parenthesize,
+			      stratego.aster,
+			      java.jar,
+			      stratego.ctree,
+			      refresh,
+			      sdf2imp.eclipse.load" />
+			  <target name="spoofaximp.default.jar" depends="
+			      check-classpath,
+			      call-onsave,
+			      init,
+			      sdf2table,
+			      meta-sdf2table,
+			      ppgen,
+			      pppack,
+			      sdf2imp.eclipse,
+			      sdf2imp.standalone,
+			      sdf2parenthesize,
+			      stratego.aster,
+			      java.jar,
+			      stratego.jar.helper,
+			      refresh,
+			      sdf2imp.eclipse.load" />
+			  <target name="spoofaximp.default.nostr" depends="
+			      check-classpath,
+			      call-onsave,
+			      init,
+			      sdf2table,
+			      meta-sdf2table,
+			      ppgen,
+			      pppack,
+			      sdf2imp.eclipse,
+			      sdf2imp.standalone,
+			      sdf2parenthesize,
+			      stratego.aster,
+			      java.jar,
+			      refresh,
+			      sdf2imp.eclipse.load" />
     
         <!-- Initialization -->
         <available file="${src-gen}/<%= pkgdir %>/strategies/Main.java" property="java.jar.enabled"/>
@@ -161,6 +173,23 @@ strategies
         <mkdir dir="${include}"/>
         <mkdir dir="${lib}"/>
         <mkdir dir="${syntax}"/>
+
+			  <!-- The files for which the on-save handler is called before building -->
+			  <path id="call-onsave.files">
+			    <fileset dir=".">
+			      <include name="**/*.tmpl" />
+			      <include name="**/*.nd" />
+			      <include name="**/*.nab" />
+			    </fileset>
+			  </path>
+				
+				<!-- Call on-save handler for template and name binding files so that their generated files are present -->
+				<target name="call-onsave">
+					<pathconvert pathsep=" " property="call-onsave.args" refid="call-onsave.files" />
+					<java classname="org.strategoxt.imp.metatooling.building.AntForceOnSave" failonerror="true">
+						<arg line="${call-onsave.args}" />
+					</java>
+				</target>
 
         <target name="sdf2imp" depends="sdf2table,sdf2imp.eclipse,sdf2imp.standalone,sdf2parenthesize"/>
         
