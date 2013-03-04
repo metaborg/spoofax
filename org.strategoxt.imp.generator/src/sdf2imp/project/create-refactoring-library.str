@@ -654,3 +654,810 @@ rules //generic rename refactoring
       // REMARK: all (possible) changed files are automatically queued for analysis in the Spoofax 
       // refactoring component after the refactoring is executed or canceled by the user
 }
+
+create-binding-violations =
+try(<file-exists <+ mkdir> "lib-refactoring");
+<output-text-file(|["lib-refactoring"], "binding-violations.generated.str")>
+"/**
+ * Strategy to calculate binding violations by comparing binding annotations that 
+ * express the actual and the intended binding structure.
+ */
+module lib-refactoring/binding-violations.generated
+
+strategies 
+
+  /**
+   * @see binding-violation-terms(is-endangered-term)
+   *
+   * @type  (T, T) -> List(T{b1, b2})
+   * @param endangered-terms  List with terms that must be checked for binding violations
+   */
+  binding-violation-terms(|endangered-terms) =
+    binding-violation-terms(is-in-list(|endangered-terms))
+
+  /**
+   * Returns binding violations by comparing the expected binding structure with the actual binding structure
+   * in the asts that result after the transformation.
+   * Can be used to check for violations of name reference, control-flow and data-flow.
+   * For performance reason, only the 'endangered' terms are compared.
+   *
+   * The input term must be a tuple (trm-intended-bindings, trm-actual-bindings) whereby
+   * 1) both terms have the same abstract structure
+   * 2) the trm-intended-bindings contains annotations that express the INTENDED binding structure
+   *    (typically obtained by 'analyze; transform' whereby the transformation preserves the original annotations 
+   *     and sets annotations for newly inserted terms)
+   * 3) the trm-actual-bindings contain name annotations that express the ACTUAL binding structure
+   *    (typically obtained by 'transform; analyze', i.e. reanalyzing the resulting asts)
+   *
+   * @type  (T, T) -> List(T{b1, b2})
+   * @param is-endangered-term  String -> String
+   */  
+  binding-violation-terms(is-endangered-term):
+    trees@(trm-intended-bindings, trm-actual-bindings) -> binding-violation-terms
+    where
+      binding-violation-terms := <
+        bindings-construct-compare-ast;
+        binding-violation-terms-internal(is-endangered-term)
+      > trees
+  
+   //Constructs an AST with information about the original binding structure, and the new binding structure.
+   //Condition: 'trm-intended-bindings' and 'trm-actual-bindings' have the same structure and contain binding information.
+  bindings-construct-compare-ast:
+    (trm-intended-bindings, trm-actual-bindings) -> binding-compare-ast
+    where
+      binding-compare-ast := <merge-bindings>(trm-intended-bindings, trm-actual-bindings)
+  
+  //Returns binding violations by comparing the expected binding with the actual binding, 
+  //both set as annotation on terms (t{b-intended, b-actual}) in the 'binding compare AST'.
+  //For performance reason, only the 'endangered' terms are compared.
+  binding-violation-terms-internal(is-endangered-term):
+    binding-compare-ast -> binding-violation-terms
+    where 
+      all-bindings := <
+        bindings-collect-endangered-terms(is-endangered-term)
+      > binding-compare-ast; 
+      binding-mapping := <make-set> all-bindings; 
+      binding-violations := <bindings-filter-violations> binding-mapping; 
+      binding-violation-terms := <isect> (all-bindings, binding-violations) 
+
+  bindings-collect-endangered-terms(is-endangered-term):
+    binding-compare-ast -> bindings-mapping
+    where
+      bindings-mapping := <
+        collect-all(?_{_, _}; where(strip-annos; is-endangered-term), conc);
+        filter(not(?_{[],[]} <+ ?_{(),()} <+ ?_{None(), None()})) //TODO: nb analysis, ?_{Unresolved(_),Unresolved(_)}
+      > binding-compare-ast
+              
+  bindings-filter-violations:
+    binding-mapping -> <concat> [broken-bindings, created-bindings, changed-bindings]
+    where
+      (broken-bindings,  binding-mapping')  := <partition(is-broken-binding)> binding-mapping; 
+      (created-bindings, binding-mapping'') := <partition(is-created-binding)> binding-mapping';
+      changed-bindings := <bindings-filter-changes> binding-mapping''
+
+  bindings-filter-changes: 
+    [t{b1,b2}|bindings] -> <conc>(conflicts, <bindings-filter-changes> unrelated-bindings)
+    where 
+      (related-bindings, unrelated-bindings) := <partition(?_{b1,_} <+ ?_{_,b2})> bindings;
+      if <filter(not(?_{b1,b2})); ?[]> related-bindings then
+        conflicts := []
+      else
+        conflicts := [t{b1,b2}|related-bindings]
+      end
+  
+  bindings-filter-changes:
+    [] -> []
+
+  is-broken-binding =
+    ?_{_, None()}; not(?_{None(), None()})
+
+  is-broken-binding =
+    ?_{_, ()}; not(?_{(),()})
+
+  is-broken-binding =
+    ?_{_, []}; not(?_{[],[]})
+  
+  is-created-binding =
+    ?n{b1, b2}; 
+    where(<is-broken-binding> n{b2, b1})
+
+
+rules //helpers
+
+  is-in-list(|lst):
+    elem -> elem
+    where
+      <fetch(strip-annos; equal(|<strip-annos> elem))> lst
+
+  //@internal    
+  merge-bindings =
+    merge-bindings-1 <+
+    merge-bindings-2 <+
+    merge-bindings-3 <+
+    merge-bindings-4
+  
+  //@internal    
+  merge-bindings-1:
+    (s1{b1}, s2{b2}) -> s1{b1, b2}
+    where
+      <equal> (s1{},s2{})
+  
+  //@internal    
+  merge-bindings-2:
+    (s1{b1}, s2{}) -> s1{b1, None()}
+    where
+      <equal> (s1{},s2{})
+  
+  //@internal    
+  merge-bindings-3:
+    (s1{}, s2{b2}) -> s1{None(), b2}
+    where
+      <equal> (s1{},s2{})
+  
+  //@internal    
+  merge-bindings-4:
+    (c#(args1), c#(args2)) -> c#(args) 
+    where
+      args := <zip; map(merge-bindings)> (args1, args2)"
+  
+create-data-flow-analysis =
+try(<file-exists <+ mkdir> "lib-refactoring");
+<output-text-file(|["lib-refactoring"], "data-flow-analysis.generated.str")>
+"/**
+ * Language generic template strategy for data-flow analysis.
+ */
+module lib-refactoring/data-flow-analysis.generated
+
+rules //rules that implement the language specific part of the data-flow analysis
+
+  /**
+   * Associates a df-anno to the declared variable. 
+   * The df-anno is set as an annotation on the name of the declared variable, and stored to annotate its subsequent  read accesses. 
+   *
+   * @example VarDecl(name, type) -> VarDecl(<set-new-df-value> name, type)
+   * @type VarDecl -> VarDecl
+   */  
+  df-anno-declare = fail
+    
+  /**
+   * Associates a new df-anno to the assigned variable. 
+   * The df-anno is set as an annotation on the name of the assigned variable, and stored to annotate its subsequent read accesses. 
+   * @example
+   *   Assign(name, value) -> Assign(df-name, value')
+   *   where
+   *     value' := <df-anno> value;
+   *     df-name := <set-new-df-value> name      
+   * @type VarAssignment -> VarAssignment
+   */  
+  df-anno-assign = fail
+    
+  /**
+   * Implements the data-flow for constructs that affect the control flow (and thus also the data-flow).
+   *
+   * @example
+   *   If(c, if-block, else-block) -> If(c, if-block', else-block')
+   *   where
+   *     if-block' := <df-anno> if-block
+   *       \\DFAnno/
+   *     else-block' := <df-anno> else-block
+   * @type T -> T
+   */
+  df-anno-control-flow = fail 
+
+    
+rules //helper rules 
+  
+  /**
+   * Helper rule to associate a new, unique df-anno to the name of a declared or assigned variable.
+   * The df-anno is stored to annotate the names of its subsequent read accesses.
+   * @type String -> String{List(String)}
+   */
+  set-new-df-value:
+    name -> name{[df-anno]}
+    where
+      df-anno := <newname> \"df_\";
+      rules(DFAnno :  name  ->  df-anno)
+
+  
+rules //rules that implement the language generic part of the data-flow analysis
+  
+  /**
+   * Sets data-flow annotations on variable names, so that: 
+   * - variables with the same df-anno have the same value, e.g., 
+   *   VarDecl(\"a{df-x}\"); VarAssign(\"a{df-y}\"); VarUse(\"a{df-y}\"); VarUse(\"a{df-y}\"); VarAssign(\"a{df-z}\"); VarUse(\"a{df-z}\");
+   * - multiple df-annos can be set to represent different control flows, e.g., 
+   *   If(c, VarAssign(\"a{df-x}\");, VarAssign(\"a{df-y}\");); VarUse(\"a{[df-x, df-y]}\")
+   *
+   * @type T -> T
+   */
+  analyze-dataflow:
+    trm -> trm'
+    where
+      {|DFAnno:
+        trm' := <df-anno> trm
+      |}
+  
+  //controls the dataflow traversal
+  df-anno =
+    df-anno-use <+
+    df-anno-declare <+
+    df-anno-assign <+
+    df-anno-control-flow <+ 
+    all(df-anno)
+  
+  //annotates read accesses with a list of df-predecessors
+  //@type String -> String{List(String)} 
+  df-anno-use:
+    name -> name{df-annos} 
+    where
+      <is-string> name;
+      df-annos := <bagof-DFAnno> name"
+
+create-extract-refactoring =
+try(<file-exists <+ mkdir> "lib-refactoring");
+<output-text-file(|["lib-refactoring"], "extract-refactoring.generated.str")>
+"/** 
+* Language generic components for Extract refactorings
+*/
+module lib-refactoring/extract-refactoring.generated
+
+imports
+  lib-refactoring/list-operations.generated
+  lib-refactoring/binding-violations.generated 
+  lib/analysis-library-internal.generated 
+  lib-refactoring/fetch-positions.generated
+  
+rules
+  
+  /**
+   * Applies the extract transformation, that is: 
+   * - inserts the extracted construct after the construct where the extraction takes place, and
+   * - replaces the selected elements with a list of new elements (such as missing declarations and a call to the extracted construct) 
+   *
+   * @param match-construct: matches definitions of the extracted sort
+   * @param replacing-terms: List(T), replaces the selected terms
+   * @param extracted-construct: construct that is extracted
+   * @type (List(T), ast) -> ast
+   */  
+  extract-transformation(match-construct|replacing-terms, extracted-construct):
+    (selected, ast) -> ast-transformed
+    where
+      (from, to) := <position-of-sublist-from-to(|ast)> selected;
+      pos-original-method := <fetch-up-position(match-construct|ast)> from;
+      pos-extracted-construct := <position-next-sibling> pos-original-method;
+      ast-transformed := <
+        replace-sublist(|from, to, replacing-terms);
+        insert-list-element(|pos-extracted-construct, extracted-construct)
+      > ast
+
+  /**
+   * @see extract-method-analysis(is-method-definition, analyze-dataflow, get-declaration-name)
+   * @type (List(T), ast) -> (List(VarDecl), List(VarDecl), List(VarDecl), List(VarDecl))
+   */    
+  extract-method-analysis(is-method-definition, analyze-dataflow) =
+    extract-method-analysis(is-method-definition, analyze-dataflow, nam-get-definition-key)
+
+  /**
+   * Calculates the required information to repair the data-flow after method extractions.
+   * Repair consists of inserting missing declarations (preferrable), or passing variable values
+   * in the form of (in-)parameters and return values (out-parameters).
+   *
+   * Determines the missing declarations in the remainder of the original method and the extracted method.
+   * - missing-vardecls-original: declarations of variables that are used in the remainder of the original method, 
+   *   but declared in the extracted method
+   * - missing-vardecls-extracted: declarations of variables that are used in the extracted method, 
+   *   but declared in the remainder of the original method (and not passed as a parameter).
+   *
+   * Determines the required in- and out- parameters based on a data-flow analysis
+   * - in-parameter-vardecls: declarations of variables that are used in the extracted method, 
+   *   after being assigned in the remainder of the original method 
+   * - out-parameter-vardecls: declarations of variables that are used in the remainder of the original method, 
+   *   after being assigned in the extracted method 
+   *
+   * @param is-method-definition: matches method definitions
+   * @param analyze-dataflow: sets data-flow annotations on variable names, so that: 
+   *  - variables with the same df-anno have the same value, e.g., 
+   *    VarDecl(\"a{df-x}\"); VarAssign(\"a{df-y}\"); VarUse(\"a{df-y}\")
+   *  - multiple df-annos can be set to represent different control flows, e.g., 
+   *    If(c, VarAssign(\"a{df-x}\");, VarAssign(\"a{df-y}\");); VarUse(\"a{[df-x, df-y]}\")
+   *   
+   * @param get-declaration-name: maps a declaration onto its name (fails for terms that are not declarations)
+   * @type (List(T), ast) -> (List(VarDecl), List(VarDecl), List(VarDecl), List(VarDecl))
+   */    
+  extract-method-analysis(is-method-definition, analyze-dataflow, get-declaration-name):
+    (selected, ast) -> (missing-vardecls-original, missing-vardecls-extracted,  in-parameter-vardecls, out-parameter-vardecls)
+    where
+      (pos-from-ast, _) := <position-of-sublist-from-to(|ast)> selected;
+      method := <fetch-up-term(is-method-definition|ast)> pos-from-ast; 
+      (from, to) := <position-of-sublist-from-to(|method)> selected;
+      (missing-vardecls-original, missing-vardecls-extracted') :=
+        <extract-method-missing-declarations(get-declaration-name)> (method, from, to);
+      (in-parameter-vardecls, out-parameter-vardecls) :=
+        <extract-method-parameters(analyze-dataflow, get-declaration-name)> (method, from, to);
+      missing-vardecls-extracted := <diff>(missing-vardecls-extracted', in-parameter-vardecls) //exclude in-parameters from the list of missing vardecls
+
+
+rules //helper rules to perform the required data-flow analyses for method extraction 
+
+  /**
+   * Determines the missing declarations in the remainder of the original method and the extracted method.
+   * - missing-vardecls-original: declarations of variables that are used in the remainder of the original method, 
+   *   but declared in the extracted method
+   * - missing-vardecls-extracted: declarations of variables that are used in the extracted method, 
+   *   but declared in the remainder of the original method (and not passed as a parameter).
+   *
+   * @param get-declaration-name: maps a declaration onto its name (fails for terms that are not declarations)
+   * @type (T, List(Int), List(Int)) -> (List(VarDecl), List(VarDecl))
+   */    
+  extract-method-missing-declarations(get-declaration-name):
+    (method, from, to) -> (missing-vardecls-original, missing-vardecls-extracted)
+    where
+      missing-vardecls-original  := <get-missing-declarations(remove-sublist(|from, to), get-declaration-name)> method;
+      missing-vardecls-extracted := <get-missing-declarations(select-sublist(|from, to), get-declaration-name)> method
+
+  get-missing-declarations(transform, get-declaration-name):
+    term-before -> missing-declarations
+    where
+      term-after := <transform> term-before; 
+      declarations-before := <collect-all(where(get-declaration-name))> term-before;
+      declarations-after := <collect-all(where(get-declaration-name))> term-after;
+      lost-declarations := <diff(where(all(get-declaration-name); eq))> (declarations-before, declarations-after);
+      variables-after := <collect-all(is-string)> term-after;
+      missing-declarations := <filter(where(!(<get-declaration-name>, variables-after); elem))> lost-declarations
+  
+  /**
+   * Determines the required in- and out- parameters based on a data-flow analysis
+   * - in-parameters: variables that are used in the extracted method, after being assigned in the remainder of the original method 
+   * - out-parameters: variables that are used in the remainder of the original method, after being assigned in the extracted method 
+   *
+   * @param analyze-dataflow: sets data-flow annotations on variable names, so that: 
+   *  - variables with the same df-anno have the same value, e.g., 
+   *    VarDecl(\"a{df-x}\"); VarAssign(\"a{df-y}\"); VarUse(\"a{df-y}\")
+   *  - multiple df-annos can be set to represent different control flows, e.g., 
+   *    If(c, VarAssign(\"a{df-x}\");, VarAssign(\"a{df-y}\");); VarUse(\"a{[df-x, df-y]}\")
+   *   
+   * @param get-declaration-name: maps a declaration onto its name (fails for terms that are not declarations)
+   * @type (T, List(Int), List(Int)) -> (List(VarDecl), List(VarDecl))
+   */    
+  extract-method-parameters(analyze-dataflow, get-declaration-name):
+    (method, from, to) -> (in-parameter-vardecls, out-parameter-vardecls)
+    where
+      in-parameter-vardecls := <get-df-changed-declarations(select-sublist(|from, to), get-declaration-name, analyze-dataflow)> method;
+      out-parameter-vardecls := <get-df-changed-declarations(remove-sublist(|from, to), get-declaration-name, analyze-dataflow) > method
+
+  get-df-changed-declarations(transform, get-declaration-name, analyze-dataflow):
+    term -> df-changed-declarations
+    where
+      declarations := <collect-all(where(get-declaration-name))> term;
+      declaration-names := <map(get-declaration-name)> declarations;
+      df-changes := <get-df-changes(transform, analyze-dataflow|declaration-names); map(strip-annos); make-set> term;
+      df-changed-declarations := <filter(where(get-declaration-name; is-in-list(|df-changes)))> declarations
+
+  //Calculates df-changes by comparing INTENDED and ACTUAL 
+  //dataflow annotations in the tree after transformation.
+  //Intended df-annos are obtained via <analyze; transform>,
+  //actual df-annos are obtained via <transform; analyze>
+  get-df-changes(transform, analyze-dataflow|declaration-names):
+    term-before -> df-changes
+    where
+      term-after-df-intended := <analyze-dataflow; transform> term-before; 
+      term-after-df-actual := <transform; analyze-dataflow> term-before; 
+      //df-changes := <binding-violation-terms(|declaration-names)>(term-after-df-intended, term-after-df-actual)
+      df-changes := <binding-violation-terms(|declaration-names)>(term-after-df-intended, term-after-df-actual)"
+      
+create-fetch-positions =
+try(<file-exists <+ mkdir> "lib-refactoring");
+<output-text-file(|["lib-refactoring"], "fetch-positions.generated.str")>
+${module lib-refactoring/fetch-positions.generated
+  
+imports
+  lib/editor-common.generated
+  lib-refactoring/list-operations.generated
+    
+rules //strategies for fetching terms and positions in the ast
+  
+  /**
+   * fetches the AST position by visiting the ancestors 
+   * of a term, bottum up, starting at a certain position.
+   * @param match: matches ancestor term to be fetched
+   * @param ast: AST
+   * @type List(Int) ->  List(Int)
+   */ 
+  fetch-up-position(match|ast):
+    position -> position'
+    where
+      term := <term-at-position(|position)> ast;
+      (term', position') := <fetch-up-with-position(match|ast)> (term, position)
+  
+  /**
+   * fetches the first ancestor of a term, bottum up, 
+   * starting at a certain position.
+   * @param matches ancestor term to be fetched
+   * @param AST
+   * @type List(Int) ->  T
+   */ 
+  fetch-up-term(match|ast):
+    position -> term'
+    where
+      term := <term-at-position(|position)> ast;
+      (term', position') := <fetch-up-with-position(match|ast)> (term, position)
+          
+  /**
+   * fetches an ancestor and its AST position by visiting the ancestors of a term, bottum up
+   * @param matches ancestor term to be fetched
+   * @param AST
+   * @type (Term, List(Int)) -> (Term, List(Int))
+   */ 
+  fetch-up-with-position(match|ast):
+    (term, position) -> (term', position')
+    where
+      (term', position') := <fetch-up-with-position(match, fail|ast)> (term, position)
+  
+  /**
+   * fetches an ancestor and its AST position by visiting the ancestors of a term, bottum up
+   * @param matches ancestor term to be fetched
+   * @param stop criteria
+   * @param AST
+   * @type (Term, List(Int)) -> (Term, List(Int))
+   */  
+  fetch-up-with-position(match, stop|ast):
+    (term, position) -> (term', position')
+    where
+      <not(match)> term;
+      <not(stop)> term;
+      parent-tuple := (<parent-at-position(|position)> ast, <init> position);
+      (term', position') := <fetch-up-with-position(match, stop|ast)> parent-tuple
+  
+  fetch-up-with-position(match, stop|ast):
+    (term, position) -> (term, position)
+    where
+      <match> term
+  
+  /**
+   * fetches a subterm in a chain of single-argument nodes
+   * @param matches subterm to be fetched
+   * @type Term -> Term
+   */  
+  fetch-down-term(match):
+    term -> term'
+    where
+      term' := <fetch-down-with-position(match); Fst> (term, [])
+  
+  /**
+   * fetches a subterm and its position in a chain of single-argument nodes
+   * @param matches subterm to be fetched
+   * @type (Term, List(Int)) -> (Term, List(Int))
+   */  
+  fetch-down-with-position(match):
+    (term, position) -> (term', position')
+    where 
+      <not(match)> term; 
+      <get-arguments; ?[e]> term; 
+      (term', position') := <fetch-down-with-position(match)> (e, <conc>(position,[0]))
+    
+  fetch-down-with-position(match):
+    (term, position) -> (term, position)
+    where
+      <match> term
+  
+  
+rules //strategies for getting the tree positions of subterms
+  
+  /**
+   * Returns the term positions of the first and last elements of a (sub)list,
+   * relative to a given ancestor term.
+   *
+   * @param ast, ancestor term
+   * @type ATerm -> (List(Int), List(Int))
+  */  
+  position-of-sublist-from-to(|ast):
+    sublist -> <position-of-sublist-from-to(|ast, [])> sublist
+  
+  /**
+   * Returns the AST positions of the first and last elements of a (sub)list,
+   * calculated from an ancestor term at a given position.
+   *
+   * @param ast, ancestor term
+   * @param position, List(Int) position of ancestor term  
+   * @type ATerm -> (List(Int), List(Int))
+  */  
+  position-of-sublist-from-to(|ast, position):
+    sublist -> (from, to)
+    where
+      from := <Hd; position-of-subterm(|ast, position)> sublist; 
+      to := <last; position-of-subterm(|ast, position)> sublist
+    where
+      lst := <select-sublist(|from, to)> ast;
+      <equal> (<length> lst, <length> sublist) //TODO: origin equal
+      
+  
+  /**
+   * Returns the position of a subterm relative to an ancestor term.
+   *
+   * @param ast, ancestor term
+   * @type ATerm -> List(Int)
+  */
+  position-of-subterm(|ast) =
+    position-of-subterm(|ast, [])
+  
+  /**
+   * Returns the AST position of a subterm,
+   * calculated from an ancestor term at a given position.
+   *
+   * @param term T, ancestor term
+   * @param term-position List(Int), position of ancestor term  
+   * @type ATerm -> List(Int)
+  */
+  position-of-subterm(|term, term-position):
+    subterm -> <conc>(term-position, position)
+    where
+      position := <position-of-term(origin-equal(|subterm))> term
+  
+  
+rules
+  
+  /**
+   * Returns the position of the next sibling
+   *
+   * @type List(Int) -> List(Int)
+  */
+  position-next-sibling = at-last(([i] -> [<inc> i]))
+}
+
+create-list-operations =
+try(<file-exists <+ mkdir> "lib-refactoring");
+<output-text-file(|["lib-refactoring"], "list-operations.generated.str")>
+${module lib-refactoring/list-operations.generated
+  
+imports
+  lib/editor-common.generated
+  lib-refactoring/fetch-positions.generated  
+  
+  
+rules //select list-elements at position
+    
+  /**
+   * Returns the (sub)list that corresponds to the given AST positions 
+   * @param The position of the first element as List(Int)
+   * @param The position of the last element as List(Int)
+   * @type ATerm -> List(a)
+  */
+  select-sublist(|from, to):
+    ast -> sublist
+    where
+      <equal> (<init> from, <init> to) 
+    where
+      list-pos := <init> from;
+      list := <term-at-position(|list-pos)> ast;
+      sublist := <select-partial-list(|<last> from, <last> to)> list
+      
+  /**
+   * Returns the (sub)list that corresponds to the given list indexes 
+   * @param The index of the first element
+   * @param The index of the last element
+   * @type ATerm -> List(a)
+  */
+  select-partial-list(|from, to): 
+    list -> mid-part
+    where 
+      (prefix, suffix) := <split-at(|<inc> to)> list;
+      (pre, mid-part) := <split-at(|from)> prefix
+      
+  /**
+   * Selects a (sub)list based on origin matching
+   *
+   * @param The subsequent list elements to be removed
+   * @type ATerm -> ATerm
+  */    
+  select-sublist(|sublist):
+    term -> <select-sublist(|from, to)> term
+    where
+      (from, to) := <position-of-sublist-from-to(|term)> sublist
+    
+rules //remove list-elements at position
+      
+  /**
+   * Removes list elements at a given position in the AST
+   *
+   * @param The position of the first element to be removed (from) as List(Int)
+   * @param The position of the last element to be removed (to) as List(Int)
+   * @type ATerm -> ATerm
+  */
+  remove-sublist(|from, to):
+    ast -> ast-with-deletion
+    where
+      <equal> (<init> from, <init> to) 
+    where
+      list-pos := <init> from;
+      ast-with-deletion := <at-position-preserve(remove-partial-list(|<last> from, <last> to)|list-pos)> ast
+  
+  /**
+   * Removes elements from a list
+   *
+   * @param The index of the first element to be removed (from)  
+   * @param The index of the last element to be removed (to)
+   * @type List(T) -> List(T)
+  */
+  remove-partial-list(|from, to): 
+    list -> list-after-deletion
+    where 
+      (part1, tail):=<split-at(|from)> list; 
+      (prefix, part2):=<split-at(|<inc> to)> list;
+      list-after-deletion:=<conc> (part1, part2)//TODO: origin tracking
+  
+  /**
+   * Removes an element at a given position in the AST
+   *
+   * @param The position of the element to be removed  
+   * @type ATerm -> ATerm
+  */
+  remove-list-element(|position)=
+    remove-sublist(|position, position)
+
+    
+rules //insert list elements at position
+  
+  /**
+   * Inserts list elements at a given position 
+   *
+   * @param The position for inserting the sublist as List(Int)  
+   * @param The sublist that will be inserted
+   * @type ATerm -> ATerm
+  */
+  insert-sublist(|position, sublist):
+    ast -> ast-with-insertion
+    where
+      list-pos:=<take(|<length; dec> position)> position;
+      ast-with-insertion:=<at-position-preserve(insert-partial-list(|<last> position, sublist)|list-pos)> ast
+  
+  /**
+   * Inserts list elements at a given index 
+   *
+   * @param The index for inserting the sublist  
+   * @param The sublist that will be inserted
+   * @type ATerm -> ATerm
+  */
+  insert-partial-list(|index, sublist): 
+    list -> list-with-insertion
+    where
+      (prefix, suffix):=<split-at(|index)>;
+      list-with-insertion:=<conc> (prefix, sublist, suffix)
+  
+  /**
+   * Inserts an element at a given position 
+   *
+   * @param The position for inserting the sublist as List(Int)
+   * @param The element that will be inserted
+   * @type ATerm -> ATerm
+  */
+  insert-list-element(|position, element)=
+    insert-sublist(|position, [element])
+  
+
+rules //replace list elements at a certain position
+  
+  /**
+   * Replaces a sublist in the AST with another sublist
+   *
+   * @param The position of the first element of the sublist to be replaced (from)  
+   * @param The position of the last element of the sublist to be replaced (to)
+   * @param The new sublist
+   * @type ATerm -> ATerm
+  */
+  replace-sublist(|from, to, sublist)=
+    remove-sublist(|from, to); 
+    insert-sublist(|from, sublist)
+  
+  /**
+   * Replaces a sublist in the AST with a single list element
+   *
+   * @param The position of the first element of the sublist to be replaced (from)  
+   * @param The position of the last element of the sublist to be replaced (to)
+   * @param The new list element
+   * @type ATerm -> ATerm
+  */
+  replace-sublist-with-element(|from, to, element)=
+    replace-sublist(|from, to, [element])
+  
+  /**
+   * Replaces a list-element in the AST with a sublist
+   *
+   * @param The position of the list element that ill be removed   
+   * @param The sublist that will be inserted
+   * @param The new list element
+   * @type ATerm -> ATerm
+  */
+  replace-all-elements-with-sublist-in-list(|position, sublist)=
+    replace-sublist(|position, position, sublist)
+  
+  
+rules //remove list-elements that match a certain criterion
+  
+  /**
+   * Removes all elements matching s  
+   * @param Strategy that determines the elements that will be removed  
+   * @type ATerm -> ATerm
+  */
+  remove-all-elements(s) =
+    topdown(try(remove-all-elements-from-list(s)))
+  
+  /**
+   * Removes all list elements matching s  
+   * @param Strategy that determines the elements that will be removed  
+   * @type List -> List
+  */
+  remove-all-elements-from-list(s) =
+    replace-all-elements-with-sublist-in-list(s|[])
+
+  /**
+   * Removes elements of a (sub)list from a list that is a subterm of the given term
+   *
+   * @param The subsequent list elements to be removed
+   * @type ATerm -> ATerm
+  */    
+  remove-sublist(|sublist):
+    term -> <remove-sublist(|from, to)> term
+    where
+      (from, to) := <position-of-sublist-from-to(|term)> sublist
+
+rules //replace elements that match a certain criterion
+  
+  /**
+   * Replaces all elements in the AST that match a given strategy with a sublist 
+   * @param Strategy that determines the elements that will be replaced
+   * @param Sublist that replaces the elements
+   * @type ATerm -> ATerm
+  */
+  replace-all-elements-with-sublist(s|sublist)=
+    topdown(try(replace-all-elements-with-sublist-in-list(s|sublist)))
+  
+  /**
+   * Replaces list elements matching a certain strategy with a sublist 
+   * @param Strategy that determines the elements that will be replaced
+   * @param Sublist that replaces the elements
+   * @type List -> List
+  */  
+  replace-all-elements-with-sublist-in-list(s|sublist):
+    list -> result-list
+    where 
+      result-list:=<
+        try(
+          split-fetch(s); 
+          <conc>(
+            <Fst>, 
+            sublist, 
+            <Snd; replace-all-elements-with-sublist-in-list(s|sublist)>
+          )
+        )
+      > list
+  
+  
+rules //helpers
+
+  /**
+   * Applies s at the given position in the AST, while preserving the annotations and origin-term. 
+   *
+   * @type AST -> AST
+   * @param strategy to apply
+   * @param position in AST as List(Int) 
+   */  
+  at-position-preserve(s|position) =
+    origin-track-forced(
+      preserve-annos(
+        at-position-preserve-internal(s|position)
+      )
+    )
+  
+  at-position-preserve-internal(s|position):
+    c#(t*) -> t'
+    where
+      !position => [i | position']
+    where
+      t' := c#(<at-index(at-position-preserve(s|position'))> (i, t*))
+
+  at-position-preserve-internal(s|position):
+    t -> t'
+    where
+      !position => [];
+      t' := <s> t
+}

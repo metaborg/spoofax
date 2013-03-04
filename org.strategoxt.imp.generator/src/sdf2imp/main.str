@@ -164,6 +164,11 @@ strategies
     create-analysis-multifile;
     create-refactoring-files;
     create-rename-refactoring;
+    create-binding-violations;
+    create-data-flow-analysis;
+    create-extract-refactoring;
+    create-fetch-positions;
+    create-list-operations;
     
     copy-jars;
     copy-def-file;
