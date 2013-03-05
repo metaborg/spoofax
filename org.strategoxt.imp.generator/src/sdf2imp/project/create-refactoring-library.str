@@ -662,7 +662,7 @@ try(<file-exists <+ mkdir> "lib-refactoring");
  * Strategy to calculate binding violations by comparing binding annotations that 
  * express the actual and the intended binding structure.
  */
-module lib-refactoring/binding-violations.generated
+module lib-refactoring/binding-violations-new.generated
 
 strategies 
 
@@ -678,7 +678,7 @@ strategies
   /**
    * Returns binding violations by comparing the expected binding structure with the actual binding structure
    * in the asts that result after the transformation.
-   * Can be used to check for violations of name reference, control-flow and data-flow.
+   * Can be used to check for violations of name reference.
    * For performance reason, only the 'endangered' terms are compared.
    *
    * The input term must be a tuple (trm-intended-bindings, trm-actual-bindings) whereby
@@ -697,7 +697,7 @@ strategies
     where
       binding-violation-terms := <
         bindings-construct-compare-ast;
-        binding-violation-terms-internal(is-endangered-term)
+        binding-violation-terms-internal(fail, is-endangered-term)
       > trees
   
    //Constructs an AST with information about the original binding structure, and the new binding structure.
@@ -710,15 +710,18 @@ strategies
   //Returns binding violations by comparing the expected binding with the actual binding, 
   //both set as annotation on terms (t{b-intended, b-actual}) in the 'binding compare AST'.
   //For performance reason, only the 'endangered' terms are compared.
-  binding-violation-terms-internal(is-endangered-term):
-    binding-compare-ast -> binding-violation-terms
+  binding-violation-terms-internal(uses-list-annos, is-endangered-term):
+    binding-compare-ast -> binding-violations
     where 
       all-bindings := <
-        bindings-collect-endangered-terms(is-endangered-term)
+        bindings-collect-endangered-terms(is-endangered-term);
+        filter(has-binding-info)
       > binding-compare-ast; 
-      binding-mapping := <make-set> all-bindings; 
-      binding-violations := <bindings-filter-violations> binding-mapping; 
-      binding-violation-terms := <isect> (all-bindings, binding-violations) 
+      if not(uses-list-annos) then
+        (binding-violations, _) := <bindings-partition-violations> all-bindings
+      else
+        (binding-violations, _) := <bindings-partition-violations-list-annos> all-bindings        
+      end
 
   bindings-collect-endangered-terms(is-endangered-term):
     binding-compare-ast -> bindings-mapping
@@ -727,27 +730,39 @@ strategies
         collect-all(?_{_, _}; where(strip-annos; is-endangered-term), conc);
         filter(not(?_{[],[]} <+ ?_{(),()} <+ ?_{None(), None()})) //TODO: nb analysis, ?_{Unresolved(_),Unresolved(_)}
       > binding-compare-ast
-              
-  bindings-filter-violations:
-    binding-mapping -> <concat> [broken-bindings, created-bindings, changed-bindings]
+  
+  bindings-partition-violations:
+    bindings -> (violated-bindings, binding-mapping)
     where
-      (broken-bindings,  binding-mapping')  := <partition(is-broken-binding)> binding-mapping; 
-      (created-bindings, binding-mapping'') := <partition(is-created-binding)> binding-mapping';
-      changed-bindings := <bindings-filter-changes> binding-mapping''
+      (broken-bindings,  bindings-1)  := <partition(is-broken-binding)> bindings; 
+      (created-bindings, bindings-2) := <partition(is-created-binding)> bindings-1;
+      (changed-bindings, binding-mapping) := <partition-is-changed-binding> bindings-2;
+      violated-bindings := <concat> [broken-bindings, created-bindings, changed-bindings]
 
-  bindings-filter-changes: 
-    [t{b1,b2}|bindings] -> <conc>(conflicts, <bindings-filter-changes> unrelated-bindings)
+  partition-is-changed-binding: 
+    [t{b1,b2}|bindings] -> (conflicts, mapping)
     where 
       (related-bindings, unrelated-bindings) := <partition(?_{b1,_} <+ ?_{_,b2})> bindings;
+      (rec-conflicts, rec-mapping):= <partition-is-changed-binding> unrelated-bindings;
       if <filter(not(?_{b1,b2})); ?[]> related-bindings then
-        conflicts := []
+        conflicts := rec-conflicts;
+        mapping := [t{b1,b2}| rec-mapping]
       else
-        conflicts := [t{b1,b2}|related-bindings]
+        conflicts := <conc> ([t{b1,b2}|related-bindings], rec-conflicts);
+        mapping := rec-mapping
       end
   
-  bindings-filter-changes:
-    [] -> []
+  partition-is-changed-binding:
+    [] -> ([], [])
 
+  has-binding-info =
+    has-annos;
+    not(
+      ?_{None(), None()} <+
+      ?_{(),()} <+
+      ?_{[],[]}
+    )
+  
   is-broken-binding =
     ?_{_, None()}; not(?_{None(), None()})
 
@@ -798,7 +813,111 @@ rules //helpers
   merge-bindings-4:
     (c#(args1), c#(args2)) -> c#(args) 
     where
-      args := <zip; map(merge-bindings)> (args1, args2)"
+      args := <zip; map(merge-bindings)> (args1, args2)
+      
+rules //support for list annotations with the restriction 'single-anno-declarations + mult-anno-reads'
+
+  /**
+   * @see binding-violation-terms-list-annos(is-endangered-term)
+   *
+   * @type  (T, T) -> List(T{b1, b2})
+   * @param endangered-terms  List with terms that must be checked for binding violations
+   */
+  binding-violation-terms-list-annos(|endangered-terms) =
+    binding-violation-terms-list-annos(is-in-list(|endangered-terms))
+
+  /**
+   * Returns binding violations by comparing the expected binding structure with the actual binding structure
+   * in the asts that result after the transformation.
+   * Can be used to check for violations of data-flow where a term can have multiple predecessors.
+   * For performance reason, only the 'endangered' terms are compared.
+   *
+   * The input term must be a tuple (trm-intended-bindings, trm-actual-bindings) whereby
+   * 1) both terms have the same abstract structure
+   * 2) the trm-intended-bindings contains annotations that express the INTENDED binding structure
+   *    (typically obtained by 'analyze; transform' whereby the transformation preserves the original annotations 
+   *     and sets annotations for newly inserted terms)
+   * 3) the trm-actual-bindings contain name annotations that express the ACTUAL binding structure
+   *    (typically obtained by 'transform; analyze', i.e. reanalyzing the resulting asts)
+   * 4) TODO: for now it only works well in case the binding mapping can be constructed by considering single-anno elems only
+   *
+   * @type  (T, T) -> List(T{b1, b2})
+   * @param is-endangered-term  String -> String
+   */  
+  binding-violation-terms-list-annos(is-endangered-term):
+    trees@(trm-intended-bindings, trm-actual-bindings) -> binding-violation-terms
+    where
+      binding-violation-terms := <
+        bindings-construct-compare-ast;
+        binding-violation-terms-internal(id, is-endangered-term)
+      > trees
+
+
+  //Assumption: 'declarations' are single element (lists), 'reads' can be multiple element lists
+  //The single element lists determine the mapping (and may have violations), reads are checked for violations
+  //REMARK: useful for flow analysis where a read-access can have multiple predecessors
+  bindings-partition-violations-list-annos:
+    bindings -> (binding-violations, mapping)
+    where
+      (broken-list-bindings, bindings-1)  := <partition(is-broken-list-binding)> bindings; 
+      (created-list-bindings, bindings-2)  := <partition(is-created-list-binding)> bindings-1; 
+      list-bindings := <map(try(binding-single-to-list))> bindings-2;
+      (changed-list-bindings, mapping) := <bindings-partition-violations-list-annos-2> list-bindings;
+      binding-violations := <concat> [broken-list-bindings, created-list-bindings, changed-list-bindings]
+  
+  //@internal
+  bindings-partition-violations-list-annos-2:
+    list-bindings -> (binding-violations, mapping)
+    with
+      map({lb1, lb2: (?_{lb1, lb2}; <eq>(<length> lb1, <length> lb2))})
+    where 
+      (singleton-bindings, multiple-bindings) := <partition(?_{[_], [_]})> list-bindings; 
+      (singleton-violations, singleton-mappings) := <bindings-partition-violations> singleton-bindings; 
+      (multiple-bindings', list-violations) := <partition(filter-all-bindings-from-list-binding(|singleton-mappings))> multiple-bindings; 
+      if <not(equal)> (multiple-bindings', multiple-bindings) then
+        (rec-violations, rec-mapping) := <bindings-partition-violations-list-annos-2> multiple-bindings'
+      else //TODO: we can not detect violations such as the 'a' in t{[a, b], [r, s]} and t{[a, c], [t, u]}
+        (rec-violations, rec-mapping) := <bindings-partition-violations> multiple-bindings' 
+        //detects '[a,b]' in t{[a, b], [r, s]} and t{[a, b], [r, u]}
+      end;
+      mapping := <conc>(singleton-mappings, rec-mapping);
+      binding-violations := <concat> [singleton-violations, list-violations, rec-violations]
+  
+  
+  filter-all-bindings-from-list-binding(|binding-mapping):
+    lst-binding@t{b_lst1, b_lst2} -> lst-binding'
+    where
+      lst-binding' := <foldr(!lst-binding, filter-binding-mapping-from-list-binding)> binding-mapping
+    
+  filter-binding-mapping-from-list-binding:
+    (_{[b1], [b2]}, t{b_lst1, b_lst2}) -> t{b_lst1', b_lst2'}
+    where
+      (matched-1, b_lst1') := <partition(?b1)> b_lst1;
+      (matched-2, b_lst2') := <partition(?b2)> b_lst2;
+      <eq>(<length> matched-1, <length> matched-2)
+    
+
+  is-broken-list-binding:
+    t{lb1, lb2} -> t{lb1, lb2}
+    where
+      <gt>(<length> lb1, <length> lb2)
+
+  is-broken-list-binding:
+    t{lb1, lb2} -> t{lb1, lb2}
+    where
+      <is-list> lb1;
+      <not(is-list)> lb2
+
+  is-created-list-binding:
+    t{lb1, lb2} -> t{lb1, lb2}
+    where
+      <is-broken-list-binding> t{lb2, lb1}
+      
+  binding-single-to-list:
+    t{b1, b2} -> t{[b1], [b2]}
+    where
+      <not(is-list)> b1;
+      <not(is-list)> b2"
   
 create-data-flow-analysis =
 try(<file-exists <+ mkdir> "lib-refactoring");
@@ -1043,7 +1162,7 @@ rules //helper rules to perform the required data-flow analyses for method extra
       term-after-df-intended := <analyze-dataflow; transform> term-before; 
       term-after-df-actual := <transform; analyze-dataflow> term-before; 
       //df-changes := <binding-violation-terms(|declaration-names)>(term-after-df-intended, term-after-df-actual)
-      df-changes := <binding-violation-terms(|declaration-names)>(term-after-df-intended, term-after-df-actual)"
+      df-changes := <binding-violation-terms-list-annos(|declaration-names)>(term-after-df-intended, term-after-df-actual)"
       
 create-fetch-positions =
 try(<file-exists <+ mkdir> "lib-refactoring");
