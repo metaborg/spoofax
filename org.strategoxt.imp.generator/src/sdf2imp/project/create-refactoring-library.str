@@ -134,6 +134,7 @@ module lib-refactoring/namebinding-preservation.generated
 imports
   lib-refactoring/analysis-multifile.generated
   lib/index-library.generated
+  lib-refactoring/binding-violations.generated
 
 strategies
 
@@ -197,91 +198,15 @@ strategies
     (asts-expected-bindings, asts-actual-bindings)  -> binding-violation-errors
     where
       binding-violation-errors := <
-        name-binding-violation-terms-on-trees(is-endangered-name);
+        binding-violation-terms(is-endangered-name);
+        filter(not(?_{[Unresolved(_)|_], [Unresolved(_)|_]}));
         map(to-namebinding-error)
       > (asts-expected-bindings, asts-actual-bindings)
-
-  /**
-   * Returns name binding violations by comparing the expected binding structure with the actual binding structure.
-   * For performance reason, only the 'endangered' names are compared.
-   *
-   * The input term must be a tuple (asts-expected, asts-actual) whereby
-   * 1) both terms have the same abstract structure
-   * 2) the asts-expected contain name annotations that express the EXPECTED binding structure
-   *    (typically obtained by preserving annos during transformation and setting annos for new inserted definitions)
-   * 3) the asts-actual contain name annotations that express the ACTUAL binding structure
-   *    (typically obtained by reanalyzing the asts-expected)
-   *
-   * @type  (asts-expected, asts-actual) -> List(t{nb1, nb2})
-   * @param is-endangered-name  String -> String
-   */  
-  name-binding-violation-terms-on-trees(is-endangered-name):
-    trees@(asts-expected-bindings, asts-actual-bindings) -> binding-violation-terms
-    where
-      binding-violation-terms := <
-        name-binding-construct-compare-ast;
-        name-binding-violation-terms-on-compare-tree(is-endangered-name)
-      > trees
-  
-   //Constructs an AST with information about the original binding structure, and the new binding structure.
-   //Condition: 'asts-expected-bindings' and 'asts-actual-bindings' have the same structure and contain binding information.
-  name-binding-construct-compare-ast:
-    (asts-expected-bindings, asts-actual-bindings) -> binding-compare-ast
-    where
-      binding-compare-ast := <merge-bindings>(asts-expected-bindings, asts-actual-bindings)
-  
-  //Returns name binding violations by comparing the expected binding with the actual binding, 
-  //both set as annotation on identifier terms.
-  //For performance reason, only the 'endangered' names are compared.
-  name-binding-violation-terms-on-compare-tree(is-endangered-name):
-    binding-compare-ast -> binding-violation-terms
-    where 
-      all-bindings := <
-        collect-binding-pairs(is-endangered-name)
-      > binding-compare-ast; 
-      binding-mapping := <make-set> all-bindings; 
-      binding-violations := <filter-violations> binding-mapping; 
-      binding-violation-terms := <isect> (all-bindings, binding-violations) 
-
-  collect-binding-pairs(is-endangered-name):
-    binding-compare-ast -> bindings-mapping
-    where
-      bindings-mapping := <
-        collect-all(is-string; ?_{_, _}; where(strip-annos; is-endangered-name), conc)
-      > binding-compare-ast
-              
-  filter-violations:
-    binding-mapping -> <concat> [broken-bindings, created-bindings, changed-bindings]
-    where
-      (broken-bindings,  binding-mapping')  := <partition(is-broken-binding)> binding-mapping;
-      (created-bindings, binding-mapping'') := <partition(is-created-binding)> binding-mapping';
-      changed-bindings := <filter-changed-bindings> binding-mapping''
-
-  filter-changed-bindings: 
-    [t{nb1,nb2}|bindings] -> <conc>(conflicts, <filter-changed-bindings> unrelated-bindings)
-    where 
-      (related-bindings, unrelated-bindings) := <partition(?_{nb1,_} <+ ?_{_,nb2})> bindings;
-      if <filter(not(?_{nb1,nb2})); ?[]> related-bindings then
-        conflicts := []
-      else
-        conflicts := [t{nb1,nb2}|related-bindings]
-      end
-  
-  filter-changed-bindings:
-    [] -> []
-
-  is-broken-binding =
-    ?_{_, None()} 
 
   is-broken-binding =
     ?_{nb1, [Unresolved(_)|_]};
     where(<not(?[Unresolved(_)|_])> nb1) 
   
-  is-created-binding =
-    ?n{nb1, nb2}; 
-    where(<is-broken-binding> n{nb2, nb1})
-
-
 rules //report name binding violation to end user
 
   to-namebinding-error =
@@ -296,48 +221,7 @@ rules //report name binding violation to end user
     <is-created-binding> -> (<strip-annos>, $[Unbound variabele becomes bound '[<strip-annos>]'])
 
   to-namebinding-error-changed:
-    t{nb1, nb2} -> (<strip-annos>, $[Name collision with name '[<strip-annos>]'])
-
-rules //helpers
-
-  is-in-list(|names):
-    name -> name
-    where
-      <fetch(?name{})> names
-
-  //@internal    
-  merge-bindings =
-    merge-bindings-1 <+
-    merge-bindings-2 <+
-    merge-bindings-3 <+
-    merge-bindings-4
-  
-  //@internal    
-  merge-bindings-1:
-    (s1{nb1}, s2{nb2}) -> s1{nb1, nb2}
-    where
-      <is-string> s1;
-      <equal> (s1{},s2{})
-  
-  //@internal    
-  merge-bindings-2:
-    (s1{nb1}, s2{}) -> s1{nb1, None()}
-    where
-      <is-string> s1;
-      <equal> (s1{},s2{})
-  
-  //@internal    
-  merge-bindings-3:
-    (s1{}, s2{nb2}) -> s1{None(), nb2}
-    where
-      <is-string> s1;
-      <equal> (s1{},s2{})
-  
-  //@internal    
-  merge-bindings-4:
-    (c#(args1), c#(args2)) -> c#(args) 
-    where
-      args := <zip; map(merge-bindings)> (args1, args2)"
+    t{nb1, nb2} -> (<strip-annos>, $[Name collision with name '[<strip-annos>]'])"
 
 
 create-correctness-preservation =
@@ -727,8 +611,7 @@ strategies
     binding-compare-ast -> bindings-mapping
     where
       bindings-mapping := <
-        collect-all(?_{_, _}; where(strip-annos; is-endangered-term), conc);
-        filter(not(?_{[],[]} <+ ?_{(),()} <+ ?_{None(), None()})) //TODO: nb analysis, ?_{Unresolved(_),Unresolved(_)}
+        collect-all(?_{_, _}; where(strip-annos; is-endangered-term), conc)
       > binding-compare-ast
   
   bindings-partition-violations:
