@@ -662,7 +662,7 @@ try(<file-exists <+ mkdir> "lib-refactoring");
  * Strategy to calculate binding violations by comparing binding annotations that 
  * express the actual and the intended binding structure.
  */
-module lib-refactoring/binding-violations-new.generated
+module lib-refactoring/binding-violations.generated
 
 strategies 
 
