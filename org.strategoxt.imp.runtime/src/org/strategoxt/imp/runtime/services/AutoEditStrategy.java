@@ -40,55 +40,56 @@ import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.graphics.Point;
 import org.spoofax.NotImplementedException;
 import org.spoofax.interpreter.terms.ISimpleTerm;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.ITokenizer;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.statistics.EditScenarioCollector;
+import org.strategoxt.imp.runtime.statistics.EditStreakRecorder;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
-	
+
 	private static boolean justProcessedKeyEvent;
-		
+
 	private final ILanguageSyntaxProperties syntax;
-	
+
 	private final String[][] allFences;
-	
+
 	private final int maxOpenFenceLength;
-	
+
 	private final int maxCloseFenceLength;
-	
+
 	private static UniversalEditor lastEditor;
-	
+
 	private IParseController controller;
-	
+
 	private UniversalEditor editor;
-	
+
 	private int lastAutoInsertedFenceLine;
-	
+
 	private int lastAutoInsertedFencesLength;
-	
+
 	private String lastAutoInsertedFenceLineStart;
-	
+
 	private String lastAutoInsertedFenceLineEnd;
 
 	private boolean allowAutoRemoveFence;
-	
+
 	private Stack<Integer> lastAutoInsertionOpenFences = new Stack<Integer>();
-	
+
 	private EditScenarioCollector editScenarioCollector;
 
 	public AutoEditStrategy(ILanguageSyntaxProperties syntax) {
 		this.syntax = syntax;
-		
-		allFences = syntax instanceof SyntaxProperties
-				? ((SyntaxProperties) syntax).getAllFences()
+
+		allFences = syntax instanceof SyntaxProperties ? ((SyntaxProperties) syntax).getAllFences()
 				: syntax.getFences();
-		
+
 		int maxOpenFenceLength = 0;
 		int maxCloseFenceLength = 0;
 		for (String[] fencePair : allFences) {
@@ -97,20 +98,20 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 			if (fencePair[1].length() > maxCloseFenceLength)
 				maxCloseFenceLength = fencePair[1].length();
 		}
-		
+
 		this.maxOpenFenceLength = maxOpenFenceLength;
 		this.maxCloseFenceLength = maxCloseFenceLength;
 		editScenarioCollector = new EditScenarioCollector();
 	}
-	
+
 	public void initialize(IParseController controller) {
 		this.controller = controller;
 	}
-	
+
 	public void customizeDocumentCommand(IDocument document, DocumentCommand command) {
 		try {
 			indentPastedContent(document, command);
-				
+
 		} catch (BadLocationException e) {
 			Environment.logException("Could not determine auto edit strategy", e);
 		} catch (RuntimeException e) {
@@ -121,21 +122,27 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 	public void verifyKey(VerifyEvent event) {
 		try {
 			String input = new String(new char[] { event.character });
-			Point selection = getEditor().getSelection(); 
-			if(controller instanceof SGLRParseController) {
-				((SGLRParseController)controller).getParser().setCursorLocation(selection.x);
-				editScenarioCollector.collectEditorFile(((SGLRParseController)controller).getCurrentAst(), selection.x);
+			Point selection = getEditor().getSelection();
+			if (controller instanceof SGLRParseController) {
+				((SGLRParseController) controller).getParser().setCursorLocation(selection.x);
+				final IStrategoTerm ast = ((SGLRParseController) controller).getCurrentAst();
+				editScenarioCollector.collectEditorFile(ast, selection.x);
+				EditStreakRecorder.INSTANCE().recordEdit(ast);
 			}
 			ISourceViewer viewer = getEditor().getServiceControllerManager().getSourceViewer();
 			if (event.widget instanceof StyledText
-					&& indentAfterNewline(viewer, viewer.getDocument(), selection.x, selection.y, input)) {
+					&& indentAfterNewline(viewer, viewer.getDocument(), selection.x, selection.y,
+							input)) {
 				// Make sure caret is visible (urgh)
 				((StyledText) event.widget).invokeAction(ST.LINE_UP);
 				((StyledText) event.widget).invokeAction(ST.LINE_DOWN);
 				event.doit = false;
-			} else if (insertClosingFence(viewer, viewer.getDocument(), selection.x, selection.y, input)
-					|| skipClosingFence(viewer, viewer.getDocument(), selection.x, selection.y, input)
-					|| undoClosingFence(viewer, viewer.getDocument(), selection.x, selection.y, input)) {
+			} else if (insertClosingFence(viewer, viewer.getDocument(), selection.x, selection.y,
+					input)
+					|| skipClosingFence(viewer, viewer.getDocument(), selection.x, selection.y,
+							input)
+					|| undoClosingFence(viewer, viewer.getDocument(), selection.x, selection.y,
+							input)) {
 				event.doit = false;
 			}
 		} catch (BadLocationException e) {
@@ -146,14 +153,15 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 			justProcessedKeyEvent = false;
 		}
 	}
-	
+
 	protected static boolean pollJustProcessedKeyEvent() {
 		boolean result = justProcessedKeyEvent;
 		justProcessedKeyEvent = false;
 		return result;
 	}
 
-	protected void indentPastedContent(IDocument document, DocumentCommand command) throws BadLocationException {
+	protected void indentPastedContent(IDocument document, DocumentCommand command)
+			throws BadLocationException {
 		// UNDONE: Disabled smart pasting for now
 		if ("true".equals("true"))
 			return;
@@ -161,13 +169,14 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 			String lineStart = getLineBeforeOffset(document, command.offset);
 			if (lineStart.trim().length() > 0) {
 				// Sanity check: only indent based on empty lines
-				// (don't do it if the pasted content may be a new definition which
+				// (don't do it if the pasted content may be a new definition
+				// which
 				// may have to be dedented)
 				return;
 			}
 			String indentation = getIndentation(lineStart);
-			//if (isCloseFenceLine(lineStart)) (noop with above sanity check)
-			//	indentation += createIndentationLevel();
+			// if (isCloseFenceLine(lineStart)) (noop with above sanity check)
+			// indentation += createIndentationLevel();
 			command.text = setIndentation(command.text, indentation);
 		}
 	}
@@ -177,10 +186,12 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 	 * Also handles indentation after indentation triggers (which are just
 	 * opening fences).
 	 */
-	protected boolean indentAfterNewline(ISourceViewer viewer, IDocument document, int offset, int length, String input) throws BadLocationException {
+	protected boolean indentAfterNewline(ISourceViewer viewer, IDocument document, int offset,
+			int length, String input) throws BadLocationException {
 		// TODO: support matching fences for indentation:
-		//   "\"" "\""
-		//   (may be very tricky, when detecting if something is a closing " or opening ")
+		// "\"" "\""
+		// (may be very tricky, when detecting if something is a closing
+		// " or opening ")
 		if (input.equals("\n") || input.equals("\r") || input.equals("\r\n")) {
 			justProcessedKeyEvent = true;
 			String lineStart = getLineBeforeOffset(document, offset);
@@ -190,7 +201,8 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 			if (closeFence != null) {
 				if (isCloseFenceLine(lineEnd, closeFence)) {
 					upToCursor = "\n" + getIndentation(lineStart, true) + createIndentationLevel();
-					document.replace(offset, length, upToCursor + "\n" + getIndentation(lineStart, true));
+					document.replace(offset, length,
+							upToCursor + "\n" + getIndentation(lineStart, true));
 				} else {
 					upToCursor = "\n" + getIndentation(lineStart, true) + createIndentationLevel();
 					document.replace(offset, length, upToCursor);
@@ -205,23 +217,24 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 		}
 		return false;
 	}
-	
-	protected boolean insertClosingFence(ISourceViewer viewer, IDocument document, int offset, int length, String input) throws BadLocationException {
+
+	protected boolean insertClosingFence(ISourceViewer viewer, IDocument document, int offset,
+			int length, String input) throws BadLocationException {
 		// TODO: proper newline after multiline insertion"
-		//   "c\nthen\n\ts\nend" may need an extra \n
-		
+		// "c\nthen\n\ts\nend" may need an extra \n
+
 		// TODO: respect word boundaries
-		//    insert only if "\bif" is typed
-		
+		// insert only if "\bif" is typed
+
 		// TODO: respect Eclipse preference for inserting brackets
-		
+
 		if (input.length() == 0)
 			return false;
 
 		String lineEnd = getLineAfterOffset(document, offset, length);
 		if (getEditor().getInsertMode() == SMART_INSERT
 				|| stripCommentsAndLayout(lineEnd).length() == 0) {
-			
+
 			// Backtrack to see if a fence was typed in
 			// for (int i = 0; i < maxOpenFenceLength && offset - i >= 0; i++) {
 			for (int i = min(maxOpenFenceLength - 1, offset); i >= 0; i--) {
@@ -236,7 +249,8 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 					String lineStart = getLineBeforeOffset(document, offset);
 					closeFence = formatInsertedText(closeFence, lineStart);
 					document.replace(offset, length, input + closeFence);
-					IRegion selection = getInsertedTextSelection(offset + input.length(), closeFence);
+					IRegion selection = getInsertedTextSelection(offset + input.length(),
+							closeFence);
 					viewer.setSelectedRange(selection.getOffset(), selection.getLength());
 					lastAutoInsertedFenceLine = document.getLineOfOffset(offset);
 					lastAutoInsertedFenceLineStart = lineStart;
@@ -244,22 +258,23 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 					if (lastAutoInsertedFencesLength == 0)
 						allowAutoRemoveFence = true;
 					lastAutoInsertedFencesLength += closeFence.length();
-					allowAutoRemoveFence = allowAutoRemoveFence
-							&& openFence.length() == 1 && closeFence.length() == 1;
+					allowAutoRemoveFence = allowAutoRemoveFence && openFence.length() == 1
+							&& closeFence.length() == 1;
 					lastAutoInsertionOpenFences.push(offset - i + input.length());
 					return true;
 				}
 			}
- 		}
+		}
 		return false;
 	}
-	
-	private boolean isIdentifierAfterOffset(IDocument document, int offset) throws BadLocationException {
+
+	private boolean isIdentifierAfterOffset(IDocument document, int offset)
+			throws BadLocationException {
 		final int ASSUMED_IDENTIFIER_SIZE = 6;
 
 		if (syntax instanceof SyntaxProperties) {
 			Pattern identifierPattern = ((SyntaxProperties) syntax).getIdentifierLexical();
-		
+
 			for (int i = offset, max = document.getLength(); i < max; i++) {
 				char c = document.getChar(i);
 				if (c == '\n' || c == '\r')
@@ -273,12 +288,13 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 		}
 		return false;
 	}
-	
+
 	/**
-	 * Tests {@link #isFenceAfterOffset()} succeeds for any of the opening fences.
-	 * Inefficient. 
+	 * Tests {@link #isFenceAfterOffset()} succeeds for any of the opening
+	 * fences. Inefficient.
 	 */
-	private boolean isOpenFenceAfterOffset(IDocument document, int offset) throws BadLocationException {
+	private boolean isOpenFenceAfterOffset(IDocument document, int offset)
+			throws BadLocationException {
 		for (String[] fencePair : allFences) {
 			String openFence = fencePair[0];
 			if (isFenceAfterOffset(document, offset, openFence))
@@ -286,56 +302,62 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 		}
 		return false;
 	}
-	
+
 	/**
-	 * Tests if the offset starts with a particular closing fence,
-	 * ignoring whitespace, comments, and lexicals.
+	 * Tests if the offset starts with a particular closing fence, ignoring
+	 * whitespace, comments, and lexicals.
 	 * 
 	 * @see #stripCommentsAndLayout(String)
 	 */
-	private boolean isFenceAfterOffset(IDocument document, int offset, String fence) throws BadLocationException {
+	private boolean isFenceAfterOffset(IDocument document, int offset, String fence)
+			throws BadLocationException {
 		for (int max = document.getLength(); offset < max; offset++) {
 			char c = document.getChar(offset);
 			if (c == '\n' || c == '\r' || !Character.isWhitespace(c))
 				break;
 		}
-		
+
 		int endOffset = offset + fence.length();
-		return endOffset < document.getLength() && document.get(offset, endOffset - offset).equals(fence);
+		return endOffset < document.getLength()
+				&& document.get(offset, endOffset - offset).equals(fence);
 	}
 
 	public static String formatInsertedText(String text, String lineStart) {
 		return text.replace("\\n", "\n" + getIndentation(lineStart, true))
-				.replace("\\t", createIndentationLevel())
-				.replace("\\\"", "\"")
+				.replace("\\t", createIndentationLevel()).replace("\\\"", "\"")
 				.replace("\\\\", "\\");
 	}
 
 	private IRegion getInsertedTextSelection(int startOffset, String insertedText) {
 		// TODO: improve or eliminate getInsertedTextSelection()
-		//  - support selections in strings like "(abc)"
-		//  - move to SyntaxProperties 
-		//  - maybe use this for content completion selections?
+		// - support selections in strings like "(abc)"
+		// - move to SyntaxProperties
+		// - maybe use this for content completion selections?
 		if (syntax instanceof SyntaxProperties) {
-			Matcher matcher = ((SyntaxProperties) syntax).getIdentifierLexical().matcher(insertedText);
+			Matcher matcher = ((SyntaxProperties) syntax).getIdentifierLexical().matcher(
+					insertedText);
 			return new Region(startOffset, matcher.lookingAt() ? matcher.end() : 0);
 		} else {
 			return new Region(startOffset, 0);
 		}
 	}
-	
+
 	/**
-	 * Skip automatically inserted closing fences when the user
-	 * types them in again.
+	 * Skip automatically inserted closing fences when the user types them in
+	 * again.
 	 */
-	protected boolean skipClosingFence(ISourceViewer viewer, IDocument document, int offset, int length, String input) throws BadLocationException {
-		if (lastAutoInsertedFencesLength > 0 && document.getLineOfOffset(offset) == lastAutoInsertedFenceLine) {
+	protected boolean skipClosingFence(ISourceViewer viewer, IDocument document, int offset,
+			int length, String input) throws BadLocationException {
+		if (lastAutoInsertedFencesLength > 0
+				&& document.getLineOfOffset(offset) == lastAutoInsertedFenceLine) {
 			String lineEnd = getLineAfterOffset(document, offset, length);
 			if (lastAutoInsertedFenceLineEnd.startsWith(input)
 					&& lineEnd.equals(lastAutoInsertedFenceLineEnd)
-					&& getLineBeforeOffset(document, offset).startsWith(lastAutoInsertedFenceLineStart)) {
+					&& getLineBeforeOffset(document, offset).startsWith(
+							lastAutoInsertedFenceLineStart)) {
 				justProcessedKeyEvent = true;
-				lastAutoInsertedFenceLineEnd = lastAutoInsertedFenceLineEnd.substring(input.length());
+				lastAutoInsertedFenceLineEnd = lastAutoInsertedFenceLineEnd.substring(input
+						.length());
 				lastAutoInsertedFencesLength--;
 				if (!lastAutoInsertionOpenFences.isEmpty())
 					lastAutoInsertionOpenFences.pop();
@@ -351,35 +373,40 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 		}
 		return false;
 	}
-	
+
 	/**
-	 * Undo automatically inserted closing fences when the user
-	 * deletes the opening fence.
+	 * Undo automatically inserted closing fences when the user deletes the
+	 * opening fence.
 	 */
-	protected boolean undoClosingFence(ISourceViewer viewer, IDocument document, int offset, int length, String input) throws BadLocationException {
+	protected boolean undoClosingFence(ISourceViewer viewer, IDocument document, int offset,
+			int length, String input) throws BadLocationException {
 		if (lastAutoInsertedFencesLength > 0 && allowAutoRemoveFence
 				&& document.getLineOfOffset(offset) == lastAutoInsertedFenceLine) {
 			if ("\b".equals(input)) {
 				String deletedChar = document.get(offset - 1, 1);
 				String closeFence = document.get(offset, 1);
 				String expectedCloseFence = getMatchingCloseFence(deletedChar);
-				if (offset == lastAutoInsertionOpenFences.peek() && closeFence.equals(expectedCloseFence)) {
+				if (offset == lastAutoInsertionOpenFences.peek()
+						&& closeFence.equals(expectedCloseFence)) {
 					justProcessedKeyEvent = true;
 					lastAutoInsertedFencesLength--;
 					lastAutoInsertedFenceLineEnd = lastAutoInsertedFenceLineEnd.substring(1);
 					lastAutoInsertionOpenFences.pop();
-					if (getLineBeforeOffset(document, offset).equals(lastAutoInsertedFenceLineStart))
-						lastAutoInsertedFenceLineStart = lastAutoInsertedFenceLineStart.substring(0, lastAutoInsertedFenceLineStart.length() - 1);
+					if (getLineBeforeOffset(document, offset)
+							.equals(lastAutoInsertedFenceLineStart))
+						lastAutoInsertedFenceLineStart = lastAutoInsertedFenceLineStart.substring(
+								0, lastAutoInsertedFenceLineStart.length() - 1);
 					document.replace(offset - 1, 2, "");
 					return true;
 				}
-			} else if (!lastAutoInsertionOpenFences.isEmpty() && lastAutoInsertionOpenFences.peek() > offset) {
+			} else if (!lastAutoInsertionOpenFences.isEmpty()
+					&& lastAutoInsertionOpenFences.peek() > offset) {
 				allowAutoRemoveFence = false;
 			}
 		}
 		return false;
 	}
-	
+
 	private UniversalEditor getEditor() {
 		assert controller != null;
 		if (editor == null) {
@@ -390,12 +417,14 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 		return editor;
 	}
 
-	public static String getLineBeforeOffset(IDocument document, int offset) throws BadLocationException {
+	public static String getLineBeforeOffset(IDocument document, int offset)
+			throws BadLocationException {
 		IRegion region = document.getLineInformationOfOffset(offset);
 		return document.get(region.getOffset(), offset - region.getOffset());
 	}
 
-	public static String getLineAfterOffset(IDocument document, int offset, int length) throws BadLocationException {
+	public static String getLineAfterOffset(IDocument document, int offset, int length)
+			throws BadLocationException {
 		IRegion region = document.getLineInformationOfOffset(offset + length);
 		int startOffset = offset + length;
 		int endOffset = region.getOffset() + region.getLength();
@@ -408,11 +437,11 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 				&& (text.startsWith(" ") || text.startsWith("\t") || text.contains("\n"))
 				&& text.trim().length() > 0;
 	}
-	
+
 	public static String setIndentation(String text, String indentation) {
 		String oldIndentation = getMultiLineIndentation(text);
 		text = removeIndentation(text, oldIndentation.toCharArray());
-		
+
 		return indentation + text.replace("\n", "\n" + indentation);
 	}
 
@@ -423,7 +452,7 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 			result.append(removeSingleLineIndentation(line, indentation, tabWidth) + "\n");
 		}
 		result.deleteCharAt(result.length() - 1);
-		
+
 		text = result.toString();
 		return text;
 	}
@@ -437,14 +466,15 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 				if (line.charAt(0) == '\t') {
 					lineOffset++;
 				} else {
-					// TODO: Better support for mixed tabs and spaces when pasting text?
+					// TODO: Better support for mixed tabs and spaces when
+					// pasting text?
 					for (int i = 0; i < tabWidth; i++) {
 						if (line.charAt(lineOffset) != ' ')
 							break;
 						lineOffset++;
 					}
 				}
-			} else if (line.charAt(lineOffset) == ' '){
+			} else if (line.charAt(lineOffset) == ' ') {
 				lineOffset++;
 			} else {
 				break;
@@ -463,22 +493,20 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 		}
 		return result;
 	}
-	
+
 	private static String createIndentationLevel() {
 		// TODO: Respect tabs vs. spaces Eclipse preference
 		return useSpacesInsteadOfTabs() ? createSpacesIndentationLevel() : "\t";
 	}
-	
+
 	private static boolean useSpacesInsteadOfTabs() {
 		IPreferenceStore preferences;
-		if(lastEditor!=null){
+		if (lastEditor != null) {
 			preferences = lastEditor.getThePreferenceStore();
-		}
-		else{
+		} else {
 			preferences = EditorState.getActiveEditor().getEditor().getThePreferenceStore();
 		}
-		return preferences != null && 
-			preferences.getBoolean(EDITOR_SPACES_FOR_TABS);
+		return preferences != null && preferences.getBoolean(EDITOR_SPACES_FOR_TABS);
 	}
 
 	private static String createSpacesIndentationLevel() {
@@ -489,42 +517,41 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 		}
 		return result.toString();
 	}
-	
+
 	public static int getTabWidth() {
 		IPreferenceStore preferences;
-		if(lastEditor!=null){
+		if (lastEditor != null) {
 			preferences = lastEditor.getThePreferenceStore();
-		}
-		else{
+		} else {
 			preferences = EditorState.getActiveEditor().getEditor().getThePreferenceStore();
 		}
 		return preferences.getInt(EDITOR_TAB_WIDTH); // PreferenceCache.tabWidth;
 	}
-	
+
 	private static String getIndentation(String line) {
 		return getIndentation(line, false);
 	}
-	
+
 	private static String getIndentation(String line, boolean considerPrefix) {
 		int i = 0;
-		
+
 		// HACK: support Stratego-like prefix semicolons
 		if (considerPrefix)
 			line = line.replace(';', ' ').replace(',', ' ');
-		
+
 		for (int length = line.length(); i < length; i++) {
 			char c = line.charAt(i);
 			if (c != ' ' && c != '\t') {
 				return line.substring(0, i);
 			}
 		}
-		
+
 		return i == line.length() ? line : "";
 	}
-	
+
 	/**
-	 * Tests if the line ends with an opening fence,
-	 * ignoring whitespace, comments, and lexicals.
+	 * Tests if the line ends with an opening fence, ignoring whitespace,
+	 * comments, and lexicals.
 	 * 
 	 * @return the matching closing fence, or null if no open fence on this line
 	 * 
@@ -537,15 +564,16 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 			String openFence = line.substring(offset, line.length());
 			String closeFence = getMatchingCloseFence(openFence);
 			if (closeFence != null
-					&& (!isIdentifier(openFence) || offset == 0 || !isIdentifier(line.substring(offset - 1, offset))))
+					&& (!isIdentifier(openFence) || offset == 0 || !isIdentifier(line.substring(
+							offset - 1, offset))))
 				return closeFence;
 		}
 		return null;
 	}
-	
+
 	/**
-	 * Tests if the line starts with a particular closing fence,
-	 * ignoring whitespace, comments, and lexicals.
+	 * Tests if the line starts with a particular closing fence, ignoring
+	 * whitespace, comments, and lexicals.
 	 * 
 	 * @see #stripCommentsAndLayout(String)
 	 */
@@ -554,12 +582,13 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 		for (int i = 1; i <= maxCloseFenceLength && i <= line.length(); i++) {
 			String closeFence = line.substring(0, i);
 			if (closeFence.equals(fence)
-					&& (!isIdentifier(closeFence) || i == line.length() || !isIdentifier(line.substring(i, i + 1))))
+					&& (!isIdentifier(closeFence) || i == line.length() || !isIdentifier(line
+							.substring(i, i + 1))))
 				return true;
 		}
-		return false;	
+		return false;
 	}
-	
+
 	private boolean isIdentifier(String text) {
 		if (syntax instanceof SyntaxProperties) {
 			Matcher matcher = ((SyntaxProperties) syntax).getIdentifierLexical().matcher(text);
@@ -568,7 +597,7 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 			throw new NotImplementedException();
 		}
 	}
-	
+
 	private String getMatchingCloseFence(String text) {
 		if (text.length() > maxOpenFenceLength)
 			return null;
@@ -578,7 +607,7 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 		}
 		return null;
 	}
-	
+
 	@SuppressWarnings("unused")
 	private String getMatchingOpenFence(String text) {
 		if (text.length() > maxCloseFenceLength)
@@ -589,9 +618,10 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 		}
 		return null;
 	}
-	
+
 	/**
-	 * Dumb stripping of comments and layout, ignoring string literals and the like.
+	 * Dumb stripping of comments and layout, ignoring string literals and the
+	 * like.
 	 */
 	private String stripCommentsAndLayout(String line) {
 		final String singleLineCommentPrefix = syntax.getSingleLineCommentPrefix();
@@ -603,23 +633,26 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 		// TODO: strip block comments
 		return line.trim();
 	}
-	
+
 	/**
-	 * Determines if inserting the text, inserted at the given point,
-	 * would be parsed as a lexical or comment.
+	 * Determines if inserting the text, inserted at the given point, would be
+	 * parsed as a lexical or comment.
 	 * 
-	 * Currently looks at the tokenkind at the given offset:
-	 * string and layout tokens lead to a result of true.
+	 * Currently looks at the tokenkind at the given offset: string and layout
+	 * tokens lead to a result of true.
 	 */
-	private boolean isParsedAsLexicalOrLayout(IDocument document, int offset, String text) throws BadLocationException {
-		// TODO: better robustness of isParsedAsLexicalOrLayout if parsed AST is not up to date (like ContentProposer has)
+	private boolean isParsedAsLexicalOrLayout(IDocument document, int offset, String text)
+			throws BadLocationException {
+		// TODO: better robustness of isParsedAsLexicalOrLayout if parsed AST is
+		// not up to date (like ContentProposer has)
 		if (controller.getCurrentAst() == null)
 			return false;
-		ISimpleTerm node = (ISimpleTerm) controller.getSourcePositionLocator().findNode(controller.getCurrentAst(), offset);
+		ISimpleTerm node = (ISimpleTerm) controller.getSourcePositionLocator().findNode(
+				controller.getCurrentAst(), offset);
 		if (node == null)
 			return false;
 		ITokenizer tokens = getLeftToken(node).getTokenizer();
-		
+
 		for (int i = getLeftToken(node).getIndex(), max = getRightToken(node).getIndex(); i <= max; i++) {
 			IToken token = tokens.getTokenAt(i);
 			if (token.getStartOffset() <= offset && offset <= token.getEndOffset()) {
@@ -629,30 +662,42 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 							return true;
 						continue;
 					case TK_LAYOUT:
-						if (token.toString().trim().length() > 0 && isSameLine(document, offset, token))
+						if (token.toString().trim().length() > 0
+								&& isSameLine(document, offset, token))
 							return true; // part of a comment
 						continue;
 					case TK_ERROR:
-						// TODO: test if part of comment? can't test if part of string...
-						// IRegion line = document.getLineInformationOfOffset(command.offset);
-						// String lineString = document.get(line.getOffset(), line.getLength());
-						// lineString = start + ContentProposer.COMPLETION_TOKEN + end
+						// TODO: test if part of comment? can't test if part of
+						// string...
+						// IRegion line =
+						// document.getLineInformationOfOffset(command.offset);
+						// String lineString = document.get(line.getOffset(),
+						// line.getLength());
+						// lineString = start + ContentProposer.COMPLETION_TOKEN
+						// + end
 					case TK_IDENTIFIER:
-						/* UNDONE: Detect string literals even if their lexical pattern uses sorts instead of char classes
-						           (e.g., in the SDF syntax, strings are defined as "\"" StrChar* "\"")
-						String tokenText = token.toString();
-						if ((tokenText.startsWith("\"") && tokenText.endsWith("\""))
-								|| (tokenText.startsWith("'") && tokenText.endsWith("'"))) {
-							return true;
-						} else {
-							continue;
-						}
-						*/
-						if (isSameLine(document, offset, token) && isIdentifier(token.toString())) // sanity check
-							return true; // either a string or just not a keyword
+						/*
+						 * UNDONE: Detect string literals even if their lexical
+						 * pattern uses sorts instead of char classes (e.g., in
+						 * the SDF syntax, strings are defined as "\"" StrChar*
+						 * "\"") String tokenText = token.toString(); if
+						 * ((tokenText.startsWith("\"") &&
+						 * tokenText.endsWith("\"")) ||
+						 * (tokenText.startsWith("'") &&
+						 * tokenText.endsWith("'"))) { return true; } else {
+						 * continue; }
+						 */
+						if (isSameLine(document, offset, token) && isIdentifier(token.toString())) // sanity
+																									// check
+							return true; // either a string or just not a
+											// keyword
 						continue;
-					case TK_NUMBER: case TK_OPERATOR:
-					case TK_VAR: case TK_EOF: case TK_UNKNOWN: case TK_RESERVED:
+					case TK_NUMBER:
+					case TK_OPERATOR:
+					case TK_VAR:
+					case TK_EOF:
+					case TK_UNKNOWN:
+					case TK_RESERVED:
 					case TK_KEYWORD:
 						continue;
 					default:
@@ -662,7 +707,7 @@ public class AutoEditStrategy implements IAutoEditStrategy, VerifyKeyListener {
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Sanity check: ensure token and cursor are on the same line.
 	 */

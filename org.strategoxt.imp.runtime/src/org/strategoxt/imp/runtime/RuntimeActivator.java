@@ -11,10 +11,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Plugin;
-import org.eclipse.core.runtime.preferences.IEclipsePreferences;
-import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.dialogs.MessageDialogWithToggle;
-import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
@@ -118,14 +115,7 @@ public class RuntimeActivator extends AbstractUIPlugin {
 				Environment
 						.logWarning("Make sure Eclipse is started with -vmargs -Xss8m (can be set in eclipse.ini) for an 8 MiB stack size");
 
-			// final String version =
-			// getBundle().getHeaders().get("Bundle-Version");
-			// final String version =
-			// Platform.getBundle(PLUGIN_ID).getVersion().toString();
 			final String version = context.getBundle().getVersion().toString();
-			// final IPreferenceStore prefs = getPreferenceStore();
-			// final IEclipsePreferences prefs =
-			// InstanceScope.INSTANCE.getNode(PLUGIN_ID);
 			final Preferences prefs = Platform.getPreferencesService().getRootNode()
 					.node(Plugin.PLUGIN_PREFERENCE_SCOPE).node(PLUGIN_ID);
 
