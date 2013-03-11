@@ -1,4 +1,4 @@
-package org.strategoxt.imp.runtime.services;
+package org.strategoxt.imp.runtime.statistics;
 
 import java.io.File;
 import java.io.FileNotFoundException;

@@ -45,6 +45,7 @@ import org.spoofax.jsglr.client.imploder.ITokenizer;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
+import org.strategoxt.imp.runtime.statistics.EditScenarioCollector;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
