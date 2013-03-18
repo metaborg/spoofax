@@ -56,13 +56,14 @@ public class EditStreak {
 		final int streakNumber = manifest.addStreak(this);
 
 		final File streaksFolder = new File(project.toFile(), EditStreakRecorder.RECORD_LOCATION);
-		if (!streaksFolder.exists()) {
-			streaksFolder.createNewFile();
+		final File recordFolder = new File(streaksFolder, streakNumber + "");
+		if (!recordFolder.exists()) {
+			recordFolder.mkdirs();
 		}
 		for (RecordedEdit edit : edits) {
 			final IPath sFilePath = edit.resource.getProjectRelativePath();
-			ensureDirectories(streaksFolder, sFilePath.segments());
-			final File outFile = new File(streaksFolder, sFilePath.toString() + "._" + streakNumber);
+			ensureDirectories(recordFolder, sFilePath.segments());
+			final File outFile = new File(recordFolder, sFilePath.toString() + "._streak");
 			final PrintStream ps = new PrintStream(outFile);
 			ps.print(ImploderAttachment.getTokenizer(edit.ast).getInput());
 			ps.close();

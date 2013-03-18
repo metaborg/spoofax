@@ -74,7 +74,6 @@ public class StreakManifest {
 		while (fiter.hasNext()) {
 			final IResource f = fiter.next();
 			streakFilesStr.append(f.getProjectRelativePath().toString());
-			streakFilesStr.append("." + totalStreaks);
 			if (fiter.hasNext()) {
 				streakFilesStr.append(",");
 			}
