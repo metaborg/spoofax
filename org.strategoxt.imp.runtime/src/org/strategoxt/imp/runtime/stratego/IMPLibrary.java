@@ -22,6 +22,7 @@ public class IMPLibrary extends AbstractStrategoOperatorRegistry {
 		add(new SetMarkersPrimitive());
 		add(new CandidateSortsPrimitive());
 		add(new GetAllProjectsPrimitive());
+		add(new ForeignLangCallPrimitive());
 		
 		add(new SetTotalWorkUnitsPrimitive());
 		add(new CompleteWorkUnitPrimitive());
