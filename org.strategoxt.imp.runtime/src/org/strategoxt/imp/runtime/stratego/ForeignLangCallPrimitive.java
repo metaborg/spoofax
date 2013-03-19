@@ -45,29 +45,35 @@ public class ForeignLangCallPrimitive extends AbstractPrimitive {
 		assert tvars.length == 2;
 		assert tvars[0] instanceof IStrategoString;
 		assert tvars[1] instanceof IStrategoString;
+		final String oLangName = ((IStrategoString) tvars[0]).stringValue();
+		final String strategyName = ((IStrategoString) tvars[1]).stringValue();
+		boolean result = false;
 		try {
-			final String oLangName = ((IStrategoString) tvars[0]).stringValue();
-			final String strategyName = ((IStrategoString) tvars[1]).stringValue();
 			final IStrategoTerm inputTerm = env.current();
 			final EditorIOAgent agent = (EditorIOAgent) SSLLibrary.instance(env).getIOAgent();
 			final IProject project = agent.getProject();
+			final String dir = ((EditorIOAgent) SSLLibrary.instance(env).getIOAgent())
+					.getProjectPath();
 
 			final Language oLang = LanguageRegistry.findLanguage(oLangName);
 			if (oLang == null)
 				return false;
 			final Descriptor oLangDescr = Environment.getDescriptor(oLang);
 			assert oLangDescr != null;
-			final StrategoObserver observer = oLangDescr.createService(StrategoObserver.class, null);
-			final IStrategoTerm outputTerm = observer.invoke(strategyName, inputTerm, project
-					.getLocation().toFile());
-			env.setCurrent(outputTerm);
-		} catch (ClassCastException cex) {
+			final StrategoObserver observer = oLangDescr
+					.createService(StrategoObserver.class, null);
+			observer.configureRuntime(project, dir);
+			observer.getRuntime().setCurrent(inputTerm);
+			result = observer.getRuntime().invoke(strategyName);
+			env.setCurrent(observer.getRuntime().current());
+			observer.uninitialize();
+		} catch (RuntimeException cex) {
 			Environment.logException(cex);
-			return false;
 		} catch (BadDescriptorException e) {
 			Environment.logException(e);
-			return false;
+		} catch (InterpreterException e) {
+			Environment.logException(e);
 		}
-		return true;
+		return result;
 	}
 }
