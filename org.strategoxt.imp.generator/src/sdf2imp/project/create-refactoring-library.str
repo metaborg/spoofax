@@ -19,6 +19,7 @@ imports
   lib-refactoring/analysis-multifile.generated
   lib-refactoring/namebinding-preservation.generated
   lib-refactoring/correctness-preservation.generated
+  lib-refactoring/binding-violations.generated
 
 strategies
 
