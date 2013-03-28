@@ -81,8 +81,7 @@ public class EditStreakRecorder implements Runnable, IPropertyChangeListener {
 	 * @param ast
 	 */
 	public void recordEdit(IStrategoTerm ast) {
-		assert ast != null;
-		if (!cfgEnabled || this.thread == null || !this.thread.isAlive() || doStop) {
+		if (ast == null || !cfgEnabled || this.thread == null || !this.thread.isAlive() || doStop) {
 			return;
 		}
 		queue.add(new RecordedEdit(ast, System.currentTimeMillis()));
