@@ -23,6 +23,8 @@ import org.strategoxt.imp.runtime.Environment;
  */
 public class MarkerSignature {
 
+	private static final int MAX_MESSAGE_LEN = 1000;
+
 	private static final String[] ATTRIBUTES = { LINE_NUMBER, CHAR_START, CHAR_END, MESSAGE, SEVERITY, PRIORITY, TRANSIENT };
 	
 	private IResource resource;
@@ -39,10 +41,10 @@ public class MarkerSignature {
 	
 	public MarkerSignature(IResource resource, IToken left, IToken right, String message,
 			int severity, int priority, boolean isTransient) {
-		if (message == null) message = "Problem";
+		assert message != null;
 		this.resource = resource;
 		this.line = left.getLine();
-		this.message = message;
+		this.message = message.substring(0, Math.min(message.length(), MAX_MESSAGE_LEN));
 		this.severity = severity;
 		this.comparisonMessage = removeSyntaxErrorDetails(message);
 		this.values = new Object[] { line, left.getStartOffset(), right.getEndOffset() + 1, message, severity, priority, isTransient };
