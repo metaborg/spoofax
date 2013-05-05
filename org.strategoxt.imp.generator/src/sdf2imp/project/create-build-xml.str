@@ -49,6 +49,7 @@ strategies
         <property name="externaljar" value="../lib.jar"/>
         <property name="externaljarflags" value="-la org.lib"/>
         -->
+        <property name="externaljarflags" value="-la org.metaborg.runtime.task.interop"/>
     
         <!-- Environment configuration for command-line builds -->
         <condition property="build.strategoxt.sdf" value="${eclipse.spoofaximp.nativeprefix}" else="">
@@ -617,7 +618,6 @@ strategies
                 <arg line="${externaljarflags}"/>
                 <arg line="${externaldefimport}"/>
                 <arg line="-I &quot;${lib}&quot; -I &quot;${include}&quot; --cache-dir &quot;${basedir}/.cache&quot;"/>
-                <arg line="-la org.metaborg.runtime.task.interop"/>
             </java>
             <delete file="${include}/${strmodule}.rtree" failonerror="false"/>
             <mkdir dir="${build}/trans"/>
