@@ -3,8 +3,12 @@ package org.strategoxt.imp.runtime.stratego;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.URI;
+import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IPath;
@@ -55,24 +59,30 @@ public class QueueAnalysisService implements INotificationService {
 		if (files.length == 0)
 			return;
 
-		List<IPath> relativePaths = new ArrayList<IPath>(files.length);
+		Map<Entry<IProject, Language>, List<IPath>> projects = new HashMap<Entry<IProject, Language>, List<IPath>>();
 		for (FilePartition file : files) {
 			try {
 				IPath path = relativePath(file.file, file.partition);
-				if (path != null)
+				if (path != null) {
+					IProject project = EditorIOAgent.getProject(new File(file.file));
+					Language lang = LanguageRegistry.findLanguage(path, null);
+					Entry<IProject, Language> entry =
+						    new AbstractMap.SimpleEntry<IProject, Language>(project, lang);
+					List<IPath> relativePaths = projects.get(entry);
+					if(relativePaths == null) {
+						relativePaths = new ArrayList<IPath>();
+						projects.put(entry, relativePaths);
+					}
 					relativePaths.add(path);
+				}
 			} catch (FileNotFoundException e) {
 				// Ignore exception, path is not added.
 			}
 		}
 
-		try {
-			// TODO: assuming all projects are the same, is that fine?
-			IProject project = EditorIOAgent.getProject(new File(files[0].file));
+		for(Entry<Entry<IProject, Language>, List<IPath>> entry : projects.entrySet()) {
 			StrategoAnalysisQueueFactory.getInstance().queueAnalysis(
-					relativePaths.toArray(new IPath[0]), project, triggerOnSave);
-		} catch (FileNotFoundException e) {
-			Environment.logException("Background language service failed", e);
+					entry.getValue().toArray(new IPath[0]), entry.getKey().getKey(), triggerOnSave);
 		}
 	}
 
