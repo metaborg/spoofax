@@ -1,5 +1,6 @@
 /.cache
 *.rtree
+/src-gen
 /sdf2imp.c
 /sdf2imp.dep
 /src/include/rtg.tbl
