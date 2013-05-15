@@ -138,9 +138,10 @@ strategies
     
     create-parse-controller;
     create-validator;
+    create-activator;
+    
     create-build-properties;
     create-project-file;
-    create-activator;
     create-classpath;
     create-manifest;
     create-plugin-xml;

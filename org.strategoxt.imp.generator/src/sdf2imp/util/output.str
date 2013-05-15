@@ -98,6 +98,12 @@ strategies
  * Pretty-printing support.
  */
 strategies
+
+  output-java-file-ifne =
+  	?class;
+  	if not(<file-exists> <java-to-path> class) then
+  		<output-java-file> class
+  	end
   
   output-java-file =
     output-java-file(|<java-to-path>)
