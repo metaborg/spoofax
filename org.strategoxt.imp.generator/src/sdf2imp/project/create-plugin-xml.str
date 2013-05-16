@@ -14,30 +14,29 @@ strategies
     pkgname    := <BasePackage <+ default-package-name>;
     extensions := <EditorExtensions>;
     
-    <output-xml-file(|[], "plugin.xml")>
-    %>
-    <?xml version="1.0" encoding="UTF-8"?>
+    <output-text-file(|[], "plugin.xml")>
+    $[<?xml version="1.0" encoding="UTF-8"?>
     <?eclipse version="3.0"?>
     <plugin>
        <extension
              point="org.eclipse.imp.runtime.languageDescription">
           <language
-                extensions="<%= extensions %>"
-                description="<%= name %>"
-                language="<%= name %>"
+                extensions="[extensions]"
+                description="[name]"
+                language="[name]"
                 derivedFrom="DynamicRoot"
-                validator="<%= pkgname %>.<%= validator %>"
-                validatorClass="<%= pkgname %>.<%= validator %>"
+                validator="[pkgname].[validator]"
+                validatorClass="[pkgname].[validator]"
           ></language>
        </extension>
        <extension
-             id="<%= pkgname %>.parser"
-             name="<%= name %> Parser"
+             id="[pkgname].parser"
+             name="[name] Parser"
              point="org.eclipse.imp.runtime.parser">
           <parser
-                class="<%= pkgname %>.<%= parser %>"
-                language="<%= name %>">
+                class="[pkgname].[parser]"
+                language="[name]">
           </parser>
        </extension>    
     </plugin>
-    <%
+    ]
