@@ -40,13 +40,14 @@
 		<attribute name="parsetable" />
 		<element name="args" optional="true" />
 		<sequential>
+			<property name="@{parsetable}.abs" location="@{parsetable}" />
 			<uptodate-io input="@{input}" output="@{output}" type="sglri">
 				<action>
 					<java classname="org.spoofax.jsglr.Main" failonerror="true">
 						<arg value="-i" />
 						<arg value="${basedir}/@{input}" />
 						<arg value="-p" />
-						<arg value="${basedir}/@{parsetable}" />
+						<arg value="${@{parsetable}.abs}" />
 						<arg value="--implode" />
 						<arg value="-o" />
 						<arg value="${basedir}/@{output}" />
@@ -288,9 +289,10 @@
 							<strjlibargs />
 						</strjargs>
 					</strj>
+					<delete file="${@{input}.dirname}/lib${@{input}.basename}.ctree" />
+					<delete file="${@{input}.dirname}/lib${@{input}.basename}.ctree.dep" />
 				</action>
 				<deps>
-
 					<str-deps />
 				</deps>
 			</uptodate-mio>

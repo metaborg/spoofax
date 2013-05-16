@@ -36,15 +36,18 @@
 	<!-- build output directory -->
 	<property name="src-gen" value="src-gen" />
 	<property name="gen" value="${src-gen}" />
-
+	<property name="cache-dir" value=".cache" />
+	
 	<target name="ensure-dirs">
 		<mkdir dir="${gen}" />
 		<mkdir dir="${src-gen}" />
+		<mkdir dir="${cache-dir}" />
 	</target>
 
 	<target name="clean">
 		<delete dir="${gen}" />
 		<delete dir="${src-gen}" />
+		<delete dir="${cache-dir}" />
 	</target>
 
 	<target name="syntax-esv" depends="ensure-dirs">
@@ -58,6 +61,7 @@
 		<sdf2rtg input="${gen}/EditorService.def" output="${src-gen}/EditorService.rtg" main="EditorService" />
 		<rtg2sig input="${src-gen}/EditorService.rtg" output="${src-gen}/EditorService.str" main="EditorService" />
 		<ppgen input="${gen}/EditorService.def" output="${gen}/EditorService.pp" />
+		<sglri input="src/syntax/EditorService-pretty.pp" output="${gen}/EditorService-pretty.pp.af" parsetable="${gpp-more}/pp-table.tbl" />
 	</target>
 
 	<target name="syntax-str-esv" depends="ensure-dirs">
@@ -76,10 +80,10 @@
 		<rtg2sig input="${src-gen}/Stratego-Java-EditorService.rtg" output="${src-gen}/Stratego-Java-EditorService.str" main="Stratego-Java-EditorService" />
 		<ppgen input="${gen}/Stratego-Java-EditorService.def" output="${gen}/Stratego-Java-EditorService.pp" />
 	</target>
-
+	
 	<target name="syntax" depends="syntax-esv, syntax-str-esv" />
 
-	<target name="build" depends="syntax">
+	<target name="compile-stratego" depends="syntax">
 		<mkdir dir="${src-gen}/org/strategoxt/imp/generator" />
 		<strj-lib input="src/sdf2imp.str" output="${src-gen}/org/strategoxt/imp/generator/sdf2imp.java" package="org.strategoxt.imp.generator">
 			<strjlibargs>
@@ -157,6 +161,6 @@
 
 	<target name="all" depends="
 		ensure-dirs,
-		syntax
+		compile-stratego
 		" />
 </project>
