@@ -1,14 +1,3 @@
 /.cache
 *.rtree
 /src-gen
-/sdf2imp.c
-/sdf2imp.dep
-/src/include/rtg.tbl
-/src/syntax/EditorService-pretty.pp.af
-/src/syntax/EditorService.def
-/src/syntax/EditorService.pp
-/src/syntax/EditorService.str
-/src/syntax/EditorService.tbl
-/src/syntax/Stratego-Java-15.def
-/src/syntax/Stratego-Java-EditorService.def
-/src/syntax/Stratego-Java-EditorService.tbl

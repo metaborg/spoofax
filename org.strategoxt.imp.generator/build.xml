@@ -21,10 +21,10 @@
 	<property name="sdf-front" value="${strategoxt}/share/sdf-front" />
 
 	<property name="stratego-lib" value="${user.home}/.nix-profile/share/stratego-lib" />
-	
+
 	<property name="sdf" value="${user.home}/.nix-profile" />
 	<property name="pgen" value="${sdf}/share/pgen" />
-	<property name="xml-front-more" value="${sdf}/share/sdf/xml-front" />
+	<!--<property name="xml-front-more" value="${sdf}/share/sdf/xml-front" /> -->
 	<property name="rtg-more" value="${sdf}/share/sdf/stratego-regular" />
 	<property name="gpp-more" value="${sdf}/share/sdf/gpp" />
 
@@ -37,7 +37,7 @@
 	<property name="src-gen" value="src-gen" />
 	<property name="gen" value="${src-gen}" />
 	<property name="cache-dir" value=".cache" />
-	
+
 	<target name="ensure-dirs">
 		<mkdir dir="${gen}" />
 		<mkdir dir="${src-gen}" />
@@ -80,7 +80,7 @@
 		<rtg2sig input="${src-gen}/Stratego-Java-EditorService.rtg" output="${src-gen}/Stratego-Java-EditorService.str" main="Stratego-Java-EditorService" />
 		<ppgen input="${gen}/Stratego-Java-EditorService.def" output="${gen}/Stratego-Java-EditorService.pp" />
 	</target>
-	
+
 	<target name="syntax" depends="syntax-esv, syntax-str-esv" />
 
 	<target name="compile-stratego" depends="syntax">
@@ -137,8 +137,8 @@
 				<arg value="-I" />
 				<arg value="${stratego-lib}" />
 
-				<arg value="-I" />
-				<arg value="${xml-front-more}" />
+				<!--<arg value="-I" />
+				<arg value="${xml-front-more}" />-->
 				<arg value="-I" />
 				<arg value="${rtg-more}" />
 				<arg value="-I" />
