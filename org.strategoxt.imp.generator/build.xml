@@ -26,7 +26,6 @@
 
 	<property name="sdf" value="${user.home}/.nix-profile" />
 	<property name="pgen" value="${sdf}/share/pgen" />
-	<!--<property name="xml-front-more" value="${sdf}/share/sdf/xml-front" /> -->
 	<property name="rtg-more" value="${sdf}/share/sdf/stratego-regular" />
 	<property name="gpp-more" value="${sdf}/share/sdf/gpp" />
 
@@ -41,11 +40,19 @@
 	<property name="bin" value="${gen}/bin" />
 	<property name="cache-dir" value=".cache" />
 
+	<property name="install-prefix" value="${lib}" />
+
+	<tstamp>
+		<format property="timestamp.isoformat" pattern="yyyy-mm-dd'T'HH:mm:ss" locale="en" />
+	</tstamp>
+
+
 	<target name="ensure-dirs">
 		<mkdir dir="${gen}" />
 		<mkdir dir="${src-gen}" />
 		<mkdir dir="${cache-dir}" />
 		<mkdir dir="${bin}" />
+		<mkdir dir="${install-prefix}" />
 	</target>
 
 	<target name="clean">
@@ -88,7 +95,7 @@
 
 	<target name="syntax" depends="syntax-esv, syntax-str-esv" />
 
-	<target name="compile-stratego" depends="syntax">
+	<target name="compile-stratego" depends="ensure-dirs, syntax">
 		<mkdir dir="${src-gen}/org/strategoxt/imp/generator" />
 		<strj-lib input="src/sdf2imp.str" output="${src-gen}/org/strategoxt/imp/generator/sdf2imp.java" package="org.strategoxt.imp.generator">
 			<strjlibargs>
@@ -164,13 +171,32 @@
 		</strj-lib>
 	</target>
 
-	<target name="compile-java" depends="compile-stratego">
+	<target name="compile-java" depends="ensure-dirs, compile-stratego">
 		<mkdir dir="${gen}/bin/org/strategoxt/imp/generator" />
-		<javac srcdir="${src-gen}/org/strategoxt/imp/generator/" destdir="${gen}/bin" source="1.5" target="1.5" debug="true" debuglevel="source"/>
+		<javac srcdir="${src-gen}/org/strategoxt/imp/generator/" destdir="${gen}/bin" source="1.5" target="1.5" debug="true" debuglevel="source" />
 	</target>
 
-	<target name="all" depends="
-		ensure-dirs,
-		compile-stratego
-		" />
+	<target name="jar" depends="ensure-dirs, compile-java">
+		<mkdir dir="${bin}/META-INF" />
+		<property name="jar.manifestfile.path" value="${bin}/META-INF/MANIFEST.MF" />
+		<manifest file="${bin}/META-INF/MANIFEST.MF">
+			<attribute name="Built-On" value="${timestamp.isoformat}" />
+			<attribute name="Class-Path" value="strategoxt.jar" />
+			<attribute name="Main-Class" value="org.strategoxt.imp.generator.sdf2imp" />
+		</manifest>
+		<jar destfile="${gen}/sdf2imp.jar" manifest="${bin}/META-INF/MANIFEST.MF">
+			<fileset dir="${bin}" includes="**/*" />
+			<fileset dir="${gen}" includes="EditorService-pretty.pp.af, EditorService.tbl" />
+			<fileset dir="${gen}/org/strategoxt/imp/generator" includes="Stratego-Sugar-pretty.pp.af, sdf2imp.rtree" />
+		</jar>
+	</target>
+
+	<target name="install" depends="jar">
+		<copy file="${gen}/sdf2imp.jar" todir="${install-prefix}" overwrite="true" verbose="true" />
+		<copy file="${lib}/StrategoMix.def" todir="${install-prefix}" overwrite="false" verbose="true" />
+		<copy file="${lib}/aster.jar" todir="${install-prefix}" overwrite="false" verbose="true" />
+		<copy file="${lib}/make_permissive.jar" todir="${install-prefix}" overwrite="false" verbose="true" />
+	</target>
+
+	<target name="all" depends="install" />
 </project>
