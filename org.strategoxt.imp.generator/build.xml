@@ -7,6 +7,8 @@
 	<!-- Import Stratego/XT Ant contributions -->
 	<import file="ant-contrib/strategoxt-contrib.xml" />
 
+	<!-- Import build config. Specifies which compiler to use -->
+	<property file="build.properties" />
 
 	<!-- build-time dependencies -->
 	<property name="java-front" value="${user.home}/.nix-profile/share/java-front" />
@@ -36,18 +38,21 @@
 	<!-- build output directory -->
 	<property name="src-gen" value="src-gen" />
 	<property name="gen" value="${src-gen}" />
+	<property name="bin" value="${gen}/bin" />
 	<property name="cache-dir" value=".cache" />
 
 	<target name="ensure-dirs">
 		<mkdir dir="${gen}" />
 		<mkdir dir="${src-gen}" />
 		<mkdir dir="${cache-dir}" />
+		<mkdir dir="${bin}" />
 	</target>
 
 	<target name="clean">
 		<delete dir="${gen}" />
 		<delete dir="${src-gen}" />
 		<delete dir="${cache-dir}" />
+		<delete dir="${bin}" />
 	</target>
 
 	<target name="syntax-esv" depends="ensure-dirs">
@@ -115,6 +120,8 @@
 				<arg value="stratego-sdf" />
 				<arg value="-la" />
 				<arg value="stratego-aterm" />
+				<arg value="-la" />
+				<arg value="java-front" />
 
 				<arg value="-I" />
 				<arg value="${java-front}" />
@@ -137,8 +144,6 @@
 				<arg value="-I" />
 				<arg value="${stratego-lib}" />
 
-				<!--<arg value="-I" />
-				<arg value="${xml-front-more}" />-->
 				<arg value="-I" />
 				<arg value="${rtg-more}" />
 				<arg value="-I" />
@@ -157,6 +162,11 @@
 				<srcfiles dir="${src-gen}" includes="**/*.str" />
 			</str-deps>
 		</strj-lib>
+	</target>
+
+	<target name="compile-java" depends="compile-stratego">
+		<mkdir dir="${gen}/bin/org/strategoxt/imp/generator" />
+		<javac srcdir="${src-gen}/org/strategoxt/imp/generator/" destdir="${gen}/bin" source="1.5" target="1.5" debug="true" debuglevel="source"/>
 	</target>
 
 	<target name="all" depends="
