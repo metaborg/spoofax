@@ -45,7 +45,7 @@
 		<delete dir="${src-gen}" />
 	</target>
 
-	<target name="syntax-esv">
+	<target name="syntax-esv" depends="ensure-dirs">
 		<pack-sdf input="${syntax}/EditorService.sdf" output="${gen}/EditorService.def">
 			<sdf-deps>
 				<srcfiles dir="${syntax}" includes="**/*.sdf" />
@@ -58,7 +58,7 @@
 		<ppgen input="${gen}/EditorService.def" output="${gen}/EditorService.pp" />
 	</target>
 
-	<target name="syntax-str-esv">
+	<target name="syntax-str-esv" depends="ensure-dirs">
 		<pack-sdf input="${syntax}/Stratego-Java-EditorService.sdf" output="${gen}/Stratego-Java-EditorService.def">
 			<sdf-deps>
 				<srcfiles dir="${syntax}" includes="**/*.sdf" />

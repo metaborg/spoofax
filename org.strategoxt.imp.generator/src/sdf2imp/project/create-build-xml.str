@@ -16,16 +16,15 @@ strategies
     name'      := <trans-module-name>;
     classname  := <get-main-class-name>;
     
-    <output-xml-file(|[], "build.main.xml")>
-    %>
-    <?xml version="1.0" encoding="UTF-8"?>
-    <project name="<%= name %>" default="all">
+    <output-text-file(|[], "build.main.xml")>
+    $[<?xml version="1.0" encoding="UTF-8"?>
+    <project name="[name]" default="all">
         
         <!-- Key input modules -->
-        <property name="sdfmodule" value="<%= name %>"/>
-        <property name="metasdfmodule" value="Stratego-<%= name %>"/>
-        <property name="esvmodule" value="<%= name %>"/>
-        <property name="strmodule" value="<%= name' %>"/>
+        <property name="sdfmodule" value="[name]"/>
+        <property name="metasdfmodule" value="Stratego-[name]"/>
+        <property name="esvmodule" value="[name]"/>
+        <property name="strmodule" value="[name']"/>
     
         <!-- Project directories -->
         <property name="trans" location="trans"/>
@@ -72,7 +71,7 @@ strategies
         <!-- Main target -->
         <target name="all" depends="spoofaximp.default.ctree"/>
     </project>
-    <%
+    ]
   
   create-build-generated-xml =
     name       := <get-sdf-main-module>;
@@ -81,9 +80,8 @@ strategies
     pkgname    := <get-package-name-text>;
     pkgdir     := <string-replace(|".", "/")> pkgname;
     
-    <output-xml-file(|[], "build.generated.xml")>
-    %>
-    <?xml version="1.0" encoding="UTF-8"?>
+    <output-text-file(|[], "build.generated.xml")>
+    $[<?xml version="1.0" encoding="UTF-8"?>
     <project name="build.generated">
 
 			  <target name="spoofaximp.default" depends="spoofaximp.default.ctree" />
@@ -136,8 +134,8 @@ strategies
 			      sdf2imp.eclipse.load" />
     
         <!-- Initialization -->
-        <available file="${src-gen}/<%= pkgdir %>/strategies/Main.java" property="java.jar.enabled"/>
-        <condition property="java.jar.import" value="-la <%= pkgname %>.strategies" else="">
+        <available file="${src-gen}/[pkgdir]/strategies/Main.java" property="java.jar.enabled"/>
+        <condition property="java.jar.import" value="-la [pkgname].strategies" else="">
             <isset property="java.jar.enabled"/>
         </condition>
         <condition property="java.jar.classpath" value=":${include}/${strmodule}-java.jar" else="">
@@ -473,7 +471,7 @@ strategies
         </target>
     
         <target name="ppgen.helper.fallback" unless="ppgen.available">
-            <echo file="${include}/${sdfmodule}.generated.pp.af" message="PP-Table([])"/>
+            <echo file="${include}/${sdfmodule}.generated.pp.af" message="PP-Table([<!"[]">])"/>
         </target>
         
         <target name="pppack" if="build.stratego.enabled" depends="pack-sdf">
@@ -499,7 +497,7 @@ strategies
         </target>
     
         <target name="pppack.helper.fallback" unless="pppack.available">
-            <echo file="${include}/${sdfmodule}.pp.af" message="PP-Table([])"/>
+            <echo file="${include}/${sdfmodule}.pp.af" message="PP-Table([<!"[]">])"/>
         </target>
     
         <!-- Aster to Stratego -->
@@ -841,4 +839,4 @@ strategies
     </target>
 	
     </project>
-    <%
+    ]
