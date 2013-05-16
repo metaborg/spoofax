@@ -20,6 +20,8 @@
 	<property name="asfix" value="${strategoxt}/share/asfix-tools" />
 	<property name="sdf-front" value="${strategoxt}/share/sdf-front" />
 
+	<property name="stratego-lib" value="${user.home}/.nix-profile/share/stratego-lib" />
+	
 	<property name="sdf" value="${user.home}/.nix-profile" />
 	<property name="pgen" value="${sdf}/share/pgen" />
 	<property name="xml-front-more" value="${sdf}/share/sdf/xml-front" />
@@ -128,6 +130,8 @@
 				<arg value="${pgen}" />
 				<arg value="-I" />
 				<arg value="${asfix}" />
+				<arg value="-I" />
+				<arg value="${stratego-lib}" />
 
 				<arg value="-I" />
 				<arg value="${xml-front-more}" />
