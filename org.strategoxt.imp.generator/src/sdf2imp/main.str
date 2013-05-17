@@ -158,7 +158,7 @@ strategies
     create-compilation-library;
     create-nbl-library;
     
-    //create-all-runtime-libraries;
+    create-all-runtime-libraries;
     
     create-behavior-preservation;
     create-namebinding-preservation;
