@@ -5,7 +5,7 @@ imports
 
 strategies
   
-    create-analysis-core = 
+  create-analysis-core = 
     <output-text-file(|["lib", "analysis"], "core.str")>
 "module analysis/core
 
@@ -17,6 +17,7 @@ imports
   nbl/utils
   index/core
   task/core
+  task/messages
   
 signature
 
@@ -29,7 +30,7 @@ signature
 rules // Analysis
   
   analyze-collect(|language, project-path):
-    File(partition, initial-ast) -> Result(partition, initial-ast, analyzed-ast, changed-read*, [], [], [])
+    File(partition, initial-ast) -> Result(partition, initial-ast, analyzed-ast, changed-read*, error*, warning*, note*)
     with
       measure-time(
         index-setup(|language, [project-path], partition);
@@ -45,13 +46,28 @@ rules // Analysis
         task-stop-collection(|partition);
         changed-read* := <filter(analyze-diff-entry; nabl-uri; try(nabl-replace-uri-qualifier(|())))> [removed-entry*, added-entry*]
         , id | \"analyze-collect-diff\" 
+      );  measure-time(
+        (error*, warning*, note*) := <analyze-messages(|partition)>
+        , id | \"analyze-messages\"
       )
   
   analyze-perform-all:
-    result* -> (error*, evaluated-count)
+    result* -> (unevaluated-task*, evaluated-count)
     with
       measure-time(mapconcat(analyze-result-reads); make-set => changed-read*, id | \"analyze-perform-concat-reads\");
-      measure-time(task-evaluate(|changed-read*) => (error*, evaluated-count), id | \"analyze-perform-evaluate\")
+      measure-time(task-evaluate(|changed-read*) => (unevaluated-task*, evaluated-count), id | \"analyze-perform-evaluate\")
+  
+  // TODO: origin tracking    
+  analyze-messages(|partition):
+    _ -> (error*, warning*, note*)
+    with
+      message* := <task-get-messages(|partition)>;
+      error*   := <filter(?Error(_); analyze-message-to-tuple)> message*;
+      warning* := <filter(?Warning(_); analyze-message-to-tuple)> message*;
+      note*    := <filter(?Note(_); analyze-message-to-tuple)> message*
+      
+  analyze-message-to-tuple:
+    message -> (message, <task-message> message)
 
 rules // Index entries to diff
   
@@ -98,6 +114,14 @@ rules
       filename := <guarantee-extension(|\"index.all.aterm\")> path;
       result   := <index-get-all-partitions; map(\\filename -> (filename, <index-get-all-in-partition> filename)\\)>
       
+  analysis-debug-show-tasks(|language):
+    (_, _, _, path, project-path) -> (filename, result)
+    with
+      partition := $[[project-path]/[path]];
+      task-setup(|project-path);
+      filename := <guarantee-extension(|\"task.current.aterm\")> path;
+      result   := <task-debug-info(|partition)>
+      
   analysis-debug-reset-index(|language):
     (_, _, _, path, project-path) -> None()
     with
@@ -134,13 +158,13 @@ imports
 
 rules // Multi file analysis
   
-  analyze-multiple(parse-file, parallel, complete-work-unit|language, project-path):
+  analyze-multiple(parse-file, complete-work-unit|language, project-path):
     path* -> result*
     with
       measure-time(
         file* := <map(analyze-parse-file(parse-file); where(complete-work-unit))> path*
       , id | \"analyze-multiple-parse\");
-      result* := <analyze-multiple-files(parallel, complete-work-unit|language, project-path)> file*
+      result* := <analyze-multiple-files(complete-work-unit|language, project-path)> file*
 
   analyze-parse-file(parse-file):
     path -> File(path, ast)
@@ -149,15 +173,15 @@ rules // Multi file analysis
         ast := ()
       end
 
-  analyze-multiple-files(parallel, complete-work-unit|language, project-path):
-    file* -> (error*, result*, evaluated-count)
+  analyze-multiple-files(complete-work-unit|language, project-path):
+    file* -> (result*, unevaluated-task*, evaluated-count)
     with
       measure-time(
         result* := <map(analyze-collect(|language, project-path); where(complete-work-unit))> file*
         , id | \"analyze-multiple-collect\"
       );
       measure-time(
-        (error*, evaluated-count) := <analyze-perform-all> result*
+        (unevaluated-task*, evaluated-count) := <analyze-perform-all> result*
         , id | \"analyze-multiple-perform\"
       )
       
@@ -179,12 +203,11 @@ imports
 rules // Single file analysis
   
   analyze-one(|language, path, project-path):
-    ast -> (<analyze-result-analyzed-ast> result, error*, evaluated-count)
+    ast -> (analyzed-ast, unevaluated-task*, evaluated-count, (error*, warning*, note*))
     with // Setup index
-      partition                 := $[[project-path]/[path]];
-      result                    := <analyze-collect(|language, project-path)> File(partition, ast);
-      (error*, evaluated-count) := <analyze-perform-all> [result]
-
+      partition := $[[project-path]/[path]];
+      r@Result(_, _, analyzed-ast, _, error*, warning*, note*) := <analyze-collect(|language, project-path)> File(partition, ast);
+      (unevaluated-task*, evaluated-count) := <analyze-perform-all> [r]
 "
 
   create-index-core = 
@@ -756,14 +779,10 @@ signature
     Subsequent :                        DefScope
     DefScope   : Namespace * Segment -> DefScope
 
-  constructors // implicit def
-    
-    IDefCandidate : Namespace * Name * Unique * List(Property) -> ImplicitDef
-  
   constructors // use
       
-    UseCandidate  : Namespace * List(Property) * RefScope * Range        -> Use
-    UseCandidate  : Namespace * Name * List(Property) * RefScope * Range -> Use
+    UseCandidate  : Namespace * List(Property) * RefScope        -> Use
+    UseCandidate  : Namespace * Name * List(Property) * RefScope -> Use
   
     Current     :                                                   RefScope
     Surrounding :                                                   RefScope
@@ -781,7 +800,7 @@ signature
     
   constructors // property
     
-    Prop : Property * Value -> Prop
+    Prop : Property * Value * List(Dependency) -> Prop
     
   constructors // partition
   
@@ -793,23 +812,23 @@ strategies // generic traversal
    * Main strategy to collect all index elements and task* from an AST.
    */
   nabl-collect(|partition, lang):
-    ast -> ast''
+    ast -> ast'''
     where
       new-hashtable => unique*;
-      new-iset => elem*; // TODO: Remove
-      ast'  := <nabl-collect(id|lang, partition, unique*, elem*, [])> ast ;
-      ast'' := <alltd(type-task(|partition))> ast'
+      ast'   := <nabl-collect(id|lang, partition, unique*, [])> ast ;
+      ast''  := <bottomup(try(type-task(|partition)))> ast';
+      ast''' := <alltd(message-task(|partition))> ast''
     
   /**
    * Performs the collection in a topdown traversal. 
    * At each node, it tries various calls to generated strategies, which call back to generic strategies.
    */
-  nabl-collect(sibling-uris|lang, partition, unique*, elem*, uri*) =
+  nabl-collect(sibling-uris|lang, partition, unique*, uri*) =
     nabl-state-pop(?state*);
     nabl-scope-site(?uri'*|lang, uri*); // scopes of external definitions, e.g. variables in let expressions
     
     (
-       nabl-def-site(?child-uri*, sibling-uris|lang, partition, unique*, elem*, uri'*, state*)
+       nabl-def-site(?child-uri*, sibling-uris, ?implicit*|lang, partition, unique*, uri'*, state*)
     <+ match(sibling-uris|uri*)
     ;  nabl-anonymous-scope-site(?child-uri*|lang, partition, unique*, uri'*, state*)
     <+ match(?child-uri*|uri'*)
@@ -817,18 +836,16 @@ strategies // generic traversal
     
     try(nabl-state-site);
     
-    preserve-annos(force-origins(id#(nabl-siblings(|lang, partition, unique*, elem*, child-uri*)))); // visit children from left to right
+    preserve-annos(force-origins(id#(nabl-siblings(|lang, partition, unique*, child-uri*)))); // visit children from left to right
     
-    try(nabl-use-site(|lang, partition, elem*, uri'*, state*));
-    try(nabl-import-site(|lang, partition, elem*, child-uri*, state*));
-    try(nabl-prop-site(|lang, partition, elem*, state*));
-    try(nabl-implicit-def-site(|lang, partition, unique*, elem*, child-uri*, state*));
-    try(nabl-constraint-site(|lang, partition))
+    try(nabl-use-site(|lang, partition, uri'*, state*));
+    try(nabl-import-site(|lang, partition, child-uri*, state*));
+    try(nabl-prop-site(|lang, partition, state*, implicit*))
   
-  nabl-siblings(|lang, partition, unique*, elem*, uri*) = 
+  nabl-siblings(|lang, partition, unique*, uri*) = 
     [] + 
-    [ nabl-collect(?sibling-uri*|lang, partition, unique*, elem*, uri*)
-    | nabl-siblings(|lang, partition, unique*, elem*, sibling-uri*) ]
+    [ nabl-collect(?sibling-uri*|lang, partition, unique*, uri*)
+    | nabl-siblings(|lang, partition, unique*, sibling-uri*) ]
 
 rules // generic analysis of state
   
@@ -877,11 +894,11 @@ rules // generic analysis of scopes
 rules // generic analysis of defs
       
   // call back to generic analysis
-  nabl-def(child-uris, sibling-uris|lang, partition, unique*, elem*, uri*, ns, unique, defscope, scoped):
+  nabl-def(child-uris, sibling-uris|lang, partition, unique*, child-uri*, sibl-uri*, ns, unique, defscope, scoped):
     a@name{anno*} -> name{d,anno*}
     where
       // get URI for namespace of definition site
-      current-uri := <lookup-uri(|lang, ns)> uri*;
+      current-uri := <lookup-uri(|lang, ns)> child-uri*;
       switch !defscope
       // in each case we 
       // 1. build URI of the definition site
@@ -892,23 +909,23 @@ rules // generic analysis of defs
         // 2. extend URIs of scoped namespaces
         // 3. preserve
         def-uri := <nabl-extend-uri(|unique*, partition, ns, name, unique)> current-uri;
-        match(child-uris|<replace-scope-uri(|def-uri)> (scoped, uri*));
-        match(sibling-uris|uri*)
+        match(child-uris|<replace-scope-uri(|def-uri)> (scoped, child-uri*));
+        match(sibling-uris|sibl-uri*)
       case ?[Subsequent()]:
         // 1. extend current URI with Subsequent and ID segment
         // 2. preserve
         // 3. extend URI for namespace of definition site with Subsequent segment
         subs-uri := <nabl-extend-uri-subsequent(|unique*, partition)> current-uri;
         def-uri  := <nabl-extend-uri(|unique*, partition, ns, name, unique)> subs-uri;
-        match(child-uris|uri*);
-        match(sibling-uris|<replace-scope-uri(|subs-uri)> ([ns], uri*))
+        match(child-uris|child-uri*);
+        match(sibling-uris|<replace-scope-uri(|subs-uri)> ([ns], sibl-uri*))
       case ?[DefScope(ns, uri)]:
         // 1. extend base URI with External and ID segment
         // 2. preserve
         // 3. preserve
         def-uri := <nabl-extend-uri(|unique*, partition, ns, name, unique)> uri;
-        match(child-uris|uri*);
-        match(sibling-uris|uri*)
+        match(child-uris|child-uri*);
+        match(sibling-uris|sibl-uri*)
       case ?[Subsequent(), DefScope(ns, uri)]:
         // 1a. extend base URI with External and ID segment
         // 1b. extend current URI with Subsequent and ID segment
@@ -919,8 +936,8 @@ rules // generic analysis of defs
         subs-uri  := <nabl-extend-uri-subsequent(|unique*, partition)> current-uri;
         alias-uri := <nabl-extend-uri(|unique*, partition, ns, name, unique)> subs-uri;
         <new-alias(|partition, def-uri, alias-uri)> a;
-        match(child-uris|uri*);
-        match(sibling-uris|<replace-scope-uri(|subs-uri)> ([ns], uri*))
+        match(child-uris|child-uri*);
+        match(sibling-uris|<replace-scope-uri(|subs-uri)> ([ns], sibl-uri*))
       end;
       // add Def entry to the index
       d := <new-def(|partition, def-uri)> a
@@ -928,34 +945,47 @@ rules // generic analysis of defs
 rules // generic analysis of uses
   
   // single candidate
-  nabl-use(|lang, partition, elem*, uri*, candidate) =
+  nabl-use(|lang, partition, uri*, candidate) =
     where (<not(is-list)> candidate);
-    nabl-use(|lang, partition, elem*, uri*, [candidate])
+    nabl-use(|lang, partition, uri*, [candidate])
   
   // list of candidates
-  nabl-use(|lang, partition, elem*, uri*, candidate*):
+  nabl-use(|lang, partition, uri*, candidate*):
     name{anno*} -> name{u, anno*}
     where
-      subtask* := <map(nabl-use-candidate(|lang, partition, elem*, uri*, <nabl-fix-name> name)); unions> candidate*;
+      subtask* := <map(nabl-use-candidate(|lang, partition, uri*, <nabl-fix-name> name))> candidate*;
       result   := <new-task(|partition)> Choice(subtask*);
       u        := <new-use(|partition, result)>
 
-  nabl-use-subtasks(|partition, ns, name, range): 
-    uri  -> [subtask1, subtask2, subtask*|subtasks]
+  nabl-use-subtasks(disambiguate|partition, ns, name, prop*, range): 
+    uri  -> [task|subtasks]
     with
-      subtask1 := <new-task(|partition)> Resolve(<nabl-use-subtask-uri(|partition)> uri, ns, name);
-      subtask2 := <new-task(|partition)> ResolveImport(<nabl-use-subtask-uri(|partition)> uri, ns, name);
-      if ExternalDef(x) := <nabl-uri-path; Hd> uri then
-        ext-uri  := <nabl-uri-language; nabl-base-uri; nabl-extend-uri(|Anonymous(x))> uri;
-        subtask* := [<new-task(|partition)> Resolve(<nabl-use-subtask-uri(|partition)> ext-uri, ns, name)]
-      else
-        subtask* := []
-      end;
+      task := <nabl-use-subtasks-one(disambiguate|partition, ns, name, prop*, range)> uri;
       switch !range
         case One(): ![]
-        case All(): <nabl-uri-parent < nabl-use-subtasks(|partition, ns, name, range) + ![]> uri
+        case All(): <nabl-uri-parent < nabl-use-subtasks(disambiguate|partition, ns, name, prop*, range) + ![]> uri
       end => subtasks
       
+  nabl-use-subtasks-one(disambiguate|partition, ns, name, prop*, range):
+    uri  -> disambiguated
+    with
+      defsTask            := <new-task(|partition)> ResolveDefs(<nabl-use-subtask-uri(|partition)> uri, ns, name);
+      namedImportsTask    := <new-task(|partition)> ResolveNamedImports(<nabl-use-subtask-uri(|partition)> uri, ns, name);
+      namedDefsTask       := <new-task(|partition)> ResolveDefs(namedImportsTask, ns, name);
+      wildcardImportsTask := <new-task(|partition)> ResolveWildcardImports(<nabl-use-subtask-uri(|partition)> uri, ns);
+      wildcardDefsTask    := <new-task(|partition)> ResolveDefs(wildcardImportsTask, ns, name);
+      
+      if ExternalDef(x) := <nabl-uri-path; Hd> uri then
+        ext-uri  := <nabl-uri-language; nabl-base-uri; nabl-extend-uri(|Anonymous(x))> uri;
+        subtasks := [<new-task(|partition)> ResolveDefs(<nabl-use-subtask-uri(|partition)> ext-uri, ns, name)]
+      else
+        subtasks := []
+      end;
+      
+      concatted     := <new-task(|partition)> Concat([defsTask, namedDefsTask, wildcardDefsTask|subtasks]);
+      filtered      := <nabl-use-propconstraint(|partition, prop*)> concatted;
+      disambiguated := <nabl-use-disambiguate(disambiguate|partition, prop*, ns, name)> filtered
+            
   nabl-use-subtask-uri(|partition) =
     switch id
       case ?URI(_, _) => uri : ![uri]
@@ -964,47 +994,45 @@ rules // generic analysis of uses
     end 
         
   // candidate in current scope
-  nabl-use-candidate(|lang, partition, elem*, uri*, name):
-    UseCandidate(ns, prop*, Current(), range) -> result
+  nabl-use-candidate(|lang, partition, uri*, name):
+    UseCandidate(ns, prop*, Current()) -> choice
     where
-      uri      := <lookup-uri(|lang, ns)> uri*;
-      subtask* := <nabl-use-subtasks(|partition, ns, name, range)> uri;
-      if not([] := prop*) then
-        result := [<new-task(|partition)> PropConstraint(prop*, subtask*)]
-      else
-        result := subtask*
-      end
+      uri       := <lookup-uri(|lang, ns)> uri*;
+      subtask*  := <nabl-use-subtasks(id|partition, ns, name, prop*, All())> uri; // TODO: only disambiguate if required.
+      choice    := <new-task(|partition)> Choice(subtask*)
 
   // candidate in another scope (result of resolution)    
-  nabl-use-candidate(|lang, partition, elem*, uri*, name):
-    UseCandidate(ns, prop*, target-uri*, range) -> result
+  nabl-use-candidate(|lang, partition, uri*, name):
+    UseCandidate(ns, prop*, c@Context(ctx-ns, ctx-name, ctx-prop*, ctx-context)) -> choice
     where
-      <?Result(_) <+ map(?Result(_))> target-uri*;
-      subtask* := <nabl-use-subtasks(|partition, ns, <nabl-fix-name> name, range)> target-uri*;
-      if not([] := prop*) then
-        result := [<new-task(|partition)> PropConstraint(prop*, subtask*)]
-      else
-        result := subtask*
-      end
+      ctx-result := <nabl-use-candidate(|lang, partition, uri*, ctx-name)> UseCandidate(ctx-ns, ctx-prop*, ctx-context);
+      subtask*   := <nabl-use-subtasks(id|partition, ns, <nabl-fix-name> name, prop*, One())> ctx-result; // TODO: only disambiguate if required.
+      choice    := <new-task(|partition)> Choice(subtask*)
       
-  // candidate in context
-  //  nabl-use-candidate(|lang, elem*, task*, uri*, dep*):
-  //    (UseCandidate(ns, prop*, Context(name', ns', props', refscope'), range), name{anno*}) -> name{u, anno*}
-  //    where 
-  //      _{uri}   := <nabl-use-candidate(|lang, elem*, task*, uri*, dep*)> (UseCandidate(ns', props', refscope', range), name'{});
-  //      propdep* := <dependent-tasks> prop*;
-  //      result   := <new-task(|task*, [dep*, propdep*])> Resolve(uri, ns, <nabl-fix-name> name, prop*, range);
-  //      u        := <new-use(|partition, result)>
+  nabl-use-propconstraint(|partition, prop*):
+    task -> result
+    where
+      if not([] := prop*) then
+        result := <new-task(|partition)> PropConstraint(prop*, task)
+      else
+        result := task
+      end 
+
+  nabl-use-disambiguate(disambiguate|partition, prop*, namespace, name):
+    task -> result
+    where
+      disambiguate;
+      result := <new-task(|partition)> DisambiguateDefs(task, prop*, namespace, name)
     
 rules // generic analysis of imports
   
-  nabl-import(|lang, partition, elem*, uri*, imports):
+  nabl-import(|lang, partition, uri*, imports):
     name -> name'
     where
       Use(use) := <nabl-collect-use> name;
-      name'    := <foldl(nabl-import-candidate(|lang, partition, elem*, uri*, use))> (imports, name)
+      name'    := <foldl(nabl-import-candidate(|lang, partition, uri*, use))> (imports, name)
         
-  nabl-import-candidate(|lang, partition, elem*, uri*, use):
+  nabl-import-candidate(|lang, partition, uri*, use):
     (import, name) -> name
     where
       ns  := <nabl-import-namespace> import;
@@ -1020,36 +1048,17 @@ rules // generic analysis of imports
 rules // generic analysis of properties
   
   // call back to generic analysis
-  nabl-props(|lang, partition, elem*, prop*):
+  nabl-props(|partition, prop*):
     name -> name'
     where
       Def(uri) := <nabl-collect-def> name;
-      name'    := <foldl(extend-prop(|partition, elem*, uri))> (prop*, name)
+      name'    := <foldl(extend-prop(|partition, uri))> (prop*, name)
     
-  extend-prop(|partition, elem*, uri):
-    (Prop(type, result), name) -> name
+  extend-prop(|partition, uri):
+    (Prop(type, result, dep*), name) -> name
     where
       prop := <new-prop(|partition, uri, type, result)> name
         
-rules // generic analysis of implicit defs
- 
-  nabl-implicit-def(|lang, partition, unique*, elem*, uri*, candidates):
-    name -> name
-    where
-      <map(nabl-implicit-def-candidate(|lang, partition, unique*, elem*, uri*))> candidates
-      
-  nabl-implicit-def-candidate(|lang, partition, unique*, elem*, uri*):
-    IDefCandidate(ns, name, unique, prop*) -> <id>
-    where
-      // get path for namespace of definition site
-      current-uri := <lookup-uri(|lang, ns)> uri*;
-      // build path for definition site
-      def-uri     := <nabl-extend-uri(|unique*, partition, ns, name, unique)> current-uri;
-      // build Def entry for the index
-      new-def(|partition, def-uri);
-      // build Prop entries for the index
-      <map(\\Prop(type, result) -> <new-prop(|partition, def-uri, type, result)>\\)> prop*
-
 rules // name retrieval
   
   nabl-name = is-string
@@ -1188,33 +1197,6 @@ rules // Visible entries
  
 "
 
-  create-nbl-constraints = 
-    <output-text-file(|["lib", "nbl"], "constraints.str")>
-"module nbl/constraints
-
-imports
-  
-  task/core
-  task/tasks
-  nbl/interface
-  nbl/tasks
-  
-rules
-
-  nabl-match: (\"constraint-error\",   term, []) -> Error(<constraint-error> term)
-  nabl-match: (\"constraint-warning\", term, []) -> Warning(<constraint-warning> term)
-  nabl-match: (\"constraint-note\",    term, []) -> Note(<constraint-note> term)
-  
-  new-error-check(|task*)   = where(<new-task(|task*)> Match(\"constraint-error\"  , [], <id>))
-  new-warning-check(|task*) = where(<new-task(|task*)> Match(\"constraint-warning\", [], <id>))
-  new-note-check(|task*)    = where(<new-task(|task*)> Match(\"constraint-note\"   , [], <id>))
-  
-  // nabl-constraint-site(|task*) = ?Pattern(...); <new-error-check(|task*)
-  //
-  // constraint-error: Pattern(...) -> (e, msg)
-  
-"
-
   create-nbl-entries = 
     <output-text-file(|["lib", "nbl"], "entries.str")>
 "module entries
@@ -1276,7 +1258,7 @@ rules // index uri & value projections
     
   /** @internal */  
   nabl-uri-impl:
-    Use(uri) -> uri
+    Use(uri) -> <nabl-is-uri> uri
     
   /** @internal */  
   nabl-uri-impl:
@@ -1307,28 +1289,24 @@ rules // index uri & value projections
 
 strategies // Collect
   
-  nabl-anonymous-scope-site(child-uris|lang, partition, unique*, uri*, state*) = fail
+  nabl-anonymous-scope-site(
+    child-uris
+  | lang, partition, unique*, uri*, state*
+  ) = fail
   
-  nabl-def-site(child-uris, sibiling-uris|lang, partition, unique*, elem*, uri*, state*) = fail
+  nabl-def-site(
+    child-uris, sibiling-uris, implicits
+  | lang, partition, unique*, uri*, state*
+  ) = fail
   
   nabl-state-site = fail
   
-  nabl-use-site(|lang, partition, elem*, uri*, state*) = fail
+  nabl-use-site(|lang, partition, uri*, state*) = fail
   
-  nabl-import-site(|lang, partition, elem*, uri*, state*) = fail
+  nabl-import-site(|lang, partition, uri*, state*) = fail
   
-  nabl-implicit-def-site(|lang, partition, unique*, elem*, uri*, state*) = fail
+  nabl-prop-site(|lang, partition, state*, implicit*) = fail
   
-  nabl-prop-site(|lang, partition, elem*, state*) = fail
-  
-  nabl-constraint-site(|lang, partition) = fail
-  
-  constraint-error = fail
-  
-  constraint-warning = fail
-  
-  constraint-note = fail
-
 strategies // Projections
   
   nabl-name = fail
@@ -1341,6 +1319,13 @@ strategies // Tasks
   
   calc-property = fail
 
+  message-task(|partition) = fail
+  
+strategies // Lookup hooks
+  
+  nabl-property-eq(|kind) = fail
+  
+  nabl-disambiguate(|prop*, namespace, name) = fail
 "
 
   create-nbl-lookup = 
@@ -1362,41 +1347,63 @@ rules // Lookup
     scope* -> def*
     with
       uri*  := <filter(nabl-uri)> scope*;
-      uri'* := <map(nabl-extend-uri(|ns, name, ()))> uri*; 
+      uri'* := <map(nabl-extend-uri(|ns, name, ()))> uri*;
       def*  := <mapconcat(nabl-get-all-definitions)> uri'*
-            
-  nabl-lookup-import(|ns, name):
+
+  nabl-lookup-named-import(|ns, name):
     scope* -> import*
     with
       uri*    := <filter(nabl-uri)> scope*;
-      import* := <mapconcat(nabl-lookup-import-one(|ns, name))> uri*
+      import* := <mapconcat(nabl-lookup-named-import-one(|ns, name))> uri*
       
-  nabl-lookup-import-one(|ns, name):
-    uri -> [namedImport*, unnamedImport*]
+  nabl-lookup-named-import-one(|ns, name):
+    uri -> import*
     with
-      language       := <nabl-uri-language> uri;
-      namedImport*   := <nabl-get-import-uris-named(|language, ns, name)> uri;
-      unnamedImport* := <nabl-get-import-uris-unnamed(|language, ns)> uri
+      language := <nabl-uri-language> uri;
+      import*  := <nabl-get-import-uris-named(|language, ns, name)> uri
+            
+  nabl-lookup-unnamed-import(|ns):
+    scope* -> import*
+    with
+      uri*    := <filter(nabl-uri)> scope*;
+      import* := <mapconcat(nabl-lookup-unnamed-import-one(|ns))> uri*
+      
+  nabl-lookup-unnamed-import-one(|ns):
+    uri -> import*
+    with
+      language := <nabl-uri-language> uri;
+      import*  := <nabl-get-import-uris-unnamed(|language, ns)> uri
 
 rules // Imports
 
-  nabl-get-import-uris-unnamed(|language, namespace) = nabl-get-import-uris-unnamed(|[], language, namespace)
+  nabl-get-import-uris-unnamed(|language, namespace):
+    uri -> <nabl-get-import-uris-unnamed(|[uri], 0, language, namespace)> uri
 
-  nabl-get-import-uris-unnamed(|seen, language, namespace):
-    uri -> [importURI*, transitiveImportURI*]
+  nabl-get-import-uris-unnamed(|seen, count, language, namespace):
+    uri -> result
     with
       importResult*        := <nabl-get-all-properties(|Import(language, namespace))> uri;
-      importURI*           := <map(task-get-solved <+ task-create-dependencies; ![<id>]); concat> importResult*;
-      importedResult*      := <nabl-get-all-properties(|Import(language, Imported(namespace)))> uri;
-      importedURI*         := <map(task-get-solved <+ task-create-dependencies; ![<id>]); concat> importedResult*;
-      transitiveImportURI* := <mapconcat(nabl-get-import-uris-unnamed-transitive(|seen, language, namespace))> importedURI*
+      importURI*           := <map(task-get-solved; filter(nabl-uri) <+ task-create-dependencies; ![<id>]); concat> importResult*;
+      if d1 := <task-collect-dependencies> importURI* then
+        result := [d1]
+      else
+        importedResult*      := <nabl-get-all-properties(|Import(language, Imported(namespace)))> uri;
+        importedURI*         := <map(task-get-solved; filter(nabl-uri) <+ task-create-dependencies; ![<id>]); concat> importedResult*;
+        if d2 := <task-collect-dependencies> importedURI* then
+          result := [d2]
+        else
+          transitiveImportURI* := <filter(nabl-get-import-uris-unnamed-transitive(|seen, count, language, namespace)); concat> importedURI*;
+          result               := [importURI*, transitiveImportURI*]
+        end
+      end
 
-  nabl-get-import-uris-unnamed-transitive(|seen, language, namespace):
+  nabl-get-import-uris-unnamed-transitive(|seen, count, language, namespace):
     uri -> transitiveImportURI*
     where
+      not(<lt> (count, 1));
       not(<fetch(?uri)> seen);
-      transitiveImportURI* := <nabl-get-import-uris-unnamed(|[uri|seen], language, namespace)> uri
-    
+      transitiveImportURI* := <nabl-get-import-uris-unnamed(|[uri|seen], <dec> count, language, namespace)> uri
+
   nabl-get-import-uris-named(|language, namespace, name):
     uri -> importURI*
     with
@@ -1426,7 +1433,9 @@ rules // Specific queries
    * @type Def(uri) or \"name\"{uri} or URI(language, path) -> List(Def(uri))
    */
   nabl-get-all-definitions:
-    <with(uri := <nabl-uri> | \"Could not extract URI from given term.\")> -> <nabl-get-unique-nonunique(\\uri -> Def(uri)\\)> uri
+    containsURI -> <nabl-get-unique-nonunique(\\uri -> Def(uri)\\)> uri
+    where
+      uri := <nabl-uri> containsURI
 
   /**
    * Gets a property that matches the kind of value and given URI, or fails if no property is found.
@@ -1450,7 +1459,9 @@ rules // Specific queries
    * @type Def(uri) or \"name\"{uri} or URI(language, path) -> List(Prop(uri, kind, value))
    */
   nabl-get-all-properties(|kind):
-     <with(uri := <nabl-uri> | \"Could not extract URI from given term.\")> -> <nabl-get-all-values> Prop(uri, kind, ())
+    containsURI -> <nabl-get-all-values> Prop(uri, kind, ())
+    where
+      uri := <nabl-uri> containsURI
      
   /**
    * Gets all Use entries that match the given URI.
@@ -1461,7 +1472,9 @@ rules // Specific queries
    * @type Def(uri) or \"name\"{uri} or URI(language, path) -> List(Use(uri))
    */
   nabl-get-all-uses:
-    <with(uri := <nabl-uri> | \"Could not extract URI from given term.\")> -> <nabl-get-all> Use(uri)
+    containsURI -> <nabl-get-all> Use(uri)
+    where
+      uri := <nabl-uri> containsURI
 
   /**
    * Gets all Alias entries that match the given URI.
@@ -1472,8 +1485,9 @@ rules // Specific queries
    * @type Def(uri) or \"name\"{uri} or URI(language, path) -> List(aliasURI)
    */
   nabl-get-all-aliases:
-    <with(uri := <nabl-uri> | \"Could not extract URI from given term.\")> -> aliasURI*
+    containsURI -> aliasURI*
     where
+      uri := <nabl-uri> containsURI;
       if nonUniqueURI := <nabl-replace-uri-qualifier(|NonUnique())> uri then
         aliasURI* := <nabl-get-all-values> Alias(nonUniqueURI, ()) 
       else
@@ -1608,52 +1622,76 @@ signature
   
   constructors
     
-    Resolve        : Scope * Namespace * Name    -> Instruction
-    ResolveImport  : Scope * Namespace * Name    -> Instruction
-    PropConstraint : List(Prop) * List(Result)   -> Instruction
-    PropCalc       : Property * Term             -> Instruction
+    ResolveDefs            : Scope * Namespace * Name                  -> Instruction
+    DisambiguateDefs       : List(Def) * List(Prop) * Namespace * Name -> Instruction
+    ResolveNamedImports    : Scope * Namespace * Name                  -> Instruction
+    ResolveWildcardImports : Scope * Namespace                         -> Instruction
+    PropConstraint         : List(Prop) * List(Result)                 -> Instruction
+    PropCalc               : Property * Term                           -> Instruction
         
 rules // Resolve
   
+  // Looks up defintions in scopes with namespace and name.
   perform-task(|nr):
-    Resolve(scope*@<with(is-list|\"Expected a list of scopes.\")>, ns, name) -> result
+    ResolveDefs(scope*@<with(is-list|\"Expected a list of scopes.\")>, ns, name) -> result
     where
-      uri* := <filter(nabl-uri)> scope*;
-      def* := <nabl-lookup(|ns, name)> uri*;
-      <map(nabl-extend-uri(|ns, name, ()); task-add-read(|nr))> uri*;
+      uri*  := <filter(nabl-uri)> scope*;
+      name' := <try-remove-list; strip-annos> name; // Name could be a list, and annotated.
+      def*  := <nabl-lookup(|ns, name')> uri*;
+      <map(nabl-extend-uri(|ns, name', ()); task-add-read(|nr))> uri*;
       switch !def*
         case ?[]:
           fail
         otherwise: 
-          !def*
+          !def* // TODO: id?
       end => result
 
+  // Calls a user-defined disambiguation filter on definitions with relevant information.
   perform-task(|nr):
-    ResolveImport(scope*@<with(is-list|\"Expected a list of scopes.\")>, ns, name) -> result
+    DisambiguateDefs(def*, prop*, namespace, name) -> result
     where
-      uri* := <filter(nabl-uri)> scope*;
-      import* := <nabl-lookup-import(|ns, name)> uri*;
+      if <Tl> def* then
+        result := <try(nabl-disambiguate(|prop*, namespace, name))> def*
+      else
+        result := def*
+      end
+
+  // Looks up named imports, active in scopes with namespace and name..
+  perform-task(|nr):
+    ResolveNamedImports(scope*@<with(is-list|\"Expected a list of scopes.\")>, ns, name) -> result
+    where
+      uri*    := <filter(nabl-uri)> scope*;
+      name'   := <try-remove-list; strip-annos> name; // Name could be a list, and annotated.
+      import* := <nabl-lookup-named-import(|ns, name')> uri*;
       <map(try(nabl-replace-uri-qualifier(|())); task-add-read(|nr))> uri*;
       if <task-has-dependencies> import* then
         result := <task-collect-dependencies> import*
       else
-        def* := <nabl-lookup(|ns, name)> import*;
-        <map(nabl-uri; nabl-extend-uri(|ns, name, ()); task-add-read(|nr))> import*;
-        switch !def*
-          case ?[]:
-            fail
-          otherwise:
-            !def*
-        end => result
+        result := import*
       end
+  
+  // Looks up wildcard imports for a namespace active in scopes.
+  perform-task(|nr):
+    ResolveWildcardImports(scope*@<with(is-list|\"Expected a list of scopes.\")>, ns) -> result
+    where
+      uri*    := <filter(nabl-uri)> scope*;
+      import* := <nabl-lookup-unnamed-import(|ns)> uri*;
+      <map(try(nabl-replace-uri-qualifier(|())); task-add-read(|nr))> uri*;
+      if <task-has-dependencies> import* then
+        result := <task-collect-dependencies> import*
+      else
+        result := import*
+      end
+
+rules // Property constraints
     
   perform-task(|nr):
     PropConstraint(prop*, res*) -> result
     where
-      filtered := <concat; filter(nabl-resolve-constraint(|prop*))> res*;
+      filtered := <filter(nabl-resolve-constraint(|prop*))> res*;
       switch !filtered
         case task-collect-dependencies => d: !d
-        otherwise: !filtered
+        otherwise: !filtered // TODO: id?
       end => result
       
   nabl-resolve-constraint(|prop*):
@@ -1666,18 +1704,21 @@ rules // Resolve
         otherwise: !entry
       end => entry'
       
+  // TODO: check dependencies (3rd subterm) as well.
   nabl-resolve-constraint-one(|entry):
-    Prop(type, expectedValue) -> entry'
+    Prop(type, expectedValue, _) -> entry'
     where
       uri   := <nabl-uri> entry;
       value := <nabl-get-property(|type)> uri;
       if value' := <insert-results> value then
         expectedValue' := <insert-results> expectedValue;
-        <eq> (expectedValue', value');
+        <nabl-property-eq(|type) <+ eq> (expectedValue', value');
         entry' := entry
       else
         entry' := <task-create-dependencies> value
       end
+
+rules // Property calcuation
 
   perform-task(|nr): 
     PropCalc(prop, term) -> result'
@@ -1845,6 +1886,9 @@ rules // Projections
 
 rules // Conditions
   
+  nabl-is-uri =
+    ?URI(_, _)
+  
   nabl-is-unique =
     nabl-uri-qualifier;
     ?Unique(_)
@@ -1890,7 +1934,7 @@ rules /** @internal Projections */
 
   /** @internal */
   nabl-uri-generic:
-    term -> <?_#(<?[<id>|_]>)> term
+    term -> <not(is-list); ?_#(<?[<id>|_]>); nabl-is-uri> term
     
   /** @internal */
   nabl-value-impl:
@@ -1898,7 +1942,7 @@ rules /** @internal Projections */
     
   /** @internal */
   nabl-value-generic:
-    term -> <?_#(<?[_, <id>|_]> )> term
+    term -> <not(is-list); ?_#(<?[_, <id>|_]> ); nabl-is-uri> term
     
   /** @internal */  
   nabl-uri-impl:
@@ -1913,6 +1957,10 @@ rules /** @internal Projections */
   create-nbl-utils = 
     <output-text-file(|["lib", "nbl"], "utils.str")>
 "module nbl/utils
+
+imports
+  
+  task/core
 
 rules 
   
@@ -1945,7 +1993,18 @@ rules
     
   external record-time-native(|name)
     
+  try-make-list =
+    switch id
+      case is-list: id
+      case ?Dependency(_): id
+      otherwise: ![<id>]
+    end 
     
+  try-remove-list =
+    switch id
+      case is-list : Hd
+      otherwise    : id
+    end 
 "
 
   create-task-core = 
@@ -1968,10 +2027,6 @@ signature
     Fail : Result
     
     Dependency : List(Int) -> Result
-    
-    Error   : Term -> Result
-    Warning : Term -> Result
-    Note    : Term -> Result
     
 rules // Creation
   
@@ -2035,6 +2090,9 @@ rules // API
   task-start-collection(|partition)                    = task-api-start-collection(|partition)
   task-stop-collection(|partition)                     = task-api-stop-collection(|partition)
   task-add-task(|partition, dependencies, instruction) = task-api-add-task(|partition, dependencies, instruction)
+  task-debug-info(|partition)                          = task-api-debug-info(|partition)
+  task-add-message(|taskID, message)                   = task-api-add-message(|taskID, message)
+  task-get-messages(|partition)                        = task-api-get-messages(|partition)
   task-evaluate(|changed-read*)                        = task-api-evaluate(perform-task, insert-results-with-fail|changed-read*)
   task-reset                                           = task-api-reset
   task-persist                                         = task-api-persist
@@ -2060,6 +2118,12 @@ rules // API
         
   task-add-read(|taskID):
     read -> <task-api-add-read(|taskID, read)>
+    
+  task-add-dependency(|taskID):
+    dependency -> <task-api-add-dependency(|taskID, dependency)>
+    
+  task-instruction-id:
+    instruction -> <task-api-task-id(|instruction)>
 
 rules /** @internal API externals */
 
@@ -2068,11 +2132,16 @@ rules /** @internal API externals */
   external task-api-stop-collection(|partition)
   external task-api-add-task(|partition, dependencies, instruction)
   external task-api-get-result(|taskID)
+  external task-api-debug-info(|partition)
+  external task-api-add-message(|taskID, message)
+  external task-api-get-messages(|partition)
   external task-api-has-failed(|taskID)
   external task-api-add-read(|taskID, read)
+  external task-api-add-dependency(|taskID, dependency)
   external task-api-evaluate(perform-task, insert-result|changed-reads)
   external task-api-reset(|)
   external task-api-persist(|)
+  external task-api-task-id(|instruction)
   external task-api-unload(|project-path)
 
 "
@@ -2088,6 +2157,75 @@ strategies
   task-match = fail
 "
 
+  create-task-messages = 
+    <output-text-file(|["lib", "task"], "messages.str")>
+"module task/messages
+
+imports
+  
+  task/core
+  task/tasks
+  
+signature
+
+  sorts
+  
+    Message
+    
+  constructors
+    
+    Error   : Term -> Message
+    Warning : Term -> Message
+    Note    : Term -> Message
+    
+strategies
+  
+  task-error-message:
+    message -> Error(message)
+    
+  task-warning-message:
+    message -> Warning(message)
+    
+  task-note-message:
+    message -> Note(message)
+    
+  
+  task-message:
+    Error(message) -> message
+
+  task-message:
+    Warning(message) -> message
+    
+  task-message:
+    Note(message) -> message
+        
+    
+  task-create-message-on-failure(|partition, task):
+    message -> <new-task(|partition)> Message(task, Failure(), message)
+    
+  task-create-error-on-failure(|partition, task):
+    message -> <new-task(|partition)> Message(task, Failure(), <task-error-message> message)
+    
+  task-create-warning-on-failure(|partition, task):
+    message -> <new-task(|partition)> Message(task, Failure(), <task-warning-message> message)
+    
+  task-create-note-on-failure(|partition, task):
+    message -> <new-task(|partition)> Message(task, Failure(), <task-note-message> message)
+    
+  
+  task-create-message-on-success(|partition, task):
+    message -> <new-task(|partition)> Message(task, Success(), message)
+    
+  task-create-error-on-success(|partition, task):
+    message -> <new-task(|partition)> Message(task, Success(), <task-error-message> message)
+    
+  task-create-warning-on-success(|partition, task):
+    message -> <new-task(|partition)> Message(task, Success(), <task-warning-message> message)
+    
+  task-create-note-on-success(|partition, task):
+    message -> <new-task(|partition)> Message(task, Success(), <task-note-message> message)
+"
+
   create-task-tasks = 
     <output-text-file(|["lib", "task"], "tasks.str")>
 "module task/tasks
@@ -2101,17 +2239,27 @@ signature
 
   constructors
     
-    Choice : List(Result)                -> Instruction
-    Choice : List(Result) * List(String) -> Instruction
-    Match  : ID * List(Term) * Term      -> Instruction
+    Choice  : List(Result)                         -> Instruction
+    Message : List(Result) * MessageTrigger * Term -> Instruction
+    Match   : ID * List(Term) * Term               -> Instruction
+    Concat  : List(Result)                         -> Instruction
+    
+    Success : MessageTrigger
+    Failure : MessageTrigger
   
 rules
   
   perform-task(|nr):
     Choice(choice*) -> <Hd> choice*
 
+  // TODO: should not store any result.
   perform-task(|n):
-    Choice(choice*, error*) -> <Hd> choice*
+    Message(task, trigger, message) -> []
+    where
+      switch !trigger
+        case Success() : <Hd> task; task-add-message(|n, message)
+        case Failure() : not(<Hd> task); task-add-message(|n, message)
+      end
 
   perform-task(|nr): 
     Match(key, bound, term*@<with(is-list|\"Expected a list of terms.\")>) -> result
@@ -2121,6 +2269,8 @@ rules
         fail
       end
   
+  perform-task(|nr):
+    Concat(term*) -> <concat> term*
 "
 
   create-tmpl-pp = 
@@ -2168,6 +2318,7 @@ strategies
 strategies
   
   type-task(|partition) = fail
+  type-of-task(|partition) = fail
 
 "
 
@@ -2179,8 +2330,11 @@ imports
   
   nbl/resolve
   nbl/collect
+  nbl/entries
   nbl/query
+  nbl/utils
   types/interface
+  task/core
   
 signature
   
@@ -2192,11 +2346,36 @@ signature
 
 rules
   
-  perform-task(|n): PropLookup(kind, t) -> <nabl-collect-one-resolved-def; nabl-get-property(|kind)> t
-  perform-task(|n): PropCalc(p, check*) -> p where <Hd> check*
-  perform-task(|n): PropCheck(p1, p2)   -> <eq; !p1> (p1, p2)
+  perform-task(|n): 
+    PropLookup(kind, t) -> result
+    where
+      resolved := <nabl-collect-one-resolved-def> t;
+      switch !resolved
+        case ?Def(_) : nabl-get-property(|kind); insert-results-or-create-dependency; try-make-list
+        otherwise    : id
+      end => result
+    
+  perform-task(|n): 
+    PropCalc(result, check*) -> <try-make-list> result
+    where 
+      <if is-list then Hd end> check*
   
-  desugar-task(|partition): PropCalc(Type(), t) -> <type-task(|partition)> t
+  perform-task(|n): 
+    PropCheck(term, expected) -> <perform-task(|n)> PropCheck(<try-make-list> term, <try-make-list> expected)
+    where
+      not(<is-list> term <+ <is-list> expected)
+      
+  perform-task(|n): 
+    PropCheck(term*, expected*) -> <try-make-list> term*
+    where
+      <is-list> term*;
+      <is-list> expected*;
+      <cart(eq)> (term*, expected*)
+      
+rules
+  
+  desugar-task(|partition): 
+    PropCalc(Type(), t) -> <type-of-task(|partition)> t
 "
 
 create-all-runtime-libraries = 
@@ -2211,7 +2390,6 @@ create-all-runtime-libraries =
 ;   create-nbl-check
 ;   create-nbl-collect
 ;   create-nbl-complete
-;   create-nbl-constraints
 ;   create-nbl-entries
 ;   create-nbl-interface
 ;   create-nbl-lookup
@@ -2222,6 +2400,7 @@ create-all-runtime-libraries =
 ;   create-nbl-utils
 ;   create-task-core
 ;   create-task-interface
+;   create-task-messages
 ;   create-task-tasks
 ;   create-tmpl-pp
 ;   create-types-interface
