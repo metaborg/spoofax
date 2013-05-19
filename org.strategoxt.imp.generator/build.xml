@@ -11,24 +11,32 @@
 	<property file="build.properties" />
 
 	<!-- build-time dependencies -->
-	<property name="java-front" value="${user.home}/.nix-profile/share/java-front" />
+	<property name="sdf2bundle" value="${user.home}/.nix-profile" />
+	<property name="sdf" value="${user.home}/.nix-profile/share" />
 
-	<property name="strategoxt" value="${user.home}/.nix-profile" />
-	<property name="gpp" value="${strategoxt}/share/gpp" />
-	<property name="xml-front" value="${strategoxt}/share/xml-front" />
-	<property name="sdf-tools" value="${strategoxt}/share/sdf-tools" />
-	<property name="stratego-front" value="${strategoxt}/share/stratego-front" />
-	<property name="xtc" value="${strategoxt}/share/xtc" />
-	<property name="asfix" value="${strategoxt}/share/asfix-tools" />
-	<property name="sdf-front" value="${strategoxt}/share/sdf-front" />
-
+	
 	<property name="stratego-lib" value="${user.home}/.nix-profile/share/stratego-lib" />
+	<property name="java-front" value="${user.home}/.nix-profile/share/java-front" />
+	
+	<!--   Shipped with StrategoXT -->
+	<property name="strategoxt" value="${user.home}/.nix-profile/share" />
+	<property name="gpp" value="${strategoxt}/gpp" />
+	<property name="xml-front" value="${strategoxt}/xml-front" />
+	<property name="sdf-tools" value="${strategoxt}/sdf-tools" />
+	<property name="stratego-front" value="${strategoxt}/stratego-front" />
+	<property name="xtc" value="${strategoxt}/xtc" />
+	<property name="asfix" value="${strategoxt}/asfix-tools" />
+	<property name="sdf-front" value="${strategoxt}/sdf-front" />
+	
+	
+	<!-- Shipped with SDF -->
+	<property name="pgen" value="${sdf}/pgen" />
+	<property name="rtg-more" value="${sdf}/sdf/stratego-regular" />
+	<property name="gpp-more" value="${sdf}/sdf/gpp" />
 
-	<property name="sdf" value="${user.home}/.nix-profile" />
-	<property name="pgen" value="${sdf}/share/pgen" />
-	<property name="rtg-more" value="${sdf}/share/sdf/stratego-regular" />
-	<property name="gpp-more" value="${sdf}/share/sdf/gpp" />
-
+	
+	
+	
 	<!-- project configuration -->
 	<property name="syntax" value="src/syntax" />
 	<property name="include" value="include" />
