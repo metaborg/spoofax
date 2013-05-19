@@ -45,7 +45,7 @@
 	<property name="bin" value="${gen}/bin" />
 	<property name="cache-dir" value=".cache" />
 
-	<property name="install-prefix" value="${lib}" />
+	<property name="install-prefix" value="dist" />
 
 	<tstamp>
 		<format property="timestamp.isoformat" pattern="yyyy-mm-dd'T'HH:mm:ss" locale="en" />
