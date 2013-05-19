@@ -11,7 +11,6 @@
 	<property file="build.properties" />
 
 	<!-- build-time dependencies -->
-	<property name="stratego-lib" value="${user.home}/.nix-profile/share/stratego-lib" />
 	<property name="java-front" value="${user.home}/.nix-profile/share/java-front" />
 
 	<!--   Shipped with StrategoXT -->
