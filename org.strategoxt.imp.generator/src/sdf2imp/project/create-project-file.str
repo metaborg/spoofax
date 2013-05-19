@@ -14,11 +14,10 @@ strategies
     builder-xml := <conc-strings> ("&lt;project&gt;/.externalToolBuilders/", <builder-xml-name>);
     cleaner-xml := <conc-strings> ("&lt;project&gt;/.externalToolBuilders/", <cleaner-xml-name>);
     
-    <output-xml-file(|[], ".project")>
-    %>
-    <?xml version="1.0" encoding="UTF-8"?>
+    <output-text-file(|[], ".project")>
+    $[<?xml version="1.0" encoding="UTF-8"?>
     <projectDescription>
-      <name><%= project::cdata %></name>
+      <name>[project]</name>
       <comment></comment>
       <buildSpec>
         <buildCommand>
@@ -32,7 +31,7 @@ strategies
             <arguments>
                 <dictionary>
                     <key>LaunchConfigHandle</key>
-                    <value><%= builder-xml::cdata %></value>
+                    <value>[builder-xml]</value>
                 </dictionary>
             </arguments>
         </buildCommand>
@@ -42,7 +41,7 @@ strategies
 			<arguments>
 				<dictionary>
 					<key>LaunchConfigHandle</key>
-					<value><%= cleaner-xml::cdata %></value>
+					<value>[cleaner-xml]</value>
 				</dictionary>
 			</arguments>
 		</buildCommand>
@@ -62,4 +61,4 @@ strategies
         <nature>org.eclipse.jdt.core.javanature</nature>
       </natures>
     </projectDescription>
-    <%
+    ]
