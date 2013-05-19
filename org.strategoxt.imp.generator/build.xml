@@ -197,13 +197,16 @@
 	</target>
 
 	<target name="install" depends="jar">
-		<copy file="${gen}/sdf2imp.jar" todir="${install-prefix}" overwrite="true" verbose="true" />
 		<copy file="${lib}/StrategoMix.def" todir="${install-prefix}" overwrite="false" verbose="true" />
 		<copy file="${lib}/aster.jar" todir="${install-prefix}" overwrite="false" verbose="true" />
 		<copy file="${lib}/make_permissive.jar" todir="${install-prefix}" overwrite="false" verbose="true" />
 		<copy todir="${install-prefix}" overwrite="true" verbose="true">
-			<fileset dir="${gen}" includes="*.def,*.pp,*.pp.af,*.tbl,*.rtg,*.str" />
+			<fileset dir="${gen}" includes="*.*" />
 		</copy>
+		<!--<copy file="${gen}/sdf2imp.jar" todir="${install-prefix}" overwrite="true" verbose="true" />
+		<copy todir="${install-prefix}" overwrite="true" verbose="true">
+			<fileset dir="${gen}" includes="*.def,*.pp,*.pp.af,*.tbl,*.rtg,*.str" />
+		</copy>-->
 	</target>
 
 	<target name="all" depends="install" />
