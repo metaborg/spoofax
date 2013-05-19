@@ -20,7 +20,7 @@ strategies
     pkgname          := <get-package-name>;
     table            := <get-sdf-main-module>;
     
-    <output-java-file> |[
+    <output-java-file-ifne> |[
       package pkgname;
 
       import java.io.InputStream;
@@ -124,12 +124,8 @@ strategies
         }
       }
     ]|;
-    
-    default-class := |[
+    <output-java-file-ifne> |[
       package pkgname;
       
       public class x_name extends x_namegenerated {}
-    ]|;
-    if not(<file-exists> <java-to-path> default-class) then
-      <output-java-file> default-class
-    end
+    ]|
