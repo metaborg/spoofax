@@ -11,16 +11,15 @@
 	<property file="build.properties" />
 
 	<!-- build-time dependencies -->
-	<property name="sdf2bundle" value="${user.home}/.nix-profile" />
-	<property name="sdf" value="${user.home}/.nix-profile/share" />
-
-	
 	<property name="stratego-lib" value="${user.home}/.nix-profile/share/stratego-lib" />
 	<property name="java-front" value="${user.home}/.nix-profile/share/java-front" />
 	
 	<!--   Shipped with StrategoXT -->
 	<property name="strategoxt" value="${user.home}/.nix-profile/share" />
+	<property name="stratego-lib" value="${strategoxt}/stratego-lib" />
 	<property name="gpp" value="${strategoxt}/gpp" />
+	<property name="gpp-more" value="${strategoxt}/sdf/gpp" />
+	<property name="rtg-more" value="${strategoxt}/sdf/stratego-regular" />
 	<property name="xml-front" value="${strategoxt}/xml-front" />
 	<property name="sdf-tools" value="${strategoxt}/sdf-tools" />
 	<property name="stratego-front" value="${strategoxt}/stratego-front" />
@@ -30,11 +29,9 @@
 	
 	
 	<!-- Shipped with SDF -->
+	<property name="sdf" value="${user.home}/.nix-profile/share" />
 	<property name="pgen" value="${sdf}/pgen" />
-	<property name="rtg-more" value="${sdf}/sdf/stratego-regular" />
-	<property name="gpp-more" value="${sdf}/sdf/gpp" />
-
-	
+	<property name="sdf2bundle" value="${user.home}/.nix-profile" />
 	
 	
 	<!-- project configuration -->
