@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<project name="org.strategoxt.imp.generator" default="all">
+	<!-- Import Ant contrib -->
+	<taskdef resource="net/sf/antcontrib/antcontrib.properties" />
+
+	<!-- Import Stratego/XT Ant contributions -->
+	<import file="ant-contrib/strategoxt-contrib.xml" />
+
+	<!-- Import build config. Specifies which compiler to use -->
+	<property file="build.properties" />
+
+	<!-- build-time dependencies -->
+	<property name="stratego-lib" value="${user.home}/.nix-profile/share/stratego-lib" />
+	<property name="java-front" value="${user.home}/.nix-profile/share/java-front" />
+	
+	<!--   Shipped with StrategoXT -->
+	<property name="strategoxt" value="${user.home}/.nix-profile/share" />
+	<property name="stratego-lib" value="${strategoxt}/stratego-lib" />
+	<property name="gpp" value="${strategoxt}/gpp" />
+	<property name="gpp-more" value="${strategoxt}/sdf/gpp" />
+	<property name="rtg-more" value="${strategoxt}/sdf/stratego-regular" />
+	<property name="xml-front" value="${strategoxt}/xml-front" />
+	<property name="sdf-tools" value="${strategoxt}/sdf-tools" />
+	<property name="stratego-front" value="${strategoxt}/stratego-front" />
+	<property name="xtc" value="${strategoxt}/xtc" />
+	<property name="asfix" value="${strategoxt}/asfix-tools" />
+	<property name="sdf-front" value="${strategoxt}/sdf-front" />
+	
+	
+	<!-- Shipped with SDF -->
+	<property name="sdf" value="${user.home}/.nix-profile/share" />
+	<property name="pgen" value="${sdf}/pgen" />
+	<property name="sdf2bundle" value="${user.home}/.nix-profile" />
+	
+	
+	<!-- project configuration -->
+	<property name="syntax" value="src/syntax" />
+	<property name="include" value="include" />
+	<property name="lib" value="lib" />
+
+	<!-- build output directory -->
+	<property name="src-gen" value="src-gen" />
+	<property name="gen" value="${src-gen}" />
+	<property name="bin" value="${gen}/bin" />
+	<property name="cache-dir" value=".cache" />
+
+	<property name="install-prefix" value="${lib}" />
+
+	<tstamp>
+		<format property="timestamp.isoformat" pattern="yyyy-mm-dd'T'HH:mm:ss" locale="en" />
+	</tstamp>
+
+
+	<target name="ensure-dirs">
+		<mkdir dir="${gen}" />
+		<mkdir dir="${src-gen}" />
+		<mkdir dir="${cache-dir}" />
+		<mkdir dir="${bin}" />
+		<mkdir dir="${install-prefix}" />
+	</target>
+
+	<target name="clean">
+		<delete dir="${gen}" />
+		<delete dir="${src-gen}" />
+		<delete dir="${cache-dir}" />
+		<delete dir="${bin}" />
+	</target>
+
+	<target name="syntax-esv" depends="ensure-dirs">
+		<pack-sdf input="${syntax}/EditorService.sdf" output="${gen}/EditorService.def">
+			<sdf-deps>
+				<srcfiles dir="${syntax}" includes="**/*.sdf" />
+				<srcfiles dir="${lib}" includes="**/*.def" />
+			</sdf-deps>
+		</pack-sdf>
+		<sdf2table input="${gen}/EditorService.def" output="${gen}/EditorService.tbl" main="EditorService" />
+		<sdf2rtg input="${gen}/EditorService.def" output="${src-gen}/EditorService.rtg" main="EditorService" />
+		<rtg2sig input="${src-gen}/EditorService.rtg" output="${src-gen}/EditorService.str" main="EditorService" />
+		<ppgen input="${gen}/EditorService.def" output="${gen}/EditorService.pp" />
+		<sglri input="src/syntax/EditorService-pretty.pp" output="${gen}/EditorService-pretty.pp.af" parsetable="${gpp-more}/pp-table.tbl" />
+	</target>
+
+	<target name="syntax-str-esv" depends="ensure-dirs">
+		<pack-sdf input="${syntax}/Stratego-Java-EditorService.sdf" output="${gen}/Stratego-Java-EditorService.def">
+			<sdf-deps>
+				<srcfiles dir="${syntax}" includes="**/*.sdf" />
+				<srcfiles dir="${lib}" includes="**/*.def" />
+			</sdf-deps>
+			<args>
+				<arg value="-Idef" />
+				<arg value="${java-front}/Stratego-Java-EBlock.def" />
+			</args>
+		</pack-sdf>
+		<sdf2table input="${gen}/Stratego-Java-EditorService.def" output="${gen}/Stratego-Java-EditorService.tbl" main="Stratego-Java-EditorService" />
+		<sdf2rtg input="${gen}/Stratego-Java-EditorService.def" output="${src-gen}/Stratego-Java-EditorService.rtg" main="Stratego-Java-EditorService" />
+		<rtg2sig input="${src-gen}/Stratego-Java-EditorService.rtg" output="${src-gen}/Stratego-Java-EditorService.str" main="Stratego-Java-EditorService" />
+		<ppgen input="${gen}/Stratego-Java-EditorService.def" output="${gen}/Stratego-Java-EditorService.pp" />
+	</target>
+
+	<target name="syntax" depends="syntax-esv, syntax-str-esv" />
+
+	<target name="compile-stratego" depends="ensure-dirs, syntax">
+		<mkdir dir="${src-gen}/org/strategoxt/imp/generator" />
+		<strj-lib input="src/sdf2imp.str" output="${src-gen}/org/strategoxt/imp/generator/sdf2imp.java" package="org.strategoxt.imp.generator">
+			<strjlibargs>
+				<arg value="-clean" />
+				<arg value="--cache-dir" />
+				<arg value=".cache" />
+				<arg value="--verbose" />
+				<arg value="2" />
+
+				<arg value="-O" />
+				<arg value="3" />
+
+				<arg value="-m" />
+				<arg value="main-sdf2imp" />
+
+				<arg value="-la" />
+				<arg value="stratego-xtc" />
+				<arg value="-la" />
+				<arg value="stratego-lib" />
+				<arg value="-la" />
+				<arg value="stratego-gpp" />
+				<arg value="-la" />
+				<arg value="stratego-tool-doc" />
+				<arg value="-la" />
+				<arg value="stratego-sglr" />
+				<arg value="-la" />
+				<arg value="stratego-rtg" />
+				<arg value="-la" />
+				<arg value="stratego-sdf" />
+				<arg value="-la" />
+				<arg value="stratego-aterm" />
+				<arg value="-la" />
+				<arg value="java-front" />
+
+				<arg value="-I" />
+				<arg value="${java-front}" />
+				<arg value="-I" />
+				<arg value="${gpp}" />
+				<arg value="-I" />
+				<arg value="${xml-front}" />
+				<arg value="-I" />
+				<arg value="${sdf-tools}" />
+				<arg value="-I" />
+				<arg value="${stratego-front}" />
+				<arg value="-I" />
+				<arg value="${sdf-front}" />
+				<arg value="-I" />
+				<arg value="${xtc}" />
+				<arg value="-I" />
+				<arg value="${pgen}" />
+				<arg value="-I" />
+				<arg value="${asfix}" />
+				<arg value="-I" />
+				<arg value="${stratego-lib}" />
+
+				<arg value="-I" />
+				<arg value="${rtg-more}" />
+				<arg value="-I" />
+				<arg value="${gpp-more}" />
+
+				<arg value="-I" />
+				<arg value="src/sdf2imp" />
+				<arg value="-I" />
+				<arg value="${src-gen}" />
+				<arg value="-I" />
+				<arg value="${gen}" />
+
+			</strjlibargs>
+			<str-deps>
+				<srcfiles dir="src" includes="**/*.str" />
+				<srcfiles dir="${src-gen}" includes="**/*.str" />
+			</str-deps>
+		</strj-lib>
+	</target>
+
+	<target name="compile-java" depends="ensure-dirs, compile-stratego">
+		<mkdir dir="${gen}/bin/org/strategoxt/imp/generator" />
+		<javac srcdir="${src-gen}/org/strategoxt/imp/generator/" destdir="${gen}/bin" source="1.5" target="1.5" debug="true" debuglevel="source" />
+	</target>
+
+	<target name="jar" depends="ensure-dirs, compile-java">
+		<mkdir dir="${bin}/META-INF" />
+		<property name="jar.manifestfile.path" value="${bin}/META-INF/MANIFEST.MF" />
+		<manifest file="${bin}/META-INF/MANIFEST.MF">
+			<attribute name="Built-On" value="${timestamp.isoformat}" />
+			<attribute name="Class-Path" value="strategoxt.jar" />
+			<attribute name="Main-Class" value="org.strategoxt.imp.generator.sdf2imp" />
+		</manifest>
+		<jar destfile="${gen}/sdf2imp.jar" manifest="${bin}/META-INF/MANIFEST.MF">
+			<fileset dir="${bin}" includes="**/*" />
+			<fileset dir="${gen}" includes="EditorService-pretty.pp.af, EditorService.tbl" />
+			<fileset dir="${gen}/org/strategoxt/imp/generator" includes="Stratego-Sugar-pretty.pp.af, sdf2imp.rtree" />
+		</jar>
+	</target>
+
+	<target name="install" depends="jar">
+		<copy file="${gen}/sdf2imp.jar" todir="${install-prefix}" overwrite="true" verbose="true" />
+		<copy file="${lib}/StrategoMix.def" todir="${install-prefix}" overwrite="false" verbose="true" />
+		<copy file="${lib}/aster.jar" todir="${install-prefix}" overwrite="false" verbose="true" />
+		<copy file="${lib}/make_permissive.jar" todir="${install-prefix}" overwrite="false" verbose="true" />
+	</target>
+
+	<target name="all" depends="install" />
+</project>
