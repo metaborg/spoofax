@@ -290,6 +290,7 @@
 						</strjargs>
 					</strj>
 					<delete file="${@{input}.dirname}/lib${@{input}.basename}.ctree" />
+					<delete file="${@{input}.dirname}/lib${@{input}.basename}.rtree" />
 					<delete file="${@{input}.dirname}/lib${@{input}.basename}.ctree.dep" />
 				</action>
 				<deps>
