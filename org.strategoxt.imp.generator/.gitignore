@@ -1,3 +1,5 @@
 /.cache
 *.rtree
 /src-gen
+/bin
+/dist
