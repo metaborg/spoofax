@@ -68,7 +68,7 @@ public class StrategoTextChangeCalculator {
 			@Override
 			public IStrategoTerm invoke(Context context, IStrategoTerm current) {
 				if (sname != null)
-					return observer.invokeSilent(sname, current, null);
+					return observer.invokeSilent(sname, current);
 				return null;
 			}
 		};
