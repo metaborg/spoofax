@@ -1,5 +1,6 @@
 package org.strategoxt.imp.runtime;
 
+import org.eclipse.core.resources.IResource;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.parser.IParseController;
@@ -119,6 +120,11 @@ public class EditorState extends FileState {
 	public SGLRParseController getParseController() {
 		DynamicParseController wrapper = (DynamicParseController) editor.getParseController();
 		return (SGLRParseController) wrapper.getWrapped();
+	}
+	
+	@Override
+	public IResource getResource() {
+		return getParseController().getResource();
 	}
 	
 	@Override

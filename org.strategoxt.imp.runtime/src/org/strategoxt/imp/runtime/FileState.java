@@ -94,6 +94,17 @@ public class FileState {
 		}
 	}
 	
+	public IStrategoTerm getCurrentAnalyzedAst() throws BadDescriptorException {
+		StrategoObserver observer = getDescriptor().createService(StrategoObserver.class, getParseController());
+		
+		observer.getLock().lock();
+		try {
+			return observer.getResultingAst(getResource());
+		} finally {
+			observer.getLock().unlock();
+		}
+	}
+	
 	public Descriptor getDescriptor() {
 		return descriptor;
 	}
