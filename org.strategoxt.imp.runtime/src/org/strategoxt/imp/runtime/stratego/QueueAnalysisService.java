@@ -6,9 +6,11 @@ import java.net.URI;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IPath;
@@ -33,6 +35,8 @@ import org.strategoxt.imp.runtime.services.StrategoAnalysisQueueFactory;
  */
 public class QueueAnalysisService implements INotificationService {
 
+	private final static Set<String> indexedLanguages = new HashSet<String>();
+	
 	public void notifyChanges(URI file, String subfile, boolean triggerOnSave) {
 		try {
 			IProject project = EditorIOAgent.getProject(new File(file));
@@ -136,8 +140,11 @@ public class QueueAnalysisService implements INotificationService {
 	}
 
 	public static boolean isIndexedFile(IPath path) {
-		return true;
-//		Language language = LanguageRegistry.findLanguage(path, null);
-//		return language != null && IndexManager.isKnownIndexingLanguage(language.getName());
+		Language language = LanguageRegistry.findLanguage(path, null);
+		return language != null && indexedLanguages.contains(language.getName());
+	}
+	
+	public static void addIndexedLanguage(String language) {
+		indexedLanguages.add(language);
 	}
 }
