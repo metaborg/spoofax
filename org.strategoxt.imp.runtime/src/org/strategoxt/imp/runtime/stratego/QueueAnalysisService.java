@@ -18,10 +18,6 @@ import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.ResourceUtil;
-import org.spoofax.interpreter.library.index.FilePartition;
-import org.spoofax.interpreter.library.index.INotificationService;
-import org.spoofax.interpreter.library.index.IndexManager;
-import org.spoofax.interpreter.library.index.NotificationCenter;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.services.StrategoAnalysisQueueFactory;
@@ -131,6 +127,7 @@ public class QueueAnalysisService implements INotificationService {
 				fileSubfiles.add(new FilePartition(file.toURI(), null));
 			}
 		} else {
+			// TODO: file.listFiles() can return null.
 			for (File child : file.listFiles()) {
 				fileSubfiles.addAll(getProjectFileSubfiles(child));
 			}
@@ -139,7 +136,8 @@ public class QueueAnalysisService implements INotificationService {
 	}
 
 	public static boolean isIndexedFile(IPath path) {
-		Language language = LanguageRegistry.findLanguage(path, null);
-		return language != null && IndexManager.isKnownIndexingLanguage(language.getName());
+		return true;
+//		Language language = LanguageRegistry.findLanguage(path, null);
+//		return language != null && IndexManager.isKnownIndexingLanguage(language.getName());
 	}
 }
