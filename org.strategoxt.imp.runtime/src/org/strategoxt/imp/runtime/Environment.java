@@ -20,6 +20,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.imp.language.Language;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.swt.widgets.Display;
+import org.metaborg.runtime.task.primitives.TaskLibrary;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.core.StackTracer;
@@ -219,6 +220,7 @@ public final class Environment {
 		result.getCompiledContext().getExceptionHandler().setEnabled(false);
 		result.getCompiledContext().registerComponent("stratego_lib"); // ensure op. registry available
 		result.getCompiledContext().registerComponent("stratego_sglr"); // ensure op. registry available
+		result.getCompiledContext().addOperatorRegistry(new TaskLibrary());
 		JSGLRLibrary sglrLibrary = (JSGLRLibrary) result.getContext().getOperatorRegistry(JSGLRLibrary.REGISTRY_NAME);
 		IMPJSGLRLibrary impSglrLibrary = new IMPJSGLRLibrary(sglrLibrary);
 		result.addOperatorRegistry(impSglrLibrary);
