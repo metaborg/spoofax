@@ -56,17 +56,16 @@ strategies
         </condition>
         <property name="build.strategoxt.stratego" location="${user.home}/.nix-profile/bin"/>
     		
-    		<!-- used for building inside of Eclipse -->
+    	<!-- used for building inside of Eclipse -->
         <import file="build.generated.xml"/>   
 
-			  <!-- The files for which the on-save handler is called before building -->
-			  <path id="call-onsave.files">
-			    <fileset dir=".">
-			      <include name="**/*.tmpl" />
-			      <include name="**/*.nd" />
-			      <include name="**/*.nab" />
-			    </fileset>
-			  </path>
+	    <!-- The files for which the on-save handler is called before building. -->
+	    <path id="call-onsave.files">
+	        <fileset dir=".">
+	            <include name="**/*.tmpl" />
+	            <include name="**/*.nab" />
+	        </fileset>
+	    </path>
     
         <!-- Main target -->
         <target name="all" depends="spoofaximp.default.ctree"/>
@@ -100,7 +99,8 @@ strategies
 			      java.jar,
 			      stratego.ctree,
 			      refresh,
-			      sdf2imp.eclipse.load" />
+			      sdf2imp.eclipse.load,
+			      call-reset" />
 			  <target name="spoofaximp.default.jar" depends="
 			      check-classpath,
 			      call-onsave,
@@ -116,7 +116,8 @@ strategies
 			      java.jar,
 			      stratego.jar.helper,
 			      refresh,
-			      sdf2imp.eclipse.load" />
+			      sdf2imp.eclipse.load,
+			      call-reset" />
 			  <target name="spoofaximp.default.nostr" depends="
 			      check-classpath,
 			      call-onsave,
@@ -131,7 +132,8 @@ strategies
 			      stratego.aster,
 			      java.jar,
 			      refresh,
-			      sdf2imp.eclipse.load" />
+			      sdf2imp.eclipse.load,
+			      call-reset" />
     
         <!-- Initialization -->
         <available file="${src-gen}/[pkgdir]/strategies/Main.java" property="java.jar.enabled"/>
@@ -172,23 +174,28 @@ strategies
         <mkdir dir="${include}"/>
         <mkdir dir="${lib}"/>
         <mkdir dir="${syntax}"/>
+	
+        <!-- The files for which the on-save handler is called before building. -->
+        <path id="call-onsave.files">
+            <fileset dir=".">
+                <include name="**/*.tmpl" />
+                <include name="**/*.nab" />
+            </fileset>
+	    </path>
+		
+		<!-- Call on-save handler for template and name binding files so that their generated files are present. -->
+		<target name="call-onsave">
+			<pathconvert pathsep=" " property="call-onsave.args" refid="call-onsave.files" />
+			<java classname="org.strategoxt.imp.metatooling.building.AntForceOnSave">
+				<arg line="${call-onsave.args}" />
+			</java>
+		</target>
 
-			  <!-- The files for which the on-save handler is called before building -->
-			  <path id="call-onsave.files">
-			    <fileset dir=".">
-			      <include name="**/*.tmpl" />
-			      <include name="**/*.nd" />
-			      <include name="**/*.nab" />
-			    </fileset>
-			  </path>
-				
-				<!-- Call on-save handler for template and name binding files so that their generated files are present -->
-				<target name="call-onsave">
-					<pathconvert pathsep=" " property="call-onsave.args" refid="call-onsave.files" />
-					<java classname="org.strategoxt.imp.metatooling.building.AntForceOnSave">
-						<arg line="${call-onsave.args}" />
-					</java>
-				</target>
+		<target name="call-reset">
+			<java classname="org.strategoxt.imp.metatooling.building.AntResetProject">
+				<arg value="${basedir}" />
+			</java>
+		</target>
 
         <target name="sdf2imp" depends="sdf2table,sdf2imp.eclipse,sdf2imp.standalone,sdf2parenthesize"/>
         
