@@ -5,19 +5,39 @@ imports
 
 strategies
   
-	create-analysis-core = 
-		<output-text-file(|["lib", "runtime", "analysis"], "core.generated.str")>
-"module runtime/analysis/core.generated
+	create-analysis-complete = 
+		<output-text-file(|["lib", "runtime", "analysis"], "complete.str")>
+"module runtime/analysis/complete
 
 imports
 	
-  runtime/nbl/collect.generated
-  runtime/nbl/entries.generated
-  runtime/nbl/uri.generated
-  runtime/nbl/utils.generated
-  runtime/index/core.generated
-  runtime/task/core.generated
-  runtime/task/messages.generated
+	runtime/nbl/complete
+	runtime/task/core
+	runtime/index/core
+	
+rules
+	
+	analysis-propose-completions(|language, project-path, path):
+		ast -> <nabl-propose-completions> ast
+		with
+    	task-setup(|project-path);
+    	index-setup(|language, project-path, $[[project-path]/[path]])
+
+"
+
+	create-analysis-core = 
+		<output-text-file(|["lib", "runtime", "analysis"], "core.str")>
+"module runtime/analysis/core
+
+imports
+	
+  runtime/nbl/collect
+  runtime/nbl/entries
+  runtime/nbl/uri
+  runtime/nbl/utils
+  runtime/index/core
+  runtime/task/core
+  runtime/task/messages
   
 signature
 
@@ -96,14 +116,15 @@ rules // Projections
 "
 
 	create-analysis-debug = 
-		<output-text-file(|["lib", "runtime", "analysis"], "debug.generated.str")>
-"module runtime/analysis/debug.generated
+		<output-text-file(|["lib", "runtime", "analysis"], "debug.str")>
+"module runtime/analysis/debug
 
 imports
 	
-	runtime/index/core.generated
-	runtime/index/query.generated
-	runtime/task/core.generated
+	runtime/index/core
+	runtime/index/query
+	runtime/task/core
+	runtime/task/debug
 
 rules
 	
@@ -131,6 +152,14 @@ rules
       filename := <guarantee-extension(|\"task.current.aterm\")> path;
       result   := <task-debug-info(|partition)>
       
+  analysis-debug-show-tasks-selection(|language):
+    (selected, _, _, path, project-path) -> (filename, result)
+    with
+    	partition := $[[project-path]/[path]];
+      task-setup(|project-path);
+      filename := <guarantee-extension(|\"task.selected.aterm\")> path;
+      result   := <task-debug-ast> selected
+      
   analysis-debug-reset-index(|language):
     (_, _, _, path, project-path) -> None()
     with
@@ -156,19 +185,19 @@ rules
 "
 
 	create-analysis-defaults = 
-		<output-text-file(|["lib", "runtime", "analysis"], "defaults.generated.str")>
-"module runtime/analysis/defaults.generated
+		<output-text-file(|["lib", "runtime", "analysis"], "defaults.str")>
+"module runtime/analysis/defaults
 
 imports
 	
-	runtime/analysis/core.generated
-	runtime/analysis/single.generated
-	runtime/analysis/multiple.generated
-	runtime/nbl/utils.generated
-	runtime/index/core.generated
-	runtime/task/core.generated
-	runtime/editor/editor.generated
-	runtime/editor/queue.generated
+	runtime/analysis/core
+	runtime/analysis/single
+	runtime/analysis/multiple
+	runtime/nbl/utils
+	runtime/index/core
+	runtime/task/core
+	runtime/editor/editor
+	runtime/editor/queue
 
 rules // Analysis
 	
@@ -261,14 +290,14 @@ rules // On-save handler
 "
 
 	create-analysis-multiple = 
-		<output-text-file(|["lib", "runtime", "analysis"], "multiple.generated.str")>
-"module runtime/analysis/multiple.generated
+		<output-text-file(|["lib", "runtime", "analysis"], "multiple.str")>
+"module runtime/analysis/multiple
 
 imports
 
-  runtime/analysis/core.generated
-  runtime/task/core.generated
-  runtime/nbl/utils.generated
+  runtime/analysis/core
+  runtime/task/core
+  runtime/nbl/utils
 
 rules // Multi file analysis
   
@@ -295,13 +324,35 @@ rules // Multi file analysis
       
 "
 
-	create-analysis-single = 
-		<output-text-file(|["lib", "runtime", "analysis"], "single.generated.str")>
-"module runtime/analysis/single.generated
+	create-analysis-resolve = 
+		<output-text-file(|["lib", "runtime", "analysis"], "resolve.str")>
+"module runtime/analysis/resolve
 
 imports
 	
-  runtime/analysis/core.generated
+	runtime/nbl/resolve
+	runtime/task/core
+	runtime/index/core
+	runtime/index/query
+	
+rules
+	
+	analysis-resolve(|language, project-path, path):
+		node -> definition
+		where
+			task-setup(|project-path);
+    	index-setup(|language, project-path, $[[project-path]/[path]]);
+    	<nabl-has-reference> node;
+    	definition := <nabl-collect-one-resolved-def; index-get-all; Hd> node
+"
+
+	create-analysis-single = 
+		<output-text-file(|["lib", "runtime", "analysis"], "single.str")>
+"module runtime/analysis/single
+
+imports
+	
+  runtime/analysis/core
     
 rules // Single file analysis
   
@@ -315,8 +366,8 @@ rules // Single file analysis
 "
 
 	create-editor-editor = 
-		<output-text-file(|["lib", "runtime", "editor"], "editor.generated.str")>
-"module runtime/editor/editor.generated
+		<output-text-file(|["lib", "runtime", "editor"], "editor.str")>
+"module runtime/editor/editor
 
 rules
 	
@@ -334,12 +385,12 @@ rules
 "
 
 	create-editor-origins = 
-		<output-text-file(|["lib", "runtime", "editor"], "origins.generated.str")>
-"module runtime/editor/origins.generated
+		<output-text-file(|["lib", "runtime", "editor"], "origins.str")>
+"module runtime/editor/origins
 
 imports
 	
-	runtime/editor/editor.generated
+	runtime/editor/editor
 
 strategies
   
@@ -385,8 +436,8 @@ strategies
 "
 
 	create-editor-positions = 
-		<output-text-file(|["lib", "runtime", "editor"], "positions.generated.str")>
-"module runtime/editor/positions.generated
+		<output-text-file(|["lib", "runtime", "editor"], "positions.str")>
+"module runtime/editor/positions
 
 signature constructors
 
@@ -454,8 +505,8 @@ strategies
 "
 
 	create-editor-queue = 
-		<output-text-file(|["lib", "runtime", "editor"], "queue.generated.str")>
-"module runtime/editor/queue.generated
+		<output-text-file(|["lib", "runtime", "editor"], "queue.str")>
+"module runtime/editor/queue
 
 rules
 	
@@ -495,8 +546,8 @@ rules
 "
 
 	create-index-core = 
-		<output-text-file(|["lib", "runtime", "index"], "core.generated.str")>
-"module runtime/index/core.generated
+		<output-text-file(|["lib", "runtime", "index"], "core.str")>
+"module runtime/index/core
 
 signature
 
@@ -689,13 +740,13 @@ rules
 "
 
 	create-index-globals = 
-		<output-text-file(|["lib", "runtime", "index"], "globals.generated.str")>
-"module runtime/index/globals.generated
+		<output-text-file(|["lib", "runtime", "index"], "globals.str")>
+"module runtime/index/globals
 
 imports
 
-	runtime/index/core.generated
-	runtime/index/query.generated
+	runtime/index/core
+	runtime/index/query
   
 signature 
 
@@ -868,8 +919,8 @@ rules
 "
 
 	create-index-partition = 
-		<output-text-file(|["lib", "runtime", "index"], "partition.generated.str")>
-"module runtime/index/partition.generated
+		<output-text-file(|["lib", "runtime", "index"], "partition.str")>
+"module runtime/index/partition
 
 rules // Construction
   
@@ -894,8 +945,8 @@ rules // Projections
 "
 
 	create-index-query = 
-		<output-text-file(|["lib", "runtime", "index"], "query.generated.str")>
-"module runtime/index/query.generated
+		<output-text-file(|["lib", "runtime", "index"], "query.str")>
+"module runtime/index/query
 
 rules
 
@@ -992,15 +1043,15 @@ rules
 "
 
 	create-nbl-check = 
-		<output-text-file(|["lib", "runtime", "nbl"], "check.generated.str")>
-"module runtime/nbl/check.generated
+		<output-text-file(|["lib", "runtime", "nbl"], "check.str")>
+"module runtime/nbl/check
 
 imports
 	
-  runtime/nbl/resolve.generated
-  runtime/nbl/query.generated
-  runtime/nbl/uri.generated
-  runtime/nbl/entries.generated
+  runtime/nbl/resolve
+  runtime/nbl/query
+  runtime/nbl/uri
+  runtime/nbl/entries
 	
 rules // Unresolved
  
@@ -1033,19 +1084,19 @@ rules // Duplicate definitions
 "
 
 	create-nbl-collect = 
-		<output-text-file(|["lib", "runtime", "nbl"], "collect.generated.str")>
-"module runtime/nbl/collect.generated
+		<output-text-file(|["lib", "runtime", "nbl"], "collect.str")>
+"module runtime/nbl/collect
 
 imports
 	
-	runtime/task/core.generated
-	runtime/task/tasks.generated
-	runtime/nbl/tasks.generated
-	runtime/nbl/entries.generated
-	runtime/nbl/interface.generated
-	runtime/nbl/uri.generated
-	runtime/nbl/utils.generated
-	runtime/types/collect.generated
+	runtime/task/core
+	runtime/task/tasks
+	runtime/nbl/tasks
+	runtime/nbl/entries
+	runtime/nbl/interface
+	runtime/nbl/uri
+	runtime/nbl/utils
+	runtime/types/collect
 	
 signature 
 
@@ -1501,14 +1552,14 @@ rules // helpers
 "
 
 	create-nbl-complete = 
-		<output-text-file(|["lib", "runtime", "nbl"], "complete.generated.str")>
-"module runtime/nbl/complete.generated
+		<output-text-file(|["lib", "runtime", "nbl"], "complete.str")>
+"module runtime/nbl/complete
 
 imports
 	
-	runtime/nbl/collect.generated
-  runtime/nbl/uri.generated
-  runtime/task/core.generated
+	runtime/nbl/collect
+  runtime/nbl/uri
+  runtime/task/core
   
 signature
 
@@ -1529,15 +1580,15 @@ rules // Code completion
 "
 
 	create-nbl-entries = 
-		<output-text-file(|["lib", "runtime", "nbl"], "entries.generated.str")>
-"module runtime/nbl/entries.generated
+		<output-text-file(|["lib", "runtime", "nbl"], "entries.str")>
+"module runtime/nbl/entries
 
 imports
   
-  runtime/nbl/collect.generated
-  runtime/nbl/utils.generated
-  runtime/nbl/uri.generated
-  runtime/index/core.generated
+  runtime/nbl/collect
+  runtime/nbl/utils
+  runtime/nbl/uri
+  runtime/index/core
   
 signature
 
@@ -1615,8 +1666,8 @@ rules // index uri & value projections
 "
 
 	create-nbl-interface = 
-		<output-text-file(|["lib", "runtime", "nbl"], "interface.generated.str")>
-"module runtime/nbl/interface.generated
+		<output-text-file(|["lib", "runtime", "nbl"], "interface.str")>
+"module runtime/nbl/interface
 
 strategies // Collect
   
@@ -1658,17 +1709,17 @@ strategies // Lookup hooks
 "
 
 	create-nbl-lookup = 
-		<output-text-file(|["lib", "runtime", "nbl"], "lookup.generated.str")>
-"module runtime/nbl/lookup.generated
+		<output-text-file(|["lib", "runtime", "nbl"], "lookup.str")>
+"module runtime/nbl/lookup
 
 imports
   
-  runtime/nbl/collect.generated
-  runtime/nbl/query.generated
-  runtime/nbl/tasks.generated
-  runtime/nbl/uri.generated
-  runtime/nbl/entries.generated
-  runtime/task/core.generated
+  runtime/nbl/collect
+  runtime/nbl/query
+  runtime/nbl/tasks
+  runtime/nbl/uri
+  runtime/nbl/entries
+  runtime/task/core
 
 rules // Lookup
 	
@@ -1748,14 +1799,14 @@ rules // Imports
 "
 
 	create-nbl-query = 
-		<output-text-file(|["lib", "runtime", "nbl"], "query.generated.str")>
-"module runtime/nbl/query.generated
+		<output-text-file(|["lib", "runtime", "nbl"], "query.str")>
+"module runtime/nbl/query
 
 imports
   
-  runtime/nbl/uri.generated
-  runtime/nbl/entries.generated
-  runtime/index/query.generated
+  runtime/nbl/uri
+  runtime/nbl/entries
+  runtime/index/query
   
 rules // Specific queries
 
@@ -1917,14 +1968,14 @@ rules /** @internal Helpers */
 "
 
 	create-nbl-resolve = 
-		<output-text-file(|["lib", "runtime", "nbl"], "resolve.generated.str")>
-"module runtime/nbl/resolve.generated
+		<output-text-file(|["lib", "runtime", "nbl"], "resolve.str")>
+"module runtime/nbl/resolve
 
 imports
   
-  runtime/nbl/tasks.generated
-	runtime/nbl/entries.generated
-	runtime/task/core.generated
+  runtime/nbl/tasks
+	runtime/nbl/entries
+	runtime/task/core
       
 rules // Reference resolution
   
@@ -1958,19 +2009,19 @@ rules // Reference resolution
 "
 
 	create-nbl-tasks = 
-		<output-text-file(|["lib", "runtime", "nbl"], "tasks.generated.str")>
-"module runtime/nbl/tasks.generated
+		<output-text-file(|["lib", "runtime", "nbl"], "tasks.str")>
+"module runtime/nbl/tasks
 
 imports 
   
-  runtime/task/core.generated
-  runtime/nbl/lookup.generated
-  runtime/nbl/collect.generated
-  runtime/nbl/query.generated
-  runtime/nbl/interface.generated
-  runtime/nbl/uri.generated
-  runtime/nbl/utils.generated
-  runtime/nbl/entries.generated
+  runtime/task/core
+  runtime/nbl/lookup
+  runtime/nbl/collect
+  runtime/nbl/query
+  runtime/nbl/interface
+  runtime/nbl/uri
+  runtime/nbl/utils
+  runtime/nbl/entries
   
 signature
   
@@ -2178,13 +2229,13 @@ rules // Utility
 "
 
 	create-nbl-uri = 
-		<output-text-file(|["lib", "runtime", "nbl"], "uri.generated.str")>
-"module runtime/nbl/uri.generated
+		<output-text-file(|["lib", "runtime", "nbl"], "uri.str")>
+"module runtime/nbl/uri
 
 imports
   
-  runtime/nbl/interface.generated
-  runtime/index/core.generated
+  runtime/nbl/interface
+  runtime/index/core
   
 signature
 
@@ -2400,13 +2451,13 @@ rules /** @internal Projections */
 "
 
 	create-nbl-utils = 
-		<output-text-file(|["lib", "runtime", "nbl"], "utils.generated.str")>
-"module runtime/nbl/utils.generated
+		<output-text-file(|["lib", "runtime", "nbl"], "utils.str")>
+"module runtime/nbl/utils
 
 imports
 	
 	libstratego-lib
-	runtime/task/core.generated
+	runtime/task/core
 
 rules 
 	
@@ -2435,9 +2486,11 @@ rules
     where(after := <times>; !(after, before); diff-times; times-to-seconds; Fst; log)
   
   measure-time(s, log | name) = 
-    measure-time(s, record-time-native(|name); log)
+    measure-time(s, record-time(|name); log)
+  
+  record-time(|name) = id
     
-  external record-time-native(|name)
+  //external record-time-native(|name)
   	
  	try-make-list = is-list <+ ?Dependency(_) <+ ![<id>]
 		
@@ -2472,12 +2525,12 @@ rules // multimap simulation
 "
 
 	create-task-core = 
-		<output-text-file(|["lib", "runtime", "task"], "core.generated.str")>
-"module runtime/task/core.generated
+		<output-text-file(|["lib", "runtime", "task"], "core.str")>
+"module runtime/task/core
 
 imports 
   
-  runtime/task/interface.generated
+  runtime/task/interface
   
 signature
 
@@ -2638,9 +2691,64 @@ rules /** @internal API externals */
 
 "
 
+	create-task-debug = 
+		<output-text-file(|["lib", "runtime", "task"], "debug.str")>
+"module runtime/task/debug
+
+imports
+	
+	runtime/task/core
+	
+rules
+	
+  crush-annos(nul, sum, s) :
+    _#(xs){a*} -> r2
+    where
+     r1 := <foldr(nul, sum, s)> xs;
+     r2 := <foldr(!r1, sum, s)> a*
+
+	collect-all-annos(s, un) =
+		![<s> | <crush-annos(![], un, collect-all-annos(s, un))>]
+	<+ crush-annos(![], un, collect-all-annos(s, un))
+
+rules
+	
+	task-result-id:
+    Result(taskID) -> taskID
+
+	task-collect-result-ids =
+		collect-all-annos(task-result-id, union)
+
+rules
+	
+	task-transitive-dependencies = task-transitive-dependencies(|[])
+	
+	task-transitive-dependencies(|seen):
+		taskID -> [dep*, trans-dep*]
+		where
+			not(<elem> (taskID, seen));
+			dep*       := <task-get-dependencies> taskID;
+			trans-dep* := <mapconcat(task-transitive-dependencies(|[taskID|seen]))> dep*
+			
+	task-transitive-dependencies(|seen):
+		taskID -> []
+		where
+			<elem> (taskID, seen)
+			
+rules
+	
+	task-debug-ast:
+		ast -> debug*
+		with
+			resultID* := <task-collect-result-ids> ast;
+			dep*      := <mapconcat(task-transitive-dependencies)> resultID*;
+			debug*    := <make-set; map(task-debug-info(|<id>))> [resultID*, dep*]
+
+"
+
 	create-task-interface = 
-		<output-text-file(|["lib", "runtime", "task"], "interface.generated.str")>
-"module runtime/task/interface.generated
+		<output-text-file(|["lib", "runtime", "task"], "interface.str")>
+"module runtime/task/interface
 
 strategies
   
@@ -2650,14 +2758,14 @@ strategies
 "
 
 	create-task-messages = 
-		<output-text-file(|["lib", "runtime", "task"], "messages.generated.str")>
-"module runtime/task/messages.generated
+		<output-text-file(|["lib", "runtime", "task"], "messages.str")>
+"module runtime/task/messages
 
 imports
 	
-	runtime/task/core.generated
-	runtime/task/tasks.generated
-	runtime/editor/origins.generated
+	runtime/task/core
+	runtime/task/tasks
+	runtime/editor/origins
 	
 signature
 
@@ -2718,14 +2826,14 @@ strategies
 "
 
 	create-task-tasks = 
-		<output-text-file(|["lib", "runtime", "task"], "tasks.generated.str")>
-"module runtime/task/tasks.generated
+		<output-text-file(|["lib", "runtime", "task"], "tasks.str")>
+"module runtime/task/tasks
 
 imports
 	
-	runtime/task/core.generated
-	runtime/task/interface.generated
-  runtime/nbl/utils.generated
+	runtime/task/core
+	runtime/task/interface
+  runtime/nbl/utils
   
 signature
 
@@ -2780,17 +2888,15 @@ rules
   perform-task(|nr): 
     Rewrite(key, term) -> result
     where
-      result := <try-make-list; filter(!(key, <id>); task-match)> term;
-      if [] := result then
-        fail
-      end
+      term'  := <try-make-list; map(try-remove-list)> term; 
+      result := <task-match; try-make-list> (key, term')
   
   perform-task(|nr):
   	Concat(term*) -> <concat> term*
 "
 
 	create-tmpl-pp = 
-		<output-text-file(|["lib", "runtime", "tmpl"], "pp.generated.str")>
+		<output-text-file(|["lib", "runtime", "tmpl"], "pp.str")>
 "module runtime/tmpl/pp.generated
 
 imports
@@ -2828,19 +2934,19 @@ strategies
 "
 
 	create-types-collect = 
-		<output-text-file(|["lib", "runtime", "types"], "collect.generated.str")>
-"module runtime/types/collect.generated
+		<output-text-file(|["lib", "runtime", "types"], "collect.str")>
+"module runtime/types/collect
 
 imports 
 	
-  runtime/task/core.generated
-  runtime/task/messages.generated
-  runtime/task/tasks.generated
-  runtime/types/interface.generated
-  runtime/types/tasks.generated
-  runtime/nbl/collect.generated
-  runtime/nbl/utils.generated
-  runtime/editor/origins.generated
+  runtime/task/core
+  runtime/task/messages
+  runtime/task/tasks
+  runtime/types/interface
+  runtime/types/tasks
+  runtime/nbl/collect
+  runtime/nbl/utils
+  runtime/editor/origins
   
 strategies
   
@@ -2858,14 +2964,16 @@ strategies
   new-property-task(|task*):
     (Type(), term) -> <type-of(|task*)> term
 
+  property-task(|kind, task*) = 
+     property-task(|kind)
+  <+ <new-property-task(|task*)> (kind, <id>)
+ 
   property-task(|kind) = 
     get-annos
   ; fetch-elem(?(kind, task))
   ; !task
  
-  property-task(|kind, task*) = 
-     property-task(|kind)
-  <+ <new-property-task(|task*)> (kind, <id>)
+  property-of(|kind) = property-task(|kind); insert-results; try-remove-list
     
 strategies
   
@@ -2911,13 +3019,13 @@ strategies
   
   type-match(|task*, relation) = prop-match(|task*, relation)
 
-  type-of = property-task(|Type())
+  type-of = property-of(|Type())
   
 "
 
 	create-types-interface = 
-		<output-text-file(|["lib", "runtime", "types"], "interface.generated.str")>
-"module runtime/types/interface.generated
+		<output-text-file(|["lib", "runtime", "types"], "interface.str")>
+"module runtime/types/interface
 
 strategies
   
@@ -2932,18 +3040,18 @@ strategies
 "
 
 	create-types-tasks = 
-		<output-text-file(|["lib", "runtime", "types"], "tasks.generated.str")>
-"module runtime/types/tasks.generated
+		<output-text-file(|["lib", "runtime", "types"], "tasks.str")>
+"module runtime/types/tasks
 
 imports 
 	
-	runtime/nbl/resolve.generated
-	runtime/nbl/collect.generated
-	runtime/nbl/entries.generated
-	runtime/nbl/query.generated
-	runtime/nbl/utils.generated
-  runtime/types/interface.generated
-  runtime/task/core.generated
+	runtime/nbl/resolve
+	runtime/nbl/collect
+	runtime/nbl/entries
+	runtime/nbl/query
+	runtime/nbl/utils
+  runtime/types/interface
+  runtime/task/core
   
 signature
   
@@ -3002,10 +3110,12 @@ rules
 "
 
 create-all-runtime-libraries = 
-	create-analysis-core
+	create-analysis-complete
+; 	create-analysis-core
 ; 	create-analysis-debug
 ; 	create-analysis-defaults
 ; 	create-analysis-multiple
+; 	create-analysis-resolve
 ; 	create-analysis-single
 ; 	create-editor-editor
 ; 	create-editor-origins
@@ -3027,6 +3137,7 @@ create-all-runtime-libraries =
 ; 	create-nbl-uri
 ; 	create-nbl-utils
 ; 	create-task-core
+; 	create-task-debug
 ; 	create-task-interface
 ; 	create-task-messages
 ; 	create-task-tasks
@@ -3034,4 +3145,3 @@ create-all-runtime-libraries =
 ; 	create-types-collect
 ; 	create-types-interface
 ; 	create-types-tasks
-

@@ -20,7 +20,7 @@ imports
 	
 namespaces
 	
-rules
+binding rules
 
 }
 +
@@ -36,23 +36,25 @@ namespaces
 	Entity
 	Property
 	
-rules
+binding rules
 
 	Module(x, _) : 
 		defines Module x
 		scopes Entity
+		implicitly defines Entity "String"
+		implicitly defines Entity "Int"
 		
 	Entity(x, _) :
-		defines Entity x of type Type(x)
+		defines Entity x 
+			of type Type(x)
 		scopes Property
 		
 	Property(x, t) :
-		defines Property x of type t
+		defines Property x 
+			of type t
 		
 	Type(x) :
 		refers to Entity x
-		refers to Entity "String"
-		refers to Entity "Int"
 })>
 
   create-placeholder-compiled-nd =
@@ -62,142 +64,162 @@ rules
     <output-text-file(|["trans"], $[names.str])>
     <(GenerateMinimal
     <
-!${module names
-
-imports
-  lib/analysis-library.generated
-  lib/analysis-library-internal.generated
-  lib/index-library.generated
-
-imports
-  include/{sdf-name}
-
-
-signature
-  constructors
-    Type        : DefDataKind
-    Import      : DefDataKind
-    Transitive  : ImportAnno
-    CurrentFile : ImportAnno
-
-  constructors
-    
-}
+!${module names}
 +
 !${module names
 
 imports
-  lib/analysis-library.generated
-  lib/analysis-library-internal.generated
-  lib/index-library.generated
-  
-
-imports
+  lib/runtime/nbl/-
+  lib/runtime/task/-
+  lib/runtime/types/-
   include/{sdf-name}
 
 
 signature
   constructors
-    Type        : DefDataKind
-    Import      : DefDataKind
-    Transitive  : ImportAnno
-    CurrentFile : ImportAnno
-
-  constructors
-    Module   : Namespace
-    Entity   : Namespace
-    Property : Namespace
+    NablNsModule   : Namespace
+    NablNsEntity   : Namespace
+    NablNsProperty : Namespace
 
 
 rules
 
-  nam-get-scope-types :
-    Module(x, _) -> [Entity()]
+  nabl-def-site(child-uris__, sibl-uris__, implicits__|lang__, partition__, uniques__, uri__, states__) =
+    ?Module(x, _)
+    ; Module(
+        nabl-def(
+          ?c-uri1__
+        , ?s-uri1__
+        | lang__
+        , partition__
+        , uniques__
+        , uri__
+        , uri__
+        , NablNsModule()
+        , Unique()
+        , Current()
+        , [NablNsEntity()]
+        )
+      , id
+      )
+    ; where(i-2__ := <nabl-def(
+                        ?c-uri2__
+                      , ?s-uri2__
+                      | lang__
+                      , partition__
+                      , uniques__
+                      , c-uri1__
+                      , s-uri1__
+                      , NablNsEntity()
+                      , Unique()
+                      , Current()
+                      , []
+                      )> "String")
+    ; where(i-3__ := <nabl-def(
+                        ?c-uri3__
+                      , ?s-uri3__
+                      | lang__
+                      , partition__
+                      , uniques__
+                      , c-uri2__
+                      , s-uri2__
+                      , NablNsEntity()
+                      , Unique()
+                      , Current()
+                      , []
+                      )> "Int")
+    ; match(child-uris__|c-uri3__)
+    ; match(sibl-uris__|s-uri3__)
+    ; match(implicits__|[i-2__, i-3__])
 
-  nam-get-definition-keys :
-    Module(x, _) -> [x]
+  nabl-prop-site(|lang__, partition__, states__, implicits__) =
+    ?Module(x, _)
+    ; where([i-2__, i-3__] := implicits__)
 
-  nam-get-definitions :
-    Module(x, _) -> [(Module(), [x])]
+  nabl-def-site(child-uris__, sibl-uris__, implicits__|lang__, partition__, uniques__, uri__, states__) =
+    ?Entity(x, _)
+    ; Entity(
+        nabl-def(
+          ?c-uri1__
+        , ?s-uri1__
+        | lang__
+        , partition__
+        , uniques__
+        , uri__
+        , uri__
+        , NablNsEntity()
+        , Unique()
+        , Current()
+        , [NablNsProperty()]
+        )
+      , id
+      )
+    ; match(child-uris__|c-uri1__)
+    ; match(sibl-uris__|s-uri1__)
+    ; match(implicits__|[])
 
-  nam-annotate-names(|paths__, path__):
-    Module(x, _) -> <Module(nam-annotate-def(|path__), id)>
+  nabl-prop-site(|lang__, partition__, states__, implicits__) =
+    ?Entity(x, _)
+    ; Entity(
+        nabl-props(
+        | partition__
+        , [ Prop(
+              Type()
+            , Type(x)
+            , []
+            )
+          ]
+        )
+      , id
+      )
 
-  nam-unique :
-    Module(x, _) -> <id>
+  nabl-def-site(child-uris__, sibl-uris__, implicits__|lang__, partition__, uniques__, uri__, states__) =
+    ?Property(x, t)
+    ; Property(
+        nabl-def(
+          ?c-uri1__
+        , ?s-uri1__
+        | lang__
+        , partition__
+        , uniques__
+        , uri__
+        , uri__
+        , NablNsProperty()
+        , Unique()
+        , Current()
+        , []
+        )
+      , id
+      )
+    ; match(child-uris__|c-uri1__)
+    ; match(sibl-uris__|s-uri1__)
+    ; match(implicits__|[])
 
+  nabl-prop-site(|lang__, partition__, states__, implicits__) =
+    ?Property(x, t)
+    ; Property(
+        nabl-props(
+        | partition__
+        , [Prop(Type(), t, [])]
+        )
+      , id
+      )
 
-rules
-
-  nam-get-scope-types :
-    Entity(x, _) -> [Property()]
-
-  nam-get-definition-keys :
-    Entity(x, _) -> [x]
-
-  nam-get-definitions :
-    Entity(x, _) -> [(Entity(), [x])]
-
-  nam-annotate-names(|paths__, path__):
-    Entity(x, _) -> <Entity(nam-annotate-def(|path__), id)>
-
-  adjust-index-def-data(store__|namespace__, path__):
-    Entity(x, _) -> <store__> DefData(
-                                [namespace__|path__]
-                              , Type()
-                              , Type(x)
-                              )
-
-  type-of :
-    Entity(x, _) -> Type(x)
-
-  nam-unique :
-    Entity(x, _) -> <id>
-
-
-rules
-
-  nam-get-definition-keys :
-    Property(x, t) -> [x]
-
-  nam-get-definitions :
-    Property(x, t) -> [(Property(), [x])]
-
-  nam-annotate-names(|paths__, path__):
-    Property(x, t) -> <Property(nam-annotate-def(|path__), id)>
-
-  adjust-index-def-data(store__|namespace__, path__):
-    Property(x, t) -> <store__> DefData(
-                                  [namespace__|path__]
-                                , Type()
-                                , t
-                                )
-
-  type-of :
-    Property(x, t) -> t
-
-  nam-unique :
-    Property(x, t) -> <id>
-
-
-rules
-
-  nam-get-uses-keys :
-    Type(x) -> [x, "String", "Int"]
-
-  nam-get-uses :
-    Type(x) -> [ (Entity(), [x])
-               , (Entity(), ["String"])
-               , (Entity(), ["Int"])
-               ]
-
-  nam-annotate-names(|paths__, path__):
-    Type(x) -> <Type(nam-annotate-use(|paths__, Entity()))>
-
-  adjust-index-lookup(target__|namespace__, path__, prefix__):
-    Type(x) -> <concat> [ [[Entity()|path__]]
-                        , [Def([Entity(), "String"])]
-                        , [Def([Entity(), "Int"])]
-                        ]
-    where <target__> x
+  nabl-use-site(|lang__, partition__, uris__, states__) =
+    ?Type(x)
+    ; Type(
+        nabl-use(
+        | lang__
+        , partition__
+        , uris__
+        , [ UseCandidate(
+              NablNsEntity()
+            , []
+            , Current()
+            , True()
+            , []
+            )
+          ]
+        )
+      )
 })>

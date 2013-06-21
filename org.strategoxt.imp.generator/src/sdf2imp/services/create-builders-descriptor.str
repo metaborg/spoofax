@@ -31,14 +31,13 @@ strategies
           ~~
           observer: editor-analyze (multifile)
           ~~
-				  builder: "Show abstract syntax" = debug-generate-aterm (openeditor) (realtime) (meta) (source)
-				  builder: "Show deffed syntax" = debug-generate-deffed (openeditor) (realtime) (meta) (source)
-				  builder: "Show analyzed syntax" = debug-generate-analyzed (openeditor) (realtime) (meta) (source)
-				  builder: "Show index entries for current file" = debug-index-show-current-file (openeditor) (realtime) (meta) (source)
-				  builder: "Show index entries for all files" = debug-index-show-all-files (openeditor) (realtime) (meta) (source)
-				  builder: "Clear index for current file" = debug-index-clear-current (meta) (source)
-				  builder: "Clear index" = debug-index-clear (meta) (source)
-				  builder: "Reload index" = debug-index-reload (meta) (source)
+          builder : "Generate Java"          = generate-java (openeditor) (realtime)
+		  builder : "Show abstract syntax"   = debug-show-aterm (openeditor) (realtime) (meta) (source)                     
+		  builder : "Show analyzed syntax"   = debug-show-analyzed (openeditor) (realtime) (meta)      
+		  builder : "Show index (current)"   = debug-show-index-current (openeditor) (meta)
+		  builder : "Show index (all)"       = debug-show-index-all (openeditor) (meta)
+		  builder : "Show tasks (selection)" = debug-show-tasks-selection (openeditor) (meta)
+		  builder : "Reset and reanalyze"    = debug-reanalyze (meta)     
           ~~
           on save: editor-save
       ]|
