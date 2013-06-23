@@ -105,7 +105,6 @@ strategies
       create-example-trans;
       create-java-strategy;
       create-example-nd;
-      create-placeholder-compiled-nd;
       input @ FILE(inputname) := <pack-default-sdf> FILE($[syntax/[<get-sdf-main-module>].sdf]);
       rules(DefaultDefFile := inputname)
     end;
