@@ -2897,7 +2897,7 @@ rules
 
 	create-tmpl-pp = 
 		<output-text-file(|["lib", "runtime", "tmpl"], "pp.str")>
-"module runtime/tmpl/pp.generated
+"module runtime/tmpl/pp
 
 imports
   libstratego-lib
