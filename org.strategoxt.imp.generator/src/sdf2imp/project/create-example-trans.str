@@ -39,9 +39,9 @@ rules // Analysis
 	editor-analyze = analysis-default-editor
 	
 	analysis-single-default-interface = 
-		analysis-single-default(id, id|<language>)
+		analysis-single-default(id, id, id|<language>)
 	analysis-multiple-default-interface = 
-		analysis-multiple-default(parse-file <+ !(), id|<language>, <project-path>)
+		analysis-multiple-default(parse-file <+ !(), id, id, id|<language>, <project-path>)
 	
 	editor-save = analysis-save-default(|<language>)
 

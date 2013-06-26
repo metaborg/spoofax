@@ -208,14 +208,15 @@ rules // Single finle analysis
 	
 	analysis-single-default-interface = fail
 	
-  analysis-single-default(desugar-all, pp-message|language):
+  analysis-single-default(desugar-before, desugar-after, pp-message|language):
     (ast, path, project-path) -> (ast', error*, warning*, note*)
     with
       editor-init;
       <debug(!\"Analyzing file: \")> path;
-      (ast', unevaluated-task*, evaluated-count, (analysis-error*, analysis-warning*, analysis-note*)) := <desugar-all; analyze-one(|language, path, project-path)> ast;
+      (ast', unevaluated-task*, evaluated-count, (analysis-error*, analysis-warning*, analysis-note*)) := <desugar-before; analyze-one(|language, path, project-path); desugar-after> ast;
       (error*, warning*, note*) := <analysis-message-collect(pp-message|analysis-error*, analysis-warning*, analysis-note*)> ast';
-      <debug> $[[evaluated-count] task evaluated, [<length> unevaluated-task*] task unevaluated.]
+      <debug> $[[evaluated-count] task evaluated, [<length> unevaluated-task*] task unevaluated.];
+      <map(task-debug-info(|<id>); debug(!\"Unevaluated: \"))> unevaluated-task* 
       // TODO: Update markers for partitions that have had a task executed.
       
 rules // Multi-file analysis
@@ -227,7 +228,7 @@ rules // Multi-file analysis
     with
       queue-strategy(|\"analysis-multiple-default-interface\", \"Analyzing files\")
       
-  analysis-multiple-default(parse, pp-message|language, project-path):
+  analysis-multiple-default(parse, desugar-before, desugar-after, pp-message|language, project-path):
     path* -> (result'*, unevaluated-task*, evaluated-count)
     with
     	debug(!\"Analyzing files: \");
@@ -236,7 +237,7 @@ rules // Multi-file analysis
 	      measure-time(
 	      	path'* := <map(\\p -> $[[project-path]/[p]]\\)> path*;
 	        (result*, unevaluated-task*, evaluated-count) := <analyze-multiple(parse, complete-work-unit|language, project-path)> path'*;
-	        result'* := <filter(analysis-message-update-editor(pp-message))> result*
+	        result'* := <filter(analysis-message-update-editor(desugar-after, pp-message))> result*
 	      , id | \"analysis-multiple-full-analysis\"
 	      );
 	    	measure-time(
@@ -248,8 +249,8 @@ rules // Multi-file analysis
 	      	, id | \"analysis-multiple-task-commit\"
 	      )
 	    , id | \"analysis-multiple-total\");
-      <debug> $[[evaluated-count] task evaluated, [<length> unevaluated-task*] task unevaluated.]
-	
+      <debug> $[[evaluated-count] task evaluated, [<length> unevaluated-task*] task unevaluated.];
+      <map(task-debug-info(|<id>); debug(!\"Unevaluated: \"))> unevaluated-task*
 
   analysis-multiple-default-work-units = 
     length; !(<id>, 3); mul	
@@ -268,9 +269,9 @@ rules // Message collection and updating.
       warning* := <collect-all(constraint-warning, conc)> ast;
       note*    := <collect-all(constraint-note, conc)> ast
 
-  analysis-message-update-editor(pp-message):
+  analysis-message-update-editor(desugar-after, pp-message):
     Result(partition, initial-ast, analyzed-ast, changed-read*, error* , warning* , note*) -> 
-    Result(partition, initial-ast, analyzed-ast, changed-read*, error'*, warning'*, note'*)
+    Result(partition, initial-ast, <desugar-after> analyzed-ast, changed-read*, error'*, warning'*, note'*)
     where
       not(() := initial-ast)
     with
@@ -1343,12 +1344,7 @@ rules // generic analysis of uses
       filtered      := <nabl-use-propconstraint(|partition, prop*)> concatted;
       disambiguated := <nabl-use-disambiguate(disambiguate|partition, prop*, ns, name)> filtered
           	
-	nabl-use-subtask-uri(|partition) =
-		switch id
-			case ?URI(_, _) => uri : ![uri]
-			case is-list           : <new-task(|partition)> Choice(<id>)
-			otherwise              : id
-		end 
+	nabl-use-subtask-uri(|partition) = try(is-list; !Choice(<id>); new-task(|partition))
 		  	
 	// candidate in current scope
 	nabl-use-candidate(|lang, partition, uri*, name):
@@ -1724,37 +1720,23 @@ imports
 rules // Lookup
 	
 	nabl-lookup(|ns, name):
-		scope* -> def*
+		uri -> def*
 		with
-  		uri*  := <filter(nabl-uri)> scope*;
-  		uri'* := <map(nabl-extend-uri(|ns, name, ()))> uri*;
-  		def*  := <mapconcat(nabl-get-all-definitions)> uri'*
+  		uri' := <nabl-extend-uri(|ns, name, ())> uri;
+  		def* := <nabl-get-all-definitions> uri'
 
 	nabl-lookup-all(|ns):
-		scope* -> def*
+		uri -> def*
 		with
-  		uri*  := <filter(nabl-uri)> scope*;
-  		def*  := <mapconcat(nabl-get-child-definitions(|ns))> uri*
+  		def*  := <nabl-get-child-definitions(|ns)> uri
 
 	nabl-lookup-named-import(|ns, name):
-		scope* -> import*
-		with
-			uri*    := <filter(nabl-uri)> scope*;
-			import* := <mapconcat(nabl-lookup-named-import-one(|ns, name))> uri*
-			
-	nabl-lookup-named-import-one(|ns, name):
 		uri -> import*
 		with
 			language := <nabl-uri-language> uri;
       import*  := <nabl-get-import-uris-named(|language, ns, name)> uri
 			  		
 	nabl-lookup-unnamed-import(|ns):
-		scope* -> import*
-		with
-			uri*    := <filter(nabl-uri)> scope*;
-			import* := <mapconcat(nabl-lookup-unnamed-import-one(|ns))> uri*
-			
-	nabl-lookup-unnamed-import-one(|ns):
 		uri -> import*
 		with
 			language := <nabl-uri-language> uri;
@@ -2036,91 +2018,83 @@ signature
     PropConstraint         : List(Prop) * List(Result)                 -> Instruction
     PropCalc               : Property * Term                           -> Instruction
         
-    ResolveAllDefs            : Scope * Namespace                  -> Instruction
+    ResolveAllDefs         : Scope * Namespace                  -> Instruction
         
 rules // Resolve
   
   // Looks up defintions in scopes with namespace and name.
   perform-task(|nr):
-  	ResolveDefs(scope*@<with(is-list|\"Expected a list of scopes.\")>, ns, name) -> result
+  	ResolveDefs(scope, ns, name) -> def*
   	where
-  		uri*  := <filter(nabl-uri)> scope*;
-  		name' := <try-remove-list; strip-annos> name; // Name could be a list, and annotated.
-  		def*  := <nabl-lookup(|ns, name')> uri*;
-  		<map(nabl-add-read-extend(|nr, ns, name'))> uri*;
-  		switch !def*
-        case ?[]:
-        	fail
-        otherwise: 
-        	!def* // TODO: id?
-			end => result
+  		uri   := <nabl-uri> scope;
+  		name' := <try-remove-list; strip-annos> name; // TODO: can this be a list?
+  		<nabl-add-read-extend(|nr, ns, name')> uri;
+  		def*  := <nabl-lookup(|ns, name')> uri;
+  		not(?[])
 
 	// Calls a user-defined disambiguation filter on definitions with relevant information.
 	perform-task(|nr):
 		DisambiguateDefs(def*, prop*, namespace, name) -> result
 		where
 			if <Tl> def* then
-				result := <try(nabl-disambiguate(|prop*, namespace, name))> def*
+				<try(nabl-disambiguate(|prop*, namespace, name))> def*
 			else
-				result := def*
-			end
+				!def*
+			end => result
+
+	task-is-combinator = ?DisambiguateDefs(_, _, _, _)
 
 	// Looks up named imports, active in scopes with namespace and name..
 	perform-task(|nr):
-		ResolveNamedImports(scope*@<with(is-list|\"Expected a list of scopes.\")>, ns, name) -> result
+		ResolveNamedImports(scope, ns, name) -> result
 		where
-			uri*    := <filter(nabl-uri)> scope*;
-			name'   := <try-remove-list; strip-annos> name; // Name could be a list, and annotated.
-			import* := <nabl-lookup-named-import(|ns, name')> uri*;
-			<map(nabl-add-read(|nr))> uri*;
-      if <task-has-dependencies> import* then
-      	result := <task-collect-dependencies> import*
-      else
-	      result := import*
-      end
+			uri     := <nabl-uri> scope;
+			<nabl-add-read(|nr)> uri;
+			name'   := <try-remove-list; strip-annos> name; // TODO: can this be a list?
+			import* := <nabl-lookup-named-import(|ns, name')> uri;
+      switch id
+      	case ?[]                            : fail
+      	case task-collect-dependencies => d : !d
+      	otherwise                           : id
+      end => result
 	
 	// Looks up wildcard imports for a namespace active in scopes.
 	perform-task(|nr):
-		ResolveWildcardImports(scope*, ns) -> result
+		ResolveWildcardImports(scope, ns) -> result
 		where
-			uri*        := <filter(nabl-uri)> scope*;
-			import-uri* := <mapconcat(resolve-one-wildcard-import(|nr, ns))> uri*;
+			uri         := <nabl-uri> scope;
+			import-uri* := <resolve-one-wildcard-import(|nr, ns)> uri;
       switch id
+      	case ?[]                            : fail
       	case task-collect-dependencies => d : !d
       	otherwise                           : id
       end => result
 			
 	resolve-one-wildcard-import(|nr, ns):
 		uri -> result
-		where
+		with
+			<nabl-add-read(|nr)> uri;
 			if task-exists(|ImportClosure(uri)) then
 				import-closure-id := <task-instruction-id> ImportClosure(uri);
 				switch id
 					case task-has-failed                                  : <task-add-dependency-nocycle(|nr)> import-closure-id; ![]
-					case task-get-result => h                             : <task-add-dependency-nocycle(|nr)> import-closure-id; <Hd; hashtable-get(|ns)> h
+					case task-get-result; Hd => h                         : <task-add-dependency-nocycle(|nr)> import-closure-id; <hashtable-get(|ns) <+ ![]> h
 					case not(task-becomes-cyclic(|nr, import-closure-id)) : ![<task-create-dependency> import-closure-id]
 					otherwise                                             : ![]
 				end => result
 			else
 				result := []
-			end;
-			<nabl-add-read(|nr)> uri
+			end
 
 rules // Visibility
 	
   // Looks up defintions in scopes with namespace and name.
   perform-task(|nr):
-  	ResolveAllDefs(scope*@<with(is-list|\"Expected a list of scopes.\")>, ns) -> result
+  	ResolveAllDefs(scope, ns) -> def*
   	where
-  		uri*  := <filter(nabl-uri)> scope*;
-  		def*  := <nabl-lookup-all(|ns)> uri*;
-  		//<map(nabl-add-read-extend(|nr, ns, name'))> uri*;
-  		switch !def*
-        case ?[]:
-        	fail
-        otherwise: 
-        	!def* // TODO: id?
-			end => result	
+  		uri  := <nabl-uri> scope;
+  		def* := <nabl-lookup-all(|ns)> uri;
+  		not(?[])
 
 rules // Import calculation
 	
@@ -2128,13 +2102,13 @@ rules // Import calculation
 	perform-task(|nr):
 		ImportCalc(uri) -> result
 		where
+			<nabl-add-read(|nr)> uri;
 			import-ns-use*        := <nabl-get-all-properties(|Import())> uri;
 			(imported-uri*, uri*) := <partition(resolve-transitive-import, resolve-import)> import-ns-use*;
   		switch id
         case d := <task-collect-dependencies> : !d
-        otherwise                             : ![<id>]
-			end => result;
-			<nabl-add-read(|nr)> uri
+        otherwise                             : id
+			end => result
 
 	resolve-transitive-import: (Imported(ns), use) -> (ns, <resolve-import-use> use)
 	resolve-import: (ns, use) -> (ns, <resolve-import-use> use)
@@ -2144,6 +2118,7 @@ rules // Import calculation
 	perform-task(|nr):
 		ImportClosure(uri) -> result
 		with
+			<nabl-add-read(|nr)> uri;
 			import-calc-id        := <task-instruction-id> ImportCalc(uri);
 			(imported-uri*, uri*) := <task-get-result; Hd> import-calc-id; // Result for this task must exit, as a dependency is expressed on it during collect.
 			hashtable             := <new-hashtable>;
@@ -2151,9 +2126,8 @@ rules // Import calculation
 			d* := <collect-all(?URI(_, _)); mapconcat(import-closure-transitive(|nr, hashtable))> imported-uri*;
 			switch id
 				case task-collect-dependencies => d : !d
-				otherwise                           : ![hashtable]
-			end => result;
-			<nabl-add-read(|nr)> uri
+				otherwise                           : !hashtable
+			end => result
 			
 	import-to-hash-table(|hashtable):
 		(ns, import-uri*) -> <hash-multimap-putlist(|ns, import-uri*)> hashtable
@@ -2161,18 +2135,18 @@ rules // Import calculation
 	import-closure-transitive(|nr, hashtable):
 		uri	-> result
 		with
+			<nabl-add-read(|nr)> uri;
 			if task-exists(|ImportClosure(uri)) then
 				import-closure-id := <task-instruction-id> ImportClosure(uri);
 				switch id
 					case task-has-failed                                  : <task-add-dependency-nocycle(|nr)> import-closure-id; ![]
-					case task-get-result; Hd => h                         : <task-add-dependency-nocycle(|nr)> import-closure-id; <hash-multimap-copy(|h)> hashtable; ![]
+					case task-get-result; Hd => h                             : <task-add-dependency-nocycle(|nr)> import-closure-id; <hash-multimap-copy(|h)> hashtable; ![]
 					case not(task-becomes-cyclic(|nr, import-closure-id)) : ![<id>]
 					otherwise                                             : ![]
 				end => result
 			else
 				result := []
-			end;
-			<nabl-add-read(|nr)> uri
+			end
 
 rules // Property constraints
 	  
@@ -2180,19 +2154,21 @@ rules // Property constraints
   	PropConstraint(prop*, res*) -> result
   	where
   		filtered := <filter(nabl-resolve-constraint(|prop*))> res*;
-      switch !filtered
-      	case task-collect-dependencies => d: !d
-      	otherwise: !filtered // TODO: id?
+      switch id
+      	case task-collect-dependencies => d : !d
+      	otherwise                           : id
       end => result
+      
+  task-is-combinator = ?PropConstraint(_, _)
   		
   nabl-resolve-constraint(|prop*):
     entry -> entry'
     where
       filtered := <filter(nabl-resolve-constraint-one(|entry))> prop*;
-      switch !filtered
-      	case ?[]: fail
-      	case task-collect-dependencies => d: !d
-      	otherwise: !entry
+      switch id
+      	case ?[]                            : fail
+      	case task-collect-dependencies => d : !d
+      	otherwise                           : !entry
       end => entry'
       
   // TODO: check dependencies (3rd subterm) as well.
@@ -2208,18 +2184,6 @@ rules // Property constraints
       else
         entry' := <task-create-dependencies> value
       end
-
-rules // Property calcuation
-
-  perform-task(|nr): 
-  	PropCalc(prop, term) -> result'
-  	where
-  		result := <calc-property> (prop, term);
-  		switch !result
-  			case task-collect-dependencies => d : !d
-      	case not(is-list)                   : ![result]
-      	otherwise                           : !result
-			end => result'
 
 rules // Utility
 	
@@ -2531,6 +2495,7 @@ rules // multimap simulation
 imports 
   
   runtime/task/interface
+  runtime/task/utils
   
 signature
 
@@ -2540,10 +2505,11 @@ signature
   
   constructors
     
-    Result : Int -> Result
+    Result : TaskID -> Result
     Fail : Result
     
-    Dependency : List(Int) -> Result
+    Single     : List(Result) -> Result
+    Dependency : List(TaskID) -> Result
 		
 rules // Creation
   
@@ -2551,9 +2517,10 @@ rules // Creation
   //tdebug(s) = debug(s)
   
   new-task(|partition) = new-task(|partition, <dependent-tasks>)
-  
   new-task(|partition, dependencies) = 
-    task-add-task(|partition, dependencies, <id>)
+  		task-is-combinator; task-add-combinator(|partition, dependencies, <id>) 
+  	<+ 
+  		task-add-task(|partition, dependencies, <id>)
    
   //    tdebug(!\"new task \")
   //  ; avoid-task(|dependencies)
@@ -2585,12 +2552,20 @@ rules // Dependencies
 		!Dependency(<id>)
 
 rules // Results
+
+	insert-results-hashmap(|results-hashmap) =
+		switch id
+			case has-annos  : !(<id>, <get-annos; insert-results-hashmap(|results-hashmap)>); set-annos
+			case is-list    : filter(insert-results-hashmap(|results-hashmap); not(?[]))
+			case ?Result(n) : (<hashtable-get(|n)> results-hashmap) <+ <with(fail|\"Cannot insert result: \")> n
+			otherwise       : all(insert-results-hashmap(|results-hashmap))
+		end
 	
 	insert-results-with-fail =
 		switch id
 			case has-annos  : !(<id>, <get-annos; insert-results-with-fail>); set-annos
 			case is-list    : filter(insert-results-with-fail; not(?[]))
-			case ?Result(n) : (task-api-get-result(|n) <+ (task-api-has-failed(|n); ![]) <+ with(fail|\"Cannot insert result: \"))
+			case ?Result(n) : (task-api-get-results(|n) <+ (task-api-has-failed(|n); ![]) <+ with(fail|\"Cannot insert result: \"))
 			otherwise       : all(insert-results-with-fail)
 		end
 	
@@ -2598,7 +2573,7 @@ rules // Results
 		switch id
 			case has-annos  : !(<id>, <get-annos; insert-results>); set-annos
 			case is-list    : map(insert-results); remove-all(?[])
-			case ?Result(n) : task-api-get-result(|n) <+ (task-api-has-failed(|n); ![])
+			case ?Result(n) : task-api-get-results(|n) <+ (task-api-has-failed(|n); ![])
 			otherwise       : all(insert-results)
 		end
 		
@@ -2606,7 +2581,7 @@ rules // Results
 		switch id
 			case has-annos  : !(<id>, <get-annos; insert-results-or-create-dependency>); set-annos
 			case is-list    : map(insert-results-or-create-dependency); remove-all(?[])
-			case ?Result(n) : task-api-get-result(|n) <+ (task-api-has-failed(|n); ![]) <+ !Dependency([n])
+			case ?Result(n) : task-api-get-results(|n) <+ (task-api-has-failed(|n); ![]) <+ !Dependency([n])
 			otherwise       : all(insert-results-or-create-dependency)
 		end
 	
@@ -2615,27 +2590,33 @@ rules // Projections
 	task-result-id:
     Result(taskID) -> taskID
 
+	task-collect-result-ids =
+		collect-all-annos(task-result-id, union)
+
 rules // API
 	
 	task-setup(|project-path)                            = task-api-setup(|project-path)
 	task-start-collection(|partition)                    = task-api-start-collection(|partition)
 	task-stop-collection(|partition)                     = task-api-stop-collection(|partition)
 	task-add-task(|partition, dependencies, instruction) = task-api-add-task(|partition, dependencies, instruction)
+	task-add-combinator(|partition, dependencies, instruction) = task-api-add-combinator(|partition, dependencies, instruction)
 	task-becomes-cyclic(|taskIDFrom, taskIDTo)           = task-api-becomes-cyclic(|taskIDFrom, taskIDTo)
 	task-debug-info(|partition)                          = task-api-debug-info(|partition)
 	task-add-message(|taskID, message)                   = task-api-add-message(|taskID, message)
 	task-get-messages(|partition)                        = task-api-get-messages(|partition)
-	task-evaluate(|changed-read*)                        = task-api-evaluate(task-perform-task, insert-results-with-fail|changed-read*)
+	task-evaluate(|changed-read*)                        = task-api-evaluate(task-collect-result-ids, 
+	                                                         insert-results-hashmap, task-perform-task|changed-read*)
 	task-exists(|instruction)                            = task-api-exists(|instruction)
 	task-reset                                           = task-api-reset
 	task-persist                                         = task-api-persist
 	task-unload(|project-path)                           = task-api-unload(|project-path)
 	task-unload                                          = task-unload(|<id>)
 	
+	// TODO: rename to task-get-results.
 	task-get-result =
 		switch id
-			case ?Result(taskID) : task-api-get-result(|taskID)
-			otherwise            : task-api-get-result(|<id>)
+			case ?Result(taskID) : task-api-get-results(|taskID)
+			otherwise            : task-api-get-results(|<id>)
 		end
 	
 	task-has-failed =
@@ -2646,7 +2627,7 @@ rules // API
 		
 	task-get-solved =
 		switch id
-			case ?Result(taskID) : task-api-get-result(|taskID) <+ (task-api-has-failed(|taskID); ![])
+			case ?Result(taskID) : task-api-get-results(|taskID) <+ (task-api-has-failed(|taskID); ![])
 			otherwise            : task-api-has-failed(|<id>) <+ (task-api-has-failed(|<id>); ![])
 		end
 				
@@ -2673,15 +2654,16 @@ rules /** @internal API externals */
 	task-api-start-collection(|partition) = prim(\"task_api_start_collection\", partition)
 	task-api-stop-collection(|partition) = prim(\"task_api_stop_collection\", partition)
 	task-api-add-task(|partition, dependencies, instruction) = prim(\"task_api_add_task\", partition, dependencies, instruction)
+	task-api-add-combinator(|partition, dependencies, instruction) = prim(\"task_api_add_combinator\", partition, dependencies, instruction)
 	task-api-becomes-cyclic(|taskIDFrom, taskIDTo) = prim(\"task_api_becomes_cyclic\", taskIDFrom, taskIDTo)
-	task-api-get-result(|taskID) = prim(\"task_api_get_result\", taskID)
+	task-api-get-results(|taskID) = prim(\"task_api_get_results\", taskID)
 	task-api-debug-info(|partition) = prim(\"task_api_debug_info\", partition)
 	task-api-add-message(|taskID, message) = prim(\"task_api_add_message\", taskID, message)
 	task-api-get-messages(|partition) = prim(\"task_api_get_messages\", partition)
 	task-api-has-failed(|taskID) = prim(\"task_api_has_failed\", taskID)
 	task-api-add-read(|taskID, read) = prim(\"task_api_add_read\", taskID, read)
 	task-api-add-dependency(|taskID, dependency) = prim(\"task_api_add_dependency\", taskID, dependency)
-	task-api-evaluate(perform-task, insert-result|changed-reads) = prim(\"task_api_evaluate\", perform-task, insert-result|changed-reads)
+	task-api-evaluate(collect-results, insert-results, perform-task|changed-reads) = prim(\"task_api_evaluate\", collect-results, insert-results, perform-task|changed-reads)
 	task-api-exists(|instruction) = prim(\"task_api_exists\", instruction)
 	task-api-get-dependencies(|taskID) = prim(\"task_api_get_dependencies\", taskID)
 	task-api-reset = prim(\"task_api_reset\")
@@ -2698,26 +2680,6 @@ rules /** @internal API externals */
 imports
 	
 	runtime/task/core
-	
-rules
-	
-  crush-annos(nul, sum, s) :
-    _#(xs){a*} -> r2
-    where
-     r1 := <foldr(nul, sum, s)> xs;
-     r2 := <foldr(!r1, sum, s)> a*
-
-	collect-all-annos(s, un) =
-		![<s> | <crush-annos(![], un, collect-all-annos(s, un))>]
-	<+ crush-annos(![], un, collect-all-annos(s, un))
-
-rules
-	
-	task-result-id:
-    Result(taskID) -> taskID
-
-	task-collect-result-ids =
-		collect-all-annos(task-result-id, union)
 
 rules
 	
@@ -2752,9 +2714,10 @@ rules
 
 strategies
   
-  perform-task(|nr) = fail
-  task-match        = fail
-  avoid-task(|dep*) = fail
+  perform-task(|nr)  = fail
+  task-match         = fail
+  avoid-task(|dep*)  = fail
+  task-is-combinator = fail
 "
 
 	create-task-messages = 
@@ -2862,7 +2825,10 @@ rules
       
 	perform-task(|nr):
  		Choice(choice*) -> <Hd> choice*
+ 		
+	task-is-combinator = ?Choice(_)
 
+	// TODO: can we still use <Hd> to determine if a task failed or not?
 	// TODO: should not store any result.
   perform-task(|n):
     Message(task, trigger, message) -> []
@@ -2872,27 +2838,42 @@ rules
     		case Failure() : not(<Hd> task); task-add-message(|n, message)
     	end
 
+	task-is-combinator = ?Message(_, _, _)
+
   avoid-task(|dep*):
     Match(_, _, _) -> <perform-task(|0) <+ ![]>
     where
       [] := dep*
     	
   perform-task(|nr): 
-  	Match(key, bound, term) -> result
-  	where
-  		result := <try-make-list; filter(!(key, <id>, bound); debug(!\"m \"); task-match)> term;
-  		if [] := result then
-  			fail
-			end
+  	Match(key, bound, term) -> <task-match> (key, term, bound)
   
   perform-task(|nr): 
-    Rewrite(key, term) -> result
-    where
-      term'  := <try-make-list; map(try-remove-list)> term; 
-      result := <task-match; try-make-list> (key, term')
+    Rewrite(key, term) -> <task-match> (key, term)
   
+  // TODO: this should no longer be needed with single-result tasks?
   perform-task(|nr):
   	Concat(term*) -> <concat> term*
+
+	task-is-combinator = ?Concat(_)
+"
+
+	create-task-utils = 
+		<output-text-file(|["lib", "runtime", "task"], "utils.str")>
+"module runtime/task/utils
+
+rules
+	
+  crush-annos(nul, sum, s) :
+    _#(xs){a*} -> r2
+    where
+     r1 := <foldr(nul, sum, s)> xs;
+     r2 := <foldr(!r1, sum, s)> a*
+
+	collect-all-annos(s, un) =
+		![<s> | <crush-annos(![], un, collect-all-annos(s, un))>]
+	<+ crush-annos(![], un, collect-all-annos(s, un))
+
 "
 
 	create-tmpl-pp = 
@@ -3050,6 +3031,8 @@ imports
 	runtime/nbl/entries
 	runtime/nbl/query
 	runtime/nbl/utils
+	runtime/nbl/uri
+	runtime/nbl/tasks
   runtime/types/interface
   runtime/task/core
   
@@ -3068,8 +3051,8 @@ rules
   	PropLookup(kind, t) -> result
   	where
   		resolved := <nabl-collect-one-resolved-def> t;
-  		switch !resolved
-  			case ?Def(_) : nabl-get-property(|kind); insert-results-or-create-dependency; try-make-list
+  		switch id
+  			case ?Def(_) : where(nabl-uri; nabl-add-read(|n)); nabl-get-property(|kind); insert-results-or-create-dependency // TODO: is this read needed?
   			otherwise    : id
   		end => result
   
@@ -3079,15 +3062,7 @@ rules
       [] := dep*
   	
   perform-task(|n): 
-  	PropCalc(result) -> <try-make-list> result
-  
-  // TODO: remove this one	
-  perform-task(|n): 
-    PropCalc(result, dep*) -> <perform-task(|n)> PropCalc(result)
-    with
-      fail
-    where 
-      <if is-list then Hd end> dep*
+  	PropCalc(result) -> result
   
   avoid-task(|dep*):
     PropCheck(actual, expected) -> <perform-task(|0) <+ ![]> 
@@ -3095,17 +3070,9 @@ rules
       [] := dep*
   	
   perform-task(|n): 
-  	PropCheck(term, expected) -> <perform-task(|n)> PropCheck(<try-make-list> term, <try-make-list> expected)
+  	PropCheck(actual, expected) -> actual
   	where
-  		not(<is-list> term; <is-list> expected)
-			
-  perform-task(|n): 
-  	PropCheck(term*, expected*) -> <try-make-list> term*
-  	where
-  		<is-list> term*;
-  		<is-list> expected*;
-  		<cart(type-prop-eq)> (term*, expected*)
-
+  		<type-prop-eq> (actual, expected)
 
 "
 
@@ -3141,6 +3108,7 @@ create-all-runtime-libraries =
 ; 	create-task-interface
 ; 	create-task-messages
 ; 	create-task-tasks
+; 	create-task-utils
 ; 	create-tmpl-pp
 ; 	create-types-collect
 ; 	create-types-interface
