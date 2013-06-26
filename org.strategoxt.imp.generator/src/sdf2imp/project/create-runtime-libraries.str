@@ -67,7 +67,9 @@ rules // Analysis
 	      	task-stop-collection(|partition);
 	      	changed-read* := <filter(analyze-diff-entry; nabl-uri; try(nabl-replace-uri-qualifier(|())))> [removed-entry*, added-entry*]
 	      	, id | \"analyze-collect-diff\" 
-	  	  )
+	  	  ); measure-time(
+	  	  	task-invalidate-task-reads(|changed-read*)
+	  	  	, id | \"analyze-collect-invalidate\")
   	  , id | \"analyze-collect-total\")
 	
 	analyze-perform-all:
@@ -75,10 +77,7 @@ rules // Analysis
 		with
 			measure-time(
 				measure-time(
-					mapconcat(analyze-result-reads); make-set => changed-read*
-					, id | \"analyze-task-evaluate-concat-reads\"
-			  ); measure-time(
-	      	task-evaluate(|changed-read*) => (unevaluated-task*, evaluated-count)
+	      	task-evaluate => (unevaluated-task*, evaluated-count)
 	      	, id | \"analyze-task-evaluate\"
 	      ); measure-time(
 	  	  	result'* := <map(analyze-messages)> result*
@@ -236,7 +235,7 @@ rules // Multi-file analysis
       measure-time(
 	      measure-time(
 	      	path'* := <map(\\p -> $[[project-path]/[p]]\\)> path*;
-	        (result*, unevaluated-task*, evaluated-count) := <analyze-multiple(parse, complete-work-unit|language, project-path)> path'*;
+	        (result*, unevaluated-task*, evaluated-count) := <analyze-multiple(parse; desugar-before, complete-work-unit|language, project-path)> path'*;
 	        result'* := <filter(analysis-message-update-editor(desugar-after, pp-message))> result*
 	      , id | \"analysis-multiple-full-analysis\"
 	      );
@@ -2604,8 +2603,8 @@ rules // API
 	task-debug-info(|partition)                          = task-api-debug-info(|partition)
 	task-add-message(|taskID, message)                   = task-api-add-message(|taskID, message)
 	task-get-messages(|partition)                        = task-api-get-messages(|partition)
-	task-evaluate(|changed-read*)                        = task-api-evaluate(task-collect-result-ids, 
-	                                                         insert-results-hashmap, task-perform-task|changed-read*)
+	task-evaluate                        								 = task-api-evaluate(task-collect-result-ids, insert-results-hashmap, task-perform-task)
+	task-invalidate-task-reads(|changedRead*)            = task-api-invalidate-task-reads(|changedRead*)
 	task-exists(|instruction)                            = task-api-exists(|instruction)
 	task-reset                                           = task-api-reset
 	task-persist                                         = task-api-persist
@@ -2661,9 +2660,10 @@ rules /** @internal API externals */
 	task-api-add-message(|taskID, message) = prim(\"task_api_add_message\", taskID, message)
 	task-api-get-messages(|partition) = prim(\"task_api_get_messages\", partition)
 	task-api-has-failed(|taskID) = prim(\"task_api_has_failed\", taskID)
+	task-api-invalidate-task-reads(|changedReads) = prim(\"task_api_invalidate_task_reads\", changedReads)
 	task-api-add-read(|taskID, read) = prim(\"task_api_add_read\", taskID, read)
 	task-api-add-dependency(|taskID, dependency) = prim(\"task_api_add_dependency\", taskID, dependency)
-	task-api-evaluate(collect-results, insert-results, perform-task|changed-reads) = prim(\"task_api_evaluate\", collect-results, insert-results, perform-task|changed-reads)
+	task-api-evaluate(collect-results, insert-results, perform-task|) = prim(\"task_api_evaluate\", collect-results, insert-results, perform-task|)
 	task-api-exists(|instruction) = prim(\"task_api_exists\", instruction)
 	task-api-get-dependencies(|taskID) = prim(\"task_api_get_dependencies\", taskID)
 	task-api-reset = prim(\"task_api_reset\")
