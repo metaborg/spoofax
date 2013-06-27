@@ -63,6 +63,10 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 		try {
 			final IStrategoTerm result = observer.invokeSilent(OUTLINE_STRATEGY, editorState.getCurrentAst());
 			
+			if (result == null) { // outline-strategy undefined or failed
+				return;
+			}
+			
 			// ensures propagation of origin information
 			factory.makeLink(result, editorState.getCurrentAst());
 			
