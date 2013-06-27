@@ -53,14 +53,14 @@
             class="org.strategoxt.imp.runtime.dynamicloading.DynamicLabelProvider"
             language="DynamicRoot">-->
       <labelProvider
-            class="org.strategoxt.imp.runtime.services.LabelProvider"
+            class="org.strategoxt.imp.runtime.services.LabelProviderSemantic"
             language="DynamicRoot">
       </labelProvider>
    </extension>
    <extension
          point="org.eclipse.imp.runtime.modelTreeBuilder">
       <treeBuilder
-            class="org.strategoxt.imp.runtime.dynamicloading.DynamicTreeModelBuilder"
+            class="org.strategoxt.imp.runtime.dynamicloading.DynamicTreeModelBuilderSemantic"
             language="DynamicRoot">
       </treeBuilder>
    </extension>
