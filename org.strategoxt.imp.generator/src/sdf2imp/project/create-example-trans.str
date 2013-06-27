@@ -34,6 +34,7 @@ imports
   check
   generate
   refactor
+  outline
 
 rules // Analysis
   

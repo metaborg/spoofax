@@ -14,7 +14,7 @@ rules
   
   /**
    * Creates a custom outline given a strategy s that rewrites AST nodes into outline labels.
-   * Only AST nodes for which s succeed end up in the outline.
+   * Only AST nodes for which s succeeds end up in the outline.
    *
    * Example usage:
    *   outline-strategy = custom-label-outline(get-label)
