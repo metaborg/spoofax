@@ -572,13 +572,16 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 			}
 		}
 		
+		feedback = extractResultingAST(resource, feedback);
+		updateMarkers(resource, feedback);
+	}
+	
+	public void updateMarkers(IResource resource, IStrategoTerm feedback) {
 		// TODO: use FileTrackingIOAgent to find out what to clear
 		// UNDONE: messages.clearAllMarkers();
 		messages.clearMarkers(resource);
 
 		try {
-			feedback = extractResultingAST(resource, feedback);
-			
 			if (feedback.getTermType() == TUPLE
 					&& feedback.getSubtermCount() == 3
 					&& termAt(feedback, 0).getTermType() == LIST
