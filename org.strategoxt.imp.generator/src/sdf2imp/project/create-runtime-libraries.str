@@ -38,6 +38,7 @@ imports
   runtime/index/core
   runtime/task/core
   runtime/task/messages
+  runtime/editor/origins
   
 signature
 
@@ -69,7 +70,8 @@ rules // Analysis
 	      	, id | \"analyze-collect-diff\" 
 	  	  ); measure-time(
 	  	  	task-invalidate-task-reads(|changed-read*)
-	  	  	, id | \"analyze-collect-invalidate\")
+	  	  	, id | \"analyze-collect-invalidate\"
+	  	  )
   	  , id | \"analyze-collect-total\")
 	
 	analyze-perform-all:
@@ -95,7 +97,7 @@ rules // Analysis
   		note*    := <filter(?Note(_, _); analyze-message-to-tuple)> message*
   		
 	analyze-message-to-tuple:
-		message -> (message, <task-message> message)
+		message -> (<origin-location-offset-set(|<task-message-origin> message)> (), <task-message> message)
 
 rules // Index entries to diff
 	
@@ -403,6 +405,9 @@ strategies
   origin-file      = prim(\"SSL_EXT_origin_file\", <id>)
   origin-strip     = prim(\"SSL_EXT_origin_strip\", <id>)
   origin-equal(|t) = prim(\"SSL_EXT_origin_equal\", <id>, t)
+
+	origin-location-offset = prim(\"SSL_EXT_origin_location_offset\", <id>)
+	origin-location-offset-set(|origin-location-offset) = prim(\"SSL_EXT_set_origin_location_offset\", origin-location-offset)
 
   origin-language-description =
     prim(\"SSL_EXT_languagedescription\", <id>)
@@ -2742,16 +2747,16 @@ signature
     Warning : Origin * Term -> Message
     Note    : Origin * Term -> Message
     
-strategies
+rules
 	
 	task-error-message(|message):
-		term -> Error(<origin-location>, message)
+		term -> Error(<origin-location-offset <+ !message; debug(!\"Could not find origin information, message will appear at the first line: \")>, message)
 		
 	task-warning-message(|message):
-    term -> Warning(<origin-location>, message)
+    term -> Warning(<origin-location-offset <+ !message; debug(!\"Could not find origin information, message will appear at the first line: \")>, message)
     
 	task-note-message(|message):
-    term -> Note(<origin-location>, message)
+    term -> Note(<origin-location-offset <+ !message; debug(!\"Could not find origin information, message will appear at the first line: \")>, message)
     
 	task-message:
 		Error(_, message) -> message
@@ -2761,30 +2766,41 @@ strategies
 		
 	task-message:
 		Note(_, message) -> message
+		
+	task-message-origin:
+		Error(origin, _) -> origin
+
+	task-message-origin:
+		Warning(origin, _) -> origin
+		
+	task-message-origin:
+		Note(origin, _) -> origin
+	
+rules
 	
 	task-create-message-on-failure(|partition, task):
     message -> <new-task(|partition)> Message(task, Failure(), message)
   
   task-create-error-on-failure(|partition, task, message):
-		term -> <new-task(|partition)> Message(task, Failure(), <origin-track-forced(task-error-message(|message))> term)
+		term -> <new-task(|partition)> Message(task, Failure(), <task-error-message(|message)> term)
 		
 	task-create-warning-on-failure(|partition, task, message):
-		term -> <new-task(|partition)> Message(task, Failure(), <origin-track-forced(task-warning-message(|message))> term)
+		term -> <new-task(|partition)> Message(task, Failure(), <task-warning-message(|message)> term)
 		
 	task-create-note-on-failure(|partition, task, message):
-		term -> <new-task(|partition)> Message(task, Failure(), <origin-track-forced(task-note-message(|message))> term)
+		term -> <new-task(|partition)> Message(task, Failure(), <task-note-message(|message)> term)
 			
 	task-create-message-on-failure(|partition, task):
     message -> <new-task(|partition)> Message(task, Success(), message)
   
   task-create-error-on-success(|partition, task, message):
-		term -> <new-task(|partition)> Message(task, Success(), <origin-track-forced(task-error-message(|message))> term)
+		term -> <debug; new-task(|partition)> Message(task, Success(), <task-error-message(|message)> term)
 		
 	task-create-warning-on-success(|partition, task, message):
-		term -> <new-task(|partition)> Message(task, Success(), <origin-track-forced(task-warning-message(|message))> term)
+		term -> <new-task(|partition)> Message(task, Success(), <task-warning-message(|message)> term)
 		
 	task-create-note-on-success(|partition, task, message):
-		term -> <new-task(|partition)> Message(task, Success(), <origin-track-forced(task-note-message(|message))> term)
+		term -> <new-task(|partition)> Message(task, Success(), <task-note-message(|message)> term)
 		
 "
 
