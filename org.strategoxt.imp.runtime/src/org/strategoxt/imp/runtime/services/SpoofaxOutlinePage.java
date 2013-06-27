@@ -3,7 +3,8 @@ package org.strategoxt.imp.runtime.services;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
-import org.eclipse.ui.part.IPageSite;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.views.contentoutline.ContentOutlinePage;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.ImploderOriginTermFactory;
@@ -26,8 +27,19 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 	}
 	
 	@Override
-	public void init(IPageSite pageSite) {
-		super.init(pageSite);
+	public void dispose() {
+		editorState.getEditor().removeModelListener(this);
+	}
+	
+	@Override
+	public void createControl(Composite parent) {
+		super.createControl(parent);
+		getTreeViewer().setContentProvider(new SpoofaxOutlineContentProvider());
+		getTreeViewer().setLabelProvider(new StrategoLabelProvider());
+		
+		if (editorState.getCurrentAst() != null) {
+			update();
+		}
 	}
 
 	public AnalysisRequired getAnalysisRequired() {
@@ -35,8 +47,10 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 	}
 
 	public void update(IParseController controller, IProgressMonitor monitor) {
-		IStrategoTerm result = null;
-		
+		update();
+	}
+	
+	public void update() {		
 		StrategoObserver observer = null;
 		try {
 			observer = editorState.getDescriptor().createService(StrategoObserver.class, editorState.getParseController());
@@ -47,14 +61,20 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 		
 		observer.getLock().lock();
 		try {
-			result = observer.invokeSilent(OUTLINE_STRATEGY, (IStrategoTerm) controller.getCurrentAst());
-		} finally {
+			final IStrategoTerm result = observer.invokeSilent(OUTLINE_STRATEGY, editorState.getCurrentAst());
+			
+			// ensures propagation of origin information
+			factory.makeLink(result, editorState.getCurrentAst());
+			
+			Display.getDefault().asyncExec(new Runnable() {
+				public void run() {
+					getTreeViewer().setInput(result);
+					getTreeViewer().expandToLevel(2);
+				}
+			});
+		}
+		finally {
 			observer.getLock().unlock();
 		}
-		
-		// ensures propagation of origin information
-		factory.makeLink(result, (IStrategoTerm) controller.getCurrentAst());
-		
-//		getTreeViewer().setInput(result);
 	}
 }
