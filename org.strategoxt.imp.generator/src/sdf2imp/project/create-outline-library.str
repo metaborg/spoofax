@@ -1,0 +1,36 @@
+module sdf2imp/project/create-outline-library
+
+imports
+  sdf2imp/util/-
+
+strategies
+
+  create-outline-library =
+	  try(<file-exists <+ mkdir> "lib");
+	  <output-text-file(|["lib"], "outline-library.generated.str")>
+"module lib/outline-library.generated
+
+rules
+	
+	/**
+	 * Creates a custom outline given a strategy s that rewrites AST nodes into outline labels.
+	 * Only AST nodes for which s succeed end up in the outline.
+	 *
+	 * Example usage:
+	 *   outline-strategy = custom-label-outline(get-label)
+	 *   get-label: Module(name, _) -> name
+	 *   get-label: Entity(name, _) -> name
+	 */
+	custom-label-outline(s) = collect(to-outline-node(s))
+	
+	to-outline-node(s):
+		term -> Node(label, children)
+		where
+			label := <s> term;
+			children := <get-arguments; custom-label-outline(s)> term
+	
+	
+signature constructors
+	
+	Node: label * children -> Node
+"
