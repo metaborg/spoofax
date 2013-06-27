@@ -53,14 +53,14 @@
             class="org.strategoxt.imp.runtime.dynamicloading.DynamicLabelProvider"
             language="DynamicRoot">-->
       <labelProvider
-            class="org.strategoxt.imp.runtime.services.LabelProviderSemantic"
+            class="org.strategoxt.imp.runtime.services.LabelProvider"
             language="DynamicRoot">
       </labelProvider>
    </extension>
    <extension
          point="org.eclipse.imp.runtime.modelTreeBuilder">
       <treeBuilder
-            class="org.strategoxt.imp.runtime.dynamicloading.DynamicTreeModelBuilderSemantic"
+            class="org.strategoxt.imp.runtime.dynamicloading.DynamicTreeModelBuilder"
             language="DynamicRoot">
       </treeBuilder>
    </extension>
@@ -354,6 +354,18 @@
             class="org.strategoxt.imp.runtime.services.RefactoringContributionFactory"
             locationURI="popup:org.eclipse.ui.popup.any?before=additions">
       </menuContribution>
+   </extension>
+   
+      <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            name="Spoofax Editor"
+            icon="icons/IMP-editor.gif"
+            extensions="txt"
+            contributorClass="org.eclipse.imp.editor.internal.TextEditorActionContributor"
+            class="org.strategoxt.imp.runtime.SpoofaxEditor"
+            id="org.eclipse.imp.runtime.impEditor">
+      </editor>
    </extension>
    
 </plugin>

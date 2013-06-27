@@ -30,7 +30,8 @@ Require-Bundle: org.eclipse.imp.runtime,
  org.eclipse.core.expressions,
  org.strategoxt.imp.runtime.sidebyside.main;bundle-version="0.0.1",
  org.strategoxt.imp.runtime.sidebyside.legacy;bundle-version="0.0.1";resolution:=optional,
- org.strategoxt.imp.runtime.sidebyside.latest;bundle-version="0.0.1"
+ org.strategoxt.imp.runtime.sidebyside.latest;bundle-version="0.0.1",
+ org.apache.ant;bundle-version="1.8.3"
 Export-Package: org.strategoxt.imp.runtime,
  org.strategoxt.imp.runtime.dynamicloading,
  org.strategoxt.imp.runtime.parser,
