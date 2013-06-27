@@ -370,4 +370,24 @@ rules
   rename-all(|newname, oldname):
     ast -> <alltd(preserve-annos((oldname -> newname)))> ast
 ")>
+end;
+
+if not(<file-exists> "trans/outline.str") then
+  <output-text-file(|["outline"], "outline.str")>
+  <(GenerateMinimal
+  <
+!"module outline
+
+imports
+  include/Entity
+  lib/outline-library.generated
+
+rules
+
+  outline-strategy = custom-label-outline(get-label)
+
+  get-label: Module(name, _) -> name
+  get-label: Entity(name, _) -> name
+  get-label: Property(name, _) -> name
+")>
 end
