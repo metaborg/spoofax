@@ -75,11 +75,11 @@ rules // Analysis
   	  , id | \"analyze-collect-total\")
 	
 	analyze-perform-all:
-		result* -> (result'*, unevaluated-task*, evaluated-count)
+		result* -> (result'*, evaluated-task*, unevaluated-task*)
 		with
 			measure-time(
 				measure-time(
-	      	task-evaluate => (unevaluated-task*, evaluated-count)
+	      	task-evaluate => (evaluated-task*, unevaluated-task*)
 	      	, id | \"analyze-task-evaluate\"
 	      ); measure-time(
 	  	  	result'* := <map(analyze-messages)> result*
@@ -87,17 +87,26 @@ rules // Analysis
 	  	  )
   	, id | \"analyze-task-total\")
   	  
-  // TODO: origin tracking    
+    
   analyze-messages:
   	Result(partition, initial-ast, analyzed-ast, changed-read*, _, _, _) -> Result(partition, initial-ast, analyzed-ast, changed-read*, error*, warning*, note*)
   	with
+			(error*, warning*, note*) := <analyze-get-messages> partition
+
+	analyze-get-messages:
+		partition -> (error*, warning*, note*)
+		with
   		message* := <task-get-messages(|partition)>;
-  		error*   := <filter(?Error(_, _); analyze-message-to-tuple)> message*;
-  		warning* := <filter(?Warning(_, _); analyze-message-to-tuple)> message*;
-  		note*    := <filter(?Note(_, _); analyze-message-to-tuple)> message*
+  		error*   := <filter(?Error(_, _, _); analyze-message-to-tuple)> message*;
+  		warning* := <filter(?Warning(_, _, _); analyze-message-to-tuple)> message*;
+  		note*    := <filter(?Note(_, _, _); analyze-message-to-tuple)> message*
   		
 	analyze-message-to-tuple:
-		message -> (<origin-location-offset-set(|<task-message-origin> message)> (), <task-message> message)
+		message -> (<origin-location-offset-set(|origin)> term, msg)
+		with
+			origin := <task-message-origin> message;
+			term   := <task-message-term> message;
+			msg    := <task-message> message
 
 rules // Index entries to diff
 	
@@ -205,6 +214,12 @@ rules // Analysis
 	analysis-default-editor = analysis-single-default-interface <+ (where(not(is-tuple)); analysis-multiple-default-queue)
 	analysis-default-cmd = analysis-single-default-interface <+ (where(not(is-tuple)); analysis-multiple-default-interface)
 
+  analysis-changed-partitions:
+  	taskID* -> <task-partitions-of(|taskID*)>
+  	
+  is-test-file = 
+    string-ends-with(|\".spt\")
+
 rules // Single finle analysis
 	
 	analysis-single-default-interface = fail
@@ -214,9 +229,14 @@ rules // Single finle analysis
     with
       editor-init;
       <debug(!\"Analyzing file: \")> path;
-      (ast', unevaluated-task*, evaluated-count, (analysis-error*, analysis-warning*, analysis-note*)) := <desugar-before; analyze-one(|language, path, project-path); desugar-after> ast;
+      (ast', evaluated-task*, unevaluated-task*, (analysis-error*, analysis-warning*, analysis-note*)) := <desugar-before; analyze-one(|language, path, project-path); desugar-after> ast;
       (error*, warning*, note*) := <analysis-message-collect(pp-message|analysis-error*, analysis-warning*, analysis-note*)> ast';
-      <debug> $[[evaluated-count] task evaluated, [<length> unevaluated-task*] task unevaluated.];
+      partition* := <analysis-changed-partitions> evaluated-task*;
+      if <not(is-test-file)> path then
+      	partition := $[[project-path]/[path]];
+      	<remove-all(?partition <+ ?path); analysis-message-update-partitions-queue> partition*
+    	end;
+      <debug> $[[<length> evaluated-task*] task evaluated, [<length> unevaluated-task*] task unevaluated.];
       <map(task-debug-info(|<id>); debug(!\"Unevaluated: \"))> unevaluated-task* 
       // TODO: Update markers for partitions that have had a task executed.
       
@@ -230,15 +250,15 @@ rules // Multi-file analysis
       queue-strategy(|\"analysis-multiple-default-interface\", \"Analyzing files\")
       
   analysis-multiple-default(parse, desugar-before, desugar-after, pp-message|language, project-path):
-    path* -> (result'*, unevaluated-task*, evaluated-count)
+    path* -> (result'*, evaluated-task*, unevaluated-task*)
     with
     	debug(!\"Analyzing files: \");
       analysis-multiple-default-work-units; set-total-work-units;
       measure-time(
 	      measure-time(
 	      	path'* := <map(\\p -> $[[project-path]/[p]]\\)> path*;
-	        (result*, unevaluated-task*, evaluated-count) := <analyze-multiple(parse; desugar-before, complete-work-unit|language, project-path)> path'*;
-	        result'* := <filter(analysis-message-update-editor(desugar-after, pp-message))> result*
+	        (result*, evaluated-task*, unevaluated-task*) := <analyze-multiple(parse; desugar-before, complete-work-unit|language, project-path)> path'*;
+	        result'* := <filter(analysis-update-editor(desugar-after, pp-message))> result*
 	      , id | \"analysis-multiple-full-analysis\"
 	      );
 	    	measure-time(
@@ -250,8 +270,19 @@ rules // Multi-file analysis
 	      	, id | \"analysis-multiple-task-commit\"
 	      )
 	    , id | \"analysis-multiple-total\");
-      <debug> $[[evaluated-count] task evaluated, [<length> unevaluated-task*] task unevaluated.];
+      <debug> $[[<length> evaluated-task*] task evaluated, [<length> unevaluated-task*] task unevaluated.];
       <map(task-debug-info(|<id>); debug(!\"Unevaluated: \"))> unevaluated-task*
+      // TODO: Update markers for partitions that have had a task executed but were not analyzed.
+
+  analysis-update-editor(desugar-after, pp-message):
+    Result(partition, initial-ast, analyzed-ast, changed-read*, error* , warning* , note*) -> 
+    Result(partition, initial-ast, analyzed-desugared-ast, changed-read*, error'*, warning'*, note'*)
+    where
+      not(() := initial-ast)
+    with
+    	analyzed-desugared-ast := <desugar-after> analyzed-ast;
+      (error'*, warning'*, note'*) := <analysis-message-collect(pp-message|error*, warning*, note*)> analyzed-desugared-ast;
+      <set-markers(|partition)> (analyzed-ast, error'*, warning'*, note'*)
 
   analysis-multiple-default-work-units = 
     length; !(<id>, 3); mul	
@@ -269,15 +300,15 @@ rules // Message collection and updating.
       error*   := <collect-all(constraint-error, conc)> ast;
       warning* := <collect-all(constraint-warning, conc)> ast;
       note*    := <collect-all(constraint-note, conc)> ast
-
-  analysis-message-update-editor(desugar-after, pp-message):
-    Result(partition, initial-ast, analyzed-ast, changed-read*, error* , warning* , note*) -> 
-    Result(partition, initial-ast, <desugar-after> analyzed-ast, changed-read*, error'*, warning'*, note'*)
-    where
-      not(() := initial-ast)
-    with
-      (error'*, warning'*, note'*) := <analysis-message-collect(pp-message|error*, warning*, note*)> analyzed-ast;
-      <set-markers(|initial-ast)> (analyzed-ast, error'*, warning'*, note'*)
+  
+  analysis-message-update-partitions-queue =
+  	queue-strategy(|\"analysis-message-update-partitions\", \"Updating messages\")
+  
+  analysis-message-update-partitions:
+  	partition* -> <map(analysis-message-update-partition)>
+  	
+	analysis-message-update-partition:
+		partition -> <analyze-get-messages; set-only-markers(|partition)>
       
 rules // On-save handler
 	
@@ -319,10 +350,10 @@ rules // Multi file analysis
       end
 
   analyze-multiple-files(complete-work-unit|language, project-path):
-    file* -> (result'*, unevaluated-task*, evaluated-count)
+    file* -> (result'*, evaluated-task*, unevaluated-task*)
     with
       result* := <map(analyze-collect(|language, project-path); where(complete-work-unit))> file*;
-    	(result'*, unevaluated-task*, evaluated-count) := <analyze-perform-all> result*
+    	(result'*, evaluated-task*, unevaluated-task*) := <analyze-perform-all> result*
       
 "
 
@@ -359,11 +390,11 @@ imports
 rules // Single file analysis
   
   analyze-one(|language, path, project-path):
-    ast -> (analyzed-ast, unevaluated-task*, evaluated-count, (error*, warning*, note*))
+    ast -> (analyzed-ast, evaluated-task*, unevaluated-task*, (error*, warning*, note*))
     with // Setup index
       partition := $[[project-path]/[path]];
       r@Result(_, _, analyzed-ast, _, _, _, _) := <analyze-collect(|language, project-path)> File(partition, ast);
-    	(result*, unevaluated-task*, evaluated-count) := <analyze-perform-all> [r];
+    	(result*, evaluated-task*, unevaluated-task*) := <analyze-perform-all> [r];
     	Result(_, _, _, _, error*, warning*, note*) := <Hd> result*
 "
 
@@ -515,10 +546,15 @@ strategies
 
 rules
 	
-  // Set markers for a given file. Use when checking files from a queued strategy.
-  // Current term: (ast-desugared, errors, warnings, notes) tuple
-  // ast: the root node of the file to set markers on 
-  set-markers(|ast) = prim(\"SSL_EXT_set_markers\", ast)
+  // Set markers and analyzed AST for a given file. Use when checking files from a queued strategy.
+  // Current term: (ast-analyzed, errors, warnings, notes) tuple
+  // fileOrAST: file to set the markers on or the root node of the file to set markers on 
+  set-markers(|fileOrAST) = prim(\"SSL_EXT_set_markers\", fileOrAST)
+  
+  // Set only the markers for given file, does not change the stored AST.
+  // Current term: (errors, warnings, notes) tuple
+  // fileOrAST: file to set the markers on or the root node of the file to set markers on 
+  set-only-markers(|fileOrAST) = prim(\"SSL_EXT_set_only_markers\", fileOrAST)
 
   // Indicate that one or more files need analysis. 
   // Current term: ss a list of absolute file paths, or a single absolute file path to analyze
@@ -1096,6 +1132,7 @@ imports
 	
 	runtime/task/core
 	runtime/task/tasks
+	runtime/task/messages
 	runtime/nbl/tasks
 	runtime/nbl/entries
 	runtime/nbl/interface
@@ -1154,6 +1191,10 @@ signature
   constructors // partition
   
   	CollectPartition : Partition
+  	
+  constructors // unresolved error
+  	
+  	NoUnresolvedError : NoUnresolvedError
 	
 strategies // generic traversal
 	
@@ -1283,6 +1324,12 @@ rules // generic analysis of defs
     with
 			// add Def entry to the index
 			d := <new-def(|partition, def-uri)> a
+		with
+			// duplicate definition error
+			if Unique() := unique then 
+				resolve := <new-task(|partition)> ResolveDefs(current-uri, ns, name);
+				<task-create-error-on-multiple(|partition, resolve, \"Duplicate definition\")> name
+			end
 	
 	nabl-def-alias(|partition, def-uri):
 	  DefScope(term{anno*}) -> <new-alias(|partition, def-uri, alias-uri)>
@@ -1307,6 +1354,9 @@ rules // generic analysis of uses
 			subtask* := <map(nabl-use-candidate(|lang, partition, uri*, <nabl-fix-name> name))> candidate*;
 			choice   := <new-task(|partition)> Choice(subtask*);
 		  u        := <new-use(|partition, choice)>;
+		  if <not(has-annos; get-annos; collect-one(?NoUnresolvedError()))> name then
+		  	<nabl-fix-name; task-create-error-on-failure(|partition, choice, \"Unresolved reference\")> name
+		  end;
 		  if <is-completion-name> name then
 		  	completion-subtask* := <mapconcat(nabl-completion-candidate(|lang, partition, uri*))> candidate*;
 		  	completion-concat   := <new-task(|partition)> Concat(completion-subtask*);
@@ -2605,11 +2655,13 @@ rules // API
 	task-add-task(|partition, dependencies, instruction) = task-api-add-task(|partition, dependencies, instruction)
 	task-add-combinator(|partition, dependencies, instruction) = task-api-add-combinator(|partition, dependencies, instruction)
 	task-becomes-cyclic(|taskIDFrom, taskIDTo)           = task-api-becomes-cyclic(|taskIDFrom, taskIDTo)
+	task-clear-partition                                 = task-api-clear-partition(|<id>)
 	task-debug-info(|partition)                          = task-api-debug-info(|partition)
 	task-add-message(|taskID, message)                   = task-api-add-message(|taskID, message)
 	task-get-messages(|partition)                        = task-api-get-messages(|partition)
 	task-evaluate                        								 = task-api-evaluate(task-collect-result-ids, insert-results-hashmap, task-perform-task)
 	task-invalidate-task-reads(|changedRead*)            = task-api-invalidate-task-reads(|changedRead*)
+	task-partitions-of(|taskIDOrTaskID*)                 = task-api-partitions-of(|taskIDOrTaskID*)
 	task-exists(|instruction)                            = task-api-exists(|instruction)
 	task-reset                                           = task-api-reset
 	task-persist                                         = task-api-persist
@@ -2660,12 +2712,14 @@ rules /** @internal API externals */
 	task-api-add-task(|partition, dependencies, instruction) = prim(\"task_api_add_task\", partition, dependencies, instruction)
 	task-api-add-combinator(|partition, dependencies, instruction) = prim(\"task_api_add_combinator\", partition, dependencies, instruction)
 	task-api-becomes-cyclic(|taskIDFrom, taskIDTo) = prim(\"task_api_becomes_cyclic\", taskIDFrom, taskIDTo)
+	task-api-clear-partition(|partition) = prim(\"task_api_clear_partition\", partition)
 	task-api-get-results(|taskID) = prim(\"task_api_get_results\", taskID)
 	task-api-debug-info(|partition) = prim(\"task_api_debug_info\", partition)
 	task-api-add-message(|taskID, message) = prim(\"task_api_add_message\", taskID, message)
 	task-api-get-messages(|partition) = prim(\"task_api_get_messages\", partition)
 	task-api-has-failed(|taskID) = prim(\"task_api_has_failed\", taskID)
 	task-api-invalidate-task-reads(|changedReads) = prim(\"task_api_invalidate_task_reads\", changedReads)
+	task-api-partitions-of(|taskIDOrTaskIDS) = prim(\"task_api_partitions_of\", taskIDOrTaskIDS)
 	task-api-add-read(|taskID, read) = prim(\"task_api_add_read\", taskID, read)
 	task-api-add-dependency(|taskID, dependency) = prim(\"task_api_add_dependency\", taskID, dependency)
 	task-api-evaluate(collect-results, insert-results, perform-task|) = prim(\"task_api_evaluate\", collect-results, insert-results, perform-task|)
@@ -2743,65 +2797,91 @@ signature
 		
 	constructors
 		
-    Error   : Origin * Term -> Message
-    Warning : Origin * Term -> Message
-    Note    : Origin * Term -> Message
+    Error   : Origin * Term * Msg -> Message
+    Warning : Origin * Term * Msg -> Message
+    Note    : Origin * Term * Msg -> Message
     
 rules
 	
 	task-error-message(|message):
-		term -> Error(<origin-location-offset <+ !message; debug(!\"Could not find origin information, message will appear at the first line: \")>, message)
+		term -> Error(<origin-location-offset <+ !message; debug(!\"Could not find origin information, message will appear at the first line: \")>, term, message)
 		
 	task-warning-message(|message):
-    term -> Warning(<origin-location-offset <+ !message; debug(!\"Could not find origin information, message will appear at the first line: \")>, message)
+    term -> Warning(<origin-location-offset <+ !message; debug(!\"Could not find origin information, message will appear at the first line: \")>, term, message)
     
 	task-note-message(|message):
-    term -> Note(<origin-location-offset <+ !message; debug(!\"Could not find origin information, message will appear at the first line: \")>, message)
-    
-	task-message:
-		Error(_, message) -> message
+    term -> Note(<origin-location-offset <+ !message; debug(!\"Could not find origin information, message will appear at the first line: \")>, term, message)
+
 
 	task-message:
-		Warning(_, message) -> message
+		Error(_, _, message) -> message
+
+	task-message:
+		Warning(_, _, message) -> message
 		
 	task-message:
-		Note(_, message) -> message
+		Note(_, _, message) -> message
+
+
+	task-message-term:
+		Error(_, term, _) -> term
+
+	task-message-term:
+		Warning(_, term, _) -> term
 		
-	task-message-origin:
-		Error(origin, _) -> origin
+	task-message-term:
+		Note(_, term, _) -> term
+		
 
 	task-message-origin:
-		Warning(origin, _) -> origin
+		Error(origin, _, _) -> origin
+
+	task-message-origin:
+		Warning(origin, _, _) -> origin
 		
 	task-message-origin:
-		Note(origin, _) -> origin
+		Note(origin, _, _) -> origin
 	
 rules
 	
 	task-create-message-on-failure(|partition, task):
     message -> <new-task(|partition)> Message(task, Failure(), message)
   
-  task-create-error-on-failure(|partition, task, message):
-		term -> <new-task(|partition)> Message(task, Failure(), <task-error-message(|message)> term)
+  task-create-error-on-failure(|partition, task, message) = 
+  	task-error-message(|message); task-create-message-on-failure(|partition, task)
 		
-	task-create-warning-on-failure(|partition, task, message):
-		term -> <new-task(|partition)> Message(task, Failure(), <task-warning-message(|message)> term)
+	task-create-warning-on-failure(|partition, task, message) =
+		task-warning-message(|message); task-create-message-on-failure(|partition, task)
 		
-	task-create-note-on-failure(|partition, task, message):
-		term -> <new-task(|partition)> Message(task, Failure(), <task-note-message(|message)> term)
+	task-create-note-on-failure(|partition, task, message) =
+		task-note-message(|message); task-create-message-on-failure(|partition, task)
 			
-	task-create-message-on-failure(|partition, task):
+			
+	task-create-message-on-success(|partition, task):
     message -> <new-task(|partition)> Message(task, Success(), message)
   
-  task-create-error-on-success(|partition, task, message):
-		term -> <debug; new-task(|partition)> Message(task, Success(), <task-error-message(|message)> term)
+  task-create-error-on-success(|partition, task, message) = 
+  	task-error-message(|message); task-create-message-on-success(|partition, task)
 		
-	task-create-warning-on-success(|partition, task, message):
-		term -> <new-task(|partition)> Message(task, Success(), <task-warning-message(|message)> term)
+	task-create-warning-on-success(|partition, task, message) =
+		task-warning-message(|message); task-create-message-on-success(|partition, task)
 		
-	task-create-note-on-success(|partition, task, message):
-		term -> <new-task(|partition)> Message(task, Success(), <task-note-message(|message)> term)
+	task-create-note-on-success(|partition, task, message) =
+		task-note-message(|message); task-create-message-on-success(|partition, task)
 		
+		
+	task-create-message-on-multiple(|partition, task):
+    message -> <new-task(|partition)> Message(task, Multiple(), message)
+  
+  task-create-error-on-multiple(|partition, task, message) = 
+  	task-error-message(|message); task-create-message-on-multiple(|partition, task)
+		
+	task-create-warning-on-multiple(|partition, task, message) =
+		task-warning-message(|message); task-create-message-on-multiple(|partition, task)
+		
+	task-create-note-on-multiple(|partition, task, message) =
+		task-note-message(|message); task-create-message-on-multiple(|partition, task)
+
 "
 
 	create-task-tasks = 
@@ -2824,8 +2904,9 @@ signature
     Rewrite : ID * Term                            -> Instruction
     Concat  : List(Result)                         -> Instruction
     
-    Success : MessageTrigger
-    Failure : MessageTrigger
+    Failure  : MessageTrigger // No results
+    Success  : MessageTrigger // At least one result
+    Multiple : MessageTrigger // More than one result
 	
 rules
 	
@@ -2844,14 +2925,13 @@ rules
  		
 	task-is-combinator = ?Choice(_)
 
-	// TODO: can we still use <Hd> to determine if a task failed or not?
-	// TODO: should not store any result.
   perform-task(|n):
     Message(task, trigger, message) -> []
     where
     	switch !trigger
-    		case Success() : <Hd> task; task-add-message(|n, message)
-    		case Failure() : not(<Hd> task); task-add-message(|n, message)
+    		case Failure()  : not(<Hd> task); task-add-message(|n, message)
+    		case Success()  : <Hd> task; task-add-message(|n, message)
+    		case Multiple() : <Tl; Hd> task; task-add-message(|n, message)
     	end
 
 	task-is-combinator = ?Message(_, _, _)
