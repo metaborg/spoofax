@@ -3,7 +3,7 @@ package org.strategoxt.imp.runtime;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 import org.eclipse.ui.views.properties.IPropertySource;
-import org.strategoxt.imp.runtime.services.SpoofaxOutlinePage;
+import org.strategoxt.imp.runtime.services.outline.SpoofaxOutlinePage;
 
 public class SpoofaxEditor extends UniversalEditor {
 	

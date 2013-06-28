@@ -1,4 +1,4 @@
-package org.strategoxt.imp.runtime.services;
+package org.strategoxt.imp.runtime.services.outline;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.parser.IModelListener;
@@ -11,6 +11,7 @@ import org.spoofax.jsglr.client.imploder.ImploderOriginTermFactory;
 import org.spoofax.terms.TermFactory;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
+import org.strategoxt.imp.runtime.services.StrategoObserver;
 
 /**
  * @author Oskar van Rest
@@ -20,9 +21,18 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 	private final static String OUTLINE_STRATEGY = "outline-strategy";
 	private EditorState editorState;
 	private ImploderOriginTermFactory factory = new ImploderOriginTermFactory(new TermFactory());
+	private StrategoObserver observer;
 
 	public SpoofaxOutlinePage(EditorState editorState) {
 		this.editorState = editorState;
+		
+		try {
+			observer = editorState.getDescriptor().createService(StrategoObserver.class, editorState.getParseController());
+		}
+		catch (BadDescriptorException e) {
+			e.printStackTrace();
+		}
+		
 		editorState.getEditor().addModelListener(this);
 	}
 	
@@ -35,7 +45,8 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 	public void createControl(Composite parent) {
 		super.createControl(parent);
 		getTreeViewer().setContentProvider(new SpoofaxOutlineContentProvider());
-		getTreeViewer().setLabelProvider(new StrategoLabelProvider());
+		String pluginPath = editorState.getDescriptor().getBasePath().toPortableString();
+		getTreeViewer().setLabelProvider(new SpoofaxOutlineLabelProvider(pluginPath));
 		
 		if (editorState.getCurrentAst() != null) {
 			update();
@@ -51,14 +62,6 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 	}
 	
 	public void update() {		
-		StrategoObserver observer = null;
-		try {
-			observer = editorState.getDescriptor().createService(StrategoObserver.class, editorState.getParseController());
-		}
-		catch (BadDescriptorException e) {
-			e.printStackTrace();
-		}
-		
 		observer.getLock().lock();
 		try {
 			final IStrategoTerm result = observer.invokeSilent(OUTLINE_STRATEGY, editorState.getCurrentAst());
