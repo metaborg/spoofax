@@ -374,22 +374,22 @@ rules
 end;
 
 if not(<file-exists> "trans/outline.str") then
-  <output-text-file(|["outline"], "outline.str")>
+  <output-text-file(|["trans"], "outline.str")>
   <(GenerateMinimal
   <
-!"module outline
+!${module outline
 
 imports
-  include/Entity
+  include/{sdf-name}
   lib/outline-library.generated
 
 rules
-"
+}
   +
-!"module outline
+!${module outline
 
 imports
-  include/Entity
+  include/{sdf-name}
   lib/outline-library.generated
 
 rules
@@ -399,5 +399,5 @@ rules
   get-label: Module(name, _) -> name
   get-label: Entity(name, _) -> name
   get-label: Property(name, _) -> name
-")>
+})>
 end
