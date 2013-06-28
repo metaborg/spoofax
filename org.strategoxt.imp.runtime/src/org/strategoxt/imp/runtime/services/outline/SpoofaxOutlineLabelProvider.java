@@ -30,8 +30,6 @@ public class SpoofaxOutlineLabelProvider extends LabelProvider {
 			return new Image(Display.getDefault() , pluginPath + iconPath.stringValue());
 		}
 		
-		System.out.println("hello");
-		
 		return null;
 	}
 }
