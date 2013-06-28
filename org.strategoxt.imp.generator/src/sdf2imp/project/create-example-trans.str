@@ -384,6 +384,8 @@ imports
   lib/outline-library.generated
 
 rules
+
+  outline-strategy = fail
 }
   +
 !${module outline
@@ -394,10 +396,10 @@ imports
 
 rules
 
-  outline-strategy = custom-label-outline(get-label)
+  outline-strategy = custom-label-outline(to-outline-label)
 
-  get-label: Module(name, _) -> name
-  get-label: Entity(name, _) -> name
-  get-label: Property(name, _) -> name
+  to-outline-label: Module(name, _) -> name
+  to-outline-label: Entity(name, _) -> name
+  to-outline-label: Property(name, _) -> name
 })>
 end
