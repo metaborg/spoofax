@@ -384,6 +384,15 @@ imports
   lib/outline-library.generated
 
 rules
+"
+  +
+!"module outline
+
+imports
+  include/Entity
+  lib/outline-library.generated
+
+rules
 
   outline-strategy = custom-label-outline(get-label)
 
