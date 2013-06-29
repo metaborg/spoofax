@@ -95,6 +95,10 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
     	super.selectionChanged(event);
     	
     	TreeSelection treeSelection = ((TreeSelection) event.getSelection());
+    	if (treeSelection.isEmpty()) {
+    		return;
+    	}
+
     	IStrategoTerm firstElem = (IStrategoTerm) treeSelection.getFirstElement();
     	IStrategoTerm origin = OriginAttachment.getOrigin(firstElem.getSubterm(0));
     	
@@ -104,7 +108,6 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
         	
     		TextSelection textSelection = new TextSelection(startOffset, endOffset - startOffset);
     		editorState.getEditor().getSelectionProvider().setSelection(textSelection);
-    		
     	}
     }
 }
