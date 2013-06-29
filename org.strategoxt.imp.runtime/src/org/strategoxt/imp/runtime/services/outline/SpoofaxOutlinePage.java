@@ -3,12 +3,17 @@ package org.strategoxt.imp.runtime.services.outline;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
+import org.eclipse.jface.text.TextSelection;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.views.contentoutline.ContentOutlinePage;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.jsglr.client.imploder.ImploderOriginTermFactory;
 import org.spoofax.terms.TermFactory;
+import org.spoofax.terms.attachments.OriginAttachment;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
@@ -84,4 +89,22 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 			observer.getLock().unlock();
 		}
 	}
+	
+    @Override
+	public void selectionChanged(SelectionChangedEvent event) {
+    	super.selectionChanged(event);
+    	
+    	TreeSelection treeSelection = ((TreeSelection) event.getSelection());
+    	IStrategoTerm firstElem = (IStrategoTerm) treeSelection.getFirstElement();
+    	IStrategoTerm origin = OriginAttachment.getOrigin(firstElem.getSubterm(0));
+    	
+    	if (origin != null) {
+    		int startOffset = (ImploderAttachment.getLeftToken(origin).getStartOffset());
+    		int endOffset = (ImploderAttachment.getRightToken(origin).getEndOffset()) + 1;
+        	
+    		TextSelection textSelection = new TextSelection(startOffset, endOffset - startOffset);
+    		editorState.getEditor().getSelectionProvider().setSelection(textSelection);
+    		
+    	}
+    }
 }
