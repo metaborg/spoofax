@@ -228,7 +228,7 @@ rules // Single finle analysis
     (ast, path, project-path) -> (ast', error*, warning*, note*)
     with
       editor-init;
-      <debug(!\"Analyzing file: \")> path;
+      <analysis-default-debug(!\"Analyzing file: \")> path;
       (ast', evaluated-task*, unevaluated-task*, (analysis-error*, analysis-warning*, analysis-note*)) := <desugar-before; analyze-one(|language, path, project-path); desugar-after> ast;
       (error*, warning*, note*) := <analysis-message-collect(pp-message|analysis-error*, analysis-warning*, analysis-note*)> ast';
       partition* := <analysis-changed-partitions> evaluated-task*;
@@ -236,8 +236,8 @@ rules // Single finle analysis
       	partition := $[[project-path]/[path]];
       	<remove-all(?partition <+ ?path); analysis-message-update-partitions-queue> partition*
     	end;
-      <debug> $[[<length> evaluated-task*] task evaluated, [<length> unevaluated-task*] task unevaluated.];
-      <map(task-debug-info(|<id>); debug(!\"Unevaluated: \"))> unevaluated-task* 
+      <analysis-default-debug> $[[<length> evaluated-task*] task evaluated, [<length> unevaluated-task*] task unevaluated.];
+      <map(task-debug-info(|<id>); analysis-default-debug(!\"Unevaluated: \"))> unevaluated-task* 
       // TODO: Update markers for partitions that have had a task executed.
       
 rules // Multi-file analysis
@@ -252,7 +252,7 @@ rules // Multi-file analysis
   analysis-multiple-default(parse, desugar-before, desugar-after, pp-message|language, project-path):
     path* -> (result'*, evaluated-task*, unevaluated-task*)
     with
-    	debug(!\"Analyzing files: \");
+    	analysis-default-debug(!\"Analyzing files: \");
       analysis-multiple-default-work-units; set-total-work-units;
       measure-time(
 	      measure-time(
@@ -270,8 +270,8 @@ rules // Multi-file analysis
 	      	, id | \"analysis-multiple-task-commit\"
 	      )
 	    , id | \"analysis-multiple-total\");
-      <debug> $[[<length> evaluated-task*] task evaluated, [<length> unevaluated-task*] task unevaluated.];
-      <map(task-debug-info(|<id>); debug(!\"Unevaluated: \"))> unevaluated-task*
+      <analysis-default-debug> $[[<length> evaluated-task*] task evaluated, [<length> unevaluated-task*] task unevaluated.];
+      <map(task-debug-info(|<id>); analysis-default-debug(!\"Unevaluated: \"))> unevaluated-task*
       // TODO: Update markers for partitions that have had a task executed but were not analyzed.
 
   analysis-update-editor(desugar-after, pp-message):
@@ -305,7 +305,7 @@ rules // Message collection and updating.
   	queue-strategy(|\"analysis-message-update-partitions\", \"Updating messages\")
   
   analysis-message-update-partitions:
-  	partition* -> <map(analysis-message-update-partition)>
+  	partition* -> <filter(not(is-test-file); analysis-message-update-partition)>
   	
 	analysis-message-update-partition:
 		partition -> <analyze-get-messages; set-only-markers(|partition)>
@@ -319,7 +319,14 @@ rules // On-save handler
   		index-commit;
   		task-setup(|project-path);
   		task-persist
-		
+
+rules // Debugging
+	
+	analysis-default-debug(msg) = try(analysis-default-debug-interface(msg))
+	analysis-default-debug = try(analysis-default-debug-interface)
+	analysis-default-debug-interface(msg) = fail
+	analysis-default-debug-interface = fail
+	
 "
 
 	create-analysis-multiple = 
@@ -1512,9 +1519,12 @@ rules // generic analysis of imports
   <+ ns           := ins
   where
     from-uri := <nabl-scope-uri(|lang, uri*, ns)> from 
-  ; into-uri := <nabl-scope-uri(|lang, uri*, ns)> into 
-  ; Result(import-calc)    := <new-task(|partition, <dependent-tasks> from-uri)> ImportCalc(into-uri)
-  ; Result(import-closure) := <new-task(|partition, [import-calc])> ImportClosure(into-uri)
+  ; into-uri := <nabl-scope-uri(|lang, uri*, ns)> into
+    // HACK: Don't add dependencies directly so that the initial dependencies for both tasks are set to [].
+  ; Result(import-calc)    := <new-task(|partition, [])> ImportCalc(into-uri)
+  ; <dependent-tasks; map(task-add-dependency(|import-calc))> from-uri
+  ; Result(import-closure) := <new-task(|partition, [])> ImportClosure(into-uri)
+  ; <task-add-dependency(|import-closure)> import-calc
         
   nabl-scope-uri(|lang, uri*, ns):
     Current() -> <lookup-uri(|lang, ns)> uri*
@@ -2804,13 +2814,13 @@ signature
 rules
 	
 	task-error-message(|message):
-		term -> Error(<origin-location-offset <+ !message; debug(!\"Could not find origin information, message will appear at the first line: \")>, term, message)
+		term -> Error(<origin-location-offset <+ !message>, term, message)
 		
 	task-warning-message(|message):
-    term -> Warning(<origin-location-offset <+ !message; debug(!\"Could not find origin information, message will appear at the first line: \")>, term, message)
+    term -> Warning(<origin-location-offset <+ !message>, term, message)
     
 	task-note-message(|message):
-    term -> Note(<origin-location-offset <+ !message; debug(!\"Could not find origin information, message will appear at the first line: \")>, term, message)
+    term -> Note(<origin-location-offset <+ !message>, term, message)
 
 
 	task-message:
