@@ -234,7 +234,7 @@ rules // Single finle analysis
       partition* := <analysis-changed-partitions> evaluated-task*;
       if <not(is-test-file)> path then
       	partition := $[[project-path]/[path]];
-      	<remove-all(?partition <+ ?path); analysis-message-update-partitions-queue> partition*
+      	<remove-all(?partition <+ ?path); analysis-message-update-partitions-queue(|language, project-path)> partition*
     	end;
       <analysis-default-debug> $[[<length> evaluated-task*] task evaluated, [<length> unevaluated-task*] task unevaluated.];
       <map(task-debug-info(|<id>); analysis-default-debug(!\"Unevaluated: \"))> unevaluated-task* 
@@ -301,14 +301,17 @@ rules // Message collection and updating.
       warning* := <collect-all(constraint-warning, conc)> ast;
       note*    := <collect-all(constraint-note, conc)> ast
   
-  analysis-message-update-partitions-queue =
-  	queue-strategy(|\"analysis-message-update-partitions\", \"Updating messages\")
+  analysis-message-update-partitions-queue(|language, project-path):
+  	partition* -> <queue-strategy(|\"analysis-message-update-partitions\", \"Updating messages\")> (partition*, language, project-path)
   
   analysis-message-update-partitions:
-  	partition* -> <filter(not(is-test-file); analysis-message-update-partition)>
+  	(partition*, language, project-path) -> <filter(not(is-test-file); analysis-message-update-partition)> partition*
+  	with
+    	task-setup(|project-path);
+      index-setup(|language, [project-path], \".\")
   	
 	analysis-message-update-partition:
-		partition -> <analyze-get-messages; set-only-markers(|partition)>
+		partition -> <analyze-get-messages; set-only-markers(|partition)> partition
       
 rules // On-save handler
 	
