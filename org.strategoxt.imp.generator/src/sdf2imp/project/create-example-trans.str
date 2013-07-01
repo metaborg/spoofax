@@ -212,15 +212,6 @@ rules
 		Module(x @ "example", _) -> (x, $[This is just an example program in the "entities" language 
 		                                  (this note is defined in trans/check.str)])
 
-	constraint-error:
-		node -> (node, "Unresolved reference.")
-		where
-			nabl-is-unresolved
-
-	constraint-error:
-		node -> (node, "Duplicate definition.")
-		where
-			nabl-get-duplicate-definitions
 })>
 end /*;
 

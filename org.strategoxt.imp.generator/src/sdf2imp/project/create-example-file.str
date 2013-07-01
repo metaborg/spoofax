@@ -57,20 +57,20 @@ test Simple entity [[
 
 test Resolve type fails [[
   entity User {
-    name  : Strin
-    other : Use
+    name  : [[Strin]]
+    other : [[Use]]
   }
 ]] 2 errors
 
 test Duplicate entity fails [[
-  entity User {}
-  entity User {}
+  [[entity User {}]]
+  [[entity User {}]]
 ]] 2 errors
 
 test Duplicate property fails [[
   entity User {
-  	name : String
-  	name : String
+  	[[name : String]]
+  	[[name : String]]
   }
 ]] 2 errors
 
