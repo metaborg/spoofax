@@ -34,7 +34,7 @@ strategies
       <descriptor-name> "-Folding.generated"
     , 
       heuristic-folding-productions;
-      map(create-folding-or-outliner-rule);
+      map(create-folding-rule);
       !|[
         module <descriptor-name> "-Folding.generated"
         
@@ -81,7 +81,7 @@ strategies
       )
     )
   
-  create-folding-or-outliner-rule =
+  create-folding-rule =
     where(sort := <heuristic-asfix-sort-name>);
   
     if is-list-production then

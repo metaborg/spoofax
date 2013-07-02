@@ -19,7 +19,6 @@ overlays
 
   tname_ASTNODE      = tname |[ org.strategoxt.imp.runtime.parser.ast.AstNode ]|
   tname_VISITOR      = tname |[ org.strategoxt.imp.runtime.parser.ast.AbstractVisitor ]|
-  tname_OUTLINERBASE = tname |[ org.strategoxt.imp.runtime.services.OutlinerBase ]|
   tname_FOLDINGBASE  = tname |[ org.strategoxt.imp.runtime.services.FoldingBase ]|
   tname_ITOKEN       = tname |[ lpg.runtime.IToken ]|
 
@@ -127,7 +126,7 @@ strategies
     
     create-syntax-descriptor;
     create-folding-descriptor;
-    create-outliner-descriptor; create-outline-library;
+    create-outline-library;
     create-colorer-descriptor;
     create-builders-descriptor;
     create-refactorings-descriptor;
@@ -174,8 +173,7 @@ strategies
     not(
       <is-older-than> (
         <guarantee-extension(|"rtg")> <InputFile>
-      , [ $[editor/[<descriptor-name> "-Outliner.generated.esv"]]
-        , $[editor/[<descriptor-name> "-Folding.generated.esv"]]
+      , [ $[editor/[<descriptor-name> "-Folding.generated.esv"]]
         , $[editor/[<descriptor-name> "-Completions.generated.esv"]]
         ]
       )
