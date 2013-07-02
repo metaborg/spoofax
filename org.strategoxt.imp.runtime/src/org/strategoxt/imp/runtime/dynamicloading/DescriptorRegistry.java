@@ -105,7 +105,6 @@ public class DescriptorRegistry {
 			List<IFileEditorMapping> mappings = getMappings();
 			
 			for (String extension : language.getFilenameExtensions()) {
-				System.out.println("add mapping for " + extension);
 				addMapping(mappings, extension, language);
 			}
 			
