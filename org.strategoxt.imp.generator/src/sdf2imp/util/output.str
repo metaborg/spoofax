@@ -26,7 +26,7 @@ strategies
     )
   
   /**
-   * Output an initial descriptor file (e.g., EditorService-Colorer.esv).
+   * Output an initial descriptor file (e.g., EditorService-Outliner.esv).
    * These files are never overwritten and only generated if imported.
    */
   output-initial-descriptor-file(name, new-contents) =
@@ -37,7 +37,7 @@ strategies
     )
 
   /**
-   * Output an derived descriptor file (e.g., EditorService-Colorer.generated.esv).
+   * Output an derived descriptor file (e.g., EditorService-Outliner.generated.esv).
    * These files are always overwritten, but only if imported.
    */
   output-derived-descriptor-file(name, new-contents) =

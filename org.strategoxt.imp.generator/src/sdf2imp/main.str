@@ -127,7 +127,7 @@ strategies
     
     create-syntax-descriptor;
     create-folding-descriptor;
-    create-outline-library;
+    create-outliner-descriptor; create-outline-library;
     create-colorer-descriptor;
     create-builders-descriptor;
     create-refactorings-descriptor;
@@ -174,7 +174,8 @@ strategies
     not(
       <is-older-than> (
         <guarantee-extension(|"rtg")> <InputFile>
-      , [ $[editor/[<descriptor-name> "-Folding.generated.esv"]]
+      , [ $[editor/[<descriptor-name> "-Outliner.generated.esv"]]
+        , $[editor/[<descriptor-name> "-Folding.generated.esv"]]
         , $[editor/[<descriptor-name> "-Completions.generated.esv"]]
         ]
       )

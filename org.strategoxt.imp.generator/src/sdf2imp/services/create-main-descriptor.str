@@ -35,6 +35,7 @@ strategies
         <descriptor-name> "-Colorer"
         <descriptor-name> "-Completions"
         <descriptor-name> "-Folding"
+        <descriptor-name> "-Outliner"
         <descriptor-name> "-References"
         <descriptor-name> "-Syntax"
       
