@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.List;
 
-import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.runtime.RuntimePlugin;
@@ -18,6 +17,7 @@ import org.eclipse.ui.internal.UIPlugin;
 import org.eclipse.ui.internal.registry.EditorDescriptor;
 import org.eclipse.ui.internal.registry.EditorRegistry;
 import org.eclipse.ui.internal.registry.FileEditorMapping;
+import org.strategoxt.imp.runtime.SpoofaxEditor;
 
 /**
  * Registers dynamically loaded descriptors and languages.
@@ -29,7 +29,7 @@ public class DescriptorRegistry {
 	
 	private final EditorRegistry editorRegistry;
 	
-	private final EditorDescriptor universalEditor;
+	private final EditorDescriptor spoofaxEditor;
 	
 	/**
 	 * A complete list of all dynamically loaded languages,
@@ -39,12 +39,12 @@ public class DescriptorRegistry {
 	
 	public DescriptorRegistry() {
 		editorRegistry = (EditorRegistry) PlatformUI.getWorkbench().getEditorRegistry();
-		universalEditor = getUniversalEditor(editorRegistry);
+		spoofaxEditor = getSpoofaxEditor(editorRegistry);
 	}
 	
-	private static EditorDescriptor getUniversalEditor(EditorRegistry editorRegistry) {
+	public static EditorDescriptor getSpoofaxEditor(EditorRegistry editorRegistry) {
 		for (IEditorDescriptor editor : editorRegistry.getSortedEditorsFromPlugins()) {
-			if (editor.getId().equals(UniversalEditor.EDITOR_ID))
+			if (editor.getId().equals(SpoofaxEditor.EDITOR_ID))
 				return (EditorDescriptor) editor;
 		}
 
@@ -105,6 +105,7 @@ public class DescriptorRegistry {
 			List<IFileEditorMapping> mappings = getMappings();
 			
 			for (String extension : language.getFilenameExtensions()) {
+				System.out.println("add mapping for " + extension);
 				addMapping(mappings, extension, language);
 			}
 			
@@ -121,6 +122,7 @@ public class DescriptorRegistry {
 		
 		private void addMapping(List<IFileEditorMapping> mappings, String extension, Language language) {
 			FileEditorMapping mapping = getMapping(mappings, extension);
+			
 			boolean existing = mapping != null;
 			if (!existing)
 	            mapping = new DynamicEditorMapping(language, extension); // TODO: create something like a IMPFileEditorMapping, linking to our favorite image 
@@ -133,16 +135,18 @@ public class DescriptorRegistry {
 	        	mapping.setDefaultEditor(universalEditor);
 	        } else {*/
 	        	if (!isUniversalEditorIncluded(mapping))
-	        		mapping.addEditor(universalEditor);
+	        		mapping.addEditor(spoofaxEditor);
 	        //}
 	        
 	        if (!existing)
 	        	mappings.add(mapping);
+	        
+	        replaceUniversalEditorWithSpoofaxEditor(mapping);
 		}
 		
 		private boolean isUniversalEditorIncluded(IFileEditorMapping mapping) {
 			for (IEditorDescriptor editor : mapping.getEditors()) {
-				if (editor == universalEditor) return true;
+				if (editor == spoofaxEditor) return true;
 			}
 			return false;
     	}
@@ -176,5 +180,13 @@ public class DescriptorRegistry {
 			return imageDescriptor;
 		}
 		
+	}
+	
+	private void replaceUniversalEditorWithSpoofaxEditor(FileEditorMapping mapping) {
+		List<IEditorDescriptor> descriptors = new ArrayList<IEditorDescriptor>();
+		
+		descriptors.add(spoofaxEditor);
+		mapping.setEditorsList(descriptors);
+		mapping.setDefaultEditor(spoofaxEditor);
 	}
 }
