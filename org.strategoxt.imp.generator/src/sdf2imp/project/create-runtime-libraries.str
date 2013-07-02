@@ -2025,7 +2025,8 @@ imports
   runtime/nbl/tasks
 	runtime/nbl/entries
 	runtime/task/core
-      
+  runtime/task/utils
+  
 rules // Reference resolution
   
   nabl-is-reference =
@@ -2039,12 +2040,11 @@ rules // Reference resolution
     get-annos;
     nabl-has-reference
   
-  // TODO: does not go through annotations?
 	nabl-collect-all-resolved-defs:
 		ast -> def*
 		with
 			if ast' := <insert-results> ast then
-				def* := <collect-all(?Def(_))> ast'
+				def* := <collect-all-annos(?Def(_), conc)> ast'
 			else
 				def* := []
 			end
