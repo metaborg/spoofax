@@ -1,5 +1,7 @@
 package org.strategoxt.imp.runtime.services.outline;
 
+import java.util.LinkedList;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.imp.parser.IModelListener;
@@ -82,7 +84,6 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 			outline = observer.invokeSilent(OUTLINE_STRATEGY, editorState.getCurrentAst(), SourceAttachment.getFile(editorState.getCurrentAst()));
 			
 			if (outline == null) { // outline-strategy undefined or failed
-				System.out.println("outline failed");
 				return;
 			}
 			
@@ -108,17 +109,17 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
     	}
     	    	
     	if (debounceSelectionChanged) {
-    		debounceSelectionChanged = false;
     		return;
     	}
-    	else {
-    		if (event.getSource() == getTreeViewer()) {
-        		outlineSelectionToTextSelection();
-        	}
-        	else {
-        		textSelectionToOutlineSelection();
-        	}
-    	}
+    	
+    	debounceSelectionChanged = true;
+    	if (event.getSource() == getTreeViewer()) {
+        	outlineSelectionToTextSelection();
+       	}
+       	else {
+       		textSelectionToOutlineSelection();
+       	}
+    	debounceSelectionChanged = false;
     }
     
     public void outlineSelectionToTextSelection() {
@@ -138,12 +139,7 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
     		int endOffset = (ImploderAttachment.getRightToken(origin).getEndOffset()) + 1;
         	
     		TextSelection newSelection = new TextSelection(startOffset, endOffset - startOffset);
-    		ISelectionProvider selectionProvider = editorState.getEditor().getSelectionProvider();
-    		TextSelection currentSelection = (TextSelection) selectionProvider.getSelection();
-    		if (!(newSelection.getOffset()==currentSelection.getOffset() && newSelection.getLength()==currentSelection.getLength())) {
-	    		debounceSelectionChanged = true;
-	    		selectionProvider.setSelection(newSelection);
-    		}
+    		editorState.getEditor().getSelectionProvider().setSelection(newSelection);
     	}
     }
     
@@ -168,16 +164,24 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
     	if (path == null) {
     		return;
     	}
-    	
-		IStrategoTerm[] outlineNodes = StrategoTermPath.getTermAtPath(context, outline, path).getAllSubterms();
-		
-//		System.out.println(outline.getSubterm(1));
-//		Object[] objectPath = {outline.getSubterm(1)};
+
+    	TreePath treePath = termPathToTreePath(path);
 //		TreeSelection selection = new TreeSelection(new TreePath(objectPath));
 //		setSelection(selection);
     }
     
-    @Override
+    private TreePath termPathToTreePath(IStrategoList path) {
+    	return new TreePath(termPathToTreePath(path, new LinkedList<Object>()).toArray());
+	}
+    
+    private LinkedList<Object> termPathToTreePath(IStrategoList path, LinkedList<Object> result) {
+    	
+    	
+		return result;
+    	    	
+    }
+
+	@Override
 	public void setFocus() {
     	super.setFocus();
     	outlineSelectionToTextSelection();
