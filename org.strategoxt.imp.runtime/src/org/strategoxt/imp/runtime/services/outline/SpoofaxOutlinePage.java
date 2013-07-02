@@ -20,6 +20,7 @@ import org.spoofax.terms.attachments.OriginAttachment;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
+import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 import org.strategoxt.lang.Context;
 
@@ -77,7 +78,7 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 	public void update() {
 		observer.getLock().lock();
 		try {
-			outline = observer.invokeSilent(OUTLINE_STRATEGY, editorState.getCurrentAst());
+			outline = observer.invokeSilent(OUTLINE_STRATEGY, editorState.getCurrentAst(), SourceAttachment.getFile(editorState.getCurrentAst()));
 			
 			if (outline == null) { // outline-strategy undefined or failed
 				System.out.println("outline failed");
