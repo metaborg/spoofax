@@ -14,6 +14,7 @@ import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.views.contentoutline.ContentOutlinePage;
+import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
@@ -165,20 +166,43 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
     		return;
     	}
 
-    	TreePath treePath = termPathToTreePath(path);
-//		TreeSelection selection = new TreeSelection(new TreePath(objectPath));
-//		setSelection(selection);
+    	TreePath[] treePaths = termPathToTreePaths(path);
+		TreeSelection selection = new TreeSelection(treePaths);
+		setSelection(selection);
     }
     
-    private TreePath termPathToTreePath(IStrategoList path) {
-    	return new TreePath(termPathToTreePath(path, new LinkedList<Object>()).toArray());
+    private TreePath[] termPathToTreePaths(IStrategoList path) {
+    	return termPathToTreePaths(path, outline, new LinkedList<IStrategoTerm>());
 	}
     
-    private LinkedList<Object> termPathToTreePath(IStrategoList path, LinkedList<Object> result) {
+    private TreePath[] termPathToTreePaths(IStrategoList path, IStrategoTerm current, LinkedList<IStrategoTerm> segments) {
+
+    	if (current.getTermType()==IStrategoTerm.APPL) {
+    		segments.add(current);
+		}
     	
+    	if (path.isEmpty()) {
+    		if (current.getTermType()==IStrategoTerm.APPL) {
+    			TreePath[] result = new TreePath[1];
+    			result[0] = new TreePath(segments.toArray());
+    			return result;
+    		}
+    		else {
+    			IStrategoTerm[] leaves = current.getAllSubterms();
+    			TreePath[] result = new TreePath[leaves.length];
+    			for (int i=0; i<leaves.length; i++) {
+    				segments.add(leaves[i]);
+    				result[i] = new TreePath(segments.toArray());
+    				segments.removeLast();
+    			}
+    			return result;
+    		}
+    	}
+
+		current = current.getSubterm(((IStrategoInt) path.head()).intValue());
+		path = path.tail();
     	
-		return result;
-    	    	
+		return termPathToTreePaths(path, current, segments);
     }
 
 	@Override
