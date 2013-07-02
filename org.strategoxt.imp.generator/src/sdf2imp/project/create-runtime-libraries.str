@@ -58,6 +58,7 @@ rules // Analysis
 	    		index-setup(|language, [project-path], partition);
 			    index-start-collection(|partition);
 	    		task-setup(|project-path);
+	    		task-recover;
 	    		task-start-collection(|partition)
 	      	, id | \"analyze-collect-setup\"
 	      ); measure-time(
@@ -1405,7 +1406,7 @@ rules // generic analysis of uses
       end;
       
       concatted     := <new-task(|partition)> Concat([defsTask, namedDefsTask|<conc> (wildcardDefsTask, subtasks)]);
-      filtered      := <nabl-use-propconstraint(|partition, prop*)> concatted;
+      filtered      := <nabl-use-propconstraint(|partition)> (concatted, prop*);
       disambiguated := <nabl-use-disambiguate(disambiguate|partition, prop*, ns, name)> filtered
           	
 	nabl-use-subtask-uri(|partition) = try(is-list; !Choice(<id>); new-task(|partition))
@@ -1426,14 +1427,14 @@ rules // generic analysis of uses
 			subtask*   := <nabl-use-subtasks(id, id|partition, ns, <nabl-fix-name> name, prop*, One())> ctx-result; // TODO: only disambiguate if required.
 			choice     := <new-task(|partition)> Choice(subtask*)
 			
-	nabl-use-propconstraint(|partition, prop*):
-		task -> result
+	nabl-use-propconstraint(|partition):
+		(task, [p@Prop(kind, expected, deps)|rest]) -> rec
 		where
-			if not([] := prop*) then
-				result := <new-task(|partition)> PropConstraint(prop*, task)
-			else
-				result := task
-			end	
+			pc        := <new-task(|partition, <dependent-tasks> (task, deps, p))> PropConstraint(kind, expected, task);
+			rec       := <nabl-use-propconstraint(|partition)> (pc, rest)
+			
+	nabl-use-propconstraint(|partition):
+		(task, []) -> task
 
 	nabl-use-disambiguate(disambiguate|partition, prop*, namespace, name):
 		task -> result
@@ -1491,7 +1492,7 @@ rules // completion
       end;
       
       concatted     := <new-task(|partition)> Concat([defsTask]);
-      filtered      := <nabl-use-propconstraint(|partition, prop*)> concatted
+      filtered      := <nabl-use-propconstraint(|partition)> (concatted, prop*)
     
 rules // generic analysis of imports
   
@@ -2082,8 +2083,7 @@ signature
     ResolveWildcardImports : Scope * Namespace                         -> Instruction
     ImportCalc             : URI                                       -> Instruction
     ImportClosure          : URI                                       -> Instruction
-    PropConstraint         : List(Prop) * List(Result)                 -> Instruction
-    PropCalc               : Property * Term                           -> Instruction
+    PropConstraint         : Kind * Expected * Result                  -> Instruction
         
     ResolveAllDefs         : Scope * Namespace                  -> Instruction
         
@@ -2207,7 +2207,7 @@ rules // Import calculation
 				import-closure-id := <task-instruction-id> ImportClosure(uri);
 				switch id
 					case task-has-failed                                  : <task-add-dependency-nocycle(|nr)> import-closure-id; ![]
-					case task-get-result; Hd => h                             : <task-add-dependency-nocycle(|nr)> import-closure-id; <hash-multimap-copy(|h)> hashtable; ![]
+					case task-get-result; Hd => h                         : <task-add-dependency-nocycle(|nr)> import-closure-id; <hash-multimap-copy(|h)> hashtable; ![]
 					case not(task-becomes-cyclic(|nr, import-closure-id)) : ![<id>]
 					otherwise                                             : ![]
 				end => result
@@ -2215,42 +2215,18 @@ rules // Import calculation
 				result := []
 			end
 
-rules // Property constraints
-	  
-  perform-task(|nr):
-  	PropConstraint(prop*, res*) -> result
-  	where
-  		filtered := <filter(nabl-resolve-constraint(|prop*))> res*;
+rules // Property constraint
+	
+	perform-task(|nr):
+		PropConstraint(kind, expected, definition) -> result
+		where
+    	uri    := <nabl-uri> definition;
+      value  := <nabl-get-property(|kind)> uri;
+      value' := <insert-results-or-create-dependency> value;
       switch id
       	case task-collect-dependencies => d : !d
-      	otherwise                           : id
+      	otherwise                           : <nabl-property-eq(|kind) <+ eq> (expected, value'); !definition
       end => result
-      
-  task-is-combinator = ?PropConstraint(_, _)
-  		
-  nabl-resolve-constraint(|prop*):
-    entry -> entry'
-    where
-      filtered := <filter(nabl-resolve-constraint-one(|entry))> prop*;
-      switch id
-      	case ?[]                            : fail
-      	case task-collect-dependencies => d : !d
-      	otherwise                           : !entry
-      end => entry'
-      
-  // TODO: check dependencies (3rd subterm) as well.
-  nabl-resolve-constraint-one(|entry):
-    Prop(type, expectedValue, _) -> entry'
-    where
-    	uri   := <nabl-uri> entry;
-      value := <nabl-get-property(|type)> uri;
-      if value' := <insert-results> value then
-        expectedValue' := <insert-results> expectedValue;
-        <nabl-property-eq(|type) <+ eq> (expectedValue', value');
-        entry' := entry
-      else
-        entry' := <task-create-dependencies> value
-      end
 
 rules // Utility
 	
@@ -2676,6 +2652,7 @@ rules // API
 	task-invalidate-task-reads(|changedRead*)            = task-api-invalidate-task-reads(|changedRead*)
 	task-partitions-of(|taskIDOrTaskID*)                 = task-api-partitions-of(|taskIDOrTaskID*)
 	task-exists(|instruction)                            = task-api-exists(|instruction)
+	task-recover                                         = task-api-recover
 	task-reset                                           = task-api-reset
 	task-persist                                         = task-api-persist
 	task-unload(|project-path)                           = task-api-unload(|project-path)
@@ -2738,6 +2715,7 @@ rules /** @internal API externals */
 	task-api-evaluate(insert, perform|) = prim(\"task_api_evaluate\", insert, perform|)
 	task-api-exists(|instruction) = prim(\"task_api_exists\", instruction)
 	task-api-get-dependencies(|taskID) = prim(\"task_api_get_dependencies\", taskID)
+	task-api-recover = prim(\"task_api_recover\")
 	task-api-reset = prim(\"task_api_reset\")
 	task-api-persist = prim(\"task_api_persist\")
 	task-api-task-id(|instruction) = prim(\"task_api_task_id\", instruction)
