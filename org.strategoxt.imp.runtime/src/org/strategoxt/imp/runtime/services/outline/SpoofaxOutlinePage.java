@@ -5,6 +5,7 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.jface.text.TextSelection;
+import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeSelection;
@@ -136,9 +137,13 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
     		int startOffset = (ImploderAttachment.getLeftToken(origin).getStartOffset());
     		int endOffset = (ImploderAttachment.getRightToken(origin).getEndOffset()) + 1;
         	
-    		TextSelection textSelection = new TextSelection(startOffset, endOffset - startOffset);
-    		debounceSelectionChanged = true;
-    		editorState.getEditor().getSelectionProvider().setSelection(textSelection);
+    		TextSelection newSelection = new TextSelection(startOffset, endOffset - startOffset);
+    		ISelectionProvider selectionProvider = editorState.getEditor().getSelectionProvider();
+    		TextSelection currentSelection = (TextSelection) selectionProvider.getSelection();
+    		if (!(newSelection.getOffset()==currentSelection.getOffset() && newSelection.getLength()==currentSelection.getLength())) {
+	    		debounceSelectionChanged = true;
+	    		selectionProvider.setSelection(newSelection);
+    		}
     	}
     }
     
