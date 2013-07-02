@@ -4,6 +4,9 @@ import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
+/**
+ * @author Oskar van Rest
+ */
 public class SpoofaxOutlineContentProvider implements ITreeContentProvider {
 
 	public void dispose() {
