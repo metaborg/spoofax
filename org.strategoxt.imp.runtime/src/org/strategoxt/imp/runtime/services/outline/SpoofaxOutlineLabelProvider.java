@@ -1,11 +1,16 @@
 package org.strategoxt.imp.runtime.services.outline;
 
 import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.swt.SWTException;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.strategoxt.imp.runtime.Environment;
 
+/**
+ * @author Oskar van Rest
+ */
 public class SpoofaxOutlineLabelProvider extends LabelProvider {
 	
 	private String pluginPath;
@@ -26,8 +31,16 @@ public class SpoofaxOutlineLabelProvider extends LabelProvider {
 		IStrategoString label = (IStrategoString) term.getSubterm(0);
 		
 		if (!label.getAnnotations().isEmpty()) {
-			IStrategoString iconPath = (IStrategoString) label.getAnnotations().getSubterm(0);
-			return new Image(Display.getDefault() , pluginPath + iconPath.stringValue());
+			IStrategoTerm iconPath = label.getAnnotations().getSubterm(0);
+			if (iconPath.getTermType()==IStrategoTerm.STRING) {
+				try {
+					Image image = new Image(Display.getDefault() , pluginPath + ((IStrategoString) iconPath).stringValue());
+					return image;
+				}
+				catch (SWTException e) {
+					Environment.logException("Can't find icon " + pluginPath + ((IStrategoString) iconPath).stringValue());
+				}
+			}
 		}
 		
 		return null;
