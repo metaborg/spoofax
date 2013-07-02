@@ -125,14 +125,17 @@ public class QueueAnalysisService implements INotificationService {
 	}
 
 	private List<FilePartition> getProjectFileSubfiles(File file) {
-		List<FilePartition> fileSubfiles = new ArrayList<FilePartition>();
+		final List<FilePartition> fileSubfiles = new ArrayList<FilePartition>();
 		if (file.isFile()) {
 			if (isIndexedFile(new Path(file.getAbsolutePath()))) {
 				fileSubfiles.add(new FilePartition(file.toURI(), null));
 			}
 		} else {
-			for (File child : file.listFiles()) {
-				fileSubfiles.addAll(getProjectFileSubfiles(child));
+			final File[] files = file.listFiles();
+			if(files != null) {
+				for(File child : file.listFiles()) {
+					fileSubfiles.addAll(getProjectFileSubfiles(child));
+				}
 			}
 		}
 		return fileSubfiles;
