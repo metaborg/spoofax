@@ -3,11 +3,9 @@ package org.strategoxt.imp.runtime.services.outline;
 import java.util.LinkedList;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.jface.text.TextSelection;
-import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeSelection;
@@ -80,6 +78,10 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 	}
 	
 	public void update() {
+		if (editorState.getCurrentAst() == null) {
+			return;
+		}
+		
 		observer.getLock().lock();
 		try {
 			outline = observer.invokeSilent(OUTLINE_STRATEGY, editorState.getCurrentAst(), SourceAttachment.getFile(editorState.getCurrentAst()));
