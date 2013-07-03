@@ -15,6 +15,11 @@ public class SpoofaxEditor extends UniversalEditor {
 	@Override
 	public Object getAdapter(Class adapter) {
 		
+		// when opening the editor for a file with an unknown extension, let IMP handle it.
+		if (getParseController() == null) {
+			return super.getAdapter(adapter);
+		}
+		
 		// for backward compatibility, we only instantiate a SpoofaxOutlinePage if an outline strategy is defined.
 		if (adapter.equals(IContentOutlinePage.class)) {
 			EditorState editorState = EditorState.getEditorFor(getParseController());
