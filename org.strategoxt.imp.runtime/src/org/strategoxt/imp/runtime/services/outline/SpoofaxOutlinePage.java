@@ -86,8 +86,8 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 		try {
 			outline = observer.invokeSilent(OUTLINE_STRATEGY, editorState.getCurrentAst(), SourceAttachment.getFile(editorState.getCurrentAst()));
 			
-			if (outline == null) { // outline-strategy undefined or failed
-				return;
+			if (outline == null) {
+				outline = factory.makeAppl(factory.makeConstructor("Node", 2), factory.makeString(OUTLINE_STRATEGY + " failed"), factory.makeList());
 			}
 			
 			// ensures propagation of origin information
