@@ -78,8 +78,15 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 	}
 	
 	public void update() {
-		if (editorState.getCurrentAst() == null) {
-			return;
+	
+		try {
+			if (editorState.getCurrentAnalyzedAst() == null) {
+				// hack: need to perform an analysis before invoking the outline strategy for the first time, 
+				// or the first analysis will fail (org.spoofax.interpreter.core.UndefinedStrategyException: Definition 'editor-analyze' not found)
+				editorState.getAnalyzedAst(); 
+			}
+		} catch (BadDescriptorException e) {
+			e.printStackTrace();
 		}
 		
 		observer.getLock().lock();
