@@ -63,10 +63,7 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 		getTreeViewer().setContentProvider(new SpoofaxOutlineContentProvider());
 		String pluginPath = editorState.getDescriptor().getBasePath().toPortableString();
 		getTreeViewer().setLabelProvider(new SpoofaxOutlineLabelProvider(pluginPath));
-		
-		if (editorState.getCurrentAst() != null) {
-			update();
-		}
+		update();
 	}
 
 	public AnalysisRequired getAnalysisRequired() {
@@ -78,17 +75,6 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 	}
 	
 	public void update() {
-	
-		try {
-			if (editorState.getCurrentAnalyzedAst() == null) {
-				// hack: need to perform an analysis before invoking the outline strategy for the first time, 
-				// or the first analysis will fail (org.spoofax.interpreter.core.UndefinedStrategyException: Definition 'editor-analyze' not found)
-				editorState.getAnalyzedAst(); 
-			}
-		} catch (BadDescriptorException e) {
-			e.printStackTrace();
-		}
-		
 		observer.getLock().lock();
 		try {
 			outline = observer.invokeSilent(OUTLINE_STRATEGY, editorState.getCurrentAst(), SourceAttachment.getFile(editorState.getCurrentAst()));

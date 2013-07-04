@@ -23,15 +23,21 @@ public class SpoofaxEditor extends UniversalEditor {
 		// for backward compatibility, we only instantiate a SpoofaxOutlinePage if an outline strategy is defined.
 		if (adapter.equals(IContentOutlinePage.class)) {
 			EditorState editorState = EditorState.getEditorFor(getParseController());
-			StrategoObserver observer;
+			StrategoObserver observer = null;
 			try {
 				observer = editorState.getDescriptor().createService(StrategoObserver.class, editorState.getParseController());
+			} catch (BadDescriptorException e) {
+				e.printStackTrace();
+			}
 			
+			observer.getLock().lock();
+			try {
 				if (observer.getRuntime().lookupUncifiedSVar(SpoofaxOutlinePage.OUTLINE_STRATEGY) != null) {
 					return new SpoofaxOutlinePage(EditorState.getEditorFor(getParseController()));
 				}
-			} catch (BadDescriptorException e) {
-				e.printStackTrace();
+			}
+			finally {
+				observer.getLock().unlock();
 			}
 		}
 
