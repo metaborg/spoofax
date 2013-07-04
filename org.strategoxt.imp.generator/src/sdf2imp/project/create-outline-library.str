@@ -26,7 +26,7 @@ rules
   to-outline-node(s):
     term -> Node(label, children)
     where
-      label := <s> term;
+      label := <origin-track-forced(s)> term;
       children := <get-arguments; custom-label-outline(s)> term
   
   
