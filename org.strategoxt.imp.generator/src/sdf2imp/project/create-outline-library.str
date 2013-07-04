@@ -10,6 +10,9 @@ strategies
     <output-text-file(|["lib"], "outline-library.generated.str")>
 "module lib/outline-library.generated
 
+imports
+  editor-common.generated
+  
 rules
   
   /**
@@ -21,7 +24,7 @@ rules
    *   to-outline-label: Module(name, _) -> name
    *   to-outline-label: Entity(name, _) -> name
    */
-  custom-label-outline(s) = collect(to-outline-node(s))
+  custom-label-outline(s) = collect-om(to-outline-node(s), conc)
   
   to-outline-node(s):
     term -> Node(label, children)
