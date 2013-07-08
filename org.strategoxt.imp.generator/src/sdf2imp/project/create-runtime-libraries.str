@@ -2225,7 +2225,8 @@ rules // Property constraint
       value' := <insert-results-or-create-dependency> value;
       switch id
       	case task-collect-dependencies => d : !d
-      	otherwise                           : <nabl-property-eq(|kind) <+ eq> (expected, value'); !definition
+      	otherwise                           : (<nabl-property-eq(|kind) <+ eq> (expected, value'); !definition) <+ 
+                                              (<nabl-property-eq(|kind) <+ eq> (expected, <try-remove-list> value'); !definition)
       end => result
 
 rules // Utility
