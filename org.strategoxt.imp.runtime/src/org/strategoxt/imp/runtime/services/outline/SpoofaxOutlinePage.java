@@ -22,7 +22,6 @@ import org.spoofax.terms.attachments.OriginAttachment;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
-import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 import org.strategoxt.lang.Context;
 
@@ -32,6 +31,8 @@ import org.strategoxt.lang.Context;
 public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelListener {
 
 	public final static String OUTLINE_STRATEGY = "outline-strategy";
+	public final static String OUTLINE_EXPAND_TO_LEVEL = "outline-expand-to-level";
+	private int outline_expand_to_level = 2;
 	private EditorState editorState;
 	private ImploderOriginTermFactory factory = new ImploderOriginTermFactory(new TermFactory());
 	private StrategoObserver observer;
@@ -63,6 +64,18 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 		getTreeViewer().setContentProvider(new SpoofaxOutlineContentProvider());
 		String pluginPath = editorState.getDescriptor().getBasePath().toPortableString();
 		getTreeViewer().setLabelProvider(new SpoofaxOutlineLabelProvider(pluginPath));
+		
+		observer.getLock().lock();
+		try {
+			IStrategoTerm outline_expand_to_level = observer.invokeSilent(OUTLINE_EXPAND_TO_LEVEL, editorState.getCurrentAst(), editorState.getResource().getFullPath().toFile());
+			if (outline_expand_to_level != null) {
+				this.outline_expand_to_level = ((IStrategoInt) outline_expand_to_level).intValue();
+			}
+		}
+		finally {
+			observer.getLock().unlock();
+		}
+		
 		update();
 	}
 
@@ -77,7 +90,7 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 	public void update() {
 		observer.getLock().lock();
 		try {
-			outline = observer.invokeSilent(OUTLINE_STRATEGY, editorState.getCurrentAst(), SourceAttachment.getFile(editorState.getCurrentAst()));
+			outline = observer.invokeSilent(OUTLINE_STRATEGY, editorState.getCurrentAst(), editorState.getResource().getFullPath().toFile());
 			
 			if (outline == null) {
 				outline = factory.makeAppl(factory.makeConstructor("Node", 2), factory.makeString(OUTLINE_STRATEGY + " failed"), factory.makeList());
@@ -89,7 +102,7 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 			Display.getDefault().asyncExec(new Runnable() {
 				public void run() {
 					getTreeViewer().setInput(outline);
-					getTreeViewer().expandToLevel(2);
+					getTreeViewer().expandToLevel(outline_expand_to_level);
 				}
 			});
 		}
