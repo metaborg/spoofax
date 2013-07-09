@@ -28,7 +28,7 @@ rules
   
   /**
    * Similar to simple-node-to-label-outline(s1), but with an additional strategy s2 that rewrites
-   * AST nodes into outline nodes. Strategy s2 gets priority over strategy s1 in case both succeed.
+   * AST nodes to outline nodes. Strategy s2 gets priority over strategy s1 in case both succeed.
    *
    * Example:
    *   outline-strategy = custom-label-outline(to-outline-label, to-outline-node)
