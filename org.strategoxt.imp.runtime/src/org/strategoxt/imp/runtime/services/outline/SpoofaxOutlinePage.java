@@ -180,7 +180,7 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 		}
     	
     	if (path.isEmpty()) {
-    		if (current.getTermType()==IStrategoTerm.APPL) {
+    		if (current.getTermType()==IStrategoTerm.APPL || current.getTermType()==IStrategoTerm.STRING) {
     			TreePath[] result = new TreePath[1];
     			result[0] = new TreePath(segments.toArray());
     			return result;
