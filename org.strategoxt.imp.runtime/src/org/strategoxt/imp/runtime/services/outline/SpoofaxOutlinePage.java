@@ -128,7 +128,6 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
     	IStrategoTerm origin = OriginAttachment.getOrigin(firstElem.getSubterm(0)); // use origin of label
     	if (origin == null) {
     		origin = OriginAttachment.getOrigin(firstElem); // use origin of node
-    		System.out.println("hoi: " + origin);
     	}
     	if (origin == null) {
     		origin = firstElem.getSubterm(0); // assume label is origin
