@@ -16,22 +16,33 @@ imports
 rules
   
   /**
-   * Creates a custom outline given a strategy s that rewrites AST nodes into outline labels.
-   * Only AST nodes for which s succeeds end up in the outline.
+   * Creates an outline given a strategy s1 that rewrites AST nodes to outline labels.
+   * Only AST nodes for which s1 succeed end up in the outline.
    *
-   * Example usage:
+   * Example:
    *   outline-strategy = custom-label-outline(to-outline-label)
-   *   to-outline-label: Module(name, _) -> name
    *   to-outline-label: Entity(name, _) -> name
+   *   to-outline-label: Property(name, _) -> name
    */
-  custom-label-outline(s) = collect-om(to-outline-node(s), conc)
+  simple-node-to-label-outline(s1) = collect-om(to-outline-node(s1, fail), conc)
   
-  to-outline-node(s):
+  /**
+   * Similar to simple-node-to-label-outline(s1), but with an additional strategy s2 that rewrites
+   * AST nodes into outline nodes. Strategy s2 gets priority over strategy s1 in case both succeed.
+   *
+   * Example:
+   *   outline-strategy = custom-label-outline(to-outline-label, to-outline-node)
+   *   to-outline-label: Entity(name, _) -> name
+   *   to-outline-node: Property(name, _) -> Node(name, [Node(\"dummy\", [])])
+   */
+  custom-node-to-label-outline(s1, s2) = collect-om(origin-track-forced(s2) <+ to-outline-node(s1, s2), conc)
+  
+  to-outline-node(s1, s2):
     term -> Node(label, children)
     where
-      label := <origin-track-forced(s)> term;
-      children := <get-arguments; custom-label-outline(s)> term
-  
+      label := <origin-track-forced(s1)> term;
+      children := <get-arguments; custom-node-to-label-outline(s1, s2)> term
+
   
 signature constructors
   
