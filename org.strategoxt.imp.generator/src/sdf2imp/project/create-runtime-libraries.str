@@ -480,6 +480,11 @@ strategies
       len-project-prefix := <project-path; string-length; inc>;
       rel-path := <string-as-chars(drop(|len-project-prefix))> full-path
 
+	origin-debug:
+		term -> term
+		with
+			<(origin-term     <+ !\"Failed\"); debug(!\"origin-trm: \")> term;
+			<(origin-location <+ !\"Failed\"); debug(!\"origin-loc: \")> term 
 "
 
 	create-editor-positions = 
@@ -1150,6 +1155,7 @@ imports
 	runtime/nbl/uri
 	runtime/nbl/utils
 	runtime/types/collect
+	runtime/editor/origins
 	
 signature 
 
@@ -1160,6 +1166,10 @@ signature
   constructors // state
   	
   	State : String * Term -> State
+
+	constructors // unique name generation
+		
+		GenerateName : Namespace -> GenerateName
 
 	constructors // def
 
@@ -1216,7 +1226,7 @@ strategies // generic traversal
 	  ast -> ast''
 	  where
 	    new-hashtable => unique*;
-	    ast'  := <nabl-collect(id|lang, partition, unique*, [])> ast ;
+	    ast'  := <nabl-collect(id|lang, partition, unique*, []); remove-annotations(?Scope(_))> ast ;
 	    ast'' := <alltd(message-task(|partition))> ast'
 	  
 	/**
@@ -1238,7 +1248,7 @@ strategies // generic traversal
   ; try(nabl-state-site)
   // visit children from left to right  
   ; preserve-annos(force-origins(id#(nabl-siblings(|lang, partition, unique*, child-uri*))))
-  ; try(nabl-use-site(|lang, partition, uri'*, state*))
+  ; try(nabl-use-site(|lang, partition, unique*, uri'*, state*))
   ; try(nabl-import-site(|lang, partition, child-uri*, state*))
   ; try(nabl-prop-site(|lang, partition, state*, implicit*))
   ; annotate-property-tasks(|partition)
@@ -1281,15 +1291,53 @@ rules // generic analysis of scopes
 	   remove-annotations(?Scope(ns2*))
 	 ; add-annotation(|Scope(<union> (ns1*, ns2*)))
 	<+ add-annotation(|Scope(ns1*))
+
+rules // generic analysis of name generation
+	
+	nabl-namegen(|lang, partition, unique*, uri*, anno*):
+		name -> <origin-track-forced(!newname')> name
+		where
+			<has-annotation(?GenerateName(ns))> name;
+			uri      := <lookup-uri(|lang, ns)> uri*;
+			newname  := <nabl-namegen-get(|lang, partition, ns, uri, unique*)> name;
+			newname' := <add-annotations(|anno*); remove-annotations(?GenerateName(_))> newname
+	
+	nabl-namegen-get(|lang, partition, ns, uri, unique*):
+		name -> result
+		with
+			name-key := (name, \"namegen\");
+			num-key  := (lang, partition, ns, uri, \"namegen\");
+      if full-newname := <hashtable-get(|name-key)> unique* then
+        result := full-newname
+      else
+        nextnum := <hashtable-get(|num-key) <+ !0> unique*;
+        newname := <nabl-namegen-name(|lang, partition, ns)> uri;
+        numstr  := <int-to-string> nextnum;
+        result  := $[[newname]__[numstr]];
+        <hashtable-put(|name-key, result)> unique*;
+        <hashtable-put(|num-key, <inc> nextnum)> unique*
+      end
+      
+  nabl-namegen-name(|lang, partition, ns):
+  	uri -> <nabl-namegen-name-fix> $[[lang-name]__[partition]__[ns-name]__[uri-name]]
+  	with
+  		Language(lang-name) := lang;
+  		ns-name             := <get-constructor> ns;
+  		uri-name            := <nabl-uri-path; filter(nabl-segment-name); separate-by(|\"_\"); concat-strings> uri
+  		
+	nabl-namegen-name-fix = lower-case; string-replace(|\"/\", \"_\"); string-replace(|\"-\", \"_\")
 	 
 rules // generic analysis of defs
     	
 	// call back to generic analysis
 	nabl-def(child-uris, sibling-uris|lang, partition, unique*, child-uri*, sibl-uri*, ns, unique, defscope, scoped):
-		a@name{anno*} -> name{d,anno*}
+		a@name{anno*} -> <replace-annotations(?Def(_)|d)> name'
 		where
 			// get URI for namespace of definition site
 			current-uri := <lookup-uri(|lang, ns)> child-uri*
+		with
+			// generate a name if needed
+			name' := <try(nabl-namegen(|lang, partition, unique*, child-uri*, anno*))> name
 		where
 			switch !defscope
 			  // in each case we 
@@ -1301,9 +1349,9 @@ rules // generic analysis of defs
 			  case Current(): 
 		
 			  // 1. extend current URI with ID segment
-			  // 2. extend URIs of scoped namespaces
+			  // 2. extend URIs of scoped name'spaces
 		 	  // 3. preserve
-			    def-uri := <nabl-extend-uri(|unique*, partition, ns, name, unique)> current-uri
+			    def-uri := <nabl-extend-uri(|unique*, partition, ns, <rm-annotations> name', unique)> current-uri
 			  ; match(child-uris|<replace-scope-uri(|def-uri)> (scoped, child-uri*))
 			  ; match(sibling-uris|sibl-uri*)
 		   
@@ -1312,9 +1360,9 @@ rules // generic analysis of defs
 		       
 			  // 1. extend current URI with subsequent and ID segment
 			  // 2. preserve
-			  // 3. extend URI for namespace of definition site with Subsequent segment
+			  // 3. extend URI for name'space of definition site with Subsequent segment
 			    subs-uri := <nabl-extend-uri-subsequent(|unique*, partition)> current-uri
-			  ; def-uri  := <nabl-extend-uri(|unique*, partition, ns, name, unique)> subs-uri
+			  ; def-uri  := <nabl-extend-uri(|unique*, partition, ns, <rm-annotations> name', unique)> subs-uri
 		    ; match(child-uris|child-uri*)
 			  ; match(sibling-uris|<replace-scope-uri(|subs-uri)> ([ns], sibl-uri*))
 		
@@ -1325,7 +1373,7 @@ rules // generic analysis of defs
 		    // 2. preserve
 		    // 3. preserve
 		      ano-uri := <nabl-base-uri; nabl-extend-uri-anonymous(|unique*, partition)> lang 
-		    ; def-uri := <nabl-extend-uri(|unique*, partition, ns, name, unique)> ano-uri
+		    ; def-uri := <nabl-extend-uri(|unique*, partition, ns, <rm-annotations> name', unique)> ano-uri
 			  ; match(child-uris|child-uri*)
 			  ; match(sibling-uris|sibl-uri*)
 		  end
@@ -1338,8 +1386,8 @@ rules // generic analysis of defs
 		with
 			// duplicate definition error
 			if Unique() := unique then 
-				resolve := <new-task(|partition)> ResolveDefs(current-uri, ns, name);
-				<task-create-error-on-multiple(|partition, resolve, \"Duplicate definition\")> name
+				resolve := <new-task(|partition)> ResolveDefs(current-uri, ns, name');
+				<task-create-error-on-multiple(|partition, resolve, \"Duplicate definition\")> name'
 			end
 	
 	nabl-def-alias(|partition, def-uri):
@@ -1354,26 +1402,29 @@ rules // generic analysis of defs
 rules // generic analysis of uses
 	
 	// single candidate
-	nabl-use(|lang, partition, uri*, candidate) =
+	nabl-use(|lang, partition, unique*, uri*, candidate) =
 		where (<not(is-list)> candidate);
-		nabl-use(|lang, partition, uri*, [candidate])
+		nabl-use(|lang, partition, unique*, uri*, [candidate])
 	
 	// list of candidates
-	nabl-use(|lang, partition, uri*, candidate*):
+	nabl-use(|lang, partition, unique*, uri*, candidate*):
 		name{anno*} -> result
+		with
+			// generate a name if needed
+			name' := <try(nabl-namegen(|lang, partition, unique*, uri*, anno*))> name
 		where
-			subtask* := <map(nabl-use-candidate(|lang, partition, uri*, <nabl-fix-name> name))> candidate*;
+			subtask* := <map(nabl-use-candidate(|lang, partition, uri*, <nabl-fix-name> name'))> candidate*;
 			choice   := <new-task(|partition)> Choice(subtask*);
 		  u        := <new-use(|partition, choice)>;
-		  if <not(has-annos; get-annos; collect-one(?NoUnresolvedError()))> name then
-		  	<nabl-fix-name; task-create-error-on-failure(|partition, choice, \"Unresolved reference\")> name
+		  if <not(has-annos; get-annos; collect-one(?NoUnresolvedError()))> name' then
+		  	<nabl-fix-name; task-create-error-on-failure(|partition, choice, \"Unresolved reference\")> name'
 		  end;
-		  if <is-completion-name> name then
+		  if <is-completion-name> name' then
 		  	completion-subtask* := <mapconcat(nabl-completion-candidate(|lang, partition, uri*))> candidate*;
 		  	completion-concat   := <new-task(|partition)> Concat(completion-subtask*);
-		  	result              := name{u, Completion(completion-concat), anno*}
+		  	result              := <replace-annotations(?Use(_)|u, Completion(completion-concat))> name'
 		  else
-		  	result := name{u, anno*}
+		  	result := <replace-annotations(?Use(_)|u)> name'
 	  	end
 
 	nabl-use-subtasks(disambiguate, wildcardimport|partition, ns, name, prop*, range): 
@@ -1744,7 +1795,7 @@ strategies // Collect
 	
 	nabl-state-site = fail
 	
-	nabl-use-site(|lang, partition, uri*, state*) = fail
+	nabl-use-site(|lang, partition, unique*, uri*, state*) = fail
 	
 	nabl-import-site(|lang, partition, uri*, state*) = fail
 	
@@ -2025,6 +2076,7 @@ imports
   
   runtime/nbl/tasks
 	runtime/nbl/entries
+	runtime/nbl/utils
 	runtime/task/core
   runtime/task/utils
   
@@ -2052,9 +2104,7 @@ rules // Reference resolution
 
 	nabl-collect-one-resolved-def =
 		insert-results-or-create-dependency;
-		oncetd-annos((?Def(_) <+ ?Dependency(_)); ?d); !d
-		
-	oncetd-annos(s) = s <+ has-annos; get-annos; one(oncetd-annos(s)) <+ one(oncetd-annos(s))
+		collect-one-annos(?Def(_) <+ ?Dependency(_))
 	
 "
 
@@ -2374,6 +2424,15 @@ rules // Projections
   nabl-segment-name:
     ID(_, name, _) -> name
     
+  nabl-segment-name:
+  	Subsequent(name) -> name
+  
+	nabl-segment-name:
+  	Anonymous(name) -> name
+  	
+	nabl-segment-name:
+  	ExternalDef(name) -> name
+    
   nabl-segment-qualifier:
     ID(_, _, qualifier) -> qualifier
     
@@ -2480,11 +2539,29 @@ rules
 	is-completion-name = ?\"completion123\"
   fix-completion-name = is-completion-name; !\"\"
 
+	has-annotation(s) =
+		has-annos;
+		get-annos;
+		collect-one(s)
+
   add-annotation(|a):
     t{a*} -> t{a, a*}
+    
+  add-annotations(|a'*):
+    t{a*} -> t{a'*, a*}
 
   remove-annotations(s):
     t{a*} -> t{a'*}
+    where
+      a'* := <remove-all(s)> a*
+      
+  replace-annotations(s|a):
+    t{a*} -> t{a, a'*}
+    where
+      a'* := <remove-all(s)> a*
+      
+  replace-annotations(s|a1, a2):
+    t{a*} -> t{a1, a2, a'*}
     where
       a'* := <remove-all(s)> a*
   
@@ -2503,7 +2580,7 @@ rules
  	try-make-list = is-list <+ ?Dependency(_) <+ ![<id>]
 		
 	try-remove-list = is-list < Hd + id
-		
+	
 rules // multimap simulation
 	
 	hash-multimap-put(|key, value):
@@ -2580,17 +2657,17 @@ rules // Creation
 rules // Dependencies
 	
   task-create-dependencies =
-  	collect-all(?Result(<id>));
+  	collect-all-annos(?Result(<id>), union);
   	!Dependency(<id>)
 
   task-create-dependency =
 		!Dependency([<id>])
   	
 	task-has-dependencies =
-		fetch(?Dependency(_))
+		where(collect-one-annos(?Dependency(_)))
 		
 	task-collect-dependencies =
-		collect-all(?Dependency(<id>));
+		collect-all-annos(?Dependency(<id>), union);
 		concat;
 		where(Hd);
 		!Dependency(<id>)
@@ -2600,7 +2677,7 @@ rules // Results
 	insert-results-hashmap(|results-hashmap) =
 		switch id
 			case has-annos  : !(<id>, <get-annos; insert-results-hashmap(|results-hashmap)>); set-annos
-			case is-list    : filter(insert-results-hashmap(|results-hashmap); not(?[]))
+			case is-list    : filter(insert-results-hashmap(|results-hashmap))
 			case ?Result(n) : (<hashtable-get(|n)> results-hashmap) <+ <with(fail|\"Cannot insert result: \")> n
 			otherwise       : all(insert-results-hashmap(|results-hashmap))
 		end
@@ -2608,7 +2685,7 @@ rules // Results
 	insert-results-with-fail =
 		switch id
 			case has-annos  : !(<id>, <get-annos; insert-results-with-fail>); set-annos
-			case is-list    : filter(insert-results-with-fail; not(?[]))
+			case is-list    : filter(insert-results-with-fail)
 			case ?Result(n) : (task-api-get-results(|n) <+ (task-api-has-failed(|n); ![]) <+ with(fail|\"Cannot insert result: \"))
 			otherwise       : all(insert-results-with-fail)
 		end
@@ -2616,7 +2693,7 @@ rules // Results
 	insert-results =
 		switch id
 			case has-annos  : !(<id>, <get-annos; insert-results>); set-annos
-			case is-list    : map(insert-results); remove-all(?[])
+			case is-list    : map(insert-results)
 			case ?Result(n) : task-api-get-results(|n) <+ (task-api-has-failed(|n); ![])
 			otherwise       : all(insert-results)
 		end
@@ -2624,7 +2701,7 @@ rules // Results
 	insert-results-or-create-dependency =
 		switch id
 			case has-annos  : !(<id>, <get-annos; insert-results-or-create-dependency>); set-annos
-			case is-list    : map(insert-results-or-create-dependency); remove-all(?[])
+			case is-list    : map(insert-results-or-create-dependency)
 			case ?Result(n) : task-api-get-results(|n) <+ (task-api-has-failed(|n); ![]) <+ !Dependency([n])
 			otherwise       : all(insert-results-or-create-dependency)
 		end
@@ -2913,7 +2990,7 @@ rules
       [] := <dependent-tasks> choice*
       
 	perform-task(|nr):
- 		Choice(choice*) -> <Hd> choice*
+ 		Choice(choice*) -> <fetch-elem(not(?[]))> choice*
  		
 	task-is-combinator = ?Choice(_)
 
@@ -2938,12 +3015,12 @@ rules
   
   perform-task(|nr): 
     Rewrite(key, term) -> <task-match> (key, term)
-  
-  // TODO: this should no longer be needed with single-result tasks?
+
   perform-task(|nr):
   	Concat(term*) -> <concat> term*
 
 	task-is-combinator = ?Concat(_)
+
 "
 
 	create-task-utils = 
@@ -2951,6 +3028,10 @@ rules
 "module runtime/task/utils
 
 rules
+
+	oncetd-annos(s) = s <+ has-annos; get-annos; one(oncetd-annos(s)) <+ one(oncetd-annos(s))
+	
+	collect-one-annos(s) = oncetd-annos(s; ?t); !t
 	
   crush-annos(nul, sum, s) :
     _#(xs){a*} -> r2
@@ -3019,16 +3100,24 @@ imports
   
 strategies
   
-  annotate-property-tasks(|task*) =
-    !([Type()|<custom-properties <+ ![]>], <id>)
-  ; foldl(annotate-property-task(|task*) <+ Snd)
+  annotate-property-tasks(|partition):
+  	term -> <foldl(annotate-property-task(|partition) <+ Snd)> (kind*, term')
+  	where
+  		kind* := [Type()|<custom-properties <+ ![]>];
+  		term' := <remove-property-annotations(|kind*)> term
   
-  annotate-property-task(|task*):
+  annotate-property-task(|partition):
     (kind, term{a*}) -> term{(kind, prop), a*}
     where
       not(<property-task(|kind)> term)
     where
-      prop := <new-property-task(|task*)> 
+      prop := <new-property-task(|partition)> 
+  
+  remove-property-annotations(|kind*) =
+  	!(kind*, <id>); foldl(remove-property-annotation) 
+  	
+	remove-property-annotation:
+		(kind, term) -> <remove-annotations(?(kind, _))> term
      
   new-property-task(|task*):
     (Type(), term) -> <type-of(|task*)> term
@@ -3128,8 +3217,7 @@ signature
   
   constructors
 
-    PropLookup : Property * Term -> Instruction    
-    PropCalc   : Term * Term     -> Instruction
+    PropLookup : Property * Term -> Instruction
     PropCalc   : Term            -> Instruction
     PropCheck  : Term * Term     -> Instruction
 
@@ -3139,10 +3227,13 @@ rules
   	PropLookup(kind, t) -> result
   	where
   		resolved := <nabl-collect-one-resolved-def> t;
-  		switch id
-  			case ?Def(_) : where(nabl-uri; nabl-add-read(|n)); nabl-get-property(|kind); insert-results-or-create-dependency // TODO: is this read needed?
-  			otherwise    : id
-  		end => result
+  		uri      := <nabl-uri> resolved;
+  		<nabl-add-read(|n)> uri;
+  		prop     := <nabl-get-property(|kind); insert-results-or-create-dependency> uri;
+      switch id
+      	case task-collect-dependencies => d : !d
+      	otherwise                           : id
+      end => result
   
   avoid-task(|dep*):
     PropCalc(_) -> <perform-task(|0)> 
