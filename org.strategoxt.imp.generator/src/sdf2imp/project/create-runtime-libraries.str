@@ -82,7 +82,7 @@ rules // Analysis
 		with
 			measure-time(
 				measure-time(
-	      	task-evaluate => (evaluated-task*, unevaluated-task*)
+	      	task-evaluate-scheduled => (evaluated-task*, unevaluated-task*)
 	      	, id | \"analyze-task-evaluate\"
 	      ); measure-time(
 	  	  	result'* := <map(analyze-messages)> result*
@@ -2740,25 +2740,27 @@ rules // Projections
 
 rules // API
 	
-	task-setup(|project-path)                            = task-api-setup(|project-path)
-	task-start-collection(|partition)                    = task-api-start-collection(|partition)
-	task-stop-collection(|partition)                     = task-api-stop-collection(|partition)
-	task-add-task(|partition, dependencies, instruction) = task-api-add-task(|partition, dependencies, instruction)
 	task-add-combinator(|partition, dependencies, instruction) = task-api-add-combinator(|partition, dependencies, instruction)
-	task-becomes-cyclic(|taskIDFrom, taskIDTo)           = task-api-becomes-cyclic(|taskIDFrom, taskIDTo)
-	task-clear-partition                                 = task-api-clear-partition(|<id>)
-	task-debug-info(|partition)                          = task-api-debug-info(|partition)
-	task-add-message(|taskID, message)                   = task-api-add-message(|taskID, message)
-	task-get-messages(|partition)                        = task-api-get-messages(|partition)
-	task-evaluate                        								 = task-api-evaluate(insert-results-hashmap, task-perform-task)
-	task-invalidate-task-reads(|changedRead*)            = task-api-invalidate-task-reads(|changedRead*)
-	task-partitions-of(|taskIDOrTaskID*)                 = task-api-partitions-of(|taskIDOrTaskID*)
-	task-exists(|instruction)                            = task-api-exists(|instruction)
-	task-recover                                         = task-api-recover
-	task-reset                                           = task-api-reset
-	task-persist                                         = task-api-persist
-	task-unload(|project-path)                           = task-api-unload(|project-path)
-	task-unload                                          = task-unload(|<id>)
+	task-add-message(|taskID, message)                         = task-api-add-message(|taskID, message)
+	task-add-task(|partition, dependencies, instruction)       = task-api-add-task(|partition, dependencies, instruction)
+	task-becomes-cyclic(|taskIDFrom, taskIDTo)                 = task-api-becomes-cyclic(|taskIDFrom, taskIDTo)
+	task-clear-partition                                       = task-api-clear-partition(|<id>)
+	task-debug-info(|partition)                                = task-api-debug-info(|partition)
+	task-evaluate-now                                          = task-api-evaluate-now(insert-results-hashmap, task-perform-task|<id>)
+	task-evaluate-scheduled                                    = task-api-evaluate-scheduled(insert-results-hashmap, task-perform-task)
+	task-exists(|instruction)                                  = task-api-exists(|instruction)
+	task-get-messages(|partition)                              = task-api-get-messages(|partition)
+	task-get-readers                                           = task-api-get-readers(|<id>)
+	task-invalidate-task-reads(|changedRead*)                  = task-api-invalidate-task-reads(|changedRead*)
+	task-partitions-of(|taskIDOrTaskID*)                       = task-api-partitions-of(|taskIDOrTaskID*)
+	task-persist                                               = task-api-persist
+	task-recover                                               = task-api-recover
+	task-reset                                                 = task-api-reset
+	task-setup(|project-path)                                  = task-api-setup(|project-path)
+	task-start-collection(|partition)                          = task-api-start-collection(|partition)
+	task-stop-collection(|partition)                           = task-api-stop-collection(|partition)
+	task-unload                                                = task-unload(|<id>)
+	task-unload(|project-path)                                 = task-api-unload(|project-path)
 	
 	// TODO: rename to task-get-results.
 	task-get-result =
@@ -2798,31 +2800,33 @@ rules // API
 
 rules /** @internal API externals */
 
-	task-api-setup(|project-path) = prim(\"task_api_setup\", project-path)
-	task-api-start-collection(|partition) = prim(\"task_api_start_collection\", partition)
-	task-api-stop-collection(|partition) = prim(\"task_api_stop_collection\", partition)
-	task-api-add-task(|partition, dependencies, instruction) = prim(\"task_api_add_task\", partition, dependencies, instruction)
 	task-api-add-combinator(|partition, dependencies, instruction) = prim(\"task_api_add_combinator\", partition, dependencies, instruction)
+	task-api-add-dependency(|taskID, dependency) = prim(\"task_api_add_dependency\", taskID, dependency)
+	task-api-add-message(|taskID, message) = prim(\"task_api_add_message\", taskID, message)
+	task-api-add-read(|taskID, read) = prim(\"task_api_add_read\", taskID, read)
+	task-api-add-task(|partition, dependencies, instruction) = prim(\"task_api_add_task\", partition, dependencies, instruction)
 	task-api-becomes-cyclic(|taskIDFrom, taskIDTo) = prim(\"task_api_becomes_cyclic\", taskIDFrom, taskIDTo)
 	task-api-clear-partition(|partition) = prim(\"task_api_clear_partition\", partition)
-	task-api-get-results(|taskID) = prim(\"task_api_get_results\", taskID)
 	task-api-debug-info(|partition) = prim(\"task_api_debug_info\", partition)
-	task-api-add-message(|taskID, message) = prim(\"task_api_add_message\", taskID, message)
+	task-api-evaluate-now(insert, perform|taskIDs) = prim(\"task_api_evaluate_now\", insert, perform|taskIDs)
+	task-api-evaluate-scheduled(insert, perform|) = prim(\"task_api_evaluate_scheduled\", insert, perform|)
+	task-api-exists(|instruction) = prim(\"task_api_exists\", instruction)
+	task-api-get-dependencies(|taskID) = prim(\"task_api_get_dependencies\", taskID)
 	task-api-get-messages(|partition) = prim(\"task_api_get_messages\", partition)
+	task-api-get-readers(|uri) = prim(\"task_api_get_readers\", uri)
+	task-api-get-results(|taskID) = prim(\"task_api_get_results\", taskID)
 	task-api-has-failed(|taskID) = prim(\"task_api_has_failed\", taskID)
 	task-api-invalidate-task-reads(|changedReads) = prim(\"task_api_invalidate_task_reads\", changedReads)
 	task-api-partitions-of(|taskIDOrTaskIDS) = prim(\"task_api_partitions_of\", taskIDOrTaskIDS)
-	task-api-add-read(|taskID, read) = prim(\"task_api_add_read\", taskID, read)
-	task-api-add-dependency(|taskID, dependency) = prim(\"task_api_add_dependency\", taskID, dependency)
-	task-api-evaluate(insert, perform|) = prim(\"task_api_evaluate\", insert, perform|)
-	task-api-exists(|instruction) = prim(\"task_api_exists\", instruction)
-	task-api-get-dependencies(|taskID) = prim(\"task_api_get_dependencies\", taskID)
+	task-api-persist = prim(\"task_api_persist\")
 	task-api-recover = prim(\"task_api_recover\")
 	task-api-reset = prim(\"task_api_reset\")
-	task-api-persist = prim(\"task_api_persist\")
+	task-api-setup(|project-path) = prim(\"task_api_setup\", project-path)
+	task-api-start-collection(|partition) = prim(\"task_api_start_collection\", partition)
+	task-api-stop-collection(|partition) = prim(\"task_api_stop_collection\", partition)
 	task-api-task-id(|instruction) = prim(\"task_api_task_id\", instruction)
 	task-api-unload(|project-path) = prim(\"task_api_unload\", project-path)
-
+	
 "
 
 	create-task-debug = 
