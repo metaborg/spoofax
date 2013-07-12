@@ -20,14 +20,14 @@ rules
    * Only AST nodes for which s1 succeed end up in the outline.
    *
    * Example:
-   *   outline-strategy = custom-label-outline(to-outline-label)
+   *   outline-strategy = simple-label-outline(to-outline-label)
    *   to-outline-label: Entity(name, _) -> name
    *   to-outline-label: Property(name, _) -> name
    */
-  simple-node-to-label-outline(s1) = collect-om(to-outline-node(s1, fail), conc)
+  simple-label-outline(s1) = collect-om(to-outline-node(s1, fail), conc)
   
   /**
-   * Similar to simple-node-to-label-outline(s1), but with an additional strategy s2 that rewrites
+   * Similar to simple-label-outline(s1), but with an additional strategy s2 that rewrites
    * AST nodes to outline nodes. Strategy s2 gets priority over strategy s1 in case both succeed.
    *
    * Example:
@@ -35,13 +35,13 @@ rules
    *   to-outline-label: Entity(name, _) -> name
    *   to-outline-node: Property(name, _) -> Node(name, [Node(\"dummy\", [])])
    */
-  custom-node-to-label-outline(s1, s2) = collect-om(origin-track-forced(s2) <+ to-outline-node(s1, s2), conc)
+  custom-label-outline(s1, s2) = collect-om(origin-track-forced(s2) <+ to-outline-node(s1, s2), conc)
   
   to-outline-node(s1, s2):
     term -> Node(label, children)
     where
       label := <origin-track-forced(s1)> term;
-      children := <get-arguments; custom-node-to-label-outline(s1, s2)> term
+      children := <get-arguments; custom-label-outline(s1, s2)> term
 
   
 signature constructors
