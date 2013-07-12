@@ -4,7 +4,7 @@ import org.metaborg.runtime.task.TaskEngine;
 import org.metaborg.runtime.task.TaskManager;
 import org.spoofax.interpreter.library.index.IIndex;
 import org.spoofax.interpreter.library.index.IndexManager;
-import org.spoofax.interpreter.library.index.NotificationCenter;
+import org.spoofax.interpreter.library.index.notification.NotificationCenter;
 
 public class AntResetProject {
 	public static void main(String[] args) {

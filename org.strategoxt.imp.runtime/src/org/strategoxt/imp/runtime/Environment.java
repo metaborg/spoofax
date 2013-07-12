@@ -25,7 +25,7 @@ import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.core.StackTracer;
 import org.spoofax.interpreter.library.IOAgent;
-import org.spoofax.interpreter.library.index.IndexLibrary;
+import org.spoofax.interpreter.library.index.legacy.LegacyIndexLibrary;
 import org.spoofax.interpreter.library.jsglr.JSGLRLibrary;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
@@ -222,7 +222,7 @@ public final class Environment {
 		result.getCompiledContext().registerComponent("stratego_lib"); // ensure op. registry available
 		result.getCompiledContext().registerComponent("stratego_sglr"); // ensure op. registry available
 		result.getCompiledContext().addOperatorRegistry(new TaskLibrary());
-		result.getCompiledContext().addOperatorRegistry(new IndexLibrary());
+		result.getCompiledContext().addOperatorRegistry(new LegacyIndexLibrary());
 		JSGLRLibrary sglrLibrary = (JSGLRLibrary) result.getContext().getOperatorRegistry(JSGLRLibrary.REGISTRY_NAME);
 		IMPJSGLRLibrary impSglrLibrary = new IMPJSGLRLibrary(sglrLibrary);
 		result.addOperatorRegistry(impSglrLibrary);
