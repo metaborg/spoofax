@@ -13,38 +13,50 @@ import org.strategoxt.imp.runtime.Environment;
  * @author Oskar van Rest
  */
 public class SpoofaxOutlineLabelProvider extends LabelProvider {
-	
+
 	private String pluginPath;
-	
+
 	public SpoofaxOutlineLabelProvider(String pluginPath) {
 		this.pluginPath = pluginPath;
 	}
 
 	@Override
 	public String getText(Object element) {
-		IStrategoString label = (IStrategoString) ((IStrategoTerm) element).getSubterm(0);
-		return label.stringValue();
+		IStrategoTerm label = getLabel(element);
+		
+		if (label != null && label.getTermType() == IStrategoTerm.STRING) {
+			return ((IStrategoString) label).stringValue();
+		}
+		else { // fallback
+			return label == null ? "" : label.toString(); 
+		}
 	}
-	
+
 	@Override
 	public Image getImage(Object element) {
-		IStrategoTerm term = (IStrategoTerm) element;
-		IStrategoString label = (IStrategoString) term.getSubterm(0);
-		
-		if (!label.getAnnotations().isEmpty()) {
-			IStrategoTerm iconPath = label.getAnnotations().getSubterm(0);
-			if (iconPath.getTermType()==IStrategoTerm.STRING) {
-				try {
-					File iconFile = new File(pluginPath, ((IStrategoString) iconPath).stringValue());					
-					Image image = new Image(Display.getDefault() , iconFile.getAbsolutePath());
-					return image;
+		IStrategoTerm label = getLabel(element);
+		if (label != null && !label.getAnnotations().isEmpty()) {
+			IStrategoTerm iconPath = label.getAnnotations().getSubterm(0);				
+			if (iconPath.getTermType() == IStrategoTerm.STRING) {
+				File iconFile = new File(pluginPath, ((IStrategoString) iconPath).stringValue());
+				if (iconFile.exists()) {
+					return new Image(Display.getDefault(), iconFile.getAbsolutePath());
 				}
-				catch (Exception e) {
-					Environment.logException("Can't find icon " + pluginPath + ((IStrategoString) iconPath).stringValue());
+				else {
+					Environment.logException("Can't find icon " + iconFile.getAbsolutePath());
 				}
 			}
-		}
+		}		
 		
+		return null;
+	}
+
+	private IStrategoTerm getLabel(Object element) {
+		IStrategoTerm term = (IStrategoTerm) element;
+		if (term.getSubtermCount() >= 1) {
+			return term.getSubterm(0);
+		}
+
 		return null;
 	}
 }

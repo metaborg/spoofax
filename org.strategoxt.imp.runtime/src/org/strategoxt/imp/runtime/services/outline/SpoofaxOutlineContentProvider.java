@@ -3,6 +3,7 @@ package org.strategoxt.imp.runtime.services.outline;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.strategoxt.imp.runtime.Environment;
 
 /**
  * @author Oskar van Rest
@@ -28,6 +29,7 @@ public class SpoofaxOutlineContentProvider implements ITreeContentProvider {
 				return term.getAllSubterms();
 				
 			default:
+				Environment.logException("Expected Node(...) or [Node(...), ...)] but was: " + inputElement);
 				break;
 		}
 		
@@ -35,8 +37,13 @@ public class SpoofaxOutlineContentProvider implements ITreeContentProvider {
 	}
 
 	public Object[] getChildren(Object parentElement) {
-		IStrategoTerm children = ((IStrategoTerm) parentElement).getSubterm(1);
-		return children.getAllSubterms();
+		if (((IStrategoTerm) parentElement).getSubtermCount() == 2) {
+			IStrategoTerm children = ((IStrategoTerm) parentElement).getSubterm(1);
+			return children.getAllSubterms();
+		}
+		
+		Environment.logException("Expected Node(..., [...]) but was: " + parentElement);
+		return new Object[0];
 	}
 
 	public Object getParent(Object element) {
@@ -44,6 +51,6 @@ public class SpoofaxOutlineContentProvider implements ITreeContentProvider {
 	}
 
 	public boolean hasChildren(Object element) {
-		return ((IStrategoTerm) element).getSubterm(1).getSubtermCount() != 0;
+		return getChildren(element).length != 0;
 	}
 }
