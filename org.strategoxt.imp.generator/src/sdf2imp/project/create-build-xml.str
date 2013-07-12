@@ -99,8 +99,7 @@ strategies
 			      java.jar,
 			      stratego.ctree,
 			      refresh,
-			      sdf2imp.eclipse.load,
-			      call-reset" />
+			      sdf2imp.eclipse.load" />
 			  <target name="spoofaximp.default.jar" depends="
 			      check-classpath,
 			      call-onsave,
@@ -116,8 +115,7 @@ strategies
 			      java.jar,
 			      stratego.jar.helper,
 			      refresh,
-			      sdf2imp.eclipse.load,
-			      call-reset" />
+			      sdf2imp.eclipse.load" />
 			  <target name="spoofaximp.default.nostr" depends="
 			      check-classpath,
 			      call-onsave,
@@ -132,8 +130,7 @@ strategies
 			      stratego.aster,
 			      java.jar,
 			      refresh,
-			      sdf2imp.eclipse.load,
-			      call-reset" />
+			      sdf2imp.eclipse.load" />
     
         <!-- Initialization -->
         <available file="${src-gen}/[pkgdir]/strategies/Main.java" property="java.jar.enabled"/>
@@ -188,12 +185,6 @@ strategies
 			<pathconvert pathsep=" " property="call-onsave.args" refid="call-onsave.files" />
 			<java classname="org.strategoxt.imp.metatooling.building.AntForceOnSave">
 				<arg line="${call-onsave.args}" />
-			</java>
-		</target>
-
-		<target name="call-reset">
-			<java classname="org.strategoxt.imp.metatooling.building.AntResetProject">
-				<arg value="${basedir}" />
 			</java>
 		</target>
 

@@ -17,12 +17,14 @@ imports
 	
 rules
 	
-	analysis-propose-completions(|language, project-path, path):
+	analysis-propose-completions(|language, project-path):
 		ast -> <nabl-propose-completions> ast
 		with
     	task-setup(|project-path);
-    	index-setup(|language, project-path, $[[project-path]/[path]])
+    	index-setup(|language, project-path)
 
+	// Legacy
+	analysis-propose-completions(|language, project-path, path) = analysis-propose-completions(|language, project-path)
 "
 
 	create-analysis-core = 
@@ -55,7 +57,7 @@ rules // Analysis
     with
     	measure-time(
 	    	measure-time(
-	    		index-setup(|language, [project-path], partition);
+	    		index-setup(|language, project-path);
 			    index-start-collection(|partition);
 	    		task-setup(|project-path);
 	    		task-recover;
@@ -124,6 +126,7 @@ rules // Projections
 		
 	analyze-result-analyzed-ast:
 		Result(_, _, analyzed-ast, _, _, _, _) -> analyzed-ast
+
 "
 
 	create-analysis-debug = 
@@ -143,7 +146,7 @@ rules
     (_, _, _, path, project-path) -> (filename, result)
     with
     	partition := $[[project-path]/[path]];
-      index-setup(|language, [project-path], partition);
+      index-setup(|language, project-path);
       filename := <guarantee-extension(|\"index.current.aterm\")> path;
       result   := <index-get-all-in-partition> partition
       
@@ -151,7 +154,7 @@ rules
     (_, _, _, path, project-path) -> (filename, result)
     with
     	partition := $[[project-path]/[path]];
-      index-setup(|language, [project-path], partition);
+      index-setup(|language, project-path);
       filename := <guarantee-extension(|\"index.all.aterm\")> path;
       result   := <index-get-all-partitions; map(\\filename -> (filename, <index-get-all-in-partition> filename)\\)>
       
@@ -175,8 +178,8 @@ rules
     (_, _, _, path, project-path) -> None()
     with
     	partition := $[[project-path]/[path]];
-      index-setup(|language, [project-path], partition);
-      index-clear
+      index-setup(|language, project-path);
+      index-clear-all
       
   analysis-debug-reset-task(|language):
     (_, _, _, path, project-path) -> None()
@@ -190,7 +193,7 @@ rules
     	partition := $[[project-path]/[path]];
     	task-setup(|project-path);
     	task-reset;
-      index-setup(|language, [project-path], partition);
+      index-setup(|language, project-path);
       index-reload
 
 "
@@ -239,7 +242,6 @@ rules // Single finle analysis
     	end;
       <analysis-default-debug> $[[<length> evaluated-task*] task evaluated, [<length> unevaluated-task*] task unevaluated.];
       <map(task-debug-info(|<id>); analysis-default-debug(!\"Unevaluated: \"))> unevaluated-task* 
-      // TODO: Update markers for partitions that have had a task executed.
       
 rules // Multi-file analysis
       
@@ -263,12 +265,12 @@ rules // Multi-file analysis
 	      , id | \"analysis-multiple-full-analysis\"
 	      );
 	    	measure-time(
-		      index-commit
-	      	, id | \"analysis-multiple-index-commit\"
+		      index-persist
+	      	, id | \"analysis-multiple-index-persist\"
 	      );
 	    	measure-time(
 		      task-persist
-	      	, id | \"analysis-multiple-task-commit\"
+	      	, id | \"analysis-multiple-task-persist\"
 	      )
 	    , id | \"analysis-multiple-total\");
       <analysis-default-debug> $[[<length> evaluated-task*] task evaluated, [<length> unevaluated-task*] task unevaluated.];
@@ -309,7 +311,7 @@ rules // Message collection and updating.
   	(partition*, language, project-path) -> <filter(not(is-test-file); analysis-message-update-partition)> partition*
   	with
     	task-setup(|project-path);
-      index-setup(|language, [project-path], \".\")
+      index-setup(|language, project-path)
   	
 	analysis-message-update-partition:
 		partition -> <analyze-get-messages; set-only-markers(|partition)> partition
@@ -317,10 +319,10 @@ rules // Message collection and updating.
 rules // On-save handler
 	
   analysis-save-default(|language):
-  	(_, _, _, path, project-path) -> None()
+  	(_, _, _, _, project-path) -> None()
   	with
-  		index-setup(|language, [project-path], $[[project-path]/[path]]);
-  		index-commit;
+  		index-setup(|language, project-path);
+  		index-persist;
   		task-setup(|project-path);
   		task-persist
 
@@ -381,13 +383,16 @@ imports
 	
 rules
 	
-	analysis-resolve(|language, project-path, path):
+	analysis-resolve(|language, project-path):
 		node -> definition
 		where
 			task-setup(|project-path);
-    	index-setup(|language, project-path, $[[project-path]/[path]]);
+    	index-setup(|language, project-path);
     	<nabl-has-reference> node;
     	definition := <nabl-collect-one-resolved-def; index-get-all; Hd> node
+    	
+	// Legacy
+	analysis-resolve(|language, project-path, path) = analysis-resolve(|language, project-path)
 "
 
 	create-analysis-single = 
@@ -402,7 +407,7 @@ rules // Single file analysis
   
   analyze-one(|language, path, project-path):
     ast -> (analyzed-ast, evaluated-task*, unevaluated-task*, (error*, warning*, note*))
-    with // Setup index
+    with
       partition := $[[project-path]/[path]];
       r@Result(_, _, analyzed-ast, _, _, _, _) := <analyze-collect(|language, project-path)> File(partition, ast);
     	(result*, evaluated-task*, unevaluated-task*) := <analyze-perform-all> [r];
@@ -606,6 +611,10 @@ rules
 		<output-text-file(|["lib", "runtime", "index"], "core.str")>
 "module runtime/index/core
 
+imports
+	
+	runtime/index/utils
+
 signature
 
   sorts
@@ -619,16 +628,14 @@ rules
    * Must be called once before doing anything with the library.
    *
    * Example:
-   *   <index-setup(|\"MiniJava\", [<project-path>], \"test/test.mjv\")
+   *   <index-setup(|\"MiniJava\", <project-path>)
    *
    * @param language          The language to set the index up for.
-   * @param project-path      The project paths that contain all source files to analyse and compile.
-   * @param current-partition The current partition that is being analysed. Can be retrieved later using 
-   *                          index-get-current-partition. Can also be changed later using index-set-current-partition.
+   * @param project-path      The project path that contains all source files to analyse.
    * @type x -> x
    */
-  index-setup(|language, project-paths, current-partition) =
-    prim(\"LANG_index_setup\", language, project-paths, current-partition)
+  index-setup(|language, project-path) =
+    prim(\"LANG_index_setup_new\", language, <index-setup-paths> project-path)
     
   /**
    * Unloads the currently loaded index.
@@ -642,25 +649,72 @@ rules
    */
   index-unload(|project-path) =
     prim(\"LANG_index_unload\", project-path)
-    
-  /**
-   * Sets the current file the index (analysis) is operating on to the given file.
-   *
-   * Example:
-   *   <index-set-current-partition> \"fullpath/file.ext\"
-   *   <index-set-current-partition> (\"fullpath/file.ext\", \"subfile\")
-   *
-   * @type x -> ?x
-   */
-  index-set-current-partition = 
-    prim(\"LANG_index_set_current_file\", <id>)
 
+	/**
+	 * Starts collection for given partition. Used in conjunction with index-stop-collection to 
+	 * retrieve a list of added and removed index entries in relation to the previous entries in
+	 * given partition.
+	 *
+	 * Example:
+	 *   index-start-collection(|\"fullpath/file.ext\")
+	 *   index-start-collection(|(\"fullpath/file.ext\", \"subfile\"))
+	 *
+	 * @type x -> x
+	 */
 	index-start-collection(|partition) =
 		prim(\"LANG_index_start_collection\", partition)
 		
+	/**
+	 * Stops collection for the partition on which index-start-collection was called. Returns 
+	 * a tuple with removed and added entries in relation to the previous entries in that partition.
+	 *
+	 * Example:
+	 *   index-stop-collection => (removed, added)
+	 *
+	 * @type x -> (List(elem), List(elem))
+	 */
 	index-stop-collection =
 		prim(\"LANG_index_stop_collection\")
+	
+	/**
+	 * Pushes a new index on the stack and sets that as the current index. Entries from the parent
+	 * index are still visible, but additions only apply to the current index. Clearing a partition
+	 * also hides all entries in that partition from the parent index.
+	 *
+	 * Example:
+	 *   index-push
+	 *
+	 * @type x -> x 
+	 */	
+	index-push = 
+		prim(\"LANG_index_push\")
 
+	/**
+	 * Pops the current index from the stack and sets the parent index as the current index. All
+	 * modifications from the current index are discarded. The root index cannot be popped.
+	 *
+	 * Example:
+	 *   index-pop
+	 *
+	 * @type x -> x 
+	 */	
+	index-pop = 
+		prim(\"LANG_index_pop\")
+
+	/**
+	 * Pops the current index from the stack and sets the parent index as the current index. All
+	 * modifications from the current index are merged into the parent index; partitions that were
+	 * cleared in the current index are cleared in the parent, and entries added to the current
+	 * index are also added to the parrent. The root index cannot be merged.
+	 *
+	 * Example:
+	 *   index-merge
+	 *
+	 * @type x -> x 
+	 */	
+	index-merge = 
+		prim(\"LANG_index_merge\")
+		
   /**
    * Adds given element to the index.
    *
@@ -688,43 +742,6 @@ rules
     list-loop(with(index-add(|partition)))
     
   /**
-   * Removes given entry from the index that is contained in given partition.
-   *
-   * Example:
-   *   <index-remove(|\"fullpath/file.ext\")> Def([Entity(), \"Bar\"])
-   *   <index-remove(|(\"fullpath/file.ext\", \"subfile\"))> Def([Entity(), \"Bar\"])
-   * 
-   * @param partition The partition to remove the element from.
-   * @type x -> ?x
-   */
-  index-remove(|partition) =
-    prim(\"LANG_index_remove\", <id>, partition)
-    
-  /**
-   * Removes entries with given template from the index (from all partitions).
-   *
-   * Example:
-   *   <index-remove-all> Def([Entity(), \"Bar\"])
-   * 
-   * @param partition The partition to remove the element from.
-   * @type x -> ?x
-   */
-  index-remove-all =
-    prim(\"LANG_index_remove_all\", <id>)
-    
-  /**
-   * Removes given entry from the index (from all partitions).
-   *
-   * Example:
-   *   <index-remove-all> DefData([Entity(), \"Bar\"], Type(), Type(\"Bar\"))
-   * 
-   * @param partition The partition to remove the element from.
-   * @type x -> ?x
-   */
-  index-remove-one =
-    prim(\"LANG_index_remove_one\", <id>)
-    
-  /**
    * Removes all elements from the index that are contained in given partition.
    *
    * Example:
@@ -734,14 +751,14 @@ rules
    * @type x -> ?x
    */
   index-clear-partition = 
-    prim(\"LANG_index_clear_file\", <id>)
+    prim(\"LANG_index_clear_partition\", <id>)
     
   /**
    * Removes all elements from the index.
    *
    * @type x -> x
    */
-  index-clear = 
+  index-clear-all = 
     prim(\"LANG_index_clear_all\")
     
   /**
@@ -753,46 +770,12 @@ rules
     prim(\"LANG_index_reload\")
    
   /**
-   * Serializes index to a cache on disk.
+   * Persists index to a cache on disk.
    *
    * @type x -> x
    */
-  index-commit = 
-    prim(\"LANG_index_commit\")
-
-  /**
-   * Starts a transaction on the index for the current partition. Additions to the index are not visible to other files 
-   * until index-end-transaction is called. Operations on the index are only thread safe during a transaction.
-   *
-   * @type x -> x
-   */
-  index-start-transaction = 
-    prim(\"LANG_index_start_transaction\")
-  
-  /**
-   * Ends a transaction on the index for the current partition. Additions made to the index during the transaction are
-   * added to the global index visible for other files. Operations on the index are not thread safe any more after 
-   * this call.
-   *
-   * @type x -> x
-   */
-  index-end-transaction = 
-    prim(\"LANG_index_end_transaction\")
-  
-  /**
-   * Starts a transaction, applies given strategy and ends the transaction. All index operations used from the given
-   * strategy are thread safe.
-   * 
-   * @param s The strategy to apply. Transaction will still properly end if strategy fails.
-   * @type x -> x'
-   *
-   * @see index-start-transaction
-   * @see index-end-transaction
-   */
-  index-transaction(s) = 
-      prim(\"LANG_index_start_transaction\")
-    ; try(s)
-    ; prim(\"LANG_index_end_transaction\")
+  index-persist = 
+    prim(\"LANG_index_persist\")
 
 "
 
@@ -819,8 +802,14 @@ rules
    *
    * @internal
    */
-  index-globals-path = 
-    !\"/.internal/globals\"
+  index-globals-path:
+  	names -> <separate-by(|\"/\"); concat-strings> path
+    with
+      if is-list then
+        path := <concat> [names, [\"globals\", \".internal\"]]
+      else
+        path := [names, \"global\", \".internal\"]
+      end
     
   /**
    * Gets the URI where globals are stored in the index for given name or names.
@@ -912,8 +901,23 @@ rules
   index-clear-global(|name):
     _ -> <id>
     with
-      <index-remove(|<index-globals-path>)> Global(<index-globals-uri> name, ())
-      
+      <index-globals-path; index-clear-partition> name
+rules
+	
+  /**
+   * Gets the 'fake' path where boolean globals are stored in the index.
+   *
+   * @internal
+   */
+  index-boolean-globals-path:
+  	names -> <separate-by(|\"/\"); concat-strings> path
+    with
+      if is-list then
+        path := <concat> [names, [\"boolean\", \"globals\", \".internal\"]]
+      else
+        path := [names, \"boolean\", \"global\", \".internal\"]
+      end
+	      
   /**
    * Gets the URI where boolean globals are stored in the index for given name or names.
    *
@@ -956,7 +960,7 @@ rules
   index-disable-global(|name):
     _ -> <id>
     with
-      <index-remove(|<index-globals-path>)> Global(<index-boolean-globals-uri> name)
+      <index-boolean-globals-path; index-clear-partition> name
       
   /**
    * Query for boolean value true in global boolean storage with given name.
@@ -972,6 +976,51 @@ rules
     _ -> <id>
     where
       <index-get-all; Hd> Global(<index-boolean-globals-uri> name)
+
+"
+
+	create-index-legacy = 
+		<output-text-file(|["lib", "runtime", "index"], "legacy.str")>
+"module runtime/index/legacy
+
+imports
+	
+	runtime/index/core
+	runtime/index/utils
+
+rules // Redirects
+	
+	index-setup(|language, project-path, current-partition) =
+		index-setup(|language, <index-setup-paths> project-path)
+		
+	index-clear = index-clear-all
+	
+	index-commit = index-persist
+		
+rules // Deprecated
+		
+	index-depricated-switch = fail
+	index-depricated = try(not(index-depricated-switch); with(fail|\"Deprecated.\"))
+		
+	index-get-all-with-partitions = index-depricated
+		
+  index-remove(|partition) = index-depricated
+    
+  index-remove-all = index-depricated
+    
+  index-remove-one = index-depricated
+  
+  index-get-current-partition = index-depricated
+  
+  index-set-current-partition = index-depricated
+  
+  index-get-partition-revision = index-depricated
+    
+  index-start-transaction = index-depricated
+  
+  index-end-transaction = index-depricated
+  
+  index-transaction(s) = index-depricated; s
 
 "
 
@@ -1017,17 +1066,6 @@ rules
    */
   index-get-all:
     template -> <prim(\"LANG_index_get\", template)>
-    
-  /**
-   * Get tuples of all index entries that match the given template with their partition
-   *
-   * Example:
-   *   <index-get-all> Def([Entity(), \"Bar\"]) => [((\"fullpath/file.ext\", \"subfile\"), Def([Entity(), \"Bar\"])), ...]
-   *
-   * @type template -> List(elem)
-   */
-  index-get-all-with-partitions:
-    template -> <prim(\"LANG_index_get_with_partitions\", template)>
 
   /**
    * Get all children entries of the given template.
@@ -1041,17 +1079,6 @@ rules
     template -> <prim(\"LANG_index_get_children\", template)>
   
   /**
-   * Gets the partition that the analysis is currently in.
-   *
-   * @type x -> partition
-   *
-   * @see index-setup(|language, project-paths, current-partition)
-   * @see index-set-current-partition
-   */
-  index-get-current-partition =
-    prim(\"LANG_index_get_current_file\")
-  
-  /**
    * Gets a list of all partitions for current project.
    *
    * Example:
@@ -1060,7 +1087,7 @@ rules
    * @type x -> List(partition)
    */   
   index-get-all-partitions =
-    prim(\"LANG_index_all_files\")
+    prim(\"LANG_index_all_partitions\")
   
   /**
    * Gets all index entries for the given partition.
@@ -1072,20 +1099,8 @@ rules
    * @type partition -> List(elem)
    */  
   index-get-all-in-partition =
-    prim(\"LANG_index_get_all_in_file\", <id>)
-    
-  /**
-   * Gets the revision of a partition.
-   *
-   * Example:
-   *   <index-get-partition-revision> \"fullpath/file.ext\" => 13
-   *   <index-get-partition-revision> (\"fullpath/file.ext\", \"subfile\") => 37
-   *
-   * @type partition -> Int
-   */
-  index-get-partition-revision:
-    file -> <prim(\"LANG_index_get_file_revision\", file)>
-    
+    prim(\"LANG_index_get_all_in_partition\", <id>)
+
   /**
    * Gets the containing partitions of index entry with given template.
    *
@@ -1095,8 +1110,17 @@ rules
    * @type template -> List(partition)
    */  
   index-get-partitions-of:
-    template -> <prim(\"LANG_index_get_files_of\", template)>
+    template -> <prim(\"LANG_index_get_partitions_of\", template)>
 
+"
+
+	create-index-utils = 
+		<output-text-file(|["lib", "runtime", "index"], "utils.str")>
+"module runtime/index/utils
+
+rules
+	
+	index-setup-paths = try(is-list; Hd)
 "
 
 	create-nbl-check = 
@@ -3269,8 +3293,10 @@ create-all-runtime-libraries =
 ; 	create-editor-queue
 ; 	create-index-core
 ; 	create-index-globals
+; 	create-index-legacy
 ; 	create-index-partition
 ; 	create-index-query
+; 	create-index-utils
 ; 	create-nbl-check
 ; 	create-nbl-collect
 ; 	create-nbl-complete

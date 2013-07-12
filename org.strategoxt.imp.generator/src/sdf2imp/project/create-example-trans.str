@@ -51,7 +51,7 @@ rules // Editor services
 	editor-resolve:
 		(node, position, ast, path, project-path) -> definition
 		where
-			definition := <analysis-resolve(|<language>, project-path, path)> node
+			definition := <analysis-resolve(|<language>, project-path)> node
 
 	// Returns "hover help" information for a particular node in the editor.
 	// For references, this rule is invoked using the resolved term.
@@ -63,7 +63,7 @@ rules // Editor services
 	editor-complete:
 		(node, position, ast, path, project-path) -> proposals
 		where
-			proposals := <analysis-propose-completions(|<language>, project-path, path)> ast
+			proposals := <analysis-propose-completions(|<language>, project-path)> ast
 
 rules // Builders
 	
