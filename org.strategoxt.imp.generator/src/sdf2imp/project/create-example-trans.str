@@ -214,9 +214,9 @@ rules
 		                                  (this note is defined in trans/check.str)])
 
 })>
-end /*;
+end;
 
-
+/*
 if not(<file-exists> "trans/refactor.str") then
   <output-text-file(|["trans"], "refactor.str")>
   <(GenerateMinimal
@@ -243,6 +243,7 @@ rules
     (newname, oldname{ref}, position, ast, path, project-path) -> <generic-rename-refactoring(id, constraint-error, constraint-warning)>
 ")>
 end;
+*/
 
 if not(<file-exists> "trans/outline.str") then
   <output-text-file(|["trans"], "outline.str")>
@@ -267,11 +268,11 @@ imports
 
 rules
 
-  outline-strategy = custom-label-outline(to-outline-label)
+  outline-strategy = simple-label-outline(to-outline-label)
+  outline-expand-to-level = 3
 
   to-outline-label: Module(name, _) -> name
   to-outline-label: Entity(name, _) -> name
   to-outline-label: Property(name, _) -> name
 })>
 end
-*/
