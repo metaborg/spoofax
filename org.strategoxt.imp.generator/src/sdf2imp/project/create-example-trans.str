@@ -33,6 +33,7 @@ imports
 	names
 	check
 	generate
+  outline
 
 rules // Analysis
 	
@@ -241,5 +242,36 @@ rules
   rename-refactoring:
     (newname, oldname{ref}, position, ast, path, project-path) -> <generic-rename-refactoring(id, constraint-error, constraint-warning)>
 ")>
+end;
+
+if not(<file-exists> "trans/outline.str") then
+  <output-text-file(|["trans"], "outline.str")>
+  <(GenerateMinimal
+  <
+!${module outline
+
+imports
+  include/{sdf-name}
+  lib/outline-library.generated
+
+rules
+
+  outline-strategy = fail
+}
+  +
+!${module outline
+
+imports
+  include/{sdf-name}
+  lib/outline-library.generated
+
+rules
+
+  outline-strategy = custom-label-outline(to-outline-label)
+
+  to-outline-label: Module(name, _) -> name
+  to-outline-label: Entity(name, _) -> name
+  to-outline-label: Property(name, _) -> name
+})>
 end
 */

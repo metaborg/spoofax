@@ -157,7 +157,7 @@ public class FileState {
 		IWorkbenchPage page =
 			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 		try {
-			IDE.openEditor(page, file, UniversalEditor.EDITOR_ID, activate);
+			IDE.openEditor(page, file, SpoofaxEditor.EDITOR_ID, activate);
 		} catch (PartInitException e) {
 			Environment.logException("Cannot open an editor for " + file, e);
 		}
@@ -188,7 +188,7 @@ public class FileState {
 		IWorkbenchPage page =
 			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 		try {
-			ITextEditor ite = (ITextEditor) IDE.openEditor(page, file, UniversalEditor.EDITOR_ID, activate);
+			ITextEditor ite = (ITextEditor) IDE.openEditor(page, file, SpoofaxEditor.EDITOR_ID, activate);
 			ite.selectAndReveal(offset, 0);
 		} catch (PartInitException e) {
 			Environment.logException("Cannot open an editor for " + file, e);

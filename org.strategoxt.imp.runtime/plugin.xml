@@ -356,5 +356,16 @@
       </menuContribution>
    </extension>
    
+      <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            name="Spoofax Editor"
+            icon="icons/Spoofax-editor.gif"
+            extensions="txt"
+            contributorClass="org.eclipse.imp.editor.internal.TextEditorActionContributor"
+            class="org.strategoxt.imp.runtime.SpoofaxEditor"
+            id="org.eclipse.imp.runtime.spoofaxEditor">
+      </editor>
+   </extension>
 </plugin>
 
