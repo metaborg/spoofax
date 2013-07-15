@@ -396,7 +396,8 @@ imports
 
 rules
 
-  outline-strategy = custom-label-outline(to-outline-label)
+  outline-strategy = simple-label-outline(to-outline-label)
+  outline-expand-to-level = 3
 
   to-outline-label: Module(name, _) -> name
   to-outline-label: Entity(name, _) -> name
