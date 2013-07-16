@@ -269,7 +269,7 @@ imports
 rules
 
   outline-strategy = simple-label-outline(to-outline-label)
-  outline-expand-to-level = 3
+  outline-expand-to-level = !3
 
   to-outline-label: Module(name, _) -> name
   to-outline-label: Entity(name, _) -> name
