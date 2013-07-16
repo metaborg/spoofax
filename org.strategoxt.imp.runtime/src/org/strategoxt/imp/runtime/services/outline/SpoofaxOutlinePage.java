@@ -174,6 +174,7 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 		    	TreePath[] treePaths = termPathToTreePaths(path);
 				TreeSelection selection = new TreeSelection(treePaths);
 				setSelection(selection);
+				return;
 	    	}
     	}
     	
