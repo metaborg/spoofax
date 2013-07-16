@@ -32,7 +32,7 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 
 	public final static String OUTLINE_STRATEGY = "outline-strategy";
 	public final static String OUTLINE_EXPAND_TO_LEVEL = "outline-expand-to-level";
-	private int outline_expand_to_level = 2;
+	private int outline_expand_to_level = 3;
 	private EditorState editorState;
 	private ImploderOriginTermFactory factory = new ImploderOriginTermFactory(new TermFactory());
 	private StrategoObserver observer;
