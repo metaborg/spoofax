@@ -166,20 +166,18 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
     		// TODO: fix EditorState.getSelectionAst()
     	}
     	
-    	if (textSelection == null) {
-    		return;
+    	if (textSelection != null) {
+	    	Context context = observer.getRuntime().getCompiledContext();
+	    	IStrategoList path = StrategoTermPath.getTermPathWithOrigin(context, outline, textSelection);
+	    	
+	    	if (path != null) {
+		    	TreePath[] treePaths = termPathToTreePaths(path);
+				TreeSelection selection = new TreeSelection(treePaths);
+				setSelection(selection);
+	    	}
     	}
     	
-    	Context context = observer.getRuntime().getCompiledContext();
-    	IStrategoList path = StrategoTermPath.getTermPathWithOrigin(context, outline, textSelection);
-    	
-    	if (path == null) {
-    		return;
-    	}
-
-    	TreePath[] treePaths = termPathToTreePaths(path);
-		TreeSelection selection = new TreeSelection(treePaths);
-		setSelection(selection);
+    	setSelection(new TreeSelection(new TreePath[0]));
     }
     
     private TreePath[] termPathToTreePaths(IStrategoList path) {
