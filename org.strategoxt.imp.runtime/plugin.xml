@@ -360,7 +360,7 @@
          point="org.eclipse.ui.editors">
       <editor
             name="Spoofax Editor"
-            icon="icons/Spoofax-editor.gif"
+            icon="icons/IMP-editor.gif"
             extensions="txt"
             contributorClass="org.eclipse.imp.editor.internal.TextEditorActionContributor"
             class="org.strategoxt.imp.runtime.SpoofaxEditor"

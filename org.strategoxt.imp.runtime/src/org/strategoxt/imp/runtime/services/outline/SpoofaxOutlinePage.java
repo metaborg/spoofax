@@ -32,7 +32,7 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 
 	public final static String OUTLINE_STRATEGY = "outline-strategy";
 	public final static String OUTLINE_EXPAND_TO_LEVEL = "outline-expand-to-level";
-	private int outline_expand_to_level = 2;
+	private int outline_expand_to_level = 3;
 	private EditorState editorState;
 	private ImploderOriginTermFactory factory = new ImploderOriginTermFactory(new TermFactory());
 	private StrategoObserver observer;
@@ -166,20 +166,19 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
     		// TODO: fix EditorState.getSelectionAst()
     	}
     	
-    	if (textSelection == null) {
-    		return;
+    	if (textSelection != null) {
+	    	Context context = observer.getRuntime().getCompiledContext();
+	    	IStrategoList path = StrategoTermPath.getTermPathWithOrigin(context, outline, textSelection);
+	    	
+	    	if (path != null) {
+		    	TreePath[] treePaths = termPathToTreePaths(path);
+				TreeSelection selection = new TreeSelection(treePaths);
+				setSelection(selection);
+				return;
+	    	}
     	}
     	
-    	Context context = observer.getRuntime().getCompiledContext();
-    	IStrategoList path = StrategoTermPath.getTermPathWithOrigin(context, outline, textSelection);
-    	
-    	if (path == null) {
-    		return;
-    	}
-
-    	TreePath[] treePaths = termPathToTreePaths(path);
-		TreeSelection selection = new TreeSelection(treePaths);
-		setSelection(selection);
+    	setSelection(new TreeSelection(new TreePath[0]));
     }
     
     private TreePath[] termPathToTreePaths(IStrategoList path) {
