@@ -33,7 +33,6 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 
 	public final static String OUTLINE_STRATEGY = "outline-strategy";
 	public final static String OUTLINE_EXPAND_TO_LEVEL = "outline-expand-to-level";
-	private int outline_expand_to_level = 3;
 	private EditorState editorState;
 	private ImploderOriginTermFactory factory = new ImploderOriginTermFactory(new TermFactory());
 	private StrategoObserver observer;
@@ -65,26 +64,6 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 		getTreeViewer().setContentProvider(new SpoofaxOutlineContentProvider());
 		String pluginPath = editorState.getDescriptor().getBasePath().toOSString();
 		getTreeViewer().setLabelProvider(new SpoofaxOutlineLabelProvider(pluginPath));
-		
-		observer.getLock().lock();
-		try {
-			if (observer.getRuntime().lookupUncifiedSVar(SpoofaxOutlinePage.OUTLINE_EXPAND_TO_LEVEL) != null) {
-				IStrategoTerm outline_expand_to_level = observer.invokeSilent(OUTLINE_EXPAND_TO_LEVEL, editorState.getCurrentAst(), editorState.getResource().getFullPath().toFile());
-				if (outline_expand_to_level == null) {
-					Environment.logException(OUTLINE_EXPAND_TO_LEVEL + " failed.");
-				}
-				else if (outline_expand_to_level.getTermType() != IStrategoTerm.INT) {
-					Environment.logException(OUTLINE_EXPAND_TO_LEVEL + " returned " + outline_expand_to_level + ", but should return an integer instead.");
-				}
-				else {
-					this.outline_expand_to_level = ((IStrategoInt) outline_expand_to_level).intValue();
-				}
-			}
-		}
-		finally {
-			observer.getLock().unlock();
-		}
-		
 		update();
 	}
 
@@ -108,6 +87,8 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 			// ensures propagation of origin information
 			factory.makeLink(outline, editorState.getCurrentAst());
 			
+			final int outline_expand_to_level = getOutline_expand_to_level();
+						
 			Display.getDefault().asyncExec(new Runnable() {
 				public void run() {
 					getTreeViewer().setInput(outline);
@@ -120,7 +101,24 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 		}
 	}
 	
-    @Override
+    private int getOutline_expand_to_level() {
+    	if (observer.getRuntime().lookupUncifiedSVar(SpoofaxOutlinePage.OUTLINE_EXPAND_TO_LEVEL) != null) {
+			IStrategoTerm outline_expand_to_level = observer.invokeSilent(OUTLINE_EXPAND_TO_LEVEL, editorState.getCurrentAst(), editorState.getResource().getFullPath().toFile());
+			if (outline_expand_to_level == null) {
+				Environment.logException(OUTLINE_EXPAND_TO_LEVEL + " failed.");
+			}
+			else if (outline_expand_to_level.getTermType() != IStrategoTerm.INT) {
+				Environment.logException(OUTLINE_EXPAND_TO_LEVEL + " returned " + outline_expand_to_level + ", but should return an integer instead.");
+			}
+			else {
+				return ((IStrategoInt) outline_expand_to_level).intValue();
+			}
+		}
+    	
+    	return 3; // default
+    }
+
+	@Override
 	public void selectionChanged(SelectionChangedEvent event) {
     	if (event.getSource() == getTreeViewer()) {
         	super.selectionChanged(event);
