@@ -20,6 +20,7 @@ import org.spoofax.jsglr.client.imploder.ImploderOriginTermFactory;
 import org.spoofax.terms.TermFactory;
 import org.spoofax.terms.attachments.OriginAttachment;
 import org.strategoxt.imp.runtime.EditorState;
+import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
@@ -67,9 +68,17 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 		
 		observer.getLock().lock();
 		try {
-			IStrategoTerm outline_expand_to_level = observer.invokeSilent(OUTLINE_EXPAND_TO_LEVEL, editorState.getCurrentAst(), editorState.getResource().getFullPath().toFile());
-			if (outline_expand_to_level != null) {
-				this.outline_expand_to_level = ((IStrategoInt) outline_expand_to_level).intValue();
+			if (observer.getRuntime().lookupUncifiedSVar(SpoofaxOutlinePage.OUTLINE_EXPAND_TO_LEVEL) != null) {
+				IStrategoTerm outline_expand_to_level = observer.invokeSilent(OUTLINE_EXPAND_TO_LEVEL, editorState.getCurrentAst(), editorState.getResource().getFullPath().toFile());
+				if (outline_expand_to_level == null) {
+					Environment.logException(OUTLINE_EXPAND_TO_LEVEL + " failed.");
+				}
+				else if (outline_expand_to_level.getTermType() != IStrategoTerm.INT) {
+					Environment.logException(OUTLINE_EXPAND_TO_LEVEL + " returned " + outline_expand_to_level + ", but should return an integer instead.");
+				}
+				else {
+					this.outline_expand_to_level = ((IStrategoInt) outline_expand_to_level).intValue();
+				}
 			}
 		}
 		finally {
