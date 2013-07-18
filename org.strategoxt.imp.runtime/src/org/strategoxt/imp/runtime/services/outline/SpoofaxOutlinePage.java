@@ -2,9 +2,8 @@ package org.strategoxt.imp.runtime.services.outline;
 
 import java.util.LinkedList;
 
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.imp.parser.IModelListener;
-import org.eclipse.imp.parser.IParseController;
+import org.eclipse.jface.text.DocumentEvent;
+import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreePath;
@@ -29,11 +28,11 @@ import org.strategoxt.lang.Context;
 /**
  * @author Oskar van Rest
  */
-public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelListener {
+public class SpoofaxOutlinePage extends ContentOutlinePage implements IDocumentListener {
 
 	public final static String OUTLINE_STRATEGY = "outline-strategy";
 	public final static String OUTLINE_EXPAND_TO_LEVEL = "outline-expand-to-level";
-	private EditorState editorState;
+	private final EditorState editorState;
 	private ImploderOriginTermFactory factory = new ImploderOriginTermFactory(new TermFactory());
 	private StrategoObserver observer;
 	private boolean debounceSelectionChanged;
@@ -48,14 +47,6 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 		catch (BadDescriptorException e) {
 			e.printStackTrace();
 		}
-		
-		editorState.getEditor().addModelListener(this);
-		editorState.getEditor().getSelectionProvider().addSelectionChangedListener(this);
-	}
-	
-	@Override
-	public void dispose() {
-		editorState.getEditor().removeModelListener(this);
 	}
 	
 	@Override
@@ -65,14 +56,23 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 		String pluginPath = editorState.getDescriptor().getBasePath().toOSString();
 		getTreeViewer().setLabelProvider(new SpoofaxOutlineLabelProvider(pluginPath));
 		update();
+		
+		editorState.getDocument().addDocumentListener(this);
+		editorState.getEditor().getSelectionProvider().addSelectionChangedListener(this);
 	}
 
-	public AnalysisRequired getAnalysisRequired() {
-		return AnalysisRequired.NONE;
+
+	public void documentAboutToBeChanged(DocumentEvent event) {
+		// do nothing
 	}
 
-	public void update(IParseController controller, IProgressMonitor monitor) {
+	public void documentChanged(DocumentEvent event) {
 		update();
+	}
+		
+	@Override
+	public void dispose() {
+		editorState.getDocument().removeDocumentListener(this);
 	}
 	
 	public void update() {
