@@ -18,7 +18,7 @@ public class AntResetProject {
 		final IndexManager indexManager = IndexManager.getInstance();
 		final IIndex index = indexManager.getIndex(args[0]);
 		if(index != null)
-			index.clearAll();
+			index.reset();
 
 		NotificationCenter.notifyNewProject(indexManager.getProjectURIFromAbsolute(projectPath));
 	}

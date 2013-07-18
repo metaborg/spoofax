@@ -34,6 +34,7 @@ rules
 imports
 	
   runtime/nbl/collect
+  runtime/nbl/incremental
   runtime/nbl/entries
   runtime/nbl/uri
   runtime/nbl/utils
@@ -58,6 +59,7 @@ rules // Analysis
     	measure-time(
 	    	measure-time(
 	    		index-setup(|language, project-path);
+	    		index-recover;
 			    index-start-collection(|partition);
 	    		task-setup(|project-path);
 	    		task-recover;
@@ -69,7 +71,7 @@ rules // Analysis
 	  	  ); measure-time(
 	  	  	index-stop-collection => (removed-entry*, added-entry*);
 	      	task-stop-collection(|partition);
-	      	changed-read* := <filter(analyze-diff-entry; nabl-uri; try(nabl-replace-uri-qualifier(|())))> [removed-entry*, added-entry*]
+	      	changed-read* := <nabl-get-changed-reads> [removed-entry*, added-entry*]
 	      	, id | \"analyze-collect-diff\" 
 	  	  ); measure-time(
 	  	  	task-invalidate-task-reads(|changed-read*)
@@ -110,14 +112,6 @@ rules // Analysis
 			origin := <task-message-origin> message;
 			term   := <task-message-term> message;
 			msg    := <task-message> message
-
-rules // Index entries to diff
-	
-  analyze-diff-entry =
-    ?Def(_)
-    
-  analyze-diff-entry =
-    ?Prop(_, _, _)
       
 rules // Projections
 	
@@ -126,6 +120,8 @@ rules // Projections
 		
 	analyze-result-analyzed-ast:
 		Result(_, _, analyzed-ast, _, _, _, _) -> analyzed-ast
+
+	analysis-partition(|path, project-path) = !$[[project-path]/[path]]
 
 "
 
@@ -237,7 +233,7 @@ rules // Single finle analysis
       (error*, warning*, note*) := <analysis-message-collect(pp-message|analysis-error*, analysis-warning*, analysis-note*)> ast';
       partition* := <analysis-changed-partitions> evaluated-task*;
       if <not(is-test-file)> path then
-      	partition := $[[project-path]/[path]];
+      	partition := <analysis-partition(|path, project-path)>;
       	<remove-all(?partition <+ ?path); analysis-message-update-partitions-queue(|language, project-path)> partition*
     	end;
       <analysis-default-debug> $[[<length> evaluated-task*] task evaluated, [<length> unevaluated-task*] task unevaluated.];
@@ -370,6 +366,47 @@ rules // Multi file analysis
       
 "
 
+	create-analysis-reanalysis = 
+		<output-text-file(|["lib", "runtime", "analysis"], "reanalysis.str")>
+"module runtime/analysis/reanalysis
+
+imports
+	
+	runtime/analysis/core
+	runtime/analysis/defaults
+	runtime/task/core
+	runtime/index/core
+	runtime/nbl/collect
+
+rules
+	
+	start-reanalysis(|language, path, project-path) =
+		nabl-namegen-clear(|<analysis-partition(|path, project-path)>);
+		index-push;
+		task-push
+		
+	stop-reanalysis(|language, path, project-path) =
+		task-pop;
+		index-pop
+	
+	reanalysis(s|language, path, project-path) =
+		where(start-reanalysis(|language, path, project-path); s; stop-reanalysis(|language, path, project-path))
+	
+  reanalyze-ast(|language, path, project-path):
+    ast -> analyzed-ast
+    with
+      partition := <analysis-partition(|path, project-path)>;
+      r@Result(_, _, analyzed-ast, _, _, _, _) := <analyze-collect(|language, project-path)> File(partition, ast);
+    	(result*, evaluated-task*, unevaluated-task*) := <analyze-perform-all> [r];
+    	Result(_, _, _, _, error*, warning*, note*) := <Hd> result*;
+      <analysis-default-debug> $[[<length> evaluated-task*] task evaluated, [<length> unevaluated-task*] task unevaluated.];
+      <map(task-debug-info(|<id>); analysis-default-debug(!\"Unevaluated: \"))> unevaluated-task*; 
+      <map(analysis-default-debug(!\"Error: \"))> error*;
+      <map(analysis-default-debug(!\"Warning: \"))> warning*;
+      <map(analysis-default-debug(!\"Note: \"))> note*
+
+"
+
 	create-analysis-resolve = 
 		<output-text-file(|["lib", "runtime", "analysis"], "resolve.str")>
 "module runtime/analysis/resolve
@@ -408,7 +445,7 @@ rules // Single file analysis
   analyze-one(|language, path, project-path):
     ast -> (analyzed-ast, evaluated-task*, unevaluated-task*, (error*, warning*, note*))
     with
-      partition := $[[project-path]/[path]];
+      partition := <analysis-partition(|path, project-path)>;
       r@Result(_, _, analyzed-ast, _, _, _, _) := <analyze-collect(|language, project-path)> File(partition, ast);
     	(result*, evaluated-task*, unevaluated-task*) := <analyze-perform-all> [r];
     	Result(_, _, _, _, error*, warning*, note*) := <Hd> result*
@@ -637,6 +674,9 @@ rules
   index-setup(|language, project-path) =
     prim(\"LANG_index_setup_new\", language, <index-setup-paths> project-path)
     
+  index-setup:
+  	(language, project-path) -> <prim(\"LANG_index_setup_new\", language, <index-setup-paths> project-path)>
+    
   /**
    * Unloads the currently loaded index.
    *
@@ -650,6 +690,12 @@ rules
   index-unload(|project-path) =
     prim(\"LANG_index_unload\", project-path)
 
+  /**
+   * Tries to recover the index from an invalid state, for example after a crash.
+   */
+	index-recover =
+		prim(\"LANG_index_recover\")
+		
 	/**
 	 * Starts collection for given partition. Used in conjunction with index-stop-collection to 
 	 * retrieve a list of added and removed index entries in relation to the previous entries in
@@ -758,7 +804,7 @@ rules
    *
    * @type x -> x
    */
-  index-clear-all = 
+  index-reset = 
     prim(\"LANG_index_clear_all\")
     
   /**
@@ -993,7 +1039,8 @@ rules // Redirects
 	index-setup(|language, project-path, current-partition) =
 		index-setup(|language, <index-setup-paths> project-path)
 		
-	index-clear = index-clear-all
+	index-clear = index-reset
+	index-clear-all = index-reset
 	
 	index-commit = index-persist
 		
@@ -1175,11 +1222,13 @@ imports
 	runtime/task/messages
 	runtime/nbl/tasks
 	runtime/nbl/entries
+	runtime/nbl/query
 	runtime/nbl/interface
 	runtime/nbl/uri
 	runtime/nbl/utils
 	runtime/types/collect
 	runtime/editor/origins
+	runtime/index/core
 	
 signature 
 
@@ -1194,6 +1243,7 @@ signature
 	constructors // unique name generation
 		
 		GenerateName : Namespace -> GenerateName
+		GenerateNum  : URI * Int -> Entry
 
 	constructors // def
 
@@ -1250,7 +1300,7 @@ strategies // generic traversal
 	  ast -> ast''
 	  where
 	    new-hashtable => unique*;
-	    ast'  := <nabl-collect(id|lang, partition, unique*, []); remove-annotations(?Scope(_))> ast ;
+	    ast'  := <nabl-collect(id|lang, partition, unique*, [])> ast ;
 	    ast'' := <alltd(message-task(|partition))> ast'
 	  
 	/**
@@ -1272,10 +1322,11 @@ strategies // generic traversal
   ; try(nabl-state-site)
   // visit children from left to right  
   ; preserve-annos(force-origins(id#(nabl-siblings(|lang, partition, unique*, child-uri*))))
+  ; try(nabl-external-def-site(|partition))
   ; try(nabl-use-site(|lang, partition, unique*, uri'*, state*))
   ; try(nabl-import-site(|lang, partition, child-uri*, state*))
   ; try(nabl-prop-site(|lang, partition, state*, implicit*))
-  ; annotate-property-tasks(|partition)
+  ; annotate-property-tasks(|lang, partition, uri'*)
     
 	nabl-siblings(|lang, partition, unique*, uri*) = 
 		[]  
@@ -1319,27 +1370,26 @@ rules // generic analysis of scopes
 rules // generic analysis of name generation
 	
 	nabl-namegen(|lang, partition, unique*, uri*, anno*):
-		name -> <origin-track-forced(!newname')> name
+		name -> <origin-track-forced(!newname{anno'*})> name
 		where
 			<has-annotation(?GenerateName(ns))> name;
 			uri      := <lookup-uri(|lang, ns)> uri*;
 			newname  := <nabl-namegen-get(|lang, partition, ns, uri, unique*)> name;
-			newname' := <add-annotations(|anno*); remove-annotations(?GenerateName(_))> newname
+			anno'*   := <remove-all(?GenerateName(_))> anno*
 	
 	nabl-namegen-get(|lang, partition, ns, uri, unique*):
 		name -> result
 		with
 			name-key := (name, \"namegen\");
-			num-key  := (lang, partition, ns, uri, \"namegen\");
       if full-newname := <hashtable-get(|name-key)> unique* then
         result := full-newname
       else
-        nextnum := <hashtable-get(|num-key) <+ !0> unique*;
+        nextnum := <nabl-namegen-get-num(|uri) <+ !0>;
         newname := <nabl-namegen-name(|lang, partition, ns)> uri;
         numstr  := <int-to-string> nextnum;
         result  := $[[newname]__[numstr]];
         <hashtable-put(|name-key, result)> unique*;
-        <hashtable-put(|num-key, <inc> nextnum)> unique*
+        <inc; nabl-namegen-store-num(|partition, uri)> nextnum
       end
       
   nabl-namegen-name(|lang, partition, ns):
@@ -1349,7 +1399,14 @@ rules // generic analysis of name generation
   		ns-name             := <get-constructor> ns;
   		uri-name            := <nabl-uri-path; filter(nabl-segment-name); separate-by(|\"_\"); concat-strings> uri
   		
-	nabl-namegen-name-fix = lower-case; string-replace(|\"/\", \"_\"); string-replace(|\"-\", \"_\")
+	nabl-namegen-name-fix = lower-case; string-replace(|\"/\", \"_\"); string-replace(|\"-\", \"_\"); string-replace(|\".\", \"_\")
+	
+	nabl-namegen-get-num(|uri)              = <nabl-get-all-values; !(<id>, 0); foldl(max)> GenerateNum(uri, ())
+	nabl-namegen-store-num(|partition, uri) = <index-add(|<nabl-namegen-partition(|partition)>)> GenerateNum(uri, <id>)
+	nabl-namegen-clear(|partition)          = nabl-namegen-partition(|partition); index-clear-partition
+	nabl-namegen-partition(|partition)      = !$[[partition]_namegen]
+	nabl-uri                                : GenerateNum(uri, _) -> uri
+	nabl-value                              : GenerateNum(_, num) -> num
 	 
 rules // generic analysis of defs
     	
@@ -1401,9 +1458,6 @@ rules // generic analysis of defs
 			  ; match(child-uris|child-uri*)
 			  ; match(sibling-uris|sibl-uri*)
 		  end
-    where
-      //introduce aliases
-	    try(<filter(nabl-def-alias(|partition, def-uri))> def-scope*)
     with
 			// add Def entry to the index
 			d := <new-def(|partition, def-uri)> a
@@ -1415,13 +1469,16 @@ rules // generic analysis of defs
 			end
 	
 	nabl-def-alias(|partition, def-uri):
-	  DefScope(term{anno*}) -> <new-alias(|partition, def-uri, alias-uri)>
+	  term{anno*} -> <id>
 	  where
 	    <fetch-elem(?Scope(scope*))> anno*
 	  ; ns        := <nabl-uri-namespace> def-uri
 	  ; base-uri  := <lookup> (ns, scope*)
-	  ; segment   := <nabl-uri-path; Hd> base-uri
-	  ; alias-uri := <nabl-extend-uri(|segment)> base-uri
+	  ; segment   := <nabl-uri-path; Hd> def-uri
+	  ; alias-uri := <nabl-extend-uri(|segment); nabl-nonunique-uri> base-uri
+	  where
+	   new-alias(|partition, alias-uri, def-uri)
+
       
 rules // generic analysis of uses
 	
@@ -1733,10 +1790,11 @@ signature
 
   constructors
     
-    Def   : URI                    -> Entry
-    Alias : URI * URI              -> Entry
-    Use   : URI                    -> Entry
-    Prop  : URI * Property * Value -> Entry
+    Def          : URI                    -> Entry
+    Alias        : URI * URI              -> Entry
+    InverseAlias : URI * URI              -> Entry
+    Use          : URI                    -> Entry
+    Prop         : URI * Property * Value -> Entry
   
 rules
   
@@ -1748,6 +1806,16 @@ rules
 			<new-alias(|partition, <nabl-nonunique-uri> uri, uri)> x
       
   new-alias(|partition, uri, alias-uri):
+    x -> alias
+    with
+      alias := <force-origins(!Alias(uri, alias-uri))> x;
+      ialias := <force-origins(!InverseAlias(alias-uri, uri))> x;
+      if <not(eq)> (uri, alias-uri) then
+      	<index-add(|partition)> alias;
+      	<index-add(|partition)> ialias
+      end
+      
+  new-inverse-alias(|partition, uri, alias-uri):
     x -> alias
     with
       alias := <force-origins(!Alias(uri, alias-uri))> x;
@@ -1770,37 +1838,98 @@ rules
 rules // index uri & value projections
   
   /** @internal */
-  nabl-uri-impl:
+  nabl-uri:
     Def(uri) -> uri
     
   /** @internal */
-  nabl-uri-impl:
+  nabl-uri:
     Alias(uri, _) -> uri
     
+  /** @internal */
+  nabl-uri:
+    InverseAlias(uri, _) -> uri
+    
   /** @internal */  
-  nabl-uri-impl:
+  nabl-uri:
     Use(uri) -> <nabl-is-uri> uri
     
   /** @internal */  
-  nabl-uri-impl:
+  nabl-uri:
     Prop(uri, _, _) -> uri
     
     
   /** @internal */
-  nabl-value-impl:
+  nabl-value:
     Def(value) -> value
     
   /** @internal */
-  nabl-value-impl:
+  nabl-value:
     Alias(_, value) -> value
+    
+  /** @internal */
+  nabl-value:
+    InverseAlias(_, value) -> value
 
   /** @internal */
-  nabl-value-impl:
+  nabl-value:
     Use(value) -> value
     
   /** @internal */
-  nabl-value-impl:
+  nabl-value:
     Prop(_, _, value) -> value
+
+"
+
+	create-nbl-incremental = 
+		<output-text-file(|["lib", "runtime", "nbl"], "incremental.str")>
+"module runtime/nbl/incremental
+
+imports
+	
+	runtime/nbl/uri
+	runtime/nbl/entries
+	runtime/task/core
+	
+rules // Read generation
+	
+	nabl-add-uri-read(|taskID):
+		uri -> uri
+		with
+			<try(nabl-replace-uri-qualifier(|())); task-add-read(|taskID)> uri
+			
+	nabl-add-ns-read(|taskID, ns):
+		uri -> uri
+		with
+			<task-add-read(|taskID)> (uri, ns)
+			
+	nabl-add-name-read(|taskID, ns, name):
+		uri -> uri
+		with
+			<nabl-extend-uri(|ns, name, ()); task-add-read(|taskID)> uri
+			
+rules // Read processing
+	
+	nabl-get-changed-reads:
+		changed-entry* -> [uri-read*, ns-read*]
+		with
+			uri*      := <filter(nabl-diff-entry; nabl-uri)> changed-entry*;
+			uri-read* := <map(try(nabl-replace-uri-qualifier(|())))> uri*;
+			ns-read*  := <filter(nabl-create-ns-read)> uri*
+	
+	nabl-create-ns-read:
+		uri -> (uri', ns)
+		where
+			ns   := <nabl-uri-namespace> uri;
+			uri' := <nabl-uri-parent> uri
+
+  nabl-diff-entry =
+    ?Def(_)
+ 
+  nabl-diff-entry =
+    ?Alias(_, _)
+    
+  nabl-diff-entry =
+    ?Prop(_, _, _)
 
 "
 
@@ -1817,6 +1946,8 @@ strategies // Collect
 	| lang, partition, unique*, uri*, state*
 	) = fail
 	
+	nabl-external-def-site(|partition) = fail
+
 	nabl-state-site = fail
 	
 	nabl-use-site(|lang, partition, unique*, uri*, state*) = fail
@@ -1824,6 +1955,7 @@ strategies // Collect
 	nabl-import-site(|lang, partition, uri*, state*) = fail
 	
 	nabl-prop-site(|lang, partition, state*, implicit*) = fail
+	
 	
 strategies // Projections
   
@@ -2017,6 +2149,20 @@ rules // Specific queries
       else
         aliasURI* := []
       end
+      
+  /**
+   * Gets all InverseAlias entries that match the given URI.
+   *
+   * Example:
+   *   <nabl-get-all-aliases> Def([Entity(), \"M\", \"Bar\"]) => [[Entity(), \"M\", \"Baz\"], ...]
+   *
+   * @type Def(uri) or \"name\"{uri} or URI(language, path) -> List(inverseAliasURI)
+   */
+  nabl-get-inverse-alias:
+    containsURI -> inverse-alias
+    where
+    	uri           := <nabl-uri> containsURI;
+      inverse-alias := <nabl-get-value> InverseAlias(uri, ()) 
 
 rules // Generic queries
   
@@ -2139,9 +2285,11 @@ rules // Reference resolution
 imports 
   
   runtime/task/core
+  runtime/task/tasks
   runtime/nbl/lookup
   runtime/nbl/collect
   runtime/nbl/query
+  runtime/nbl/incremental
   runtime/nbl/interface
   runtime/nbl/uri
   runtime/nbl/utils
@@ -2169,7 +2317,7 @@ rules // Resolve
   	where
   		uri   := <nabl-uri> scope;
   		name' := <try-remove-list; strip-annos> name; // TODO: can this be a list?
-  		<nabl-add-read-extend(|nr, ns, name')> uri;
+  		<nabl-add-name-read(|nr, ns, name')> uri;
   		def*  := <nabl-lookup(|ns, name')> uri;
   		not(?[])
 
@@ -2190,7 +2338,7 @@ rules // Resolve
 		ResolveNamedImports(scope, ns, name) -> result
 		where
 			uri     := <nabl-uri> scope;
-			<nabl-add-read(|nr)> uri;
+			<nabl-add-uri-read(|nr)> uri;
 			name'   := <try-remove-list; strip-annos> name; // TODO: can this be a list?
 			import* := <nabl-lookup-named-import(|ns, name')> uri;
       switch id
@@ -2214,7 +2362,7 @@ rules // Resolve
 	resolve-one-wildcard-import(|nr, ns):
 		uri -> result
 		with
-			<nabl-add-read(|nr)> uri;
+			<nabl-add-uri-read(|nr)> uri;
 			if task-exists(|ImportClosure(uri)) then
 				import-closure-id := <task-instruction-id> ImportClosure(uri);
 				switch id
@@ -2234,8 +2382,33 @@ rules // Visibility
   	ResolveAllDefs(scope, ns) -> def*
   	where
   		uri  := <nabl-uri> scope;
+  		<nabl-add-ns-read(|nr, ns)> uri;
   		def* := <nabl-lookup-all(|ns)> uri;
   		not(?[])
+
+	nabl-resolve-all-defs-subtasks(|partition, ns, prop*, range):
+		uri -> concatted
+		with
+			task := <nabl-resolve-all-defs-subtasks-one(|partition, ns, prop*, range)> uri;
+      switch !range
+      	case One(): ![]
+      	case All(): <nabl-uri-parent < nabl-resolve-all-defs-subtasks(|partition, ns, prop*, range) + ![]> uri
+    	end => subtask;
+    	concatted := <new-task(|partition)> Concat([task, subtask])
+		
+	nabl-resolve-all-defs-subtasks-one(|partition, ns, prop*, range):
+		uri -> filtered
+		with
+			def-task := <new-task(|partition)> ResolveAllDefs(<nabl-use-subtask-uri(|partition)> uri, ns);
+			if ExternalDef(x) := <nabl-uri-path; Hd> uri then
+        ext-uri      := <nabl-uri-language; nabl-base-uri; nabl-extend-uri(|Anonymous(x))> uri;
+        ext-def-task := <new-task(|partition)> ResolveAllDefs(<nabl-use-subtask-uri(|partition)> ext-uri, ns);
+        task*        := [ext-def-task, def-task]
+      else
+      	task* := [def-task]
+      end;
+      concatted := <new-task(|partition)> Concat(task*);
+      filtered  := <nabl-use-propconstraint(|partition)> (concatted, prop*)
 
 rules // Import calculation
 	
@@ -2243,7 +2416,7 @@ rules // Import calculation
 	perform-task(|nr):
 		ImportCalc(uri) -> result
 		where
-			<nabl-add-read(|nr)> uri;
+			<nabl-add-uri-read(|nr)> uri;
 			import-ns-use*        := <nabl-get-all-properties(|Import())> uri;
 			(imported-uri*, uri*) := <partition(resolve-transitive-import, resolve-import)> import-ns-use*;
   		switch id
@@ -2259,7 +2432,7 @@ rules // Import calculation
 	perform-task(|nr):
 		ImportClosure(uri) -> result
 		with
-			<nabl-add-read(|nr)> uri;
+			<nabl-add-uri-read(|nr)> uri;
 			import-calc-id        := <task-instruction-id> ImportCalc(uri);
 			(imported-uri*, uri*) := <task-get-result; Hd> import-calc-id; // Result for this task must exit, as a dependency is expressed on it during collect.
 			hashtable             := <new-hashtable>;
@@ -2276,7 +2449,7 @@ rules // Import calculation
 	import-closure-transitive(|nr, hashtable):
 		uri	-> result
 		with
-			<nabl-add-read(|nr)> uri;
+			<nabl-add-uri-read(|nr)> uri;
 			if task-exists(|ImportClosure(uri)) then
 				import-closure-id := <task-instruction-id> ImportClosure(uri);
 				switch id
@@ -2302,11 +2475,6 @@ rules // Property constraint
       	otherwise                           : (<nabl-property-eq(|kind) <+ eq> (expected, value'); !definition) <+ 
                                               (<nabl-property-eq(|kind) <+ eq> (expected, <try-remove-list> value'); !definition)
       end => result
-
-rules // Utility
-	
-	nabl-add-read(|nr) = try(nabl-replace-uri-qualifier(|())); task-add-read(|nr)
-	nabl-add-read-extend(|nr, ns, name) = nabl-extend-uri(|ns, name, ()); task-add-read(|nr)
 
 "
 
@@ -2399,11 +2567,8 @@ rules // stable URI extensions
       
 rules // Projections
   
-  nabl-uri = 
-    nabl-uri-impl <+ nabl-uri-generic
-    
-  nabl-value = 
-    nabl-value-impl <+ nabl-value-generic
+  nabl-uri = fail
+  nabl-value = fail
   
   nabl-uri-language:
     URI(language, _) -> language
@@ -2483,6 +2648,9 @@ rules // Conditions
   nabl-is-nonunique =
     nabl-uri-qualifier;
     ?NonUnique()
+    
+  nabl-segment-is-id =
+  	?ID(_, _, _)
 
 rules // Equality
   
@@ -2516,27 +2684,19 @@ rules // Printing
 rules /** @internal Projections */
 
   /** @internal */
-  nabl-uri-impl:
-    URI(_, _) -> <id>
-
-  /** @internal */
-  nabl-uri-generic:
-    term -> <not(is-list); ?_#(<?[<id>|_]>); nabl-is-uri> term
-    
-  /** @internal */
-  nabl-value-impl:
+  nabl-uri:
     URI(_, _) -> <id>
     
   /** @internal */
-  nabl-value-generic:
-    term -> <not(is-list); ?_#(<?[_, <id>|_]> ); nabl-is-uri> term
+  nabl-value:
+    URI(_, _) -> <id>
     
   /** @internal */  
-  nabl-uri-impl:
+  nabl-uri:
     _{anno*} -> <fetch-elem(nabl-uri)> anno*
 
   /** @internal */  
-  nabl-value-impl:
+  nabl-value:
     _{anno*} -> <fetch-elem(nabl-value)> anno*
 
 "
@@ -2752,11 +2912,15 @@ rules // API
 	task-get-messages(|partition)                              = task-api-get-messages(|partition)
 	task-get-readers                                           = task-api-get-readers(|<id>)
 	task-invalidate-task-reads(|changedRead*)                  = task-api-invalidate-task-reads(|changedRead*)
+	task-merge                                                 = task-api-merge
 	task-partitions-of(|taskIDOrTaskID*)                       = task-api-partitions-of(|taskIDOrTaskID*)
 	task-persist                                               = task-api-persist
+	task-pop                                                   = task-api-pop
+	task-push                                                  = task-api-push
 	task-recover                                               = task-api-recover
 	task-reset                                                 = task-api-reset
 	task-setup(|project-path)                                  = task-api-setup(|project-path)
+	task-setup                                                 = task-api-setup(|<id>)
 	task-start-collection(|partition)                          = task-api-start-collection(|partition)
 	task-stop-collection(|partition)                           = task-api-stop-collection(|partition)
 	task-unload                                                = task-unload(|<id>)
@@ -2817,8 +2981,11 @@ rules /** @internal API externals */
 	task-api-get-results(|taskID) = prim(\"task_api_get_results\", taskID)
 	task-api-has-failed(|taskID) = prim(\"task_api_has_failed\", taskID)
 	task-api-invalidate-task-reads(|changedReads) = prim(\"task_api_invalidate_task_reads\", changedReads)
+	task-api-merge = prim(\"task_api_merge\")
 	task-api-partitions-of(|taskIDOrTaskIDS) = prim(\"task_api_partitions_of\", taskIDOrTaskIDS)
 	task-api-persist = prim(\"task_api_persist\")
+	task-api-pop = prim(\"task_api_pop\")
+	task-api-push = prim(\"task_api_push\")
 	task-api-recover = prim(\"task_api_recover\")
 	task-api-reset = prim(\"task_api_reset\")
 	task-api-setup(|project-path) = prim(\"task_api_setup\", project-path)
@@ -3128,27 +3295,31 @@ imports
   
 strategies
   
-  annotate-property-tasks(|partition):
-  	term -> <foldl(annotate-property-task(|partition) <+ Snd)> (kind*, term')
+  annotate-property-tasks(|lang, partition, uri*):
+  	term -> <foldl(annotate-property-task(|lang, partition, uri*) <+ Snd)> (kind*, term')
   	where
   		kind* := [Type()|<custom-properties <+ ![]>];
   		term' := <remove-property-annotations(|kind*)> term
   
-  annotate-property-task(|partition):
+  annotate-property-task(|lang, partition, uri*):
     (kind, term{a*}) -> term{(kind, prop), a*}
     where
       not(<property-task(|kind)> term)
     where
-      prop := <new-property-task(|partition)> 
+      prop := <new-property-task(|lang, partition, uri*) <+ new-property-task(|partition)> 
   
   remove-property-annotations(|kind*) =
   	!(kind*, <id>); foldl(remove-property-annotation) 
   	
 	remove-property-annotation:
 		(kind, term) -> <remove-annotations(?(kind, _))> term
+
      
-  new-property-task(|task*):
-    (Type(), term) -> <type-of(|task*)> term
+  new-property-task(|lang, partition, uri*):
+    (Type(), term) -> <type-of(|lang, partition, uri*) <+ type-of(|partition)> term
+    
+  new-property-task(|partition):
+    (Type(), term) -> <type-of(|partition)> term
 
   property-task(|kind, task*) = 
      property-task(|kind)
@@ -3219,7 +3390,9 @@ strategies
   
   new-property-task(|task*): (kind, term) -> <fail>
 
-  type-of(|task*) = fail
+  type-of(|partition) = fail
+  
+  type-of(|lang, partition, uri*) = fail
 
   type-prop-eq = eq
 
@@ -3235,6 +3408,7 @@ imports
 	runtime/nbl/collect
 	runtime/nbl/entries
 	runtime/nbl/query
+	runtime/nbl/incremental
 	runtime/nbl/utils
 	runtime/nbl/uri
 	runtime/nbl/tasks
@@ -3256,7 +3430,7 @@ rules
   	where
   		resolved := <nabl-collect-one-resolved-def> t;
   		uri      := <nabl-uri> resolved;
-  		<nabl-add-read(|n)> uri;
+  		<nabl-add-uri-read(|n)> uri;
   		prop     := <nabl-get-property(|kind); insert-results-or-create-dependency> uri;
       switch id
       	case task-collect-dependencies => d : !d
@@ -3289,6 +3463,7 @@ create-all-runtime-libraries =
 ; 	create-analysis-debug
 ; 	create-analysis-defaults
 ; 	create-analysis-multiple
+; 	create-analysis-reanalysis
 ; 	create-analysis-resolve
 ; 	create-analysis-single
 ; 	create-editor-editor
@@ -3305,6 +3480,7 @@ create-all-runtime-libraries =
 ; 	create-nbl-collect
 ; 	create-nbl-complete
 ; 	create-nbl-entries
+; 	create-nbl-incremental
 ; 	create-nbl-interface
 ; 	create-nbl-lookup
 ; 	create-nbl-query
