@@ -2,8 +2,9 @@ package org.strategoxt.imp.runtime.services.outline;
 
 import java.util.LinkedList;
 
-import org.eclipse.jface.text.DocumentEvent;
-import org.eclipse.jface.text.IDocumentListener;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.imp.parser.IModelListener;
+import org.eclipse.imp.parser.IParseController;
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreePath;
@@ -28,7 +29,7 @@ import org.strategoxt.lang.Context;
 /**
  * @author Oskar van Rest
  */
-public class SpoofaxOutlinePage extends ContentOutlinePage implements IDocumentListener {
+public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelListener {
 
 	public final static String OUTLINE_STRATEGY = "outline-strategy";
 	public final static String OUTLINE_EXPAND_TO_LEVEL = "outline-expand-to-level";
@@ -57,22 +58,22 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IDocumentL
 		getTreeViewer().setLabelProvider(new SpoofaxOutlineLabelProvider(pluginPath));
 		update();
 		
-		editorState.getDocument().addDocumentListener(this);
+		editorState.getEditor().addModelListener(this);
 		editorState.getEditor().getSelectionProvider().addSelectionChangedListener(this);
 	}
 
 
-	public void documentAboutToBeChanged(DocumentEvent event) {
-		// do nothing
-	}
-
-	public void documentChanged(DocumentEvent event) {
+	public void update(IParseController arg0, IProgressMonitor arg1) {
 		update();
+	}
+	
+	public AnalysisRequired getAnalysisRequired() {
+		return AnalysisRequired.NONE;
 	}
 		
 	@Override
 	public void dispose() {
-		editorState.getDocument().removeDocumentListener(this);
+		editorState.getEditor().removeModelListener(this);
 	}
 	
 	public void update() {
