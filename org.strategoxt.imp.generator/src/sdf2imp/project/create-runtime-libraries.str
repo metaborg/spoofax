@@ -53,16 +53,17 @@ signature
     
 rules // Analysis
 	
-	analyze-collect(|language, project-path):
+	analyze-collect(|language, project-path) = analyze-collect(id|language, project-path)
+	analyze-collect(try-recover|language, project-path):
     File(partition, initial-ast) -> Result(partition, initial-ast, analyzed-ast, changed-read*, [], [], [])
     with
     	measure-time(
 	    	measure-time(
 	    		index-setup(|language, project-path);
-	    		index-recover;
+	    		try(try-recover; index-recover);
 			    index-start-collection(|partition);
 	    		task-setup(|project-path);
-	    		task-recover;
+	    		try(try-recover; task-recover);
 	    		task-start-collection(|partition)
 	      	, id | \"analyze-collect-setup\"
 	      ); measure-time(
@@ -175,7 +176,7 @@ rules
     with
     	partition := $[[project-path]/[path]];
       index-setup(|language, project-path);
-      index-clear-all
+      index-reset
       
   analysis-debug-reset-task(|language):
     (_, _, _, path, project-path) -> None()
@@ -396,7 +397,7 @@ rules
     ast -> analyzed-ast
     with
       partition := <analysis-partition(|path, project-path)>;
-      r@Result(_, _, analyzed-ast, _, _, _, _) := <analyze-collect(|language, project-path)> File(partition, ast);
+      r@Result(_, _, analyzed-ast, _, _, _, _) := <analyze-collect(fail|language, project-path)> File(partition, ast);
     	(result*, evaluated-task*, unevaluated-task*) := <analyze-perform-all> [r];
     	Result(_, _, _, _, error*, warning*, note*) := <Hd> result*;
       <analysis-default-debug> $[[<length> evaluated-task*] task evaluated, [<length> unevaluated-task*] task unevaluated.];
@@ -1177,11 +1178,59 @@ rules
 imports
 	
   runtime/nbl/resolve
+  runtime/nbl/collect
   runtime/nbl/query
-  runtime/nbl/uri
+  runtime/nbl/tasks
   runtime/nbl/entries
+  runtime/nbl/interface
+  runtime/nbl/uri
+  runtime/nbl/utils
+  runtime/task/core
+  runtime/task/messages
+  runtime/task/tasks
 	
-rules // Unresolved
+rules // Error checking tasks
+	
+	nabl-unresolved-task(|partition, task):
+		name -> name
+		where
+			not(nabl-check-disable-unresolved)
+		with
+		  <nabl-fix-name; task-create-error-on-failure(|partition, task, \"Unresolved reference\")> name
+		  
+  nabl-duplicate-task(|partition, unique):
+		name -> name
+		where
+	    uri := <nabl-uri> name;
+	    ns  := <nabl-uri-namespace> uri;
+			not(<nabl-check-disable-duplicate(|uri, ns)> name)
+		with
+			if Unique() := unique then
+		    uri'    := <nabl-uri-parent> uri;
+				resolve := <new-task(|partition)> ResolveDefs(uri', ns, name);
+				<task-create-error-on-multiple(|partition, resolve, \"Duplicate definition\")> name
+			end
+			
+	nabl-hiding-task(|partition):
+		name -> name
+		where
+			uri := <nabl-uri> name;
+	    ns  := <nabl-uri-namespace> uri;
+			not(<nabl-check-disable-hiding(|uri, ns)> name)
+		where
+	    if inverse-alias* := <nabl-get-all-inverse-aliasses> uri then
+	      uri* := <map(nabl-uri-parent; nabl-uri-parent)> inverse-alias*
+	    else
+	      uri* := <nabl-uri-parent; nabl-uri-parent; ![<id>]> uri
+	    end;
+	    task* := <mapconcat(nabl-use-subtasks(id, fail|partition, ns, <nabl-fix-name> name, [], All()))> uri*;
+	    task  := <new-task(|partition)> Choice(task*);
+	    <task-create-error-on-success(|partition, task, \"Declaration hides previous definition\")> name
+
+	message-task(|partition) = 
+		nabl-hiding-task(|partition)
+
+rules // Legacy
  
   nabl-is-unresolved =
     ?node;
@@ -1189,8 +1238,6 @@ rules // Unresolved
     get-annos;
     where(nabl-has-reference);
     not(nabl-collect-one-resolved-def)
-
-rules // Ambiguities
   
   nabl-get-ambiguities =
     nabl-collect-all-resolved-defs;
@@ -1198,8 +1245,6 @@ rules // Ambiguities
     filter(nabl-uri; nabl-uri-parent);
     make-set;
     where(<gt> (<length>, 1))
-
-rules // Duplicate definitions
   
   nabl-get-duplicate-definitions =
     has-annos;
@@ -1217,19 +1262,17 @@ rules // Duplicate definitions
 
 imports
 	
-	runtime/task/core
-	runtime/task/tasks
-	runtime/task/messages
 	runtime/nbl/tasks
 	runtime/nbl/entries
-	runtime/nbl/query
+	runtime/nbl/check
+	runtime/nbl/namegen
 	runtime/nbl/interface
 	runtime/nbl/uri
 	runtime/nbl/utils
+	runtime/task/core
+	runtime/task/tasks
 	runtime/types/collect
-	runtime/editor/origins
-	runtime/index/core
-	
+
 signature 
 
 	sorts
@@ -1239,11 +1282,6 @@ signature
   constructors // state
   	
   	State : String * Term -> State
-
-	constructors // unique name generation
-		
-		GenerateName : Namespace -> GenerateName
-		GenerateNum  : URI * Int -> Entry
 
 	constructors // def
 
@@ -1286,10 +1324,6 @@ signature
   constructors // partition
   
   	CollectPartition : Partition
-  	
-  constructors // unresolved error
-  	
-  	NoUnresolvedError : NoUnresolvedError
 	
 strategies // generic traversal
 	
@@ -1366,53 +1400,12 @@ rules // generic analysis of scopes
 	   remove-annotations(?Scope(ns2*))
 	 ; add-annotation(|Scope(<union> (ns1*, ns2*)))
 	<+ add-annotation(|Scope(ns1*))
-
-rules // generic analysis of name generation
-	
-	nabl-namegen(|lang, partition, unique*, uri*, anno*):
-		name -> <origin-track-forced(!newname{anno'*})> name
-		where
-			<has-annotation(?GenerateName(ns))> name;
-			uri      := <lookup-uri(|lang, ns)> uri*;
-			newname  := <nabl-namegen-get(|lang, partition, ns, uri, unique*)> name;
-			anno'*   := <remove-all(?GenerateName(_))> anno*
-	
-	nabl-namegen-get(|lang, partition, ns, uri, unique*):
-		name -> result
-		with
-			name-key := (name, \"namegen\");
-      if full-newname := <hashtable-get(|name-key)> unique* then
-        result := full-newname
-      else
-        nextnum := <nabl-namegen-get-num(|uri) <+ !0>;
-        newname := <nabl-namegen-name(|lang, partition, ns)> uri;
-        numstr  := <int-to-string> nextnum;
-        result  := $[[newname]__[numstr]];
-        <hashtable-put(|name-key, result)> unique*;
-        <inc; nabl-namegen-store-num(|partition, uri)> nextnum
-      end
-      
-  nabl-namegen-name(|lang, partition, ns):
-  	uri -> <nabl-namegen-name-fix> $[[lang-name]__[partition]__[ns-name]__[uri-name]]
-  	with
-  		Language(lang-name) := lang;
-  		ns-name             := <get-constructor> ns;
-  		uri-name            := <nabl-uri-path; filter(nabl-segment-name); separate-by(|\"_\"); concat-strings> uri
-  		
-	nabl-namegen-name-fix = lower-case; string-replace(|\"/\", \"_\"); string-replace(|\"-\", \"_\"); string-replace(|\".\", \"_\")
-	
-	nabl-namegen-get-num(|uri)              = <nabl-get-all-values; !(<id>, 0); foldl(max)> GenerateNum(uri, ())
-	nabl-namegen-store-num(|partition, uri) = <index-add(|<nabl-namegen-partition(|partition)>)> GenerateNum(uri, <id>)
-	nabl-namegen-clear(|partition)          = nabl-namegen-partition(|partition); index-clear-partition
-	nabl-namegen-partition(|partition)      = !$[[partition]_namegen]
-	nabl-uri                                : GenerateNum(uri, _) -> uri
-	nabl-value                              : GenerateNum(_, num) -> num
 	 
 rules // generic analysis of defs
     	
 	// call back to generic analysis
 	nabl-def(child-uris, sibling-uris|lang, partition, unique*, child-uri*, sibl-uri*, ns, unique, defscope, scoped):
-		a@name{anno*} -> <replace-annotations(?Def(_)|d)> name'
+		a@name{anno*} -> name''
 		where
 			// get URI for namespace of definition site
 			current-uri := <lookup-uri(|lang, ns)> child-uri*
@@ -1460,13 +1453,10 @@ rules // generic analysis of defs
 		  end
     with
 			// add Def entry to the index
-			d := <new-def(|partition, def-uri)> a
+			d      := <new-def(|partition, def-uri)> a;
+			name'' := <replace-annotations(?Def(_)|d)> name'
 		with
-			// duplicate definition error
-			if Unique() := unique then 
-				resolve := <new-task(|partition)> ResolveDefs(current-uri, ns, name');
-				<task-create-error-on-multiple(|partition, resolve, \"Duplicate definition\")> name'
-			end
+			<try(nabl-duplicate-task(|partition, unique))> name''
 	
 	nabl-def-alias(|partition, def-uri):
 	  term{anno*} -> <id>
@@ -1478,7 +1468,6 @@ rules // generic analysis of defs
 	  ; alias-uri := <nabl-extend-uri(|segment); nabl-nonunique-uri> base-uri
 	  where
 	   new-alias(|partition, alias-uri, def-uri)
-
       
 rules // generic analysis of uses
 	
@@ -1497,9 +1486,7 @@ rules // generic analysis of uses
 			subtask* := <map(nabl-use-candidate(|lang, partition, uri*, <nabl-fix-name> name'))> candidate*;
 			choice   := <new-task(|partition)> Choice(subtask*);
 		  u        := <new-use(|partition, choice)>;
-		  if <not(has-annos; get-annos; collect-one(?NoUnresolvedError()))> name' then
-		  	<nabl-fix-name; task-create-error-on-failure(|partition, choice, \"Unresolved reference\")> name'
-		  end;
+		  <try(nabl-unresolved-task(|partition, choice))> name';
 		  if <is-completion-name> name' then
 		  	completion-subtask* := <mapconcat(nabl-completion-candidate(|lang, partition, uri*))> candidate*;
 		  	completion-concat   := <new-task(|partition)> Concat(completion-subtask*);
@@ -1814,15 +1801,7 @@ rules
       	<index-add(|partition)> alias;
       	<index-add(|partition)> ialias
       end
-      
-  new-inverse-alias(|partition, uri, alias-uri):
-    x -> alias
-    with
-      alias := <force-origins(!Alias(uri, alias-uri))> x;
-      if <not(eq)> (uri, alias-uri) then
-      	<index-add(|partition)> alias
-      end
-      
+
   new-use(|partition, uri):
     x -> use
     with
@@ -1956,7 +1935,6 @@ strategies // Collect
 	
 	nabl-prop-site(|lang, partition, state*, implicit*) = fail
 	
-	
 strategies // Projections
   
 	nabl-name = fail
@@ -1977,6 +1955,18 @@ strategies // Lookup hooks
 	
 	nabl-disambiguate(|prop*, namespace, name) = fail
 
+strategies // Name generation
+	
+	nabl-namegen-name(|lang, partition, uri, ns) = fail
+	
+strategies // Default error checks
+	
+	nabl-check-disable-unresolved = fail
+	
+	nabl-check-disable-duplicate(|uri, ns) = fail
+	
+	nabl-check-disable-hiding(|uri, ns) = fail
+	
 "
 
 	create-nbl-lookup = 
@@ -2053,6 +2043,87 @@ rules // Imports
       importResult* := <nabl-get-all-properties(|Import(language, namespace, name))> uri;
       importURI*    := <map(task-get-solved <+ task-create-dependencies; ![<id>]); concat> importResult*
 
+"
+
+	create-nbl-namegen = 
+		<output-text-file(|["lib", "runtime", "nbl"], "namegen.str")>
+"module runtime/nbl/namegen
+
+imports
+	
+	runtime/nbl/collect
+	runtime/nbl/query
+	runtime/nbl/uri
+	runtime/nbl/utils
+	runtime/nbl/interface
+	runtime/editor/origins
+	runtime/index/core
+	runtime/index/query
+	
+signature
+
+	constructors
+		
+		GenerateName : Namespace -> GenerateName
+		GenerateNum  : URI * Int -> Entry
+	
+rules
+	
+	nabl-namegen-stem(|ns) = add-annotation(|GenerateName(ns))
+
+rules // Name generation
+	
+	nabl-namegen(|lang, partition, unique*, uri*, anno*):
+		name -> <origin-track-forced(!newname{anno'*})> name
+		where
+			<has-annotation(?GenerateName(ns))> name;
+			uri      := <lookup-uri(|lang, ns)> uri*;
+			newname  := <nabl-namegen-get(|lang, partition, ns, uri, unique*)> name;
+			anno'*   := <remove-all(?GenerateName(_))> anno*
+	
+	nabl-namegen-get(|lang, partition, ns, uri, unique*):
+		name -> result
+		with
+			name-key := (name, \"namegen\");
+      if full-newname := <hashtable-get(|name-key)> unique* then
+        result := full-newname
+      else
+        nextnum := <nabl-namegen-get-num(|uri) <+ !0>;
+        numstr  := <int-to-string> nextnum;
+        newname := <nabl-namegen-name-create(|lang, partition, uri, ns)> numstr;
+        result  := $[[newname][numstr]];
+        <hashtable-put(|name-key, result)> unique*;
+        <inc; nabl-namegen-store-num(|partition, uri)> nextnum
+      end
+
+rules // Name generation strategies
+      
+  nabl-namegen-name-create(|lang, partition, uri, ns) = 
+  	nabl-namegen-name(|lang, partition, uri, ns) <+ nabl-namegen-name-generic(|lang, partition, uri, ns)
+      
+  nabl-namegen-name-generic(|lang, partition, uri, ns):
+  	name -> <nabl-namegen-name-generic-fix> 
+			$[[<nabl-namegen-name-generic-str> lang-name][<nabl-namegen-name-generic-str> partition][ns-name][uri-name][name]]
+  	with
+  		Language(lang-name) := lang;
+  		ns-name             := <get-constructor; nabl-namegen-name-generic-str> ns;
+  		uri-name            := <nabl-uri-path; filter(nabl-segment-name; nabl-namegen-name-generic-str); concat-strings> uri
+  
+  nabl-namegen-name-generic-str = 
+  	explode-string; reverse; (take(|3) <+ take(|2) <+ take(|1) <+ ![]); reverse; implode-string
+  		
+	nabl-namegen-name-generic-fix = 
+		lower-case; string-replace(|\"/\", \"_\"); string-replace(|\"-\", \"_\"); string-replace(|\".\", \"_\")
+
+rules // Storage & retrieval
+	
+	nabl-namegen-get-num(|uri)              = <nabl-get-all-values; !(<id>, 0); foldl(max)> GenerateNum(uri, ())
+	nabl-namegen-store-num(|partition, uri) = <index-add(|<nabl-namegen-partition(|partition)>)> GenerateNum(uri, <id>)
+	nabl-namegen-clear(|partition)          = nabl-namegen-partition(|partition); index-clear-partition
+	nabl-namegen-partition(|partition)      = !$[[partition]_namegen]
+	nabl-uri                                : GenerateNum(uri, _) -> uri
+	nabl-value                              : GenerateNum(_, num) -> num
+	
 "
 
 	create-nbl-query = 
@@ -2158,11 +2229,11 @@ rules // Specific queries
    *
    * @type Def(uri) or \"name\"{uri} or URI(language, path) -> List(inverseAliasURI)
    */
-  nabl-get-inverse-alias:
-    containsURI -> inverse-alias
+  nabl-get-all-inverse-aliasses:
+    containsURI -> inverse-alias*
     where
-    	uri           := <nabl-uri> containsURI;
-      inverse-alias := <nabl-get-value> InverseAlias(uri, ()) 
+    	uri            := <nabl-uri> containsURI;
+      inverse-alias* := <nabl-get-all-values> InverseAlias(uri, ()) 
 
 rules // Generic queries
   
@@ -3483,6 +3554,7 @@ create-all-runtime-libraries =
 ; 	create-nbl-incremental
 ; 	create-nbl-interface
 ; 	create-nbl-lookup
+; 	create-nbl-namegen
 ; 	create-nbl-query
 ; 	create-nbl-resolve
 ; 	create-nbl-tasks
