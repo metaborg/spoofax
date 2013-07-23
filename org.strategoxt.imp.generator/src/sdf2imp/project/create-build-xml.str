@@ -48,7 +48,6 @@ strategies
         <property name="externaljar" value="../lib.jar"/>
         <property name="externaljarflags" value="-la org.lib"/>
         -->
-        <property name="externaljarflags" value="-la org.metaborg.runtime.task.interop"/>
     
         <!-- Environment configuration for command-line builds -->
         <condition property="build.strategoxt.sdf" value="${eclipse.spoofaximp.nativeprefix}" else="">
