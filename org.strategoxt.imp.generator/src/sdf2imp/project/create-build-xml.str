@@ -580,7 +580,12 @@ strategies
                 <param name="build.stratego.outputfile" value="${src-gen}/trans/Main.java"/>
                 <param name="build.stratego.extraargs" value="-la java-front ${java.jar.import}"/>
             </antcall>
-            <javac classpath="utils/strategoxt.jar:${src-gen}${externaljarimport1}${externaljarimport2}${java.jar.classpath}" srcdir="${src-gen}" includes="trans/**" destdir="${build}" source="1.5" target="1.5" debug="on"/>
+            <javac srcdir="${src-gen}" includes="trans/**" destdir="${build}" source="1.5" target="1.5" debug="on">
+                <classpath> 
+                    <pathelement path="utils/strategoxt.jar:${src-gen}${externaljarimport1}${externaljarimport2}${java.jar.classpath}"/>
+                    <fileset dir="${eclipse.home}/plugins"><include name="*.jar"/></fileset> <!-- Spoofax/322 -->
+                </classpath>
+            </javac> 
             <!-- copy imported terms -->
             <copy todir="${build}/trans">
                 <fileset dir="${src-gen}/trans" excludes="**/*.java"/>
@@ -698,6 +703,7 @@ strategies
                 <!-- attribute in javac: classpath="utils/strategoxt.jar:${src-gen}${externaljarimport1}${externaljarimport2}${java.jar.classpath}"  -->
                 <classpath>
                     <pathelement path="utils/strategoxt.jar:${src-gen}${externaljarimport1}${externaljarimport2}${java.jar.classpath}"/> <!-- the path attribute accepts colon- or semicolon-separated lists of locations -->
+                    <fileset dir="${eclipse.home}/plugins"><include name="*.jar"/></fileset> <!-- Spoofax/322 -->
                     <pathelement location="utils/stratego-debug-runtime.jar"/> <!-- The location attribute specifies a single file or directory relative to the project's base directory (or an absolute filename) -->
                     <pathelement location="utils/stratego-debug-runtime-java.jar"/>
                 </classpath>
