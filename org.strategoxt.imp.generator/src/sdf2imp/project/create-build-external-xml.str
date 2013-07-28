@@ -85,8 +85,7 @@ strategies
     classname  := <get-main-class-name>;
     pkgname    := <get-package-name-text>;
     pkgdir     := <string-replace(|".", "/")> pkgname;
-    
-    <output-xml-file(|[], "build.generated.external.xml")>
+    <output-text-file(|[], "build.generated.external.xml")>
     $[<?xml version="1.0" encoding="UTF-8"?>
     <project name="build.generated.external">
 
