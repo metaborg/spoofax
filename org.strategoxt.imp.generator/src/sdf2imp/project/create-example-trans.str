@@ -66,15 +66,6 @@ rules // Editor services
 		where
 			proposals := <analysis-propose-completions(|<language>, project-path)> ast
 
-rules // Builders
-	
-	// Generates a Java program for selected AST.
-	generate-java:
-		(selected, position, ast, path, project-path) -> (filename, result)
-		with
-			filename := <guarantee-extension(|"java")> path;
-			result	 := <to-java> selected
-
 rules // Debugging
 	
 	// Prints the abstract syntax ATerm of a selection.
@@ -123,6 +114,15 @@ rules
 imports
 
 	include/{sdf-name}
+
+rules // Builder
+	
+	// Generates a Java program for selected AST.
+	generate-java:
+		(selected, position, ast, path, project-path) -> (filename, result)
+		with
+			filename := <guarantee-extension(|"java")> path;
+			result	 := <to-java> selected
 
 rules // Transformation to java strings.
 
