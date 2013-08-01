@@ -1,6 +1,8 @@
 package org.strategoxt.imp.runtime.stratego;
 
-import org.eclipse.core.resources.IProject;
+import java.util.Map;
+import java.util.WeakHashMap;
+
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.spoofax.interpreter.core.IContext;
@@ -28,6 +30,12 @@ public class ForeignLangCallPrimitive extends AbstractPrimitive {
 	}
 
 	/**
+	 * Cache for language-specific StrategoObserver. Avoids creation of an
+	 * observer on every subsequent invocation for a language
+	 */
+	private static final Map<Descriptor, StrategoObserver> asyncCache = new WeakHashMap<Descriptor, StrategoObserver>();
+
+	/**
 	 * Example usage:
 	 * 
 	 * <code>
@@ -49,24 +57,22 @@ public class ForeignLangCallPrimitive extends AbstractPrimitive {
 		final String strategyName = ((IStrategoString) tvars[1]).stringValue();
 		boolean result = false;
 		try {
-			final IStrategoTerm inputTerm = env.current();
-			final EditorIOAgent agent = (EditorIOAgent) SSLLibrary.instance(env).getIOAgent();
-			final IProject project = agent.getProject();
-			final String dir = ((EditorIOAgent) SSLLibrary.instance(env).getIOAgent())
-					.getProjectPath();
-
-			final Language oLang = LanguageRegistry.findLanguage(oLangName);
+			IStrategoTerm inputTerm = env.current();
+			Language oLang = LanguageRegistry.findLanguage(oLangName);
 			if (oLang == null)
 				return false;
-			final Descriptor oLangDescr = Environment.getDescriptor(oLang);
-			assert oLangDescr != null;
-			final StrategoObserver observer = oLangDescr
-					.createService(StrategoObserver.class, null);
-			observer.configureRuntime(project, dir);
+			Descriptor oLangDescr = Environment.getDescriptor(oLang);
+			StrategoObserver observer = asyncCache.get(oLangDescr);
+
+			if (observer == null) {
+				String dir = ((EditorIOAgent) SSLLibrary.instance(env).getIOAgent())
+						.getProjectPath();
+				observer = loadDescriptor(oLangDescr, dir);
+			}
+			assert observer != null;
 			observer.getRuntime().setCurrent(inputTerm);
 			result = observer.getRuntime().invoke(strategyName);
 			env.setCurrent(observer.getRuntime().current());
-			observer.uninitialize();
 		} catch (RuntimeException cex) {
 			Environment.logException(cex);
 		} catch (BadDescriptorException e) {
@@ -75,5 +81,14 @@ public class ForeignLangCallPrimitive extends AbstractPrimitive {
 			Environment.logException(e);
 		}
 		return result;
+	}
+
+	private StrategoObserver loadDescriptor(Descriptor oLangDescr, String path)
+			throws BadDescriptorException {
+		StrategoObserver observer = oLangDescr.createService(StrategoObserver.class, null);
+		observer.configureRuntime(null, path);
+		oLangDescr.createParseController();
+		asyncCache.put(oLangDescr, observer);
+		return observer;
 	}
 }
