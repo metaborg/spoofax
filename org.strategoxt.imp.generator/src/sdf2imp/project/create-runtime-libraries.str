@@ -491,7 +491,7 @@ rules
 			, evaluated-task*
 			, skipped-task*
 			, unevaluated-task*
-			) := <analyze-one(|language, path, project-path)> ast;
+			) := <analyze-one(fail|language, path, project-path)> ast;
 			
       <analysis-debug-results> (removed-entry*, added-entry*, removed-task*, added-task*, invalidated-task*, evaluated-task*, skipped-task*, unevaluated-task*);
       
@@ -536,7 +536,10 @@ imports
     
 rules // Single file analysis
   
-  analyze-one(|language, path, project-path):
+  analyze-one(|language, path, project-path) = 
+  	analyze-one(id|language, path, project-path)
+  
+  analyze-one(try-recover|language, path, project-path):
     ast -> 
     (
     	analyzed-ast
@@ -555,7 +558,7 @@ rules // Single file analysis
       r@(
       	Result(_, _, analyzed-ast, _, _, _, _)
       , DebugResult(removed-entry*, added-entry*, removed-task*, added-task*, invalidated-task*)
-      ) := <analyze-collect(|language, project-path)> File(partition, ast);
+      ) := <analyze-collect(try-recover|language, project-path)> File(partition, ast);
       
     	(result*, evaluated-task*, skipped-task*, unevaluated-task*) := <analyze-perform-all> [r];
     	
@@ -1617,24 +1620,19 @@ rules // generic analysis of uses
   nabl-use-subtasks-one(disambiguate, wildcardimport|partition, ns, name, prop*, range):
 		uri  -> disambiguated
 		with
-			defsTask            := <new-task(|partition)> ResolveDefs(<nabl-use-subtask-uri(|partition)> uri, ns, name);
-			namedImportsTask    := <new-task(|partition)> ResolveNamedImports(<nabl-use-subtask-uri(|partition)> uri, ns, name);
+			uri'                := <nabl-use-subtask-uri(|partition)> uri;
+			defsTask            := <new-task(|partition)> ResolveDefs(uri', ns, name);
+			namedImportsTask    := <new-task(|partition)> ResolveNamedImports(uri', ns, name);
 			namedDefsTask       := <new-task(|partition)> ResolveDefs(namedImportsTask, ns, name);
+			
 			if wildcardimport then 
-				wildcardImportsTask := <new-task(|partition)> ResolveWildcardImports(<nabl-use-subtask-uri(|partition)> uri, ns);
+				wildcardImportsTask := <new-task(|partition)> ResolveWildcardImports(uri', ns);
 				wildcardDefsTask    := [<new-task(|partition)> ResolveDefs(wildcardImportsTask, ns, name)]
 			else
 				wildcardDefsTask := []
 			end;
-			
-			if ExternalDef(x) := <nabl-uri-path; Hd> uri then
-        ext-uri  := <nabl-uri-language; nabl-base-uri; nabl-extend-uri(|Anonymous(x))> uri;
-        subtasks := [<new-task(|partition)> ResolveDefs(<nabl-use-subtask-uri(|partition)> ext-uri, ns, name)]
-      else
-      	subtasks := []
-      end;
-      
-      concatted     := <new-task(|partition)> Concat([defsTask, namedDefsTask|<conc> (wildcardDefsTask, subtasks)]);
+
+      concatted     := <new-task(|partition)> Concat([defsTask, namedDefsTask|wildcardDefsTask]);
       filtered      := <nabl-use-propconstraint(|partition)> (concatted, prop*);
       disambiguated := <nabl-use-disambiguate(disambiguate|partition, prop*, ns, name)> filtered
           	
@@ -1678,50 +1676,14 @@ rules // completion
 		UseCandidate(ns, prop*, Current(), wci, _) -> subtask*
 		where
 			uri       := <lookup-uri(|lang, ns)> uri*;
-			subtask*  := <nabl-completion-subtasks(!wci; ?True()|partition, ns, prop*, All())> uri
+			subtask*  := <nabl-resolve-all-defs-subtasks(|partition, ns, prop*, All())> uri
 
 	// candidate in another scope (result of resolution)	  
 	nabl-completion-candidate(|lang, partition, uri*):
 		UseCandidate(ns, prop*, c@Context(ctx-ns, ctx-name, ctx-prop*, ctx-context), _, _) -> subtask*
 		where
 			ctx-result := <nabl-use-candidate(|lang, partition, uri*, ctx-name)> UseCandidate(ctx-ns, ctx-prop*, ctx-context, True(), []);
-			subtask*   := <nabl-completion-subtasks(id|partition, ns, prop*, One())> ctx-result
-	
-	nabl-completion-subtasks(wildcardimport|partition, ns, prop*, range): 
-		uri  -> [task|subtasks]
-		with
-			task := <nabl-completion-subtasks-one(wildcardimport|partition, ns, prop*, range)> uri;
-      switch !range
-      	case One(): ![]
-      	case All(): <nabl-uri-parent < nabl-completion-subtasks(id|partition, ns, prop*, range) + ![]> uri
-    	end => subtasks
-    	
-  nabl-completion-subtasks-one(wildcardimport|partition, ns, prop*, range):
-		uri  -> filtered
-		with
-			defsTask            := <new-task(|partition)> ResolveAllDefs(<nabl-use-subtask-uri(|partition)> uri, ns);
-			
-			// TODO: completions for imported definitions.
-			/*
-			namedImportsTask    := <new-task(|partition)> ResolveNamedImports(<nabl-use-subtask-uri(|partition)> uri, ns, name);
-			namedDefsTask       := <new-task(|partition)> ResolveDefs(namedImportsTask, ns, name);
-			if wildcardimport then 
-				wildcardImportsTask := <new-task(|partition)> ResolveWildcardImports(<nabl-use-subtask-uri(|partition)> uri, ns);
-				wildcardDefsTask    := [<new-task(|partition)> ResolveDefs(wildcardImportsTask, ns, name)]
-			else
-				wildcardDefsTask := []
-			end;
-			*/
-			
-			if ExternalDef(x) := <nabl-uri-path; Hd> uri then
-        ext-uri  := <nabl-uri-language; nabl-base-uri; nabl-extend-uri(|Anonymous(x))> uri;
-        subtasks := [<new-task(|partition)> ResolveAllDefs(<nabl-use-subtask-uri(|partition)> ext-uri, ns)]
-      else
-      	subtasks := []
-      end;
-      
-      concatted     := <new-task(|partition)> Concat([defsTask]);
-      filtered      := <nabl-use-propconstraint(|partition)> (concatted, prop*)
+			subtask*   := <nabl-resolve-all-defs-subtasks(|partition, ns, prop*, One())> ctx-result
     
 rules // generic analysis of imports
   
@@ -1879,6 +1841,7 @@ rules // Code completion
 imports
   
   runtime/nbl/collect
+  runtime/nbl/resolve
   runtime/nbl/utils
   runtime/nbl/uri
   runtime/index/core
@@ -1890,7 +1853,7 @@ signature
     Def          : URI                    -> Entry
     Alias        : URI * URI              -> Entry
     InverseAlias : URI * URI              -> Entry
-    Use          : URI                    -> Entry
+    Use          : Result                 -> Entry
     Prop         : URI * Property * Value -> Entry
   
 rules
@@ -1929,22 +1892,42 @@ rules // index uri & value projections
   /** @internal */
   nabl-uri:
     Def(uri) -> uri
+
+  /** @internal */
+  nabl-uris:
+    Def(uri) -> [uri]
     
   /** @internal */
   nabl-uri:
     Alias(uri, _) -> uri
     
   /** @internal */
+  nabl-uris:
+    Alias(uri, _) -> [uri]
+    
+  /** @internal */
   nabl-uri:
     InverseAlias(uri, _) -> uri
     
+  /** @internal */
+  nabl-uris:
+    InverseAlias(uri, _) -> [uri]
+    
   /** @internal */  
   nabl-uri:
-    Use(uri) -> <nabl-is-uri> uri
+    Use(uri) -> <nabl-collect-one-resolved-def; nabl-uri> uri
+    
+  /** @internal */  
+  nabl-uris:
+    Use(uri) -> <nabl-collect-all-resolved-defs; map(nabl-uri)> uri
     
   /** @internal */  
   nabl-uri:
     Prop(uri, _, _) -> uri
+    
+  /** @internal */  
+  nabl-uris:
+    Prop(uri, _, _) -> [uri]
     
     
   /** @internal */
@@ -1952,20 +1935,40 @@ rules // index uri & value projections
     Def(value) -> value
     
   /** @internal */
+  nabl-values:
+    Def(value) -> [value]
+    
+  /** @internal */
   nabl-value:
     Alias(_, value) -> value
     
   /** @internal */
+  nabl-values:
+    Alias(_, value) -> [value]
+    
+  /** @internal */
   nabl-value:
     InverseAlias(_, value) -> value
+    
+  /** @internal */
+  nabl-values:
+    InverseAlias(_, value) -> [value]
 
   /** @internal */
   nabl-value:
-    Use(value) -> value
+    Use(value) -> <nabl-uri>
+    
+  /** @internal */
+  nabl-values:
+    Use(value) -> <nabl-uris>
     
   /** @internal */
   nabl-value:
     Prop(_, _, value) -> value
+    
+  /** @internal */
+  nabl-values:
+    Prop(_, _, value) -> [value]
 
 "
 
@@ -2257,9 +2260,9 @@ rules // Specific queries
    * @type Def(uri) or \"name\"{uri} or URI(language, path) -> List(Def(uri))
    */
   nabl-get-all-definitions:
-    containsURI -> <nabl-get-unique-nonunique(\\uri -> Def(uri)\\)> uri
+    contains-uri* -> <mapconcat(nabl-get-unique-nonunique(!Def(<id>)))> uri*
     where
-    	uri := <nabl-uri> containsURI
+    	uri* := <nabl-uris> contains-uri*
     	
   /**
    * Gets all child definition entries in given URI that match given namespace.
@@ -2270,11 +2273,11 @@ rules // Specific queries
    * @type Def(uri) or \"name\"{uri} or URI(language, path) -> List(Def(uri))
    */
   nabl-get-child-definitions(|ns):
-    containsURI -> [def*, alias-def*]
+    contains-uri* -> [def*, alias-def*]
     where
-    	uri        := <nabl-uri> containsURI;
-    	def*       := <nabl-get-children(|ns); mapconcat(nabl-uri; nabl-get-unique-nonunique(\\uri -> Def(uri)\\))> Def(uri);
-    	alias-def* := <nabl-get-children(|ns); mapconcat(nabl-value; !Def(<id>); nabl-get-all-definitions)> Alias(uri, ())
+    	uri*       := <nabl-uris> contains-uri*;
+    	def*       := <mapconcat(!Def(<id>); nabl-get-children(|ns)); mapconcat(nabl-uri; nabl-get-unique-nonunique(!Def(<id>)))> uri*;
+    	alias-def* := <mapconcat(!Alias(<id>, ()); nabl-get-children(|ns)); mapconcat(nabl-value; !Def(<id>); nabl-get-all-definitions)> uri*
 
   /**
    * Gets a property that matches the kind of value and given URI, or fails if no property is found.
@@ -2298,22 +2301,9 @@ rules // Specific queries
    * @type Def(uri) or \"name\"{uri} or URI(language, path) -> List(Prop(uri, kind, value))
    */
   nabl-get-all-properties(|kind):
-		containsURI -> <nabl-get-all-values> Prop(uri, kind, ())
+		contains-uri* -> <mapconcat(!Prop(<id>, kind, ()); nabl-get-all-values)> uri*
     where
-    	uri := <nabl-uri> containsURI
-     
-  /**
-   * Gets all Use entries that match the given URI.
-   *
-   * Example:
-   *   <nabl-get-all-uses> Def([Entity(), \"M\", \"Bar\"]) => [Use([Entity(), \"M\", \"Bar\"]), ...]
-   *
-   * @type Def(uri) or \"name\"{uri} or URI(language, path) -> List(Use(uri))
-   */
-  nabl-get-all-uses:
-    containsURI -> <nabl-get-all> Use(uri)
-    where
-    	uri := <nabl-uri> containsURI
+    	uri* := <nabl-uris> contains-uri*
 
   /**
    * Gets all Alias entries that match the given URI.
@@ -2324,14 +2314,11 @@ rules // Specific queries
    * @type Def(uri) or \"name\"{uri} or URI(language, path) -> List(aliasURI)
    */
   nabl-get-all-aliases:
-    containsURI -> aliasURI*
+    contains-uri* -> alias-uri*
     where
-    	uri := <nabl-uri> containsURI;
-      if nonUniqueURI := <nabl-replace-uri-qualifier(|NonUnique())> uri then
-        aliasURI* := <nabl-get-all-values> Alias(nonUniqueURI, ()) 
-      else
-        aliasURI* := []
-      end
+    	uri*           := <nabl-uris> contains-uri*;
+    	nonunique-uri* := <filter(nabl-replace-uri-qualifier(|NonUnique()))> uri*;
+      alias-uri*     := <mapconcat(!Alias(<id>, ()); nabl-get-all-values)> nonunique-uri*
       
   /**
    * Gets all InverseAlias entries that match the given URI.
@@ -2342,10 +2329,10 @@ rules // Specific queries
    * @type Def(uri) or \"name\"{uri} or URI(language, path) -> List(inverseAliasURI)
    */
   nabl-get-all-inverse-aliasses:
-    containsURI -> inverse-alias*
+    contains-uri* -> inverse-alias*
     where
-    	uri            := <nabl-uri> containsURI;
-      inverse-alias* := <nabl-get-all-values> InverseAlias(uri, ()) 
+    	uri*           := <nabl-uris> contains-uri*;
+      inverse-alias* := <mapconcat(!InverseAlias(<id>, ()); nabl-get-all-values)> uri*
 
 rules // Generic queries
   
@@ -2583,15 +2570,7 @@ rules // Visibility
 		uri -> filtered
 		with
 			def-task := <new-task(|partition)> ResolveAllDefs(<nabl-use-subtask-uri(|partition)> uri, ns);
-			if ExternalDef(x) := <nabl-uri-path; Hd> uri then
-        ext-uri      := <nabl-uri-language; nabl-base-uri; nabl-extend-uri(|Anonymous(x))> uri;
-        ext-def-task := <new-task(|partition)> ResolveAllDefs(<nabl-use-subtask-uri(|partition)> ext-uri, ns);
-        task*        := [ext-def-task, def-task]
-      else
-      	task* := [def-task]
-      end;
-      concatted := <new-task(|partition)> Concat(task*);
-      filtered  := <nabl-use-propconstraint(|partition)> (concatted, prop*)
+      filtered  := <nabl-use-propconstraint(|partition)> (def-task, prop*)
 
 rules // Import calculation
 	
@@ -2751,7 +2730,9 @@ rules // stable URI extensions
 rules // Projections
   
   nabl-uri = fail
+  nabl-uris = fail
   nabl-value = fail
+  nabl-values = fail
   
   nabl-uri-language:
     URI(language, _) -> language
@@ -2873,14 +2854,39 @@ rules /** @internal Projections */
   /** @internal */
   nabl-value:
     URI(_, _) -> <id>
+ 
+  /** @internal */
+  nabl-uris:
+    URI(_, _) -> [<id>]
+    
+  /** @internal */
+  nabl-values:
+    URI(_, _) -> [<id>]
+
     
   /** @internal */  
-  nabl-uri:
-    _{anno*} -> <fetch-elem(nabl-uri)> anno*
+  nabl-uri =
+  	has-annos;
+  	get-annos;
+  	fetch-elem(nabl-uri)
 
   /** @internal */  
-  nabl-value:
-    _{anno*} -> <fetch-elem(nabl-value)> anno*
+  nabl-value =
+  	has-annos;
+  	get-annos;
+  	fetch-elem(nabl-value)
+
+  /** @internal */  
+  nabl-uris =
+  	has-annos;
+  	get-annos;
+  	filter(nabl-uri)
+
+  /** @internal */  
+  nabl-values =
+  	has-annos;
+  	get-annos;
+  	filter(nabl-value)
 
 "
 
