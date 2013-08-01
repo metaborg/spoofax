@@ -56,7 +56,12 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 		getTreeViewer().setContentProvider(new SpoofaxOutlineContentProvider());
 		String pluginPath = editorState.getDescriptor().getBasePath().toOSString();
 		getTreeViewer().setLabelProvider(new SpoofaxOutlineLabelProvider(pluginPath));
-		update();
+		
+		Display.getDefault().asyncExec(new Runnable() {
+			public void run() {
+				update();
+			}
+		});
 		
 		editorState.getEditor().addModelListener(this);
 		editorState.getEditor().getSelectionProvider().addSelectionChangedListener(this);
