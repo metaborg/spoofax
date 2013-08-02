@@ -29,7 +29,7 @@ public class SpoofaxOutlineContentProvider implements ITreeContentProvider {
 				return term.getAllSubterms();
 				
 			default:
-				Environment.logException("Expected Node(...) or [Node(...), ...)] but was: " + inputElement);
+				Environment.logException("Expected Node(...) or [Node(...), ...] but was: " + inputElement);
 				break;
 		}
 		

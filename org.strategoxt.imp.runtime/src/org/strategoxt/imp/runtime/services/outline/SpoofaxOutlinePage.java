@@ -89,6 +89,10 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 			if (outline == null) {
 				outline = factory.makeAppl(factory.makeConstructor("Node", 2), factory.makeString(OUTLINE_STRATEGY + " failed"), factory.makeList());
 			}
+			else if (outline.getTermType() == IStrategoTerm.APPL) {
+				// workaround for https://bugs.eclipse.org/9262
+				outline = factory.makeList(outline);
+			}
 			
 			// ensures propagation of origin information
 			factory.makeLink(outline, editorState.getCurrentAst());
