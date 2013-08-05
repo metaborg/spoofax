@@ -3,6 +3,7 @@ package org.strategoxt.imp.runtime.editor;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.IVerticalRuler;
+import org.eclipse.jface.text.source.projection.ProjectionViewer;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 import org.eclipse.ui.views.properties.IPropertySource;
@@ -54,6 +55,6 @@ public class SpoofaxEditor extends UniversalEditor {
 	
 	@Override
     protected ISourceViewer createSourceViewer(Composite parent, IVerticalRuler ruler, int styles) {
-		return new SpoofaxSourceViewer(parent, ruler, styles);
+		return new ProjectionViewer(parent, ruler, getOverviewRuler(), isOverviewRulerVisible(), styles);
     }
 }
