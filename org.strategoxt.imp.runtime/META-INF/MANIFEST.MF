@@ -35,10 +35,12 @@ Require-Bundle: org.eclipse.imp.runtime,
  org.eclipse.ui.views
 Export-Package: org.strategoxt.imp.runtime,
  org.strategoxt.imp.runtime.dynamicloading,
+ org.strategoxt.imp.runtime.editor,
  org.strategoxt.imp.runtime.parser,
  org.strategoxt.imp.runtime.parser.ast,
  org.strategoxt.imp.runtime.parser.tokens,
  org.strategoxt.imp.runtime.services,
+ org.strategoxt.imp.runtime.services.outline,
  org.strategoxt.imp.runtime.stratego
 Bundle-RequiredExecutionEnvironment: J2SE-1.5
 Bundle-Vendor: Spoofax.org

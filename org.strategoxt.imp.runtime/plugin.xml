@@ -363,8 +363,8 @@
             icon="icons/IMP-editor.gif"
             extensions="txt"
             contributorClass="org.eclipse.imp.editor.internal.TextEditorActionContributor"
-            class="org.strategoxt.imp.runtime.SpoofaxEditor"
-            id="org.eclipse.imp.runtime.spoofaxEditor">
+            class="org.strategoxt.imp.runtime.editor.SpoofaxEditor"
+            id="org.eclipse.imp.runtime.editor.spoofaxEditor">
       </editor>
    </extension>
 </plugin>

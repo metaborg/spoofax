@@ -17,7 +17,7 @@ import org.eclipse.ui.internal.UIPlugin;
 import org.eclipse.ui.internal.registry.EditorDescriptor;
 import org.eclipse.ui.internal.registry.EditorRegistry;
 import org.eclipse.ui.internal.registry.FileEditorMapping;
-import org.strategoxt.imp.runtime.SpoofaxEditor;
+import org.strategoxt.imp.runtime.editor.SpoofaxEditor;
 
 /**
  * Registers dynamically loaded descriptors and languages.

@@ -25,6 +25,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.dynamicloading.DynamicParseController;
+import org.strategoxt.imp.runtime.editor.SpoofaxEditor;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
