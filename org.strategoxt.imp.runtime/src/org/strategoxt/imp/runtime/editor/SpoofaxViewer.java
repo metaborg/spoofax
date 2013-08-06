@@ -1,18 +1,32 @@
 package org.strategoxt.imp.runtime.editor;
 
+import org.eclipse.imp.editor.StructuredSourceViewer;
 import org.eclipse.imp.editor.UniversalEditor.StructuredSourceViewerConfiguration;
 import org.eclipse.jface.text.information.IInformationPresenter;
 import org.eclipse.jface.text.source.IOverviewRuler;
 import org.eclipse.jface.text.source.IVerticalRuler;
+import org.eclipse.jface.text.source.SourceViewer;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
 import org.eclipse.jface.text.source.projection.ProjectionViewer;
 import org.eclipse.swt.widgets.Composite;
 
 /**
+ * A viewer is a model-based adapter on a widget. In case of Spoofax, these widgets come in the form of
+ * editor services (e.g. hover help, reference resolution).
+ * 
+ * We subclass {@link ProjectionViewer} rather than {@link SourceViewer} because we want to have support
+ * for code folding.
+ * 
+ * Note: Javadoc of {@link ProjectionViewer} states "do not subclass". This may be an error in the Javadoc.
+ * Subclassing makes since we want to reuse its functionality, which is not provided by any other Eclipse
+ * class.
+ * 
  * @author Oskar van Rest
  */
 public class SpoofaxViewer extends ProjectionViewer {
 
+	StructuredSourceViewer structuredSourceViewer;
+	
 	/**
 	 * Text operation code for requesting the outline for the current input.
 	 */
@@ -20,9 +34,9 @@ public class SpoofaxViewer extends ProjectionViewer {
 
 	private IInformationPresenter spoofaxOutlinePresenter;
 
-	public SpoofaxViewer(Composite parent, IVerticalRuler ruler, IOverviewRuler overviewRuler,
-			boolean showsAnnotationOverview, int styles) {
+	public SpoofaxViewer(Composite parent, IVerticalRuler ruler, IOverviewRuler overviewRuler, boolean showsAnnotationOverview, int styles) {
 		super(parent, ruler, overviewRuler, showsAnnotationOverview, styles);
+		structuredSourceViewer = new StructuredSourceViewer(parent, ruler, overviewRuler, showsAnnotationOverview, styles);
 	}
 
 	/*
@@ -34,6 +48,7 @@ public class SpoofaxViewer extends ProjectionViewer {
 			case SHOW_OUTLINE:
 				return spoofaxOutlinePresenter != null;
 		}
+		
 		return super.canDoOperation(operation);
 	}
 
@@ -48,7 +63,8 @@ public class SpoofaxViewer extends ProjectionViewer {
 					spoofaxOutlinePresenter.showInformation();
 				return;
 		}
-        super.doOperation(operation);
+		
+		super.doOperation(operation);
 	}
 	
     /*
@@ -64,6 +80,7 @@ public class SpoofaxViewer extends ProjectionViewer {
             if (spoofaxOutlinePresenter != null)
             	spoofaxOutlinePresenter.install(this);
         }
+        super.configure(configuration);
     }
 	
     /*
