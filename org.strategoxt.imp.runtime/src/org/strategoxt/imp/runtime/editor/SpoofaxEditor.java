@@ -1,9 +1,13 @@
 package org.strategoxt.imp.runtime.editor;
 
+import java.util.ResourceBundle;
+
 import org.eclipse.imp.editor.UniversalEditor;
+import org.eclipse.jface.action.Action;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.IVerticalRuler;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.ui.texteditor.TextOperationAction;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 import org.eclipse.ui.views.properties.IPropertySource;
 import org.strategoxt.imp.runtime.EditorState;
@@ -58,6 +62,17 @@ public class SpoofaxEditor extends UniversalEditor {
 
 		return super.getAdapter(adapter);
 	}
+	
+    @Override
+	protected void createActions() {
+        final ResourceBundle bundle = ResourceBundle.getBundle(MESSAGE_BUNDLE);
+        
+        Action action= new TextOperationAction(bundle, "ShowOutline.", this, SpoofaxViewer.SHOW_OUTLINE);
+        action.setActionDefinitionId(SHOW_OUTLINE_COMMAND);
+        setAction(SHOW_OUTLINE_COMMAND, action);
+        
+        super.createActions();
+    }
 	
 	@Override
     protected ISourceViewer createSourceViewer(Composite parent, IVerticalRuler ruler, int styles) {
