@@ -3,7 +3,6 @@ package org.strategoxt.imp.runtime.editor;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.IVerticalRuler;
-import org.eclipse.jface.text.source.projection.ProjectionViewer;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 import org.eclipse.ui.views.properties.IPropertySource;
@@ -12,10 +11,17 @@ import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.services.outline.SpoofaxOutlinePage;
 
+/**
+ * @author Oskar van Rest
+ */
 public class SpoofaxEditor extends UniversalEditor {
 	
 	@SuppressWarnings("hiding")
 	public static final String EDITOR_ID = "org.eclipse.imp.runtime.editor.spoofaxEditor";
+	
+	public SpoofaxEditor() {
+        setSourceViewerConfiguration(new SpoofaxSourceViewerConfiguration(new StructuredSourceViewerConfiguration()));
+	}
 	
 	@Override
 	public Object getAdapter(Class adapter) {
@@ -55,6 +61,6 @@ public class SpoofaxEditor extends UniversalEditor {
 	
 	@Override
     protected ISourceViewer createSourceViewer(Composite parent, IVerticalRuler ruler, int styles) {
-		return new ProjectionViewer(parent, ruler, getOverviewRuler(), isOverviewRulerVisible(), styles);
+		return new SpoofaxViewer(parent, ruler, getOverviewRuler(), isOverviewRulerVisible(), styles);
     }
 }
