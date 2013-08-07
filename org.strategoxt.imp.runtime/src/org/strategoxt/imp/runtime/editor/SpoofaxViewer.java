@@ -210,7 +210,7 @@ public class SpoofaxViewer extends ProjectionViewer {
                         offset++;
                     }
                     // The first non-whitespace characters *must* be the single-line comment prefix
-                    doc.replace(offset, lineCommentPrefix.length(), "");
+                    doc.replace(offset, lineCommentPrefix.length() + 1, "");
                 } else {
                 	// add the comment prefix to each line, after however many spaces leadingSpaceToAdd indicates
                 	int offset= lineStart + leadingSpaceToUse;
