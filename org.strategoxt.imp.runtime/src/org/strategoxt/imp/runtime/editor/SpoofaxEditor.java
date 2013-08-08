@@ -70,8 +70,6 @@ public class SpoofaxEditor extends UniversalEditor {
 	
 	@Override
 	protected ISourceViewer createSourceViewer(Composite parent, IVerticalRuler ruler, int styles) {
-		SpoofaxViewer spoofaxViewer = new SpoofaxViewer(parent, ruler, getOverviewRuler(), isOverviewRulerVisible(), styles);
-		spoofaxViewer.syntaxProps = getParseController().getSyntaxProperties(); // needed for Toggle Comment and Indent Lines editor services
-		return spoofaxViewer;
+		return new SpoofaxViewer(parent, ruler, getOverviewRuler(), isOverviewRulerVisible(), styles, getParseController());
 	}
 }

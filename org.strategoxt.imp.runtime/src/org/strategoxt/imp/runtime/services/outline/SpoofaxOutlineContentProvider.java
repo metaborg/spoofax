@@ -1,7 +1,10 @@
 package org.strategoxt.imp.runtime.services.outline;
 
+import java.util.LinkedList;
+
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
+import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.Environment;
 
@@ -23,10 +26,10 @@ public class SpoofaxOutlineContentProvider implements ITreeContentProvider {
 		
 		switch (term.getTermType()) {
 			case IStrategoTerm.APPL:
-				return new IStrategoTerm[]{term};
+				return filterWellFormedOutlineNodes(new Object[]{term});
 
 			case IStrategoTerm.LIST:
-				return term.getAllSubterms();
+				return filterWellFormedOutlineNodes(term.getAllSubterms());
 				
 			default:
 				Environment.logException("Expected Node(...) or [Node(...), ...] but was: " + inputElement);
@@ -37,13 +40,8 @@ public class SpoofaxOutlineContentProvider implements ITreeContentProvider {
 	}
 
 	public Object[] getChildren(Object parentElement) {
-		if (((IStrategoTerm) parentElement).getSubtermCount() == 2) {
-			IStrategoTerm children = ((IStrategoTerm) parentElement).getSubterm(1);
-			return children.getAllSubterms();
-		}
-		
-		Environment.logException("Expected Node(..., [...]) but was: " + parentElement);
-		return new Object[0];
+		IStrategoTerm children = ((IStrategoTerm) parentElement).getSubterm(1);
+		return filterWellFormedOutlineNodes(children.getAllSubterms());
 	}
 
 	public Object getParent(Object element) {
@@ -51,6 +49,22 @@ public class SpoofaxOutlineContentProvider implements ITreeContentProvider {
 	}
 
 	public boolean hasChildren(Object element) {
-		return getChildren(element).length != 0;
+		IStrategoList children = (IStrategoList) ((IStrategoTerm) element).getSubterm(1);
+		return !children.isEmpty();
+	}
+	
+	private Object[] filterWellFormedOutlineNodes(Object[] outlineNodes) {
+		LinkedList<Object> result = new LinkedList<Object>();
+		for (int i=0; i<outlineNodes.length; i++) {
+			Object outlineNode = outlineNodes[i];
+			if (SpoofaxOutlineUtil.isWellFormedOutlineNode(outlineNode)) {
+				result.add(outlineNode);
+			}
+			else {
+				Environment.logException(outlineNode + " is not a well-formed outline node.");
+			}
+		}
+		
+		return result.toArray();
 	}
 }

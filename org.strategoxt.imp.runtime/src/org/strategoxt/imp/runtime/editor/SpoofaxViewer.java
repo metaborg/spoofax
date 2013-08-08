@@ -2,6 +2,7 @@ package org.strategoxt.imp.runtime.editor;
 
 import java.util.List;
 
+import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.imp.services.IAutoEditStrategy;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
@@ -21,6 +22,7 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.strategoxt.imp.runtime.services.outline.SpoofaxOutlinePopup;
 import org.strategoxt.imp.runtime.services.outline.SpoofaxOutlinePopupFactory;
+import org.strategoxt.imp.runtime.services.outline.SpoofaxOutlineUtil;
 
 /**
  * Design decisions:
@@ -77,10 +79,11 @@ public class SpoofaxViewer extends ProjectionViewer {
     private PopupDialog spoofaxOutlinePopup;
     private IAutoEditStrategy fAutoEditStrategy;
     
-	public ILanguageSyntaxProperties syntaxProps;
+	private IParseController parseController;
     
-	public SpoofaxViewer(Composite parent, IVerticalRuler ruler, IOverviewRuler overviewRuler, boolean showsAnnotationOverview, int styles) {
+	public SpoofaxViewer(Composite parent, IVerticalRuler ruler, IOverviewRuler overviewRuler, boolean showsAnnotationOverview, int styles, IParseController parseController) {
 		super(parent, ruler, overviewRuler, showsAnnotationOverview, styles);
+		this.parseController = parseController;
 	}
 	
 	/*
@@ -109,6 +112,8 @@ public class SpoofaxViewer extends ProjectionViewer {
 	        case SHOW_OUTLINE:
 				spoofaxOutlinePopup.create();
 				((SpoofaxOutlinePopup) spoofaxOutlinePopup).setSize(400, 322); // should somehow set default/minimum size constraints instead
+				Object outline = SpoofaxOutlineUtil.getOutline(parseController);
+				((SpoofaxOutlinePopup) spoofaxOutlinePopup).setInput(outline);
 				spoofaxOutlinePopup.open();
 	            return;
 	        case TOGGLE_COMMENT:
@@ -129,7 +134,7 @@ public class SpoofaxViewer extends ProjectionViewer {
 	public void configure(SourceViewerConfiguration configuration) {
 		if (configuration instanceof SpoofaxSourceViewerConfiguration) {
 			
-			spoofaxOutlinePopup = new SpoofaxOutlinePopupFactory().create(getControl().getShell());
+			spoofaxOutlinePopup = new SpoofaxOutlinePopupFactory().create(getControl().getShell(), parseController);
 			
 			/**
 			 * Copied from IMP's StructuredSourceViewer
@@ -166,6 +171,8 @@ public class SpoofaxViewer extends ProjectionViewer {
 	 * Copied from IMP's StructuredSourceViewer. See design decision on top of document.
 	 */
     private void doToggleComment() {
+    	ILanguageSyntaxProperties syntaxProps = parseController.getSyntaxProperties();
+    	
         if (syntaxProps == null)
             return;
 

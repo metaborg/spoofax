@@ -5,7 +5,6 @@ import java.util.LinkedList;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
-import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeSelection;
@@ -15,7 +14,6 @@ import org.eclipse.ui.views.contentoutline.ContentOutlinePage;
 import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 import org.strategoxt.lang.Context;
@@ -27,7 +25,7 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 
 	private final IParseController parseController;
 	private boolean debounceSelectionChanged;
-	private IStrategoTerm outline;
+	private Object outline;
 
 	public SpoofaxOutlinePage(IParseController parseController) {
 		this.parseController = parseController;
@@ -37,7 +35,8 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 	public void createControl(Composite parent) {
 		super.createControl(parent);
 		getTreeViewer().setContentProvider(new SpoofaxOutlineContentProvider());
-		getTreeViewer().setLabelProvider(new SpoofaxOutlineLabelProvider());
+		String pluginPath = EditorState.getEditorFor(parseController).getDescriptor().getBasePath().toOSString();
+		getTreeViewer().setLabelProvider(new SpoofaxOutlineLabelProvider(pluginPath));
 		
 		EditorState editorState = EditorState.getEditorFor(parseController);
 		editorState.getEditor().addModelListener(this);
@@ -59,7 +58,7 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 	}
 	
 	public void update() {
-		final IStrategoTerm outline = SpoofaxOutlineUtil.getOutline(parseController);
+		final Object outline = SpoofaxOutlineUtil.getOutline(parseController);
 		this.outline = outline;
 		final int outline_expand_to_level = SpoofaxOutlineUtil.getOutline_expand_to_level(parseController);
 						
@@ -92,22 +91,13 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
     }
     
     public void outlineSelectionToTextSelection() {
-    	EditorState editorState = EditorState.getEditorFor(parseController);
     	TreeSelection treeSelection = (TreeSelection) getSelection();
     	if (treeSelection.isEmpty()) {
     		return;
     	}
 
     	Object firstElem = treeSelection.getFirstElement();
-    	IStrategoTerm origin = SpoofaxOutlineUtil.getOutlineNodeOrigin(firstElem);
-    	
-    	if (ImploderAttachment.hasImploderOrigin(origin)) {
-    		int startOffset = (ImploderAttachment.getLeftToken(origin).getStartOffset());
-    		int endOffset = (ImploderAttachment.getRightToken(origin).getEndOffset()) + 1;
-        	
-    		TextSelection newSelection = new TextSelection(startOffset, endOffset - startOffset);
-    		editorState.getEditor().getSelectionProvider().setSelection(newSelection);
-    	}
+    	SpoofaxOutlineUtil.selectCorrespondingText(firstElem, parseController);
     }
     
     public void textSelectionToOutlineSelection() {
@@ -128,7 +118,7 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
     	
     	if (textSelection != null) {
 	    	Context context = SpoofaxOutlineUtil.getObserver(editorState).getRuntime().getCompiledContext();
-	    	IStrategoList path = StrategoTermPath.getTermPathWithOrigin(context, outline, textSelection);
+	    	IStrategoList path = StrategoTermPath.getTermPathWithOrigin(context, (IStrategoTerm) outline, textSelection);
 	    	
 	    	if (path != null) {
 		    	TreePath[] treePaths = termPathToTreePaths(path);
@@ -142,7 +132,7 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
     }
     
     private TreePath[] termPathToTreePaths(IStrategoList path) {
-    	return termPathToTreePaths(path, outline, new LinkedList<IStrategoTerm>());
+    	return termPathToTreePaths(path, (IStrategoTerm) outline, new LinkedList<IStrategoTerm>());
 	}
     
     private TreePath[] termPathToTreePaths(IStrategoList path, IStrategoTerm current, LinkedList<IStrategoTerm> segments) {
