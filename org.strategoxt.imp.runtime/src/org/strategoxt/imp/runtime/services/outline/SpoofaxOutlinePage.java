@@ -16,13 +16,8 @@ import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
-import org.spoofax.jsglr.client.imploder.ImploderOriginTermFactory;
-import org.spoofax.terms.TermFactory;
 import org.spoofax.terms.attachments.OriginAttachment;
 import org.strategoxt.imp.runtime.EditorState;
-import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
-import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 import org.strategoxt.lang.Context;
 
@@ -31,31 +26,19 @@ import org.strategoxt.lang.Context;
  */
 public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelListener {
 
-	public final static String OUTLINE_STRATEGY = "outline-strategy";
-	public final static String OUTLINE_EXPAND_TO_LEVEL = "outline-expand-to-level";
-	private final EditorState editorState;
-	private ImploderOriginTermFactory factory = new ImploderOriginTermFactory(new TermFactory());
-	private StrategoObserver observer;
+	private final IParseController parseController;
 	private boolean debounceSelectionChanged;
 	private IStrategoTerm outline;
 
-	public SpoofaxOutlinePage(EditorState editorState) {
-		this.editorState = editorState;
-		
-		try {
-			observer = editorState.getDescriptor().createService(StrategoObserver.class, editorState.getParseController());
-		}
-		catch (BadDescriptorException e) {
-			e.printStackTrace();
-		}
+	public SpoofaxOutlinePage(IParseController parseController) {
+		this.parseController = parseController;
 	}
 	
 	@Override
 	public void createControl(Composite parent) {
 		super.createControl(parent);
 		getTreeViewer().setContentProvider(new SpoofaxOutlineContentProvider());
-		String pluginPath = editorState.getDescriptor().getBasePath().toOSString();
-		getTreeViewer().setLabelProvider(new SpoofaxOutlineLabelProvider(pluginPath));
+		getTreeViewer().setLabelProvider(new SpoofaxOutlineLabelProvider());
 		
 		Display.getDefault().asyncExec(new Runnable() {
 			public void run() {
@@ -63,6 +46,7 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 			}
 		});
 		
+		EditorState editorState = EditorState.getEditorFor(parseController);
 		editorState.getEditor().addModelListener(this);
 		editorState.getEditor().getSelectionProvider().addSelectionChangedListener(this);
 	}
@@ -78,55 +62,21 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 		
 	@Override
 	public void dispose() {
-		editorState.getEditor().removeModelListener(this);
+		EditorState.getEditorFor(parseController).getEditor().removeModelListener(this);
 	}
 	
 	public void update() {
-		observer.getLock().lock();
-		try {
-			outline = observer.invokeSilent(OUTLINE_STRATEGY, editorState.getCurrentAst(), editorState.getResource().getFullPath().toFile());
-			
-			if (outline == null) {
-				outline = factory.makeAppl(factory.makeConstructor("Node", 2), factory.makeString(OUTLINE_STRATEGY + " failed"), factory.makeList());
-			}
-			else if (outline.getTermType() == IStrategoTerm.APPL) {
-				// workaround for https://bugs.eclipse.org/9262
-				outline = factory.makeList(outline);
-			}
-			
-			// ensures propagation of origin information
-			factory.makeLink(outline, editorState.getCurrentAst());
-			
-			final int outline_expand_to_level = getOutline_expand_to_level();
+		final IStrategoTerm outline = SpoofaxOutlineUtil.getOutline(parseController);
+		this.outline = outline;
+		final int outline_expand_to_level = SpoofaxOutlineUtil.getOutline_expand_to_level(parseController);
 						
-			Display.getDefault().asyncExec(new Runnable() {
-				public void run() {
-					getTreeViewer().setInput(outline);
-					getTreeViewer().expandToLevel(outline_expand_to_level);
-				}
-			});
-		}
-		finally {
-			observer.getLock().unlock();
-		}
+		Display.getDefault().asyncExec(new Runnable() {
+			public void run() {
+				getTreeViewer().setInput(outline);
+				getTreeViewer().expandToLevel(outline_expand_to_level);
+			}
+		});
 	}
-	
-    private int getOutline_expand_to_level() {
-    	if (observer.getRuntime().lookupUncifiedSVar(SpoofaxOutlinePage.OUTLINE_EXPAND_TO_LEVEL) != null) {
-			IStrategoTerm outline_expand_to_level = observer.invokeSilent(OUTLINE_EXPAND_TO_LEVEL, editorState.getCurrentAst(), editorState.getResource().getFullPath().toFile());
-			if (outline_expand_to_level == null) {
-				Environment.logException(OUTLINE_EXPAND_TO_LEVEL + " failed.");
-			}
-			else if (outline_expand_to_level.getTermType() != IStrategoTerm.INT) {
-				Environment.logException(OUTLINE_EXPAND_TO_LEVEL + " returned " + outline_expand_to_level + ", but should return an integer instead.");
-			}
-			else {
-				return ((IStrategoInt) outline_expand_to_level).intValue();
-			}
-		}
-    	
-    	return 3; // default
-    }
 
 	@Override
 	public void selectionChanged(SelectionChangedEvent event) {
@@ -149,19 +99,14 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
     }
     
     public void outlineSelectionToTextSelection() {
+    	EditorState editorState = EditorState.getEditorFor(parseController);
     	TreeSelection treeSelection = (TreeSelection) getSelection();
     	if (treeSelection.isEmpty()) {
     		return;
     	}
 
-    	IStrategoTerm firstElem = (IStrategoTerm) treeSelection.getFirstElement();
-    	IStrategoTerm origin = OriginAttachment.getOrigin(firstElem.getSubterm(0)); // use origin of label
-    	if (origin == null) {
-    		origin = OriginAttachment.getOrigin(firstElem); // use origin of node
-    	}
-    	if (origin == null) {
-    		origin = firstElem.getSubterm(0); // assume label is origin
-    	}
+    	Object firstElem = treeSelection.getFirstElement();
+    	IStrategoTerm origin = SpoofaxOutlineUtil.getOutlineNodeOrigin(firstElem);
     	
     	if (ImploderAttachment.hasImploderOrigin(origin)) {
     		int startOffset = (ImploderAttachment.getLeftToken(origin).getStartOffset());
@@ -173,6 +118,7 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
     }
     
     public void textSelectionToOutlineSelection() {
+    	EditorState editorState = EditorState.getEditorFor(parseController);
     	IStrategoTerm textSelection = null;
     	
     	try {
@@ -184,7 +130,7 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
     	}
     	
     	if (textSelection != null) {
-	    	Context context = observer.getRuntime().getCompiledContext();
+	    	Context context = SpoofaxOutlineUtil.getObserver(editorState).getRuntime().getCompiledContext();
 	    	IStrategoList path = StrategoTermPath.getTermPathWithOrigin(context, outline, textSelection);
 	    	
 	    	if (path != null) {

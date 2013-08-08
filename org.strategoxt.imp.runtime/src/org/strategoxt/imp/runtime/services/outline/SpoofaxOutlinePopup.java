@@ -12,7 +12,11 @@ public class SpoofaxOutlinePopup extends FilteringInfoPopup {
 
 	@Override
 	protected TreeViewer createTreeViewer(Composite parent, int style) {
-		return new TreeViewer(parent, style);
+		TreeViewer treeViewer = new TreeViewer(parent, style);
+		treeViewer.setContentProvider(new SpoofaxOutlineContentProvider());
+		treeViewer.setLabelProvider(new SpoofaxOutlineLabelProvider());
+		treeViewer.setAutoExpandLevel(TreeViewer.ALL_LEVELS);
+		return treeViewer;
 	}
 
 	@Override
@@ -23,11 +27,11 @@ public class SpoofaxOutlinePopup extends FilteringInfoPopup {
 
 	@Override
 	protected void handleElementSelected(Object selectedElement) {
-		System.out.println("handleElementSelected");
+		System.out.println(selectedElement.getClass());
 	}
 
 	@Override
-	public void setInput(Object information) {
-		System.out.println("setInput");
+	public void setInput(Object input) {
+		getTreeViewer().setInput(input);
 	}
 }

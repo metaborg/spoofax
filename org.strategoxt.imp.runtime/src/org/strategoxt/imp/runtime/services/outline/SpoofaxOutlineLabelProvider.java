@@ -14,12 +14,6 @@ import org.strategoxt.imp.runtime.Environment;
  */
 public class SpoofaxOutlineLabelProvider extends LabelProvider {
 
-	private String pluginPath;
-
-	public SpoofaxOutlineLabelProvider(String pluginPath) {
-		this.pluginPath = pluginPath;
-	}
-
 	@Override
 	public String getText(Object element) {
 		IStrategoTerm label = getLabel(element);
@@ -36,8 +30,9 @@ public class SpoofaxOutlineLabelProvider extends LabelProvider {
 	public Image getImage(Object element) {
 		IStrategoTerm label = getLabel(element);
 		if (label != null && !label.getAnnotations().isEmpty()) {
-			IStrategoTerm iconPath = label.getAnnotations().getSubterm(0);				
+			IStrategoTerm iconPath = label.getAnnotations().getSubterm(0);		
 			if (iconPath.getTermType() == IStrategoTerm.STRING) {
+				String pluginPath = SpoofaxOutlineUtil.getPluginPath(element);
 				File iconFile = new File(pluginPath, ((IStrategoString) iconPath).stringValue());
 				if (iconFile.exists()) {
 					return new Image(Display.getDefault(), iconFile.getAbsolutePath());

@@ -2,7 +2,6 @@ package org.strategoxt.imp.runtime.editor;
 
 import java.util.List;
 
-import org.eclipse.imp.editor.UniversalEditor.StructuredSourceViewerConfiguration;
 import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.imp.services.IAutoEditStrategy;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
@@ -14,7 +13,6 @@ import org.eclipse.jface.text.DocumentRewriteSession;
 import org.eclipse.jface.text.DocumentRewriteSessionType;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentExtension4;
-import org.eclipse.jface.text.information.IInformationPresenter;
 import org.eclipse.jface.text.source.IOverviewRuler;
 import org.eclipse.jface.text.source.IVerticalRuler;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
@@ -79,13 +77,12 @@ public class SpoofaxViewer extends ProjectionViewer {
     private PopupDialog spoofaxOutlinePopup;
     private IAutoEditStrategy fAutoEditStrategy;
     
-
-    public ILanguageSyntaxProperties syntaxProps;
+	public ILanguageSyntaxProperties syntaxProps;
     
 	public SpoofaxViewer(Composite parent, IVerticalRuler ruler, IOverviewRuler overviewRuler, boolean showsAnnotationOverview, int styles) {
 		super(parent, ruler, overviewRuler, showsAnnotationOverview, styles);
 	}
-
+	
 	/*
 	 * @see ITextOperationTarget#canDoOperation(int)
 	 */
@@ -110,11 +107,9 @@ public class SpoofaxViewer extends ProjectionViewer {
 	public void doOperation(int operation) {
 		switch (operation) {
 	        case SHOW_OUTLINE:
-	            if (spoofaxOutlinePopup != null) {
-					spoofaxOutlinePopup.create();
-					((SpoofaxOutlinePopup) spoofaxOutlinePopup).setSize(400, 322); // should somehow set default/minimum size constraints instead
-					spoofaxOutlinePopup.open();
-	            }
+				spoofaxOutlinePopup.create();
+				((SpoofaxOutlinePopup) spoofaxOutlinePopup).setSize(400, 322); // should somehow set default/minimum size constraints instead
+				spoofaxOutlinePopup.open();
 	            return;
 	        case TOGGLE_COMMENT:
 	        	doToggleComment(); // "delegate"
@@ -133,7 +128,7 @@ public class SpoofaxViewer extends ProjectionViewer {
 	@Override
 	public void configure(SourceViewerConfiguration configuration) {
 		if (configuration instanceof SpoofaxSourceViewerConfiguration) {
-
+			
 			spoofaxOutlinePopup = new SpoofaxOutlinePopupFactory().create(getControl().getShell());
 			
 			/**

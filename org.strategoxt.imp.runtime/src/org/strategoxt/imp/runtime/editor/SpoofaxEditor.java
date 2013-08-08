@@ -11,9 +11,6 @@ import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.texteditor.TextOperationAction;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 import org.eclipse.ui.views.properties.IPropertySource;
-import org.strategoxt.imp.runtime.EditorState;
-import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
-import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.services.outline.SpoofaxOutlinePage;
 
 /**
@@ -40,23 +37,7 @@ public class SpoofaxEditor extends UniversalEditor {
 		
 		// for backward compatibility, we only instantiate a SpoofaxOutlinePage if an outline strategy is defined.
 		if (adapter.equals(IContentOutlinePage.class)) {
-			EditorState editorState = EditorState.getEditorFor(getParseController());
-			StrategoObserver observer = null;
-			try {
-				observer = editorState.getDescriptor().createService(StrategoObserver.class, editorState.getParseController());
-			} catch (BadDescriptorException e) {
-				e.printStackTrace();
-			}
-			
-			observer.getLock().lock();
-			try {
-				if (observer.getRuntime().lookupUncifiedSVar(SpoofaxOutlinePage.OUTLINE_STRATEGY) != null) {
-					return new SpoofaxOutlinePage(EditorState.getEditorFor(getParseController()));
-				}
-			}
-			finally {
-				observer.getLock().unlock();
-			}
+			return new SpoofaxOutlinePage(getParseController());
 		}
 
 		if (adapter == IPropertySource.class) {
