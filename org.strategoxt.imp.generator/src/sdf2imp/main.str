@@ -126,7 +126,7 @@ strategies
     
     create-syntax-descriptor;
     create-folding-descriptor;
-    create-outliner-descriptor; create-outline-library;
+    create-outliner-descriptor;
     create-colorer-descriptor;
     create-builders-descriptor;
     create-refactorings-descriptor;

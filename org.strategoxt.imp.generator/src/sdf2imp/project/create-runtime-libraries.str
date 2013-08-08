@@ -758,6 +758,49 @@ rules
 
 "
 
+	create-outline-library =
+		<output-text-file(|["lib", "runtime", "editor"], "outline-library.str")>
+"module runtime/editor/outline-library
+
+imports
+  runtime/editor/origins
+  
+rules
+  
+  /**
+   * Creates an outline given a strategy s1 that rewrites AST nodes to outline labels.
+   * Only AST nodes for which s1 succeed end up in the outline.
+   *
+   * Example:
+   *   outline-strategy = simple-label-outline(to-outline-label)
+   *   to-outline-label: Entity(name, _) -> name
+   *   to-outline-label: Property(name, _) -> name
+   */
+  simple-label-outline(s1) = collect-om(to-outline-node(s1, fail), conc)
+  
+  /**
+   * Similar to simple-label-outline(s1), but with an additional strategy s2 that rewrites
+   * AST nodes to outline nodes. Strategy s2 gets priority over strategy s1 in case both succeed.
+   *
+   * Example:
+   *   outline-strategy = custom-label-outline(to-outline-label, to-outline-node)
+   *   to-outline-label: Entity(name, _) -> name
+   *   to-outline-node: Property(name, _) -> Node(name, [Node(\"dummy\", [])])
+   */
+  custom-label-outline(s1, s2) = collect-om(origin-track-forced(s2) <+ to-outline-node(s1, s2), conc)
+  
+  to-outline-node(s1, s2):
+    term -> Node(label, children)
+    where
+      label := <origin-track-forced(s1)> term;
+      children := <get-arguments; custom-label-outline(s1, s2)> term
+
+  
+signature constructors
+  
+  Node: label * children -> Node
+"
+
 	create-index-core = 
 		<output-text-file(|["lib", "runtime", "index"], "core.str")>
 "module runtime/index/core
@@ -3659,6 +3702,7 @@ create-all-runtime-libraries =
 ; 	create-editor-origins
 ; 	create-editor-positions
 ; 	create-editor-queue
+; 	create-outline-library
 ; 	create-index-core
 ; 	create-index-globals
 ; 	create-index-legacy

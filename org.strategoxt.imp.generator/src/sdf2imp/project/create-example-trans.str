@@ -33,7 +33,7 @@ imports
 	names
 	check
 	generate
-  outline
+  editor/{sdf-name}-Outliner
 
 rules // Analysis
 	
@@ -214,7 +214,7 @@ rules
 		                                  (this note is defined in trans/check.str)])
 
 })>
-end;
+end
 
 /*
 if not(<file-exists> "trans/refactor.str") then
@@ -245,34 +245,3 @@ rules
 end;
 */
 
-if not(<file-exists> "trans/outline.str") then
-  <output-text-file(|["trans"], "outline.str")>
-  <(GenerateMinimal
-  <
-!${module outline
-
-imports
-  include/{sdf-name}
-  lib/outline-library.generated
-
-rules
-
-  outline-strategy = fail
-}
-  +
-!${module outline
-
-imports
-  include/{sdf-name}
-  lib/outline-library.generated
-
-rules
-
-  outline-strategy = simple-label-outline(to-outline-label)
-  outline-expand-to-level = !3
-
-  to-outline-label: Module(name, _) -> name
-  to-outline-label: Entity(name, _) -> name
-  to-outline-label: Property(name, _) -> name
-})>
-end
