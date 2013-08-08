@@ -35,7 +35,6 @@ public class SpoofaxEditor extends UniversalEditor {
 			return super.getAdapter(adapter);
 		}
 		
-		// for backward compatibility, we only instantiate a SpoofaxOutlinePage if an outline strategy is defined.
 		if (adapter.equals(IContentOutlinePage.class)) {
 			return new SpoofaxOutlinePage(getParseController());
 		}
