@@ -39,7 +39,7 @@ rules
   outline-strategy = simple-label-outline(to-outline-label)
   outline-expand-to-level = !3
   
-  {<separate-by(|"\n"); map(write-to-string)> outline-rules}
+  {<separate-by(|"\n"); concat-strings> outline-rules}
 }
   
   heuristic-outliner-productions =
