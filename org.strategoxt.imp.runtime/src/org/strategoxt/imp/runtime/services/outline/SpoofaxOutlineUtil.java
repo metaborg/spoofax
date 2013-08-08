@@ -34,17 +34,22 @@ public class SpoofaxOutlineUtil {
 		StrategoObserver observer = getObserver(editorState);
 		observer.getLock().lock();
 		try {
+			if (observer.getRuntime().lookupUncifiedSVar(OUTLINE_STRATEGY) == null) {
+				return messageToOutlineNode(OUTLINE_STRATEGY + " undefined");
+			}
+			
 			IStrategoTerm outline = observer.invokeSilent(OUTLINE_STRATEGY, editorState.getCurrentAst(), editorState.getResource().getFullPath().toFile());
 			
 			if (outline == null) {
-				outline = factory.makeAppl(factory.makeConstructor("Node", 2), factory.makeString(OUTLINE_STRATEGY + " failed"), factory.makeList());
+				return messageToOutlineNode(OUTLINE_STRATEGY + " failed");
 			}
-			else if (outline.getTermType() == IStrategoTerm.APPL) {
-				// workaround for https://bugs.eclipse.org/9262
+			
+			// workaround for https://bugs.eclipse.org/9262
+			if (outline.getTermType() == IStrategoTerm.APPL) {
 				outline = factory.makeList(outline);
 			}
 			
-			// ensures propagation of origin information
+			// ensure propagation of origin information
 			factory.makeLink(outline, editorState.getCurrentAst());
 			
 			return outline;
@@ -53,6 +58,10 @@ public class SpoofaxOutlineUtil {
 		finally {
 			observer.getLock().unlock();
 		}
+	}
+	
+	private static IStrategoTerm messageToOutlineNode(String message) {
+		return factory.makeAppl(factory.makeConstructor("Node", 2), factory.makeString(message), factory.makeList());
 	}
 	
 	public static int getOutline_expand_to_level(IParseController parseController) {
