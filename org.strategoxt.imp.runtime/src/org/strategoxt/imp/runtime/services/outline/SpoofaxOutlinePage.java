@@ -16,7 +16,6 @@ import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
-import org.spoofax.terms.attachments.OriginAttachment;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 import org.strategoxt.lang.Context;
@@ -112,6 +111,10 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
     }
     
     public void textSelectionToOutlineSelection() {
+    	if (outline == null) {
+    		return;
+    	}
+    	
     	EditorState editorState = EditorState.getEditorFor(parseController);
     	IStrategoTerm textSelection = null;
     	
