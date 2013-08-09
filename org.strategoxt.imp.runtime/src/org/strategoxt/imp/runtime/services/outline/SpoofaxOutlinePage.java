@@ -112,13 +112,18 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
     		textSelection = editorState.getSelectionAst(true);
     	}
     	catch (IndexOutOfBoundsException e) {
-    		// hack: happens when user selects text, deletes it and then chooses 'undo'
-    		// TODO: fix EditorState.getSelectionAst()
+    		// bug in EditorState.getSelectionAst()
     	}
     	
     	if (textSelection != null) {
 	    	Context context = SpoofaxOutlineUtil.getObserver(editorState).getRuntime().getCompiledContext();
-	    	IStrategoList path = StrategoTermPath.getTermPathWithOrigin(context, (IStrategoTerm) outline, textSelection);
+	    	IStrategoList path = null;
+	    	try {
+	    		path = StrategoTermPath.getTermPathWithOrigin(context, (IStrategoTerm) outline, textSelection);
+	    	}
+	    	catch (IndexOutOfBoundsException e) {
+	    		// bug in StrategoTermPath.getTermPathWithOrigin(..)
+	    	}
 	    	
 	    	if (path != null) {
 		    	TreePath[] treePaths = termPathToTreePaths(path);
