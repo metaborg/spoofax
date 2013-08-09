@@ -20,6 +20,10 @@ imports
   include/{sdf-name}
   lib/runtime/editor/outline-library
   editor/{sdf-name}-Outliner.generated
+
+rules
+  
+  outline-expand-to-level = !3
 }
 
     end;
@@ -41,7 +45,6 @@ imports
 rules
 
   outline-strategy = simple-label-outline(to-outline-label)
-  outline-expand-to-level = !3
   
   {<separate-by(|"\n"); concat-strings> outline-rules}
 }
@@ -116,8 +119,8 @@ rules
         index := <get-index> (label, symbols);
         pattern-before := <copy> (<dec> index, "_");
         pattern-after := <copy> (<subt> (<length> symbols, index), "_");
-        pattern := <flatten-list; separate-by(!", ")> [pattern-before, "label", pattern-after];
-        result := <flatten-list; concat-strings> [sname, ": ", <collect-one(is-string)> cons, "(", pattern, ") -> label"]
+        pattern := <flatten-list; separate-by(!", ")> [pattern-before, "<id>", pattern-after];
+        result := <flatten-list; concat-strings> [sname, " = ?", <collect-one(is-string)> cons, "(", pattern, ")"]
 
   rtg-prod-to-outline-rule(|sname):
     ProdRule(_, [ Appl(cons, symbols)]) -> result
