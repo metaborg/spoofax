@@ -801,9 +801,10 @@ strategies
 rules
 
   /**
-  * Given a term application, gets the portion of the origin text 
-  * up to the start of the origin text of its first subterm.
-  * Excess whitespace, such as tabs and new lines, are removed.
+  * Given a term application, gets the portion of the origin text up to the start
+  * of the origin text of the first subterm. If the result is an empty string, it
+  * gets the origin text of the first subterm instead. Excess whitespace, such as
+  * tabs and new lines, are removed.
   */
   origin-text-at-start:
     term -> result'
@@ -812,16 +813,20 @@ rules
       offset1 := <origin-offset; ?(<id>, _)> term;
       offset2 := <Hd; origin-offset; ?(<id>, _)> args;
       offset-diff := <subt> (offset2, offset1);
-      result := <origin-text; explode-string; take(!offset-diff); rtrim(is-whitespace + test('\n')); implode-string> term;
-      result' := <guarantee-one-space-separation> result;
-      (a, b, c, d, e) := <origin-location-offset> term;
-      <origin-location-offset-set(|(a, b, c, d, <add> (d, <string-length; dec> result)))> result'
+      if (0 := offset-diff)
+      then result' := <Hd; origin-text; guarantee-one-space-separation> args
+      else result := <origin-text; explode-string; take(!offset-diff); rtrim(is-whitespace + test('\n')); implode-string> term;
+        result' := <guarantee-one-space-separation> result;
+        (a, b, c, d, e) := <origin-location-offset> term;
+        <origin-location-offset-set(|(a, b, c, d, <add> (d, <string-length; dec> result)))> result'
+      end
   
   /**
   * @internal
   */
   guarantee-one-space-separation = string-as-chars(
-      map(try(test('\n' + '\t'); !' '));
+      map(try(test('
+' + ' '); !' '));
       foldr(![], rm-double-space <+ MkCons)
     )
   rm-double-space: (' ', l@[' '|xs]) -> l
