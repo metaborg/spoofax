@@ -41,6 +41,12 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 		EditorState editorState = EditorState.getEditorFor(parseController);
 		editorState.getEditor().addModelListener(this);
 		editorState.getEditor().getSelectionProvider().addSelectionChangedListener(this);
+		
+		if (parseController.getCurrentAst() != null) {
+			// The editor sporadically manages to parse the file before our model listener gets added,
+			// resulting in an empty outline on startup. We therefore perform a 'manual' update:
+			update();
+		}
 	}
 
 
