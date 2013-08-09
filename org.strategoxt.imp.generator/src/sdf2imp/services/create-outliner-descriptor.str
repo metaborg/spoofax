@@ -23,11 +23,15 @@ imports
 }
 
     end;
-    rtg-prods := <heuristic-outliner-productions>;
-    outline-rules := <collect-om(rtg-prod-to-outline-rule(|"to-outline-label"), conc)> rtg-prods;
+    rtg-prods := <heuristic-outliner-productions; debug>;
+    label-strategy = !"to-outline-label";
+    if ([] := rtg-prods)
+    then outline-rules := [<conc-strings> (label-strategy, " = fail")]
+    else outline-rules := <map(rtg-prod-to-outline-rule(|label-strategy))> rtg-prods
+    end;
     <output-text-file(|["editor"], $[[sdf-name]-Outliner.generated.str])>
       
-${module editor/{sdf-name}-Outliner
+${module editor/{sdf-name}-Outliner.generated
 
 imports
   include/{sdf-name}
