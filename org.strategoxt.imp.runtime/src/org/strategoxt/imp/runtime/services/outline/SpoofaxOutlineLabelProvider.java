@@ -22,7 +22,14 @@ public class SpoofaxOutlineLabelProvider extends LabelProvider {
 	
 	@Override
 	public String getText(Object element) {
-		return ((IStrategoString) ((IStrategoTerm) element).getSubterm(0)).stringValue();
+		IStrategoTerm label = ((IStrategoTerm) element).getSubterm(0);
+		
+		if (label.getTermType() == IStrategoString.STRING) {
+			return ((IStrategoString) label).stringValue();
+		}
+		else {
+			return label.toString(); // fallback
+		}
 	}
 
 	@Override

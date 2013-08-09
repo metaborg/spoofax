@@ -88,7 +88,7 @@ public class SpoofaxOutlineUtil {
 			if (node.getConstructor().getName().equals("Node") && node.getSubtermCount() == 2) {
 				IStrategoTerm label = node.getSubterm(0);
 				IStrategoTerm children = node.getSubterm(1);
-				if (label.getTermType() == IStrategoTerm.STRING && children.getTermType() == IStrategoTerm.LIST) {
+				if (children.getTermType() == IStrategoTerm.LIST) {
 					if (label.getAnnotations().isEmpty()) {
 						return true;
 					}
