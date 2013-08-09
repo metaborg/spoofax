@@ -40,7 +40,6 @@ ${module editor/{sdf-name}-Outliner.generated
 imports
   include/{sdf-name}
   lib/runtime/editor/outline-library
-  editor/{sdf-name}-Outliner.generated
 
 rules
 
@@ -113,20 +112,19 @@ rules
     })
   
   rtg-prod-to-outline-rule(|sname): 
-    ProdRule(_, [ Appl(cons, symbols)]) -> result
+    prod -> result
       where
-        label := <fetch-elem(is-outline-label-candidate)> symbols;
-        index := <get-index> (label, symbols);
-        pattern-before := <copy> (<dec> index, "_");
-        pattern-after := <copy> (<subt> (<length> symbols, index), "_");
+        'sorts := <heuristic-child-sorts> prod;
+        index := <get-index0(heuristic-sort-is-identifier)> 'sorts;
+        pattern-before := <copy> (index, "_");
+        pattern-after := <copy> (<subt> (<length; dec> 'sorts, index), "_");
         pattern := <flatten-list; separate-by(!", ")> [pattern-before, "<id>", pattern-after];
-        result := <flatten-list; concat-strings> [sname, " = ?", <collect-one(is-string)> cons, "(", pattern, ")"]
+        result := <flatten-list; concat-strings> [sname, " = ?", <constructor-name; collect-one(is-string)> prod, "(", pattern, ")"]
 
   rtg-prod-to-outline-rule(|sname):
-    ProdRule(_, [ Appl(cons, symbols)]) -> result
+    prod -> result
       where
-        not( <fetch-elem(is-outline-label-candidate)> symbols );
-        pattern := <separate-by(!", ")> <copy> (<length> symbols, "_");
-        result := <flatten-list; concat-strings> [sname, " = ?", <collect-one(is-string)> cons, "(", pattern, "); origin-text-at-start"]
-
-  is-outline-label-candidate = ?s; collect-one(is-string); where(not(string-starts-with(|"List") + string-starts-with(|"Opt"))); !s
+        'sorts := <heuristic-child-sorts> prod;
+        not ( <get-index0(heuristic-sort-is-identifier)> 'sorts );
+        pattern := <separate-by(!", ")> <copy> (<length> 'sorts, "_");
+        result := <flatten-list; concat-strings> [sname, " = ?", <constructor-name; collect-one(is-string)> prod, "(", pattern, "); origin-text-at-start"]
