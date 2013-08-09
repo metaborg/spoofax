@@ -109,22 +109,21 @@ rules
       )
     })
   
-  rtg-prod-to-outline-rule(|sname): ProdRule(
-        _
-      , [ Appl(
-            Term(Plain(cons))
-          , symbols
-          )
-        ]
-      ) -> result
+  rtg-prod-to-outline-rule(|sname): 
+    ProdRule(_, [ Appl(cons, symbols)]) -> result
       where
-        c@Ref(Nonterm(Plain(sort))) := <fetch-elem(is-outline-label-candidate)> symbols;
-        index := <get-index> (c, symbols);
+        label := <fetch-elem(is-outline-label-candidate)> symbols;
+        index := <get-index> (label, symbols);
         pattern-before := <copy> (<dec> index, "_");
         pattern-after := <copy> (<subt> (<length> symbols, index), "_");
         pattern := <flatten-list; separate-by(!", ")> [pattern-before, "label", pattern-after];
-        result := <flatten-list; concat-strings> [sname, ": ", cons, "(", pattern, ") -> label"]
+        result := <flatten-list; concat-strings> [sname, ": ", <collect-one(is-string)> cons, "(", pattern, ") -> label"]
 
-  is-outline-label-candidate:
-    r@Ref(Nonterm(Plain(sort))) -> r
-      where not ( <string-starts-with(|"List") + string-starts-with(|"Opt")> sort )
+  rtg-prod-to-outline-rule(|sname):
+    ProdRule(_, [ Appl(cons, symbols)]) -> result
+      where
+        not( <fetch-elem(is-outline-label-candidate)> symbols );
+        pattern := <separate-by(!", ")> <copy> (<length> symbols, "_");
+        result := <flatten-list; concat-strings> [sname, " = ?", <collect-one(is-string)> cons, "(", pattern, "); origin-text-at-start"]
+
+  is-outline-label-candidate = ?s; collect-one(is-string); where(not(string-starts-with(|"List") + string-starts-with(|"Opt"))); !s
