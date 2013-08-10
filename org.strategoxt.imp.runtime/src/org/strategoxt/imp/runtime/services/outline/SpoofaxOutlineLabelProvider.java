@@ -8,6 +8,10 @@ import org.eclipse.swt.widgets.Display;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.Environment;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getTokenizer;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.hasImploderOrigin;
 
 /**
  * @author Oskar van Rest
@@ -27,8 +31,11 @@ public class SpoofaxOutlineLabelProvider extends LabelProvider {
 		if (label.getTermType() == IStrategoString.STRING) {
 			return ((IStrategoString) label).stringValue();
 		}
+		else if (hasImploderOrigin(label)) {
+			return getTokenizer(label).toString(getLeftToken(label), getRightToken(label)); // fallback 1
+		}
 		else {
-			return label.toString(); // fallback
+			return label.toString(); // fallback 2
 		}
 	}
 
