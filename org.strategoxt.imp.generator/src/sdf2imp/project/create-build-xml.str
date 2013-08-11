@@ -449,7 +449,7 @@ strategies
     
         <target name="ppgen.helper" unless="ppgen.available">
             <!-- Any failures here are ignored; they are only a problem when imported from Stratego -->
-            <java classname="run" failonerror="false">
+            <java classname="run" failonerror="true">
                 <arg value="org.strategoxt.tools.main-ppgen"/>
                 <arg value="-i"/>
                 <arg value="${include}/${sdfmodule}.def"/>
@@ -458,7 +458,7 @@ strategies
                 <arg value="-o"/>
                 <arg value="${include}/${sdfmodule}.generated.pp.af"/>
             </java>
-            <java classname="run" failonerror="false">
+            <java classname="run" failonerror="true">
                 <arg value="org.strategoxt.tools.main-pp-pp-table"/>
                 <arg value="-i"/>
                 <arg value="${include}/${sdfmodule}.generated.pp.af"/>
