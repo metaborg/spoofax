@@ -57,7 +57,7 @@ rules
   <+
     sdf-name := <get-sdf-main-module>;
     output-derived-descriptor-file(
-      <descriptor-name> "-Outliner.generated"
+      !${{sdf-name}-Outliner.generated}
     , 
       heuristic-outliner-productions;
       map(create-folding-or-outliner-rule);
