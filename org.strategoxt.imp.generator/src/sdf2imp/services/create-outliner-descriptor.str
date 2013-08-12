@@ -32,7 +32,7 @@ rules
     label-strategy := "to-outline-label";
     if ([] := rtg-prods)
     then outline-rules := [<conc-strings> (label-strategy, " = fail")]
-    else outline-rules := <map(rtg-prod-to-outline-rule(|label-strategy))> rtg-prods
+    else outline-rules := <map(rtg-prod-to-outline-rule(|label-strategy)); make-set> rtg-prods
     end;
     <output-text-file(|["editor"], $[[sdf-name]-Outliner.generated.str])>
       
