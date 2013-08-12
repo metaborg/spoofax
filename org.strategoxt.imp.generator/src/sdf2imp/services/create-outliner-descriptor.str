@@ -11,8 +11,8 @@ strategies
 
   create-outliner-descriptor =
     sdf-name := <get-sdf-main-module>;
-    if not(<conc-strings; file-exists> ("editor/", sdf-name, "-Outliner.str")) then
-      <output-text-file(|["editor"], $[[sdf-name]-Outliner.str])>
+    if not(<file-exists> ${editor/{sdf-name}-Outliner.str}) then
+      <output-text-file(|["editor"], ${{sdf-name}-Outliner.str})>
 
 ${module editor/{sdf-name}-Outliner
 
@@ -28,6 +28,14 @@ rules
 }
 
     end;
+    create-derived-outliner-descriptor;
+    create-old-derived-outliner-descriptor
+    
+  create-derived-outliner-descriptor =
+    not(is-heuristic-services-needed);
+    verbose-msg(!"Skipping", <descriptor-name> "-Outliner.generated")
+  <+    
+    sdf-name := <get-sdf-main-module>;
     rtg-prods := <heuristic-outliner-productions>;
     label-strategy := "to-outline-label";
     if ([] := rtg-prods)
@@ -48,24 +56,21 @@ rules
   
   {<separate-by(|"\n"); concat-strings> outline-rules}
 }
-    
-    ;create-derived-outliner-descriptor
-  
-  create-derived-outliner-descriptor =
-    not(is-heuristic-services-needed);
-    verbose-msg(!"Skipping", <descriptor-name> "-Outliner.generated")
-  <+
-    sdf-name := <get-sdf-main-module>;
-    output-derived-descriptor-file(
-      !${{sdf-name}-Outliner.generated}
-    , 
-      heuristic-outliner-productions;
-      map(create-folding-or-outliner-rule);
 
+  create-old-derived-outliner-descriptor =
+    sdf-name := <get-sdf-main-module>;
+    if is-descriptor-imported(|${{sdf-name}-Outliner}) then
+      output-derived-descriptor-file(
+        !${{sdf-name}-Outliner.generated}
+      , 
+        
 !${module {sdf-name}-Outliner.generated
+
+  // esv-based outline definitions are no longer supported. Use Stratego instead.
 }
 
-    )
+      )
+    end
   
   heuristic-outliner-productions =
     StartSymbol;
