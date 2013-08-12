@@ -213,6 +213,8 @@ strategies
             <eclipse.refreshLocal resource="${projectdir}/editor/${sdfmodule}-Colorer.generated.esv" depth="infinite" />
             <eclipse.refreshLocal resource="${projectdir}/editor/${sdfmodule}-Completions.generated.esv" depth="infinite" />
             <eclipse.refreshLocal resource="${projectdir}/editor/${sdfmodule}-Folding.generated.esv" depth="infinite" />
+            <eclipse.refreshLocal resource="${projectdir}/editor/${sdfmodule}-Outliner.generated.esv" depth="infinite" />
+            <eclipse.refreshLocal resource="${projectdir}/editor/${sdfmodule}-Outliner.generated.str" depth="infinite" />
             <eclipse.refreshLocal resource="${projectdir}/editor/${sdfmodule}-References.generated.esv" depth="infinite" />
             <eclipse.refreshLocal resource="${projectdir}/editor/${sdfmodule}-Syntax.generated.esv" depth="infinite" />
             <eclipse.convertPath fileSystemPath="${src-gen}" property="eclipse.path.src-gen" />
