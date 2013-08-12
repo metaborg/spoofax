@@ -10,7 +10,7 @@ imports
 strategies
 
   create-outliner-descriptor =
-  	sdf-name := <get-sdf-main-module>;
+    sdf-name := <get-sdf-main-module>;
     if not(<conc-strings; file-exists> ("editor/", sdf-name, "-Outliner.str")) then
       <output-text-file(|["editor"], $[[sdf-name]-Outliner.str])>
 
@@ -49,22 +49,7 @@ rules
   {<separate-by(|"\n"); concat-strings> outline-rules}
 }
     
-    ;output-initial-descriptor-file(
-      <descriptor-name> "-Outliner"
-    , !|[
-        module <descriptor-name> "-Outliner"
-        
-        imports <descriptor-name> "-Outliner.generated"
-        
-        outliner
-          ~
-          ~// This file can be used for custom outliner rules.
-          ~//
-          ~// See the imported file for a brief introduction and examples.
-      ]|
-    );
-    
-    create-derived-outliner-descriptor
+    ;create-derived-outliner-descriptor
   
   create-derived-outliner-descriptor =
     not(is-heuristic-services-needed);
@@ -75,22 +60,10 @@ rules
     , 
       heuristic-outliner-productions;
       map(create-folding-or-outliner-rule);
-      !|[
-        module <descriptor-name> "-Outliner.generated"
-        
-        outliner Default outliner        
-          ~
-          ~// Outliner rules indicate which syntactic constructs should be shown in the outline
-          ~// and quick outline views, and take one of the following forms:
-          ~//
-          ~//   <sort>.<constructor>
-          ~//
-          ~//   <sort>._
-          ~//
-          ~//   _.<constructor>
-          ~
-          ~*<id>
-      ]|
+
+!${module {<descriptor-name>} "-Outliner.generated"
+}
+
     )
   
   heuristic-outliner-productions =
