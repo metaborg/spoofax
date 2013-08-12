@@ -55,13 +55,14 @@ rules
     not(is-heuristic-services-needed);
     verbose-msg(!"Skipping", <descriptor-name> "-Outliner.generated")
   <+
+    sdf-name := <get-sdf-main-module>;
     output-derived-descriptor-file(
       <descriptor-name> "-Outliner.generated"
     , 
       heuristic-outliner-productions;
       map(create-folding-or-outliner-rule);
 
-!${module {<descriptor-name>} "-Outliner.generated"
+!${module {sdf-name}-Outliner.generated
 }
 
     )
