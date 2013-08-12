@@ -10,7 +10,6 @@ import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.part.IPageSite;
 import org.eclipse.ui.views.contentoutline.ContentOutlinePage;
 import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoList;
@@ -42,7 +41,14 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 		EditorState editorState = EditorState.getEditorFor(parseController);
 		editorState.getEditor().addModelListener(this);
 		editorState.getEditor().getSelectionProvider().addSelectionChangedListener(this);
+		
+		if (parseController.getCurrentAst() != null) {
+			// The editor sporadically manages to parse the file before our model listener gets added,
+			// resulting in an empty outline on startup. We therefore perform a 'manual' update:
+			update();
+		}
 	}
+
 
 	public void update(IParseController arg0, IProgressMonitor arg1) {
 		update();
