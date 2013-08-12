@@ -28,7 +28,7 @@ rules
 }
 
     end;
-    rtg-prods := <heuristic-outliner-productions; debug>;
+    rtg-prods := <heuristic-outliner-productions>;
     label-strategy := "to-outline-label";
     if ([] := rtg-prods)
     then outline-rules := [<conc-strings> (label-strategy, " = fail")]

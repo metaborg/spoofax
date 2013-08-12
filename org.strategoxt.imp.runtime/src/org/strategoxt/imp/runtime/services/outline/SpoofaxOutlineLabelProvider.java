@@ -31,11 +31,8 @@ public class SpoofaxOutlineLabelProvider extends LabelProvider {
 		if (label.getTermType() == IStrategoString.STRING) {
 			return ((IStrategoString) label).stringValue();
 		}
-		else if (hasImploderOrigin(label)) {
-			return getTokenizer(label).toString(getLeftToken(label), getRightToken(label)); // fallback 1
-		}
 		else {
-			return label.toString(); // fallback 2
+			return label.toString(); // fallback
 		}
 	}
 

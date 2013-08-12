@@ -795,8 +795,13 @@ strategies
   to-outline-node(s1, s2):
     term -> Node(label, children)
     where
-      label := <origin-track-forced(s1)> term;
+      label := <origin-track-forced(s1; term-to-outline-label)> term;
       children := <get-arguments; custom-label-outline(s1, s2)> term
+      
+  /**
+  * @internal
+  */  
+  term-to-outline-label = is-string <+ origin-text <+ write-to-string
 
 rules
 
