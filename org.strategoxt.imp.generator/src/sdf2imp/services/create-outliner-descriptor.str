@@ -60,16 +60,13 @@ rules
   create-old-derived-outliner-descriptor =
     sdf-name := <get-sdf-main-module>;
     if is-descriptor-imported(|${{sdf-name}-Outliner}) then
-      output-derived-descriptor-file(
-        !${{sdf-name}-Outliner.generated}
-      , 
-        
-!${module {sdf-name}-Outliner.generated
+      <output-text-file(|["editor"], ${{sdf-name}-Outliner.generated.esv})>
+      
+${module {sdf-name}-Outliner.generated
 
-  // esv-based outline definitions are no longer supported. Use Stratego instead.
+  // esv-based outline definitions are no longer supported. Use Stratego to define an outline instead.
 }
 
-      )
     end
   
   heuristic-outliner-productions =
