@@ -79,8 +79,7 @@ strategies
     pkgdir     := <string-replace(|".", "/")> pkgname;
     
     <output-text-file(|[], "build.generated.xml")>
-$[
-<?xml version="1.0" encoding="UTF-8"?>
+$[<?xml version="1.0" encoding="UTF-8"?>
 <project name="build.generated">
 	<target name="spoofaximp.default" depends="spoofaximp.default.ctree" />
 	<target name="spoofaximp.default.ctree" depends="
