@@ -52,7 +52,7 @@ imports
 
 rules
 
-  outline-strategy = simple-label-outline(to-outline-label)
+  outline = simple-label-outline(to-outline-label)
   
   {<separate-by(|"\n"); concat-strings> outline-rules}
 }
