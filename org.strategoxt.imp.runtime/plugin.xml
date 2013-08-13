@@ -367,5 +367,12 @@
             id="org.eclipse.imp.runtime.editor.spoofaxEditor">
       </editor>
    </extension>
+      <extension
+            point="org.eclipse.ui.ide.editorAssociationOverride">
+         <editorAssociationOverride
+               class="org.strategoxt.imp.runtime.editor.IMPEditorAssociationOverride"
+               id="org.eclipse.imp.runtime.editor.spoofaxEditor">
+         </editorAssociationOverride>
+      </extension>
 </plugin>
 
