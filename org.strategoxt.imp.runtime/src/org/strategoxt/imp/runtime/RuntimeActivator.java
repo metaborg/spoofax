@@ -96,13 +96,14 @@ public class RuntimeActivator extends AbstractUIPlugin {
 		boolean mxOption = false;
 
 		for (String arg : ManagementFactory.getRuntimeMXBean().getInputArguments()) {
-			if (arg.startsWith("-Xserver") || arg.startsWith("-server"))
-				serverOption = true;
 			if (arg.startsWith("-Xss") || arg.startsWith("-ss"))
 				ssOption = true;
 			if (arg.startsWith("-Xmx") || arg.startsWith("-mx"))
 				mxOption = true;
 		}
+		
+		if(ManagementFactory.getRuntimeMXBean().getVmName().contains("Server"))
+			serverOption = true;
 
 		if (!serverOption || !mxOption || !ssOption) {
 			if (!serverOption)
