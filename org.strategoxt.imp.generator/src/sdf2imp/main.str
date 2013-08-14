@@ -184,7 +184,7 @@ strategies
     not(
       <is-older-than> (
         <guarantee-extension(|"rtg")> <InputFile>
-      , [ $[editor/[<descriptor-name> "-Outliner.generated.esv"]]
+      , [ $[editor/[<descriptor-name> "-Outliner.generated.str"]]
         , $[editor/[<descriptor-name> "-Folding.generated.esv"]]
         , $[editor/[<descriptor-name> "-Completions.generated.esv"]]
         ]

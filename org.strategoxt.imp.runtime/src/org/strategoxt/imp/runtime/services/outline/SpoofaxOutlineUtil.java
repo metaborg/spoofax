@@ -16,7 +16,7 @@ import org.strategoxt.imp.runtime.services.StrategoObserver;
 
 public class SpoofaxOutlineUtil {
 
-	public final static String OUTLINE_STRATEGY = "outline-strategy";
+	public final static String OUTLINE_STRATEGY = "outline";
 	public final static String OUTLINE_EXPAND_TO_LEVEL = "outline-expand-to-level";
 	public final static int DEFAULT_OUTLINE_EXPAND_TO_LEVEL = 3;
 	
@@ -28,13 +28,13 @@ public class SpoofaxOutlineUtil {
 		observer.getLock().lock();
 		try {
 			if (observer.getRuntime().lookupUncifiedSVar(OUTLINE_STRATEGY) == null) {
-				return messageToOutlineNode(OUTLINE_STRATEGY + " undefined");
+				return messageToOutlineNode("Can't find strategy '" + OUTLINE_STRATEGY + "'. Did you import 'editor/" + editorState.getLanguage().getName() + "-Outliner.str'?");
 			}
 			
 			IStrategoTerm outline = observer.invokeSilent(OUTLINE_STRATEGY, editorState.getCurrentAst(), editorState.getResource().getFullPath().toFile());
 			
 			if (outline == null) {
-				return messageToOutlineNode(OUTLINE_STRATEGY + " failed");
+				return messageToOutlineNode("Strategy '" + OUTLINE_STRATEGY + "' failed.");
 			}
 			
 			// workaround for https://bugs.eclipse.org/9262
