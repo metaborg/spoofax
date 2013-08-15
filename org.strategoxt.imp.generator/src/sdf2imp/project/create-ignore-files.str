@@ -35,6 +35,7 @@ syntax/", name, "*.generated.esv
 syntax/", name, ".generated.pp
 .settings/org.eclipse.jdt.core.prefs
 utils
+lib/runtime
 lib/*.generated.str
 lib-refactoring/*.generated.str
 "]
