@@ -2,9 +2,9 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Spoofax/IMP Runtime
 Bundle-SymbolicName: org.strategoxt.imp.runtime;singleton:=true
-Bundle-Version: 0.1.2.qualifier
+Bundle-Version: 1.2.0.qualifier
 Require-Bundle: org.eclipse.imp.runtime,
- org.spoofax.jsglr;bundle-version="0.3.0",
+ org.spoofax.jsglr,
  org.spoofax.interpreter.core,
  org.spoofax.interpreter.ui,
  org.spoofax.interpreter.library.jsglr,
@@ -29,9 +29,9 @@ Require-Bundle: org.eclipse.imp.runtime,
  org.metaborg.runtime.task,
  org.strategoxt.imp.debug.core,
  org.eclipse.core.expressions,
- org.strategoxt.imp.runtime.sidebyside.main;bundle-version="0.0.1",
- org.strategoxt.imp.runtime.sidebyside.legacy;bundle-version="0.0.1";resolution:=optional,
- org.strategoxt.imp.runtime.sidebyside.latest;bundle-version="0.0.1",
+ org.strategoxt.imp.runtime.sidebyside.main,
+ org.strategoxt.imp.runtime.sidebyside.legacy;resolution:=optional,
+ org.strategoxt.imp.runtime.sidebyside.latest,
  org.eclipse.ui.views
 Export-Package: org.strategoxt.imp.runtime,
  org.strategoxt.imp.runtime.dynamicloading,
@@ -42,7 +42,7 @@ Export-Package: org.strategoxt.imp.runtime,
  org.strategoxt.imp.runtime.services,
  org.strategoxt.imp.runtime.services.outline,
  org.strategoxt.imp.runtime.stratego
-Bundle-RequiredExecutionEnvironment: J2SE-1.5
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-Vendor: Spoofax.org
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: org.strategoxt.imp.runtime.RuntimeActivator
