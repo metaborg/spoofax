@@ -34,6 +34,7 @@ public class SpoofaxOutlineUtil {
 			IStrategoTerm outline = observer.invokeSilent(OUTLINE_STRATEGY, editorState.getCurrentAst(), editorState.getResource().getFullPath().toFile());
 			
 			if (outline == null) {
+				observer.reportRewritingFailed();
 				return messageToOutlineNode("Strategy '" + OUTLINE_STRATEGY + "' failed.");
 			}
 			
