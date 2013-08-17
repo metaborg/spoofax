@@ -30,7 +30,6 @@ Require-Bundle: org.eclipse.imp.runtime,
  org.strategoxt.imp.debug.core,
  org.eclipse.core.expressions,
  org.strategoxt.imp.runtime.sidebyside.main,
- org.strategoxt.imp.runtime.sidebyside.legacy;resolution:=optional,
  org.strategoxt.imp.runtime.sidebyside.latest,
  org.eclipse.ui.views
 Export-Package: org.strategoxt.imp.runtime,
