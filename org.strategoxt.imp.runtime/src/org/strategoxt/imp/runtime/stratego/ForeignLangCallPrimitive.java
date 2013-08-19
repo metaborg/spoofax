@@ -2,7 +2,6 @@ package org.strategoxt.imp.runtime.stratego;
 
 import java.util.Map;
 import java.util.WeakHashMap;
-
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.spoofax.interpreter.core.IContext;
@@ -65,9 +64,7 @@ public class ForeignLangCallPrimitive extends AbstractPrimitive {
 			StrategoObserver observer = asyncCache.get(oLangDescr);
 
 			if (observer == null) {
-				String dir = ((EditorIOAgent) SSLLibrary.instance(env).getIOAgent())
-						.getProjectPath();
-				observer = loadDescriptor(oLangDescr, dir);
+				observer = loadDescriptor(oLangDescr, (EditorIOAgent) SSLLibrary.instance(env).getIOAgent());
 			}
 			assert observer != null;
 			observer.getRuntime().setCurrent(inputTerm);
@@ -83,10 +80,10 @@ public class ForeignLangCallPrimitive extends AbstractPrimitive {
 		return result;
 	}
 
-	private StrategoObserver loadDescriptor(Descriptor oLangDescr, String path)
+	private StrategoObserver loadDescriptor(Descriptor oLangDescr, EditorIOAgent editorIOAgent)
 			throws BadDescriptorException {
 		StrategoObserver observer = oLangDescr.createService(StrategoObserver.class, null);
-		observer.configureRuntime(null, path);
+		observer.configureRuntime(editorIOAgent.getProject(), editorIOAgent.getProjectPath());
 		oLangDescr.createParseController();
 		asyncCache.put(oLangDescr, observer);
 		return observer;
