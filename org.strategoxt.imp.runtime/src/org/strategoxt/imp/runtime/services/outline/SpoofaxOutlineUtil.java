@@ -31,6 +31,10 @@ public class SpoofaxOutlineUtil {
 				return messageToOutlineNode("Can't find strategy '" + OUTLINE_STRATEGY + "'. Did you import 'editor/" + editorState.getLanguage().getName() + "-Outliner.str'?");
 			}
 			
+			if (editorState.getCurrentAst() == null) {
+				return null;
+			}
+			
 			IStrategoTerm outline = observer.invokeSilent(OUTLINE_STRATEGY, editorState.getCurrentAst(), editorState.getResource().getFullPath().toFile());
 			
 			if (outline == null) {
