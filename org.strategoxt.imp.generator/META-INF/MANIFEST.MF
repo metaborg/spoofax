@@ -13,7 +13,6 @@ Require-Bundle: org.spoofax.jsglr,
  org.eclipse.core.resources,
  org.junit,
  org.eclipse.swt,
- org.spoofax.compiler,
  org.strategoxt.strj,
  org.eclipse.ant.core
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
