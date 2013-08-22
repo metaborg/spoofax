@@ -113,13 +113,12 @@ construct-text-from-origin(pp, override-reconstruction, resugar):
 construct-text-from-origin(pp, override-reconstruction, resugar):
 	t@(origin-node, node) -> <correct-indentation(|origin-node)> text
 	where //guarantees that node can be formatted from the origin node, preventing non-termination
-		<is-tuple> t; //debug(!"ast-changes?: ");
+		<is-tuple> t;
 		<has-origin-term> origin-node;
 		ast-changes := <collect-ast-changes(override-reconstruction, resugar)> (origin-node, node); 
 		<is-terminating-diff(|node)> ast-changes //prevent non termination
-		//; debug(!"ast-changes!: ")
 	with
-		text-changes := <map(ast-change-to-text-change(pp, override-reconstruction, resugar))> ast-changes; //debug(!"txt-changes: ");
+		text-changes := <map(ast-change-to-text-change(pp, override-reconstruction, resugar))> ast-changes;
 		text := <apply-text-changes>(text-changes, <origin-text> origin-node, <origin-start-offset> origin-node)
 
 construct-text-by-pp(pp, override-reconstruction, resugar):
@@ -156,8 +155,8 @@ construct-text-with-comments(pp, override-reconstruction, resugar|default-indent
 		<is-tuple> t;
 		<has-origin-term> origin-node
 	with //termination check is not needed (we need to Replace to keep comments), since it is called on a subterm in construct-text-by-pp
-		ast-changes := <collect-ast-changes(override-reconstruction, resugar)> (origin-node, node); //debug(!"--ast-changes: ");
-		text-changes := <map(ast-change-to-text-change(pp, override-reconstruction, resugar))> ast-changes; //debug(!"--txt-changes: ");
+		ast-changes := <collect-ast-changes(override-reconstruction, resugar)> (origin-node, node);
+		text-changes := <map(ast-change-to-text-change(pp, override-reconstruction, resugar))> ast-changes;
 		full-text := <origin-text-with-layout> origin-node; 
 		full-text-start-offset := <origin-layout-prefix-start-offset> origin-node; 
 		modified-full-text := <apply-text-changes>(text-changes, full-text, full-text-start-offset); 
@@ -218,9 +217,7 @@ collect-ast-changes-rec-node(override-reconstruction, resugar):
  
 collect-ast-changes-rec-list(override-reconstruction, resugar):
 	(origin-lst, lst) -> ast-changes
-	where 
-		<is-list; not(?[])> lst;
-		<is-list; not(?[])> origin-lst;
+	where
 		<not(violates-homomorphism-list)> (origin-lst, lst)
 	where
 		ast-changes := <
@@ -243,12 +240,12 @@ check-change-origin:
 check-change-origin:
 	ins@INSERT_AT_END(or, trm) -> ins
 	where
-		<has-origin-term; origin-separation> or <+ <?[]> trm
+		<has-origin-term> or <+ <?[]> trm
 
 check-change-origin:
 	ins@INSERT_BEFORE(or, trm) -> ins
 	where
-		<has-origin-term; origin-separation> or <+ <?[]> trm
+		<has-origin-term> or <+ <?[]> trm
 		
 collect-ast-changes-sugared(override-reconstruction, resugar):
 	(origin-node, node) -> ast-changes
@@ -364,10 +361,7 @@ same-signature(|t1):
 	where
 		<same-signature> (t1,t)
 
-violates-homomorphism-list =
-	?([],[_,_|_]) <+ 
-	?([_],[_,_|_]) <+
-	(?([ortrm],[newtrm]); where(not(<is-related-to-fuzzy(|ortrm)> newtrm)))  //insertion constructs list with 2 elements from list with one element 
+violates-homomorphism-list = 	(?([ortrm],[newtrm]); where(not(<is-related-to-fuzzy(|ortrm)> newtrm)))  //insertion constructs list with 2 elements from list with one element 
 
 is-insertion(|origin-elems):
 	new-elem -> new-elem

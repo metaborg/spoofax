@@ -1,0 +1,29 @@
+module sdf2imp/util/construct-initial-list-structure
+
+rules
+  
+  // Finds the origin-separation by pretty-printing a dummy element.
+  origin-separation(pp):
+  nodeOrList -> separation
+    where
+      l@[node] := <is-list + get-parent> nodeOrList
+    with
+      dummy := <get-parent; alltd(simplify-dummy(|l)); alltd(copy-node(|l))> l;
+      dummy-text := <pp> dummy;
+      node-text := <pp> node;
+      trimmed := <split-before; ?(_, <id>)> (dummy-text, node-text);
+      trimmed' := <split-after; ?(_, <id>)> (trimmed, node-text);
+      separation := <split-before; ?(<id>, _)> (trimmed', node-text);
+      not ( <is-substring(!node-text)> separation )
+  
+  // Because we copy the node, the result of pretty-printing will
+  // contain the separation we are looking for.
+  copy-node(|list) = ?list; ?[node]; ![node, node]
+  
+  // We make sure that other subterms of the dummy don't hold a 
+  // similar node; in total, there may only be two occurrences.
+  simplify-dummy(|list) = ?[_, _]; not(?list); ![]
+  
+rules  
+  
+  get-parent = prim("SSL_EXT_get_parent", <id>)
