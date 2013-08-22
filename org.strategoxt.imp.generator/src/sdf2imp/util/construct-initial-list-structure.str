@@ -21,7 +21,7 @@ rules
     	list := <is-list + get-parent> elemOrList;
     	<leq> (<length> list, 1)
     with
-      dummy := <get-parent; alltd(dymmyfy(|list, some-elem))> list;
+      dummy := <get-parent; alltd(dummyfy(|list, some-elem))> list;
       dummy-text := <pp> dummy;
       elem-text := <pp> some-elem;
       trimmed := <split-before; ?(_, <id>)> (dummy-text, elem-text);
@@ -31,12 +31,12 @@ rules
   
   // Replace the right subterm of the dummy with a list containing two
   // duplicates of new-elem.
-  dymmyfy(|list, new-elem) = 
+  dummyfy(|list, new-elem) = 
   	is-list; origin-offset; ?offset; !list; origin-offset; ?offset;
   	![new-elem, new-elem]
 
   // Make sure that other subterms of the dummy don't hold new-elem too.
-  dymmyfy(|list, new-elem) =
+  dummyfy(|list, new-elem) =
   	is-list; origin-offset; ?offset; !list; origin-offset; not ( ?offset );
   	![]
   
