@@ -30,13 +30,13 @@ rules
       not ( <is-substring(!elem-text)> separation )
   
   // Replace the right subterm of the dummy with a list containing two
-  // duplicates of new-elem.
-  dummyfy(|list, new-elem) = 
+  // duplicates of some-elem.
+  dummyfy(|list, some-elem) = 
   	is-list; origin-offset; ?offset; !list; origin-offset; ?offset;
-  	![new-elem, new-elem]
+  	![some-elem, some-elem]
 
-  // Make sure that other subterms of the dummy don't hold new-elem too.
-  dummyfy(|list, new-elem) =
+  // Make sure that other subterms of the dummy don't hold some-elem too.
+  dummyfy(|list, some-elem) =
   	is-list; origin-offset; ?offset; !list; origin-offset; not ( ?offset );
   	![]
   
