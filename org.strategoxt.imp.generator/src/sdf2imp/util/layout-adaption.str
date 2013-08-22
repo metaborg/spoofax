@@ -56,7 +56,7 @@ create-textchange-insert-at-end(pp, override-reconstruction, resugar):
 			construct-text-list-element(pp, override-reconstruction, resugar|origin-node), 
 			construct-text-list-element-last(pp, override-reconstruction, resugar|origin-node))
 		> new-elems;
-		insert-text := <add-separation-before(pp)> (origin-node, <concat-strings> new-elems-text)
+		insert-text := <add-separation-before(pp|new-elems)> (origin-node, <concat-strings> new-elems-text)
 
 rules //helper rules layout
 
@@ -67,7 +67,7 @@ construct-text-list-element(pp, override-reconstruction, resugar|origin-node):
 		layout-before := <layout-prefix; correct-indentation(|elem)> elem;
 		indented-prefix-text := <conc-strings; adapt-indentation(|origin-node)> (layout-before, text); 
 		comments-after := <comments-after; correct-indentation(|elem); adapt-indentation(|origin-node)> elem;
-		separation := <origin-separation + origin-separation(pp)> origin-node;
+		separation := <origin-separation + origin-separation(pp|elem)> origin-node;
 		layout-after := <create-separation-after> (separation, comments-after);
 		elem-text := <conc-strings> (indented-prefix-text, layout-after)
 
@@ -149,22 +149,22 @@ dedent-line-chars(|n):
 
 rules // helper rules separation	
 
-add-separation-before(pp) =
-	add-separation-before-1(pp) <+ //correct line comment
-	add-separation-before-2(pp)
+add-separation-before(pp|new-elems) =
+	add-separation-before-1(pp|new-elems) <+ //correct line comment
+	add-separation-before-2(pp|new-elems)
 	
-add-separation-before-1(pp): //corrects for newline in case the text is inserted after a line comment
+add-separation-before-1(pp|new-elems): //corrects for newline in case the text is inserted after a line comment
 	(origin-node, text-inserted-after) -> txt-with-separation
 	where
 		<origin-text-with-layout; string-ends-with(|"\n")> origin-node;
-		(start-separation, end-separation) := <split-before>(<origin-separation + origin-separation(pp)> origin-node, "\n");
+		(start-separation, end-separation) := <split-before>(<origin-separation + origin-separation(pp|<Hd> new-elems)> origin-node, "\n");
 		<string-as-chars(map(is-whitespace))> start-separation;
 		txt-with-separation := <concat-strings> [<string-as-chars(Tl)> end-separation, text-inserted-after, "\n"]
 
-add-separation-before-2(pp):
+add-separation-before-2(pp|new-elems):
 	(origin-node, text-inserted-after) -> txt-with-separation
 	where
-		txt-with-separation := <conc-strings> (<origin-separation + origin-separation(pp)> origin-node, text-inserted-after)
+		txt-with-separation := <conc-strings> (<origin-separation + origin-separation(pp|<Hd> new-elems)> origin-node, text-inserted-after)
 
 //("/n  ,  ", "//bla /n") -> " //bla /n  ,  "
 //(",/n  ", "//bla /n") -> " , //bla /n  "

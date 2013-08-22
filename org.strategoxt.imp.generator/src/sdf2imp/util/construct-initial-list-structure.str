@@ -1,28 +1,44 @@
 module sdf2imp/util/construct-initial-list-structure
 
+imports
+  sdf2imp/util/origin-tracking
+
 rules
   
-  // Finds the origin-separation by pretty-printing a dummy element.
-  origin-separation(pp):
-  nodeOrList -> separation
+  /**
+   * Finds the origin-separation given either:
+   *   - a list with zero or one element(s)
+   *   - an element of a list with one element
+   *
+   * The separation is constructed by pretty-printing a dummy element.
+   * @some-elem can be any element such that placing it in the list that
+   * we want to find the separation of, would not result in a mall-
+   * formed AST.
+   */
+  origin-separation(pp|some-elem):
+  elemOrList -> separation
     where
-      l@[node] := <is-list + get-parent> nodeOrList
+    	list := <is-list + get-parent> elemOrList;
+    	<leq> (<length> list, 1)
     with
-      dummy := <get-parent; alltd(simplify-dummy(|l)); alltd(copy-node(|l))> l;
+      dummy := <get-parent; alltd(dymmyfy(|list, some-elem))> list;
       dummy-text := <pp> dummy;
-      node-text := <pp> node;
-      trimmed := <split-before; ?(_, <id>)> (dummy-text, node-text);
-      trimmed' := <split-after; ?(_, <id>)> (trimmed, node-text);
-      separation := <split-before; ?(<id>, _)> (trimmed', node-text);
-      not ( <is-substring(!node-text)> separation )
+      elem-text := <pp> some-elem;
+      trimmed := <split-before; ?(_, <id>)> (dummy-text, elem-text);
+      trimmed' := <split-after; ?(_, <id>)> (trimmed, elem-text);
+      separation := <split-before; ?(<id>, _)> (trimmed', elem-text);
+      not ( <is-substring(!elem-text)> separation )
   
-  // Because we copy the node, the result of pretty-printing will
-  // contain the separation we are looking for.
-  copy-node(|list) = ?list; ?[node]; ![node, node]
-  
-  // We make sure that other subterms of the dummy don't hold a 
-  // similar node; in total, there may only be two occurrences.
-  simplify-dummy(|list) = ?[_, _]; not(?list); ![]
+  // Replace the right subterm of the dummy with a list containing two
+  // duplicates of new-elem.
+  dymmyfy(|list, new-elem) = 
+  	is-list; origin-offset; ?offset; !list; origin-offset; ?offset;
+  	![new-elem, new-elem]
+
+  // Make sure that other subterms of the dummy don't hold new-elem too.
+  dymmyfy(|list, new-elem) =
+  	is-list; origin-offset; ?offset; !list; origin-offset; not ( ?offset );
+  	![]
   
 rules  
   
