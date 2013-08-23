@@ -56,7 +56,10 @@ create-textchange-insert-at-end(pp, override-reconstruction, resugar):
 			construct-text-list-element(pp, override-reconstruction, resugar|origin-node), 
 			construct-text-list-element-last(pp, override-reconstruction, resugar|origin-node))
 		> new-elems;
-		insert-text := <add-separation-before(pp|new-elems)> (origin-node, <concat-strings> new-elems-text)
+    if [] := origin-node
+    then insert-text := <conc-strings> (<whitespace-at-start(pp|<Hd> new-elems)> origin-node, <concat-strings> new-elems-text)
+    else insert-text := <add-separation-before(pp|new-elems)> (origin-node, <concat-strings> new-elems-text)
+    end
 
 rules //helper rules layout
 

@@ -5,40 +5,56 @@ imports
 
 rules
   
+  origin-separation(pp|some-elem) = construct-initial-list-structure(pp|some-elem); ?(_, <id>)
+  
+  whitespace-at-start(pp|some-elem) = construct-initial-list-structure(pp|some-elem); ?(<id>, _)  
+
   /**
-   * Finds the origin-separation given either:
+   * Given either
    *   - a list with zero or one element(s)
    *   - an element of a list with one element
+   * finds both the whitespace that the pretty-printer puts in front of
+   * the first element, as well as the separation that the pretty-printer
+   * puts in between elements.
    *
-   * The separation is constructed by pretty-printing a dummy element.
+   * Constructing this information relies on pretty-printing a dummy node.
    * @some-elem can be any element such that placing it in the list that
    * we want to find the separation of, would not result in a mall-
    * formed AST.
-   */
-  origin-separation(pp|some-elem):
-  elemOrList -> separation
+   */  
+  construct-initial-list-structure(pp|some-elem):
+  elemOrList -> (whitespace-at-start'', sep'')
     where
-    	list := <is-list + get-parent> elemOrList;
-    	<leq> (<length> list, 1)
+      list := <is-list + get-parent> elemOrList;
+      <leq> (<length> list, 1)
     with
       dummy := <get-parent; alltd(dummyfy(|list, some-elem))> list;
       dummy-text := <pp> dummy;
       elem-text := <pp> some-elem;
-      trimmed := <split-before; ?(_, <id>)> (dummy-text, elem-text);
-      trimmed' := <split-after; ?(_, <id>)> (trimmed, elem-text);
-      separation := <split-before; ?(<id>, _)> (trimmed', elem-text);
-      not ( <is-substring(!elem-text)> separation )
+      (x_whitespace, dummy_sep_dummy_y) := <split-before> (dummy-text, elem-text);
+      whitespace-at-start := <string-as-chars(reverse; take-while(is-whitespace + test('\n')); reverse)> x_whitespace;
+      sep_dummy_y := <split-after; ?(_, <id>)> (dummy_sep_dummy_y, elem-text);
+      sep := <split-before; ?(<id>, _)> (sep_dummy_y, elem-text)
+    with
+      dummy-indent := <get-parent; origin-indent> list;
+      whitespace-at-start' := <prefix-lines(|dummy-indent)> whitespace-at-start;
+      sep' := <prefix-lines(|dummy-indent)>  sep;
+      whitespace-at-start'' := <split-after; ?(_, <id>)> (whitespace-at-start', dummy-indent);
+      sep'' := <split-after; ?(_, <id>)> (sep', dummy-indent)
+    where not (
+      <is-substring(!dummy-text)> <split-after; ?(_, <id>)> sep_dummy_y // see TODO below
+    )
   
   // Replace the right subterm of the dummy with a list containing two
   // duplicates of some-elem.
   dummyfy(|list, some-elem) = 
-  	is-list; origin-offset; ?offset; !list; origin-offset; ?offset;
-  	![some-elem, some-elem]
+    is-list; origin-offset; ?offset; !list; origin-offset; ?offset;
+    ![some-elem, some-elem]
 
   // Make sure that other subterms of the dummy don't hold some-elem too.
-  dummyfy(|list, some-elem) =
-  	is-list; origin-offset; ?offset; !list; origin-offset; not ( ?offset );
-  	![]
+  // TODO: this fails in cases like SomeCons(dummy, [dummy, dummy])
+  dummyfy(|list, some-elem) = is-list; origin-offset; ?offset; !list; origin-offset; not ( ?offset ); ![]
+  dummyfy(|list, some-elem) = ?Some(_); !None()
   
 rules  
   
