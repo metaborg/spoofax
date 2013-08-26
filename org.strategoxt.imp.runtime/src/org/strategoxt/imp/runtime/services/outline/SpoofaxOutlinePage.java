@@ -102,8 +102,8 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
     		return;
     	}
 
-    	Object firstElem = treeSelection.getFirstElement();
-    	SpoofaxOutlineUtil.selectCorrespondingText(firstElem, parseController);
+    	Object[] selectedElems = treeSelection.toArray();
+    	SpoofaxOutlineUtil.selectCorrespondingText(selectedElems, parseController);
     }
     
     public void textSelectionToOutlineSelection() {

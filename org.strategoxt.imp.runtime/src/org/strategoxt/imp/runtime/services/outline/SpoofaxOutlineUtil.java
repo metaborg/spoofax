@@ -122,12 +122,30 @@ public class SpoofaxOutlineUtil {
 	}
 	
 	public static void selectCorrespondingText(Object outlineNode, IParseController parseController) {
-		IStrategoTerm origin = getOutlineNodeOrigin(outlineNode);
+		selectCorrespondingText(new Object[]{outlineNode}, parseController);
+	}
+	
+	public static void selectCorrespondingText(Object[] outlineNodes, IParseController parseController) {
+		int startOffset = Integer.MAX_VALUE;
+		int endOffset = Integer.MIN_VALUE;
+		
+		for (int i=0; i<outlineNodes.length; i++) {
+			IStrategoTerm origin = getOutlineNodeOrigin(outlineNodes[i]);
+			
+			if (origin != null) {
+	    		int startOffst = (ImploderAttachment.getLeftToken(origin).getStartOffset());
+	    		int endOffst = (ImploderAttachment.getRightToken(origin).getEndOffset()) + 1;
+				
+				if (startOffst < startOffset) {
+					startOffset = startOffst;
+				}
+				if (endOffst > endOffset) {
+					endOffset = endOffst;
+				}
+			}
+		}
     	
-    	if (origin != null) {
-    		int startOffset = (ImploderAttachment.getLeftToken(origin).getStartOffset());
-    		int endOffset = (ImploderAttachment.getRightToken(origin).getEndOffset()) + 1;
-        	
+    	if (startOffset != Integer.MAX_VALUE && endOffset != Integer.MIN_VALUE) {
     		TextSelection newSelection = new TextSelection(startOffset, endOffset - startOffset);
     		ISelectionProvider selectionProvider = EditorState.getEditorFor(parseController).getEditor().getSelectionProvider();
     		selectionProvider.setSelection(newSelection);
