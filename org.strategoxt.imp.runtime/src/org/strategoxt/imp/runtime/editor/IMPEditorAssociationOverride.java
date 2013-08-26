@@ -24,7 +24,7 @@ public class IMPEditorAssociationOverride implements IEditorAssociationOverride 
 	public IEditorDescriptor overrideDefaultEditor(String fileName, IContentType contentType, IEditorDescriptor editorDescriptor) {
 		if (editorDescriptor != null && editorDescriptor.getId().equals("org.eclipse.imp.runtime.impEditor")) {
 			IEditorRegistry registry = PlatformUI.getWorkbench().getEditorRegistry();
-			return registry.getDefaultEditor(fileName);
+			return registry.findEditor(SpoofaxEditor.EDITOR_ID);
 		}
 
 		return editorDescriptor;
