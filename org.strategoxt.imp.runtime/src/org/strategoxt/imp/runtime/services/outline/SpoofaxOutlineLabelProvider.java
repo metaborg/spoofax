@@ -18,7 +18,6 @@ public class SpoofaxOutlineLabelProvider extends LabelProvider {
 	private String pluginPath;
 	
 	public SpoofaxOutlineLabelProvider(String pluginPath) {
-		System.out.println("new label provider");
 		this.pluginPath = pluginPath;
 	}
 	
