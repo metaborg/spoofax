@@ -1,6 +1,7 @@
 package org.strategoxt.imp.runtime.services.outline;
 
 import java.io.File;
+import java.util.Hashtable;
 
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.graphics.Image;
@@ -17,6 +18,7 @@ public class SpoofaxOutlineLabelProvider extends LabelProvider {
 	private String pluginPath;
 	
 	public SpoofaxOutlineLabelProvider(String pluginPath) {
+		System.out.println("new label provider");
 		this.pluginPath = pluginPath;
 	}
 	
@@ -39,16 +41,25 @@ public class SpoofaxOutlineLabelProvider extends LabelProvider {
 		if (!label.getAnnotations().isEmpty()) {
 			String iconPath = ((IStrategoString) label.getAnnotations().head()).stringValue();
 			
-			File iconFile = new File(pluginPath, iconPath);
-			
-			if (iconFile.exists()) {
-				return new Image(Display.getDefault(), iconFile.getAbsolutePath());
+			if (iconCache.containsKey(iconPath)) {
+				return iconCache.get(iconPath);
 			}
 			else {
-				Environment.logException("Can't find icon " + iconFile.getAbsolutePath());
+				File iconFile = new File(pluginPath, iconPath);
+				Image icon = null;
+				if (iconFile.exists()) {
+					icon = new Image(Display.getDefault(), iconFile.getAbsolutePath());
+				}
+				else {
+					Environment.logException("Can't find icon " + iconFile.getAbsolutePath());
+				}
+				iconCache.put(iconPath, icon);
+				return icon;
 			}
 		}
 		
 		return null;
 	}
+	
+	private final Hashtable<String, Image> iconCache = new Hashtable<String, Image>();
 }
