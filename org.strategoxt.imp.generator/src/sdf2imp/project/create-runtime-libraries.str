@@ -255,7 +255,12 @@ strategies
   /**
   * @internal
   */  
-  term-to-outline-label = is-string <+ origin-text <+ write-to-string
+  term-to-outline-label =
+    is-string 
+      <+
+    ?term{a}; origin-text; ?label; !label{a}
+      <+
+    write-to-string // fallback
 
 rules
 
