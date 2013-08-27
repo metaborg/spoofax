@@ -1,7 +1,7 @@
 package org.strategoxt.imp.runtime.services.outline;
 
 import java.io.File;
-import java.util.Hashtable;
+import java.util.HashMap;
 
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.graphics.Image;
@@ -60,5 +60,5 @@ public class SpoofaxOutlineLabelProvider extends LabelProvider {
 		return null;
 	}
 	
-	private final Hashtable<String, Image> iconCache = new Hashtable<String, Image>();
+	private final HashMap<String, Image> iconCache = new HashMap<String, Image>();
 }
