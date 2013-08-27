@@ -214,6 +214,7 @@ strategies
 
 imports
   runtime/editor/origins
+  runtime/nbl/utils
   
 strategies
   
@@ -241,11 +242,14 @@ strategies
 
   /**
   * @internal
+  * Note: we annotate labels with random numbers to guarantee that similar labels do not share the
+  * same in-memory term, which would cause origins to be overwritten.
   */  
   to-outline-node(s1, s2):
     term -> Node(label, children)
     where
-      label := <origin-track-forced(s1; term-to-outline-label)> term;
+      random := <next-random>;
+      label := <origin-track-forced(s1; term-to-outline-label; add-annotation(|random); remove-annotations(?random))> term;
       children := <get-arguments; custom-label-outline(s1, s2)> term
       
   /**
@@ -272,7 +276,7 @@ rules
     where
       literals' := <split-at-space> literals;
       (a, b, c, d, e) := <origin-location-offset> term;
-      (before, after) := <debug; split-before> (<origin-text> term, <Hd> literals');
+      (before, after) := <split-before> (<origin-text> term, <Hd> literals');
       start-offset := <add> (d, <string-length> before);
       end-offset := <get-literals-end-offset(|literals', start-offset)> after;
       <origin-location-offset-set(|(a, b, c, start-offset, end-offset))> literals
