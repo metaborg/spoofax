@@ -16,6 +16,7 @@ bin.includes = META-INF/,\\
                include/,\\
                bin/,\\
                lib/,\\
-               .
+               .,\\
+               icons/
 bin.excludes = trans/
 "

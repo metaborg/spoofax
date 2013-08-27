@@ -178,6 +178,8 @@ strategies
     
     create-ignore-files;
     
+    <file-exists <+ mkdir> "icons";
+    
     say(!"Build succesful.")
 
   is-heuristic-services-needed =
