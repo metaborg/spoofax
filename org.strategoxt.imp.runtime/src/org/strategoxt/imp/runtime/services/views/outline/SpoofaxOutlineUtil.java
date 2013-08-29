@@ -1,4 +1,4 @@
-package org.strategoxt.imp.runtime.services.outline;
+package org.strategoxt.imp.runtime.services.views.outline;
 
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.jface.text.TextSelection;

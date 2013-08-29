@@ -11,7 +11,7 @@ import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.texteditor.TextOperationAction;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 import org.eclipse.ui.views.properties.IPropertySource;
-import org.strategoxt.imp.runtime.services.outline.SpoofaxOutlinePage;
+import org.strategoxt.imp.runtime.services.views.outline.SpoofaxOutlinePage;
 
 /**
  * TODO: subclass {@link TextEditor} and delegate to {@link UniversalEditor}.

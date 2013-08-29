@@ -20,7 +20,7 @@ import org.eclipse.jface.text.source.SourceViewerConfiguration;
 import org.eclipse.jface.text.source.projection.ProjectionViewer;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
-import org.strategoxt.imp.runtime.services.outline.SpoofaxOutlinePopupFactory;
+import org.strategoxt.imp.runtime.services.views.outline.SpoofaxOutlinePopupFactory;
 
 /**
  * Design decisions:

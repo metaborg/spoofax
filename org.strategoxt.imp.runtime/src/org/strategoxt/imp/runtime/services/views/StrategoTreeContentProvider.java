@@ -1,4 +1,4 @@
-package org.strategoxt.imp.runtime.services.outline;
+package org.strategoxt.imp.runtime.services.views;
 
 import java.util.LinkedList;
 
@@ -7,11 +7,12 @@ import org.eclipse.jface.viewers.Viewer;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.services.views.outline.SpoofaxOutlineUtil;
 
 /**
  * @author Oskar van Rest
  */
-public class SpoofaxOutlineContentProvider implements ITreeContentProvider {
+public class StrategoTreeContentProvider implements ITreeContentProvider {
 
 	public void dispose() {
 		// Do nothing.

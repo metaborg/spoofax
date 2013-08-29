@@ -1,4 +1,4 @@
-package org.strategoxt.imp.runtime.services.outline;
+package org.strategoxt.imp.runtime.services.views.outline;
 
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.jface.viewers.TreeViewer;
@@ -6,6 +6,9 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
 import org.strategoxt.imp.runtime.EditorState;
+import org.strategoxt.imp.runtime.services.views.FilteringInfoPopup;
+import org.strategoxt.imp.runtime.services.views.StrategoLabelProvider;
+import org.strategoxt.imp.runtime.services.views.StrategoTreeContentProvider;
 
 public class SpoofaxOutlinePopup extends FilteringInfoPopup {
 
@@ -13,8 +16,8 @@ public class SpoofaxOutlinePopup extends FilteringInfoPopup {
 	private static int HEIGHT = 322;
 	
 	private final IParseController parseController;
-	private final SpoofaxOutlineContentProvider contentProvider;
-	private final SpoofaxOutlineLabelProvider labelProvider;
+	private final StrategoTreeContentProvider contentProvider;
+	private final StrategoLabelProvider labelProvider;
 	private final Composite editorComposite;
 
 	public SpoofaxOutlinePopup(Shell parent, int shellStyle, int treeStyle, IParseController parseController, Composite editorComposite) {
@@ -22,9 +25,9 @@ public class SpoofaxOutlinePopup extends FilteringInfoPopup {
 		this.parseController = parseController;
 		this.editorComposite = editorComposite;
 		
-		contentProvider = new SpoofaxOutlineContentProvider();
+		contentProvider = new StrategoTreeContentProvider();
 		String pluginPath = EditorState.getEditorFor(parseController).getDescriptor().getBasePath().toOSString();
-		labelProvider = new SpoofaxOutlineLabelProvider(pluginPath);
+		labelProvider = new StrategoLabelProvider(pluginPath);
 	}
 
 	@Override

@@ -1,4 +1,4 @@
-package org.strategoxt.imp.runtime.services.outline;
+package org.strategoxt.imp.runtime.services.views.outline;
 
 import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.jface.action.Action;

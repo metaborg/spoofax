@@ -1,4 +1,4 @@
-package org.strategoxt.imp.runtime.services.outline;
+package org.strategoxt.imp.runtime.services.views.outline;
 
 import java.util.LinkedList;
 
@@ -18,6 +18,8 @@ import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.EditorState;
+import org.strategoxt.imp.runtime.services.views.StrategoLabelProvider;
+import org.strategoxt.imp.runtime.services.views.StrategoTreeContentProvider;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 import org.strategoxt.lang.Context;
 
@@ -37,9 +39,9 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 	@Override
 	public void createControl(Composite parent) {
 		super.createControl(parent);
-		getTreeViewer().setContentProvider(new SpoofaxOutlineContentProvider());
+		getTreeViewer().setContentProvider(new StrategoTreeContentProvider());
 		String pluginPath = EditorState.getEditorFor(parseController).getDescriptor().getBasePath().toOSString();
-		getTreeViewer().setLabelProvider(new SpoofaxOutlineLabelProvider(pluginPath));
+		getTreeViewer().setLabelProvider(new StrategoLabelProvider(pluginPath));
 		
 		registerToolbarActions();
 		

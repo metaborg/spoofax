@@ -1,4 +1,4 @@
-package org.strategoxt.imp.runtime.services.outline;
+package org.strategoxt.imp.runtime.services.views;
 
 import java.io.File;
 import java.util.HashMap;
@@ -13,11 +13,11 @@ import org.strategoxt.imp.runtime.Environment;
 /**
  * @author Oskar van Rest
  */
-public class SpoofaxOutlineLabelProvider extends LabelProvider {
+public class StrategoLabelProvider extends LabelProvider {
 
 	private String pluginPath;
 	
-	public SpoofaxOutlineLabelProvider(String pluginPath) {
+	public StrategoLabelProvider(String pluginPath) {
 		this.pluginPath = pluginPath;
 	}
 	
