@@ -20,9 +20,7 @@ import org.eclipse.jface.text.source.SourceViewerConfiguration;
 import org.eclipse.jface.text.source.projection.ProjectionViewer;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
-import org.strategoxt.imp.runtime.services.outline.SpoofaxOutlinePopup;
 import org.strategoxt.imp.runtime.services.outline.SpoofaxOutlinePopupFactory;
-import org.strategoxt.imp.runtime.services.outline.SpoofaxOutlineUtil;
 
 /**
  * Design decisions:
@@ -80,11 +78,13 @@ public class SpoofaxViewer extends ProjectionViewer {
     private IAutoEditStrategy fAutoEditStrategy;
     
 	private IParseController parseController;
+	private Composite parent;
     
 	public SpoofaxViewer(Composite parent, IVerticalRuler ruler, IOverviewRuler overviewRuler, boolean showsAnnotationOverview, int styles, IParseController parseController) {
 		super(parent, ruler, overviewRuler, showsAnnotationOverview, styles);
 		this.parseController = parseController;
-	}
+		this.parent = parent;
+    }
 	
 	/*
 	 * @see ITextOperationTarget#canDoOperation(int)
@@ -110,10 +110,6 @@ public class SpoofaxViewer extends ProjectionViewer {
 	public void doOperation(int operation) {
 		switch (operation) {
 	        case SHOW_OUTLINE:
-				spoofaxOutlinePopup.create();
-				((SpoofaxOutlinePopup) spoofaxOutlinePopup).setSize(400, 322); // should somehow set default/minimum size constraints instead
-				Object outline = SpoofaxOutlineUtil.getOutline(parseController);
-				((SpoofaxOutlinePopup) spoofaxOutlinePopup).setInput(outline);
 				spoofaxOutlinePopup.open();
 	            return;
 	        case TOGGLE_COMMENT:
@@ -134,7 +130,7 @@ public class SpoofaxViewer extends ProjectionViewer {
 	public void configure(SourceViewerConfiguration configuration) {
 		if (configuration instanceof SpoofaxSourceViewerConfiguration) {
 			
-			spoofaxOutlinePopup = new SpoofaxOutlinePopupFactory().create(getControl().getShell(), parseController);
+        	spoofaxOutlinePopup = new SpoofaxOutlinePopupFactory().create(getControl().getShell(), parseController, parent);
 			
 			/**
 			 * Copied from IMP's StructuredSourceViewer
