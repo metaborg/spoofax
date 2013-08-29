@@ -58,8 +58,9 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 		IPageSite site = getSite();
 		IActionBars actionBars= site.getActionBars();
 		IToolBarManager toolBarManager= actionBars.getToolBarManager();
-		toolBarManager.add(new LexicalSortingAction(getTreeViewer()));
 		
+		toolBarManager.add(new LexicalSortingAction(getTreeViewer()));
+
 		// TODO: Collapse All
 		
 		// TODO: Expand All?
