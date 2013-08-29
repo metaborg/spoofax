@@ -120,9 +120,6 @@ public abstract class FilteringInfoPopup extends PopupDialog implements DisposeL
 			setTitleText(""); //$NON-NLS-1$
 		setInfoText(""); //  //$NON-NLS-1$
 
-		// Create all controls early to preserve the life cycle of the original implementation.
-		create();
-
 		// Status field text can only be computed after widgets are created.
 		setInfoText(getStatusFieldText());
 	}
