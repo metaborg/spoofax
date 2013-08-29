@@ -70,6 +70,10 @@ public class SpoofaxEditor extends UniversalEditor {
 	
 	@Override
 	protected ISourceViewer createSourceViewer(Composite parent, IVerticalRuler ruler, int styles) {
+		if (getParseController() == null) {
+			return super.createSourceViewer(parent, ruler, styles);
+		}
+		
 		ISourceViewer viewer = new SpoofaxViewer(parent, ruler, getOverviewRuler(), isOverviewRulerVisible(), styles, getParseController());
 		getSourceViewerDecorationSupport(viewer); // ensure decoration support has been created and configured.
 		return viewer;
