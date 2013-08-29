@@ -5,11 +5,14 @@ import java.util.LinkedList;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
+import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.part.IPageSite;
 import org.eclipse.ui.views.contentoutline.ContentOutlinePage;
 import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoList;
@@ -38,6 +41,8 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 		String pluginPath = EditorState.getEditorFor(parseController).getDescriptor().getBasePath().toOSString();
 		getTreeViewer().setLabelProvider(new SpoofaxOutlineLabelProvider(pluginPath));
 		
+		registerToolbarActions();
+		
 		EditorState editorState = EditorState.getEditorFor(parseController);
 		editorState.getEditor().addModelListener(this);
 		editorState.getEditor().getSelectionProvider().addSelectionChangedListener(this);
@@ -49,6 +54,16 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 		}
 	}
 
+	private void registerToolbarActions() {
+		IPageSite site = getSite();
+		IActionBars actionBars= site.getActionBars();
+		IToolBarManager toolBarManager= actionBars.getToolBarManager();
+		toolBarManager.add(new LexicalSortingAction(getTreeViewer()));
+		
+		// TODO: Collapse All
+		
+		// TODO: Expand All?
+	}
 
 	public void update(IParseController arg0, IProgressMonitor arg1) {
 		update();
