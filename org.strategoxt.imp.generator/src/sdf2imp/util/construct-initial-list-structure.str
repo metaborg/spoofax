@@ -25,7 +25,7 @@ rules
   construct-initial-list-structure(pp|some-elem):
   elemOrList -> (whitespace-at-start'', sep'')
     where
-      list := <is-list + get-parent> elemOrList;
+      list := <?[] + ?[e]; !e; get-parent + get-parent> elemOrList;
       <leq> (<length> list, 1)
     with
       dummy := <get-parent; alltd(dummyfy(|list, some-elem))> list;
