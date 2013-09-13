@@ -7,7 +7,6 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.model.ISourceProject;
@@ -86,13 +85,8 @@ public class FileState {
 	
 	public IStrategoTerm getAnalyzedAst() throws BadDescriptorException {
 		StrategoObserver observer = getDescriptor().createService(StrategoObserver.class, getParseController());
-		observer.getLock().lock();
-		try {
-			observer.update(getParseController(), new NullProgressMonitor());
-			return observer.getResultingAst(getResource());
-		} finally {
-			observer.getLock().unlock();
-		}
+		observer.update(getParseController(), new NullProgressMonitor());
+		return observer.getResultingAst(getResource());
 	}
 	
 	public IStrategoTerm getCurrentAnalyzedAst() throws BadDescriptorException {
@@ -100,7 +94,8 @@ public class FileState {
 		
 		observer.getLock().lock();
 		try {
-			return observer.getResultingAst(getResource());
+			IStrategoTerm result = observer.getResultingAst(getResource());
+			return result == null? getAnalyzedAst() : result;
 		} finally {
 			observer.getLock().unlock();
 		}
