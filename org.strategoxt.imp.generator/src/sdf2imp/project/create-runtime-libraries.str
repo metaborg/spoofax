@@ -5,119 +5,576 @@ imports
 
 strategies
   
-	create-editor-queue = 
-		<output-text-file(|["lib", "runtime", "editor"], "queue.str")>
-"module runtime/editor/queue
+	create-analysis-complete = 
+		<output-text-file(|["lib", "runtime", "analysis"], "complete.str")>
+"module runtime/analysis/complete
+
+imports
+	
+	runtime/nbl/complete
+	runtime/task/core
+	runtime/index/core
+	
+rules
+	
+	analysis-propose-completions(|language, project-path):
+		ast -> <nabl-propose-completions> ast
+		with
+    	task-setup(|project-path);
+    	index-setup(|language, project-path)
+
+	// Legacy
+	analysis-propose-completions(|language, project-path, path) = analysis-propose-completions(|language, project-path)
+"
+
+	create-analysis-core = 
+		<output-text-file(|["lib", "runtime", "analysis"], "core.str")>
+"module runtime/analysis/core
+
+imports
+	
+  runtime/nbl/collect
+  runtime/nbl/incremental
+  runtime/nbl/entries
+  runtime/nbl/uri
+  runtime/nbl/utils
+  runtime/index/core
+  runtime/task/core
+  runtime/task/messages
+  runtime/editor/origins
+  
+signature
+
+  constructors
+  
+    File        : Path * AST -> File
+    
+    // Result(partition, initial-ast, analyzed-ast, changed-read*, error*, warning*, note*)
+    Result      : Partition * AST * AST * List(URI) * List(Term) * List(Term) * List(Term) -> Result
+    
+    // DebugResult(removed-entry*, added-entry*, removed-task*, added-task*, invalidated-task*)
+    DebugResult : List(Entry) * List(Entry) * List(TaskID) * List(TaskID) * List(TaskID) -> Result
+    
+rules // Analysis
+	
+	analyze-collect(|language, project-path) = analyze-collect(id|language, project-path)
+	analyze-collect(try-recover|language, project-path):
+    File(partition, initial-ast) -> ( 
+    	Result(partition, initial-ast, analyzed-ast, changed-read*, [], [], [])
+    , DebugResult(<length> removed-entry*, <length> added-entry*, <length> removed-task*, <length> added-task*, <length> invalidated-task*)
+  	)
+    with
+    	<analysis-core-debug(!\"Collecting: \")> partition;
+    	measure-time(
+	    	measure-time(
+	    		index-setup(|language, project-path);
+	    		try(try-recover; index-recover);
+			    index-start-collection(|partition);
+	    		task-setup(|project-path);
+	    		try(try-recover; task-recover);
+	    		task-start-collection(|partition)
+	      	, analysis-core-debug-time(!\"Time - setup: \") | \"analyze-collect-setup\"
+	      ); measure-time(
+	      	analyzed-ast := <nabl-collect(|partition, Language(language))> initial-ast
+	    	  , analysis-core-debug-time(!\"Time - collect: \") | \"analyze-collect-collect\" 
+	  	  ); measure-time(
+	  	  	index-stop-collection => (removed-entry*, added-entry*);
+	      	task-stop-collection(|partition) => (removed-task*, added-task*);
+	      	changed-read* := <nabl-get-changed-reads> [removed-entry*, added-entry*]
+	      	, analysis-core-debug-time(!\"Time - diff: \") | \"analyze-collect-diff\" 
+	  	  ); measure-time(
+	  	  	task-invalidate-task-reads(|changed-read*) => invalidated-task*
+	  	  	, analysis-core-debug-time(!\"Time - invalidate: \") | \"analyze-collect-invalidate\"
+	  	  )
+  	  , id | \"analyze-collect-total\")
+	
+	analyze-perform-all:
+		result* -> (result'*, evaluated-task*, skipped-task*, unevaluated-task*)
+		with
+			measure-time(
+				measure-time(
+	      	task-evaluate-scheduled => (evaluated-task*, skipped-task*, unevaluated-task*)
+	      	, analysis-core-debug-time(!\"Time - evaluation: \") | \"analyze-task-evaluate\"
+	      ); measure-time(
+	  	  	result'* := <map(analyze-messages)> result*
+	  	  	, analysis-core-debug-time(!\"Time - messages: \") | \"analyze-task-messages\"
+	  	  )
+  	, id | \"analyze-task-total\")
+  	  
+    
+  analyze-messages:
+  	(Result(partition, initial-ast, analyzed-ast, changed-read*, _, _, _), debug-result) -> 
+  	(Result(partition, initial-ast, analyzed-ast, changed-read*, error*, warning*, note*), debug-result)
+  	with
+			(error*, warning*, note*) := <analyze-get-messages> partition
+
+	analyze-get-messages:
+		partition -> (error*, warning*, note*)
+		with
+  		message* := <task-get-messages(|partition)>;
+  		error*   := <filter(?Error(_, _, _); analyze-message-to-tuple)> message*;
+  		warning* := <filter(?Warning(_, _, _); analyze-message-to-tuple)> message*;
+  		note*    := <filter(?Note(_, _, _); analyze-message-to-tuple)> message*
+  		
+	analyze-message-to-tuple:
+		message -> (<origin-location-offset-set(|origin)> term, msg)
+		with
+			origin := <task-message-origin> message;
+			term   := <task-message-term> message;
+			msg    := <task-message> message
+      
+rules // Projections
+	
+	analyze-result-reads:
+		Result(_, _, _, changed-read*, _, _, _) -> changed-read*
+		
+	analyze-result-analyzed-ast:
+		Result(_, _, analyzed-ast, _, _, _, _) -> analyzed-ast
+
+	analysis-partition(|path, project-path) = !$[[project-path]/[path]]
+
+rules // Debugging
+	
+	analysis-core-debug(msg) = try(analysis-core-debug-interface(msg))
+	analysis-core-debug = try(analysis-core-debug-interface)
+	analysis-core-debug-interface(msg) = fail
+	analysis-core-debug-interface = fail
+	
+	analysis-core-debug-time(msg) = try(analysis-core-debug-time-interface(msg))
+	analysis-core-debug-time = try(analysis-core-debug-time-interface)
+	analysis-core-debug-time-interface(msg) = fail
+	analysis-core-debug-time-interface = fail
+	
+"
+
+	create-analysis-debug = 
+		<output-text-file(|["lib", "runtime", "analysis"], "debug.str")>
+"module runtime/analysis/debug
+
+imports
+	
+	runtime/index/core
+	runtime/index/query
+	runtime/task/core
+	runtime/task/debug
 
 rules
 	
-  // Set markers and analyzed AST for a given file. Use when checking files from a queued strategy.
-  // Current term: (ast-analyzed, errors, warnings, notes) tuple
-  // fileOrAST: file to set the markers on or the root node of the file to set markers on 
-  set-markers(|fileOrAST) = prim(\"SSL_EXT_set_markers\", fileOrAST)
-  
-  // Set only the markers for given file, does not change the stored AST.
-  // Current term: (errors, warnings, notes) tuple
-  // fileOrAST: file to set the markers on or the root node of the file to set markers on 
-  set-only-markers(|fileOrAST) = prim(\"SSL_EXT_set_only_markers\", fileOrAST)
+  analysis-debug-show-current-partition(|language):
+    (_, _, _, path, project-path) -> (filename, result)
+    with
+    	partition := $[[project-path]/[path]];
+      index-setup(|language, project-path);
+      filename := <guarantee-extension(|\"index.current.aterm\")> path;
+      result   := <index-get-all-in-partition> partition
+      
+  analysis-debug-show-all-partitions(|language):
+    (_, _, _, path, project-path) -> (filename, result)
+    with
+    	partition := $[[project-path]/[path]];
+      index-setup(|language, project-path);
+      filename := <guarantee-extension(|\"index.all.aterm\")> path;
+      result   := <index-get-all-partitions; map(\\filename -> (filename, <index-get-all-in-partition> filename)\\)>
+      
+  analysis-debug-show-tasks(|language):
+    (_, _, _, path, project-path) -> (filename, result)
+    with
+    	partition := $[[project-path]/[path]];
+      task-setup(|project-path);
+      filename := <guarantee-extension(|\"task.current.aterm\")> path;
+      result   := <task-debug-info(|partition)>
+      
+  analysis-debug-show-tasks-selection(|language):
+    (selected, _, _, path, project-path) -> (filename, result)
+    with
+    	partition := $[[project-path]/[path]];
+      task-setup(|project-path);
+      filename := <guarantee-extension(|\"task.selected.aterm\")> path;
+      result   := <task-debug-ast> selected
+      
+  analysis-debug-reset-index(|language):
+    (_, _, _, path, project-path) -> None()
+    with
+    	partition := $[[project-path]/[path]];
+      index-setup(|language, project-path);
+      index-reset
+      
+  analysis-debug-reset-task(|language):
+    (_, _, _, path, project-path) -> None()
+    with
+      task-setup(|project-path);
+      task-reset
 
-  // Indicate that one or more files need analysis. 
-  // Current term: ss a list of absolute file paths, or a single absolute file path to analyze
-  queue-analysis = 
-       (is-list; list-loop(queue-analysis))
-    <+ prim(\"SSL_EXT_queue_analysis\")
-    
-  // Gets the number of background analyses for currenct project and language.
-  // Current term: ignored
-  analysis-count = prim(\"SSL_EXT_queue_analysis_count\")
-
-  // Set the total number of work units to complete. Can be called multiple times. 
-  // Current term: number of work units (int).
-  set-total-work-units = prim(\"SSL_EXT_set_total_work_units\")
-  
-  // Complete one work unit and update progress monitors.
-  // Current term: ignored
-  complete-work-unit = prim(\"SSL_EXT_complete_work_unit\")
-  
-  // Queue a strategy for background processing with a progress indicator.
-  // Current term: the term to pass to the background strategy
-  // s: the strategy, as string
-  // description: name of the task (will be shown in progress view)
-  queue-strategy(|s,description) = prim(\"SSL_EXT_queue_strategy\", s, description)
-  
-  // Return the result of this strategy to indicate a non-completed (backgrounded) analysis.
-  // Editor services (hover, resolve) will be delayed until a complete analysis is performed. 
-  set-analysis-backgrounded = !\"BACKGROUNDED\"
+  analysis-debug-reanalyze(|language):
+    (_, _, _, path, project-path) -> None()
+    with
+    	partition := $[[project-path]/[path]];
+    	task-setup(|project-path);
+    	task-reset;
+      index-setup(|language, project-path);
+      index-reload
 
 "
 
-	create-editor-positions = 
-		<output-text-file(|["lib", "runtime", "editor"], "positions.str")>
-"module runtime/editor/positions
+	create-analysis-defaults = 
+		<output-text-file(|["lib", "runtime", "analysis"], "defaults.str")>
+"module runtime/analysis/defaults
 
-signature constructors
+imports
+	
+	runtime/analysis/core
+	runtime/analysis/single
+	runtime/analysis/multiple
+	runtime/nbl/utils
+	runtime/index/core
+	runtime/task/core
+	runtime/editor/editor
+	runtime/editor/queue
 
-  MARKER: Term
+rules // Analysis
+	
+	analysis-default-editor = analysis-single-default-interface <+ (where(not(is-tuple)); analysis-multiple-default-queue)
+	analysis-default-cmd = analysis-single-default-interface <+ (where(not(is-tuple)); analysis-multiple-default-interface)
+
+  analysis-changed-partitions:
+  	taskID* -> <task-partitions-of(|taskID*)>
+  	
+  is-test-file = 
+    string-ends-with(|\".spt\")
+
+rules // Single finle analysis
+	
+	analysis-single-default-interface = fail
+	
+  analysis-single-default(desugar-before, desugar-after, pp-message|language):
+    (ast, path, project-path) -> (analyzed-ast, error*, warning*, note*)
+    with
+      editor-init;
+      <analysis-default-debug(!\"Analyzing file: \")> path;
+      
+	    (
+	    	analyzed-ast
+			, (analysis-error*, analysis-warning*, analysis-note*)
+			, removed-entry-count
+			, added-entry-count
+			, removed-task-count
+			, added-task-count
+			, invalidated-task-count
+			, evaluated-task*
+			, skipped-task*
+			, unevaluated-task*
+			) := <desugar-before; analyze-one(|language, path, project-path); desugar-after> ast;
+			
+      (error*, warning*, note*) := <analysis-message-collect(pp-message|analysis-error*, analysis-warning*, analysis-note*)> analyzed-ast;
+      
+      partition* := <analysis-changed-partitions> evaluated-task*;
+      if <not(is-test-file)> path then
+      	partition := <analysis-partition(|path, project-path)>;
+      	<remove-all(?partition <+ ?path); analysis-message-update-partitions-queue(|language, project-path)> partition*
+    	end;
+    	
+    	<analysis-debug-results> (removed-entry-count, added-entry-count, removed-task-count, added-task-count, invalidated-task-count, evaluated-task*, skipped-task*, unevaluated-task*)
+      
+rules // Multi-file analysis
+      
+  analysis-multiple-default-interface = fail    
+      
+	analysis-multiple-default-queue:
+    path* -> None()
+    with
+      queue-strategy(|\"analysis-multiple-default-interface\", \"Analyzing files\")
+      
+  analysis-multiple-default(parse, desugar-before, desugar-after, pp-message|language, project-path):
+    path* -> (analysis-result'*, evaluated-task*, unevaluated-task*)
+    with
+    	analysis-default-debug(!\"Analyzing files: \");
+      analysis-multiple-default-work-units; set-total-work-units;
+      
+      measure-time(
+	      measure-time(
+	      	path'* := <map(\\p -> $[[project-path]/[p]]\\)> path*;
+	        (result*, evaluated-task*, skipped-task*, unevaluated-task*) := <analyze-multiple(parse; desugar-before, complete-work-unit|language, project-path)> path'*;
+	        (analysis-result*, debug-result*) := <unzip> result*
+	      , analysis-default-debug-time(!\"Time - analysis: \") | \"analysis-multiple-full-analysis\"
+	      );
+	      measure-time(
+	      	analysis-result'* := <filter(analysis-update-editor(desugar-after, pp-message))> analysis-result*
+	      	// TODO: Update markers for partitions that have had a task executed but were not analyzed.
+	      , analysis-default-debug-time(!\"Time - messages: \") | \"analysis-multiple-update-editors\"
+	      );
+	    	measure-time(
+		      index-persist
+	      , analysis-default-debug-time(!\"Time - index persistance: \") | \"analysis-multiple-index-persist\"
+	      );
+	    	measure-time(
+		      task-persist
+	      , analysis-default-debug-time(!\"Time - task engine persistance: \") | \"analysis-multiple-task-persist\"
+	      )	      
+	    , analysis-default-debug-time(!\"Time - total: \") | \"analysis-multiple-total\"
+      );
+    	measure-time(
+      	DebugResult(removed-entry-count, added-entry-count, removed-task-count, added-task-count, invalidated-task-count) := <analysis-accumulate-debug-results> debug-result*;
+      	<analysis-debug-results> (removed-entry-count, added-entry-count, removed-task-count, added-task-count, invalidated-task-count, evaluated-task*, skipped-task*, unevaluated-task*)
+      , analysis-default-debug-time(!\"Time - debug: \") | \"analysis-multiple-debug\"
+      )
+
+	analysis-accumulate-debug-results = 
+		!(<id>, DebugResult(0, 0, 0, 0, 0));
+		foldl(analysis-concat-debug-result)
+			
+	analysis-concat-debug-result:
+		(
+			DebugResult(removed-entry1-count, added-entry1-count, removed-task1-count, added-task1-count, invalidated-task1-count)
+		, DebugResult(removed-entry2-count, added-entry2-count, removed-task2-count, added-task2-count, invalidated-task2-count)
+	  )
+	  ->
+	  DebugResult(removed-entry-count, added-entry-count, removed-task-count, added-task-count, invalidated-task-count)
+	  with
+	  	removed-entry-count    := <add> (removed-entry1-count, removed-entry2-count);
+	  	added-entry-count      := <add> (added-entry1-count, added-entry2-count);
+	  	removed-task-count     := <add> (removed-task1-count, removed-task2-count);
+	  	added-task-count       := <add> (added-task1-count, added-task2-count);
+	  	invalidated-task-count := <add> (invalidated-task1-count, invalidated-task2-count)
+
+  analysis-update-editor(desugar-after, pp-message):
+    Result(partition, initial-ast, analyzed-ast, changed-read*, error* , warning* , note*) -> 
+    Result(partition, initial-ast, analyzed-desugared-ast, changed-read*, error'*, warning'*, note'*)
+    where
+      not(() := initial-ast)
+    with
+    	analyzed-desugared-ast := <desugar-after> analyzed-ast;
+      (error'*, warning'*, note'*) := <analysis-message-collect(pp-message|error*, warning*, note*)> analyzed-desugared-ast;
+      <set-markers(|partition)> (analyzed-ast, error'*, warning'*, note'*)
+
+  analysis-multiple-default-work-units = 
+    length; !(<id>, 3); mul	
+	    
+rules // Message collection and updating.
+	
+	constraint-error = fail
+	constraint-warning = fail
+	constraint-note = fail
+	
+	enable-wrapped-message-collect = fail
+	message-collect-wrapped(s)     = fail
+	
+  analysis-message-collect(pp-message|analysis-error*, analysis-warning*, analysis-note*):
+    ast -> ([<map(pp-message)> analysis-error*, error*], [<map(pp-message)> analysis-warning*, warning*], 
+    	[<map(pp-message)> analysis-note*, note*])
+    with
+      if enable-wrapped-message-collect then
+        message-collect-wrapped(
+		      error*   := <collect-all(constraint-error, conc)> ast;
+		      warning* := <collect-all(constraint-warning, conc)> ast;
+		      note*    := <collect-all(constraint-note, conc)> ast
+		    )
+		  else
+		    error*   := <collect-all(constraint-error, conc)> ast;
+        warning* := <collect-all(constraint-warning, conc)> ast;
+        note*    := <collect-all(constraint-note, conc)> ast
+      end
+		    
   
-strategies
-
-  desugar-position(desugar|ast):
-    position -> position'
-    where
-      ast'  := <at-position(!<id>{MARKER()}|position)> ast;
-      ast'' := <topdown(repeat(preserve-annos({?x; desugar; not(?x)})))> ast';
-      position' := <position-of-term({?_{a*}; <one(?MARKER())> a*})> ast''
-   
-  at-position(s|position):
-    c#(t*) -> t'
-    where
-      !position => [i | position']
-    where
-      t' := c#(<at-index(at-position(s|position'))> (i, t*))
-
-  at-position(s|position):
-    t -> t'
-    where
-      !position => [];
-      t' := <s> t
-
-  position-of-term(is-term):
-    t -> []
-    where
-      is-term
+  analysis-message-update-partitions-queue(|language, project-path):
+  	partition* -> <queue-strategy(|\"analysis-message-update-partitions\", \"Updating messages\")> (partition*, language, project-path)
   
-  position-of-term(is-term):
-    _#(t*) -> <position-of-term(is-term|0)> t*
+  analysis-message-update-partitions:
+  	(partition*, language, project-path) -> <filter(not(is-test-file); analysis-message-update-partition)> partition*
+  	with
+    	task-setup(|project-path);
+      index-setup(|language, project-path)
+  	
+	analysis-message-update-partition:
+		partition -> <analyze-get-messages; set-only-markers(|partition)> partition
+      
+rules // On-save handler
+	
+  analysis-save-default(|language):
+  	(_, _, _, _, project-path) -> None()
+  	with
+  		index-setup(|language, project-path);
+  		index-persist;
+  		task-setup(|project-path);
+  		task-persist
+
+rules // Debugging
+	
+	analysis-default-debug(msg) = try(analysis-default-debug-interface(msg))
+	analysis-default-debug = try(analysis-default-debug-interface)
+	analysis-default-debug-interface(msg) = fail
+	analysis-default-debug-interface = fail
+	
+	analysis-default-debug-time(msg) = try(analysis-default-debug-time-interface(msg))
+	analysis-default-debug-time = try(analysis-default-debug-time-interface)
+	analysis-default-debug-time-interface(msg) = fail
+	analysis-default-debug-time-interface = fail
+	
+	analysis-debug-results =
+		?(
+				removed-entry-count
+			, added-entry-count
+			, removed-task-count
+			, added-task-count
+			, invalidated-task-count
+			, evaluated-task*
+			, skipped-task*
+			, unevaluated-task*
+		);
+  	<analysis-default-debug> $[Entries : [removed-entry-count] removed, [added-entry-count] added.];
+    <analysis-default-debug> $[Tasks   : [removed-task-count] removed, [added-task-count] added, [invalidated-task-count] invalidated, [<length> evaluated-task*] evaluated, [<length> skipped-task*] skipped, [<length> unevaluated-task*] unevaluated.];
+    <map(task-debug-info(|<id>); analysis-default-debug(!\"Unevaluated: \"))> unevaluated-task* 
+	
+"
+
+	create-analysis-multiple = 
+		<output-text-file(|["lib", "runtime", "analysis"], "multiple.str")>
+"module runtime/analysis/multiple
+
+imports
+
+  runtime/analysis/core
+  runtime/task/core
+  runtime/nbl/utils
+
+rules // Multi file analysis
   
-  position-of-term(is-term|start-index):
-    [t | t*] -> position
-    where
-      if i* := <position-of-term(is-term)> t then
-        position := [start-index | i*]
-      else
-        position := <position-of-term(is-term | <inc> start-index)> t*
+  analyze-multiple(parse-file, complete-work-unit|language, project-path):
+    path* -> result*
+    with
+    	measure-time(
+      	file* := <map(analyze-parse-file(parse-file); where(complete-work-unit))> path*
+    	, id | \"analyze-parse\");
+      result* := <analyze-multiple-files(complete-work-unit|language, project-path)> file*
+
+  analyze-parse-file(parse-file):
+    path -> File(path, ast)
+    with
+      if not(ast := <file-exists; parse-file> path) then
+        ast := ()
       end
 
-  term-at-position(|position):
-    t -> t'
-    where
-      at-position(?t'|position) 
+  analyze-multiple-files(complete-work-unit|language, project-path):
+    file* -> (result'*, evaluated-task*, skipped-task*, unevaluated-task*)
+    with
+      result* := <map(analyze-collect(|language, project-path); where(complete-work-unit))> file*;
+    	(result'*, evaluated-task*, skipped-task*, unevaluated-task*) := <analyze-perform-all> result*
+      
+"
 
-  parent-at-position(|position):
-    t -> t'
-    where
-      !position => [i, _];
-      t' := <subterm-at(|i)> t
+	create-analysis-reanalysis = 
+		<output-text-file(|["lib", "runtime", "analysis"], "reanalysis.str")>
+"module runtime/analysis/reanalysis
+
+imports
+	
+	runtime/analysis/core
+	runtime/analysis/single
+	runtime/analysis/defaults
+	runtime/task/core
+	runtime/index/core
+	runtime/nbl/collect
+	runtime/nbl/namegen
+
+rules
+	
+	start-reanalysis(|language, path, project-path) =
+		nabl-namegen-clear(|<analysis-partition(|path, project-path)>);
+		index-push;
+		task-push
+		
+	stop-reanalysis(|language, path, project-path) =
+		task-pop;
+		index-pop
+	
+	reanalysis(s|language, path, project-path) =
+		where(start-reanalysis(|language, path, project-path); s; stop-reanalysis(|language, path, project-path))
+	
+  reanalyze-ast(|language, path, project-path):
+    ast -> analyzed-ast
+    with
+	    (
+	    	analyzed-ast
+			, (error*, warning*, note*)
+			, removed-entry*
+			, added-entry*
+			, removed-task*
+			, added-task*
+			, invalidated-task*
+			, evaluated-task*
+			, skipped-task*
+			, unevaluated-task*
+			) := <analyze-one(fail|language, path, project-path)> ast;
+			
+      <analysis-debug-results> (removed-entry*, added-entry*, removed-task*, added-task*, invalidated-task*, evaluated-task*, skipped-task*, unevaluated-task*);
+      
+      <map(analysis-default-debug(!\"Error: \"))> error*;
+      <map(analysis-default-debug(!\"Warning: \"))> warning*;
+      <map(analysis-default-debug(!\"Note: \"))> note*
+
+"
+
+	create-analysis-resolve = 
+		<output-text-file(|["lib", "runtime", "analysis"], "resolve.str")>
+"module runtime/analysis/resolve
+
+imports
+	
+	runtime/nbl/resolve
+	runtime/task/core
+	runtime/index/core
+	runtime/index/query
+	
+rules
+	
+	analysis-resolve(|language, project-path):
+		node -> definition
+		where
+			task-setup(|project-path);
+    	index-setup(|language, project-path);
+    	<nabl-has-reference> node;
+    	definition := <nabl-collect-one-resolved-def; index-get-all; Hd> node
+    	
+	// Legacy
+	analysis-resolve(|language, project-path, path) = analysis-resolve(|language, project-path)
+"
+
+	create-analysis-single = 
+		<output-text-file(|["lib", "runtime", "analysis"], "single.str")>
+"module runtime/analysis/single
+
+imports
+	
+  runtime/analysis/core
+    
+rules // Single file analysis
   
-  parent-at-position(|position):
-    t -> <parent-at-position(|position')> t'
-    where
-      !position => [i | position' @ [_, _ | _]];
-      t' := <subterm-at(|i)> t
-
-  subterm-at(|index):
-    _#(t*) -> <index(|<inc> index)> t*
-
+  analyze-one(|language, path, project-path) = 
+  	analyze-one(id|language, path, project-path)
+  
+  analyze-one(try-recover|language, path, project-path):
+    ast -> 
+    (
+    	analyzed-ast
+		, (error*, warning*, note*)
+		, removed-entry*
+		, added-entry*
+		, removed-task*
+		, added-task*
+		, invalidated-task*
+		, evaluated-task*
+		, skipped-task*
+		, unevaluated-task*
+		)
+    with
+      partition := <analysis-partition(|path, project-path)>;
+      r@(
+      	Result(_, _, analyzed-ast, _, _, _, _)
+      , DebugResult(removed-entry*, added-entry*, removed-task*, added-task*, invalidated-task*)
+      ) := <analyze-collect(try-recover|language, project-path)> File(partition, ast);
+      
+    	(result*, evaluated-task*, skipped-task*, unevaluated-task*) := <analyze-perform-all> [r];
+    	
+    	Result(_, _, _, _, error*, warning*, note*) := <Hd; Fst> result*
 "
 
 	create-editor-editor = 
@@ -223,7 +680,7 @@ strategies
    * Only AST nodes for which s1 succeed end up in the outline.
    *
    * Example:
-   *   outline-strategy = simple-label-outline(to-outline-label)
+   *   outline = simple-label-outline(to-outline-label)
    *   to-outline-label: Entity(name, _) -> name
    *   to-outline-label: Property(name, _) -> name
    */
@@ -234,7 +691,7 @@ strategies
    * AST nodes to outline nodes. Strategy s2 gets priority over strategy s1 in case both succeed.
    *
    * Example:
-   *   outline-strategy = custom-label-outline(to-outline-label, to-outline-node)
+   *   outline = custom-label-outline(to-outline-label, to-outline-node)
    *   to-outline-label: Entity(name, _) -> name
    *   to-outline-node: Property(name, _) -> Node(name, [Node(\"dummy\", [])])
    */
@@ -338,6 +795,302 @@ rules
 signature constructors
   
   Node: label * children -> Node
+
+"
+
+	create-editor-positions = 
+		<output-text-file(|["lib", "runtime", "editor"], "positions.str")>
+"module runtime/editor/positions
+
+signature constructors
+
+  MARKER: Term
+  
+strategies
+
+  desugar-position(desugar|ast):
+    position -> position'
+    where
+      ast'  := <at-position(!<id>{MARKER()}|position)> ast;
+      ast'' := <topdown(repeat(preserve-annos({?x; desugar; not(?x)})))> ast';
+      position' := <position-of-term({?_{a*}; <one(?MARKER())> a*})> ast''
+   
+  at-position(s|position):
+    c#(t*) -> t'
+    where
+      !position => [i | position']
+    where
+      t' := c#(<at-index(at-position(s|position'))> (i, t*))
+
+  at-position(s|position):
+    t -> t'
+    where
+      !position => [];
+      t' := <s> t
+
+  position-of-term(is-term):
+    t -> []
+    where
+      is-term
+  
+  position-of-term(is-term):
+    _#(t*) -> <position-of-term(is-term|0)> t*
+  
+  position-of-term(is-term|start-index):
+    [t | t*] -> position
+    where
+      if i* := <position-of-term(is-term)> t then
+        position := [start-index | i*]
+      else
+        position := <position-of-term(is-term | <inc> start-index)> t*
+      end
+
+  term-at-position(|position):
+    t -> t'
+    where
+      at-position(?t'|position) 
+
+  parent-at-position(|position):
+    t -> t'
+    where
+      !position => [i, _];
+      t' := <subterm-at(|i)> t
+  
+  parent-at-position(|position):
+    t -> <parent-at-position(|position')> t'
+    where
+      !position => [i | position' @ [_, _ | _]];
+      t' := <subterm-at(|i)> t
+
+  subterm-at(|index):
+    _#(t*) -> <index(|<inc> index)> t*
+
+"
+
+	create-editor-queue = 
+		<output-text-file(|["lib", "runtime", "editor"], "queue.str")>
+"module runtime/editor/queue
+
+rules
+	
+  // Set markers and analyzed AST for a given file. Use when checking files from a queued strategy.
+  // Current term: (ast-analyzed, errors, warnings, notes) tuple
+  // fileOrAST: file to set the markers on or the root node of the file to set markers on 
+  set-markers(|fileOrAST) = prim(\"SSL_EXT_set_markers\", fileOrAST)
+  
+  // Set only the markers for given file, does not change the stored AST.
+  // Current term: (errors, warnings, notes) tuple
+  // fileOrAST: file to set the markers on or the root node of the file to set markers on 
+  set-only-markers(|fileOrAST) = prim(\"SSL_EXT_set_only_markers\", fileOrAST)
+
+  // Indicate that one or more files need analysis. 
+  // Current term: ss a list of absolute file paths, or a single absolute file path to analyze
+  queue-analysis = 
+       (is-list; list-loop(queue-analysis))
+    <+ prim(\"SSL_EXT_queue_analysis\")
+    
+  // Gets the number of background analyses for currenct project and language.
+  // Current term: ignored
+  analysis-count = prim(\"SSL_EXT_queue_analysis_count\")
+
+  // Set the total number of work units to complete. Can be called multiple times. 
+  // Current term: number of work units (int).
+  set-total-work-units = prim(\"SSL_EXT_set_total_work_units\")
+  
+  // Complete one work unit and update progress monitors.
+  // Current term: ignored
+  complete-work-unit = prim(\"SSL_EXT_complete_work_unit\")
+  
+  // Queue a strategy for background processing with a progress indicator.
+  // Current term: the term to pass to the background strategy
+  // s: the strategy, as string
+  // description: name of the task (will be shown in progress view)
+  queue-strategy(|s,description) = prim(\"SSL_EXT_queue_strategy\", s, description)
+  
+  // Return the result of this strategy to indicate a non-completed (backgrounded) analysis.
+  // Editor services (hover, resolve) will be delayed until a complete analysis is performed. 
+  set-analysis-backgrounded = !\"BACKGROUNDED\"
+
+"
+
+	create-index-core = 
+		<output-text-file(|["lib", "runtime", "index"], "core.str")>
+"module runtime/index/core
+
+imports
+	
+	runtime/index/utils
+
+signature
+
+  sorts
+  
+    URI Entry
+  
+rules
+
+  /**
+   * Sets up the index library for given language, project paths and current file.
+   * Must be called once before doing anything with the library.
+   *
+   * Example:
+   *   <index-setup(|\"MiniJava\", <project-path>)
+   *
+   * @param language          The language to set the index up for.
+   * @param project-path      The project path that contains all source files to analyse.
+   * @type x -> x
+   */
+  index-setup(|language, project-path) =
+    prim(\"LANG_index_setup_new\", language, <index-setup-paths> project-path)
+    
+  index-setup:
+  	(language, project-path) -> <prim(\"LANG_index_setup_new\", language, <index-setup-paths> project-path)>
+    
+  /**
+   * Unloads the currently loaded index.
+   *
+   * Example:
+   *   index-unload(|<project-path>)
+   *
+   * @param project-path The project path that contain all source files to analyse and compile.
+   *
+   * @type x -> x
+   */
+  index-unload(|project-path) =
+    prim(\"LANG_index_unload\", project-path)
+
+  /**
+   * Tries to recover the index from an invalid state, for example after a crash.
+   */
+	index-recover =
+		prim(\"LANG_index_recover\")
+		
+	/**
+	 * Starts collection for given partition. Used in conjunction with index-stop-collection to 
+	 * retrieve a list of added and removed index entries in relation to the previous entries in
+	 * given partition.
+	 *
+	 * Example:
+	 *   index-start-collection(|\"fullpath/file.ext\")
+	 *   index-start-collection(|(\"fullpath/file.ext\", \"subfile\"))
+	 *
+	 * @type x -> x
+	 */
+	index-start-collection(|partition) =
+		prim(\"LANG_index_start_collection\", partition)
+		
+	/**
+	 * Stops collection for the partition on which index-start-collection was called. Returns 
+	 * a tuple with removed and added entries in relation to the previous entries in that partition.
+	 *
+	 * Example:
+	 *   index-stop-collection => (removed, added)
+	 *
+	 * @type x -> (List(elem), List(elem))
+	 */
+	index-stop-collection =
+		prim(\"LANG_index_stop_collection\")
+	
+	/**
+	 * Pushes a new index on the stack and sets that as the current index. Entries from the parent
+	 * index are still visible, but additions only apply to the current index. Clearing a partition
+	 * also hides all entries in that partition from the parent index.
+	 *
+	 * Example:
+	 *   index-push
+	 *
+	 * @type x -> x 
+	 */	
+	index-push = 
+		prim(\"LANG_index_push\")
+
+	/**
+	 * Pops the current index from the stack and sets the parent index as the current index. All
+	 * modifications from the current index are discarded. The root index cannot be popped.
+	 *
+	 * Example:
+	 *   index-pop
+	 *
+	 * @type x -> x 
+	 */	
+	index-pop = 
+		prim(\"LANG_index_pop\")
+
+	/**
+	 * Pops the current index from the stack and sets the parent index as the current index. All
+	 * modifications from the current index are merged into the parent index; partitions that were
+	 * cleared in the current index are cleared in the parent, and entries added to the current
+	 * index are also added to the parrent. The root index cannot be merged.
+	 *
+	 * Example:
+	 *   index-merge
+	 *
+	 * @type x -> x 
+	 */	
+	index-merge = 
+		prim(\"LANG_index_merge\")
+		
+  /**
+   * Adds given element to the index.
+   *
+   * Example:
+   *   <index-add(|\"fullpath/file.ext\")> Def([Entity(), \"Bar\"])
+   *   <index-add(|(\"fullpath/file.ext\", \"subfile\"))> Def([Entity(), \"Bar\"])
+   *
+   * @param partition The partition to add the element to.
+   * @type x -> ?x
+   */
+  index-add(|partition) =
+    prim(\"LANG_index_add\", <id>, partition)
+
+  /**
+   * Adds all given elements to the index.
+   *
+   * Example:
+   *   <index-add-all(|\"fullpath/file.ext\")> [Def([Entity(), \"Bar\"]), ...]
+   *   <index-add-all(|(\"fullpath/file.ext\", \"subfile\"))> [Def([Entity(), \"Bar\"]), ...]
+   *
+   * @param partition The partition to add the elements to.
+   * @type List(x) -> ?List(x)
+   */
+  index-add-all(|partition) =
+    list-loop(with(index-add(|partition)))
+    
+  /**
+   * Removes all elements from the index that are contained in given partition.
+   *
+   * Example:
+   *   <index-clear-partition> \"fullpath/file.ext\"
+   *   <index-clear-partition> (\"fullpath/file.ext\", \"subfile\")
+   *
+   * @type x -> ?x
+   */
+  index-clear-partition = 
+    prim(\"LANG_index_clear_partition\", <id>)
+    
+  /**
+   * Removes all elements from the index.
+   *
+   * @type x -> x
+   */
+  index-reset = 
+    prim(\"LANG_index_clear_all\")
+    
+  /**
+   * Removes all elements from the index and re-analyzes all partitions in the project.
+   *
+   * @type x -> x
+   */
+  index-reload = 
+    prim(\"LANG_index_reload\")
+   
+  /**
+   * Persists index to a cache on disk.
+   *
+   * @type x -> x
+   */
+  index-persist = 
+    prim(\"LANG_index_persist\")
 
 "
 
@@ -541,213 +1294,6 @@ rules
 
 "
 
-	create-index-partition = 
-		<output-text-file(|["lib", "runtime", "index"], "partition.str")>
-"module runtime/index/partition
-
-rules // Construction
-  
-  index-create-partition(|file) =
-    !file
-    
-  index-create-partition(|file, uri) =
-    !(file, uri)
-
-rules // Projections
-	
-	index-partition-file:
-		(file, _) -> file
-		
-	index-partition-file:
-		file -> file
-		where
-			<is-string> file
-		
-  index-partition-uri:
-  	(_, uri) -> uri
-"
-
-	create-index-core = 
-		<output-text-file(|["lib", "runtime", "index"], "core.str")>
-"module runtime/index/core
-
-imports
-	
-	runtime/index/utils
-
-signature
-
-  sorts
-  
-    URI Entry
-  
-rules
-
-  /**
-   * Sets up the index library for given language, project paths and current file.
-   * Must be called once before doing anything with the library.
-   *
-   * Example:
-   *   <index-setup(|\"MiniJava\", <project-path>)
-   *
-   * @param language          The language to set the index up for.
-   * @param project-path      The project path that contains all source files to analyse.
-   * @type x -> x
-   */
-  index-setup(|language, project-path) =
-    prim(\"LANG_index_setup_new\", language, <index-setup-paths> project-path)
-    
-  index-setup:
-  	(language, project-path) -> <prim(\"LANG_index_setup_new\", language, <index-setup-paths> project-path)>
-    
-  /**
-   * Unloads the currently loaded index.
-   *
-   * Example:
-   *   index-unload(|<project-path>)
-   *
-   * @param project-path The project path that contain all source files to analyse and compile.
-   *
-   * @type x -> x
-   */
-  index-unload(|project-path) =
-    prim(\"LANG_index_unload\", project-path)
-
-  /**
-   * Tries to recover the index from an invalid state, for example after a crash.
-   */
-	index-recover =
-		prim(\"LANG_index_recover\")
-		
-	/**
-	 * Starts collection for given partition. Used in conjunction with index-stop-collection to 
-	 * retrieve a list of added and removed index entries in relation to the previous entries in
-	 * given partition.
-	 *
-	 * Example:
-	 *   index-start-collection(|\"fullpath/file.ext\")
-	 *   index-start-collection(|(\"fullpath/file.ext\", \"subfile\"))
-	 *
-	 * @type x -> x
-	 */
-	index-start-collection(|partition) =
-		prim(\"LANG_index_start_collection\", partition)
-		
-	/**
-	 * Stops collection for the partition on which index-start-collection was called. Returns 
-	 * a tuple with removed and added entries in relation to the previous entries in that partition.
-	 *
-	 * Example:
-	 *   index-stop-collection => (removed, added)
-	 *
-	 * @type x -> (List(elem), List(elem))
-	 */
-	index-stop-collection =
-		prim(\"LANG_index_stop_collection\")
-	
-	/**
-	 * Pushes a new index on the stack and sets that as the current index. Entries from the parent
-	 * index are still visible, but additions only apply to the current index. Clearing a partition
-	 * also hides all entries in that partition from the parent index.
-	 *
-	 * Example:
-	 *   index-push
-	 *
-	 * @type x -> x 
-	 */	
-	index-push = 
-		prim(\"LANG_index_push\")
-
-	/**
-	 * Pops the current index from the stack and sets the parent index as the current index. All
-	 * modifications from the current index are discarded. The root index cannot be popped.
-	 *
-	 * Example:
-	 *   index-pop
-	 *
-	 * @type x -> x 
-	 */	
-	index-pop = 
-		prim(\"LANG_index_pop\")
-
-	/**
-	 * Pops the current index from the stack and sets the parent index as the current index. All
-	 * modifications from the current index are merged into the parent index; partitions that were
-	 * cleared in the current index are cleared in the parent, and entries added to the current
-	 * index are also added to the parrent. The root index cannot be merged.
-	 *
-	 * Example:
-	 *   index-merge
-	 *
-	 * @type x -> x 
-	 */	
-	index-merge = 
-		prim(\"LANG_index_merge\")
-		
-  /**
-   * Adds given element to the index.
-   *
-   * Example:
-   *   <index-add(|\"fullpath/file.ext\")> Def([Entity(), \"Bar\"])
-   *   <index-add(|(\"fullpath/file.ext\", \"subfile\"))> Def([Entity(), \"Bar\"])
-   *
-   * @param partition The partition to add the element to.
-   * @type x -> ?x
-   */
-  index-add(|partition) =
-    prim(\"LANG_index_add\", <id>, partition)
-
-  /**
-   * Adds all given elements to the index.
-   *
-   * Example:
-   *   <index-add-all(|\"fullpath/file.ext\")> [Def([Entity(), \"Bar\"]), ...]
-   *   <index-add-all(|(\"fullpath/file.ext\", \"subfile\"))> [Def([Entity(), \"Bar\"]), ...]
-   *
-   * @param partition The partition to add the elements to.
-   * @type List(x) -> ?List(x)
-   */
-  index-add-all(|partition) =
-    list-loop(with(index-add(|partition)))
-    
-  /**
-   * Removes all elements from the index that are contained in given partition.
-   *
-   * Example:
-   *   <index-clear-partition> \"fullpath/file.ext\"
-   *   <index-clear-partition> (\"fullpath/file.ext\", \"subfile\")
-   *
-   * @type x -> ?x
-   */
-  index-clear-partition = 
-    prim(\"LANG_index_clear_partition\", <id>)
-    
-  /**
-   * Removes all elements from the index.
-   *
-   * @type x -> x
-   */
-  index-reset = 
-    prim(\"LANG_index_clear_all\")
-    
-  /**
-   * Removes all elements from the index and re-analyzes all partitions in the project.
-   *
-   * @type x -> x
-   */
-  index-reload = 
-    prim(\"LANG_index_reload\")
-   
-  /**
-   * Persists index to a cache on disk.
-   *
-   * @type x -> x
-   */
-  index-persist = 
-    prim(\"LANG_index_persist\")
-
-"
-
 	create-index-legacy = 
 		<output-text-file(|["lib", "runtime", "index"], "legacy.str")>
 "module runtime/index/legacy
@@ -794,13 +1340,30 @@ rules // Deprecated
 
 "
 
-	create-index-utils = 
-		<output-text-file(|["lib", "runtime", "index"], "utils.str")>
-"module runtime/index/utils
+	create-index-partition = 
+		<output-text-file(|["lib", "runtime", "index"], "partition.str")>
+"module runtime/index/partition
 
-rules
+rules // Construction
+  
+  index-create-partition(|file) =
+    !file
+    
+  index-create-partition(|file, uri) =
+    !(file, uri)
+
+rules // Projections
 	
-	index-setup-paths = try(is-list; Hd)
+	index-partition-file:
+		(file, _) -> file
+		
+	index-partition-file:
+		file -> file
+		where
+			<is-string> file
+		
+  index-partition-uri:
+  	(_, uri) -> uri
 "
 
 	create-index-query = 
@@ -867,92 +1430,13 @@ rules
 
 "
 
-	create-tmpl-pp = 
-		<output-text-file(|["lib", "runtime", "tmpl"], "pp.str")>
-"module runtime/tmpl/pp
-
-imports
-  libstratego-lib
-  libstratego-gpp
-
-signature constructors
-
-  Parenthetical : Unknown -> Unknown
-
-strategies
-
-  // Unwrap Parenthetical/1 if pp fails, in case the user is using
-  // parenthesize, but grammar does not contain {bracket} production.
-  pp-one(pp) = (pp <+ ?Parenthetical(<pp>)); filter(gpp-is-real-vbox)
-
-  pp-one-V(pp) = pp-one(pp); (?[] <+ !V([], <id>))
-  pp-one-Z(pp) = pp-one(pp); (?[] <+ !Z([], <id>))
-
-  pp-option(pp) = \\None() -> []\\ + ?Some(<pp>)
-
-  pp-V-list(pp)    = ?[] <+ !V([], <map(pp-one-V(pp))>)
-  pp-V-list(pp|vs) = ?[] <+ !V([SOpt(VS(), vs)], <map(pp-one-V(pp))>)
-  pp-V-list(pp|vs, sep) = ?[] <+ !V([SOpt(VS(), vs)], <map(pp-one-V(pp)); at-init(add-sep(|sep), id)>)
-
-  pp-indent(|is) = filter(gpp-is-real-vbox); (?[] <+ !I([SOpt(IS(), is)], H([SOpt(HS(), \"0\")], <id>)))
-
-  pp-H-list(pp)     = ?[] <+ !H([], <map(pp-one-Z(pp))>)
-  pp-H-list(pp|sep) = ?[] <+ !H([SOpt(HS(), \"0\")], <map(pp-one-Z(pp)); separate-by(|S(sep))>)
-
-  pp-HV-list(pp)     = ?[] <+ !HV([SOpt(HS(), \"0\")], <map(pp-one-Z(pp))>)
-  pp-HV-list(pp|sep) = ?[] <+ !HV([SOpt(HS(), \"0\")], <map(pp-one-Z(pp)); separate-by(|S(sep))>)
-
-  pp-HZ-list(pp)     = ?[] <+ !HZ([SOpt(HS(), \"0\")], <map(pp-one-Z(pp))>)
-  pp-HZ-list(pp|sep) = ?[] <+ !HZ([SOpt(HS(), \"0\")], <map(pp-one-Z(pp)); separate-by(|S(sep))>)
+	create-index-utils = 
+		<output-text-file(|["lib", "runtime", "index"], "utils.str")>
+"module runtime/index/utils
 
 rules
-  
-  add-sep(|sep):
-    V(a, [b]) -> V(a, [b-with-sep])
-    where
-      (c, [d, e]) := <explode-term> b;
-      b-with-sep := <mkterm> (c, [d, <conc> (e, [S(sep)])])
-
-"
-
-	create-nbl-resolve = 
-		<output-text-file(|["lib", "runtime", "nbl"], "resolve.str")>
-"module runtime/nbl/resolve
-
-imports
-  
-  runtime/nbl/tasks
-	runtime/nbl/entries
-	runtime/nbl/utils
-	runtime/task/core
-  runtime/task/utils
-  
-rules // Reference resolution
-  
-  nabl-is-reference =
-    ?Use(_)
-    
-  nabl-has-reference =
-    collect-one(nabl-is-reference)
-    
-  nabl-has-reference =
-    has-annos;
-    get-annos;
-    nabl-has-reference
-  
-	nabl-collect-all-resolved-defs:
-		ast -> def*
-		with
-			if ast' := <insert-results> ast then
-				def* := <collect-all-annos(?Def(_), conc)> ast'
-			else
-				def* := []
-			end
-
-	nabl-collect-one-resolved-def =
-		insert-results-or-create-dependency;
-		collect-one-annos(?Def(_) <+ ?Dependency(_))
 	
+	index-setup-paths = try(is-list; Hd)
 "
 
 	create-nbl-check = 
@@ -1038,689 +1522,6 @@ rules // Legacy
 		make-set;
 		where(<gt> (<length>, 1))
 
-"
-
-	create-nbl-incremental = 
-		<output-text-file(|["lib", "runtime", "nbl"], "incremental.str")>
-"module runtime/nbl/incremental
-
-imports
-	
-	runtime/nbl/uri
-	runtime/nbl/entries
-	runtime/task/core
-	
-rules // Read generation
-	
-	nabl-add-uri-read(|taskID):
-		uri -> uri
-		with
-			<try(nabl-replace-uri-qualifier(|())); task-add-read(|taskID)> uri
-			
-	nabl-add-ns-read(|taskID, ns):
-		uri -> uri
-		with
-			<task-add-read(|taskID)> (uri, ns)
-			
-	nabl-add-name-read(|taskID, ns, name):
-		uri -> uri
-		with
-			<nabl-extend-uri(|ns, name, ()); task-add-read(|taskID)> uri
-			
-rules // Read processing
-	
-	nabl-get-changed-reads:
-		changed-entry* -> [uri-read*, ns-read*]
-		with
-			uri*      := <filter(nabl-diff-entry; nabl-uri)> changed-entry*;
-			uri-read* := <map(try(nabl-replace-uri-qualifier(|())))> uri*;
-			ns-read*  := <filter(nabl-create-ns-read)> uri*
-	
-	nabl-create-ns-read:
-		uri -> (uri', ns)
-		where
-			ns   := <nabl-uri-namespace> uri;
-			uri' := <nabl-uri-parent> uri
-
-  nabl-diff-entry =
-    ?Def(_)
- 
-  nabl-diff-entry =
-    ?Alias(_, _)
-    
-  nabl-diff-entry =
-    ?Prop(_, _, _)
-
-"
-
-	create-nbl-complete = 
-		<output-text-file(|["lib", "runtime", "nbl"], "complete.str")>
-"module runtime/nbl/complete
-
-imports
-	
-	runtime/nbl/collect
-  runtime/nbl/uri
-  runtime/task/core
-  
-signature
-
-  constructors
-    
-    COMPLETION : String -> COMPLETION
-    
-rules // Code completion
-
-  nabl-propose-completions:
-    ast -> proposal*
-    with
-	    	completion* := <collect-one(?COMPLETION(_)); nabl-collect-all-completion> ast;
-				def*        := <mapconcat(\\Completion(result) -> result\\; task-get-solved)> completion*;
-				proposal*   := <map(nabl-uri; nabl-uri-name)> def*
-			<+
-				proposal*   := []
-"
-
-	create-nbl-uri = 
-		<output-text-file(|["lib", "runtime", "nbl"], "uri.str")>
-"module runtime/nbl/uri
-
-imports
-  
-  runtime/nbl/interface
-  runtime/index/core
-  
-signature
-
-  sorts
-  
-    Language
-    Segment
-    Qualifier
-    
-  constructors
-    
-    Language    : String                       -> Language
-    ID          : Namespace * Name * Qualifier -> Segment
-    Subsequent  : String                       -> Segment
-    Anonymous   : String                       -> Segment
-    ExternalDef : String                       -> Segment
-    Unique      : String                       -> Qualifier
-    NonUnique   :                                 Qualifier
-    Unique      :                                 Qualifier
-    URI         : Language * List(Segment)     -> URI
-    
-rules // Construction
-  
-  nabl-base-uri = 
-    !URI(<id>, [])
-     
-  nabl-extend-uri(|segment) = 
-    URI(id, ![segment|<id>])
-    
-  nabl-extend-uri(|namespace, name, qualifier) = 
-    URI(id, ![ID(namespace, name, qualifier)|<id>])
-    
-  nabl-replace-uri(|segment) = 
-    URI(id, [!segment|id])
-    
-  nabl-replace-uri(|namespace, name, qualifier) = 
-    URI(id, [!ID(namespace, name, qualifier)|id])
-    
-  nabl-replace-uri-qualifier(|qualifier) =
-    URI(id, [ID(id, id, !qualifier)|id])
-      
-  nabl-external-segment: Anonymous(name) -> ExternalDef(name)
-  
-	nabl-nonunique-uri =
-		URI(id, [ID(id, id, !NonUnique())|id])
-
-rules // stable URI extensions
-  
-  nabl-extend-uri(|table, partition, ns, n, u):
-    uri -> <nabl-extend-uri(|ns, n, qualifier)> uri
-    where 
-	    if where(<?NonUnique()> u) then
-	      qualifier := NonUnique()
-	    else
-	      qualifier := Unique(<stable-uri-part(|table, partition)> (partition, uri, ns, n))
-	    end
-    
-  nabl-extend-uri-anonymous(|table, partition):
-    uri -> <nabl-extend-uri(|Anonymous(unique))> uri
-    where
-      unique := <stable-uri-part(|table, partition)> (partition, uri, \"anonymous\")
-      
-  nabl-extend-uri-subsequent(|table, partition):
-    uri -> <nabl-extend-uri(|Subsequent(unique))> uri
-    where
-      unique := <stable-uri-part(|table, partition)> (partition, uri, \"subsequent\")
-
-  stable-uri-part(|table, partition):
-    key -> $[[partition]/[unique]]
-    where
-      if value := <hashtable-get(|key)> table then
-        unique    := <int-to-string> value;
-        new-value := <inc> value
-      else
-        unique    := \"0\";
-        new-value := 1
-      end;
-      <hashtable-put(|key, new-value)> table
-      
-rules // Projections
-  
-  nabl-uri = fail
-  nabl-uris = fail
-  nabl-value = fail
-  nabl-values = fail
-  
-  nabl-uri-language:
-    URI(language, _) -> language
-    
-  nabl-uri-language-name:
-    URI(Language(name), _) -> name
-    
-  nabl-uri-path:
-    URI(_, path) -> path
-    
-  nabl-uri-parent:
-    URI(language, path) -> URI(language, parent)
-    where
-      [_|parent] := path
-  
-  nabl-uri-parent(|targetNamespace):
-    URI(language, path) -> URI(language, parent')
-    where
-      [_|parent] := path;
-      if [segment|_] := parent; namespace := <nabl-segment-namespace> segment then
-        if <nabl-scopes> (namespace, targetNamespace) then
-          parent' := parent
-        else
-          parent' := <nabl-uri-parent(|targetNamespace)> parent
-        end
-      else
-        parent' := parent
-      end
-      
-  nabl-uri-name:
-    uri -> <nabl-uri-path; Hd; nabl-segment-name> uri
-    
-  nabl-uri-namespace:
-    uri -> <nabl-uri-path; Hd; nabl-segment-namespace> uri    
-
-  nabl-uri-qualifier:
-    uri -> <nabl-uri-path; Hd; nabl-segment-qualifier> uri
-      
-  nabl-segment-namespace:
-    ID(namespace, _, _) -> namespace
-    
-  nabl-segment-name:
-    ID(_, name, _) -> name
-    
-  nabl-segment-name:
-  	Subsequent(name) -> name
-  
-	nabl-segment-name:
-  	Anonymous(name) -> name
-  	
-	nabl-segment-name:
-  	ExternalDef(name) -> name
-    
-  nabl-segment-qualifier:
-    ID(_, _, qualifier) -> qualifier
-    
-  nabl-uri-scope      = URI(id, Tl)
-  nabl-uri-scopes    = nabl-closure(nabl-uri-scope)
-  
-  nabl-uri-in-scope  = URI(id, [id|Tl])
-  nabl-uri-in-scopes = nabl-closure(nabl-uri-in-scope)
-  
-  nabl-closure(s) = 
-      s 
-    < ![<id>|<nabl-closure(s)>] 
-    + ![]
-
-rules // Conditions
-  
-  nabl-is-uri =
-  	?URI(_, _)
-  
-  nabl-is-unique =
-    nabl-uri-qualifier;
-    ?Unique(_)
-    
-  nabl-is-nonunique =
-    nabl-uri-qualifier;
-    ?NonUnique()
-    
-  nabl-segment-is-id =
-  	?ID(_, _, _)
-
-rules // Equality
-  
-  nabl-uri-eq = 
-    ?(URI(lang1, segs1), URI(lang2, segs2));
-    <eq> (lang1, lang2);
-    <zip(nabl-uri-segment-eq)> (segs1, segs2)
-    
-  nabl-uri-segment-eq =
-    ?(ID(ns1, name1, _), ID(ns2, name2, _));
-    <eq> (ns1, ns2);
-    <eq> (name1, name2)
-     
-  nabl-uri-segment-eq =
-    ?(Subsequent(_), Subsequent(_))
-    
-  nabl-uri-segment-eq =
-    ?(Anonymous(_), Anonymous(_))
-    
-  nabl-uri-segment-eq =
-    ?(ExternalDef(_), ExternalDef(_))
-
-rules // Printing
-  
-  nabl-print-uri:
-    uri -> $[[ns] [names]]
-    where
-      ns#(_) := <nabl-uri-namespace> uri;
-      names  := <nabl-uri-path; filter(nabl-segment-name); separate-by(|\".\"); concat-strings> uri
-        
-rules /** @internal Projections */
-
-  /** @internal */
-  nabl-uri:
-    URI(_, _) -> <id>
-    
-  /** @internal */
-  nabl-value:
-    URI(_, _) -> <id>
- 
-  /** @internal */
-  nabl-uris:
-    URI(_, _) -> [<id>]
-    
-  /** @internal */
-  nabl-values:
-    URI(_, _) -> [<id>]
-
-    
-  /** @internal */  
-  nabl-uri =
-  	has-annos;
-  	get-annos;
-  	fetch-elem(nabl-uri)
-
-  /** @internal */  
-  nabl-value =
-  	has-annos;
-  	get-annos;
-  	fetch-elem(nabl-value)
-
-  /** @internal */  
-  nabl-uris =
-  	has-annos;
-  	get-annos;
-  	filter(nabl-uri)
-
-  /** @internal */  
-  nabl-values =
-  	has-annos;
-  	get-annos;
-  	filter(nabl-value)
-
-"
-
-	create-nbl-lookup = 
-		<output-text-file(|["lib", "runtime", "nbl"], "lookup.str")>
-"module runtime/nbl/lookup
-
-imports
-  
-  runtime/nbl/collect
-  runtime/nbl/query
-  runtime/nbl/tasks
-  runtime/nbl/uri
-  runtime/nbl/entries
-  runtime/task/core
-
-rules // Lookup
-	
-	nabl-lookup(|ns, name):
-		uri -> def*
-		with
-  		uri' := <nabl-extend-uri(|ns, name, ())> uri;
-  		def* := <nabl-get-all-definitions> uri'
-
-	nabl-lookup-all(|ns):
-		uri -> def*
-		with
-  		def*  := <nabl-get-child-definitions(|ns)> uri
-
-	nabl-lookup-named-import(|ns, name):
-		uri -> import*
-		with
-			language := <nabl-uri-language> uri;
-      import*  := <nabl-get-import-uris-named(|language, ns, name)> uri
-			  		
-	nabl-lookup-unnamed-import(|ns):
-		uri -> import*
-		with
-			language := <nabl-uri-language> uri;
-      import*  := <nabl-get-import-uris-unnamed(|language, ns)> uri
-
-rules // Imports
-
-  nabl-get-import-uris-unnamed(|language, namespace):
-  	uri -> <nabl-get-import-uris-unnamed(|[uri], 0, language, namespace)> uri
-
-  nabl-get-import-uris-unnamed(|seen, count, language, namespace):
-    uri -> result
-    with
-      importResult*        := <nabl-get-all-properties(|Import(language, namespace))> uri;
-      importURI*           := <map(task-get-solved; filter(nabl-uri) <+ task-create-dependencies; ![<id>]); concat> importResult*;
-      if d1 := <task-collect-dependencies> importURI* then
-      	result := [d1]
-      else
-	      importedResult*      := <nabl-get-all-properties(|Import(language, Imported(namespace)))> uri;
-	      importedURI*         := <map(task-get-solved; filter(nabl-uri) <+ task-create-dependencies; ![<id>]); concat> importedResult*;
-	      if d2 := <task-collect-dependencies> importedURI* then
-	      	result := [d2]
-	      else
-		      transitiveImportURI* := <filter(nabl-get-import-uris-unnamed-transitive(|seen, count, language, namespace)); concat> importedURI*;
-		      result               := [importURI*, transitiveImportURI*]
-      	end
-    	end
-
-  nabl-get-import-uris-unnamed-transitive(|seen, count, language, namespace):
-    uri -> transitiveImportURI*
-    where
-    	not(<lt> (count, 1));
-      not(<fetch(?uri)> seen);
-      transitiveImportURI* := <nabl-get-import-uris-unnamed(|[uri|seen], <dec> count, language, namespace)> uri
-
-  nabl-get-import-uris-named(|language, namespace, name):
-    uri -> importURI*
-    with
-      importResult* := <nabl-get-all-properties(|Import(language, namespace, name))> uri;
-      importURI*    := <map(task-get-solved <+ task-create-dependencies; ![<id>]); concat> importResult*
-
-"
-
-	create-nbl-entries = 
-		<output-text-file(|["lib", "runtime", "nbl"], "entries.str")>
-"module runtime/nbl/entries
-
-imports
-  
-  runtime/nbl/collect
-  runtime/nbl/resolve
-  runtime/nbl/utils
-  runtime/nbl/uri
-  runtime/index/core
-  
-signature
-
-  constructors
-    
-    Def          : URI                    -> Entry
-    Alias        : URI * URI              -> Entry
-    InverseAlias : URI * URI              -> Entry
-    Use          : Result                 -> Entry
-    Prop         : URI * Property * Value -> Entry
-  
-rules
-  
-  new-def(|partition, uri):
-    x -> definition
-    with
-      definition := <force-origins(!Def(uri))> x;
-      <index-add(|partition)> definition;
-			<new-alias(|partition, <nabl-nonunique-uri> uri, uri)> x
-      
-  new-alias(|partition, uri, alias-uri):
-    x -> alias
-    with
-      alias := <force-origins(!Alias(uri, alias-uri))> x;
-      ialias := <force-origins(!InverseAlias(alias-uri, uri))> x;
-      if <not(eq)> (uri, alias-uri) then
-      	<index-add(|partition)> alias;
-      	<index-add(|partition)> ialias
-      end
-
-  new-use(|partition, uri):
-    x -> use
-    with
-      use := <force-origins(!Use(uri))> x;
-      <index-add(|partition)> use
-
-  new-prop(|partition, uri, kind, val):
-    x -> prop
-    with
-      prop := <force-origins(!Prop(uri, kind, val))> x;
-      <index-add(|partition)> prop
-      
-rules // index uri & value projections
-  
-  /** @internal */
-  nabl-uri:
-    Def(uri) -> uri
-
-  /** @internal */
-  nabl-uris:
-    Def(uri) -> [uri]
-    
-  /** @internal */
-  nabl-uri:
-    Alias(uri, _) -> uri
-    
-  /** @internal */
-  nabl-uris:
-    Alias(uri, _) -> [uri]
-    
-  /** @internal */
-  nabl-uri:
-    InverseAlias(uri, _) -> uri
-    
-  /** @internal */
-  nabl-uris:
-    InverseAlias(uri, _) -> [uri]
-    
-  /** @internal */  
-  nabl-uri:
-    Use(uri) -> <nabl-collect-one-resolved-def; nabl-uri> uri
-    
-  /** @internal */  
-  nabl-uris:
-    Use(uri) -> <nabl-collect-all-resolved-defs; map(nabl-uri)> uri
-    
-  /** @internal */  
-  nabl-uri:
-    Prop(uri, _, _) -> uri
-    
-  /** @internal */  
-  nabl-uris:
-    Prop(uri, _, _) -> [uri]
-    
-    
-  /** @internal */
-  nabl-value:
-    Def(value) -> value
-    
-  /** @internal */
-  nabl-values:
-    Def(value) -> [value]
-    
-  /** @internal */
-  nabl-value:
-    Alias(_, value) -> value
-    
-  /** @internal */
-  nabl-values:
-    Alias(_, value) -> [value]
-    
-  /** @internal */
-  nabl-value:
-    InverseAlias(_, value) -> value
-    
-  /** @internal */
-  nabl-values:
-    InverseAlias(_, value) -> [value]
-
-  /** @internal */
-  nabl-value:
-    Use(value) -> <nabl-uri>
-    
-  /** @internal */
-  nabl-values:
-    Use(value) -> <nabl-uris>
-    
-  /** @internal */
-  nabl-value:
-    Prop(_, _, value) -> value
-    
-  /** @internal */
-  nabl-values:
-    Prop(_, _, value) -> [value]
-
-"
-
-	create-nbl-interface = 
-		<output-text-file(|["lib", "runtime", "nbl"], "interface.str")>
-"module runtime/nbl/interface
-
-strategies // Collect
-  
-	nabl-scoping-site = fail
-	
-	nabl-def-site(
-	  child-uris, sibiling-uris, implicits
-	| lang, partition, unique*, uri*, state*
-	) = fail
-	
-	nabl-external-def-site(|partition) = fail
-
-	nabl-state-site = fail
-	
-	nabl-use-site(|lang, partition, unique*, uri*, state*) = fail
-	
-	nabl-import-site(|lang, partition, uri*, state*) = fail
-	
-	nabl-prop-site(|lang, partition, state*, implicit*) = fail
-	
-strategies // Projections
-  
-	nabl-name = fail
-	
-	nabl-name-apply(s) = fail
-	
-	nabl-scopes = fail
-
-strategies // Tasks
-  
-	calc-property = fail
-
-	message-task(|partition) = fail
-	
-strategies // Lookup hooks
-	
-	nabl-property-eq(|kind) = fail
-	
-	nabl-disambiguate(|prop*, namespace, name) = fail
-
-strategies // Name generation
-	
-	nabl-namegen-name(|lang, partition, uri, ns) = fail
-	
-strategies // Default error checks
-	
-	nabl-check-disable-unresolved = fail
-	
-	nabl-check-disable-duplicate(|uri, ns) = fail
-	
-	nabl-check-disable-hiding(|uri, ns) = fail
-	
-"
-
-	create-nbl-namegen = 
-		<output-text-file(|["lib", "runtime", "nbl"], "namegen.str")>
-"module runtime/nbl/namegen
-
-imports
-	
-	runtime/nbl/collect
-	runtime/nbl/query
-	runtime/nbl/uri
-	runtime/nbl/utils
-	runtime/nbl/interface
-	runtime/editor/origins
-	runtime/index/core
-	runtime/index/query
-	
-signature
-
-	constructors
-		
-		GenerateName : Namespace -> GenerateName
-		GenerateNum  : URI * Int -> Entry
-	
-rules
-	
-	nabl-namegen-stem(|ns) = add-annotation(|GenerateName(ns))
-
-rules // Name generation
-	
-	nabl-namegen(|lang, partition, unique*, uri*, anno*):
-		name -> <origin-track-forced(!newname{anno'*})> name
-		where
-			<has-annotation(?GenerateName(ns))> name;
-			uri      := <lookup-uri(|lang, ns)> uri*;
-			newname  := <nabl-namegen-get(|lang, partition, ns, uri, unique*)> name;
-			anno'*   := <remove-all(?GenerateName(_))> anno*
-	
-	nabl-namegen-get(|lang, partition, ns, uri, unique*):
-		name -> result
-		with
-			name-key := (name, \"namegen\");
-      if full-newname := <hashtable-get(|name-key)> unique* then
-        result := full-newname
-      else
-        nextnum := <nabl-namegen-get-num(|uri) <+ !0>;
-        numstr  := <int-to-string> nextnum;
-        newname := <nabl-namegen-name-create(|lang, partition, uri, ns)> numstr;
-        result  := $[[newname][numstr]];
-        <hashtable-put(|name-key, result)> unique*;
-        <inc; nabl-namegen-store-num(|partition, uri)> nextnum
-      end
-
-rules // Name generation strategies
-      
-  nabl-namegen-name-create(|lang, partition, uri, ns) = 
-  	nabl-namegen-name(|lang, partition, uri, ns) <+ nabl-namegen-name-generic(|lang, partition, uri, ns)
-      
-  nabl-namegen-name-generic(|lang, partition, uri, ns):
-  	name -> <nabl-namegen-name-generic-fix> 
-			$[[<nabl-namegen-name-generic-str> lang-name][<nabl-namegen-name-generic-str> partition][ns-name][uri-name][name]]
-  	with
-  		Language(lang-name) := lang;
-  		ns-name             := <get-constructor; nabl-namegen-name-generic-str> ns;
-  		uri-name            := <nabl-uri-path; filter(nabl-segment-name; nabl-namegen-name-generic-str); concat-strings> uri
-  
-  nabl-namegen-name-generic-str = 
-  	explode-string; reverse; (take(|3) <+ take(|2) <+ take(|1) <+ ![]); reverse; implode-string
-  		
-	nabl-namegen-name-generic-fix = 
-		lower-case; string-replace(|\"/\", \"_\"); string-replace(|\"-\", \"_\"); string-replace(|\".\", \"_\")
-
-rules // Storage & retrieval
-	
-	nabl-namegen-get-num(|uri)              = <nabl-get-all-values; !(<id>, 0); foldl(max)> GenerateNum(uri, ())
-	nabl-namegen-store-num(|partition, uri) = <index-add(|<nabl-namegen-partition(|partition)>)> GenerateNum(uri, <id>)
-	nabl-namegen-clear(|partition)          = nabl-namegen-partition(|partition); index-clear-partition
-	nabl-namegen-partition(|partition)      = !$[[partition]_namegen]
-	nabl-uri                                : GenerateNum(uri, _) -> uri
-	nabl-value                              : GenerateNum(_, num) -> num
-	
 "
 
 	create-nbl-collect = 
@@ -2160,96 +1961,646 @@ rules // helpers
 
 "
 
-	create-nbl-utils = 
-		<output-text-file(|["lib", "runtime", "nbl"], "utils.str")>
-"module runtime/nbl/utils
+	create-nbl-complete = 
+		<output-text-file(|["lib", "runtime", "nbl"], "complete.str")>
+"module runtime/nbl/complete
 
 imports
 	
-	libstratego-lib
+	runtime/nbl/collect
+  runtime/nbl/uri
+  runtime/task/core
+  
+signature
+
+  constructors
+    
+    COMPLETION : String -> COMPLETION
+    
+rules // Code completion
+
+  nabl-propose-completions:
+    ast -> proposal*
+    with
+	    	completion* := <collect-one(?COMPLETION(_)); nabl-collect-all-completion> ast;
+				def*        := <mapconcat(\\Completion(result) -> result\\; task-get-solved)> completion*;
+				proposal*   := <map(nabl-uri; nabl-uri-name)> def*
+			<+
+				proposal*   := []
+"
+
+	create-nbl-entries = 
+		<output-text-file(|["lib", "runtime", "nbl"], "entries.str")>
+"module runtime/nbl/entries
+
+imports
+  
+  runtime/nbl/collect
+  runtime/nbl/resolve
+  runtime/nbl/utils
+  runtime/nbl/uri
+  runtime/index/core
+  
+signature
+
+  constructors
+    
+    Def          : URI                    -> Entry
+    Alias        : URI * URI              -> Entry
+    InverseAlias : URI * URI              -> Entry
+    Use          : Result                 -> Entry
+    Prop         : URI * Property * Value -> Entry
+  
+rules
+  
+  new-def(|partition, uri):
+    x -> definition
+    with
+      definition := <force-origins(!Def(uri))> x;
+      <index-add(|partition)> definition;
+			<new-alias(|partition, <nabl-nonunique-uri> uri, uri)> x
+      
+  new-alias(|partition, uri, alias-uri):
+    x -> alias
+    with
+      alias := <force-origins(!Alias(uri, alias-uri))> x;
+      ialias := <force-origins(!InverseAlias(alias-uri, uri))> x;
+      if <not(eq)> (uri, alias-uri) then
+      	<index-add(|partition)> alias;
+      	<index-add(|partition)> ialias
+      end
+
+  new-use(|partition, uri):
+    x -> use
+    with
+      use := <force-origins(!Use(uri))> x;
+      <index-add(|partition)> use
+
+  new-prop(|partition, uri, kind, val):
+    x -> prop
+    with
+      prop := <force-origins(!Prop(uri, kind, val))> x;
+      <index-add(|partition)> prop
+      
+rules // index uri & value projections
+  
+  /** @internal */
+  nabl-uri:
+    Def(uri) -> uri
+
+  /** @internal */
+  nabl-uris:
+    Def(uri) -> [uri]
+    
+  /** @internal */
+  nabl-uri:
+    Alias(uri, _) -> uri
+    
+  /** @internal */
+  nabl-uris:
+    Alias(uri, _) -> [uri]
+    
+  /** @internal */
+  nabl-uri:
+    InverseAlias(uri, _) -> uri
+    
+  /** @internal */
+  nabl-uris:
+    InverseAlias(uri, _) -> [uri]
+    
+  /** @internal */  
+  nabl-uri:
+    Use(uri) -> <nabl-collect-one-resolved-def; nabl-uri> uri
+    
+  /** @internal */  
+  nabl-uris:
+    Use(uri) -> <nabl-collect-all-resolved-defs; map(nabl-uri)> uri
+    
+  /** @internal */  
+  nabl-uri:
+    Prop(uri, _, _) -> uri
+    
+  /** @internal */  
+  nabl-uris:
+    Prop(uri, _, _) -> [uri]
+    
+    
+  /** @internal */
+  nabl-value:
+    Def(value) -> value
+    
+  /** @internal */
+  nabl-values:
+    Def(value) -> [value]
+    
+  /** @internal */
+  nabl-value:
+    Alias(_, value) -> value
+    
+  /** @internal */
+  nabl-values:
+    Alias(_, value) -> [value]
+    
+  /** @internal */
+  nabl-value:
+    InverseAlias(_, value) -> value
+    
+  /** @internal */
+  nabl-values:
+    InverseAlias(_, value) -> [value]
+
+  /** @internal */
+  nabl-value:
+    Use(value) -> <nabl-uri>
+    
+  /** @internal */
+  nabl-values:
+    Use(value) -> <nabl-uris>
+    
+  /** @internal */
+  nabl-value:
+    Prop(_, _, value) -> value
+    
+  /** @internal */
+  nabl-values:
+    Prop(_, _, value) -> [value]
+
+"
+
+	create-nbl-incremental = 
+		<output-text-file(|["lib", "runtime", "nbl"], "incremental.str")>
+"module runtime/nbl/incremental
+
+imports
+	
+	runtime/nbl/uri
+	runtime/nbl/entries
 	runtime/task/core
-
-rules 
 	
-	match(m|val) = where (!val; m)
+rules // Read generation
 	
-	vdebug(s) = where(verbose < debug(s) + id)
-	verbose   = fail
+	nabl-add-uri-read(|taskID):
+		uri -> uri
+		with
+			<try(nabl-replace-uri-qualifier(|())); task-add-read(|taskID)> uri
+			
+	nabl-add-ns-read(|taskID, ns):
+		uri -> uri
+		with
+			<task-add-read(|taskID)> (uri, ns)
+			
+	nabl-add-name-read(|taskID, ns, name):
+		uri -> uri
+		with
+			<nabl-extend-uri(|ns, name, ()); task-add-read(|taskID)> uri
+			
+rules // Read processing
+	
+	nabl-get-changed-reads:
+		changed-entry* -> [uri-read*, ns-read*]
+		with
+			uri*      := <filter(nabl-diff-entry; nabl-uri)> changed-entry*;
+			uri-read* := <map(try(nabl-replace-uri-qualifier(|())))> uri*;
+			ns-read*  := <filter(nabl-create-ns-read)> uri*
+	
+	nabl-create-ns-read:
+		uri -> (uri', ns)
+		where
+			ns   := <nabl-uri-namespace> uri;
+			uri' := <nabl-uri-parent> uri
 
-  force-origins(s) =
-    ![<id>]; all(s); ?[<id>]
-
-	is-completion-name = ?\"completion123\"
-  fix-completion-name = is-completion-name; !\"\"
-
-	has-annotation(s) =
-		has-annos;
-		get-annos;
-		collect-one(s)
-
-  add-annotation(|a):
-    t{a*} -> t{a, a*}
+  nabl-diff-entry =
+    ?Def(_)
+ 
+  nabl-diff-entry =
+    ?Alias(_, _)
     
-  add-annotations(|a'*):
-    t{a*} -> t{a'*, a*}
+  nabl-diff-entry =
+    ?Prop(_, _, _)
 
-  remove-annotations(s):
-    t{a*} -> t{a'*}
-    where
-      a'* := <remove-all(s)> a*
-      
-  replace-annotations(s|a):
-    t{a*} -> t{a, a'*}
-    where
-      a'* := <remove-all(s)> a*
-      
-  replace-annotations(s|a1, a2):
-    t{a*} -> t{a1, a2, a'*}
-    where
-      a'* := <remove-all(s)> a*
+"
+
+	create-nbl-interface = 
+		<output-text-file(|["lib", "runtime", "nbl"], "interface.str")>
+"module runtime/nbl/interface
+
+strategies // Collect
   
-  measure-time(s, log) =
-    where(before := <times>);
-    s;
-    where(after := <times>; !(after, before); diff-times; times-to-seconds; Fst; log)
+	nabl-scoping-site = fail
+	
+	nabl-def-site(
+	  child-uris, sibiling-uris, implicits
+	| lang, partition, unique*, uri*, state*
+	) = fail
+	
+	nabl-external-def-site(|partition) = fail
+
+	nabl-state-site = fail
+	
+	nabl-use-site(|lang, partition, unique*, uri*, state*) = fail
+	
+	nabl-import-site(|lang, partition, uri*, state*) = fail
+	
+	nabl-prop-site(|lang, partition, state*, implicit*) = fail
+	
+strategies // Projections
   
-  measure-time(s, log | name) = 
-    measure-time(s, record-time(|name); log)
+	nabl-name = fail
+	
+	nabl-name-apply(s) = fail
+	
+	nabl-scopes = fail
+
+strategies // Tasks
   
-  record-time(|name) = id
-    
-  //external record-time-native(|name)
-  	
- 	try-make-list = is-list <+ ?Dependency(_) <+ ![<id>]
+	calc-property = fail
+
+	message-task(|partition) = fail
+	
+strategies // Lookup hooks
+	
+	nabl-property-eq(|kind) = fail
+	
+	nabl-disambiguate(|prop*, namespace, name) = fail
+
+strategies // Name generation
+	
+	nabl-namegen-name(|lang, partition, uri, ns) = fail
+	
+strategies // Default error checks
+	
+	nabl-check-disable-unresolved = fail
+	
+	nabl-check-disable-duplicate(|uri, ns) = fail
+	
+	nabl-check-disable-hiding(|uri, ns) = fail
+	
+"
+
+	create-nbl-lookup = 
+		<output-text-file(|["lib", "runtime", "nbl"], "lookup.str")>
+"module runtime/nbl/lookup
+
+imports
+  
+  runtime/nbl/collect
+  runtime/nbl/query
+  runtime/nbl/tasks
+  runtime/nbl/uri
+  runtime/nbl/entries
+  runtime/task/core
+
+rules // Lookup
+	
+	nabl-lookup(|ns, name):
+		uri -> def*
+		with
+  		uri' := <nabl-extend-uri(|ns, name, ())> uri;
+  		def* := <nabl-get-all-definitions> uri'
+
+	nabl-lookup-all(|ns):
+		uri -> def*
+		with
+  		def*  := <nabl-get-child-definitions(|ns)> uri
+
+	nabl-lookup-named-import(|ns, name):
+		uri -> import*
+		with
+			language := <nabl-uri-language> uri;
+      import*  := <nabl-get-import-uris-named(|language, ns, name)> uri
+			  		
+	nabl-lookup-unnamed-import(|ns):
+		uri -> import*
+		with
+			language := <nabl-uri-language> uri;
+      import*  := <nabl-get-import-uris-unnamed(|language, ns)> uri
+
+rules // Imports
+
+  nabl-get-import-uris-unnamed(|language, namespace):
+  	uri -> <nabl-get-import-uris-unnamed(|[uri], 0, language, namespace)> uri
+
+  nabl-get-import-uris-unnamed(|seen, count, language, namespace):
+    uri -> result
+    with
+      importResult*        := <nabl-get-all-properties(|Import(language, namespace))> uri;
+      importURI*           := <map(task-get-solved; filter(nabl-uri) <+ task-create-dependencies; ![<id>]); concat> importResult*;
+      if d1 := <task-collect-dependencies> importURI* then
+      	result := [d1]
+      else
+	      importedResult*      := <nabl-get-all-properties(|Import(language, Imported(namespace)))> uri;
+	      importedURI*         := <map(task-get-solved; filter(nabl-uri) <+ task-create-dependencies; ![<id>]); concat> importedResult*;
+	      if d2 := <task-collect-dependencies> importedURI* then
+	      	result := [d2]
+	      else
+		      transitiveImportURI* := <filter(nabl-get-import-uris-unnamed-transitive(|seen, count, language, namespace)); concat> importedURI*;
+		      result               := [importURI*, transitiveImportURI*]
+      	end
+    	end
+
+  nabl-get-import-uris-unnamed-transitive(|seen, count, language, namespace):
+    uri -> transitiveImportURI*
+    where
+    	not(<lt> (count, 1));
+      not(<fetch(?uri)> seen);
+      transitiveImportURI* := <nabl-get-import-uris-unnamed(|[uri|seen], <dec> count, language, namespace)> uri
+
+  nabl-get-import-uris-named(|language, namespace, name):
+    uri -> importURI*
+    with
+      importResult* := <nabl-get-all-properties(|Import(language, namespace, name))> uri;
+      importURI*    := <map(task-get-solved <+ task-create-dependencies; ![<id>]); concat> importResult*
+
+"
+
+	create-nbl-namegen = 
+		<output-text-file(|["lib", "runtime", "nbl"], "namegen.str")>
+"module runtime/nbl/namegen
+
+imports
+	
+	runtime/nbl/collect
+	runtime/nbl/query
+	runtime/nbl/uri
+	runtime/nbl/utils
+	runtime/nbl/interface
+	runtime/editor/origins
+	runtime/index/core
+	runtime/index/query
+	
+signature
+
+	constructors
 		
-	try-remove-list = is-list < Hd + id
+		GenerateName : Namespace -> GenerateName
+		GenerateNum  : URI * Int -> Entry
 	
-rules // multimap simulation
+rules
 	
-	hash-multimap-put(|key, value):
-		hashtable -> hashtable
-		where
-			values := <hash-multimap-getorcreate(|key)> hashtable;
-			<hashtable-put(|key, [value|values])> hashtable 
-			
-	hash-multimap-putlist(|key, put-value*):
-		hashtable -> hashtable
-		where
-			value* := <hash-multimap-getorcreate(|key)> hashtable;
-			<hashtable-put(|key, [value*, put-value*])> hashtable 
-			
-	hash-multimap-getorcreate(|key) =
-		hashtable-get(|key) <+ hashtable-put(|key, []); ![]
-	
-	hash-multimap-copy(|from):
-		to -> to
-		where
-			// wtf is this I don't even.. hashtable-fold needs term arguments instead of current term arguments.
-			<hashtable-fold(hash-multimap-copy-fold|to)> from
-			
-	hash-multimap-copy-fold(|key, value*):
-		to -> <hash-multimap-putlist(|key, value*)> to
+	nabl-namegen-stem(|ns) = add-annotation(|GenerateName(ns))
 
+rules // Name generation
+	
+	nabl-namegen(|lang, partition, unique*, uri*, anno*):
+		name -> <origin-track-forced(!newname{anno'*})> name
+		where
+			<has-annotation(?GenerateName(ns))> name;
+			uri      := <lookup-uri(|lang, ns)> uri*;
+			newname  := <nabl-namegen-get(|lang, partition, ns, uri, unique*)> name;
+			anno'*   := <remove-all(?GenerateName(_))> anno*
+	
+	nabl-namegen-get(|lang, partition, ns, uri, unique*):
+		name -> result
+		with
+			name-key := (name, \"namegen\");
+      if full-newname := <hashtable-get(|name-key)> unique* then
+        result := full-newname
+      else
+        nextnum := <nabl-namegen-get-num(|uri) <+ !0>;
+        numstr  := <int-to-string> nextnum;
+        newname := <nabl-namegen-name-create(|lang, partition, uri, ns)> numstr;
+        result  := $[[newname][numstr]];
+        <hashtable-put(|name-key, result)> unique*;
+        <inc; nabl-namegen-store-num(|partition, uri)> nextnum
+      end
+
+rules // Name generation strategies
+      
+  nabl-namegen-name-create(|lang, partition, uri, ns) = 
+  	nabl-namegen-name(|lang, partition, uri, ns) <+ nabl-namegen-name-generic(|lang, partition, uri, ns)
+      
+  nabl-namegen-name-generic(|lang, partition, uri, ns):
+  	name -> <nabl-namegen-name-generic-fix> 
+			$[[<nabl-namegen-name-generic-str> lang-name][<nabl-namegen-name-generic-str> partition][ns-name][uri-name][name]]
+  	with
+  		Language(lang-name) := lang;
+  		ns-name             := <get-constructor; nabl-namegen-name-generic-str> ns;
+  		uri-name            := <nabl-uri-path; filter(nabl-segment-name; nabl-namegen-name-generic-str); concat-strings> uri
+  
+  nabl-namegen-name-generic-str = 
+  	explode-string; reverse; (take(|3) <+ take(|2) <+ take(|1) <+ ![]); reverse; implode-string
+  		
+	nabl-namegen-name-generic-fix = 
+		lower-case; string-replace(|\"/\", \"_\"); string-replace(|\"-\", \"_\"); string-replace(|\".\", \"_\")
+
+rules // Storage & retrieval
+	
+	nabl-namegen-get-num(|uri)              = <nabl-get-all-values; !(<id>, 0); foldl(max)> GenerateNum(uri, ())
+	nabl-namegen-store-num(|partition, uri) = <index-add(|<nabl-namegen-partition(|partition)>)> GenerateNum(uri, <id>)
+	nabl-namegen-clear(|partition)          = nabl-namegen-partition(|partition); index-clear-partition
+	nabl-namegen-partition(|partition)      = !$[[partition]_namegen]
+	nabl-uri                                : GenerateNum(uri, _) -> uri
+	nabl-value                              : GenerateNum(_, num) -> num
+	
+"
+
+	create-nbl-query = 
+		<output-text-file(|["lib", "runtime", "nbl"], "query.str")>
+"module runtime/nbl/query
+
+imports
+  
+  runtime/nbl/uri
+  runtime/nbl/entries
+  runtime/index/query
+  
+rules // Specific queries
+
+  /**
+   * Gets all unique and non-unique definition entries that match the given URI.
+   *
+   * Example:
+   *   <nabl-get-all-definitions> [Entity(), \"M\", \"Bar\"] => [Def([Entity(), \"M\", \"Bar\"]), ...]
+   *
+   * @type Def(uri) or \"name\"{uri} or URI(language, path) -> List(Def(uri))
+   */
+  nabl-get-all-definitions:
+    contains-uri* -> <mapconcat(nabl-get-unique-nonunique(!Def(<id>)))> uri*
+    where
+    	uri* := <nabl-uris> contains-uri*
+    	
+  /**
+   * Gets all child definition entries in given URI that match given namespace.
+   *
+   * Example:
+   *   <nabl-get-child-definitions> [Entity(), \"M\", \"Bar\"] => [Def([Field(), \"a\", \"M\", \"Bar\"]), ...]
+   *
+   * @type Def(uri) or \"name\"{uri} or URI(language, path) -> List(Def(uri))
+   */
+  nabl-get-child-definitions(|ns):
+    contains-uri* -> [def*, alias-def*]
+    where
+    	uri*       := <nabl-uris> contains-uri*;
+    	def*       := <mapconcat(!Def(<id>); nabl-get-children(|ns)); mapconcat(nabl-uri; nabl-get-unique-nonunique(!Def(<id>)))> uri*;
+    	alias-def* := <mapconcat(!Alias(<id>, ()); nabl-get-children(|ns)); mapconcat(nabl-value; !Def(<id>); nabl-get-all-definitions)> uri*
+
+  /**
+   * Gets a property that matches the kind of value and given URI, or fails if no property is found.
+   *
+   * Example:
+   *   <nabl-get-property(|Size())> Def([Entity(), \"Bar\"]) => Size(8)
+   *
+   * @param type Only properties of this kind is returned.
+   * @type Def(uri) or \"name\"{uri} or URI(language, path) -> Prop(uri, kind, value)
+   */
+  nabl-get-property(|kind) = 
+  	nabl-get-all-properties(|kind); Hd
+      
+  /**
+   * Gets all properties that match the kind of value and given URI.
+   *
+   * Example:
+   *   <nabl-get-all-properties(|Size())> Def([Entity(), \"Bar\"]) => [Size(8), ...]
+   *
+   * @param kind Only data of this kind is returned.
+   * @type Def(uri) or \"name\"{uri} or URI(language, path) -> List(Prop(uri, kind, value))
+   */
+  nabl-get-all-properties(|kind):
+		contains-uri* -> <mapconcat(!Prop(<id>, kind, ()); nabl-get-all-values)> uri*
+    where
+    	uri* := <nabl-uris> contains-uri*
+
+  /**
+   * Gets all Alias entries that match the given URI.
+   *
+   * Example:
+   *   <nabl-get-all-aliases> Def([Entity(), \"M\", \"Bar\"]) => [[Entity(), \"M\", \"Baz\"], ...]
+   *
+   * @type Def(uri) or \"name\"{uri} or URI(language, path) -> List(aliasURI)
+   */
+  nabl-get-all-aliases:
+    contains-uri* -> alias-uri*
+    where
+    	uri*           := <nabl-uris> contains-uri*;
+    	nonunique-uri* := <filter(nabl-replace-uri-qualifier(|NonUnique()))> uri*;
+      alias-uri*     := <mapconcat(!Alias(<id>, ()); nabl-get-all-values)> nonunique-uri*
+      
+  /**
+   * Gets all InverseAlias entries that match the given URI.
+   *
+   * Example:
+   *   <nabl-get-all-aliases> Def([Entity(), \"M\", \"Bar\"]) => [[Entity(), \"M\", \"Baz\"], ...]
+   *
+   * @type Def(uri) or \"name\"{uri} or URI(language, path) -> List(inverseAliasURI)
+   */
+  nabl-get-all-inverse-aliasses:
+    contains-uri* -> inverse-alias*
+    where
+    	uri*           := <nabl-uris> contains-uri*;
+      inverse-alias* := <mapconcat(!InverseAlias(<id>, ()); nabl-get-all-values)> uri*
+
+rules // Generic queries
+  
+  nabl-get-all:
+    template -> <index-get-all> template
+       
+  nabl-get-all-values:
+    template -> <nabl-get-all; map(nabl-value)> template
+
+  nabl-get:
+    template -> <nabl-get-all; Hd> template
+     
+  nabl-get-value:
+    template -> <nabl-get-all; Hd; nabl-value> template
+  
+  nabl-get-children:
+    template -> entries
+      with
+        entries  := <index-get-children> template
+
+  nabl-get-children(|namespace):
+    template -> entries
+      with
+        children := <index-get-children> template;
+        entries  := <nabl-filter-entries(|namespace)> children
+        
+  nabl-get-children(|namespace, prefix):
+    template -> entries
+      with
+        children := <index-get-children> template;
+        entries  := <nabl-filter-entries(|namespace, prefix)> children
+
+  nabl-get-unique-nonunique(create-template):
+  	uri -> [unique*, nonUnique*]
+  	where
+      if alias* := <nabl-get-all-aliases> uri then
+        unique* := <mapconcat(create-template; nabl-get-all)> alias*
+      else
+        unique* := []
+      end;
+      if nonUniqueURI := <nabl-replace-uri-qualifier(|NonUnique())> uri then
+        nonUnique*    := <create-template; nabl-get-all> nonUniqueURI
+      else
+        nonUnique*    := []
+      end
+
+rules /** @internal Entry filtering */
+  
+  /** @internal */
+  nabl-filter-entries(|namespace, prefix):
+    entry* -> <filter(nabl-compare-prefix(|namespace, prefix))> entry*
+  
+  /** @internal */
+  nabl-filter-entries(|namespace):
+    entry* -> <filter(nabl-compare-namespace(|namespace))> entry*
+
+rules /** @internal Helpers */
+  
+  /** @internal */
+  nabl-compare-prefix(|namespace, prefix):
+    entry -> <id>
+    where
+      uri := <nabl-uri> entry;
+      <eq> (namespace, <nabl-uri-namespace> uri);
+      <is-substring(!prefix)> <nabl-uri-name> uri
+      
+  /** @internal */
+  nabl-compare-namespace(|namespace):
+    entry -> <id>
+    where
+      uri := <nabl-uri> entry;
+      <eq> (namespace, <nabl-uri-namespace> uri)
+
+"
+
+	create-nbl-resolve = 
+		<output-text-file(|["lib", "runtime", "nbl"], "resolve.str")>
+"module runtime/nbl/resolve
+
+imports
+  
+  runtime/nbl/tasks
+	runtime/nbl/entries
+	runtime/nbl/utils
+	runtime/task/core
+  runtime/task/utils
+  
+rules // Reference resolution
+  
+  nabl-is-reference =
+    ?Use(_)
+    
+  nabl-has-reference =
+    collect-one(nabl-is-reference)
+    
+  nabl-has-reference =
+    has-annos;
+    get-annos;
+    nabl-has-reference
+  
+	nabl-collect-all-resolved-defs:
+		ast -> def*
+		with
+			if ast' := <insert-results> ast then
+				def* := <collect-all-annos(?Def(_), conc)> ast'
+			else
+				def* := []
+			end
+
+	nabl-collect-one-resolved-def =
+		insert-results-or-create-dependency;
+		collect-one-annos(?Def(_) <+ ?Dependency(_))
+	
 "
 
 	create-nbl-tasks = 
@@ -2444,220 +2795,346 @@ rules // Property constraint
 
 "
 
-	create-nbl-query = 
-		<output-text-file(|["lib", "runtime", "nbl"], "query.str")>
-"module runtime/nbl/query
+	create-nbl-uri = 
+		<output-text-file(|["lib", "runtime", "nbl"], "uri.str")>
+"module runtime/nbl/uri
 
 imports
   
-  runtime/nbl/uri
-  runtime/nbl/entries
-  runtime/index/query
+  runtime/nbl/interface
+  runtime/index/core
   
-rules // Specific queries
+signature
 
-  /**
-   * Gets all unique and non-unique definition entries that match the given URI.
-   *
-   * Example:
-   *   <nabl-get-all-definitions> [Entity(), \"M\", \"Bar\"] => [Def([Entity(), \"M\", \"Bar\"]), ...]
-   *
-   * @type Def(uri) or \"name\"{uri} or URI(language, path) -> List(Def(uri))
-   */
-  nabl-get-all-definitions:
-    contains-uri* -> <mapconcat(nabl-get-unique-nonunique(!Def(<id>)))> uri*
-    where
-    	uri* := <nabl-uris> contains-uri*
-    	
-  /**
-   * Gets all child definition entries in given URI that match given namespace.
-   *
-   * Example:
-   *   <nabl-get-child-definitions> [Entity(), \"M\", \"Bar\"] => [Def([Field(), \"a\", \"M\", \"Bar\"]), ...]
-   *
-   * @type Def(uri) or \"name\"{uri} or URI(language, path) -> List(Def(uri))
-   */
-  nabl-get-child-definitions(|ns):
-    contains-uri* -> [def*, alias-def*]
-    where
-    	uri*       := <nabl-uris> contains-uri*;
-    	def*       := <mapconcat(!Def(<id>); nabl-get-children(|ns)); mapconcat(nabl-uri; nabl-get-unique-nonunique(!Def(<id>)))> uri*;
-    	alias-def* := <mapconcat(!Alias(<id>, ()); nabl-get-children(|ns)); mapconcat(nabl-value; !Def(<id>); nabl-get-all-definitions)> uri*
-
-  /**
-   * Gets a property that matches the kind of value and given URI, or fails if no property is found.
-   *
-   * Example:
-   *   <nabl-get-property(|Size())> Def([Entity(), \"Bar\"]) => Size(8)
-   *
-   * @param type Only properties of this kind is returned.
-   * @type Def(uri) or \"name\"{uri} or URI(language, path) -> Prop(uri, kind, value)
-   */
-  nabl-get-property(|kind) = 
-  	nabl-get-all-properties(|kind); Hd
-      
-  /**
-   * Gets all properties that match the kind of value and given URI.
-   *
-   * Example:
-   *   <nabl-get-all-properties(|Size())> Def([Entity(), \"Bar\"]) => [Size(8), ...]
-   *
-   * @param kind Only data of this kind is returned.
-   * @type Def(uri) or \"name\"{uri} or URI(language, path) -> List(Prop(uri, kind, value))
-   */
-  nabl-get-all-properties(|kind):
-		contains-uri* -> <mapconcat(!Prop(<id>, kind, ()); nabl-get-all-values)> uri*
-    where
-    	uri* := <nabl-uris> contains-uri*
-
-  /**
-   * Gets all Alias entries that match the given URI.
-   *
-   * Example:
-   *   <nabl-get-all-aliases> Def([Entity(), \"M\", \"Bar\"]) => [[Entity(), \"M\", \"Baz\"], ...]
-   *
-   * @type Def(uri) or \"name\"{uri} or URI(language, path) -> List(aliasURI)
-   */
-  nabl-get-all-aliases:
-    contains-uri* -> alias-uri*
-    where
-    	uri*           := <nabl-uris> contains-uri*;
-    	nonunique-uri* := <filter(nabl-replace-uri-qualifier(|NonUnique()))> uri*;
-      alias-uri*     := <mapconcat(!Alias(<id>, ()); nabl-get-all-values)> nonunique-uri*
-      
-  /**
-   * Gets all InverseAlias entries that match the given URI.
-   *
-   * Example:
-   *   <nabl-get-all-aliases> Def([Entity(), \"M\", \"Bar\"]) => [[Entity(), \"M\", \"Baz\"], ...]
-   *
-   * @type Def(uri) or \"name\"{uri} or URI(language, path) -> List(inverseAliasURI)
-   */
-  nabl-get-all-inverse-aliasses:
-    contains-uri* -> inverse-alias*
-    where
-    	uri*           := <nabl-uris> contains-uri*;
-      inverse-alias* := <mapconcat(!InverseAlias(<id>, ()); nabl-get-all-values)> uri*
-
-rules // Generic queries
+  sorts
   
-  nabl-get-all:
-    template -> <index-get-all> template
-       
-  nabl-get-all-values:
-    template -> <nabl-get-all; map(nabl-value)> template
-
-  nabl-get:
-    template -> <nabl-get-all; Hd> template
+    Language
+    Segment
+    Qualifier
+    
+  constructors
+    
+    Language    : String                       -> Language
+    ID          : Namespace * Name * Qualifier -> Segment
+    Subsequent  : String                       -> Segment
+    Anonymous   : String                       -> Segment
+    ExternalDef : String                       -> Segment
+    Unique      : String                       -> Qualifier
+    NonUnique   :                                 Qualifier
+    Unique      :                                 Qualifier
+    URI         : Language * List(Segment)     -> URI
+    
+rules // Construction
+  
+  nabl-base-uri = 
+    !URI(<id>, [])
      
-  nabl-get-value:
-    template -> <nabl-get-all; Hd; nabl-value> template
-  
-  nabl-get-children:
-    template -> entries
-      with
-        entries  := <index-get-children> template
-
-  nabl-get-children(|namespace):
-    template -> entries
-      with
-        children := <index-get-children> template;
-        entries  := <nabl-filter-entries(|namespace)> children
-        
-  nabl-get-children(|namespace, prefix):
-    template -> entries
-      with
-        children := <index-get-children> template;
-        entries  := <nabl-filter-entries(|namespace, prefix)> children
-
-  nabl-get-unique-nonunique(create-template):
-  	uri -> [unique*, nonUnique*]
-  	where
-      if alias* := <nabl-get-all-aliases> uri then
-        unique* := <mapconcat(create-template; nabl-get-all)> alias*
-      else
-        unique* := []
-      end;
-      if nonUniqueURI := <nabl-replace-uri-qualifier(|NonUnique())> uri then
-        nonUnique*    := <create-template; nabl-get-all> nonUniqueURI
-      else
-        nonUnique*    := []
-      end
-
-rules /** @internal Entry filtering */
-  
-  /** @internal */
-  nabl-filter-entries(|namespace, prefix):
-    entry* -> <filter(nabl-compare-prefix(|namespace, prefix))> entry*
-  
-  /** @internal */
-  nabl-filter-entries(|namespace):
-    entry* -> <filter(nabl-compare-namespace(|namespace))> entry*
-
-rules /** @internal Helpers */
-  
-  /** @internal */
-  nabl-compare-prefix(|namespace, prefix):
-    entry -> <id>
-    where
-      uri := <nabl-uri> entry;
-      <eq> (namespace, <nabl-uri-namespace> uri);
-      <is-substring(!prefix)> <nabl-uri-name> uri
+  nabl-extend-uri(|segment) = 
+    URI(id, ![segment|<id>])
+    
+  nabl-extend-uri(|namespace, name, qualifier) = 
+    URI(id, ![ID(namespace, name, qualifier)|<id>])
+    
+  nabl-replace-uri(|segment) = 
+    URI(id, [!segment|id])
+    
+  nabl-replace-uri(|namespace, name, qualifier) = 
+    URI(id, [!ID(namespace, name, qualifier)|id])
+    
+  nabl-replace-uri-qualifier(|qualifier) =
+    URI(id, [ID(id, id, !qualifier)|id])
       
-  /** @internal */
-  nabl-compare-namespace(|namespace):
-    entry -> <id>
+  nabl-external-segment: Anonymous(name) -> ExternalDef(name)
+  
+	nabl-nonunique-uri =
+		URI(id, [ID(id, id, !NonUnique())|id])
+
+rules // stable URI extensions
+  
+  nabl-extend-uri(|table, partition, ns, n, u):
+    uri -> <nabl-extend-uri(|ns, n, qualifier)> uri
+    where 
+	    if where(<?NonUnique()> u) then
+	      qualifier := NonUnique()
+	    else
+	      qualifier := Unique(<stable-uri-part(|table, partition)> (partition, uri, ns, n))
+	    end
+    
+  nabl-extend-uri-anonymous(|table, partition):
+    uri -> <nabl-extend-uri(|Anonymous(unique))> uri
     where
-      uri := <nabl-uri> entry;
-      <eq> (namespace, <nabl-uri-namespace> uri)
+      unique := <stable-uri-part(|table, partition)> (partition, uri, \"anonymous\")
+      
+  nabl-extend-uri-subsequent(|table, partition):
+    uri -> <nabl-extend-uri(|Subsequent(unique))> uri
+    where
+      unique := <stable-uri-part(|table, partition)> (partition, uri, \"subsequent\")
+
+  stable-uri-part(|table, partition):
+    key -> $[[partition]/[unique]]
+    where
+      if value := <hashtable-get(|key)> table then
+        unique    := <int-to-string> value;
+        new-value := <inc> value
+      else
+        unique    := \"0\";
+        new-value := 1
+      end;
+      <hashtable-put(|key, new-value)> table
+      
+rules // Projections
+  
+  nabl-uri = fail
+  nabl-uris = fail
+  nabl-value = fail
+  nabl-values = fail
+  
+  nabl-uri-language:
+    URI(language, _) -> language
+    
+  nabl-uri-language-name:
+    URI(Language(name), _) -> name
+    
+  nabl-uri-path:
+    URI(_, path) -> path
+    
+  nabl-uri-parent:
+    URI(language, path) -> URI(language, parent)
+    where
+      [_|parent] := path
+  
+  nabl-uri-parent(|targetNamespace):
+    URI(language, path) -> URI(language, parent')
+    where
+      [_|parent] := path;
+      if [segment|_] := parent; namespace := <nabl-segment-namespace> segment then
+        if <nabl-scopes> (namespace, targetNamespace) then
+          parent' := parent
+        else
+          parent' := <nabl-uri-parent(|targetNamespace)> parent
+        end
+      else
+        parent' := parent
+      end
+      
+  nabl-uri-name:
+    uri -> <nabl-uri-path; Hd; nabl-segment-name> uri
+    
+  nabl-uri-namespace:
+    uri -> <nabl-uri-path; Hd; nabl-segment-namespace> uri    
+
+  nabl-uri-qualifier:
+    uri -> <nabl-uri-path; Hd; nabl-segment-qualifier> uri
+      
+  nabl-segment-namespace:
+    ID(namespace, _, _) -> namespace
+    
+  nabl-segment-name:
+    ID(_, name, _) -> name
+    
+  nabl-segment-name:
+  	Subsequent(name) -> name
+  
+	nabl-segment-name:
+  	Anonymous(name) -> name
+  	
+	nabl-segment-name:
+  	ExternalDef(name) -> name
+    
+  nabl-segment-qualifier:
+    ID(_, _, qualifier) -> qualifier
+    
+  nabl-uri-scope      = URI(id, Tl)
+  nabl-uri-scopes    = nabl-closure(nabl-uri-scope)
+  
+  nabl-uri-in-scope  = URI(id, [id|Tl])
+  nabl-uri-in-scopes = nabl-closure(nabl-uri-in-scope)
+  
+  nabl-closure(s) = 
+      s 
+    < ![<id>|<nabl-closure(s)>] 
+    + ![]
+
+rules // Conditions
+  
+  nabl-is-uri =
+  	?URI(_, _)
+  
+  nabl-is-unique =
+    nabl-uri-qualifier;
+    ?Unique(_)
+    
+  nabl-is-nonunique =
+    nabl-uri-qualifier;
+    ?NonUnique()
+    
+  nabl-segment-is-id =
+  	?ID(_, _, _)
+
+rules // Equality
+  
+  nabl-uri-eq = 
+    ?(URI(lang1, segs1), URI(lang2, segs2));
+    <eq> (lang1, lang2);
+    <zip(nabl-uri-segment-eq)> (segs1, segs2)
+    
+  nabl-uri-segment-eq =
+    ?(ID(ns1, name1, _), ID(ns2, name2, _));
+    <eq> (ns1, ns2);
+    <eq> (name1, name2)
+     
+  nabl-uri-segment-eq =
+    ?(Subsequent(_), Subsequent(_))
+    
+  nabl-uri-segment-eq =
+    ?(Anonymous(_), Anonymous(_))
+    
+  nabl-uri-segment-eq =
+    ?(ExternalDef(_), ExternalDef(_))
+
+rules // Printing
+  
+  nabl-print-uri:
+    uri -> $[[ns] [names]]
+    where
+      ns#(_) := <nabl-uri-namespace> uri;
+      names  := <nabl-uri-path; filter(nabl-segment-name); separate-by(|\".\"); concat-strings> uri
+        
+rules /** @internal Projections */
+
+  /** @internal */
+  nabl-uri:
+    URI(_, _) -> <id>
+    
+  /** @internal */
+  nabl-value:
+    URI(_, _) -> <id>
+ 
+  /** @internal */
+  nabl-uris:
+    URI(_, _) -> [<id>]
+    
+  /** @internal */
+  nabl-values:
+    URI(_, _) -> [<id>]
+
+    
+  /** @internal */  
+  nabl-uri =
+  	has-annos;
+  	get-annos;
+  	fetch-elem(nabl-uri)
+
+  /** @internal */  
+  nabl-value =
+  	has-annos;
+  	get-annos;
+  	fetch-elem(nabl-value)
+
+  /** @internal */  
+  nabl-uris =
+  	has-annos;
+  	get-annos;
+  	filter(nabl-uri)
+
+  /** @internal */  
+  nabl-values =
+  	has-annos;
+  	get-annos;
+  	filter(nabl-value)
 
 "
 
-	create-task-debug = 
-		<output-text-file(|["lib", "runtime", "task"], "debug.str")>
-"module runtime/task/debug
+	create-nbl-utils = 
+		<output-text-file(|["lib", "runtime", "nbl"], "utils.str")>
+"module runtime/nbl/utils
 
 imports
 	
+	libstratego-lib
 	runtime/task/core
 
-rules
+rules 
 	
-	task-transitive-dependencies = task-transitive-dependencies(|[])
+	match(m|val) = where (!val; m)
 	
-	task-transitive-dependencies(|seen):
-		taskID -> [dep*, trans-dep*]
-		where
-			not(<elem> (taskID, seen));
-			dep*       := <task-get-dependencies> taskID;
-			trans-dep* := <mapconcat(task-transitive-dependencies(|[taskID|seen]))> dep*
-			
-	task-transitive-dependencies(|seen):
-		taskID -> []
-		where
-			<elem> (taskID, seen)
-			
-rules
-	
-	task-debug-ast:
-		ast -> debug*
-		with
-			resultID* := <task-collect-result-ids> ast;
-			dep*      := <mapconcat(task-transitive-dependencies)> resultID*;
-			debug*    := <make-set; map(task-debug-info(|<id>))> [resultID*, dep*]
+	vdebug(s) = where(verbose < debug(s) + id)
+	verbose   = fail
 
-"
+  force-origins(s) =
+    ![<id>]; all(s); ?[<id>]
 
-	create-task-interface = 
-		<output-text-file(|["lib", "runtime", "task"], "interface.str")>
-"module runtime/task/interface
+	is-completion-name = ?\"completion123\"
+  fix-completion-name = is-completion-name; !\"\"
 
-strategies
+	has-annotation(s) =
+		has-annos;
+		get-annos;
+		collect-one(s)
+
+  add-annotation(|a):
+    t{a*} -> t{a, a*}
+    
+  add-annotations(|a'*):
+    t{a*} -> t{a'*, a*}
+
+  remove-annotations(s):
+    t{a*} -> t{a'*}
+    where
+      a'* := <remove-all(s)> a*
+      
+  replace-annotations(s|a):
+    t{a*} -> t{a, a'*}
+    where
+      a'* := <remove-all(s)> a*
+      
+  replace-annotations(s|a1, a2):
+    t{a*} -> t{a1, a2, a'*}
+    where
+      a'* := <remove-all(s)> a*
   
-  perform-task(|nr)  = fail
-  task-match         = fail
-  avoid-task(|dep*)  = fail
-  task-is-combinator = fail
+  measure-time(s, log) =
+    where(before := <times>);
+    s;
+    where(after := <times>; !(after, before); diff-times; times-to-seconds; Fst; log)
+  
+  measure-time(s, log | name) = 
+    measure-time(s, record-time(|name); log)
+  
+  record-time(|name) = id
+    
+  //external record-time-native(|name)
+  	
+ 	try-make-list = is-list <+ ?Dependency(_) <+ ![<id>]
+		
+	try-remove-list = is-list < Hd + id
+	
+rules // multimap simulation
+	
+	hash-multimap-put(|key, value):
+		hashtable -> hashtable
+		where
+			values := <hash-multimap-getorcreate(|key)> hashtable;
+			<hashtable-put(|key, [value|values])> hashtable 
+			
+	hash-multimap-putlist(|key, put-value*):
+		hashtable -> hashtable
+		where
+			value* := <hash-multimap-getorcreate(|key)> hashtable;
+			<hashtable-put(|key, [value*, put-value*])> hashtable 
+			
+	hash-multimap-getorcreate(|key) =
+		hashtable-get(|key) <+ hashtable-put(|key, []); ![]
+	
+	hash-multimap-copy(|from):
+		to -> to
+		where
+			// wtf is this I don't even.. hashtable-fold needs term arguments instead of current term arguments.
+			<hashtable-fold(hash-multimap-copy-fold|to)> from
+			
+	hash-multimap-copy-fold(|key, value*):
+		to -> <hash-multimap-putlist(|key, value*)> to
+
 "
 
 	create-task-core = 
@@ -2863,96 +3340,51 @@ rules /** @internal API externals */
 	
 "
 
-	create-task-utils = 
-		<output-text-file(|["lib", "runtime", "task"], "utils.str")>
-"module runtime/task/utils
-
-rules
-
-	oncetd-annos(s) = s <+ has-annos; get-annos; one(oncetd-annos(s)) <+ one(oncetd-annos(s))
-	
-	collect-one-annos(s) = oncetd-annos(s; ?t); !t
-	
-  crush-annos(nul, sum, s) :
-    _#(xs){a*} -> r2
-    where
-     r1 := <foldr(nul, sum, s)> xs;
-     r2 := <foldr(!r1, sum, s)> a*
-
-	collect-all-annos(s, un) =
-		![<s> | <crush-annos(![], un, collect-all-annos(s, un))>]
-	<+ crush-annos(![], un, collect-all-annos(s, un))
-
-"
-
-	create-task-tasks = 
-		<output-text-file(|["lib", "runtime", "task"], "tasks.str")>
-"module runtime/task/tasks
+	create-task-debug = 
+		<output-text-file(|["lib", "runtime", "task"], "debug.str")>
+"module runtime/task/debug
 
 imports
 	
 	runtime/task/core
-	runtime/task/interface
-  runtime/nbl/utils
-  
-signature
 
-	constructors
-		
-    Choice  : List(Result)                         -> Instruction
-    Message : List(Result) * MessageTrigger * Term -> Instruction
-    Match   : ID * List(Term) * Term               -> Instruction
-    Rewrite : ID * Term                            -> Instruction
-    Concat  : List(Result)                         -> Instruction
-    
-    Failure  : MessageTrigger // No results
-    Success  : MessageTrigger // At least one result
-    Multiple : MessageTrigger // More than one result
-	
 rules
 	
-	avoid-task(|dep*):
-	  Choice([choice]) -> choice
-	  where
-	    <dependent-tasks> choice => dep*
+	task-transitive-dependencies = task-transitive-dependencies(|[])
 	
-	avoid-task(|dep*):
-    Choice(choice*) -> <concat> choice*
-    where
-      [] := <dependent-tasks> choice*
-      
-	perform-task(|nr):
- 		Choice(choice*) -> <fetch-elem(not(?[]))> choice*
- 		
-	task-is-combinator = ?Choice(_)
+	task-transitive-dependencies(|seen):
+		taskID -> [dep*, trans-dep*]
+		where
+			not(<elem> (taskID, seen));
+			dep*       := <task-get-dependencies> taskID;
+			trans-dep* := <mapconcat(task-transitive-dependencies(|[taskID|seen]))> dep*
+			
+	task-transitive-dependencies(|seen):
+		taskID -> []
+		where
+			<elem> (taskID, seen)
+			
+rules
+	
+	task-debug-ast:
+		ast -> debug*
+		with
+			resultID* := <task-collect-result-ids> ast;
+			dep*      := <mapconcat(task-transitive-dependencies)> resultID*;
+			debug*    := <make-set; map(task-debug-info(|<id>))> [resultID*, dep*]
 
-  perform-task(|n):
-    Message(task, trigger, message) -> []
-    where
-    	switch !trigger
-    		case Failure()  : not(<Hd> task); task-add-message(|n, message)
-    		case Success()  : <Hd> task; task-add-message(|n, message)
-    		case Multiple() : <Tl; Hd> task; task-add-message(|n, message)
-    	end
+"
 
-	task-is-combinator = ?Message(_, _, _)
+	create-task-interface = 
+		<output-text-file(|["lib", "runtime", "task"], "interface.str")>
+"module runtime/task/interface
 
-  avoid-task(|dep*):
-    Match(_, _, _) -> <perform-task(|0) <+ ![]>
-    where
-      [] := dep*
-    	
-  perform-task(|nr): 
-  	Match(key, bound, term) -> <task-match> (key, term, bound)
+strategies
   
-  perform-task(|nr): 
-    Rewrite(key, term) -> <task-match> (key, term)
-
-  perform-task(|nr):
-  	Concat(term*) -> <concat> term*
-
-	task-is-combinator = ?Concat(_)
-
+  perform-task(|nr)  = fail
+  task-match         = fail
+  avoid-task(|dep*)  = fail
+  task-is-combinator = fail
 "
 
 	create-task-messages = 
@@ -3082,21 +3514,149 @@ rules
 
 "
 
-	create-types-interface = 
-		<output-text-file(|["lib", "runtime", "types"], "interface.str")>
-"module runtime/types/interface
+	create-task-tasks = 
+		<output-text-file(|["lib", "runtime", "task"], "tasks.str")>
+"module runtime/task/tasks
+
+imports
+	
+	runtime/task/core
+	runtime/task/interface
+  runtime/nbl/utils
+  
+signature
+
+	constructors
+		
+    Choice   : List(Result)                         -> Instruction
+    Sequence : List(Result)                         -> Instruction
+    Message  : List(Result) * MessageTrigger * Term -> Instruction
+    Match    : ID * List(Term) * Term               -> Instruction
+    Rewrite  : ID * Term                            -> Instruction
+    Concat   : List(Result)                         -> Instruction
+    
+    Failure  : MessageTrigger // No results
+    Success  : MessageTrigger // At least one result
+    Multiple : MessageTrigger // More than one result
+	
+rules
+	
+	avoid-task(|dep*):
+	  Choice([choice]) -> choice
+	  where
+	    <dependent-tasks> choice => dep*
+	
+	avoid-task(|dep*):
+    Choice(choice*) -> <concat> choice*
+    where
+      [] := <dependent-tasks> choice*
+      
+	perform-task(|nr):
+ 		Choice(choice*) -> <fetch-elem(not(?[]))> choice*
+ 		
+	task-is-combinator = ?Choice(_)
+	
+  perform-task(|nr):
+  	Sequence(task*) -> <map(not(?[])); last> task*
+    
+  task-is-combinator = ?Sequence(_)
+
+  perform-task(|n):
+    Message(task, trigger, message) -> []
+    where
+    	switch !trigger
+    		case Failure()  : not(<Hd> task); task-add-message(|n, message)
+    		case Success()  : <Hd> task; task-add-message(|n, message)
+    		case Multiple() : <Tl; Hd> task; task-add-message(|n, message)
+    	end
+
+	task-is-combinator = ?Message(_, _, _)
+
+  avoid-task(|dep*):
+    Match(_, _, _) -> <perform-task(|0) <+ ![]>
+    where
+      [] := dep*
+    	
+  perform-task(|nr): 
+  	Match(key, bound, term) -> <task-match> (key, term, bound)
+  
+  perform-task(|nr): 
+    Rewrite(key, term) -> <task-match> (key, term)
+
+  perform-task(|nr):
+  	Concat(term*) -> <concat> term*
+
+	task-is-combinator = ?Concat(_)
+
+"
+
+	create-task-utils = 
+		<output-text-file(|["lib", "runtime", "task"], "utils.str")>
+"module runtime/task/utils
+
+rules
+
+	oncetd-annos(s) = s <+ has-annos; get-annos; one(oncetd-annos(s)) <+ one(oncetd-annos(s))
+	
+	collect-one-annos(s) = oncetd-annos(s; ?t); !t
+	
+  crush-annos(nul, sum, s) :
+    _#(xs){a*} -> r2
+    where
+     r1 := <foldr(nul, sum, s)> xs;
+     r2 := <foldr(!r1, sum, s)> a*
+
+	collect-all-annos(s, un) =
+		![<s> | <crush-annos(![], un, collect-all-annos(s, un))>]
+	<+ crush-annos(![], un, collect-all-annos(s, un))
+
+"
+
+	create-tmpl-pp = 
+		<output-text-file(|["lib", "runtime", "tmpl"], "pp.str")>
+"module runtime/tmpl/pp
+
+imports
+  libstratego-lib
+  libstratego-gpp
+
+signature constructors
+
+  Parenthetical : Unknown -> Unknown
 
 strategies
-  
-  custom-properties(add-properties) = fail
-  
-  new-property-task(|task*): (kind, term) -> <fail>
 
-  type-of(|partition) = fail
-  
-  type-of(|lang, partition, uri*) = fail
+  // Unwrap Parenthetical/1 if pp fails, in case the user is using
+  // parenthesize, but grammar does not contain {bracket} production.
+  pp-one(pp) = (pp <+ ?Parenthetical(<pp>)); filter(gpp-is-real-vbox)
 
-  type-prop-eq = eq
+  pp-one-V(pp) = pp-one(pp); (?[] <+ !V([], <id>))
+  pp-one-Z(pp) = pp-one(pp); (?[] <+ !Z([], <id>))
+
+  pp-option(pp) = \\None() -> []\\ + ?Some(<pp>)
+
+  pp-V-list(pp)    = ?[] <+ !V([], <map(pp-one-V(pp))>)
+  pp-V-list(pp|vs) = ?[] <+ !V([SOpt(VS(), vs)], <map(pp-one-V(pp))>)
+  pp-V-list(pp|vs, sep) = ?[] <+ !V([SOpt(VS(), vs)], <map(pp-one-V(pp)); at-init(add-sep(|sep), id)>)
+
+  pp-indent(|is) = filter(gpp-is-real-vbox); (?[] <+ !I([SOpt(IS(), is)], H([SOpt(HS(), \"0\")], <id>)))
+
+  pp-H-list(pp)     = ?[] <+ !H([], <map(pp-one-Z(pp))>)
+  pp-H-list(pp|sep) = ?[] <+ !H([SOpt(HS(), \"0\")], <map(pp-one-Z(pp)); separate-by(|S(sep))>)
+
+  pp-HV-list(pp)     = ?[] <+ !HV([SOpt(HS(), \"0\")], <map(pp-one-Z(pp))>)
+  pp-HV-list(pp|sep) = ?[] <+ !HV([SOpt(HS(), \"0\")], <map(pp-one-Z(pp)); separate-by(|S(sep))>)
+
+  pp-HZ-list(pp)     = ?[] <+ !HZ([SOpt(HS(), \"0\")], <map(pp-one-Z(pp))>)
+  pp-HZ-list(pp|sep) = ?[] <+ !HZ([SOpt(HS(), \"0\")], <map(pp-one-Z(pp)); separate-by(|S(sep))>)
+
+rules
+  
+  add-sep(|sep):
+    V(a, [b]) -> V(a, [b-with-sep])
+    where
+      (c, [d, e]) := <explode-term> b;
+      b-with-sep := <mkterm> (c, [d, <conc> (e, [S(sep)])])
 
 "
 
@@ -3208,6 +3768,24 @@ strategies
   
 "
 
+	create-types-interface = 
+		<output-text-file(|["lib", "runtime", "types"], "interface.str")>
+"module runtime/types/interface
+
+strategies
+  
+  custom-properties(add-properties) = fail
+  
+  new-property-task(|task*): (kind, term) -> <fail>
+
+  type-of(|partition) = fail
+  
+  type-of(|lang, partition, uri*) = fail
+
+  type-prop-eq = eq
+
+"
+
 	create-types-tasks = 
 		<output-text-file(|["lib", "runtime", "types"], "tasks.str")>
 "module runtime/types/tasks
@@ -3267,619 +3845,47 @@ rules
 
 "
 
-	create-analysis-resolve = 
-		<output-text-file(|["lib", "runtime", "analysis"], "resolve.str")>
-"module runtime/analysis/resolve
-
-imports
-	
-	runtime/nbl/resolve
-	runtime/task/core
-	runtime/index/core
-	runtime/index/query
-	
-rules
-	
-	analysis-resolve(|language, project-path):
-		node -> definition
-		where
-			task-setup(|project-path);
-    	index-setup(|language, project-path);
-    	<nabl-has-reference> node;
-    	definition := <nabl-collect-one-resolved-def; index-get-all; Hd> node
-    	
-	// Legacy
-	analysis-resolve(|language, project-path, path) = analysis-resolve(|language, project-path)
-"
-
-	create-analysis-reanalysis = 
-		<output-text-file(|["lib", "runtime", "analysis"], "reanalysis.str")>
-"module runtime/analysis/reanalysis
-
-imports
-	
-	runtime/analysis/core
-	runtime/analysis/single
-	runtime/analysis/defaults
-	runtime/task/core
-	runtime/index/core
-	runtime/nbl/collect
-	runtime/nbl/namegen
-
-rules
-	
-	start-reanalysis(|language, path, project-path) =
-		nabl-namegen-clear(|<analysis-partition(|path, project-path)>);
-		index-push;
-		task-push
-		
-	stop-reanalysis(|language, path, project-path) =
-		task-pop;
-		index-pop
-	
-	reanalysis(s|language, path, project-path) =
-		where(start-reanalysis(|language, path, project-path); s; stop-reanalysis(|language, path, project-path))
-	
-  reanalyze-ast(|language, path, project-path):
-    ast -> analyzed-ast
-    with
-	    (
-	    	analyzed-ast
-			, (error*, warning*, note*)
-			, removed-entry*
-			, added-entry*
-			, removed-task*
-			, added-task*
-			, invalidated-task*
-			, evaluated-task*
-			, skipped-task*
-			, unevaluated-task*
-			) := <analyze-one(fail|language, path, project-path)> ast;
-			
-      <analysis-debug-results> (removed-entry*, added-entry*, removed-task*, added-task*, invalidated-task*, evaluated-task*, skipped-task*, unevaluated-task*);
-      
-      <map(analysis-default-debug(!\"Error: \"))> error*;
-      <map(analysis-default-debug(!\"Warning: \"))> warning*;
-      <map(analysis-default-debug(!\"Note: \"))> note*
-
-"
-
-	create-analysis-complete = 
-		<output-text-file(|["lib", "runtime", "analysis"], "complete.str")>
-"module runtime/analysis/complete
-
-imports
-	
-	runtime/nbl/complete
-	runtime/task/core
-	runtime/index/core
-	
-rules
-	
-	analysis-propose-completions(|language, project-path):
-		ast -> <nabl-propose-completions> ast
-		with
-    	task-setup(|project-path);
-    	index-setup(|language, project-path)
-
-	// Legacy
-	analysis-propose-completions(|language, project-path, path) = analysis-propose-completions(|language, project-path)
-"
-
-	create-analysis-debug = 
-		<output-text-file(|["lib", "runtime", "analysis"], "debug.str")>
-"module runtime/analysis/debug
-
-imports
-	
-	runtime/index/core
-	runtime/index/query
-	runtime/task/core
-	runtime/task/debug
-
-rules
-	
-  analysis-debug-show-current-partition(|language):
-    (_, _, _, path, project-path) -> (filename, result)
-    with
-    	partition := $[[project-path]/[path]];
-      index-setup(|language, project-path);
-      filename := <guarantee-extension(|\"index.current.aterm\")> path;
-      result   := <index-get-all-in-partition> partition
-      
-  analysis-debug-show-all-partitions(|language):
-    (_, _, _, path, project-path) -> (filename, result)
-    with
-    	partition := $[[project-path]/[path]];
-      index-setup(|language, project-path);
-      filename := <guarantee-extension(|\"index.all.aterm\")> path;
-      result   := <index-get-all-partitions; map(\\filename -> (filename, <index-get-all-in-partition> filename)\\)>
-      
-  analysis-debug-show-tasks(|language):
-    (_, _, _, path, project-path) -> (filename, result)
-    with
-    	partition := $[[project-path]/[path]];
-      task-setup(|project-path);
-      filename := <guarantee-extension(|\"task.current.aterm\")> path;
-      result   := <task-debug-info(|partition)>
-      
-  analysis-debug-show-tasks-selection(|language):
-    (selected, _, _, path, project-path) -> (filename, result)
-    with
-    	partition := $[[project-path]/[path]];
-      task-setup(|project-path);
-      filename := <guarantee-extension(|\"task.selected.aterm\")> path;
-      result   := <task-debug-ast> selected
-      
-  analysis-debug-reset-index(|language):
-    (_, _, _, path, project-path) -> None()
-    with
-    	partition := $[[project-path]/[path]];
-      index-setup(|language, project-path);
-      index-reset
-      
-  analysis-debug-reset-task(|language):
-    (_, _, _, path, project-path) -> None()
-    with
-      task-setup(|project-path);
-      task-reset
-
-  analysis-debug-reanalyze(|language):
-    (_, _, _, path, project-path) -> None()
-    with
-    	partition := $[[project-path]/[path]];
-    	task-setup(|project-path);
-    	task-reset;
-      index-setup(|language, project-path);
-      index-reload
-
-"
-
-	create-analysis-single = 
-		<output-text-file(|["lib", "runtime", "analysis"], "single.str")>
-"module runtime/analysis/single
-
-imports
-	
-  runtime/analysis/core
-    
-rules // Single file analysis
-  
-  analyze-one(|language, path, project-path) = 
-  	analyze-one(id|language, path, project-path)
-  
-  analyze-one(try-recover|language, path, project-path):
-    ast -> 
-    (
-    	analyzed-ast
-		, (error*, warning*, note*)
-		, removed-entry*
-		, added-entry*
-		, removed-task*
-		, added-task*
-		, invalidated-task*
-		, evaluated-task*
-		, skipped-task*
-		, unevaluated-task*
-		)
-    with
-      partition := <analysis-partition(|path, project-path)>;
-      r@(
-      	Result(_, _, analyzed-ast, _, _, _, _)
-      , DebugResult(removed-entry*, added-entry*, removed-task*, added-task*, invalidated-task*)
-      ) := <analyze-collect(try-recover|language, project-path)> File(partition, ast);
-      
-    	(result*, evaluated-task*, skipped-task*, unevaluated-task*) := <analyze-perform-all> [r];
-    	
-    	Result(_, _, _, _, error*, warning*, note*) := <Hd; Fst> result*
-"
-
-	create-analysis-core = 
-		<output-text-file(|["lib", "runtime", "analysis"], "core.str")>
-"module runtime/analysis/core
-
-imports
-	
-  runtime/nbl/collect
-  runtime/nbl/incremental
-  runtime/nbl/entries
-  runtime/nbl/uri
-  runtime/nbl/utils
-  runtime/index/core
-  runtime/task/core
-  runtime/task/messages
-  runtime/editor/origins
-  
-signature
-
-  constructors
-  
-    File        : Path * AST -> File
-    
-    // Result(partition, initial-ast, analyzed-ast, changed-read*, error*, warning*, note*)
-    Result      : Partition * AST * AST * List(URI) * List(Term) * List(Term) * List(Term) -> Result
-    
-    // DebugResult(removed-entry*, added-entry*, removed-task*, added-task*, invalidated-task*)
-    DebugResult : List(Entry) * List(Entry) * List(TaskID) * List(TaskID) * List(TaskID) -> Result
-    
-rules // Analysis
-	
-	analyze-collect(|language, project-path) = analyze-collect(id|language, project-path)
-	analyze-collect(try-recover|language, project-path):
-    File(partition, initial-ast) -> ( 
-    	Result(partition, initial-ast, analyzed-ast, changed-read*, [], [], [])
-    , DebugResult(<length> removed-entry*, <length> added-entry*, <length> removed-task*, <length> added-task*, <length> invalidated-task*)
-  	)
-    with
-    	<analysis-core-debug(!\"Collecting: \")> partition;
-    	measure-time(
-	    	measure-time(
-	    		index-setup(|language, project-path);
-	    		try(try-recover; index-recover);
-			    index-start-collection(|partition);
-	    		task-setup(|project-path);
-	    		try(try-recover; task-recover);
-	    		task-start-collection(|partition)
-	      	, analysis-core-debug-time(!\"Time - setup: \") | \"analyze-collect-setup\"
-	      ); measure-time(
-	      	analyzed-ast := <nabl-collect(|partition, Language(language))> initial-ast
-	    	  , analysis-core-debug-time(!\"Time - collect: \") | \"analyze-collect-collect\" 
-	  	  ); measure-time(
-	  	  	index-stop-collection => (removed-entry*, added-entry*);
-	      	task-stop-collection(|partition) => (removed-task*, added-task*);
-	      	changed-read* := <nabl-get-changed-reads> [removed-entry*, added-entry*]
-	      	, analysis-core-debug-time(!\"Time - diff: \") | \"analyze-collect-diff\" 
-	  	  ); measure-time(
-	  	  	task-invalidate-task-reads(|changed-read*) => invalidated-task*
-	  	  	, analysis-core-debug-time(!\"Time - invalidate: \") | \"analyze-collect-invalidate\"
-	  	  )
-  	  , id | \"analyze-collect-total\")
-	
-	analyze-perform-all:
-		result* -> (result'*, evaluated-task*, skipped-task*, unevaluated-task*)
-		with
-			measure-time(
-				measure-time(
-	      	task-evaluate-scheduled => (evaluated-task*, skipped-task*, unevaluated-task*)
-	      	, analysis-core-debug-time(!\"Time - evaluation: \") | \"analyze-task-evaluate\"
-	      ); measure-time(
-	  	  	result'* := <map(analyze-messages)> result*
-	  	  	, analysis-core-debug-time(!\"Time - messages: \") | \"analyze-task-messages\"
-	  	  )
-  	, id | \"analyze-task-total\")
-  	  
-    
-  analyze-messages:
-  	(Result(partition, initial-ast, analyzed-ast, changed-read*, _, _, _), debug-result) -> 
-  	(Result(partition, initial-ast, analyzed-ast, changed-read*, error*, warning*, note*), debug-result)
-  	with
-			(error*, warning*, note*) := <analyze-get-messages> partition
-
-	analyze-get-messages:
-		partition -> (error*, warning*, note*)
-		with
-  		message* := <task-get-messages(|partition)>;
-  		error*   := <filter(?Error(_, _, _); analyze-message-to-tuple)> message*;
-  		warning* := <filter(?Warning(_, _, _); analyze-message-to-tuple)> message*;
-  		note*    := <filter(?Note(_, _, _); analyze-message-to-tuple)> message*
-  		
-	analyze-message-to-tuple:
-		message -> (<origin-location-offset-set(|origin)> term, msg)
-		with
-			origin := <task-message-origin> message;
-			term   := <task-message-term> message;
-			msg    := <task-message> message
-      
-rules // Projections
-	
-	analyze-result-reads:
-		Result(_, _, _, changed-read*, _, _, _) -> changed-read*
-		
-	analyze-result-analyzed-ast:
-		Result(_, _, analyzed-ast, _, _, _, _) -> analyzed-ast
-
-	analysis-partition(|path, project-path) = !$[[project-path]/[path]]
-
-rules // Debugging
-	
-	analysis-core-debug(msg) = try(analysis-core-debug-interface(msg))
-	analysis-core-debug = try(analysis-core-debug-interface)
-	analysis-core-debug-interface(msg) = fail
-	analysis-core-debug-interface = fail
-	
-	analysis-core-debug-time(msg) = try(analysis-core-debug-time-interface(msg))
-	analysis-core-debug-time = try(analysis-core-debug-time-interface)
-	analysis-core-debug-time-interface(msg) = fail
-	analysis-core-debug-time-interface = fail
-	
-"
-
-	create-analysis-multiple = 
-		<output-text-file(|["lib", "runtime", "analysis"], "multiple.str")>
-"module runtime/analysis/multiple
-
-imports
-
-  runtime/analysis/core
-  runtime/task/core
-  runtime/nbl/utils
-
-rules // Multi file analysis
-  
-  analyze-multiple(parse-file, complete-work-unit|language, project-path):
-    path* -> result*
-    with
-    	measure-time(
-      	file* := <map(analyze-parse-file(parse-file); where(complete-work-unit))> path*
-    	, id | \"analyze-parse\");
-      result* := <analyze-multiple-files(complete-work-unit|language, project-path)> file*
-
-  analyze-parse-file(parse-file):
-    path -> File(path, ast)
-    with
-      if not(ast := <file-exists; parse-file> path) then
-        ast := ()
-      end
-
-  analyze-multiple-files(complete-work-unit|language, project-path):
-    file* -> (result'*, evaluated-task*, skipped-task*, unevaluated-task*)
-    with
-      result* := <map(analyze-collect(|language, project-path); where(complete-work-unit))> file*;
-    	(result'*, evaluated-task*, skipped-task*, unevaluated-task*) := <analyze-perform-all> result*
-      
-"
-
-	create-analysis-defaults = 
-		<output-text-file(|["lib", "runtime", "analysis"], "defaults.str")>
-"module runtime/analysis/defaults
-
-imports
-	
-	runtime/analysis/core
-	runtime/analysis/single
-	runtime/analysis/multiple
-	runtime/nbl/utils
-	runtime/index/core
-	runtime/task/core
-	runtime/editor/editor
-	runtime/editor/queue
-
-rules // Analysis
-	
-	analysis-default-editor = analysis-single-default-interface <+ (where(not(is-tuple)); analysis-multiple-default-queue)
-	analysis-default-cmd = analysis-single-default-interface <+ (where(not(is-tuple)); analysis-multiple-default-interface)
-
-  analysis-changed-partitions:
-  	taskID* -> <task-partitions-of(|taskID*)>
-  	
-  is-test-file = 
-    string-ends-with(|\".spt\")
-
-rules // Single finle analysis
-	
-	analysis-single-default-interface = fail
-	
-  analysis-single-default(desugar-before, desugar-after, pp-message|language):
-    (ast, path, project-path) -> (analyzed-ast, error*, warning*, note*)
-    with
-      editor-init;
-      <analysis-default-debug(!\"Analyzing file: \")> path;
-      
-	    (
-	    	analyzed-ast
-			, (analysis-error*, analysis-warning*, analysis-note*)
-			, removed-entry-count
-			, added-entry-count
-			, removed-task-count
-			, added-task-count
-			, invalidated-task-count
-			, evaluated-task*
-			, skipped-task*
-			, unevaluated-task*
-			) := <desugar-before; analyze-one(|language, path, project-path); desugar-after> ast;
-			
-      (error*, warning*, note*) := <analysis-message-collect(pp-message|analysis-error*, analysis-warning*, analysis-note*)> analyzed-ast;
-      
-      partition* := <analysis-changed-partitions> evaluated-task*;
-      if <not(is-test-file)> path then
-      	partition := <analysis-partition(|path, project-path)>;
-      	<remove-all(?partition <+ ?path); analysis-message-update-partitions-queue(|language, project-path)> partition*
-    	end;
-    	
-    	<analysis-debug-results> (removed-entry-count, added-entry-count, removed-task-count, added-task-count, invalidated-task-count, evaluated-task*, skipped-task*, unevaluated-task*)
-      
-rules // Multi-file analysis
-      
-  analysis-multiple-default-interface = fail    
-      
-	analysis-multiple-default-queue:
-    path* -> None()
-    with
-      queue-strategy(|\"analysis-multiple-default-interface\", \"Analyzing files\")
-      
-  analysis-multiple-default(parse, desugar-before, desugar-after, pp-message|language, project-path):
-    path* -> (analysis-result'*, evaluated-task*, unevaluated-task*)
-    with
-    	analysis-default-debug(!\"Analyzing files: \");
-      analysis-multiple-default-work-units; set-total-work-units;
-      
-      measure-time(
-	      measure-time(
-	      	path'* := <map(\\p -> $[[project-path]/[p]]\\)> path*;
-	        (result*, evaluated-task*, skipped-task*, unevaluated-task*) := <analyze-multiple(parse; desugar-before, complete-work-unit|language, project-path)> path'*;
-	        (analysis-result*, debug-result*) := <unzip> result*
-	      , analysis-default-debug-time(!\"Time - analysis: \") | \"analysis-multiple-full-analysis\"
-	      );
-	      measure-time(
-	      	analysis-result'* := <filter(analysis-update-editor(desugar-after, pp-message))> analysis-result*
-	      	// TODO: Update markers for partitions that have had a task executed but were not analyzed.
-	      , analysis-default-debug-time(!\"Time - messages: \") | \"analysis-multiple-update-editors\"
-	      );
-	    	measure-time(
-		      index-persist
-	      , analysis-default-debug-time(!\"Time - index persistance: \") | \"analysis-multiple-index-persist\"
-	      );
-	    	measure-time(
-		      task-persist
-	      , analysis-default-debug-time(!\"Time - task engine persistance: \") | \"analysis-multiple-task-persist\"
-	      )	      
-	    , analysis-default-debug-time(!\"Time - total: \") | \"analysis-multiple-total\"
-      );
-    	measure-time(
-      	DebugResult(removed-entry-count, added-entry-count, removed-task-count, added-task-count, invalidated-task-count) := <analysis-accumulate-debug-results> debug-result*;
-      	<analysis-debug-results> (removed-entry-count, added-entry-count, removed-task-count, added-task-count, invalidated-task-count, evaluated-task*, skipped-task*, unevaluated-task*)
-      , analysis-default-debug-time(!\"Time - debug: \") | \"analysis-multiple-debug\"
-      )
-
-	analysis-accumulate-debug-results = 
-		!(<id>, DebugResult(0, 0, 0, 0, 0));
-		foldl(analysis-concat-debug-result)
-			
-	analysis-concat-debug-result:
-		(
-			DebugResult(removed-entry1-count, added-entry1-count, removed-task1-count, added-task1-count, invalidated-task1-count)
-		, DebugResult(removed-entry2-count, added-entry2-count, removed-task2-count, added-task2-count, invalidated-task2-count)
-	  )
-	  ->
-	  DebugResult(removed-entry-count, added-entry-count, removed-task-count, added-task-count, invalidated-task-count)
-	  with
-	  	removed-entry-count    := <add> (removed-entry1-count, removed-entry2-count);
-	  	added-entry-count      := <add> (added-entry1-count, added-entry2-count);
-	  	removed-task-count     := <add> (removed-task1-count, removed-task2-count);
-	  	added-task-count       := <add> (added-task1-count, added-task2-count);
-	  	invalidated-task-count := <add> (invalidated-task1-count, invalidated-task2-count)
-
-  analysis-update-editor(desugar-after, pp-message):
-    Result(partition, initial-ast, analyzed-ast, changed-read*, error* , warning* , note*) -> 
-    Result(partition, initial-ast, analyzed-desugared-ast, changed-read*, error'*, warning'*, note'*)
-    where
-      not(() := initial-ast)
-    with
-    	analyzed-desugared-ast := <desugar-after> analyzed-ast;
-      (error'*, warning'*, note'*) := <analysis-message-collect(pp-message|error*, warning*, note*)> analyzed-desugared-ast;
-      <set-markers(|partition)> (analyzed-ast, error'*, warning'*, note'*)
-
-  analysis-multiple-default-work-units = 
-    length; !(<id>, 3); mul	
-	    
-rules // Message collection and updating.
-	
-	constraint-error = fail
-	constraint-warning = fail
-	constraint-note = fail
-	
-	enable-wrapped-message-collect = fail
-	message-collect-wrapped(s)     = fail
-	
-  analysis-message-collect(pp-message|analysis-error*, analysis-warning*, analysis-note*):
-    ast -> ([<map(pp-message)> analysis-error*, error*], [<map(pp-message)> analysis-warning*, warning*], 
-    	[<map(pp-message)> analysis-note*, note*])
-    with
-      if enable-wrapped-message-collect then
-        message-collect-wrapped(
-		      error*   := <collect-all(constraint-error, conc)> ast;
-		      warning* := <collect-all(constraint-warning, conc)> ast;
-		      note*    := <collect-all(constraint-note, conc)> ast
-		    )
-		  else
-		    error*   := <collect-all(constraint-error, conc)> ast;
-        warning* := <collect-all(constraint-warning, conc)> ast;
-        note*    := <collect-all(constraint-note, conc)> ast
-      end
-		    
-  
-  analysis-message-update-partitions-queue(|language, project-path):
-  	partition* -> <queue-strategy(|\"analysis-message-update-partitions\", \"Updating messages\")> (partition*, language, project-path)
-  
-  analysis-message-update-partitions:
-  	(partition*, language, project-path) -> <filter(not(is-test-file); analysis-message-update-partition)> partition*
-  	with
-    	task-setup(|project-path);
-      index-setup(|language, project-path)
-  	
-	analysis-message-update-partition:
-		partition -> <analyze-get-messages; set-only-markers(|partition)> partition
-      
-rules // On-save handler
-	
-  analysis-save-default(|language):
-  	(_, _, _, _, project-path) -> None()
-  	with
-  		index-setup(|language, project-path);
-  		index-persist;
-  		task-setup(|project-path);
-  		task-persist
-
-rules // Debugging
-	
-	analysis-default-debug(msg) = try(analysis-default-debug-interface(msg))
-	analysis-default-debug = try(analysis-default-debug-interface)
-	analysis-default-debug-interface(msg) = fail
-	analysis-default-debug-interface = fail
-	
-	analysis-default-debug-time(msg) = try(analysis-default-debug-time-interface(msg))
-	analysis-default-debug-time = try(analysis-default-debug-time-interface)
-	analysis-default-debug-time-interface(msg) = fail
-	analysis-default-debug-time-interface = fail
-	
-	analysis-debug-results =
-		?(
-				removed-entry-count
-			, added-entry-count
-			, removed-task-count
-			, added-task-count
-			, invalidated-task-count
-			, evaluated-task*
-			, skipped-task*
-			, unevaluated-task*
-		);
-  	<analysis-default-debug> $[Entries : [removed-entry-count] removed, [added-entry-count] added.];
-    <analysis-default-debug> $[Tasks   : [removed-task-count] removed, [added-task-count] added, [invalidated-task-count] invalidated, [<length> evaluated-task*] evaluated, [<length> skipped-task*] skipped, [<length> unevaluated-task*] unevaluated.];
-    <map(task-debug-info(|<id>); analysis-default-debug(!\"Unevaluated: \"))> unevaluated-task* 
-	
-"
-
 create-all-runtime-libraries = 
-	create-editor-queue
-; 	create-editor-positions
+	create-analysis-complete
+; 	create-analysis-core
+; 	create-analysis-debug
+; 	create-analysis-defaults
+; 	create-analysis-multiple
+; 	create-analysis-reanalysis
+; 	create-analysis-resolve
+; 	create-analysis-single
 ; 	create-editor-editor
 ; 	create-editor-interop
 ; 	create-editor-origins
 ; 	create-editor-outline-library
-; 	create-index-globals
-; 	create-index-partition
+; 	create-editor-positions
+; 	create-editor-queue
 ; 	create-index-core
+; 	create-index-globals
 ; 	create-index-legacy
-; 	create-index-utils
+; 	create-index-partition
 ; 	create-index-query
-; 	create-tmpl-pp
-; 	create-nbl-resolve
+; 	create-index-utils
 ; 	create-nbl-check
-; 	create-nbl-incremental
-; 	create-nbl-complete
-; 	create-nbl-uri
-; 	create-nbl-lookup
-; 	create-nbl-entries
-; 	create-nbl-interface
-; 	create-nbl-namegen
 ; 	create-nbl-collect
-; 	create-nbl-utils
-; 	create-nbl-tasks
+; 	create-nbl-complete
+; 	create-nbl-entries
+; 	create-nbl-incremental
+; 	create-nbl-interface
+; 	create-nbl-lookup
+; 	create-nbl-namegen
 ; 	create-nbl-query
+; 	create-nbl-resolve
+; 	create-nbl-tasks
+; 	create-nbl-uri
+; 	create-nbl-utils
+; 	create-task-core
 ; 	create-task-debug
 ; 	create-task-interface
-; 	create-task-core
-; 	create-task-utils
-; 	create-task-tasks
 ; 	create-task-messages
-; 	create-types-interface
+; 	create-task-tasks
+; 	create-task-utils
+; 	create-tmpl-pp
 ; 	create-types-collect
+; 	create-types-interface
 ; 	create-types-tasks
-; 	create-analysis-resolve
-; 	create-analysis-reanalysis
-; 	create-analysis-complete
-; 	create-analysis-debug
-; 	create-analysis-single
-; 	create-analysis-core
-; 	create-analysis-multiple
-; 	create-analysis-defaults
