@@ -3204,9 +3204,14 @@ rules // Results
 
 	insert-results-hashmap(|results-hashmap) =
 		switch id
-			case has-annos  : !(<id>, <get-annos; insert-results-hashmap(|results-hashmap)>); set-annos
+			case has-annos  : ?t; !(<insert-results-hashmap-noannos(|results-hashmap)> t, <get-annos; insert-results-hashmap(|results-hashmap)> t); set-annos
+			otherwise       : insert-results-hashmap-noannos(|results-hashmap)
+		end
+		
+	insert-results-hashmap-noannos(|results-hashmap) =
+		switch id
 			case is-list    : filter(insert-results-hashmap(|results-hashmap))
-			case ?Result(n) : (<hashtable-get(|n)> results-hashmap) <+ <with(fail|\"Cannot insert result: \")> n
+			case ?Result(n) : try(<hashtable-get(|n)> results-hashmap)
 			otherwise       : all(insert-results-hashmap(|results-hashmap))
 		end
 	
@@ -3250,8 +3255,8 @@ rules // API
 	task-becomes-cyclic(|taskIDFrom, taskIDTo)                 = task-api-becomes-cyclic(|taskIDFrom, taskIDTo)
 	task-clear-partition                                       = task-api-clear-partition(|<id>)
 	task-debug-info(|partition)                                = task-api-debug-info(|partition)
-	task-evaluate-now                                          = task-api-evaluate-now(insert-results-hashmap, task-perform-task|<id>)
-	task-evaluate-scheduled                                    = task-api-evaluate-scheduled(insert-results-hashmap, task-perform-task)
+	task-evaluate-now                                          = task-api-evaluate-now(task-collect-result-ids, insert-results-hashmap, task-perform-task|<id>)
+	task-evaluate-scheduled                                    = task-api-evaluate-scheduled(task-collect-result-ids, insert-results-hashmap, task-perform-task)
 	task-exists(|instruction)                                  = task-api-exists(|instruction)
 	task-get-messages(|partition)                              = task-api-get-messages(|partition)
 	task-get-readers                                           = task-api-get-readers(|<id>)
@@ -3316,8 +3321,8 @@ rules /** @internal API externals */
 	task-api-becomes-cyclic(|taskIDFrom, taskIDTo) = prim(\"task_api_becomes_cyclic\", taskIDFrom, taskIDTo)
 	task-api-clear-partition(|partition) = prim(\"task_api_clear_partition\", partition)
 	task-api-debug-info(|partition) = prim(\"task_api_debug_info\", partition)
-	task-api-evaluate-now(insert, perform|taskIDs) = prim(\"task_api_evaluate_now\", insert, perform|taskIDs)
-	task-api-evaluate-scheduled(insert, perform|) = prim(\"task_api_evaluate_scheduled\", insert, perform|)
+	task-api-evaluate-now(collect, insert, perform|taskIDs) = prim(\"task_api_evaluate_now\", collect, insert, perform|taskIDs)
+	task-api-evaluate-scheduled(collect, insert, perform|) = prim(\"task_api_evaluate_scheduled\", collect, insert, perform|)
 	task-api-exists(|instruction) = prim(\"task_api_exists\", instruction)
 	task-api-get-dependencies(|taskID) = prim(\"task_api_get_dependencies\", taskID)
 	task-api-get-messages(|partition) = prim(\"task_api_get_messages\", partition)
