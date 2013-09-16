@@ -69,6 +69,9 @@ public class ForeignLangCallPrimitive extends AbstractPrimitive {
 			assert observer != null;
 			observer.getRuntime().setCurrent(inputTerm);
 			result = observer.getRuntime().invoke(strategyName);
+			if (!result) {
+				observer.reportRewritingFailed();
+			}
 			env.setCurrent(observer.getRuntime().current());
 		} catch (RuntimeException cex) {
 			Environment.logException(cex);
