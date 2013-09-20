@@ -157,6 +157,7 @@ imports
 	runtime/index/query
 	runtime/task/core
 	runtime/task/debug
+	runtime/editor/interop
 
 rules
 	
@@ -179,18 +180,30 @@ rules
   analysis-debug-show-tasks(|language):
     (_, _, _, path, project-path) -> (filename, result)
     with
-    	partition := $[[project-path]/[path]];
       task-setup(|project-path);
-      filename := <guarantee-extension(|\"task.current.aterm\")> path;
-      result   := <task-debug-info(|partition)>
+    	partition  := $[[project-path]/[path]];
+      result-ast := <task-debug-info(|partition)>;
+      if result-task := <foreign-call(|\"Task\", \"from-task-debug\")> result-ast then
+      	filename := <guarantee-extension(|\"partition.task\")> path;
+      	result   := result-task
+      else
+      	filename := <guarantee-extension(|\"partition.aterm\")> path;
+      	result   := result-ast
+    	end
       
   analysis-debug-show-tasks-selection(|language):
     (selected, _, _, path, project-path) -> (filename, result)
     with
-    	partition := $[[project-path]/[path]];
       task-setup(|project-path);
-      filename := <guarantee-extension(|\"task.selected.aterm\")> path;
-      result   := <task-debug-ast> selected
+    	partition  := $[[project-path]/[path]];
+      result-ast := <task-debug-ast> selected;
+      if result-task := <foreign-call(|\"Task\", \"from-task-debug\")> result-ast then
+      	filename := <guarantee-extension(|\"selection.task\")> path;
+      	result   := result-task
+      else
+      	filename := <guarantee-extension(|\"selection.aterm\")> path;
+      	result   := result-ast
+    	end
       
   analysis-debug-reset-index(|language):
     (_, _, _, path, project-path) -> None()
@@ -3166,11 +3179,13 @@ rules // Creation
   //tdebug(s) = debug(s)
   
   new-task(|partition) = new-task(|partition, <dependent-tasks>)
-  new-task(|partition, dependencies) = 
-  		task-is-combinator; task-add-combinator(|partition, dependencies, <id>) 
-  	<+ 
-  		task-add-task(|partition, dependencies, <id>)
-   
+  new-task(|partition, dependencies):
+  	instruction -> result
+  	with
+  		is-combinator := <task-is-combinator; !1 <+ !0> instruction;
+  		short-circuit := <task-short-circuit; !1 <+ !0> instruction;
+  		result := <task-add-task(|partition, dependencies, instruction, is-combinator, short-circuit)> instruction
+ 
   //    tdebug(!\"new task \")
   //  ; avoid-task(|dependencies)
   //  ; tdebug(!\"avoided \")
@@ -3181,6 +3196,19 @@ rules // Creation
   dependent-task = ?Result(<id>) 
   dependent-task =
     has-annos; get-annos; dependent-tasks
+    
+	task-create-execute-ctx = !\"\"
+	task-create-execute(create-task):
+		term -> result
+		with
+		  ctx := <task-create-execute-ctx>
+		; task-push
+		; task-start-collection(|ctx)
+		; Result(taskID) := <create-task> term
+		; task-stop-collection(|ctx)
+		; <task-evaluate-now> taskID
+		; result := <task-get-result> taskID
+		; task-pop
 
 rules // Dependencies
 	
@@ -3249,9 +3277,8 @@ rules // Projections
 
 rules // API
 	
-	task-add-combinator(|partition, dependencies, instruction) = task-api-add-combinator(|partition, dependencies, instruction)
 	task-add-message(|taskID, message)                         = task-api-add-message(|taskID, message)
-	task-add-task(|partition, dependencies, instruction)       = task-api-add-task(|partition, dependencies, instruction)
+	task-add-task(|partition, dependencies, instruction, isCombinator, shortCircuit) = task-api-add-task(|partition, dependencies, instruction, isCombinator, shortCircuit)
 	task-becomes-cyclic(|taskIDFrom, taskIDTo)                 = task-api-becomes-cyclic(|taskIDFrom, taskIDTo)
 	task-clear-partition                                       = task-api-clear-partition(|<id>)
 	task-debug-info(|partition)                                = task-api-debug-info(|partition)
@@ -3268,6 +3295,7 @@ rules // API
 	task-push                                                  = task-api-push
 	task-recover                                               = task-api-recover
 	task-reset                                                 = task-api-reset
+	task-result-combinations                                   = task-api-result-combinations(task-collect-result-ids, insert-results-hashmap|<id>)
 	task-setup(|project-path)                                  = task-api-setup(|project-path)
 	task-setup                                                 = task-api-setup(|<id>)
 	task-start-collection(|partition)                          = task-api-start-collection(|partition)
@@ -3313,11 +3341,10 @@ rules // API
 
 rules /** @internal API externals */
 
-	task-api-add-combinator(|partition, dependencies, instruction) = prim(\"task_api_add_combinator\", partition, dependencies, instruction)
 	task-api-add-dependency(|taskID, dependency) = prim(\"task_api_add_dependency\", taskID, dependency)
 	task-api-add-message(|taskID, message) = prim(\"task_api_add_message\", taskID, message)
 	task-api-add-read(|taskID, read) = prim(\"task_api_add_read\", taskID, read)
-	task-api-add-task(|partition, dependencies, instruction) = prim(\"task_api_add_task\", partition, dependencies, instruction)
+	task-api-add-task(|partition, dependencies, instruction, isCombinator, shortCircuit) = prim(\"task_api_add_task\", partition, dependencies, instruction, isCombinator, shortCircuit)
 	task-api-becomes-cyclic(|taskIDFrom, taskIDTo) = prim(\"task_api_becomes_cyclic\", taskIDFrom, taskIDTo)
 	task-api-clear-partition(|partition) = prim(\"task_api_clear_partition\", partition)
 	task-api-debug-info(|partition) = prim(\"task_api_debug_info\", partition)
@@ -3337,6 +3364,7 @@ rules /** @internal API externals */
 	task-api-push = prim(\"task_api_push\")
 	task-api-recover = prim(\"task_api_recover\")
 	task-api-reset = prim(\"task_api_reset\")
+	task-api-result-combinations(collect-results, insert-results|term) = prim(\"task_api_result_combinations\", collect-results, insert-results|term)
 	task-api-setup(|project-path) = prim(\"task_api_setup\", project-path)
 	task-api-start-collection(|partition) = prim(\"task_api_start_collection\", partition)
 	task-api-stop-collection(|partition) = prim(\"task_api_stop_collection\", partition)
@@ -3390,6 +3418,8 @@ strategies
   task-match         = fail
   avoid-task(|dep*)  = fail
   task-is-combinator = fail
+  task-short-circuit = fail
+
 "
 
 	create-task-messages = 
