@@ -1553,6 +1553,7 @@ imports
 	runtime/task/core
 	runtime/task/tasks
 	runtime/types/collect
+	runtime/types/tasks
 
 signature 
 
@@ -1593,7 +1594,7 @@ signature
 	  Wildcard : List(Import) * RefScope * DefScope * List(Dependency) -> ImportDesc
 	  Single   : Term * DefScope * List(Dependency) -> ImportDesc
 	  Imported : Namespace                   -> Namespace
-	  Import   :                                Property
+	  Import   : Namespace                   -> Property
 	  Import   : Language * Namespace        -> Property
 	  Import   : Language * Namespace * Name -> Property
   	Type     : Property
@@ -1794,7 +1795,7 @@ rules // generic analysis of uses
 			namedDefsTask       := <new-task(|partition)> ResolveDefs(namedImportsTask, ns, name);
 			
 			if wildcardimport then 
-				wildcardImportsTask := <new-task(|partition)> ResolveWildcardImports(uri', ns);
+				wildcardImportsTask := <new-task(|partition)> PropLookup(Import(ns), Def(uri));
 				wildcardDefsTask    := [<new-task(|partition)> ResolveDefs(wildcardImportsTask, ns, name)]
 			else
 				wildcardDefsTask := []
@@ -1876,18 +1877,19 @@ rules // generic analysis of imports
   ; alias-uri := <nabl-extend-uri(|segment)> base-uri
     
   nabl-import-prop(|lang, partition, uri*, from, into):
-    Import(lang, ins) -> <new-prop(|partition, into-uri, Import(), (ins, from-uri))>
+    Import(lang, ns) -> <new-prop(|partition, into-uri, Import(ns), from-uri)>
   where
-     Imported(ns) := ins
-  <+ ns           := ins
+     <not(?Imported(_))> ns
   where
     from-uri := <nabl-scope-uri(|lang, uri*, ns)> from 
   ; into-uri := <nabl-scope-uri(|lang, uri*, ns)> into
-    // HACK: Don't add dependencies directly so that the initial dependencies for both tasks are set to [].
-  ; Result(import-calc)    := <new-task(|partition, [])> ImportCalc(into-uri)
-  ; <dependent-tasks; map(task-add-dependency(|import-calc))> from-uri
-  ; Result(import-closure) := <new-task(|partition, [])> ImportClosure(into-uri)
-  ; <task-add-dependency(|import-closure)> import-calc
+    
+  nabl-import-prop(|lang, partition, uri*, from, into):
+    Import(lang, Imported(ns)) -> <new-prop(|partition, into-uri, Import(ns), proplookup)>
+  where
+    from-uri := <nabl-scope-uri(|lang, uri*, ns)> from 
+  ; into-uri := <nabl-scope-uri(|lang, uri*, ns)> into
+  ; proplookup := <new-task(|partition)> PropsLookup(Import(ns), from-uri)
         
   nabl-scope-uri(|lang, uri*, ns):
     Current() -> <lookup-uri(|lang, ns)> uri*
@@ -2281,47 +2283,13 @@ rules // Lookup
 		with
 			language := <nabl-uri-language> uri;
       import*  := <nabl-get-import-uris-named(|language, ns, name)> uri
-			  		
-	nabl-lookup-unnamed-import(|ns):
-		uri -> import*
-		with
-			language := <nabl-uri-language> uri;
-      import*  := <nabl-get-import-uris-unnamed(|language, ns)> uri
 
 rules // Imports
-
-  nabl-get-import-uris-unnamed(|language, namespace):
-  	uri -> <nabl-get-import-uris-unnamed(|[uri], 0, language, namespace)> uri
-
-  nabl-get-import-uris-unnamed(|seen, count, language, namespace):
-    uri -> result
-    with
-      importResult*        := <nabl-get-all-properties(|Import(language, namespace))> uri;
-      importURI*           := <map(task-get-solved; filter(nabl-uri) <+ task-create-dependencies; ![<id>]); concat> importResult*;
-      if d1 := <task-collect-dependencies> importURI* then
-      	result := [d1]
-      else
-	      importedResult*      := <nabl-get-all-properties(|Import(language, Imported(namespace)))> uri;
-	      importedURI*         := <map(task-get-solved; filter(nabl-uri) <+ task-create-dependencies; ![<id>]); concat> importedResult*;
-	      if d2 := <task-collect-dependencies> importedURI* then
-	      	result := [d2]
-	      else
-		      transitiveImportURI* := <filter(nabl-get-import-uris-unnamed-transitive(|seen, count, language, namespace)); concat> importedURI*;
-		      result               := [importURI*, transitiveImportURI*]
-      	end
-    	end
-
-  nabl-get-import-uris-unnamed-transitive(|seen, count, language, namespace):
-    uri -> transitiveImportURI*
-    where
-    	not(<lt> (count, 1));
-      not(<fetch(?uri)> seen);
-      transitiveImportURI* := <nabl-get-import-uris-unnamed(|[uri|seen], <dec> count, language, namespace)> uri
 
   nabl-get-import-uris-named(|language, namespace, name):
     uri -> importURI*
     with
-      importResult* := <nabl-get-all-properties(|Import(language, namespace, name))> uri;
+      importResult* := <nabl-get-all-properties(|Import(language, namespace, name))> uri; // TODO: this now uses aliasses?
       importURI*    := <map(task-get-solved <+ task-create-dependencies; ![<id>]); concat> importResult*
 
 "
@@ -2640,7 +2608,6 @@ signature
     ResolveDefs            : Scope * Namespace * Name                  -> Instruction
     DisambiguateDefs       : List(Def) * List(Prop) * Namespace * Name -> Instruction
     ResolveNamedImports    : Scope * Namespace * Name                  -> Instruction
-    ResolveWildcardImports : Scope * Namespace                         -> Instruction
     ImportCalc             : URI                                       -> Instruction
     ImportClosure          : URI                                       -> Instruction
     PropConstraint         : Kind * Expected * Result                  -> Instruction
@@ -2685,34 +2652,6 @@ rules // Resolve
       	case task-collect-dependencies => d : !d
       	otherwise                           : id
       end => result
-	
-	// Looks up wildcard imports for a namespace active in scopes.
-	perform-task(|nr):
-		ResolveWildcardImports(scope, ns) -> result
-		where
-			uri         := <nabl-uri> scope;
-			import-uri* := <resolve-one-wildcard-import(|nr, ns)> uri;
-      switch id
-      	case ?[]                            : fail
-      	case task-collect-dependencies => d : !d
-      	otherwise                           : id
-      end => result
-			
-	resolve-one-wildcard-import(|nr, ns):
-		uri -> result
-		with
-			<nabl-add-uri-read(|nr)> uri;
-			if task-exists(|ImportClosure(uri)) then
-				import-closure-id := <task-instruction-id> ImportClosure(uri);
-				switch id
-					case task-has-failed                                  : <task-add-dependency-nocycle(|nr)> import-closure-id; ![]
-					case task-get-result; Hd => h                         : <task-add-dependency-nocycle(|nr)> import-closure-id; <hashtable-get(|ns) <+ ![]> h
-					case not(task-becomes-cyclic(|nr, import-closure-id)) : ![<task-create-dependency> import-closure-id]
-					otherwise                                             : ![]
-				end => result
-			else
-				result := []
-			end
 
 rules // Visibility
 	
@@ -2739,58 +2678,6 @@ rules // Visibility
 		with
 			def-task := <new-task(|partition)> ResolveAllDefs(<nabl-use-subtask-uri(|partition)> uri, ns);
       filtered  := <nabl-use-propconstraint(|partition)> (def-task, prop*)
-
-rules // Import calculation
-	
-	// Import calculation.
-	perform-task(|nr):
-		ImportCalc(uri) -> result
-		where
-			<nabl-add-uri-read(|nr)> uri;
-			import-ns-use*        := <nabl-get-all-properties(|Import())> uri;
-			(imported-uri*, uri*) := <partition(resolve-transitive-import, resolve-import)> import-ns-use*;
-  		switch id
-        case d := <task-collect-dependencies> : !d
-        otherwise                             : id
-			end => result
-
-	resolve-transitive-import: (Imported(ns), use) -> (ns, <resolve-import-use> use)
-	resolve-import: (ns, use) -> (ns, <resolve-import-use> use)
-	resolve-import-use = task-get-solved; filter(nabl-uri) <+ task-create-dependencies
-	
-	// Import transitive closure calculation.
-	perform-task(|nr):
-		ImportClosure(uri) -> result
-		with
-			<nabl-add-uri-read(|nr)> uri;
-			import-calc-id        := <task-instruction-id> ImportCalc(uri);
-			(imported-uri*, uri*) := <task-get-result; Hd> import-calc-id; // Result for this task must exit, as a dependency is expressed on it during collect.
-			hashtable             := <new-hashtable>;
-			<map(import-to-hash-table(|hashtable))> uri*;
-			d* := <collect-all(?URI(_, _)); mapconcat(import-closure-transitive(|nr, hashtable))> imported-uri*;
-			switch id
-				case task-collect-dependencies => d : !d
-				otherwise                           : !hashtable
-			end => result
-			
-	import-to-hash-table(|hashtable):
-		(ns, import-uri*) -> <hash-multimap-putlist(|ns, import-uri*)> hashtable
-		
-	import-closure-transitive(|nr, hashtable):
-		uri	-> result
-		with
-			<nabl-add-uri-read(|nr)> uri;
-			if task-exists(|ImportClosure(uri)) then
-				import-closure-id := <task-instruction-id> ImportClosure(uri);
-				switch id
-					case task-has-failed                                  : <task-add-dependency-nocycle(|nr)> import-closure-id; ![]
-					case task-get-result; Hd => h                         : <task-add-dependency-nocycle(|nr)> import-closure-id; <hash-multimap-copy(|h)> hashtable; ![]
-					case not(task-becomes-cyclic(|nr, import-closure-id)) : ![<id>]
-					otherwise                                             : ![]
-				end => result
-			else
-				result := []
-			end
 
 rules // Property constraint
 	
@@ -3573,6 +3460,13 @@ signature
     Failure  : MessageTrigger // No results
     Success  : MessageTrigger // At least one result
     Multiple : MessageTrigger // More than one result
+
+rules
+	
+	perform-cyclic-task(|nr) = fail
+	
+	perform-task(|nr):
+		(instruction, \"cyclic\") -> <perform-cyclic-task(|nr) <+ perform-task(|nr)> instruction
 	
 rules
 	
@@ -3842,9 +3736,10 @@ signature
   
   constructors
 
-    PropLookup : Property * Term -> Instruction
-    PropCalc   : Term            -> Instruction
-    PropCheck  : Term * Term     -> Instruction
+    PropLookup  : Property * Term -> Instruction
+    PropsLookup : Property * Term -> Instruction
+    PropCalc    : Term            -> Instruction
+    PropCheck   : Term * Term     -> Instruction
 
 rules
   
@@ -3859,6 +3754,36 @@ rules
       	case task-collect-dependencies => d : !d
       	otherwise                           : id
       end => result
+      
+  perform-cyclic-task(|n): 
+  	PropLookup(kind, t) -> prop
+  	where
+  		resolved := <nabl-collect-one-resolved-def> t;
+  		uri      := <nabl-uri> resolved;
+  		<nabl-add-uri-read(|n)> uri;
+  		prop     := <nabl-get-property(|kind); insert-results> uri
+
+  		
+  perform-task(|n): 
+  	PropsLookup(kind, t) -> result
+  	where
+  		resolved := <nabl-collect-one-resolved-def> t;
+  		uri      := <nabl-uri> resolved;
+  		<nabl-add-uri-read(|n)> uri;
+  		prop     := <nabl-get-all-properties(|kind); insert-results-or-create-dependency; flatten-list; make-set> uri;
+      switch id
+      	case task-collect-dependencies => d : !d
+      	otherwise                           : id
+      end => result
+      
+  perform-cyclic-task(|n): 
+  	PropsLookup(kind, t) -> prop
+  	where
+  		resolved := <nabl-collect-one-resolved-def> t;
+  		uri      := <nabl-uri> resolved;
+  		<nabl-add-uri-read(|n)> uri;
+  		prop     := <nabl-get-all-properties(|kind); filter(insert-results); flatten-list; make-set> uri
+
   
   avoid-task(|dep*):
     PropCalc(_) -> <perform-task(|0)> 
