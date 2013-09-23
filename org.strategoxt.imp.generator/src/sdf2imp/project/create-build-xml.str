@@ -55,16 +55,8 @@ strategies
         </condition>
         <property name="build.strategoxt.stratego" location="${user.home}/.nix-profile/bin"/>
     		
-    	<!-- used for building inside of Eclipse -->
+        <!-- used for building inside of Eclipse -->
         <import file="build.generated.xml"/>   
-
-	    <!-- The files for which the on-save handler is called before building. -->
-	    <path id="call-onsave.files">
-	        <fileset dir=".">
-	            <include name="**/*.tmpl" />
-	            <include name="**/*.nab" />
-	        </fileset>
-	    </path>
     
         <!-- Main target -->
         <target name="all" depends="spoofaximp.default.ctree"/>
@@ -174,6 +166,7 @@ $[<?xml version="1.0" encoding="UTF-8"?>
 	<path id="call-onsave.files">
 		<fileset dir=".">
 			<include name="**/*.tmpl" />
+			<include name="**/*.sdf3" />
 			<include name="**/*.nab" />
 		</fileset>
 	</path>
