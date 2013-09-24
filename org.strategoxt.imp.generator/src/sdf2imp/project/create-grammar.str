@@ -11,53 +11,56 @@ strategies
     create-grammar-sig
   
   create-grammar-main =
-    <file-exists> <conc-strings> ("syntax/", <get-sdf-main-module>, ".sdf")
+    <file-exists> <conc-strings> ("syntax/", <get-sdf-main-module>, ".sdf3")
   <+
     name        := <get-sdf-main-module>;
     startsymbol := <StartSymbol>;
-    <output-text-file(|["syntax"], <conc-strings> (name, ".sdf"))>
+    <output-text-file(|["syntax"], <conc-strings> (name, ".sdf3"))>
     <(GenerateMinimal
     	<
 !$[module [name]
 
-imports Common
+imports
+	
+	Common
 
-exports
-
-  context-free start-symbols
+context-free start-symbols
   
-    [startsymbol]
+  [startsymbol]
 
-  context-free syntax
+templates
   
-    -> Start {"Dummy"}
+  [startsymbol].Dummy = <>
+
 ]
     	+
-!$[%% Grammar for the [name] language
-%% By default, based on an example "entities" syntax
+!$[// Grammar for the [name] language
+// By default, based on an example "entity language" syntax
+
 module [name]
 
-imports Common
+imports 
 
-exports
+	Common
 
-  context-free start-symbols
-  
-    [startsymbol]
+context-free start-symbols
 
-  context-free syntax
-  
-    "module" ID Definition*       -> Start {"Module"}
-    "entity" ID "{" Property* "}" -> Definition {"Entity"}
-    ID ":" Type                   -> Property {"Property"}
-    ID                            -> Type {"Type"}
+	[startsymbol]
+
+templates
+
+	[startsymbol].Module      = <module <ID> <Definition*; separator="\n">>
+	Definition.Entity = <entity <ID> {<Property*; separator="\n">}>
+	Property.Property = <<ID> : <Type>>
+	Type.Type         = <<ID>>
+
 ]
     )>
   
   create-grammar-common =
-    <file-exists> <conc-strings> ("syntax/Common.sdf")
+    <file-exists> <conc-strings> ("syntax/Common.sdf3")
   <+
-    <output-text-file(|["syntax"], "Common.sdf")>
+    <output-text-file(|["syntax"], "Common.sdf3")>
 // TODO: FLOAT
 
 // MAYBE: unicode ID: 
@@ -65,50 +68,49 @@ exports
 
 ${module Common
 
-exports
+lexical syntax
 
-  lexical syntax
-  
-    [a-zA-Z][a-zA-Z0-9]* -> ID
-    "-"? [0-9]+          -> INT
-    
-    "\"" StringChar* "\"" -> STRING
-    ~[\"\n]               -> StringChar
-    "\\\""                -> StringChar
-    BackSlashChar         -> StringChar
-    "\\"                  -> BackSlashChar
-    
-    [\ \t\n\r] -> LAYOUT
-    
-    [\*]                             -> CommentChar
-    "/*" (~[\*] | CommentChar)* "*/" -> LAYOUT
-    "//" ~[\n\r]* ([\n\r] | EOF)     -> LAYOUT
-    
-    -> EOF
-  
-  lexical restrictions
-  
-    %% Ensure greedy matching for lexicals
-  
-    CommentChar   -/- [\/]
-    INT           -/- [0-9]
-    ID            -/- [a-zA-Z0-9\_]
-    
-    %% EOF may not be followed by any char
-    
-    EOF           -/- ~[]
+	[a-zA-Z][a-zA-Z0-9]* -> ID
+	"-"? [0-9]+          -> INT
+	
+	"\"" StringChar* "\"" -> STRING
+	~[\"\n]               -> StringChar
+	"\\\""                -> StringChar
+	BackSlashChar         -> StringChar
+	"\\"                  -> BackSlashChar
+	
+	[\ \t\n\r] -> LAYOUT
+	
+	[\*]                             -> CommentChar
+	"/*" (~[\*] | CommentChar)* "*/" -> LAYOUT
+	"//" ~[\n\r]* ([\n\r] | EOF)     -> LAYOUT
+	
+	-> EOF
 
-    %% Backslash chars in strings may not be followed by " 
-    
-    BackSlashChar -/- [\"]
+lexical restrictions
 
-  context-free restrictions
-  
-    %% Ensure greedy matching for comments
+	// Ensure greedy matching for lexicals
+	
+	CommentChar   -/- [\/]
+	INT           -/- [0-9]
+	ID            -/- [a-zA-Z0-9\_]
+	
+	// EOF may not be followed by any char
+	
+	EOF           -/- ~[]
+	
+	// Backslash chars in strings may not be followed by " 
+	
+	BackSlashChar -/- [\"]
 
-    LAYOUT? -/- [\ \t\n\r]
-    LAYOUT? -/- [\/].[\/]
-    LAYOUT? -/- [\/].[\*]
+context-free restrictions
+
+	// Ensure greedy matching for comments
+	
+	LAYOUT? -/- [\ \t\n\r]
+	LAYOUT? -/- [\/].[\/]
+	LAYOUT? -/- [\/].[\*]
+
 }
   
   create-grammar-sig =
