@@ -19,6 +19,7 @@ import org.eclipse.jface.text.DocumentEvent;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.IOnSaveService;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
@@ -52,10 +53,12 @@ public class OnSaveService implements IOnSaveService {
 	public void documentChanged(DocumentEvent event) {
 		if (function == null) return;
 		
-		//String contents = event.getDocument().get();
-
-		IStrategoTerm ast = editor.getCurrentAst();
-		invokeOnSave(ast);
+		try {
+			final IStrategoTerm ast = editor.getAnalyzedAst();
+			invokeOnSave(ast);
+		} catch(BadDescriptorException e) {
+			Environment.logException("Could not call on-save handler", e);
+		}
 	}
 
 	public void invokeOnSave(IStrategoTerm ast) {
