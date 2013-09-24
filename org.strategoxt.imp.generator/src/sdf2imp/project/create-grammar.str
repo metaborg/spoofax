@@ -7,7 +7,9 @@ strategies
 
   create-grammar =
     create-grammar-main;
+    create-grammar-main-derived;
     create-grammar-common;
+    create-grammar-common-derived;
     create-grammar-sig
   
   create-grammar-main =
@@ -56,6 +58,53 @@ templates
 
 ]
     )>
+
+
+  create-grammar-main-derived =
+    <file-exists> <conc-strings> ("syntax/", <get-sdf-main-module>, ".sdf")
+  <+
+    name        := <get-sdf-main-module>;
+    startsymbol := <StartSymbol>;
+    <output-text-file(|["syntax"], <conc-strings> (name, ".sdf"))>
+    <(GenerateMinimal
+    	<
+!$[module [name]
+imports Common
+
+exports
+  context-free start-symbols
+    [startsymbol]
+
+  context-free syntax
+     -> [startsymbol] {cons("Dummy")}
+
+  context-free syntax
+    CONTENTCOMPLETE -> [startsymbol] {cons("COMPLETION-[startsymbol]")}
+
+]
+    	+
+!$[module [name]
+imports Common
+
+exports
+  context-free start-symbols
+    [startsymbol]
+
+  context-free syntax
+    "module" ID Definition*       -> [startsymbol]      {cons("Module")}
+    "entity" ID "{" Property* "}" -> Definition {cons("Entity")}
+    ID ":" Type                   -> Property   {cons("Property")}
+    ID                            -> Type       {cons("Type")}
+
+  context-free syntax
+    CONTENTCOMPLETE -> [startsymbol]      {cons("COMPLETION-[startsymbol]")}
+    CONTENTCOMPLETE -> Definition {cons("COMPLETION-Definition")}
+    CONTENTCOMPLETE -> Property   {cons("COMPLETION-Property")}
+    CONTENTCOMPLETE -> Type       {cons("COMPLETION-Type")}
+
+]
+    )>
+
   
   create-grammar-common =
     <file-exists> <conc-strings> ("syntax/Common.sdf3")
@@ -110,6 +159,45 @@ context-free restrictions
 	LAYOUT? -/- [\ \t\n\r]
 	LAYOUT? -/- [\/].[\/]
 	LAYOUT? -/- [\/].[\*]
+
+}
+
+  create-grammar-common-derived =
+    <file-exists> <conc-strings> ("syntax/Common.sdf")
+  <+
+    <output-text-file(|["syntax"], "Common.sdf")>
+// TODO: FLOAT
+
+// MAYBE: unicode ID: 
+//   [a-zA-Z\192-\252\255][a-zA-Z0-9\_\192-\252\254\255]* -> UID
+
+${module Common
+exports
+  lexical syntax
+    [a-zA-Z] [a-zA-Z0-9]*              -> ID            
+    "-"? [0-9]+                        -> INT           
+    "\"" StringChar* "\""              -> STRING        
+    ~[\"\n]                            -> StringChar    
+    "\\\""                             -> StringChar    
+    BackSlashChar                      -> StringChar    
+    "\\"                               -> BackSlashChar 
+    [\ \t\n\r]                         -> LAYOUT        
+    [\*]                               -> CommentChar   
+    "/*" ( ~[\*] | CommentChar )* "*/" -> LAYOUT        
+    "//" ~[\n\r]* [\n\r] | EOF         -> LAYOUT        
+                                       -> EOF           
+
+  lexical restrictions
+    CommentChar -/- [\/]
+    INT -/- [0-9]
+    ID -/- [a-zA-Z0-9\_]
+    EOF -/- ~[]
+    BackSlashChar -/- [\"]
+
+  context-free restrictions
+    LAYOUT? -/- [\ \t\n\r]
+    LAYOUT? -/- [\/] . [\/]
+    LAYOUT? -/- [\/] . [\*]
 
 }
   
