@@ -210,7 +210,7 @@ public class NewEditorWizard extends Wizard implements INewWizard {
 
 		monitor.setTaskName("Opening editor tabs");
 		Display display = getShell().getDisplay();
-		EditorState.asyncOpenEditor(display, project.getFile("/syntax/" + languageName +  ".sdf"), true);
+		EditorState.asyncOpenEditor(display, project.getFile("/syntax/" + languageName +  ".sdf3"), true);
 		monitor.worked(1);
 		EditorState.asyncOpenEditor(display, project.getFile("/trans/names.nab"), true);
 		monitor.worked(1);
