@@ -183,7 +183,7 @@ rules
       task-setup(|project-path);
     	partition  := $[[project-path]/[path]];
       result-ast := <task-debug-info(|partition)>;
-      if result-task := <foreign-call(|\"Task\", \"from-task-debug\")> result-ast then
+      if result-task := <foreign-call(|\"Analysis\", \"from-task-debug\")> result-ast then
       	filename := <guarantee-extension(|\"partition.task\")> path;
       	result   := result-task
       else
@@ -197,7 +197,7 @@ rules
       task-setup(|project-path);
     	partition  := $[[project-path]/[path]];
       result-ast := <task-debug-ast> selected;
-      if result-task := <foreign-call(|\"Task\", \"from-task-debug\")> result-ast then
+      if result-task := <foreign-call(|\"Analysis\", \"from-task-debug\")> result-ast then
       	filename := <guarantee-extension(|\"selection.task\")> path;
       	result   := result-task
       else
