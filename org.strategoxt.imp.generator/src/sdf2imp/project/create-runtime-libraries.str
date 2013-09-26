@@ -1795,7 +1795,7 @@ rules // generic analysis of uses
 			namedDefsTask       := <new-task(|partition)> ResolveDefs(namedImportsTask, ns, name);
 			
 			if wildcardimport then 
-				wildcardImportsTask := <new-task(|partition)> PropLookup(Import(ns), Def(uri));
+				wildcardImportsTask := <new-task(|partition)> PropsLookup(Import(ns), Def(uri));
 				wildcardDefsTask    := [<new-task(|partition)> ResolveDefs(wildcardImportsTask, ns, name)]
 			else
 				wildcardDefsTask := []
