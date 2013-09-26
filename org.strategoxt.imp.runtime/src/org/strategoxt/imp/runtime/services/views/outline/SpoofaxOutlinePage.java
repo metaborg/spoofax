@@ -30,7 +30,7 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 
 	private final IParseController parseController;
 	private boolean debounceSelectionChanged;
-	private Object outline;
+	private IStrategoTerm outline;
 
 	public SpoofaxOutlinePage(IParseController parseController) {
 		this.parseController = parseController;
@@ -82,10 +82,14 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 	}
 	
 	public void update() {
-		final Object outline = SpoofaxOutlineUtil.getOutline(parseController);
-		this.outline = outline;
-		final int outline_expand_to_level = SpoofaxOutlineUtil.getOutline_expand_to_level(parseController);
-						
+		outline = SpoofaxOutlineUtil.getOutline(parseController);
+		final int outline_expand_to_level = SpoofaxOutlineUtil.getOutline_expand_to_level(parseController, outline);
+		
+		// workaround for https://bugs.eclipse.org/9262
+		if (outline.getTermType() == IStrategoTerm.APPL) {
+			outline = SpoofaxOutlineUtil.factory.makeList(outline);
+		}
+		
 		Display.getDefault().asyncExec(new Runnable() {
 			public void run() {
 				getTreeViewer().setInput(outline);

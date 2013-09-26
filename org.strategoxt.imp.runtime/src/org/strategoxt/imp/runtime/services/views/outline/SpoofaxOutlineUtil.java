@@ -20,9 +20,9 @@ public class SpoofaxOutlineUtil {
 	public final static String OUTLINE_EXPAND_TO_LEVEL = "outline-expand-to-level";
 	public final static int DEFAULT_OUTLINE_EXPAND_TO_LEVEL = 3;
 	
-	private static ImploderOriginTermFactory factory = new ImploderOriginTermFactory(new TermFactory());
+	public static ImploderOriginTermFactory factory = new ImploderOriginTermFactory(new TermFactory());
 
-	public static Object getOutline(IParseController parseController) {
+	public static IStrategoTerm getOutline(IParseController parseController) {
 		EditorState editorState = EditorState.getEditorFor(parseController);
 		StrategoObserver observer = getObserver(editorState);
 		observer.getLock().lock();
@@ -42,11 +42,6 @@ public class SpoofaxOutlineUtil {
 				return messageToOutlineNode("Strategy '" + OUTLINE_STRATEGY + "' failed.");
 			}
 			
-			// workaround for https://bugs.eclipse.org/9262
-			if (outline.getTermType() == IStrategoTerm.APPL) {
-				outline = factory.makeList(outline);
-			}
-			
 			// ensure propagation of origin information
 			factory.makeLink(outline, editorState.getCurrentAst());
 			
@@ -62,13 +57,13 @@ public class SpoofaxOutlineUtil {
 		return factory.makeAppl(factory.makeConstructor("Node", 2), factory.makeString(message), factory.makeList());
 	}
 	
-	public static int getOutline_expand_to_level(IParseController parseController) {
+	public static int getOutline_expand_to_level(IParseController parseController, IStrategoTerm outline) {
 		EditorState editorState = EditorState.getEditorFor(parseController);
 		StrategoObserver observer = getObserver(editorState);
 		observer.getLock().lock();
 		try {
 			if (observer.getRuntime().lookupUncifiedSVar(OUTLINE_EXPAND_TO_LEVEL) != null) {
-				IStrategoTerm outline_expand_to_level = observer.invokeSilent(OUTLINE_EXPAND_TO_LEVEL, editorState.getCurrentAst(), editorState.getResource().getFullPath().toFile());
+				IStrategoTerm outline_expand_to_level = observer.invokeSilent(OUTLINE_EXPAND_TO_LEVEL, outline, editorState.getResource().getFullPath().toFile());
 				if (outline_expand_to_level == null) {
 					Environment.logException(OUTLINE_EXPAND_TO_LEVEL + " failed.");
 				}
