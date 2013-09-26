@@ -49,7 +49,7 @@ public class SpoofaxOutlinePopup extends FilteringInfoPopup {
 	protected void handleElementSelected(Object selectedElement) {
 		if (selectedElement != null) {
 			SpoofaxOutlineUtil.selectCorrespondingText(selectedElement, parseController);
-			setMatcherString("", true);
+			setMatcherString("", false);
 		}
 	}
 
