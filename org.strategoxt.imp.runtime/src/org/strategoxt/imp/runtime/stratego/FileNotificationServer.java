@@ -2,6 +2,7 @@ package org.strategoxt.imp.runtime.stratego;
 
 import static org.eclipse.core.resources.IResourceChangeEvent.POST_CHANGE;
 import static org.eclipse.core.resources.IResourceChangeEvent.PRE_CLOSE;
+import static org.eclipse.core.resources.IResourceChangeEvent.PRE_DELETE;
 import static org.eclipse.core.resources.IResourceDelta.ADDED;
 import static org.eclipse.core.resources.IResourceDelta.CHANGED;
 import static org.eclipse.core.resources.IResourceDelta.CONTENT;
@@ -28,15 +29,13 @@ import org.spoofax.interpreter.library.index.notification.NotificationCenter;
 import org.strategoxt.imp.runtime.Environment;
 
 /**
- * Sends Eclipse resource change notifications
- * to the Spoofax {@link NotificationCenter}.
+ * Sends Eclipse resource change notifications to the Spoofax {@link NotificationCenter}.
  * 
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class FileNotificationServer implements IResourceChangeListener {
-	
-	private boolean projectClosed = false;
-	
+	private boolean projectClosing = false;
+
 	private FileNotificationServer() {
 		// Use the statics
 	}
@@ -50,14 +49,16 @@ public class FileNotificationServer implements IResourceChangeListener {
 
 	public void resourceChanged(IResourceChangeEvent event) {
 		switch(event.getType()) {
-			case POST_CHANGE:
-				if(!projectClosed)
-					postResourceChanged(event.getDelta());
-				projectClosed = false;
-				break;
 			case PRE_CLOSE:
-				projectClosed = true;
+			case PRE_DELETE:
+				projectClosing = true;
 				break;
+			case POST_CHANGE: {
+				if(!projectClosing)
+					postResourceChanged(event.getDelta());
+				projectClosing = false;
+				break;
+			}
 		}
 	}
 
@@ -67,34 +68,35 @@ public class FileNotificationServer implements IResourceChangeListener {
 
 			delta.accept(new IResourceDeltaVisitor() {
 				public boolean visit(IResourceDelta delta) throws CoreException {
+					if((delta.getFlags() & IResourceDelta.OPEN) == IResourceDelta.OPEN) {
+						return false;
+					}
+					
 					IResource resource = delta.getResource();
-					if (isSignificantChange(delta)
-							&& !isIgnoredChange(resource)
-							&& resource.getLocation() != null
-							&& LanguageRegistry.findLanguage(resource.getLocation(), null) != null) {
+					if(isSignificantChange(delta) && !isIgnoredChange(resource) && resource.getLocation() != null
+						&& LanguageRegistry.findLanguage(resource.getLocation(), null) != null) {
 						changedFiles.add(new FilePartition(resource.getLocationURI(), null));
 					}
 					return true;
 				}
 			});
-			
+
 			if(changedFiles.size() > 0)
 				NotificationCenter.notifyFileChanges(changedFiles.toArray(new FilePartition[0]), false);
-		} catch (CoreException e) {
+		} catch(CoreException e) {
 			Environment.logException("Exception when processing fileystem events", e);
 		}
 	}
 
 	public static boolean isSignificantChange(IResourceDelta delta) {
-		switch (delta.getKind()) {
-			case ADDED: case REMOVED:
+		switch(delta.getKind()) {
+			case ADDED:
+			case REMOVED:
 				return true;
 			case CHANGED:
-				int flags = delta.getFlags();
-				return (flags & CONTENT) == CONTENT
-						|| (flags & MOVED_TO) == MOVED_TO
-						|| (flags & MOVED_FROM) == MOVED_FROM
-						|| (flags & REPLACED) == REPLACED;
+				final int flags = delta.getFlags();
+				return (flags & CONTENT) == CONTENT || (flags & MOVED_TO) == MOVED_TO
+					|| (flags & MOVED_FROM) == MOVED_FROM || (flags & REPLACED) == REPLACED;
 			case NO_CHANGE:
 				return false;
 			default:
@@ -102,14 +104,13 @@ public class FileNotificationServer implements IResourceChangeListener {
 				return false;
 		}
 	}
-	
+
 	private static boolean isIgnoredChange(IResource resource) {
 		IPath path = resource.getProjectRelativePath();
-		if (path.segmentCount() > 1) {
+		if(path.segmentCount() > 1) {
 			String base = path.segment(0);
-			if (".cache".equals(base) || ".shadowdir".equals(base)
-					|| "include".equals(base) || "bin".equals(base)
-					|| ".spxcache".equals(base) || "__MACOS_X".equals(base))
+			if(".cache".equals(base) || ".shadowdir".equals(base) || "include".equals(base) || "bin".equals(base)
+				|| ".spxcache".equals(base) || "__MACOS_X".equals(base))
 				return true;
 		}
 		return false;
