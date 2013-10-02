@@ -91,7 +91,7 @@ ${module {sdf-name}-Outliner.generated
   rtg-prod-to-outline-rule(|sname): 
     prod -> result
       where
-        'sorts := <get-refs> prod;
+        'sorts := <get-sorts> prod;
         index := <get-index0(heuristic-sort-is-identifier)> 'sorts;
         pattern-before := <copy> (index, "_");
         pattern-after := <copy> (<subt> (<length; dec> 'sorts, index), "_");
@@ -101,9 +101,9 @@ ${module {sdf-name}-Outliner.generated
   rtg-prod-to-outline-rule(|sname):
     prod -> result
       where
-        'sorts := <get-refs> prod;
+        'sorts := <get-sorts> prod;
         not ( <get-index0(heuristic-sort-is-identifier)> 'sorts );
         pattern := <separate-by(!", ")> <copy> (<length> 'sorts, "_");
         result := <flatten-list; concat-strings> [sname, " = ?", <constructor-name; collect-one(is-string)> prod, "(", pattern, "); origin-text-at-start"]
 
-  get-refs = ?ProdRule(_, [Appl(_, <id>)]) <+ ?ProdRule(_, <id>)
+  get-sorts = (?ProdRule(_, [Appl(_, <id>)]) <+ ?ProdRule(_, <id>)); map(?Ref(Nonterm(/*Plain*/(<id>))))
