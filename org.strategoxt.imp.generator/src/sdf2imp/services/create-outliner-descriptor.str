@@ -101,7 +101,7 @@ ${module {sdf-name}-Outliner.generated
   rtg-prod-to-outline-rule(|sname):
     prod -> result
       where
-        'sorts := <heuristic-child-sorts> prod;
+        'sorts := <get-refs> prod;
         not ( <get-index0(heuristic-sort-is-identifier)> 'sorts );
         pattern := <separate-by(!", ")> <copy> (<length> 'sorts, "_");
         result := <flatten-list; concat-strings> [sname, " = ?", <constructor-name; collect-one(is-string)> prod, "(", pattern, "); origin-text-at-start"]
