@@ -89,14 +89,13 @@ ${module {sdf-name}-Outliner.generated
     })
   
   rtg-prod-to-outline-rule(|sname): 
-    prod -> result
+    p@ProdRule(Nonterm(/*Plain*/(sort)), [Appl(_, 'sorts)]) -> result
       where
-        'sorts := <heuristic-child-sorts> prod;
         index := <get-index0(heuristic-sort-is-identifier)> 'sorts;
         pattern-before := <copy> (index, "_");
         pattern-after := <copy> (<subt> (<length; dec> 'sorts, index), "_");
         pattern := <flatten-list; separate-by(!", ")> [pattern-before, "<id>", pattern-after];
-        result := <flatten-list; concat-strings> [sname, " = ?", <constructor-name; collect-one(is-string)> prod, "(", pattern, ")"]
+        result := <flatten-list; concat-strings> [sname, " = ?", <constructor-name; collect-one(is-string)> p, "(", pattern, ")"]
 
   rtg-prod-to-outline-rule(|sname):
     prod -> result
