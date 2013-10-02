@@ -152,25 +152,25 @@ strategies
     create-example-file;
     create-common-trans;
     
-    create-index-library;
-    create-analysis-library;
-    create-analysis-internal-library;
-    create-compilation-library;
-    create-nbl-library;
+    // create-index-library;
+    // create-analysis-library;
+    // create-analysis-internal-library;
+    // create-compilation-library;
+    // create-nbl-library;
+    
+    // create-behavior-preservation;
+    // create-namebinding-preservation;
+    // create-correctness-preservation;
+    // create-analysis-multifile;
+    // create-refactoring-files;
+    // create-rename-refactoring;
+    // create-binding-violations;
+    // create-data-flow-analysis;
+    // create-extract-refactoring;
+    // create-fetch-positions;
+    // create-list-operations;
     
     create-all-runtime-libraries;
-    
-    create-behavior-preservation;
-    create-namebinding-preservation;
-    create-correctness-preservation;
-    create-analysis-multifile;
-    create-refactoring-files;
-    create-rename-refactoring;
-    create-binding-violations;
-    create-data-flow-analysis;
-    create-extract-refactoring;
-    create-fetch-positions;
-    create-list-operations;
     
     copy-jars;
     copy-def-file;
