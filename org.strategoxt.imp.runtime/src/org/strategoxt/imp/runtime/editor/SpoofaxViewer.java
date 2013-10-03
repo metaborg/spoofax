@@ -202,12 +202,16 @@ public class SpoofaxViewer extends ProjectionViewer {
 
                 if (linesAllHaveCommentPrefix) {
                 	// remove the comment prefix from each line, wherever it occurs in the line
-                	int offset= lineStart;
-                    while (Character.isWhitespace(doc.getChar(offset)) && offset < lineEnd) {
-                        offset++;
+                	int startOffset = lineStart;
+                    while (Character.isWhitespace(doc.getChar(startOffset)) && startOffset < lineEnd) {
+                        startOffset++;
+                    }
+                    int endOffset = startOffset + lineCommentPrefix.length();
+                    if (Character.isWhitespace(doc.getChar(endOffset)) && endOffset < lineEnd) {
+                    	endOffset++;
                     }
                     // The first non-whitespace characters *must* be the single-line comment prefix
-                    doc.replace(offset, lineCommentPrefix.length() + 1, "");
+                    doc.replace(startOffset, endOffset-startOffset, "");
                 } else {
                 	// add the comment prefix to each line, after however many spaces leadingSpaceToAdd indicates
                 	int offset= lineStart + leadingSpaceToUse;
