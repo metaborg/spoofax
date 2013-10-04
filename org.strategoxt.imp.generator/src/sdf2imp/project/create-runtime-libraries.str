@@ -182,7 +182,7 @@ rules // Index
     with
       index-setup(|language, project-path);
     	partition  := $[[project-path]/[path]];
-      result-ast := <index-get-all-in-partition> partition;
+      result-ast := [(partition, <index-get-all-in-partition> partition)];
       if result-index := <foreign-call(|\"Analysis\", \"from-index-debug-str\")> result-ast then
       	filename := <guarantee-extension(|\"partition.index\")> path;
       	result   := result-index
@@ -248,10 +248,10 @@ rules // Index & task engine
       index-debug := <index-get-all-partitions; map(\\f -> (f, <index-get-all-in-partition> f)\\)>;
       result-ast  := (task-debug, index-debug);
       if result-analysis := <foreign-call(|\"Analysis\", \"from-debug-str\")> result-ast then
-      	filename := <guarantee-extension(|\"project.analysis\")> path;
+      	filename := $[[project-path]/[<dirname> path]/project.analysis];
       	result   := result-analysis
       else
-      	filename := <guarantee-extension(|\"project.aterm\")> path;
+      	filename := $[[project-path]/[<dirname> path]/analysis.project.aterm];
       	result   := result-ast
     	end
     	
@@ -262,7 +262,7 @@ rules // Index & task engine
       task-setup(|project-path);
       partition   := $[[project-path]/[path]];
       task-debug  := <task-debug-info(|partition)>;
-      index-debug := (partition, <index-get-all-in-partition> partition);
+      index-debug := [(partition, <index-get-all-in-partition> partition)];
       result-ast  := (task-debug, index-debug);
       if result-analysis := <foreign-call(|\"Analysis\", \"from-debug-str\")> result-ast then
       	filename := <guarantee-extension(|\"partition.analysis\")> path;
