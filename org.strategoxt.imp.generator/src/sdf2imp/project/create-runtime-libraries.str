@@ -159,51 +159,120 @@ imports
 	runtime/task/debug
 	runtime/editor/interop
 
-rules
-	
-  analysis-debug-show-current-partition(|language):
+rules // Index
+	 
+	analysis-debug-show-all-partitions(|language) = analysis-debug-index-project(|language)
+	analysis-debug-show-current-partition(|language) = analysis-debug-index-partition(|language)
+	 
+  analysis-debug-index-project(|language):
     (_, _, _, path, project-path) -> (filename, result)
     with
-    	partition := $[[project-path]/[path]];
       index-setup(|language, project-path);
-      filename := <guarantee-extension(|\"index.current.aterm\")> path;
-      result   := <index-get-all-in-partition> partition
-      
-  analysis-debug-show-all-partitions(|language):
+      result-ast := <index-get-all-partitions; map(\\f -> (f, <index-get-all-in-partition> f)\\)>;
+      if result-index := <foreign-call(|\"Analysis\", \"from-index-debug-str\")> result-ast then
+      	filename := $[[project-path]/[<dirname> path]/project.index];
+      	result   := result-index
+      else
+      	filename := $[[project-path]/[<dirname> path]/index.project.aterm];
+      	result   := result-ast
+    	end
+	 
+  analysis-debug-index-partition(|language):
     (_, _, _, path, project-path) -> (filename, result)
     with
-    	partition := $[[project-path]/[path]];
       index-setup(|language, project-path);
-      filename := <guarantee-extension(|\"index.all.aterm\")> path;
-      result   := <index-get-all-partitions; map(\\filename -> (filename, <index-get-all-in-partition> filename)\\)>
+    	partition  := $[[project-path]/[path]];
+      result-ast := <index-get-all-in-partition> partition;
+      if result-index := <foreign-call(|\"Analysis\", \"from-index-debug-str\")> result-ast then
+      	filename := <guarantee-extension(|\"partition.index\")> path;
+      	result   := result-index
+      else
+      	filename := <guarantee-extension(|\"index.partition.aterm\")> path;
+      	result   := result-ast
+    	end
+  
+rules // Task engine    
       
-  analysis-debug-show-tasks(|language):
+  analysis-debug-show-tasks(|language) = analysis-debug-task-partition(|language)
+  analysis-debug-show-tasks-selection(|language) = analysis-debug-task-selection(|language)
+
+  analysis-debug-task-project(|language):
+    (_, _, _, path, project-path) -> (filename, result)
+    with
+      task-setup(|project-path);
+      result-ast := <task-debug-info(|())>;
+      if result-task := <foreign-call(|\"Analysis\", \"from-task-debug-str\")> result-ast then
+      	filename := $[[project-path]/[<dirname> path]/project.task];
+      	result   := result-task
+      else
+      	filename := $[[project-path]/[<dirname> path]/task.project.aterm];
+      	result   := result-ast
+    	end
+      
+  analysis-debug-task-partition(|language):
     (_, _, _, path, project-path) -> (filename, result)
     with
       task-setup(|project-path);
     	partition  := $[[project-path]/[path]];
       result-ast := <task-debug-info(|partition)>;
-      if result-task := <foreign-call(|\"Analysis\", \"from-task-debug\")> result-ast then
+      if result-task := <foreign-call(|\"Analysis\", \"from-task-debug-str\")> result-ast then
       	filename := <guarantee-extension(|\"partition.task\")> path;
       	result   := result-task
       else
-      	filename := <guarantee-extension(|\"partition.aterm\")> path;
+      	filename := <guarantee-extension(|\"task.partition.aterm\")> path;
       	result   := result-ast
     	end
       
-  analysis-debug-show-tasks-selection(|language):
+  analysis-debug-task-selection(|language):
     (selected, _, _, path, project-path) -> (filename, result)
     with
       task-setup(|project-path);
     	partition  := $[[project-path]/[path]];
       result-ast := <task-debug-ast> selected;
-      if result-task := <foreign-call(|\"Analysis\", \"from-task-debug\")> result-ast then
+      if result-task := <foreign-call(|\"Analysis\", \"from-task-debug-str\")> result-ast then
       	filename := <guarantee-extension(|\"selection.task\")> path;
       	result   := result-task
       else
-      	filename := <guarantee-extension(|\"selection.aterm\")> path;
+      	filename := <guarantee-extension(|\"task.selection.aterm\")> path;
       	result   := result-ast
     	end
+    	
+rules // Index & task engine
+	
+  analysis-debug-project(|language):
+    (_, _, _, path, project-path) -> (filename, result)
+    with
+    	index-setup(|language, project-path);
+      task-setup(|project-path);
+      task-debug  := <task-debug-info(|())>;
+      index-debug := <index-get-all-partitions; map(\\f -> (f, <index-get-all-in-partition> f)\\)>;
+      result-ast  := (task-debug, index-debug);
+      if result-analysis := <foreign-call(|\"Analysis\", \"from-debug-str\")> result-ast then
+      	filename := <guarantee-extension(|\"project.analysis\")> path;
+      	result   := result-analysis
+      else
+      	filename := <guarantee-extension(|\"project.aterm\")> path;
+      	result   := result-ast
+    	end
+    	
+  analysis-debug-partition(|language):
+    (_, _, _, path, project-path) -> (filename, result)
+    with
+    	index-setup(|language, project-path);
+      task-setup(|project-path);
+      partition   := $[[project-path]/[path]];
+      task-debug  := <task-debug-info(|partition)>;
+      index-debug := (partition, <index-get-all-in-partition> partition);
+      result-ast  := (task-debug, index-debug);
+      if result-analysis := <foreign-call(|\"Analysis\", \"from-debug-str\")> result-ast then
+      	filename := <guarantee-extension(|\"partition.analysis\")> path;
+      	result   := result-analysis
+      else
+      	filename := <guarantee-extension(|\"partition.aterm\")> path;
+      	result   := result-ast
+    	end
+   
+rules // Resetting  
       
   analysis-debug-reset-index(|language):
     (_, _, _, path, project-path) -> None()

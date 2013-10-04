@@ -82,20 +82,26 @@ rules // Debugging
 			filename := <guarantee-extension(|"analyzed.aterm")> path;
 			result	 := ast
 			
-	debug-show-index-current =
-		analysis-debug-show-current-partition(|<language>)
-		 
-	debug-show-index-all =
-		analysis-debug-show-all-partitions(|<language>)
+	debug-index-project =
+		analysis-debug-index-project(|<language>)
+	debug-index-partition =
+		analysis-debug-index-partition(|<language>)
 
-	debug-show-tasks-selection =
-		analysis-debug-show-tasks-selection(|<language>)
+	debug-task-project =
+		analysis-debug-task-project(|<language>)
+	debug-task-partition =
+		analysis-debug-task-partition(|<language>)
+	debug-task-selection =
+		analysis-debug-task-selection(|<language>)
 		
-	debug-show-tasks-current =
-		analysis-debug-show-tasks(|<language>)
+	debug-project =
+		analysis-debug-project(|<language>)
+	debug-partition =
+		analysis-debug-partition(|<language>)
 		
 	debug-reanalyze = 
 		analysis-debug-reanalyze(|<language>)
+
 };
 
 if not(<file-exists> "trans/generate.str") then
