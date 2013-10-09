@@ -107,7 +107,6 @@ public class Descriptor {
 	private void initializeFactories() throws BadDescriptorException {
 		serviceFactories.add(new ParseControllerFactory());
 		serviceFactories.add(new FoldingUpdaterFactory());
-		serviceFactories.add(new TreeModelBuilderFactory());
 		serviceFactories.add(new ReferenceResolverFactory());
 		serviceFactories.add(new StrategoObserverFactory());
 		serviceFactories.add(new SyntaxPropertiesFactory());
