@@ -48,23 +48,6 @@
       </docProvider>
    </extension>
    <extension
-         point="org.eclipse.imp.runtime.labelProvider">
-       <!--<labelProvider
-            class="org.strategoxt.imp.runtime.dynamicloading.DynamicLabelProvider"
-            language="DynamicRoot">-->
-      <labelProvider
-            class="org.strategoxt.imp.runtime.services.LabelProvider"
-            language="DynamicRoot">
-      </labelProvider>
-   </extension>
-   <extension
-         point="org.eclipse.imp.runtime.modelTreeBuilder">
-      <treeBuilder
-            class="org.strategoxt.imp.runtime.dynamicloading.DynamicTreeModelBuilder"
-            language="DynamicRoot">
-      </treeBuilder>
-   </extension>
-   <extension
          point="org.eclipse.imp.runtime.autoEditStrategy">
       <autoEditStrategy
             class="org.strategoxt.imp.runtime.dynamicloading.DynamicAutoEditStrategy"
