@@ -10,23 +10,23 @@ import org.strategoxt.imp.runtime.parser.SGLRParseController;
 /**
  * @author Oskar van Rest
  */
-public class MenusServiceFactory extends AbstractServiceFactory<IMenusService> {
+public class MenusServiceFactory extends AbstractServiceFactory<MenusService> {
 
 	public MenusServiceFactory() {
-		super(IMenusService.class, false);
+		super(MenusService.class, true);
 	}
 
 	@Override
-	public IMenusService create(Descriptor descriptor, SGLRParseController controller) throws BadDescriptorException {
+	public MenusService create(Descriptor descriptor, SGLRParseController controller) throws BadDescriptorException {
 		return new MenusService(descriptor);
 	}
 
 	public static void eagerInit(Descriptor descriptor, IParseController parser, EditorState lastEditor) {
 		try {
-			System.out.println("eager: " + descriptor.getLanguage().getName());
+			MenusService menusService = descriptor.createService(MenusService.class, (SGLRParseController) parser);
+			menusService.registerMenuContributions();
 		} catch (BadDescriptorException e) {
 			e.printStackTrace();
 		}
 	}
-
 }

@@ -13,14 +13,14 @@ import org.eclipse.ui.services.IServiceLocator;
  */
 public class MenusController {
 
-	public MenusController INSTANCE = new MenusController();
+	public static MenusController INSTANCE = new MenusController();
 
 	private HashMap<String, AbstractContributionFactory> menuContributionFactories = new HashMap<String, AbstractContributionFactory>();
 
 	private MenusController() {
 	}
 
-	public synchronized void createMenuContributionFactory(String locationURI) {
+	public synchronized void registerMenuContribution(String locationURI) {
 		if (!menuContributionFactories.containsKey(locationURI)) {
 
 			AbstractContributionFactory menuContributionFactory = new AbstractContributionFactory(locationURI, null) {
