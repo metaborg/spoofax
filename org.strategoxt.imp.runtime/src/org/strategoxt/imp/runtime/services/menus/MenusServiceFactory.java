@@ -24,7 +24,9 @@ public class MenusServiceFactory extends AbstractServiceFactory<MenusService> {
 	public static void eagerInit(Descriptor descriptor, IParseController parser, EditorState lastEditor) {
 		try {
 			MenusService menusService = descriptor.createService(MenusService.class, (SGLRParseController) parser);
-			menusService.registerMenuContributions();
+			
+			// TODO: DynamicContributionItem.setDirty(true);
+			
 		} catch (BadDescriptorException e) {
 			e.printStackTrace();
 		}

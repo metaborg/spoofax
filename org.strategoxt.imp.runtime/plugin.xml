@@ -357,5 +357,42 @@
                id="org.eclipse.imp.runtime.editor.spoofaxEditor">
          </editorAssociationOverride>
       </extension>
+      <extension
+            name="Toolbar Menus"
+            point="org.eclipse.ui.menus">
+         <menuContribution
+               allPopups="false"
+               locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
+            <toolbar
+                  id="org.spoofax.toolbar.menu1">
+               <command
+                     commandId="org.spoofax.toolbar.menu1.basecommand"
+                     label="menu1"
+                     style="pulldown">
+               </command>
+            </toolbar>
+         </menuContribution>
+         <menuContribution
+               allPopups="false"
+               locationURI="menu:org.spoofax.toolbar.menu1.basecommand">
+            <dynamic
+                  class="org.strategoxt.imp.runtime.services.menus.DynamicContributionItem"
+                  id="org.spoofax.toolbar.menu1.dynamiccommand">
+            </dynamic>
+         </menuContribution>
+      </extension>
+      <extension
+            point="org.eclipse.ui.commands">
+         <command
+               defaultHandler="org.strategoxt.imp.runtime.services.menus.ToolbarBaseCommandHandler"
+               id="org.spoofax.toolbar.menu1.basecommand"
+               name="menu1basecommand">
+         </command>
+         <command
+               defaultHandler="org.strategoxt.imp.runtime.services.menus.ActionHandler"
+               id="org.spoofax.action"
+               name="spoofaxaction">
+         </command>
+      </extension>
 </plugin>
 

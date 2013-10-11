@@ -16,13 +16,8 @@ public class MenusService implements ILanguageService {
 	
 	public MenusService(Descriptor descriptor) {
 		menuContributions = new LinkedList<MenuContribution>();
+		
 		// TODO fill menuContributions
-	}
-	
-	public void registerMenuContributions() {
-		for (MenuContribution menuContrib : menuContributions) {
-			MenusController.INSTANCE.registerMenuContribution(menuContrib.getLocationURI());
-		}
 	}
 	
 	public Collection<MenuContribution> getMenuContributions() {
