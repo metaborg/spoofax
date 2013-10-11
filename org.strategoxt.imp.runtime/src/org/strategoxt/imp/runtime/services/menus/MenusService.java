@@ -5,7 +5,6 @@ import java.util.LinkedList;
 
 import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.jface.action.ContributionItem;
-import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 
 /**

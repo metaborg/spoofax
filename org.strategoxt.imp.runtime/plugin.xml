@@ -369,11 +369,19 @@
                      commandId="org.spoofax.menus.toolbar.basecommand"
                      label="toolbarMenu1"
                      style="pulldown">
+                  <parameter
+                        name="org.spoofax.menus.toolbar.basecommand.menuID"
+                        value="toolbarMenu1">
+                  </parameter>
                </command>
                <command
                      commandId="org.spoofax.menus.toolbar.basecommand"
                      label="toolbarMenu2"
                      style="pulldown">
+                  <parameter
+                        name="org.spoofax.menus.toolbar.basecommand.menuID"
+                        value="toolbarMenu2">
+                  </parameter>
                </command>
             </toolbar>
          </menuContribution>
@@ -392,6 +400,11 @@
                defaultHandler="org.strategoxt.imp.runtime.services.menus.ToolbarBaseCommandHandler"
                id="org.spoofax.menus.toolbar.basecommand"
                name="toolbarBaseCommand">
+            <commandParameter
+                  id="org.spoofax.menus.toolbar.basecommand.menuID"
+                  name="menuID"
+                  optional="false">
+            </commandParameter>
          </command>
          <command
                defaultHandler="org.strategoxt.imp.runtime.services.menus.ActionHandler"
