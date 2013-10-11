@@ -20,7 +20,6 @@ import org.eclipse.imp.language.LanguageRegistry;
 import org.spoofax.interpreter.library.index.IndexManager;
 import org.spoofax.interpreter.library.index.notification.INotificationService;
 import org.spoofax.interpreter.library.index.notification.NotificationCenter;
-import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.services.StrategoAnalysisQueueFactory;
 
@@ -28,11 +27,9 @@ import org.strategoxt.imp.runtime.services.StrategoAnalysisQueueFactory;
  * A {@link INotificationService} that uses {@link StrategoAnalysisQueueFactory} .
  * 
  * Receives notifications sent by {@link FileNotificationServer} to the {@link NotificationCenter}.
- * 
- * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class QueueAnalysisService implements INotificationService {
-
+	@Override
 	public void notifyChanges(URI file, boolean triggerOnSave) {
 		try {
 			final IProject project = EditorIOAgent.getProject(new File(file));
@@ -46,18 +43,21 @@ public class QueueAnalysisService implements INotificationService {
 		}
 	}
 
+	@Override
 	public void notifyChanges(Iterable<URI> files, boolean triggerOnSave) {
 		if(!files.iterator().hasNext())
 			return;
 
-		final Map<Entry<IProject, Language>, List<IPath>> projects = new HashMap<Entry<IProject, Language>, List<IPath>>();
+		final Map<Entry<IProject, Language>, List<IPath>> projects =
+			new HashMap<Entry<IProject, Language>, List<IPath>>();
 		for(URI file : files) {
 			try {
 				IPath path = relativePath(file);
 				if(path != null) {
 					final IProject project = EditorIOAgent.getProject(new File(file));
 					final Language lang = LanguageRegistry.findLanguage(path, null);
-					final Entry<IProject, Language> entry = new AbstractMap.SimpleEntry<IProject, Language>(project, lang);
+					final Entry<IProject, Language> entry =
+						new AbstractMap.SimpleEntry<IProject, Language>(project, lang);
 					List<IPath> relativePaths = projects.get(entry);
 					if(relativePaths == null) {
 						relativePaths = new ArrayList<IPath>();
@@ -90,37 +90,59 @@ public class QueueAnalysisService implements INotificationService {
 		return null;
 	}
 
-	/**
-	 * Notify changes of all files in a project, as long as they are known to have an index associated with them.
-	 */
-	public void notifyNewProject(URI project) {
-		Debug.log("Loading uninitialized project ", project);
-		notifyNewProjectFiles(new File(project));
+	@Override
+	public void notifyNewProjectLanguage(URI projectPath, String language) {
+		final Iterable<URI> files = getProjectLanguageFiles(new File(projectPath), language);
+		notifyChanges(files, true);
 	}
 
-	private void notifyNewProjectFiles(File file) {
-		notifyChanges(getProjectFiles(file), true);
+	@Override
+	public void notifyNewProject(URI projectPath) {
+		final Iterable<URI> files = getProjectIndexedFiles(new File(projectPath));
+		notifyChanges(files, true);
 	}
 
-	private Collection<URI> getProjectFiles(File file) {
+	private Collection<URI> getProjectIndexedFiles(File file) {
 		final List<URI> files = new LinkedList<URI>();
 		if(file.isFile()) {
 			if(isIndexedFile(new Path(file.getAbsolutePath()))) {
 				files.add(file.toURI());
 			}
-		} else {
+		} else if(file.isDirectory()) {
 			final File[] subfiles = file.listFiles();
 			if(subfiles != null) {
 				for(File child : file.listFiles()) {
-					files.addAll(getProjectFiles(child));
+					files.addAll(getProjectIndexedFiles(child));
 				}
 			}
 		}
 		return files;
 	}
 
+	private Collection<URI> getProjectLanguageFiles(File file, String language) {
+		final List<URI> files = new LinkedList<URI>();
+		if(file.isFile()) {
+			if(isLanguageFile(new Path(file.getAbsolutePath()), language)) {
+				files.add(file.toURI());
+			}
+		} else if(file.isDirectory()) {
+			final File[] subfiles = file.listFiles();
+			if(subfiles != null) {
+				for(File child : file.listFiles()) {
+					files.addAll(getProjectLanguageFiles(child, language));
+				}
+			}
+		}
+		return files;
+	}
+
+	public static boolean isLanguageFile(IPath path, String targetLanguage) {
+		final Language language = LanguageRegistry.findLanguage(path, null);
+		return language != null && targetLanguage.equals(language.getName());
+	}
+
 	public static boolean isIndexedFile(IPath path) {
-		Language language = LanguageRegistry.findLanguage(path, null);
-		return language != null && IndexManager.isKnownIndexingLanguage(language.getName());
+		final Language language = LanguageRegistry.findLanguage(path, null);
+		return language != null && IndexManager.getInstance().isKnownIndexingLanguage(language.getName());
 	}
 }
