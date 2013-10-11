@@ -24,7 +24,7 @@ public class MenusServiceFactory extends AbstractServiceFactory<MenusService> {
 	public static void eagerInit(EditorState lastEditor) {
 		if (lastEditor.getEditor() != null) {
 			ICommandService commandService = (ICommandService) lastEditor.getEditor().getSite().getService(ICommandService.class);
-			commandService.refreshElements("org.spoofax.toolbar.menu1.basecommand", null);
+			commandService.refreshElements("org.spoofax.menus.toolbar.basecommand", null);
 		}
 	}
 }

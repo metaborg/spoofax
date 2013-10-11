@@ -364,20 +364,25 @@
                allPopups="false"
                locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
             <toolbar
-                  id="org.spoofax.toolbar.menu1">
+                  id="org.spoofax.menus.toolbar">
                <command
-                     commandId="org.spoofax.toolbar.menu1.basecommand"
-                     label="menu1"
+                     commandId="org.spoofax.menus.toolbar.basecommand"
+                     label="toolbarMenu1"
+                     style="pulldown">
+               </command>
+               <command
+                     commandId="org.spoofax.menus.toolbar.basecommand"
+                     label="toolbarMenu2"
                      style="pulldown">
                </command>
             </toolbar>
          </menuContribution>
          <menuContribution
                allPopups="false"
-               locationURI="menu:org.spoofax.toolbar.menu1.basecommand">
+               locationURI="menu:org.spoofax.menus.toolbar.basecommand">
             <dynamic
                   class="org.strategoxt.imp.runtime.services.menus.DynamicContributionItem"
-                  id="org.spoofax.toolbar.menu1.dynamiccommand">
+                  id="org.spoofax.menus.dynamiccommand">
             </dynamic>
          </menuContribution>
       </extension>
@@ -385,8 +390,8 @@
             point="org.eclipse.ui.commands">
          <command
                defaultHandler="org.strategoxt.imp.runtime.services.menus.ToolbarBaseCommandHandler"
-               id="org.spoofax.toolbar.menu1.basecommand"
-               name="menu1basecommand">
+               id="org.spoofax.menus.toolbar.basecommand"
+               name="toolbarBaseCommand">
          </command>
          <command
                defaultHandler="org.strategoxt.imp.runtime.services.menus.ActionHandler"
