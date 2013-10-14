@@ -366,50 +366,68 @@
             <toolbar
                   id="org.spoofax.menus.toolbar">
                <command
-                     commandId="org.spoofax.menus.toolbar.basecommand"
+                     commandId="org.spoofax.menus.toolbar.basecommand1"
                      label="toolbarMenu1"
                      style="pulldown">
                   <parameter
-                        name="org.spoofax.menus.toolbar.basecommand.menuID"
-                        value="toolbarMenu1">
+                        name="org.spoofax.menus.menuID"
+                        value="1">
                   </parameter>
                </command>
                <command
-                     commandId="org.spoofax.menus.toolbar.basecommand"
+                     commandId="org.spoofax.menus.toolbar.basecommand2"
                      label="toolbarMenu2"
                      style="pulldown">
                   <parameter
-                        name="org.spoofax.menus.toolbar.basecommand.menuID"
-                        value="toolbarMenu2">
+                        name="org.spoofax.menus.menuID"
+                        value="2">
                   </parameter>
                </command>
             </toolbar>
          </menuContribution>
          <menuContribution
                allPopups="false"
-               locationURI="menu:org.spoofax.menus.toolbar.basecommand">
+               locationURI="menu:org.spoofax.menus.toolbar.basecommand1">
             <dynamic
                   class="org.strategoxt.imp.runtime.services.menus.DynamicContributionItem"
-                  id="org.spoofax.menus.dynamiccommand">
+                  id="org.spoofax.menus.toolbar.menu.contributions1">
+            </dynamic>
+         </menuContribution>
+         <menuContribution
+               allPopups="false"
+               locationURI="menu:org.spoofax.menus.toolbar.basecommand2">
+            <dynamic
+                  class="org.strategoxt.imp.runtime.services.menus.DynamicContributionItem"
+                  id="org.spoofax.menus.toolbar.menu.contributions2">
             </dynamic>
          </menuContribution>
       </extension>
       <extension
             point="org.eclipse.ui.commands">
          <command
+               defaultHandler="org.strategoxt.imp.runtime.services.menus.ActionHandler"
+               id="org.spoofax.menus.action"
+               name="spoofaxaction">
+         </command>
+         <command
                defaultHandler="org.strategoxt.imp.runtime.services.menus.ToolbarBaseCommandHandler"
-               id="org.spoofax.menus.toolbar.basecommand"
-               name="toolbarBaseCommand">
+               id="org.spoofax.menus.toolbar.basecommand1"
+               name="toolbarMenuBaseCommand1">
             <commandParameter
-                  id="org.spoofax.menus.toolbar.basecommand.menuID"
+                  id="org.spoofax.menus.menuID"
                   name="menuID"
                   optional="false">
             </commandParameter>
          </command>
          <command
-               defaultHandler="org.strategoxt.imp.runtime.services.menus.ActionHandler"
-               id="org.spoofax.action"
-               name="spoofaxaction">
+               defaultHandler="org.strategoxt.imp.runtime.services.menus.ToolbarBaseCommandHandler"
+               id="org.spoofax.menus.toolbar.basecommand2"
+               name="toolbarMenuBaseCommand2">
+            <commandParameter
+                  id="org.spoofax.menus.menuID"
+                  name="menuID"
+                  optional="false">
+            </commandParameter>
          </command>
       </extension>
 </plugin>

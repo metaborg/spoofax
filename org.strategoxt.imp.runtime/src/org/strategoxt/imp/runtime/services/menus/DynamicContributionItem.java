@@ -3,11 +3,17 @@ package org.strategoxt.imp.runtime.services.menus;
 import java.util.LinkedList;
 
 import org.eclipse.jface.action.IContributionItem;
+import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.CompoundContributionItem;
 import org.eclipse.ui.menus.CommandContributionItem;
 import org.eclipse.ui.menus.CommandContributionItemParameter;
 import org.eclipse.ui.menus.IWorkbenchContribution;
 import org.eclipse.ui.services.IServiceLocator;
+import org.eclipse.ui.views.IViewRegistry;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 
@@ -29,8 +35,12 @@ public class DynamicContributionItem extends CompoundContributionItem implements
 	protected IContributionItem[] getContributionItems() {
 		LinkedList<IContributionItem> result = new LinkedList<IContributionItem>();
 
-		CommandContributionItemParameter dummyParams = new CommandContributionItemParameter(serviceLocator, "a", "org.spoofax.action", CommandContributionItem.STYLE_PUSH);
-		result.add(new CommandContributionItem(dummyParams));
+		int menuIndex = Integer.parseInt(getId().replaceAll(MenusServiceConstants.DYNAMIC_CONTRIBUTION_ITEM_ID_PREFIX, ""));
+
+		if (menuIndex == 1) {
+			CommandContributionItemParameter dummyParams = new CommandContributionItemParameter(serviceLocator, "a", MenusServiceConstants.ACTION_ID, CommandContributionItem.STYLE_PUSH);
+			result.add(new CommandContributionItem(dummyParams));
+		}
 
 		/*
 		 * TODO
@@ -67,6 +77,6 @@ public class DynamicContributionItem extends CompoundContributionItem implements
 				return true;
 			}
 		}
-		return false;
+		return true;
 	}
 }

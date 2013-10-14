@@ -25,7 +25,7 @@ public class ToolbarBaseCommandHandler implements IHandler, IElementUpdater {
 
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
-		String menuID = event.getParameter("org.spoofax.menus.toolbar.basecommand.menuID");
+		String menuID = event.getParameter(MenusServiceConstants.MENU_ID_PARAM_ID);
 		System.out.println(menuID);
 		return null;
 	}
@@ -46,9 +46,9 @@ public class ToolbarBaseCommandHandler implements IHandler, IElementUpdater {
 
 	@Override
 	public void updateElement(UIElement element, @SuppressWarnings("rawtypes") Map parameters) {
-		String menuID = (String) parameters.get("org.spoofax.menus.toolbar.basecommand.menuID");
+		String menuID = (String) parameters.get(MenusServiceConstants.MENU_ID_PARAM_ID);
 		element.setText(new Random().nextInt(1000) + menuID);
-		// TODO auto-resize button
+		element.setTooltip("");
 	}
 
 }
