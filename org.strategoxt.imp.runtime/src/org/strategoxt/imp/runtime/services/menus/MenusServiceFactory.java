@@ -24,9 +24,10 @@ public class MenusServiceFactory extends AbstractServiceFactory<MenusService> {
 	public static void eagerInit(EditorState lastEditor) {
 		if (lastEditor.getEditor() != null) {
 			ICommandService commandService = (ICommandService) lastEditor.getEditor().getSite().getService(ICommandService.class);
-			for (int i=1; i<=MenusServiceConstants.NO_OF_TOOLBAR_MENUS; i++) {
+			for (int i = 1; i <= MenusServiceConstants.NO_OF_TOOLBAR_MENUS; i++) {
 				commandService.refreshElements(MenusServiceConstants.TOOLBAR_BASECOMMAND_ID_PREFIX + i, null);
 			}
+			commandService.refreshElements("org.spoofax.menus.toolbar", null);
 		}
 	}
 }

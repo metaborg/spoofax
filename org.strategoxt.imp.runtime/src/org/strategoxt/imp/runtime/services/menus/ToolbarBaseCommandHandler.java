@@ -46,8 +46,8 @@ public class ToolbarBaseCommandHandler implements IHandler, IElementUpdater {
 
 	@Override
 	public void updateElement(UIElement element, @SuppressWarnings("rawtypes") Map parameters) {
-		String menuID = (String) parameters.get(MenusServiceConstants.MENU_ID_PARAM_ID);
-		element.setText(new Random().nextInt(1000) + menuID);
+		int menuIndex = Integer.parseInt((String) parameters.get(MenusServiceConstants.MENU_ID_PARAM_ID));
+		element.setText("m" + menuIndex + ": " + new Random().nextInt(1000));
 		element.setTooltip("");
 	}
 

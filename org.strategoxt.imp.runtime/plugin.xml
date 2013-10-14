@@ -373,6 +373,9 @@
                         name="org.spoofax.menus.menuID"
                         value="1">
                   </parameter>
+                  <visibleWhen
+                        checkEnabled="true">
+                  </visibleWhen>
                </command>
                <command
                      commandId="org.spoofax.menus.toolbar.basecommand2"
@@ -382,6 +385,9 @@
                         name="org.spoofax.menus.menuID"
                         value="2">
                   </parameter>
+                  <visibleWhen
+                        checkEnabled="true">
+                  </visibleWhen>
                </command>
             </toolbar>
          </menuContribution>
