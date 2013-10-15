@@ -7,14 +7,17 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.IHandler;
 import org.eclipse.core.commands.IHandlerListener;
+import org.eclipse.ui.commands.ICommandService;
 import org.eclipse.ui.commands.IElementUpdater;
 import org.eclipse.ui.menus.UIElement;
+import org.strategoxt.imp.runtime.EditorState;
+import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 
 /**
  * @author Oskar van Rest
  */
 public class ToolbarBaseCommandHandler implements IHandler, IElementUpdater {
-
+	
 	@Override
 	public void addHandlerListener(IHandlerListener handlerListener) {
 	}
@@ -29,7 +32,7 @@ public class ToolbarBaseCommandHandler implements IHandler, IElementUpdater {
 		System.out.println(menuID);
 		return null;
 	}
-
+	
 	@Override
 	public boolean isEnabled() {
 		return true;
@@ -47,8 +50,19 @@ public class ToolbarBaseCommandHandler implements IHandler, IElementUpdater {
 	@Override
 	public void updateElement(UIElement element, @SuppressWarnings("rawtypes") Map parameters) {
 		int menuIndex = Integer.parseInt((String) parameters.get(MenusServiceConstants.MENU_ID_PARAM_ID));
-		element.setText("m" + menuIndex + ": " + new Random().nextInt(1000));
+		element.setText("menu " + new Random().nextInt(99));
 		element.setTooltip("");
+		
+//		EditorState editor = EditorState.getActiveEditor();
+//
+//		if (editor != null) {
+//			MenusService menusService = null;
+//			try {
+//				menusService = editor.getDescriptor().createService(MenusService.class, editor.getParseController());
+//				enabled = true; // TODO
+//			} catch (BadDescriptorException e) {
+//				e.printStackTrace();
+//			}
+//		}
 	}
-
 }

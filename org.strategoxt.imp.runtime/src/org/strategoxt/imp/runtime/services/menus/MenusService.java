@@ -12,8 +12,10 @@ import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
  */
 public class MenusService implements ILanguageService {
 	
-	private Collection<MenuContribution> menuContributions;
+	private boolean toolbarMenuEnabled[] = new boolean[MenusServiceConstants.NO_OF_TOOLBAR_MENUS];
 	
+	private Collection<MenuContribution> menuContributions;
+
 	public MenusService(Descriptor descriptor) {
 		menuContributions = new LinkedList<MenuContribution>();
 		

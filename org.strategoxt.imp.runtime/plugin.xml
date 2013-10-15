@@ -374,7 +374,10 @@
                         value="1">
                   </parameter>
                   <visibleWhen
-                        checkEnabled="true">
+                        checkEnabled="false">
+                     <reference
+                           definitionId="org.spoofax.menus.visibility">
+                     </reference>
                   </visibleWhen>
                </command>
                <command
@@ -386,7 +389,10 @@
                         value="2">
                   </parameter>
                   <visibleWhen
-                        checkEnabled="true">
+                        checkEnabled="false">
+                     <reference
+                           definitionId="org.spoofax.menus.visibility">
+                     </reference>
                   </visibleWhen>
                </command>
             </toolbar>
@@ -435,6 +441,37 @@
                   optional="false">
             </commandParameter>
          </command>
+      </extension>
+      <extension
+            point="org.eclipse.core.expressions.definitions">
+         <definition
+               id="org.spoofax.menus.visibility">
+            <and>
+               <with
+                     variable="activeEditorId">
+                  <equals
+                        value="org.eclipse.imp.runtime.editor.spoofaxEditor">
+                  </equals>
+               </with>
+               <with
+                     variable="activeEditor">
+                  <test
+                        forcePluginActivation="true"
+                        property="org.strategoxt.imp.runtime.menuEnabled">
+                  </test>
+               </with>
+            </and>
+         </definition>
+      </extension>
+      <extension
+            point="org.eclipse.core.expressions.propertyTesters">
+         <propertyTester
+               class="org.strategoxt.imp.runtime.services.menus.MenuEnabledTester"
+               id="org.spoofax.menus.menuEnabledTester"
+               namespace="org.strategoxt.imp.runtime"
+               properties="menuEnabled"
+               type="org.strategoxt.imp.runtime.editor.SpoofaxEditor">
+         </propertyTester>
       </extension>
 </plugin>
 
