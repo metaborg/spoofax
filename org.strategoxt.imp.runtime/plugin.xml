@@ -446,21 +446,35 @@
             point="org.eclipse.core.expressions.definitions">
          <definition
                id="org.spoofax.menus.visibility">
-            <and>
+            <or>
                <with
-                     variable="activeEditorId">
-                  <equals
-                        value="org.eclipse.imp.runtime.editor.spoofaxEditor">
-                  </equals>
-               </with>
-               <with
-                     variable="activeEditor">
+                     variable="activeShell">
                   <test
                         forcePluginActivation="true"
-                        property="org.strategoxt.imp.runtime.menuEnabled">
+                        property="org.strategoxt.imp.runtime.menuEnabledStartup">
                   </test>
                </with>
-            </and>
+               <with
+                     variable="activeWorkbenchWindow">
+                  <test
+                        forcePluginActivation="true"
+                        property="org.strategoxt.imp.runtime.menuEnabledStartup">
+                  </test>
+               </with>
+               <and>
+                  <with variable="activeEditorId">
+                     <equals
+                        value="org.eclipse.imp.runtime.editor.spoofaxEditor">
+                     </equals>
+                   </with>
+                  <with variable="activeEditor">
+                     <test
+                        forcePluginActivation="true"
+                        property="org.strategoxt.imp.runtime.menuEnabled">
+                     </test>
+                  </with>               
+               </and>
+            </or>
          </definition>
       </extension>
       <extension
@@ -469,8 +483,8 @@
                class="org.strategoxt.imp.runtime.services.menus.MenuEnabledTester"
                id="org.spoofax.menus.menuEnabledTester"
                namespace="org.strategoxt.imp.runtime"
-               properties="menuEnabled"
-               type="org.strategoxt.imp.runtime.editor.SpoofaxEditor">
+               properties="menuEnabled, menuEnabledStartup"
+               type="java.lang.Object">
          </propertyTester>
       </extension>
 </plugin>

@@ -7,11 +7,8 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.IHandler;
 import org.eclipse.core.commands.IHandlerListener;
-import org.eclipse.ui.commands.ICommandService;
 import org.eclipse.ui.commands.IElementUpdater;
 import org.eclipse.ui.menus.UIElement;
-import org.strategoxt.imp.runtime.EditorState;
-import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 
 /**
  * @author Oskar van Rest
@@ -50,7 +47,14 @@ public class ToolbarBaseCommandHandler implements IHandler, IElementUpdater {
 	@Override
 	public void updateElement(UIElement element, @SuppressWarnings("rawtypes") Map parameters) {
 		int menuIndex = Integer.parseInt((String) parameters.get(MenusServiceConstants.MENU_ID_PARAM_ID));
-		element.setText("menu " + new Random().nextInt(99));
+		int a = new Random().nextInt(10);
+		int b = new Random().nextInt(10);
+		int c = new Random().nextInt(10);
+		String a2 = a > 5? "": "" + a;
+		String b2 = a > 5? "": "" + b;
+		String c2 = a > 5? "": "" + c;
+		
+		element.setText("menu " + a2 + b2 + c2);
 		element.setTooltip("");
 		
 //		EditorState editor = EditorState.getActiveEditor();
