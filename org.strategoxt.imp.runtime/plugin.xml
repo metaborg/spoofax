@@ -454,13 +454,6 @@
                         property="org.strategoxt.imp.runtime.menuEnabledStartup">
                   </test>
                </with>
-               <with
-                     variable="activeWorkbenchWindow">
-                  <test
-                        forcePluginActivation="true"
-                        property="org.strategoxt.imp.runtime.menuEnabledStartup">
-                  </test>
-               </with>
                <and>
                   <with variable="activeEditorId">
                      <equals
