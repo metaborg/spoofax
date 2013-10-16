@@ -11,7 +11,7 @@ strategies
 
 imports
 	
-	runtime/nbl/complete
+	runtime/nabl/complete
 	runtime/task/core
 	runtime/index/core
 	
@@ -36,11 +36,11 @@ imports
 	
   runtime/analysis/interface
   runtime/index/core
-  runtime/nbl/collect
-  runtime/nbl/incremental
-  runtime/nbl/entries
-  runtime/nbl/uri
-  runtime/nbl/utils
+  runtime/nabl/collect
+  runtime/nabl/incremental
+  runtime/nabl/entries
+  runtime/nabl/uri
+  runtime/nabl/utils
   runtime/task/core
   runtime/task/messages
   runtime/editor/origins
@@ -309,7 +309,7 @@ imports
 	runtime/analysis/core
 	runtime/analysis/single
 	runtime/analysis/multiple
-	runtime/nbl/utils
+	runtime/nabl/utils
 	runtime/index/core
 	runtime/task/core
 	runtime/editor/editor
@@ -528,7 +528,7 @@ imports
 
   runtime/analysis/core
   runtime/task/core
-  runtime/nbl/utils
+  runtime/nabl/utils
 
 rules // Multi file analysis
   
@@ -566,8 +566,8 @@ imports
 	runtime/analysis/defaults
 	runtime/task/core
 	runtime/index/core
-	runtime/nbl/collect
-	runtime/nbl/namegen
+	runtime/nabl/collect
+	runtime/nabl/namegen
 
 rules
 	
@@ -613,7 +613,7 @@ rules
 
 imports
 	
-	runtime/nbl/resolve
+	runtime/nabl/resolve
 	runtime/task/core
 	runtime/index/core
 	runtime/index/query
@@ -766,7 +766,7 @@ strategies
 
 imports
   runtime/editor/origins
-  runtime/nbl/utils
+  runtime/nabl/utils
   
 strategies
   
@@ -1536,18 +1536,18 @@ rules
 
 	create-nabl-check = 
 		<output-text-file(|["lib", "runtime", "nabl"], "check.str")>
-"module runtime/nbl/check
+"module runtime/nabl/check
 
 imports
 	
-	runtime/nbl/resolve
-	runtime/nbl/collect
-	runtime/nbl/query
-	runtime/nbl/tasks
-	runtime/nbl/entries
-	runtime/nbl/interface
-	runtime/nbl/uri
-	runtime/nbl/utils
+	runtime/nabl/resolve
+	runtime/nabl/collect
+	runtime/nabl/query
+	runtime/nabl/tasks
+	runtime/nabl/entries
+	runtime/nabl/interface
+	runtime/nabl/uri
+	runtime/nabl/utils
 	runtime/task/core
 	runtime/task/messages
 	runtime/task/tasks
@@ -1621,20 +1621,20 @@ rules // Legacy
 
 	create-nabl-collect = 
 		<output-text-file(|["lib", "runtime", "nabl"], "collect.str")>
-"module runtime/nbl/collect
+"module runtime/nabl/collect
 
 imports
 	
 	runtime/task/core
 	runtime/task/tasks
 	runtime/task/messages
-	runtime/nbl/tasks
-  runtime/nbl/entries
-  runtime/nbl/check
-  runtime/nbl/namegen
-  runtime/nbl/interface
-  runtime/nbl/uri
-  runtime/nbl/utils
+	runtime/nabl/tasks
+  runtime/nabl/entries
+  runtime/nabl/check
+  runtime/nabl/namegen
+  runtime/nabl/interface
+  runtime/nabl/uri
+  runtime/nabl/utils
   runtime/properties/collect
   runtime/properties/entries
   runtime/properties/tasks
@@ -2027,12 +2027,12 @@ rules // helpers
 
 	create-nabl-complete = 
 		<output-text-file(|["lib", "runtime", "nabl"], "complete.str")>
-"module runtime/nbl/complete
+"module runtime/nabl/complete
 
 imports
 	
-	runtime/nbl/collect
-  runtime/nbl/uri
+	runtime/nabl/collect
+  runtime/nabl/uri
   runtime/task/core
   
 signature
@@ -2055,11 +2055,11 @@ rules // Code completion
 
 	create-nabl-constraints = 
 		<output-text-file(|["lib", "runtime", "nabl"], "constraints.str")>
-"module runtime/nbl/constraints
+"module runtime/nabl/constraints
 
 imports
-  runtime/nbl/uri
-  runtime/nbl/tasks
+  runtime/nabl/uri
+  runtime/nabl/tasks
   runtime/task/core
   runtime/task/tasks
   
@@ -2140,14 +2140,14 @@ rules
 
 	create-nabl-entries = 
 		<output-text-file(|["lib", "runtime", "nabl"], "entries.str")>
-"module runtime/nbl/entries
+"module runtime/nabl/entries
 
 imports
   
-  runtime/nbl/collect
-  runtime/nbl/utils
-  runtime/nbl/uri
-  runtime/nbl/resolve
+  runtime/nabl/collect
+  runtime/nabl/utils
+  runtime/nabl/uri
+  runtime/nabl/resolve
   runtime/index/core
   runtime/editor/origins
   
@@ -2280,8 +2280,8 @@ rules // index uri & value projections
 
 imports
 	
-	runtime/nbl/uri
-	runtime/nbl/entries
+	runtime/nabl/uri
+	runtime/nabl/entries
 	runtime/task/core
 	
 rules // Read generation
@@ -2329,7 +2329,7 @@ rules // Read processing
 
 	create-nabl-interface = 
 		<output-text-file(|["lib", "runtime", "nabl"], "interface.str")>
-"module runtime/nbl/interface
+"module runtime/nabl/interface
 
 strategies // Collect
   
@@ -2379,13 +2379,13 @@ strategies // Default error checks
 
 	create-nabl-lookup = 
 		<output-text-file(|["lib", "runtime", "nabl"], "lookup.str")>
-"module runtime/nbl/lookup
+"module runtime/nabl/lookup
 
 imports
   
-	runtime/nbl/query
-	runtime/nbl/uri
-	runtime/nbl/collect
+	runtime/nabl/query
+	runtime/nabl/uri
+	runtime/nabl/collect
   runtime/properties/query
   runtime/task/core
 
@@ -2424,11 +2424,11 @@ rules // Imports
 
 imports
 	
-	runtime/nbl/collect
-	runtime/nbl/query
-	runtime/nbl/uri
-	runtime/nbl/utils
-	runtime/nbl/interface
+	runtime/nabl/collect
+	runtime/nabl/query
+	runtime/nabl/uri
+	runtime/nabl/utils
+	runtime/nabl/interface
 	runtime/editor/origins
 	runtime/index/core
 	runtime/index/query
@@ -2501,12 +2501,12 @@ rules // Storage & retrieval
 
 	create-nabl-query = 
 		<output-text-file(|["lib", "runtime", "nabl"], "query.str")>
-"module runtime/nbl/query
+"module runtime/nabl/query
 
 imports
   
-  runtime/nbl/uri
-  runtime/nbl/entries
+  runtime/nabl/uri
+  runtime/nabl/entries
   runtime/index/query
   
 rules // Specific queries
@@ -2657,12 +2657,12 @@ rules /** @internal Helpers */
 
 	create-nabl-resolve = 
 		<output-text-file(|["lib", "runtime", "nabl"], "resolve.str")>
-"module runtime/nbl/resolve
+"module runtime/nabl/resolve
 
 imports
   
-  runtime/nbl/tasks
-	runtime/nbl/entries
+  runtime/nabl/tasks
+	runtime/nabl/entries
 	runtime/task/core
   runtime/task/utils
   
@@ -2696,21 +2696,21 @@ rules // Reference resolution
 
 	create-nabl-tasks = 
 		<output-text-file(|["lib", "runtime", "nabl"], "tasks.str")>
-"module runtime/nbl/tasks
+"module runtime/nabl/tasks
 
 imports 
   
   runtime/task/core
   runtime/task/tasks
   runtime/task/utils
-  runtime/nbl/lookup
-  runtime/nbl/collect
-  runtime/nbl/query
-  runtime/nbl/incremental
-  runtime/nbl/interface
-  runtime/nbl/uri
-  runtime/nbl/utils
-  runtime/nbl/entries
+  runtime/nabl/lookup
+  runtime/nabl/collect
+  runtime/nabl/query
+  runtime/nabl/incremental
+  runtime/nabl/interface
+  runtime/nabl/uri
+  runtime/nabl/utils
+  runtime/nabl/entries
   runtime/properties/entries
   runtime/properties/eq
   runtime/properties/query
@@ -2839,11 +2839,11 @@ rules // Property constraint
 
 	create-nabl-uri = 
 		<output-text-file(|["lib", "runtime", "nabl"], "uri.str")>
-"module runtime/nbl/uri
+"module runtime/nabl/uri
 
 imports
   
-  runtime/nbl/interface
+  runtime/nabl/interface
   runtime/index/core
   
 signature
@@ -3085,7 +3085,7 @@ rules /** @internal Projections */
 
 	create-nabl-utils = 
 		<output-text-file(|["lib", "runtime", "nabl"], "utils.str")>
-"module runtime/nbl/utils
+"module runtime/nabl/utils
 
 imports
 	
@@ -3184,10 +3184,10 @@ imports
 	runtime/properties/query
   runtime/task/core
   runtime/task/tasks
-  runtime/nbl/collect
-  runtime/nbl/uri
-  runtime/nbl/tasks
-  runtime/nbl/utils
+  runtime/nabl/collect
+  runtime/nabl/uri
+  runtime/nabl/tasks
+  runtime/nabl/utils
   runtime/editor/origins
   runtime/types/collect
   
@@ -3292,9 +3292,9 @@ rules
 
 imports
   
-  runtime/nbl/collect
-  runtime/nbl/utils
-  runtime/nbl/uri
+  runtime/nabl/collect
+  runtime/nabl/utils
+  runtime/nabl/uri
   runtime/index/core
   runtime/editor/origins
   
@@ -3369,13 +3369,13 @@ strategies // user-defined implementations
 "module runtime/properties/query
 
 imports
-	runtime/nbl/query
-	runtime/nbl/uri
+	runtime/nabl/query
+	runtime/nabl/uri
 	runtime/task/core
 	runtime/properties/entries
   runtime/properties/tasks
   runtime/properties/interface
-  runtime/nbl/interface
+  runtime/nabl/interface
 
 rules
 
@@ -3446,8 +3446,8 @@ rules
 
 imports 
 	
-	runtime/nbl/incremental
-	runtime/nbl/uri
+	runtime/nabl/incremental
+	runtime/nabl/uri
 	runtime/properties/query
 	runtime/properties/eq
   runtime/task/core
