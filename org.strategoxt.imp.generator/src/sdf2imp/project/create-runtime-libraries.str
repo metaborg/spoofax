@@ -5,6 +5,9 @@ imports
 
 strategies
   
+  remove-runtime-libraries =
+  	<rmdir> "lib/runtime"
+  
 	create-analysis-complete = 
 		<output-text-file(|["lib", "runtime", "analysis"], "complete.str")>
 "module runtime/analysis/complete
