@@ -2,7 +2,7 @@ package org.strategoxt.imp.runtime.services.menus;
 
 public class MenusServiceConstants {
 
-	public static int NO_OF_TOOLBAR_MENUS = 2;
+	public static int NO_OF_TOOLBAR_MENUS = 1;
 	
 	public static String TOOLBAR_ID = "org.spoofax.menus.toolbar";
 	

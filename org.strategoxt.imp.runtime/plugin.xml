@@ -367,7 +367,7 @@
                   id="org.spoofax.menus.toolbar">
                <command
                      commandId="org.spoofax.menus.toolbar.basecommand1"
-                     label="toolbarMenu1"
+                     label="Actions"
                      style="pulldown">
                   <parameter
                         name="org.spoofax.menus.menuID"
@@ -382,11 +382,11 @@
                </command>
                <command
                      commandId="org.spoofax.menus.toolbar.basecommand2"
-                     label="toolbarMenu2"
+                     label="Actions"
                      style="pulldown">
                   <parameter
                         name="org.spoofax.menus.menuID"
-                        value="2">
+                        value="1">
                   </parameter>
                   <visibleWhen
                         checkEnabled="false">
@@ -448,25 +448,19 @@
                id="org.spoofax.menus.visibility">
             <or>
                <with
+                     variable="activeEditor">
+                  <test
+                        forcePluginActivation="true"
+                        property="org.strategoxt.imp.runtime.menuEnabled">
+                  </test>
+               </with>
+               <with
                      variable="activeShell">
                   <test
                         forcePluginActivation="true"
-                        property="org.strategoxt.imp.runtime.menuEnabledStartup">
+                        property="org.strategoxt.imp.runtime.menuEnabledDummy">
                   </test>
                </with>
-               <and>
-                  <with variable="activeEditorId">
-                     <equals
-                        value="org.eclipse.imp.runtime.editor.spoofaxEditor">
-                     </equals>
-                   </with>
-                  <with variable="activeEditor">
-                     <test
-                        forcePluginActivation="true"
-                        property="org.strategoxt.imp.runtime.menuEnabled">
-                     </test>
-                  </with>               
-               </and>
             </or>
          </definition>
       </extension>
@@ -476,7 +470,7 @@
                class="org.strategoxt.imp.runtime.services.menus.MenuEnabledTester"
                id="org.spoofax.menus.menuEnabledTester"
                namespace="org.strategoxt.imp.runtime"
-               properties="menuEnabled, menuEnabledStartup"
+               properties="menuEnabled, menuEnabledDummy"
                type="java.lang.Object">
          </propertyTester>
       </extension>

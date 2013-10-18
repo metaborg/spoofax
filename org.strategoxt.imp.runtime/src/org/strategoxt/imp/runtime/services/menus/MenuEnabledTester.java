@@ -1,33 +1,36 @@
 package org.strategoxt.imp.runtime.services.menus;
 
 import org.eclipse.core.expressions.PropertyTester;
+import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.PlatformUI;
+import org.strategoxt.imp.runtime.editor.SpoofaxEditor;
 
 public class MenuEnabledTester extends PropertyTester {
 
-	private boolean again;
-	private Object oldEditor;
-	private int startup;
-	
-	
-	@Override
-	public boolean test(Object receiver, String property, Object[] args, Object expectedValue) {
+	private IWorkbenchPart activePart;
+	private double time;
 
-		if (property.equals("menuEnabledStartup")) {
-			if (startup < MenusServiceConstants.NO_OF_TOOLBAR_MENUS) {
-				startup ++;
-				return true;
+	@Override
+	public synchronized boolean test(Object receiver, String property, Object[] args, Object expectedValue) {
+
+		boolean result = false;
+		
+		if (property.equals("menuEnabled")) {
+
+			IWorkbenchPart lastActivePart = activePart;
+			activePart = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart();
+			
+			double newTime = System.currentTimeMillis();
+			if (newTime - time > 100) {
+				time = newTime;
+				if (lastActivePart instanceof SpoofaxEditor) {
+					return false; // refresh
+				}
 			}
-			return false;
+			
+			return activePart instanceof SpoofaxEditor;			
 		}
 		
-		if (oldEditor == null || oldEditor != receiver || again) {
-			oldEditor = receiver;
-			
-			again = !again;
-			
-			return false;
-		}
-		
-		return true;
+		return result;
 	}
 }

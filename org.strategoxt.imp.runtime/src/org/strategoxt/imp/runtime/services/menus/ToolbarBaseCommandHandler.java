@@ -43,6 +43,8 @@ public class ToolbarBaseCommandHandler implements IHandler, IElementUpdater {
 	@Override
 	public void removeHandlerListener(IHandlerListener handlerListener) {
 	}
+	
+	
 
 	@Override
 	public void updateElement(UIElement element, @SuppressWarnings("rawtypes") Map parameters) {
@@ -56,7 +58,7 @@ public class ToolbarBaseCommandHandler implements IHandler, IElementUpdater {
 		
 		element.setText("menu " + a2 + b2 + c2);
 		element.setTooltip("");
-		
+				
 //		EditorState editor = EditorState.getActiveEditor();
 //
 //		if (editor != null) {
