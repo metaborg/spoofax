@@ -20,6 +20,7 @@ templates
   MenuContrib.Submenu = <
     submenu : <String>
       <MenuContrib*; separator = "\n">
+    end
   >
   
   MenuContrib.Separator = <
@@ -31,7 +32,7 @@ templates
   ActionOption.Meta = <(meta)>
   ActionOption.Source = <(source)>
   ActionOption = <<Icon>>
-  ActionOption = <<UIOption>>
+  ActionOption = <<KeyCombination>>
     
   Icon.Icon = <
     icon : <String>
