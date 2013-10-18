@@ -22,7 +22,7 @@ public class MenusServiceFactory extends AbstractServiceFactory<MenusService> {
 	}
 
 	public static void eagerInit(Descriptor descriptor, IParseController parser, EditorState lastEditor) {
-		// Refresh toolbar menus after rebuilding.
-		MenusServiceUtil.refreshToolbarMenus();
+		// Refresh toolbar menu commands after rebuilding.
+		MenusServiceUtil.refreshToolbarMenuCommands();
 	}
 }

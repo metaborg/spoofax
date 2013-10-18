@@ -7,6 +7,7 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.IHandler;
 import org.eclipse.core.commands.IHandlerListener;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.commands.IElementUpdater;
 import org.eclipse.ui.menus.UIElement;
 
@@ -69,6 +70,14 @@ public class ToolbarBaseCommandHandler implements IHandler, IElementUpdater {
 //			} catch (BadDescriptorException e) {
 //				e.printStackTrace();
 //			}
+//		}
+//		if (menuIndex == MenusServiceConstants.NO_OF_TOOLBAR_MENUS-1) {
+			Display.getDefault().asyncExec(new Runnable() {
+				@Override
+				public void run() {
+					MenusServiceUtil.refreshToolbarMenus();
+				}
+			});
 //		}
 	}
 }

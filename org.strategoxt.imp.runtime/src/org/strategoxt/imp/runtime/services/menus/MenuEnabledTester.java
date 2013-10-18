@@ -19,7 +19,7 @@ public class MenuEnabledTester extends PropertyTester {
 			Display.getDefault().asyncExec(new Runnable() {
 				@Override
 				public void run() {
-					MenusServiceUtil.refreshToolbarMenus();
+					MenusServiceUtil.refreshToolbarMenuCommands();
 				}
 			});
 		}
