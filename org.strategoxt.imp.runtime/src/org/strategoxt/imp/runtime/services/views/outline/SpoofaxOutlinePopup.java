@@ -5,6 +5,7 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.services.views.FilteringInfoPopup;
 import org.strategoxt.imp.runtime.services.views.StrategoLabelProvider;
@@ -36,7 +37,15 @@ public class SpoofaxOutlinePopup extends FilteringInfoPopup {
 		treeViewer.setContentProvider(contentProvider);
 		treeViewer.setLabelProvider(labelProvider);
 		treeViewer.setAutoExpandLevel(TreeViewer.ALL_LEVELS);
-		treeViewer.setInput(SpoofaxOutlineUtil.getOutline(parseController));
+		
+		IStrategoTerm outline = SpoofaxOutlineUtil.getOutline(parseController);
+		
+		// workaround for https://bugs.eclipse.org/9262
+		if (outline.getTermType() == IStrategoTerm.APPL) {
+			outline = SpoofaxOutlineUtil.factory.makeList(outline);
+		}
+		
+		treeViewer.setInput(outline);
 		return treeViewer;
 	}
 

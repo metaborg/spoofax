@@ -170,6 +170,7 @@ strategies
     // create-fetch-positions;
     // create-list-operations;
     
+    // remove-runtime-libraries;
     create-all-runtime-libraries;
     
     copy-jars;

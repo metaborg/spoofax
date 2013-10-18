@@ -27,10 +27,12 @@ imports
 	include/{sdf-name}
 	editor/{sdf-name}-Outliner
 	lib/editor-common.generated
-	lib/runtime/analysis/-
-	lib/runtime/nbl/-
-	lib/runtime/task/-
 	lib/runtime/index/-
+	lib/runtime/nabl/-
+	lib/runtime/properties/-
+	lib/runtime/types/-
+	lib/runtime/task/-
+	lib/runtime/analysis/-
 	names
 	check
 	generate
@@ -209,7 +211,6 @@ imports
 
 	include/{sdf-name}
 	lib/editor-common.generated
-	lib/runtime/nbl/check
 
 rules
 	
