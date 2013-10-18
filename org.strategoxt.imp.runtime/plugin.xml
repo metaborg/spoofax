@@ -395,6 +395,21 @@
                      </reference>
                   </visibleWhen>
                </command>
+               <command
+                     commandId="org.spoofax.menus.toolbar.basecommand3"
+                     label="Actions"
+                     style="pulldown">
+                  <parameter
+                        name="org.spoofax.menus.menuID"
+                        value="1">
+                  </parameter>
+                  <visibleWhen
+                        checkEnabled="false">
+                     <reference
+                           definitionId="org.spoofax.menus.visibility">
+                     </reference>
+                  </visibleWhen>
+               </command>
             </toolbar>
          </menuContribution>
          <menuContribution
@@ -408,6 +423,14 @@
          <menuContribution
                allPopups="false"
                locationURI="menu:org.spoofax.menus.toolbar.basecommand2">
+            <dynamic
+                  class="org.strategoxt.imp.runtime.services.menus.DynamicContributionItem"
+                  id="org.spoofax.menus.toolbar.menu.contributions2">
+            </dynamic>
+         </menuContribution>
+         <menuContribution
+               allPopups="false"
+               locationURI="menu:org.spoofax.menus.toolbar.basecommand3">
             <dynamic
                   class="org.strategoxt.imp.runtime.services.menus.DynamicContributionItem"
                   id="org.spoofax.menus.toolbar.menu.contributions2">
@@ -435,6 +458,16 @@
                defaultHandler="org.strategoxt.imp.runtime.services.menus.ToolbarBaseCommandHandler"
                id="org.spoofax.menus.toolbar.basecommand2"
                name="toolbarMenuBaseCommand2">
+            <commandParameter
+                  id="org.spoofax.menus.menuID"
+                  name="menuID"
+                  optional="false">
+            </commandParameter>
+         </command>
+         <command
+               defaultHandler="org.strategoxt.imp.runtime.services.menus.ToolbarBaseCommandHandler"
+               id="org.spoofax.menus.toolbar.basecommand3"
+               name="toolbarMenuBaseCommand3">
             <commandParameter
                   id="org.spoofax.menus.menuID"
                   name="menuID"
