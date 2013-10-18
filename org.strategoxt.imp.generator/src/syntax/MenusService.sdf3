@@ -32,7 +32,7 @@ templates
   ActionOption.Meta = <(meta)>
   ActionOption.Source = <(source)>
   ActionOption = <<Icon>>
-  ActionOption = <<KeyCombination>>
+  ActionOption.ActionShortcut = <shortcut : <KeyCombination>>
     
   Icon.Icon = <
     icon : <String>

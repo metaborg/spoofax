@@ -11,7 +11,7 @@ exports
     "(" "meta" ")"                                     -> ActionOption {cons("Meta")}
     "(" "source" ")"                                   -> ActionOption {cons("Source")}
     Icon                                               -> ActionOption 
-    KeyCombination                                     -> ActionOption 
+    "shortcut" ":" KeyCombination                      -> ActionOption {cons("ActionShortcut")}
     "icon" ":" String                                  -> Icon         {cons("Icon")}
 
   context-free syntax
