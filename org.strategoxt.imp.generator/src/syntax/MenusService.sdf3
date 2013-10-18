@@ -1,0 +1,39 @@
+module MenusService
+
+templates
+
+  Section.Menus = <
+    menus
+    
+      <Menu*>
+  >
+  
+  Menu.ToolbarMenu = <
+    menu : <String> <Icon?>
+      <MenuContrib*; separator = "\n">
+  >
+  
+  MenuContrib.Action = <
+    action : <String> = <StrategoCall> <ActionOption*>
+  >
+  
+  MenuContrib.Submenu = <
+    submenu : <String>
+      <MenuContrib*; separator = "\n">
+  >
+  
+  MenuContrib.Separator = <
+    separator
+  >
+  
+  ActionOption.OpenEditor = <(openeditor)>
+  ActionOption.RealTime = <(realtime)>
+  ActionOption.Meta = <(meta)>
+  ActionOption.Source = <(source)>
+  ActionOption = <<Icon>>
+  ActionOption = <<UIOption>>
+    
+  Icon.Icon = <
+    icon : <String>
+  >
+  

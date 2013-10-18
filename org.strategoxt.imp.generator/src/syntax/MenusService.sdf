@@ -1,0 +1,22 @@
+module MenusService
+exports
+  context-free syntax
+    "menus" Menu*                                      -> Section      {cons("Menus")}
+    "menu" ":" String Icon? MenuContrib*               -> Menu         {cons("ToolbarMenu")}
+    "action" ":" String "=" StrategoCall ActionOption* -> MenuContrib  {cons("Action")}
+    "submenu" ":" String MenuContrib*                  -> MenuContrib  {cons("Submenu")}
+    "separator"                                        -> MenuContrib  {cons("Separator")}
+    "(" "openeditor" ")"                               -> ActionOption {cons("OpenEditor")}
+    "(" "realtime" ")"                                 -> ActionOption {cons("RealTime")}
+    "(" "meta" ")"                                     -> ActionOption {cons("Meta")}
+    "(" "source" ")"                                   -> ActionOption {cons("Source")}
+    Icon                                               -> ActionOption 
+    UIOption                                           -> ActionOption 
+    "icon" ":" String                                  -> Icon         {cons("Icon")}
+
+  context-free syntax
+    CONTENTCOMPLETE -> Section      {cons("COMPLETION-Section")}
+    CONTENTCOMPLETE -> Menu         {cons("COMPLETION-Menu")}
+    CONTENTCOMPLETE -> MenuContrib  {cons("COMPLETION-MenuContrib")}
+    CONTENTCOMPLETE -> ActionOption {cons("COMPLETION-ActionOption")}
+    CONTENTCOMPLETE -> Icon         {cons("COMPLETION-Icon")}

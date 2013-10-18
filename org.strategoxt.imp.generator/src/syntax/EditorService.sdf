@@ -11,6 +11,7 @@ imports
   BuildersService
   RefactoringsService
   RecoveryRules
+  MenusService
 
 hiddens
 
