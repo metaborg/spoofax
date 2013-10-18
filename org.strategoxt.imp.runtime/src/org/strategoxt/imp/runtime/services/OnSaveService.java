@@ -22,6 +22,7 @@ import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.IOnSaveService;
 import org.strategoxt.imp.runtime.parser.ast.AstMessageHandler;
+import org.strategoxt.imp.runtime.services.menus.builders.StrategoBuilder;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.RefreshResourcePrimitive;
 import org.strategoxt.imp.runtime.stratego.SourceAttachment;

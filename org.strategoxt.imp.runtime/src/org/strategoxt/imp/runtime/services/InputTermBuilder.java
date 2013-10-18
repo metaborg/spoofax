@@ -223,7 +223,7 @@ public class InputTermBuilder {
 		}
 	}
 
-	protected IStrategoTerm implodeATerm(IStrategoTerm term) {
+	public IStrategoTerm implodeATerm(IStrategoTerm term) {
 		return implode_aterm_0_0.instance.invoke(runtime.getCompiledContext(), term);
 	}
 

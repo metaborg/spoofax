@@ -253,7 +253,7 @@
             label="Spoofax"
             visible="true">
          <action
-               class="org.strategoxt.imp.runtime.services.BuilderButtonDelegate"
+               class="org.strategoxt.imp.runtime.services.menus.builders.BuilderButtonDelegate"
                definitionId="org.strategoxt.imp.runtime.transformCommand"
                id="org.strategoxt.imp.runtime.stratego.builder"
                label="Transform"
@@ -285,7 +285,7 @@
    <extension
          point="org.eclipse.ui.handlers">
       <handler
-            class="org.strategoxt.imp.runtime.services.BuilderButtonDelegate"
+            class="org.strategoxt.imp.runtime.services.menus.builders.BuilderButtonDelegate"
             commandId="org.strategoxt.imp.runtime.transformCommand">
       </handler>
       <handler

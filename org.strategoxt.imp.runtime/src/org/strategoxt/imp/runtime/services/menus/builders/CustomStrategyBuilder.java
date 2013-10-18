@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.strategoxt.imp.runtime.services;
+package org.strategoxt.imp.runtime.services.menus.builders;
 
 import static java.util.Collections.synchronizedMap;
 
@@ -24,6 +24,8 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
+import org.strategoxt.imp.runtime.services.InputTermBuilder;
+import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 
 /**

@@ -1,4 +1,4 @@
-package org.strategoxt.imp.runtime.services;
+package org.strategoxt.imp.runtime.services.menus.builders;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -14,6 +14,7 @@ import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.MonitorStateWatchDog;
 import org.strategoxt.imp.runtime.RuntimeActivator;
+import org.strategoxt.imp.runtime.services.StrategoObserver;
 
 /**
  * Toggles between stratego debugging.

@@ -10,6 +10,7 @@ import org.eclipse.ui.menus.IWorkbenchContribution;
 import org.eclipse.ui.services.IServiceLocator;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
+import org.strategoxt.imp.runtime.services.menus.builders.BuilderMap;
 
 /**
  * @author Oskar van Rest
@@ -54,15 +55,15 @@ public class DynamicContributionItem extends CompoundContributionItem implements
 		this.serviceLocator = serviceLocator;
 	}
 
-	MenusService menusService;
+	BuilderMap menusService;
 
 	@Override
 	public boolean isDirty() {
 		EditorState activeEditor = EditorState.getActiveEditor();
 		if (activeEditor != null) {
-			MenusService menusService = null;
+			BuilderMap menusService = null;
 			try {
-				menusService = activeEditor.getDescriptor().createService(MenusService.class, activeEditor.getParseController());
+				menusService = activeEditor.getDescriptor().createService(BuilderMap.class, activeEditor.getParseController());
 			} catch (BadDescriptorException e) {
 				e.printStackTrace();
 			}

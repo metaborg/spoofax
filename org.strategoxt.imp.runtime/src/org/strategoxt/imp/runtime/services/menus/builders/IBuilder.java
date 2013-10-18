@@ -1,4 +1,4 @@
-package org.strategoxt.imp.runtime.services;
+package org.strategoxt.imp.runtime.services.menus.builders;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.jobs.Job;

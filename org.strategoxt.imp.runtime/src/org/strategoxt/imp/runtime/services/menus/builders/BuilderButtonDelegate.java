@@ -1,4 +1,4 @@
-package org.strategoxt.imp.runtime.services;
+package org.strategoxt.imp.runtime.services.menus.builders;
 
 import org.eclipse.imp.ui.DefaultPartListener;
 import org.eclipse.jface.action.Action;
@@ -14,6 +14,7 @@ import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
+import org.strategoxt.imp.runtime.services.ToolbarButtonDelegate;
 
 /**
  * Implements a dropdown button with builder actions.

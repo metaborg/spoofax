@@ -1,4 +1,4 @@
-package org.strategoxt.imp.runtime.services;
+package org.strategoxt.imp.runtime.services.menus.builders;
 
 import java.util.Set;
 

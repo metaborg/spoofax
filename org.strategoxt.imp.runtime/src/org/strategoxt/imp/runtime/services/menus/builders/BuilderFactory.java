@@ -1,4 +1,4 @@
-package org.strategoxt.imp.runtime.dynamicloading;
+package org.strategoxt.imp.runtime.services.menus.builders;
 
 import static org.spoofax.interpreter.core.Tools.termAt;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.collectTerms;
@@ -9,20 +9,18 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.eclipse.imp.editor.UniversalEditor;
+import org.eclipse.imp.parser.IParseController;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
+import org.strategoxt.imp.runtime.dynamicloading.AbstractServiceFactory;
+import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
+import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
-import org.strategoxt.imp.runtime.services.BuilderMap;
-import org.strategoxt.imp.runtime.services.CustomStrategyBuilder;
-import org.strategoxt.imp.runtime.services.DebugModeBuilder;
-import org.strategoxt.imp.runtime.services.IBuilder;
-import org.strategoxt.imp.runtime.services.IBuilderMap;
-import org.strategoxt.imp.runtime.services.StrategoBuilder;
-import org.strategoxt.imp.runtime.services.StrategoBuilderListener;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
+import org.strategoxt.imp.runtime.services.menus.MenusServiceUtil;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -135,4 +133,8 @@ public class BuilderFactory extends AbstractServiceFactory<IBuilderMap> {
 		return EditorState.getEditorFor(sourceEditor.getParseController());
 	}
 
+	public static void eagerInit(Descriptor descriptor, IParseController parser, EditorState lastEditor) {
+		// Refresh toolbar menu commands after rebuilding.
+		MenusServiceUtil.refreshToolbarMenuCommands();
+	}
 }
