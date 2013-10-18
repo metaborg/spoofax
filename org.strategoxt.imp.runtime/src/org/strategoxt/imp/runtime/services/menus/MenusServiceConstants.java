@@ -1,5 +1,8 @@
 package org.strategoxt.imp.runtime.services.menus;
 
+/**
+ * @author Oskar van Rest
+ */
 public class MenusServiceConstants {
 
 	public static int NO_OF_TOOLBAR_MENUS = 3;

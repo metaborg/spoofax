@@ -1,45 +1,29 @@
 package org.strategoxt.imp.runtime.services.menus;
 
 import org.eclipse.core.expressions.PropertyTester;
-import org.eclipse.ui.IWorkbenchPart;
-import org.eclipse.ui.PlatformUI;
-import org.strategoxt.imp.runtime.editor.SpoofaxEditor;
+import org.eclipse.swt.widgets.Display;
 
+/**
+ * @author Oskar van Rest
+ */
 public class MenuEnabledTester extends PropertyTester {
 
-	private IWorkbenchPart activePart;
-	private double time;
-	private boolean result;
 	private int menuIndex = -1;
 
 	@Override
 	public synchronized boolean test(Object receiver, String property, Object[] args, Object expectedValue) {
-		
-		if (property.equals("menuEnabled")) {
+		menuIndex = (menuIndex + 1) % MenusServiceConstants.NO_OF_TOOLBAR_MENUS;
 
-			menuIndex = (menuIndex + 1) % MenusServiceConstants.NO_OF_TOOLBAR_MENUS;
-			if (menuIndex == 0) {
-				result = false;
-			}
-			else {
-				return result;
-			}
-			
-			IWorkbenchPart lastActivePart = activePart;
-			activePart = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActivePart();
-			
-			double newTime = System.currentTimeMillis();
-			if (newTime - time > 50) { // hack: hide and show menu to trigger refresh of size and label 
-				time = newTime;
-				if (lastActivePart instanceof SpoofaxEditor) {
-					return false; // refresh
+		// Refresh toolbar menus after switching between two Spoofax editors.
+		if (menuIndex == MenusServiceConstants.NO_OF_TOOLBAR_MENUS - 1) {
+			Display.getDefault().asyncExec(new Runnable() {
+				@Override
+				public void run() {
+					MenusServiceUtil.refreshToolbarMenus();
 				}
-			}
-			
-			result = activePart instanceof SpoofaxEditor;
-			return result;
+			});
 		}
-		
-		return false;
+
+		return true; // TODO: return true/false based on esv description
 	}
 }
