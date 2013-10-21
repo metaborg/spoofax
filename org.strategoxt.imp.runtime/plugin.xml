@@ -425,6 +425,11 @@
                defaultHandler="org.strategoxt.imp.runtime.services.menus.ActionHandler"
                id="org.spoofax.menus.action"
                name="spoofaxaction">
+            <commandParameter
+                  id="org.spoofax.menus.path"
+                  name="path"
+                  optional="false">
+            </commandParameter>
          </command>
          <command
                defaultHandler="org.strategoxt.imp.runtime.services.menus.ToolbarBaseCommandHandler"
