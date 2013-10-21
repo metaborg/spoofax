@@ -23,6 +23,7 @@ import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.core.UndefinedStrategyException;
 import org.spoofax.interpreter.terms.IStrategoAppl;
+import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
@@ -155,9 +156,9 @@ public class CustomStrategyBuilder extends StrategoBuilder {
 		String result = initialValues.get(language);
 		if (result != null) return result;
 		
-		ArrayList<IStrategoAppl> allActions = collectTerms(editor.getDescriptor().getDocument(), "Action");
+		ArrayList<IStrategoAppl> allActions = collectTerms(editor.getDescriptor().getDocument(), "Action", "Builder");
 		if (allActions.size() >= 1) {
-			result = termAt(allActions.get(0), 1);
+			result = ((IStrategoString) termAt(termAt(allActions.get(0), 1), 0)).stringValue();
 		}
 		
 		return result == null ? "" : result;
