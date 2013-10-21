@@ -17,7 +17,7 @@ public class MenusServiceUtil {
 
 	public static void refreshToolbarMenuCommands() {
 		ICommandService commandService = (ICommandService) PlatformUI.getWorkbench().getService(ICommandService.class);
-		for (int i = 1; i <= MenusServiceConstants.NO_OF_TOOLBAR_MENUS; i++) {
+		for (int i = 0; i < MenusServiceConstants.NO_OF_TOOLBAR_MENUS; i++) {
 			commandService.refreshElements(MenusServiceConstants.TOOLBAR_BASECOMMAND_ID_PREFIX + i, null);
 		}
 	}
