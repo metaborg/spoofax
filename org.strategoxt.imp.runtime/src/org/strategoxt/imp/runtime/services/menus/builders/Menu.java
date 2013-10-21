@@ -37,4 +37,9 @@ public class Menu implements IMenuContribution {
 		}
 		return null;
 	}
+
+	@Override
+	public int getContributionType() {
+		return IMenuContribution.MENU;
+	}
 }

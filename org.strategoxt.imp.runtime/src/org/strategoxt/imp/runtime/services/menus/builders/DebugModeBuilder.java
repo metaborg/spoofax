@@ -1,5 +1,7 @@
 package org.strategoxt.imp.runtime.services.menus.builders;
 
+import java.util.List;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
@@ -23,20 +25,27 @@ import org.strategoxt.imp.runtime.services.StrategoObserver;
  * @author rlindeman
  *
  */
-public class DebugModeBuilder implements IBuilder {
+public class DebugModeBuilder extends AbstractBuilder {
 
 	private final StrategoObserver observer;
+
+	private final List<String> path;
 	
-	public DebugModeBuilder(StrategoObserver observer) {
+	public DebugModeBuilder(StrategoObserver observer, List<String> path) {
 		this.observer = observer;
+		this.path = path;
 	}
 
-	public String getCaption() {
-		if (this.observer.isDebuggerEnabled()) {
+	public static String getCaption(StrategoObserver observer) {
+		if (observer.isDebuggerEnabled()) {
 			return "Disable debug mode";
 		} else {
 			return "Enable debug mode";
 		}
+	}
+	
+	public String getCaption() {
+		return getCaption(observer);
 	}
 
 	/**
@@ -119,5 +128,10 @@ public class DebugModeBuilder implements IBuilder {
 		} catch (RuntimeException e) {
 			Environment.logException("Problem reporting error: " + message, e);
 		}
+	}
+	
+	@Override
+	public List<String> getPath() {
+		return path;
 	}
 }

@@ -62,7 +62,7 @@ import org.strategoxt.stratego_gpp.box2text_string_0_1;
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class StrategoBuilder implements IBuilder {
+public class StrategoBuilder extends AbstractBuilder {
 
 	private final StrategoObserver observer;
 
@@ -497,5 +497,10 @@ public class StrategoBuilder implements IBuilder {
 	@Override
 	public String toString() {
 		return "Builder: " + builderRule + " - " + path;
+	}
+
+	@Override
+	public List<String> getPath() {
+		return path;
 	}
 }

@@ -1,5 +1,7 @@
 package org.strategoxt.imp.runtime.services.menus.builders;
 
+import java.util.List;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.jobs.Job;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -15,4 +17,6 @@ public interface IBuilder extends IMenuContribution {
 	Object getData();
 	
 	void setData(Object data);
+	
+	List<String> getPath();
 }

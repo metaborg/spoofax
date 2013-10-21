@@ -7,4 +7,8 @@ public class Separator implements IMenuContribution {
 		return "";
 	}
 
+	@Override
+	public int getContributionType() {
+		return IMenuContribution.SEPARATOR;
+	}
 }

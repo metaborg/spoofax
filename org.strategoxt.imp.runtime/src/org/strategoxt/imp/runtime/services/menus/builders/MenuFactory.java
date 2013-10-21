@@ -143,7 +143,10 @@ public class MenuFactory extends AbstractServiceFactory<IMenuList> {
 	private static void addDebugModeBuilder(Descriptor d, SGLRParseController controller, List<Menu> menus, EditorState derivedFromEditor) throws BadDescriptorException {
 		StrategoObserver feedback = d.createService(StrategoObserver.class, controller);
 		for (Menu menu : menus) {
-			menu.addMenuContribution(new DebugModeBuilder(feedback));
+			List<String> path = new LinkedList<String>();
+			path.add(menu.getCaption());
+			path.add(DebugModeBuilder.getCaption(feedback));
+			menu.addMenuContribution(new DebugModeBuilder(feedback, path));
 		}
 	}
 

@@ -1,8 +1,11 @@
 package org.strategoxt.imp.runtime.services.menus;
 
 import java.util.LinkedList;
+import java.util.Map;
 
 import org.eclipse.jface.action.IContributionItem;
+import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.actions.CompoundContributionItem;
 import org.eclipse.ui.menus.CommandContributionItem;
 import org.eclipse.ui.menus.CommandContributionItemParameter;
@@ -10,7 +13,9 @@ import org.eclipse.ui.menus.IWorkbenchContribution;
 import org.eclipse.ui.services.IServiceLocator;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
-import org.strategoxt.imp.runtime.services.menus.builders.BuilderMap;
+import org.strategoxt.imp.runtime.services.menus.builders.IMenuContribution;
+import org.strategoxt.imp.runtime.services.menus.builders.Menu;
+import org.strategoxt.imp.runtime.services.menus.builders.MenuList;
 
 /**
  * @author Oskar van Rest
@@ -32,20 +37,32 @@ public class DynamicContributionItem extends CompoundContributionItem implements
 
 		int menuIndex = Integer.parseInt(getId().replaceAll(MenusServiceConstants.DYNAMIC_CONTRIBUTION_ITEM_ID_PREFIX, ""));
 
-		if (menuIndex == 1) {
-			CommandContributionItemParameter dummyParams = new CommandContributionItemParameter(serviceLocator, "a", MenusServiceConstants.ACTION_ID, CommandContributionItem.STYLE_PUSH);
-			result.add(new CommandContributionItem(dummyParams));
-		}
+		MenuList menus = getMenus();
+		if (menus.getAll().size() >= menuIndex) {
+			Menu menu = menus.getAll().get(menuIndex);
 
-		/*
-		 * TODO
-		 * 
-		 * editor = getActiveEditor()
-		 * 
-		 * if (editor != null && editor instanceof SpoofaxEditor)
-		 * SpoofaxMenusService sms = get SpoofaxMenusService for editor for
-		 * (menu : sms) for (contrib : menu.contribs) result.add(new contrib)
-		 */
+			for (IMenuContribution contrib : menu.getMenuContributions()) {
+				switch (contrib.getContributionType()) {
+				case IMenuContribution.BUILDER:
+					
+//					IServiceLocator serviceLocator,
+//					String id, String commandId, Map parameters, ImageDescriptor icon,
+//					ImageDescriptor disabledIcon, ImageDescriptor hoverIcon,
+//					String label, String mnemonic, String tooltip, int style,
+//					String helpContextId, boolean visibleEnabled
+					
+					
+					CommandContributionItemParameter dummyParams = new CommandContributionItemParameter(serviceLocator, "a", MenusServiceConstants.ACTION_ID, CommandContributionItem.STYLE_PUSH);
+					result.add(new CommandContributionItem(dummyParams));
+					break;
+				case IMenuContribution.SEPARATOR:
+					result.add(new Separator());
+					break;
+				default:
+					break;
+				}
+			}
+		}
 
 		return result.toArray(new IContributionItem[result.size()]);
 	}
@@ -55,23 +72,27 @@ public class DynamicContributionItem extends CompoundContributionItem implements
 		this.serviceLocator = serviceLocator;
 	}
 
-	BuilderMap menusService;
+	MenuList menus;
 
 	@Override
 	public boolean isDirty() {
+		MenuList menus = getMenus();
+		if (this.menus != menus) {
+			this.menus = menus;
+			return true;
+		}
+		return false;
+	}
+
+	public MenuList getMenus() {
 		EditorState activeEditor = EditorState.getActiveEditor();
 		if (activeEditor != null) {
-			BuilderMap menusService = null;
 			try {
-				menusService = activeEditor.getDescriptor().createService(BuilderMap.class, activeEditor.getParseController());
+				return activeEditor.getDescriptor().createService(MenuList.class, activeEditor.getParseController());
 			} catch (BadDescriptorException e) {
 				e.printStackTrace();
 			}
-			if (this.menusService != menusService) {
-				this.menusService = menusService;
-				return true;
-			}
 		}
-		return true;
+		return null;
 	}
 }
