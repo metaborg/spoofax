@@ -23,6 +23,8 @@ public class ActionHandler extends AbstractHandler {
 		IBuilder builder = MenusServiceUtil.getMenus().getBuilder(path);
 		builder.scheduleExecute(editor, null, null, false);
 
+		ToolbarBaseCommandHandler.setLastAction(path.get(0), path);
+		
 		return null;
 	}
 

@@ -1,8 +1,8 @@
 package org.strategoxt.imp.runtime.services.menus;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.WeakHashMap;
 
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -21,10 +21,10 @@ import org.strategoxt.imp.runtime.services.menus.contribs.Menu;
  */
 public class ToolbarBaseCommandHandler implements IHandler, IElementUpdater {
 
-	private ArrayList<List<String>> lastActions = new ArrayList<>(MenusServiceConstants.NO_OF_TOOLBAR_MENUS);
+	private static Map<String, List<String>> lastActions = new WeakHashMap<>(MenusServiceConstants.NO_OF_TOOLBAR_MENUS);
 
-	public void setLastAction(int menuIndex, List<String> pathOfLastAction) {
-		lastActions.set(menuIndex, pathOfLastAction);
+	public static void setLastAction(String menuCaption, List<String> pathOfLastAction) {
+		lastActions.put(menuCaption, pathOfLastAction);
 	}
 
 	@Override
@@ -41,9 +41,13 @@ public class ToolbarBaseCommandHandler implements IHandler, IElementUpdater {
 		MenuList menus = MenusServiceUtil.getMenus();
 
 		IBuilder builder = null;
-
-		if (lastActions.size() > menuIndex && lastActions.get(menuIndex) != null) {
-			builder = menus.getBuilder(lastActions.get(menuIndex));
+		
+		if (menus.getAll().size() > menuIndex) {
+			Menu menu = menus.getAll().get(menuIndex);
+			List<String> lastAction = lastActions.get(menu.getCaption());
+			if (lastAction != null) {
+				builder = menus.getBuilder(lastActions.get(menu.getCaption()));
+			}
 		}
 
 		if (builder == null) {
