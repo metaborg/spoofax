@@ -38,3 +38,6 @@ templates
     icon : <String>
   >
   
+lexical syntax
+  
+  "menus" -> ModuleName {reject}

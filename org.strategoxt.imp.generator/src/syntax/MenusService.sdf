@@ -20,3 +20,6 @@ exports
     CONTENTCOMPLETE -> MenuContrib  {cons("COMPLETION-MenuContrib")}
     CONTENTCOMPLETE -> ActionOption {cons("COMPLETION-ActionOption")}
     CONTENTCOMPLETE -> Icon         {cons("COMPLETION-Icon")}
+
+  lexical syntax
+    "menus" -> ModuleName {reject}
