@@ -1,4 +1,4 @@
-package org.strategoxt.imp.runtime.services.menus.builders;
+package org.strategoxt.imp.runtime.services.menus.contribs;
 
 public interface IMenuContribution {
 

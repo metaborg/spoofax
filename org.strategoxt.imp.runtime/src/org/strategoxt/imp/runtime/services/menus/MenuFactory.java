@@ -1,4 +1,4 @@
-package org.strategoxt.imp.runtime.services.menus.builders;
+package org.strategoxt.imp.runtime.services.menus;
 
 import static org.spoofax.interpreter.core.Tools.termAt;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.collectTerms;
@@ -20,7 +20,12 @@ import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
-import org.strategoxt.imp.runtime.services.menus.MenusServiceUtil;
+import org.strategoxt.imp.runtime.services.menus.contribs.CustomStrategyBuilder;
+import org.strategoxt.imp.runtime.services.menus.contribs.DebugModeBuilder;
+import org.strategoxt.imp.runtime.services.menus.contribs.IBuilder;
+import org.strategoxt.imp.runtime.services.menus.contribs.Menu;
+import org.strategoxt.imp.runtime.services.menus.contribs.Separator;
+import org.strategoxt.imp.runtime.services.menus.contribs.StrategoBuilder;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>

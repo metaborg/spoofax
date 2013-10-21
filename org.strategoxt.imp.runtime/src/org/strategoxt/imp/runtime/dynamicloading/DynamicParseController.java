@@ -21,7 +21,7 @@ import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.services.StrategoObserverPartListener;
 import org.strategoxt.imp.runtime.services.TokenColorerHelper;
-import org.strategoxt.imp.runtime.services.menus.builders.MenuFactory;
+import org.strategoxt.imp.runtime.services.menus.MenuFactory;
 
 /**
  * Dynamic proxy class to a parse controller.

@@ -1,4 +1,4 @@
-package org.strategoxt.imp.runtime.services.menus.builders;
+package org.strategoxt.imp.runtime.services.menus.contribs;
 
 import java.util.LinkedList;
 import java.util.List;

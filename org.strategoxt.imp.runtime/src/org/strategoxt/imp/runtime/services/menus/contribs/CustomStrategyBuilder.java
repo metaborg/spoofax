@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.strategoxt.imp.runtime.services.menus.builders;
+package org.strategoxt.imp.runtime.services.menus.contribs;
 
 import static java.util.Collections.synchronizedMap;
 import static org.spoofax.interpreter.core.Tools.termAt;

@@ -8,7 +8,7 @@ import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.strategoxt.imp.runtime.EditorState;
-import org.strategoxt.imp.runtime.services.menus.builders.IBuilder;
+import org.strategoxt.imp.runtime.services.menus.contribs.IBuilder;
 
 /**
  * @author Oskar van Rest

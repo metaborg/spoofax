@@ -1,4 +1,4 @@
-package org.strategoxt.imp.runtime.services.menus.builders;
+package org.strategoxt.imp.runtime.services.menus;
 
 import java.lang.ref.WeakReference;
 import java.util.List;
@@ -15,6 +15,7 @@ import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.WeakWeakMap;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
+import org.strategoxt.imp.runtime.services.menus.contribs.IBuilder;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 
 /**
