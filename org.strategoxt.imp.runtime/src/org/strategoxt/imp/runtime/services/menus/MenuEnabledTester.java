@@ -24,6 +24,6 @@ public class MenuEnabledTester extends PropertyTester {
 			});
 		}
 
-		return true; // TODO: return true/false based on esv description
+		return MenusServiceUtil.getMenus().getAll().size() > menuIndex;
 	}
 }
