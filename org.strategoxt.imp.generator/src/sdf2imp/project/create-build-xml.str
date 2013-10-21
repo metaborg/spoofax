@@ -168,6 +168,7 @@ $[<?xml version="1.0" encoding="UTF-8"?>
 			<include name="**/*.tmpl" />
 			<include name="**/*.sdf3" />
 			<include name="**/*.nab" />
+			<include name="**/*.ts" />
 		</fileset>
 	</path>
 
