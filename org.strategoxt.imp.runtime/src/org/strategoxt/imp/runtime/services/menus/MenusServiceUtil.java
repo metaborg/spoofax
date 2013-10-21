@@ -6,6 +6,9 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.commands.ICommandService;
 import org.eclipse.ui.internal.WorkbenchWindow;
+import org.strategoxt.imp.runtime.EditorState;
+import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
+import org.strategoxt.imp.runtime.services.menus.builders.MenuList;
 
 /**
  * @author Oskar van Rest
@@ -36,5 +39,17 @@ public class MenusServiceUtil {
 				menu.setVisible(true);
 			}
 		}
+	}
+	
+	public static MenuList getMenus() {
+		EditorState activeEditor = EditorState.getActiveEditor();
+		if (activeEditor != null) {
+			try {
+				return activeEditor.getDescriptor().createService(MenuList.class, activeEditor.getParseController());
+			} catch (BadDescriptorException e) {
+				e.printStackTrace();
+			}
+		}
+		return null;
 	}
 }

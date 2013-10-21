@@ -426,7 +426,7 @@
                id="org.spoofax.menus.action"
                name="spoofaxaction">
             <commandParameter
-                  id="org.spoofax.menus.path"
+                  id="org.spoofax.menu.path"
                   name="path"
                   optional="false">
             </commandParameter>

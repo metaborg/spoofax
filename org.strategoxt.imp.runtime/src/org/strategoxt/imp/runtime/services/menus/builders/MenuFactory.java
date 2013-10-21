@@ -64,6 +64,8 @@ public class MenuFactory extends AbstractServiceFactory<IMenuList> {
 					menu.addMenuContribution(createBuilder(a, path, d, controller, derivedFromEditor));
 				}
 			}
+			
+			menus.add(menu);
 		}
 	}
 
@@ -128,10 +130,10 @@ public class MenuFactory extends AbstractServiceFactory<IMenuList> {
 		for (Menu menu : menus) {
 			List<String> path = new LinkedList<String>();
 			path.add(menu.getCaption());
-			path.add("Apply custom rule...");
+			path.add(CustomStrategyBuilder.CAPTION);
+			menu.addMenuContribution(new Separator());
 			menu.addMenuContribution(new CustomStrategyBuilder(path, feedback, derivedFromEditor));
 		}
-
 	}
 
 	/**

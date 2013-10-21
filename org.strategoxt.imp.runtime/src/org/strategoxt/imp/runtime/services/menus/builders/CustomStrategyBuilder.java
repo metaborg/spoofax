@@ -36,6 +36,8 @@ import org.strategoxt.imp.runtime.stratego.SourceAttachment;
  */
 public class CustomStrategyBuilder extends StrategoBuilder {
 	
+	public final static String CAPTION = "Apply custom rule...";
+	
 	private static final Map<String, String> initialValues =
 		synchronizedMap(new HashMap<String, String>());
 	

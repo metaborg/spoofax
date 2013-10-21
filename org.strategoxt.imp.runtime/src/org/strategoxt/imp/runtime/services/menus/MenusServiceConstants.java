@@ -15,5 +15,7 @@ public class MenusServiceConstants {
 	
 	public static String ACTION_ID = "org.spoofax.menus.action";
 	
-	public static String MENU_ID_PARAM_ID = "org.spoofax.menus.menuID";
+	public static String PATH_PARAM = "org.spoofax.menu.path";
+	
+	public static String MENU_ID_PARAM = "org.spoofax.menus.menuID";
 }

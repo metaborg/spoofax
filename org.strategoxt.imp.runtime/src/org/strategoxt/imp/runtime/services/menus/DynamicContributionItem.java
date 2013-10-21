@@ -1,5 +1,6 @@
 package org.strategoxt.imp.runtime.services.menus;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
@@ -11,8 +12,7 @@ import org.eclipse.ui.menus.CommandContributionItem;
 import org.eclipse.ui.menus.CommandContributionItemParameter;
 import org.eclipse.ui.menus.IWorkbenchContribution;
 import org.eclipse.ui.services.IServiceLocator;
-import org.strategoxt.imp.runtime.EditorState;
-import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
+import org.strategoxt.imp.runtime.services.menus.builders.IBuilder;
 import org.strategoxt.imp.runtime.services.menus.builders.IMenuContribution;
 import org.strategoxt.imp.runtime.services.menus.builders.Menu;
 import org.strategoxt.imp.runtime.services.menus.builders.MenuList;
@@ -37,23 +37,19 @@ public class DynamicContributionItem extends CompoundContributionItem implements
 
 		int menuIndex = Integer.parseInt(getId().replaceAll(MenusServiceConstants.DYNAMIC_CONTRIBUTION_ITEM_ID_PREFIX, ""));
 
-		MenuList menus = getMenus();
-		if (menus.getAll().size() >= menuIndex) {
+		MenuList menus = MenusServiceUtil.getMenus();
+		if (menus.getAll().size() > menuIndex) {
 			Menu menu = menus.getAll().get(menuIndex);
 
 			for (IMenuContribution contrib : menu.getMenuContributions()) {
 				switch (contrib.getContributionType()) {
 				case IMenuContribution.BUILDER:
-					
-//					IServiceLocator serviceLocator,
-//					String id, String commandId, Map parameters, ImageDescriptor icon,
-//					ImageDescriptor disabledIcon, ImageDescriptor hoverIcon,
-//					String label, String mnemonic, String tooltip, int style,
-//					String helpContextId, boolean visibleEnabled
-					
-					
-					CommandContributionItemParameter dummyParams = new CommandContributionItemParameter(serviceLocator, "a", MenusServiceConstants.ACTION_ID, CommandContributionItem.STYLE_PUSH);
-					result.add(new CommandContributionItem(dummyParams));
+					IBuilder builder = (IBuilder) contrib;
+					Map<String, String> params = new HashMap<>();
+					params.put(MenusServiceConstants.PATH_PARAM, builder.getPath().toString());
+					ImageDescriptor icon = null;
+					CommandContributionItemParameter itemParams = new CommandContributionItemParameter(serviceLocator, builder.getPath().toString(), MenusServiceConstants.ACTION_ID, params, icon, null, null, builder.getCaption(), null, null, CommandContributionItem.STYLE_PUSH, null, true);
+					result.add(new CommandContributionItem(itemParams));
 					break;
 				case IMenuContribution.SEPARATOR:
 					result.add(new Separator());
@@ -76,23 +72,11 @@ public class DynamicContributionItem extends CompoundContributionItem implements
 
 	@Override
 	public boolean isDirty() {
-		MenuList menus = getMenus();
+		MenuList menus = MenusServiceUtil.getMenus();
 		if (this.menus != menus) {
 			this.menus = menus;
 			return true;
 		}
 		return false;
-	}
-
-	public MenuList getMenus() {
-		EditorState activeEditor = EditorState.getActiveEditor();
-		if (activeEditor != null) {
-			try {
-				return activeEditor.getDescriptor().createService(MenuList.class, activeEditor.getParseController());
-			} catch (BadDescriptorException e) {
-				e.printStackTrace();
-			}
-		}
-		return null;
 	}
 }

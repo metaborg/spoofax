@@ -26,7 +26,7 @@ public class ToolbarBaseCommandHandler implements IHandler, IElementUpdater {
 
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
-		String menuID = event.getParameter(MenusServiceConstants.MENU_ID_PARAM_ID);
+		String menuID = event.getParameter(MenusServiceConstants.MENU_ID_PARAM);
 		System.out.println(menuID);
 		return null;
 	}
@@ -49,7 +49,7 @@ public class ToolbarBaseCommandHandler implements IHandler, IElementUpdater {
 
 	@Override
 	public void updateElement(UIElement element, @SuppressWarnings("rawtypes") Map parameters) {
-		int menuIndex = Integer.parseInt((String) parameters.get(MenusServiceConstants.MENU_ID_PARAM_ID));
+		int menuIndex = Integer.parseInt((String) parameters.get(MenusServiceConstants.MENU_ID_PARAM));
 		int a = new Random().nextInt(10);
 		int b = new Random().nextInt(10);
 		int c = new Random().nextInt(10);
