@@ -246,24 +246,6 @@
    </extension>
 
    <extension
-         point="org.eclipse.ui.actionSets">
-      <actionSet
-            description="Spoofax actions"
-            id="org.strategoxt.imp.runtime.ui.actionSet"
-            label="Spoofax"
-            visible="true">
-         <action
-               class="org.strategoxt.imp.runtime.services.menus.builders.BuilderButtonDelegate"
-               definitionId="org.strategoxt.imp.runtime.transformCommand"
-               id="org.strategoxt.imp.runtime.stratego.builder"
-               label="Transform"
-               style="pulldown"
-               toolbarPath="spoofax"
-               tooltip="Apply transformation to file in current editor"/>
-               <!-- TODO: icon="icons/builder.png" -->
-      </actionSet>
-   </extension>
-   <extension
          point="org.eclipse.ui.commands">
       <category
             id="org.strategoxt.imp.runtime.transformCommandCategory"
