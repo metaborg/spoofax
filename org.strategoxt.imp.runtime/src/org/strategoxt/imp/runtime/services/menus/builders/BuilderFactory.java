@@ -5,8 +5,8 @@ import static org.strategoxt.imp.runtime.dynamicloading.TermReader.collectTerms;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.cons;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.termContents;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.parser.IParseController;
@@ -24,102 +24,123 @@ import org.strategoxt.imp.runtime.services.menus.MenusServiceUtil;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
+ * @author Oskar van Rest
  */
-public class BuilderFactory extends AbstractServiceFactory<IBuilderMap> {
-	
+public class BuilderFactory extends AbstractServiceFactory<IMenuList> {
+
 	public BuilderFactory() {
-		super(IBuilderMap.class, false); // not cached; depends on derived editor relation
+		super(IMenuList.class, false); // not cached; depends on derived editor
+										// relation
 	}
 
 	@Override
-	public IBuilderMap create(Descriptor d, SGLRParseController controller) throws BadDescriptorException {
-		Set<IBuilder> builders = new LinkedHashSet<IBuilder>();
-		
-		EditorState derivedFromEditor = getDerivedFromEditor(controller);
-		
-		if (d.isATermEditor() && derivedFromEditor != null)
-			addDerivedBuilders(derivedFromEditor, builders);
+	public IMenuList create(Descriptor d, SGLRParseController controller) throws BadDescriptorException {
+		List<Menu> menus = new LinkedList<Menu>();
 
-		addBuilders(d, controller, builders, null);
-		addCustomStrategyBuilder(d, controller, builders, derivedFromEditor);
+		EditorState derivedFromEditor = getDerivedFromEditor(controller);
+
+		if (d.isATermEditor() && derivedFromEditor != null)
+			addDerivedMenus(derivedFromEditor, menus);
+
+		addMenus(d, controller, menus, null);
+		addCustomStrategyBuilder(d, controller, menus, derivedFromEditor);
 		if (Environment.allowsDebugging(d)) // Descriptor allows debugging)
 		{
-			addDebugModeBuilder(d, controller, builders, derivedFromEditor);
+			addDebugModeBuilder(d, controller, menus, derivedFromEditor);
 		}
-		return new BuilderMap(builders);
+		return new MenuList(menus);
 	}
 
-	private static void addBuilders(Descriptor d, SGLRParseController controller, Set<IBuilder> builders,
-			EditorState derivedFromEditor) throws BadDescriptorException {
-		
-		StrategoObserver feedback = d.createService(StrategoObserver.class, controller);
-		
-		for (IStrategoAppl builder : collectTerms(d.getDocument(), "Builder")) {
-			String caption = termContents(termAt(builder, 0));
-			String strategy = termContents(termAt(builder, 1));
-			IStrategoList options = termAt(builder, 2);
+	private static void addMenus(Descriptor d, SGLRParseController controller, List<Menu> menus, EditorState derivedFromEditor) throws BadDescriptorException {
+		for (IStrategoAppl m : collectTerms(d.getDocument(), "ToolbarMenu")) {
+			String caption = termContents(termAt(m, 0));
+			Menu menu = new Menu(caption);
 			
-			boolean openEditor = false;
-			boolean realTime = false;
-			boolean persistent = false;
-			boolean meta = false;
-			boolean cursor = false;
-			boolean source = false;
-			
-			for (IStrategoTerm option : options.getAllSubterms()) {
-				String type = cons(option);
-				if (type.equals("OpenEditor")) {
-					openEditor = true;
-				} else if (type.equals("RealTime")) {
-					realTime = true;
-				} else if (type.equals("Persistent")) {
-					persistent = true;
-				} else if (type.equals("Meta")) {
-					meta = true;
-				} else if (type.equals("Cursor")) {
-					cursor = true;
-				} else if (type.equals("Source")) {
-					source = true;
-				} else {
-					throw new BadDescriptorException("Unknown builder annotation: " + type);
+			IStrategoList menuContribs = termAt(m, 2);
+			for (IStrategoAppl a : collectTerms(menuContribs, "Action")) {
+				IBuilder builder = createBuilder(a, d, controller, derivedFromEditor);
+				if (builder != null) {
+					menu.addMenuContribution(createBuilder(a, d, controller, derivedFromEditor));
 				}
 			}
-			if (!meta || d.isDynamicallyLoaded())			
-				builders.add(new StrategoBuilder(feedback, caption, strategy, openEditor, realTime, cursor, source, persistent, derivedFromEditor));
-		}
-	}
-	
-	private static void addDerivedBuilders(EditorState derivedFromEditor, Set<IBuilder> builders)
-			throws BadDescriptorException {		
-		if (derivedFromEditor != null){
-			addBuilders(derivedFromEditor.getDescriptor(), derivedFromEditor.getParseController(), builders, derivedFromEditor);
 		}
 	}
 
-	private static void addCustomStrategyBuilder(Descriptor d, SGLRParseController controller,
-			Set<IBuilder> builders, EditorState derivedFromEditor) throws BadDescriptorException {
-		
+	private static IBuilder createBuilder(IStrategoTerm action, Descriptor d, SGLRParseController controller, EditorState derivedFromEditor) throws BadDescriptorException {
+
+		StrategoObserver feedback = d.createService(StrategoObserver.class, controller);
+
+		String caption = termContents(termAt(action, 0));
+		String strategy = termContents(termAt(action, 1));
+		IStrategoList options = termAt(action, 2);
+
+		boolean openEditor = false;
+		boolean realTime = false;
+		boolean persistent = false;
+		boolean meta = false;
+		boolean cursor = false;
+		boolean source = false;
+
+		for (IStrategoTerm option : options.getAllSubterms()) {
+			String type = cons(option);
+			if (type.equals("OpenEditor")) {
+				openEditor = true;
+			} else if (type.equals("RealTime")) {
+				realTime = true;
+			} else if (type.equals("Persistent")) {
+				persistent = true;
+			} else if (type.equals("Meta")) {
+				meta = true;
+			} else if (type.equals("Cursor")) {
+				cursor = true;
+			} else if (type.equals("Source")) {
+				source = true;
+			} else {
+				throw new BadDescriptorException("Unknown builder annotation: " + type);
+			}
+		}
+		if (!meta || d.isDynamicallyLoaded())
+			return new StrategoBuilder(feedback, caption, strategy, openEditor, realTime, cursor, source, persistent, derivedFromEditor);
+		else
+			return null;
+	}
+
+	private static void addDerivedMenus(EditorState derivedFromEditor, List<Menu> menus) throws BadDescriptorException {
+		if (derivedFromEditor != null) {
+			addMenus(derivedFromEditor.getDescriptor(), derivedFromEditor.getParseController(), menus, derivedFromEditor);
+		}
+	}
+
+	private static void addCustomStrategyBuilder(Descriptor d, SGLRParseController controller, List<Menu> menus, EditorState derivedFromEditor) throws BadDescriptorException {
+
 		if (d.isATermEditor() && derivedFromEditor != null) {
 			StrategoObserver feedback = derivedFromEditor.getDescriptor().createService(StrategoObserver.class, controller);
-			builders.add(new CustomStrategyBuilder(feedback, derivedFromEditor));
+			for (Menu menu : menus) {
+				menu.addMenuContribution(new CustomStrategyBuilder(feedback, derivedFromEditor));
+			}
 		} else if (d.isDynamicallyLoaded()) {
 			StrategoObserver feedback = d.createService(StrategoObserver.class, controller);
-			builders.add(new CustomStrategyBuilder(feedback, null));
+			for (Menu menu : menus) {
+				menu.addMenuContribution(new CustomStrategyBuilder(feedback, null));
+			}
+			;
 		}
 	}
 
 	/**
-	 * Adds a Debug Mode Builder, if debug mode is allowed the user can choose to enable stratego debugging.
-	 * If debugging is enabled, a new JVM is started for every strategy invoke resulting in major performance drops.
-	 * The user can also disable Debug mode, without needing to rebuil the project. 
+	 * Adds a Debug Mode Builder, if debug mode is allowed the user can choose
+	 * to enable stratego debugging. If debugging is enabled, a new JVM is
+	 * started for every strategy invoke resulting in major performance drops.
+	 * The user can also disable Debug mode, without needing to rebuil the
+	 * project.
 	 */
-	private static void addDebugModeBuilder(Descriptor d, SGLRParseController controller,
-			Set<IBuilder> builders, EditorState derivedFromEditor) throws BadDescriptorException
-	{
+	private static void addDebugModeBuilder(Descriptor d, SGLRParseController controller, List<Menu> menus, EditorState derivedFromEditor) throws BadDescriptorException {
 		StrategoObserver feedback = d.createService(StrategoObserver.class, controller);
-		builders.add(new DebugModeBuilder(feedback));
+		for (Menu menu : menus) {
+			menu.addMenuContribution(new DebugModeBuilder(feedback));
+		}
 	}
-	
+
 	private static EditorState getDerivedFromEditor(SGLRParseController controller) {
 		if (controller.getEditor() == null || controller.getEditor().getEditor() == null)
 			return null;

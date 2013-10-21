@@ -35,7 +35,7 @@ public class TermReader extends Tools {
 		return null;
 	}
 	
-	public static ArrayList<IStrategoAppl> collectTerms(IStrategoAppl term, String... constructors) {
+	public static ArrayList<IStrategoAppl> collectTerms(IStrategoTerm term, String... constructors) {
 		ArrayList<IStrategoAppl> results = new ArrayList<IStrategoAppl>();
 		for (String constructor : constructors) {
 			collectTerms(term, constructor, results);

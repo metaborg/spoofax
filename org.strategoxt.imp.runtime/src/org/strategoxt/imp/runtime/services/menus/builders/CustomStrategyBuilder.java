@@ -4,7 +4,10 @@
 package org.strategoxt.imp.runtime.services.menus.builders;
 
 import static java.util.Collections.synchronizedMap;
+import static org.spoofax.interpreter.core.Tools.termAt;
+import static org.strategoxt.imp.runtime.dynamicloading.TermReader.collectTerms;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,12 +21,11 @@ import org.spoofax.interpreter.core.InterpreterErrorExit;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.core.UndefinedStrategyException;
+import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.imp.runtime.EditorState;
-import org.strategoxt.imp.runtime.Environment;
-import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.services.InputTermBuilder;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.stratego.SourceAttachment;
@@ -149,16 +151,11 @@ public class CustomStrategyBuilder extends StrategoBuilder {
 		String language = editor.getLanguage().getName();
 		String result = initialValues.get(language);
 		if (result != null) return result;
-		IBuilderMap allBuilders;
-		try {
-			allBuilders = editor.getDescriptor().createService(IBuilderMap.class, editor.getParseController());
-			for (IBuilder builder : allBuilders.getAll()) {
-				if (builder instanceof StrategoBuilder && ((StrategoBuilder) builder).getBuilderRule() != null)
-					result = ((StrategoBuilder) builder).getBuilderRule();
-			}
-		} catch (BadDescriptorException e) {
-			Environment.logException(e);
-		}	
+		
+		ArrayList<IStrategoAppl> allActions = collectTerms(editor.getDescriptor().getDocument(), "Action");
+		if (allActions.size() >= 1) {
+			result = termAt(allActions.get(0), 1);
+		}
 		
 		return result == null ? "" : result;
 	}

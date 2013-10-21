@@ -2,12 +2,10 @@ package org.strategoxt.imp.runtime.services.menus.builders;
 
 import java.util.Set;
 
-import org.eclipse.imp.language.ILanguageService;
-
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public interface IBuilderMap extends ILanguageService {
+public interface IBuilderMap {
 	
 	Set<IBuilder> getAll();
 	

@@ -8,9 +8,7 @@ import org.strategoxt.imp.runtime.EditorState;
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
  */
-public interface IBuilder {
-
-	String getCaption();
+public interface IBuilder extends IMenuContribution {
 	
 	Job scheduleExecute(EditorState editor, IStrategoTerm ast, IFile errorReportFile, boolean isRebuild);
 
