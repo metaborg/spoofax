@@ -1577,6 +1577,7 @@ rules // Error checking tasks
 				<task-create-error-on-multiple(|partition, resolve, \"Duplicate definition\")> name
 			end
 			
+	// TODO: check needs to be converted into a task.
 	nabl-hiding-task(|partition):
 		name -> name
 		where
@@ -1593,7 +1594,7 @@ rules // Error checking tasks
 			task	:= <new-task(|partition)> Choice(task*);
 			<task-create-error-on-success(|partition, task, \"Declaration hides previous definition\")> name
 
-	message-task(|partition) = 
+	nabl-constraint(|partition) = 
 		nabl-hiding-task(|partition)
 
 rules // Legacy
@@ -1869,9 +1870,10 @@ rules // generic analysis of uses
     	// TODO: order of imported URI's is unclear
     	
 	nabl-use-subtasks-one(|partition, ns):
-		uri -> [[uri], wildcard-import]
+		uri -> [uri', wildcard-import]
 		with
-			wildcard-import := <new-task(|partition)> PropsLookup(Import(ns), Def(uri))
+		  uri' := <try(nabl-is-uri; MkSingleton)> uri
+		; wildcard-import := <new-task(|partition)> PropsLookup(Import(ns), Def(uri))
 		  	
 	// candidate in current scope
 	nabl-use-candidate(|lang, partition, uri*, name):
@@ -1972,7 +1974,7 @@ rules // generic analysis of imports
               
 rules // name retrieval
   
-  nabl-name = is-string
+  nabl-get-name = is-string
   
   nabl-name-apply(s) = is-string; s
     
@@ -1981,22 +1983,22 @@ rules // name retrieval
 rules // URI retrieval
   
   nabl-collect-def =
-    try(nabl-name);
+    try(nabl-get-name);
     get-annos;
     collect-one(?Def(_))
     
   nabl-collect-all-def =
-    try(nabl-name);
+    try(nabl-get-name);
     get-annos;
     collect-all(?Def(_))
     
   nabl-collect-use =
-    try(nabl-name);
+    try(nabl-get-name);
     get-annos;
     collect-one(?Use(_))
     
   nabl-collect-all-use =
-    try(nabl-name);
+    try(nabl-get-name);
     get-annos;
     collect-all(?Use(_))
     
@@ -2054,6 +2056,7 @@ rules // Code completion
 				proposal*   := <map(nabl-uri; nabl-uri-name)> def*
 			<+
 				proposal*   := []
+
 "
 
 	create-nabl-constraints = 
@@ -2118,6 +2121,7 @@ rules
   ; nabl-lookup-local-import(|ctx, ns, <nabl-uri-name>)
   
   nabl-lookup-local-import(|ctx, ns, name) =
+  	// TODO: imports
     <new-task(|ctx)> Fail() // ResolveWildcardImports(<nabl-uri-parent>, ns)
   ; <new-task(|ctx)> ResolveDefs(<id>, ns, name, [])
   
@@ -2134,6 +2138,7 @@ rules
   nabl-lookup-lexical-import(|ctx, ns, name) =
     nabl-uri-parents
   ; map(
+    	// TODO: imports
       <new-task(|ctx)> Fail() //ResolveWildcardImports(<id>, ns)
     ; <new-task(|ctx)> ResolveDefs(<id>, ns, name, [])
     )
@@ -2162,11 +2167,12 @@ signature
     Alias        : URI * URI              -> Entry
     InverseAlias : URI * URI              -> Entry
     Use          : Result                 -> Entry
-    Prop         : URI * Property * Value -> Entry
 
-rules // Index entries to diff
+rules // Index entries to diff for incrementality
   
   analyze-diff-entry = ?Def(_)
+  
+  analyze-diff-entry = ?Alias(_, _)
  
 rules
   
@@ -2227,14 +2233,6 @@ rules // index uri & value projections
   nabl-uris:
     Use(uri) -> <nabl-collect-all-resolved-defs; map(nabl-uri)> uri
     
-  /** @internal */  
-  nabl-uri:
-    Prop(uri, _, _) -> uri
-    
-  /** @internal */  
-  nabl-uris:
-    Prop(uri, _, _) -> [uri]
-    
   /** @internal */
   nabl-value:
     Def(value) -> value
@@ -2266,14 +2264,6 @@ rules // index uri & value projections
   /** @internal */
   nabl-values:
     Use(value) -> <nabl-uris>
-    
-  /** @internal */
-  nabl-value:
-    Prop(_, _, value) -> value
-    
-  /** @internal */
-  nabl-values:
-    Prop(_, _, value) -> [value]
 
 "
 
@@ -2284,7 +2274,7 @@ rules // index uri & value projections
 imports
 	
 	runtime/nabl/uri
-	runtime/nabl/entries
+	runtime/nabl/interface
 	runtime/task/core
 	
 rules // Read generation
@@ -2319,15 +2309,6 @@ rules // Read processing
 			ns   := <nabl-uri-namespace> uri;
 			uri' := <nabl-uri-parent> uri
 
-  nabl-diff-entry =
-    ?Def(_)
- 
-  nabl-diff-entry =
-    ?Alias(_, _)
-    
-  nabl-diff-entry =
-    ?Prop(_, _, _)
-
 "
 
 	create-nabl-interface = 
@@ -2355,7 +2336,7 @@ strategies // Collect
 	
 strategies // Projections
   
-	nabl-name = fail
+	nabl-get-name = fail
 	
 	nabl-name-apply(s) = fail
 	
@@ -2377,7 +2358,10 @@ strategies // Default error checks
 	
 	nabl-check-disable-hiding(|uri, ns) = fail
 	
-
+strategies // Incrementality
+	
+	nabl-diff-entry = fail
+	
 "
 
 	create-nabl-lookup = 
@@ -2736,7 +2720,7 @@ rules // basics
   
   perform-task(|nr) = 
     ?CollectDefs(<id>)
-  ; (?Def(_) <+ get-annos; mapconcat(?Def(_); MkSingleton + ?Use(<is-list <+ MkSingleton>)))
+  ; (?Def(_) <+ try(nabl-get-name); get-annos; mapconcat(?Def(_); MkSingleton + ?Use(<is-list <+ MkSingleton>)))
 
 rules // Resolve
   
@@ -3307,27 +3291,35 @@ signature
     
     Prop  : URI * Property * Value -> Entry
 
-rules // Index entries to diff
+rules // Index entries to diff for incrementality
   
   analyze-diff-entry = ?Prop(_, _, _)
 
 rules
   
-  new-prop(|partition, uri, kind, val):
-  x -> prop
-  with
-    prop := <origin-track-forced(!Prop(uri, kind, val))> x;
-    <index-add(|partition)> prop
-      
+	new-prop(|partition, uri, kind, val):
+		x -> prop
+		with
+			prop := <origin-track-forced(!Prop(uri, kind, val))> x;
+			<index-add(|partition)> prop
+	      
 rules // index uri & value projections
   
   /** @internal */  
-  nabl-uri-impl:
+  nabl-uri:
     Prop(uri, _, _) -> uri
     
+  /** @internal */  
+  nabl-uris:
+    Prop(uri, _, _) -> [uri]
+    
   /** @internal */
-  nabl-value-impl:
+  nabl-value:
     Prop(_, _, value) -> value
+    
+  /** @internal */
+  nabl-values:
+    Prop(_, _, value) -> [value]
 
 "
 
@@ -3364,7 +3356,8 @@ strategies // user-defined implementations
 
 	nabl-constraint(|partition) = fail
 
-
+	nabl-property-eq = fail
+	
 "
 
 	create-properties-query = 
@@ -3394,8 +3387,8 @@ rules
   
   get-property(|kind) =
      get-property-task(|kind)
-   ; insert-results // TODO: is this the right insertion?
-  <+ try(nabl-name)
+   ; insert-results // TODO: is this the right insertion? probably need recursive insertion.
+  <+ try(nabl-get-name)
    ; get-index-property(|kind)
    
   get-index-property(|kind) =
@@ -3934,12 +3927,13 @@ signature
 
 	constructors
 		
-    Id      : Term              -> Instruction   
-    Combine : List(Term)        -> Instruction
-    Collect : List(Term)        -> Instruction
-    Choice  : List(List(Term))  -> Instruction
-    Rewrite : ID * Term         -> Instruction
-    Index   : Int * List(Term)  -> Instruction
+    Id       : Term              -> Instruction   
+    Combine  : List(Term)        -> Instruction
+    Collect  : List(Term)        -> Instruction
+    Choice   : List(List(Term))  -> Instruction
+    Sequence : List(Term)        -> Instruction
+    Rewrite  : ID * Term         -> Instruction
+    Index    : Int * List(Term)  -> Instruction
     
 rules
 	
@@ -3952,6 +3946,13 @@ rules
 	
 	task-is-combinator = ?Choice(_)
   perform-task(|nr)  = ?Choice(<fetch-elem(not(?[]))>)
+  
+rules
+	
+	task-is-combinator = ?Sequence(_)
+  perform-task(|nr)  = ?Sequence(<not(fetch-elem(?[])); last>)
+  
+rules
   
   perform-task(|nr) = ?Id(<MkSingleton>)
   	
