@@ -3,7 +3,6 @@ package org.strategoxt.imp.runtime.services.menus;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -43,9 +42,8 @@ public class ToolbarBaseCommandHandler implements IHandler, IElementUpdater {
 
 		IBuilder builder = null;
 
-		List<String> lastAction = lastActions.get(menuIndex);
-		if (lastAction != null) {
-			builder = menus.getBuilder(lastAction);
+		if (lastActions.size() > menuIndex && lastActions.get(menuIndex) != null) {
+			builder = menus.getBuilder(lastActions.get(menuIndex));
 		}
 
 		if (builder == null) {

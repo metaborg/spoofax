@@ -66,7 +66,7 @@ public class MenuFactory extends AbstractServiceFactory<IMenuList> {
 				path.add(caption);
 				IBuilder builder = createBuilder(a, path, d, controller, derivedFromEditor);
 				if (builder != null) {
-					menu.addMenuContribution(createBuilder(a, path, d, controller, derivedFromEditor));
+					menu.addMenuContribution(builder);
 				}
 			}
 			

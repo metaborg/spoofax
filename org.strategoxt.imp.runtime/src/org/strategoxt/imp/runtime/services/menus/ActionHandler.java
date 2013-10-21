@@ -22,15 +22,16 @@ public class ActionHandler extends AbstractHandler {
 
 		IBuilder builder = MenusServiceUtil.getMenus().getBuilder(path);
 		builder.scheduleExecute(editor, null, null, false);
-		
+
 		return null;
 	}
 
 	private List<String> toPath(String path) {
 		List<String> result = new LinkedList<>();
 		StringTokenizer tokenizer = new StringTokenizer(path.substring(1, path.length() - 1), ",");
+		result.add(tokenizer.nextToken());
 		while (tokenizer.hasMoreTokens()) {
-			result.add(tokenizer.nextToken().trim());
+			result.add(tokenizer.nextToken().substring(1));
 		}
 		return result;
 	}

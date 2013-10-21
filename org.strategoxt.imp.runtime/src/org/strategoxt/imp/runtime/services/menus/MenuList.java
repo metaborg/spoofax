@@ -28,7 +28,7 @@ public class MenuList implements IMenuList {
 
 	@Override
 	public IBuilder getBuilder(List<String> path) {
-		if (path.size() <= 2) {
+		if (path.size() < 2) {
 			return null;
 		}
 

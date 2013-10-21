@@ -21,7 +21,7 @@ public class MenusServiceUtil {
 			commandService.refreshElements(MenusServiceConstants.TOOLBAR_BASECOMMAND_ID_PREFIX + i, null);
 		}
 	}
-	
+
 	/**
 	 * Resizes toolbar menus to reflect changed command labels.
 	 */
@@ -31,7 +31,7 @@ public class MenusServiceUtil {
 		if (window instanceof WorkbenchWindow && ((WorkbenchWindow) window).getCoolBarVisible()) {
 			ICoolBarManager coolBarManager = ((WorkbenchWindow) window).getCoolBarManager2();
 			ToolBarContributionItem menu = (ToolBarContributionItem) coolBarManager.find(MenusServiceConstants.TOOLBAR_ID);
-			
+
 			if (menu != null) {
 				menu.getToolBarManager().update(true);
 				menu.setVisible(false);
@@ -39,7 +39,7 @@ public class MenusServiceUtil {
 			}
 		}
 	}
-	
+
 	public static MenuList getMenus() {
 		EditorState activeEditor = EditorState.getActiveEditor();
 		if (activeEditor != null) {
