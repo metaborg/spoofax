@@ -5,6 +5,7 @@ import static org.strategoxt.imp.runtime.dynamicloading.TermReader.collectTerms;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.cons;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.termContents;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -56,6 +57,31 @@ public class MenuFactory extends AbstractServiceFactory<IMenuList> {
 	}
 
 	private static void addMenus(Descriptor d, SGLRParseController controller, List<Menu> menus, EditorState derivedFromEditor) throws BadDescriptorException {
+
+		// BEGIN: backwards compatibility with "Transform" menu
+		ArrayList<IStrategoAppl> builders = collectTerms(d.getDocument(), "Builder");
+		for (IStrategoAppl b : builders) {
+			List<String> path = new LinkedList<String>();
+			path.add(MenusServiceConstants.OLD_LABEL);
+			IBuilder builder = createBuilder(b, path, d, controller, derivedFromEditor);
+			if (builder != null) {
+				Menu menu = null;
+				for (Menu m : menus) {
+					if (m.getCaption().equals(MenusServiceConstants.OLD_LABEL)) {
+						menu = m;
+					}
+				}
+
+				if (menu == null) {
+					menu = new Menu(MenusServiceConstants.OLD_LABEL);
+					menus.add(0, menu);
+				}
+
+				menu.addMenuContribution(builder);
+			}
+		}
+		// END: backwards compatibility with "Transform" menu
+
 		for (IStrategoAppl m : collectTerms(d.getDocument(), "ToolbarMenu")) {
 			String caption = termContents(termAt(m, 0));
 			Menu menu = new Menu(caption);
@@ -69,7 +95,7 @@ public class MenuFactory extends AbstractServiceFactory<IMenuList> {
 					menu.addMenuContribution(builder);
 				}
 			}
-			
+
 			menus.add(menu);
 		}
 	}
