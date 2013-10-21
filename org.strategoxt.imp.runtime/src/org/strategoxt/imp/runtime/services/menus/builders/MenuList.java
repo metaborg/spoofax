@@ -23,28 +23,28 @@ public class MenuList implements IMenuList {
 	}
 
 	@Override
-	public IBuilder getBuilder(List<Integer> path) {
+	public IBuilder getBuilder(List<String> path) {
 		if (path.size() <= 2) {
 			return null;
 		}
-		
-		Menu current = menus.get(path.get(0));
+
+		@SuppressWarnings("unchecked")
+		List<IMenuContribution> menus = (List<IMenuContribution>) (List<?>) this.menus;
+		Menu current = (Menu) Menu.findMenuContribution(menus, path.get(0));
 
 		for (int i = 1; i < path.size() - 1; i++) {
-			IMenuContribution menuContrib = current.getMenuContributions().get(path.get(i));
+			IMenuContribution menuContrib = Menu.findMenuContribution(current.getMenuContributions(), path.get(i));
 			if (menuContrib instanceof Menu) {
 				current = (Menu) menuContrib;
-			}
-			else {
+			} else {
 				return null;
 			}
 		}
 
-		IMenuContribution menuContrib = current.getMenuContributions().get(path.get(path.size()-1));
+		IMenuContribution menuContrib = Menu.findMenuContribution(current.getMenuContributions(), path.get(path.size() - 1));
 		if (menuContrib instanceof IBuilder) {
-			return (IBuilder) menuContrib; 
-		}
-		else {
+			return (IBuilder) menuContrib;
+		} else {
 			return null;
 		}
 	}

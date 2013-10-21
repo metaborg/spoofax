@@ -9,6 +9,7 @@ import static org.strategoxt.imp.runtime.dynamicloading.TermReader.collectTerms;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.resources.IFile;
@@ -40,9 +41,9 @@ public class CustomStrategyBuilder extends StrategoBuilder {
 	
 	private String inputtedBuilderRule;
 	
-	public CustomStrategyBuilder(StrategoObserver observer, EditorState derivedFromEditor) {
+	public CustomStrategyBuilder(List<String> path, StrategoObserver observer, EditorState derivedFromEditor) {
 		// TODO: reconsider source = true here?
-		super(observer, "Apply custom rule...", null, true, true, false, true, false, derivedFromEditor);
+		super(observer, path, null, true, true, false, true, false, derivedFromEditor);
 	}
 	
 	@Override

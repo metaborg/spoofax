@@ -29,8 +29,7 @@ import org.strategoxt.imp.runtime.services.menus.MenusServiceUtil;
 public class BuilderFactory extends AbstractServiceFactory<IMenuList> {
 
 	public BuilderFactory() {
-		super(IMenuList.class, false); // not cached; depends on derived editor
-										// relation
+		super(IMenuList.class, false); // not cached; depends on derived editor relation
 	}
 
 	@Override
@@ -55,22 +54,25 @@ public class BuilderFactory extends AbstractServiceFactory<IMenuList> {
 		for (IStrategoAppl m : collectTerms(d.getDocument(), "ToolbarMenu")) {
 			String caption = termContents(termAt(m, 0));
 			Menu menu = new Menu(caption);
-			
+
 			IStrategoList menuContribs = termAt(m, 2);
 			for (IStrategoAppl a : collectTerms(menuContribs, "Action")) {
-				IBuilder builder = createBuilder(a, d, controller, derivedFromEditor);
+				List<String> path = new LinkedList<String>();
+				path.add(caption);
+				IBuilder builder = createBuilder(a, path, d, controller, derivedFromEditor);
 				if (builder != null) {
-					menu.addMenuContribution(createBuilder(a, d, controller, derivedFromEditor));
+					menu.addMenuContribution(createBuilder(a, path, d, controller, derivedFromEditor));
 				}
 			}
 		}
 	}
 
-	private static IBuilder createBuilder(IStrategoTerm action, Descriptor d, SGLRParseController controller, EditorState derivedFromEditor) throws BadDescriptorException {
+	private static IBuilder createBuilder(IStrategoTerm action, List<String> path, Descriptor d, SGLRParseController controller, EditorState derivedFromEditor) throws BadDescriptorException {
 
 		StrategoObserver feedback = d.createService(StrategoObserver.class, controller);
 
 		String caption = termContents(termAt(action, 0));
+		path.add(caption);
 		String strategy = termContents(termAt(action, 1));
 		IStrategoList options = termAt(action, 2);
 
@@ -100,7 +102,7 @@ public class BuilderFactory extends AbstractServiceFactory<IMenuList> {
 			}
 		}
 		if (!meta || d.isDynamicallyLoaded())
-			return new StrategoBuilder(feedback, caption, strategy, openEditor, realTime, cursor, source, persistent, derivedFromEditor);
+			return new StrategoBuilder(feedback, path, strategy, openEditor, realTime, cursor, source, persistent, derivedFromEditor);
 		else
 			return null;
 	}
@@ -115,24 +117,28 @@ public class BuilderFactory extends AbstractServiceFactory<IMenuList> {
 
 		if (d.isATermEditor() && derivedFromEditor != null) {
 			StrategoObserver feedback = derivedFromEditor.getDescriptor().createService(StrategoObserver.class, controller);
-			for (Menu menu : menus) {
-				menu.addMenuContribution(new CustomStrategyBuilder(feedback, derivedFromEditor));
-			}
+			addCustomStrategyBuilderHelper(menus, feedback, derivedFromEditor);
 		} else if (d.isDynamicallyLoaded()) {
 			StrategoObserver feedback = d.createService(StrategoObserver.class, controller);
-			for (Menu menu : menus) {
-				menu.addMenuContribution(new CustomStrategyBuilder(feedback, null));
-			}
-			;
+			addCustomStrategyBuilderHelper(menus, feedback, null);
 		}
 	}
 
+	private static void addCustomStrategyBuilderHelper(List<Menu> menus, StrategoObserver feedback, EditorState derivedFromEditor) {
+		for (Menu menu : menus) {
+			List<String> path = new LinkedList<String>();
+			path.add(menu.getCaption());
+			path.add("Apply custom rule...");
+			menu.addMenuContribution(new CustomStrategyBuilder(path, feedback, derivedFromEditor));
+		}
+
+	}
+
 	/**
-	 * Adds a Debug Mode Builder, if debug mode is allowed the user can choose
-	 * to enable stratego debugging. If debugging is enabled, a new JVM is
-	 * started for every strategy invoke resulting in major performance drops.
-	 * The user can also disable Debug mode, without needing to rebuil the
-	 * project.
+	 * Adds a Debug Mode Builder, if debug mode is allowed the user can choose to enable stratego
+	 * debugging. If debugging is enabled, a new JVM is started for every strategy invoke resulting
+	 * in major performance drops. The user can also disable Debug mode, without needing to rebuil
+	 * the project.
 	 */
 	private static void addDebugModeBuilder(Descriptor d, SGLRParseController controller, List<Menu> menus, EditorState derivedFromEditor) throws BadDescriptorException {
 		StrategoObserver feedback = d.createService(StrategoObserver.class, controller);

@@ -24,4 +24,17 @@ public class Menu implements IMenuContribution {
 	public List<IMenuContribution> getMenuContributions() {
 		return menuContribs;
 	}
+	
+	public IMenuContribution getMenuContribution(String caption) {
+		return findMenuContribution(menuContribs, caption);
+	}
+	
+	public static IMenuContribution findMenuContribution(List<IMenuContribution> menuContribs, String caption) {
+		for (IMenuContribution contrib : menuContribs) {
+			if (contrib.getCaption().equals(caption)) {
+				return contrib;
+			}
+		}
+		return null;
+	}
 }

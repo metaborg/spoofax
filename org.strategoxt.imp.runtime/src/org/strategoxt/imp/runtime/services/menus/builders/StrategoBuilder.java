@@ -15,6 +15,7 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.concurrent.CancellationException;
@@ -65,8 +66,8 @@ public class StrategoBuilder implements IBuilder {
 
 	private final StrategoObserver observer;
 
-	private final String caption;
-
+	private final List<String> path;
+	
 	private String builderRule;
 
 	private final boolean realTime;
@@ -82,24 +83,26 @@ public class StrategoBuilder implements IBuilder {
 
 	private final EditorState derivedFromEditor;
 
+
 	// Since StrategoBuilders are not persistent (per constructor of
 	// BuilderFactory)
 	// we maintain a map with running jobs in a static field
-	private static Map<String, Job> activeJobs = new WeakHashMap<String, Job>();
+	private static Map<List<String>, Job> activeJobs = new WeakHashMap<List<String>, Job>();
 
 	/**
 	 * Creates a new Stratego builder.
+	 * @param path 
 	 * 
 	 * @param derivedFromEditor
 	 *            The editor the present editor is derived from, if the present
 	 *            editor is an IStrategoTerm editor.
 	 */
-	public StrategoBuilder(StrategoObserver observer, String caption, String builderRule,
+	public StrategoBuilder(StrategoObserver observer, List<String> path, String builderRule,
 			boolean openEditor, boolean realTime, boolean cursor, boolean source,
 			boolean persistent, EditorState derivedFromEditor) {
 
 		this.observer = observer;
-		this.caption = caption;
+		this.path = path;
 		this.builderRule = builderRule;
 		this.openEditor = openEditor;
 		this.realTime = realTime;
@@ -110,7 +113,7 @@ public class StrategoBuilder implements IBuilder {
 	}
 
 	public String getCaption() {
-		return caption;
+		return path.get(path.size() - 1);
 	}
 
 	public Object getData() {
@@ -141,10 +144,10 @@ public class StrategoBuilder implements IBuilder {
 	public Job scheduleExecute(final EditorState editor, IStrategoTerm node,
 			final IFile errorReportFile, final boolean isRebuild) {
 
-		String displayCaption = caption.endsWith("...") ? caption.substring(caption.length() - 3)
-				: caption;
+		String displayCaption = getCaption().endsWith("...") ? getCaption().substring(getCaption().length() - 3)
+				: getCaption();
 
-		Job lastJob = activeJobs.get(caption);
+		Job lastJob = activeJobs.get(path);
 		if (lastJob != null && lastJob.getState() != Job.NONE) {
 			if (!isRebuild)
 				openError(editor, "Already running: " + displayCaption);
@@ -173,7 +176,7 @@ public class StrategoBuilder implements IBuilder {
 		};
 		job.setUser(true);
 		job.schedule();
-		activeJobs.put(caption, job);
+		activeJobs.put(path, job);
 		return job;
 	}
 
@@ -302,7 +305,7 @@ public class StrategoBuilder implements IBuilder {
 					// File(file.getLocationURI()).delete();
 					// Create a listener *and* editor-derived editor relation
 					StrategoBuilderListener listener = StrategoBuilderListener.addListener(
-							editor.getEditor(), target, file, StrategoBuilder.this, node);
+							editor.getEditor(), target, file, StrategoBuilder.this, path, node);
 					if (!realTime || editor == target || derivedFromEditor != null)
 						listener.setEnabled(false);
 					if (derivedFromEditor != null) // ensure we get builders
@@ -359,7 +362,7 @@ public class StrategoBuilder implements IBuilder {
 			String message = e.getLocalizedMessage() == null ? e.getMessage() : e
 					.getLocalizedMessage();
 			Status status = new Status(IStatus.ERROR, RuntimeActivator.PLUGIN_ID, message, e);
-			ErrorDialog.openError(editor.getEditor().getSite().getShell(), caption, null, status);
+			ErrorDialog.openError(editor.getEditor().getSite().getShell(), getCaption(), null, status);
 		}
 	}
 
@@ -368,7 +371,7 @@ public class StrategoBuilder implements IBuilder {
 			@Override
 			public IStatus runInUIThread(IProgressMonitor monitor) {
 				Status status = new Status(IStatus.ERROR, RuntimeActivator.PLUGIN_ID, message);
-				ErrorDialog.openError(editor.getEditor().getSite().getShell(), caption, null,
+				ErrorDialog.openError(editor.getEditor().getSite().getShell(), getCaption(), null,
 						status);
 				return Status.OK_STATUS;
 			}
@@ -493,6 +496,6 @@ public class StrategoBuilder implements IBuilder {
 
 	@Override
 	public String toString() {
-		return "Builder: " + builderRule + " - " + caption;
+		return "Builder: " + builderRule + " - " + path;
 	}
 }

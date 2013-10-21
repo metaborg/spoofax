@@ -1,6 +1,7 @@
 package org.strategoxt.imp.runtime.services.menus.builders;
 
 import java.lang.ref.WeakReference;
+import java.util.List;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -27,9 +28,9 @@ public class StrategoBuilderListener implements IModelListener {
 	private static final WeakWeakMap<IEditorPart, StrategoBuilderListener> asyncListeners =
 		new WeakWeakMap<IEditorPart, StrategoBuilderListener>();
 	
-	private final String builderName;
-
 	private final Object builderData;
+	
+	private final List<String> path;
 	
 	private WeakReference<UniversalEditor> editor;
 	
@@ -44,22 +45,22 @@ public class StrategoBuilderListener implements IModelListener {
 	private boolean enabled = true;
 	
 	private StrategoBuilderListener(UniversalEditor editor, IEditorPart targetEditor, IFile targetFile,
-			IBuilder builder, IStrategoTerm selection) {
+			IBuilder builder, List<String> path, IStrategoTerm selection) {
 		
 		this.editor = new WeakReference<UniversalEditor>(editor);
 		this.targetEditor = new WeakReference<IEditorPart>(targetEditor);
-		this.builderName = builder.getCaption();
 		this.builderData = builder.getData();
+		this.path = path;
 		this.targetFile = targetFile;
 		this.lastChanged = targetFile.getLocalTimeStamp();
 		this.selection = selection;
 	}
 
-	public static StrategoBuilderListener addListener(UniversalEditor editor, IEditorPart target, IFile file, IBuilder builder, IStrategoTerm node) {
+	public static StrategoBuilderListener addListener(UniversalEditor editor, IEditorPart target, IFile file, IBuilder builder, List<String> path, IStrategoTerm node) {
 		synchronized (asyncListeners) {
 			StrategoBuilderListener listener = asyncListeners.get(editor);
 			if (listener != null) listener.setEnabled(false);
-			listener = new StrategoBuilderListener(editor, target, file, builder, node);
+			listener = new StrategoBuilderListener(editor, target, file, builder, path, node);
 			asyncListeners.put(target, listener);
 			editor.addModelListener(listener);
 			return listener;
@@ -124,10 +125,10 @@ public class StrategoBuilderListener implements IModelListener {
 			return;
 		
 		try {
-			IBuilderMap builders = editor.getDescriptor().createService(IBuilderMap.class, editor.getParseController());
-			IBuilder builder = builders.get(this.builderName);
+			IMenuList menus = editor.getDescriptor().createService(IMenuList.class, editor.getParseController());
+			IBuilder builder = menus.getBuilder(path);
 			if (builder == null)
-			    throw new RuntimeException("No builder exists with this name: " + this.builderName);
+			    throw new RuntimeException("No builder exists with this path: " + path);
 			builder.setData(builderData);
 			
 			IStrategoTerm newSelection = findNewSelection(editor);

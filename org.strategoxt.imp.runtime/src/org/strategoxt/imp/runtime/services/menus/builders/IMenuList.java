@@ -10,5 +10,5 @@ public interface IMenuList extends ILanguageService {
 	
 	Menu get(String menuName);
 	
-	IBuilder getBuilder(List<Integer> path);
+	IBuilder getBuilder(List<String> path);
 }
