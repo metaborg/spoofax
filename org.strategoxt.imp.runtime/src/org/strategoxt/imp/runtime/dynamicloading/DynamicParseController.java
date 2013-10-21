@@ -21,7 +21,7 @@ import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.services.StrategoObserverPartListener;
 import org.strategoxt.imp.runtime.services.TokenColorerHelper;
-import org.strategoxt.imp.runtime.services.menus.builders.BuilderFactory;
+import org.strategoxt.imp.runtime.services.menus.builders.MenuFactory;
 
 /**
  * Dynamic proxy class to a parse controller.
@@ -106,7 +106,7 @@ public class DynamicParseController extends AbstractService<IParseController> im
 		TokenColorerHelper.register((SGLRParseController) parser, lastEditor);
 		StrategoObserverPartListener.register(lastEditor);
 		RefactoringFactory.eagerInit(descriptor, parser, lastEditor);
-		BuilderFactory.eagerInit(descriptor, parser, lastEditor);
+		MenuFactory.eagerInit(descriptor, parser, lastEditor);
 	}
 
 	public IAnnotationTypeInfo getAnnotationTypeInfo() {

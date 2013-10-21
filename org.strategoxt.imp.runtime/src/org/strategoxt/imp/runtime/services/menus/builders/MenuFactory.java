@@ -26,9 +26,9 @@ import org.strategoxt.imp.runtime.services.menus.MenusServiceUtil;
  * @author Lennart Kats <lennart add lclnet.nl>
  * @author Oskar van Rest
  */
-public class BuilderFactory extends AbstractServiceFactory<IMenuList> {
+public class MenuFactory extends AbstractServiceFactory<IMenuList> {
 
-	public BuilderFactory() {
+	public MenuFactory() {
 		super(IMenuList.class, false); // not cached; depends on derived editor relation
 	}
 

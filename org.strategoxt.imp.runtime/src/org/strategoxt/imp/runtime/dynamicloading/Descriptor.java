@@ -35,7 +35,7 @@ import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.RuntimeActivator;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.services.MetaFileLanguageValidator;
-import org.strategoxt.imp.runtime.services.menus.builders.BuilderFactory;
+import org.strategoxt.imp.runtime.services.menus.builders.MenuFactory;
 import org.strategoxt.lang.WeakValueHashMap;
 
 /**
@@ -112,7 +112,7 @@ public class Descriptor {
 		serviceFactories.add(new StrategoObserverFactory());
 		serviceFactories.add(new SyntaxPropertiesFactory());
 		serviceFactories.add(new TokenColorerFactory());
-		serviceFactories.add(new BuilderFactory());
+		serviceFactories.add(new MenuFactory());
 		serviceFactories.add(new RefactoringFactory());
 		serviceFactories.add(new ContentProposerFactory());
 		serviceFactories.add(new AutoEditStrategyFactory());
