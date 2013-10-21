@@ -353,7 +353,7 @@
                      style="pulldown">
                   <parameter
                         name="org.spoofax.menus.menuID"
-                        value="1">
+                        value="0">
                   </parameter>
                   <visibleWhen
                         checkEnabled="false">
@@ -383,7 +383,7 @@
                      style="pulldown">
                   <parameter
                         name="org.spoofax.menus.menuID"
-                        value="1">
+                        value="2">
                   </parameter>
                   <visibleWhen
                         checkEnabled="false">
