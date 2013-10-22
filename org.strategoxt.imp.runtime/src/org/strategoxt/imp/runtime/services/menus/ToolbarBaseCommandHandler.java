@@ -102,10 +102,15 @@ public class ToolbarBaseCommandHandler implements IHandler, IElementUpdater {
 		MenuList menus = MenusServiceUtil.getMenus();
 		
 		if (menus.getAll().size() > menuIndex) {
-			String caption = menus.getAll().get(menuIndex).getCaption();
+			Menu menu = menus.getAll().get(menuIndex);
+			String caption = menu.getCaption();
 			
 			element.setText(caption);
 			element.setTooltip("");
+			
+			if (menu.getIcon() != null) {
+				element.setIcon(menu.getIcon());
+			}
 
 			Display.getDefault().asyncExec(new Runnable() {
 				@Override

@@ -3,9 +3,12 @@ package org.strategoxt.imp.runtime.services.menus.contribs;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.eclipse.jface.resource.ImageDescriptor;
+
 public class Menu implements IMenuContribution {
 
 	private final String caption;
+	private ImageDescriptor icon;
 	private final List<IMenuContribution> menuContribs = new LinkedList<IMenuContribution>();
 	
 	public Menu(String caption) {
@@ -15,6 +18,14 @@ public class Menu implements IMenuContribution {
 	@Override
 	public String getCaption() {
 		return caption;
+	}
+	
+	public void setIcon(ImageDescriptor imageDescriptor) {
+		this.icon = imageDescriptor;
+	}
+	
+	public ImageDescriptor getIcon() {
+		return icon;
 	}
 
 	public void addMenuContribution(IMenuContribution menuContrib) {

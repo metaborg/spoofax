@@ -5,12 +5,16 @@ import static org.strategoxt.imp.runtime.dynamicloading.TermReader.collectTerms;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.cons;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.termContents;
 
+import java.io.File;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.eclipse.core.runtime.URIUtil;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.parser.IParseController;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -85,6 +89,21 @@ public class MenuFactory extends AbstractServiceFactory<IMenuList> {
 		for (IStrategoAppl m : collectTerms(d.getDocument(), "ToolbarMenu")) {
 			String caption = termContents(termAt(m, 0));
 			Menu menu = new Menu(caption);
+			
+			if (((IStrategoAppl) termAt(m, 1)).getConstructor().getName().equals("Some")) {
+				String iconPath = termContents(termAt(m, 1));
+				String pluginPath = d.getBasePath().toOSString();
+				File iconFile = new File(pluginPath, iconPath);
+				if (iconFile.exists()) {
+					ImageDescriptor imageDescriptor = null;
+					try {
+						imageDescriptor = ImageDescriptor.createFromURL(URIUtil.toURL(iconFile.toURI()));
+					} catch (MalformedURLException e) {
+						e.printStackTrace();
+					} 
+					menu.setIcon(imageDescriptor);
+				}
+			}
 
 			IStrategoList menuContribs = termAt(m, 2);
 			for (IStrategoAppl a : collectTerms(menuContribs, "Action", "Separator", "Submenu")) {
