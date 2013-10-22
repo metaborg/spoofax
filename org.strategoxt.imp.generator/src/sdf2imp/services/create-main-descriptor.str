@@ -33,7 +33,7 @@ strategies
       module <main-descriptor-name>
       
       imports
-        <descriptor-name> "-Builders"
+        <descriptor-name> "-Menus"
         <descriptor-name> "-Refactorings"
         <descriptor-name> "-Colorer"
         <descriptor-name> "-Completions"
