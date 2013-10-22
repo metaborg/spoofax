@@ -29,7 +29,7 @@ public class ActionHandler extends AbstractHandler {
 	}
 
 	private List<String> toPath(String path) {
-		List<String> result = new LinkedList<>();
+		List<String> result = new LinkedList<String>();
 		StringTokenizer tokenizer = new StringTokenizer(path.substring(1, path.length() - 1), ",");
 		result.add(tokenizer.nextToken());
 		while (tokenizer.hasMoreTokens()) {

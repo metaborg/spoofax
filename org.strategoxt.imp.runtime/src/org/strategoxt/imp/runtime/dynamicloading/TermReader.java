@@ -40,7 +40,7 @@ public class TermReader extends Tools {
 	}
 	
 	public static ArrayList<IStrategoAppl> collectTerms(IStrategoTerm term, String... constructors) {
-		Set<String> constructorSet = new HashSet<>(Arrays.asList(constructors));
+		Set<String> constructorSet = new HashSet<String>(Arrays.asList(constructors));
 		ArrayList<IStrategoAppl> result = new ArrayList<IStrategoAppl>();
 		collectTerms(term, constructorSet, result);
 		return result;

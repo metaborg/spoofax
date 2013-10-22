@@ -44,7 +44,7 @@ public class DynamicContributionItem extends CompoundContributionItem implements
 				switch (contrib.getContributionType()) {
 				case IMenuContribution.BUILDER:
 					IBuilder builder = (IBuilder) contrib;
-					Map<String, String> params = new HashMap<>();
+					Map<String, String> params = new HashMap<String, String>();
 					params.put(MenusServiceConstants.PATH_PARAM, builder.getPath().toString());
 					ImageDescriptor icon = null;
 					CommandContributionItemParameter itemParams = new CommandContributionItemParameter(serviceLocator, builder.getPath().toString(), MenusServiceConstants.ACTION_ID, params, icon, null, null, builder.getCaption(), null, null, CommandContributionItem.STYLE_PUSH, null, true);

@@ -21,7 +21,7 @@ import org.strategoxt.imp.runtime.services.menus.contribs.Menu;
  */
 public class ToolbarBaseCommandHandler implements IHandler, IElementUpdater {
 
-	private static Map<String, List<String>> lastActions = new WeakHashMap<>(MenusServiceConstants.NO_OF_TOOLBAR_MENUS);
+	private static Map<String, List<String>> lastActions = new WeakHashMap<String, List<String>>(MenusServiceConstants.NO_OF_TOOLBAR_MENUS);
 
 	public static void setLastAction(String menuCaption, List<String> pathOfLastAction) {
 		lastActions.put(menuCaption, pathOfLastAction);
