@@ -9,7 +9,7 @@ templates
   >
   
   Menu.ToolbarMenu = <
-    menu: <MenuLabelOrIcon>
+    menu: <MenuID>
       <MenuContrib*; separator = "\n">
   >
   
@@ -27,8 +27,8 @@ templates
     separator
   >
   
-  MenuLabelOrIcon.Label = <<String>>
-  MenuLabelOrIcon.Icon = <Icon(<String>)>
+  MenuID.Label = <<String>>
+  MenuID.Icon = <Icon(<String>)>
   
   ActionOption.OpenEditor = <(openeditor)>
   ActionOption.RealTime = <(realtime)>

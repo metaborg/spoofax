@@ -1,25 +1,25 @@
 module MenusService
 exports
   context-free syntax
-    "menus" Menu*                                      -> Section         {cons("Menus")}
-    "menu" ":" MenuLabelOrIcon MenuContrib*            -> Menu            {cons("ToolbarMenu")}
-    "action" ":" String "=" StrategoCall ActionOption* -> MenuContrib     {cons("Action")}
-    "submenu" ":" String MenuContrib* "end"            -> MenuContrib     {cons("Submenu")}
-    "separator"                                        -> MenuContrib     {cons("Separator")}
-    String                                             -> MenuLabelOrIcon {cons("Label")}
-    "Icon" "(" String ")"                              -> MenuLabelOrIcon {cons("Icon")}
-    "(" "openeditor" ")"                               -> ActionOption    {cons("OpenEditor")}
-    "(" "realtime" ")"                                 -> ActionOption    {cons("RealTime")}
-    "(" "meta" ")"                                     -> ActionOption    {cons("Meta")}
-    "(" "source" ")"                                   -> ActionOption    {cons("Source")}
-    "shortcut" ":" KeyCombination                      -> ActionOption    {cons("ActionShortcut")}
+    "menus" Menu*                                      -> Section      {cons("Menus")}
+    "menu" ":" MenuID MenuContrib*                     -> Menu         {cons("ToolbarMenu")}
+    "action" ":" String "=" StrategoCall ActionOption* -> MenuContrib  {cons("Action")}
+    "submenu" ":" String MenuContrib* "end"            -> MenuContrib  {cons("Submenu")}
+    "separator"                                        -> MenuContrib  {cons("Separator")}
+    String                                             -> MenuID       {cons("Label")}
+    "Icon" "(" String ")"                              -> MenuID       {cons("Icon")}
+    "(" "openeditor" ")"                               -> ActionOption {cons("OpenEditor")}
+    "(" "realtime" ")"                                 -> ActionOption {cons("RealTime")}
+    "(" "meta" ")"                                     -> ActionOption {cons("Meta")}
+    "(" "source" ")"                                   -> ActionOption {cons("Source")}
+    "shortcut" ":" KeyCombination                      -> ActionOption {cons("ActionShortcut")}
 
   context-free syntax
-    CONTENTCOMPLETE -> Section         {cons("COMPLETION-Section")}
-    CONTENTCOMPLETE -> Menu            {cons("COMPLETION-Menu")}
-    CONTENTCOMPLETE -> MenuContrib     {cons("COMPLETION-MenuContrib")}
-    CONTENTCOMPLETE -> MenuLabelOrIcon {cons("COMPLETION-MenuLabelOrIcon")}
-    CONTENTCOMPLETE -> ActionOption    {cons("COMPLETION-ActionOption")}
+    CONTENTCOMPLETE -> Section      {cons("COMPLETION-Section")}
+    CONTENTCOMPLETE -> Menu         {cons("COMPLETION-Menu")}
+    CONTENTCOMPLETE -> MenuContrib  {cons("COMPLETION-MenuContrib")}
+    CONTENTCOMPLETE -> MenuID       {cons("COMPLETION-MenuID")}
+    CONTENTCOMPLETE -> ActionOption {cons("COMPLETION-ActionOption")}
 
   lexical syntax
     "menus" -> ModuleName {reject}
