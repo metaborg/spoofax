@@ -9,16 +9,16 @@ templates
   >
   
   Menu.ToolbarMenu = <
-    menu : <String> <Icon?>
+    menu: <MenuLabelOrIcon>
       <MenuContrib*; separator = "\n">
   >
   
   MenuContrib.Action = <
-    action : <String> = <StrategoCall> <ActionOption*>
+    action: <String> = <StrategoCall> <ActionOption*>
   >
   
   MenuContrib.Submenu = <
-    submenu : <String> <Icon?>
+    submenu: <String>
       <MenuContrib*; separator = "\n">
     end
   >
@@ -27,17 +27,19 @@ templates
     separator
   >
   
+  MenuLabelOrIcon.Label = <<String>>
+  MenuLabelOrIcon.Icon = <Icon(<String>)>
+  
   ActionOption.OpenEditor = <(openeditor)>
   ActionOption.RealTime = <(realtime)>
   ActionOption.Meta = <(meta)>
   ActionOption.Source = <(source)>
-  ActionOption = <<Icon>>
-  ActionOption.ActionShortcut = <shortcut : <KeyCombination>>
-    
-  Icon.Icon = <
-    icon : <String>
-  >
+  ActionOption.ActionShortcut = <shortcut: <KeyCombination>>
   
 lexical syntax
   
   "menus" -> ModuleName {reject}
+
+template options
+
+  tokenize : ":()"
