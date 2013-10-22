@@ -87,7 +87,7 @@ public class MenuFactory extends AbstractServiceFactory<IMenuList> {
 			Menu menu = new Menu(caption);
 
 			IStrategoList menuContribs = termAt(m, 2);
-			for (IStrategoAppl a : collectTerms(menuContribs, "Action", "Separator")) {
+			for (IStrategoAppl a : collectTerms(menuContribs, "Action", "Separator", "Submenu")) {
 				String cons = a.getConstructor().getName();
 				
 				if (cons.equals("Action")) {

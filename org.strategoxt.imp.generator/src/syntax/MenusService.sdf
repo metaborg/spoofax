@@ -4,7 +4,7 @@ exports
     "menus" Menu*                                      -> Section      {cons("Menus")}
     "menu" ":" String Icon? MenuContrib*               -> Menu         {cons("ToolbarMenu")}
     "action" ":" String "=" StrategoCall ActionOption* -> MenuContrib  {cons("Action")}
-    "submenu" ":" String MenuContrib* "end"            -> MenuContrib  {cons("Submenu")}
+    "submenu" ":" String Icon? MenuContrib* "end"      -> MenuContrib  {cons("Submenu")}
     "separator"                                        -> MenuContrib  {cons("Separator")}
     "(" "openeditor" ")"                               -> ActionOption {cons("OpenEditor")}
     "(" "realtime" ")"                                 -> ActionOption {cons("RealTime")}
