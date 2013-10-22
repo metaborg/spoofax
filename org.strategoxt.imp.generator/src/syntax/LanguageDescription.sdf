@@ -34,20 +34,25 @@ exports
   
   	%% General language properties
   
-    "name"            ":" PropertyValue  -> LanguageProperty {cons("LanguageName")}
-    "id"              ":" PropertyValue  -> LanguageProperty {cons("LanguageId")}
-    "extensions"      ":" PropertyValues -> LanguageProperty {cons("Extensions")}
-    "description"     ":" PropertyValue  -> LanguageProperty {cons("Description")}
-    "table"           ":" PropertyValue  -> LanguageProperty {cons("Table")}
-    "table" "provider" ":" StrategoCall  -> LanguageProperty {cons("TableProvider")}
-    "start" "symbols" ":" Sort*          -> LanguageProperty {cons("StartSymbols")}
-    "start" "symbols" ":" PropertyValues -> LanguageProperty {cons("StartSymbols"), avoid}
-    "url"             ":" URL            -> LanguageProperty {cons("URL")}
-    "extends"         ":" PropertyValues -> LanguageProperty {cons("Extends")}
-    "aliases"         ":" PropertyValues -> LanguageProperty {cons("Aliases")} %% deprecated
-    "unmanaged" "table" ":" Id "*"       -> LanguageProperty {cons("UnmanagedTablePrefix")}
-    "disambiguator"   ":" StrategoCall   -> LanguageProperty {cons("Disambiguator")}
-    "unicode" "flatten" ":" TrueOrFalse  -> LanguageProperty {cons("FlattenUnicode")}
+    "name"            ":" PropertyValue          -> LanguageProperty {cons("LanguageName")}
+    "id"              ":" PropertyValue          -> LanguageProperty {cons("LanguageId")}
+    "extensions"      ":" PropertyValues         -> LanguageProperty {cons("Extensions")}
+    "description"     ":" PropertyValue          -> LanguageProperty {cons("Description")}
+    "table"           ":" PropertyValue          -> LanguageProperty {cons("Table")}
+    "table" "provider" ":" StrategoCall          -> LanguageProperty {cons("TableProvider")}
+    "start" "symbols" ":" Sort*                  -> LanguageProperty {cons("StartSymbols")}
+    "start" "symbols" ":" PropertyValues         -> LanguageProperty {cons("StartSymbols"), avoid}
+    "url"             ":" URL                    -> LanguageProperty {cons("URL")}
+    "extends"         ":" PropertyValues         -> LanguageProperty {cons("Extends")}
+    "aliases"         ":" PropertyValues         -> LanguageProperty {cons("Aliases")} %% deprecated
+    "unmanaged" "table" ":" Id "*"               -> LanguageProperty {cons("UnmanagedTablePrefix")}
+    "disambiguator"   ":" StrategoCall           -> LanguageProperty {cons("Disambiguator")}
+    "unicode" "flatten" ":" TrueOrFalse          -> LanguageProperty {cons("FlattenUnicode")}
+    "observer" ":" StrategoCall ObserverOption*  -> LanguageProperty {cons("SemanticObserver")}    
+    "provider" ":" PropertyValue                 -> LanguageProperty {cons("SemanticProvider")}
+    "on" "save" ":" StrategoCall OnSaveAnno      -> LanguageProperty {cons("OnSave")}
+    
+    "(" "multifile" ")"                          -> ObserverOption {cons("MultiFile")}
    
      %% Syntax properties
      

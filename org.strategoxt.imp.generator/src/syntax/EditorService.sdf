@@ -1,42 +1,196 @@
 module EditorService
-
-imports
-  Common
-  LanguageDescription
-  FoldingService
-  OutlinerService
-  ColorerService
-  ReferencesService
-  CompletionsService
-  BuildersService
-  RefactoringsService
-  RecoveryRules
-  MenusService
-
-hiddens
-
-  context-free start-symbols
-    Module
-
 exports
-
-  sorts
-    Module FileName ModuleName Imports Import
-
-  lexical syntax
-  
-    [a-zA-Z0-9\-\_\.]+ -> FileName
-    {FileName "/"}+    -> ModuleName
-  
-  lexical restrictions
-  
-  	FileName    -/- [a-zA-Z0-9\-\_\.]
+  context-free syntax
+    "builders" BuilderRule*                                                            -> Section           {cons("Builders")}
+    "refactorings" RefactoringRule*                                                    -> Section           {cons("Refactorings")}
+    "colorer" ColorRule*                                                               -> Section           {cons("Colorer")}
+    "folding" FoldingRule*                                                             -> Section           {cons("Folding")}
+    "outliner" OutlineRule*                                                            -> Section           {cons("Outliner")}
+    "completions" CompletionRule*                                                      -> Section           {cons("Completions")}
+    "language" LanguageProperty*                                                       -> Section           {cons("Language")}
+    "references" ReferenceRule*                                                        -> Section           {cons("References")}
+    "keybindings" KeyBinding*                                                          -> Section           {cons("KeyBindings")}
+    "pretty-print" ":" StrategoCall                                                    -> RefactoringRule   {cons("PrettyPrint")}
+    "parenthesize" ":" StrategoCall                                                    -> RefactoringRule   {cons("Parenthesize")}
+    "override" "reconstruction" ":" StrategoCall                                       -> RefactoringRule   {cons("OverrideReconstruction")}
+    "resugar" ":" StrategoCall                                                         -> RefactoringRule   {cons("Resugar")}
+    "refactoring" SemanticNode* ":" String "=" StrategoCall BuilderOption* UIOption*   -> RefactoringRule   {cons("Refactoring")}
+    "shortcut" ":" KeyCombination                                                      -> UIOption          {cons("Shortcut")}
+    "shortcut" ":" InteractionId                                                       -> UIOption          {cons("Shortcut")}
+    String                                                                             -> InteractionId     {cons("InteractionId")}
+    "input" InputField+                                                                -> UIOption          {cons("UserInput")}
+    "identifier" ":" String "=" String                                                 -> InputField        {cons("IdInputField")}
+    "identifier" ":" String                                                            -> InputField        {cons("IdInputField")}
+    "text" ":" String "=" String                                                       -> InputField        {cons("TextInputField")}
+    "text" ":" String                                                                  -> InputField        {cons("TextInputField")}
+    "boolean" ":" String                                                               -> InputField        
+    "boolean" ":" String "=" BooleanValue                                              -> InputField        {cons("BooleanInputField")}
+    "true"                                                                             -> BooleanValue      {cons("TrueValue")}
+    "false"                                                                            -> BooleanValue      {cons("FalseValue")}
+    KeyCombination "=" String                                                          -> KeyBinding        {cons("KeyBinding")}
+    {Key "+"}+                                                                         -> KeyCombination    {cons("KeyCombination")}
+    "observer" ":" StrategoCall ObserverOption*                                        -> LanguageProperty  {cons("SemanticObserver")}
+    "provider" ":" PropertyValue                                                       -> LanguageProperty  {cons("SemanticProvider")}
+    "on" "save" ":" StrategoCall OnSaveAnno                                            -> LanguageProperty  {cons("OnSave")}
+    "builder" SemanticNode* ":" String "=" StrategoCall BuilderOption*                 -> BuilderRule       {cons("Builder")}
+    "builder" "caption" ":" PropertyValue                                              -> BuilderRule       {cons("BuilderCaption")}
+    "(" "multifile" ")"                                                                -> ObserverOption    {cons("MultiFile")}
+    "(" "openeditor" ")"                                                               -> BuilderOption     {cons("OpenEditor")}
+    "(" "realtime" ")"                                                                 -> BuilderOption     {cons("RealTime")}
+    "(" "persistent" ")"                                                               -> BuilderOption     {cons("Persistent")}
+    "(" "meta" ")"                                                                     -> BuilderOption     {cons("Meta")}
+    "(" "cursor" ")"                                                                   -> BuilderOption     {cons("Cursor")}
+    "(" "source" ")"                                                                   -> BuilderOption     {cons("Source")}
+    "completion" "trigger" ":" PropertyValue OptCompletionAnno                         -> CompletionRule    {cons("CompletionTrigger")}
+    "completion" "proposer" ":" StrategoCall                                           -> CompletionRule    {cons("CompletionProposer")}
+    "completion" "keyword" ":" PropertyValue OptCompletionAnno                         -> CompletionRule    {cons("CompletionKeyword")}
+    "completion" "template" Sort* ":" CompletionPrefix CompletionPart+ CompletionAnno* -> CompletionRule    {cons("CompletionTemplateEx")}
+                                                                                       -> CompletionPrefix  {cons("NoCompletionPrefix")}
+    String                                                                             -> CompletionPrefix  {cons("CompletionPrefix")}
+    String                                                                             -> CompletionPart    
+    Placeholder                                                                        -> CompletionPart    {cons("Placeholder")}
+    "(" "cursor" ")"                                                                   -> CompletionPart    {cons("Cursor")}
+                                                                                       -> OptCompletionAnno {cons("None")}
+    CompletionAnno                                                                     -> OptCompletionAnno 
+    "(" "disabled" ")"                                                                 -> CompletionAnno    {cons("Disable")}
+    "(" "blank" ")"                                                                    -> CompletionAnno    {cons("Blank")}
+    "(" "linked" ")"                                                                   -> CompletionAnno    {cons("Linked")}
+    "reference" SemanticNode ":" StrategoCall                                          -> ReferenceRule     {cons("ReferenceRule")}
+    "hover" SemanticNode ":" StrategoCall                                              -> ReferenceRule     {cons("HoverRule")}
+    "occurrence" SemanticNode ":" StrategoCall                                         -> ReferenceRule     {cons("OccurrenceRule")}
+    "environment" ColorNode ":" Attribute                                              -> ColorRule         {cons("ColorRuleAll")}
+    ColorNode ":" Attribute                                                            -> ColorRule         {cons("ColorRule")}
+    "environment" ColorNode ":" String "=" Attribute                                   -> ColorRule         {cons("ColorRuleAllNamed")}
+    ColorNode ":" String "=" Attribute                                                 -> ColorRule         {cons("ColorRuleNamed")}
+    Color MaybeColor Font                                                              -> Attribute         {cons("Attribute")}
+    AttributeId                                                                        -> Attribute         {cons("AttributeRef")}
+    Node                                                                               -> ColorNode         
+    TokenKindName                                                                      -> ColorNode         {cons("Token")}
+    "token" Id                                                                         -> ColorNode         {cons("Literal")}
+    "identifier"                                                                       -> TokenKindName     {cons("TK_IDENTIFIER")}
+    "number"                                                                           -> TokenKindName     {cons("TK_NUMBER")}
+    "layout"                                                                           -> TokenKindName     {cons("TK_LAYOUT")}
+    "string"                                                                           -> TokenKindName     {cons("TK_STRING")}
+    "keyword"                                                                          -> TokenKindName     {cons("TK_KEYWORD")}
+    "operator"                                                                         -> TokenKindName     {cons("TK_OPERATOR")}
+    "var"                                                                              -> TokenKindName     {cons("TK_VAR")}
+    "error"                                                                            -> TokenKindName     {cons("TK_ERROR")}
+    "unknown"                                                                          -> TokenKindName     {cons("TK_UNKNOWN")}
+                                                                                       -> Font              {cons("NORMAL")}
+    "bold"                                                                             -> Font              {cons("BOLD")}
+    "italic"                                                                           -> Font              {cons("ITALIC")}
+    "bold" "italic"                                                                    -> Font              {cons("BOLD_ITALIC")}
+    "italic" "bold"                                                                    -> Font              {cons("BOLD_ITALIC")}
+    "_"                                                                                -> Color             {cons("ColorDefault")}
+    Int Int Int                                                                        -> Color             {cons("ColorRGB")}
+                                                                                       -> NoColor           {cons("NoColor")}
+    Color                                                                              -> MaybeColor        
+    NoColor                                                                            -> MaybeColor        
+    AttributeId "=" Attribute                                                          -> ColorRule         {cons("ColorDef")}
+    Id                                                                                 -> AttributeId       
+    String                                                                             -> AttributeId       
+    Node                                                                               -> OutlineRule       {cons("OutlineRule")}
+    Node FoldingAnno                                                                   -> FoldingRule       {cons("FoldRule")}
+    "all" Node FoldingAnno                                                             -> FoldingRule       {cons("FoldRuleAll")}
+    "(" "disabled" ")"                                                                 -> FoldingAnno       {cons("Disable")}
+    "(" "folded" ")"                                                                   -> FoldingAnno       {cons("Folded")}
+                                                                                       -> FoldingAnno       {cons("None")}
+    Node                                                                               -> SemanticNode      
+    StrategoId                                                                         -> StrategoCall      {cons("Strategy")}
+    "id." StrategoId                                                                   -> StrategoCall      {cons("Attribute")}
+                                                                                       -> OnSaveAnno        {cons("None")}
+    {PropertyValue ","}*                                                               -> PropertyValues    {cons("Values")}
+    String                                                                             -> PropertyValue     
+    "name:" PropertyValue                                                              -> LanguageProperty  {cons("LanguageName")}
+    "id:" PropertyValue                                                                -> LanguageProperty  {cons("LanguageId")}
+    "extensions:" PropertyValues                                                       -> LanguageProperty  {cons("Extensions")}
+    "description:" PropertyValue                                                       -> LanguageProperty  {cons("Description")}
+    "table:" PropertyValue                                                             -> LanguageProperty  {cons("Table")}
+    "table" "provider:" StrategoCall                                                   -> LanguageProperty  {cons("TableProvider")}
+    "start" "symbols:" Sort*                                                           -> LanguageProperty  {cons("StartSymbols")}
+    "start" "symbols:" PropertyValues                                                  -> LanguageProperty  {cons("StartSymbols")}
+    "url:" URL                                                                         -> LanguageProperty  {cons("URL")}
+    "extends:" PropertyValues                                                          -> LanguageProperty  {cons("Extends")}
+    "aliases:" PropertyValues                                                          -> LanguageProperty  {cons("Aliases")}
+    "unmanaged" "table:" Id "*"                                                        -> LanguageProperty  {cons("UnmanagedTablePrefix")}
+    "disambiguator:" StrategoCall                                                      -> LanguageProperty  {cons("Disambiguator")}
+    "unicode" "flatten:" TrueOrFalse                                                   -> LanguageProperty  {cons("FlattenUnicode")}
+    "line" "comment:" PropertyValue                                                    -> LanguageProperty  {cons("LineCommentPrefix")}
+    "block" "comment:" BlockCommentDef                                                 -> LanguageProperty  {cons("BlockCommentDefs")}
+    "fences:" FenceDef*                                                                -> LanguageProperty  {cons("FenceDefs")}
+    "indent" "after:" IndentDef*                                                       -> LanguageProperty  {cons("IndentDefs")}
+    "identifier" "lexical:" PropertyValue                                              -> LanguageProperty  {cons("IdentifierLexical")}
+    PropertyValue PropertyValue PropertyValue                                          -> BlockCommentDef   {cons("BlockCommentDef")}
+    PropertyValue NoContinuation PropertyValue                                         -> BlockCommentDef   {cons("BlockCommentDef")}
+                                                                                       -> NoContinuation    {cons("NoContinuation")}
+    PropertyValue PropertyValue                                                        -> FenceDef          {cons("FenceDef")}
+    PropertyValue                                                                      -> IndentDef         {cons("IndentDef")}
+    "true"                                                                             -> TrueOrFalse       {cons("True")}
+    "false"                                                                            -> TrueOrFalse       {cons("False")}
+    Id                                                                                 -> Sort              {cons("Sort")}
+    Id "*"                                                                             -> Sort              {cons("ListSort")}
+    STRING                                                                             -> String            {cons("String")}
+    Sort "._"                                                                          -> Sort              
+    "_." ConstructorId                                                                 -> Constructor       {cons("ConstructorOnly")}
+    Id                                                                                 -> ConstructorId     {cons("Constructor")}
+    Sort                                                                               -> Node              
+    Constructor                                                                        -> Node              
+    Sort "." ConstructorId                                                             -> Node              {cons("SortAndConstructor")}
+    ReservedName                                                                       -> Node              
+    ReservedName                                                                       -> ModuleName        
+    "module" ModuleName Imports Section*                                               -> Module            {cons("Module")}
+    "imports" Import+                                                                  -> Imports           {cons("Imports")}
+                                                                                       -> Imports           {cons("NoImports")}
+    ModuleName                                                                         -> Import            {cons("Import")}
+    ModuleName "[" Id "]"                                                              -> Import            {cons("ImportRenamed")}
 
   context-free syntax
-  	
-    "module" ModuleName Imports Section* -> Module {cons("Module")}
-    "imports" Import+                    -> Imports {cons("Imports")}
-                                         -> Imports {cons("NoImports")}
-
-    ModuleName            -> Import {cons("Import")}
-    ModuleName "[" Id "]" -> Import {cons("ImportRenamed")}
+    CONTENTCOMPLETE -> Section           {cons("COMPLETION-Section")}
+    CONTENTCOMPLETE -> RefactoringRule   {cons("COMPLETION-RefactoringRule")}
+    CONTENTCOMPLETE -> InteractionId     {cons("COMPLETION-InteractionId")}
+    CONTENTCOMPLETE -> UIOption          {cons("COMPLETION-UIOption")}
+    CONTENTCOMPLETE -> InputField        {cons("COMPLETION-InputField")}
+    CONTENTCOMPLETE -> BooleanValue      {cons("COMPLETION-BooleanValue")}
+    CONTENTCOMPLETE -> KeyBinding        {cons("COMPLETION-KeyBinding")}
+    CONTENTCOMPLETE -> KeyCombination    {cons("COMPLETION-KeyCombination")}
+    CONTENTCOMPLETE -> BuilderRule       {cons("COMPLETION-BuilderRule")}
+    CONTENTCOMPLETE -> ObserverOption    {cons("COMPLETION-ObserverOption")}
+    CONTENTCOMPLETE -> BuilderOption     {cons("COMPLETION-BuilderOption")}
+    CONTENTCOMPLETE -> CompletionRule    {cons("COMPLETION-CompletionRule")}
+    CONTENTCOMPLETE -> CompletionPrefix  {cons("COMPLETION-CompletionPrefix")}
+    CONTENTCOMPLETE -> CompletionPart    {cons("COMPLETION-CompletionPart")}
+    CONTENTCOMPLETE -> OptCompletionAnno {cons("COMPLETION-OptCompletionAnno")}
+    CONTENTCOMPLETE -> CompletionAnno    {cons("COMPLETION-CompletionAnno")}
+    CONTENTCOMPLETE -> ReferenceRule     {cons("COMPLETION-ReferenceRule")}
+    CONTENTCOMPLETE -> Attribute         {cons("COMPLETION-Attribute")}
+    CONTENTCOMPLETE -> ColorNode         {cons("COMPLETION-ColorNode")}
+    CONTENTCOMPLETE -> TokenKindName     {cons("COMPLETION-TokenKindName")}
+    CONTENTCOMPLETE -> Font              {cons("COMPLETION-Font")}
+    CONTENTCOMPLETE -> Color             {cons("COMPLETION-Color")}
+    CONTENTCOMPLETE -> NoColor           {cons("COMPLETION-NoColor")}
+    CONTENTCOMPLETE -> MaybeColor        {cons("COMPLETION-MaybeColor")}
+    CONTENTCOMPLETE -> ColorRule         {cons("COMPLETION-ColorRule")}
+    CONTENTCOMPLETE -> AttributeId       {cons("COMPLETION-AttributeId")}
+    CONTENTCOMPLETE -> OutlineRule       {cons("COMPLETION-OutlineRule")}
+    CONTENTCOMPLETE -> FoldingRule       {cons("COMPLETION-FoldingRule")}
+    CONTENTCOMPLETE -> FoldingAnno       {cons("COMPLETION-FoldingAnno")}
+    CONTENTCOMPLETE -> SemanticNode      {cons("COMPLETION-SemanticNode")}
+    CONTENTCOMPLETE -> StrategoCall      {cons("COMPLETION-StrategoCall")}
+    CONTENTCOMPLETE -> OnSaveAnno        {cons("COMPLETION-OnSaveAnno")}
+    CONTENTCOMPLETE -> PropertyValues    {cons("COMPLETION-PropertyValues")}
+    CONTENTCOMPLETE -> PropertyValue     {cons("COMPLETION-PropertyValue")}
+    CONTENTCOMPLETE -> LanguageProperty  {cons("COMPLETION-LanguageProperty")}
+    CONTENTCOMPLETE -> BlockCommentDef   {cons("COMPLETION-BlockCommentDef")}
+    CONTENTCOMPLETE -> NoContinuation    {cons("COMPLETION-NoContinuation")}
+    CONTENTCOMPLETE -> FenceDef          {cons("COMPLETION-FenceDef")}
+    CONTENTCOMPLETE -> IndentDef         {cons("COMPLETION-IndentDef")}
+    CONTENTCOMPLETE -> TrueOrFalse       {cons("COMPLETION-TrueOrFalse")}
+    CONTENTCOMPLETE -> String            {cons("COMPLETION-String")}
+    CONTENTCOMPLETE -> Sort              {cons("COMPLETION-Sort")}
+    CONTENTCOMPLETE -> Constructor       {cons("COMPLETION-Constructor")}
+    CONTENTCOMPLETE -> ConstructorId     {cons("COMPLETION-ConstructorId")}
+    CONTENTCOMPLETE -> Node              {cons("COMPLETION-Node")}
+    CONTENTCOMPLETE -> ModuleName        {cons("COMPLETION-ModuleName")}
+    CONTENTCOMPLETE -> Module            {cons("COMPLETION-Module")}
+    CONTENTCOMPLETE -> Imports           {cons("COMPLETION-Imports")}
+    CONTENTCOMPLETE -> Import            {cons("COMPLETION-Import")}

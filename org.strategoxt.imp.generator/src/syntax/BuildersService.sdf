@@ -20,8 +20,6 @@ exports
     %%"builder"  SemanticNode* ":" String "=" StrategoCall BuilderOption* -> BuilderRule {cons("Builder")}
     "builder" "caption" ":" PropertyValue                               -> BuilderRule {cons("BuilderCaption")}
     
-    "(multifile)"  -> ObserverOption {cons("MultiFile")}
-    
     "(openeditor)" -> BuilderOption {cons("OpenEditor")}
     "(realtime)"   -> BuilderOption {cons("RealTime")}
     "(persistent)" -> BuilderOption {cons("Persistent")}

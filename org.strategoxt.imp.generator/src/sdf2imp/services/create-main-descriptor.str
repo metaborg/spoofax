@@ -4,6 +4,7 @@ imports
   libstratego-lib
   
   sdf2imp/util/-
+  sdf2imp/project/create-example-trans
 
 strategies
 
@@ -25,6 +26,8 @@ strategies
     extensions   := <require-option(EditorExtensions |"File extensions (-e)")>;
     parsetable   := <parse-table-target>;
     startsymbols := <![<StartSymbol>] <+ ![]>;
+    provider1 := <conc-strings> ("include/", <trans-module-name>, ".ctree");
+    provider2 := <conc-strings> ("include/", <trans-module-name>, "-java.jar");
     
     !|[
       module <main-descriptor-name>
@@ -50,4 +53,9 @@ strategies
         extensions: ~extensions
         table:  ~parsetable
         start symbols: ~*startsymbols
+        
+        provider: ~provider1
+        provider: ~provider2
+        
+        observer: editor-analyze (multifile)
     ]|
