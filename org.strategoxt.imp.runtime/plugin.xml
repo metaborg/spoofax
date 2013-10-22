@@ -267,10 +267,6 @@
    <extension
          point="org.eclipse.ui.handlers">
       <handler
-            class="org.strategoxt.imp.runtime.services.menus.contribs.BuilderButtonDelegate"
-            commandId="org.strategoxt.imp.runtime.transformCommand">
-      </handler>
-      <handler
             class="org.strategoxt.imp.runtime.services.ReferenceResolverDelegate"
             commandId="org.strategoxt.imp.runtime.resolveReferenceCommand">
       </handler>
@@ -349,7 +345,7 @@
                   id="org.spoofax.menus.toolbar">
                <command
                      commandId="org.spoofax.menus.toolbar.basecommand0"
-                     label="0"
+                     label=" "
                      style="pulldown">
                   <parameter
                         name="org.spoofax.menus.menuID"
@@ -364,7 +360,7 @@
                </command>
                <command
                      commandId="org.spoofax.menus.toolbar.basecommand1"
-                     label="1"
+                     label=" "
                      style="pulldown">
                   <parameter
                         name="org.spoofax.menus.menuID"
@@ -379,7 +375,7 @@
                </command>
                <command
                      commandId="org.spoofax.menus.toolbar.basecommand2"
-                     label="2"
+                     label=" "
                      style="pulldown">
                   <parameter
                         name="org.spoofax.menus.menuID"

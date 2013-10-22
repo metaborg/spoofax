@@ -87,12 +87,19 @@ public class MenuFactory extends AbstractServiceFactory<IMenuList> {
 			Menu menu = new Menu(caption);
 
 			IStrategoList menuContribs = termAt(m, 2);
-			for (IStrategoAppl a : collectTerms(menuContribs, "Action")) {
-				List<String> path = new LinkedList<String>();
-				path.add(caption);
-				IBuilder builder = createBuilder(a, path, d, controller, derivedFromEditor);
-				if (builder != null) {
-					menu.addMenuContribution(builder);
+			for (IStrategoAppl a : collectTerms(menuContribs, "Action", "Separator")) {
+				String cons = a.getConstructor().getName();
+				
+				if (cons.equals("Action")) {
+					List<String> path = new LinkedList<String>();
+					path.add(caption);
+					IBuilder builder = createBuilder(a, path, d, controller, derivedFromEditor);
+					if (builder != null) {
+						menu.addMenuContribution(builder);
+					}
+				}
+				else if (cons.equals("Separator")) {
+					menu.addMenuContribution(new Separator());
 				}
 			}
 
