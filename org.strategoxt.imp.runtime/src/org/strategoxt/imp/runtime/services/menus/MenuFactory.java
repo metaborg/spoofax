@@ -8,6 +8,7 @@ import static org.strategoxt.imp.runtime.dynamicloading.TermReader.termContents;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -62,11 +63,11 @@ public class MenuFactory extends AbstractServiceFactory<IMenuList> {
 
 	private static void addMenus(Descriptor d, SGLRParseController controller, List<Menu> menus, EditorState derivedFromEditor) throws BadDescriptorException {
 
-		// BEGIN: backwards compatibility with "Transform" menu
+		// BEGIN: 'Transform' menu backwards compatibility
 		ArrayList<IStrategoAppl> builders = collectTerms(d.getDocument(), "Builder");
 		for (IStrategoAppl b : builders) {
-			List<String> path = new LinkedList<String>();
-			path.add(MenusServiceConstants.OLD_LABEL);
+			String caption = termContents(termAt(b, 0));
+			List<String> path = createPath(createPath(Collections.<String> emptyList(), MenusServiceConstants.OLD_LABEL), caption);
 			IBuilder builder = createBuilder(b, path, d, controller, derivedFromEditor);
 			if (builder != null) {
 				Menu menu = null;
@@ -84,14 +85,14 @@ public class MenuFactory extends AbstractServiceFactory<IMenuList> {
 				menu.addMenuContribution(builder);
 			}
 		}
-		// END: backwards compatibility with "Transform" menu
+		// END: 'Transform' menu backwards compatibility
 
 		for (IStrategoAppl m : collectTerms(d.getDocument(), "ToolbarMenu")) {
-			String caption = termContents(termAt(m, 0));
+			String caption = termContents(termAt(m, 0)); // caption = label or icon path
 			Menu menu = new Menu(caption);
-			
-			if (((IStrategoAppl) termAt(m, 1)).getConstructor().getName().equals("Some")) {
-				String iconPath = termContents(termAt(m, 1));
+
+			if (((IStrategoAppl) termAt(m, 0)).getConstructor().getName().equals("Icon")) {
+				String iconPath = caption;
 				String pluginPath = d.getBasePath().toOSString();
 				File iconFile = new File(pluginPath, iconPath);
 				if (iconFile.exists()) {
@@ -100,38 +101,48 @@ public class MenuFactory extends AbstractServiceFactory<IMenuList> {
 						imageDescriptor = ImageDescriptor.createFromURL(URIUtil.toURL(iconFile.toURI()));
 					} catch (MalformedURLException e) {
 						e.printStackTrace();
-					} 
+					}
 					menu.setIcon(imageDescriptor);
 				}
 			}
 
-			IStrategoList menuContribs = termAt(m, 2);
-			for (IStrategoAppl a : collectTerms(menuContribs, "Action", "Separator", "Submenu")) {
-				String cons = a.getConstructor().getName();
-				
-				if (cons.equals("Action")) {
-					List<String> path = new LinkedList<String>();
-					path.add(caption);
-					IBuilder builder = createBuilder(a, path, d, controller, derivedFromEditor);
-					if (builder != null) {
-						menu.addMenuContribution(builder);
-					}
-				}
-				else if (cons.equals("Separator")) {
-					menu.addMenuContribution(new Separator());
-				}
-			}
-
+			List<String> path = createPath(Collections.<String> emptyList(), caption);
+			addMenuContribs(menu, m.getSubterm(2), path, d, controller, derivedFromEditor); // TODO: 2 --> 1
 			menus.add(menu);
 		}
 	}
 
+	private static List<String> createPath(List<String> init, String last) {
+		List<String> result = new LinkedList<String>(init);
+		result.add(last);
+		return result;
+	}
+
+	private static void addMenuContribs(Menu menu, IStrategoTerm menuContribs, List<String> path, Descriptor d, SGLRParseController controller, EditorState derivedFromEditor) throws BadDescriptorException {
+
+		for (IStrategoAppl a : collectTerms(menuContribs, "Action", "Separator", "Submenu")) {
+			String cons = a.getConstructor().getName();
+
+			if (cons.equals("Action")) {
+				String caption = termContents(termAt(a, 0));
+				IBuilder builder = createBuilder(a, createPath(path, caption), d, controller, derivedFromEditor);
+				if (builder != null) {
+					menu.addMenuContribution(builder);
+				}
+			} else if (cons.equals("Separator")) {
+				menu.addMenuContribution(new Separator());
+			} else if (cons.equals("Submenu")) {
+				String caption = termContents(termAt(a, 0));
+				Menu submenu = new Menu(caption);
+				addMenuContribs(submenu, a.getSubterm(1), createPath(path, caption), d, controller, derivedFromEditor);
+				menu.addMenuContribution(submenu);
+			}
+		}
+	}
+
 	private static IBuilder createBuilder(IStrategoTerm action, List<String> path, Descriptor d, SGLRParseController controller, EditorState derivedFromEditor) throws BadDescriptorException {
-
+		
 		StrategoObserver feedback = d.createService(StrategoObserver.class, controller);
-
-		String caption = termContents(termAt(action, 0));
-		path.add(caption);
 		String strategy = termContents(termAt(action, 1));
 		IStrategoList options = termAt(action, 2);
 
