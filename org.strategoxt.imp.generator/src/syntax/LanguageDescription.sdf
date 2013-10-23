@@ -51,6 +51,7 @@ exports
     "observer" ":" StrategoCall ObserverOption*  -> LanguageProperty {cons("SemanticObserver")}    
     "provider" ":" PropertyValue                 -> LanguageProperty {cons("SemanticProvider")}
     "on" "save" ":" StrategoCall OnSaveAnno      -> LanguageProperty {cons("OnSave")}
+    "outliner" ":" StrategoCall                  -> LanguageProperty {cons("Outliner")}
     
     "(" "multifile" ")"                          -> ObserverOption {cons("MultiFile")}
    
