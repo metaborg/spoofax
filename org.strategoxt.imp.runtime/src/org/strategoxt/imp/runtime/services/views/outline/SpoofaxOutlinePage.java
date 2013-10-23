@@ -85,6 +85,9 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 		outline = SpoofaxOutlineUtil.getOutline(parseController);
 		final int outline_expand_to_level = SpoofaxOutlineUtil.getOutline_expand_to_level(parseController, outline);
 		
+		if (outline == null) {
+			outline = SpoofaxOutlineUtil.factory.makeList();
+		}
 		// workaround for https://bugs.eclipse.org/9262
 		if (outline.getTermType() == IStrategoTerm.APPL) {
 			outline = SpoofaxOutlineUtil.factory.makeList(outline);
