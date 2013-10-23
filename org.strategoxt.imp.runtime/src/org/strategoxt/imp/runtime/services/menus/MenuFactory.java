@@ -107,7 +107,7 @@ public class MenuFactory extends AbstractServiceFactory<IMenuList> {
 			}
 
 			List<String> path = createPath(Collections.<String> emptyList(), caption);
-			addMenuContribs(menu, m.getSubterm(2), path, d, controller, derivedFromEditor); // TODO: 2 --> 1
+			addMenuContribs(menu, m.getSubterm(1), path, d, controller, derivedFromEditor);
 			menus.add(menu);
 		}
 	}
