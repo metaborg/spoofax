@@ -47,12 +47,14 @@ public class TermReader extends Tools {
 	}
 	
 	private static void collectTerms(IStrategoTerm term, Set<String> constructors, List<IStrategoAppl> results) {
-		if (term.getTermType() == IStrategoTerm.APPL && constructors.contains(cons(term)))
+		if (term.getTermType() == IStrategoTerm.APPL && constructors.contains(cons(term))) {
 			results.add((IStrategoAppl) term);
-		
-		// TODO: optimize: use TermVisitor, avoid indexed access to long lists
-		for (int i = 0; i < term.getSubtermCount(); i++) {
-			collectTerms(termAt(term, i), constructors, results);
+		}
+		else {
+			// TODO: optimize: use TermVisitor, avoid indexed access to long lists
+			for (int i = 0; i < term.getSubtermCount(); i++) {
+				collectTerms(termAt(term, i), constructors, results);
+			}
 		}
 	}
 	
