@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.Map;
 
 import org.eclipse.jface.action.IContributionItem;
+import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.actions.CompoundContributionItem;
@@ -32,36 +33,54 @@ public class DynamicContributionItem extends CompoundContributionItem implements
 
 	@Override
 	protected IContributionItem[] getContributionItems() {
-		LinkedList<IContributionItem> result = new LinkedList<IContributionItem>();
-
 		int menuIndex = Integer.parseInt(getId().replaceAll(MenusServiceConstants.DYNAMIC_CONTRIBUTION_ITEM_ID_PREFIX, ""));
 
 		MenuList menus = MenusServiceUtil.getMenus();
 		if (menus.getAll().size() > menuIndex) {
 			Menu menu = menus.getAll().get(menuIndex);
-
-			for (IMenuContribution contrib : menu.getMenuContributions()) {
-				switch (contrib.getContributionType()) {
-				case IMenuContribution.BUILDER:
-					IBuilder builder = (IBuilder) contrib;
-					Map<String, String> params = new HashMap<String, String>();
-					params.put(MenusServiceConstants.PATH_PARAM, builder.getPath().toString());
-					ImageDescriptor icon = null;
-					CommandContributionItemParameter itemParams = new CommandContributionItemParameter(serviceLocator, builder.getPath().toString(), MenusServiceConstants.ACTION_ID, params, icon, null, null, builder.getCaption(), null, null, CommandContributionItem.STYLE_PUSH, null, true);
-					result.add(new CommandContributionItem(itemParams));
-					break;
-				case IMenuContribution.SEPARATOR:
-					result.add(new Separator());
-					break;
-				default:
-					break;
-				}
-			}
+			return getMenuContributions(menu);
 		}
-
-		return result.toArray(new IContributionItem[result.size()]);
+		
+		return new IContributionItem[0];
 	}
 
+	private IContributionItem[] getMenuContributions(Menu menu) {
+		LinkedList<IContributionItem> result = new LinkedList<IContributionItem>();
+		
+		for (IMenuContribution contrib : menu.getMenuContributions()) {
+			switch (contrib.getContributionType()) {
+			case IMenuContribution.BUILDER:
+				IBuilder builder = (IBuilder) contrib;
+				Map<String, String> params = new HashMap<String, String>();
+				params.put(MenusServiceConstants.PATH_PARAM, builder.getPath().toString());
+				ImageDescriptor icon = null;
+				CommandContributionItemParameter itemParams = new CommandContributionItemParameter(serviceLocator, builder.getPath().toString(), MenusServiceConstants.ACTION_ID, params, icon, null, null, builder.getCaption(), null, null,
+						CommandContributionItem.STYLE_PUSH, null, true);
+				result.add(new CommandContributionItem(itemParams));
+				break;
+			case IMenuContribution.SEPARATOR:
+				result.add(new Separator());
+				break;
+			case IMenuContribution.MENU:
+				final Menu submenu = (Menu) contrib;
+				MenuManager mm = new MenuManager(submenu.getCaption(), "id"); // TODO: "id" should be path
+				IContributionItem dynamicItem = new CompoundContributionItem("id.item") {  // TODO: "id.items" should be path + ".items"
+					protected IContributionItem[] getContributionItems() {
+						return getMenuContributions(submenu);
+					}
+				};
+				mm.add(dynamicItem);
+				result.add(mm);
+				break;
+			default:
+				break;
+			}
+		}
+		
+		return result.toArray(new IContributionItem[result.size()]);
+	}
+	
+	
 	@Override
 	public void initialize(final IServiceLocator serviceLocator) {
 		this.serviceLocator = serviceLocator;
