@@ -96,4 +96,23 @@ menus
           ~//   
           ~//   on save : editor-save
       ]|
-    )
+    ); create-derived-builder-descriptor
+  
+  // for backwards compatibility
+  create-derived-builder-descriptor =
+    sdf-name := <get-sdf-main-module>;
+    if is-descriptor-imported(|${{sdf-name}-Builders}) then
+      <output-text-file(|["editor"], ${{sdf-name}-Builders.generated.esv})>
+      
+${module {sdf-name}-Builders.generated
+
+  // 
+  // DEPRECATED. 
+  //
+  // Builders have been replaced by menus and actions (see 'editor/{sdf-name}-Menus.esv'). 
+  // Providers, the observer and the on-save builder are now part of the main language description. Fix: move them to 'editor/{sdf-name}.main.esv'.
+  // 
+  
+}
+
+    end
