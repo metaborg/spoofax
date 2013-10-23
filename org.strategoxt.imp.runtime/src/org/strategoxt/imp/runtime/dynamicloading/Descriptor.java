@@ -113,10 +113,10 @@ public class Descriptor {
 		serviceFactories.add(new SyntaxPropertiesFactory());
 		serviceFactories.add(new TokenColorerFactory());
 		serviceFactories.add(new MenuFactory());
-		serviceFactories.add(new RefactoringFactory());
 		serviceFactories.add(new ContentProposerFactory());
 		serviceFactories.add(new AutoEditStrategyFactory());
 		serviceFactories.add(new OnSaveServiceFactory());
+		serviceFactories.add(new RefactoringFactory());
 	}
 	
 	/**

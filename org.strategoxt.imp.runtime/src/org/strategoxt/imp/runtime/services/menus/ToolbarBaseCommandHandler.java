@@ -41,7 +41,7 @@ public class ToolbarBaseCommandHandler implements IHandler, IElementUpdater {
 		MenuList menus = MenusServiceUtil.getMenus();
 
 		IBuilder builder = null;
-		
+
 		if (menus.getAll().size() > menuIndex) {
 			Menu menu = menus.getAll().get(menuIndex);
 			List<String> lastAction = lastActions.get(menu.getCaption());
@@ -97,27 +97,28 @@ public class ToolbarBaseCommandHandler implements IHandler, IElementUpdater {
 	}
 
 	@Override
-	public void updateElement(UIElement element, @SuppressWarnings("rawtypes") Map parameters) {
-		int menuIndex = Integer.parseInt((String) parameters.get(MenusServiceConstants.MENU_ID_PARAM));
-		MenuList menus = MenusServiceUtil.getMenus();
-		
-		if (menus.getAll().size() > menuIndex) {
-			Menu menu = menus.getAll().get(menuIndex);
-			String caption = menu.getCaption();
-			
-			element.setText(caption);
-			element.setTooltip("");
-			
-			if (menu.getIcon() != null) {
-				element.setIcon(menu.getIcon());
-			}
+	public void updateElement(final UIElement element, @SuppressWarnings("rawtypes") final Map parameters) {
 
-			Display.getDefault().asyncExec(new Runnable() {
-				@Override
-				public void run() {
+		Display.getDefault().asyncExec(new Runnable() {
+			@Override
+			public void run() {
+				int menuIndex = Integer.parseInt((String) parameters.get(MenusServiceConstants.MENU_ID_PARAM));
+				MenuList menus = MenusServiceUtil.getMenus();
+
+				if (menus.getAll().size() > menuIndex) {
+					Menu menu = menus.getAll().get(menuIndex);
+					String caption = menu.getCaption();
+
+					element.setText(caption);
+					element.setTooltip("");
+
+					if (menu.getIcon() != null) {
+						element.setIcon(menu.getIcon());
+					}
+
 					MenusServiceUtil.refreshToolbarMenus();
 				}
-			});
-		}
+			}
+		});
 	}
 }
