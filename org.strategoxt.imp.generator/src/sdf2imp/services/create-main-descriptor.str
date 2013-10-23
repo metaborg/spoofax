@@ -58,5 +58,7 @@ strategies
         provider: ~provider2
         observer: editor-analyze (multifile)
         
+        on save : editor-save
         outliner: outline
+        outliner expand level: 3
     ]|
