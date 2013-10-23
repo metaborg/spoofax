@@ -519,8 +519,7 @@ rules // Debugging
 
 rules
   
-  analyze-diff-entry = fail
-  
+
 "
 
 	create-analysis-multiple = 
@@ -1590,8 +1589,8 @@ rules // Error checking tasks
 			else
 				uri* := <nabl-uri-parent; nabl-uri-parent; ![<id>]> uri
 			end;
-			task* := <mapconcat(nabl-use-subtasks(|partition, ns, <nabl-fix-name> name, [], All()))> uri*;
-			task	:= <new-task(|partition)> Choice(task*);
+			task* := <map(nabl-use-subtask(|partition, ns, <nabl-fix-name> name, [], All()))> uri*;
+			task  := <new-task(|partition)> Choice(task*);
 			<task-create-error-on-success(|partition, task, \"Declaration hides previous definition\")> name
 
 	nabl-constraint(|partition) = 
@@ -1858,18 +1857,18 @@ rules // generic analysis of uses
 		  	result := <replace-annotations(?Use(_)|u)> name'
 	  	end
 
-	nabl-use-subtasks(|partition, ns, name, prop*, range):
+	nabl-use-subtask(|partition, ns, name, prop*, range):
 		uri -> <new-task(|partition)> ResolveDefs(uri*, ns, name, prop*)
 		with
       switch !range
       	case One(): ![uri]
       	case All(): ![uri|<nabl-uri-parents> uri]
     	end;
-    	mapconcat(nabl-use-subtasks-one(|partition, ns)); <new-task(|partition)> Combine(<id>) => uri*
+    	mapconcat(nabl-use-subtask-scopes(|partition, ns)); <new-task(|partition)> Combine(<id>) => uri*
     	// TODO: disambiguation
     	// TODO: order of imported URI's is unclear
     	
-	nabl-use-subtasks-one(|partition, ns):
+	nabl-use-subtask-scopes(|partition, ns):
 		uri -> [uri', wildcard-import]
 		with
 		  uri' := <try(nabl-is-uri; MkSingleton)> uri
@@ -1877,19 +1876,17 @@ rules // generic analysis of uses
 		  	
 	// candidate in current scope
 	nabl-use-candidate(|lang, partition, uri*, name):
-		UseCandidate(ns, prop*, Current(), wci, _) -> choice
+		UseCandidate(ns, prop*, Current(), wci, _) -> subtask
 		where
 			uri       := <lookup-uri(|lang, ns)> uri*;
-      subtask*  := <nabl-use-subtasks(|partition, ns, name, prop*, All())> uri; // TODO: only disambiguate if required.
-      choice    := <new-task(|partition)> Choice(subtask*)
-
+      subtask   := <nabl-use-subtask(|partition, ns, name, prop*, All())> uri // TODO: only disambiguate if required.
+      
 	// candidate in another scope (result of resolution)	  
 	nabl-use-candidate(|lang, partition, uri*, name):
-		UseCandidate(ns, prop*, c@Context(ctx-ns, ctx-name, ctx-prop*, ctx-context), _, dep*) -> choice
+		UseCandidate(ns, prop*, c@Context(ctx-ns, ctx-name, ctx-prop*, ctx-context), _, dep*) -> subtask
 		where
 			ctx-result := <nabl-use-candidate(|lang, partition, uri*, ctx-name)> UseCandidate(ctx-ns, ctx-prop*, ctx-context, True(), dep*);
-			subtask*   := <nabl-use-subtasks(|partition, ns, <nabl-fix-name> name, prop*, One())> ctx-result; // TODO: only disambiguate if required.
-			choice     := <new-task(|partition)> Choice(subtask*)
+			subtask    := <nabl-use-subtask(|partition, ns, <nabl-fix-name> name, prop*, One())> ctx-result // TODO: only disambiguate if required.
 			
 	nabl-use-propconstraint(|partition):
 		(task, [p@Prop(kind, expected, deps)|rest]) -> rec
@@ -2170,9 +2167,9 @@ signature
 
 rules // Index entries to diff for incrementality
   
-  analyze-diff-entry = ?Def(_)
+  nabl-diff-entry = ?Def(_)
   
-  analyze-diff-entry = ?Alias(_, _)
+  nabl-diff-entry = ?Alias(_, _)
  
 rules
   
@@ -3293,7 +3290,7 @@ signature
 
 rules // Index entries to diff for incrementality
   
-  analyze-diff-entry = ?Prop(_, _, _)
+  nabl-diff-entry = ?Prop(_, _, _)
 
 rules
   
