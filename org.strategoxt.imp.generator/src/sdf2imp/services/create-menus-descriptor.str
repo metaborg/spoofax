@@ -12,9 +12,9 @@ strategies
     output-initial-descriptor-file(
       <descriptor-name> "-Menus"
     ,
-!${module <descriptor-name> "-Menus"
+!${module {<descriptor-name> "-Menus"}
 
-imports <descriptor-name> "-Menus.generated"
+imports {<descriptor-name> "-Menus.generated"}
 
   // This file can be used to specify toolbar menus.
   // See the imported file for a brief introduction and examples.
@@ -52,7 +52,7 @@ menus
     output-derived-descriptor-file(
       <descriptor-name> "-Menus.generated"
     ,
-!${module <descriptor-name> "-Menus.generated"
+!${module {<descriptor-name> "-Menus.generated"}
 
   // Building and analysis is defined in Stratego program or programs:
   //
