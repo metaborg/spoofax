@@ -484,7 +484,7 @@ public class Descriptor {
 			// Ignore missing language name here
 		}
 
-		for (IStrategoAppl s : collectTerms(getDocument(), "SemanticProvider")) {
+		for (IStrategoAppl s : collectTerms(getDocument(), "SemanticProvider", "SemanticProviderDeprecated")) {
 			attachedFiles.add(new File(termContents(s)));
 		}
 

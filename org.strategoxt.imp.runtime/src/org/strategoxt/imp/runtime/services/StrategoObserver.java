@@ -220,7 +220,7 @@ public class StrategoObserver implements IDynamicLanguageService, IModelListener
 	 * @return
 	 */
 	private boolean usesCTrees() {
-		for (IStrategoAppl s : collectTerms(this.descriptor.getDocument(), "SemanticProvider")) {
+		for (IStrategoAppl s : collectTerms(this.descriptor.getDocument(), "SemanticProvider", "SemanticProviderDeprecated")) {
 			IPath p = new Path(termContents(s));
 			if ("ctree".equals(p.getFileExtension())) {
 				return true;

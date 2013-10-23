@@ -24,7 +24,7 @@ public class StrategoObserverFactory extends AbstractServiceFactory<StrategoObse
 	public StrategoObserver create(Descriptor descriptor, SGLRParseController controller) throws BadDescriptorException {
 		// TODO: Sharing of FeedBack instances??
 		//       Each file should have its own Context, I guess, but not its own HybridInterpreter
-		IStrategoAppl observer = findTerm(descriptor.getDocument(), "SemanticObserver");
+		IStrategoAppl observer = findTerm(descriptor.getDocument(), "SemanticObserver", "SemanticObserverDeprecated");
 		String observerFunction = null;
 		boolean multifile = false;
 		
