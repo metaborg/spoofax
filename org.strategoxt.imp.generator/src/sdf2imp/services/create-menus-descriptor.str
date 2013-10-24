@@ -9,7 +9,7 @@ imports
 strategies
 
   create-menus-descriptor =
-    output-initial-descriptor-file(
+    output-descriptor-file(
       <descriptor-name> "-Menus"
     ,
 !${module {<descriptor-name> "-Menus"}
@@ -47,7 +47,9 @@ menus
     
     action: "Reset and reanalyze"  = debug-reanalyze (meta)   
 }
-    );
+   ,
+     not(file-exists)
+   );
     
     output-derived-descriptor-file(
       <descriptor-name> "-Menus.generated"
