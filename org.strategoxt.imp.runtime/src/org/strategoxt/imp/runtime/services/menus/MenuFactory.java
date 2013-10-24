@@ -89,21 +89,26 @@ public class MenuFactory extends AbstractServiceFactory<IMenuList> {
 
 		for (IStrategoAppl m : collectTerms(d.getDocument(), "ToolbarMenu")) {
 			String caption = termContents(termAt(m, 0)); // caption = label or icon path
-			Menu menu = new Menu(caption);
+			Menu menu = null;
 
 			if (((IStrategoAppl) termAt(m, 0)).getConstructor().getName().equals("Icon")) {
 				String iconPath = caption;
 				String pluginPath = d.getBasePath().toOSString();
 				File iconFile = new File(pluginPath, iconPath);
 				if (iconFile.exists()) {
-					ImageDescriptor imageDescriptor = null;
 					try {
-						imageDescriptor = ImageDescriptor.createFromURL(URIUtil.toURL(iconFile.toURI()));
+						ImageDescriptor imageDescriptor = ImageDescriptor.createFromURL(URIUtil.toURL(iconFile.toURI()));
+						menu = new Menu(caption, imageDescriptor);
 					} catch (MalformedURLException e) {
 						e.printStackTrace();
 					}
-					menu.setIcon(imageDescriptor);
 				}
+				else {
+					menu = new Menu("Can't find icon '" + iconFile.getAbsolutePath() + "'");
+				}
+			}
+			else {
+				menu = new Menu(caption);
 			}
 
 			List<String> path = createPath(Collections.<String> emptyList(), caption);
