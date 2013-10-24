@@ -74,13 +74,14 @@ public class SpoofaxOutlineUtil {
 		StrategoObserver observer = getObserver(editorState);
 		observer.getLock().lock();
 		try {
-			if (observer.getRuntime().lookupUncifiedSVar(level) != null) {
-				IStrategoTerm outline_expand_to_level = observer.invokeSilent("outline-expand-to-level", outline, editorState.getResource().getFullPath().toFile());
+			String oldStrategy = "outline-expand-to-level";
+			if (observer.getRuntime().lookupUncifiedSVar(oldStrategy) != null) {
+				IStrategoTerm outline_expand_to_level = observer.invokeSilent(oldStrategy, outline, editorState.getResource().getFullPath().toFile());
 				if (outline_expand_to_level == null) {
-					Environment.logException("outline-expand-to-level" + " failed.");
+					Environment.logException(oldStrategy + " failed.");
 				}
 				else if (outline_expand_to_level.getTermType() != IStrategoTerm.INT) {
-					Environment.logException("outline-expand-to-level" + " returned " + outline_expand_to_level + ", but should return an integer instead.");
+					Environment.logException(oldStrategy + " returned " + outline_expand_to_level + ", but should return an integer instead.");
 				}
 				else {
 					return ((IStrategoInt) outline_expand_to_level).intValue();
