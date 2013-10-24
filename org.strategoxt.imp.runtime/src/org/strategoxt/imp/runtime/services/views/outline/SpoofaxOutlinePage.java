@@ -83,7 +83,7 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 	
 	public void update() {
 		outline = SpoofaxOutlineUtil.getOutline(parseController);
-		final int outline_expand_to_level = SpoofaxOutlineUtil.getOutline_expand_to_level(parseController, outline);
+		final int outline_expand_to_level = SpoofaxOutlineUtil.getOutlineExpandLevel(parseController, outline);
 		
 		if (outline == null) {
 			outline = SpoofaxOutlineUtil.factory.makeList();
