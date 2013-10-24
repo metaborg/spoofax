@@ -67,6 +67,8 @@ strategies
       print-filename(|["editor"], filename);
       new-contents;
       (
+        is-string
+      <+
         ?Module(name, _ ,_);
         pp-descriptor-to-string
       <+
