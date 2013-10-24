@@ -37,7 +37,7 @@ import org.strategoxt.imp.runtime.stratego.SourceAttachment;
  */
 public class CustomStrategyBuilder extends StrategoBuilder {
 	
-	public final static String CAPTION = "Apply custom rule...";
+	public final static String CAPTION = "Apply Custom Rule...";
 	
 	private static final Map<String, String> initialValues =
 		synchronizedMap(new HashMap<String, String>());
@@ -86,7 +86,7 @@ public class CustomStrategyBuilder extends StrategoBuilder {
 		
 		getObserver().getLock().lock();
 		try {
-			InputDialog dialog = new InputDialog(null, "Apply custom rule", "Enter the name of the rewrite rule or strategy to apply", getInitialValue(editor), validator);
+			InputDialog dialog = new InputDialog(null, "Apply Custom Rule", "Enter the name of the rewrite rule or strategy to apply", getInitialValue(editor), validator);
 			if (dialog.open() == InputDialog.OK) {
 				setInitialValue(editor, dialog.getValue());
 				return inputtedBuilderRule = dialog.getValue();
