@@ -111,10 +111,7 @@ public class ToolbarBaseCommandHandler implements IHandler, IElementUpdater {
 
 					element.setText(caption);
 					element.setTooltip("");
-
-					if (menu.getIcon() != null) {
-						element.setIcon(menu.getIcon());
-					}
+					element.setIcon(menu.getIcon());
 
 					MenusServiceUtil.refreshToolbarMenus();
 				}
