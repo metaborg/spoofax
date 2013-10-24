@@ -33,7 +33,7 @@ strategies
     output-descriptor-file(
       name
     , new-contents
-    , not(file-exists); is-descriptor-imported(|<name>)
+    , not(file-exists)
     )
 
   /**
