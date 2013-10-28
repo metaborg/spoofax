@@ -26,12 +26,12 @@ import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
-import org.strategoxt.imp.runtime.services.menus.contribs.CustomStrategyBuilder;
-import org.strategoxt.imp.runtime.services.menus.contribs.DebugModeBuilder;
-import org.strategoxt.imp.runtime.services.menus.contribs.IBuilder;
-import org.strategoxt.imp.runtime.services.menus.contribs.Menu;
-import org.strategoxt.imp.runtime.services.menus.contribs.Separator;
-import org.strategoxt.imp.runtime.services.menus.contribs.StrategoBuilder;
+import org.strategoxt.imp.runtime.services.menus.model.CustomStrategyBuilder;
+import org.strategoxt.imp.runtime.services.menus.model.DebugModeBuilder;
+import org.strategoxt.imp.runtime.services.menus.model.IBuilder;
+import org.strategoxt.imp.runtime.services.menus.model.Menu;
+import org.strategoxt.imp.runtime.services.menus.model.Separator;
+import org.strategoxt.imp.runtime.services.menus.model.StrategoBuilder;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>

@@ -2,9 +2,9 @@ package org.strategoxt.imp.runtime.services.menus;
 
 import java.util.List;
 
-import org.strategoxt.imp.runtime.services.menus.contribs.IBuilder;
-import org.strategoxt.imp.runtime.services.menus.contribs.IMenuContribution;
-import org.strategoxt.imp.runtime.services.menus.contribs.Menu;
+import org.strategoxt.imp.runtime.services.menus.model.IBuilder;
+import org.strategoxt.imp.runtime.services.menus.model.IMenuContribution;
+import org.strategoxt.imp.runtime.services.menus.model.Menu;
 
 public class MenuList implements IMenuList {
 

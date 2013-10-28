@@ -1,4 +1,4 @@
-package org.strategoxt.imp.runtime.services.menus.contribs;
+package org.strategoxt.imp.runtime.services.menus.model;
 
 /**
  * @author Oskar van Rest

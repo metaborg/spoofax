@@ -12,9 +12,9 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.commands.IElementUpdater;
 import org.eclipse.ui.menus.UIElement;
 import org.strategoxt.imp.runtime.EditorState;
-import org.strategoxt.imp.runtime.services.menus.contribs.IBuilder;
-import org.strategoxt.imp.runtime.services.menus.contribs.IMenuContribution;
-import org.strategoxt.imp.runtime.services.menus.contribs.Menu;
+import org.strategoxt.imp.runtime.services.menus.model.IBuilder;
+import org.strategoxt.imp.runtime.services.menus.model.IMenuContribution;
+import org.strategoxt.imp.runtime.services.menus.model.Menu;
 
 /**
  * @author Oskar van Rest

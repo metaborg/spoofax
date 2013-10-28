@@ -1,4 +1,4 @@
-package org.strategoxt.imp.runtime.services.menus.contribs;
+package org.strategoxt.imp.runtime.services.menus.model;
 
 import static org.spoofax.interpreter.core.Tools.asJavaString;
 import static org.spoofax.interpreter.core.Tools.isTermAppl;
