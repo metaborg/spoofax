@@ -9,6 +9,7 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -29,6 +30,7 @@ import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.services.menus.model.CustomStrategyBuilder;
 import org.strategoxt.imp.runtime.services.menus.model.DebugModeBuilder;
 import org.strategoxt.imp.runtime.services.menus.model.IBuilder;
+import org.strategoxt.imp.runtime.services.menus.model.IMenuContribution;
 import org.strategoxt.imp.runtime.services.menus.model.Menu;
 import org.strategoxt.imp.runtime.services.menus.model.Separator;
 import org.strategoxt.imp.runtime.services.menus.model.StrategoBuilder;
@@ -140,8 +142,27 @@ public class MenuFactory extends AbstractServiceFactory<IMenuList> {
 				String caption = termContents(termAt(a, 0));
 				Menu submenu = new Menu(caption);
 				addMenuContribs(submenu, a.getSubterm(1), createPath(path, caption), d, controller, derivedFromEditor);
-				menu.addMenuContribution(submenu);
+				if (submenu.getMenuContributions().size() > 0) {
+					menu.addMenuContribution(submenu);
+				}
 			}
+		}
+		
+		// guarantee no separator at start or end and no two consecutive separators 
+		// (important when language is not dynamically loaded and not all builders are visible)
+		IMenuContribution previous = null;
+		Iterator<IMenuContribution> it = menu.getMenuContributions().iterator();
+		while (it.hasNext()) {
+			IMenuContribution contrib = it.next();
+			if (contrib instanceof Separator && (previous == null || previous instanceof Separator)) {
+				it.remove();
+			}
+			else {
+				previous = contrib;
+			}
+		}
+		if (previous instanceof Separator) {
+			menu.getMenuContributions().remove(previous);
 		}
 	}
 
