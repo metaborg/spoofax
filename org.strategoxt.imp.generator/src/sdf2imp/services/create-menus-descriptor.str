@@ -21,31 +21,36 @@ imports {<descriptor-name> "-Menus.generated"}
 
 menus
   
-  menu: "Actions"
+  menu: "Syntax"
     
-    action: "Generate Java"        = generate-java (openeditor) (realtime)
-    action: "Show Abstract Syntax" = debug-show-aterm (openeditor) (realtime) (meta) (source)
-    action: "Show Analyzed Syntax" = debug-show-analyzed (openeditor) (meta)
+    action: "Format"               = editor-format (openeditor) (realtime)
+    action: "Show abstract syntax" = debug-show-aterm (openeditor) (realtime) (meta) (source)
+    action: "Show analyzed syntax" = debug-show-analyzed-selection (openeditor) (meta)
     
-    separator
+  menu: "Analysis"
     
-    submenu: "Show Index"
-      action: "Project"            = debug-index-project (openeditor) (meta)
-      action: "Partition"          = debug-index-partition (openeditor) (meta)
-    end
-    
-    submenu: "Show Tasks"
-      action: "Project"            = debug-task-project (openeditor) (meta)
-      action: "Partition"          = debug-task-partition (openeditor) (meta)
-      action: "Selection"          = debug-task-selection (openeditor) (meta)
-    end
-    
-    submenu: "Show Analysis"
+    action: "Reset and reanalyze"  = debug-reanalyze (meta)   
+
+    submenu: "Show analysis"
       action: "Project"            = debug-project (openeditor) (meta)
       action: "Partition"          = debug-partition (openeditor) (meta)
     end
     
-    action: "Reset and reanalyze"  = debug-reanalyze (meta)   
+    submenu: "Show index"
+      action: "Project"            = debug-index-project (openeditor) (meta)
+      action: "Partition"          = debug-index-partition (openeditor) (meta)
+    end
+    
+    submenu: "Show tasks"
+      action: "Project"            = debug-task-project (openeditor) (meta)
+      action: "Partition"          = debug-task-partition (openeditor) (meta)
+      action: "Selection"          = debug-task-selection (openeditor) (meta)
+    end
+  
+  menu: "Generation"
+    
+    action: "Generate Java"        = generate-java (openeditor) (realtime)
+
 }
    ,
      not(file-exists)

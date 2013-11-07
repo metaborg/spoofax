@@ -36,6 +36,7 @@ imports
 	names
 	check
 	generate
+	pp
 
 rules // Analysis
 	
@@ -67,6 +68,14 @@ rules // Editor services
 		(node, position, ast, path, project-path) -> proposals
 		where
 			proposals := <analysis-propose-completions(|<language>, project-path)> ast
+	
+	// Formats the program using a pretty printer		
+  editor-format:
+    (selected, position, ast, path, project-path) -> (filename, result)
+    with
+    	ext      := <get-extension> filename;
+      filename := <guarantee-extension(|$[pp.[ext]])> path;
+      result   := <pp-debug> selected
 
 rules // Debugging
 	
@@ -222,6 +231,60 @@ rules
 	constraint-note:
 		Module(x @ "example", _) -> (x, $[This is just an example program in the "entities" language 
 		                                  (this note is defined in trans/check.str)])
+
+})>
+end;
+
+if not(<file-exists> "trans/pp.str") then
+  <output-text-file(|["trans"], "pp.str")>
+  <(GenerateMinimal
+  <
+!${module pp
+
+imports
+
+	libstratego-gpp
+	lib/runtime/tmpl/pp
+	Common.pp.generated
+
+rules
+	
+  pp-{sdf-name}-string =
+    prettyprint-Start
+    ; !V([], <id>)
+    ; box2text-string(|120)
+      
+  pp-debug :
+    ast -> result
+    with
+       result := <pp-{sdf-name}-string> ast
+    <+ <bottomup(try(not(is-string); not(is-list); not(pp-fj-string); debug(!"cannot pp ")))> ast
+    ;  result := ""
+
+}
+  +
+!${module pp
+
+imports
+
+	libstratego-gpp
+	lib/runtime/tmpl/pp
+	Common.pp.generated
+	{sdf-name}.pp.generated
+
+rules
+	
+  pp-{sdf-name}-string =
+    prettyprint-Start
+    ; !V([], <id>)
+    ; box2text-string(|120)
+      
+  pp-debug :
+    ast -> result
+    with
+       result := <pp-{sdf-name}-string> ast
+    <+ <bottomup(try(not(is-string); not(is-list); not(pp-{sdf-name}-string); debug(!"cannot pp ")))> ast
+    ;  result := ""
 
 })>
 end
