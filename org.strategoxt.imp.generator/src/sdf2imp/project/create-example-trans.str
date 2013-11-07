@@ -73,7 +73,7 @@ rules // Editor services
   editor-format:
     (selected, position, ast, path, project-path) -> (filename, result)
     with
-    	ext      := <get-extension> filename;
+    	ext      := <get-extension> path;
       filename := <guarantee-extension(|$[pp.[ext]])> path;
       result   := <pp-debug> selected
 

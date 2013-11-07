@@ -51,10 +51,21 @@ context-free start-symbols
 
 templates
 
-	[startsymbol].Module      = <module <ID> <Definition*; separator="\n">>
-	Definition.Entity = <entity <ID> {<Property*; separator="\n">}>
+	[startsymbol].Module = <
+		module <ID> 
+		
+		<Definition*; separator="\n\n">
+	>
+
+	Definition.Entity = <
+		entity <ID> {
+			<Property*; separator="\n">
+		}
+	>
+  	
 	Property.Property = <<ID> : <Type>>
-	Type.Type         = <<ID>>
+	
+	Type.Type = <<ID>>
 
 ]
     )>
