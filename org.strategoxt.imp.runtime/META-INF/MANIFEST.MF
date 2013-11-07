@@ -47,4 +47,3 @@ Bundle-Activator: org.strategoxt.imp.runtime.RuntimeActivator
 Import-Package: org.eclipse.ltk.core.refactoring,
  org.eclipse.ltk.ui.refactoring
 Eclipse-BuddyPolicy: registered
-Require-Capability: osgi.ee; filter="(&(|(osgi.ee=J2SE)(osgi.ee=JavaSE))(version>=1.7))"
