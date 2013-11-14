@@ -95,8 +95,10 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 		
 		Display.getDefault().asyncExec(new Runnable() {
 			public void run() {
-				getTreeViewer().setInput(outline);
-				getTreeViewer().expandToLevel(outline_expand_to_level);
+				if (getTreeViewer().getControl() != null && !getTreeViewer().getControl().isDisposed()) {
+					getTreeViewer().setInput(outline);
+					getTreeViewer().expandToLevel(outline_expand_to_level);
+				}
 			}
 		});
 	}
