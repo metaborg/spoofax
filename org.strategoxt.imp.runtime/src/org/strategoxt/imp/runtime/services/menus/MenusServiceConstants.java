@@ -5,7 +5,7 @@ package org.strategoxt.imp.runtime.services.menus;
  */
 public class MenusServiceConstants {
 
-	public static int NO_OF_TOOLBAR_MENUS = 3;
+	public static int NO_OF_TOOLBAR_MENUS = 6;
 	
 	public static String OLD_LABEL = "Transform";
 	

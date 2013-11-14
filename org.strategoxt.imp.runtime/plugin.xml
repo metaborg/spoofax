@@ -388,6 +388,51 @@
                      </reference>
                   </visibleWhen>
                </command>
+               <command
+                     commandId="org.spoofax.menus.toolbar.basecommand3"
+                     label=" "
+                     style="pulldown">
+                  <parameter
+                        name="org.spoofax.menus.menuID"
+                        value="3">
+                  </parameter>
+                  <visibleWhen
+                        checkEnabled="false">
+                     <reference
+                           definitionId="org.spoofax.menus.visibility">
+                     </reference>
+                  </visibleWhen>
+               </command>
+               <command
+                     commandId="org.spoofax.menus.toolbar.basecommand4"
+                     label=" "
+                     style="pulldown">
+                  <parameter
+                        name="org.spoofax.menus.menuID"
+                        value="4">
+                  </parameter>
+                  <visibleWhen
+                        checkEnabled="false">
+                     <reference
+                           definitionId="org.spoofax.menus.visibility">
+                     </reference>
+                  </visibleWhen>
+               </command>
+               <command
+                     commandId="org.spoofax.menus.toolbar.basecommand5"
+                     label=" "
+                     style="pulldown">
+                  <parameter
+                        name="org.spoofax.menus.menuID"
+                        value="5">
+                  </parameter>
+                  <visibleWhen
+                        checkEnabled="false">
+                     <reference
+                           definitionId="org.spoofax.menus.visibility">
+                     </reference>
+                  </visibleWhen>
+               </command>
             </toolbar>
          </menuContribution>
          <menuContribution
@@ -412,6 +457,30 @@
             <dynamic
                   class="org.strategoxt.imp.runtime.services.menus.DynamicContributionItem"
                   id="org.spoofax.menus.toolbar.menu.contributions2">
+            </dynamic>
+         </menuContribution>
+         <menuContribution
+               allPopups="false"
+               locationURI="menu:org.spoofax.menus.toolbar.basecommand3">
+            <dynamic
+                  class="org.strategoxt.imp.runtime.services.menus.DynamicContributionItem"
+                  id="org.spoofax.menus.toolbar.menu.contributions3">
+            </dynamic>
+         </menuContribution>
+         <menuContribution
+               allPopups="false"
+               locationURI="menu:org.spoofax.menus.toolbar.basecommand4">
+            <dynamic
+                  class="org.strategoxt.imp.runtime.services.menus.DynamicContributionItem"
+                  id="org.spoofax.menus.toolbar.menu.contributions4">
+            </dynamic>
+         </menuContribution>
+         <menuContribution
+               allPopups="false"
+               locationURI="menu:org.spoofax.menus.toolbar.basecommand5">
+            <dynamic
+                  class="org.strategoxt.imp.runtime.services.menus.DynamicContributionItem"
+                  id="org.spoofax.menus.toolbar.menu.contributions5">
             </dynamic>
          </menuContribution>
       </extension>
@@ -451,6 +520,36 @@
                defaultHandler="org.strategoxt.imp.runtime.services.menus.ToolbarBaseCommandHandler"
                id="org.spoofax.menus.toolbar.basecommand2"
                name="toolbarMenuBaseCommand2">
+            <commandParameter
+                  id="org.spoofax.menus.menuID"
+                  name="menuID"
+                  optional="false">
+            </commandParameter>
+         </command>
+         <command
+               defaultHandler="org.strategoxt.imp.runtime.services.menus.ToolbarBaseCommandHandler"
+               id="org.spoofax.menus.toolbar.basecommand3"
+               name="toolbarMenuBaseCommand3">
+            <commandParameter
+                  id="org.spoofax.menus.menuID"
+                  name="menuID"
+                  optional="false">
+            </commandParameter>
+         </command>
+         <command
+               defaultHandler="org.strategoxt.imp.runtime.services.menus.ToolbarBaseCommandHandler"
+               id="org.spoofax.menus.toolbar.basecommand4"
+               name="toolbarMenuBaseCommand4">
+            <commandParameter
+                  id="org.spoofax.menus.menuID"
+                  name="menuID"
+                  optional="false">
+            </commandParameter>
+         </command>
+         <command
+               defaultHandler="org.strategoxt.imp.runtime.services.menus.ToolbarBaseCommandHandler"
+               id="org.spoofax.menus.toolbar.basecommand5"
+               name="toolbarMenuBaseCommand5">
             <commandParameter
                   id="org.spoofax.menus.menuID"
                   name="menuID"
