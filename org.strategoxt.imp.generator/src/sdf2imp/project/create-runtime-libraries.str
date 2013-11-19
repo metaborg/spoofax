@@ -1911,11 +1911,15 @@ rules // generic analysis of uses
 	nabl-use-subtask(|partition, ns, name, prop*, range):
 		uri -> <new-task(|partition)> ResolveDefs(uri*, ns, name, prop*)
 		with
+			// Strip barriers because URI's in the index also do not have barriers (matching would fail).
+			// Try because uri could be a Result(_) term.
+			uri' := <try(nabl-uri-strip-barriers)> uri;
       switch !range
-      	case One(): ![uri]
-      	case All(): ![uri|<nabl-uri-parents(|ns)> uri]
+      	case One(): ![uri']
+      	case All(): ![uri'|<nabl-uri-parents(|ns)> uri]
     	end;
-    	mapconcat(nabl-use-subtask-scopes(|partition, ns)); <new-task(|partition)> Combine(<id>) => uri*
+    	mapconcat(nabl-use-subtask-scopes(|partition, ns)); 
+    	<new-task(|partition)> Combine(<id>) => uri*
     	// TODO: disambiguation
     	// TODO: order of imported URI's is unclear
     	
@@ -2013,10 +2017,6 @@ rules // generic analysis of imports
   ; Use(uri) := <nabl-collect-use> term
   ; name     := <nabl-get-name; nabl-fix-name> term
   ; <try-make-list; map(nabl-import-alias(|lang, partition, unique*, uri*, uri, ns, name))> scope*
-
-  nabl-import-candidate(|lang, partition, unique*, uri*) =
-    ?Wildcard(import*, from, into, dep)
-  ; <map(nabl-import-prop(|lang, partition, uri*, from, into))> import*
   
   nabl-import-alias(|lang, partition, unique*, uri*, target-uri, ns, name):
     scope -> <new-alias(|partition, alias-uri, target-uri)>
@@ -2024,6 +2024,11 @@ rules // generic analysis of imports
     base-uri  := <nabl-scope-uri(|lang, uri*, ns)> scope
     // TODO: uniqueness should be a property of the import, assumes non-unique right now.
   ; alias-uri := <nabl-extend-uri(|unique*, partition, ns, name, NonUnique())> base-uri
+
+
+  nabl-import-candidate(|lang, partition, unique*, uri*) =
+    ?Wildcard(import*, from, into, dep)
+  ; <map(nabl-import-prop(|lang, partition, uri*, from, into))> import*
     
   nabl-import-prop(|lang, partition, uri*, from, into):
     Import(lang, ns) -> <new-prop(|partition, into-uri, Import(ns), from-uri)>
@@ -2039,12 +2044,13 @@ rules // generic analysis of imports
     from-uri := <nabl-scope-uri(|lang, uri*, ns)> from 
   ; into-uri := <nabl-scope-uri(|lang, uri*, ns)> into
   ; proplookup := <new-task(|partition)> PropsLookup(Import(ns), from-uri)
-        
+
+
   nabl-scope-uri(|lang, uri*, ns):
-    Current() -> <lookup-uri(|lang, ns)> uri*
+    Current() -> <lookup-uri(|lang, ns); nabl-uri-strip-barriers> uri*
   
   nabl-scope-uri(|lang, uri*, ns):
-    DefScope(term{anno*}) -> <lookup> (ns, scope*)
+    DefScope(term{anno*}) -> <lookup; nabl-uri-strip-barriers> (ns, scope*)
     where
       <fetch-elem(?Scope(scope*))> anno*
       
