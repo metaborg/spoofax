@@ -2468,7 +2468,7 @@ rules // Lookup
 	nabl-lookup(|ns, name):
 		uri -> def*
 		with
-  		uri' := <nabl-extend-uri(|ns, name, ())> uri;
+  		uri' := <nabl-extend-uri(|ns, name, NonUnique())> uri;
   		def* := <nabl-get-all-definitions> uri'
 
 	nabl-lookup-all(|ns):
@@ -2820,9 +2820,9 @@ rules // Resolve
   		uri        := <nabl-uri> scope;
   		name'      := <try-remove-list; strip-annos> name;
   		<nabl-add-name-read(|nr, ns, name')> uri;
-  		def*       := <nabl-lookup(|ns, name')> uri;
-  		alias-def* := <nabl-extend-uri(|ns, name, NonUnique()); nabl-get-all-aliases; insert-results-or-create-dependency; try(concat)> uri;
-  		result     := <filter(filter-defs-props(|prop*)); (task-collect-dependencies <+ not(?[]))> [def*, alias-def*]
+  		def*       := <nabl-lookup(|ns, name'); insert-results-or-create-dependency; try(concat)> uri;
+  		// alias-def* := <nabl-extend-uri(|ns, name, NonUnique()); nabl-get-all-aliases; insert-results-or-create-dependency; try(concat)> uri;
+  		result     := <filter(filter-defs-props(|prop*)); (task-collect-dependencies <+ not(?[]))> def*
   		
 	task-short-circuit = ?ResolveDefs(_, _, _, _)
   		
