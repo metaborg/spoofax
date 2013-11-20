@@ -3180,6 +3180,7 @@ imports
 	
 	libstratego-lib
 	runtime/task/core
+	runtime/editor/annotations
 
 rules 
 	
@@ -3200,12 +3201,13 @@ rules
     measure-time(s, record-time(|name); log)
   
   record-time(|name) = id
-    
-  //external record-time-native(|name)
   	
  	try-make-list = is-list <+ ?Dependency(_) <+ ![<id>]
 		
 	try-remove-list = is-list < Hd + id
+	
+	// @deprecated use runtime/editor/annotations get-annotation(s)
+	has-annotation(s) = get-annotation(s)
 	
 rules // multimap simulation
 	
