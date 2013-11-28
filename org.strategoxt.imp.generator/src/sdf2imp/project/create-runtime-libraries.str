@@ -4008,6 +4008,62 @@ rules
 
 "
 
+	create-task-new-messages = 
+		<output-text-file(|["lib", "runtime", "task"], "new-messages.str")>
+"module runtime/task/new-messages
+
+imports
+  
+  runtime/task/core
+  runtime/editor/origins
+  runtime/task/messages
+  
+signature
+
+  sorts
+  
+    Message
+    MessageTrigger
+    
+  constructors
+    
+    Error   : Origin * Term * Msg -> Message
+    Warning : Origin * Term * Msg -> Message
+    Note    : Origin * Term * Msg -> Message
+    
+    Failure  : List(Result) -> MessageTrigger // No results
+    Success  : List(Result) -> MessageTrigger // At least one result
+    Multiple : List(Result) -> MessageTrigger // More than one result
+
+    Message  : MessageTrigger * Term -> Instruction
+
+rules // task creation
+  
+  task-create-message-on-triggers(|partition, triggers):
+    message -> <new-task(|partition)> Message(triggers, message)
+  
+  task-create-error-on-triggers(|partition, triggers, message) = 
+    task-error-message(|message); task-create-message-on-triggers(|partition, triggers)
+    
+  task-create-warning-on-triggers(|partition, triggers, message) =
+    task-warning-message(|message); task-create-message-on-triggers(|partition, triggers)
+    
+  task-create-note-on-triggers(|partition, triggers, message) =
+    task-note-message(|message); task-create-message-on-triggers(|partition, triggers)
+  
+rules // task execution
+  
+  task-is-combinator = ?Message(_, _)
+
+  perform-task(|n):
+    Message(trigger*, message) -> []
+    where
+      <map(?Failure([]) + ?Success([_|_]) + ?Multiple([_, _|_]))> trigger*
+    where
+      task-add-message(|n, message)
+
+"
+
 	create-task-tasks = 
 		<output-text-file(|["lib", "runtime", "task"], "tasks.str")>
 "module runtime/task/tasks
@@ -4264,6 +4320,7 @@ create-all-runtime-libraries =
 ; 	create-task-debug
 ; 	create-task-interface
 ; 	create-task-messages
+; 	create-task-new-messages
 ; 	create-task-tasks
 ; 	create-task-utils
 ; 	create-tmpl-pp
