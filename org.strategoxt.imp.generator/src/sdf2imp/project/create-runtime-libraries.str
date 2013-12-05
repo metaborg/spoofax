@@ -2583,6 +2583,7 @@ imports
   runtime/nabl/uri
   runtime/nabl/entries
   runtime/index/query
+  runtime/task/core
   
 rules // Specific queries
 
@@ -2688,17 +2689,25 @@ rules // Generic queries
         entries  := <nabl-filter-entries(|namespace, prefix)> children
 
   nabl-get-unique-nonunique(create-template):
-  	uri -> [unique*, nonUnique*]
+  	uri -> [unique*, non-unique*]
   	where
       if alias* := <nabl-get-all-aliases> uri then
-        unique* := <mapconcat(create-template; nabl-get-all)> alias*
+      	// HACK: handle Result terms on the resulting URI of an alias. this should be decomposed into a task?
+      	(alias-result*, alias-uri*) := <partition(?Result(_); insert-results-or-create-dependency)> alias*;
+      	if deps := <task-collect-dependencies> alias-result* then
+      		unique* := [deps]
+        else
+        	unique-uri*    := <mapconcat(create-template; nabl-get-all)> alias-uri*;
+        	unique-result* := <try(concat)> alias-result*;
+        	unique*        := [unique-uri*, unique-result*]
+        end
       else
         unique* := []
       end;
-      if nonUniqueURI := <nabl-replace-uri-qualifier(|NonUnique())> uri then
-        nonUnique*    := <create-template; nabl-get-all> nonUniqueURI
+      if non-unique-uri := <nabl-replace-uri-qualifier(|NonUnique())> uri then
+        non-unique* := <create-template; nabl-get-all> non-unique-uri
       else
-        nonUnique*    := []
+        non-unique* := []
       end
 
 rules /** @internal Entry filtering */
@@ -2820,8 +2829,7 @@ rules // Resolve
   		uri        := <nabl-uri> scope;
   		name'      := <try-remove-list; strip-annos> name;
   		<nabl-add-name-read(|nr, ns, name')> uri;
-  		def*       := <nabl-lookup(|ns, name'); insert-results-or-create-dependency; try(concat)> uri;
-  		// alias-def* := <nabl-extend-uri(|ns, name, NonUnique()); nabl-get-all-aliases; insert-results-or-create-dependency; try(concat)> uri;
+  		def*       := <nabl-lookup(|ns, name')> uri;
   		result     := <filter(filter-defs-props(|prop*)); (task-collect-dependencies <+ not(?[]))> def*
   		
 	task-short-circuit = ?ResolveDefs(_, _, _, _)
@@ -3344,11 +3352,18 @@ strategies
 
 rules
   
-    create-property-task(|ctx, kind) :
+  get-or-create-property-task(|ctx, kind) = 
+     get-property-task(|kind)
+  <+ map(create-property-task(|ctx, kind))
+  <+ create-property-task(|ctx, kind)
+  
+  create-property-task(|ctx, kind):
+    r@Result(_) -> <new-task(|ctx)> PropExtract(kind, r)
+    
+  create-property-task(|ctx, kind) :
     x -> <nabl-prop-calc(|ctx, t*)> t*
     where 
-    	<is-list> x
-    ; t* := <map(get-or-create-property-task(|ctx, kind))> x
+    	t* := <map(get-or-create-property-task(|ctx, kind))> x
     
 rules
   
@@ -3465,11 +3480,6 @@ imports
 
 rules
 
-  get-or-create-property-task(|ctx, kind) = 
-     get-property-task(|kind)
-  <+ map(create-property-task(|ctx, kind))
-  <+ create-property-task(|ctx, kind)
-  
   get-property-task(|kind) =
      map(get-property-task(|kind))
   <+ get-annos
@@ -3542,6 +3552,7 @@ imports
 	runtime/properties/query
 	runtime/properties/eq
   runtime/task/core
+  runtime/editor/annotations
   
 signature
   
@@ -3551,6 +3562,7 @@ signature
     PropList    : List(Term)                        -> Instruction
     PropsLookup : Property * URI                    -> Instruction    
     PropCheck   : Property * Relation * Term * Term -> Instruction
+    PropExtract : Property * Term                   -> Instruction
     
 rules
 
@@ -3586,6 +3598,8 @@ rules
   perform-task(|n): 
   	PropCheck(kind, rel, actual, expected) -> [<nabl-property-eq> (kind, rel, (actual, expected))]
 
+  perform-task(|n):
+    PropExtract(kind, t) -> <get-annotation(?(kind, <id>))> t
 "
 
 	create-task-core = 
@@ -3622,7 +3636,8 @@ rules // Creation
   	with
   		is-combinator := <task-is-combinator; !1 <+ !0> instruction;
   		short-circuit := <task-short-circuit; !1 <+ !0> instruction;
-  		result := <task-add-task(|partition, dependencies, instruction, is-combinator, short-circuit)> instruction
+  		dep-fail      := <task-dep-fail; !1 <+ !0> instruction;
+  		result        := <task-add-task(|partition, dependencies, instruction, is-combinator, short-circuit, dep-fail)> instruction
  
   //    tdebug(!\"new task \")
   //  ; avoid-task(|dependencies)
@@ -3716,7 +3731,7 @@ rules // Projections
 rules // API
 	
 	task-add-message(|taskID, message)                         = task-api-add-message(|taskID, message)
-	task-add-task(|partition, dependencies, instruction, isCombinator, shortCircuit) = task-api-add-task(|partition, dependencies, instruction, isCombinator, shortCircuit)
+	task-add-task(|partition, dependencies, instruction, is-combinator, short-circuit, dep-fail) = task-api-add-task(|partition, dependencies, instruction, is-combinator, short-circuit, dep-fail)
 	task-becomes-cyclic(|taskIDFrom, taskIDTo)                 = task-api-becomes-cyclic(|taskIDFrom, taskIDTo)
 	task-clear-partition                                       = task-api-clear-partition(|<id>)
 	task-debug-info(|partition)                                = task-api-debug-info(|partition)
@@ -3782,7 +3797,7 @@ rules /** @internal API externals */
 	task-api-add-dependency(|taskID, dependency) = prim(\"task_api_add_dependency\", taskID, dependency)
 	task-api-add-message(|taskID, message) = prim(\"task_api_add_message\", taskID, message)
 	task-api-add-read(|taskID, read) = prim(\"task_api_add_read\", taskID, read)
-	task-api-add-task(|partition, dependencies, instruction, isCombinator, shortCircuit) = prim(\"task_api_add_task\", partition, dependencies, instruction, isCombinator, shortCircuit)
+	task-api-add-task(|partition, dependencies, instruction, is-combinator, short-circuit, dep-fail) = prim(\"task_api_add_task\", partition, dependencies, instruction, is-combinator, short-circuit, dep-fail)
 	task-api-becomes-cyclic(|taskIDFrom, taskIDTo) = prim(\"task_api_becomes_cyclic\", taskIDFrom, taskIDTo)
 	task-api-clear-partition(|partition) = prim(\"task_api_clear_partition\", partition)
 	task-api-debug-info(|partition) = prim(\"task_api_debug_info\", partition)
@@ -3819,6 +3834,12 @@ imports
 	
 	runtime/task/core
 
+signature
+
+	constructors
+		
+		Debug : Term * Term -> Instruction
+
 rules
 	
 	task-transitive-dependencies = task-transitive-dependencies(|[])
@@ -3844,6 +3865,17 @@ rules
 			dep*      := <mapconcat(task-transitive-dependencies)> resultID*;
 			debug*    := <make-set; map(task-debug-info(|<id>))> [resultID*, dep*]
 
+rules
+	
+	task-debug(|ctx):
+		term -> <new-task(|ctx)> Debug(\"\", term)
+		
+	task-debug(|ctx, prefix):
+		term -> <new-task(|ctx)> Debug(prefix, term)
+		
+	perform-task(|nr):
+		Debug(prefix, term) -> <debug(!$[[nr] - [prefix]]); !term> term
+		
 "
 
 	create-task-interface = 
@@ -3858,6 +3890,7 @@ strategies
   avoid-task(|dep*)  = fail
   task-is-combinator = fail
   task-short-circuit = fail
+	task-dep-fail      = fail
 
 "
 
@@ -3978,6 +4011,7 @@ rules // task creation
 rules // task execution
   
   task-is-combinator = ?Message(_, _, _)
+  task-dep-fail = ?Message(_, _, _)
 
   perform-task(|n):
     Message(task, trigger, message) -> []
@@ -4054,6 +4088,7 @@ rules // task creation
 rules // task execution
   
   task-is-combinator = ?Message(_, _)
+  task-dep-fail = ?Message(_, _)
 
   perform-task(|n):
     Message(trigger*, message) -> []
