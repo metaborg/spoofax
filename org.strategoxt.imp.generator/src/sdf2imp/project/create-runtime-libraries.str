@@ -1923,6 +1923,21 @@ rules // generic analysis of uses
     	// TODO: disambiguation
     	// TODO: order of imported URI's is unclear
     	
+  nabl-use-subtask-all(|partition, ns, name, prop*, range):
+    uri -> <new-task(|partition)> ResolveAllDefs(uri*, ns, name, prop*)
+    with
+      // Strip barriers because URI's in the index also do not have barriers (matching would fail).
+      // Try because uri could be a Result(_) term.
+      uri' := <try(nabl-uri-strip-barriers)> uri;
+      switch !range
+        case One(): ![uri']
+        case All(): ![uri'|<nabl-uri-parents(|ns)> uri]
+      end;
+      mapconcat(nabl-use-subtask-scopes(|partition, ns)); 
+      <new-task(|partition)> Combine(<id>) => uri*
+      // TODO: disambiguation
+      // TODO: order of imported URI's is unclear
+    	
 	nabl-use-subtask-scopes(|partition, ns):
 		uri -> [uri', wildcard-import]
 		with
@@ -2812,7 +2827,8 @@ signature
     ImportClosure          : URI                                       -> Instruction
     PropConstraint         : Kind * Expected * Result                  -> Instruction
         
-    ResolveAllDefs         : Scope * Namespace                  -> Instruction
+    ResolveAllDefs         : Scope * Namespace                         -> Instruction
+    ResolveAllDefs         : Scope * Namespace * Name * Prop           -> Instruction
         
 rules // basics
   
@@ -2833,6 +2849,11 @@ rules // Resolve
   		result     := <filter(filter-defs-props(|prop*)); (task-collect-dependencies <+ not(?[]))> def*
   		
 	task-short-circuit = ?ResolveDefs(_, _, _, _)
+ 
+ 
+  perform-task(|nr):
+    ResolveAllDefs(scope, ns, name, prop*) -> <perform-task(|nr)> ResolveDefs(scope, ns, name, prop*)
+ 
   		
 	filter-defs-props(|prop*):
 		definition -> <map(filter-defs-prop(|definition)); (task-collect-dependencies <+ !definition)> prop*
@@ -3558,48 +3579,128 @@ signature
   
   constructors
 
-    PropCalc    : Term                              -> Instruction
-    PropList    : List(Term)                        -> Instruction
-    PropsLookup : Property * URI                    -> Instruction    
+    PropsLookup : Property * URI                    -> Instruction
     PropCheck   : Property * Relation * Term * Term -> Instruction
     PropExtract : Property * Term                   -> Instruction
     
 rules
 
-  perform-task(|n) =
-  	?PropsLookup(kind, <nabl-uri>)
-  ; nabl-add-uri-read(|n)
-	// HACK: task-result-combinations also creates dependencies if any result has not been solved yet.
-	// Proper way would be to decompose the PropLookup into a ResolveUseToDef, GetProperty and InsertCombinations task.
-  ; get-index-properties(|kind)
-  ; map(fancy-combination)
-  ; (concat <+ filter(?Dependency(<id>)); !Dependency(<concat>))
+  perform-task(|n):
+  	PropsLookup(kind, contains-uri) -> res
+		where
+  	  uri := <nabl-uri> contains-uri
+  	; <nabl-add-uri-read(|n)> uri
+  	; val := <get-index-properties(|kind)> uri
+  	; res := <try(concat)> val
+		  // TODO: why try concat?
     
-  perform-cyclic-task(|n) =
-  	?PropsLookup(kind, <nabl-uri>)
-  ; nabl-add-uri-read(|n)
-	; get-index-properties(|kind); filter(insert-results); flatten-list; make-set
-	  // TODO: does not make combinations
-  
-  fancy-combination = 
-     ?Result(_)
-  ;  (task-result-combinations <+ ![])
-  <+ (task-result-combinations; not(?[])) 
-  <+ MkSingleton
-  
-  // perform-task(|n) =
-  // 	?PropLookup(kind, <id>)
-  // 	;	nabl-add-uri-read(|n) 
-  //   ; nabl-get-all-properties(|kind)
-  //   ; insert-results-or-create-dependency 
-  // 	; (task-collect-dependencies <+ try(concat))
-  //   ; try(map(Hd); MkSingleton) // HACK
-      
+  perform-cyclic-task(|n):
+  	PropsLookup(kind, contains-uri) -> res
+  	where
+  	  uri := <nabl-uri> contains-uri
+  	; <nabl-add-uri-read(|n)> uri
+  	; val := <get-index-properties(|kind)> uri
+		; res := <try(concat); make-set> val
+		  // TODO: why try concat?
+
   perform-task(|n): 
   	PropCheck(kind, rel, actual, expected) -> [<nabl-property-eq> (kind, rel, (actual, expected))]
 
   perform-task(|n):
     PropExtract(kind, t) -> <get-annotation(?(kind, <id>))> t
+
+"
+
+	create-relations-entries = 
+		<output-text-file(|["lib", "runtime", "relations"], "entries.str")>
+"module relations/entries
+
+imports
+	
+	runtime/index/core
+	runtime/editor/origins
+	
+signature
+
+  constructors
+    
+    RelTuple: Term * Relation * Term -> Entry
+    Inverse : Relation -> Relation
+     
+rules // Index entries to diff for incrementality
+  
+  nabl-diff-entry = ?RelTuple(_, _, _)
+ 
+rules
+  
+  new-rel-tuple(|partition, rel, t2):
+    t1 -> tuple
+    with
+      tuple := <origin-track-forced(!RelTuple(t1, rel, t2))> t1
+    ; <index-add(|partition)> tuple
+    with // TODO: store inverses only for invertible relations
+      inverse := <origin-track-forced(!RelTuple(t2, Inverse(rel), t1))> t2
+    ; <index-add(|partition)> inverse
+  
+"
+
+	create-relations-interface = 
+		<output-text-file(|["lib", "runtime", "relations"], "interface.str")>
+"module relations/interface
+
+strategies
+  
+  // interface for static relation tuples, e.g. 
+  //
+  // relation-tuple(store): (IntTy(), SubType()) -> <store> FloatTy()
+
+  relation-tuple(store) = fail
+"
+
+	create-relations-query = 
+		<output-text-file(|["lib", "runtime", "relations"], "query.str")>
+"module relations/query
+
+imports
+  relations/entries
+  runtime/nabl/query
+  
+rules
+  
+  get-index-relation(|rel) =
+    fetch-elem(!RelTuple(<id>, rel, ()); nabl-get-value)
+   
+  get-index-relations(|rel) =
+    mapconcat(!RelTuple(<id>, rel, ()); nabl-get-all-values)
+
+"
+
+	create-relations-tasks = 
+		<output-text-file(|["lib", "runtime", "relations"], "tasks.str")>
+"module relations/tasks
+
+imports
+	
+	relations/query
+	relations/interface
+signature
+  
+  constructors
+
+    RelationLookup : Relation * Term        -> Instruction
+    
+rules
+
+  perform-task(|n):
+    RelationLookup(rel, t) -> [stat-val*, index-val*]
+    where
+      // <nabl-add-uri-read(|n)> uri
+      stat-set := <new-iset>
+    ; <try(relation-tuple(<iset-add(|<id>)> stat-set))> (rel, t)
+    ; stat-val*  := <iset-elements> stat-set
+    ; <iset-destroy> stat-set
+    ; index-val* := <get-index-relations(|rel)> t
+  
 "
 
 	create-task-core = 
@@ -3797,7 +3898,7 @@ rules /** @internal API externals */
 	task-api-add-dependency(|taskID, dependency) = prim(\"task_api_add_dependency\", taskID, dependency)
 	task-api-add-message(|taskID, message) = prim(\"task_api_add_message\", taskID, message)
 	task-api-add-read(|taskID, read) = prim(\"task_api_add_read\", taskID, read)
-	task-api-add-task(|partition, dependencies, instruction, is-combinator, short-circuit, dep-fail) = prim(\"task_api_add_task\", partition, dependencies, instruction, is-combinator, short-circuit, dep-fail)
+	task-api-add-task(|partition, dependencies, instruction, is-combinator, short-circuit, dep-fail) = prim(\"task_api_add_task\", partition, dependencies, instruction, is-combinator, short-circuit)
 	task-api-becomes-cyclic(|taskIDFrom, taskIDTo) = prim(\"task_api_becomes_cyclic\", taskIDFrom, taskIDTo)
 	task-api-clear-partition(|partition) = prim(\"task_api_clear_partition\", partition)
 	task-api-debug-info(|partition) = prim(\"task_api_debug_info\", partition)
@@ -3873,8 +3974,16 @@ rules
 	task-debug(|ctx, prefix):
 		term -> <new-task(|ctx)> Debug(prefix, term)
 		
+	task-is-combinator = ?Debug(_, _)
+
 	perform-task(|nr):
-		Debug(prefix, term) -> <debug(!$[[nr] - [prefix]]); !term> term
+		Debug(prefix, term) -> <debug(!$[[nr] - [prefix]]); !term> msg
+		with
+			if <?[]> term then
+			  msg := \"FAIL\"
+			else
+			  msg := term
+			end
 		
 "
 
@@ -3920,7 +4029,7 @@ signature
     Success  : MessageTrigger // At least one result
     Multiple : MessageTrigger // More than one result
 
-    Message  : List(Result) * MessageTrigger * Term -> Instruction
+    Message  : Result * List(Result) * MessageTrigger * Term -> Instruction
 
 overlays
   
@@ -3970,56 +4079,74 @@ rules // querying
 	
 rules // task creation
 	
-	task-create-message-on-failure(|partition, task):
-    message -> <new-task(|partition)> Message(task, Failure(), message)
+	task-create-message-on-failure(|partition, task, exclude*):
+    message -> <new-task(|partition)> Message(task, exclude*, Failure(), message)
   
-  task-create-error-on-failure(|partition, task, message) = 
-  	task-error-message(|message); task-create-message-on-failure(|partition, task)
-		
+  task-create-error-on-failure(|partition, task, exclude*, message) = 
+  	task-error-message(|message); task-create-message-on-failure(|partition, task, exclude*)
+	task-create-error-on-failure(|partition, task, message) = 
+  	task-create-error-on-failure(|partition, task, [], message)
+  		
+	task-create-warning-on-failure(|partition, task, exclude*, message) =
+		task-warning-message(|message); task-create-message-on-failure(|partition, task, exclude*)
 	task-create-warning-on-failure(|partition, task, message) =
-		task-warning-message(|message); task-create-message-on-failure(|partition, task)
+		task-create-warning-on-failure(|partition, task, [], message)
 		
+	task-create-note-on-failure(|partition, task, exclude*, message) =
+		task-note-message(|message); task-create-message-on-failure(|partition, task, exclude*)
 	task-create-note-on-failure(|partition, task, message) =
-		task-note-message(|message); task-create-message-on-failure(|partition, task)
+		task-create-note-on-failure(|partition, task, [], message)		
 			
 			
-	task-create-message-on-success(|partition, task):
-    message -> <new-task(|partition)> Message(task, Success(), message)
+	task-create-message-on-success(|partition, task, exclude*):
+    message -> <new-task(|partition)> Message(task, exclude*, Success(), message)
   
-  task-create-error-on-success(|partition, task, message) = 
-  	task-error-message(|message); task-create-message-on-success(|partition, task)
+  task-create-error-on-success(|partition, task, exclude*, message) = 
+  	task-error-message(|message); task-create-message-on-success(|partition, task, exclude*)
+	task-create-error-on-success(|partition, task, message) = 
+		task-create-error-on-success(|partition, task, [], message)
 		
+	task-create-warning-on-success(|partition, task, exclude*, message) =
+		task-warning-message(|message); task-create-message-on-success(|partition, task, exclude*)
 	task-create-warning-on-success(|partition, task, message) =
-		task-warning-message(|message); task-create-message-on-success(|partition, task)
+		task-create-warning-on-success(|partition, task, [], message)
 		
+	task-create-note-on-success(|partition, task, exclude*, message) =
+		task-note-message(|message); task-create-message-on-success(|partition, task, exclude*)
 	task-create-note-on-success(|partition, task, message) =
-		task-note-message(|message); task-create-message-on-success(|partition, task)
+		task-create-note-on-success(|partition, task, [], message)
 		
 		
-	task-create-message-on-multiple(|partition, task):
-    message -> <new-task(|partition)> Message(task, Multiple(), message)
+	task-create-message-on-multiple(|partition, task, exclude*):
+    message -> <new-task(|partition)> Message(task, exclude*, Multiple(), message)
   
-  task-create-error-on-multiple(|partition, task, message) = 
-  	task-error-message(|message); task-create-message-on-multiple(|partition, task)
+  task-create-error-on-multiple(|partition, task, exclude*, message) = 
+  	task-error-message(|message); task-create-message-on-multiple(|partition, task, exclude*)
+	task-create-error-on-multiple(|partition, task, message) =
+		task-create-error-on-multiple(|partition, task, [], message)
 		
+	task-create-warning-on-multiple(|partition, task, exclude*, message) =
+		task-warning-message(|message); task-create-message-on-multiple(|partition, task, exclude*)
 	task-create-warning-on-multiple(|partition, task, message) =
-		task-warning-message(|message); task-create-message-on-multiple(|partition, task)
+		task-create-warning-on-multiple(|partition, task, [], message)
 		
+	task-create-note-on-multiple(|partition, task, exclude*, message) =
+		task-note-message(|message); task-create-message-on-multiple(|partition, task, exclude*)
 	task-create-note-on-multiple(|partition, task, message) =
-		task-note-message(|message); task-create-message-on-multiple(|partition, task)
+		task-create-note-on-multiple(|partition, task, [], message)
 
 rules // task execution
   
-  task-is-combinator = ?Message(_, _, _)
-  task-dep-fail = ?Message(_, _, _)
+  task-is-combinator = ?Message(_, _, _, _)
 
   perform-task(|n):
-    Message(task, trigger, message) -> []
+    Message(task, exclude*, trigger, message) -> []
     where
+    	<map(not(?[]))> exclude*;
       switch !trigger
-        case Failure()  : not(<Hd> task); task-add-message(|n, message)
-        case Success()  : <Hd> task; task-add-message(|n, message)
-        case Multiple() : <Tl; Hd> task; task-add-message(|n, message)
+        case ?Failure()  : not(<Hd> task); task-add-message(|n, message)
+        case ?Success()  : <Hd> task; task-add-message(|n, message)
+        case ?Multiple() : <Tl; Hd> task; task-add-message(|n, message)
       end
 
 rules
@@ -4088,7 +4215,6 @@ rules // task creation
 rules // task execution
   
   task-is-combinator = ?Message(_, _)
-  task-dep-fail = ?Message(_, _)
 
   perform-task(|n):
     Message(trigger*, message) -> []
@@ -4113,7 +4239,8 @@ signature
 
 	constructors
 		
-    Id       : Term              -> Instruction   
+    Id       : Term              -> Instruction
+    Not      : Result            -> Instruction
     Combine  : List(Term)        -> Instruction
     Collect  : List(Term)        -> Instruction
     Choice   : List(List(Term))  -> Instruction
@@ -4130,29 +4257,114 @@ rules
 
 rules
 	
+  /**
+  * Create a choice task
+  * @type List(task) -> Result(Int)
+  */
+  task-create-choice(|ctx) = <new-task(|ctx)> Choice(<id>)
+  
+  /**
+  * Create a choice task between two tasks, where t1 and t2 take a ctx and produce a task.
+  * @type term -> Result(Int)
+  */
+  task-create-choice(t1, t2|ctx):
+    term -> <task-create-choice(|ctx)> [<t1(|ctx)> term, <t2(|ctx)> term]
+	
 	task-is-combinator = ?Choice(_)
   perform-task(|nr)  = ?Choice(<fetch-elem(not(?[]))>)
   
 rules
 	
+  /**
+  * Create a sequence task
+  * @type List(task) -> Result(Int)
+  */
+  task-create-sequence(|ctx) = <new-task(|ctx)> Sequence(<id>)
+
+  /**
+  * Create a sequence task between two tasks, where t1 and t2 take a ctx and produce a task.
+  * @type term -> Result(Int)
+  */
+  task-create-sequence(t1, t2|ctx):
+    term -> <task-create-sequence(|ctx)> [<t1(|ctx)> term, <t2(|ctx)> term]
+	
 	task-is-combinator = ?Sequence(_)
   perform-task(|nr)  = ?Sequence(<not(fetch-elem(?[])); last>)
-  
+
 rules
+  
+  task-create-where(s|ctx):
+    term -> <task-create-sequence(|ctx)> <try(flatten-list)> [<s> term, term]
+
+rules
+  
+  /**
+  * Create an identity task
+  * @type term -> Result(Int)
+  */
+	task-create-id(|ctx) = <new-task(|ctx)> Id(<id>)
+  
+  task-create-id(|ctx, dep*) =
+    ?term;
+    all-dep* := <union> (<dependent-tasks> dep*, <dependent-tasks>);
+    <new-task(|ctx, all-dep*)> Id(term)
   
   perform-task(|nr) = ?Id(<MkSingleton>)
-  	
+
 rules
+  
+  /**
+  * Create negation task
+  * @type task -> Result(Int)
+  */
+  task-create-not(|ctx) = <new-task(|ctx)> Not(<id>)
+  
+  /**
+  * Create negation task, where t takes a ctx argument and produces the task to be negated 
+  */
+  task-create-not(t|ctx) = t(|ctx); task-create-not(|ctx)
+  
+  /**
+  * Negation on the success of a task
+  * @type: Not(result) -> !Success(result)
+  */
+  perform-task(|nr):
+    Not(result) -> ()
+    where
+      <?[]> result
+
+  task-is-combinator = ?Not(_)
+  
+rules
+       
+  /**
+  * Create a combine task
+  * @type List(task) -> Result(Int)
+  */
+	task-create-combine(|ctx)= <new-task(|ctx)> Combine(<id>)
        
   task-is-combinator = ?Combine(_)
   perform-task(|nr)  = ?Combine(<map(is-list <+ MkSingleton)>); concat
 
 rules
        
+  /**
+  * Create a collect task
+  * @type List(task) -> Result(Int)
+  */
+	task-create-collect(|ctx) = <new-task(|ctx)> Collect(<id>)
+       
   task-is-combinator = ?Collect(_)
   perform-task(|nr)  = ?Collect(<map(is-list <+ MkSingleton)>); concat; MkSingleton
   
 rules
+      	
+  /**
+  * Create a rewrite task
+  * @type term -> Result(Int)
+  */
+  task-create-rewrite(|ctx, key):
+  	term -> <new-task(|ctx)> Rewrite(key, term)
       	
   perform-task(|nr) = ?Rewrite(key, term); <task-rewrite; MkSingleton> (key, term)
   
@@ -4293,8 +4505,9 @@ strategies // user-defined implementations
 
 imports
   
-  runtime/properties/query
   runtime/types/collect
+  runtime/properties/collect
+  runtime/properties/query
   
 rules // during analysis
   
@@ -4304,8 +4517,8 @@ rules // during analysis
 rules // post analysis
   
   get-type =
-     get-property(|Type())
-     
+		get-property(|Type())
+ 
 "
 
 create-all-runtime-libraries = 
@@ -4351,6 +4564,10 @@ create-all-runtime-libraries =
 ; 	create-properties-interface
 ; 	create-properties-query
 ; 	create-properties-tasks
+; 	create-relations-entries
+; 	create-relations-interface
+; 	create-relations-query
+; 	create-relations-tasks
 ; 	create-task-core
 ; 	create-task-debug
 ; 	create-task-interface
