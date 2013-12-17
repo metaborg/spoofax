@@ -3619,14 +3619,17 @@ imports
 	
 	runtime/index/core
 	runtime/editor/origins
+	relations/-
+	runtime/task/-
 	
 signature
 
   constructors
     
-    RelTuple: Term * Relation * Term -> Entry
-    Inverse : Relation -> Relation
-     
+    RelTuple   : Term * Relation * Term -> Entry
+    Inverse    : Relation -> Relation
+    Transitive : Relation -> Relation 
+
 rules // Index entries to diff for incrementality
   
   nabl-diff-entry = ?RelTuple(_, _, _)
@@ -3641,7 +3644,10 @@ rules
     with // TODO: store inverses only for invertible relations
       inverse := <origin-track-forced(!RelTuple(t2, Inverse(rel), t1))> t2
     ; <index-add(|partition)> inverse
-  
+    with
+      task := <new-task(|partition)> RelationLookup(Transitive(rel), t2)
+    ; transitive := <origin-track-forced(!RelTuple(t1, Transitive(rel), task))> t1
+    ; <index-add(|partition)> transitive
 "
 
 	create-relations-interface = 
@@ -3668,10 +3674,12 @@ imports
 rules
   
   get-index-relation(|rel) =
-    fetch-elem(!RelTuple(<id>, rel, ()); nabl-get-value)
+    !RelTuple(<id>, rel, ())
+  ; nabl-get-value
    
   get-index-relations(|rel) =
-    mapconcat(!RelTuple(<id>, rel, ()); nabl-get-all-values)
+    !RelTuple(<id>, rel, ())
+  ; nabl-get-all-values
 
 "
 
@@ -3681,8 +3689,10 @@ rules
 
 imports
 	
-	relations/query
-	relations/interface
+	relations/entries
+  relations/query
+  relations/interface
+	
 signature
   
   constructors
@@ -3692,15 +3702,21 @@ signature
 rules
 
   perform-task(|n):
-    RelationLookup(rel, t) -> [stat-val*, index-val*]
+    RelationLookup(rel, t) -> [stat-val*, non-trans-val*, index-val*]
     where
       // <nabl-add-uri-read(|n)> uri
       stat-set := <new-iset>
-    ; <try(relation-tuple(<iset-add(|<id>)> stat-set))> (rel, t)
+    ; <try(relation-tuple(store-tuple(|stat-set)))> (t, rel)
     ; stat-val*  := <iset-elements> stat-set
     ; <iset-destroy> stat-set
     ; index-val* := <get-index-relations(|rel)> t
-  
+    ; if Transitive(rel') := rel then
+        non-trans-val* := <get-index-relations(|rel)> t
+      else
+        non-trans-val* := []
+      end
+      
+  store-tuple(|set): elem -> <fail> with <iset-add(|elem)> set
 "
 
 	create-task-core = 
@@ -3737,8 +3753,7 @@ rules // Creation
   	with
   		is-combinator := <task-is-combinator; !1 <+ !0> instruction;
   		short-circuit := <task-short-circuit; !1 <+ !0> instruction;
-  		dep-fail      := <task-dep-fail; !1 <+ !0> instruction;
-  		result        := <task-add-task(|partition, dependencies, instruction, is-combinator, short-circuit, dep-fail)> instruction
+  		result        := <task-add-task(|partition, dependencies, instruction, is-combinator, short-circuit)> instruction
  
   //    tdebug(!\"new task \")
   //  ; avoid-task(|dependencies)
@@ -3832,13 +3847,11 @@ rules // Projections
 rules // API
 	
 	task-add-message(|taskID, message)                         = task-api-add-message(|taskID, message)
-	task-add-task(|partition, dependencies, instruction, is-combinator, short-circuit, dep-fail) = task-api-add-task(|partition, dependencies, instruction, is-combinator, short-circuit, dep-fail)
-	task-becomes-cyclic(|taskIDFrom, taskIDTo)                 = task-api-becomes-cyclic(|taskIDFrom, taskIDTo)
+	task-add-task(|partition, dependencies, instruction, is-combinator, short-circuit) = task-api-add-task(|partition, dependencies, instruction, is-combinator, short-circuit)
 	task-clear-partition                                       = task-api-clear-partition(|<id>)
 	task-debug-info(|partition)                                = task-api-debug-info(|partition)
 	task-evaluate-now                                          = task-api-evaluate-now(task-collect-result-ids, insert-results-hashmap, task-perform-task|<id>)
 	task-evaluate-scheduled                                    = task-api-evaluate-scheduled(task-collect-result-ids, insert-results-hashmap, task-perform-task)
-	task-exists(|instruction)                                  = task-api-exists(|instruction)
 	task-get-messages(|partition)                              = task-api-get-messages(|partition)
 	task-get-readers                                           = task-api-get-readers(|<id>)
 	task-invalidate-task-reads(|changedRead*)                  = task-api-invalidate-task-reads(|changedRead*)
@@ -3881,30 +3894,18 @@ rules // API
 				
 	task-add-read(|taskID):
 		read -> <task-api-add-read(|taskID, read)>
-		
-	task-add-dependency(|taskID):
-		dependency -> <task-api-add-dependency(|taskID, dependency)>
-		
-	task-add-dependency-nocycle(|taskID):
-		dependency -> <(not(task-becomes-cyclic(|taskID, dependency)); task-api-add-dependency(|taskID, dependency)) <+ id>
-		
-	task-instruction-id:
-		instruction -> <task-api-task-id(|instruction)>
-		
+
 	task-perform-task(|nr) = perform-task(|nr)
 
 rules /** @internal API externals */
 
-	task-api-add-dependency(|taskID, dependency) = prim(\"task_api_add_dependency\", taskID, dependency)
 	task-api-add-message(|taskID, message) = prim(\"task_api_add_message\", taskID, message)
 	task-api-add-read(|taskID, read) = prim(\"task_api_add_read\", taskID, read)
-	task-api-add-task(|partition, dependencies, instruction, is-combinator, short-circuit, dep-fail) = prim(\"task_api_add_task\", partition, dependencies, instruction, is-combinator, short-circuit)
-	task-api-becomes-cyclic(|taskIDFrom, taskIDTo) = prim(\"task_api_becomes_cyclic\", taskIDFrom, taskIDTo)
+	task-api-add-task(|partition, dependencies, instruction, is-combinator, short-circuit) = prim(\"task_api_add_task\", partition, dependencies, instruction, is-combinator, short-circuit)
 	task-api-clear-partition(|partition) = prim(\"task_api_clear_partition\", partition)
 	task-api-debug-info(|partition) = prim(\"task_api_debug_info\", partition)
 	task-api-evaluate-now(collect, insert, perform|taskIDs) = prim(\"task_api_evaluate_now\", collect, insert, perform|taskIDs)
 	task-api-evaluate-scheduled(collect, insert, perform|) = prim(\"task_api_evaluate_scheduled\", collect, insert, perform|)
-	task-api-exists(|instruction) = prim(\"task_api_exists\", instruction)
 	task-api-get-dependencies(|taskID) = prim(\"task_api_get_dependencies\", taskID)
 	task-api-get-messages(|partition) = prim(\"task_api_get_messages\", partition)
 	task-api-get-readers(|uri) = prim(\"task_api_get_readers\", uri)
@@ -3922,7 +3923,6 @@ rules /** @internal API externals */
 	task-api-setup(|project-path) = prim(\"task_api_setup\", project-path)
 	task-api-start-collection(|partition) = prim(\"task_api_start_collection\", partition)
 	task-api-stop-collection(|partition) = prim(\"task_api_stop_collection\", partition)
-	task-api-task-id(|instruction) = prim(\"task_api_task_id\", instruction)
 	task-api-unload(|project-path) = prim(\"task_api_unload\", project-path)
 	
 "
@@ -3999,7 +3999,6 @@ strategies
   avoid-task(|dep*)  = fail
   task-is-combinator = fail
   task-short-circuit = fail
-	task-dep-fail      = fail
 
 "
 
