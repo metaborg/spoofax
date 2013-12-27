@@ -55,8 +55,12 @@ strategies
     
     provider: {provider1}
     provider: {provider2}
+    
     observer: editor-analyze (multifile)
     
     on save : editor-save
+    
+    outline : outline
+      expand to level : 3
  }
  
