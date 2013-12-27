@@ -174,7 +174,13 @@ public class StrategoTermPath {
 		TestOrigin testOrigin = new TestOrigin();
 		testOrigin.origin1 = origin;		
 		generator.init(context);
-		IStrategoTerm perfectMatch = position_of_term_1_0.instance.invoke(context, ast, testOrigin);
+		IStrategoTerm perfectMatch = null;
+		try {
+			perfectMatch = position_of_term_1_0.instance.invoke(context, ast, testOrigin);
+		}
+		catch (NullPointerException e) {
+			Environment.logException("Spoofax/757: position-of-term failed for input: (" + ast + ", " + testOrigin + ")", e);
+		}
 		if (perfectMatch != null) {
 			return (IStrategoList) perfectMatch;
 		} else if (testOrigin.nextBest != null) {
