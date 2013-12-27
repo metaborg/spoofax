@@ -833,7 +833,6 @@ $[<?xml version="1.0" encoding="UTF-8"?>
 		<delete file=".settings/org.eclipse.jdt.core.prefs" />
 		<delete dir="utils" />
 		<delete>
-			<fileset dir="lib-refactoring" includes="*.generated.str" />
 			<fileset dir="${lib}" includes="*.generated.str" />
 		</delete>
 		<antcall target="refresh-cleaned" />
