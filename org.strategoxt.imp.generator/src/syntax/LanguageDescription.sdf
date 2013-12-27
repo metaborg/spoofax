@@ -56,8 +56,8 @@ exports
     %% Editor services not worth putting in a separate file
     
     "on" "save" ":" StrategoCall OnSaveAnno      -> LanguageProperty {cons("OnSave")}
-    "outliner" ":" StrategoCall                  -> LanguageProperty {cons("Outliner")}
-    "outliner" "expand" "level" ":" Int          -> LanguageProperty {cons("OutlinerExpandLevel")}
+    "outline" ":" StrategoCall OutlineOption*    -> LanguageProperty {cons("Outliner")}
+    "expand" "to" "level" ":" Int                -> OutlineOption {cons("ExpandToLevel")}
    
      %% Syntax properties
      
