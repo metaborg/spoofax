@@ -821,7 +821,7 @@ $[<?xml version="1.0" encoding="UTF-8"?>
 		<delete file="${include}/${strmodule}.ctree.dep" />
 		<delete file="${include}/${strmodule}.jar" />
 		<delete>
-			<fileset dir="editor" includes="*.generated.esv" />
+			<fileset dir="editor" includes="*.generated.*" />
 		</delete>
 		<delete dir="${src-gen}/trans" />
 		<delete file="editor/${sdfmodule}.generated.esv" />
