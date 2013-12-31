@@ -42,22 +42,22 @@ strategies
   
   language General properties
     
-    name:    {name}
-    id:  {pkgname}
-    extends: Root
+    name:          {name}
+    id:            {pkgname}
+    extends:       Root
     
-    description: "Spoofax-generated editor for the {name} language"
-    url: http://strategoxt.org
+    description:   "Spoofax-generated editor for the {name} language"
+    url:           http://strategoxt.org
     
-    extensions: {extensions}
-    table:  {parsetable}
+    extensions:    {extensions}
+    table:         {parsetable}
     start symbols: {startsymbol}
     
-    provider: {provider1}
-    provider: {provider2}
+    provider:      {provider1}
+    provider:      {provider2}
     
-    observer: editor-analyze (multifile)
+    observer:      editor-analyze (multifile)
     
-    on save : editor-save
+    on save:       editor-save
  }
  
