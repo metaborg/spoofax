@@ -2,18 +2,18 @@ module sdf2imp/modelware/signatures
 
 signature constructors // models
   
-  M      : Object                      -> Model
-  Obj    : Opt(URI) * QID * List(Slot) -> Object
-         : Value                       -> Slot
-         : Opt(Value)                  -> Slot
-         : List(Value)                 -> Slot
-  Data   : String                      -> Value
-  Contain: Object                      -> Value
-  Link   : QID                         -> Value
-  QID    : PackName * ClassName        -> QID
+  M      : Object                       -> Model
+  Obj    : List(URI) * QID * List(Slot) -> Object
+         : Value                        -> Slot
+         : Opt(Value)                   -> Slot
+         : List(Value)                  -> Slot
+  Data   : String                       -> Value
+  Contain: Object                       -> Value
+  Link   : QID                          -> Value
+  QID    : PackName * ClassName         -> QID
   
 signature constructors // URIs
   
-  Def    : URI                         -> Def
-  URI    : Language * Path             -> URI
-  ID     : NS * Name * Uniqueness      -> ID
+  Def    : URI                          -> Def
+  URI    : Language * Path              -> URI
+  ID     : NS * Name * Uniqueness       -> ID
