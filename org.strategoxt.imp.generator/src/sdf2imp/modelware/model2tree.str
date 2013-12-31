@@ -1,0 +1,21 @@
+module sdf2imp/modelware/model2tree
+
+imports
+  
+  sdf2imp/modelware/signatures
+
+rules
+  
+  model2tree: M(obj)                    -> <obj2term> obj
+  obj2term  : Obj(_, QID("ast", c), s*) -> c#(<map(slot2term)> s*)
+  slot2term : None()                    -> None()
+  slot2term : Some(val)                 -> Some(<val2term> val)
+  slot2term : []                        -> []
+  slot2term : val                       -> <val2term>
+  val2term  : Data(val)                 -> val
+  val2term  : Link(uri)                 -> <name-of + map(name-of)> uri
+  val2term  : Contain(obj)              -> <obj2term + map(obj2term)> obj
+  
+rules
+  
+  name-of = ?URI(_, <id>); Hd; ?ID(_, <id>, _)
