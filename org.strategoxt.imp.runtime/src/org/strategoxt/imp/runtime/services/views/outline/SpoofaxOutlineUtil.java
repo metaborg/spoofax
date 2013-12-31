@@ -23,78 +23,56 @@ public class SpoofaxOutlineUtil {
 	
 	public static ImploderOriginTermFactory factory = new ImploderOriginTermFactory(new TermFactory());
 
-	public static IStrategoTerm getOutline(IParseController parseController) {
-		EditorState editorState = EditorState.getEditorFor(parseController);
-		StrategoObserver observer = getObserver(editorState);
-		observer.getLock().lock();
-		try {
-			String outliner = termContents(findTerm(editorState.getDescriptor().getDocument(), "Outliner"));
-			if (outliner == null) {
-				outliner = "outline"; // for backwards compatibility
-			}
-			
-			if (observer.getRuntime().lookupUncifiedSVar(outliner) == null) {
-				return messageToOutlineNode("Can't find strategy '" + outliner + "'. Did you import 'editor/" + editorState.getLanguage().getName() + "-Outliner.str'?");
-			}
-			
-			if (editorState.getCurrentAst() == null) {
-				return null;
-			}
-			
-			IStrategoTerm outline = observer.invokeSilent(outliner, editorState.getCurrentAst(), editorState.getResource().getFullPath().toFile());
-			
-			if (outline == null) {
-				observer.reportRewritingFailed();
-				return messageToOutlineNode("Strategy '" + outliner + "' failed.");
-			}
-			
-			// ensure propagation of origin information
-			factory.makeLink(outline, editorState.getCurrentAst());
-			
-			return outline;
-		}
-
-		finally {
-			observer.getLock().unlock();
-		}
-	}
+//	public static IStrategoTerm getOutline(IParseController parseController) {
+//		EditorState editorState = EditorState.getEditorFor(parseController);
+//		StrategoObserver observer = getObserver(editorState);
+//		observer.getLock().lock();
+//		try {
+//			IStrategoTerm outliner = findTerm(editorState.getDescriptor().getDocument(), "Outline");
+//			String outlineRule = "outline"; // for backwards compatibility
+//			if (outliner != null) {
+//				outlineRule = termContents(outliner.getAllSubterms()[0]);
+//			}
+//			
+//			if (observer.getRuntime().lookupUncifiedSVar(outlineRule) == null) {
+//				return messageToOutlineNode("Can't find strategy '" + outlineRule + "'");
+//			}
+//			
+//			if (editorState.getCurrentAst() == null) {
+//				return null;
+//			}
+//			
+//			IStrategoTerm outline = observer.invokeSilent(outlineRule, editorState.getCurrentAst(), editorState.getResource().getFullPath().toFile());
+//			
+//			if (outline == null) {
+//				observer.reportRewritingFailed();
+//				return messageToOutlineNode("Strategy '" + outlineRule + "' failed.");
+//			}
+//			
+//			// ensure propagation of origin information
+//			factory.makeLink(outline, editorState.getCurrentAst());
+//			
+//			return outline;
+//		}
+//
+//		finally {
+//			observer.getLock().unlock();
+//		}
+//	}
+//	
+//	private static IStrategoTerm messageToOutlineNode(String message) {
+//		return factory.makeAppl(factory.makeConstructor("Node", 2), factory.makeString(message), factory.makeList());
+//	}
 	
-	private static IStrategoTerm messageToOutlineNode(String message) {
-		return factory.makeAppl(factory.makeConstructor("Node", 2), factory.makeString(message), factory.makeList());
-	}
-	
-	public static int getOutlineExpandLevel(IParseController parseController, IStrategoTerm outline) {
-		EditorState editorState = EditorState.getEditorFor(parseController);
-		String level = termContents(findTerm(editorState.getDescriptor().getDocument(), "OutlineExpandLevel"));
-		if (level != null) {
-			return Integer.parseInt(level);
-		}
-		
-		// START: backwards compatibility (previously, the outline expand level was defined in Stratego using a fixed strategy name. 
-		StrategoObserver observer = getObserver(editorState);
-		observer.getLock().lock();
-		try {
-			String oldStrategy = "outline-expand-to-level";
-			if (observer.getRuntime().lookupUncifiedSVar(oldStrategy) != null) {
-				IStrategoTerm outline_expand_to_level = observer.invokeSilent(oldStrategy, outline, editorState.getResource().getFullPath().toFile());
-				if (outline_expand_to_level == null) {
-					Environment.logException(oldStrategy + " failed.");
-				}
-				else if (outline_expand_to_level.getTermType() != IStrategoTerm.INT) {
-					Environment.logException(oldStrategy + " returned " + outline_expand_to_level + ", but should return an integer instead.");
-				}
-				else {
-					return ((IStrategoInt) outline_expand_to_level).intValue();
-				}
-			}
-		}
-		finally {
-			observer.getLock().unlock();
-		}
-		// END: backwards compatibility
-		
-    	return DEFAULT_OUTLINE_EXPAND_LEVEL;
-	}
+//	public static int getOutlineExpandLevel(IParseController parseController, IStrategoTerm outline) {
+//		EditorState editorState = EditorState.getEditorFor(parseController);
+//		String level = termContents(findTerm(editorState.getDescriptor().getDocument(), "ExpandToLevel"));
+//		if (level != null) {
+//			return Integer.parseInt(level);
+//		}
+//		
+//    	return DEFAULT_OUTLINE_EXPAND_LEVEL;
+//	}
 	
 	public static boolean isWellFormedOutlineNode(Object object) {
 		if (object instanceof IStrategoAppl) {

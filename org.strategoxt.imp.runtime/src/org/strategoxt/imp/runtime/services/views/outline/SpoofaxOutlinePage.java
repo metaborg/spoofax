@@ -18,6 +18,7 @@ import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.EditorState;
+import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.services.views.StrategoLabelProvider;
 import org.strategoxt.imp.runtime.services.views.StrategoTreeContentProvider;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
@@ -82,8 +83,16 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 	}
 	
 	public void update() {
-		outline = SpoofaxOutlineUtil.getOutline(parseController);
-		final int outline_expand_to_level = SpoofaxOutlineUtil.getOutlineExpandLevel(parseController, outline);
+		EditorState editorState = new EditorState(EditorState.getEditorFor(parseController).getEditor()); // create new editorState to reload descriptor
+		IOutlineService outlineService = null;
+		try {
+			outlineService = editorState.getDescriptor().createService(IOutlineService.class, editorState.getParseController());
+		} catch (BadDescriptorException e) {
+			e.printStackTrace();
+		}
+		
+		outline = outlineService.getOutline();
+		final int outline_expand_to_level = outlineService.getExpandToLevel();
 		
 		if (outline == null) {
 			outline = SpoofaxOutlineUtil.factory.makeList();

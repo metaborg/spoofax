@@ -36,6 +36,7 @@ import org.strategoxt.imp.runtime.RuntimeActivator;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.services.MetaFileLanguageValidator;
 import org.strategoxt.imp.runtime.services.menus.MenuFactory;
+import org.strategoxt.imp.runtime.services.views.outline.OutlineServiceFactory;
 import org.strategoxt.lang.WeakValueHashMap;
 
 /**
@@ -117,6 +118,7 @@ public class Descriptor {
 		serviceFactories.add(new AutoEditStrategyFactory());
 		serviceFactories.add(new OnSaveServiceFactory());
 		serviceFactories.add(new RefactoringFactory());
+		serviceFactories.add(new OutlineServiceFactory());
 	}
 	
 	/**
