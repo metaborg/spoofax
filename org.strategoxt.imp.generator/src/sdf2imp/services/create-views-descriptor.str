@@ -15,7 +15,7 @@ strategies
 
 views
   
-  ouline view: outline
+  outline view: outline
     expand to level: 3
 }
    ,
