@@ -24,7 +24,7 @@ public class OutlineServiceFactory extends AbstractServiceFactory<IOutlineServic
 	}
 	
 	public static String getOutlineRule(Descriptor descriptor) {
-		IStrategoTerm outliner = findTerm(descriptor.getDocument(), "Outline");
+		IStrategoTerm outliner = findTerm(descriptor.getDocument(), "OutlineView");
 		if (outliner != null) {
 			return termContents(outliner.getAllSubterms()[0]);
 		}
@@ -32,7 +32,7 @@ public class OutlineServiceFactory extends AbstractServiceFactory<IOutlineServic
 	}
 	
 	public static int getExpandToLevel(Descriptor descriptor) {
-		String level = termContents(findTerm(descriptor.getDocument(), "ExpandToLevel"));
+		String level = termContents(findTerm(findTerm(descriptor.getDocument(), "OutlineView"), "ExpandToLevel"));
 		if (level != null) {
 			return Integer.parseInt(level);
 		}
