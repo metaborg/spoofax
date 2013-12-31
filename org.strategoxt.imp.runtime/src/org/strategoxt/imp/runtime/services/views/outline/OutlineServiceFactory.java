@@ -32,7 +32,7 @@ public class OutlineServiceFactory extends AbstractServiceFactory<IOutlineServic
 	}
 	
 	public static int getExpandToLevel(Descriptor descriptor) {
-		String level = termContents(findTerm(findTerm(descriptor.getDocument(), "OutlineView"), "ExpandToLevel"));
+		String level = termContents(findTerm(descriptor.getDocument(), "ExpandToLevel"));
 		if (level != null) {
 			return Integer.parseInt(level);
 		}
