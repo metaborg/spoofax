@@ -1,4 +1,4 @@
-module ViewsService
+module Views
 exports
   context-free syntax
     "views" View*                                    -> Section       {cons("Views")}
