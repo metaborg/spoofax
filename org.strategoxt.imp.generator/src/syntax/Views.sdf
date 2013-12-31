@@ -1,0 +1,11 @@
+module ViewsService
+exports
+  context-free syntax
+    "views" View*                                    -> Section       {cons("Views")}
+    "outline" "view" ":" StrategoCall OutlineOption* -> View          {cons("OutlineView")}
+    "expand" "to" "level" ":" Int                    -> OutlineOption {cons("ExpandToLevel")}
+
+  context-free syntax
+    CONTENTCOMPLETE -> Section       {cons("COMPLETION-Section")}
+    CONTENTCOMPLETE -> View          {cons("COMPLETION-View")}
+    CONTENTCOMPLETE -> OutlineOption {cons("COMPLETION-OutlineOption")}

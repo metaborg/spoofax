@@ -132,6 +132,7 @@ strategies
     create-refactorings-descriptor;
     create-references-descriptor;
     create-completions-descriptor;
+    create-views-descriptor;
 
     create-packed-descriptor-file;
     

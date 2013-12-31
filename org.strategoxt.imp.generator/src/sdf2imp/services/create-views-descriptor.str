@@ -1,0 +1,23 @@
+module sdf2imp/services/create-views-descriptor
+
+imports
+  libstratego-lib
+  sdf2imp/util/-
+  sdf2imp/services/common
+
+strategies
+
+  create-views-descriptor =
+    output-descriptor-file(
+      <descriptor-name> "-Views"
+    ,
+!${module {<descriptor-name> "-Views"}
+
+views
+  
+  ouline view: outline
+    expand to level: 3
+}
+   ,
+     not(file-exists)
+   )

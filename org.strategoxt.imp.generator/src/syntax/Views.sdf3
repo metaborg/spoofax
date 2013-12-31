@@ -1,0 +1,20 @@
+module ViewsService
+
+templates
+
+  Section.Views = <
+    views
+    
+      <View*>
+  >
+  
+  View.OutlineView = <
+    outline view: <StrategoCall>
+      <OutlineOption*; separator = "\n">
+  >
+  
+  OutlineOption.ExpandToLevel = <expand to level: <Int>>
+  
+template options
+
+  tokenize : ":()"

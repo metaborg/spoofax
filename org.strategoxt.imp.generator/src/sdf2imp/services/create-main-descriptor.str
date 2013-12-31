@@ -59,8 +59,5 @@ strategies
     observer: editor-analyze (multifile)
     
     on save : editor-save
-    
-    outline : outline
-      expand to level : 3
  }
  
