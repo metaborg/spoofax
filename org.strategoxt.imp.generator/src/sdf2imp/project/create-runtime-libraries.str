@@ -2081,7 +2081,7 @@ rules
 
 imports
   
-  modelware/signatures
+  runtime/modelware/signatures
   runtime/nabl/-
 
 rules
@@ -2134,7 +2134,7 @@ signature constructors // model
 
 imports
   
-  modelware/signatures
+  runtime/modelware/signatures
   runtime/nabl/-
 
 rules
