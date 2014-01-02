@@ -14,7 +14,6 @@ imports
   sdf2imp/services/-
   sdf2imp/util/-
   sdf2imp/lib/-
-  sdf2imp/modelware/-
 
 overlays
 
