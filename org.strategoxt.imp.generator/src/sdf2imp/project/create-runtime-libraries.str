@@ -2152,7 +2152,7 @@ rules
 rules
   
   mw-def-uris    = get-arguments; filter(get-annos; fetch-elem(?Def(<id>)))
-  mw-ref-uri     = get-annos; fetch-elem(?Def(<id>) + ?Use(_); nabl-collect-one-resolved-def; ?Def(<id>))
+  mw-ref-uri     = ?t{Use(_)}; nabl-collect-one-resolved-def; ?Def(<id>)
   mw-is-compound = where(not(?Some(_))); explode-term + map(explode-term)
 
   mw-combine = ?[]
