@@ -2083,10 +2083,11 @@ imports
   
   runtime/modelware/signatures
   runtime/nabl/-
+  runtime/editor/origins
 
 rules
   
-  mw-model2tree: M(obj)                    -> <mw-obj2term> obj
+  mw-model2tree: M(obj)                    -> <origin-track-forced(mw-obj2term)> obj
   mw-obj2term  : Obj(_, QID(\"ast\", c), s*) -> c#(<map(mw-slot2term)> s*)
   mw-slot2term : None()                    -> None()
   mw-slot2term : Some(val)                 -> Some(<mw-val2term> val)
@@ -2136,10 +2137,11 @@ imports
   
   runtime/modelware/signatures
   runtime/nabl/-
+  runtime/editor/origins
 
 rules
   
-  mw-tree2model: t       -> M(<mw-term2obj>)
+  mw-tree2model: t       -> M(<origin-track-forced(mw-term2obj)>)
   mw-term2obj  : c#(t*)  -> Obj(<mw-def-uris>, QID(\"ast\", c), <map(mw-term2slot)> t*)
   mw-term2slot : None()  -> None()
   mw-term2slot : Some(t) -> Some(<mw-term2val> t)
