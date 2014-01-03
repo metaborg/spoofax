@@ -2117,15 +2117,16 @@ signature constructors // metamodel
   
 signature constructors // model
   
-  M      : Object                      -> Model
-  Obj    : Opt(URI) * QID * List(Slot) -> Object
-         : Value                       -> Slot
-         : Opt(Value)                  -> Slot
-         : List(Value)                 -> Slot
-  Data   : String                      -> Value
-  Contain: Object                      -> Value
-  Link   : QID                         -> Value
-  QID    : PackName * ClassName        -> QID
+  M         : Object                      -> Model
+  Obj       : Opt(URI) * QID * List(Slot) -> Object
+            : Value                       -> Slot
+            : Opt(Value)                  -> Slot
+            : List(Value)                 -> Slot
+  Data      : String                      -> Value
+  Contain   : Object                      -> Value
+  Link      : QID                         -> Value
+  QID       : PackName * ClassName        -> QID
+  Unresolved:                                QID
 
 "
 
@@ -2154,7 +2155,7 @@ rules
 rules
   
   mw-def-uris    = get-arguments; filter(get-annos; fetch-elem(?Def(<id>)))
-  mw-ref-uri     = ?t{Use(_)}; nabl-collect-one-resolved-def; ?Def(<id>)
+  mw-ref-uri     = ?t{Use(_)}; (nabl-collect-one-resolved-def; ?Def(<id>) <+ !Unresolved())
   mw-is-compound = where(not(?Some(_))); explode-term + map(explode-term)
 
   mw-combine = ?[]
