@@ -36,13 +36,6 @@ public class RuntimeActivator extends AbstractUIPlugin {
 		plugin = this;
 		context = ctx;
 		FileNotificationServer.init();
-
-		// precacheStratego();
-		getWorkbench().getDisplay().asyncExec(new Runnable() {
-			public void run() {
-				checkJVMOptions();
-			}
-		});
 	}
 
 	// /**
