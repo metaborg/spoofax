@@ -246,6 +246,7 @@ imports
 	libstratego-gpp
 	lib/runtime/tmpl/pp
 	Common.pp.generated
+	{sdf-name}.pp.generated
 
 rules
 	
@@ -258,7 +259,7 @@ rules
     ast -> result
     with
        result := <pp-{sdf-name}-string> ast
-    <+ <bottomup(try(not(is-string); not(is-list); not(pp-fj-string); debug(!"cannot pp ")))> ast
+    <+ <bottomup(try(not(is-string); not(is-list); not(pp-{sdf-name}-string); debug(!"cannot pp ")))> ast
     ;  result := ""
 
 }
