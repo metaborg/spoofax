@@ -2150,7 +2150,7 @@ rules
   mw-term2slot : t       -> <mw-term2val>
   mw-term2val  : t       -> Data(t) where is-string; not(mw-ref-uri)
   mw-term2val  : t       -> Link(<mw-ref-uri>)
-  mw-term2val  : t       -> Contain(<mw-term2obj> t) where mw-is-compound
+  mw-term2val  : t       -> Contain(<origin-track-forced(mw-term2obj)> t) where mw-is-compound
 
 rules
   
