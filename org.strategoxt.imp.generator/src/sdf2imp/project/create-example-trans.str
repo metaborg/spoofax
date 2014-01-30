@@ -95,6 +95,8 @@ rules // Debugging
 			
 	debug-index-project =
 		analysis-debug-index-project(|<language>)
+	debug-index-project-resolve = 
+		analysis-debug-index-project-resolve(|<language>)
 	debug-index-partition =
 		analysis-debug-index-partition(|<language>)
 
