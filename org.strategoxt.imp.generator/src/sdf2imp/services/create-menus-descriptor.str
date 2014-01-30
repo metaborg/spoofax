@@ -38,6 +38,7 @@ menus
     
     submenu: "Show index"
       action: "Project"            = debug-index-project (openeditor) (meta)
+      action: "Project (resolved)" = debug-index-project-resolve (openeditor) (meta)
       action: "Partition"          = debug-index-partition (openeditor) (meta)
     end
     
