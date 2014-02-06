@@ -46,7 +46,7 @@ imports
   runtime/nabl/utils
   runtime/task/core
   runtime/task/messages
-  relations/incremental
+  runtime/relations/incremental
   runtime/editor/origins
   
 signature
@@ -1682,11 +1682,11 @@ rules
 
 	create-modelware-model2tree = 
 		<output-text-file(|["lib", "runtime", "modelware"], "model2tree.str")>
-"module modelware/model2tree
+"module runtime/modelware/model2tree
 
 imports
   
-  modelware/signatures
+  runtime/modelware/signatures
   runtime/nabl/-
   runtime/editor/origins
 
@@ -1710,7 +1710,7 @@ rules
 
 	create-modelware-signatures = 
 		<output-text-file(|["lib", "runtime", "modelware"], "signatures.str")>
-"module modelware/signatures
+"module runtime/modelware/signatures
 
 signature constructors // grammar
 
@@ -1737,11 +1737,11 @@ signature constructors // model
 
 	create-modelware-tree2model = 
 		<output-text-file(|["lib", "runtime", "modelware"], "tree2model.str")>
-"module modelware/tree2model
+"module runtime/modelware/tree2model
 
 imports
   
-  modelware/signatures
+  runtime/modelware/signatures
   runtime/nabl/-
   runtime/editor/origins
 
@@ -3777,12 +3777,13 @@ rules
 
 	create-relations-entries = 
 		<output-text-file(|["lib", "runtime", "relations"], "entries.str")>
-"module relations/entries
+"module runtime/relations/entries
 
 imports
 	
-	relations/entries
-	relations/tasks
+	runtime/relations/entries
+	runtime/relations/interface
+	runtime/relations/tasks
 	runtime/index/core
 	runtime/properties/query
 	runtime/nabl/resolve
@@ -3810,10 +3811,11 @@ rules
     with
       tuple := <origin-track-forced(!RelTuple(t1', rel, t2))> t1
     ; <index-add(|partition)> tuple
-    with // TODO: store transitive lookup only for transitive relations
-      task       := <relation-create-lookup(|partition, Transitive(rel))> t2
-    ; transitive := <origin-track-forced(!RelTuple(t1', Transitive(rel), task))> t1
-    ; <index-add(|partition)> transitive
+    ; if <relation-is-transitive> rel then
+	      task       := <relation-create-lookup(|partition, Transitive(rel))> t2
+	    ; transitive := <origin-track-forced(!RelTuple(t1', Transitive(rel), task))> t1
+	    ; <index-add(|partition)> transitive
+    end
     // with // TODO: store inverses only for invertible relations
     //   inverse := <origin-track-forced(!RelTuple(t2, Inverse(rel), t1))> t2
     // ; <index-add(|partition)> inverse
@@ -3834,11 +3836,11 @@ rules
 
 	create-relations-incremental = 
 		<output-text-file(|["lib", "runtime", "relations"], "incremental.str")>
-"module relations/incremental
+"module runtime/relations/incremental
 
 imports
 	
-	relations/entries
+	runtime/relations/entries
 	runtime/nabl/uri
 	runtime/nabl/incremental
 	runtime/task/core
@@ -3858,7 +3860,7 @@ rules
 
 	create-relations-interface = 
 		<output-text-file(|["lib", "runtime", "relations"], "interface.str")>
-"module relations/interface
+"module runtime/relations/interface
 
 strategies
   
@@ -3867,15 +3869,19 @@ strategies
   // relation-tuple(store): (IntTy(), SubType()) -> <store> FloatTy()
 
   relation-tuple(store) = fail
+  
+  relation-is-transitive = fail
+  relation-is-reflexive  = fail
+  
 "
 
 	create-relations-query = 
 		<output-text-file(|["lib", "runtime", "relations"], "query.str")>
-"module relations/query
+"module runtime/relations/query
 
 imports
 	
-  relations/entries
+  runtime/relations/entries
   runtime/index/query
   
 rules
@@ -3893,14 +3899,14 @@ rules
 
 	create-relations-tasks = 
 		<output-text-file(|["lib", "runtime", "relations"], "tasks.str")>
-"module relations/tasks
+"module runtime/relations/tasks
 
 imports
 	
-	relations/entries
-  relations/query
-  relations/incremental
-  relations/interface
+	runtime/relations/entries
+  runtime/relations/query
+  runtime/relations/incremental
+  runtime/relations/interface
   runtime/task/create
   runtime/task/tasks
   runtime/nabl/uri
@@ -3922,18 +3928,23 @@ rules
 			lookup := <new-task(|ctx)> RelationLookup(rel, t)
 
   perform-task(|task-id):
-    RelationLookup(rel, t) -> [stat-val*, non-trans-val*, index-val*]
+    RelationLookup(rel, t) -> [refl-val*, stat-val*, non-trans-val*, trans-val*]
     where
       t' := <relation-try-term-to-uri> t
 		; <relation-add-read(|task-id)> t'
     ; stat-set := <new-iset>
     ; <try(relation-tuple(store-tuple(|stat-set)))> (t', rel)
     ; stat-val*  := <iset-elements> stat-set
-    ; index-val* := <get-index-relations(|rel)> t'
-    ; if Transitive(rel') := rel then
-        non-trans-val* := <get-index-relations(|rel')> t'
+    ; non-trans-val* := <get-index-relations(|rel)> t'
+    ; if <relation-is-reflexive> rel then
+        refl-val* := [t']
       else
-        non-trans-val* := []
+        refl-val* := []
+      end
+    ; if <relation-is-transitive> rel then
+        trans-val* := <get-index-relations(|Transitive(rel))> t'
+      else
+        trans-val* := []
       end
       
   store-tuple(|set): elem -> <fail> with <iset-add(|elem)> set
