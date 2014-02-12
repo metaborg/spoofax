@@ -21,6 +21,7 @@ import org.spoofax.interpreter.library.index.legacy.LegacyIndexLibrary;
 import org.spoofax.interpreter.library.jsglr.JSGLRLibrary;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
+import org.spoofax.terms.TermFactory;
 import org.strategoxt.HybridInterpreter;
 import org.strategoxt.IncompatibleJarException;
 import org.strategoxt.imp.debug.core.str.launching.DebuggableHybridInterpreter;
@@ -48,7 +49,13 @@ public class StrategoRuntimeFactory {
 	/**
 	 * Global setting to enable the Stratego Debugger feature.
 	 */
-	public static boolean DEBUG_INTERPRETER_ENABLED = true;
+	public static final boolean DEBUG_INTERPRETER_ENABLED = true;
+
+	/**
+	 * The base of all term factories. This is shared between languages
+	 */
+	public static final ITermFactory BASE_TERM_FACTORY = new TermFactory()
+			.getFactoryWithStorageType(IStrategoTerm.MUTABLE);
 
 	private Map<Descriptor, HybridInterpreter> prototypes = Collections
 			.synchronizedMap(new WeakWeakMap<Descriptor, HybridInterpreter>());

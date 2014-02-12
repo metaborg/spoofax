@@ -38,6 +38,7 @@ import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.RuntimeActivator;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.services.MetaFileLanguageValidator;
+import org.strategoxt.imp.runtime.services.StrategoRuntimeFactory;
 import org.strategoxt.imp.runtime.services.menus.MenuFactory;
 import org.strategoxt.imp.runtime.services.views.outline.OutlineServiceFactory;
 import org.strategoxt.lang.WeakValueHashMap;
@@ -185,21 +186,21 @@ public class Descriptor {
 	public ITermFactory getTermFactory() {
 		return getTermFactory(false, false);
 	}
-	
-	public ITermFactory getTermFactory(boolean unsafe) {
-		return getTermFactory(false, unsafe);
+
+	public ITermFactory getTermFactory(boolean safe) {
+		return getTermFactory(false, safe);
 	}
 
-	public ITermFactory getTermFactory(boolean origintracking, boolean unsafe) {
-		ITermFactory baseFactory = Environment.getTermFactory();
-		if (origintracking) {
-			baseFactory = new ImploderOriginTermFactory(baseFactory);
-		}
-		if(unsafe || !isTypesmart()){
+	public ITermFactory getTermFactory(boolean origintracking, boolean safe) {
+		ITermFactory baseFactory = origintracking ? new ImploderOriginTermFactory(
+				StrategoRuntimeFactory.BASE_TERM_FACTORY)
+				: StrategoRuntimeFactory.BASE_TERM_FACTORY;
+		if (!safe || !isTypesmart()) {
 			return baseFactory;
 		}
-		
-		return null; // return the typesmart factory
+
+		// TODO return the typesmart factory
+		return null;
 	}
 
 	public boolean isTypesmart() {

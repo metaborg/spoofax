@@ -19,6 +19,7 @@ import org.strategoxt.imp.generator.sdf2imp;
 import org.strategoxt.imp.runtime.Debug;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.parser.JSGLRI;
+import org.strategoxt.imp.runtime.services.StrategoRuntimeFactory;
 import org.strategoxt.lang.WeakValueHashMap;
 
 /**
@@ -127,7 +128,7 @@ public class DescriptorFactory {
 		int bufferSize = input.read(buffer);
 		if (bufferSize != -1) input.unread(buffer, 0, bufferSize);
 		if ((bufferSize == 6 && new String(buffer).equals("Module")) /* || BAFReader.isBinaryATerm(input)*/) { 
-			TermReader reader = new TermReader(Environment.getTermFactory());
+			TermReader reader = new TermReader(StrategoRuntimeFactory.BASE_TERM_FACTORY);
 			return (IStrategoAppl) reader.parseFromStream(input);
 		} else {
 			return null;

@@ -298,9 +298,8 @@ public class StrategoObserver implements IDynamicLanguageService,
 		for (IPath path : classpaths) {
 			// if path ends with .jar, then try to find the class
 			if (path.getFileExtension().equals("jar")) {
-				try {
-					JarFile jarFile = new JarFile(path.toFile());
 
+				try (JarFile jarFile = new JarFile(path.toFile())) {
 					java.util.zip.ZipEntry hidrClassEntry = jarFile
 							.getEntry("org/strategoxt/imp/debug/stratego/runtime/strategies/HybridInterpreterDebugRuntime.class");
 					if (hidrClassEntry != null) {
@@ -311,6 +310,7 @@ public class StrategoObserver implements IDynamicLanguageService,
 					Environment.logException(
 							"Failed to determine debugger status", e);
 				}
+
 			}
 		}
 		return foundHIDR;
@@ -518,9 +518,9 @@ public class StrategoObserver implements IDynamicLanguageService,
 						.getSubterm(0).getSubtermCount() > 0)) {
 			resultingAsts.put(resource, feedback.getSubterm(0));
 
-			IStrategoTuple newFeedback = Environment.getTermFactory()
-					.makeTuple(feedback.getSubterm(1), feedback.getSubterm(2),
-							feedback.getSubterm(3));
+			IStrategoTuple newFeedback = descriptor.getTermFactory().makeTuple(
+					feedback.getSubterm(1), feedback.getSubterm(2),
+					feedback.getSubterm(3));
 			return newFeedback;
 		} else {
 			resultingAsts.remove(resource);

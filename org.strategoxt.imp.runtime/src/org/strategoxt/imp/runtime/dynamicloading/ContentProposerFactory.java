@@ -25,6 +25,7 @@ import org.strategoxt.imp.runtime.services.Completion;
 import org.strategoxt.imp.runtime.services.ContentProposer;
 import org.strategoxt.imp.runtime.services.ContentProposerListener;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
+import org.strategoxt.imp.runtime.services.StrategoRuntimeFactory;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>
@@ -128,7 +129,7 @@ public class ContentProposerFactory extends AbstractServiceFactory<IContentPropo
 	}
 
 	private static Completion parseContentProposalTemplate(IStrategoAppl template, int index, String sort, boolean isListSort) {
-		ITermFactory factory = Environment.getTermFactory();
+		ITermFactory factory = StrategoRuntimeFactory.BASE_TERM_FACTORY;
 		IStrategoTerm prefixTerm = termAt(template, index + 0);
 		IStrategoList completionParts = termAt(template, index + 1);
 		IStrategoTerm anno = termAt(template, index + 2);

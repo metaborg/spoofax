@@ -21,22 +21,20 @@ import org.eclipse.imp.language.Language;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.swt.widgets.Display;
 import org.spoofax.interpreter.core.StackTracer;
-import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.InvalidParseTableException;
 import org.spoofax.jsglr.client.ParseTable;
-import org.spoofax.jsglr.client.imploder.ImploderOriginTermFactory;
 import org.spoofax.jsglr.client.imploder.TermTreeFactory;
 import org.spoofax.jsglr.client.imploder.TreeBuilder;
 import org.spoofax.jsglr.io.ParseTableManager;
 import org.spoofax.jsglr.io.SGLR;
-import org.spoofax.terms.TermFactory;
 import org.spoofax.terms.attachments.ParentTermFactory;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.dynamicloading.DynamicParseTableProvider;
 import org.strategoxt.imp.runtime.dynamicloading.ParseTableProvider;
 import org.strategoxt.imp.runtime.services.MetaFileLanguageValidator;
+import org.strategoxt.imp.runtime.services.StrategoRuntimeFactory;
 
 /**
  * Environment class that maintains a term factories, languages, and
@@ -58,8 +56,6 @@ public final class Environment {
 	
 	private final static Map<String, Descriptor> descriptors;
 
-	private final static ITermFactory termFactory;
-	
 	private final static PrintStream STDERR = System.err; // avoid deadlocky ant override
 	
 	private static Thread mainThread;
@@ -71,8 +67,7 @@ public final class Environment {
 	static {
 		descriptors = Collections.synchronizedMap(new HashMap<String, Descriptor>());
 		unmanagedTables = Collections.synchronizedMap(new HashMap<String, ParseTableProvider>());
-		termFactory = new TermFactory().getFactoryWithStorageType(IStrategoTerm.MUTABLE);
-		parseTableManager = new ParseTableManager(termFactory);
+		parseTableManager = new ParseTableManager(StrategoRuntimeFactory.BASE_TERM_FACTORY);
 		parseTables = Collections.synchronizedMap(new HashMap<String, ParseTableProvider>());
 		// XXX: UNDONE. There doesn't seem to be a strong reason for eagerly loading the plugin.
 //		RuntimeActivator.getInstance().postInit();
@@ -119,18 +114,16 @@ public final class Environment {
 	
 	// BASIC ACCESSORS
 	
+	/**
+	 * @deprecated Replaced by {@link StrategoRuntimeFactory#BASE_TERM_FACTORY}
+	 */
 	public static ITermFactory getTermFactory() {
-		// (no state; no assertion)
-		return termFactory;
-	}
-	
-	public static ITermFactory getTermFactory(boolean originFactory) {
-		return originFactory ? new ImploderOriginTermFactory(termFactory) : termFactory;
+		return StrategoRuntimeFactory.BASE_TERM_FACTORY;
 	}
 	
 	public static SGLR createSGLR(ParseTable parseTable) {
 		// (no state; no assertion)
-		TermTreeFactory factory = new TermTreeFactory(new ParentTermFactory(getTermFactory()));
+		TermTreeFactory factory = new TermTreeFactory(new ParentTermFactory(StrategoRuntimeFactory.BASE_TERM_FACTORY));
 		return new SGLR(new TreeBuilder(factory), parseTable);
 	}
 	
