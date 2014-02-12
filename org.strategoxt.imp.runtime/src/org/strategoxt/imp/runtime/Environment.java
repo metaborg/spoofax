@@ -20,13 +20,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.imp.language.Language;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.swt.widgets.Display;
-import org.metaborg.runtime.task.primitives.TaskLibrary;
-import org.spoofax.interpreter.core.InterpreterException;
-import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.core.StackTracer;
-import org.spoofax.interpreter.library.IOAgent;
-import org.spoofax.interpreter.library.index.legacy.LegacyIndexLibrary;
-import org.spoofax.interpreter.library.jsglr.JSGLRLibrary;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.InvalidParseTableException;
@@ -38,18 +32,11 @@ import org.spoofax.jsglr.io.ParseTableManager;
 import org.spoofax.jsglr.io.SGLR;
 import org.spoofax.terms.TermFactory;
 import org.spoofax.terms.attachments.ParentTermFactory;
-import org.strategoxt.HybridInterpreter;
-import org.strategoxt.imp.debug.core.str.launching.DebuggableHybridInterpreter;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.dynamicloading.DynamicParseTableProvider;
 import org.strategoxt.imp.runtime.dynamicloading.ParseTableProvider;
 import org.strategoxt.imp.runtime.services.MetaFileLanguageValidator;
-import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
-import org.strategoxt.imp.runtime.stratego.IMPJSGLRLibrary;
-import org.strategoxt.imp.runtime.stratego.IMPLibrary;
-import org.strategoxt.imp.runtime.stratego.IMPOpenFile;
-import org.strategoxt.imp.runtime.stratego.IMPParseStringPTPrimitive;
 
 /**
  * Environment class that maintains a term factories, languages, and
@@ -62,11 +49,6 @@ import org.strategoxt.imp.runtime.stratego.IMPParseStringPTPrimitive;
  * @author Lennart Kats <L.C.L.Kats add tudelft.nl>
  */
 public final class Environment {
-	
-	/**
-	 * Global setting to enable the Stratego Debugger feature.
-	 */
-	public static boolean DEBUG_INTERPRETER_ENABLED = true;
 	
 	private final static ParseTableManager parseTableManager;
 	
@@ -153,140 +135,6 @@ public final class Environment {
 	}
 	
 	// ENVIRONMENT ACCESS AND MANIPULATION
-	
-	public static HybridInterpreter createInterpreter() {
-		return createInterpreter(false);
-	}
-	
-	private static HybridInterpreter createHybridInterpreter(boolean noGlobalLock)
-	{
-		HybridInterpreter result = noGlobalLock
-		? new HybridInterpreter(getTermFactory(true))
-		: new HybridInterpreter(getTermFactory(true)) {
-			@Override
-			public boolean invoke(String name) throws InterpreterExit, InterpreterException {
-				assertLock();
-				return super.invoke(name);
-			}
-			
-			@Override
-			public void load(IStrategoTerm program) throws InterpreterException {
-				assertLock();
-				super.load(program);
-			}
-			
-			@Override
-			public IStrategoTerm current() {
-				assertLock();
-				return super.current();
-			}
-		};
-		return result;
-	}
-	
-	private static DebuggableHybridInterpreter createDebuggableHybridInterpreter(boolean noGlobalLock)
-	{
-		DebuggableHybridInterpreter result = noGlobalLock
-		? new DebuggableHybridInterpreter(getTermFactory(true))
-		: new DebuggableHybridInterpreter(getTermFactory(true)) {
-			@Override
-			public boolean invoke(String name) throws InterpreterExit, InterpreterException {
-				assertLock();
-				return super.invoke(name);
-			}
-			
-			@Override
-			public void load(IStrategoTerm program) throws InterpreterException {
-				assertLock();
-				super.load(program);
-			}
-			
-			@Override
-			public IStrategoTerm current() {
-				assertLock();
-				return super.current();
-			}
-		};
-		return result;
-	}
-
-	public static HybridInterpreter createInterpreter(boolean noGlobalLock) {
-		HybridInterpreter result = null;
-		if (DEBUG_INTERPRETER_ENABLED)
-		{
-			result = createDebuggableHybridInterpreter(noGlobalLock);
-		} else {
-			result = createHybridInterpreter(noGlobalLock);
-		}
-		result.getCompiledContext().getExceptionHandler().setEnabled(false);
-		result.getCompiledContext().registerComponent("stratego_lib"); // ensure op. registry available
-		result.getCompiledContext().registerComponent("stratego_sglr"); // ensure op. registry available
-		result.getCompiledContext().addOperatorRegistry(new TaskLibrary());
-		result.getCompiledContext().addOperatorRegistry(new LegacyIndexLibrary());
-		JSGLRLibrary sglrLibrary = (JSGLRLibrary) result.getContext().getOperatorRegistry(JSGLRLibrary.REGISTRY_NAME);
-		IMPJSGLRLibrary impSglrLibrary = new IMPJSGLRLibrary(sglrLibrary);
-		result.addOperatorRegistry(impSglrLibrary);
-		result.addOperatorRegistry(new IMPLibrary());
-		// (all libraries added here must also be in StrategoObserver.initialize())
-		impSglrLibrary.addOverrides(result.getCompiledContext());
-		assert result.getContext().lookupOperator(IMPParseStringPTPrimitive.NAME) instanceof IMPParseStringPTPrimitive;
-		assert result.getCompiledContext().lookupPrimitive(IMPParseStringPTPrimitive.NAME) instanceof IMPParseStringPTPrimitive;
-		assert result.getCompiledContext().lookupPrimitive(IMPOpenFile.NAME) instanceof IMPOpenFile;
-		assert result.getCompiledContext().getOperatorRegistry(IMPJSGLRLibrary.REGISTRY_NAME) instanceof IMPJSGLRLibrary;
-		result.setIOAgent(new EditorIOAgent());
-		
-		return result;
-	}
-
-	/**
-	 * Creates a new Interpreter using the given Interpreter as prototype.
-	 */
-	public static HybridInterpreter createInterpreterFromPrototype(HybridInterpreter prototype) {
-		HybridInterpreter result = null;
-		if (DEBUG_INTERPRETER_ENABLED)
-		{
-			// create a DebuggableHybridInterpreter from the prototype
-			result = createDebuggableHybridInterpreterFromPrototype(prototype);
-		} else {
-			// create a normal HybridInterpreter from the prototype
-			result = createHybridInterpreterFromPrototype(prototype);
-		}
-		return result;
-	}
-	
-	private static HybridInterpreter createHybridInterpreterFromPrototype(HybridInterpreter prototype)
-	{
-		HybridInterpreter result = new HybridInterpreter(prototype,
-				IMPJSGLRLibrary.REGISTRY_NAME, // is spoofax-specific
-				JSGLRLibrary.REGISTRY_NAME,    // connected to the library above
-				IMPLibrary.REGISTRY_NAME);     // also used
-		result.getCompiledContext().getExceptionHandler().setEnabled(false);
-		IMPJSGLRLibrary parseLibrary = ((IMPJSGLRLibrary) result.getContext().getOperatorRegistry(IMPJSGLRLibrary.REGISTRY_NAME));
-		parseLibrary.addOverrides(result.getCompiledContext());
-		return result;
-	}
-	
-	/**
-	 * TODO: For now ignore the prototype as the actual HybridInterpreter will be run in another VM. 
-	 */
-	private static DebuggableHybridInterpreter createDebuggableHybridInterpreterFromPrototype(HybridInterpreter prototype)
-	{
-		DebuggableHybridInterpreter result = new DebuggableHybridInterpreter(prototype,
-				IMPJSGLRLibrary.REGISTRY_NAME, // is spoofax-specific
-				JSGLRLibrary.REGISTRY_NAME,    // connected to the library above
-				IMPLibrary.REGISTRY_NAME);     // also used
-		result.getCompiledContext().getExceptionHandler().setEnabled(false);
-		IMPJSGLRLibrary parseLibrary = ((IMPJSGLRLibrary) result.getContext().getOperatorRegistry(IMPJSGLRLibrary.REGISTRY_NAME));
-		parseLibrary.addOverrides(result.getCompiledContext());
-		
-		IOAgent agent = prototype.getIOAgent();
-		if (agent instanceof EditorIOAgent)
-		{
-			EditorIOAgent eioAgent = (EditorIOAgent) agent;
-			result.setProjectpath(eioAgent.getProjectPath());
-		}
-		return result;
-	}
 	
 	public static ParseTableProvider registerParseTable(Language language, ParseTableProvider table) {
 		parseTables.put(language.getName(), table);
