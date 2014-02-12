@@ -24,6 +24,7 @@ public class MenuEnabledTester extends PropertyTester {
 			});
 		}
 		
-		return MenusServiceUtil.getMenus().getAll().size() > menuIndex;
+		MenuList menus = MenusServiceUtil.getMenus();
+		return menus != null && menus.getAll().size() > menuIndex;
 	}
 }
