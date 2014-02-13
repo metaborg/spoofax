@@ -41,7 +41,6 @@ Export-Package: org.strategoxt.imp.runtime,
  org.strategoxt.imp.runtime.services.views.outline,
  org.strategoxt.imp.runtime.stratego
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
-Bundle-ExecutionEnvironment: JavaSE-1.7
 Bundle-Vendor: Spoofax.org
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: org.strategoxt.imp.runtime.RuntimeActivator
