@@ -2,10 +2,10 @@
 
 <project name="org.strategoxt.imp.generator" default="all">
 	<!-- Import Ant contrib -->
-	<taskdef resource="net/sf/antcontrib/antcontrib.properties" />
+	<taskdef resource="net/sf/antcontrib/antlib.xml" />
 
 	<!-- Import Stratego/XT Ant contributions -->
-	<import file="ant-contrib/strategoxt-contrib.xml" />
+	<taskdef resource="org/strategoxt/antcontrib/strategoxt-antlib.xml" />
 
 	<!-- Import build config. Specifies which compiler to use -->
 	<property file="build.properties" />
@@ -31,6 +31,7 @@
 	<property name="sdf" value="${user.home}/.nix-profile/share" />
 	<property name="pgen" value="${sdf}/pgen" />
 	<property name="sdf2bundle" value="${user.home}/.nix-profile" />
+	<property name="nativepath" value="${sdf2bundle}/bin/" />
 
 
 	<!-- project configuration -->
