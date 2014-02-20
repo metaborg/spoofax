@@ -8,6 +8,24 @@ strategies
   remove-runtime-libraries =
   	<rmdir> "lib/runtime"
   
+	create-analysis-analysis = 
+		<output-text-file(|["lib", "runtime", "analysis"], "analysis.str")>
+"module runtime/analysis/analysis
+
+imports
+	
+	libstratego-lib
+	
+	runtime/analysis/-
+	runtime/index/-
+	runtime/nabl/-
+	runtime/properties/-
+	runtime/relations/-
+	runtime/task/-
+	runtime/types/-
+
+"
+
 	create-analysis-complete = 
 		<output-text-file(|["lib", "runtime", "analysis"], "complete.str")>
 "module runtime/analysis/complete
@@ -130,7 +148,7 @@ rules // Analysis
 		with
 			origin := <task-message-origin> message;
 			term   := <task-message-term> message;
-			msg    := <task-message; try(process-message)> message
+			msg    := <task-message> message
       
 rules // Projections
 	
@@ -625,9 +643,7 @@ rules // Debugging
 "module runtime/analysis/interface
 
 rules
-  
-  process-message = fail
-  
+
 "
 
 	create-analysis-multiple = 
@@ -820,6 +836,12 @@ rules // TODO: does not belong to editor, move to a new 'utils' directory
 	create-editor-editor = 
 		<output-text-file(|["lib", "runtime", "editor"], "editor.str")>
 "module runtime/editor/editor
+
+imports
+	
+	libstratego-lib
+	
+	runtime/editor/-
 
 rules
 	
@@ -1708,6 +1730,18 @@ rules
 
 "
 
+	create-modelware-modelware = 
+		<output-text-file(|["lib", "runtime", "modelware"], "modelware.str")>
+"module runtime/modelware/modelware
+
+imports
+	
+	libstratego-lib
+	
+	runtime/modelware/-
+
+"
+
 	create-modelware-signatures = 
 		<output-text-file(|["lib", "runtime", "modelware"], "signatures.str")>
 "module runtime/modelware/signatures
@@ -1954,6 +1988,8 @@ strategies // generic traversal
   ; try(nabl-external-def-site(|lang, partition, unique*, uri'*, state*, implicit*))
   ; try(nabl-use-site(|lang, partition, unique*, uri'*, state*))
   ; try(nabl-import-site(|lang, partition, unique*, child-uri*, state*))
+  ; try(nabl-filtering-site(|lang, partition, unique*, uri*, state*))
+  ; try(nabl-disambiguation-site(|lang, partition, unique*, uri*, state*))
   ; try(nabl-prop-site(|lang, partition, uri*, state*, implicit*))
   ; nabl-annotate-properties(|lang, partition, uri'*)
     
@@ -2160,7 +2196,21 @@ rules // completion
 		where
 			ctx-result := <nabl-use-candidate(|lang, partition, uri*, ctx-name)> UseCandidate(ctx-ns, ctx-prop*, ctx-context, True(), []);
 	    subtask*   := <nabl-resolve-all-tasks(|partition, ns, prop*)> [ctx-result]
-    
+
+rules // filtering
+	
+	nabl-filter(|lang, partition, uri*, filtered-defs):
+		name -> result
+		where
+			result := <replace-annotation(?Use(_)|Use(filtered-defs))> name
+		 
+rules // disambiguation
+	
+	nabl-disambiguate(|lang, partition, uri*, disambiguated-defs):
+		name -> result
+		where
+			result := <replace-annotation(?Use(_)|Use(disambiguated-defs))> name
+		 
 rules // generic analysis of imports
   
   nabl-import(|lang, partition, unique*, uri*, imports) =
@@ -2237,6 +2287,10 @@ rules // URI retrieval
     try(nabl-get-name);
     get-annos;
     collect-one(?Use(_))
+
+	nabl-collect-use-task =
+    nabl-collect-use;
+    ?Use(<id>)
     
   nabl-collect-all-use =
     try(nabl-get-name);
@@ -2577,6 +2631,10 @@ strategies // Collect
 	nabl-state-site = fail
 	
 	nabl-use-site(|lang, partition, unique*, uri*, state*) = fail
+	
+	nabl-filtering-site(|lang, partition, unique*, uri*, state*) = fail
+	
+	nabl-disambiguation-site(|lang, partition, unique*, uri*, state*) = fail
 	
 	nabl-import-site(|lang, partition, unique*, uri*, state*) = fail
 	
@@ -2954,7 +3012,8 @@ signature
     ResolveAllDefs         : Scope * Namespace * Name * Prop           -> Instruction
     CheckDefs              : Namespace * URI                           -> Instruction
     PropConstraint         : Kind * Expected * Result                  -> Instruction
-        
+    SubURI                 : Namespace * URI                           -> Instruction
+    
 rules // Collects all definitions in a term
   
   nabl-create-collectdefs(|ctx):
@@ -3084,6 +3143,16 @@ rules // Filter definitions by properties
 	perform-task(|task-id):
 		PropConstraint(kind, expected, definition) -> <filter-defs-prop(|definition)> Prop(kind, expected, [])
 
+rules // URI manipulation
+	
+	nabl-create-suburi(|ctx, namespace):
+		contains-uri -> <new-task(|ctx)> SubURI(namespace, contains-uri)
+		
+	perform-task(|task-id):
+		SubURI(namespace, contains-uri) -> <nabl-sub-uri(|namespace)> uri
+		where
+			uri := <nabl-uri> contains-uri
+		
 "
 
 	create-nabl-uri = 
@@ -3288,6 +3357,16 @@ rules // query scope URIs
   nabl-uri-all-lexical-parent-scopes =
     <conc> (<nabl-uri-lexical-parent-scopes>, <nabl-uri-external-lexical-parent-scopes>)
     
+	nabl-sub-uri(|namespace):
+		uri -> <nabl-uri-strip-barriers> uri
+		where
+			nabl-uri-namespace => namespace
+		
+	nabl-sub-uri(|namespace):
+		uri -> <nabl-uri-parent; nabl-sub-uri(|namespace); nabl-uri-strip-barriers> uri
+		where
+			not(nabl-uri-namespace => namespace)
+    
 rules // Conditions
   
   nabl-is-uri =
@@ -3382,6 +3461,8 @@ rules /** @internal Projections */
 imports
 	
 	libstratego-lib
+	libstratego-aterm
+	libstratego-gpp
 	runtime/task/core
 	runtime/editor/annotations
 
@@ -3440,24 +3521,128 @@ rules // multimap simulation
 
 rules // Debugging
 	
-	debug0 = debug(!\"0 \")
-	debug1 = debug(!\"1 \")
-	debug2 = debug(!\"2 \")
-	debug3 = debug(!\"3 \")
-	debug4 = debug(!\"4 \")
-	debug5 = debug(!\"5 \")
-	debug6 = debug(!\"6 \")
-	debug7 = debug(!\"7 \")
-	debug8 = debug(!\"8 \")
-	debug9 = debug(!\"9 \")
-
-	debuga = debug(!\"a \")
-	debugb = debug(!\"b \")
-	debugc = debug(!\"c \")
+	debug(|t) = where(write-to-string; debug(!t))
 	
-	debugx = debug(!\"x \")
-	debugy = debug(!\"y \")
-	debugz = debug(!\"z \")
+	debug0 = debug(|\"0 \")
+	debug1 = debug(|\"1 \")
+	debug2 = debug(|\"2 \")
+	debug3 = debug(|\"3 \")
+	debug4 = debug(|\"4 \")
+	debug5 = debug(|\"5 \")
+	debug6 = debug(|\"6 \")
+	debug7 = debug(|\"7 \")
+	debug8 = debug(|\"8 \")
+	debug9 = debug(|\"9 \")
+
+	debuga = debug(|\"a \")
+	debugb = debug(|\"b \")
+	debugc = debug(|\"c \")
+	debugd = debug(|\"d \")
+	debuge = debug(|\"e \")
+	debugf = debug(|\"f \")
+	debugg = debug(|\"g \")
+	debugh = debug(|\"h \")
+	debugi = debug(|\"i \")
+	debugj = debug(|\"j \")
+	debugk = debug(|\"k \")
+	debugl = debug(|\"l \")
+	debugm = debug(|\"m \")
+	debugn = debug(|\"n \")
+	debugo = debug(|\"o \")
+	debugp = debug(|\"p \")
+	debugq = debug(|\"q \")
+	debugr = debug(|\"r \")
+	debugs = debug(|\"s \")
+	debugt = debug(|\"t \")
+	debugu = debug(|\"u \")
+	debugv = debug(|\"v \")
+	debugw = debug(|\"w \")
+	debugx = debug(|\"x \")
+	debugy = debug(|\"y \")
+	debugz = debug(|\"z \")
+
+	
+	pp-aterm = pp-aterm-box; box2text-string(|80)
+	ppdebug(|t) = where(pp-aterm; debug(!t))
+
+	ppdebug0 = ppdebug(|\"0 \")
+	ppdebug1 = ppdebug(|\"1 \")
+	ppdebug2 = ppdebug(|\"2 \")
+	ppdebug3 = ppdebug(|\"3 \")
+	ppdebug4 = ppdebug(|\"4 \")
+	ppdebug5 = ppdebug(|\"5 \")
+	ppdebug6 = ppdebug(|\"6 \")
+	ppdebug7 = ppdebug(|\"7 \")
+	ppdebug8 = ppdebug(|\"8 \")
+	ppdebug9 = ppdebug(|\"9 \")
+	
+	ppdebuga = ppdebug(|\"a \")
+	ppdebugb = ppdebug(|\"b \")
+	ppdebugc = ppdebug(|\"c \")
+	ppdebugd = ppdebug(|\"d \")
+	ppdebuge = ppdebug(|\"e \")
+	ppdebugf = ppdebug(|\"f \")
+	ppdebugg = ppdebug(|\"g \")
+	ppdebugh = ppdebug(|\"h \")
+	ppdebugi = ppdebug(|\"i \")
+	ppdebugj = ppdebug(|\"j \")
+	ppdebugk = ppdebug(|\"k \")
+	ppdebugl = ppdebug(|\"l \")
+	ppdebugm = ppdebug(|\"m \")
+	ppdebugn = ppdebug(|\"n \")
+	ppdebugo = ppdebug(|\"o \")
+	ppdebugp = ppdebug(|\"p \")
+	ppdebugq = ppdebug(|\"q \")
+	ppdebugr = ppdebug(|\"r \")
+	ppdebugs = ppdebug(|\"s \")
+	ppdebugt = ppdebug(|\"t \")
+	ppdebugu = ppdebug(|\"u \")
+	ppdebugv = ppdebug(|\"v \")
+	ppdebugw = ppdebug(|\"w \")
+	ppdebugx = ppdebug(|\"x \")
+	ppdebugy = ppdebug(|\"y \")
+	ppdebugz = ppdebug(|\"z \")
+	
+	
+	ppdebugna(|t) = where(strip-annos; pp-aterm; debug(!t))
+
+	ppdebugna0 = ppdebugna(|\"0 \")
+	ppdebugna1 = ppdebugna(|\"1 \")
+	ppdebugna2 = ppdebugna(|\"2 \")
+	ppdebugna3 = ppdebugna(|\"3 \")
+	ppdebugna4 = ppdebugna(|\"4 \")
+	ppdebugna5 = ppdebugna(|\"5 \")
+	ppdebugna6 = ppdebugna(|\"6 \")
+	ppdebugna7 = ppdebugna(|\"7 \")
+	ppdebugna8 = ppdebugna(|\"8 \")
+	ppdebugna9 = ppdebugna(|\"9 \")
+	
+	ppdebugnaa = ppdebugna(|\"a \")
+	ppdebugnab = ppdebugna(|\"b \")
+	ppdebugnac = ppdebugna(|\"c \")
+	ppdebugnad = ppdebugna(|\"d \")
+	ppdebugnae = ppdebugna(|\"e \")
+	ppdebugnaf = ppdebugna(|\"f \")
+	ppdebugnag = ppdebugna(|\"g \")
+	ppdebugnah = ppdebugna(|\"h \")
+	ppdebugnai = ppdebugna(|\"i \")
+	ppdebugnaj = ppdebugna(|\"j \")
+	ppdebugnak = ppdebugna(|\"k \")
+	ppdebugnal = ppdebugna(|\"l \")
+	ppdebugnam = ppdebugna(|\"m \")
+	ppdebugnan = ppdebugna(|\"n \")
+	ppdebugnao = ppdebugna(|\"o \")
+	ppdebugnap = ppdebugna(|\"p \")
+	ppdebugnaq = ppdebugna(|\"q \")
+	ppdebugnar = ppdebugna(|\"r \")
+	ppdebugnas = ppdebugna(|\"s \")
+	ppdebugnat = ppdebugna(|\"t \")
+	ppdebugnau = ppdebugna(|\"u \")
+	ppdebugnav = ppdebugna(|\"v \")
+	ppdebugnaw = ppdebugna(|\"w \")
+	ppdebugnax = ppdebugna(|\"x \")
+	ppdebugnay = ppdebugna(|\"y \")
+	ppdebugnaz = ppdebugna(|\"z \")
 
 "
 
@@ -3530,7 +3715,7 @@ rules
     (kind, term{a*}) -> term{(kind, prop), a*}
     where
       not(<get-property-task(|kind)> term)
-    ; prop := <create-property-task(|partition, kind)> term
+    ; prop := <create-property-task(|partition, kind, uri*) <+ create-property-task(|partition, kind)> term
       
 strategies
   
@@ -3557,6 +3742,7 @@ rules
   
   get-or-create-property-task(|ctx, kind) = 
      get-property-task(|kind)
+  <+ (create-property-task(|ctx, kind, []); warn-msg(|$[Called create-property-task that accepts uri* with empty uri*, because it was not passed!])) 
   <+ create-property-task(|ctx, kind)
   <+ warn-msg(|$[Could not create task for property [<get-constructor> kind].])
    ; task-create-fail(|ctx)
@@ -3660,6 +3846,8 @@ strategies // implementations generated from NaBL
   nabl-custom-properties(add-properties) = fail
   
   create-property-task(|ctx, kind) = fail
+  
+  create-property-task(|ctx, kind, uri*) = fail
 
 strategies // user-defined implementations
 	
@@ -3790,6 +3978,7 @@ imports
 	runtime/nabl/entries
 	runtime/nabl/utils
 	runtime/task/core
+	runtime/task/insert
 	runtime/task/utils
 	runtime/editor/origins
 	
@@ -3812,7 +4001,7 @@ rules
       tuple := <origin-track-forced(!RelTuple(t1', rel, t2))> t1
     ; <index-add(|partition)> tuple
     ; if <relation-is-transitive> rel then
-	      task       := <relation-create-lookup(|partition, Transitive(rel))> t2
+	      task       := <relation-create-lookup(|partition, rel)> t2
 	    ; transitive := <origin-track-forced(!RelTuple(t1', Transitive(rel), task))> t1
 	    ; <index-add(|partition)> transitive
     end
@@ -3823,15 +4012,34 @@ rules
 rules
 	
 	relation-ensure-no-task-reference = 
-		with(not(collect-one-annos(?Use(_)))|$[Cannot create a relation tuple with a reference to a resolution task on the left hand side.]) 
+		with(not(collect-one-annos(relation-is-unresolved-use))|$[Cannot create a relation tuple with a reference to a resolution task on the left hand side.]) 
 
 	relation-try-term-to-uri:
-		term -> <try(nabl-collect-one-resolved-def; nabl-uri)> term
-
+		term -> result
+		where
+			if use := <collect-one-annos(relation-is-unresolved-use)> term then
+				result := <relation-resolve-use> use
+			else
+				result := <try(collect-one-annos(relation-get-uri))> term
+			end
+		
+	relation-get-uri:
+		Def(uri) -> uri
+		
+	relation-get-uri:
+		Use(Def(uri)) -> uri
+		
+	relation-is-unresolved-use =
+		?Use(Result(_))
+		
+	relation-resolve-use:
+		Use(r@Result(_)) -> <insert-results-or-delay; Hd; nabl-uri> r
+		
 rules
 	
 	relation-tuple-key:
 		RelTuple(key, _, _) -> key
+
 "
 
 	create-relations-incremental = 
@@ -3917,10 +4125,11 @@ signature
   
   constructors
 
-    RelationLookup : Relation * Term -> Instruction
-    RelationMatch  : Relation * Term * Term -> Instruction
+    RelationLookup   : Relation * Term -> Instruction
+    RelationMatch    : Relation * Term * Term -> Instruction
+    RelationDistance : Relation * Term * Term -> Instruction
     
-rules
+rules // Lookup
 
 	relation-create-lookup(|ctx, rel):
 		t -> <task-create-insert(|ctx); task-create-combine(|ctx)> lookup
@@ -3928,14 +4137,12 @@ rules
 			lookup := <new-task(|ctx)> RelationLookup(rel, t)
 
   perform-task(|task-id):
-    RelationLookup(rel, t) -> [refl-val*, stat-val*, non-trans-val*, trans-val*]
+    RelationLookup(rel, t) -> <map(relation-try-term-to-uri)> [refl-val*, stat-val*, val*, trans-val*]
     where
       t' := <relation-try-term-to-uri> t
 		; <relation-add-read(|task-id)> t'
-    ; stat-set := <new-iset>
-    ; <try(relation-tuple(store-tuple(|stat-set)))> (t', rel)
-    ; stat-val*  := <iset-elements> stat-set
-    ; non-trans-val* := <get-index-relations(|rel)> t'
+		; stat-val* := <relation-get-static(|rel)> t'
+    ; val* := <get-index-relations(|rel)> t'
     ; if <relation-is-reflexive> rel then
         refl-val* := [t']
       else
@@ -3947,21 +4154,34 @@ rules
         trans-val* := []
       end
       
+  relation-get-static(|rel):
+  	t -> val*
+  	with
+      stat-set := <new-iset>
+    ; <try(relation-tuple(store-tuple(|stat-set)))> (t, rel)
+    ; val* := <iset-elements> stat-set
+      
   store-tuple(|set): elem -> <fail> with <iset-add(|elem)> set
   
-rules
+rules // Match
 	
-  relation-create-match(|ctx, rel, expected):
-  	actual -> <task-create-choice(|ctx)> check*
-  	with 
-		  expected* := <try-make-list> expected
-		; check*    := <map(relation-create-match-task(|ctx, rel, actual))> expected*
-	
-	relation-create-match-task(|ctx, rel, actual):
-		expected -> <new-task(|ctx)> RelationMatch(rel, actual, expected)
+  relation-create-match(|ctx, rel, values):
+  	actual -> <new-task(|ctx)> RelationMatch(rel, actual, values) 
 		
   perform-task(|task-id): 
-  	RelationMatch(rel, actual, expected) -> [<eq> (<relation-try-term-to-uri> actual, <relation-try-term-to-uri> expected)]
+  	RelationMatch(rel, actual, value) -> [<eq> (<relation-try-term-to-uri> actual, <relation-try-term-to-uri> value)]
+
+rules // Distance
+	
+  relation-create-distance(|ctx, rel, values):
+  	actual -> <new-task(|ctx)> RelationDistance(rel, actual, values)
+	
+	// Task needs to be a combinator because `expected*` needs to be queried like a list to find the distance.
+	task-is-combinator = ?RelationDistance(_, _, _)
+	
+  perform-task(|task-id): 
+  	RelationDistance(rel, actual, value*) -> [<get-index> (<try-remove-list; relation-try-term-to-uri> actual, <map(relation-try-term-to-uri)> value*)]
+		// Remove list on `actual` because this task is a combinator and `actual` may only contain one element.
 
 "
 
@@ -3977,6 +4197,7 @@ imports
   runtime/task/primitives
   runtime/task/interface
   runtime/nabl/entries
+  runtime/nabl/utils
   
 signature
 
@@ -3987,6 +4208,9 @@ signature
   constructors
     
     Result : TaskID -> Result
+    
+    HigherOrder     : Instruction * List(TaskID) -> EvaluationReturn
+    HigherOrderFail : List(TaskID)               -> EvaluationReturn
 
 rules // API
   
@@ -3998,8 +4222,8 @@ rules // API
 	task-clear-partition                                       = task-api-clear-partition(|<id>)
 	task-delay                                                 = task-api-delay(|<id>)
 	task-debug-info(|partition)                                = task-api-debug-info(|partition)
-	task-evaluate-now                                          = task-api-evaluate-now(task-collect-result-ids-2, insert-results-hashmap, perform-task|<id>)
-	task-evaluate-scheduled                                    = task-api-evaluate-scheduled(task-collect-result-ids-2, insert-results-hashmap, perform-task)
+	task-evaluate-now                                          = task-api-evaluate-now(task-collect-result-ids-2, insert-results-hashmap, task-perform-task|<id>)
+	task-evaluate-scheduled                                    = task-api-evaluate-scheduled(task-collect-result-ids-2, insert-results-hashmap, task-perform-task)
 	task-get-dependencies                                      = task-api-get-dependencies(|<id>)
 	task-get-messages(|partition)                              = task-api-get-messages(|partition)
 	task-get-readers                                           = task-api-get-readers(|<id>)
@@ -4054,7 +4278,25 @@ rules // Projections
 		
 	task-collect-result-ids-2 =
 		collect-all-annos-2(task-result-id, task-use-result-id, union)
-		
+
+rules // Execution
+	
+	task-perform-task(|task-id):
+		instruction -> result
+		where
+			if <task-is-higherorder> instruction then
+			  task-start-collection(|task-id)
+			; if new-instruction := <perform-task(|task-id)> instruction then
+					(_, added*) := <task-stop-collection(|task-id)>
+				; result := HigherOrder(new-instruction, added*)
+			  else
+			    (_, added*) := <task-stop-collection(|task-id)>
+			  ; result := HigherOrderFail(added*)
+		  	end
+			else
+				result :=	<perform-task(|task-id)> instruction
+			end
+
 "
 
 	create-task-create = 
@@ -4231,12 +4473,13 @@ rules
 
 strategies
   
-  perform-task(|nr)  = fail
-  task-rewrite       = fail
-  task-match         = fail
-  avoid-task(|dep*)  = fail
-  task-is-combinator = fail
-  task-short-circuit = fail
+  perform-task(|task-id) = fail
+  task-rewrite           = fail
+  task-match             = fail
+  avoid-task(|dep*)      = fail
+  task-is-combinator     = fail
+  task-short-circuit     = fail
+  task-is-higherorder    = fail
 
 "
 
@@ -4537,19 +4780,22 @@ signature
 
 	constructors
 		
-    Id       : Term               -> Instruction
-    Fail     :                       Instruction
-    Choice   : List(Result)       -> Instruction
-    Sequence : List(Result)       -> Instruction
-    Combine  : List(Result)       -> Instruction
-    Singleton: Result             -> Instruction
-    Diff     : Result * Result    -> Instruction
-    Collect  : List(Result)       -> Instruction
-    Not      : Result             -> Instruction
-    Index    : Int * List(Result) -> Instruction
-    Length   : List(Result)       -> Instruction
-    Insert   : Term               -> Instruction
-    Rewrite  : ID * Result        -> Instruction
+    Id       : Term                -> Instruction
+    Fail     :                        Instruction
+    Choice   : List(Result)        -> Instruction
+    Sequence : List(Result)        -> Instruction
+    Combine  : List(Result)        -> Instruction
+    Singleton: Result              -> Instruction
+    Diff     : Result * Result     -> Instruction
+    Collect  : List(Result)        -> Instruction
+    Not      : Result              -> Instruction
+    Index    : Int * List(Result)  -> Instruction
+    Length   : List(Result)        -> Instruction
+    Sum      : List(Result)        -> Instruction
+    Fetch    : Term * List(Result) -> Instruction
+    Eq       : Term * Term         -> Instruction
+    Insert   : Term                -> Instruction
+    Rewrite  : ID * Result         -> Instruction
 
 rules // Identity
   
@@ -4701,13 +4947,41 @@ rules // Negation
   
 rules // Index
   
-  // EV: no creation strategy?
+  task-create-index(|ctx, i):
+  	list -> <new-task(|ctx)> Index(i, list)
   
   perform-task(|nr) = ?Index(i, <index(|i)>);  MkSingleton
   
 rules // Length
 	
+	task-create-length(|ctx):
+		list -> <new-task(|ctx)> Length(list)
+	
   perform-task(|nr) = ?Length(<length>);  MkSingleton
+
+rules // Sum
+	
+	task-create-sum(|ctx):
+		list -> <new-task(|ctx)> Sum(list)
+		
+	perform-task(|task-id):
+		Sum(list) -> <sum> list
+		
+rules // Fetch
+	
+	task-create-fetch(|ctx, list):
+		term -> <new-task(|ctx)> Fetch(term, list)
+		
+	perform-task(|task-id):
+		Fetch(term, list) -> <fetch-elem(?term)> list
+		
+rules // Equality
+	
+	task-create-eq(|ctx, expected):
+		actual -> <new-task(|ctx)> Eq(expected, actual)
+		
+	perform-task(|task-id):
+		Eq(expected, actual) -> <eq; !actual> (expected, actual)
 
 rules // Result insertion
 	
@@ -4797,6 +5071,7 @@ rules
 "module runtime/tmpl/pp
 
 imports
+	
   libstratego-lib
   libstratego-gpp
 
@@ -4858,9 +5133,9 @@ signature
     
 rules
   
-  create-property-task(|ctx, kind) =
+  create-property-task(|ctx, kind, uri*) =
     where(Type() := kind)
-  ; create-type-task(|ctx)
+  ; (create-type-task(|ctx, uri*) <+ create-type-task(|ctx))
        
   type-is(|partition)           = nabl-prop-calc(|partition, [])
   type-is(|partition, dep*)     = nabl-prop-calc(|partition, dep*)
@@ -4890,6 +5165,8 @@ strategies // user-defined implementations
 	
 	create-type-task(|ctx) = fail
 	
+	create-type-task(|ctx, uri*) = fail
+
 "
 
 	create-types-query = 
@@ -4910,10 +5187,12 @@ rules // during analysis
 rules // post analysis
   
   get-type = get-property(|Type())
+
 "
 
 create-all-runtime-libraries = 
-	create-analysis-complete
+	create-analysis-analysis
+; 	create-analysis-complete
 ; 	create-analysis-core
 ; 	create-analysis-debug
 ; 	create-analysis-defaults
@@ -4936,6 +5215,7 @@ create-all-runtime-libraries =
 ; 	create-index-query
 ; 	create-index-utils
 ; 	create-modelware-model2tree
+; 	create-modelware-modelware
 ; 	create-modelware-signatures
 ; 	create-modelware-tree2model
 ; 	create-nabl-check
