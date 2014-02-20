@@ -67,6 +67,9 @@ import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.IMPJSGLRLibrary;
 import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 import org.strategoxt.imp.runtime.stratego.StrategoConsole;
+import org.strategoxt.imp.runtime.util.IObservable;
+import org.strategoxt.imp.runtime.util.IObserver;
+import org.strategoxt.imp.runtime.util.Observable;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.StrategoException;
 import org.strategoxt.stratego_lib.set_config_0_0;
@@ -79,7 +82,7 @@ import org.strategoxt.stratego_lib.set_config_0_0;
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class StrategoObserver implements IDynamicLanguageService,
-		IModelListener, IAsyncCancellable {
+		IModelListener, IAsyncCancellable, IObservable<IStrategoTerm> {
 
 	// TODO: separate delay for error markers?
 	public static final int OBSERVER_DELAY = 600;
@@ -110,6 +113,8 @@ public class StrategoObserver implements IDynamicLanguageService,
 	private UpdateJob updateJob;
 
 	private boolean wasExceptionLogged;
+	
+	private Observable<IStrategoTerm> observable = new Observable<IStrategoTerm>();
 
 	/**
 	 * Value is true when the user enabled debugging for this language.
@@ -516,7 +521,9 @@ public class StrategoObserver implements IDynamicLanguageService,
 				&& feedback.getSubtermCount() == 4
 				&& (!"None".equals(cons(feedback.getSubterm(0))) || feedback
 						.getSubterm(0).getSubtermCount() > 0)) {
-			resultingAsts.put(resource, feedback.getSubterm(0));
+			final IStrategoTerm result = feedback.getSubterm(0);
+			resultingAsts.put(resource, result);
+			observable.notifyObservers(result);
 
 			IStrategoTuple newFeedback = descriptor.getTermFactory().makeTuple(
 					feedback.getSubterm(1), feedback.getSubterm(2),
@@ -858,5 +865,15 @@ public class StrategoObserver implements IDynamicLanguageService,
 		if (canceller != null)
 			canceller.asyncCancelReset();
 
+	}
+
+	@Override
+	public void addObserver(IObserver<IStrategoTerm> observer) {
+		observable.addObserver(observer);
+	}
+
+	@Override
+	public void removeObserver(IObserver<IStrategoTerm> observer) {
+		observable.removeObserver(observer);
 	}
 }
