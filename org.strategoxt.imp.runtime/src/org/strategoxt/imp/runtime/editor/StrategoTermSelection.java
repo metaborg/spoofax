@@ -43,7 +43,7 @@ public class StrategoTermSelection extends TextSelection implements IStructuredS
 
 	@Override // IStructuredSelection
 	public int size() {
-		return 1;
+		return toList().size();
 	}
 
 	@Override // IStructuredSelection
@@ -54,7 +54,9 @@ public class StrategoTermSelection extends TextSelection implements IStructuredS
 	@Override // IStructuredSelection
 	public List<IStrategoTerm> toList() {
 		List<IStrategoTerm> result = new ArrayList<IStrategoTerm>(1);
-		result.add(getSelectionAST());
+		if (getSelectionAST() != null) {
+			result.add(getSelectionAST());
+		}
 		return result;
 	}
 }
