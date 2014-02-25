@@ -24,7 +24,10 @@ public class StrategoTermSelection extends TextSelection implements IStructuredS
 	}
 
 	public IStrategoTerm getSelectionAST() {
-		return EditorState.getEditorFor(spoofaxEditor).getSelectionAst(false);
+		if (EditorState.getEditorFor(spoofaxEditor) != null) {
+			return EditorState.getEditorFor(spoofaxEditor).getSelectionAst(false);
+		}
+		return null;
 	}
 	
 	public IStrategoTerm getAnalyzedSelectionAST() {

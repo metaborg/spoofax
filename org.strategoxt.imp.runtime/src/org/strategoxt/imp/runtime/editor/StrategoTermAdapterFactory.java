@@ -12,7 +12,10 @@ public class StrategoTermAdapterFactory implements IAdapterFactory {
 
 	@Override
 	public Object getAdapter(Object adaptableObject, @SuppressWarnings("rawtypes") Class adapterType) {
+		System.out.println("hello");
+		System.out.println(adaptableObject.getClass().getName());
 //		if (adapterType == IPropertySource.class) {
+//			// TODO: obtain properties model
 //			return new StrategoTermPropertySource((IStrategoTerm) adaptableObject);
 //		}
 		return null;
