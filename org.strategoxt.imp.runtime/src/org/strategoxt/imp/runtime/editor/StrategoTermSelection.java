@@ -39,19 +39,25 @@ public class StrategoTermSelection extends TextSelection implements IStructuredS
 		return null;
 	}
 	
+	private IStrategoTerm properties;
+	
 	/**
 	 * Return the properties for the properties view.
 	 */
 	@Override // IStructuredSelection (properties view)
 	public IStrategoTerm getFirstElement() {
-		EditorState editorState = EditorState.getEditorFor(spoofaxEditor);
-		IPropertiesService propertiesService = null;
-		try {
-			propertiesService = editorState.getDescriptor().createService(IPropertiesService.class, editorState.getParseController());
-		} catch (BadDescriptorException e) {
-			e.printStackTrace();
+		if (properties == null) {
+			EditorState editorState = EditorState.getEditorFor(spoofaxEditor);
+			IPropertiesService propertiesService = null;
+			try {
+				propertiesService = editorState.getDescriptor().createService(IPropertiesService.class, editorState.getParseController());
+			} catch (BadDescriptorException e) {
+				e.printStackTrace();
+			}
+			properties = propertiesService.getProperties();
 		}
-		return propertiesService.getProperties();
+		
+		return properties;
 	}
 
 	@Override // IStructuredSelection (properties view)
