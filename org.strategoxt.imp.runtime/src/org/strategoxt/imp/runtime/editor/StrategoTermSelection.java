@@ -32,10 +32,10 @@ public class StrategoTermSelection extends TextSelection implements IStructuredS
 		return null;
 	}
 	
-	public IStrategoTerm getAnalyzedSelectionAst() {
+	public IStrategoTerm getSelectionAstAnalyzed() {
 		if (EditorState.getEditorFor(spoofaxEditor) != null) {
 			return SelectionUtil.getSelectionAstAnalyzed(getOffset(), getLength(), false, EditorState.getEditorFor(spoofaxEditor).getParseController());
-			}
+		}
 		return null;
 	}
 	
