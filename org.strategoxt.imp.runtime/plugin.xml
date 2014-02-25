@@ -580,5 +580,16 @@
                type="org.strategoxt.imp.runtime.editor.SpoofaxEditor">
          </propertyTester>
       </extension>
+      
+      <extension
+         point="org.eclipse.core.runtime.adapters">
+      <factory
+            adaptableType="org.spoofax.interpreter.terms.IStrategoTerm"
+            class="org.strategoxt.imp.runtime.editor.StrategoTermAdapterFactory">
+         <adapter
+               type="org.eclipse.ui.views.properties.IPropertySource">
+         </adapter>
+      </factory>
+   </extension>
 </plugin>
 
