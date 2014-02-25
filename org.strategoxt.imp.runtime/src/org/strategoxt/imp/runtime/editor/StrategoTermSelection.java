@@ -48,6 +48,11 @@ public class StrategoTermSelection extends TextSelection implements IStructuredS
 	public IStrategoTerm getFirstElement() {
 		if (properties == null) {
 			EditorState editorState = EditorState.getEditorFor(spoofaxEditor);
+			
+			if (editorState == null) {
+				return null;
+			}
+			
 			IPropertiesService propertiesService = null;
 			try {
 				propertiesService = editorState.getDescriptor().createService(IPropertiesService.class, editorState.getParseController());
