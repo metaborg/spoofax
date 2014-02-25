@@ -5,9 +5,6 @@ imports
 
 strategies
   
-  remove-runtime-libraries =
-  	<rmdir> "lib/runtime"
-  
 	create-analysis-analysis = 
 		<output-text-file(|["lib", "runtime", "analysis"], "analysis.str")>
 "module runtime/analysis/analysis
@@ -833,6 +830,34 @@ rules // TODO: does not belong to editor, move to a new 'utils' directory
 
 "
 
+	create-editor-dynrule = 
+		<output-text-file(|["lib", "runtime", "editor"], "dynrule.str")>
+"module runtime/editor/dynrule
+
+rules
+	
+  editor-init =
+    // Ensure all dynamic rules are properly scoped
+    try(dr-scope-all-end);
+    dr-scope-all-start
+
+"
+
+	create-editor-eclipse = 
+		<output-text-file(|["lib", "runtime", "editor"], "eclipse.str")>
+"module runtime/editor/eclipse
+
+rules
+	
+  project-path = prim(\"SSL_EXT_projectpath\")
+  
+  plugin-path = prim(\"SSL_EXT_pluginpath\")
+    
+  refresh-workspace-file:
+    path -> <prim(\"SSL_EXT_refreshresource\", path)>
+
+"
+
 	create-editor-editor = 
 		<output-text-file(|["lib", "runtime", "editor"], "editor.str")>
 "module runtime/editor/editor
@@ -843,19 +868,6 @@ imports
 	
 	runtime/editor/-
 
-rules
-	
-  project-path = prim(\"SSL_EXT_projectpath\")
-  
-  plugin-path = prim(\"SSL_EXT_pluginpath\")
-    
-  refresh-workspace-file:
-    path -> <prim(\"SSL_EXT_refreshresource\", path)>
-    
-  editor-init =
-    // Ensure all dynamic rules are properly scoped
-    try(dr-scope-all-end);
-    dr-scope-all-start
 "
 
 	create-editor-interop = 
@@ -874,7 +886,7 @@ rules
 
 imports
 	
-	runtime/editor/editor
+	runtime/editor/eclipse
 
 strategies
   
@@ -2648,7 +2660,9 @@ strategies // Projections
 	
 strategies // Lookup hooks
 		
-	nabl-disambiguate(|prop*, namespace, name) = fail
+	nabl-filter-def(|ctx, ctx-terms, ctx-string) = fail
+	
+	nabl-disambiguate-def(|ctx, ctx-terms, ctx-string) = fail
 
 strategies // Name generation
 	
@@ -3014,6 +3028,12 @@ signature
     PropConstraint         : Kind * Expected * Result                  -> Instruction
     SubURI                 : Namespace * URI                           -> Instruction
     
+    FilterDefsHigherOrder  : List(Def) * List(Term) * String           -> Instruction
+    FilterDefs             : List(DefTuple)                            -> Instruction
+    
+    DisambiguateDefsHigherOrder  : List(Def) * List(Term) * String     -> Instruction
+    DisambiguateDefs             : List(DefTuple)                      -> Instruction
+    
 rules // Collects all definitions in a term
   
   nabl-create-collectdefs(|ctx):
@@ -3152,6 +3172,48 @@ rules // URI manipulation
 		SubURI(namespace, contains-uri) -> <nabl-sub-uri(|namespace)> uri
 		where
 			uri := <nabl-uri> contains-uri
+
+rules // Filtering
+
+	nabl-create-filter(|ctx, ctx-terms, ctx-string):
+		defs -> <new-task(|ctx)> FilterDefsHigherOrder(defs, ctx-terms, ctx-string)
+	
+	task-is-combinator = ?FilterDefsHigherOrder(_, _, _)
+	task-is-higherorder = ?FilterDefsHigherOrder(_, _, _)
+	
+	perform-task(|task-id):
+		FilterDefsHigherOrder(def*, [ctx-terms], ctx-string) -> FilterDefs(def-tuple*)
+		where
+			def-tuple* := <filter(nabl-filter-def(|task-id, ctx-terms, ctx-string))> def*
+
+
+	task-is-combinator = ?FilterDefs(_)
+	
+	perform-task(|task-id):
+		FilterDefs(def-tuple*) -> <filter(not(?(_, [])))> def-tuple*
+		
+rules // Disambiguation
+
+	nabl-create-disambiguate(|ctx, ctx-terms, ctx-string):
+		defs -> <new-task(|ctx)> DisambiguateDefsHigherOrder(defs, ctx-terms, ctx-string)
+	
+	task-is-combinator = ?DisambiguateDefsHigherOrder(_, _, _)
+	task-is-higherorder = ?DisambiguateDefsHigherOrder(_, _, _)
+	
+	perform-task(|task-id):
+		DisambiguateDefsHigherOrder(def*, [ctx-terms], ctx-string) -> DisambiguateDefs(def-tuple*)
+		where
+			def-tuple* := <filter(nabl-disambiguate-def(|task-id, ctx-terms, ctx-string))> def*
+
+
+	task-is-combinator = ?DisambiguateDefs(_)
+	
+	// TODO: this task is not generic enough yet, it currently assumes minimization.
+	perform-task(|task-id):
+		DisambiguateDefs(def-tuple*) -> def-sorted2*
+		where
+		  def-sorted1* := <sort-list(LSort(\\((_, [x]), (_, [y])) -> <gt> (x, y)\\))> def-tuple*
+		; def-sorted2* := <take-while(?(_, x)); map(Fst)> def-sorted1* // Take all defs with the same distance.
 		
 "
 
@@ -3400,6 +3462,9 @@ rules // Equality
     
   nabl-uri-segment-eq =
     ?(Anonymous(_), Anonymous(_))
+    
+  nabl-uri-namespace-eq(|namespace) =
+  	nabl-uri-namespace; ?namespace
     
 rules // Printing
   
@@ -5202,6 +5267,8 @@ create-all-runtime-libraries =
 ; 	create-analysis-resolve
 ; 	create-analysis-single
 ; 	create-editor-annotations
+; 	create-editor-dynrule
+; 	create-editor-eclipse
 ; 	create-editor-editor
 ; 	create-editor-interop
 ; 	create-editor-origins
