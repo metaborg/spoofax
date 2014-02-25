@@ -200,12 +200,14 @@ strategies
       t' := <s> t
 
   position-of-term(is-term):
+    _#(t*) -> <position-of-term(is-term|0)> t*
+    where
+      not(is-term)
+
+  position-of-term(is-term):
     t -> []
     where
       is-term
-  
-  position-of-term(is-term):
-    _#(t*) -> <position-of-term(is-term|0)> t*
   
   position-of-term(is-term|start-index):
     [t | t*] -> position
