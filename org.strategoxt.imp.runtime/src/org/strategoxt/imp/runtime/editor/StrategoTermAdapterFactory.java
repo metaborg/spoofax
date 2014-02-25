@@ -12,9 +12,9 @@ public class StrategoTermAdapterFactory implements IAdapterFactory {
 
 	@Override
 	public Object getAdapter(Object adaptableObject, @SuppressWarnings("rawtypes") Class adapterType) {
-		if (adapterType == IPropertySource.class) {
-			return new StrategoTermPropertySource((IStrategoTerm) adaptableObject);
-		}
+//		if (adapterType == IPropertySource.class) {
+//			return new StrategoTermPropertySource((IStrategoTerm) adaptableObject);
+//		}
 		return null;
 	}
 
