@@ -33,7 +33,6 @@ import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.imploder.ImploderOriginTermFactory;
 import org.spoofax.terms.Term;
-import org.spoofax.terms.TermFactory;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.RuntimeActivator;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
@@ -41,6 +40,7 @@ import org.strategoxt.imp.runtime.services.MetaFileLanguageValidator;
 import org.strategoxt.imp.runtime.services.StrategoRuntimeFactory;
 import org.strategoxt.imp.runtime.services.menus.MenuFactory;
 import org.strategoxt.imp.runtime.services.views.outline.OutlineServiceFactory;
+import org.strategoxt.imp.runtime.services.views.properties.PropertiesServiceFactory;
 import org.strategoxt.lang.WeakValueHashMap;
 
 /**
@@ -127,6 +127,7 @@ public class Descriptor {
 		serviceFactories.add(new OnSaveServiceFactory());
 		serviceFactories.add(new RefactoringFactory());
 		serviceFactories.add(new OutlineServiceFactory());
+		serviceFactories.add(new PropertiesServiceFactory());
 	}
 
 	/**
