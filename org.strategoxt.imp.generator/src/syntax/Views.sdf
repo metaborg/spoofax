@@ -1,11 +1,14 @@
 module Views
 exports
   context-free syntax
-    "views" View*                                    -> Section       {cons("Views")}
-    "outline" "view" ":" StrategoCall OutlineOption* -> View          {cons("OutlineView")}
-    "expand" "to" "level" ":" Int                    -> OutlineOption {cons("ExpandToLevel")}
+    "views" View*                                          -> Section          {cons("Views")}
+    "outline" "view" ":" StrategoCall OutlineOption*       -> View             {cons("OutlineView")}
+    "expand" "to" "level" ":" Int                          -> OutlineOption    {cons("ExpandToLevel")}
+    "properties" "view" ":" StrategoCall PropertiesOption* -> View             {cons("PropertiesView")}
+    "(" "source" ")"                                       -> PropertiesOption {cons("Source")}
 
   context-free syntax
-    CONTENTCOMPLETE -> Section       {cons("COMPLETION-Section")}
-    CONTENTCOMPLETE -> View          {cons("COMPLETION-View")}
-    CONTENTCOMPLETE -> OutlineOption {cons("COMPLETION-OutlineOption")}
+    CONTENTCOMPLETE -> Section          {cons("COMPLETION-Section")}
+    CONTENTCOMPLETE -> OutlineOption    {cons("COMPLETION-OutlineOption")}
+    CONTENTCOMPLETE -> View             {cons("COMPLETION-View")}
+    CONTENTCOMPLETE -> PropertiesOption {cons("COMPLETION-PropertiesOption")}
