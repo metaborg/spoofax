@@ -1,10 +1,13 @@
 package org.strategoxt.imp.runtime.services.views.properties;
 
 import org.eclipse.imp.parser.IParseController;
+import org.eclipse.jface.text.ITextSelection;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
+import org.strategoxt.imp.runtime.editor.SelectionUtil;
+import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
 
 /**
@@ -29,7 +32,7 @@ public class PropertiesService implements IPropertiesService {
 	}
 
 	@Override
-	public IStrategoTerm getProperties() {
+	public IStrategoTerm getProperties(int selectionOffset, int selectionLength) {
 		if (propertiesRule == null) {
 			return null;
 		}
@@ -47,7 +50,7 @@ public class PropertiesService implements IPropertiesService {
 				return null;
 			}
 			
-			IStrategoTerm input = source ? editorState.getSelectionAst(false) : editorState.getAnalyzedSelectionAst(false);
+			IStrategoTerm input = source ? SelectionUtil.getSelectionAst(selectionOffset, selectionLength, false, (SGLRParseController) controller) : SelectionUtil.getSelectionAstAnalyzed(selectionOffset, selectionLength, false, (SGLRParseController) controller);
 			IStrategoTerm properties = observer.invokeSilent(propertiesRule, input, editorState.getResource().getFullPath().toFile());
 			
 			if (properties == null) {

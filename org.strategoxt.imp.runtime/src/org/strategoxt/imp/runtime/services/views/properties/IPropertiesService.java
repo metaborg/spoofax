@@ -8,5 +8,5 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
  */
 public interface IPropertiesService extends ILanguageService {
 
-	IStrategoTerm getProperties();
+	IStrategoTerm getProperties(int selectionOffset, int selectionLength);
 }

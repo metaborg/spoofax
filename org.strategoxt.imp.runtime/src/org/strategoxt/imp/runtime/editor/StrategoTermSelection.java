@@ -27,15 +27,15 @@ public class StrategoTermSelection extends TextSelection implements IStructuredS
 
 	public IStrategoTerm getSelectionAst() {
 		if (EditorState.getEditorFor(spoofaxEditor) != null) {
-			return EditorState.getEditorFor(spoofaxEditor).getSelectionAst(false);
+			return SelectionUtil.getSelectionAst(getOffset(), getLength(), false, EditorState.getEditorFor(spoofaxEditor).getParseController());
 		}
 		return null;
 	}
 	
 	public IStrategoTerm getAnalyzedSelectionAst() {
 		if (EditorState.getEditorFor(spoofaxEditor) != null) {
-			return EditorState.getEditorFor(spoofaxEditor).getAnalyzedSelectionAst(false);
-		}
+			return SelectionUtil.getSelectionAstAnalyzed(getOffset(), getLength(), false, EditorState.getEditorFor(spoofaxEditor).getParseController());
+			}
 		return null;
 	}
 	
@@ -54,7 +54,7 @@ public class StrategoTermSelection extends TextSelection implements IStructuredS
 			} catch (BadDescriptorException e) {
 				e.printStackTrace();
 			}
-			properties = propertiesService.getProperties();
+			properties = propertiesService.getProperties(getOffset(), getLength());
 		}
 		
 		return properties;

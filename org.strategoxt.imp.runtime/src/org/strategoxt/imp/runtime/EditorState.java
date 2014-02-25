@@ -5,8 +5,7 @@ import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.Region;
-import org.eclipse.swt.graphics.Point;
+import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IWorkbenchPage;
@@ -15,17 +14,13 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
 import org.eclipse.ui.texteditor.IDocumentProvider;
-import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.jsglr.client.imploder.IToken;
-import org.spoofax.jsglr.client.imploder.ITokenizer;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.dynamicloading.DynamicParseController;
+import org.strategoxt.imp.runtime.editor.SelectionUtil;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
-import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
-import org.strategoxt.lang.Context;
 
 /**
  * Helper class for accessing an active editor.
@@ -174,45 +169,15 @@ public class EditorState extends FileState {
 	 *            Gets the entire AST.
 	 */
 	public final synchronized IStrategoTerm getSelectionAst(boolean ignoreEmptyEmptySelection) {
-		Point selection = getEditor().getSelection();
-		if (ignoreEmptyEmptySelection && selection.y == 0)
-			return null;
-		
-		IToken start = getParseController().getTokenIterator(new Region(selection.x, 0), true).next();
-		IToken end = getParseController().getTokenIterator(new Region(selection.x + Math.max(0, selection.y-1), 0), true).next();
-		
-		ITokenizer tokens = start.getTokenizer();
-		int layout = IToken.TK_LAYOUT;
-		int eof = IToken.TK_EOF;
-		
-		while (start.getKind() == layout && start.getIndex() < tokens.getTokenCount())
-			start = tokens.getTokenAt(start.getIndex() + 1);
-		
-		while ((end.getKind() == layout || end.getKind() == eof) && end.getIndex() > 0)
-			end = tokens.getTokenAt(end.getIndex() - 1);
-		
-		IStrategoTerm startNode = (IStrategoTerm) start.getAstNode();
-		IStrategoTerm endNode = (IStrategoTerm) end.getAstNode();
-
-		return StrategoTermPath.findCommonAncestor(startNode, endNode);
+		ITextSelection selection = (ITextSelection) getEditor().getSelectionProvider().getSelection();
+		return SelectionUtil.getSelectionAst(selection.getOffset(), selection.getLength(), ignoreEmptyEmptySelection, getParseController());
 	}
 	
-	public final IStrategoTerm getAnalyzedSelectionAst(boolean ignoreEmptyEmptySelection) {
-		IStrategoTerm selectionAst = getSelectionAst(ignoreEmptyEmptySelection);
-		
-		if (selectionAst != null) {
-			try {
-				IStrategoList path = StrategoTermPath.getTermPathWithOrigin(new Context(), getCurrentAnalyzedAst(), selectionAst);
-				if (path != null) {
-					return StrategoTermPath.getTermAtPath(new Context(), getCurrentAnalyzedAst(), path);
-				}
-			} catch (BadDescriptorException e) {
-				e.printStackTrace();
-			}
-		}
-		return null;
+	public IStrategoTerm getSelectionAstAnalyzed(boolean ignoreEmptyEmptySelection) {
+		ITextSelection selection = (ITextSelection) getEditor().getSelectionProvider().getSelection();
+		return SelectionUtil.getSelectionAstAnalyzed(selection.getOffset(), selection.getLength(), ignoreEmptyEmptySelection, getParseController());
 	}
-
+	
 	public static boolean isEditorOpen(IEditorPart editor) {
 		return !((editor.getTitleImage() != null && editor.getTitleImage().isDisposed())
 			|| editor.getEditorInput() == null
