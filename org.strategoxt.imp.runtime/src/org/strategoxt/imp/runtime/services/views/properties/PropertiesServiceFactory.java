@@ -3,8 +3,10 @@ package org.strategoxt.imp.runtime.services.views.properties;
 import static org.spoofax.interpreter.core.Tools.termAt;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.cons;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.findTerm;
+import static org.strategoxt.imp.runtime.dynamicloading.TermReader.termContents;
 
 import org.spoofax.interpreter.terms.IStrategoList;
+import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.dynamicloading.AbstractServiceFactory;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
@@ -28,7 +30,7 @@ public class PropertiesServiceFactory extends AbstractServiceFactory<IProperties
 		boolean source = false;
 		
 		if (propertiesViewDescription != null) {
-			propertiesRule = termAt(propertiesViewDescription, 0);
+			propertiesRule = termContents(termAt(propertiesViewDescription, 0));
 			IStrategoList options = termAt(propertiesViewDescription, 1);
 			
 			for (IStrategoTerm option : options.getAllSubterms()) {

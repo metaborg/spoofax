@@ -197,7 +197,7 @@ public class EditorState extends FileState {
 		return StrategoTermPath.findCommonAncestor(startNode, endNode);
 	}
 	
-	public IStrategoTerm getAnalyzedSelectionAst(boolean ignoreEmptyEmptySelection) {
+	public final IStrategoTerm getAnalyzedSelectionAst(boolean ignoreEmptyEmptySelection) {
 		IStrategoTerm selectionAst = getSelectionAst(ignoreEmptyEmptySelection);
 		
 		if (selectionAst != null) {
