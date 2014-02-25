@@ -15,6 +15,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
 import org.eclipse.ui.texteditor.IDocumentProvider;
+import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.ITokenizer;
@@ -24,6 +25,7 @@ import org.strategoxt.imp.runtime.dynamicloading.DynamicParseController;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
+import org.strategoxt.lang.Context;
 
 /**
  * Helper class for accessing an active editor.
@@ -193,6 +195,22 @@ public class EditorState extends FileState {
 		IStrategoTerm endNode = (IStrategoTerm) end.getAstNode();
 
 		return StrategoTermPath.findCommonAncestor(startNode, endNode);
+	}
+	
+	public IStrategoTerm getAnalyzedSelectionAst(boolean ignoreEmptyEmptySelection) {
+		IStrategoTerm selectionAst = getSelectionAst(ignoreEmptyEmptySelection);
+		
+		if (selectionAst != null) {
+			try {
+				IStrategoList path = StrategoTermPath.getTermPathWithOrigin(new Context(), getCurrentAnalyzedAst(), selectionAst);
+				if (path != null) {
+					return StrategoTermPath.getTermAtPath(new Context(), getCurrentAnalyzedAst(), path);
+				}
+			} catch (BadDescriptorException e) {
+				e.printStackTrace();
+			}
+		}
+		return null;
 	}
 
 	public static boolean isEditorOpen(IEditorPart editor) {

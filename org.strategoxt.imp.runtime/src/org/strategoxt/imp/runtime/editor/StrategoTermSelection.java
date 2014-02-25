@@ -6,12 +6,8 @@ import java.util.List;
 
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.EditorState;
-import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
-import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
-import org.strategoxt.lang.Context;
 
 /**
  * @author Oskar van Rest
@@ -27,25 +23,16 @@ public class StrategoTermSelection extends TextSelection implements IStructuredS
 		this.spoofaxEditor = spoofaxEditor;
 	}
 
-	public IStrategoTerm getSelectionAST() {
+	public IStrategoTerm getSelectionAst() {
 		if (EditorState.getEditorFor(spoofaxEditor) != null) {
 			return EditorState.getEditorFor(spoofaxEditor).getSelectionAst(false);
 		}
 		return null;
 	}
 	
-	public IStrategoTerm getAnalyzedSelectionAST() {
-		EditorState editorState = EditorState.getEditorFor(spoofaxEditor);
-		
-		if (getSelectionAST() != null) {
-			try {
-				IStrategoList path = StrategoTermPath.getTermPathWithOrigin(new Context(), editorState.getCurrentAnalyzedAst(), getSelectionAST());
-				if (path != null) {
-					return StrategoTermPath.getTermAtPath(new Context(), editorState.getCurrentAnalyzedAst(), path);
-				}
-			} catch (BadDescriptorException e) {
-				e.printStackTrace();
-			}
+	public IStrategoTerm getAnalyzedSelectionAst() {
+		if (EditorState.getEditorFor(spoofaxEditor) != null) {
+			return EditorState.getEditorFor(spoofaxEditor).getAnalyzedSelectionAst(false);
 		}
 		return null;
 	}
@@ -56,7 +43,7 @@ public class StrategoTermSelection extends TextSelection implements IStructuredS
 	@Override // IStructuredSelection (properties view)
 	public IStrategoTerm getFirstElement() {
 		// TODO: return properties model instead of selectionAST
-		return getSelectionAST();
+		return null;
 	}
 
 	@Override // IStructuredSelection (properties view)
@@ -77,7 +64,7 @@ public class StrategoTermSelection extends TextSelection implements IStructuredS
 	@Override // IStructuredSelection (properties view)
 	public List<IStrategoTerm> toList() {
 		List<IStrategoTerm> result = new ArrayList<IStrategoTerm>(1);
-		if (getSelectionAST() != null) {
+		if (getFirstElement() != null) {
 			result.add(getFirstElement());
 		}
 		return result;
