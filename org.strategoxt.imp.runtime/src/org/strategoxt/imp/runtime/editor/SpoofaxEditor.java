@@ -55,16 +55,18 @@ public class SpoofaxEditor extends UniversalEditor {
 
 		final SpoofaxEditor spoofaxEditor = this;
 		final ISelectionProvider textSelectionProvider = getSite().getSelectionProvider();
+		final ISelectionProvider strategoTermSelectionProvider = new org.strategoxt.imp.runtime.editor.SelectionProvider();
+		getSite().setSelectionProvider(strategoTermSelectionProvider);
+		
 		textSelectionProvider.addSelectionChangedListener(new ISelectionChangedListener() {
 
 			@Override
 			public void selectionChanged(SelectionChangedEvent event) {
 				ITextSelection textSelection = (ITextSelection) event.getSelection();
 				ISelection strategoTermSelection = new StrategoTermSelection(spoofaxEditor, textSelection.getOffset(), textSelection.getLength());
-				getSite().getSelectionProvider().setSelection(strategoTermSelection); // generate new StrategoTermSelection when TextSelection changes
+				strategoTermSelectionProvider.setSelection(strategoTermSelection); // generate new StrategoTermSelection when TextSelection changes
 			}
 		});
-		getSite().setSelectionProvider(new org.strategoxt.imp.runtime.editor.SelectionProvider());
 
 		((StyledText) this.getAdapter(Control.class)).addCaretListener(new CaretListener() {
 
@@ -73,7 +75,7 @@ public class SpoofaxEditor extends UniversalEditor {
 				ITextSelection textSelection = (ITextSelection) textSelectionProvider.getSelection();
 				int offset = textSelection.getLength() == 0 ? event.caretOffset : textSelection.getOffset();
 				ISelection strategoTermSelection = new StrategoTermSelection(spoofaxEditor, offset, textSelection.getLength());
-				getSite().getSelectionProvider().setSelection(strategoTermSelection); // generate new StrategoTermSelection when cursor position changes (because TextSelection doesn't change when selection stays empty).
+				strategoTermSelectionProvider.setSelection(strategoTermSelection); // generate new StrategoTermSelection when cursor position changes (because TextSelection doesn't change when selection stays empty).
 			}
 		});
 	}

@@ -35,7 +35,8 @@ public class StrategoTermSelection extends TextSelection implements IStructuredS
 	}
 	
 	@Override // IStructuredSelection
-	public Object getFirstElement() {
+	public IStrategoTerm getFirstElement() {
+		// TODO: return properties model instead of selectionAST
 		return getSelectionAST();
 	}
 
@@ -58,7 +59,7 @@ public class StrategoTermSelection extends TextSelection implements IStructuredS
 	public List<IStrategoTerm> toList() {
 		List<IStrategoTerm> result = new ArrayList<IStrategoTerm>(1);
 		if (getSelectionAST() != null) {
-			result.add(getSelectionAST());
+			result.add(getFirstElement());
 		}
 		return result;
 	}
