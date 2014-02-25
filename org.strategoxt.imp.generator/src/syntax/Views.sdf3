@@ -15,6 +15,13 @@ templates
   
   OutlineOption.ExpandToLevel = <expand to level: <Int>>
   
+  View.PropertiesView = <
+    properties view: <StrategoCall>
+      <PropertiesOption*; separator = "\n">
+  >  
+  
+  PropertiesOption.Source = <(source)>
+  
 template options
 
   tokenize : ":()"
