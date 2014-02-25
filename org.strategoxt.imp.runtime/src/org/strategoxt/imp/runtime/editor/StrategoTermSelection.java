@@ -6,8 +6,12 @@ import java.util.List;
 
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.EditorState;
+import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
+import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
+import org.strategoxt.lang.Context;
 
 /**
  * @author Oskar van Rest
@@ -31,7 +35,19 @@ public class StrategoTermSelection extends TextSelection implements IStructuredS
 	}
 	
 	public IStrategoTerm getAnalyzedSelectionAST() {
-		return null; // TODO
+		EditorState editorState = EditorState.getEditorFor(spoofaxEditor);
+		
+		if (getSelectionAST() != null) {
+			try {
+				IStrategoList path = StrategoTermPath.getTermPathWithOrigin(new Context(), editorState.getCurrentAnalyzedAst(), getSelectionAST());
+				if (path != null) {
+					return StrategoTermPath.getTermAtPath(new Context(), editorState.getCurrentAnalyzedAst(), path);
+				}
+			} catch (BadDescriptorException e) {
+				e.printStackTrace();
+			}
+		}
+		return null;
 	}
 	
 	@Override // IStructuredSelection
