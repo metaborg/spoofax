@@ -8,6 +8,7 @@ import org.spoofax.jsglr.client.imploder.ITokenizer;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
+import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
 import org.strategoxt.lang.Context;
 
@@ -42,9 +43,11 @@ public class SelectionUtil {
 		
 		if (selectionAst != null) {
 			try {
-				IStrategoList path = StrategoTermPath.getTermPathWithOrigin(new Context(), editorState.getCurrentAnalyzedAst(), selectionAst);
+				StrategoObserver observer = editorState.getDescriptor().createService(StrategoObserver.class, editorState.getParseController());
+				Context context = observer.getRuntime().getCompiledContext();
+				IStrategoList path = StrategoTermPath.getTermPathWithOrigin(context, editorState.getCurrentAnalyzedAst(), selectionAst);
 				if (path != null) {
-					return StrategoTermPath.getTermAtPath(new Context(), editorState.getCurrentAnalyzedAst(), path);
+					return StrategoTermPath.getTermAtPath(context, editorState.getCurrentAnalyzedAst(), path);
 				}
 			} catch (BadDescriptorException e) {
 				e.printStackTrace();
