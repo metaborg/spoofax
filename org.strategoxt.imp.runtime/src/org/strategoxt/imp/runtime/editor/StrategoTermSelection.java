@@ -50,28 +50,31 @@ public class StrategoTermSelection extends TextSelection implements IStructuredS
 		return null;
 	}
 	
-	@Override // IStructuredSelection
+	/**
+	 * Return the properties for the properties view.
+	 */
+	@Override // IStructuredSelection (properties view)
 	public IStrategoTerm getFirstElement() {
 		// TODO: return properties model instead of selectionAST
 		return getSelectionAST();
 	}
 
-	@Override // IStructuredSelection
+	@Override // IStructuredSelection (properties view)
 	public Iterator<IStrategoTerm> iterator() {
 		return toList().iterator();
 	}
 
-	@Override // IStructuredSelection
+	@Override // IStructuredSelection (properties view)
 	public int size() {
 		return toList().size();
 	}
 
-	@Override // IStructuredSelection
+	@Override // IStructuredSelection (properties view)
 	public Object[] toArray() {
 		return toList().toArray();
 	}
 
-	@Override // IStructuredSelection
+	@Override // IStructuredSelection (properties view)
 	public List<IStrategoTerm> toList() {
 		List<IStrategoTerm> result = new ArrayList<IStrategoTerm>(1);
 		if (getSelectionAST() != null) {

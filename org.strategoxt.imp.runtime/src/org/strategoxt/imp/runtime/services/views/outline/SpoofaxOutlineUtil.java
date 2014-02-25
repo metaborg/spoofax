@@ -1,79 +1,21 @@
 package org.strategoxt.imp.runtime.services.views.outline;
 
-import static org.strategoxt.imp.runtime.dynamicloading.TermReader.findTerm;
-import static org.strategoxt.imp.runtime.dynamicloading.TermReader.termContents;
-
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.spoofax.interpreter.terms.IStrategoAppl;
-import org.spoofax.interpreter.terms.IStrategoInt;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.jsglr.client.imploder.ImploderOriginTermFactory;
 import org.spoofax.terms.TermFactory;
 import org.strategoxt.imp.runtime.EditorState;
-import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
 
 public class SpoofaxOutlineUtil {
 
-	public final static int DEFAULT_OUTLINE_EXPAND_LEVEL = 3;
-	
 	public static ImploderOriginTermFactory factory = new ImploderOriginTermFactory(new TermFactory());
 
-//	public static IStrategoTerm getOutline(IParseController parseController) {
-//		EditorState editorState = EditorState.getEditorFor(parseController);
-//		StrategoObserver observer = getObserver(editorState);
-//		observer.getLock().lock();
-//		try {
-//			IStrategoTerm outliner = findTerm(editorState.getDescriptor().getDocument(), "Outline");
-//			String outlineRule = "outline"; // for backwards compatibility
-//			if (outliner != null) {
-//				outlineRule = termContents(outliner.getAllSubterms()[0]);
-//			}
-//			
-//			if (observer.getRuntime().lookupUncifiedSVar(outlineRule) == null) {
-//				return messageToOutlineNode("Can't find strategy '" + outlineRule + "'");
-//			}
-//			
-//			if (editorState.getCurrentAst() == null) {
-//				return null;
-//			}
-//			
-//			IStrategoTerm outline = observer.invokeSilent(outlineRule, editorState.getCurrentAst(), editorState.getResource().getFullPath().toFile());
-//			
-//			if (outline == null) {
-//				observer.reportRewritingFailed();
-//				return messageToOutlineNode("Strategy '" + outlineRule + "' failed.");
-//			}
-//			
-//			// ensure propagation of origin information
-//			factory.makeLink(outline, editorState.getCurrentAst());
-//			
-//			return outline;
-//		}
-//
-//		finally {
-//			observer.getLock().unlock();
-//		}
-//	}
-//	
-//	private static IStrategoTerm messageToOutlineNode(String message) {
-//		return factory.makeAppl(factory.makeConstructor("Node", 2), factory.makeString(message), factory.makeList());
-//	}
-	
-//	public static int getOutlineExpandLevel(IParseController parseController, IStrategoTerm outline) {
-//		EditorState editorState = EditorState.getEditorFor(parseController);
-//		String level = termContents(findTerm(editorState.getDescriptor().getDocument(), "ExpandToLevel"));
-//		if (level != null) {
-//			return Integer.parseInt(level);
-//		}
-//		
-//    	return DEFAULT_OUTLINE_EXPAND_LEVEL;
-//	}
-	
 	public static boolean isWellFormedOutlineNode(Object object) {
 		if (object instanceof IStrategoAppl) {
 			IStrategoAppl node = (IStrategoAppl) object;
