@@ -8,6 +8,8 @@ import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.EditorState;
+import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
+import org.strategoxt.imp.runtime.services.views.properties.IPropertiesService;
 
 /**
  * @author Oskar van Rest
@@ -42,8 +44,14 @@ public class StrategoTermSelection extends TextSelection implements IStructuredS
 	 */
 	@Override // IStructuredSelection (properties view)
 	public IStrategoTerm getFirstElement() {
-		// TODO: return properties model instead of selectionAST
-		return null;
+		EditorState editorState = EditorState.getEditorFor(spoofaxEditor);
+		IPropertiesService propertiesService = null;
+		try {
+			propertiesService = editorState.getDescriptor().createService(IPropertiesService.class, editorState.getParseController());
+		} catch (BadDescriptorException e) {
+			e.printStackTrace();
+		}
+		return propertiesService.getProperties();
 	}
 
 	@Override // IStructuredSelection (properties view)

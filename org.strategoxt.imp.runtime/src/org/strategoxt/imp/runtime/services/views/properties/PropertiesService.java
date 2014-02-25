@@ -14,7 +14,7 @@ public class PropertiesService implements IPropertiesService {
 	
 	private String propertiesRule;
 
-	private final boolean source;
+	private boolean source;
 	
 	private IParseController controller;
 	
@@ -23,9 +23,17 @@ public class PropertiesService implements IPropertiesService {
 		this.source = source;
 		this.controller = controller;
 	}
+	
+	public PropertiesService(IParseController controller) {
+		this.controller = controller;
+	}
 
 	@Override
 	public IStrategoTerm getProperties() {
+		if (propertiesRule == null) {
+			return null;
+		}
+		
 		EditorState editorState = EditorState.getEditorFor(controller);
 		StrategoObserver observer = getObserver(editorState);
 		observer.getLock().lock();

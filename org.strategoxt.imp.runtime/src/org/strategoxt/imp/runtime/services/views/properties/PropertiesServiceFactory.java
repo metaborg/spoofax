@@ -23,11 +23,13 @@ public class PropertiesServiceFactory extends AbstractServiceFactory<IProperties
 	@Override
 	public IPropertiesService create(Descriptor descriptor, SGLRParseController controller) throws BadDescriptorException {
 		IStrategoTerm propertiesViewDescription = findTerm(descriptor.getDocument(), "PropertiesView");
+		
+		String propertiesRule = null;
+		boolean source = false;
+		
 		if (propertiesViewDescription != null) {
-			String propertiesRule = termAt(propertiesViewDescription, 0);
+			propertiesRule = termAt(propertiesViewDescription, 0);
 			IStrategoList options = termAt(propertiesViewDescription, 1);
-			
-			boolean source = false;
 			
 			for (IStrategoTerm option : options.getAllSubterms()) {
 				String type = cons(option);
@@ -35,10 +37,8 @@ public class PropertiesServiceFactory extends AbstractServiceFactory<IProperties
 					source = true;
 				}
 			}
-			
-			return new PropertiesService(propertiesRule, source, controller);
 		}
 		
-		return null;
+		return new PropertiesService(propertiesRule, source, controller);
 	}
 }
