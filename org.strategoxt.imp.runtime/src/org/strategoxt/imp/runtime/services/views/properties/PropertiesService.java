@@ -2,6 +2,7 @@ package org.strategoxt.imp.runtime.services.views.properties;
 
 import org.eclipse.imp.parser.IParseController;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.terms.TermFactory;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
@@ -33,7 +34,7 @@ public class PropertiesService implements IPropertiesService {
 	@Override
 	public IStrategoTerm getProperties(int selectionOffset, int selectionLength) {
 		if (propertiesRule == null) {
-			return null;
+			return new TermFactory().makeList();
 		}
 		
 		EditorState editorState = EditorState.getEditorFor(controller);
@@ -42,16 +43,16 @@ public class PropertiesService implements IPropertiesService {
 		try {
 			if (observer.getRuntime().lookupUncifiedSVar(propertiesRule) == null) {
 				Environment.logException("Rule '" + propertiesRule + "' is undefined");
-				return null;
+				return new TermFactory().makeList();
 			}
 			
 			if (editorState.getCurrentAst() == null) {
-				return null;
+				return new TermFactory().makeList();
 			}
 			
 			IStrategoTerm selectionAST = source ? SelectionUtil.getSelectionAst(selectionOffset, selectionLength, false, (SGLRParseController) controller) : SelectionUtil.getSelectionAstAnalyzed(selectionOffset, selectionLength, false, (SGLRParseController) controller);
 			if (selectionAST == null) {
-				return null;
+				return new TermFactory().makeList();
 			}
 			
 			IStrategoTerm properties = observer.invokeSilent(propertiesRule, selectionAST, editorState.getResource().getFullPath().toFile());
