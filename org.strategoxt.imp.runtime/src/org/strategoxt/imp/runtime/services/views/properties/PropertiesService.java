@@ -52,7 +52,18 @@ public class PropertiesService implements IPropertiesService {
 			}
 			
 			IStrategoTerm selectionAst = SelectionUtil.getSelectionAst(selectionOffset, selectionLength, false, (SGLRParseController) controller);
-			IStrategoTerm ast = source? editorState.getCurrentAst() : editorState.getCurrentAnalyzedAst();
+			IStrategoTerm ast = null;
+			if (source) {
+				ast = editorState.getCurrentAst();
+			}
+			else {
+				try {
+					ast = editorState.getCurrentAnalyzedAst() == null? editorState.getAnalyzedAst() : editorState.getCurrentAnalyzedAst();
+				} catch (BadDescriptorException e) {
+					e.printStackTrace();
+				}
+			}
+			
 			IStrategoTerm input = new InputTermBuilder(observer.getRuntime(), ast).makeInputTerm(selectionAst, true, source);
 			IStrategoTerm properties = observer.invokeSilent(propertiesRule, input, editorState.getResource().getFullPath().toFile());
 			if (properties == null) {
