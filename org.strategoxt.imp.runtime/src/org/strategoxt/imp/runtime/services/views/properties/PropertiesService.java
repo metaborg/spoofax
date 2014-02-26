@@ -8,6 +8,7 @@ import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.editor.SelectionUtil;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
+import org.strategoxt.imp.runtime.services.InputTermBuilder;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
 
 /**
@@ -50,12 +51,9 @@ public class PropertiesService implements IPropertiesService {
 				return new TermFactory().makeList();
 			}
 			
-			IStrategoTerm selectionAST = source ? SelectionUtil.getSelectionAst(selectionOffset, selectionLength, false, (SGLRParseController) controller) : SelectionUtil.getSelectionAstAnalyzed(selectionOffset, selectionLength, false, (SGLRParseController) controller);
-			if (selectionAST == null) {
-				return new TermFactory().makeList();
-			}
-			
-			IStrategoTerm input = observer.getInputBuilder().makeInputTerm(selectionAST, true, source);
+			IStrategoTerm selectionAst = SelectionUtil.getSelectionAst(selectionOffset, selectionLength, false, (SGLRParseController) controller);
+			IStrategoTerm ast = source? editorState.getCurrentAst() : editorState.getCurrentAnalyzedAst();
+			IStrategoTerm input = new InputTermBuilder(observer.getRuntime(), ast).makeInputTerm(selectionAst, true, source);
 			IStrategoTerm properties = observer.invokeSilent(propertiesRule, input, editorState.getResource().getFullPath().toFile());
 			if (properties == null) {
 				observer.reportRewritingFailed();
