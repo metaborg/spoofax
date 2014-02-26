@@ -14,8 +14,8 @@ import org.strategoxt.lang.Context;
 
 public class SelectionUtil {
 
-	public static IStrategoTerm getSelectionAst(int offset, int length, boolean ignoreEmptyEmptySelection, SGLRParseController parseController) {
-		if (ignoreEmptyEmptySelection && length == 0)
+	public static IStrategoTerm getSelectionAst(int offset, int length, boolean ignoreEmptySelection, SGLRParseController parseController) {
+		if (ignoreEmptySelection && length == 0)
 			return null;
 		
 		IToken start = parseController.getTokenIterator(new Region(offset, 0), true).next();
@@ -37,8 +37,8 @@ public class SelectionUtil {
 		return StrategoTermPath.findCommonAncestor(startNode, endNode);
 	}
 	
-	public static IStrategoTerm getSelectionAstAnalyzed(int offset, int length, boolean ignoreEmptyEmptySelection, SGLRParseController parseController) {
-		IStrategoTerm selectionAst = getSelectionAst(offset, length, ignoreEmptyEmptySelection, parseController);
+	public static IStrategoTerm getSelectionAstAnalyzed(int offset, int length, boolean ignoreEmptySelection, SGLRParseController parseController) {
+		IStrategoTerm selectionAst = getSelectionAst(offset, length, ignoreEmptySelection, parseController);
 		EditorState editorState = EditorState.getEditorFor(parseController);
 		
 		if (selectionAst != null) {

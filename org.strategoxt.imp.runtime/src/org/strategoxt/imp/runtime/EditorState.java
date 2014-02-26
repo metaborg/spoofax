@@ -162,20 +162,23 @@ public class EditorState extends FileState {
 	/**
 	 * Gets the abstract syntax subtree for the selection in the editor.
 	 * 
-	 * @param ignoreEmptyEmptySelection
+	 * @param ignoreEmptySelection
 	 *            If true, null is returned if the selection is 0 characters wide.
-	 * 
-	 * @see SGLRParseController#getCurrentAst()
-	 *            Gets the entire AST.
 	 */
-	public final synchronized IStrategoTerm getSelectionAst(boolean ignoreEmptyEmptySelection) {
+	public final synchronized IStrategoTerm getSelectionAst(boolean ignoreEmptySelection) {
 		ITextSelection selection = (ITextSelection) getEditor().getSelectionProvider().getSelection();
-		return SelectionUtil.getSelectionAst(selection.getOffset(), selection.getLength(), ignoreEmptyEmptySelection, getParseController());
+		return SelectionUtil.getSelectionAst(selection.getOffset(), selection.getLength(), ignoreEmptySelection, getParseController());
 	}
 	
-	public IStrategoTerm getSelectionAstAnalyzed(boolean ignoreEmptyEmptySelection) {
+	/**
+	 * Gets the analyzed abstract syntax subtree for the selection in the editor.
+	 * 
+	 * @param ignoreEmptySelection
+	 *            If true, null is returned if the selection is 0 characters wide.
+	 */
+	public IStrategoTerm getSelectionAstAnalyzed(boolean ignoreEmptySelection) {
 		ITextSelection selection = (ITextSelection) getEditor().getSelectionProvider().getSelection();
-		return SelectionUtil.getSelectionAstAnalyzed(selection.getOffset(), selection.getLength(), ignoreEmptyEmptySelection, getParseController());
+		return SelectionUtil.getSelectionAstAnalyzed(selection.getOffset(), selection.getLength(), ignoreEmptySelection, getParseController());
 	}
 	
 	public static boolean isEditorOpen(IEditorPart editor) {
