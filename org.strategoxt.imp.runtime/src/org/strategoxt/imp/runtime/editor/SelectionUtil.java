@@ -45,7 +45,9 @@ public class SelectionUtil {
 			try {
 				StrategoObserver observer = editorState.getDescriptor().createService(StrategoObserver.class, editorState.getParseController());
 				Context context = observer.getRuntime().getCompiledContext();
-				IStrategoList path = StrategoTermPath.getTermPathWithOrigin(context, editorState.getCurrentAnalyzedAst(), selectionAst);
+				IStrategoTerm analyzedAst = editorState.getCurrentAnalyzedAst() == null? editorState.getAnalyzedAst() : editorState.getCurrentAnalyzedAst();
+				
+				IStrategoList path = StrategoTermPath.getTermPathWithOrigin(context, analyzedAst, selectionAst);
 				if (path != null) {
 					return StrategoTermPath.getTermAtPath(context, editorState.getCurrentAnalyzedAst(), path);
 				}
