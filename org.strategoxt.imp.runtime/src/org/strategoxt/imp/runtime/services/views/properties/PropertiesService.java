@@ -52,6 +52,7 @@ public class PropertiesService implements IPropertiesService {
 			}
 			
 			IStrategoTerm selectionAst = SelectionUtil.getSelectionAst(selectionOffset, selectionLength, false, (SGLRParseController) controller);
+			selectionAst = InputTermBuilder.getMatchingAncestor(selectionAst, false);
 			IStrategoTerm ast = null;
 			if (source) {
 				ast = editorState.getCurrentAst();
