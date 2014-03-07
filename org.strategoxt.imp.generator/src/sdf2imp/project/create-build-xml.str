@@ -29,6 +29,7 @@ strategies
         <!-- Project directories -->
         <property name="trans" location="trans"/>
         <property name="src-gen" location="editor/java"/>
+        <property name="src-dirs" location="editor/java"/>
         <property name="syntax" location="syntax"/>
         <property name="include" location="include"/>
         <property name="lib" location="lib"/>
@@ -572,7 +573,7 @@ $[<?xml version="1.0" encoding="UTF-8"?>
 			<param name="build.stratego.outputfile" value="${src-gen}/trans/Main.java" />
 			<param name="build.stratego.extraargs" value="-la java-front ${java.jar.import}" />
 		</antcall>
-		<javac srcdir="${src-gen}" includes="trans/**" destdir="${build}" source="1.7" target="1.7" debug="on">
+		<javac srcdir="${src-dirs}" includes="trans/**" destdir="${build}" source="1.7" target="1.7" debug="on">
 			<classpath>
 				<pathelement path="utils/strategoxt.jar:${src-gen}${externaljarimport1}${externaljarimport2}${java.jar.classpath}" />
 				<fileset dir="${eclipse.home}/plugins">
@@ -690,9 +691,7 @@ $[<?xml version="1.0" encoding="UTF-8"?>
 			<param name="build.stratego.extraargs" value="-la java-front ${java.jar.import}" />
 		</antcall>
 		<!-- compile java to class -->
-		<javac destdir="${build}" source="1.7" target="1.7" debug="on">
-			<!-- attribute in javac: srcdir="${src-gen}" -->
-			<src path="${src-gen}" />
+		<javac srcdir="${src-dirs}" destdir="${build}" source="1.7" target="1.7" debug="on">
 			<!-- attribute in javac: classpath="utils/strategoxt.jar:${src-gen}${externaljarimport1}${externaljarimport2}${java.jar.classpath}"  -->
 			<classpath>
 				<pathelement path="utils/strategoxt.jar:${src-gen}${externaljarimport1}${externaljarimport2}${java.jar.classpath}" />
