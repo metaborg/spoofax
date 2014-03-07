@@ -472,7 +472,7 @@ strategies
                 <param name="build.stratego.outputfile" value="${src-gen}/trans/Main.java"/>
                 <param name="build.stratego.extraargs" value="-la java-front ${java.jar.import}"/>
             </antcall>
-            <javac srcdir="${src-dirs}" includes="trans/**" destdir="${build}" source="1.5" target="1.5" debug="on">
+            <javac srcdir="${src-gen}" includes="trans/**" destdir="${build}" source="1.5" target="1.5" debug="on">
 							<classpath>
 								<path refid="external.class.path"/>
 								<pathelement path="${src-gen}${externaljarimport1}${externaljarimport2}${java.jar.classpath}"/>
@@ -580,7 +580,7 @@ strategies
             </antcall>
             <!-- compile java to class -->
             <javac 
-                srcdir="${src-dirs}"
+                srcdir="${src-gen}"
                 destdir="${build}" 
                 source="1.5" 
                 target="1.5" 
