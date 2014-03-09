@@ -145,6 +145,9 @@ strategies
         <condition property="metasdfmodule.available" value="1">
             <available file="${syntax}/${metasdfmodule}.sdf"/>
         </condition>
+        <condition property="src-dirs" value="${src-dirs}" else="${src-gen}">
+          <isset property="src-dirs" />
+        </condition>
         
         <fail unless="build" message="Please use build.main.xml to build this project or configure the required properties manually"/>
         <mkdir dir="${build}"/>
@@ -472,7 +475,7 @@ strategies
                 <param name="build.stratego.outputfile" value="${src-gen}/trans/Main.java"/>
                 <param name="build.stratego.extraargs" value="-la java-front ${java.jar.import}"/>
             </antcall>
-            <javac srcdir="${src-gen}" includes="trans/**" destdir="${build}" source="1.5" target="1.5" debug="on">
+            <javac srcdir="${src-dirs}" includes="trans/**" destdir="${build}" source="1.5" target="1.5" debug="on">
 							<classpath>
 								<path refid="external.class.path"/>
 								<pathelement path="${src-gen}${externaljarimport1}${externaljarimport2}${java.jar.classpath}"/>
@@ -580,7 +583,7 @@ strategies
             </antcall>
             <!-- compile java to class -->
             <javac 
-                srcdir="${src-gen}"
+                srcdir="${src-dirs}"
                 destdir="${build}" 
                 source="1.5" 
                 target="1.5" 
