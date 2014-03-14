@@ -60,8 +60,9 @@ public class FileState {
 	 */
 	public static FileState getFile(IPath path, IDocument document)
 			throws FileNotFoundException, BadDescriptorException, ModelException {
-		
 		Language language = LanguageRegistry.findLanguage(path, document);
+		if(language == null)
+			return null;
 		Descriptor descriptor = Environment.getDescriptor(language);
 		IResource resource = EditorIOAgent.getResource(path.toFile());
 		if (descriptor == null) return null;

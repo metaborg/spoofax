@@ -14,7 +14,12 @@ public class AntForceOnSave {
     public static void main(String[] args) {
     	for(String arg : args) {
 			try {
+				System.out.println("Forcing on-save handler for: " + arg);
 				FileState fileState = FileState.getFile(new Path(arg), null);
+				if(fileState == null) {
+					Environment.logException("Could not call on-save handler. File state could not be retrieved.");
+					continue;
+				}
 	    		IStrategoTerm ast = fileState.getAnalyzedAst();
 	    		OnSaveService onSave = fileState.getDescriptor().createService(OnSaveService.class, fileState.getParseController());
 	    		onSave.invokeOnSave(ast);
