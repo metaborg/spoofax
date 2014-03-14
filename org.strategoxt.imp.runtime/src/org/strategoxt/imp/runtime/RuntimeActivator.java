@@ -86,7 +86,7 @@ public class RuntimeActivator extends AbstractUIPlugin {
 		"Spoofax needs Eclipse to be started with (can be set in eclipse.ini):\n-vmargs -server -Xmx1024m -Xss8m\n\nThe following options are currently missing:";
 
 	private final static String JVM_OPT_DIAG_MSG_JAVA_VER =
-		"Spoofax requires Eclipse to be started with a Java 7 VM. Ensure that Java 7 is installed on your system. If you have multiple VMs installed on your system, you can force Eclipse to start with a specific VM by adding the following option to the eclipse.ini file:\n-vm\n<path-to-java-bin>\n\nThis option needs to be on the first line in the eclipse.ini file and the newline after -vm is required.";
+		"Spoofax requires Eclipse to be started with a Java 7 (or higher) VM. Ensure that Java 7 is installed on your system. If you have multiple VMs installed on your system, you can force Eclipse to start with a specific VM by adding the following option to the eclipse.ini file:\n-vm\n<path-to-java-bin>\n\nThis option needs to be on the first line in the eclipse.ini file and the newline after -vm is required.";
 
 	private final static String JVM_OPTS_DIAG_TOG_MSG = "Don't warn me anymore until next Spoofax version";
 
@@ -112,7 +112,7 @@ public class RuntimeActivator extends AbstractUIPlugin {
 			serverOption = true;
 
 		final String javaVersion = runtime.getSpecVersion();
-		if(runtime.getSpecVersion().contains("1.7"))
+		if(runtime.getSpecVersion().contains("1.7") || runtime.getSpecVersion().contains("1.8"))
 			correctJavaVersion = true;
 
 		if(!serverOption || !mxOption || !ssOption || !correctJavaVersion) {
