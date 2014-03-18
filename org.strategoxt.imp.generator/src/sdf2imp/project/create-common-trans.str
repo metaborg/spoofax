@@ -237,27 +237,6 @@ strategies
 
   subterm-at(|index):
     _#(t*) -> <index(|<inc> index)> t*
-  
-signature constructors
-
-  COMPLETION : String -> Term
-  NOCONTEXT  : Term   -> Term
-  MARKER     : Term
-  True       : Term
-
-  // Below are copies of the signatures of the terms used in example
-  // trans/{name}.str file. These definitions should also be automatically 
-  // generated in the imported include/{sdf-name}.str module. However,
-  // to ensure that the example transformation doesn't break when the
-  // syntax is changed, we also hard-coded them here.
-          
-  Module   : ID * List(Entity)   -> Module
-  Entity   : ID * List(Property) -> Entity
-  Property : ID * Type           -> Property
-  Type     : ID                  -> Type
-  
-  Type     : Namespace
-  Property : Namespace
 
 strategies
   
