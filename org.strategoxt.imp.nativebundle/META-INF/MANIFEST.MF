@@ -12,3 +12,4 @@ Require-Bundle: org.strategoxt.strj,
  org.strategoxt.imp.runtime
 Export-Package: org.strategoxt.imp.nativebundle
 Bundle-Vendor: Spoofax.org
+Eclipse-BundleShape: dir
