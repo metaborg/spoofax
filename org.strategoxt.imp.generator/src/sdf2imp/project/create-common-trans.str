@@ -238,6 +238,13 @@ strategies
   subterm-at(|index):
     _#(t*) -> <index(|<inc> index)> t*
 
+signature constructors
+
+  COMPLETION : String -> Term
+  NOCONTEXT  : Term   -> Term
+  MARKER     : Term
+  True       : Term
+
 strategies
   
   // Set markers for a given file. Use when checking files from a queued strategy.
