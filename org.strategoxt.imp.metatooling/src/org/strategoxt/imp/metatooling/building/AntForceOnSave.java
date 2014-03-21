@@ -11,11 +11,12 @@ import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.services.OnSaveService;
 
 public class AntForceOnSave {
-    public static void main(String[] args) {
-    	for(String arg : args) {
+    public static void main(String args) {
+    	final String[] files = args.split(";;;");
+    	for(String file : files) {
 			try {
-				System.out.println("Forcing on-save handler for: " + arg);
-				FileState fileState = FileState.getFile(new Path(arg), null);
+				System.out.println("Calling on-save handler for: " + file);
+				FileState fileState = FileState.getFile(new Path(file), null);
 				if(fileState == null) {
 					Environment.logException("Could not call on-save handler. File state could not be retrieved.");
 					continue;

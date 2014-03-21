@@ -178,9 +178,9 @@ $[<?xml version="1.0" encoding="UTF-8"?>
 
 	<!-- Call on-save handler for template and name binding files so that their generated files are present. -->
 	<target name="call-onsave" if="eclipse.running">
-		<pathconvert pathsep=" " property="call-onsave.args" refid="call-onsave.files" />
+		<pathconvert pathsep=";;;" property="call-onsave.args" refid="call-onsave.files" />
 		<java classname="org.strategoxt.imp.metatooling.building.AntForceOnSave">
-			<arg line="${call-onsave.args}" />
+			<arg value="${call-onsave.args}" />
 		</java>
 	</target>
 
