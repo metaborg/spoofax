@@ -34,8 +34,10 @@ public class PropertiesService implements IPropertiesService {
 
 	@Override
 	public IStrategoTerm getProperties(int selectionOffset, int selectionLength) {
+		IStrategoTerm emptyList = new TermFactory().makeList();
+		
 		if (propertiesRule == null) {
-			return new TermFactory().makeList();
+			return emptyList;
 		}
 		
 		EditorState editorState = EditorState.getEditorFor(controller);
@@ -44,14 +46,23 @@ public class PropertiesService implements IPropertiesService {
 		try {
 			if (observer.getRuntime().lookupUncifiedSVar(propertiesRule) == null) {
 				Environment.logException("Rule '" + propertiesRule + "' is undefined");
-				return new TermFactory().makeList();
+				return emptyList;
 			}
 			
 			if (editorState.getCurrentAst() == null) {
-				return new TermFactory().makeList();
+				return emptyList;
 			}
 			
-			IStrategoTerm selectionAst = SelectionUtil.getSelectionAst(selectionOffset, selectionLength, false, (SGLRParseController) controller);
+			IStrategoTerm selectionAst = null;
+			try {
+			  selectionAst = SelectionUtil.getSelectionAst(selectionOffset, selectionLength, false, (SGLRParseController) controller);
+			}
+			catch (IndexOutOfBoundsException e) {
+				// certain edits (e.g. undoing a change) result in the generation of a new textual selection before the text is parsed and a new AST is generated.
+				// trying to obtain an AST selection in the old AST using the new selection offset and selection length may fail.
+				return emptyList;
+			}
+			
 			selectionAst = InputTermBuilder.getMatchingAncestor(selectionAst, false);
 			IStrategoTerm ast = null;
 			if (source) {
