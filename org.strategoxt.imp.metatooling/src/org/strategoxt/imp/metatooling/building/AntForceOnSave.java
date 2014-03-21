@@ -11,8 +11,8 @@ import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.services.OnSaveService;
 
 public class AntForceOnSave {
-    public static void main(String args) {
-    	final String[] files = args.split(";;;");
+    public static void main(String[] args) {
+    	final String[] files = args[0].split(";;;");
     	for(String file : files) {
 			try {
 				System.out.println("Calling on-save handler for: " + file);
