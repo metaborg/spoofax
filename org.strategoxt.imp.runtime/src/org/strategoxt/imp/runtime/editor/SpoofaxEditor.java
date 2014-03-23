@@ -19,7 +19,10 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.texteditor.TextOperationAction;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
+import org.strategoxt.imp.runtime.EditorState;
+import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.services.views.outline.SpoofaxOutlinePage;
+import org.strategoxt.imp.runtime.services.views.properties.PropertiesService;
 
 /**
  * TODO: subclass {@link TextEditor} and delegate to {@link UniversalEditor}.
@@ -53,6 +56,20 @@ public class SpoofaxEditor extends UniversalEditor {
 	public void createPartControl(Composite parent) {
 		super.createPartControl(parent);
 
+		
+		// temporary workaround for Spoofax/812
+		EditorState editorState = EditorState.getEditorFor(this);
+		if (editorState != null) {
+			try {
+				PropertiesService propertiesService = editorState.getDescriptor().createService(PropertiesService.class, editorState.getParseController());
+				if (propertiesService.getPropertiesRule() == null) {
+					return;
+				}
+			} catch (BadDescriptorException e) {
+				e.printStackTrace();
+			}
+		}
+		
 		final SpoofaxEditor spoofaxEditor = this;
 		final ISelectionProvider textSelectionProvider = getSite().getSelectionProvider();
 		final ISelectionProvider strategoTermSelectionProvider = new org.strategoxt.imp.runtime.editor.SelectionProvider();

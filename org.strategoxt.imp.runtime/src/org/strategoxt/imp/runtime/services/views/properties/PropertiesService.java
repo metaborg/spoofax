@@ -90,6 +90,10 @@ public class PropertiesService implements IPropertiesService {
 		}
 	}
 	
+	public String getPropertiesRule() {
+		return propertiesRule;
+	}
+	
 	public static StrategoObserver getObserver(EditorState editorState) {
 		try {
 			return editorState.getDescriptor().createService(StrategoObserver.class, editorState.getParseController());
