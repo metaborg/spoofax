@@ -53,6 +53,9 @@ public class PropertiesService implements IPropertiesService {
 		IStrategoTerm selectionAst = null;
 		try {
 		  selectionAst = SelectionUtil.getSelectionAst(selectionOffset, selectionLength, false, (SGLRParseController) controller);
+		  if (selectionAst == null) {
+			  return emptyList;
+		  }
 		}
 		catch (IndexOutOfBoundsException e) {
 			// certain edits (e.g. undoing a change) result in the generation of a new textual selection before the text is parsed and a new AST is generated.
