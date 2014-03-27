@@ -35,59 +35,53 @@ public class PropertiesService implements IPropertiesService {
 	@Override
 	public IStrategoTerm getProperties(int selectionOffset, int selectionLength) {
 		IStrategoTerm emptyList = new TermFactory().makeList();
-		
 		if (propertiesRule == null) {
 			return emptyList;
 		}
-		
+
 		EditorState editorState = EditorState.getEditorFor(controller);
 		StrategoObserver observer = getObserver(editorState);
-		observer.getLock().lock();
-		try {
-			if (observer.getRuntime().lookupUncifiedSVar(propertiesRule) == null) {
-				Environment.logException("Rule '" + propertiesRule + "' is undefined");
-				return emptyList;
-			}
-			
-			if (editorState.getCurrentAst() == null) {
-				return emptyList;
-			}
-			
-			IStrategoTerm selectionAst = null;
-			try {
-			  selectionAst = SelectionUtil.getSelectionAst(selectionOffset, selectionLength, false, (SGLRParseController) controller);
-			}
-			catch (IndexOutOfBoundsException e) {
-				// certain edits (e.g. undoing a change) result in the generation of a new textual selection before the text is parsed and a new AST is generated.
-				// trying to obtain an AST selection in the old AST using the new selection offset and selection length may fail.
-				return emptyList;
-			}
-			
-			selectionAst = InputTermBuilder.getMatchingAncestor(selectionAst, false);
-			IStrategoTerm ast = null;
-			if (source) {
-				ast = editorState.getCurrentAst();
-			}
-			else {
-				try {
-					ast = editorState.getCurrentAnalyzedAst() == null? editorState.getAnalyzedAst() : editorState.getCurrentAnalyzedAst();
-				} catch (BadDescriptorException e) {
-					e.printStackTrace();
-				}
-			}
-			
-			IStrategoTerm input = new InputTermBuilder(observer.getRuntime(), ast).makeInputTerm(selectionAst, true, source);
-			IStrategoTerm properties = observer.invokeSilent(propertiesRule, input, editorState.getResource().getFullPath().toFile());
-			if (properties == null) {
-				observer.reportRewritingFailed();
-			}
-			
-			return properties;
+		if (observer.getRuntime().lookupUncifiedSVar(propertiesRule) == null) {
+			Environment.logException("Rule '" + propertiesRule + "' is undefined");
+			return emptyList;
 		}
 
-		finally {
-			observer.getLock().unlock();
+		if (editorState.getCurrentAst() == null) {
+			return emptyList;
 		}
+		
+		IStrategoTerm selectionAst = null;
+		try {
+		  selectionAst = SelectionUtil.getSelectionAst(selectionOffset, selectionLength, false, (SGLRParseController) controller);
+		}
+		catch (IndexOutOfBoundsException e) {
+			// certain edits (e.g. undoing a change) result in the generation of a new textual selection before the text is parsed and a new AST is generated.
+			// trying to obtain an AST selection in the old AST using the new selection offset and selection length may fail.
+			return emptyList;
+		}
+		selectionAst = InputTermBuilder.getMatchingAncestor(selectionAst, false);
+		IStrategoTerm ast = null;
+		if (source) {
+			ast = editorState.getCurrentAst();
+		}
+		else {
+			try {
+				ast = editorState.getCurrentAnalyzedAst();
+				if (ast == null) {
+					return null;
+				}
+			} catch (BadDescriptorException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		IStrategoTerm input = new InputTermBuilder(observer.getRuntime(), ast).makeInputTerm(selectionAst, true, source);
+		IStrategoTerm properties = observer.invokeSilent(propertiesRule, input, editorState.getResource().getFullPath().toFile());
+		if (properties == null) {
+			observer.reportRewritingFailed();
+		}
+		
+		return properties;
 	}
 	
 	public String getPropertiesRule() {
