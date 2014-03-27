@@ -27,7 +27,13 @@ public class StrategoTermSelection extends TextSelection implements IStructuredS
 
 	public IStrategoTerm getSelectionAst() {
 		if (EditorState.getEditorFor(spoofaxEditor) != null) {
-			return SelectionUtil.getSelectionAst(getOffset(), getLength(), false, EditorState.getEditorFor(spoofaxEditor).getParseController());
+			try {
+				return SelectionUtil.getSelectionAst(getOffset(), getLength(), false, EditorState.getEditorFor(spoofaxEditor).getParseController());
+			}
+			catch (IndexOutOfBoundsException e) {
+				// certain edits (e.g. undoing a change) result in the generation of a new textual selection before the text is parsed and a new AST is generated.
+				// trying to obtain an AST selection in the old AST using the new selection offset and selection length may fail.
+			}
 		}
 		return null;
 	}

@@ -41,9 +41,15 @@ public class PropertiesService implements IPropertiesService {
 
 		EditorState editorState = EditorState.getEditorFor(controller);
 		StrategoObserver observer = getObserver(editorState);
-		if (observer.getRuntime().lookupUncifiedSVar(propertiesRule) == null) {
-			Environment.logException("Rule '" + propertiesRule + "' is undefined");
-			return emptyList;
+		observer.getLock().lock();
+		try {
+			if (observer.getRuntime().lookupUncifiedSVar(propertiesRule) == null) {
+				Environment.logException("Rule '" + propertiesRule + "' is undefined");
+				return emptyList;
+			}
+		}
+		finally {
+			observer.getLock().unlock();
 		}
 
 		if (editorState.getCurrentAst() == null) {
@@ -78,8 +84,15 @@ public class PropertiesService implements IPropertiesService {
 			}
 		}
 		
-		IStrategoTerm input = new InputTermBuilder(observer.getRuntime(), ast).makeInputTerm(selectionAst, true, source);
-		IStrategoTerm properties = observer.invokeSilent(propertiesRule, input, editorState.getResource().getFullPath().toFile());
+		IStrategoTerm properties = null;
+		try {
+			IStrategoTerm input = new InputTermBuilder(observer.getRuntime(), ast).makeInputTerm(selectionAst, true, source);
+			properties = observer.invokeSilent(propertiesRule, input, editorState.getResource().getFullPath().toFile());
+		}
+		catch (Exception e) {
+			// TODO: fix getTermPathWithOrigin
+			return emptyList;
+		}
 		if (properties == null) {
 			observer.reportRewritingFailed();
 		}

@@ -2,12 +2,15 @@ package org.strategoxt.imp.runtime.editor;
 
 import java.util.ResourceBundle;
 
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.IVerticalRuler;
-import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
@@ -16,6 +19,7 @@ import org.eclipse.swt.custom.CaretListener;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.texteditor.TextOperationAction;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
@@ -70,18 +74,15 @@ public class SpoofaxEditor extends UniversalEditor {
 			}
 		}
 		
-		final SpoofaxEditor spoofaxEditor = this;
 		final ISelectionProvider textSelectionProvider = getSite().getSelectionProvider();
-		final ISelectionProvider strategoTermSelectionProvider = new org.strategoxt.imp.runtime.editor.SelectionProvider();
-		getSite().setSelectionProvider(strategoTermSelectionProvider);
+		getSite().setSelectionProvider(new org.strategoxt.imp.runtime.editor.SelectionProvider());
 		
 		textSelectionProvider.addSelectionChangedListener(new ISelectionChangedListener() {
 
 			@Override
 			public void selectionChanged(SelectionChangedEvent event) {
 				ITextSelection textSelection = (ITextSelection) event.getSelection();
-				ISelection strategoTermSelection = new StrategoTermSelection(spoofaxEditor, textSelection.getOffset(), textSelection.getLength());
-				strategoTermSelectionProvider.setSelection(strategoTermSelection); // generate new StrategoTermSelection when TextSelection changes
+				updateSelection(textSelection.getOffset(), textSelection.getLength()); // generate new StrategoTermSelection when TextSelection changes
 			}
 		});
 
@@ -91,10 +92,32 @@ public class SpoofaxEditor extends UniversalEditor {
 			public void caretMoved(CaretEvent event) {
 				ITextSelection textSelection = (ITextSelection) textSelectionProvider.getSelection();
 				int offset = textSelection.getLength() == 0 ? event.caretOffset : textSelection.getOffset();
-				ISelection strategoTermSelection = new StrategoTermSelection(spoofaxEditor, offset, textSelection.getLength());
-				strategoTermSelectionProvider.setSelection(strategoTermSelection); // generate new StrategoTermSelection when cursor position changes (because TextSelection doesn't change when selection stays empty).
+				updateSelection(offset, textSelection.getLength()); // generate new StrategoTermSelection when cursor position changes (because TextSelection doesn't change when selection stays empty).
 			}
 		});
+	}
+	
+	public void updateSelection(final int offset, final int length) {
+		final SpoofaxEditor spoofaxEditor = this;
+		final ISelectionProvider strategoTermSelectionProvider = getSite().getSelectionProvider();
+		final Display display = Display.getCurrent();
+
+		Job job = new Job("Updating properties view") {
+			@Override
+			protected IStatus run(IProgressMonitor monitor) {
+				final StrategoTermSelection selection = new StrategoTermSelection(spoofaxEditor, offset, length);
+				selection.getFirstElement(); // do the heavy work here and not in the UI thread, or the UI will block
+				display.asyncExec(new Runnable() {
+					@Override
+					public void run() {
+						strategoTermSelectionProvider.setSelection(selection);
+					}
+				});
+				return Status.OK_STATUS;
+			}
+		};
+
+		job.schedule();
 	}
 	
 	@Override

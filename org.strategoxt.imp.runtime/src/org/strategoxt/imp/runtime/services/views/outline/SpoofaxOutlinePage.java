@@ -163,8 +163,8 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 	    	try {
 	    		path = StrategoTermPath.getTermPathWithOrigin(context, (IStrategoTerm) outline, textSelection);
 	    	}
-	    	catch (IndexOutOfBoundsException e) {
-	    		// bug in StrategoTermPath.getTermPathWithOrigin(..)
+	    	catch (Exception e) {
+	    		// TODO: fix getTermPathWithOrigin(..)
 	    	}
 	    	
 	    	if (path != null) {
