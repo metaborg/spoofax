@@ -99,11 +99,12 @@ public class ToolbarBaseCommandHandler implements IHandler, IElementUpdater {
 	@Override
 	public void updateElement(final UIElement element, @SuppressWarnings("rawtypes") final Map parameters) {
 
+		final int menuIndex = Integer.parseInt((String) parameters.get(MenusServiceConstants.MENU_ID_PARAM));
+		final MenuList menus = MenusServiceUtil.getMenus();
+		
 		Display.getDefault().asyncExec(new Runnable() {
 			@Override
 			public void run() {
-				int menuIndex = Integer.parseInt((String) parameters.get(MenusServiceConstants.MENU_ID_PARAM));
-				MenuList menus = MenusServiceUtil.getMenus();
 
 				if (menus.getAll().size() > menuIndex) {
 					Menu menu = menus.getAll().get(menuIndex);
