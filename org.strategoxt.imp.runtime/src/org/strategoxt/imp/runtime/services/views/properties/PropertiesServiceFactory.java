@@ -6,7 +6,6 @@ import static org.strategoxt.imp.runtime.dynamicloading.TermReader.findTerm;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.termContents;
 
 import org.spoofax.interpreter.terms.IStrategoList;
-import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.dynamicloading.AbstractServiceFactory;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
@@ -19,7 +18,7 @@ import org.strategoxt.imp.runtime.parser.SGLRParseController;
 public class PropertiesServiceFactory extends AbstractServiceFactory<IPropertiesService> {
 
 	public PropertiesServiceFactory() {
-		super(IPropertiesService.class, false);
+		super(IPropertiesService.class, true);
 	}
 	
 	@Override
