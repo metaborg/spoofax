@@ -77,7 +77,7 @@ public class PropertiesService implements IPropertiesService {
 			try {
 				ast = editorState.getCurrentAnalyzedAst();
 				if (ast == null) {
-					return null;
+					ast = editorState.getAnalyzedAst(); // TODO Spoofax/839
 				}
 			} catch (BadDescriptorException e) {
 				e.printStackTrace();
