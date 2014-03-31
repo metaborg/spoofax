@@ -439,6 +439,7 @@ imports
 	runtime/task/core
 	runtime/editor/editor
 	runtime/editor/queue
+	runtime/editor/dynrule
 
 rules // Analysis
 	
@@ -456,7 +457,7 @@ rules // Single finle analysis
 	analysis-single-default-interface = fail
 	
   analysis-single-default(desugar-before, desugar-after, pp-message|language):
-    (ast, path, project-path) -> (analyzed-ast, error*, warning*, note*)
+    (ast, path, project-path) -> (analyzed-ast', error*, warning*, note*)
     with
       editor-init;
       <analysis-default-debug(!\"Analyzing file: \")> path;
@@ -472,9 +473,10 @@ rules // Single finle analysis
 			, evaluated-task*
 			, skipped-task*
 			, unevaluated-task*
-			) := <desugar-before; analyze-one(|language, path, project-path); desugar-after> ast;
+			) := <desugar-before; analyze-one(|language, path, project-path)> ast;
+			analyzed-ast' := <desugar-after> analyzed-ast;
 			
-      (error*, warning*, note*) := <analysis-message-collect(pp-message|analysis-error*, analysis-warning*, analysis-note*)> analyzed-ast;
+      (error*, warning*, note*) := <analysis-message-collect(pp-message|analysis-error*, analysis-warning*, analysis-note*)> analyzed-ast';
       
       partition* := <analysis-changed-sources; filter(is-string)> evaluated-task*;
       if <not(is-test-file)> path then
@@ -1157,7 +1159,7 @@ imports
 	runtime/nabl/collect
 	runtime/nabl/entries
 	runtime/nabl/uri
-	runtime/properties/interface
+	runtime/properties/collect
 	runtime/properties/query
 	runtime/task/core
 	runtime/types/query
@@ -1176,7 +1178,7 @@ rules	// Properties
 			[
 				[
 					(\"Target\",			<target-prop(language-pp)>t),
-					(\"Constructor\",	<cons-prop>t),
+					(\"Target Constructor\",<cons-prop>t),
 				 	(\"Name\",				<name-prop>t),
 				 	(\"Defines\",			<def-prop>t),
 				 	(\"Refers to\",		<ref-prop>t)
@@ -1223,7 +1225,7 @@ rules	// Properties
 	
 	nabl-props: t -> props
 		with
-			nabl-props := [Type()|<nabl-props-custom>]
+			nabl-props := [Type()|<nabl-collect-custom-properties>]
 		with
 			props := <map(nabl-prop(|t))> nabl-props <+
 			props := []
@@ -1235,12 +1237,7 @@ rules	// Properties
 			prop := <get-properties(|property);de-list;not(?Result(_); task-has-failed)>t <+
 			prop := <get-property(|property)	;				 not(?Result(_); task-has-failed)>t <+
 			prop := None()
-	
-	nabl-props-custom : _ -> result
-		with
-			result := <nabl-custom-properties(id)> <+ 
-			result := []
-	
+		
 rules // helper rules: filtering
 
 	not-none: (a, b) -> (a, b)
@@ -1254,7 +1251,7 @@ rules // helper rules: filtering
 	
 rules // helper rules: formatting
 	
-	pp-ast(language-pp) = topdown(try(rm-annotations));language-pp;box2text-string(|80)
+	pp-ast(language-pp) = topdown(try(rm-annotations));language-pp
 	
 	pp-cons: t -> $[[<get-constructor> t]/[<get-arguments;length> t]]
 	
@@ -3914,13 +3911,14 @@ rules // generic analysis of properties
       
 rules
         
+  nabl-collect-custom-properties =
+    iset := <new-iset>
+  ; try(nabl-custom-properties(\\p* -> <iset-addlist(|p*); fail> iset\\))
+  ; <iset-elements> iset
+  
   // generic collection of property tasks
   nabl-annotate-properties(|lang, partition, old-uri*, new-uri*) =
-    where(
-      iset := <new-iset>
-    ; try(nabl-custom-properties(\\p* -> <iset-addlist(|p*); fail> iset\\))
-    ; kind* := [Type()|<iset-elements> iset]
-    )
+    where(kind* := [Type()|<nabl-collect-custom-properties>])
   ; !(kind*, <remove-property-annotations(|kind*)>)
   ; foldl(nabl-annotate-property(|lang, partition, old-uri*, new-uri*) <+ Snd)
   ; where(try(nabl-constraint(|lang, partition, old-uri*, new-uri*)))
