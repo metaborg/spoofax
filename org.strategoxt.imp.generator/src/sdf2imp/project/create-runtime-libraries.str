@@ -461,7 +461,6 @@ rules // Single finle analysis
     with
       editor-init;
       <analysis-default-debug(!\"Analyzing file: \")> path;
-      partition := <analysis-partition(|path, project-path)>;
       
 	    (
 	    	analyzed-ast
@@ -475,12 +474,13 @@ rules // Single finle analysis
 			, skipped-task*
 			, unevaluated-task*
 			) := <desugar-before; analyze-one(|language, path, project-path)> ast;
-			analyzed-ast' := <desugar-after(|partition) <+ desugar-after> analyzed-ast;
+			analyzed-ast' := <desugar-after> analyzed-ast;
 			
       (error*, warning*, note*) := <analysis-message-collect(pp-message|analysis-error*, analysis-warning*, analysis-note*)> analyzed-ast';
       
       partition* := <analysis-changed-sources; filter(is-string)> evaluated-task*;
       if <not(is-test-file)> path then
+      	partition := <analysis-partition(|path, project-path)>;
       	<remove-all(?partition <+ ?path); analysis-message-update-partitions-queue(|language, project-path)> partition*
     	end;
     	
@@ -553,7 +553,7 @@ rules // Multi-file analysis
     where
       not(() := initial-ast)
     with
-    	analyzed-desugared-ast := <desugar-after(|partition) <+ desugar-after> analyzed-ast;
+    	analyzed-desugared-ast := <desugar-after> analyzed-ast;
       (error'*, warning'*, note'*) := <analysis-message-collect(pp-message|error*, warning*, note*)> analyzed-desugared-ast;
       <set-markers(|partition)> (analyzed-ast, error'*, warning'*, note'*)
 
