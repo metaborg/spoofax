@@ -434,6 +434,7 @@ imports
 	runtime/analysis/core
 	runtime/analysis/single
 	runtime/analysis/multiple
+	runtime/analysis/interface
 	runtime/nabl/utils
 	runtime/index/core
 	runtime/task/core
@@ -461,6 +462,7 @@ rules // Single finle analysis
     with
       editor-init;
       <analysis-default-debug(!\"Analyzing file: \")> path;
+      partition := <analysis-partition(|path, project-path)>;
       
 	    (
 	    	analyzed-ast
@@ -473,14 +475,13 @@ rules // Single finle analysis
 			, evaluated-task*
 			, skipped-task*
 			, unevaluated-task*
-			) := <desugar-before; analyze-one(|language, path, project-path)> ast;
-			analyzed-ast' := <desugar-after> analyzed-ast;
+			) := <(analysis-pre-trans <+ desugar-before); analyze-one(|language, path, project-path)> ast;
+			analyzed-ast' := <analysis-post-trans(|partition) <+ desugar-after> analyzed-ast;
 			
       (error*, warning*, note*) := <analysis-message-collect(pp-message|analysis-error*, analysis-warning*, analysis-note*)> analyzed-ast';
       
       partition* := <analysis-changed-sources; filter(is-string)> evaluated-task*;
       if <not(is-test-file)> path then
-      	partition := <analysis-partition(|path, project-path)>;
       	<remove-all(?partition <+ ?path); analysis-message-update-partitions-queue(|language, project-path)> partition*
     	end;
     	
@@ -504,7 +505,7 @@ rules // Multi-file analysis
       measure-time(
 	      measure-time(
 	      	path'* := <map(\\p -> $[[project-path]/[p]]\\)> path*;
-	        (result*, evaluated-task*, skipped-task*, unevaluated-task*) := <analyze-multiple(parse; desugar-before, complete-work-unit|language, project-path)> path'*;
+	        (result*, evaluated-task*, skipped-task*, unevaluated-task*) := <analyze-multiple(parse; (analysis-pre-trans <+ desugar-before), complete-work-unit|language, project-path)> path'*;
 	        (analysis-result*, debug-result*) := <unzip> result*
 	      , analysis-default-debug-time(!\"Time - analysis: \") | \"analysis-multiple-full-analysis\"
 	      );
@@ -553,7 +554,7 @@ rules // Multi-file analysis
     where
       not(() := initial-ast)
     with
-    	analyzed-desugared-ast := <desugar-after> analyzed-ast;
+    	analyzed-desugared-ast := <analysis-post-trans(|partition) <+ desugar-after> analyzed-ast;
       (error'*, warning'*, note'*) := <analysis-message-collect(pp-message|error*, warning*, note*)> analyzed-desugared-ast;
       <set-markers(|partition)> (analyzed-ast, error'*, warning'*, note'*)
 
@@ -642,6 +643,9 @@ rules // Debugging
 "module runtime/analysis/interface
 
 rules
+
+	analysis-pre-trans = fail
+	analysis-post-trans(|ctx) = fail
 
 "
 
