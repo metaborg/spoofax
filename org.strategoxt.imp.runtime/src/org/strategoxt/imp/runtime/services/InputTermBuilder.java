@@ -31,7 +31,6 @@ import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.SourceAttachment;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
-import org.strategoxt.lang.Context;
 import org.strategoxt.stratego_aterm.implode_aterm_0_0;
 import org.strategoxt.stratego_aterm.stratego_aterm;
 
@@ -45,26 +44,26 @@ public class InputTermBuilder {
 	private static final Map<IResource, IStrategoTerm> EMPTY_MAP =
 		Collections.emptyMap();
 	
-	private HybridInterpreter runtime;
+	private StrategoObserver observer;
 	
 	private final Map<IResource, IStrategoTerm> resultingAsts;
 	
 	private final IStrategoTerm resultingAst;
 	
-	public InputTermBuilder(HybridInterpreter runtime, Map<IResource, IStrategoTerm> resultingAsts) {
-		this.runtime = runtime;
+	public InputTermBuilder(StrategoObserver observer, Map<IResource, IStrategoTerm> resultingAsts) {
+		this.observer = observer;
 		this.resultingAsts = resultingAsts;
 		this.resultingAst = null;
 	}
 	
-	public InputTermBuilder(HybridInterpreter runtime, IStrategoTerm resultingAst) {
-		this.runtime = runtime;
+	public InputTermBuilder(StrategoObserver observer, IStrategoTerm resultingAst) {
+		this.observer = observer;
 		this.resultingAsts = EMPTY_MAP;
 		this.resultingAst = resultingAst;
 	}
 	
 	public HybridInterpreter getRuntime() {
-		return runtime;
+		return observer.getRuntime();
 	}
 
 	/**
@@ -96,11 +95,10 @@ public class InputTermBuilder {
 
 	public IStrategoTuple makeInputTermResultingAst(IStrategoTerm resultingAst,
 			IStrategoTerm node, boolean includeSubNode) {
-		Context context = runtime.getCompiledContext();
-		IStrategoList termPath = StrategoTermPath.getTermPathWithOrigin(context, resultingAst, node);
+		IStrategoList termPath = StrategoTermPath.getTermPathWithOrigin(observer, resultingAst, node);
 		if (termPath == null)
 			return makeInputTermSourceAst(node, includeSubNode);
-		IStrategoTerm targetTerm = StrategoTermPath.getTermAtPath(context, resultingAst, termPath);
+		IStrategoTerm targetTerm = StrategoTermPath.getTermAtPath(observer, resultingAst, termPath);
 		if(node instanceof StrategoSubList){
 			if(!(targetTerm instanceof IStrategoList))
 				return makeInputTermSourceAst(node, includeSubNode);
@@ -121,11 +119,10 @@ public class InputTermBuilder {
 	}
 
 	private IStrategoTerm getResultingTerm(IStrategoTerm resultingAst, IStrategoTerm originTerm) {
-		Context context = runtime.getCompiledContext();
-		IStrategoList pathFirstChild = StrategoTermPath.getTermPathWithOrigin(context, resultingAst, originTerm);
+		IStrategoList pathFirstChild = StrategoTermPath.getTermPathWithOrigin(observer, resultingAst, originTerm);
 		IStrategoTerm firstChild = null;
 		if(pathFirstChild != null)
-			firstChild = StrategoTermPath.getTermAtPath(context, resultingAst, pathFirstChild);
+			firstChild = StrategoTermPath.getTermAtPath(observer, resultingAst, pathFirstChild);
 		return firstChild;
 	}
 
@@ -202,7 +199,7 @@ public class InputTermBuilder {
 	 * based on the IStrategoTerm syntax of the AST of the source file.
 	 */
 	public IStrategoTuple makeATermInputTerm(IStrategoTerm node, boolean includeSubNode, IResource resource) {
-		stratego_aterm.init(runtime.getCompiledContext());
+		stratego_aterm.init(observer.getRuntime().getCompiledContext());
 		
 		ITermFactory factory = Environment.getTermFactory();
 		String path = resource.getProjectRelativePath().toPortableString();
@@ -212,7 +209,7 @@ public class InputTermBuilder {
 			node = getImplodableNode(node);
 			IStrategoTerm[] inputParts = {
 					implodeATerm(node),
-					StrategoTermPath.createPathFromParsedIStrategoTerm(node, runtime.getCompiledContext()),
+					StrategoTermPath.createPathFromParsedIStrategoTerm(node, observer),
 					implodeATerm(getRoot(node)),
 					factory.makeString(path),
 					factory.makeString(absolutePath)
@@ -224,7 +221,13 @@ public class InputTermBuilder {
 	}
 
 	public IStrategoTerm implodeATerm(IStrategoTerm term) {
-		return implode_aterm_0_0.instance.invoke(runtime.getCompiledContext(), term);
+		observer.getLock().lock();
+		try {
+			return implode_aterm_0_0.instance.invoke(observer.getRuntime().getCompiledContext(), term);
+		}
+		finally {
+			observer.getLock().unlock();
+		}
 	}
 
 	public IStrategoTerm getImplodableNode(IStrategoTerm node) {

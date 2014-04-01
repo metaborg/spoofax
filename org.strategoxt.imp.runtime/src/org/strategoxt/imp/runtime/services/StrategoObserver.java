@@ -186,7 +186,7 @@ public class StrategoObserver implements IDynamicLanguageService,
 
 		}
 		if (inputBuilder == null || inputBuilder.getRuntime() != getRuntime()) {
-			inputBuilder = new InputTermBuilder(getRuntime(), resultingAsts);
+			inputBuilder = new InputTermBuilder(this, resultingAsts);
 		}
 		return inputBuilder;
 	}

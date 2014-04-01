@@ -26,6 +26,7 @@ import org.strategoxt.imp.generator.position_of_term_1_0;
 import org.strategoxt.imp.generator.term_at_position_0_1;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.services.ContentProposerSemantic;
+import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 import org.strategoxt.stratego_aterm.explode_aterm_0_0;
@@ -75,38 +76,45 @@ public class StrategoTermPath {
 	 * The resulting path relates to the actual AST, ignoring the 'appl' etc constructors
 	 * of the IStrategoTerm syntax.
 	 */
-	public static IStrategoList createPathFromParsedIStrategoTerm(final IStrategoTerm node, Context context) {
-		IStrategoTerm top = ParentAttachment.getRoot(node);
-		final IStrategoTerm marker = context.getFactory().makeString(ContentProposerSemantic.COMPLETION_TOKEN);
-		top = oncetd_1_0.instance.invoke(context, top, new Strategy() {
-			@Override
-			public IStrategoTerm invoke(Context context, IStrategoTerm current) {
-				if (hasImploderOrigin(current) && tryGetOrigin(current) == node) {
-					return explode_aterm_0_0.instance.invoke(context, marker);
-				} else {
-					return null;
+	public static IStrategoList createPathFromParsedIStrategoTerm(final IStrategoTerm node, StrategoObserver observer) {
+		observer.getLock().lock();
+		try {
+			Context context = observer.getRuntime().getCompiledContext();
+			IStrategoTerm top = ParentAttachment.getRoot(node);
+			final IStrategoTerm marker = context.getFactory().makeString(ContentProposerSemantic.COMPLETION_TOKEN);
+			top = oncetd_1_0.instance.invoke(context, top, new Strategy() {
+				@Override
+				public IStrategoTerm invoke(Context context, IStrategoTerm current) {
+					if (hasImploderOrigin(current) && tryGetOrigin(current) == node) {
+						return explode_aterm_0_0.instance.invoke(context, marker);
+					} else {
+						return null;
+					}
 				}
-			}
-		});
-		top = implode_aterm_0_0.instance.invoke(context, top);
-		return (IStrategoList) position_of_term_1_0.instance.invoke(context, top, new Strategy() {
-			@Override
-			public IStrategoTerm invoke(Context context, IStrategoTerm current) {
-				return marker.equals(current) ? current : null;
-			}
-		});
+			});
+			top = implode_aterm_0_0.instance.invoke(context, top);
+			return (IStrategoList) position_of_term_1_0.instance.invoke(context, top, new Strategy() {
+				@Override
+				public IStrategoTerm invoke(Context context, IStrategoTerm current) {
+					return marker.equals(current) ? current : null;
+				}
+			});
+		}
+		finally {
+			observer.getLock().unlock();
+		}
 	}
 	
 	/**
 	 * Determine the path to a term in 'ast' with origin 'origin'.
 	 */
-	public static IStrategoList getTermPathWithOrigin(Context context, IStrategoTerm ast, IStrategoTerm origin) {
+	public static IStrategoList getTermPathWithOrigin(StrategoObserver observer, IStrategoTerm ast, IStrategoTerm origin) {
 		if (ast == null)
 			return null;
 		if (isTermList(origin)) {
 			// Lists have no origin information, try to find the node by its first child.
 			if (origin.getSubtermCount() > 0) {
-				IStrategoList subtermPath = getTermPathWithOrigin(context, ast, origin.getSubterm(0));
+				IStrategoList subtermPath = getTermPathWithOrigin(observer, ast, origin.getSubterm(0));
 				if (subtermPath != null){
 					// Arrays.copyOf is Java 1.6
 					//IStrategoTerm[] originPath = Arrays.copyOf(subtermPath.getAllSubterms(), subtermPath.getSubtermCount()-1);
@@ -172,29 +180,37 @@ public class StrategoTermPath {
 			}
 		}
 		TestOrigin testOrigin = new TestOrigin();
-		testOrigin.origin1 = origin;		
-		generator.init(context);
-		IStrategoTerm perfectMatch = null;
+		testOrigin.origin1 = origin;
+		
+		observer.getLock().lock();
 		try {
-			perfectMatch = position_of_term_1_0.instance.invoke(context, ast, testOrigin);
+			Context context = observer.getRuntime().getCompiledContext();
+			
+			generator.init(context);
+			IStrategoTerm perfectMatch = position_of_term_1_0.instance.invoke(context, ast, testOrigin);
+
+			if (perfectMatch != null) {
+				return (IStrategoList) perfectMatch;
+			} else if (testOrigin.nextBest != null) {
+				testOrigin.origin1 = testOrigin.nextBest;
+				return (IStrategoList) position_of_term_1_0.instance.invoke(context, ast, testOrigin);
+			} else {
+				return null;
+			}
 		}
-		catch (NullPointerException e) {
-			Environment.logException("Spoofax/757: position-of-term failed for input: (" + ast + ", " + testOrigin + ")", e);
-		}
-		if (perfectMatch != null) {
-			return (IStrategoList) perfectMatch;
-		} else if (testOrigin.nextBest != null) {
-//			Environment.logWarning("Could not determine term corresponding to " + origin.toString() + " in resulting AST; using next best match " + testOrigin.nextBest);
-			testOrigin.origin1 = testOrigin.nextBest;
-			return (IStrategoList) position_of_term_1_0.instance.invoke(context, ast, testOrigin);
-		} else {
-//			Environment.logWarning("Could not determine term corresponding to " + origin.toString() + " in resulting AST");
-			return null;
+		finally {
+			observer.getLock().unlock();
 		}
 	}
 
-	public static IStrategoTerm getTermAtPath(Context context, IStrategoTerm term, IStrategoList path) {
-		return term_at_position_0_1.instance.invoke(context, term, path);
+	public static IStrategoTerm getTermAtPath(StrategoObserver observer, IStrategoTerm term, IStrategoList path) {
+		observer.getLock().lock();
+		try {
+			return term_at_position_0_1.instance.invoke(observer.getRuntime().getCompiledContext(), term, path);
+		}
+		finally {
+			observer.getLock().unlock();
+		}
 	}
 
 	private static int indexOfIdentical(IStrategoTerm parent, IStrategoTerm node) {

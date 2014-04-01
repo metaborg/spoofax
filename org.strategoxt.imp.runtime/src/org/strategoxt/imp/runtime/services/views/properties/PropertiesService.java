@@ -85,14 +85,8 @@ public class PropertiesService implements IPropertiesService {
 		}
 		
 		IStrategoTerm properties = null;
-		try {
-			IStrategoTerm input = new InputTermBuilder(observer.getRuntime(), ast).makeInputTerm(selectionAst, true, source);
-			properties = observer.invokeSilent(propertiesRule, input, editorState.getResource().getFullPath().toFile());
-		}
-		catch (Exception e) {
-			// TODO: fix getTermPathWithOrigin
-			return emptyList;
-		}
+		IStrategoTerm input = new InputTermBuilder(observer, ast).makeInputTerm(selectionAst, true, source);
+		properties = observer.invokeSilent(propertiesRule, input, editorState.getResource().getFullPath().toFile());
 		if (properties == null) {
 			observer.reportRewritingFailed();
 		}

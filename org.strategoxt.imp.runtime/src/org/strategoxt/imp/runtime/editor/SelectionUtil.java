@@ -10,7 +10,6 @@ import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
-import org.strategoxt.lang.Context;
 
 public class SelectionUtil {
 
@@ -44,12 +43,11 @@ public class SelectionUtil {
 		if (selectionAst != null) {
 			try {
 				StrategoObserver observer = editorState.getDescriptor().createService(StrategoObserver.class, editorState.getParseController());
-				Context context = observer.getRuntime().getCompiledContext();
 				IStrategoTerm analyzedAst = editorState.getCurrentAnalyzedAst() == null? editorState.getAnalyzedAst() : editorState.getCurrentAnalyzedAst();
 				
-				IStrategoList path = StrategoTermPath.getTermPathWithOrigin(context, analyzedAst, selectionAst);
+				IStrategoList path = StrategoTermPath.getTermPathWithOrigin(observer, analyzedAst, selectionAst);
 				if (path != null) {
-					return StrategoTermPath.getTermAtPath(context, editorState.getCurrentAnalyzedAst(), path);
+					return StrategoTermPath.getTermAtPath(observer, editorState.getCurrentAnalyzedAst(), path);
 				}
 			} catch (BadDescriptorException e) {
 				e.printStackTrace();

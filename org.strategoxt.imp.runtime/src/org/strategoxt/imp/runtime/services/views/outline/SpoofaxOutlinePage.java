@@ -22,7 +22,6 @@ import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.services.views.StrategoLabelProvider;
 import org.strategoxt.imp.runtime.services.views.StrategoTreeContentProvider;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
-import org.strategoxt.lang.Context;
 
 /**
  * @author Oskar van Rest
@@ -148,24 +147,11 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
     	}
     	
     	EditorState editorState = EditorState.getEditorFor(parseController);
-    	IStrategoTerm textSelection = null;
-    	
-    	try {
-    		textSelection = editorState.getSelectionAst(true);
-    	}
-    	catch (IndexOutOfBoundsException e) {
-    		// bug in EditorState.getSelectionAst()
-    	}
+    	IStrategoTerm textSelection = editorState.getSelectionAst(true);
     	
     	if (textSelection != null) {
-	    	Context context = SpoofaxOutlineUtil.getObserver(editorState).getRuntime().getCompiledContext();
 	    	IStrategoList path = null;
-	    	try {
-	    		path = StrategoTermPath.getTermPathWithOrigin(context, (IStrategoTerm) outline, textSelection);
-	    	}
-	    	catch (Exception e) {
-	    		// TODO: fix getTermPathWithOrigin(..)
-	    	}
+	    	path = StrategoTermPath.getTermPathWithOrigin(SpoofaxOutlineUtil.getObserver(editorState), (IStrategoTerm) outline, textSelection);
 	    	
 	    	if (path != null) {
 		    	TreePath[] treePaths = termPathToTreePaths(path);

@@ -9,7 +9,6 @@ import org.eclipse.ltk.core.refactoring.TextFileChange;
 import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.text.edits.ReplaceEdit;
 import org.spoofax.interpreter.core.Tools;
-import org.spoofax.interpreter.stratego.Fail;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.attachments.OriginAttachment;
 import org.strategoxt.imp.generator.construct_textual_change_4_0;
