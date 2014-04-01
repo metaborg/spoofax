@@ -4327,22 +4327,79 @@ strategies
 imports
 	
   runtime/relations/entries
+  runtime/relations/interface
   runtime/index/query
   runtime/task/insert
   
-rules
-  
-  get-index-relation(|rel):
-  	t -> <index-get-all; Hd; relation-tuple-value> RelTuple(t, rel, ())
-   
-  get-index-relations(|rel):
-  	t -> <index-get-all; map(relation-tuple-value)> RelTuple(t, rel, ())
-  	
-	get-index-transitive-relations(|rel):
-		t -> <index-get-all; mapconcat(relation-tuple-value; insert-results-or-delay)> RelTuple(t, Transitive(rel), ())
+rules // Lookup relation values for given term
+	
+	relation-lookup(|rel):
+		term -> <map(relation-try-term-to-uri)> result*
+		where
+			result* := <relation-lookup-internal(|rel); where(Hd)> term <+
+			result* := <relation-try-term-to-uri; relation-lookup-internal(|rel)> term
 
+	relation-lookup-internal(|rel):
+		term -> [refl-val*, stat-val*, val*, trans-val*]
+		where
+		  refl-val*  := <(relation-is-reflexive; !term) <+ ![]> rel
+		; stat-val*  := <get-static-relations(|rel)> term
+		; val*       := <get-index-relations(|rel)> term
+	  ; trans-val* := <(relation-is-transitive; <get-index-relations-transitive(|rel)> term) <+ ![]> rel
+		// TODO: what about symmetric relations?
+		
+rules // Check if relation exists between two terms
+	
+	relation-match(|rel, expected):
+		actual -> expected
+		where
+      <zip(relation-match-internal(|rel)) <+ relation-match-internal(|rel)> (actual, expected)
+	
+	relation-match-internal(|rel):
+		(actual, expected) -> expected
+		where
+			<relation-match-internal-match(|rel)> (actual, expected) <+
+			<where(<relation-is-symmetric> rel); relation-match-internal-match(|rel)> (expected, actual) <+
+			(
+			  actual'   := <relation-try-term-to-uri> actual
+      ; expected' := <relation-try-term-to-uri> expected
+			; (
+			  	<relation-match-internal-match(|rel)> (actual', expected') <+
+			    <where(<relation-is-symmetric> rel); relation-match-internal-match(|rel)> (expected', actual')
+			  )
+			)
+			
+  relation-match-internal-match(|rel):
+  	(actual, expected) -> <relation-match-tuple> (rel, actual, expected)
+  	// TODO: can this be transtive?
+  	
+	relation-match-internal-match(|rel):
+  	(actual, expected) -> <id>
+  	where
+  	  <get-index-relations(|rel); fetch(relation-try-term-to-uri; ?expected)> actual <+ 
+		  <where(<relation-is-transitive> rel); get-index-relations-transitive(|rel); fetch(relation-try-term-to-uri; ?expected)> actual
+
+rules /** @internal */
+  
+  get-index-relations(|rel):
+  	term -> <index-get-all; map(relation-tuple-value)> RelTuple(term, rel, ())
+  		
+	get-index-relations-transitive(|rel):
+		term -> <index-get-all; mapconcat(relation-tuple-value; insert-results-or-delay)> RelTuple(term, Transitive(rel), ()) 
+  		
 	relation-tuple-value:
 		RelTuple(_, _, v) -> v
+
+rules /** @internal */
+
+  get-static-relations(|rel):
+  	t -> val*
+  	with
+      stat-set := <new-iset>
+    ; <try(relation-store-value(store-tuple(|stat-set)))> (rel, t)
+    ; val* := <iset-elements> stat-set
+      
+  store-tuple(|set): elem -> <fail> with <iset-add(|elem)> set
 
 "
 
@@ -4373,36 +4430,16 @@ signature
 rules // Lookup
 
 	relation-create-lookup(|ctx, rel):
-		t -> <task-create-insert(|ctx); task-create-combine(|ctx)> lookup
+		term -> <task-create-insert(|ctx); task-create-combine(|ctx)> lookup
 		with
-			lookup := <new-task(|ctx)> RelationLookup(rel, t)
+			lookup := <new-task(|ctx)> RelationLookup(rel, term)
 
   perform-task(|task-id):
-    RelationLookup(rel, t) -> <map(relation-try-term-to-uri)> [refl-val*, stat-val*, val*, trans-val*]
+    RelationLookup(rel, term) -> result*
     where
-      t' := <relation-try-term-to-uri> t
-		; <relation-add-read(|task-id)> t'
-		; stat-val* := <relation-get-static(|rel)> t'
-    ; val* := <get-index-relations(|rel)> t'
-    ; if <relation-is-reflexive> rel then
-        refl-val* := [t']
-      else
-        refl-val* := []
-      end
-    ; if <relation-is-transitive> rel then
-        trans-val* := <get-index-transitive-relations(|rel)> t'
-      else
-        trans-val* := []
-      end
-      
-  relation-get-static(|rel):
-  	t -> val*
-  	with
-      stat-set := <new-iset>
-    ; <try(relation-store-value(store-tuple(|stat-set)))> (rel, t)
-    ; val* := <iset-elements> stat-set
-      
-  store-tuple(|set): elem -> <fail> with <iset-add(|elem)> set
+		  <relation-try-term-to-uri; relation-add-read(|task-id)> term
+		; result* := <relation-lookup(|rel)> term
+		  // TODO: remove redundant relation-try-term-to-uri call, already called in relation-lookup.
   
 rules // Match
 
@@ -4415,29 +4452,13 @@ rules // Match
 	perform-task(|task-id):
 		RelationMatch(rel, actual, expected) -> expected
 		where
-	    <zip(do-relation-match(|task-id, rel))> (actual, expected) <+
-		  <do-relation-match(|task-id, rel)> (actual, expected)
-	
-	do-relation-match(|task-id, rel):
-	  (actual, expected) -> expected
-	  where
       actual'   := <relation-try-term-to-uri> actual
     ; <relation-add-read(|task-id)> actual'
     ; expected' := <relation-try-term-to-uri> expected
     ; <relation-add-read(|task-id)> expected'
-    ; (<relation-perform-match(|rel)> (actual, expected) <+
-      <relation-perform-match(|rel)> (actual', expected') <+
-      <where(<relation-is-symmetric> rel); relation-perform-match(|rel)> (expected', actual'))
-
-  relation-perform-match(|rel):
-  	(actual, expected) -> <relation-match-tuple> (rel, actual, expected)
-  	// TODO: can this be transtive?
-  	
-	relation-perform-match(|rel):
-  	(actual, expected) -> <id>
-  	where
-  	  <get-index-relations(|rel); fetch(relation-try-term-to-uri; ?expected)> actual <+ 
-		  <where(<relation-is-transitive> rel); get-index-transitive-relations(|rel); fetch(relation-try-term-to-uri; ?expected)> actual
+      // TODO: storing reads when actual and/or expected are lists will not work.
+    ; <relation-match(|rel, expected)> actual
+      // TODO: remove redundant relation-try-term-to-uri calls, already called in relation-match.
 		  
 rules // Distance
 	
