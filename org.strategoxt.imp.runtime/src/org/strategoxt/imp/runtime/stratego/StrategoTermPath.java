@@ -26,7 +26,6 @@ import org.strategoxt.imp.generator.position_of_term_1_0;
 import org.strategoxt.imp.generator.term_at_position_0_1;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.services.ContentProposerSemantic;
-import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 import org.strategoxt.stratego_aterm.explode_aterm_0_0;
@@ -100,23 +99,6 @@ public class StrategoTermPath {
 	
 	/**
 	 * Determine the path to a term in 'ast' with origin 'origin'.
-	 * Assumes the 'observer' requires locking to guarantee thread safety.
-	 */
-	public static IStrategoList getTermPathWithOrigin(StrategoObserver observer, IStrategoTerm ast, IStrategoTerm origin) {
-		observer.getLock().lock();
-		try {
-			Context context = observer.getRuntime().getCompiledContext();
-			getTermPathWithOrigin(context, ast, origin);
-		}
-		finally {
-			observer.getLock().unlock();
-		}
-		return null;
-	}
-	
-	/**
-	 * Determine the path to a term in 'ast' with origin 'origin'.
-	 * This method should only be called if you're operating in a thread save manner and obtained the observer's reentrant lock.
 	 */
 	public static IStrategoList getTermPathWithOrigin(Context context, IStrategoTerm ast, IStrategoTerm origin) {
 		if (ast == null)
@@ -209,17 +191,6 @@ public class StrategoTermPath {
 		return term_at_position_0_1.instance.invoke(context, term, path);
 	}
 	
-	public static IStrategoTerm getTermAtPath(StrategoObserver observer, IStrategoTerm term, IStrategoList path) {
-		observer.getLock().lock();
-		try {
-			getTermAtPath(observer.getRuntime().getCompiledContext(), term, path);
-		}
-		finally {
-			observer.getLock().unlock();
-		}
-		return null;
-	}
-
 	private static int indexOfIdentical(IStrategoTerm parent, IStrategoTerm node) {
 		int index = 0;
 		for (int size = parent.getSubtermCount(); index < size; index++) {

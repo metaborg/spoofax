@@ -45,9 +45,15 @@ public class SelectionUtil {
 				StrategoObserver observer = editorState.getDescriptor().createService(StrategoObserver.class, editorState.getParseController());
 				IStrategoTerm analyzedAst = editorState.getCurrentAnalyzedAst() == null? editorState.getAnalyzedAst() : editorState.getCurrentAnalyzedAst();
 				
-				IStrategoList path = StrategoTermPath.getTermPathWithOrigin(observer, analyzedAst, selectionAst);
-				if (path != null) {
-					return StrategoTermPath.getTermAtPath(observer, editorState.getCurrentAnalyzedAst(), path);
+				observer.getLock().lock();
+				try {
+					IStrategoList path = StrategoTermPath.getTermPathWithOrigin(observer.getRuntime().getCompiledContext(), analyzedAst, selectionAst);
+					if (path != null) {
+						return StrategoTermPath.getTermAtPath(observer.getRuntime().getCompiledContext(), editorState.getCurrentAnalyzedAst(), path);
+					}
+				}
+				finally {
+					observer.getLock().unlock();
 				}
 			} catch (BadDescriptorException e) {
 				e.printStackTrace();

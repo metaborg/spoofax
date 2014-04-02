@@ -19,6 +19,7 @@ import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
+import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.services.views.StrategoLabelProvider;
 import org.strategoxt.imp.runtime.services.views.StrategoTreeContentProvider;
 import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
@@ -151,7 +152,16 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
     	
     	if (textSelection != null) {
 	    	IStrategoList path = null;
-	    	path = StrategoTermPath.getTermPathWithOrigin(SpoofaxOutlineUtil.getObserver(editorState), (IStrategoTerm) outline, textSelection);
+	    	
+	    	StrategoObserver observer = SpoofaxOutlineUtil.getObserver(editorState);
+	    	observer.getLock().lock();
+	    	try {
+	    		// TODO: use InputTermBuilder instead!
+		    	path = StrategoTermPath.getTermPathWithOrigin(observer.getRuntime().getCompiledContext(), (IStrategoTerm) outline, textSelection);
+	    	}
+	    	finally {
+	    		observer.getLock().unlock();
+	    	}
 	    	
 	    	if (path != null) {
 		    	TreePath[] treePaths = termPathToTreePaths(path);

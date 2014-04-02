@@ -68,7 +68,14 @@ public class PropertiesService implements IPropertiesService {
 			// trying to obtain an AST selection in the old AST using the new selection offset and selection length may fail.
 			return emptyList;
 		}
-		selectionAst = InputTermBuilder.getMatchingAncestor(selectionAst, false);
+
+		observer.getLock().lock();
+		try {
+			selectionAst = InputTermBuilder.getMatchingAncestor(selectionAst, false);
+		}
+		finally {
+			observer.getLock().unlock();
+		}
 		IStrategoTerm ast = null;
 		if (source) {
 			ast = editorState.getCurrentAst();
