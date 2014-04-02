@@ -294,6 +294,11 @@ rules
     ; !V([], <id>)
     ; box2text-string(|120)
       
+  pp-partial-{sdf-name}-string =
+    prettyprint-example
+    ; !V([], <id>)
+    ; box2text-string(|120)
+      
   pp-debug :
     ast -> result
     with
