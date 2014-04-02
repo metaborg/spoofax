@@ -1,6 +1,10 @@
 package org.strategoxt.imp.runtime.services.views.properties;
 
 import org.eclipse.imp.parser.IParseController;
+import org.spoofax.interpreter.core.InterpreterErrorExit;
+import org.spoofax.interpreter.core.InterpreterException;
+import org.spoofax.interpreter.core.InterpreterExit;
+import org.spoofax.interpreter.core.UndefinedStrategyException;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.TermFactory;
 import org.strategoxt.imp.runtime.EditorState;
@@ -93,7 +97,11 @@ public class PropertiesService implements IPropertiesService {
 		
 		IStrategoTerm properties = null;
 		IStrategoTerm input = new InputTermBuilder(observer.getRuntime(), ast).makeInputTerm(selectionAst, true, source);
-		properties = observer.invokeSilent(propertiesRule, input, editorState.getResource().getFullPath().toFile());
+		try {
+			properties = observer.invoke(propertiesRule, input, editorState.getResource().getFullPath().toFile());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		if (properties == null) {
 			observer.reportRewritingFailed();
 		}
