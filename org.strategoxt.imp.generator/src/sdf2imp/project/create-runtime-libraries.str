@@ -4305,14 +4305,21 @@ rules
 
 strategies
   
-  // interface for static relation tuples, e.g. 
-  //
-  // relation-store-value(store): (SubType(), IntTy()) -> <store> FloatTy()
+  /** 
+   * Interface for static relation tuples, e.g. 
+   * relation-store-value(store): (SubType(), IntTy()) -> <store> FloatTy()
+   */
   relation-store-value(store) = fail
-	// interface for static relation tuples, e.g. 
-  //
-  // relation-match-tuple: (SubType(), IntTy(), FloatTy())
+  /** 
+   * Interface for static relation tuples, e.g. 
+   * relation-match-tuple = ?(SubType(), IntTy(), FloatTy())
+   */
   relation-match-tuple = fail
+  /** 
+   * Interface for custom relations, e.g.
+   * relation-match-custom(|ctx): (SubType(), IntTy(), FloatTy()) -> task
+   */
+  relation-match-custom(|ctx) = fail
   
   relation-is-transitive = fail
   relation-is-reflexive  = fail
@@ -4382,7 +4389,7 @@ rules // Check if relation exists between two terms
 rules /** @internal */
   
   get-index-relations(|rel):
-  	term -> <index-get-all; map(relation-tuple-value)> RelTuple(term, rel, ())
+    term -> <index-get-all; mapconcat(relation-tuple-value; (insert-results-or-delay <+ MkSingleton))> RelTuple(term, rel, ())
   		
 	get-index-relations-transitive(|rel):
 		term -> <index-get-all; mapconcat(relation-tuple-value; insert-results-or-delay)> RelTuple(term, Transitive(rel), ()) 
@@ -4442,13 +4449,20 @@ rules // Lookup
 		  // TODO: remove redundant relation-try-term-to-uri call, already called in relation-lookup.
   
 rules // Match
+	
+  relation-create-match(|ctx):
+  	(rel, actual, expected) -> <relation-create-match(|ctx, rel, expected)> actual
 
   relation-create-match(|ctx, rel, expected):
-  	actual -> <new-task(|ctx)> RelationMatch(rel, actual, expected)
+  	actual -> result
+  	with
+  	  match-task := <new-task(|ctx)> RelationMatch(rel, actual, expected)
+  	; if custom-task := <relation-match-custom(|ctx)> (rel, actual, expected) then
+  	  	result := <task-create-choice(|ctx)> [custom-task, match-task]
+  	  else
+  	  	result := match-task
+  	  end
   	
-  relation-create-match(|ctx):
-  	(rel, actual, expected) -> <new-task(|ctx)> RelationMatch(rel, actual, expected)
-
 	perform-task(|task-id):
 		RelationMatch(rel, actual, expected) -> expected
 		where
