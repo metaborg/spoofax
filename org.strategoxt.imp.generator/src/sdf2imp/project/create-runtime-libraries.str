@@ -514,14 +514,19 @@ rules // Multi-file analysis
 	      	// TODO: Update markers for partitions that have had a task executed but were not analyzed.
 	      , analysis-default-debug-time(!\"Time - messages: \") | \"analysis-multiple-update-editors\"
 	      );
-	    	measure-time(
-		      index-persist
-	      , analysis-default-debug-time(!\"Time - index persistance: \") | \"analysis-multiple-index-persist\"
-	      );
-	    	measure-time(
-		      task-persist
-	      , analysis-default-debug-time(!\"Time - task engine persistance: \") | \"analysis-multiple-task-persist\"
-	      )	      
+	    	(
+	    		analysis-disable-persist <+
+	    		(
+			    	measure-time(
+				      index-persist
+			      , analysis-default-debug-time(!\"Time - index persistance: \") | \"analysis-multiple-index-persist\"
+			      );
+			    	measure-time(
+				      task-persist
+			      , analysis-default-debug-time(!\"Time - task engine persistance: \") | \"analysis-multiple-task-persist\"
+			      )
+		      )
+	      )  
 	    , analysis-default-debug-time(!\"Time - total: \") | \"analysis-multiple-total\"
       );
     	measure-time(
@@ -646,6 +651,7 @@ rules
 
 	analysis-pre-trans = fail
 	analysis-post-trans(|ctx) = fail
+	analysis-disable-persist = fail
 
 "
 
