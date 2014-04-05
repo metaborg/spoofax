@@ -4436,25 +4436,37 @@ signature
   
   constructors
 
+		RelationTerm     : Term -> Instruction
     RelationLookup   : Relation * Term -> Instruction
-    RelationMatch    : Relation * Term * Term -> Instruction
+    RelationMatch    : List(Term) * Term -> Instruction
     RelationDistance : Relation * Term * Term -> Instruction
+
+rules // URI conversion
+	
+	relation-create-term(|ctx):
+		term -> <new-task(|ctx)> RelationTerm(term)
+		
+	perform-task(|task-id):
+		RelationTerm(term) -> (term, term')
+		where
+	    term' := <relation-try-term-to-uri> term
+		; <relation-add-read(|task-id)> term'
     
-rules // Lookup
+rules // Lookup (customised in Java to store its result in a hash set, for fast lookups)
 
 	relation-create-lookup(|ctx, rel):
-		term -> <task-create-insert(|ctx); task-create-combine(|ctx)> lookup
+		term -> <task-create-insert(|ctx); task-create-combine(|ctx)> lookup-task
 		with
-			lookup := <new-task(|ctx)> RelationLookup(rel, term)
+		  term-task   := <relation-create-term(|ctx)> term
+		; lookup-task := <new-task(|ctx)> RelationLookup(rel, term-task)
 
   perform-task(|task-id):
-    RelationLookup(rel, term) -> result*
+    RelationLookup(rel, (term, term')) -> result*
     where
-		  <relation-try-term-to-uri; relation-add-read(|task-id)> term
-		; result* := <relation-lookup(|rel)> term
-		  // TODO: remove redundant relation-try-term-to-uri call, already called in relation-lookup.
+		  result* := <relation-lookup(|rel)> term
+		  // TODO: remove redundant relation-try-term-to-uri calls in relation-lookup, term' is already the correct term.
   
-rules // Match
+rules // Match (custom implementation in Java that uses the hash set from a lookup task for fast lookups)
 	
   relation-create-match(|ctx):
   	(rel, actual, expected) -> <relation-create-match(|ctx, rel, expected)> actual
@@ -4462,23 +4474,14 @@ rules // Match
   relation-create-match(|ctx, rel, expected):
   	actual -> result
   	with
-  	  match-task := <new-task(|ctx)> RelationMatch(rel, actual, expected)
+  		lookup-task := <relation-create-lookup(|ctx, rel)> actual
+  	; term-task   := <relation-create-term(|ctx)> expected
+  	; match-task  := <new-task(|ctx)> RelationMatch(lookup-task, term-task)
   	; if custom-task := <relation-match-custom(|ctx)> (rel, actual, expected) then
   	  	result := <task-create-choice(|ctx)> [custom-task, match-task]
   	  else
   	  	result := match-task
   	  end
-  	
-	perform-task(|task-id):
-		RelationMatch(rel, actual, expected) -> expected
-		where
-      actual'   := <relation-try-term-to-uri> actual
-    ; <relation-add-read(|task-id)> actual'
-    ; expected' := <relation-try-term-to-uri> expected
-    ; <relation-add-read(|task-id)> expected'
-      // TODO: storing reads when actual and/or expected are lists will not work.
-    ; <relation-match(|rel, expected)> actual
-      // TODO: remove redundant relation-try-term-to-uri calls, already called in relation-match.
 		  
 rules // Distance
 	
