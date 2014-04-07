@@ -80,6 +80,14 @@ public class SpoofaxEditor extends UniversalEditor {
 			try {
 				PropertiesService propertiesService = editorState.getDescriptor().createService(PropertiesService.class, editorState.getParseController());
 				if (propertiesService.getPropertiesRule() == null) {
+					spoofaxViewer.getSelectionProvider().addSelectionChangedListener(new ISelectionChangedListener() {
+
+						@Override
+						public void selectionChanged(SelectionChangedEvent event) {
+							((SelectionProvider) selectionProvider).setSelection2((ITextSelection) spoofaxViewer.getSelectionProvider().getSelection());
+						}
+						
+					});
 					return;
 				}
 			} catch (BadDescriptorException e) {
@@ -160,7 +168,6 @@ public class SpoofaxEditor extends UniversalEditor {
 	}
 	
 	protected class SelectionProvider implements IPostSelectionProvider, ISelectionValidator {
-
 		StrategoTermSelection selection;
 		
 		List<ISelectionChangedListener> listeners = new ArrayList<ISelectionChangedListener>();
@@ -170,7 +177,7 @@ public class SpoofaxEditor extends UniversalEditor {
 		}
 
 		public ISelection getSelection() {
-			return selection;
+			return selection != null? selection : selection2;
 		}
 
 		public void removeSelectionChangedListener(ISelectionChangedListener listener) {
@@ -193,6 +200,16 @@ public class SpoofaxEditor extends UniversalEditor {
 			}
 		}
 
+		ITextSelection selection2; // temporary workaround for Spoofax/812
+		public void setSelection2(ITextSelection selection) {
+			this.selection2 = selection;
+			SelectionChangedEvent e = new SelectionChangedEvent(this, selection);
+			for (ISelectionChangedListener listener : listeners) {
+				listener.selectionChanged(e);
+			}
+			spoofaxViewer.firePostSelectionChanged(selection.getStartLine(), selection.getEndLine());
+		}
+		
 		public void addPostSelectionChangedListener(ISelectionChangedListener listener) {
 			if (spoofaxViewer != null) {
 				if (spoofaxViewer.getSelectionProvider() instanceof IPostSelectionProvider)  {
