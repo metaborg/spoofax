@@ -27,7 +27,6 @@ public class OutlineService implements IOutlineService {
 		this.controller = controller;
 	}
 
-
 	@Override
 	public void setOutlineRule(String rule) {
 		this.outlineRule = rule;

@@ -125,11 +125,24 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
     	debounceSelectionChanged = true;
     	if (event.getSource() == getTreeViewer()) {
         	outlineSelectionToTextSelection();
+        	new Thread(new Runnable() {
+				
+				@Override
+				public void run() {
+					try {
+						// this is rather ugly but the problem is that new text selections are generated asynchronously and we don't know how many
+						Thread.sleep(50);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+		        	debounceSelectionChanged = false;
+				}
+			}).start();
        	}
        	else {
        		textSelectionToOutlineSelection();
+        	debounceSelectionChanged = false;
        	}
-    	debounceSelectionChanged = false;
     }
     
     public void outlineSelectionToTextSelection() {
