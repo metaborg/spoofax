@@ -1,5 +1,7 @@
 package org.strategoxt.imp.runtime.editor;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -8,9 +10,12 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.text.ISelectionValidator;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.IVerticalRuler;
+import org.eclipse.jface.viewers.IPostSelectionProvider;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
@@ -37,6 +42,9 @@ public class SpoofaxEditor extends UniversalEditor {
 	
 	public static final String EDITOR_ID = "org.eclipse.imp.runtime.editor.spoofaxEditor";
 	
+	private SpoofaxViewer spoofaxViewer;
+	private ISelectionProvider selectionProvider = new SelectionProvider();
+	
 	public SpoofaxEditor() {
 		setSourceViewerConfiguration(new SpoofaxSourceViewerConfiguration(new StructuredSourceViewerConfiguration()));
 	}
@@ -57,6 +65,11 @@ public class SpoofaxEditor extends UniversalEditor {
 	}
 	
 	@Override
+	public ISelectionProvider getSelectionProvider() {
+		return selectionProvider;
+	}
+	
+	@Override
 	public void createPartControl(Composite parent) {
 		super.createPartControl(parent);
 
@@ -74,32 +87,19 @@ public class SpoofaxEditor extends UniversalEditor {
 			}
 		}
 		
-		final ISelectionProvider textSelectionProvider = getSite().getSelectionProvider();
-		getSite().setSelectionProvider(new org.strategoxt.imp.runtime.editor.SelectionProvider());
-		
-		textSelectionProvider.addSelectionChangedListener(new ISelectionChangedListener() {
-
-			@Override
-			public void selectionChanged(SelectionChangedEvent event) {
-				ITextSelection textSelection = (ITextSelection) event.getSelection();
-				updateSelection(textSelection.getOffset(), textSelection.getLength()); // generate new StrategoTermSelection when TextSelection changes
-			}
-		});
-
 		((StyledText) this.getAdapter(Control.class)).addCaretListener(new CaretListener() {
 
 			@Override
 			public void caretMoved(CaretEvent event) {
-				ITextSelection textSelection = (ITextSelection) textSelectionProvider.getSelection();
+				ITextSelection textSelection = (ITextSelection) spoofaxViewer.getSelectionProvider().getSelection();
 				int offset = textSelection.getLength() == 0 ? event.caretOffset : textSelection.getOffset();
-				updateSelection(offset, textSelection.getLength()); // generate new StrategoTermSelection when cursor position changes (because TextSelection doesn't change when selection stays empty).
+				updateSelection(offset, textSelection.getLength()); // generate new StrategoTermSelection when cursor position changes (note: JFace's text editors normally don't generate a new selection when the selection stays empty (length == 0).
 			}
 		});
 	}
 	
 	public void updateSelection(final int offset, final int length) {
 		final SpoofaxEditor spoofaxEditor = this;
-		final ISelectionProvider strategoTermSelectionProvider = getSite().getSelectionProvider();
 		final Display display = Display.getCurrent();
 
 		Job job = new Job("Updating properties view") {
@@ -110,7 +110,7 @@ public class SpoofaxEditor extends UniversalEditor {
 				display.asyncExec(new Runnable() {
 					@Override
 					public void run() {
-						strategoTermSelectionProvider.setSelection(selection);
+						selectionProvider.setSelection(selection);
 					}
 				});
 				return Status.OK_STATUS;
@@ -145,8 +145,65 @@ public class SpoofaxEditor extends UniversalEditor {
 			return super.createSourceViewer(parent, ruler, styles);
 		}
 		
-		ISourceViewer viewer = new SpoofaxViewer(parent, ruler, getOverviewRuler(), isOverviewRulerVisible(), styles, getParseController());
-		getSourceViewerDecorationSupport(viewer); // ensure decoration support has been created and configured.
-		return viewer;
+		spoofaxViewer = new SpoofaxViewer(parent, ruler, getOverviewRuler(), isOverviewRulerVisible(), styles, getParseController());
+		getSourceViewerDecorationSupport(spoofaxViewer); // ensure decoration support has been created and configured.
+		return spoofaxViewer;
+	}
+	
+	protected class SelectionProvider implements IPostSelectionProvider, ISelectionValidator {
+
+		StrategoTermSelection selection;
+		
+		List<ISelectionChangedListener> listeners = new ArrayList<ISelectionChangedListener>();
+		
+		public void addSelectionChangedListener(ISelectionChangedListener listener) {
+			listeners.add(listener);
+		}
+
+		public ISelection getSelection() {
+			return selection;
+		}
+
+		public void removeSelectionChangedListener(ISelectionChangedListener listener) {
+			listeners.remove(listener);
+		}
+
+		public void setSelection(ISelection selection) {
+			if (selection instanceof StrategoTermSelection) {
+				this.selection = (StrategoTermSelection) selection;
+
+				SelectionChangedEvent e = new SelectionChangedEvent(this, selection);
+				for (ISelectionChangedListener listener : listeners) {
+					listener.selectionChanged(e);
+				}
+				
+				spoofaxViewer.firePostSelectionChanged(this.selection);
+			}
+			else {
+				doSetSelection(selection);
+			}
+		}
+
+		public void addPostSelectionChangedListener(ISelectionChangedListener listener) {
+			if (spoofaxViewer != null) {
+				if (spoofaxViewer.getSelectionProvider() instanceof IPostSelectionProvider)  {
+					IPostSelectionProvider provider= (IPostSelectionProvider) spoofaxViewer.getSelectionProvider();
+					provider.addPostSelectionChangedListener(listener);
+				}
+			}
+		}
+
+		public void removePostSelectionChangedListener(ISelectionChangedListener listener) {
+			if (spoofaxViewer != null)  {
+				if (spoofaxViewer.getSelectionProvider() instanceof IPostSelectionProvider)  {
+					IPostSelectionProvider provider= (IPostSelectionProvider) spoofaxViewer.getSelectionProvider();
+					provider.removePostSelectionChangedListener(listener);
+				}
+			}
+		}
+
+		public boolean isValid(ISelection postSelection) {
+			return true;
+	}
 	}
 }

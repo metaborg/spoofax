@@ -1,7 +1,9 @@
 package org.strategoxt.imp.runtime.editor;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.imp.services.IAutoEditStrategy;
@@ -14,10 +16,16 @@ import org.eclipse.jface.text.DocumentRewriteSession;
 import org.eclipse.jface.text.DocumentRewriteSessionType;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentExtension4;
+import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.Region;
+import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.text.source.IOverviewRuler;
 import org.eclipse.jface.text.source.IVerticalRuler;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
 import org.eclipse.jface.text.source.projection.ProjectionViewer;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.strategoxt.imp.runtime.services.views.outline.SpoofaxOutlinePopupFactory;
@@ -79,7 +87,7 @@ public class SpoofaxViewer extends ProjectionViewer {
     
 	private IParseController parseController;
 	private Composite parent;
-    
+	
 	public SpoofaxViewer(Composite parent, IVerticalRuler ruler, IOverviewRuler overviewRuler, boolean showsAnnotationOverview, int styles, IParseController parseController) {
 		super(parent, ruler, overviewRuler, showsAnnotationOverview, styles);
 		this.parseController = parseController;
@@ -349,4 +357,84 @@ public class SpoofaxViewer extends ProjectionViewer {
         }
         return false;
     }
+
+	// BEGIN: SUPPORT FOR PROPERTIES VIEW
+
+	@SuppressWarnings("rawtypes")
+	private List fPostSelectionChangedListeners;
+	
+	@Override
+	protected void handleDispose() {
+		super.handleDispose();
+		if (fPostSelectionChangedListeners != null)  {
+			fPostSelectionChangedListeners.clear();
+			fPostSelectionChangedListeners= null;
+		}
+	}
+
+	/**
+	 * Copy of TextViewer#addPostSelectionChangedListener(ISelectionChangedListener)
+	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@Override
+	public void addPostSelectionChangedListener(ISelectionChangedListener listener)  {
+
+		Assert.isNotNull(listener);
+
+		if (fPostSelectionChangedListeners == null)
+			fPostSelectionChangedListeners= new ArrayList();
+
+		if (!fPostSelectionChangedListeners.contains(listener))
+			fPostSelectionChangedListeners.add(listener);
+	}
+
+	/**
+	 * Copy of TextViewer#removePostSelectionChangedListener(ISelectionChangedListener)
+	 */
+	@Override
+	public void removePostSelectionChangedListener(ISelectionChangedListener listener)  {
+
+		Assert.isNotNull(listener);
+
+		if (fPostSelectionChangedListeners != null)  {
+			fPostSelectionChangedListeners.remove(listener);
+			if (fPostSelectionChangedListeners.size() == 0)
+				fPostSelectionChangedListeners= null;
+		}
+	}
+	
+	public void firePostSelectionChanged(StrategoTermSelection selection) {
+		SelectionChangedEvent event= new SelectionChangedEvent(this, selection);
+		firePostSelectionChanged(event);
+	}
+	
+	/**
+	 * Copy of TextViewer#firePostSelectionChanged(int, int)
+	 */
+	@Override
+	protected void firePostSelectionChanged(int offset, int length) {
+		if (redraws()) {
+			IRegion r= widgetRange2ModelRange(new Region(offset, length));
+			ISelection selection= r != null ? new TextSelection(getDocument(), r.getOffset(), r.getLength()) : TextSelection.emptySelection();
+			SelectionChangedEvent event= new SelectionChangedEvent(this, selection);
+			firePostSelectionChanged(event);
+		}
+	}
+	
+	/**
+	 * Copy of TextViewer#firePostSelectionChanged(SelectionChangedEvent)
+	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private void firePostSelectionChanged(SelectionChangedEvent event) {
+		List listeners= fPostSelectionChangedListeners;
+		if (listeners != null) {
+			listeners= new ArrayList(listeners);
+			for (int i= 0; i < listeners.size(); i++) {
+				ISelectionChangedListener l= (ISelectionChangedListener) listeners.get(i);
+				l.selectionChanged(event);
+			}
+		}
+	}
+	
+	// END: SUPPORT FOR PROPERTIES VIEW
 }
