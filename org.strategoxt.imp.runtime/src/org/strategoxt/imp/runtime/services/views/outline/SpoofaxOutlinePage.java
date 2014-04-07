@@ -148,7 +148,7 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
     	}
     	
     	EditorState editorState = EditorState.getEditorFor(parseController);
-    	IStrategoTerm textSelection = editorState.getSelectionAst(true);
+    	IStrategoTerm textSelection = editorState.getSelectionAst(false);
     	
     	if (textSelection != null) {
 	    	IStrategoList path = null;
