@@ -87,13 +87,22 @@ public class SpoofaxEditor extends UniversalEditor {
 			}
 		}
 		
+		spoofaxViewer.getSelectionProvider().addSelectionChangedListener(new ISelectionChangedListener() {
+
+			@Override
+			public void selectionChanged(SelectionChangedEvent event) {
+				ITextSelection textSelection = (ITextSelection) event.getSelection();
+				updateSelection(textSelection.getOffset(), textSelection.getLength()); // generate new StrategoTermSelection when TextSelection changes
+			}
+		});
+		
 		((StyledText) this.getAdapter(Control.class)).addCaretListener(new CaretListener() {
 
 			@Override
 			public void caretMoved(CaretEvent event) {
 				ITextSelection textSelection = (ITextSelection) spoofaxViewer.getSelectionProvider().getSelection();
 				int offset = textSelection.getLength() == 0 ? event.caretOffset : textSelection.getOffset();
-				updateSelection(offset, textSelection.getLength()); // generate new StrategoTermSelection when cursor position changes (note: JFace's text editors normally don't generate a new selection when the selection stays empty (length == 0).
+				updateSelection(offset, textSelection.getLength()); // generate new StrategoTermSelection when cursor position changes
 			}
 		});
 	}
