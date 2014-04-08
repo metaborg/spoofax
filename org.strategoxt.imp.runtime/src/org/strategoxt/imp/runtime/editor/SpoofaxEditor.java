@@ -73,21 +73,12 @@ public class SpoofaxEditor extends UniversalEditor {
 	public void createPartControl(Composite parent) {
 		super.createPartControl(parent);
 
-		
 		// temporary workaround for Spoofax/812
 		EditorState editorState = EditorState.getEditorFor(this);
 		if (editorState != null) {
 			try {
 				PropertiesService propertiesService = editorState.getDescriptor().createService(PropertiesService.class, editorState.getParseController());
 				if (propertiesService.getPropertiesRule() == null) {
-					spoofaxViewer.getSelectionProvider().addSelectionChangedListener(new ISelectionChangedListener() {
-
-						@Override
-						public void selectionChanged(SelectionChangedEvent event) {
-							((SelectionProvider) selectionProvider).setSelection2((ITextSelection) spoofaxViewer.getSelectionProvider().getSelection());
-						}
-						
-					});
 					return;
 				}
 			} catch (BadDescriptorException e) {
@@ -177,7 +168,8 @@ public class SpoofaxEditor extends UniversalEditor {
 		}
 
 		public ISelection getSelection() {
-			return selection != null? selection : selection2;
+			return selection != null? selection : 
+				spoofaxViewer.getSelectionProvider().getSelection(); // temporary workaround for Spoofax/812
 		}
 
 		public void removeSelectionChangedListener(ISelectionChangedListener listener) {
@@ -200,16 +192,6 @@ public class SpoofaxEditor extends UniversalEditor {
 			}
 		}
 
-		ITextSelection selection2; // temporary workaround for Spoofax/812
-		public void setSelection2(ITextSelection selection) {
-			this.selection2 = selection;
-			SelectionChangedEvent e = new SelectionChangedEvent(this, selection);
-			for (ISelectionChangedListener listener : listeners) {
-				listener.selectionChanged(e);
-			}
-			spoofaxViewer.firePostSelectionChanged(selection.getStartLine(), selection.getEndLine());
-		}
-		
 		public void addPostSelectionChangedListener(ISelectionChangedListener listener) {
 			if (spoofaxViewer != null) {
 				if (spoofaxViewer.getSelectionProvider() instanceof IPostSelectionProvider)  {
