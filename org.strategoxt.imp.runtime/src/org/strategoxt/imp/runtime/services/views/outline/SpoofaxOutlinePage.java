@@ -3,9 +3,13 @@ package org.strategoxt.imp.runtime.services.views.outline;
 import java.util.LinkedList;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreePath;
 import org.eclipse.jface.viewers.TreeSelection;
@@ -70,7 +74,14 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 	}
 
 	public void update(IParseController arg0, IProgressMonitor arg1) {
-		update();
+		Display.getDefault().asyncExec(new Runnable() {
+
+			@Override
+			public void run() {
+				update();
+			}
+		});
+		
 	}
 	
 	public AnalysisRequired getAnalysisRequired() {
@@ -83,33 +94,45 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 	}
 	
 	public void update() {
-		EditorState editorState = new EditorState(EditorState.getEditorFor(parseController).getEditor()); // create new editorState to reload descriptor
-		IOutlineService outlineService = null;
-		try {
-			outlineService = editorState.getDescriptor().createService(IOutlineService.class, editorState.getParseController());
-		} catch (BadDescriptorException e) {
-			e.printStackTrace();
-		}
-		
-		outline = outlineService.getOutline();
-		final int outline_expand_to_level = outlineService.getExpandToLevel();
-		
-		if (outline == null) {
-			outline = SpoofaxOutlineUtil.factory.makeList();
-		}
-		// workaround for https://bugs.eclipse.org/9262
-		if (outline.getTermType() == IStrategoTerm.APPL) {
-			outline = SpoofaxOutlineUtil.factory.makeList(outline);
-		}
-		
-		Display.getDefault().asyncExec(new Runnable() {
-			public void run() {
-				if (getTreeViewer().getControl() != null && !getTreeViewer().getControl().isDisposed()) {
-					getTreeViewer().setInput(outline);
-					getTreeViewer().expandToLevel(outline_expand_to_level);
+		final EditorState editorState = new EditorState(EditorState.getEditorFor(parseController).getEditor()); // create new editorState to reload descriptor
+		final Display display = Display.getCurrent();
+
+		Job job = new Job("Updating outline view") {
+			@Override
+			protected IStatus run(IProgressMonitor monitor) {		
+
+				IOutlineService outlineService = null;
+				try {
+					outlineService = editorState.getDescriptor().createService(IOutlineService.class, editorState.getParseController());
+				} catch (BadDescriptorException e) {
+					e.printStackTrace();
 				}
+				
+				outline = outlineService.getOutline();
+				final int outline_expand_to_level = outlineService.getExpandToLevel();
+				
+				if (outline == null) {
+					outline = SpoofaxOutlineUtil.factory.makeList();
+				}
+				// workaround for https://bugs.eclipse.org/9262
+				if (outline.getTermType() == IStrategoTerm.APPL) {
+					outline = SpoofaxOutlineUtil.factory.makeList(outline);
+				}
+				
+				display.asyncExec(new Runnable() {
+					@Override
+					public void run() {
+						if (getTreeViewer().getControl() != null && !getTreeViewer().getControl().isDisposed()) {
+							getTreeViewer().setInput(outline);
+							getTreeViewer().expandToLevel(outline_expand_to_level);
+						}
+					}
+				});
+				return Status.OK_STATUS;
 			}
-		});
+		};
+
+		job.schedule();
 	}
 
 	@Override
@@ -126,22 +149,21 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
     	if (event.getSource() == getTreeViewer()) {
         	outlineSelectionToTextSelection();
         	new Thread(new Runnable() {
-				
-				@Override
-				public void run() {
-					try {
-						// this is rather ugly but the problem is that new text selections are generated asynchronously and we don't know how many
-						Thread.sleep(50);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-		        	debounceSelectionChanged = false;
-				}
-			}).start();
+    			
+    			@Override
+    			public void run() {
+    				try {
+    					// this is rather ugly but the problem is that new text selections are generated asynchronously and we don't know how many
+    					Thread.sleep(100);
+    				} catch (InterruptedException e) {
+    					e.printStackTrace();
+    				}
+    	        	debounceSelectionChanged = false;
+    			}
+    		}).start();
        	}
        	else {
        		textSelectionToOutlineSelection();
-        	debounceSelectionChanged = false;
        	}
     }
     
@@ -157,34 +179,51 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
     
     public void textSelectionToOutlineSelection() {
     	if (outline == null) {
+    		debounceSelectionChanged = false;
     		return;
     	}
     	
-    	EditorState editorState = EditorState.getEditorFor(parseController);
-    	IStrategoTerm textSelection = editorState.getSelectionAst(false);
-    	
-    	if (textSelection != null) {
-	    	IStrategoList path = null;
-	    	
-	    	StrategoObserver observer = SpoofaxOutlineUtil.getObserver(editorState);
-	    	observer.getLock().lock();
-	    	try {
-	    		// TODO: use InputTermBuilder instead!
-		    	path = StrategoTermPath.getTermPathWithOrigin(observer.getRuntime().getCompiledContext(), (IStrategoTerm) outline, textSelection);
-	    	}
-	    	finally {
-	    		observer.getLock().unlock();
-	    	}
-	    	
-	    	if (path != null) {
-		    	TreePath[] treePaths = termPathToTreePaths(path);
-				TreeSelection selection = new TreeSelection(treePaths);
-				setSelection(selection);
-				return;
-	    	}
-    	}
-    	
-    	setSelection(new TreeSelection(new TreePath[0]));
+    	final EditorState editorState = EditorState.getEditorFor(parseController);
+    	final IStrategoTerm textSelection = editorState.getSelectionAst(false);
+		final Display display = Display.getCurrent();
+
+		Job job = new Job("Updating outline view selection") {
+			@Override
+			protected IStatus run(IProgressMonitor monitor) {
+				ISelection newSelection = new TreeSelection(new TreePath[0]);
+				
+		    	if (textSelection != null) {
+			    	IStrategoList path = null;
+			    	
+			    	StrategoObserver observer = SpoofaxOutlineUtil.getObserver(editorState);
+			    	observer.getLock().lock();
+			    	try {
+			    		// TODO: use InputTermBuilder instead!
+				    	path = StrategoTermPath.getTermPathWithOrigin(observer.getRuntime().getCompiledContext(), (IStrategoTerm) outline, textSelection);
+			    	}
+			    	finally {
+			    		observer.getLock().unlock();
+			    	}
+			    	
+			    	if (path != null) {
+				    	TreePath[] treePaths = termPathToTreePaths(path);
+				    	newSelection = new TreeSelection(treePaths);
+			    	}
+		    	}
+				
+		    	final ISelection result = newSelection;
+				display.asyncExec(new Runnable() {
+					@Override
+					public void run() {
+						setSelection(result);
+						debounceSelectionChanged = false;
+					}
+				});
+				return Status.OK_STATUS;
+			}
+		};
+
+		job.schedule();
     }
     
     private TreePath[] termPathToTreePaths(IStrategoList path) {
