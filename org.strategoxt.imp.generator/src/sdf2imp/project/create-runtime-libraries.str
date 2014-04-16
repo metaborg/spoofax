@@ -4347,18 +4347,16 @@ imports
 rules // Lookup relation values for given term
 	
 	relation-lookup(|rel):
-		term -> <map(relation-try-term-to-uri)> [refl-val*, val*]
+		term -> <map(relation-try-term-to-uri)> result*
 		where
-		  refl-val* := <(relation-is-reflexive; ![term]) <+ ![]> rel;
-			(
-				val* := <relation-lookup-internal(|rel); where(Hd)> term <+
-			  val* := <relation-try-term-to-uri; relation-lookup-internal(|rel)> term
-		  )
+			result* := <relation-lookup-internal(|rel); where(Hd)> term <+
+			result* := <relation-try-term-to-uri; relation-lookup-internal(|rel)> term
 
 	relation-lookup-internal(|rel):
-		term -> [stat-val*, val*, trans-val*]
+		term -> [refl-val*, stat-val*, val*, trans-val*]
 		where
-		  stat-val*  := <get-static-relations(|rel)> term
+		  refl-val*  := <(relation-is-reflexive; !term) <+ ![]> rel
+		; stat-val*  := <get-static-relations(|rel)> term
 		; val*       := <get-index-relations(|rel)> term
 	  ; trans-val* := <(relation-is-transitive; <get-index-relations-transitive(|rel)> term) <+ ![]> rel
 		// TODO: what about symmetric relations?
@@ -4397,15 +4395,13 @@ rules // Check if relation exists between two terms
 rules /** @internal */
   
   get-index-relations(|rel):
-    term -> <index-get-all; relation-get-all-values> RelTuple(term, rel, ())
+    term -> <index-get-all; mapconcat(relation-tuple-value; (insert-results-or-delay <+ MkSingleton))> RelTuple(term, rel, ())
   		
 	get-index-relations-transitive(|rel):
-		term -> <index-get-all; relation-get-all-values> RelTuple(term, Transitive(rel), ()) 
+		term -> <index-get-all; mapconcat(relation-tuple-value; insert-results-or-delay)> RelTuple(term, Transitive(rel), ()) 
   		
 	relation-tuple-value:
 		RelTuple(_, _, v) -> v
-		
-	relation-get-all-values = mapconcat(relation-tuple-value; insert-results-or-delay; (is-list <+ MkSingleton))
 
 rules /** @internal */
 
