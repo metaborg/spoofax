@@ -1,7 +1,7 @@
 package org.strategoxt.imp.metatooling.building;
 
-import org.metaborg.runtime.task.ITaskEngine;
-import org.metaborg.runtime.task.TaskManager;
+import org.metaborg.runtime.task.engine.ITaskEngine;
+import org.metaborg.runtime.task.engine.TaskManager;
 import org.spoofax.interpreter.library.index.IIndex;
 import org.spoofax.interpreter.library.index.IndexManager;
 import org.spoofax.interpreter.library.index.notification.NotificationCenter;
