@@ -1,7 +1,7 @@
 package org.strategoxt.imp.runtime.editor;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ResourceBundle;
 
@@ -169,7 +169,7 @@ public class SpoofaxEditor extends UniversalEditor {
 	protected class SelectionProvider implements IPostSelectionProvider, ISelectionValidator {
 		StrategoTermSelection selection;
 		
-		List<ISelectionChangedListener> listeners = Collections.synchronizedList(new ArrayList<ISelectionChangedListener>());
+		List<ISelectionChangedListener> listeners = new ArrayList<ISelectionChangedListener>();
 		
 		public void addSelectionChangedListener(ISelectionChangedListener listener) {
 			listeners.add(listener);
@@ -189,11 +189,10 @@ public class SpoofaxEditor extends UniversalEditor {
 				this.selection = (StrategoTermSelection) selection;
 
 				SelectionChangedEvent e = new SelectionChangedEvent(this, selection);
-				synchronized (listeners) {
-					for (ISelectionChangedListener listener : listeners) {
-						listener.selectionChanged(e);
-					}
-				}
+			 	Iterator<ISelectionChangedListener> it = listeners.iterator();
+			 	while (it.hasNext()) {
+			 		it.next().selectionChanged(e);
+			 	}
 				
 				spoofaxViewer.firePostSelectionChanged(this.selection);
 			}
@@ -205,10 +204,9 @@ public class SpoofaxEditor extends UniversalEditor {
 		// temporary workaround for Spoofax/812
 		public void setSelection2(ITextSelection selection) {
 		 	SelectionChangedEvent e = new SelectionChangedEvent(this, selection);
-		 	synchronized (listeners) {
-			 	for (ISelectionChangedListener listener : listeners) {
-			 		listener.selectionChanged(e);
-			 	}
+		 	Iterator<ISelectionChangedListener> it = listeners.iterator();
+		 	while (it.hasNext()) {
+		 		it.next().selectionChanged(e);
 		 	}
 		 	spoofaxViewer.firePostSelectionChanged(selection.getStartLine(), selection.getEndLine());
 		 }
