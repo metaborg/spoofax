@@ -1,8 +1,8 @@
 package org.strategoxt.imp.runtime.editor;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -168,7 +168,7 @@ public class SpoofaxEditor extends UniversalEditor {
 	protected class SelectionProvider implements IPostSelectionProvider, ISelectionValidator {
 		StrategoTermSelection selection;
 		
-		List<ISelectionChangedListener> listeners = new ArrayList<ISelectionChangedListener>();
+		List<ISelectionChangedListener> listeners = new CopyOnWriteArrayList<ISelectionChangedListener>();
 		
 		public void addSelectionChangedListener(ISelectionChangedListener listener) {
 			listeners.add(listener);
