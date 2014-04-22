@@ -22,7 +22,6 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.swt.custom.CaretEvent;
 import org.eclipse.swt.custom.CaretListener;
 import org.eclipse.swt.custom.StyledText;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -176,8 +175,7 @@ public class SpoofaxEditor extends UniversalEditor {
 		}
 
 		public ISelection getSelection() {
-			return selection != null? selection : 
-				spoofaxViewer.getSelectionProvider().getSelection(); // temporary workaround for Spoofax/812
+			return spoofaxViewer.getSelectionProvider().getSelection(); // return synchronized selection and not the asynchronous this.selection
 		}
 
 		public void removeSelectionChangedListener(ISelectionChangedListener listener) {
@@ -230,13 +228,5 @@ public class SpoofaxEditor extends UniversalEditor {
 		public boolean isValid(ISelection postSelection) {
 			return true;
 		}
-	}
-	
-	@Override
-	// give IMP synchronized instead of asynchronized selection
-	public Point getSelection() {
-		ISelection sel = spoofaxViewer.getSelectionProvider().getSelection();
-		ITextSelection textSel = (ITextSelection) sel;
-		return new Point(textSel.getOffset(), textSel.getLength());
 	}
 }
