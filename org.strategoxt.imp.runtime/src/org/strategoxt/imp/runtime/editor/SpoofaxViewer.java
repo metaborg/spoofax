@@ -136,7 +136,7 @@ public class SpoofaxViewer extends ProjectionViewer {
 	 */
 	@Override
 	public void configure(SourceViewerConfiguration configuration) {
-		if (configuration instanceof SpoofaxSourceViewerConfiguration) {
+		if (configuration instanceof SpoofaxSourceViewerConfiguration && parseController != null) {
 			
         	spoofaxOutlinePopup = new SpoofaxOutlinePopupFactory().create(getControl().getShell(), parseController, parent);
 			
