@@ -2,6 +2,7 @@ package org.strategoxt.imp.runtime.services.menus;
 
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.jface.action.IContributionItem;
@@ -52,9 +53,9 @@ public class DynamicContributionItem extends CompoundContributionItem implements
 			case IMenuContribution.BUILDER:
 				IBuilder builder = (IBuilder) contrib;
 				Map<String, String> params = new HashMap<String, String>();
-				params.put(MenusServiceConstants.PATH_PARAM, builder.getPath().toString());
+				params.put(MenusServiceConstants.PATH_PARAM, serializePath(builder.getPath()));
 				ImageDescriptor icon = null;
-				CommandContributionItemParameter itemParams = new CommandContributionItemParameter(serviceLocator, builder.getPath().toString(), MenusServiceConstants.ACTION_ID, params, icon, null, null, builder.getCaption(), null, null,
+				CommandContributionItemParameter itemParams = new CommandContributionItemParameter(serviceLocator, serializePath(builder.getPath()), MenusServiceConstants.ACTION_ID, params, icon, null, null, builder.getCaption(), null, null,
 						CommandContributionItem.STYLE_PUSH, null, true);
 				result.add(new CommandContributionItem(itemParams));
 				break;
@@ -80,6 +81,13 @@ public class DynamicContributionItem extends CompoundContributionItem implements
 		return result.toArray(new IContributionItem[result.size()]);
 	}
 	
+	private String serializePath(List<String> path) {
+		String result = "";
+		for (String e : path) {
+			result += e.replace("+", "\\+") + "++";
+		}
+		return result.toString();
+	}
 	
 	@Override
 	public void initialize(final IServiceLocator serviceLocator) {
