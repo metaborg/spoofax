@@ -84,9 +84,9 @@ public class DynamicContributionItem extends CompoundContributionItem implements
 	private String serializePath(List<String> path) {
 		String result = "";
 		for (String e : path) {
-			result += e.replace("+", "\\+") + "++";
+			result += e.replace("+", "+\\") + "++";
 		}
-		return result.toString();
+		return result;
 	}
 	
 	@Override

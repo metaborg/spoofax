@@ -30,7 +30,7 @@ public class ActionHandler extends AbstractHandler {
 	private List<String> deserializePath(String path) {
 		String[] result = path.split("\\+\\+");
 		for (int i=0; i<result.length; i++) {
-			result[i] = result[i].replace("\\+", "+");
+			result[i] = result[i].replace("+\\", "+");
 		}
 		return Arrays.asList(result);
 	}
