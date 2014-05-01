@@ -497,7 +497,12 @@ rules // Multi-file analysis
       queue-strategy(|\"analysis-multiple-default-interface\", \"Analyzing files\")
       
   analysis-multiple-default(parse, desugar-before, desugar-after, pp-message|language, project-path):
-    path* -> (analysis-result'*, evaluated-task*, unevaluated-task*)
+    path* -> (
+      analysis-result'*
+    , (removed-entry-count, added-entry-count)
+    , (removed-task-count, added-task-count, invalidated-task-count, evaluated-task*, skipped-task*, unevaluated-task*)
+    , (parse-time, collect-time, perform-time, index-persist-time, task-persist-time)
+    )
     with
     	analysis-default-debug(!\"Analyzing files: \");
       analysis-multiple-default-work-units; set-total-work-units;
@@ -505,7 +510,8 @@ rules // Multi-file analysis
       measure-time(
 	      measure-time(
 	      	path'* := <map(\\p -> $[[project-path]/[p]]\\)> path*;
-	        (result*, evaluated-task*, skipped-task*, unevaluated-task*) := <analyze-multiple(parse; (analysis-pre-trans <+ desugar-before), complete-work-unit|language, project-path)> path'*;
+	        ((result*, evaluated-task*, skipped-task*, unevaluated-task*), parse-time, collect-time, perform-time) := 
+	        	<analyze-multiple(parse; (analysis-pre-trans <+ desugar-before), complete-work-unit|language, project-path)> path'*;
 	        (analysis-result*, debug-result*) := <unzip> result*
 	      , analysis-default-debug-time(!\"Time - analysis: \") | \"analysis-multiple-full-analysis\"
 	      );
@@ -515,15 +521,15 @@ rules // Multi-file analysis
 	      , analysis-default-debug-time(!\"Time - messages: \") | \"analysis-multiple-update-editors\"
 	      );
 	    	(
-	    		analysis-disable-persist <+
+	    		(analysis-disable-persist; index-persist-time := 0.0; task-persist-time := 0.0) <+
 	    		(
 			    	measure-time(
 				      index-persist
-			      , analysis-default-debug-time(!\"Time - index persistance: \") | \"analysis-multiple-index-persist\"
+			      , analysis-default-debug-time(!\"Time - index persistance: \"), ?index-persist-time | \"analysis-multiple-index-persist\"
 			      );
 			    	measure-time(
 				      task-persist
-			      , analysis-default-debug-time(!\"Time - task engine persistance: \") | \"analysis-multiple-task-persist\"
+			      , analysis-default-debug-time(!\"Time - task engine persistance: \"), ?task-persist-time | \"analysis-multiple-task-persist\"
 			      )
 		      )
 	      )  
@@ -668,12 +674,20 @@ imports
 rules // Multi file analysis
   
   analyze-multiple(parse-file, complete-work-unit|language, project-path):
-    path* -> result*
+    path* -> (result, parse-time, collect-time, perform-time)
     with
     	measure-time(
       	file* := <map(analyze-parse-file(parse-file); where(complete-work-unit))> path*
-    	, id | \"analyze-parse\");
-      result* := <analyze-multiple-files(complete-work-unit|language, project-path)> file*
+    	  , id, ?parse-time
+    	);
+    	measure-time(
+      	result* := <map(analyze-collect(|language, project-path); where(complete-work-unit))> file*
+      	, id, ?collect-time
+      );
+      measure-time(
+    		result  := <analyze-perform-all> result*
+    		, id, ?perform-time
+    	)
 
   analyze-parse-file(parse-file):
     path -> File(path, ast)
@@ -682,12 +696,6 @@ rules // Multi file analysis
         ast := ()
       end
 
-  analyze-multiple-files(complete-work-unit|language, project-path):
-    file* -> (result'*, evaluated-task*, skipped-task*, unevaluated-task*)
-    with
-      result* := <map(analyze-collect(|language, project-path); where(complete-work-unit))> file*;
-    	(result'*, evaluated-task*, skipped-task*, unevaluated-task*) := <analyze-perform-all> result*
-      
 "
 
 	create-analysis-reanalysis = 
@@ -757,14 +765,16 @@ imports
 rules
 	
 	analysis-resolve(|language, project-path):
-		node -> definition
+		node -> definition'
 		where
 			task-setup(|project-path);
     	index-setup(|language, project-path);
-    	definition := <has-annos; get-annos; fetch-elem(?Use(<id>)); task-get-results; Hd> node
+    	definition  := <has-annos; get-annos; fetch-elem(?Use(<id>)); task-get-results; Hd> node;
+    	definition' := <index-get-all; Hd> definition // Get definition from index again to get updated origin location.
     	
 	// Legacy
 	analysis-resolve(|language, project-path, path) = analysis-resolve(|language, project-path)
+
 "
 
 	create-analysis-single = 
@@ -3697,13 +3707,16 @@ rules
 	is-completion-name = ?\"completion123\"
   fix-completion-name = is-completion-name; !\"\"
   
-  measure-time(s, log) =
+  measure-time(s, log, match) =
     where(before := <times>);
     s;
-    where(after := <times>; !(after, before); diff-times; times-to-seconds; Fst; log)
+    where(after := <times>; !(after, before); diff-times; times-to-seconds; Fst; match; log)
   
   measure-time(s, log | name) = 
-    measure-time(s, record-time(|name); log)
+    measure-time(s, record-time(|name); log, id)
+    
+  measure-time(s, log, match | name) = 
+    measure-time(s, record-time(|name); log, match)
   
   record-time(|name) = id
   	
@@ -4347,16 +4360,18 @@ imports
 rules // Lookup relation values for given term
 	
 	relation-lookup(|rel):
-		term -> <map(relation-try-term-to-uri)> result*
+		term -> <map(relation-try-term-to-uri)> [refl-val*, val*]
 		where
-			result* := <relation-lookup-internal(|rel); where(Hd)> term <+
-			result* := <relation-try-term-to-uri; relation-lookup-internal(|rel)> term
+		  refl-val* := <(relation-is-reflexive; ![term]) <+ ![]> rel;
+			(
+				val* := <relation-lookup-internal(|rel); where(Hd)> term <+
+			  val* := <relation-try-term-to-uri; relation-lookup-internal(|rel)> term
+		  )
 
 	relation-lookup-internal(|rel):
-		term -> [refl-val*, stat-val*, val*, trans-val*]
+		term -> [stat-val*, val*, trans-val*]
 		where
-		  refl-val*  := <(relation-is-reflexive; !term) <+ ![]> rel
-		; stat-val*  := <get-static-relations(|rel)> term
+		  stat-val*  := <get-static-relations(|rel)> term
 		; val*       := <get-index-relations(|rel)> term
 	  ; trans-val* := <(relation-is-transitive; <get-index-relations-transitive(|rel)> term) <+ ![]> rel
 		// TODO: what about symmetric relations?
@@ -4395,13 +4410,15 @@ rules // Check if relation exists between two terms
 rules /** @internal */
   
   get-index-relations(|rel):
-    term -> <index-get-all; mapconcat(relation-tuple-value; (insert-results-or-delay <+ MkSingleton))> RelTuple(term, rel, ())
+    term -> <index-get-all; relation-get-all-values> RelTuple(term, rel, ())
   		
 	get-index-relations-transitive(|rel):
-		term -> <index-get-all; mapconcat(relation-tuple-value; insert-results-or-delay)> RelTuple(term, Transitive(rel), ()) 
+		term -> <index-get-all; relation-get-all-values> RelTuple(term, Transitive(rel), ()) 
   		
 	relation-tuple-value:
 		RelTuple(_, _, v) -> v
+		
+	relation-get-all-values = mapconcat(relation-tuple-value; insert-results-or-delay; (is-list <+ MkSingleton))
 
 rules /** @internal */
 
