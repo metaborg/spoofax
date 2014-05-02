@@ -4483,6 +4483,9 @@ rules // Lookup (customised in Java to store its result in a hash set, for fast 
     where
 		  result* := <relation-lookup(|rel)> term
 		  // TODO: remove redundant relation-try-term-to-uri calls in relation-lookup, term' is already the correct term.
+		  
+  task-get-storage-type:
+  	RelationLookup(_, _) -> <task-set-storage>
   
 rules // Match (custom implementation in Java that uses the hash set from a lookup task for fast lookups)
 	
@@ -4500,6 +4503,12 @@ rules // Match (custom implementation in Java that uses the hash set from a look
   	  else
   	  	result := match-task
   	  end
+  
+  task-get-type:
+  	RelationMatch(_, _) -> <task-raw-type>
+  	  
+  task-get-storage-type:
+  	RelationMatch(_, _) -> <task-set-storage>
 		  
 rules // Distance
 	
@@ -4547,7 +4556,8 @@ rules // API
   // todo: add API documentation for each of these including types
 	
 	task-add-message(|taskID, message)                         = task-api-add-message(|taskID, message)
-	task-add-task(|partition, dependencies, instruction, is-combinator, short-circuit) = task-api-add-task(|partition, dependencies, instruction, is-combinator, short-circuit)
+	task-add-task(|partition, dependencies, instruction, 
+	               type, storage-type, short-circuit)          = task-api-add-task(|partition, dependencies, instruction, type, storage-type, short-circuit)
 	task-add-read(|task-id)                                    = task-api-add-read(|task-id, <id>)
 	task-clear-partition                                       = task-api-clear-partition(|<id>)
 	task-delay                                                 = task-api-delay(|<id>)
@@ -4648,12 +4658,34 @@ rules
   /**
    * @type Partition * List(TaskID) * Instruction -> Result
    */  
+  new-task(|partition, type, storage-type) = new-task(|partition, <dependent-tasks>, type, storage-type)
+
+  /**
+   * @type Partition * List(TaskID) * Instruction -> Result
+   */  
   new-task(|partition, dependencies):
   	instruction -> result
   	with
-  		is-combinator := <task-is-combinator; !1 <+ !0> instruction;
+  		type          := <determine-task-type> instruction;
+  		storage-type  := <determine-task-storage-type> instruction;
+			result        := <new-task(|partition, dependencies, type, storage-type)> instruction
+  		
+	new-task(|partition, dependencies, type, storage-type):
+		instruction -> result
+		with
   		short-circuit := <task-short-circuit; !1 <+ !0> instruction;
-  		result        := <task-add-task(|partition, dependencies, instruction, is-combinator, short-circuit)> instruction
+  		result        := <task-add-task(|partition, dependencies, instruction, type, storage-type, short-circuit)> instruction
+  
+  task-regular-type = !0
+  task-combinator-type = !1
+  task-raw-type = !2
+  
+  task-auto-storage = !0
+  task-list-storage = !1
+  task-set-storage = !2
+  		
+	determine-task-type = task-get-type <+ (task-is-combinator; task-combinator-type) <+ task-regular-type // Default to regular task
+	determine-task-storage-type = task-get-storage-type <+ task-list-storage // Default to list storage
   		
 	new-task-fixdeps(|partition, dependencies) = new-task(|partition, <dependent-tasks> dependencies)
       
@@ -4806,13 +4838,16 @@ rules
 strategies
   
   perform-task(|task-id) = fail
-  task-rewrite           = fail
-  task-match             = fail
   avoid-task(|dep*)      = fail
-  task-is-combinator     = fail
+  
+  task-get-type          = fail
+  task-get-storage-type  = fail
+  task-is-combinator     = fail // Deprecated, use task-get-type = task-combinator-type
   task-short-circuit     = fail
   task-is-higherorder    = fail
-
+  
+  task-rewrite           = fail
+  task-match             = fail 
 "
 
 	create-task-messages = 
@@ -5069,7 +5104,7 @@ rules /** @internal API primitives */
 
 	task-api-add-message(|taskID, message) = prim(\"task_api_add_message\", taskID, message)
 	task-api-add-read(|taskID, read) = prim(\"task_api_add_read\", taskID, read)
-	task-api-add-task(|partition, dependencies, instruction, is-combinator, short-circuit) = prim(\"task_api_add_task\", partition, dependencies, instruction, is-combinator, short-circuit)
+	task-api-add-task(|partition, dependencies, instruction, type, storage-type, short-circuit) = prim(\"task_api_add_task\", partition, dependencies, instruction, type, storage-type, short-circuit)
 	task-api-clear-partition(|partition) = prim(\"task_api_clear_partition\", partition)
 	task-api-delay(|dependencies) = prim(\"task_api_delay\", dependencies)
 	task-api-debug-info(|partition) = prim(\"task_api_debug_info\", partition)
@@ -5128,6 +5163,7 @@ signature
     Eq       : Term * Term         -> Instruction
     Insert   : Term                -> Instruction
     Rewrite  : ID * Result         -> Instruction
+    MakeSet  : Term                -> Instruction 
 
 rules // Identity
   
@@ -5169,7 +5205,9 @@ rules // Choice
   task-create-choice(t1, t2|ctx):
     term -> <task-create-choice(|ctx)> [<t1(|ctx)> term, <t2(|ctx)> term]
 	
-	task-is-combinator = ?Choice(_)
+	task-get-type: Choice(_) -> <task-combinator-type>
+	task-get-storage-type: Choice(_) -> <task-auto-storage>
+
   perform-task(|nr)  = ?Choice(<fetch-elem(not(?[]))>)
   
 rules // Sequence
@@ -5188,7 +5226,9 @@ rules // Sequence
   task-create-sequence(t1, t2|ctx):
     term -> <task-create-sequence(|ctx)> [<t1(|ctx)> term, <t2(|ctx)> term]
 	
-	task-is-combinator = ?Sequence(_)
+	task-get-type: Sequence(_) -> <task-combinator-type>
+	task-get-storage-type: Sequence(_) -> <task-auto-storage>
+
   perform-task(|nr)  = ?Sequence(<not(fetch-elem(?[])); last>)
 
 rules // Combine
@@ -5204,6 +5244,9 @@ rules // Combine
 		task* -> <new-task(|ctx, all-dep*)> Combine(task*)
   	with 
     	all-dep* := <merge-dependencies(|dep*)> task*
+       
+	task-get-type: Combine(_) -> <task-combinator-type>
+	task-get-storage-type: Combine(_) -> <task-auto-storage>
        
   task-is-combinator = ?Combine(_)
   perform-task(|nr)  = ?Combine(<mapconcat(is-list <+ MkSingleton)>)
@@ -5323,7 +5366,19 @@ rules // Result insertion
 	perform-task(|task-id):
 		Insert(term) -> <insert-results-or-delay> term
 		  
-	task-is-combinator = ?Insert(_)
+	task-get-type: Insert(_) -> <task-combinator-type>
+	task-get-storage-type: Insert(_) -> <task-auto-storage>
+
+rules // Turn results into a set
+	
+	task-create-make-set(|ctx):
+		term -> <new-task(|ctx)> MakeSet(term)
+		
+	perform-task(|task-id):
+		MakeSet(term) -> term // Do nothing, task storage type takes care of conversion into set.
+		
+	task-get-storage-type:
+		MakeSet(_) -> <task-set-storage>
   
 rules // General purpose rewrite
       	
