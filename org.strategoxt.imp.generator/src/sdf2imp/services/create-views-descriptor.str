@@ -15,7 +15,7 @@ strategies
 
 views
   
-  outline view: editor-outline
+  outline view: editor-outline (source)
     expand to level: 3
     
   properties view: editor-properties
