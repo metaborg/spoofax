@@ -892,28 +892,18 @@ public class StrategoObserver implements IDynamicLanguageService,
 		public IStrategoTuple makeInputTerm(IStrategoTerm node, boolean includeSubNode) {
 			return makeInputTerm(node, includeSubNode, false);
 		}
-
+		
 		/**
 		 * Create an input term for a control rule.
 		 */
-		public IStrategoTuple makeInputTerm(IStrategoTerm node, boolean includeSubNode, boolean useSourceAst) {
-			if(useSourceAst)
-				return makeInputTermSourceAst(node, includeSubNode);
-			return makeInputTermResultingAst(node, includeSubNode);
-		}
-		
-		public IStrategoTuple makeInputTermResultingAst(IStrategoTerm node, boolean includeSubNode) {
+		public IStrategoTuple makeInputTerm(IStrategoTerm node, boolean includeSubNode, boolean source) {
 			IResource resource = SourceAttachment.getResource(node);
-			return makeInputTermResultingAst(resultingAsts.get(resource), node, includeSubNode);
+			return super.makeInputTerm(resultingAsts.get(resource), node, includeSubNode, source);
 		}
 		
 		public IStrategoTerm makeInputTermRefactoring(IStrategoTerm userInput, IStrategoTerm node, boolean includeSubNode, boolean source) {
-			IStrategoTuple tuple = makeInputTerm(node, includeSubNode, source);
-			ITermFactory factory = Environment.getTermFactory();
-			IStrategoTerm[] inputParts = new IStrategoTerm[tuple.getSubtermCount() + 1];
-			inputParts[0] = userInput;
-			System.arraycopy(tuple.getAllSubterms(), 0, inputParts, 1, tuple.getSubtermCount());
-			return factory.makeTuple(inputParts); 
+			IResource resource = SourceAttachment.getResource(node);
+			return super.makeInputTermRefactoring(resultingAsts.get(resource), userInput, node, includeSubNode, source);
 		}
 	}
 }

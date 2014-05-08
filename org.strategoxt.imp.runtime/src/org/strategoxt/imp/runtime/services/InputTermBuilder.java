@@ -23,7 +23,6 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.TermTreeFactory;
 import org.spoofax.terms.StrategoSubList;
-import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
@@ -68,6 +67,19 @@ public class InputTermBuilder {
 		}
 		IStrategoTerm rootTerm = resultingAst;		
 		return makeInputTerm(node, includeSubNode, termPath, targetTerm, rootTerm);
+	}
+	
+	public IStrategoTuple makeInputTerm(IStrategoTerm resultingAst, IStrategoTerm node, boolean includeSubNode, boolean source) {
+		return source ? makeInputTermSourceAst(node, includeSubNode) : makeInputTermResultingAst(resultingAst, node, includeSubNode);
+	}
+	
+	public IStrategoTerm makeInputTermRefactoring(IStrategoTerm resultingAst, IStrategoTerm userInput, IStrategoTerm node, boolean includeSubNode, boolean source) {
+		IStrategoTuple tuple = makeInputTerm(resultingAst, node, includeSubNode, source);
+		ITermFactory factory = Environment.getTermFactory();
+		IStrategoTerm[] inputParts = new IStrategoTerm[tuple.getSubtermCount() + 1];
+		inputParts[0] = userInput;
+		System.arraycopy(tuple.getAllSubterms(), 0, inputParts, 1, tuple.getSubtermCount());
+		return factory.makeTuple(inputParts); 
 	}
 	
 	private IStrategoTerm mkSubListTarget(IStrategoTerm resultingAst, IStrategoList targetTerm, StrategoSubList node) {
