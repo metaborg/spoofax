@@ -33,28 +33,28 @@ import org.strategoxt.imp.runtime.stratego.StrategoTermPath;
  */
 public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelListener {
 
-	private final IParseController parseController;
-	private boolean debounceSelectionChanged;
+	private final EditorState editorState;
+	private boolean debounceOutlineSelection;
+	private boolean debounceTextSelection;
 	private IStrategoTerm outline;
 
-	public SpoofaxOutlinePage(IParseController parseController) {
-		this.parseController = parseController;
+	public SpoofaxOutlinePage(EditorState editorState) {
+		this.editorState = editorState;
 	}
 	
 	@Override
 	public void createControl(Composite parent) {
 		super.createControl(parent);
 		getTreeViewer().setContentProvider(new StrategoTreeContentProvider());
-		String pluginPath = EditorState.getEditorFor(parseController).getDescriptor().getBasePath().toOSString();
+		String pluginPath = editorState.getDescriptor().getBasePath().toOSString();
 		getTreeViewer().setLabelProvider(new StrategoLabelProvider(pluginPath));
 		
 		registerToolbarActions();
 		
-		EditorState editorState = EditorState.getEditorFor(parseController);
 		editorState.getEditor().addModelListener(this);
 		editorState.getEditor().getSelectionProvider().addSelectionChangedListener(this);
 		
-		if (parseController.getCurrentAst() != null) {
+		if (editorState.getParseController().getCurrentAst() != null) {
 			// The editor sporadically manages to parse the file before our model listener gets added,
 			// resulting in an empty outline on startup. We therefore perform a 'manual' update:
 			update();
@@ -90,11 +90,11 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 		
 	@Override
 	public void dispose() {
-		EditorState.getEditorFor(parseController).getEditor().removeModelListener(this);
+		editorState.getEditor().removeModelListener(this);
 	}
 	
 	public void update() {
-		final EditorState editorState = new EditorState(EditorState.getEditorFor(parseController).getEditor()); // create new editorState to reload descriptor
+		final EditorState editorState = new EditorState(this.editorState.getEditor()); // create new editorState to reload descriptor
 		final Display display = Display.getCurrent();
 
 		Job job = new Job("Updating outline view") {
@@ -141,12 +141,12 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
         	super.selectionChanged(event);
     	}
     	    	
-    	if (debounceSelectionChanged) {
-    		return;
-    	}
-    	
-    	debounceSelectionChanged = true;
     	if (event.getSource() == getTreeViewer()) {
+        	if (debounceOutlineSelection) {
+        		return;
+        	}
+        	debounceTextSelection = true;
+    		
         	outlineSelectionToTextSelection();
         	new Thread(new Runnable() {
     			
@@ -154,15 +154,20 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
     			public void run() {
     				try {
     					// this is rather ugly but the problem is that new text selections are generated asynchronously and we don't know how many
-    					Thread.sleep(100);
+    					Thread.sleep(2000);
     				} catch (InterruptedException e) {
     					e.printStackTrace();
     				}
-    	        	debounceSelectionChanged = false;
+    				debounceTextSelection = false;
     			}
     		}).start();
        	}
        	else {
+        	if (debounceTextSelection || debounceOutlineSelection) {
+        		return;
+        	}
+        	debounceOutlineSelection = true;
+       		
        		textSelectionToOutlineSelection();
        	}
     }
@@ -174,16 +179,15 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
     	}
 
     	Object[] selectedElems = treeSelection.toArray();
-    	SpoofaxOutlineUtil.selectCorrespondingText(selectedElems, parseController);
+    	SpoofaxOutlineUtil.selectCorrespondingText(selectedElems, editorState);
     }
     
     public void textSelectionToOutlineSelection() {
     	if (outline == null) {
-    		debounceSelectionChanged = false;
+    		debounceOutlineSelection = false;
     		return;
     	}
     	
-    	final EditorState editorState = EditorState.getEditorFor(parseController);
     	final IStrategoTerm textSelection = editorState.getSelectionAst(false);
 		final Display display = Display.getCurrent();
 
@@ -216,7 +220,7 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 					@Override
 					public void run() {
 						setSelection(result);
-						debounceSelectionChanged = false;
+						debounceOutlineSelection = false;
 					}
 				});
 				return Status.OK_STATUS;

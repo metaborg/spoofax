@@ -59,7 +59,7 @@ public class SpoofaxEditor extends UniversalEditor {
 		}
 		
 		if (adapter.equals(IContentOutlinePage.class)) {
-			return new SpoofaxOutlinePage(getParseController());
+			return new SpoofaxOutlinePage(editorState);
 		}
 
 		return super.getAdapter(adapter);
