@@ -8,10 +8,6 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
  */
 public interface IOutlineService extends ILanguageService {
 
-	void setOutlineRule(String rule);
-	
-	void setExpandToLevel(int level);
-	
 	IStrategoTerm getOutline();
 	
 	int getExpandToLevel();

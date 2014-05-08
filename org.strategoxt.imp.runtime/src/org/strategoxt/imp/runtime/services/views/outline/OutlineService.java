@@ -12,28 +12,19 @@ import org.strategoxt.imp.runtime.services.StrategoObserver;
  */
 public class OutlineService implements IOutlineService {
 	
-	private String outlineRule;
-	
-	private int expandToLevel;
+	private final String outlineRule;
+	private final boolean source;
+	private final int expandToLevel;
 	
 	private ImploderOriginTermFactory factory = new ImploderOriginTermFactory(new TermFactory());
 	
 	private EditorState editorState;
 	
-	public OutlineService(String outlineRule, int expandToLevel, EditorState editorState) {
+	public OutlineService(String outlineRule, boolean source, int expandToLevel, EditorState editorState) {
 		this.outlineRule = outlineRule;
+		this.source = source;
 		this.expandToLevel = expandToLevel;
 		this.editorState = editorState;
-	}
-
-	@Override
-	public void setOutlineRule(String rule) {
-		this.outlineRule = rule;
-	}
-
-	@Override
-	public void setExpandToLevel(int level) {
-		this.expandToLevel = level;
 	}
 
 	@Override
@@ -52,7 +43,7 @@ public class OutlineService implements IOutlineService {
 			IStrategoTerm outline = null;
 			observer.getLock().lock();
 			try {
-				IStrategoTerm input = observer.getInputBuilder().makeInputTerm(editorState.getCurrentAst(), true, true);
+				IStrategoTerm input = observer.getInputBuilder().makeInputTerm(editorState.getCurrentAst(), true, source);
 				outline = observer.invokeSilent(outlineRule, input, editorState.getResource().getFullPath().toFile());
 			}
 			finally {
