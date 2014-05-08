@@ -9,15 +9,15 @@ templates
   >
   
   View.OutlineView = <
-    outline view: <StrategoCall>
-      <OutlineOption*; separator = "\n">
+    outline view: <StrategoCall> <OutlineOption*>
+      <ExpandToLevel?>
   >
   
-  OutlineOption.ExpandToLevel = <expand to level: <Int>>
+  OutlineOption.Source = <(source)>
+  ExpandToLevel.ExpandToLevel = <expand to level: <Int>>
   
   View.PropertiesView = <
-    properties view: <StrategoCall>
-      <PropertiesOption*; separator = "\n">
+    properties view: <StrategoCall> <PropertiesOption*>
   >  
   
   PropertiesOption.Source = <(source)>
