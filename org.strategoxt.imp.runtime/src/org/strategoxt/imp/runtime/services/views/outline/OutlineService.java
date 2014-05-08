@@ -1,6 +1,5 @@
 package org.strategoxt.imp.runtime.services.views.outline;
 
-import org.eclipse.imp.parser.IParseController;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.ImploderOriginTermFactory;
 import org.spoofax.terms.TermFactory;
@@ -19,12 +18,12 @@ public class OutlineService implements IOutlineService {
 	
 	private ImploderOriginTermFactory factory = new ImploderOriginTermFactory(new TermFactory());
 	
-	private IParseController controller;
+	private EditorState editorState;
 	
-	public OutlineService(String outlineRule, int expandToLevel, IParseController controller) {
+	public OutlineService(String outlineRule, int expandToLevel, EditorState editorState) {
 		this.outlineRule = outlineRule;
 		this.expandToLevel = expandToLevel;
-		this.controller = controller;
+		this.editorState = editorState;
 	}
 
 	@Override
@@ -39,7 +38,6 @@ public class OutlineService implements IOutlineService {
 
 	@Override
 	public IStrategoTerm getOutline() {
-		EditorState editorState = EditorState.getEditorFor(controller);
 		StrategoObserver observer = getObserver(editorState);
 		observer.getLock().lock();
 		try {

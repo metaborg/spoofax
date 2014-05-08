@@ -18,17 +18,17 @@ import org.strategoxt.imp.runtime.services.views.properties.IPropertiesService;
  */
 public class StrategoTermSelection extends TextSelection implements IStructuredSelection {
 
-	private final SpoofaxEditor spoofaxEditor;
+	private final EditorState editorState;
 
-	public StrategoTermSelection(SpoofaxEditor spoofaxEditor, int offset, int length) {
-		super(spoofaxEditor.getDocumentProvider().getDocument(spoofaxEditor.getEditorInput()), offset, length);
-		this.spoofaxEditor = spoofaxEditor;
+	public StrategoTermSelection(EditorState editorState, int offset, int length) {
+		super(editorState.getEditor().getDocumentProvider().getDocument(editorState.getEditor().getEditorInput()), offset, length);
+		this.editorState = editorState;
 	}
 
 	public IStrategoTerm getSelectionAst() {
-		if (EditorState.getEditorFor(spoofaxEditor) != null) {
+		if (editorState != null) {
 			try {
-				return SelectionUtil.getSelectionAst(getOffset(), getLength(), false, EditorState.getEditorFor(spoofaxEditor).getParseController());
+				return SelectionUtil.getSelectionAst(getOffset(), getLength(), false, editorState.getParseController());
 			}
 			catch (IndexOutOfBoundsException e) {
 				// certain edits (e.g. undoing a change) result in the generation of a new textual selection before the text is parsed and a new AST is generated.
@@ -39,8 +39,8 @@ public class StrategoTermSelection extends TextSelection implements IStructuredS
 	}
 	
 	public IStrategoTerm getSelectionAstAnalyzed() {
-		if (EditorState.getEditorFor(spoofaxEditor) != null) {
-			return SelectionUtil.getSelectionAstAnalyzed(getOffset(), getLength(), false, EditorState.getEditorFor(spoofaxEditor).getParseController());
+		if (editorState != null) {
+			return SelectionUtil.getSelectionAstAnalyzed(getOffset(), getLength(), false, editorState.getParseController());
 		}
 		return null;
 	}
@@ -53,7 +53,6 @@ public class StrategoTermSelection extends TextSelection implements IStructuredS
 	@Override // IStructuredSelection (properties view)
 	public IStrategoTerm getFirstElement() {
 		if (properties == null) {
-			EditorState editorState = EditorState.getEditorFor(spoofaxEditor);
 			
 			if (editorState == null) {
 				return null;

@@ -41,6 +41,7 @@ import org.strategoxt.imp.runtime.services.views.properties.PropertiesService;
 public class SpoofaxEditor extends UniversalEditor {
 	
 	public static final String EDITOR_ID = "org.eclipse.imp.runtime.editor.spoofaxEditor";
+	private EditorState editorState;
 	
 	private SpoofaxViewer spoofaxViewer;
 	private ISelectionProvider selectionProvider = new SelectionProvider();
@@ -72,9 +73,9 @@ public class SpoofaxEditor extends UniversalEditor {
 	@Override
 	public void createPartControl(Composite parent) {
 		super.createPartControl(parent);
-
+		editorState = EditorState.getEditorFor(this);
+		
 		// temporary workaround for Spoofax/812
-		EditorState editorState = EditorState.getEditorFor(this);
 		if (editorState != null) {
 			try {
 				PropertiesService propertiesService = editorState.getDescriptor().createService(PropertiesService.class, editorState.getParseController());
@@ -114,13 +115,16 @@ public class SpoofaxEditor extends UniversalEditor {
 	}
 	
 	public void updateSelection(final int offset, final int length) {
-		final SpoofaxEditor spoofaxEditor = this;
+		if (editorState == null) {
+			return; // language undefined
+		}
+		
 		final Display display = Display.getCurrent();
 
 		Job job = new Job("Updating properties view") {
 			@Override
 			protected IStatus run(IProgressMonitor monitor) {
-				final StrategoTermSelection selection = new StrategoTermSelection(spoofaxEditor, offset, length);
+				final StrategoTermSelection selection = new StrategoTermSelection(editorState, offset, length);
 				selection.getFirstElement(); // do the heavy work here and not in the UI thread, or the UI will block
 				display.asyncExec(new Runnable() {
 					@Override
