@@ -18,36 +18,36 @@ imports {<descriptor-name> "-Menus.generated"}
 
 menus
   
-  menu: "Syntax"
+  menu: "Syntax" (openeditor)
     
-    action: "Format"               = editor-format (openeditor) (realtime) (source)
-    action: "Show abstract syntax" = debug-show-aterm (openeditor) (realtime) (meta) (source)
-    action: "Show analyzed syntax" = debug-show-analyzed (openeditor) (meta)
+    action: "Format"               = editor-format (realtime) (source)
+    action: "Show abstract syntax" = debug-show-aterm (realtime) (meta) (source)
+    action: "Show analyzed syntax" = debug-show-analyzed (meta)
     
-  menu: "Analysis"
+  menu: "Analysis" (meta)
     
-    action: "Reset and reanalyze"  = debug-reanalyze (meta)   
+    action: "Reset and reanalyze"  = debug-reanalyze  
 
-    submenu: "Show analysis"
-      action: "Project"            = debug-project (openeditor) (meta)
-      action: "Partition"          = debug-partition (openeditor) (meta)
+    submenu: "Show analysis" (openeditor)
+      action: "Project"            = debug-project
+      action: "Partition"          = debug-partition
     end
     
-    submenu: "Show index"
-      action: "Project"            = debug-index-project (openeditor) (meta)
-      action: "Project (resolved)" = debug-index-project-resolve (openeditor) (meta)
-      action: "Partition"          = debug-index-partition (openeditor) (meta)
+    submenu: "Show index" (openeditor)
+      action: "Project"            = debug-index-project
+      action: "Project (resolved)" = debug-index-project-resolve
+      action: "Partition"          = debug-index-partition
     end
     
-    submenu: "Show tasks"
-      action: "Project"            = debug-task-project (openeditor) (meta)
-      action: "Partition"          = debug-task-partition (openeditor) (meta)
-      action: "Selection"          = debug-task-selection (openeditor) (meta)
+    submenu: "Show tasks" (openeditor)
+      action: "Project"            = debug-task-project
+      action: "Partition"          = debug-task-partition
+      action: "Selection"          = debug-task-selection
     end
   
-  menu: "Generation"
+  menu: "Generation" (openeditor) (realtime)
     
-    action: "Generate Java"        = generate-java (openeditor) (realtime)
+    action: "Generate Java"        = generate-java
 
 }
    ,
