@@ -50,11 +50,6 @@ imports
   lib/runtime/editor/outline-library
 
 rules
-
-  editor-outline:
-  	(node, position, ast, path, project-path) -> outline
-  	where
-  		outline := <simple-label-outline(to-outline-label)> ast
   
   {<separate-by(|"\n"); concat-strings> outline-rules}
 }

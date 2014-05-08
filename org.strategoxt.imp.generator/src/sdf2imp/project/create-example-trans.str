@@ -64,6 +64,12 @@ rules // Editor services
 		(target, position, ast, path, project-path) ->
 			<get-editor-properties(pp-partial-{sdf-name}-string |<language>, project-path);properties-to-html>target
 
+	// Gathers the outline nodes for the outline view.
+	editor-outline:
+		(node, position, ast, path, project-path) -> outline
+		where
+			outline := <simple-label-outline(to-outline-label)> ast
+
 	// Gathers the properties for the properties view.
 	editor-properties:
 		(target, position, ast, path, project-path) ->
@@ -76,7 +82,7 @@ rules // Editor services
 		where
 			proposals := <analysis-propose-completions(|<language>, project-path)> ast
 	
-	// Formats the program using a pretty printer		
+	// Formats the program using a pretty printer.	
   editor-format:
     (selected, position, ast, path, project-path) -> (filename, result)
     with
