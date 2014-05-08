@@ -102,7 +102,7 @@ public class StrategoObserver implements IDynamicLanguageService,
 
 	private volatile HybridInterpreter runtime;
 
-	private InputTermBuilder inputBuilder;
+	private ObserverInputTermBuilder inputBuilder;
 
 	private volatile Descriptor descriptor;
 
@@ -174,7 +174,7 @@ public class StrategoObserver implements IDynamicLanguageService,
 		return messages;
 	}
 
-	public InputTermBuilder getInputBuilder() {
+	public ObserverInputTermBuilder getInputBuilder() {
 		assert getLock().isHeldByCurrentThread();
 		if (resultingAsts == null || resultingAsts.isEmpty()) {
 			try {
@@ -185,8 +185,8 @@ public class StrategoObserver implements IDynamicLanguageService,
 			}
 
 		}
-		if (inputBuilder == null || inputBuilder.getRuntime() != getRuntime()) {
-			inputBuilder = new InputTermBuilder(getRuntime(), resultingAsts);
+		if (inputBuilder == null) {
+			inputBuilder = new ObserverInputTermBuilder(this, resultingAsts);
 		}
 		return inputBuilder;
 	}
@@ -875,5 +875,45 @@ public class StrategoObserver implements IDynamicLanguageService,
 	@Override
 	public void removeObserver(IObserver<IStrategoTerm> observer) {
 		observable.removeObserver(observer);
+	}
+	
+	public class ObserverInputTermBuilder extends InputTermBuilder {
+
+		private final Map<IResource, IStrategoTerm> resultingAsts;
+
+		private ObserverInputTermBuilder(StrategoObserver observer, Map<IResource, IStrategoTerm> resultingAsts) {
+			super(observer.getRuntime().getCompiledContext());
+			this.resultingAsts = resultingAsts;
+		}
+
+		/**
+		 * Create an input term for a control rule.
+		 */
+		public IStrategoTuple makeInputTerm(IStrategoTerm node, boolean includeSubNode) {
+			return makeInputTerm(node, includeSubNode, false);
+		}
+
+		/**
+		 * Create an input term for a control rule.
+		 */
+		public IStrategoTuple makeInputTerm(IStrategoTerm node, boolean includeSubNode, boolean useSourceAst) {
+			if(useSourceAst)
+				return makeInputTermSourceAst(node, includeSubNode);
+			return makeInputTermResultingAst(node, includeSubNode);
+		}
+		
+		public IStrategoTuple makeInputTermResultingAst(IStrategoTerm node, boolean includeSubNode) {
+			IResource resource = SourceAttachment.getResource(node);
+			return makeInputTermResultingAst(resultingAsts.get(resource), node, includeSubNode);
+		}
+		
+		public IStrategoTerm makeInputTermRefactoring(IStrategoTerm userInput, IStrategoTerm node, boolean includeSubNode, boolean source) {
+			IStrategoTuple tuple = makeInputTerm(node, includeSubNode, source);
+			ITermFactory factory = Environment.getTermFactory();
+			IStrategoTerm[] inputParts = new IStrategoTerm[tuple.getSubtermCount() + 1];
+			inputParts[0] = userInput;
+			System.arraycopy(tuple.getAllSubterms(), 0, inputParts, 1, tuple.getSubtermCount());
+			return factory.makeTuple(inputParts); 
+		}
 	}
 }

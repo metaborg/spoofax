@@ -49,8 +49,15 @@ public class OutlineService implements IOutlineService {
 				return null;
 			}
 			
-			IStrategoTerm outline = observer.invokeSilent(outlineRule, editorState.getCurrentAst(), editorState.getResource().getFullPath().toFile());
-			
+			IStrategoTerm outline = null;
+			observer.getLock().lock();
+			try {
+				IStrategoTerm input = observer.getInputBuilder().makeInputTerm(editorState.getCurrentAst(), true, true);
+				outline = observer.invokeSilent(outlineRule, input, editorState.getResource().getFullPath().toFile());
+			}
+			finally {
+				observer.getLock().unlock();
+			}
 			if (outline == null) {
 				observer.reportRewritingFailed();
 				return messageToOutlineNode("Strategy '" + outlineRule + "' failed");

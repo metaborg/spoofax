@@ -202,7 +202,6 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 			    	StrategoObserver observer = SpoofaxOutlineUtil.getObserver(editorState);
 			    	observer.getLock().lock();
 			    	try {
-			    		// TODO: use InputTermBuilder instead!
 				    	path = StrategoTermPath.getTermPathWithOrigin(observer.getRuntime().getCompiledContext(), (IStrategoTerm) outline, textSelection);
 			    	}
 			    	finally {
