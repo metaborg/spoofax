@@ -15,10 +15,10 @@ strategies
 
 views
   
-  outline view: outline
+  outline view: editor-outline
     expand to level: 3
     
-	properties view: editor-properties
+  properties view: editor-properties
 }
    ,
      not(file-exists)

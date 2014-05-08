@@ -51,7 +51,10 @@ imports
 
 rules
 
-  outline = simple-label-outline(to-outline-label)
+  editor-outline:
+  	(node, position, ast, path, project-path) -> outline
+  	where
+  		outline := <simple-label-outline(to-outline-label)> ast
   
   {<separate-by(|"\n"); concat-strings> outline-rules}
 }
