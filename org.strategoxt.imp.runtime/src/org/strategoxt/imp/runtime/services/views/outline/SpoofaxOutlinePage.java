@@ -91,6 +91,7 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 	@Override
 	public void dispose() {
 		editorState.getEditor().removeModelListener(this);
+		editorState.getEditor().getSelectionProvider().addSelectionChangedListener(this);
 	}
 	
 	public void update() {

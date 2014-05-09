@@ -8,7 +8,6 @@ import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.editor.SelectionUtil;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
-import org.strategoxt.imp.runtime.services.InputTermBuilder;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
 
 /**
