@@ -69,28 +69,6 @@ public class PropertiesService implements IPropertiesService {
 			return emptyList;
 		}
 
-		observer.getLock().lock();
-		try {
-			selectionAst = InputTermBuilder.getMatchingAncestor(selectionAst, false);
-		}
-		finally {
-			observer.getLock().unlock();
-		}
-		IStrategoTerm ast = null;
-		if (source) {
-			ast = editorState.getCurrentAst();
-		}
-		else {
-			try {
-				ast = editorState.getCurrentAnalyzedAst();
-				if (ast == null) {
-					ast = editorState.getAnalyzedAst(); // TODO Spoofax/839
-				}
-			} catch (BadDescriptorException e) {
-				e.printStackTrace();
-			}
-		}
-		
 		IStrategoTerm properties = null;
 		observer.getLock().lock();
 		try {

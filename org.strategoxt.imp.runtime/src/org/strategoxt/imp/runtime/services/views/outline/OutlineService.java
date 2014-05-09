@@ -36,6 +36,7 @@ public class OutlineService implements IOutlineService {
 				return messageToOutlineNode("Can't find strategy '" + outlineRule + "'");
 			}
 			
+			IStrategoTerm selectionAst = editorState.getSelectionAst(false);
 			if (editorState.getCurrentAst() == null) {
 				return null;
 			}
@@ -43,7 +44,7 @@ public class OutlineService implements IOutlineService {
 			IStrategoTerm outline = null;
 			observer.getLock().lock();
 			try {
-				IStrategoTerm input = observer.getInputBuilder().makeInputTerm(editorState.getCurrentAst(), true, source);
+				IStrategoTerm input = observer.getInputBuilder().makeInputTerm(selectionAst == null ? editorState.getCurrentAst() : selectionAst, true, source);
 				outline = observer.invokeSilent(outlineRule, input, editorState.getResource().getFullPath().toFile());
 			}
 			finally {
