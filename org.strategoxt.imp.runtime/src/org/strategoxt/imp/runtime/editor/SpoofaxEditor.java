@@ -12,6 +12,7 @@ import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.text.ISelectionValidator;
 import org.eclipse.jface.text.ITextSelection;
+import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.IVerticalRuler;
 import org.eclipse.jface.viewers.IPostSelectionProvider;
@@ -25,6 +26,8 @@ import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.texteditor.TextOperationAction;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
@@ -44,7 +47,7 @@ public class SpoofaxEditor extends UniversalEditor {
 	private EditorState editorState;
 	
 	private SpoofaxViewer spoofaxViewer;
-	private ISelectionProvider selectionProvider = new SelectionProvider();
+	private SelectionProvider selectionProvider = new SelectionProvider();
 	
 	public SpoofaxEditor() {
 		setSourceViewerConfiguration(new SpoofaxSourceViewerConfiguration(new StructuredSourceViewerConfiguration()));
@@ -75,31 +78,12 @@ public class SpoofaxEditor extends UniversalEditor {
 		super.createPartControl(parent);
 		editorState = EditorState.getEditorFor(this);
 		
-		// temporary workaround for Spoofax/812
-		if (editorState != null) {
-			try {
-				PropertiesService propertiesService = editorState.getDescriptor().createService(PropertiesService.class, editorState.getParseController());
-				if (propertiesService.getPropertiesRule() == null) {
-					spoofaxViewer.getSelectionProvider().addSelectionChangedListener(new ISelectionChangedListener() {
-
-						@Override
-						public void selectionChanged(SelectionChangedEvent event) {
-							((SelectionProvider) selectionProvider).setSelection2((ITextSelection) spoofaxViewer.getSelectionProvider().getSelection());
-						}
-					});
-					return;
-				}
-			} catch (BadDescriptorException e) {
-				e.printStackTrace();
-			}
-		}
-		
 		spoofaxViewer.getSelectionProvider().addSelectionChangedListener(new ISelectionChangedListener() {
 
 			@Override
 			public void selectionChanged(SelectionChangedEvent event) {
 				ITextSelection textSelection = (ITextSelection) event.getSelection();
-				updateSelection(textSelection.getOffset(), textSelection.getLength()); // generate new StrategoTermSelection when TextSelection changes
+				updateSelection(textSelection.getOffset(), textSelection.getLength()); // generate new selection upon new TextSelection
 			}
 		});
 		
@@ -109,14 +93,42 @@ public class SpoofaxEditor extends UniversalEditor {
 			public void caretMoved(CaretEvent event) {
 				ITextSelection textSelection = (ITextSelection) spoofaxViewer.getSelectionProvider().getSelection();
 				int offset = textSelection.getLength() == 0 ? event.caretOffset : textSelection.getOffset();
-				updateSelection(offset, textSelection.getLength()); // generate new StrategoTermSelection when cursor position changes
+				updateSelection(offset, textSelection.getLength()); // generate new selection when cursor position changes (non-default behavior for Eclipse Text Editors)
 			}
 		});
 	}
 	
+	private boolean asyncSelection() {
+		if (editorState == null) {
+			return false;
+		}
+			
+		IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+		if (window == null || window.getActivePage() == null || window.getActivePage().findView("org.eclipse.ui.views.PropertySheet") == null) {
+			return false;
+		}
+		
+		try {
+			PropertiesService propertiesService = editorState.getDescriptor().createService(PropertiesService.class, editorState.getParseController());
+			if (propertiesService.getPropertiesRule() == null) {
+				return false;
+			}
+		} catch (BadDescriptorException e) {
+			e.printStackTrace();
+		}
+		
+		return true;
+	}
+	
 	public void updateSelection(final int offset, final int length) {
+		
 		if (editorState == null) {
 			return; // language undefined
+		}
+		
+		if (!asyncSelection()) {
+			selectionProvider.setSelection(new TextSelection(offset, length));
+			return;
 		}
 		
 		final Display display = Display.getCurrent();
@@ -166,8 +178,6 @@ public class SpoofaxEditor extends UniversalEditor {
 	}
 	
 	protected class SelectionProvider implements IPostSelectionProvider, ISelectionValidator {
-		StrategoTermSelection selection;
-		
 		List<ISelectionChangedListener> listeners = new CopyOnWriteArrayList<ISelectionChangedListener>();
 		
 		public void addSelectionChangedListener(ISelectionChangedListener listener) {
@@ -175,7 +185,7 @@ public class SpoofaxEditor extends UniversalEditor {
 		}
 
 		public ISelection getSelection() {
-			return spoofaxViewer.getSelectionProvider().getSelection(); // return synchronized selection and not the asynchronous this.selection
+			return spoofaxViewer.getSelectionProvider().getSelection(); // always return synchronized selection and not the asynchronous StrategoTermSelection
 		}
 
 		public void removeSelectionChangedListener(ISelectionChangedListener listener) {
@@ -183,30 +193,21 @@ public class SpoofaxEditor extends UniversalEditor {
 		}
 
 		public void setSelection(ISelection selection) {
-			if (selection instanceof StrategoTermSelection) {
-				this.selection = (StrategoTermSelection) selection;
 
-				SelectionChangedEvent e = new SelectionChangedEvent(this, selection);
-				for (ISelectionChangedListener listener : listeners) {
-					listener.selectionChanged(e);
-				}
-				
-				spoofaxViewer.firePostSelectionChanged(this.selection);
+			SelectionChangedEvent e = new SelectionChangedEvent(this, selection);
+			for (ISelectionChangedListener listener : listeners) {
+				listener.selectionChanged(e);
 			}
-			else {
-				doSetSelection(selection);
+			
+			if (selection instanceof StrategoTermSelection) {
+				spoofaxViewer.firePostSelectionChanged(selection);
+			}
+			else if (selection instanceof ITextSelection){
+				ITextSelection textSelection = (ITextSelection) selection;
+			 	spoofaxViewer.firePostSelectionChanged(textSelection.getStartLine(), textSelection.getEndLine());
 			}
 		}
 		
-		// temporary workaround for Spoofax/812
-		public void setSelection2(ITextSelection selection) {
-		 	SelectionChangedEvent e = new SelectionChangedEvent(this, selection);
-		 	for (ISelectionChangedListener listener : listeners) {
-		 		listener.selectionChanged(e);
-		 	}
-		 	spoofaxViewer.firePostSelectionChanged(selection.getStartLine(), selection.getEndLine());
-		 }
-
 		public void addPostSelectionChangedListener(ISelectionChangedListener listener) {
 			if (spoofaxViewer != null) {
 				if (spoofaxViewer.getSelectionProvider() instanceof IPostSelectionProvider)  {
