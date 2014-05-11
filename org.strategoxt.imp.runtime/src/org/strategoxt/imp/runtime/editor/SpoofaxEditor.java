@@ -121,6 +121,7 @@ public class SpoofaxEditor extends UniversalEditor {
 		}
 		
 		try {
+			editorState = new EditorState(this.editorState.getEditor()); // create new editorState to reload descriptor
 			PropertiesService propertiesService = editorState.getDescriptor().createService(PropertiesService.class, editorState.getParseController());
 			if (propertiesService.getPropertiesRule() == null) {
 				return false;
