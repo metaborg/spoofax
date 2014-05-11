@@ -7,6 +7,7 @@ exports
     "expand" "to" "level" ":" Int                                   -> ExpandToLevel    {cons("ExpandToLevel")}
     "properties" "view" ":" StrategoCall PropertiesOption*          -> View             {cons("PropertiesView")}
     "(" "source" ")"                                                -> PropertiesOption {cons("Source")}
+    "(" "meta" ")"                                                  -> PropertiesOption {cons("Meta")}
 
   context-free syntax
     CONTENTCOMPLETE -> Section          {cons("COMPLETION-Section")}

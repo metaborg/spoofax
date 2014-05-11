@@ -21,6 +21,7 @@ templates
   >  
   
   PropertiesOption.Source = <(source)>
+  PropertiesOption.Meta = <(meta)>
   
 template options
 
