@@ -98,13 +98,25 @@ public class SpoofaxEditor extends UniversalEditor {
 		});
 	}
 	
+	private boolean shouldCreatePropertiesView;
 	private boolean shouldCreatePropertiesView() {
 		if (editorState == null) {
 			return false;
 		}
 			
-		IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-		if (window == null || window.getActivePage() == null || window.getActivePage().findView("org.eclipse.ui.views.PropertySheet") == null) {
+		Display.getDefault().syncExec(new Runnable() {
+		    @Override
+		    public void run() {
+				IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+				if (window == null || window.getActivePage() == null || window.getActivePage().findView("org.eclipse.ui.views.PropertySheet") == null) {
+					shouldCreatePropertiesView = false;
+				}
+				else {
+					shouldCreatePropertiesView = true;
+				}
+		    }
+		});
+		if (shouldCreatePropertiesView == false) {
 			return false;
 		}
 		
