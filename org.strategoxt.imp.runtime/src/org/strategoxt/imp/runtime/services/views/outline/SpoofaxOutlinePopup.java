@@ -65,7 +65,7 @@ public class SpoofaxOutlinePopup extends FilteringInfoPopup {
 	@Override
 	protected void handleElementSelected(Object selectedElement) {
 		if (selectedElement != null) {
-			SpoofaxOutlineUtil.selectCorrespondingText(selectedElement, parseController);
+			SpoofaxOutlineUtil.selectCorrespondingText(selectedElement, EditorState.getEditorFor(parseController));
 			setMatcherString("", false);
 		}
 	}
