@@ -98,7 +98,7 @@ public class SpoofaxEditor extends UniversalEditor {
 		});
 	}
 	
-	private boolean asyncSelection() {
+	private boolean shouldCreatePropertiesView() {
 		if (editorState == null) {
 			return false;
 		}
@@ -126,24 +126,30 @@ public class SpoofaxEditor extends UniversalEditor {
 			return; // language undefined
 		}
 		
-		if (!asyncSelection()) {
-			selectionProvider.setSelection(new TextSelection(offset, length));
-			return;
-		}
-		
 		final Display display = Display.getCurrent();
 
 		Job job = new Job("Updating properties view") {
 			@Override
 			protected IStatus run(IProgressMonitor monitor) {
-				final StrategoTermSelection selection = new StrategoTermSelection(editorState, offset, length);
-				selection.getFirstElement(); // do the heavy work here and not in the UI thread, or the UI will block
-				display.asyncExec(new Runnable() {
-					@Override
-					public void run() {
-						selectionProvider.setSelection(selection);
-					}
-				});
+				if (shouldCreatePropertiesView()) {
+					final StrategoTermSelection selection = new StrategoTermSelection(editorState, offset, length);
+					selection.getFirstElement(); // do the heavy work here and not in the UI thread, or the UI will block
+					display.asyncExec(new Runnable() {
+						@Override
+						public void run() {
+							selectionProvider.setSelectionDontReveal(selection);
+						}
+					});
+				}
+				else {
+					display.asyncExec(new Runnable() {
+						@Override
+						public void run() {
+							selectionProvider.setSelectionDontReveal(new TextSelection(offset, length));
+						}
+					});
+				}
+				
 				return Status.OK_STATUS;
 			}
 		};
@@ -193,7 +199,10 @@ public class SpoofaxEditor extends UniversalEditor {
 		}
 
 		public void setSelection(ISelection selection) {
-
+				doSetSelection(selection);
+		}
+		
+		private void setSelectionDontReveal(ISelection selection) {
 			SelectionChangedEvent e = new SelectionChangedEvent(this, selection);
 			for (ISelectionChangedListener listener : listeners) {
 				listener.selectionChanged(e);
