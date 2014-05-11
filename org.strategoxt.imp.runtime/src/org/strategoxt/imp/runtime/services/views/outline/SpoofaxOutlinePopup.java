@@ -46,7 +46,7 @@ public class SpoofaxOutlinePopup extends FilteringInfoPopup {
 		} catch (BadDescriptorException e) {
 			e.printStackTrace();
 		}
-		IStrategoTerm outline = outlineService.getOutline();
+		IStrategoTerm outline = outlineService.getOutline(editorState);
 		
 		// workaround for https://bugs.eclipse.org/9262
 		if (outline.getTermType() == IStrategoTerm.APPL) {

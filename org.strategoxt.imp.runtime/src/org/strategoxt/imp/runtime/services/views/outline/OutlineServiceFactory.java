@@ -4,7 +4,6 @@ import static org.strategoxt.imp.runtime.dynamicloading.TermReader.findTerm;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.termContents;
 
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.dynamicloading.AbstractServiceFactory;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
@@ -21,7 +20,7 @@ public class OutlineServiceFactory extends AbstractServiceFactory<IOutlineServic
 	
 	@Override
 	public IOutlineService create(Descriptor descriptor, SGLRParseController controller) throws BadDescriptorException {
-		return new OutlineService(getOutlineRule(descriptor), getExpandToLevel(descriptor), EditorState.getEditorFor(controller));
+		return new OutlineService(getOutlineRule(descriptor), getExpandToLevel(descriptor));
 	}
 	
 	public static String getOutlineRule(Descriptor descriptor) {

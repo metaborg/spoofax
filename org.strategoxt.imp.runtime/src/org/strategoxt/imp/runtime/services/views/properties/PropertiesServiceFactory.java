@@ -18,7 +18,7 @@ import org.strategoxt.imp.runtime.parser.SGLRParseController;
 public class PropertiesServiceFactory extends AbstractServiceFactory<IPropertiesService> {
 
 	public PropertiesServiceFactory() {
-		super(IPropertiesService.class, true);
+		super(IPropertiesService.class, false);
 	}
 	
 	@Override

@@ -108,7 +108,7 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 					e.printStackTrace();
 				}
 				
-				outline = outlineService.getOutline();
+				outline = outlineService.getOutline(editorState);
 				final int outline_expand_to_level = outlineService.getExpandToLevel();
 				
 				if (outline == null) {
