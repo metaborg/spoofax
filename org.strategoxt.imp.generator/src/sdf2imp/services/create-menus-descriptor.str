@@ -18,7 +18,7 @@ imports {<descriptor-name> "-Menus.generated"}
 
 menus
   
-  menu: "Syntax"                    (openeditor)
+  menu: "Syntax"                     (openeditor)
     
     action: "Format"               = editor-format (realtime) (source)
     action: "Show abstract syntax" = debug-show-aterm (realtime) (meta) (source)
