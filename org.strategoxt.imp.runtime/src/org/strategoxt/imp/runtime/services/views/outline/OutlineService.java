@@ -1,5 +1,6 @@
 package org.strategoxt.imp.runtime.services.views.outline;
 
+import org.eclipse.swt.widgets.Display;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.ImploderOriginTermFactory;
 import org.spoofax.terms.TermFactory;
@@ -15,6 +16,7 @@ public class OutlineService implements IOutlineService {
 	private final String outlineRule;
 	private final boolean source;
 	private final int expandToLevel;
+	private IStrategoTerm selectionAst;
 	
 	private ImploderOriginTermFactory factory = new ImploderOriginTermFactory(new TermFactory());
 	
@@ -26,7 +28,7 @@ public class OutlineService implements IOutlineService {
 	}
 
 	@Override
-	public IStrategoTerm getOutline(EditorState editorState) {
+	public IStrategoTerm getOutline(final EditorState editorState) {
 		StrategoObserver observer = getObserver(editorState);
 		observer.getLock().lock();
 		try {
@@ -34,7 +36,13 @@ public class OutlineService implements IOutlineService {
 				return messageToOutlineNode("Can't find strategy '" + outlineRule + "'");
 			}
 			
-			IStrategoTerm selectionAst = editorState.getSelectionAst(false);
+			Display.getDefault().syncExec(new Runnable() {
+				@Override
+				public void run() {
+					selectionAst = editorState.getSelectionAst(false);
+				}
+			});
+			
 			if (editorState.getCurrentAst() == null) {
 				return null;
 			}
