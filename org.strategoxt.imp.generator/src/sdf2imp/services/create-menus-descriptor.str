@@ -18,34 +18,34 @@ imports {<descriptor-name> "-Menus.generated"}
 
 menus
   
-  menu: "Syntax" (openeditor)
+  menu: "Syntax"                    (openeditor)
     
     action: "Format"               = editor-format (realtime) (source)
     action: "Show abstract syntax" = debug-show-aterm (realtime) (meta) (source)
     action: "Show analyzed syntax" = debug-show-analyzed (meta)
     
-  menu: "Analysis" (meta)
+  menu: "Analysis"                   (meta)
     
     action: "Reset and reanalyze"  = debug-reanalyze  
 
-    submenu: "Show analysis" (openeditor)
+    submenu: "Show analysis"         (openeditor)
       action: "Project"            = debug-project
       action: "Partition"          = debug-partition
     end
     
-    submenu: "Show index" (openeditor)
+    submenu: "Show index"            (openeditor)
       action: "Project"            = debug-index-project
       action: "Project (resolved)" = debug-index-project-resolve
       action: "Partition"          = debug-index-partition
     end
     
-    submenu: "Show tasks" (openeditor)
+    submenu: "Show tasks"            (openeditor)
       action: "Project"            = debug-task-project
       action: "Partition"          = debug-task-partition
       action: "Selection"          = debug-task-selection
     end
   
-  menu: "Generation" (openeditor) (realtime)
+  menu: "Generation"                 (openeditor) (realtime)
     
     action: "Generate Java"        = generate-java
 
