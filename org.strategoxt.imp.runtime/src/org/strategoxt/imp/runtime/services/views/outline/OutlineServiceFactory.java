@@ -1,9 +1,9 @@
 package org.strategoxt.imp.runtime.services.views.outline;
 
-import static org.spoofax.interpreter.core.Tools.termAt;
-import static org.strategoxt.imp.runtime.dynamicloading.TermReader.cons;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.findTerm;
 import static org.strategoxt.imp.runtime.dynamicloading.TermReader.termContents;
+import static org.strategoxt.imp.runtime.dynamicloading.TermReader.termAt;
+import static org.strategoxt.imp.runtime.dynamicloading.TermReader.cons;
 
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;

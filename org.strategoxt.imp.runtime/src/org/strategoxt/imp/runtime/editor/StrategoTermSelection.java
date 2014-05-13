@@ -21,7 +21,7 @@ public class StrategoTermSelection extends TextSelection implements IStructuredS
 	private final EditorState editorState;
 
 	public StrategoTermSelection(EditorState editorState, int offset, int length) {
-		super(editorState.getEditor().getDocumentProvider().getDocument(editorState.getEditor().getEditorInput()), offset, length);
+		super(offset, length);
 		this.editorState = editorState;
 	}
 

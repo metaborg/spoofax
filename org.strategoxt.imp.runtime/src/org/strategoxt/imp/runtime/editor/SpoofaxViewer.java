@@ -403,7 +403,7 @@ public class SpoofaxViewer extends ProjectionViewer {
 		}
 	}
 	
-	public void firePostSelectionChanged(StrategoTermSelection selection) {
+	public void firePostSelectionChanged(ISelection selection) {
 		SelectionChangedEvent event= new SelectionChangedEvent(this, selection);
 		firePostSelectionChanged(event);
 	}

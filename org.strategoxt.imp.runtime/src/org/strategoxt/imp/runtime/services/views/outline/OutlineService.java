@@ -18,17 +18,15 @@ public class OutlineService implements IOutlineService {
 	
 	private ImploderOriginTermFactory factory = new ImploderOriginTermFactory(new TermFactory());
 	
-	private EditorState editorState;
 	
 	public OutlineService(String outlineRule, boolean source, int expandToLevel, EditorState editorState) {
 		this.outlineRule = outlineRule;
 		this.source = source;
 		this.expandToLevel = expandToLevel;
-		this.editorState = editorState;
 	}
 
 	@Override
-	public IStrategoTerm getOutline() {
+	public IStrategoTerm getOutline(EditorState editorState) {
 		StrategoObserver observer = getObserver(editorState);
 		observer.getLock().lock();
 		try {
