@@ -32,7 +32,7 @@ public class OutlineServiceFactory extends AbstractServiceFactory<IOutlineServic
 		
 		// BEGIN backwards compatibility
 		if (outliner == null) {
-			return new OutlineService("outline", true, DEFAULT_EXPAND_TO_LEVEL, editorState);
+			return new OutlineService("outline", true, false, DEFAULT_EXPAND_TO_LEVEL, editorState);
 		}
 		// END backwards compatibility
 		
@@ -40,11 +40,14 @@ public class OutlineServiceFactory extends AbstractServiceFactory<IOutlineServic
 		
 		IStrategoList options = termAt(outliner, 1);
 		boolean source = false;
+		boolean onselection = false;
 
 		for (IStrategoTerm option : options.getAllSubterms()) {
 			String type = cons(option);
 			if (type.equals("Source")) {
 				source = true;
+			} else if (type.equals("OnSelection")) {
+				onselection = true;
 			} else {
 				throw new BadDescriptorException("Unknown builder annotation: " + type);
 			}
@@ -56,6 +59,6 @@ public class OutlineServiceFactory extends AbstractServiceFactory<IOutlineServic
 			expandToLevel = Integer.parseInt(expandToLevelS);
 		}
 		
-		return new OutlineService(outlineRule, source, expandToLevel, editorState);
+		return new OutlineService(outlineRule, source, onselection, expandToLevel, editorState);
 	}
 }

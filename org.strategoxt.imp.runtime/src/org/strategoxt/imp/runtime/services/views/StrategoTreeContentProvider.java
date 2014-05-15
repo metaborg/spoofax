@@ -33,7 +33,7 @@ public class StrategoTreeContentProvider implements ITreeContentProvider {
 				return filterWellFormedOutlineNodes(term.getAllSubterms());
 				
 			default:
-				Environment.logException("Expected Node(...) or [Node(...), ...] but was: " + inputElement);
+				Environment.logException("Expected Node(\"label\"{\"pathToIcon\"}, [...]) or [Node(...) ...] but was: " + inputElement);
 				break;
 		}
 		
@@ -62,7 +62,7 @@ public class StrategoTreeContentProvider implements ITreeContentProvider {
 				result.add(outlineNode);
 			}
 			else {
-				Environment.logException(outlineNode + " is not a well-formed outline node.");
+				Environment.logException("Not a well-formed outline node: " + outlineNode + "\nOutline nodes should be of the form Node(\"label\", [...]) or Node(\"label\"{\"pathToIcon\"}, [...])");
 			}
 		}
 		

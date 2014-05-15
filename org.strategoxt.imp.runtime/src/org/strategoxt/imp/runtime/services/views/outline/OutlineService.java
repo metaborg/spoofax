@@ -15,15 +15,17 @@ public class OutlineService implements IOutlineService {
 	
 	private final String outlineRule;
 	private final boolean source;
+	private final boolean onselection;
 	private final int expandToLevel;
 	private IStrategoTerm selectionAst;
 	
 	private ImploderOriginTermFactory factory = new ImploderOriginTermFactory(new TermFactory());
 	
 	
-	public OutlineService(String outlineRule, boolean source, int expandToLevel, EditorState editorState) {
+	public OutlineService(String outlineRule, boolean source, boolean onselection, int expandToLevel, EditorState editorState) {
 		this.outlineRule = outlineRule;
-		this.source = source;
+		this.source = true; // TODO
+		this.onselection = onselection;
 		this.expandToLevel = expandToLevel;
 	}
 
@@ -36,12 +38,14 @@ public class OutlineService implements IOutlineService {
 				return messageToOutlineNode("Can't find strategy '" + outlineRule + "'");
 			}
 			
-			Display.getDefault().syncExec(new Runnable() {
-				@Override
-				public void run() {
-					selectionAst = editorState.getSelectionAst(false);
-				}
-			});
+			if (onselection) {
+				Display.getDefault().syncExec(new Runnable() {
+					@Override
+					public void run() {
+						selectionAst = editorState.getSelectionAst(false);
+					}
+				});
+			}
 			
 			if (editorState.getCurrentAst() == null) {
 				return null;

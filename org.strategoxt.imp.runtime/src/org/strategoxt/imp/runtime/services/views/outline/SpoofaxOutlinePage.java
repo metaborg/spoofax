@@ -169,6 +169,7 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
         	}
         	debounceOutlineSelection = true;
        		
+        	update();
        		textSelectionToOutlineSelection();
        	}
     }
