@@ -14,8 +14,6 @@ strategies
     ,
 !${module {<descriptor-name> "-Menus"}
 
-imports {<descriptor-name> "-Menus.generated"}
-
 menus
   
   menu: "Syntax"                     (openeditor)
@@ -54,13 +52,7 @@ menus
      not(file-exists)
    );
     
-    output-derived-descriptor-file(
-      <descriptor-name> "-Menus.generated"
-    ,
-!${module {<descriptor-name> "-Menus.generated"}
-
-}
-    ); create-derived-builder-descriptor
+    create-derived-builder-descriptor
   
   // for backwards compatibility
   create-derived-builder-descriptor =
