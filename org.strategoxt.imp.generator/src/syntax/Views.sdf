@@ -4,6 +4,7 @@ exports
     "views" View*                                                   -> Section          {cons("Views")}
     "outline" "view" ":" StrategoCall OutlineOption* ExpandToLevel? -> View             {cons("OutlineView")}
     "(" "source" ")"                                                -> OutlineOption    {cons("Source")}
+    "(" "onselection" ")"                                           -> OutlineOption    {cons("OnSelection")}
     "expand" "to" "level" ":" Int                                   -> ExpandToLevel    {cons("ExpandToLevel")}
     "properties" "view" ":" StrategoCall PropertiesOption*          -> View             {cons("PropertiesView")}
     "(" "source" ")"                                                -> PropertiesOption {cons("Source")}
