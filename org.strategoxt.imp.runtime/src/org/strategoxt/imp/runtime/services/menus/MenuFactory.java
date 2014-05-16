@@ -126,7 +126,7 @@ public class MenuFactory extends AbstractServiceFactory<IMenuList> {
 				}
 	
 				List<String> path = createPath(Collections.<String> emptyList(), caption);
-				addMenuContribs(menu,termAt(m, 2), path, d, controller, options);
+				addMenuContribs(menu,termAt(m, 2), path, d, controller, options.clone());
 				menus.add(menu);
 			}
 		}
@@ -145,7 +145,7 @@ public class MenuFactory extends AbstractServiceFactory<IMenuList> {
 
 			if (cons.equals("Action")) {
 				String caption = termContents(termAt(a, 0));
-				IBuilder builder = createBuilder(a, createPath(path, caption), d, controller, options);
+				IBuilder builder = createBuilder(a, createPath(path, caption), d, controller, options.clone());
 				if (builder != null) {
 					menu.addMenuContribution(builder);
 				}
@@ -157,7 +157,7 @@ public class MenuFactory extends AbstractServiceFactory<IMenuList> {
 				if (!options[OPTION_META] || d.isDynamicallyLoaded()) {
 					String caption = termContents(termAt(a, 0));
 					Menu submenu = new Menu(caption);
-					addMenuContribs(submenu, termAt(a, 2), createPath(path, caption), d, controller, options);
+					addMenuContribs(submenu, termAt(a, 2), createPath(path, caption), d, controller, options.clone());
 					if (submenu.getMenuContributions().size() > 0) {
 						menu.addMenuContribution(submenu);
 					}
