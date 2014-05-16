@@ -162,12 +162,12 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
         	if (debounceTextSelection || debounceOutlineSelection) {
         		return;
         	}
-        	debounceOutlineSelection = true;
-       		
+
         	if (getOnselection()) {
         		update();
         	}
         	else {
+            	debounceOutlineSelection = true;
         		textSelectionToOutlineSelection();
         	}
        	}
