@@ -6,9 +6,9 @@ import org.spoofax.interpreter.library.AbstractStrategoOperatorRegistry;
  * @author Lennart Kats <lennart add lclnet.nl>
  */
 public class IMPLibrary extends AbstractStrategoOperatorRegistry {
-	
+
 	public static final String REGISTRY_NAME = "sdf2imp";
-	
+
 	public IMPLibrary() {
 		add(new NameDialogPrimitive());
 		add(new SubtermPrimitive());
@@ -24,7 +24,7 @@ public class IMPLibrary extends AbstractStrategoOperatorRegistry {
 		add(new CandidateSortsPrimitive());
 		add(new GetAllProjectsPrimitive());
 		add(new ForeignLangCallPrimitive());
-		
+
 		add(new SetTotalWorkUnitsPrimitive());
 		add(new CompleteWorkUnitPrimitive());
 		add(new SaveAllResourcesPrimitive());
