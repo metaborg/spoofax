@@ -57,7 +57,9 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 		if (editorState.getParseController().getCurrentAst() != null) {
 			// The editor sporadically manages to parse the file before our model listener gets added,
 			// resulting in an empty outline on startup. We therefore perform a 'manual' update:
-			update();
+			if (!getOnselection()) {
+				update();
+			}
 		}
 	}
 
@@ -78,7 +80,9 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 
 			@Override
 			public void run() {
-				update();
+				if (!getOnselection()) {
+					update();
+				}
 			}
 		});
 		
@@ -95,22 +99,13 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 	}
 	
 	public void update() {
-		final EditorState editorState = new EditorState(this.editorState.getEditor()); // create new editorState to reload descriptor
 		final Display display = Display.getCurrent();
 
 		Job job = new Job("Updating outline view") {
 			@Override
 			protected IStatus run(IProgressMonitor monitor) {		
 
-				IOutlineService outlineService = null;
-				try {
-					outlineService = editorState.getDescriptor().createService(IOutlineService.class, editorState.getParseController());
-				} catch (BadDescriptorException e) {
-					e.printStackTrace();
-				}
-				
-				outline = outlineService.getOutline(editorState);
-				final int outline_expand_to_level = outlineService.getExpandToLevel();
+				outline = getOutline();
 				
 				if (outline == null) {
 					outline = SpoofaxOutlineUtil.factory.makeList();
@@ -125,7 +120,7 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 					public void run() {
 						if (getTreeViewer().getControl() != null && !getTreeViewer().getControl().isDisposed()) {
 							getTreeViewer().setInput(outline);
-							getTreeViewer().expandToLevel(outline_expand_to_level);
+							getTreeViewer().expandToLevel(getExpandToLevel());
 						}
 					}
 				});
@@ -169,8 +164,12 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
         	}
         	debounceOutlineSelection = true;
        		
-        	update();
-       		textSelectionToOutlineSelection();
+        	if (getOnselection()) {
+        		update();
+        	}
+        	else {
+        		textSelectionToOutlineSelection();
+        	}
        	}
     }
     
@@ -270,4 +269,28 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
     	super.setFocus();
     	outlineSelectionToTextSelection();
     }
+	
+	private boolean getOnselection() {
+		EditorState editorState = new EditorState(this.editorState.getEditor()); // create new editorState to reload descriptor
+		return getOutlineService(editorState).getOnselection();
+	}
+	
+	private int getExpandToLevel() {
+		EditorState editorState = new EditorState(this.editorState.getEditor()); // create new editorState to reload descriptor
+		return getOutlineService(editorState).getExpandToLevel();
+	}
+	
+	private IStrategoTerm getOutline() {
+		EditorState editorState = new EditorState(this.editorState.getEditor()); // create new editorState to reload descriptor
+		return getOutlineService(editorState).getOutline(editorState);
+	}
+	
+	private IOutlineService getOutlineService(EditorState editorState) {
+		try {
+			return editorState.getDescriptor().createService(IOutlineService.class, editorState.getParseController());
+		} catch (BadDescriptorException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
 }

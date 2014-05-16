@@ -13,4 +13,6 @@ public interface IOutlineService extends ILanguageService {
 	
 	int getExpandToLevel();
 	
+	boolean getOnselection();
+	
 }

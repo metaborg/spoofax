@@ -85,6 +85,11 @@ public class OutlineService implements IOutlineService {
 		return expandToLevel;
 	}
 	
+	@Override
+	public boolean getOnselection() {
+		return onselection;
+	}
+	
 	public static StrategoObserver getObserver(EditorState editorState) {
 		try {
 			return editorState.getDescriptor().createService(StrategoObserver.class, editorState.getParseController());
