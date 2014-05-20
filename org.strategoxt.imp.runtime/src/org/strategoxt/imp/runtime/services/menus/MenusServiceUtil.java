@@ -26,16 +26,18 @@ public class MenusServiceUtil {
 	 * Resizes toolbar menus to reflect changed command labels.
 	 */
 	public static void refreshToolbarMenus() {
-		IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+		IWorkbenchWindow[] windows = PlatformUI.getWorkbench().getWorkbenchWindows();
+		
+		for (IWorkbenchWindow window : windows) {
+			if (window instanceof WorkbenchWindow && ((WorkbenchWindow) window).getCoolBarVisible()) {
+				ICoolBarManager coolBarManager = ((WorkbenchWindow) window).getCoolBarManager2();
+				ToolBarContributionItem menu = (ToolBarContributionItem) coolBarManager.find(MenusServiceConstants.TOOLBAR_ID);
 
-		if (window instanceof WorkbenchWindow && ((WorkbenchWindow) window).getCoolBarVisible()) {
-			ICoolBarManager coolBarManager = ((WorkbenchWindow) window).getCoolBarManager2();
-			ToolBarContributionItem menu = (ToolBarContributionItem) coolBarManager.find(MenusServiceConstants.TOOLBAR_ID);
-
-			if (menu != null) {
-				menu.getToolBarManager().update(true);
-				menu.setVisible(false);
-				menu.setVisible(true);
+				if (menu != null) {
+					menu.getToolBarManager().update(true);
+					menu.setVisible(false);
+					menu.setVisible(true);
+				}
 			}
 		}
 	}
