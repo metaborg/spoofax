@@ -272,17 +272,20 @@ public class SpoofaxOutlinePage extends ContentOutlinePage implements IModelList
 	
 	private boolean getOnselection() {
 		EditorState editorState = new EditorState(this.editorState.getEditor()); // create new editorState to reload descriptor
-		return getOutlineService(editorState).getOnselection();
+		IOutlineService outlineService = getOutlineService(editorState);
+		return outlineService != null && outlineService.getOnselection();
 	}
 	
 	private int getExpandToLevel() {
 		EditorState editorState = new EditorState(this.editorState.getEditor()); // create new editorState to reload descriptor
-		return getOutlineService(editorState).getExpandToLevel();
+		IOutlineService outlineService = getOutlineService(editorState);
+		return outlineService == null ? 0 : outlineService.getExpandToLevel();
 	}
 	
 	private IStrategoTerm getOutline() {
 		EditorState editorState = new EditorState(this.editorState.getEditor()); // create new editorState to reload descriptor
-		return getOutlineService(editorState).getOutline(editorState);
+		IOutlineService outlineService = getOutlineService(editorState);
+		return outlineService == null ? null : outlineService.getOutline(editorState);
 	}
 	
 	private IOutlineService getOutlineService(EditorState editorState) {
