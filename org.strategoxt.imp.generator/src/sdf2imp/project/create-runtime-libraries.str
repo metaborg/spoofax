@@ -23,6 +23,41 @@ imports
 
 "
 
+	create-analysis-builtins = 
+		<output-text-file(|["lib", "runtime", "analysis"], "builtins.str")>
+"module runtime/analysis/builtins
+
+imports
+	
+	runtime/analysis/single
+	runtime/analysis/interface
+	
+rules
+
+	analysis-analyze-builtin-partitions(collector|language, project-path) =
+		analysis-get-builtin-partitions; map(analysis-analyze-builtin-partition(collector|language, project-path))	
+
+	analysis-get-builtin-partitions =
+		analysis-builtin-partitions <+ []
+
+	analysis-analyze-builtin-partition(collector|language, project-path):
+		(path, ast) -> analyzed-ast
+		with
+	    (
+	    	analyzed-ast
+			, (analysis-error*, analysis-warning*, analysis-note*)
+			, removed-entry-count
+			, added-entry-count
+			, removed-task-count
+			, added-task-count
+			, invalidated-task-count
+			, evaluated-task*
+			, skipped-task*
+			, unevaluated-task*
+			) := <analyze-one(collector|language, path, project-path)> ast
+
+"
+
 	create-analysis-complete = 
 		<output-text-file(|["lib", "runtime", "analysis"], "complete.str")>
 "module runtime/analysis/complete
@@ -78,8 +113,9 @@ signature
     
 rules // Analysis
 	
-	analyze-collect(|language, project-path) = analyze-collect(id|language, project-path)
-	analyze-collect(try-recover|language, project-path):
+	// analyze-collect(|language, project-path) = analyze-collect(nabl-collect, id|language, project-path)
+	analyze-collect(collector|language, project-path) = analyze-collect(collector, id|language, project-path)
+	analyze-collect(collector, try-recover|language, project-path):
     File(partition, initial-ast) -> ( 
     	Result(partition, initial-ast, analyzed-ast, changed-read*, [], [], [])
     , DebugResult(<length> removed-entry*, <length> added-entry*, <length> removed-task*, <length> added-task*, <length> invalidated-task*)
@@ -96,7 +132,7 @@ rules // Analysis
 	    		task-start-collection(|partition)
 	      	, analysis-core-debug-time(!\"Time - setup: \") | \"analyze-collect-setup\"
 	      ); measure-time(
-	      	analyzed-ast := <nabl-collect(|partition, Language(language))> initial-ast
+	      	analyzed-ast := <collector(id|Language(language), partition, <new-hashtable>, [])> initial-ast
 	    	  , analysis-core-debug-time(!\"Time - collect: \") | \"analyze-collect-collect\" 
 	  	  ); measure-time(
 	  	  	index-stop-collection            => (removed-entry*, added-entry*);
@@ -434,7 +470,10 @@ imports
 	runtime/analysis/core
 	runtime/analysis/single
 	runtime/analysis/multiple
+	runtime/analysis/builtins
 	runtime/analysis/interface
+	runtime/nabl/collect
+	runtime/nabl/uri
 	runtime/nabl/utils
 	runtime/index/core
 	runtime/task/core
@@ -457,10 +496,15 @@ rules // Single finle analysis
 	
 	analysis-single-default-interface = fail
 	
-  analysis-single-default(desugar-before, desugar-after, pp-message|language):
+	analysis-single-default(desugar-before, desugar-after, pp-message|language) = 
+		analysis-single-default(desugar-before, nabl-collect, desugar-after, pp-message|language)
+  analysis-single-default(desugar-before, collector, desugar-after, pp-message|language):
     (ast, path, project-path) -> (analyzed-ast', error*, warning*, note*)
     with
-      editor-init;
+      editor-init
+		with
+      analysis-analyze-builtin-partitions(collector|language, project-path)
+    with
       <analysis-default-debug(!\"Analyzing file: \")> path;
       partition := <analysis-partition(|path, project-path)>;
       
@@ -475,7 +519,7 @@ rules // Single finle analysis
 			, evaluated-task*
 			, skipped-task*
 			, unevaluated-task*
-			) := <(analysis-pre-trans <+ desugar-before); analyze-one(|language, path, project-path)> ast;
+			) := <(analysis-pre-trans <+ desugar-before); analyze-one(collector|language, path, project-path)> ast;
 			analyzed-ast' := <analysis-post-trans(|partition) <+ desugar-after> analyzed-ast;
 			
       (error*, warning*, note*) := <analysis-message-collect(pp-message|analysis-error*, analysis-warning*, analysis-note*)> analyzed-ast';
@@ -495,14 +539,18 @@ rules // Multi-file analysis
     path* -> None()
     with
       queue-strategy(|\"analysis-multiple-default-interface\", \"Analyzing files\")
-      
-  analysis-multiple-default(parse, desugar-before, desugar-after, pp-message|language, project-path):
+  
+  analysis-multiple-default(parse, desugar-before, desugar-after, pp-message|language, project-path) = 
+		analysis-multiple-default(parse, desugar-before, nabl-collect, desugar-after, pp-message|language, project-path)    
+  analysis-multiple-default(parse, desugar-before, collector, desugar-after, pp-message|language, project-path):
     path* -> (
       analysis-result'*
     , (removed-entry-count, added-entry-count)
     , (removed-task-count, added-task-count, invalidated-task-count, evaluated-task*, skipped-task*, unevaluated-task*)
     , (parse-time, collect-time, perform-time, index-persist-time, task-persist-time)
     )
+    with
+    	analysis-analyze-builtin-partitions(collector|language, project-path)
     with
     	analysis-default-debug(!\"Analyzing files: \");
       analysis-multiple-default-work-units; set-total-work-units;
@@ -511,7 +559,7 @@ rules // Multi-file analysis
 	      measure-time(
 	      	path'* := <map(\\p -> $[[project-path]/[p]]\\)> path*;
 	        ((result*, evaluated-task*, skipped-task*, unevaluated-task*), parse-time, collect-time, perform-time) := 
-	        	<analyze-multiple(parse; (analysis-pre-trans <+ desugar-before), complete-work-unit|language, project-path)> path'*;
+	        	<analyze-multiple(parse; (analysis-pre-trans <+ desugar-before), complete-work-unit, collector|language, project-path)> path'*;
 	        (analysis-result*, debug-result*) := <unzip> result*
 	      , analysis-default-debug-time(!\"Time - analysis: \") | \"analysis-multiple-full-analysis\"
 	      );
@@ -658,7 +706,9 @@ rules
 	analysis-pre-trans = fail
 	analysis-post-trans(|ctx) = fail
 	analysis-disable-persist = fail
-
+	analysis-collect = fail
+	analysis-builtin-partitions = fail
+	
 "
 
 	create-analysis-multiple = 
@@ -673,7 +723,7 @@ imports
 
 rules // Multi file analysis
   
-  analyze-multiple(parse-file, complete-work-unit|language, project-path):
+  analyze-multiple(parse-file, complete-work-unit, collector|language, project-path):
     path* -> (result, parse-time, collect-time, perform-time)
     with
     	measure-time(
@@ -681,7 +731,7 @@ rules // Multi file analysis
     	  , id, ?parse-time
     	);
     	measure-time(
-      	result* := <map(analyze-collect(|language, project-path); where(complete-work-unit))> file*
+      	result* := <map(analyze-collect(collector|language, project-path); where(complete-work-unit))> file*
       	, id, ?collect-time
       );
       measure-time(
@@ -711,6 +761,7 @@ imports
 	runtime/index/core
 	runtime/nabl/collect
 	runtime/nabl/namegen
+	runtime/properties/collect
 
 rules
 	
@@ -729,7 +780,9 @@ rules
   reanalyze-ast(|language, path, project-path):
     ast -> analyzed-ast
     with
-	    (
+    	property-kind* := <nabl-get-all-properties>
+    ; ast' := <topdown(try(remove-property-annotations(|property-kind*)))> ast
+	  ; (
 	    	analyzed-ast
 			, (error*, warning*, note*)
 			, removed-entry*
@@ -740,7 +793,7 @@ rules
 			, evaluated-task*
 			, skipped-task*
 			, unevaluated-task*
-			) := <analyze-one(fail|language, path, project-path)> ast;
+			) := <analyze-one(fail|language, path, project-path)> ast';
 			
       <analysis-debug-results> (removed-entry*, added-entry*, removed-task*, added-task*, invalidated-task*, evaluated-task*, skipped-task*, unevaluated-task*);
       
@@ -787,10 +840,10 @@ imports
     
 rules // Single file analysis
   
-  analyze-one(|language, path, project-path) = 
-  	analyze-one(id|language, path, project-path)
+  analyze-one(collector|language, path, project-path) = 
+  	analyze-one(collector, id|language, path, project-path)
   
-  analyze-one(try-recover|language, path, project-path):
+  analyze-one(collector, try-recover|language, path, project-path):
     ast -> 
     (
     	analyzed-ast
@@ -809,7 +862,7 @@ rules // Single file analysis
       r@(
       	Result(_, _, analyzed-ast, _, _, _, _)
       , DebugResult(removed-entry*, added-entry*, removed-task*, added-task*, invalidated-task*)
-      ) := <analyze-collect(try-recover|language, project-path)> File(partition, ast);
+      ) := <analyze-collect(collector, try-recover|language, project-path)> File(partition, ast);
       
     	(result*, evaluated-task*, skipped-task*, unevaluated-task*) := <analyze-perform-all> [r];
     	
@@ -849,6 +902,8 @@ rules // TODO: does not belong to editor, move to a new 'utils' directory
     t{a*} -> t{a'*, a''*}
     where
       a''* := <remove-all(s)> a*
+
+	preserve-annotations-attachments(s) = prim(\"SSL_preserve_annotations_attachments\", s|)
 
 "
 
@@ -2121,17 +2176,11 @@ signature
 strategies // generic traversal
 	
 	/**
-	 * Main strategy to collect all index elements and task* from an AST.
-	 */
-	nabl-collect(|partition, lang) =
-	  nabl-collect(id|lang, partition, <new-hashtable>, [])
-	
-	/**
 	 * Performs the collection in a topdown traversal. 
 	 * At each node, it tries various calls to generated strategies, which call back to generic strategies.
 	 */
 	nabl-collect(sibling-uris|lang, partition, unique*, uri*) =
-		nabl-state-pop(?state*)
+	  nabl-state-pop(?state*)
   ; try(nabl-scoping-site)
   ; (
 		   nabl-scope-site(?uri'*|lang, partition, unique*, uri*)
@@ -3891,6 +3940,7 @@ imports
 	runtime/properties/tasks
 	runtime/properties/interface
 	runtime/properties/query
+	runtime/properties/debug
   runtime/task/core
   runtime/task/create
   runtime/task/messages
@@ -3939,13 +3989,16 @@ rules
     iset := <new-iset>
   ; try(nabl-custom-properties(\\p* -> <iset-addlist(|p*); fail> iset\\))
   ; <iset-elements> iset
+    
+  nabl-get-all-properties = ![Type()|<nabl-collect-custom-properties>]
   
   // generic collection of property tasks
-  nabl-annotate-properties(|lang, partition, old-uri*, new-uri*) =
-    where(kind* := [Type()|<nabl-collect-custom-properties>])
-  ; !(kind*, <remove-property-annotations(|kind*)>)
-  ; foldl(nabl-annotate-property(|lang, partition, old-uri*, new-uri*) <+ Snd)
-  ; where(try(nabl-constraint(|lang, partition, old-uri*, new-uri*)))
+  nabl-annotate-properties(|lang, partition, old-uri*, new-uri*):
+  	term -> term'
+  	where
+      kind* := <nabl-get-all-properties>
+    ; term' := <foldl(nabl-annotate-property(|lang, partition, old-uri*, new-uri*) <+ Snd)> (kind*, term)
+    ; try(nabl-constraint(|lang, partition, old-uri*, new-uri*))
   
   nabl-annotate-property(|lang, partition, old-uri*, new-uri*):
     (kind, term{a*}) -> term{(kind, prop), a*}
@@ -3976,24 +4029,32 @@ strategies
 
 rules
   
-  get-or-create-property-task(|ctx, kind, old-uri*, new-uri*) =
-     get-property-task(|kind)
-  <+ create-property-task(|ctx, kind, old-uri*, new-uri*)
-  <+ create-property-task(|ctx, kind, new-uri*)
-  <+ create-property-task(|ctx, kind)
+  get-or-create-property-task(|ctx, kind, old-uri*, new-uri*):
+  	term -> task
+  	where
+  		(
+         get-property-task(|kind)
+      <+ create-property-task(|ctx, kind, old-uri*, new-uri*)
+      <+ create-property-task(|ctx, kind, new-uri*)
+      <+ create-property-task(|ctx, kind)
+      <+ cannot-create-property-task(|ctx, kind)
+      ) => task
   
   get-or-create-property-task(|ctx, kind):
   	term -> task
-  	where ( 
-     get-property-task(|kind)
-  <+ create-property-task(|ctx, kind, [], [])
-  ; where(err-msg(|$[Called create-property-task for property [<get-constructor> kind] on term [<write-to-string> term] that accepts old-uri* and new-uri* with empty lists, because it was not passed!])) 
-  <+ create-property-task(|ctx, kind, [])
-  ; where(err-msg(|$[Called create-property-task for property [<get-constructor> kind] on term [<write-to-string> term] that accepts uri* with an empty list, because it was not passed!])) 
-  <+ create-property-task(|ctx, kind)
-  <+ task-create-fail(|ctx)
-  ; where(err-msg(|$[Could not create task for property [<get-constructor> kind] on term [<write-to-string> term].]))
-  ) => task
+  	where
+  		( 
+          get-property-task(|kind)
+      <+ (create-property-task(|ctx, kind, [], []); properties-console-msg(|$[Called create-property-task for property [<get-constructor> kind] on term [<write-to-string> term] that accepts old-uri* and new-uri* with empty lists, because it was not passed!])) 
+      <+ (create-property-task(|ctx, kind, []);     properties-console-msg(|$[Called create-property-task for property [<get-constructor> kind] on term [<write-to-string> term] that accepts uri* with an empty list, because it was not passed!]))
+      <+  create-property-task(|ctx, kind)
+      <+  cannot-create-property-task(|ctx, kind)
+      ) => task
+      
+  cannot-create-property-task(|ctx, kind):
+  	term -> <properties-warning-task(|ctx, msg); properties-console-msg(|msg)> term
+  	where
+  		msg := $[Could not create task for property [<get-constructor> kind] on term [<write-to-string> term].]
       
   create-property-task(|ctx, kind):
     r@Result(_) -> <prop-create-extract(|ctx, kind)> r
@@ -4005,11 +4066,34 @@ rules
     
 rules
   
-  remove-property-annotations(|kind*) =
-    !(kind*, <id>); foldl(remove-property-annotation) 
+  remove-property-annotations(|kind*):
+  	term -> <foldl(remove-property-annotation)> (kind*, term)
     
   remove-property-annotation:
     (kind, term) -> <remove-annotations(?(kind, _))> term
+
+"
+
+	create-properties-debug = 
+		<output-text-file(|["lib", "runtime", "properties"], "debug.str")>
+"module runtime/properties/debug
+
+imports
+	
+	runtime/task/messages
+	runtime/task/tasks
+	runtime/nabl/utils
+	
+rules
+	
+	properties-console-msg-enable = fail
+	properties-console-msg(|msg) = where(try(properties-console-msg-enable; err-msg(|msg)))
+	
+	properties-warning-task-disable = fail
+	properties-warning-task(|ctx, msg):
+		term -> <task-create-fail(|ctx)>
+		where
+			<properties-warning-task-disable <+ task-create-warning(|ctx, msg)> term
 
 "
 
@@ -4492,12 +4576,16 @@ rules // Match (custom implementation in Java that uses the hash set from a look
   relation-create-match(|ctx):
   	(rel, actual, expected) -> <relation-create-match(|ctx, rel, expected)> actual
 
-  relation-create-match(|ctx, rel, expected):
+	relation-create-match(|ctx, rel, expected) = 
+		relation-create-match(|ctx, rel, expected, [])
+
+  relation-create-match(|ctx, rel, expected, dep*):
   	actual -> result
-  	with
-  		lookup-task := <relation-create-lookup(|ctx, rel)> actual
+  	with 
+  	  lookup-task := <relation-create-lookup(|ctx, rel)> actual
   	; term-task   := <relation-create-term(|ctx)> expected
-  	; match-task  := <new-task(|ctx)> RelationMatch(lookup-task, term-task)
+    ; all-dep*    := <merge-dependencies(|dep*)> (rel, actual, expected, lookup-task, term-task)
+  	; match-task  := <new-task(|ctx, all-dep*)> RelationMatch(lookup-task, term-task)
   	; if custom-task := <relation-match-custom(|ctx)> (rel, actual, expected) then
   	  	result := <task-create-choice(|ctx)> [custom-task, match-task]
   	  else
@@ -5165,232 +5253,345 @@ signature
     Rewrite  : ID * Result         -> Instruction
     MakeSet  : Term                -> Instruction 
 
-rules // Identity
+rules
   
   /**
-  * Create an identity task
-  * @type Partition * Term -> Result
-  */
+   * Create a task that produces its input term.
+   *
+   * @type Term -> Result
+   */
 	task-create-id(|ctx) =
 	  ?Result(_) <+ <new-task(|ctx)> Id(<id>)
+
+  /**
+   * Create a task that produces its input term, where results are stored in a set.
+   *
+   * @type Term -> Result
+   */	  
+	task-create-set-id(|ctx) =
+	  ?Result(_) <+ <new-task(|ctx, <task-regular-type>, <task-set-storage>)> Id(<id>)
   
+  /**
+   * Create a task that produces its input term, with extra static dependencies.
+   *
+   * @type Term -> Result
+   */
   task-create-id(|ctx, dep*):
   	term -> <new-task(|ctx, all-dep*)> Id(term)
   	with 
     	all-dep* := <merge-dependencies(|dep*)> term
+    	
+  /**
+   * Create a task that produces its input term, with extra dependencies, where results are stored in a set.
+   *
+   * @type Term -> Result
+   */
+  task-create-set-id(|ctx, dep*):
+  	term -> <new-task(|ctx, all-dep*, <task-regular-type>, <task-set-storage>)> Id(term)
+  	with 
+    	all-dep* := <merge-dependencies(|dep*)> term
   
-  perform-task(|nr) = ?Id(<MkSingleton>)
   
-rules // Fail
-	
-	task-create-fail(|ctx):
-		_ -> <new-task(|ctx)> Fail()
-		
-	perform-task(|nr):
-		Fail() -> <fail>
-
-rules // Choice
+  /** @internal */
+  perform-task(|task-id) = ?Id(<MkSingleton>)
+  
+rules
 	
   /**
-  * Create a choice task
-  * @type Partition * List(Result) -> Result
-  */
+   * Create a task that always fails.
+   *
+   * @type _ -> Result
+   */
+	task-create-fail(|ctx):
+		_ -> <new-task(|ctx)> Fail()
+	
+	
+	/** @internal */	
+	perform-task(|task-id):
+		Fail() -> <fail>
+
+rules
+	
+  /**
+   * Create a task that produces the results of the first subtask that succeeds.
+   *
+   * @type List(Result) -> Result
+   */
   task-create-choice(|ctx) =
      ?[<?Result(_)>] <+ <new-task(|ctx)> Choice(<id>)
   
   /**
-  * Create a choice task between two tasks, where t1 and t2 take a ctx and produce a task.
-  * @type Term -> Result
-  */
+   * Create a choice task between two tasks, where t1 and t2 take a ctx and produce a task.
+   *
+   * @type Term -> Result
+   */
   task-create-choice(t1, t2|ctx):
     term -> <task-create-choice(|ctx)> [<t1(|ctx)> term, <t2(|ctx)> term]
 	
+	
+	/** @internal */
 	task-get-type: Choice(_) -> <task-combinator-type>
+	/** @internal */
 	task-get-storage-type: Choice(_) -> <task-auto-storage>
-
-  perform-task(|nr)  = ?Choice(<fetch-elem(not(?[]))>)
+	/** @internal */
+  perform-task(|task-id) = ?Choice(<fetch-elem(not(?[]))>)
   
-rules // Sequence
+rules
 	
   /**
-  * Create a sequence task
-  * @type Partition * List(Result) -> Result
-  */
+   * Create a task that only succeeds when all subtasks succeed, and produces the result of the last subtask.
+   *
+   * @type List(Result) -> Result
+   */
   task-create-sequence(|ctx) =
     ?[<?Result(_)>] <+ <new-task(|ctx)> Sequence(<id>)
 
   /**
-  * Create a sequence task between two tasks, where t1 and t2 take a ctx and produce a task.
-  * @type (Result * Partition -> Result) * (Result * Partition -> Result) * Partition -> Result
-  */
+   * Create a sequence task between two tasks, where t1 and t2 take a ctx and produce a task.
+   * @type (Result * Partition -> Result) * (Result * Partition -> Result) * Partition -> Result
+   */
   task-create-sequence(t1, t2|ctx):
     term -> <task-create-sequence(|ctx)> [<t1(|ctx)> term, <t2(|ctx)> term]
 	
+	
+	/** @internal */
 	task-get-type: Sequence(_) -> <task-combinator-type>
+	/** @internal */
 	task-get-storage-type: Sequence(_) -> <task-auto-storage>
+	/** @internal */
+  perform-task(|task-id)  = ?Sequence(<not(fetch-elem(?[])); last>)
 
-  perform-task(|nr)  = ?Sequence(<not(fetch-elem(?[])); last>)
-
-rules // Combine
+rules
        
   /**
-  * Create a combine task
-  * @type Partition * List(Result) -> Result
-  */
+   * Create a task that combines the results of all subtasks.
+   * 
+   * @type List(Result) -> Result
+   */
 	task-create-combine(|ctx) =
 	  ?[<?Result(_)>] <+ <new-task(|ctx)> Combine(<id>)
-		
+	
+  /**
+   * Create a task that combines the results of all subtasks, with extra static dependencies.
+   * 
+   * @type List(Result) -> Result
+   */	
 	task-create-combine(|ctx, dep*):
 		task* -> <new-task(|ctx, all-dep*)> Combine(task*)
   	with 
     	all-dep* := <merge-dependencies(|dep*)> task*
-       
+
+
+  /** @internal */
 	task-get-type: Combine(_) -> <task-combinator-type>
+	/** @internal */
 	task-get-storage-type: Combine(_) -> <task-auto-storage>
-       
-  task-is-combinator = ?Combine(_)
-  perform-task(|nr)  = ?Combine(<mapconcat(is-list <+ MkSingleton)>)
+	/** @internal */
+  perform-task(|task-id)  = ?Combine(<mapconcat(is-list <+ MkSingleton)>)
 
-rules // Singleton
-  
-  task-is-combinator = ?Singleton(_) 
-  
-  /**
-  * Create a singleton task
-  * @type Partition * Result -> Result
-  */  
-  task-create-singleton(|ctx) =
-    <new-task(|ctx)> Singleton(<id>)
-  
-  // if a bunch of elems should be removed
-  perform-task(|n):
-    Singleton(r@[_]) -> r
-    
-rules // Diff
-  
-  /**
-  * Create a diff task
-  * @type Partition * Result * Result -> Result
-  */    
-  task-create-diff(|ctx):
-    (l1, l2) -> <new-task(|ctx)> Diff(l1, l2)
-  
-  task-create-diff(|ctx, l2):
-    l1 -> <new-task(|ctx)> Diff(l1, l2)
-    
-  task-is-combinator = ?Diff(_, _)
-  perform-task(|nr):
-    Diff(l1, l2) -> <diff> (l1, <is-list <+ MkSingleton> l2)
-    
-rules // Collect
+rules
        
   /**
-  * Create a collect task
-  * @type Partition * List(Result) -> Result
-  */
+   * Creates a task that collects all results from its subtasks, and produces a single list with all collected results.
+   *
+   * @type List(Result) -> Result
+   */
 	task-create-collect(|ctx) = <new-task(|ctx)> Collect(<id>)
-       
-  task-is-combinator = ?Collect(_)
-  perform-task(|nr)  = ?Collect(<mapconcat(is-list <+ MkSingleton)>); MkSingleton
 
-rules // Where
-  
-  task-create-where(s|ctx):
-    term -> <task-create-sequence(|ctx)> <try(flatten-list)> [<s> term, term]
 
-rules // Negation
-  
+  /** @internal */
+	task-get-type: Collect(_) -> <task-combinator-type>
+	/** @internal */
+  perform-task(|task-id)  = ?Collect(<mapconcat(is-list <+ MkSingleton)>); MkSingleton
+
+rules
+	
   /**
-  * Create negation task
-  * @type Partition * Result -> Result
-  */
-  task-create-not(|ctx) = <new-task(|ctx)> Not(<id>)
-  
-  /**
-  * Create negation task, where t takes a ctx argument and produces the task to be negated 
-  */
-  task-create-not(t|ctx) = t(|ctx); task-create-not(|ctx)
-  
-  /**
-  * Negation on the success of a task
-  * Not(result) ==> !Success(result)
-  */
-  perform-task(|nr):
-    Not([]) -> ()
-      
-  task-is-combinator = ?Not(_)
-  
-rules // Index
-  
-  task-create-index(|ctx, i):
-  	list -> <new-task(|ctx)> Index(i, list)
-  
-  perform-task(|nr) = ?Index(i, <index(|i)>);  MkSingleton
-  
-rules // Length
-	
-	task-create-length(|ctx):
-		list -> <new-task(|ctx)> Length(list)
-	
-  perform-task(|nr) = ?Length(<length>);  MkSingleton
-
-rules // Sum
-	
-	task-create-sum(|ctx):
-		list -> <new-task(|ctx)> Sum(list)
-		
-	perform-task(|task-id):
-		Sum(list) -> <sum> list
-		
-rules // Fetch
-	
-	task-create-fetch(|ctx, list):
-		term -> <new-task(|ctx)> Fetch(term, list)
-		
-	perform-task(|task-id):
-		Fetch(term, list) -> <fetch-elem(?term)> list
-		
-rules // Equality
-	
-	task-create-eq(|ctx, expected):
-		actual -> <new-task(|ctx)> Eq(expected, actual)
-		
-	perform-task(|task-id):
-		Eq(expected, actual) -> <eq; !actual> (expected, actual)
-
-rules // Result insertion
-	
+   * Creates a task that inserts task results into given term.
+   *
+   * @type Term -> Result
+   */
 	task-create-insert(|ctx):
 		term -> <new-task(|ctx)> Insert(term)
 	
-	perform-task(|task-id):
-		Insert(term) -> <insert-results-or-delay> term
-		  
-	task-get-type: Insert(_) -> <task-combinator-type>
-	task-get-storage-type: Insert(_) -> <task-auto-storage>
-
-rules // Turn results into a set
 	
+	/** @internal */
+	task-get-type: Insert(_) -> <task-combinator-type>
+	/** @internal */
+	task-get-storage-type: Insert(_) -> <task-auto-storage>
+	/** @internal */
+	perform-task(|task-id): Insert(term) -> <insert-results-or-delay> term
+
+rules
+  
+  /**
+   * Creates a task that only succeeds if its subtask produces exactly one result, and produces that result.
+   *
+   * @type Result -> Result
+   */  
+  task-create-singleton(|ctx) =
+    <new-task(|ctx)> Singleton(<id>)
+  
+  
+  /** @internal */
+	task-get-type: Singleton(_) -> <task-combinator-type>
+	/** @internal */
+  perform-task(|task-id): Singleton(r@[_]) -> r
+    
+rules
+  
+  /**
+   * Creates a task that takes the difference between two lists.
+   *
+   * @type List(Term) * List(Term) -> Result
+   */
+  task-create-diff(|ctx):
+    (l1, l2) -> <new-task(|ctx)> Diff(l1, l2)
+  
+  /**
+   * Creates a task that takes the difference between two lists, where the second list is passed as a term argument.
+   *
+   * @type List(Term) -> Result
+   */
+  task-create-diff(|ctx, l2):
+    l1 -> <new-task(|ctx)> Diff(l1, l2)
+
+
+  /** @internal */
+	task-get-type: Diff(_, _) -> <task-combinator-type>
+	/** @internal */
+  perform-task(|task-id): Diff(l1, l2) -> <diff> (l1, <is-list <+ MkSingleton> l2)
+
+rules
+  
+  // TODO: what does this do?
+  task-create-where(s|ctx):
+    term -> <task-create-sequence(|ctx)> <try(flatten-list)> [<s> term, term]
+
+rules
+  
+  /**
+   * Creates a negation task, that succeeds if it subtask fails, and vice versa.
+   *
+   * @type Result -> Result
+   */
+  task-create-not(|ctx) = <new-task(|ctx)> Not(<id>)
+  
+  /**
+   * Create negation task, where t takes a ctx argument and produces the task to be negated 
+   */
+  task-create-not(t|ctx) = t(|ctx); task-create-not(|ctx)
+  
+  
+  /** @internal */
+	task-get-type: Not(_) -> <task-combinator-type>
+	/** @internal */
+  perform-task(|task-id): Not([]) -> ()
+  
+rules
+  
+  /**
+   * Creates a task that produces the term at given index in a list.
+   *
+   * @type List(Term) -> Result
+   */
+  task-create-index(|ctx, i):
+  	list -> <new-task(|ctx)> Index(i, list)
+  
+  
+  /** @internal */
+  perform-task(|task-id) = ?Index(i, <index(|i)>); MkSingleton
+  
+rules
+	
+  /**
+   * Creates a task that produces the length of a list.
+   *
+   * @type List(Term) -> Result
+   */
+	task-create-length(|ctx):
+		list -> <new-task(|ctx)> Length(list)
+	
+	
+	/** @internal */
+  perform-task(|task-id) = ?Length(<length>); MkSingleton
+
+rules
+	
+  /**
+   * Creates a task that produces the sum of the numbers in a list.
+   *
+   * @type List(INT <+ REAL) -> Result
+   */
+	task-create-sum(|ctx):
+		list -> <new-task(|ctx)> Sum(list)
+	
+	
+	/** @internal */
+	perform-task(|task-id):
+		Sum(list) -> <sum> list
+		
+rules
+	
+  /**
+   * Creates a task that succeeds if the list contains the term.
+   *
+   * @type Term -> Result
+   */
+	task-create-fetch(|ctx, list):
+		term -> <new-task(|ctx)> Fetch(term, list)
+	
+	
+	/** @internal */
+	perform-task(|task-id):
+		Fetch(term, list) -> <fetch-elem(?term)> list
+		
+rules
+	
+  /**
+   * Creates a task that succeeds if given terms are equal.
+   *
+   * @type Term -> Result
+   */
+	task-create-eq(|ctx, expected):
+		actual -> <new-task(|ctx)> Eq(expected, actual)
+		
+		
+  /** @internal */
+	perform-task(|task-id):
+		Eq(expected, actual) -> <eq; !actual> (expected, actual)
+
+rules
+
+  /**
+   * Creates a task that converts the results of its subtask into set, removing all duplicates.
+   *
+   * @type Result -> Result
+   */	
 	task-create-make-set(|ctx):
 		term -> <new-task(|ctx)> MakeSet(term)
 		
-	perform-task(|task-id):
-		MakeSet(term) -> term // Do nothing, task storage type takes care of conversion into set.
 		
-	task-get-storage-type:
-		MakeSet(_) -> <task-set-storage>
+	/** @internal */
+	task-get-storage-type: MakeSet(_) -> <task-set-storage>
+	/** @internal */
+	perform-task(|task-id): MakeSet(term) -> term // Do nothing, task storage type takes care of conversion into set.		
   
-rules // General purpose rewrite
+rules
       	
   /**
-  * Create a rewrite task
-  * @type term -> Result(Int)
-  */
+   * Create task that performs a rewrite on its input term. It will perform the task-rewrite strategy with input
+   * term (key, term), where the key is given as a strategy argument to this strategy.
+   *
+   * @type Term -> Result
+   */
   task-create-rewrite(|ctx, key) = <new-task(|ctx)> Rewrite(key, <id>)
-      	
+  
+  
+  /** @internal */    	
   perform-task(|nr) = ?Rewrite(key, term); <task-rewrite; MkSingleton> (key, term)
   
-rules // Cyclic task execution
+rules /** @internal Cyclic task evaluation */
 	
 	perform-cyclic-task(|nr) = fail
 	
@@ -5610,6 +5811,7 @@ rules // post analysis
 
 create-all-runtime-libraries = 
 	create-analysis-analysis
+; 	create-analysis-builtins
 ; 	create-analysis-complete
 ; 	create-analysis-core
 ; 	create-analysis-debug
@@ -5654,6 +5856,7 @@ create-all-runtime-libraries =
 ; 	create-nabl-uri
 ; 	create-nabl-utils
 ; 	create-properties-collect
+; 	create-properties-debug
 ; 	create-properties-entries
 ; 	create-properties-eq
 ; 	create-properties-interface
