@@ -38,7 +38,7 @@ rules
 		analysis-get-builtin-partitions; map(analysis-analyze-builtin-partition(collector|language, project-path))	
 
 	analysis-get-builtin-partitions =
-		analysis-builtin-partitions <+ []
+		analysis-builtin-partitions <+ ![]
 
 	analysis-analyze-builtin-partition(collector|language, project-path):
 		(path, ast) -> analyzed-ast
