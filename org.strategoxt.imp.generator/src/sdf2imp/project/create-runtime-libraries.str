@@ -544,10 +544,10 @@ rules // Multi-file analysis
 		analysis-multiple-default(parse, desugar-before, nabl-collect, desugar-after, pp-message|language, project-path)    
   analysis-multiple-default(parse, desugar-before, collector, desugar-after, pp-message|language, project-path):
     path* -> (
-      analysis-result'*
+      analysis-message-result*
     , (removed-entry-count, added-entry-count)
     , (removed-task-count, added-task-count, invalidated-task-count, evaluated-task*, skipped-task*, unevaluated-task*)
-    , (parse-time, collect-time, perform-time, index-persist-time, task-persist-time)
+    , (parse-time, pre-trans-time, collect-time, perform-time, post-trans-time, index-persist-time, task-persist-time)
     )
     with
     	analysis-analyze-builtin-partitions(collector|language, project-path)
@@ -558,13 +558,17 @@ rules // Multi-file analysis
       measure-time(
 	      measure-time(
 	      	path'* := <map(\\p -> $[[project-path]/[p]]\\)> path*;
-	        ((result*, evaluated-task*, skipped-task*, unevaluated-task*), parse-time, collect-time, perform-time) := 
-	        	<analyze-multiple(parse; (analysis-pre-trans <+ desugar-before), complete-work-unit, collector|language, project-path)> path'*;
+	        ((result*, evaluated-task*, skipped-task*, unevaluated-task*), parse-time, pre-trans-time, collect-time, perform-time) := 
+	        	<analyze-multiple(parse, (analysis-pre-trans <+ desugar-before), complete-work-unit, collector|language, project-path)> path'*;
 	        (analysis-result*, debug-result*) := <unzip> result*
 	      , analysis-default-debug-time(!\"Time - analysis: \") | \"analysis-multiple-full-analysis\"
 	      );
 	      measure-time(
-	      	analysis-result'* := <filter(analysis-update-editor(desugar-after, pp-message))> analysis-result*
+	      	analysis-desugared-result* := <filter(analysis-desugar-after(desugar-after))> analysis-result*
+	      , analysis-default-debug-time(!\"Time - post analysis transformations: \"), ?post-trans-time | \"analysis-multiple-post-trans\" 
+	      );
+	      measure-time(
+	      	analysis-message-result* := <filter(analysis-update-editor(desugar-after, pp-message))> analysis-desugared-result*
 	      	// TODO: Update markers for partitions that have had a task executed but were not analyzed.
 	      , analysis-default-debug-time(!\"Time - messages: \") | \"analysis-multiple-update-editors\"
 	      );
@@ -607,18 +611,23 @@ rules // Multi-file analysis
 	  	added-task-count       := <add> (added-task1-count, added-task2-count);
 	  	invalidated-task-count := <add> (invalidated-task1-count, invalidated-task2-count)
 
+  analysis-desugar-after(desugar-after):
+		Result(partition, initial-ast, analyzed-ast, changed-read*, error* , warning* , note*) ->
+		(Result(partition, initial-ast, analyzed-desugared-ast, changed-read*, error* , warning* , note*), analyzed-ast)
+		where
+			analyzed-desugared-ast := <analysis-post-trans(|partition) <+ desugar-after> analyzed-ast
+		
   analysis-update-editor(desugar-after, pp-message):
-    Result(partition, initial-ast, analyzed-ast, changed-read*, error* , warning* , note*) -> 
+    (Result(partition, initial-ast, analyzed-desugared-ast, changed-read*, error* , warning* , note*), analyzed-ast) -> 
     Result(partition, initial-ast, analyzed-desugared-ast, changed-read*, error'*, warning'*, note'*)
     where
       not(() := initial-ast)
     with
-    	analyzed-desugared-ast := <analysis-post-trans(|partition) <+ desugar-after> analyzed-ast;
       (error'*, warning'*, note'*) := <analysis-message-collect(pp-message|error*, warning*, note*)> analyzed-desugared-ast;
       <set-markers(|partition)> (analyzed-ast, error'*, warning'*, note'*)
 
   analysis-multiple-default-work-units = 
-    length; !(<id>, 3); mul	
+    length; !(<id>, 4); mul	
 	    
 rules // Message collection and updating.
 	
@@ -723,20 +732,24 @@ imports
 
 rules // Multi file analysis
   
-  analyze-multiple(parse-file, complete-work-unit, collector|language, project-path):
-    path* -> (result, parse-time, collect-time, perform-time)
+  analyze-multiple(parse-file, trans, complete-work-unit, collector|language, project-path):
+    path* -> (result, parse-time, trans-time, collect-time, perform-time)
     with
     	measure-time(
-      	file* := <map(analyze-parse-file(parse-file); where(complete-work-unit))> path*
-    	  , id, ?parse-time
+      	ast* := <map(analyze-parse-file(parse-file); where(complete-work-unit))> path*
+    	, id, ?parse-time
     	);
     	measure-time(
-      	result* := <map(analyze-collect(collector|language, project-path); where(complete-work-unit))> file*
-      	, id, ?collect-time
+      	trans* := <map(analysis-do-pre-trans(trans); where(complete-work-unit))> ast*
+    	, id, ?trans-time
+    	);
+    	measure-time(
+      	result* := <map(analyze-collect(collector|language, project-path); where(complete-work-unit))> trans*
+      , id, ?collect-time
       );
       measure-time(
     		result  := <analyze-perform-all> result*
-    		, id, ?perform-time
+    	, id, ?perform-time
     	)
 
   analyze-parse-file(parse-file):
@@ -745,6 +758,9 @@ rules // Multi file analysis
       if not(ast := <file-exists; parse-file> path) then
         ast := ()
       end
+      
+  analysis-do-pre-trans(trans):
+  	File(path, ast) -> File(path, <trans> ast)
 
 "
 
@@ -867,6 +883,33 @@ rules // Single file analysis
     	(result*, evaluated-task*, skipped-task*, unevaluated-task*) := <analyze-perform-all> [r];
     	
     	Result(_, _, _, _, error*, warning*, note*) := <Hd; Fst> result*
+"
+
+	create-analysis-singleast = 
+		<output-text-file(|["lib", "runtime", "analysis"], "singleast.str")>
+"module singleast
+
+imports
+	
+	runtime/analysis/builtins
+	runtime/analysis/core
+	runtime/analysis/single
+	runtime/analysis/defaults
+	runtime/nabl/collect
+	
+rules
+	
+	analysis-singleast = analysis-singleast(nabl-collect)
+	analysis-singleast(collector):
+		ast -> (ast', messages)
+		with
+			language     := \"Language\";
+			path         := \"path\";
+			project-path := \".\";
+      analysis-analyze-builtin-partitions(collector|language, project-path);
+	    (ast', (e*, w*, n*), _, _, _, _, _, _, _, _) := <analyze-one(collector|language, path, project-path)> ast;
+			messages := <analysis-message-collect(id|e*, w*, n*)> ast'
+
 "
 
 	create-editor-annotations = 
@@ -1009,11 +1052,9 @@ strategies
       len-project-prefix := <project-path; string-length; inc>;
       rel-path := <string-as-chars(drop(|len-project-prefix))> full-path
 
-	origin-debug:
-		term -> term
-		with
-			<(origin-term     <+ !\"Failed\"); debug(!\"origin-trm: \")> term;
-			<(origin-location <+ !\"Failed\"); debug(!\"origin-loc: \")> term 
+	origin-debug-all = topdown(try(origin-debug))
+	origin-debug = where(debug(!$[[<(origin-offset; write-to-string) <+ !\"NO ORIGIN\">][\" \"]]))
+	
 "
 
 	create-editor-outline-library = 
@@ -5821,6 +5862,7 @@ create-all-runtime-libraries =
 ; 	create-analysis-reanalysis
 ; 	create-analysis-resolve
 ; 	create-analysis-single
+; 	create-analysis-singleast
 ; 	create-editor-annotations
 ; 	create-editor-dynrule
 ; 	create-editor-eclipse
