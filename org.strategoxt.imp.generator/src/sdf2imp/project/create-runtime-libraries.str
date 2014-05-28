@@ -103,7 +103,8 @@ signature
 
   constructors
   
-    File        : Path * AST -> File
+    File : Path * Term -> File
+    File : Path * Term * Term -> File
     
     // Result(partition, initial-ast, analyzed-ast, changed-read*, error*, warning*, note*)
     Result      : Partition * AST * AST * List(URI) * List(Term) * List(Term) * List(Term) -> Result
@@ -116,7 +117,7 @@ rules // Analysis
 	// analyze-collect(|language, project-path) = analyze-collect(nabl-collect, id|language, project-path)
 	analyze-collect(collector|language, project-path) = analyze-collect(collector, id|language, project-path)
 	analyze-collect(collector, try-recover|language, project-path):
-    File(partition, initial-ast) -> ( 
+    File(partition, initial-ast, transformed-ast) -> ( 
     	Result(partition, initial-ast, analyzed-ast, changed-read*, [], [], [])
     , DebugResult(<length> removed-entry*, <length> added-entry*, <length> removed-task*, <length> added-task*, <length> invalidated-task*)
   	)
@@ -132,7 +133,7 @@ rules // Analysis
 	    		task-start-collection(|partition)
 	      	, analysis-core-debug-time(!\"Time - setup: \") | \"analyze-collect-setup\"
 	      ); measure-time(
-	      	analyzed-ast := <collector(id|Language(language), partition, <new-hashtable>, [])> initial-ast
+	      	analyzed-ast := <collector(id|Language(language), partition, <new-hashtable>, [])> transformed-ast
 	    	  , analysis-core-debug-time(!\"Time - collect: \") | \"analyze-collect-collect\" 
 	  	  ); measure-time(
 	  	  	index-stop-collection            => (removed-entry*, added-entry*);
@@ -508,6 +509,7 @@ rules // Single finle analysis
       <analysis-default-debug(!\"Analyzing file: \")> path;
       partition := <analysis-partition(|path, project-path)>;
       
+      transformed-ast := <analysis-pre-trans <+ desugar-before> ast;
 	    (
 	    	analyzed-ast
 			, (analysis-error*, analysis-warning*, analysis-note*)
@@ -519,7 +521,7 @@ rules // Single finle analysis
 			, evaluated-task*
 			, skipped-task*
 			, unevaluated-task*
-			) := <(analysis-pre-trans <+ desugar-before); analyze-one(collector|language, path, project-path)> ast;
+			) := <analyze-one(collector|language, path, project-path)> (ast, transformed-ast);
 			analyzed-ast' := <analysis-post-trans(|partition) <+ desugar-after> analyzed-ast;
 			
       (error*, warning*, note*) := <analysis-message-collect(pp-message|analysis-error*, analysis-warning*, analysis-note*)> analyzed-ast';
@@ -760,7 +762,7 @@ rules // Multi file analysis
       end
       
   analysis-do-pre-trans(trans):
-  	File(path, ast) -> File(path, <trans> ast)
+  	File(path, ast) -> File(path, ast, <trans> ast)
 
 "
 
@@ -860,7 +862,7 @@ rules // Single file analysis
   	analyze-one(collector, id|language, path, project-path)
   
   analyze-one(collector, try-recover|language, path, project-path):
-    ast -> 
+    (initial-ast, transformed-ast) -> 
     (
     	analyzed-ast
 		, (error*, warning*, note*)
@@ -878,7 +880,7 @@ rules // Single file analysis
       r@(
       	Result(_, _, analyzed-ast, _, _, _, _)
       , DebugResult(removed-entry*, added-entry*, removed-task*, added-task*, invalidated-task*)
-      ) := <analyze-collect(collector, try-recover|language, project-path)> File(partition, ast);
+      ) := <analyze-collect(collector, try-recover|language, project-path)> File(partition, initial-ast, transformed-ast);
       
     	(result*, evaluated-task*, skipped-task*, unevaluated-task*) := <analyze-perform-all> [r];
     	
@@ -4086,11 +4088,16 @@ rules
   	where
   		( 
           get-property-task(|kind)
-      <+ (create-property-task(|ctx, kind, [], []); properties-console-msg(|$[Called create-property-task for property [<get-constructor> kind] on term [<write-to-string> term] that accepts old-uri* and new-uri* with empty lists, because it was not passed!])) 
-      <+ (create-property-task(|ctx, kind, []);     properties-console-msg(|$[Called create-property-task for property [<get-constructor> kind] on term [<write-to-string> term] that accepts uri* with an empty list, because it was not passed!]))
+      <+ (create-property-task(|ctx, kind, [], []); uris-not-passed(|ctx, kind))  
+      <+ (create-property-task(|ctx, kind, []);     uris-not-passed(|ctx, kind))
       <+  create-property-task(|ctx, kind)
       <+  cannot-create-property-task(|ctx, kind)
       ) => task
+      
+  uris-not-passed(|ctx, kind):
+  	term -> <properties-warning-task(|ctx, msg); properties-console-msg(|msg)> term
+  	where
+  		msg := $[Called create-property-task for property [<get-constructor> kind] on term [<write-to-string> term] that accepts uris with empty lists instead, because uris were not passed!]
       
   cannot-create-property-task(|ctx, kind):
   	term -> <properties-warning-task(|ctx, msg); properties-console-msg(|msg)> term
@@ -5842,6 +5849,7 @@ imports
 rules // during analysis
   
   type-task(|ctx) = get-or-create-property-task(|ctx, Type())
+  type-task(|ctx, kind, old-uri*, new-uri*) = get-or-create-property-task(|ctx, Type(), old-uri*, new-uri*)
   get-type-task   = get-property-task(|Type())
   
 rules // post analysis
