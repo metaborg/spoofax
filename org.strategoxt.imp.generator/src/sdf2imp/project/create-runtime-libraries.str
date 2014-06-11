@@ -611,6 +611,14 @@ rules // Helper rules for Index Resolved
 
 "
 
+	create-analysis-defaults = 
+		<output-text-file(|["lib", "runtime", "analysis"], "defaults.str")>
+"module runtime/analysis/defaults
+
+rules // Empty file to clear previous definitions
+
+"
+
 	create-analysis-interface = 
 		<output-text-file(|["lib", "runtime", "analysis"], "interface.str")>
 "module runtime/analysis/interface
@@ -5735,6 +5743,7 @@ create-all-runtime-libraries =
 ; 	create-analysis-complete
 ; 	create-analysis-core
 ; 	create-analysis-debug
+; 	create-analysis-defaults
 ; 	create-analysis-interface
 ; 	create-analysis-legacy
 ; 	create-analysis-multiple
