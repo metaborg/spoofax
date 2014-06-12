@@ -45,7 +45,7 @@ rules
 		with
 			partition := <analysis-partition(|project-path)> path
 	  ; Result([FileResult(_, _, _, _, analyzed-ast, _, _, _)], _, _, _) := 
-	    	<analysis-files(id, collector, id, id|language, project-path)> [File(partition, ast, 0.0)]
+	    	<analysis-files-no-builtins(id, collector, id, id|language, project-path)> [File(partition, ast, 0.0)]
 
 "
 
@@ -139,15 +139,17 @@ rules // Core multi-file analysis that takes File/3 appls, analyzes those files,
   analysis-files(pre-trans, post-trans, pp-message|language, project-path) = 
     analysis-files(pre-trans, nabl-collect, post-trans, pp-message|language, project-path)
     
-  analysis-files(pre-trans, collector, post-trans, pp-message|language, project-path):
+  analysis-files(pre-trans, collector, post-trans, pp-message|language, project-path) =
+    where(analysis-analyze-builtin-partitions(collector|language, project-path))
+  ; analysis-files-no-builtins(pre-trans, collector, post-trans, pp-message|language, project-path)
+    
+  analysis-files-no-builtins(pre-trans, collector, post-trans, pp-message|language, project-path):
     file* -> Result(
       post-trans-result*
     , affected-source*
     , debug-result
     , TimeResult(parse-time, pre-trans-time, collect-time, evaluate-time, post-trans-time, index-persist-time, task-persist-time)
     )
-    with
-      analysis-analyze-builtin-partitions(collector|language, project-path)
     with
       total-progress := <analysis-files-total-progress> file*
     ; <analysis-set-progress> total-progress
