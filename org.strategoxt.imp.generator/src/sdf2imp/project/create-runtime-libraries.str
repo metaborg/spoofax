@@ -45,7 +45,7 @@ rules
 		with
 			partition := <analysis-partition(|project-path)> path
 	  ; Result([FileResult(_, _, _, _, analyzed-ast, _, _, _)], _, _, _) := 
-	    	<analysis-files(id, collector, id, id|language, project-path)> [File(partition, ast)]
+	    	<analysis-files(id, collector, id, id|language, project-path)> [File(partition, ast, 0.0)]
 
 "
 
@@ -67,9 +67,6 @@ rules
     	task-setup(|project-path);
     	index-setup(|language, project-path)
 
-	// Legacy
-	analysis-propose-completions(|language, project-path, path) = analysis-propose-completions(|language, project-path)
-
 "
 
 	create-analysis-core = 
@@ -77,30 +74,31 @@ rules
 "module runtime/analysis/core
 
 imports
-	
-	runtime/analysis/builtins
-	runtime/analysis/interface
-	runtime/nabl/collect
-	runtime/nabl/uri
-	runtime/nabl/incremental
-	runtime/relations/incremental
-	runtime/index/core
-	runtime/task/core
-	runtime/task/messages
-	runtime/editor/origins
-	runtime/editor/editor
-	runtime/editor/queue
-	runtime/editor/dynrule
-	runtime/editor/time
-	runtime/nabl/utils
-	
+  
+  runtime/analysis/builtins
+  runtime/analysis/interface
+  runtime/nabl/collect
+  runtime/nabl/uri
+  runtime/nabl/incremental
+  runtime/relations/incremental
+  runtime/index/core
+  runtime/task/core
+  runtime/task/messages
+  runtime/editor/origins
+  runtime/editor/editor
+  runtime/editor/queue
+  runtime/editor/dynrule
+  runtime/editor/time
+  runtime/nabl/utils
+  
 signature
+
   constructors
-	
-		// File(partition, initial-ast)
-    File : String * Term -> File
-    // File(partition, initial-ast, transformed-ast)
-    File : String * Term * Term -> File
+  
+    // File(partition, initial-ast, parse-time)
+    File : String * Term * Int -> File
+    // File(partition, initial-ast, transformed-ast, parse-time)
+    File : String * Term * Term * Int -> File
     
     // Result(file-result*, affected-source*, debug-result, time-result)
     Result : List(FileResult) * List(String) * DebugResult * TimeResult -> Result
@@ -114,36 +112,51 @@ signature
     // DebugResult(collect-debug-result, evaluated-task*, skipped-task*, unevaluated-task*)
     DebugResult : CollectDebugResult * List(TaskID) * List(TaskID) * List(TaskID) -> DebugResult
     
-	  // TimeResult(parse-time, pre-trans-time, collect-time, perform-time, post-trans-time, index-persist-time, task-persist-time)
-		TimeResult : Real * Real * Real * Real * Real * Real * Real -> TimeResult
+    // TimeResult(parse-time, pre-trans-time, collect-time, perform-time, post-trans-time, index-persist-time, task-persist-time)
+    TimeResult : Real * Real * Real * Real * Real * Real * Real -> TimeResult
 
 rules // Interface
+  
+  analysis-spoofax = (is-list; queue-strategy(|\"analysis-interface\", \"Analyzing files\")) <+ analysis-interface
+  analysis-cmd = analysis-interface
+  
 	
-	analysis-spoofax = (is-list; queue-strategy(|\"analysis-interface-spoofax\", \"Analyzing files\")) <+ analysis-interface-spoofax
-	analysis-cmd = analysis-interface
+  analysis-top(parse-file, pre-trans, post-trans, pp-message|language, project-path) = 
+    analysis-top(parse-file, pre-trans, nabl-collect, post-trans, pp-message|language, project-path)
+	
+	analysis-top(parse-file, pre-trans, collector, post-trans, pp-message|language, project-path):
+		input -> <analysis-files(pre-trans, collector, post-trans, pp-message|language, project-path)>
+		where
+			<is-list; map(?File(_, _, _))> input
+	
+	analysis-top(parse-file, pre-trans, collector, post-trans, pp-message|language, project-path):
+		input -> <analysis-files-spoofax(parse-file, pre-trans, collector, post-trans, pp-message|language, project-path)>
+		where
+			<is-tuple <+ (is-list; map(is-string))> input
 
-rules // Core multi-file analysis that takes File/2 appls, analyzes those files, and returns a Result/4.
-	
-	analysis-files(pre-trans, post-trans, pp-message|language, project-path) = 
-		analysis-files(pre-trans, nabl-collect, post-trans, pp-message|language, project-path)
-		
-	analysis-files(pre-trans, collector, post-trans, pp-message|language, project-path):
-		file* -> Result(
+rules // Core multi-file analysis that takes File/3 appls, analyzes those files, and returns a Result/4.
+  
+  analysis-files(pre-trans, post-trans, pp-message|language, project-path) = 
+    analysis-files(pre-trans, nabl-collect, post-trans, pp-message|language, project-path)
+    
+  analysis-files(pre-trans, collector, post-trans, pp-message|language, project-path):
+    file* -> Result(
       post-trans-result*
     , affected-source*
     , debug-result
-    , TimeResult(-1.0, pre-trans-time, collect-time, evaluate-time, post-trans-time, index-persist-time, task-persist-time)
+    , TimeResult(parse-time, pre-trans-time, collect-time, evaluate-time, post-trans-time, index-persist-time, task-persist-time)
     )
     with
-    	analysis-analyze-builtin-partitions(collector|language, project-path)
+      analysis-analyze-builtin-partitions(collector|language, project-path)
     with
-    	total-progress := <analysis-files-total-progress> file*
+      total-progress := <analysis-files-total-progress> file*
     ; <analysis-set-progress> total-progress
     with
-    	measure-time(
-    		pre-trans-file* := <map(analysis-files-pre-trans(pre-trans); analysis-inc-progress(|total-progress))> file*
-    	, ?pre-trans-time
-    	)
+      parse-time := <map(?File(_, _, <id>)); foldr(!0.0, addr)> file*
+    ; measure-time(
+        pre-trans-file* := <map(analysis-files-pre-trans(pre-trans); analysis-inc-progress(|total-progress))> file*
+      , ?pre-trans-time
+      )
     ; measure-time(
         collect-result* := <map(analysis-collect(collector|language, project-path); analysis-inc-progress(|total-progress))> pre-trans-file*
       , ?collect-time
@@ -155,207 +168,199 @@ rules // Core multi-file analysis that takes File/2 appls, analyzes those files,
       )
     ; analysis-inc-progress(|total-progress)
     ; task-sources-of(|evaluated-task*) => affected-source*
-	  ; messages-result* := <map(analysis-add-messages(pp-message))> result*
-	  ; measure-time(
-	      post-trans-result* := <map(analysis-files-post-trans(post-trans))> messages-result*
-	    , ?post-trans-time
-	  )
-	  ; collect-acc-debug-result := <analysis-accumulate-collect-debug-results> collect-debug-result*
-	  with
-	  	(
-	  		analysis-disable-persist; 
-	  		index-persist-time := 0.0;
-	  		task-persist-time := 0.0
-	  	)
-	  	<+
-	  	(
-				measure-time(index-persist, ?index-persist-time)
-			; measure-time(task-persist, ?task-persist-time)
-	  	)
-	  with
-	  	debug-result := DebugResult(collect-acc-debug-result, evaluated-task*, skipped-task*, unevaluated-task*)
-	  ; <analysis-debug-results> debug-result
-	    
+    ; messages-result* := <map(analysis-add-messages(pp-message))> result*
+    ; measure-time(
+        post-trans-result* := <map(analysis-files-post-trans(post-trans))> messages-result*
+      , ?post-trans-time
+    )
+    ; collect-acc-debug-result := <analysis-accumulate-collect-debug-results> collect-debug-result*
+    with
+      (
+        analysis-disable-persist; 
+        index-persist-time := 0.0;
+        task-persist-time := 0.0
+      )
+      <+
+      (
+        measure-time(index-persist, ?index-persist-time)
+      ; measure-time(task-persist, ?task-persist-time)
+      )
+    with
+      debug-result := DebugResult(collect-acc-debug-result, evaluated-task*, skipped-task*, unevaluated-task*)
+    ; <analysis-debug-results> debug-result
+      
   analysis-files-pre-trans(pre-transform):
-  	File(path, ast) -> File(path, ast, <analysis-pre-trans <+ pre-transform> ast)
-  	
+    File(path, ast, parse-time) -> File(path, ast, <analysis-pre-trans <+ pre-transform> ast, parse-time)
+    
   analysis-files-post-trans(post-trans):
-		FileResult(language, project-path, partition, initial-ast, analyzed-ast, error* , warning*, note*) ->
-		FileResult(language, project-path, partition, initial-ast, analyzed-transformed-ast, error*, warning* , note*)
-		where
-			analyzed-transformed-ast := <analysis-post-trans(|partition) <+ post-trans> analyzed-ast
-			// TODO: This might destroy origins, such that setting error markers in another file may not work??
-			
+    FileResult(language, project-path, partition, initial-ast, analyzed-ast, error* , warning*, note*) ->
+    FileResult(language, project-path, partition, initial-ast, analyzed-transformed-ast, error*, warning* , note*)
+    where
+      analyzed-transformed-ast := <analysis-post-trans(|partition) <+ post-trans> analyzed-ast
+      // TODO: This might destroy origins, such that setting error markers in another file may not work??
+      
   analysis-files-total-progress:
-  	file* -> <add> (<mul> (<length> file*, 2), 1)
+    file* -> <add> (<mul> (<length> file*, 2), 1)
 
 rules // Common
-	
-	analysis-collect(collector|language, project-path) = analysis-collect(collector, id|language, project-path)
-	analysis-collect(collector, try-recover|language, project-path):
-    File(partition, initial-ast, transformed-ast) -> ( 
-    	FileResult(language, project-path, partition, initial-ast, analyzed-ast, [], [], [])
+  
+  analysis-collect(collector|language, project-path) = analysis-collect(collector, id|language, project-path)
+  analysis-collect(collector, try-recover|language, project-path):
+    File(partition, initial-ast, transformed-ast, _) -> ( 
+      FileResult(language, project-path, partition, initial-ast, analyzed-ast, [], [], [])
     , CollectDebugResult(<length> removed-entry*, <length> added-entry*, <length> removed-task*, <length> added-task*, <length> invalidated-task*)
-  	)
+    )
     with
-  		index-setup(|language, project-path);
-  		try(try-recover; index-recover);
-	    index-start-collection(|partition);
-  		task-setup(|project-path);
-  		try(try-recover; task-recover);
-  		task-start-collection(|partition);
+      index-setup(|language, project-path);
+      try(try-recover; index-recover);
+      index-start-collection(|partition);
+      task-setup(|project-path);
+      try(try-recover; task-recover);
+      task-start-collection(|partition);
 
-    	analyzed-ast := <collector(id|Language(language), partition, <new-hashtable>, [])> transformed-ast;
+      analyzed-ast := <collector(id|Language(language), partition, <new-hashtable>, [])> transformed-ast;
 
-	  	index-stop-collection            => (removed-entry*, added-entry*);
-    	task-stop-collection(|partition) => (removed-task*, added-task*);
-    	
-    	change*            := [removed-entry*, added-entry*];
-    	nabl-changed-read* := <nabl-get-changed-reads> change*;
-    	rel-changed-read*  := <relation-get-changed-reads> change*;
-    	changed-read*      := [nabl-changed-read*, rel-changed-read*];
+      index-stop-collection            => (removed-entry*, added-entry*);
+      task-stop-collection(|partition) => (removed-task*, added-task*);
+      
+      change*            := [removed-entry*, added-entry*];
+      nabl-changed-read* := <nabl-get-changed-reads> change*;
+      rel-changed-read*  := <relation-get-changed-reads> change*;
+      changed-read*      := [nabl-changed-read*, rel-changed-read*];
 
-	  	task-invalidate-task-reads(|changed-read*) => invalidated-task*
+      task-invalidate-task-reads(|changed-read*) => invalidated-task*
 
 
   analysis-add-messages(pp-message):
-  	FileResult(language, project-path, partition, initial-ast, analyzed-ast, _, _, _) -> 
-  	FileResult(language, project-path, partition, initial-ast, analyzed-ast, error*, warning*, note*)
-  	with
-			(error*, warning*, note*) := <analysis-get-messages(pp-message)> partition
-
-	analysis-get-messages(pp-message):
-		partition -> (error*, warning*, note*)
-		with
-  		message* := <task-get-messages(|partition)>;
-  		error*   := <filter(?Error(_, _, _); analysis-message-to-tuple; pp-message)> message*;
-  		warning* := <filter(?Warning(_, _, _); analysis-message-to-tuple; pp-message)> message*;
-  		note*    := <filter(?Note(_, _, _); analysis-message-to-tuple; pp-message)> message*
-  		
-	analysis-message-to-tuple:
-		message -> (<origin-location-offset-set(|origin)> term, msg)
-		with
-			origin := <task-message-origin> message;
-			term   := <task-message-term> message;
-			msg    := <task-message> message
-			
-			
-	analysis-accumulate-collect-debug-results:
-		debug-result* -> <foldl(analysis-concat-debug-result)> (debug-result*, CollectDebugResult(0, 0, 0, 0, 0))
-			
-	analysis-concat-debug-result:
-		(
-			CollectDebugResult(removed-entry1-count, added-entry1-count, removed-task1-count, added-task1-count, invalidated-task1-count)
-		, CollectDebugResult(removed-entry2-count, added-entry2-count, removed-task2-count, added-task2-count, invalidated-task2-count)
-	  )
-	  ->
-	  CollectDebugResult(removed-entry-count, added-entry-count, removed-task-count, added-task-count, invalidated-task-count)
-	  with
-	  	removed-entry-count    := <add> (removed-entry1-count, removed-entry2-count);
-	  	added-entry-count      := <add> (added-entry1-count, added-entry2-count);
-	  	removed-task-count     := <add> (removed-task1-count, removed-task2-count);
-	  	added-task-count       := <add> (added-task1-count, added-task2-count);
-	  	invalidated-task-count := <add> (invalidated-task1-count, invalidated-task2-count)
-	  	
-rules // Spoofax interfacing
-
-  analysis-spoofax-save(|language):
-  	(_, _, _, _, project-path) -> None()
-  	with
-  		index-setup(|language, project-path);
-  		index-persist;
-  		task-setup(|project-path);
-  		task-persist
-  		
-
-	analysis-files-spoofax(parse-file, pre-trans, post-trans, pp-message|language, project-path) = 
-		analysis-files-spoofax(parse-file, pre-trans, nabl-collect, post-trans, pp-message|language, project-path)
-		
-	analysis-files-spoofax(parse-file, pre-trans, collector, post-trans, pp-message|language, project-path):
-		input -> output
-		with
-			file*  := <analysis-spoofax-to-files(parse-file|project-path)> input
-		; result := <analysis-files(pre-trans, collector, post-trans, pp-message|language, project-path)> file*
-		; output := <analysis-spoofax-output(pp-message)> result
-
-	analysis-spoofax-to-files(parse-file|project-path):
-		(ast, path, _) -> [File(<analysis-partition(|project-path)> path, ast)]
-		
-	analysis-spoofax-to-files(parse-file|project-path):
-		path* -> file*
-		where
-			<is-list> path*
-		with
-			file* := <map(analysis-partition(|project-path); analyze-parse-file(parse-file))> path*
-			
-  analyze-parse-file(parse-file):
-    path -> File(path, ast)
+    FileResult(language, project-path, partition, initial-ast, analyzed-ast, _, _, _) -> 
+    FileResult(language, project-path, partition, initial-ast, analyzed-ast, error*, warning*, note*)
     with
-      if not(ast := <file-exists; parse-file> path) then
-        ast := ()
-      end
+      (error*, warning*, note*) := <analysis-get-messages(pp-message)> partition
+
+  analysis-get-messages(pp-message):
+    partition -> (error*, warning*, note*)
+    with
+      message* := <task-get-messages(|partition)>;
+      error*   := <filter(?Error(_, _, _); analysis-message-to-tuple; pp-message)> message*;
+      warning* := <filter(?Warning(_, _, _); analysis-message-to-tuple; pp-message)> message*;
+      note*    := <filter(?Note(_, _, _); analysis-message-to-tuple; pp-message)> message*
+      
+  analysis-message-to-tuple:
+    message -> (<origin-location-offset-set(|origin)> term, msg)
+    with
+      origin := <task-message-origin> message;
+      term   := <task-message-term> message;
+      msg    := <task-message> message
+      
+      
+  analysis-accumulate-collect-debug-results:
+    debug-result* -> <foldl(analysis-concat-debug-result)> (debug-result*, CollectDebugResult(0, 0, 0, 0, 0))
+      
+  analysis-concat-debug-result:
+    (
+      CollectDebugResult(removed-entry1-count, added-entry1-count, removed-task1-count, added-task1-count, invalidated-task1-count)
+    , CollectDebugResult(removed-entry2-count, added-entry2-count, removed-task2-count, added-task2-count, invalidated-task2-count)
+    )
+    ->
+    CollectDebugResult(removed-entry-count, added-entry-count, removed-task-count, added-task-count, invalidated-task-count)
+    with
+      removed-entry-count    := <add> (removed-entry1-count, removed-entry2-count);
+      added-entry-count      := <add> (added-entry1-count, added-entry2-count);
+      removed-task-count     := <add> (removed-task1-count, removed-task2-count);
+      added-task-count       := <add> (added-task1-count, added-task2-count);
+      invalidated-task-count := <add> (invalidated-task1-count, invalidated-task2-count)
+      
+rules // Spoofax Eclipse interfacing
 	
-		
-	analysis-spoofax-output(pp-message):
-		Result(file-result*, affected-source*, _, _) -> (analyzed-ast, error*, warning*, note*)
-		where
-			<not(Tl; Tl)> file-result*
-		with
-			FileResult(_, _, partition, _, analyzed-ast, error*, warning*, note*) := <Hd> file-result*
-	  ; changed-partition* := <filter(analysis-spoofax-updatable-partition(|[partition]))> affected-source*
-    ; <map(analysis-spoofax-update-file(pp-message))> changed-partition*
-  	
+  analysis-files-spoofax(parse-file, pre-trans, post-trans, pp-message|language, project-path) = 
+    analysis-files-spoofax(parse-file, pre-trans, nabl-collect, post-trans, pp-message|language, project-path)
+    
+  analysis-files-spoofax(parse-file, pre-trans, collector, post-trans, pp-message|language, project-path):
+    input -> output
+    with
+      file*  := <analysis-spoofax-to-files(parse-file|project-path)> input
+    ; result := <analysis-files(pre-trans, collector, post-trans, pp-message|language, project-path)> file*
+    ; output := <analysis-spoofax-output(pp-message)> result
+
+  analysis-spoofax-to-files(parse-file|project-path):
+    (ast, path, _) -> [File(<analysis-partition(|project-path)> path, ast, -1.0)]
+    
+  analysis-spoofax-to-files(parse-file|project-path):
+    path* -> file*
+    where
+      <is-list> path*
+    with
+      file* := <map(analysis-partition(|project-path); analyze-parse-file(parse-file))> path*
+      
+  analyze-parse-file(parse-file):
+    path -> File(path, ast, parse-time)
+    with
+      if not(measure-time(ast := <file-exists; parse-file> path, ?parse-time)) then
+        ast := ()
+      ; parse-time := -1.0
+      end
+  
+    
   analysis-spoofax-output(pp-message):
-  	result@Result(file-result*, affected-source*, _, _) -> result
-  	where
-  		 <Tl; Tl> file-result*
-  	with
-  		<map(analysis-spoofax-update-file-from-result)> file-result*
+    Result(file-result*, affected-source*, _, _) -> (analyzed-ast, error*, warning*, note*)
+    where
+      <not(Tl; Tl)> file-result*
+    with
+      FileResult(_, _, partition, _, analyzed-ast, error*, warning*, note*) := <Hd> file-result*
+    ; changed-partition* := <filter(analysis-spoofax-updatable-partition(|[partition]))> affected-source*
+    ; <map(analysis-spoofax-update-file(pp-message))> changed-partition*
+    
+  analysis-spoofax-output(pp-message):
+    result@Result(file-result*, affected-source*, _, _) -> result
+    where
+       <Tl; Tl> file-result*
+    with
+      <map(analysis-spoofax-update-file-from-result)> file-result*
     ; analyzed-partition* := <map(analysis-file-result-partition)> file-result*
-	  ; changed-partition* := <filter(analysis-spoofax-updatable-partition(|analyzed-partition*))> affected-source*
+    ; changed-partition* := <filter(analysis-spoofax-updatable-partition(|analyzed-partition*))> affected-source*
     ; <map(analysis-spoofax-update-file(pp-message))> changed-partition*
   
 
   analysis-spoofax-update-file(pp-message):
-  	partition -> <analysis-get-messages(pp-message); set-only-markers(|partition)> partition
+    partition -> <analysis-get-messages(pp-message); set-only-markers(|partition)> partition
 
   analysis-spoofax-update-file-from-result:
-  	FileResult(_, _, partition, initial-ast, analyzed-ast, error*, warning*, note*) -> None()
-  	with
-  		<set-markers(|partition)> (analyzed-ast, error*, warning*, note*)
+    FileResult(_, _, partition, initial-ast, analyzed-ast, error*, warning*, note*) -> None()
+    with
+      <set-markers(|partition)> (analyzed-ast, error*, warning*, note*)
 
 
-	analysis-spoofax-updatable-partition = is-string; not(string-ends-with(|\".spt\"))
-	analysis-spoofax-updatable-partition(|partition*):
-		partition -> <analysis-spoofax-updatable-partition> partition
-		where
-			<not(fetch(?partition))> partition*
+  analysis-spoofax-updatable-partition = is-string; not(string-ends-with(|\".spt\"))
+  analysis-spoofax-updatable-partition(|partition*):
+    partition -> <analysis-spoofax-updatable-partition> partition
+    where
+      <not(fetch(?partition))> partition*
 
 rules // Utility
-	
-	analysis-partition(|project-path):
-		path -> $[[project-path]/[path]]
-	
-	analysis-file-result-partition:
-		FileResult(_, _, partition, _, _, _, _, _) -> partition
-		
-	analysis-set-progress = try(where(<gt> (<id>, 0)); set-total-work-units)
-	analysis-inc-progress(|total-size) = where(try(<gt> (total-size, 0); complete-work-unit))
-		
+  
+  analysis-partition(|project-path):
+    path -> $[[project-path]/[path]]
+  
+  analysis-file-result-partition:
+    FileResult(_, _, partition, _, _, _, _, _) -> partition
+    
+  analysis-set-progress = try(where(<gt> (<id>, 0)); set-total-work-units)
+  analysis-inc-progress(|total-size) = where(try(<gt> (total-size, 0); complete-work-unit))
+    
 rules // Debugging
-	
-	analysis-debug(msg) = try(analysis-debug-interface(msg))
-	analysis-debug = try(analysis-debug-interface)
-	analysis-debug-interface(msg) = fail
-	analysis-debug-interface = fail
-	
-	analysis-debug-results:
-		DebugResult(CollectDebugResult(removed-entry-count, added-entry-count, removed-task-count, added-task-count, invalidated-task-count), evaluated-task*, skipped-task*, unevaluated-task*) -> <id>
-		with
-  		<analysis-debug> $[Entries : [removed-entry-count] removed, [added-entry-count] added.];
-    	<analysis-debug> $[Tasks   : [removed-task-count] removed, [added-task-count] added, [invalidated-task-count] invalidated, [<length> evaluated-task*] evaluated, [<length> skipped-task*] skipped, [<length> unevaluated-task*] unevaluated.];
-    	<map(task-debug-info(|<id>); analysis-debug(!\"Unevaluated: \"))> unevaluated-task* 
-	
+  
+  analysis-debug(msg) = try(analysis-debug-interface(msg))
+  analysis-debug = try(analysis-debug-interface)
+  analysis-debug-interface(msg) = fail
+  analysis-debug-interface = fail
+  
+  analysis-debug-results:
+    DebugResult(CollectDebugResult(removed-entry-count, added-entry-count, removed-task-count, added-task-count, invalidated-task-count), evaluated-task*, skipped-task*, unevaluated-task*) -> <id>
+    with
+      <analysis-debug> $[Entries : [removed-entry-count] removed, [added-entry-count] added.];
+      <analysis-debug> $[Tasks   : [removed-task-count] removed, [added-task-count] added, [invalidated-task-count] invalidated, [<length> evaluated-task*] evaluated, [<length> skipped-task*] skipped, [<length> unevaluated-task*] unevaluated.];
+      <map(task-debug-info(|<id>); analysis-debug(!\"Unevaluated: \"))> unevaluated-task* 
+  
 "
 
 	create-analysis-debug = 
@@ -626,7 +631,6 @@ rules // Empty file to clear previous definitions
 rules
 
   analysis-interface = fail
-  analysis-interface-spoofax = fail
   
 	analysis-pre-trans = fail
 	analysis-post-trans(|ctx) = fail
@@ -644,6 +648,9 @@ rules
 imports
 	
 	runtime/analysis/core
+	runtime/analysis/save
+	runtime/analysis/complete
+	runtime/analysis/resolve
 	runtime/editor/eclipse
 	runtime/editor/queue
 	runtime/nabl/collect
@@ -660,22 +667,26 @@ rules // Analysis
 		queue-strategy(|\"analysis-multiple-default-interface\", \"Analyzing files (legacy)\")
 	analysis-default-cmd = 
 		analysis-multiple-default-interface
-
+	analysis-cmd = 
+		analysis-multiple-default-interface
+		
 	// Called by only by Spoofax.
 	analysis-single-default(pre-trans, post-trans, pp-message|language) = 
 		analysis-single-default(pre-trans, nabl-collect, post-trans, pp-message|language)
 	analysis-single-default(pre-trans, collector, post-trans, pp-message|language) = 
 		analysis-files-spoofax(fail, pre-trans, post-trans, pp-message|language, <project-path>)
 	
-	// Called by Spoofax and Sunshine, but pretend it is Spoofax and parse files anyway.
+	// Called by Spoofax and Sunshine, let analysis-top choose the correct strategy based on input.
 	analysis-multiple-default(parse-file, pre-trans, post-trans, pp-message|language, project-path) = 
-		analysis-multiple-default(parse-file, pre-trans, nabl-collect, post-trans, pp-message|language, project-path)
+		analysis-top(parse-file, pre-trans, nabl-collect, post-trans, pp-message|language, project-path)
 	analysis-multiple-default(parse-file, pre-trans, collector, post-trans, pp-message|language, project-path) = 
-		analysis-files-spoofax(parse-file, pre-trans, post-trans, pp-message|language, project-path)
+		analysis-top(parse-file, pre-trans, post-trans, pp-message|language, project-path)
 	
-rules // On save handler
+rules // Other services
 	
 	analysis-save-default(|language) = analysis-spoofax-save(|language)
+	analysis-propose-completions(|language, project-path, path) = analysis-propose-completions(|language, project-path)
+	analysis-resolve(|language, project-path, path) = analysis-resolve(|language, project-path)
 
 "
 
@@ -721,7 +732,7 @@ rules
     ; ast' := <topdown(try(remove-property-annotations(|property-kind*)))> ast
     ; partition := <analysis-partition(|project-path)> path
 	  ; Result([FileResult(_, _, _, _, analyzed-ast, error*, warning*, note*)], _, debug-result, _) := 
-	    	<analysis-files(id, id, id|language, project-path)> [File(partition, ast)]
+	    	<analysis-files(id, id, id|language, project-path)> [File(partition, ast, 0.0)]
     ; <analysis-debug-results> debug-result      
     ; <map(analysis-debug(!\"Error: \"))> error*
     ; <map(analysis-debug(!\"Warning: \"))> warning*
@@ -750,9 +761,27 @@ rules
     	index-setup(|language, project-path);
     	definition  := <has-annos; get-annos; fetch-elem(?Use(<id>)); task-get-results; Hd> node;
     	definition' := <index-get-all; Hd> definition // Get definition from index again to get updated origin location.
-    	
-	// Legacy
-	analysis-resolve(|language, project-path, path) = analysis-resolve(|language, project-path)
+
+"
+
+	create-analysis-save = 
+		<output-text-file(|["lib", "runtime", "analysis"], "save.str")>
+"module runtime/analysis/save
+
+imports
+	
+	runtime/index/core
+	runtime/task/core
+	
+rules
+	
+	analysis-spoofax-save(|language):
+    (_, _, _, _, project-path) -> None()
+    with
+      index-setup(|language, project-path);
+      index-persist;
+      task-setup(|project-path);
+      task-persist
 
 "
 
@@ -775,8 +804,8 @@ imports
 	
 rules
 	
-	analysis-singleast = analysis-singleast(nabl-collect)
-	analysis-singleast(collector):
+	analysis-singleast = analysis-singleast(nabl-collect|-1.0)
+	analysis-singleast(collector|parse-time):
 		ast -> (analyzed-ast, (error*, warning*, note*))
 		with
 			language     := \"Language\"
@@ -784,7 +813,7 @@ rules
 		; project-path := \".\"
     ; partition := <analysis-partition(|project-path)> path
 	  ; Result([FileResult(_, _, _, _, analyzed-ast, error*, warning*, note*)], _, _, _) := 
-	    	<analysis-files(id, id, id|language, project-path)> [File(partition, ast)]
+	    	<analysis-files(id, id, id|language, project-path)> [File(partition, ast, parse-time)]
 
 "
 
@@ -1336,7 +1365,7 @@ rules
   measure-time(s, match) =
     where(before := <cputime>);
     s;
-    where(after := <cputime>; !(after, before); subt; cputime-to-seconds; match)
+    where(after := <cputime>; !(after, before); subt; match)
 
 "
 
@@ -4226,8 +4255,11 @@ rules
 		term -> <new-task(|ctx)> PropExtract(kind, term)
 
   perform-task(|n):
-    PropExtract(kind, term) -> <get-annotation(?(kind, <id>))> term
-
+    PropExtract(kind, term) -> result
+    where
+      result := <get-annotation(?(kind, <id>))> term
+    <+ result := <perform-task(|n)> PropsLookup(kind, term) // TODO: This can be avoided in the generator. 1) Create a choice. 2) Generate right task based on variable types (URI or term)
+    
 "
 
 	create-relations-entries = 
@@ -5749,6 +5781,7 @@ create-all-runtime-libraries =
 ; 	create-analysis-multiple
 ; 	create-analysis-reanalysis
 ; 	create-analysis-resolve
+; 	create-analysis-save
 ; 	create-analysis-single
 ; 	create-analysis-singleast
 ; 	create-editor-annotations
