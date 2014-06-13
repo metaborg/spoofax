@@ -523,7 +523,18 @@ $[<?xml version="1.0" encoding="UTF-8"?>
 		</java>
 	</target>
 
-	<target name="java.jar" if="java.jar.enabled">
+	<target name="java.jar" if="java.jar.enabled" depends="utils-files">
+		<delete>
+			<fileset dir="${build}" excludes="trans/**" />
+		</delete>
+		<javac srcdir="${src-dirs}" excludes="trans/**" destdir="${build}" source="1.7" target="1.7" debug="on">
+			<classpath>
+				<pathelement path="utils/strategoxt.jar:${src-gen}${externaljarimport1}${externaljarimport2}${java.jar.classpath}" />
+				<fileset dir="${eclipse.home}/plugins">
+					<include name="*.jar" />
+				</fileset>
+			</classpath>
+		</javac>
 		<jar basedir="${build}" excludes="trans/**" update="true" destfile="${include}/${strmodule}-java.jar" />
 	</target>
 
