@@ -4,7 +4,8 @@ imports
   libstratego-lib
   libstratego-xtc
   libstratego-rtg
-
+  libtools
+  
   libjava-front
   
   EditorService

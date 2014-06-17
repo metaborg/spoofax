@@ -23,6 +23,7 @@
 	<property name="rtg" value="${strategoxt-distrib}/share/strategoxt/rtg/" />
 	<property name="sdf-front" value="${strategoxt-distrib}/share/strategoxt/sdf-front" />
     <property name="xtc" value="${strategoxt-distrib}/share/strategoxt/libstratego-xtc" />
+    <property name="libstratego-strj" value="${strategoxt-distrib}/share/strategoxt/libstratego-strj" />
 
 	<!-- <property name="gpp-more" value="${strategoxt}/sdf/gpp" />
 	<property name="rtg-more" value="${strategoxt}/sdf/stratego-regular" />
@@ -153,6 +154,8 @@
 				<arg value="${sdf-front}" />
 				<arg value="-I" />
 				<arg value="${xtc}" />
+				<arg value="-I" />
+				<arg value="${libstratego-strj}" />
 
 				<!--
 				<arg value="-I" />

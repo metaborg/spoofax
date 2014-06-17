@@ -591,6 +591,7 @@ strategies
   /**
    * @todo Use libgpp
    */
+/*
   log-prod(|severity, msg, prod) =
     where(
       xtc-temp-files(
@@ -603,6 +604,7 @@ strategies
     ; log(|severity, msg)
     ; log(|severity, <conc-strings> ("  ", prodtxt))
     )
+*/
 
 signature
   constructors
