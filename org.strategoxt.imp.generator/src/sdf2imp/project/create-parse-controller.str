@@ -5,7 +5,7 @@ imports
   libstratego-lib
   libstratego-xtc
   
-  sdf2imp/lib/RTG
+//  sdf2imp/lib/RTG
     
   sdf2imp/util/-
 

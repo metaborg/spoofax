@@ -128,6 +128,7 @@ strategies
       fullpath := <conc-strings> (path, "/", <class-name> class, ".java")
     
 
+/*
   output-xml-file(|pathparts, filename) =
     print-filename(|pathparts, filename);
     
@@ -138,6 +139,7 @@ strategies
     );
     
     output-text-file'(|pathparts, filename)
+*/
   
   output-text-file(|pathparts, filename) =
     print-filename(|pathparts, filename);
