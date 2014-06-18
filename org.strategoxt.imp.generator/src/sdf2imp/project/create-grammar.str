@@ -142,8 +142,12 @@ lexical syntax
 	[\ \t\n\r] -> LAYOUT
 	
 	[\*]                             -> CommentChar
-	"/*" (~[\*] | CommentChar)* "*/" -> LAYOUT
-	"//" ~[\n\r]* ([\n\r] | EOF)     -> LAYOUT
+	"/*" InsideComment* "*/"         -> LAYOUT
+	~[\*]                            -> InsideComment
+	CommentChar                      -> InsideComment
+	"//" ~[\n\r]* NewLineEOF         -> LAYOUT
+	[\n\r]                           -> NewLineEOF
+	EOF                              -> NewLineEOF
 	
 	-> EOF
 
@@ -194,8 +198,12 @@ exports
     "\\"                               -> BackSlashChar 
     [\ \t\n\r]                         -> LAYOUT        
     [\*]                               -> CommentChar   
-    "/*" ( ~[\*] | CommentChar )* "*/" -> LAYOUT        
-    "//" ~[\n\r]* [\n\r] | EOF         -> LAYOUT        
+    "/*" InsideComment* "*/"           -> LAYOUT        
+    ~[\*]                              -> InsideComment
+    CommentChar                        -> InsideComment
+    "//" ~[\n\r]* NewLineEOF           -> LAYOUT   
+    [\n\r]                             -> NewLineEOF
+    EOF                                -> NewLineEOF
                                        -> EOF           
 
   lexical restrictions

@@ -1,6 +1,7 @@
 package org.strategoxt.imp.runtime.services.views.properties;
 
 import org.eclipse.imp.parser.IParseController;
+import org.eclipse.swt.widgets.Display;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.TermFactory;
 import org.strategoxt.imp.runtime.EditorState;
@@ -31,6 +32,7 @@ public class PropertiesService implements IPropertiesService {
 		this.controller = controller;
 	}
 
+	private EditorState editorState;
 	@Override
 	public IStrategoTerm getProperties(int selectionOffset, int selectionLength) {
 		IStrategoTerm emptyList = new TermFactory().makeList();
@@ -38,7 +40,12 @@ public class PropertiesService implements IPropertiesService {
 			return emptyList;
 		}
 
-		EditorState editorState = EditorState.getEditorFor(controller);
+		Display.getDefault().syncExec(new Runnable() {
+			@Override
+			public void run() {
+				editorState = EditorState.getEditorFor(controller);
+			}
+		});
 		StrategoObserver observer = getObserver(editorState);
 		observer.getLock().lock();
 		try {
