@@ -22,17 +22,19 @@
 	<property name="java-front" value="${strategoxt-distrib}/share/strategoxt/java_front/" />
 	<property name="rtg" value="${strategoxt-distrib}/share/strategoxt/rtg/" />
 	<property name="sdf-front" value="${strategoxt-distrib}/share/strategoxt/sdf-front" />
-    <property name="xtc" value="${strategoxt-distrib}/share/strategoxt/libstratego-xtc" />
+	<property name="stratego-front" value="${strategoxt-distrib}/share/strategoxt/stratego-front" />
+
     <property name="libstratego-strj" value="${strategoxt-distrib}/share/strategoxt/libstratego-strj" />
 
 	<!-- <property name="gpp-more" value="${strategoxt}/sdf/gpp" />
 	<property name="rtg-more" value="${strategoxt}/sdf/stratego-regular" />
 	<property name="xml-front" value="${strategoxt}/xml-front" />
 	<property name="sdf-tools" value="${strategoxt}/sdf-tools" />
-	<property name="stratego-front" value="${strategoxt}/stratego-front" />
+
 	
 	<property name="asfix" value="${strategoxt}/asfix-tools" />
 	-->
+<!-- <property name="xtc" value="${strategoxt-distrib}/share/strategoxt/libstratego-xtc" /> -->
 
 
 	<!-- Shipped with SDF -->
@@ -153,17 +155,21 @@
 				<arg value="-I" />
 				<arg value="${sdf-front}" />
 				<arg value="-I" />
-				<arg value="${xtc}" />
+				<arg value="${stratego-front}" />
+
 				<arg value="-I" />
 				<arg value="${libstratego-strj}" />
 
+
+				<!-- <arg value="-I" />
+				<arg value="${xtc}" /> -->
+				
 				<!--
 				<arg value="-I" />
 				<arg value="${xml-front}" />
 				<arg value="-I" />
 				<arg value="${sdf-tools}" />
-				<arg value="-I" />
-				<arg value="${stratego-front}" />
+				
 				
 				
 				<arg value="-I" />
