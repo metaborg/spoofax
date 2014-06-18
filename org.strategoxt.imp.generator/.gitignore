@@ -3,3 +3,6 @@
 /src-gen
 /bin
 /dist
+/src/*.ctree*
+/strategoxt-distrib
+/strategoxt.jar

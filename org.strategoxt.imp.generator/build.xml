@@ -143,6 +143,8 @@
 				<arg value="stratego-aterm" />
 				<arg value="-la" />
 				<arg value="java-front" />
+				<arg value="-la" />
+				<arg value="org.strategoxt.tools" />
 
 				<arg value="-I" />
 				<arg value="${java-front}/languages/stratego-java" />				
@@ -202,7 +204,7 @@
 
 	<target name="compile-java" depends="ensure-dirs, compile-stratego">
 		<mkdir dir="${gen}/bin/org/strategoxt/imp/generator" />
-		<javac srcdir="${src-gen}/org/strategoxt/imp/generator/" destdir="${gen}/bin" source="1.5" target="1.5" debug="true" debuglevel="source" />
+		<javac srcdir="${src-gen}/org/strategoxt/imp/generator/" destdir="${gen}/bin" source="1.7" target="1.7" debug="true" debuglevel="source" />
 	</target>
 
 	<target name="jar" depends="ensure-dirs, compile-java">
