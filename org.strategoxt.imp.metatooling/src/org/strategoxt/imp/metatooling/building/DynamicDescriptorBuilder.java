@@ -59,7 +59,6 @@ public class DynamicDescriptorBuilder {
 			context = new Context(Environment.getTermFactory(), agent);
 			context.registerClassLoader(sdf2imp.class.getClassLoader());
 			sdf2imp.init(context);
-			assert sdf2imp._consSdfMainModuleFlag_0 != null && stratego_lib._consAlert_0 != null;
 			
 		} catch (Throwable e) { // (catch classes not loading, etc.)
 			Environment.logException("Unable to initialize dynamic builder", e);
