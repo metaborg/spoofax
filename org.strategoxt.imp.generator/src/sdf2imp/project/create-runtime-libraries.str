@@ -222,8 +222,8 @@ rules // Common
 
       analyzed-ast := <collector(id|Language(language), partition, <new-hashtable>, [])> transformed-ast;
 
-      index-stop-collection            => (removed-entry*, added-entry*);
-      task-stop-collection(|partition) => (removed-task*, added-task*);
+      index-stop-collection(|partition) => (removed-entry*, added-entry*);
+      task-stop-collection(|partition)  => (removed-task*, added-task*);
       
       change*            := [removed-entry*, added-entry*];
       nabl-changed-read* := <nabl-get-changed-reads> change*;
@@ -389,7 +389,7 @@ rules // Index
     (_, _, _, path, project-path) -> (filename, result)
     with
       index-setup(|language, project-path);
-      result-ast := <index-get-all-partitions; map(\\f -> (f, <index-get-all-in-partition> f)\\)>;
+      result-ast := <index-get-all-sources; map(\\f -> (f, <index-get-all-pairs-in-source> f)\\)>;
       if result-index := <foreign-call(|\"Analysis\", \"from-index-debug-str\")> result-ast then
       	filename := $[[project-path]/[<dirname> path]/project.index];
       	result   := result-index
@@ -403,7 +403,7 @@ rules // Index
     with
       index-setup(|language, project-path);
       task-setup(|project-path);
-      result-ast := <index-get-all-partitions; map(\\f -> (f, <index-get-all-in-partition> f)\\)>;
+      result-ast := <index-get-all-sources; map(\\f -> (f, <index-get-all-pairs-in-source> f)\\)>;
       result-ast' := <beautify-indices> result-ast;
 	  if result-index := <foreign-call(|\"Analysis\", \"from-index-debug-str\")> result-ast' then
 		filename := $[[project-path]/[<dirname> path]/project.index];
@@ -418,7 +418,7 @@ rules // Index
     with
       index-setup(|language, project-path);
     	partition  := $[[project-path]/[path]];
-      result-ast := [(partition, <index-get-all-in-partition> partition)];
+      result-ast := [(partition, <index-get-all-pairs-in-source> partition)];
       if result-index := <foreign-call(|\"Analysis\", \"from-index-debug-str\")> result-ast then
       	filename := <guarantee-extension(|\"partition.index\")> path;
       	result   := result-index
@@ -433,7 +433,7 @@ rules // Index
       index-setup(|language, project-path);
       task-setup(|project-path);
     	partition  := $[[project-path]/[path]];
-      result-ast := [((partition, []), <index-get-all-in-partition> partition)];
+      result-ast := [((partition, []), <index-get-all-pairs-in-source> partition)];
       result-ast' := <beautify-indices> result-ast;
       if result-index := <foreign-call(|\"Analysis\", \"from-index-debug-str\")> result-ast' then
       	filename := <guarantee-extension(|\"partition.index\")> path;
@@ -497,7 +497,7 @@ rules // Index & task engine
     	index-setup(|language, project-path);
       task-setup(|project-path);
       task-debug  := <task-debug-info(|())>;
-      index-debug := <index-get-all-partitions; map(\\f -> (f, <index-get-all-in-partition; sort-index> f)\\)>;
+      index-debug := <index-get-all-sources; map(\\f -> (f, <index-get-all-pairs-in-source; sort-index> f)\\)>;
       result-ast  := (task-debug, index-debug);
       if result-analysis := <foreign-call(|\"Analysis\", \"from-debug-str\")> result-ast then
       	filename := $[[project-path]/[<dirname> path]/project.analysis];
@@ -514,7 +514,7 @@ rules // Index & task engine
       task-setup(|project-path);
       partition   := $[[project-path]/[path]];
       task-debug  := <task-debug-info(|partition)>;
-      index-debug := [(partition, <index-get-all-in-partition; sort-index> partition)];
+      index-debug := [(partition, <index-get-all-pairs-in-source; sort-index> partition)];
       result-ast  := (task-debug, index-debug);
       if result-analysis := <foreign-call(|\"Analysis\", \"from-debug-str\")> result-ast then
       	filename := <guarantee-extension(|\"partition.analysis\")> path;
@@ -578,7 +578,7 @@ rules // Helper rules for Index Resolved
 	// order the index entries
 	index-ordering: _ -> [\"Def\",\"Prop\",\"RelTuple\",\"Alias\",\"InverseAlias\",\"Use\"]
 
-	index-compare: (a,b) -> (a,b)
+	index-compare: ((a, _), (b, _)) -> <id>
 		where
 			a-order := <get-index> (<get-constructor>a, <index-ordering>);
 			b-order := <get-index> (<get-constructor>b, <index-ordering>);
@@ -762,7 +762,7 @@ rules
 			task-setup(|project-path);
     	index-setup(|language, project-path);
     	definition  := <has-annos; get-annos; fetch-elem(?Use(<id>)); task-get-results; Hd> node;
-    	definition' := <index-get-all; Hd> definition // Get definition from index again to get updated origin location.
+    	definition' := <index-get-one-value> definition // Get definition from index again to get updated origin location.
 
 "
 
@@ -1375,10 +1375,6 @@ rules
 		<output-text-file(|["lib", "runtime", "index"], "core.str")>
 "module runtime/index/core
 
-imports
-	
-	runtime/index/utils
-
 signature
 
   sorts
@@ -1400,9 +1396,9 @@ rules
    */
   index-setup(|language, project-path) =
     prim(\"LANG_index_setup_new\", language, <index-setup-paths> project-path)
-    
   index-setup:
   	(language, project-path) -> <prim(\"LANG_index_setup_new\", language, <index-setup-paths> project-path)>
+  index-setup-paths = try(is-list; Hd)
     
   /**
    * Unloads the currently loaded index.
@@ -1424,30 +1420,48 @@ rules
 		prim(\"LANG_index_recover\")
 		
 	/**
-	 * Starts collection for given partition. Used in conjunction with index-stop-collection to 
+	 * Starts collection for a given source. Used in conjunction with index-stop-collection to 
 	 * retrieve a list of added and removed index entries in relation to the previous entries in
-	 * given partition.
+	 * given source.
 	 *
 	 * Example:
 	 *   index-start-collection(|\"fullpath/file.ext\")
-	 *   index-start-collection(|(\"fullpath/file.ext\", \"subfile\"))
 	 *
 	 * @type x -> x
 	 */
-	index-start-collection(|partition) =
-		prim(\"LANG_index_start_collection\", partition)
+	index-start-collection(|source) =
+		prim(\"LANG_index_start_collection\", source)
+		
+  /**
+   * Collects given element, which will be added to the index when collection stops.
+   *
+   * @param value Value of the element.
+   * @param source The source to collect the element for.
+   * @type key -> key
+   */
+	index-collect(|value, source):
+		key -> <prim(\"LANG_index_collect\", key, value)>
+		
+  /**
+   * Collects given element without value, which will be added to the index when collection stops.
+   *
+   * @param source The source to collect the element for.
+   * @type key -> key
+   */
+	index-collect(|source):
+		key -> <prim(\"LANG_index_collect_boolean\", key)>
 		
 	/**
-	 * Stops collection for the partition on which index-start-collection was called. Returns 
-	 * a tuple with removed and added entries in relation to the previous entries in that partition.
+	 * Stops collection for given source. Returns a tuple with removed and added entries in relation to the previous 
+	 * entries in that source.
 	 *
 	 * Example:
-	 *   index-stop-collection => (removed, added)
+	 *   index-stop-collection(|\"fullpath/file.ext\") => (removed, added)
 	 *
-	 * @type x -> (List(elem), List(elem))
+	 * @type _ -> (List(elem), List(elem))
 	 */
-	index-stop-collection =
-		prim(\"LANG_index_stop_collection\")
+	index-stop-collection(|source) =
+		prim(\"LANG_index_stop_collection\", source)
 	
 	/**
 	 * Pushes a new index on the stack and sets that as the current index. Entries from the parent
@@ -1491,40 +1505,32 @@ rules
   /**
    * Adds given element to the index.
    *
-   * Example:
-   *   <index-add(|\"fullpath/file.ext\")> Def([Entity(), \"Bar\"])
-   *   <index-add(|(\"fullpath/file.ext\", \"subfile\"))> Def([Entity(), \"Bar\"])
-   *
-   * @param partition The partition to add the element to.
-   * @type x -> ?x
+   * @param value Value of the element.
+   * @param source The source to add the element to.
+   * @type key -> key
    */
-  index-add(|partition) =
-    prim(\"LANG_index_add\", <id>, partition)
-
-  /**
-   * Adds all given elements to the index.
-   *
-   * Example:
-   *   <index-add-all(|\"fullpath/file.ext\")> [Def([Entity(), \"Bar\"]), ...]
-   *   <index-add-all(|(\"fullpath/file.ext\", \"subfile\"))> [Def([Entity(), \"Bar\"]), ...]
-   *
-   * @param partition The partition to add the elements to.
-   * @type List(x) -> ?List(x)
-   */
-  index-add-all(|partition) =
-    list-loop(with(index-add(|partition)))
+  index-add(|value, source):
+    key -> <prim(\"LANG_index_add\", key, value, source)>
     
   /**
-   * Removes all elements from the index that are contained in given partition.
+   * Adds given element without value to the index.
+   *
+   * @param source The source to add the element to.
+   * @type key -> key
+   */
+  index-add(|source):
+    key -> <prim(\"LANG_index_add_boolean\", key, source)>
+    
+  /**
+   * Removes all elements from the index that are contained in given source.
    *
    * Example:
-   *   <index-clear-partition> \"fullpath/file.ext\"
-   *   <index-clear-partition> (\"fullpath/file.ext\", \"subfile\")
+   *   <index-clear-source> \"fullpath/file.ext\"
    *
-   * @type x -> ?x
+   * @type source -> source
    */
-  index-clear-partition = 
-    prim(\"LANG_index_clear_partition\", <id>)
+  index-clear-source:
+  	source -> <prim(\"LANG_index_clear_source\", source)>
     
   /**
    * Removes all elements from the index.
@@ -1565,8 +1571,7 @@ signature
 
   constructors
     
-    Global : URI               -> Entry
-    Global : URI * List(Entry) -> Entry
+    Global : URI -> Key
     
 rules
     
@@ -1610,9 +1615,7 @@ rules
    * @type _ -> ?value
    */
   index-get-global(|name):
-    _ -> value
-    where
-      Global(_, value) := <index-get-all; Hd> Global(<index-globals-uri> name, ())
+    _ -> <index-get-one-value> Global(<index-globals-uri> name)
     
   /**
    * Gets all values in global storage with given name.
@@ -1625,10 +1628,7 @@ rules
    * @type _ -> List(value)
    */ 
   index-get-all-globals(|name):
-    _ -> values'
-    with
-      values  := <index-get-all> Global(<index-globals-uri> name, ());
-      values' := <filter(?Global(_, <id>))> values
+    _ -> <index-get-all-values> Global(<index-globals-uri> name)
     
   /**
    * Add value to global storage with given name.
@@ -1643,7 +1643,7 @@ rules
   index-add-global(|name):
     value -> <id>
     with
-      <index-add(|<index-globals-path>)> Global(<index-globals-uri> name, value)
+      <index-add(|value, <index-globals-path>)> Global(<index-globals-uri> name)
       
   /**
    * Overwrites value in global storage with given value.
@@ -1674,7 +1674,7 @@ rules
   index-clear-global(|name):
     _ -> <id>
     with
-      <index-globals-path; index-clear-partition> name
+      <index-globals-path; index-clear-source> name
 rules
 	
   /**
@@ -1733,7 +1733,7 @@ rules
   index-disable-global(|name):
     _ -> <id>
     with
-      <index-boolean-globals-path; index-clear-partition> name
+      <index-boolean-globals-path; index-clear-source> name
       
   /**
    * Query for boolean value true in global boolean storage with given name.
@@ -1748,7 +1748,7 @@ rules
   index-is-global-enabled(|name):
     _ -> <id>
     where
-      <index-get-all; Hd> Global(<index-boolean-globals-uri> name)
+      <index-get-one-value> Global(<index-boolean-globals-uri> name)
 
 "
 
@@ -1759,7 +1759,7 @@ rules
 imports
 	
 	runtime/index/core
-	runtime/index/utils
+	runtime/index/query
 
 rules // Redirects
 	
@@ -1770,11 +1770,21 @@ rules // Redirects
 	index-clear-all = index-reset
 	
 	index-commit = index-persist
-		
+	
+	index-clear-partition = index-clear-source
+	
+	index-get-all = index-get-all-values
+	index-get-children = index-get-all-childs
+	index-get-all-partitions = index-get-all-sources
+	index-get-all-in-partition = index-get-all-values-in-source
+	index-get-partitions-of = index-get-all-sources-of
+	
 rules // Deprecated
 		
-	index-depricated-switch = fail
-	index-depricated = try(not(index-depricated-switch); with(fail|\"Deprecated.\"))
+	index-depricated-disable = fail
+	index-depricated = try(not(index-depricated-disable); with(fail|\"Deprecated.\"))
+	
+	index-add-all(|source) = index-depricated
 		
 	index-get-all-with-partitions = index-depricated
 		
@@ -1798,32 +1808,6 @@ rules // Deprecated
 
 "
 
-	create-index-partition = 
-		<output-text-file(|["lib", "runtime", "index"], "partition.str")>
-"module runtime/index/partition
-
-rules // Construction
-  
-  index-create-partition(|file) =
-    !file
-    
-  index-create-partition(|file, uri) =
-    !(file, uri)
-
-rules // Projections
-	
-	index-partition-file:
-		(file, _) -> file
-		
-	index-partition-file:
-		file -> file
-		where
-			<is-string> file
-		
-  index-partition-uri:
-  	(_, uri) -> uri
-"
-
 	create-index-query = 
 		<output-text-file(|["lib", "runtime", "index"], "query.str")>
 "module runtime/index/query
@@ -1831,70 +1815,77 @@ rules // Projections
 rules
 
   /**
-   * Get all index entries that match the given template.
+   * Get one value from an index entry that matches the given key, or fail.
    *
-   * Example:
-   *   <index-get-all> Def([Entity(), \"Bar\"]) => [Def([Entity(), \"Bar\"]), ...]
-   *
-   * @type template -> List(elem)
+   * @type key -> ?value
    */
-  index-get-all:
-    template -> <prim(\"LANG_index_get\", template)>
+  index-get-one-value:
+    key -> <prim(\"LANG_index_get_one_value\", key)>
 
   /**
-   * Get all children entries of the given template.
+   * Get all values from index entries that match the given key.
    *
-   * Example:
-   *   <index-get-children> Def([Entity(), \"Bar\", \"Foo\"]) => [Def([Method(), \"Bar\"]), Def([Field(), \"Baz\"]), ...]
+   * @type key -> List(value)
+   */
+  index-get-all-values:
+    key -> <prim(\"LANG_index_get_all_values\", key)>
+    
+  /**
+   * Get one key-value pair from an index entry that matches the given key, or fail.
    *
-   * @type template -> List(elem)
+   * @type key -> ?Tuple(key, value)
+   */
+  index-get-one-pair:
+    key -> <prim(\"LANG_index_get_one_pair\", key)>
+
+  /**
+   * Get all key-value pairs from index entries that match the given key.
+   *
+   * @type key -> List(Tuple(key, value))
+   */
+  index-get-all-pairs:
+    key -> <prim(\"LANG_index_get_all_pairs\", key)>
+
+  /**
+   * Gets all values of child index entries of the given key.
+   *
+   * @type key -> List(value)
    */    
-  index-get-children:
-    template -> <prim(\"LANG_index_get_children\", template)>
+  index-get-all-childs:
+    key -> <prim(\"LANG_index_get_all_childs\", key)>
   
   /**
-   * Gets a list of all partitions for current project.
+   * Gets a list of all sources for the current project.
    *
-   * Example:
-   *   <index-get-all-partitions> => [(\"fullpath/file.ext\", \"subfile\"), ...]
-   *
-   * @type x -> List(partition)
+   * @type _ -> List(source)
    */   
-  index-get-all-partitions =
-    prim(\"LANG_index_all_partitions\")
+  index-get-all-sources =
+    prim(\"LANG_index_get_all_sources\")
   
   /**
-   * Gets all index entries for the given partition.
+   * Gets all values of index entries for the given source.
    *
-   * Examples:
-   *   <index-get-all-in-partition> \"fullpath/file.ext\" => [Def([Entity(), \"Bar\"]), ...]
-   *   <index-get-all-in-partition> (\"fullpath/file.ext\", \"subfile\") => [Def([Entity(), \"Bar\"]), ...]
-   *
-   * @type partition -> List(elem)
+   * @type source -> List(elem)
    */  
-  index-get-all-in-partition =
-    prim(\"LANG_index_get_all_in_partition\", <id>)
+  index-get-all-values-in-source:
+    source -> <prim(\"LANG_index_get_all_values_in_source\", source)>
+    
+  /**
+   * Gets all key-value pairs of index entries for the given source.
+   *
+   * @type source -> List(elem)
+   */  
+  index-get-all-pairs-in-source:
+    source -> <prim(\"LANG_index_get_all_pairs_in_source\", source)>
 
   /**
-   * Gets the containing partitions of index entry with given template.
+   * Gets the containing sources of index entries with given key.
    *
-   * Example:
-   *   <index-get-partitions-of> Def([Entity(), \"Bar\"]) => [(\"fullpath/file.ext\", \"subfile\"), ...]
-   *
-   * @type template -> List(partition)
+   * @type key -> List(source)
    */  
-  index-get-partitions-of:
-    template -> <prim(\"LANG_index_get_partitions_of\", template)>
+  index-get-all-sources-of:
+    key -> <prim(\"LANG_index_get_all_sources_of\", key)>
 
-"
-
-	create-index-utils = 
-		<output-text-file(|["lib", "runtime", "index"], "utils.str")>
-"module runtime/index/utils
-
-rules
-	
-	index-setup-paths = try(is-list; Hd)
 "
 
 	create-modelware-model2tree = 
@@ -1990,7 +1981,7 @@ rules
 rules
   
   mw-def-uris    = get-arguments; map(get-annos; filter(?Def(_); try(origin-location))); concat
-  mw-ref-uri     = get-annos; fetch-elem(?Use(_)); (nabl-collect-one-resolved-def; index-get-all; Hd; ?Def(_); try(origin-location) <+ ?Use(<id>) <+ !Unresolved())
+  mw-ref-uri     = get-annos; fetch-elem(?Use(_)); (nabl-collect-one-resolved-def; index-get-one-value; ?Def(_); try(origin-location) <+ ?Use(<id>) <+ !Unresolved())
   mw-is-compound = where(not(?Some(_))); explode-term + map(explode-term)
   
   mw-combine = ?[]
@@ -2655,41 +2646,39 @@ signature
 
   constructors
     
-    Def          : URI                    -> Entry
-    Alias        : URI * URI              -> Entry
-    InverseAlias : URI * URI              -> Entry
-    Use          : Result                 -> Entry
+    Def          : URI    -> Key
+    Alias        : URI    -> Key
+    InverseAlias : URI    -> Key
+    Use          : Result -> Key
 
 rules // Index entries to diff for incrementality
   
   nabl-diff-entry = ?Def(_)
-  
-  nabl-diff-entry = ?Alias(_, _)
+  nabl-diff-entry = ?Alias(_)
  
 rules
   
-  new-def(|partition, uri):
+  new-def(|source, uri):
     x -> definition
     with
       definition := <origin-track-forced(!Def(uri))> x;
-      <index-add(|partition)> definition;
-			<new-alias(|partition, <nabl-nonunique-uri> uri, uri)> x
+      <index-collect(|source)> definition;
+			<new-alias(|source, <nabl-nonunique-uri> uri, uri)> x
       
-  new-alias(|partition, uri, alias-uri):
-    x -> alias
+  new-alias(|source, uri, alias-uri):
+    _ -> alias
     with
-      alias := <origin-track-forced(!Alias(uri, alias-uri))> x;
-      ialias := <origin-track-forced(!InverseAlias(alias-uri, uri))> x;
+      alias  := Alias(uri);
+      ialias := InverseAlias(alias-uri);
       if <not(eq)> (uri, alias-uri) then
-      	<index-add(|partition)> alias;
-      	<index-add(|partition)> ialias
+      	<index-collect(|alias-uri, source)> alias;
+      	<index-collect(|uri, source)> ialias
       end
 
   new-use(|partition, uri):
     x -> use
     with
-      use := <origin-track-forced(!Use(uri))> x;
-      <index-add(|partition)> use
+      use := <origin-track-forced(!Use(uri))> x
 
 rules // index uri & value projections
   
@@ -2703,19 +2692,19 @@ rules // index uri & value projections
     
   /** @internal */
   nabl-uri:
-    Alias(uri, _) -> uri
+    Alias(uri) -> uri
     
   /** @internal */
   nabl-uris:
-    Alias(uri, _) -> [uri]
+    Alias(uri) -> [uri]
     
   /** @internal */
   nabl-uri:
-    InverseAlias(uri, _) -> uri
+    InverseAlias(uri) -> uri
     
   /** @internal */
   nabl-uris:
-    InverseAlias(uri, _) -> [uri]
+    InverseAlias(uri) -> [uri]
     
   /** @internal */  
   nabl-uri:
@@ -2724,38 +2713,6 @@ rules // index uri & value projections
   /** @internal */  
   nabl-uris:
     Use(uri) -> <nabl-collect-all-resolved-defs; map(nabl-uri)> uri
-    
-  /** @internal */
-  nabl-value:
-    Def(value) -> value
-    
-  /** @internal */
-  nabl-values:
-    Def(value) -> [value]
-    
-  /** @internal */
-  nabl-value:
-    Alias(_, value) -> value
-    
-  /** @internal */
-  nabl-values:
-    Alias(_, value) -> [value]
-    
-  /** @internal */
-  nabl-value:
-    InverseAlias(_, value) -> value
-    
-  /** @internal */
-  nabl-values:
-    InverseAlias(_, value) -> [value]
-
-  /** @internal */
-  nabl-value:
-    Use(value) -> <nabl-uri>
-    
-  /** @internal */
-  nabl-values:
-    Use(value) -> <nabl-uris>
 
 "
 
@@ -2771,20 +2728,20 @@ imports
 	
 rules // Read generation
 	
-	nabl-add-uri-read(|taskID):
+	nabl-add-uri-read(|task-id):
 		uri -> uri
 		with
-			<try(nabl-replace-uri-qualifier(|())); task-add-read(|taskID)> uri
+			<try(nabl-replace-uri-qualifier(|())); task-add-read(|task-id)> uri
 			
-	nabl-add-ns-read(|taskID, ns):
+	nabl-add-ns-read(|task-id, namespace):
 		uri -> uri
 		with
-			<task-add-read(|taskID)> (uri, ns)
+			<task-add-read(|task-id)> (uri, namespace)
 			
-	nabl-add-name-read(|taskID, ns, name):
+	nabl-add-name-read(|task-id, namespace, name):
 		uri -> uri
 		with
-			<nabl-extend-uri(|ns, name, ()); task-add-read(|taskID)> uri
+			<nabl-extend-uri(|namespace, name, ()); task-add-read(|task-id)> uri
 			
 rules // Read processing
 	
@@ -2912,7 +2869,7 @@ signature
 	constructors
 		
 		GenerateName : Namespace -> GenerateName
-		GenerateNum  : URI * Int -> Entry
+		GenerateNum  : URI -> Key
 	
 rules
 	
@@ -2964,12 +2921,12 @@ rules // Name generation strategies
 
 rules // Storage & retrieval
 	
-	nabl-namegen-get-num(|uri)              = <nabl-get-all-values; !(<id>, 0); foldl(max)> GenerateNum(uri, ())
-	nabl-namegen-store-num(|partition, uri) = <index-add(|<nabl-namegen-partition(|partition)>)> GenerateNum(uri, <id>)
-	nabl-namegen-clear(|partition)          = nabl-namegen-partition(|partition); index-clear-partition
+	nabl-namegen-get-num(|uri)              = <index-get-all-values; !(<id>, 0); foldl(max)> GenerateNum(uri)
+	nabl-namegen-store-num(|partition, uri):
+		value -> <index-add(|value, <nabl-namegen-partition(|partition)>)> GenerateNum(uri)
+	nabl-namegen-clear(|partition)          = nabl-namegen-partition(|partition); index-clear-source
 	nabl-namegen-partition(|partition)      = !$[[partition]_namegen]
-	nabl-uri                                : GenerateNum(uri, _) -> uri
-	nabl-value                              : GenerateNum(_, num) -> num
+	nabl-uri                                : GenerateNum(uri) -> uri
 	
 "
 
@@ -2990,9 +2947,6 @@ rules // Specific queries
   /**
    * Gets all unique and non-unique definition entries that match the given URI.
    *
-   * Example:
-   *   <nabl-get-all-definitions> [Entity(), \"M\", \"Bar\"] => [Def([Entity(), \"M\", \"Bar\"]), ...]
-   *
    * @type Def(uri) or \"name\"{uri} or URI(language, path) -> List(Def(uri))
    */
   nabl-get-all-definitions:
@@ -3003,35 +2957,16 @@ rules // Specific queries
   /**
    * Gets all child definition entries in given URI that match given namespace.
    *
-   * Example:
-   *   <nabl-get-child-definitions> [Entity(), \"M\", \"Bar\"] => [Def([Field(), \"a\", \"M\", \"Bar\"]), ...]
-   *
    * @type Def(uri) or \"name\"{uri} or URI(language, path) -> List(Def(uri))
    */
-  nabl-get-child-definitions(|ns):
+  nabl-get-child-definitions(|namespace):
     contains-uri* -> def*
     where
     	uri* := <nabl-uris> contains-uri*;
-    	def* := <mapconcat(!Def(<id>); nabl-get-children(|ns)); mapconcat(nabl-uri; nabl-get-unique-nonunique(!Def(<id>)))> uri*
-
-  /**
-   * Gets all Use entries that match the given URI.
-   *
-   * Example:
-   *   <nabl-get-all-uses> Def([Entity(), \"M\", \"Bar\"]) => [Use([Entity(), \"M\", \"Bar\"]), ...]
-   *
-   * @type Def(uri) or \"name\"{uri} or URI(language, path) -> List(Use(uri))
-   */
-  nabl-get-all-uses:
-    containsURI -> <nabl-get-all> Use(uri)
-    where
-    	uri := <nabl-uri> containsURI
+    	def* := <mapconcat(!Def(<id>); nabl-get-all-childs(|namespace)); mapconcat(nabl-uri; nabl-get-unique-nonunique(!Def(<id>)))> uri*
 
   /**
    * Gets all Alias entries that match the given URI.
-   *
-   * Example:
-   *   <nabl-get-all-aliases> Def([Entity(), \"M\", \"Bar\"]) => [[Entity(), \"M\", \"Baz\"], ...]
    *
    * @type Def(uri) or \"name\"{uri} or URI(language, path) -> List(aliasURI)
    */
@@ -3040,13 +2975,10 @@ rules // Specific queries
     where
     	uri*           := <nabl-uris> contains-uri*;
     	nonunique-uri* := <filter(nabl-replace-uri-qualifier(|NonUnique()))> uri*;
-      alias-uri*     := <mapconcat(!Alias(<id>, ()); nabl-get-all-values)> nonunique-uri*
+      alias-uri*     := <mapconcat(!Alias(<id>); index-get-all-values)> nonunique-uri*
       
   /**
    * Gets all InverseAlias entries that match the given URI.
-   *
-   * Example:
-   *   <nabl-get-all-aliases> Def([Entity(), \"M\", \"Bar\"]) => [[Entity(), \"M\", \"Baz\"], ...]
    *
    * @type Def(uri) or \"name\"{uri} or URI(language, path) -> List(inverseAliasURI)
    */
@@ -3054,53 +2986,41 @@ rules // Specific queries
     contains-uri* -> inverse-alias*
     where
     	uri*           := <nabl-uris> contains-uri*;
-      inverse-alias* := <mapconcat(!InverseAlias(<id>, ()); nabl-get-all-values)> uri*
+      inverse-alias* := <mapconcat(!InverseAlias(<id>); index-get-all-values)> uri*
 
 rules // Generic queries
   
-  nabl-get-all:
-    template -> <index-get-all> template
-       
-  nabl-get-all-values:
-    template -> <nabl-get-all; map(nabl-value)> template
-
-  nabl-get:
-    template -> <nabl-get-all; Hd> template
-     
-  nabl-get-value:
-    template -> <nabl-get-all; Hd; nabl-value> template
-  
-  nabl-get-children:
-    template -> entries
+  nabl-get-all-childs:
+    key -> entries
       with
-        entries  := <index-get-children> template
+        entries  := <index-get-all-childs> key
 
-  nabl-get-children(|namespace):
-    template -> entries
+  nabl-get-all-childs(|namespace):
+    key -> entries
       with
-        children := <index-get-children> template;
+        children := <index-get-all-childs> key;
         entries  := <nabl-filter-entries(|namespace)> children
         
-  nabl-get-children(|namespace, prefix):
-    template -> entries
+  nabl-get-all-childs(|namespace, prefix):
+    key -> entries
       with
-        children := <index-get-children> template;
+        children := <index-get-all-childs> key;
         entries  := <nabl-filter-entries(|namespace, prefix)> children
 
-  nabl-get-unique-nonunique(create-template):
+  nabl-get-unique-nonunique(create-key):
   	uri -> [unique*, non-unique*]
   	where
       if alias* := <nabl-get-all-aliases> uri then
       	// HACK: handle Result terms on the resulting URI of an alias. this should be decomposed into a task?
       	(alias-result*, alias-uri*) := <partition(?Result(_); insert-results-or-delay)> alias*;
-      	unique-uri*                 := <mapconcat(create-template; nabl-get-all)> alias-uri*;
+      	unique-uri*                 := <mapconcat(create-key; index-get-all-values)> alias-uri*;
       	unique-result*              := <try(concat)> alias-result*;
       	unique*                     := [unique-uri*, unique-result*]
       else
         unique* := []
       end;
       if non-unique-uri := <nabl-replace-uri-qualifier(|NonUnique())> uri then
-        non-unique* := <create-template; nabl-get-all> non-unique-uri
+        non-unique* := <create-key; index-get-all-values> non-unique-uri
       else
         non-unique* := []
       end
@@ -3499,8 +3419,6 @@ rules // Projections
   
   nabl-uri = fail
   nabl-uris = fail
-  nabl-value = fail
-  nabl-values = fail
   
   nabl-uri-language:
     URI(language, _) -> language
@@ -3661,20 +3579,11 @@ rules /** @internal Projections */
   /** @internal */
   nabl-uri:
     URI(_, _) -> <id>
-    
-  /** @internal */
-  nabl-value:
-    URI(_, _) -> <id>
  
   /** @internal */
   nabl-uris:
     URI(_, _) -> [<id>]
-    
-  /** @internal */
-  nabl-values:
-    URI(_, _) -> [<id>]
 
-    
   /** @internal */  
   nabl-uri =
   	has-annos;
@@ -3682,22 +3591,10 @@ rules /** @internal Projections */
   	fetch-elem(nabl-uri)
 
   /** @internal */  
-  nabl-value =
-  	has-annos;
-  	get-annos;
-  	fetch-elem(nabl-value)
-
-  /** @internal */  
   nabl-uris =
   	has-annos;
   	get-annos;
   	filter(nabl-uri)
-
-  /** @internal */  
-  nabl-values =
-  	has-annos;
-  	get-annos;
-  	filter(nabl-value)
 
 "
 
@@ -4071,37 +3968,29 @@ signature
 
   constructors
     
-    Prop  : URI * Property * Value -> Entry
+    Prop  : URI * Property -> Key
 
 rules // Index entries to diff for incrementality
   
-  nabl-diff-entry = ?Prop(_, _, _)
+  nabl-diff-entry = ?Prop(_, _)
 
 rules
   
-	new-prop(|partition, uri, kind, val):
+	new-prop(|source, uri, kind, val):
 		x -> prop
 		with
-			prop := <origin-track-forced(!Prop(uri, kind, val))> x;
-			<index-add(|partition)> prop
+			prop := Prop(uri, kind);
+			<index-collect(|<origin-track-forced(!val)> x, source)> Prop(uri, kind)
 	      
 rules // index uri & value projections
   
   /** @internal */  
   nabl-uri:
-    Prop(uri, _, _) -> uri
+    Prop(uri, _) -> uri
     
   /** @internal */  
   nabl-uris:
-    Prop(uri, _, _) -> [uri]
-    
-  /** @internal */
-  nabl-value:
-    Prop(_, _, value) -> value
-    
-  /** @internal */
-  nabl-values:
-    Prop(_, _, value) -> [value]
+    Prop(uri, _) -> [uri]
 
 "
 
@@ -4158,7 +4047,8 @@ strategies // user-defined implementations
 "module runtime/properties/query
 
 imports
-	runtime/nabl/query
+	
+	runtime/index/query
 	runtime/nabl/uri
 	runtime/task/core
 	runtime/properties/entries
@@ -4186,11 +4076,11 @@ rules
 	
   get-index-property(|kind) =
     nabl-uris // TODO: how to handle multiple values?
-  ; fetch-elem(!Prop(<id>, kind, ()); nabl-get-value)
+  ; fetch-elem(!Prop(<id>, kind); index-get-one-value)
    
   get-index-properties(|kind) =
     nabl-uris // TODO: how to handle multiple values?
-  ; mapconcat(!Prop(<id>, kind, ()); nabl-get-all-values)
+  ; mapconcat(!Prop(<id>, kind); index-get-all-values)
 
 rules
 	
@@ -4260,7 +4150,8 @@ rules
     PropExtract(kind, term) -> result
     where
       result := <get-annotation(?(kind, <id>))> term
-    <+ result := <perform-task(|n)> PropsLookup(kind, term) // TODO: This can be avoided in the generator. 1) Create a choice. 2) Generate right task based on variable types (URI or term)
+      // TODO: This can be avoided in the generator. 1) Create a choice. 2) Generate right task based on variable types (URI or term)
+    <+ result := <perform-task(|n)> PropsLookup(kind, term)
     
 "
 
@@ -4287,30 +4178,32 @@ signature
 
   constructors
     
-    RelTuple   : Term * Relation * Term -> Entry
+    RelTuple   : Term * Relation -> Key
     Inverse    : Relation -> Relation
     Transitive : Relation -> Relation 
  
 rules
   
-  new-rel-tuple(|partition, rel, t2):
+  new-rel-tuple(|source, rel, t2):
     t1 -> tuple
     with
       relation-ensure-no-task-reference
     ; t1' := <relation-try-term-to-uri> t1
     with
-      tuple := <origin-track-forced(!RelTuple(t1', rel, t2))> t1
-    ; <index-add(|partition)> tuple
+      tuple := RelTuple(t1', rel)
+    ; <index-collect(|<origin-track-forced(!t2)> t1, source)> tuple
     ; if <relation-is-transitive> rel then
-	      task       := <relation-create-lookup(|partition, rel)> t2
-	    ; transitive := <origin-track-forced(!RelTuple(t1', Transitive(rel), task))> t1
-	    ; <index-add(|partition)> transitive
+	      task := <relation-create-lookup(|source, rel)> t2
+	    ; <index-collect(|<origin-track-forced(!task)> t1, source)> RelTuple(t1', Transitive(rel))
     end
 
 rules
 	
 	relation-ensure-no-task-reference = 
-		with(not(collect-one-annos(relation-is-unresolved-use))|$[Cannot create a relation tuple with a reference to a resolution task on the left hand side.]) 
+		with(
+			not(collect-one-annos(relation-is-unresolved-use))
+		| $[Cannot create a relation tuple with a reference to a resolution task on the left hand side.]
+		) 
 
 	relation-try-term-to-uri:
 		term -> result
@@ -4336,7 +4229,7 @@ rules
 rules
 	
 	relation-tuple-key:
-		RelTuple(key, _, _) -> key
+		RelTuple(key, _) -> key
 
 "
 
@@ -4456,15 +4349,12 @@ rules // Check if relation exists between two terms
 rules /** @internal */
   
   get-index-relations(|rel):
-    term -> <index-get-all; relation-get-all-values> RelTuple(term, rel, ())
+    term -> <index-get-all-values; relation-get-all-values> RelTuple(term, rel)
   		
 	get-index-relations-transitive(|rel):
-		term -> <index-get-all; relation-get-all-values> RelTuple(term, Transitive(rel), ()) 
-  		
-	relation-tuple-value:
-		RelTuple(_, _, v) -> v
+		term -> <index-get-all-values; relation-get-all-values> RelTuple(term, Transitive(rel)) 
 		
-	relation-get-all-values = mapconcat(relation-tuple-value; insert-results-or-delay; (is-list <+ MkSingleton))
+	relation-get-all-values = mapconcat(insert-results-or-delay; (is-list <+ MkSingleton))
 
 rules /** @internal */
 
@@ -5532,6 +5422,15 @@ rules
 	task-create-make-set(|ctx):
 		term -> <new-task(|ctx)> MakeSet(term)
 		
+  /**
+   * Creates a task that converts the results of its subtask into set, removing all duplicates.
+   *
+   * @type Result -> Result
+   */	
+	task-create-make-set(|ctx, dep*):
+		term -> <new-task(|ctx, all-dep*)> MakeSet(term)
+		with
+			all-dep* := <merge-dependencies(|dep*)> term
 		
 	/** @internal */
 	task-get-storage-type: MakeSet(_) -> <task-set-storage>
@@ -5800,9 +5699,7 @@ create-all-runtime-libraries =
 ; 	create-index-core
 ; 	create-index-globals
 ; 	create-index-legacy
-; 	create-index-partition
 ; 	create-index-query
-; 	create-index-utils
 ; 	create-modelware-model2tree
 ; 	create-modelware-modelware
 ; 	create-modelware-signatures
