@@ -99,7 +99,7 @@ public class CustomStrategyBuilder extends StrategoBuilder {
 	}
 	
 	@Override
-	protected IStrategoTerm invokeObserver(IStrategoTerm node)
+	protected IStrategoTerm invokeObserver(EditorState editor, IStrategoTerm node)
 			throws UndefinedStrategyException, InterpreterErrorExit, InterpreterExit,
 			InterpreterException {
 
@@ -113,7 +113,7 @@ public class CustomStrategyBuilder extends StrategoBuilder {
 		String[] trace1 = getObserver().getRuntime().getCompiledContext().getTrace();
 		
 		// Try invoke using (term, ast, ...) tuple
-		result = super.invokeObserver(node);
+		result = super.invokeObserver(editor, node);
 		if (result != null) return result;
 		String[] trace2 = getObserver().getRuntime().getCompiledContext().getTrace();
 		

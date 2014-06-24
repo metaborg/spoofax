@@ -197,7 +197,7 @@ public class StrategoBuilder extends AbstractBuilder {
 					return;
 				}
 
-				IStrategoTerm resultTerm = invokeObserver(node);
+				IStrategoTerm resultTerm = invokeObserver(editor, node);
 				if (resultTerm == null) {
 					observer.reportRewritingFailed();
 					Environment.logException("Builder failed:\n" + observer.getLog());
@@ -324,11 +324,11 @@ public class StrategoBuilder extends AbstractBuilder {
 		job.schedule();
 	}
 
-	protected IStrategoTerm invokeObserver(IStrategoTerm node) throws UndefinedStrategyException,
+	protected IStrategoTerm invokeObserver(EditorState editor, IStrategoTerm node) throws UndefinedStrategyException,
 			InterpreterErrorExit, InterpreterExit, InterpreterException {
 
 		node = InputTermBuilder.getMatchingAncestor(node, false);
-		IStrategoTerm inputTerm = derivedFromEditor != null ? observer.getInputBuilder()
+		IStrategoTerm inputTerm = derivedFromEditor != null && editor.getDescriptor().isATermEditor() ? observer.getInputBuilder()
 				.makeATermInputTerm(node, true, derivedFromEditor.getResource()) : observer
 				.getInputBuilder().makeInputTerm(node, true, source);
 		IStrategoTerm result = observer.invoke(builderRule, inputTerm,
