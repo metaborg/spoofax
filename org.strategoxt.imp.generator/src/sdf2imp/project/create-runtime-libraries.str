@@ -1303,7 +1303,12 @@ rules // helper rules: format to HTML for hover
 	property-to-html: (name, prop) -> $[<b>[name]</b>: [<property-to-html>prop]]
 	property-to-html: list -> $[<div>[<properties-to-html>list]</div>]
 		where is-list
-	property-to-html: prop -> prop
+	property-to-html: prop -> <escape-for-html> $[[prop]]
+
+	escape-for-html =
+		string-replace(|\"&\", \"&amp;\") ;
+		string-replace(|\"<\", \"&lt;\") ;
+		string-replace(|\">\", \"&gt;\")
 
 "
 
@@ -2029,8 +2034,17 @@ rules // Error checking tasks
 			if Unique() := unique then
 				uri'		:= <nabl-uri-parent> uri;
 				resolve := <nabl-create-resolvedefs(|ctx, ns, name, [])> uri';
-				<task-create-error-on-multiple(|ctx, resolve, \"Duplicate definition\")> name
+				if(
+					parent:= <nabl-uri-name> uri';
+					parent-ns := <nabl-uri-namespace> uri'
+				)then
+					<task-create-error-on-multiple(|ctx, resolve, [\"Duplicate \", <pp-ns>ns ,\" \", name , \" in \", <pp-ns>parent-ns, \" \", parent ])> name
+				else
+					<task-create-error-on-multiple(|ctx, resolve, [\"Duplicate \", <pp-ns>ns ,\" \", name])> name
+				end
 			end
+
+	pp-ns = write-to-string;string-replace(|\"NablNs\",\"\")
 
 rules // Legacy
  
@@ -3831,7 +3845,7 @@ rules // generic analysis of properties
   nabl-store-prop(|partition, uri, name):
     Prop(kind, prop, dep*) -> <new-prop(|partition, uri, kind, task)> name
     where
-    	task := <task-create-id(|partition, <dependent-tasks> dep*)> prop
+    	task := <task-create-make-set(|partition, <dependent-tasks> dep*)> prop
       
 rules
         
