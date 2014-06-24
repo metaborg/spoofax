@@ -1,6 +1,6 @@
 package org.strategoxt.imp.runtime;
 
-import java.lang.ref.WeakReference;
+import java.lang.ref.SoftReference;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
@@ -15,13 +15,11 @@ import org.strategoxt.lang.WeakValueHashMap;
  * 
  * @see WeakHashMap
  * @see WeakValueHashMap
- * 
- * @author Lennart Kats <lennart add lclnet.nl>
  */
-public class WeakWeakMap<K,V> implements Map<K,V> {
-	
-	private final WeakHashMap<K, WeakReference<V>> map = new WeakHashMap<K, WeakReference<V>>();
-	
+public class WeakWeakMap<K, V> implements Map<K, V> {
+
+	private final WeakHashMap<K, SoftReference<V>> map = new WeakHashMap<K, SoftReference<V>>();
+
 	public WeakWeakMap() {
 		// Construct new instance
 	}
@@ -44,7 +42,7 @@ public class WeakWeakMap<K,V> implements Map<K,V> {
 	}
 
 	public V get(Object key) {
-		WeakReference<V> ref = map.get(key);
+		SoftReference<V> ref = map.get(key);
 		return ref == null ? null : ref.get();
 	}
 
@@ -59,7 +57,7 @@ public class WeakWeakMap<K,V> implements Map<K,V> {
 	public V put(K key, V value) {
 		if (value == null)
 			throw new IllegalArgumentException("Value cannot be null");
-		WeakReference<V> existing = map.put(key, new WeakReference<V>(value));
+		SoftReference<V> existing = map.put(key, new SoftReference<V>(value));
 		return existing == null ? null : existing.get();
 	}
 
@@ -68,7 +66,7 @@ public class WeakWeakMap<K,V> implements Map<K,V> {
 	}
 
 	public V remove(Object key) {
-		WeakReference<V> existing = map.remove(key);
+		SoftReference<V> existing = map.remove(key);
 		return existing == null ? null : existing.get();
 	}
 
@@ -77,11 +75,12 @@ public class WeakWeakMap<K,V> implements Map<K,V> {
 	}
 
 	public Collection<V> values() {
-		Collection<WeakReference<V>> results = map.values();
+		Collection<SoftReference<V>> results = map.values();
 		Set<V> copy = new HashSet<V>(results.size());
-		for (WeakReference<V> resultRef : results) {
+		for (SoftReference<V> resultRef : results) {
 			V result = resultRef == null ? null : resultRef.get();
-			if (result != null) copy.add(result);
+			if (result != null)
+				copy.add(result);
 		}
 		return copy;
 	}

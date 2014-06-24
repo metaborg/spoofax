@@ -4,7 +4,8 @@ imports
   libstratego-lib
   libstratego-xtc
   libstratego-rtg
-
+  libtools
+  
   libjava-front
   
   EditorService
@@ -111,7 +112,7 @@ strategies
     
     configure-main-descriptor;
     if is-heuristic-services-needed then
-      <sdf2rtg => RTG(_, ProdRules(<id>)); register-rtg> input
+      <sdf2rtg-override => RTG(_, ProdRules(<id>)); register-rtg> input
     end;
     
     if not(IsLaunchedFromEclipse) then
@@ -196,7 +197,7 @@ strategies
     )
   
   // (Note that these xtc calls are intercepted by the Spoofax/IMP runtime.)
-  sdf2rtg:
+  sdf2rtg-override:
     FILE(sdf) -> rtg
     with
       <file-exists> <guarantee-extension(|"rtg")> sdf;

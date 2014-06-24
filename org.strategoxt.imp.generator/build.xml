@@ -11,27 +11,17 @@
 	<property file="build.properties" />
 
 	<!-- build-time dependencies -->
-	<property name="java-front" value="${user.home}/.nix-profile/share/java-front" />
+	<property name="strategoxt-distrib" location="strategoxt-distrib" />
+	<property name="nativepath" value="${strategoxt-distrib}/share/strategoxt/macosx/" />
+	<property name="install-prefix" value="dist" />
 
 	<!--   Shipped with StrategoXT -->
-	<property name="strategoxt" value="${user.home}/.nix-profile/share" />
-	<property name="stratego-lib" value="${strategoxt}/stratego-lib" />
-	<property name="gpp" value="${strategoxt}/gpp" />
-	<property name="gpp-more" value="${strategoxt}/sdf/gpp" />
-	<property name="rtg-more" value="${strategoxt}/sdf/stratego-regular" />
-	<property name="xml-front" value="${strategoxt}/xml-front" />
-	<property name="sdf-tools" value="${strategoxt}/sdf-tools" />
-	<property name="stratego-front" value="${strategoxt}/stratego-front" />
-	<property name="xtc" value="${strategoxt}/xtc" />
-	<property name="asfix" value="${strategoxt}/asfix-tools" />
-	<property name="sdf-front" value="${strategoxt}/sdf-front" />
-
-
-	<!-- Shipped with SDF -->
-	<property name="sdf" value="${user.home}/.nix-profile/share" />
-	<property name="pgen" value="${sdf}/pgen" />
-	<property name="sdf2bundle" value="${user.home}/.nix-profile" />
-	<property name="nativepath" value="${sdf2bundle}/bin/" />
+	<property name="gpp" value="${strategoxt-distrib}/share/strategoxt/gpp" />
+	<property name="java-front" value="${strategoxt-distrib}/share/strategoxt/java_front/" />
+	<property name="rtg" value="${strategoxt-distrib}/share/strategoxt/rtg/" />
+	<property name="sdf-front" value="${strategoxt-distrib}/share/strategoxt/sdf-front" />
+	<property name="stratego-front" value="${strategoxt-distrib}/share/strategoxt/stratego-front" />
+    <property name="libstratego-strj" value="${strategoxt-distrib}/share/strategoxt/libstratego-strj" />
 
 
 	<!-- project configuration -->
@@ -44,8 +34,7 @@
 	<property name="gen" value="${src-gen}" />
 	<property name="bin" value="${gen}/bin" />
 	<property name="cache-dir" value=".cache" />
-
-	<property name="install-prefix" value="dist" />
+	
 
 	<tstamp>
 		<format property="timestamp.isoformat" pattern="yyyy-mm-dd'T'HH:mm:ss" locale="en" />
@@ -78,7 +67,7 @@
 		<sdf2rtg input="${gen}/EditorService.def" output="${src-gen}/EditorService.rtg" main="EditorService" />
 		<rtg2sig input="${src-gen}/EditorService.rtg" output="${src-gen}/EditorService.str" main="EditorService" />
 		<ppgen input="${gen}/EditorService.def" output="${gen}/EditorService.pp" />
-		<sglri input="src/syntax/EditorService-pretty.pp" output="${gen}/EditorService-pretty.pp.af" parsetable="${gpp-more}/pp-table.tbl" />
+		<sglri input="src/syntax/EditorService-pretty.pp" output="${gen}/EditorService-pretty.pp.af" parsetable="${gpp}/sdf/pp-table.tbl" />
 	</target>
 
 	<target name="syntax-str-esv" depends="ensure-dirs">
@@ -89,7 +78,7 @@
 			</sdf-deps>
 			<args>
 				<arg value="-Idef" />
-				<arg value="${java-front}/Stratego-Java-EBlock.def" />
+				<arg value="${java-front}/syntax/stratego-java/Stratego-Java-EBlock.def" />
 			</args>
 		</pack-sdf>
 		<sdf2table input="${gen}/Stratego-Java-EditorService.def" output="${gen}/Stratego-Java-EditorService.tbl" main="Stratego-Java-EditorService" />
@@ -109,13 +98,10 @@
 				<arg value=".cache" />
 				<arg value="--verbose" />
 				<arg value="2" />
-
 				<arg value="-O" />
 				<arg value="3" />
-
 				<arg value="-m" />
 				<arg value="main-sdf2imp" />
-
 				<arg value="-la" />
 				<arg value="stratego-xtc" />
 				<arg value="-la" />
@@ -134,33 +120,22 @@
 				<arg value="stratego-aterm" />
 				<arg value="-la" />
 				<arg value="java-front" />
-
+				<arg value="-la" />
+				<arg value="org.strategoxt.tools" />
 				<arg value="-I" />
-				<arg value="${java-front}" />
+				<arg value="${java-front}/languages/stratego-java" />				
+				<arg value="-I" />
+				<arg value="${rtg}/sdf" />
 				<arg value="-I" />
 				<arg value="${gpp}" />
 				<arg value="-I" />
-				<arg value="${xml-front}" />
-				<arg value="-I" />
-				<arg value="${sdf-tools}" />
-				<arg value="-I" />
-				<arg value="${stratego-front}" />
+				<arg value="${gpp}/sdf" />
 				<arg value="-I" />
 				<arg value="${sdf-front}" />
 				<arg value="-I" />
-				<arg value="${xtc}" />
+				<arg value="${stratego-front}" />
 				<arg value="-I" />
-				<arg value="${pgen}" />
-				<arg value="-I" />
-				<arg value="${asfix}" />
-				<arg value="-I" />
-				<arg value="${stratego-lib}" />
-
-				<arg value="-I" />
-				<arg value="${rtg-more}" />
-				<arg value="-I" />
-				<arg value="${gpp-more}" />
-
+				<arg value="${libstratego-strj}" />
 				<arg value="-I" />
 				<arg value="src/sdf2imp" />
 				<arg value="-I" />
@@ -178,7 +153,7 @@
 
 	<target name="compile-java" depends="ensure-dirs, compile-stratego">
 		<mkdir dir="${gen}/bin/org/strategoxt/imp/generator" />
-		<javac srcdir="${src-gen}/org/strategoxt/imp/generator/" destdir="${gen}/bin" source="1.5" target="1.5" debug="true" debuglevel="source" />
+		<javac srcdir="${src-gen}/org/strategoxt/imp/generator/" destdir="${gen}/bin" source="1.7" target="1.7" debug="true" debuglevel="source" />
 	</target>
 
 	<target name="jar" depends="ensure-dirs, compile-java">
@@ -203,10 +178,6 @@
 		<copy todir="${install-prefix}" overwrite="true" verbose="true">
 			<fileset dir="${gen}" includes="*.*" />
 		</copy>
-		<!--<copy file="${gen}/sdf2imp.jar" todir="${install-prefix}" overwrite="true" verbose="true" />
-		<copy todir="${install-prefix}" overwrite="true" verbose="true">
-			<fileset dir="${gen}" includes="*.def,*.pp,*.pp.af,*.tbl,*.rtg,*.str" />
-		</copy>-->
 	</target>
 
 	<target name="all" depends="install" />
