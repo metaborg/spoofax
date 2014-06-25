@@ -21,7 +21,7 @@
 	<property name="rtg" value="${strategoxt-distrib}/share/strategoxt/rtg/" />
 	<property name="sdf-front" value="${strategoxt-distrib}/share/strategoxt/sdf-front" />
 	<property name="stratego-front" value="${strategoxt-distrib}/share/strategoxt/stratego-front" />
-    <property name="libstratego-strj" value="${strategoxt-distrib}/share/strategoxt/libstratego-strj" />
+	<property name="libstratego-strj" value="${strategoxt-distrib}/share/strategoxt/libstratego-strj" />
 
 
 	<!-- project configuration -->
@@ -34,7 +34,7 @@
 	<property name="gen" value="${src-gen}" />
 	<property name="bin" value="${gen}/bin" />
 	<property name="cache-dir" value=".cache" />
-	
+
 
 	<tstamp>
 		<format property="timestamp.isoformat" pattern="yyyy-mm-dd'T'HH:mm:ss" locale="en" />
@@ -54,6 +54,9 @@
 		<delete dir="${src-gen}" />
 		<delete dir="${cache-dir}" />
 		<delete dir="${bin}" />
+		<delete file="src/libsdf2imp.ctree" />
+		<delete file="src/libsdf2imp.ctree.dep" />
+		<delete file="src/libsdf2imp.rtree" />
 	</target>
 
 	<target name="syntax-esv" depends="ensure-dirs">
@@ -123,7 +126,7 @@
 				<arg value="-la" />
 				<arg value="org.strategoxt.tools" />
 				<arg value="-I" />
-				<arg value="${java-front}/languages/stratego-java" />				
+				<arg value="${java-front}/languages/stratego-java" />
 				<arg value="-I" />
 				<arg value="${rtg}/sdf" />
 				<arg value="-I" />

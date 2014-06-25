@@ -7,3 +7,5 @@ dist
 src/*.ctree*
 strategoxt-distrib
 strategoxt-distrib.tar
+includes
+
