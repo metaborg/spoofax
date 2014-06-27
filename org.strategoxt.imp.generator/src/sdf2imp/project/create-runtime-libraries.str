@@ -3127,6 +3127,7 @@ imports
   runtime/nabl/uri
   runtime/nabl/utils
   runtime/nabl/entries
+  runtime/properties/collect
   runtime/properties/entries
   runtime/properties/eq
   runtime/properties/query
