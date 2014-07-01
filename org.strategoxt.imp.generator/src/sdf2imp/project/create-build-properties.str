@@ -10,13 +10,11 @@ strategies
   <+
     <output-text-file(|[], "build.properties")>
 "source.. = editor/java/
-output.. = bin/
+output.. = target/classes/
 bin.includes = META-INF/,\\
                plugin.xml,\\
                include/,\\
-               bin/,\\
-               lib/,\\
-               .,\\
-               icons/
+               icons/,\\
+               .
 bin.excludes = trans/
 "
