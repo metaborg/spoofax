@@ -340,7 +340,7 @@
             point="org.eclipse.ui.menus">
          <menuContribution
                allPopups="false"
-               locationURI="toolbar:org.eclipse.ui.main.toolbar?before=PerspectiveSpacer">
+               locationURI="toolbar:org.eclipse.ui.main.toolbar">
             <toolbar
                   id="org.spoofax.menus.toolbar">
                <command
@@ -499,7 +499,7 @@
          <command
                defaultHandler="org.strategoxt.imp.runtime.services.menus.ToolbarBaseCommandHandler"
                id="org.spoofax.menus.toolbar.basecommand0"
-               name="toolbarMenuBaseCommand0">
+               name="0">
             <commandParameter
                   id="org.spoofax.menus.menuID"
                   name="menuID"
@@ -509,7 +509,7 @@
          <command
                defaultHandler="org.strategoxt.imp.runtime.services.menus.ToolbarBaseCommandHandler"
                id="org.spoofax.menus.toolbar.basecommand1"
-               name="toolbarMenuBaseCommand1">
+               name="1">
             <commandParameter
                   id="org.spoofax.menus.menuID"
                   name="menuID"
@@ -519,7 +519,7 @@
          <command
                defaultHandler="org.strategoxt.imp.runtime.services.menus.ToolbarBaseCommandHandler"
                id="org.spoofax.menus.toolbar.basecommand2"
-               name="toolbarMenuBaseCommand2">
+               name="2">
             <commandParameter
                   id="org.spoofax.menus.menuID"
                   name="menuID"
@@ -529,7 +529,7 @@
          <command
                defaultHandler="org.strategoxt.imp.runtime.services.menus.ToolbarBaseCommandHandler"
                id="org.spoofax.menus.toolbar.basecommand3"
-               name="toolbarMenuBaseCommand3">
+               name="3">
             <commandParameter
                   id="org.spoofax.menus.menuID"
                   name="menuID"
@@ -539,7 +539,7 @@
          <command
                defaultHandler="org.strategoxt.imp.runtime.services.menus.ToolbarBaseCommandHandler"
                id="org.spoofax.menus.toolbar.basecommand4"
-               name="toolbarMenuBaseCommand4">
+               name="4">
             <commandParameter
                   id="org.spoofax.menus.menuID"
                   name="menuID"
@@ -549,7 +549,7 @@
          <command
                defaultHandler="org.strategoxt.imp.runtime.services.menus.ToolbarBaseCommandHandler"
                id="org.spoofax.menus.toolbar.basecommand5"
-               name="toolbarMenuBaseCommand5">
+               name="5">
             <commandParameter
                   id="org.spoofax.menus.menuID"
                   name="menuID"

@@ -362,7 +362,7 @@ public class Descriptor {
 
 	public boolean isATermEditor() {
 		try {
-			return "IStrategoTerm".equals(getLanguage().getName());
+			return "ATerm".equals(getLanguage().getName());
 		} catch (BadDescriptorException e) {
 			return false;
 		}
