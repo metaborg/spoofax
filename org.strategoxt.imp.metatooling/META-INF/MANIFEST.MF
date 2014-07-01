@@ -21,15 +21,9 @@ Require-Bundle: org.strategoxt.imp.runtime,
  org.eclipse.ui,
  org.eclipse.ui.ide,
  org.strategoxt.strj,
- org.strategoxt.imp.editors.editorservice,
- org.strategoxt.imp.editors.sdf,
- org.strategoxt.imp.editors.pp,
  org.strategoxt.imp.editors.stratego,
- org.strategoxt.imp.editors.aterm,
  org.eclipse.ant.core,
  org.strategoxt.imp.nativebundle,
- org.strategoxt.imp.editors.aster,
- org.spoofax.interpreter.library.index,
  org.metaborg.runtime.task
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-Activator: org.strategoxt.imp.metatooling.MetatoolingActivator
