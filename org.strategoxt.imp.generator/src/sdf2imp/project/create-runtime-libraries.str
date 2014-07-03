@@ -76,6 +76,7 @@ rules
 imports
   
   runtime/analysis/builtins
+  runtime/analysis/legacy
   runtime/analysis/interface
   runtime/nabl/collect
   runtime/nabl/uri
@@ -166,6 +167,7 @@ rules // Core multi-file analysis that takes File/3 appls, analyzes those files,
     ; (result*, collect-debug-result*) := <unzip> collect-result*
     ; measure-time(
         task-evaluate-scheduled => (evaluated-task*, skipped-task*, unevaluated-task*)
+      ; <map(analysis-collect-legacy-messages)> result*
       , ?evaluate-time
       )
     ; analysis-inc-progress(|total-progress)
@@ -242,7 +244,9 @@ rules // Common
   analysis-get-messages(pp-message):
     partition -> (error*, warning*, note*)
     with
-      message* := <task-get-messages(|partition)>;
+      task-message*   := <task-get-messages(|partition)>;
+      legacy-message* := <analysis-get-legacy-messages(|partition)>;
+      message* := [task-message*, legacy-message*];
       error*   := <filter(?Error(_, _, _); analysis-message-to-tuple; pp-message)> message*;
       warning* := <filter(?Warning(_, _, _); analysis-message-to-tuple; pp-message)> message*;
       note*    := <filter(?Note(_, _, _); analysis-message-to-tuple; pp-message)> message*
@@ -655,12 +659,20 @@ imports
 	runtime/analysis/resolve
 	runtime/editor/eclipse
 	runtime/editor/queue
+	runtime/index/core
+	runtime/task/core
 	runtime/nabl/collect
+	runtime/task/messages
+	runtime/task/core
 	
 rules // Interface
 	
 	analysis-single-default-interface = fail
 	analysis-multiple-default-interface = fail
+	
+	constraint-error = fail
+	constraint-warning = fail
+	constraint-note = fail
 	
 rules // Analysis
 	
@@ -689,6 +701,35 @@ rules // Other services
 	analysis-save-default(|language) = analysis-spoofax-save(|language)
 	analysis-propose-completions(|language, project-path, path) = analysis-propose-completions(|language, project-path)
 	analysis-resolve(|language, project-path, path) = analysis-resolve(|language, project-path)
+
+rules // Messages
+	
+	analysis-get-legacy-messages(|source) = task-get-messages(|$[[source]_legacy])
+	
+	analysis-collect-legacy-messages:
+		result@FileResult(_, _, source, _, ast, _, _, _) -> result
+		with
+		  error-tuple*   := <collect-all(constraint-error); flatten-list> ast
+		; warning-tuple* := <collect-all(constraint-warning); flatten-list> ast
+		; note-tuple*    := <collect-all(constraint-note); flatten-list> ast
+		; if <Tl> error-tuple* <+ <Tl> warning-tuple* <+ <Tl> note-tuple* then
+			  legacy-source  := $[[source]_legacy]
+			; task-start-collection(|legacy-source)
+			; error*   := <filter(analysis-legacy-convert-error(|legacy-source))> error-tuple*
+			; warning* := <filter(analysis-legacy-convert-warning(|legacy-source))> warning-tuple*
+		  ; note*    := <filter(analysis-legacy-convert-note(|legacy-source))> note-tuple*
+			; task-stop-collection(|legacy-source)
+			; <task-evaluate-now> [error*, warning*, note*]
+		end
+
+	analysis-legacy-convert-error(|source):
+		(term, message) -> <task-create-error(|source, message); task-result-id> term
+		
+	analysis-legacy-convert-warning(|source):
+		(term, message) -> <task-create-warning(|source, message); task-result-id> term
+		
+	analysis-legacy-convert-note(|source):
+		(term, message) -> <task-create-note(|source, message); task-result-id> term
 
 "
 
@@ -969,8 +1010,7 @@ strategies
    * Example:
    *   new-text := <preserve-layout(|<language>)> (old-ast, new-ast)
    */
-  preserve-layout(|lang) = prim("SSL_EXT_preserve_layout", lang)
-	
+  preserve-layout(|lang) = prim(\"SSL_EXT_preserve_layout\", lang)	
 "
 
 	create-editor-outline-library = 
