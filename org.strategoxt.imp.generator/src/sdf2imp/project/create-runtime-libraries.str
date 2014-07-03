@@ -961,6 +961,15 @@ strategies
 
 	origin-debug-all = topdown(try(origin-debug))
 	origin-debug = where(debug(!$[[<(origin-offset; write-to-string) <+ !\"NO ORIGIN\">][\" \"]]))
+
+  /**
+   * Given an old AST and a new AST, pretty-prints the new AST while presevering 
+   * layout (e.g. whitespacing and comments) associated with the old AST.
+   *
+   * Example:
+   *   new-text := <preserve-layout(|<language>)> (old-ast, new-ast)
+   */
+  preserve-layout(|lang) = prim("SSL_EXT_preserve_layout", lang)
 	
 "
 
