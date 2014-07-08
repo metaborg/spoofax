@@ -172,7 +172,7 @@ public class InputTermBuilder {
 				};
 			return factory.makeTuple(inputParts);
 		} else {
-			throw new org.spoofax.NotImplementedException();
+			throw new org.spoofax.terms.util.NotImplementedException();
 		}
 	}
 

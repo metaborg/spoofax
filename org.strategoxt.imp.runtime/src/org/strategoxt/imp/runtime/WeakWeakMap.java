@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
-import org.spoofax.NotImplementedException;
+import org.spoofax.terms.util.NotImplementedException;
 import org.strategoxt.lang.WeakValueHashMap;
 
 /**
