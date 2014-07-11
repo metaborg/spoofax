@@ -142,7 +142,7 @@
 				<arg value="-I" />
 				<arg value="src/sdf2imp" />
 				<arg value="-I" />
-				<arg value="${src-gen}" />
+				<arg value="${basedir}/${src-gen}" />
 				<arg value="-I" />
 				<arg value="${gen}" />
 
@@ -156,7 +156,7 @@
 
 	<target name="compile-java" depends="ensure-dirs, compile-stratego">
 		<mkdir dir="${gen}/bin/org/strategoxt/imp/generator" />
-		<javac srcdir="${src-gen}/org/strategoxt/imp/generator/" destdir="${gen}/bin" source="1.7" target="1.7" debug="true" debuglevel="source" />
+		<javac srcdir="${src-gen}/org/strategoxt/imp/generator/" destdir="${gen}/bin" source="1.7" target="1.7" debug="true" debuglevel="source" compiler="org.eclipse.jdt.core.JDTCompilerAdapter" />
 	</target>
 
 	<target name="jar" depends="ensure-dirs, compile-java">

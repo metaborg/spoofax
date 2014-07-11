@@ -3,16 +3,185 @@
 	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>org.strategoxt.imp.generator</artifactId>
-	<packaging>eclipse-plugin</packaging>
+	<packaging>jar</packaging>
 
 	<parent>
 		<groupId>org.metaborg</groupId>
-		<artifactId>org.metaborg.maven.parent.plugin</artifactId>
+		<artifactId>org.metaborg.maven.parent.java</artifactId>
 		<version>1.2.0-SNAPSHOT</version>
-		<relativePath>../../spoofax-deploy/org.metaborg.maven.parent.plugin</relativePath>
+		<relativePath>../../spoofax-deploy/org.metaborg.maven.parent.java</relativePath>
 	</parent>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.metaborg</groupId>
+			<artifactId>org.spoofax.terms</artifactId>
+			<version>${metaborg-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.metaborg</groupId>
+			<artifactId>org.spoofax.interpreter.core</artifactId>
+			<version>${metaborg-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.metaborg</groupId>
+			<artifactId>org.strategoxt.strj</artifactId>
+			<version>${metaborg-version}</version>
+		</dependency>
+	</dependencies>
 
 	<build>
 		<sourceDirectory>src-gen</sourceDirectory>
+
+		<resources>
+			<resource>
+				<directory>src-gen</directory>
+				<includes>
+					<include>*.af</include>
+					<include>*.pp.af</include>
+					<include>*.def</include>
+					<include>*.tbl</include>
+					<include>*.str</include>
+					<include>org/strategoxt/imp/generator/*.pp.af</include>
+				</includes>
+			</resource>
+		</resources>
+
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven-compiler-version}</version>
+				<configuration>
+					<includes>
+						<include>**/*.java</include>
+					</includes>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-install-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>install-aster-jar</id>
+						<phase>install</phase>
+						<goals>
+							<goal>install-file</goal>
+						</goals>
+						<configuration>
+							<groupId>org.metaborg</groupId>
+							<artifactId>aster-jar</artifactId>
+							<version>${metaborg-version}</version>
+							<packaging>jar</packaging>
+							<file>${basedir}/dist/aster.jar</file>
+						</configuration>
+					</execution>
+					<execution>
+						<id>install-sdf2imp-jar</id>
+						<phase>install</phase>
+						<goals>
+							<goal>install-file</goal>
+						</goals>
+						<configuration>
+							<groupId>org.metaborg</groupId>
+							<artifactId>sdf2imp-jar</artifactId>
+							<version>${metaborg-version}</version>
+							<packaging>jar</packaging>
+							<file>${basedir}/dist/sdf2imp.jar</file>
+						</configuration>
+					</execution>
+					<execution>
+						<id>install-make-permissive-jar</id>
+						<phase>install</phase>
+						<goals>
+							<goal>install-file</goal>
+						</goals>
+						<configuration>
+							<groupId>org.metaborg</groupId>
+							<artifactId>make-permissive-jar</artifactId>
+							<version>${metaborg-version}</version>
+							<packaging>jar</packaging>
+							<file>${basedir}/dist/make_permissive.jar</file>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<version>${maven-antrun-version}</version>
+				<dependencies>
+					<dependency>
+						<groupId>org.metaborg</groupId>
+						<artifactId>strategoxt-jar</artifactId>
+						<version>${metaborg-version}</version>
+					</dependency>
+					<dependency>
+						<groupId>ant-contrib</groupId>
+						<artifactId>ant-contrib</artifactId>
+						<version>${ant-contrib-version}</version>
+						<exclusions>
+							<exclusion>
+								<groupId>ant</groupId>
+								<artifactId>ant</artifactId>
+							</exclusion>
+						</exclusions>
+					</dependency>
+					<dependency>
+						<groupId>org.eclipse.jdt.core.compiler</groupId>
+						<artifactId>ecj</artifactId>
+						<version>${ecj-version}</version>
+					</dependency>
+				</dependencies>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+				<executions>
+					<execution>
+						<id>generator-clean</id>
+						<phase>clean</phase>
+						<configuration>
+							<target>
+								<property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter" />
+								<ant antfile="build.xml" inheritRefs="true">
+									<target name="clean" />
+								</ant>
+							</target>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>generator-generate-sources</id>
+						<phase>generate-sources</phase>
+						<configuration>
+							<target>
+								<property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter" />
+								<ant antfile="build.xml" inheritRefs="true">
+									<target name="compile-stratego" />
+								</ant>
+							</target>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>${maven-compiler-version}</version>
+				<dependencies>
+					<dependency>
+						<groupId>org.codehaus.plexus</groupId>
+						<artifactId>plexus-compiler-eclipse</artifactId>
+						<version>${maven-eclipse-compiler-version}</version>
+					</dependency>
+				</dependencies>
+				<configuration>
+					<compilerId>eclipse</compilerId>
+				</configuration>
+			</plugin>
+		</plugins>
 	</build>
 </project>

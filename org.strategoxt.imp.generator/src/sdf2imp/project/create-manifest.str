@@ -17,21 +17,20 @@ strategies
 "Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: ", name, " Plug-in
-Bundle-SymbolicName: ", package, "; singleton:=true
+Bundle-SymbolicName: ", package, ";singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-Activator: ", package, ".Activator
-Import-Package: org.osgi.framework;version=\"1.3.0\"
 Require-Bundle: org.eclipse.core.runtime,
-  org.eclipse.core.resources,
-  org.eclipse.imp.runtime,
-  org.eclipse.ui,
-  lpg.runtime,
-  org.eclipse.jface.text,
-  org.eclipse.ui.editors,
-  org.eclipse.ui.workbench.texteditor,
-  org.strategoxt.imp.runtime,
-  org.spoofax.jsglr,
-  org.strategoxt.strj
+ org.eclipse.core.resources,
+ org.eclipse.ui,
+ org.eclipse.jface.text,
+ org.eclipse.imp.runtime,
+ org.strategoxt.strj,
+ org.strategoxt.imp.runtime,
+ org.spoofax.jsglr,
+ org.spoofax.interpreter.core,
+ org.spoofax.terms,
+ org.spoofax.interpreter.externaldeps
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
 Export-Package: ", package, "

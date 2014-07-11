@@ -61,5 +61,9 @@
             class="org.strategoxt.imp.metatooling.JarsAntPropertyProvider"
             name="eclipse.spoofaximp.jars">
       </antProperty>
+      <antProperty
+            class="org.strategoxt.imp.metatooling.PluginClasspathProvider"
+            name="externaljarx">
+      </antProperty>
    </extension>
 </plugin>

@@ -29,7 +29,8 @@ Require-Bundle: org.eclipse.imp.runtime,
  org.eclipse.core.expressions,
  org.strategoxt.imp.runtime.sidebyside.main,
  org.strategoxt.imp.runtime.sidebyside.latest,
- org.eclipse.ui.views
+ org.eclipse.ui.views,
+ org.spoofax.interpreter.externaldeps
 Export-Package: org.strategoxt.imp.runtime,
  org.strategoxt.imp.runtime.dynamicloading,
  org.strategoxt.imp.runtime.editor,
