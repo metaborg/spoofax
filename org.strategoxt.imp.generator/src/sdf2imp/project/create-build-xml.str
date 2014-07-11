@@ -139,6 +139,9 @@ $[<?xml version="1.0" encoding="UTF-8"?>
 	<condition property="externaljarimport2" value=":${externaljarx}" else="">
 		<isset property="externaljarx" />
 	</condition>
+	<condition property="strategominjar" value="${eclipse.spoofaximp.strategominjar}:" else="">
+		<isset property="eclipse.spoofaximp.strategominjar" />
+	</condition>
 	<condition property="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter">
 		<isset property="eclipse.running" />
 	</condition>
@@ -524,11 +527,7 @@ $[<?xml version="1.0" encoding="UTF-8"?>
 		<mkdir dir="${build}" />
 		<javac srcdir="${src-dirs}" destdir="${build}" source="1.7" target="1.7" debug="on">
 			<classpath>
-				<pathelement path="utils/strategoxt.jar:${src-gen}${externaljarimport1}${externaljarimport2}${java.jar.classpath}" />
-				<fileset dir="${eclipse.home}/plugins" erroronmissingdir="false">
-					<include name="*.jar" />
-				</fileset>
-				<!-- Spoofax/322 -->
+				<pathelement path="${strategominjar}${src-gen}${externaljarimport1}${externaljarimport2}${java.jar.classpath}" />
 			</classpath>
 		</javac>
 	</target>

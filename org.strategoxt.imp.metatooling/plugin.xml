@@ -58,6 +58,10 @@
             name="eclipse.spoofaximp.strategojar">
       </antProperty>
       <antProperty
+            class="org.strategoxt.imp.metatooling.StrategoMinJarAntPropertyProvider"
+            name="eclipse.spoofaximp.strategominjar">
+      </antProperty>
+      <antProperty
             class="org.strategoxt.imp.metatooling.JarsAntPropertyProvider"
             name="eclipse.spoofaximp.jars">
       </antProperty>

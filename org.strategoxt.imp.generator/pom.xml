@@ -33,24 +33,25 @@
 	<build>
 		<sourceDirectory>src-gen</sourceDirectory>
 
-		<resources>
-			<resource>
-				<directory>src-gen</directory>
-				<includes>
-					<include>*.af</include>
-					<include>*.pp.af</include>
-					<include>*.def</include>
-					<include>*.tbl</include>
-					<include>*.str</include>
-					<include>org/strategoxt/imp/generator/*.pp.af</include>
-				</includes>
-			</resource>
-		</resources>
+    <resources>
+      <resource>
+        <directory>src-gen</directory>
+        <includes>
+          <include>**/*.af</include>
+          <include>**/*.pp.af</include>
+          <include>**/*.def</include>
+          <include>**/*.tbl</include>
+          <include>**/*.str</include>
+          <include>**/*.rtree</include>
+          <include>**/*.ctree</include>
+        </includes>
+      </resource>
+    </resources>
 
 		<plugins>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>${maven-compiler-version}</version>
 				<configuration>
 					<includes>
 						<include>**/*.java</include>
@@ -108,28 +109,11 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-antrun-plugin</artifactId>
-				<version>${maven-antrun-version}</version>
 				<dependencies>
 					<dependency>
 						<groupId>org.metaborg</groupId>
 						<artifactId>strategoxt-jar</artifactId>
 						<version>${metaborg-version}</version>
-					</dependency>
-					<dependency>
-						<groupId>ant-contrib</groupId>
-						<artifactId>ant-contrib</artifactId>
-						<version>${ant-contrib-version}</version>
-						<exclusions>
-							<exclusion>
-								<groupId>ant</groupId>
-								<artifactId>ant</artifactId>
-							</exclusion>
-						</exclusions>
-					</dependency>
-					<dependency>
-						<groupId>org.eclipse.jdt.core.compiler</groupId>
-						<artifactId>ecj</artifactId>
-						<version>${ecj-version}</version>
 					</dependency>
 				</dependencies>
 				<configuration>
@@ -169,8 +153,8 @@
 				</executions>
 			</plugin>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>${maven-compiler-version}</version>
 				<dependencies>
 					<dependency>
 						<groupId>org.codehaus.plexus</groupId>
