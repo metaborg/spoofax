@@ -4,6 +4,7 @@ import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.widgets.Shell;
@@ -14,7 +15,13 @@ public class UpgradeSpoofaxProjectWizardHandler extends AbstractHandler {
     public Object execute(ExecutionEvent event) throws ExecutionException {
         final IStructuredSelection selection = (IStructuredSelection) HandlerUtil.getCurrentSelection(event);
         final Object selected = selection.getFirstElement();
-        final IProject project = (IProject) selected;
+        final IProject project;
+        if (selected instanceof IProjectNature) {
+            final IProjectNature nature = (IProjectNature) selected;
+            project = nature.getProject();
+        } else {
+            project = (IProject) selected;
+        }
         final UpgradeSpoofaxProjectWizard wizard = new UpgradeSpoofaxProjectWizard(project);
         final Shell shell = HandlerUtil.getActiveWorkbenchWindow(event).getShell();
         final WizardDialog dialog = new WizardDialog(shell, wizard);

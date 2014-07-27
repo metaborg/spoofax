@@ -29,6 +29,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.wizard.Wizard;
+import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -101,7 +102,7 @@ public class UpgradeSpoofaxProjectWizard extends Wizard {
         boolean changed = false;
 
         // Change build property
-        final Node buildPropertyAttr = (Node) xpath.evaluate("//project/property[@name='build']/@location", document,
+        final Attr buildPropertyAttr = (Attr) xpath.evaluate("//project/property[@name='build']/@location", document,
                 XPathConstants.NODE);
         if (!buildPropertyAttr.getTextContent().equals("target/classes")) {
             buildPropertyAttr.setTextContent("target/classes");
@@ -160,7 +161,7 @@ public class UpgradeSpoofaxProjectWizard extends Wizard {
     }
 
     private void UpgradeClasspath(IProgressMonitor monitor) throws Exception {
-        final IFile file = (IFile) project.findMember(".claspath");
+        final IFile file = (IFile) project.findMember(".classpath");
         if (file == null)
             return;
         final Document document = OpenXML(file);
@@ -168,15 +169,15 @@ public class UpgradeSpoofaxProjectWizard extends Wizard {
         boolean changed = false;
 
         // Remove trans exclude
-        final Node sourceExcludeAttr = (Node) xpath.evaluate("//classpath/classpathentry[@kind='src']/@excluding",
+        final Attr sourceExcludeAttr = (Attr) xpath.evaluate("//classpath/classpathentry[@kind='src']/@excluding",
                 document, XPathConstants.NODE);
         if (sourceExcludeAttr != null) {
-            sourceExcludeAttr.getParentNode().removeChild(sourceExcludeAttr);
+            sourceExcludeAttr.getOwnerElement().removeAttributeNode(sourceExcludeAttr);
             changed = true;
         }
 
         // Set output directory to target/classes
-        final Node outputPathAttr = (Node) xpath.evaluate("//classpath/classpathentry[@kind='output']/@path", document,
+        final Attr outputPathAttr = (Attr) xpath.evaluate("//classpath/classpathentry[@kind='output']/@path", document,
                 XPathConstants.NODE);
         if (outputPathAttr != null) {
             outputPathAttr.setTextContent("target/classes");
@@ -203,10 +204,12 @@ public class UpgradeSpoofaxProjectWizard extends Wizard {
         final String dependenciesString = Joiner.on(',').join(newDependencies);
         attributes.putValue("Require-Bundle", dependenciesString);
 
-        final ByteArrayOutputStream out = new ByteArrayOutputStream();
-        manifest.write(out);
-        final ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
-        file.setContents(in, 0, monitor);
+        if (!Sets.intersection(dependencies, newDependencies).isEmpty()) {
+            final ByteArrayOutputStream out = new ByteArrayOutputStream();
+            manifest.write(out);
+            final ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+            file.setContents(in, 0, monitor);
+        }
     }
 
     private void UpgradeBuildProperties(IProgressMonitor monitor) throws Exception {
@@ -243,7 +246,7 @@ public class UpgradeSpoofaxProjectWizard extends Wizard {
             System.arraycopy(natures, 0, newNatures, 0, natures.length);
             newNatures[natures.length] = "org.strategoxt.imp.metatooling.nature";
             description.setNatureIds(newNatures);
-            // project.setDescription(description, monitor);
+            project.setDescription(description, monitor);
         }
     }
 
