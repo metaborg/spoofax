@@ -62,6 +62,8 @@ public class SGLRParseController implements IParseController {
 	
 	private static final int PARSE_TIMEOUT = 20 * 1000;
 	
+	private static final long DISAMBIGUATE_TIMEOUT = 10 * 1000;
+	
 	public static final int REPARSE_DELAY = 1 * 1000;
 	
 	private final SWTSafeLock parseLock = new SWTSafeLock(true);
@@ -86,7 +88,7 @@ public class SGLRParseController implements IParseController {
 	
 	private MetaFile metaFile;
 	
-	private Exception unmanagedParseTableMismatch;;
+	private Exception unmanagedParseTableMismatch;
 	
 	private volatile boolean isStartupParsed;
 	
@@ -216,8 +218,7 @@ public class SGLRParseController implements IParseController {
     	this.performInitialUpdate = true;
     	
     	parser = new JSGLRI(table, startSymbol, this);
-    	if (!Debug.ENABLED)
-    		parser.setTimeout(PARSE_TIMEOUT);
+		parser.setTimeout(PARSE_TIMEOUT, DISAMBIGUATE_TIMEOUT);
 		parser.setUseRecovery(true);
 		if (!parser.getParseTable().hasRecovers())
 			Environment.logWarning("No recovery rules available for " + language.getName() + " editor");
@@ -322,6 +323,8 @@ public class SGLRParseController implements IParseController {
 			return null;
 		} catch (RuntimeException e) {
 			reportException(errorHandler, e);
+		} catch (InterruptedException e) {
+			reportException(errorHandler, e);
 		} finally {
 			try {
 				if (this.performInitialUpdate) {
@@ -362,7 +365,7 @@ public class SGLRParseController implements IParseController {
 	}
 
 	private IStrategoTerm doParse(String input, String filename)
-			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
+			throws TokenExpectedException, BadTokenException, SGLRException, IOException, InterruptedException {
 		try {
 			assert parseLock.isHeldByCurrentThread();
 			return parser.parse(input, filename);

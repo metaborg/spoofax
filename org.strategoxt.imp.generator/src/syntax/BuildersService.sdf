@@ -13,14 +13,12 @@ exports
   
   context-free syntax
     
-    "observer" ":" StrategoCall ObserverOption*                         -> BuilderRule {cons("SemanticObserver")}    
-    "provider" ":" PropertyValue                                        -> BuilderRule {cons("SemanticProvider")}
-    "on" "save" ":" StrategoCall OnSaveAnno                             -> BuilderRule {cons("OnSave")}
+    "observer" ":" StrategoCall ObserverOption*                         -> BuilderRule {cons("SemanticObserverDeprecated")}    
+    "provider" ":" PropertyValue                                        -> BuilderRule {cons("SemanticProviderDeprecated")}
+    "on" "save" ":" StrategoCall OnSaveAnno                             -> BuilderRule {cons("OnSaveDeprecated")}
     "builder"  ":" String "=" StrategoCall BuilderOption* -> BuilderRule {cons("Builder")}
     %%"builder"  SemanticNode* ":" String "=" StrategoCall BuilderOption* -> BuilderRule {cons("Builder")}
     "builder" "caption" ":" PropertyValue                               -> BuilderRule {cons("BuilderCaption")}
-    
-    "(multifile)"  -> ObserverOption {cons("MultiFile")}
     
     "(openeditor)" -> BuilderOption {cons("OpenEditor")}
     "(realtime)"   -> BuilderOption {cons("RealTime")}

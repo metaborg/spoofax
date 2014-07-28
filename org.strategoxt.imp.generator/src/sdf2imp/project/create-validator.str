@@ -16,7 +16,7 @@ strategies
     x_parser := <parse-controller-name>;
     pkgname  := <get-package-name>;
     
-    default-class := |[
+    <output-java-file-ifne> |[
       package pkgname;
 
       import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
@@ -29,7 +29,4 @@ strategies
               return x_parser.getDescriptor();
           }
       }
-    ]|;
-    if not(<file-exists> <java-to-path> default-class) then
-      <output-java-file> default-class
-    end
+    ]|

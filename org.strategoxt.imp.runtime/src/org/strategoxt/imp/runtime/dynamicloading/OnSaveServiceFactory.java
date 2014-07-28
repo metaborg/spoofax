@@ -36,6 +36,7 @@ public class OnSaveServiceFactory extends AbstractServiceFactory<IOnSaveService>
 			throws BadDescriptorException {
 		
 		IStrategoAppl onsave = findTerm(descriptor.getDocument(), "OnSave");
+		if (onsave == null) onsave = findTerm(descriptor.getDocument(), "OnSaveDeprecated");
 		String function = null;
 		if (onsave != null)
 			function = TermReader.termContents(termAt(onsave, 0));

@@ -44,7 +44,8 @@ public class IMPParseStringPrimitive extends STRSGLR_parse_string {
 	}
 
 	@Override
-	protected IStrategoTerm doParse(IContext env, IStrategoString inputTerm, ParseTable table, String startSymbol, String path) throws InterpreterException, TokenExpectedException, BadTokenException, SGLRException {
+	protected IStrategoTerm doParse(IContext env, IStrategoString inputTerm, ParseTable table, String startSymbol, String path) 
+			throws InterpreterException, TokenExpectedException, BadTokenException, SGLRException, InterruptedException {
 
 		// TODO: Optimize - cache tree builder... (like in superclass)
 		

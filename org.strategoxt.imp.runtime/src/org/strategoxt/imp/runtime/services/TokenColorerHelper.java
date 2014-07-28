@@ -58,6 +58,8 @@ public class TokenColorerHelper implements ITextPresentationListener {
 			return false;
 		StyleRange last = presentation.getLastStyleRange();
 		StyleRange first = presentation.getFirstStyleRange();
+		if (first == null || last == null)
+		  return false;
 		return first.start == 0 && last.start + last.length >= presentation.getExtent().getLength();
 	}
 }

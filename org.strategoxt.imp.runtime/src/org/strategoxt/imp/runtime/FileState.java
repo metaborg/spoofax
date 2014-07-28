@@ -7,7 +7,6 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.model.ISourceProject;
@@ -25,6 +24,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.dynamicloading.DynamicParseController;
+import org.strategoxt.imp.runtime.editor.SpoofaxEditor;
 import org.strategoxt.imp.runtime.parser.SGLRParseController;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
@@ -60,8 +60,9 @@ public class FileState {
 	 */
 	public static FileState getFile(IPath path, IDocument document)
 			throws FileNotFoundException, BadDescriptorException, ModelException {
-		
 		Language language = LanguageRegistry.findLanguage(path, document);
+		if(language == null)
+			return null;
 		Descriptor descriptor = Environment.getDescriptor(language);
 		IResource resource = EditorIOAgent.getResource(path.toFile());
 		if (descriptor == null) return null;
@@ -88,6 +89,17 @@ public class FileState {
 		observer.getLock().lock();
 		try {
 			observer.update(getParseController(), new NullProgressMonitor());
+			return observer.getResultingAst(getResource());
+		} finally {
+			observer.getLock().unlock();
+		}
+	}
+	
+	public IStrategoTerm getCurrentAnalyzedAst() throws BadDescriptorException {
+		StrategoObserver observer = getDescriptor().createService(StrategoObserver.class, getParseController());
+		
+		observer.getLock().lock();
+		try {
 			return observer.getResultingAst(getResource());
 		} finally {
 			observer.getLock().unlock();
@@ -146,7 +158,7 @@ public class FileState {
 		IWorkbenchPage page =
 			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 		try {
-			IDE.openEditor(page, file, UniversalEditor.EDITOR_ID, activate);
+			IDE.openEditor(page, file, SpoofaxEditor.EDITOR_ID, activate);
 		} catch (PartInitException e) {
 			Environment.logException("Cannot open an editor for " + file, e);
 		}
@@ -177,7 +189,7 @@ public class FileState {
 		IWorkbenchPage page =
 			PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 		try {
-			ITextEditor ite = (ITextEditor) IDE.openEditor(page, file, UniversalEditor.EDITOR_ID, activate);
+			ITextEditor ite = (ITextEditor) IDE.openEditor(page, file, SpoofaxEditor.EDITOR_ID, activate);
 			ite.selectAndReveal(offset, 0);
 		} catch (PartInitException e) {
 			Environment.logException("Cannot open an editor for " + file, e);

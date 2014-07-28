@@ -31,16 +31,19 @@ strategies
           ~~
           observer: editor-analyze (multifile)
           ~~
-				  builder: "Show abstract syntax" = debug-generate-aterm (openeditor) (realtime) (meta) (source)
-				  builder: "Show deffed syntax" = debug-generate-deffed (openeditor) (realtime) (meta) (source)
-				  builder: "Show analyzed syntax" = debug-generate-analyzed (openeditor) (realtime) (meta) (source)
-				  builder: "Show index entries for current file" = debug-index-show-current-file (openeditor) (realtime) (meta) (source)
-				  builder: "Show index entries for all files" = debug-index-show-all-files (openeditor) (realtime) (meta) (source)
-				  builder: "Clear index for current file" = debug-index-clear-current (meta) (source)
-				  builder: "Clear index" = debug-index-clear (meta) (source)
-				  builder: "Reload index" = debug-index-reload (meta) (source)
+          builder : "Generate Java"             = generate-java (openeditor) (realtime)
+				  builder : "Show abstract syntax"      = debug-show-aterm (openeditor) (realtime) (meta) (source)  
+				  builder : "Show analyzed syntax"      = debug-show-analyzed (openeditor) (meta)        
+				  builder : "Show index (project)"      = debug-index-project (openeditor) (meta)
+				  builder : "Show index (partition)"    = debug-index-partition (openeditor) (meta)
+				  builder : "Show tasks (project)"      = debug-task-project (openeditor) (meta)
+				  builder : "Show tasks (partition)"    = debug-task-partition (openeditor) (meta)
+				  builder : "Show tasks (selection)"    = debug-task-selection (openeditor) (meta)
+				  builder : "Show analysis (project)"   = debug-project (openeditor) (meta)
+				  builder : "Show analysis (partition)" = debug-partition (openeditor) (meta)
+				  builder : "Reset and reanalyze"       = debug-reanalyze (meta)       
           ~~
-          on save: editor-save
+          on save : editor-save
       ]|
     );
     

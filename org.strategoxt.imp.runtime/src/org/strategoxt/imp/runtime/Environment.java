@@ -20,34 +20,21 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.imp.language.Language;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.swt.widgets.Display;
-import org.spoofax.interpreter.core.InterpreterException;
-import org.spoofax.interpreter.core.InterpreterExit;
 import org.spoofax.interpreter.core.StackTracer;
-import org.spoofax.interpreter.library.IOAgent;
-import org.spoofax.interpreter.library.jsglr.JSGLRLibrary;
-import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.InvalidParseTableException;
 import org.spoofax.jsglr.client.ParseTable;
-import org.spoofax.jsglr.client.imploder.ImploderOriginTermFactory;
 import org.spoofax.jsglr.client.imploder.TermTreeFactory;
 import org.spoofax.jsglr.client.imploder.TreeBuilder;
 import org.spoofax.jsglr.io.ParseTableManager;
 import org.spoofax.jsglr.io.SGLR;
-import org.spoofax.terms.TermFactory;
 import org.spoofax.terms.attachments.ParentTermFactory;
-import org.strategoxt.HybridInterpreter;
-import org.strategoxt.imp.debug.core.str.launching.DebuggableHybridInterpreter;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.dynamicloading.Descriptor;
 import org.strategoxt.imp.runtime.dynamicloading.DynamicParseTableProvider;
 import org.strategoxt.imp.runtime.dynamicloading.ParseTableProvider;
 import org.strategoxt.imp.runtime.services.MetaFileLanguageValidator;
-import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
-import org.strategoxt.imp.runtime.stratego.IMPJSGLRLibrary;
-import org.strategoxt.imp.runtime.stratego.IMPLibrary;
-import org.strategoxt.imp.runtime.stratego.IMPOpenFile;
-import org.strategoxt.imp.runtime.stratego.IMPParseStringPTPrimitive;
+import org.strategoxt.imp.runtime.services.StrategoRuntimeFactory;
 
 /**
  * Environment class that maintains a term factories, languages, and
@@ -61,11 +48,6 @@ import org.strategoxt.imp.runtime.stratego.IMPParseStringPTPrimitive;
  */
 public final class Environment {
 	
-	/**
-	 * Global setting to enable the Stratego Debugger feature.
-	 */
-	public static boolean DEBUG_INTERPRETER_ENABLED = true;
-	
 	private final static ParseTableManager parseTableManager;
 	
 	private final static Map<String, ParseTableProvider> parseTables;
@@ -74,8 +56,6 @@ public final class Environment {
 	
 	private final static Map<String, Descriptor> descriptors;
 
-	private final static ITermFactory termFactory;
-	
 	private final static PrintStream STDERR = System.err; // avoid deadlocky ant override
 	
 	private static Thread mainThread;
@@ -87,8 +67,7 @@ public final class Environment {
 	static {
 		descriptors = Collections.synchronizedMap(new HashMap<String, Descriptor>());
 		unmanagedTables = Collections.synchronizedMap(new HashMap<String, ParseTableProvider>());
-		termFactory = new TermFactory().getFactoryWithStorageType(IStrategoTerm.MUTABLE);
-		parseTableManager = new ParseTableManager(termFactory);
+		parseTableManager = new ParseTableManager(StrategoRuntimeFactory.BASE_TERM_FACTORY);
 		parseTables = Collections.synchronizedMap(new HashMap<String, ParseTableProvider>());
 		// XXX: UNDONE. There doesn't seem to be a strong reason for eagerly loading the plugin.
 //		RuntimeActivator.getInstance().postInit();
@@ -135,154 +114,20 @@ public final class Environment {
 	
 	// BASIC ACCESSORS
 	
+	/**
+	 * @deprecated Replaced by {@link StrategoRuntimeFactory#BASE_TERM_FACTORY}
+	 */
 	public static ITermFactory getTermFactory() {
-		// (no state; no assertion)
-		return termFactory;
-	}
-	
-	public static ITermFactory getTermFactory(boolean originFactory) {
-		return originFactory ? new ImploderOriginTermFactory(termFactory) : termFactory;
+		return StrategoRuntimeFactory.BASE_TERM_FACTORY;
 	}
 	
 	public static SGLR createSGLR(ParseTable parseTable) {
 		// (no state; no assertion)
-		TermTreeFactory factory = new TermTreeFactory(new ParentTermFactory(getTermFactory()));
+		TermTreeFactory factory = new TermTreeFactory(new ParentTermFactory(StrategoRuntimeFactory.BASE_TERM_FACTORY));
 		return new SGLR(new TreeBuilder(factory), parseTable);
 	}
 	
 	// ENVIRONMENT ACCESS AND MANIPULATION
-	
-	public static HybridInterpreter createInterpreter() {
-		return createInterpreter(false);
-	}
-	
-	private static HybridInterpreter createHybridInterpreter(boolean noGlobalLock)
-	{
-		HybridInterpreter result = noGlobalLock
-		? new HybridInterpreter(getTermFactory(true))
-		: new HybridInterpreter(getTermFactory(true)) {
-			@Override
-			public boolean invoke(String name) throws InterpreterExit, InterpreterException {
-				assertLock();
-				return super.invoke(name);
-			}
-			
-			@Override
-			public void load(IStrategoTerm program) throws InterpreterException {
-				assertLock();
-				super.load(program);
-			}
-			
-			@Override
-			public IStrategoTerm current() {
-				assertLock();
-				return super.current();
-			}
-		};
-		return result;
-	}
-	
-	private static DebuggableHybridInterpreter createDebuggableHybridInterpreter(boolean noGlobalLock)
-	{
-		DebuggableHybridInterpreter result = noGlobalLock
-		? new DebuggableHybridInterpreter(getTermFactory(true))
-		: new DebuggableHybridInterpreter(getTermFactory(true)) {
-			@Override
-			public boolean invoke(String name) throws InterpreterExit, InterpreterException {
-				assertLock();
-				return super.invoke(name);
-			}
-			
-			@Override
-			public void load(IStrategoTerm program) throws InterpreterException {
-				assertLock();
-				super.load(program);
-			}
-			
-			@Override
-			public IStrategoTerm current() {
-				assertLock();
-				return super.current();
-			}
-		};
-		return result;
-	}
-
-	public static HybridInterpreter createInterpreter(boolean noGlobalLock) {
-		HybridInterpreter result = null;
-		if (DEBUG_INTERPRETER_ENABLED)
-		{
-			result = createDebuggableHybridInterpreter(noGlobalLock);
-		} else {
-			result = createHybridInterpreter(noGlobalLock);
-		}
-		result.getCompiledContext().getExceptionHandler().setEnabled(false);
-		result.getCompiledContext().registerComponent("stratego_lib"); // ensure op. registry available
-		result.getCompiledContext().registerComponent("stratego_sglr"); // ensure op. registry available
-		JSGLRLibrary sglrLibrary = (JSGLRLibrary) result.getContext().getOperatorRegistry(JSGLRLibrary.REGISTRY_NAME);
-		IMPJSGLRLibrary impSglrLibrary = new IMPJSGLRLibrary(sglrLibrary);
-		result.addOperatorRegistry(impSglrLibrary);
-		result.addOperatorRegistry(new IMPLibrary());
-		// (all libraries added here must also be in StrategoObserver.initialize())
-		impSglrLibrary.addOverrides(result.getCompiledContext());
-		assert result.getContext().lookupOperator(IMPParseStringPTPrimitive.NAME) instanceof IMPParseStringPTPrimitive;
-		assert result.getCompiledContext().lookupPrimitive(IMPParseStringPTPrimitive.NAME) instanceof IMPParseStringPTPrimitive;
-		assert result.getCompiledContext().lookupPrimitive(IMPOpenFile.NAME) instanceof IMPOpenFile;
-		assert result.getCompiledContext().getOperatorRegistry(IMPJSGLRLibrary.REGISTRY_NAME) instanceof IMPJSGLRLibrary;
-		result.setIOAgent(new EditorIOAgent());
-		
-		return result;
-	}
-
-	/**
-	 * Creates a new Interpreter using the given Interpreter as prototype.
-	 */
-	public static HybridInterpreter createInterpreterFromPrototype(HybridInterpreter prototype) {
-		HybridInterpreter result = null;
-		if (DEBUG_INTERPRETER_ENABLED)
-		{
-			// create a DebuggableHybridInterpreter from the prototype
-			result = createDebuggableHybridInterpreterFromPrototype(prototype);
-		} else {
-			// create a normal HybridInterpreter from the prototype
-			result = createHybridInterpreterFromPrototype(prototype);
-		}
-		return result;
-	}
-	
-	private static HybridInterpreter createHybridInterpreterFromPrototype(HybridInterpreter prototype)
-	{
-		HybridInterpreter result = new HybridInterpreter(prototype,
-				IMPJSGLRLibrary.REGISTRY_NAME, // is spoofax-specific
-				JSGLRLibrary.REGISTRY_NAME,    // connected to the library above
-				IMPLibrary.REGISTRY_NAME);     // also used
-		result.getCompiledContext().getExceptionHandler().setEnabled(false);
-		IMPJSGLRLibrary parseLibrary = ((IMPJSGLRLibrary) result.getContext().getOperatorRegistry(IMPJSGLRLibrary.REGISTRY_NAME));
-		parseLibrary.addOverrides(result.getCompiledContext());
-		return result;
-	}
-	
-	/**
-	 * TODO: For now ignore the prototype as the actual HybridInterpreter will be run in another VM. 
-	 */
-	private static DebuggableHybridInterpreter createDebuggableHybridInterpreterFromPrototype(HybridInterpreter prototype)
-	{
-		DebuggableHybridInterpreter result = new DebuggableHybridInterpreter(prototype,
-				IMPJSGLRLibrary.REGISTRY_NAME, // is spoofax-specific
-				JSGLRLibrary.REGISTRY_NAME,    // connected to the library above
-				IMPLibrary.REGISTRY_NAME);     // also used
-		result.getCompiledContext().getExceptionHandler().setEnabled(false);
-		IMPJSGLRLibrary parseLibrary = ((IMPJSGLRLibrary) result.getContext().getOperatorRegistry(IMPJSGLRLibrary.REGISTRY_NAME));
-		parseLibrary.addOverrides(result.getCompiledContext());
-		
-		IOAgent agent = prototype.getIOAgent();
-		if (agent instanceof EditorIOAgent)
-		{
-			EditorIOAgent eioAgent = (EditorIOAgent) agent;
-			result.setProjectpath(eioAgent.getProjectPath());
-		}
-		return result;
-	}
 	
 	public static ParseTableProvider registerParseTable(Language language, ParseTableProvider table) {
 		parseTables.put(language.getName(), table);

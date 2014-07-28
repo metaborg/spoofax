@@ -7,18 +7,19 @@ import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.hasImploderOrigin;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.OperationCanceledException;
+import org.eclipse.imp.language.Language;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.ltk.core.refactoring.Change;
@@ -43,9 +44,7 @@ import org.spoofax.terms.attachments.OriginAttachment;
 import org.strategoxt.imp.runtime.EditorState;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
-import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.strategoxt.imp.runtime.stratego.SourceAttachment;
-import org.strategoxt.imp.runtime.stratego.StrategoConsole;
 
 /**
  * @author Maartje de Jonge
@@ -88,6 +87,10 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 	private final StrategoObserver observer;
 
 	private IAction action;
+
+	private Language language;
+
+	private IProject project;
 	
 
 	
@@ -123,6 +126,9 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 		this.fileChanges.clear();
 		this.affectedFilePaths.clear();
 		//inputFields.clear(); set default values?
+		
+		this.language = editor.getLanguage();
+		this.project = editor.getProject().getRawProject();
 	}
 
 	public StrategoRefactoring(StrategoObserver observer, String caption, String builderRule,
@@ -151,6 +157,33 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 		RefactoringStatus status = new RefactoringStatus();
 		if(node == null)
 			status.merge(RefactoringStatus.createFatalErrorStatus("Refactoring is not defined for the current selection."));	
+		
+		int analysisJobCount = StrategoAnalysisQueueFactory.getInstance().pendingBackgroundAnalyses(project, language);
+		if(analysisJobCount > 0){
+			if (pm == null)
+				pm = new NullProgressMonitor();
+			pm.beginTask("", analysisJobCount);
+			pm.setTaskName("Analyzing files");
+			int waitingTime = 0;
+			while (analysisJobCount > 0 && waitingTime < 2500) {
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					throw new OperationCanceledException(e.getMessage());
+				}
+				int analysisJobCountOld = analysisJobCount;
+				analysisJobCount = StrategoAnalysisQueueFactory.getInstance().pendingBackgroundAnalyses(project, language);
+				if(analysisJobCountOld > analysisJobCount){
+					pm.worked(analysisJobCountOld - analysisJobCount);
+				}
+				waitingTime += 100;
+			}
+			pm.done();
+			if(analysisJobCount > 0){
+				String errorMessage = "Background analysis jobs are still pending for " + analysisJobCount + " files. These are ignored by the refactoring.";
+				status.merge(RefactoringStatus.createErrorStatus(errorMessage));
+			}
+		}
 		return status;
 	}
 

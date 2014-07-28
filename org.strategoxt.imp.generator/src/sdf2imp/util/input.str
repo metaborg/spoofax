@@ -59,14 +59,14 @@ strategies
     ?ImportRenamed(name, tail);
     <input-descriptor-import> Import(name);
     fetch-imports;
-    alltd(rename-sort(|tail))
+    alltd(sort-add-suffix(|tail))
     
   // TODO: Sort renaming could be inferred from the .def file
   
-  rename-sort(|tail):
+  sort-add-suffix(|tail):
     Sort(name) -> Sort(<conc-strings> (name, "_", tail))
   
-  rename-sort(|tail):
+  sort-add-suffix(|tail):
     ListSort(name) -> ListSort(<conc-strings> (name, "_", tail))
   
   fetch-imports:

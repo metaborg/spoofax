@@ -1,3 +1,5 @@
+module EditorService
+
 %% Templates that were used to generate the completion templates in the EditorService-Completions.esv file.
 %% Not intended as a full language description since some .sdf details are not covered 
 templates
@@ -100,13 +102,13 @@ templates
   KeyCombination.KeyCombination = <<Key+; separator="+">>
   
   
-  BuilderRule.SemanticObserver = <
+  LanguageProperty.SemanticObserver = <
     observer : <StrategoCall> <ObserverOption*>
   >
-  BuilderRule.SemanticProvider = <
+  LanguageProperty.SemanticProvider = <
     provider : <PropertyValue>
   >
-  BuilderRule.OnSave = <
+  LanguageProperty.OnSave = <
     on save : <StrategoCall> <OnSaveAnno>
   >
   BuilderRule.Builder = <

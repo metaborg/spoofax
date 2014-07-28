@@ -2,10 +2,10 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Spoofax/IMP Side-by-Side Latest
 Bundle-SymbolicName: org.strategoxt.imp.runtime.sidebyside.latest
-Bundle-Version: 0.0.1.qualifier
-Bundle-RequiredExecutionEnvironment: JavaSE-1.6
+Bundle-Version: 1.2.0.qualifier
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-Vendor: Spoofax.org
 Bundle-ActivationPolicy: lazy
 Export-Package: org.stratego.imp.runtime.services.sidebyside.latest
 Require-Bundle: org.eclipse.ui,
- org.strategoxt.imp.runtime.sidebyside.main;bundle-version="0.0.1"
+ org.strategoxt.imp.runtime.sidebyside.main

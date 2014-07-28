@@ -92,9 +92,10 @@ public abstract class AbstractSGLRI {
 	 * Parse an input, returning the AST and initializing the parse stream.
 	 * 
 	 * @return  The abstract syntax tree.
+	 * @throws InterruptedException 
 	 */
 	public IStrategoTerm parse(String input, String filename)
-			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
+			throws TokenExpectedException, BadTokenException, SGLRException, IOException, InterruptedException {
 		
 		/* UNDONE: disabled the parse cache for now
 		 * TODO: revise parse cache?
@@ -141,14 +142,15 @@ public abstract class AbstractSGLRI {
 	 * @note This redirects to the preferred {@link #parse(String, String)} method.
 	 * 
 	 * @return  The abstract syntax tree.
+	 * @throws InterruptedException 
 	 */
 	public final IStrategoTerm parse(InputStream input, String filename)
-			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
+			throws TokenExpectedException, BadTokenException, SGLRException, IOException, InterruptedException {
 		
 		String inputString = FileTools.loadFileAsString(new BufferedReader(new InputStreamReader(input)));
 		return parse(inputString, filename);
 	}
 	
 	protected abstract IStrategoTerm doParse(String input, String filename)
-			throws TokenExpectedException, BadTokenException, SGLRException, IOException;
+			throws TokenExpectedException, BadTokenException, SGLRException, IOException, InterruptedException;
 }

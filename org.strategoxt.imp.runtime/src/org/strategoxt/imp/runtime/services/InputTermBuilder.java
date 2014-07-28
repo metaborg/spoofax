@@ -11,8 +11,6 @@ import static org.spoofax.terms.attachments.ParentAttachment.getRoot;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Map;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
@@ -25,7 +23,6 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.TermTreeFactory;
 import org.spoofax.terms.StrategoSubList;
-import org.strategoxt.HybridInterpreter;
 import org.strategoxt.imp.runtime.Environment;
 import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
@@ -42,61 +39,21 @@ import org.strategoxt.stratego_aterm.stratego_aterm;
  */
 public class InputTermBuilder {
 	
-	private static final Map<IResource, IStrategoTerm> EMPTY_MAP =
-		Collections.emptyMap();
+	private final Context context;
 	
-	private HybridInterpreter runtime;
-	
-	private final Map<IResource, IStrategoTerm> resultingAsts;
-	
-	private final IStrategoTerm resultingAst;
-	
-	public InputTermBuilder(HybridInterpreter runtime, Map<IResource, IStrategoTerm> resultingAsts) {
-		this.runtime = runtime;
-		this.resultingAsts = resultingAsts;
-		this.resultingAst = null;
+	public InputTermBuilder(Context context) {
+		this.context = context;
 	}
 	
-	public InputTermBuilder(HybridInterpreter runtime, IStrategoTerm resultingAst) {
-		this.runtime = runtime;
-		this.resultingAsts = EMPTY_MAP;
-		this.resultingAst = resultingAst;
+	public IStrategoTuple makeInputTermSourceAst(IStrategoTerm node, boolean includeSubNode) {
+		IStrategoTerm targetTerm = node;
+		IStrategoList termPath = StrategoTermPath.createPath(node);
+		IStrategoTerm rootTerm = getRoot(node);
+		return makeInputTerm(node, includeSubNode, termPath, targetTerm, rootTerm);
 	}
 	
-	public HybridInterpreter getRuntime() {
-		return runtime;
-	}
-
-	/**
-	 * Create an input term for a control rule.
-	 */
-	public IStrategoTuple makeInputTerm(IStrategoTerm node, boolean includeSubNode) {
-		return makeInputTerm(node, includeSubNode, false);
-	}
-
-	/**
-	 * Create an input term for a control rule.
-	 */
-	public IStrategoTuple makeInputTerm(IStrategoTerm node, boolean includeSubNode, boolean useSourceAst) {
-		if(useSourceAst)
-			return makeInputTermSourceAst(node, includeSubNode);
-		return makeInputTermResultingAst(node, includeSubNode);
-	}
-
-	public IStrategoTuple makeInputTermResultingAst(IStrategoTerm node, boolean includeSubNode) {
-		IStrategoTerm resultingAst; 
-		if (this.resultingAst != null) 
-			resultingAst = this.resultingAst;
-		else {
-			IResource resource = SourceAttachment.getResource(node);
-			resultingAst = resultingAsts.get(resource);
-		}
-		return makeInputTermResultingAst(resultingAst, node, includeSubNode);
-	}
-
 	public IStrategoTuple makeInputTermResultingAst(IStrategoTerm resultingAst,
 			IStrategoTerm node, boolean includeSubNode) {
-		Context context = runtime.getCompiledContext();
 		IStrategoList termPath = StrategoTermPath.getTermPathWithOrigin(context, resultingAst, node);
 		if (termPath == null)
 			return makeInputTermSourceAst(node, includeSubNode);
@@ -111,7 +68,20 @@ public class InputTermBuilder {
 		IStrategoTerm rootTerm = resultingAst;		
 		return makeInputTerm(node, includeSubNode, termPath, targetTerm, rootTerm);
 	}
-
+	
+	public IStrategoTuple makeInputTerm(IStrategoTerm resultingAst, IStrategoTerm node, boolean includeSubNode, boolean source) {
+		return source ? makeInputTermSourceAst(node, includeSubNode) : makeInputTermResultingAst(resultingAst, node, includeSubNode);
+	}
+	
+	public IStrategoTerm makeInputTermRefactoring(IStrategoTerm resultingAst, IStrategoTerm userInput, IStrategoTerm node, boolean includeSubNode, boolean source) {
+		IStrategoTuple tuple = makeInputTerm(resultingAst, node, includeSubNode, source);
+		ITermFactory factory = Environment.getTermFactory();
+		IStrategoTerm[] inputParts = new IStrategoTerm[tuple.getSubtermCount() + 1];
+		inputParts[0] = userInput;
+		System.arraycopy(tuple.getAllSubterms(), 0, inputParts, 1, tuple.getSubtermCount());
+		return factory.makeTuple(inputParts); 
+	}
+	
 	private IStrategoTerm mkSubListTarget(IStrategoTerm resultingAst, IStrategoList targetTerm, StrategoSubList node) {
 		IStrategoTerm firstChild = getResultingTerm(resultingAst, node.getFirstChild());
 		IStrategoTerm lastChild = getResultingTerm(resultingAst, node.getLastChild());
@@ -121,19 +91,11 @@ public class InputTermBuilder {
 	}
 
 	private IStrategoTerm getResultingTerm(IStrategoTerm resultingAst, IStrategoTerm originTerm) {
-		Context context = runtime.getCompiledContext();
 		IStrategoList pathFirstChild = StrategoTermPath.getTermPathWithOrigin(context, resultingAst, originTerm);
 		IStrategoTerm firstChild = null;
 		if(pathFirstChild != null)
 			firstChild = StrategoTermPath.getTermAtPath(context, resultingAst, pathFirstChild);
 		return firstChild;
-	}
-
-	public IStrategoTuple makeInputTermSourceAst(IStrategoTerm node, boolean includeSubNode) {
-		IStrategoTerm targetTerm = node;
-		IStrategoList termPath = StrategoTermPath.createPath(node);
-		IStrategoTerm rootTerm = getRoot(node);
-		return makeInputTerm(node, includeSubNode, termPath, targetTerm, rootTerm);
 	}
 
 	public IStrategoTuple makeInputTerm(IStrategoTerm node, boolean includeSubNode,
@@ -182,15 +144,6 @@ public class InputTermBuilder {
 		}
 	}
 
-	public IStrategoTerm makeInputTermRefactoring(IStrategoTerm userInput, IStrategoTerm node, boolean includeSubNode, boolean source) {
-		IStrategoTuple tuple = makeInputTerm(node, includeSubNode, source);
-		ITermFactory factory = Environment.getTermFactory();
-		IStrategoTerm[] inputParts = new IStrategoTerm[tuple.getSubtermCount() + 1];
-		inputParts[0] = userInput;
-		System.arraycopy(tuple.getAllSubterms(), 0, inputParts, 1, tuple.getSubtermCount());
-		return factory.makeTuple(inputParts); 
-	}
-
 	protected String tryGetProjectPath(IResource resource) {
 		return resource.getProject() != null && resource.getProject().exists()
 				? resource.getProject().getLocation().toString()
@@ -202,7 +155,7 @@ public class InputTermBuilder {
 	 * based on the IStrategoTerm syntax of the AST of the source file.
 	 */
 	public IStrategoTuple makeATermInputTerm(IStrategoTerm node, boolean includeSubNode, IResource resource) {
-		stratego_aterm.init(runtime.getCompiledContext());
+		stratego_aterm.init(context);
 		
 		ITermFactory factory = Environment.getTermFactory();
 		String path = resource.getProjectRelativePath().toPortableString();
@@ -212,7 +165,7 @@ public class InputTermBuilder {
 			node = getImplodableNode(node);
 			IStrategoTerm[] inputParts = {
 					implodeATerm(node),
-					StrategoTermPath.createPathFromParsedIStrategoTerm(node, runtime.getCompiledContext()),
+					StrategoTermPath.createPathFromParsedIStrategoTerm(node, context),
 					implodeATerm(getRoot(node)),
 					factory.makeString(path),
 					factory.makeString(absolutePath)
@@ -223,8 +176,8 @@ public class InputTermBuilder {
 		}
 	}
 
-	protected IStrategoTerm implodeATerm(IStrategoTerm term) {
-		return implode_aterm_0_0.instance.invoke(runtime.getCompiledContext(), term);
+	public IStrategoTerm implodeATerm(IStrategoTerm term) {
+		return implode_aterm_0_0.instance.invoke(context, term);
 	}
 
 	public IStrategoTerm getImplodableNode(IStrategoTerm node) {

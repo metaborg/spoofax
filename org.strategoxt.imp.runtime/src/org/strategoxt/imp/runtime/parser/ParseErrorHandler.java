@@ -358,7 +358,13 @@ public class ParseErrorHandler {
 		assert source.getParseLock().isHeldByCurrentThread();
 		
 		if (left.getStartOffset() > right.getEndOffset()) {
-			reportErrorNearOffset(left.getTokenizer(), left.getStartOffset(), message);
+			if (left != right){
+				reportErrorNearOffset(left.getTokenizer(), left.getStartOffset(), message);
+			}
+			else {
+				String message2 = message + getErrorExplanation();
+				handler.addMarker(source.getResource(), left, right, message2, IMarker.SEVERITY_ERROR);				
+			}
 		} else {
 			String message2 = message + getErrorExplanation();
 			handler.addMarker(source.getResource(), left, right, message2, IMarker.SEVERITY_ERROR);

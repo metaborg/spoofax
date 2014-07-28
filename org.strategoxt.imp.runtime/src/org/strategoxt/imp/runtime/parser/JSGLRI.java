@@ -44,6 +44,8 @@ public class JSGLRI extends AbstractSGLRI {
 	
 	private int timeout;
 	
+	private long disambiguatorTimeout;
+	
 	private int cursorLocation;
 	
 	// Initialization and parsing
@@ -122,8 +124,9 @@ public class JSGLRI extends AbstractSGLRI {
 		resetState();
 	}
 	
-	public void setTimeout(int timeout) {
+	public void setTimeout(int timeout, long disambiguatorTimeout) {
 		this.timeout = timeout;
+		this.disambiguatorTimeout = disambiguatorTimeout;
 		resetState();
 	}
 	
@@ -138,6 +141,8 @@ public class JSGLRI extends AbstractSGLRI {
 		parser.setTimeout(timeout);
 		if (disambiguator != null) parser.setDisambiguator(disambiguator);
 		else disambiguator = parser.getDisambiguator();
+		if(disambiguatorTimeout > 0 )
+			parser.setDisambiguatorTimeout(disambiguatorTimeout);
 		setUseRecovery(useRecovery);
 		if (!isImplodeEnabled()) {
 			parser.setTreeBuilder(new Asfix2TreeBuilder(Environment.getTermFactory()));
@@ -154,7 +159,7 @@ public class JSGLRI extends AbstractSGLRI {
 	
 	@Override
 	protected IStrategoTerm doParse(String input, String filename)
-			throws TokenExpectedException, BadTokenException, SGLRException, IOException {
+			throws TokenExpectedException, BadTokenException, SGLRException, IOException, InterruptedException {
 		
 		// Read stream using tokenizer/lexstream
 		
@@ -212,6 +217,8 @@ public class JSGLRI extends AbstractSGLRI {
 				Environment.logWarning("Exception in incremental parser", e);
 			} catch (Error e) {
 				Environment.logException("Exception in incremental parser", e);
+			} catch (InterruptedException e) {
+				Environment.logWarning("Exception in incremental parser", e);
 			} finally {
 				Debug.stopTimer("Incrementally parsed: " + new File(filename).getName());
 			}

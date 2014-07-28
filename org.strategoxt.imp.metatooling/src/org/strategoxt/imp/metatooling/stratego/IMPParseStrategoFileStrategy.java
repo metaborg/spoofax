@@ -53,6 +53,10 @@ public class IMPParseStrategoFileStrategy extends parse_stratego_file_0_0 {
 			context.getIOAgent().printError("parse-stratego-file (" + file + "): " + e.getMessage());
 			Environment.logException("Parsing of " + file + " failed", e);
 			return null;
+		} catch (InterruptedException e) {
+			context.getIOAgent().printError("parse-stratego-file (" + file + "): " + e.getMessage());
+			Environment.logException("Parsing of " + file + " failed", e);
+			return null;
 		} catch (InvalidParseTableException e) {
 			context.getIOAgent().printError("parse-stratego-file (" + file + "): " + e.getMessage());
 			Environment.logException("Parsing of " + file + " failed", e);

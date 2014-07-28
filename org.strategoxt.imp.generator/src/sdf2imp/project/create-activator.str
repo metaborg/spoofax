@@ -10,7 +10,7 @@ strategies
     name    := <get-main-class-name>;
     pkgname := <get-package-name>;
     
-    <output-java-file> compilation-unit |[
+    <output-java-file-ifne> compilation-unit |[
       package pkgname;
       
       import org.eclipse.imp.preferences.PreferencesService;

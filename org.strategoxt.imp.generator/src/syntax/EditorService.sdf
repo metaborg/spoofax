@@ -4,13 +4,15 @@ imports
   Common
   LanguageDescription
   FoldingService
-  OutlinerService
+  OutlinerService %% old one, for backwards compatibility
   ColorerService
   ReferencesService
   CompletionsService
   BuildersService
   RefactoringsService
   RecoveryRules
+  MenusService
+  Views
 
 hiddens
 

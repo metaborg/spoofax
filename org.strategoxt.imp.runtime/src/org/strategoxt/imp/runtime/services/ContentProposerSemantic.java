@@ -193,7 +193,7 @@ public class ContentProposerSemantic {
 			Set<IStrategoTerm> moreCompletionContexts = parseCompletionContext(parseController, fullDocument, endOffset);
 			completionContexts.addAll(moreCompletionContexts);
 		} catch (Exception e) {
-			this.errorMessage = "No semantic proposals available - syntax errors";
+			this.errorMessage = "No semantic proposals available (syntax errors?)";
 			Environment.logException(errorMessage, e);
 		} finally {
 			parseController.getParseLock().unlock();
@@ -210,7 +210,7 @@ public class ContentProposerSemantic {
 		return -1;
 	}
 
-	private Set<IStrategoTerm> parseCompletionContext(SGLRParseController parseController, String document, int endOffset) {
+	private Set<IStrategoTerm> parseCompletionContext(SGLRParseController parseController, String document, int endOffset) throws InterruptedException {
 		Set<IStrategoTerm> completionContexts;
 		SGLR sglr = new SGLR(parseController.getParser().getParser().getTreeBuilder(), parseController.getParser().getParser().getParseTable());
 		sglr.setCompletionParse(true, getCompletionOffsetMid());

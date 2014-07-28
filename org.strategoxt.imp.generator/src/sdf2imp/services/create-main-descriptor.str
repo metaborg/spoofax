@@ -4,14 +4,15 @@ imports
   libstratego-lib
   
   sdf2imp/util/-
+  sdf2imp/project/create-example-trans
 
 strategies
 
   create-main-descriptor =
     output-main-descriptor-file(
-      main-descriptor-name
+  main-descriptor-name
     , 
-      default-main-descriptor => main-descriptor
+  default-main-descriptor => main-descriptor
     );
     
     // Store the main descriptor in a rule for further reference,
@@ -20,35 +21,44 @@ strategies
     rules(MainDescriptor := main-descriptor)
 
   default-main-descriptor =
-    name         := <get-sdf-main-module>;
-    pkgname      := <BasePackage <+ default-package-name>;
-    extensions   := <require-option(EditorExtensions |"File extensions (-e)")>;
-    parsetable   := <parse-table-target>;
-    startsymbols := <![<StartSymbol>] <+ ![]>;
+    name        := <get-sdf-main-module>;
+    pkgname     := <BasePackage <+ default-package-name>;
+    extensions  := <require-option(EditorExtensions |"File extensions (-e)")>;
+    parsetable  := <parse-table-target>;
+    startsymbol := <StartSymbol <+ !"">;
+    provider1   := <conc-strings> ("include/", <trans-module-name>, ".ctree");
+    provider2   := <conc-strings> ("include/", <trans-module-name>, "-java.jar");
     
-    !|[
-      module <main-descriptor-name>
-      
-      imports
-        <descriptor-name> "-Builders"
-        <descriptor-name> "-Refactorings"
-        <descriptor-name> "-Colorer"
-        <descriptor-name> "-Completions"
-        <descriptor-name> "-Folding"
-        <descriptor-name> "-Outliner"
-        <descriptor-name> "-References"
-        <descriptor-name> "-Syntax"
-      
-      language General properties
-        ~~
-        name:    ~name
-        id:      ~pkgname
-        extends: Root
-        ~~
-        description: <conc-strings> ("\"Spoofax/IMP-generated editor for the ", name, " language\"")
-        url: http://strategoxt.org
-        ~~
-        extensions: ~extensions
-        table:  ~parsetable
-        start symbols: ~*startsymbols
-    ]|
+!${module {<main-descriptor-name>}
+  
+  imports
+    {<descriptor-name> "-Colorer"}
+    {<descriptor-name> "-Completions"}
+    {<descriptor-name> "-Folding"}
+    {<descriptor-name> "-Menus"}
+    {<descriptor-name> "-Refactorings"}
+    {<descriptor-name> "-References"}
+    {<descriptor-name> "-Syntax"}
+    {<descriptor-name> "-Views"}
+  
+  language General properties
+    
+    name:          {name}
+    id:            {pkgname}
+    extends:       Root
+    
+    description:   "Spoofax-generated editor for the {name} language"
+    url:           http://strategoxt.org
+    
+    extensions:    {extensions}
+    table:         {parsetable}
+    start symbols: {startsymbol}
+    
+    provider:      {provider1}
+    provider:      {provider2}
+    
+    observer:      editor-analyze (multifile)
+    
+    on save:       editor-save
+ }
+ 

@@ -48,23 +48,6 @@
       </docProvider>
    </extension>
    <extension
-         point="org.eclipse.imp.runtime.labelProvider">
-       <!--<labelProvider
-            class="org.strategoxt.imp.runtime.dynamicloading.DynamicLabelProvider"
-            language="DynamicRoot">-->
-      <labelProvider
-            class="org.strategoxt.imp.runtime.services.LabelProvider"
-            language="DynamicRoot">
-      </labelProvider>
-   </extension>
-   <extension
-         point="org.eclipse.imp.runtime.modelTreeBuilder">
-      <treeBuilder
-            class="org.strategoxt.imp.runtime.dynamicloading.DynamicTreeModelBuilder"
-            language="DynamicRoot">
-      </treeBuilder>
-   </extension>
-   <extension
          point="org.eclipse.imp.runtime.autoEditStrategy">
       <autoEditStrategy
             class="org.strategoxt.imp.runtime.dynamicloading.DynamicAutoEditStrategy"
@@ -263,24 +246,6 @@
    </extension>
 
    <extension
-         point="org.eclipse.ui.actionSets">
-      <actionSet
-            description="Spoofax actions"
-            id="org.strategoxt.imp.runtime.ui.actionSet"
-            label="Spoofax"
-            visible="true">
-         <action
-               class="org.strategoxt.imp.runtime.services.BuilderButtonDelegate"
-               definitionId="org.strategoxt.imp.runtime.transformCommand"
-               id="org.strategoxt.imp.runtime.stratego.builder"
-               label="Transform"
-               style="pulldown"
-               toolbarPath="spoofax"
-               tooltip="Apply transformation to file in current editor"/>
-               <!-- TODO: icon="icons/builder.png" -->
-      </actionSet>
-   </extension>
-   <extension
          point="org.eclipse.ui.commands">
       <category
             id="org.strategoxt.imp.runtime.transformCommandCategory"
@@ -301,10 +266,6 @@
    </extension>
    <extension
          point="org.eclipse.ui.handlers">
-      <handler
-            class="org.strategoxt.imp.runtime.services.BuilderButtonDelegate"
-            commandId="org.strategoxt.imp.runtime.transformCommand">
-      </handler>
       <handler
             class="org.strategoxt.imp.runtime.services.ReferenceResolverDelegate"
             commandId="org.strategoxt.imp.runtime.resolveReferenceCommand">
@@ -356,5 +317,279 @@
       </menuContribution>
    </extension>
    
+      <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            name="Spoofax Editor"
+            icon="icons/IMP-editor.gif"
+            extensions="txt"
+            contributorClass="org.eclipse.imp.editor.internal.TextEditorActionContributor"
+            class="org.strategoxt.imp.runtime.editor.SpoofaxEditor"
+            id="org.eclipse.imp.runtime.editor.spoofaxEditor">
+      </editor>
+   </extension>
+      <extension
+            point="org.eclipse.ui.ide.editorAssociationOverride">
+         <editorAssociationOverride
+               class="org.strategoxt.imp.runtime.editor.IMPEditorAssociationOverride"
+               id="org.eclipse.imp.runtime.editor.spoofaxEditor">
+         </editorAssociationOverride>
+      </extension>
+      <extension
+            name="Toolbar Menus"
+            point="org.eclipse.ui.menus">
+         <menuContribution
+               allPopups="false"
+               locationURI="toolbar:org.eclipse.ui.main.toolbar">
+            <toolbar
+                  id="org.spoofax.menus.toolbar">
+               <command
+                     commandId="org.spoofax.menus.toolbar.basecommand0"
+                     label=" "
+                     style="pulldown">
+                  <parameter
+                        name="org.spoofax.menus.menuID"
+                        value="0">
+                  </parameter>
+                  <visibleWhen
+                        checkEnabled="false">
+                     <reference
+                           definitionId="org.spoofax.menus.visibility">
+                     </reference>
+                  </visibleWhen>
+               </command>
+               <command
+                     commandId="org.spoofax.menus.toolbar.basecommand1"
+                     label=" "
+                     style="pulldown">
+                  <parameter
+                        name="org.spoofax.menus.menuID"
+                        value="1">
+                  </parameter>
+                  <visibleWhen
+                        checkEnabled="false">
+                     <reference
+                           definitionId="org.spoofax.menus.visibility">
+                     </reference>
+                  </visibleWhen>
+               </command>
+               <command
+                     commandId="org.spoofax.menus.toolbar.basecommand2"
+                     label=" "
+                     style="pulldown">
+                  <parameter
+                        name="org.spoofax.menus.menuID"
+                        value="2">
+                  </parameter>
+                  <visibleWhen
+                        checkEnabled="false">
+                     <reference
+                           definitionId="org.spoofax.menus.visibility">
+                     </reference>
+                  </visibleWhen>
+               </command>
+               <command
+                     commandId="org.spoofax.menus.toolbar.basecommand3"
+                     label=" "
+                     style="pulldown">
+                  <parameter
+                        name="org.spoofax.menus.menuID"
+                        value="3">
+                  </parameter>
+                  <visibleWhen
+                        checkEnabled="false">
+                     <reference
+                           definitionId="org.spoofax.menus.visibility">
+                     </reference>
+                  </visibleWhen>
+               </command>
+               <command
+                     commandId="org.spoofax.menus.toolbar.basecommand4"
+                     label=" "
+                     style="pulldown">
+                  <parameter
+                        name="org.spoofax.menus.menuID"
+                        value="4">
+                  </parameter>
+                  <visibleWhen
+                        checkEnabled="false">
+                     <reference
+                           definitionId="org.spoofax.menus.visibility">
+                     </reference>
+                  </visibleWhen>
+               </command>
+               <command
+                     commandId="org.spoofax.menus.toolbar.basecommand5"
+                     label=" "
+                     style="pulldown">
+                  <parameter
+                        name="org.spoofax.menus.menuID"
+                        value="5">
+                  </parameter>
+                  <visibleWhen
+                        checkEnabled="false">
+                     <reference
+                           definitionId="org.spoofax.menus.visibility">
+                     </reference>
+                  </visibleWhen>
+               </command>
+            </toolbar>
+         </menuContribution>
+         <menuContribution
+               allPopups="false"
+               locationURI="menu:org.spoofax.menus.toolbar.basecommand0">
+            <dynamic
+                  class="org.strategoxt.imp.runtime.services.menus.DynamicContributionItem"
+                  id="org.spoofax.menus.toolbar.menu.contributions0">
+            </dynamic>
+         </menuContribution>
+         <menuContribution
+               allPopups="false"
+               locationURI="menu:org.spoofax.menus.toolbar.basecommand1">
+            <dynamic
+                  class="org.strategoxt.imp.runtime.services.menus.DynamicContributionItem"
+                  id="org.spoofax.menus.toolbar.menu.contributions1">
+            </dynamic>
+         </menuContribution>
+         <menuContribution
+               allPopups="false"
+               locationURI="menu:org.spoofax.menus.toolbar.basecommand2">
+            <dynamic
+                  class="org.strategoxt.imp.runtime.services.menus.DynamicContributionItem"
+                  id="org.spoofax.menus.toolbar.menu.contributions2">
+            </dynamic>
+         </menuContribution>
+         <menuContribution
+               allPopups="false"
+               locationURI="menu:org.spoofax.menus.toolbar.basecommand3">
+            <dynamic
+                  class="org.strategoxt.imp.runtime.services.menus.DynamicContributionItem"
+                  id="org.spoofax.menus.toolbar.menu.contributions3">
+            </dynamic>
+         </menuContribution>
+         <menuContribution
+               allPopups="false"
+               locationURI="menu:org.spoofax.menus.toolbar.basecommand4">
+            <dynamic
+                  class="org.strategoxt.imp.runtime.services.menus.DynamicContributionItem"
+                  id="org.spoofax.menus.toolbar.menu.contributions4">
+            </dynamic>
+         </menuContribution>
+         <menuContribution
+               allPopups="false"
+               locationURI="menu:org.spoofax.menus.toolbar.basecommand5">
+            <dynamic
+                  class="org.strategoxt.imp.runtime.services.menus.DynamicContributionItem"
+                  id="org.spoofax.menus.toolbar.menu.contributions5">
+            </dynamic>
+         </menuContribution>
+      </extension>
+      <extension
+            point="org.eclipse.ui.commands">
+         <command
+               defaultHandler="org.strategoxt.imp.runtime.services.menus.ActionHandler"
+               id="org.spoofax.menus.action"
+               name="spoofaxaction">
+            <commandParameter
+                  id="org.spoofax.menu.path"
+                  name="path"
+                  optional="false">
+            </commandParameter>
+         </command>
+         <command
+               defaultHandler="org.strategoxt.imp.runtime.services.menus.ToolbarBaseCommandHandler"
+               id="org.spoofax.menus.toolbar.basecommand0"
+               name="0">
+            <commandParameter
+                  id="org.spoofax.menus.menuID"
+                  name="menuID"
+                  optional="false">
+            </commandParameter>
+         </command>
+         <command
+               defaultHandler="org.strategoxt.imp.runtime.services.menus.ToolbarBaseCommandHandler"
+               id="org.spoofax.menus.toolbar.basecommand1"
+               name="1">
+            <commandParameter
+                  id="org.spoofax.menus.menuID"
+                  name="menuID"
+                  optional="false">
+            </commandParameter>
+         </command>
+         <command
+               defaultHandler="org.strategoxt.imp.runtime.services.menus.ToolbarBaseCommandHandler"
+               id="org.spoofax.menus.toolbar.basecommand2"
+               name="2">
+            <commandParameter
+                  id="org.spoofax.menus.menuID"
+                  name="menuID"
+                  optional="false">
+            </commandParameter>
+         </command>
+         <command
+               defaultHandler="org.strategoxt.imp.runtime.services.menus.ToolbarBaseCommandHandler"
+               id="org.spoofax.menus.toolbar.basecommand3"
+               name="3">
+            <commandParameter
+                  id="org.spoofax.menus.menuID"
+                  name="menuID"
+                  optional="false">
+            </commandParameter>
+         </command>
+         <command
+               defaultHandler="org.strategoxt.imp.runtime.services.menus.ToolbarBaseCommandHandler"
+               id="org.spoofax.menus.toolbar.basecommand4"
+               name="4">
+            <commandParameter
+                  id="org.spoofax.menus.menuID"
+                  name="menuID"
+                  optional="false">
+            </commandParameter>
+         </command>
+         <command
+               defaultHandler="org.strategoxt.imp.runtime.services.menus.ToolbarBaseCommandHandler"
+               id="org.spoofax.menus.toolbar.basecommand5"
+               name="5">
+            <commandParameter
+                  id="org.spoofax.menus.menuID"
+                  name="menuID"
+                  optional="false">
+            </commandParameter>
+         </command>
+      </extension>
+      <extension
+            point="org.eclipse.core.expressions.definitions">
+         <definition
+               id="org.spoofax.menus.visibility">
+            <with
+                  variable="activePart">
+               <test
+                     forcePluginActivation="true"
+                     property="org.strategoxt.imp.runtime.menuEnabled">
+               </test>
+            </with>
+         </definition>
+      </extension>
+      <extension
+            point="org.eclipse.core.expressions.propertyTesters">
+         <propertyTester
+               class="org.strategoxt.imp.runtime.services.menus.MenuEnabledTester"
+               id="org.spoofax.menus.menuEnabledTester"
+               namespace="org.strategoxt.imp.runtime"
+               properties="menuEnabled"
+               type="org.strategoxt.imp.runtime.editor.SpoofaxEditor">
+         </propertyTester>
+      </extension>
+      
+      <extension
+         point="org.eclipse.core.runtime.adapters">
+      <factory
+            adaptableType="org.spoofax.interpreter.terms.IStrategoTerm"
+            class="org.strategoxt.imp.runtime.editor.StrategoTermAdapterFactory">
+         <adapter
+               type="org.eclipse.ui.views.properties.IPropertySource">
+         </adapter>
+      </factory>
+   </extension>
 </plugin>
 

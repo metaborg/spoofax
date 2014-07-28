@@ -33,7 +33,7 @@ strategies
     output-descriptor-file(
       name
     , new-contents
-    , not(file-exists); is-descriptor-imported(|<name>)
+    , not(file-exists)
     )
 
   /**
@@ -67,6 +67,8 @@ strategies
       print-filename(|["editor"], filename);
       new-contents;
       (
+        is-string
+      <+
         ?Module(name, _ ,_);
         pp-descriptor-to-string
       <+
@@ -98,6 +100,12 @@ strategies
  * Pretty-printing support.
  */
 strategies
+
+  output-java-file-ifne =
+  	?class;
+  	if not(<file-exists> <java-to-path> class) then
+  		<output-java-file> class
+  	end
   
   output-java-file =
     output-java-file(|<java-to-path>)
@@ -120,6 +128,7 @@ strategies
       fullpath := <conc-strings> (path, "/", <class-name> class, ".java")
     
 
+/*
   output-xml-file(|pathparts, filename) =
     print-filename(|pathparts, filename);
     
@@ -130,6 +139,7 @@ strategies
     );
     
     output-text-file'(|pathparts, filename)
+*/
   
   output-text-file(|pathparts, filename) =
     print-filename(|pathparts, filename);

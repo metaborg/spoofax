@@ -10,49 +10,65 @@ imports
 strategies
 
   create-outliner-descriptor =
-    output-initial-descriptor-file(
-      <descriptor-name> "-Outliner"
-    , !|[
-        module <descriptor-name> "-Outliner"
-        
-        imports <descriptor-name> "-Outliner.generated"
-        
-        outliner
-          ~
-          ~// This file can be used for custom outliner rules.
-          ~//
-          ~// See the imported file for a brief introduction and examples.
-      ]|
-    );
-    
-    create-derived-outliner-descriptor
+    sdf-name := <get-sdf-main-module>;
+    if not(<file-exists> ${editor/{sdf-name}-Outliner.str}) then
+      <output-text-file(|["editor"], ${{sdf-name}-Outliner.str})>
+
+${module editor/{sdf-name}-Outliner
+
+imports
   
+  include/{sdf-name}
+  lib/runtime/editor/outline-library
+  lib/runtime/editor/origins
+  editor/{sdf-name}-Outliner.generated
+
+rules
+  
+  to-outline-label = fail
+  
+}
+
+    end;
+    create-derived-outliner-descriptor;
+    create-old-derived-outliner-descriptor
+    
   create-derived-outliner-descriptor =
     not(is-heuristic-services-needed);
     verbose-msg(!"Skipping", <descriptor-name> "-Outliner.generated")
-  <+
-    output-derived-descriptor-file(
-      <descriptor-name> "-Outliner.generated"
-    , 
-      heuristic-outliner-productions;
-      map(create-folding-or-outliner-rule);
-      !|[
-        module <descriptor-name> "-Outliner.generated"
-        
-        outliner Default outliner        
-          ~
-          ~// Outliner rules indicate which syntactic constructs should be shown in the outline
-          ~// and quick outline views, and take one of the following forms:
-          ~//
-          ~//   <sort>.<constructor>
-          ~//
-          ~//   <sort>._
-          ~//
-          ~//   _.<constructor>
-          ~
-          ~*<id>
-      ]|
-    )
+  <+    
+    sdf-name := <get-sdf-main-module>;
+    rtg-prods := <heuristic-outliner-productions>;
+    label-strategy := "to-outline-label";
+    if ([] := rtg-prods)
+    then outline-rules := [<conc-strings> (label-strategy, " = fail")]
+    else outline-rules := <map(rtg-prod-to-outline-rule(|label-strategy)); make-set> rtg-prods
+    end;
+    <output-text-file(|["editor"], $[[sdf-name]-Outliner.generated.str])>
+      
+${module editor/{sdf-name}-Outliner.generated
+
+imports
+  
+  include/{sdf-name}
+  lib/runtime/editor/outline-library
+
+rules
+  
+  {<separate-by(|"\n"); concat-strings> outline-rules}
+}
+
+  create-old-derived-outliner-descriptor =
+    sdf-name := <get-sdf-main-module>;
+    if is-descriptor-imported(|${{sdf-name}-Outliner}) then
+      <output-text-file(|["editor"], ${{sdf-name}-Outliner.generated.esv})>
+      
+${module {sdf-name}-Outliner.generated
+
+  // esv-based outline definitions are no longer supported. Use Stratego to define an outline instead.
+}
+
+    end
   
   heuristic-outliner-productions =
     StartSymbol;
@@ -72,3 +88,23 @@ strategies
         verbose-msg(!"  and:         ", !reason2)
       )
     })
+  
+  rtg-prod-to-outline-rule(|sname): 
+    prod -> result
+      where
+        'sorts := <get-sorts> prod;
+        index := <get-index0(heuristic-sort-is-identifier)> 'sorts;
+        pattern-before := <copy> (index, "_");
+        pattern-after := <copy> (<subt> (<length; dec> 'sorts, index), "_");
+        pattern := <flatten-list; separate-by(!", ")> [pattern-before, "<id>", pattern-after];
+        result := <flatten-list; concat-strings> [sname, " = ?", <constructor-name; collect-one(is-string)> prod, "(", pattern, ")"]
+
+  rtg-prod-to-outline-rule(|sname):
+    prod -> result
+      where
+        'sorts := <get-sorts> prod;
+        not ( <get-index0(heuristic-sort-is-identifier)> 'sorts );
+        pattern := <separate-by(!", ")> <copy> (<length> 'sorts, "_");
+        result := <flatten-list; concat-strings> [sname, " = ?", <constructor-name; collect-one(is-string)> prod, "(", pattern, "); origin-text-at-start"]
+
+  get-sorts = (?ProdRule(_, [Appl(_, <id>)]) <+ ?ProdRule(_, <id>)); map(?Ref(Nonterm(/*Plain*/(<id>))))

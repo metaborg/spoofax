@@ -17,6 +17,7 @@ import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.jsglr.client.imploder.TermTreeFactory;
+import org.spoofax.terms.StrategoSubList;
 import org.spoofax.terms.TermFactory;
 import org.spoofax.terms.TermVisitor;
 import org.spoofax.terms.attachments.ParentAttachment;
@@ -24,14 +25,11 @@ import org.strategoxt.imp.generator.generator;
 import org.strategoxt.imp.generator.position_of_term_1_0;
 import org.strategoxt.imp.generator.term_at_position_0_1;
 import org.strategoxt.imp.runtime.Environment;
-import org.spoofax.terms.StrategoSubList;
-import org.strategoxt.imp.runtime.services.ContentProposer;
 import org.strategoxt.imp.runtime.services.ContentProposerSemantic;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.Strategy;
 import org.strategoxt.stratego_aterm.explode_aterm_0_0;
 import org.strategoxt.stratego_aterm.implode_aterm_0_0;
-import org.strategoxt.stratego_lib.assert_1_0;
 import org.strategoxt.stratego_lib.oncetd_1_0;
 
 /**
@@ -174,17 +172,17 @@ public class StrategoTermPath {
 			}
 		}
 		TestOrigin testOrigin = new TestOrigin();
-		testOrigin.origin1 = origin;		
+		testOrigin.origin1 = origin;
+		
 		generator.init(context);
 		IStrategoTerm perfectMatch = position_of_term_1_0.instance.invoke(context, ast, testOrigin);
+
 		if (perfectMatch != null) {
 			return (IStrategoList) perfectMatch;
 		} else if (testOrigin.nextBest != null) {
-			Environment.logWarning("Could not determine term corresponding to " + origin.toString() + " in resulting AST; using next best match " + testOrigin.nextBest);
 			testOrigin.origin1 = testOrigin.nextBest;
 			return (IStrategoList) position_of_term_1_0.instance.invoke(context, ast, testOrigin);
 		} else {
-			Environment.logWarning("Could not determine term corresponding to " + origin.toString() + " in resulting AST");
 			return null;
 		}
 	}
@@ -192,7 +190,7 @@ public class StrategoTermPath {
 	public static IStrategoTerm getTermAtPath(Context context, IStrategoTerm term, IStrategoList path) {
 		return term_at_position_0_1.instance.invoke(context, term, path);
 	}
-
+	
 	private static int indexOfIdentical(IStrategoTerm parent, IStrategoTerm node) {
 		int index = 0;
 		for (int size = parent.getSubtermCount(); index < size; index++) {
