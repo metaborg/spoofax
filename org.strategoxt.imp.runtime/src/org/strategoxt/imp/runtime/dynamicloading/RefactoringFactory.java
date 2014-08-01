@@ -183,7 +183,7 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 		return keybindings;
 	}
 
-	private static StrategoTextChangeCalculator createTextChangeCalculator(Descriptor d)
+	public static StrategoTextChangeCalculator createTextChangeCalculator(Descriptor d)
 			throws BadDescriptorException {
 		String ppStrategy = getPPStrategy(d);
 		String parenthesize = getParenthesizeStrategy(d);

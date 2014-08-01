@@ -119,6 +119,8 @@ rules // Debugging
 		analysis-debug-task-partition(|<language>)
 	debug-task-selection =
 		analysis-debug-task-selection(|<language>)
+	debug-index-partition-resolve =
+		analysis-debug-index-partition-resolve(|<language>)
 		
 	debug-project =
 		analysis-debug-project(|<language>)

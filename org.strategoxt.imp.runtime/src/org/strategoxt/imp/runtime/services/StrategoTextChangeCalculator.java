@@ -50,7 +50,7 @@ public class StrategoTextChangeCalculator {
 		return fileChanges;
 	}
 	
-	private IStrategoTerm getTextReplacement(final IStrategoTerm resultTuple, final StrategoObserver observer) {
+	public IStrategoTerm getTextReplacement(final IStrategoTerm resultTuple, final StrategoObserver observer) {
 		IStrategoTerm textreplace=construct_textual_change_4_0.instance.invoke(
 				observer.getRuntime().getCompiledContext(), 
 				resultTuple, 

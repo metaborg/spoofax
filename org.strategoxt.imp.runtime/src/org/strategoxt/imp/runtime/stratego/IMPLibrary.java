@@ -33,6 +33,7 @@ public class IMPLibrary extends AbstractStrategoOperatorRegistry {
 		add(new OverrideInputPrimitive());
 
 		add(new OriginSurroundingCommentsPrimitive());
+		add(new PreserveLayoutPrimitive());
 
 		add(new InSelectedFragmentPrimitive());
 
