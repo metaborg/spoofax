@@ -1,7 +1,5 @@
 # Spoofax Core
 
-=====
-
 Spoofax Core is an attempt to extract platform-independent core functionality from Spoofax into a shared library, which implementations of Spoofax such as the Eclipse implementation and Sunshine will use. This enables reuse of core functionality and allows third parties to use Spoofax as a library in any way they wish.
 
 This document describes the design and ideas for Spoofax Core.
@@ -27,22 +25,40 @@ Functionality:
 * Manages loading, unloading, and activation
 * Provides observables for (un)loading, (de)activation, and extension
 
-A language is characterised by its:
+A language is uniquely identified by its:
 
 * Name
 * Version (major.minor.patch.qualifier)
+* Location (in the virtual file system, as a file, in memory, or even in an archive like a zip or JAR)
 
-The activation status of a language is characterised by its loading date. The latest one is always active. When an active language is unloaded, the language with the second highest loading date becomes active, or the language is removed if there is no such language. Overriding languages  This means that a single name/version combination maps to a stack of languages, sorted by loading date.
+__Activity.__ A language is active if it has the highest version, and highest loading date. The active language is used when retrieving a language just by name.
 
-Languages can be loaded and unloaded at will. Loading a new language may override the active language for a name, but the overridden language still stays loaded and can still be used. Unloading a language will transfer the language to a weak map, where the language will be unloaded when it is not being used any more.
+__Loading.__ Languages can be loaded and unloaded at will. Loading a new language may change the active language for a name. Unloading a language will transfer the language to a weak map, where the language will be unloaded when it is not being used any more.
 
-A language can have several facets that provide information about the language. For example, the analyser facet provides information on how to analyse instances of that language, a completion facet provides information about code completion, and so on. This makes it easy to add new facets, for example, Oskar's modelware project could contribute a modelware facet without changing Spoofax itself.
+Loading a language with the same name and location as an existing language will reload that language; the existing language will be unloaded, and the new language will be loaded.
+Loading a language with a new location and equal or higher version number than existing languages will activate that language; existing languages will stay loaded, but the previously active language will be deactivated.
+Unloading a language will deactivate it (if it was active), the language with the highest version and loading date will be activated.
+
+More detailed loading scenarios:
+
+* Language with name does not exist: Load new language and activate it.
+* Language with name, version, and location exists: Deactivate existing language and unload it, load and activate new language.
+* Languages with name, and version exists (diff. location): Deactivate most recent (active) existing language, load and activate new language.
+* Languages with name exists (diff. version, or diff. version and location):
+  * If version is higher than existing languages: Deactivate most recently loaded (which is active) existing language and unload it, load and activate new language.
+  * If version is lower than existing languages: Load new language.
+  
+Detailed unloading scenarios:
+
+Find, deactivate (if active), and unload language with name, version, and location.
+If the language was active before:
+
+* Other languages with name, version exists (diff. location): Activate the most recently loaded language.
+* Other languages with name exists (diff. location and version): Activate the language with the highest version number, that was most recently loaded.
+
+__Facets.__ A language can have several facets that provide information about the language. For example, the analyser facet provides information on how to analyse instances of that language, a completion facet provides information about code completion, and so on. This makes it easy to add new facets, for example, Oskar's modelware project could contribute a modelware facet without changing Spoofax itself.
 
 Some facets can be extended by other languages than the language that provides the facet. For example, the builders facet can be extended by another language to add a builder to a language.
-
-Spoofax itself provides a bunch of facets, most of them configured from ESV:
-
-* 
 
 ### Context service
 
@@ -86,7 +102,7 @@ Functionality:
 
 Resources are handled differently on some platforms. For example, Eclipse has its own abstraction over resources, Sunshine uses the Java file system abstraction. To use resources in both worlds, a common abstraction is needed, with adapters for the other abstractions.
 
-There could also be other sources of resources. For example, when a resource is fully in memory, it should still be usable in Spoofax without writing it to a file first.
+There could also be other sources of resources. For example, when a resource is fully in memory, it should still be usable in Spoofax without writing it to a file first. This comes for free when using Apache VFS (see libraries section).
 
 ### Stratego runtime service
 
@@ -163,6 +179,10 @@ A perfect candidate for observables are the parsed and analyzed AST. Whenever a 
 ## Dependency management
 
 Dependencies management between classes and objects is a separate concern, and should be handled separately. The [Guice](https://github.com/google/guice) library by Google is a dependency injection framework that takes care of dependency management separately.
+
+## Virtual file system
+
+[Apache VFS](http://commons.apache.org/proper/commons-vfs/) provides an abstraction over several (virtual) file systems, such as the regular file system, archives (JAR, zip, etc.), in-memory, and even networked file systems like FTP. Nested file systems such as a JAR inside a JAR inside the file system are supported. Using VFS enables files to be found and loaded from any source.
 
 ## Caching
 
