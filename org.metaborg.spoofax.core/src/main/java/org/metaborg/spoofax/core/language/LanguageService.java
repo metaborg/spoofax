@@ -154,9 +154,10 @@ public class LanguageService implements ILanguageService {
 
     private void tryActivate(ILanguage language, SortedSet<ILanguage> existingLanguages) {
         final ILanguage activeLanguage = nameToActiveLanguage.get(language.name());
+        
         if(activeLanguage == null) {
             activate(language);
-        } else if(!isActive(activeLanguage) && language.equals(existingLanguages.first())) {
+        } else if(!isActive(language) && language.equals(existingLanguages.last())) {
             deactivate(activeLanguage);
             activate(language);
         }
@@ -168,7 +169,7 @@ public class LanguageService implements ILanguageService {
         }
 
         final ILanguage activeLanguage = nameToActiveLanguage.get(name);
-        final ILanguage firstLanguage = existingLanguages.first();
+        final ILanguage firstLanguage = existingLanguages.last();
         if(!firstLanguage.equals(activeLanguage)) {
             activate(firstLanguage);
         }
