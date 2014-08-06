@@ -13,6 +13,7 @@ import rx.Observable;
 import rx.subjects.PublishSubject;
 import rx.subjects.Subject;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -154,7 +155,7 @@ public class LanguageService implements ILanguageService {
 
     private void tryActivate(ILanguage language, SortedSet<ILanguage> existingLanguages) {
         final ILanguage activeLanguage = nameToActiveLanguage.get(language.name());
-        
+
         if(activeLanguage == null) {
             activate(language);
         } else if(!isActive(language) && language.equals(existingLanguages.last())) {
@@ -188,7 +189,7 @@ public class LanguageService implements ILanguageService {
     }
 
     @Override
-    public ILanguage create(String name, LanguageVersion version, FileName location, Set<String> extensions,
+    public ILanguage create(String name, LanguageVersion version, FileName location, ImmutableSet<String> extensions,
         Iterable<FileObject> resources) {
         final ILanguage language = new Language(name, version, location, extensions, resources, new Date());
         final SortedSet<ILanguage> existingLanguages = getLanguageSet(name);

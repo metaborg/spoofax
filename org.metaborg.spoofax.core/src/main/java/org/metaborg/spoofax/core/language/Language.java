@@ -1,7 +1,6 @@
 package org.metaborg.spoofax.core.language;
 
 import java.util.Date;
-import java.util.Set;
 
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
@@ -12,13 +11,14 @@ import rx.subjects.Subject;
 
 import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.ComparisonChain;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.MutableClassToInstanceMap;
 
 public class Language implements ILanguage {
     private final String name;
     private final LanguageVersion version;
     private final FileName location;
-    private final Set<String> extensions;
+    private final ImmutableSet<String> extensions;
     private final Iterable<FileObject> resources;
     private final Date loadedDate;
 
@@ -26,7 +26,7 @@ public class Language implements ILanguage {
     private final Subject<LanguageFacetChange, LanguageFacetChange> facetChanges = PublishSubject.create();
 
 
-    public Language(String name, LanguageVersion version, FileName location, Set<String> extensions,
+    public Language(String name, LanguageVersion version, FileName location, ImmutableSet<String> extensions,
         Iterable<FileObject> resources, Date loadedDate) {
         this.name = name;
         this.version = version;
