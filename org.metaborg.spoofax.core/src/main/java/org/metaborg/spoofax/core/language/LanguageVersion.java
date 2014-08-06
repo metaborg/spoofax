@@ -2,6 +2,10 @@ package org.metaborg.spoofax.core.language;
 
 import com.google.common.collect.ComparisonChain;
 
+/**
+ * Representation for the version of a language. Follows the versioning style of OSGI to be compatible with Eclipse
+ * plugins.
+ */
 public class LanguageVersion implements Comparable<LanguageVersion> {
     public final int major;
     public final int minor;
@@ -17,8 +21,7 @@ public class LanguageVersion implements Comparable<LanguageVersion> {
     }
 
 
-    @Override
-    public int compareTo(LanguageVersion other) {
+    @Override public int compareTo(LanguageVersion other) {
         // @formatter:off
         return ComparisonChain.start()
             .compare(this.major, other.major)
@@ -30,8 +33,7 @@ public class LanguageVersion implements Comparable<LanguageVersion> {
     }
 
 
-    @Override
-    public int hashCode() {
+    @Override public int hashCode() {
         final int prime = 31;
         int result = 1;
         result = prime * result + major;
@@ -41,8 +43,7 @@ public class LanguageVersion implements Comparable<LanguageVersion> {
         return result;
     }
 
-    @Override
-    public boolean equals(Object obj) {
+    @Override public boolean equals(Object obj) {
         if(this == obj)
             return true;
         if(obj == null)
@@ -61,8 +62,7 @@ public class LanguageVersion implements Comparable<LanguageVersion> {
         return true;
     }
 
-    @Override
-    public String toString() {
+    @Override public String toString() {
         return major + "." + minor + "." + patch + "-" + qualifier;
     }
 }

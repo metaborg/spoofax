@@ -38,13 +38,11 @@ public class LanguageService implements ILanguageService {
         return language.equals(nameToActiveLanguage.get(language.name()));
     }
 
-    @Override
-    public ILanguage get(String name) {
+    @Override public ILanguage get(String name) {
         return nameToActiveLanguage.get(name);
     }
 
-    @Override
-    public ILanguage get(String name, LanguageVersion version, FileName location) {
+    @Override public ILanguage get(String name, LanguageVersion version, FileName location) {
         final Set<ILanguage> languages = getLanguageSet(name);
         for(ILanguage language : languages) {
             if(language.version().equals(version) && language.location().equals(location)) {
@@ -54,8 +52,7 @@ public class LanguageService implements ILanguageService {
         return null;
     }
 
-    @Override
-    public ILanguage getByExt(String extension) {
+    @Override public ILanguage getByExt(String extension) {
         final String name = extensionToLanguageName.get(extension);
         if(name == null) {
             return null;
@@ -63,13 +60,11 @@ public class LanguageService implements ILanguageService {
         return get(name);
     }
 
-    @Override
-    public Iterable<ILanguage> getAll(String name) {
+    @Override public Iterable<ILanguage> getAll(String name) {
         return getLanguageSet(name);
     }
 
-    @Override
-    public Iterable<ILanguage> getAll(String name, LanguageVersion version) {
+    @Override public Iterable<ILanguage> getAll(String name, LanguageVersion version) {
         final Set<ILanguage> languages = getLanguageSet(name);
         final Collection<ILanguage> matchedLanguages = Lists.newLinkedList();
         for(ILanguage language : languages) {
@@ -80,8 +75,7 @@ public class LanguageService implements ILanguageService {
         return matchedLanguages;
     }
 
-    @Override
-    public Iterable<ILanguage> getAllByExt(String extension) {
+    @Override public Iterable<ILanguage> getAllByExt(String extension) {
         final String name = extensionToLanguageName.get(extension);
         if(name == null) {
             return null;
@@ -89,8 +83,7 @@ public class LanguageService implements ILanguageService {
         return getAll(name);
     }
 
-    @Override
-    public Observable<LanguageChange> changes() {
+    @Override public Observable<LanguageChange> changes() {
         return languageChanges;
     }
 
@@ -120,14 +113,10 @@ public class LanguageService implements ILanguageService {
 
         existingLanguages.add(language);
 
-        // TODO: load resources and create facets.
-
         sendLanguageChange(language, LanguageChange.Kind.LOADED);
     }
 
     private void unload(ILanguage language, Set<ILanguage> existingLanguages) {
-        // TODO: unload resources
-
         existingLanguages.remove(language);
 
         // Remove only the extensions that are not being used by any other language with the same name.
@@ -187,8 +176,8 @@ public class LanguageService implements ILanguageService {
         }
     }
 
-    @Override
-    public ILanguage create(String name, LanguageVersion version, FileName location, ImmutableSet<String> extensions) {
+    private ILanguage createInternal(String name, LanguageVersion version, FileName location,
+        ImmutableSet<String> extensions, boolean createFacets) {
         final ILanguage language = new Language(name, version, location, extensions, new Date());
         final SortedSet<ILanguage> existingLanguages = getLanguageSet(name);
         if(existingLanguages.isEmpty()) {
@@ -213,8 +202,17 @@ public class LanguageService implements ILanguageService {
         return language;
     }
 
-    @Override
-    public void remove(ILanguage language) {
+    @Override public ILanguage create(String name, LanguageVersion version, FileName location,
+        ImmutableSet<String> extensions) {
+        return createInternal(name, version, location, extensions, true);
+    }
+
+    @Override public ILanguage createManual(String name, LanguageVersion version, FileName location,
+        ImmutableSet<String> extensions) {
+        return createInternal(name, version, location, extensions, false);
+    }
+
+    @Override public void destroy(ILanguage language) {
         final SortedSet<ILanguage> existingLanguages = getLanguageSet(language.name());
         if(existingLanguages.isEmpty()) {
             throw new IllegalStateException("Cannot remove language, language with name " + language.name()

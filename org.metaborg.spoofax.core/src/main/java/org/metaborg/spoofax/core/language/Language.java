@@ -34,54 +34,44 @@ public class Language implements ILanguage {
     }
 
 
-    @Override
-    public String name() {
+    @Override public String name() {
         return name;
     }
 
-    @Override
-    public LanguageVersion version() {
+    @Override public LanguageVersion version() {
         return version;
     }
 
-    @Override
-    public FileName location() {
+    @Override public FileName location() {
         return location;
     }
 
-    @Override
-    public Iterable<String> extensions() {
+    @Override public Iterable<String> extensions() {
         return extensions;
     }
 
-    @Override
-    public boolean hasExtension(String extension) {
+    @Override public boolean hasExtension(String extension) {
         return extensions.contains(extension);
     }
 
-    @Override
-    public Date loadedDate() {
+    @Override public Date createdDate() {
         return loadedDate;
     }
 
 
-    @Override
-    public Iterable<ILanguageFacet> facets() {
+    @Override public Iterable<ILanguageFacet> facets() {
         return facets.values();
     }
 
-    @Override
-    public <T extends ILanguageFacet> T facet(Class<T> type) {
+    @Override public <T extends ILanguageFacet> T facet(Class<T> type) {
         return facets.getInstance(type);
     }
 
-    @Override
-    public Observable<LanguageFacetChange> facetChanges() {
+    @Override public Observable<LanguageFacetChange> facetChanges() {
         return facetChanges;
     }
 
-    @Override
-    public <T extends ILanguageFacet> ILanguageFacet addFacet(Class<T> type, T facet) {
+    @Override public <T extends ILanguageFacet> ILanguageFacet addFacet(Class<T> type, T facet) {
         if(facets.containsKey(type)) {
             throw new IllegalStateException("Cannot add facet, facet of type " + type + " already exists in language "
                 + name);
@@ -91,8 +81,7 @@ public class Language implements ILanguage {
         return facet;
     }
 
-    @Override
-    public <T extends ILanguageFacet> ILanguageFacet removeFacet(Class<T> type) {
+    @Override public <T extends ILanguageFacet> ILanguageFacet removeFacet(Class<T> type) {
         if(!facets.containsKey(type)) {
             throw new IllegalStateException("Cannot remove facet, facet of type " + type
                 + " does not exists in language " + name);
@@ -103,21 +92,19 @@ public class Language implements ILanguage {
     }
 
 
-    @Override
-    public int compareTo(ILanguage other) {
+    @Override public int compareTo(ILanguage other) {
         // @formatter:off
         return ComparisonChain.start()
             .compare(name, other.name())
             .compare(version, other.version())
-            .compare(loadedDate, other.loadedDate())
+            .compare(loadedDate, other.createdDate())
             .compare(location, other.location())
             .result();
         // @formatter:on
     }
 
 
-    @Override
-    public int hashCode() {
+    @Override public int hashCode() {
         final int prime = 31;
         int result = 1;
         result = prime * result + name.hashCode();
@@ -126,8 +113,7 @@ public class Language implements ILanguage {
         return result;
     }
 
-    @Override
-    public boolean equals(Object obj) {
+    @Override public boolean equals(Object obj) {
         if(this == obj)
             return true;
         if(obj == null)
@@ -144,8 +130,7 @@ public class Language implements ILanguage {
         return true;
     }
 
-    @Override
-    public String toString() {
+    @Override public String toString() {
         return "Language [name=" + name + ", version=" + version + ", location=" + location + ", extensions="
             + extensions + "]";
     }

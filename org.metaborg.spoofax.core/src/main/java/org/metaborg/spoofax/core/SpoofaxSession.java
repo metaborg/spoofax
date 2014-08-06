@@ -9,8 +9,7 @@ public class SpoofaxSession {
     public final FileSystemManager fileSystemManager;
     public final ILanguageService language;
 
-    @Inject
-    public SpoofaxSession(FileSystemManager fileSystemManager, ILanguageService language) {
+    @Inject public SpoofaxSession(FileSystemManager fileSystemManager, ILanguageService language) {
         this.fileSystemManager = fileSystemManager;
         this.language = language;
     }

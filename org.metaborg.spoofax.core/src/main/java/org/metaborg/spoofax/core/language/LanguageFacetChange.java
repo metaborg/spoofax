@@ -1,5 +1,8 @@
 package org.metaborg.spoofax.core.language;
 
+/**
+ * Represents a change of a facet in a {@link ILanguage}.
+ */
 public class LanguageFacetChange {
     public enum Kind {
         ADDED, REMOVED
@@ -16,8 +19,7 @@ public class LanguageFacetChange {
     }
 
 
-    @Override
-    public int hashCode() {
+    @Override public int hashCode() {
         final int prime = 31;
         int result = 1;
         result = prime * result + facet.hashCode();
@@ -25,8 +27,7 @@ public class LanguageFacetChange {
         return result;
     }
 
-    @Override
-    public boolean equals(Object obj) {
+    @Override public boolean equals(Object obj) {
         if(this == obj)
             return true;
         if(obj == null)

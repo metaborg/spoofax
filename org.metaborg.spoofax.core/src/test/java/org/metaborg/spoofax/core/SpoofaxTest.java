@@ -18,14 +18,12 @@ public class SpoofaxTest {
         testScheduler = Schedulers.test();
     }
 
-    @Before
-    public void setUp() {
+    @Before public void setUp() {
         final Injector injector = Guice.createInjector(new SpoofaxModule());
         session = injector.getInstance(SpoofaxSession.class);
     }
 
-    @After
-    public void tearDown() {
+    @After public void tearDown() {
         testScheduler.triggerActions();
         session = null;
     }

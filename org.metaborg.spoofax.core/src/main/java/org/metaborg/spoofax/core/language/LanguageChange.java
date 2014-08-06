@@ -1,5 +1,8 @@
 package org.metaborg.spoofax.core.language;
 
+/**
+ * Represents a change of a language in the {@link ILanguageService}.
+ */
 public class LanguageChange {
     public enum Kind {
         LOADED, UNLOADED, ACTIVATED, DEACTIVATED
@@ -16,8 +19,7 @@ public class LanguageChange {
     }
 
 
-    @Override
-    public int hashCode() {
+    @Override public int hashCode() {
         final int prime = 31;
         int result = 1;
         result = prime * result + kind.hashCode();
@@ -25,8 +27,7 @@ public class LanguageChange {
         return result;
     }
 
-    @Override
-    public boolean equals(Object obj) {
+    @Override public boolean equals(Object obj) {
         if(this == obj)
             return true;
         if(obj == null)
@@ -41,8 +42,7 @@ public class LanguageChange {
         return true;
     }
 
-    @Override
-    public String toString() {
+    @Override public String toString() {
         return "LanguageChange [language=" + language + ", kind=" + kind + "]";
     }
 }
