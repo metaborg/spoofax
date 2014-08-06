@@ -7,7 +7,6 @@ import java.util.Set;
 import java.util.SortedSet;
 
 import org.apache.commons.vfs2.FileName;
-import org.apache.commons.vfs2.FileObject;
 
 import rx.Observable;
 import rx.subjects.PublishSubject;
@@ -103,14 +102,14 @@ public class LanguageService implements ILanguageService {
         for(String extension : language.extensions()) {
             final String existingName = extensionToLanguageName.get(extension);
             if(existingName != null && !existingName.equals(language.name())) {
-                throw new IllegalStateException("Extension " + extension + " is already used by language "
-                    + existingName);
+                throw new IllegalStateException("Cannot load language, extension " + extension
+                    + " is already used by language " + existingName);
             }
         }
         final ILanguage existingLanguage = locationToLanguage.get(language.location());
         if(existingLanguage != null && !existingLanguage.name().equals(language.name())) {
-            throw new IllegalStateException("Location " + language.location() + " is already used by language "
-                + existingLanguage.name());
+            throw new IllegalStateException("Cannot load language, location " + language.location()
+                + " is already used by language " + existingLanguage.name());
         }
 
         locationToLanguage.put(language.location(), language);
@@ -189,9 +188,8 @@ public class LanguageService implements ILanguageService {
     }
 
     @Override
-    public ILanguage create(String name, LanguageVersion version, FileName location, ImmutableSet<String> extensions,
-        Iterable<FileObject> resources) {
-        final ILanguage language = new Language(name, version, location, extensions, resources, new Date());
+    public ILanguage create(String name, LanguageVersion version, FileName location, ImmutableSet<String> extensions) {
+        final ILanguage language = new Language(name, version, location, extensions, new Date());
         final SortedSet<ILanguage> existingLanguages = getLanguageSet(name);
         if(existingLanguages.isEmpty()) {
             // Language does not exist yet.
@@ -218,6 +216,10 @@ public class LanguageService implements ILanguageService {
     @Override
     public void remove(ILanguage language) {
         final SortedSet<ILanguage> existingLanguages = getLanguageSet(language.name());
+        if(existingLanguages.isEmpty()) {
+            throw new IllegalStateException("Cannot remove language, language with name " + language.name()
+                + " does not exist");
+        }
         tryDeactivate(language);
         unload(language, existingLanguages);
         tryActivateNew(language.name(), existingLanguages);

@@ -3,7 +3,6 @@ package org.metaborg.spoofax.core.language;
 import java.util.Date;
 
 import org.apache.commons.vfs2.FileName;
-import org.apache.commons.vfs2.FileObject;
 
 import rx.Observable;
 
@@ -18,8 +17,6 @@ public interface ILanguage extends Comparable<ILanguage> {
 
     public boolean hasExtension(String extension);
 
-    public Iterable<FileObject> resources();
-
     public Date loadedDate();
 
 
@@ -29,7 +26,7 @@ public interface ILanguage extends Comparable<ILanguage> {
 
     public Observable<LanguageFacetChange> facetChanges();
 
-    public <T extends ILanguageFacet> void addFacet(Class<T> type, T facet);
+    public <T extends ILanguageFacet> ILanguageFacet addFacet(Class<T> type, T facet);
 
     public <T extends ILanguageFacet> ILanguageFacet removeFacet(Class<T> type);
 }

@@ -3,7 +3,6 @@ package org.metaborg.spoofax.core.language;
 import java.util.Date;
 
 import org.apache.commons.vfs2.FileName;
-import org.apache.commons.vfs2.FileObject;
 
 import rx.Observable;
 import rx.subjects.PublishSubject;
@@ -19,7 +18,6 @@ public class Language implements ILanguage {
     private final LanguageVersion version;
     private final FileName location;
     private final ImmutableSet<String> extensions;
-    private final Iterable<FileObject> resources;
     private final Date loadedDate;
 
     private final ClassToInstanceMap<ILanguageFacet> facets = MutableClassToInstanceMap.create();
@@ -27,12 +25,11 @@ public class Language implements ILanguage {
 
 
     public Language(String name, LanguageVersion version, FileName location, ImmutableSet<String> extensions,
-        Iterable<FileObject> resources, Date loadedDate) {
+        Date loadedDate) {
         this.name = name;
         this.version = version;
         this.location = location;
         this.extensions = extensions;
-        this.resources = resources;
         this.loadedDate = loadedDate;
     }
 
@@ -63,11 +60,6 @@ public class Language implements ILanguage {
     }
 
     @Override
-    public Iterable<FileObject> resources() {
-        return resources;
-    }
-
-    @Override
     public Date loadedDate() {
         return loadedDate;
     }
@@ -89,13 +81,22 @@ public class Language implements ILanguage {
     }
 
     @Override
-    public <T extends ILanguageFacet> void addFacet(Class<T> type, T facet) {
+    public <T extends ILanguageFacet> ILanguageFacet addFacet(Class<T> type, T facet) {
+        if(facets.containsKey(type)) {
+            throw new IllegalStateException("Cannot add facet, facet of type " + type + " already exists in language "
+                + name);
+        }
         facets.putInstance(type, facet);
         facetChanges.onNext(new LanguageFacetChange(facet, LanguageFacetChange.Kind.ADDED));
+        return facet;
     }
 
     @Override
     public <T extends ILanguageFacet> ILanguageFacet removeFacet(Class<T> type) {
+        if(!facets.containsKey(type)) {
+            throw new IllegalStateException("Cannot remove facet, facet of type " + type
+                + " does not exists in language " + name);
+        }
         final ILanguageFacet removedFacet = facets.remove(type);
         facetChanges.onNext(new LanguageFacetChange(removedFacet, LanguageFacetChange.Kind.REMOVED));
         return removedFacet;

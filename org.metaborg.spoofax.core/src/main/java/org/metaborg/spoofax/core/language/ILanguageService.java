@@ -1,7 +1,6 @@
 package org.metaborg.spoofax.core.language;
 
 import org.apache.commons.vfs2.FileName;
-import org.apache.commons.vfs2.FileObject;
 
 import rx.Observable;
 
@@ -22,8 +21,7 @@ public interface ILanguageService {
 
     public Observable<LanguageChange> changes();
 
-    public ILanguage create(String name, LanguageVersion version, FileName location, ImmutableSet<String> extensions,
-        Iterable<FileObject> resources);
+    public ILanguage create(String name, LanguageVersion version, FileName location, ImmutableSet<String> extensions);
 
     public void remove(ILanguage language);
 }
