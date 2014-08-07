@@ -4,7 +4,7 @@ import static org.junit.Assert.*;
 
 import java.util.Date;
 
-import org.apache.commons.vfs2.FileName;
+import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -32,19 +32,19 @@ public class LanguageServiceTest extends SpoofaxTest {
         return new LanguageVersion(major, minor, patch, qualifier);
     }
 
-    private FileName location(String uri) throws FileSystemException {
-        return session.fileSystemManager.resolveURI(uri);
+    private FileObject location(String uri) throws FileSystemException {
+        return session.resource.fileSystemManager().resolveFile(uri);
     }
 
-    private ILanguage
-        language(String name, LanguageVersion version, FileName location, ImmutableSet<String> extensions) {
+    private ILanguage language(String name, LanguageVersion version, FileObject location,
+        ImmutableSet<String> extensions) {
         return session.language.create(name, version, location, extensions);
     }
 
 
     @Test public void addSingleLanguage() throws Exception {
         final LanguageVersion version = version(0, 0, 1, 0);
-        final FileName location = location("ram:///");
+        final FileObject location = location("ram:///");
 
         final ILanguage language = language("Entity", version, location, ImmutableSet.of(".ent"));
 
@@ -57,9 +57,9 @@ public class LanguageServiceTest extends SpoofaxTest {
 
     @Test public void addDifferentLanguages() throws Exception {
         final LanguageVersion version = version(0, 0, 1, 0);
-        final FileName location1 = location("ram:///Entity1");
-        final FileName location2 = location("ram:///Entity2");
-        final FileName location3 = location("ram:///Entity3");
+        final FileObject location1 = location("ram:///Entity1");
+        final FileObject location2 = location("ram:///Entity2");
+        final FileObject location3 = location("ram:///Entity3");
 
         final ILanguage language1 = language("Entity1", version, location1, ImmutableSet.of(".ent1"));
         final ILanguage language2 = language("Entity2", version, location2, ImmutableSet.of(".ent2"));
@@ -79,8 +79,8 @@ public class LanguageServiceTest extends SpoofaxTest {
     @Test public void addHigherVersionLanguage() throws Exception {
         final LanguageVersion version1 = version(0, 0, 1, 0);
         final LanguageVersion version2 = version(0, 1, 0, 0);
-        final FileName location1 = location("ram:///Entity1");
-        final FileName location2 = location("ram:///Entity2");
+        final FileObject location1 = location("ram:///Entity1");
+        final FileObject location2 = location("ram:///Entity2");
 
         final ILanguage language1 = language("Entity", version1, location1, ImmutableSet.of(".ent"));
 
@@ -99,8 +99,8 @@ public class LanguageServiceTest extends SpoofaxTest {
     @Test public void addLowerVersionLanguage() throws Exception {
         final LanguageVersion version1 = version(0, 1, 0, 0);
         final LanguageVersion version2 = version(0, 0, 1, 0);
-        final FileName location1 = location("ram:///Entity1/");
-        final FileName location2 = location("ram:///Entity2/");
+        final FileObject location1 = location("ram:///Entity1/");
+        final FileObject location2 = location("ram:///Entity2/");
 
         final ILanguage language1 = language("Entity", version1, location1, ImmutableSet.of(".ent"));
 
@@ -118,10 +118,10 @@ public class LanguageServiceTest extends SpoofaxTest {
 
     @Test public void mostRecentLanguageActive() throws Exception {
         final LanguageVersion version = version(0, 0, 1, 0);
-        final FileName location1 = location("ram:///Entity1");
-        final FileName location2 = location("ram:///Entity2");
-        final FileName location3 = location("ram:///Entity3");
-        final FileName location4 = location("ram:///Entity3");
+        final FileObject location1 = location("ram:///Entity1");
+        final FileObject location2 = location("ram:///Entity2");
+        final FileObject location3 = location("ram:///Entity3");
+        final FileObject location4 = location("ram:///Entity3");
 
         final ILanguage language1 = language("Entity", version, location1, ImmutableSet.of(".ent"));
         assertEquals(language1, session.language.get("Entity"));
@@ -144,7 +144,7 @@ public class LanguageServiceTest extends SpoofaxTest {
 
     @Test public void reloadLanguage() throws Exception {
         final LanguageVersion version = version(0, 0, 1, 0);
-        final FileName location = location("ram:///");
+        final FileObject location = location("ram:///");
 
         ILanguage language = language("Entity", version, location, ImmutableSet.of(".ent"));
 
@@ -160,7 +160,7 @@ public class LanguageServiceTest extends SpoofaxTest {
 
     @Test public void observables() throws Exception {
         final LanguageVersion version = version(0, 0, 1, 0);
-        final FileName location = location("ram:///");
+        final FileObject location = location("ram:///");
         final ITestableObserver<LanguageChange> languageObserver = new TestableObserver<LanguageChange>();
         final ITestableObserver<LanguageFacetChange> facetObserver = new TestableObserver<LanguageFacetChange>();
 
@@ -211,7 +211,7 @@ public class LanguageServiceTest extends SpoofaxTest {
 
     @Test(expected = IllegalStateException.class) public void conflictingLocation() throws Exception {
         final LanguageVersion version = version(0, 0, 1, 0);
-        final FileName location = location("ram:///");
+        final FileObject location = location("ram:///");
 
         language("Entity1", version, location, ImmutableSet.of(".ent1"));
         language("Entity2", version, location, ImmutableSet.of(".ent2"));
@@ -219,8 +219,8 @@ public class LanguageServiceTest extends SpoofaxTest {
 
     @Test(expected = IllegalStateException.class) public void conflictingExtension() throws Exception {
         final LanguageVersion version = version(0, 0, 1, 0);
-        final FileName location1 = location("ram:///Entity1");
-        final FileName location2 = location("ram:///Entity2");
+        final FileObject location1 = location("ram:///Entity1");
+        final FileObject location2 = location("ram:///Entity2");
 
         language("Entity1", version, location1, ImmutableSet.of(".ent"));
         language("Entity2", version, location2, ImmutableSet.of(".ent"));
@@ -228,7 +228,7 @@ public class LanguageServiceTest extends SpoofaxTest {
 
     @Test(expected = IllegalStateException.class) public void conflictingFacet() throws Exception {
         final LanguageVersion version = version(0, 0, 1, 0);
-        final FileName location = location("ram:///");
+        final FileObject location = location("ram:///");
 
         final ILanguage language = language("Entity", version, location, ImmutableSet.of(".ent"));
         language.addFacet(AboutFacet.class, new AboutFacet("Entity language", null));
@@ -237,14 +237,14 @@ public class LanguageServiceTest extends SpoofaxTest {
 
     @Test(expected = IllegalStateException.class) public void nonExistantLanguage() throws Exception {
         final LanguageVersion version = version(0, 0, 1, 0);
-        final FileName location = location("ram:///");
+        final FileObject location = location("ram:///");
 
         session.language.destroy(new Language("Entity", version, location, ImmutableSet.of(".ent"), new Date()));
     }
 
     @Test(expected = IllegalStateException.class) public void nonExistantFacet() throws Exception {
         final LanguageVersion version = version(0, 0, 1, 0);
-        final FileName location = location("ram:///");
+        final FileObject location = location("ram:///");
 
         final ILanguage language = language("Entity", version, location, ImmutableSet.of(".ent"));
         language.removeFacet(AboutFacet.class);

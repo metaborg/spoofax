@@ -2,7 +2,7 @@ package org.metaborg.spoofax.core.language;
 
 import javax.annotation.Nullable;
 
-import org.apache.commons.vfs2.FileName;
+import org.apache.commons.vfs2.FileObject;
 
 import rx.Observable;
 
@@ -35,7 +35,7 @@ public interface ILanguageService {
      *            Location of the language.
      * @return Language with given name, version, and location, or null if it does not exist.
      */
-    public @Nullable ILanguage get(String name, LanguageVersion version, FileName location);
+    public @Nullable ILanguage get(String name, LanguageVersion version, FileObject location);
 
     /**
      * Returns the active language that handles given extension. A language is active if it has the highest version, and
@@ -85,7 +85,7 @@ public interface ILanguageService {
 
     /**
      * Creates a new language with given name, version, and location, that handles given extensions. Automatically
-     * creates facets for the language from resources in given location.
+     * creates facets for the language from resources at given location.
      * 
      * @param name
      *            Name of the language.
@@ -95,25 +95,27 @@ public interface ILanguageService {
      *            Location of the language.
      * @param extensions
      *            Extensions that language handles.
-     * @return Created language.
+     * @return Created language
      * @throws IllegalStateException
      *             when a language with a different name or version has already been created at given location.
      * @throws IllegalStateException
      *             when a language with a different name already handles any of given extensions.
+     * @throws IllegalStateException
+     *             when automatically creating facets fails unexpectedly.
      */
-    public ILanguage create(String name, LanguageVersion version, FileName location, ImmutableSet<String> extensions);
+    public ILanguage create(String name, LanguageVersion version, FileObject location, ImmutableSet<String> extensions);
 
     /**
      * Creates a new language with given name, version, and location, that handles given extensions. Does not
-     * automatically creates facets. Use this method when creating facets manually.
+     * automatically creates facets for the language. Use this method when creating facets manually.
      * 
      * @see ILanguageService#create
      */
-    public ILanguage createManual(String name, LanguageVersion version, FileName location,
+    public ILanguage createManual(String name, LanguageVersion version, FileObject location,
         ImmutableSet<String> extensions);
 
     /**
-     * Destroys given language.
+     * Destroys given language
      * 
      * @param language
      *            The language to destroy.

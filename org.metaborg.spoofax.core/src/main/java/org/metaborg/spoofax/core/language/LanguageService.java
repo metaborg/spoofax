@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.SortedSet;
 
 import org.apache.commons.vfs2.FileName;
+import org.apache.commons.vfs2.FileObject;
 
 import rx.Observable;
 import rx.subjects.PublishSubject;
@@ -16,13 +17,21 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.inject.Inject;
 
 public class LanguageService implements ILanguageService {
+    private final Set<ILanguageFacetFactory> facetFactories;
+
     private final Map<String, SortedSet<ILanguage>> nameToLanguages = Maps.newHashMap();
     private final Map<String, ILanguage> nameToActiveLanguage = Maps.newHashMap();
     private final Map<FileName, ILanguage> locationToLanguage = Maps.newHashMap();
     private final Map<String, String> extensionToLanguageName = Maps.newHashMap();
     private final Subject<LanguageChange, LanguageChange> languageChanges = PublishSubject.create();
+
+
+    @Inject public LanguageService(Set<ILanguageFacetFactory> facetFactories) {
+        this.facetFactories = facetFactories;
+    }
 
 
     private SortedSet<ILanguage> getLanguageSet(String name) {
@@ -42,7 +51,7 @@ public class LanguageService implements ILanguageService {
         return nameToActiveLanguage.get(name);
     }
 
-    @Override public ILanguage get(String name, LanguageVersion version, FileName location) {
+    @Override public ILanguage get(String name, LanguageVersion version, FileObject location) {
         final Set<ILanguage> languages = getLanguageSet(name);
         for(ILanguage language : languages) {
             if(language.version().equals(version) && language.location().equals(location)) {
@@ -99,13 +108,13 @@ public class LanguageService implements ILanguageService {
                     + " is already used by language " + existingName);
             }
         }
-        final ILanguage existingLanguage = locationToLanguage.get(language.location());
+        final ILanguage existingLanguage = locationToLanguage.get(language.location().getName());
         if(existingLanguage != null && !existingLanguage.name().equals(language.name())) {
             throw new IllegalStateException("Cannot load language, location " + language.location()
                 + " is already used by language " + existingLanguage.name());
         }
 
-        locationToLanguage.put(language.location(), language);
+        locationToLanguage.put(language.location().getName(), language);
 
         for(String extension : language.extensions()) {
             extensionToLanguageName.put(extension, language.name());
@@ -130,7 +139,7 @@ public class LanguageService implements ILanguageService {
             extensionToLanguageName.remove(extension);
         }
 
-        locationToLanguage.remove(language.location());
+        locationToLanguage.remove(language.location().getName());
 
         sendLanguageChange(language, LanguageChange.Kind.UNLOADED);
     }
@@ -176,7 +185,7 @@ public class LanguageService implements ILanguageService {
         }
     }
 
-    private ILanguage createInternal(String name, LanguageVersion version, FileName location,
+    private ILanguage createInternal(String name, LanguageVersion version, FileObject location,
         ImmutableSet<String> extensions, boolean createFacets) {
         final ILanguage language = new Language(name, version, location, extensions, new Date());
         final SortedSet<ILanguage> existingLanguages = getLanguageSet(name);
@@ -185,7 +194,7 @@ public class LanguageService implements ILanguageService {
             load(language, existingLanguages);
             activate(language);
         } else {
-            final ILanguage languageAtLocation = locationToLanguage.get(location);
+            final ILanguage languageAtLocation = locationToLanguage.get(location.getName());
             if(languageAtLocation != null) {
                 // Language at same location exists.
                 tryDeactivate(languageAtLocation);
@@ -202,12 +211,21 @@ public class LanguageService implements ILanguageService {
         return language;
     }
 
-    @Override public ILanguage create(String name, LanguageVersion version, FileName location,
+    @Override public ILanguage create(String name, LanguageVersion version, FileObject location,
         ImmutableSet<String> extensions) {
-        return createInternal(name, version, location, extensions, true);
+        final ILanguage language = createInternal(name, version, location, extensions, true);
+        for(ILanguageFacetFactory factory : facetFactories) {
+            try {
+                factory.create(language);
+            } catch(Exception e) {
+                throw new IllegalStateException("Cannot create language, creation of facets from factory "
+                    + factory.getClass() + " failed: " + e.getMessage());
+            }
+        }
+        return language;
     }
 
-    @Override public ILanguage createManual(String name, LanguageVersion version, FileName location,
+    @Override public ILanguage createManual(String name, LanguageVersion version, FileObject location,
         ImmutableSet<String> extensions) {
         return createInternal(name, version, location, extensions, false);
     }

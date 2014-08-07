@@ -2,7 +2,7 @@ package org.metaborg.spoofax.core.language;
 
 import java.util.Date;
 
-import org.apache.commons.vfs2.FileName;
+import org.apache.commons.vfs2.FileObject;
 
 import rx.Observable;
 import rx.subjects.PublishSubject;
@@ -16,7 +16,7 @@ import com.google.common.collect.MutableClassToInstanceMap;
 public class Language implements ILanguage {
     private final String name;
     private final LanguageVersion version;
-    private final FileName location;
+    private final FileObject location;
     private final ImmutableSet<String> extensions;
     private final Date loadedDate;
 
@@ -24,7 +24,7 @@ public class Language implements ILanguage {
     private final Subject<LanguageFacetChange, LanguageFacetChange> facetChanges = PublishSubject.create();
 
 
-    public Language(String name, LanguageVersion version, FileName location, ImmutableSet<String> extensions,
+    public Language(String name, LanguageVersion version, FileObject location, ImmutableSet<String> extensions,
         Date loadedDate) {
         this.name = name;
         this.version = version;
@@ -42,7 +42,7 @@ public class Language implements ILanguage {
         return version;
     }
 
-    @Override public FileName location() {
+    @Override public FileObject location() {
         return location;
     }
 
@@ -98,7 +98,7 @@ public class Language implements ILanguage {
             .compare(name, other.name())
             .compare(version, other.version())
             .compare(loadedDate, other.createdDate())
-            .compare(location, other.location())
+            .compare(location.getName(), other.location().getName())
             .result();
         // @formatter:on
     }

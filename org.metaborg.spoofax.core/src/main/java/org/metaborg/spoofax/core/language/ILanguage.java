@@ -4,7 +4,7 @@ import java.util.Date;
 
 import javax.annotation.Nullable;
 
-import org.apache.commons.vfs2.FileName;
+import org.apache.commons.vfs2.FileObject;
 
 import rx.Observable;
 
@@ -25,7 +25,7 @@ public interface ILanguage extends Comparable<ILanguage> {
     /**
      * Returns the location of the language.
      */
-    public FileName location();
+    public FileObject location();
 
     /**
      * Returns the extensions that this language handles.
