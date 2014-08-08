@@ -17,6 +17,7 @@ import rx.subjects.PublishSubject;
 import rx.subjects.Subject;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -73,6 +74,14 @@ public class LanguageService implements ILanguageService {
         return get(name);
     }
 
+    @Override public Iterable<ILanguage> getAll() {
+        return Iterables.concat(nameToLanguages.values());
+    }
+
+    @Override public Iterable<ILanguage> getAllActive() {
+        return nameToActiveLanguage.values();
+    }
+
     @Override public Iterable<ILanguage> getAll(String name) {
         return getLanguageSet(name);
     }
@@ -94,6 +103,14 @@ public class LanguageService implements ILanguageService {
             return null;
         }
         return getAll(name);
+    }
+
+    @Override public ILanguage getAny() {
+        return Iterables.get(nameToActiveLanguage.values(), 0, null);
+    }
+
+    @Override public Iterable<String> getSupportedExt() {
+        return extensionToLanguageName.keySet();
     }
 
     @Override public Observable<LanguageChange> changes() {

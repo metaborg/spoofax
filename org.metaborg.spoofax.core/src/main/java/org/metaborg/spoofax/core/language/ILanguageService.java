@@ -48,6 +48,20 @@ public interface ILanguageService {
     public @Nullable ILanguage getByExt(String extension);
 
     /**
+     * Returns all languages
+     * 
+     * @return Iterable over all languages.
+     */
+    public Iterable<ILanguage> getAll();
+
+    /**
+     * Returns all active languages.
+     * 
+     * @return Iterable over all active languages.
+     */
+    public Iterable<ILanguage> getAllActive();
+
+    /**
      * Returns all languages with given name.
      * 
      * @param name
@@ -75,6 +89,20 @@ public interface ILanguageService {
      * @return Iterable over all languages that handle given extension.
      */
     public Iterable<ILanguage> getAllByExt(String extension);
+
+    /**
+     * Returns a random language.
+     * 
+     * @return A random language, or null if no languages have been created.
+     */
+    public @Nullable ILanguage getAny();
+
+    /**
+     * Returns all supported extensions.
+     * 
+     * @return Iterable over all supported extensions.
+     */
+    public Iterable<String> getSupportedExt();
 
     /**
      * Returns an observable over language loaded, unloaded, activated, and deactivated changes.
