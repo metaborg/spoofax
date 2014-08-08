@@ -2,15 +2,16 @@ package org.metaborg.spoofax.core.resource;
 
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
-import org.apache.commons.vfs2.VFS;
+import org.apache.commons.vfs2.impl.StandardFileSystemManager;
 
 public class ResourceService implements IResourceService {
-    private final FileSystemManager fileSystemManager;
+    private final StandardFileSystemManager fileSystemManager;
 
 
     public ResourceService() {
         try {
-            this.fileSystemManager = VFS.getManager();
+            fileSystemManager = new StandardFileSystemManager();
+            fileSystemManager.init();
         } catch(FileSystemException e) {
             throw new RuntimeException("Cannot initialze resource service: " + e.getMessage(), e);
         }

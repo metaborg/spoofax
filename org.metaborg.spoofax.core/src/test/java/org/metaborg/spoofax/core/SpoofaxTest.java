@@ -1,30 +1,16 @@
 package org.metaborg.spoofax.core;
 
-import org.junit.After;
-import org.junit.Before;
+import org.jukito.UseModules;
+import org.metaborg.spoofax.core.language.ILanguageDiscoveryService;
+import org.metaborg.spoofax.core.language.ILanguageService;
+import org.metaborg.spoofax.core.resource.IResourceService;
+import org.metaborg.spoofax.core.terms.ITermFactoryService;
 
-import rx.schedulers.Schedulers;
-import rx.schedulers.TestScheduler;
+import com.google.inject.Inject;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-
-public class SpoofaxTest {
-    protected static TestScheduler testScheduler;
-
-    protected SpoofaxSession session;
-
-    public static void initialize() {
-        testScheduler = Schedulers.test();
-    }
-
-    @Before public void setUp() {
-        final Injector injector = Guice.createInjector(new SpoofaxModule());
-        session = injector.getInstance(SpoofaxSession.class);
-    }
-
-    @After public void tearDown() {
-        testScheduler.triggerActions();
-        session = null;
-    }
+@UseModules(SpoofaxModule.class) public class SpoofaxTest {
+    @Inject protected IResourceService resourceService;
+    @Inject protected ITermFactoryService termFactoryService;
+    @Inject protected ILanguageService languageService;
+    @Inject protected ILanguageDiscoveryService languageDiscoveryService;
 }

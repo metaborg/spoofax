@@ -13,6 +13,7 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoList;
+import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.common.collect.Sets;
@@ -106,6 +107,16 @@ public class ESVReader {
         return observerFunction;
     }
 
+    public static String onSaveFunction(IStrategoAppl document) {
+        IStrategoAppl onsave = findTerm(document, "OnSave");
+        onsave = onsave == null ? findTerm(document, "OnSaveDeprecated") : onsave;
+        if(onsave != null) {
+            String function = ((IStrategoString) onsave.getSubterm(0).getSubterm(0)).stringValue();
+            return function;
+        }
+        return null;
+    }
+
     public static String startSymbol(IStrategoAppl document) {
         IStrategoAppl result = findTerm(document, "StartSymbols");
         if(result == null)
@@ -139,7 +150,7 @@ public class ESVReader {
         return getProperty(document, "Extensions").split(",");
     }
 
-    public static Collection<IStrategoAppl> builders(IStrategoAppl document) {
+    public static Iterable<IStrategoAppl> builders(IStrategoAppl document) {
         return collectTerms(document, "Action");
     }
 

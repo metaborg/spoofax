@@ -73,15 +73,13 @@ public interface ILanguage extends Comparable<ILanguage> {
     /**
      * Adds given facet to the language.
      * 
-     * @param type
-     *            Type of the facet to add.
      * @param facet
      *            The facet to add.
      * @return The added facet
      * @throws IllegalStateException
      *             when facet with given type already exists in the language.
      */
-    public <T extends ILanguageFacet> ILanguageFacet addFacet(Class<T> type, T facet);
+    public <T extends ILanguageFacet> ILanguageFacet addFacet(T facet);
 
     /**
      * Removes facet of given type from the language.

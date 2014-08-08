@@ -71,7 +71,8 @@ public class Language implements ILanguage {
         return facetChanges;
     }
 
-    @Override public <T extends ILanguageFacet> ILanguageFacet addFacet(Class<T> type, T facet) {
+    @Override public <T extends ILanguageFacet> ILanguageFacet addFacet(T facet) {
+        @SuppressWarnings("unchecked") final Class<T> type = (Class<T>) facet.getClass();
         if(facets.containsKey(type)) {
             throw new IllegalStateException("Cannot add facet, facet of type " + type + " already exists in language "
                 + name);

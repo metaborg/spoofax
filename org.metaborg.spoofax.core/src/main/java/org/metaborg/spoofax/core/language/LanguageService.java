@@ -8,6 +8,9 @@ import java.util.SortedSet;
 
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
+import org.apache.logging.log4j.Logger;
+import org.metaborg.util.logging.InjectLogger;
 
 import rx.Observable;
 import rx.subjects.PublishSubject;
@@ -20,6 +23,7 @@ import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
 public class LanguageService implements ILanguageService {
+    @InjectLogger private Logger logger;
     private final Set<ILanguageFacetFactory> facetFactories;
 
     private final Map<String, SortedSet<ILanguage>> nameToLanguages = Maps.newHashMap();
@@ -101,6 +105,16 @@ public class LanguageService implements ILanguageService {
     }
 
     private void load(ILanguage language, Set<ILanguage> existingLanguages) {
+        try {
+            if(!language.location().exists()) {
+                throw new IllegalStateException("Cannot load language, location " + language.location()
+                    + " does not exist.");
+            }
+        } catch(FileSystemException e) {
+            throw new IllegalStateException("Cannot load language, could not determine if location "
+                + language.location() + " exists: " + e.getMessage(), e);
+        }
+
         for(String extension : language.extensions()) {
             final String existingName = extensionToLanguageName.get(extension);
             if(existingName != null && !existingName.equals(language.name())) {
@@ -108,6 +122,7 @@ public class LanguageService implements ILanguageService {
                     + " is already used by language " + existingName);
             }
         }
+
         final ILanguage existingLanguage = locationToLanguage.get(language.location().getName());
         if(existingLanguage != null && !existingLanguage.name().equals(language.name())) {
             throw new IllegalStateException("Cannot load language, location " + language.location()
@@ -185,8 +200,8 @@ public class LanguageService implements ILanguageService {
         }
     }
 
-    private ILanguage createInternal(String name, LanguageVersion version, FileObject location,
-        ImmutableSet<String> extensions, boolean createFacets) {
+    @Override public ILanguage create(String name, LanguageVersion version, FileObject location,
+        ImmutableSet<String> extensions) {
         final ILanguage language = new Language(name, version, location, extensions, new Date());
         final SortedSet<ILanguage> existingLanguages = getLanguageSet(name);
         if(existingLanguages.isEmpty()) {
@@ -208,26 +223,16 @@ public class LanguageService implements ILanguageService {
             }
         }
 
-        return language;
-    }
-
-    @Override public ILanguage create(String name, LanguageVersion version, FileObject location,
-        ImmutableSet<String> extensions) {
-        final ILanguage language = createInternal(name, version, location, extensions, true);
         for(ILanguageFacetFactory factory : facetFactories) {
             try {
                 factory.create(language);
             } catch(Exception e) {
-                throw new IllegalStateException("Cannot create language, creation of facets from factory "
-                    + factory.getClass() + " failed: " + e.getMessage());
+                logger.error("Cannot create language, creation of facets from factory " + factory.getClass()
+                    + " failed: " + e.getMessage(), e);
             }
         }
-        return language;
-    }
 
-    @Override public ILanguage createManual(String name, LanguageVersion version, FileObject location,
-        ImmutableSet<String> extensions) {
-        return createInternal(name, version, location, extensions, false);
+        return language;
     }
 
     @Override public void destroy(ILanguage language) {

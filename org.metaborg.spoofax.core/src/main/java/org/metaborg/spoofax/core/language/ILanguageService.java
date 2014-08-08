@@ -85,7 +85,7 @@ public interface ILanguageService {
 
     /**
      * Creates a new language with given name, version, and location, that handles given extensions. Automatically
-     * creates facets for the language from resources at given location.
+     * creates facets for the language from any {@link ILanguageFacetFactory} implementations.
      * 
      * @param name
      *            Name of the language.
@@ -97,6 +97,8 @@ public interface ILanguageService {
      *            Extensions that language handles.
      * @return Created language
      * @throws IllegalStateException
+     *             when given location does not exist, or if it is not possible to determine if the location exists.
+     * @throws IllegalStateException
      *             when a language with a different name or version has already been created at given location.
      * @throws IllegalStateException
      *             when a language with a different name already handles any of given extensions.
@@ -104,15 +106,6 @@ public interface ILanguageService {
      *             when automatically creating facets fails unexpectedly.
      */
     public ILanguage create(String name, LanguageVersion version, FileObject location, ImmutableSet<String> extensions);
-
-    /**
-     * Creates a new language with given name, version, and location, that handles given extensions. Does not
-     * automatically creates facets for the language. Use this method when creating facets manually.
-     * 
-     * @see ILanguageService#create
-     */
-    public ILanguage createManual(String name, LanguageVersion version, FileObject location,
-        ImmutableSet<String> extensions);
 
     /**
      * Destroys given language
