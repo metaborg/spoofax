@@ -4,6 +4,8 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>org.strategoxt.imp.nativebundle</artifactId>
 	<packaging>eclipse-plugin</packaging>
+	<description>Bundle for implodePT and sdf2table native executables</description>
+	<url>https://github.com/metaborg/spoofax</url>
 
 	<parent>
 		<groupId>org.metaborg</groupId>
@@ -15,4 +17,13 @@
 	<build>
 		<sourceDirectory>src</sourceDirectory>
 	</build>
+
+	<developers>
+	</developers>
+
+	<scm>
+		<connection>scm:git:git@github.com:metaborg/spoofax.git</connection>
+		<developerConnection>scm:git:git@github.com:metaborg/spoofax.git</developerConnection>
+		<url>https://github.com/metaborg/spoofax</url>
+	</scm>
 </project>
