@@ -48,6 +48,15 @@
 					<include>**/*.ctree</include>
 				</includes>
 			</resource>
+			<resource>
+				<directory>dist</directory>
+				<includes>
+					<include>aster.jar</include>
+					<include>make_permissive.jar</include>
+					<include>sdf2imp.jar</include>
+					<include>StrategoMix.def</include>
+				</includes>
+			</resource>
 		</resources>
 
 		<plugins>
