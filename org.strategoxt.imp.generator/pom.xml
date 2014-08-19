@@ -48,8 +48,10 @@
 					<include>**/*.ctree</include>
 				</includes>
 			</resource>
+
 			<resource>
 				<directory>dist</directory>
+				<targetPath>dist</targetPath>
 				<includes>
 					<include>aster.jar</include>
 					<include>make_permissive.jar</include>
