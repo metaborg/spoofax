@@ -4,6 +4,8 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>org.strategoxt.imp.generator</artifactId>
 	<packaging>jar</packaging>
+	<description>Spoofax project generator and ESV utilities</description>
+	<url>https://github.com/metaborg/spoofax</url>
 
 	<parent>
 		<groupId>org.metaborg</groupId>
@@ -33,20 +35,29 @@
 	<build>
 		<sourceDirectory>src-gen</sourceDirectory>
 
-    <resources>
-      <resource>
-        <directory>src-gen</directory>
-        <includes>
-          <include>**/*.af</include>
-          <include>**/*.pp.af</include>
-          <include>**/*.def</include>
-          <include>**/*.tbl</include>
-          <include>**/*.str</include>
-          <include>**/*.rtree</include>
-          <include>**/*.ctree</include>
-        </includes>
-      </resource>
-    </resources>
+		<resources>
+			<resource>
+				<directory>src-gen</directory>
+				<includes>
+					<include>**/*.af</include>
+					<include>**/*.pp.af</include>
+					<include>**/*.def</include>
+					<include>**/*.tbl</include>
+					<include>**/*.str</include>
+					<include>**/*.rtree</include>
+					<include>**/*.ctree</include>
+				</includes>
+			</resource>
+			<resource>
+				<directory>dist</directory>
+				<includes>
+					<include>aster.jar</include>
+					<include>make_permissive.jar</include>
+					<include>sdf2imp.jar</include>
+					<include>StrategoMix.def</include>
+				</includes>
+			</resource>
+		</resources>
 
 		<plugins>
 			<plugin>
@@ -168,4 +179,31 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<developers>
+		<developer>
+			<name>Vlad Vergu</name>
+			<email>v.a.vergu@tudelft.nl</email>
+			<organization>Delft University of Technology</organization>
+			<organizationUrl>http://www.ewi.tudelft.nl/en</organizationUrl>
+		</developer>
+		<developer>
+			<name>Gabriël Konat</name>
+			<email>g.d.p.konat@tudelft.nl</email>
+			<organization>Delft University of Technology</organization>
+			<organizationUrl>http://www.ewi.tudelft.nl/en</organizationUrl>
+		</developer>
+		<developer>
+			<name>Oskar van Rest</name>
+			<email>oskar.van.rest@oracle.com</email>
+			<organization>Oracle Labs</organization>
+			<organizationUrl>https://labs.oracle.com</organizationUrl>
+		</developer>
+	</developers>
+
+	<scm>
+		<connection>scm:git:git@github.com:metaborg/spoofax.git</connection>
+		<developerConnection>scm:git:git@github.com:metaborg/spoofax.git</developerConnection>
+		<url>https://github.com/metaborg/spoofax</url>
+	</scm>
 </project>

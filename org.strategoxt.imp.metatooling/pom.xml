@@ -4,6 +4,8 @@
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>org.strategoxt.imp.metatooling</artifactId>
 	<packaging>eclipse-plugin</packaging>
+	<description>Spoofax Eclipse metatooling</description>
+	<url>https://github.com/metaborg/spoofax</url>
 
 	<parent>
 		<groupId>org.metaborg</groupId>
@@ -15,4 +17,31 @@
 	<build>
 		<sourceDirectory>src</sourceDirectory>
 	</build>
+
+	<developers>
+		<developer>
+			<name>Oskar van Rest</name>
+			<email>oskar.van.rest@oracle.com</email>
+			<organization>Oracle Labs</organization>
+			<organizationUrl>https://labs.oracle.com</organizationUrl>
+		</developer>
+		<developer>
+			<name>Gabriël Konat</name>
+			<email>g.d.p.konat@tudelft.nl</email>
+			<organization>Delft University of Technology</organization>
+			<organizationUrl>http://www.ewi.tudelft.nl/en</organizationUrl>
+		</developer>
+		<developer>
+			<name>Vlad Vergu</name>
+			<email>v.a.vergu@tudelft.nl</email>
+			<organization>Delft University of Technology</organization>
+			<organizationUrl>http://www.ewi.tudelft.nl/en</organizationUrl>
+		</developer>
+	</developers>
+
+	<scm>
+		<connection>scm:git:git@github.com:metaborg/spoofax.git</connection>
+		<developerConnection>scm:git:git@github.com:metaborg/spoofax.git</developerConnection>
+		<url>https://github.com/metaborg/spoofax</url>
+	</scm>
 </project>
