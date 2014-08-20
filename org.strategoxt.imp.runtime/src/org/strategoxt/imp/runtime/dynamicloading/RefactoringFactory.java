@@ -121,7 +121,7 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 		HashMap<IStrategoTerm, String> keybindings = getKeybindings(d);
 		Set<IRefactoring> refactorings = new LinkedHashSet<IRefactoring>();
 		StrategoObserver feedback = d.createService(StrategoObserver.class, controller);
-		StrategoTextChangeCalculator textChangeCalculator = createTextChangeCalculator(d);
+		StrategoTextChangeCalculator textChangeCalculator = new StrategoTextChangeCalculator();
 		for (IStrategoAppl aRefactoring : collectTerms(d.getDocument(), "Refactoring")) {
 			IStrategoTerm[] semanticNodes = termAt(aRefactoring,0).getAllSubterms();
 			String caption = termContents(termAt(aRefactoring, 1));
@@ -182,53 +182,6 @@ public class RefactoringFactory extends AbstractServiceFactory<IRefactoringMap> 
 		}
 		return keybindings;
 	}
-
-	public static StrategoTextChangeCalculator createTextChangeCalculator(Descriptor d)
-			throws BadDescriptorException {
-		String ppStrategy = getPPStrategy(d);
-		String parenthesize = getParenthesizeStrategy(d);
-		String overrideReconstruction = getOverrideReconstructionStrategy(d);
-		String resugar = getResugarStrategy(d);
-		StrategoTextChangeCalculator textChangeCalculator = new StrategoTextChangeCalculator(ppStrategy, parenthesize, overrideReconstruction, resugar);
-		return textChangeCalculator;
-	}
-
-	public static String getPPStrategy(Descriptor d) throws BadDescriptorException {
-		String ppStrategy = getHelperStrategyName(d, "PrettyPrint");
-		if(ppStrategy == null)
-			ppStrategy = ("pp-" + d.getLanguage().getName() + "-string").toLowerCase();
-		return ppStrategy;
-	}
-
-	public static String getParenthesizeStrategy(Descriptor d) throws BadDescriptorException {
-		String parenthesizeStrategy = getHelperStrategyName(d, "Parenthesize");
-		if(parenthesizeStrategy == null)
-			parenthesizeStrategy = ("parenthesize-" + d.getLanguage().getName());
-		return parenthesizeStrategy;
-	}
-
-	public static String getOverrideReconstructionStrategy(Descriptor d) throws BadDescriptorException {
-		String overrideReconstructionStrategy = getHelperStrategyName(d, "OverrideReconstruction");
-		if(overrideReconstructionStrategy == null)
-			overrideReconstructionStrategy = "fail";
-		return overrideReconstructionStrategy;
-	}
-
-	public static String getResugarStrategy(Descriptor d) throws BadDescriptorException {
-		String resugarStrategy = getHelperStrategyName(d, "Resugar");
-		if(resugarStrategy == null)
-			resugarStrategy = "fail";
-		return resugarStrategy;
-	}
-
-	public static String getHelperStrategyName(Descriptor d, String strategyTermCons) {
-		IStrategoAppl strategyTerm = TermReader.findTerm(d.getDocument(), strategyTermCons);
-		String strategyName = null;
-		if(strategyTerm != null)
-			strategyName=termContents(termAt(strategyTerm, 0));
-		return strategyName;
-	}
-
 
 	private static String getActionDefinitionId(IStrategoTerm userInteractions, HashMap<IStrategoTerm, String> keybindings) {
 		IStrategoTerm keycombination = TermReader.findTerm(userInteractions, "KeyCombination");

@@ -222,7 +222,7 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 			updateStatus(status, warnings, RefactoringStatus.WARNING);
 			if(status.hasFatalError())
 				return status; //no need to calculate text changes
-			fileChanges = textChangeCalculator.getFileChanges(astChanges, observer);
+			fileChanges = textChangeCalculator.getFileChanges(astChanges, observer, getFile());
 			if (fileChanges == null) {
 				observer.reportRewritingFailed();
 				String errorMessage = "Text-reconstruction unexpectedly fails, did you specify a suitable pretty-print strategy?: \n"+ observer.getLog();
