@@ -73,54 +73,6 @@
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-install-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>install-aster-jar</id>
-						<phase>install</phase>
-						<goals>
-							<goal>install-file</goal>
-						</goals>
-						<configuration>
-							<groupId>org.metaborg</groupId>
-							<artifactId>aster-jar</artifactId>
-							<version>${metaborg-version}</version>
-							<packaging>jar</packaging>
-							<file>${basedir}/dist/aster.jar</file>
-						</configuration>
-					</execution>
-					<execution>
-						<id>install-sdf2imp-jar</id>
-						<phase>install</phase>
-						<goals>
-							<goal>install-file</goal>
-						</goals>
-						<configuration>
-							<groupId>org.metaborg</groupId>
-							<artifactId>sdf2imp-jar</artifactId>
-							<version>${metaborg-version}</version>
-							<packaging>jar</packaging>
-							<file>${basedir}/dist/sdf2imp.jar</file>
-						</configuration>
-					</execution>
-					<execution>
-						<id>install-make-permissive-jar</id>
-						<phase>install</phase>
-						<goals>
-							<goal>install-file</goal>
-						</goals>
-						<configuration>
-							<groupId>org.metaborg</groupId>
-							<artifactId>make-permissive-jar</artifactId>
-							<version>${metaborg-version}</version>
-							<packaging>jar</packaging>
-							<file>${basedir}/dist/make_permissive.jar</file>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-antrun-plugin</artifactId>
 				<dependencies>
 					<dependency>
