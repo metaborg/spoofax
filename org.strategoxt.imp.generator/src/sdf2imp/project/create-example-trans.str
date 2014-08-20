@@ -262,6 +262,7 @@ imports
 
 	libstratego-gpp
 	lib/runtime/tmpl/pp
+	lib/runtime/refactoring/-
 	Common.pp.generated
 	{sdf-name}.pp.generated
 
@@ -283,6 +284,17 @@ rules
        result := <pp-{sdf-name}-string> ast
     <+ <bottomup(try(not(is-string); not(is-list); not(pp-{sdf-name}-string); debug(!"cannot pp ")))> ast
     ;  result := ""
+
+rules
+  
+  /**
+  * Given an old AST and a new AST, pretty-prints the new AST while presevering 
+  * layout (e.g. whitespacing and comments) associated with the old AST.
+  *
+  * Example:
+  *   new-text := <construct-textual-change> (old-ast, new-ast)
+  */
+  construct-textual-change = construct-textual-change(pp-partial-{sdf-name}-string, parenthesize, override-reconstruction, resugar)
 
 }
   +
@@ -292,6 +304,7 @@ imports
 
 	libstratego-gpp
 	lib/runtime/tmpl/pp
+	lib/runtime/refactoring/-
 	Common.pp.generated
 	{sdf-name}.pp.generated
 
@@ -313,6 +326,17 @@ rules
        result := <pp-{sdf-name}-string> ast
     <+ <bottomup(try(not(is-string); not(is-list); not(pp-{sdf-name}-string); debug(!"cannot pp ")))> ast
     ;  result := ""
+
+rules
+  
+  /**
+  * Given an old AST and a new AST, pretty-prints the new AST while presevering 
+  * layout (e.g. whitespacing and comments) associated with the old AST.
+  *
+  * Example:
+  *   new-text := <construct-textual-change> (old-ast, new-ast)
+  */
+  construct-textual-change = construct-textual-change(pp-partial-{sdf-name}-string, parenthesize, override-reconstruction, resugar)
 
 })>
 end
