@@ -4285,6 +4285,17 @@ rules
 
 "
 
+	create-refactoring-interface = 
+		<output-text-file(|["lib", "runtime", "refactoring"], "interface.str")>
+"module runtime/refactoring/interface
+
+rules
+
+  resugar                 = fail
+  parenthesize            = fail
+  override-reconstruction = fail
+"
+
 	create-refactoring-layout-adaption = 
 		<output-text-file(|["lib", "runtime", "refactoring"], "layout-adaption.str")>
 "module runtime/refactoring/layout-adaption
@@ -6585,6 +6596,7 @@ create-all-runtime-libraries =
 ; 	create-nabl-uri
 ; 	create-nabl-check
 ; 	create-refactoring-construct-initial-list-structure
+; 	create-refactoring-interface
 ; 	create-refactoring-layout-adaption
 ; 	create-refactoring-construct-text
 ; 	create-modelware-signatures
