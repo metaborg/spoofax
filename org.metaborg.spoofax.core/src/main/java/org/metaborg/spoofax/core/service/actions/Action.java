@@ -1,18 +1,44 @@
 package org.metaborg.spoofax.core.service.actions;
 
+import org.metaborg.spoofax.core.language.ILanguage;
+
 /**
  * Description of a Stratego strategy that can be executed on a language.
  */
 public class Action {
+    /**
+     * Name of the action.
+     */
+    public final String name;
+    /**
+     * Language of input terms this builder accepts.
+     */
+    public final ILanguage inputLangauge;
+    /**
+     * Name of the Stratego strategy this action executes.
+     */
     public final String strategoStrategy;
+    /**
+     * Flag indicating if the strategy should be invoked on the source AST instead of the analyzed AST.
+     */
     public final boolean source;
+    /**
+     * Flag indicating if this is a meta-action, which is hidden from regular users.
+     */
     public final boolean meta;
+    /**
+     * Flag indicating if the result of this action should be shown in a new editor.
+     */
     public final boolean openEditor;
 
 
     /**
      * Creates an action from a strategy name and flags.
      * 
+     * @param name
+     *            Name of the action.
+     * @param inputLanguage
+     *            Language of input terms this builder accepts.
      * @param strategoStrategy
      *            Name of the Stratego strategy this action executes.
      * @param source
@@ -22,7 +48,10 @@ public class Action {
      * @param openEditor
      *            Flag indicating if the result of this action should be shown in a new editor.
      */
-    public Action(String strategoStrategy, boolean source, boolean meta, boolean openEditor) {
+    public Action(String name, ILanguage inputLanguage, String strategoStrategy, boolean source, boolean meta,
+        boolean openEditor) {
+        this.name = name;
+        this.inputLangauge = inputLanguage;
         this.strategoStrategy = strategoStrategy;
         this.source = source;
         this.meta = meta;
@@ -33,6 +62,8 @@ public class Action {
     @Override public int hashCode() {
         final int prime = 31;
         int result = 1;
+        result = prime * result + name.hashCode();
+        result = prime * result + inputLangauge.hashCode();
         result = prime * result + strategoStrategy.hashCode();
         result = prime * result + (source ? 1231 : 1237);
         result = prime * result + (meta ? 1231 : 1237);
@@ -48,6 +79,10 @@ public class Action {
         if(getClass() != obj.getClass())
             return false;
         final Action other = (Action) obj;
+        if(!name.equals(other.name))
+            return false;
+        if(!inputLangauge.equals(other.inputLangauge))
+            return false;
         if(!strategoStrategy.equals(other.strategoStrategy))
             return false;
         if(source != other.source)

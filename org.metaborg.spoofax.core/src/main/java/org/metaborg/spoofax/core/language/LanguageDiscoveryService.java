@@ -7,6 +7,8 @@ import java.util.Set;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.logging.log4j.Logger;
+import org.metaborg.spoofax.core.parser.FileParseTableProvider;
+import org.metaborg.spoofax.core.parser.IParseService;
 import org.metaborg.spoofax.core.service.actions.Action;
 import org.metaborg.spoofax.core.service.actions.ActionsFacet;
 import org.metaborg.spoofax.core.service.stratego.StrategoFacet;
@@ -23,16 +25,21 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
+import com.google.inject.name.Named;
 
 public class LanguageDiscoveryService implements ILanguageDiscoveryService {
     @InjectLogger private Logger logger;
     private final ILanguageService languageService;
     private final ITermFactoryService termFactoryService;
+    private final IParseService parseService;
+    @Inject(optional = true) @Named("LanguageDiscoveryAnalysisOverride") private String analysisStrategyOverride;
 
 
-    @Inject public LanguageDiscoveryService(ILanguageService languageService, ITermFactoryService termFactoryService) {
+    @Inject public LanguageDiscoveryService(ILanguageService languageService, ITermFactoryService termFactoryService,
+        IParseService parseService) {
         this.languageService = languageService;
         this.termFactoryService = termFactoryService;
+        this.parseService = parseService;
     }
 
 
@@ -70,7 +77,9 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
         final FileObject parseTable = location.resolveFile(parseTableName(esvTerm));
         final String startSymbol = startSymbol(esvTerm); // TODO: what about multiple start symbols?
-        final SyntaxFacet syntaxFacet = new SyntaxFacet(parseTable, Sets.newHashSet(startSymbol));
+        final SyntaxFacet syntaxFacet =
+            new SyntaxFacet(new FileParseTableProvider(parseTable, parseService.parseTableManager(), true),
+                Sets.newHashSet(startSymbol));
         language.addFacet(syntaxFacet);
 
         final Set<FileObject> strategoFiles = attachedFiles(esvTerm, location);
@@ -87,7 +96,8 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
                     + ", ignoring.");
             }
         }
-        final String strategoAnalysisStrategy = observerFunction(esvTerm);
+        final String strategoAnalysisStrategy =
+            analysisStrategyOverride == null ? observerFunction(esvTerm) : analysisStrategyOverride;
         final String strategoOnSaveStrategy = onSaveFunction(esvTerm);
         final StrategoFacet strategoFacet =
             new StrategoFacet(ctreeFiles, jarFiles, strategoAnalysisStrategy, strategoOnSaveStrategy);
@@ -96,8 +106,9 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         final ActionsFacet actionsFacet = new ActionsFacet();
         final Iterable<IStrategoAppl> actions = builders(esvTerm);
         for(IStrategoAppl action : actions) {
-            actionsFacet.add(builderName(action), new Action(builderTarget(action), builderIsOnSource(action),
-                builderIsMeta(action), builderIsOpenEditor(action)));
+            final String actionName = builderName(action);
+            actionsFacet.add(actionName, new Action(actionName, language, builderTarget(action),
+                builderIsOnSource(action), builderIsMeta(action), builderIsOpenEditor(action)));
         }
         language.addFacet(actionsFacet);
 

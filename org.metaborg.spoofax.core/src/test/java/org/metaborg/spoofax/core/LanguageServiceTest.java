@@ -7,9 +7,7 @@ import java.util.Date;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.jukito.JukitoRunner;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageFacet;
 import org.metaborg.spoofax.core.language.Language;
@@ -17,10 +15,8 @@ import org.metaborg.spoofax.core.language.LanguageChange;
 import org.metaborg.spoofax.core.language.LanguageFacetChange;
 import org.metaborg.spoofax.core.language.LanguageVersion;
 import org.metaborg.spoofax.core.service.about.AboutFacet;
-import org.metaborg.spoofax.core.service.actions.ActionsFacet;
 import org.metaborg.spoofax.core.service.stratego.StrategoFacet;
 import org.metaborg.spoofax.core.service.syntax.SyntaxFacet;
-import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.observable.ITestableObserver;
 import org.metaborg.util.observable.TestableObserver;
 import org.metaborg.util.observable.TimestampedNotification;
@@ -28,13 +24,13 @@ import org.metaborg.util.observable.TimestampedNotification;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 
-@RunWith(JukitoRunner.class) public class LanguageServiceTest extends SpoofaxTest {
+public class LanguageServiceTest extends SpoofaxTest {
     private LanguageVersion version(int major, int minor, int patch, int qualifier) {
         return new LanguageVersion(major, minor, patch, qualifier);
     }
 
     private FileObject createDirectory(String uri) throws FileSystemException {
-        final FileObject file = resourceService.fileSystemManager().resolveFile(uri);
+        final FileObject file = resourceService.resolve(uri);
         file.createFolder();
         return file;
     }
@@ -167,7 +163,7 @@ import com.google.common.collect.Iterables;
      * in the resources to test language discovery.
      */
     @Test public void discoverLanguage() throws Exception {
-        final FileObject location = resourceService.fileSystemManager().resolveFile("res:");
+        final FileObject location = resourceService.resolve("res:");
 
         final Iterable<ILanguage> languages = languageDiscoveryService.discover(location);
 
@@ -176,25 +172,21 @@ import com.google.common.collect.Iterables;
         final ILanguage language = Iterables.get(languages, 0);
 
         assertEquals("Entity", language.name());
-        assertEquals(resourceService.fileSystemManager().resolveFile("res:Entity"), language.location());
+        assertEquals(resourceService.resolve("res:Entity"), language.location());
         assertIterableEquals(language.extensions(), "ent");
 
         final SyntaxFacet syntaxFacet = language.facet(SyntaxFacet.class);
 
-        assertEquals(resourceService.fileSystemManager().resolveFile("res:Entity/include/Entity.tbl"),
-            syntaxFacet.parseTable());
+        assertEquals(resourceService.resolve("res:Entity/include/Entity.tbl"), syntaxFacet.parseTableProvider().file());
         assertIterableEquals(syntaxFacet.startSymbols(), "Start");
 
         final StrategoFacet strategoFacet = language.facet(StrategoFacet.class);
 
-        assertIterableEquals(strategoFacet.ctreeFiles(),
-            resourceService.fileSystemManager().resolveFile("res:Entity/include/entity.ctree"));
-        assertIterableEquals(strategoFacet.jarFiles(),
-            resourceService.fileSystemManager().resolveFile("res:Entity/include/entity-java.jar"));
+        assertIterableEquals(strategoFacet.ctreeFiles(), resourceService.resolve("res:Entity/include/entity.ctree"));
+        assertIterableEquals(strategoFacet.jarFiles(), resourceService.resolve("res:Entity/include/entity-java.jar"));
         assertEquals("editor-analyze", strategoFacet.analysisStrategy());
         assertEquals("editor-save", strategoFacet.onSaveStrategy());
 
-        final ActionsFacet actionsFacet = language.facet(ActionsFacet.class);
         // TODO: test actions facet.
     }
 
@@ -277,7 +269,7 @@ import com.google.common.collect.Iterables;
 
     @Test(expected = IllegalStateException.class) public void nonExistantLocation() throws Exception {
         final LanguageVersion version = version(0, 0, 1, 0);
-        final FileObject location = resourceService.fileSystemManager().resolveFile("ram:///doesnotexist");
+        final FileObject location = resourceService.resolve("ram:///doesnotexist");
 
         language("Entity", version, location, ImmutableSet.of(".ent"));
     }

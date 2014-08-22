@@ -1,7 +1,6 @@
 package org.metaborg.spoofax.core.service.actions;
 
 import java.util.Map;
-import java.util.Map.Entry;
 
 import javax.annotation.Nullable;
 
@@ -25,16 +24,17 @@ public class ActionsFacet implements ILanguageFacet {
      * @return Action with given name, or null if there is no action with given name.
      */
     public @Nullable Action get(String name) {
+        // TODO: throw exception if action does not exist.
         return actions.get(name);
     }
 
     /**
      * Gets all actions
      * 
-     * @return Iterable over name-action entries.
+     * @return Iterable over actions.
      */
-    public Iterable<Entry<String, Action>> all() {
-        return actions.entrySet();
+    public Iterable<Action> all() {
+        return actions.values();
     }
 
     /**
@@ -46,7 +46,19 @@ public class ActionsFacet implements ILanguageFacet {
      *            Action to add
      */
     public void add(String name, Action action) {
+        // TODO: throw exception if action already exists.
         actions.put(name, action);
+    }
+
+    /**
+     * Adds all actions in given mapping.
+     * 
+     * @param actions
+     *            The actions to add.
+     */
+    public void addAll(Map<String, Action> actions) {
+        // TODO: throw exception if action already exists.
+        actions.putAll(actions);
     }
 
     /**
@@ -57,6 +69,7 @@ public class ActionsFacet implements ILanguageFacet {
      * @return The removed action, or null if no action was removed.
      */
     public @Nullable Action remove(String name) {
+        // TODO: throw exception if action does not exist.
         return actions.remove(name);
     }
 }

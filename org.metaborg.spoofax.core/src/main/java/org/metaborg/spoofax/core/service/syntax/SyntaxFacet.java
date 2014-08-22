@@ -2,38 +2,38 @@ package org.metaborg.spoofax.core.service.syntax;
 
 import java.util.Set;
 
-import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.language.ILanguageFacet;
+import org.metaborg.spoofax.core.parser.IParseTableProvider;
 
 /**
  * Represents the syntax (or parsing) facet of a language.
  */
 public class SyntaxFacet implements ILanguageFacet {
-    private final FileObject parseTable;
+    private final IParseTableProvider parseTableProvider;
     private final Set<String> startSymbols;
 
 
     /**
-     * Creates a syntax facet from a parse table file and start symbols.
+     * Creates a syntax facet from a parse table provider and start symbols.
      * 
-     * @param parseTable
-     *            Parse table file.
+     * @param parseTableProvider
+     *            Parse table provider.
      * @param startSymbols
      *            Set of start symbols.
      */
-    public SyntaxFacet(FileObject parseTable, Set<String> startSymbols) {
-        this.parseTable = parseTable;
+    public SyntaxFacet(IParseTableProvider parseTableProvider, Set<String> startSymbols) {
+        this.parseTableProvider = parseTableProvider;
         this.startSymbols = startSymbols;
     }
 
 
     /**
-     * Returns the parse table file.
+     * Returns the parse table provider.
      * 
-     * @return Parse table file.
+     * @return Parse table provider.
      */
-    public FileObject parseTable() {
-        return parseTable;
+    public IParseTableProvider parseTableProvider() {
+        return parseTableProvider;
     }
 
     /**

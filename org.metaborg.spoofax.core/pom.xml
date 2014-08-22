@@ -68,11 +68,6 @@
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.jukito</groupId>
-			<artifactId>jukito</artifactId>
-			<scope>test</scope>
-		</dependency>
 	</dependencies>
 
 	<developers>
