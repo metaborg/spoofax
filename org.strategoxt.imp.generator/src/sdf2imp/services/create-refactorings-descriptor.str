@@ -97,13 +97,11 @@ strategies
     )
     
   refactorings-descriptor =
-  	pp-strategy := $[pp-[<trans-module-name>]-string];
+  	reconstruction-strategy := "construct-textual-change";
   	(GenerateMinimal
   	<
   	!|[
         module <descriptor-name> "-Refactorings"
-
-        imports <descriptor-name> "-Refactorings.generated"
 
         refactorings
           ~~
@@ -112,7 +110,7 @@ strategies
           ~~// See the imported file for a brief introduction and examples.
         refactorings
           ~~
-          pretty-print: ~pp-strategy
+          construct textual change: ~reconstruction-strategy
           ~~
       ]|
   	+
@@ -128,7 +126,7 @@ strategies
           ~~// See the imported file for a brief introduction and examples.
         refactorings
           ~~
-          pretty-print: ~pp-strategy
+          construct textual change: ~reconstruction-strategy
           ~~
           refactoring ID: "Rename Entity" = rename-refactoring (cursor)
           shortcut : Shift + Alt + R
