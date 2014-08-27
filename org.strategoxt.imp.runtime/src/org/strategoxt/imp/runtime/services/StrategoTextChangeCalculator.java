@@ -33,6 +33,10 @@ public class StrategoTextChangeCalculator {
 	
 	public Collection<TextFileChange> getFileChanges(final IStrategoTerm astChanges, final StrategoObserver observer, File file) {
 		IStrategoTerm textReplaceTerm = null;
+		if (reconstructTextStrategy == null || observer.getRuntime().lookupUncifiedSVar(reconstructTextStrategy) == null) {
+		  return null; // Strategy name not defined in ESV or Strategy not implemented in Stratego
+		}
+		
 		try {
 			textReplaceTerm = observer.invoke(reconstructTextStrategy, astChanges, file);
 		} catch (InterpreterException e) {

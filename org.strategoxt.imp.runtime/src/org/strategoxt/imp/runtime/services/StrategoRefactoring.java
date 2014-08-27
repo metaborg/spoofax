@@ -226,7 +226,7 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 			fileChanges = textChangeCalculator.getFileChanges(astChanges, observer, getFile());
 			if (fileChanges == null) {
 				observer.reportRewritingFailed();
-				String errorMessage = "Text-reconstruction failed. Did you specify a suitable text-reconstruction strategy?: \n"+ observer.getLog();
+				String errorMessage = "Text-reconstruction failed. Did you specify a suitable text reconstruction strategy?: \n"+ observer.getLog();
 				Environment.logException(errorMessage);
 				return RefactoringStatus.createFatalErrorStatus(errorMessage);
 			}
