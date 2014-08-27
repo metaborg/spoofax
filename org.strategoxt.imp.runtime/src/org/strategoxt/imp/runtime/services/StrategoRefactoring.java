@@ -92,7 +92,6 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 
 	private IProject project;
 	
-
 	
 	public boolean isDefinedOnSelection(EditorState editor) {
 		return getSelectionNode(editor) != null;
@@ -222,10 +221,12 @@ public class StrategoRefactoring extends Refactoring implements IRefactoring {
 			updateStatus(status, warnings, RefactoringStatus.WARNING);
 			if(status.hasFatalError())
 				return status; //no need to calculate text changes
+			
+			
 			fileChanges = textChangeCalculator.getFileChanges(astChanges, observer, getFile());
 			if (fileChanges == null) {
 				observer.reportRewritingFailed();
-				String errorMessage = "Text-reconstruction unexpectedly fails, did you specify a suitable pretty-print strategy?: \n"+ observer.getLog();
+				String errorMessage = "Text-reconstruction failed. Did you specify a suitable text-reconstruction strategy?: \n"+ observer.getLog();
 				Environment.logException(errorMessage);
 				return RefactoringStatus.createFatalErrorStatus(errorMessage);
 			}

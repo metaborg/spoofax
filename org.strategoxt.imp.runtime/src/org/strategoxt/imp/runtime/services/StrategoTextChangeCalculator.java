@@ -21,13 +21,23 @@ import org.strategoxt.imp.runtime.stratego.SourceAttachment;
  */
 public class StrategoTextChangeCalculator {
 	
-	public Collection<TextFileChange> getFileChanges(final IStrategoTerm astChanges, final StrategoObserver observer, File file){
+	private final String reconstructTextStrategy;
+	
+	public StrategoTextChangeCalculator(String reconstructTextStrategy) {
+		this.reconstructTextStrategy = reconstructTextStrategy;
+	}
+	
+	protected String getReconstructTextStrategy() {
+		return reconstructTextStrategy;
+	}
+	
+	public Collection<TextFileChange> getFileChanges(final IStrategoTerm astChanges, final StrategoObserver observer, File file) {
 		IStrategoTerm textReplaceTerm = null;
-    try {
-      textReplaceTerm = observer.invoke("construct-textual-change", astChanges, file);
-    } catch (InterpreterException e) {
-      return null;
-    }
+		try {
+			textReplaceTerm = observer.invoke(reconstructTextStrategy, astChanges, file);
+		} catch (InterpreterException e) {
+			return null;
+		}
 		if (textReplaceTerm == null) {
 			return null;
 		}
