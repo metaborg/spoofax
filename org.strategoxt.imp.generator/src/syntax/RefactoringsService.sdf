@@ -18,8 +18,8 @@ exports
   
   context-free syntax
   
-    "pretty-print" ":" StrategoCall                 -> RefactoringRule {cons("PrettyPrint")} %% no longer used, but still part of ESV to avoid breaking legacy projects
-    "construct" "textual" "change" ":" StrategoCall -> RefactoringRule {cons("ConstructTextualChange")}
+    "pretty-print" ":" StrategoCall          -> RefactoringRule {cons("PrettyPrint")} %% no longer used, but still part of ESV to avoid breaking legacy projects
+    "text" "reconstruction" ":" StrategoCall -> RefactoringRule {cons("TextReconstruction")}
 
     "refactoring" SemanticNode* ":" String "=" StrategoCall BuilderOption* UIOption*  -> RefactoringRule {cons("Refactoring")}
     

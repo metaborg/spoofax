@@ -48,7 +48,7 @@ strategies
 
         refactorings
           ~~
-          construct textual change: ~reconstruction-strategy
+          text reconstruction : ~reconstruction-strategy
           ~~
       ]|
   	+
@@ -59,7 +59,7 @@ strategies
 
         refactorings
           ~~
-          construct textual change: ~reconstruction-strategy
+          text reconstruction : ~reconstruction-strategy
           ~~
           refactoring ID: "Rename Entity" = rename-refactoring (cursor)
           shortcut : Shift + Alt + R
