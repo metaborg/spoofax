@@ -21,65 +21,6 @@ strategies
       !|[
         module <descriptor-name> "-Refactorings.generated"
 
-        refactorings
-          ~
-          ~// Refactorings are used for transformations that modify the original source code,
-          ~// while preserving the layout and syntactic sugar. Refactorings can be specified as follows:
-          ~//
-          ~// refactorings
-          ~//
-          ~//   refactoring Property*: "Extract Entity" =  extract-entity (source)
-          ~//     shortcut: Shift+Alt+M
-          ~//     input
-          ~//       identifier: "entity name" = ""
-          ~//       identifier: "property name" = ""
-          ~// 
-          ~// In this example, 
-          ~// Property* indicates on which constructs the refactoring is specified (<sort>.<constructor>),
-          ~// the caption "Extract Entity" is used in the refactor dropdown menu,
-          ~// the extract-entity rule is used to carry out the tranformation, 
-          ~// the shortcut element specifies the shortcut, 
-          ~// the (source) annotation specifies an additional setting for the refactoring application, and
-          ~// the input element configures the user input dialogue which in this case contains two identifier input fields.
-          ~// 
-          ~// Transformation rule:
-          ~// The transformation rule has the following signature. 
-          ~//   my-refactor-transformation: 
-          ~//   (user-input, selected, position, ast, path, project-path) -> (changes, fatal-errors, errors, warnings)
-          ~//
-          ~// Input dialogue: 
-          ~// Refactoring input definitions can specify any combination of input field types,
-          ~// adhering to the general schema <input-type> : <label-text> = <default-value>. 
-          ~// The following input types are supported:
-          ~//   text          Text input
-          ~//   identifier    Text input with syntactic validity check, i.e. the value must be a valid identifier
-          ~//   boolean       Checkbox input, (default)values are true or false
-          ~//
-          ~// Annotations:
-          ~// Refactoring definitions can specify any combination of the following annotations:
-          ~//   (cursor)      The builder should always transform the tree node at the cursor.
-          ~//   (meta)        Indicates the builder should only be available to meta-programmers
-          ~//                 (i.e., not when the plugin is deployed to end-users).
-          ~//   (source)      Always apply this builder to the source AST, not to the AST
-          ~//                 after it has been analyzed/desugared by the observer.
-          ~//
-          ~// Text reconstruction:
-          ~// Some additional strategies can be specified in the refactorings section to guide the text reconstruction algorithm.
-          ~//    pretty-print:   Newly inserted nodes are formatted according to a "custom" pretty-print strategy (T -> String)
-          ~//    resugar:        resugaring can be enforced with a strategy T -> T' that undoes the desugaring. 
-          ~//                    Resugaring is needed for desugarings that are not local-to-local, or 
-          ~//                    desugarings that duplicate terms such as the 'l' in \l -> []\ => {l: ( l -> [] )}.
-          ~//    override reconstruction:  text-reconstruction can be overruled with a strategy (T-old, T-new) -> <try(custom-pp)> T-new,
-          ~//                    the resulting text will be indented according to its location.
-          ~//
-          ~// Shortcuts:
-          ~// Existing shortcuts can be added to refactorings, directly or via a predefined keybinding, e.g.
-          ~// shortcut: "org.eclipse.jdt.ui.edit.text.java.extract.method", or shortcut: Shift+Alt+M
-          ~//
-          ~// Keybindings:
-          ~// Keybindings are defined as <Key> + <Key> + <Key> = "<action-definition-id>"
-          ~// We predefined a number of common refactoring shortcuts, see below.
-          
         keybindings Predefined Keybindings
 
           Shift + Alt + R  = "org.eclipse.jdt.ui.edit.text.java.rename.element" // Rename
@@ -103,11 +44,8 @@ strategies
   	!|[
         module <descriptor-name> "-Refactorings"
 
-        refactorings
-          ~~
-          ~~// This file can be used for specification of refactorings.
-          ~~//
-          ~~// See the imported file for a brief introduction and examples.
+        imports <descriptor-name> "-Refactorings.generated"
+
         refactorings
           ~~
           construct textual change: ~reconstruction-strategy
@@ -119,11 +57,6 @@ strategies
 
         imports <descriptor-name> "-Refactorings.generated"
 
-        refactorings
-          ~~
-          ~~// This file can be used for specification of refactorings.
-          ~~//
-          ~~// See the imported file for a brief introduction and examples.
         refactorings
           ~~
           construct textual change: ~reconstruction-strategy
