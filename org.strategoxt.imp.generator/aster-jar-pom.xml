@@ -18,6 +18,7 @@
 			<groupId>org.metaborg</groupId>
 			<artifactId>org.strategoxt.imp.generator</artifactId>
 			<version>${metaborg-version}</version>
+			<scope>provided</scope>
 		</dependency>
 	</dependencies>
 
