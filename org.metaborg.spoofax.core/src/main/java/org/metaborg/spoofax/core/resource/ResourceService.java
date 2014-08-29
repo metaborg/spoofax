@@ -6,21 +6,17 @@ import java.util.Collection;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.apache.commons.vfs2.impl.StandardFileSystemManager;
+import org.apache.commons.vfs2.FileSystemManager;
 
 import com.google.common.collect.Lists;
+import com.google.inject.Inject;
 
 public class ResourceService implements IResourceService {
-    private final StandardFileSystemManager fileSystemManager;
+    private final FileSystemManager fileSystemManager;
 
 
-    public ResourceService() {
-        try {
-            fileSystemManager = new StandardFileSystemManager();
-            fileSystemManager.init();
-        } catch(FileSystemException e) {
-            throw new RuntimeException("Cannot initialze resource service: " + e.getMessage(), e);
-        }
+    @Inject public ResourceService(FileSystemManager fileSystemManager) {
+        this.fileSystemManager = fileSystemManager;
     }
 
 
