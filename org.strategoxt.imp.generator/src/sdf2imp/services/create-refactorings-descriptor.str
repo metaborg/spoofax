@@ -47,9 +47,9 @@ strategies
         imports <descriptor-name> "-Refactorings.generated"
 
         refactorings
-          ~~
+          
           text reconstruction : ~reconstruction-strategy
-          ~~
+          
       ]|
   	+
   	!|[
@@ -58,9 +58,9 @@ strategies
         imports <descriptor-name> "-Refactorings.generated"
 
         refactorings
-          ~~
+          
           text reconstruction : ~reconstruction-strategy
-          ~~
+          
           refactoring ID: "Rename Entity" = rename-refactoring (cursor)
           shortcut : Shift + Alt + R
           input
