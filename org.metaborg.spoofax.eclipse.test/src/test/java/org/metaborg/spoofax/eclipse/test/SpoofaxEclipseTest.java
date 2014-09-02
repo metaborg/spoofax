@@ -1,11 +1,11 @@
 package org.metaborg.spoofax.eclipse.test;
 
 import org.junit.Before;
-import org.metaborg.spoofax.core.SpoofaxModule;
 import org.metaborg.spoofax.core.language.ILanguageDiscoveryService;
 import org.metaborg.spoofax.core.language.ILanguageService;
 import org.metaborg.spoofax.core.resource.IResourceService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
+import org.metaborg.spoofax.eclipse.SpoofaxEclipseModule;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -19,7 +19,7 @@ public class SpoofaxEclipseTest {
     protected ILanguageDiscoveryService languageDiscoveryService;
 
     @Before public void beforeTest() {
-        injector = Guice.createInjector(new SpoofaxModule());
+        injector = Guice.createInjector(new SpoofaxEclipseModule());
 
         resourceService = injector.getInstance(IResourceService.class);
         termFactoryService = injector.getInstance(ITermFactoryService.class);
