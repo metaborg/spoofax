@@ -19,11 +19,11 @@ public interface IResourceService {
     public FileObject root();
 
     /**
-     * Returns a file system object for given absolute URI. See <a
+     * Returns a file system object for given absolute or relative to the root URI. See <a
      * href="http://commons.apache.org/proper/commons-vfs/filesystems.html">FVS file systems</a> for examples of URIs.
      * 
      * @param uri
-     *            URI to resolve.
+     *            relative URI to resolve.
      * @return File system object for given URI.
      * @throws RuntimeException
      *             if file at given URI could not be located.
@@ -31,7 +31,7 @@ public interface IResourceService {
     public FileObject resolve(String uri);
 
     /**
-     * Returns a file system object for given Java file system object.
+     * Returns a local file system object for given Java file system object.
      * 
      * @param file
      *            Java file system object to resolve.
@@ -42,7 +42,7 @@ public interface IResourceService {
     public FileObject resolve(File file);
 
     /**
-     * Returns file system objects for given absolute URIs. See <a
+     * Returns file system objects for given absolute or relative to the root URIs. See <a
      * href="http://commons.apache.org/proper/commons-vfs/filesystems.html">FVS file systems</a> for examples of URIs.
      * 
      * @param uris
@@ -54,7 +54,7 @@ public interface IResourceService {
     public Iterable<FileObject> resolveAll(Iterable<String> uris);
 
     /**
-     * Returns a file system name for given absolute URI. See <a
+     * Returns a file system name for given absolute or relative to the root URI. See <a
      * href="http://commons.apache.org/proper/commons-vfs/filesystems.html">FVS file systems</a> for examples of URIs.
      * 
      * @param uri

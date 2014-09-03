@@ -19,7 +19,7 @@ public class SpoofaxEclipseTest {
     protected ILanguageDiscoveryService languageDiscoveryService;
 
     @Before public void beforeTest() {
-        injector = Guice.createInjector(new SpoofaxEclipseModule());
+        injector = Guice.createInjector(new SpoofaxEclipseModule(SpoofaxEclipseTest.class.getClassLoader()));
 
         resourceService = injector.getInstance(IResourceService.class);
         termFactoryService = injector.getInstance(ITermFactoryService.class);

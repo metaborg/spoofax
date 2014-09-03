@@ -15,43 +15,45 @@
 	</parent>
 
 	<build>
+		<resources>
+			<resource>
+				<directory>src/test/resources</directory>
+			</resource>
+		</resources>
+		<testResources>
+			<testResource>
+				<directory>src/test/resources</directory>
+			</testResource>
+		</testResources>
 		<plugins>
 			<plugin>
 				<groupId>org.eclipse.tycho</groupId>
 				<artifactId>tycho-surefire-plugin</artifactId>
-				<configuration>
-					<useUIHarness>true</useUIHarness>
-					<useUIThread>true</useUIThread>
-					<argLine>-Xmx512m -XX:MaxPermSize=256m ${ui.test.vmargs}</argLine>
-				</configuration>
 			</plugin>
+			<!-- <plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<executions>
+				<execution>
+				<id>copy-resources</id>
+				<phase>validate</phase>
+				<goals>
+				<goal>copy-resources</goal>
+				</goals>
+				<configuration>
+				<outputDirectory>${basedir}/target/extra-resources</outputDirectory>
+				<resources>
+				<resource>
+				<directory>src/non-packaged-resources</directory>
+				<filtering>true</filtering>
+				</resource>
+				</resources>
+				</configuration>
+				</execution>
+				</executions>
+				</plugin>
+			-->
 		</plugins>
 	</build>
-
-	<profiles>
-		<profile>
-			<id>macosx</id>
-			<activation>
-				<os>
-					<family>mac</family>
-				</os>
-			</activation>
-			<properties>
-				<ui.test.vmargs>-XstartOnFirstThread</ui.test.vmargs>
-			</properties>
-		</profile>
-		<profile>
-			<id>not-macosx</id>
-			<activation>
-				<os>
-					<family>!mac</family>
-				</os>
-			</activation>
-			<properties>
-				<ui.test.vmargs></ui.test.vmargs>
-			</properties>
-		</profile>
-	</profiles>
 
 	<developers>
 		<developer>

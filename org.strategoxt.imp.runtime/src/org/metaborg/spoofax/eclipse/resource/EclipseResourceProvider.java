@@ -39,5 +39,4 @@ public class EclipseResourceProvider extends AbstractOriginatingFileProvider {
         throws FileSystemException {
         return new EclipseResourceFileSystem(rootName, null, fileSystemOptions);
     }
-
 }

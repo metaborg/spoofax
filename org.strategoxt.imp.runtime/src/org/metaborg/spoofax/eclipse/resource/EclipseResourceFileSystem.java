@@ -20,11 +20,10 @@ public class EclipseResourceFileSystem extends AbstractFileSystem {
     }
 
     @Override protected FileObject createFile(AbstractFileName name) throws Exception {
-        return new EclipseResourceFileObject(name, this, root.findMember(name.getFriendlyURI()));
+        return new EclipseResourceFileObject(name, root, this);
     }
 
     @Override protected void addCapabilities(Collection<Capability> caps) {
-        // TODO Auto-generated method stub
-
+        caps.addAll(EclipseResourceProvider.capabilities);
     }
 }

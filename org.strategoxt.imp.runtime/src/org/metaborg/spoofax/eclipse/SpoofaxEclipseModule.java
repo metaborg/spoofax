@@ -17,8 +17,19 @@ import org.metaborg.spoofax.eclipse.resource.EclipseFileSystemManagerProvider;
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
+import com.google.inject.name.Names;
 
 public class SpoofaxEclipseModule extends AbstractModule {
+    private final ClassLoader resourceClassLoader;
+
+    public SpoofaxEclipseModule(ClassLoader resourceClassLoader) {
+        this.resourceClassLoader = resourceClassLoader;
+    }
+
+    public SpoofaxEclipseModule() {
+        this(SpoofaxEclipseModule.class.getClassLoader());
+    }
+
     @Override protected void configure() {
         try {
             bind(IResourceService.class).to(ResourceService.class).in(Singleton.class);
@@ -31,6 +42,8 @@ public class SpoofaxEclipseModule extends AbstractModule {
 
             @SuppressWarnings("unused") final Multibinder<ILanguageFacetFactory> facetFactoriesBinder =
                 Multibinder.newSetBinder(binder(), ILanguageFacetFactory.class);
+
+            bind(ClassLoader.class).annotatedWith(Names.named("ResourceClassLoader")).toInstance(resourceClassLoader);
         } catch(Exception e) {
             throw new RuntimeException(e);
         }

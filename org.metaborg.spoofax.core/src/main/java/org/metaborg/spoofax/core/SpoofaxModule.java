@@ -19,6 +19,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 import com.google.inject.matcher.Matchers;
 import com.google.inject.multibindings.Multibinder;
+import com.google.inject.name.Names;
 
 /**
  * Guice module that specifies which implementations to use for services and factories.
@@ -38,6 +39,9 @@ public class SpoofaxModule extends AbstractModule {
 
             @SuppressWarnings("unused") final Multibinder<ILanguageFacetFactory> facetFactoriesBinder =
                 Multibinder.newSetBinder(binder(), ILanguageFacetFactory.class);
+
+            bind(ClassLoader.class).annotatedWith(Names.named("ResourceClassLoader")).toInstance(
+                this.getClass().getClassLoader());
         } catch(Exception e) {
             throw new RuntimeException(e);
         }
