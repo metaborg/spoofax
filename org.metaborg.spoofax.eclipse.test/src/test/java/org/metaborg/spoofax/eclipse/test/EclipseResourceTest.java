@@ -3,11 +3,14 @@ package org.metaborg.spoofax.eclipse.test;
 import static org.junit.Assert.*;
 import static org.metaborg.util.test.Assert2.*;
 
+import java.util.zip.ZipInputStream;
+
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileType;
 import org.apache.commons.vfs2.Selectors;
 import org.junit.Test;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 
 public class EclipseResourceTest extends SpoofaxEclipseTest {
     @Test public void createFolder() throws Exception {
@@ -76,10 +79,37 @@ public class EclipseResourceTest extends SpoofaxEclipseTest {
     @Test public void copyTestProject() throws Exception {
         final FileObject testProject = resourceService.resolve("res:Entity");
         assertEquals(FileType.FOLDER, testProject.getType());
+
         final FileObject workspaceLocation = resourceService.resolve("Entity");
         workspaceLocation.createFolder();
         workspaceLocation.copyFrom(testProject, Selectors.SELECT_ALL);
-        final FileObject includeLocation = workspaceLocation.getChild("include");
+
+        final FileObject includeLocation = workspaceLocation.resolveFile("include");
         assertEquals(FileType.FOLDER, includeLocation.getType());
+
+        final FileObject jar = includeLocation.resolveFile("entity-java.jar");
+        assertEquals(FileType.FILE, jar.getType());
+        try(final ZipInputStream jarStream = new ZipInputStream(jar.getContent().getInputStream())) {
+            assertNotNull(jarStream.getNextEntry());
+        }
+
+        final org.spoofax.terms.io.binary.TermReader reader =
+            new org.spoofax.terms.io.binary.TermReader(termFactoryService.getGeneric().getFactoryWithStorageType(
+                IStrategoTerm.MUTABLE));
+
+        final FileObject ctree = includeLocation.resolveFile("entity.ctree");
+        assertEquals(FileType.FILE, ctree.getType());
+        final IStrategoTerm ctreeTerm = reader.parseFromStream(ctree.getContent().getInputStream());
+        assertNotNull(ctreeTerm);
+
+        final FileObject esv = includeLocation.resolveFile("Entity.packed.esv");
+        assertEquals(FileType.FILE, esv.getType());
+        final IStrategoTerm esvTerm = reader.parseFromStream(esv.getContent().getInputStream());
+        assertNotNull(esvTerm);
+
+        final FileObject parseTable = includeLocation.resolveFile("Entity.tbl");
+        assertEquals(FileType.FILE, parseTable.getType());
+        final IStrategoTerm parseTableTerm = reader.parseFromStream(parseTable.getContent().getInputStream());
+        assertNotNull(parseTableTerm);
     }
 }

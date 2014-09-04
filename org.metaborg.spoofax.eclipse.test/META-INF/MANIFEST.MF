@@ -8,4 +8,5 @@ Require-Bundle: org.strategoxt.imp.runtime,
  org.metaborg.spoofax.core,
  org.metaborg.util,
  org.spoofax.interpreter.externaldeps,
- org.junit
+ org.junit,
+ org.spoofax.terms
