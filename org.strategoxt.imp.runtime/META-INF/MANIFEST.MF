@@ -33,8 +33,11 @@ Require-Bundle: org.eclipse.imp.runtime,
  org.spoofax.interpreter.externaldeps,
  org.metaborg.spoofax.core,
  org.metaborg.util,
- org.eclipse.core.filesystem
+ org.eclipse.core.filesystem,
+ org.strategoxt.jarprovider,
+ org.eclipse.ant.core
 Export-Package: org.metaborg.spoofax.eclipse,
+ org.metaborg.spoofax.eclipse.ant,
  org.strategoxt.imp.runtime,
  org.strategoxt.imp.runtime.dynamicloading,
  org.strategoxt.imp.runtime.editor,

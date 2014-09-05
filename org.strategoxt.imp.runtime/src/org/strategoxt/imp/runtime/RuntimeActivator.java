@@ -19,6 +19,7 @@ import org.metaborg.spoofax.eclipse.SpoofaxEclipseModule;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.prefs.BackingStoreException;
 import org.osgi.service.prefs.Preferences;
+import org.strategoxt.imp.runtime.dynamicloading.StartupDescriptorLoader;
 import org.strategoxt.imp.runtime.stratego.FileNotificationServer;
 
 import com.google.inject.Guice;
@@ -38,9 +39,12 @@ public class RuntimeActivator extends AbstractUIPlugin {
         super.start(ctx);
         plugin = this;
         context = ctx;
-        FileNotificationServer.init();
 
         final Injector injector = Guice.createInjector(new SpoofaxEclipseModule());
+        final StartupDescriptorLoader startupLoader = injector.getInstance(StartupDescriptorLoader.class);
+        startupLoader.run();
+
+        FileNotificationServer.init();
 
         // precacheStratego();
         getWorkbench().getDisplay().asyncExec(new Runnable() {

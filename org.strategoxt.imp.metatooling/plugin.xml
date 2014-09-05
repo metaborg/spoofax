@@ -11,77 +11,12 @@
     <language 
       description="sdf2imp metatooling dynamic language placeholder" 
       extensions="sdf2impbasetoo" 
-      language="DynamicRootInitializer" 
-      validator="org.strategoxt.imp.metatooling.loading.StartupDescriptorValidator" 
-      validatorClass="org.strategoxt.imp.metatooling.loading.StartupDescriptorValidator"
+      language="DynamicRootInitializer"
     >
       <!-- The validator class is used to start the dynamic loader       -->
       <!-- "validator" is wat imp currently (incorrectly) tries to load) -->
     </language>
   </extension>
-  
-  <extension point="org.eclipse.ui.newWizards">
-    <primaryWizard id="org.strategoxt.imp.metatooling.wizards.NewEditorWizard">
-    </primaryWizard>
-    <wizard 
-      class="org.strategoxt.imp.metatooling.wizards.NewEditorWizard" 
-      icon="icons/sample.gif"
-      id="org.strategoxt.imp.metatooling.wizards.NewEditorWizard" 
-      name="Spoofax editor project" 
-      project="true"
-    >
-    </wizard>
-  </extension>
-  
-  <extension point="org.eclipse.ui.commands">
-    <command 
-      id="org.strategoxt.imp.metatooling.commands.UpgradeSpoofaxProjectWizard" 
-      name="Upgrade Spoofax Project"
-    >
-    </command>
-  </extension>
-  
-  <extension point="org.eclipse.ui.handlers">
-    <handler 
-      class="org.strategoxt.imp.metatooling.wizards.UpgradeSpoofaxProjectWizardHandler" 
-      commandId="org.strategoxt.imp.metatooling.commands.UpgradeSpoofaxProjectWizard"
-    >
-    </handler>
-  </extension>
-  
-  <extension point="org.eclipse.ui.menus">
-    <menuContribution
-      locationURI="popup:org.eclipse.ui.projectConfigure"
-      allPopups="true"
-    >
-      <command 
-        commandId="org.strategoxt.imp.metatooling.commands.UpgradeSpoofaxProjectWizard" 
-      >
-        <visibleWhen>
-          <iterate ifEmpty="false" operator="and">
-              <adapt type="org.eclipse.core.resources.IResource">
-              <not>
-                 <test
-                   property="org.eclipse.core.resources.projectNature"
-                   value="org.strategoxt.imp.metatooling.nature" 
-                 />
-              </not>
-            </adapt>
-          </iterate>
-        </visibleWhen>
-      </command>
-    </menuContribution>
-  </extension>
-  
-   <extension
-     point="org.eclipse.core.resources.natures"
-     id="nature"
-     name="Spoofax Nature"
-   >
-     <runtime>
-         <run class="org.strategoxt.imp.metatooling.SpoofaxNature" />
-     </runtime>
-   </extension>
   
   <extension point="org.eclipse.ant.core.antProperties">
     <antProperty 
@@ -110,4 +45,14 @@
     >
     </antProperty>
   </extension>
+  
+   <extension
+     point="org.eclipse.core.resources.natures"
+     id="nature"
+     name="Spoofax Nature"
+   >
+     <runtime>
+         <run class="org.strategoxt.imp.metatooling.SpoofaxNature" />
+     </runtime>
+   </extension>
 </plugin>

@@ -12,7 +12,15 @@ import org.metaborg.spoofax.core.resource.IResourceService;
 import org.metaborg.spoofax.core.resource.ResourceService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.terms.TermFactoryService;
+import org.metaborg.spoofax.eclipse.ant.AntDescriptorBuilder;
+import org.metaborg.spoofax.eclipse.ant.AntDescriptorLoader;
 import org.metaborg.spoofax.eclipse.resource.EclipseFileSystemManagerProvider;
+import org.strategoxt.imp.metatooling.wizards.NewEditorWizard;
+import org.strategoxt.imp.runtime.dynamicloading.DescriptorFactory;
+import org.strategoxt.imp.runtime.dynamicloading.DescriptorRegistry;
+import org.strategoxt.imp.runtime.dynamicloading.DynamicDescriptorBuilder;
+import org.strategoxt.imp.runtime.dynamicloading.DynamicDescriptorLoader;
+import org.strategoxt.imp.runtime.dynamicloading.StartupDescriptorLoader;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
@@ -38,12 +46,22 @@ public class SpoofaxEclipseModule extends AbstractModule {
             bind(ILanguageDiscoveryService.class).to(LanguageDiscoveryService.class).in(Singleton.class);
             bind(IParseService.class).to(ParseService.class).in(Singleton.class);
 
+            bind(DescriptorRegistry.class).in(Singleton.class);
+            bind(DescriptorFactory.class).asEagerSingleton();
+            bind(DynamicDescriptorLoader.class).in(Singleton.class);
+            bind(DynamicDescriptorBuilder.class).in(Singleton.class);
+            bind(StartupDescriptorLoader.class).in(Singleton.class);
+
             bind(FileSystemManager.class).toProvider(EclipseFileSystemManagerProvider.class).in(Singleton.class);
 
             @SuppressWarnings("unused") final Multibinder<ILanguageFacetFactory> facetFactoriesBinder =
                 Multibinder.newSetBinder(binder(), ILanguageFacetFactory.class);
 
             bind(ClassLoader.class).annotatedWith(Names.named("ResourceClassLoader")).toInstance(resourceClassLoader);
+
+            requestStaticInjection(AntDescriptorBuilder.class);
+            requestStaticInjection(AntDescriptorLoader.class);
+            requestStaticInjection(NewEditorWizard.class);
         } catch(Exception e) {
             throw new RuntimeException(e);
         }
