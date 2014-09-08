@@ -41,7 +41,8 @@ public class ToolbarBaseCommandHandler implements IHandler, IElementUpdater {
 		MenuList menus = MenusServiceUtil.getMenus();
 
 		IBuilder builder = null;
-
+		
+		//try to get the last action for the menu
 		if (menus.getAll().size() > menuIndex) {
 			Menu menu = menus.getAll().get(menuIndex);
 			List<String> lastAction = lastActions.get(menu.getCaption());
@@ -49,7 +50,8 @@ public class ToolbarBaseCommandHandler implements IHandler, IElementUpdater {
 				builder = menus.getBuilder(lastActions.get(menu.getCaption()));
 			}
 		}
-
+		
+		//if did not get any action then, it gets the first from the first builder
 		if (builder == null) {
 			builder = getSomeAction(menus.getAll().get(menuIndex));
 		}
