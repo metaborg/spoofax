@@ -38,7 +38,7 @@ strategies
   
   input-descriptor-import =
     ?Import(name);
-    !FILE(<add-extension; include-input-dir-prefix; file-exists> (name, "esv"));
+    !FILE(<add-extension; include-input-dir-prefix; file-exists; debug(!"found file ") <+ add-extension; file-exists; debug(!"found file ")> (name, "esv"));
     parse-xtc-file-report-errors(|<parse-table-descriptor>, "Module");
     if oncetd(?amb(_)) then
       fatal-err(|"Parsed module has ambiguities")
