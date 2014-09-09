@@ -43,6 +43,10 @@ public class AstMessageBatch {
 	
 	private final Set<IMarker> asyncActiveMarkers;
 	
+	public Set<IMarker> getAsyncActiveMarkers() {
+		return asyncActiveMarkers;
+	}
+
 	private final Map<MarkerSignature, IMarker> markersToReuse = new HashMap<MarkerSignature, IMarker>();
 	
 	private final List<IMarker> markersToDelete = new ArrayList<IMarker>();
