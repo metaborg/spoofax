@@ -28,7 +28,7 @@ strategies
     startsymbol := <StartSymbol <+ !"">;
     provider1   := <conc-strings> ("include/", <trans-module-name>, ".ctree");
     provider2   := <conc-strings> ("include/", <trans-module-name>, "-java.jar");
-    provider3   := <conc-strings> ("include/", <trans-module-name>, "-sig.ctree");
+    provider3   := <conc-strings> ("include/", name, "-sig.ctree");
     
 !${module {<main-descriptor-name>}
   

@@ -150,13 +150,36 @@ $[<?xml version="1.0" encoding="UTF-8"?>
     </target>
     
     <target name="generate-sig">
-        <if>
-            <isset property="sig.module.enabled"/>
+        <available file="${lib-gen}/${sigmodule}.ctree" property="sig-lib.available" />
+        <available file="${lib-gen}/${sigmodule}.str" property="sig-str.available" />
+        <available file="${signatures}/${sigmodule}.str" property="sig-module.available" />
+        <!-- TODO: FIX RTG2SIG CALL TO SDF2TABLE AND -->
+        <if> 
+            <isset property="sig-module.available"/>
             <then>
-                <antcall target="sig.lib"/>
-            </then>
+                <if> 
+                    <not>
+                        <isset property="sig-lib.available"/>
+                    </not>
+                     <then>   
+                        <antcall target="sdf2rtg" /> 
+                        <antcall target="rtg2sig" />            
+                        <antcall target="sig.lib"/>
+                    </then>
+               </if>    
+            </then> 
             <else>
-                <antcall target="rtg2sig" />
+                
+                <if> 
+                    <not>
+                        <isset property="sig-str.available"/>
+                    </not>
+                     <then>   
+                        <antcall target="sdf2rtg" /> 
+                        <antcall target="rtg2sig" />            
+                        <copy file="${include}/${sdfmodule}.str" tofile="${lib-gen}/${sigmodule}.str" />
+                    </then>
+               </if>
             </else>
         </if>
     </target>
@@ -165,9 +188,6 @@ $[<?xml version="1.0" encoding="UTF-8"?>
 	<available file="${src-gen}/[pkgdir]/strategies/Main.java" property="java.jar.enabled" />
 	<available file="${pp}/${ppmodule}.str" property="pp.module.enabled" />
 	<available file="${signatures}/${sigmodule}.str" property="sig.module.enabled" />
-	<condition property="parenthesize.signatures" value="${lib-gen.rel}/${sigmodule}" else="include/${sdfmodule}">
-        <isset property="sig.module.enabled" />
-    </condition>
 	<condition property="java.jar.import" value="-la [pkgname].strategies" else="">
 		<isset property="java.jar.enabled" />
 	</condition>
@@ -379,16 +399,23 @@ $[<?xml version="1.0" encoding="UTF-8"?>
 	</target>
 
 	<target name="sdf2parenthesize" depends="pack-sdf,copy-sdf">
-	   	<sdf2parenthesize input="${include.rel}/${sdfmodule}.def" language="${sdfmodule}" main="${sdfmodule}" output="${include.rel}/${sdfmodule}-parenthesize.str" outputmodule="include/${sdfmodule}-parenthesize">
-		<args>
-			<arg value="--main-strategy"/>
-			<arg value="io-${sdfmodule}-parenthesize"/>
-			<arg value="--rule-prefix"/>
-			<arg value="${sdfmodule}"/>
-			<arg value="--sig-module"/>
-			<arg value="${parenthesize.signatures}"/>
-		</args>
-		</sdf2parenthesize>
+	   <trycatch>
+		   <try>
+			   	<sdf2parenthesize input="${include.rel}/${sdfmodule}.def" language="${sdfmodule}" main="${sdfmodule}" output="${include.rel}/${sdfmodule}-parenthesize.str" outputmodule="include/${sdfmodule}-parenthesize">
+				<args>
+					<arg value="--main-strategy"/>
+					<arg value="io-${sdfmodule}-parenthesize"/>
+					<arg value="--rule-prefix"/>
+					<arg value="${sdfmodule}"/>
+					<arg value="--sig-module"/>
+					<arg value="${lib-gen}/${sigmodule}.str"/>
+				</args>
+				</sdf2parenthesize>
+			</try>
+			<catch>
+			    <echo file="${include}/${sdfmodule}-parenthesize.str" message="module include/${sdfmodule}-parenthesize rules parenthesize-${sdfmodule} = id" />
+			</catch>
+		</trycatch>
 	</target>
 
 	<target name="pppack" if="build.stratego.enabled" depends="pack-sdf">
@@ -418,29 +445,26 @@ $[<?xml version="1.0" encoding="UTF-8"?>
 	</target>
 	
 	<!-- Target to create library from generated signatures -->
-	<target name="sig.lib" depends="utils-files" if="sig.module.enabled"> 
-		
-		<strj input="${signatures}/${sigmodule}.str" output="${lib-gen}/${sigmodule}.ctree" package="trans">
-					<strjargs> 
-						<arg value="--clean"/>
-						<arg line="${build.stratego.args}"/>
-						<arg line="${externaljarflags}"/>
-						<arg line="${externaldefimport}"/>
-						<arg line="-I &quot;${lib}&quot; -I &quot;${include}&quot; --cache-dir &quot;${basedir}/.cache&quot;"/>
-						<arg value="--library"/>
-						<arg value="-F"/>
-					</strjargs>
-					<str-deps>
-						<srcfiles dir="${signatures}" includes="**/*.str"/>
-					</str-deps>
-				</strj>
-		<mkdir dir="${build}/siglib"/>
-	
-		<delete>
-			<fileset dir="${build}" includes="siglib/**"/>
-		</delete>
-		
-	</target>
+    <target name="sig.lib" depends="utils-files">
+        
+        <strj input="${signatures}/${sigmodule}.str" output="${lib-gen}/${sigmodule}.ctree" package="siglib">
+                    <strjargs> 
+                        <arg value="--clean"/>
+                        <arg value="--library"/>
+                        <arg line="${build.stratego.args}"/>
+                        <arg value="-F"/>
+                    </strjargs>
+                    <str-deps>
+                        <srcfiles dir="${signatures}" includes="**/*.str"/>
+                    </str-deps>
+                </strj>
+        <mkdir dir="${build}/siglib"/> 
+    
+        <delete>
+            <fileset dir="${build}" includes="siglib/**"/>
+        </delete>
+        
+    </target>
 	
 	<!-- Target to create jar from generated pp and signatures -->
 	<target name="pp.lib" depends="utils-files" if="pp.module.enabled">
@@ -499,7 +523,7 @@ $[<?xml version="1.0" encoding="UTF-8"?>
     </target>
 	
 	<!-- SDF2 old tools -->
-	<target name="rtg2sig" if="build.stratego.enabled" depends="sdf2rtg" >
+	<target name="rtg2sig" if="build.stratego.enabled" >
         <dependset>
             <srcfileset file="${include}/${sdfmodule}.rtg" />
             <targetfileset file="${include}/${sdfmodule}.str" />
@@ -508,7 +532,7 @@ $[<?xml version="1.0" encoding="UTF-8"?>
         <antcall target="rtg2sig.helper" />
     </target>
 
-    <target name="rtg2sig.helper" unless="rtg2sig.available, sig.module.enabled">
+    <target name="rtg2sig.helper" unless="rtg2sig.available">
         <java classname="run" failonerror="true">
             <arg value="org.strategoxt.tools.main-rtg2sig" />
             <arg value="-i" />
@@ -520,7 +544,7 @@ $[<?xml version="1.0" encoding="UTF-8"?>
         </java>
     </target>
 
-    <target name="sdf2rtg" depends="pack-sdf,copy-sdf" unless="sig.module.enabled">
+    <target name="sdf2rtg">
         <dependset>
             <srcfileset file="${include}/${sdfmodule}.def" />
             <targetfileset file="${include}/${sdfmodule}.rtg" />
@@ -529,7 +553,7 @@ $[<?xml version="1.0" encoding="UTF-8"?>
         <antcall target="sdf2rtg.helper" />
     </target>
 
-    <target name="sdf2rtg.helper" unless="sdf2rtg.available, sig.module.enabled">
+    <target name="sdf2rtg.helper" unless="sdf2rtg.available">
         <java classname="run" failonerror="true">
             <arg value="org.strategoxt.tools.main-sdf2rtg" />
             <arg value="-i" />
@@ -909,6 +933,10 @@ $[<?xml version="1.0" encoding="UTF-8"?>
 		<delete file="${include}/${sdfmodule}.packed.esv" failonerror="false" />
 		<delete file="${include}/${sdfmodule}.pp.af" failonerror="false" />
 		<delete file="${include}/${sdfmodule}.rtg" failonerror="false" />
+		<delete file="${lib-gen}/${sigmodule}.str" failonerror="false" />
+		<delete file="${lib-gen}/${sigmodule}.ctree" failonerror="false" />
+		<delete file="${lib-gen}/${sigmodule}.rtree" failonerror="false" />
+		<delete file="${lib-gen}/${sigmodule}.ctree.dep" failonerror="false" />
 		<delete file="${include}/${sdfmodule}.str" failonerror="false" />
 		<delete file="${include}/${sdfmodule}.tbl" failonerror="false" />
 		<delete file="${include}/${strmodule}.rtree" failonerror="false" />
