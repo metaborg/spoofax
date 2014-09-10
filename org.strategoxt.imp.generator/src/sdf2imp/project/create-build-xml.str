@@ -318,7 +318,7 @@ $[<?xml version="1.0" encoding="UTF-8"?>
 	
 	<!-- Copy sdf2 files from the syntax folder into the src-gen/syntax folder  -->
 	<target name="copy-sdf2">
-	  <copy preservelastmodified="yes" todir="src-gen/syntax">
+	  <copy preservelastmodified="yes" todir="src-gen/syntax" failonerror="false">
 	    <fileset dir="${basedir}/syntax" includes="**/*.sdf"/>
 	  </copy>
 	</target>
