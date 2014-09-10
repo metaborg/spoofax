@@ -357,13 +357,12 @@ $[<?xml version="1.0" encoding="UTF-8"?>
 	</target>
 
 	<target name="utils-files">
-		<!-- only useful for builds outside of Eclipse -->
 		<mkdir dir="utils" />
-		<copy file="${eclipse.spoofaximp.jars}/make_permissive.jar" todir="utils" failonerror="false" />
-		<copy file="${eclipse.spoofaximp.jars}/sdf2imp.jar" todir="utils" failonerror="false" />
-		<copy file="${eclipse.spoofaximp.jars}/aster.jar" todir="utils" failonerror="false" />
-		<copy file="${eclipse.spoofaximp.jars}/StrategoMix.def" todir="utils" failonerror="false" />
-		<copy file="${eclipse.spoofaximp.strategojar}" todir="utils" failonerror="false" />
+		<copy file="${eclipse.spoofaximp.jars}/make_permissive.jar" tofile="utils/make_permissive.jar" failonerror="false" />
+		<copy file="${eclipse.spoofaximp.jars}/sdf2imp.jar" tofile="utils/sdf2imp.jar" failonerror="false" />
+		<copy file="${eclipse.spoofaximp.jars}/aster.jar" tofile="utils/aster.jar" failonerror="false" />
+		<copy file="${eclipse.spoofaximp.jars}/StrategoMix.def" tofile="utils/StrategoMix.def" failonerror="false" />
+		<copy file="${eclipse.spoofaximp.strategojar}" tofile="utils/strategoxt.jar" failonerror="false" />
 	</target>
 
 	<target name="pack-sdf" unless="externaldef" depends="copy-sdf2">

@@ -14,6 +14,11 @@
 		<relativePath>../../spoofax-deploy/org.metaborg.maven.parent.java</relativePath>
 	</parent>
 
+	<properties>
+		<skip-generator>false</skip-generator>
+		<strategoxt-distrib-location>${basedir}/strategoxt-distrib</strategoxt-distrib-location>
+	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.metaborg</groupId>
@@ -36,6 +41,7 @@
 		<sourceDirectory>src-gen</sourceDirectory>
 
 		<resources>
+			<!-- Include all generated SDF and Stratego artifacts as resources. -->
 			<resource>
 				<directory>src-gen</directory>
 				<includes>
@@ -49,6 +55,7 @@
 				</includes>
 			</resource>
 
+			<!-- Include JARs and StrategoMix SDF definition as resources. -->
 			<resource>
 				<directory>dist</directory>
 				<targetPath>dist</targetPath>
@@ -62,6 +69,7 @@
 		</resources>
 
 		<plugins>
+			<!-- Exclude non-java files. TODO: is this necessary? -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -71,6 +79,36 @@
 					</includes>
 				</configuration>
 			</plugin>
+
+			<!-- Unpack StrategoXT distribution into project directory in preparation for the Ant build. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>unpack-strategoxt-distrib</id>
+						<phase>initialize</phase>
+						<goals>
+							<goal>unpack</goal>
+						</goals>
+						<configuration>
+							<skip>${skip-generator}</skip>
+							<artifactItems>
+								<artifactItem>
+									<groupId>org.metaborg</groupId>
+									<artifactId>strategoxt-distrib</artifactId>
+									<version>${metaborg-version}</version>
+									<type>tar</type>
+									<classifier>bin</classifier>
+									<outputDirectory>${strategoxt-distrib-location}</outputDirectory>
+								</artifactItem>
+							</artifactItems>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Run the Ant build. -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-antrun-plugin</artifactId>
@@ -82,7 +120,7 @@
 					</dependency>
 				</dependencies>
 				<configuration>
-					<skip>true</skip>
+					<skip>${skip-generator}</skip>
 				</configuration>
 				<executions>
 					<execution>
@@ -117,6 +155,32 @@
 					</execution>
 				</executions>
 			</plugin>
+
+			<!-- Clean up StrategoXT distribution. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-clean-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>clean-strategoxt-distrib</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>clean</goal>
+						</goals>
+						<configuration>
+							<skip>${skip-generator}</skip>
+							<excludeDefaultDirectories>true</excludeDefaultDirectories>
+							<filesets>
+								<fileset>
+									<directory>${strategoxt-distrib-location}</directory>
+								</fileset>
+							</filesets>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Use Eclipse JDT compiler, regular compiler cannot handle this number of classes. -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
