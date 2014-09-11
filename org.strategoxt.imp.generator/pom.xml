@@ -69,17 +69,6 @@
 		</resources>
 
 		<plugins>
-			<!-- Exclude non-java files. TODO: is this necessary? -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<includes>
-						<include>**/*.java</include>
-					</includes>
-				</configuration>
-			</plugin>
-
 			<!-- Unpack StrategoXT distribution into project directory in preparation for the Ant build. -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -145,7 +134,7 @@
 							<target>
 								<property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter" />
 								<ant antfile="build.xml" inheritRefs="true">
-									<target name="compile-stratego" />
+									<target name="all" />
 								</ant>
 							</target>
 						</configuration>
@@ -193,6 +182,10 @@
 				</dependencies>
 				<configuration>
 					<compilerId>eclipse</compilerId>
+					<!-- Exclude non-java files. TODO: is this necessary? -->
+					<includes>
+						<include>**/*.java</include>
+					</includes>
 				</configuration>
 			</plugin>
 		</plugins>
