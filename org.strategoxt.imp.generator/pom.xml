@@ -134,7 +134,22 @@
 							<target>
 								<property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter" />
 								<ant antfile="build.xml" inheritRefs="true">
-									<target name="all" />
+									<target name="compile-stratego" />
+								</ant>
+							</target>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>generator-package</id>
+						<phase>prepare-package</phase>
+						<configuration>
+							<target>
+								<property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter" />
+								<ant antfile="build.xml" inheritRefs="true">
+									<target name="install-no-compile" />
 								</ant>
 							</target>
 						</configuration>
