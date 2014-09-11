@@ -16,17 +16,6 @@
 
 	<build>
 		<sourceDirectory>src</sourceDirectory>
-		<plugins>
-			<!-- Reference install and deploy plugin to use settings from parent POM. -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-deploy-plugin</artifactId>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-install-plugin</artifactId>
-			</plugin>
-		</plugins>
 	</build>
 
 	<developers>
