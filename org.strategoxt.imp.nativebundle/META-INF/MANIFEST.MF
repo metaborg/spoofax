@@ -7,12 +7,5 @@ Bundle-Activator: org.strategoxt.imp.nativebundle.Activator
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Import-Package: org.osgi.framework;version="1.3.0"
-Require-Bundle: org.strategoxt.strj,
- org.eclipse.core.runtime,
- org.spoofax.interpreter.core,
- org.spoofax.terms,
- org.spoofax.interpreter.externaldeps,
- org.strategoxt.imp.runtime
-Export-Package: org.strategoxt.imp.nativebundle
 Bundle-Vendor: Spoofax.org
 Eclipse-BundleShape: dir
