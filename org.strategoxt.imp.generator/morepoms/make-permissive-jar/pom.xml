@@ -1,16 +1,16 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<artifactId>sdf2imp-jar</artifactId>
+	<artifactId>make-permissive-jar</artifactId>
 	<packaging>jar</packaging>
-	<description>SDF2IMP Jar file</description>
+	<description>Permissive grammar generator JAR file</description>
 	<url>https://github.com/metaborg/spoofax</url>
 
 	<parent>
 		<groupId>org.metaborg</groupId>
 		<artifactId>org.metaborg.maven.parent</artifactId>
 		<version>1.2.0-SNAPSHOT</version>
-		<relativePath>../../spoofax-deploy/org.metaborg.maven.parent</relativePath>
+		<relativePath>../../../../spoofax-deploy/org.metaborg.maven.parent</relativePath>
 	</parent>
 
 	<dependencies>
@@ -38,8 +38,8 @@
 							<goal>install-file</goal>
 						</goals>
 						<configuration>
-							<file>${basedir}/dist/sdf2imp.jar</file>
-							<pomFile>${basedir}/sdf2imp-jar-pom.xml</pomFile>
+							<file>${basedir}/../../dist/make_permissive.jar</file>
+							<pomFile>${basedir}/pom.xml</pomFile>
 						</configuration>
 					</execution>
 				</executions>
@@ -58,8 +58,8 @@
 							<goal>deploy-file</goal>
 						</goals>
 						<configuration>
-							<file>${basedir}/dist/sdf2imp.jar</file>
-							<pomFile>${basedir}/sdf2imp-jar-pom.xml</pomFile>
+							<file>${basedir}/../../dist/make_permissive.jar</file>
+							<pomFile>${basedir}/pom.xml</pomFile>
 							<url>${deployFileUrl}</url>
 							<repositoryId>${deployRepositoryId}</repositoryId>
 						</configuration>

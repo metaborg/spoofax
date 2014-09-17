@@ -9,3 +9,4 @@ strategoxt-distrib
 strategoxt-distrib.tar
 includes
 META-INF
+morepoms/**/target
