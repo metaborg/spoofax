@@ -64,6 +64,7 @@
 		<delete dir="${src-gen}" />
 		<delete dir="${cache-dir}" />
 		<delete dir="${bin}" />
+		<delete dir="${install-prefix}" />
 		<delete file="src/libsdf2imp.ctree" />
 		<delete file="src/libsdf2imp.ctree.dep" />
 		<delete file="src/libsdf2imp.rtree" />

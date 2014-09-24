@@ -54,18 +54,6 @@
 					<include>**/*.ctree</include>
 				</includes>
 			</resource>
-
-			<!-- Include JARs and StrategoMix SDF definition as resources. -->
-			<resource>
-				<directory>dist</directory>
-				<targetPath>dist</targetPath>
-				<includes>
-					<include>aster.jar</include>
-					<include>make_permissive.jar</include>
-					<include>sdf2imp.jar</include>
-					<include>StrategoMix.def</include>
-				</includes>
-			</resource>
 		</resources>
 
 		<plugins>
@@ -144,7 +132,7 @@
 					</execution>
 					<execution>
 						<id>generator-package</id>
-						<phase>process-classes</phase>
+						<phase>prepare-package</phase>
 						<configuration>
 							<target>
 								<property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter" />
@@ -156,6 +144,30 @@
 						<goals>
 							<goal>run</goal>
 						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+			<!-- Include JARs and StrategoMix SDF definition as resources. Cannot use regular resources here since the dist folder
+				is created after the compile phase, whereas resources are processed before the compile phase. -->
+			<plugin>
+				<artifactId>maven-resources-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>generator-copy-dist-resources</id>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>copy-resources</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.outputDirectory}/dist</outputDirectory>
+							<resources>
+								<resource>
+									<directory>${basedir}/dist</directory>
+									<filtering>false</filtering>
+								</resource>
+							</resources>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
