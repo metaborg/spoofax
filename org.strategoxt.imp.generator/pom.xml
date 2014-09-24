@@ -144,7 +144,7 @@
 					</execution>
 					<execution>
 						<id>generator-package</id>
-						<phase>prepare-package</phase>
+						<phase>process-classes</phase>
 						<configuration>
 							<target>
 								<property name="build.compiler" value="org.eclipse.jdt.core.JDTCompilerAdapter" />
