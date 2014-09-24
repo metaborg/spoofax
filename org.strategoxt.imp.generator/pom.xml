@@ -148,8 +148,12 @@
 				</executions>
 			</plugin>
 
-			<!-- Include JARs and StrategoMix SDF definition as resources. Cannot use regular resources here since the dist folder
-				is created after the compile phase, whereas resources are processed before the compile phase. -->
+			<!-- Include JARs and StrategoMix SDF definition as resources. -->
+			<!-- Cannot use regular resources here since the dist folder is created after the compile phase, whereas resources are
+				processed before the compile phase. -->
+			<!-- Note that the position of this plugin in the POM file is after the maven-antrun-plugin plugin, this is to ensure
+				that generator-copy-dist-resources runs after generator-package. Maven runs executions bound to the same phase in the
+				order that they are defined in the POM file. -->
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
 				<executions>
