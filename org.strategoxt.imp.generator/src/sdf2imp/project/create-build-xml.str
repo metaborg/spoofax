@@ -93,6 +93,7 @@ $[<?xml version="1.0" encoding="UTF-8"?>
 						init,
 						sdf2table,
 						meta-sdf2table,
+						generate-pp,
 						pppack,
 						sdf2imp.eclipse,
 						sdf2imp.standalone,
@@ -102,14 +103,14 @@ $[<?xml version="1.0" encoding="UTF-8"?>
 						compile-java-files,
 						java.jar,
 						refresh,
-						sdf2imp.eclipse.load,
-						generate-pp" />
+						sdf2imp.eclipse.load" />
 	<target name="spoofaximp.default.jar" depends="
 						check-classpath,
 						call-onsave,
 						init,
 						sdf2table,
 						meta-sdf2table,
+						generate-pp,
 						pppack,
 						sdf2imp.eclipse,
 						sdf2imp.standalone,
@@ -120,8 +121,7 @@ $[<?xml version="1.0" encoding="UTF-8"?>
 						stratego.jar.makejar,
 						java.jar,
 						refresh,
-						sdf2imp.eclipse.load,
-						generate-pp" />
+						sdf2imp.eclipse.load" />
 	
 	<!-- Importing Ant Macros -->
 	<taskdef classpath="${eclipse.spoofaximp.strategojar}" resource="org/strategoxt/antcontrib/strategoxt-antlib.xml"/>
@@ -135,7 +135,7 @@ $[<?xml version="1.0" encoding="UTF-8"?>
 		sdf2imp.standalone, sdf2parenthesize, stratego.aster, stratego.ctree" />
 	<target name="package-ctree" depends="java.jar" />
 	
-	<target name="generate-pp">
+	<target name="generate-pp" depends="sdf2imp">
         <if>
             <isset property="pp.module.enabled"/>
             <then>
