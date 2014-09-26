@@ -63,10 +63,6 @@ public class AstMessageHandler {
 	
 	private AstMessageBatch currentBatch;
 	
-	public AstMessageBatch getCurrentBatch() {
-		return currentBatch;
-	}
-
 	public AstMessageHandler(String markerType) {
 		this.markerType = markerType;
 		currentBatch = new AstMessageBatch(markerType, asyncActiveMarkers);
@@ -223,9 +219,5 @@ public class AstMessageHandler {
 	public void commitAllChanges() {
 		AstMessageBatch batch = closeBatch();
 		batch.commitAllChanges();
-	}
-	
-	public boolean hasMarkers(){
-		return !asyncActiveMarkers.isEmpty();
 	}
 }

@@ -58,10 +58,6 @@ public class ParseErrorHandler {
 	
 	private final AstMessageHandler handler = new AstMessageHandler(AstMessageHandler.PARSE_MARKER_TYPE);
 
-	public AstMessageHandler getAstMessageHandler() {
-		return handler;
-	}
-
 	private final SGLRParseController source;
 	
 	private volatile boolean isRecoveryFailed = true;
