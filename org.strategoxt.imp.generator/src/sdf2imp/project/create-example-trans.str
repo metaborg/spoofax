@@ -301,7 +301,7 @@ imports
 
 	libstratego-gpp
 	lib/runtime/refactoring/-
-	include/{sdf-name}
+	src-gen/pp/{sdf-name}-pp
 
 rules
 	
