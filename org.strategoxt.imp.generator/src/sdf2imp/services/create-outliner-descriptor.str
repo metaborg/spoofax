@@ -18,7 +18,7 @@ ${module editor/{sdf-name}-Outliner
 
 imports
   
-  include/{sdf-name}-sig
+  include/{sdf-name}
   lib/runtime/editor/outline-library
   lib/runtime/editor/origins
   editor/{sdf-name}-Outliner.generated
@@ -50,7 +50,7 @@ ${module editor/{sdf-name}-Outliner.generated
 
 imports
   
-  include/{sdf-name}-sig
+  include/{sdf-name}
   lib/runtime/editor/outline-library
 
 rules

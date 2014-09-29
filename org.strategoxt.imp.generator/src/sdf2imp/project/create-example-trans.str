@@ -24,7 +24,7 @@ imports
 	libstratego-lib
 	libstratego-gpp
 	libstratego-aterm
-	include/{sdf-name}-sig
+	include/{sdf-name}
 	editor/{sdf-name}-Outliner
 	lib/editor-common.generated
 	lib/runtime/index/-
@@ -140,8 +140,7 @@ if not(<file-exists> "trans/generate.str") then
 
 imports
 	
-	include/{sdf-name}-sig
-
+	include/{sdf-name}
 rules 
 
 }
@@ -150,7 +149,7 @@ rules
 
 imports
 
-	include/{sdf-name}-sig
+	include/{sdf-name}
 
 rules // Builder
 	
@@ -216,7 +215,7 @@ if not(<file-exists> "trans/check.str") then
 
 imports
 
-	include/{sdf-name}-sig
+	include/{sdf-name}
 
 rules // Extensions for error/warning/note reporting
 	
@@ -235,7 +234,7 @@ rules // Extensions for error/warning/note reporting
 
 imports
 
-	include/{sdf-name}-sig
+	include/{sdf-name}
 	lib/editor-common.generated
 
 rules
@@ -302,7 +301,7 @@ imports
 
 	libstratego-gpp
 	lib/runtime/refactoring/-
-	src-gen/pp/{sdf-name}-pp
+	include/{sdf-name}
 
 rules
 	

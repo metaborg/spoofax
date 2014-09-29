@@ -16,7 +16,7 @@ strategies
 
 imports
 	
-	include/{sdf-name}-sig
+	include/{sdf-name}
 	
 namespaces
 	
@@ -28,7 +28,7 @@ binding rules
 
 imports
 	
-	include/{sdf-name}-sig
+	include/{sdf-name}
 	
 namespaces
 	
