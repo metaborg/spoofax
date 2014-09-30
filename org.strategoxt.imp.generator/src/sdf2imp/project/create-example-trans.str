@@ -266,7 +266,7 @@ imports
 rules
 	
   pp-{sdf-name}-string =
-    prettyprint-Start
+    prettyprint-SDF-start-symbols
     ; !V([], <id>)
     ; box2text-string(|120)
       
@@ -306,7 +306,7 @@ imports
 rules
 	
   pp-{sdf-name}-string =
-    prettyprint-Start
+    prettyprint-SDF-start-symbols
     ; !V([], <id>)
     ; box2text-string(|120)
       
