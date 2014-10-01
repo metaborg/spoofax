@@ -34,6 +34,5 @@ Require-Bundle: org.eclipse.core.runtime,
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
 Export-Package: ", package, "
-Eclipse-RegisterBuddy: org.strategoxt.imp.runtime
 " // newline required
 )
