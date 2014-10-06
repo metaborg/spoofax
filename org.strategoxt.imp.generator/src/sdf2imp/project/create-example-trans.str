@@ -141,7 +141,6 @@ if not(<file-exists> "trans/generate.str") then
 imports
 	
 	include/{sdf-name}
-
 rules 
 
 }
@@ -261,15 +260,13 @@ if not(<file-exists> "trans/pp.str") then
 imports
 
 	libstratego-gpp
-	lib/runtime/tmpl/pp
 	lib/runtime/refactoring/-
-	Common.pp.generated
-	{sdf-name}.pp.generated
+	src-gen/pp/{sdf-name}-pp
 
 rules
 	
   pp-{sdf-name}-string =
-    prettyprint-Start
+    prettyprint-SDF-start-symbols
     ; !V([], <id>)
     ; box2text-string(|120)
       
@@ -303,15 +300,13 @@ rules
 imports
 
 	libstratego-gpp
-	lib/runtime/tmpl/pp
 	lib/runtime/refactoring/-
-	Common.pp.generated
-	{sdf-name}.pp.generated
+	src-gen/pp/{sdf-name}-pp
 
 rules
 	
   pp-{sdf-name}-string =
-    prettyprint-Start
+    prettyprint-SDF-start-symbols
     ; !V([], <id>)
     ; box2text-string(|120)
       

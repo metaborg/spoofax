@@ -14,10 +14,6 @@
 		<relativePath>../../spoofax-deploy/org.metaborg.maven.parent.plugin</relativePath>
 	</parent>
 
-	<build>
-		<sourceDirectory>src</sourceDirectory>
-	</build>
-
 	<developers>
 	</developers>
 

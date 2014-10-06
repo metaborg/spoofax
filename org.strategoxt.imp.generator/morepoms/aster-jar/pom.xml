@@ -1,16 +1,16 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<artifactId>aster-jar</artifactId>
-	<packaging>jar</packaging>
-	<description>Aster runtime JAR file</description>
+	<artifactId>aster-jar-installer</artifactId>
+	<packaging>pom</packaging>
+	<description>Aster runtime JAR file - installer POM</description>
 	<url>https://github.com/metaborg/aster</url>
 
 	<parent>
 		<groupId>org.metaborg</groupId>
 		<artifactId>org.metaborg.maven.parent</artifactId>
 		<version>1.2.0-SNAPSHOT</version>
-		<relativePath>../../spoofax-deploy/org.metaborg.maven.parent</relativePath>
+		<relativePath>../../../../spoofax-deploy/org.metaborg.maven.parent</relativePath>
 	</parent>
 
 	<dependencies>
@@ -38,8 +38,8 @@
 							<goal>install-file</goal>
 						</goals>
 						<configuration>
-							<file>${basedir}/dist/aster.jar</file>
-							<pomFile>${basedir}/aster-jar-pom.xml</pomFile>
+							<file>${basedir}/../../dist/aster.jar</file>
+							<pomFile>${basedir}/jar-pom.xml</pomFile>
 						</configuration>
 					</execution>
 				</executions>
@@ -58,8 +58,8 @@
 							<goal>deploy-file</goal>
 						</goals>
 						<configuration>
-							<file>${basedir}/dist/aster.jar</file>
-							<pomFile>${basedir}/aster-jar-pom.xml</pomFile>
+							<file>${basedir}/../../dist/aster.jar</file>
+							<pomFile>${basedir}/jar-pom.xml</pomFile>
 							<url>${deployFileUrl}</url>
 							<repositoryId>${deployRepositoryId}</repositoryId>
 						</configuration>
