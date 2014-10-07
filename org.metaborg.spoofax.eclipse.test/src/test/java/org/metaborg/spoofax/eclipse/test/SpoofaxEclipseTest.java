@@ -1,5 +1,7 @@
 package org.metaborg.spoofax.eclipse.test;
 
+import org.eclipse.core.runtime.jobs.Job;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.metaborg.spoofax.core.language.ILanguageDiscoveryService;
 import org.metaborg.spoofax.core.language.ILanguageService;
@@ -25,5 +27,13 @@ public class SpoofaxEclipseTest {
         termFactoryService = injector.getInstance(ITermFactoryService.class);
         languageService = injector.getInstance(ILanguageService.class);
         languageDiscoveryService = injector.getInstance(ILanguageDiscoveryService.class);
+    }
+
+    @AfterClass public static void afterClass() {
+        try {
+            Job.getJobManager().join(null, null);
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
     }
 }
