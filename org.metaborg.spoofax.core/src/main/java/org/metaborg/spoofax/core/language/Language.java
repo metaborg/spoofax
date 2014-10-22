@@ -10,26 +10,22 @@ import rx.subjects.Subject;
 
 import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.ComparisonChain;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.MutableClassToInstanceMap;
 
 public class Language implements ILanguage {
     private final String name;
     private final LanguageVersion version;
     private final FileObject location;
-    private final ImmutableSet<String> extensions;
     private final Date loadedDate;
 
     private final ClassToInstanceMap<ILanguageFacet> facets = MutableClassToInstanceMap.create();
     private final Subject<LanguageFacetChange, LanguageFacetChange> facetChanges = PublishSubject.create();
 
 
-    public Language(String name, LanguageVersion version, FileObject location, ImmutableSet<String> extensions,
-        Date loadedDate) {
+    public Language(String name, LanguageVersion version, FileObject location, Date loadedDate) {
         this.name = name;
         this.version = version;
         this.location = location;
-        this.extensions = extensions;
         this.loadedDate = loadedDate;
     }
 
@@ -44,14 +40,6 @@ public class Language implements ILanguage {
 
     @Override public FileObject location() {
         return location;
-    }
-
-    @Override public Iterable<String> extensions() {
-        return extensions;
-    }
-
-    @Override public boolean hasExtension(String extension) {
-        return extensions.contains(extension);
     }
 
     @Override public Date createdDate() {
@@ -132,7 +120,6 @@ public class Language implements ILanguage {
     }
 
     @Override public String toString() {
-        return "Language [name=" + name + ", version=" + version + ", location=" + location + ", extensions="
-            + extensions + "]";
+        return "Language [name=" + name + ", version=" + version + ", location=" + location + "]";
     }
 }

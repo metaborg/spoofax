@@ -12,6 +12,8 @@ import org.metaborg.spoofax.core.parser.FileParseTableProvider;
 import org.metaborg.spoofax.core.parser.IParseService;
 import org.metaborg.spoofax.core.service.actions.Action;
 import org.metaborg.spoofax.core.service.actions.ActionsFacet;
+import org.metaborg.spoofax.core.service.identification.ExtensionsIdentifier;
+import org.metaborg.spoofax.core.service.identification.IdentificationFacet;
 import org.metaborg.spoofax.core.service.stratego.StrategoFacet;
 import org.metaborg.spoofax.core.service.syntax.SyntaxFacet;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
@@ -66,7 +68,10 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         ImmutableSet<String> extensions, FileObject parseTable, String startSymbol,
         ImmutableSet<FileObject> ctreeFiles, ImmutableSet<FileObject> jarFiles, String strategoAnalysisStrategy,
         String strategoOnSaveStrategy, Map<String, Action> actions) {
-        final ILanguage language = languageService.create(name, version, location, extensions);
+        final ILanguage language = languageService.create(name, version, location);
+
+        final IdentificationFacet identificationFacet = new IdentificationFacet(new ExtensionsIdentifier(extensions));
+        language.addFacet(identificationFacet);
 
         final SyntaxFacet syntaxFacet =
             new SyntaxFacet(new FileParseTableProvider(parseTable, parseService.parseTableManager(), true),
@@ -97,7 +102,10 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
         final String name = languageName(esvTerm);
         final Iterable<String> extensions = Iterables2.from(extensions(esvTerm));
-        final ILanguage language = languageService.create(name, version, location, ImmutableSet.copyOf(extensions));
+        final ILanguage language = languageService.create(name, version, location);
+
+        final IdentificationFacet identificationFacet = new IdentificationFacet(new ExtensionsIdentifier(extensions));
+        language.addFacet(identificationFacet);
 
         final FileObject parseTable = location.resolveFile(parseTableName(esvTerm));
         final String startSymbol = startSymbol(esvTerm); // TODO: what about multiple start symbols?
