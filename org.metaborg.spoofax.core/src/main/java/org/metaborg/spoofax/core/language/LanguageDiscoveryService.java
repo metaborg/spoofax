@@ -3,6 +3,7 @@ package org.metaborg.spoofax.core.language;
 import static org.metaborg.spoofax.core.esv.ESVReader.*;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.vfs2.FileObject;
@@ -60,6 +61,29 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         }
         return languages;
     }
+
+    @Override public ILanguage create(String name, LanguageVersion version, FileObject location,
+        ImmutableSet<String> extensions, FileObject parseTable, String startSymbol,
+        ImmutableSet<FileObject> ctreeFiles, ImmutableSet<FileObject> jarFiles, String strategoAnalysisStrategy,
+        String strategoOnSaveStrategy, Map<String, Action> actions) {
+        final ILanguage language = languageService.create(name, version, location, extensions);
+
+        final SyntaxFacet syntaxFacet =
+            new SyntaxFacet(new FileParseTableProvider(parseTable, parseService.parseTableManager(), true),
+                Sets.newHashSet(startSymbol));
+        language.addFacet(syntaxFacet);
+
+        final StrategoFacet strategoFacet =
+            new StrategoFacet(ctreeFiles, jarFiles, strategoAnalysisStrategy, strategoOnSaveStrategy);
+        language.addFacet(strategoFacet);
+
+        final ActionsFacet actionsFacet = new ActionsFacet();
+        actions.putAll(actions);
+        language.addFacet(actionsFacet);
+
+        return language;
+    }
+
 
     private ILanguage languageFromESV(FileObject location, FileObject esvFile, LanguageVersion version)
         throws Exception {

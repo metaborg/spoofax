@@ -10,12 +10,6 @@ import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.logging.log4j.Logger;
-import org.metaborg.spoofax.core.parser.FileParseTableProvider;
-import org.metaborg.spoofax.core.parser.IParseService;
-import org.metaborg.spoofax.core.service.actions.Action;
-import org.metaborg.spoofax.core.service.actions.ActionsFacet;
-import org.metaborg.spoofax.core.service.stratego.StrategoFacet;
-import org.metaborg.spoofax.core.service.syntax.SyntaxFacet;
 import org.metaborg.util.logging.InjectLogger;
 
 import rx.Observable;
@@ -31,7 +25,6 @@ import com.google.inject.Inject;
 
 public class LanguageService implements ILanguageService {
     @InjectLogger private Logger logger;
-    private final IParseService parseService; // TODO: language service should not depend on parse service.
     private final Set<ILanguageFacetFactory> facetFactories;
 
     private final Map<String, SortedSet<ILanguage>> nameToLanguages = Maps.newHashMap();
@@ -41,9 +34,8 @@ public class LanguageService implements ILanguageService {
     private final Subject<LanguageChange, LanguageChange> languageChanges = PublishSubject.create();
 
 
-    @Inject public LanguageService(Set<ILanguageFacetFactory> facetFactories, IParseService parseService) {
+    @Inject public LanguageService(Set<ILanguageFacetFactory> facetFactories) {
         this.facetFactories = facetFactories;
-        this.parseService = parseService;
     }
 
 
@@ -256,28 +248,6 @@ public class LanguageService implements ILanguageService {
                     + " failed: " + e.getMessage(), e);
             }
         }
-
-        return language;
-    }
-
-    @Override public ILanguage create(String name, LanguageVersion version, FileObject location,
-        ImmutableSet<String> extensions, FileObject parseTable, String startSymbol,
-        ImmutableSet<FileObject> ctreeFiles, ImmutableSet<FileObject> jarFiles, String strategoAnalysisStrategy,
-        String strategoOnSaveStrategy, Map<String, Action> actions) {
-        final ILanguage language = create(name, version, location, extensions);
-
-        final SyntaxFacet syntaxFacet =
-            new SyntaxFacet(new FileParseTableProvider(parseTable, parseService.parseTableManager(), true),
-                Sets.newHashSet(startSymbol));
-        language.addFacet(syntaxFacet);
-
-        final StrategoFacet strategoFacet =
-            new StrategoFacet(ctreeFiles, jarFiles, strategoAnalysisStrategy, strategoOnSaveStrategy);
-        language.addFacet(strategoFacet);
-
-        final ActionsFacet actionsFacet = new ActionsFacet();
-        actions.putAll(actions);
-        language.addFacet(actionsFacet);
 
         return language;
     }
