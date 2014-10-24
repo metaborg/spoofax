@@ -4,6 +4,7 @@ import java.io.File;
 
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemManager;
 
 /**
  * Interface for access to the virtual file system.
@@ -62,4 +63,9 @@ public interface IResourceService {
      * @return File system name for given URI.
      */
     public FileName resolveURI(String uri);
+    
+    /**
+     * Temporary hack to get the internal file system manager.
+     */
+    public FileSystemManager manager();
 }

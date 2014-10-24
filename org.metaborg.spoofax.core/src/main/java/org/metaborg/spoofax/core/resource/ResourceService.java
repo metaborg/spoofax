@@ -67,4 +67,8 @@ public class ResourceService implements IResourceService {
             throw new RuntimeException(e);
         }
     }
+
+    @Override public FileSystemManager manager() {
+        return fileSystemManager;
+    }
 }

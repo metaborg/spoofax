@@ -19,7 +19,7 @@ import org.metaborg.spoofax.core.service.syntax.SyntaxFacet;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.logging.InjectLogger;
-import org.metaborg.util.resource.ContainsFileFilter;
+import org.metaborg.util.resource.ContainsFileSelector;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.io.binary.TermReader;
@@ -47,7 +47,7 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
 
     @Override public Iterable<ILanguage> discover(FileObject location) throws Exception {
-        final FileObject[] esvFiles = location.findFiles(new ContainsFileFilter("packed.esv"));
+        final FileObject[] esvFiles = location.findFiles(new ContainsFileSelector("packed.esv"));
         final Set<FileObject> parents = Sets.newHashSet();
         final Collection<ILanguage> languages = Lists.newLinkedList();
         for(FileObject esvFile : esvFiles) {
