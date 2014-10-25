@@ -4,7 +4,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.spoofax.jsglr.client.ParseTable;
 
 public interface IParseTableProvider {
-    ParseTable parseTable();
+    public ParseTable parseTable();
 
-    FileObject file();
+    public FileObject file();
 }
