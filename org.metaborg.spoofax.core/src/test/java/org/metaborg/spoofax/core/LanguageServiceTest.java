@@ -41,7 +41,8 @@ public class LanguageServiceTest extends SpoofaxTest {
         return languageService.create(name, version, location);
     }
 
-    private ILanguage language(String name, LanguageVersion version, FileObject location, String... extensions) {
+    private ILanguage language(String name, LanguageVersion version, FileObject location,
+        String... extensions) {
         final ILanguage language = language(name, version, location);
         final IdentificationFacet identificationFacet =
             new IdentificationFacet(new ExtensionsIdentifier(Iterables2.from(extensions)));
@@ -165,28 +166,28 @@ public class LanguageServiceTest extends SpoofaxTest {
         assertEquals(language, languageService.get("Entity", version, location));
         assertEquals(1, Iterables.size(languageService.getAll("Entity")));
     }
-    
+
     @Test public void identification() throws Exception {
         final LanguageVersion version = version(0, 0, 1, 0);
         final FileObject location1 = createDirectory("ram:///Entity1");
         final FileObject location2 = createDirectory("ram:///Entity2");
-        
+
         final ILanguage language1 = language("Entity1", version, location1, "ent1");
         final ILanguage language2 = language("Entity2", version, location2, "ent2");
-        
+
         final IdentificationFacet identificationFacet1 = language1.facet(IdentificationFacet.class);
         assertTrue(identificationFacet1.identify(resourceService.resolve("ram:///Entity1/test.ent1")));
         assertFalse(identificationFacet1.identify(resourceService.resolve("ram:///Entity2/test.ent2")));
-        
+
         final IdentificationFacet identificationFacet2 = language2.facet(IdentificationFacet.class);
         assertTrue(identificationFacet2.identify(resourceService.resolve("ram:///Entity2/test.ent2")));
         assertFalse(identificationFacet2.identify(resourceService.resolve("ram:///Entity1/test.ent1")));
     }
 
     /**
-     * The 'res:' filesystem redirects to resources inside the tests' JAR file or class file location, which are copied
-     * to the class file location from src/test/resources by Maven. The binary files of the Entity language are located
-     * in the resources to test language discovery.
+     * The 'res:' filesystem redirects to resources inside the tests' JAR file or class file location, which
+     * are copied to the class file location from src/test/resources by Maven. The binary files of the Entity
+     * language are located in the resources to test language discovery.
      */
     @Test public void discoverLanguage() throws Exception {
         final FileObject location = resourceService.resolve("res:");
@@ -205,13 +206,15 @@ public class LanguageServiceTest extends SpoofaxTest {
 
         final SyntaxFacet syntaxFacet = language.facet(SyntaxFacet.class);
 
-        assertEquals(resourceService.resolve("res:Entity/include/Entity.tbl"), syntaxFacet.parseTableProvider().file());
+        assertEquals(resourceService.resolve("res:Entity/include/Entity.tbl"), syntaxFacet.parseTable());
         assertIterableEquals(syntaxFacet.startSymbols(), "Start");
 
         final StrategoFacet strategoFacet = language.facet(StrategoFacet.class);
 
-        assertIterableEquals(strategoFacet.ctreeFiles(), resourceService.resolve("res:Entity/include/entity.ctree"));
-        assertIterableEquals(strategoFacet.jarFiles(), resourceService.resolve("res:Entity/include/entity-java.jar"));
+        assertIterableEquals(strategoFacet.ctreeFiles(),
+            resourceService.resolve("res:Entity/include/entity.ctree"));
+        assertIterableEquals(strategoFacet.jarFiles(),
+            resourceService.resolve("res:Entity/include/entity-java.jar"));
         assertEquals("editor-analyze", strategoFacet.analysisStrategy());
         assertEquals("editor-save", strategoFacet.onSaveStrategy());
 
@@ -222,7 +225,8 @@ public class LanguageServiceTest extends SpoofaxTest {
         final LanguageVersion version = version(0, 0, 1, 0);
         final FileObject location = createDirectory("ram:///");
         final ITestableObserver<LanguageChange> languageObserver = new TestableObserver<LanguageChange>();
-        final ITestableObserver<LanguageFacetChange> facetObserver = new TestableObserver<LanguageFacetChange>();
+        final ITestableObserver<LanguageFacetChange> facetObserver =
+            new TestableObserver<LanguageFacetChange>();
 
         languageService.changes().subscribe(languageObserver);
 
@@ -234,7 +238,8 @@ public class LanguageServiceTest extends SpoofaxTest {
         assertTrue(loaded.notification.isOnNext());
         assertEquals(loaded.notification.getValue(), new LanguageChange(language, LanguageChange.Kind.LOADED));
         assertTrue(activated.notification.isOnNext());
-        assertEquals(activated.notification.getValue(), new LanguageChange(language, LanguageChange.Kind.ACTIVATED));
+        assertEquals(activated.notification.getValue(), new LanguageChange(language,
+            LanguageChange.Kind.ACTIVATED));
 
 
         language.facetChanges().subscribe(facetObserver);
@@ -244,14 +249,16 @@ public class LanguageServiceTest extends SpoofaxTest {
         final TimestampedNotification<LanguageFacetChange> added = facetObserver.poll();
 
         assertTrue(added.notification.isOnNext());
-        assertEquals(added.notification.getValue(), new LanguageFacetChange(facet, LanguageFacetChange.Kind.ADDED));
+        assertEquals(added.notification.getValue(), new LanguageFacetChange(facet,
+            LanguageFacetChange.Kind.ADDED));
 
         language.removeFacet(AboutFacet.class);
 
         final TimestampedNotification<LanguageFacetChange> removed = facetObserver.poll();
 
         assertTrue(removed.notification.isOnNext());
-        assertEquals(removed.notification.getValue(), new LanguageFacetChange(facet, LanguageFacetChange.Kind.REMOVED));
+        assertEquals(removed.notification.getValue(), new LanguageFacetChange(facet,
+            LanguageFacetChange.Kind.REMOVED));
 
         assertEquals(facetObserver.size(), 0);
 
@@ -262,9 +269,11 @@ public class LanguageServiceTest extends SpoofaxTest {
         final TimestampedNotification<LanguageChange> unloaded = languageObserver.poll();
 
         assertTrue(deactivated.notification.isOnNext());
-        assertEquals(deactivated.notification.getValue(), new LanguageChange(language, LanguageChange.Kind.DEACTIVATED));
+        assertEquals(deactivated.notification.getValue(), new LanguageChange(language,
+            LanguageChange.Kind.DEACTIVATED));
         assertTrue(unloaded.notification.isOnNext());
-        assertEquals(unloaded.notification.getValue(), new LanguageChange(language, LanguageChange.Kind.UNLOADED));
+        assertEquals(unloaded.notification.getValue(), new LanguageChange(language,
+            LanguageChange.Kind.UNLOADED));
 
         assertEquals(languageObserver.size(), 0);
     }

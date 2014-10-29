@@ -1,5 +1,7 @@
 package org.metaborg.spoofax.core.messages;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.vfs2.FileObject;
 
 public interface IMessage {
@@ -9,9 +11,9 @@ public interface IMessage {
 
     public MessageType type();
 
-    public FileObject source();
+    @Nullable public FileObject source();
 
     public ICodeRegion region();
 
-    public Throwable exception();
+    @Nullable public Throwable exception();
 }

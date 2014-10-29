@@ -6,7 +6,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.metaborg.spoofax.core.resource.IResourceService;
 import org.spoofax.jsglr.client.imploder.IToken;
 
 public class CodeRegion implements ICodeRegion {
@@ -50,7 +49,8 @@ public class CodeRegion implements ICodeRegion {
         if(affectedLines == null || affectedLines.length == 0)
             return CodeRegionHelper.TAB + "(code region unavailable)" + CodeRegionHelper.NEWLINE;
 
-        final String[] damagedLines = CodeRegionHelper.weaveDamageLines(affectedLines, startColumn, endColumn);
+        final String[] damagedLines =
+            CodeRegionHelper.weaveDamageLines(affectedLines, startColumn, endColumn);
         final StringBuilder sb = new StringBuilder();
         for(String dl : damagedLines) {
             sb.append(indentation + dl + CodeRegionHelper.NEWLINE);
@@ -59,10 +59,10 @@ public class CodeRegion implements ICodeRegion {
     }
 
 
-    public static CodeRegion fromTokens(IToken left, IToken right, IResourceService resourceService) {
+    public static CodeRegion fromTokens(IToken left, IToken right, FileObject file) {
         boolean leftDone = false, rightDone = false;
         int leftLine = 0, leftColumn = 0, rightLine = 0, rightColumn = 0;
-        final String fileContents = getAttachedInput(left, right, resourceService);
+        final String fileContents = getAttachedInput(left, right, file);
         if(fileContents.length() > 0) {
             char[] input = fileContents.toCharArray();
             int currentLine = 1;
@@ -95,7 +95,7 @@ public class CodeRegion implements ICodeRegion {
         }
     }
 
-    private static String getAttachedInput(IToken left, IToken right, IResourceService resourceService) {
+    private static String getAttachedInput(IToken left, IToken right, FileObject file) {
         String input = null;
         input = left.getTokenizer().getInput();
         if(input == null) {
@@ -103,7 +103,6 @@ public class CodeRegion implements ICodeRegion {
         }
         if(input == null) {
             try {
-                final FileObject file = resourceService.resolve(left.getTokenizer().getFilename());
                 input = IOUtils.toString(file.getContent().getInputStream());
             } catch(IOException e) {
                 logger.warn("Cannot read file contents to determine affected code region", e);
@@ -113,7 +112,7 @@ public class CodeRegion implements ICodeRegion {
         return input;
     }
 
-    
+
     @Override public int hashCode() {
         final int prime = 31;
         int result = 1;

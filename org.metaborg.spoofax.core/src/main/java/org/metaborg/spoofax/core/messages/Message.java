@@ -3,19 +3,21 @@ package org.metaborg.spoofax.core.messages;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.vfs2.FileObject;
 
 public class Message implements IMessage {
     private final String message;
     private final MessageSeverity severity;
     private final MessageType type;
-    private final FileObject source;
+    @Nullable private final FileObject source;
     private final ICodeRegion region;
-    private final Throwable exception;
+    @Nullable private final Throwable exception;
 
 
-    public Message(String message, MessageSeverity severity, MessageType type, FileObject source,
-        ICodeRegion region, Throwable exception) {
+    public Message(String message, MessageSeverity severity, MessageType type, @Nullable FileObject source,
+        ICodeRegion region, @Nullable Throwable exception) {
         this.message = message;
         this.severity = severity;
         this.type = type;

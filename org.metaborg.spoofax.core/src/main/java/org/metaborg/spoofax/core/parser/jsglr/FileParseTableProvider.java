@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.core.parser;
+package org.metaborg.spoofax.core.parser.jsglr;
 
 import java.io.InputStream;
 

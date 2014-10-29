@@ -7,7 +7,7 @@ import org.metaborg.spoofax.core.language.ILanguageService;
 import org.metaborg.spoofax.core.language.LanguageDiscoveryService;
 import org.metaborg.spoofax.core.language.LanguageService;
 import org.metaborg.spoofax.core.parser.IParseService;
-import org.metaborg.spoofax.core.parser.ParseService;
+import org.metaborg.spoofax.core.parser.jsglr.JSGLRParseService;
 import org.metaborg.spoofax.core.resource.IResourceService;
 import org.metaborg.spoofax.core.resource.ResourceService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
@@ -44,7 +44,7 @@ public class SpoofaxEclipseModule extends AbstractModule {
             bind(ITermFactoryService.class).to(TermFactoryService.class).in(Singleton.class);
             bind(ILanguageService.class).to(LanguageService.class).in(Singleton.class);
             bind(ILanguageDiscoveryService.class).to(LanguageDiscoveryService.class).in(Singleton.class);
-            bind(IParseService.class).to(ParseService.class).in(Singleton.class);
+            bind(IParseService.class).to(JSGLRParseService.class).in(Singleton.class);
 
             bind(DescriptorRegistry.class).in(Singleton.class);
             bind(DescriptorFactory.class).asEagerSingleton();

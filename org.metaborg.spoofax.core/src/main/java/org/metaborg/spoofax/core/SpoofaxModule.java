@@ -9,7 +9,7 @@ import org.metaborg.spoofax.core.language.LanguageDiscoveryService;
 import org.metaborg.spoofax.core.language.LanguageIdentifierService;
 import org.metaborg.spoofax.core.language.LanguageService;
 import org.metaborg.spoofax.core.parser.IParseService;
-import org.metaborg.spoofax.core.parser.ParseService;
+import org.metaborg.spoofax.core.parser.jsglr.JSGLRParseService;
 import org.metaborg.spoofax.core.resource.DefaultFileSystemManagerProvider;
 import org.metaborg.spoofax.core.resource.IResourceService;
 import org.metaborg.spoofax.core.resource.ResourceService;
@@ -36,7 +36,7 @@ public class SpoofaxModule extends AbstractModule {
             bind(ILanguageService.class).to(LanguageService.class).in(Singleton.class);
             bind(ILanguageDiscoveryService.class).to(LanguageDiscoveryService.class).in(Singleton.class);
             bind(ILanguageIdentifierService.class).to(LanguageIdentifierService.class).in(Singleton.class);
-            bind(IParseService.class).to(ParseService.class).in(Singleton.class);
+            bind(IParseService.class).to(JSGLRParseService.class).in(Singleton.class);
 
             bind(FileSystemManager.class).toProvider(DefaultFileSystemManagerProvider.class).in(Singleton.class);
 

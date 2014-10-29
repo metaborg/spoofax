@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.core.parser;
+package org.metaborg.spoofax.core.parser.jsglr;
 
 import org.apache.commons.vfs2.FileObject;
 import org.spoofax.jsglr.client.ParseTable;

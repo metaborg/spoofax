@@ -10,13 +10,14 @@ import com.google.common.collect.Lists;
 public class ParseResult<T> {
     public final T result;
     public final FileObject source;
-    public final Collection<IMessage> messages = Lists.newLinkedList();
+    public final Collection<IMessage> messages;
     public final long duration;
 
 
-    public ParseResult(T result, FileObject source, long duration) {
+    public ParseResult(T result, FileObject source, Iterable<IMessage> messages, long duration) {
         this.result = result;
         this.source = source;
+        this.messages = Lists.newLinkedList(messages);
         this.duration = duration;
     }
 
