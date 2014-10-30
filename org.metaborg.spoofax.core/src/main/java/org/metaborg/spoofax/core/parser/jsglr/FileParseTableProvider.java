@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.core.parser;
+package org.metaborg.spoofax.core.parser.jsglr;
 
 import java.io.InputStream;
 
@@ -13,6 +13,7 @@ public class FileParseTableProvider implements IParseTableProvider {
 
     private ParseTable cachedTable;
 
+    
     public FileParseTableProvider(FileObject file, ParseTableManager parseTableManager) {
         this(file, parseTableManager, true);
     }
@@ -23,6 +24,7 @@ public class FileParseTableProvider implements IParseTableProvider {
         this.caching = caching;
     }
 
+    
     @Override public ParseTable parseTable() {
         if(this.cachedTable != null)
             return this.cachedTable;

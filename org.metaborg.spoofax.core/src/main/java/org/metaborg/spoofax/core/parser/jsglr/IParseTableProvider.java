@@ -1,10 +1,10 @@
-package org.metaborg.spoofax.core.parser;
+package org.metaborg.spoofax.core.parser.jsglr;
 
 import org.apache.commons.vfs2.FileObject;
 import org.spoofax.jsglr.client.ParseTable;
 
 public interface IParseTableProvider {
-    ParseTable parseTable();
+    public ParseTable parseTable();
 
-    FileObject file();
+    public FileObject file();
 }

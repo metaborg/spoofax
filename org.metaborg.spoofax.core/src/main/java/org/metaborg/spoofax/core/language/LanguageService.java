@@ -10,19 +10,12 @@ import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.logging.log4j.Logger;
-import org.metaborg.spoofax.core.parser.FileParseTableProvider;
-import org.metaborg.spoofax.core.parser.IParseService;
-import org.metaborg.spoofax.core.service.actions.Action;
-import org.metaborg.spoofax.core.service.actions.ActionsFacet;
-import org.metaborg.spoofax.core.service.stratego.StrategoFacet;
-import org.metaborg.spoofax.core.service.syntax.SyntaxFacet;
 import org.metaborg.util.logging.InjectLogger;
 
 import rx.Observable;
 import rx.subjects.PublishSubject;
 import rx.subjects.Subject;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -31,19 +24,16 @@ import com.google.inject.Inject;
 
 public class LanguageService implements ILanguageService {
     @InjectLogger private Logger logger;
-    private final IParseService parseService; // TODO: language service should not depend on parse service.
     private final Set<ILanguageFacetFactory> facetFactories;
 
     private final Map<String, SortedSet<ILanguage>> nameToLanguages = Maps.newHashMap();
     private final Map<String, ILanguage> nameToActiveLanguage = Maps.newHashMap();
     private final Map<FileName, ILanguage> locationToLanguage = Maps.newHashMap();
-    private final Map<String, String> extensionToLanguageName = Maps.newHashMap();
     private final Subject<LanguageChange, LanguageChange> languageChanges = PublishSubject.create();
 
 
-    @Inject public LanguageService(Set<ILanguageFacetFactory> facetFactories, IParseService parseService) {
+    @Inject public LanguageService(Set<ILanguageFacetFactory> facetFactories) {
         this.facetFactories = facetFactories;
-        this.parseService = parseService;
     }
 
 
@@ -74,14 +64,6 @@ public class LanguageService implements ILanguageService {
         return null;
     }
 
-    @Override public ILanguage getByExt(String extension) {
-        final String name = extensionToLanguageName.get(extension);
-        if(name == null) {
-            return null;
-        }
-        return get(name);
-    }
-
     @Override public Iterable<ILanguage> getAll() {
         return Iterables.concat(nameToLanguages.values());
     }
@@ -105,20 +87,8 @@ public class LanguageService implements ILanguageService {
         return matchedLanguages;
     }
 
-    @Override public Iterable<ILanguage> getAllByExt(String extension) {
-        final String name = extensionToLanguageName.get(extension);
-        if(name == null) {
-            return null;
-        }
-        return getAll(name);
-    }
-
     @Override public ILanguage getAny() {
         return Iterables.get(nameToActiveLanguage.values(), 0, null);
-    }
-
-    @Override public Iterable<String> getSupportedExt() {
-        return extensionToLanguageName.keySet();
     }
 
     @Override public Observable<LanguageChange> changes() {
@@ -140,14 +110,6 @@ public class LanguageService implements ILanguageService {
                 + language.location() + " exists: " + e.getMessage(), e);
         }
 
-        for(String extension : language.extensions()) {
-            final String existingName = extensionToLanguageName.get(extension);
-            if(existingName != null && !existingName.equals(language.name())) {
-                throw new IllegalStateException("Cannot load language, extension " + extension
-                    + " is already used by language " + existingName);
-            }
-        }
-
         final ILanguage existingLanguage = locationToLanguage.get(language.location().getName());
         if(existingLanguage != null && !existingLanguage.name().equals(language.name())) {
             throw new IllegalStateException("Cannot load language, location " + language.location()
@@ -155,32 +117,13 @@ public class LanguageService implements ILanguageService {
         }
 
         locationToLanguage.put(language.location().getName(), language);
-
-        for(String extension : language.extensions()) {
-            extensionToLanguageName.put(extension, language.name());
-        }
-
         existingLanguages.add(language);
-
         sendLanguageChange(language, LanguageChange.Kind.LOADED);
     }
 
     private void unload(ILanguage language, Set<ILanguage> existingLanguages) {
         existingLanguages.remove(language);
-
-        // Remove only the extensions that are not being used by any other language with the same name.
-        final Set<String> unusedExtensions = Sets.newHashSet(language.extensions());
-        for(ILanguage existingLanguage : existingLanguages) {
-            for(String extension : existingLanguage.extensions()) {
-                unusedExtensions.remove(extension);
-            }
-        }
-        for(String extension : unusedExtensions) {
-            extensionToLanguageName.remove(extension);
-        }
-
         locationToLanguage.remove(language.location().getName());
-
         sendLanguageChange(language, LanguageChange.Kind.UNLOADED);
     }
 
@@ -225,9 +168,8 @@ public class LanguageService implements ILanguageService {
         }
     }
 
-    @Override public ILanguage create(String name, LanguageVersion version, FileObject location,
-        ImmutableSet<String> extensions) {
-        final ILanguage language = new Language(name, version, location, extensions, new Date());
+    @Override public ILanguage create(String name, LanguageVersion version, FileObject location) {
+        final ILanguage language = new Language(name, version, location, new Date());
         final SortedSet<ILanguage> existingLanguages = getLanguageSet(name);
         if(existingLanguages.isEmpty()) {
             // Language does not exist yet.
@@ -256,28 +198,6 @@ public class LanguageService implements ILanguageService {
                     + " failed: " + e.getMessage(), e);
             }
         }
-
-        return language;
-    }
-
-    @Override public ILanguage create(String name, LanguageVersion version, FileObject location,
-        ImmutableSet<String> extensions, FileObject parseTable, String startSymbol,
-        ImmutableSet<FileObject> ctreeFiles, ImmutableSet<FileObject> jarFiles, String strategoAnalysisStrategy,
-        String strategoOnSaveStrategy, Map<String, Action> actions) {
-        final ILanguage language = create(name, version, location, extensions);
-
-        final SyntaxFacet syntaxFacet =
-            new SyntaxFacet(new FileParseTableProvider(parseTable, parseService.parseTableManager(), true),
-                Sets.newHashSet(startSymbol));
-        language.addFacet(syntaxFacet);
-
-        final StrategoFacet strategoFacet =
-            new StrategoFacet(ctreeFiles, jarFiles, strategoAnalysisStrategy, strategoOnSaveStrategy);
-        language.addFacet(strategoFacet);
-
-        final ActionsFacet actionsFacet = new ActionsFacet();
-        actions.putAll(actions);
-        language.addFacet(actionsFacet);
 
         return language;
     }

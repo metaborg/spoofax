@@ -28,20 +28,6 @@ public interface ILanguage extends Comparable<ILanguage> {
     public FileObject location();
 
     /**
-     * Returns the extensions that this language handles.
-     */
-    public Iterable<String> extensions();
-
-    /**
-     * Query if language handles given extension.
-     * 
-     * @param extension
-     *            Extension to query.
-     * @return True if language handles given extension, false otherwise.
-     */
-    public boolean hasExtension(String extension);
-
-    /**
      * Returns the date at when the language was created.
      */
     public Date createdDate();

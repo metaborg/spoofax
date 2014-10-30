@@ -3,20 +3,21 @@ package org.metaborg.spoofax.core.language;
 import static org.metaborg.spoofax.core.esv.ESVReader.*;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.logging.log4j.Logger;
-import org.metaborg.spoofax.core.parser.FileParseTableProvider;
-import org.metaborg.spoofax.core.parser.IParseService;
 import org.metaborg.spoofax.core.service.actions.Action;
 import org.metaborg.spoofax.core.service.actions.ActionsFacet;
+import org.metaborg.spoofax.core.service.identification.ExtensionsIdentifier;
+import org.metaborg.spoofax.core.service.identification.IdentificationFacet;
 import org.metaborg.spoofax.core.service.stratego.StrategoFacet;
 import org.metaborg.spoofax.core.service.syntax.SyntaxFacet;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.logging.InjectLogger;
-import org.metaborg.util.resource.ContainsFileFilter;
+import org.metaborg.util.resource.ContainsFileSelector;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.io.binary.TermReader;
@@ -31,20 +32,18 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
     @InjectLogger private Logger logger;
     private final ILanguageService languageService;
     private final ITermFactoryService termFactoryService;
-    private final IParseService parseService;
     @Inject(optional = true) @Named("LanguageDiscoveryAnalysisOverride") private String analysisStrategyOverride;
 
 
-    @Inject public LanguageDiscoveryService(ILanguageService languageService, ITermFactoryService termFactoryService,
-        IParseService parseService) {
+    @Inject public LanguageDiscoveryService(ILanguageService languageService,
+        ITermFactoryService termFactoryService) {
         this.languageService = languageService;
         this.termFactoryService = termFactoryService;
-        this.parseService = parseService;
     }
 
 
     @Override public Iterable<ILanguage> discover(FileObject location) throws Exception {
-        final FileObject[] esvFiles = location.findFiles(new ContainsFileFilter("packed.esv"));
+        final FileObject[] esvFiles = location.findFiles(new ContainsFileSelector("packed.esv"));
         final Set<FileObject> parents = Sets.newHashSet();
         final Collection<ILanguage> languages = Lists.newLinkedList();
         for(FileObject esvFile : esvFiles) {
@@ -61,6 +60,31 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         return languages;
     }
 
+    @Override public ILanguage create(String name, LanguageVersion version, FileObject location,
+        ImmutableSet<String> extensions, FileObject parseTable, String startSymbol,
+        ImmutableSet<FileObject> ctreeFiles, ImmutableSet<FileObject> jarFiles,
+        String strategoAnalysisStrategy, String strategoOnSaveStrategy, Map<String, Action> actions) {
+        final ILanguage language = languageService.create(name, version, location);
+
+        final IdentificationFacet identificationFacet =
+            new IdentificationFacet(new ExtensionsIdentifier(extensions));
+        language.addFacet(identificationFacet);
+
+        final SyntaxFacet syntaxFacet = new SyntaxFacet(parseTable, Sets.newHashSet(startSymbol));
+        language.addFacet(syntaxFacet);
+
+        final StrategoFacet strategoFacet =
+            new StrategoFacet(ctreeFiles, jarFiles, strategoAnalysisStrategy, strategoOnSaveStrategy);
+        language.addFacet(strategoFacet);
+
+        final ActionsFacet actionsFacet = new ActionsFacet();
+        actions.putAll(actions);
+        language.addFacet(actionsFacet);
+
+        return language;
+    }
+
+
     private ILanguage languageFromESV(FileObject location, FileObject esvFile, LanguageVersion version)
         throws Exception {
         final TermReader reader =
@@ -73,13 +97,15 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
         final String name = languageName(esvTerm);
         final Iterable<String> extensions = Iterables2.from(extensions(esvTerm));
-        final ILanguage language = languageService.create(name, version, location, ImmutableSet.copyOf(extensions));
+        final ILanguage language = languageService.create(name, version, location);
+
+        final IdentificationFacet identificationFacet =
+            new IdentificationFacet(new ExtensionsIdentifier(extensions));
+        language.addFacet(identificationFacet);
 
         final FileObject parseTable = location.resolveFile(parseTableName(esvTerm));
         final String startSymbol = startSymbol(esvTerm); // TODO: what about multiple start symbols?
-        final SyntaxFacet syntaxFacet =
-            new SyntaxFacet(new FileParseTableProvider(parseTable, parseService.parseTableManager(), true),
-                Sets.newHashSet(startSymbol));
+        final SyntaxFacet syntaxFacet = new SyntaxFacet(parseTable, Sets.newHashSet(startSymbol));
         language.addFacet(syntaxFacet);
 
         final Set<FileObject> strategoFiles = attachedFiles(esvTerm, location);
