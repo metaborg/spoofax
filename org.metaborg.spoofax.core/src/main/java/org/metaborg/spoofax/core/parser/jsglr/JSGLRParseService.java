@@ -40,7 +40,7 @@ public class JSGLRParseService implements IParseService<IStrategoTerm> {
     }
 
 
-    private IParserConfig getParserConfig(ILanguage lang) {
+    public IParserConfig getParserConfig(ILanguage lang) {
         IParserConfig config = parserConfigs.get(lang);
         if(config == null) {
             final SyntaxFacet facet = lang.facet(SyntaxFacet.class);
