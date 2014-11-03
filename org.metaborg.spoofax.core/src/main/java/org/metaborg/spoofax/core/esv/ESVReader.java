@@ -1,5 +1,6 @@
 package org.metaborg.spoofax.core.esv;
 
+import static org.spoofax.interpreter.core.Tools.termAt;
 import static org.spoofax.interpreter.terms.IStrategoTerm.*;
 import static org.spoofax.terms.Term.*;
 
@@ -7,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Set;
+
+import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
@@ -44,7 +47,8 @@ public class ESVReader {
         return results;
     }
 
-    private static void collectTerms(IStrategoTerm term, String constructor, ArrayList<IStrategoAppl> results) {
+    private static void
+        collectTerms(IStrategoTerm term, String constructor, ArrayList<IStrategoAppl> results) {
         if(term.getTermType() == IStrategoTerm.APPL && cons(term).equals(constructor))
             results.add((IStrategoAppl) term);
 
@@ -102,8 +106,8 @@ public class ESVReader {
     }
 
     public static String observerFunction(IStrategoAppl document) {
-        IStrategoAppl observer = findTerm(document, "SemanticObserver");
-        String observerFunction = termContents(termAt(observer, 0));
+        final IStrategoAppl observer = findTerm(document, "SemanticObserver");
+        final String observerFunction = termContents(termAt(observer, 0));
         return observerFunction;
     }
 
@@ -117,8 +121,29 @@ public class ESVReader {
         return null;
     }
 
+    public static @Nullable String resolverStrategy(IStrategoAppl document) {
+        final IStrategoAppl resolver = findTerm(document, "ReferenceRule");
+        if(resolver == null)
+            return null;
+        return termContents(termAt(resolver, 1));
+    }
+
+    public static @Nullable String hoverStrategy(IStrategoAppl document) {
+        final IStrategoAppl hover = findTerm(document, "HoverRule");
+        if(hover == null)
+            return null;
+        return termContents(termAt(hover, 1));
+    }
+
+    public static @Nullable String completionStrategy(IStrategoAppl document) {
+        final IStrategoAppl completer = findTerm(document, "CompletionProposer");
+        if(completer == null)
+            return null;
+        return termContents(termAt(completer, 1));
+    }
+
     public static String startSymbol(IStrategoAppl document) {
-        IStrategoAppl result = findTerm(document, "StartSymbols");
+        final IStrategoAppl result = findTerm(document, "StartSymbols");
         if(result == null)
             return null;
 
@@ -132,8 +157,10 @@ public class ESVReader {
         return file;
     }
 
-    public static Set<FileObject> attachedFiles(IStrategoAppl document, FileObject basepath) throws FileSystemException {
-        final Set<FileObject> attachedFiles = Sets.newLinkedHashSet(); // Use LinkedHashSet: must maintain JAR order.
+    public static Set<FileObject> attachedFiles(IStrategoAppl document, FileObject basepath)
+        throws FileSystemException {
+        final Set<FileObject> attachedFiles = Sets.newLinkedHashSet(); // Use LinkedHashSet: must maintain JAR
+                                                                       // order.
 
         for(IStrategoAppl s : collectTerms(document, "SemanticProvider")) {
             attachedFiles.add(basepath.resolveFile(termContents(s)));
