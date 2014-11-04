@@ -62,8 +62,9 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
     @Override public ILanguage create(String name, LanguageVersion version, FileObject location,
         ImmutableSet<String> extensions, FileObject parseTable, String startSymbol,
-        ImmutableSet<FileObject> ctreeFiles, ImmutableSet<FileObject> jarFiles,
-        String strategoAnalysisStrategy, String strategoOnSaveStrategy, Map<String, Action> actions) {
+        ImmutableSet<FileObject> ctreeFiles, ImmutableSet<FileObject> jarFiles, String analysisStrategy,
+        String onSaveStrategy, String resolverStrategy, String hoverStrategy, String completionStrategy,
+        Map<String, Action> actions) {
         final ILanguage language = languageService.create(name, version, location);
 
         final IdentificationFacet identificationFacet =
@@ -74,7 +75,8 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         language.addFacet(syntaxFacet);
 
         final StrategoFacet strategoFacet =
-            new StrategoFacet(ctreeFiles, jarFiles, strategoAnalysisStrategy, strategoOnSaveStrategy);
+            new StrategoFacet(ctreeFiles, jarFiles, analysisStrategy, onSaveStrategy, resolverStrategy,
+                hoverStrategy, completionStrategy);
         language.addFacet(strategoFacet);
 
         final ActionsFacet actionsFacet = new ActionsFacet();
@@ -91,7 +93,7 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
             new TermReader(termFactoryService.getGeneric().getFactoryWithStorageType(IStrategoTerm.MUTABLE));
         final IStrategoTerm term = reader.parseFromStream(esvFile.getContent().getInputStream());
         if(term.getTermType() != IStrategoTerm.APPL) {
-            throw new IllegalStateException("Packed ESV file does not contain a proper ESV term.");
+            throw new IllegalStateException("Packed ESV file does not contain a valid ESV term.");
         }
         final IStrategoAppl esvTerm = (IStrategoAppl) term;
 
@@ -122,11 +124,15 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
                     + ", ignoring.");
             }
         }
-        final String strategoAnalysisStrategy =
+        final String analysisStrategy =
             analysisStrategyOverride == null ? observerFunction(esvTerm) : analysisStrategyOverride;
-        final String strategoOnSaveStrategy = onSaveFunction(esvTerm);
+        final String onSaveStrategy = onSaveFunction(esvTerm);
+        final String resolverStrategy = resolverStrategy(esvTerm);
+        final String hoverStrategy = hoverStrategy(esvTerm);
+        final String completionStrategy = completionStrategy(esvTerm);
         final StrategoFacet strategoFacet =
-            new StrategoFacet(ctreeFiles, jarFiles, strategoAnalysisStrategy, strategoOnSaveStrategy);
+            new StrategoFacet(ctreeFiles, jarFiles, analysisStrategy, onSaveStrategy, resolverStrategy,
+                hoverStrategy, completionStrategy);
         language.addFacet(strategoFacet);
 
         final ActionsFacet actionsFacet = new ActionsFacet();
