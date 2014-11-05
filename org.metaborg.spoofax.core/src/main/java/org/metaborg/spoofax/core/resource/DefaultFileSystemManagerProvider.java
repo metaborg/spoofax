@@ -4,6 +4,7 @@ import org.apache.commons.vfs2.CacheStrategy;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.cache.DefaultFilesCache;
+import org.apache.commons.vfs2.impl.DefaultFileReplicator;
 import org.apache.commons.vfs2.impl.DefaultFileSystemManager;
 import org.apache.commons.vfs2.provider.bzip2.Bzip2FileProvider;
 import org.apache.commons.vfs2.provider.ftp.FtpFileProvider;
@@ -31,13 +32,17 @@ public class DefaultFileSystemManagerProvider implements Provider<FileSystemMana
     @Override public FileSystemManager get() {
         try {
             final DefaultFileSystemManager manager = new DefaultFileSystemManager();
+
             manager.setFilesCache(new DefaultFilesCache());
             manager.setCacheStrategy(CacheStrategy.ON_RESOLVE);
+
+            manager.setTemporaryFileStore(new DefaultFileReplicator());
 
             addDefaultProvider(manager);
             addProviders(manager);
 
             manager.init();
+
             return manager;
         } catch(FileSystemException e) {
             throw new RuntimeException("Cannot initialze resource service: " + e.getMessage(), e);
