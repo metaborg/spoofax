@@ -34,10 +34,14 @@ public class SetOnlyMarkersPrimitive extends AbstractPrimitive {
 		if (resource == null)
 			return false;
 	
-		
-		StrategoAnalysisJob job = ((EditorIOAgent)agent).getJob();
-
-		StrategoObserver observer = job.getObserver();
+		final EditorIOAgent editorAgent = (EditorIOAgent)agent;
+		final StrategoAnalysisJob job = editorAgent.getJob();
+		// HACK: warn if no job is found, and do nothing..
+		if(job == null) {
+		    Environment.logWarning("Could not set messages for " + resource + ", no running job was found.");
+		    return true;
+		}
+		final StrategoObserver observer = job.getObserver();
 
 		// HACK: presentToUser runs a feedback postprocess strategy which calls primitives witch set env.current()
 		// (nested primitives...)

@@ -2,64 +2,72 @@
 <?eclipse version="3.0"?>
 
 <plugin>
-   <!-- We indirectly put our plugins on the Ant classpath by putting a dummy jar on it -->
-   <extension point="org.eclipse.ant.core.extraClasspathEntries">
-      <extraClasspathEntry library="lib/dummy.jar"/>
-   </extension>
+  <!-- We indirectly put our plugins on the Ant classpath by putting a dummy jar on it -->
+  <extension point="org.eclipse.ant.core.extraClasspathEntries">
+    <extraClasspathEntry library="lib/dummy.jar"/>
+  </extension>
+  
+  <extension point="org.eclipse.imp.runtime.languageDescription">
+    <language 
+      description="sdf2imp metatooling dynamic language placeholder" 
+      extensions="sdf2impbasetoo" 
+      language="DynamicRootInitializer" 
+      validator="org.strategoxt.imp.metatooling.loading.StartupDescriptorValidator" 
+      validatorClass="org.strategoxt.imp.metatooling.loading.StartupDescriptorValidator"
+    >
+      <!-- The validator class is used to start the dynamic loader       -->
+      <!-- "validator" is wat imp currently (incorrectly) tries to load) -->
+    </language>
+  </extension>
+  
+  <extension point="org.eclipse.ui.newWizards">
+    <primaryWizard id="org.strategoxt.imp.metatooling.wizards.NewEditorWizard">
+    </primaryWizard>
+    <wizard 
+      class="org.strategoxt.imp.metatooling.wizards.NewEditorWizard" 
+      icon="icons/sample.gif"
+      id="org.strategoxt.imp.metatooling.wizards.NewEditorWizard" 
+      name="Spoofax editor project" 
+      project="true"
+    >
+    </wizard>
+  </extension>
+  
    <extension
-         point="org.eclipse.imp.runtime.languageDescription">
-      <language
-            description="sdf2imp metatooling dynamic language placeholder"
-            extensions="sdf2impbasetoo"
-            language="DynamicRootInitializer"
-            validatorClass="org.strategoxt.imp.metatooling.loading.StartupDescriptorValidator"
-            validator=     "org.strategoxt.imp.metatooling.loading.StartupDescriptorValidator"
-            >
-            <!-- The validator class is used to start the dynamic loader       -->
-            <!-- "validator" is wat imp currently (incorrectly) tries to load) -->
-      </language>
+     point="org.eclipse.core.resources.natures"
+     id="nature"
+     name="Spoofax Nature"
+   >
+     <runtime>
+         <run class="org.strategoxt.imp.metatooling.SpoofaxNature" />
+     </runtime>
    </extension>
-   <extension
-         point="org.eclipse.ui.newWizards">
-      <primaryWizard
-            id="org.strategoxt.imp.metatooling.wizards.NewEditorWizard">
-      </primaryWizard>
-      <wizard
-            class="org.strategoxt.imp.metatooling.wizards.NewEditorWizard"
-            icon="icons/sample.gif"
-            id="org.strategoxt.imp.metatooling.wizards.NewEditorWizard"
-            name="Spoofax editor project"
-            project="true">
-      </wizard>
-   </extension>
-   <!-- disabled for release version
-   <extension
-         point="org.eclipse.ui.newWizards">
-      <primaryWizard
-            id="org.strategoxt.imp.metatooling.wizards.NewSpxEditorWizard">
-      </primaryWizard>
-      <wizard
-            class="org.strategoxt.imp.metatooling.wizards.NewSpxEditorWizard"
-            icon="icons/sample.gif"
-            id="org.strategoxt.imp.metatooling.wizards.NewSpxEditorWizard"
-            name="SpoofaxLang editor project (beta)"
-            project="true">
-      </wizard>
-   </extension>
-   -->
-   <extension
-         point="org.eclipse.ant.core.antProperties">
-      <antProperty
-            class="org.strategoxt.imp.metatooling.NativePrefixAntPropertyProvider"
-            name="eclipse.spoofaximp.nativeprefix">
-      </antProperty>
-      <antProperty
-            class="org.strategoxt.imp.metatooling.StrategoJarAntPropertyProvider"
-            name="eclipse.spoofaximp.strategojar">
-      </antProperty>
-      <antProperty
-            class="org.strategoxt.imp.metatooling.JarsAntPropertyProvider"
-            name="eclipse.spoofaximp.jars">
-      </antProperty>
-   </extension>
+  
+  <extension point="org.eclipse.ant.core.antProperties">
+    <antProperty 
+      class="org.strategoxt.imp.metatooling.NativePrefixAntPropertyProvider" 
+      name="eclipse.spoofaximp.nativeprefix"
+    >
+    </antProperty>
+    <antProperty 
+      class="org.strategoxt.imp.metatooling.StrategoJarAntPropertyProvider" 
+      name="eclipse.spoofaximp.strategojar"
+    >
+    </antProperty>
+    <antProperty 
+      class="org.strategoxt.imp.metatooling.StrategoMinJarAntPropertyProvider" 
+      name="eclipse.spoofaximp.strategominjar"
+    >
+    </antProperty>
+    <antProperty 
+      class="org.strategoxt.imp.metatooling.JarsAntPropertyProvider" 
+      name="eclipse.spoofaximp.jars"
+    >
+    </antProperty>
+    <antProperty 
+      class="org.strategoxt.imp.metatooling.PluginClasspathProvider" 
+      name="externaljarx"
+    >
+    </antProperty>
+  </extension>
 </plugin>

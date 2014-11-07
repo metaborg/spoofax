@@ -4,7 +4,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
-import org.spoofax.IAsyncCancellable;
+import org.spoofax.interpreter.util.IAsyncCancellable;
 
 /**
  * @author Lennart Kats <lennart add lclnet.nl>

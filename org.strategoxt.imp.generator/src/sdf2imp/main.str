@@ -151,6 +151,7 @@ strategies
     create-build-generated-xml;
     create-builder-xml;
     create-cleaner-xml;
+    create-maven-pom;
     create-example-file;
     create-common-trans;
     

@@ -1,6 +1,7 @@
 [
    PPTable                                -- R [ H [KW["pp-table"]] KW[":"] _1],
    PrettyPrint                            -- R [ H [KW["pretty-print"]] KW[":"] _1],
+   TextReconstruction                     -- R [ H [ KW["text"] KW["reconstruction"] ] KW[":"] _1],
    Refactorings                           -- V is=2 vs=1 [H hs=0 [KW["refactorings"] _1]  _2],
    Refactoring                            -- V is=2 [ H [ KW["refactoring"] _1  KW[":"] _2  KW["="] _3 _4] _5],
    Refactoring.1:iter-star                -- _1,

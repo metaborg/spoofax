@@ -141,7 +141,6 @@ if not(<file-exists> "trans/generate.str") then
 imports
 	
 	include/{sdf-name}
-
 rules 
 
 }
@@ -261,14 +260,13 @@ if not(<file-exists> "trans/pp.str") then
 imports
 
 	libstratego-gpp
-	lib/runtime/tmpl/pp
-	Common.pp.generated
-	{sdf-name}.pp.generated
+	lib/runtime/refactoring/-
+	src-gen/pp/{sdf-name}-pp
 
 rules
 	
   pp-{sdf-name}-string =
-    prettyprint-Start
+    prettyprint-SDF-start-symbols
     ; !V([], <id>)
     ; box2text-string(|120)
       
@@ -283,6 +281,17 @@ rules
        result := <pp-{sdf-name}-string> ast
     <+ <bottomup(try(not(is-string); not(is-list); not(pp-{sdf-name}-string); debug(!"cannot pp ")))> ast
     ;  result := ""
+
+rules
+  
+  /**
+  * Given an old AST and a new AST, pretty-prints the new AST while presevering 
+  * layout (e.g. whitespacing and comments) associated with the old AST.
+  *
+  * Example:
+  *   new-text := <construct-textual-change> (old-ast, new-ast)
+  */
+  construct-textual-change = construct-textual-change(pp-partial-{sdf-name}-string, parenthesize, override-reconstruction, resugar)
 
 }
   +
@@ -291,14 +300,13 @@ rules
 imports
 
 	libstratego-gpp
-	lib/runtime/tmpl/pp
-	Common.pp.generated
-	{sdf-name}.pp.generated
+	lib/runtime/refactoring/-
+	src-gen/pp/{sdf-name}-pp
 
 rules
 	
   pp-{sdf-name}-string =
-    prettyprint-Start
+    prettyprint-SDF-start-symbols
     ; !V([], <id>)
     ; box2text-string(|120)
       
@@ -313,6 +321,17 @@ rules
        result := <pp-{sdf-name}-string> ast
     <+ <bottomup(try(not(is-string); not(is-list); not(pp-{sdf-name}-string); debug(!"cannot pp ")))> ast
     ;  result := ""
+
+rules
+  
+  /**
+  * Given an old AST and a new AST, pretty-prints the new AST while presevering 
+  * layout (e.g. whitespacing and comments) associated with the old AST.
+  *
+  * Example:
+  *   new-text := <construct-textual-change> (old-ast, new-ast)
+  */
+  construct-textual-change = construct-textual-change(pp-partial-{sdf-name}-string, parenthesize, override-reconstruction, resugar)
 
 })>
 end

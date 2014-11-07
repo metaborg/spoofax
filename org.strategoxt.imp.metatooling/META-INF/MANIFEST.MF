@@ -2,9 +2,8 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Spoofax/IMP Metatooling
 Bundle-SymbolicName: org.strategoxt.imp.metatooling;singleton:=true
-Bundle-Version: 1.2.0.qualifier
+Bundle-Version: 1.3.0.qualifier
 Require-Bundle: org.strategoxt.imp.runtime,
- org.strategoxt.imp.generator,
  org.eclipse.imp.runtime,
  org.spoofax.jsglr,
  org.spoofax.interpreter.core,
@@ -21,16 +20,15 @@ Require-Bundle: org.strategoxt.imp.runtime,
  org.eclipse.ui,
  org.eclipse.ui.ide,
  org.strategoxt.strj,
- org.strategoxt.imp.editors.editorservice,
- org.strategoxt.imp.editors.sdf,
- org.strategoxt.imp.editors.pp,
  org.strategoxt.imp.editors.stratego,
- org.strategoxt.imp.editors.aterm,
  org.eclipse.ant.core,
  org.strategoxt.imp.nativebundle,
- org.strategoxt.imp.editors.aster,
- org.spoofax.interpreter.library.index,
- org.metaborg.runtime.task
+ org.metaborg.runtime.task,
+ org.spoofax.interpreter.externaldeps,
+ org.spoofax.terms,
+ org.strategoxt.jarprovider,
+ org.strategoxt.imp.generator,
+ org.eclipse.pde.core
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-Activator: org.strategoxt.imp.metatooling.MetatoolingActivator
 Bundle-ActivationPolicy: lazy

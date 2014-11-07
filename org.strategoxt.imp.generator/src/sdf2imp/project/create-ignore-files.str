@@ -14,6 +14,7 @@ strategies
     <concat-strings> 
 [
 "bin
+target
 .cache
 include/", name, ".def
 include/", name, "-parenthesize.str
@@ -40,4 +41,5 @@ utils
 lib/runtime
 lib/*.generated.str
 lib-refactoring/*.generated.str
+/src-gen
 "]
