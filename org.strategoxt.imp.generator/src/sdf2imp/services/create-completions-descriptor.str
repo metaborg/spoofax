@@ -30,7 +30,7 @@ strategies
   	!|[
         module <descriptor-name> "-Completions"
 
-        imports <descriptor-name> "-Completions.generated"
+        imports <concat-strings> ["src-gen/completions/" , <descriptor-name> "-esv"]
 
         completions
           ~~
@@ -51,7 +51,7 @@ strategies
   	!|[
         module <descriptor-name> "-Completions"
 
-        imports <descriptor-name> "-Completions.generated"
+        imports <concat-strings> ["src-gen/completions/" , <descriptor-name> "-esv"]
 
         completions
           ~~
@@ -84,12 +84,12 @@ strategies
     not(is-heuristic-services-needed);
     verbose-msg(!"Skipping", <descriptor-name> "-Completions.generated")
   <+
-    output-derived-descriptor-file(
-      <descriptor-name> "-Completions.generated"
+    output-derived-descriptor-file-custom-path(
+      <descriptor-name> "-esv"
     ,
       completion-rules := <collect-all-keywords; map(keyword-to-completion-rule)>;
       !|[
-        module <descriptor-name> "-Completions.generated"
+        module <concat-strings> ["src-gen/completions/" , <descriptor-name> "-esv"]
 
         completions
           ~
@@ -186,3 +186,37 @@ strategies
     where([not(is-alpha) | id]); // not("")
     one(is-alpha);
     not(one("\"" + "\\")) // only allow stringchars for pretty-printing
+    
+  output-derived-descriptor-file-custom-path(fullname, new-contents) =
+    output-descriptor-file-custom-path(
+      fullname
+    , new-contents
+    , not(file-exists) 
+      // TODO: Only build derived files if imported??
+      // (doesn't currently work because transient imports are not considered)
+      // NoExistingDescriptor <+ is-descriptor-imported(|<name>)
+    )   
+    
+  output-descriptor-file-custom-path(name, new-contents, condition) =
+    with(
+      filename := <add-extension> (<name>, "esv");
+      path*     := ["src-gen", "completions"];
+      path'     := "src-gen/completions";
+      fullpath := <concat-strings; debug(!"full path")> [path', "/", filename]
+    );
+    
+    if <condition> fullpath then
+      print-filename(|[path*], filename);
+      new-contents;
+      (
+        is-string
+      <+
+        ?Module(name, _ ,_);
+        pp-descriptor-to-string
+      <+
+        fatal-err(|"Illegal editor service descriptor output")
+      );
+      output-text-file'(|[path*], filename)
+    else
+      verbose-msg(!"Skipping", !fullpath)
+    end  

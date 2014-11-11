@@ -18,7 +18,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
  */
 public class Completion {
 
-	private static final boolean IGNORE_TEMPLATE_PREFIX_CASE = false;
+	private static final boolean IGNORE_TEMPLATE_PREFIX_CASE = true;
 
 	private static LazyColor keywordColor = new LazyColor(127, 0, 85);
 
