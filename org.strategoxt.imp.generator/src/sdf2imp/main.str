@@ -102,11 +102,11 @@ strategies
         rules(StartSymbol := "Start")
       end;
       create-grammar;
-      create-pp-table;
+      //create-pp-table;
       create-example-trans;
       create-java-strategy;
       create-example-nd;
-      input @ FILE(inputname) := <pack-default-sdf> FILE($[syntax/[<get-sdf-main-module>].sdf]);
+      input @ FILE(inputname) := <pack-default-sdf> FILE($[src-gen/syntax/[<get-sdf-main-module>].sdf]);
       rules(DefaultDefFile := inputname)
     end;
     

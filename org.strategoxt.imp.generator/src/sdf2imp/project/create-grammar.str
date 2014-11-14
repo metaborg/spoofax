@@ -72,11 +72,11 @@ context-free syntax
 
 
   create-grammar-main-derived =
-    <file-exists> <conc-strings> ("syntax/", <get-sdf-main-module>, ".sdf")
+    <file-exists> <conc-strings> ("src-gen/syntax/", <get-sdf-main-module>, ".sdf")
   <+
     name        := <get-sdf-main-module>;
     startsymbol := <StartSymbol>;
-    <output-text-file(|["syntax"], <conc-strings> (name, ".sdf"))>
+    <output-text-file(|["src-gen", "syntax"], <conc-strings> (name, ".sdf"))>
     <(GenerateMinimal
     	<
 !$[module [name]
@@ -176,9 +176,9 @@ context-free restrictions
 }
 
   create-grammar-common-derived =
-    <file-exists> <conc-strings> ("syntax/Common.sdf")
+    <file-exists> <conc-strings> ("src-gen/syntax/Common.sdf")
   <+
-    <output-text-file(|["syntax"], "Common.sdf")>
+    <output-text-file(|["src-gen", "syntax"], "Common.sdf")>
 // TODO: FLOAT
 
 // MAYBE: unicode ID: 
