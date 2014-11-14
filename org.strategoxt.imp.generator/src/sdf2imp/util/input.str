@@ -73,13 +73,16 @@ strategies
     Module(name, Imports(imports), definitions) ->
     Module(name, Imports(imports'), definitions')
     where
-      rules(IsImported: name);
+      name':= <strip-annos> name;
+      rules(IsImported: name');
       
       !imports;
       map(
         risky(
-          IsImported
+          where(?Import(<strip-annos>); IsImported); ![] //if it is already imported do nothing
+          
         <+
+          
           input-descriptor-import;
           fetch-imports
         <+
@@ -88,13 +91,22 @@ strategies
         )
       ) => imported;
       
-      imported-defs    := <mapconcat(?Module(_, _, <id>))>;
-      definitions'     := <conc> (definitions, <id>);
-      imported-imports := <filter(?Module(_, Imports(<id>), _))> imported;
-      imports'         := <concat> [imports | <id>]
-
+      flatten-list; 
+      if <?[]> imported then //check if there is only already imported modules
+	      imports' := imports;
+	      definitions' := definitions      
+	  else
+	      imported-defs    := <mapconcat(?Module(_, _, <id>))>;
+	      definitions'     := <conc> (definitions, <id>);
+	      imported-imports := <filter(?Module(_, Imports(<id>), _))> imported;
+	      imports'         := <concat> [imports | <id>]
+	  end
+	  
   fetch-imports:
-    Module(_, NoImports(), _) -> <id>
+    Module(name, NoImports(), _) -> <id>
+    where
+    	name' := <strip-annos> name;
+    	rules(IsImported: name')
 
   is-older-than =
     ?(file, otherfiles);
