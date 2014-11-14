@@ -13,7 +13,7 @@ exports
     [a-zA-Z][a-zA-Z0-9\'\-\_]* "*" -> IdStar
     "-"? [0-9]+                    -> Int
     "\"" StringChar* "\""          -> STRING
-    ~[\"\n\\]                      -> StringChar
+    ~[\"\n]                        -> StringChar
     "\\\""                         -> StringChar
     BACKSLASH                      -> StringChar
     "\\"                           -> BACKSLASH
