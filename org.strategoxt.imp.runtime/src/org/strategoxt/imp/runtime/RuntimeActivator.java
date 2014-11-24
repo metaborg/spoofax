@@ -145,8 +145,6 @@ public class RuntimeActivator extends AbstractUIPlugin {
 				ssOpt = DEFAULT_SS_OPT;
 				mxOpt = DEFAULT_MX_OPT;
 			} else {
-				languageName = l.getName();
-
 				IStrategoTerm ssOptT = findTerm(esv, "XssOpt");
 				if (ssOptT != null) {
 					ssOpt = termContents(ssOptT);
@@ -160,6 +158,7 @@ public class RuntimeActivator extends AbstractUIPlugin {
 
 			highestMxOpt = maxOpt(highestMxOpt, mxOpt);
 			highestSsOpt = maxOpt(highestSsOpt, ssOpt);
+			languageName = name;
 		}
 
 		if (languageCount > 1)
