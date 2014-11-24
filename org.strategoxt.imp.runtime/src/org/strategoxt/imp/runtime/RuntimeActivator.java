@@ -124,13 +124,9 @@ public class RuntimeActivator extends AbstractUIPlugin {
 		for (Language l : LanguageRegistry.getLanguages()) {
 			String name = l.getName();
 
-			if (name.equals("DynamicRoot") || name.equals("Stratego-Sugar")
-					|| name.equals("prefspecs")
-					|| name.equals("DynamicRootInitializer")
-					|| name.equals("LPG") || name.equals("psp"))
-				continue; // these are the meta-languages that always come with
-							// a deployed Spoofax language; ingnore them.
-
+			if (name.equals("DynamicRoot"))
+				continue;
+			
 			languageCount++;
 
 			Descriptor d = Environment.getDescriptor(l);
