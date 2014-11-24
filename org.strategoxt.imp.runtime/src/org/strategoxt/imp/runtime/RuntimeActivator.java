@@ -84,8 +84,11 @@ public class RuntimeActivator extends AbstractUIPlugin {
 	// }
 
 	private final static String DEFAULT_SS_OPT = "-Xss8m";
+	
 	private final static String DEFAULT_MX_OPT = "-Xmx1024m";
+	
 	private final static boolean DEFAULT_SERVER_OPT = true;
+	
 	private final static String DEFAULT_LANGUAGE_NAME = "Spoofax";
 
 	/**
@@ -117,7 +120,7 @@ public class RuntimeActivator extends AbstractUIPlugin {
 			correctJavaVersion = true;
 
 		int languageCount = 0;
-		
+
 		for (Language l : LanguageRegistry.getLanguages()) {
 			String name = l.getName();
 
@@ -129,7 +132,7 @@ public class RuntimeActivator extends AbstractUIPlugin {
 							// a deployed Spoofax language; ingnore them.
 
 			languageCount++;
-			
+
 			Descriptor d = Environment.getDescriptor(l);
 			if (d == null)
 				continue;
@@ -147,7 +150,7 @@ public class RuntimeActivator extends AbstractUIPlugin {
 				mxOpt = DEFAULT_MX_OPT;
 			} else {
 				languageName = l.getName();
-				
+
 				IStrategoTerm ssOptT = findTerm(esv, "XssOpt");
 				if (ssOptT != null) {
 					ssOpt = termContents(ssOptT);
@@ -165,20 +168,16 @@ public class RuntimeActivator extends AbstractUIPlugin {
 
 		if (languageCount > 1)
 			languageName = DEFAULT_LANGUAGE_NAME;
-		if (runtime.getVmName().contains("Server"))
-			serverOpt = false;
 
+		boolean showServerOpt = serverOpt && !runtime.getVmName().contains("Server");
 		boolean showMxOpt = !maxOpt(currentMxOpt, highestMxOpt).equals(
 				currentMxOpt);
 		boolean showSsOpt = !maxOpt(currentSsOpt, highestSsOpt).equals(
 				currentSsOpt);
 
-		if (serverOpt || showMxOpt || showSsOpt || !correctJavaVersion) {
+		if (showServerOpt || showMxOpt || showSsOpt || !correctJavaVersion) {
 			final String JVM_OPTS_DIAG_TITLE = languageName
 					+ " configuration warning";
-
-			final String JVM_OPT_DIAG_MSG_PREFIX = DEFAULT_LANGUAGE_NAME
-					+ " needs Eclipse to be started with (can be set in eclipse.ini):\n-vmargs -server -Xmx1024m -Xss8m\n\nThe following options are currently missing:";
 
 			final String JVM_OPT_DIAG_MSG_JAVA_VER = languageName
 					+ " requires Eclipse to be started with a Java 7 (or higher) VM. Ensure that Java 7 is installed on your system. If you have multiple VMs installed on your system, you can force Eclipse to start with a specific VM by adding the following option to the eclipse.ini file:\n-vm\n<path-to-java-bin>\n\nThis option needs to be on the first line in the eclipse.ini file and the newline after -vm is required.";
@@ -194,10 +193,9 @@ public class RuntimeActivator extends AbstractUIPlugin {
 
 			if (!prefs.get(LAST_JVM_OPT_CHECK, "").equalsIgnoreCase(version)) {
 
-				if (serverOpt || showMxOpt || showSsOpt) {
-					msgBuilder.append(JVM_OPT_DIAG_MSG_PREFIX);
+				if (showServerOpt || showMxOpt || showSsOpt) {
 
-					if (serverOpt)
+					if (showServerOpt)
 						Environment
 								.logWarning("Make sure Eclipse is started with -vmargs -server (can be set in eclipse.ini) for best performance");
 					if (showMxOpt)
@@ -211,7 +209,21 @@ public class RuntimeActivator extends AbstractUIPlugin {
 										+ highestSsOpt
 										+ " (can be set in eclipse.ini) to increase the stack size");
 
+					msgBuilder
+							.append(languageName
+									+ " needs Eclipse to be started with (can be set in eclipse.ini):\n-vmargs");
+
 					if (serverOpt)
+						msgBuilder.append(" -server");
+					if (highestMxOpt != null)
+						msgBuilder.append(" " + highestMxOpt);
+					if (highestSsOpt != null)
+						msgBuilder.append(" " + highestSsOpt);
+
+					msgBuilder
+							.append("\n\nThe following options are currently missing:");
+
+					if (showServerOpt)
 						msgBuilder.append("\n-server");
 					if (showMxOpt)
 						msgBuilder.append("\n" + highestMxOpt);
