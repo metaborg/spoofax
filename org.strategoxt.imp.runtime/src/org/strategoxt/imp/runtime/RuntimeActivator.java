@@ -263,7 +263,7 @@ public class RuntimeActivator extends AbstractUIPlugin {
 			return opt2;
 		if (opt2 == null)
 			return opt1;
-		return sizeInKiloByte(opt1) > sizeInKiloByte(opt2) ? opt1 : opt2;
+		return sizeInKiloByte(opt1) >= sizeInKiloByte(opt2) ? opt1 : opt2;
 	}
 
 	private static int sizeInKiloByte(String opt) {
