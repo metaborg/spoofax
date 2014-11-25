@@ -2704,7 +2704,7 @@ rules
   
   nabl-lookup-local-import(|ctx, ns, name) =
     nabl-uri-parent
-  ; prop-create-lookup(|ctx, Import(ns))
+  ; prop-create-lookup(|ctx, Import(ns)); task-create-insert(|ctx); task-create-combine(|ctx)
   ; nabl-create-resolvedefs(|ctx, ns, name, [])
   
 rules
@@ -2720,7 +2720,7 @@ rules
   nabl-lookup-lexical-import(|ctx, ns, name) =
     nabl-uri-parents
   ; map(
-      prop-create-lookup(|ctx, Import(ns))
+      prop-create-lookup(|ctx, Import(ns)); task-create-insert(|ctx); task-create-combine(|ctx)
     ; nabl-create-resolvedefs(|ctx, ns, name, [])
     )
   ; task-create-choice(|ctx)
