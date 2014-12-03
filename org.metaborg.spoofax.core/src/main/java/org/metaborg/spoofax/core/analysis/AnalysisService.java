@@ -1,6 +1,5 @@
 package org.metaborg.spoofax.core.analysis;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -36,7 +35,7 @@ import org.strategoxt.HybridInterpreter;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
-public class AnalysisService {
+public class AnalysisService implements IAnalysisService<IStrategoTerm, IStrategoTerm> {
     private static final Logger logger = LogManager.getLogger(AnalysisService.class);
 
     private final static String ANALYSIS_CRASHED_MSG = "Analysis failed";
@@ -55,15 +54,8 @@ public class AnalysisService {
         this.runtimeService = runtimeService;
     }
 
-    /**
-     * Run the analysis on the given files. The analysis is started on all files on a per-language basis.
-     * 
-     * @see #analyze(File)
-     * @param inputs
-     * @throws SpoofaxException
-     */
-    public Collection<AnalysisResult> analyze(Collection<ParseResult<IStrategoTerm>> inputs)
-        throws SpoofaxException {
+    @Override public Collection<AnalysisResult<IStrategoTerm, IStrategoTerm>> analyze(
+        Collection<ParseResult<IStrategoTerm>> inputs) throws SpoofaxException {
         logger.debug("Analyzing {} files", inputs.size());
         Map<ILanguage, Collection<ParseResult<IStrategoTerm>>> lang2files =
             new HashMap<ILanguage, Collection<ParseResult<IStrategoTerm>>>();
@@ -76,15 +68,16 @@ public class AnalysisService {
             lang2files.get(lang).add(input);
         }
         logger.trace("Files grouped in {} languages", lang2files.size());
-        final Collection<AnalysisResult> results = new HashSet<AnalysisResult>();
+        final Collection<AnalysisResult<IStrategoTerm, IStrategoTerm>> results =
+            new HashSet<AnalysisResult<IStrategoTerm, IStrategoTerm>>();
         for(ILanguage lang : lang2files.keySet()) {
             results.add(analyze(lang, lang2files.get(lang)));
         }
         return results;
     }
 
-    private AnalysisResult analyze(ILanguage lang, Collection<ParseResult<IStrategoTerm>> inputs)
-        throws SpoofaxException {
+    private AnalysisResult<IStrategoTerm, IStrategoTerm> analyze(ILanguage lang,
+        Collection<ParseResult<IStrategoTerm>> inputs) throws SpoofaxException {
         logger.debug("Analyzing {} files of the {} language", inputs.size(), lang.name());
         final ITermFactory termFactory = termFactoryService.get(lang);
         final HybridInterpreter runtime = runtimeService.getRuntime(lang);
@@ -126,7 +119,8 @@ public class AnalysisService {
 
                 final int numItems = fileResultsTerm.getSubtermCount();
                 logger.trace("Analysis contains {} results. Marshalling to analysis results.", numItems);
-                final Collection<AnalysisFileResult> fileResults = new HashSet<AnalysisFileResult>();
+                final Collection<AnalysisFileResult<IStrategoTerm, IStrategoTerm>> fileResults =
+                    Sets.newHashSet();
                 for(IStrategoTerm result : fileResultsTerm) {
                     fileResults.add(makeAnalysisFileResult(result));
                 }
@@ -137,14 +131,15 @@ public class AnalysisService {
 
                 logger.debug("Analysis done");
 
-                return new AnalysisResult(lang, fileResults, affectedPartitions, debugResult, timeResult);
+                return new AnalysisResult<IStrategoTerm, IStrategoTerm>(lang, fileResults,
+                    affectedPartitions, debugResult, timeResult);
             }
         } catch(InterpreterException interpex) {
             throw new SpoofaxException(ANALYSIS_CRASHED_MSG, interpex);
         }
     }
 
-    private AnalysisFileResult makeAnalysisFileResult(IStrategoTerm res) {
+    private AnalysisFileResult<IStrategoTerm, IStrategoTerm> makeAnalysisFileResult(IStrategoTerm res) {
         assert res != null;
         assert res.getSubtermCount() == 8;
 
@@ -159,8 +154,8 @@ public class AnalysisService {
         IStrategoTerm ast = res.getSubterm(4);
         IStrategoTerm previousAst = res.getSubterm(3);
 
-        return new AnalysisFileResult(new ParseResult<IStrategoTerm>(previousAst, file,
-            Arrays.asList(new IMessage[] {}), -1), file, messages, ast);
+        return new AnalysisFileResult<IStrategoTerm, IStrategoTerm>(new ParseResult<IStrategoTerm>(
+            previousAst, file, Arrays.asList(new IMessage[] {}), -1), file, messages, ast);
     }
 
     private Collection<String> makeAffectedPartitions(IStrategoTerm affectedTerm) {

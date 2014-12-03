@@ -6,19 +6,18 @@ import java.util.LinkedList;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.messages.IMessage;
 import org.metaborg.spoofax.core.parser.ParseResult;
-import org.spoofax.interpreter.terms.IStrategoTerm;
 
-public class AnalysisFileResult {
+public class AnalysisFileResult<ParseT, AnalysisT> {
     private final Collection<IMessage> messages = new LinkedList<IMessage>();
     private FileObject file;
-    private ParseResult<IStrategoTerm> previous;
-    private IStrategoTerm ast;
+    private ParseResult<ParseT> previous;
+    private AnalysisT result;
 
-    public AnalysisFileResult(ParseResult<IStrategoTerm> previous, FileObject f,
-        Collection<IMessage> messages, IStrategoTerm ast) {
+    public AnalysisFileResult(ParseResult<ParseT> previous, FileObject f, Collection<IMessage> messages,
+        AnalysisT result) {
         this.previous = previous;
         this.file = f;
-        this.ast = ast;
+        this.result = result;
         this.messages.addAll(messages);
     }
 
@@ -26,15 +25,15 @@ public class AnalysisFileResult {
         return this.messages;
     }
 
-    public IStrategoTerm ast() {
-        return ast;
+    public AnalysisT result() {
+        return result;
     }
 
     public FileObject file() {
         return file;
     }
 
-    public ParseResult<IStrategoTerm> previousResult() {
+    public ParseResult<ParseT> parseResult() {
         return previous;
     }
 }
