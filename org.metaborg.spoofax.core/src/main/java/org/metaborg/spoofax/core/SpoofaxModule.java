@@ -13,9 +13,12 @@ import org.metaborg.spoofax.core.parser.jsglr.JSGLRParseService;
 import org.metaborg.spoofax.core.resource.DefaultFileSystemManagerProvider;
 import org.metaborg.spoofax.core.resource.IResourceService;
 import org.metaborg.spoofax.core.resource.ResourceService;
+import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
+import org.metaborg.spoofax.core.stratego.StrategoRuntimeService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.terms.TermFactoryService;
 import org.metaborg.util.logging.Log4JTypeListener;
+import org.spoofax.interpreter.library.IOperatorRegistry;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
@@ -37,11 +40,15 @@ public class SpoofaxModule extends AbstractModule {
             bind(ILanguageDiscoveryService.class).to(LanguageDiscoveryService.class).in(Singleton.class);
             bind(ILanguageIdentifierService.class).to(LanguageIdentifierService.class).in(Singleton.class);
             bind(IParseService.class).to(JSGLRParseService.class).in(Singleton.class);
+            bind(IStrategoRuntimeService.class).to(StrategoRuntimeService.class).in(Singleton.class);
 
-            bind(FileSystemManager.class).toProvider(DefaultFileSystemManagerProvider.class).in(Singleton.class);
+            bind(FileSystemManager.class).toProvider(DefaultFileSystemManagerProvider.class).in(
+                Singleton.class);
 
             @SuppressWarnings("unused") final Multibinder<ILanguageFacetFactory> facetFactoriesBinder =
                 Multibinder.newSetBinder(binder(), ILanguageFacetFactory.class);
+            @SuppressWarnings("unused") final Multibinder<IOperatorRegistry> strategoLibraryBinder =
+                Multibinder.newSetBinder(binder(), IOperatorRegistry.class);
 
             bind(ClassLoader.class).annotatedWith(Names.named("ResourceClassLoader")).toInstance(
                 this.getClass().getClassLoader());
