@@ -113,7 +113,7 @@ public class RuntimeActivator extends AbstractUIPlugin {
 			if (arg.startsWith("-Xmx") || arg.startsWith("-mx"))
 				currentMxOpt = arg;
 		}
-
+		
 		final String javaVersion = runtime.getSpecVersion();
 		if (runtime.getSpecVersion().contains("1.7")
 				|| runtime.getSpecVersion().contains("1.8"))
@@ -141,10 +141,17 @@ public class RuntimeActivator extends AbstractUIPlugin {
 			String mxOpt = null;
 
 			if (findTerm(esv, "JvmOpts") == null) {
-				serverOpt = DEFAULT_SERVER_OPT;
+			  if (DEFAULT_SERVER_OPT) {
+			    serverOpt = true;
+			  }
 				ssOpt = DEFAULT_SS_OPT;
 				mxOpt = DEFAULT_MX_OPT;
-			} else {
+			} else {       
+        IStrategoTerm serverOptT = findTerm(esv, "ServerOpt");
+        if (serverOptT != null) {
+          serverOpt = true;
+        }
+        
 				IStrategoTerm ssOptT = findTerm(esv, "XssOpt");
 				if (ssOptT != null) {
 					ssOpt = termContents(ssOptT);
@@ -208,7 +215,7 @@ public class RuntimeActivator extends AbstractUIPlugin {
 							.append(languageName
 									+ " needs Eclipse to be started with (can be set in eclipse.ini):\n-vmargs");
 
-					if (serverOpt)
+					if (showServerOpt)
 						msgBuilder.append(" -server");
 					if (highestMxOpt != null)
 						msgBuilder.append(" " + highestMxOpt);
