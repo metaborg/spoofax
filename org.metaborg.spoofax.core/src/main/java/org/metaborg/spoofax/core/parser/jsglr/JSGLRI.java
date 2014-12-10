@@ -6,6 +6,7 @@ import java.util.Scanner;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.parser.ParseResult;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
@@ -25,6 +26,7 @@ import org.spoofax.terms.attachments.ParentTermFactory;
 public class JSGLRI implements IFileParser<IStrategoTerm> {
     private final IParserConfig config;
     private final ITermFactory termFactory;
+    private final ILanguage language;
     private final JSGLRParseErrorHandler errorHandler;
 
     private SGLR parser;
@@ -37,19 +39,20 @@ public class JSGLRI implements IFileParser<IStrategoTerm> {
     private InputStream is;
 
 
-    public JSGLRI(IParserConfig config, ITermFactory termFactory, FileObject file) {
-        this(config, termFactory);
+    public JSGLRI(IParserConfig config, ITermFactory termFactory, ILanguage language, FileObject file) {
+        this(config, termFactory, language);
         this.file = file;
     }
 
-    public JSGLRI(IParserConfig config, ITermFactory termFactory, InputStream is) {
-        this(config, termFactory);
+    public JSGLRI(IParserConfig config, ITermFactory termFactory, ILanguage language, InputStream is) {
+        this(config, termFactory, language);
         this.is = is;
     }
 
-    private JSGLRI(IParserConfig config, ITermFactory termFactory) {
+    private JSGLRI(IParserConfig config, ITermFactory termFactory, ILanguage language) {
         this.config = config;
         this.termFactory = termFactory;
+        this.language = language;
 
         final TermTreeFactory factory = new TermTreeFactory(new ParentTermFactory(termFactory));
         this.parser = new SGLR(new TreeBuilder(factory), config.getParseTableProvider().parseTable());
@@ -132,7 +135,7 @@ public class JSGLRI implements IFileParser<IStrategoTerm> {
 
         // GTODO: measure parse time
         // GTODO: file can be null, need to handle that!
-        return new ParseResult<IStrategoTerm>(ast, file, errorHandler.getCollectedMessages(), -1);
+        return new ParseResult<IStrategoTerm>(ast, file, errorHandler.getCollectedMessages(), -1, language);
     }
 
     public IStrategoTerm actuallyParse(String input, String filename) throws SGLRException,
@@ -158,6 +161,10 @@ public class JSGLRI implements IFileParser<IStrategoTerm> {
 
     @Override public IParserConfig getConfig() {
         return config;
+    }
+
+    public ILanguage getLanguage() {
+        return language;
     }
 
     @Override public FileObject getFile() {

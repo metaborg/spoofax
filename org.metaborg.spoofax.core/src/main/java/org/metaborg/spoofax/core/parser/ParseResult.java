@@ -3,6 +3,7 @@ package org.metaborg.spoofax.core.parser;
 import java.util.Collection;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.messages.IMessage;
 
 import com.google.common.collect.Lists;
@@ -12,13 +13,16 @@ public class ParseResult<T> {
     public final FileObject source;
     public final Collection<IMessage> messages;
     public final long duration;
+    public final ILanguage parsedWith;
 
 
-    public ParseResult(T result, FileObject source, Iterable<IMessage> messages, long duration) {
+    public ParseResult(T result, FileObject source, Iterable<IMessage> messages, long duration,
+        ILanguage parsedWith) {
         this.result = result;
         this.source = source;
         this.messages = Lists.newLinkedList(messages);
         this.duration = duration;
+        this.parsedWith = parsedWith;
     }
 
 

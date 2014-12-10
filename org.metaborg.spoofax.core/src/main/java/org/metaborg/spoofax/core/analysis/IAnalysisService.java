@@ -1,19 +1,29 @@
 package org.metaborg.spoofax.core.analysis;
 
-import java.io.File;
-import java.util.Collection;
-
 import org.metaborg.spoofax.core.SpoofaxException;
+import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.parser.ParseResult;
 
+/**
+ * Interface for semantic analysis of parsed files.
+ *
+ * @param <ParseT>
+ *            Type of the parse result.
+ * @param <AnalysisT>
+ *            Type of the analysis result.
+ */
 public interface IAnalysisService<ParseT, AnalysisT> {
     /**
-     * Run the analysis on the given files. The analysis is started on all files on a per-language basis.
+     * Performs semantic analysis on given parsed files.
      * 
-     * @see #analyze(File)
      * @param inputs
+     *            Parsed input files.
+     * @param language
+     *            Language to perform analysis with.
+     * @return Result of the analysis.
      * @throws SpoofaxException
+     *             when analysis fatally fails.
      */
-    public abstract Collection<AnalysisResult<ParseT, AnalysisT>> analyze(
-        Collection<ParseResult<ParseT>> inputs) throws SpoofaxException;
+    public abstract AnalysisResult<ParseT, AnalysisT> analyze(Iterable<ParseResult<ParseT>> inputs,
+        ILanguage language) throws SpoofaxException;
 }

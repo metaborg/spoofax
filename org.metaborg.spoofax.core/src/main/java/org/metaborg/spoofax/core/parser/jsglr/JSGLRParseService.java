@@ -35,7 +35,7 @@ public class JSGLRParseService implements IParseService<IStrategoTerm> {
 
     @Override public ParseResult<IStrategoTerm> parse(FileObject file, ILanguage language) throws IOException {
         final IParserConfig config = getParserConfig(language);
-        final JSGLRI parser = new JSGLRI(config, termFactoryService.get(language), file);
+        final JSGLRI parser = new JSGLRI(config, termFactoryService.get(language), language, file);
         return parser.parse();
     }
 

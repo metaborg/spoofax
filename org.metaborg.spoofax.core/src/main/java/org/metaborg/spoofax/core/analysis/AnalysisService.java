@@ -3,17 +3,13 @@ package org.metaborg.spoofax.core.analysis;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.Map;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.metaborg.spoofax.core.SpoofaxException;
 import org.metaborg.spoofax.core.language.ILanguage;
-import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
 import org.metaborg.spoofax.core.messages.IMessage;
 import org.metaborg.spoofax.core.messages.MessageHelper;
 import org.metaborg.spoofax.core.messages.MessageSeverity;
@@ -32,6 +28,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.HybridInterpreter;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
@@ -41,46 +38,21 @@ public class AnalysisService implements IAnalysisService<IStrategoTerm, IStrateg
     private final static String ANALYSIS_CRASHED_MSG = "Analysis failed";
 
     private final IResourceService resourceService;
-    private final ILanguageIdentifierService languageIdentifierService;
     private final ITermFactoryService termFactoryService;
     private final IStrategoRuntimeService runtimeService;
 
-    @Inject public AnalysisService(IResourceService resourceService,
-        ILanguageIdentifierService languageIdentifierService, ITermFactoryService termFactoryService,
+    @Inject public AnalysisService(IResourceService resourceService, ITermFactoryService termFactoryService,
         IStrategoRuntimeService runtimeService) {
         this.resourceService = resourceService;
-        this.languageIdentifierService = languageIdentifierService;
         this.termFactoryService = termFactoryService;
         this.runtimeService = runtimeService;
     }
 
-    @Override public Collection<AnalysisResult<IStrategoTerm, IStrategoTerm>> analyze(
-        Collection<ParseResult<IStrategoTerm>> inputs) throws SpoofaxException {
-        logger.debug("Analyzing {} files", inputs.size());
-        Map<ILanguage, Collection<ParseResult<IStrategoTerm>>> lang2files =
-            new HashMap<ILanguage, Collection<ParseResult<IStrategoTerm>>>();
-        for(ParseResult<IStrategoTerm> input : inputs) {
-            final FileObject file = input.source;
-            final ILanguage lang = languageIdentifierService.identify(file);
-            if(lang2files.get(lang) == null) {
-                lang2files.put(lang, new LinkedList<ParseResult<IStrategoTerm>>());
-            }
-            lang2files.get(lang).add(input);
-        }
-        logger.trace("Files grouped in {} languages", lang2files.size());
-        final Collection<AnalysisResult<IStrategoTerm, IStrategoTerm>> results =
-            new HashSet<AnalysisResult<IStrategoTerm, IStrategoTerm>>();
-        for(ILanguage lang : lang2files.keySet()) {
-            results.add(analyze(lang, lang2files.get(lang)));
-        }
-        return results;
-    }
-
-    private AnalysisResult<IStrategoTerm, IStrategoTerm> analyze(ILanguage lang,
-        Collection<ParseResult<IStrategoTerm>> inputs) throws SpoofaxException {
-        logger.debug("Analyzing {} files of the {} language", inputs.size(), lang.name());
-        final ITermFactory termFactory = termFactoryService.get(lang);
-        final HybridInterpreter runtime = runtimeService.getRuntime(lang);
+    @Override public AnalysisResult<IStrategoTerm, IStrategoTerm> analyze(
+        Iterable<ParseResult<IStrategoTerm>> inputs, ILanguage language) throws SpoofaxException {
+        logger.debug("Analyzing {} files of the {} language", Iterables.size(inputs), language.name());
+        final ITermFactory termFactory = termFactoryService.get(language);
+        final HybridInterpreter runtime = runtimeService.getRuntime(language);
         assert runtime != null;
 
         logger.trace("Creating input terms for analysis (File/2 terms)");
@@ -98,7 +70,7 @@ public class AnalysisService implements IAnalysisService<IStrategoTerm, IStrateg
         logger.trace("Input term set to {}", inputTerm);
 
         try {
-            final String function = lang.facet(StrategoFacet.class).analysisStrategy();
+            final String function = language.facet(StrategoFacet.class).analysisStrategy();
             logger.debug("Invoking analysis strategy {}", function);
             boolean success = runtime.invoke(function);
             logger.debug("Analysis completed with success: {}", success);
@@ -122,7 +94,7 @@ public class AnalysisService implements IAnalysisService<IStrategoTerm, IStrateg
                 final Collection<AnalysisFileResult<IStrategoTerm, IStrategoTerm>> fileResults =
                     Sets.newHashSet();
                 for(IStrategoTerm result : fileResultsTerm) {
-                    fileResults.add(makeAnalysisFileResult(result));
+                    fileResults.add(makeAnalysisFileResult(result, language));
                 }
 
                 final Collection<String> affectedPartitions = makeAffectedPartitions(affectedPartitionsTerm);
@@ -131,7 +103,7 @@ public class AnalysisService implements IAnalysisService<IStrategoTerm, IStrateg
 
                 logger.debug("Analysis done");
 
-                return new AnalysisResult<IStrategoTerm, IStrategoTerm>(lang, fileResults,
+                return new AnalysisResult<IStrategoTerm, IStrategoTerm>(language, fileResults,
                     affectedPartitions, debugResult, timeResult);
             }
         } catch(InterpreterException interpex) {
@@ -139,7 +111,8 @@ public class AnalysisService implements IAnalysisService<IStrategoTerm, IStrateg
         }
     }
 
-    private AnalysisFileResult<IStrategoTerm, IStrategoTerm> makeAnalysisFileResult(IStrategoTerm res) {
+    private AnalysisFileResult<IStrategoTerm, IStrategoTerm> makeAnalysisFileResult(IStrategoTerm res,
+        ILanguage language) {
         assert res != null;
         assert res.getSubtermCount() == 8;
 
@@ -155,7 +128,7 @@ public class AnalysisService implements IAnalysisService<IStrategoTerm, IStrateg
         IStrategoTerm previousAst = res.getSubterm(3);
 
         return new AnalysisFileResult<IStrategoTerm, IStrategoTerm>(new ParseResult<IStrategoTerm>(
-            previousAst, file, Arrays.asList(new IMessage[] {}), -1), file, messages, ast);
+            previousAst, file, Arrays.asList(new IMessage[] {}), -1, language), file, messages, ast);
     }
 
     private Collection<String> makeAffectedPartitions(IStrategoTerm affectedTerm) {

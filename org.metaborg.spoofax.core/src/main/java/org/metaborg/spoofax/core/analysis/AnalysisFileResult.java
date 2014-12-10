@@ -9,9 +9,9 @@ import org.metaborg.spoofax.core.parser.ParseResult;
 
 public class AnalysisFileResult<ParseT, AnalysisT> {
     private final Collection<IMessage> messages = new LinkedList<IMessage>();
-    private FileObject file;
-    private ParseResult<ParseT> previous;
-    private AnalysisT result;
+    private final FileObject file;
+    private final ParseResult<ParseT> previous;
+    private final AnalysisT result;
 
     public AnalysisFileResult(ParseResult<ParseT> previous, FileObject f, Collection<IMessage> messages,
         AnalysisT result) {
