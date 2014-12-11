@@ -172,10 +172,8 @@ public class RuntimeActivator extends AbstractUIPlugin {
 			languageName = DEFAULT_LANGUAGE_NAME;
 
 		boolean showServerOpt = serverOpt && !runtime.getVmName().contains("Server");
-		boolean showMxOpt = !maxOpt(currentMxOpt, highestMxOpt).equals(
-				currentMxOpt);
-		boolean showSsOpt = !maxOpt(currentSsOpt, highestSsOpt).equals(
-				currentSsOpt);
+		boolean showMxOpt = showOpt(currentMxOpt, highestMxOpt);
+		boolean showSsOpt = showOpt(currentSsOpt, highestSsOpt);
 
 		if (showServerOpt || showMxOpt || showSsOpt || !correctJavaVersion) {
 			final String JVM_OPTS_DIAG_TITLE = languageName
@@ -264,13 +262,18 @@ public class RuntimeActivator extends AbstractUIPlugin {
 			}
 		}
 	}
+	
+	private static boolean showOpt(String currentVal, String highestVal) {
+	  String max = maxOpt(currentVal, highestVal);
+	  return !(max == null || max.equals(currentVal));
+	}
 
-	private static String maxOpt(String opt1, String opt2) {
-		if (opt1 == null)
-			return opt2;
-		if (opt2 == null)
-			return opt1;
-		return sizeInKiloByte(opt1) >= sizeInKiloByte(opt2) ? opt1 : opt2;
+	private static String maxOpt(String val1, String val2) {
+		if (val1 == null)
+			return val2;
+		if (val2 == null)
+			return val1;
+		return sizeInKiloByte(val1) >= sizeInKiloByte(val2) ? val1 : val2;
 	}
 
 	private static int sizeInKiloByte(String opt) {
