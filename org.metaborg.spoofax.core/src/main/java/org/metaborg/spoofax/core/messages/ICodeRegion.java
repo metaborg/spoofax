@@ -8,6 +8,4 @@ public interface ICodeRegion {
     public int endRow();
 
     public int endColumn();
-
-    public String damagedRegion(String indentation);
 }

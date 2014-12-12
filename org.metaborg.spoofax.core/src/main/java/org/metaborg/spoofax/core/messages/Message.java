@@ -12,16 +12,18 @@ public class Message implements IMessage {
     private final MessageSeverity severity;
     private final MessageType type;
     @Nullable private final FileObject source;
+    @Nullable private final String sourceText;
     private final ICodeRegion region;
     @Nullable private final Throwable exception;
 
 
     public Message(String message, MessageSeverity severity, MessageType type, @Nullable FileObject source,
-        ICodeRegion region, @Nullable Throwable exception) {
+        @Nullable String sourceText, ICodeRegion region, @Nullable Throwable exception) {
         this.message = message;
         this.severity = severity;
         this.type = type;
         this.source = source;
+        this.sourceText = sourceText;
         this.region = region;
         this.exception = exception;
     }
@@ -43,6 +45,10 @@ public class Message implements IMessage {
         return source;
     }
 
+    @Override public String sourceText() {
+        return sourceText;
+    }
+
     @Override public ICodeRegion region() {
         return region;
     }
@@ -62,7 +68,7 @@ public class Message implements IMessage {
         } else {
             sb.append(" at line " + region.startRow() + "\n");
         }
-        sb.append(region.damagedRegion("\t"));
+        sb.append(CodeRegionHelper.damagedRegion(region, sourceText, "\t"));
         sb.append(message);
         sb.append("\n");
         if(exception != null) {

@@ -4,9 +4,13 @@ import static org.spoofax.interpreter.core.Tools.*;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.*;
 import static org.spoofax.terms.attachments.OriginAttachment.tryGetOrigin;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import javax.annotation.Nullable;
+
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.interpreter.terms.IStrategoList;
@@ -56,7 +60,19 @@ public class MessageHelper {
 
     public static Message newMessage(FileObject file, IToken left, IToken right, String msg,
         MessageSeverity severity, MessageType type) {
-        return new Message(msg, severity, type, file, CodeRegion.fromTokens(left, right, file), null);
+        String sourceText;
+        ICodeRegion region;
+        try {
+            sourceText = getSourceTextFromTokens(left, right);
+            if(sourceText == null) {
+                sourceText = getSourceTextFromResource(file);
+            }
+            region = regionFromSourceText(left, right, sourceText);
+        } catch(IOException e) {
+            sourceText = null;
+            region = regionFromTokens(left, right);
+        }
+        return new Message(msg, severity, type, file, sourceText, region, null);
     }
 
 
@@ -93,7 +109,13 @@ public class MessageHelper {
 
 
     private static Message newAtTop(FileObject file, String msg, MessageType type, MessageSeverity severity) {
-        return new Message(msg, severity, type, file, new CodeRegion(0, 0, 1, 0, null), null);
+        String sourceText;
+        try {
+            sourceText = getSourceTextFromResource(file);
+        } catch(IOException e) {
+            sourceText = null;
+        }
+        return new Message(msg, severity, type, file, sourceText, new CodeRegion(0, 0, 1, 0), null);
     }
 
 
@@ -137,9 +159,59 @@ public class MessageHelper {
     }
 
 
+    private static @Nullable String getSourceTextFromTokens(IToken left, IToken right) {
+        String input = null;
+        input = left.getTokenizer().getInput();
+        if(input == null) {
+            input = right.getTokenizer().getInput();
+        }
+        return input;
+    }
+
+    private static String getSourceTextFromResource(FileObject resource) throws IOException {
+        return IOUtils.toString(resource.getContent().getInputStream());
+    }
+    
+    
+    private static CodeRegion regionFromSourceText(IToken left, IToken right, String sourceText) {
+        boolean leftDone = false, rightDone = false;
+        int leftRow = 0, leftColumn = 0, rightRow = 0, rightColumn = 0;
+        char[] input = sourceText.toCharArray();
+        int currentLine = 1;
+        int currentColumn = 0;
+        for(int i = 0; i < input.length; i++) {
+            char c = input[i];
+            if(c == '\n' || c == '\r') {
+                currentLine++;
+                currentColumn = 0;
+            } else {
+                currentColumn++;
+            }
+
+            if(!leftDone && i == left.getStartOffset()) {
+                leftRow = currentLine;
+                leftColumn = currentColumn;
+            }
+            if(!rightDone && i == right.getEndOffset()) {
+                rightRow = currentLine;
+                rightColumn = currentColumn;
+            }
+            if(rightDone && leftDone) {
+                break;
+            }
+        }
+        return new CodeRegion(leftRow, leftColumn, rightRow, rightColumn);
+    }
+
+    private static CodeRegion regionFromTokens(IToken left, IToken right) {
+        return new CodeRegion(left.getLine() + 1, left.getColumn() + 1, right.getEndLine() + 1,
+            right.getEndColumn() + 1);
+    }
+
+
     /**
-     * Given an stratego term, give the first AST node associated with any of its subterms, doing a
-     * depth-first search.
+     * Given a Stratego term, get the first AST node associated with any of its subterms, doing a depth-first
+     * search.
      */
     private static ISimpleTerm getClosestAstNode(IStrategoTerm term) {
         if(hasImploderOrigin(term)) {
@@ -157,8 +229,7 @@ public class MessageHelper {
     }
 
     private static ISimpleTerm minimizeMarkerSize(ISimpleTerm node) {
-        // TODO: prefer lexical nodes when minimizing marker size? (e.g., not
-        // 'private')
+        // TODO: prefer lexical nodes when minimizing marker size? (e.g., not 'private')
         if(node == null)
             return null;
         while(getLeftToken(node).getLine() < getRightToken(node).getLine()) {
