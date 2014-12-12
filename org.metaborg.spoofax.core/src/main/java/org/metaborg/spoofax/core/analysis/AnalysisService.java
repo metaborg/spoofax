@@ -11,7 +11,7 @@ import org.apache.logging.log4j.Logger;
 import org.metaborg.spoofax.core.SpoofaxException;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.messages.IMessage;
-import org.metaborg.spoofax.core.messages.MessageHelper;
+import org.metaborg.spoofax.core.messages.MessageFactory;
 import org.metaborg.spoofax.core.messages.MessageSeverity;
 import org.metaborg.spoofax.core.parser.ParseResult;
 import org.metaborg.spoofax.core.resource.IResourceService;
@@ -118,11 +118,11 @@ public class AnalysisService implements IAnalysisService<IStrategoTerm, IStrateg
 
         FileObject file = resourceService.resolve(((IStrategoString) res.getSubterm(2)).stringValue());
         Collection<IMessage> messages = Sets.newHashSet();
-        messages.addAll(MessageHelper.makeMessages(file, MessageSeverity.ERROR,
+        messages.addAll(MessageFactory.makeMessages(file, MessageSeverity.ERROR,
             (IStrategoList) res.getSubterm(5)));
-        messages.addAll(MessageHelper.makeMessages(file, MessageSeverity.WARNING,
+        messages.addAll(MessageFactory.makeMessages(file, MessageSeverity.WARNING,
             (IStrategoList) res.getSubterm(6)));
-        messages.addAll(MessageHelper.makeMessages(file, MessageSeverity.NOTE,
+        messages.addAll(MessageFactory.makeMessages(file, MessageSeverity.NOTE,
             (IStrategoList) res.getSubterm(7)));
         IStrategoTerm ast = res.getSubterm(4);
         IStrategoTerm previousAst = res.getSubterm(3);

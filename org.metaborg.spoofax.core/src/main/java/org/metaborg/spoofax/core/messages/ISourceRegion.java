@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.core.messages;
 
-public interface ICodeRegion {
+public interface ISourceRegion {
     public int startRow();
 
     public int startColumn();

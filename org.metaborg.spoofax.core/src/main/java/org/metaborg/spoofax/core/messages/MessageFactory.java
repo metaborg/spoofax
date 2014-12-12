@@ -12,6 +12,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.spoofax.core.parser.jsglr.JSGLRSourceRegionFactory;
 import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoString;
@@ -21,7 +22,7 @@ import org.strategoxt.imp.generator.postprocess_feedback_results_0_0;
 import org.strategoxt.imp.generator.sdf2imp;
 import org.strategoxt.lang.Context;
 
-public class MessageHelper {
+public class MessageFactory {
     public static Collection<IMessage> makeMessages(FileObject file, MessageSeverity severity,
         IStrategoList msgs) {
         final Collection<IMessage> result = new ArrayList<IMessage>(msgs.getSubtermCount());
@@ -61,16 +62,16 @@ public class MessageHelper {
     public static Message newMessage(FileObject file, IToken left, IToken right, String msg,
         MessageSeverity severity, MessageType type) {
         String sourceText;
-        ICodeRegion region;
+        ISourceRegion region;
         try {
             sourceText = getSourceTextFromTokens(left, right);
             if(sourceText == null) {
                 sourceText = getSourceTextFromResource(file);
             }
-            region = regionFromSourceText(left, right, sourceText);
+            region = JSGLRSourceRegionFactory.fromSourceText(left, right, sourceText);
         } catch(IOException e) {
             sourceText = null;
-            region = regionFromTokens(left, right);
+            region = JSGLRSourceRegionFactory.fromTokens(left, right);
         }
         return new Message(msg, severity, type, file, sourceText, region, null);
     }
@@ -115,7 +116,7 @@ public class MessageHelper {
         } catch(IOException e) {
             sourceText = null;
         }
-        return new Message(msg, severity, type, file, sourceText, new CodeRegion(0, 0, 1, 0), null);
+        return new Message(msg, severity, type, file, sourceText, new SourceRegion(0, 0, 1, 0), null);
     }
 
 
@@ -170,42 +171,6 @@ public class MessageHelper {
 
     private static String getSourceTextFromResource(FileObject resource) throws IOException {
         return IOUtils.toString(resource.getContent().getInputStream());
-    }
-    
-    
-    private static CodeRegion regionFromSourceText(IToken left, IToken right, String sourceText) {
-        boolean leftDone = false, rightDone = false;
-        int leftRow = 0, leftColumn = 0, rightRow = 0, rightColumn = 0;
-        char[] input = sourceText.toCharArray();
-        int currentLine = 1;
-        int currentColumn = 0;
-        for(int i = 0; i < input.length; i++) {
-            char c = input[i];
-            if(c == '\n' || c == '\r') {
-                currentLine++;
-                currentColumn = 0;
-            } else {
-                currentColumn++;
-            }
-
-            if(!leftDone && i == left.getStartOffset()) {
-                leftRow = currentLine;
-                leftColumn = currentColumn;
-            }
-            if(!rightDone && i == right.getEndOffset()) {
-                rightRow = currentLine;
-                rightColumn = currentColumn;
-            }
-            if(rightDone && leftDone) {
-                break;
-            }
-        }
-        return new CodeRegion(leftRow, leftColumn, rightRow, rightColumn);
-    }
-
-    private static CodeRegion regionFromTokens(IToken left, IToken right) {
-        return new CodeRegion(left.getLine() + 1, left.getColumn() + 1, right.getEndLine() + 1,
-            right.getEndColumn() + 1);
     }
 
 

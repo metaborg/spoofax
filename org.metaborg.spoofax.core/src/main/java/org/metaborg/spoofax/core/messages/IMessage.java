@@ -15,7 +15,7 @@ public interface IMessage {
     
     @Nullable public String sourceText();
 
-    public ICodeRegion region();
+    public ISourceRegion region();
 
     @Nullable public Throwable exception();
 }

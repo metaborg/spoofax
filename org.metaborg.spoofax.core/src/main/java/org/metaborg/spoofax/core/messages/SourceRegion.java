@@ -1,13 +1,13 @@
 package org.metaborg.spoofax.core.messages;
 
-public class CodeRegion implements ICodeRegion {
+public class SourceRegion implements ISourceRegion {
     private final int startRow;
     private final int startColumn;
     private final int endRow;
     private final int endColumn;
 
 
-    public CodeRegion(int startRow, int startColumn, int endRow, int endColumn) {
+    public SourceRegion(int startRow, int startColumn, int endRow, int endColumn) {
         this.startRow = startRow;
         this.startColumn = startColumn;
         this.endRow = endRow;
@@ -50,7 +50,7 @@ public class CodeRegion implements ICodeRegion {
         if(getClass() != obj.getClass())
             return false;
 
-        final CodeRegion other = (CodeRegion) obj;
+        final SourceRegion other = (SourceRegion) obj;
         if(startRow != other.startRow)
             return false;
         if(startColumn != other.startColumn)

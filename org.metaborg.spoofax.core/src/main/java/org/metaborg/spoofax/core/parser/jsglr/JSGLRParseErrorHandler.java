@@ -10,7 +10,7 @@ import java.util.List;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.messages.IMessage;
-import org.metaborg.spoofax.core.messages.MessageHelper;
+import org.metaborg.spoofax.core.messages.MessageFactory;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
@@ -269,23 +269,23 @@ public class JSGLRParseErrorHandler {
                 reportErrorNearOffset(left.getTokenizer(), left.getStartOffset(), message);
             } else {
                 String message2 = message + getErrorExplanation();
-                messages.add(MessageHelper.newParseError(file, left, right, message2));
+                messages.add(MessageFactory.newParseError(file, left, right, message2));
             }
         } else {
             String message2 = message + getErrorExplanation();
-            messages.add(MessageHelper.newParseError(file, left, right, message2));
+            messages.add(MessageFactory.newParseError(file, left, right, message2));
         }
     }
 
     private void reportWarningAtTokens(final IToken left, final IToken right, final String message) {
         final FileObject file = source.getFile();
-        messages.add(MessageHelper.newParseWarning(file, left, right, message));
+        messages.add(MessageFactory.newParseWarning(file, left, right, message));
     }
 
     private void reportErrorAtFirstLine(String message) {
         final FileObject file = source.getFile();
         final String message2 = message + getErrorExplanation();
-        messages.add(MessageHelper.newParseErrorAtTop(file, message2));
+        messages.add(MessageFactory.newParseErrorAtTop(file, message2));
     }
 
     private String getErrorExplanation() {
