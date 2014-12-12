@@ -9,8 +9,8 @@ public class AffectedSourceHelper {
     public static final char NEWLINE = '\n';
 
 
-    public static String affectedSourceText(ISourceRegion region, String originText, String indentation) {
-        final String[] affectedRows = affectedRows(originText, region.startRow(), region.endRow());
+    public static String affectedSourceText(ISourceRegion region, String sourceText, String indentation) {
+        final String[] affectedRows = affectedRows(sourceText, region.startRow(), region.endRow());
 
         if(affectedRows == null || affectedRows.length == 0)
             return TAB + "(code region unavailable)" + NEWLINE;
@@ -35,26 +35,26 @@ public class AffectedSourceHelper {
     }
 
     private static String[] weaveAffectedLines(String[] lines, int beginColumn, int endColumn) {
-        String[] damagedLines = new String[lines.length * 2];
+        String[] affectedRows = new String[lines.length * 2];
         for(int i = 0; i < lines.length; i++) {
             String line = lines[i];
-            damagedLines[i] = line;
+            affectedRows[i] = line;
             int beginOffset = i == 0 ? beginColumn - 1 : 0;
             int endOffset = i + 1 == lines.length ? endColumn - 1 : line.length();
-            char[] damageChars = line.toCharArray();
-            for(int j = 0; j < damageChars.length; j++) {
+            char[] affectedChars = line.toCharArray();
+            for(int j = 0; j < affectedChars.length; j++) {
                 if(beginOffset <= j && endOffset >= j) {
-                    damageChars[j] = AFFECTED;
+                    affectedChars[j] = AFFECTED;
                 } else {
-                    char dc = damageChars[j];
+                    char dc = affectedChars[j];
                     if(dc != TAB && dc != BLANK) {
                         dc = BLANK;
                     }
-                    damageChars[j] = dc;
+                    affectedChars[j] = dc;
                 }
             }
-            damagedLines[i + 1] = new String(damageChars);
+            affectedRows[i + 1] = new String(affectedChars);
         }
-        return damagedLines;
+        return affectedRows;
     }
 }
