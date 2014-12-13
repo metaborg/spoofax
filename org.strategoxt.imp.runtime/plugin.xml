@@ -577,7 +577,7 @@
                id="org.spoofax.menus.menuEnabledTester"
                namespace="org.strategoxt.imp.runtime"
                properties="menuEnabled"
-               type="org.strategoxt.imp.runtime.editor.SpoofaxEditor">
+               type="org.eclipse.ui.part.WorkbenchPart">
          </propertyTester>
       </extension>
       
