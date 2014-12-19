@@ -40,6 +40,7 @@ public class DefaultFileSystemManagerProvider implements Provider<FileSystemMana
 
             addDefaultProvider(manager);
             addProviders(manager);
+            setBaseFile(manager);
 
             manager.init();
 
@@ -53,6 +54,10 @@ public class DefaultFileSystemManagerProvider implements Provider<FileSystemMana
         final DefaultLocalFileProvider provider = new DefaultLocalFileProvider();
         manager.addProvider("file", provider);
         manager.setDefaultProvider(provider);
+    }
+
+    protected void setBaseFile(DefaultFileSystemManager manager) throws FileSystemException {
+        manager.setBaseFile(manager.resolveFile(System.getProperty("user.dir")));
     }
 
     protected void addProviders(DefaultFileSystemManager manager) throws FileSystemException {
