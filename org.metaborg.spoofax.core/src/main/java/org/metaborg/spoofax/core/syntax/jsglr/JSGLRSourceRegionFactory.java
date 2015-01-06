@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.core.parser.jsglr;
+package org.metaborg.spoofax.core.syntax.jsglr;
 
 import org.metaborg.spoofax.core.messages.ISourceRegion;
 import org.metaborg.spoofax.core.messages.SourceRegion;

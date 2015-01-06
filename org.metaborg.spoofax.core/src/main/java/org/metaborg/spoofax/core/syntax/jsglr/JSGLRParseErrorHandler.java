@@ -1,8 +1,12 @@
-package org.metaborg.spoofax.core.parser.jsglr;
+package org.metaborg.spoofax.core.syntax.jsglr;
 
-import static org.spoofax.jsglr.client.imploder.AbstractTokenizer.*;
-import static org.spoofax.jsglr.client.imploder.ImploderAttachment.*;
-import static org.spoofax.terms.Term.*;
+import static org.spoofax.jsglr.client.imploder.AbstractTokenizer.findLeftMostTokenOnSameLine;
+import static org.spoofax.jsglr.client.imploder.AbstractTokenizer.findRightMostTokenOnSameLine;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
+import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getTokenizer;
+import static org.spoofax.terms.Term.asJavaString;
+import static org.spoofax.terms.Term.tryGetConstructor;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -10,6 +14,7 @@ import java.util.List;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.messages.IMessage;
+import org.metaborg.spoofax.core.messages.ISourceRegion;
 import org.metaborg.spoofax.core.messages.MessageFactory;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -264,22 +269,24 @@ public class JSGLRParseErrorHandler {
 
     private void reportErrorAtTokens(final IToken left, final IToken right, String message) {
         final FileObject file = source.getFile();
+        final ISourceRegion sourceRegion = JSGLRSourceRegionFactory.fromTokens(left, right);
         if(left.getStartOffset() > right.getEndOffset()) {
             if(left != right) {
                 reportErrorNearOffset(left.getTokenizer(), left.getStartOffset(), message);
             } else {
                 String message2 = message + getErrorExplanation();
-                messages.add(MessageFactory.newParseError(file, left, right, message2));
+                messages.add(MessageFactory.newParseError(file, sourceRegion, message2));
             }
         } else {
             String message2 = message + getErrorExplanation();
-            messages.add(MessageFactory.newParseError(file, left, right, message2));
+            messages.add(MessageFactory.newParseError(file, sourceRegion, message2));
         }
     }
 
     private void reportWarningAtTokens(final IToken left, final IToken right, final String message) {
         final FileObject file = source.getFile();
-        messages.add(MessageFactory.newParseWarning(file, left, right, message));
+        final ISourceRegion sourceRegion = JSGLRSourceRegionFactory.fromTokens(left, right);
+        messages.add(MessageFactory.newParseWarning(file, sourceRegion, message));
     }
 
     private void reportErrorAtFirstLine(String message) {

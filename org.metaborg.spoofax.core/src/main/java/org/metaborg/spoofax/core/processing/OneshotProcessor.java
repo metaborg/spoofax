@@ -13,9 +13,9 @@ import org.metaborg.spoofax.core.analysis.IAnalysisService;
 import org.metaborg.spoofax.core.language.AllLanguagesFileSelector;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
-import org.metaborg.spoofax.core.parser.IParseService;
-import org.metaborg.spoofax.core.parser.ParseResult;
 import org.metaborg.spoofax.core.resource.IResourceService;
+import org.metaborg.spoofax.core.syntax.ISyntaxService;
+import org.metaborg.spoofax.core.syntax.ParseResult;
 
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
@@ -26,11 +26,11 @@ public class OneshotProcessor<ParseT, AnalysisT> {
 
     private final IResourceService resourceService;
     private final ILanguageIdentifierService languageIdentifierService;
-    private final IParseService<ParseT> parseService;
+    private final ISyntaxService<ParseT> parseService;
     private final IAnalysisService<ParseT, AnalysisT> analysisService;
 
     @Inject public OneshotProcessor(IResourceService resourceService,
-        ILanguageIdentifierService languageIdentifierService, IParseService<ParseT> parseService,
+        ILanguageIdentifierService languageIdentifierService, ISyntaxService<ParseT> parseService,
         IAnalysisService<ParseT, AnalysisT> analysisService) {
         this.resourceService = resourceService;
         this.languageIdentifierService = languageIdentifierService;

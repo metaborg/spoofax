@@ -18,7 +18,7 @@ import org.metaborg.spoofax.core.service.about.AboutFacet;
 import org.metaborg.spoofax.core.service.identification.ExtensionsIdentifier;
 import org.metaborg.spoofax.core.service.identification.IdentificationFacet;
 import org.metaborg.spoofax.core.service.stratego.StrategoFacet;
-import org.metaborg.spoofax.core.service.syntax.SyntaxFacet;
+import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.observable.ITestableObserver;
 import org.metaborg.util.observable.TestableObserver;

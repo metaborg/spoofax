@@ -1,5 +1,4 @@
-package org.metaborg.spoofax.core.parser.jsglr;
-
+package org.metaborg.spoofax.core.syntax.jsglr;
 
 public interface IParserConfig {
     public String getStartSymbol();

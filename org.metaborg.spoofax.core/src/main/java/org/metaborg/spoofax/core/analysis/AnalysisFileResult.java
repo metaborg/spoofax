@@ -1,14 +1,15 @@
 package org.metaborg.spoofax.core.analysis;
 
 import java.util.Collection;
-import java.util.LinkedList;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.messages.IMessage;
-import org.metaborg.spoofax.core.parser.ParseResult;
+import org.metaborg.spoofax.core.syntax.ParseResult;
+
+import com.google.common.collect.Lists;
 
 public class AnalysisFileResult<ParseT, AnalysisT> {
-    private final Collection<IMessage> messages = new LinkedList<IMessage>();
+    private final Collection<IMessage> messages = Lists.newLinkedList();
     private final FileObject file;
     private final ParseResult<ParseT> previous;
     private final AnalysisT result;

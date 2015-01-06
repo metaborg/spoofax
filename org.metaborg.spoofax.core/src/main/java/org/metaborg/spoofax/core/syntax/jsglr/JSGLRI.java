@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.core.parser.jsglr;
+package org.metaborg.spoofax.core.syntax.jsglr;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,7 +7,7 @@ import java.util.Scanner;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.language.ILanguage;
-import org.metaborg.spoofax.core.parser.ParseResult;
+import org.metaborg.spoofax.core.syntax.ParseResult;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.Asfix2TreeBuilder;

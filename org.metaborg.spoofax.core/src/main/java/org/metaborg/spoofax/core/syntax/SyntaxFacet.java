@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.core.service.syntax;
+package org.metaborg.spoofax.core.syntax;
 
 import java.util.Set;
 

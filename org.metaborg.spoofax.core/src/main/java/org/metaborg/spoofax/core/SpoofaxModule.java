@@ -1,8 +1,8 @@
 package org.metaborg.spoofax.core;
 
 import org.apache.commons.vfs2.FileSystemManager;
-import org.metaborg.spoofax.core.analysis.AnalysisService;
 import org.metaborg.spoofax.core.analysis.IAnalysisService;
+import org.metaborg.spoofax.core.analysis.stratego.StrategoAnalysisService;
 import org.metaborg.spoofax.core.language.ILanguageDiscoveryService;
 import org.metaborg.spoofax.core.language.ILanguageFacetFactory;
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
@@ -10,15 +10,17 @@ import org.metaborg.spoofax.core.language.ILanguageService;
 import org.metaborg.spoofax.core.language.LanguageDiscoveryService;
 import org.metaborg.spoofax.core.language.LanguageIdentifierService;
 import org.metaborg.spoofax.core.language.LanguageService;
-import org.metaborg.spoofax.core.parser.IParseService;
-import org.metaborg.spoofax.core.parser.jsglr.JSGLRParseService;
 import org.metaborg.spoofax.core.resource.DefaultFileSystemManagerProvider;
 import org.metaborg.spoofax.core.resource.IResourceService;
 import org.metaborg.spoofax.core.resource.ResourceService;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeService;
+import org.metaborg.spoofax.core.syntax.ISyntaxService;
+import org.metaborg.spoofax.core.syntax.jsglr.JSGLRParseService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.terms.TermFactoryService;
+import org.metaborg.spoofax.core.text.ISourceTextService;
+import org.metaborg.spoofax.core.text.SourceTextService;
 import org.metaborg.util.logging.Log4JTypeListener;
 import org.spoofax.interpreter.library.IOperatorRegistry;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -43,11 +45,12 @@ public class SpoofaxModule extends AbstractModule {
             bind(ILanguageService.class).to(LanguageService.class).in(Singleton.class);
             bind(ILanguageDiscoveryService.class).to(LanguageDiscoveryService.class).in(Singleton.class);
             bind(ILanguageIdentifierService.class).to(LanguageIdentifierService.class).in(Singleton.class);
-            bind(new TypeLiteral<IParseService<IStrategoTerm>>() {}).to(JSGLRParseService.class).in(
+            bind(new TypeLiteral<ISyntaxService<IStrategoTerm>>() {}).to(JSGLRParseService.class).in(
                 Singleton.class);
             bind(IStrategoRuntimeService.class).to(StrategoRuntimeService.class).in(Singleton.class);
             bind(new TypeLiteral<IAnalysisService<IStrategoTerm, IStrategoTerm>>() {}).to(
-                AnalysisService.class).in(Singleton.class);
+                StrategoAnalysisService.class).in(Singleton.class);
+            bind(ISourceTextService.class).to(SourceTextService.class).in(Singleton.class);
 
             bind(FileSystemManager.class).toProvider(DefaultFileSystemManagerProvider.class).in(
                 Singleton.class);

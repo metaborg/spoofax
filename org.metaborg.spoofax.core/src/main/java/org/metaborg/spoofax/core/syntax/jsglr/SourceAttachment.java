@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.core.parser.jsglr;
+package org.metaborg.spoofax.core.syntax.jsglr;
 
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.hasImploderOrigin;
 import static org.spoofax.terms.attachments.OriginAttachment.getOrigin;
