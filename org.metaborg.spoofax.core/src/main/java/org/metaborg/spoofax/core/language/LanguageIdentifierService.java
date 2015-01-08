@@ -3,7 +3,6 @@ package org.metaborg.spoofax.core.language;
 import java.util.Collection;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.spoofax.core.service.identification.IdentificationFacet;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;

@@ -1,7 +1,6 @@
-package org.metaborg.spoofax.core.service.identification;
+package org.metaborg.spoofax.core.language;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.spoofax.core.language.ILanguageFacet;
 
 import rx.functions.Func1;
 

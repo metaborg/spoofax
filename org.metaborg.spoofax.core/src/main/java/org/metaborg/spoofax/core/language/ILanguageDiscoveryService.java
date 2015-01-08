@@ -5,9 +5,9 @@ import java.util.Map;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.spoofax.core.analysis.stratego.StrategoFacet;
 import org.metaborg.spoofax.core.service.actions.Action;
 import org.metaborg.spoofax.core.service.actions.ActionsFacet;
-import org.metaborg.spoofax.core.service.stratego.StrategoFacet;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 
 import com.google.common.collect.ImmutableSet;

@@ -1,13 +1,11 @@
-package org.metaborg.spoofax.core.service.about;
+package org.metaborg.spoofax.core.language;
 
 import javax.annotation.Nullable;
-
-import org.metaborg.spoofax.core.language.ILanguageFacet;
 
 /**
  * Represents a facet that provides basic information about a language
  */
-public class AboutFacet implements ILanguageFacet {
+public class DescriptionFacet implements ILanguageFacet {
     /**
      * Description of the language.
      */
@@ -26,7 +24,7 @@ public class AboutFacet implements ILanguageFacet {
      * @param url
      *            Website URL of the language, or null if none.
      */
-    public AboutFacet(String description, @Nullable String url) {
+    public DescriptionFacet(String description, @Nullable String url) {
         this.description = description;
         this.url = url;
     }

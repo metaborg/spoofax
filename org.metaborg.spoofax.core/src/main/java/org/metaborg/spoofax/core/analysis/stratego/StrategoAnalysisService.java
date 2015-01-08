@@ -22,7 +22,6 @@ import org.metaborg.spoofax.core.messages.ISourceRegion;
 import org.metaborg.spoofax.core.messages.MessageFactory;
 import org.metaborg.spoofax.core.messages.MessageSeverity;
 import org.metaborg.spoofax.core.resource.IResourceService;
-import org.metaborg.spoofax.core.service.stratego.StrategoFacet;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.syntax.jsglr.JSGLRSourceRegionFactory;

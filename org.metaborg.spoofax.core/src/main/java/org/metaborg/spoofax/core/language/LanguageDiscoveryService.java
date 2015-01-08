@@ -8,11 +8,9 @@ import java.util.Set;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.logging.log4j.Logger;
+import org.metaborg.spoofax.core.analysis.stratego.StrategoFacet;
 import org.metaborg.spoofax.core.service.actions.Action;
 import org.metaborg.spoofax.core.service.actions.ActionsFacet;
-import org.metaborg.spoofax.core.service.identification.ExtensionsIdentifier;
-import org.metaborg.spoofax.core.service.identification.IdentificationFacet;
-import org.metaborg.spoofax.core.service.stratego.StrategoFacet;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.util.iterators.Iterables2;

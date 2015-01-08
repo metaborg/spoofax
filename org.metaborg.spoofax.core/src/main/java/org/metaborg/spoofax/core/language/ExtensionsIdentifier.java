@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.core.service.identification;
+package org.metaborg.spoofax.core.language;
 
 import java.util.Set;
 

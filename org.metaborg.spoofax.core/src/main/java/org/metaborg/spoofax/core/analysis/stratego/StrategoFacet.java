@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.core.service.stratego;
+package org.metaborg.spoofax.core.analysis.stratego;
 
 import java.util.Set;
 
