@@ -52,8 +52,7 @@ public class SpoofaxModule extends AbstractModule {
                 StrategoAnalysisService.class).in(Singleton.class);
             bind(ISourceTextService.class).to(SourceTextService.class).in(Singleton.class);
 
-            bind(FileSystemManager.class).toProvider(DefaultFileSystemManagerProvider.class).in(
-                Singleton.class);
+            bindFileSystemManager();
 
             @SuppressWarnings("unused") final Multibinder<ILanguageFacetFactory> facetFactoriesBinder =
                 Multibinder.newSetBinder(binder(), ILanguageFacetFactory.class);
@@ -65,5 +64,9 @@ public class SpoofaxModule extends AbstractModule {
         } catch(Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    protected void bindFileSystemManager() {
+        bind(FileSystemManager.class).toProvider(DefaultFileSystemManagerProvider.class).in(Singleton.class);
     }
 }

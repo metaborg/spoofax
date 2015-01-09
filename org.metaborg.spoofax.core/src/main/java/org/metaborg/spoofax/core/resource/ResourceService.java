@@ -68,6 +68,16 @@ public class ResourceService implements IResourceService {
         }
     }
 
+    @Override public FileObject userStorage() {
+        try {
+            final FileObject storageDir = root().resolveFile(".cache");
+            storageDir.createFolder();
+            return storageDir;
+        } catch(FileSystemException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     @Override public FileSystemManager manager() {
         return fileSystemManager;
     }

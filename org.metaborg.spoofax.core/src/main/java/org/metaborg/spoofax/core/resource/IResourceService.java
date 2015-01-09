@@ -21,7 +21,8 @@ public interface IResourceService {
 
     /**
      * Returns a file system object for given absolute or relative to the root URI. See <a
-     * href="http://commons.apache.org/proper/commons-vfs/filesystems.html">FVS file systems</a> for examples of URIs.
+     * href="http://commons.apache.org/proper/commons-vfs/filesystems.html">FVS file systems</a> for examples
+     * of URIs.
      * 
      * @param uri
      *            relative URI to resolve.
@@ -44,7 +45,8 @@ public interface IResourceService {
 
     /**
      * Returns file system objects for given absolute or relative to the root URIs. See <a
-     * href="http://commons.apache.org/proper/commons-vfs/filesystems.html">FVS file systems</a> for examples of URIs.
+     * href="http://commons.apache.org/proper/commons-vfs/filesystems.html">FVS file systems</a> for examples
+     * of URIs.
      * 
      * @param uris
      *            URIs to resolve.
@@ -56,14 +58,20 @@ public interface IResourceService {
 
     /**
      * Returns a file system name for given absolute or relative to the root URI. See <a
-     * href="http://commons.apache.org/proper/commons-vfs/filesystems.html">FVS file systems</a> for examples of URIs.
+     * href="http://commons.apache.org/proper/commons-vfs/filesystems.html">FVS file systems</a> for examples
+     * of URIs.
      * 
      * @param uri
      *            URI to resolve.
      * @return File system name for given URI.
      */
     public FileName resolveURI(String uri);
-    
+
+    /**
+     * Returns a file system object that points to a directory where user-specific data can be stored.
+     */
+    public FileObject userStorage();
+
     /**
      * Temporary hack to get the internal file system manager.
      */
