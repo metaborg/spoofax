@@ -26,7 +26,7 @@ public class PluginClasspathProvider implements IAntPropertyValueProvider {
                     classpathBuilder.append(File.pathSeparator);
                 }
                 first = false;
-
+                
                 final File file = FileLocator.getBundleFile(bundle);
                 final String path = file.getAbsolutePath();
                 if (path.endsWith(".jar")) {
@@ -36,12 +36,17 @@ public class PluginClasspathProvider implements IAntPropertyValueProvider {
                     classpathBuilder.append(path);
                 } else {
                     final File targetClasses = Paths.get(path, "target", "classes").toFile();
+                    final File bin = Paths.get(path, "bin").toFile();
                     if (targetClasses.exists()) {
                         /*
-                         * A plugin under development. Plugins under development have a target/classes directory with
-                         * all their classes.
+                         * A plugin under development with all its classes in the target/classes directory.
                          */
                         classpathBuilder.append(targetClasses);
+                    } else if (bin.exists()) {
+                    	/*
+                         * A plugin under development with all its classes in the bin directory.
+                         */
+                        classpathBuilder.append(bin);
                     } else {
                         /*
                          * An installed unpacked plugin. Class files are extracted in this directory.
