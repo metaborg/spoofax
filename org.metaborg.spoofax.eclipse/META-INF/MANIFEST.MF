@@ -16,3 +16,4 @@ Require-Bundle: org.eclipse.ui,
  org.metaborg.util
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-Vendor: metaborg.org
+Bundle-ActivationPolicy: lazy

@@ -39,12 +39,12 @@ public class SpoofaxModule extends AbstractModule {
     private final ClassLoader resourceClassLoader;
 
 
-    public SpoofaxModule(ClassLoader resourceClassLoader) {
-        this.resourceClassLoader = resourceClassLoader;
-    }
-
     public SpoofaxModule() {
         this(SpoofaxModule.class.getClassLoader());
+    }
+
+    public SpoofaxModule(ClassLoader resourceClassLoader) {
+        this.resourceClassLoader = resourceClassLoader;
     }
 
 
@@ -52,24 +52,12 @@ public class SpoofaxModule extends AbstractModule {
         try {
             bindListener(Matchers.any(), new Log4JTypeListener());
 
-            bind(IResourceService.class).to(ResourceService.class).in(Singleton.class);
-            bind(ITermFactoryService.class).to(TermFactoryService.class).in(Singleton.class);
-            bind(ILanguageService.class).to(LanguageService.class).in(Singleton.class);
-            bind(ILanguageDiscoveryService.class).to(LanguageDiscoveryService.class).in(Singleton.class);
-            bind(ILanguageIdentifierService.class).to(LanguageIdentifierService.class).in(Singleton.class);
-            bind(new TypeLiteral<ISyntaxService<IStrategoTerm>>() {}).to(JSGLRParseService.class).in(
-                Singleton.class);
-            bind(IStrategoRuntimeService.class).to(StrategoRuntimeService.class).in(Singleton.class);
-            bind(new TypeLiteral<IAnalysisService<IStrategoTerm, IStrategoTerm>>() {}).to(
-                StrategoAnalysisService.class).in(Singleton.class);
-            bind(ISourceTextService.class).to(SourceTextService.class).in(Singleton.class);
-
-            bindFileSystemManager();
-
-            @SuppressWarnings("unused") final Multibinder<ILanguageFacetFactory> facetFactoriesBinder =
-                Multibinder.newSetBinder(binder(), ILanguageFacetFactory.class);
-            @SuppressWarnings("unused") final Multibinder<IOperatorRegistry> strategoLibraryBinder =
-                Multibinder.newSetBinder(binder(), IOperatorRegistry.class);
+            bindResource();
+            bindLanguage();
+            bindSyntax();
+            bindSourceText();
+            bindAnalysis();
+            bindOther();
 
             bind(ClassLoader.class).annotatedWith(Names.named("ResourceClassLoader")).toInstance(
                 resourceClassLoader);
@@ -78,7 +66,40 @@ public class SpoofaxModule extends AbstractModule {
         }
     }
 
-    protected void bindFileSystemManager() {
+    protected void bindResource() {
+        bind(IResourceService.class).to(ResourceService.class).in(Singleton.class);
         bind(FileSystemManager.class).toProvider(DefaultFileSystemManagerProvider.class).in(Singleton.class);
+    }
+
+    protected void bindLanguage() {
+        bind(ILanguageService.class).to(LanguageService.class).in(Singleton.class);
+        bind(ILanguageDiscoveryService.class).to(LanguageDiscoveryService.class).in(Singleton.class);
+        bind(ILanguageIdentifierService.class).to(LanguageIdentifierService.class).in(Singleton.class);
+
+        @SuppressWarnings("unused") final Multibinder<ILanguageFacetFactory> facetFactoriesBinder =
+            Multibinder.newSetBinder(binder(), ILanguageFacetFactory.class);
+    }
+
+    protected void bindSyntax() {
+        bind(new TypeLiteral<ISyntaxService<IStrategoTerm>>() {}).to(JSGLRParseService.class).in(
+            Singleton.class);
+        bind(ITermFactoryService.class).to(TermFactoryService.class).in(Singleton.class);
+    }
+
+    protected void bindSourceText() {
+        bind(ISourceTextService.class).to(SourceTextService.class).in(Singleton.class);
+    }
+
+    protected void bindAnalysis() {
+        bind(new TypeLiteral<IAnalysisService<IStrategoTerm, IStrategoTerm>>() {}).to(
+            StrategoAnalysisService.class).in(Singleton.class);
+        bind(IStrategoRuntimeService.class).to(StrategoRuntimeService.class).in(Singleton.class);
+
+        @SuppressWarnings("unused") final Multibinder<IOperatorRegistry> strategoLibraryBinder =
+            Multibinder.newSetBinder(binder(), IOperatorRegistry.class);
+    }
+
+    protected void bindOther() {
+
     }
 }

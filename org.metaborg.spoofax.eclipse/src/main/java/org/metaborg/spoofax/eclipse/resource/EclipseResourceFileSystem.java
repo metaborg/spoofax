@@ -14,10 +14,13 @@ import org.eclipse.core.resources.ResourcesPlugin;
 public class EclipseResourceFileSystem extends AbstractFileSystem {
     private final IWorkspaceRoot root;
 
-    public EclipseResourceFileSystem(FileName rootName, FileObject parentLayer, FileSystemOptions fileSystemOptions) {
+
+    public EclipseResourceFileSystem(FileName rootName, FileObject parentLayer,
+        FileSystemOptions fileSystemOptions) {
         super(rootName, parentLayer, fileSystemOptions);
         this.root = ResourcesPlugin.getWorkspace().getRoot();
     }
+
 
     @Override protected FileObject createFile(AbstractFileName name) throws Exception {
         return new EclipseResourceFileObject(name, root, this);
