@@ -2,20 +2,20 @@
 <?eclipse version="3.4"?>
 <plugin>
   <!-- Editor -->
-   <extension
-         point="org.eclipse.ui.editors">
-      <editor
-            id="org.metaborg.spoofax.eclipse.editor.SpoofaxEditor"
-            name="Spoofax 2 Editor"
-            icon="icons/sample.gif"
-            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
-            class="org.metaborg.spoofax.eclipse.editor.SpoofaxEditor"
-            >
-      </editor>
-   </extension>
-   
-   
-   <!-- Language loading commands -->
+  <extension
+    point="org.eclipse.ui.editors">
+    <editor
+      id="org.metaborg.spoofax.eclipse.editor.SpoofaxEditor"
+      name="Spoofax 2 Editor"
+      icon="icons/sample.gif"
+      contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
+      class="org.metaborg.spoofax.eclipse.editor.SpoofaxEditor"
+    >
+    </editor>
+  </extension>
+
+
+  <!-- Language loading commands -->
   <extension point="org.eclipse.ui.commands">
     <command 
       id="org.metaborg.spoofax.eclipse.language.LoadLanguageCommand" 

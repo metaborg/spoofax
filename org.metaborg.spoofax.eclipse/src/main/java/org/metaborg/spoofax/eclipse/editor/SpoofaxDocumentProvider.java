@@ -8,7 +8,7 @@ public class SpoofaxDocumentProvider extends FileDocumentProvider {
     @Override protected IDocument createDocument(Object element) throws CoreException {
         return super.createDocument(element);
     }
-    
+
     @Override protected IDocument createEmptyDocument() {
         return super.createEmptyDocument();
     }

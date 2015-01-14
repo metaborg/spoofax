@@ -6,12 +6,17 @@ import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
 
 public class SpoofaxSourceViewerConfiguration extends SourceViewerConfiguration {
-    public SpoofaxSourceViewerConfiguration() {
+    private final SpoofaxEditor editor;
+    
+    
+    public SpoofaxSourceViewerConfiguration(SpoofaxEditor editor) {
         super();
+        
+        this.editor = editor;
     }
 
     
     @Override public IReconciler getReconciler(ISourceViewer sourceViewer) {
-        return new MonoReconciler(new SpoofaxReconcilingStrategy(), false);
+        return new MonoReconciler(new SpoofaxReconcilingStrategy(editor), false);
     }
 }
