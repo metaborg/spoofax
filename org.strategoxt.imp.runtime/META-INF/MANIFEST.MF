@@ -30,7 +30,8 @@ Require-Bundle: org.eclipse.imp.runtime,
  org.strategoxt.imp.runtime.sidebyside.main,
  org.strategoxt.imp.runtime.sidebyside.latest,
  org.eclipse.ui.views,
- org.spoofax.interpreter.externaldeps
+ org.spoofax.interpreter.externaldeps,
+ org.metaborg.meta.interpreter.framework
 Export-Package: org.strategoxt.imp.runtime,
  org.strategoxt.imp.runtime.dynamicloading,
  org.strategoxt.imp.runtime.editor,
