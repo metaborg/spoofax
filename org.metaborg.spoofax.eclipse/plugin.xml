@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+  <!-- Editor -->
+   <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            id="org.metaborg.spoofax.eclipse.editor.SpoofaxEditor"
+            name="Spoofax 2 Editor"
+            icon="icons/sample.gif"
+            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
+            class="org.metaborg.spoofax.eclipse.editor.SpoofaxEditor"
+            >
+      </editor>
+   </extension>
+   
+   
+   <!-- Language loading commands -->
+  <extension point="org.eclipse.ui.commands">
+    <command 
+      id="org.metaborg.spoofax.eclipse.language.LoadLanguageCommand" 
+      name="Load language"
+    >
+    </command>
+  </extension>
+  
+  <extension point="org.eclipse.ui.handlers">
+    <handler 
+      class="org.metaborg.spoofax.eclipse.language.LoadLanguageHandler" 
+      commandId="org.metaborg.spoofax.eclipse.language.LoadLanguageCommand"
+    >
+    </handler>
+  </extension>
+  
+  
+  <!-- Project context menu -->
+  <extension point="org.eclipse.ui.menus">
+    <menuContribution locationURI="popup:org.eclipse.jdt.ui.PackageExplorer?after=additions">
+      <menu id="spoofax" label="Spoofax 2">
+        <visibleWhen>
+          <iterate ifEmpty="false" operator="and">
+            <or>
+              <instanceof value="org.eclipse.core.resources.IProject" />
+              <instanceof value="org.eclipse.core.resources.IProjectNature" />
+            </or>
+          </iterate>
+        </visibleWhen>
+      </menu>
+    </menuContribution>
+    <menuContribution locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?after=additions">
+      <menu id="spoofax" label="Spoofax 2">
+        <visibleWhen>
+          <iterate ifEmpty="false" operator="and">
+            <or>
+              <instanceof value="org.eclipse.core.resources.IProject" />
+              <instanceof value="org.eclipse.core.resources.IProjectNature" />
+            </or>
+          </iterate>
+        </visibleWhen>
+      </menu>
+    </menuContribution>
+    <menuContribution locationURI="popup:spoofax?after=additions">
+      <command commandId="org.metaborg.spoofax.eclipse.language.LoadLanguageCommand">
+      </command>
+    </menuContribution>
+  </extension>
+  
+</plugin>

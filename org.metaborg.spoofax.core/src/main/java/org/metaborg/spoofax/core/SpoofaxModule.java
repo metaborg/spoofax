@@ -36,6 +36,18 @@ import com.google.inject.name.Names;
  * Guice module that specifies which implementations to use for services and factories.
  */
 public class SpoofaxModule extends AbstractModule {
+    private final ClassLoader resourceClassLoader;
+
+
+    public SpoofaxModule(ClassLoader resourceClassLoader) {
+        this.resourceClassLoader = resourceClassLoader;
+    }
+
+    public SpoofaxModule() {
+        this(SpoofaxModule.class.getClassLoader());
+    }
+
+
     @Override protected void configure() {
         try {
             bindListener(Matchers.any(), new Log4JTypeListener());
@@ -60,7 +72,7 @@ public class SpoofaxModule extends AbstractModule {
                 Multibinder.newSetBinder(binder(), IOperatorRegistry.class);
 
             bind(ClassLoader.class).annotatedWith(Names.named("ResourceClassLoader")).toInstance(
-                this.getClass().getClassLoader());
+                resourceClassLoader);
         } catch(Exception e) {
             throw new RuntimeException(e);
         }
