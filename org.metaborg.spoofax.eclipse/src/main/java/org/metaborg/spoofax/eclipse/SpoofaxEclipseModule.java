@@ -3,6 +3,7 @@ package org.metaborg.spoofax.eclipse;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.metaborg.spoofax.core.SpoofaxModule;
 import org.metaborg.spoofax.core.resource.IResourceService;
+import org.metaborg.spoofax.eclipse.language.StartupLanguageLoader;
 import org.metaborg.spoofax.eclipse.resource.EclipseFileSystemManagerProvider;
 import org.metaborg.spoofax.eclipse.resource.EclipseResourceService;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
@@ -25,5 +26,9 @@ public class SpoofaxEclipseModule extends SpoofaxModule {
         bind(IEclipseResourceService.class).to(EclipseResourceService.class);
 
         bind(FileSystemManager.class).toProvider(EclipseFileSystemManagerProvider.class).in(Singleton.class);
+    }
+    
+    @Override protected void bindOther() {
+        bind(StartupLanguageLoader.class).asEagerSingleton();
     }
 }

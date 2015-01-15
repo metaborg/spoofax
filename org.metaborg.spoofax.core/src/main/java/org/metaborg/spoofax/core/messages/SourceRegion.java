@@ -1,19 +1,28 @@
 package org.metaborg.spoofax.core.messages;
 
 public class SourceRegion implements ISourceRegion {
+    private final int startOffset;
     private final int startRow;
     private final int startColumn;
+    private final int endOffset;
     private final int endRow;
     private final int endColumn;
 
 
-    public SourceRegion(int startRow, int startColumn, int endRow, int endColumn) {
+    public SourceRegion(int startOffset, int startRow, int startColumn, int endOffset, int endRow,
+        int endColumn) {
+        this.startOffset = startOffset;
         this.startRow = startRow;
         this.startColumn = startColumn;
+        this.endOffset = endOffset;
         this.endRow = endRow;
         this.endColumn = endColumn;
     }
 
+
+    @Override public int startOffset() {
+        return startOffset;
+    }
 
     @Override public int startRow() {
         return startRow;
@@ -21,6 +30,10 @@ public class SourceRegion implements ISourceRegion {
 
     @Override public int startColumn() {
         return startColumn;
+    }
+
+    @Override public int endOffset() {
+        return endOffset;
     }
 
     @Override public int endRow() {

@@ -43,7 +43,7 @@ public class MessageFactory {
 
     private static Message newAtTop(FileObject resource, String msg, MessageType type,
         MessageSeverity severity) {
-        return new Message(msg, severity, type, resource, new SourceRegion(0, 0, 1, 0), null);
+        return new Message(msg, severity, type, resource, new SourceRegion(0, 0, 0, 0, 0, 0), null);
     }
 
 

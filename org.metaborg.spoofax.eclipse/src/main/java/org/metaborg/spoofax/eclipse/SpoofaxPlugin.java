@@ -2,6 +2,7 @@ package org.metaborg.spoofax.eclipse;
 
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.metaborg.spoofax.eclipse.language.StartupLanguageLoader;
 import org.osgi.framework.BundleContext;
 
 import com.google.inject.Guice;
@@ -23,6 +24,8 @@ public class SpoofaxPlugin extends AbstractUIPlugin {
         super.start(context);
         plugin = this;
         injector = Guice.createInjector(new SpoofaxEclipseModule());
+
+        injector.getInstance(StartupLanguageLoader.class).loadLanguages();
     }
 
     public void stop(BundleContext context) throws Exception {

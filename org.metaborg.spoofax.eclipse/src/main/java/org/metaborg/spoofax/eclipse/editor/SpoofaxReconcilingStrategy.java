@@ -13,8 +13,6 @@ import org.eclipse.jface.text.reconciler.DirtyRegion;
 import org.eclipse.jface.text.reconciler.IReconcilingStrategy;
 import org.eclipse.jface.text.reconciler.IReconcilingStrategyExtension;
 import org.eclipse.ui.IFileEditorInput;
-import org.metaborg.spoofax.core.analysis.AnalysisFileResult;
-import org.metaborg.spoofax.core.analysis.AnalysisResult;
 import org.metaborg.spoofax.core.analysis.IAnalysisService;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
@@ -23,7 +21,6 @@ import org.metaborg.spoofax.core.syntax.ISyntaxService;
 import org.metaborg.spoofax.core.syntax.ParseResult;
 import org.metaborg.spoofax.eclipse.SpoofaxPlugin;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
-import org.metaborg.util.iterators.Iterables2;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.inject.Injector;
@@ -81,8 +78,8 @@ public class SpoofaxReconcilingStrategy implements IReconcilingStrategy, IReconc
             final FileObject resource = resourceService.resolve(eclipseResource);
             final ILanguage language = languageIdentifierService.identify(resource);
             final ParseResult<IStrategoTerm> parseResult = syntaxService.parse(input, resource, language);
-            final AnalysisResult<IStrategoTerm, IStrategoTerm> analysisResult =
-                analysisService.analyze(Iterables2.singleton(parseResult), language);
+            // final AnalysisResult<IStrategoTerm, IStrategoTerm> analysisResult =
+            // analysisService.analyze(Iterables2.singleton(parseResult), language);
 
             eclipseResource.deleteMarkers(IMarker.MARKER, true, IResource.DEPTH_INFINITE);
 
@@ -90,11 +87,11 @@ public class SpoofaxReconcilingStrategy implements IReconcilingStrategy, IReconc
                 createMarker(eclipseResource, message);
             }
 
-            for(AnalysisFileResult<IStrategoTerm, IStrategoTerm> fileResult : analysisResult.fileResults) {
-                for(IMessage message : fileResult.messages()) {
-                    createMarker(eclipseResource, message);
-                }
-            }
+            // for(AnalysisFileResult<IStrategoTerm, IStrategoTerm> fileResult : analysisResult.fileResults) {
+            // for(IMessage message : fileResult.messages()) {
+            // createMarker(eclipseResource, message);
+            // }
+            // }
         } catch(IOException | CoreException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -104,7 +101,9 @@ public class SpoofaxReconcilingStrategy implements IReconcilingStrategy, IReconc
     private IMarker createMarker(IResource resource, IMessage message) throws CoreException {
         final String type = IMarker.PROBLEM;
         final IMarker marker = resource.createMarker(type);
-        marker.setAttribute(IMarker.LINE_NUMBER, message.region().startRow());
+        marker.setAttribute(IMarker.CHAR_START, message.region().startOffset());
+        marker.setAttribute(IMarker.CHAR_END, message.region().endOffset() + 1);
+        marker.setAttribute(IMarker.LINE_NUMBER, message.region().startRow() + 1);
         marker.setAttribute(IMarker.MESSAGE, message.message());
         marker.setAttribute(IMarker.SEVERITY, severity(message));
         marker.setAttribute(IMarker.PRIORITY, IMarker.PRIORITY_HIGH);

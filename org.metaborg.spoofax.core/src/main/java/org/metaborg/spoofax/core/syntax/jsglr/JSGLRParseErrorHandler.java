@@ -5,7 +5,6 @@ import static org.spoofax.jsglr.client.imploder.AbstractTokenizer.findRightMostT
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getLeftToken;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getRightToken;
 import static org.spoofax.jsglr.client.imploder.ImploderAttachment.getTokenizer;
-import static org.spoofax.terms.Term.asJavaString;
 import static org.spoofax.terms.Term.tryGetConstructor;
 
 import java.util.ArrayList;
@@ -28,60 +27,49 @@ import org.spoofax.jsglr.client.imploder.Token;
 import org.spoofax.jsglr.shared.BadTokenException;
 import org.spoofax.jsglr.shared.TokenExpectedException;
 import org.spoofax.terms.TermVisitor;
-import org.strategoxt.imp.generator.sdf2imp;
-import org.strategoxt.imp.generator.simplify_ambiguity_report_0_0;
-import org.strategoxt.lang.Context;
-import org.strategoxt.stratego_aterm.stratego_aterm;
-import org.strategoxt.stratego_sglr.stratego_sglr;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Lists;
 
-/**
- * SGLR parse error reporting for a particular SGLR Parse controller and file.
- */
 public class JSGLRParseErrorHandler {
     private static final int LARGE_REGION_SIZE = 8;
     private static final String LARGE_REGION_START =
         "Region could not be parsed because of subsequent syntax error(s) indicated below";
 
-    private static Context asyncAmbReportingContext;
+    private final JSGLRI parser;
+    private final FileObject resource;
+    private final boolean hasRecoveryRules;
+    private final IStrategoConstructor ambiguityConstructor;
+    private final Collection<IMessage> messages = Lists.newArrayList();
 
-    private final IStrategoConstructor ambCons;
-    private final JSGLRI source;
-    private final Collection<IMessage> messages = Sets.newHashSet();
-    private volatile boolean isRecoveryFailed = true;
+    private boolean recoveryFailed;
 
 
-    public JSGLRParseErrorHandler(JSGLRI source, ITermFactory termFactory) {
-        this.source = source;
-        this.ambCons = termFactory.makeConstructor("amb", 1);
+    public JSGLRParseErrorHandler(JSGLRI parser, ITermFactory termFactory, FileObject resource, boolean hasRecoveryRules) {
+        this.parser = parser;
+        this.resource = resource;
+        this.hasRecoveryRules = hasRecoveryRules;
+        this.ambiguityConstructor = termFactory.makeConstructor("amb", 1);
     }
 
 
-    public void reset() {
-        messages.clear();
+    public Iterable<IMessage> messages() {
+        return messages;
     }
-
-    /**
-     * Informs the parse error handler that recovery is unavailable. This information is reflected in any
-     * parse error messages.
-     */
+    
     public void setRecoveryFailed(boolean recoveryFailed) {
-        this.isRecoveryFailed = recoveryFailed;
+        this.recoveryFailed = recoveryFailed;
     }
 
-    public boolean isRecoveryFailed() {
-        return isRecoveryFailed;
-    }
-
-    /**
-     * Report WATER + INSERT errors from parse tree
+    
+    /*
+     * Non-fatal (recoverable) errors
      */
+    
     public void gatherNonFatalErrors(IStrategoTerm top) {
-        ITokenizer tokenizer = getTokenizer(top);
+        final ITokenizer tokenizer = getTokenizer(top);
         for(int i = 0, max = tokenizer.getTokenCount(); i < max; i++) {
-            IToken token = tokenizer.getTokenAt(i);
-            String error = token.getError();
+            final IToken token = tokenizer.getTokenAt(i);
+            final String error = token.getError();
             if(error != null) {
                 if(error == ITokenizer.ERROR_SKIPPED_REGION) {
                     i = findRightMostWithSameError(token, null);
@@ -100,12 +88,13 @@ public class JSGLRParseErrorHandler {
                 }
             }
         }
+        
         gatherAmbiguities(top);
     }
 
     private static int findRightMostWithSameError(IToken token, String prefix) {
-        String expectedError = token.getError();
-        ITokenizer tokenizer = token.getTokenizer();
+        final String expectedError = token.getError();
+        final ITokenizer tokenizer = token.getTokenizer();
         int i = token.getIndex();
         for(int max = tokenizer.getTokenCount(); i + 1 < max; i++) {
             String error = tokenizer.getTokenAt(i + 1).getError();
@@ -115,18 +104,44 @@ public class JSGLRParseErrorHandler {
         return i;
     }
 
-    /**
-     * Report recoverable errors (e.g., inserted brackets).
-     * 
-     * @param outerBeginOffset
-     *            The begin offset of the enclosing construct.
-     */
+    private void reportSkippedRegion(IToken left, IToken right) {
+        // Find a parse failure(s) in the given token range
+        int line = left.getLine();
+        int reportedLine = -1;
+        for(BadTokenException e : getCollectedErrorsInRegion(left, right, true)) {
+            processFatalException(left.getTokenizer(), e);
+            if(reportedLine == -1)
+                reportedLine = e.getLineNumber();
+        }
+
+        if(reportedLine == -1) {
+            // Report entire region
+            reportErrorAtTokens(left, right, ITokenizer.ERROR_SKIPPED_REGION);
+        } else if(reportedLine - line >= LARGE_REGION_SIZE) {
+            // Warn at start of region
+            reportErrorAtTokens(findLeftMostTokenOnSameLine(left), findRightMostTokenOnSameLine(left),
+                LARGE_REGION_START);
+        }
+    }
+
+    private List<BadTokenException>
+        getCollectedErrorsInRegion(IToken left, IToken right, boolean alsoOutside) {
+        final List<BadTokenException> results = new ArrayList<BadTokenException>();
+        final int line = left.getLine();
+        final int endLine = right.getLine() + (alsoOutside ? RegionRecovery.NR_OF_LINES_TILL_SUCCESS : 0);
+        for(BadTokenException e : parser.getParser().getCollectedErrors()) {
+            if(e.getLineNumber() >= line && e.getLineNumber() <= endLine)
+                results.add(e);
+        }
+        return results;
+    }
+    
     private void gatherAmbiguities(IStrategoTerm term) {
         new TermVisitor() {
             IStrategoTerm ambStart;
 
             public void preVisit(IStrategoTerm term) {
-                if(ambStart == null && ambCons == tryGetConstructor(term)) {
+                if(ambStart == null && ambiguityConstructor.equals(tryGetConstructor(term))) {
                     reportAmbiguity(term);
                     ambStart = term;
                 }
@@ -145,61 +160,62 @@ public class JSGLRParseErrorHandler {
     }
 
     private String ambToString(IStrategoTerm amb) {
-        String result = amb.toString();
+        final String result = amb.toString();
 
-        if(asyncAmbReportingContext == null) {
-            Context context = new Context();
-            asyncAmbReportingContext = stratego_sglr.init(context);
-            stratego_aterm.init(asyncAmbReportingContext);
-            sdf2imp.init(asyncAmbReportingContext);
-        }
-
-        IStrategoTerm message = simplify_ambiguity_report_0_0.instance.invoke(asyncAmbReportingContext, amb);
-        if(message != null)
-            result = asJavaString(message);
+        // if(asyncAmbReportingContext == null) {
+        // Context context = new Context();
+        // asyncAmbReportingContext = stratego_sglr.init(context);
+        // stratego_aterm.init(asyncAmbReportingContext);
+        // sdf2imp.init(asyncAmbReportingContext);
+        // }
+        // IStrategoTerm message = simplify_ambiguity_report_0_0.instance.invoke(asyncAmbReportingContext,
+        // amb);
+        // if(message != null)
+        // result = asJavaString(message);
 
         return result.length() > 5000 ? result.substring(0, 5000) + "..." : result;
     }
-
-    private void reportSkippedRegion(IToken left, IToken right) {
-        // Find a parse failure(s) in the given token range
-        int line = left.getLine();
-        int reportedLine = -1;
-        for(BadTokenException e : getCollectedErrorsInRegion(source, left, right, true)) {
-            gatherException(left.getTokenizer(), e); // use double dispatch
-            if(reportedLine == -1)
-                reportedLine = e.getLineNumber();
-        }
-
-        if(reportedLine == -1) {
-            // Report entire region
-            reportErrorAtTokens(left, right, ITokenizer.ERROR_SKIPPED_REGION);
-        } else if(reportedLine - line >= LARGE_REGION_SIZE) {
-            // Warn at start of region
-            reportErrorAtTokens(findLeftMostTokenOnSameLine(left), findRightMostTokenOnSameLine(left),
-                LARGE_REGION_START);
+    
+    
+    /*
+     * Fatal errors
+     */
+    
+    public void processFatalException(ITokenizer tokenizer, Exception exception) {
+        try {
+            throw exception;
+        } catch(ParseTimeoutException e) {
+            reportTimeOut(tokenizer, e);
+        } catch(TokenExpectedException e) {
+            reportTokenExpected(tokenizer, e);
+        } catch(MultiBadTokenException e) {
+            reportMultiBadToken(tokenizer, e);
+        } catch(BadTokenException e) {
+            reportBadToken(tokenizer, e);
+        } catch(Exception e) {
+            createErrorAtFirstLine("Internal parsing error: " + e);
         }
     }
 
-    private static List<BadTokenException> getCollectedErrorsInRegion(JSGLRI parser, IToken left,
-        IToken right, boolean alsoOutside) {
-        final List<BadTokenException> results = new ArrayList<BadTokenException>();
-        final int line = left.getLine();
-        final int endLine = right.getLine() + (alsoOutside ? RegionRecovery.NR_OF_LINES_TILL_SUCCESS : 0);
-        for(BadTokenException e : parser.getParser().getCollectedErrors()) {
-            if(e.getLineNumber() >= line && e.getLineNumber() <= endLine)
-                results.add(e);
-        }
-        return results;
+    private void reportTimeOut(ITokenizer tokenizer, ParseTimeoutException exception) {
+        final String message = "Internal parsing error: " + exception.getMessage();
+        createErrorAtFirstLine(message);
+        reportMultiBadToken(tokenizer, exception);
     }
 
     private void reportTokenExpected(ITokenizer tokenizer, TokenExpectedException exception) {
-        String message = exception.getShortMessage();
+        final String message = exception.getShortMessage();
         reportErrorNearOffset(tokenizer, exception.getOffset(), message);
     }
 
+    private void reportMultiBadToken(ITokenizer tokenizer, MultiBadTokenException exception) {
+        for(BadTokenException e : exception.getCauses()) {
+            processFatalException(tokenizer, e);
+        }
+    }
+
     private void reportBadToken(ITokenizer tokenizer, BadTokenException exception) {
-        String message;
+        final String message;
         if(exception.isEOFToken() || tokenizer.getTokenCount() <= 1) {
             message = exception.getShortMessage();
         } else {
@@ -210,54 +226,15 @@ public class JSGLRParseErrorHandler {
         reportErrorNearOffset(tokenizer, exception.getOffset(), message);
     }
 
-    private void reportMultiBadToken(ITokenizer tokenizer, MultiBadTokenException exception) {
-        for(BadTokenException e : exception.getCauses()) {
-            gatherException(tokenizer, e); // use double dispatch
-        }
-    }
-
-    private void reportTimeOut(ITokenizer tokenizer, ParseTimeoutException exception) {
-        String message = "Internal parsing error: " + exception.getMessage();
-        reportErrorAtFirstLine(message);
-        reportMultiBadToken(tokenizer, exception);
-        reportAllParseFailures(tokenizer);
-    }
-
-    private void reportAllParseFailures(ITokenizer tokenizer) {
-        for(BadTokenException e : source.getParser().getCollectedErrors()) {
-            // tokenizer.getLexStream().getInputChars() may contain SKIPPED_CHAR
-            // characters,
-            // so we have to use the message provided by the exceptions directly
-            String message = e.getMessage();
-            reportErrorNearOffset(tokenizer, e.getOffset(), message);
-        }
-    }
-
-    public void gatherException(ITokenizer tokenizer, Exception exception) {
-        try {
-            throw exception;
-        } catch(ParseTimeoutException e) {
-            reportTimeOut(tokenizer, (ParseTimeoutException) exception);
-        } catch(TokenExpectedException e) {
-            reportTokenExpected(tokenizer, (TokenExpectedException) exception);
-        } catch(MultiBadTokenException e) {
-            reportMultiBadToken(tokenizer, (MultiBadTokenException) exception);
-        } catch(BadTokenException e) {
-            reportBadToken(tokenizer, (BadTokenException) exception);
-        } catch(Exception e) {
-            String message = "Internal parsing error: " + exception;
-            reportErrorAtFirstLine(message);
-            reportAllParseFailures(tokenizer);
-        }
-    }
 
     private void reportErrorNearOffset(ITokenizer tokenizer, int offset, String message) {
-        IToken errorToken = tokenizer.getErrorTokenOrAdjunct(offset);
-        reportErrorAtTokens(errorToken, errorToken, message);
+        final IToken errorToken = tokenizer.getErrorTokenOrAdjunct(offset);
+        final ISourceRegion region = JSGLRSourceRegionFactory.fromTokens(errorToken, errorToken);
+        reportErrorAtRegion(region, message);
     }
 
     private static IToken findNextNonEmptyToken(IToken token) {
-        ITokenizer tokenizer = token.getTokenizer();
+        final ITokenizer tokenizer = token.getTokenizer();
         IToken result = null;
         for(int i = token.getIndex(), max = tokenizer.getTokenCount(); i < max; i++) {
             result = tokenizer.getTokenAt(i);
@@ -267,49 +244,35 @@ public class JSGLRParseErrorHandler {
         return result;
     }
 
-    private void reportErrorAtTokens(final IToken left, final IToken right, String message) {
-        final FileObject file = source.getResource();
-        final ISourceRegion sourceRegion = JSGLRSourceRegionFactory.fromTokens(left, right);
-        if(left.getStartOffset() > right.getEndOffset()) {
-            if(left != right) {
-                reportErrorNearOffset(left.getTokenizer(), left.getStartOffset(), message);
-            } else {
-                String message2 = message + getErrorExplanation();
-                messages.add(MessageFactory.newParseError(file, sourceRegion, message2));
-            }
-        } else {
-            String message2 = message + getErrorExplanation();
-            messages.add(MessageFactory.newParseError(file, sourceRegion, message2));
-        }
+
+    private void createErrorAtFirstLine(String message) {
+        messages.add(MessageFactory.newParseErrorAtTop(resource, message + getErrorExplanation()));
     }
 
-    private void reportWarningAtTokens(final IToken left, final IToken right, final String message) {
-        final FileObject file = source.getResource();
-        final ISourceRegion sourceRegion = JSGLRSourceRegionFactory.fromTokens(left, right);
-        messages.add(MessageFactory.newParseWarning(file, sourceRegion, message));
+    private void reportErrorAtTokens(IToken left, IToken right, String message) {
+        reportErrorAtRegion(JSGLRSourceRegionFactory.fromTokens(left, right), message);
     }
 
-    private void reportErrorAtFirstLine(String message) {
-        final FileObject file = source.getResource();
-        final String message2 = message + getErrorExplanation();
-        messages.add(MessageFactory.newParseErrorAtTop(file, message2));
+    private void reportErrorAtRegion(ISourceRegion sourceRegion, String message) {
+        messages.add(MessageFactory.newParseError(resource, sourceRegion, message));
     }
+
+    private void reportWarningAtTokens(IToken left, IToken right, final String message) {
+        reportWarningAtRegion(JSGLRSourceRegionFactory.fromTokens(left, right), message);
+    }
+
+    private void reportWarningAtRegion(ISourceRegion sourceRegion, final String message) {
+        messages.add(MessageFactory.newParseWarning(resource, sourceRegion, message));
+    }
+
 
     private String getErrorExplanation() {
-        final String message2;
-        boolean hasRecovers = false;
-        hasRecovers = source.getConfig().getParseTableProvider().parseTable().hasRecovers();
-        if(isRecoveryFailed) {
-            message2 = " (recovery failed)";
-        } else if(!hasRecovers) {
-            message2 = " (no recovery rules in parse table)";
+        if(recoveryFailed) {
+            return " (recovery failed)";
+        } else if(!hasRecoveryRules) {
+            return " (no recovery rules in parse table)";
         } else {
-            message2 = "";
+            return "";
         }
-        return message2;
-    }
-
-    public Iterable<IMessage> getCollectedMessages() {
-        return messages;
     }
 }

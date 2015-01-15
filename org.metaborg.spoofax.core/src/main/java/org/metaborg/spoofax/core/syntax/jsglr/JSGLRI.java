@@ -10,9 +10,6 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.Asfix2TreeBuilder;
 import org.spoofax.jsglr.client.Disambiguator;
 import org.spoofax.jsglr.client.FilterException;
-import org.spoofax.jsglr.client.imploder.ITokenizer;
-import org.spoofax.jsglr.client.imploder.ITreeFactory;
-import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.jsglr.client.imploder.NullTokenizer;
 import org.spoofax.jsglr.client.imploder.TermTreeFactory;
 import org.spoofax.jsglr.client.imploder.TreeBuilder;
@@ -20,20 +17,19 @@ import org.spoofax.jsglr.io.SGLR;
 import org.spoofax.jsglr.shared.SGLRException;
 import org.spoofax.terms.attachments.ParentTermFactory;
 
-public class JSGLRI implements IFileParser<IStrategoTerm> {
+public class JSGLRI implements IParser<IStrategoTerm> {
     private final IParserConfig config;
     private final ITermFactory termFactory;
     private final ILanguage language;
-    private final JSGLRParseErrorHandler errorHandler;
+    private final FileObject resource;
+    private final String input;
 
-    private SGLR parser;
+    private final SGLR parser;
+
     private Disambiguator disambiguator;
     private int cursorLocation = Integer.MAX_VALUE;
-    private boolean useRecovery = false;
+    private boolean useRecovery = true;
     private boolean implodeEnabled = true;
-    private ITokenizer currentTokenizer;
-    private FileObject resource;
-    private String input;
 
 
     public JSGLRI(IParserConfig config, ITermFactory termFactory, ILanguage language, FileObject resource,
@@ -46,8 +42,7 @@ public class JSGLRI implements IFileParser<IStrategoTerm> {
 
         final TermTreeFactory factory = new TermTreeFactory(new ParentTermFactory(termFactory));
         this.parser = new SGLR(new TreeBuilder(factory), config.getParseTableProvider().parseTable());
-        this.errorHandler = new JSGLRParseErrorHandler(this, termFactory);
-        assert resource != null;
+
         resetState();
     }
 
@@ -66,23 +61,19 @@ public class JSGLRI implements IFileParser<IStrategoTerm> {
         resetState();
     }
 
-    /**
-     * Resets the state of this parser, reinitializing the SGLR instance
-     */
     private void resetState() {
         parser.setTimeout(config.getTimeout());
-        if(disambiguator != null)
+
+        if(disambiguator != null) {
             parser.setDisambiguator(disambiguator);
-        else
+        } else {
             disambiguator = parser.getDisambiguator();
+        }
+
         setUseRecovery(useRecovery);
+
         if(!implodeEnabled) {
             parser.setTreeBuilder(new Asfix2TreeBuilder(termFactory));
-        } else {
-            assert parser.getTreeBuilder() instanceof TreeBuilder;
-            @SuppressWarnings("unchecked") ITreeFactory<IStrategoTerm> treeFactory =
-                ((TreeBuilder) parser.getTreeBuilder()).getFactory();
-            assert ((TermTreeFactory) treeFactory).getOriginalTermFactory() instanceof ParentTermFactory;
         }
     }
 
@@ -91,28 +82,27 @@ public class JSGLRI implements IFileParser<IStrategoTerm> {
 
         IStrategoTerm ast = null;
 
-        errorHandler.reset();
-        currentTokenizer = new NullTokenizer(input, fileName);
+        final JSGLRParseErrorHandler errorHandler =
+            new JSGLRParseErrorHandler(this, termFactory, resource, config.getParseTableProvider()
+                .parseTable().hasRecovers());
+
         try {
             ast = actuallyParse(input, fileName);
             if(resource != null) {
                 SourceAttachment.putSource(ast, resource, config);
             }
         } catch(Exception e) {
-            errorHandler.setRecoveryFailed(true);
-            errorHandler.gatherException(currentTokenizer, e);
+            errorHandler.setRecoveryFailed(useRecovery);
+            errorHandler.processFatalException(new NullTokenizer(input, fileName), e);
         }
 
         if(ast != null) {
-            currentTokenizer = ImploderAttachment.getTokenizer(ast);
             errorHandler.setRecoveryFailed(false);
             errorHandler.gatherNonFatalErrors(ast);
         }
 
         // GTODO: measure parse time
-        // GTODO: file can be null, need to handle that!
-        return new ParseResult<IStrategoTerm>(ast, resource, errorHandler.getCollectedMessages(), -1,
-            language);
+        return new ParseResult<IStrategoTerm>(ast, resource, errorHandler.messages(), -1, language);
     }
 
     public IStrategoTerm actuallyParse(String input, String filename) throws SGLRException,
@@ -120,7 +110,7 @@ public class JSGLRI implements IFileParser<IStrategoTerm> {
         IStrategoTerm result;
         try {
             result =
-                (IStrategoTerm) parser.parse(input, filename, config.getStartSymbol(), true, cursorLocation);
+                (IStrategoTerm) parser.parse(input, filename, config.getStartSymbol(), false, cursorLocation);
         } catch(FilterException fex) {
             if(fex.getCause() == null && parser.getDisambiguator().getFilterPriorities()) {
                 disambiguator.setFilterPriorities(false);
@@ -136,7 +126,7 @@ public class JSGLRI implements IFileParser<IStrategoTerm> {
         return result;
     }
 
-    @Override public IParserConfig getConfig() {
+    public IParserConfig getConfig() {
         return config;
     }
 
@@ -144,10 +134,10 @@ public class JSGLRI implements IFileParser<IStrategoTerm> {
         return language;
     }
 
-    @Override public FileObject getResource() {
+    public FileObject getResource() {
         return resource;
     }
-    
+
     public String getInput() {
         return input;
     }
