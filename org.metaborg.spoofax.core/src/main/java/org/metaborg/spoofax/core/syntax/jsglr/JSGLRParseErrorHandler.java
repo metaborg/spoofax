@@ -268,7 +268,7 @@ public class JSGLRParseErrorHandler {
     }
 
     private void reportErrorAtTokens(final IToken left, final IToken right, String message) {
-        final FileObject file = source.getFile();
+        final FileObject file = source.getResource();
         final ISourceRegion sourceRegion = JSGLRSourceRegionFactory.fromTokens(left, right);
         if(left.getStartOffset() > right.getEndOffset()) {
             if(left != right) {
@@ -284,13 +284,13 @@ public class JSGLRParseErrorHandler {
     }
 
     private void reportWarningAtTokens(final IToken left, final IToken right, final String message) {
-        final FileObject file = source.getFile();
+        final FileObject file = source.getResource();
         final ISourceRegion sourceRegion = JSGLRSourceRegionFactory.fromTokens(left, right);
         messages.add(MessageFactory.newParseWarning(file, sourceRegion, message));
     }
 
     private void reportErrorAtFirstLine(String message) {
-        final FileObject file = source.getFile();
+        final FileObject file = source.getResource();
         final String message2 = message + getErrorExplanation();
         messages.add(MessageFactory.newParseErrorAtTop(file, message2));
     }

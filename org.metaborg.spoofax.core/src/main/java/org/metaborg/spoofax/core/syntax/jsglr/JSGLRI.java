@@ -144,8 +144,12 @@ public class JSGLRI implements IFileParser<IStrategoTerm> {
         return language;
     }
 
-    @Override public FileObject getFile() {
+    @Override public FileObject getResource() {
         return resource;
+    }
+    
+    public String getInput() {
+        return input;
     }
 
     protected SGLR getParser() {

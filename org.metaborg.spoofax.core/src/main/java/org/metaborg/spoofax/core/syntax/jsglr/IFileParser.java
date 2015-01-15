@@ -10,5 +10,5 @@ public interface IFileParser<T> {
 
     public IParserConfig getConfig();
 
-    public FileObject getFile();
+    public FileObject getResource();
 }
