@@ -16,6 +16,7 @@ import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
 import org.metaborg.spoofax.core.resource.IResourceService;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
 import org.metaborg.spoofax.core.syntax.ParseResult;
+import org.metaborg.spoofax.core.text.ISourceTextService;
 
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
@@ -26,14 +27,16 @@ public class OneshotProcessor<ParseT, AnalysisT> {
 
     private final IResourceService resourceService;
     private final ILanguageIdentifierService languageIdentifierService;
+    private final ISourceTextService sourceTextService;
     private final ISyntaxService<ParseT> parseService;
     private final IAnalysisService<ParseT, AnalysisT> analysisService;
 
     @Inject public OneshotProcessor(IResourceService resourceService,
-        ILanguageIdentifierService languageIdentifierService, ISyntaxService<ParseT> parseService,
-        IAnalysisService<ParseT, AnalysisT> analysisService) {
+        ILanguageIdentifierService languageIdentifierService, ISourceTextService sourceTextService,
+        ISyntaxService<ParseT> parseService, IAnalysisService<ParseT, AnalysisT> analysisService) {
         this.resourceService = resourceService;
         this.languageIdentifierService = languageIdentifierService;
+        this.sourceTextService = sourceTextService;
         this.parseService = parseService;
         this.analysisService = analysisService;
     }
@@ -59,7 +62,8 @@ public class OneshotProcessor<ParseT, AnalysisT> {
             final FileObject resource = entry.getValue();
 
             try {
-                final ParseResult<ParseT> parseResult = parseService.parse(resource, language);
+                final String sourceText = sourceTextService.text(resource);
+                final ParseResult<ParseT> parseResult = parseService.parse(sourceText, resource, language);
                 allParseResults.put(language, parseResult);
 
                 // TODO: emit parse messages
@@ -77,7 +81,7 @@ public class OneshotProcessor<ParseT, AnalysisT> {
                 final AnalysisResult<ParseT, AnalysisT> analysisResult =
                     analysisService.analyze(parseResults, language);
                 allAnalysisResults.put(language, analysisResult);
-                
+
                 // TODO: emit analysis messages
             } catch(SpoofaxException e) {
                 // TODO: emit error message

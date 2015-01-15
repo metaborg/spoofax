@@ -18,15 +18,18 @@ public interface ISyntaxService<T> {
     /**
      * Parses a resource, using parsing rules from given language.
      * 
+     * @param text
+     *            Text to parse.
      * @param resource
-     *            Resource to parse.
+     *            Resource associated with the {@code text} to parse.
      * @param language
      *            Language to parse with.
      * @return Result of parsing.
      * @throws IOException
      *             when reading the resource results in an error.
      */
-    public abstract ParseResult<T> parse(FileObject resource, ILanguage language) throws IOException;
+    public abstract ParseResult<T> parse(String text, FileObject resource, ILanguage language)
+        throws IOException;
 
     /**
      * Unparses a parsed fragment back into a string, using unparsing rules from given language.

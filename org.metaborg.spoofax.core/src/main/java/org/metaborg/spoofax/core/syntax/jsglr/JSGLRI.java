@@ -1,10 +1,7 @@
 package org.metaborg.spoofax.core.syntax.jsglr;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.Scanner;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.syntax.ParseResult;
@@ -35,29 +32,22 @@ public class JSGLRI implements IFileParser<IStrategoTerm> {
     private boolean useRecovery = false;
     private boolean implodeEnabled = true;
     private ITokenizer currentTokenizer;
-    private FileObject file;
-    private InputStream is;
+    private FileObject resource;
+    private String input;
 
 
-    public JSGLRI(IParserConfig config, ITermFactory termFactory, ILanguage language, FileObject file) {
-        this(config, termFactory, language);
-        this.file = file;
-    }
-
-    public JSGLRI(IParserConfig config, ITermFactory termFactory, ILanguage language, InputStream is) {
-        this(config, termFactory, language);
-        this.is = is;
-    }
-
-    private JSGLRI(IParserConfig config, ITermFactory termFactory, ILanguage language) {
+    public JSGLRI(IParserConfig config, ITermFactory termFactory, ILanguage language, FileObject resource,
+        String input) {
         this.config = config;
         this.termFactory = termFactory;
         this.language = language;
+        this.resource = resource;
+        this.input = input;
 
         final TermTreeFactory factory = new TermTreeFactory(new ParentTermFactory(termFactory));
         this.parser = new SGLR(new TreeBuilder(factory), config.getParseTableProvider().parseTable());
         this.errorHandler = new JSGLRParseErrorHandler(this, termFactory);
-        assert file != null;
+        assert resource != null;
         resetState();
     }
 
@@ -97,21 +87,7 @@ public class JSGLRI implements IFileParser<IStrategoTerm> {
     }
 
     @Override public ParseResult<IStrategoTerm> parse() throws IOException {
-        assert file != null || is != null;
-        String fileName;
-        String input;
-        if(file != null) {
-            fileName = file.getName().getPath();
-            input = IOUtils.toString(file.getContent().getInputStream());
-        } else {
-            fileName = "From input stream";
-            final Scanner scanner = new Scanner(is);
-            scanner.useDelimiter("\\A");
-            input = scanner.hasNext() ? scanner.next() : "";
-            scanner.close();
-        }
-
-        assert input != null;
+        final String fileName = resource.getName().getPath();
 
         IStrategoTerm ast = null;
 
@@ -119,8 +95,8 @@ public class JSGLRI implements IFileParser<IStrategoTerm> {
         currentTokenizer = new NullTokenizer(input, fileName);
         try {
             ast = actuallyParse(input, fileName);
-            if(file != null) {
-                SourceAttachment.putSource(ast, file, config);
+            if(resource != null) {
+                SourceAttachment.putSource(ast, resource, config);
             }
         } catch(Exception e) {
             errorHandler.setRecoveryFailed(true);
@@ -135,7 +111,8 @@ public class JSGLRI implements IFileParser<IStrategoTerm> {
 
         // GTODO: measure parse time
         // GTODO: file can be null, need to handle that!
-        return new ParseResult<IStrategoTerm>(ast, file, errorHandler.getCollectedMessages(), -1, language);
+        return new ParseResult<IStrategoTerm>(ast, resource, errorHandler.getCollectedMessages(), -1,
+            language);
     }
 
     public IStrategoTerm actuallyParse(String input, String filename) throws SGLRException,
@@ -168,7 +145,7 @@ public class JSGLRI implements IFileParser<IStrategoTerm> {
     }
 
     @Override public FileObject getFile() {
-        return file;
+        return resource;
     }
 
     protected SGLR getParser() {

@@ -75,15 +75,16 @@ public class SpoofaxReconcilingStrategy implements IReconcilingStrategy, IReconc
 
     private void process() {
         try {
-            final IFileEditorInput input = (IFileEditorInput) editor.getEditorInput();
-            final IResource eclipseResource = input.getFile();
+            final String input = document.get();
+            final IFileEditorInput editorInput = (IFileEditorInput) editor.getEditorInput();
+            final IResource eclipseResource = editorInput.getFile();
             final FileObject resource = resourceService.resolve(eclipseResource);
             final ILanguage language = languageIdentifierService.identify(resource);
-            final ParseResult<IStrategoTerm> parseResult = syntaxService.parse(resource, language);
+            final ParseResult<IStrategoTerm> parseResult = syntaxService.parse(input, resource, language);
             final AnalysisResult<IStrategoTerm, IStrategoTerm> analysisResult =
                 analysisService.analyze(Iterables2.singleton(parseResult), language);
 
-            eclipseResource.deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE);
+            eclipseResource.deleteMarkers(IMarker.MARKER, true, IResource.DEPTH_INFINITE);
 
             for(IMessage message : parseResult.messages) {
                 createMarker(eclipseResource, message);
