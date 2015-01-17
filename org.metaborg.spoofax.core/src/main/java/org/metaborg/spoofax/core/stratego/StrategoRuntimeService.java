@@ -1,7 +1,6 @@
 package org.metaborg.spoofax.core.stratego;
 
 import java.io.BufferedInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -15,11 +14,10 @@ import org.apache.logging.log4j.Logger;
 import org.metaborg.spoofax.core.SpoofaxException;
 import org.metaborg.spoofax.core.analysis.stratego.StrategoFacet;
 import org.metaborg.spoofax.core.language.ILanguage;
+import org.metaborg.spoofax.core.resource.IResourceService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.spoofax.interpreter.core.InterpreterException;
-import org.spoofax.interpreter.library.IOAgent;
 import org.spoofax.interpreter.library.IOperatorRegistry;
-import org.spoofax.interpreter.library.LoggingIOAgent;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.imploder.ImploderOriginTermFactory;
@@ -33,16 +31,20 @@ import com.google.inject.Inject;
 public class StrategoRuntimeService implements IStrategoRuntimeService {
     private static final Logger logger = LogManager.getLogger(StrategoRuntimeService.class);
 
+    private final IResourceService resourceService;
     private final ITermFactoryService termFactoryService;
     private final Set<IOperatorRegistry> strategoLibraries;
 
     private final Map<ILanguage, HybridInterpreter> prototypes = new HashMap<ILanguage, HybridInterpreter>();
 
-    @Inject public StrategoRuntimeService(ITermFactoryService termFactoryService,
-        Set<IOperatorRegistry> strategoLibraries) {
+
+    @Inject public StrategoRuntimeService(IResourceService resourceService,
+        ITermFactoryService termFactoryService, Set<IOperatorRegistry> strategoLibraries) {
+        this.resourceService = resourceService;
         this.termFactoryService = termFactoryService;
         this.strategoLibraries = strategoLibraries;
     }
+
 
     @Override public HybridInterpreter getRuntime(ILanguage lang) throws SpoofaxException {
         HybridInterpreter proto = prototypes.get(lang);
@@ -70,10 +72,10 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
         try {
             runtime.setCurrent(input);
             if(workingLocation != null) {
-                runtime.getIOAgent().setWorkingDir(workingLocation.getName().getPath());
+                ((ResourceAgent) runtime.getIOAgent()).setAbsoluteWorkingDir(workingLocation);
             }
             success = runtime.invoke(strategy);
-        } catch(InterpreterException | IOException e) {
+        } catch(InterpreterException e) {
             throw new SpoofaxException("Stratego call failed", e);
         }
 
@@ -96,12 +98,8 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
             interp.getCompiledContext().addOperatorRegistry(library);
         }
 
-        final IOAgent agent = new LoggingIOAgent();
-        try {
-            agent.setDefinitionDir(lang.location().getName().getPath());
-        } catch(FileNotFoundException e) {
-            throw new SpoofaxException("Could not create runtime", e);
-        }
+        final ResourceAgent agent = new ResourceAgent(resourceService);
+        agent.setAbsoluteDefinitionDir(lang.location());
         interp.setIOAgent(agent);
         loadCompilerFiles(interp, lang);
 
