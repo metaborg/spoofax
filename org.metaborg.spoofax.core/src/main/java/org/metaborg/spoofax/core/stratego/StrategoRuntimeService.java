@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.core.stratego;
 
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -108,7 +109,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
         return interp;
     }
 
-    private static void loadCompilerFiles(HybridInterpreter interp, ILanguage lang) {
+    private void loadCompilerFiles(HybridInterpreter interp, ILanguage lang) {
         final StrategoFacet strategoFacet = lang.facet(StrategoFacet.class);
         final Iterable<FileObject> jars = strategoFacet.jarFiles();
         final Iterable<FileObject> ctrees = strategoFacet.ctreeFiles();
@@ -121,26 +122,30 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
             loadCompilerJar(interp, jars);
     }
 
-    private static void loadCompilerJar(HybridInterpreter interp, Iterable<FileObject> jars) {
+    private void loadCompilerJar(HybridInterpreter interp, Iterable<FileObject> jars) {
         try {
             final URL[] classpath = new URL[Iterables.size(jars)];
             int i = 0;
             for(FileObject jar : jars) {
-                classpath[i] = jar.getURL();
+                final File localJar = resourceService.localFile(jar);
+                if(localJar == null) {
+                    throw new RuntimeException("Loading JARs from non-filesystem resources is not supported");
+                }
+                classpath[i] = localJar.toURI().toURL();
                 ++i;
             }
             logger.trace("Loading jar files {}", (Object) classpath);
             interp.loadJars(classpath);
         } catch(MalformedURLException e) {
-            throw new RuntimeException("Failed to load jar", e);
+            throw new RuntimeException("Failed to load JAR", e);
         } catch(SecurityException e) {
-            throw new RuntimeException("Failed to load jar", e);
+            throw new RuntimeException("Failed to load JAR", e);
         } catch(NoInteropRegistererJarException e) {
-            throw new RuntimeException("Failed to load jar", e);
+            throw new RuntimeException("Failed to load JAR", e);
         } catch(IncompatibleJarException e) {
-            throw new RuntimeException("Failed to load jar", e);
+            throw new RuntimeException("Failed to load JAR", e);
         } catch(IOException e) {
-            throw new RuntimeException("Failed to load jar", e);
+            throw new RuntimeException("Failed to load JAR", e);
         }
     }
 

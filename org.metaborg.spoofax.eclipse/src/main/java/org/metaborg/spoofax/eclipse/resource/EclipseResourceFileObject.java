@@ -44,6 +44,14 @@ public class EclipseResourceFileObject extends AbstractFileObject {
     }
 
 
+    public IResource resource() throws Exception {
+        if(resource == null)
+            update();
+
+        return resource;
+    }
+
+
     private void update() throws Exception {
         updateResource();
         updateFileInfo();
@@ -63,6 +71,7 @@ public class EclipseResourceFileObject extends AbstractFileObject {
     private IPath getPath() {
         return root.getFullPath().append(name.getPath());
     }
+
 
     @Override protected void doAttach() throws Exception {
         if(attached)
