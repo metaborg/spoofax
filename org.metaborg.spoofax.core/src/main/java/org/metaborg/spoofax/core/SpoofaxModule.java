@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.core;
 
 import org.apache.commons.vfs2.FileSystemManager;
+import org.metaborg.runtime.task.primitives.TaskLibrary;
 import org.metaborg.spoofax.core.analysis.IAnalysisService;
 import org.metaborg.spoofax.core.analysis.stratego.StrategoAnalysisService;
 import org.metaborg.spoofax.core.language.ILanguageDiscoveryService;
@@ -24,7 +25,9 @@ import org.metaborg.spoofax.core.terms.TermFactoryService;
 import org.metaborg.spoofax.core.text.ISourceTextService;
 import org.metaborg.spoofax.core.text.SourceTextService;
 import org.metaborg.util.logging.Log4JTypeListener;
+import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.library.IOperatorRegistry;
+import org.spoofax.interpreter.library.index.legacy.LegacyIndexLibrary;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.inject.AbstractModule;
@@ -103,11 +106,28 @@ public class SpoofaxModule extends AbstractModule {
             StrategoAnalysisService.class).in(Singleton.class);
         bind(IStrategoRuntimeService.class).to(StrategoRuntimeService.class).in(Singleton.class);
 
-        @SuppressWarnings("unused") final Multibinder<IOperatorRegistry> strategoLibraryBinder =
+        final Multibinder<IOperatorRegistry> libraryBinder =
             Multibinder.newSetBinder(binder(), IOperatorRegistry.class);
+        bindPrimitiveLibrary(libraryBinder, TaskLibrary.class);
+        bindPrimitiveLibrary(libraryBinder, LegacyIndexLibrary.class);
     }
 
     protected void bindOther() {
 
+    }
+    
+    
+    protected static void bindPrimitive(Multibinder<AbstractPrimitive> binder, AbstractPrimitive primitive) {
+        binder.addBinding().toInstance(primitive);
+    }
+
+    protected static void bindPrimitive(Multibinder<AbstractPrimitive> binder,
+        Class<? extends AbstractPrimitive> primitive) {
+        binder.addBinding().to(primitive).in(Singleton.class);
+    }
+
+    protected static void bindPrimitiveLibrary(Multibinder<IOperatorRegistry> binder,
+        Class<? extends IOperatorRegistry> primitiveLibrary) {
+        binder.addBinding().to(primitiveLibrary).in(Singleton.class);
     }
 }

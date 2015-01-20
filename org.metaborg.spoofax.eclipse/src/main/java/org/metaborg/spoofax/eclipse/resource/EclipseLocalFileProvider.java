@@ -15,7 +15,10 @@ public class EclipseLocalFileProvider implements ILocalFileProvider {
 
         try {
             final IResource resource = eclipseFileObject.resource();
-            final IPath path = resource.getRawLocation();
+            IPath path = resource.getRawLocation();
+            if(path == null) {
+                path = resource.getLocation();
+            }
             if(path == null) {
                 return null;
             }

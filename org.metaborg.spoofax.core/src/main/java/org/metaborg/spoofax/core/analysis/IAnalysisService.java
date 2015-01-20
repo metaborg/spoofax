@@ -3,7 +3,7 @@ package org.metaborg.spoofax.core.analysis;
 import javax.annotation.Nullable;
 
 import org.metaborg.spoofax.core.SpoofaxException;
-import org.metaborg.spoofax.core.language.ILanguage;
+import org.metaborg.spoofax.core.context.IContext;
 import org.metaborg.spoofax.core.messages.ISourceRegion;
 import org.metaborg.spoofax.core.syntax.ParseResult;
 
@@ -21,14 +21,14 @@ public interface IAnalysisService<ParseT, AnalysisT> {
      * 
      * @param inputs
      *            Parsed input files.
-     * @param language
-     *            Language to perform analysis with.
+     * @param context
+     *            Context in which the analysis is performed.
      * @return Result of the analysis.
      * @throws SpoofaxException
      *             when analysis fatally fails.
      */
     public abstract AnalysisResult<ParseT, AnalysisT> analyze(Iterable<ParseResult<ParseT>> inputs,
-        ILanguage language) throws SpoofaxException;
+        IContext context) throws SpoofaxException;
 
     /**
      * Returns the origin fragment for given analyzed fragment.

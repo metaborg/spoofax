@@ -16,6 +16,7 @@ import org.metaborg.spoofax.core.analysis.AnalysisFileResult;
 import org.metaborg.spoofax.core.analysis.AnalysisResult;
 import org.metaborg.spoofax.core.analysis.AnalysisTimeResult;
 import org.metaborg.spoofax.core.analysis.IAnalysisService;
+import org.metaborg.spoofax.core.context.IContext;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.messages.IMessage;
 import org.metaborg.spoofax.core.messages.ISourceRegion;
@@ -23,10 +24,10 @@ import org.metaborg.spoofax.core.messages.MessageFactory;
 import org.metaborg.spoofax.core.messages.MessageSeverity;
 import org.metaborg.spoofax.core.resource.IResourceService;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
+import org.metaborg.spoofax.core.stratego.StrategoRuntimeUtils;
 import org.metaborg.spoofax.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.syntax.jsglr.JSGLRSourceRegionFactory;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
-import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.interpreter.terms.IStrategoAppl;
@@ -64,11 +65,10 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
     }
 
     @Override public AnalysisResult<IStrategoTerm, IStrategoTerm> analyze(
-        Iterable<ParseResult<IStrategoTerm>> inputs, ILanguage language) throws SpoofaxException {
+        Iterable<ParseResult<IStrategoTerm>> inputs, IContext context) throws SpoofaxException {
+        final ILanguage language = context.language();
         logger.debug("Analyzing {} files of the {} language", Iterables.size(inputs), language.name());
         final ITermFactory termFactory = termFactoryService.get(language);
-        final HybridInterpreter runtime = runtimeService.getRuntime(language);
-        assert runtime != null;
 
         logger.trace("Creating input terms for analysis (File/2 terms)");
         IStrategoConstructor file_3_constr = termFactory.makeConstructor("File", 3);
@@ -83,51 +83,41 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
                 termFactory.makeReal(-1.0)));
         }
 
-        final IStrategoList inputTerm = termFactory.makeList(analysisInput);
-        runtime.setCurrent(inputTerm);
+        final HybridInterpreter interpreter = runtimeService.runtime(context);
+        final IStrategoTerm inputTerm = termFactory.makeList(analysisInput);
+        final String function = language.facet(StrategoFacet.class).analysisStrategy();
+        final IStrategoTerm resultTerm = StrategoRuntimeUtils.invoke(interpreter, inputTerm, function);
 
-        logger.trace("Input term set to {}", inputTerm);
-
-        try {
-            final String function = language.facet(StrategoFacet.class).analysisStrategy();
-            logger.debug("Invoking analysis strategy {}", function);
-            boolean success = runtime.invoke(function);
-            logger.debug("Analysis completed with success: {}", success);
-            if(!success) {
-                throw new SpoofaxException(ANALYSIS_CRASHED_MSG);
-            } else {
-                if(!(runtime.current() instanceof IStrategoAppl)) {
-                    logger.fatal("Unexpected results from analysis {}", runtime.current());
-                    throw new SpoofaxException("Unexpected results from analysis: " + runtime.current());
-                }
-                final IStrategoTerm resultTerm = runtime.current();
-                logger.trace("Analysis resulted in a {} term", resultTerm.getSubtermCount());
-
-                final IStrategoTerm fileResultsTerm = resultTerm.getSubterm(0);
-                final IStrategoTerm affectedPartitionsTerm = resultTerm.getSubterm(1);
-                final IStrategoTerm debugResultTerm = resultTerm.getSubterm(2);
-                final IStrategoTerm timeResultTerm = resultTerm.getSubterm(3);
-
-                final int numItems = fileResultsTerm.getSubtermCount();
-                logger.trace("Analysis contains {} results. Marshalling to analysis results.", numItems);
-                final Collection<AnalysisFileResult<IStrategoTerm, IStrategoTerm>> fileResults =
-                    Sets.newHashSet();
-                for(IStrategoTerm result : fileResultsTerm) {
-                    fileResults.add(makeAnalysisFileResult(result, language));
-                }
-
-                final Collection<String> affectedPartitions = makeAffectedPartitions(affectedPartitionsTerm);
-                final AnalysisDebugResult debugResult = makeAnalysisDebugResult(debugResultTerm);
-                final AnalysisTimeResult timeResult = makeAnalysisTimeResult(timeResultTerm);
-
-                logger.debug("Analysis done");
-
-                return new AnalysisResult<IStrategoTerm, IStrategoTerm>(language, fileResults,
-                    affectedPartitions, debugResult, timeResult);
-            }
-        } catch(InterpreterException interpex) {
-            throw new SpoofaxException(ANALYSIS_CRASHED_MSG, interpex);
+        if(resultTerm == null) {
+            throw new SpoofaxException(ANALYSIS_CRASHED_MSG);
         }
+
+        if(!(resultTerm instanceof IStrategoAppl)) {
+            logger.fatal("Unexpected results from analysis {}", resultTerm);
+            throw new SpoofaxException("Unexpected results from analysis: " + resultTerm);
+        }
+        logger.trace("Analysis resulted in a {} term", resultTerm.getSubtermCount());
+
+        final IStrategoTerm fileResultsTerm = resultTerm.getSubterm(0);
+        final IStrategoTerm affectedPartitionsTerm = resultTerm.getSubterm(1);
+        final IStrategoTerm debugResultTerm = resultTerm.getSubterm(2);
+        final IStrategoTerm timeResultTerm = resultTerm.getSubterm(3);
+
+        final int numItems = fileResultsTerm.getSubtermCount();
+        logger.trace("Analysis contains {} results. Marshalling to analysis results.", numItems);
+        final Collection<AnalysisFileResult<IStrategoTerm, IStrategoTerm>> fileResults = Sets.newHashSet();
+        for(IStrategoTerm result : fileResultsTerm) {
+            fileResults.add(makeAnalysisFileResult(result, language));
+        }
+
+        final Collection<String> affectedPartitions = makeAffectedPartitions(affectedPartitionsTerm);
+        final AnalysisDebugResult debugResult = makeAnalysisDebugResult(debugResultTerm);
+        final AnalysisTimeResult timeResult = makeAnalysisTimeResult(timeResultTerm);
+
+        logger.debug("Analysis done");
+
+        return new AnalysisResult<IStrategoTerm, IStrategoTerm>(language, fileResults, affectedPartitions,
+            debugResult, timeResult);
     }
 
     @Override public @Nullable IStrategoTerm origin(IStrategoTerm analyzed) {

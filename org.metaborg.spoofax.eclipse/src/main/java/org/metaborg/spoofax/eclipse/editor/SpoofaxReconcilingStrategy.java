@@ -3,7 +3,9 @@ package org.metaborg.spoofax.eclipse.editor;
 import java.io.IOException;
 
 import org.apache.commons.vfs2.FileObject;
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -13,7 +15,10 @@ import org.eclipse.jface.text.reconciler.DirtyRegion;
 import org.eclipse.jface.text.reconciler.IReconcilingStrategy;
 import org.eclipse.jface.text.reconciler.IReconcilingStrategyExtension;
 import org.eclipse.ui.IFileEditorInput;
+import org.metaborg.spoofax.core.analysis.AnalysisFileResult;
+import org.metaborg.spoofax.core.analysis.AnalysisResult;
 import org.metaborg.spoofax.core.analysis.IAnalysisService;
+import org.metaborg.spoofax.core.context.SpoofaxContext;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
 import org.metaborg.spoofax.core.messages.IMessage;
@@ -21,6 +26,7 @@ import org.metaborg.spoofax.core.syntax.ISyntaxService;
 import org.metaborg.spoofax.core.syntax.ParseResult;
 import org.metaborg.spoofax.eclipse.SpoofaxPlugin;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
+import org.metaborg.util.iterators.Iterables2;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.inject.Injector;
@@ -76,10 +82,13 @@ public class SpoofaxReconcilingStrategy implements IReconcilingStrategy, IReconc
             final IFileEditorInput editorInput = (IFileEditorInput) editor.getEditorInput();
             final IResource eclipseResource = editorInput.getFile();
             final FileObject resource = resourceService.resolve(eclipseResource);
+            final IResource eclipseLocation = getProjectDirectory(eclipseResource);
+            final FileObject location = resourceService.resolve(eclipseLocation);
             final ILanguage language = languageIdentifierService.identify(resource);
             final ParseResult<IStrategoTerm> parseResult = syntaxService.parse(input, resource, language);
-            // final AnalysisResult<IStrategoTerm, IStrategoTerm> analysisResult =
-            // analysisService.analyze(Iterables2.singleton(parseResult), language);
+            final AnalysisResult<IStrategoTerm, IStrategoTerm> analysisResult =
+                analysisService.analyze(Iterables2.singleton(parseResult), new SpoofaxContext(language,
+                    location));
 
             eclipseResource.deleteMarkers(IMarker.MARKER, true, IResource.DEPTH_INFINITE);
 
@@ -87,11 +96,11 @@ public class SpoofaxReconcilingStrategy implements IReconcilingStrategy, IReconc
                 createMarker(eclipseResource, message);
             }
 
-            // for(AnalysisFileResult<IStrategoTerm, IStrategoTerm> fileResult : analysisResult.fileResults) {
-            // for(IMessage message : fileResult.messages()) {
-            // createMarker(eclipseResource, message);
-            // }
-            // }
+            for(AnalysisFileResult<IStrategoTerm, IStrategoTerm> fileResult : analysisResult.fileResults) {
+                for(IMessage message : fileResult.messages()) {
+                    createMarker(eclipseResource, message);
+                }
+            }
         } catch(IOException | CoreException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -120,5 +129,19 @@ public class SpoofaxReconcilingStrategy implements IReconcilingStrategy, IReconc
                 return IMarker.SEVERITY_INFO;
         }
         return IMarker.SEVERITY_INFO;
+    }
+
+    private IResource getProjectDirectory(IResource resource) throws IOException {
+        final IProject project = resource.getProject();
+        if(project != null) {
+            return project;
+        }
+
+        final IContainer parent = resource.getParent();
+        if(parent != null) {
+            return parent;
+        }
+
+        throw new IOException("Could not get project directory for resource " + resource.toString());
     }
 }

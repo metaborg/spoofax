@@ -42,6 +42,16 @@
       <artifactId>org.strategoxt.strj</artifactId>
       <version>${metaborg-version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.metaborg</groupId>
+      <artifactId>org.spoofax.interpreter.library.index</artifactId>
+      <version>${metaborg-version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.metaborg</groupId>
+      <artifactId>org.metaborg.runtime.task</artifactId>
+      <version>${metaborg-version}</version>
+    </dependency>
 
     <dependency>
       <groupId>commons-io</groupId>

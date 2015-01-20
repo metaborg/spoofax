@@ -7,16 +7,24 @@ import java.util.Map.Entry;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.metaborg.runtime.task.engine.ITaskEngine;
+import org.metaborg.runtime.task.engine.TaskManager;
 import org.metaborg.spoofax.core.SpoofaxException;
 import org.metaborg.spoofax.core.analysis.AnalysisResult;
 import org.metaborg.spoofax.core.analysis.IAnalysisService;
+import org.metaborg.spoofax.core.context.IContext;
+import org.metaborg.spoofax.core.context.SpoofaxContext;
 import org.metaborg.spoofax.core.language.AllLanguagesFileSelector;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
 import org.metaborg.spoofax.core.resource.IResourceService;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
 import org.metaborg.spoofax.core.syntax.ParseResult;
+import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.text.ISourceTextService;
+import org.spoofax.interpreter.library.index.IIndex;
+import org.spoofax.interpreter.library.index.IndexManager;
+import org.spoofax.interpreter.terms.ITermFactory;
 
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
@@ -29,15 +37,18 @@ public class OneshotProcessor<ParseT, AnalysisT> {
     private final ILanguageIdentifierService languageIdentifierService;
     private final ISourceTextService sourceTextService;
     private final ISyntaxService<ParseT> parseService;
+    private final ITermFactoryService termFactoryService;
     private final IAnalysisService<ParseT, AnalysisT> analysisService;
 
     @Inject public OneshotProcessor(IResourceService resourceService,
         ILanguageIdentifierService languageIdentifierService, ISourceTextService sourceTextService,
-        ISyntaxService<ParseT> parseService, IAnalysisService<ParseT, AnalysisT> analysisService) {
+        ISyntaxService<ParseT> parseService, ITermFactoryService termFactoryService,
+        IAnalysisService<ParseT, AnalysisT> analysisService) {
         this.resourceService = resourceService;
         this.languageIdentifierService = languageIdentifierService;
         this.sourceTextService = sourceTextService;
         this.parseService = parseService;
+        this.termFactoryService = termFactoryService;
         this.analysisService = analysisService;
     }
 
@@ -76,10 +87,12 @@ public class OneshotProcessor<ParseT, AnalysisT> {
             LinkedHashMultimap.create(numLangs, numResources / numLangs);
         for(Entry<ILanguage, Collection<ParseResult<ParseT>>> entry : allParseResults.asMap().entrySet()) {
             final ILanguage language = entry.getKey();
+            // TODO: create only one context per language.
+            final IContext context = new SpoofaxContext(language, resourcesDirectory);
             final Iterable<ParseResult<ParseT>> parseResults = entry.getValue();
             try {
                 final AnalysisResult<ParseT, AnalysisT> analysisResult =
-                    analysisService.analyze(parseResults, language);
+                    analysisService.analyze(parseResults, context);
                 allAnalysisResults.put(language, analysisResult);
 
                 // TODO: emit analysis messages

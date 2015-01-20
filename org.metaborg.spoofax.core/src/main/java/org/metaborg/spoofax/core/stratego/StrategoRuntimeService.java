@@ -12,14 +12,13 @@ import java.util.Set;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.metaborg.spoofax.core.SpoofaxException;
 import org.metaborg.spoofax.core.analysis.stratego.StrategoFacet;
+import org.metaborg.spoofax.core.context.IContext;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.resource.IResourceService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.library.IOperatorRegistry;
-import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.imploder.ImploderOriginTermFactory;
 import org.strategoxt.HybridInterpreter;
@@ -47,66 +46,58 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
     }
 
 
-    @Override public HybridInterpreter getRuntime(ILanguage lang) throws SpoofaxException {
-        HybridInterpreter proto = prototypes.get(lang);
-        if(proto == null) {
-            proto = createPrototypeRuntime(lang);
+    @Override public HybridInterpreter runtime(IContext context) {
+        final ILanguage language = context.language();
+        HybridInterpreter prototype = prototypes.get(language);
+        if(prototype == null) {
+            prototype = createPrototypeRuntime(language);
         }
 
         // TODO: load overrides and contexts
-        final HybridInterpreter interp = new HybridInterpreter(proto, new String[0]);
-        interp.getCompiledContext().getExceptionHandler().setEnabled(false);
-        interp.init();
+        // TODO: this seems to copy operator registries, but they should be recreated to isolate interpreters?
+        final HybridInterpreter interpreter = new HybridInterpreter(prototype, new String[0]);
+        final ResourceAgent agent = new ResourceAgent(resourceService);
+        agent.setAbsoluteWorkingDir(context.location());
+        agent.setAbsoluteDefinitionDir(context.language().location());
+        interpreter.setIOAgent(agent);
+        interpreter.getContext().setContextObject(context);
+        interpreter.getCompiledContext().getExceptionHandler().setEnabled(false);
+        interpreter.init();
 
-        return interp;
+        return interpreter;
     }
 
-    @Override public IStrategoTerm callStratego(ILanguage lang, String strategy, IStrategoTerm input,
-        FileObject workingLocation) throws SpoofaxException {
-        assert lang != null;
-        assert strategy != null && strategy.length() > 0;
-        assert input != null;
-        logger.trace("Calling strategy {} with input {}", strategy, input);
+    @Override public HybridInterpreter genericRuntime() {
+        final ITermFactory factory = new ImploderOriginTermFactory(termFactoryService.getGeneric());
+        final HybridInterpreter interpreter = new HybridInterpreter(factory);
 
-        final HybridInterpreter runtime = getRuntime(lang);
-        boolean success = false;
-        try {
-            runtime.setCurrent(input);
-            if(workingLocation != null) {
-                ((ResourceAgent) runtime.getIOAgent()).setAbsoluteWorkingDir(workingLocation);
-            }
-            success = runtime.invoke(strategy);
-        } catch(InterpreterException e) {
-            throw new SpoofaxException("Stratego call failed", e);
-        }
-
-        if(success) {
-            return runtime.current();
-        } else {
-            // TODO: should this return null when failed, or throw an exception?
-            throw new SpoofaxException("Stratego call failed w/o exception");
-        }
-    }
-
-    private HybridInterpreter createPrototypeRuntime(ILanguage lang) throws SpoofaxException {
-        final ITermFactory termFactory = new ImploderOriginTermFactory(termFactoryService.get(lang));
-        final HybridInterpreter interp = new HybridInterpreter(termFactory);
-
-        interp.getCompiledContext().registerComponent("stratego_lib");
-        interp.getCompiledContext().registerComponent("stratego_sglr");
+        interpreter.getCompiledContext().registerComponent("stratego_lib");
+        interpreter.getCompiledContext().registerComponent("stratego_sglr");
 
         for(IOperatorRegistry library : strategoLibraries) {
-            interp.getCompiledContext().addOperatorRegistry(library);
+            interpreter.getCompiledContext().addOperatorRegistry(library);
         }
 
-        final ResourceAgent agent = new ResourceAgent(resourceService);
-        agent.setAbsoluteDefinitionDir(lang.location());
-        interp.setIOAgent(agent);
-        loadCompilerFiles(interp, lang);
+        return interpreter;
+    }
 
-        prototypes.put(lang, interp);
 
-        return interp;
+    private HybridInterpreter createPrototypeRuntime(ILanguage lang) {
+        final ITermFactory factory = new ImploderOriginTermFactory(termFactoryService.get(lang));
+        final HybridInterpreter interpreter = new HybridInterpreter(factory);
+
+        interpreter.getCompiledContext().registerComponent("stratego_lib");
+        interpreter.getCompiledContext().registerComponent("stratego_sglr");
+
+        for(IOperatorRegistry library : strategoLibraries) {
+            interpreter.getCompiledContext().addOperatorRegistry(library);
+        }
+
+        loadCompilerFiles(interpreter, lang);
+
+        prototypes.put(lang, interpreter);
+
+        return interpreter;
     }
 
     private void loadCompilerFiles(HybridInterpreter interp, ILanguage lang) {
@@ -114,8 +105,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
         final Iterable<FileObject> jars = strategoFacet.jarFiles();
         final Iterable<FileObject> ctrees = strategoFacet.ctreeFiles();
 
-        // for some reason the order is important. We must always load the
-        // ctrees first (if any).
+        // For some reason the order is important, we must always load the CTrees first (if any).
         if(Iterables.size(ctrees) > 0)
             loadCompilerCTree(interp, ctrees);
         if(Iterables.size(jars) > 0)
