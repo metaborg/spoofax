@@ -1,6 +1,21 @@
 package org.metaborg.spoofax.core.language;
 
-import static org.metaborg.spoofax.core.esv.ESVReader.*;
+import static org.metaborg.spoofax.core.esv.ESVReader.attachedFiles;
+import static org.metaborg.spoofax.core.esv.ESVReader.builderIsMeta;
+import static org.metaborg.spoofax.core.esv.ESVReader.builderIsOnSource;
+import static org.metaborg.spoofax.core.esv.ESVReader.builderIsOpenEditor;
+import static org.metaborg.spoofax.core.esv.ESVReader.builderName;
+import static org.metaborg.spoofax.core.esv.ESVReader.builderTarget;
+import static org.metaborg.spoofax.core.esv.ESVReader.builders;
+import static org.metaborg.spoofax.core.esv.ESVReader.completionStrategy;
+import static org.metaborg.spoofax.core.esv.ESVReader.extensions;
+import static org.metaborg.spoofax.core.esv.ESVReader.hoverStrategy;
+import static org.metaborg.spoofax.core.esv.ESVReader.languageName;
+import static org.metaborg.spoofax.core.esv.ESVReader.observerFunction;
+import static org.metaborg.spoofax.core.esv.ESVReader.onSaveFunction;
+import static org.metaborg.spoofax.core.esv.ESVReader.parseTableName;
+import static org.metaborg.spoofax.core.esv.ESVReader.resolverStrategy;
+import static org.metaborg.spoofax.core.esv.ESVReader.startSymbol;
 
 import java.util.Collection;
 import java.util.Map;
@@ -11,6 +26,7 @@ import org.apache.logging.log4j.Logger;
 import org.metaborg.spoofax.core.analysis.stratego.StrategoFacet;
 import org.metaborg.spoofax.core.service.actions.Action;
 import org.metaborg.spoofax.core.service.actions.ActionsFacet;
+import org.metaborg.spoofax.core.style.StylerFacet;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.util.iterators.Iterables2;
@@ -141,6 +157,9 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
                 builderIsOnSource(action), builderIsMeta(action), builderIsOpenEditor(action)));
         }
         language.addFacet(actionsFacet);
+
+        final StylerFacet stylerFacet = StylerFacet.fromESV(esvTerm);
+        language.addFacet(stylerFacet);
 
         return language;
     }

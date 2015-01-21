@@ -2,39 +2,32 @@ package org.metaborg.spoofax.core.style;
 
 import java.awt.Color;
 
-import org.metaborg.spoofax.core.messages.ISourceRegion;
+import javax.annotation.Nullable;
 
-public class Style<T> implements IStyle<T> {
-    private final T fragment;
-    private final ISourceRegion region;
-    private final Color color;
+public class Style implements IStyle {
+    private final @Nullable Color color;
+    private final @Nullable Color backgroundColor;
     private final boolean bold;
     private final boolean italic;
     private final boolean underscore;
 
 
-    public Style(T fragment, ISourceRegion region, Color color, boolean bold, boolean italic,
+    public Style(@Nullable Color color, @Nullable Color backgroundColor, boolean bold, boolean italic,
         boolean underscore) {
-        super();
-        this.fragment = fragment;
-        this.region = region;
         this.color = color;
+        this.backgroundColor = backgroundColor;
         this.bold = bold;
         this.italic = italic;
         this.underscore = underscore;
     }
 
 
-    @Override public T fragment() {
-        return fragment;
-    }
-
-    @Override public ISourceRegion region() {
-        return region;
-    }
-
-    @Override public Color color() {
+    @Override public @Nullable Color color() {
         return color;
+    }
+
+    @Override public @Nullable Color backgroundColor() {
+        return backgroundColor;
     }
 
     @Override public boolean bold() {

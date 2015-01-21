@@ -2,14 +2,12 @@ package org.metaborg.spoofax.core.style;
 
 import java.awt.Color;
 
-import org.metaborg.spoofax.core.messages.ISourceRegion;
+import javax.annotation.Nullable;
 
-public interface IStyle<T> {
-    public abstract T fragment();
-
-    public abstract ISourceRegion region();
-
-    public abstract Color color();
+public interface IStyle {
+    public abstract @Nullable Color color();
+    
+    public abstract @Nullable Color backgroundColor();
 
     public abstract boolean bold();
 

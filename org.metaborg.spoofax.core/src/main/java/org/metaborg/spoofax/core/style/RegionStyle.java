@@ -2,16 +2,16 @@ package org.metaborg.spoofax.core.style;
 
 import org.metaborg.spoofax.core.messages.ISourceRegion;
 
-public class Category<T> implements ICategory<T> {
+public class RegionStyle<T> implements IRegionStyle<T> {
     private final T fragment;
     private final ISourceRegion region;
-    private final String categeory;
+    private final IStyle style;
 
 
-    public Category(T fragment, ISourceRegion region, String categeory) {
+    public RegionStyle(T fragment, ISourceRegion region, IStyle style) {
         this.fragment = fragment;
         this.region = region;
-        this.categeory = categeory;
+        this.style = style;
     }
 
 
@@ -23,8 +23,7 @@ public class Category<T> implements ICategory<T> {
         return region;
     }
 
-    @Override public String category() {
-        return categeory;
+    @Override public IStyle style() {
+        return style;
     }
-
 }
