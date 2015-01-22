@@ -18,6 +18,10 @@ import org.metaborg.spoofax.core.resource.LocalFileProvider;
 import org.metaborg.spoofax.core.resource.ResourceService;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeService;
+import org.metaborg.spoofax.core.style.CategorizerService;
+import org.metaborg.spoofax.core.style.ICategorizerService;
+import org.metaborg.spoofax.core.style.IStylerService;
+import org.metaborg.spoofax.core.style.StylerService;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
 import org.metaborg.spoofax.core.syntax.jsglr.JSGLRParseService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
@@ -59,11 +63,14 @@ public class SpoofaxModule extends AbstractModule {
             bindListener(Matchers.any(), new Log4JTypeListener());
 
             bindResource();
-            bindLocalFileProviders(MapBinder.newMapBinder(binder(), String.class, ILocalFileProvider.class));
+            bindLocalFileProviders(MapBinder.newMapBinder(binder(), String.class,
+                ILocalFileProvider.class));
             bindLanguage();
             bindSyntax();
             bindSourceText();
             bindAnalysis();
+            bindCategorizer();
+            bindStyler();
             bindOther();
 
             bind(ClassLoader.class).annotatedWith(Names.named("ResourceClassLoader")).toInstance(
@@ -75,7 +82,8 @@ public class SpoofaxModule extends AbstractModule {
 
     protected void bindResource() {
         bind(IResourceService.class).to(ResourceService.class).in(Singleton.class);
-        bind(FileSystemManager.class).toProvider(DefaultFileSystemManagerProvider.class).in(Singleton.class);
+        bind(FileSystemManager.class).toProvider(DefaultFileSystemManagerProvider.class).in(
+            Singleton.class);
     }
 
     protected void bindLocalFileProviders(MapBinder<String, ILocalFileProvider> binder) {
@@ -84,8 +92,10 @@ public class SpoofaxModule extends AbstractModule {
 
     protected void bindLanguage() {
         bind(ILanguageService.class).to(LanguageService.class).in(Singleton.class);
-        bind(ILanguageDiscoveryService.class).to(LanguageDiscoveryService.class).in(Singleton.class);
-        bind(ILanguageIdentifierService.class).to(LanguageIdentifierService.class).in(Singleton.class);
+        bind(ILanguageDiscoveryService.class).to(LanguageDiscoveryService.class)
+            .in(Singleton.class);
+        bind(ILanguageIdentifierService.class).to(LanguageIdentifierService.class).in(
+            Singleton.class);
 
         @SuppressWarnings("unused") final Multibinder<ILanguageFacetFactory> facetFactoriesBinder =
             Multibinder.newSetBinder(binder(), ILanguageFacetFactory.class);
@@ -112,12 +122,24 @@ public class SpoofaxModule extends AbstractModule {
         bindPrimitiveLibrary(libraryBinder, LegacyIndexLibrary.class);
     }
 
+    protected void bindCategorizer() {
+        bind(new TypeLiteral<ICategorizerService<IStrategoTerm, IStrategoTerm>>() {}).to(
+            CategorizerService.class).in(Singleton.class);
+    }
+
+    protected void bindStyler() {
+        bind(new TypeLiteral<IStylerService<IStrategoTerm, IStrategoTerm>>() {}).to(
+            StylerService.class).in(Singleton.class);
+    }
+
+
     protected void bindOther() {
 
     }
-    
-    
-    protected static void bindPrimitive(Multibinder<AbstractPrimitive> binder, AbstractPrimitive primitive) {
+
+
+    protected static void bindPrimitive(Multibinder<AbstractPrimitive> binder,
+        AbstractPrimitive primitive) {
         binder.addBinding().toInstance(primitive);
     }
 

@@ -13,6 +13,6 @@ public class SpoofaxEditor extends TextEditor {
     @Override protected void initializeEditor() {
         super.initializeEditor();
 
-        setSourceViewerConfiguration(new SpoofaxSourceViewerConfiguration(this));
+        setSourceViewerConfiguration(new SpoofaxSourceViewerConfiguration(this, getSourceViewer()));
     }
 }

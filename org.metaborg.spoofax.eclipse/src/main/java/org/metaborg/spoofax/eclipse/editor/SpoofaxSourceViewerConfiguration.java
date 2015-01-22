@@ -11,17 +11,19 @@ import org.eclipse.jface.text.source.SourceViewerConfiguration;
 
 public class SpoofaxSourceViewerConfiguration extends SourceViewerConfiguration {
     private final SpoofaxEditor editor;
+    private final ISourceViewer sourceViewer;
 
 
-    public SpoofaxSourceViewerConfiguration(SpoofaxEditor editor) {
+    public SpoofaxSourceViewerConfiguration(SpoofaxEditor editor, ISourceViewer sourceViewer) {
         super();
 
         this.editor = editor;
+        this.sourceViewer = sourceViewer;
     }
 
 
     @Override public IReconciler getReconciler(ISourceViewer sourceViewer) {
-        return new MonoReconciler(new SpoofaxReconcilingStrategy(editor), false);
+        return new MonoReconciler(new SpoofaxReconcilingStrategy(editor, sourceViewer), false);
     }
 
     @Override public IAnnotationHover getAnnotationHover(ISourceViewer sourceViewer) {

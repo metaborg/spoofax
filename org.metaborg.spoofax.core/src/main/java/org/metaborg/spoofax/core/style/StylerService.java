@@ -11,8 +11,8 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.common.collect.Lists;
 
-public class SourceStylerService implements ISourceStylerService<IStrategoTerm, IStrategoTerm> {
-    private static final Logger logger = LogManager.getLogger(SourceStylerService.class);
+public class StylerService implements IStylerService<IStrategoTerm, IStrategoTerm> {
+    private static final Logger logger = LogManager.getLogger(StylerService.class);
 
 
     @Override public Iterable<IRegionStyle<IStrategoTerm>> styleParsed(ILanguage language,

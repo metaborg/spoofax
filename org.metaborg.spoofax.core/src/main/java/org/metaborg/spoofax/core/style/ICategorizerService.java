@@ -4,7 +4,7 @@ import org.metaborg.spoofax.core.analysis.AnalysisFileResult;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.syntax.ParseResult;
 
-public interface ISourceCategorizerService<ParseT, AnalysisT> {
+public interface ICategorizerService<ParseT, AnalysisT> {
     public abstract Iterable<IRegionCategory<ParseT>>
         categorize(ILanguage language, ParseResult<ParseT> parseResult);
 

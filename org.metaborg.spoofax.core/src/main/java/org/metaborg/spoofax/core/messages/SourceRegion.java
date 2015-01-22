@@ -78,12 +78,16 @@ public class SourceRegion implements ISourceRegion {
 
     @Override public String toString() {
         final StringBuilder sb = new StringBuilder();
+        sb.append(startOffset);
+        sb.append("-");
+        sb.append(endOffset);
+        sb.append(" ");
         sb.append(startRow);
-        sb.append(",");
-        sb.append(startColumn);
-        sb.append(":");
+        sb.append("-");
         sb.append(endRow);
-        sb.append(",");
+        sb.append(" ");
+        sb.append(startColumn);
+        sb.append("-");
         sb.append(endColumn);
         return sb.toString();
     }

@@ -63,22 +63,23 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         for(FileObject esvFile : esvFiles) {
             final FileObject languageLocation = esvFile.getParent().getParent();
             if(parents.contains(languageLocation)) {
-                logger.error("Found multiple packed ESV files in language directory: " + languageLocation
-                    + ", skipping.");
+                logger.error("Found multiple packed ESV files in language directory: "
+                    + languageLocation + ", skipping.");
                 continue;
             }
             parents.add(languageLocation);
             // TODO: get language version from ESV?
-            languages.add(languageFromESV(languageLocation, esvFile, new LanguageVersion(1, 0, 0, 0)));
+            languages.add(languageFromESV(languageLocation, esvFile,
+                new LanguageVersion(1, 0, 0, 0)));
         }
         return languages;
     }
 
     @Override public ILanguage create(String name, LanguageVersion version, FileObject location,
         ImmutableSet<String> extensions, FileObject parseTable, String startSymbol,
-        ImmutableSet<FileObject> ctreeFiles, ImmutableSet<FileObject> jarFiles, String analysisStrategy,
-        String onSaveStrategy, String resolverStrategy, String hoverStrategy, String completionStrategy,
-        Map<String, Action> actions) {
+        ImmutableSet<FileObject> ctreeFiles, ImmutableSet<FileObject> jarFiles,
+        String analysisStrategy, String onSaveStrategy, String resolverStrategy,
+        String hoverStrategy, String completionStrategy, Map<String, Action> actions) {
         final ILanguage language = languageService.create(name, version, location);
 
         final IdentificationFacet identificationFacet =
@@ -89,8 +90,8 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         language.addFacet(syntaxFacet);
 
         final StrategoFacet strategoFacet =
-            new StrategoFacet(ctreeFiles, jarFiles, analysisStrategy, onSaveStrategy, resolverStrategy,
-                hoverStrategy, completionStrategy);
+            new StrategoFacet(ctreeFiles, jarFiles, analysisStrategy, onSaveStrategy,
+                resolverStrategy, hoverStrategy, completionStrategy);
         language.addFacet(strategoFacet);
 
         final ActionsFacet actionsFacet = new ActionsFacet();
@@ -101,10 +102,11 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
     }
 
 
-    private ILanguage languageFromESV(FileObject location, FileObject esvFile, LanguageVersion version)
-        throws Exception {
+    private ILanguage languageFromESV(FileObject location, FileObject esvFile,
+        LanguageVersion version) throws Exception {
         final TermReader reader =
-            new TermReader(termFactoryService.getGeneric().getFactoryWithStorageType(IStrategoTerm.MUTABLE));
+            new TermReader(termFactoryService.getGeneric().getFactoryWithStorageType(
+                IStrategoTerm.MUTABLE));
         final IStrategoTerm term = reader.parseFromStream(esvFile.getContent().getInputStream());
         if(term.getTermType() != IStrategoTerm.APPL) {
             throw new IllegalStateException("Packed ESV file does not contain a valid ESV term.");
@@ -134,8 +136,8 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
             } else if(extension.equals("ctree")) {
                 ctreeFiles.add(strategoFile);
             } else {
-                logger.warn("Stratego provider file " + strategoFile + " has unknown extension " + extension
-                    + ", ignoring.");
+                logger.warn("Stratego provider file " + strategoFile + " has unknown extension "
+                    + extension + ", ignoring.");
             }
         }
         final String analysisStrategy =
@@ -145,8 +147,8 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         final String hoverStrategy = hoverStrategy(esvTerm);
         final String completionStrategy = completionStrategy(esvTerm);
         final StrategoFacet strategoFacet =
-            new StrategoFacet(ctreeFiles, jarFiles, analysisStrategy, onSaveStrategy, resolverStrategy,
-                hoverStrategy, completionStrategy);
+            new StrategoFacet(ctreeFiles, jarFiles, analysisStrategy, onSaveStrategy,
+                resolverStrategy, hoverStrategy, completionStrategy);
         language.addFacet(strategoFacet);
 
         final ActionsFacet actionsFacet = new ActionsFacet();
