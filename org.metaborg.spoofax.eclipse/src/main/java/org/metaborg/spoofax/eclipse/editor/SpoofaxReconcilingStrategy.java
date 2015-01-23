@@ -224,7 +224,7 @@ public class SpoofaxReconcilingStrategy implements IReconcilingStrategy,
         }
 
         styleRange.start = region.startOffset();
-        styleRange.length = region.endOffset() - region.startOffset();
+        styleRange.length = region.endOffset() - region.startOffset() + 1;
 
         return styleRange;
     }
