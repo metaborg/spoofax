@@ -200,7 +200,7 @@ public class SpoofaxReconcilingStrategy implements IReconcilingStrategy,
         return presentation;
     }
 
-    private StyleRange createStyleRange(IRegionStyle regionStyle, Display display) {
+    private StyleRange createStyleRange(IRegionStyle<IStrategoTerm> regionStyle, Display display) {
         final IStyle style = regionStyle.style();
         final ISourceRegion region = regionStyle.region();
 

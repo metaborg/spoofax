@@ -11,9 +11,6 @@ import org.apache.commons.vfs2.FileSystemManager;
 /**
  * Interface for access to the virtual file system.
  */
-/**
- * 
- */
 public interface IResourceService {
     /**
      * Returns the root file system object.
