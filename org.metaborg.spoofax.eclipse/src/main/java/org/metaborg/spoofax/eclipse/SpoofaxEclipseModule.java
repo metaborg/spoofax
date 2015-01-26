@@ -4,7 +4,7 @@ import org.apache.commons.vfs2.FileSystemManager;
 import org.metaborg.spoofax.core.SpoofaxModule;
 import org.metaborg.spoofax.core.resource.ILocalFileProvider;
 import org.metaborg.spoofax.core.resource.IResourceService;
-import org.metaborg.spoofax.eclipse.language.StartupLanguageLoader;
+import org.metaborg.spoofax.eclipse.processing.Processor;
 import org.metaborg.spoofax.eclipse.resource.EclipseFileSystemManagerProvider;
 import org.metaborg.spoofax.eclipse.resource.EclipseLocalFileProvider;
 import org.metaborg.spoofax.eclipse.resource.EclipseResourceService;
@@ -35,7 +35,8 @@ public class SpoofaxEclipseModule extends SpoofaxModule {
         bind(IResourceService.class).to(EclipseResourceService.class);
         bind(IEclipseResourceService.class).to(EclipseResourceService.class);
 
-        bind(FileSystemManager.class).toProvider(EclipseFileSystemManagerProvider.class).in(Singleton.class);
+        bind(FileSystemManager.class).toProvider(EclipseFileSystemManagerProvider.class).in(
+            Singleton.class);
     }
 
     protected void bindLocalFileProviders(MapBinder<String, ILocalFileProvider> binder) {
@@ -46,11 +47,11 @@ public class SpoofaxEclipseModule extends SpoofaxModule {
     }
 
     @Override protected void bindOther() {
-        bind(StartupLanguageLoader.class).asEagerSingleton();
+        bind(Processor.class).asEagerSingleton();
 
         // Use analysis-cmd to prevent Stratego analysis to schedule on a background thread.
-        bind(String.class).annotatedWith(Names.named("LanguageDiscoveryAnalysisOverride")).toInstance(
-            "analysis-cmd");
+        bind(String.class).annotatedWith(Names.named("LanguageDiscoveryAnalysisOverride"))
+            .toInstance("analysis-cmd");
 
         bindPrimitives();
     }

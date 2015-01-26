@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.eclipse.editor;
+package org.metaborg.spoofax.eclipse.processing;
 
 import java.io.IOException;
 
@@ -9,17 +9,16 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.TextPresentation;
-import org.eclipse.jface.text.reconciler.DirtyRegion;
-import org.eclipse.jface.text.reconciler.IReconcilingStrategy;
-import org.eclipse.jface.text.reconciler.IReconcilingStrategyExtension;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
 import org.metaborg.spoofax.core.analysis.AnalysisFileResult;
 import org.metaborg.spoofax.core.analysis.AnalysisResult;
@@ -36,17 +35,12 @@ import org.metaborg.spoofax.core.style.IStyle;
 import org.metaborg.spoofax.core.style.IStylerService;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
 import org.metaborg.spoofax.core.syntax.ParseResult;
-import org.metaborg.spoofax.eclipse.SpoofaxPlugin;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
+import org.metaborg.spoofax.eclipse.util.SpoofaxStatus;
 import org.metaborg.util.iterators.Iterables2;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
-import com.google.inject.Injector;
-import com.google.inject.Key;
-import com.google.inject.TypeLiteral;
-
-public class SpoofaxReconcilingStrategy implements IReconcilingStrategy,
-    IReconcilingStrategyExtension {
+public class EditorUpdateJob extends Job {
     private final IEclipseResourceService resourceService;
     private final ILanguageIdentifierService languageIdentifierService;
     private final ISyntaxService<IStrategoTerm> syntaxService;
@@ -54,58 +48,37 @@ public class SpoofaxReconcilingStrategy implements IReconcilingStrategy,
     private final ICategorizerService<IStrategoTerm, IStrategoTerm> categorizerService;
     private final IStylerService<IStrategoTerm, IStrategoTerm> stylerService;
 
-    private final SpoofaxEditor editor;
+    private final IEditorInput input;
+    private final IDocument document;
     private final ISourceViewer sourceViewer;
 
-    private IDocument document;
-    private IProgressMonitor monitor;
 
+    public EditorUpdateJob(IEclipseResourceService resourceService,
+        ILanguageIdentifierService languageIdentifierService,
+        ISyntaxService<IStrategoTerm> syntaxService,
+        IAnalysisService<IStrategoTerm, IStrategoTerm> analysisService,
+        ICategorizerService<IStrategoTerm, IStrategoTerm> categorizerService,
+        IStylerService<IStrategoTerm, IStrategoTerm> stylerService, IEditorInput input,
+        IDocument document, ISourceViewer sourceViewer) {
+        super("Updating Spoofax editor");
+        this.resourceService = resourceService;
+        this.languageIdentifierService = languageIdentifierService;
+        this.syntaxService = syntaxService;
+        this.analysisService = analysisService;
+        this.categorizerService = categorizerService;
+        this.stylerService = stylerService;
 
-    public SpoofaxReconcilingStrategy(SpoofaxEditor editor, ISourceViewer sourceViewer) {
-        final Injector injector = SpoofaxPlugin.injector();
-        this.resourceService = injector.getInstance(IEclipseResourceService.class);
-        this.languageIdentifierService = injector.getInstance(ILanguageIdentifierService.class);
-        this.syntaxService =
-            injector.getInstance(Key.get(new TypeLiteral<ISyntaxService<IStrategoTerm>>() {}));
-        this.analysisService =
-            injector.getInstance(Key
-                .get(new TypeLiteral<IAnalysisService<IStrategoTerm, IStrategoTerm>>() {}));
-        this.categorizerService =
-            injector.getInstance(Key
-                .get(new TypeLiteral<ICategorizerService<IStrategoTerm, IStrategoTerm>>() {}));
-        this.stylerService =
-            injector.getInstance(Key
-                .get(new TypeLiteral<IStylerService<IStrategoTerm, IStrategoTerm>>() {}));
-
-        this.editor = editor;
+        this.input = input;
+        this.document = document;
         this.sourceViewer = sourceViewer;
     }
 
-    @Override public void setDocument(IDocument document) {
-        this.document = document;
-    }
 
-    @Override public void setProgressMonitor(IProgressMonitor monitor) {
-        this.monitor = monitor;
-    }
-
-    @Override public void initialReconcile() {
-        process();
-    }
-
-    @Override public void reconcile(DirtyRegion dirtyRegion, IRegion subRegion) {
-        process();
-    }
-
-    @Override public void reconcile(IRegion partition) {
-        process();
-    }
-
-    private void process() {
+    @Override protected IStatus run(IProgressMonitor monitor) {
         try {
-            final String input = document.get();
-            final IFileEditorInput editorInput = (IFileEditorInput) editor.getEditorInput();
-            final IResource eclipseResource = editorInput.getFile();
+            final String text = document.get();
+            final IFileEditorInput fileInput = (IFileEditorInput) input;
+            final IResource eclipseResource = fileInput.getFile();
             final IResource eclipseLocation = getProjectDirectory(eclipseResource);
             final Display display = Display.getDefault();
 
@@ -117,7 +90,7 @@ public class SpoofaxReconcilingStrategy implements IReconcilingStrategy,
 
             // Parse
             final ParseResult<IStrategoTerm> parseResult =
-                syntaxService.parse(input, resource, language);
+                syntaxService.parse(text, resource, language);
             eclipseResource.deleteMarkers(IMarker.MARKER, true, IResource.DEPTH_INFINITE);
             for(IMessage message : parseResult.messages) {
                 createMarker(eclipseResource, message);
@@ -128,10 +101,9 @@ public class SpoofaxReconcilingStrategy implements IReconcilingStrategy,
                 categorizerService.categorize(language, parseResult);
             final Iterable<IRegionStyle<IStrategoTerm>> styles =
                 stylerService.styleParsed(language, categories);
+            final TextPresentation textPresentation = createTextPresentation(styles, display);
             display.asyncExec(new Runnable() {
                 public void run() {
-                    final TextPresentation textPresentation =
-                        createTextPresentation(styles, display);
                     sourceViewer.changeTextPresentation(textPresentation, false);
                 }
             });
@@ -145,11 +117,14 @@ public class SpoofaxReconcilingStrategy implements IReconcilingStrategy,
                     createMarker(eclipseResource, message);
                 }
             }
+
+            return SpoofaxStatus.success();
         } catch(IOException | CoreException e) {
             e.printStackTrace();
-            throw new RuntimeException(e);
+            return SpoofaxStatus.error("Updating editor failed", e);
         }
     }
+
 
     private IResource getProjectDirectory(IResource resource) throws IOException {
         final IProject project = resource.getProject();

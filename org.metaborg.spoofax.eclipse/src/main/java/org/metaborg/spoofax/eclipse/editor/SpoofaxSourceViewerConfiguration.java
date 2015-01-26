@@ -2,8 +2,6 @@ package org.metaborg.spoofax.eclipse.editor;
 
 import org.eclipse.jface.text.DefaultTextHover;
 import org.eclipse.jface.text.ITextHover;
-import org.eclipse.jface.text.reconciler.IReconciler;
-import org.eclipse.jface.text.reconciler.MonoReconciler;
 import org.eclipse.jface.text.source.DefaultAnnotationHover;
 import org.eclipse.jface.text.source.IAnnotationHover;
 import org.eclipse.jface.text.source.ISourceViewer;
@@ -16,20 +14,15 @@ public class SpoofaxSourceViewerConfiguration extends SourceViewerConfiguration 
 
     public SpoofaxSourceViewerConfiguration(SpoofaxEditor editor, ISourceViewer sourceViewer) {
         super();
-
         this.editor = editor;
         this.sourceViewer = sourceViewer;
     }
 
 
-    @Override public IReconciler getReconciler(ISourceViewer sourceViewer) {
-        return new MonoReconciler(new SpoofaxReconcilingStrategy(editor, sourceViewer), false);
-    }
-
     @Override public IAnnotationHover getAnnotationHover(ISourceViewer sourceViewer) {
         return new DefaultAnnotationHover();
     }
-    
+
     @Override public ITextHover getTextHover(ISourceViewer sourceViewer, String contentType) {
         return new DefaultTextHover(sourceViewer);
     }
