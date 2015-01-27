@@ -11,7 +11,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.TextPresentation;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.SWT;
@@ -49,8 +48,8 @@ public class EditorUpdateJob extends Job {
     private final IStylerService<IStrategoTerm, IStrategoTerm> stylerService;
 
     private final IEditorInput input;
-    private final IDocument document;
     private final ISourceViewer sourceViewer;
+    private final String text;
 
 
     public EditorUpdateJob(IEclipseResourceService resourceService,
@@ -59,7 +58,7 @@ public class EditorUpdateJob extends Job {
         IAnalysisService<IStrategoTerm, IStrategoTerm> analysisService,
         ICategorizerService<IStrategoTerm, IStrategoTerm> categorizerService,
         IStylerService<IStrategoTerm, IStrategoTerm> stylerService, IEditorInput input,
-        IDocument document, ISourceViewer sourceViewer) {
+        ISourceViewer sourceViewer, String text) {
         super("Updating Spoofax editor");
         this.resourceService = resourceService;
         this.languageIdentifierService = languageIdentifierService;
@@ -69,14 +68,17 @@ public class EditorUpdateJob extends Job {
         this.stylerService = stylerService;
 
         this.input = input;
-        this.document = document;
         this.sourceViewer = sourceViewer;
+        this.text = text;
     }
 
 
-    @Override protected IStatus run(IProgressMonitor monitor) {
+    @Override public boolean belongsTo(Object family) {
+        return input.equals(family);
+    }
+
+    @Override protected IStatus run(final IProgressMonitor monitor) {
         try {
-            final String text = document.get();
             final IFileEditorInput fileInput = (IFileEditorInput) input;
             final IResource eclipseResource = fileInput.getFile();
             final IResource eclipseLocation = getProjectDirectory(eclipseResource);
@@ -89,29 +91,52 @@ public class EditorUpdateJob extends Job {
 
 
             // Parse
+            if(monitor.isCanceled())
+                return SpoofaxStatus.cancel();
             final ParseResult<IStrategoTerm> parseResult =
                 syntaxService.parse(text, resource, language);
+            if(monitor.isCanceled())
+                return SpoofaxStatus.cancel();
             eclipseResource.deleteMarkers(IMarker.MARKER, true, IResource.DEPTH_INFINITE);
             for(IMessage message : parseResult.messages) {
                 createMarker(eclipseResource, message);
             }
 
             // Style
+            if(monitor.isCanceled())
+                return SpoofaxStatus.cancel();
             final Iterable<IRegionCategory<IStrategoTerm>> categories =
                 categorizerService.categorize(language, parseResult);
             final Iterable<IRegionStyle<IStrategoTerm>> styles =
                 stylerService.styleParsed(language, categories);
             final TextPresentation textPresentation = createTextPresentation(styles, display);
+            if(monitor.isCanceled())
+                return SpoofaxStatus.cancel();
             display.asyncExec(new Runnable() {
                 public void run() {
+                    if(monitor.isCanceled())
+                        return;
+                    // Also cancel if text presentation is not valid for current text any more.
+                    if(sourceViewer.getDocument().get().length() != text.length())
+                        return;
                     sourceViewer.changeTextPresentation(textPresentation, false);
                 }
             });
 
             // Analyze
+            try {
+                Thread.sleep(600);
+            } catch(InterruptedException e) {
+                return SpoofaxStatus.error(e);
+            }
+
+            if(monitor.isCanceled())
+                return SpoofaxStatus.cancel();
             final AnalysisResult<IStrategoTerm, IStrategoTerm> analysisResult =
                 analysisService.analyze(Iterables2.singleton(parseResult), new SpoofaxContext(
                     language, location));
+            if(monitor.isCanceled())
+                return SpoofaxStatus.cancel();
             for(AnalysisFileResult<IStrategoTerm, IStrategoTerm> fileResult : analysisResult.fileResults) {
                 for(IMessage message : fileResult.messages()) {
                     createMarker(eclipseResource, message);

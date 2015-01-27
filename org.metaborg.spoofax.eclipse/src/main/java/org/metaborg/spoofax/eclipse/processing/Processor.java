@@ -5,7 +5,6 @@ import org.apache.logging.log4j.Logger;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.jobs.IJobManager;
 import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.ui.IEditorInput;
 import org.metaborg.spoofax.core.analysis.IAnalysisService;
@@ -14,7 +13,6 @@ import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
 import org.metaborg.spoofax.core.style.ICategorizerService;
 import org.metaborg.spoofax.core.style.IStylerService;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
-import org.metaborg.spoofax.eclipse.editor.SpoofaxEditor;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
@@ -73,20 +71,32 @@ public class Processor {
     }
 
 
-    public void editorOpen(IEditorInput input, IDocument document, ISourceViewer viewer) {
+    public void editorOpen(IEditorInput input, ISourceViewer viewer, String text) {
+        processEditor(input, viewer, text);
+    }
+
+    public void editorUpdate(IEditorInput input, ISourceViewer viewer, String text) {
+        processEditor(input, viewer, text);
+    }
+
+    public void editorClose(IEditorInput input) {
+        cancelUpdateJobs(input);
+    }
+
+    private void processEditor(IEditorInput input, ISourceViewer viewer, String text) {
+        cancelUpdateJobs(input);
         final Job job =
             new EditorUpdateJob(resourceService, languageIdentifierService, syntaxService,
-                analysisService, categorizerService, stylerService, input, document, viewer);
+                analysisService, categorizerService, stylerService, input, viewer, text);
         job.setRule(startupMutex);
         job.schedule();
     }
 
-    public void editorUpdate(SpoofaxEditor editor) {
-
-    }
-
-    public void editorClose(SpoofaxEditor editor) {
-
+    private void cancelUpdateJobs(IEditorInput input) {
+        final Job[] existingJobs = jobManager.find(input);
+        for(Job job : existingJobs) {
+            job.cancel();
+        }
     }
 
 
