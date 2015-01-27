@@ -1,26 +1,37 @@
 package org.metaborg.spoofax.eclipse.editor;
 
-import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.IVerticalRuler;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IPropertyListener;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.metaborg.spoofax.eclipse.SpoofaxPlugin;
 import org.metaborg.spoofax.eclipse.processing.Processor;
 
 public class SpoofaxEditor extends TextEditor {
-    final Processor processor;
+    private final Processor processor;
+    private final IPropertyListener editorInputListener;
 
-    private IDocumentListener documentListener;
+    private IEditorInput currentInput;
+    private IDocument currentDocument;
+    private IDocumentListener currentDocumentListener;
 
 
     public SpoofaxEditor() {
         super();
 
         this.processor = SpoofaxPlugin.injector().getInstance(Processor.class);
+        this.editorInputListener = new IPropertyListener() {
+            @Override public void propertyChanged(Object source, int propId) {
+                if(propId == IEditorPart.PROP_INPUT) {
+                    editorInputChanged();
+                }
+            }
+        };
 
         setDocumentProvider(new SpoofaxDocumentProvider());
     }
@@ -36,20 +47,18 @@ public class SpoofaxEditor extends TextEditor {
         int styles) {
         final ISourceViewer sourceViewer = super.createSourceViewer(parent, ruler, styles);
 
+        // Store current input and document so we have access to them when the editor input changes.
+        currentInput = getEditorInput();
+        currentDocument = getDocumentProvider().getDocument(currentInput);
+        currentDocumentListener =
+            new SpoofaxDocumentListener(currentInput, sourceViewer, processor);
+        currentDocument.addDocumentListener(currentDocumentListener);
 
-        final IEditorInput input = getEditorInput();
-        final IDocument document = getDocumentProvider().getDocument(input);
-        documentListener = new IDocumentListener() {
-            @Override public void documentChanged(DocumentEvent event) {
-                processor.editorUpdate(input, sourceViewer, event.getDocument().get());
-            }
+        // Register for changes in the editor input, to handle renaming or moving of resources of
+        // open editors.
+        this.addPropertyListener(editorInputListener);
 
-            @Override public void documentAboutToBeChanged(DocumentEvent event) {
-
-            }
-        };
-        document.addDocumentListener(documentListener);
-        processor.editorOpen(input, sourceViewer, document.get());
+        processor.editorOpen(currentInput, sourceViewer, currentDocument.get());
 
         return sourceViewer;
     }
@@ -57,8 +66,26 @@ public class SpoofaxEditor extends TextEditor {
     @Override public void dispose() {
         final IEditorInput input = getEditorInput();
         final IDocument document = getDocumentProvider().getDocument(input);
-        document.removeDocumentListener(documentListener);
+        document.removeDocumentListener(currentDocumentListener);
         processor.editorClose(input);
         super.dispose();
+    }
+
+
+    private void editorInputChanged() {
+        final IEditorInput oldInput = currentInput;
+        final IDocument oldDocument = currentDocument;
+        final ISourceViewer sourceViewer = getSourceViewer();
+
+        // Unregister old document listener and register a new one, because the input changed which
+        // also changes the document.
+        oldDocument.removeDocumentListener(currentDocumentListener);
+        currentInput = getEditorInput();
+        currentDocument = getDocumentProvider().getDocument(currentInput);
+        currentDocumentListener =
+            new SpoofaxDocumentListener(currentInput, sourceViewer, processor);
+        currentDocument.addDocumentListener(currentDocumentListener);
+
+        processor.editorInputChange(oldInput, currentInput, sourceViewer, currentDocument.get());
     }
 }
