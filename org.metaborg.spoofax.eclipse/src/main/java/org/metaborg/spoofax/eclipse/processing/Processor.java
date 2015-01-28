@@ -11,6 +11,7 @@ import org.metaborg.spoofax.core.analysis.IAnalysisService;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageDiscoveryService;
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
+import org.metaborg.spoofax.core.language.ILanguageService;
 import org.metaborg.spoofax.core.style.ICategorizerService;
 import org.metaborg.spoofax.core.style.IStylerService;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
@@ -23,6 +24,7 @@ public class Processor {
     private static final Logger logger = LogManager.getLogger(Processor.class);
 
     private final IEclipseResourceService resourceService;
+    private final ILanguageService languageService;
     private final ILanguageIdentifierService languageIdentifierService;
     private final ILanguageDiscoveryService languageDiscoveryService;
     private final ISyntaxService<IStrategoTerm> syntaxService;
@@ -37,13 +39,14 @@ public class Processor {
 
 
     @Inject public Processor(IEclipseResourceService resourceService,
-        ILanguageIdentifierService languageIdentifierService,
+        ILanguageService languageService, ILanguageIdentifierService languageIdentifierService,
         ILanguageDiscoveryService languageDiscoveryService,
         ISyntaxService<IStrategoTerm> syntaxService,
         IAnalysisService<IStrategoTerm, IStrategoTerm> analysisService,
         ICategorizerService<IStrategoTerm, IStrategoTerm> categorizerService,
         IStylerService<IStrategoTerm, IStrategoTerm> stylerService) {
         this.resourceService = resourceService;
+        this.languageService = languageService;
         this.languageIdentifierService = languageIdentifierService;
         this.languageDiscoveryService = languageDiscoveryService;
         this.syntaxService = syntaxService;
@@ -186,13 +189,5 @@ public class Processor {
         for(Job job : existingJobs) {
             job.cancel();
         }
-    }
-
-
-    /**
-     * Notifies about changes in a project, which require parsing, analysis, etc..
-     */
-    public void build() {
-        // TODO: Create build job which updates multiple resources in the background.
     }
 }

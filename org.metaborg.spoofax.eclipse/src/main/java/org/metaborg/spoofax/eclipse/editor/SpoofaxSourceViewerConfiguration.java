@@ -8,14 +8,8 @@ import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
 
 public class SpoofaxSourceViewerConfiguration extends SourceViewerConfiguration {
-    private final SpoofaxEditor editor;
-    private final ISourceViewer sourceViewer;
-
-
-    public SpoofaxSourceViewerConfiguration(SpoofaxEditor editor, ISourceViewer sourceViewer) {
+    public SpoofaxSourceViewerConfiguration() {
         super();
-        this.editor = editor;
-        this.sourceViewer = sourceViewer;
     }
 
 

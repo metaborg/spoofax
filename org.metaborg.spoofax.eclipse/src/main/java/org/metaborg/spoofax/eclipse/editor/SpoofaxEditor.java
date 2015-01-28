@@ -40,7 +40,7 @@ public class SpoofaxEditor extends TextEditor {
     @Override protected void initializeEditor() {
         super.initializeEditor();
 
-        setSourceViewerConfiguration(new SpoofaxSourceViewerConfiguration(this, getSourceViewer()));
+        setSourceViewerConfiguration(new SpoofaxSourceViewerConfiguration());
     }
 
     @Override protected ISourceViewer createSourceViewer(Composite parent, IVerticalRuler ruler,
@@ -64,10 +64,9 @@ public class SpoofaxEditor extends TextEditor {
     }
 
     @Override public void dispose() {
-        final IEditorInput input = getEditorInput();
-        final IDocument document = getDocumentProvider().getDocument(input);
-        document.removeDocumentListener(currentDocumentListener);
-        processor.editorClose(input);
+        currentDocument.removeDocumentListener(currentDocumentListener);
+        this.removePropertyListener(editorInputListener);
+        processor.editorClose(currentInput);
         super.dispose();
     }
 
