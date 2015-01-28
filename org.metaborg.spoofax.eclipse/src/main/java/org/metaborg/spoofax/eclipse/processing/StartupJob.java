@@ -10,6 +10,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.jobs.IJobManager;
 import org.eclipse.core.runtime.jobs.Job;
 import org.metaborg.spoofax.core.language.ILanguageDiscoveryService;
+import org.metaborg.spoofax.eclipse.language.LoadLanguageJob;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
 import org.metaborg.spoofax.eclipse.util.SpoofaxStatus;
 
@@ -37,15 +38,17 @@ public class StartupJob extends Job {
 
     @Override protected IStatus run(IProgressMonitor monitor) {
         try {
-            final Collection<Job> jobs = Lists.newLinkedList();
+            // Enable startup mutex to defer execution of all other jobs, until all languages are
+            // loaded.
             jobManager.beginRule(startupMutex, monitor);
+            final Collection<Job> jobs = Lists.newLinkedList();
             for(final IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
                 if(project.isOpen()) {
                     final FileObject location = resourceService.resolve(project);
-                    final Job job = new LanguageLoadJob(languageDiscoveryService, location);
+                    final Job job = new LoadLanguageJob(languageDiscoveryService, location);
                     job.setRule(languageServiceMutex);
-                    jobs.add(job);
                     job.schedule();
+                    jobs.add(job);
                 }
             }
             for(Job job : jobs) {

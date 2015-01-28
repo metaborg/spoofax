@@ -32,10 +32,9 @@ public class Processor {
     private final ICategorizerService<IStrategoTerm, IStrategoTerm> categorizerService;
     private final IStylerService<IStrategoTerm, IStrategoTerm> stylerService;
 
-    private final IJobManager jobManager;
+    private final GlobalMutexes mutexes;
 
-    private final MutexRule startupMutex = new MutexRule();
-    private final MutexRule languageServiceMutex = new MutexRule();
+    private final IJobManager jobManager;
 
 
     @Inject public Processor(IEclipseResourceService resourceService,
@@ -44,7 +43,7 @@ public class Processor {
         ISyntaxService<IStrategoTerm> syntaxService,
         IAnalysisService<IStrategoTerm, IStrategoTerm> analysisService,
         ICategorizerService<IStrategoTerm, IStrategoTerm> categorizerService,
-        IStylerService<IStrategoTerm, IStrategoTerm> stylerService) {
+        IStylerService<IStrategoTerm, IStrategoTerm> stylerService, GlobalMutexes mutexes) {
         this.resourceService = resourceService;
         this.languageService = languageService;
         this.languageIdentifierService = languageIdentifierService;
@@ -53,6 +52,8 @@ public class Processor {
         this.analysisService = analysisService;
         this.categorizerService = categorizerService;
         this.stylerService = stylerService;
+        
+        this.mutexes = mutexes;
 
         this.jobManager = Job.getJobManager();
     }
@@ -64,8 +65,8 @@ public class Processor {
      */
     public void startup() {
         final Job job =
-            new StartupJob(resourceService, languageDiscoveryService, jobManager, startupMutex,
-                languageServiceMutex);
+            new StartupJob(resourceService, languageDiscoveryService, jobManager,
+                mutexes.startupMutex, mutexes.languageServiceMutex);
         job.schedule();
     }
 
@@ -180,7 +181,7 @@ public class Processor {
         final Job job =
             new EditorUpdateJob(resourceService, languageIdentifierService, syntaxService,
                 analysisService, categorizerService, stylerService, input, viewer, text);
-        job.setRule(startupMutex);
+        job.setRule(mutexes.startupMutex);
         job.schedule();
     }
 

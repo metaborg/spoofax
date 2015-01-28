@@ -4,6 +4,7 @@ import org.apache.commons.vfs2.FileSystemManager;
 import org.metaborg.spoofax.core.SpoofaxModule;
 import org.metaborg.spoofax.core.resource.ILocalFileProvider;
 import org.metaborg.spoofax.core.resource.IResourceService;
+import org.metaborg.spoofax.eclipse.processing.GlobalMutexes;
 import org.metaborg.spoofax.eclipse.processing.Processor;
 import org.metaborg.spoofax.eclipse.resource.EclipseFileSystemManagerProvider;
 import org.metaborg.spoofax.eclipse.resource.EclipseLocalFileProvider;
@@ -47,6 +48,7 @@ public class SpoofaxEclipseModule extends SpoofaxModule {
     }
 
     @Override protected void bindOther() {
+        bind(GlobalMutexes.class).asEagerSingleton();
         bind(Processor.class).asEagerSingleton();
 
         // Use analysis-cmd to prevent Stratego analysis to schedule on a background thread.

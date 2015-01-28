@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.eclipse.processing;
+package org.metaborg.spoofax.eclipse.language;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.logging.log4j.LogManager;
@@ -9,15 +9,16 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.metaborg.spoofax.core.language.ILanguageDiscoveryService;
 import org.metaborg.spoofax.eclipse.util.SpoofaxStatus;
 
-public class LanguageLoadJob extends Job {
-    private static final Logger logger = LogManager.getLogger(LanguageLoadJob.class);
+public class LoadLanguageJob extends Job {
+    private static final Logger logger = LogManager.getLogger(LoadLanguageJob.class);
 
     private final ILanguageDiscoveryService languageDiscoveryService;
     private final FileObject location;
 
-    
-    public LanguageLoadJob(ILanguageDiscoveryService languageDiscoveryService, FileObject location) {
+
+    public LoadLanguageJob(ILanguageDiscoveryService languageDiscoveryService, FileObject location) {
         super("Loading Spoofax language");
+
         this.languageDiscoveryService = languageDiscoveryService;
         this.location = location;
     }
