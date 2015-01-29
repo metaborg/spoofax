@@ -15,6 +15,15 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
     private static final String qualifiedId = "org.metaborg.spoofax.eclipse.builder";
 
 
+    /**
+     * Adds this builder to given project. Does nothing if builder has already been added to the
+     * project.
+     * 
+     * @param project
+     *            Project to add the builder to.
+     * @throws CoreException
+     *             when {@link IProject#getDescription} throws a CoreException.
+     */
     public static void addTo(IProject project) throws CoreException {
         final IProjectDescription projectDesc = project.getDescription();
         final ICommand[] builders = projectDesc.getBuildSpec();
@@ -27,6 +36,16 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
         }
     }
 
+    /**
+     * Removes this builder from given project. Does nothing if the builder has not been added to
+     * the project.
+     * 
+     * @param project
+     *            Project to remove the builder from.
+     * @throws CoreException
+     *             when {@link IProject#getDescription} or {@link IProject#setDescription} throws a
+     *             CoreException.
+     */
     public static void removeFrom(IProject project) throws CoreException {
         final IProjectDescription projectDesc = project.getDescription();
         final ICommand[] builders = projectDesc.getBuildSpec();

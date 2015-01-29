@@ -12,6 +12,15 @@ public class SpoofaxNature implements IProjectNature {
     private IProject project;
 
 
+    /**
+     * Adds this nature to given project. Does nothing if this nature has already been added to the
+     * project. Adding this nature also adds a {@link SpoofaxProjectBuilder} to the project.
+     * 
+     * @param project
+     *            Project to add the nature to.
+     * @throws CoreException
+     *             when {@link IProject#getDescription} throws a CoreException.
+     */
     public static void addTo(IProject project) throws CoreException {
         final IProjectDescription description = project.getDescription();
         final String[] natures = description.getNatureIds();
@@ -22,6 +31,17 @@ public class SpoofaxNature implements IProjectNature {
         }
     }
 
+    /**
+     * Removes this nature from given project. Does nothing if the nature has not been added to the
+     * project. Removing this nature also removes the {@link SpoofaxProjectBuilder} from the
+     * project.
+     * 
+     * @param project
+     *            Project to remove the nature from.
+     * @throws CoreException
+     *             when {@link IProject#getDescription} or {@link IProject#setDescription} throws a
+     *             CoreException.
+     */
     public static void removeFrom(IProject project) throws CoreException {
         final IProjectDescription description = project.getDescription();
         final String[] natures = description.getNatureIds();
