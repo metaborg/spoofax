@@ -7,7 +7,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.jobs.Job;
 import org.metaborg.spoofax.core.language.ILanguageDiscoveryService;
-import org.metaborg.spoofax.eclipse.util.SpoofaxStatus;
+import org.metaborg.spoofax.eclipse.util.StatusUtils;
 
 public class LoadLanguageJob extends Job {
     private static final Logger logger = LogManager.getLogger(LoadLanguageJob.class);
@@ -30,8 +30,8 @@ public class LoadLanguageJob extends Job {
         } catch(Exception e) {
             final String message = "Could not load language at location " + location;
             logger.error(message, e);
-            return SpoofaxStatus.error(message, e);
+            return StatusUtils.error(message, e);
         }
-        return SpoofaxStatus.success();
+        return StatusUtils.success();
     }
 }

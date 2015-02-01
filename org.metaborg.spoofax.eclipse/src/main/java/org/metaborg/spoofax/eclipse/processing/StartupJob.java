@@ -12,7 +12,7 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.metaborg.spoofax.core.language.ILanguageDiscoveryService;
 import org.metaborg.spoofax.eclipse.language.LoadLanguageJob;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
-import org.metaborg.spoofax.eclipse.util.SpoofaxStatus;
+import org.metaborg.spoofax.eclipse.util.StatusUtils;
 
 import com.google.common.collect.Lists;
 
@@ -61,6 +61,6 @@ public class StartupJob extends Job {
         } finally {
             jobManager.endRule(startupMutex);
         }
-        return SpoofaxStatus.success();
+        return StatusUtils.success();
     }
 }

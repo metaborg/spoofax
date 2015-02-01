@@ -3,7 +3,7 @@ package org.metaborg.spoofax.eclipse.util;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
-public class SpoofaxStatus {
+public final class StatusUtils {
     public static IStatus success() {
         return new Status(IStatus.OK, "org.metaborg.spoofax.eclipse", IStatus.OK, "", null);
     }

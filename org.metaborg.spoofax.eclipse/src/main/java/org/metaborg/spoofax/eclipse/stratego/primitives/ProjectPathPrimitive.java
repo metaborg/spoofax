@@ -25,8 +25,7 @@ public class ProjectPathPrimitive extends AbstractPrimitive {
     }
 
 
-    @Override public boolean call(IContext env, Strategy[] svars, IStrategoTerm[] tvars)
-        throws InterpreterException {
+    @Override public boolean call(IContext env, Strategy[] svars, IStrategoTerm[] tvars) throws InterpreterException {
         final ITermFactory factory = env.getFactory();
         final SpoofaxContext context = (SpoofaxContext) env.contextObject();
         final FileObject resource = context.location();

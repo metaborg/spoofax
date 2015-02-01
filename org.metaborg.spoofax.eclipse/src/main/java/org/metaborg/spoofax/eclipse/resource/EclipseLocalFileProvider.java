@@ -7,17 +7,25 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
 import org.metaborg.spoofax.core.resource.ILocalFileProvider;
 
+import com.google.inject.Inject;
+
 public class EclipseLocalFileProvider implements ILocalFileProvider {
     public static final String scheme = "eclipse";
 
-    @Override public File localFile(FileObject fileObject) {
-        final EclipseResourceFileObject eclipseFileObject = (EclipseResourceFileObject) fileObject;
+    public final IEclipseResourceService resourceService;
 
+
+    @Inject public EclipseLocalFileProvider(IEclipseResourceService resourceService) {
+        this.resourceService = resourceService;
+    }
+
+
+    @Override public File localFile(FileObject resource) {
         try {
-            final IResource resource = eclipseFileObject.resource();
-            IPath path = resource.getRawLocation();
+            final IResource eclipseResource = resourceService.unresolve(resource);
+            IPath path = eclipseResource.getRawLocation();
             if(path == null) {
-                path = resource.getLocation();
+                path = eclipseResource.getLocation();
             }
             if(path == null) {
                 return null;

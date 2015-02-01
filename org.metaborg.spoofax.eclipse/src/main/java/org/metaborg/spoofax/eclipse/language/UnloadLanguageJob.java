@@ -8,7 +8,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.jobs.Job;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageService;
-import org.metaborg.spoofax.eclipse.util.SpoofaxStatus;
+import org.metaborg.spoofax.eclipse.util.StatusUtils;
 
 public class UnloadLanguageJob extends Job {
     private static final Logger logger = LogManager.getLogger(ReloadLanguageJob.class);
@@ -33,8 +33,8 @@ public class UnloadLanguageJob extends Job {
             final String message =
                 "Failed to unload language at location" + location + " because it does not exist";
             logger.error(message);
-            return SpoofaxStatus.error(message);
+            return StatusUtils.error(message);
         }
-        return SpoofaxStatus.success();
+        return StatusUtils.success();
     }
 }

@@ -9,7 +9,7 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageDiscoveryService;
 import org.metaborg.spoofax.core.language.ILanguageService;
-import org.metaborg.spoofax.eclipse.util.SpoofaxStatus;
+import org.metaborg.spoofax.eclipse.util.StatusUtils;
 
 public class ReloadLanguageJob extends Job {
     private static final Logger logger = LogManager.getLogger(ReloadLanguageJob.class);
@@ -38,14 +38,14 @@ public class ReloadLanguageJob extends Job {
             } catch(Exception e) {
                 final String message = "Could not load language at location " + location;
                 logger.error(message, e);
-                return SpoofaxStatus.error(message, e);
+                return StatusUtils.error(message, e);
             }
         } else {
             final String message =
                 "Failed to unload language at location" + location + " because it does not exist";
             logger.error(message);
-            return SpoofaxStatus.error(message);
+            return StatusUtils.error(message);
         }
-        return SpoofaxStatus.success();
+        return StatusUtils.success();
     }
 }
