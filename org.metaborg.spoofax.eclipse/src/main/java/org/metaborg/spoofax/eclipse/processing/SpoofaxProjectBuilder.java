@@ -12,7 +12,6 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.core.resources.ICommand;
-import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
@@ -61,7 +60,7 @@ import com.google.inject.TypeLiteral;
 
 public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
     private static final Logger logger = LogManager.getLogger(Processor.class);
-    private static final String qualifiedId = "org.metaborg.spoofax.eclipse.builder";
+    private static final String qualifiedId = SpoofaxPlugin.id + ".builder";
 
     private final IEclipseResourceService resourceService;
     private final ILanguageIdentifierService languageIdentifier;
@@ -152,11 +151,17 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
     }
 
     @Override protected void clean(IProgressMonitor monitor) throws CoreException {
-
+        clean(getProject(), monitor);
     }
 
-    private void clean(IProject project, IProgressMonitor monitor) throws CoreException {
-        // GTODO: clean project
+    private void clean(final IProject project, IProgressMonitor monitor) throws CoreException {
+        final IWorkspaceRunnable markerDeleter = new IWorkspaceRunnable() {
+            @Override public void run(IProgressMonitor monitor) throws CoreException {
+                MarkerUtils.clearAllRec(project);
+            }
+        };
+        final IWorkspace workspace = ResourcesPlugin.getWorkspace();
+        workspace.run(markerDeleter, project, IWorkspace.AVOID_UPDATE, monitor);
     }
 
     private void fullBuild(IProject project, IProgressMonitor monitor) throws CoreException {
@@ -164,7 +169,7 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
             final Iterable<IResourceChange> changes = changes(project);
             build(project, changes);
         } catch(FileSystemException e) {
-            throw new CoreException(StatusUtils.error("Cannot retrieve ", e));
+            throw new CoreException(StatusUtils.error("Cannot retrieve resources for full build", e));
         }
     }
 
@@ -244,9 +249,9 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
         // Update markers
         final IWorkspaceRunnable markerUpdater = new IWorkspaceRunnable() {
             @Override public void run(IProgressMonitor monitor) throws CoreException {
-                project.deleteMarkers(IMarker.MARKER, true, IResource.DEPTH_ZERO);
+                MarkerUtils.clearAll(project);
                 for(IResource resource : changedResources) {
-                    resource.deleteMarkers(IMarker.MARKER, true, IResource.DEPTH_ZERO);
+                    MarkerUtils.clearAll(resource);
                 }
 
                 for(ParseResult<IStrategoTerm> result : allParseResults.values()) {

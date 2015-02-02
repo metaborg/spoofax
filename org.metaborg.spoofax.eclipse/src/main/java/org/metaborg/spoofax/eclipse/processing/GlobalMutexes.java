@@ -8,7 +8,7 @@ public class GlobalMutexes {
 
 
     @Inject public GlobalMutexes() {
-        this.startupMutex = new MutexRule();
-        this.languageServiceMutex = new MutexRule();
+        this.startupMutex = new MutexRule("Startup");
+        this.languageServiceMutex = new MutexRule("Language service");
     }
 }

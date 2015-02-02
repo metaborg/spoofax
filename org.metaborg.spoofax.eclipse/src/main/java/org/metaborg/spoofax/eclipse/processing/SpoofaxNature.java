@@ -5,9 +5,10 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.runtime.CoreException;
+import org.metaborg.spoofax.eclipse.SpoofaxPlugin;
 
 public class SpoofaxNature implements IProjectNature {
-    public static final String qualifiedId = "org.metaborg.spoofax.eclipse.nature";
+    public static final String qualifiedId = SpoofaxPlugin.id + ".nature";
 
     private IProject project;
 

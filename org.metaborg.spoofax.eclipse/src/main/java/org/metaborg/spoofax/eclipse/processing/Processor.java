@@ -4,9 +4,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.jobs.IJobManager;
+import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.core.runtime.jobs.MultiRule;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IFileEditorInput;
 import org.metaborg.spoofax.core.analysis.IAnalysisService;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageDiscoveryService;
@@ -37,11 +40,9 @@ public class Processor {
     private final IJobManager jobManager;
 
 
-    @Inject public Processor(IEclipseResourceService resourceService,
-        ILanguageService languageService, ILanguageIdentifierService languageIdentifierService,
-        ILanguageDiscoveryService languageDiscoveryService,
-        ISyntaxService<IStrategoTerm> syntaxService,
-        IAnalysisService<IStrategoTerm, IStrategoTerm> analysisService,
+    @Inject public Processor(IEclipseResourceService resourceService, ILanguageService languageService,
+        ILanguageIdentifierService languageIdentifierService, ILanguageDiscoveryService languageDiscoveryService,
+        ISyntaxService<IStrategoTerm> syntaxService, IAnalysisService<IStrategoTerm, IStrategoTerm> analysisService,
         ICategorizerService<IStrategoTerm, IStrategoTerm> categorizerService,
         IStylerService<IStrategoTerm, IStrategoTerm> stylerService, GlobalMutexes mutexes) {
         this.resourceService = resourceService;
@@ -52,7 +53,7 @@ public class Processor {
         this.analysisService = analysisService;
         this.categorizerService = categorizerService;
         this.stylerService = stylerService;
-        
+
         this.mutexes = mutexes;
 
         this.jobManager = Job.getJobManager();
@@ -60,13 +61,12 @@ public class Processor {
 
 
     /**
-     * Notifies that the Spoofax plugin has been started. Schedules a job that loads all languages
-     * in open projects.
+     * Notifies that the Spoofax plugin has been started. Schedules a job that loads all languages in open projects.
      */
     public void startup() {
         final Job job =
-            new StartupJob(resourceService, languageDiscoveryService, jobManager,
-                mutexes.startupMutex, mutexes.languageServiceMutex);
+            new StartupJob(resourceService, languageDiscoveryService, jobManager, mutexes.startupMutex,
+                mutexes.languageServiceMutex);
         job.schedule();
     }
 
@@ -133,8 +133,8 @@ public class Processor {
     }
 
     /**
-     * Notifies that the text in a Spoofax editor has been changed. Cancels existing update jobs for
-     * that editor, and schedules a new update job.
+     * Notifies that the text in a Spoofax editor has been changed. Cancels existing update jobs for that editor, and
+     * schedules a new update job.
      * 
      * @param input
      *            Input object of the editor.
@@ -158,8 +158,8 @@ public class Processor {
     }
 
     /**
-     * Notifies that the input object of a Spoofax editor has been changed. Cancels existing update
-     * jobs for the old input object, and schedules an update job for the new input object.
+     * Notifies that the input object of a Spoofax editor has been changed. Cancels existing update jobs for the old
+     * input object, and schedules an update job for the new input object.
      * 
      * @param oldInput
      *            Old input object of the editor.
@@ -170,18 +170,18 @@ public class Processor {
      * @param text
      *            Input text of the editor.
      */
-    public void editorInputChange(IEditorInput oldInput, IEditorInput newInput,
-        ISourceViewer viewer, String text) {
+    public void editorInputChange(IEditorInput oldInput, IEditorInput newInput, ISourceViewer viewer, String text) {
         cancelUpdateJobs(oldInput);
         processEditor(newInput, viewer, text);
     }
 
     private void processEditor(IEditorInput input, ISourceViewer viewer, String text) {
         cancelUpdateJobs(input);
+        final IFileEditorInput fileInput = (IFileEditorInput) input;
         final Job job =
-            new EditorUpdateJob(resourceService, languageIdentifierService, syntaxService,
-                analysisService, categorizerService, stylerService, input, viewer, text);
-        job.setRule(mutexes.startupMutex);
+            new EditorUpdateJob(resourceService, languageIdentifierService, syntaxService, analysisService,
+                categorizerService, stylerService, fileInput, viewer, text);
+        job.setRule(new MultiRule(new ISchedulingRule[] { mutexes.startupMutex, fileInput.getFile() }));
         job.schedule();
     }
 
