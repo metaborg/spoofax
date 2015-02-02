@@ -93,7 +93,7 @@ public final class MarkerUtils {
         final String postfix;
         switch(severity) {
             case NOTE:
-                postfix = errorPostfix;
+                postfix = infoPostfix;
                 break;
             case WARNING:
                 postfix = warningPostfix;
