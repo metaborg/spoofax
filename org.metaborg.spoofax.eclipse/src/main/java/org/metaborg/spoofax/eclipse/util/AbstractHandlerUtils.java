@@ -6,7 +6,7 @@ import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.handlers.HandlerUtil;
 
-public class AbstractHandlerUtils {
+public final class AbstractHandlerUtils {
     public static IProject getProjectFromSelected(ExecutionEvent event) {
         final IStructuredSelection selection = (IStructuredSelection) HandlerUtil.getCurrentSelection(event);
         final Object selected = selection.getFirstElement();

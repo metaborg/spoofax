@@ -5,38 +5,286 @@
   <extension
     point="org.eclipse.ui.editors">
     <editor
-      id="org.metaborg.spoofax.eclipse.editor.SpoofaxEditor"
+      id="editor"
       name="Spoofax 2 Editor"
       icon="icons/sample.gif"
       contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
       class="org.metaborg.spoofax.eclipse.editor.SpoofaxEditor"
-    >
-    </editor>
-  </extension>
-
-
-  <!-- Language loading commands -->
-  <extension point="org.eclipse.ui.commands">
-    <command 
-      id="org.metaborg.spoofax.eclipse.language.LoadLanguageCommand" 
-      name="Load language"
-    >
-    </command>
+    />
   </extension>
   
-  <extension point="org.eclipse.ui.handlers">
-    <handler 
-      class="org.metaborg.spoofax.eclipse.language.LoadLanguageHandler" 
-      commandId="org.metaborg.spoofax.eclipse.language.LoadLanguageCommand"
+  
+  <!-- Nature, builder, and support commands -->
+  <extension
+    id="nature"
+    name="Spoofax nature"
+    point="org.eclipse.core.resources.natures"
+  >
+    <runtime>
+      <run class="org.metaborg.spoofax.eclipse.processing.SpoofaxNature"/>
+    </runtime>
+    <builder id="org.metaborg.spoofax.eclipse.builder" />
+  </extension>
+  <extension
+    id="builder"
+    name="Spoofax builder"
+    point="org.eclipse.core.resources.builders"
+  >
+    <builder
+      callOnEmptyDelta="false"
+      hasNature="true"
+      isConfigurable="false"
+      supportsConfigurations="false"
     >
-    </handler>
+      <run class="org.metaborg.spoofax.eclipse.processing.SpoofaxProjectBuilder"/>
+    </builder>
+  </extension>
+  <extension point="org.eclipse.ui.commands">
+    <command id="add-nature" name="Add Spoofax nature"/>
+    <command id="remove-nature" name="Remove Spoofax nature"/>
+  </extension>  
+   <extension point="org.eclipse.ui.handlers">
+    <handler commandId="add-nature" class="org.metaborg.spoofax.eclipse.processing.AddNatureHandler" />
+    <handler commandId="remove-nature" class="org.metaborg.spoofax.eclipse.processing.RemoveNatureHandler" />
+  </extension>
+  
+  
+  <!-- Markers -->
+  <extension
+    id="org.metaborg.spoofax.eclipse.marker"
+    point="org.eclipse.core.resources.markers"
+  >
+    <super type="org.eclipse.core.resources.textmarker" />
+    <persistent value="true" />
+  </extension>
+  <!-- Parser markers -->
+  <extension
+    id="org.metaborg.spoofax.eclipse.marker.parser"
+    point="org.eclipse.core.resources.markers"
+    name="Spoofax parser marker"
+  >
+    <super type="org.metaborg.spoofax.eclipse.marker"/>
+    <super type="org.eclipse.core.resources.problemmarker"/>
+  </extension>  
+  <extension
+    id="org.metaborg.spoofax.eclipse.marker.parser.info"
+    point="org.eclipse.core.resources.markers"
+    name="Spoofax parser info marker"
+  >
+    <super type="org.metaborg.spoofax.eclipse.marker.parser"/>
+  </extension>
+  <extension
+    id="org.metaborg.spoofax.eclipse.marker.parser.warning"
+    point="org.eclipse.core.resources.markers"
+    name="Spoofax parser warning marker"
+  >
+    <super type="org.metaborg.spoofax.eclipse.marker.parser"/>
+  </extension>
+  <extension
+    id="org.metaborg.spoofax.eclipse.marker.parser.error"
+    point="org.eclipse.core.resources.markers"
+    name="Spoofax parser error marker"
+  >
+    <super type="org.metaborg.spoofax.eclipse.marker.parser"/>
+  </extension>
+  <extension
+    point="org.eclipse.ui.editors.annotationTypes"
+  >
+    <type
+      markerType="org.metaborg.spoofax.eclipse.marker.parser.info"
+      super="org.eclipse.ui.workbench.texteditor.info"
+      markerSeverity="0"
+      name="Spoofax parser info annotation"
+    />
+    <type
+      markerType="org.metaborg.spoofax.eclipse.marker.parser.warning"
+      super="org.eclipse.ui.workbench.texteditor.warning"
+      markerSeverity="1"
+      name="Spoofax parser warning annotation"
+    />
+    <type
+      markerType="org.metaborg.spoofax.eclipse.marker.parser.error"
+      super="org.eclipse.ui.workbench.texteditor.error"
+      markerSeverity="2"
+      name="Spoofax parser error annotation"
+    />
+  </extension>
+  <!-- Parser markers -->
+  <extension
+    id="org.metaborg.spoofax.eclipse.marker.parser"
+    point="org.eclipse.core.resources.markers"
+    name="Spoofax parser marker"
+  >
+    <super type="org.metaborg.spoofax.eclipse.marker"/>
+    <super type="org.eclipse.core.resources.problemmarker"/>
+  </extension>  
+  <extension
+    id="org.metaborg.spoofax.eclipse.marker.parser.info"
+    point="org.eclipse.core.resources.markers"
+    name="Spoofax parser info marker"
+  >
+    <super type="org.metaborg.spoofax.eclipse.marker.parser"/>
+  </extension>
+  <extension
+    id="org.metaborg.spoofax.eclipse.marker.parser.warning"
+    point="org.eclipse.core.resources.markers"
+    name="Spoofax parser warning marker"
+  >
+    <super type="org.metaborg.spoofax.eclipse.marker.parser"/>
+  </extension>
+  <extension
+    id="org.metaborg.spoofax.eclipse.marker.parser.error"
+    point="org.eclipse.core.resources.markers"
+    name="Spoofax parser error marker"
+  >
+    <super type="org.metaborg.spoofax.eclipse.marker.parser"/>
+  </extension>
+  <extension
+    point="org.eclipse.ui.editors.annotationTypes"
+  >
+    <type
+      markerType="org.metaborg.spoofax.eclipse.marker.parser.info"
+      super="org.eclipse.ui.workbench.texteditor.info"
+      markerSeverity="0"
+      name="Spoofax parser info annotation"
+    />
+    <type
+      markerType="org.metaborg.spoofax.eclipse.marker.parser.warning"
+      super="org.eclipse.ui.workbench.texteditor.warning"
+      markerSeverity="1"
+      name="Spoofax parser warning annotation"
+    />
+    <type
+      markerType="org.metaborg.spoofax.eclipse.marker.parser.error"
+      super="org.eclipse.ui.workbench.texteditor.error"
+      markerSeverity="2"
+      name="Spoofax parser error annotation"
+    />
+  </extension>
+  <!-- Analysis markers -->
+  <extension
+    id="org.metaborg.spoofax.eclipse.marker.analysis"
+    point="org.eclipse.core.resources.markers"
+    name="Spoofax analysis marker"
+  >
+    <super type="org.metaborg.spoofax.eclipse.marker"/>
+    <super type="org.eclipse.core.resources.problemmarker"/>
+  </extension>  
+  <extension
+    id="org.metaborg.spoofax.eclipse.marker.analysis.info"
+    point="org.eclipse.core.resources.markers"
+    name="Spoofax analysis info marker"
+  >
+    <super type="org.metaborg.spoofax.eclipse.marker.analysis"/>
+  </extension>
+  <extension
+    id="org.metaborg.spoofax.eclipse.marker.analysis.warning"
+    point="org.eclipse.core.resources.markers"
+    name="Spoofax analysis warning marker"
+  >
+    <super type="org.metaborg.spoofax.eclipse.marker.analysis"/>
+  </extension>
+  <extension
+    id="org.metaborg.spoofax.eclipse.marker.analysis.error"
+    point="org.eclipse.core.resources.markers"
+    name="Spoofax analysis error marker"
+  >
+    <super type="org.metaborg.spoofax.eclipse.marker.analysis"/>
+  </extension>
+  <extension
+    point="org.eclipse.ui.editors.annotationTypes"
+  >
+    <type
+      markerType="org.metaborg.spoofax.eclipse.marker.analysis.info"
+      super="org.eclipse.ui.workbench.texteditor.info"
+      markerSeverity="0"
+      name="Spoofax analysis info annotation"
+    />
+    <type
+      markerType="org.metaborg.spoofax.eclipse.marker.analysis.warning"
+      super="org.eclipse.ui.workbench.texteditor.warning"
+      markerSeverity="1"
+      name="Spoofax analysis warning annotation"
+    />
+    <type
+      markerType="org.metaborg.spoofax.eclipse.marker.analysis.error"
+      super="org.eclipse.ui.workbench.texteditor.error"
+      markerSeverity="2"
+      name="Spoofax analysis error annotation"
+    />
+  </extension>   
+  <!-- Transformation markers -->
+  <extension
+    id="org.metaborg.spoofax.eclipse.marker.transformation"
+    point="org.eclipse.core.resources.markers"
+    name="Spoofax transformation marker"
+  >
+    <super type="org.metaborg.spoofax.eclipse.marker"/>
+    <super type="org.eclipse.core.resources.problemmarker"/>
+  </extension>  
+  <extension
+    id="org.metaborg.spoofax.eclipse.marker.transformation.info"
+    point="org.eclipse.core.resources.markers"
+    name="Spoofax transformation info marker"
+  >
+    <super type="org.metaborg.spoofax.eclipse.marker.transformation"/>
+  </extension>
+  <extension
+    id="org.metaborg.spoofax.eclipse.marker.transformation.warning"
+    point="org.eclipse.core.resources.markers"
+    name="Spoofax transformation warning marker"
+  >
+    <super type="org.metaborg.spoofax.eclipse.marker.transformation"/>
+  </extension>
+  <extension
+    id="org.metaborg.spoofax.eclipse.marker.transformation.error"
+    point="org.eclipse.core.resources.markers"
+    name="Spoofax transformation error marker"
+  >
+    <super type="org.metaborg.spoofax.eclipse.marker.transformation"/>
+  </extension>
+  <extension
+    point="org.eclipse.ui.editors.annotationTypes"
+  >
+    <type
+      markerType="org.metaborg.spoofax.eclipse.marker.transformation.info"
+      super="org.eclipse.ui.workbench.texteditor.info"
+      markerSeverity="0"
+      name="Spoofax transformation info annotation"
+    />
+    <type
+      markerType="org.metaborg.spoofax.eclipse.marker.transformation.warning"
+      super="org.eclipse.ui.workbench.texteditor.warning"
+      markerSeverity="1"
+      name="Spoofax transformation warning annotation"
+    />
+    <type
+      markerType="org.metaborg.spoofax.eclipse.marker.transformation.error"
+      super="org.eclipse.ui.workbench.texteditor.error"
+      markerSeverity="2"
+      name="Spoofax transformation error annotation"
+    />
+  </extension>
+
+
+  <!-- Language project commands -->
+  <extension point="org.eclipse.ui.commands">
+    <command id="load-language" name="Load language"/>
+    <command id="reload-language" name="Reload language"/>
+    <command id="unload-language" name="Unload language"/>
+  </extension>  
+  <extension point="org.eclipse.ui.handlers">
+    <handler commandId="load-language" class="org.metaborg.spoofax.eclipse.language.LoadLanguageHandler" />
+    <handler commandId="reload-language" class="org.metaborg.spoofax.eclipse.language.ReloadLanguageHandler" />
+    <handler commandId="unload-language" class="org.metaborg.spoofax.eclipse.language.UnloadLanguageHandler" />
   </extension>
   
   
   <!-- Project context menu -->
   <extension point="org.eclipse.ui.menus">
+    <!-- Package Explorer -->
     <menuContribution locationURI="popup:org.eclipse.jdt.ui.PackageExplorer?after=additions">
-      <menu id="spoofax" label="Spoofax 2">
+      <menu id="project-context-menu" label="Spoofax 2">
         <visibleWhen>
           <iterate ifEmpty="false" operator="and">
             <or>
@@ -47,8 +295,10 @@
         </visibleWhen>
       </menu>
     </menuContribution>
+    
+    <!-- Project Explorer -->
     <menuContribution locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?after=additions">
-      <menu id="spoofax" label="Spoofax 2">
+      <menu id="project-context-menu" label="Spoofax 2">
         <visibleWhen>
           <iterate ifEmpty="false" operator="and">
             <or>
@@ -59,10 +309,15 @@
         </visibleWhen>
       </menu>
     </menuContribution>
-    <menuContribution locationURI="popup:spoofax?after=additions">
-      <command commandId="org.metaborg.spoofax.eclipse.language.LoadLanguageCommand">
-      </command>
+    
+    <!-- Commands -->
+    <menuContribution locationURI="popup:project-context-menu?after=additions">
+      <command commandId="load-language" />
+      <command commandId="reload-language" />
+      <command commandId="unload-language" />
+      <separator name="separator1" visible="true "/>
+      <command commandId="add-nature" />
+      <command commandId="remove-nature" />
     </menuContribution>
   </extension>
-  
 </plugin>

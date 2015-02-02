@@ -54,6 +54,10 @@ public class LanguageService implements ILanguageService {
         return nameToActiveLanguage.get(name);
     }
 
+    @Override public ILanguage get(FileName location) {
+        return locationToLanguage.get(location);
+    }
+
     @Override public ILanguage get(String name, LanguageVersion version, FileObject location) {
         final Set<ILanguage> languages = getLanguageSet(name);
         for(ILanguage language : languages) {
@@ -87,10 +91,6 @@ public class LanguageService implements ILanguageService {
         return matchedLanguages;
     }
 
-    @Override public ILanguage getAny() {
-        return Iterables.get(nameToActiveLanguage.values(), 0, null);
-    }
-
     @Override public Observable<LanguageChange> changes() {
         return languageChanges;
     }
@@ -102,12 +102,13 @@ public class LanguageService implements ILanguageService {
     private void load(ILanguage language, Set<ILanguage> existingLanguages) {
         try {
             if(!language.location().exists()) {
-                throw new IllegalStateException("Cannot load language, location " + language.location()
-                    + " does not exist.");
+                throw new IllegalStateException("Cannot load language, location "
+                    + language.location() + " does not exist.");
             }
         } catch(FileSystemException e) {
-            throw new IllegalStateException("Cannot load language, could not determine if location "
-                + language.location() + " exists: " + e.getMessage(), e);
+            throw new IllegalStateException(
+                "Cannot load language, could not determine if location " + language.location()
+                    + " exists: " + e.getMessage(), e);
         }
 
         final ILanguage existingLanguage = locationToLanguage.get(language.location().getName());
@@ -194,8 +195,9 @@ public class LanguageService implements ILanguageService {
             try {
                 factory.create(language);
             } catch(Exception e) {
-                logger.error("Cannot create language, creation of facets from factory " + factory.getClass()
-                    + " failed: " + e.getMessage(), e);
+                logger.error(
+                    "Cannot create language, creation of facets from factory " + factory.getClass()
+                        + " failed: " + e.getMessage(), e);
             }
         }
 
@@ -205,8 +207,8 @@ public class LanguageService implements ILanguageService {
     @Override public void destroy(ILanguage language) {
         final SortedSet<ILanguage> existingLanguages = getLanguageSet(language.name());
         if(existingLanguages.isEmpty()) {
-            throw new IllegalStateException("Cannot remove language, language with name " + language.name()
-                + " does not exist");
+            throw new IllegalStateException("Cannot remove language, language with name "
+                + language.name() + " does not exist");
         }
         tryDeactivate(language);
         unload(language, existingLanguages);
