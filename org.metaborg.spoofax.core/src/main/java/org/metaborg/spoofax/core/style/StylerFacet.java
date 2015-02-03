@@ -5,10 +5,10 @@ import java.util.Map;
 
 import javax.annotation.Nullable;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.metaborg.spoofax.core.language.ILanguageFacet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
@@ -16,7 +16,7 @@ import org.spoofax.interpreter.terms.IStrategoConstructor;
 import com.google.common.collect.Maps;
 
 public class StylerFacet implements ILanguageFacet {
-    private static final Logger logger = LogManager.getLogger(StylerFacet.class);
+    private static final Logger logger = LoggerFactory.getLogger(StylerFacet.class);
 
     private final Map<SortConsCategory, IStyle> sortConsToStyle = Maps.newHashMap();
     private final Map<String, IStyle> consToStyle = Maps.newHashMap();
@@ -90,12 +90,11 @@ public class StylerFacet implements ILanguageFacet {
                 final String name = Tools.asJavaString(styleTerm.getSubterm(0));
                 style = namedStyles.get(name);
                 if(style == null) {
-                    logger.warn("Cannot resolve style definition " + name + " in style definition "
-                        + styleDef);
+                    logger.error("Cannot resolve style definition " + name + " in style definition " + styleDef);
                     continue;
                 }
             } else {
-                logger.warn("Unhandled style " + styleCons + " in style definition " + styleDef);
+                logger.error("Unhandled style " + styleCons + " in style definition " + styleDef);
                 continue;
             }
 
@@ -113,11 +112,11 @@ public class StylerFacet implements ILanguageFacet {
                 final String name = Tools.asJavaString(styleTerm.getSubterm(0));
                 style = namedStyles.get(name);
                 if(style == null) {
-                    logger.warn("Cannot resolve style definition " + name + " in style rule " + styleRule);
+                    logger.error("Cannot resolve style definition " + name + " in style rule " + styleRule);
                     continue;
                 }
             } else {
-                logger.warn("Unhandled style " + styleCons + " in style rule " + styleRule);
+                logger.error("Unhandled style " + styleCons + " in style rule " + styleRule);
                 continue;
             }
 
@@ -138,7 +137,7 @@ public class StylerFacet implements ILanguageFacet {
                 final String token = tokenAppl.getConstructor().getName();
                 facet.mapTokenToStyle(token, style);
             } else {
-                logger.warn("Unhandled node " + nodeCons + " in style rule " + styleRule);
+                logger.error("Unhandled node " + nodeCons + " in style rule " + styleRule);
                 continue;
             }
         }

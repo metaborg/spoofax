@@ -10,13 +10,13 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.vfs2.FileObject;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.metaborg.spoofax.core.analysis.stratego.StrategoFacet;
 import org.metaborg.spoofax.core.context.IContext;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.resource.IResourceService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.library.IOperatorRegistry;
 import org.spoofax.interpreter.terms.ITermFactory;
@@ -29,7 +29,7 @@ import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 
 public class StrategoRuntimeService implements IStrategoRuntimeService {
-    private static final Logger logger = LogManager.getLogger(StrategoRuntimeService.class);
+    private static final Logger logger = LoggerFactory.getLogger(StrategoRuntimeService.class);
 
     private final IResourceService resourceService;
     private final ITermFactoryService termFactoryService;
@@ -38,8 +38,8 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
     private final Map<ILanguage, HybridInterpreter> prototypes = new HashMap<ILanguage, HybridInterpreter>();
 
 
-    @Inject public StrategoRuntimeService(IResourceService resourceService,
-        ITermFactoryService termFactoryService, Set<IOperatorRegistry> strategoLibraries) {
+    @Inject public StrategoRuntimeService(IResourceService resourceService, ITermFactoryService termFactoryService,
+        Set<IOperatorRegistry> strategoLibraries) {
         this.resourceService = resourceService;
         this.termFactoryService = termFactoryService;
         this.strategoLibraries = strategoLibraries;

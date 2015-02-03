@@ -1,0 +1,14 @@
+<configuration>
+  <appender
+    name="stdout"
+    class="ch.qos.logback.core.ConsoleAppender"
+  >
+    <encoder>
+      <pattern>%date{HH:mm:ss.SSS} %-12.12thread %-5level %-40.40logger{30} - %message%n</pattern>
+    </encoder>
+  </appender>
+
+  <root level="debug">
+    <appender-ref ref="stdout" />
+  </root>
+</configuration>

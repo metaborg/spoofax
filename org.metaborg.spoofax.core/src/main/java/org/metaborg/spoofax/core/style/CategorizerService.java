@@ -2,13 +2,13 @@ package org.metaborg.spoofax.core.style;
 
 import java.util.List;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.metaborg.spoofax.core.analysis.AnalysisFileResult;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.messages.ISourceRegion;
 import org.metaborg.spoofax.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.syntax.jsglr.JSGLRSourceRegionFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -20,7 +20,7 @@ import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
 public class CategorizerService implements ICategorizerService<IStrategoTerm, IStrategoTerm> {
-    private static final Logger logger = LogManager.getLogger(CategorizerService.class);
+    private static final Logger logger = LoggerFactory.getLogger(CategorizerService.class);
 
 
     @Inject public CategorizerService() {
@@ -33,8 +33,7 @@ public class CategorizerService implements ICategorizerService<IStrategoTerm, IS
         final StylerFacet facet = language.facet(StylerFacet.class);
         final List<IRegionCategory<IStrategoTerm>> regionCategories = Lists.newLinkedList();
 
-        final ImploderAttachment rootImploderAttachment =
-            ImploderAttachment.get(parseResult.result);
+        final ImploderAttachment rootImploderAttachment = ImploderAttachment.get(parseResult.result);
         final ITokenizer tokenzier = rootImploderAttachment.getLeftToken().getTokenizer();
         final int tokenCount = tokenzier.getTokenCount();
         for(int i = 0; i < tokenCount; ++i) {
@@ -105,6 +104,7 @@ public class CategorizerService implements ICategorizerService<IStrategoTerm, IS
             case IToken.TK_UNKNOWN:
                 return new TokenCategory("TK_UNKNOWN");
             default:
+                logger.debug("Unhandled token kind " + token.getKind());
                 return null;
         }
     }

@@ -28,7 +28,6 @@ import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.terms.TermFactoryService;
 import org.metaborg.spoofax.core.text.ISourceTextService;
 import org.metaborg.spoofax.core.text.SourceTextService;
-import org.metaborg.util.logging.Log4JTypeListener;
 import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.library.IOperatorRegistry;
 import org.spoofax.interpreter.library.index.legacy.LegacyIndexLibrary;
@@ -37,7 +36,6 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 import com.google.inject.TypeLiteral;
-import com.google.inject.matcher.Matchers;
 import com.google.inject.multibindings.MapBinder;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
@@ -60,11 +58,8 @@ public class SpoofaxModule extends AbstractModule {
 
     @Override protected void configure() {
         try {
-            bindListener(Matchers.any(), new Log4JTypeListener());
-
             bindResource();
-            bindLocalFileProviders(MapBinder.newMapBinder(binder(), String.class,
-                ILocalFileProvider.class));
+            bindLocalFileProviders(MapBinder.newMapBinder(binder(), String.class, ILocalFileProvider.class));
             bindLanguage();
             bindSyntax();
             bindSourceText();
@@ -73,8 +68,7 @@ public class SpoofaxModule extends AbstractModule {
             bindStyler();
             bindOther();
 
-            bind(ClassLoader.class).annotatedWith(Names.named("ResourceClassLoader")).toInstance(
-                resourceClassLoader);
+            bind(ClassLoader.class).annotatedWith(Names.named("ResourceClassLoader")).toInstance(resourceClassLoader);
         } catch(Exception e) {
             throw new RuntimeException(e);
         }
@@ -82,8 +76,7 @@ public class SpoofaxModule extends AbstractModule {
 
     protected void bindResource() {
         bind(IResourceService.class).to(ResourceService.class).in(Singleton.class);
-        bind(FileSystemManager.class).toProvider(DefaultFileSystemManagerProvider.class).in(
-            Singleton.class);
+        bind(FileSystemManager.class).toProvider(DefaultFileSystemManagerProvider.class).in(Singleton.class);
     }
 
     protected void bindLocalFileProviders(MapBinder<String, ILocalFileProvider> binder) {
@@ -92,18 +85,15 @@ public class SpoofaxModule extends AbstractModule {
 
     protected void bindLanguage() {
         bind(ILanguageService.class).to(LanguageService.class).in(Singleton.class);
-        bind(ILanguageDiscoveryService.class).to(LanguageDiscoveryService.class)
-            .in(Singleton.class);
-        bind(ILanguageIdentifierService.class).to(LanguageIdentifierService.class).in(
-            Singleton.class);
+        bind(ILanguageDiscoveryService.class).to(LanguageDiscoveryService.class).in(Singleton.class);
+        bind(ILanguageIdentifierService.class).to(LanguageIdentifierService.class).in(Singleton.class);
 
         @SuppressWarnings("unused") final Multibinder<ILanguageFacetFactory> facetFactoriesBinder =
             Multibinder.newSetBinder(binder(), ILanguageFacetFactory.class);
     }
 
     protected void bindSyntax() {
-        bind(new TypeLiteral<ISyntaxService<IStrategoTerm>>() {}).to(JSGLRParseService.class).in(
-            Singleton.class);
+        bind(new TypeLiteral<ISyntaxService<IStrategoTerm>>() {}).to(JSGLRParseService.class).in(Singleton.class);
         bind(ITermFactoryService.class).to(TermFactoryService.class).in(Singleton.class);
     }
 
@@ -112,8 +102,8 @@ public class SpoofaxModule extends AbstractModule {
     }
 
     protected void bindAnalysis() {
-        bind(new TypeLiteral<IAnalysisService<IStrategoTerm, IStrategoTerm>>() {}).to(
-            StrategoAnalysisService.class).in(Singleton.class);
+        bind(new TypeLiteral<IAnalysisService<IStrategoTerm, IStrategoTerm>>() {}).to(StrategoAnalysisService.class)
+            .in(Singleton.class);
         bind(IStrategoRuntimeService.class).to(StrategoRuntimeService.class).in(Singleton.class);
 
         final Multibinder<IOperatorRegistry> libraryBinder =
@@ -123,13 +113,13 @@ public class SpoofaxModule extends AbstractModule {
     }
 
     protected void bindCategorizer() {
-        bind(new TypeLiteral<ICategorizerService<IStrategoTerm, IStrategoTerm>>() {}).to(
-            CategorizerService.class).in(Singleton.class);
+        bind(new TypeLiteral<ICategorizerService<IStrategoTerm, IStrategoTerm>>() {}).to(CategorizerService.class).in(
+            Singleton.class);
     }
 
     protected void bindStyler() {
-        bind(new TypeLiteral<IStylerService<IStrategoTerm, IStrategoTerm>>() {}).to(
-            StylerService.class).in(Singleton.class);
+        bind(new TypeLiteral<IStylerService<IStrategoTerm, IStrategoTerm>>() {}).to(StylerService.class).in(
+            Singleton.class);
     }
 
 
@@ -138,8 +128,7 @@ public class SpoofaxModule extends AbstractModule {
     }
 
 
-    protected static void bindPrimitive(Multibinder<AbstractPrimitive> binder,
-        AbstractPrimitive primitive) {
+    protected static void bindPrimitive(Multibinder<AbstractPrimitive> binder, AbstractPrimitive primitive) {
         binder.addBinding().toInstance(primitive);
     }
 

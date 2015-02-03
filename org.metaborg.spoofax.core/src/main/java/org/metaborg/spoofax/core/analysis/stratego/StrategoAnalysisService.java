@@ -8,8 +8,6 @@ import java.util.LinkedList;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.metaborg.spoofax.core.SpoofaxException;
 import org.metaborg.spoofax.core.analysis.AnalysisDebugResult;
 import org.metaborg.spoofax.core.analysis.AnalysisFileResult;
@@ -28,6 +26,8 @@ import org.metaborg.spoofax.core.stratego.StrategoRuntimeUtils;
 import org.metaborg.spoofax.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.syntax.jsglr.JSGLRSourceRegionFactory;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.interpreter.terms.IStrategoAppl;
@@ -49,7 +49,7 @@ import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
 public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, IStrategoTerm> {
-    private static final Logger logger = LogManager.getLogger(StrategoAnalysisService.class);
+    private static final Logger logger = LoggerFactory.getLogger(StrategoAnalysisService.class);
 
     private final static String ANALYSIS_CRASHED_MSG = "Analysis failed";
 
@@ -93,7 +93,7 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
         }
 
         if(!(resultTerm instanceof IStrategoAppl)) {
-            logger.fatal("Unexpected results from analysis {}", resultTerm);
+            logger.error("Unexpected results from analysis {}", resultTerm);
             throw new SpoofaxException("Unexpected results from analysis: " + resultTerm);
         }
         logger.trace("Analysis resulted in a {} term", resultTerm.getSubtermCount());

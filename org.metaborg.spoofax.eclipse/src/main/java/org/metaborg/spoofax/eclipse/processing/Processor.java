@@ -1,7 +1,5 @@
 package org.metaborg.spoofax.eclipse.processing;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.jobs.IJobManager;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
@@ -14,7 +12,6 @@ import org.metaborg.spoofax.core.analysis.IAnalysisService;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageDiscoveryService;
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
-import org.metaborg.spoofax.core.language.ILanguageService;
 import org.metaborg.spoofax.core.style.ICategorizerService;
 import org.metaborg.spoofax.core.style.IStylerService;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
@@ -24,10 +21,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import com.google.inject.Inject;
 
 public class Processor {
-    private static final Logger logger = LogManager.getLogger(Processor.class);
-
     private final IEclipseResourceService resourceService;
-    private final ILanguageService languageService;
     private final ILanguageIdentifierService languageIdentifierService;
     private final ILanguageDiscoveryService languageDiscoveryService;
     private final ISyntaxService<IStrategoTerm> syntaxService;
@@ -40,13 +34,12 @@ public class Processor {
     private final IJobManager jobManager;
 
 
-    @Inject public Processor(IEclipseResourceService resourceService, ILanguageService languageService,
+    @Inject public Processor(IEclipseResourceService resourceService,
         ILanguageIdentifierService languageIdentifierService, ILanguageDiscoveryService languageDiscoveryService,
         ISyntaxService<IStrategoTerm> syntaxService, IAnalysisService<IStrategoTerm, IStrategoTerm> analysisService,
         ICategorizerService<IStrategoTerm, IStrategoTerm> categorizerService,
         IStylerService<IStrategoTerm, IStrategoTerm> stylerService, GlobalMutexes mutexes) {
         this.resourceService = resourceService;
-        this.languageService = languageService;
         this.languageIdentifierService = languageIdentifierService;
         this.languageDiscoveryService = languageDiscoveryService;
         this.syntaxService = syntaxService;

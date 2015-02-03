@@ -9,8 +9,6 @@ import java.util.Set;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
@@ -46,6 +44,8 @@ import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
 import org.metaborg.spoofax.eclipse.util.MarkerUtils;
 import org.metaborg.spoofax.eclipse.util.StatusUtils;
 import org.metaborg.util.iterators.Iterables2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
@@ -59,7 +59,7 @@ import com.google.inject.Key;
 import com.google.inject.TypeLiteral;
 
 public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
-    private static final Logger logger = LogManager.getLogger(Processor.class);
+    private static final Logger logger = LoggerFactory.getLogger(Processor.class);
     private static final String qualifiedId = SpoofaxPlugin.id + ".builder";
 
     private final IEclipseResourceService resourceService;
@@ -155,6 +155,7 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
     }
 
     private void clean(final IProject project, IProgressMonitor monitor) throws CoreException {
+        logger.info("Cleaning project " + project);
         final IWorkspaceRunnable markerDeleter = new IWorkspaceRunnable() {
             @Override public void run(IProgressMonitor monitor) throws CoreException {
                 MarkerUtils.clearAllRec(project);
@@ -165,6 +166,7 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
     }
 
     private void fullBuild(IProject project, IProgressMonitor monitor) throws CoreException {
+        logger.info("Fully building " + project);
         try {
             final Iterable<IResourceChange> changes = changes(project);
             build(project, changes);
@@ -174,6 +176,7 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
     }
 
     private void incrBuild(IProject project, IResourceDelta delta, IProgressMonitor monitor) throws CoreException {
+        logger.info("Incrementally building " + project);
         final Iterable<IResourceChange> changes = changes(delta);
         build(project, changes);
     }
@@ -258,7 +261,7 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
                     for(IMessage message : result.messages) {
                         final IResource resource = resourceService.unresolve(message.source());
                         if(resource == null) {
-                            logger.error("Cannot create marker on " + message.source());
+                            logger.error("Cannot create marker for " + message.source());
                             continue;
                         }
                         MarkerUtils.createMarker(resource, message);
@@ -270,7 +273,7 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
                         for(IMessage message : fileResult.messages()) {
                             final IResource resource = resourceService.unresolve(message.source());
                             if(resource == null) {
-                                logger.error("Cannot create marker on " + message.source());
+                                logger.error("Cannot create marker for " + message.source());
                                 continue;
                             }
                             MarkerUtils.createMarker(resource, message);

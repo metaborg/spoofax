@@ -9,8 +9,8 @@ import java.util.SortedSet;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.apache.logging.log4j.Logger;
-import org.metaborg.util.logging.InjectLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import rx.Observable;
 import rx.subjects.PublishSubject;
@@ -23,7 +23,8 @@ import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
 public class LanguageService implements ILanguageService {
-    @InjectLogger private Logger logger;
+    private static final Logger logger = LoggerFactory.getLogger(LanguageService.class);
+    
     private final Set<ILanguageFacetFactory> facetFactories;
 
     private final Map<String, SortedSet<ILanguage>> nameToLanguages = Maps.newHashMap();

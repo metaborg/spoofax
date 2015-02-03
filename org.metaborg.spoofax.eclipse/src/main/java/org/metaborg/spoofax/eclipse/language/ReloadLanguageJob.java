@@ -1,8 +1,6 @@
 package org.metaborg.spoofax.eclipse.language;
 
 import org.apache.commons.vfs2.FileObject;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.jobs.Job;
@@ -10,17 +8,19 @@ import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageDiscoveryService;
 import org.metaborg.spoofax.core.language.ILanguageService;
 import org.metaborg.spoofax.eclipse.util.StatusUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ReloadLanguageJob extends Job {
-    private static final Logger logger = LogManager.getLogger(ReloadLanguageJob.class);
+    private static final Logger logger = LoggerFactory.getLogger(ReloadLanguageJob.class);
 
     private final ILanguageService languageService;
     private final ILanguageDiscoveryService languageDiscoveryService;
     private final FileObject location;
 
 
-    public ReloadLanguageJob(ILanguageService languageService,
-        ILanguageDiscoveryService languageDiscoveryService, FileObject location) {
+    public ReloadLanguageJob(ILanguageService languageService, ILanguageDiscoveryService languageDiscoveryService,
+        FileObject location) {
         super("Reloading Spoofax language");
 
         this.languageService = languageService;
@@ -41,8 +41,7 @@ public class ReloadLanguageJob extends Job {
                 return StatusUtils.error(message, e);
             }
         } else {
-            final String message =
-                "Failed to unload language at location" + location + " because it does not exist";
+            final String message = "Failed to unload language at location" + location + " because it does not exist";
             logger.error(message);
             return StatusUtils.error(message);
         }

@@ -4,15 +4,15 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.metaborg.spoofax.core.language.ILanguage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.common.collect.Lists;
 
 public class StylerService implements IStylerService<IStrategoTerm, IStrategoTerm> {
-    private static final Logger logger = LogManager.getLogger(StylerService.class);
+    private static final Logger logger = LoggerFactory.getLogger(StylerService.class);
 
 
     @Override public Iterable<IRegionStyle<IStrategoTerm>> styleParsed(ILanguage language,
@@ -34,11 +34,11 @@ public class StylerService implements IStylerService<IStrategoTerm, IStrategoTer
         throw new UnsupportedOperationException();
     }
 
-    private @Nullable IRegionStyle<IStrategoTerm> style(StylerFacet facet,
-        IRegionCategory<IStrategoTerm> regionCategory) {
+    private @Nullable IRegionStyle<IStrategoTerm>
+        style(StylerFacet facet, IRegionCategory<IStrategoTerm> regionCategory) {
         final ICategory category = regionCategory.category();
-        // TODO: instanceof checks are nasty, but required since we do not have separate specifications
-        // for categories and styles, they are intertwined.
+        // GTODO: instanceof checks are nasty, but required since we do not have separate specifications for categories
+        // and styles, they are intertwined.
         final IStyle style;
         if(category instanceof SortConsCategory) {
             final SortConsCategory cat = (SortConsCategory) category;

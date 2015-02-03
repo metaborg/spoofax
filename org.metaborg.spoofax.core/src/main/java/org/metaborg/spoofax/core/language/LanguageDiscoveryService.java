@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.vfs2.FileObject;
-import org.apache.logging.log4j.Logger;
 import org.metaborg.spoofax.core.analysis.stratego.StrategoFacet;
 import org.metaborg.spoofax.core.service.actions.Action;
 import org.metaborg.spoofax.core.service.actions.ActionsFacet;
@@ -30,8 +29,9 @@ import org.metaborg.spoofax.core.style.StylerFacet;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.util.iterators.Iterables2;
-import org.metaborg.util.logging.InjectLogger;
 import org.metaborg.util.resource.ContainsFileSelector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.io.binary.TermReader;
@@ -43,7 +43,8 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 
 public class LanguageDiscoveryService implements ILanguageDiscoveryService {
-    @InjectLogger private Logger logger;
+    private static final Logger logger = LoggerFactory.getLogger(LanguageDiscoveryService.class);
+    
     private final ILanguageService languageService;
     private final ITermFactoryService termFactoryService;
     @Inject(optional = true) @Named("LanguageDiscoveryAnalysisOverride") private String analysisStrategyOverride;
