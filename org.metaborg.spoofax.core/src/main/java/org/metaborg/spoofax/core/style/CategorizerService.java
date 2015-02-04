@@ -91,12 +91,14 @@ public class CategorizerService implements ICategorizerService<IStrategoTerm, IS
                 return new TokenCategory("TK_NUMBER");
             case IToken.TK_STRING:
                 return new TokenCategory("TK_STRING");
+            case IToken.TK_ERROR_KEYWORD:
             case IToken.TK_KEYWORD:
                 return new TokenCategory("TK_KEYWORD");
             case IToken.TK_OPERATOR:
                 return new TokenCategory("TK_OPERATOR");
             case IToken.TK_VAR:
                 return new TokenCategory("TK_VAR");
+            case IToken.TK_ERROR_LAYOUT:
             case IToken.TK_LAYOUT:
                 return new TokenCategory("TK_LAYOUT");
             case IToken.TK_ERROR:
@@ -105,6 +107,11 @@ public class CategorizerService implements ICategorizerService<IStrategoTerm, IS
                 return new TokenCategory("TK_UNKNOWN");
             default:
                 logger.debug("Unhandled token kind " + token.getKind());
+            case IToken.TK_EOF:
+            case IToken.TK_ERROR_EOF_UNEXPECTED:
+            case IToken.TK_ESCAPE_OPERATOR:
+            case IToken.TK_RESERVED:
+            case IToken.TK_NO_TOKEN_KIND:
                 return null;
         }
     }
