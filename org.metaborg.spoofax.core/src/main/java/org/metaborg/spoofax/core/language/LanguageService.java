@@ -101,6 +101,8 @@ public class LanguageService implements ILanguageService {
     }
 
     private void load(ILanguage language, Set<ILanguage> existingLanguages) {
+        logger.debug("Loading {}", language);
+        
         try {
             if(!language.location().exists()) {
                 throw new IllegalStateException("Cannot load language, location "
@@ -124,12 +126,16 @@ public class LanguageService implements ILanguageService {
     }
 
     private void unload(ILanguage language, Set<ILanguage> existingLanguages) {
+        logger.debug("Unloading {}", language);
+        
         existingLanguages.remove(language);
         locationToLanguage.remove(language.location().getName());
         sendLanguageChange(language, LanguageChange.Kind.UNLOADED);
     }
 
     private void activate(ILanguage language) {
+        logger.debug("Activating {}", language);
+        
         nameToActiveLanguage.put(language.name(), language);
 
         sendLanguageChange(language, LanguageChange.Kind.ACTIVATED);
@@ -159,6 +165,8 @@ public class LanguageService implements ILanguageService {
     }
 
     private void deactivate(ILanguage language) {
+        logger.debug("Deactivating {}", language);
+        
         nameToActiveLanguage.remove(language.name());
 
         sendLanguageChange(language, LanguageChange.Kind.DEACTIVATED);
@@ -171,6 +179,8 @@ public class LanguageService implements ILanguageService {
     }
 
     @Override public ILanguage create(String name, LanguageVersion version, FileObject location) {
+        logger.debug("Creating language {}", name);
+        
         final ILanguage language = new Language(name, version, location, new Date());
         final SortedSet<ILanguage> existingLanguages = getLanguageSet(name);
         if(existingLanguages.isEmpty()) {
@@ -206,6 +216,8 @@ public class LanguageService implements ILanguageService {
     }
 
     @Override public void destroy(ILanguage language) {
+        logger.debug("Destroying {}", language);
+        
         final SortedSet<ILanguage> existingLanguages = getLanguageSet(language.name());
         if(existingLanguages.isEmpty()) {
             throw new IllegalStateException("Cannot remove language, language with name "

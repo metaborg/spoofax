@@ -155,7 +155,7 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
     }
 
     private void clean(final IProject project, IProgressMonitor monitor) throws CoreException {
-        logger.info("Cleaning project " + project);
+        logger.debug("Cleaning project " + project);
         final IWorkspaceRunnable markerDeleter = new IWorkspaceRunnable() {
             @Override public void run(IProgressMonitor monitor) throws CoreException {
                 MarkerUtils.clearAllRec(project);
@@ -166,7 +166,7 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
     }
 
     private void fullBuild(IProject project, IProgressMonitor monitor) throws CoreException {
-        logger.info("Fully building " + project);
+        logger.debug("Fully building " + project);
         try {
             final Iterable<IResourceChange> changes = changes(project);
             build(project, changes);
@@ -176,7 +176,7 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
     }
 
     private void incrBuild(IProject project, IResourceDelta delta, IProgressMonitor monitor) throws CoreException {
-        logger.info("Incrementally building " + project);
+        logger.debug("Incrementally building " + project);
         final Iterable<IResourceChange> changes = changes(delta);
         build(project, changes);
     }

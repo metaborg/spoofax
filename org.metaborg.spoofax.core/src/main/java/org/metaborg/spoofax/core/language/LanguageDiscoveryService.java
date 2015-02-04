@@ -81,6 +81,8 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         ImmutableSet<FileObject> ctreeFiles, ImmutableSet<FileObject> jarFiles,
         String analysisStrategy, String onSaveStrategy, String resolverStrategy,
         String hoverStrategy, String completionStrategy, Map<String, Action> actions) {
+        logger.debug("Creating language {} from custom parameters", name);
+        
         final ILanguage language = languageService.create(name, version, location);
 
         final IdentificationFacet identificationFacet =
@@ -105,6 +107,8 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
     private ILanguage languageFromESV(FileObject location, FileObject esvFile,
         LanguageVersion version) throws Exception {
+        logger.debug("Discovering language at {}", location);
+        
         final TermReader reader =
             new TermReader(termFactoryService.getGeneric().getFactoryWithStorageType(
                 IStrategoTerm.MUTABLE));

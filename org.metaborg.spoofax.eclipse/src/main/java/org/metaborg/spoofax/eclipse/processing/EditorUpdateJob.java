@@ -34,9 +34,13 @@ import org.metaborg.spoofax.eclipse.util.ResourceUtils;
 import org.metaborg.spoofax.eclipse.util.StatusUtils;
 import org.metaborg.spoofax.eclipse.util.StyleUtils;
 import org.metaborg.util.iterators.Iterables2;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 public class EditorUpdateJob extends Job {
+    private static final Logger logger = LoggerFactory.getLogger(EditorUpdateJob.class);
+    
     private final IEclipseResourceService resourceService;
     private final ILanguageIdentifierService languageIdentifier;
     private final ISyntaxService<IStrategoTerm> syntaxService;
@@ -73,6 +77,8 @@ public class EditorUpdateJob extends Job {
     }
 
     @Override protected IStatus run(final IProgressMonitor monitor) {
+        logger.debug("Running editor update job for {}", input.getFile());
+        
         try {
             return update(monitor);
         } catch(IOException | CoreException e) {

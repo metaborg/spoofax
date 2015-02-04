@@ -13,10 +13,14 @@ import org.metaborg.spoofax.core.language.ILanguageDiscoveryService;
 import org.metaborg.spoofax.eclipse.language.LoadLanguageJob;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
 import org.metaborg.spoofax.eclipse.util.StatusUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
 
 public class StartupJob extends Job {
+    private static final Logger logger = LoggerFactory.getLogger(EditorUpdateJob.class);
+    
     private final IEclipseResourceService resourceService;
     private final ILanguageDiscoveryService languageDiscoveryService;
     private final IJobManager jobManager;
@@ -37,6 +41,8 @@ public class StartupJob extends Job {
 
 
     @Override protected IStatus run(IProgressMonitor monitor) {
+        logger.debug("Running startup job");
+        
         try {
             // Enable startup mutex to defer execution of all other jobs, until all languages are
             // loaded.

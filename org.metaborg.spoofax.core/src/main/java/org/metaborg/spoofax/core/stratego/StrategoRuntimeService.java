@@ -82,8 +82,10 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
     }
 
 
-    private HybridInterpreter createPrototypeRuntime(ILanguage lang) {
-        final ITermFactory factory = new ImploderOriginTermFactory(termFactoryService.get(lang));
+    private HybridInterpreter createPrototypeRuntime(ILanguage language) {
+        logger.debug("Creating prototype runtime for {}", language);
+        
+        final ITermFactory factory = new ImploderOriginTermFactory(termFactoryService.get(language));
         final HybridInterpreter interpreter = new HybridInterpreter(factory);
 
         interpreter.getCompiledContext().registerComponent("stratego_lib");
@@ -93,9 +95,9 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
             interpreter.getCompiledContext().addOperatorRegistry(library);
         }
 
-        loadCompilerFiles(interpreter, lang);
+        loadCompilerFiles(interpreter, language);
 
-        prototypes.put(lang, interpreter);
+        prototypes.put(language, interpreter);
 
         return interpreter;
     }
