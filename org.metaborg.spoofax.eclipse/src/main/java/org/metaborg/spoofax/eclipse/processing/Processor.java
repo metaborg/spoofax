@@ -175,6 +175,7 @@ public class Processor {
             new EditorUpdateJob(resourceService, languageIdentifierService, syntaxService, analysisService,
                 categorizerService, stylerService, fileInput, viewer, text);
         job.setRule(new MultiRule(new ISchedulingRule[] { mutexes.startupMutex, fileInput.getFile() }));
+        job.setSystem(true);
         job.schedule();
     }
 
