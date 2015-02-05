@@ -38,7 +38,9 @@ public class LanguageServiceTest extends SpoofaxTest {
     }
 
     private ILanguage language(String name, LanguageVersion version, FileObject location) {
-        return languageService.create(name, version, location);
+        final ILanguage language = languageService.create(name, version, location);
+        languageService.add(language);
+        return language;
     }
 
     private ILanguage language(String name, LanguageVersion version, FileObject location,
