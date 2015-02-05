@@ -8,11 +8,11 @@ import rx.functions.Func1;
 
 import com.google.common.collect.Sets;
 
-public class ExtensionsIdentifier implements Func1<FileObject, Boolean> {
+public class ResourceExtensionsIdentifier implements Func1<FileObject, Boolean> {
     private Set<String> extensions;
 
 
-    public ExtensionsIdentifier(Iterable<String> extensions) {
+    public ResourceExtensionsIdentifier(Iterable<String> extensions) {
         this.extensions = Sets.newHashSet(extensions);
     }
 

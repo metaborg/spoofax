@@ -13,6 +13,8 @@ import org.metaborg.spoofax.eclipse.SpoofaxPlugin;
 import org.metaborg.spoofax.eclipse.processing.Processor;
 
 public class SpoofaxEditor extends TextEditor {
+    public static final String id = SpoofaxPlugin.id + ".editor";
+    
     private final Processor processor;
     private final IPropertyListener editorInputListener;
 

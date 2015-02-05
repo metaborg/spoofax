@@ -32,7 +32,7 @@ public class ReloadLanguageJob extends Job {
     @Override protected IStatus run(IProgressMonitor monitor) {
         final ILanguage language = languageService.get(location.getName());
         if(language != null) {
-            languageService.destroy(language);
+            languageService.remove(language);
             try {
                 languageDiscoveryService.discover(location);
             } catch(Exception e) {

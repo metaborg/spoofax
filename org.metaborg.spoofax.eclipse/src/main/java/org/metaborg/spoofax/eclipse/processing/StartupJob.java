@@ -19,8 +19,8 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Lists;
 
 public class StartupJob extends Job {
-    private static final Logger logger = LoggerFactory.getLogger(EditorUpdateJob.class);
-    
+    private static final Logger logger = LoggerFactory.getLogger(StartupJob.class);
+
     private final IEclipseResourceService resourceService;
     private final ILanguageDiscoveryService languageDiscoveryService;
     private final IJobManager jobManager;
@@ -28,9 +28,8 @@ public class StartupJob extends Job {
     private final MutexRule languageServiceMutex;
 
 
-    public StartupJob(IEclipseResourceService resourceService,
-        ILanguageDiscoveryService languageDiscoveryService, IJobManager jobManager,
-        MutexRule startupMutex, MutexRule languageServiceMutex) {
+    public StartupJob(IEclipseResourceService resourceService, ILanguageDiscoveryService languageDiscoveryService,
+        IJobManager jobManager, MutexRule startupMutex, MutexRule languageServiceMutex) {
         super("Loading all Spoofax languages in workspace");
         this.resourceService = resourceService;
         this.languageDiscoveryService = languageDiscoveryService;
@@ -42,7 +41,7 @@ public class StartupJob extends Job {
 
     @Override protected IStatus run(IProgressMonitor monitor) {
         logger.debug("Running startup job");
-        
+
         try {
             // Enable startup mutex to defer execution of all other jobs, until all languages are
             // loaded.

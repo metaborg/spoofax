@@ -1,20 +1,9 @@
 package org.metaborg.spoofax.core.language;
 
-import java.util.Map;
-
-import javax.annotation.Nullable;
-
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.spoofax.core.analysis.stratego.StrategoFacet;
-import org.metaborg.spoofax.core.service.actions.Action;
-import org.metaborg.spoofax.core.service.actions.ActionsFacet;
-import org.metaborg.spoofax.core.syntax.SyntaxFacet;
-
-import com.google.common.collect.ImmutableSet;
 
 /**
- * Interface for a language discovery service that finds and creates all languages found at a certain
- * location.
+ * Interface for a language discovery service that finds, creates, and adds all languages found at a certain location.
  */
 public interface ILanguageDiscoveryService {
     /**
@@ -24,49 +13,7 @@ public interface ILanguageDiscoveryService {
      *            The directory to search in.
      * @return An iterable over all languages that were discovered and created.
      * @throws IllegalStateException
-     *             when {@link ILanguageService} throws when creating a language.
+     *             when {@link ILanguageService} throws when adding a language.
      */
     public Iterable<ILanguage> discover(FileObject location) throws Exception;
-
-    /**
-     * Creates a new language with given arguments. Automatically creates the {@link SyntaxFacet},
-     * {@link StrategoFacet} , and {@link ActionsFacet}, facets, plus facets from any
-     * {@link ILanguageFacetFactory} implementations.
-     * 
-     * @param name
-     *            Name of the language.
-     * @param version
-     *            Version of the language.
-     * @param location
-     *            Location of the language.
-     * @param extensions
-     *            Extensions that language handles.
-     * @param parseTable
-     * @param startSymbol
-     * @param ctreeFiles
-     * @param jarFiles
-     * @param analysisStrategy
-     * @param onSaveStrategy
-     * @param resolverStrategy
-     * @param hoverStrategy
-     * @param completionStrategy
-     * @param actions
-     * @return Created language
-     * @throws IllegalStateException
-     *             when given location does not exist, or if it is not possible to determine if the location
-     *             exists.
-     * @throws IllegalStateException
-     *             when a language with a different name or version has already been created at given
-     *             location.
-     * @throws IllegalStateException
-     *             when a language with a different name already handles any of given extensions.
-     * @throws IllegalStateException
-     *             when automatically creating facets fails unexpectedly.
-     */
-    public ILanguage create(String name, LanguageVersion version, FileObject location,
-        ImmutableSet<String> extensions, FileObject parseTable, String startSymbol,
-        ImmutableSet<FileObject> ctreeFiles, ImmutableSet<FileObject> jarFiles,
-        @Nullable String analysisStrategy, @Nullable String onSaveStrategy,
-        @Nullable String resolverStrategy, @Nullable String hoverStrategy,
-        @Nullable String completionStrategy, Map<String, Action> actions);
 }

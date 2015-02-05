@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.eclipse.processing;
+package org.metaborg.spoofax.eclipse.editor;
 
 import java.io.IOException;
 

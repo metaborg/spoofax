@@ -5,7 +5,6 @@ import org.metaborg.runtime.task.primitives.TaskLibrary;
 import org.metaborg.spoofax.core.analysis.IAnalysisService;
 import org.metaborg.spoofax.core.analysis.stratego.StrategoAnalysisService;
 import org.metaborg.spoofax.core.language.ILanguageDiscoveryService;
-import org.metaborg.spoofax.core.language.ILanguageFacetFactory;
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
 import org.metaborg.spoofax.core.language.ILanguageService;
 import org.metaborg.spoofax.core.language.LanguageDiscoveryService;
@@ -87,9 +86,6 @@ public class SpoofaxModule extends AbstractModule {
         bind(ILanguageService.class).to(LanguageService.class).in(Singleton.class);
         bind(ILanguageDiscoveryService.class).to(LanguageDiscoveryService.class).in(Singleton.class);
         bind(ILanguageIdentifierService.class).to(LanguageIdentifierService.class).in(Singleton.class);
-
-        @SuppressWarnings("unused") final Multibinder<ILanguageFacetFactory> facetFactoriesBinder =
-            Multibinder.newSetBinder(binder(), ILanguageFacetFactory.class);
     }
 
     protected void bindSyntax() {

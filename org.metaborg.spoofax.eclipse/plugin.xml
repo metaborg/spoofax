@@ -5,7 +5,7 @@
   <extension
     point="org.eclipse.ui.editors">
     <editor
-      id="editor"
+      id="org.metaborg.spoofax.eclipse.editor"
       name="Spoofax 2 Editor"
       icon="icons/sample.gif"
       contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
@@ -21,7 +21,7 @@
     point="org.eclipse.core.resources.natures"
   >
     <runtime>
-      <run class="org.metaborg.spoofax.eclipse.processing.SpoofaxNature"/>
+      <run class="org.metaborg.spoofax.eclipse.nature.SpoofaxNature"/>
     </runtime>
     <builder id="org.metaborg.spoofax.eclipse.builder" />
   </extension>
@@ -36,7 +36,7 @@
       isConfigurable="false"
       supportsConfigurations="false"
     >
-      <run class="org.metaborg.spoofax.eclipse.processing.SpoofaxProjectBuilder"/>
+      <run class="org.metaborg.spoofax.eclipse.build.SpoofaxProjectBuilder"/>
     </builder>
   </extension>
   <extension point="org.eclipse.ui.commands">
@@ -44,8 +44,8 @@
     <command id="remove-nature" name="Remove Spoofax nature"/>
   </extension>  
    <extension point="org.eclipse.ui.handlers">
-    <handler commandId="add-nature" class="org.metaborg.spoofax.eclipse.processing.AddNatureHandler" />
-    <handler commandId="remove-nature" class="org.metaborg.spoofax.eclipse.processing.RemoveNatureHandler" />
+    <handler commandId="add-nature" class="org.metaborg.spoofax.eclipse.nature.AddNatureHandler" />
+    <handler commandId="remove-nature" class="org.metaborg.spoofax.eclipse.nature.RemoveNatureHandler" />
   </extension>
   
   

@@ -18,7 +18,6 @@ import static org.metaborg.spoofax.core.esv.ESVReader.resolverStrategy;
 import static org.metaborg.spoofax.core.esv.ESVReader.startSymbol;
 
 import java.util.Collection;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.vfs2.FileObject;
@@ -36,7 +35,6 @@ import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.io.binary.TermReader;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
@@ -44,14 +42,13 @@ import com.google.inject.name.Named;
 
 public class LanguageDiscoveryService implements ILanguageDiscoveryService {
     private static final Logger logger = LoggerFactory.getLogger(LanguageDiscoveryService.class);
-    
+
     private final ILanguageService languageService;
     private final ITermFactoryService termFactoryService;
     @Inject(optional = true) @Named("LanguageDiscoveryAnalysisOverride") private String analysisStrategyOverride;
 
 
-    @Inject public LanguageDiscoveryService(ILanguageService languageService,
-        ITermFactoryService termFactoryService) {
+    @Inject public LanguageDiscoveryService(ILanguageService languageService, ITermFactoryService termFactoryService) {
         this.languageService = languageService;
         this.termFactoryService = termFactoryService;
     }
@@ -64,54 +61,23 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         for(FileObject esvFile : esvFiles) {
             final FileObject languageLocation = esvFile.getParent().getParent();
             if(parents.contains(languageLocation)) {
-                logger.error("Found multiple packed ESV files in language directory: "
-                    + languageLocation + ", skipping.");
+                logger.error("Found multiple packed ESV files in language directory: " + languageLocation
+                    + ", skipping.");
                 continue;
             }
             parents.add(languageLocation);
-            // TODO: get language version from ESV?
-            languages.add(languageFromESV(languageLocation, esvFile,
-                new LanguageVersion(1, 0, 0, 0)));
+            // GTODO: get language version from ESV?
+            languages.add(languageFromESV(languageLocation, esvFile, new LanguageVersion(1, 0, 0, 0)));
         }
         return languages;
     }
 
-    @Override public ILanguage create(String name, LanguageVersion version, FileObject location,
-        ImmutableSet<String> extensions, FileObject parseTable, String startSymbol,
-        ImmutableSet<FileObject> ctreeFiles, ImmutableSet<FileObject> jarFiles,
-        String analysisStrategy, String onSaveStrategy, String resolverStrategy,
-        String hoverStrategy, String completionStrategy, Map<String, Action> actions) {
-        logger.debug("Creating language {} from custom parameters", name);
-        
-        final ILanguage language = languageService.create(name, version, location);
-
-        final IdentificationFacet identificationFacet =
-            new IdentificationFacet(new ExtensionsIdentifier(extensions));
-        language.addFacet(identificationFacet);
-
-        final SyntaxFacet syntaxFacet = new SyntaxFacet(parseTable, Sets.newHashSet(startSymbol));
-        language.addFacet(syntaxFacet);
-
-        final StrategoFacet strategoFacet =
-            new StrategoFacet(ctreeFiles, jarFiles, analysisStrategy, onSaveStrategy,
-                resolverStrategy, hoverStrategy, completionStrategy);
-        language.addFacet(strategoFacet);
-
-        final ActionsFacet actionsFacet = new ActionsFacet();
-        actions.putAll(actions);
-        language.addFacet(actionsFacet);
-
-        return language;
-    }
-
-
-    private ILanguage languageFromESV(FileObject location, FileObject esvFile,
-        LanguageVersion version) throws Exception {
+    private ILanguage languageFromESV(FileObject location, FileObject esvFile, LanguageVersion version)
+        throws Exception {
         logger.debug("Discovering language at {}", location);
-        
+
         final TermReader reader =
-            new TermReader(termFactoryService.getGeneric().getFactoryWithStorageType(
-                IStrategoTerm.MUTABLE));
+            new TermReader(termFactoryService.getGeneric().getFactoryWithStorageType(IStrategoTerm.MUTABLE));
         final IStrategoTerm term = reader.parseFromStream(esvFile.getContent().getInputStream());
         if(term.getTermType() != IStrategoTerm.APPL) {
             throw new IllegalStateException("Packed ESV file does not contain a valid ESV term.");
@@ -123,11 +89,14 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         final ILanguage language = languageService.create(name, version, location);
 
         final IdentificationFacet identificationFacet =
-            new IdentificationFacet(new ExtensionsIdentifier(extensions));
+            new IdentificationFacet(new ResourceExtensionsIdentifier(extensions));
         language.addFacet(identificationFacet);
 
+        final ResourceExtensionFacet resourceExtensionsFacet = new ResourceExtensionFacet(extensions);
+        language.addFacet(resourceExtensionsFacet);
+
         final FileObject parseTable = location.resolveFile(parseTableName(esvTerm));
-        final String startSymbol = startSymbol(esvTerm); // TODO: what about multiple start symbols?
+        final String startSymbol = startSymbol(esvTerm); // GTODO: what about multiple start symbols?
         final SyntaxFacet syntaxFacet = new SyntaxFacet(parseTable, Sets.newHashSet(startSymbol));
         language.addFacet(syntaxFacet);
 
@@ -141,8 +110,8 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
             } else if(extension.equals("ctree")) {
                 ctreeFiles.add(strategoFile);
             } else {
-                logger.warn("Stratego provider file " + strategoFile + " has unknown extension "
-                    + extension + ", ignoring.");
+                logger.warn("Stratego provider file " + strategoFile + " has unknown extension " + extension
+                    + ", ignoring.");
             }
         }
         final String analysisStrategy =
@@ -152,8 +121,8 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         final String hoverStrategy = hoverStrategy(esvTerm);
         final String completionStrategy = completionStrategy(esvTerm);
         final StrategoFacet strategoFacet =
-            new StrategoFacet(ctreeFiles, jarFiles, analysisStrategy, onSaveStrategy,
-                resolverStrategy, hoverStrategy, completionStrategy);
+            new StrategoFacet(ctreeFiles, jarFiles, analysisStrategy, onSaveStrategy, resolverStrategy, hoverStrategy,
+                completionStrategy);
         language.addFacet(strategoFacet);
 
         final ActionsFacet actionsFacet = new ActionsFacet();
@@ -167,6 +136,8 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
         final StylerFacet stylerFacet = StylerFacet.fromESV(esvTerm);
         language.addFacet(stylerFacet);
+        
+        languageService.add(language);
 
         return language;
     }

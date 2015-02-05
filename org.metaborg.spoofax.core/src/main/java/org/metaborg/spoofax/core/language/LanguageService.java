@@ -24,8 +24,6 @@ import com.google.inject.Inject;
 
 public class LanguageService implements ILanguageService {
     private static final Logger logger = LoggerFactory.getLogger(LanguageService.class);
-    
-    private final Set<ILanguageFacetFactory> facetFactories;
 
     private final Map<String, SortedSet<ILanguage>> nameToLanguages = Maps.newHashMap();
     private final Map<String, ILanguage> nameToActiveLanguage = Maps.newHashMap();
@@ -33,8 +31,8 @@ public class LanguageService implements ILanguageService {
     private final Subject<LanguageChange, LanguageChange> languageChanges = PublishSubject.create();
 
 
-    @Inject public LanguageService(Set<ILanguageFacetFactory> facetFactories) {
-        this.facetFactories = facetFactories;
+    @Inject public LanguageService() {
+
     }
 
 
@@ -102,16 +100,15 @@ public class LanguageService implements ILanguageService {
 
     private void load(ILanguage language, Set<ILanguage> existingLanguages) {
         logger.debug("Loading {}", language);
-        
+
         try {
             if(!language.location().exists()) {
-                throw new IllegalStateException("Cannot load language, location "
-                    + language.location() + " does not exist.");
+                throw new IllegalStateException("Cannot load language, location " + language.location()
+                    + " does not exist.");
             }
         } catch(FileSystemException e) {
-            throw new IllegalStateException(
-                "Cannot load language, could not determine if location " + language.location()
-                    + " exists: " + e.getMessage(), e);
+            throw new IllegalStateException("Cannot load language, could not determine if location "
+                + language.location() + " exists: " + e.getMessage(), e);
         }
 
         final ILanguage existingLanguage = locationToLanguage.get(language.location().getName());
@@ -127,7 +124,7 @@ public class LanguageService implements ILanguageService {
 
     private void unload(ILanguage language, Set<ILanguage> existingLanguages) {
         logger.debug("Unloading {}", language);
-        
+
         existingLanguages.remove(language);
         locationToLanguage.remove(language.location().getName());
         sendLanguageChange(language, LanguageChange.Kind.UNLOADED);
@@ -135,7 +132,7 @@ public class LanguageService implements ILanguageService {
 
     private void activate(ILanguage language) {
         logger.debug("Activating {}", language);
-        
+
         nameToActiveLanguage.put(language.name(), language);
 
         sendLanguageChange(language, LanguageChange.Kind.ACTIVATED);
@@ -166,7 +163,7 @@ public class LanguageService implements ILanguageService {
 
     private void deactivate(ILanguage language) {
         logger.debug("Deactivating {}", language);
-        
+
         nameToActiveLanguage.remove(language.name());
 
         sendLanguageChange(language, LanguageChange.Kind.DEACTIVATED);
@@ -180,15 +177,20 @@ public class LanguageService implements ILanguageService {
 
     @Override public ILanguage create(String name, LanguageVersion version, FileObject location) {
         logger.debug("Creating language {}", name);
-        
         final ILanguage language = new Language(name, version, location, new Date());
-        final SortedSet<ILanguage> existingLanguages = getLanguageSet(name);
+        return language;
+    }
+
+    @Override public void add(ILanguage language) {
+        logger.debug("Adding language {}", language);
+
+        final SortedSet<ILanguage> existingLanguages = getLanguageSet(language.name());
         if(existingLanguages.isEmpty()) {
             // Language does not exist yet.
             load(language, existingLanguages);
             activate(language);
         } else {
-            final ILanguage languageAtLocation = locationToLanguage.get(location.getName());
+            final ILanguage languageAtLocation = locationToLanguage.get(language.location().getName());
             if(languageAtLocation != null) {
                 // Language at same location exists.
                 tryDeactivate(languageAtLocation);
@@ -201,27 +203,15 @@ public class LanguageService implements ILanguageService {
                 tryActivate(language, existingLanguages);
             }
         }
-
-        for(ILanguageFacetFactory factory : facetFactories) {
-            try {
-                factory.create(language);
-            } catch(Exception e) {
-                logger.error(
-                    "Cannot create language, creation of facets from factory " + factory.getClass()
-                        + " failed: " + e.getMessage(), e);
-            }
-        }
-
-        return language;
     }
 
-    @Override public void destroy(ILanguage language) {
+    @Override public void remove(ILanguage language) {
         logger.debug("Destroying {}", language);
-        
+
         final SortedSet<ILanguage> existingLanguages = getLanguageSet(language.name());
         if(existingLanguages.isEmpty()) {
-            throw new IllegalStateException("Cannot remove language, language with name "
-                + language.name() + " does not exist");
+            throw new IllegalStateException("Cannot remove language, language with name " + language.name()
+                + " does not exist");
         }
         tryDeactivate(language);
         unload(language, existingLanguages);

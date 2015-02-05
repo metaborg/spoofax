@@ -28,7 +28,7 @@ public class UnloadLanguageJob extends Job {
     @Override protected IStatus run(IProgressMonitor monitor) {
         final ILanguage language = languageService.get(location.getName());
         if(language != null) {
-            languageService.destroy(language);
+            languageService.remove(language);
         } else {
             final String message = "Failed to unload language at location" + location + " because it does not exist";
             logger.error(message);

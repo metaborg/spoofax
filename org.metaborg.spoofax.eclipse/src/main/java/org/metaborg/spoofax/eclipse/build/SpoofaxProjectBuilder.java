@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.eclipse.processing;
+package org.metaborg.spoofax.eclipse.build;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -40,6 +40,7 @@ import org.metaborg.spoofax.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.text.ISourceTextService;
 import org.metaborg.spoofax.eclipse.SpoofaxPlugin;
+import org.metaborg.spoofax.eclipse.processing.Processor;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
 import org.metaborg.spoofax.eclipse.util.MarkerUtils;
 import org.metaborg.spoofax.eclipse.util.StatusUtils;
@@ -59,8 +60,9 @@ import com.google.inject.Key;
 import com.google.inject.TypeLiteral;
 
 public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
+    public static final String id = SpoofaxPlugin.id + ".builder";
+    
     private static final Logger logger = LoggerFactory.getLogger(Processor.class);
-    private static final String qualifiedId = SpoofaxPlugin.id + ".builder";
 
     private final IEclipseResourceService resourceService;
     private final ILanguageIdentifierService languageIdentifier;
@@ -95,7 +97,7 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
         final ICommand[] builders = projectDesc.getBuildSpec();
         if(builderIndex(builders) == -1) {
             final ICommand newBuilder = projectDesc.newCommand();
-            newBuilder.setBuilderName(qualifiedId);
+            newBuilder.setBuilderName(id);
             final ICommand[] newBuilders = ArrayUtils.add(builders, 0, newBuilder);
             projectDesc.setBuildSpec(newBuilders);
             project.setDescription(projectDesc, null);
@@ -124,7 +126,7 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
     private static int builderIndex(ICommand[] builders) throws CoreException {
         for(int i = 0; i < builders.length; ++i) {
             final ICommand builder = builders[i];
-            if(builder.getBuilderName().equals(qualifiedId)) {
+            if(builder.getBuilderName().equals(id)) {
                 return i;
             }
         }

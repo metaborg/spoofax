@@ -7,21 +7,34 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.jobs.MultiRule;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorRegistry;
 import org.eclipse.ui.IFileEditorInput;
+import org.eclipse.ui.PlatformUI;
 import org.metaborg.spoofax.core.analysis.IAnalysisService;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageDiscoveryService;
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
+import org.metaborg.spoofax.core.language.ILanguageService;
+import org.metaborg.spoofax.core.language.LanguageChange;
 import org.metaborg.spoofax.core.style.ICategorizerService;
 import org.metaborg.spoofax.core.style.IStylerService;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
+import org.metaborg.spoofax.eclipse.editor.EditorUpdateJob;
+import org.metaborg.spoofax.eclipse.language.AssociateLanguageJob;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.terms.IStrategoTerm;
+
+import rx.functions.Action1;
 
 import com.google.inject.Inject;
 
 public class Processor {
+    private static final Logger logger = LoggerFactory.getLogger(Processor.class);
+
     private final IEclipseResourceService resourceService;
+    private final ILanguageService languageService;
     private final ILanguageIdentifierService languageIdentifierService;
     private final ILanguageDiscoveryService languageDiscoveryService;
     private final ISyntaxService<IStrategoTerm> syntaxService;
@@ -32,14 +45,16 @@ public class Processor {
     private final GlobalMutexes mutexes;
 
     private final IJobManager jobManager;
+    private final IEditorRegistry editorRegistry;
 
 
-    @Inject public Processor(IEclipseResourceService resourceService,
+    @Inject public Processor(IEclipseResourceService resourceService, ILanguageService languageService,
         ILanguageIdentifierService languageIdentifierService, ILanguageDiscoveryService languageDiscoveryService,
         ISyntaxService<IStrategoTerm> syntaxService, IAnalysisService<IStrategoTerm, IStrategoTerm> analysisService,
         ICategorizerService<IStrategoTerm, IStrategoTerm> categorizerService,
         IStylerService<IStrategoTerm, IStrategoTerm> stylerService, GlobalMutexes mutexes) {
         this.resourceService = resourceService;
+        this.languageService = languageService;
         this.languageIdentifierService = languageIdentifierService;
         this.languageDiscoveryService = languageDiscoveryService;
         this.syntaxService = syntaxService;
@@ -50,8 +65,27 @@ public class Processor {
         this.mutexes = mutexes;
 
         this.jobManager = Job.getJobManager();
-    }
+        this.editorRegistry = PlatformUI.getWorkbench().getEditorRegistry();
 
+        this.languageService.changes().subscribe(new Action1<LanguageChange>() {
+            @Override public void call(LanguageChange change) {
+                switch(change.kind) {
+                    case LOADED:
+                        languageLoaded(change.language);
+                        break;
+                    case ACTIVATED:
+                        languageActivated(change.language);
+                        break;
+                    case DEACTIVATED:
+                        languageDeactivated(change.language);
+                        break;
+                    case UNLOADED:
+                        languageUnloaded(change.language);
+                        break;
+                }
+            }
+        });
+    }
 
     /**
      * Notifies that the Spoofax plugin has been started. Schedules a job that loads all languages in open projects.
@@ -71,7 +105,34 @@ public class Processor {
      *            Language that was loaded.
      */
     public void languageLoaded(ILanguage language) {
+
+    }
+
+    /**
+     * Notifies that a language has been activated.
+     * 
+     * @param language
+     *            Language that was activated.
+     */
+    public void languageActivated(ILanguage language) {
+        final AssociateLanguageJob associateJob = new AssociateLanguageJob(language, editorRegistry);
+        associateJob.setRule(mutexes.startupMutex);
+        associateJob.schedule();
+
         // TODO: Start update jobs for all editors of this language.
+    }
+
+    /**
+     * Notifies that a language has been deactivated.
+     * 
+     * @param language
+     *            Language that was deactivated.
+     */
+    public void languageDeactivated(ILanguage language) {
+        // TODO: Cancel all project build of this language.
+        // TODO: Cancel all update jobs of this language.
+        // TODO: Color all editors of this language grey, to indicate that the language is unloaded.
+        // Remove editor associations for this language
     }
 
     /**
@@ -81,9 +142,7 @@ public class Processor {
      *            Language that was unloaded.
      */
     public void languageUnloaded(ILanguage language) {
-        // TODO: Cancel all build jobs of this language.
-        // TODO: Cancel all update jobs of this language.
-        // TODO: Color all editors of this language grey, to indicate that the language is unloaded.
+
     }
 
 
