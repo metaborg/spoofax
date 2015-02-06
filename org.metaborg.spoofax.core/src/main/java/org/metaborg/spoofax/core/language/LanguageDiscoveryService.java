@@ -1,12 +1,6 @@
 package org.metaborg.spoofax.core.language;
 
 import static org.metaborg.spoofax.core.esv.ESVReader.attachedFiles;
-import static org.metaborg.spoofax.core.esv.ESVReader.builderIsMeta;
-import static org.metaborg.spoofax.core.esv.ESVReader.builderIsOnSource;
-import static org.metaborg.spoofax.core.esv.ESVReader.builderIsOpenEditor;
-import static org.metaborg.spoofax.core.esv.ESVReader.builderName;
-import static org.metaborg.spoofax.core.esv.ESVReader.builderTarget;
-import static org.metaborg.spoofax.core.esv.ESVReader.builders;
 import static org.metaborg.spoofax.core.esv.ESVReader.completionStrategy;
 import static org.metaborg.spoofax.core.esv.ESVReader.extensions;
 import static org.metaborg.spoofax.core.esv.ESVReader.hoverStrategy;
@@ -22,11 +16,12 @@ import java.util.Set;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.analysis.stratego.StrategoFacet;
-import org.metaborg.spoofax.core.service.actions.Action;
-import org.metaborg.spoofax.core.service.actions.ActionsFacet;
 import org.metaborg.spoofax.core.style.StylerFacet;
+import org.metaborg.spoofax.core.style.StylerFacetFromESV;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
+import org.metaborg.spoofax.core.transform.stratego.MenusFacet;
+import org.metaborg.spoofax.core.transform.stratego.MenusFacetFromESV;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.resource.ContainsFileSelector;
 import org.slf4j.Logger;
@@ -125,18 +120,12 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
                 completionStrategy);
         language.addFacet(strategoFacet);
 
-        final ActionsFacet actionsFacet = new ActionsFacet();
-        final Iterable<IStrategoAppl> actions = builders(esvTerm);
-        for(IStrategoAppl action : actions) {
-            final String actionName = builderName(action);
-            actionsFacet.add(actionName, new Action(actionName, language, builderTarget(action),
-                builderIsOnSource(action), builderIsMeta(action), builderIsOpenEditor(action)));
-        }
-        language.addFacet(actionsFacet);
+        final MenusFacet menusFacet = MenusFacetFromESV.create(esvTerm, language);
+        language.addFacet(menusFacet);
 
-        final StylerFacet stylerFacet = StylerFacet.fromESV(esvTerm);
+        final StylerFacet stylerFacet = StylerFacetFromESV.create(esvTerm);
         language.addFacet(stylerFacet);
-        
+
         languageService.add(language);
 
         return language;

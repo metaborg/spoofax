@@ -27,6 +27,8 @@ import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.terms.TermFactoryService;
 import org.metaborg.spoofax.core.text.ISourceTextService;
 import org.metaborg.spoofax.core.text.SourceTextService;
+import org.metaborg.spoofax.core.transform.ITransformer;
+import org.metaborg.spoofax.core.transform.stratego.StrategoTransformer;
 import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.library.IOperatorRegistry;
 import org.spoofax.interpreter.library.index.legacy.LegacyIndexLibrary;
@@ -63,6 +65,7 @@ public class SpoofaxModule extends AbstractModule {
             bindSyntax();
             bindSourceText();
             bindAnalysis();
+            bindTransformer();
             bindCategorizer();
             bindStyler();
             bindOther();
@@ -106,6 +109,10 @@ public class SpoofaxModule extends AbstractModule {
             Multibinder.newSetBinder(binder(), IOperatorRegistry.class);
         bindPrimitiveLibrary(libraryBinder, TaskLibrary.class);
         bindPrimitiveLibrary(libraryBinder, LegacyIndexLibrary.class);
+    }
+
+    protected void bindTransformer() {
+        bind(ITransformer.class).to(StrategoTransformer.class).in(Singleton.class);
     }
 
     protected void bindCategorizer() {
