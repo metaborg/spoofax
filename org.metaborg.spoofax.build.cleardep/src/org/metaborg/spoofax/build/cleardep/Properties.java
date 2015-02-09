@@ -18,11 +18,12 @@ public class Properties {
 		while ((dollar = s.indexOf("$", dollar)) >= 0 && s.length() > dollar+1 && s.charAt(dollar+1) == '{') {
 			int begin = dollar + 2;
 			int end = s.indexOf('}', begin);
-			dollar = end;
-			String key = in.substring(begin, end);
+			String key = s.substring(begin, end);
 			String val = props.get(key);
 			if (val != null)
 				s = s.replaceAll(Pattern.quote("${" + key + "}"), Matcher.quoteReplacement(val));
+			else
+				dollar = end;
 		}
 		return s;
 	}

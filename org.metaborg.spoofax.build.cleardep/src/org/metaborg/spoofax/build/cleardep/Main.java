@@ -4,6 +4,7 @@ package org.metaborg.spoofax.build.cleardep;
 import java.io.IOException;
 import java.util.HashMap;
 
+import org.strategoxt.HybridInterpreter;
 import org.sugarj.cleardep.SimpleMode;
 import org.sugarj.common.Log;
 import org.sugarj.common.path.AbsolutePath;
@@ -59,13 +60,13 @@ public class Main {
 		Path baseDir = new AbsolutePath(args[0]);
 		
 		Properties props = makeProperties("TempalteLang");
-		SpoofaxBuildContext context = new SpoofaxBuildContext(baseDir, props);
+		SpoofaxBuildContext context = new SpoofaxBuildContext(baseDir, props, new HybridInterpreter());
 		initBuilders(context);
 		
 		if (args.length > 1 && "clean".equals(args[1]))
-			clean.require(null, new RelativePath(baseDir, "build.dep"), new SimpleMode());
+			clean.require(null, new RelativePath(baseDir, "build.clean.dep"), new SimpleMode());
 		else
-			all.require(null, new RelativePath(baseDir, "build.dep"), new SimpleMode());
+			all.require(null, new RelativePath(baseDir, "build.all.dep"), new SimpleMode());
 	}
 
 }

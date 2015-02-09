@@ -29,12 +29,12 @@ public class All extends Builder<SpoofaxBuildContext, Void, SimpleCompilationUni
 
 	@Override
 	public void build(SimpleCompilationUnit result, Void input) throws IOException {
-		Log.log.beginTask("All", Log.CORE);
+		Log.log.beginTask("Spoofax build all", Log.CORE);
 		
 		RelativePath ppInput = context.relPath("${lib}/EditorService-pretty.pp");
 		RelativePath ppTermOutput = context.relPath("${include}/EditorService-pretty.pp.af");
-		RelativePath ppDep = FileCommands.replaceExtension(ppTermOutput, "dep");
-		Main.ppPack.require(new Input(ppInput, ppTermOutput), ppDep, new SimpleMode());
+		RelativePath ppDep = FileCommands.addExtension(ppTermOutput, "dep");
+		result.addModuleDependency(Main.ppPack.require(new Input(ppInput, ppTermOutput), ppDep, new SimpleMode()));
 		
 		Log.log.endTask();
 	}

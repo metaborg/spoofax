@@ -37,6 +37,7 @@ public class Clean extends Builder<SpoofaxBuildContext, Void, SimpleCompilationU
 				"${include}/${sdfmodule}-Permissive.def",
 				"${include}/${sdfmodule}.generated.pp",
 				"${include}/${sdfmodule}.generated.pp.af",
+				"${include}/${sdfmodule}.generated.pp.af.dep",
 				"${include}/${sdfmodule}.packed.esv",
 				"${include}/${sdfmodule}.pp.af",
 				"${include}/${sdfmodule}.rtg",

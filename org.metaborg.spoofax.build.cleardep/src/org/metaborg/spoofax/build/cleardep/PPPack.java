@@ -1,19 +1,23 @@
 package org.metaborg.spoofax.build.cleardep;
 
 
+import java.io.IOException;
+
+import org.strategoxt.lang.Context;
+import org.strategoxt.lang.StrategoExit;
 import org.sugarj.cleardep.SimpleCompilationUnit;
 import org.sugarj.cleardep.build.Builder;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.Log;
-import org.sugarj.common.path.Path;
+import org.sugarj.common.path.RelativePath;
 
 public class PPPack extends Builder<SpoofaxBuildContext, PPPack.Input, SimpleCompilationUnit> {
 
 	public static class Input {
-		public final Path ppInput;
-		public final Path ppTermOutput;
-		public Input(Path ppInput, Path ppTermOutput) {
+		public final RelativePath ppInput;
+		public final RelativePath ppTermOutput;
+		public Input(RelativePath ppInput, RelativePath ppTermOutput) {
 			this.ppInput = ppInput;
 			this.ppTermOutput = ppTermOutput;
 		}
@@ -32,8 +36,20 @@ public class PPPack extends Builder<SpoofaxBuildContext, PPPack.Input, SimpleCom
 	public Stamper defaultStamper() { return LastModifiedStamper.instance; }
 
 	@Override
-	public void build(SimpleCompilationUnit result, Input input) {
+	public void build(SimpleCompilationUnit result, Input input) throws IOException {
 		Log.log.beginTask("Package pretty-print table", Log.CORE);
+		
+		result.addSourceArtifact(input.ppInput);
+		try {
+			Context context = org.strategoxt.tools.tools.init();
+			context.invokeStrategyCLI(org.strategoxt.tools.main_parse_pp_table_0_0.instance, "parse-pp-table", 
+					"-i", input.ppInput.getAbsolutePath(),
+					"-o", input.ppTermOutput.getAbsolutePath());
+		} catch (StrategoExit e) {
+			if (e.getValue() != 0)
+				throw e;
+		}
+		result.addGeneratedFile(input.ppTermOutput);
 		
 		Log.log.endTask();
 	}

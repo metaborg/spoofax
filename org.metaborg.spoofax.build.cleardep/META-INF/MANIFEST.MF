@@ -7,6 +7,15 @@ Bundle-Activator: org.metaborg.spoofax.build.cleardep.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  org.sugarj.cleardep,
- org.sugarj.common
+ org.sugarj.common,
+ org.spoofax.interpreter.externaldeps,
+ org.spoofax.interpreter,
+ org.strategoxt.strj,
+ org.spoofax.terms,
+ org.spoofax.interpreter.core,
+ org.spoofax.interpreter.library.java,
+ org.spoofax.interpreter.library.jsglr,
+ org.spoofax.interpreter.library.xml,
+ org.spoofax.interpreter.library.interpreter
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
