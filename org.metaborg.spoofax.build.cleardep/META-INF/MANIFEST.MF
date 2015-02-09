@@ -1,0 +1,12 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Cleardep
+Bundle-SymbolicName: org.metaborg.spoofax.build.cleardep
+Bundle-Version: 1.0.0.qualifier
+Bundle-Activator: org.metaborg.spoofax.build.cleardep.Activator
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.runtime,
+ org.sugarj.cleardep,
+ org.sugarj.common
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-ActivationPolicy: lazy
