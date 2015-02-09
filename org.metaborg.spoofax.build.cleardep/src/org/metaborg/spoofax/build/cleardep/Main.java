@@ -5,8 +5,10 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import org.sugarj.cleardep.SimpleMode;
-import org.sugarj.cleardep.build.BuildContext;
+import org.sugarj.common.Log;
 import org.sugarj.common.path.AbsolutePath;
+import org.sugarj.common.path.Path;
+import org.sugarj.common.path.RelativePath;
 
 public class Main {
 
@@ -39,13 +41,31 @@ public class Main {
 		return props;
 	}
 	
+	public static Clean clean;
+	public static All all;
+	public static PPPack ppPack;
+	
+	private static void initBuilders(SpoofaxBuildContext context) {
+		clean = new Clean(context);
+		all = new All(context);
+		ppPack = new PPPack(context);
+	}
+	
 	public static void main(String[] args) throws IOException {
-		BuildContext context = new BuildContext();
-		Properties props = makeProperties("TempalteLang");
-		Clean clean = new Clean(context, props);
+		Log.log.setLoggingLevel(Log.ALWAYS);
 		
-		if (args.length > 0 && "clean".equals(args[0]))
-			clean.require(null, new AbsolutePath("./build.dep"), new SimpleMode());
+		if (args.length <= 0)
+			throw new IllegalArgumentException("Require base-dir path as first argument.");
+		Path baseDir = new AbsolutePath(args[0]);
+		
+		Properties props = makeProperties("TempalteLang");
+		SpoofaxBuildContext context = new SpoofaxBuildContext(baseDir, props);
+		initBuilders(context);
+		
+		if (args.length > 1 && "clean".equals(args[1]))
+			clean.require(null, new RelativePath(baseDir, "build.dep"), new SimpleMode());
+		else
+			all.require(null, new RelativePath(baseDir, "build.dep"), new SimpleMode());
 	}
 
 }

@@ -1,24 +1,20 @@
 package org.metaborg.spoofax.build.cleardep;
 
-
 import java.io.IOException;
 
 import org.sugarj.cleardep.SimpleCompilationUnit;
-import org.sugarj.cleardep.build.BuildContext;
 import org.sugarj.cleardep.build.Builder;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.FileCommands;
-import org.sugarj.common.path.AbsolutePath;
+import org.sugarj.common.Log;
 import org.sugarj.common.path.Path;
+import org.sugarj.common.path.RelativePath;
 
-public class Clean extends Builder<Void, SimpleCompilationUnit> {
+public class Clean extends Builder<SpoofaxBuildContext, Void, SimpleCompilationUnit> {
 
-	private Properties props;
-	
-	public Clean(BuildContext context, Properties props) {
+	public Clean(SpoofaxBuildContext context) {
 		super(context);
-		this.props = props;
 	}
 
 	@Override
@@ -30,7 +26,9 @@ public class Clean extends Builder<Void, SimpleCompilationUnit> {
 	public Stamper defaultStamper() { return LastModifiedStamper.instance; }
 
 	@Override
-	public void build(SimpleCompilationUnit result, Void input) {
+	public void build(SimpleCompilationUnit result, Void input) throws IOException {
+		Log.log.beginTask("Clean", Log.ALWAYS);
+		
 		String[] paths = {
 				"${build}",
 				".cache",
@@ -65,18 +63,20 @@ public class Clean extends Builder<Void, SimpleCompilationUnit> {
 				"utils"};
 		
 		for (String p : paths) {
-			Path path = new AbsolutePath(props.substitute(p));
-			try { FileCommands.delete(path); } 
-			catch (IOException e) { }
+			Path path = new RelativePath(context.baseDir, context.props.substitute(p));
+			Log.log.log("Delete " + path, Log.DETAIL); 
+			FileCommands.delete(path); 
 			result.addGeneratedFile(path);
 		}
 			
-		for (Path p : FileCommands.listFiles(new AbsolutePath(props.substitute("${lib}"))))
+		for (Path p : FileCommands.listFiles(new RelativePath(context.baseDir, context.props.substitute("${lib}"))))
 			if (FileCommands.fileName(p).matches(".*\\.generated\\.str")) {
-				try { FileCommands.delete(p); } 
-				catch (IOException e) { }
+				Log.log.log("Delete " + p, Log.DETAIL); 
+				FileCommands.delete(p); 
 				result.addGeneratedFile(p);
 			}
+		
+		Log.log.endTask();
 	}
 
 }
