@@ -40,7 +40,6 @@ import org.metaborg.spoofax.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.text.ISourceTextService;
 import org.metaborg.spoofax.eclipse.SpoofaxPlugin;
-import org.metaborg.spoofax.eclipse.processing.Processor;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
 import org.metaborg.spoofax.eclipse.util.MarkerUtils;
 import org.metaborg.spoofax.eclipse.util.StatusUtils;
@@ -61,8 +60,8 @@ import com.google.inject.TypeLiteral;
 
 public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
     public static final String id = SpoofaxPlugin.id + ".builder";
-    
-    private static final Logger logger = LoggerFactory.getLogger(Processor.class);
+
+    private static final Logger logger = LoggerFactory.getLogger(SpoofaxProjectBuilder.class);
 
     private final IEclipseResourceService resourceService;
     private final ILanguageIdentifierService languageIdentifier;
