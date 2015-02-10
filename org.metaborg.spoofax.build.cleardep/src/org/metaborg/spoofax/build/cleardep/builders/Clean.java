@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
 import org.sugarj.cleardep.SimpleCompilationUnit;
 import org.sugarj.cleardep.build.Builder;
+import org.sugarj.cleardep.build.BuilderFactory;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.FileCommands;
@@ -14,6 +15,11 @@ import org.sugarj.common.path.RelativePath;
 
 public class Clean extends Builder<SpoofaxBuildContext, Void, SimpleCompilationUnit> {
 
+	public static BuilderFactory<SpoofaxBuildContext, Void, SimpleCompilationUnit, Clean> factory = new BuilderFactory<SpoofaxBuildContext, Void, SimpleCompilationUnit, Clean>() {
+		@Override
+		public Clean makeBuilder(SpoofaxBuildContext context) { return new Clean(context); }
+	};
+	
 	public Clean(SpoofaxBuildContext context) {
 		super(context);
 	}

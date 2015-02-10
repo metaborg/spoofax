@@ -8,6 +8,7 @@ import org.metaborg.spoofax.build.cleardep.util.FileExtensionFilter;
 import org.strategoxt.imp.metatooling.building.AntForceOnSave;
 import org.sugarj.cleardep.SimpleCompilationUnit;
 import org.sugarj.cleardep.build.Builder;
+import org.sugarj.cleardep.build.BuilderFactory;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.FileCommands;
@@ -19,6 +20,11 @@ import org.sugarj.common.path.RelativePath;
 
 public class ForceOnSave extends Builder<SpoofaxBuildContext, Void, SimpleCompilationUnit> {
 
+	public static BuilderFactory<SpoofaxBuildContext, Void, SimpleCompilationUnit, ForceOnSave> factory = new BuilderFactory<SpoofaxBuildContext, Void, SimpleCompilationUnit, ForceOnSave>() {
+		@Override
+		public ForceOnSave makeBuilder(SpoofaxBuildContext context) { return new ForceOnSave(context); }
+	};
+	
 	public ForceOnSave(SpoofaxBuildContext context) {
 		super(context);
 	}

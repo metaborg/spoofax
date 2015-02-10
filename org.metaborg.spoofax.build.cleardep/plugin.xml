@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin>
+   <extension
+             id="SpoofaxCleardepBuilder"
+             name="Spoofax Cleardep Builder"
+             point="org.eclipse.core.resources.builders">
+      <builder callOnEmptyDelta="true">
+        <run class="org.metaborg.spoofax.build.cleardep.EclipseBuilder">
+          <parameter name="optimize" value="true"/>
+          <parameter name="comment" value="Spoofax Cleardep Builder"/>
+        </run>
+      </builder>
+   </extension>
+</plugin>

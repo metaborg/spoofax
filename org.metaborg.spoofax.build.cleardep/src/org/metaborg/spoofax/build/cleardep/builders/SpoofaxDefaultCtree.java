@@ -2,18 +2,23 @@ package org.metaborg.spoofax.build.cleardep.builders;
 
 import java.io.IOException;
 
-import org.metaborg.spoofax.build.cleardep.Main;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
 import org.sugarj.cleardep.CompilationUnit;
 import org.sugarj.cleardep.SimpleCompilationUnit;
 import org.sugarj.cleardep.SimpleMode;
 import org.sugarj.cleardep.build.Builder;
+import org.sugarj.cleardep.build.BuilderFactory;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.Log;
 
 public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, SimpleCompilationUnit> {
 
+	public static BuilderFactory<SpoofaxBuildContext, Void, SimpleCompilationUnit, SpoofaxDefaultCtree> factory = new BuilderFactory<SpoofaxBuildContext, Void, SimpleCompilationUnit, SpoofaxDefaultCtree>() {
+		@Override
+		public SpoofaxDefaultCtree makeBuilder(SpoofaxBuildContext context) { return new SpoofaxDefaultCtree(context); }
+	};
+	
 	public SpoofaxDefaultCtree(SpoofaxBuildContext context) {
 		super(context);
 	}
@@ -30,7 +35,7 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 	public void build(SimpleCompilationUnit result, Void input) throws IOException {
 		checkClassPath();
 		
-		CompilationUnit forceOnSave = Main.forceOnSave.require(null, context.basePath("${include}/build.forceOnSave.dep"), new SimpleMode());
+		CompilationUnit forceOnSave = context.forceOnSave.require(null, context.basePath("${include}/build.forceOnSave.dep"), new SimpleMode());
 		result.addModuleDependency(forceOnSave);
 	}
 	

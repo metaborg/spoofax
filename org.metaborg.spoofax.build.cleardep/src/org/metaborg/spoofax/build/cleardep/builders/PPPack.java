@@ -8,6 +8,7 @@ import org.strategoxt.lang.Context;
 import org.strategoxt.lang.StrategoExit;
 import org.sugarj.cleardep.SimpleCompilationUnit;
 import org.sugarj.cleardep.build.Builder;
+import org.sugarj.cleardep.build.BuilderFactory;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.Log;
@@ -15,6 +16,11 @@ import org.sugarj.common.path.RelativePath;
 
 public class PPPack extends Builder<SpoofaxBuildContext, PPPack.Input, SimpleCompilationUnit> {
 
+	public static BuilderFactory<SpoofaxBuildContext, PPPack.Input, SimpleCompilationUnit, PPPack> factory = new BuilderFactory<SpoofaxBuildContext, PPPack.Input, SimpleCompilationUnit, PPPack>() {
+		@Override
+		public PPPack makeBuilder(SpoofaxBuildContext context) { return new PPPack(context); }
+	};
+	
 	public static class Input {
 		public final RelativePath ppInput;
 		public final RelativePath ppTermOutput;
