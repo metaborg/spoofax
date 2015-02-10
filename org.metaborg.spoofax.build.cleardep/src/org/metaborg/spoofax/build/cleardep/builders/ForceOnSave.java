@@ -14,7 +14,6 @@ import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.Log;
 import org.sugarj.common.StringCommands;
-import org.sugarj.common.path.AbsolutePath;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
@@ -47,14 +46,15 @@ public class ForceOnSave extends Builder<SpoofaxBuildContext, Void, SimpleCompil
 			FileCommands.delete(p);
 		
 		List<RelativePath> paths = FileCommands.listFilesRecursive(
-				new AbsolutePath("."), 
+				context.baseDir, 
 				new FileExtensionFilter("tmpl", "sdf3", "nab", "ts"));
 		String pathString = StringCommands.printListSeparated(paths, ";;;");
 		
 		for (RelativePath p : paths)
 			result.addSourceArtifact(p);
 		
-		AntForceOnSave.main(new String[]{pathString});
+		if (!paths.isEmpty())
+			AntForceOnSave.main(new String[]{pathString});
 		
 		Log.log.endTask();
 	}

@@ -70,7 +70,10 @@ public class EclipseBuilder extends IncrementalProjectBuilder {
 		SpoofaxBuildContext context = makeContext(getProject());
 		try {
 			All.factory.makeBuilder(context).require(null, context.basePath("${include}/build.all.dep"), new SimpleMode());
+			getProject().refreshLocal(IProject.DEPTH_INFINITE, monitor);
 		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (CoreException e) {
 			e.printStackTrace();
 		} finally {
 			monitor.done();
@@ -82,6 +85,7 @@ public class EclipseBuilder extends IncrementalProjectBuilder {
 		SpoofaxBuildContext context = makeContext(getProject());
 		try {
 			Clean.factory.makeBuilder(context).require(null, context.basePath("${include}/build.clean.dep"), new SimpleMode());
+			getProject().refreshLocal(IProject.DEPTH_INFINITE, monitor);
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
