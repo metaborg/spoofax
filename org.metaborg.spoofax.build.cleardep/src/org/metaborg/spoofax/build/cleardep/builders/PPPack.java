@@ -1,8 +1,9 @@
-package org.metaborg.spoofax.build.cleardep;
+package org.metaborg.spoofax.build.cleardep.builders;
 
 
 import java.io.IOException;
 
+import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.StrategoExit;
 import org.sugarj.cleardep.SimpleCompilationUnit;

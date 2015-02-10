@@ -16,6 +16,9 @@ Require-Bundle: org.eclipse.ui,
  org.spoofax.interpreter.library.java,
  org.spoofax.interpreter.library.jsglr,
  org.spoofax.interpreter.library.xml,
- org.spoofax.interpreter.library.interpreter
+ org.spoofax.interpreter.library.interpreter,
+ org.strategoxt.imp.generator,
+ org.strategoxt.imp.metatooling,
+ org.eclipse.e4.ui.model.workbench
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy

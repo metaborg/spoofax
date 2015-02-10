@@ -1,7 +1,8 @@
-package org.metaborg.spoofax.build.cleardep;
+package org.metaborg.spoofax.build.cleardep.builders;
 
 import java.io.IOException;
 
+import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
 import org.sugarj.cleardep.SimpleCompilationUnit;
 import org.sugarj.cleardep.build.Builder;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
@@ -30,7 +31,6 @@ public class Clean extends Builder<SpoofaxBuildContext, Void, SimpleCompilationU
 		Log.log.beginTask("Clean", Log.ALWAYS);
 		
 		String[] paths = {
-				"${build}",
 				".cache",
 				"${include}/${sdfmodule}.def",
 				"${include}/${sdfmodule}-parenthesize.str",
@@ -69,7 +69,13 @@ public class Clean extends Builder<SpoofaxBuildContext, Void, SimpleCompilationU
 			FileCommands.delete(path); 
 			result.addGeneratedFile(path);
 		}
-			
+		
+		for (Path p : FileCommands.listFiles(new RelativePath(context.baseDir, context.props.substitute("${build}")))) {
+			Log.log.log("Delete " + p, Log.DETAIL); 
+			FileCommands.delete(p); 
+			result.addGeneratedFile(p);
+		}
+		
 		for (Path p : FileCommands.listFiles(new RelativePath(context.baseDir, context.props.substitute("${lib}"))))
 			if (FileCommands.fileName(p).matches(".*\\.generated\\.str")) {
 				Log.log.log("Delete " + p, Log.DETAIL); 

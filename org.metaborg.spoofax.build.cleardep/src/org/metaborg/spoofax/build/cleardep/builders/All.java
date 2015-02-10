@@ -1,9 +1,11 @@
-package org.metaborg.spoofax.build.cleardep;
+package org.metaborg.spoofax.build.cleardep.builders;
 
 
 import java.io.IOException;
 
-import org.metaborg.spoofax.build.cleardep.PPPack.Input;
+import org.metaborg.spoofax.build.cleardep.Main;
+import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
+import org.sugarj.cleardep.CompilationUnit;
 import org.sugarj.cleardep.SimpleCompilationUnit;
 import org.sugarj.cleardep.SimpleMode;
 import org.sugarj.cleardep.build.Builder;
@@ -31,10 +33,14 @@ public class All extends Builder<SpoofaxBuildContext, Void, SimpleCompilationUni
 	public void build(SimpleCompilationUnit result, Void input) throws IOException {
 		Log.log.beginTask("Spoofax build all", Log.CORE);
 		
-		RelativePath ppInput = context.relPath("${lib}/EditorService-pretty.pp");
-		RelativePath ppTermOutput = context.relPath("${include}/EditorService-pretty.pp.af");
+		RelativePath ppInput = context.basePath("${lib}/EditorService-pretty.pp");
+		RelativePath ppTermOutput = context.basePath("${include}/EditorService-pretty.pp.af");
 		RelativePath ppDep = FileCommands.addExtension(ppTermOutput, "dep");
-		result.addModuleDependency(Main.ppPack.require(new Input(ppInput, ppTermOutput), ppDep, new SimpleMode()));
+		CompilationUnit ppPack = Main.ppPack.require(new PPPack.Input(ppInput, ppTermOutput), ppDep, new SimpleMode());
+		result.addModuleDependency(ppPack);
+		
+		CompilationUnit spoofaxDefault = Main.spoofaxDefaultCtree.require(null, context.basePath("${include}/build.spoofaxDefault.dep"), new SimpleMode());
+		result.addModuleDependency(spoofaxDefault);
 		
 		Log.log.endTask();
 	}
