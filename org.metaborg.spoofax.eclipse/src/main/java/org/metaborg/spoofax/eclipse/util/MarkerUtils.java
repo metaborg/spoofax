@@ -31,7 +31,7 @@ public final class MarkerUtils {
     }
 
     public static void clearAll(IResource resource) throws CoreException {
-        resource.deleteMarkers(id, true, IResource.DEPTH_ONE);
+        resource.deleteMarkers(id, true, IResource.DEPTH_ZERO);
     }
 
     public static void clearAllRec(IResource resource) throws CoreException {
@@ -39,7 +39,7 @@ public final class MarkerUtils {
     }
 
     public static void clearParser(IResource resource) throws CoreException {
-        resource.deleteMarkers(parserId, true, IResource.DEPTH_ONE);
+        resource.deleteMarkers(parserId, true, IResource.DEPTH_ZERO);
     }
 
     public static void clearParserRec(IResource resource) throws CoreException {
@@ -47,7 +47,7 @@ public final class MarkerUtils {
     }
 
     public static void clearAnalysis(IResource resource) throws CoreException {
-        resource.deleteMarkers(analysisId, true, IResource.DEPTH_ONE);
+        resource.deleteMarkers(analysisId, true, IResource.DEPTH_ZERO);
     }
 
     public static void clearAnalysisRec(IResource resource) throws CoreException {
@@ -55,7 +55,7 @@ public final class MarkerUtils {
     }
 
     public static void clearTransformation(IResource resource) throws CoreException {
-        resource.deleteMarkers(transformationId, true, IResource.DEPTH_ONE);
+        resource.deleteMarkers(transformationId, true, IResource.DEPTH_ZERO);
     }
 
     public static void clearTransformationRec(IResource resource) throws CoreException {
