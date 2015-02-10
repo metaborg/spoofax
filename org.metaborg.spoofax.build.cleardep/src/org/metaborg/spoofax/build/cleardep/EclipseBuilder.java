@@ -12,6 +12,7 @@ import org.metaborg.spoofax.build.cleardep.builders.All;
 import org.metaborg.spoofax.build.cleardep.builders.Clean;
 import org.strategoxt.HybridInterpreter;
 import org.sugarj.cleardep.SimpleMode;
+import org.sugarj.common.Log;
 import org.sugarj.common.path.AbsolutePath;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
@@ -22,7 +23,7 @@ import org.sugarj.common.path.RelativePath;
  * @author Sebastian Erdweg <seba at informatik uni-marburg de>
  */
 public class EclipseBuilder extends IncrementalProjectBuilder {
-
+	
 	public static Properties makeProperties(String lang) {
 		Properties props = new Properties(new HashMap<String, String>());
 
@@ -53,6 +54,10 @@ public class EclipseBuilder extends IncrementalProjectBuilder {
 	}
 	
 	public static SpoofaxBuildContext makeContext(IProject project) {
+		Log.out = EclipseConsole.getOutputPrintStream();
+	    Log.err = EclipseConsole.getErrorPrintStream();
+	    EclipseConsole.activateConsoleOnce();
+
 		Path baseDir = new AbsolutePath(project.getProject().getLocation().makeAbsolute().toString());
 		Path binDir = new RelativePath(baseDir, "include");
 		// FIXME use actual Spoofax language name

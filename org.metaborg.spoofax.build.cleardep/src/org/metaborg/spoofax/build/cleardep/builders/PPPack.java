@@ -44,7 +44,7 @@ public class PPPack extends Builder<SpoofaxBuildContext, PPPack.Input, SimpleCom
 
 	@Override
 	public void build(SimpleCompilationUnit result, Input input) throws IOException {
-		Log.log.beginTask("Package pretty-print table", Log.CORE);
+		Log.log.beginTask("Prepare editor-service pretty-print table", Log.CORE);
 		
 		result.addSourceArtifact(input.ppInput);
 		try {

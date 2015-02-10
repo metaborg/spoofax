@@ -35,7 +35,7 @@ public class All extends Builder<SpoofaxBuildContext, Void, SimpleCompilationUni
 
 	@Override
 	public void build(SimpleCompilationUnit result, Void input) throws IOException {
-		Log.log.beginTask("Spoofax build all", Log.CORE);
+		Log.log.beginTask("Build Spoofax project", Log.CORE);
 		
 		RelativePath ppInput = context.basePath("${lib}/EditorService-pretty.pp");
 		RelativePath ppTermOutput = context.basePath("${include}/EditorService-pretty.pp.af");
