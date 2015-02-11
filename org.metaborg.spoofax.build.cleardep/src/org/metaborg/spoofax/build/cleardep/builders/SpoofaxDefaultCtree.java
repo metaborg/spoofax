@@ -3,6 +3,7 @@ package org.metaborg.spoofax.build.cleardep.builders;
 import java.io.IOException;
 
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
+import org.strategoxt.imp.metatooling.building.AntForceRefreshScheduler;
 import org.sugarj.cleardep.CompilationUnit;
 import org.sugarj.cleardep.SimpleCompilationUnit;
 import org.sugarj.cleardep.SimpleMode;
@@ -37,6 +38,14 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 		
 		CompilationUnit forceOnSave = context.forceOnSave.require(null, context.basePath("${include}/build.forceOnSave.dep"), new SimpleMode());
 		result.addModuleDependency(forceOnSave);
+		
+		try {
+			AntForceRefreshScheduler.main(new String[] {context.basePath("${include}").getAbsolutePath()});
+		} catch (Exception e) {
+			Log.log.logErr(e.getMessage(), Log.CORE);
+		}
+		
+		
 	}
 	
 	private void checkClassPath() {

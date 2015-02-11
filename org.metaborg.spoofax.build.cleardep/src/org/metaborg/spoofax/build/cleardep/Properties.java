@@ -35,4 +35,8 @@ public class Properties {
 	public String get(String key) {
 		return props.get(key);
 	}
+	
+	public boolean isDefined(String key) {
+		return props.containsKey(key);
+	}
 }

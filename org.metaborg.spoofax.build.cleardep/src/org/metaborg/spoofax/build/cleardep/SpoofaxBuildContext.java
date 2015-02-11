@@ -19,12 +19,13 @@ public class SpoofaxBuildContext extends BuildContext {
 	public PPPack ppPack = PPPack.factory.makeBuilder(this);
 	public SpoofaxDefaultCtree spoofaxDefaultCtree = SpoofaxDefaultCtree.factory.makeBuilder(this);
 	public ForceOnSave forceOnSave = ForceOnSave.factory.makeBuilder(this);
-
 	
 	public final Path baseDir;
 	public final Path binDir;
 	public final Properties props;
 	public final HybridInterpreter interp;
+	
+	private static Context toolsContext;
 	
 	public SpoofaxBuildContext(Path baseDir, Path binDir, Properties props, HybridInterpreter interp) {
 		this.baseDir = baseDir;
@@ -43,5 +44,14 @@ public class SpoofaxBuildContext extends BuildContext {
 	
 	public Context strategoContext() {
 		return interp.getCompiledContext();
+	}
+	
+	public Context toolsContext() {
+		synchronized (SpoofaxBuildContext.class) {
+			if (toolsContext != null)
+				return toolsContext;
+			toolsContext = org.strategoxt.tools.tools.init();
+			return toolsContext;
+		}
 	}
 }

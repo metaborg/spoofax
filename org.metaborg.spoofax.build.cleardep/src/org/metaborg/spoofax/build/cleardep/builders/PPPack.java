@@ -4,7 +4,6 @@ package org.metaborg.spoofax.build.cleardep.builders;
 import java.io.IOException;
 
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
-import org.strategoxt.lang.Context;
 import org.strategoxt.lang.StrategoExit;
 import org.sugarj.cleardep.SimpleCompilationUnit;
 import org.sugarj.cleardep.build.Builder;
@@ -48,8 +47,8 @@ public class PPPack extends Builder<SpoofaxBuildContext, PPPack.Input, SimpleCom
 		
 		result.addSourceArtifact(input.ppInput);
 		try {
-			Context context = org.strategoxt.tools.tools.init();
-			context.invokeStrategyCLI(org.strategoxt.tools.main_parse_pp_table_0_0.instance, "parse-pp-table", 
+			context.toolsContext().invokeStrategyCLI(
+					org.strategoxt.tools.main_parse_pp_table_0_0.instance, "parse-pp-table", 
 					"-i", input.ppInput.getAbsolutePath(),
 					"-o", input.ppTermOutput.getAbsolutePath());
 		} catch (StrategoExit e) {
