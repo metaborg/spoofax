@@ -33,6 +33,7 @@ public class SpoofaxBuildContext extends BuildContext {
 	
 	private static Context toolsContext;
 	private static Context permissiveGrammarsContext;
+	private static Context xtcContext;
 	
 	public SpoofaxBuildContext(Path baseDir, Path binDir, Properties props, HybridInterpreter interp) {
 		this.baseDir = baseDir;
@@ -70,5 +71,13 @@ public class SpoofaxBuildContext extends BuildContext {
 			return permissiveGrammarsContext;
 		}
 	}
-	
+
+	public Context xtcContext() {
+		synchronized (SpoofaxBuildContext.class) {
+			if (xtcContext != null)
+				return xtcContext;
+			xtcContext = org.strategoxt.stratego_xtc.stratego_xtc.init();
+			return xtcContext;
+		}
+	}
 }

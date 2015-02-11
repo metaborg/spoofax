@@ -38,6 +38,13 @@ public class Properties {
 	public String get(String key) {
 		return props.get(key);
 	}
+
+	public Object getOrFail(String key) {
+		String val = get(key);
+		if (val == null)
+			throw new IllegalArgumentException("Undefined property " + key);
+		return val;
+	}
 	
 	public String getOrElse(String key, String defaultVal) {
 		String val = get(key);
