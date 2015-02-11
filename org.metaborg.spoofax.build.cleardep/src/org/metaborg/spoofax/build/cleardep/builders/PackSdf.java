@@ -3,6 +3,7 @@ package org.metaborg.spoofax.build.cleardep.builders;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.metaborg.spoofax.build.cleardep.LoggingFilteringIOAgent;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
@@ -54,7 +55,7 @@ public class PackSdf extends Builder<SpoofaxBuildContext, Void, SimpleCompilatio
 		result.addSourceArtifact(inputPath);
 		
 		ExecutionResult er = StrategoExecutor.runStrategoCLI(context.toolsContext(), 
-				main_pack_sdf_0_0.instance, "pack-sdf", new LoggingFilteringIOAgent("  including .*"),
+				main_pack_sdf_0_0.instance, "pack-sdf", new LoggingFilteringIOAgent(Pattern.quote("  including ") + ".*"),
 				"-i", inputPath,
 				"-o", outputPath,
 				"-I", context.basePath("${syntax}"),

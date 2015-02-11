@@ -32,6 +32,7 @@ public class SpoofaxBuildContext extends BuildContext {
 	public final HybridInterpreter interp;
 	
 	private static Context toolsContext;
+	private static Context permissiveGrammarsContext;
 	
 	public SpoofaxBuildContext(Path baseDir, Path binDir, Properties props, HybridInterpreter interp) {
 		this.baseDir = baseDir;
@@ -60,4 +61,14 @@ public class SpoofaxBuildContext extends BuildContext {
 			return toolsContext;
 		}
 	}
+	
+	public Context permissiveGrammarsContext() {
+		synchronized (SpoofaxBuildContext.class) {
+			if (permissiveGrammarsContext != null)
+				return permissiveGrammarsContext;
+			permissiveGrammarsContext = org.strategoxt.permissivegrammars.permissivegrammars.init();
+			return permissiveGrammarsContext;
+		}
+	}
+	
 }
