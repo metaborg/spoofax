@@ -1,9 +1,12 @@
 package org.metaborg.spoofax.build.cleardep;
 
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.sugarj.common.path.Path;
 
 public class Properties {
 	private Map<String, String> props;
@@ -36,7 +39,50 @@ public class Properties {
 		return props.get(key);
 	}
 	
+	public String getOrElse(String key, String defaultVal) {
+		String val = get(key);
+		if (val == null)
+			return defaultVal;
+		return val;
+	}
+	
 	public boolean isDefined(String key) {
 		return props.containsKey(key);
+	}
+	
+	public static Properties makeSpoofaxProperties(String lang, Path[] sdfImports) {
+		Properties props = new Properties(new HashMap<String, String>());
+
+		props.put("sdfmodule", lang);
+		props.put("metasdfmodule", "Stratego-" + lang);
+		props.put("esvmodule", lang);
+		props.put("strmodule", lang.substring(0, 1).toLowerCase() + lang.substring(1));
+		props.put("ppmodule", lang + "-pp");
+		props.put("sigmodule", lang + "-sig");
+
+		props.put("trans", "trans");
+		props.put("trans.rel", "trans");
+		props.put("src-gen", "editor/java");
+		props.put("syntax", "src-gen/syntax");
+		props.put("syntax.rel", props.get("syntax"));
+		props.put("include", "include");
+		props.put("include.rel", props.get("include"));
+		props.put("lib", "lib");
+		props.put("build", "target/classes");
+		props.put("dist", "bin/dist");
+		props.put("pp", "src-gen/pp");
+		props.put("signatures", "src-gen/signatures");
+		props.put("sdf-src-gen", "src-gen");
+		props.put("lib-gen", "include");
+		props.put("lib-gen.rel", props.get("lib-gen"));
+		
+		if (sdfImports != null) {
+			StringBuilder importString = new StringBuilder();
+			for (Path imp : sdfImports)
+				importString.append("-Idef " + props.substitute(imp.getAbsolutePath()));
+			props.put("build.sdf.imports", importString.toString());
+		}
+
+		return props;
 	}
 }

@@ -3,7 +3,10 @@ package org.metaborg.spoofax.build.cleardep;
 import org.metaborg.spoofax.build.cleardep.builders.All;
 import org.metaborg.spoofax.build.cleardep.builders.Clean;
 import org.metaborg.spoofax.build.cleardep.builders.ForceOnSave;
+import org.metaborg.spoofax.build.cleardep.builders.MakePermissive;
 import org.metaborg.spoofax.build.cleardep.builders.PPPack;
+import org.metaborg.spoofax.build.cleardep.builders.PackSdf;
+import org.metaborg.spoofax.build.cleardep.builders.Sdf2Table;
 import org.metaborg.spoofax.build.cleardep.builders.SpoofaxDefaultCtree;
 import org.strategoxt.HybridInterpreter;
 import org.strategoxt.lang.Context;
@@ -19,6 +22,9 @@ public class SpoofaxBuildContext extends BuildContext {
 	public PPPack ppPack = PPPack.factory.makeBuilder(this);
 	public SpoofaxDefaultCtree spoofaxDefaultCtree = SpoofaxDefaultCtree.factory.makeBuilder(this);
 	public ForceOnSave forceOnSave = ForceOnSave.factory.makeBuilder(this);
+	public PackSdf packSdf = PackSdf.factory.makeBuilder(this);
+	public MakePermissive makePermissive = MakePermissive.factory.makeBuilder(this);
+	public Sdf2Table sdf2Table = Sdf2Table.factory.makeBuilder(this);
 	
 	public final Path baseDir;
 	public final Path binDir;

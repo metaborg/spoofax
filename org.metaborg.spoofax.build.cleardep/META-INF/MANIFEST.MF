@@ -12,6 +12,7 @@ Eclipse-RegisterBuddy: org.strategoxt.imp.runtime
 Import-Package: org.eclipse.core.resources,
  org.eclipse.ui.console,
  org.spoofax.interpreter.core,
+ org.spoofax.interpreter.library;version="1.3.0",
  org.spoofax.interpreter.terms,
  org.spoofax.interpreter.ui,
  org.strategoxt,
@@ -25,7 +26,8 @@ Import-Package: org.eclipse.core.resources,
  org.sugarj.cleardep.stamp,
  org.sugarj.cleardep.xattr,
  org.sugarj.common,
- org.sugarj.common.path
+ org.sugarj.common.path,
+ org.sugarj.common.util
 Export-Package: org.metaborg.spoofax.build.cleardep,
  org.metaborg.spoofax.build.cleardep.builders,
  org.metaborg.spoofax.build.cleardep.util

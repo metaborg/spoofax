@@ -4,8 +4,12 @@ import java.io.IOException;
 import java.util.List;
 
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
+import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
+import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
 import org.metaborg.spoofax.build.cleardep.util.FileExtensionFilter;
+import org.strategoxt.tools.main_pack_sdf_0_0;
 import org.sugarj.cleardep.SimpleCompilationUnit;
+import org.sugarj.cleardep.CompilationUnit.State;
 import org.sugarj.cleardep.build.Builder;
 import org.sugarj.cleardep.build.BuilderFactory;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
@@ -46,52 +50,21 @@ public class PackSdf extends Builder<SpoofaxBuildContext, Void, SimpleCompilatio
 		
 		result.addSourceArtifact(inputPath);
 		
-		context.toolsContext().invokeStrategyCLI(
-				org.strategoxt.tools.main_pack_sdf_0_0.instance, "parse-sdf", 
-				"-i", input.ppInput.getAbsolutePath(),
-				"-o", input.ppTermOutput.getAbsolutePath());
+		ExecutionResult er = StrategoExecutor.runStrategoCLI(context.toolsContext(), 
+				main_pack_sdf_0_0.instance, "pack-sdf", 
+				"-i", inputPath,
+				"-o", outputPath,
+				"-I", context.basePath("${syntax}"),
+				"-I", context.basePath("${lib}"),
+				utilsInclude,
+				context.props.getOrElse("build.sdf.imports", ""));
 		
-//		<macrodef name="pack-sdf">
-//		<attribute name="input" />
-//		<attribute name="output" />
-//		<element name="args" optional="true" />
-//		<element name="sdf-deps" optional="true" />
-//		<sequential>
-//			<uptodate-mio input="@{input}" output="@{output}" type="pack-sdf">
-//				<action>
-//					<java classname="run" failonerror="true">
-//						<arg value="org.strategoxt.tools.main-pack-sdf" />
-//						<arg value="-i" />
-//						<arg value="${basedir}/@{input}" />
-//						<arg value="-o" />
-//						<arg value="${basedir}/@{output}" />
-//						<args />
-//					</java>
-//				</action>
-//				<deps>
-//					<sdf-deps />
-//				</deps>
-//			</uptodate-mio>
-//		</sequential>
-//	</macrodef>
-	
-//		<pack-sdf input="${syntax.rel}/${sdfmodule}.sdf" output="${include.rel}/${sdfmodule}.def">
-//		<sdf-deps>
-//			<srcfiles dir="${basedir}" includes="**/*.sdf"/>
-//			<srcfiles dir="${lib}" includes="**/*.def"/>
-//			<srcfiles dir="${include}" includes="${sdfmodule}.def"/> 
-//		</sdf-deps>
-//	
-//		<args>
-//			<arg value="-I"/>
-//			<arg value="${syntax}"/>
-//			<arg value="-I"/>
-//			<arg value="${lib}"/>
-//			<arg line="${utils-include}"/>
-//			<arg line="${build.sdf.imports}"/>
-//		</args>
-//	</pack-sdf>
+		if (er.success)
+			result.setState(State.SUCCESS);
+		else
+			result.setState(State.FAILURE);
 		
+		result.addGeneratedFile(outputPath);
 		
 		Log.log.endTask();
 	}

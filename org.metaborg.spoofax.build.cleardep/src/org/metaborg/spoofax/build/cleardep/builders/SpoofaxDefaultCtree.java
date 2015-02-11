@@ -39,17 +39,14 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 		CompilationUnit forceOnSave = context.forceOnSave.require(null, context.basePath("${include}/build.forceOnSave.dep"), new SimpleMode());
 		result.addModuleDependency(forceOnSave);
 		
-		try {
-			AntForceRefreshScheduler.main(new String[] {context.basePath("${include}").getAbsolutePath()});
-		} catch (Exception e) {
-			Log.log.logErr(e.getMessage(), Log.CORE);
-		}
+		forceWorkspaceRefresh();
 		
+		CompilationUnit sdf2Table = context.sdf2Table.require(null, context.basePath("${include}/build.sdf2Table.dep"), new SimpleMode());
+		result.addModuleDependency(sdf2Table);
 		
 	}
-	
+
 	private void checkClassPath() {
-//		org.strategoxt.imp.generator.sdf2imp i;
 		try {
 			Class<?> cl = this.getClass().getClassLoader().loadClass("org.strategoxt.imp.generator.sdf2imp");
 			Log.log.log("Found class " + cl, Log.DETAIL);
@@ -61,4 +58,11 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 		}
 	}
 
+	protected void forceWorkspaceRefresh() {
+		try {
+			AntForceRefreshScheduler.main(new String[] {context.basePath("${include}").getAbsolutePath()});
+		} catch (Exception e) {
+			Log.log.logErr(e.getMessage(), Log.CORE);
+		}
+	}
 }

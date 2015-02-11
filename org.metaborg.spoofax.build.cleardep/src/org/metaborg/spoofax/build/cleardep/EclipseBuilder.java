@@ -1,7 +1,6 @@
 package org.metaborg.spoofax.build.cleardep;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.core.resources.IProject;
@@ -24,35 +23,6 @@ import org.sugarj.common.path.RelativePath;
  */
 public class EclipseBuilder extends IncrementalProjectBuilder {
 	
-	public static Properties makeProperties(String lang) {
-		Properties props = new Properties(new HashMap<String, String>());
-
-		props.put("sdfmodule", lang);
-		props.put("metasdfmodule", "Stratego-" + lang);
-		props.put("esvmodule", lang);
-		props.put("strmodule", lang.substring(0, 1).toLowerCase() + lang.substring(1));
-		props.put("ppmodule", lang + "-pp");
-		props.put("sigmodule", lang + "-sig");
-
-		props.put("trans", "trans");
-		props.put("trans.rel", "trans");
-		props.put("src-gen", "editor/java");
-		props.put("syntax", "src-gen/syntax");
-		props.put("syntax.rel", props.get("syntax"));
-		props.put("include", "include");
-		props.put("include.rel", props.get("include"));
-		props.put("lib", "lib");
-		props.put("build", "target/classes");
-		props.put("dist", "bin/dist");
-		props.put("pp", "src-gen/pp");
-		props.put("signatures", "src-gen/signatures");
-		props.put("sdf-src-gen", "src-gen");
-		props.put("lib-gen", "include");
-		props.put("lib-gen.rel", props.get("lib-gen"));
-
-		return props;
-	}
-	
 	public static SpoofaxBuildContext makeContext(IProject project) {
 		Log.out = EclipseConsole.getOutputPrintStream();
 	    Log.err = EclipseConsole.getErrorPrintStream();
@@ -60,8 +30,10 @@ public class EclipseBuilder extends IncrementalProjectBuilder {
 
 		Path baseDir = new AbsolutePath(project.getProject().getLocation().makeAbsolute().toString());
 		Path binDir = new RelativePath(baseDir, "include");
+
 		// FIXME use actual Spoofax language name
-		Properties props = makeProperties("TemplateLang");
+		Properties props = Properties.makeSpoofaxProperties("TemplateLang", new Path[] {new RelativePath(baseDir, "${lib}/SDF.def")});
+		
 		SpoofaxBuildContext context = new SpoofaxBuildContext(baseDir, binDir, props, new HybridInterpreter());
 		return context;
 	}
