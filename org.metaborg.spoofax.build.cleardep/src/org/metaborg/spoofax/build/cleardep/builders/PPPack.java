@@ -3,8 +3,12 @@ package org.metaborg.spoofax.build.cleardep.builders;
 
 import java.io.IOException;
 
+import org.metaborg.spoofax.build.cleardep.LoggingFilteringIOAgent;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
-import org.strategoxt.lang.StrategoExit;
+import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
+import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
+import org.strategoxt.tools.main_parse_pp_table_0_0;
+import org.sugarj.cleardep.CompilationUnit.State;
 import org.sugarj.cleardep.SimpleCompilationUnit;
 import org.sugarj.cleardep.build.Builder;
 import org.sugarj.cleardep.build.BuilderFactory;
@@ -46,16 +50,12 @@ public class PPPack extends Builder<SpoofaxBuildContext, PPPack.Input, SimpleCom
 		Log.log.beginTask("Prepare editor-service pretty-print table", Log.CORE);
 		
 		result.addSourceArtifact(input.ppInput);
-		try {
-			context.toolsContext().invokeStrategyCLI(
-					org.strategoxt.tools.main_parse_pp_table_0_0.instance, "parse-pp-table", 
-					"-i", input.ppInput.getAbsolutePath(),
-					"-o", input.ppTermOutput.getAbsolutePath());
-		} catch (StrategoExit e) {
-			if (e.getValue() != 0)
-				throw e;
-		}
+		ExecutionResult er = StrategoExecutor.runStrategoCLI(context.toolsContext(), 
+				main_parse_pp_table_0_0.instance, "parse-pp-table", new LoggingFilteringIOAgent(),
+					"-i", input.ppInput,
+					"-o", input.ppTermOutput);
 		result.addGeneratedFile(input.ppTermOutput);
+		result.setState(State.finished(er.success));
 		
 		Log.log.endTask();
 	}
