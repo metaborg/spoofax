@@ -30,6 +30,11 @@ public class Clean extends Builder<SpoofaxBuildContext, Void, SimpleCompilationU
 	}
 
 	@Override
+	protected Path persistentPath(Void input) {
+		return context.basePath("${include}/build.clean.dep");
+	}
+	
+	@Override
 	public Stamper defaultStamper() { return LastModifiedStamper.instance; }
 
 	@Override

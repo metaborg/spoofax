@@ -14,7 +14,9 @@ import org.sugarj.cleardep.build.Builder;
 import org.sugarj.cleardep.build.BuilderFactory;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
+import org.sugarj.common.FileCommands;
 import org.sugarj.common.Log;
+import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
 public class PPPack extends Builder<SpoofaxBuildContext, PPPack.Input, SimpleCompilationUnit> {
@@ -35,6 +37,11 @@ public class PPPack extends Builder<SpoofaxBuildContext, PPPack.Input, SimpleCom
 	
 	public PPPack(SpoofaxBuildContext context) {
 		super(context);
+	}
+	
+	@Override
+	protected Path persistentPath(Input input) {
+		return FileCommands.addExtension(input.ppTermOutput, "dep");
 	}
 
 	@Override

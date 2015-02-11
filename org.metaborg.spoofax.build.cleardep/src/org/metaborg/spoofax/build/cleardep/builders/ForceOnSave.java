@@ -28,6 +28,11 @@ public class ForceOnSave extends Builder<SpoofaxBuildContext, Void, SimpleCompil
 	public ForceOnSave(SpoofaxBuildContext context) {
 		super(context);
 	}
+	
+	@Override
+	protected Path persistentPath(Void input) {
+		return context.basePath("${include}/build.forceOnSave.dep");
+	}
 
 	@Override
 	public Class<SimpleCompilationUnit> resultClass() {

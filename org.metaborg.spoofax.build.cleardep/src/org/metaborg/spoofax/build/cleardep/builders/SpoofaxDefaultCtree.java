@@ -12,6 +12,7 @@ import org.sugarj.cleardep.build.BuilderFactory;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.Log;
+import org.sugarj.common.path.Path;
 
 public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, SimpleCompilationUnit> {
 
@@ -25,6 +26,11 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 	}
 
 	@Override
+	protected Path persistentPath(Void input) {
+		return context.basePath("${include}/build.spoofaxDefault.dep");
+	}
+	
+	@Override
 	public Class<SimpleCompilationUnit> resultClass() {
 		return SimpleCompilationUnit.class;
 	}
@@ -36,14 +42,15 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 	public void build(SimpleCompilationUnit result, Void input) throws IOException {
 		checkClassPath();
 		
-		CompilationUnit forceOnSave = context.forceOnSave.require(null, context.basePath("${include}/build.forceOnSave.dep"), new SimpleMode());
+		CompilationUnit forceOnSave = context.forceOnSave.require(null, new SimpleMode());
 		result.addModuleDependency(forceOnSave);
 		
 		forceWorkspaceRefresh();
 		
-		CompilationUnit sdf2Table = context.sdf2Table.require(null, context.basePath("${include}/build.sdf2Table.dep"), new SimpleMode());
+		String sdfmodule = context.props.get("sdfmodule");
+		String sdfImports = context.props.get("build.sdf.imports");
+		CompilationUnit sdf2Table = context.sdf2Table.require(new Sdf2Table.Input(sdfmodule, sdfImports), new SimpleMode());
 		result.addModuleDependency(sdf2Table);
-		
 	}
 
 	private void checkClassPath() {

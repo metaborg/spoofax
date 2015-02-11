@@ -19,31 +19,22 @@ import org.sugarj.common.Log;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
-public class Sdf2Table extends Builder<SpoofaxBuildContext, Sdf2Table.Input, SimpleCompilationUnit> {
+public class MetaSdf2Table extends Builder<SpoofaxBuildContext, Void, SimpleCompilationUnit> {
 
-	public static BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, Sdf2Table> factory = new BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, Sdf2Table>() {
+	public static BuilderFactory<SpoofaxBuildContext, Void, SimpleCompilationUnit, MetaSdf2Table> factory = new BuilderFactory<SpoofaxBuildContext, Void, SimpleCompilationUnit, MetaSdf2Table>() {
 		@Override
-		public Sdf2Table makeBuilder(SpoofaxBuildContext context) { return new Sdf2Table(context); }
+		public MetaSdf2Table makeBuilder(SpoofaxBuildContext context) { return new MetaSdf2Table(context); }
 	};
 	
-	public static class Input {
-		public final String sdfmodule;
-		public final String buildSdfImports;
-		public Input(String sdfmodule, String buildSdfImports) {
-			this.sdfmodule = sdfmodule;
-			this.buildSdfImports = buildSdfImports;
-		}
-	}
-	
-	public Sdf2Table(SpoofaxBuildContext context) {
+	public MetaSdf2Table(SpoofaxBuildContext context) {
 		super(context);
 	}
-	
-	@Override
-	protected Path persistentPath(Input input) {
-		return context.basePath("${include}/build.sdf2Table" + input.sdfmodule + ".dep");
-	}
 
+	@Override
+	protected Path persistentPath(Void input) {
+		return context.basePath("${include}/build.metaSdf2Table.dep");
+	}
+	
 	@Override
 	public Class<SimpleCompilationUnit> resultClass() {
 		return SimpleCompilationUnit.class;
@@ -53,12 +44,28 @@ public class Sdf2Table extends Builder<SpoofaxBuildContext, Sdf2Table.Input, Sim
 	public Stamper defaultStamper() { return LastModifiedStamper.instance; }
 
 	@Override
-	public void build(SimpleCompilationUnit result, Input input) throws IOException {
+	public void build(SimpleCompilationUnit result, Void input) throws IOException {
 		Log.log.beginInlineTask("Compile grammar to parse table", Log.CORE); 
 
-		CompilationUnit makePermissive = context.makePermissive.require(new MakePermissive.Input(input.sdfmodule, input.buildSdfImports), new SimpleMode());
+		String sdfmodule = context.props.get("metasdfmodule");
+		String sdfImports = context.props.substitute("-Idef \"${eclipse.spoofaximp.jars}/StrategoMix.def\" ${build.sdf.imports}");
+		CompilationUnit makePermissive = context.sdf2Table.require(new Sdf2Table.Input(sdfmodule, sdfImports), new SimpleMode());
 		result.addModuleDependency(makePermissive);
 
+//		<target name="meta-sdf2table" if="metasdfmodule.available">
+//		<fail unless="eclipse.spoofaximp.jars" message="Property eclipse.spoofaximp.jars must point to the directory containing StrategoMix.def" />
+//		<antcall target="sdf2table">
+//			<param name="sdfmodule" value="${metasdfmodule}" />
+//			<param name="build.sdf.imports" value="-Idef &quot;${eclipse.spoofaximp.jars}/StrategoMix.def&quot; ${build.sdf.imports}" />
+//		</antcall>
+//		<antcall target="meta-sdf2table.helper" />
+//	</target>
+//
+//	<target name="meta-sdf2table.helper" if="eclipse.running">
+//		<eclipse.convertPath fileSystemPath="${include}" property="includeresource" />
+//		<eclipse.refreshLocal resource="${includeresource}/${metasdfmodule}.tbl" depth="infinite" />
+//	</target>
+		
 		boolean success = true;
 		for (RelativePath inputPath : FileCommands.listFiles(context.basePath("${include}"), new FileNameFilter("-Permissive.def"))) {
 			String name = FileCommands.fileName(inputPath);
@@ -69,7 +76,7 @@ public class Sdf2Table extends Builder<SpoofaxBuildContext, Sdf2Table.Input, Sim
 			ExecutionResult er = StrategoExecutor.runSdf2TableCLI(context.xtcContext(), 
 					"-t",
 					"-i", inputPath,
-					"-m", input.sdfmodule,
+					"-m", context.props.getOrFail("sdfmodule"),
 					"-o", outputPath);
 			
 			result.addGeneratedFile(outputPath);

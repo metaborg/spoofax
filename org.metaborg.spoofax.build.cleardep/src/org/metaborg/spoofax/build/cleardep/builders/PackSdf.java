@@ -23,14 +23,28 @@ import org.sugarj.common.path.AbsolutePath;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
-public class PackSdf extends Builder<SpoofaxBuildContext, Void, SimpleCompilationUnit> {
-	public static BuilderFactory<SpoofaxBuildContext, Void, SimpleCompilationUnit, PackSdf> factory = new BuilderFactory<SpoofaxBuildContext, Void, SimpleCompilationUnit, PackSdf>() {
+public class PackSdf extends Builder<SpoofaxBuildContext, PackSdf.Input, SimpleCompilationUnit> {
+	public static BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, PackSdf> factory = new BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, PackSdf>() {
 		@Override
 		public PackSdf makeBuilder(SpoofaxBuildContext context) { return new PackSdf(context); }
 	};
 	
+	public static class Input {
+		public final String sdfmodule;
+		public final String buildSdfImports;
+		public Input(String sdfmodule, String buildSdfImports) {
+			this.sdfmodule = sdfmodule;
+			this.buildSdfImports = buildSdfImports;
+		}
+	}
+	
 	public PackSdf(SpoofaxBuildContext context) {
 		super(context);
+	}
+	
+	@Override
+	protected Path persistentPath(Input input) {
+		return context.basePath("${include}/build.packSdf." + input.sdfmodule + ".dep");
 	}
 
 	@Override
@@ -43,13 +57,13 @@ public class PackSdf extends Builder<SpoofaxBuildContext, Void, SimpleCompilatio
 
 	
 	@Override
-	public void build(SimpleCompilationUnit result, Void input) throws IOException {
+	public void build(SimpleCompilationUnit result, Input input) throws IOException {
 		Log.log.beginInlineTask("Pack SDF modules", Log.CORE); 
 		
 		copySdf2(result);
 		
-		RelativePath inputPath = context.basePath("${syntax.rel}/${sdfmodule}.sdf");
-		RelativePath outputPath = context.basePath("${include.rel}/${sdfmodule}.def");
+		RelativePath inputPath = context.basePath("${syntax.rel}/" + input.sdfmodule + ".sdf");
+		RelativePath outputPath = context.basePath("${include.rel}/" + input.sdfmodule + ".def");
 		String utilsInclude = FileCommands.exists(context.basePath("${utils}")) ? context.props.substitute("-I ${utils}") : "";
 		
 		result.addSourceArtifact(inputPath);
@@ -58,10 +72,10 @@ public class PackSdf extends Builder<SpoofaxBuildContext, Void, SimpleCompilatio
 				main_pack_sdf_0_0.instance, "pack-sdf", new LoggingFilteringIOAgent(Pattern.quote("  including ") + ".*"),
 				"-i", inputPath,
 				"-o", outputPath,
-				"-I", context.basePath("${syntax}"),
-				"-I", context.basePath("${lib}"),
+				FileCommands.exists(context.basePath("${syntax}")) ? "-I " + context.basePath("${syntax}") : "",
+				FileCommands.exists(context.basePath("${lib}")) ? "-I " + context.basePath("${lib}") : "",
 				utilsInclude,
-				context.props.getOrElse("build.sdf.imports", ""));
+				input.buildSdfImports);
 		
 		result.addGeneratedFile(outputPath);
 		result.setState(State.finished(er.success));
