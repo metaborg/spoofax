@@ -1,0 +1,107 @@
+package org.metaborg.spoofax.eclipse.transform;
+
+import java.util.Collection;
+import java.util.Map;
+
+import org.apache.commons.vfs2.FileObject;
+import org.eclipse.jface.action.IContributionItem;
+import org.eclipse.jface.action.MenuManager;
+import org.eclipse.ui.actions.CompoundContributionItem;
+import org.eclipse.ui.menus.CommandContributionItem;
+import org.eclipse.ui.menus.CommandContributionItemParameter;
+import org.eclipse.ui.menus.IWorkbenchContribution;
+import org.eclipse.ui.services.IServiceLocator;
+import org.metaborg.spoofax.core.language.ILanguage;
+import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
+import org.metaborg.spoofax.core.transform.stratego.Action;
+import org.metaborg.spoofax.core.transform.stratego.Menu;
+import org.metaborg.spoofax.core.transform.stratego.MenusFacet;
+import org.metaborg.spoofax.eclipse.SpoofaxPlugin;
+import org.metaborg.spoofax.eclipse.editor.LatestEditorListener;
+import org.metaborg.spoofax.eclipse.editor.SpoofaxEditor;
+import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+import com.google.inject.Injector;
+
+public class TransformMenuContribution extends CompoundContributionItem implements IWorkbenchContribution {
+    private static final Logger logger = LoggerFactory.getLogger(TransformMenuContribution.class);
+    private static final String transformId = SpoofaxPlugin.id + ".command.transform";
+
+    private final IEclipseResourceService resourceService;
+    private final ILanguageIdentifierService languageIdentifier;
+    private final LatestEditorListener latestEditorListener;
+
+    private IServiceLocator serviceLocator;
+
+
+    public TransformMenuContribution() {
+        final Injector injector = SpoofaxPlugin.injector();
+        this.resourceService = injector.getInstance(IEclipseResourceService.class);
+        this.languageIdentifier = injector.getInstance(ILanguageIdentifierService.class);
+        this.latestEditorListener = injector.getInstance(LatestEditorListener.class);
+    }
+
+
+    @Override public void initialize(IServiceLocator serviceLocator) {
+        this.serviceLocator = serviceLocator;
+    }
+
+    @Override protected IContributionItem[] getContributionItems() {
+        final SpoofaxEditor editor = latestEditorListener.latestActive();
+        if(editor == null) {
+            logger.debug("Cannot create menu items; there is no latest active editor");
+            return null;
+        }
+
+        final FileObject resource = resourceService.resolve(editor.getEditorInput());
+        if(resource == null) {
+            logger.error("Cannot create menu items; cannot resolve input resource for {}", editor);
+            return null;
+        }
+
+        final ILanguage language = languageIdentifier.identify(resource);
+        if(language == null) {
+            logger.error("Cannot create menu items; cannot identify language for {}", resource);
+            return null;
+        }
+
+        final MenusFacet facet = language.facet(MenusFacet.class);
+        if(facet == null) {
+            logger.error("Cannot create menu items; cannot find menus facet in {}", language);
+        }
+
+        final Collection<IContributionItem> items = Lists.newLinkedList();
+        for(Menu menu : facet.menus()) {
+            items.add(createItem(menu));
+        }
+        return items.toArray(new IContributionItem[0]);
+    }
+
+    private IContributionItem createItem(Menu menu) {
+        final MenuManager menuManager = new MenuManager(menu.name());
+        for(Menu submenu : menu.submenus()) {
+            final IContributionItem submenuItem = createItem(submenu);
+            menuManager.add(submenuItem);
+        }
+        for(Action action : menu.actions()) {
+            final IContributionItem actionItem = createItem(action);
+            menuManager.add(actionItem);
+        }
+        return menuManager;
+    }
+
+    private IContributionItem createItem(Action action) {
+        final CommandContributionItemParameter itemParams =
+            new CommandContributionItemParameter(serviceLocator, null, transformId, CommandContributionItem.STYLE_PUSH);
+        final Map<String, String> parameters = Maps.newHashMap();
+        parameters.put("action-name", action.name);
+        itemParams.parameters = parameters;
+        itemParams.label = action.name;
+
+        return new CommandContributionItem(itemParams);
+    }
+}

@@ -4,6 +4,7 @@ import org.apache.commons.vfs2.FileSystemManager;
 import org.metaborg.spoofax.core.SpoofaxModule;
 import org.metaborg.spoofax.core.resource.ILocalFileProvider;
 import org.metaborg.spoofax.core.resource.IResourceService;
+import org.metaborg.spoofax.eclipse.editor.LatestEditorListener;
 import org.metaborg.spoofax.eclipse.processing.GlobalMutexes;
 import org.metaborg.spoofax.eclipse.processing.Processor;
 import org.metaborg.spoofax.eclipse.resource.EclipseFileSystemManagerProvider;
@@ -50,6 +51,7 @@ public class SpoofaxEclipseModule extends SpoofaxModule {
     @Override protected void bindOther() {
         bind(GlobalMutexes.class).asEagerSingleton();
         bind(Processor.class).asEagerSingleton();
+        bind(LatestEditorListener.class).asEagerSingleton();
 
         // Use analysis-cmd to prevent Stratego analysis to schedule on a background thread.
         bind(String.class).annotatedWith(Names.named("LanguageDiscoveryAnalysisOverride"))

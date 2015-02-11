@@ -38,6 +38,11 @@ public class SpoofaxEditor extends TextEditor {
         setDocumentProvider(new SpoofaxDocumentProvider());
     }
 
+    
+    public IDocument currentDocument() {
+        return currentDocument;
+    }
+    
 
     @Override protected void initializeEditor() {
         super.initializeEditor();

@@ -112,7 +112,8 @@ public class SpoofaxModule extends AbstractModule {
     }
 
     protected void bindTransformer() {
-        bind(ITransformer.class).to(StrategoTransformer.class).in(Singleton.class);
+        bind(new TypeLiteral<ITransformer<IStrategoTerm, IStrategoTerm, IStrategoTerm>>() {}).to(
+            StrategoTransformer.class).in(Singleton.class);
     }
 
     protected void bindCategorizer() {
