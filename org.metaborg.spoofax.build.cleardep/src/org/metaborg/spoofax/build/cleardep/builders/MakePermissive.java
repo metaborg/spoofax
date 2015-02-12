@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.build.cleardep.builders;
 
 import java.io.IOException;
+import java.nio.file.StandardCopyOption;
 import java.util.regex.Pattern;
 
 import org.metaborg.spoofax.build.cleardep.LoggingFilteringIOAgent;
@@ -82,11 +83,10 @@ public class MakePermissive extends Builder<SpoofaxBuildContext, MakePermissive.
 	}
 
 	private void copySdf(SimpleCompilationUnit result, Input input) throws IOException {
-		// XXX need to `preservelastmodified`?
 		Path source = new AbsolutePath(context.props.get("externaldef"));
 		Path target = context.basePath("${include}/" + input.sdfmodule + ".def");
 		result.addExternalFileDependency(source);
-		FileCommands.copyFile(source, target);
+		FileCommands.copyFile(source, target, StandardCopyOption.COPY_ATTRIBUTES);
 		result.addGeneratedFile(target);
 	}
 

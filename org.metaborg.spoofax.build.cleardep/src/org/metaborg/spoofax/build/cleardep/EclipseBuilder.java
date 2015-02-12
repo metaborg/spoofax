@@ -7,8 +7,6 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.metaborg.spoofax.build.cleardep.builders.All;
-import org.metaborg.spoofax.build.cleardep.builders.Clean;
 import org.strategoxt.HybridInterpreter;
 import org.sugarj.cleardep.SimpleMode;
 import org.sugarj.common.Log;

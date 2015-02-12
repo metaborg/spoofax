@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.build.cleardep.builders;
 
 import java.io.IOException;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -112,8 +113,7 @@ public class PackSdf extends Builder<SpoofaxBuildContext, PackSdf.Input, SimpleC
 		List<RelativePath> srcSdfFiles = FileCommands.listFilesRecursive(context.basePath("syntax"), new FileExtensionFilter("sdf"));
 		for (RelativePath p : srcSdfFiles) {
 			result.addSourceArtifact(p);
-			// XXX need to `preservelastmodified`?
-			Path target = FileCommands.copyFile(context.basePath("syntax"), context.basePath("${syntax}"), p);
+			Path target = FileCommands.copyFile(context.basePath("syntax"), context.basePath("${syntax}"), p, StandardCopyOption.COPY_ATTRIBUTES);
 			result.addGeneratedFile(target);
 		}		
 	}
