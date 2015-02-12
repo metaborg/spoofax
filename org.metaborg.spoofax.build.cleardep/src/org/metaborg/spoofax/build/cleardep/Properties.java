@@ -77,6 +77,7 @@ public class Properties {
 		props.put("dist", "bin/dist");
 		props.put("pp", "src-gen/pp");
 		props.put("signatures", "src-gen/signatures");
+		props.put("completions", "src-gen/completions");
 		props.put("sdf-src-gen", "src-gen");
 		props.put("lib-gen", "include");
 		

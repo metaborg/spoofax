@@ -60,10 +60,16 @@ public class ForceOnSaveFile extends Builder<SpoofaxBuildContext, Path, SimpleCo
 //				break;
 		case "sdf3":
 			RelativePath sdf3 = FileCommands.getRelativePath(context.basePath("syntax"), p);
+			String sdf3RelNoExt = FileCommands.dropExtension(sdf3.getRelativePath());
+			
 			RelativePath genSdf = FileCommands.replaceExtension(context.basePath("${syntax}/" + sdf3.getRelativePath()), "sdf");
-			RelativePath genPP = FileCommands.replaceExtension(context.basePath("${pp}/" + sdf3.getRelativePath()), "str");
+			RelativePath genPP = context.basePath("${pp}/" + sdf3RelNoExt + "-pp.str");
+			RelativePath genCompletions = context.basePath("${completions}/" + sdf3RelNoExt + "-esv.esv");
+			RelativePath genSignatures = context.basePath("${signatures}/" + sdf3RelNoExt + "-sig.str");
 			result.addGeneratedFile(genSdf);
 			result.addGeneratedFile(genPP);
+			result.addGeneratedFile(genCompletions);
+			result.addGeneratedFile(genSignatures);
 			break;
 		case "nab":
 			RelativePath gen = FileCommands.replaceExtension(p, "str");
