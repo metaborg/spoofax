@@ -5,14 +5,9 @@ import java.util.List;
 
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
 import org.metaborg.spoofax.build.cleardep.util.FileExtensionFilter;
-import org.spoofax.interpreter.library.ssl.SSLLibrary;
-import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.strategoxt.imp.runtime.FileState;
-import org.strategoxt.imp.runtime.services.OnSaveService;
-import org.strategoxt.imp.runtime.services.StrategoObserver;
-import org.strategoxt.imp.runtime.services.StrategoObserverUpdateJob;
-import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
+import org.sugarj.cleardep.CompilationUnit;
 import org.sugarj.cleardep.SimpleCompilationUnit;
+import org.sugarj.cleardep.SimpleMode;
 import org.sugarj.cleardep.build.Builder;
 import org.sugarj.cleardep.build.BuilderFactory;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
@@ -59,50 +54,10 @@ public class ForceOnSave extends Builder<SpoofaxBuildContext, Void, SimpleCompil
 				context.baseDir, 
 				new FileExtensionFilter("tmpl", "sdf3", "nab", "ts"));
 		for (RelativePath p : paths) {
-			result.addSourceArtifact(p);
-			callOnSaveService(p);
-			switch(FileCommands.getExtension(p)) {
-//			case "tmpl": 
-//				break;
-			case "sdf3":
-				RelativePath sdf3 = FileCommands.getRelativePath(context.basePath("syntax"), p);
-				RelativePath gen = FileCommands.replaceExtension(context.basePath("${syntax}/" + sdf3.getRelativePath()), "sdf");
-				result.addGeneratedFile(gen);
-				break;
-			case "nab":
-				gen = FileCommands.replaceExtension(p, "str");
-				result.addGeneratedFile(gen);
-				break;
-			case "ts":
-				gen = FileCommands.replaceExtension(p, "generated.str");
-				result.addGeneratedFile(gen);
-				break;
-			default:
-				throw new UnsupportedOperationException("Dependency management not implemented for files with extension " + FileCommands.getExtension(p) + ". File was " + p);
-			}
+			CompilationUnit forceOnSaveFile = context.forceOnSaveFile.require(p, new SimpleMode());
+			result.addModuleDependency(forceOnSaveFile);
 		}
 		
 		Log.log.endTask();
 	}
-	
-	private void callOnSaveService(RelativePath p) {
-		try {
-			Log.log.log("Calling on-save handler for: " + p, Log.CORE);
-			FileState fileState = FileState.getFile(new org.eclipse.core.runtime.Path(p.getAbsolutePath()), null);
-			if (fileState == null) {
-				Log.log.logErr("Could not call on-save handler: File state could not be retrieved for file " + p, Log.CORE);
-				return;
-			}
-			StrategoObserver observer = fileState.getDescriptor().createService(StrategoObserver.class, fileState.getParseController());
-			SSLLibrary lib = SSLLibrary.instance(observer.getRuntime().getContext());
-			if (lib.getIOAgent() instanceof EditorIOAgent && ((EditorIOAgent) lib.getIOAgent()).getJob() == null)
-				((EditorIOAgent) lib.getIOAgent()).setJob(new StrategoObserverUpdateJob(observer));
-			IStrategoTerm ast = fileState.getAnalyzedAst();
-			OnSaveService onSave = fileState.getDescriptor().createService(OnSaveService.class, fileState.getParseController());
-			onSave.invokeOnSave(ast);
-		} catch (Exception e) {
-			Log.log.logErr("Could not call on-save handler.", e, Log.CORE);
-		}
-	}
-
 }
