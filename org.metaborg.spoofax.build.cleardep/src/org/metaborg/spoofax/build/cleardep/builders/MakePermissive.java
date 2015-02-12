@@ -65,8 +65,8 @@ public class MakePermissive extends Builder<SpoofaxBuildContext, MakePermissive.
 		if (context.props.isDefined("externaldef"))
 			copySdf(result, input);
 		
-		RelativePath inputPath = context.basePath("${include.rel}/" + input.sdfmodule + ".def");
-		RelativePath outputPath = context.basePath("${include.rel}/" + input.sdfmodule + "-Permissive.def");
+		RelativePath inputPath = context.basePath("${include}/" + input.sdfmodule + ".def");
+		RelativePath outputPath = context.basePath("${include}/" + input.sdfmodule + "-Permissive.def");
 		
 		result.addSourceArtifact(inputPath);
 		ExecutionResult er = StrategoExecutor.runStrategoCLI(context.permissiveGrammarsContext(), 

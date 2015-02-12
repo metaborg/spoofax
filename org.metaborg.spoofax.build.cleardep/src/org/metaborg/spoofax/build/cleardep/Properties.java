@@ -69,12 +69,9 @@ public class Properties {
 		props.put("sigmodule", lang + "-sig");
 
 		props.put("trans", "trans");
-		props.put("trans.rel", "trans");
 		props.put("src-gen", "editor/java");
 		props.put("syntax", "src-gen/syntax");
-		props.put("syntax.rel", props.get("syntax"));
 		props.put("include", "include");
-		props.put("include.rel", props.get("include"));
 		props.put("lib", "lib");
 		props.put("build", "target/classes");
 		props.put("dist", "bin/dist");
@@ -82,7 +79,6 @@ public class Properties {
 		props.put("signatures", "src-gen/signatures");
 		props.put("sdf-src-gen", "src-gen");
 		props.put("lib-gen", "include");
-		props.put("lib-gen.rel", props.get("lib-gen"));
 		
 		if (sdfImports != null) {
 			StringBuilder importString = new StringBuilder();

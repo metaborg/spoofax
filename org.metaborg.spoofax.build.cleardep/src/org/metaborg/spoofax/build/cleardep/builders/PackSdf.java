@@ -62,8 +62,8 @@ public class PackSdf extends Builder<SpoofaxBuildContext, PackSdf.Input, SimpleC
 		
 		copySdf2(result);
 		
-		RelativePath inputPath = context.basePath("${syntax.rel}/" + input.sdfmodule + ".sdf");
-		RelativePath outputPath = context.basePath("${include.rel}/" + input.sdfmodule + ".def");
+		RelativePath inputPath = context.basePath("${syntax}/" + input.sdfmodule + ".sdf");
+		RelativePath outputPath = context.basePath("${include}/" + input.sdfmodule + ".def");
 		String utilsInclude = FileCommands.exists(context.basePath("${utils}")) ? context.props.substitute("-I ${utils}") : "";
 		
 		result.addSourceArtifact(inputPath);

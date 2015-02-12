@@ -59,24 +59,18 @@ public class Sdf2Table extends Builder<SpoofaxBuildContext, Sdf2Table.Input, Sim
 		CompilationUnit makePermissive = context.makePermissive.require(new MakePermissive.Input(input.sdfmodule, input.buildSdfImports), new SimpleMode());
 		result.addModuleDependency(makePermissive);
 
-		boolean success = true;
-		for (RelativePath inputPath : FileCommands.listFiles(context.basePath("${include}"), new FileNameFilter("-Permissive.def"))) {
-			String name = FileCommands.fileName(inputPath);
-			String inputBasename = name.substring(0, name.length() - "-Permissive".length());
-			RelativePath outputPath = context.basePath("${include}/" + inputBasename + ".tbl");
+		RelativePath inputPath = context.basePath("${include}/" + input.sdfmodule + "-Permissive.def");
+		RelativePath outputPath = context.basePath("${include}/" + input.sdfmodule + ".tbl");
 
-			result.addSourceArtifact(inputPath);
-			ExecutionResult er = StrategoExecutor.runSdf2TableCLI(context.xtcContext(), 
-					"-t",
-					"-i", inputPath,
-					"-m", input.sdfmodule,
-					"-o", outputPath);
-			
-			result.addGeneratedFile(outputPath);
-			success = success && er.success;
-		}
-
-		result.setState(State.finished(success));
+		result.addSourceArtifact(inputPath);
+		ExecutionResult er = StrategoExecutor.runSdf2TableCLI(context.xtcContext(), 
+				"-t",
+				"-i", inputPath,
+				"-m", input.sdfmodule,
+				"-o", outputPath);
+		
+		result.addGeneratedFile(outputPath);
+		result.setState(State.finished(er.success));
 
 		Log.log.endTask();
 	}
