@@ -5,9 +5,13 @@ import java.util.List;
 
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
 import org.metaborg.spoofax.build.cleardep.util.FileExtensionFilter;
+import org.spoofax.interpreter.library.ssl.SSLLibrary;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.FileState;
 import org.strategoxt.imp.runtime.services.OnSaveService;
+import org.strategoxt.imp.runtime.services.StrategoObserver;
+import org.strategoxt.imp.runtime.services.StrategoObserverUpdateJob;
+import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.sugarj.cleardep.SimpleCompilationUnit;
 import org.sugarj.cleardep.build.Builder;
 import org.sugarj.cleardep.build.BuilderFactory;
@@ -89,6 +93,10 @@ public class ForceOnSave extends Builder<SpoofaxBuildContext, Void, SimpleCompil
 				Log.log.logErr("Could not call on-save handler: File state could not be retrieved for file " + p, Log.CORE);
 				return;
 			}
+			StrategoObserver observer = fileState.getDescriptor().createService(StrategoObserver.class, fileState.getParseController());
+			SSLLibrary lib = SSLLibrary.instance(observer.getRuntime().getContext());
+			if (lib.getIOAgent() instanceof EditorIOAgent && ((EditorIOAgent) lib.getIOAgent()).getJob() == null)
+				((EditorIOAgent) lib.getIOAgent()).setJob(new StrategoObserverUpdateJob(observer));
 			IStrategoTerm ast = fileState.getAnalyzedAst();
 			OnSaveService onSave = fileState.getDescriptor().createService(OnSaveService.class, fileState.getParseController());
 			onSave.invokeOnSave(ast);
