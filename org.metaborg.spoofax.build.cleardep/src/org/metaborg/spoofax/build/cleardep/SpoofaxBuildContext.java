@@ -4,6 +4,7 @@ import org.metaborg.spoofax.build.cleardep.builders.All;
 import org.metaborg.spoofax.build.cleardep.builders.Clean;
 import org.metaborg.spoofax.build.cleardep.builders.ForceOnSave;
 import org.metaborg.spoofax.build.cleardep.builders.MakePermissive;
+import org.metaborg.spoofax.build.cleardep.builders.MetaSdf2Table;
 import org.metaborg.spoofax.build.cleardep.builders.PPPack;
 import org.metaborg.spoofax.build.cleardep.builders.PackSdf;
 import org.metaborg.spoofax.build.cleardep.builders.Sdf2Table;
@@ -25,6 +26,7 @@ public class SpoofaxBuildContext extends BuildContext {
 	public PackSdf packSdf = PackSdf.factory.makeBuilder(this);
 	public MakePermissive makePermissive = MakePermissive.factory.makeBuilder(this);
 	public Sdf2Table sdf2Table = Sdf2Table.factory.makeBuilder(this);
+	public MetaSdf2Table metaSdf2Table = MetaSdf2Table.factory.makeBuilder(this);
 	
 	public final Path baseDir;
 	public final Path binDir;

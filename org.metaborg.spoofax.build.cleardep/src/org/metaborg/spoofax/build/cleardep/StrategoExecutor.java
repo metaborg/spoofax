@@ -11,6 +11,7 @@ import org.strategoxt.lang.Context;
 import org.strategoxt.lang.StrategoExit;
 import org.strategoxt.lang.Strategy;
 import org.sugarj.common.ATermCommands;
+import org.sugarj.common.Log;
 
 public class StrategoExecutor {
 
@@ -37,6 +38,7 @@ public class StrategoExecutor {
 		}
 
 		try {
+			Log.log.beginTask("Execute " + desc, Log.CORE);
 			strategoContext.setIOAgent(agent);
 			strategoContext.invokeStrategyCLI(strat, desc, sargs.toArray(new String[sargs.size()]));
 			return new ExecutionResult(true, agent.getOutLog(), agent.getErrLog());
@@ -44,6 +46,8 @@ public class StrategoExecutor {
 			if (e.getValue() == 0)
 				return new ExecutionResult(true, agent.getOutLog(), agent.getErrLog());
 			return new ExecutionResult(false, agent.getOutLog(), agent.getErrLog());
+		} finally {
+			Log.log.endTask();
 		}
 	}
 	
@@ -58,6 +62,7 @@ public class StrategoExecutor {
 
 		LoggingFilteringIOAgent agent = new LoggingFilteringIOAgent(Pattern.quote("Invoking native tool ") + ".*");
 		try {
+			Log.log.beginTask("Execute sdf2table", Log.CORE);
 			xtcContext.setIOAgent(agent);
 			SDFBundleCommand.getInstance().init();
 			SDFBundleCommand.getInstance().invoke(xtcContext, "sdf2table", tArgs.toArray(new IStrategoTerm[tArgs.size()]));
@@ -66,6 +71,8 @@ public class StrategoExecutor {
 			if (e.getValue() == 0)
 				return new ExecutionResult(true, agent.getOutLog(), agent.getErrLog());
 			return new ExecutionResult(false, agent.getOutLog(), agent.getErrLog());
+		} finally {
+			Log.log.endTask();
 		}
 	}
 }

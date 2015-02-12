@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.strategoxt.imp.metatooling.JarsAntPropertyProvider;
 import org.sugarj.common.path.Path;
 
 public class Properties {
@@ -89,6 +90,8 @@ public class Properties {
 				importString.append("-Idef " + props.substitute(imp.getAbsolutePath()));
 			props.put("build.sdf.imports", importString.toString());
 		}
+		
+		props.put("eclipse.spoofaximp.jars", new JarsAntPropertyProvider().getAntPropertyValue("eclipse.spoofaximp.jars"));
 
 		return props;
 	}

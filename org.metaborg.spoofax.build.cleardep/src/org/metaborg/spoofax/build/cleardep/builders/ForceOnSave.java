@@ -68,7 +68,7 @@ public class ForceOnSave extends Builder<SpoofaxBuildContext, Void, SimpleCompil
 
 	private void forceOnSave(RelativePath p) {
 		try {
-			System.out.println("Calling on-save handler for: " + p);
+			Log.log.log("Calling on-save handler for: " + p, Log.CORE);
 			FileState fileState = FileState.getFile(new org.eclipse.core.runtime.Path(p.getAbsolutePath()), null);
 			if (fileState == null) {
 				Log.log.logErr("Could not call on-save handler: File state could not be retrieved for file " + p, Log.CORE);
