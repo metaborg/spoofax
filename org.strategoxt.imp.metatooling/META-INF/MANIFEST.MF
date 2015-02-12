@@ -33,5 +33,6 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-Activator: org.strategoxt.imp.metatooling.MetatoolingActivator
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: Spoofax.org
-Export-Package: org.strategoxt.imp.metatooling.building,
+Export-Package: org.strategoxt.imp.metatooling,
+ org.strategoxt.imp.metatooling.building,
  org.strategoxt.imp.metatooling.stratego
