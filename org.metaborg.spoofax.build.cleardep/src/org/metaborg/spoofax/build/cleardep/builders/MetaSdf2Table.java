@@ -13,6 +13,7 @@ import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.Log;
 import org.sugarj.common.path.Path;
+import org.sugarj.common.path.RelativePath;
 
 public class MetaSdf2Table extends Builder<SpoofaxBuildContext, Void, SimpleCompilationUnit> {
 
@@ -42,7 +43,9 @@ public class MetaSdf2Table extends Builder<SpoofaxBuildContext, Void, SimpleComp
 	public void build(SimpleCompilationUnit result, Void input) throws IOException {
 		Log.log.beginInlineTask("Compile metagrammar for concrete object syntax", Log.CORE); 
 
-		boolean metasdfmoduleAvailable = FileCommands.exists(context.basePath("${syntax}/${metasdfmodule}.sdf"));
+		RelativePath metamodule = context.basePath("${syntax}/${metasdfmodule}.sdf");
+		result.addSourceArtifact(metamodule);
+		boolean metasdfmoduleAvailable = FileCommands.exists(metamodule);
 		
 		if (metasdfmoduleAvailable) {
 			String sdfmodule = context.props.get("metasdfmodule");

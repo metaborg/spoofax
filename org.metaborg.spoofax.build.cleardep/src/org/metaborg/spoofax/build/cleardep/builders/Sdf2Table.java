@@ -62,7 +62,7 @@ public class Sdf2Table extends Builder<SpoofaxBuildContext, Sdf2Table.Input, Sim
 		boolean success = true;
 		for (RelativePath inputPath : FileCommands.listFiles(context.basePath("${include}"), new FileNameFilter("-Permissive.def"))) {
 			String name = FileCommands.fileName(inputPath);
-			String inputBasename = name.substring(0, name.length() - "-Permissive.def".length());
+			String inputBasename = name.substring(0, name.length() - "-Permissive".length());
 			RelativePath outputPath = context.basePath("${include}/" + inputBasename + ".tbl");
 
 			result.addSourceArtifact(inputPath);
