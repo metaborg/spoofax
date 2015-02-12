@@ -56,17 +56,32 @@ public class ForceOnSave extends Builder<SpoofaxBuildContext, Void, SimpleCompil
 				new FileExtensionFilter("tmpl", "sdf3", "nab", "ts"));
 		for (RelativePath p : paths) {
 			result.addSourceArtifact(p);
-			forceOnSave(p);
+			callOnSaveService(p);
+			switch(FileCommands.getExtension(p)) {
+//			case "tmpl": 
+//				break;
+			case "sdf3":
+				RelativePath sdf3 = FileCommands.getRelativePath(context.basePath("syntax"), p);
+				RelativePath gen = FileCommands.replaceExtension(context.basePath("${syntax}/" + sdf3.getRelativePath()), "sdf");
+				result.addGeneratedFile(gen);
+				break;
+			case "nab":
+				gen = FileCommands.replaceExtension(p, "str");
+				result.addGeneratedFile(gen);
+				break;
+			case "ts":
+				gen = FileCommands.replaceExtension(p, "generated.str");
+				result.addGeneratedFile(gen);
+				break;
+			default:
+				throw new UnsupportedOperationException("Dependency management not implemented for files with extension " + FileCommands.getExtension(p) + ". File was " + p);
+			}
 		}
-		
-//		String pathString = StringCommands.printListSeparated(paths, ";;;");
-//		if (!paths.isEmpty())
-//			AntForceOnSave.main(new String[]{pathString});
 		
 		Log.log.endTask();
 	}
-
-	private void forceOnSave(RelativePath p) {
+	
+	private void callOnSaveService(RelativePath p) {
 		try {
 			Log.log.log("Calling on-save handler for: " + p, Log.CORE);
 			FileState fileState = FileState.getFile(new org.eclipse.core.runtime.Path(p.getAbsolutePath()), null);
