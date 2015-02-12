@@ -58,15 +58,8 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 	}
 
 	private void checkClassPath() {
-		try {
-			Class<?> cl = this.getClass().getClassLoader().loadClass("org.strategoxt.imp.generator.sdf2imp");
-			Log.log.log("Found class " + cl, Log.DETAIL);
-		} catch (ClassNotFoundException e) {
-			String msg = "Could not load the Spoofax plugin loading class `org.strategoxt.imp.generator.sdf2imp`.\n" +
-			             "Make sure it is on the class path.";
-			Log.log.logErr(msg, Log.CORE);
-			throw new RuntimeException(e);
-		}
+		@SuppressWarnings("unused")
+		org.strategoxt.imp.generator.sdf2imp c;
 	}
 
 	protected void forceWorkspaceRefresh() {
