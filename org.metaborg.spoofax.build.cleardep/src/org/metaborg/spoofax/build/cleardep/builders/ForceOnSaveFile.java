@@ -34,7 +34,7 @@ public class ForceOnSaveFile extends Builder<SpoofaxBuildContext, Path, SimpleCo
 	
 	@Override
 	protected String taskDescription(Path input) {
-		return "Force on-save handler for " + input + ".";
+		return "Force on-save handler for " + input;
 	}
 	
 	@Override
