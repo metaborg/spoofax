@@ -13,6 +13,7 @@ import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.Log;
 import org.sugarj.common.path.Path;
+import org.sugarj.common.path.RelativePath;
 
 public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, SimpleCompilationUnit> {
 
@@ -32,7 +33,7 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 
 	@Override
 	protected Path persistentPath(Void input) {
-		return context.basePath("${include}/build.spoofaxDefault.dep");
+		return context.depPath("spoofaxDefault.dep");
 	}
 	
 	@Override
@@ -62,6 +63,11 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 		
 		CompilationUnit ppGen = context.ppGen.require(null, new SimpleMode());
 		result.addModuleDependency(ppGen);
+		
+		RelativePath ppPackInputPath = context.basePath("${syntax}/${sdfmodule}.pp");
+		RelativePath ppPackOutputPath = context.basePath("${include}/${sdfmodule}.pp.af");
+		CompilationUnit ppPack = context.ppPack.require(new PPPack.Input(ppPackInputPath, ppPackOutputPath, true), new SimpleMode());
+		result.addModuleDependency(ppPack);
 	}
 
 	private void checkClassPath() {

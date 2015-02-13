@@ -32,7 +32,7 @@ public class MetaSdf2Table extends Builder<SpoofaxBuildContext, Void, SimpleComp
 	
 	@Override
 	protected Path persistentPath(Void input) {
-		return context.basePath("${include}/build.metaSdf2Table.dep");
+		return context.depPath("metaSdf2Table.dep");
 	}
 	
 	@Override

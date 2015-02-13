@@ -49,7 +49,7 @@ public class PPGen extends Builder<SpoofaxBuildContext, Void, SimpleCompilationU
 	
 	@Override
 	protected Path persistentPath(Void input) {
-		return context.basePath("${include}/build.ppGen.dep");
+		return context.depPath("ppGen.dep");
 	}
 
 	@Override
@@ -62,9 +62,10 @@ public class PPGen extends Builder<SpoofaxBuildContext, Void, SimpleCompilationU
 
 	@Override
 	public void build(SimpleCompilationUnit result, Void input) throws IOException {
-		String sdfmodule = context.props.get("sdfmodule");
-		String sdfImports = context.props.get("build.sdf.imports");
-		CompilationUnit packSdf = context.packSdf.require(new PackSdf.Input(sdfmodule, sdfImports), new SimpleMode());
+		if (!context.isBuildStrategoEnabled(result))
+			return;
+		
+		CompilationUnit packSdf = context.packSdf.require(new PackSdf.Input(context), new SimpleMode());
 		result.addModuleDependency(packSdf);
 
 		RelativePath inputPath = context.basePath("${include}/${sdfmodule}.def");

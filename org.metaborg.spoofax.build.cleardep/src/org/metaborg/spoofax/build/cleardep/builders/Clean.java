@@ -32,7 +32,7 @@ public class Clean extends Builder<SpoofaxBuildContext, Void, SimpleCompilationU
 	
 	@Override
 	protected Path persistentPath(Void input) {
-		return context.basePath("${include}/build.clean.dep");
+		return context.depPath("clean.dep");
 	}
 
 	@Override
@@ -52,7 +52,6 @@ public class Clean extends Builder<SpoofaxBuildContext, Void, SimpleCompilationU
 				"${include}/${sdfmodule}-Permissive.def",
 				"${include}/${sdfmodule}.generated.pp",
 				"${include}/${sdfmodule}.generated.pp.af",
-				"${include}/${sdfmodule}.generated.pp.af.dep",
 				"${include}/${sdfmodule}.packed.esv",
 				"${include}/${sdfmodule}.pp.af",
 				"${include}/${sdfmodule}.rtg",
@@ -97,7 +96,7 @@ public class Clean extends Builder<SpoofaxBuildContext, Void, SimpleCompilationU
 			result.addGeneratedFile(p);
 		}
 		
-		for (Path p : FileCommands.listFiles(context.basePath("${include}"), new FileExtensionFilter("dep"))) {
+		for (Path p : FileCommands.listFilesRecursive(context.depPath("."), new FileExtensionFilter("dep"))) {
 			Log.log.log("Delete " + p, Log.DETAIL); 
 			FileCommands.delete(p); 
 			result.addGeneratedFile(p);

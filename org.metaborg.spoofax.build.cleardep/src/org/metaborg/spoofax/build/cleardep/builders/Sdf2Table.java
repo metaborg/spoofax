@@ -43,7 +43,7 @@ public class Sdf2Table extends Builder<SpoofaxBuildContext, Sdf2Table.Input, Sim
 	
 	@Override
 	protected Path persistentPath(Input input) {
-		return context.basePath("${include}/build.sdf2Table" + input.sdfmodule + ".dep");
+		return context.depPath("sdf2Table" + input.sdfmodule + ".dep");
 	}
 
 	@Override

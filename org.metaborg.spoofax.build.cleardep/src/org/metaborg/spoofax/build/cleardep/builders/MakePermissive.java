@@ -49,7 +49,7 @@ public class MakePermissive extends Builder<SpoofaxBuildContext, MakePermissive.
 	
 	@Override
 	public Path persistentPath(Input input) {
-		return context.basePath("${include}/build.makePermissive." + input.sdfmodule + ".dep");
+		return context.depPath("makePermissive." + input.sdfmodule + ".dep");
 	}
 
 	@Override

@@ -13,7 +13,9 @@ import org.metaborg.spoofax.build.cleardep.builders.Sdf2Table;
 import org.metaborg.spoofax.build.cleardep.builders.SpoofaxDefaultCtree;
 import org.strategoxt.HybridInterpreter;
 import org.strategoxt.lang.Context;
+import org.sugarj.cleardep.CompilationUnit;
 import org.sugarj.cleardep.build.BuildContext;
+import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
@@ -50,6 +52,10 @@ public class SpoofaxBuildContext extends BuildContext {
 		return new RelativePath(baseDir, props.substitute(relative));
 	}
 	
+	public RelativePath depPath(String relative) { 
+		return new RelativePath(baseDir, props.substitute("${include}/build/" + relative));
+	}
+	
 	public Context strategoContext() {
 		return interp.getCompiledContext();
 	}
@@ -79,5 +85,12 @@ public class SpoofaxBuildContext extends BuildContext {
 			xtcContext = org.strategoxt.stratego_xtc.stratego_xtc.init();
 			return xtcContext;
 		}
+	}
+	
+	public boolean isBuildStrategoEnabled(CompilationUnit result) {
+		RelativePath strategoPath = basePath("${trans}/${strmodule}.str");
+		result.addExternalFileDependency(strategoPath);
+		boolean buildStrategoEnabled = FileCommands.exists(strategoPath);
+		return buildStrategoEnabled;
 	}
 }

@@ -31,7 +31,7 @@ public class All extends Builder<SpoofaxBuildContext, Void, SimpleCompilationUni
 	
 	@Override
 	protected Path persistentPath(Void input) {
-		return context.basePath("${include}/build.all.dep");
+		return context.depPath("all.dep");
 	}
 	
 	@Override

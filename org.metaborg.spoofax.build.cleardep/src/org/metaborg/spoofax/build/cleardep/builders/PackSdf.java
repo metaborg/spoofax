@@ -34,6 +34,10 @@ public class PackSdf extends Builder<SpoofaxBuildContext, PackSdf.Input, SimpleC
 	public static class Input {
 		public final String sdfmodule;
 		public final String buildSdfImports;
+		public Input(SpoofaxBuildContext context) {
+			this.sdfmodule = context.props.get("sdfmodule");
+			this.buildSdfImports = context.props.get("build.sdf.imports");
+		}
 		public Input(String sdfmodule, String buildSdfImports) {
 			this.sdfmodule = sdfmodule;
 			this.buildSdfImports = buildSdfImports;
@@ -51,7 +55,7 @@ public class PackSdf extends Builder<SpoofaxBuildContext, PackSdf.Input, SimpleC
 	
 	@Override
 	protected Path persistentPath(Input input) {
-		return context.basePath("${include}/build.packSdf." + input.sdfmodule + ".dep");
+		return context.depPath("packSdf." + input.sdfmodule + ".dep");
 	}
 
 	@Override
