@@ -59,6 +59,9 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 		
 		CompilationUnit metaSdf2Table = context.metaSdf2Table.require(null, new SimpleMode());
 		result.addModuleDependency(metaSdf2Table);
+		
+		CompilationUnit ppGen = context.ppGen.require(null, new SimpleMode());
+		result.addModuleDependency(ppGen);
 	}
 
 	private void checkClassPath() {

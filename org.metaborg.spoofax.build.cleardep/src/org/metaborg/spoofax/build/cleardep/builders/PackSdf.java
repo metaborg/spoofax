@@ -87,10 +87,10 @@ public class PackSdf extends Builder<SpoofaxBuildContext, PackSdf.Input, SimpleC
 				input.buildSdfImports);
 		
 		result.addGeneratedFile(outputPath);
-		result.setState(State.finished(er.success));
-		
 		for (Path required : extractRequiredPaths(er.errLog))
 			result.addExternalFileDependency(required);
+		
+		result.setState(State.finished(er.success));
 	}
 
 	private List<Path> extractRequiredPaths(String errLog) {
