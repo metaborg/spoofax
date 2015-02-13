@@ -1,5 +1,7 @@
 package org.metaborg.spoofax.build.cleardep;
 
+import java.io.File;
+
 import org.metaborg.spoofax.build.cleardep.builders.All;
 import org.metaborg.spoofax.build.cleardep.builders.Clean;
 import org.metaborg.spoofax.build.cleardep.builders.ForceOnSave;
@@ -31,7 +33,6 @@ public class SpoofaxBuildContext extends BuildContext {
 	public MetaSdf2Table metaSdf2Table = MetaSdf2Table.factory.makeBuilder(this);
 	
 	public final Path baseDir;
-	public final Path binDir;
 	public final Properties props;
 	public final HybridInterpreter interp;
 	
@@ -39,19 +40,14 @@ public class SpoofaxBuildContext extends BuildContext {
 	private static Context permissiveGrammarsContext;
 	private static Context xtcContext;
 	
-	public SpoofaxBuildContext(Path baseDir, Path binDir, Properties props, HybridInterpreter interp) {
+	public SpoofaxBuildContext(Path baseDir, Properties props, HybridInterpreter interp) {
 		this.baseDir = baseDir;
-		this.binDir = binDir;
 		this.props = props;
 		this.interp = interp;
 	}
 	
 	public RelativePath basePath(String relative) { 
-		return new RelativePath(baseDir, props.substitute(relative));
-	}
-	
-	public RelativePath binPath(String relative) { 
-		return new RelativePath(binDir, props.substitute(relative));
+		return new RelativePath(baseDir, props.substitute(relative).replace(File.separatorChar, '_'));
 	}
 	
 	public Context strategoContext() {
