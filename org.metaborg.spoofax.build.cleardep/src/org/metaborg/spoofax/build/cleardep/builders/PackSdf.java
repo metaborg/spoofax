@@ -12,8 +12,10 @@ import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
 import org.metaborg.spoofax.build.cleardep.util.FileExtensionFilter;
 import org.strategoxt.tools.main_pack_sdf_0_0;
+import org.sugarj.cleardep.CompilationUnit;
 import org.sugarj.cleardep.CompilationUnit.State;
 import org.sugarj.cleardep.SimpleCompilationUnit;
+import org.sugarj.cleardep.SimpleMode;
 import org.sugarj.cleardep.build.Builder;
 import org.sugarj.cleardep.build.BuilderFactory;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
@@ -63,6 +65,10 @@ public class PackSdf extends Builder<SpoofaxBuildContext, PackSdf.Input, SimpleC
 	
 	@Override
 	public void build(SimpleCompilationUnit result, Input input) throws IOException {
+		// This dependency was discovered by cleardep, due to an implicit dependency on 'org.strategoxt.imp.editors.template/src-gen/syntax/TemplateLang.sdf'.
+		CompilationUnit forceOnSave = context.forceOnSave.require(null, new SimpleMode());
+		result.addModuleDependency(forceOnSave);
+		
 		copySdf2(result);
 		
 		RelativePath inputPath = context.basePath("${syntax}/" + input.sdfmodule + ".sdf");
