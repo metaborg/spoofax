@@ -4,27 +4,28 @@ import java.io.File;
 import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class FileNameFilter implements FileFilter {
 
-	private List<String> alternativeNameParts;
+	private List<Pattern> alternativePatterns;
 	
-	public FileNameFilter(String namePart) {
-		alternativeNameParts = new ArrayList<>();
-		alternativeNameParts.add(namePart);
+	public FileNameFilter(String regex) {
+		alternativePatterns = new ArrayList<>();
+		alternativePatterns.add(Pattern.compile(regex));
 	}
 	
-	public FileNameFilter(String... alternativeNameParts) {
-		this.alternativeNameParts = new ArrayList<>();
-		for (String ext : alternativeNameParts) 
-			this.alternativeNameParts.add(ext);
+	public FileNameFilter(String... regexes) {
+		this.alternativePatterns = new ArrayList<>();
+		for (String regex : regexes) 
+			this.alternativePatterns.add(Pattern.compile(regex));
 	}
 	
 	@Override
-	public boolean accept(File pathname) {
-		String pathext = pathname.getName();
-		for (String part : alternativeNameParts)
-			if (pathext.contains(part))
+	public boolean accept(File path) {
+		String pathname = path.getName();
+		for (Pattern pat : alternativePatterns)
+			if (pat.matcher(pathname).matches())
 				return true;
 		return false;
 	}

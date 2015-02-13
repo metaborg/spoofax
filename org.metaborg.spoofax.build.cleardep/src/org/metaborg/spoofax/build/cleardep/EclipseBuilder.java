@@ -24,6 +24,7 @@ public class EclipseBuilder extends IncrementalProjectBuilder {
 	public static SpoofaxBuildContext makeContext(IProject project) {
 		Log.out = EclipseConsole.getOutputPrintStream();
 	    Log.err = EclipseConsole.getErrorPrintStream();
+	    Log.log.setLoggingLevel(Log.ALWAYS);
 	    EclipseConsole.activateConsoleOnce();
 
 		Path baseDir = new AbsolutePath(project.getProject().getLocation().makeAbsolute().toString());

@@ -3,6 +3,8 @@ package org.metaborg.spoofax.build.cleardep.builders;
 import java.io.IOException;
 
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
+import org.metaborg.spoofax.build.cleardep.util.FileExtensionFilter;
+import org.metaborg.spoofax.build.cleardep.util.FileNameFilter;
 import org.sugarj.cleardep.SimpleCompilationUnit;
 import org.sugarj.cleardep.build.Builder;
 import org.sugarj.cleardep.build.BuilderFactory;
@@ -11,7 +13,6 @@ import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.Log;
 import org.sugarj.common.path.Path;
-import org.sugarj.common.path.RelativePath;
 
 public class Clean extends Builder<SpoofaxBuildContext, Void, SimpleCompilationUnit> {
 
@@ -75,24 +76,30 @@ public class Clean extends Builder<SpoofaxBuildContext, Void, SimpleCompilationU
 				"utils"};
 		
 		for (String p : paths) {
-			Path path = new RelativePath(context.baseDir, context.props.substitute(p));
+			Path path = context.basePath(p);
 			Log.log.log("Delete " + path, Log.DETAIL); 
 			FileCommands.delete(path); 
 			result.addGeneratedFile(path);
 		}
 		
-		for (Path p : FileCommands.listFiles(new RelativePath(context.baseDir, context.props.substitute("${build}")))) {
+		for (Path p : FileCommands.listFiles(context.basePath("${build}"))) {
 			Log.log.log("Delete " + p, Log.DETAIL); 
 			FileCommands.delete(p); 
 			result.addGeneratedFile(p);
 		}
 		
-		for (Path p : FileCommands.listFiles(new RelativePath(context.baseDir, context.props.substitute("${lib}"))))
-			if (FileCommands.fileName(p).matches(".*\\.generated\\.str")) {
-				Log.log.log("Delete " + p, Log.DETAIL); 
-				FileCommands.delete(p); 
-				result.addGeneratedFile(p);
-			}
+		for (Path p : FileCommands.listFiles(context.basePath("${lib}"), new FileNameFilter(".*\\.generated\\.str"))) {
+			Log.log.log("Delete " + p, Log.DETAIL); 
+			FileCommands.delete(p); 
+			result.addGeneratedFile(p);
+		}
+		
+		for (Path p : FileCommands.listFiles(context.basePath("${include}"), new FileExtensionFilter("dep"))) {
+			Log.log.log("Delete " + p, Log.DETAIL); 
+			FileCommands.delete(p); 
+			result.addGeneratedFile(p);
+		}
+			
 		
 		Log.log.endTask();
 	}
