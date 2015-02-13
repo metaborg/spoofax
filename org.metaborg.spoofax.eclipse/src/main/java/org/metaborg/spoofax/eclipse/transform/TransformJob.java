@@ -98,6 +98,7 @@ public class TransformJob extends Job {
         }
 
         try {
+            // GTODO: location is required for creating the context, but context creation should be abstracted out.
             final IResource eclipseResource = resourceService.unresolve(resource);
             final IResource eclipseLocation = ResourceUtils.getProjectDirectory(eclipseResource);
             final FileObject location = resourceService.resolve(eclipseLocation);
@@ -112,7 +113,8 @@ public class TransformJob extends Job {
 
     private IStatus transform(IProgressMonitor monitor, ILanguage language, Action action, FileObject resource,
         FileObject location, String text) throws IOException {
-        // GTODO: get cached parsed AST instead
+        // GTODO: get cached parsed and analyzed AST instead if available, this should be abstracted out.
+
         final ParseResult<IStrategoTerm> parseResult = syntaxService.parse(text, resource, language);
 
         if(monitor.isCanceled())
@@ -134,6 +136,8 @@ public class TransformJob extends Job {
             transformResult = transformer.transformAnalyzed(analysisFileResult, context, action.name);
         }
 
+        // GTODO: don't depend on StrategoTransformResultProcessor, should be abstracted out to support different
+        // analyzers.
         final FileObject writtenResource = StrategoTransformResultProcessor.writeFile(transformResult.result, context);
         if(action.flags.openEditor && writtenResource != null) {
             final IResource writtenEclipseResource = resourceService.unresolve(writtenResource);

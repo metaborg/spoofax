@@ -29,7 +29,7 @@ public class TransformHandler extends AbstractHandler {
 
     public TransformHandler() {
         super();
-        
+
         final Injector injector = SpoofaxPlugin.injector();
 
         this.resourceService = injector.getInstance(IEclipseResourceService.class);
@@ -46,7 +46,7 @@ public class TransformHandler extends AbstractHandler {
 
     @Override public Object execute(ExecutionEvent event) throws ExecutionException {
         final SpoofaxEditor latestEditor = latestEditorListener.latestActive();
-        final String actionName = event.getParameter("action-name");
+        final String actionName = event.getParameter(TransformMenuContribution.actionNameParam);
         final Job transformJob =
             new TransformJob(resourceService, langaugeIdentifierService, syntaxService, analysisService, transformer,
                 latestEditor, actionName);

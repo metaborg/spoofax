@@ -28,8 +28,10 @@ import com.google.common.collect.Maps;
 import com.google.inject.Injector;
 
 public class TransformMenuContribution extends CompoundContributionItem implements IWorkbenchContribution {
+    public static final String transformId = SpoofaxPlugin.id + ".command.transform";
+    public static final String actionNameParam = "param-name";
+
     private static final Logger logger = LoggerFactory.getLogger(TransformMenuContribution.class);
-    private static final String transformId = SpoofaxPlugin.id + ".command.transform";
 
     private final IEclipseResourceService resourceService;
     private final ILanguageIdentifierService languageIdentifier;
@@ -98,7 +100,7 @@ public class TransformMenuContribution extends CompoundContributionItem implemen
         final CommandContributionItemParameter itemParams =
             new CommandContributionItemParameter(serviceLocator, null, transformId, CommandContributionItem.STYLE_PUSH);
         final Map<String, String> parameters = Maps.newHashMap();
-        parameters.put("action-name", action.name);
+        parameters.put(actionNameParam, action.name);
         itemParams.parameters = parameters;
         itemParams.label = action.name;
 
