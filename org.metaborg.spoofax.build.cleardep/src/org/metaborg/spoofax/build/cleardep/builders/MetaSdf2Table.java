@@ -11,7 +11,6 @@ import org.sugarj.cleardep.build.BuilderFactory;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.FileCommands;
-import org.sugarj.common.Log;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
@@ -27,6 +26,11 @@ public class MetaSdf2Table extends Builder<SpoofaxBuildContext, Void, SimpleComp
 	}
 
 	@Override
+	protected String taskDescription(Void input) {
+		return "Compile metagrammar for concrete object syntax";
+	}
+	
+	@Override
 	protected Path persistentPath(Void input) {
 		return context.basePath("${include}/build.metaSdf2Table.dep");
 	}
@@ -41,8 +45,6 @@ public class MetaSdf2Table extends Builder<SpoofaxBuildContext, Void, SimpleComp
 
 	@Override
 	public void build(SimpleCompilationUnit result, Void input) throws IOException {
-		Log.log.beginInlineTask("Compile metagrammar for concrete object syntax", Log.CORE); 
-
 		RelativePath metamodule = context.basePath("${syntax}/${metasdfmodule}.sdf");
 		result.addSourceArtifact(metamodule);
 		boolean metasdfmoduleAvailable = FileCommands.exists(metamodule);
@@ -58,8 +60,6 @@ public class MetaSdf2Table extends Builder<SpoofaxBuildContext, Void, SimpleComp
 //		<eclipse.convertPath fileSystemPath="${include}" property="includeresource" />
 //		<eclipse.refreshLocal resource="${includeresource}/${metasdfmodule}.tbl" depth="infinite" />
 //	</target>
-		
-		Log.log.endTask();
 	}
 
 }

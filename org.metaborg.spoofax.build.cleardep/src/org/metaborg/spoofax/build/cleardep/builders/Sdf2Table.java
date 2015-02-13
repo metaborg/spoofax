@@ -13,7 +13,6 @@ import org.sugarj.cleardep.build.Builder;
 import org.sugarj.cleardep.build.BuilderFactory;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
-import org.sugarj.common.Log;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
@@ -36,6 +35,11 @@ public class Sdf2Table extends Builder<SpoofaxBuildContext, Sdf2Table.Input, Sim
 	public Sdf2Table(SpoofaxBuildContext context) {
 		super(context);
 	}
+
+	@Override
+	protected String taskDescription(Input input) {
+		return "Compile grammar to parse table";
+	}
 	
 	@Override
 	protected Path persistentPath(Input input) {
@@ -52,8 +56,6 @@ public class Sdf2Table extends Builder<SpoofaxBuildContext, Sdf2Table.Input, Sim
 
 	@Override
 	public void build(SimpleCompilationUnit result, Input input) throws IOException {
-		Log.log.beginInlineTask("Compile grammar to parse table", Log.CORE); 
-
 		CompilationUnit makePermissive = context.makePermissive.require(new MakePermissive.Input(input.sdfmodule, input.buildSdfImports), new SimpleMode());
 		result.addModuleDependency(makePermissive);
 
@@ -69,8 +71,6 @@ public class Sdf2Table extends Builder<SpoofaxBuildContext, Sdf2Table.Input, Sim
 		
 		result.addGeneratedFile(outputPath);
 		result.setState(State.finished(er.success));
-
-		Log.log.endTask();
 	}
 
 }

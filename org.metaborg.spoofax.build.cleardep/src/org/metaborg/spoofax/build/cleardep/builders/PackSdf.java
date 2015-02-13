@@ -19,7 +19,6 @@ import org.sugarj.cleardep.build.BuilderFactory;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.FileCommands;
-import org.sugarj.common.Log;
 import org.sugarj.common.path.AbsolutePath;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
@@ -44,6 +43,11 @@ public class PackSdf extends Builder<SpoofaxBuildContext, PackSdf.Input, SimpleC
 	}
 	
 	@Override
+	protected String taskDescription(Input input) {
+		return "Pack SDF modules";
+	}
+	
+	@Override
 	protected Path persistentPath(Input input) {
 		return context.basePath("${include}/build.packSdf." + input.sdfmodule + ".dep");
 	}
@@ -59,8 +63,6 @@ public class PackSdf extends Builder<SpoofaxBuildContext, PackSdf.Input, SimpleC
 	
 	@Override
 	public void build(SimpleCompilationUnit result, Input input) throws IOException {
-		Log.log.beginInlineTask("Pack SDF modules", Log.CORE); 
-		
 		copySdf2(result);
 		
 		RelativePath inputPath = context.basePath("${syntax}/" + input.sdfmodule + ".sdf");
@@ -83,8 +85,6 @@ public class PackSdf extends Builder<SpoofaxBuildContext, PackSdf.Input, SimpleC
 		
 		for (Path required : extractRequiredPaths(er.errLog))
 			result.addExternalFileDependency(required);
-		
-		Log.log.endTask();
 	}
 
 	private List<Path> extractRequiredPaths(String errLog) {

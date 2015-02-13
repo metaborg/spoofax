@@ -24,6 +24,11 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 	public SpoofaxDefaultCtree(SpoofaxBuildContext context) {
 		super(context);
 	}
+	
+	@Override
+	protected String taskDescription(Void input) {
+		return null;
+	}
 
 	@Override
 	protected Path persistentPath(Void input) {
@@ -54,7 +59,6 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 		
 		CompilationUnit metaSdf2Table = context.metaSdf2Table.require(null, new SimpleMode());
 		result.addModuleDependency(metaSdf2Table);
-		
 	}
 
 	private void checkClassPath() {

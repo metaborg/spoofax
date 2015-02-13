@@ -26,13 +26,18 @@ public class Clean extends Builder<SpoofaxBuildContext, Void, SimpleCompilationU
 	}
 
 	@Override
-	public Class<SimpleCompilationUnit> resultClass() {
-		return SimpleCompilationUnit.class;
+	protected String taskDescription(Void input) {
+		return "Clean";
 	}
-
+	
 	@Override
 	protected Path persistentPath(Void input) {
 		return context.basePath("${include}/build.clean.dep");
+	}
+
+	@Override
+	public Class<SimpleCompilationUnit> resultClass() {
+		return SimpleCompilationUnit.class;
 	}
 	
 	@Override
@@ -40,8 +45,6 @@ public class Clean extends Builder<SpoofaxBuildContext, Void, SimpleCompilationU
 
 	@Override
 	public void build(SimpleCompilationUnit result, Void input) throws IOException {
-		Log.log.beginTask("Clean", Log.ALWAYS);
-		
 		String[] paths = {
 				".cache",
 				"${include}/${sdfmodule}.def",
@@ -99,9 +102,6 @@ public class Clean extends Builder<SpoofaxBuildContext, Void, SimpleCompilationU
 			FileCommands.delete(p); 
 			result.addGeneratedFile(p);
 		}
-			
-		
-		Log.log.endTask();
 	}
 
 }

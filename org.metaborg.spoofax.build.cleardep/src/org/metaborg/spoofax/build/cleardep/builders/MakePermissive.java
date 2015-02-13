@@ -18,7 +18,6 @@ import org.sugarj.cleardep.build.BuilderFactory;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.FileCommands;
-import org.sugarj.common.Log;
 import org.sugarj.common.path.AbsolutePath;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
@@ -44,6 +43,11 @@ public class MakePermissive extends Builder<SpoofaxBuildContext, MakePermissive.
 	}
 
 	@Override
+	protected String taskDescription(Input input) {
+		return "Make grammar permissive for error-recovery parsing.";
+	}
+	
+	@Override
 	public Path persistentPath(Input input) {
 		return context.basePath("${include}/build.makePermissive." + input.sdfmodule + ".dep");
 	}
@@ -58,8 +62,6 @@ public class MakePermissive extends Builder<SpoofaxBuildContext, MakePermissive.
 
 	@Override
 	public void build(SimpleCompilationUnit result, Input input) throws IOException {
-		Log.log.beginInlineTask("Make grammar permissive for error-recovery parsing.", Log.CORE); 
-		
 		CompilationUnit packSdf = context.packSdf.require(new PackSdf.Input(input.sdfmodule, input.buildSdfImports), new SimpleMode());
 		result.addModuleDependency(packSdf);
 		
@@ -78,8 +80,6 @@ public class MakePermissive extends Builder<SpoofaxBuildContext, MakePermissive.
 				);
 		result.addGeneratedFile(outputPath);
 		result.setState(State.finished(er.success));
-		
-		Log.log.endTask();
 	}
 
 	private void copySdf(SimpleCompilationUnit result, Input input) throws IOException {

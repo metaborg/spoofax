@@ -13,7 +13,6 @@ import org.sugarj.cleardep.build.BuilderFactory;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.FileCommands;
-import org.sugarj.common.Log;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
@@ -26,6 +25,11 @@ public class ForceOnSave extends Builder<SpoofaxBuildContext, Void, SimpleCompil
 	
 	public ForceOnSave(SpoofaxBuildContext context) {
 		super(context);
+	}
+
+	@Override
+	protected String taskDescription(Void input) {
+		return "Force on-save handlers for NaBL, TS, etc.";
 	}
 	
 	@Override
@@ -43,8 +47,6 @@ public class ForceOnSave extends Builder<SpoofaxBuildContext, Void, SimpleCompil
 
 	@Override
 	public void build(SimpleCompilationUnit result, Void input) throws IOException {
-		Log.log.beginInlineTask("Force on-save handlers for NaBL, TS, etc.", Log.CORE); 
-		
 		// XXX really need to delete old sdf3 files? Or is it sufficient to remove them from `paths` below?
 		List<RelativePath> oldSdf3Paths = FileCommands.listFilesRecursive(context.basePath("src-gen"), new FileExtensionFilter("sdf3"));
 		for (Path p : oldSdf3Paths)
@@ -57,7 +59,5 @@ public class ForceOnSave extends Builder<SpoofaxBuildContext, Void, SimpleCompil
 			CompilationUnit forceOnSaveFile = context.forceOnSaveFile.require(p, new SimpleMode());
 			result.addModuleDependency(forceOnSaveFile);
 		}
-		
-		Log.log.endTask();
 	}
 }

@@ -10,7 +10,6 @@ import org.sugarj.cleardep.build.Builder;
 import org.sugarj.cleardep.build.BuilderFactory;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
-import org.sugarj.common.Log;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
@@ -26,6 +25,11 @@ public class All extends Builder<SpoofaxBuildContext, Void, SimpleCompilationUni
 	}
 
 	@Override
+	protected String taskDescription(Void input) {
+		return "Build Spoofax project";
+	}
+	
+	@Override
 	protected Path persistentPath(Void input) {
 		return context.basePath("${include}/build.all.dep");
 	}
@@ -40,8 +44,6 @@ public class All extends Builder<SpoofaxBuildContext, Void, SimpleCompilationUni
 
 	@Override
 	public void build(SimpleCompilationUnit result, Void input) throws IOException {
-		Log.log.beginTask("Build Spoofax project", Log.CORE);
-		
 		RelativePath ppInput = context.basePath("${lib}/EditorService-pretty.pp");
 		RelativePath ppTermOutput = context.basePath("${include}/EditorService-pretty.pp.af");
 		CompilationUnit ppPack = context.ppPack.require(new PPPack.Input(ppInput, ppTermOutput), new SimpleMode());
@@ -49,8 +51,6 @@ public class All extends Builder<SpoofaxBuildContext, Void, SimpleCompilationUni
 		
 		CompilationUnit spoofaxDefault = context.spoofaxDefaultCtree.require(null, new SimpleMode());
 		result.addModuleDependency(spoofaxDefault);
-		
-		Log.log.endTask();
 	}
 
 }

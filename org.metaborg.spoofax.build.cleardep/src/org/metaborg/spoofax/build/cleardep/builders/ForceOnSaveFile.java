@@ -33,6 +33,11 @@ public class ForceOnSaveFile extends Builder<SpoofaxBuildContext, Path, SimpleCo
 	}
 	
 	@Override
+	protected String taskDescription(Path input) {
+		return "Force on-save handler for " + input + ".";
+	}
+	
+	@Override
 	protected Path persistentPath(Path input) {
 		RelativePath rel = FileCommands.getRelativePath(context.baseDir, input);
 		String relname = rel.getRelativePath().replace(File.separatorChar, '_');
@@ -49,8 +54,6 @@ public class ForceOnSaveFile extends Builder<SpoofaxBuildContext, Path, SimpleCo
 
 	@Override
 	public void build(SimpleCompilationUnit result, Path input) throws IOException {
-		Log.log.beginInlineTask("Force on-save handler for " + input + ".", Log.CORE); 
-		
 		RelativePath p = FileCommands.getRelativePath(context.baseDir, input);
 		
 		result.addSourceArtifact(p);
@@ -82,8 +85,6 @@ public class ForceOnSaveFile extends Builder<SpoofaxBuildContext, Path, SimpleCo
 		default:
 			throw new UnsupportedOperationException("Dependency management not implemented for files with extension " + FileCommands.getExtension(p) + ". File was " + p);
 		}
-
-		Log.log.endTask();
 	}
 	
 	private void callOnSaveService(RelativePath p) {

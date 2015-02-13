@@ -15,7 +15,6 @@ import org.sugarj.cleardep.build.BuilderFactory;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.FileCommands;
-import org.sugarj.common.Log;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
@@ -40,6 +39,11 @@ public class PPPack extends Builder<SpoofaxBuildContext, PPPack.Input, SimpleCom
 	}
 	
 	@Override
+	protected String taskDescription(Input input) {
+		return "Prepare editor-service pretty-print table";
+	}
+	
+	@Override
 	protected Path persistentPath(Input input) {
 		return FileCommands.addExtension(input.ppTermOutput, "dep");
 	}
@@ -54,8 +58,6 @@ public class PPPack extends Builder<SpoofaxBuildContext, PPPack.Input, SimpleCom
 
 	@Override
 	public void build(SimpleCompilationUnit result, Input input) throws IOException {
-		Log.log.beginTask("Prepare editor-service pretty-print table", Log.CORE);
-		
 		result.addSourceArtifact(input.ppInput);
 		ExecutionResult er = StrategoExecutor.runStrategoCLI(context.toolsContext(), 
 				main_parse_pp_table_0_0.instance, "parse-pp-table", new LoggingFilteringIOAgent(),
@@ -63,8 +65,6 @@ public class PPPack extends Builder<SpoofaxBuildContext, PPPack.Input, SimpleCom
 					"-o", input.ppTermOutput);
 		result.addGeneratedFile(input.ppTermOutput);
 		result.setState(State.finished(er.success));
-		
-		Log.log.endTask();
 	}
 
 }
