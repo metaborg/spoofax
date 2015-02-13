@@ -1,7 +1,5 @@
 package org.metaborg.spoofax.build.cleardep;
 
-import java.io.File;
-
 import org.metaborg.spoofax.build.cleardep.builders.All;
 import org.metaborg.spoofax.build.cleardep.builders.Clean;
 import org.metaborg.spoofax.build.cleardep.builders.ForceOnSave;
@@ -47,7 +45,7 @@ public class SpoofaxBuildContext extends BuildContext {
 	}
 	
 	public RelativePath basePath(String relative) { 
-		return new RelativePath(baseDir, props.substitute(relative).replace(File.separatorChar, '_'));
+		return new RelativePath(baseDir, props.substitute(relative));
 	}
 	
 	public Context strategoContext() {
