@@ -5,15 +5,15 @@ Bundle-SymbolicName: org.metaborg.spoofax.build.cleardep;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-Activator: org.metaborg.spoofax.build.cleardep.Activator
 Require-Bundle: org.eclipse.ui,
- org.eclipse.core.runtime
+ org.eclipse.core.runtime,
+ org.eclipse.core.resources,
+ org.eclipse.imp.runtime,
+ org.eclipse.jface.text,
+ org.eclipse.ui.console
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
 Eclipse-RegisterBuddy: org.strategoxt.imp.runtime
-Import-Package: org.eclipse.core.resources,
- org.eclipse.imp.model,
- org.eclipse.jface.text,
- org.eclipse.ui.console,
- org.spoofax.interpreter.core,
+Import-Package: org.spoofax.interpreter.core,
  org.spoofax.interpreter.library,
  org.spoofax.interpreter.library.ssl,
  org.spoofax.interpreter.terms,
