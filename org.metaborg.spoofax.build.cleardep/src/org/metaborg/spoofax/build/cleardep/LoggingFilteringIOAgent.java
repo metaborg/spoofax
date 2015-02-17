@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.build.cleardep;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.Writer;
 import java.util.LinkedList;
 import java.util.List;
@@ -48,48 +49,58 @@ public class LoggingFilteringIOAgent extends IOAgent {
 	public String getErrLog() {
 		return errWriter.getLog();
 	}
+	
+	public OutputStream getOutStream() {
+		return outWriter.getStream();
+	}
 
-	private class LoggingWriter extends Writer {
+	public OutputStream getErrStream() {
+		return errWriter.getStream();
+	}
+
+	public class LoggingWriter extends Writer {
 
 		private final Writer writer;
 		private StringBuilder log = new StringBuilder();
-		private boolean skip;
 		private StringBuilder msg;
 
 		public LoggingWriter(Writer writer) {
 			this.writer = writer;
-			this.skip = false;
 			this.msg = new StringBuilder();
 		}
 
 		public String getLog() {
+			try {
+				this.flush();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 			return log.toString();
 		}
 
 		@Override
 		public void write(char[] cbuf, int off, int len) throws IOException {
-			String s = new String(cbuf, off, len);
-
-			if (skip) {
-				skip = !s.endsWith("\n");
-				return;
+			boolean lineEnd = cbuf[off + len - 1] == '\n';
+			
+			msg.append(cbuf, off, len);
+			if (lineEnd) {
+				writeString(msg.toString());
+				msg = new StringBuilder();
 			}
+		}
 
-			msg.append(s);
+		private void writeString(String s) throws IOException {
+			log.append(s);
 			for (Pattern pat : excludePatterns)
-				if (pat.matcher(s).matches()) {
-					skip = !s.endsWith("\n");
-					log.append(msg);
-					msg = new StringBuilder();
+				if (pat.matcher(s).matches())
 					return;
-				}
-
-			writer.write(cbuf, off, len);
-			log.append(cbuf, off, len);
+			writer.append(s);
 		}
 
 		@Override
 		public void flush() throws IOException {
+			writeString(msg.toString());
+			msg = new StringBuilder();
 			writer.flush();
 		}
 
@@ -98,6 +109,14 @@ public class LoggingFilteringIOAgent extends IOAgent {
 			writer.close();
 		}
 
+		public OutputStream getStream() {
+			return new OutputStream() {
+				@Override
+				public void write(int b) throws IOException {
+					LoggingWriter.this.write(b);
+				}
+			};
+		}
 	}
 
 }

@@ -1,7 +1,9 @@
 package org.metaborg.spoofax.build.cleardep.builders;
 
 import java.io.IOException;
+import java.io.PrintStream;
 
+import org.metaborg.spoofax.build.cleardep.LoggingFilteringIOAgent;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
 import org.strategoxt.imp.metatooling.building.AntDescriptorBuilder;
 import org.sugarj.cleardep.CompilationUnit;
@@ -59,11 +61,24 @@ public class Sdf2ImpEclipse extends Builder<SpoofaxBuildContext, Sdf2ImpEclipse.
 		CompilationUnit sdf2Rtg = context.sdf2Rtg.require(new Sdf2Rtg.Input(input.sdfmodule, input.buildSdfImports), new SimpleMode());
 		result.addModuleDependency(sdf2Rtg);
 		
-		// TODO: required files
-		
 		RelativePath outputPath = context.basePath("${include}/" + input.esvmodule + ".packed.esv");
 
-		AntDescriptorBuilder.main(new String[]{outputPath.getAbsolutePath()});
+		PrintStream out = System.out;
+		PrintStream err = System.err;
+		LoggingFilteringIOAgent agent = new LoggingFilteringIOAgent(".*");
+		try{
+			System.setOut(new PrintStream(agent.getOutStream()));
+			System.setErr(new PrintStream(agent.getErrStream()));
+			
+			AntDescriptorBuilder.main(new String[]{outputPath.getAbsolutePath()});
+		}
+		finally {
+			System.out.flush();
+			System.err.flush();
+			System.setOut(out);
+			System.setErr(err);
+		}
+		
 		result.addGeneratedFile(outputPath);
 		
 		// TODO: generated files
