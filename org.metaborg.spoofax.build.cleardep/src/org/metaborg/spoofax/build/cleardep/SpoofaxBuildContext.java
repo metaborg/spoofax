@@ -15,10 +15,12 @@ import org.metaborg.spoofax.build.cleardep.builders.Sdf2Parenthesize;
 import org.metaborg.spoofax.build.cleardep.builders.Sdf2Rtg;
 import org.metaborg.spoofax.build.cleardep.builders.Sdf2Table;
 import org.metaborg.spoofax.build.cleardep.builders.SpoofaxDefaultCtree;
+import org.metaborg.spoofax.build.cleardep.builders.StrategoAster;
 import org.strategoxt.HybridInterpreter;
 import org.strategoxt.lang.Context;
 import org.sugarj.cleardep.CompilationUnit;
 import org.sugarj.cleardep.build.BuildContext;
+import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
@@ -41,6 +43,7 @@ public class SpoofaxBuildContext extends BuildContext {
 	public Sdf2Rtg sdf2Rtg = Sdf2Rtg.factory.makeBuilder(this);
 	public Sdf2ImpEclipse sdf2ImpEclipse = Sdf2ImpEclipse.factory.makeBuilder(this);
 	public Sdf2Parenthesize sdf2Parenthesize = Sdf2Parenthesize.factory.makeBuilder(this);
+	public StrategoAster strategoAster = StrategoAster.factory.makeBuilder(this);
 	
 	public final Path baseDir;
 	public final Properties props;
@@ -52,6 +55,7 @@ public class SpoofaxBuildContext extends BuildContext {
 	private static Context generatorContext;
 	
 	public SpoofaxBuildContext(Path baseDir, Properties props, HybridInterpreter interp) {
+		super(new BuildManager());
 		this.baseDir = baseDir;
 		this.props = props;
 		this.interp = interp;
