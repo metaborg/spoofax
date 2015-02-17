@@ -54,6 +54,7 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 		forceWorkspaceRefresh();
 		
 		String sdfmodule = context.props.get("sdfmodule");
+		String esvmodule = context.props.get("esvmodule");
 		String sdfImports = context.props.get("build.sdf.imports");
 		CompilationUnit sdf2Table = context.sdf2Table.require(new Sdf2Table.Input(sdfmodule, sdfImports), new SimpleMode());
 		result.addModuleDependency(sdf2Table);
@@ -68,6 +69,9 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 		RelativePath ppPackOutputPath = context.basePath("${include}/${sdfmodule}.pp.af");
 		CompilationUnit ppPack = context.ppPack.require(new PPPack.Input(ppPackInputPath, ppPackOutputPath, true), new SimpleMode());
 		result.addModuleDependency(ppPack);
+		
+		CompilationUnit sdf2imp = context.sdf2ImpEclipse.require(new Sdf2ImpEclipse.Input(esvmodule, sdfmodule, sdfImports), new SimpleMode());
+		result.addModuleDependency(sdf2imp);
 	}
 
 	private void checkClassPath() {

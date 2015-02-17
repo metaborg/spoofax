@@ -9,6 +9,8 @@ import org.metaborg.spoofax.build.cleardep.builders.MetaSdf2Table;
 import org.metaborg.spoofax.build.cleardep.builders.PPGen;
 import org.metaborg.spoofax.build.cleardep.builders.PPPack;
 import org.metaborg.spoofax.build.cleardep.builders.PackSdf;
+import org.metaborg.spoofax.build.cleardep.builders.Sdf2ImpEclipse;
+import org.metaborg.spoofax.build.cleardep.builders.Sdf2Rtg;
 import org.metaborg.spoofax.build.cleardep.builders.Sdf2Table;
 import org.metaborg.spoofax.build.cleardep.builders.SpoofaxDefaultCtree;
 import org.strategoxt.HybridInterpreter;
@@ -33,6 +35,8 @@ public class SpoofaxBuildContext extends BuildContext {
 	public Sdf2Table sdf2Table = Sdf2Table.factory.makeBuilder(this);
 	public MetaSdf2Table metaSdf2Table = MetaSdf2Table.factory.makeBuilder(this);
 	public PPGen ppGen = PPGen.factory.makeBuilder(this);
+	public Sdf2Rtg sdf2Rtg = Sdf2Rtg.factory.makeBuilder(this);
+	public Sdf2ImpEclipse sdf2ImpEclipse = Sdf2ImpEclipse.factory.makeBuilder(this);
 	
 	public final Path baseDir;
 	public final Properties props;
