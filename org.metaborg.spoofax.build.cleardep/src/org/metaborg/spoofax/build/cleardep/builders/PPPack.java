@@ -50,7 +50,7 @@ public class PPPack extends Builder<SpoofaxBuildContext, PPPack.Input, SimpleCom
 	
 	@Override
 	protected String taskDescription(Input input) {
-		return "Prepare pretty-print table";
+		return "Compress pretty-print table";
 	}
 	
 	@Override
