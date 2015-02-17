@@ -54,8 +54,8 @@ public class SpoofaxBuildContext extends BuildContext {
 	private static Context xtcContext;
 	private static Context generatorContext;
 	
-	public SpoofaxBuildContext(Path baseDir, Properties props, HybridInterpreter interp) {
-		super(new BuildManager());
+	public SpoofaxBuildContext(BuildManager manager, Path baseDir, Properties props, HybridInterpreter interp) {
+		super(manager);
 		this.baseDir = baseDir;
 		this.props = props;
 		this.interp = interp;
