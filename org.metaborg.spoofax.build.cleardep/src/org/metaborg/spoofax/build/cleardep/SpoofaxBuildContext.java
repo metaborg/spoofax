@@ -15,6 +15,7 @@ import org.strategoxt.HybridInterpreter;
 import org.strategoxt.lang.Context;
 import org.sugarj.cleardep.CompilationUnit;
 import org.sugarj.cleardep.build.BuildContext;
+import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
@@ -42,7 +43,8 @@ public class SpoofaxBuildContext extends BuildContext {
 	private static Context permissiveGrammarsContext;
 	private static Context xtcContext;
 	
-	public SpoofaxBuildContext(Path baseDir, Properties props, HybridInterpreter interp) {
+	public SpoofaxBuildContext(BuildManager manager, Path baseDir, Properties props, HybridInterpreter interp) {
+		super(manager);
 		this.baseDir = baseDir;
 		this.props = props;
 		this.interp = interp;

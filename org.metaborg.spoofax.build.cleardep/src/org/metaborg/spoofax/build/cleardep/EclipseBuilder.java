@@ -9,6 +9,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.strategoxt.HybridInterpreter;
 import org.sugarj.cleardep.SimpleMode;
+import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.common.Log;
 import org.sugarj.common.path.AbsolutePath;
 import org.sugarj.common.path.Path;
@@ -32,7 +33,8 @@ public class EclipseBuilder extends IncrementalProjectBuilder {
 		// FIXME use actual Spoofax language name
 		Properties props = Properties.makeSpoofaxProperties("TemplateLang", new Path[] {new RelativePath(baseDir, "${lib}/SDF.def")});
 		
-		SpoofaxBuildContext context = new SpoofaxBuildContext(baseDir, props, new HybridInterpreter());
+		BuildManager manager = new BuildManager();
+		SpoofaxBuildContext context = new SpoofaxBuildContext(manager, baseDir, props, new HybridInterpreter());
 		return context;
 	}
 	
