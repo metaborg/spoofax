@@ -14,25 +14,36 @@ import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
-public class MetaSdf2Table extends Builder<SpoofaxBuildContext, Void, SimpleCompilationUnit> {
+public class MetaSdf2Table extends Builder<SpoofaxBuildContext, MetaSdf2Table.Input, SimpleCompilationUnit> {
 
-	public static BuilderFactory<SpoofaxBuildContext, Void, SimpleCompilationUnit, MetaSdf2Table> factory = new BuilderFactory<SpoofaxBuildContext, Void, SimpleCompilationUnit, MetaSdf2Table>() {
+	public static BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, MetaSdf2Table> factory = new BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, MetaSdf2Table>() {
 		@Override
 		public MetaSdf2Table makeBuilder(SpoofaxBuildContext context) { return new MetaSdf2Table(context); }
 	};
+
+	public static class Input {
+		public final String metasdfmodule;
+		public final String buildSdfImports;
+		public final Path externaldef;
+		public Input(String metasdfmodule, String buildSdfImports, Path externaldef) {
+			this.metasdfmodule = metasdfmodule;
+			this.buildSdfImports = buildSdfImports;
+			this.externaldef = externaldef;
+		}
+	}
 	
 	public MetaSdf2Table(SpoofaxBuildContext context) {
 		super(context);
 	}
 
 	@Override
-	protected String taskDescription(Void input) {
+	protected String taskDescription(Input input) {
 		return "Compile metagrammar for concrete object syntax";
 	}
 	
 	@Override
-	protected Path persistentPath(Void input) {
-		return context.depPath("metaSdf2Table.dep");
+	protected Path persistentPath(Input input) {
+		return context.depPath("metaSdf2Table." + input.metasdfmodule + ".dep");
 	}
 	
 	@Override
@@ -44,15 +55,14 @@ public class MetaSdf2Table extends Builder<SpoofaxBuildContext, Void, SimpleComp
 	public Stamper defaultStamper() { return LastModifiedStamper.instance; }
 
 	@Override
-	public void build(SimpleCompilationUnit result, Void input) throws IOException {
+	public void build(SimpleCompilationUnit result, Input input) throws IOException {
 		RelativePath metamodule = context.basePath("${syntax}/${metasdfmodule}.sdf");
 		result.addSourceArtifact(metamodule);
 		boolean metasdfmoduleAvailable = FileCommands.exists(metamodule);
 		
 		if (metasdfmoduleAvailable) {
-			String sdfmodule = context.props.get("metasdfmodule");
-			String sdfImports = context.props.substitute("-Idef ${eclipse.spoofaximp.jars}/StrategoMix.def ${build.sdf.imports}");
-			CompilationUnit sdf2Table = context.sdf2Table.require(new Sdf2Table.Input(sdfmodule, sdfImports), new SimpleMode());
+			String sdfImports = context.props.substitute("-Idef ${eclipse.spoofaximp.jars}/StrategoMix.def ") + input.buildSdfImports;
+			CompilationUnit sdf2Table = context.sdf2Table.require(new Sdf2Table.Input(input.metasdfmodule, sdfImports, input.externaldef), new SimpleMode());
 			result.addModuleDependency(sdf2Table);
 		}
 

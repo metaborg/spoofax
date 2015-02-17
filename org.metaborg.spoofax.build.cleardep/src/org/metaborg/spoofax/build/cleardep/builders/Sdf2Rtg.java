@@ -7,9 +7,9 @@ import org.metaborg.spoofax.build.cleardep.LoggingFilteringIOAgent;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
-import org.strategoxt.permissivegrammars.make_permissive;
-import org.sugarj.cleardep.CompilationUnit;
+import org.strategoxt.tools.main_sdf2rtg_0_0;
 import org.sugarj.cleardep.CompilationUnit.State;
+import org.sugarj.cleardep.CompilationUnit;
 import org.sugarj.cleardep.SimpleCompilationUnit;
 import org.sugarj.cleardep.SimpleMode;
 import org.sugarj.cleardep.build.Builder;
@@ -19,36 +19,34 @@ import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
-public class MakePermissive extends Builder<SpoofaxBuildContext, MakePermissive.Input, SimpleCompilationUnit> {
+public class Sdf2Rtg extends Builder<SpoofaxBuildContext, Sdf2Rtg.Input, SimpleCompilationUnit> {
 
-	public static BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, MakePermissive> factory = new BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, MakePermissive>() {
+	public static BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, Sdf2Rtg> factory = new BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, Sdf2Rtg>() {
 		@Override
-		public MakePermissive makeBuilder(SpoofaxBuildContext context) { return new MakePermissive(context); }
+		public Sdf2Rtg makeBuilder(SpoofaxBuildContext context) { return new Sdf2Rtg(context); }
 	};
 	
 	public static class Input {
 		public final String sdfmodule;
 		public final String buildSdfImports;
-		public final Path externaldef;
-		public Input(String sdfmodule, String buildSdfImports, Path externaldef) {
+		public Input(String sdfmodule, String buildSdfImports) {
 			this.sdfmodule = sdfmodule;
 			this.buildSdfImports = buildSdfImports;
-			this.externaldef = externaldef;
 		}
 	}
 	
-	public MakePermissive(SpoofaxBuildContext context) {
+	public Sdf2Rtg(SpoofaxBuildContext context) {
 		super(context);
 	}
 
 	@Override
 	protected String taskDescription(Input input) {
-		return "Make grammar permissive for error-recovery parsing.";
+		return "Extract constructor signatures from grammar";
 	}
 	
 	@Override
-	public Path persistentPath(Input input) {
-		return context.depPath("makePermissive." + input.sdfmodule + ".dep");
+	protected Path persistentPath(Input input) {
+		return context.depPath("sdf2Rtg." + input.sdfmodule + ".dep");
 	}
 
 	@Override
@@ -61,23 +59,25 @@ public class MakePermissive extends Builder<SpoofaxBuildContext, MakePermissive.
 
 	@Override
 	public void build(SimpleCompilationUnit result, Input input) throws IOException {
-		CompilationUnit copySdf = context.copySdf.require(new CopySdf.Input(input.sdfmodule, input.externaldef), new SimpleMode());
-		result.addModuleDependency(copySdf);
-		
+		// This dependency was discovered by cleardep, due to an implicit dependency on 'org.strategoxt.imp.editors.template/include/TemplateLang.def'.
 		CompilationUnit packSdf = context.packSdf.require(new PackSdf.Input(input.sdfmodule, input.buildSdfImports), new SimpleMode());
 		result.addModuleDependency(packSdf);
+
 		
 		RelativePath inputPath = context.basePath("${include}/" + input.sdfmodule + ".def");
-		RelativePath outputPath = context.basePath("${include}/" + input.sdfmodule + "-Permissive.def");
-		
+		RelativePath outputPath = context.basePath("${include}/" + input.sdfmodule + ".rtg");
+
 		result.addSourceArtifact(inputPath);
-		ExecutionResult er = StrategoExecutor.runStrategoCLI(context.permissiveGrammarsContext(), 
-				make_permissive.getMainStrategy(), "make-permissive", new LoggingFilteringIOAgent(Pattern.quote("[ make-permissive | info ]") + ".*"),
+		// XXX avoid redundant call to sdf2table
+		ExecutionResult er = StrategoExecutor.runStrategoCLI(context.toolsContext(), 
+				main_sdf2rtg_0_0.instance, "sdf2rtg", new LoggingFilteringIOAgent(Pattern.quote("Invoking native tool") + ".*"),
 				"-i", inputPath,
+				"-m", input.sdfmodule,
 				"-o", outputPath,
-				"--optimize", "on"
-				);
+				"--ignore-missing-cons" /*,
+				"-Xnativepath", context.basePath("${nativepath}/")*/);
 		result.addGeneratedFile(outputPath);
 		result.setState(State.finished(er.success));
 	}
+
 }

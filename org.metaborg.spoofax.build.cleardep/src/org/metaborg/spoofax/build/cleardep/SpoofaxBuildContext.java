@@ -2,6 +2,7 @@ package org.metaborg.spoofax.build.cleardep;
 
 import org.metaborg.spoofax.build.cleardep.builders.All;
 import org.metaborg.spoofax.build.cleardep.builders.Clean;
+import org.metaborg.spoofax.build.cleardep.builders.CopySdf;
 import org.metaborg.spoofax.build.cleardep.builders.ForceOnSave;
 import org.metaborg.spoofax.build.cleardep.builders.ForceOnSaveFile;
 import org.metaborg.spoofax.build.cleardep.builders.MakePermissive;
@@ -9,6 +10,9 @@ import org.metaborg.spoofax.build.cleardep.builders.MetaSdf2Table;
 import org.metaborg.spoofax.build.cleardep.builders.PPGen;
 import org.metaborg.spoofax.build.cleardep.builders.PPPack;
 import org.metaborg.spoofax.build.cleardep.builders.PackSdf;
+import org.metaborg.spoofax.build.cleardep.builders.Sdf2ImpEclipse;
+import org.metaborg.spoofax.build.cleardep.builders.Sdf2Parenthesize;
+import org.metaborg.spoofax.build.cleardep.builders.Sdf2Rtg;
 import org.metaborg.spoofax.build.cleardep.builders.Sdf2Table;
 import org.metaborg.spoofax.build.cleardep.builders.SpoofaxDefaultCtree;
 import org.strategoxt.HybridInterpreter;
@@ -30,10 +34,14 @@ public class SpoofaxBuildContext extends BuildContext {
 	public ForceOnSave forceOnSave = ForceOnSave.factory.makeBuilder(this);
 	public ForceOnSaveFile forceOnSaveFile = ForceOnSaveFile.factory.makeBuilder(this);
 	public PackSdf packSdf = PackSdf.factory.makeBuilder(this);
+	public CopySdf copySdf = CopySdf.factory.makeBuilder(this);
 	public MakePermissive makePermissive = MakePermissive.factory.makeBuilder(this);
 	public Sdf2Table sdf2Table = Sdf2Table.factory.makeBuilder(this);
 	public MetaSdf2Table metaSdf2Table = MetaSdf2Table.factory.makeBuilder(this);
 	public PPGen ppGen = PPGen.factory.makeBuilder(this);
+	public Sdf2Rtg sdf2Rtg = Sdf2Rtg.factory.makeBuilder(this);
+	public Sdf2ImpEclipse sdf2ImpEclipse = Sdf2ImpEclipse.factory.makeBuilder(this);
+	public Sdf2Parenthesize sdf2Parenthesize = Sdf2Parenthesize.factory.makeBuilder(this);
 	
 	public final Path baseDir;
 	public final Properties props;
@@ -42,6 +50,7 @@ public class SpoofaxBuildContext extends BuildContext {
 	private static Context toolsContext;
 	private static Context permissiveGrammarsContext;
 	private static Context xtcContext;
+	private static Context generatorContext;
 	
 	public SpoofaxBuildContext(BuildManager manager, Path baseDir, Properties props, HybridInterpreter interp) {
 		super(manager);
@@ -86,6 +95,15 @@ public class SpoofaxBuildContext extends BuildContext {
 				return xtcContext;
 			xtcContext = org.strategoxt.stratego_xtc.stratego_xtc.init();
 			return xtcContext;
+		}
+	}
+	
+	public Context generatorContext() {
+		synchronized (SpoofaxBuildContext.class) {
+			if (generatorContext != null)
+				return generatorContext;
+			generatorContext = org.strategoxt.imp.generator.generator.init();
+			return generatorContext;
 		}
 	}
 	

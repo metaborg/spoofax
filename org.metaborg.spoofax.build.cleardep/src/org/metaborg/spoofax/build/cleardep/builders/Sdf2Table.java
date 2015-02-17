@@ -26,9 +26,11 @@ public class Sdf2Table extends Builder<SpoofaxBuildContext, Sdf2Table.Input, Sim
 	public static class Input {
 		public final String sdfmodule;
 		public final String buildSdfImports;
-		public Input(String sdfmodule, String buildSdfImports) {
+		public final Path externaldef;
+		public Input(String sdfmodule, String buildSdfImports, Path externaldef) {
 			this.sdfmodule = sdfmodule;
 			this.buildSdfImports = buildSdfImports;
+			this.externaldef = externaldef;
 		}
 	}
 	
@@ -43,7 +45,7 @@ public class Sdf2Table extends Builder<SpoofaxBuildContext, Sdf2Table.Input, Sim
 	
 	@Override
 	protected Path persistentPath(Input input) {
-		return context.depPath("sdf2Table" + input.sdfmodule + ".dep");
+		return context.depPath("sdf2Table." + input.sdfmodule + ".dep");
 	}
 
 	@Override
@@ -56,7 +58,7 @@ public class Sdf2Table extends Builder<SpoofaxBuildContext, Sdf2Table.Input, Sim
 
 	@Override
 	public void build(SimpleCompilationUnit result, Input input) throws IOException {
-		CompilationUnit makePermissive = context.makePermissive.require(new MakePermissive.Input(input.sdfmodule, input.buildSdfImports), new SimpleMode());
+		CompilationUnit makePermissive = context.makePermissive.require(new MakePermissive.Input(input.sdfmodule, input.buildSdfImports, input.externaldef), new SimpleMode());
 		result.addModuleDependency(makePermissive);
 
 		RelativePath inputPath = context.basePath("${include}/" + input.sdfmodule + "-Permissive.def");

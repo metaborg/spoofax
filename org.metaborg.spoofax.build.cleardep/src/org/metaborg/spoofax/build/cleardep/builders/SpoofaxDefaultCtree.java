@@ -12,6 +12,7 @@ import org.sugarj.cleardep.build.BuilderFactory;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.Log;
+import org.sugarj.common.path.AbsolutePath;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
@@ -54,11 +55,15 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 		forceWorkspaceRefresh();
 		
 		String sdfmodule = context.props.get("sdfmodule");
+		String esvmodule = context.props.get("esvmodule");
+		String metasdfmodule = context.props.get("metasdfmodule");
 		String sdfImports = context.props.get("build.sdf.imports");
-		CompilationUnit sdf2Table = context.sdf2Table.require(new Sdf2Table.Input(sdfmodule, sdfImports), new SimpleMode());
+		Path externaldef = context.props.isDefined("externaldef") ? new AbsolutePath(context.props.get("externaldef")) : null;
+		
+		CompilationUnit sdf2Table = context.sdf2Table.require(new Sdf2Table.Input(sdfmodule, sdfImports, externaldef), new SimpleMode());
 		result.addModuleDependency(sdf2Table);
 		
-		CompilationUnit metaSdf2Table = context.metaSdf2Table.require(null, new SimpleMode());
+		CompilationUnit metaSdf2Table = context.metaSdf2Table.require(new MetaSdf2Table.Input(metasdfmodule, sdfImports, externaldef), new SimpleMode());
 		result.addModuleDependency(metaSdf2Table);
 		
 		CompilationUnit ppGen = context.ppGen.require(null, new SimpleMode());
@@ -68,6 +73,12 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 		RelativePath ppPackOutputPath = context.basePath("${include}/${sdfmodule}.pp.af");
 		CompilationUnit ppPack = context.ppPack.require(new PPPack.Input(ppPackInputPath, ppPackOutputPath, true), new SimpleMode());
 		result.addModuleDependency(ppPack);
+		
+		CompilationUnit sdf2Imp = context.sdf2ImpEclipse.require(new Sdf2ImpEclipse.Input(esvmodule, sdfmodule, sdfImports), new SimpleMode());
+		result.addModuleDependency(sdf2Imp);
+		
+		CompilationUnit sdf2Parenthesize = context.sdf2Parenthesize.require(new Sdf2Parenthesize.Input(sdfmodule, sdfImports, externaldef), new SimpleMode());
+		result.addModuleDependency(sdf2Parenthesize);
 	}
 
 	private void checkClassPath() {
