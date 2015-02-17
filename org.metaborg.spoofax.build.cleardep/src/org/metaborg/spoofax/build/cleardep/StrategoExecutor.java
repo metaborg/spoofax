@@ -10,6 +10,8 @@ import org.strategoxt.imp.metatooling.stratego.SDFBundleCommand;
 import org.strategoxt.lang.Context;
 import org.strategoxt.lang.StrategoExit;
 import org.strategoxt.lang.Strategy;
+import org.strategoxt.stratego_lib.dr_scope_all_end_0_0;
+import org.strategoxt.stratego_lib.dr_scope_all_start_0_0;
 import org.sugarj.common.ATermCommands;
 import org.sugarj.common.Log;
 
@@ -19,11 +21,20 @@ public class StrategoExecutor {
 		public final boolean success;
 		public final String outLog;
 		public final String errLog;
+		public final IStrategoTerm result;
 
 		public ExecutionResult(boolean success, String outLog, String errLog) {
 			this.success = success;
 			this.outLog = outLog;
 			this.errLog = errLog;
+			this.result = null;
+		}
+		
+		public ExecutionResult(IStrategoTerm result, String outLog, String errLog) {
+			this.success = result != null;
+			this.outLog = outLog;
+			this.errLog = errLog;
+			this.result = result;
 		}
 	}
 
@@ -40,6 +51,7 @@ public class StrategoExecutor {
 		try {
 			Log.log.beginTask("Execute " + desc, Log.CORE);
 			strategoContext.setIOAgent(agent);
+			dr_scope_all_start_0_0.instance.invoke(strategoContext, strategoContext.getFactory().makeTuple());
 			strategoContext.invokeStrategyCLI(strat, desc, sargs.toArray(new String[sargs.size()]));
 			return new ExecutionResult(true, agent.getOutLog(), agent.getErrLog());
 		} catch (StrategoExit e) {
@@ -47,6 +59,22 @@ public class StrategoExecutor {
 				return new ExecutionResult(true, agent.getOutLog(), agent.getErrLog());
 			return new ExecutionResult(false, agent.getOutLog(), agent.getErrLog());
 		} finally {
+			dr_scope_all_end_0_0.instance.invoke(strategoContext, strategoContext.getFactory().makeTuple());
+			Log.log.endTask();
+		}
+	}
+	
+	public static ExecutionResult runStratego(Context strategoContext, Strategy strat, String desc, LoggingFilteringIOAgent agent, IStrategoTerm current) {
+		try {
+			Log.log.beginTask("Execute " + desc, Log.CORE);
+			strategoContext.setIOAgent(agent);
+			dr_scope_all_start_0_0.instance.invoke(strategoContext, current);
+			IStrategoTerm result  = strat.invoke(strategoContext, current);
+			return new ExecutionResult(result, agent.getOutLog(), agent.getErrLog());
+		} catch (StrategoExit e) {
+			return new ExecutionResult(false, agent.getOutLog(), agent.getErrLog());
+		} finally {
+			dr_scope_all_end_0_0.instance.invoke(strategoContext, current);
 			Log.log.endTask();
 		}
 	}

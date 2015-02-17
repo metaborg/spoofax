@@ -1,12 +1,14 @@
 package org.metaborg.spoofax.build.cleardep.builders;
 
 import java.io.IOException;
-import java.io.PrintStream;
 
 import org.metaborg.spoofax.build.cleardep.LoggingFilteringIOAgent;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
-import org.strategoxt.imp.metatooling.building.AntDescriptorBuilder;
+import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
+import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
+import org.strategoxt.imp.generator.sdf2imp_jvm_0_0;
 import org.sugarj.cleardep.CompilationUnit;
+import org.sugarj.cleardep.CompilationUnit.State;
 import org.sugarj.cleardep.SimpleCompilationUnit;
 import org.sugarj.cleardep.SimpleMode;
 import org.sugarj.cleardep.build.Builder;
@@ -45,7 +47,7 @@ public class Sdf2ImpEclipse extends Builder<SpoofaxBuildContext, Sdf2ImpEclipse.
 	
 	@Override
 	protected Path persistentPath(Input input) {
-		return context.depPath("sdf2ImpEclipse." + input.esvmodule + "." + input.sdfmodule + ".dep");
+		return context.depPath("sdf2ImpEclipse." + input.esvmodule + ".dep");
 	}
 
 	@Override
@@ -61,29 +63,40 @@ public class Sdf2ImpEclipse extends Builder<SpoofaxBuildContext, Sdf2ImpEclipse.
 		CompilationUnit sdf2Rtg = context.sdf2Rtg.require(new Sdf2Rtg.Input(input.sdfmodule, input.buildSdfImports), new SimpleMode());
 		result.addModuleDependency(sdf2Rtg);
 		
-		RelativePath outputPath = context.basePath("${include}/" + input.esvmodule + ".packed.esv");
+		RelativePath inputPath = new RelativePath(context.basePath("editor"), input.esvmodule + ".main.esv");
 
-		PrintStream out = System.out;
-		PrintStream err = System.err;
 		LoggingFilteringIOAgent agent = new LoggingFilteringIOAgent(".*");
-		try{
-			System.setOut(new PrintStream(agent.getOutStream()));
-			System.setErr(new PrintStream(agent.getErrStream()));
-			
-			AntDescriptorBuilder.main(new String[]{outputPath.getAbsolutePath()});
-		}
-		finally {
-			System.out.flush();
-			System.err.flush();
-			System.setOut(out);
-			System.setErr(err);
-		}
+		agent.setWorkingDir(inputPath.getBasePath().getAbsolutePath());
 		
-		result.addGeneratedFile(outputPath);
-		
-		// TODO: generated files
+		result.addSourceArtifact(inputPath);
+		ExecutionResult er = StrategoExecutor.runStratego(context.generatorContext(), 
+				sdf2imp_jvm_0_0.instance, "sdf2imp", agent,
+				context.generatorContext().getFactory().makeString(inputPath.getRelativePath()));
 
-//		result.setState(State.finished(er.success));
+		registerUsedPaths(result, er.errLog);
+		
+		result.setState(State.finished(er.success));
+	}
+
+	private void registerUsedPaths(CompilationUnit result, String log) {
+		String defPrefix = "Found accompanying .def file: ";
+		String reqPrefix = "found file ";
+		String genPrefix = "Generating ";
+		
+		for (String s : log.split("\\n")) {
+		    if (s.startsWith(reqPrefix)) {
+				String file = s.substring(reqPrefix.length());
+				result.addExternalFileDependency(context.basePath(file));
+			}
+			else if (s.startsWith(genPrefix)) {
+				String file = s.substring(genPrefix.length());
+				result.addGeneratedFile(context.basePath(file));
+			}
+			else if (s.startsWith(defPrefix)) {
+				String file = s.substring(defPrefix.length());
+				result.addExternalFileDependency(context.basePath(file));
+			}
+		}
 	}
 
 }

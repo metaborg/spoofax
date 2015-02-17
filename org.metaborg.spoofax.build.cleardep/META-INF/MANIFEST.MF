@@ -9,7 +9,8 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.core.resources,
  org.eclipse.imp.runtime,
  org.eclipse.jface.text,
- org.eclipse.ui.console
+ org.eclipse.ui.console,
+ org.spoofax.interpreter.externaldeps
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
 Eclipse-RegisterBuddy: org.strategoxt.imp.runtime
@@ -18,7 +19,7 @@ Import-Package: org.spoofax.interpreter.core,
  org.spoofax.interpreter.library.ssl,
  org.spoofax.interpreter.terms,
  org.strategoxt,
- org.strategoxt.imp.generator;version="1.3.0",
+ org.strategoxt.imp.generator,
  org.strategoxt.imp.metatooling,
  org.strategoxt.imp.metatooling.building,
  org.strategoxt.imp.metatooling.stratego,

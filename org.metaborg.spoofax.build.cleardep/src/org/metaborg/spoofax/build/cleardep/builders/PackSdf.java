@@ -97,12 +97,12 @@ public class PackSdf extends Builder<SpoofaxBuildContext, PackSdf.Input, SimpleC
 		result.setState(State.finished(er.success));
 	}
 
-	private List<Path> extractRequiredPaths(String errLog) {
+	private List<Path> extractRequiredPaths(String log) {
 		final String prefix = "  including ";
 		final String infix = " from ";
 		
 		List<Path> paths = new ArrayList<>();
-		for (String s : errLog.split("\\n")) {
+		for (String s : log.split("\\n")) {
 			if (s.startsWith(prefix)) {
 				String module = s.substring(prefix.length());
 				int infixIndex = module.indexOf(infix);
