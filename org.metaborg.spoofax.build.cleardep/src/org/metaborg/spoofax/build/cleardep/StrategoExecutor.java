@@ -60,7 +60,7 @@ public class StrategoExecutor {
 					tArgs.add(ATermCommands.makeString(s));
 		}
 
-		LoggingFilteringIOAgent agent = new LoggingFilteringIOAgent(Pattern.quote("Invoking native tool ") + ".*");
+		LoggingFilteringIOAgent agent = new LoggingFilteringIOAgent(Pattern.quote("Invoking native tool") + ".*");
 		try {
 			Log.log.beginTask("Execute sdf2table", Log.CORE);
 			xtcContext.setIOAgent(agent);

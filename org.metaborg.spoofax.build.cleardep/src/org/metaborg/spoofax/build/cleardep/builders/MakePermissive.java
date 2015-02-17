@@ -1,7 +1,6 @@
 package org.metaborg.spoofax.build.cleardep.builders;
 
 import java.io.IOException;
-import java.nio.file.StandardCopyOption;
 import java.util.regex.Pattern;
 
 import org.metaborg.spoofax.build.cleardep.LoggingFilteringIOAgent;
@@ -17,8 +16,6 @@ import org.sugarj.cleardep.build.Builder;
 import org.sugarj.cleardep.build.BuilderFactory;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
-import org.sugarj.common.FileCommands;
-import org.sugarj.common.path.AbsolutePath;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
@@ -32,9 +29,11 @@ public class MakePermissive extends Builder<SpoofaxBuildContext, MakePermissive.
 	public static class Input {
 		public final String sdfmodule;
 		public final String buildSdfImports;
-		public Input(String sdfmodule, String buildSdfImports) {
+		public final Path externaldef;
+		public Input(String sdfmodule, String buildSdfImports, Path externaldef) {
 			this.sdfmodule = sdfmodule;
 			this.buildSdfImports = buildSdfImports;
+			this.externaldef = externaldef;
 		}
 	}
 	
@@ -62,11 +61,11 @@ public class MakePermissive extends Builder<SpoofaxBuildContext, MakePermissive.
 
 	@Override
 	public void build(SimpleCompilationUnit result, Input input) throws IOException {
+		CompilationUnit copySdf = context.copySdf.require(new CopySdf.Input(input.sdfmodule, input.externaldef), new SimpleMode());
+		result.addModuleDependency(copySdf);
+		
 		CompilationUnit packSdf = context.packSdf.require(new PackSdf.Input(input.sdfmodule, input.buildSdfImports), new SimpleMode());
 		result.addModuleDependency(packSdf);
-		
-		if (context.props.isDefined("externaldef"))
-			copySdf(result, input);
 		
 		RelativePath inputPath = context.basePath("${include}/" + input.sdfmodule + ".def");
 		RelativePath outputPath = context.basePath("${include}/" + input.sdfmodule + "-Permissive.def");
@@ -81,13 +80,4 @@ public class MakePermissive extends Builder<SpoofaxBuildContext, MakePermissive.
 		result.addGeneratedFile(outputPath);
 		result.setState(State.finished(er.success));
 	}
-
-	private void copySdf(SimpleCompilationUnit result, Input input) throws IOException {
-		Path source = new AbsolutePath(context.props.get("externaldef"));
-		Path target = context.basePath("${include}/" + input.sdfmodule + ".def");
-		result.addExternalFileDependency(source);
-		FileCommands.copyFile(source, target, StandardCopyOption.COPY_ATTRIBUTES);
-		result.addGeneratedFile(target);
-	}
-
 }
