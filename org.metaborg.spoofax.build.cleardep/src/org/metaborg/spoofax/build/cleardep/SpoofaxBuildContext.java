@@ -65,6 +65,10 @@ public class SpoofaxBuildContext extends BuildContext {
 		return new RelativePath(baseDir, props.substitute(relative));
 	}
 	
+	public RelativePath depDir() { 
+		return new RelativePath(baseDir, props.substitute("${include}/build"));
+	}
+	
 	public RelativePath depPath(String relative) { 
 		return new RelativePath(baseDir, props.substitute("${include}/build/" + relative));
 	}

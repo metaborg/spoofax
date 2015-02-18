@@ -41,7 +41,7 @@ public class ForceOnSaveFile extends Builder<SpoofaxBuildContext, Path, SimpleCo
 	protected Path persistentPath(Path input) {
 		RelativePath rel = FileCommands.getRelativePath(context.baseDir, input);
 		String relname = rel.getRelativePath().replace(File.separatorChar, '_');
-		return context.depPath("forceOnSave." + relname + ".dep");
+		return context.depPath("forceOnSaveFile/" + relname + ".dep");
 	}
 
 	@Override

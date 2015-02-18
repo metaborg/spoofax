@@ -96,7 +96,7 @@ public class Clean extends Builder<SpoofaxBuildContext, Void, SimpleCompilationU
 			result.addGeneratedFile(p);
 		}
 		
-		for (Path p : FileCommands.listFilesRecursive(context.depPath("."), new FileExtensionFilter("dep"))) {
+		for (Path p : FileCommands.listFilesRecursive(context.depDir(), new FileExtensionFilter("dep"))) {
 			Log.log.log("Delete " + p, Log.DETAIL); 
 			FileCommands.delete(p); 
 			result.addGeneratedFile(p);

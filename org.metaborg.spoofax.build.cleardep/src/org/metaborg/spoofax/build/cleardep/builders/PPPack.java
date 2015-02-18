@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.build.cleardep.builders;
 
 
+import java.io.File;
 import java.io.IOException;
 
 import org.metaborg.spoofax.build.cleardep.LoggingFilteringIOAgent;
@@ -55,7 +56,9 @@ public class PPPack extends Builder<SpoofaxBuildContext, PPPack.Input, SimpleCom
 	
 	@Override
 	protected Path persistentPath(Input input) {
-		return FileCommands.addExtension(input.ppTermOutput, "dep");
+		RelativePath rel = FileCommands.getRelativePath(context.baseDir, input.ppTermOutput);
+		String relname = rel.getRelativePath().replace(File.separatorChar, '_');
+		return context.depPath("ppPack." + relname + ".dep");
 	}
 
 	@Override
