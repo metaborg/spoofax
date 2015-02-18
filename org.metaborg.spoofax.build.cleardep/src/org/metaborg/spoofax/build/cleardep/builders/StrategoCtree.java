@@ -10,6 +10,7 @@ import org.sugarj.cleardep.build.Builder;
 import org.sugarj.cleardep.build.BuilderFactory;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
+import org.sugarj.common.FileCommands;
 import org.sugarj.common.Log;
 import org.sugarj.common.path.Path;
 
@@ -24,10 +25,12 @@ public class StrategoCtree extends Builder<SpoofaxBuildContext, StrategoCtree.In
 		public final String sdfmodule;
 		public final String buildSdfImports;
 		public final String strmodule;
-		public Input(String sdfmodule, String buildSdfImports, String strmodule) {
+		public final Path externaljar;
+		public Input(String sdfmodule, String buildSdfImports, String strmodule, Path externaljar) {
 			this.sdfmodule = sdfmodule;
 			this.buildSdfImports = buildSdfImports;
 			this.strmodule = strmodule;
+			this.externaljar = externaljar;
 		}
 	}
 	
@@ -61,25 +64,13 @@ public class StrategoCtree extends Builder<SpoofaxBuildContext, StrategoCtree.In
 		if (!context.isBuildStrategoEnabled(result))
 			throw new IllegalArgumentException(context.props.substitute("Main stratego file '${strmodule}.str' not found."));
 		
+		CompilationUnit copyJar = context.copyJar.require(new CopyJar.Input(input.externaljar), new SimpleMode());
+		result.addModuleDependency(copyJar);
+		
+		boolean strcJavaAvailable = FileCommands.exists(context.basePath("${include}/${strmodule}.ctree"));
+		
 		
 //		<target name="stratego.ctree" depends="rtg2sig">
-//		<fail message="Main stratego file '${strmodule}.str' not found.">
-//			<condition>
-//				<not>
-//					<isset property="build.stratego.enabled" />
-//				</not>
-//			</condition>
-//		</fail>
-//		<dependset>
-//			<srcfileset dir="${basedir}">
-//				<include name="**/*.str" />
-//				<include name="**/*.astr" />
-//				<exclude name="lib/*.generated.str" />
-//			</srcfileset>
-//			<targetfileset file="${include}/${strmodule}.ctree" />
-//		</dependset>
-//		<available file="${include}/${strmodule}.ctree" property="strc-java.available" />
-//		<antcall target="copy-jar" />
 //		<antcall target="stratego.jvm.helper">
 //			<param name="build.stratego.outputfile" value="${include}/${strmodule}.ctree" />
 //			<param name="build.stratego.extraargs" value="-F" />

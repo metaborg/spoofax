@@ -2,6 +2,7 @@ package org.metaborg.spoofax.build.cleardep;
 
 import org.metaborg.spoofax.build.cleardep.builders.All;
 import org.metaborg.spoofax.build.cleardep.builders.Clean;
+import org.metaborg.spoofax.build.cleardep.builders.CopyJar;
 import org.metaborg.spoofax.build.cleardep.builders.CopySdf;
 import org.metaborg.spoofax.build.cleardep.builders.ForceOnSave;
 import org.metaborg.spoofax.build.cleardep.builders.ForceOnSaveFile;
@@ -48,6 +49,7 @@ public class SpoofaxBuildContext extends BuildContext {
 	public StrategoAster strategoAster = StrategoAster.factory.makeBuilder(this);
 	public StrategoCtree strategoCtree = StrategoCtree.factory.makeBuilder(this);
 	public Rtg2Sig rtg2Sig = Rtg2Sig.factory.makeBuilder(this);
+	public CopyJar copyJar = CopyJar.factory.makeBuilder(this);
 	
 	public final Path baseDir;
 	public final Properties props;
