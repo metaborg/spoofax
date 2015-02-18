@@ -40,7 +40,7 @@ public class Properties {
 		return props.get(key);
 	}
 
-	public Object getOrFail(String key) {
+	public String getOrFail(String key) {
 		String val = get(key);
 		if (val == null)
 			throw new IllegalArgumentException("Undefined property " + key);
@@ -58,13 +58,14 @@ public class Properties {
 		return props.containsKey(key);
 	}
 	
-	public static Properties makeSpoofaxProperties(String lang, Path[] sdfImports) {
+	public static Properties makeSpoofaxProperties(String lang, Path[] sdfImports, String baseDir) {
 		Properties props = new Properties(new HashMap<String, String>());
 
+		props.put("basedir", baseDir);
 		props.put("sdfmodule", lang);
 		props.put("metasdfmodule", "Stratego-" + lang);
 		props.put("esvmodule", lang);
-		props.put("strmodule", lang.substring(0, 1).toLowerCase() + lang.substring(1));
+		props.put("strmodule", lang.toLowerCase());
 		props.put("ppmodule", lang + "-pp");
 		props.put("sigmodule", lang + "-sig");
 
@@ -87,6 +88,9 @@ public class Properties {
 				importString.append("-Idef " + props.substitute(imp.getAbsolutePath()));
 			props.put("build.sdf.imports", importString.toString());
 		}
+		
+		String linking = "-la stratego-lib -la stratego-sglr -la stratego-gpp -la stratego-xtc -la stratego-aterm -la stratego-sdf -la strc";
+		props.put("build.stratego.args", props.substitute("--library " + linking));
 		
 		props.put("eclipse.spoofaximp.jars", new JarsAntPropertyProvider().getAntPropertyValue("eclipse.spoofaximp.jars"));
 

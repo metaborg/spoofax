@@ -43,6 +43,7 @@ public class StrategoExecutor {
 		List<String> sargs = new ArrayList<>(args.length);
 		for (int i = 0; i < args.length; i++) {
 			String str = args[i].toString();
+			// XXX handle quoted paths to support spaces inside paths
 			for (String s : str.split("[ \t\r\n]"))
 				if (!s.isEmpty())
 					sargs.add(s);

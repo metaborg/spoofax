@@ -10,9 +10,8 @@ import org.sugarj.cleardep.build.Builder;
 import org.sugarj.cleardep.build.BuilderFactory;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
-import org.sugarj.common.FileCommands;
-import org.sugarj.common.Log;
 import org.sugarj.common.path.Path;
+import org.sugarj.common.path.RelativePath;
 
 public class StrategoCtree extends Builder<SpoofaxBuildContext, StrategoCtree.Input, SimpleCompilationUnit> {
 
@@ -26,11 +25,17 @@ public class StrategoCtree extends Builder<SpoofaxBuildContext, StrategoCtree.In
 		public final String buildSdfImports;
 		public final String strmodule;
 		public final Path externaljar;
-		public Input(String sdfmodule, String buildSdfImports, String strmodule, Path externaljar) {
+		public final String externaljarflags;
+		public final String buildStrategoArgs;
+		public final Path externalDef;
+		public Input(String sdfmodule, String buildSdfImports, String strmodule, Path externaljar, String externaljarflags, String buildStrategoArgs, Path externalDef) {
 			this.sdfmodule = sdfmodule;
 			this.buildSdfImports = buildSdfImports;
 			this.strmodule = strmodule;
 			this.externaljar = externaljar;
+			this.externaljarflags = externaljarflags;
+			this.buildStrategoArgs = buildStrategoArgs;
+			this.externalDef = externalDef;
 		}
 	}
 	
@@ -67,15 +72,11 @@ public class StrategoCtree extends Builder<SpoofaxBuildContext, StrategoCtree.In
 		CompilationUnit copyJar = context.copyJar.require(new CopyJar.Input(input.externaljar), new SimpleMode());
 		result.addModuleDependency(copyJar);
 		
-		boolean strcJavaAvailable = FileCommands.exists(context.basePath("${include}/${strmodule}.ctree"));
-		
-		
-//		<target name="stratego.ctree" depends="rtg2sig">
-//		<antcall target="stratego.jvm.helper">
-//			<param name="build.stratego.outputfile" value="${include}/${strmodule}.ctree" />
-//			<param name="build.stratego.extraargs" value="-F" />
-//		</antcall>
-//	</target>
-
+		RelativePath inputPath = context.basePath("${trans}/" + input.strmodule + ".str");
+		RelativePath outputPath = context.basePath("${include}/" + input.strmodule + ".ctree");
+		CompilationUnit strategoJavaCompiler = context.strategoJavaCompiler.require(
+				new StrategoJavaCompiler.Input(inputPath, outputPath, input.externaljarflags, input.buildStrategoArgs + " -F", input.externalDef), 
+				new SimpleMode());
+		result.addModuleDependency(strategoJavaCompiler);
 	}
 }

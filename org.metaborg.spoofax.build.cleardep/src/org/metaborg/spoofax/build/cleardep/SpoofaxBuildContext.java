@@ -19,6 +19,7 @@ import org.metaborg.spoofax.build.cleardep.builders.Sdf2Table;
 import org.metaborg.spoofax.build.cleardep.builders.SpoofaxDefaultCtree;
 import org.metaborg.spoofax.build.cleardep.builders.StrategoAster;
 import org.metaborg.spoofax.build.cleardep.builders.StrategoCtree;
+import org.metaborg.spoofax.build.cleardep.builders.StrategoJavaCompiler;
 import org.strategoxt.HybridInterpreter;
 import org.strategoxt.lang.Context;
 import org.sugarj.cleardep.CompilationUnit;
@@ -50,6 +51,7 @@ public class SpoofaxBuildContext extends BuildContext {
 	public StrategoCtree strategoCtree = StrategoCtree.factory.makeBuilder(this);
 	public Rtg2Sig rtg2Sig = Rtg2Sig.factory.makeBuilder(this);
 	public CopyJar copyJar = CopyJar.factory.makeBuilder(this);
+	public StrategoJavaCompiler strategoJavaCompiler = StrategoJavaCompiler.factory.makeBuilder(this);
 	
 	public final Path baseDir;
 	public final Properties props;
@@ -59,6 +61,7 @@ public class SpoofaxBuildContext extends BuildContext {
 	private static Context permissiveGrammarsContext;
 	private static Context xtcContext;
 	private static Context generatorContext;
+	private static Context strjContext;
 	
 	public SpoofaxBuildContext(BuildManager manager, Path baseDir, Properties props, HybridInterpreter interp) {
 		super(manager);
@@ -117,6 +120,11 @@ public class SpoofaxBuildContext extends BuildContext {
 			generatorContext = org.strategoxt.imp.generator.generator.init();
 			return generatorContext;
 		}
+	}
+	
+	public Context strjContext() {
+	    // strj requires a fresh context each time.
+		return org.strategoxt.strj.strj.init();
 	}
 	
 	public boolean isBuildStrategoEnabled(CompilationUnit result) {

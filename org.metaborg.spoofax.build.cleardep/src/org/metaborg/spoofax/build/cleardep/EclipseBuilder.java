@@ -31,7 +31,7 @@ public class EclipseBuilder extends IncrementalProjectBuilder {
 		Path baseDir = new AbsolutePath(project.getProject().getLocation().makeAbsolute().toString());
 
 		// FIXME use actual Spoofax language name
-		Properties props = Properties.makeSpoofaxProperties("TemplateLang", new Path[] {new RelativePath(baseDir, "${lib}/SDF.def")});
+		Properties props = Properties.makeSpoofaxProperties("TemplateLang", new Path[] {new RelativePath(baseDir, "${lib}/SDF.def")}, baseDir.getAbsolutePath());
 		
 		BuildManager manager = new BuildManager();
 		SpoofaxBuildContext context = new SpoofaxBuildContext(manager, baseDir, props, new HybridInterpreter());
