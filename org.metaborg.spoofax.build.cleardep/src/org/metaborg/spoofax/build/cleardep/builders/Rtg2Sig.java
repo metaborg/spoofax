@@ -64,7 +64,6 @@ public class Rtg2Sig extends Builder<SpoofaxBuildContext, Rtg2Sig.Input, SimpleC
 			CompilationUnit sdf2Rtg = context.sdf2Rtg.require(new Sdf2Rtg.Input(input.sdfmodule, input.buildSdfImports), new SimpleMode());
 			result.addModuleDependency(sdf2Rtg);
 
-			
 			RelativePath inputPath = context.basePath("${include}/" + input.sdfmodule + ".rtg");
 			RelativePath outputPath = context.basePath("${include}/" + input.sdfmodule + ".str");
 			

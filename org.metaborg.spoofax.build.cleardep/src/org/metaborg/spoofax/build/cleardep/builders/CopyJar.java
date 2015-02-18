@@ -34,7 +34,7 @@ public class CopyJar extends Builder<SpoofaxBuildContext, CopyJar.Input, SimpleC
 
 	@Override
 	protected String taskDescription(Input input) {
-		return "Copy external Jar.";
+		return "Copy external Jar";
 	}
 	
 	@Override
