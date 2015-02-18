@@ -10,12 +10,14 @@ import org.metaborg.spoofax.build.cleardep.builders.MetaSdf2Table;
 import org.metaborg.spoofax.build.cleardep.builders.PPGen;
 import org.metaborg.spoofax.build.cleardep.builders.PPPack;
 import org.metaborg.spoofax.build.cleardep.builders.PackSdf;
+import org.metaborg.spoofax.build.cleardep.builders.Rtg2Sig;
 import org.metaborg.spoofax.build.cleardep.builders.Sdf2ImpEclipse;
 import org.metaborg.spoofax.build.cleardep.builders.Sdf2Parenthesize;
 import org.metaborg.spoofax.build.cleardep.builders.Sdf2Rtg;
 import org.metaborg.spoofax.build.cleardep.builders.Sdf2Table;
 import org.metaborg.spoofax.build.cleardep.builders.SpoofaxDefaultCtree;
 import org.metaborg.spoofax.build.cleardep.builders.StrategoAster;
+import org.metaborg.spoofax.build.cleardep.builders.StrategoCtree;
 import org.strategoxt.HybridInterpreter;
 import org.strategoxt.lang.Context;
 import org.sugarj.cleardep.CompilationUnit;
@@ -44,6 +46,8 @@ public class SpoofaxBuildContext extends BuildContext {
 	public Sdf2ImpEclipse sdf2ImpEclipse = Sdf2ImpEclipse.factory.makeBuilder(this);
 	public Sdf2Parenthesize sdf2Parenthesize = Sdf2Parenthesize.factory.makeBuilder(this);
 	public StrategoAster strategoAster = StrategoAster.factory.makeBuilder(this);
+	public StrategoCtree strategoCtree = StrategoCtree.factory.makeBuilder(this);
+	public Rtg2Sig rtg2Sig = Rtg2Sig.factory.makeBuilder(this);
 	
 	public final Path baseDir;
 	public final Properties props;

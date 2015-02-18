@@ -55,15 +55,16 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 		forceWorkspaceRefresh();
 		
 		String sdfmodule = context.props.get("sdfmodule");
+		String strmodule = context.props.get("strmodule");
 		String esvmodule = context.props.get("esvmodule");
 		String metasdfmodule = context.props.get("metasdfmodule");
-		String sdfImports = context.props.get("build.sdf.imports");
+		String buildSdfImports = context.props.get("build.sdf.imports");
 		Path externaldef = context.props.isDefined("externaldef") ? new AbsolutePath(context.props.get("externaldef")) : null;
 		
-		CompilationUnit sdf2Table = context.sdf2Table.require(new Sdf2Table.Input(sdfmodule, sdfImports, externaldef), new SimpleMode());
+		CompilationUnit sdf2Table = context.sdf2Table.require(new Sdf2Table.Input(sdfmodule, buildSdfImports, externaldef), new SimpleMode());
 		result.addModuleDependency(sdf2Table);
 		
-		CompilationUnit metaSdf2Table = context.metaSdf2Table.require(new MetaSdf2Table.Input(metasdfmodule, sdfImports, externaldef), new SimpleMode());
+		CompilationUnit metaSdf2Table = context.metaSdf2Table.require(new MetaSdf2Table.Input(metasdfmodule, buildSdfImports, externaldef), new SimpleMode());
 		result.addModuleDependency(metaSdf2Table);
 		
 		CompilationUnit ppGen = context.ppGen.require(null, new SimpleMode());
@@ -74,11 +75,17 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 		CompilationUnit ppPack = context.ppPack.require(new PPPack.Input(ppPackInputPath, ppPackOutputPath, true), new SimpleMode());
 		result.addModuleDependency(ppPack);
 		
-		CompilationUnit sdf2Imp = context.sdf2ImpEclipse.require(new Sdf2ImpEclipse.Input(esvmodule, sdfmodule, sdfImports), new SimpleMode());
+		CompilationUnit sdf2Imp = context.sdf2ImpEclipse.require(new Sdf2ImpEclipse.Input(esvmodule, sdfmodule, buildSdfImports), new SimpleMode());
 		result.addModuleDependency(sdf2Imp);
 		
-		CompilationUnit sdf2Parenthesize = context.sdf2Parenthesize.require(new Sdf2Parenthesize.Input(sdfmodule, sdfImports, externaldef), new SimpleMode());
+		CompilationUnit sdf2Parenthesize = context.sdf2Parenthesize.require(new Sdf2Parenthesize.Input(sdfmodule, buildSdfImports, externaldef), new SimpleMode());
 		result.addModuleDependency(sdf2Parenthesize);
+		
+		CompilationUnit strategoAster = context.strategoAster.require(new StrategoAster.Input(strmodule), new SimpleMode());
+		result.addModuleDependency(strategoAster);
+
+		CompilationUnit strategoCtree = context.strategoCtree.require(new StrategoCtree.Input(sdfmodule, buildSdfImports, strmodule), new SimpleMode());
+		result.addModuleDependency(strategoCtree);
 	}
 
 	private void checkClassPath() {

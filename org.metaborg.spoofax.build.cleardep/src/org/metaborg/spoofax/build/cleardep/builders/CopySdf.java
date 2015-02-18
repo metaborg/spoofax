@@ -39,7 +39,9 @@ public class CopySdf extends Builder<SpoofaxBuildContext, CopySdf.Input, SimpleC
 	
 	@Override
 	public Path persistentPath(Input input) {
-		return context.depPath("copySdf." + input.externaldef + "." + input.sdfmodule + ".dep");
+		if (input.externaldef != null)
+			return context.depPath("copySdf." + input.externaldef + "." + input.sdfmodule + ".dep");
+		return context.depPath("copySdf." + input.sdfmodule + ".dep");
 	}
 
 	@Override
