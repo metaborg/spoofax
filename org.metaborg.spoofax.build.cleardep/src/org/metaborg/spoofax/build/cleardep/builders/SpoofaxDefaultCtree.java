@@ -62,7 +62,6 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 		Path externaldef = context.props.isDefined("externaldef") ? new AbsolutePath(context.props.get("externaldef")) : null;
 		Path externaljar = context.props.isDefined("externaljar") ? new AbsolutePath(context.props.get("externaljar")) : null;
 		String externaljarflags = context.props.getOrElse("externaljarflags", "");
-		String buildStrategoArgs = context.props.getOrElse("build.stratego.args", "");
 		
 		CompilationUnit sdf2Table = context.sdf2Table.require(new Sdf2Table.Input(sdfmodule, buildSdfImports, externaldef), new SimpleMode());
 		result.addModuleDependency(sdf2Table);
@@ -87,7 +86,7 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 		CompilationUnit strategoAster = context.strategoAster.require(new StrategoAster.Input(strmodule), new SimpleMode());
 		result.addModuleDependency(strategoAster);
 
-		CompilationUnit strategoCtree = context.strategoCtree.require(new StrategoCtree.Input(sdfmodule, buildSdfImports, strmodule, externaljar, externaljarflags, buildStrategoArgs, externaldef), new SimpleMode());
+		CompilationUnit strategoCtree = context.strategoCtree.require(new StrategoCtree.Input(sdfmodule, buildSdfImports, strmodule, externaljar, externaljarflags, externaldef), new SimpleMode());
 		result.addModuleDependency(strategoCtree);
 	}
 

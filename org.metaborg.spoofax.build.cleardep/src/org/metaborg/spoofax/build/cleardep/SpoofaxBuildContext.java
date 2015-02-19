@@ -61,7 +61,6 @@ public class SpoofaxBuildContext extends BuildContext {
 	private static Context permissiveGrammarsContext;
 	private static Context xtcContext;
 	private static Context generatorContext;
-	private static Context strjContext;
 	
 	public SpoofaxBuildContext(BuildManager manager, Path baseDir, Properties props, HybridInterpreter interp) {
 		super(manager);

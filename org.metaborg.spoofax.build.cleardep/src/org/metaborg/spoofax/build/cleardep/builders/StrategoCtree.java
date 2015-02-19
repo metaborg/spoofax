@@ -2,6 +2,7 @@ package org.metaborg.spoofax.build.cleardep.builders;
 
 import java.io.IOException;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
 import org.sugarj.cleardep.CompilationUnit;
 import org.sugarj.cleardep.SimpleCompilationUnit;
@@ -26,15 +27,13 @@ public class StrategoCtree extends Builder<SpoofaxBuildContext, StrategoCtree.In
 		public final String strmodule;
 		public final Path externaljar;
 		public final String externaljarflags;
-		public final String buildStrategoArgs;
 		public final Path externalDef;
-		public Input(String sdfmodule, String buildSdfImports, String strmodule, Path externaljar, String externaljarflags, String buildStrategoArgs, Path externalDef) {
+		public Input(String sdfmodule, String buildSdfImports, String strmodule, Path externaljar, String externaljarflags, Path externalDef) {
 			this.sdfmodule = sdfmodule;
 			this.buildSdfImports = buildSdfImports;
 			this.strmodule = strmodule;
 			this.externaljar = externaljar;
 			this.externaljarflags = externaljarflags;
-			this.buildStrategoArgs = buildStrategoArgs;
 			this.externalDef = externalDef;
 		}
 	}
@@ -75,7 +74,17 @@ public class StrategoCtree extends Builder<SpoofaxBuildContext, StrategoCtree.In
 		RelativePath inputPath = context.basePath("${trans}/" + input.strmodule + ".str");
 		RelativePath outputPath = context.basePath("${include}/" + input.strmodule + ".ctree");
 		CompilationUnit strategoJavaCompiler = context.strategoJavaCompiler.require(
-				new StrategoJavaCompiler.Input(inputPath, outputPath, input.externaljarflags, input.buildStrategoArgs + " -F", input.externalDef), 
+				new StrategoJavaCompiler.Input(
+						inputPath, 
+						outputPath, 
+						"trans", 
+						null, 
+						true, 
+						true,
+						new Path[]{context.baseDir, context.basePath("${trans}"), context.basePath("${lib}"), context.basePath("${include}"), input.externalDef},
+						new String[]{"stratego-lib", "stratego-sglr", "stratego-gpp", "stratego-xtc", "stratego-aterm", "stratego-sdf", "strc"},
+						context.basePath(".cache"),
+						ArrayUtils.addAll(new String[] {"-F"}, input.externaljarflags.split("[\\s]+"))), 
 				new SimpleMode());
 		result.addModuleDependency(strategoJavaCompiler);
 	}

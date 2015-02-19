@@ -89,9 +89,6 @@ public class Properties {
 			props.put("build.sdf.imports", importString.toString());
 		}
 		
-		String linking = "-la stratego-lib -la stratego-sglr -la stratego-gpp -la stratego-xtc -la stratego-aterm -la stratego-sdf -la strc";
-		props.put("build.stratego.args", props.substitute("--library " + linking));
-		
 		props.put("eclipse.spoofaximp.jars", new JarsAntPropertyProvider().getAntPropertyValue("eclipse.spoofaximp.jars"));
 
 		return props;
