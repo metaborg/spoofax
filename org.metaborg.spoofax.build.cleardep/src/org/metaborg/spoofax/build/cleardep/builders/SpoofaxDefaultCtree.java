@@ -50,7 +50,7 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 		checkClassPath();
 		
 		RequirableCompilationUnit forceOnSave = context.forceOnSave.requireLater(null, new SimpleMode());
-		// TODO skip? is it sufficient to require when actually needed? (which is now!)
+		// TODO skip? is it sufficient to require when actually needed?
 		result.addModuleDependency(forceOnSave.require());
 		
 		forceWorkspaceRefresh();
@@ -82,8 +82,9 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 		// TODO skip? is it sufficient to require when actually needed?
 		result.addModuleDependency(sdf2Imp.require());
 		
-		CompilationUnit sdf2Parenthesize = context.sdf2Parenthesize.require(new Sdf2Parenthesize.Input(sdfmodule, buildSdfImports, externaldef), new SimpleMode());
-		result.addModuleDependency(sdf2Parenthesize);
+		RequirableCompilationUnit sdf2Parenthesize = context.sdf2Parenthesize.requireLater(new Sdf2Parenthesize.Input(sdfmodule, buildSdfImports, externaldef), new SimpleMode());
+		// TODO skip? is it sufficient to require when actually needed?
+		result.addModuleDependency(sdf2Parenthesize.require());
 		
 		CompilationUnit strategoAster = context.strategoAster.require(new StrategoAster.Input(strmodule), new SimpleMode());
 		result.addModuleDependency(strategoAster);
@@ -96,7 +97,7 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 						externaljar, 
 						externaljarflags, 
 						externaldef,
-						new RequirableCompilationUnit[] {forceOnSave, sdf2Imp}),
+						new RequirableCompilationUnit[] {forceOnSave, sdf2Imp, sdf2Parenthesize}),
 				new SimpleMode());
 		result.addModuleDependency(strategoCtree);
 	}

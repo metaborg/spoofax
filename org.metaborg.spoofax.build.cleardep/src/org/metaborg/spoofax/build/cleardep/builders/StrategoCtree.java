@@ -64,8 +64,8 @@ public class StrategoCtree extends Builder<SpoofaxBuildContext, StrategoCtree.In
 
 	@Override
 	public void build(SimpleCompilationUnit result, Input input) throws IOException {
-		CompilationUnit rtg2Sig = context.rtg2Sig.require(new Rtg2Sig.Input(input.sdfmodule, input.buildSdfImports), new SimpleMode());
-		result.addModuleDependency(rtg2Sig);
+		RequirableCompilationUnit rtg2Sig = context.rtg2Sig.requireLater(new Rtg2Sig.Input(input.sdfmodule, input.buildSdfImports), new SimpleMode());
+		result.addModuleDependency(rtg2Sig.require());
 		
 		if (!context.isBuildStrategoEnabled(result))
 			throw new IllegalArgumentException(context.props.substitute("Main stratego file '${strmodule}.str' not found."));
@@ -86,8 +86,8 @@ public class StrategoCtree extends Builder<SpoofaxBuildContext, StrategoCtree.In
 						new Path[]{context.baseDir, context.basePath("${trans}"), context.basePath("${lib}"), context.basePath("${include}"), input.externalDef},
 						new String[]{"stratego-lib", "stratego-sglr", "stratego-gpp", "stratego-xtc", "stratego-aterm", "stratego-sdf", "strc"},
 						context.basePath(".cache"),
-						Util.arrayConcat(new String[] {"-F"}, input.externaljarflags.split("[\\s]+")),
-						input.requiredUnits), 
+						Util.arrayAdd("-F", input.externaljarflags.split("[\\s]+")),
+						Util.arrayAdd(rtg2Sig, input.requiredUnits)), 
 				new SimpleMode());
 		result.addModuleDependency(strategoJavaCompiler);
 	}

@@ -11,5 +11,13 @@ public class Util{
 		System.arraycopy(ar2, 0, ar, ar1.length, ar2.length);
 		return ar;
 	}
+
+	public static <T> T[] arrayAdd(T t, T[] ar) {
+		@SuppressWarnings("unchecked")
+		T[] arRes = (T[]) Array.newInstance(ar.getClass().getComponentType(), ar.length + 1);
+		arRes[0] = t;
+		System.arraycopy(ar, 0, arRes, 1, ar.length);
+		return arRes;
+	}
 			
 }
