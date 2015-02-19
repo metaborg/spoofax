@@ -2,8 +2,8 @@ package org.metaborg.spoofax.build.cleardep.builders;
 
 import java.io.IOException;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
+import org.metaborg.spoofax.build.cleardep.util.Util;
 import org.sugarj.cleardep.CompilationUnit;
 import org.sugarj.cleardep.SimpleCompilationUnit;
 import org.sugarj.cleardep.SimpleMode;
@@ -28,13 +28,15 @@ public class StrategoCtree extends Builder<SpoofaxBuildContext, StrategoCtree.In
 		public final Path externaljar;
 		public final String externaljarflags;
 		public final Path externalDef;
-		public Input(String sdfmodule, String buildSdfImports, String strmodule, Path externaljar, String externaljarflags, Path externalDef) {
+		public final RequirableCompilationUnit[] requiredUnits;
+		public Input(String sdfmodule, String buildSdfImports, String strmodule, Path externaljar, String externaljarflags, Path externalDef, RequirableCompilationUnit[] requiredUnits) {
 			this.sdfmodule = sdfmodule;
 			this.buildSdfImports = buildSdfImports;
 			this.strmodule = strmodule;
 			this.externaljar = externaljar;
 			this.externaljarflags = externaljarflags;
 			this.externalDef = externalDef;
+			this.requiredUnits = requiredUnits;
 		}
 	}
 	
@@ -84,7 +86,8 @@ public class StrategoCtree extends Builder<SpoofaxBuildContext, StrategoCtree.In
 						new Path[]{context.baseDir, context.basePath("${trans}"), context.basePath("${lib}"), context.basePath("${include}"), input.externalDef},
 						new String[]{"stratego-lib", "stratego-sglr", "stratego-gpp", "stratego-xtc", "stratego-aterm", "stratego-sdf", "strc"},
 						context.basePath(".cache"),
-						ArrayUtils.addAll(new String[] {"-F"}, input.externaljarflags.split("[\\s]+"))), 
+						Util.arrayConcat(new String[] {"-F"}, input.externaljarflags.split("[\\s]+")),
+						input.requiredUnits), 
 				new SimpleMode());
 		result.addModuleDependency(strategoJavaCompiler);
 	}

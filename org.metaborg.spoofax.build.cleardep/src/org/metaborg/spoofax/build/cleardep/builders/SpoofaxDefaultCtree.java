@@ -49,8 +49,9 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 	public void build(SimpleCompilationUnit result, Void input) throws IOException {
 		checkClassPath();
 		
-		CompilationUnit forceOnSave = context.forceOnSave.require(null, new SimpleMode());
-		result.addModuleDependency(forceOnSave);
+		RequirableCompilationUnit forceOnSave = context.forceOnSave.requireLater(null, new SimpleMode());
+		// TODO skip? is it sufficient to require when actually needed? (which is now!)
+		result.addModuleDependency(forceOnSave.require());
 		
 		forceWorkspaceRefresh();
 		
@@ -77,8 +78,9 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 		CompilationUnit ppPack = context.ppPack.require(new PPPack.Input(ppPackInputPath, ppPackOutputPath, true), new SimpleMode());
 		result.addModuleDependency(ppPack);
 		
-		CompilationUnit sdf2Imp = context.sdf2ImpEclipse.require(new Sdf2ImpEclipse.Input(esvmodule, sdfmodule, buildSdfImports), new SimpleMode());
-		result.addModuleDependency(sdf2Imp);
+		RequirableCompilationUnit sdf2Imp = context.sdf2ImpEclipse.requireLater(new Sdf2ImpEclipse.Input(esvmodule, sdfmodule, buildSdfImports), new SimpleMode());
+		// TODO skip? is it sufficient to require when actually needed?
+		result.addModuleDependency(sdf2Imp.require());
 		
 		CompilationUnit sdf2Parenthesize = context.sdf2Parenthesize.require(new Sdf2Parenthesize.Input(sdfmodule, buildSdfImports, externaldef), new SimpleMode());
 		result.addModuleDependency(sdf2Parenthesize);
@@ -86,7 +88,16 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 		CompilationUnit strategoAster = context.strategoAster.require(new StrategoAster.Input(strmodule), new SimpleMode());
 		result.addModuleDependency(strategoAster);
 
-		CompilationUnit strategoCtree = context.strategoCtree.require(new StrategoCtree.Input(sdfmodule, buildSdfImports, strmodule, externaljar, externaljarflags, externaldef), new SimpleMode());
+		CompilationUnit strategoCtree = context.strategoCtree.require(
+				new StrategoCtree.Input(
+						sdfmodule, 
+						buildSdfImports, 
+						strmodule, 
+						externaljar, 
+						externaljarflags, 
+						externaldef,
+						new RequirableCompilationUnit[] {forceOnSave, sdf2Imp}),
+				new SimpleMode());
 		result.addModuleDependency(strategoCtree);
 	}
 

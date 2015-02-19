@@ -39,6 +39,7 @@ public class StrategoJavaCompiler extends Builder<SpoofaxBuildContext, StrategoJ
 		public final String[] libraryIncludes;
 		public final Path cacheDir;
 		public final String[] additionalArgs;
+		public final RequirableCompilationUnit[] requiredUnits;
 		public Input(
 				RelativePath inputPath,
 				RelativePath outputPath,
@@ -49,7 +50,8 @@ public class StrategoJavaCompiler extends Builder<SpoofaxBuildContext, StrategoJ
 				Path[] directoryIncludes,
 				String[] libraryIncludes,
 				Path cacheDir,
-				String[] additionalArgs) {
+				String[] additionalArgs, 
+				RequirableCompilationUnit[] requiredUnits) {
 			this.inputPath = inputPath;
 			this.outputPath = outputPath;
 			this.packageName = packageName;
@@ -60,6 +62,7 @@ public class StrategoJavaCompiler extends Builder<SpoofaxBuildContext, StrategoJ
 			this.libraryIncludes = libraryIncludes;
 			this.cacheDir = cacheDir;
 			this.additionalArgs = additionalArgs;
+			this.requiredUnits = requiredUnits;
 		}
 	}
 	
@@ -89,6 +92,10 @@ public class StrategoJavaCompiler extends Builder<SpoofaxBuildContext, StrategoJ
 
 	@Override
 	public void build(SimpleCompilationUnit result, Input input) throws IOException {
+		if (input.requiredUnits != null)
+			for (RequirableCompilationUnit req : input.requiredUnits)
+				result.addModuleDependency(req.require());
+		
 		result.addSourceArtifact(input.inputPath);
 		
 		Path rtree = FileCommands.replaceExtension(input.outputPath, "rtree");
