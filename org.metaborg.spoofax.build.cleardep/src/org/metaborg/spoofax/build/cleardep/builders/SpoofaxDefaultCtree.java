@@ -49,12 +49,6 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 	public void build(SimpleCompilationUnit result, Void input) throws IOException {
 		checkClassPath();
 		
-		RequirableCompilationUnit forceOnSave = context.forceOnSave.requireLater(null, new SimpleMode());
-		// TODO skip? is it sufficient to require when actually needed?
-		result.addModuleDependency(forceOnSave.require());
-		
-		forceWorkspaceRefresh();
-		
 		String sdfmodule = context.props.getOrFail("sdfmodule");
 		String strmodule = context.props.getOrFail("strmodule");
 		String esvmodule = context.props.getOrFail("esvmodule");
@@ -78,16 +72,12 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 		CompilationUnit ppPack = context.ppPack.require(new PPPack.Input(ppPackInputPath, ppPackOutputPath, true), new SimpleMode());
 		result.addModuleDependency(ppPack);
 		
-		RequirableCompilationUnit sdf2Imp = context.sdf2ImpEclipse.requireLater(new Sdf2ImpEclipse.Input(esvmodule, sdfmodule, buildSdfImports), new SimpleMode());
-		// TODO skip? is it sufficient to require when actually needed?
-		result.addModuleDependency(sdf2Imp.require());
-		
-		RequirableCompilationUnit sdf2Parenthesize = context.sdf2Parenthesize.requireLater(new Sdf2Parenthesize.Input(sdfmodule, buildSdfImports, externaldef), new SimpleMode());
-		// TODO skip? is it sufficient to require when actually needed?
-		result.addModuleDependency(sdf2Parenthesize.require());
-		
 		CompilationUnit strategoAster = context.strategoAster.require(new StrategoAster.Input(strmodule), new SimpleMode());
 		result.addModuleDependency(strategoAster);
+
+		RequirableCompilationUnit forceOnSave = context.forceOnSave.requireLater(null, new SimpleMode());
+		RequirableCompilationUnit sdf2Imp = context.sdf2ImpEclipse.requireLater(new Sdf2ImpEclipse.Input(esvmodule, sdfmodule, buildSdfImports), new SimpleMode());
+		RequirableCompilationUnit sdf2Parenthesize = context.sdf2Parenthesize.requireLater(new Sdf2Parenthesize.Input(sdfmodule, buildSdfImports, externaldef), new SimpleMode());
 
 		CompilationUnit strategoCtree = context.strategoCtree.require(
 				new StrategoCtree.Input(
@@ -100,6 +90,8 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 						new RequirableCompilationUnit[] {forceOnSave, sdf2Imp, sdf2Parenthesize}),
 				new SimpleMode());
 		result.addModuleDependency(strategoCtree);
+		
+		forceWorkspaceRefresh();
 	}
 
 	private void checkClassPath() {

@@ -46,7 +46,7 @@ public class StrategoCtree extends Builder<SpoofaxBuildContext, StrategoCtree.In
 
 	@Override
 	protected String taskDescription(Input input) {
-		return "Prepare Stratego code for interpretation";
+		return "Prepare Stratego code";
 	}
 	
 	@Override
