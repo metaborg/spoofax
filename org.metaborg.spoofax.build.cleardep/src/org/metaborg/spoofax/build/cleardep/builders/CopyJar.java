@@ -2,6 +2,7 @@ package org.metaborg.spoofax.build.cleardep.builders;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.nio.file.StandardCopyOption;
 
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
@@ -17,11 +18,20 @@ import org.sugarj.common.path.RelativePath;
 public class CopyJar extends Builder<SpoofaxBuildContext, CopyJar.Input, SimpleCompilationUnit> {
 
 	public static BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, CopyJar> factory = new BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, CopyJar>() {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 6745322851657006870L;
+
 		@Override
 		public CopyJar makeBuilder(SpoofaxBuildContext context) { return new CopyJar(context); }
 	};
 	
-	public static class Input {
+	public static class Input implements Serializable{
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -3993313903657832660L;
 		public final Path externaljar;
 		public Input(Path externaljar) {
 			this.externaljar = externaljar;
@@ -29,7 +39,7 @@ public class CopyJar extends Builder<SpoofaxBuildContext, CopyJar.Input, SimpleC
 	}
 	
 	public CopyJar(SpoofaxBuildContext context) {
-		super(context);
+		super(context,factory);
 	}
 
 	@Override

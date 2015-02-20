@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.build.cleardep.builders;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.List;
 
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
@@ -17,19 +18,28 @@ import org.sugarj.common.path.RelativePath;
 public class StrategoAster extends Builder<SpoofaxBuildContext, StrategoAster.Input, SimpleCompilationUnit> {
 
 	public static BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, StrategoAster> factory = new BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, StrategoAster>() {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -5274193892350363831L;
+
 		@Override
 		public StrategoAster makeBuilder(SpoofaxBuildContext context) { return new StrategoAster(context); }
 	};
 	
-	public static class Input {
+	public static class Input implements Serializable{
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -2622824636200687281L;
 		public final String strmodule;
 		public Input(String strmodule) {
 			this.strmodule = strmodule;
 		}
 	}
 	
-	public StrategoAster(SpoofaxBuildContext context) {
-		super(context);
+	private StrategoAster(SpoofaxBuildContext context) {
+		super(context, factory);
 	}
 
 	@Override

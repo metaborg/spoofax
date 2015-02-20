@@ -8,30 +8,36 @@ import org.metaborg.spoofax.build.cleardep.util.FileNameFilter;
 import org.sugarj.cleardep.SimpleCompilationUnit;
 import org.sugarj.cleardep.build.Builder;
 import org.sugarj.cleardep.build.BuilderFactory;
+import org.sugarj.cleardep.build.EmptyBuildInput;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.Log;
 import org.sugarj.common.path.Path;
 
-public class Clean extends Builder<SpoofaxBuildContext, Void, SimpleCompilationUnit> {
+public class Clean extends Builder<SpoofaxBuildContext, EmptyBuildInput, SimpleCompilationUnit> {
 
-	public static BuilderFactory<SpoofaxBuildContext, Void, SimpleCompilationUnit, Clean> factory = new BuilderFactory<SpoofaxBuildContext, Void, SimpleCompilationUnit, Clean>() {
+	public static BuilderFactory<SpoofaxBuildContext, EmptyBuildInput, SimpleCompilationUnit, Clean> factory = new BuilderFactory<SpoofaxBuildContext, EmptyBuildInput, SimpleCompilationUnit, Clean>() {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -9219533556010857871L;
+
 		@Override
 		public Clean makeBuilder(SpoofaxBuildContext context) { return new Clean(context); }
 	};
 	
-	public Clean(SpoofaxBuildContext context) {
-		super(context);
+	private Clean(SpoofaxBuildContext context) {
+		super(context, factory);
 	}
 
 	@Override
-	protected String taskDescription(Void input) {
+	protected String taskDescription(EmptyBuildInput input) {
 		return "Clean";
 	}
 	
 	@Override
-	protected Path persistentPath(Void input) {
+	protected Path persistentPath(EmptyBuildInput input) {
 		return context.depPath("clean.dep");
 	}
 
@@ -44,7 +50,7 @@ public class Clean extends Builder<SpoofaxBuildContext, Void, SimpleCompilationU
 	public Stamper defaultStamper() { return LastModifiedStamper.instance; }
 
 	@Override
-	public void build(SimpleCompilationUnit result, Void input) throws IOException {
+	public void build(SimpleCompilationUnit result, EmptyBuildInput input) throws IOException {
 		String[] paths = {
 				".cache",
 				"${include}/${sdfmodule}.def",

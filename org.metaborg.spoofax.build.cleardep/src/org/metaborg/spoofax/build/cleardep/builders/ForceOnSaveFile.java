@@ -24,12 +24,17 @@ import org.sugarj.common.path.RelativePath;
 public class ForceOnSaveFile extends Builder<SpoofaxBuildContext, Path, SimpleCompilationUnit> {
 
 	public static BuilderFactory<SpoofaxBuildContext, Path, SimpleCompilationUnit, ForceOnSaveFile> factory = new BuilderFactory<SpoofaxBuildContext, Path, SimpleCompilationUnit, ForceOnSaveFile>() {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -4999047735018095459L;
+
 		@Override
 		public ForceOnSaveFile makeBuilder(SpoofaxBuildContext context) { return new ForceOnSaveFile(context); }
 	};
 	
-	public ForceOnSaveFile(SpoofaxBuildContext context) {
-		super(context);
+	private ForceOnSaveFile(SpoofaxBuildContext context) {
+		super(context, factory);
 	}
 	
 	@Override

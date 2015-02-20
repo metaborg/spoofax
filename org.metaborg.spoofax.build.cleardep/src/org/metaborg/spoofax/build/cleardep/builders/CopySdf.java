@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.build.cleardep.builders;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.nio.file.StandardCopyOption;
 
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
@@ -15,11 +16,20 @@ import org.sugarj.common.path.Path;
 public class CopySdf extends Builder<SpoofaxBuildContext, CopySdf.Input, SimpleCompilationUnit> {
 
 	public static BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, CopySdf> factory = new BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, CopySdf>() {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 7896468066897221237L;
+
 		@Override
 		public CopySdf makeBuilder(SpoofaxBuildContext context) { return new CopySdf(context); }
 	};
 	
-	public static class Input {
+	public static class Input implements Serializable{
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -7470907587832108136L;
 		public final String sdfmodule;
 		public final Path externaldef;
 		public Input(String sdfmodule, Path externaldef) {
@@ -28,8 +38,8 @@ public class CopySdf extends Builder<SpoofaxBuildContext, CopySdf.Input, SimpleC
 		}
 	}
 	
-	public CopySdf(SpoofaxBuildContext context) {
-		super(context);
+	private CopySdf(SpoofaxBuildContext context) {
+		super(context, factory);
 	}
 
 	@Override

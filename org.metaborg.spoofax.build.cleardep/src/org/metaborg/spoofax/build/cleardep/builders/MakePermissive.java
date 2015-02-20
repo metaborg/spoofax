@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.build.cleardep.builders;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.regex.Pattern;
 
 import org.metaborg.spoofax.build.cleardep.LoggingFilteringIOAgent;
@@ -22,11 +23,20 @@ import org.sugarj.common.path.RelativePath;
 public class MakePermissive extends Builder<SpoofaxBuildContext, MakePermissive.Input, SimpleCompilationUnit> {
 
 	public static BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, MakePermissive> factory = new BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, MakePermissive>() {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -4042979335228720347L;
+
 		@Override
 		public MakePermissive makeBuilder(SpoofaxBuildContext context) { return new MakePermissive(context); }
 	};
 	
-	public static class Input {
+	public static class Input implements Serializable{
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 4954292462449320260L;
 		public final String sdfmodule;
 		public final String buildSdfImports;
 		public final Path externaldef;
@@ -37,8 +47,8 @@ public class MakePermissive extends Builder<SpoofaxBuildContext, MakePermissive.
 		}
 	}
 	
-	public MakePermissive(SpoofaxBuildContext context) {
-		super(context);
+	private MakePermissive(SpoofaxBuildContext context) {
+		super(context, factory);
 	}
 
 	@Override

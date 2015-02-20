@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.build.cleardep.builders;
 
 import java.io.IOException;
+import java.io.Serializable;
 
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
@@ -19,11 +20,20 @@ import org.sugarj.common.path.RelativePath;
 public class Sdf2Table extends Builder<SpoofaxBuildContext, Sdf2Table.Input, SimpleCompilationUnit> {
 
 	public static BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, Sdf2Table> factory = new BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, Sdf2Table>() {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 4346531073187101820L;
+
 		@Override
 		public Sdf2Table makeBuilder(SpoofaxBuildContext context) { return new Sdf2Table(context); }
 	};
 	
-	public static class Input {
+	public static class Input implements Serializable {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 2968239709714646087L;
 		public final String sdfmodule;
 		public final String buildSdfImports;
 		public final Path externaldef;
@@ -34,8 +44,8 @@ public class Sdf2Table extends Builder<SpoofaxBuildContext, Sdf2Table.Input, Sim
 		}
 	}
 	
-	public Sdf2Table(SpoofaxBuildContext context) {
-		super(context);
+	private Sdf2Table(SpoofaxBuildContext context) {
+		super(context, factory);
 	}
 
 	@Override

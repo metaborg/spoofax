@@ -8,29 +8,35 @@ import org.sugarj.cleardep.SimpleCompilationUnit;
 import org.sugarj.cleardep.SimpleMode;
 import org.sugarj.cleardep.build.Builder;
 import org.sugarj.cleardep.build.BuilderFactory;
+import org.sugarj.cleardep.build.EmptyBuildInput;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
-public class All extends Builder<SpoofaxBuildContext, Void, SimpleCompilationUnit> {
+public class All extends Builder<SpoofaxBuildContext, EmptyBuildInput, SimpleCompilationUnit> {
 
-	public static BuilderFactory<SpoofaxBuildContext, Void, SimpleCompilationUnit, All> factory = new BuilderFactory<SpoofaxBuildContext, Void, SimpleCompilationUnit, All>() {
+	public static BuilderFactory<SpoofaxBuildContext, EmptyBuildInput, SimpleCompilationUnit, All> factory = new BuilderFactory<SpoofaxBuildContext, EmptyBuildInput, SimpleCompilationUnit, All>() {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 4707671129478582293L;
+
 		@Override
 		public All makeBuilder(SpoofaxBuildContext context) { return new All(context); }
 	};
 	
-	public All(SpoofaxBuildContext context) {
-		super(context);
+	private All(SpoofaxBuildContext context) {
+		super(context, factory);
 	}
 
 	@Override
-	protected String taskDescription(Void input) {
+	protected String taskDescription(EmptyBuildInput input) {
 		return "Build Spoofax project";
 	}
 	
 	@Override
-	protected Path persistentPath(Void input) {
+	protected Path persistentPath(EmptyBuildInput input) {
 		return context.depPath("all.dep");
 	}
 	
@@ -43,7 +49,7 @@ public class All extends Builder<SpoofaxBuildContext, Void, SimpleCompilationUni
 	public Stamper defaultStamper() { return LastModifiedStamper.instance; }
 
 	@Override
-	public void build(SimpleCompilationUnit result, Void input) throws IOException {
+	public void build(SimpleCompilationUnit result, EmptyBuildInput input) throws IOException {
 		RelativePath ppInput = context.basePath("${lib}/EditorService-pretty.pp");
 		RelativePath ppTermOutput = context.basePath("${include}/EditorService-pretty.pp.af");
 		CompilationUnit ppPack = context.ppPack.require(new PPPack.Input(ppInput, ppTermOutput), new SimpleMode());

@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.build.cleardep.builders;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.regex.Pattern;
 
 import org.metaborg.spoofax.build.cleardep.LoggingFilteringIOAgent;
@@ -22,11 +23,20 @@ import org.sugarj.common.path.RelativePath;
 public class Sdf2Parenthesize extends Builder<SpoofaxBuildContext, Sdf2Parenthesize.Input, SimpleCompilationUnit> {
 
 	public static BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, Sdf2Parenthesize> factory = new BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, Sdf2Parenthesize>() {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 4498899241709913467L;
+
 		@Override
 		public Sdf2Parenthesize makeBuilder(SpoofaxBuildContext context) { return new Sdf2Parenthesize(context); }
 	};
 	
-	public static class Input {
+	public static class Input implements Serializable{
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -634352844553395800L;
 		public final String sdfmodule;
 		public final String buildSdfImports;
 		public final Path externaldef; 
@@ -37,8 +47,8 @@ public class Sdf2Parenthesize extends Builder<SpoofaxBuildContext, Sdf2Parenthes
 		}
 	}
 	
-	public Sdf2Parenthesize(SpoofaxBuildContext context) {
-		super(context);
+	private Sdf2Parenthesize(SpoofaxBuildContext context) {
+		super(context, factory);
 	}
 
 	@Override

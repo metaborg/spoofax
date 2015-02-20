@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.build.cleardep.builders;
 
 import java.io.IOException;
+import java.io.Serializable;
 
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
 import org.metaborg.spoofax.build.cleardep.util.Util;
@@ -17,19 +18,28 @@ import org.sugarj.common.path.RelativePath;
 public class StrategoCtree extends Builder<SpoofaxBuildContext, StrategoCtree.Input, SimpleCompilationUnit> {
 
 	public static BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, StrategoCtree> factory = new BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, StrategoCtree>() {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 2505499380684424941L;
+
 		@Override
 		public StrategoCtree makeBuilder(SpoofaxBuildContext context) { return new StrategoCtree(context); }
 	};
 	
-	public static class Input {
+	public static class Input implements Serializable{
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -4973623329632245967L;
 		public final String sdfmodule;
 		public final String buildSdfImports;
 		public final String strmodule;
 		public final Path externaljar;
 		public final String externaljarflags;
 		public final Path externalDef;
-		public final RequirableCompilationUnit[] requiredUnits;
-		public Input(String sdfmodule, String buildSdfImports, String strmodule, Path externaljar, String externaljarflags, Path externalDef, RequirableCompilationUnit[] requiredUnits) {
+		public final RequirableCompilationUnit<SpoofaxBuildContext>[] requiredUnits;
+		public Input(String sdfmodule, String buildSdfImports, String strmodule, Path externaljar, String externaljarflags, Path externalDef, RequirableCompilationUnit<SpoofaxBuildContext>[] requiredUnits) {
 			this.sdfmodule = sdfmodule;
 			this.buildSdfImports = buildSdfImports;
 			this.strmodule = strmodule;
@@ -40,8 +50,8 @@ public class StrategoCtree extends Builder<SpoofaxBuildContext, StrategoCtree.In
 		}
 	}
 	
-	public StrategoCtree(SpoofaxBuildContext context) {
-		super(context);
+	private StrategoCtree(SpoofaxBuildContext context) {
+		super(context, factory);
 	}
 
 	@Override
@@ -64,8 +74,8 @@ public class StrategoCtree extends Builder<SpoofaxBuildContext, StrategoCtree.In
 
 	@Override
 	public void build(SimpleCompilationUnit result, Input input) throws IOException {
-		RequirableCompilationUnit rtg2Sig = context.rtg2Sig.requireLater(new Rtg2Sig.Input(input.sdfmodule, input.buildSdfImports), new SimpleMode());
-		result.addModuleDependency(rtg2Sig.require());
+		RequirableCompilationUnit<SpoofaxBuildContext> rtg2Sig = context.rtg2Sig.requireLater(new Rtg2Sig.Input(input.sdfmodule, input.buildSdfImports), new SimpleMode());
+		result.addModuleDependency(rtg2Sig.require(this.context));
 		
 		if (!context.isBuildStrategoEnabled(result))
 			throw new IllegalArgumentException(context.props.substitute("Main stratego file '${strmodule}.str' not found."));

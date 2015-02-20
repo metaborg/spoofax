@@ -3,6 +3,7 @@ package org.metaborg.spoofax.build.cleardep.builders;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 
 import org.metaborg.spoofax.build.cleardep.LoggingFilteringIOAgent;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
@@ -24,11 +25,20 @@ import org.sugarj.common.path.RelativePath;
 public class PPPack extends Builder<SpoofaxBuildContext, PPPack.Input, SimpleCompilationUnit> {
 
 	public static BuilderFactory<SpoofaxBuildContext, PPPack.Input, SimpleCompilationUnit, PPPack> factory = new BuilderFactory<SpoofaxBuildContext, PPPack.Input, SimpleCompilationUnit, PPPack>() {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 3428843459661891178L;
+
 		@Override
 		public PPPack makeBuilder(SpoofaxBuildContext context) { return new PPPack(context); }
 	};
 	
-	public static class Input {
+	public static class Input implements Serializable{
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -443352055119153999L;
 		public final RelativePath ppInput;
 		public final RelativePath ppTermOutput;
 		/** If true, produce empty table if `ppInput` does not exist. */
@@ -45,8 +55,8 @@ public class PPPack extends Builder<SpoofaxBuildContext, PPPack.Input, SimpleCom
 		}
 	}
 	
-	public PPPack(SpoofaxBuildContext context) {
-		super(context);
+	private PPPack(SpoofaxBuildContext context) {
+		super(context, factory);
 	}
 	
 	@Override

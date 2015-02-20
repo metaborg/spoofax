@@ -9,6 +9,7 @@ import org.sugarj.cleardep.SimpleCompilationUnit;
 import org.sugarj.cleardep.SimpleMode;
 import org.sugarj.cleardep.build.Builder;
 import org.sugarj.cleardep.build.BuilderFactory;
+import org.sugarj.cleardep.build.EmptyBuildInput;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.Log;
@@ -16,24 +17,29 @@ import org.sugarj.common.path.AbsolutePath;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
-public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, SimpleCompilationUnit> {
+public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, EmptyBuildInput, SimpleCompilationUnit> {
 
-	public static BuilderFactory<SpoofaxBuildContext, Void, SimpleCompilationUnit, SpoofaxDefaultCtree> factory = new BuilderFactory<SpoofaxBuildContext, Void, SimpleCompilationUnit, SpoofaxDefaultCtree>() {
+	public static BuilderFactory<SpoofaxBuildContext, EmptyBuildInput, SimpleCompilationUnit, SpoofaxDefaultCtree> factory = new BuilderFactory<SpoofaxBuildContext, EmptyBuildInput, SimpleCompilationUnit, SpoofaxDefaultCtree>() {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 9103600927076616924L;
+
 		@Override
 		public SpoofaxDefaultCtree makeBuilder(SpoofaxBuildContext context) { return new SpoofaxDefaultCtree(context); }
 	};
 	
-	public SpoofaxDefaultCtree(SpoofaxBuildContext context) {
-		super(context);
+	private SpoofaxDefaultCtree(SpoofaxBuildContext context) {
+		super(context, factory);
 	}
 	
 	@Override
-	protected String taskDescription(Void input) {
+	protected String taskDescription(EmptyBuildInput input) {
 		return null;
 	}
 
 	@Override
-	protected Path persistentPath(Void input) {
+	protected Path persistentPath(EmptyBuildInput input) {
 		return context.depPath("spoofaxDefault.dep");
 	}
 	
@@ -46,7 +52,7 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 	public Stamper defaultStamper() { return LastModifiedStamper.instance; }
 
 	@Override
-	public void build(SimpleCompilationUnit result, Void input) throws IOException {
+	public void build(SimpleCompilationUnit result, EmptyBuildInput input) throws IOException {
 		checkClassPath();
 		
 		String sdfmodule = context.props.getOrFail("sdfmodule");

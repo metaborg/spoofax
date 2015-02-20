@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.build.cleardep.builders;
 
 import java.io.IOException;
+import java.io.Serializable;
 
 import org.metaborg.spoofax.build.cleardep.LoggingFilteringIOAgent;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
@@ -21,11 +22,20 @@ import org.sugarj.common.path.RelativePath;
 public class Sdf2ImpEclipse extends Builder<SpoofaxBuildContext, Sdf2ImpEclipse.Input, SimpleCompilationUnit> {
 
 	public static BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, Sdf2ImpEclipse> factory = new BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, Sdf2ImpEclipse>() {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -1542388902735615713L;
+
 		@Override
 		public Sdf2ImpEclipse makeBuilder(SpoofaxBuildContext context) { return new Sdf2ImpEclipse(context); }
 	};
 	
-	public static class Input {
+	public static class Input implements Serializable{
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -3286385638992655491L;
 		public final String esvmodule;
 		public final String sdfmodule;
 		public final String buildSdfImports;
@@ -36,8 +46,8 @@ public class Sdf2ImpEclipse extends Builder<SpoofaxBuildContext, Sdf2ImpEclipse.
 		}
 	}
 	
-	public Sdf2ImpEclipse(SpoofaxBuildContext context) {
-		super(context);
+	private Sdf2ImpEclipse(SpoofaxBuildContext context) {
+		super(context, factory);
 	}
 
 	@Override

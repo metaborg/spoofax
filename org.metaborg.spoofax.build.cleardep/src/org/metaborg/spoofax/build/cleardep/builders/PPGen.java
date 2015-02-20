@@ -2,6 +2,7 @@ package org.metaborg.spoofax.build.cleardep.builders;
 
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.regex.Pattern;
 
 import org.metaborg.spoofax.build.cleardep.LoggingFilteringIOAgent;
@@ -16,20 +17,30 @@ import org.sugarj.cleardep.SimpleCompilationUnit;
 import org.sugarj.cleardep.SimpleMode;
 import org.sugarj.cleardep.build.Builder;
 import org.sugarj.cleardep.build.BuilderFactory;
+import org.sugarj.cleardep.build.EmptyBuildInput;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
-public class PPGen extends Builder<SpoofaxBuildContext, Void, SimpleCompilationUnit> {
+public class PPGen extends Builder<SpoofaxBuildContext, EmptyBuildInput, SimpleCompilationUnit> {
 
-	public static BuilderFactory<SpoofaxBuildContext, Void, SimpleCompilationUnit, PPGen> factory = new BuilderFactory<SpoofaxBuildContext, Void, SimpleCompilationUnit, PPGen>() {
+	public static BuilderFactory<SpoofaxBuildContext, EmptyBuildInput, SimpleCompilationUnit, PPGen> factory = new BuilderFactory<SpoofaxBuildContext, EmptyBuildInput, SimpleCompilationUnit, PPGen>() {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 5586589789861139281L;
+
 		@Override
 		public PPGen makeBuilder(SpoofaxBuildContext context) { return new PPGen(context); }
 	};
 	
-	public static class Input {
+	public static class Input implements Serializable{
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 8022231454298214187L;
 		public final RelativePath ppInput;
 		public final RelativePath ppTermOutput;
 		public Input(RelativePath ppInput, RelativePath ppTermOutput) {
@@ -38,17 +49,17 @@ public class PPGen extends Builder<SpoofaxBuildContext, Void, SimpleCompilationU
 		}
 	}
 	
-	public PPGen(SpoofaxBuildContext context) {
-		super(context);
+	private PPGen(SpoofaxBuildContext context) {
+		super(context, factory);
 	}
 	
 	@Override
-	protected String taskDescription(Void input) {
+	protected String taskDescription(EmptyBuildInput input) {
 		return "Generate pretty-print table from grammar";
 	}
 	
 	@Override
-	protected Path persistentPath(Void input) {
+	protected Path persistentPath(EmptyBuildInput input) {
 		return context.depPath("ppGen.dep");
 	}
 
@@ -61,7 +72,7 @@ public class PPGen extends Builder<SpoofaxBuildContext, Void, SimpleCompilationU
 	public Stamper defaultStamper() { return LastModifiedStamper.instance; }
 
 	@Override
-	public void build(SimpleCompilationUnit result, Void input) throws IOException {
+	public void build(SimpleCompilationUnit result, EmptyBuildInput input) throws IOException {
 		if (!context.isBuildStrategoEnabled(result))
 			return;
 		

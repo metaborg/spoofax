@@ -2,6 +2,7 @@ package org.metaborg.spoofax.build.cleardep.builders;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.regex.Pattern;
 
 import org.metaborg.spoofax.build.cleardep.LoggingFilteringIOAgent;
@@ -24,11 +25,20 @@ import org.sugarj.common.path.RelativePath;
 public class StrategoJavaCompiler extends Builder<SpoofaxBuildContext, StrategoJavaCompiler.Input, SimpleCompilationUnit> {
 
 	public static BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, StrategoJavaCompiler> factory = new BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, StrategoJavaCompiler>() {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -5720243903011665975L;
+
 		@Override
 		public StrategoJavaCompiler makeBuilder(SpoofaxBuildContext context) { return new StrategoJavaCompiler(context); }
 	};
 	
-	public static class Input {
+	public static class Input implements Serializable{
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 6717689114039470326L;
 		public final RelativePath inputPath;
 		public final RelativePath outputPath;
 		public final String packageName;
@@ -39,7 +49,7 @@ public class StrategoJavaCompiler extends Builder<SpoofaxBuildContext, StrategoJ
 		public final String[] libraryIncludes;
 		public final Path cacheDir;
 		public final String[] additionalArgs;
-		public final RequirableCompilationUnit[] requiredUnits;
+		public final RequirableCompilationUnit<SpoofaxBuildContext>[] requiredUnits;
 		public Input(
 				RelativePath inputPath,
 				RelativePath outputPath,
@@ -51,7 +61,7 @@ public class StrategoJavaCompiler extends Builder<SpoofaxBuildContext, StrategoJ
 				String[] libraryIncludes,
 				Path cacheDir,
 				String[] additionalArgs, 
-				RequirableCompilationUnit[] requiredUnits) {
+				RequirableCompilationUnit<SpoofaxBuildContext>[] requiredUnits) {
 			this.inputPath = inputPath;
 			this.outputPath = outputPath;
 			this.packageName = packageName;
@@ -66,8 +76,8 @@ public class StrategoJavaCompiler extends Builder<SpoofaxBuildContext, StrategoJ
 		}
 	}
 	
-	public StrategoJavaCompiler(SpoofaxBuildContext context) {
-		super(context);
+	private StrategoJavaCompiler(SpoofaxBuildContext context) {
+		super(context, factory);
 	}
 
 	@Override
@@ -93,8 +103,8 @@ public class StrategoJavaCompiler extends Builder<SpoofaxBuildContext, StrategoJ
 	@Override
 	public void build(SimpleCompilationUnit result, Input input) throws IOException {
 		if (input.requiredUnits != null)
-			for (RequirableCompilationUnit req : input.requiredUnits)
-				result.addModuleDependency(req.require());
+			for (RequirableCompilationUnit<SpoofaxBuildContext> req : input.requiredUnits)
+				result.addModuleDependency(req.require(this.context));
 		
 		result.addSourceArtifact(input.inputPath);
 		
