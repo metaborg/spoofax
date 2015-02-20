@@ -2,6 +2,9 @@ package org.metaborg.spoofax.eclipse.processing;
 
 import com.google.inject.Inject;
 
+/**
+ * Global collection of mutex scheduling rules.
+ */
 public class GlobalMutexes {
     public final MutexRule startupMutex;
     public final MutexRule languageServiceMutex;

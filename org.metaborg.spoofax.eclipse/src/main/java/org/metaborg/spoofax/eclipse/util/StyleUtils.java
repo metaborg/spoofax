@@ -10,9 +10,21 @@ import org.metaborg.spoofax.core.style.IRegionStyle;
 import org.metaborg.spoofax.core.style.IStyle;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
+/**
+ * Utility functions for creating Eclipse text styles.
+ */
 public final class StyleUtils {
-    public static TextPresentation createTextPresentation(Iterable<IRegionStyle<IStrategoTerm>> styles,
-        Display display) {
+    /**
+     * Creates an Eclipse text presentation from given Spoofax styles.
+     * 
+     * @param styles
+     *            Stream of Spoofax styles.
+     * @param display
+     *            Display to create the Eclipse text presentation on.
+     * @return Eclipse text presentation.
+     */
+    public static TextPresentation
+        createTextPresentation(Iterable<IRegionStyle<IStrategoTerm>> styles, Display display) {
         final TextPresentation presentation = new TextPresentation();
         for(IRegionStyle<IStrategoTerm> regionStyle : styles) {
             presentation.addStyleRange(createStyleRange(regionStyle, display));
@@ -20,6 +32,15 @@ public final class StyleUtils {
         return presentation;
     }
 
+    /**
+     * Creates an Eclipse style range from given Spoofax style region.
+     * 
+     * @param regionStyle
+     *            Spoofax style region.
+     * @param display
+     *            Display to create the Eclipse style range on.
+     * @return Eclipse style range.
+     */
     public static StyleRange createStyleRange(IRegionStyle<IStrategoTerm> regionStyle, Display display) {
         final IStyle style = regionStyle.style();
         final ISourceRegion region = regionStyle.region();
@@ -49,6 +70,15 @@ public final class StyleUtils {
         return styleRange;
     }
 
+    /**
+     * Creates an Eclipse color from given Java color.
+     * 
+     * @param color
+     *            Java color.
+     * @param display
+     *            Display to create the color on.
+     * @return Eclipse color.
+     */
     public static Color createColor(java.awt.Color color, Display display) {
         // GTODO: this color object needs to be disposed manually!
         return new Color(display, color.getRed(), color.getGreen(), color.getBlue());

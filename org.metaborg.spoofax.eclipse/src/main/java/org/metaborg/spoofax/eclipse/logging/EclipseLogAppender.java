@@ -20,7 +20,7 @@ public class EclipseLogAppender extends UnsynchronizedAppenderBase<ILoggingEvent
 
     @Override public void start() {
         log = SpoofaxPlugin.plugin().getLog();
-        
+
         super.start();
     }
 

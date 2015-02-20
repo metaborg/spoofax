@@ -21,6 +21,7 @@ import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.metaborg.spoofax.core.SpoofaxRuntimeException;
 import org.metaborg.spoofax.core.analysis.AnalysisException;
 import org.metaborg.spoofax.core.analysis.AnalysisFileResult;
 import org.metaborg.spoofax.core.analysis.AnalysisResult;
@@ -41,6 +42,8 @@ import org.metaborg.spoofax.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.text.ISourceTextService;
 import org.metaborg.spoofax.eclipse.SpoofaxPlugin;
+import org.metaborg.spoofax.eclipse.processing.AnalysisResultProcessor;
+import org.metaborg.spoofax.eclipse.processing.ParseResultProcessor;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
 import org.metaborg.spoofax.eclipse.util.MarkerUtils;
 import org.metaborg.spoofax.eclipse.util.StatusUtils;
@@ -71,6 +74,9 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
     private final ITermFactoryService termFactoryService;
     private final IAnalysisService<IStrategoTerm, IStrategoTerm> analyzer;
 
+    private final ParseResultProcessor parseResultProcessor;
+    private final AnalysisResultProcessor analysisResultProcessor;
+
 
     public SpoofaxProjectBuilder() {
         final Injector injector = SpoofaxPlugin.injector();
@@ -81,6 +87,9 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
         this.termFactoryService = injector.getInstance(ITermFactoryService.class);
         this.analyzer =
             injector.getInstance(Key.get(new TypeLiteral<IAnalysisService<IStrategoTerm, IStrategoTerm>>() {}));
+
+        this.parseResultProcessor = injector.getInstance(ParseResultProcessor.class);
+        this.analysisResultProcessor = injector.getInstance(AnalysisResultProcessor.class);
     }
 
 
@@ -216,23 +225,36 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
             try {
                 final ParseResult<IStrategoTerm> parseResult;
                 if(changeKind == ResourceChangeKind.Delete) {
-                    // For compatibility with existing Spoofax languages, turn deleted resources
-                    // into a parse result with () as result.
+                    parseResultProcessor.remove(resource);
+                    analysisResultProcessor.remove(resource);
+
+                    // LEGACY: For compatibility with existing Spoofax languages, turn deleted resources into a parse
+                    // result with () as result.
                     final ITermFactory termFactory = termFactoryService.get(language);
                     parseResult =
                         new ParseResult<IStrategoTerm>(termFactory.makeTuple(), resource, Iterables2.<IMessage>empty(),
                             0l, language);
+
+                    // Don't add resource as changed when it has been deleted, because it does not exist any more
+                    // according to Eclipse and will be null.
                 } else {
                     final String sourceText = sourceTextService.text(resource);
+
+                    parseResultProcessor.invalidate(resource);
                     parseResult = syntaxService.parse(sourceText, resource, language);
+                    parseResultProcessor.update(resource, parseResult);
+
+                    changedResources.add(resourceService.unresolve(resource));
                 }
 
                 allParseResults.put(language, parseResult);
-            } catch(ParseException | IOException e) {
+            } catch(ParseException e) {
+                parseResultProcessor.error(resource, e);
+                extraMessages.add(MessageFactory.newParseErrorAtTop(resource, "Parsing failed: " + e.getMessage()));
+            } catch(IOException e) {
+                parseResultProcessor.error(resource, new ParseException(resource, language, e));
                 extraMessages.add(MessageFactory.newParseErrorAtTop(resource, "Parsing failed: " + e.getMessage()));
             }
-
-            changedResources.add(resourceService.unresolve(resource));
         }
 
         // Analyze
@@ -246,16 +268,19 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
             final IContext context = new SpoofaxContext(language, projectResource);
 
             try {
+                analysisResultProcessor.invalidate(parseResults);
                 final AnalysisResult<IStrategoTerm, IStrategoTerm> analysisResult =
                     analyzer.analyze(parseResults, context);
+                analysisResultProcessor.update(analysisResult);
                 allAnalysisResults.put(language, analysisResult);
             } catch(AnalysisException e) {
+                analysisResultProcessor.error(parseResults, e);
                 extraMessages.add(MessageFactory.newAnalysisErrorAtTop(projectResource,
                     "Analysis failed: " + e.getMessage()));
             }
         }
 
-        // Update markers
+        // Update markers atomically using a workspace runnable, to prevent flashing/jumping markers.
         final IWorkspaceRunnable markerUpdater = new IWorkspaceRunnable() {
             @Override public void run(IProgressMonitor monitor) throws CoreException {
                 MarkerUtils.clearAll(project);
@@ -315,7 +340,9 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
                         kind = ResourceChangeKind.Modify;
                         break;
                     default:
-                        throw new CoreException(StatusUtils.error("Unhandled resource delta type: " + eclipseKind));
+                        final String message = String.format("Unhandled resource delta type: %s", eclipseKind);
+                        logger.error(message);
+                        throw new SpoofaxRuntimeException(message);
                 }
 
                 changes.add(new ResourceChange(resource, kind, null, null));

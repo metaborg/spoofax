@@ -18,11 +18,11 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 /**
- * Resource change monitor implementation that can persist resource modification dates, which can be used to
- * find resource changes between different sessions.
+ * Resource change monitor implementation that can persist resource modification dates, which can be used to find
+ * resource changes between different sessions.
  * 
- * When calling {@link #update()}, the current state of resources is compared against the last known state. If
- * there is no last known state, all resources will change with kind {@link ResourceChangeKind#Create}.
+ * When calling {@link #update()}, the current state of resources is compared against the last known state. If there is
+ * no last known state, all resources will change with kind {@link ResourceChangeKind#Create}.
  * 
  * This class is NOT thread safe.
  */
@@ -46,8 +46,8 @@ public class OfflineResourceChangeMonitor {
 
 
     /**
-     * Compares the current state of resources against the last know state, updates the last known state to
-     * the current state, and pushes changes to the {@link #changes()} observable.
+     * Compares the current state of resources against the last know state, updates the last known state to the current
+     * state, and pushes changes to the {@link #changes()} observable.
      * 
      * @return Iterable over all changes.
      * 
@@ -83,16 +83,16 @@ public class OfflineResourceChangeMonitor {
     }
 
     /**
-     * Resets the last known state, causing the next update to produce {@link ResourceChangeKind#Create}
-     * changes for all resources.
+     * Resets the last known state, causing the next update to produce {@link ResourceChangeKind#Create} changes for all
+     * resources.
      */
     public void reset() {
         modificationDates.clear();
     }
 
     /**
-     * Reads modification dates from persisted resource into last known state. Does nothing if nothing was
-     * persisted before.
+     * Reads modification dates from persisted resource into last known state. Does nothing if nothing was persisted
+     * before.
      * 
      * @throws FileSystemException
      *             when reading from the resource fails.

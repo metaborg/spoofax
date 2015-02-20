@@ -66,6 +66,9 @@ public class EditorUpdateJob extends Job {
         IStylerService<IStrategoTerm, IStrategoTerm> styler, ParseResultProcessor parseResultProcessor,
         AnalysisResultProcessor analysisResultProcessor, IFileEditorInput input, ISourceViewer sourceViewer, String text) {
         super("Updating Spoofax editor");
+        setSystem(true);
+        setPriority(Job.BUILD);
+
         this.resourceService = resourceService;
         this.languageIdentifier = languageIdentifier;
         this.syntaxService = syntaxService;
@@ -168,13 +171,14 @@ public class EditorUpdateJob extends Job {
         analysisResultProcessor.invalidate(parseResult.source);
         final AnalysisResult<IStrategoTerm, IStrategoTerm> analysisResult;
         try {
-            analysisResult = analyzer.analyze(Iterables2.singleton(parseResult), new SpoofaxContext(language, location));
-        } catch (AnalysisException e) {
+            analysisResult =
+                analyzer.analyze(Iterables2.singleton(parseResult), new SpoofaxContext(language, location));
+        } catch(AnalysisException e) {
             analysisResultProcessor.error(resource, e);
             throw e;
         }
         analysisResultProcessor.update(analysisResult);
-        
+
         if(monitor.isCanceled())
             return StatusUtils.cancel();
         final IWorkspaceRunnable analysisMarkerUpdater = new IWorkspaceRunnable() {

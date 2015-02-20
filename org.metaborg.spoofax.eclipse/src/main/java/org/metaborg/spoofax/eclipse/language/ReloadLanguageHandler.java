@@ -40,8 +40,7 @@ public class ReloadLanguageHandler extends AbstractHandler {
 
         final FileObject location = resourceService.resolve(project);
         final Job job = new ReloadLanguageJob(languageService, languageDiscoveryService, location);
-        job.setRule(new MultiRule(new ISchedulingRule[] { mutexes.startupMutex,
-            mutexes.languageServiceMutex }));
+        job.setRule(new MultiRule(new ISchedulingRule[] { mutexes.startupMutex, mutexes.languageServiceMutex }));
         job.schedule();
 
         return null;

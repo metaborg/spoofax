@@ -31,6 +31,7 @@ public class StartupJob extends Job {
     public StartupJob(IEclipseResourceService resourceService, ILanguageDiscoveryService languageDiscoveryService,
         IJobManager jobManager, MutexRule startupMutex, MutexRule languageServiceMutex) {
         super("Loading all Spoofax languages in workspace");
+
         this.resourceService = resourceService;
         this.languageDiscoveryService = languageDiscoveryService;
         this.jobManager = jobManager;
@@ -41,10 +42,10 @@ public class StartupJob extends Job {
 
     @Override protected IStatus run(IProgressMonitor monitor) {
         logger.debug("Running startup job");
+        setPriority(Job.LONG);
 
         try {
-            // Enable startup mutex to defer execution of all other jobs, until all languages are
-            // loaded.
+            // Enable startup mutex to defer execution of all other jobs, until all languages are loaded.
             jobManager.beginRule(startupMutex, monitor);
             final Collection<Job> jobs = Lists.newLinkedList();
             for(final IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {

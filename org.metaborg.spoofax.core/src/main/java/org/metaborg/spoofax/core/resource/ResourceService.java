@@ -19,15 +19,14 @@ public class ResourceService implements IResourceService {
     private final FileSystemManager fileSystemManager;
     private final FileSystemOptions fileSystemOptions;
     private final Map<String, ILocalFileProvider> localFileProviders;
-    
+
 
     @Inject public ResourceService(FileSystemManager fileSystemManager,
-        @Named("ResourceClassLoader") ClassLoader classLoader,
-        Map<String, ILocalFileProvider> localFileProviders) {
+        @Named("ResourceClassLoader") ClassLoader classLoader, Map<String, ILocalFileProvider> localFileProviders) {
         this.fileSystemManager = fileSystemManager;
         this.fileSystemOptions = new FileSystemOptions();
         this.localFileProviders = localFileProviders;
-        
+
         if(classLoader == null)
             classLoader = this.getClass().getClassLoader();
         ResourceFileSystemConfigBuilder.getInstance().setClassLoader(fileSystemOptions, classLoader);
@@ -76,11 +75,11 @@ public class ResourceService implements IResourceService {
 
     @Override public File localFile(FileObject resource) {
         final String scheme = resource.getName().getScheme();
-        
+
         if(scheme.equals("")) {
             return new File(resource.getName().getPath());
         }
-        
+
         final ILocalFileProvider provider = localFileProviders.get(scheme);
         if(provider == null) {
             return null;

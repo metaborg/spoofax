@@ -47,7 +47,7 @@ public class StrategoTransformResultProcessor {
                 logger.error("Error occured while writing output file", e);
             }
         }
-        
+
         return null;
     }
 }

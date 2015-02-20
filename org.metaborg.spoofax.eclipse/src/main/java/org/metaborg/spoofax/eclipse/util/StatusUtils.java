@@ -3,6 +3,9 @@ package org.metaborg.spoofax.eclipse.util;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 
+/**
+ * Utility functions for creating {@link IStatus} instances.
+ */
 public final class StatusUtils {
     public static IStatus success() {
         return new Status(IStatus.OK, "org.metaborg.spoofax.eclipse", IStatus.OK, "", null);

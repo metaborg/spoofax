@@ -32,8 +32,7 @@ public class JSGLRI implements IParser<IStrategoTerm> {
     private boolean implodeEnabled = true;
 
 
-    public JSGLRI(IParserConfig config, ITermFactory termFactory, ILanguage language, FileObject resource,
-        String input) {
+    public JSGLRI(IParserConfig config, ITermFactory termFactory, ILanguage language, FileObject resource, String input) {
         this.config = config;
         this.termFactory = termFactory;
         this.language = language;
@@ -83,8 +82,8 @@ public class JSGLRI implements IParser<IStrategoTerm> {
         IStrategoTerm ast = null;
 
         final JSGLRParseErrorHandler errorHandler =
-            new JSGLRParseErrorHandler(this, termFactory, resource, config.getParseTableProvider()
-                .parseTable().hasRecovers());
+            new JSGLRParseErrorHandler(this, termFactory, resource, config.getParseTableProvider().parseTable()
+                .hasRecovers());
 
         try {
             ast = actuallyParse(input, fileName);
@@ -105,12 +104,10 @@ public class JSGLRI implements IParser<IStrategoTerm> {
         return new ParseResult<IStrategoTerm>(ast, resource, errorHandler.messages(), -1, language);
     }
 
-    public IStrategoTerm actuallyParse(String input, String filename) throws SGLRException,
-        InterruptedException {
+    public IStrategoTerm actuallyParse(String input, String filename) throws SGLRException, InterruptedException {
         IStrategoTerm result;
         try {
-            result =
-                (IStrategoTerm) parser.parse(input, filename, config.getStartSymbol(), false, cursorLocation);
+            result = (IStrategoTerm) parser.parse(input, filename, config.getStartSymbol(), false, cursorLocation);
         } catch(FilterException fex) {
             if(fex.getCause() == null && parser.getDisambiguator().getFilterPriorities()) {
                 disambiguator.setFilterPriorities(false);

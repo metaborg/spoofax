@@ -6,6 +6,9 @@ import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 
+/**
+ * Utility functions for {@link IResource}.
+ */
 public final class ResourceUtils {
     public static IResource getProjectDirectory(IResource resource) throws IOException {
         final IProject project = resource.getProject();

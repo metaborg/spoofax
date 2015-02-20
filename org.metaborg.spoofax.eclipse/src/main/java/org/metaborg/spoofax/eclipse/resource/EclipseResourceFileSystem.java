@@ -15,8 +15,7 @@ public class EclipseResourceFileSystem extends AbstractFileSystem {
     private final IWorkspaceRoot root;
 
 
-    public EclipseResourceFileSystem(FileName rootName, FileObject parentLayer,
-        FileSystemOptions fileSystemOptions) {
+    public EclipseResourceFileSystem(FileName rootName, FileObject parentLayer, FileSystemOptions fileSystemOptions) {
         super(rootName, parentLayer, fileSystemOptions);
         this.root = ResourcesPlugin.getWorkspace().getRoot();
     }

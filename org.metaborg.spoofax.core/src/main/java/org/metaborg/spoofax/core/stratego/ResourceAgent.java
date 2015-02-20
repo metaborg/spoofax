@@ -58,7 +58,7 @@ public class ResourceAgent extends IOAgent {
         FileObject definitionDir) {
         super();
         this.acceptDirChanges = true; // Start accepting dir changes after IOAgent constructor call.
-        
+
         this.resourceService = resourceService;
         this.tempDir = tempDir;
         this.workingDir = workingDir;
@@ -104,7 +104,7 @@ public class ResourceAgent extends IOAgent {
     @Override public void setDefinitionDir(String newDefinitionDir) throws FileNotFoundException {
         if(!acceptDirChanges)
             return;
-        
+
         try {
             definitionDir = resolve(definitionDir, newDefinitionDir);
         } catch(FileSystemException e) {
@@ -202,8 +202,7 @@ public class ResourceAgent extends IOAgent {
     }
 
 
-    @Override public int openRandomAccessFile(String fn, String mode) throws FileNotFoundException,
-        IOException {
+    @Override public int openRandomAccessFile(String fn, String mode) throws FileNotFoundException, IOException {
         boolean appendMode = mode.indexOf('a') >= 0;
         boolean writeMode = appendMode || mode.indexOf('w') >= 0;
         boolean clearFile = false;
@@ -250,8 +249,7 @@ public class ResourceAgent extends IOAgent {
         final ResourceHandle handle = openFiles.get(fd);
         try {
             if(handle.reader == null)
-                handle.reader =
-                    new BufferedReader(new InputStreamReader(internalGetInputStream(fd), FILE_ENCODING));
+                handle.reader = new BufferedReader(new InputStreamReader(internalGetInputStream(fd), FILE_ENCODING));
         } catch(UnsupportedEncodingException e) {
             throw new RuntimeException("Could not get reader for resource", e);
         }
@@ -277,8 +275,7 @@ public class ResourceAgent extends IOAgent {
         }
     }
 
-    @Override public InputStream openInputStream(String fn, boolean isDefinitionFile)
-        throws FileNotFoundException {
+    @Override public InputStream openInputStream(String fn, boolean isDefinitionFile) throws FileNotFoundException {
         final FileObject dir = isDefinitionFile ? definitionDir : workingDir;
         try {
             final FileObject file = resolve(dir, fn);
@@ -351,8 +348,8 @@ public class ResourceAgent extends IOAgent {
 
 
     /**
-     * Tries to resolve {@code path} as an absolute path first, if that fails, resolves {@code path} relative
-     * to {@code parent}.
+     * Tries to resolve {@code path} as an absolute path first, if that fails, resolves {@code path} relative to
+     * {@code parent}.
      * 
      * @param parent
      *            Parent file object to resolve relatively to, if {@code path} is a relative path.

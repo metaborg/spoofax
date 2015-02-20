@@ -1,9 +1,10 @@
 package org.metaborg.spoofax.core.analysis;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.spoofax.core.SpoofaxException;
 import org.metaborg.spoofax.core.context.IContext;
 
-public class AnalysisException extends Exception {
+public class AnalysisException extends SpoofaxException {
     private static final long serialVersionUID = -6083126502637234259L;
 
     public final Iterable<FileObject> resources;

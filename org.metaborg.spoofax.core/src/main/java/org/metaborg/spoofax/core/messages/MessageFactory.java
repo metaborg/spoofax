@@ -3,8 +3,8 @@ package org.metaborg.spoofax.core.messages;
 import org.apache.commons.vfs2.FileObject;
 
 public class MessageFactory {
-    public static Message newMessage(FileObject resource, ISourceRegion region, String msg,
-        MessageSeverity severity, MessageType type) {
+    public static Message newMessage(FileObject resource, ISourceRegion region, String msg, MessageSeverity severity,
+        MessageType type) {
         return new Message(msg, severity, type, resource, region, null);
     }
 
@@ -41,8 +41,7 @@ public class MessageFactory {
     }
 
 
-    private static Message newAtTop(FileObject resource, String msg, MessageType type,
-        MessageSeverity severity) {
+    private static Message newAtTop(FileObject resource, String msg, MessageType type, MessageSeverity severity) {
         return new Message(msg, severity, type, resource, new SourceRegion(0, 0, 0, 0, 0, 0), null);
     }
 

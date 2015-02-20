@@ -116,7 +116,7 @@ public class TransformJob extends Job {
         FileObject location, String text) throws IOException {
         if(monitor.isCanceled())
             return StatusUtils.cancel();
-        
+
         final SpoofaxContext context = new SpoofaxContext(language, location);
         final TransformResult<?, IStrategoTerm> transformResult;
         if(action.flags.parsed) {

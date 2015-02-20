@@ -5,8 +5,8 @@ import javax.annotation.Nullable;
 import org.metaborg.spoofax.core.messages.ISourceRegion;
 
 /**
- * Interface for categories that range over a region in source text. Created by the
- * {@link ICategorizerService} from a parse or analysis result.
+ * Interface for categories that range over a region in source text. Created by the {@link ICategorizerService} from a
+ * parse or analysis result.
  * 
  * @param <T>
  *            Type of fragment from the parse or analysis result.

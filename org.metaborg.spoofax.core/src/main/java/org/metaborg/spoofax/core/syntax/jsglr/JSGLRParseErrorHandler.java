@@ -55,16 +55,16 @@ public class JSGLRParseErrorHandler {
     public Iterable<IMessage> messages() {
         return messages;
     }
-    
+
     public void setRecoveryFailed(boolean recoveryFailed) {
         this.recoveryFailed = recoveryFailed;
     }
 
-    
+
     /*
      * Non-fatal (recoverable) errors
      */
-    
+
     public void gatherNonFatalErrors(IStrategoTerm top) {
         final ITokenizer tokenizer = getTokenizer(top);
         for(int i = 0, max = tokenizer.getTokenCount(); i < max; i++) {
@@ -88,7 +88,7 @@ public class JSGLRParseErrorHandler {
                 }
             }
         }
-        
+
         gatherAmbiguities(top);
     }
 
@@ -124,8 +124,7 @@ public class JSGLRParseErrorHandler {
         }
     }
 
-    private List<BadTokenException>
-        getCollectedErrorsInRegion(IToken left, IToken right, boolean alsoOutside) {
+    private List<BadTokenException> getCollectedErrorsInRegion(IToken left, IToken right, boolean alsoOutside) {
         final List<BadTokenException> results = new ArrayList<BadTokenException>();
         final int line = left.getLine();
         final int endLine = right.getLine() + (alsoOutside ? RegionRecovery.NR_OF_LINES_TILL_SUCCESS : 0);
@@ -135,7 +134,7 @@ public class JSGLRParseErrorHandler {
         }
         return results;
     }
-    
+
     private void gatherAmbiguities(IStrategoTerm term) {
         new TermVisitor() {
             IStrategoTerm ambStart;
@@ -155,8 +154,7 @@ public class JSGLRParseErrorHandler {
     }
 
     private void reportAmbiguity(IStrategoTerm amb) {
-        reportWarningAtTokens(getLeftToken(amb), getRightToken(amb), "Fragment is ambiguous: "
-            + ambToString(amb));
+        reportWarningAtTokens(getLeftToken(amb), getRightToken(amb), "Fragment is ambiguous: " + ambToString(amb));
     }
 
     private String ambToString(IStrategoTerm amb) {
@@ -175,12 +173,12 @@ public class JSGLRParseErrorHandler {
 
         return result.length() > 5000 ? result.substring(0, 5000) + "..." : result;
     }
-    
-    
+
+
     /*
      * Fatal errors
      */
-    
+
     public void processFatalException(ITokenizer tokenizer, Exception exception) {
         try {
             throw exception;

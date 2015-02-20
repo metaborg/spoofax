@@ -37,8 +37,7 @@ public class LoadLanguageHandler extends AbstractHandler {
 
         final FileObject location = resourceService.resolve(project);
         final Job job = new LoadLanguageJob(languageDiscoveryService, location);
-        job.setRule(new MultiRule(new ISchedulingRule[] { mutexes.startupMutex,
-            mutexes.languageServiceMutex }));
+        job.setRule(new MultiRule(new ISchedulingRule[] { mutexes.startupMutex, mutexes.languageServiceMutex }));
         job.schedule();
 
         return null;

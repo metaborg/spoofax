@@ -9,8 +9,7 @@ public class SourceRegion implements ISourceRegion {
     private final int endColumn;
 
 
-    public SourceRegion(int startOffset, int startRow, int startColumn, int endOffset, int endRow,
-        int endColumn) {
+    public SourceRegion(int startOffset, int startRow, int startColumn, int endOffset, int endRow, int endColumn) {
         this.startOffset = startOffset;
         this.startRow = startRow;
         this.startColumn = startColumn;

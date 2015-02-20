@@ -1,17 +1,22 @@
 package org.metaborg.spoofax.core;
 
-public class SpoofaxException extends RuntimeException {
-    private static final long serialVersionUID = 1786746541057331233L;
+public class SpoofaxException extends Exception {
+    private static final long serialVersionUID = -3661402088434126639L;
 
-    public SpoofaxException(String msg) {
-        super(msg);
+
+    public SpoofaxException() {
+        super();
     }
 
-    public SpoofaxException(String msg, Throwable t) {
-        super(msg, t);
+    public SpoofaxException(String message) {
+        super(message);
     }
 
-    public SpoofaxException(Throwable t) {
-        super(t);
+    public SpoofaxException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    public SpoofaxException(Throwable cause) {
+        super(cause);
     }
 }
