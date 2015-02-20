@@ -49,8 +49,6 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 
 	@Override
 	public void build(SimpleCompilationUnit result, Void input) throws IOException {
-		checkClassPath();
-		
 		String sdfmodule = context.props.getOrFail("sdfmodule");
 		String strmodule = context.props.getOrFail("strmodule");
 		String esvmodule = context.props.getOrFail("esvmodule");
@@ -59,66 +57,70 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 		Path externaldef = context.props.isDefined("externaldef") ? new AbsolutePath(context.props.get("externaldef")) : null;
 		Path externaljar = context.props.isDefined("externaljar") ? new AbsolutePath(context.props.get("externaljar")) : null;
 		String externaljarflags = context.props.getOrElse("externaljarflags", "");
-		
-		CompilationUnit sdf2Table = context.sdf2Table.require(new Sdf2Table.Input(sdfmodule, buildSdfImports, externaldef), new SimpleMode());
-		result.addModuleDependency(sdf2Table);
-		
-		CompilationUnit metaSdf2Table = context.metaSdf2Table.require(new MetaSdf2Table.Input(metasdfmodule, buildSdfImports, externaldef), new SimpleMode());
-		result.addModuleDependency(metaSdf2Table);
-		
-		CompilationUnit ppGen = context.ppGen.require(null, new SimpleMode());
-		result.addModuleDependency(ppGen);
-		
-		RelativePath ppPackInputPath = context.basePath("${syntax}/${sdfmodule}.pp");
-		RelativePath ppPackOutputPath = context.basePath("${include}/${sdfmodule}.pp.af");
-		CompilationUnit ppPack = context.ppPack.require(new PPPack.Input(ppPackInputPath, ppPackOutputPath, true), new SimpleMode());
-		result.addModuleDependency(ppPack);
-		
-		CompilationUnit strategoAster = context.strategoAster.require(new StrategoAster.Input(strmodule), new SimpleMode());
-		result.addModuleDependency(strategoAster);
 
-		// This dependency was discovered by cleardep, due to an implicit dependency on 'org.strategoxt.imp.editors.template/lib/editor-common.generated.str'.
-		RequirableCompilationUnit sdf2Imp = context.sdf2ImpEclipse.requireLater(new Sdf2ImpEclipse.Input(esvmodule, sdfmodule, buildSdfImports), new SimpleMode());
-		// This dependency was discovered by cleardep, due to an implicit dependency on 'org.strategoxt.imp.editors.template/include/TemplateLang-parenthesize.str'.
-		RequirableCompilationUnit sdf2Parenthesize = context.sdf2Parenthesize.requireLater(new Sdf2Parenthesize.Input(sdfmodule, buildSdfImports, externaldef), new SimpleMode());
-
-		CompilationUnit strategoCtree = context.strategoCtree.require(
-				new StrategoCtree.Input(
-						sdfmodule, 
-						buildSdfImports, 
-						strmodule, 
-						externaljar, 
-						externaljarflags, 
-						externaldef,
-						new RequirableCompilationUnit[] {sdf2Imp, sdf2Parenthesize}),
-				new SimpleMode());
-		result.addModuleDependency(strategoCtree);
-		
-		// TODO compile-java-code
-//		<target name="compile-java-files" depends="utils-files">
-//		<delete dir="${build}" />
-//		<mkdir dir="${build}" />
-//		<javac srcdir="${src-dirs}" destdir="${build}" source="1.7" target="1.7" debug="on">
-//			<classpath>
-//				<pathelement path="${strategominjar}${src-gen}${externaljarimport1}${externaljarimport2}${java.jar.classpath}" />
-//			</classpath>
-//		</javac>
-//	</target>
-
-		Path jarPath = context.basePath("${include}/" + strmodule + "-java.jar");
-		JavaJar.Mode jarMode = FileCommands.exists(jarPath) ? JavaJar.Mode.Update : JavaJar.Mode.Create;
-		CompilationUnit javaJar = JavaJar.factory.makeBuilder(context).require(
-				new JavaJar.Input(
-						jarMode,
-						jarPath, 
-						null,
-						context.basePath("${build}"), 
-						context.props.getOrElse("javajar-includes", "org/strategoxt/imp/editors/template/strategies/").split("[\\s]+"), 
-						null), 
-				new SimpleMode());
-		result.addModuleDependency(javaJar);
-		
-		forceWorkspaceRefresh();
+		try {
+			checkClassPath();
+			
+			CompilationUnit sdf2Table = context.sdf2Table.require(new Sdf2Table.Input(sdfmodule, buildSdfImports, externaldef), new SimpleMode());
+			result.addModuleDependency(sdf2Table);
+			
+			CompilationUnit metaSdf2Table = context.metaSdf2Table.require(new MetaSdf2Table.Input(metasdfmodule, buildSdfImports, externaldef), new SimpleMode());
+			result.addModuleDependency(metaSdf2Table);
+			
+			CompilationUnit ppGen = context.ppGen.require(null, new SimpleMode());
+			result.addModuleDependency(ppGen);
+			
+			RelativePath ppPackInputPath = context.basePath("${syntax}/${sdfmodule}.pp");
+			RelativePath ppPackOutputPath = context.basePath("${include}/${sdfmodule}.pp.af");
+			CompilationUnit ppPack = context.ppPack.require(new PPPack.Input(ppPackInputPath, ppPackOutputPath, true), new SimpleMode());
+			result.addModuleDependency(ppPack);
+			
+			CompilationUnit strategoAster = context.strategoAster.require(new StrategoAster.Input(strmodule), new SimpleMode());
+			result.addModuleDependency(strategoAster);
+	
+			// This dependency was discovered by cleardep, due to an implicit dependency on 'org.strategoxt.imp.editors.template/lib/editor-common.generated.str'.
+			RequirableCompilationUnit sdf2Imp = context.sdf2ImpEclipse.requireLater(new Sdf2ImpEclipse.Input(esvmodule, sdfmodule, buildSdfImports), new SimpleMode());
+			// This dependency was discovered by cleardep, due to an implicit dependency on 'org.strategoxt.imp.editors.template/include/TemplateLang-parenthesize.str'.
+			RequirableCompilationUnit sdf2Parenthesize = context.sdf2Parenthesize.requireLater(new Sdf2Parenthesize.Input(sdfmodule, buildSdfImports, externaldef), new SimpleMode());
+	
+			CompilationUnit strategoCtree = context.strategoCtree.require(
+					new StrategoCtree.Input(
+							sdfmodule, 
+							buildSdfImports, 
+							strmodule, 
+							externaljar, 
+							externaljarflags, 
+							externaldef,
+							new RequirableCompilationUnit[] {sdf2Imp, sdf2Parenthesize}),
+					new SimpleMode());
+			result.addModuleDependency(strategoCtree);
+			
+			// TODO compile-java-code
+	//		<target name="compile-java-files" depends="utils-files">
+	//		<delete dir="${build}" />
+	//		<mkdir dir="${build}" />
+	//		<javac srcdir="${src-dirs}" destdir="${build}" source="1.7" target="1.7" debug="on">
+	//			<classpath>
+	//				<pathelement path="${strategominjar}${src-gen}${externaljarimport1}${externaljarimport2}${java.jar.classpath}" />
+	//			</classpath>
+	//		</javac>
+	//	</target>
+	
+			Path jarPath = context.basePath("${include}/" + strmodule + "-java.jar");
+			JavaJar.Mode jarMode = FileCommands.exists(jarPath) ? JavaJar.Mode.Update : JavaJar.Mode.Create;
+			CompilationUnit javaJar = JavaJar.factory.makeBuilder(context).require(
+					new JavaJar.Input(
+							jarMode,
+							jarPath, 
+							null,
+							context.basePath("${build}"), 
+							context.props.getOrElse("javajar-includes", "org/strategoxt/imp/editors/template/strategies/").split("[\\s]+"), 
+							null), 
+					new SimpleMode());
+			result.addModuleDependency(javaJar);
+		} finally {
+			forceWorkspaceRefresh();
+		}
 	}
 
 	private void checkClassPath() {
