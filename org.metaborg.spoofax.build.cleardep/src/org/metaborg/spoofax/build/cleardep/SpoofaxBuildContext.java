@@ -2,8 +2,10 @@ package org.metaborg.spoofax.build.cleardep;
 
 import org.metaborg.spoofax.build.cleardep.builders.All;
 import org.metaborg.spoofax.build.cleardep.builders.Clean;
+import org.metaborg.spoofax.build.cleardep.builders.CompileJavaCode;
 import org.metaborg.spoofax.build.cleardep.builders.CopyJar;
 import org.metaborg.spoofax.build.cleardep.builders.CopySdf;
+import org.metaborg.spoofax.build.cleardep.builders.CopyUtils;
 import org.metaborg.spoofax.build.cleardep.builders.ForceOnSave;
 import org.metaborg.spoofax.build.cleardep.builders.ForceOnSaveFile;
 import org.metaborg.spoofax.build.cleardep.builders.MakePermissive;
@@ -52,6 +54,8 @@ public class SpoofaxBuildContext extends BuildContext {
 	public Rtg2Sig rtg2Sig = Rtg2Sig.factory.makeBuilder(this);
 	public CopyJar copyJar = CopyJar.factory.makeBuilder(this);
 	public StrategoJavaCompiler strategoJavaCompiler = StrategoJavaCompiler.factory.makeBuilder(this);
+	public CopyUtils copyUtils = CopyUtils.factory.makeBuilder(this);
+	public CompileJavaCode compileJavaCode = CompileJavaCode.factory.makeBuilder(this);
 	
 	public final Path baseDir;
 	public final Properties props;
@@ -131,5 +135,11 @@ public class SpoofaxBuildContext extends BuildContext {
 		result.addExternalFileDependency(strategoPath);
 		boolean buildStrategoEnabled = FileCommands.exists(strategoPath);
 		return buildStrategoEnabled;
+	}
+	
+	public boolean isJavaJarEnabled(CompilationUnit result) {
+		RelativePath mainPath = basePath("${src-gen}/org/strategoxt/imp/editors/template/strategies/Main.java");
+		result.addExternalFileDependency(mainPath);
+		return FileCommands.exists(mainPath);
 	}
 }

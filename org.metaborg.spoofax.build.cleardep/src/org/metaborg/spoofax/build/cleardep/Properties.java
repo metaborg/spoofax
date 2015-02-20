@@ -7,6 +7,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.strategoxt.imp.metatooling.JarsAntPropertyProvider;
+import org.strategoxt.imp.metatooling.NativePrefixAntPropertyProvider;
+import org.strategoxt.imp.metatooling.PluginClasspathProvider;
+import org.strategoxt.imp.metatooling.StrategoJarAntPropertyProvider;
+import org.strategoxt.imp.metatooling.StrategoMinJarAntPropertyProvider;
 import org.sugarj.common.path.Path;
 
 public class Properties {
@@ -89,7 +93,11 @@ public class Properties {
 			props.put("build.sdf.imports", importString.toString());
 		}
 		
-		props.put("eclipse.spoofaximp.jars", new JarsAntPropertyProvider().getAntPropertyValue("eclipse.spoofaximp.jars"));
+		props.put("eclipse.spoofaximp.nativeprefix", new NativePrefixAntPropertyProvider().getAntPropertyValue(null));
+		props.put("eclipse.spoofaximp.strategojar", new StrategoJarAntPropertyProvider().getAntPropertyValue(null));
+		props.put("eclipse.spoofaximp.strategominjar", new StrategoMinJarAntPropertyProvider().getAntPropertyValue(null));
+		props.put("eclipse.spoofaximp.jars", new JarsAntPropertyProvider().getAntPropertyValue(null));
+		props.put("externaljarx", new PluginClasspathProvider().getAntPropertyValue(null));
 
 		return props;
 	}

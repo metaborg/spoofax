@@ -66,6 +66,9 @@ public class MetaSdf2Table extends Builder<SpoofaxBuildContext, MetaSdf2Table.In
 
 	@Override
 	public void build(SimpleCompilationUnit result, Input input) throws IOException {
+		if (!context.props.isDefined("eclipse.spoofaximp.jars"))
+			throw new IllegalArgumentException("Property eclipse.spoofaximp.jars must point to the directory containing StrategoMix.def");
+		
 		RelativePath metamodule = context.basePath("${syntax}/${metasdfmodule}.sdf");
 		result.addSourceArtifact(metamodule);
 		boolean metasdfmoduleAvailable = FileCommands.exists(metamodule);
