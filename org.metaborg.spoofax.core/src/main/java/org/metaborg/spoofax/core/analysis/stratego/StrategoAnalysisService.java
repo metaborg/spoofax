@@ -3,13 +3,12 @@ package org.metaborg.spoofax.core.analysis.stratego;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.LinkedList;
 
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.spoofax.core.SpoofaxException;
 import org.metaborg.spoofax.core.analysis.AnalysisDebugResult;
+import org.metaborg.spoofax.core.analysis.AnalysisException;
 import org.metaborg.spoofax.core.analysis.AnalysisFileResult;
 import org.metaborg.spoofax.core.analysis.AnalysisResult;
 import org.metaborg.spoofax.core.analysis.AnalysisTimeResult;
@@ -45,6 +44,7 @@ import org.strategoxt.imp.generator.sdf2imp;
 import org.strategoxt.lang.Context;
 
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
@@ -57,30 +57,32 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
     private final ITermFactoryService termFactoryService;
     private final IStrategoRuntimeService runtimeService;
 
-    @Inject public StrategoAnalysisService(IResourceService resourceService,
-        ITermFactoryService termFactoryService, IStrategoRuntimeService runtimeService) {
+
+    @Inject public StrategoAnalysisService(IResourceService resourceService, ITermFactoryService termFactoryService,
+        IStrategoRuntimeService runtimeService) {
         this.resourceService = resourceService;
         this.termFactoryService = termFactoryService;
         this.runtimeService = runtimeService;
     }
 
-    @Override public AnalysisResult<IStrategoTerm, IStrategoTerm> analyze(
-        Iterable<ParseResult<IStrategoTerm>> inputs, IContext context) throws SpoofaxException {
+
+    @Override public AnalysisResult<IStrategoTerm, IStrategoTerm> analyze(Iterable<ParseResult<IStrategoTerm>> inputs,
+        IContext context) throws AnalysisException {
         final ILanguage language = context.language();
         logger.debug("Analyzing {} files of the {} language", Iterables.size(inputs), language.name());
         final ITermFactory termFactory = termFactoryService.get(language);
 
         logger.trace("Creating input terms for analysis (File/2 terms)");
         IStrategoConstructor file_3_constr = termFactory.makeConstructor("File", 3);
-        Collection<IStrategoAppl> analysisInput = new LinkedList<IStrategoAppl>();
+        Collection<IStrategoAppl> analysisInput = Lists.newLinkedList();
+        Collection<FileObject> sources = Lists.newLinkedList();
         for(ParseResult<IStrategoTerm> input : inputs) {
             if(input.result == null) {
                 // TODO: this should be handled in a more verbose way.
                 continue;
             }
             IStrategoString filename = termFactory.makeString(input.source.getName().getPath());
-            analysisInput.add(termFactory.makeAppl(file_3_constr, filename, input.result,
-                termFactory.makeReal(-1.0)));
+            analysisInput.add(termFactory.makeAppl(file_3_constr, filename, input.result, termFactory.makeReal(-1.0)));
         }
 
         final HybridInterpreter interpreter = runtimeService.runtime(context);
@@ -89,12 +91,14 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
         final IStrategoTerm resultTerm = StrategoRuntimeUtils.invoke(interpreter, inputTerm, function);
 
         if(resultTerm == null) {
-            throw new SpoofaxException(ANALYSIS_CRASHED_MSG);
+            logger.error(ANALYSIS_CRASHED_MSG);
+            throw new AnalysisException(sources, context, ANALYSIS_CRASHED_MSG);
         }
 
         if(!(resultTerm instanceof IStrategoAppl)) {
-            logger.error("Unexpected results from analysis {}", resultTerm);
-            throw new SpoofaxException("Unexpected results from analysis: " + resultTerm);
+            final String message = String.format("Unexpected results from analysis {}", resultTerm);
+            logger.error(message);
+            throw new AnalysisException(sources, context, message);
         }
         logger.trace("Analysis resulted in a {} term", resultTerm.getSubtermCount());
 
@@ -116,8 +120,8 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
 
         logger.debug("Analysis done");
 
-        return new AnalysisResult<IStrategoTerm, IStrategoTerm>(language, fileResults, affectedPartitions,
-            debugResult, timeResult);
+        return new AnalysisResult<IStrategoTerm, IStrategoTerm>(language, fileResults, affectedPartitions, debugResult,
+            timeResult);
     }
 
     @Override public @Nullable IStrategoTerm origin(IStrategoTerm analyzed) {
@@ -152,8 +156,8 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
         IStrategoTerm ast = res.getSubterm(4);
         IStrategoTerm previousAst = res.getSubterm(3);
 
-        return new AnalysisFileResult<IStrategoTerm, IStrategoTerm>(new ParseResult<IStrategoTerm>(
-            previousAst, file, Arrays.asList(new IMessage[] {}), -1, language), file, messages, ast);
+        return new AnalysisFileResult<IStrategoTerm, IStrategoTerm>(new ParseResult<IStrategoTerm>(previousAst, file,
+            Arrays.asList(new IMessage[] {}), -1, language), file, messages, ast);
     }
 
     private Collection<String> makeAffectedPartitions(IStrategoTerm affectedTerm) {
@@ -166,23 +170,21 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
 
     private AnalysisDebugResult makeAnalysisDebugResult(IStrategoTerm debug) {
         final IStrategoTerm collectionDebug = debug.getSubterm(0);
-        return new AnalysisDebugResult(Tools.asJavaInt(collectionDebug.getSubterm(0)),
-            Tools.asJavaInt(collectionDebug.getSubterm(1)), Tools.asJavaInt(collectionDebug.getSubterm(2)),
-            Tools.asJavaInt(collectionDebug.getSubterm(3)), Tools.asJavaInt(collectionDebug.getSubterm(4)),
-            (IStrategoList) debug.getSubterm(1), (IStrategoList) debug.getSubterm(2),
-            (IStrategoList) debug.getSubterm(3));
+        return new AnalysisDebugResult(Tools.asJavaInt(collectionDebug.getSubterm(0)), Tools.asJavaInt(collectionDebug
+            .getSubterm(1)), Tools.asJavaInt(collectionDebug.getSubterm(2)), Tools.asJavaInt(collectionDebug
+            .getSubterm(3)), Tools.asJavaInt(collectionDebug.getSubterm(4)), (IStrategoList) debug.getSubterm(1),
+            (IStrategoList) debug.getSubterm(2), (IStrategoList) debug.getSubterm(3));
     }
 
     private AnalysisTimeResult makeAnalysisTimeResult(IStrategoTerm time) {
-        return new AnalysisTimeResult((long) Tools.asJavaDouble(time.getSubterm(0)),
-            (long) Tools.asJavaDouble(time.getSubterm(1)), (long) Tools.asJavaDouble(time.getSubterm(2)),
-            (long) Tools.asJavaDouble(time.getSubterm(3)), (long) Tools.asJavaDouble(time.getSubterm(4)),
-            (long) Tools.asJavaDouble(time.getSubterm(5)), (long) Tools.asJavaDouble(time.getSubterm(6)));
+        return new AnalysisTimeResult((long) Tools.asJavaDouble(time.getSubterm(0)), (long) Tools.asJavaDouble(time
+            .getSubterm(1)), (long) Tools.asJavaDouble(time.getSubterm(2)), (long) Tools.asJavaDouble(time
+            .getSubterm(3)), (long) Tools.asJavaDouble(time.getSubterm(4)), (long) Tools.asJavaDouble(time
+            .getSubterm(5)), (long) Tools.asJavaDouble(time.getSubterm(6)));
     }
 
 
-    public static Collection<IMessage> makeMessages(FileObject file, MessageSeverity severity,
-        IStrategoList msgs) {
+    public static Collection<IMessage> makeMessages(FileObject file, MessageSeverity severity, IStrategoList msgs) {
         final Collection<IMessage> result = new ArrayList<IMessage>(msgs.getSubtermCount());
 
         final Context context = new Context();
@@ -221,8 +223,7 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
         // TODO: prefer lexical nodes when minimizing marker size? (e.g., not 'private')
         if(node == null)
             return null;
-        while(ImploderAttachment.getLeftToken(node).getLine() < ImploderAttachment.getRightToken(node)
-            .getLine()) {
+        while(ImploderAttachment.getLeftToken(node).getLine() < ImploderAttachment.getRightToken(node).getLine()) {
             if(node.getSubtermCount() == 0)
                 break;
             node = node.getSubterm(0);
@@ -231,8 +232,7 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
     }
 
     /**
-     * Given a Stratego term, get the first AST node associated with any of its subterms, doing a depth-first
-     * search.
+     * Given a Stratego term, get the first AST node associated with any of its subterms, doing a depth-first search.
      */
     private static ISimpleTerm getClosestAstNode(IStrategoTerm term) {
         if(ImploderAttachment.hasImploderOrigin(term)) {

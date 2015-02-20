@@ -42,6 +42,8 @@ public class Processor {
     private final ICategorizerService<IStrategoTerm, IStrategoTerm> categorizerService;
     private final IStylerService<IStrategoTerm, IStrategoTerm> stylerService;
 
+    private final ParseResultProcessor parseResultProcessor;
+    private final AnalysisResultProcessor analysisResultProcessor;
     private final GlobalMutexes mutexes;
 
     private final IJobManager jobManager;
@@ -52,7 +54,8 @@ public class Processor {
         ILanguageIdentifierService languageIdentifierService, ILanguageDiscoveryService languageDiscoveryService,
         ISyntaxService<IStrategoTerm> syntaxService, IAnalysisService<IStrategoTerm, IStrategoTerm> analysisService,
         ICategorizerService<IStrategoTerm, IStrategoTerm> categorizerService,
-        IStylerService<IStrategoTerm, IStrategoTerm> stylerService, GlobalMutexes mutexes) {
+        IStylerService<IStrategoTerm, IStrategoTerm> stylerService, ParseResultProcessor parseResultProcessor,
+        AnalysisResultProcessor analysisResultProcessor, GlobalMutexes mutexes) {
         this.resourceService = resourceService;
         this.languageService = languageService;
         this.languageIdentifierService = languageIdentifierService;
@@ -62,6 +65,8 @@ public class Processor {
         this.categorizerService = categorizerService;
         this.stylerService = stylerService;
 
+        this.parseResultProcessor = parseResultProcessor;
+        this.analysisResultProcessor = analysisResultProcessor;
         this.mutexes = mutexes;
 
         this.jobManager = Job.getJobManager();
@@ -223,6 +228,7 @@ public class Processor {
      *            Input text of the editor.
      */
     public void editorInputChange(IEditorInput oldInput, IEditorInput newInput, ISourceViewer viewer, String text) {
+        logger.debug("Editor input changed from {} to {}", oldInput, newInput);
         cancelUpdateJobs(oldInput);
         processEditor(newInput, viewer, text);
     }
@@ -232,13 +238,15 @@ public class Processor {
         final IFileEditorInput fileInput = (IFileEditorInput) input;
         final Job job =
             new EditorUpdateJob(resourceService, languageIdentifierService, syntaxService, analysisService,
-                categorizerService, stylerService, fileInput, viewer, text);
+                categorizerService, stylerService, parseResultProcessor, analysisResultProcessor, fileInput, viewer,
+                text);
         job.setRule(new MultiRule(new ISchedulingRule[] { mutexes.startupMutex, fileInput.getFile() }));
         job.setSystem(true);
         job.schedule();
     }
 
     private void cancelUpdateJobs(IEditorInput input) {
+        logger.trace("Cancelling editor update jobs for {}", input);
         final Job[] existingJobs = jobManager.find(input);
         for(Job job : existingJobs) {
             job.cancel();

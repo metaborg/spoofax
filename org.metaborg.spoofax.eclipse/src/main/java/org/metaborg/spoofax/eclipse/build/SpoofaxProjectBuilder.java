@@ -21,7 +21,7 @@ import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.metaborg.spoofax.core.SpoofaxException;
+import org.metaborg.spoofax.core.analysis.AnalysisException;
 import org.metaborg.spoofax.core.analysis.AnalysisFileResult;
 import org.metaborg.spoofax.core.analysis.AnalysisResult;
 import org.metaborg.spoofax.core.analysis.IAnalysisService;
@@ -36,6 +36,7 @@ import org.metaborg.spoofax.core.resource.IResourceChange;
 import org.metaborg.spoofax.core.resource.ResourceChange;
 import org.metaborg.spoofax.core.resource.ResourceChangeKind;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
+import org.metaborg.spoofax.core.syntax.ParseException;
 import org.metaborg.spoofax.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.text.ISourceTextService;
@@ -167,19 +168,23 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
     }
 
     private void fullBuild(IProject project, IProgressMonitor monitor) throws CoreException {
-        logger.debug("Fully building " + project);
         try {
             final Iterable<IResourceChange> changes = changes(project);
-            build(project, changes);
+            if(!Iterables.isEmpty(changes)) {
+                logger.debug("Fully building " + project);
+                build(project, changes);
+            }
         } catch(FileSystemException e) {
             throw new CoreException(StatusUtils.error("Cannot retrieve resources for full build", e));
         }
     }
 
     private void incrBuild(IProject project, IResourceDelta delta, IProgressMonitor monitor) throws CoreException {
-        logger.debug("Incrementally building " + project);
         final Iterable<IResourceChange> changes = changes(delta);
-        build(project, changes);
+        if(!Iterables.isEmpty(changes)) {
+            logger.debug("Incrementally building " + project);
+            build(project, changes);
+        }
     }
 
     private void build(final IProject project, Iterable<IResourceChange> changes) throws CoreException {
@@ -223,7 +228,7 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
                 }
 
                 allParseResults.put(language, parseResult);
-            } catch(IOException e) {
+            } catch(ParseException | IOException e) {
                 extraMessages.add(MessageFactory.newParseErrorAtTop(resource, "Parsing failed: " + e.getMessage()));
             }
 
@@ -244,7 +249,7 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
                 final AnalysisResult<IStrategoTerm, IStrategoTerm> analysisResult =
                     analyzer.analyze(parseResults, context);
                 allAnalysisResults.put(language, analysisResult);
-            } catch(SpoofaxException e) {
+            } catch(AnalysisException e) {
                 extraMessages.add(MessageFactory.newAnalysisErrorAtTop(projectResource,
                     "Analysis failed: " + e.getMessage()));
             }

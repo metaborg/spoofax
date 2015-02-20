@@ -15,12 +15,9 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
 import org.metaborg.spoofax.core.analysis.AnalysisFileResult;
-import org.metaborg.spoofax.core.analysis.AnalysisResult;
-import org.metaborg.spoofax.core.analysis.IAnalysisService;
 import org.metaborg.spoofax.core.context.SpoofaxContext;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
-import org.metaborg.spoofax.core.syntax.ISyntaxService;
 import org.metaborg.spoofax.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.transform.ITransformer;
 import org.metaborg.spoofax.core.transform.TransformResult;
@@ -28,37 +25,41 @@ import org.metaborg.spoofax.core.transform.stratego.Action;
 import org.metaborg.spoofax.core.transform.stratego.MenusFacet;
 import org.metaborg.spoofax.core.transform.stratego.StrategoTransformResultProcessor;
 import org.metaborg.spoofax.eclipse.editor.SpoofaxEditor;
+import org.metaborg.spoofax.eclipse.processing.AnalysisResultProcessor;
+import org.metaborg.spoofax.eclipse.processing.ParseResultProcessor;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
 import org.metaborg.spoofax.eclipse.util.ResourceUtils;
 import org.metaborg.spoofax.eclipse.util.StatusUtils;
-import org.metaborg.util.iterators.Iterables2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-
-import com.google.common.collect.Iterables;
 
 public class TransformJob extends Job {
     private static final Logger logger = LoggerFactory.getLogger(TransformJob.class);
 
     private final IEclipseResourceService resourceService;
     private final ILanguageIdentifierService langaugeIdentifierService;
-    private final ISyntaxService<IStrategoTerm> syntaxService;
-    private final IAnalysisService<IStrategoTerm, IStrategoTerm> analysisService;
     private final ITransformer<IStrategoTerm, IStrategoTerm, IStrategoTerm> transformer;
+
+    private final ParseResultProcessor parseResultProcessor;
+    private final AnalysisResultProcessor analysisResultProcessor;
+
     private final SpoofaxEditor editor;
     private final String actionName;
 
 
     public TransformJob(IEclipseResourceService resourceService, ILanguageIdentifierService langaugeIdentifierService,
-        ISyntaxService<IStrategoTerm> syntaxService, IAnalysisService<IStrategoTerm, IStrategoTerm> analysisService,
-        ITransformer<IStrategoTerm, IStrategoTerm, IStrategoTerm> transformer, SpoofaxEditor editor, String actionName) {
+        ITransformer<IStrategoTerm, IStrategoTerm, IStrategoTerm> transformer,
+        ParseResultProcessor parseResultProcessor, AnalysisResultProcessor analysisResultProcessor,
+        SpoofaxEditor editor, String actionName) {
         super("Transforming file");
 
         this.resourceService = resourceService;
         this.langaugeIdentifierService = langaugeIdentifierService;
-        this.syntaxService = syntaxService;
-        this.analysisService = analysisService;
+
+        this.parseResultProcessor = parseResultProcessor;
+        this.analysisResultProcessor = analysisResultProcessor;
+
         this.transformer = transformer;
         this.editor = editor;
         this.actionName = actionName;
@@ -113,29 +114,23 @@ public class TransformJob extends Job {
 
     private IStatus transform(IProgressMonitor monitor, ILanguage language, Action action, FileObject resource,
         FileObject location, String text) throws IOException {
-        // GTODO: get cached parsed and analyzed AST instead if available, this should be abstracted out.
-
-        final ParseResult<IStrategoTerm> parseResult = syntaxService.parse(text, resource, language);
-
         if(monitor.isCanceled())
             return StatusUtils.cancel();
-
+        
         final SpoofaxContext context = new SpoofaxContext(language, location);
         final TransformResult<?, IStrategoTerm> transformResult;
         if(action.flags.parsed) {
-            transformResult = transformer.transformParsed(parseResult, context, action.name);
+            final ParseResult<IStrategoTerm> result =
+                parseResultProcessor.request(resource, language, text).toBlocking().single();
+            transformResult = transformer.transformParsed(result, context, action.name);
         } else {
-            final AnalysisResult<IStrategoTerm, IStrategoTerm> analysisResult =
-                analysisService.analyze(Iterables2.singleton(parseResult), context);
-
-            if(monitor.isCanceled())
-                return StatusUtils.cancel();
-
-            final AnalysisFileResult<IStrategoTerm, IStrategoTerm> analysisFileResult =
-                Iterables.get(analysisResult.fileResults, 0);
-            transformResult = transformer.transformAnalyzed(analysisFileResult, context, action.name);
+            final AnalysisFileResult<IStrategoTerm, IStrategoTerm> result =
+                analysisResultProcessor.request(resource, context, text).toBlocking().single();
+            transformResult = transformer.transformAnalyzed(result, context, action.name);
         }
 
+        if(monitor.isCanceled())
+            return StatusUtils.cancel();
         // GTODO: don't depend on StrategoTransformResultProcessor, should be abstracted out to support different
         // analyzers.
         final FileObject writtenResource = StrategoTransformResultProcessor.writeFile(transformResult.result, context);

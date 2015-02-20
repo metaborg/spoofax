@@ -29,7 +29,7 @@ import com.google.inject.Injector;
 
 public class TransformMenuContribution extends CompoundContributionItem implements IWorkbenchContribution {
     public static final String transformId = SpoofaxPlugin.id + ".command.transform";
-    public static final String actionNameParam = "param-name";
+    public static final String actionNameParam = "action-name";
 
     private static final Logger logger = LoggerFactory.getLogger(TransformMenuContribution.class);
 

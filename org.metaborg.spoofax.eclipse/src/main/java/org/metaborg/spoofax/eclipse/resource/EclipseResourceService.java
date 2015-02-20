@@ -59,4 +59,9 @@ public class EclipseResourceService extends ResourceService implements IEclipseR
             return root.findMember(relativePath);
         }
     }
+
+
+    @Override public FileObject rebase(FileObject resource) {
+        return resolve("eclipse://" + resource.getName().getPath());
+    }
 }

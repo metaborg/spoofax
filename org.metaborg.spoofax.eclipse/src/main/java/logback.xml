@@ -43,7 +43,7 @@
   </appender>
 
 
-  <root level="debug">
+  <root level="trace">
     <appender-ref ref="eclipse-log" />
     <appender-ref ref="eclipse-console" />
     <appender-ref ref="stdout"/>

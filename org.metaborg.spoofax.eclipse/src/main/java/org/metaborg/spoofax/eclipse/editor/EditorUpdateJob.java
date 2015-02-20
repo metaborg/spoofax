@@ -15,6 +15,7 @@ import org.eclipse.jface.text.TextPresentation;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IFileEditorInput;
+import org.metaborg.spoofax.core.analysis.AnalysisException;
 import org.metaborg.spoofax.core.analysis.AnalysisFileResult;
 import org.metaborg.spoofax.core.analysis.AnalysisResult;
 import org.metaborg.spoofax.core.analysis.IAnalysisService;
@@ -27,7 +28,10 @@ import org.metaborg.spoofax.core.style.IRegionCategory;
 import org.metaborg.spoofax.core.style.IRegionStyle;
 import org.metaborg.spoofax.core.style.IStylerService;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
+import org.metaborg.spoofax.core.syntax.ParseException;
 import org.metaborg.spoofax.core.syntax.ParseResult;
+import org.metaborg.spoofax.eclipse.processing.AnalysisResultProcessor;
+import org.metaborg.spoofax.eclipse.processing.ParseResultProcessor;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
 import org.metaborg.spoofax.eclipse.util.MarkerUtils;
 import org.metaborg.spoofax.eclipse.util.ResourceUtils;
@@ -40,13 +44,16 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 
 public class EditorUpdateJob extends Job {
     private static final Logger logger = LoggerFactory.getLogger(EditorUpdateJob.class);
-    
+
     private final IEclipseResourceService resourceService;
     private final ILanguageIdentifierService languageIdentifier;
     private final ISyntaxService<IStrategoTerm> syntaxService;
     private final IAnalysisService<IStrategoTerm, IStrategoTerm> analyzer;
     private final ICategorizerService<IStrategoTerm, IStrategoTerm> categorizer;
     private final IStylerService<IStrategoTerm, IStrategoTerm> styler;
+
+    private final ParseResultProcessor parseResultProcessor;
+    private final AnalysisResultProcessor analysisResultProcessor;
 
     private final IFileEditorInput input;
     private final ISourceViewer sourceViewer;
@@ -56,8 +63,8 @@ public class EditorUpdateJob extends Job {
     public EditorUpdateJob(IEclipseResourceService resourceService, ILanguageIdentifierService languageIdentifier,
         ISyntaxService<IStrategoTerm> syntaxService, IAnalysisService<IStrategoTerm, IStrategoTerm> analyzer,
         ICategorizerService<IStrategoTerm, IStrategoTerm> categorizer,
-        IStylerService<IStrategoTerm, IStrategoTerm> styler, IFileEditorInput input, ISourceViewer sourceViewer,
-        String text) {
+        IStylerService<IStrategoTerm, IStrategoTerm> styler, ParseResultProcessor parseResultProcessor,
+        AnalysisResultProcessor analysisResultProcessor, IFileEditorInput input, ISourceViewer sourceViewer, String text) {
         super("Updating Spoofax editor");
         this.resourceService = resourceService;
         this.languageIdentifier = languageIdentifier;
@@ -65,6 +72,9 @@ public class EditorUpdateJob extends Job {
         this.analyzer = analyzer;
         this.categorizer = categorizer;
         this.styler = styler;
+
+        this.parseResultProcessor = parseResultProcessor;
+        this.analysisResultProcessor = analysisResultProcessor;
 
         this.input = input;
         this.sourceViewer = sourceViewer;
@@ -78,17 +88,19 @@ public class EditorUpdateJob extends Job {
 
     @Override protected IStatus run(final IProgressMonitor monitor) {
         logger.debug("Running editor update job for {}", input.getFile());
-        
+
         try {
             return update(monitor);
-        } catch(IOException | CoreException e) {
-            e.printStackTrace();
-            return StatusUtils.error("Updating editor failed", e);
+        } catch(ParseException | AnalysisException | CoreException | IOException e) {
+            String message = String.format("Updating editor for % failed", input);
+            logger.error(message, e);
+            return StatusUtils.error(message, e);
         }
     }
 
 
-    private IStatus update(final IProgressMonitor monitor) throws IOException, CoreException {
+    private IStatus update(final IProgressMonitor monitor) throws ParseException, AnalysisException, CoreException,
+        IOException {
         final IResource eclipseResource = input.getFile();
         final IResource eclipseLocation = ResourceUtils.getProjectDirectory(eclipseResource);
         final Display display = Display.getDefault();
@@ -101,7 +113,16 @@ public class EditorUpdateJob extends Job {
         // Parse
         if(monitor.isCanceled())
             return StatusUtils.cancel();
-        final ParseResult<IStrategoTerm> parseResult = syntaxService.parse(text, resource, language);
+        final ParseResult<IStrategoTerm> parseResult;
+        try {
+            parseResultProcessor.invalidate(resource);
+            parseResult = syntaxService.parse(text, resource, language);
+            parseResultProcessor.update(resource, parseResult);
+        } catch(ParseException e) {
+            parseResultProcessor.error(resource, e);
+            throw e;
+        }
+
         if(monitor.isCanceled())
             return StatusUtils.cancel();
         final IWorkspaceRunnable parseMarkerUpdater = new IWorkspaceRunnable() {
@@ -144,8 +165,16 @@ public class EditorUpdateJob extends Job {
 
         if(monitor.isCanceled())
             return StatusUtils.cancel();
-        final AnalysisResult<IStrategoTerm, IStrategoTerm> analysisResult =
-            analyzer.analyze(Iterables2.singleton(parseResult), new SpoofaxContext(language, location));
+        analysisResultProcessor.invalidate(parseResult.source);
+        final AnalysisResult<IStrategoTerm, IStrategoTerm> analysisResult;
+        try {
+            analysisResult = analyzer.analyze(Iterables2.singleton(parseResult), new SpoofaxContext(language, location));
+        } catch (AnalysisException e) {
+            analysisResultProcessor.error(resource, e);
+            throw e;
+        }
+        analysisResultProcessor.update(analysisResult);
+        
         if(monitor.isCanceled())
             return StatusUtils.cancel();
         final IWorkspaceRunnable analysisMarkerUpdater = new IWorkspaceRunnable() {
