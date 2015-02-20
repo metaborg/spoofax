@@ -23,6 +23,11 @@ import org.sugarj.common.path.Path;
 public class CompileJavaCode extends Builder<SpoofaxBuildContext, EmptyBuildInput, SimpleCompilationUnit> {
 
 	public static BuilderFactory<SpoofaxBuildContext, EmptyBuildInput, SimpleCompilationUnit, CompileJavaCode> factory = new BuilderFactory<SpoofaxBuildContext, EmptyBuildInput, SimpleCompilationUnit, CompileJavaCode>() {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -7888501202167724710L;
+
 		@Override
 		public CompileJavaCode makeBuilder(SpoofaxBuildContext context) { return new CompileJavaCode(context); }
 	};
