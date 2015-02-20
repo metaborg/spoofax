@@ -106,20 +106,22 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 	}
 
 
-	private void compileJavaCode(SimpleCompilationUnit result) {
-		String srcDirs = context.props.getOrElse("src-dirs", context.props.get("src-gen"));
+	private void compileJavaCode(SimpleCompilationUnit result) throws IOException {
+		CompilationUnit copyUtils = context.copyUtils.require(null, new SimpleMode());
+		result.addModuleDependency(copyUtils);
 		
 		Path targetDir = context.basePath("${build}");
 		boolean debug = true;
 		String sourceVersion = "1.7";
 		String targetVersion = "1.7";
 		
+		String srcDirs = context.props.getOrElse("src-dirs", context.props.get("src-gen"));
 		List<String> sourcePath = new ArrayList<>();
 		for (String dir : srcDirs.split("[\\s]+"))
 			sourcePath.add(dir);
 		
 		List<String> classPath = new ArrayList<>();
-		classPath.add(context.props.get("eclipse.spoofaximp.strategominjar"));
+		classPath.add(context.props.getOrFail("eclipse.spoofaximp.strategominjar"));
 		classPath.add(context.basePath("${src-gen}").getAbsolutePath());
 		if (context.props.isDefined("externaljar"))
 			classPath.add(context.props.get("externaljar"));
@@ -156,7 +158,7 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 
 	protected void forceWorkspaceRefresh() {
 		try {
-			AntForceRefreshScheduler.main(new String[] {context.basePath("${include}").getAbsolutePath()});
+			AntForceRefreshScheduler.main(new String[] {context.baseDir.getAbsolutePath()});
 		} catch (Exception e) {
 			Log.log.logErr(e.getMessage(), Log.CORE);
 		}
