@@ -77,8 +77,9 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 		CompilationUnit strategoAster = context.strategoAster.require(new StrategoAster.Input(strmodule), new SimpleMode());
 		result.addModuleDependency(strategoAster);
 
-		RequirableCompilationUnit forceOnSave = context.forceOnSave.requireLater(null, new SimpleMode());
+		// This dependency was discovered by cleardep, due to an implicit dependency on 'org.strategoxt.imp.editors.template/lib/editor-common.generated.str'.
 		RequirableCompilationUnit sdf2Imp = context.sdf2ImpEclipse.requireLater(new Sdf2ImpEclipse.Input(esvmodule, sdfmodule, buildSdfImports), new SimpleMode());
+		// This dependency was discovered by cleardep, due to an implicit dependency on 'org.strategoxt.imp.editors.template/include/TemplateLang-parenthesize.str'.
 		RequirableCompilationUnit sdf2Parenthesize = context.sdf2Parenthesize.requireLater(new Sdf2Parenthesize.Input(sdfmodule, buildSdfImports, externaldef), new SimpleMode());
 
 		CompilationUnit strategoCtree = context.strategoCtree.require(
@@ -89,7 +90,7 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 						externaljar, 
 						externaljarflags, 
 						externaldef,
-						new RequirableCompilationUnit[] {forceOnSave, sdf2Imp, sdf2Parenthesize}),
+						new RequirableCompilationUnit[] {sdf2Imp, sdf2Parenthesize}),
 				new SimpleMode());
 		result.addModuleDependency(strategoCtree);
 		
