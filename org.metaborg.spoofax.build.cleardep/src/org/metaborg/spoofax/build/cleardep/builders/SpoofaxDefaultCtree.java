@@ -7,6 +7,7 @@ import java.util.List;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
 import org.metaborg.spoofax.build.cleardep.util.FileExtensionFilter;
 import org.strategoxt.imp.metatooling.building.AntForceRefreshScheduler;
+import org.strategoxt.imp.metatooling.loading.AntDescriptorLoader;
 import org.sugarj.cleardep.CompilationUnit;
 import org.sugarj.cleardep.SimpleCompilationUnit;
 import org.sugarj.cleardep.SimpleMode;
@@ -103,11 +104,19 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 			compileJavaCode(result);
 	
 			javaJar(result, strmodule);
+			
+			sdf2impEclipseReload(result);
+			
 		} finally {
 			forceWorkspaceRefresh();
 		}
 	}
 
+	
+	private void checkClassPath() {
+		@SuppressWarnings("unused")
+		org.strategoxt.imp.generator.sdf2imp c;
+	}
 
 	private void compileJavaCode(SimpleCompilationUnit result) throws IOException {
 		CompilationUnit copyUtils = context.copyUtils.require(null, new SimpleMode());
@@ -180,10 +189,11 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 						new SimpleMode());
 		result.addModuleDependency(javaJar);
 	}
-	
-	private void checkClassPath() {
-		@SuppressWarnings("unused")
-		org.strategoxt.imp.generator.sdf2imp c;
+
+	private void sdf2impEclipseReload(SimpleCompilationUnit result) {
+		RelativePath packedEsv = context.basePath("${include}/${esvmodule}.packed.esv");
+		result.addSourceArtifact(packedEsv);
+		AntDescriptorLoader.main(new String[]{packedEsv.getAbsolutePath()});
 	}
 
 	protected void forceWorkspaceRefresh() {
@@ -194,3 +204,4 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 		}
 	}
 }
+
