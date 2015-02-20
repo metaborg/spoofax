@@ -9,8 +9,10 @@ import org.sugarj.cleardep.SimpleCompilationUnit;
 import org.sugarj.cleardep.SimpleMode;
 import org.sugarj.cleardep.build.Builder;
 import org.sugarj.cleardep.build.BuilderFactory;
+import org.sugarj.cleardep.buildjava.JavaJar;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
+import org.sugarj.common.FileCommands;
 import org.sugarj.common.Log;
 import org.sugarj.common.path.AbsolutePath;
 import org.sugarj.common.path.Path;
@@ -102,12 +104,18 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 //		</javac>
 //	</target>
 
-		// TODO java.jar
-//		<target name="java.jar" if="java.jar.enabled">
-//	    <delete file="${include}/${strmodule}-java.jar" failonerror="false" />
-//		<jar basedir="${build}" includes="${javajar-includes}" update="true" destfile="${include}/${strmodule}-java.jar" />
-//	</target>
-
+		Path jarPath = context.basePath("${include}/" + strmodule + "-java.jar");
+		JavaJar.Mode jarMode = FileCommands.exists(jarPath) ? JavaJar.Mode.Update : JavaJar.Mode.Create;
+		CompilationUnit javaJar = JavaJar.factory.makeBuilder(context).require(
+				new JavaJar.Input(
+						jarMode,
+						jarPath, 
+						null,
+						context.basePath("${build}"), 
+						context.props.getOrElse("javajar-includes", "org/strategoxt/imp/editors/template/strategies/").split("[\\s]+"), 
+						null), 
+				new SimpleMode());
+		result.addModuleDependency(javaJar);
 		
 		forceWorkspaceRefresh();
 	}
