@@ -132,4 +132,10 @@ public class SpoofaxBuildContext extends BuildContext {
 		boolean buildStrategoEnabled = FileCommands.exists(strategoPath);
 		return buildStrategoEnabled;
 	}
+	
+	public boolean isJavaJarEnabled(CompilationUnit result) {
+		RelativePath mainPath = basePath("${src-gen}/org/strategoxt/imp/editors/template/strategies/Main.java");
+		result.addExternalFileDependency(mainPath);
+		return FileCommands.exists(mainPath);
+	}
 }

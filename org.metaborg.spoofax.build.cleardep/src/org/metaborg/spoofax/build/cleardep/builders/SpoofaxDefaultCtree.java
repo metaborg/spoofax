@@ -1,6 +1,8 @@
 package org.metaborg.spoofax.build.cleardep.builders;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
 import org.strategoxt.imp.metatooling.building.AntForceRefreshScheduler;
@@ -95,34 +97,58 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 					new SimpleMode());
 			result.addModuleDependency(strategoCtree);
 			
-			// TODO compile-java-code
-	//		<target name="compile-java-files" depends="utils-files">
-	//		<delete dir="${build}" />
-	//		<mkdir dir="${build}" />
-	//		<javac srcdir="${src-dirs}" destdir="${build}" source="1.7" target="1.7" debug="on">
-	//			<classpath>
-	//				<pathelement path="${strategominjar}${src-gen}${externaljarimport1}${externaljarimport2}${java.jar.classpath}" />
-	//			</classpath>
-	//		</javac>
-	//	</target>
+			compileJavaCode(result);
 	
-			Path jarPath = context.basePath("${include}/" + strmodule + "-java.jar");
-			JavaJar.Mode jarMode = FileCommands.exists(jarPath) ? JavaJar.Mode.Update : JavaJar.Mode.Create;
-			CompilationUnit javaJar = JavaJar.factory.makeBuilder(context).require(
-					new JavaJar.Input(
-							jarMode,
-							jarPath, 
-							null,
-							context.basePath("${build}"), 
-							context.props.getOrElse("javajar-includes", "org/strategoxt/imp/editors/template/strategies/").split("[\\s]+"), 
-							null), 
-					new SimpleMode());
-			result.addModuleDependency(javaJar);
+			javaJar(result, strmodule);
 		} finally {
 			forceWorkspaceRefresh();
 		}
 	}
 
+
+	private void compileJavaCode(SimpleCompilationUnit result) {
+		String srcDirs = context.props.getOrElse("src-dirs", context.props.get("src-gen"));
+		
+		Path targetDir = context.basePath("${build}");
+		boolean debug = true;
+		String sourceVersion = "1.7";
+		String targetVersion = "1.7";
+		
+		List<String> sourcePath = new ArrayList<>();
+		for (String dir : srcDirs.split("[\\s]+"))
+			sourcePath.add(dir);
+		
+		List<String> classPath = new ArrayList<>();
+		classPath.add(context.props.get("eclipse.spoofaximp.strategominjar"));
+		classPath.add(context.basePath("${src-gen}").getAbsolutePath());
+		if (context.props.isDefined("externaljar"))
+			classPath.add(context.props.get("externaljar"));
+		if (context.props.isDefined("externaljarx"))
+			classPath.add(context.props.get("externaljarx"));
+		if (context.isJavaJarEnabled(result))
+			classPath.add(context.basePath("${include}/${strmodule}-java.jar").getAbsolutePath());
+
+		// TODO call JavaBuilder.require(..)
+	}
+
+	private void javaJar(SimpleCompilationUnit result, String strmodule) throws IOException {
+		if (!context.isJavaJarEnabled(result))
+			return;
+		
+		Path jarPath = context.basePath("${include}/" + strmodule + "-java.jar");
+		JavaJar.Mode jarMode = FileCommands.exists(jarPath) ? JavaJar.Mode.Update : JavaJar.Mode.Create;
+		CompilationUnit javaJar = JavaJar.factory.makeBuilder(context).require(
+				new JavaJar.Input(
+						jarMode,
+						jarPath, 
+						null,
+						context.basePath("${build}"), 
+						context.props.getOrElse("javajar-includes", "org/strategoxt/imp/editors/template/strategies/").split("[\\s]+"), 
+						null), 
+						new SimpleMode());
+		result.addModuleDependency(javaJar);
+	}
+	
 	private void checkClassPath() {
 		@SuppressWarnings("unused")
 		org.strategoxt.imp.generator.sdf2imp c;
