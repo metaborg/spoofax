@@ -91,6 +91,24 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, Void, Simp
 				new SimpleMode());
 		result.addModuleDependency(strategoCtree);
 		
+		// TODO compile-java-code
+//		<target name="compile-java-files" depends="utils-files">
+//		<delete dir="${build}" />
+//		<mkdir dir="${build}" />
+//		<javac srcdir="${src-dirs}" destdir="${build}" source="1.7" target="1.7" debug="on">
+//			<classpath>
+//				<pathelement path="${strategominjar}${src-gen}${externaljarimport1}${externaljarimport2}${java.jar.classpath}" />
+//			</classpath>
+//		</javac>
+//	</target>
+
+		// TODO java.jar
+//		<target name="java.jar" if="java.jar.enabled">
+//	    <delete file="${include}/${strmodule}-java.jar" failonerror="false" />
+//		<jar basedir="${build}" includes="${javajar-includes}" update="true" destfile="${include}/${strmodule}-java.jar" />
+//	</target>
+
+		
 		forceWorkspaceRefresh();
 	}
 
