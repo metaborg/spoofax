@@ -2,6 +2,7 @@ package org.metaborg.spoofax.build.cleardep;
 
 import org.metaborg.spoofax.build.cleardep.builders.All;
 import org.metaborg.spoofax.build.cleardep.builders.Clean;
+import org.metaborg.spoofax.build.cleardep.builders.CompileJavaCode;
 import org.metaborg.spoofax.build.cleardep.builders.CopyJar;
 import org.metaborg.spoofax.build.cleardep.builders.CopySdf;
 import org.metaborg.spoofax.build.cleardep.builders.CopyUtils;
@@ -54,6 +55,7 @@ public class SpoofaxBuildContext extends BuildContext {
 	public CopyJar copyJar = CopyJar.factory.makeBuilder(this);
 	public StrategoJavaCompiler strategoJavaCompiler = StrategoJavaCompiler.factory.makeBuilder(this);
 	public CopyUtils copyUtils = CopyUtils.factory.makeBuilder(this);
+	public CompileJavaCode compileJavaCode = CompileJavaCode.factory.makeBuilder(this);
 	
 	public final Path baseDir;
 	public final Properties props;
