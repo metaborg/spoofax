@@ -244,7 +244,7 @@ public class JSGLRParseErrorHandler {
 
 
     private void createErrorAtFirstLine(String message) {
-        messages.add(MessageFactory.newParseErrorAtTop(resource, message + getErrorExplanation()));
+        messages.add(MessageFactory.newParseErrorAtTop(resource, message + getErrorExplanation(), null));
     }
 
     private void reportErrorAtTokens(IToken left, IToken right, String message) {
@@ -252,7 +252,7 @@ public class JSGLRParseErrorHandler {
     }
 
     private void reportErrorAtRegion(ISourceRegion sourceRegion, String message) {
-        messages.add(MessageFactory.newParseError(resource, sourceRegion, message));
+        messages.add(MessageFactory.newParseError(resource, sourceRegion, message, null));
     }
 
     private void reportWarningAtTokens(IToken left, IToken right, final String message) {
@@ -260,7 +260,7 @@ public class JSGLRParseErrorHandler {
     }
 
     private void reportWarningAtRegion(ISourceRegion sourceRegion, final String message) {
-        messages.add(MessageFactory.newParseWarning(resource, sourceRegion, message));
+        messages.add(MessageFactory.newParseWarning(resource, sourceRegion, message, null));
     }
 
 

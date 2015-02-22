@@ -8,12 +8,12 @@ public class Message implements IMessage {
     private final String message;
     private final MessageSeverity severity;
     private final MessageType type;
-    @Nullable private final FileObject source;
+    private final FileObject source;
     private final ISourceRegion region;
     @Nullable private final Throwable exception;
 
 
-    public Message(String message, MessageSeverity severity, MessageType type, @Nullable FileObject source,
+    public Message(String message, MessageSeverity severity, MessageType type, FileObject source,
         ISourceRegion region, @Nullable Throwable exception) {
         this.message = message;
         this.severity = severity;

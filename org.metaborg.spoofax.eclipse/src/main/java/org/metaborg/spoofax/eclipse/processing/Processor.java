@@ -1,5 +1,7 @@
 package org.metaborg.spoofax.eclipse.processing;
 
+import org.apache.commons.vfs2.FileObject;
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.jobs.IJobManager;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
@@ -11,6 +13,7 @@ import org.eclipse.ui.IEditorRegistry;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.PlatformUI;
 import org.metaborg.spoofax.core.analysis.IAnalysisService;
+import org.metaborg.spoofax.core.context.IContextService;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageDiscoveryService;
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
@@ -20,6 +23,7 @@ import org.metaborg.spoofax.core.style.ICategorizerService;
 import org.metaborg.spoofax.core.style.IStylerService;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
 import org.metaborg.spoofax.eclipse.editor.EditorUpdateJob;
+import org.metaborg.spoofax.eclipse.job.GlobalSchedulingRules;
 import org.metaborg.spoofax.eclipse.language.AssociateLanguageJob;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
 import org.slf4j.Logger;
@@ -37,6 +41,7 @@ public class Processor {
     private final ILanguageService languageService;
     private final ILanguageIdentifierService languageIdentifierService;
     private final ILanguageDiscoveryService languageDiscoveryService;
+    private final IContextService contextService;
     private final ISyntaxService<IStrategoTerm> syntaxService;
     private final IAnalysisService<IStrategoTerm, IStrategoTerm> analysisService;
     private final ICategorizerService<IStrategoTerm, IStrategoTerm> categorizerService;
@@ -44,7 +49,7 @@ public class Processor {
 
     private final ParseResultProcessor parseResultProcessor;
     private final AnalysisResultProcessor analysisResultProcessor;
-    private final GlobalMutexes mutexes;
+    private final GlobalSchedulingRules globalRules;
 
     private final IJobManager jobManager;
     private final IEditorRegistry editorRegistry;
@@ -52,14 +57,16 @@ public class Processor {
 
     @Inject public Processor(IEclipseResourceService resourceService, ILanguageService languageService,
         ILanguageIdentifierService languageIdentifierService, ILanguageDiscoveryService languageDiscoveryService,
-        ISyntaxService<IStrategoTerm> syntaxService, IAnalysisService<IStrategoTerm, IStrategoTerm> analysisService,
+        IContextService contextService, ISyntaxService<IStrategoTerm> syntaxService,
+        IAnalysisService<IStrategoTerm, IStrategoTerm> analysisService,
         ICategorizerService<IStrategoTerm, IStrategoTerm> categorizerService,
         IStylerService<IStrategoTerm, IStrategoTerm> stylerService, ParseResultProcessor parseResultProcessor,
-        AnalysisResultProcessor analysisResultProcessor, GlobalMutexes mutexes) {
+        AnalysisResultProcessor analysisResultProcessor, GlobalSchedulingRules globalRules) {
         this.resourceService = resourceService;
         this.languageService = languageService;
         this.languageIdentifierService = languageIdentifierService;
         this.languageDiscoveryService = languageDiscoveryService;
+        this.contextService = contextService;
         this.syntaxService = syntaxService;
         this.analysisService = analysisService;
         this.categorizerService = categorizerService;
@@ -67,7 +74,7 @@ public class Processor {
 
         this.parseResultProcessor = parseResultProcessor;
         this.analysisResultProcessor = analysisResultProcessor;
-        this.mutexes = mutexes;
+        this.globalRules = globalRules;
 
         this.jobManager = Job.getJobManager();
         this.editorRegistry = PlatformUI.getWorkbench().getEditorRegistry();
@@ -97,8 +104,8 @@ public class Processor {
      */
     public void startup() {
         final Job job =
-            new StartupJob(resourceService, languageDiscoveryService, jobManager, mutexes.startupMutex,
-                mutexes.languageServiceMutex);
+            new StartupJob(resourceService, languageDiscoveryService, jobManager, globalRules.startupWriteLock(),
+                globalRules.languageServiceLock());
         job.schedule();
     }
 
@@ -121,7 +128,7 @@ public class Processor {
      */
     public void languageActivated(ILanguage language) {
         final AssociateLanguageJob associateJob = new AssociateLanguageJob(language, editorRegistry);
-        associateJob.setRule(mutexes.startupMutex);
+        associateJob.setRule(globalRules.startupReadLock());
         associateJob.schedule();
 
         // TODO: Start update jobs for all editors of this language.
@@ -236,12 +243,13 @@ public class Processor {
     private void processEditor(IEditorInput input, ISourceViewer viewer, String text) {
         cancelUpdateJobs(input);
         final IFileEditorInput fileInput = (IFileEditorInput) input;
+        final IFile file = fileInput.getFile();
+        final FileObject resource = resourceService.resolve(file);
         final Job job =
-            new EditorUpdateJob(resourceService, languageIdentifierService, syntaxService, analysisService,
-                categorizerService, stylerService, parseResultProcessor, analysisResultProcessor, fileInput, viewer,
-                text);
-        job.setRule(new MultiRule(new ISchedulingRule[] { mutexes.startupMutex, fileInput.getFile() }));
-        job.setSystem(true);
+            new EditorUpdateJob(languageIdentifierService, contextService, syntaxService, analysisService,
+                categorizerService, stylerService, parseResultProcessor, analysisResultProcessor, fileInput, file,
+                resource, viewer, text);
+        job.setRule(new MultiRule(new ISchedulingRule[] { globalRules.startupReadLock(), file }));
         job.schedule();
     }
 

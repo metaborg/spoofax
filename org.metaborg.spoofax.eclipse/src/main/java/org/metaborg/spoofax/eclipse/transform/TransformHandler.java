@@ -4,6 +4,7 @@ import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.runtime.jobs.Job;
+import org.metaborg.spoofax.core.context.IContextService;
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
 import org.metaborg.spoofax.core.transform.ITransformer;
 import org.metaborg.spoofax.eclipse.SpoofaxPlugin;
@@ -21,6 +22,7 @@ import com.google.inject.TypeLiteral;
 public class TransformHandler extends AbstractHandler {
     private final IEclipseResourceService resourceService;
     private final ILanguageIdentifierService langaugeIdentifierService;
+    private final IContextService contextService;
     private final ITransformer<IStrategoTerm, IStrategoTerm, IStrategoTerm> transformer;
 
     private final ParseResultProcessor parseResultProcessor;
@@ -30,12 +32,11 @@ public class TransformHandler extends AbstractHandler {
 
 
     public TransformHandler() {
-        super();
-
         final Injector injector = SpoofaxPlugin.injector();
 
         this.resourceService = injector.getInstance(IEclipseResourceService.class);
         this.langaugeIdentifierService = injector.getInstance(ILanguageIdentifierService.class);
+        this.contextService = injector.getInstance(IContextService.class);
         this.transformer =
             injector.getInstance(Key
                 .get(new TypeLiteral<ITransformer<IStrategoTerm, IStrategoTerm, IStrategoTerm>>() {}));
@@ -51,8 +52,8 @@ public class TransformHandler extends AbstractHandler {
         final SpoofaxEditor latestEditor = latestEditorListener.latestActive();
         final String actionName = event.getParameter(TransformMenuContribution.actionNameParam);
         final Job transformJob =
-            new TransformJob(resourceService, langaugeIdentifierService, transformer, parseResultProcessor,
-                analysisResultProcessor, latestEditor, actionName);
+            new TransformJob(resourceService, langaugeIdentifierService, contextService, transformer,
+                parseResultProcessor, analysisResultProcessor, latestEditor, actionName);
         transformJob.schedule();
 
         return null;

@@ -210,9 +210,9 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
                 final IToken left = ImploderAttachment.getLeftToken(node);
                 final IToken right = ImploderAttachment.getRightToken(node);
                 final ISourceRegion region = JSGLRSourceRegionFactory.fromTokens(left, right);
-                result.add(MessageFactory.newAnalysisMessage(file, region, message, severity));
+                result.add(MessageFactory.newAnalysisMessage(file, region, message, severity, null));
             } else {
-                result.add(MessageFactory.newAnalysisMessageAtTop(file, message, severity));
+                result.add(MessageFactory.newAnalysisMessageAtTop(file, message, severity, null));
             }
         }
 

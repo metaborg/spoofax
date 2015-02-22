@@ -15,7 +15,9 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
 import org.metaborg.spoofax.core.analysis.AnalysisFileResult;
-import org.metaborg.spoofax.core.context.SpoofaxContext;
+import org.metaborg.spoofax.core.context.ContextException;
+import org.metaborg.spoofax.core.context.IContext;
+import org.metaborg.spoofax.core.context.IContextService;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
 import org.metaborg.spoofax.core.syntax.ParseResult;
@@ -28,7 +30,6 @@ import org.metaborg.spoofax.eclipse.editor.SpoofaxEditor;
 import org.metaborg.spoofax.eclipse.processing.AnalysisResultProcessor;
 import org.metaborg.spoofax.eclipse.processing.ParseResultProcessor;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
-import org.metaborg.spoofax.eclipse.util.ResourceUtils;
 import org.metaborg.spoofax.eclipse.util.StatusUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +40,7 @@ public class TransformJob extends Job {
 
     private final IEclipseResourceService resourceService;
     private final ILanguageIdentifierService langaugeIdentifierService;
+    private final IContextService contextService;
     private final ITransformer<IStrategoTerm, IStrategoTerm, IStrategoTerm> transformer;
 
     private final ParseResultProcessor parseResultProcessor;
@@ -49,18 +51,19 @@ public class TransformJob extends Job {
 
 
     public TransformJob(IEclipseResourceService resourceService, ILanguageIdentifierService langaugeIdentifierService,
-        ITransformer<IStrategoTerm, IStrategoTerm, IStrategoTerm> transformer,
+        IContextService contextService, ITransformer<IStrategoTerm, IStrategoTerm, IStrategoTerm> transformer,
         ParseResultProcessor parseResultProcessor, AnalysisResultProcessor analysisResultProcessor,
         SpoofaxEditor editor, String actionName) {
         super("Transforming file");
 
         this.resourceService = resourceService;
         this.langaugeIdentifierService = langaugeIdentifierService;
+        this.contextService = contextService;
+        this.transformer = transformer;
 
         this.parseResultProcessor = parseResultProcessor;
         this.analysisResultProcessor = analysisResultProcessor;
 
-        this.transformer = transformer;
         this.editor = editor;
         this.actionName = actionName;
     }
@@ -68,24 +71,25 @@ public class TransformJob extends Job {
 
     @Override protected IStatus run(IProgressMonitor monitor) {
         final IEditorInput input = editor.getEditorInput();
+        final String text = editor.currentDocument().get();
         final FileObject resource = resourceService.resolve(input);
 
         if(resource == null) {
-            final String message = String.format("Cannot transform, input %s cannot be resolved", input);
+            final String message = String.format("Cannot transform, input % cannot be resolved", input);
             logger.error(message);
             return StatusUtils.error(message);
         }
 
         final ILanguage language = langaugeIdentifierService.identify(resource);
         if(language == null) {
-            final String message = String.format("Cannot transform, language of %s cannot be identified", resource);
+            final String message = String.format("Cannot transform, language of % cannot be identified", resource);
             logger.error(message);
             return StatusUtils.error(message);
         }
 
         final MenusFacet facet = language.facet(MenusFacet.class);
         if(facet == null) {
-            final String message = String.format("Cannot transform, %s does not have a menus facet", language);
+            final String message = String.format("Cannot transform, % does not have a menus facet", language);
             logger.error(message);
             return StatusUtils.error(message);
         }
@@ -93,31 +97,26 @@ public class TransformJob extends Job {
         final Action action = facet.action(actionName);
         if(action == null) {
             final String message =
-                String.format("Cannot transform, %s does not have an action named %s", language, actionName);
+                String.format("Cannot transform, % does not have an action named %", language, actionName);
             logger.error(message);
             return StatusUtils.error(message);
         }
 
         try {
-            // GTODO: location is required for creating the context, but context creation should be abstracted out.
-            final IResource eclipseResource = resourceService.unresolve(resource);
-            final IResource eclipseLocation = ResourceUtils.getProjectDirectory(eclipseResource);
-            final FileObject location = resourceService.resolve(eclipseLocation);
-            final String text = editor.currentDocument().get();
-            return transform(monitor, language, action, resource, location, text);
-        } catch(IOException e) {
-            final String message = "Transformation failed";
+            return transform(monitor, resource, language, action, text);
+        } catch(IOException | ContextException e) {
+            final String message = String.format("Transformation failed for %", resource);
             logger.error(message, e);
             return StatusUtils.error(message, e);
         }
     }
 
-    private IStatus transform(IProgressMonitor monitor, ILanguage language, Action action, FileObject resource,
-        FileObject location, String text) throws IOException {
+    private IStatus transform(IProgressMonitor monitor, FileObject resource, ILanguage language, Action action,
+        String text) throws IOException, ContextException {
         if(monitor.isCanceled())
             return StatusUtils.cancel();
 
-        final SpoofaxContext context = new SpoofaxContext(language, location);
+        final IContext context = contextService.get(resource, language);
         final TransformResult<?, IStrategoTerm> transformResult;
         if(action.flags.parsed) {
             final ParseResult<IStrategoTerm> result =

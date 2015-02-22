@@ -26,8 +26,9 @@ import org.metaborg.spoofax.core.analysis.AnalysisException;
 import org.metaborg.spoofax.core.analysis.AnalysisFileResult;
 import org.metaborg.spoofax.core.analysis.AnalysisResult;
 import org.metaborg.spoofax.core.analysis.IAnalysisService;
+import org.metaborg.spoofax.core.context.ContextException;
 import org.metaborg.spoofax.core.context.IContext;
-import org.metaborg.spoofax.core.context.SpoofaxContext;
+import org.metaborg.spoofax.core.context.IContextService;
 import org.metaborg.spoofax.core.language.AllLanguagesFileSelector;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
@@ -53,8 +54,8 @@ import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -69,6 +70,7 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
 
     private final IEclipseResourceService resourceService;
     private final ILanguageIdentifierService languageIdentifier;
+    private final IContextService contextService;
     private final ISourceTextService sourceTextService;
     private final ISyntaxService<IStrategoTerm> syntaxService;
     private final ITermFactoryService termFactoryService;
@@ -82,6 +84,7 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
         final Injector injector = SpoofaxPlugin.injector();
         this.resourceService = injector.getInstance(IEclipseResourceService.class);
         this.languageIdentifier = injector.getInstance(ILanguageIdentifierService.class);
+        this.contextService = injector.getInstance(IContextService.class);
         this.sourceTextService = injector.getInstance(ISourceTextService.class);
         this.syntaxService = injector.getInstance(Key.get(new TypeLiteral<ISyntaxService<IStrategoTerm>>() {}));
         this.termFactoryService = injector.getInstance(ITermFactoryService.class);
@@ -197,30 +200,20 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
     }
 
     private void build(final IProject project, Iterable<IResourceChange> changes) throws CoreException {
-        if(Iterables.isEmpty(changes))
+        final int numChanges = Iterables.size(changes);
+        if(numChanges == 0)
             return;
 
         final FileObject projectResource = resourceService.resolve(project);
         final Set<IResource> changedResources = Sets.newHashSet();
         final Collection<IMessage> extraMessages = Lists.newLinkedList();
 
-        final Multimap<ILanguage, IResourceChange> changesPerLang = LinkedHashMultimap.create();
-        for(IResourceChange change : changes) {
-            final ILanguage language = languageIdentifier.identify(change.resource());
-            if(language != null) {
-                changesPerLang.put(language, change);
-            }
-        }
-        final int numLangs = changesPerLang.keySet().size();
-        final int numResources = changesPerLang.values().size();
-
         // Parse
-        final Multimap<ILanguage, ParseResult<IStrategoTerm>> allParseResults =
-            LinkedHashMultimap.create(numLangs, numResources / numLangs);
-        for(Entry<ILanguage, IResourceChange> entry : changesPerLang.entries()) {
-            final ILanguage language = entry.getKey();
-            final FileObject resource = entry.getValue().resource();
-            final ResourceChangeKind changeKind = entry.getValue().kind();
+        final Collection<ParseResult<IStrategoTerm>> allParseResults = Lists.newArrayListWithCapacity(numChanges);
+        for(IResourceChange change : changes) {
+            final FileObject resource = change.resource();
+            final ILanguage language = languageIdentifier.identify(resource);
+            final ResourceChangeKind changeKind = change.kind();
 
             try {
                 final ParseResult<IStrategoTerm> parseResult;
@@ -247,36 +240,54 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
                     changedResources.add(resourceService.unresolve(resource));
                 }
 
-                allParseResults.put(language, parseResult);
+                allParseResults.add(parseResult);
             } catch(ParseException e) {
+                final String message = String.format("Parsing failed for %", resource);
+                logger.error(message, e);
                 parseResultProcessor.error(resource, e);
-                extraMessages.add(MessageFactory.newParseErrorAtTop(resource, "Parsing failed: " + e.getMessage()));
+                extraMessages.add(MessageFactory.newParseErrorAtTop(resource, "Parsing failed", e));
             } catch(IOException e) {
+                final String message = String.format("Parsing failed for %", resource);
+                logger.error(message, e);
                 parseResultProcessor.error(resource, new ParseException(resource, language, e));
-                extraMessages.add(MessageFactory.newParseErrorAtTop(resource, "Parsing failed: " + e.getMessage()));
+                extraMessages.add(MessageFactory.newParseErrorAtTop(resource, "Parsing failed", e));
+            }
+        }
+
+        // Segregate by context
+        final Multimap<IContext, ParseResult<IStrategoTerm>> allParseResultsPerContext = ArrayListMultimap.create();
+        for(ParseResult<IStrategoTerm> parseResult : allParseResults) {
+            final FileObject resource = parseResult.source;
+            try {
+                final IContext context = contextService.get(resource, parseResult.parsedWith);
+                allParseResultsPerContext.put(context, parseResult);
+            } catch(ContextException e) {
+                final String message = String.format("Could not retrieve context for %", resource);
+                logger.error(message, e);
+                extraMessages.add(MessageFactory.newAnalysisErrorAtTop(resource, "Could not retrieve context", e));
             }
         }
 
         // Analyze
-        final Multimap<ILanguage, AnalysisResult<IStrategoTerm, IStrategoTerm>> allAnalysisResults =
-            LinkedHashMultimap.create(numLangs, numResources / numLangs);
-        for(Entry<ILanguage, Collection<ParseResult<IStrategoTerm>>> entry : allParseResults.asMap().entrySet()) {
-            final ILanguage language = entry.getKey();
+        final Collection<AnalysisResult<IStrategoTerm, IStrategoTerm>> allAnalysisResults =
+            Lists.newArrayListWithCapacity(allParseResultsPerContext.keySet().size());
+        for(Entry<IContext, Collection<ParseResult<IStrategoTerm>>> entry : allParseResultsPerContext.asMap()
+            .entrySet()) {
+            final IContext context = entry.getKey();
             final Iterable<ParseResult<IStrategoTerm>> parseResults = entry.getValue();
 
-            // GTODO: create only one context per language.
-            final IContext context = new SpoofaxContext(language, projectResource);
-
             try {
-                analysisResultProcessor.invalidate(parseResults);
-                final AnalysisResult<IStrategoTerm, IStrategoTerm> analysisResult =
-                    analyzer.analyze(parseResults, context);
-                analysisResultProcessor.update(analysisResult);
-                allAnalysisResults.put(language, analysisResult);
+                synchronized(context) {
+                    analysisResultProcessor.invalidate(parseResults);
+                    final AnalysisResult<IStrategoTerm, IStrategoTerm> analysisResult =
+                        analyzer.analyze(parseResults, context);
+                    analysisResultProcessor.update(analysisResult);
+                    allAnalysisResults.add(analysisResult);
+                }
             } catch(AnalysisException e) {
+                logger.error("Analysis failed", e);
                 analysisResultProcessor.error(parseResults, e);
-                extraMessages.add(MessageFactory.newAnalysisErrorAtTop(projectResource,
-                    "Analysis failed: " + e.getMessage()));
+                extraMessages.add(MessageFactory.newAnalysisErrorAtTop(projectResource, "Analysis failed", e));
             }
         }
 
@@ -288,7 +299,7 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
                     MarkerUtils.clearAll(resource);
                 }
 
-                for(ParseResult<IStrategoTerm> result : allParseResults.values()) {
+                for(ParseResult<IStrategoTerm> result : allParseResults) {
                     for(IMessage message : result.messages) {
                         final IResource resource = resourceService.unresolve(message.source());
                         if(resource == null) {
@@ -299,7 +310,7 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
                     }
                 }
 
-                for(AnalysisResult<IStrategoTerm, IStrategoTerm> result : allAnalysisResults.values()) {
+                for(AnalysisResult<IStrategoTerm, IStrategoTerm> result : allAnalysisResults) {
                     for(AnalysisFileResult<IStrategoTerm, IStrategoTerm> fileResult : result.fileResults) {
                         for(IMessage message : fileResult.messages()) {
                             final IResource resource = resourceService.unresolve(message.source());
