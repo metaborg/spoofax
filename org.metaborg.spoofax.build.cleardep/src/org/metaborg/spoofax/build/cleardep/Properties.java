@@ -6,18 +6,11 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.strategoxt.imp.metatooling.JarsAntPropertyProvider;
-import org.strategoxt.imp.metatooling.NativePrefixAntPropertyProvider;
-import org.strategoxt.imp.metatooling.PluginClasspathProvider;
-import org.strategoxt.imp.metatooling.StrategoJarAntPropertyProvider;
-import org.strategoxt.imp.metatooling.StrategoMinJarAntPropertyProvider;
-import org.sugarj.common.path.Path;
-
 public class Properties {
 	private Map<String, String> props;
 	
-	public Properties(Map<String, String> props) {
-		this.props = props;
+	public Properties() {
+		this.props = new HashMap<String, String>();
 	}
 	
 	public String substitute(String in) {
@@ -60,45 +53,5 @@ public class Properties {
 	
 	public boolean isDefined(String key) {
 		return props.containsKey(key);
-	}
-	
-	public static Properties makeSpoofaxProperties(String lang, Path[] sdfImports, String baseDir) {
-		Properties props = new Properties(new HashMap<String, String>());
-
-		props.put("basedir", baseDir);
-		props.put("sdfmodule", lang);
-		props.put("metasdfmodule", "Stratego-" + lang);
-		props.put("esvmodule", lang);
-		props.put("strmodule", lang.toLowerCase());
-		props.put("ppmodule", lang + "-pp");
-		props.put("sigmodule", lang + "-sig");
-
-		props.put("trans", "trans");
-		props.put("src-gen", "editor/java");
-		props.put("syntax", "src-gen/syntax");
-		props.put("include", "include");
-		props.put("lib", "lib");
-		props.put("build", "target/classes");
-		props.put("dist", "bin/dist");
-		props.put("pp", "src-gen/pp");
-		props.put("signatures", "src-gen/signatures");
-		props.put("completions", "src-gen/completions");
-		props.put("sdf-src-gen", "src-gen");
-		props.put("lib-gen", "include");
-		
-		if (sdfImports != null) {
-			StringBuilder importString = new StringBuilder();
-			for (Path imp : sdfImports)
-				importString.append("-Idef " + props.substitute(imp.getAbsolutePath()));
-			props.put("build.sdf.imports", importString.toString());
-		}
-		
-		props.put("eclipse.spoofaximp.nativeprefix", new NativePrefixAntPropertyProvider().getAntPropertyValue(null));
-		props.put("eclipse.spoofaximp.strategojar", new StrategoJarAntPropertyProvider().getAntPropertyValue(null));
-		props.put("eclipse.spoofaximp.strategominjar", new StrategoMinJarAntPropertyProvider().getAntPropertyValue(null));
-		props.put("eclipse.spoofaximp.jars", new JarsAntPropertyProvider().getAntPropertyValue(null));
-		props.put("externaljarx", new PluginClasspathProvider().getAntPropertyValue(null));
-
-		return props;
 	}
 }

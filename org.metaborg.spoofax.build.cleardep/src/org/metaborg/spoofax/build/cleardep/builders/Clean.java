@@ -2,36 +2,35 @@ package org.metaborg.spoofax.build.cleardep.builders;
 
 import java.io.IOException;
 
-import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
+import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
+import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.metaborg.spoofax.build.cleardep.util.FileExtensionFilter;
 import org.metaborg.spoofax.build.cleardep.util.FileNameFilter;
 import org.sugarj.cleardep.SimpleCompilationUnit;
-import org.sugarj.cleardep.build.Builder;
-import org.sugarj.cleardep.build.BuilderFactory;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.Log;
 import org.sugarj.common.path.Path;
 
-public class Clean extends Builder<SpoofaxBuildContext, Void, SimpleCompilationUnit> {
+public class Clean extends SpoofaxBuilder<SpoofaxInput> {
 
-	public static BuilderFactory<SpoofaxBuildContext, Void, SimpleCompilationUnit, Clean> factory = new BuilderFactory<SpoofaxBuildContext, Void, SimpleCompilationUnit, Clean>() {
+	public static SpoofaxBuilderFactory<SpoofaxInput, Clean> factory = new SpoofaxBuilderFactory<SpoofaxInput, Clean>() {
 		@Override
-		public Clean makeBuilder(SpoofaxBuildContext context) { return new Clean(context); }
+		public Clean makeBuilder(SpoofaxInput input) { return new Clean(input); }
 	};
 	
-	public Clean(SpoofaxBuildContext context) {
-		super(context);
+	public Clean(SpoofaxInput input) {
+		super(input);
 	}
 
 	@Override
-	protected String taskDescription(Void input) {
+	protected String taskDescription() {
 		return "Clean";
 	}
 	
 	@Override
-	protected Path persistentPath(Void input) {
+	protected Path persistentPath() {
 		return context.depPath("clean.dep");
 	}
 
@@ -44,7 +43,7 @@ public class Clean extends Builder<SpoofaxBuildContext, Void, SimpleCompilationU
 	public Stamper defaultStamper() { return LastModifiedStamper.instance; }
 
 	@Override
-	public void build(SimpleCompilationUnit result, Void input) throws IOException {
+	public void build(SimpleCompilationUnit result) throws IOException {
 		String[] paths = {
 				".cache",
 				"${include}/${sdfmodule}.def",

@@ -4,48 +4,48 @@ import java.io.IOException;
 import java.util.regex.Pattern;
 
 import org.metaborg.spoofax.build.cleardep.LoggingFilteringIOAgent;
-import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
+import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
+import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
+import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
 import org.strategoxt.tools.main_sdf2rtg_0_0;
 import org.sugarj.cleardep.CompilationUnit.State;
-import org.sugarj.cleardep.CompilationUnit;
 import org.sugarj.cleardep.SimpleCompilationUnit;
 import org.sugarj.cleardep.SimpleMode;
-import org.sugarj.cleardep.build.Builder;
-import org.sugarj.cleardep.build.BuilderFactory;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
-public class Sdf2Rtg extends Builder<SpoofaxBuildContext, Sdf2Rtg.Input, SimpleCompilationUnit> {
+public class Sdf2Rtg extends SpoofaxBuilder<Sdf2Rtg.Input> {
 
-	public static BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, Sdf2Rtg> factory = new BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, Sdf2Rtg>() {
+	public static SpoofaxBuilderFactory<Input, Sdf2Rtg> factory = new SpoofaxBuilderFactory<Input, Sdf2Rtg>() {
 		@Override
-		public Sdf2Rtg makeBuilder(SpoofaxBuildContext context) { return new Sdf2Rtg(context); }
+		public Sdf2Rtg makeBuilder(Input input) { return new Sdf2Rtg(input); }
 	};
 	
-	public static class Input {
+	public static class Input extends SpoofaxInput {
 		public final String sdfmodule;
 		public final String buildSdfImports;
-		public Input(String sdfmodule, String buildSdfImports) {
+		public Input(SpoofaxContext context, String sdfmodule, String buildSdfImports) {
+			super(context);
 			this.sdfmodule = sdfmodule;
 			this.buildSdfImports = buildSdfImports;
 		}
 	}
 	
-	public Sdf2Rtg(SpoofaxBuildContext context) {
-		super(context);
+	public Sdf2Rtg(Input input) {
+		super(input);
 	}
 
 	@Override
-	protected String taskDescription(Input input) {
+	protected String taskDescription() {
 		return "Extract constructor signatures from grammar";
 	}
 	
 	@Override
-	protected Path persistentPath(Input input) {
+	protected Path persistentPath() {
 		return context.depPath("sdf2Rtg." + input.sdfmodule + ".dep");
 	}
 
@@ -58,11 +58,9 @@ public class Sdf2Rtg extends Builder<SpoofaxBuildContext, Sdf2Rtg.Input, SimpleC
 	public Stamper defaultStamper() { return LastModifiedStamper.instance; }
 
 	@Override
-	public void build(SimpleCompilationUnit result, Input input) throws IOException {
+	public void build(SimpleCompilationUnit result) throws IOException {
 		// This dependency was discovered by cleardep, due to an implicit dependency on 'org.strategoxt.imp.editors.template/include/TemplateLang.def'.
-		CompilationUnit packSdf = context.packSdf.require(new PackSdf.Input(input.sdfmodule, input.buildSdfImports), new SimpleMode());
-		result.addModuleDependency(packSdf);
-
+		require(PackSdf.factory, new PackSdf.Input(context, input.sdfmodule, input.buildSdfImports), new SimpleMode());
 		
 		RelativePath inputPath = context.basePath("${include}/" + input.sdfmodule + ".def");
 		RelativePath outputPath = context.basePath("${include}/" + input.sdfmodule + ".rtg");

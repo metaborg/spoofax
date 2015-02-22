@@ -3,48 +3,48 @@ package org.metaborg.spoofax.build.cleardep.builders;
 import java.io.IOException;
 
 import org.metaborg.spoofax.build.cleardep.LoggingFilteringIOAgent;
-import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
+import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
+import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
+import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
 import org.strategoxt.tools.main_rtg2sig_0_0;
 import org.sugarj.cleardep.CompilationUnit.State;
-import org.sugarj.cleardep.CompilationUnit;
 import org.sugarj.cleardep.SimpleCompilationUnit;
 import org.sugarj.cleardep.SimpleMode;
-import org.sugarj.cleardep.build.Builder;
-import org.sugarj.cleardep.build.BuilderFactory;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
-public class Rtg2Sig extends Builder<SpoofaxBuildContext, Rtg2Sig.Input, SimpleCompilationUnit> {
+public class Rtg2Sig extends SpoofaxBuilder<Rtg2Sig.Input> {
 
-	public static BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, Rtg2Sig> factory = new BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, Rtg2Sig>() {
+	public static SpoofaxBuilderFactory<Input, Rtg2Sig> factory = new SpoofaxBuilderFactory<Input, Rtg2Sig>() {
 		@Override
-		public Rtg2Sig makeBuilder(SpoofaxBuildContext context) { return new Rtg2Sig(context); }
+		public Rtg2Sig makeBuilder(Input input) { return new Rtg2Sig(input); }
 	};
 	
-	public static class Input {
+	public static class Input extends SpoofaxInput {
 		public final String sdfmodule;
 		public final String buildSdfImports;
-		public Input(String sdfmodule, String buildSdfImports) {
+		public Input(SpoofaxContext context, String sdfmodule, String buildSdfImports) {
+			super(context);
 			this.sdfmodule = sdfmodule;
 			this.buildSdfImports = buildSdfImports;
 		}
 	}
 	
-	public Rtg2Sig(SpoofaxBuildContext context) {
-		super(context);
+	public Rtg2Sig(Input input) {
+		super(input);
 	}
 
 	@Override
-	protected String taskDescription(Input input) {
+	protected String taskDescription() {
 		return "Generate Stratego signatures for grammar constructors";
 	}
 	
 	@Override
-	protected Path persistentPath(Input input) {
+	protected Path persistentPath() {
 		return context.depPath("rtg2Sig." + input.sdfmodule + ".dep");
 	}
 
@@ -57,12 +57,11 @@ public class Rtg2Sig extends Builder<SpoofaxBuildContext, Rtg2Sig.Input, SimpleC
 	public Stamper defaultStamper() { return LastModifiedStamper.instance; }
 
 	@Override
-	public void build(SimpleCompilationUnit result, Input input) throws IOException {
+	public void build(SimpleCompilationUnit result) throws IOException {
 		
 		if (context.isBuildStrategoEnabled(result)) {
 			// This dependency was discovered by cleardep, due to an implicit dependency on 'org.strategoxt.imp.editors.template/include/TemplateLang.rtg'.
-			CompilationUnit sdf2Rtg = context.sdf2Rtg.require(new Sdf2Rtg.Input(input.sdfmodule, input.buildSdfImports), new SimpleMode());
-			result.addModuleDependency(sdf2Rtg);
+			require(Sdf2Rtg.factory, new Sdf2Rtg.Input(context, input.sdfmodule, input.buildSdfImports), new SimpleMode());
 
 			RelativePath inputPath = context.basePath("${include}/" + input.sdfmodule + ".rtg");
 			RelativePath outputPath = context.basePath("${include}/" + input.sdfmodule + ".str");

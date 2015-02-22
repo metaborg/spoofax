@@ -3,42 +3,43 @@ package org.metaborg.spoofax.build.cleardep.builders;
 import java.io.IOException;
 import java.nio.file.StandardCopyOption;
 
-import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
+import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
+import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
+import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.sugarj.cleardep.SimpleCompilationUnit;
-import org.sugarj.cleardep.build.Builder;
-import org.sugarj.cleardep.build.BuilderFactory;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.Path;
 
-public class CopySdf extends Builder<SpoofaxBuildContext, CopySdf.Input, SimpleCompilationUnit> {
+public class CopySdf extends SpoofaxBuilder<CopySdf.Input> {
 
-	public static BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, CopySdf> factory = new BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, CopySdf>() {
+	public static SpoofaxBuilderFactory<Input, CopySdf> factory = new SpoofaxBuilderFactory<Input, CopySdf>() {
 		@Override
-		public CopySdf makeBuilder(SpoofaxBuildContext context) { return new CopySdf(context); }
+		public CopySdf makeBuilder(Input input) { return new CopySdf(input); }
 	};
 	
-	public static class Input {
+	public static class Input extends SpoofaxInput {
 		public final String sdfmodule;
 		public final Path externaldef;
-		public Input(String sdfmodule, Path externaldef) {
+		public Input(SpoofaxContext context, String sdfmodule, Path externaldef) {
+			super(context);
 			this.sdfmodule = sdfmodule;
 			this.externaldef = externaldef;
 		}
 	}
 	
-	public CopySdf(SpoofaxBuildContext context) {
-		super(context);
+	public CopySdf(Input input) {
+		super(input);
 	}
 
 	@Override
-	protected String taskDescription(Input input) {
+	protected String taskDescription() {
 		return "Copy external grammar definition.";
 	}
 	
 	@Override
-	public Path persistentPath(Input input) {
+	public Path persistentPath() {
 		if (input.externaldef != null)
 			return context.depPath("copySdf." + input.externaldef + "." + input.sdfmodule + ".dep");
 		return context.depPath("copySdf." + input.sdfmodule + ".dep");
@@ -53,7 +54,7 @@ public class CopySdf extends Builder<SpoofaxBuildContext, CopySdf.Input, SimpleC
 	public Stamper defaultStamper() { return LastModifiedStamper.instance; }
 
 	@Override
-	public void build(SimpleCompilationUnit result, Input input) throws IOException {
+	public void build(SimpleCompilationUnit result) throws IOException {
 		if (input.externaldef != null) {
 			Path target = context.basePath("${include}/" + input.sdfmodule + ".def");
 			result.addExternalFileDependency(input.externaldef);
