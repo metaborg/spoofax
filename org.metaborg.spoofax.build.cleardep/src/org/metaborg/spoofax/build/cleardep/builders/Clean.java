@@ -2,42 +2,36 @@ package org.metaborg.spoofax.build.cleardep.builders;
 
 import java.io.IOException;
 
-import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
+import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
+import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.metaborg.spoofax.build.cleardep.util.FileExtensionFilter;
 import org.metaborg.spoofax.build.cleardep.util.FileNameFilter;
 import org.sugarj.cleardep.SimpleCompilationUnit;
-import org.sugarj.cleardep.build.Builder;
-import org.sugarj.cleardep.build.BuilderFactory;
-import org.sugarj.cleardep.build.EmptyBuildInput;
+import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.Log;
 import org.sugarj.common.path.Path;
 
-public class Clean extends Builder<SpoofaxBuildContext, EmptyBuildInput, SimpleCompilationUnit> {
+public class Clean extends SpoofaxBuilder<SpoofaxInput> {
 
-	public static BuilderFactory<SpoofaxBuildContext, EmptyBuildInput, SimpleCompilationUnit, Clean> factory = new BuilderFactory<SpoofaxBuildContext, EmptyBuildInput, SimpleCompilationUnit, Clean>() {
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = -9219533556010857871L;
-
+	public static SpoofaxBuilderFactory<SpoofaxInput, Clean> factory = new SpoofaxBuilderFactory<SpoofaxInput, Clean>() {
 		@Override
-		public Clean makeBuilder(SpoofaxBuildContext context) { return new Clean(context); }
+		public Clean makeBuilder(SpoofaxInput input, BuildManager manager) { return new Clean(input, manager); }
 	};
 	
-	private Clean(SpoofaxBuildContext context) {
-		super(context, factory);
+	public Clean(SpoofaxInput input, BuildManager manager) {
+		super(input, factory, manager);
 	}
 
 	@Override
-	protected String taskDescription(EmptyBuildInput input) {
+	protected String taskDescription() {
 		return "Clean";
 	}
 	
 	@Override
-	protected Path persistentPath(EmptyBuildInput input) {
+	protected Path persistentPath() {
 		return context.depPath("clean.dep");
 	}
 
@@ -50,7 +44,7 @@ public class Clean extends Builder<SpoofaxBuildContext, EmptyBuildInput, SimpleC
 	public Stamper defaultStamper() { return LastModifiedStamper.instance; }
 
 	@Override
-	public void build(SimpleCompilationUnit result, EmptyBuildInput input) throws IOException {
+	public void build(SimpleCompilationUnit result) throws IOException {
 		String[] paths = {
 				".cache",
 				"${include}/${sdfmodule}.def",

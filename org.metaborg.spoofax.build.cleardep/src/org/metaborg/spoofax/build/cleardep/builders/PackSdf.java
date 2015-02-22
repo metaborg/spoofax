@@ -8,17 +8,17 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import org.metaborg.spoofax.build.cleardep.LoggingFilteringIOAgent;
-import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
+import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
+import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
+import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
 import org.metaborg.spoofax.build.cleardep.util.FileExtensionFilter;
 import org.strategoxt.tools.main_pack_sdf_0_0;
-import org.sugarj.cleardep.CompilationUnit;
 import org.sugarj.cleardep.CompilationUnit.State;
 import org.sugarj.cleardep.SimpleCompilationUnit;
 import org.sugarj.cleardep.SimpleMode;
-import org.sugarj.cleardep.build.Builder;
-import org.sugarj.cleardep.build.BuilderFactory;
+import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.FileCommands;
@@ -26,45 +26,48 @@ import org.sugarj.common.path.AbsolutePath;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
-public class PackSdf extends Builder<SpoofaxBuildContext, PackSdf.Input, SimpleCompilationUnit> {
-	public static BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, PackSdf> factory = new BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, PackSdf>() {
+public class PackSdf extends SpoofaxBuilder<PackSdf.Input> {
+	
+	public static SpoofaxBuilderFactory<Input, PackSdf> factory = new SpoofaxBuilderFactory<Input, PackSdf>() {
 		/**
 		 * 
 		 */
-		private static final long serialVersionUID = -322612714034581242L;
+		private static final long serialVersionUID = -8067075652024253743L;
 
 		@Override
-		public PackSdf makeBuilder(SpoofaxBuildContext context) { return new PackSdf(context); }
+		public PackSdf makeBuilder(Input input, BuildManager manager) { return new PackSdf(input, manager); }
 	};
-	
-	public static class Input implements Serializable{
+
+	public static class Input extends SpoofaxInput {
 		/**
 		 * 
 		 */
-		private static final long serialVersionUID = 5393955045464990069L;
+		private static final long serialVersionUID = 2058684747897720328L;
 		public final String sdfmodule;
 		public final String buildSdfImports;
-		public Input(SpoofaxBuildContext context) {
+		public Input(SpoofaxContext context) {
+			super(context);
 			this.sdfmodule = context.props.get("sdfmodule");
 			this.buildSdfImports = context.props.get("build.sdf.imports");
 		}
-		public Input(String sdfmodule, String buildSdfImports) {
+		public Input(SpoofaxContext context, String sdfmodule, String buildSdfImports) {
+			super(context);
 			this.sdfmodule = sdfmodule;
 			this.buildSdfImports = buildSdfImports;
 		}
 	}
 	
-	private PackSdf(SpoofaxBuildContext context) {
-		super(context, factory);
+	public PackSdf(Input input, BuildManager manager) {
+		super(input, factory, manager);
 	}
 	
 	@Override
-	protected String taskDescription(Input input) {
+	protected String taskDescription() {
 		return "Pack SDF modules";
 	}
 	
 	@Override
-	protected Path persistentPath(Input input) {
+	protected Path persistentPath() {
 		return context.depPath("packSdf." + input.sdfmodule + ".dep");
 	}
 
@@ -78,10 +81,9 @@ public class PackSdf extends Builder<SpoofaxBuildContext, PackSdf.Input, SimpleC
 
 	
 	@Override
-	public void build(SimpleCompilationUnit result, Input input) throws IOException {
+	public void build(SimpleCompilationUnit result) throws IOException {
 		// This dependency was discovered by cleardep, due to an implicit dependency on 'org.strategoxt.imp.editors.template/src-gen/syntax/TemplateLang.sdf'.
-		CompilationUnit forceOnSave = context.forceOnSave.require(null, new SimpleMode());
-		result.addModuleDependency(forceOnSave);
+		require(ForceOnSave.factory, input, new SimpleMode());
 		
 		copySdf2(result);
 		

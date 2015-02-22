@@ -2,15 +2,14 @@ package org.metaborg.spoofax.build.cleardep.builders;
 
 import java.io.IOException;
 
-import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
+import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
+import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.strategoxt.imp.metatooling.building.AntForceRefreshScheduler;
 import org.strategoxt.imp.metatooling.loading.AntDescriptorLoader;
-import org.sugarj.cleardep.CompilationUnit;
 import org.sugarj.cleardep.SimpleCompilationUnit;
 import org.sugarj.cleardep.SimpleMode;
-import org.sugarj.cleardep.build.Builder;
-import org.sugarj.cleardep.build.BuilderFactory;
-import org.sugarj.cleardep.build.EmptyBuildInput;
+import org.sugarj.cleardep.build.BuildManager;
+import org.sugarj.cleardep.build.BuildRequirement;
 import org.sugarj.cleardep.buildjava.JavaJar;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
@@ -20,29 +19,25 @@ import org.sugarj.common.path.AbsolutePath;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
-public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, EmptyBuildInput, SimpleCompilationUnit> {
+public class SpoofaxDefaultCtree extends SpoofaxBuilder<SpoofaxInput> {
 
-	public static BuilderFactory<SpoofaxBuildContext, EmptyBuildInput, SimpleCompilationUnit, SpoofaxDefaultCtree> factory = new BuilderFactory<SpoofaxBuildContext, EmptyBuildInput, SimpleCompilationUnit, SpoofaxDefaultCtree>() {
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 9103600927076616924L;
-
+	public static SpoofaxBuilderFactory<SpoofaxInput, SpoofaxDefaultCtree> factory = new SpoofaxBuilderFactory<SpoofaxInput, SpoofaxDefaultCtree>() {
 		@Override
-		public SpoofaxDefaultCtree makeBuilder(SpoofaxBuildContext context) { return new SpoofaxDefaultCtree(context); }
+		public SpoofaxDefaultCtree makeBuilder(SpoofaxInput input, BuildManager manager) { return new SpoofaxDefaultCtree(input, manager); }
 	};
 	
-	private SpoofaxDefaultCtree(SpoofaxBuildContext context) {
-		super(context, factory);
+
+	public SpoofaxDefaultCtree(SpoofaxInput input, BuildManager manager) {
+		super(input, factory, manager);
 	}
 	
 	@Override
-	protected String taskDescription(EmptyBuildInput input) {
+	protected String taskDescription() {
 		return null;
 	}
 
 	@Override
-	protected Path persistentPath(EmptyBuildInput input) {
+	protected Path persistentPath() {
 		return context.depPath("spoofaxDefault.dep");
 	}
 	
@@ -55,8 +50,7 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, EmptyBuild
 	public Stamper defaultStamper() { return LastModifiedStamper.instance; }
 
 	@Override
-	public void build(SimpleCompilationUnit result, EmptyBuildInput input) throws IOException {
-		checkClassPath();
+	public void build(SimpleCompilationUnit result) throws IOException {
 		String sdfmodule = context.props.getOrFail("sdfmodule");
 		String strmodule = context.props.getOrFail("strmodule");
 		String esvmodule = context.props.getOrFail("esvmodule");
@@ -69,43 +63,37 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, EmptyBuild
 		try {
 			checkClassPath();
 			
-			CompilationUnit sdf2Table = context.sdf2Table.require(new Sdf2Table.Input(sdfmodule, buildSdfImports, externaldef), new SimpleMode());
-			result.addModuleDependency(sdf2Table);
-			
-			CompilationUnit metaSdf2Table = context.metaSdf2Table.require(new MetaSdf2Table.Input(metasdfmodule, buildSdfImports, externaldef), new SimpleMode());
-			result.addModuleDependency(metaSdf2Table);
-			
-			CompilationUnit ppGen = context.ppGen.require(null, new SimpleMode());
-			result.addModuleDependency(ppGen);
+			require(Sdf2Table.factory, new Sdf2Table.Input(context, sdfmodule, buildSdfImports, externaldef), new SimpleMode());
+			require(MetaSdf2Table.factory, new MetaSdf2Table.Input(context, metasdfmodule, buildSdfImports, externaldef), new SimpleMode());
+			require(PPGen.factory, input, new SimpleMode());
 			
 			RelativePath ppPackInputPath = context.basePath("${syntax}/${sdfmodule}.pp");
 			RelativePath ppPackOutputPath = context.basePath("${include}/${sdfmodule}.pp.af");
-			CompilationUnit ppPack = context.ppPack.require(new PPPack.Input(ppPackInputPath, ppPackOutputPath, true), new SimpleMode());
-			result.addModuleDependency(ppPack);
+			require(PPPack.factory, new PPPack.Input(context, ppPackInputPath, ppPackOutputPath, true), new SimpleMode());
 			
-			CompilationUnit strategoAster = context.strategoAster.require(new StrategoAster.Input(strmodule), new SimpleMode());
-			result.addModuleDependency(strategoAster);
+			require(StrategoAster.factory, new StrategoAster.Input(context, strmodule), new SimpleMode());
 	
 			// This dependency was discovered by cleardep, due to an implicit dependency on 'org.strategoxt.imp.editors.template/lib/editor-common.generated.str'.
-			RequirableCompilationUnit<SpoofaxBuildContext> sdf2Imp = context.sdf2ImpEclipse.requireLater(new Sdf2ImpEclipse.Input(esvmodule, sdfmodule, buildSdfImports), new SimpleMode());
+
+			BuildRequirement<?,?,?> sdf2Imp = new BuildRequirement<>(Sdf2ImpEclipse.factory, new Sdf2ImpEclipse.Input(context, esvmodule, sdfmodule, buildSdfImports), new SimpleMode());
 			// This dependency was discovered by cleardep, due to an implicit dependency on 'org.strategoxt.imp.editors.template/include/TemplateLang-parenthesize.str'.
-			RequirableCompilationUnit<SpoofaxBuildContext> sdf2Parenthesize = context.sdf2Parenthesize.requireLater(new Sdf2Parenthesize.Input(sdfmodule, buildSdfImports, externaldef), new SimpleMode());
+			BuildRequirement<?,?,?> sdf2Parenthesize = new BuildRequirement<>(Sdf2Parenthesize.factory, new Sdf2Parenthesize.Input(context, sdfmodule, buildSdfImports, externaldef), new SimpleMode());
 	
-			CompilationUnit strategoCtree = context.strategoCtree.require(
+			require(StrategoCtree.factory,
 					new StrategoCtree.Input(
+							context,
 							sdfmodule, 
 							buildSdfImports, 
 							strmodule, 
 							externaljar, 
 							externaljarflags, 
 							externaldef,
-							new RequirableCompilationUnit[] {sdf2Imp, sdf2Parenthesize}),
+							new BuildRequirement<?,?,?>[] {sdf2Imp, sdf2Parenthesize}),
 					new SimpleMode());
-			result.addModuleDependency(strategoCtree);
 			
 			// This dependency was discovered by cleardep, due to an implicit dependency on 'org.strategoxt.imp.editors.template/editor/java/org/strategoxt/imp/editors/template/strategies/InteropRegisterer.class'.
-			RequirableCompilationUnit<SpoofaxBuildContext> compileJavaCode = context.compileJavaCode.requireLater(null, new SimpleMode());
-			result.addModuleDependency(compileJavaCode.require(this.context));
+			BuildRequirement<?,?,?> compileJavaCode = new BuildRequirement<>(CompileJavaCode.factory, input, new SimpleMode());
+			require(compileJavaCode);
 			
 			javaJar(result, strmodule, compileJavaCode);
 			
@@ -122,7 +110,7 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, EmptyBuild
 		org.strategoxt.imp.generator.sdf2imp c;
 	}
 
-	private void javaJar(SimpleCompilationUnit result, String strmodule, RequirableCompilationUnit<SpoofaxBuildContext> compileJavaCode) throws IOException {
+	private void javaJar(SimpleCompilationUnit result, String strmodule, BuildRequirement<?,?,?> compileJavaCode) throws IOException {
 		if (!context.isJavaJarEnabled(result))
 			return;
 		
@@ -137,15 +125,14 @@ public class SpoofaxDefaultCtree extends Builder<SpoofaxBuildContext, EmptyBuild
 		
 		Path jarPath = context.basePath("${include}/" + strmodule + "-java.jar");
 		JavaJar.Mode jarMode = FileCommands.exists(jarPath) ? JavaJar.Mode.Update : JavaJar.Mode.Create;
-		CompilationUnit javaJar = JavaJar.factory.makeBuilder(context).require(
+		require(JavaJar.factory, 
 				new JavaJar.Input(
 						jarMode,
 						jarPath, 
 						null,
 						files, 
-						new RequirableCompilationUnit[] {compileJavaCode}), 
-						new SimpleMode());
-		result.addModuleDependency(javaJar);
+						new BuildRequirement<?,?,?>[] {compileJavaCode}), 
+				new SimpleMode());
 	}
 
 	private void sdf2impEclipseReload(SimpleCompilationUnit result) {

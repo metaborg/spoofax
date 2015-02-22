@@ -3,7 +3,9 @@ package org.metaborg.spoofax.build.cleardep.builders;
 import java.io.File;
 import java.io.IOException;
 
-import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
+import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
+import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
+import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
 import org.spoofax.interpreter.library.ssl.SSLLibrary;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.FileState;
@@ -12,8 +14,7 @@ import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.services.StrategoObserverUpdateJob;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
 import org.sugarj.cleardep.SimpleCompilationUnit;
-import org.sugarj.cleardep.build.Builder;
-import org.sugarj.cleardep.build.BuilderFactory;
+import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.FileCommands;
@@ -21,30 +22,34 @@ import org.sugarj.common.Log;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
-public class ForceOnSaveFile extends Builder<SpoofaxBuildContext, Path, SimpleCompilationUnit> {
+public class ForceOnSaveFile extends SpoofaxBuilder<ForceOnSaveFile.Input> {
 
-	public static BuilderFactory<SpoofaxBuildContext, Path, SimpleCompilationUnit, ForceOnSaveFile> factory = new BuilderFactory<SpoofaxBuildContext, Path, SimpleCompilationUnit, ForceOnSaveFile>() {
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = -4999047735018095459L;
+	public static SpoofaxBuilderFactory<Input, ForceOnSaveFile> factory = new SpoofaxBuilderFactory<Input, ForceOnSaveFile>() {
 
 		@Override
-		public ForceOnSaveFile makeBuilder(SpoofaxBuildContext context) { return new ForceOnSaveFile(context); }
+		public ForceOnSaveFile makeBuilder(Input input, BuildManager manager) { return new ForceOnSaveFile(input, manager); }
 	};
 	
-	private ForceOnSaveFile(SpoofaxBuildContext context) {
-		super(context, factory);
+	public static class Input extends SpoofaxInput {
+		public final Path inputPath;
+		public Input(SpoofaxContext context, Path inputPath) {
+			super(context);
+			this.inputPath = inputPath;
+		}
+	}
+	
+	public ForceOnSaveFile(Input input, BuildManager manager) {
+		super(input, factory, manager);
 	}
 	
 	@Override
-	protected String taskDescription(Path input) {
-		return "Force on-save handler for " + input;
+	protected String taskDescription() {
+		return "Force on-save handler for " + input.inputPath;
 	}
 	
 	@Override
-	protected Path persistentPath(Path input) {
-		RelativePath rel = FileCommands.getRelativePath(context.baseDir, input);
+	protected Path persistentPath() {
+		RelativePath rel = FileCommands.getRelativePath(context.baseDir, input.inputPath);
 		String relname = rel.getRelativePath().replace(File.separatorChar, '_');
 		return context.depPath("forceOnSaveFile/" + relname + ".dep");
 	}
@@ -58,8 +63,8 @@ public class ForceOnSaveFile extends Builder<SpoofaxBuildContext, Path, SimpleCo
 	public Stamper defaultStamper() { return LastModifiedStamper.instance; }
 
 	@Override
-	public void build(SimpleCompilationUnit result, Path input) throws IOException {
-		RelativePath p = FileCommands.getRelativePath(context.baseDir, input);
+	public void build(SimpleCompilationUnit result) throws IOException {
+		RelativePath p = FileCommands.getRelativePath(context.baseDir, input.inputPath);
 		
 		result.addSourceArtifact(p);
 		callOnSaveService(p);

@@ -2,11 +2,10 @@ package org.metaborg.spoofax.build.cleardep.builders;
 
 import java.io.IOException;
 
-import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
+import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
+import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.sugarj.cleardep.SimpleCompilationUnit;
-import org.sugarj.cleardep.build.Builder;
-import org.sugarj.cleardep.build.BuilderFactory;
-import org.sugarj.cleardep.build.EmptyBuildInput;
+import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.FileCommands;
@@ -14,29 +13,25 @@ import org.sugarj.common.path.AbsolutePath;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
-public class CopyUtils extends Builder<SpoofaxBuildContext, EmptyBuildInput, SimpleCompilationUnit> {
+public class CopyUtils extends SpoofaxBuilder<SpoofaxInput> {
 
-	public static BuilderFactory<SpoofaxBuildContext, EmptyBuildInput, SimpleCompilationUnit, CopyUtils> factory = new BuilderFactory<SpoofaxBuildContext, EmptyBuildInput, SimpleCompilationUnit, CopyUtils>() {
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 3359895548386685075L;
+	public static SpoofaxBuilderFactory<SpoofaxInput, CopyUtils> factory = new SpoofaxBuilderFactory<SpoofaxInput, CopyUtils>() {
 
 		@Override
-		public CopyUtils makeBuilder(SpoofaxBuildContext context) { return new CopyUtils(context); }
+		public CopyUtils makeBuilder(SpoofaxInput input, BuildManager manager) { return new CopyUtils(input, manager); }
 	};
 	
-	private CopyUtils(SpoofaxBuildContext context) {
-		super(context, factory);
+	public CopyUtils(SpoofaxInput input, BuildManager manager) {
+		super(input, factory, manager);
 	}
 
 	@Override
-	protected String taskDescription(EmptyBuildInput input) {
+	protected String taskDescription() {
 		return "Copy utilities";
 	}
 	
 	@Override
-	public Path persistentPath(EmptyBuildInput input) {
+	public Path persistentPath() {
 		return context.depPath("copyUtils.dep");
 	}
 
@@ -49,7 +44,7 @@ public class CopyUtils extends Builder<SpoofaxBuildContext, EmptyBuildInput, Sim
 	public Stamper defaultStamper() { return LastModifiedStamper.instance; }
 
 	@Override
-	public void build(SimpleCompilationUnit result, EmptyBuildInput input) throws IOException {
+	public void build(SimpleCompilationUnit result) throws IOException {
 		Path utils = context.basePath("utils");
 		FileCommands.createDir(utils);
 		

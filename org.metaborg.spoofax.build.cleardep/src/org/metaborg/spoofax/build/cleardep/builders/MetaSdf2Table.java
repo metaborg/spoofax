@@ -1,58 +1,50 @@
 package org.metaborg.spoofax.build.cleardep.builders;
 
 import java.io.IOException;
-import java.io.Serializable;
 
-import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
-import org.sugarj.cleardep.CompilationUnit;
+import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
+import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
+import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
 import org.sugarj.cleardep.SimpleCompilationUnit;
 import org.sugarj.cleardep.SimpleMode;
-import org.sugarj.cleardep.build.Builder;
-import org.sugarj.cleardep.build.BuilderFactory;
+import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
-public class MetaSdf2Table extends Builder<SpoofaxBuildContext, MetaSdf2Table.Input, SimpleCompilationUnit> {
+public class MetaSdf2Table extends SpoofaxBuilder<MetaSdf2Table.Input> {
 
-	public static BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, MetaSdf2Table> factory = new BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, MetaSdf2Table>() {
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 4404676336530294200L;
+	public static SpoofaxBuilderFactory<Input, MetaSdf2Table> factory = new SpoofaxBuilderFactory<Input, MetaSdf2Table>() {
 
 		@Override
-		public MetaSdf2Table makeBuilder(SpoofaxBuildContext context) { return new MetaSdf2Table(context); }
+		public MetaSdf2Table makeBuilder(Input input, BuildManager manager) { return new MetaSdf2Table(input, manager); }
 	};
 
-	public static class Input implements Serializable{
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 485053945960594504L;
+	public static class Input extends SpoofaxInput {
 		public final String metasdfmodule;
 		public final String buildSdfImports;
 		public final Path externaldef;
-		public Input(String metasdfmodule, String buildSdfImports, Path externaldef) {
+		public Input(SpoofaxContext context, String metasdfmodule, String buildSdfImports, Path externaldef) {
+			super(context);
 			this.metasdfmodule = metasdfmodule;
 			this.buildSdfImports = buildSdfImports;
 			this.externaldef = externaldef;
 		}
 	}
 	
-	private MetaSdf2Table(SpoofaxBuildContext context) {
-		super(context, factory);
+	public MetaSdf2Table(Input input, BuildManager manager) {
+		super(input, factory, manager);
 	}
 
 	@Override
-	protected String taskDescription(Input input) {
+	protected String taskDescription() {
 		return "Compile metagrammar for concrete object syntax";
 	}
 	
 	@Override
-	protected Path persistentPath(Input input) {
+	protected Path persistentPath() {
 		return context.depPath("metaSdf2Table." + input.metasdfmodule + ".dep");
 	}
 	
@@ -65,7 +57,7 @@ public class MetaSdf2Table extends Builder<SpoofaxBuildContext, MetaSdf2Table.In
 	public Stamper defaultStamper() { return LastModifiedStamper.instance; }
 
 	@Override
-	public void build(SimpleCompilationUnit result, Input input) throws IOException {
+	public void build(SimpleCompilationUnit result) throws IOException {
 		if (!context.props.isDefined("eclipse.spoofaximp.jars"))
 			throw new IllegalArgumentException("Property eclipse.spoofaximp.jars must point to the directory containing StrategoMix.def");
 		
@@ -75,10 +67,10 @@ public class MetaSdf2Table extends Builder<SpoofaxBuildContext, MetaSdf2Table.In
 		
 		if (metasdfmoduleAvailable) {
 			String sdfImports = context.props.substitute("-Idef ${eclipse.spoofaximp.jars}/StrategoMix.def ") + input.buildSdfImports;
-			CompilationUnit sdf2Table = context.sdf2Table.require(new Sdf2Table.Input(input.metasdfmodule, sdfImports, input.externaldef), new SimpleMode());
-			result.addModuleDependency(sdf2Table);
+			require(Sdf2Table.factory, new Sdf2Table.Input(context, input.metasdfmodule, sdfImports, input.externaldef), new SimpleMode());
 		}
 
+		// TODO need to refresh here?
 //	<target name="meta-sdf2table.helper" if="eclipse.running">
 //		<eclipse.convertPath fileSystemPath="${include}" property="includeresource" />
 //		<eclipse.refreshLocal resource="${includeresource}/${metasdfmodule}.tbl" depth="infinite" />

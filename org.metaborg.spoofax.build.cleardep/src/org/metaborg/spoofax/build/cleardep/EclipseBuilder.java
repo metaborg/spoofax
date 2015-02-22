@@ -7,13 +7,14 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.strategoxt.HybridInterpreter;
+import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
+import org.metaborg.spoofax.build.cleardep.builders.All;
+import org.metaborg.spoofax.build.cleardep.builders.Clean;
 import org.sugarj.cleardep.SimpleMode;
 import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.common.Log;
 import org.sugarj.common.path.AbsolutePath;
 import org.sugarj.common.path.Path;
-import org.sugarj.common.path.RelativePath;
 
 /**
  * updates editors to show newly built results
@@ -22,26 +23,23 @@ import org.sugarj.common.path.RelativePath;
  */
 public class EclipseBuilder extends IncrementalProjectBuilder {
 	
-	public static SpoofaxBuildContext makeContext(IProject project) {
+	public static SpoofaxContext makeContext(IProject project) {
 		Log.out = EclipseConsole.getOutputPrintStream();
 	    Log.err = EclipseConsole.getErrorPrintStream();
 	    Log.log.setLoggingLevel(Log.ALWAYS);
 	    EclipseConsole.activateConsoleOnce();
 
 		Path baseDir = new AbsolutePath(project.getProject().getLocation().makeAbsolute().toString());
-
-		// FIXME use actual Spoofax language name
-		Properties props = Properties.makeSpoofaxProperties("TemplateLang", new Path[] {new RelativePath(baseDir, "${lib}/SDF.def")}, baseDir.getAbsolutePath());
-		
-		BuildManager manager = new BuildManager();
-		SpoofaxBuildContext context = new SpoofaxBuildContext(manager, baseDir, props, new HybridInterpreter());
-		return context;
+		return new SpoofaxContext(baseDir, new Properties());
 	}
 	
 	protected IProject[] build(int kind, Map<String, String> args, IProgressMonitor monitor) {
-		SpoofaxBuildContext context = makeContext(getProject());
+		BuildManager manager = new BuildManager();
+		SpoofaxContext context = makeContext(getProject());
+		SpoofaxInput input = new SpoofaxInput(context);
 		try {
-			context.all.require(null, new SimpleMode());
+			
+			manager.require(All.factory.makeBuilder(input, manager), new SimpleMode());
 			getProject().refreshLocal(IProject.DEPTH_INFINITE, monitor);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -54,9 +52,11 @@ public class EclipseBuilder extends IncrementalProjectBuilder {
 	}
 
 	protected void clean(IProgressMonitor monitor) throws CoreException {
-		SpoofaxBuildContext context = makeContext(getProject());
+		BuildManager manager = new BuildManager();
+		SpoofaxContext context = makeContext(getProject());
+		SpoofaxInput input = new SpoofaxInput(context);
 		try {
-			context.clean.require(null, new SimpleMode());
+			manager.require(Clean.factory.makeBuilder(input, manager), new SimpleMode());
 			getProject().refreshLocal(IProject.DEPTH_INFINITE, monitor);
 		} catch (IOException e) {
 			e.printStackTrace();

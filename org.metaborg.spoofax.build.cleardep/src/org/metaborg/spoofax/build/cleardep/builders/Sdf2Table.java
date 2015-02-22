@@ -3,58 +3,53 @@ package org.metaborg.spoofax.build.cleardep.builders;
 import java.io.IOException;
 import java.io.Serializable;
 
-import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
+import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
+import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
+import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
-import org.sugarj.cleardep.CompilationUnit;
 import org.sugarj.cleardep.CompilationUnit.State;
 import org.sugarj.cleardep.SimpleCompilationUnit;
 import org.sugarj.cleardep.SimpleMode;
-import org.sugarj.cleardep.build.Builder;
-import org.sugarj.cleardep.build.BuilderFactory;
+import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
-public class Sdf2Table extends Builder<SpoofaxBuildContext, Sdf2Table.Input, SimpleCompilationUnit> {
+public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input> {
 
-	public static BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, Sdf2Table> factory = new BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, Sdf2Table>() {
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 4346531073187101820L;
+
+	public static SpoofaxBuilderFactory<Input, Sdf2Table> factory = new SpoofaxBuilderFactory<Input, Sdf2Table>() {
 
 		@Override
-		public Sdf2Table makeBuilder(SpoofaxBuildContext context) { return new Sdf2Table(context); }
+		public Sdf2Table makeBuilder(Input input, BuildManager manager) { return new Sdf2Table(input, manager); }
 	};
 	
-	public static class Input implements Serializable {
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 2968239709714646087L;
+
+	public static class Input extends SpoofaxInput {
 		public final String sdfmodule;
 		public final String buildSdfImports;
 		public final Path externaldef;
-		public Input(String sdfmodule, String buildSdfImports, Path externaldef) {
+		public Input(SpoofaxContext context, String sdfmodule, String buildSdfImports, Path externaldef) {
+			super(context);
 			this.sdfmodule = sdfmodule;
 			this.buildSdfImports = buildSdfImports;
 			this.externaldef = externaldef;
 		}
 	}
 	
-	private Sdf2Table(SpoofaxBuildContext context) {
-		super(context, factory);
+	public Sdf2Table(Input input, BuildManager manager) {
+		super(input, factory, manager);
 	}
 
 	@Override
-	protected String taskDescription(Input input) {
+	protected String taskDescription() {
 		return "Compile grammar to parse table";
 	}
 	
 	@Override
-	protected Path persistentPath(Input input) {
+	protected Path persistentPath() {
 		return context.depPath("sdf2Table." + input.sdfmodule + ".dep");
 	}
 
@@ -67,9 +62,8 @@ public class Sdf2Table extends Builder<SpoofaxBuildContext, Sdf2Table.Input, Sim
 	public Stamper defaultStamper() { return LastModifiedStamper.instance; }
 
 	@Override
-	public void build(SimpleCompilationUnit result, Input input) throws IOException {
-		CompilationUnit makePermissive = context.makePermissive.require(new MakePermissive.Input(input.sdfmodule, input.buildSdfImports, input.externaldef), new SimpleMode());
-		result.addModuleDependency(makePermissive);
+	public void build(SimpleCompilationUnit result) throws IOException {
+		require(MakePermissive.factory, new MakePermissive.Input(context, input.sdfmodule, input.buildSdfImports, input.externaldef), new SimpleMode());
 
 		RelativePath inputPath = context.basePath("${include}/" + input.sdfmodule + "-Permissive.def");
 		RelativePath outputPath = context.basePath("${include}/" + input.sdfmodule + ".tbl");

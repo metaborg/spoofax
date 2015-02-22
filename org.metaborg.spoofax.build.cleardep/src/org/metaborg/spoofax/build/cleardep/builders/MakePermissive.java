@@ -1,63 +1,55 @@
 package org.metaborg.spoofax.build.cleardep.builders;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.regex.Pattern;
 
 import org.metaborg.spoofax.build.cleardep.LoggingFilteringIOAgent;
-import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
+import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
+import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
+import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
 import org.strategoxt.permissivegrammars.make_permissive;
-import org.sugarj.cleardep.CompilationUnit;
 import org.sugarj.cleardep.CompilationUnit.State;
 import org.sugarj.cleardep.SimpleCompilationUnit;
 import org.sugarj.cleardep.SimpleMode;
-import org.sugarj.cleardep.build.Builder;
-import org.sugarj.cleardep.build.BuilderFactory;
+import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
-public class MakePermissive extends Builder<SpoofaxBuildContext, MakePermissive.Input, SimpleCompilationUnit> {
+public class MakePermissive extends SpoofaxBuilder<MakePermissive.Input> {
 
-	public static BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, MakePermissive> factory = new BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, MakePermissive>() {
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = -4042979335228720347L;
+	public static SpoofaxBuilderFactory<Input, MakePermissive> factory = new SpoofaxBuilderFactory<Input, MakePermissive>() {
 
 		@Override
-		public MakePermissive makeBuilder(SpoofaxBuildContext context) { return new MakePermissive(context); }
+		public MakePermissive makeBuilder(Input input, BuildManager manager) { return new MakePermissive(input, manager); }
 	};
 	
-	public static class Input implements Serializable{
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 4954292462449320260L;
+	public static class Input extends SpoofaxInput {
 		public final String sdfmodule;
 		public final String buildSdfImports;
 		public final Path externaldef;
-		public Input(String sdfmodule, String buildSdfImports, Path externaldef) {
+		public Input(SpoofaxContext context, String sdfmodule, String buildSdfImports, Path externaldef) {
+			super(context);
 			this.sdfmodule = sdfmodule;
 			this.buildSdfImports = buildSdfImports;
 			this.externaldef = externaldef;
 		}
 	}
 	
-	private MakePermissive(SpoofaxBuildContext context) {
-		super(context, factory);
+	public MakePermissive(Input input, BuildManager manager) {
+		super(input, factory, manager);
 	}
 
 	@Override
-	protected String taskDescription(Input input) {
+	protected String taskDescription() {
 		return "Make grammar permissive for error-recovery parsing.";
 	}
 	
 	@Override
-	public Path persistentPath(Input input) {
+	public Path persistentPath() {
 		return context.depPath("makePermissive." + input.sdfmodule + ".dep");
 	}
 
@@ -70,12 +62,9 @@ public class MakePermissive extends Builder<SpoofaxBuildContext, MakePermissive.
 	public Stamper defaultStamper() { return LastModifiedStamper.instance; }
 
 	@Override
-	public void build(SimpleCompilationUnit result, Input input) throws IOException {
-		CompilationUnit copySdf = context.copySdf.require(new CopySdf.Input(input.sdfmodule, input.externaldef), new SimpleMode());
-		result.addModuleDependency(copySdf);
-		
-		CompilationUnit packSdf = context.packSdf.require(new PackSdf.Input(input.sdfmodule, input.buildSdfImports), new SimpleMode());
-		result.addModuleDependency(packSdf);
+	public void build(SimpleCompilationUnit result) throws IOException {
+		require(CopySdf.factory, new CopySdf.Input(context, input.sdfmodule, input.externaldef), new SimpleMode());
+		require(PackSdf.factory, new PackSdf.Input(context,input.sdfmodule, input.buildSdfImports), new SimpleMode());
 		
 		RelativePath inputPath = context.basePath("${include}/" + input.sdfmodule + ".def");
 		RelativePath outputPath = context.basePath("${include}/" + input.sdfmodule + "-Permissive.def");

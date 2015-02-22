@@ -2,53 +2,47 @@ package org.metaborg.spoofax.build.cleardep.builders;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.Serializable;
 import java.nio.file.StandardCopyOption;
 
-import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
+import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
+import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
+import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
 import org.sugarj.cleardep.SimpleCompilationUnit;
-import org.sugarj.cleardep.build.Builder;
-import org.sugarj.cleardep.build.BuilderFactory;
+import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
-public class CopyJar extends Builder<SpoofaxBuildContext, CopyJar.Input, SimpleCompilationUnit> {
+public class CopyJar extends SpoofaxBuilder<CopyJar.Input> {
 
-	public static BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, CopyJar> factory = new BuilderFactory<SpoofaxBuildContext, Input, SimpleCompilationUnit, CopyJar>() {
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 6745322851657006870L;
+	public static SpoofaxBuilderFactory<Input, CopyJar> factory = new SpoofaxBuilderFactory<Input, CopyJar>() {
 
 		@Override
-		public CopyJar makeBuilder(SpoofaxBuildContext context) { return new CopyJar(context); }
+		public CopyJar makeBuilder(Input input, BuildManager manager) { return new CopyJar(input, manager); }
 	};
 	
-	public static class Input implements Serializable{
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = -3993313903657832660L;
+
+	public static class Input extends SpoofaxInput {
 		public final Path externaljar;
-		public Input(Path externaljar) {
+		public Input(SpoofaxContext context, Path externaljar) {
+			super(context);
 			this.externaljar = externaljar;
 		}
 	}
 	
-	public CopyJar(SpoofaxBuildContext context) {
-		super(context,factory);
+	public CopyJar(Input input, BuildManager manager) {
+		super(input, factory, manager);
 	}
 
 	@Override
-	protected String taskDescription(Input input) {
+	protected String taskDescription() {
 		return "Copy external Jar";
 	}
 	
 	@Override
-	public Path persistentPath(Input input) {
+	public Path persistentPath() {
 		if (input.externaljar != null) {
 			RelativePath rel = FileCommands.getRelativePath(context.baseDir, input.externaljar);
 			String relname = rel.getRelativePath().replace(File.separatorChar, '_');
@@ -66,7 +60,7 @@ public class CopyJar extends Builder<SpoofaxBuildContext, CopyJar.Input, SimpleC
 	public Stamper defaultStamper() { return LastModifiedStamper.instance; }
 
 	@Override
-	public void build(SimpleCompilationUnit result, Input input) throws IOException {
+	public void build(SimpleCompilationUnit result) throws IOException {
 		if (input.externaljar != null) {
 			Path target = context.basePath("${include}/" + FileCommands.dropDirectory(input.externaljar));
 			result.addExternalFileDependency(input.externaljar);

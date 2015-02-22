@@ -4,15 +4,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.metaborg.spoofax.build.cleardep.SpoofaxBuildContext;
+import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
+import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.metaborg.spoofax.build.cleardep.util.FileExtensionFilter;
-import org.sugarj.cleardep.CompilationUnit;
 import org.sugarj.cleardep.SimpleCompilationUnit;
 import org.sugarj.cleardep.SimpleMode;
-import org.sugarj.cleardep.build.Builder;
-import org.sugarj.cleardep.build.BuilderFactory;
-import org.sugarj.cleardep.build.EmptyBuildInput;
-import org.sugarj.cleardep.buildjava.JavaBuildContext;
+import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.cleardep.buildjava.JavaBuilder;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
@@ -20,29 +17,24 @@ import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.AbsolutePath;
 import org.sugarj.common.path.Path;
 
-public class CompileJavaCode extends Builder<SpoofaxBuildContext, EmptyBuildInput, SimpleCompilationUnit> {
+public class CompileJavaCode extends SpoofaxBuilder<SpoofaxInput> {
 
-	public static BuilderFactory<SpoofaxBuildContext, EmptyBuildInput, SimpleCompilationUnit, CompileJavaCode> factory = new BuilderFactory<SpoofaxBuildContext, EmptyBuildInput, SimpleCompilationUnit, CompileJavaCode>() {
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = -7888501202167724710L;
-
+	public static SpoofaxBuilderFactory<SpoofaxInput, CompileJavaCode> factory = new SpoofaxBuilderFactory<SpoofaxInput, CompileJavaCode>() {
 		@Override
-		public CompileJavaCode makeBuilder(SpoofaxBuildContext context) { return new CompileJavaCode(context); }
+		public CompileJavaCode makeBuilder(SpoofaxInput input, BuildManager manager) { return new CompileJavaCode(input, manager); }
 	};
 	
-	private CompileJavaCode(SpoofaxBuildContext context) {
-		super(context, factory);
+	public CompileJavaCode(SpoofaxInput input, BuildManager manager) {
+		super(input, factory, manager);
 	}
 
 	@Override
-	protected String taskDescription(EmptyBuildInput input) {
+	protected String taskDescription() {
 		return "Compile Java code";
 	}
 	
 	@Override
-	public Path persistentPath(EmptyBuildInput input) {
+	public Path persistentPath() {
 		return context.depPath("compileJavaCode.dep");
 	}
 
@@ -55,9 +47,8 @@ public class CompileJavaCode extends Builder<SpoofaxBuildContext, EmptyBuildInpu
 	public Stamper defaultStamper() { return LastModifiedStamper.instance; }
 
 	@Override
-	public void build(SimpleCompilationUnit result, EmptyBuildInput input) throws IOException {
-		CompilationUnit copyUtils = context.copyUtils.require(null, new SimpleMode());
-		result.addModuleDependency(copyUtils);
+	public void build(SimpleCompilationUnit result) throws IOException {
+		require(CopyUtils.factory, input, new SimpleMode());
 		
 		Path targetDir = context.basePath("${build}");
 		boolean debug = true;
@@ -96,8 +87,7 @@ public class CompileJavaCode extends Builder<SpoofaxBuildContext, EmptyBuildInpu
 		if (context.isJavaJarEnabled(result))
 			classPath.add(context.basePath("${include}/${strmodule}-java.jar"));
 
-		
-		CompilationUnit javac = JavaBuilder.factory.makeBuilder(new JavaBuildContext(context.getBuildManager(), null)).require(
+		require(JavaBuilder.factory, 
 				new JavaBuilder.Input(
 						sourceFiles,
 						targetDir,
@@ -106,6 +96,5 @@ public class CompileJavaCode extends Builder<SpoofaxBuildContext, EmptyBuildInpu
 						additionalArgs,
 						null),
 				new SimpleMode());
-		result.addModuleDependency(javac);
 	}
 }
