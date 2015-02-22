@@ -18,6 +18,7 @@ abstract public class SpoofaxBuilder<T extends SpoofaxInput> extends Builder<T, 
 		 */
 		private static final long serialVersionUID = 8998843329413855827L;
 
+		@Override
 		public abstract B makeBuilder(T input, BuildManager manager);
 	}
 	

@@ -23,11 +23,20 @@ public class Sdf2ImpEclipse extends SpoofaxBuilder<Sdf2ImpEclipse.Input> {
 
 	public static SpoofaxBuilderFactory<Input, Sdf2ImpEclipse> factory = new SpoofaxBuilderFactory<Input, Sdf2ImpEclipse>() {
 
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 8374273854477950798L;
+
 		@Override
 		public Sdf2ImpEclipse makeBuilder(Input input, BuildManager manager) { return new Sdf2ImpEclipse(input, manager); }
 	};
 
 	public static class Input extends SpoofaxInput {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 5390265710389276659L;
 		public final String esvmodule;
 		public final String sdfmodule;
 		public final String buildSdfImports;

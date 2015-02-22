@@ -20,6 +20,11 @@ import org.sugarj.common.path.Path;
 public class CompileJavaCode extends SpoofaxBuilder<SpoofaxInput> {
 
 	public static SpoofaxBuilderFactory<SpoofaxInput, CompileJavaCode> factory = new SpoofaxBuilderFactory<SpoofaxInput, CompileJavaCode>() {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 5448125602790119713L;
+
 		@Override
 		public CompileJavaCode makeBuilder(SpoofaxInput input, BuildManager manager) { return new CompileJavaCode(input, manager); }
 	};

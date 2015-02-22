@@ -23,11 +23,20 @@ public class MakePermissive extends SpoofaxBuilder<MakePermissive.Input> {
 
 	public static SpoofaxBuilderFactory<Input, MakePermissive> factory = new SpoofaxBuilderFactory<Input, MakePermissive>() {
 
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 657230698706473822L;
+
 		@Override
 		public MakePermissive makeBuilder(Input input, BuildManager manager) { return new MakePermissive(input, manager); }
 	};
 	
 	public static class Input extends SpoofaxInput {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 4381601872931676757L;
 		public final String sdfmodule;
 		public final String buildSdfImports;
 		public final Path externaldef;

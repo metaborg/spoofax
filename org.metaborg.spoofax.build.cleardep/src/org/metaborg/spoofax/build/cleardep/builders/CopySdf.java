@@ -17,11 +17,20 @@ public class CopySdf extends SpoofaxBuilder<CopySdf.Input> {
 
 	public static SpoofaxBuilderFactory<Input, CopySdf> factory = new SpoofaxBuilderFactory<Input, CopySdf>() {
 
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -2175787090501831305L;
+
 		@Override
 		public CopySdf makeBuilder(Input input, BuildManager manager) { return new CopySdf(input, manager); }
 	};
 	
 	public static class Input extends SpoofaxInput {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 6298820503718314523L;
 		public final String sdfmodule;
 		public final Path externaldef;
 		public Input(SpoofaxContext context, String sdfmodule, Path externaldef) {

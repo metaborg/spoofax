@@ -1,7 +1,6 @@
 package org.metaborg.spoofax.build.cleardep.builders;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;

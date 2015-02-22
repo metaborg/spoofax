@@ -17,6 +17,11 @@ public class CopyUtils extends SpoofaxBuilder<SpoofaxInput> {
 
 	public static SpoofaxBuilderFactory<SpoofaxInput, CopyUtils> factory = new SpoofaxBuilderFactory<SpoofaxInput, CopyUtils>() {
 
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 2088788942202940759L;
+
 		@Override
 		public CopyUtils makeBuilder(SpoofaxInput input, BuildManager manager) { return new CopyUtils(input, manager); }
 	};

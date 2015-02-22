@@ -19,11 +19,20 @@ public class StrategoAster extends SpoofaxBuilder<StrategoAster.Input> {
 
 	public static SpoofaxBuilderFactory<Input, StrategoAster> factory = new SpoofaxBuilderFactory<Input, StrategoAster>() {
 
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -1290903435504555665L;
+
 		@Override
 		public StrategoAster makeBuilder(Input input, BuildManager manager) { return new StrategoAster(input, manager); }
 	};
 	
 	public static class Input extends SpoofaxInput {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -4593910056510380042L;
 		public final String strmodule;
 		public Input(SpoofaxContext context, String strmodule) {
 			super(context);

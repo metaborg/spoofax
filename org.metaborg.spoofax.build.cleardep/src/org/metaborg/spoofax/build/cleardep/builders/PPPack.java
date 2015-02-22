@@ -3,8 +3,6 @@ package org.metaborg.spoofax.build.cleardep.builders;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.Serializable;
-
 import org.metaborg.spoofax.build.cleardep.LoggingFilteringIOAgent;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;

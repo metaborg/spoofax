@@ -33,6 +33,7 @@ public class EclipseBuilder extends IncrementalProjectBuilder {
 		return new SpoofaxContext(baseDir, new Properties());
 	}
 	
+	@Override
 	protected IProject[] build(int kind, Map<String, String> args, IProgressMonitor monitor) {
 		BuildManager manager = new BuildManager();
 		SpoofaxContext context = makeContext(getProject());
@@ -51,6 +52,7 @@ public class EclipseBuilder extends IncrementalProjectBuilder {
 		return null;
 	}
 
+	@Override
 	protected void clean(IProgressMonitor monitor) throws CoreException {
 		BuildManager manager = new BuildManager();
 		SpoofaxContext context = makeContext(getProject());

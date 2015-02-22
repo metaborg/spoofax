@@ -26,11 +26,20 @@ public class ForceOnSaveFile extends SpoofaxBuilder<ForceOnSaveFile.Input> {
 
 	public static SpoofaxBuilderFactory<Input, ForceOnSaveFile> factory = new SpoofaxBuilderFactory<Input, ForceOnSaveFile>() {
 
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 3624331674299289181L;
+
 		@Override
 		public ForceOnSaveFile makeBuilder(Input input, BuildManager manager) { return new ForceOnSaveFile(input, manager); }
 	};
 	
 	public static class Input extends SpoofaxInput {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -2546907410371550065L;
 		public final Path inputPath;
 		public Input(SpoofaxContext context, Path inputPath) {
 			super(context);

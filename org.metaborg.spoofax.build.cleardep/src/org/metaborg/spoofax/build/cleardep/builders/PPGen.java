@@ -26,6 +26,11 @@ public class PPGen extends SpoofaxBuilder<SpoofaxInput> {
 
 	public static SpoofaxBuilderFactory<SpoofaxInput, PPGen> factory = new SpoofaxBuilderFactory<SpoofaxInput, PPGen>() {
 
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 9200673263670609032L;
+
 		@Override
 		public PPGen makeBuilder(SpoofaxInput context, BuildManager manager) { return new PPGen(context, manager); }
 	};

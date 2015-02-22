@@ -19,12 +19,21 @@ public class CopyJar extends SpoofaxBuilder<CopyJar.Input> {
 
 	public static SpoofaxBuilderFactory<Input, CopyJar> factory = new SpoofaxBuilderFactory<Input, CopyJar>() {
 
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -8387363389037442076L;
+
 		@Override
 		public CopyJar makeBuilder(Input input, BuildManager manager) { return new CopyJar(input, manager); }
 	};
 	
 
 	public static class Input extends SpoofaxInput {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 8710048518971598430L;
 		public final Path externaljar;
 		public Input(SpoofaxContext context, Path externaljar) {
 			super(context);

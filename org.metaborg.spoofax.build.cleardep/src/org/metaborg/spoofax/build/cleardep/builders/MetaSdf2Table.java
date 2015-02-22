@@ -18,11 +18,20 @@ public class MetaSdf2Table extends SpoofaxBuilder<MetaSdf2Table.Input> {
 
 	public static SpoofaxBuilderFactory<Input, MetaSdf2Table> factory = new SpoofaxBuilderFactory<Input, MetaSdf2Table>() {
 
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 5848449529745147614L;
+
 		@Override
 		public MetaSdf2Table makeBuilder(Input input, BuildManager manager) { return new MetaSdf2Table(input, manager); }
 	};
 
 	public static class Input extends SpoofaxInput {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -3179663405417276186L;
 		public final String metasdfmodule;
 		public final String buildSdfImports;
 		public final Path externaldef;

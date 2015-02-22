@@ -1,8 +1,6 @@
 package org.metaborg.spoofax.build.cleardep.builders;
 
 import java.io.IOException;
-import java.io.Serializable;
-
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
@@ -20,11 +18,20 @@ public class StrategoCtree extends SpoofaxBuilder<StrategoCtree.Input> {
 
 	public static SpoofaxBuilderFactory<Input, StrategoCtree> factory = new SpoofaxBuilderFactory<Input, StrategoCtree>() {
 
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -8635408307377750115L;
+
 		@Override
 		public StrategoCtree makeBuilder(Input input, BuildManager manager) { return new StrategoCtree(input, manager); }
 	};
 	
 	public static class Input extends SpoofaxInput {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 6323245405121428720L;
 		public final String sdfmodule;
 		public final String buildSdfImports;
 		public final String strmodule;

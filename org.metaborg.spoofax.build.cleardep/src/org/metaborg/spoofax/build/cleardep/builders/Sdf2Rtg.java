@@ -23,11 +23,20 @@ public class Sdf2Rtg extends SpoofaxBuilder<Sdf2Rtg.Input> {
 
 	public static SpoofaxBuilderFactory<Input, Sdf2Rtg> factory = new SpoofaxBuilderFactory<Input, Sdf2Rtg>() {
 
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 7325200974940523707L;
+
 		@Override
 		public Sdf2Rtg makeBuilder(Input input, BuildManager manager) { return new Sdf2Rtg(input, manager); }
 	};
 	
 	public static class Input extends SpoofaxInput {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -4487049822305558202L;
 		public final String sdfmodule;
 		public final String buildSdfImports;
 		public Input(SpoofaxContext context, String sdfmodule, String buildSdfImports) {

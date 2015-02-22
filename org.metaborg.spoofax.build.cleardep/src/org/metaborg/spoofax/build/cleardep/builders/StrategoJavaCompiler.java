@@ -27,11 +27,20 @@ public class StrategoJavaCompiler extends SpoofaxBuilder<StrategoJavaCompiler.In
 
 	public static SpoofaxBuilderFactory<Input, StrategoJavaCompiler> factory = new SpoofaxBuilderFactory<Input, StrategoJavaCompiler>() {
 
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -3539649828941211263L;
+
 		@Override
 		public StrategoJavaCompiler makeBuilder(Input input, BuildManager manager) { return new StrategoJavaCompiler(input, manager); }
 	};
 	
 	public static class Input extends SpoofaxInput {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -5234502421638344690L;
 		public final RelativePath inputPath;
 		public final RelativePath outputPath;
 		public final String packageName;

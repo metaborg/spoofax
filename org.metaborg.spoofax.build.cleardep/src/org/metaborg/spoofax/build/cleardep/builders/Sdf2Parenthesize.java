@@ -23,11 +23,20 @@ public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input> {
 
 	public static SpoofaxBuilderFactory<Input, Sdf2Parenthesize> factory = new SpoofaxBuilderFactory<Input, Sdf2Parenthesize>() {
 
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -7165488913542364367L;
+
 		@Override
 		public Sdf2Parenthesize makeBuilder(Input input, BuildManager manager) { return new Sdf2Parenthesize(input, manager); }
 	};
 	
 	public static class Input extends SpoofaxInput {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 6177130857266733408L;
 		public final String sdfmodule;
 		public final String buildSdfImports;
 		public final Path externaldef; 

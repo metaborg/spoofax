@@ -17,6 +17,11 @@ import org.sugarj.common.path.Path;
 public class Clean extends SpoofaxBuilder<SpoofaxInput> {
 
 	public static SpoofaxBuilderFactory<SpoofaxInput, Clean> factory = new SpoofaxBuilderFactory<SpoofaxInput, Clean>() {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -1133955108882900676L;
+
 		@Override
 		public Clean makeBuilder(SpoofaxInput input, BuildManager manager) { return new Clean(input, manager); }
 	};

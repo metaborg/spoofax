@@ -22,6 +22,11 @@ import org.sugarj.common.path.RelativePath;
 public class SpoofaxDefaultCtree extends SpoofaxBuilder<SpoofaxInput> {
 
 	public static SpoofaxBuilderFactory<SpoofaxInput, SpoofaxDefaultCtree> factory = new SpoofaxBuilderFactory<SpoofaxInput, SpoofaxDefaultCtree>() {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -6945708860855449389L;
+
 		@Override
 		public SpoofaxDefaultCtree makeBuilder(SpoofaxInput input, BuildManager manager) { return new SpoofaxDefaultCtree(input, manager); }
 	};

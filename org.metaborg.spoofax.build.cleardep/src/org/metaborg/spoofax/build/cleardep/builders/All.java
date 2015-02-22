@@ -8,10 +8,6 @@ import org.sugarj.cleardep.SimpleCompilationUnit;
 import org.sugarj.cleardep.SimpleMode;
 
 import org.sugarj.cleardep.build.BuildManager;
-import org.sugarj.cleardep.build.Builder;
-import org.sugarj.cleardep.build.BuilderFactory;
-import org.sugarj.cleardep.build.EmptyBuildInput;
-
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.path.Path;
@@ -40,6 +36,7 @@ public class All extends SpoofaxBuilder<SpoofaxInput> {
 		return "Build Spoofax project";
 	}
 	
+	@Override
 	protected Path persistentPath() {
 		return context.depPath("all.dep");
 	}

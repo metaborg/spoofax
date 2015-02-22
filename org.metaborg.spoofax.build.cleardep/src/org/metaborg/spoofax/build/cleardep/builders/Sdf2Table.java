@@ -1,8 +1,6 @@
 package org.metaborg.spoofax.build.cleardep.builders;
 
 import java.io.IOException;
-import java.io.Serializable;
-
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
@@ -22,12 +20,21 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input> {
 
 	public static SpoofaxBuilderFactory<Input, Sdf2Table> factory = new SpoofaxBuilderFactory<Input, Sdf2Table>() {
 
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -5551917492018980172L;
+
 		@Override
 		public Sdf2Table makeBuilder(Input input, BuildManager manager) { return new Sdf2Table(input, manager); }
 	};
 	
 
 	public static class Input extends SpoofaxInput {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -2379365089609792204L;
 		public final String sdfmodule;
 		public final String buildSdfImports;
 		public final Path externaldef;
