@@ -13,7 +13,7 @@ Require-Bundle: org.eclipse.ui,
  org.spoofax.interpreter.externaldeps
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
-Eclipse-RegisterBuddy: org.strategoxt.imp.runtime
+Eclipse-RegisterBuddy: org.strategoxt.imp.runtime, org.sugarj.cleardep
 Import-Package: org.spoofax.interpreter.core,
  org.spoofax.interpreter.library,
  org.spoofax.interpreter.library.ssl,
