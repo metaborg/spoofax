@@ -1,12 +1,15 @@
 package org.metaborg.spoofax.build.cleardep;
 
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Properties {
+public class Properties implements Serializable {
+	private static final long serialVersionUID = 2283665367361942716L;
+
 	private Map<String, String> props;
 	
 	public Properties() {
