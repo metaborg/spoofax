@@ -13,9 +13,6 @@ import org.sugarj.cleardep.stamp.Stamper;
 abstract public class SpoofaxBuilder<T extends SpoofaxInput> extends Builder<T, CompilationUnit> {
 
 	public static abstract class SpoofaxBuilderFactory<T extends SpoofaxInput, B extends SpoofaxBuilder<T>> implements BuilderFactory<T, CompilationUnit, B> {
-		/**
-		 * 
-		 */
 		private static final long serialVersionUID = 8998843329413855827L;
 
 		@Override
@@ -23,9 +20,6 @@ abstract public class SpoofaxBuilder<T extends SpoofaxInput> extends Builder<T, 
 	}
 	
 	public static class SpoofaxInput implements Serializable{
-		/**
-		 * 
-		 */
 		private static final long serialVersionUID = -6362900996234737307L;
 		public final SpoofaxContext context;
 		public SpoofaxInput(SpoofaxContext context) {
@@ -36,7 +30,7 @@ abstract public class SpoofaxBuilder<T extends SpoofaxInput> extends Builder<T, 
 	protected final SpoofaxContext context;
 	
 	public <B extends SpoofaxBuilder<T>> SpoofaxBuilder(T input, SpoofaxBuilderFactory<T, B> factory, BuildManager manager) {
-		super(input, factory,manager);
+		super(input, factory, manager);
 		this.context = input.context;
 	}
 
