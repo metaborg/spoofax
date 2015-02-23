@@ -39,8 +39,8 @@ public class StrategoCtree extends SpoofaxBuilder<StrategoCtree.Input> {
 		public final String externaljarflags;
 		public final Path externalDef;
 
-		public final BuildRequirement<?,?,?>[] requiredUnits;
-		public Input(SpoofaxContext context, String sdfmodule, String buildSdfImports, String strmodule, Path externaljar, String externaljarflags, Path externalDef, BuildRequirement<?,?,?>[] requiredUnits) {
+		public final BuildRequirement<?,?,?,?>[] requiredUnits;
+		public Input(SpoofaxContext context, String sdfmodule, String buildSdfImports, String strmodule, Path externaljar, String externaljarflags, Path externalDef, BuildRequirement<?,?,?,?>[] requiredUnits) {
 			super(context);
 			this.sdfmodule = sdfmodule;
 			this.buildSdfImports = buildSdfImports;
@@ -76,7 +76,7 @@ public class StrategoCtree extends SpoofaxBuilder<StrategoCtree.Input> {
 
 	@Override
 	public void build(SimpleCompilationUnit result) throws IOException {
-		BuildRequirement<?,?,?> rtg2Sig = new BuildRequirement<>(Rtg2Sig.factory, new Rtg2Sig.Input(context, input.sdfmodule, input.buildSdfImports), new SimpleMode());
+		BuildRequirement<?,?,?,?> rtg2Sig = new BuildRequirement<>(Rtg2Sig.factory, new Rtg2Sig.Input(context, input.sdfmodule, input.buildSdfImports), new SimpleMode());
 		
 		if (!context.isBuildStrategoEnabled(result))
 			throw new IllegalArgumentException(context.props.substitute("Main stratego file '${strmodule}.str' not found."));

@@ -80,9 +80,9 @@ public class SpoofaxDefaultCtree extends SpoofaxBuilder<SpoofaxInput> {
 	
 			// This dependency was discovered by cleardep, due to an implicit dependency on 'org.strategoxt.imp.editors.template/lib/editor-common.generated.str'.
 
-			BuildRequirement<?,?,?> sdf2Imp = new BuildRequirement<>(Sdf2ImpEclipse.factory, new Sdf2ImpEclipse.Input(context, esvmodule, sdfmodule, buildSdfImports), new SimpleMode());
+			BuildRequirement<?,?,?,?> sdf2Imp = new BuildRequirement<>(Sdf2ImpEclipse.factory, new Sdf2ImpEclipse.Input(context, esvmodule, sdfmodule, buildSdfImports), new SimpleMode());
 			// This dependency was discovered by cleardep, due to an implicit dependency on 'org.strategoxt.imp.editors.template/include/TemplateLang-parenthesize.str'.
-			BuildRequirement<?,?,?> sdf2Parenthesize = new BuildRequirement<>(Sdf2Parenthesize.factory, new Sdf2Parenthesize.Input(context, sdfmodule, buildSdfImports, externaldef), new SimpleMode());
+			BuildRequirement<?,?,?,?> sdf2Parenthesize = new BuildRequirement<>(Sdf2Parenthesize.factory, new Sdf2Parenthesize.Input(context, sdfmodule, buildSdfImports, externaldef), new SimpleMode());
 	
 			require(StrategoCtree.factory,
 					new StrategoCtree.Input(
@@ -93,11 +93,11 @@ public class SpoofaxDefaultCtree extends SpoofaxBuilder<SpoofaxInput> {
 							externaljar, 
 							externaljarflags, 
 							externaldef,
-							new BuildRequirement<?,?,?>[] {sdf2Imp, sdf2Parenthesize}),
+							new BuildRequirement<?,?,?,?>[] {sdf2Imp, sdf2Parenthesize}),
 					new SimpleMode());
 			
 			// This dependency was discovered by cleardep, due to an implicit dependency on 'org.strategoxt.imp.editors.template/editor/java/org/strategoxt/imp/editors/template/strategies/InteropRegisterer.class'.
-			BuildRequirement<?,?,?> compileJavaCode = new BuildRequirement<>(CompileJavaCode.factory, input, new SimpleMode());
+			BuildRequirement<?,?,?,?> compileJavaCode = new BuildRequirement<>(CompileJavaCode.factory, input, new SimpleMode());
 			require(compileJavaCode);
 			
 			javaJar(result, strmodule, compileJavaCode);
@@ -115,7 +115,7 @@ public class SpoofaxDefaultCtree extends SpoofaxBuilder<SpoofaxInput> {
 		org.strategoxt.imp.generator.sdf2imp c;
 	}
 
-	private void javaJar(SimpleCompilationUnit result, String strmodule, BuildRequirement<?,?,?> compileJavaCode) throws IOException {
+	private void javaJar(SimpleCompilationUnit result, String strmodule, BuildRequirement<?,?,?,?> compileJavaCode) throws IOException {
 		if (!context.isJavaJarEnabled(result))
 			return;
 		
@@ -136,7 +136,7 @@ public class SpoofaxDefaultCtree extends SpoofaxBuilder<SpoofaxInput> {
 						jarPath, 
 						null,
 						files, 
-						new BuildRequirement<?,?,?>[] {compileJavaCode}), 
+						new BuildRequirement<?,?,?,?>[] {compileJavaCode}), 
 				new SimpleMode());
 	}
 

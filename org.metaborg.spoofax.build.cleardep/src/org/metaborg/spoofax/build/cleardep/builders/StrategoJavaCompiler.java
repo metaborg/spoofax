@@ -51,7 +51,7 @@ public class StrategoJavaCompiler extends SpoofaxBuilder<StrategoJavaCompiler.In
 		public final String[] libraryIncludes;
 		public final Path cacheDir;
 		public final String[] additionalArgs;
-		public final BuildRequirement<?,?,?>[] requiredUnits;
+		public final BuildRequirement<?,?,?,?>[] requiredUnits;
 		
 		public Input(
 				SpoofaxContext context,
@@ -65,7 +65,7 @@ public class StrategoJavaCompiler extends SpoofaxBuilder<StrategoJavaCompiler.In
 				String[] libraryIncludes,
 				Path cacheDir,
 				String[] additionalArgs, 
-				BuildRequirement<?,?,?>[] requiredUnits) {
+				BuildRequirement<?,?,?,?>[] requiredUnits) {
 			super(context);
 			this.inputPath = inputPath;
 			this.outputPath = outputPath;
@@ -108,7 +108,7 @@ public class StrategoJavaCompiler extends SpoofaxBuilder<StrategoJavaCompiler.In
 	@Override
 	public void build(SimpleCompilationUnit result) throws IOException {
 		if (input.requiredUnits != null)
-			for (BuildRequirement<?,?,?> req : input.requiredUnits)
+			for (BuildRequirement<?,?,?,?> req : input.requiredUnits)
 				require(req);
 		
 		result.addSourceArtifact(input.inputPath);
