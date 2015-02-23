@@ -1,7 +1,10 @@
 package org.metaborg.spoofax.build.cleardep;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
@@ -56,7 +59,7 @@ public class EclipseBuilder extends IncrementalProjectBuilder {
 		
 		
 		String lang;
-		String sdfImports;
+		Path[] sdfImports;
 		RelativePath antBuildXML = new RelativePath(baseDir, "build.main.xml");
 		try {
 			
@@ -72,7 +75,17 @@ public class EclipseBuilder extends IncrementalProjectBuilder {
 					if (name != null && "build.sdf.imports".equals(name.getNodeValue())) {
 						Node value = kid.getAttributes().getNamedItem("value");
 						if (value != null) {
-							sdfImports = value.getNodeValue();
+							String[] imports = value.getNodeValue().split("[\\s]*" + Pattern.quote("-Idef") + "[\\s]+");
+							List<Path> paths = new ArrayList<>();
+							for (String imp : imports)
+								if (!imp.isEmpty()) {
+									String subst = props.substitute(imp);
+									if (AbsolutePath.acceptable(subst))
+										paths.add(new AbsolutePath(subst));
+									else
+										paths.add(new RelativePath(baseDir, subst));
+								}
+							sdfImports = paths.toArray(new Path[paths.size()]);
 							break;
 						}
 					}
@@ -93,7 +106,10 @@ public class EclipseBuilder extends IncrementalProjectBuilder {
 		props.put("sigmodule", lang + "-sig");
 		
 		if (sdfImports != null) {
-			props.put("build.sdf.imports", props.substitute(sdfImports));
+			StringBuilder importString = new StringBuilder();
+			for (Path imp : sdfImports)
+				importString.append("-Idef " + props.substitute(imp.getAbsolutePath()));
+			props.put("build.sdf.imports", importString.toString());
 		}
 
 		return props;
@@ -118,13 +134,15 @@ public class EclipseBuilder extends IncrementalProjectBuilder {
 		try {
 			
 			manager.require(All.factory.makeBuilder(input, manager));
-			getProject().refreshLocal(IProject.DEPTH_INFINITE, monitor);
 		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (CoreException e) {
 			e.printStackTrace();
 		} finally {
 			monitor.done();
+			try {
+				getProject().refreshLocal(IProject.DEPTH_INFINITE, monitor);
+			} catch (CoreException e) {
+				e.printStackTrace();
+			}
 		}
 		return null;
 	}
@@ -136,11 +154,15 @@ public class EclipseBuilder extends IncrementalProjectBuilder {
 		SpoofaxInput input = new SpoofaxInput(context);
 		try {
 			manager.require(Clean.factory.makeBuilder(input, manager));
-			getProject().refreshLocal(IProject.DEPTH_INFINITE, monitor);
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
 			monitor.done();
+			try {
+				getProject().refreshLocal(IProject.DEPTH_INFINITE, monitor);
+			} catch (CoreException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 }
