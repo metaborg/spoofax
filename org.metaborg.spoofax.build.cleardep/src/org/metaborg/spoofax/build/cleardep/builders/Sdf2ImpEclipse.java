@@ -11,21 +11,13 @@ import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
 import org.strategoxt.imp.generator.sdf2imp_jvm_0_0;
 import org.sugarj.cleardep.CompilationUnit;
 import org.sugarj.cleardep.CompilationUnit.State;
-import org.sugarj.cleardep.SimpleCompilationUnit;
-import org.sugarj.cleardep.SimpleMode;
 import org.sugarj.cleardep.build.BuildManager;
-import org.sugarj.cleardep.stamp.LastModifiedStamper;
-import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
 public class Sdf2ImpEclipse extends SpoofaxBuilder<Sdf2ImpEclipse.Input> {
 
 	public static SpoofaxBuilderFactory<Input, Sdf2ImpEclipse> factory = new SpoofaxBuilderFactory<Input, Sdf2ImpEclipse>() {
-
-		/**
-		 * 
-		 */
 		private static final long serialVersionUID = 8374273854477950798L;
 
 		@Override
@@ -33,9 +25,6 @@ public class Sdf2ImpEclipse extends SpoofaxBuilder<Sdf2ImpEclipse.Input> {
 	};
 
 	public static class Input extends SpoofaxInput {
-		/**
-		 * 
-		 */
 		private static final long serialVersionUID = 5390265710389276659L;
 		public final String esvmodule;
 		public final String sdfmodule;
@@ -63,16 +52,8 @@ public class Sdf2ImpEclipse extends SpoofaxBuilder<Sdf2ImpEclipse.Input> {
 	}
 
 	@Override
-	public Class<SimpleCompilationUnit> resultClass() {
-		return SimpleCompilationUnit.class;
-	}
-
-	@Override
-	public Stamper defaultStamper() { return LastModifiedStamper.instance; }
-
-	@Override
-	public void build(SimpleCompilationUnit result) throws IOException {
-		require(Sdf2Rtg.factory, new Sdf2Rtg.Input(context, input.sdfmodule, input.buildSdfImports), new SimpleMode());
+	public void build(CompilationUnit result) throws IOException {
+		require(Sdf2Rtg.factory, new Sdf2Rtg.Input(context, input.sdfmodule, input.buildSdfImports));
 		
 		RelativePath inputPath = new RelativePath(context.basePath("editor"), input.esvmodule + ".main.esv");
 

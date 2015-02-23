@@ -7,12 +7,9 @@ import java.util.List;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.metaborg.spoofax.build.cleardep.util.FileExtensionFilter;
-import org.sugarj.cleardep.SimpleCompilationUnit;
-import org.sugarj.cleardep.SimpleMode;
+import org.sugarj.cleardep.CompilationUnit;
 import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.cleardep.buildjava.JavaBuilder;
-import org.sugarj.cleardep.stamp.LastModifiedStamper;
-import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.AbsolutePath;
 import org.sugarj.common.path.Path;
@@ -20,9 +17,6 @@ import org.sugarj.common.path.Path;
 public class CompileJavaCode extends SpoofaxBuilder<SpoofaxInput> {
 
 	public static SpoofaxBuilderFactory<SpoofaxInput, CompileJavaCode> factory = new SpoofaxBuilderFactory<SpoofaxInput, CompileJavaCode>() {
-		/**
-		 * 
-		 */
 		private static final long serialVersionUID = 5448125602790119713L;
 
 		@Override
@@ -44,16 +38,8 @@ public class CompileJavaCode extends SpoofaxBuilder<SpoofaxInput> {
 	}
 
 	@Override
-	public Class<SimpleCompilationUnit> resultClass() {
-		return SimpleCompilationUnit.class;
-	}
-
-	@Override
-	public Stamper defaultStamper() { return LastModifiedStamper.instance; }
-
-	@Override
-	public void build(SimpleCompilationUnit result) throws IOException {
-		require(CopyUtils.factory, input, new SimpleMode());
+	public void build(CompilationUnit result) throws IOException {
+		require(CopyUtils.factory, input);
 		
 		Path targetDir = context.basePath("${build}");
 		boolean debug = true;
@@ -99,7 +85,6 @@ public class CompileJavaCode extends SpoofaxBuilder<SpoofaxInput> {
 						sourcePath, 
 						classPath,
 						additionalArgs,
-						null),
-				new SimpleMode());
+						null));
 	}
 }

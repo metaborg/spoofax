@@ -9,22 +9,15 @@ import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
 import org.strategoxt.tools.main_rtg2sig_0_0;
+import org.sugarj.cleardep.CompilationUnit;
 import org.sugarj.cleardep.CompilationUnit.State;
-import org.sugarj.cleardep.SimpleCompilationUnit;
-import org.sugarj.cleardep.SimpleMode;
 import org.sugarj.cleardep.build.BuildManager;
-import org.sugarj.cleardep.stamp.LastModifiedStamper;
-import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
 public class Rtg2Sig extends SpoofaxBuilder<Rtg2Sig.Input> {
 
 	public static SpoofaxBuilderFactory<Input, Rtg2Sig> factory = new SpoofaxBuilderFactory<Input, Rtg2Sig>() {
-
-		/**
-		 * 
-		 */
 		private static final long serialVersionUID = -2453863767591818617L;
 
 		@Override
@@ -60,19 +53,11 @@ public class Rtg2Sig extends SpoofaxBuilder<Rtg2Sig.Input> {
 	}
 
 	@Override
-	public Class<SimpleCompilationUnit> resultClass() {
-		return SimpleCompilationUnit.class;
-	}
-
-	@Override
-	public Stamper defaultStamper() { return LastModifiedStamper.instance; }
-
-	@Override
-	public void build(SimpleCompilationUnit result) throws IOException {
+	public void build(CompilationUnit result) throws IOException {
 		
 		if (context.isBuildStrategoEnabled(result)) {
 			// This dependency was discovered by cleardep, due to an implicit dependency on 'org.strategoxt.imp.editors.template/include/TemplateLang.rtg'.
-			require(Sdf2Rtg.factory, new Sdf2Rtg.Input(context, input.sdfmodule, input.buildSdfImports), new SimpleMode());
+			require(Sdf2Rtg.factory, new Sdf2Rtg.Input(context, input.sdfmodule, input.buildSdfImports));
 
 			RelativePath inputPath = context.basePath("${include}/" + input.sdfmodule + ".rtg");
 			RelativePath outputPath = context.basePath("${include}/" + input.sdfmodule + ".str");

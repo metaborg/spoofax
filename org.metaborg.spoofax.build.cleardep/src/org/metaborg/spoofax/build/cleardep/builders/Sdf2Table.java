@@ -1,17 +1,15 @@
 package org.metaborg.spoofax.build.cleardep.builders;
 
 import java.io.IOException;
+
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
+import org.sugarj.cleardep.CompilationUnit;
 import org.sugarj.cleardep.CompilationUnit.State;
-import org.sugarj.cleardep.SimpleCompilationUnit;
-import org.sugarj.cleardep.SimpleMode;
 import org.sugarj.cleardep.build.BuildManager;
-import org.sugarj.cleardep.stamp.LastModifiedStamper;
-import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
@@ -19,10 +17,6 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input> {
 
 
 	public static SpoofaxBuilderFactory<Input, Sdf2Table> factory = new SpoofaxBuilderFactory<Input, Sdf2Table>() {
-
-		/**
-		 * 
-		 */
 		private static final long serialVersionUID = -5551917492018980172L;
 
 		@Override
@@ -31,9 +25,6 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input> {
 	
 
 	public static class Input extends SpoofaxInput {
-		/**
-		 * 
-		 */
 		private static final long serialVersionUID = -2379365089609792204L;
 		public final String sdfmodule;
 		public final String buildSdfImports;
@@ -61,16 +52,8 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input> {
 	}
 
 	@Override
-	public Class<SimpleCompilationUnit> resultClass() {
-		return SimpleCompilationUnit.class;
-	}
-
-	@Override
-	public Stamper defaultStamper() { return LastModifiedStamper.instance; }
-
-	@Override
-	public void build(SimpleCompilationUnit result) throws IOException {
-		require(MakePermissive.factory, new MakePermissive.Input(context, input.sdfmodule, input.buildSdfImports, input.externaldef), new SimpleMode());
+	public void build(CompilationUnit result) throws IOException {
+		require(MakePermissive.factory, new MakePermissive.Input(context, input.sdfmodule, input.buildSdfImports, input.externaldef));
 
 		RelativePath inputPath = context.basePath("${include}/" + input.sdfmodule + "-Permissive.def");
 		RelativePath outputPath = context.basePath("${include}/" + input.sdfmodule + ".tbl");

@@ -5,11 +5,8 @@ import java.io.IOException;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
-import org.sugarj.cleardep.SimpleCompilationUnit;
-import org.sugarj.cleardep.SimpleMode;
+import org.sugarj.cleardep.CompilationUnit;
 import org.sugarj.cleardep.build.BuildManager;
-import org.sugarj.cleardep.stamp.LastModifiedStamper;
-import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
@@ -17,10 +14,6 @@ import org.sugarj.common.path.RelativePath;
 public class MetaSdf2Table extends SpoofaxBuilder<MetaSdf2Table.Input> {
 
 	public static SpoofaxBuilderFactory<Input, MetaSdf2Table> factory = new SpoofaxBuilderFactory<Input, MetaSdf2Table>() {
-
-		/**
-		 * 
-		 */
 		private static final long serialVersionUID = 5848449529745147614L;
 
 		@Override
@@ -56,17 +49,9 @@ public class MetaSdf2Table extends SpoofaxBuilder<MetaSdf2Table.Input> {
 	protected Path persistentPath() {
 		return context.depPath("metaSdf2Table." + input.metasdfmodule + ".dep");
 	}
-	
-	@Override
-	public Class<SimpleCompilationUnit> resultClass() {
-		return SimpleCompilationUnit.class;
-	}
 
 	@Override
-	public Stamper defaultStamper() { return LastModifiedStamper.instance; }
-
-	@Override
-	public void build(SimpleCompilationUnit result) throws IOException {
+	public void build(CompilationUnit result) throws IOException {
 		if (!context.props.isDefined("eclipse.spoofaximp.jars"))
 			throw new IllegalArgumentException("Property eclipse.spoofaximp.jars must point to the directory containing StrategoMix.def");
 		
@@ -76,7 +61,7 @@ public class MetaSdf2Table extends SpoofaxBuilder<MetaSdf2Table.Input> {
 		
 		if (metasdfmoduleAvailable) {
 			String sdfImports = context.props.substitute("-Idef ${eclipse.spoofaximp.jars}/StrategoMix.def ") + input.buildSdfImports;
-			require(Sdf2Table.factory, new Sdf2Table.Input(context, input.metasdfmodule, sdfImports, input.externaldef), new SimpleMode());
+			require(Sdf2Table.factory, new Sdf2Table.Input(context, input.metasdfmodule, sdfImports, input.externaldef));
 		}
 
 		// TODO need to refresh here?

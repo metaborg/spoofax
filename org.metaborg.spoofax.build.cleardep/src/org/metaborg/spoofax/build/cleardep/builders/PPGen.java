@@ -12,12 +12,9 @@ import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
 import org.strategoxt.tools.main_pp_pp_table_0_0;
 import org.strategoxt.tools.main_ppgen_0_0;
+import org.sugarj.cleardep.CompilationUnit;
 import org.sugarj.cleardep.CompilationUnit.State;
-import org.sugarj.cleardep.SimpleCompilationUnit;
-import org.sugarj.cleardep.SimpleMode;
 import org.sugarj.cleardep.build.BuildManager;
-import org.sugarj.cleardep.stamp.LastModifiedStamper;
-import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
@@ -25,10 +22,6 @@ import org.sugarj.common.path.RelativePath;
 public class PPGen extends SpoofaxBuilder<SpoofaxInput> {
 
 	public static SpoofaxBuilderFactory<SpoofaxInput, PPGen> factory = new SpoofaxBuilderFactory<SpoofaxInput, PPGen>() {
-
-		/**
-		 * 
-		 */
 		private static final long serialVersionUID = 9200673263670609032L;
 
 		@Override
@@ -50,20 +43,12 @@ public class PPGen extends SpoofaxBuilder<SpoofaxInput> {
 	}
 
 	@Override
-	public Class<SimpleCompilationUnit> resultClass() {
-		return SimpleCompilationUnit.class;
-	}
-
-	@Override
-	public Stamper defaultStamper() { return LastModifiedStamper.instance; }
-
-	@Override
-	public void build(SimpleCompilationUnit result) throws IOException {
+	public void build(CompilationUnit result) throws IOException {
 		SpoofaxContext context = input.context;
 		if (!context.isBuildStrategoEnabled(result))
 			return;
 		
-		require(PackSdf.factory, new PackSdf.Input(context), new SimpleMode());
+		require(PackSdf.factory, new PackSdf.Input(context));
 
 		RelativePath inputPath = context.basePath("${include}/${sdfmodule}.def");
 		RelativePath ppOutputPath = context.basePath("${include}/${sdfmodule}.generated.pp");

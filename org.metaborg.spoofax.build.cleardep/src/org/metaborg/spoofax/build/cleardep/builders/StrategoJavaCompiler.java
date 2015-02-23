@@ -12,11 +12,8 @@ import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
 import org.sugarj.cleardep.CompilationUnit;
 import org.sugarj.cleardep.CompilationUnit.State;
-import org.sugarj.cleardep.SimpleCompilationUnit;
 import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.cleardep.build.BuildRequirement;
-import org.sugarj.cleardep.stamp.LastModifiedStamper;
-import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.StringCommands;
 import org.sugarj.common.path.AbsolutePath;
@@ -26,10 +23,6 @@ import org.sugarj.common.path.RelativePath;
 public class StrategoJavaCompiler extends SpoofaxBuilder<StrategoJavaCompiler.Input> {
 
 	public static SpoofaxBuilderFactory<Input, StrategoJavaCompiler> factory = new SpoofaxBuilderFactory<Input, StrategoJavaCompiler>() {
-
-		/**
-		 * 
-		 */
 		private static final long serialVersionUID = -3539649828941211263L;
 
 		@Override
@@ -37,9 +30,6 @@ public class StrategoJavaCompiler extends SpoofaxBuilder<StrategoJavaCompiler.In
 	};
 	
 	public static class Input extends SpoofaxInput {
-		/**
-		 * 
-		 */
 		private static final long serialVersionUID = -5234502421638344690L;
 		public final RelativePath inputPath;
 		public final RelativePath outputPath;
@@ -98,15 +88,7 @@ public class StrategoJavaCompiler extends SpoofaxBuilder<StrategoJavaCompiler.In
 	}
 
 	@Override
-	public Class<SimpleCompilationUnit> resultClass() {
-		return SimpleCompilationUnit.class;
-	}
-
-	@Override
-	public Stamper defaultStamper() { return LastModifiedStamper.instance; }
-
-	@Override
-	public void build(SimpleCompilationUnit result) throws IOException {
+	public void build(CompilationUnit result) throws IOException {
 		if (input.requiredUnits != null)
 			for (BuildRequirement<?,?,?,?> req : input.requiredUnits)
 				require(req);

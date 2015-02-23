@@ -7,10 +7,8 @@ import java.nio.file.StandardCopyOption;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
-import org.sugarj.cleardep.SimpleCompilationUnit;
+import org.sugarj.cleardep.CompilationUnit;
 import org.sugarj.cleardep.build.BuildManager;
-import org.sugarj.cleardep.stamp.LastModifiedStamper;
-import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
@@ -18,10 +16,6 @@ import org.sugarj.common.path.RelativePath;
 public class CopyJar extends SpoofaxBuilder<CopyJar.Input> {
 
 	public static SpoofaxBuilderFactory<Input, CopyJar> factory = new SpoofaxBuilderFactory<Input, CopyJar>() {
-
-		/**
-		 * 
-		 */
 		private static final long serialVersionUID = -8387363389037442076L;
 
 		@Override
@@ -30,9 +24,6 @@ public class CopyJar extends SpoofaxBuilder<CopyJar.Input> {
 	
 
 	public static class Input extends SpoofaxInput {
-		/**
-		 * 
-		 */
 		private static final long serialVersionUID = 8710048518971598430L;
 		public final Path externaljar;
 		public Input(SpoofaxContext context, Path externaljar) {
@@ -61,15 +52,7 @@ public class CopyJar extends SpoofaxBuilder<CopyJar.Input> {
 	}
 
 	@Override
-	public Class<SimpleCompilationUnit> resultClass() {
-		return SimpleCompilationUnit.class;
-	}
-
-	@Override
-	public Stamper defaultStamper() { return LastModifiedStamper.instance; }
-
-	@Override
-	public void build(SimpleCompilationUnit result) throws IOException {
+	public void build(CompilationUnit result) throws IOException {
 		if (input.externaljar != null) {
 			Path target = context.basePath("${include}/" + FileCommands.dropDirectory(input.externaljar));
 			result.addExternalFileDependency(input.externaljar);

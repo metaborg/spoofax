@@ -10,22 +10,15 @@ import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
 import org.strategoxt.permissivegrammars.make_permissive;
+import org.sugarj.cleardep.CompilationUnit;
 import org.sugarj.cleardep.CompilationUnit.State;
-import org.sugarj.cleardep.SimpleCompilationUnit;
-import org.sugarj.cleardep.SimpleMode;
 import org.sugarj.cleardep.build.BuildManager;
-import org.sugarj.cleardep.stamp.LastModifiedStamper;
-import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
 public class MakePermissive extends SpoofaxBuilder<MakePermissive.Input> {
 
 	public static SpoofaxBuilderFactory<Input, MakePermissive> factory = new SpoofaxBuilderFactory<Input, MakePermissive>() {
-
-		/**
-		 * 
-		 */
 		private static final long serialVersionUID = 657230698706473822L;
 
 		@Override
@@ -63,17 +56,9 @@ public class MakePermissive extends SpoofaxBuilder<MakePermissive.Input> {
 	}
 
 	@Override
-	public Class<SimpleCompilationUnit> resultClass() {
-		return SimpleCompilationUnit.class;
-	}
-
-	@Override
-	public Stamper defaultStamper() { return LastModifiedStamper.instance; }
-
-	@Override
-	public void build(SimpleCompilationUnit result) throws IOException {
-		require(CopySdf.factory, new CopySdf.Input(context, input.sdfmodule, input.externaldef), new SimpleMode());
-		require(PackSdf.factory, new PackSdf.Input(context,input.sdfmodule, input.buildSdfImports), new SimpleMode());
+	public void build(CompilationUnit result) throws IOException {
+		require(CopySdf.factory, new CopySdf.Input(context, input.sdfmodule, input.externaldef));
+		require(PackSdf.factory, new PackSdf.Input(context,input.sdfmodule, input.buildSdfImports));
 		
 		RelativePath inputPath = context.basePath("${include}/" + input.sdfmodule + ".def");
 		RelativePath outputPath = context.basePath("${include}/" + input.sdfmodule + "-Permissive.def");

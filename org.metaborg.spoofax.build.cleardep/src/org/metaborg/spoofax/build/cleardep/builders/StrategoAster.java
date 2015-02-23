@@ -7,10 +7,8 @@ import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
 import org.metaborg.spoofax.build.cleardep.util.FileExtensionFilter;
-import org.sugarj.cleardep.SimpleCompilationUnit;
+import org.sugarj.cleardep.CompilationUnit;
 import org.sugarj.cleardep.build.BuildManager;
-import org.sugarj.cleardep.stamp.LastModifiedStamper;
-import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
@@ -18,10 +16,6 @@ import org.sugarj.common.path.RelativePath;
 public class StrategoAster extends SpoofaxBuilder<StrategoAster.Input> {
 
 	public static SpoofaxBuilderFactory<Input, StrategoAster> factory = new SpoofaxBuilderFactory<Input, StrategoAster>() {
-
-		/**
-		 * 
-		 */
 		private static final long serialVersionUID = -1290903435504555665L;
 
 		@Override
@@ -29,9 +23,6 @@ public class StrategoAster extends SpoofaxBuilder<StrategoAster.Input> {
 	};
 	
 	public static class Input extends SpoofaxInput {
-		/**
-		 * 
-		 */
 		private static final long serialVersionUID = -4593910056510380042L;
 		public final String strmodule;
 		public Input(SpoofaxContext context, String strmodule) {
@@ -55,15 +46,7 @@ public class StrategoAster extends SpoofaxBuilder<StrategoAster.Input> {
 	}
 
 	@Override
-	public Class<SimpleCompilationUnit> resultClass() {
-		return SimpleCompilationUnit.class;
-	}
-
-	@Override
-	public Stamper defaultStamper() { return LastModifiedStamper.instance; }
-
-	@Override
-	public void build(SimpleCompilationUnit result) throws IOException {
+	public void build(CompilationUnit result) throws IOException {
 		List<RelativePath> asterInputList = FileCommands.listFilesRecursive(context.baseDir, new FileExtensionFilter("astr"));
 		for (RelativePath p : asterInputList)
 			result.addSourceArtifact(p);

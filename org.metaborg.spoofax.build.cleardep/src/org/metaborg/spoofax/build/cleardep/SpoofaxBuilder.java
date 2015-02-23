@@ -3,16 +3,16 @@ package org.metaborg.spoofax.build.cleardep;
 import java.io.Serializable;
 
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
-import org.sugarj.cleardep.SimpleCompilationUnit;
+import org.sugarj.cleardep.CompilationUnit;
 import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.cleardep.build.Builder;
 import org.sugarj.cleardep.build.BuilderFactory;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
 
-abstract public class SpoofaxBuilder<T extends SpoofaxInput> extends Builder<T, SimpleCompilationUnit> {
+abstract public class SpoofaxBuilder<T extends SpoofaxInput> extends Builder<T, CompilationUnit> {
 
-	public static abstract class SpoofaxBuilderFactory<T extends SpoofaxInput, B extends SpoofaxBuilder<T>> implements BuilderFactory<T, SimpleCompilationUnit, B> {
+	public static abstract class SpoofaxBuilderFactory<T extends SpoofaxInput, B extends SpoofaxBuilder<T>> implements BuilderFactory<T, CompilationUnit, B> {
 		/**
 		 * 
 		 */
@@ -41,8 +41,8 @@ abstract public class SpoofaxBuilder<T extends SpoofaxInput> extends Builder<T, 
 	}
 
 	@Override
-	protected Class<SimpleCompilationUnit> resultClass() {
-		return SimpleCompilationUnit.class;
+	protected Class<CompilationUnit> resultClass() {
+		return CompilationUnit.class;
 	}
 
 	@Override

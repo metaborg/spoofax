@@ -4,12 +4,8 @@ import java.io.IOException;
 
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
-import org.sugarj.cleardep.SimpleCompilationUnit;
-import org.sugarj.cleardep.SimpleMode;
-
+import org.sugarj.cleardep.CompilationUnit;
 import org.sugarj.cleardep.build.BuildManager;
-import org.sugarj.cleardep.stamp.LastModifiedStamper;
-import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
@@ -17,9 +13,6 @@ import org.sugarj.common.path.RelativePath;
 public class All extends SpoofaxBuilder<SpoofaxInput> {
 
 	public static SpoofaxBuilderFactory<SpoofaxInput, All> factory = new SpoofaxBuilderFactory<SpoofaxInput, All>() {
-		/**
-		 * 
-		 */
 		private static final long serialVersionUID = 1747202833519981639L;
 
 		@Override
@@ -42,20 +35,12 @@ public class All extends SpoofaxBuilder<SpoofaxInput> {
 	}
 	
 	@Override
-	public Class<SimpleCompilationUnit> resultClass() {
-		return SimpleCompilationUnit.class;
-	}
-
-	@Override
-	public Stamper defaultStamper() { return LastModifiedStamper.instance; }
-
-	@Override
-	public void build(SimpleCompilationUnit result) throws IOException {
+	public void build(CompilationUnit result) throws IOException {
 		RelativePath ppInput = context.basePath("${lib}/EditorService-pretty.pp");
 		RelativePath ppTermOutput = context.basePath("${include}/EditorService-pretty.pp.af");
-		require(PPPack.factory, new PPPack.Input(context, ppInput, ppTermOutput), new SimpleMode());
+		require(PPPack.factory, new PPPack.Input(context, ppInput, ppTermOutput));
 		
-		require(SpoofaxDefaultCtree.factory, input, new SimpleMode());
+		require(SpoofaxDefaultCtree.factory, input);
 	}
 
 }

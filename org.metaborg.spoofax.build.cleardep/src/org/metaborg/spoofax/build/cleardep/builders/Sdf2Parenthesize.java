@@ -10,11 +10,8 @@ import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
 import org.strategoxt.tools.main_sdf2parenthesize_0_0;
-import org.sugarj.cleardep.SimpleCompilationUnit;
-import org.sugarj.cleardep.SimpleMode;
+import org.sugarj.cleardep.CompilationUnit;
 import org.sugarj.cleardep.build.BuildManager;
-import org.sugarj.cleardep.stamp.LastModifiedStamper;
-import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
@@ -22,10 +19,6 @@ import org.sugarj.common.path.RelativePath;
 public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input> {
 
 	public static SpoofaxBuilderFactory<Input, Sdf2Parenthesize> factory = new SpoofaxBuilderFactory<Input, Sdf2Parenthesize>() {
-
-		/**
-		 * 
-		 */
 		private static final long serialVersionUID = -7165488913542364367L;
 
 		@Override
@@ -33,9 +26,6 @@ public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input> {
 	};
 	
 	public static class Input extends SpoofaxInput {
-		/**
-		 * 
-		 */
 		private static final long serialVersionUID = 6177130857266733408L;
 		public final String sdfmodule;
 		public final String buildSdfImports;
@@ -63,17 +53,9 @@ public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input> {
 	}
 
 	@Override
-	public Class<SimpleCompilationUnit> resultClass() {
-		return SimpleCompilationUnit.class;
-	}
-
-	@Override
-	public Stamper defaultStamper() { return LastModifiedStamper.instance; }
-
-	@Override
-	public void build(SimpleCompilationUnit result) throws IOException {
-		require(CopySdf.factory, new CopySdf.Input(context, input.sdfmodule, input.externaldef), new SimpleMode());
-		require(PackSdf.factory, new PackSdf.Input(context, input.sdfmodule, input.buildSdfImports), new SimpleMode());
+	public void build(CompilationUnit result) throws IOException {
+		require(CopySdf.factory, new CopySdf.Input(context, input.sdfmodule, input.externaldef));
+		require(PackSdf.factory, new PackSdf.Input(context, input.sdfmodule, input.buildSdfImports));
 		
 		RelativePath inputPath = context.basePath("${include}/" + input.sdfmodule + ".def");
 		RelativePath outputPath = context.basePath("${include}/" + input.sdfmodule + "-parenthesize.str");

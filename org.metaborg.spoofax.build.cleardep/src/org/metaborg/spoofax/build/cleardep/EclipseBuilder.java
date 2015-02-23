@@ -10,7 +10,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.metaborg.spoofax.build.cleardep.builders.All;
 import org.metaborg.spoofax.build.cleardep.builders.Clean;
-import org.sugarj.cleardep.SimpleMode;
 import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.common.Log;
 import org.sugarj.common.path.AbsolutePath;
@@ -40,7 +39,7 @@ public class EclipseBuilder extends IncrementalProjectBuilder {
 		SpoofaxInput input = new SpoofaxInput(context);
 		try {
 			
-			manager.require(All.factory.makeBuilder(input, manager), new SimpleMode());
+			manager.require(All.factory.makeBuilder(input, manager));
 			getProject().refreshLocal(IProject.DEPTH_INFINITE, monitor);
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -58,7 +57,7 @@ public class EclipseBuilder extends IncrementalProjectBuilder {
 		SpoofaxContext context = makeContext(getProject());
 		SpoofaxInput input = new SpoofaxInput(context);
 		try {
-			manager.require(Clean.factory.makeBuilder(input, manager), new SimpleMode());
+			manager.require(Clean.factory.makeBuilder(input, manager));
 			getProject().refreshLocal(IProject.DEPTH_INFINITE, monitor);
 		} catch (IOException e) {
 			e.printStackTrace();

@@ -13,10 +13,8 @@ import org.strategoxt.imp.runtime.services.OnSaveService;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.services.StrategoObserverUpdateJob;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
-import org.sugarj.cleardep.SimpleCompilationUnit;
+import org.sugarj.cleardep.CompilationUnit;
 import org.sugarj.cleardep.build.BuildManager;
-import org.sugarj.cleardep.stamp.LastModifiedStamper;
-import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.Log;
 import org.sugarj.common.path.Path;
@@ -25,10 +23,6 @@ import org.sugarj.common.path.RelativePath;
 public class ForceOnSaveFile extends SpoofaxBuilder<ForceOnSaveFile.Input> {
 
 	public static SpoofaxBuilderFactory<Input, ForceOnSaveFile> factory = new SpoofaxBuilderFactory<Input, ForceOnSaveFile>() {
-
-		/**
-		 * 
-		 */
 		private static final long serialVersionUID = 3624331674299289181L;
 
 		@Override
@@ -64,15 +58,7 @@ public class ForceOnSaveFile extends SpoofaxBuilder<ForceOnSaveFile.Input> {
 	}
 
 	@Override
-	public Class<SimpleCompilationUnit> resultClass() {
-		return SimpleCompilationUnit.class;
-	}
-
-	@Override
-	public Stamper defaultStamper() { return LastModifiedStamper.instance; }
-
-	@Override
-	public void build(SimpleCompilationUnit result) throws IOException {
+	public void build(CompilationUnit result) throws IOException {
 		RelativePath p = FileCommands.getRelativePath(context.baseDir, input.inputPath);
 		
 		result.addSourceArtifact(p);

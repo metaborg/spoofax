@@ -4,10 +4,8 @@ import java.io.IOException;
 
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
-import org.sugarj.cleardep.SimpleCompilationUnit;
+import org.sugarj.cleardep.CompilationUnit;
 import org.sugarj.cleardep.build.BuildManager;
-import org.sugarj.cleardep.stamp.LastModifiedStamper;
-import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.AbsolutePath;
 import org.sugarj.common.path.Path;
@@ -16,10 +14,6 @@ import org.sugarj.common.path.RelativePath;
 public class CopyUtils extends SpoofaxBuilder<SpoofaxInput> {
 
 	public static SpoofaxBuilderFactory<SpoofaxInput, CopyUtils> factory = new SpoofaxBuilderFactory<SpoofaxInput, CopyUtils>() {
-
-		/**
-		 * 
-		 */
 		private static final long serialVersionUID = 2088788942202940759L;
 
 		@Override
@@ -41,15 +35,7 @@ public class CopyUtils extends SpoofaxBuilder<SpoofaxInput> {
 	}
 
 	@Override
-	public Class<SimpleCompilationUnit> resultClass() {
-		return SimpleCompilationUnit.class;
-	}
-
-	@Override
-	public Stamper defaultStamper() { return LastModifiedStamper.instance; }
-
-	@Override
-	public void build(SimpleCompilationUnit result) throws IOException {
+	public void build(CompilationUnit result) throws IOException {
 		Path utils = context.basePath("utils");
 		FileCommands.createDir(utils);
 		

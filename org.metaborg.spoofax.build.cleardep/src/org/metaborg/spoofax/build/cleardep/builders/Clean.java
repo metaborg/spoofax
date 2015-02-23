@@ -6,10 +6,8 @@ import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.metaborg.spoofax.build.cleardep.util.FileExtensionFilter;
 import org.metaborg.spoofax.build.cleardep.util.FileNameFilter;
-import org.sugarj.cleardep.SimpleCompilationUnit;
+import org.sugarj.cleardep.CompilationUnit;
 import org.sugarj.cleardep.build.BuildManager;
-import org.sugarj.cleardep.stamp.LastModifiedStamper;
-import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.Log;
 import org.sugarj.common.path.Path;
@@ -17,9 +15,6 @@ import org.sugarj.common.path.Path;
 public class Clean extends SpoofaxBuilder<SpoofaxInput> {
 
 	public static SpoofaxBuilderFactory<SpoofaxInput, Clean> factory = new SpoofaxBuilderFactory<SpoofaxInput, Clean>() {
-		/**
-		 * 
-		 */
 		private static final long serialVersionUID = -1133955108882900676L;
 
 		@Override
@@ -41,15 +36,7 @@ public class Clean extends SpoofaxBuilder<SpoofaxInput> {
 	}
 
 	@Override
-	public Class<SimpleCompilationUnit> resultClass() {
-		return SimpleCompilationUnit.class;
-	}
-	
-	@Override
-	public Stamper defaultStamper() { return LastModifiedStamper.instance; }
-
-	@Override
-	public void build(SimpleCompilationUnit result) throws IOException {
+	public void build(CompilationUnit result) throws IOException {
 		String[] paths = {
 				".cache",
 				"${include}/${sdfmodule}.def",
