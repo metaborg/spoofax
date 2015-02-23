@@ -57,7 +57,6 @@ public class EclipseBuilder extends IncrementalProjectBuilder {
 		props.put("eclipse.spoofaximp.jars", new JarsAntPropertyProvider().getAntPropertyValue(null));
 		props.put("externaljarx", new PluginClasspathProvider().getAntPropertyValue(null));
 		
-		
 		String lang;
 		Path[] sdfImports;
 		RelativePath antBuildXML = new RelativePath(baseDir, "build.main.xml");
