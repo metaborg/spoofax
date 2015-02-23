@@ -23,6 +23,8 @@ import org.metaborg.spoofax.core.context.IContextService;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
 import org.metaborg.spoofax.core.messages.IMessage;
+import org.metaborg.spoofax.core.messages.MessageFactory;
+import org.metaborg.spoofax.core.messages.MessageType;
 import org.metaborg.spoofax.core.style.ICategorizerService;
 import org.metaborg.spoofax.core.style.IRegionCategory;
 import org.metaborg.spoofax.core.style.IRegionStyle;
@@ -107,10 +109,28 @@ public class EditorUpdateJob extends Job {
 
     private IStatus update(final IProgressMonitor monitor) throws ParseException, AnalysisException, CoreException,
         ContextException {
-        final ILanguage language = languageIdentifierService.identify(resource);
-
         final Display display = Display.getDefault();
         final IWorkspace workspace = ResourcesPlugin.getWorkspace();
+
+        // Identify language
+        final ILanguage language = languageIdentifierService.identify(resource);
+        if(language == null) {
+            final IWorkspaceRunnable parseMarkerUpdater = new IWorkspaceRunnable() {
+                @Override public void run(IProgressMonitor workspaceMonitor) throws CoreException {
+                    if(workspaceMonitor.isCanceled())
+                        return;
+                    MarkerUtils.clearAll(eclipseResource);
+                    MarkerUtils.createMarker(eclipseResource, MessageFactory.newErrorAtTop(resource,
+                        "Language could not be identified", MessageType.INTERNAL_MESSAGE, null));
+                }
+            };
+            workspace.run(parseMarkerUpdater, eclipseResource, IWorkspace.AVOID_UPDATE, monitor);
+
+            final String message =
+                String.format("Updating editor for %s failed, language could not be identified", input);
+            logger.error(message);
+            return StatusUtils.error(message);
+        }
 
         // Parse
         if(monitor.isCanceled())

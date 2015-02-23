@@ -6,12 +6,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceDeltaVisitor;
@@ -93,56 +90,6 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
 
         this.parseResultProcessor = injector.getInstance(ParseResultProcessor.class);
         this.analysisResultProcessor = injector.getInstance(AnalysisResultProcessor.class);
-    }
-
-
-    /**
-     * Adds this builder to given project. Does nothing if builder has already been added to the project.
-     * 
-     * @param project
-     *            Project to add the builder to.
-     * @throws CoreException
-     *             when {@link IProject#getDescription} throws a CoreException.
-     */
-    public static void addTo(IProject project) throws CoreException {
-        final IProjectDescription projectDesc = project.getDescription();
-        final ICommand[] builders = projectDesc.getBuildSpec();
-        if(builderIndex(builders) == -1) {
-            final ICommand newBuilder = projectDesc.newCommand();
-            newBuilder.setBuilderName(id);
-            final ICommand[] newBuilders = ArrayUtils.add(builders, 0, newBuilder);
-            projectDesc.setBuildSpec(newBuilders);
-            project.setDescription(projectDesc, null);
-        }
-    }
-
-    /**
-     * Removes this builder from given project. Does nothing if the builder has not been added to the project.
-     * 
-     * @param project
-     *            Project to remove the builder from.
-     * @throws CoreException
-     *             when {@link IProject#getDescription} or {@link IProject#setDescription} throws a CoreException.
-     */
-    public static void removeFrom(IProject project) throws CoreException {
-        final IProjectDescription projectDesc = project.getDescription();
-        final ICommand[] builders = projectDesc.getBuildSpec();
-        final int builderIndex = builderIndex(builders);
-        if(builderIndex != -1) {
-            final ICommand[] newBuilders = ArrayUtils.remove(builders, builderIndex);
-            projectDesc.setBuildSpec(newBuilders);
-            project.setDescription(projectDesc, null);
-        }
-    }
-
-    private static int builderIndex(ICommand[] builders) throws CoreException {
-        for(int i = 0; i < builders.length; ++i) {
-            final ICommand builder = builders[i];
-            if(builder.getBuilderName().equals(id)) {
-                return i;
-            }
-        }
-        return -1;
     }
 
 

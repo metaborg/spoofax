@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.eclipse.language;
+package org.metaborg.spoofax.eclipse.meta.language;
 
 import org.apache.commons.vfs2.FileObject;
 import org.eclipse.core.runtime.IProgressMonitor;

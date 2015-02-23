@@ -22,7 +22,10 @@ public class LatestEditorListener implements IWindowListener, IPartListener2 {
             window.getPartService().addPartListener(this);
         }
         workbench.addWindowListener(this);
-        trySetActive(workbench.getActiveWorkbenchWindow().getPartService().getActivePart());
+        final IWorkbenchWindow activeWindow = workbench.getActiveWorkbenchWindow();
+        if(activeWindow != null) {
+            trySetActive(activeWindow.getPartService().getActivePart());
+        }
     }
 
     public SpoofaxEditor latestActive() {

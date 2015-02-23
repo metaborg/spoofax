@@ -183,6 +183,9 @@ public final class MarkerUtils {
             case BUILDER_MESSAGE:
                 prefix = transformationId;
                 break;
+            case INTERNAL_MESSAGE:
+                prefix = id;
+                break;
             default:
                 return id;
         }

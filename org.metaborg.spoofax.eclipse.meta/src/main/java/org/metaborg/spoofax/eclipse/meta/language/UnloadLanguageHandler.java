@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.eclipse.language;
+package org.metaborg.spoofax.eclipse.meta.language;
 
 import org.apache.commons.vfs2.FileObject;
 import org.eclipse.core.commands.AbstractHandler;
@@ -9,8 +9,8 @@ import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.jobs.MultiRule;
 import org.metaborg.spoofax.core.language.ILanguageService;
-import org.metaborg.spoofax.eclipse.SpoofaxPlugin;
 import org.metaborg.spoofax.eclipse.job.GlobalSchedulingRules;
+import org.metaborg.spoofax.eclipse.meta.SpoofaxMetaPlugin;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
 import org.metaborg.spoofax.eclipse.util.AbstractHandlerUtils;
 
@@ -23,7 +23,7 @@ public class UnloadLanguageHandler extends AbstractHandler {
 
 
     public UnloadLanguageHandler() {
-        final Injector injector = SpoofaxPlugin.injector();
+        final Injector injector = SpoofaxMetaPlugin.injector();
         this.resourceService = injector.getInstance(IEclipseResourceService.class);
         this.languageService = injector.getInstance(ILanguageService.class);
         this.mutexes = injector.getInstance(GlobalSchedulingRules.class);

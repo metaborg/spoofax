@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Spoofax meta legacy crap
+Bundle-SymbolicName: org.metaborg.spoofax.eclipse.meta.legacy;singleton:=true
+Bundle-Version: 1.3.0.qualifier
+Bundle-Activator: org.metaborg.spoofax.eclipse.meta.legacy.SpoofaxMetaLegacyActivator
+Require-Bundle: org.eclipse.core.runtime
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-ActivationPolicy: lazy

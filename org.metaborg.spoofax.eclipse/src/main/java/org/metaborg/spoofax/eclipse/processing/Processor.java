@@ -103,9 +103,9 @@ public class Processor {
      * Notifies that the Spoofax plugin has been started. Schedules a job that loads all languages in open projects.
      */
     public void startup() {
-        final Job job =
-            new StartupJob(resourceService, languageDiscoveryService, jobManager, globalRules.startupWriteLock(),
-                globalRules.languageServiceLock());
+        final Job job = new StartupJob(resourceService, languageDiscoveryService);
+        job.setRule(new MultiRule(new ISchedulingRule[] { globalRules.startupWriteLock(),
+            globalRules.languageServiceLock() }));
         job.schedule();
     }
 
