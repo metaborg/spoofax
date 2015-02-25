@@ -132,7 +132,7 @@ public class EclipseBuilder extends IncrementalProjectBuilder {
 		SpoofaxInput input = new SpoofaxInput(context);
 		try {
 			
-			manager.require(All.factory.makeBuilder(input, manager));
+			manager.require(All.factory, input);
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
@@ -152,7 +152,7 @@ public class EclipseBuilder extends IncrementalProjectBuilder {
 		SpoofaxContext context = makeContext(getProject());
 		SpoofaxInput input = new SpoofaxInput(context);
 		try {
-			manager.require(Clean.factory.makeBuilder(input, manager));
+			manager.require(Clean.factory, input);
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
