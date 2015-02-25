@@ -3,6 +3,7 @@ package org.metaborg.spoofax.eclipse.meta.build;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Paths;
 import java.util.Collection;
@@ -17,14 +18,15 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.metaborg.spoofax.eclipse.meta.SpoofaxMetaPlugin;
+import org.metaborg.spoofax.eclipse.meta.legacy.build.LegacyBuildProperties;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
+import org.metaborg.spoofax.eclipse.util.BundleUtils;
 import org.metaborg.spoofax.eclipse.util.StatusUtils;
 import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.FrameworkUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.inject.Injector;
 
@@ -48,9 +50,10 @@ public class SpoofaxMetaProjectBuilder extends IncrementalProjectBuilder {
             if(kind != AUTO_BUILD) {
                 build(getProject(), monitor);
             }
-        } catch(FileSystemException e) {
+        } catch(IOException e) {
             logger.error("Cannot build language project", e);
         } finally {
+            // Always forget last build state to force a full build next time.
             forgetLastBuiltState();
         }
         return null;
@@ -59,35 +62,37 @@ public class SpoofaxMetaProjectBuilder extends IncrementalProjectBuilder {
     @Override protected void clean(IProgressMonitor monitor) throws CoreException {
         try {
             clean(getProject(), monitor);
-        } catch(FileSystemException e) {
+        } catch(IOException e) {
             logger.error("Cannot clean language project", e);
         } finally {
+            // Always forget last build state to force a full build next time.
             forgetLastBuiltState();
         }
     }
 
-    private void clean(final IProject project, IProgressMonitor monitor) throws CoreException, FileSystemException {
-        logger.debug("Cleaning language project {}", project);
-        final String buildFilePath = buildFilePath(project, "clean");
+    private void runAnt(String buildFilePath, String[] targets, IProgressMonitor monitor) throws CoreException,
+        IOException {
         final AntRunner runner = new AntRunner();
         runner.setBuildFileLocation(buildFilePath);
-        runner.setExecutionTargets(new String[] { "clean" });
-        runner.setArguments(arguments());
-        runner.setCustomClasspath(classpath());
+        runner.setExecutionTargets(targets);
+        final URL[] classpaths = classpaths();
+        runner.setCustomClasspath(classpaths);
+        final Map<String, String> properties = properties(classpaths);
+        runner.addUserProperties(properties);
         runner.addBuildLogger("org.metaborg.spoofax.eclipse.meta.build.SpoofaxAntBuildLogger");
         runner.run(monitor);
     }
 
-    private void build(IProject project, IProgressMonitor monitor) throws CoreException, FileSystemException {
+    private void clean(IProject project, IProgressMonitor monitor) throws CoreException, IOException {
+        logger.debug("Cleaning language project {}", project);
+        final String buildFilePath = buildFilePath(project, "clean");
+        runAnt(buildFilePath, new String[] { "clean" }, monitor);
+    }
+
+    private void build(IProject project, IProgressMonitor monitor) throws CoreException, IOException {
         logger.debug("Building language project {}", project);
         final String buildFilePath = buildFilePath(project, "build");
-        final AntRunner runner = new AntRunner();
-        runner.setBuildFileLocation(buildFilePath);
-        runner.setExecutionTargets(new String[] { "all" });
-        runner.setArguments(arguments());
-        runner.setCustomClasspath(classpath());
-        runner.addBuildLogger("org.metaborg.spoofax.eclipse.meta.build.SpoofaxAntBuildLogger");
-        runner.run(monitor);
+        runAnt(buildFilePath, new String[] { "all" }, monitor);
     }
 
     private String buildFilePath(IProject project, String action) throws FileSystemException, CoreException {
@@ -111,43 +116,49 @@ public class SpoofaxMetaProjectBuilder extends IncrementalProjectBuilder {
         return buildFilePath;
     }
 
-    private String[] arguments() {
-        final Collection<URL> args = Lists.newLinkedList();
-        // TODO: eclipse.spoofaximp.nativeprefix
-        // TODO: eclipse.spoofaximp.strategojar
-        // TODO: eclipse.spoofaximp.strategominjar
-        // TODO: eclipse.spoofaximp.jars
-        // TODO: externaljar
-        // TODO: externaljarx
-        // TODO: java.jar.classpath
-        return args.toArray(new String[0]);
+    private Map<String, String> properties(URL[] classpaths) throws IOException {
+        final Map<String, String> properties = LegacyBuildProperties.properties();
+
+        final Collection<String> pluginClasspathPaths = Lists.newLinkedList();
+        for(URL classpath : classpaths) {
+            pluginClasspathPaths.add(classpath.getPath());
+        }
+        properties.put("externaljarx", Joiner.on(File.pathSeparator).join(pluginClasspathPaths));
+
+        return properties;
     }
 
     /**
      * @return List of classpath entries generated from installed Eclipse plugins.
      */
-    private URL[] classpath() {
-        final Collection<URL> classpath = Lists.newLinkedList();
-        final BundleContext bundleContext = FrameworkUtil.getBundle(this.getClass()).getBundleContext();
-        final Bundle[] bundles = bundleContext.getBundles();
-        for(final Bundle bundle : bundles) {
-            try {
-                if(bundle.getSymbolicName().equals("org.apache.ant")) {
-                    // Include Ant JAR files.
-                    final File file = FileLocator.getBundleFile(bundle);
-                    final String path = file.getAbsolutePath();
-                    final File lib = Paths.get(path, "lib").toFile();
-                    final File[] jarFiles = lib.listFiles(new FilenameFilter() {
-                        @Override public boolean accept(File dir, String name) {
-                            return name.endsWith(".jar");
-                        }
-                    });
-                    for(File jarFile : jarFiles) {
-                        classpath.add(jarFile.toURI().toURL());
-                    }
-                    continue;
-                }
+    private URL[] classpaths() throws MalformedURLException {
+        final Collection<URL> classpath = LegacyBuildProperties.classpaths();
+        final Map<String, Bundle> bundles = BundleUtils.bundlesBySymbolicName(SpoofaxMetaPlugin.context());
 
+        final Bundle antBundle = bundles.get("org.apache.ant");
+        if(antBundle == null) {
+            logger.error("Could not find Ant bundle 'org.apache.ant', language build will probably fail");
+        } else {
+            try {
+                final File file = FileLocator.getBundleFile(antBundle);
+                final String path = file.getAbsolutePath();
+                final File lib = Paths.get(path, "lib").toFile();
+                final File[] jarFiles = lib.listFiles(new FilenameFilter() {
+                    @Override public boolean accept(File dir, String name) {
+                        return name.endsWith(".jar");
+                    }
+                });
+                for(File jarFile : jarFiles) {
+                    classpath.add(jarFile.toURI().toURL());
+                }
+            } catch(IOException e) {
+                logger.error("Error while adding 'org.apache.ant' to classpath for Ant build, "
+                    + "language build will probably fail", e);
+            }
+        }
+
+        for(final Bundle bundle : bundles.values()) {
+            try {
                 final File file = FileLocator.getBundleFile(bundle);
                 final String path = file.getAbsolutePath();
                 if(path.endsWith(".jar")) {
@@ -179,7 +190,7 @@ public class SpoofaxMetaProjectBuilder extends IncrementalProjectBuilder {
                     classpath.add(jarFile.toURI().toURL());
                 }
             } catch(IOException e) {
-                logger.error("Error while creating Ant classpath", e);
+                logger.error("Error while creating classpath for Ant build", e);
             }
         }
 

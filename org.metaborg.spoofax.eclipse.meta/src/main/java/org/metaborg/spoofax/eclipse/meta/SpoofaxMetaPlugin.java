@@ -10,15 +10,18 @@ public class SpoofaxMetaPlugin extends AbstractUIPlugin {
     public static final String id = "org.metaborg.spoofax.eclipse.meta";
 
     private static SpoofaxMetaPlugin plugin;
+    private static BundleContext bundleContext;
 
 
     @Override public void start(BundleContext context) throws Exception {
         super.start(context);
+        bundleContext = context;
         plugin = this;
     }
 
     @Override public void stop(BundleContext context) throws Exception {
         plugin = null;
+        bundleContext = null;
         super.stop(context);
     }
 
@@ -26,7 +29,11 @@ public class SpoofaxMetaPlugin extends AbstractUIPlugin {
     public static SpoofaxMetaPlugin plugin() {
         return plugin;
     }
-    
+
+    public static BundleContext context() {
+        return bundleContext;
+    }
+
     public static Injector injector() {
         return SpoofaxPlugin.injector();
     }

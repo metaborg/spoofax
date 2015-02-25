@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Spoofax Eclipse meta
+Bundle-Name: Spoofax Eclipse meta-tooling
 Bundle-SymbolicName: org.metaborg.spoofax.eclipse.meta;singleton:=true
 Bundle-Version: 1.3.0.qualifier
 Bundle-Activator: org.metaborg.spoofax.eclipse.meta.SpoofaxMetaPlugin
@@ -14,7 +14,8 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.core.resources,
  org.eclipse.ant.core,
  org.apache.ant;bundle-version="1.9.2",
- org.eclipse.ui.console
+ org.eclipse.ui.console,
+ org.metaborg.spoofax.eclipse.util;bundle-version="1.3.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: metaborg.org

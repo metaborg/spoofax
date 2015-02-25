@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Spoofax Eclipse
+Bundle-Name: Spoofax Eclipse runtime
 Bundle-SymbolicName: org.metaborg.spoofax.eclipse;singleton:=true
 Bundle-Version: 1.3.0.qualifier
 Bundle-Activator: org.metaborg.spoofax.eclipse.SpoofaxPlugin
@@ -19,7 +19,8 @@ Require-Bundle: org.eclipse.core.runtime,
  org.spoofax.interpreter.externaldeps;bundle-version="1.3.0",
  org.metaborg.runtime.task;bundle-version="1.3.0",
  org.spoofax.interpreter.library.index;bundle-version="1.3.0",
- org.spoofax.interpreter.core;bundle-version="1.3.0"
+ org.spoofax.interpreter.core;bundle-version="1.3.0",
+ org.metaborg.spoofax.eclipse.util;bundle-version="1.3.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-Vendor: metaborg.org
 Bundle-ActivationPolicy: lazy
@@ -27,6 +28,5 @@ Eclipse-RegisterBuddy: org.spoofax.interpreter.externaldeps, org.metaborg.util
 Export-Package: org.metaborg.spoofax.eclipse,
  org.metaborg.spoofax.eclipse.job,
  org.metaborg.spoofax.eclipse.processing,
- org.metaborg.spoofax.eclipse.resource,
- org.metaborg.spoofax.eclipse.util
+ org.metaborg.spoofax.eclipse.resource
 
