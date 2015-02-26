@@ -5,7 +5,6 @@ import java.io.IOException;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
-import org.metaborg.spoofax.build.cleardep.util.Util;
 import org.sugarj.cleardep.CompilationUnit;
 import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.cleardep.build.BuildRequirement;
@@ -13,6 +12,7 @@ import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
+import org.sugarj.common.util.ArrayUtils;
 
 public class StrategoCtree extends SpoofaxBuilder<StrategoCtree.Input> {
 
@@ -85,7 +85,7 @@ public class StrategoCtree extends SpoofaxBuilder<StrategoCtree.Input> {
 						new Path[]{context.baseDir, context.basePath("${trans}"), context.basePath("${lib}"), context.basePath("${include}"), input.externalDef},
 						new String[]{"stratego-lib", "stratego-sglr", "stratego-gpp", "stratego-xtc", "stratego-aterm", "stratego-sdf", "strc"},
 						context.basePath(".cache"),
-						Util.arrayAdd("-F", input.externaljarflags.split("[\\s]+")),
-						Util.arrayAdd(rtg2Sig, input.requiredUnits)));
+						ArrayUtils.arrayAdd("-F", input.externaljarflags.split("[\\s]+")),
+						ArrayUtils.arrayAdd(rtg2Sig, input.requiredUnits)));
 	}
 }

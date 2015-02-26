@@ -21,6 +21,7 @@ import org.strategoxt.imp.metatooling.PluginClasspathProvider;
 import org.strategoxt.imp.metatooling.StrategoJarAntPropertyProvider;
 import org.strategoxt.imp.metatooling.StrategoMinJarAntPropertyProvider;
 import org.sugarj.cleardep.build.BuildManager;
+import org.sugarj.cleardep.build.BuildRequirement;
 import org.sugarj.common.Log;
 import org.sugarj.common.path.AbsolutePath;
 import org.sugarj.common.path.Path;
@@ -132,7 +133,7 @@ public class EclipseBuilder extends IncrementalProjectBuilder {
 		SpoofaxInput input = new SpoofaxInput(context);
 		try {
 			
-			manager.require(All.factory.makeBuilder(input, manager));
+			manager.require(new BuildRequirement<>(All.factory, input));
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
@@ -152,7 +153,7 @@ public class EclipseBuilder extends IncrementalProjectBuilder {
 		SpoofaxContext context = makeContext(getProject());
 		SpoofaxInput input = new SpoofaxInput(context);
 		try {
-			manager.require(Clean.factory.makeBuilder(input, manager));
+			manager.require(new BuildRequirement<>(Clean.factory, input));
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
