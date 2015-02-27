@@ -114,11 +114,10 @@ public class SpoofaxDefaultCtree extends SpoofaxBuilder<SpoofaxInput> {
 				files[i] = new RelativePath(baseDir, sfiles[i]);
 		
 		Path jarPath = context.basePath("${include}/" + strmodule + "-java.jar");
-		JavaJar.Mode jarMode = FileCommands.exists(jarPath) ? JavaJar.Mode.Update : JavaJar.Mode.Create;
 		require(JavaJar.factory, 
 				new JavaJar.Input(
-						jarMode,
-						jarPath, 
+						JavaJar.Mode.CreateOrUpdate,
+						jarPath,
 						null,
 						files, 
 						new BuildRequirement<?,?,?,?>[] {compileJavaCode}));
