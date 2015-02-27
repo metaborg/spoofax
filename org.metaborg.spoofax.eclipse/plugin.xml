@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <plugin>
+  <!-- Extension points -->
+  <extension-point 
+    id="org.metaborg.spoofax.eclipse.language" 
+    name="Spoofax language extension" 
+    schema="schema/org.metaborg.spoofax.eclipse.language.exsd"
+  />
+  
+  
   <!-- Editor -->
   <extension
     point="org.eclipse.ui.editors">
