@@ -85,6 +85,7 @@ public class CompileJavaCode extends SpoofaxBuilder<SpoofaxInput> {
 						sourcePath, 
 						classPath,
 						additionalArgs,
-						null));
+						null,
+						false));
 	}
 }
