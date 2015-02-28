@@ -19,13 +19,13 @@ import org.apache.commons.vfs2.AllFileSelector;
 public class ResourceService implements IResourceService {
     private final FileSystemManager fileSystemManager;
     private final FileSystemOptions fileSystemOptions;
-    
+
 
     @Inject public ResourceService(FileSystemManager fileSystemManager,
         @Named("ResourceClassLoader") ClassLoader classLoader) {
         this.fileSystemManager = fileSystemManager;
         this.fileSystemOptions = new FileSystemOptions();
-        
+
         if(classLoader == null)
             classLoader = this.getClass().getClassLoader();
         ResourceFileSystemConfigBuilder.getInstance().setClassLoader(fileSystemOptions, classLoader);

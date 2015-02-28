@@ -7,6 +7,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.messages.ISourceRegion;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
+import org.metaborg.spoofax.core.syntax.ParseException;
 import org.metaborg.spoofax.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
@@ -37,10 +38,15 @@ public class JSGLRParseService implements ISyntaxService<IStrategoTerm> {
     }
 
 
-    @Override public ParseResult<IStrategoTerm> parse(String text, FileObject resource, ILanguage language) throws IOException {
+    @Override public ParseResult<IStrategoTerm> parse(String text, FileObject resource, ILanguage language)
+        throws ParseException {
         final IParserConfig config = getParserConfig(language);
         final JSGLRI parser = new JSGLRI(config, termFactoryService.get(language), language, resource, text);
-        return parser.parse();
+        try {
+            return parser.parse();
+        } catch(IOException e) {
+            throw new ParseException(resource, language, e);
+        }
     }
 
     @Override public String unparse(IStrategoTerm parsed, ILanguage language) {
@@ -59,8 +65,7 @@ public class JSGLRParseService implements ISyntaxService<IStrategoTerm> {
         IParserConfig config = parserConfigs.get(lang);
         if(config == null) {
             final SyntaxFacet facet = lang.facet(SyntaxFacet.class);
-            final IParseTableProvider provider =
-                new FileParseTableProvider(facet.parseTable(), parseTableManager);
+            final IParseTableProvider provider = new FileParseTableProvider(facet.parseTable(), parseTableManager);
             config = new ParserConfig(Iterables.get(facet.startSymbols(), 0), provider, 5000);
             parserConfigs.put(lang, config);
         }

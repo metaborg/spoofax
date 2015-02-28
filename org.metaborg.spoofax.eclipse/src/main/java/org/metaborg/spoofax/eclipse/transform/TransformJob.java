@@ -15,12 +15,11 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
 import org.metaborg.spoofax.core.analysis.AnalysisFileResult;
-import org.metaborg.spoofax.core.analysis.AnalysisResult;
-import org.metaborg.spoofax.core.analysis.IAnalysisService;
-import org.metaborg.spoofax.core.context.SpoofaxContext;
+import org.metaborg.spoofax.core.context.ContextException;
+import org.metaborg.spoofax.core.context.IContext;
+import org.metaborg.spoofax.core.context.IContextService;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
-import org.metaborg.spoofax.core.syntax.ISyntaxService;
 import org.metaborg.spoofax.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.transform.ITransformer;
 import org.metaborg.spoofax.core.transform.TransformResult;
@@ -28,38 +27,43 @@ import org.metaborg.spoofax.core.transform.stratego.Action;
 import org.metaborg.spoofax.core.transform.stratego.MenusFacet;
 import org.metaborg.spoofax.core.transform.stratego.StrategoTransformResultProcessor;
 import org.metaborg.spoofax.eclipse.editor.SpoofaxEditor;
+import org.metaborg.spoofax.eclipse.processing.AnalysisResultProcessor;
+import org.metaborg.spoofax.eclipse.processing.ParseResultProcessor;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
-import org.metaborg.spoofax.eclipse.util.ResourceUtils;
 import org.metaborg.spoofax.eclipse.util.StatusUtils;
-import org.metaborg.util.iterators.Iterables2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-
-import com.google.common.collect.Iterables;
 
 public class TransformJob extends Job {
     private static final Logger logger = LoggerFactory.getLogger(TransformJob.class);
 
     private final IEclipseResourceService resourceService;
     private final ILanguageIdentifierService langaugeIdentifierService;
-    private final ISyntaxService<IStrategoTerm> syntaxService;
-    private final IAnalysisService<IStrategoTerm, IStrategoTerm> analysisService;
+    private final IContextService contextService;
     private final ITransformer<IStrategoTerm, IStrategoTerm, IStrategoTerm> transformer;
+
+    private final ParseResultProcessor parseResultProcessor;
+    private final AnalysisResultProcessor analysisResultProcessor;
+
     private final SpoofaxEditor editor;
     private final String actionName;
 
 
     public TransformJob(IEclipseResourceService resourceService, ILanguageIdentifierService langaugeIdentifierService,
-        ISyntaxService<IStrategoTerm> syntaxService, IAnalysisService<IStrategoTerm, IStrategoTerm> analysisService,
-        ITransformer<IStrategoTerm, IStrategoTerm, IStrategoTerm> transformer, SpoofaxEditor editor, String actionName) {
+        IContextService contextService, ITransformer<IStrategoTerm, IStrategoTerm, IStrategoTerm> transformer,
+        ParseResultProcessor parseResultProcessor, AnalysisResultProcessor analysisResultProcessor,
+        SpoofaxEditor editor, String actionName) {
         super("Transforming file");
 
         this.resourceService = resourceService;
         this.langaugeIdentifierService = langaugeIdentifierService;
-        this.syntaxService = syntaxService;
-        this.analysisService = analysisService;
+        this.contextService = contextService;
         this.transformer = transformer;
+
+        this.parseResultProcessor = parseResultProcessor;
+        this.analysisResultProcessor = analysisResultProcessor;
+
         this.editor = editor;
         this.actionName = actionName;
     }
@@ -67,24 +71,25 @@ public class TransformJob extends Job {
 
     @Override protected IStatus run(IProgressMonitor monitor) {
         final IEditorInput input = editor.getEditorInput();
+        final String text = editor.currentDocument().get();
         final FileObject resource = resourceService.resolve(input);
 
         if(resource == null) {
-            final String message = String.format("Cannot transform, input %s cannot be resolved", input);
+            final String message = String.format("Cannot transform, input % cannot be resolved", input);
             logger.error(message);
             return StatusUtils.error(message);
         }
 
         final ILanguage language = langaugeIdentifierService.identify(resource);
         if(language == null) {
-            final String message = String.format("Cannot transform, language of %s cannot be identified", resource);
+            final String message = String.format("Cannot transform, language of % cannot be identified", resource);
             logger.error(message);
             return StatusUtils.error(message);
         }
 
         final MenusFacet facet = language.facet(MenusFacet.class);
         if(facet == null) {
-            final String message = String.format("Cannot transform, %s does not have a menus facet", language);
+            final String message = String.format("Cannot transform, % does not have a menus facet", language);
             logger.error(message);
             return StatusUtils.error(message);
         }
@@ -92,50 +97,39 @@ public class TransformJob extends Job {
         final Action action = facet.action(actionName);
         if(action == null) {
             final String message =
-                String.format("Cannot transform, %s does not have an action named %s", language, actionName);
+                String.format("Cannot transform, % does not have an action named %", language, actionName);
             logger.error(message);
             return StatusUtils.error(message);
         }
 
         try {
-            // GTODO: location is required for creating the context, but context creation should be abstracted out.
-            final IResource eclipseResource = resourceService.unresolve(resource);
-            final IResource eclipseLocation = ResourceUtils.getProjectDirectory(eclipseResource);
-            final FileObject location = resourceService.resolve(eclipseLocation);
-            final String text = editor.currentDocument().get();
-            return transform(monitor, language, action, resource, location, text);
-        } catch(IOException e) {
-            final String message = "Transformation failed";
+            return transform(monitor, resource, language, action, text);
+        } catch(IOException | ContextException e) {
+            final String message = String.format("Transformation failed for %", resource);
             logger.error(message, e);
             return StatusUtils.error(message, e);
         }
     }
 
-    private IStatus transform(IProgressMonitor monitor, ILanguage language, Action action, FileObject resource,
-        FileObject location, String text) throws IOException {
-        // GTODO: get cached parsed and analyzed AST instead if available, this should be abstracted out.
-
-        final ParseResult<IStrategoTerm> parseResult = syntaxService.parse(text, resource, language);
-
+    private IStatus transform(IProgressMonitor monitor, FileObject resource, ILanguage language, Action action,
+        String text) throws IOException, ContextException {
         if(monitor.isCanceled())
             return StatusUtils.cancel();
 
-        final SpoofaxContext context = new SpoofaxContext(language, location);
+        final IContext context = contextService.get(resource, language);
         final TransformResult<?, IStrategoTerm> transformResult;
         if(action.flags.parsed) {
-            transformResult = transformer.transformParsed(parseResult, context, action.name);
+            final ParseResult<IStrategoTerm> result =
+                parseResultProcessor.request(resource, language, text).toBlocking().single();
+            transformResult = transformer.transformParsed(result, context, action.name);
         } else {
-            final AnalysisResult<IStrategoTerm, IStrategoTerm> analysisResult =
-                analysisService.analyze(Iterables2.singleton(parseResult), context);
-
-            if(monitor.isCanceled())
-                return StatusUtils.cancel();
-
-            final AnalysisFileResult<IStrategoTerm, IStrategoTerm> analysisFileResult =
-                Iterables.get(analysisResult.fileResults, 0);
-            transformResult = transformer.transformAnalyzed(analysisFileResult, context, action.name);
+            final AnalysisFileResult<IStrategoTerm, IStrategoTerm> result =
+                analysisResultProcessor.request(resource, context, text).toBlocking().single();
+            transformResult = transformer.transformAnalyzed(result, context, action.name);
         }
 
+        if(monitor.isCanceled())
+            return StatusUtils.cancel();
         // GTODO: don't depend on StrategoTransformResultProcessor, should be abstracted out to support different
         // analyzers.
         final FileObject writtenResource = StrategoTransformResultProcessor.writeFile(transformResult.result, context);

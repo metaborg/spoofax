@@ -1,7 +1,5 @@
 package org.metaborg.spoofax.core.syntax;
 
-import java.io.IOException;
-
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
@@ -25,11 +23,10 @@ public interface ISyntaxService<T> {
      * @param language
      *            Language to parse with.
      * @return Result of parsing.
-     * @throws IOException
-     *             when reading the resource results in an error.
+     * @throws ParseException
+     *             when parsing fails unexpectedly.
      */
-    public abstract ParseResult<T> parse(String text, FileObject resource, ILanguage language)
-        throws IOException;
+    public abstract ParseResult<T> parse(String text, FileObject resource, ILanguage language) throws ParseException;
 
     /**
      * Unparses a parsed fragment back into a string, using unparsing rules from given language.

@@ -6,6 +6,7 @@ import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.metaborg.spoofax.eclipse.util.AbstractHandlerUtils;
+import org.metaborg.spoofax.eclipse.util.NatureUtils;
 
 public class RemoveNatureHandler extends AbstractHandler {
     @Override public Object execute(ExecutionEvent event) throws ExecutionException {
@@ -14,7 +15,7 @@ public class RemoveNatureHandler extends AbstractHandler {
             return null;
 
         try {
-            SpoofaxNature.removeFrom(project);
+            NatureUtils.removeFrom(SpoofaxNature.id, project);
         } catch(CoreException e) {
             throw new ExecutionException("Cannot add Spoofax nature", e);
         }

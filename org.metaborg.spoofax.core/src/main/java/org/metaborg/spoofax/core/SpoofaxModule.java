@@ -4,12 +4,22 @@ import org.apache.commons.vfs2.FileSystemManager;
 import org.metaborg.runtime.task.primitives.TaskLibrary;
 import org.metaborg.spoofax.core.analysis.IAnalysisService;
 import org.metaborg.spoofax.core.analysis.stratego.StrategoAnalysisService;
+import org.metaborg.spoofax.core.context.ContextService;
+import org.metaborg.spoofax.core.context.IContextFactory;
+import org.metaborg.spoofax.core.context.IContextService;
+import org.metaborg.spoofax.core.context.IContextStrategy;
+import org.metaborg.spoofax.core.context.LanguageContextStrategy;
+import org.metaborg.spoofax.core.context.ProjectContextStrategy;
+import org.metaborg.spoofax.core.context.ResourceContextStrategy;
+import org.metaborg.spoofax.core.context.SpoofaxContextFactory;
 import org.metaborg.spoofax.core.language.ILanguageDiscoveryService;
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
 import org.metaborg.spoofax.core.language.ILanguageService;
 import org.metaborg.spoofax.core.language.LanguageDiscoveryService;
 import org.metaborg.spoofax.core.language.LanguageIdentifierService;
 import org.metaborg.spoofax.core.language.LanguageService;
+import org.metaborg.spoofax.core.project.DummyProjectService;
+import org.metaborg.spoofax.core.project.IProjectService;
 import org.metaborg.spoofax.core.resource.DefaultFileSystemManagerProvider;
 import org.metaborg.spoofax.core.resource.IResourceService;
 import org.metaborg.spoofax.core.resource.ResourceService;
@@ -58,6 +68,9 @@ public class SpoofaxModule extends AbstractModule {
         try {
             bindResource();
             bindLanguage();
+            bindContext();
+            bindContextStrategies(MapBinder.newMapBinder(binder(), String.class, IContextStrategy.class));
+            bindProject();
             bindSyntax();
             bindSourceText();
             bindAnalysis();
@@ -81,6 +94,21 @@ public class SpoofaxModule extends AbstractModule {
         bind(ILanguageService.class).to(LanguageService.class).in(Singleton.class);
         bind(ILanguageDiscoveryService.class).to(LanguageDiscoveryService.class).in(Singleton.class);
         bind(ILanguageIdentifierService.class).to(LanguageIdentifierService.class).in(Singleton.class);
+    }
+
+    protected void bindContext() {
+        bind(IContextFactory.class).to(SpoofaxContextFactory.class).in(Singleton.class);
+        bind(IContextService.class).to(ContextService.class).in(Singleton.class);
+    }
+
+    protected void bindContextStrategies(MapBinder<String, IContextStrategy> binder) {
+        binder.addBinding(ResourceContextStrategy.name).to(ResourceContextStrategy.class).in(Singleton.class);
+        binder.addBinding(LanguageContextStrategy.name).to(LanguageContextStrategy.class).in(Singleton.class);
+        binder.addBinding(ProjectContextStrategy.name).to(ProjectContextStrategy.class).in(Singleton.class);
+    }
+
+    protected void bindProject() {
+        bind(IProjectService.class).to(DummyProjectService.class).in(Singleton.class);
     }
 
     protected void bindSyntax() {

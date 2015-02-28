@@ -38,9 +38,9 @@ public class StrategoFacet implements ILanguageFacet {
      * @param completionStrategy
      *            Name of the semantic completions strategy, or null if none.
      */
-    public StrategoFacet(Set<FileObject> ctreeFile, Set<FileObject> jarFiles,
-        @Nullable String analysisStrategy, @Nullable String onSaveStrategy,
-        @Nullable String resolverStrategy, @Nullable String hoverStrategy, @Nullable String completionStrategy) {
+    public StrategoFacet(Set<FileObject> ctreeFile, Set<FileObject> jarFiles, @Nullable String analysisStrategy,
+        @Nullable String onSaveStrategy, @Nullable String resolverStrategy, @Nullable String hoverStrategy,
+        @Nullable String completionStrategy) {
         this.ctreeFiles = ctreeFile;
         this.jarFiles = jarFiles;
         this.analysisStrategy = analysisStrategy;

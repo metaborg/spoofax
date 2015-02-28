@@ -14,7 +14,7 @@ import org.metaborg.spoofax.eclipse.processing.Processor;
 
 public class SpoofaxEditor extends TextEditor {
     public static final String id = SpoofaxPlugin.id + ".editor";
-    
+
     private final Processor processor;
     private final IPropertyListener editorInputListener;
 
@@ -38,11 +38,11 @@ public class SpoofaxEditor extends TextEditor {
         setDocumentProvider(new SpoofaxDocumentProvider());
     }
 
-    
+
     public IDocument currentDocument() {
         return currentDocument;
     }
-    
+
 
     @Override protected void initializeEditor() {
         super.initializeEditor();
@@ -50,19 +50,16 @@ public class SpoofaxEditor extends TextEditor {
         setSourceViewerConfiguration(new SpoofaxSourceViewerConfiguration());
     }
 
-    @Override protected ISourceViewer createSourceViewer(Composite parent, IVerticalRuler ruler,
-        int styles) {
+    @Override protected ISourceViewer createSourceViewer(Composite parent, IVerticalRuler ruler, int styles) {
         final ISourceViewer sourceViewer = super.createSourceViewer(parent, ruler, styles);
 
         // Store current input and document so we have access to them when the editor input changes.
         currentInput = getEditorInput();
         currentDocument = getDocumentProvider().getDocument(currentInput);
-        currentDocumentListener =
-            new SpoofaxDocumentListener(currentInput, sourceViewer, processor);
+        currentDocumentListener = new SpoofaxDocumentListener(currentInput, sourceViewer, processor);
         currentDocument.addDocumentListener(currentDocumentListener);
 
-        // Register for changes in the editor input, to handle renaming or moving of resources of
-        // open editors.
+        // Register for changes in the editor input, to handle renaming or moving of resources of open editors.
         this.addPropertyListener(editorInputListener);
 
         processor.editorOpen(currentInput, sourceViewer, currentDocument.get());
@@ -83,13 +80,12 @@ public class SpoofaxEditor extends TextEditor {
         final IDocument oldDocument = currentDocument;
         final ISourceViewer sourceViewer = getSourceViewer();
 
-        // Unregister old document listener and register a new one, because the input changed which
-        // also changes the document.
+        // Unregister old document listener and register a new one, because the input changed which also changes the
+        // document.
         oldDocument.removeDocumentListener(currentDocumentListener);
         currentInput = getEditorInput();
         currentDocument = getDocumentProvider().getDocument(currentInput);
-        currentDocumentListener =
-            new SpoofaxDocumentListener(currentInput, sourceViewer, processor);
+        currentDocumentListener = new SpoofaxDocumentListener(currentInput, sourceViewer, processor);
         currentDocument.addDocumentListener(currentDocumentListener);
 
         processor.editorInputChange(oldInput, currentInput, sourceViewer, currentDocument.get());

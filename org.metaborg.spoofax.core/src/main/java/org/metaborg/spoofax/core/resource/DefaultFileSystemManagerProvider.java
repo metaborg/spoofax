@@ -25,8 +25,8 @@ import org.apache.commons.vfs2.provider.zip.ZipFileProvider;
 import com.google.inject.Provider;
 
 /**
- * Guice provider for the VFS file system manager. Subclass and override the protected methods, and bind the
- * provider in your Guice module, to customize the file providers.
+ * Guice provider for the VFS file system manager. Subclass and override the protected methods, and bind the provider in
+ * your Guice module, to customize the file providers.
  */
 public class DefaultFileSystemManagerProvider implements Provider<FileSystemManager> {
     @Override public FileSystemManager get() {

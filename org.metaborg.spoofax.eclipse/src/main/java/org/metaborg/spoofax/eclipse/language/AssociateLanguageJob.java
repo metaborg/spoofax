@@ -5,6 +5,7 @@ import java.util.Arrays;
 import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.ui.IEditorRegistry;
 import org.eclipse.ui.IFileEditorMapping;
 import org.eclipse.ui.internal.registry.EditorDescriptor;
@@ -31,6 +32,8 @@ public class AssociateLanguageJob extends UIJob {
 
     public AssociateLanguageJob(ILanguage language, IEditorRegistry editorRegistry) {
         super("Associating language with Spoofax editor");
+        setSystem(true);
+        setPriority(Job.INTERACTIVE);
 
         this.language = language;
         // HACK: Eclipse API expects an EditorRegistry, and it is the only implementation, so always cast.
@@ -42,7 +45,7 @@ public class AssociateLanguageJob extends UIJob {
         final ResourceExtensionFacet resourceExtensionsFacet = language.facet(ResourceExtensionFacet.class);
         if(resourceExtensionsFacet == null) {
             final String message =
-                String.format("Cannot create editor association for {}, no resource extensions facet was found",
+                String.format("Cannot create editor association for %, no resource extensions facet was found",
                     language);
             logger.error(message);
             return StatusUtils.error(message);

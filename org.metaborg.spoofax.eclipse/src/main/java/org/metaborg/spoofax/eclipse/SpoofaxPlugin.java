@@ -1,6 +1,5 @@
 package org.metaborg.spoofax.eclipse;
 
-import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.metaborg.spoofax.eclipse.editor.LatestEditorListener;
 import org.metaborg.spoofax.eclipse.logging.LoggingConfiguration;
@@ -18,12 +17,7 @@ public class SpoofaxPlugin extends AbstractUIPlugin {
     private static Injector injector;
 
 
-    public SpoofaxPlugin() {
-
-    }
-
-
-    public void start(BundleContext context) throws Exception {
+    @Override public void start(BundleContext context) throws Exception {
         super.start(context);
         plugin = this;
 
@@ -36,11 +30,12 @@ public class SpoofaxPlugin extends AbstractUIPlugin {
         injector.getInstance(LatestEditorListener.class).register();
     }
 
-    public void stop(BundleContext context) throws Exception {
+    @Override public void stop(BundleContext context) throws Exception {
         injector = null;
         plugin = null;
         super.stop(context);
     }
+
 
     public static SpoofaxPlugin plugin() {
         return plugin;
@@ -48,9 +43,5 @@ public class SpoofaxPlugin extends AbstractUIPlugin {
 
     public static Injector injector() {
         return injector;
-    }
-
-    public static ImageDescriptor imageDescriptor(String path) {
-        return imageDescriptorFromPlugin(id, path);
     }
 }

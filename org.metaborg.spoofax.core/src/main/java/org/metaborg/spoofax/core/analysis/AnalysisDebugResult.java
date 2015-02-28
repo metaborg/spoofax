@@ -17,9 +17,8 @@ public class AnalysisDebugResult implements Serializable {
     public final IStrategoList skippedTasks;
     public final IStrategoList unevaluatedTasks;
 
-    public AnalysisDebugResult(int indexEntriesRemoved, int indexEntriesAdded, int tasksRemoved,
-        int tasksAdded, int tasksInvalidated, IStrategoList evaluatedTasks, IStrategoList skippedTasks,
-        IStrategoList unevaluatedTasks) {
+    public AnalysisDebugResult(int indexEntriesRemoved, int indexEntriesAdded, int tasksRemoved, int tasksAdded,
+        int tasksInvalidated, IStrategoList evaluatedTasks, IStrategoList skippedTasks, IStrategoList unevaluatedTasks) {
         this.indexEntriesRemoved = indexEntriesRemoved;
         this.indexEntriesAdded = indexEntriesAdded;
         this.tasksRemoved = tasksRemoved;

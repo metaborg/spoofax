@@ -2,11 +2,9 @@ package org.metaborg.spoofax.eclipse.logging;
 
 import java.io.IOException;
 
-import org.eclipse.ui.console.ConsolePlugin;
-import org.eclipse.ui.console.IConsole;
-import org.eclipse.ui.console.IConsoleManager;
 import org.eclipse.ui.console.MessageConsole;
 import org.eclipse.ui.console.MessageConsoleStream;
+import org.metaborg.spoofax.eclipse.util.ConsoleUtils;
 
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.spi.ILoggingEvent;
@@ -26,7 +24,7 @@ public class EclipseConsoleAppender extends UnsynchronizedAppenderBase<ILoggingE
             return;
         }
 
-        console = retrieveConsole(consoleName != null ? consoleName : name);
+        console = ConsoleUtils.get(consoleName != null ? consoleName : name);
         stream = console.newMessageStream();
         try {
             encoder.init(stream);
@@ -60,18 +58,5 @@ public class EclipseConsoleAppender extends UnsynchronizedAppenderBase<ILoggingE
 
     public void setConsoleName(String consoleName) {
         this.consoleName = consoleName;
-    }
-
-    private static MessageConsole retrieveConsole(String name) {
-        final ConsolePlugin consolePlugin = ConsolePlugin.getDefault();
-        final IConsoleManager consoleManager = consolePlugin.getConsoleManager();
-        final IConsole[] existingConsoles = consoleManager.getConsoles();
-        for(int i = 0; i < existingConsoles.length; i++)
-            if(name.equals(existingConsoles[i].getName()))
-                return (MessageConsole) existingConsoles[i];
-
-        final MessageConsole newConsole = new MessageConsole(name, null);
-        consoleManager.addConsoles(new IConsole[] { newConsole });
-        return newConsole;
     }
 }
