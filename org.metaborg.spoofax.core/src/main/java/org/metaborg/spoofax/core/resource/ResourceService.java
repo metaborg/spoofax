@@ -14,19 +14,17 @@ import org.apache.commons.vfs2.provider.res.ResourceFileSystemConfigBuilder;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
+import org.apache.commons.vfs2.AllFileSelector;
 
 public class ResourceService implements IResourceService {
     private final FileSystemManager fileSystemManager;
     private final FileSystemOptions fileSystemOptions;
-    private final Map<String, ILocalFileProvider> localFileProviders;
     
 
     @Inject public ResourceService(FileSystemManager fileSystemManager,
-        @Named("ResourceClassLoader") ClassLoader classLoader,
-        Map<String, ILocalFileProvider> localFileProviders) {
+        @Named("ResourceClassLoader") ClassLoader classLoader) {
         this.fileSystemManager = fileSystemManager;
         this.fileSystemOptions = new FileSystemOptions();
-        this.localFileProviders = localFileProviders;
         
         if(classLoader == null)
             classLoader = this.getClass().getClassLoader();
@@ -75,17 +73,11 @@ public class ResourceService implements IResourceService {
     }
 
     @Override public File localFile(FileObject resource) {
-        final String scheme = resource.getName().getScheme();
-        
-        if(scheme.equals("")) {
-            return new File(resource.getName().getPath());
-        }
-        
-        final ILocalFileProvider provider = localFileProviders.get(scheme);
-        if(provider == null) {
+        try {
+            return resource.getFileSystem().replicateFile(resource, new AllFileSelector());
+        } catch (FileSystemException ex) {
             return null;
         }
-        return provider.localFile(resource);
     }
 
 

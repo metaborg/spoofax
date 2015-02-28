@@ -11,9 +11,7 @@ import org.metaborg.spoofax.core.language.LanguageDiscoveryService;
 import org.metaborg.spoofax.core.language.LanguageIdentifierService;
 import org.metaborg.spoofax.core.language.LanguageService;
 import org.metaborg.spoofax.core.resource.DefaultFileSystemManagerProvider;
-import org.metaborg.spoofax.core.resource.ILocalFileProvider;
 import org.metaborg.spoofax.core.resource.IResourceService;
-import org.metaborg.spoofax.core.resource.LocalFileProvider;
 import org.metaborg.spoofax.core.resource.ResourceService;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeService;
@@ -37,7 +35,6 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 import com.google.inject.TypeLiteral;
-import com.google.inject.multibindings.MapBinder;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
 
@@ -60,7 +57,6 @@ public class SpoofaxModule extends AbstractModule {
     @Override protected void configure() {
         try {
             bindResource();
-            bindLocalFileProviders(MapBinder.newMapBinder(binder(), String.class, ILocalFileProvider.class));
             bindLanguage();
             bindSyntax();
             bindSourceText();
@@ -79,10 +75,6 @@ public class SpoofaxModule extends AbstractModule {
     protected void bindResource() {
         bind(IResourceService.class).to(ResourceService.class).in(Singleton.class);
         bind(FileSystemManager.class).toProvider(DefaultFileSystemManagerProvider.class).in(Singleton.class);
-    }
-
-    protected void bindLocalFileProviders(MapBinder<String, ILocalFileProvider> binder) {
-        binder.addBinding(LocalFileProvider.scheme).to(LocalFileProvider.class).in(Singleton.class);
     }
 
     protected void bindLanguage() {
