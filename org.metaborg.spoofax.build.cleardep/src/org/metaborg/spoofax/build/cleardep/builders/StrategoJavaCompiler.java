@@ -110,7 +110,7 @@ public class StrategoJavaCompiler extends SpoofaxBuilder<StrategoJavaCompiler.In
 				directoryIncludes.append("-la ").append(lib).append(" ");
 		
 		
-		ExecutionResult er = StrategoExecutor.runStrategoCLI(context.strjContext(), 
+		ExecutionResult er = StrategoExecutor.runStrategoCLI(StrategoExecutor.strjContext(), 
 				org.strategoxt.strj.main_0_0.instance, "strj", 
 				new LoggingFilteringIOAgent(
 						Pattern.quote("[ strj | info ]") + ".*", 

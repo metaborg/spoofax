@@ -12,6 +12,7 @@ import org.strategoxt.lang.StrategoExit;
 import org.strategoxt.lang.Strategy;
 import org.strategoxt.stratego_lib.dr_scope_all_end_0_0;
 import org.strategoxt.stratego_lib.dr_scope_all_start_0_0;
+import org.strategoxt.stratego_sdf.stratego_sdf;
 import org.sugarj.common.ATermCommands;
 import org.sugarj.common.Log;
 
@@ -40,6 +41,9 @@ public class StrategoExecutor {
 
 	
 	public static ExecutionResult runStrategoCLI(Context strategoContext, Strategy strat, String desc, LoggingFilteringIOAgent agent, Object... args) {
+		return runStrategoCLI(false, strategoContext, strat, desc, agent, args);
+	}
+	public static ExecutionResult runStrategoCLI(boolean silent, Context strategoContext, Strategy strat, String desc, LoggingFilteringIOAgent agent, Object... args) {
 		List<String> sargs = new ArrayList<>(args.length);
 		for (int i = 0; i < args.length; i++) {
 			String str = args[i].toString();
@@ -50,7 +54,8 @@ public class StrategoExecutor {
 		}
 
 		try {
-			Log.log.beginTask("Execute " + desc, Log.CORE);
+			if (!silent)
+				Log.log.beginTask("Execute " + desc, Log.CORE);
 			strategoContext.setIOAgent(agent);
 			dr_scope_all_start_0_0.instance.invoke(strategoContext, strategoContext.getFactory().makeTuple());
 			strategoContext.invokeStrategyCLI(strat, desc, sargs.toArray(new String[sargs.size()]));
@@ -61,13 +66,18 @@ public class StrategoExecutor {
 			return new ExecutionResult(false, agent.getOutLog(), agent.getErrLog());
 		} finally {
 			dr_scope_all_end_0_0.instance.invoke(strategoContext, strategoContext.getFactory().makeTuple());
-			Log.log.endTask();
+			if (!silent)
+				Log.log.endTask();
 		}
 	}
 	
 	public static ExecutionResult runStratego(Context strategoContext, Strategy strat, String desc, LoggingFilteringIOAgent agent, IStrategoTerm current) {
+		return runStratego(false, strategoContext, strat, desc, agent, current);
+	}
+	public static ExecutionResult runStratego(boolean silent, Context strategoContext, Strategy strat, String desc, LoggingFilteringIOAgent agent, IStrategoTerm current) {
 		try {
-			Log.log.beginTask("Execute " + desc, Log.CORE);
+			if (!silent)
+				Log.log.beginTask("Execute " + desc, Log.CORE);
 			strategoContext.setIOAgent(agent);
 			dr_scope_all_start_0_0.instance.invoke(strategoContext, current);
 			IStrategoTerm result  = strat.invoke(strategoContext, current);
@@ -76,7 +86,8 @@ public class StrategoExecutor {
 			return new ExecutionResult(false, agent.getOutLog(), agent.getErrLog());
 		} finally {
 			dr_scope_all_end_0_0.instance.invoke(strategoContext, current);
-			Log.log.endTask();
+			if (!silent)
+				Log.log.endTask();
 		}
 	}
 	
@@ -104,4 +115,63 @@ public class StrategoExecutor {
 			Log.log.endTask();
 		}
 	}
+	
+
+
+
+	private static Context strategoSdfContext;
+	private static Context generatorContext;
+	private static Context permissiveGrammarsContext;
+	private static Context toolsContext;
+	private static Context xtcContext;
+	
+	public static Context generatorContext() {
+		synchronized (StrategoExecutor.class) {
+			if (generatorContext != null)
+				return generatorContext;
+			generatorContext = org.strategoxt.imp.generator.generator.init();
+			return generatorContext;
+		}
+	}
+
+	public static Context strategoSdfcontext() {
+		if (strategoSdfContext == null)
+			strategoSdfContext = stratego_sdf.init();
+		return strategoSdfContext;
+	}
+
+	public static Context permissiveGrammarsContext() {
+		synchronized (StrategoExecutor.class) {
+			if (permissiveGrammarsContext != null)
+				return permissiveGrammarsContext;
+			permissiveGrammarsContext = org.strategoxt.permissivegrammars.permissivegrammars.init();
+			return permissiveGrammarsContext;
+		}
+	}
+
+	public static Context strjContext() {
+	    // strj requires a fresh context each time.
+		return org.strategoxt.strj.strj.init();
+	}
+
+	public static Context toolsContext() {
+		synchronized (StrategoExecutor.class) {
+			if (toolsContext != null)
+				return toolsContext;
+			toolsContext = org.strategoxt.tools.tools.init();
+			return toolsContext;
+		}
+	}
+
+	public static Context xtcContext() {
+		synchronized (StrategoExecutor.class) {
+			if (xtcContext != null)
+				return xtcContext;
+			xtcContext = org.strategoxt.stratego_xtc.stratego_xtc.init();
+			return xtcContext;
+		}
+	}
+	
+	
+
 }

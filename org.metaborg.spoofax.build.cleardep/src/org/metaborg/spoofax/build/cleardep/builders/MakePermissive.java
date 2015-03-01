@@ -64,7 +64,7 @@ public class MakePermissive extends SpoofaxBuilder<MakePermissive.Input> {
 		RelativePath outputPath = context.basePath("${include}/" + input.sdfmodule + "-Permissive.def");
 		
 		result.addSourceArtifact(inputPath);
-		ExecutionResult er = StrategoExecutor.runStrategoCLI(context.permissiveGrammarsContext(), 
+		ExecutionResult er = StrategoExecutor.runStrategoCLI(StrategoExecutor.permissiveGrammarsContext(), 
 				make_permissive.getMainStrategy(), "make-permissive", new LoggingFilteringIOAgent(Pattern.quote("[ make-permissive | info ]") + ".*"),
 				"-i", inputPath,
 				"-o", outputPath,

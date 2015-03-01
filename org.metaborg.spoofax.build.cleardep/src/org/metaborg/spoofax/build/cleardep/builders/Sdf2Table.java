@@ -59,7 +59,7 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input> {
 		RelativePath outputPath = context.basePath("${include}/" + input.sdfmodule + ".tbl");
 
 		result.addSourceArtifact(inputPath);
-		ExecutionResult er = StrategoExecutor.runSdf2TableCLI(context.xtcContext(), 
+		ExecutionResult er = StrategoExecutor.runSdf2TableCLI(StrategoExecutor.xtcContext(), 
 				"-t",
 				"-i", inputPath,
 				"-m", input.sdfmodule,

@@ -63,7 +63,7 @@ public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input> {
 
 		result.addSourceArtifact(inputPath);
 		// XXX avoid redundant call to sdf2table
-		ExecutionResult er = StrategoExecutor.runStrategoCLI(context.toolsContext(), 
+		ExecutionResult er = StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), 
 				main_sdf2parenthesize_0_0.instance, "sdf2parenthesize", new LoggingFilteringIOAgent(Pattern.quote("[ sdf2parenthesize | info ]") + ".*", Pattern.quote("Invoking native tool") + ".*"),
 				"-i", inputPath,
 				"-m", input.sdfmodule,

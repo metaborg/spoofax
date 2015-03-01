@@ -77,7 +77,7 @@ public class PackSdf extends SpoofaxBuilder<PackSdf.Input> {
 		
 		result.addSourceArtifact(inputPath);
 		
-		ExecutionResult er = StrategoExecutor.runStrategoCLI(context.toolsContext(), 
+		ExecutionResult er = StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), 
 				main_pack_sdf_0_0.instance, "pack-sdf", new LoggingFilteringIOAgent(Pattern.quote("  including ") + ".*"),
 				"-i", inputPath,
 				"-o", outputPath,

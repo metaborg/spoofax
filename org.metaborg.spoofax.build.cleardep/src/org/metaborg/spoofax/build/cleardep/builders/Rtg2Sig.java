@@ -63,7 +63,7 @@ public class Rtg2Sig extends SpoofaxBuilder<Rtg2Sig.Input> {
 			RelativePath outputPath = context.basePath("${include}/" + input.sdfmodule + ".str");
 			
 			result.addSourceArtifact(inputPath);
-			ExecutionResult er = StrategoExecutor.runStrategoCLI(context.toolsContext(), 
+			ExecutionResult er = StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), 
 					main_rtg2sig_0_0.instance, "rtg2sig", new LoggingFilteringIOAgent(),
 					"-i", inputPath,
 					"--module", input.sdfmodule,

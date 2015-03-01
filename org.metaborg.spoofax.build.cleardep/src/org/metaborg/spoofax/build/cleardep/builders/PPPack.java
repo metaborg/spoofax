@@ -76,7 +76,7 @@ public class PPPack extends SpoofaxBuilder<PPPack.Input> {
 			result.addGeneratedFile(input.ppTermOutput);
 		}
 		else {
-			ExecutionResult er = StrategoExecutor.runStrategoCLI(context.toolsContext(), 
+			ExecutionResult er = StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), 
 					main_parse_pp_table_0_0.instance, "parse-pp-table", new LoggingFilteringIOAgent(),
 						"-i", input.ppInput,
 						"-o", input.ppTermOutput);

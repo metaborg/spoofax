@@ -61,9 +61,9 @@ public class Sdf2ImpEclipse extends SpoofaxBuilder<Sdf2ImpEclipse.Input> {
 		agent.setWorkingDir(inputPath.getBasePath().getAbsolutePath());
 		
 		result.addSourceArtifact(inputPath);
-		ExecutionResult er = StrategoExecutor.runStratego(context.generatorContext(), 
+		ExecutionResult er = StrategoExecutor.runStratego(StrategoExecutor.generatorContext(), 
 				sdf2imp_jvm_0_0.instance, "sdf2imp", agent,
-				context.generatorContext().getFactory().makeString(inputPath.getRelativePath()));
+				StrategoExecutor.generatorContext().getFactory().makeString(inputPath.getRelativePath()));
 
 		registerUsedPaths(result, er.errLog);
 		

@@ -9,6 +9,7 @@ import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
+import org.metaborg.spoofax.build.cleardep.stampers.Sdf2RtgStamper;
 import org.strategoxt.tools.main_sdf2rtg_0_0;
 import org.sugarj.cleardep.CompilationUnit;
 import org.sugarj.cleardep.CompilationUnit.State;
@@ -58,9 +59,10 @@ public class Sdf2Rtg extends SpoofaxBuilder<Sdf2Rtg.Input> {
 		RelativePath inputPath = context.basePath("${include}/" + input.sdfmodule + ".def");
 		RelativePath outputPath = context.basePath("${include}/" + input.sdfmodule + ".rtg");
 
-		result.addSourceArtifact(inputPath);
+		result.addSourceArtifact(inputPath, Sdf2RtgStamper.instance.stampOf(inputPath));
+		
 		// XXX avoid redundant call to sdf2table
-		ExecutionResult er = StrategoExecutor.runStrategoCLI(context.toolsContext(), 
+		ExecutionResult er = StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), 
 				main_sdf2rtg_0_0.instance, "sdf2rtg", new LoggingFilteringIOAgent(Pattern.quote("Invoking native tool") + ".*"),
 				"-i", inputPath,
 				"-m", input.sdfmodule,
