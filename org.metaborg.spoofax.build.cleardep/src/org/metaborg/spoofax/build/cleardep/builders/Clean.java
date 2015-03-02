@@ -6,7 +6,7 @@ import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.metaborg.spoofax.build.cleardep.util.FileExtensionFilter;
 import org.metaborg.spoofax.build.cleardep.util.FileNameFilter;
-import org.sugarj.cleardep.CompilationUnit;
+import org.sugarj.cleardep.BuildUnit;
 import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.Log;
@@ -36,7 +36,7 @@ public class Clean extends SpoofaxBuilder<SpoofaxInput> {
 	}
 
 	@Override
-	public void build(CompilationUnit result) throws IOException {
+	public void build(BuildUnit result) throws IOException {
 		String[] paths = {
 				".cache",
 				"${include}/${sdfmodule}.def",
@@ -73,25 +73,25 @@ public class Clean extends SpoofaxBuilder<SpoofaxInput> {
 			Path path = context.basePath(p);
 			Log.log.log("Delete " + path, Log.DETAIL); 
 			FileCommands.delete(path); 
-			result.addGeneratedFile(path);
+			result.generates(path);
 		}
 		
 		for (Path p : FileCommands.listFiles(context.basePath("${build}"))) {
 			Log.log.log("Delete " + p, Log.DETAIL); 
 			FileCommands.delete(p); 
-			result.addGeneratedFile(p);
+			result.generates(p);
 		}
 		
 		for (Path p : FileCommands.listFiles(context.basePath("${lib}"), new FileNameFilter(".*\\.generated\\.str"))) {
 			Log.log.log("Delete " + p, Log.DETAIL); 
 			FileCommands.delete(p); 
-			result.addGeneratedFile(p);
+			result.generates(p);
 		}
 		
 		for (Path p : FileCommands.listFilesRecursive(context.depDir(), new FileExtensionFilter("dep"))) {
 			Log.log.log("Delete " + p, Log.DETAIL); 
 			FileCommands.delete(p); 
-			result.addGeneratedFile(p);
+			result.generates(p);
 		}
 	}
 

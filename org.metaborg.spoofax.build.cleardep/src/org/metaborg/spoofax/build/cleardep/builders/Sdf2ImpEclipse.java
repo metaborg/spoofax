@@ -9,8 +9,8 @@ import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
 import org.strategoxt.imp.generator.sdf2imp_jvm_0_0;
-import org.sugarj.cleardep.CompilationUnit;
-import org.sugarj.cleardep.CompilationUnit.State;
+import org.sugarj.cleardep.BuildUnit;
+import org.sugarj.cleardep.BuildUnit.State;
 import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
@@ -52,7 +52,7 @@ public class Sdf2ImpEclipse extends SpoofaxBuilder<Sdf2ImpEclipse.Input> {
 	}
 
 	@Override
-	public void build(CompilationUnit result) throws IOException {
+	public void build(BuildUnit result) throws IOException {
 		require(Sdf2Rtg.factory, new Sdf2Rtg.Input(context, input.sdfmodule, input.buildSdfImports));
 		
 		RelativePath inputPath = new RelativePath(context.basePath("editor"), input.esvmodule + ".main.esv");
@@ -60,7 +60,7 @@ public class Sdf2ImpEclipse extends SpoofaxBuilder<Sdf2ImpEclipse.Input> {
 		LoggingFilteringIOAgent agent = new LoggingFilteringIOAgent(".*");
 		agent.setWorkingDir(inputPath.getBasePath().getAbsolutePath());
 		
-		result.addSourceArtifact(inputPath);
+		result.requires(inputPath);
 		ExecutionResult er = StrategoExecutor.runStratego(StrategoExecutor.generatorContext(), 
 				sdf2imp_jvm_0_0.instance, "sdf2imp", agent,
 				StrategoExecutor.generatorContext().getFactory().makeString(inputPath.getRelativePath()));
@@ -70,7 +70,7 @@ public class Sdf2ImpEclipse extends SpoofaxBuilder<Sdf2ImpEclipse.Input> {
 		result.setState(State.finished(er.success));
 	}
 
-	private void registerUsedPaths(CompilationUnit result, String log) {
+	private void registerUsedPaths(BuildUnit result, String log) {
 		String defPrefix = "Found accompanying .def file: ";
 		String reqPrefix = "found file ";
 		String genPrefix = "Generating ";
@@ -78,15 +78,15 @@ public class Sdf2ImpEclipse extends SpoofaxBuilder<Sdf2ImpEclipse.Input> {
 		for (String s : log.split("\\n")) {
 		    if (s.startsWith(reqPrefix)) {
 				String file = s.substring(reqPrefix.length());
-				result.addExternalFileDependency(context.basePath(file));
+				result.requires(context.basePath(file));
 			}
 			else if (s.startsWith(genPrefix)) {
 				String file = s.substring(genPrefix.length());
-				result.addGeneratedFile(context.basePath(file));
+				result.generates(context.basePath(file));
 			}
 			else if (s.startsWith(defPrefix)) {
 				String file = s.substring(defPrefix.length());
-				result.addExternalFileDependency(context.basePath(file));
+				result.requires(context.basePath(file));
 			}
 		}
 	}

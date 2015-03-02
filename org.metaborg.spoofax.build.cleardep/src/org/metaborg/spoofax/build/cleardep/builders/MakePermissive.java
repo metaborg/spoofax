@@ -10,8 +10,8 @@ import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
 import org.strategoxt.permissivegrammars.make_permissive;
-import org.sugarj.cleardep.CompilationUnit;
-import org.sugarj.cleardep.CompilationUnit.State;
+import org.sugarj.cleardep.BuildUnit;
+import org.sugarj.cleardep.BuildUnit.State;
 import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
@@ -56,21 +56,21 @@ public class MakePermissive extends SpoofaxBuilder<MakePermissive.Input> {
 	}
 
 	@Override
-	public void build(CompilationUnit result) throws IOException {
+	public void build(BuildUnit result) throws IOException {
 		require(CopySdf.factory, new CopySdf.Input(context, input.sdfmodule, input.externaldef));
 		require(PackSdf.factory, new PackSdf.Input(context,input.sdfmodule, input.buildSdfImports));
 		
 		RelativePath inputPath = context.basePath("${include}/" + input.sdfmodule + ".def");
 		RelativePath outputPath = context.basePath("${include}/" + input.sdfmodule + "-Permissive.def");
 		
-		result.addSourceArtifact(inputPath);
+		result.requires(inputPath);
 		ExecutionResult er = StrategoExecutor.runStrategoCLI(StrategoExecutor.permissiveGrammarsContext(), 
 				make_permissive.getMainStrategy(), "make-permissive", new LoggingFilteringIOAgent(Pattern.quote("[ make-permissive | info ]") + ".*"),
 				"-i", inputPath,
 				"-o", outputPath,
 				"--optimize", "on"
 				);
-		result.addGeneratedFile(outputPath);
+		result.generates(outputPath);
 		result.setState(State.finished(er.success));
 	}
 }

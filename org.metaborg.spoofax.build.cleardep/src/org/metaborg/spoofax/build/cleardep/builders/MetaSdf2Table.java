@@ -5,7 +5,7 @@ import java.io.IOException;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
-import org.sugarj.cleardep.CompilationUnit;
+import org.sugarj.cleardep.BuildUnit;
 import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.Path;
@@ -51,12 +51,12 @@ public class MetaSdf2Table extends SpoofaxBuilder<MetaSdf2Table.Input> {
 	}
 
 	@Override
-	public void build(CompilationUnit result) throws IOException {
+	public void build(BuildUnit result) throws IOException {
 		if (!context.props.isDefined("eclipse.spoofaximp.jars"))
 			throw new IllegalArgumentException("Property eclipse.spoofaximp.jars must point to the directory containing StrategoMix.def");
 		
 		RelativePath metamodule = context.basePath("${syntax}/${metasdfmodule}.sdf");
-		result.addSourceArtifact(metamodule);
+		result.requires(metamodule);
 		boolean metasdfmoduleAvailable = FileCommands.exists(metamodule);
 		
 		if (metasdfmoduleAvailable) {

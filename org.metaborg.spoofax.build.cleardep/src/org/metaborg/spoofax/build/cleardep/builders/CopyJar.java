@@ -7,7 +7,7 @@ import java.nio.file.StandardCopyOption;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
-import org.sugarj.cleardep.CompilationUnit;
+import org.sugarj.cleardep.BuildUnit;
 import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.Path;
@@ -52,12 +52,12 @@ public class CopyJar extends SpoofaxBuilder<CopyJar.Input> {
 	}
 
 	@Override
-	public void build(CompilationUnit result) throws IOException {
+	public void build(BuildUnit result) throws IOException {
 		if (input.externaljar != null) {
 			Path target = context.basePath("${include}/" + FileCommands.dropDirectory(input.externaljar));
-			result.addExternalFileDependency(input.externaljar);
+			result.requires(input.externaljar);
 			FileCommands.copyFile(input.externaljar, target, StandardCopyOption.COPY_ATTRIBUTES);
-			result.addGeneratedFile(target);
+			result.generates(target);
 		}
 	}
 }

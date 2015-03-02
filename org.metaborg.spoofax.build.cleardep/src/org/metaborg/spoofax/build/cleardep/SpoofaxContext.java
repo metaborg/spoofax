@@ -2,7 +2,7 @@ package org.metaborg.spoofax.build.cleardep;
 
 import java.io.Serializable;
 
-import org.sugarj.cleardep.CompilationUnit;
+import org.sugarj.cleardep.BuildUnit;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
@@ -30,16 +30,16 @@ public class SpoofaxContext implements Serializable{
 		return new RelativePath(baseDir, props.substitute("${include}/build/" + relative));
 	}
 	
-	public boolean isBuildStrategoEnabled(CompilationUnit result) {
+	public boolean isBuildStrategoEnabled(BuildUnit result) {
 		RelativePath strategoPath = basePath("${trans}/${strmodule}.str");
-		result.addExternalFileDependency(strategoPath);
+		result.requires(strategoPath);
 		boolean buildStrategoEnabled = FileCommands.exists(strategoPath);
 		return buildStrategoEnabled;
 	}
 	
-	public boolean isJavaJarEnabled(CompilationUnit result) {
+	public boolean isJavaJarEnabled(BuildUnit result) {
 		RelativePath mainPath = basePath("${src-gen}/org/strategoxt/imp/editors/template/strategies/Main.java");
-		result.addExternalFileDependency(mainPath);
+		result.requires(mainPath);
 		return FileCommands.exists(mainPath);
 	}
 }

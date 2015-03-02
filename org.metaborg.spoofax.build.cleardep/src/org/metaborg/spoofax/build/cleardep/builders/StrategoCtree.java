@@ -5,9 +5,9 @@ import java.io.IOException;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
-import org.sugarj.cleardep.CompilationUnit;
+import org.sugarj.cleardep.BuildUnit;
 import org.sugarj.cleardep.build.BuildManager;
-import org.sugarj.cleardep.build.BuildRequirement;
+import org.sugarj.cleardep.build.BuildRequest;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.path.Path;
@@ -32,8 +32,8 @@ public class StrategoCtree extends SpoofaxBuilder<StrategoCtree.Input> {
 		public final String externaljarflags;
 		public final Path externalDef;
 
-		public final BuildRequirement<?,?,?,?>[] requiredUnits;
-		public Input(SpoofaxContext context, String sdfmodule, String buildSdfImports, String strmodule, Path externaljar, String externaljarflags, Path externalDef, BuildRequirement<?,?,?,?>[] requiredUnits) {
+		public final BuildRequest<?,?,?,?>[] requiredUnits;
+		public Input(SpoofaxContext context, String sdfmodule, String buildSdfImports, String strmodule, Path externaljar, String externaljarflags, Path externalDef, BuildRequest<?,?,?,?>[] requiredUnits) {
 			super(context);
 			this.sdfmodule = sdfmodule;
 			this.buildSdfImports = buildSdfImports;
@@ -63,8 +63,8 @@ public class StrategoCtree extends SpoofaxBuilder<StrategoCtree.Input> {
 	public Stamper defaultStamper() { return LastModifiedStamper.instance; }
 
 	@Override
-	public void build(CompilationUnit result) throws IOException {
-		BuildRequirement<?,?,?,?> rtg2Sig = new BuildRequirement<>(Rtg2Sig.factory, new Rtg2Sig.Input(context, input.sdfmodule, input.buildSdfImports));
+	public void build(BuildUnit result) throws IOException {
+		BuildRequest<?,?,?,?> rtg2Sig = new BuildRequest<>(Rtg2Sig.factory, new Rtg2Sig.Input(context, input.sdfmodule, input.buildSdfImports));
 		
 		if (!context.isBuildStrategoEnabled(result))
 			throw new IllegalArgumentException(context.props.substitute("Main stratego file '${strmodule}.str' not found."));

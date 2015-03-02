@@ -6,7 +6,7 @@ import java.nio.file.StandardCopyOption;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
-import org.sugarj.cleardep.CompilationUnit;
+import org.sugarj.cleardep.BuildUnit;
 import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.Path;
@@ -51,12 +51,12 @@ public class CopySdf extends SpoofaxBuilder<CopySdf.Input> {
 	}
 
 	@Override
-	public void build(CompilationUnit result) throws IOException {
+	public void build(BuildUnit result) throws IOException {
 		if (input.externaldef != null) {
 			Path target = context.basePath("${include}/" + input.sdfmodule + ".def");
-			result.addExternalFileDependency(input.externaldef);
+			result.requires(input.externaldef);
 			FileCommands.copyFile(input.externaldef, target, StandardCopyOption.COPY_ATTRIBUTES);
-			result.addGeneratedFile(target);
+			result.generates(target);
 		}
 	}
 }

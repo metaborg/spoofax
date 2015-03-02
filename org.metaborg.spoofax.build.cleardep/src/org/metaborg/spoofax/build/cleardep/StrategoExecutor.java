@@ -134,19 +134,17 @@ public class StrategoExecutor {
 		}
 	}
 
-	public static Context strategoSdfcontext() {
+	public static synchronized Context strategoSdfcontext() {
 		if (strategoSdfContext == null)
 			strategoSdfContext = stratego_sdf.init();
 		return strategoSdfContext;
 	}
 
-	public static Context permissiveGrammarsContext() {
-		synchronized (StrategoExecutor.class) {
-			if (permissiveGrammarsContext != null)
-				return permissiveGrammarsContext;
-			permissiveGrammarsContext = org.strategoxt.permissivegrammars.permissivegrammars.init();
+	public static synchronized Context permissiveGrammarsContext() {
+		if (permissiveGrammarsContext != null)
 			return permissiveGrammarsContext;
-		}
+		permissiveGrammarsContext = org.strategoxt.permissivegrammars.permissivegrammars.init();
+		return permissiveGrammarsContext;
 	}
 
 	public static Context strjContext() {
@@ -154,22 +152,18 @@ public class StrategoExecutor {
 		return org.strategoxt.strj.strj.init();
 	}
 
-	public static Context toolsContext() {
-		synchronized (StrategoExecutor.class) {
-			if (toolsContext != null)
-				return toolsContext;
-			toolsContext = org.strategoxt.tools.tools.init();
+	public static synchronized Context toolsContext() {
+		if (toolsContext != null)
 			return toolsContext;
-		}
+		toolsContext = org.strategoxt.tools.tools.init();
+		return toolsContext;
 	}
 
-	public static Context xtcContext() {
-		synchronized (StrategoExecutor.class) {
-			if (xtcContext != null)
-				return xtcContext;
-			xtcContext = org.strategoxt.stratego_xtc.stratego_xtc.init();
+	public static synchronized Context xtcContext() {
+		if (xtcContext != null)
 			return xtcContext;
-		}
+		xtcContext = org.strategoxt.stratego_xtc.stratego_xtc.init();
+		return xtcContext;
 	}
 	
 	

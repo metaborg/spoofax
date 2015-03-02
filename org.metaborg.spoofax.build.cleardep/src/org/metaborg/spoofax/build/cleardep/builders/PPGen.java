@@ -12,8 +12,8 @@ import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
 import org.strategoxt.tools.main_pp_pp_table_0_0;
 import org.strategoxt.tools.main_ppgen_0_0;
-import org.sugarj.cleardep.CompilationUnit;
-import org.sugarj.cleardep.CompilationUnit.State;
+import org.sugarj.cleardep.BuildUnit;
+import org.sugarj.cleardep.BuildUnit.State;
 import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.Path;
@@ -43,7 +43,7 @@ public class PPGen extends SpoofaxBuilder<SpoofaxInput> {
 	}
 
 	@Override
-	public void build(CompilationUnit result) throws IOException {
+	public void build(BuildUnit result) throws IOException {
 		SpoofaxContext context = input.context;
 		if (!context.isBuildStrategoEnabled(result))
 			return;
@@ -54,25 +54,25 @@ public class PPGen extends SpoofaxBuilder<SpoofaxInput> {
 		RelativePath ppOutputPath = context.basePath("${include}/${sdfmodule}.generated.pp");
 		RelativePath afOutputPath = context.basePath("${include}/${sdfmodule}.generated.pp.af");
 		
-		result.addSourceArtifact(inputPath);
+		result.requires(inputPath);
 		ExecutionResult er1 = StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), 
 				main_ppgen_0_0.instance, "main-ppgen", new LoggingFilteringIOAgent(Pattern.quote("[ main-ppgen | warning ]") + ".*"),
 				"-i", inputPath,
 				"-t",
 				"-b",
 				"-o", afOutputPath);
-		result.addGeneratedFile(afOutputPath);
+		result.generates(afOutputPath);
 		
-		result.addSourceArtifact(afOutputPath);
+		result.requires(afOutputPath);
 		ExecutionResult er2 = StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), 
 				main_pp_pp_table_0_0.instance, "main-pp-pp-table", new LoggingFilteringIOAgent(),
 				"-i", afOutputPath,
 				"-o", ppOutputPath);
-		result.addGeneratedFile(ppOutputPath);
+		result.generates(ppOutputPath);
 		
 		if (!FileCommands.exists(afOutputPath)) {
 			FileCommands.writeToFile(afOutputPath, "PP-Table([])");
-			result.addGeneratedFile(afOutputPath);
+			result.generates(afOutputPath);
 		}
 		
 		result.setState(State.finished(er1.success && er2.success));

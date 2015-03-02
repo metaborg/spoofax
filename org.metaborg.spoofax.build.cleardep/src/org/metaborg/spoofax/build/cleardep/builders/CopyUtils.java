@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
-import org.sugarj.cleardep.CompilationUnit;
+import org.sugarj.cleardep.BuildUnit;
 import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.AbsolutePath;
@@ -35,7 +35,7 @@ public class CopyUtils extends SpoofaxBuilder<SpoofaxInput> {
 	}
 
 	@Override
-	public void build(CompilationUnit result) throws IOException {
+	public void build(BuildUnit result) throws IOException {
 		Path utils = context.basePath("utils");
 		FileCommands.createDir(utils);
 		
@@ -43,15 +43,15 @@ public class CopyUtils extends SpoofaxBuilder<SpoofaxInput> {
 		for (String p : new String[]{"make_permissive.jar", "sdf2imp.jar", "aster.jar", "StrategoMix.def"}) {
 			Path from = new AbsolutePath(base + "/" + p);
 			Path to = new RelativePath(utils, p);
-			result.addExternalFileDependency(from);
+			result.requires(from);
 			FileCommands.copyFile(from, to);
-			result.addGeneratedFile(to);
+			result.generates(to);
 		}
 		
 		Path strategojar = new AbsolutePath(context.props.getOrFail("eclipse.spoofaximp.strategojar"));
 		Path strategojarTo = new RelativePath(utils, FileCommands.dropDirectory(strategojar));
-		result.addExternalFileDependency(strategojar);
+		result.requires(strategojar);
 		FileCommands.copyFile(strategojar, strategojarTo);
-		result.addGeneratedFile(strategojarTo);
+		result.generates(strategojarTo);
 	}
 }

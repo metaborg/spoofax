@@ -7,7 +7,7 @@ import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
 import org.metaborg.spoofax.build.cleardep.util.FileExtensionFilter;
-import org.sugarj.cleardep.CompilationUnit;
+import org.sugarj.cleardep.BuildUnit;
 import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.Path;
@@ -46,10 +46,10 @@ public class StrategoAster extends SpoofaxBuilder<StrategoAster.Input> {
 	}
 
 	@Override
-	public void build(CompilationUnit result) throws IOException {
+	public void build(BuildUnit result) throws IOException {
 		List<RelativePath> asterInputList = FileCommands.listFilesRecursive(context.baseDir, new FileExtensionFilter("astr"));
 		for (RelativePath p : asterInputList)
-			result.addSourceArtifact(p);
+			result.requires(p);
 //		String asterInput = StringCommands.printListSeparated(asterInputList, " ");
 //		RelativePath outputPath = context.basePath("${trans}/" + input.strmodule + ".rtree");
 		

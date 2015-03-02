@@ -14,8 +14,8 @@ import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
 import org.metaborg.spoofax.build.cleardep.util.FileExtensionFilter;
 import org.strategoxt.tools.main_pack_sdf_0_0;
-import org.sugarj.cleardep.CompilationUnit;
-import org.sugarj.cleardep.CompilationUnit.State;
+import org.sugarj.cleardep.BuildUnit;
+import org.sugarj.cleardep.BuildUnit.State;
 import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.AbsolutePath;
@@ -65,7 +65,7 @@ public class PackSdf extends SpoofaxBuilder<PackSdf.Input> {
 	}
 	
 	@Override
-	public void build(CompilationUnit result) throws IOException {
+	public void build(BuildUnit result) throws IOException {
 		// This dependency was discovered by cleardep, due to an implicit dependency on 'org.strategoxt.imp.editors.template/src-gen/syntax/TemplateLang.sdf'.
 		require(ForceOnSave.factory, input);
 		
@@ -75,7 +75,7 @@ public class PackSdf extends SpoofaxBuilder<PackSdf.Input> {
 		RelativePath outputPath = context.basePath("${include}/" + input.sdfmodule + ".def");
 		String utilsInclude = FileCommands.exists(context.basePath("${utils}")) ? context.props.substitute("-I ${utils}") : "";
 		
-		result.addSourceArtifact(inputPath);
+		result.requires(inputPath);
 		
 		ExecutionResult er = StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), 
 				main_pack_sdf_0_0.instance, "pack-sdf", new LoggingFilteringIOAgent(Pattern.quote("  including ") + ".*"),
@@ -86,9 +86,9 @@ public class PackSdf extends SpoofaxBuilder<PackSdf.Input> {
 				utilsInclude,
 				input.buildSdfImports);
 		
-		result.addGeneratedFile(outputPath);
+		result.generates(outputPath);
 		for (Path required : extractRequiredPaths(er.errLog))
-			result.addExternalFileDependency(required);
+			result.requires(required);
 		
 		result.setState(State.finished(er.success));
 	}
@@ -115,12 +115,12 @@ public class PackSdf extends SpoofaxBuilder<PackSdf.Input> {
 		return paths;
 	}
 
-	private void copySdf2(CompilationUnit result) {
+	private void copySdf2(BuildUnit result) {
 		List<RelativePath> srcSdfFiles = FileCommands.listFilesRecursive(context.basePath("syntax"), new FileExtensionFilter("sdf"));
 		for (RelativePath p : srcSdfFiles) {
-			result.addSourceArtifact(p);
+			result.requires(p);
 			Path target = FileCommands.copyFile(context.basePath("syntax"), context.basePath("${syntax}"), p, StandardCopyOption.COPY_ATTRIBUTES);
-			result.addGeneratedFile(target);
+			result.generates(target);
 		}		
 	}
 

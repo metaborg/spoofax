@@ -7,7 +7,7 @@ import java.util.List;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.metaborg.spoofax.build.cleardep.util.FileExtensionFilter;
-import org.sugarj.cleardep.CompilationUnit;
+import org.sugarj.cleardep.BuildUnit;
 import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.cleardep.buildjava.JavaBuilder;
 import org.sugarj.common.FileCommands;
@@ -38,7 +38,7 @@ public class CompileJavaCode extends SpoofaxBuilder<SpoofaxInput> {
 	}
 
 	@Override
-	public void build(CompilationUnit result) throws IOException {
+	public void build(BuildUnit result) throws IOException {
 		require(CopyUtils.factory, input);
 		
 		Path targetDir = context.basePath("${build}");

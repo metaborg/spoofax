@@ -11,8 +11,8 @@ import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
 import org.metaborg.spoofax.build.cleardep.stampers.Sdf2RtgStamper;
 import org.strategoxt.tools.main_sdf2rtg_0_0;
-import org.sugarj.cleardep.CompilationUnit;
-import org.sugarj.cleardep.CompilationUnit.State;
+import org.sugarj.cleardep.BuildUnit;
+import org.sugarj.cleardep.BuildUnit.State;
 import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
@@ -52,14 +52,14 @@ public class Sdf2Rtg extends SpoofaxBuilder<Sdf2Rtg.Input> {
 	}
 
 	@Override
-	public void build(CompilationUnit result) throws IOException {
+	public void build(BuildUnit result) throws IOException {
 		// This dependency was discovered by cleardep, due to an implicit dependency on 'org.strategoxt.imp.editors.template/include/TemplateLang.def'.
 		require(PackSdf.factory, new PackSdf.Input(context, input.sdfmodule, input.buildSdfImports));
 		
 		RelativePath inputPath = context.basePath("${include}/" + input.sdfmodule + ".def");
 		RelativePath outputPath = context.basePath("${include}/" + input.sdfmodule + ".rtg");
 
-		result.addSourceArtifact(inputPath, Sdf2RtgStamper.instance.stampOf(inputPath));
+		result.requires(inputPath, Sdf2RtgStamper.instance.stampOf(inputPath));
 		
 		// XXX avoid redundant call to sdf2table
 		ExecutionResult er = StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), 
@@ -69,7 +69,7 @@ public class Sdf2Rtg extends SpoofaxBuilder<Sdf2Rtg.Input> {
 				"-o", outputPath,
 				"--ignore-missing-cons" /*,
 				"-Xnativepath", context.basePath("${nativepath}/")*/);
-		result.addGeneratedFile(outputPath);
+		result.generates(outputPath);
 		result.setState(State.finished(er.success));
 	}
 

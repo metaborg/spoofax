@@ -6,9 +6,9 @@ import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.strategoxt.imp.metatooling.building.AntForceRefreshScheduler;
 import org.strategoxt.imp.metatooling.loading.AntDescriptorLoader;
-import org.sugarj.cleardep.CompilationUnit;
+import org.sugarj.cleardep.BuildUnit;
 import org.sugarj.cleardep.build.BuildManager;
-import org.sugarj.cleardep.build.BuildRequirement;
+import org.sugarj.cleardep.build.BuildRequest;
 import org.sugarj.cleardep.buildjava.JavaJar;
 import org.sugarj.common.Log;
 import org.sugarj.common.path.AbsolutePath;
@@ -40,7 +40,7 @@ public class SpoofaxDefaultCtree extends SpoofaxBuilder<SpoofaxInput> {
 	}
 	
 	@Override
-	public void build(CompilationUnit result) throws IOException {
+	public void build(BuildUnit result) throws IOException {
 		String sdfmodule = context.props.getOrFail("sdfmodule");
 		String strmodule = context.props.getOrFail("strmodule");
 		String esvmodule = context.props.getOrFail("esvmodule");
@@ -65,9 +65,9 @@ public class SpoofaxDefaultCtree extends SpoofaxBuilder<SpoofaxInput> {
 	
 			// This dependency was discovered by cleardep, due to an implicit dependency on 'org.strategoxt.imp.editors.template/lib/editor-common.generated.str'.
 
-			BuildRequirement<?,?,?,?> sdf2Imp = new BuildRequirement<>(Sdf2ImpEclipse.factory, new Sdf2ImpEclipse.Input(context, esvmodule, sdfmodule, buildSdfImports));
+			BuildRequest<?,?,?,?> sdf2Imp = new BuildRequest<>(Sdf2ImpEclipse.factory, new Sdf2ImpEclipse.Input(context, esvmodule, sdfmodule, buildSdfImports));
 			// This dependency was discovered by cleardep, due to an implicit dependency on 'org.strategoxt.imp.editors.template/include/TemplateLang-parenthesize.str'.
-			BuildRequirement<?,?,?,?> sdf2Parenthesize = new BuildRequirement<>(Sdf2Parenthesize.factory, new Sdf2Parenthesize.Input(context, sdfmodule, buildSdfImports, externaldef));
+			BuildRequest<?,?,?,?> sdf2Parenthesize = new BuildRequest<>(Sdf2Parenthesize.factory, new Sdf2Parenthesize.Input(context, sdfmodule, buildSdfImports, externaldef));
 	
 			require(StrategoCtree.factory,
 					new StrategoCtree.Input(
@@ -78,10 +78,10 @@ public class SpoofaxDefaultCtree extends SpoofaxBuilder<SpoofaxInput> {
 							externaljar, 
 							externaljarflags, 
 							externaldef,
-							new BuildRequirement<?,?,?,?>[] {sdf2Imp, sdf2Parenthesize}));
+							new BuildRequest<?,?,?,?>[] {sdf2Imp, sdf2Parenthesize}));
 			
 			// This dependency was discovered by cleardep, due to an implicit dependency on 'org.strategoxt.imp.editors.template/editor/java/org/strategoxt/imp/editors/template/strategies/InteropRegisterer.class'.
-			BuildRequirement<?,?,?,?> compileJavaCode = new BuildRequirement<>(CompileJavaCode.factory, input);
+			BuildRequest<?,?,?,?> compileJavaCode = new BuildRequest<>(CompileJavaCode.factory, input);
 			require(compileJavaCode);
 			
 			javaJar(result, strmodule, compileJavaCode);
@@ -99,7 +99,7 @@ public class SpoofaxDefaultCtree extends SpoofaxBuilder<SpoofaxInput> {
 		org.strategoxt.imp.generator.sdf2imp c;
 	}
 
-	private void javaJar(CompilationUnit result, String strmodule, BuildRequirement<?,?,?,?> compileJavaCode) throws IOException {
+	private void javaJar(BuildUnit result, String strmodule, BuildRequest<?,?,?,?> compileJavaCode) throws IOException {
 		if (!context.isJavaJarEnabled(result))
 			return;
 		
@@ -119,12 +119,12 @@ public class SpoofaxDefaultCtree extends SpoofaxBuilder<SpoofaxInput> {
 						jarPath,
 						null,
 						files, 
-						new BuildRequirement<?,?,?,?>[] {compileJavaCode}));
+						new BuildRequest<?,?,?,?>[] {compileJavaCode}));
 	}
 
-	private void sdf2impEclipseReload(CompilationUnit result) {
+	private void sdf2impEclipseReload(BuildUnit result) {
 		RelativePath packedEsv = context.basePath("${include}/${esvmodule}.packed.esv");
-		result.addSourceArtifact(packedEsv);
+		result.requires(packedEsv);
 		AntDescriptorLoader.main(new String[]{packedEsv.getAbsolutePath()});
 	}
 

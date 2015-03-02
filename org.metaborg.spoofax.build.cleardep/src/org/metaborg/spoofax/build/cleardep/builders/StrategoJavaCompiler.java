@@ -10,10 +10,10 @@ import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
-import org.sugarj.cleardep.CompilationUnit;
-import org.sugarj.cleardep.CompilationUnit.State;
+import org.sugarj.cleardep.BuildUnit;
+import org.sugarj.cleardep.BuildUnit.State;
 import org.sugarj.cleardep.build.BuildManager;
-import org.sugarj.cleardep.build.BuildRequirement;
+import org.sugarj.cleardep.build.BuildRequest;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.StringCommands;
 import org.sugarj.common.path.AbsolutePath;
@@ -41,7 +41,7 @@ public class StrategoJavaCompiler extends SpoofaxBuilder<StrategoJavaCompiler.In
 		public final String[] libraryIncludes;
 		public final Path cacheDir;
 		public final String[] additionalArgs;
-		public final BuildRequirement<?,?,?,?>[] requiredUnits;
+		public final BuildRequest<?,?,?,?>[] requiredUnits;
 		
 		public Input(
 				SpoofaxContext context,
@@ -55,7 +55,7 @@ public class StrategoJavaCompiler extends SpoofaxBuilder<StrategoJavaCompiler.In
 				String[] libraryIncludes,
 				Path cacheDir,
 				String[] additionalArgs, 
-				BuildRequirement<?,?,?,?>[] requiredUnits) {
+				BuildRequest<?,?,?,?>[] requiredUnits) {
 			super(context);
 			this.inputPath = inputPath;
 			this.outputPath = outputPath;
@@ -88,12 +88,12 @@ public class StrategoJavaCompiler extends SpoofaxBuilder<StrategoJavaCompiler.In
 	}
 
 	@Override
-	public void build(CompilationUnit result) throws IOException {
+	public void build(BuildUnit result) throws IOException {
 		if (input.requiredUnits != null)
-			for (BuildRequirement<?,?,?,?> req : input.requiredUnits)
+			for (BuildRequest<?,?,?,?> req : input.requiredUnits)
 				require(req);
 		
-		result.addSourceArtifact(input.inputPath);
+		result.requires(input.inputPath);
 		
 		Path rtree = FileCommands.replaceExtension(input.outputPath, "rtree");
 		Path strdep = FileCommands.addExtension(input.outputPath, "dep");
@@ -127,23 +127,23 @@ public class StrategoJavaCompiler extends SpoofaxBuilder<StrategoJavaCompiler.In
 				StringCommands.printListSeparated(input.additionalArgs, " "));
 		FileCommands.delete(rtree);
 		
-		result.addGeneratedFile(input.outputPath);
-		result.addGeneratedFile(rtree);
-		result.addGeneratedFile(strdep);
+		result.generates(input.outputPath);
+		result.generates(rtree);
+		result.generates(strdep);
 		
 		registerUsedPaths(result, strdep);
 		
 		result.setState(State.finished(er.success));
 	}
 	
-	private void registerUsedPaths(CompilationUnit result, Path strdep) throws IOException {
+	private void registerUsedPaths(BuildUnit result, Path strdep) throws IOException {
 		String contents = FileCommands.readFileAsString(strdep);
 		String[] lines = contents.split("[\\s\\\\]+");
 		for (int i = 1; i < lines.length; i++) { // skip first line, which lists the generated ctree file
 			String line = lines[i];
 			Path p = new AbsolutePath(line);
 			RelativePath prel = FileCommands.getRelativePath(context.baseDir, p);
-			result.addExternalFileDependency(prel != null ? prel : p);
+			result.requires(prel != null ? prel : p);
 		}
 	}
 }

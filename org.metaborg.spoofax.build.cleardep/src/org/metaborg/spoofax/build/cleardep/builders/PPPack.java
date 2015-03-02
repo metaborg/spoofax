@@ -11,8 +11,8 @@ import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
 import org.strategoxt.tools.main_parse_pp_table_0_0;
-import org.sugarj.cleardep.CompilationUnit;
-import org.sugarj.cleardep.CompilationUnit.State;
+import org.sugarj.cleardep.BuildUnit;
+import org.sugarj.cleardep.BuildUnit.State;
 import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.Path;
@@ -64,23 +64,23 @@ public class PPPack extends SpoofaxBuilder<PPPack.Input> {
 	}
 
 	@Override
-	public void build(CompilationUnit result) throws IOException {
+	public void build(BuildUnit result) throws IOException {
 		if (!context.isBuildStrategoEnabled(result))
 			return;
 		
 		require(PackSdf.factory, new PackSdf.Input(context));
 		
-		result.addSourceArtifact(input.ppInput);
+		result.requires(input.ppInput);
 		if (input.fallback && !FileCommands.exists(input.ppInput)) {
 			FileCommands.writeToFile(input.ppTermOutput, "PP-Table([])");
-			result.addGeneratedFile(input.ppTermOutput);
+			result.generates(input.ppTermOutput);
 		}
 		else {
 			ExecutionResult er = StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), 
 					main_parse_pp_table_0_0.instance, "parse-pp-table", new LoggingFilteringIOAgent(),
 						"-i", input.ppInput,
 						"-o", input.ppTermOutput);
-			result.addGeneratedFile(input.ppTermOutput);
+			result.generates(input.ppTermOutput);
 			result.setState(State.finished(er.success));
 		}
 	}

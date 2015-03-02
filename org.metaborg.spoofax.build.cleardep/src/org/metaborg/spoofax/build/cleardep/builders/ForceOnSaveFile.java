@@ -13,7 +13,7 @@ import org.strategoxt.imp.runtime.services.OnSaveService;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.services.StrategoObserverUpdateJob;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
-import org.sugarj.cleardep.CompilationUnit;
+import org.sugarj.cleardep.BuildUnit;
 import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.Log;
@@ -58,10 +58,10 @@ public class ForceOnSaveFile extends SpoofaxBuilder<ForceOnSaveFile.Input> {
 	}
 
 	@Override
-	public void build(CompilationUnit result) throws IOException {
+	public void build(BuildUnit result) throws IOException {
 		RelativePath p = FileCommands.getRelativePath(context.baseDir, input.inputPath);
 		
-		result.addSourceArtifact(p);
+		result.requires(p);
 		callOnSaveService(p);
 		switch(FileCommands.getExtension(p)) {
 //			case "tmpl": 
@@ -76,18 +76,18 @@ public class ForceOnSaveFile extends SpoofaxBuilder<ForceOnSaveFile.Input> {
 			RelativePath genPP = context.basePath("${pp}/" + sdf3RelNoExt + "-pp.str");
 			RelativePath genCompletions = context.basePath("${completions}/" + sdf3RelNoExt + "-esv.esv");
 			RelativePath genSignatures = context.basePath("${signatures}/" + sdf3RelNoExt + "-sig.str");
-			result.addGeneratedFile(genSdf);
-			result.addGeneratedFile(genPP);
-			result.addGeneratedFile(genCompletions);
-			result.addGeneratedFile(genSignatures);
+			result.generates(genSdf);
+			result.generates(genPP);
+			result.generates(genCompletions);
+			result.generates(genSignatures);
 			break;
 		case "nab":
 			RelativePath gen = FileCommands.replaceExtension(p, "str");
-			result.addGeneratedFile(gen);
+			result.generates(gen);
 			break;
 		case "ts":
 			gen = FileCommands.replaceExtension(p, "generated.str");
-			result.addGeneratedFile(gen);
+			result.generates(gen);
 			break;
 		default:
 			throw new UnsupportedOperationException("Dependency management not implemented for files with extension " + FileCommands.getExtension(p) + ". File was " + p);

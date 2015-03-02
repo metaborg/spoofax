@@ -9,8 +9,8 @@ import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
 import org.strategoxt.tools.main_rtg2sig_0_0;
-import org.sugarj.cleardep.CompilationUnit;
-import org.sugarj.cleardep.CompilationUnit.State;
+import org.sugarj.cleardep.BuildUnit;
+import org.sugarj.cleardep.BuildUnit.State;
 import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
@@ -53,7 +53,7 @@ public class Rtg2Sig extends SpoofaxBuilder<Rtg2Sig.Input> {
 	}
 
 	@Override
-	public void build(CompilationUnit result) throws IOException {
+	public void build(BuildUnit result) throws IOException {
 		
 		if (context.isBuildStrategoEnabled(result)) {
 			// This dependency was discovered by cleardep, due to an implicit dependency on 'org.strategoxt.imp.editors.template/include/TemplateLang.rtg'.
@@ -62,13 +62,13 @@ public class Rtg2Sig extends SpoofaxBuilder<Rtg2Sig.Input> {
 			RelativePath inputPath = context.basePath("${include}/" + input.sdfmodule + ".rtg");
 			RelativePath outputPath = context.basePath("${include}/" + input.sdfmodule + ".str");
 			
-			result.addSourceArtifact(inputPath);
+			result.requires(inputPath);
 			ExecutionResult er = StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), 
 					main_rtg2sig_0_0.instance, "rtg2sig", new LoggingFilteringIOAgent(),
 					"-i", inputPath,
 					"--module", input.sdfmodule,
 					"-o", outputPath);
-			result.addGeneratedFile(outputPath);
+			result.generates(outputPath);
 			result.setState(State.finished(er.success));
 		}
 	}

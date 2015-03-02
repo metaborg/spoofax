@@ -10,7 +10,7 @@ import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
 import org.strategoxt.tools.main_sdf2parenthesize_0_0;
-import org.sugarj.cleardep.CompilationUnit;
+import org.sugarj.cleardep.BuildUnit;
 import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.Path;
@@ -53,7 +53,7 @@ public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input> {
 	}
 
 	@Override
-	public void build(CompilationUnit result) throws IOException {
+	public void build(BuildUnit result) throws IOException {
 		require(CopySdf.factory, new CopySdf.Input(context, input.sdfmodule, input.externaldef));
 		require(PackSdf.factory, new PackSdf.Input(context, input.sdfmodule, input.buildSdfImports));
 		
@@ -61,7 +61,7 @@ public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input> {
 		RelativePath outputPath = context.basePath("${include}/" + input.sdfmodule + "-parenthesize.str");
 		String outputmodule = "include/" + input.sdfmodule + "-parenthesize";
 
-		result.addSourceArtifact(inputPath);
+		result.requires(inputPath);
 		// XXX avoid redundant call to sdf2table
 		ExecutionResult er = StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), 
 				main_sdf2parenthesize_0_0.instance, "sdf2parenthesize", new LoggingFilteringIOAgent(Pattern.quote("[ sdf2parenthesize | info ]") + ".*", Pattern.quote("Invoking native tool") + ".*"),
@@ -77,7 +77,7 @@ public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input> {
 		if (!er.success)
 			FileCommands.writeToFile(outputPath, "module include/" + input.sdfmodule + "-parenthesize rules parenthesize-" + input.sdfmodule + " = id");
 		
-		result.addGeneratedFile(outputPath);
+		result.generates(outputPath);
 	}
 
 }

@@ -7,8 +7,8 @@ import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
-import org.sugarj.cleardep.CompilationUnit;
-import org.sugarj.cleardep.CompilationUnit.State;
+import org.sugarj.cleardep.BuildUnit;
+import org.sugarj.cleardep.BuildUnit.State;
 import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
@@ -52,20 +52,20 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input> {
 	}
 
 	@Override
-	public void build(CompilationUnit result) throws IOException {
+	public void build(BuildUnit result) throws IOException {
 		require(MakePermissive.factory, new MakePermissive.Input(context, input.sdfmodule, input.buildSdfImports, input.externaldef));
 
 		RelativePath inputPath = context.basePath("${include}/" + input.sdfmodule + "-Permissive.def");
 		RelativePath outputPath = context.basePath("${include}/" + input.sdfmodule + ".tbl");
 
-		result.addSourceArtifact(inputPath);
+		result.requires(inputPath);
 		ExecutionResult er = StrategoExecutor.runSdf2TableCLI(StrategoExecutor.xtcContext(), 
 				"-t",
 				"-i", inputPath,
 				"-m", input.sdfmodule,
 				"-o", outputPath);
 		
-		result.addGeneratedFile(outputPath);
+		result.generates(outputPath);
 		result.setState(State.finished(er.success));
 	}
 

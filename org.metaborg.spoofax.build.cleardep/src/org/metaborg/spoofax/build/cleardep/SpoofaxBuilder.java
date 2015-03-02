@@ -3,16 +3,16 @@ package org.metaborg.spoofax.build.cleardep;
 import java.io.Serializable;
 
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
-import org.sugarj.cleardep.CompilationUnit;
+import org.sugarj.cleardep.BuildUnit;
 import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.cleardep.build.Builder;
 import org.sugarj.cleardep.build.BuilderFactory;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
 
-abstract public class SpoofaxBuilder<T extends SpoofaxInput> extends Builder<T, CompilationUnit> {
+abstract public class SpoofaxBuilder<T extends SpoofaxInput> extends Builder<T, BuildUnit> {
 
-	public static abstract class SpoofaxBuilderFactory<T extends SpoofaxInput, B extends SpoofaxBuilder<T>> implements BuilderFactory<T, CompilationUnit, B> {
+	public static abstract class SpoofaxBuilderFactory<T extends SpoofaxInput, B extends SpoofaxBuilder<T>> implements BuilderFactory<T, BuildUnit, B> {
 		private static final long serialVersionUID = 8998843329413855827L;
 
 		@Override
@@ -35,8 +35,8 @@ abstract public class SpoofaxBuilder<T extends SpoofaxInput> extends Builder<T, 
 	}
 
 	@Override
-	protected Class<CompilationUnit> resultClass() {
-		return CompilationUnit.class;
+	protected Class<BuildUnit> resultClass() {
+		return BuildUnit.class;
 	}
 
 	@Override
