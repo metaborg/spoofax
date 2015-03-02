@@ -6,23 +6,22 @@ import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.metaborg.spoofax.build.cleardep.util.FileExtensionFilter;
 import org.metaborg.spoofax.build.cleardep.util.FileNameFilter;
-import org.sugarj.cleardep.BuildUnit;
-import org.sugarj.cleardep.build.BuildManager;
+import org.sugarj.cleardep.None;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.Log;
 import org.sugarj.common.path.Path;
 
-public class Clean extends SpoofaxBuilder<SpoofaxInput> {
+public class Clean extends SpoofaxBuilder<SpoofaxInput, None> {
 
-	public static SpoofaxBuilderFactory<SpoofaxInput, Clean> factory = new SpoofaxBuilderFactory<SpoofaxInput, Clean>() {
+	public static SpoofaxBuilderFactory<SpoofaxInput, None, Clean> factory = new SpoofaxBuilderFactory<SpoofaxInput, None, Clean>() {
 		private static final long serialVersionUID = -1133955108882900676L;
 
 		@Override
-		public Clean makeBuilder(SpoofaxInput input, BuildManager manager) { return new Clean(input, manager); }
+		public Clean makeBuilder(SpoofaxInput input) { return new Clean(input); }
 	};
 	
-	public Clean(SpoofaxInput input, BuildManager manager) {
-		super(input, factory, manager);
+	public Clean(SpoofaxInput input) {
+		super(input);
 	}
 
 	@Override
@@ -36,7 +35,7 @@ public class Clean extends SpoofaxBuilder<SpoofaxInput> {
 	}
 
 	@Override
-	public void build(BuildUnit result) throws IOException {
+	public None build() throws IOException {
 		String[] paths = {
 				".cache",
 				"${include}/${sdfmodule}.def",
@@ -73,26 +72,28 @@ public class Clean extends SpoofaxBuilder<SpoofaxInput> {
 			Path path = context.basePath(p);
 			Log.log.log("Delete " + path, Log.DETAIL); 
 			FileCommands.delete(path); 
-			result.generates(path);
+			generates(path);
 		}
 		
 		for (Path p : FileCommands.listFiles(context.basePath("${build}"))) {
 			Log.log.log("Delete " + p, Log.DETAIL); 
 			FileCommands.delete(p); 
-			result.generates(p);
+			generates(p);
 		}
 		
 		for (Path p : FileCommands.listFiles(context.basePath("${lib}"), new FileNameFilter(".*\\.generated\\.str"))) {
 			Log.log.log("Delete " + p, Log.DETAIL); 
 			FileCommands.delete(p); 
-			result.generates(p);
+			generates(p);
 		}
 		
 		for (Path p : FileCommands.listFilesRecursive(context.depDir(), new FileExtensionFilter("dep"))) {
 			Log.log.log("Delete " + p, Log.DETAIL); 
 			FileCommands.delete(p); 
-			result.generates(p);
+			generates(p);
 		}
+		
+		return None.val;
 	}
 
 }

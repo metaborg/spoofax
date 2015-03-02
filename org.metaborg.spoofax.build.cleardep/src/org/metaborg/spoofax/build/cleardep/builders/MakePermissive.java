@@ -10,26 +10,23 @@ import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
 import org.strategoxt.permissivegrammars.make_permissive;
-import org.sugarj.cleardep.BuildUnit;
 import org.sugarj.cleardep.BuildUnit.State;
-import org.sugarj.cleardep.build.BuildManager;
+import org.sugarj.cleardep.None;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
-public class MakePermissive extends SpoofaxBuilder<MakePermissive.Input> {
+public class MakePermissive extends SpoofaxBuilder<MakePermissive.Input, None> {
 
-	public static SpoofaxBuilderFactory<Input, MakePermissive> factory = new SpoofaxBuilderFactory<Input, MakePermissive>() {
+	public static SpoofaxBuilderFactory<Input, None, MakePermissive> factory = new SpoofaxBuilderFactory<Input, None, MakePermissive>() {
 		private static final long serialVersionUID = 657230698706473822L;
 
 		@Override
-		public MakePermissive makeBuilder(Input input, BuildManager manager) { return new MakePermissive(input, manager); }
+		public MakePermissive makeBuilder(Input input) { return new MakePermissive(input); }
 	};
 	
 	public static class Input extends SpoofaxInput {
-		/**
-		 * 
-		 */
 		private static final long serialVersionUID = 4381601872931676757L;
+
 		public final String sdfmodule;
 		public final String buildSdfImports;
 		public final Path externaldef;
@@ -41,8 +38,8 @@ public class MakePermissive extends SpoofaxBuilder<MakePermissive.Input> {
 		}
 	}
 	
-	public MakePermissive(Input input, BuildManager manager) {
-		super(input, factory, manager);
+	public MakePermissive(Input input) {
+		super(input);
 	}
 
 	@Override
@@ -56,21 +53,22 @@ public class MakePermissive extends SpoofaxBuilder<MakePermissive.Input> {
 	}
 
 	@Override
-	public void build(BuildUnit result) throws IOException {
+	public None build() throws IOException {
 		require(CopySdf.factory, new CopySdf.Input(context, input.sdfmodule, input.externaldef));
 		require(PackSdf.factory, new PackSdf.Input(context,input.sdfmodule, input.buildSdfImports));
 		
 		RelativePath inputPath = context.basePath("${include}/" + input.sdfmodule + ".def");
 		RelativePath outputPath = context.basePath("${include}/" + input.sdfmodule + "-Permissive.def");
 		
-		result.requires(inputPath);
+		requires(inputPath);
 		ExecutionResult er = StrategoExecutor.runStrategoCLI(StrategoExecutor.permissiveGrammarsContext(), 
 				make_permissive.getMainStrategy(), "make-permissive", new LoggingFilteringIOAgent(Pattern.quote("[ make-permissive | info ]") + ".*"),
 				"-i", inputPath,
 				"-o", outputPath,
 				"--optimize", "on"
 				);
-		result.generates(outputPath);
-		result.setState(State.finished(er.success));
+		generates(outputPath);
+		setState(State.finished(er.success));
+		return None.val;
 	}
 }

@@ -5,8 +5,7 @@ import java.io.IOException;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
-import org.sugarj.cleardep.BuildUnit;
-import org.sugarj.cleardep.build.BuildManager;
+import org.sugarj.cleardep.None;
 import org.sugarj.cleardep.build.BuildRequest;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
@@ -14,17 +13,18 @@ import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 import org.sugarj.common.util.ArrayUtils;
 
-public class StrategoCtree extends SpoofaxBuilder<StrategoCtree.Input> {
+public class StrategoCtree extends SpoofaxBuilder<StrategoCtree.Input, None> {
 
-	public static SpoofaxBuilderFactory<Input, StrategoCtree> factory = new SpoofaxBuilderFactory<Input, StrategoCtree>() {
+	public static SpoofaxBuilderFactory<Input, None, StrategoCtree> factory = new SpoofaxBuilderFactory<Input, None, StrategoCtree>() {
 		private static final long serialVersionUID = -8635408307377750115L;
 
 		@Override
-		public StrategoCtree makeBuilder(Input input, BuildManager manager) { return new StrategoCtree(input, manager); }
+		public StrategoCtree makeBuilder(Input input) { return new StrategoCtree(input); }
 	};
 	
 	public static class Input extends SpoofaxInput {
 		private static final long serialVersionUID = 6323245405121428720L;
+		
 		public final String sdfmodule;
 		public final String buildSdfImports;
 		public final String strmodule;
@@ -45,8 +45,8 @@ public class StrategoCtree extends SpoofaxBuilder<StrategoCtree.Input> {
 		}
 	}
 	
-	public StrategoCtree(Input input, BuildManager manager) {
-		super(input, factory, manager);
+	public StrategoCtree(Input input) {
+		super(input);
 	}
 
 	@Override
@@ -63,10 +63,10 @@ public class StrategoCtree extends SpoofaxBuilder<StrategoCtree.Input> {
 	public Stamper defaultStamper() { return LastModifiedStamper.instance; }
 
 	@Override
-	public void build(BuildUnit result) throws IOException {
+	public None build() throws IOException {
 		BuildRequest<?,?,?,?> rtg2Sig = new BuildRequest<>(Rtg2Sig.factory, new Rtg2Sig.Input(context, input.sdfmodule, input.buildSdfImports));
 		
-		if (!context.isBuildStrategoEnabled(result))
+		if (!context.isBuildStrategoEnabled(this))
 			throw new IllegalArgumentException(context.props.substitute("Main stratego file '${strmodule}.str' not found."));
 		
 		require(CopyJar.factory, new CopyJar.Input(context, input.externaljar));
@@ -87,5 +87,7 @@ public class StrategoCtree extends SpoofaxBuilder<StrategoCtree.Input> {
 						context.basePath(".cache"),
 						ArrayUtils.arrayAdd("-F", input.externaljarflags.split("[\\s]+")),
 						ArrayUtils.arrayAdd(rtg2Sig, input.requiredUnits)));
+		
+		return None.val;
 	}
 }

@@ -7,23 +7,23 @@ import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
 import org.metaborg.spoofax.build.cleardep.util.FileExtensionFilter;
-import org.sugarj.cleardep.BuildUnit;
-import org.sugarj.cleardep.build.BuildManager;
+import org.sugarj.cleardep.None;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
-public class StrategoAster extends SpoofaxBuilder<StrategoAster.Input> {
+public class StrategoAster extends SpoofaxBuilder<StrategoAster.Input, None> {
 
-	public static SpoofaxBuilderFactory<Input, StrategoAster> factory = new SpoofaxBuilderFactory<Input, StrategoAster>() {
+	public static SpoofaxBuilderFactory<Input, None, StrategoAster> factory = new SpoofaxBuilderFactory<Input, None, StrategoAster>() {
 		private static final long serialVersionUID = -1290903435504555665L;
 
 		@Override
-		public StrategoAster makeBuilder(Input input, BuildManager manager) { return new StrategoAster(input, manager); }
+		public StrategoAster makeBuilder(Input input) { return new StrategoAster(input); }
 	};
 	
 	public static class Input extends SpoofaxInput {
 		private static final long serialVersionUID = -4593910056510380042L;
+		
 		public final String strmodule;
 		public Input(SpoofaxContext context, String strmodule) {
 			super(context);
@@ -31,8 +31,8 @@ public class StrategoAster extends SpoofaxBuilder<StrategoAster.Input> {
 		}
 	}
 	
-	public StrategoAster(Input input, BuildManager manager) {
-		super(input, factory, manager);
+	public StrategoAster(Input input) {
+		super(input);
 	}
 
 	@Override
@@ -46,10 +46,11 @@ public class StrategoAster extends SpoofaxBuilder<StrategoAster.Input> {
 	}
 
 	@Override
-	public void build(BuildUnit result) throws IOException {
+	public None build() throws IOException {
 		List<RelativePath> asterInputList = FileCommands.listFilesRecursive(context.baseDir, new FileExtensionFilter("astr"));
 		for (RelativePath p : asterInputList)
-			result.requires(p);
+			requires(p);
+		
 //		String asterInput = StringCommands.printListSeparated(asterInputList, " ");
 //		RelativePath outputPath = context.basePath("${trans}/" + input.strmodule + ".rtree");
 		
@@ -60,5 +61,7 @@ public class StrategoAster extends SpoofaxBuilder<StrategoAster.Input> {
 
 //		result.addGeneratedFile(outputPath);
 //		result.setState(State.finished(er.success));
+		
+		return None.val;
 	}
 }

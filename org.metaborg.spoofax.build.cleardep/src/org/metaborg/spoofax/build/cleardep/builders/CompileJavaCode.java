@@ -7,24 +7,23 @@ import java.util.List;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.metaborg.spoofax.build.cleardep.util.FileExtensionFilter;
-import org.sugarj.cleardep.BuildUnit;
-import org.sugarj.cleardep.build.BuildManager;
+import org.sugarj.cleardep.None;
 import org.sugarj.cleardep.buildjava.JavaBuilder;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.AbsolutePath;
 import org.sugarj.common.path.Path;
 
-public class CompileJavaCode extends SpoofaxBuilder<SpoofaxInput> {
+public class CompileJavaCode extends SpoofaxBuilder<SpoofaxInput, None> {
 
-	public static SpoofaxBuilderFactory<SpoofaxInput, CompileJavaCode> factory = new SpoofaxBuilderFactory<SpoofaxInput, CompileJavaCode>() {
+	public static SpoofaxBuilderFactory<SpoofaxInput, None, CompileJavaCode> factory = new SpoofaxBuilderFactory<SpoofaxInput, None, CompileJavaCode>() {
 		private static final long serialVersionUID = 5448125602790119713L;
 
 		@Override
-		public CompileJavaCode makeBuilder(SpoofaxInput input, BuildManager manager) { return new CompileJavaCode(input, manager); }
+		public CompileJavaCode makeBuilder(SpoofaxInput input) { return new CompileJavaCode(input); }
 	};
 	
-	public CompileJavaCode(SpoofaxInput input, BuildManager manager) {
-		super(input, factory, manager);
+	public CompileJavaCode(SpoofaxInput input) {
+		super(input);
 	}
 
 	@Override
@@ -38,7 +37,7 @@ public class CompileJavaCode extends SpoofaxBuilder<SpoofaxInput> {
 	}
 
 	@Override
-	public void build(BuildUnit result) throws IOException {
+	public None build() throws IOException {
 		require(CopyUtils.factory, input);
 		
 		Path targetDir = context.basePath("${build}");
@@ -75,7 +74,7 @@ public class CompileJavaCode extends SpoofaxBuilder<SpoofaxInput> {
 			classPath.add(new AbsolutePath(context.props.get("externaljar")));
 		if (context.props.isDefined("externaljarx"))
 			classPath.add(new AbsolutePath(context.props.get("externaljarx")));
-		if (context.isJavaJarEnabled(result))
+		if (context.isJavaJarEnabled(this))
 			classPath.add(context.basePath("${include}/${strmodule}-java.jar"));
 
 		require(JavaBuilder.factory, 
@@ -87,5 +86,7 @@ public class CompileJavaCode extends SpoofaxBuilder<SpoofaxInput> {
 						additionalArgs,
 						null,
 						false));
+		
+		return None.val;
 	}
 }

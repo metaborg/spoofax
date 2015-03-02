@@ -11,27 +11,24 @@ import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
 import org.strategoxt.tools.main_parse_pp_table_0_0;
-import org.sugarj.cleardep.BuildUnit;
 import org.sugarj.cleardep.BuildUnit.State;
-import org.sugarj.cleardep.build.BuildManager;
+import org.sugarj.cleardep.None;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
-public class PPPack extends SpoofaxBuilder<PPPack.Input> {
+public class PPPack extends SpoofaxBuilder<PPPack.Input, None> {
 
-	public static SpoofaxBuilderFactory<Input, PPPack> factory = new SpoofaxBuilderFactory<Input, PPPack>() {
+	public static SpoofaxBuilderFactory<Input, None, PPPack> factory = new SpoofaxBuilderFactory<Input, None, PPPack>() {
 		private static final long serialVersionUID = 7367043797398412114L;
 
 		@Override
-		public PPPack makeBuilder(Input input, BuildManager manager) { return new PPPack(input, manager); }
+		public PPPack makeBuilder(Input input) { return new PPPack(input); }
 	};
 	
 	public static class Input extends SpoofaxInput {
-		/**
-		 * 
-		 */
 		private static final long serialVersionUID = -5786344696509159033L;
+
 		public final RelativePath ppInput;
 		public final RelativePath ppTermOutput;
 		/** If true, produce empty table in case `ppInput` does not exist. */
@@ -47,8 +44,8 @@ public class PPPack extends SpoofaxBuilder<PPPack.Input> {
 		}
 	}
 	
-	public PPPack(Input input, BuildManager manager) {
-		super(input, factory, manager);
+	public PPPack(Input input) {
+		super(input);
 	}
 	
 	@Override
@@ -64,25 +61,26 @@ public class PPPack extends SpoofaxBuilder<PPPack.Input> {
 	}
 
 	@Override
-	public void build(BuildUnit result) throws IOException {
-		if (!context.isBuildStrategoEnabled(result))
-			return;
+	public None build() throws IOException {
+		if (!context.isBuildStrategoEnabled(this))
+			return None.val;
 		
 		require(PackSdf.factory, new PackSdf.Input(context));
 		
-		result.requires(input.ppInput);
+		requires(input.ppInput);
 		if (input.fallback && !FileCommands.exists(input.ppInput)) {
 			FileCommands.writeToFile(input.ppTermOutput, "PP-Table([])");
-			result.generates(input.ppTermOutput);
+			generates(input.ppTermOutput);
 		}
 		else {
 			ExecutionResult er = StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), 
 					main_parse_pp_table_0_0.instance, "parse-pp-table", new LoggingFilteringIOAgent(),
 						"-i", input.ppInput,
 						"-o", input.ppTermOutput);
-			result.generates(input.ppTermOutput);
-			result.setState(State.finished(er.success));
+			generates(input.ppTermOutput);
+			setState(State.finished(er.success));
 		}
+		
+		return None.val;
 	}
-
 }

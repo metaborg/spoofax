@@ -10,9 +10,8 @@ import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
-import org.sugarj.cleardep.BuildUnit;
 import org.sugarj.cleardep.BuildUnit.State;
-import org.sugarj.cleardep.build.BuildManager;
+import org.sugarj.cleardep.None;
 import org.sugarj.cleardep.build.BuildRequest;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.StringCommands;
@@ -20,17 +19,18 @@ import org.sugarj.common.path.AbsolutePath;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
-public class StrategoJavaCompiler extends SpoofaxBuilder<StrategoJavaCompiler.Input> {
+public class StrategoJavaCompiler extends SpoofaxBuilder<StrategoJavaCompiler.Input, None> {
 
-	public static SpoofaxBuilderFactory<Input, StrategoJavaCompiler> factory = new SpoofaxBuilderFactory<Input, StrategoJavaCompiler>() {
+	public static SpoofaxBuilderFactory<Input, None, StrategoJavaCompiler> factory = new SpoofaxBuilderFactory<Input, None, StrategoJavaCompiler>() {
 		private static final long serialVersionUID = -3539649828941211263L;
 
 		@Override
-		public StrategoJavaCompiler makeBuilder(Input input, BuildManager manager) { return new StrategoJavaCompiler(input, manager); }
+		public StrategoJavaCompiler makeBuilder(Input input) { return new StrategoJavaCompiler(input); }
 	};
 	
 	public static class Input extends SpoofaxInput {
 		private static final long serialVersionUID = -5234502421638344690L;
+		
 		public final RelativePath inputPath;
 		public final RelativePath outputPath;
 		public final String packageName;
@@ -71,8 +71,8 @@ public class StrategoJavaCompiler extends SpoofaxBuilder<StrategoJavaCompiler.In
 		}
 	}
 	
-	public StrategoJavaCompiler(Input input, BuildManager manager) {
-		super(input, factory, manager);
+	public StrategoJavaCompiler(Input input) {
+		super(input);
 	}
 
 	@Override
@@ -88,12 +88,12 @@ public class StrategoJavaCompiler extends SpoofaxBuilder<StrategoJavaCompiler.In
 	}
 
 	@Override
-	public void build(BuildUnit result) throws IOException {
+	public None build() throws IOException {
 		if (input.requiredUnits != null)
 			for (BuildRequest<?,?,?,?> req : input.requiredUnits)
 				require(req);
 		
-		result.requires(input.inputPath);
+		requires(input.inputPath);
 		
 		Path rtree = FileCommands.replaceExtension(input.outputPath, "rtree");
 		Path strdep = FileCommands.addExtension(input.outputPath, "dep");
@@ -127,23 +127,25 @@ public class StrategoJavaCompiler extends SpoofaxBuilder<StrategoJavaCompiler.In
 				StringCommands.printListSeparated(input.additionalArgs, " "));
 		FileCommands.delete(rtree);
 		
-		result.generates(input.outputPath);
-		result.generates(rtree);
-		result.generates(strdep);
+		generates(input.outputPath);
+		generates(rtree);
+		generates(strdep);
 		
-		registerUsedPaths(result, strdep);
+		registerUsedPaths(strdep);
 		
-		result.setState(State.finished(er.success));
+		setState(State.finished(er.success));
+		
+		return None.val;
 	}
 	
-	private void registerUsedPaths(BuildUnit result, Path strdep) throws IOException {
+	private void registerUsedPaths(Path strdep) throws IOException {
 		String contents = FileCommands.readFileAsString(strdep);
 		String[] lines = contents.split("[\\s\\\\]+");
 		for (int i = 1; i < lines.length; i++) { // skip first line, which lists the generated ctree file
 			String line = lines[i];
 			Path p = new AbsolutePath(line);
 			RelativePath prel = FileCommands.getRelativePath(context.baseDir, p);
-			result.requires(prel != null ? prel : p);
+			requires(prel != null ? prel : p);
 		}
 	}
 }

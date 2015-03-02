@@ -6,25 +6,22 @@ import java.nio.file.StandardCopyOption;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
-import org.sugarj.cleardep.BuildUnit;
-import org.sugarj.cleardep.build.BuildManager;
+import org.sugarj.cleardep.None;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.Path;
 
-public class CopySdf extends SpoofaxBuilder<CopySdf.Input> {
+public class CopySdf extends SpoofaxBuilder<CopySdf.Input, None> {
 
-	public static SpoofaxBuilderFactory<Input, CopySdf> factory = new SpoofaxBuilderFactory<Input, CopySdf>() {
+	public static SpoofaxBuilderFactory<Input, None, CopySdf> factory = new SpoofaxBuilderFactory<Input, None, CopySdf>() {
 		private static final long serialVersionUID = -2175787090501831305L;
 
 		@Override
-		public CopySdf makeBuilder(Input input, BuildManager manager) { return new CopySdf(input, manager); }
+		public CopySdf makeBuilder(Input input) { return new CopySdf(input); }
 	};
 	
 	public static class Input extends SpoofaxInput {
-		/**
-		 * 
-		 */
 		private static final long serialVersionUID = 6298820503718314523L;
+
 		public final String sdfmodule;
 		public final Path externaldef;
 		public Input(SpoofaxContext context, String sdfmodule, Path externaldef) {
@@ -34,8 +31,8 @@ public class CopySdf extends SpoofaxBuilder<CopySdf.Input> {
 		}
 	}
 	
-	public CopySdf(Input input, BuildManager manager) {
-		super(input, factory, manager);
+	public CopySdf(Input input) {
+		super(input);
 	}
 
 	@Override
@@ -51,12 +48,13 @@ public class CopySdf extends SpoofaxBuilder<CopySdf.Input> {
 	}
 
 	@Override
-	public void build(BuildUnit result) throws IOException {
+	public None build() throws IOException {
 		if (input.externaldef != null) {
 			Path target = context.basePath("${include}/" + input.sdfmodule + ".def");
-			result.requires(input.externaldef);
+			requires(input.externaldef);
 			FileCommands.copyFile(input.externaldef, target, StandardCopyOption.COPY_ATTRIBUTES);
-			result.generates(target);
+			generates(target);
 		}
+		return None.val;
 	}
 }

@@ -13,27 +13,24 @@ import org.strategoxt.imp.runtime.services.OnSaveService;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.services.StrategoObserverUpdateJob;
 import org.strategoxt.imp.runtime.stratego.EditorIOAgent;
-import org.sugarj.cleardep.BuildUnit;
-import org.sugarj.cleardep.build.BuildManager;
+import org.sugarj.cleardep.None;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.Log;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
-public class ForceOnSaveFile extends SpoofaxBuilder<ForceOnSaveFile.Input> {
+public class ForceOnSaveFile extends SpoofaxBuilder<ForceOnSaveFile.Input, None> {
 
-	public static SpoofaxBuilderFactory<Input, ForceOnSaveFile> factory = new SpoofaxBuilderFactory<Input, ForceOnSaveFile>() {
+	public static SpoofaxBuilderFactory<Input, None, ForceOnSaveFile> factory = new SpoofaxBuilderFactory<Input, None, ForceOnSaveFile>() {
 		private static final long serialVersionUID = 3624331674299289181L;
 
 		@Override
-		public ForceOnSaveFile makeBuilder(Input input, BuildManager manager) { return new ForceOnSaveFile(input, manager); }
+		public ForceOnSaveFile makeBuilder(Input input) { return new ForceOnSaveFile(input); }
 	};
 	
 	public static class Input extends SpoofaxInput {
-		/**
-		 * 
-		 */
 		private static final long serialVersionUID = -2546907410371550065L;
+
 		public final Path inputPath;
 		public Input(SpoofaxContext context, Path inputPath) {
 			super(context);
@@ -41,8 +38,8 @@ public class ForceOnSaveFile extends SpoofaxBuilder<ForceOnSaveFile.Input> {
 		}
 	}
 	
-	public ForceOnSaveFile(Input input, BuildManager manager) {
-		super(input, factory, manager);
+	public ForceOnSaveFile(Input input) {
+		super(input);
 	}
 	
 	@Override
@@ -58,10 +55,10 @@ public class ForceOnSaveFile extends SpoofaxBuilder<ForceOnSaveFile.Input> {
 	}
 
 	@Override
-	public void build(BuildUnit result) throws IOException {
+	public None build() throws IOException {
 		RelativePath p = FileCommands.getRelativePath(context.baseDir, input.inputPath);
 		
-		result.requires(p);
+		requires(p);
 		callOnSaveService(p);
 		switch(FileCommands.getExtension(p)) {
 //			case "tmpl": 
@@ -76,22 +73,24 @@ public class ForceOnSaveFile extends SpoofaxBuilder<ForceOnSaveFile.Input> {
 			RelativePath genPP = context.basePath("${pp}/" + sdf3RelNoExt + "-pp.str");
 			RelativePath genCompletions = context.basePath("${completions}/" + sdf3RelNoExt + "-esv.esv");
 			RelativePath genSignatures = context.basePath("${signatures}/" + sdf3RelNoExt + "-sig.str");
-			result.generates(genSdf);
-			result.generates(genPP);
-			result.generates(genCompletions);
-			result.generates(genSignatures);
+			generates(genSdf);
+			generates(genPP);
+			generates(genCompletions);
+			generates(genSignatures);
 			break;
 		case "nab":
 			RelativePath gen = FileCommands.replaceExtension(p, "str");
-			result.generates(gen);
+			generates(gen);
 			break;
 		case "ts":
 			gen = FileCommands.replaceExtension(p, "generated.str");
-			result.generates(gen);
+			generates(gen);
 			break;
 		default:
 			throw new UnsupportedOperationException("Dependency management not implemented for files with extension " + FileCommands.getExtension(p) + ". File was " + p);
 		}
+		
+		return None.val;
 	}
 	
 	private void callOnSaveService(RelativePath p) {

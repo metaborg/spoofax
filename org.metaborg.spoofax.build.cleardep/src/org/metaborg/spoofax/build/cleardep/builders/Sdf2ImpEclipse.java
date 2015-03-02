@@ -9,19 +9,18 @@ import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
 import org.strategoxt.imp.generator.sdf2imp_jvm_0_0;
-import org.sugarj.cleardep.BuildUnit;
 import org.sugarj.cleardep.BuildUnit.State;
-import org.sugarj.cleardep.build.BuildManager;
+import org.sugarj.cleardep.None;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
-public class Sdf2ImpEclipse extends SpoofaxBuilder<Sdf2ImpEclipse.Input> {
+public class Sdf2ImpEclipse extends SpoofaxBuilder<Sdf2ImpEclipse.Input, None> {
 
-	public static SpoofaxBuilderFactory<Input, Sdf2ImpEclipse> factory = new SpoofaxBuilderFactory<Input, Sdf2ImpEclipse>() {
+	public static SpoofaxBuilderFactory<Input, None, Sdf2ImpEclipse> factory = new SpoofaxBuilderFactory<Input, None, Sdf2ImpEclipse>() {
 		private static final long serialVersionUID = 8374273854477950798L;
 
 		@Override
-		public Sdf2ImpEclipse makeBuilder(Input input, BuildManager manager) { return new Sdf2ImpEclipse(input, manager); }
+		public Sdf2ImpEclipse makeBuilder(Input input) { return new Sdf2ImpEclipse(input); }
 	};
 
 	public static class Input extends SpoofaxInput {
@@ -37,8 +36,8 @@ public class Sdf2ImpEclipse extends SpoofaxBuilder<Sdf2ImpEclipse.Input> {
 		}
 	}
 	
-	public Sdf2ImpEclipse(Input input, BuildManager manager) {
-		super(input, factory, manager);
+	public Sdf2ImpEclipse(Input input) {
+		super(input);
 	}
 
 	@Override
@@ -52,7 +51,7 @@ public class Sdf2ImpEclipse extends SpoofaxBuilder<Sdf2ImpEclipse.Input> {
 	}
 
 	@Override
-	public void build(BuildUnit result) throws IOException {
+	public None build() throws IOException {
 		require(Sdf2Rtg.factory, new Sdf2Rtg.Input(context, input.sdfmodule, input.buildSdfImports));
 		
 		RelativePath inputPath = new RelativePath(context.basePath("editor"), input.esvmodule + ".main.esv");
@@ -60,17 +59,18 @@ public class Sdf2ImpEclipse extends SpoofaxBuilder<Sdf2ImpEclipse.Input> {
 		LoggingFilteringIOAgent agent = new LoggingFilteringIOAgent(".*");
 		agent.setWorkingDir(inputPath.getBasePath().getAbsolutePath());
 		
-		result.requires(inputPath);
+		requires(inputPath);
 		ExecutionResult er = StrategoExecutor.runStratego(StrategoExecutor.generatorContext(), 
 				sdf2imp_jvm_0_0.instance, "sdf2imp", agent,
 				StrategoExecutor.generatorContext().getFactory().makeString(inputPath.getRelativePath()));
 
-		registerUsedPaths(result, er.errLog);
+		registerUsedPaths(er.errLog);
 		
-		result.setState(State.finished(er.success));
+		setState(State.finished(er.success));
+		return None.val;
 	}
 
-	private void registerUsedPaths(BuildUnit result, String log) {
+	private void registerUsedPaths(String log) {
 		String defPrefix = "Found accompanying .def file: ";
 		String reqPrefix = "found file ";
 		String genPrefix = "Generating ";
@@ -78,15 +78,15 @@ public class Sdf2ImpEclipse extends SpoofaxBuilder<Sdf2ImpEclipse.Input> {
 		for (String s : log.split("\\n")) {
 		    if (s.startsWith(reqPrefix)) {
 				String file = s.substring(reqPrefix.length());
-				result.requires(context.basePath(file));
+				requires(context.basePath(file));
 			}
 			else if (s.startsWith(genPrefix)) {
 				String file = s.substring(genPrefix.length());
-				result.generates(context.basePath(file));
+				generates(context.basePath(file));
 			}
 			else if (s.startsWith(defPrefix)) {
 				String file = s.substring(defPrefix.length());
-				result.requires(context.basePath(file));
+				requires(context.basePath(file));
 			}
 		}
 	}

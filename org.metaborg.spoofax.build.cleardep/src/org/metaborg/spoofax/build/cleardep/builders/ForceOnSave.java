@@ -6,23 +6,22 @@ import java.util.List;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.metaborg.spoofax.build.cleardep.util.FileExtensionFilter;
-import org.sugarj.cleardep.BuildUnit;
-import org.sugarj.cleardep.build.BuildManager;
+import org.sugarj.cleardep.None;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
-public class ForceOnSave extends SpoofaxBuilder<SpoofaxInput> {
+public class ForceOnSave extends SpoofaxBuilder<SpoofaxInput, None> {
 
-	public static SpoofaxBuilderFactory<SpoofaxInput, ForceOnSave> factory = new SpoofaxBuilderFactory<SpoofaxInput, ForceOnSave>() {
+	public static SpoofaxBuilderFactory<SpoofaxInput, None, ForceOnSave> factory = new SpoofaxBuilderFactory<SpoofaxInput, None, ForceOnSave>() {
 		private static final long serialVersionUID = 4436143308769039647L;
 
 		@Override
-		public ForceOnSave makeBuilder(SpoofaxInput input, BuildManager manager) { return new ForceOnSave(input, manager); }
+		public ForceOnSave makeBuilder(SpoofaxInput input) { return new ForceOnSave(input); }
 	};
 	
-	public ForceOnSave(SpoofaxInput input, BuildManager manager) {
-		super(input, factory, manager);
+	public ForceOnSave(SpoofaxInput input) {
+		super(input);
 	}
 
 	@Override
@@ -36,7 +35,7 @@ public class ForceOnSave extends SpoofaxBuilder<SpoofaxInput> {
 	}
 
 	@Override
-	public void build(BuildUnit result) throws IOException {
+	public None build() throws IOException {
 		// XXX really need to delete old sdf3 files? Or is it sufficient to remove them from `paths` below?
 		List<RelativePath> oldSdf3Paths = FileCommands.listFilesRecursive(context.basePath("src-gen"), new FileExtensionFilter("sdf3"));
 		for (Path p : oldSdf3Paths)
@@ -47,5 +46,6 @@ public class ForceOnSave extends SpoofaxBuilder<SpoofaxInput> {
 				new FileExtensionFilter("tmpl", "sdf3", "nab", "ts"));
 		for (RelativePath p : paths)
 			require(ForceOnSaveFile.factory, new ForceOnSaveFile.Input(context, p));
+		return None.val;
 	}
 }

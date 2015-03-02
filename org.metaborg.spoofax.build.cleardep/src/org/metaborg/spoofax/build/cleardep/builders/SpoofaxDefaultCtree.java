@@ -6,8 +6,7 @@ import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.strategoxt.imp.metatooling.building.AntForceRefreshScheduler;
 import org.strategoxt.imp.metatooling.loading.AntDescriptorLoader;
-import org.sugarj.cleardep.BuildUnit;
-import org.sugarj.cleardep.build.BuildManager;
+import org.sugarj.cleardep.None;
 import org.sugarj.cleardep.build.BuildRequest;
 import org.sugarj.cleardep.buildjava.JavaJar;
 import org.sugarj.common.Log;
@@ -15,18 +14,18 @@ import org.sugarj.common.path.AbsolutePath;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
-public class SpoofaxDefaultCtree extends SpoofaxBuilder<SpoofaxInput> {
+public class SpoofaxDefaultCtree extends SpoofaxBuilder<SpoofaxInput, None> {
 
-	public static SpoofaxBuilderFactory<SpoofaxInput, SpoofaxDefaultCtree> factory = new SpoofaxBuilderFactory<SpoofaxInput, SpoofaxDefaultCtree>() {
+	public static SpoofaxBuilderFactory<SpoofaxInput, None, SpoofaxDefaultCtree> factory = new SpoofaxBuilderFactory<SpoofaxInput, None, SpoofaxDefaultCtree>() {
 		private static final long serialVersionUID = -6945708860855449389L;
 
 		@Override
-		public SpoofaxDefaultCtree makeBuilder(SpoofaxInput input, BuildManager manager) { return new SpoofaxDefaultCtree(input, manager); }
+		public SpoofaxDefaultCtree makeBuilder(SpoofaxInput input) { return new SpoofaxDefaultCtree(input); }
 	};
 	
 
-	public SpoofaxDefaultCtree(SpoofaxInput input, BuildManager manager) {
-		super(input, factory, manager);
+	public SpoofaxDefaultCtree(SpoofaxInput input) {
+		super(input);
 	}
 	
 	@Override
@@ -40,7 +39,7 @@ public class SpoofaxDefaultCtree extends SpoofaxBuilder<SpoofaxInput> {
 	}
 	
 	@Override
-	public void build(BuildUnit result) throws IOException {
+	public None build() throws IOException {
 		String sdfmodule = context.props.getOrFail("sdfmodule");
 		String strmodule = context.props.getOrFail("strmodule");
 		String esvmodule = context.props.getOrFail("esvmodule");
@@ -84,9 +83,11 @@ public class SpoofaxDefaultCtree extends SpoofaxBuilder<SpoofaxInput> {
 			BuildRequest<?,?,?,?> compileJavaCode = new BuildRequest<>(CompileJavaCode.factory, input);
 			require(compileJavaCode);
 			
-			javaJar(result, strmodule, compileJavaCode);
+			javaJar(strmodule, compileJavaCode);
 			
-			sdf2impEclipseReload(result);
+			sdf2impEclipseReload();
+			
+			return None.val;
 			
 		} finally {
 			forceWorkspaceRefresh();
@@ -99,8 +100,8 @@ public class SpoofaxDefaultCtree extends SpoofaxBuilder<SpoofaxInput> {
 		org.strategoxt.imp.generator.sdf2imp c;
 	}
 
-	private void javaJar(BuildUnit result, String strmodule, BuildRequest<?,?,?,?> compileJavaCode) throws IOException {
-		if (!context.isJavaJarEnabled(result))
+	private void javaJar(String strmodule, BuildRequest<?,?,?,?> compileJavaCode) throws IOException {
+		if (!context.isJavaJarEnabled(this))
 			return;
 		
 		Path baseDir = context.basePath("${build}");
@@ -122,9 +123,9 @@ public class SpoofaxDefaultCtree extends SpoofaxBuilder<SpoofaxInput> {
 						new BuildRequest<?,?,?,?>[] {compileJavaCode}));
 	}
 
-	private void sdf2impEclipseReload(BuildUnit result) {
+	private void sdf2impEclipseReload() {
 		RelativePath packedEsv = context.basePath("${include}/${esvmodule}.packed.esv");
-		result.requires(packedEsv);
+		requires(packedEsv);
 		AntDescriptorLoader.main(new String[]{packedEsv.getAbsolutePath()});
 	}
 

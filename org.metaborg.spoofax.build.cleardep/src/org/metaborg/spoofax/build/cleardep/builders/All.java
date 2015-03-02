@@ -4,24 +4,23 @@ import java.io.IOException;
 
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
-import org.sugarj.cleardep.BuildUnit;
-import org.sugarj.cleardep.build.BuildManager;
+import org.sugarj.cleardep.None;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
 
-public class All extends SpoofaxBuilder<SpoofaxInput> {
+public class All extends SpoofaxBuilder<SpoofaxInput, None> {
 
-	public static SpoofaxBuilderFactory<SpoofaxInput, All> factory = new SpoofaxBuilderFactory<SpoofaxInput, All>() {
+	public static SpoofaxBuilderFactory<SpoofaxInput, None, All> factory = new SpoofaxBuilderFactory<SpoofaxInput, None, All>() {
 		private static final long serialVersionUID = 1747202833519981639L;
 
 		@Override
-		public All makeBuilder(SpoofaxInput input, BuildManager manager) { return new All(input, manager); }
+		public All makeBuilder(SpoofaxInput input) { return new All(input); }
 	};
 	
 
-	public All(SpoofaxInput input, BuildManager manager) {
-		super(input, factory, manager);
+	public All(SpoofaxInput input) {
+		super(input);
 	}
 
 	@Override
@@ -35,12 +34,13 @@ public class All extends SpoofaxBuilder<SpoofaxInput> {
 	}
 	
 	@Override
-	public void build(BuildUnit result) throws IOException {
+	public None build() throws IOException {
 		RelativePath ppInput = context.basePath("${lib}/EditorService-pretty.pp");
 		RelativePath ppTermOutput = context.basePath("${include}/EditorService-pretty.pp.af");
 		require(PPPack.factory, new PPPack.Input(context, ppInput, ppTermOutput));
 		
 		require(SpoofaxDefaultCtree.factory, input);
+		return None.val;
 	}
 
 }

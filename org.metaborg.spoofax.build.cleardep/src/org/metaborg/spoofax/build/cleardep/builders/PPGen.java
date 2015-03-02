@@ -12,24 +12,23 @@ import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
 import org.strategoxt.tools.main_pp_pp_table_0_0;
 import org.strategoxt.tools.main_ppgen_0_0;
-import org.sugarj.cleardep.BuildUnit;
 import org.sugarj.cleardep.BuildUnit.State;
-import org.sugarj.cleardep.build.BuildManager;
+import org.sugarj.cleardep.None;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
-public class PPGen extends SpoofaxBuilder<SpoofaxInput> {
+public class PPGen extends SpoofaxBuilder<SpoofaxInput, None> {
 
-	public static SpoofaxBuilderFactory<SpoofaxInput, PPGen> factory = new SpoofaxBuilderFactory<SpoofaxInput, PPGen>() {
+	public static SpoofaxBuilderFactory<SpoofaxInput, None, PPGen> factory = new SpoofaxBuilderFactory<SpoofaxInput, None, PPGen>() {
 		private static final long serialVersionUID = 9200673263670609032L;
 
 		@Override
-		public PPGen makeBuilder(SpoofaxInput context, BuildManager manager) { return new PPGen(context, manager); }
+		public PPGen makeBuilder(SpoofaxInput context) { return new PPGen(context); }
 	};
 	
-	public PPGen(SpoofaxInput context, BuildManager manager) {
-		super(context, factory, manager);
+	public PPGen(SpoofaxInput context) {
+		super(context);
 	}
 	
 	@Override
@@ -43,10 +42,10 @@ public class PPGen extends SpoofaxBuilder<SpoofaxInput> {
 	}
 
 	@Override
-	public void build(BuildUnit result) throws IOException {
+	public None build() throws IOException {
 		SpoofaxContext context = input.context;
-		if (!context.isBuildStrategoEnabled(result))
-			return;
+		if (!context.isBuildStrategoEnabled(this))
+			return None.val;
 		
 		require(PackSdf.factory, new PackSdf.Input(context));
 
@@ -54,28 +53,30 @@ public class PPGen extends SpoofaxBuilder<SpoofaxInput> {
 		RelativePath ppOutputPath = context.basePath("${include}/${sdfmodule}.generated.pp");
 		RelativePath afOutputPath = context.basePath("${include}/${sdfmodule}.generated.pp.af");
 		
-		result.requires(inputPath);
+		requires(inputPath);
 		ExecutionResult er1 = StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), 
 				main_ppgen_0_0.instance, "main-ppgen", new LoggingFilteringIOAgent(Pattern.quote("[ main-ppgen | warning ]") + ".*"),
 				"-i", inputPath,
 				"-t",
 				"-b",
 				"-o", afOutputPath);
-		result.generates(afOutputPath);
+		generates(afOutputPath);
 		
-		result.requires(afOutputPath);
+		requires(afOutputPath);
 		ExecutionResult er2 = StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), 
 				main_pp_pp_table_0_0.instance, "main-pp-pp-table", new LoggingFilteringIOAgent(),
 				"-i", afOutputPath,
 				"-o", ppOutputPath);
-		result.generates(ppOutputPath);
+		generates(ppOutputPath);
 		
 		if (!FileCommands.exists(afOutputPath)) {
 			FileCommands.writeToFile(afOutputPath, "PP-Table([])");
-			result.generates(afOutputPath);
+			generates(afOutputPath);
 		}
 		
-		result.setState(State.finished(er1.success && er2.success));
+		setState(State.finished(er1.success && er2.success));
+		
+		return None.val;
 	}
 
 }

@@ -14,21 +14,20 @@ import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
 import org.metaborg.spoofax.build.cleardep.util.FileExtensionFilter;
 import org.strategoxt.tools.main_pack_sdf_0_0;
-import org.sugarj.cleardep.BuildUnit;
 import org.sugarj.cleardep.BuildUnit.State;
-import org.sugarj.cleardep.build.BuildManager;
+import org.sugarj.cleardep.None;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.AbsolutePath;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
-public class PackSdf extends SpoofaxBuilder<PackSdf.Input> {
+public class PackSdf extends SpoofaxBuilder<PackSdf.Input, None> {
 	
-	public static SpoofaxBuilderFactory<Input, PackSdf> factory = new SpoofaxBuilderFactory<Input, PackSdf>() {
+	public static SpoofaxBuilderFactory<Input, None, PackSdf> factory = new SpoofaxBuilderFactory<Input, None, PackSdf>() {
 		private static final long serialVersionUID = -8067075652024253743L;
 
 		@Override
-		public PackSdf makeBuilder(Input input, BuildManager manager) { return new PackSdf(input, manager); }
+		public PackSdf makeBuilder(Input input) { return new PackSdf(input); }
 	};
 
 	public static class Input extends SpoofaxInput {
@@ -50,8 +49,8 @@ public class PackSdf extends SpoofaxBuilder<PackSdf.Input> {
 		}
 	}
 	
-	public PackSdf(Input input, BuildManager manager) {
-		super(input, factory, manager);
+	public PackSdf(Input input) {
+		super(input);
 	}
 	
 	@Override
@@ -65,17 +64,17 @@ public class PackSdf extends SpoofaxBuilder<PackSdf.Input> {
 	}
 	
 	@Override
-	public void build(BuildUnit result) throws IOException {
+	public None build() throws IOException {
 		// This dependency was discovered by cleardep, due to an implicit dependency on 'org.strategoxt.imp.editors.template/src-gen/syntax/TemplateLang.sdf'.
 		require(ForceOnSave.factory, input);
 		
-		copySdf2(result);
+		copySdf2();
 		
 		RelativePath inputPath = context.basePath("${syntax}/" + input.sdfmodule + ".sdf");
 		RelativePath outputPath = context.basePath("${include}/" + input.sdfmodule + ".def");
 		String utilsInclude = FileCommands.exists(context.basePath("${utils}")) ? context.props.substitute("-I ${utils}") : "";
 		
-		result.requires(inputPath);
+		requires(inputPath);
 		
 		ExecutionResult er = StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), 
 				main_pack_sdf_0_0.instance, "pack-sdf", new LoggingFilteringIOAgent(Pattern.quote("  including ") + ".*"),
@@ -86,11 +85,13 @@ public class PackSdf extends SpoofaxBuilder<PackSdf.Input> {
 				utilsInclude,
 				input.buildSdfImports);
 		
-		result.generates(outputPath);
+		generates(outputPath);
 		for (Path required : extractRequiredPaths(er.errLog))
-			result.requires(required);
+			requires(required);
 		
-		result.setState(State.finished(er.success));
+		setState(State.finished(er.success));
+		
+		return None.val;
 	}
 
 	private List<Path> extractRequiredPaths(String log) {
@@ -115,12 +116,12 @@ public class PackSdf extends SpoofaxBuilder<PackSdf.Input> {
 		return paths;
 	}
 
-	private void copySdf2(BuildUnit result) {
+	private void copySdf2() {
 		List<RelativePath> srcSdfFiles = FileCommands.listFilesRecursive(context.basePath("syntax"), new FileExtensionFilter("sdf"));
 		for (RelativePath p : srcSdfFiles) {
-			result.requires(p);
+			requires(p);
 			Path target = FileCommands.copyFile(context.basePath("syntax"), context.basePath("${syntax}"), p, StandardCopyOption.COPY_ATTRIBUTES);
-			result.generates(target);
+			generates(target);
 		}		
 	}
 

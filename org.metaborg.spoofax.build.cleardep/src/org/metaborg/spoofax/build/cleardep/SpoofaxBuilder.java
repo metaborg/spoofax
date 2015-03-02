@@ -3,20 +3,19 @@ package org.metaborg.spoofax.build.cleardep;
 import java.io.Serializable;
 
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
-import org.sugarj.cleardep.BuildUnit;
-import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.cleardep.build.Builder;
 import org.sugarj.cleardep.build.BuilderFactory;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
 
-abstract public class SpoofaxBuilder<T extends SpoofaxInput> extends Builder<T, BuildUnit> {
+abstract public class SpoofaxBuilder<In extends SpoofaxInput, Out extends Serializable> extends Builder<In, Out> {
 
-	public static abstract class SpoofaxBuilderFactory<T extends SpoofaxInput, B extends SpoofaxBuilder<T>> implements BuilderFactory<T, BuildUnit, B> {
+	public static abstract class SpoofaxBuilderFactory<In extends SpoofaxInput, Out extends Serializable, B extends Builder<In, Out>>
+		implements BuilderFactory<In, Out, B> {
 		private static final long serialVersionUID = 8998843329413855827L;
 
 		@Override
-		public abstract B makeBuilder(T input, BuildManager manager);
+		public abstract B makeBuilder(In input);
 	}
 	
 	public static class SpoofaxInput implements Serializable{
@@ -29,14 +28,9 @@ abstract public class SpoofaxBuilder<T extends SpoofaxInput> extends Builder<T, 
 	
 	protected final SpoofaxContext context;
 	
-	public <B extends SpoofaxBuilder<T>> SpoofaxBuilder(T input, SpoofaxBuilderFactory<T, B> factory, BuildManager manager) {
-		super(input, factory, manager);
+	public SpoofaxBuilder(In input) {
+		super(input);
 		this.context = input.context;
-	}
-
-	@Override
-	protected Class<BuildUnit> resultClass() {
-		return BuildUnit.class;
 	}
 
 	@Override
