@@ -11,7 +11,7 @@ import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
 import org.strategoxt.permissivegrammars.make_permissive;
 import org.sugarj.cleardep.BuildUnit.State;
-import org.sugarj.cleardep.None;
+import org.sugarj.cleardep.output.None;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 

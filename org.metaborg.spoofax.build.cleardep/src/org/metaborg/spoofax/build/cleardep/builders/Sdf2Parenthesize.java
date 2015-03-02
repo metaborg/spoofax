@@ -11,7 +11,7 @@ import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
 import org.metaborg.spoofax.build.cleardep.stampers.Sdf2ParenthesizeStamper;
 import org.strategoxt.tools.main_sdf2parenthesize_0_0;
-import org.sugarj.cleardep.None;
+import org.sugarj.cleardep.output.None;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
