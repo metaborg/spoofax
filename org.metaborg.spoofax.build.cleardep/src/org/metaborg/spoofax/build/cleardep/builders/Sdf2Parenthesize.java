@@ -9,6 +9,7 @@ import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
+import org.metaborg.spoofax.build.cleardep.stampers.Sdf2ParenthesizeStamper;
 import org.strategoxt.tools.main_sdf2parenthesize_0_0;
 import org.sugarj.cleardep.BuildUnit;
 import org.sugarj.cleardep.build.BuildManager;
@@ -61,7 +62,7 @@ public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input> {
 		RelativePath outputPath = context.basePath("${include}/" + input.sdfmodule + "-parenthesize.str");
 		String outputmodule = "include/" + input.sdfmodule + "-parenthesize";
 
-		result.requires(inputPath);
+		result.requires(inputPath, Sdf2ParenthesizeStamper.instance.stampOf(inputPath));
 		// XXX avoid redundant call to sdf2table
 		ExecutionResult er = StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), 
 				main_sdf2parenthesize_0_0.instance, "sdf2parenthesize", new LoggingFilteringIOAgent(Pattern.quote("[ sdf2parenthesize | info ]") + ".*", Pattern.quote("Invoking native tool") + ".*"),
