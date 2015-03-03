@@ -3,6 +3,8 @@ package org.metaborg.spoofax.build.cleardep;
 import java.io.Serializable;
 
 import org.sugarj.cleardep.build.Builder;
+import org.sugarj.cleardep.stamp.FileExistsStamper;
+import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
@@ -34,14 +36,14 @@ public class SpoofaxContext implements Serializable{
 	
 	public boolean isBuildStrategoEnabled(Builder<?, ?> result) {
 		RelativePath strategoPath = basePath("${trans}/${strmodule}.str");
-		result.requires(strategoPath);
+		result.requires(strategoPath, FileExistsStamper.instance);
 		boolean buildStrategoEnabled = FileCommands.exists(strategoPath);
 		return buildStrategoEnabled;
 	}
 	
 	public boolean isJavaJarEnabled(Builder<?, ?> result) {
 		RelativePath mainPath = basePath("${src-gen}/org/strategoxt/imp/editors/template/strategies/Main.java");
-		result.requires(mainPath);
+		result.requires(mainPath, FileExistsStamper.instance);
 		return FileCommands.exists(mainPath);
 	}
 }

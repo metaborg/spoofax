@@ -16,6 +16,7 @@ import org.metaborg.spoofax.build.cleardep.util.FileExtensionFilter;
 import org.strategoxt.tools.main_pack_sdf_0_0;
 import org.sugarj.cleardep.BuildUnit.State;
 import org.sugarj.cleardep.output.None;
+import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.AbsolutePath;
 import org.sugarj.common.path.Path;
@@ -119,7 +120,7 @@ public class PackSdf extends SpoofaxBuilder<PackSdf.Input, None> {
 	private void copySdf2() {
 		List<RelativePath> srcSdfFiles = FileCommands.listFilesRecursive(context.basePath("syntax"), new FileExtensionFilter("sdf"));
 		for (RelativePath p : srcSdfFiles) {
-			requires(p);
+			requires(p, LastModifiedStamper.instance);
 			Path target = FileCommands.copyFile(context.basePath("syntax"), context.basePath("${syntax}"), p, StandardCopyOption.COPY_ATTRIBUTES);
 			generates(target);
 		}		
