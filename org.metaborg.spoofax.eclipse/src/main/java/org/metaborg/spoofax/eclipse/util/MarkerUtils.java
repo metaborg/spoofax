@@ -70,6 +70,31 @@ public final class MarkerUtils {
     }
 
     /**
+     * Clears all internal Spoofax markers from given resource.
+     * 
+     * @param resource
+     *            Resource to clear markers for.
+     * @throws CoreException
+     *             When clearing markers fails.
+     */
+    public static void clearInternal(IResource resource) throws CoreException {
+        resource.deleteMarkers(id, false, IResource.DEPTH_ZERO);
+    }
+
+    /**
+     * Clears all internal Spoofax markers from given resource, and all internal Spoofax markers from its transitive
+     * child resources.
+     * 
+     * @param resource
+     *            Resource to clear markers for.
+     * @throws CoreException
+     *             When clearing markers fails.
+     */
+    public static void clearInternalRec(IResource resource) throws CoreException {
+        resource.deleteMarkers(id, false, IResource.DEPTH_INFINITE);
+    }
+
+    /**
      * Clears all parse markers from given resource.
      * 
      * @param resource

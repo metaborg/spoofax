@@ -41,6 +41,23 @@ public final class StatusUtils {
         return new Status(IStatus.WARNING, "org.metaborg.spoofax.eclipse", IStatus.ERROR, message, t);
     }
 
+    
+    public static IStatus silentError() {
+        return new Status(IStatus.OK, "org.metaborg.spoofax.eclipse", IStatus.ERROR, "", null);
+    }
+
+    public static IStatus silentError(String message) {
+        return new Status(IStatus.OK, "org.metaborg.spoofax.eclipse", IStatus.ERROR, message, null);
+    }
+
+    public static IStatus silentError(Throwable t) {
+        return new Status(IStatus.OK, "org.metaborg.spoofax.eclipse", IStatus.ERROR, "", t);
+    }
+
+    public static IStatus silentError(String message, Throwable t) {
+        return new Status(IStatus.OK, "org.metaborg.spoofax.eclipse", IStatus.ERROR, message, t);
+    }
+    
 
     public static IStatus error() {
         return new Status(IStatus.ERROR, "org.metaborg.spoofax.eclipse", IStatus.ERROR, "", null);

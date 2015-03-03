@@ -1,5 +1,6 @@
 package org.metaborg.spoofax.core.syntax.jsglr;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.commons.vfs2.FileObject;
@@ -25,15 +26,18 @@ public class FileParseTableProvider implements IParseTableProvider {
     }
 
 
-    @Override public ParseTable parseTable() {
+    @Override public ParseTable parseTable() throws IOException {
         if(this.cachedTable != null)
             return this.cachedTable;
+
+        if(!file.exists())
+            throw new IOException("Could not load parse table, file does not exist");
 
         final ParseTable table;
         try(final InputStream stream = file.getContent().getInputStream()) {
             table = parseTableManager.loadFromStream(stream);
         } catch(Exception e) {
-            throw new RuntimeException("Could not load parse table", e);
+            throw new IOException("Could not load parse table", e);
         }
 
         if(caching) {
@@ -42,11 +46,6 @@ public class FileParseTableProvider implements IParseTableProvider {
 
         return table;
     }
-
-    @Override public FileObject file() {
-        return file;
-    }
-
 
     @Override public String toString() {
         return file.getName().toString();

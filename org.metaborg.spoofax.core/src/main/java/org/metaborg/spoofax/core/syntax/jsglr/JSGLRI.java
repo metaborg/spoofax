@@ -32,7 +32,8 @@ public class JSGLRI implements IParser<IStrategoTerm> {
     private boolean implodeEnabled = true;
 
 
-    public JSGLRI(IParserConfig config, ITermFactory termFactory, ILanguage language, FileObject resource, String input) {
+    public JSGLRI(IParserConfig config, ITermFactory termFactory, ILanguage language, FileObject resource, String input)
+        throws IOException {
         this.config = config;
         this.termFactory = termFactory;
         this.language = language;

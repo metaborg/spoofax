@@ -23,6 +23,7 @@ import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
 import org.metaborg.spoofax.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.transform.ITransformer;
 import org.metaborg.spoofax.core.transform.TransformResult;
+import org.metaborg.spoofax.core.transform.TransformerException;
 import org.metaborg.spoofax.core.transform.stratego.Action;
 import org.metaborg.spoofax.core.transform.stratego.MenusFacet;
 import org.metaborg.spoofax.core.transform.stratego.StrategoTransformResultProcessor;
@@ -75,21 +76,21 @@ public class TransformJob extends Job {
         final FileObject resource = resourceService.resolve(input);
 
         if(resource == null) {
-            final String message = String.format("Cannot transform, input % cannot be resolved", input);
+            final String message = String.format("Transformation failed, input %s cannot be resolved", input);
             logger.error(message);
             return StatusUtils.error(message);
         }
 
         final ILanguage language = langaugeIdentifierService.identify(resource);
         if(language == null) {
-            final String message = String.format("Cannot transform, language of % cannot be identified", resource);
+            final String message = String.format("Transformation failed, language of %s cannot be identified", resource);
             logger.error(message);
             return StatusUtils.error(message);
         }
 
         final MenusFacet facet = language.facet(MenusFacet.class);
         if(facet == null) {
-            final String message = String.format("Cannot transform, % does not have a menus facet", language);
+            final String message = String.format("Transformation failed, %s does not have a menus facet", language);
             logger.error(message);
             return StatusUtils.error(message);
         }
@@ -97,22 +98,22 @@ public class TransformJob extends Job {
         final Action action = facet.action(actionName);
         if(action == null) {
             final String message =
-                String.format("Cannot transform, % does not have an action named %", language, actionName);
+                String.format("Transformation failed, %s does not have an action named %s", language, actionName);
             logger.error(message);
             return StatusUtils.error(message);
         }
 
         try {
             return transform(monitor, resource, language, action, text);
-        } catch(IOException | ContextException e) {
-            final String message = String.format("Transformation failed for %", resource);
+        } catch(IOException | ContextException | TransformerException e) {
+            final String message = String.format("Transformation failed for %s", resource);
             logger.error(message, e);
             return StatusUtils.error(message, e);
         }
     }
 
     private IStatus transform(IProgressMonitor monitor, FileObject resource, ILanguage language, Action action,
-        String text) throws IOException, ContextException {
+        String text) throws IOException, ContextException, TransformerException {
         if(monitor.isCanceled())
             return StatusUtils.cancel();
 

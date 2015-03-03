@@ -7,6 +7,7 @@ import java.util.Collection;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.spoofax.core.SpoofaxException;
 import org.metaborg.spoofax.core.analysis.AnalysisDebugResult;
 import org.metaborg.spoofax.core.analysis.AnalysisException;
 import org.metaborg.spoofax.core.analysis.AnalysisFileResult;
@@ -85,23 +86,32 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
             analysisInput.add(termFactory.makeAppl(file_3_constr, filename, input.result, termFactory.makeReal(-1.0)));
         }
 
-        final HybridInterpreter interpreter = runtimeService.runtime(context);
+        final HybridInterpreter interpreter;
+        try {
+            interpreter = runtimeService.runtime(context);
+        } catch(SpoofaxException e) {
+            throw new AnalysisException(sources, context, "Failed to get Stratego interpreter", e);
+        }
+        
         final IStrategoTerm inputTerm = termFactory.makeList(analysisInput);
         final String function = language.facet(StrategoFacet.class).analysisStrategy();
-        final IStrategoTerm resultTerm = StrategoRuntimeUtils.invoke(interpreter, inputTerm, function);
-
+        final IStrategoTerm resultTerm;
+        try {
+            resultTerm = StrategoRuntimeUtils.invoke(interpreter, inputTerm, function);
+        } catch(SpoofaxException e) {
+            throw new AnalysisException(sources, context, ANALYSIS_CRASHED_MSG, e);
+        }
         if(resultTerm == null) {
             logger.error(ANALYSIS_CRASHED_MSG);
             throw new AnalysisException(sources, context, ANALYSIS_CRASHED_MSG);
         }
-
         if(!(resultTerm instanceof IStrategoAppl)) {
             final String message = String.format("Unexpected results from analysis {}", resultTerm);
             logger.error(message);
             throw new AnalysisException(sources, context, message);
         }
+        
         logger.trace("Analysis resulted in a {} term", resultTerm.getSubtermCount());
-
         final IStrategoTerm fileResultsTerm = resultTerm.getSubterm(0);
         final IStrategoTerm affectedPartitionsTerm = resultTerm.getSubterm(1);
         final IStrategoTerm debugResultTerm = resultTerm.getSubterm(2);

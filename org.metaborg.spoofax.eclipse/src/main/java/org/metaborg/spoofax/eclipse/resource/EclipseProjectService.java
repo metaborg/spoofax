@@ -23,7 +23,7 @@ public class EclipseProjectService implements IProjectService {
     @Override public IProject get(FileObject resource) {
         final IResource eclipseResource = resourceService.unresolve(resource);
         if(eclipseResource == null) {
-            logger.error("Cannot get project, {} is not an Eclipse resource", resource);
+            logger.error("Cannot get project, {} is not an Eclipse resource, or does not exist any more", resource);
             return null;
         }
         final org.eclipse.core.resources.IProject eclipseProject = eclipseResource.getProject();
