@@ -10,10 +10,15 @@ import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
+import org.metaborg.spoofax.build.cleardep.builders.aux.ParseSdfDefinition;
+import org.metaborg.spoofax.build.cleardep.stampers.PPGenStamper;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.tools.main_pp_pp_table_0_0;
 import org.strategoxt.tools.main_ppgen_0_0;
 import org.sugarj.cleardep.BuildUnit.State;
+import org.sugarj.cleardep.build.BuildRequest;
 import org.sugarj.cleardep.output.None;
+import org.sugarj.cleardep.output.SimpleOutput;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
@@ -47,13 +52,20 @@ public class PPGen extends SpoofaxBuilder<SpoofaxInput, None> {
 		if (!context.isBuildStrategoEnabled(this))
 			return None.val;
 		
-		require(PackSdf.factory, new PackSdf.Input(context));
+		BuildRequest<?,?,?,?> packSdf = new BuildRequest<>(PackSdf.factory, new PackSdf.Input(context));
+		require(packSdf);
 
 		RelativePath inputPath = context.basePath("${include}/${sdfmodule}.def");
 		RelativePath ppOutputPath = context.basePath("${include}/${sdfmodule}.generated.pp");
 		RelativePath afOutputPath = context.basePath("${include}/${sdfmodule}.generated.pp.af");
 		
-		requires(inputPath);
+		if (SpoofaxContext.BETTER_STAMPERS) {
+			BuildRequest<?, SimpleOutput<IStrategoTerm>, ?, ?> parseSdfDefinition = new BuildRequest<>(ParseSdfDefinition.factory, new ParseSdfDefinition.Input(context, inputPath, new BuildRequest<?,?,?,?>[]{packSdf}));
+			requires(inputPath, new PPGenStamper(parseSdfDefinition));
+		}
+		else
+			requires(inputPath);
+		
 		ExecutionResult er1 = StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), 
 				main_ppgen_0_0.instance, "main-ppgen", new LoggingFilteringIOAgent(Pattern.quote("[ main-ppgen | warning ]") + ".*"),
 				"-i", inputPath,
@@ -62,7 +74,7 @@ public class PPGen extends SpoofaxBuilder<SpoofaxInput, None> {
 				"-o", afOutputPath);
 		generates(afOutputPath);
 		
-		requires(afOutputPath);
+		// requires(afOutputPath);
 		ExecutionResult er2 = StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), 
 				main_pp_pp_table_0_0.instance, "main-pp-pp-table", new LoggingFilteringIOAgent(),
 				"-i", afOutputPath,

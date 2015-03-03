@@ -7,6 +7,7 @@ import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
 import org.sugarj.cleardep.output.None;
+import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.Path;
 
@@ -51,7 +52,7 @@ public class CopySdf extends SpoofaxBuilder<CopySdf.Input, None> {
 	public None build() throws IOException {
 		if (input.externaldef != null) {
 			Path target = context.basePath("${include}/" + input.sdfmodule + ".def");
-			requires(input.externaldef);
+			requires(input.externaldef, LastModifiedStamper.instance);
 			FileCommands.copyFile(input.externaldef, target, StandardCopyOption.COPY_ATTRIBUTES);
 			generates(target);
 		}

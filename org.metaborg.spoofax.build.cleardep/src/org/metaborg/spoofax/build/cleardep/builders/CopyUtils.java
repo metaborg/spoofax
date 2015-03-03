@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.sugarj.cleardep.output.None;
+import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.AbsolutePath;
 import org.sugarj.common.path.Path;
@@ -42,14 +43,14 @@ public class CopyUtils extends SpoofaxBuilder<SpoofaxInput, None> {
 		for (String p : new String[]{"make_permissive.jar", "sdf2imp.jar", "aster.jar", "StrategoMix.def"}) {
 			Path from = new AbsolutePath(base + "/" + p);
 			Path to = new RelativePath(utils, p);
-			requires(from);
+			requires(from, LastModifiedStamper.instance);
 			FileCommands.copyFile(from, to);
 			generates(to);
 		}
 		
 		Path strategojar = new AbsolutePath(context.props.getOrFail("eclipse.spoofaximp.strategojar"));
 		Path strategojarTo = new RelativePath(utils, FileCommands.dropDirectory(strategojar));
-		requires(strategojar);
+		requires(strategojar, LastModifiedStamper.instance);
 		FileCommands.copyFile(strategojar, strategojarTo);
 		generates(strategojarTo);
 		

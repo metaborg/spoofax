@@ -37,6 +37,6 @@ abstract public class SpoofaxBuilder<In extends SpoofaxInput, Out extends BuildO
 
 	@Override
 	protected Stamper defaultStamper() {
-		return LastModifiedStamper.instance;
+		return SpoofaxContext.BETTER_STAMPERS ? ContentHashStamper.instance : LastModifiedStamper.instance;
 	}
 }

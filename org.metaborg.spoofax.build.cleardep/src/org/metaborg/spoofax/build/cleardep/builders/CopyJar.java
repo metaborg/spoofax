@@ -8,6 +8,7 @@ import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
 import org.sugarj.cleardep.output.None;
+import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
@@ -54,7 +55,7 @@ public class CopyJar extends SpoofaxBuilder<CopyJar.Input, None> {
 	public None build() throws IOException {
 		if (input.externaljar != null) {
 			Path target = context.basePath("${include}/" + FileCommands.dropDirectory(input.externaljar));
-			requires(input.externaljar);
+			requires(input.externaljar, LastModifiedStamper.instance);
 			FileCommands.copyFile(input.externaljar, target, StandardCopyOption.COPY_ATTRIBUTES);
 			generates(target);
 		}
