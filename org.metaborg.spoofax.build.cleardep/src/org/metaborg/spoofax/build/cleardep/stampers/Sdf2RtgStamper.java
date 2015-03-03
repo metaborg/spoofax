@@ -1,13 +1,16 @@
 package org.metaborg.spoofax.build.cleardep.stampers;
 
-import org.metaborg.spoofax.build.cleardep.LoggingFilteringIOAgent;
+import java.io.IOException;
+
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
-import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.TermTransformer;
-import org.strategoxt.stratego_sdf.parse_sdf_definition_file_0_0;
+import org.sugarj.cleardep.BuildUnit;
+import org.sugarj.cleardep.build.BuildManager;
+import org.sugarj.cleardep.build.BuildRequest;
+import org.sugarj.cleardep.output.SimpleOutput;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamp;
 import org.sugarj.cleardep.stamp.Stamper;
@@ -15,28 +18,35 @@ import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.Path;
 
 public class Sdf2RtgStamper implements Stamper {
-	private static final long serialVersionUID = 3294157251470549994L;
+	private static final long serialVersionUID = -8516817559822107040L;
 	
-	public final static Sdf2RtgStamper instance = new Sdf2RtgStamper();
+	private BuildRequest<?, SimpleOutput<IStrategoTerm>, ?, ?> parseSdfDefinition;
 	
-	private Sdf2RtgStamper() { }
+	public Sdf2RtgStamper(BuildRequest<?, SimpleOutput<IStrategoTerm>, ?, ?> parseSdfDefinition) {
+		this.parseSdfDefinition = parseSdfDefinition;
+	}
 
 	@Override
 	public Stamp stampOf(Path p) {
 		if (!FileCommands.exists(p))
-			return new TermStamp(Sdf2RtgStamper.instance, null);
+			return new TermStamp(this, null);
 
-		ITermFactory factory = StrategoExecutor.strategoSdfcontext().getFactory();
-		ExecutionResult er = StrategoExecutor.runStratego(true, StrategoExecutor.strategoSdfcontext(), 
-				parse_sdf_definition_file_0_0.instance, "parse-sdf-definition", new LoggingFilteringIOAgent(),
-				factory.makeString(p.getAbsolutePath()));
-		
-		if (!er.success)
+		BuildManager manager = BuildManager.acquire();
+		IStrategoTerm term;
+		try {
+			BuildUnit<SimpleOutput<IStrategoTerm>> unit = manager.require(parseSdfDefinition);
+			term = unit.getBuildResult().val;
+		} catch (IOException e) {
 			return LastModifiedStamper.instance.stampOf(p);
-
+		}
+		
+		if (term == null)
+			return LastModifiedStamper.instance.stampOf(p);
+		
+		ITermFactory factory = StrategoExecutor.strategoSdfcontext().getFactory();
 		Deliteralize deliteralize = new Deliteralize(factory, false);
-		IStrategoTerm delit = deliteralize.transform(er.result);
-		return new TermStamp(Sdf2RtgStamper.instance, delit);
+		IStrategoTerm delit = deliteralize.transform(term);
+		return new TermStamp(this, delit);
 	}
 
 	private static class Deliteralize extends TermTransformer {

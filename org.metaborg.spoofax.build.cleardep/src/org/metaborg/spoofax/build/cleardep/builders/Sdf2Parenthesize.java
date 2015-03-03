@@ -9,9 +9,13 @@ import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
+import org.metaborg.spoofax.build.cleardep.builders.aux.ParseSdfDefinition;
 import org.metaborg.spoofax.build.cleardep.stampers.Sdf2ParenthesizeStamper;
+import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.tools.main_sdf2parenthesize_0_0;
+import org.sugarj.cleardep.build.BuildRequest;
 import org.sugarj.cleardep.output.None;
+import org.sugarj.cleardep.output.SimpleOutput;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
@@ -56,13 +60,16 @@ public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input, Non
 	@Override
 	public None build() throws IOException {
 		require(CopySdf.factory, new CopySdf.Input(context, input.sdfmodule, input.externaldef));
-		require(PackSdf.factory, new PackSdf.Input(context, input.sdfmodule, input.buildSdfImports));
+		BuildRequest<?, ?, ?, ?> packSdf = new BuildRequest<>(PackSdf.factory, new PackSdf.Input(context, input.sdfmodule, input.buildSdfImports));
+		require(packSdf);
 		
 		RelativePath inputPath = context.basePath("${include}/" + input.sdfmodule + ".def");
 		RelativePath outputPath = context.basePath("${include}/" + input.sdfmodule + "-parenthesize.str");
 		String outputmodule = "include/" + input.sdfmodule + "-parenthesize";
 
-		requires(inputPath, Sdf2ParenthesizeStamper.instance.stampOf(inputPath));
+		BuildRequest<?, SimpleOutput<IStrategoTerm>, ?, ?> parseSdfDefinition = new BuildRequest<>(ParseSdfDefinition.factory, new ParseSdfDefinition.Input(context, inputPath, new BuildRequest<?,?,?,?>[]{packSdf}));
+		requires(inputPath, new Sdf2ParenthesizeStamper(parseSdfDefinition));
+		
 		// XXX avoid redundant call to sdf2table
 		ExecutionResult er = StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), 
 				main_sdf2parenthesize_0_0.instance, "sdf2parenthesize", new LoggingFilteringIOAgent(Pattern.quote("[ sdf2parenthesize | info ]") + ".*", Pattern.quote("Invoking native tool") + ".*"),

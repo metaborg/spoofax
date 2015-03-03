@@ -1,18 +1,20 @@
 package org.metaborg.spoofax.build.cleardep.stampers;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.metaborg.spoofax.build.cleardep.LoggingFilteringIOAgent;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
-import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.TermVisitor;
-import org.strategoxt.stratego_sdf.parse_sdf_definition_file_0_0;
+import org.sugarj.cleardep.BuildUnit;
+import org.sugarj.cleardep.build.BuildManager;
+import org.sugarj.cleardep.build.BuildRequest;
+import org.sugarj.cleardep.output.SimpleOutput;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamp;
 import org.sugarj.cleardep.stamp.Stamper;
@@ -24,26 +26,33 @@ import com.google.common.base.Objects;
 public class Sdf2ParenthesizeStamper implements Stamper {
 	private static final long serialVersionUID = 3294157251470549994L;
 	
-	public final static Sdf2ParenthesizeStamper instance = new Sdf2ParenthesizeStamper();
+	private final BuildRequest<?, SimpleOutput<IStrategoTerm>, ?, ?> parseSdfDefinition;
 	
-	private Sdf2ParenthesizeStamper() { }
+	public Sdf2ParenthesizeStamper(BuildRequest<?, SimpleOutput<IStrategoTerm>, ?, ?> parseSdfDefinition) {
+		this.parseSdfDefinition = parseSdfDefinition;
+	}
 
 	@Override
 	public Stamp stampOf(Path p) {
 		if (!FileCommands.exists(p))
-			return new TermStamp(Sdf2ParenthesizeStamper.instance, null);
+			return new Sdf2ParenthesizeStamp(this, null, null);
 
-		ITermFactory factory = StrategoExecutor.strategoSdfcontext().getFactory();
-		ExecutionResult er = StrategoExecutor.runStratego(true, StrategoExecutor.strategoSdfcontext(), 
-				parse_sdf_definition_file_0_0.instance, "parse-sdf-definition", new LoggingFilteringIOAgent(),
-				factory.makeString(p.getAbsolutePath()));
-		
-		if (!er.success)
+		BuildManager manager = BuildManager.acquire();
+		IStrategoTerm term;
+		try {
+			BuildUnit<SimpleOutput<IStrategoTerm>> unit = manager.require(parseSdfDefinition);
+			term = unit.getBuildResult().val;
+		} catch (IOException e) {
 			return LastModifiedStamper.instance.stampOf(p);
-
+		}
+		
+		if (term == null)
+			return LastModifiedStamper.instance.stampOf(p);
+		
+		ITermFactory factory = StrategoExecutor.strategoSdfcontext().getFactory();
 		ParenExtractor parenExtractor = new ParenExtractor(factory);
-		parenExtractor.visit(er.result);
-		return new Sdf2ParenthesizeStamp(parenExtractor.getRelevantProds(), parenExtractor.getPriorities());
+		parenExtractor.visit(term);
+		return new Sdf2ParenthesizeStamp(this, parenExtractor.getRelevantProds(), parenExtractor.getPriorities());
 	}
 
 	private static class ParenExtractor extends TermVisitor {
@@ -124,17 +133,19 @@ public class Sdf2ParenthesizeStamper implements Stamper {
 	public class Sdf2ParenthesizeStamp implements Stamp {
 		private static final long serialVersionUID = -8303716484088476176L;
 
+		private final Stamper stamper;
 		private final Set<IStrategoTerm> relevantProds;
 		private final Set<IStrategoTerm> priorities;
 		
-		public Sdf2ParenthesizeStamp(Set<IStrategoTerm> relevantProds, Set<IStrategoTerm> priorities) {
+		public Sdf2ParenthesizeStamp(Stamper stamper, Set<IStrategoTerm> relevantProds, Set<IStrategoTerm> priorities) {
+			this.stamper = stamper;
 			this.relevantProds = relevantProds;
 			this.priorities = priorities;
 		}
 		
 		@Override
 		public Stamper getStamper() {
-			return Sdf2ParenthesizeStamper.instance;
+			return stamper;
 		}
 		
 		@Override
