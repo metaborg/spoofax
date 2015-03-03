@@ -18,10 +18,10 @@ import org.sugarj.cleardep.output.SimpleOutput;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamp;
 import org.sugarj.cleardep.stamp.Stamper;
+import org.sugarj.cleardep.stamp.ValueStamp;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.Path;
-
-import com.google.common.base.Objects;
+import org.sugarj.common.util.Pair;
 
 public class Sdf2ParenthesizeStamper implements Stamper {
 	private static final long serialVersionUID = 3294157251470549994L;
@@ -35,7 +35,7 @@ public class Sdf2ParenthesizeStamper implements Stamper {
 	@Override
 	public Stamp stampOf(Path p) {
 		if (!FileCommands.exists(p))
-			return new Sdf2ParenthesizeStamp(this, null, null);
+			return new ValueStamp<>(this, null);
 
 		BuildManager manager = BuildManager.acquire();
 		IStrategoTerm term;
@@ -52,7 +52,7 @@ public class Sdf2ParenthesizeStamper implements Stamper {
 		ITermFactory factory = StrategoExecutor.strategoSdfcontext().getFactory();
 		ParenExtractor parenExtractor = new ParenExtractor(factory);
 		parenExtractor.visit(term);
-		return new Sdf2ParenthesizeStamp(this, parenExtractor.getRelevantProds(), parenExtractor.getPriorities());
+		return new ValueStamp<>(this, Pair.create(parenExtractor.getRelevantProds(), parenExtractor.getPriorities()));
 	}
 
 	private static class ParenExtractor extends TermVisitor {
@@ -128,33 +128,5 @@ public class Sdf2ParenthesizeStamper implements Stamper {
 			return relevantProds;
 		}
 
-	}
-	
-	public class Sdf2ParenthesizeStamp implements Stamp {
-		private static final long serialVersionUID = -8303716484088476176L;
-
-		private final Stamper stamper;
-		private final Set<IStrategoTerm> relevantProds;
-		private final Set<IStrategoTerm> priorities;
-		
-		public Sdf2ParenthesizeStamp(Stamper stamper, Set<IStrategoTerm> relevantProds, Set<IStrategoTerm> priorities) {
-			this.stamper = stamper;
-			this.relevantProds = relevantProds;
-			this.priorities = priorities;
-		}
-		
-		@Override
-		public Stamper getStamper() {
-			return stamper;
-		}
-		
-		@Override
-		public boolean equals(Object o) {
-			if (o instanceof Sdf2ParenthesizeStamp) {
-				Sdf2ParenthesizeStamp s = (Sdf2ParenthesizeStamp) o;
-				return Objects.equal(relevantProds, s.relevantProds) && Objects.equal(priorities, s.priorities);
-			}
-			return false;
-		}
 	}
 }

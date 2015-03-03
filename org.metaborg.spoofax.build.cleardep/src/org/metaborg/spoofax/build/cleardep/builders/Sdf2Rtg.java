@@ -64,8 +64,12 @@ public class Sdf2Rtg extends SpoofaxBuilder<Sdf2Rtg.Input, None> {
 		RelativePath inputPath = context.basePath("${include}/" + input.sdfmodule + ".def");
 		RelativePath outputPath = context.basePath("${include}/" + input.sdfmodule + ".rtg");
 
-		BuildRequest<?, SimpleOutput<IStrategoTerm>, ?, ?> parseSdfDefinition = new BuildRequest<>(ParseSdfDefinition.factory, new ParseSdfDefinition.Input(context, inputPath, new BuildRequest<?,?,?,?>[]{packSdf}));
-		requires(inputPath, new Sdf2RtgStamper(parseSdfDefinition));
+		if (SpoofaxContext.BETTER_STAMPERS) {
+			BuildRequest<?, SimpleOutput<IStrategoTerm>, ?, ?> parseSdfDefinition = new BuildRequest<>(ParseSdfDefinition.factory, new ParseSdfDefinition.Input(context, inputPath, new BuildRequest<?,?,?,?>[]{packSdf}));
+			requires(inputPath, new Sdf2RtgStamper(parseSdfDefinition));
+		}
+		else
+			requires(inputPath);
 		
 		// XXX avoid redundant call to sdf2table
 		ExecutionResult er = StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), 

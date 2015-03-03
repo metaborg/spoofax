@@ -10,6 +10,8 @@ import org.sugarj.common.path.RelativePath;
 public class SpoofaxContext implements Serializable{
 	private static final long serialVersionUID = -1973461199459693455L;
 	
+	public final static boolean BETTER_STAMPERS = true;
+	
 	public final Path baseDir;
 	public final Properties props;
 	

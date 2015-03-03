@@ -14,6 +14,7 @@ import org.sugarj.cleardep.output.SimpleOutput;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamp;
 import org.sugarj.cleardep.stamp.Stamper;
+import org.sugarj.cleardep.stamp.ValueStamp;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.Path;
 
@@ -29,7 +30,7 @@ public class Sdf2RtgStamper implements Stamper {
 	@Override
 	public Stamp stampOf(Path p) {
 		if (!FileCommands.exists(p))
-			return new TermStamp(this, null);
+			return new ValueStamp<>(this, null);
 
 		BuildManager manager = BuildManager.acquire();
 		IStrategoTerm term;
@@ -46,7 +47,7 @@ public class Sdf2RtgStamper implements Stamper {
 		ITermFactory factory = StrategoExecutor.strategoSdfcontext().getFactory();
 		Deliteralize deliteralize = new Deliteralize(factory, false);
 		IStrategoTerm delit = deliteralize.transform(term);
-		return new TermStamp(this, delit);
+		return new ValueStamp<>(this, delit);
 	}
 
 	private static class Deliteralize extends TermTransformer {

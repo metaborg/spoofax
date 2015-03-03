@@ -67,8 +67,12 @@ public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input, Non
 		RelativePath outputPath = context.basePath("${include}/" + input.sdfmodule + "-parenthesize.str");
 		String outputmodule = "include/" + input.sdfmodule + "-parenthesize";
 
-		BuildRequest<?, SimpleOutput<IStrategoTerm>, ?, ?> parseSdfDefinition = new BuildRequest<>(ParseSdfDefinition.factory, new ParseSdfDefinition.Input(context, inputPath, new BuildRequest<?,?,?,?>[]{packSdf}));
-		requires(inputPath, new Sdf2ParenthesizeStamper(parseSdfDefinition));
+		if (SpoofaxContext.BETTER_STAMPERS) {
+			BuildRequest<?, SimpleOutput<IStrategoTerm>, ?, ?> parseSdfDefinition = new BuildRequest<>(ParseSdfDefinition.factory, new ParseSdfDefinition.Input(context, inputPath, new BuildRequest<?,?,?,?>[]{packSdf}));
+			requires(inputPath, new Sdf2ParenthesizeStamper(parseSdfDefinition));
+		}
+		else
+			requires(inputPath);
 		
 		// XXX avoid redundant call to sdf2table
 		ExecutionResult er = StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), 
