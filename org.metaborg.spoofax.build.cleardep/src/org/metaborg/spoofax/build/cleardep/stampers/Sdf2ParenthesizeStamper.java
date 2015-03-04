@@ -1,6 +1,5 @@
 package org.metaborg.spoofax.build.cleardep.stampers;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -36,13 +35,8 @@ public class Sdf2ParenthesizeStamper implements Stamper {
 		if (!FileCommands.exists(p))
 			return new ValueStamp<>(this, null);
 
-		IStrategoTerm term;
-		try {
-			SimpleOutput<IStrategoTerm> output = BuildManager.build(parseSdfDefinition);
-			term = output.val;
-		} catch (IOException e) {
-			return LastModifiedStamper.instance.stampOf(p);
-		}
+		SimpleOutput<IStrategoTerm> output = BuildManager.build(parseSdfDefinition);
+		IStrategoTerm term = output.val;
 		
 		if (term == null)
 			return LastModifiedStamper.instance.stampOf(p);

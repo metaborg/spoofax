@@ -1,6 +1,5 @@
 package org.metaborg.spoofax.build.cleardep;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -130,11 +129,9 @@ public class EclipseBuilder extends IncrementalProjectBuilder {
 	protected IProject[] build(int kind, Map<String, String> args, IProgressMonitor monitor) {
 		SpoofaxContext context = makeContext(getProject());
 		SpoofaxInput input = new SpoofaxInput(context);
+
 		try {
-			
 			BuildManager.build(new BuildRequest<>(All.factory, input));
-		} catch (IOException e) {
-			e.printStackTrace();
 		} finally {
 			monitor.done();
 			try {
@@ -152,8 +149,6 @@ public class EclipseBuilder extends IncrementalProjectBuilder {
 		SpoofaxInput input = new SpoofaxInput(context);
 		try {
 			BuildManager.build(new BuildRequest<>(Clean.factory, input));
-		} catch (IOException e) {
-			e.printStackTrace();
 		} finally {
 			monitor.done();
 			try {

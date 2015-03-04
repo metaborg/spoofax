@@ -1,7 +1,5 @@
 package org.metaborg.spoofax.build.cleardep.stampers;
 
-import java.io.IOException;
-
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -31,13 +29,8 @@ public class Sdf2RtgStamper implements Stamper {
 		if (!FileCommands.exists(p))
 			return new ValueStamp<>(this, null);
 
-		IStrategoTerm term;
-		try {
-			SimpleOutput<IStrategoTerm> output = BuildManager.build(parseSdfDefinition);
-			term = output.val;
-		} catch (IOException e) {
-			return LastModifiedStamper.instance.stampOf(p);
-		}
+		SimpleOutput<IStrategoTerm> output = BuildManager.build(parseSdfDefinition);
+		IStrategoTerm term = output.val;
 		
 		if (term == null)
 			return LastModifiedStamper.instance.stampOf(p);
