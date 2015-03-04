@@ -10,7 +10,6 @@ import org.spoofax.interpreter.terms.IStrategoList;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.TermTransformer;
-import org.sugarj.cleardep.BuildUnit;
 import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.cleardep.build.BuildRequest;
 import org.sugarj.cleardep.output.SimpleOutput;
@@ -36,11 +35,10 @@ public class PPGenStamper implements Stamper {
 		if (!FileCommands.exists(p))
 			return new ValueStamp<>(this, null);
 
-		BuildManager manager = BuildManager.acquire();
 		IStrategoTerm term;
 		try {
-			BuildUnit<SimpleOutput<IStrategoTerm>> unit = manager.require(parseSdfDefinition);
-			term = unit.getBuildResult().val;
+			SimpleOutput<IStrategoTerm> output = BuildManager.build(parseSdfDefinition);
+			term = output.val;
 		} catch (IOException e) {
 			return LastModifiedStamper.instance.stampOf(p);
 		}

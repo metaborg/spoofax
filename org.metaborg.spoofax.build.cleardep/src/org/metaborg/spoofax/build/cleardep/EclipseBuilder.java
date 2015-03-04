@@ -128,12 +128,11 @@ public class EclipseBuilder extends IncrementalProjectBuilder {
 	
 	@Override
 	protected IProject[] build(int kind, Map<String, String> args, IProgressMonitor monitor) {
-		BuildManager manager = BuildManager.acquire();
 		SpoofaxContext context = makeContext(getProject());
 		SpoofaxInput input = new SpoofaxInput(context);
 		try {
 			
-			manager.require(new BuildRequest<>(All.factory, input));
+			BuildManager.build(new BuildRequest<>(All.factory, input));
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
@@ -149,11 +148,10 @@ public class EclipseBuilder extends IncrementalProjectBuilder {
 
 	@Override
 	protected void clean(IProgressMonitor monitor) throws CoreException {
-		BuildManager manager = BuildManager.acquire();
 		SpoofaxContext context = makeContext(getProject());
 		SpoofaxInput input = new SpoofaxInput(context);
 		try {
-			manager.require(new BuildRequest<>(Clean.factory, input));
+			BuildManager.build(new BuildRequest<>(Clean.factory, input));
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
