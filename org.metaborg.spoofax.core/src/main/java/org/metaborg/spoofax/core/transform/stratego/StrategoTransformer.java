@@ -78,9 +78,9 @@ public class StrategoTransformer implements ITransformer<IStrategoTerm, IStrateg
         checkFacet(facet, context.language(), transformer);
         final Action action = facet.action(transformer);
 
-        final FileObject resource = analysisResult.file();
+        final FileObject resource = analysisResult.source;
         final ITermFactory termFactory = termFactoryService.getGeneric();
-        final IStrategoTerm inputTerm = inputTerm(termFactory, analysisResult.result(), resource, context.location());
+        final IStrategoTerm inputTerm = inputTerm(termFactory, analysisResult.result, resource, context.location());
         
         final HybridInterpreter runtime;
         try {

@@ -19,7 +19,7 @@ public class StylerFacetFromESV {
     public static StylerFacet create(IStrategoAppl esv) {
         final StylerFacet facet = new StylerFacet();
 
-        final Iterable<IStrategoAppl> styleDefs = ESVReader.styleDefinitions(esv);
+        final Iterable<IStrategoAppl> styleDefs = ESVReader.collectTerms(esv, "ColorDef");
         final Map<String, IStyle> namedStyles = Maps.newHashMap();
         for(IStrategoAppl styleDef : styleDefs) {
             final IStrategoAppl styleTerm = (IStrategoAppl) styleDef.getSubterm(1);
@@ -42,7 +42,7 @@ public class StylerFacetFromESV {
             namedStyles.put(Tools.asJavaString(styleDef.getSubterm(0)), style);
         }
 
-        final Iterable<IStrategoAppl> styleRules = ESVReader.styleRules(esv);
+        final Iterable<IStrategoAppl> styleRules = ESVReader.collectTerms(esv, "ColorRule");
         for(IStrategoAppl styleRule : styleRules) {
             final IStrategoAppl styleTerm = (IStrategoAppl) styleRule.getSubterm(1);
             final IStrategoConstructor styleCons = styleTerm.getConstructor();

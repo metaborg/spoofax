@@ -1,7 +1,5 @@
 package org.metaborg.spoofax.core.analysis.stratego;
 
-import java.util.Set;
-
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
@@ -11,24 +9,27 @@ import org.metaborg.spoofax.core.language.ILanguageFacet;
  * Represents the Stratego runtime facet of a language.
  */
 public class StrategoFacet implements ILanguageFacet {
-    private final Set<FileObject> ctreeFiles;
-    private final Set<FileObject> jarFiles;
-    private final String analysisStrategy;
-    private final String onSaveStrategy;
-    private final String resolverStrategy;
-    private final String hoverStrategy;
-    private final String completionStrategy;
+    private final Iterable<FileObject> ctreeFiles;
+    private final Iterable<FileObject> jarFiles;
+    private final @Nullable String analysisStrategy;
+    private final @Nullable StrategoAnalysisMode analysisMode;
+    private final @Nullable String onSaveStrategy;
+    private final @Nullable String resolverStrategy;
+    private final @Nullable String hoverStrategy;
+    private final @Nullable String completionStrategy;
 
 
     /**
      * Creates a Stratego facet from Stratego provider files, and strategy names.
      * 
      * @param ctreeFile
-     *            Set of ctree provider files.
+     *            CTree provider files.
      * @param jarFiles
-     *            Set of JAR provider files.
+     *            JAR provider files.
      * @param analysisStrategy
      *            Name of the analysis strategy, or null if none.
+     * @param analysisMode
+     *            Analysis mode
      * @param onSaveStrategy
      *            Name of the on-save strategy, or null if none.
      * @param resolverStrategy
@@ -38,12 +39,13 @@ public class StrategoFacet implements ILanguageFacet {
      * @param completionStrategy
      *            Name of the semantic completions strategy, or null if none.
      */
-    public StrategoFacet(Set<FileObject> ctreeFile, Set<FileObject> jarFiles, @Nullable String analysisStrategy,
-        @Nullable String onSaveStrategy, @Nullable String resolverStrategy, @Nullable String hoverStrategy,
-        @Nullable String completionStrategy) {
+    public StrategoFacet(Iterable<FileObject> ctreeFile, Iterable<FileObject> jarFiles,
+        @Nullable String analysisStrategy, StrategoAnalysisMode analysisMode, @Nullable String onSaveStrategy,
+        @Nullable String resolverStrategy, @Nullable String hoverStrategy, @Nullable String completionStrategy) {
         this.ctreeFiles = ctreeFile;
         this.jarFiles = jarFiles;
         this.analysisStrategy = analysisStrategy;
+        this.analysisMode = analysisMode;
         this.onSaveStrategy = onSaveStrategy;
         this.resolverStrategy = resolverStrategy;
         this.hoverStrategy = hoverStrategy;
@@ -52,8 +54,6 @@ public class StrategoFacet implements ILanguageFacet {
 
 
     /**
-     * Returns the ctree provider files.
-     * 
      * @return Iterable over the ctree provider files.
      */
     public Iterable<FileObject> ctreeFiles() {
@@ -61,8 +61,6 @@ public class StrategoFacet implements ILanguageFacet {
     }
 
     /**
-     * Returns the JAR provider files.
-     * 
      * @return Iterable over the JAR provider files.
      */
     public Iterable<FileObject> jarFiles() {
@@ -70,8 +68,6 @@ public class StrategoFacet implements ILanguageFacet {
     }
 
     /**
-     * Returns the name of the analysis strategy.
-     * 
      * @return Name of the analysis strategy, or null if none.
      */
     public @Nullable String analysisStrategy() {
@@ -79,8 +75,13 @@ public class StrategoFacet implements ILanguageFacet {
     }
 
     /**
-     * Returns the name of the on-save strategy.
-     * 
+     * @return Analysis mode, or null if none.
+     */
+    public @Nullable StrategoAnalysisMode analysisMode() {
+        return analysisMode;
+    }
+
+    /**
      * @return Name of the on-save strategy, or null if none.
      */
     public @Nullable String onSaveStrategy() {
@@ -88,8 +89,6 @@ public class StrategoFacet implements ILanguageFacet {
     }
 
     /**
-     * Returns the name of the reference resolver strategy.
-     * 
      * @return Name of the reference resolver strategy, or null if none.
      */
     public @Nullable String resolverStrategy() {
@@ -97,8 +96,6 @@ public class StrategoFacet implements ILanguageFacet {
     }
 
     /**
-     * Returns the name of the hover strategy.
-     * 
      * @return Name of the hover strategy, or null if none.
      */
     public @Nullable String hoverStrategy() {
@@ -106,8 +103,6 @@ public class StrategoFacet implements ILanguageFacet {
     }
 
     /**
-     * Returns the name of the semantic completions strategy.
-     * 
      * @return Name of the semantic completions strategy, or null if none.
      */
     public @Nullable String completionStrategy() {

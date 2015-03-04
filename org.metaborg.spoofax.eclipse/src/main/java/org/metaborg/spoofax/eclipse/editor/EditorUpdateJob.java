@@ -218,7 +218,7 @@ public class EditorUpdateJob extends Job {
                 MarkerUtils.clearInternal(eclipseResource);
                 MarkerUtils.clearAnalysis(eclipseResource);
                 for(AnalysisFileResult<IStrategoTerm, IStrategoTerm> fileResult : analysisResult.fileResults) {
-                    for(IMessage message : fileResult.messages()) {
+                    for(IMessage message : fileResult.messages) {
                         MarkerUtils.createMarker(eclipseResource, message);
                     }
                 }

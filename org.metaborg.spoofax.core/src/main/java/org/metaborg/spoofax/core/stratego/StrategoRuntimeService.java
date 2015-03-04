@@ -62,6 +62,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
         agent.setAbsoluteDefinitionDir(context.language().location());
         interpreter.setIOAgent(agent);
         interpreter.getContext().setContextObject(context);
+        interpreter.getCompiledContext().setContextObject(context);
         interpreter.getCompiledContext().getExceptionHandler().setEnabled(false);
         interpreter.init();
 

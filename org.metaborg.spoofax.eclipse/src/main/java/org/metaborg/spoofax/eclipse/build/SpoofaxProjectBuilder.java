@@ -260,7 +260,7 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
 
                 for(AnalysisResult<IStrategoTerm, IStrategoTerm> result : allAnalysisResults) {
                     for(AnalysisFileResult<IStrategoTerm, IStrategoTerm> fileResult : result.fileResults) {
-                        for(IMessage message : fileResult.messages()) {
+                        for(IMessage message : fileResult.messages) {
                             final IResource resource = resourceService.unresolve(message.source());
                             if(resource == null) {
                                 logger.error("Cannot create marker for {}", message.source());

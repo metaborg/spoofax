@@ -12,6 +12,8 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Map;
 
 import org.apache.commons.vfs2.AllFileSelector;
@@ -230,16 +232,16 @@ public class ResourceAgent extends IOAgent {
     @Override public InputStream internalGetInputStream(int fd) {
         if(fd == CONST_STDIN) {
             return stdin;
-        } else {
-            final ResourceHandle handle = openFiles.get(fd);
-            if(handle.inputStream == null)
-                try {
-                    handle.inputStream = handle.resource.getContent().getInputStream();
-                } catch(FileSystemException e) {
-                    throw new RuntimeException("Could not get input stream for resource", e);
-                }
-            return handle.inputStream;
         }
+        final ResourceHandle handle = openFiles.get(fd);
+        if(handle.inputStream == null) {
+            try {
+                handle.inputStream = handle.resource.getContent().getInputStream();
+            } catch(FileSystemException e) {
+                throw new RuntimeException("Could not get input stream for resource", e);
+            }
+        }
+        return handle.inputStream;
     }
 
     @Override public Reader getReader(int fd) {
@@ -298,7 +300,8 @@ public class ResourceAgent extends IOAgent {
         // GTODO: does not work for files that do not reside on the local file system
         try {
             final FileObject resource = resolve(workingDir, fn);
-            return new File(resource.getName().getPath());
+            final File localResource = resourceService.localFile(resource);
+            return localResource;
         } catch(FileSystemException e) {
             throw new RuntimeException("Could not open file", e);
         }
@@ -360,10 +363,21 @@ public class ResourceAgent extends IOAgent {
      *             when absolute and relative resolution fails.
      */
     private FileObject resolve(FileObject parent, String path) throws FileSystemException {
-        FileObject resolved;
+        final File file = new File(path);
+
+        final URI uri;
         try {
+            uri = new URI(path);
+        } catch(URISyntaxException e) {
+            throw new RuntimeException("Cannot parse path into URI", e);
+        }
+
+        final FileObject resolved;
+        if(uri.isAbsolute()) {
             resolved = resourceService.resolve(path);
-        } catch(RuntimeException e) {
+        } else if(file.isAbsolute()) {
+            resolved = resourceService.resolve("file://" + path);
+        } else {
             if(parent != null) {
                 resolved = parent.resolveFile(path);
             } else {

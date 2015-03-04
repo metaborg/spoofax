@@ -176,7 +176,7 @@ public class AnalysisResultProcessor {
         AnalysisResult<IStrategoTerm, IStrategoTerm> parentResult) {
         // LEGACY: analysis always returns resource on the local file system, but we expect resources in the Eclipse
         // file system here. Need to convert these, otherwise updates will not match invalidates.
-        final FileObject resourceInEclipse = resourceService.rebase(result.file());
+        final FileObject resourceInEclipse = resourceService.rebase(result.source);
         final FileName name = resourceInEclipse.getName();
 
         logger.trace("Pushing analysis result for {}", name);

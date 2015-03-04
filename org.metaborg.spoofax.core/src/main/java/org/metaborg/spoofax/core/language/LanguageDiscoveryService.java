@@ -1,27 +1,19 @@
 package org.metaborg.spoofax.core.language;
 
-import static org.metaborg.spoofax.core.esv.ESVReader.attachedFiles;
-import static org.metaborg.spoofax.core.esv.ESVReader.completionStrategy;
-import static org.metaborg.spoofax.core.esv.ESVReader.extensions;
-import static org.metaborg.spoofax.core.esv.ESVReader.hoverStrategy;
-import static org.metaborg.spoofax.core.esv.ESVReader.languageName;
-import static org.metaborg.spoofax.core.esv.ESVReader.observerFunction;
-import static org.metaborg.spoofax.core.esv.ESVReader.onSaveFunction;
-import static org.metaborg.spoofax.core.esv.ESVReader.parseTableName;
-import static org.metaborg.spoofax.core.esv.ESVReader.resolverStrategy;
-import static org.metaborg.spoofax.core.esv.ESVReader.startSymbol;
-
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.analysis.stratego.StrategoFacet;
+import org.metaborg.spoofax.core.analysis.stratego.StrategoFacetFromESV;
 import org.metaborg.spoofax.core.context.ContextFacet;
 import org.metaborg.spoofax.core.context.IContextStrategy;
+import org.metaborg.spoofax.core.esv.ESVReader;
 import org.metaborg.spoofax.core.style.StylerFacet;
 import org.metaborg.spoofax.core.style.StylerFacetFromESV;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
+import org.metaborg.spoofax.core.syntax.SyntaxFacetFromESV;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.transform.stratego.MenusFacet;
 import org.metaborg.spoofax.core.transform.stratego.MenusFacetFromESV;
@@ -36,7 +28,6 @@ import org.spoofax.terms.io.binary.TermReader;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
-import com.google.inject.name.Named;
 
 public class LanguageDiscoveryService implements ILanguageDiscoveryService {
     private static final Logger logger = LoggerFactory.getLogger(LanguageDiscoveryService.class);
@@ -44,7 +35,6 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
     private final ILanguageService languageService;
     private final ITermFactoryService termFactoryService;
     private final Map<String, IContextStrategy> contextStrategies;
-    @Inject(optional = true) @Named("LanguageDiscoveryAnalysisOverride") private String analysisStrategyOverride;
 
 
     @Inject public LanguageDiscoveryService(ILanguageService languageService, ITermFactoryService termFactoryService,
@@ -72,6 +62,7 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         }
         return languages;
     }
+
 
     private ILanguage languageFromESV(FileObject location, FileObject esvFile, LanguageVersion version)
         throws Exception {
@@ -102,34 +93,10 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         final ContextFacet contextFacet = new ContextFacet(contextStrategy);
         language.addFacet(contextFacet);
 
-        final FileObject parseTable = location.resolveFile(parseTableName(esvTerm));
-        final String startSymbol = startSymbol(esvTerm); // GTODO: what about multiple start symbols?
-        final SyntaxFacet syntaxFacet = new SyntaxFacet(parseTable, Sets.newHashSet(startSymbol));
+        final SyntaxFacet syntaxFacet = SyntaxFacetFromESV.create(esvTerm, location);
         language.addFacet(syntaxFacet);
 
-        final Set<FileObject> strategoFiles = attachedFiles(esvTerm, location);
-        final Set<FileObject> ctreeFiles = Sets.newLinkedHashSet();
-        final Set<FileObject> jarFiles = Sets.newLinkedHashSet();
-        for(FileObject strategoFile : strategoFiles) {
-            final String extension = strategoFile.getName().getExtension();
-            if(extension.equals("jar")) {
-                jarFiles.add(strategoFile);
-            } else if(extension.equals("ctree")) {
-                ctreeFiles.add(strategoFile);
-            } else {
-                logger.warn("Stratego provider file " + strategoFile + " has unknown extension " + extension
-                    + ", ignoring.");
-            }
-        }
-        final String analysisStrategy =
-            analysisStrategyOverride == null ? observerFunction(esvTerm) : analysisStrategyOverride;
-        final String onSaveStrategy = onSaveFunction(esvTerm);
-        final String resolverStrategy = resolverStrategy(esvTerm);
-        final String hoverStrategy = hoverStrategy(esvTerm);
-        final String completionStrategy = completionStrategy(esvTerm);
-        final StrategoFacet strategoFacet =
-            new StrategoFacet(ctreeFiles, jarFiles, analysisStrategy, onSaveStrategy, resolverStrategy, hoverStrategy,
-                completionStrategy);
+        final StrategoFacet strategoFacet = StrategoFacetFromESV.create(esvTerm, location);
         language.addFacet(strategoFacet);
 
         final MenusFacet menusFacet = MenusFacetFromESV.create(esvTerm, language);
@@ -141,5 +108,13 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         languageService.add(language);
 
         return language;
+    }
+
+    private static String languageName(IStrategoAppl document) {
+        return ESVReader.getProperty(document, "LanguageName");
+    }
+
+    private static String[] extensions(IStrategoAppl document) {
+        return ESVReader.getProperty(document, "Extensions").split(",");
     }
 }

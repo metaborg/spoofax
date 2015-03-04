@@ -89,6 +89,10 @@
       <groupId>com.esotericsoftware</groupId>
       <artifactId>kryo</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.functionaljava</groupId>
+      <artifactId>functionaljava</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>junit</groupId>
