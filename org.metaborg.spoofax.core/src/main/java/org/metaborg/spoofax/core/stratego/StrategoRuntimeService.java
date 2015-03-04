@@ -3,7 +3,6 @@ package org.metaborg.spoofax.core.stratego;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,7 +23,6 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.imploder.ImploderOriginTermFactory;
 import org.strategoxt.HybridInterpreter;
 import org.strategoxt.IncompatibleJarException;
-import org.strategoxt.NoInteropRegistererJarException;
 
 import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
@@ -130,26 +128,19 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
             }
             logger.trace("Loading jar files {}", (Object) classpath);
             interp.loadJars(classpath);
-        } catch(MalformedURLException e) {
-            throw new SpoofaxException("Failed to load JAR", e);
-        } catch(NoInteropRegistererJarException e) {
-            throw new SpoofaxException("Failed to load JAR", e);
-        } catch(IncompatibleJarException e) {
-            throw new SpoofaxException("Failed to load JAR", e);
-        } catch(IOException e) {
+        } catch(IncompatibleJarException | IOException e) {
             throw new SpoofaxException("Failed to load JAR", e);
         }
     }
 
-    private static void loadCompilerCTree(HybridInterpreter interp, Iterable<FileObject> ctrees) throws SpoofaxException {
+    private static void loadCompilerCTree(HybridInterpreter interp, Iterable<FileObject> ctrees)
+        throws SpoofaxException {
         try {
             for(FileObject file : ctrees) {
                 logger.trace("Loading ctree {}", file.getName());
                 interp.load(new BufferedInputStream(file.getContent().getInputStream()));
             }
-        } catch(IOException e) {
-            throw new SpoofaxException("Failed to load ctree", e);
-        } catch(InterpreterException e) {
+        } catch(IOException | InterpreterException e) {
             throw new SpoofaxException("Failed to load ctree", e);
         }
     }
