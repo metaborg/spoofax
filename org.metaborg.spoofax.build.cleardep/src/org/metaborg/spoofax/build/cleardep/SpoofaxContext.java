@@ -36,14 +36,14 @@ public class SpoofaxContext implements Serializable{
 	
 	public boolean isBuildStrategoEnabled(Builder<?, ?> result) {
 		RelativePath strategoPath = basePath("${trans}/${strmodule}.str");
-		result.requires(strategoPath, FileExistsStamper.instance);
+		result.requires(strategoPath, SpoofaxContext.BETTER_STAMPERS ? FileExistsStamper.instance : LastModifiedStamper.instance);
 		boolean buildStrategoEnabled = FileCommands.exists(strategoPath);
 		return buildStrategoEnabled;
 	}
 	
 	public boolean isJavaJarEnabled(Builder<?, ?> result) {
 		RelativePath mainPath = basePath("${src-gen}/org/strategoxt/imp/editors/template/strategies/Main.java");
-		result.requires(mainPath, FileExistsStamper.instance);
+		result.requires(mainPath, SpoofaxContext.BETTER_STAMPERS ? FileExistsStamper.instance : LastModifiedStamper.instance);
 		return FileCommands.exists(mainPath);
 	}
 }
