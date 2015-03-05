@@ -300,7 +300,16 @@ public class ResourceAgent extends IOAgent {
         // GTODO: does not work for files that do not reside on the local file system
         try {
             final FileObject resource = resolve(workingDir, fn);
-            final File localResource = resourceService.localFile(resource);
+            File localResource = resourceService.localFile(resource);
+            if(localResource == null) {
+                final File localWorkingDir = resourceService.localFile(workingDir);
+                if(localWorkingDir == null) {
+                    // Local working directory does not reside on the local file system, just return a File.
+                    return new File(fn);
+                }
+                // Could not get a local File using the FileObject interface, fall back to composing Files.
+                return new File(getAbsolutePath(localWorkingDir.getPath(), fn));
+            }
             return localResource;
         } catch(FileSystemException e) {
             throw new RuntimeException("Could not open file", e);
