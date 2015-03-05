@@ -8,35 +8,13 @@ strategies
   create-plugin-xml =
     <file-exists> "plugin.xml"
   <+
-    name       := <get-sdf-main-module>;
-    parser     := <parse-controller-name>;
-    validator  := <validator-name>;
-    pkgname    := <BasePackage <+ default-package-name>;
-    extensions := <EditorExtensions>;
-    
+    name := <get-sdf-main-module>;
     <output-text-file(|[], "plugin.xml")>
     $[<?xml version="1.0" encoding="UTF-8"?>
-    <?eclipse version="3.0"?>
-    <plugin>
-       <extension
-             point="org.eclipse.imp.runtime.languageDescription">
-          <language
-                extensions="[extensions]"
-                description="[name]"
-                language="[name]"
-                derivedFrom="DynamicRoot"
-                validator="[pkgname].[validator]"
-                validatorClass="[pkgname].[validator]"
-          ></language>
-       </extension>
-       <extension
-             id="[pkgname].parser"
-             name="[name] Parser"
-             point="org.eclipse.imp.runtime.parser">
-          <parser
-                class="[pkgname].[parser]"
-                language="[name]">
-          </parser>
-       </extension>    
-    </plugin>
+      <?eclipse version="3.0"?>
+      <plugin>
+        <extension point="org.metaborg.spoofax.eclipse.language">
+          <language esvFile="include/[name].packed.esv" />
+        </extension>
+      </plugin>
     ]

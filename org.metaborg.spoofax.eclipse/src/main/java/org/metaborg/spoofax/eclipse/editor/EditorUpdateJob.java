@@ -182,10 +182,10 @@ public class EditorUpdateJob extends Job {
                 // Also cancel if text presentation is not valid for current text any more.
                 if(sourceViewer.getDocument().get().length() != text.length())
                     return;
-                sourceViewer.changeTextPresentation(textPresentation, false);
+                sourceViewer.changeTextPresentation(textPresentation, true);
             }
         });
-
+        
         // Analyze
         try {
             Thread.sleep(600);
@@ -225,6 +225,20 @@ public class EditorUpdateJob extends Job {
             }
         };
         workspace.run(analysisMarkerUpdater, eclipseResource, IWorkspace.AVOID_UPDATE, monitor);
+        
+        // HACK: color again after markers have destroyed the coloring, need to figure out a better solution.
+        if(monitor.isCanceled())
+            return StatusUtils.cancel();
+        display.asyncExec(new Runnable() {
+            public void run() {
+                if(monitor.isCanceled())
+                    return;
+                // Also cancel if text presentation is not valid for current text any more.
+                if(sourceViewer.getDocument().get().length() != text.length())
+                    return;
+                sourceViewer.changeTextPresentation(textPresentation, true);
+            }
+        });
 
         return StatusUtils.success();
     }

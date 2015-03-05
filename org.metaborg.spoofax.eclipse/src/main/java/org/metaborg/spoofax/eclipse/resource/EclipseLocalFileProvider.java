@@ -23,6 +23,9 @@ public class EclipseLocalFileProvider implements ILocalFileProvider {
     @Override public File localFile(FileObject resource) {
         try {
             final IResource eclipseResource = resourceService.unresolve(resource);
+            if(eclipseResource == null) {
+                return null;
+            }
             IPath path = eclipseResource.getRawLocation();
             if(path == null) {
                 path = eclipseResource.getLocation();
