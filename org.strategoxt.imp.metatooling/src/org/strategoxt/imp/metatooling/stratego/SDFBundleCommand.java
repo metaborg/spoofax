@@ -82,11 +82,28 @@ public class SDFBundleCommand extends xtc_command_1_0 {
             throw new UnsupportedOperationException("Platform is not supported"); // TODO: print platform
         }
 
-        final File result;
+        File result = null;
         final Bundle nativeBundle = Platform.getBundle("org.strategoxt.imp.nativebundle");
-        final IPath path = new Path(NATIVE_PATH + subdir);
-        final URL url = FileLocator.find(nativeBundle, path, null);
-        result = new File(FileLocator.toFileURL(url).getPath());
+		if (nativeBundle != null) {
+        	final IPath path = new Path(NATIVE_PATH + subdir);
+        	final URL url = FileLocator.find(nativeBundle, path, null);
+        	result = new File(FileLocator.toFileURL(url).getPath());
+		} else {
+			// Fallback in the case that OSGI is not initialized
+			// Query classpath
+			String classpath = System.getProperty("java.class.path");
+			java.util.List<String> classpathEntries = new java.util.ArrayList<>(Arrays.asList(classpath
+							.split(File.pathSeparator)));
+			for (String entry : classpathEntries) {
+				if (entry.contains("org.strategoxt.imp.nativebundle")) {
+					result = new File(entry + "/" + NATIVE_PATH + subdir);
+					break;
+				}
+			}
+			if (result == null) {
+				throw new IOException("Unable to find nativebundle");
+			}
+		}
 
         if(!result.exists())
             throw new FileNotFoundException(result.getAbsolutePath());

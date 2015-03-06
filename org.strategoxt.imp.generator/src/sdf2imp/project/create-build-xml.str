@@ -173,6 +173,9 @@ $[<?xml version="1.0" encoding="UTF-8"?>
 	<condition property="src-dirs" value="${src-dirs}" else="${src-gen}">
 		<isset property="src-dirs" />
 	</condition>
+	 <condition property="javajar-includes" value="${javajar-includes}" else="[pkgdir]/strategies/">
+    <isset property="javajar-includes" />
+  </condition>
 
 	<fail unless="build" message="Please use build.main.xml to build this project or configure the required properties manually" />
 	<mkdir dir="${build}" />
@@ -570,7 +573,7 @@ $[<?xml version="1.0" encoding="UTF-8"?>
 
 	<target name="java.jar" if="java.jar.enabled">
 	    <delete file="${include}/${strmodule}-java.jar" failonerror="false" />
-		<jar basedir="${build}" includes="[pkgdir]/strategies/" update="true" destfile="${include}/${strmodule}-java.jar" />
+		<jar basedir="${build}" includes="${javajar-includes}" update="true" destfile="${include}/${strmodule}-java.jar" />
 	</target>
 
 	<!-- Stratego to Java interpreter -->

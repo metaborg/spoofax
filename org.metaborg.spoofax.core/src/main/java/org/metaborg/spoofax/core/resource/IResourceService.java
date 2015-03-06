@@ -2,6 +2,8 @@ package org.metaborg.spoofax.core.resource;
 
 import java.io.File;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemManager;
@@ -63,7 +65,21 @@ public interface IResourceService {
      * @return File system name for given URI.
      */
     public FileName resolveURI(String uri);
-    
+
+    /**
+     * Attempts to get a local file handle for given resource, if that resource is located on the local file system.
+     * 
+     * @param resource
+     *            Resource to get a local file handle for.
+     * @return Local file handle, or null if resource does not reside on the local file system.
+     */
+    public @Nullable File localFile(FileObject resource);
+
+    /**
+     * Returns a file system object that points to a directory where user-specific data can be stored.
+     */
+    public FileObject userStorage();
+
     /**
      * Temporary hack to get the internal file system manager.
      */

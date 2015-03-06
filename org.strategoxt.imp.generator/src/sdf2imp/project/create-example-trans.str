@@ -261,17 +261,20 @@ imports
 
 	libstratego-gpp
 	lib/runtime/refactoring/-
+	include/{sdf-name}-parenthesize
 	src-gen/pp/{sdf-name}-pp
 
 rules
 	
   pp-{sdf-name}-string =
-    prettyprint-SDF-start-symbols
+    parenthesize-{sdf-name}
+    ; prettyprint-SDF-start-symbols
     ; !V([], <id>)
     ; box2text-string(|120)
       
   pp-partial-{sdf-name}-string =
-    prettyprint-example
+    parenthesize-{sdf-name}
+    ; prettyprint-example
     ; !V([], <id>)
     ; box2text-string(|120)
       
@@ -301,17 +304,20 @@ imports
 
 	libstratego-gpp
 	lib/runtime/refactoring/-
+	include/{sdf-name}-parenthesize
 	src-gen/pp/{sdf-name}-pp
 
 rules
 	
   pp-{sdf-name}-string =
-    prettyprint-SDF-start-symbols
+    parenthesize-{sdf-name}
+    ; prettyprint-SDF-start-symbols
     ; !V([], <id>)
     ; box2text-string(|120)
       
   pp-partial-{sdf-name}-string =
-    prettyprint-example
+    parenthesize-{sdf-name}
+    ; prettyprint-example
     ; !V([], <id>)
     ; box2text-string(|120)
       

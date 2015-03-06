@@ -105,7 +105,7 @@ public class DescriptorRegistry {
 			List<IFileEditorMapping> mappings = getMappings();
 			
 			for (String extension : language.getFilenameExtensions()) {
-				addMapping(mappings, extension, language);
+				addMapping(mappings, extension);
 			}
 			
 			editorRegistry.setFileEditorMappings(mappings.toArray(new FileEditorMapping[mappings.size()]));
@@ -119,12 +119,12 @@ public class DescriptorRegistry {
 			return results;
 		}
 		
-		private void addMapping(List<IFileEditorMapping> mappings, String extension, Language language) {
+		private void addMapping(List<IFileEditorMapping> mappings, String extension) {
 			FileEditorMapping mapping = getMapping(mappings, extension);
 			
 			boolean existing = mapping != null;
 			if (!existing)
-	            mapping = new DynamicEditorMapping(language, extension); // TODO: create something like a IMPFileEditorMapping, linking to our favorite image 
+	            mapping = new DynamicEditorMapping(extension); // TODO: create something like a IMPFileEditorMapping, linking to our favorite image 
 			
 	        /* UNDONE: no longer setting default editor; breaks icon
 	        IEditorDescriptor defaultEditor = mapping.getDefaultEditor();
@@ -170,8 +170,8 @@ public class DescriptorRegistry {
 			UIPlugin.imageDescriptorFromPlugin(
 					RuntimePlugin.getInstance().getID(), Descriptor.DEFAULT_ICON);
 
-		public DynamicEditorMapping(Language language, String extension) {
-			super(language.getName(), extension);
+		public DynamicEditorMapping(String extension) {
+			super(extension);
 		}
 		
 		@Override

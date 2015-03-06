@@ -8,17 +8,17 @@ import java.util.Date;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.junit.Test;
+import org.metaborg.spoofax.core.analysis.stratego.StrategoFacet;
+import org.metaborg.spoofax.core.language.DescriptionFacet;
+import org.metaborg.spoofax.core.language.ResourceExtensionsIdentifier;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageFacet;
+import org.metaborg.spoofax.core.language.IdentificationFacet;
 import org.metaborg.spoofax.core.language.Language;
 import org.metaborg.spoofax.core.language.LanguageChange;
 import org.metaborg.spoofax.core.language.LanguageFacetChange;
 import org.metaborg.spoofax.core.language.LanguageVersion;
-import org.metaborg.spoofax.core.service.about.AboutFacet;
-import org.metaborg.spoofax.core.service.identification.ExtensionsIdentifier;
-import org.metaborg.spoofax.core.service.identification.IdentificationFacet;
-import org.metaborg.spoofax.core.service.stratego.StrategoFacet;
-import org.metaborg.spoofax.core.service.syntax.SyntaxFacet;
+import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.observable.ITestableObserver;
 import org.metaborg.util.observable.TestableObserver;
@@ -38,14 +38,16 @@ public class LanguageServiceTest extends SpoofaxTest {
     }
 
     private ILanguage language(String name, LanguageVersion version, FileObject location) {
-        return languageService.create(name, version, location);
+        final ILanguage language = languageService.create(name, version, location);
+        languageService.add(language);
+        return language;
     }
 
     private ILanguage language(String name, LanguageVersion version, FileObject location,
         String... extensions) {
         final ILanguage language = language(name, version, location);
         final IdentificationFacet identificationFacet =
-            new IdentificationFacet(new ExtensionsIdentifier(Iterables2.from(extensions)));
+            new IdentificationFacet(new ResourceExtensionsIdentifier(Iterables2.from(extensions)));
         language.addFacet(identificationFacet);
         return language;
     }
@@ -139,15 +141,15 @@ public class LanguageServiceTest extends SpoofaxTest {
         final ILanguage language3 = language("Entity", version, location3);
         assertEquals(language3, languageService.get("Entity"));
 
-        languageService.destroy(language3);
+        languageService.remove(language3);
         assertEquals(language2, languageService.get("Entity"));
-        languageService.destroy(language1);
+        languageService.remove(language1);
         assertEquals(language2, languageService.get("Entity"));
         final ILanguage language4 = language("Entity", version, location4);
         assertEquals(language4, languageService.get("Entity"));
-        languageService.destroy(language4);
+        languageService.remove(language4);
         assertEquals(language2, languageService.get("Entity"));
-        languageService.destroy(language2);
+        languageService.remove(language2);
         assertEquals(null, languageService.get("Entity"));
     }
 
@@ -244,7 +246,7 @@ public class LanguageServiceTest extends SpoofaxTest {
 
         language.facetChanges().subscribe(facetObserver);
 
-        final ILanguageFacet facet = language.addFacet(new AboutFacet("Entity language", null));
+        final ILanguageFacet facet = language.addFacet(new DescriptionFacet("Entity language", null));
 
         final TimestampedNotification<LanguageFacetChange> added = facetObserver.poll();
 
@@ -252,7 +254,7 @@ public class LanguageServiceTest extends SpoofaxTest {
         assertEquals(added.notification.getValue(), new LanguageFacetChange(facet,
             LanguageFacetChange.Kind.ADDED));
 
-        language.removeFacet(AboutFacet.class);
+        language.removeFacet(DescriptionFacet.class);
 
         final TimestampedNotification<LanguageFacetChange> removed = facetObserver.poll();
 
@@ -263,7 +265,7 @@ public class LanguageServiceTest extends SpoofaxTest {
         assertEquals(facetObserver.size(), 0);
 
 
-        languageService.destroy(language);
+        languageService.remove(language);
 
         final TimestampedNotification<LanguageChange> deactivated = languageObserver.poll();
         final TimestampedNotification<LanguageChange> unloaded = languageObserver.poll();
@@ -302,8 +304,8 @@ public class LanguageServiceTest extends SpoofaxTest {
         final FileObject location = createDirectory("ram:///");
 
         final ILanguage language = language("Entity", version, location);
-        language.addFacet(new AboutFacet("Entity language", null));
-        language.addFacet(new AboutFacet("Entity language", null));
+        language.addFacet(new DescriptionFacet("Entity language", null));
+        language.addFacet(new DescriptionFacet("Entity language", null));
     }
 
     @Test(expected = IllegalStateException.class) public void nonExistantLocation() throws Exception {
@@ -317,7 +319,7 @@ public class LanguageServiceTest extends SpoofaxTest {
         final LanguageVersion version = version(0, 0, 1, 0);
         final FileObject location = createDirectory("ram:///");
 
-        languageService.destroy(new Language("Entity", version, location, new Date()));
+        languageService.remove(new Language("Entity", version, location, new Date()));
     }
 
     @Test(expected = IllegalStateException.class) public void nonExistantFacet() throws Exception {
@@ -325,6 +327,6 @@ public class LanguageServiceTest extends SpoofaxTest {
         final FileObject location = createDirectory("ram:///");
 
         final ILanguage language = language("Entity", version, location);
-        language.removeFacet(AboutFacet.class);
+        language.removeFacet(DescriptionFacet.class);
     }
 }

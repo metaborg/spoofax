@@ -9,7 +9,8 @@ import org.apache.commons.vfs2.FileObject;
 import rx.Observable;
 
 /**
- * Interface that represents a language and its facets.
+ * Interface that represents a language and its facets. Implementors must implement {@link #hashCode()} and
+ * {@link #equals(Object)} using {@link #name()}, {@link #version()}, and {@link #location()}.
  */
 public interface ILanguage extends Comparable<ILanguage> {
     /**
@@ -77,4 +78,11 @@ public interface ILanguage extends Comparable<ILanguage> {
      *             when facet with given type does not exist in the language.
      */
     public <T extends ILanguageFacet> ILanguageFacet removeFacet(Class<T> type);
+
+
+    /* Hint for hashCode implementation. */
+    public abstract int hashCode();
+
+    /* Hint for equals implementation. */
+    public abstract boolean equals(Object other);
 }

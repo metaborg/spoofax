@@ -21,7 +21,7 @@ exports
     ~[\ \t\n\r\,\:\"\=]+ -> PropertyValue {avoid}
 
     ~[\ \t\n\r\,\/\:]+ "://" ~[\ \t\n\r]+ -> URL
-  
+    
   lexical restrictions
   
   	PropertyValue -/- ~[\ \t\n\r\,\:\"\=]
@@ -83,3 +83,17 @@ exports
      
      "true"  -> TrueOrFalse {cons("True")}
      "false" -> TrueOrFalse {cons("False")}
+     
+     %% JVM options
+     "jvm" "opts" ":" JvmOpt* -> LanguageProperty {cons("JvmOpts")}
+     XssOpt -> JvmOpt {cons("XssOpt")}
+     XmxOpt -> JvmOpt {cons("XmxOpt")}
+     ServerOpt -> JvmOpt {cons("ServerOpt")}
+ 
+lexical syntax %% JVM options
+  
+     "-Xss" Int DataUnit -> XssOpt
+     "-Xmx" Int DataUnit -> XmxOpt
+     "-server"           -> ServerOpt
+     [gGmMkK]            -> DataUnit
+     

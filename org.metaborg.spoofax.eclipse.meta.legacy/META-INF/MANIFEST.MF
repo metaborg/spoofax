@@ -1,0 +1,18 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Spoofax Eclipse meta-tooling legacy crap
+Bundle-SymbolicName: org.metaborg.spoofax.eclipse.meta.legacy;singleton:=true
+Bundle-Version: 1.4.0.qualifier
+Bundle-Activator: org.metaborg.spoofax.eclipse.meta.legacy.SpoofaxMetaLegacyPlugin
+Require-Bundle: org.eclipse.core.runtime,
+ org.metaborg.spoofax.eclipse.util;bundle-version="1.3.0",
+ org.spoofax.interpreter.externaldeps;bundle-version="1.3.0",
+ org.strategoxt.strj;bundle-version="1.3.0",
+ org.strategoxt.imp.generator,
+ org.strategoxt.imp.nativebundle;bundle-version="1.3.0",
+ org.spoofax.interpreter.core;bundle-version="1.3.0",
+ org.spoofax.terms;bundle-version="1.3.0"
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7
+Bundle-ActivationPolicy: lazy
+Bundle-Vendor: metaborg.org
+Export-Package: org.metaborg.spoofax.eclipse.meta.legacy.build

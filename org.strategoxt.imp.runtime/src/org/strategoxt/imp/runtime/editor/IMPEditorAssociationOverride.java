@@ -7,6 +7,12 @@ import org.eclipse.ui.IEditorRegistry;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IEditorAssociationOverride;
 
+/**
+ * @author Oskar van Rest
+ * 
+ * This editor association override makes sure that when a file is opened with IMPs editor, it is opened with Spoofax' editor instead.
+ * This feature was created to support legacy Eclipse workspaces that were created before SpoofaxEditor.java came to live.
+ */
 public class IMPEditorAssociationOverride implements IEditorAssociationOverride {
 
 	public IEditorDescriptor[] overrideEditors(IEditorInput editorInput, IContentType contentType,	IEditorDescriptor[] editorDescriptors) {
@@ -29,5 +35,4 @@ public class IMPEditorAssociationOverride implements IEditorAssociationOverride 
 
 		return editorDescriptor;
 	}
-
 }

@@ -2,6 +2,7 @@ package org.metaborg.spoofax.core.resource;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Map;
 
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
@@ -17,11 +18,15 @@ import com.google.inject.name.Named;
 public class ResourceService implements IResourceService {
     private final FileSystemManager fileSystemManager;
     private final FileSystemOptions fileSystemOptions;
+    private final Map<String, ILocalFileProvider> localFileProviders;
+
 
     @Inject public ResourceService(FileSystemManager fileSystemManager,
-        @Named("ResourceClassLoader") ClassLoader classLoader) {
+        @Named("ResourceClassLoader") ClassLoader classLoader, Map<String, ILocalFileProvider> localFileProviders) {
         this.fileSystemManager = fileSystemManager;
         this.fileSystemOptions = new FileSystemOptions();
+        this.localFileProviders = localFileProviders;
+
         if(classLoader == null)
             classLoader = this.getClass().getClassLoader();
         ResourceFileSystemConfigBuilder.getInstance().setClassLoader(fileSystemOptions, classLoader);
@@ -63,6 +68,31 @@ public class ResourceService implements IResourceService {
     @Override public FileName resolveURI(String uri) {
         try {
             return fileSystemManager.resolveURI(uri);
+        } catch(FileSystemException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override public File localFile(FileObject resource) {
+        final String scheme = resource.getName().getScheme();
+
+        if(scheme.equals("")) {
+            return new File(resource.getName().getPath());
+        }
+
+        final ILocalFileProvider provider = localFileProviders.get(scheme);
+        if(provider == null) {
+            return null;
+        }
+        return provider.localFile(resource);
+    }
+
+
+    @Override public FileObject userStorage() {
+        try {
+            final FileObject storageDir = root().resolveFile(".cache");
+            storageDir.createFolder();
+            return storageDir;
         } catch(FileSystemException e) {
             throw new RuntimeException(e);
         }
