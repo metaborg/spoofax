@@ -37,19 +37,15 @@ import org.metaborg.spoofax.core.resource.ResourceChangeKind;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
 import org.metaborg.spoofax.core.syntax.ParseException;
 import org.metaborg.spoofax.core.syntax.ParseResult;
-import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.text.ISourceTextService;
 import org.metaborg.spoofax.eclipse.SpoofaxPlugin;
 import org.metaborg.spoofax.eclipse.processing.AnalysisResultProcessor;
 import org.metaborg.spoofax.eclipse.processing.ParseResultProcessor;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
 import org.metaborg.spoofax.eclipse.util.MarkerUtils;
-import org.metaborg.spoofax.eclipse.util.StatusUtils;
-import org.metaborg.util.iterators.Iterables2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.terms.IStrategoTerm;
-import org.spoofax.interpreter.terms.ITermFactory;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
@@ -70,7 +66,6 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
     private final IContextService contextService;
     private final ISourceTextService sourceTextService;
     private final ISyntaxService<IStrategoTerm> syntaxService;
-    private final ITermFactoryService termFactoryService;
     private final IAnalysisService<IStrategoTerm, IStrategoTerm> analyzer;
 
     private final ParseResultProcessor parseResultProcessor;
@@ -84,7 +79,6 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
         this.contextService = injector.getInstance(IContextService.class);
         this.sourceTextService = injector.getInstance(ISourceTextService.class);
         this.syntaxService = injector.getInstance(Key.get(new TypeLiteral<ISyntaxService<IStrategoTerm>>() {}));
-        this.termFactoryService = injector.getInstance(ITermFactoryService.class);
         this.analyzer =
             injector.getInstance(Key.get(new TypeLiteral<IAnalysisService<IStrategoTerm, IStrategoTerm>>() {}));
 
@@ -95,14 +89,15 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
 
     @Override protected IProject[] build(int kind, Map<String, String> args, IProgressMonitor monitor)
         throws CoreException {
+        final IProject project = getProject();
         if(kind == FULL_BUILD) {
-            fullBuild(getProject(), monitor);
+            fullBuild(project, monitor);
         } else {
-            final IResourceDelta delta = getDelta(getProject());
+            final IResourceDelta delta = getDelta(project);
             if(delta == null) {
-                fullBuild(getProject(), monitor);
+                fullBuild(project, monitor);
             } else {
-                incrBuild(getProject(), delta, monitor);
+                incrBuild(project, delta, monitor);
             }
         }
 
@@ -115,38 +110,52 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
         clean(getProject(), monitor);
     }
 
-    private void clean(final IProject project, IProgressMonitor monitor) throws CoreException {
+
+    private void clean(final IProject project, IProgressMonitor monitor) {
         logger.debug("Cleaning project " + project);
-        final IWorkspaceRunnable markerDeleter = new IWorkspaceRunnable() {
-            @Override public void run(IProgressMonitor monitor) throws CoreException {
-                MarkerUtils.clearAllRec(project);
-            }
-        };
-        final IWorkspace workspace = ResourcesPlugin.getWorkspace();
-        workspace.run(markerDeleter, project, IWorkspace.AVOID_UPDATE, monitor);
+        try {
+            final IWorkspaceRunnable markerDeleter = new IWorkspaceRunnable() {
+                @Override public void run(IProgressMonitor workspaceMonitor) throws CoreException {
+                    MarkerUtils.clearAllRec(project);
+                }
+            };
+            final IWorkspace workspace = ResourcesPlugin.getWorkspace();
+            workspace.run(markerDeleter, project, IWorkspace.AVOID_UPDATE, monitor);
+        } catch(CoreException e) {
+            final String message = String.format("Cannot clean project %s", project);
+            logger.error(message, e);
+        }
     }
 
-    private void fullBuild(IProject project, IProgressMonitor monitor) throws CoreException {
+    private void fullBuild(IProject project, IProgressMonitor monitor) {
         try {
             final Iterable<IResourceChange> changes = changes(project);
             if(!Iterables.isEmpty(changes)) {
                 logger.debug("Fully building " + project);
-                build(project, changes);
+                build(project, changes, monitor);
             }
-        } catch(FileSystemException e) {
-            throw new CoreException(StatusUtils.error("Cannot retrieve resources for full build", e));
+        } catch(FileSystemException | CoreException e) {
+            final String message = String.format("Failed to fully build project %s", project);
+            logger.error(message, e);
         }
     }
 
-    private void incrBuild(IProject project, IResourceDelta delta, IProgressMonitor monitor) throws CoreException {
-        final Iterable<IResourceChange> changes = changes(delta);
-        if(!Iterables.isEmpty(changes)) {
-            logger.debug("Incrementally building " + project);
-            build(project, changes);
+    private void incrBuild(IProject project, IResourceDelta delta, IProgressMonitor monitor) {
+        try {
+            final Iterable<IResourceChange> changes = changes(delta);
+            if(!Iterables.isEmpty(changes)) {
+                logger.debug("Incrementally building " + project);
+                build(project, changes, monitor);
+            }
+        } catch(CoreException e) {
+            final String message = String.format("Failed to incrementally build project %s", project);
+            logger.error(message, e);
         }
     }
 
-    private void build(final IProject project, Iterable<IResourceChange> changes) throws CoreException {
+
+    private void build(final IProject project, Iterable<IResourceChange> changes, IProgressMonitor monitor)
+        throws CoreException {
         final int numChanges = Iterables.size(changes);
         if(numChanges == 0)
             return;
@@ -159,45 +168,37 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
         final Collection<ParseResult<IStrategoTerm>> allParseResults = Lists.newArrayListWithCapacity(numChanges);
         for(IResourceChange change : changes) {
             final FileObject resource = change.resource();
+            final IResource eclipseResource = resourceService.unresolve(resource);
             final ILanguage language = languageIdentifier.identify(resource);
             final ResourceChangeKind changeKind = change.kind();
 
             try {
-                final ParseResult<IStrategoTerm> parseResult;
                 if(changeKind == ResourceChangeKind.Delete) {
                     parseResultProcessor.remove(resource);
                     analysisResultProcessor.remove(resource);
-
-                    // LEGACY: For compatibility with existing Spoofax languages, turn deleted resources into a parse
-                    // result with () as result.
-                    final ITermFactory termFactory = termFactoryService.get(language);
-                    parseResult =
-                        new ParseResult<IStrategoTerm>(termFactory.makeTuple(), resource, Iterables2.<IMessage>empty(),
-                            0l, language);
 
                     // Don't add resource as changed when it has been deleted, because it does not exist any more
                     // according to Eclipse and will be null.
                 } else {
                     final String sourceText = sourceTextService.text(resource);
-
                     parseResultProcessor.invalidate(resource);
-                    parseResult = syntaxService.parse(sourceText, resource, language);
+                    final ParseResult<IStrategoTerm> parseResult = syntaxService.parse(sourceText, resource, language);
+                    allParseResults.add(parseResult);
                     parseResultProcessor.update(resource, parseResult);
-
-                    changedResources.add(resourceService.unresolve(resource));
+                    changedResources.add(eclipseResource);
                 }
-
-                allParseResults.add(parseResult);
             } catch(ParseException e) {
-                final String message = String.format("Parsing failed for %", resource);
+                final String message = String.format("Parsing failed for %s", resource);
                 logger.error(message, e);
                 parseResultProcessor.error(resource, e);
                 extraMessages.add(MessageFactory.newParseErrorAtTop(resource, "Parsing failed", e));
+                changedResources.add(eclipseResource);
             } catch(IOException e) {
-                final String message = String.format("Parsing failed for %", resource);
+                final String message = String.format("Parsing failed for %s", resource);
                 logger.error(message, e);
                 parseResultProcessor.error(resource, new ParseException(resource, language, e));
                 extraMessages.add(MessageFactory.newParseErrorAtTop(resource, "Parsing failed", e));
+                changedResources.add(eclipseResource);
             }
         }
 
@@ -209,9 +210,9 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
                 final IContext context = contextService.get(resource, parseResult.parsedWith);
                 allParseResultsPerContext.put(context, parseResult);
             } catch(ContextException e) {
-                final String message = String.format("Could not retrieve context for %", resource);
+                final String message = String.format("Could not retrieve context for %s", resource);
                 logger.error(message, e);
-                extraMessages.add(MessageFactory.newAnalysisErrorAtTop(resource, "Could not retrieve context", e));
+                extraMessages.add(MessageFactory.newAnalysisErrorAtTop(resource, "Failed to retrieve context", e));
             }
         }
 
@@ -240,7 +241,7 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
 
         // Update markers atomically using a workspace runnable, to prevent flashing/jumping markers.
         final IWorkspaceRunnable markerUpdater = new IWorkspaceRunnable() {
-            @Override public void run(IProgressMonitor monitor) throws CoreException {
+            @Override public void run(IProgressMonitor workspaceMonitor) throws CoreException {
                 MarkerUtils.clearAll(project);
                 for(IResource resource : changedResources) {
                     MarkerUtils.clearAll(resource);
@@ -250,7 +251,7 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
                     for(IMessage message : result.messages) {
                         final IResource resource = resourceService.unresolve(message.source());
                         if(resource == null) {
-                            logger.error("Cannot create marker for " + message.source());
+                            logger.error("Cannot create marker for {}", message.source());
                             continue;
                         }
                         MarkerUtils.createMarker(resource, message);
@@ -259,32 +260,41 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
 
                 for(AnalysisResult<IStrategoTerm, IStrategoTerm> result : allAnalysisResults) {
                     for(AnalysisFileResult<IStrategoTerm, IStrategoTerm> fileResult : result.fileResults) {
-                        for(IMessage message : fileResult.messages()) {
+                        for(IMessage message : fileResult.messages) {
                             final IResource resource = resourceService.unresolve(message.source());
                             if(resource == null) {
-                                logger.error("Cannot create marker for " + message.source());
+                                logger.error("Cannot create marker for {}", message.source());
                                 continue;
                             }
                             MarkerUtils.createMarker(resource, message);
                         }
                     }
                 }
+
+                for(IMessage message : extraMessages) {
+                    final IResource resource = resourceService.unresolve(message.source());
+                    if(resource == null) {
+                        logger.error("Cannot create marker for {}", message.source());
+                        continue;
+                    }
+                    MarkerUtils.createMarker(resource, message);
+                }
             }
         };
         final IWorkspace workspace = ResourcesPlugin.getWorkspace();
-        workspace.run(markerUpdater, project, IWorkspace.AVOID_UPDATE, null);
+        workspace.run(markerUpdater, project, IWorkspace.AVOID_UPDATE, monitor);
     }
 
     private Iterable<IResourceChange> changes(IResourceDelta delta) throws CoreException {
         final Collection<IResourceChange> changes = Lists.newLinkedList();
         delta.accept(new IResourceDeltaVisitor() {
-            @Override public boolean visit(IResourceDelta delta) throws CoreException {
-                final FileObject resource = resourceService.resolve(delta.getResource());
+            @Override public boolean visit(IResourceDelta innerDelta) throws CoreException {
+                final FileObject resource = resourceService.resolve(innerDelta.getResource());
                 if(languageIdentifier.identify(resource) == null) {
                     return true;
                 }
 
-                final int eclipseKind = delta.getKind();
+                final int eclipseKind = innerDelta.getKind();
                 final ResourceChangeKind kind;
                 // GTODO: handle move/copies better
                 switch(eclipseKind) {

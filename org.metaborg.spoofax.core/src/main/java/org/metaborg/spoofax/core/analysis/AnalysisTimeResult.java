@@ -13,6 +13,7 @@ public class AnalysisTimeResult implements Serializable {
     public final long indexPersist;
     public final long taskPersist;
 
+
     public AnalysisTimeResult(long parse, long preTrans, long collect, long taskEval, long postTrans,
         long indexPersist, long taskPersist) {
         this.parse = parse;
@@ -22,5 +23,9 @@ public class AnalysisTimeResult implements Serializable {
         this.postTrans = postTrans;
         this.indexPersist = indexPersist;
         this.taskPersist = taskPersist;
+    }
+
+    public AnalysisTimeResult() {
+        this(0, 0, 0, 0, 0, 0, 0);
     }
 }

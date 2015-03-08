@@ -27,7 +27,7 @@ public class ProjectPathPrimitive extends AbstractPrimitive {
 
     @Override public boolean call(IContext env, Strategy[] svars, IStrategoTerm[] tvars) throws InterpreterException {
         final ITermFactory factory = env.getFactory();
-        final SpoofaxContext context = (SpoofaxContext) env.contextObject();
+        final org.metaborg.spoofax.core.context.IContext context = (org.metaborg.spoofax.core.context.IContext) env.contextObject();
         final FileObject resource = context.location();
         final File localFile = resourceService.localFile(resource);
         if(localFile == null) {

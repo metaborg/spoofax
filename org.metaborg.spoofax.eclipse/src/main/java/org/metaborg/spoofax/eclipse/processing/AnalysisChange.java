@@ -28,7 +28,7 @@ public class AnalysisChange {
      */
     public static AnalysisChange update(FileObject resource, AnalysisFileResult<IStrategoTerm, IStrategoTerm> result,
         AnalysisResult<IStrategoTerm, IStrategoTerm> parentResult) {
-        return new AnalysisChange(UpdateKind.Update, result.file(), result, parentResult, null);
+        return new AnalysisChange(UpdateKind.Update, result.source, result, parentResult, null);
     }
 
     /**

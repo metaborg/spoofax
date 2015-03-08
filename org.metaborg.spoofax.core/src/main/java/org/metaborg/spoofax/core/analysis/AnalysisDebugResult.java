@@ -3,6 +3,7 @@ package org.metaborg.spoofax.core.analysis;
 import java.io.Serializable;
 
 import org.spoofax.interpreter.terms.IStrategoList;
+import org.spoofax.interpreter.terms.ITermFactory;
 
 public class AnalysisDebugResult implements Serializable {
     private static final long serialVersionUID = -8820206597109672469L;
@@ -17,6 +18,7 @@ public class AnalysisDebugResult implements Serializable {
     public final IStrategoList skippedTasks;
     public final IStrategoList unevaluatedTasks;
 
+
     public AnalysisDebugResult(int indexEntriesRemoved, int indexEntriesAdded, int tasksRemoved, int tasksAdded,
         int tasksInvalidated, IStrategoList evaluatedTasks, IStrategoList skippedTasks, IStrategoList unevaluatedTasks) {
         this.indexEntriesRemoved = indexEntriesRemoved;
@@ -27,5 +29,9 @@ public class AnalysisDebugResult implements Serializable {
         this.evaluatedTasks = evaluatedTasks;
         this.skippedTasks = skippedTasks;
         this.unevaluatedTasks = unevaluatedTasks;
+    }
+
+    public AnalysisDebugResult(ITermFactory factory) {
+        this(0, 0, 0, 0, 0, factory.makeList(), factory.makeList(), factory.makeList());
     }
 }

@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Spoofax Eclipse runtime
 Bundle-SymbolicName: org.metaborg.spoofax.eclipse;singleton:=true
-Bundle-Version: 1.4.0.qualifier
+Bundle-Version: 1.5.0.qualifier
 Bundle-Activator: org.metaborg.spoofax.eclipse.SpoofaxPlugin
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.core.filesystem,

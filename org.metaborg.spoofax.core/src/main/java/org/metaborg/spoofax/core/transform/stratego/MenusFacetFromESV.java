@@ -44,7 +44,7 @@ public class MenusFacetFromESV {
                     menu.add(action);
                     break;
                 default:
-                    logger.debug("Unhandled menu item term {}", item);
+                    logger.warn("Unhandled menu item term {}", item);
                     break;
             }
         }
@@ -95,7 +95,7 @@ public class MenusFacetFromESV {
                     flags.realtime = true;
                     break;
                 default:
-                    logger.debug("Unhandled flag term {}", flagTerm);
+                    logger.warn("Unhandled flag term {}", flagTerm);
                     break;
             }
         }

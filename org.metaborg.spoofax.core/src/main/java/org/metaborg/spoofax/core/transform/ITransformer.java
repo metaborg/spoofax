@@ -29,7 +29,7 @@ public interface ITransformer<ParseT, AnalysisT, TransT> {
      *             when transformation fails.
      */
     public abstract TransformResult<ParseResult<ParseT>, TransT> transformParsed(ParseResult<ParseT> parseResult,
-        IContext context, String transformer);
+        IContext context, String transformer) throws TransformerException;
 
     /**
      * Transforms given analysis result.
@@ -45,5 +45,6 @@ public interface ITransformer<ParseT, AnalysisT, TransT> {
      *             when transformation fails.
      */
     public abstract TransformResult<AnalysisFileResult<ParseT, AnalysisT>, TransT> transformAnalyzed(
-        AnalysisFileResult<ParseT, AnalysisT> analysisResult, IContext context, String transformer);
+        AnalysisFileResult<ParseT, AnalysisT> analysisResult, IContext context, String transformer)
+        throws TransformerException;
 }

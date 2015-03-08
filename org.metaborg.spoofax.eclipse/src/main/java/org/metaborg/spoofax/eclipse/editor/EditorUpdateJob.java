@@ -13,11 +13,11 @@ import org.eclipse.jface.text.TextPresentation;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IFileEditorInput;
+import org.metaborg.spoofax.core.SpoofaxException;
 import org.metaborg.spoofax.core.analysis.AnalysisException;
 import org.metaborg.spoofax.core.analysis.AnalysisFileResult;
 import org.metaborg.spoofax.core.analysis.AnalysisResult;
 import org.metaborg.spoofax.core.analysis.IAnalysisService;
-import org.metaborg.spoofax.core.context.ContextException;
 import org.metaborg.spoofax.core.context.IContext;
 import org.metaborg.spoofax.core.context.IContextService;
 import org.metaborg.spoofax.core.language.ILanguage;
@@ -97,39 +97,45 @@ public class EditorUpdateJob extends Job {
     @Override protected IStatus run(final IProgressMonitor monitor) {
         logger.debug("Running editor update job for {}", input.getFile());
 
+        final IWorkspace workspace = ResourcesPlugin.getWorkspace();
+
         try {
-            return update(monitor);
-        } catch(ParseException | ContextException | AnalysisException | CoreException e) {
-            String message = String.format("Updating editor for % failed", input);
+            return update(workspace, monitor);
+        } catch(SpoofaxException | CoreException e) {
+            if(monitor.isCanceled())
+                return StatusUtils.cancel();
+
+            try {
+                final IWorkspaceRunnable parseMarkerUpdater = new IWorkspaceRunnable() {
+                    @Override public void run(IProgressMonitor workspaceMonitor) throws CoreException {
+                        if(workspaceMonitor.isCanceled())
+                            return;
+                        MarkerUtils.clearAll(eclipseResource);
+                        MarkerUtils.createMarker(eclipseResource, MessageFactory.newErrorAtTop(resource,
+                            "Failed to update editor", MessageType.INTERNAL_MESSAGE, null));
+                    }
+                };
+                workspace.run(parseMarkerUpdater, eclipseResource, IWorkspace.AVOID_UPDATE, monitor);
+            } catch(CoreException e2) {
+                final String message = "Failed to show internal error marker";
+                logger.error(message, e2);
+                return StatusUtils.silentError(message, e2);
+            }
+
+            final String message = String.format("Failed to update editor for %s", resource);
             logger.error(message, e);
-            return StatusUtils.error(message, e);
+            return StatusUtils.silentError(message, e);
         }
     }
 
 
-    private IStatus update(final IProgressMonitor monitor) throws ParseException, AnalysisException, CoreException,
-        ContextException {
+    private IStatus update(IWorkspace workspace, final IProgressMonitor monitor) throws SpoofaxException, CoreException {
         final Display display = Display.getDefault();
-        final IWorkspace workspace = ResourcesPlugin.getWorkspace();
 
         // Identify language
         final ILanguage language = languageIdentifierService.identify(resource);
         if(language == null) {
-            final IWorkspaceRunnable parseMarkerUpdater = new IWorkspaceRunnable() {
-                @Override public void run(IProgressMonitor workspaceMonitor) throws CoreException {
-                    if(workspaceMonitor.isCanceled())
-                        return;
-                    MarkerUtils.clearAll(eclipseResource);
-                    MarkerUtils.createMarker(eclipseResource, MessageFactory.newErrorAtTop(resource,
-                        "Language could not be identified", MessageType.INTERNAL_MESSAGE, null));
-                }
-            };
-            workspace.run(parseMarkerUpdater, eclipseResource, IWorkspace.AVOID_UPDATE, monitor);
-
-            final String message =
-                String.format("Updating editor for %s failed, language could not be identified", input);
-            logger.error(message);
-            return StatusUtils.error(message);
+            throw new SpoofaxException("Language could not be identified");
         }
 
         // Parse
@@ -152,6 +158,7 @@ public class EditorUpdateJob extends Job {
             @Override public void run(IProgressMonitor workspaceMonitor) throws CoreException {
                 if(workspaceMonitor.isCanceled())
                     return;
+                MarkerUtils.clearInternal(eclipseResource);
                 MarkerUtils.clearParser(eclipseResource);
                 for(IMessage message : parseResult.messages) {
                     MarkerUtils.createMarker(eclipseResource, message);
@@ -208,9 +215,10 @@ public class EditorUpdateJob extends Job {
             @Override public void run(IProgressMonitor workspaceMonitor) throws CoreException {
                 if(workspaceMonitor.isCanceled())
                     return;
+                MarkerUtils.clearInternal(eclipseResource);
                 MarkerUtils.clearAnalysis(eclipseResource);
                 for(AnalysisFileResult<IStrategoTerm, IStrategoTerm> fileResult : analysisResult.fileResults) {
-                    for(IMessage message : fileResult.messages()) {
+                    for(IMessage message : fileResult.messages) {
                         MarkerUtils.createMarker(eclipseResource, message);
                     }
                 }

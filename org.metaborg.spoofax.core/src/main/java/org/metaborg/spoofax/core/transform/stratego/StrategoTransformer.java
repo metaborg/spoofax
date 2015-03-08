@@ -2,6 +2,7 @@ package org.metaborg.spoofax.core.transform.stratego;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
+import org.metaborg.spoofax.core.SpoofaxException;
 import org.metaborg.spoofax.core.analysis.AnalysisFileResult;
 import org.metaborg.spoofax.core.context.IContext;
 import org.metaborg.spoofax.core.language.ILanguage;
@@ -38,7 +39,7 @@ public class StrategoTransformer implements ITransformer<IStrategoTerm, IStrateg
 
 
     @Override public TransformResult<ParseResult<IStrategoTerm>, IStrategoTerm> transformParsed(
-        ParseResult<IStrategoTerm> parseResult, IContext context, String transformer) {
+        ParseResult<IStrategoTerm> parseResult, IContext context, String transformer) throws TransformerException {
         final MenusFacet facet = context.language().facet(MenusFacet.class);
         checkFacet(facet, context.language(), transformer);
         final Action action = facet.action(transformer);
@@ -46,10 +47,23 @@ public class StrategoTransformer implements ITransformer<IStrategoTerm, IStrateg
         final FileObject resource = parseResult.source;
         final ITermFactory termFactory = termFactoryService.getGeneric();
         final IStrategoTerm inputTerm = inputTerm(termFactory, parseResult.result, resource, context.location());
-        final HybridInterpreter runtime = strategoRuntimeService.runtime(context);
-        final Timer timer = new Timer(true);
-        final IStrategoTerm result = StrategoRuntimeUtils.invoke(runtime, inputTerm, action.strategy);
-        final long duration = timer.stop();
+        
+        final HybridInterpreter runtime;
+        try {
+            runtime = strategoRuntimeService.runtime(context);
+        } catch(SpoofaxException e) {
+            throw new TransformerException("Failed to get Stratego interpreter", e);
+        }
+        
+        final IStrategoTerm result;
+        final long duration;
+        try {
+            final Timer timer = new Timer(true);
+            result = StrategoRuntimeUtils.invoke(runtime, inputTerm, action.strategy);
+            duration = timer.stop();
+        } catch(SpoofaxException e) {
+            throw new TransformerException("Stratego invocation failed", e);
+        }
 
         final TransformResult<ParseResult<IStrategoTerm>, IStrategoTerm> transResult =
             new TransformResult<ParseResult<IStrategoTerm>, IStrategoTerm>(result, Iterables2.<IMessage>empty(),
@@ -59,18 +73,31 @@ public class StrategoTransformer implements ITransformer<IStrategoTerm, IStrateg
 
     @Override public TransformResult<AnalysisFileResult<IStrategoTerm, IStrategoTerm>, IStrategoTerm>
         transformAnalyzed(AnalysisFileResult<IStrategoTerm, IStrategoTerm> analysisResult, IContext context,
-            String transformer) {
+            String transformer) throws TransformerException {
         final MenusFacet facet = context.language().facet(MenusFacet.class);
         checkFacet(facet, context.language(), transformer);
         final Action action = facet.action(transformer);
 
-        final FileObject resource = analysisResult.file();
+        final FileObject resource = analysisResult.source;
         final ITermFactory termFactory = termFactoryService.getGeneric();
-        final IStrategoTerm inputTerm = inputTerm(termFactory, analysisResult.result(), resource, context.location());
-        final HybridInterpreter runtime = strategoRuntimeService.runtime(context);
-        final Timer timer = new Timer(true);
-        final IStrategoTerm result = StrategoRuntimeUtils.invoke(runtime, inputTerm, action.strategy);
-        final long duration = timer.stop();
+        final IStrategoTerm inputTerm = inputTerm(termFactory, analysisResult.result, resource, context.location());
+        
+        final HybridInterpreter runtime;
+        try {
+            runtime = strategoRuntimeService.runtime(context);
+        } catch(SpoofaxException e) {
+            throw new TransformerException("Failed to get Stratego interpreter", e);
+        }
+        
+        final IStrategoTerm result;
+        final long duration;
+        try {
+            final Timer timer = new Timer(true);
+            result = StrategoRuntimeUtils.invoke(runtime, inputTerm, action.strategy);
+            duration = timer.stop();
+        } catch(SpoofaxException e) {
+            throw new TransformerException("Stratego invocation failed", e);
+        }
 
         final TransformResult<AnalysisFileResult<IStrategoTerm, IStrategoTerm>, IStrategoTerm> transResult =
             new TransformResult<AnalysisFileResult<IStrategoTerm, IStrategoTerm>, IStrategoTerm>(result,
@@ -79,17 +106,17 @@ public class StrategoTransformer implements ITransformer<IStrategoTerm, IStrateg
         return transResult;
     }
 
-    private void checkFacet(MenusFacet facet, ILanguage language, String transformer) {
+    private void checkFacet(MenusFacet facet, ILanguage language, String transformer) throws TransformerException {
         if(facet == null) {
             final String message =
-                String.format("No menus facet found for %s, cannot perform transformation", language);
+                String.format("No menus facet found for %s", language);
             logger.error(message);
             throw new TransformerException(message);
         }
 
         if(facet.action(transformer) == null) {
             final String message =
-                String.format("Transformer %s not found in %s, cannot perform transformation", transformer, language);
+                String.format("Transformer %s not found in %s", transformer, language);
             logger.error(message);
             throw new TransformerException(message);
         }

@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.core.syntax;
 
-import java.util.Collection;
+import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.language.ILanguage;
@@ -9,14 +9,15 @@ import org.metaborg.spoofax.core.messages.IMessage;
 import com.google.common.collect.Lists;
 
 public class ParseResult<T> {
-    public final T result;
+    public final @Nullable T result;
     public final FileObject source;
-    public final Collection<IMessage> messages;
+    public final Iterable<IMessage> messages;
     public final long duration;
     public final ILanguage parsedWith;
 
 
-    public ParseResult(T result, FileObject source, Iterable<IMessage> messages, long duration, ILanguage parsedWith) {
+    public ParseResult(@Nullable T result, FileObject source, Iterable<IMessage> messages, long duration,
+        ILanguage parsedWith) {
         this.result = result;
         this.source = source;
         this.messages = Lists.newLinkedList(messages);
@@ -27,10 +28,10 @@ public class ParseResult<T> {
 
     @Override public int hashCode() {
         final int prime = 31;
-        int result = 1;
-        result = prime * result + ((this.result == null) ? 0 : this.result.hashCode());
-        result = prime * result + ((source == null) ? 0 : source.hashCode());
-        return result;
+        int hashResult = 1;
+        hashResult = prime * hashResult + ((this.result == null) ? 0 : result.hashCode());
+        hashResult = prime * hashResult + source.hashCode();
+        return hashResult;
     }
 
     @Override public boolean equals(Object obj) {
@@ -47,16 +48,16 @@ public class ParseResult<T> {
                 return false;
         } else if(!result.equals(other.result))
             return false;
-        if(source == null) {
-            if(other.source != null)
-                return false;
-        } else if(!source.equals(other.source))
+        if(!source.equals(other.source))
             return false;
-
+        
         return true;
     }
 
     @Override public String toString() {
+        if(result == null) {
+            return "null";
+        }
         return result.toString();
     }
 }

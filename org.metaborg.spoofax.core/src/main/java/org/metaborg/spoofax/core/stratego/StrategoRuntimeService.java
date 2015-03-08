@@ -3,13 +3,13 @@ package org.metaborg.spoofax.core.stratego;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.spoofax.core.SpoofaxException;
 import org.metaborg.spoofax.core.analysis.stratego.StrategoFacet;
 import org.metaborg.spoofax.core.context.IContext;
 import org.metaborg.spoofax.core.language.ILanguage;
@@ -23,7 +23,6 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.imploder.ImploderOriginTermFactory;
 import org.strategoxt.HybridInterpreter;
 import org.strategoxt.IncompatibleJarException;
-import org.strategoxt.NoInteropRegistererJarException;
 
 import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
@@ -46,7 +45,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
     }
 
 
-    @Override public HybridInterpreter runtime(IContext context) {
+    @Override public HybridInterpreter runtime(IContext context) throws SpoofaxException {
         final ILanguage language = context.language();
         HybridInterpreter prototype = prototypes.get(language);
         if(prototype == null) {
@@ -61,6 +60,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
         agent.setAbsoluteDefinitionDir(context.language().location());
         interpreter.setIOAgent(agent);
         interpreter.getContext().setContextObject(context);
+        interpreter.getCompiledContext().setContextObject(context);
         interpreter.getCompiledContext().getExceptionHandler().setEnabled(false);
         interpreter.init();
 
@@ -82,7 +82,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
     }
 
 
-    private HybridInterpreter createPrototypeRuntime(ILanguage language) {
+    private HybridInterpreter createPrototypeRuntime(ILanguage language) throws SpoofaxException {
         logger.debug("Creating prototype runtime for {}", language);
 
         final ITermFactory factory = new ImploderOriginTermFactory(termFactoryService.get(language));
@@ -102,7 +102,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
         return interpreter;
     }
 
-    private void loadCompilerFiles(HybridInterpreter interp, ILanguage lang) {
+    private void loadCompilerFiles(HybridInterpreter interp, ILanguage lang) throws SpoofaxException {
         final StrategoFacet strategoFacet = lang.facet(StrategoFacet.class);
         final Iterable<FileObject> jars = strategoFacet.jarFiles();
         final Iterable<FileObject> ctrees = strategoFacet.ctreeFiles();
@@ -114,7 +114,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
             loadCompilerJar(interp, jars);
     }
 
-    private void loadCompilerJar(HybridInterpreter interp, Iterable<FileObject> jars) {
+    private void loadCompilerJar(HybridInterpreter interp, Iterable<FileObject> jars) throws SpoofaxException {
         try {
             final URL[] classpath = new URL[Iterables.size(jars)];
             int i = 0;
@@ -128,29 +128,20 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
             }
             logger.trace("Loading jar files {}", (Object) classpath);
             interp.loadJars(classpath);
-        } catch(MalformedURLException e) {
-            throw new RuntimeException("Failed to load JAR", e);
-        } catch(SecurityException e) {
-            throw new RuntimeException("Failed to load JAR", e);
-        } catch(NoInteropRegistererJarException e) {
-            throw new RuntimeException("Failed to load JAR", e);
-        } catch(IncompatibleJarException e) {
-            throw new RuntimeException("Failed to load JAR", e);
-        } catch(IOException e) {
-            throw new RuntimeException("Failed to load JAR", e);
+        } catch(IncompatibleJarException | IOException e) {
+            throw new SpoofaxException("Failed to load JAR", e);
         }
     }
 
-    private static void loadCompilerCTree(HybridInterpreter interp, Iterable<FileObject> ctrees) {
+    private static void loadCompilerCTree(HybridInterpreter interp, Iterable<FileObject> ctrees)
+        throws SpoofaxException {
         try {
             for(FileObject file : ctrees) {
                 logger.trace("Loading ctree {}", file.getName());
                 interp.load(new BufferedInputStream(file.getContent().getInputStream()));
             }
-        } catch(IOException e) {
-            throw new RuntimeException("Failed to load ctree", e);
-        } catch(InterpreterException e) {
-            throw new RuntimeException("Failed to load ctree", e);
+        } catch(IOException | InterpreterException e) {
+            throw new SpoofaxException("Failed to load ctree", e);
         }
     }
 }
