@@ -50,14 +50,13 @@ public class EclipseResourceService extends ResourceService implements IEclipseR
                 logger.error("Could not unresolve resource {} to an Eclipse resource", resource);
                 return null;
             }
-        } else {
-            // LEGACY: analysis returns messages with local file resources, we need to resolve these to Eclipse
-            // resources to show markers.
-            // GTODO: support absolute resources
-            final IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-            final String relativePath = resource.getName().getPath();
-            return root.findMember(relativePath);
         }
+        // LEGACY: analysis returns messages with local file resources, we need to resolve these to Eclipse
+        // resources to show markers.
+        // GTODO: support absolute resources
+        final IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+        final String relativePath = resource.getName().getPath();
+        return root.findMember(relativePath);
     }
 
 

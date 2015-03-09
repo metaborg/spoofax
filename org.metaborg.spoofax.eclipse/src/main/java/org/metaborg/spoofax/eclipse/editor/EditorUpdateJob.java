@@ -69,8 +69,7 @@ public class EditorUpdateJob extends Job {
         AnalysisResultProcessor analysisResultProcessor, IFileEditorInput input, IResource eclipseResource,
         FileObject resource, ISourceViewer sourceViewer, String text) {
         super("Updating Spoofax editor");
-        setSystem(true);
-        setPriority(Job.BUILD);
+        setPriority(Job.SHORT);
 
         this.languageIdentifierService = languageIdentifierService;
         this.contextService = contextService;
@@ -95,7 +94,7 @@ public class EditorUpdateJob extends Job {
     }
 
     @Override protected IStatus run(final IProgressMonitor monitor) {
-        logger.debug("Running editor update job for {}", input.getFile());
+        logger.debug("Running editor update job for {}", resource);
 
         final IWorkspace workspace = ResourcesPlugin.getWorkspace();
 
@@ -126,6 +125,10 @@ public class EditorUpdateJob extends Job {
             logger.error(message, e);
             return StatusUtils.silentError(message, e);
         }
+    }
+    
+    @Override protected void canceling() {
+        logger.info("Cancelling editor update job for {}", resource);
     }
 
 
