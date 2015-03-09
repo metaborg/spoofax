@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Map;
 
 import javax.annotation.Nullable;
 
@@ -50,6 +51,7 @@ import org.strategoxt.lang.Context;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
@@ -237,6 +239,7 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
 
         logger.trace("Creating input terms for analysis (File/3 terms)");
         final Collection<IStrategoAppl> analysisInputs = Lists.newLinkedList();
+        final Map<String, FileObject> originalSources = Maps.newHashMap();
         for(ParseResult<IStrategoTerm> input : inputs) {
             if(input.result == null) {
                 logger.warn("Input result for {} is null, cannot analyze it", input.source);
@@ -251,10 +254,11 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
                 continue;
             }
 
-            final IStrategoString path =
-                termFactory.makeString(localContextLocation.toURI().relativize(localResource.toURI()).getPath());
-            analysisInputs
-                .add(termFactory.makeAppl(fileCons, path, input.result, termFactory.makeReal(input.duration)));
+            final String path = localContextLocation.toURI().relativize(localResource.toURI()).getPath();
+            final IStrategoString pathTerm = termFactory.makeString(path);
+            originalSources.put(path, resource);
+            analysisInputs.add(termFactory.makeAppl(fileCons, pathTerm, input.result,
+                termFactory.makeReal(input.duration)));
         }
         final IStrategoTerm inputTerm = termFactory.makeList(analysisInputs);
 
@@ -288,7 +292,12 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
         logger.trace("Analysis contains {} results. Converting to analysis results", numItems);
         final Collection<AnalysisFileResult<IStrategoTerm, IStrategoTerm>> fileResults = Sets.newHashSet();
         for(IStrategoTerm result : fileResultsTerm) {
-            fileResults.add(multiASTMakeResult(result, language));
+            final AnalysisFileResult<IStrategoTerm, IStrategoTerm> fileResult =
+                multiASTMakeResult(result, language, originalSources);
+            if(fileResult == null) {
+                continue;
+            }
+            fileResults.add(fileResult);
         }
 
         final Collection<String> affectedPartitions = makeAffectedPartitions(affectedPartitionsTerm);
@@ -299,20 +308,26 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
             timeResult);
     }
 
-    private AnalysisFileResult<IStrategoTerm, IStrategoTerm> multiASTMakeResult(IStrategoTerm res, ILanguage language) {
+    private AnalysisFileResult<IStrategoTerm, IStrategoTerm> multiASTMakeResult(IStrategoTerm res, ILanguage language,
+        Map<String, FileObject> originalSources) {
         assert res != null;
         assert res.getSubtermCount() == 8;
 
-        FileObject file = resourceService.resolve(((IStrategoString) res.getSubterm(2)).stringValue());
-        Collection<IMessage> messages = Sets.newHashSet();
-        messages.addAll(StrategoAnalysisService.makeMessages(file, MessageSeverity.ERROR, res.getSubterm(5)));
-        messages.addAll(StrategoAnalysisService.makeMessages(file, MessageSeverity.WARNING, res.getSubterm(6)));
-        messages.addAll(StrategoAnalysisService.makeMessages(file, MessageSeverity.NOTE, res.getSubterm(7)));
-        IStrategoTerm ast = res.getSubterm(4);
-        IStrategoTerm previousAst = res.getSubterm(3);
+        final String file = Tools.asJavaString(res.getSubterm(2));
+        final FileObject resource = originalSources.get(file);
+        if(resource == null) {
+            logger.error("Cannot find original source for {}, skipping result", file);
+            return null;
+        }
+        final Collection<IMessage> messages = Sets.newHashSet();
+        messages.addAll(StrategoAnalysisService.makeMessages(resource, MessageSeverity.ERROR, res.getSubterm(5)));
+        messages.addAll(StrategoAnalysisService.makeMessages(resource, MessageSeverity.WARNING, res.getSubterm(6)));
+        messages.addAll(StrategoAnalysisService.makeMessages(resource, MessageSeverity.NOTE, res.getSubterm(7)));
+        final IStrategoTerm ast = res.getSubterm(4);
+        final IStrategoTerm previousAst = res.getSubterm(3);
 
-        return new AnalysisFileResult<IStrategoTerm, IStrategoTerm>(ast, file, messages,
-            new ParseResult<IStrategoTerm>(previousAst, file, Arrays.asList(new IMessage[] {}), -1, language));
+        return new AnalysisFileResult<IStrategoTerm, IStrategoTerm>(ast, resource, messages,
+            new ParseResult<IStrategoTerm>(previousAst, resource, Arrays.asList(new IMessage[] {}), -1, language));
     }
 
     private Collection<String> makeAffectedPartitions(IStrategoTerm affectedTerm) {
