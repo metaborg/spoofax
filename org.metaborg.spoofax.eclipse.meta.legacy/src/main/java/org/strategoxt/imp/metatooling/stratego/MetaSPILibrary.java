@@ -6,16 +6,13 @@ import org.eclipse.core.runtime.Platform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.strategoxt.stratego_xtc.xtc_command_1_0;
-import org.strategoxt.strc.parse_stratego_file_0_0;
 
 public class MetaSPILibrary {
     private static final Logger logger = LoggerFactory.getLogger(MetaSPILibrary.class);
 
 
     public static void init() {
-        // parse_stratego_file_0_0.instance = new IMPParseStrategoFileStrategy();
-
-        SDFBundleCommand nativeBundle = new SDFBundleCommand();
+        NativeBundleCommand nativeBundle = new NativeBundleCommand();
         xtc_command_1_0.instance = nativeBundle;
 
         try {

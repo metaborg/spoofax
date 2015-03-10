@@ -178,19 +178,24 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
         final Collection<AnalysisFileResult<IStrategoTerm, IStrategoTerm>> results = Lists.newLinkedList();
         for(P2<ParseResult<IStrategoTerm>, IStrategoTuple> input : analysisInputs) {
             final ParseResult<IStrategoTerm> parseResult = input._1();
+            final FileObject resource = parseResult.source;
             final IStrategoTuple inputTerm = input._2();
             try {
+                logger.trace("Analysing {}", resource);
                 final IStrategoTerm resultTerm = StrategoRuntimeUtils.invoke(interpreter, inputTerm, analysisStrategy);
                 if(resultTerm == null) {
+                    logger.trace("Analysis for {} failed", resource);
                     results.add(singleASTMakeResult(analysisFailedMessage(interpreter), parseResult, null));
                 } else if(!(resultTerm instanceof IStrategoTuple)) {
+                    logger.trace("Analysis for {} has unexpected result", resource);
                     results.add(singleASTMakeResult(String.format("Unexpected results from analysis {}", resultTerm),
                         parseResult, null));
                 } else {
-                    logger.trace("Analysis resulted in a {} tuple", resultTerm.getSubtermCount());
+                    logger.trace("Analysis for {} done", resource);
                     results.add(singleASTMakeResult(resultTerm, parseResult));
                 }
             } catch(SpoofaxException e) {
+                logger.trace("Analysis for {} failed", resource);
                 results.add(singleASTMakeResult(analysisFailedMessage(interpreter), parseResult, e));
             }
         }
