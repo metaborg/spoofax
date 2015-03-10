@@ -184,6 +184,9 @@ public class EditorUpdateJob extends Job {
             }
         };
         workspace.run(parseMarkerUpdater, eclipseResource, IWorkspace.AVOID_UPDATE, monitor);
+        
+        if(parseResult.result == null)
+            return StatusUtils.silentError();
 
         // Style
         if(monitor.isCanceled())
