@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileType;
+import org.metaborg.spoofax.core.SpoofaxRuntimeException;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
 import org.metaborg.spoofax.core.resource.IResourceService;
@@ -43,19 +44,36 @@ public class ParseFilePrimitive extends AbstractPrimitive {
         throws InterpreterException {
         if(!Tools.isTermString(terms[0]))
             return false;
+        if(!Tools.isTermString(terms[3]))
+            return false;
 
         try {
-            final String path = Tools.asJavaString(terms[0]);
-            final FileObject resource = resourceService.resolve(path);
+            final String pathOrInput = Tools.asJavaString(terms[0]);
+            final String pathOrInput2 = Tools.asJavaString(terms[3]);
+            FileObject resource;
+            String input;
+            try {
+                resource = resourceService.resolve(pathOrInput);
+                if(resource.getType() != FileType.FILE) {
+                    resource = resourceService.resolve(pathOrInput2);
+                    input = pathOrInput;
+                } else {
+                    input = sourceTextService.text(resource);
+                }
+            } catch(SpoofaxRuntimeException e) {
+                resource = resourceService.resolve(pathOrInput2);
+                input = pathOrInput;
+            }
+
             if(resource.getType() != FileType.FILE) {
                 return false;
             }
+
             final ILanguage language = languageIdentifierService.identify(resource);
             if(language == null) {
                 return false;
             }
-            final String text = sourceTextService.text(resource);
-            final ParseResult<IStrategoTerm> result = syntaxService.parse(text, resource, language);
+            final ParseResult<IStrategoTerm> result = syntaxService.parse(input, resource, language);
             if(result.result == null) {
                 return false;
             }
