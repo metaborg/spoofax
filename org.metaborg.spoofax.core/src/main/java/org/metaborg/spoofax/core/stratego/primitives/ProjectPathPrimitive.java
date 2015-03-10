@@ -1,9 +1,8 @@
-package org.metaborg.spoofax.eclipse.stratego.primitives;
+package org.metaborg.spoofax.core.stratego.primitives;
 
 import java.io.File;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.spoofax.core.context.SpoofaxContext;
 import org.metaborg.spoofax.core.resource.IResourceService;
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.InterpreterException;
@@ -25,9 +24,11 @@ public class ProjectPathPrimitive extends AbstractPrimitive {
     }
 
 
-    @Override public boolean call(IContext env, Strategy[] svars, IStrategoTerm[] tvars) throws InterpreterException {
+    @Override public boolean call(IContext env, Strategy[] strategies, IStrategoTerm[] terms)
+        throws InterpreterException {
         final ITermFactory factory = env.getFactory();
-        final org.metaborg.spoofax.core.context.IContext context = (org.metaborg.spoofax.core.context.IContext) env.contextObject();
+        final org.metaborg.spoofax.core.context.IContext context =
+            (org.metaborg.spoofax.core.context.IContext) env.contextObject();
         final FileObject resource = context.location();
         final File localFile = resourceService.localFile(resource);
         if(localFile == null) {

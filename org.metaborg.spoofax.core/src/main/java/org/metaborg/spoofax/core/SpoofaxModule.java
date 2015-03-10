@@ -27,6 +27,13 @@ import org.metaborg.spoofax.core.resource.LocalFileProvider;
 import org.metaborg.spoofax.core.resource.ResourceService;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeService;
+import org.metaborg.spoofax.core.stratego.primitives.DummyPrimitive;
+import org.metaborg.spoofax.core.stratego.primitives.ParseFilePrimitive;
+import org.metaborg.spoofax.core.stratego.primitives.ProjectPathPrimitive;
+import org.metaborg.spoofax.core.stratego.primitives.SpoofaxJSGLRLibrary;
+import org.metaborg.spoofax.core.stratego.primitives.SpoofaxPrimitiveLibrary;
+import org.metaborg.spoofax.core.stratego.strategies.ParseFileStrategy;
+import org.metaborg.spoofax.core.stratego.strategies.ParseStrategoFileStrategy;
 import org.metaborg.spoofax.core.style.CategorizerService;
 import org.metaborg.spoofax.core.style.ICategorizerService;
 import org.metaborg.spoofax.core.style.IStylerService;
@@ -133,10 +140,30 @@ public class SpoofaxModule extends AbstractModule {
             .in(Singleton.class);
         bind(IStrategoRuntimeService.class).to(StrategoRuntimeService.class).in(Singleton.class);
 
+        bind(ParseFileStrategy.class).in(Singleton.class);
+        bind(ParseStrategoFileStrategy.class).in(Singleton.class);
+
         final Multibinder<IOperatorRegistry> libraryBinder =
             Multibinder.newSetBinder(binder(), IOperatorRegistry.class);
         bindPrimitiveLibrary(libraryBinder, TaskLibrary.class);
         bindPrimitiveLibrary(libraryBinder, LegacyIndexLibrary.class);
+        bindPrimitiveLibrary(libraryBinder, SpoofaxPrimitiveLibrary.class);
+        bindPrimitiveLibrary(libraryBinder, SpoofaxJSGLRLibrary.class);
+
+        final Multibinder<AbstractPrimitive> spoofaxPrimitiveLibrary =
+            Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named("SpoofaxPrimitiveLibrary"));
+        bindPrimitive(spoofaxPrimitiveLibrary, ProjectPathPrimitive.class);
+        bindPrimitive(spoofaxPrimitiveLibrary, new DummyPrimitive("SSL_EXT_set_total_work_units", 0, 0));
+        bindPrimitive(spoofaxPrimitiveLibrary, new DummyPrimitive("SSL_EXT_set_markers", 0, 1));
+        bindPrimitive(spoofaxPrimitiveLibrary, new DummyPrimitive("SSL_EXT_refreshresource", 0, 1));
+        bindPrimitive(spoofaxPrimitiveLibrary, new DummyPrimitive("SSL_EXT_queue_strategy", 0, 2));
+        bindPrimitive(spoofaxPrimitiveLibrary, new DummyPrimitive("SSL_EXT_complete_work_unit", 0, 0));
+
+        final Multibinder<AbstractPrimitive> spoofaxJSGLRLibrary =
+            Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named("SpoofaxJSGLRLibrary"));
+        bindPrimitive(spoofaxJSGLRLibrary, ParseFilePrimitive.class);
+        bindPrimitive(spoofaxJSGLRLibrary, new DummyPrimitive("STRSGLR_open_parse_table", 0, 1));
+        bindPrimitive(spoofaxJSGLRLibrary, new DummyPrimitive("STRSGLR_close_parse_table", 0, 1));
     }
 
     protected void bindTransformer() {

@@ -11,6 +11,8 @@ import org.metaborg.spoofax.core.syntax.ParseException;
 import org.metaborg.spoofax.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.imploder.IToken;
@@ -23,6 +25,8 @@ import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 
 public class JSGLRParseService implements ISyntaxService<IStrategoTerm> {
+    private static final Logger logger = LoggerFactory.getLogger(JSGLRParseService.class);
+    
     private final ITermFactoryService termFactoryService;
     private final ParseTableManager parseTableManager;
 
@@ -42,6 +46,7 @@ public class JSGLRParseService implements ISyntaxService<IStrategoTerm> {
         throws ParseException {
         final IParserConfig config = getParserConfig(language);
         try {
+            logger.trace("Parsing {}", resource);
             final JSGLRI parser = new JSGLRI(config, termFactoryService.get(language), language, resource, text);
             return parser.parse();
         } catch(IOException e) {
