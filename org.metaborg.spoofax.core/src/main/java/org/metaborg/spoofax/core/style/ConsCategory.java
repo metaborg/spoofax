@@ -12,4 +12,9 @@ public class ConsCategory implements ICategory {
     @Override public String name() {
         return "_." + cons;
     }
+
+
+    @Override public String toString() {
+        return name();
+    }
 }

@@ -12,4 +12,9 @@ public class TokenCategory implements ICategory {
     @Override public String name() {
         return token;
     }
+
+
+    @Override public String toString() {
+        return name();
+    }
 }
