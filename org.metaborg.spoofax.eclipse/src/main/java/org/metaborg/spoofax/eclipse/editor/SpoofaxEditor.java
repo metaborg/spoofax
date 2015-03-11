@@ -2,6 +2,7 @@ package org.metaborg.spoofax.eclipse.editor;
 
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentListener;
+import org.eclipse.jface.text.ITextViewerExtension4;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.IVerticalRuler;
 import org.eclipse.swt.widgets.Composite;
@@ -17,6 +18,7 @@ public class SpoofaxEditor extends TextEditor {
 
     private final Processor processor;
     private final IPropertyListener editorInputListener;
+    private final PresentationMerger presentationMerger;
 
     private IEditorInput currentInput;
     private IDocument currentDocument;
@@ -34,6 +36,7 @@ public class SpoofaxEditor extends TextEditor {
                 }
             }
         };
+        this.presentationMerger = new PresentationMerger();
 
         setDocumentProvider(new SpoofaxDocumentProvider());
     }
@@ -56,13 +59,17 @@ public class SpoofaxEditor extends TextEditor {
         // Store current input and document so we have access to them when the editor input changes.
         currentInput = getEditorInput();
         currentDocument = getDocumentProvider().getDocument(currentInput);
-        currentDocumentListener = new SpoofaxDocumentListener(currentInput, sourceViewer, processor);
+        currentDocumentListener =
+            new SpoofaxDocumentListener(currentInput, sourceViewer, processor, presentationMerger);
         currentDocument.addDocumentListener(currentDocumentListener);
 
         // Register for changes in the editor input, to handle renaming or moving of resources of open editors.
         this.addPropertyListener(editorInputListener);
 
-        processor.editorOpen(currentInput, sourceViewer, currentDocument.get());
+        final ITextViewerExtension4 ext = (ITextViewerExtension4) sourceViewer;
+        ext.addTextPresentationListener(presentationMerger);
+
+        processor.editorOpen(currentInput, sourceViewer, currentDocument.get(), presentationMerger);
 
         return sourceViewer;
     }
@@ -71,6 +78,8 @@ public class SpoofaxEditor extends TextEditor {
         currentDocument.removeDocumentListener(currentDocumentListener);
         this.removePropertyListener(editorInputListener);
         processor.editorClose(currentInput);
+        final ITextViewerExtension4 ext = (ITextViewerExtension4) getSourceViewer();
+        ext.removeTextPresentationListener(presentationMerger);
         super.dispose();
     }
 
@@ -85,9 +94,10 @@ public class SpoofaxEditor extends TextEditor {
         oldDocument.removeDocumentListener(currentDocumentListener);
         currentInput = getEditorInput();
         currentDocument = getDocumentProvider().getDocument(currentInput);
-        currentDocumentListener = new SpoofaxDocumentListener(currentInput, sourceViewer, processor);
+        currentDocumentListener =
+            new SpoofaxDocumentListener(currentInput, sourceViewer, processor, presentationMerger);
         currentDocument.addDocumentListener(currentDocumentListener);
 
-        processor.editorInputChange(oldInput, currentInput, sourceViewer, currentDocument.get());
+        processor.editorInputChange(oldInput, currentInput, sourceViewer, currentDocument.get(), presentationMerger);
     }
 }

@@ -23,6 +23,7 @@ import org.metaborg.spoofax.core.style.ICategorizerService;
 import org.metaborg.spoofax.core.style.IStylerService;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
 import org.metaborg.spoofax.eclipse.editor.EditorUpdateJob;
+import org.metaborg.spoofax.eclipse.editor.PresentationMerger;
 import org.metaborg.spoofax.eclipse.job.GlobalSchedulingRules;
 import org.metaborg.spoofax.eclipse.language.AssociateLanguageJob;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
@@ -192,8 +193,9 @@ public class Processor {
      * @param text
      *            Initial input text of the editor.
      */
-    public void editorOpen(IEditorInput input, ISourceViewer viewer, String text) {
-        processEditor(input, viewer, text);
+    public void
+        editorOpen(IEditorInput input, ISourceViewer viewer, String text, PresentationMerger presentationMerger) {
+        processEditor(input, viewer, text, presentationMerger, 0);
     }
 
     /**
@@ -207,8 +209,9 @@ public class Processor {
      * @param text
      *            New input text of the editor.
      */
-    public void editorChange(IEditorInput input, ISourceViewer viewer, String text) {
-        processEditor(input, viewer, text);
+    public void editorChange(IEditorInput input, ISourceViewer viewer, String text,
+        PresentationMerger presentationMerger) {
+        processEditor(input, viewer, text, presentationMerger, 300);
     }
 
     /**
@@ -234,23 +237,28 @@ public class Processor {
      * @param text
      *            Input text of the editor.
      */
-    public void editorInputChange(IEditorInput oldInput, IEditorInput newInput, ISourceViewer viewer, String text) {
+    public void editorInputChange(IEditorInput oldInput, IEditorInput newInput, ISourceViewer viewer, String text,
+        PresentationMerger presentationMerger) {
         logger.debug("Editor input changed from {} to {}", oldInput, newInput);
         cancelUpdateJobs(oldInput);
-        processEditor(newInput, viewer, text);
+        processEditor(newInput, viewer, text, presentationMerger, 0);
     }
 
-    private void processEditor(IEditorInput input, ISourceViewer viewer, String text) {
+    private void processEditor(IEditorInput input, ISourceViewer viewer, String text,
+        PresentationMerger presentationMerger, long delay) {
         cancelUpdateJobs(input);
+        // THREADING: invalidate text styling here on the main thread (instead of in the editor update job), to prevent
+        // consistency issues.
+        presentationMerger.invalidate();
         final IFileEditorInput fileInput = (IFileEditorInput) input;
         final IFile file = fileInput.getFile();
         final FileObject resource = resourceService.resolve(file);
         final Job job =
             new EditorUpdateJob(languageIdentifierService, contextService, syntaxService, analysisService,
                 categorizerService, stylerService, parseResultProcessor, analysisResultProcessor, fileInput, file,
-                resource, viewer, text);
+                resource, viewer, text, presentationMerger);
         job.setRule(new MultiRule(new ISchedulingRule[] { globalRules.startupReadLock(), file }));
-        job.schedule();
+        job.schedule(delay);
     }
 
     private void cancelUpdateJobs(IEditorInput input) {

@@ -10,12 +10,15 @@ public class SpoofaxDocumentListener implements IDocumentListener {
     private final IEditorInput input;
     private final ISourceViewer sourceViewer;
     private final Processor processor;
+    private final PresentationMerger presentationMerger;
 
 
-    public SpoofaxDocumentListener(IEditorInput input, ISourceViewer sourceViewer, Processor processor) {
+    public SpoofaxDocumentListener(IEditorInput input, ISourceViewer sourceViewer, Processor processor,
+        PresentationMerger presentationMerger) {
         this.input = input;
         this.sourceViewer = sourceViewer;
         this.processor = processor;
+        this.presentationMerger = presentationMerger;
     }
 
 
@@ -24,6 +27,6 @@ public class SpoofaxDocumentListener implements IDocumentListener {
     }
 
     @Override public void documentChanged(DocumentEvent event) {
-        processor.editorChange(input, sourceViewer, event.getDocument().get());
+        processor.editorChange(input, sourceViewer, event.getDocument().get(), presentationMerger);
     }
 }

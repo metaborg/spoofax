@@ -45,7 +45,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 
 public class EditorUpdateJob extends Job {
     private static final Logger logger = LoggerFactory.getLogger(EditorUpdateJob.class);
-    private static final long killTimeMillis = 2000;
+    private static final long killTimeMillis = 3000;
 
     private final ILanguageIdentifierService languageIdentifierService;
     private final IContextService contextService;
@@ -62,6 +62,7 @@ public class EditorUpdateJob extends Job {
     private final FileObject resource;
     private final ISourceViewer sourceViewer;
     private final String text;
+    private final PresentationMerger presentationMerger;
 
     private ThreadKillerJob threadKiller;
 
@@ -71,7 +72,7 @@ public class EditorUpdateJob extends Job {
         ICategorizerService<IStrategoTerm, IStrategoTerm> categorizer,
         IStylerService<IStrategoTerm, IStrategoTerm> styler, ParseResultProcessor parseResultProcessor,
         AnalysisResultProcessor analysisResultProcessor, IFileEditorInput input, IResource eclipseResource,
-        FileObject resource, ISourceViewer sourceViewer, String text) {
+        FileObject resource, ISourceViewer sourceViewer, String text, PresentationMerger presentationMerger) {
         super("Updating Spoofax editor");
         setPriority(Job.SHORT);
 
@@ -90,6 +91,7 @@ public class EditorUpdateJob extends Job {
         this.resource = resource;
         this.sourceViewer = sourceViewer;
         this.text = text;
+        this.presentationMerger = presentationMerger;
     }
 
 
@@ -138,8 +140,13 @@ public class EditorUpdateJob extends Job {
     }
 
     @Override protected void canceling() {
-        logger.info("Cancelling editor update job for {}, killing in {}ms", resource, killTimeMillis);
-        threadKiller = new ThreadKillerJob(getThread());
+        final Thread thread = getThread();
+        if(thread == null) {
+            return;
+        }
+        
+        logger.debug("Cancelling editor update job for {}, killing in {}ms", resource, killTimeMillis);
+        threadKiller = new ThreadKillerJob(thread);
         threadKiller.schedule(killTimeMillis);
     }
 
@@ -169,6 +176,25 @@ public class EditorUpdateJob extends Job {
             throw e;
         }
 
+        // Style
+        if(monitor.isCanceled())
+            return StatusUtils.cancel();
+        final Iterable<IRegionCategory<IStrategoTerm>> categories = categorizer.categorize(language, parseResult);
+        final Iterable<IRegionStyle<IStrategoTerm>> styles = styler.styleParsed(language, categories);
+        final TextPresentation textPresentation = StyleUtils.createTextPresentation(styles, display);
+        presentationMerger.set(textPresentation);
+        display.asyncExec(new Runnable() {
+            public void run() {
+                if(monitor.isCanceled())
+                    return;
+                // Also cancel if text presentation is not valid for current text any more.
+                if(!sourceViewer.getDocument().get().equals(text))
+                    return;
+                sourceViewer.changeTextPresentation(textPresentation, true);
+            }
+        });
+
+        // Parse messages
         if(monitor.isCanceled())
             return StatusUtils.cancel();
         // Update markers atomically using a workspace runnable, to prevent flashing/jumping markers.
@@ -185,35 +211,20 @@ public class EditorUpdateJob extends Job {
         };
         workspace.run(parseMarkerUpdater, eclipseResource, IWorkspace.AVOID_UPDATE, monitor);
         
+
+        // Stop if parsing failed completely, no AST.
         if(parseResult.result == null)
             return StatusUtils.silentError();
 
-        // Style
-        if(monitor.isCanceled())
-            return StatusUtils.cancel();
-        final Iterable<IRegionCategory<IStrategoTerm>> categories = categorizer.categorize(language, parseResult);
-        final Iterable<IRegionStyle<IStrategoTerm>> styles = styler.styleParsed(language, categories);
-        final TextPresentation textPresentation = StyleUtils.createTextPresentation(styles, display);
-        if(monitor.isCanceled())
-            return StatusUtils.cancel();
-        display.asyncExec(new Runnable() {
-            public void run() {
-                if(monitor.isCanceled())
-                    return;
-                // Also cancel if text presentation is not valid for current text any more.
-                if(sourceViewer.getDocument().get().length() != text.length())
-                    return;
-                sourceViewer.changeTextPresentation(textPresentation, true);
-            }
-        });
-
-        // Analyze
+        // Sleep before analyzing to prevent running many analyses when small edits are made in succession.
         try {
             Thread.sleep(600);
         } catch(InterruptedException e) {
             return StatusUtils.cancel();
         }
 
+        
+        // Analyze
         if(monitor.isCanceled())
             return StatusUtils.cancel();
         final IContext context = contextService.get(resource, language);
@@ -233,6 +244,7 @@ public class EditorUpdateJob extends Job {
             analysisResultProcessor.update(analysisResult);
         }
 
+        // Analysis markers
         if(monitor.isCanceled())
             return StatusUtils.cancel();
         // Update markers atomically using a workspace runnable, to prevent flashing/jumping markers.
@@ -250,27 +262,6 @@ public class EditorUpdateJob extends Job {
             }
         };
         workspace.run(analysisMarkerUpdater, eclipseResource, IWorkspace.AVOID_UPDATE, monitor);
-
-        if(monitor.isCanceled())
-            return StatusUtils.cancel();
-        // HACK: color again after markers have destroyed the coloring, need to figure out a better solution.
-        final IWorkspaceRunnable recolorUpdater = new IWorkspaceRunnable() {
-            @Override public void run(final IProgressMonitor workspaceMonitor) throws CoreException {
-                if(workspaceMonitor.isCanceled())
-                    return;
-                display.syncExec(new Runnable() {
-                    public void run() {
-                        if(workspaceMonitor.isCanceled())
-                            return;
-                        // Also cancel if text presentation is not valid for current text any more.
-                        if(sourceViewer.getDocument().get().length() != text.length())
-                            return;
-                        sourceViewer.changeTextPresentation(textPresentation, true);
-                    }
-                });
-            }
-        };
-        workspace.run(recolorUpdater, eclipseResource, IWorkspace.AVOID_UPDATE, monitor);
 
         return StatusUtils.success();
     }
