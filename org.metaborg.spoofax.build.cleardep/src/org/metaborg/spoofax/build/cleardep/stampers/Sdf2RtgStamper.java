@@ -7,7 +7,6 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.TermTransformer;
 import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.cleardep.build.BuildRequest;
-import org.sugarj.cleardep.output.SimpleOutput;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamp;
 import org.sugarj.cleardep.stamp.Stamper;
@@ -18,9 +17,9 @@ import org.sugarj.common.path.Path;
 public class Sdf2RtgStamper implements Stamper {
 	private static final long serialVersionUID = -8516817559822107040L;
 	
-	private BuildRequest<?, SimpleOutput<IStrategoTerm>, ?, ?> parseSdfDefinition;
+	private BuildRequest<?, IStrategoTerm, ?, ?> parseSdfDefinition;
 	
-	public Sdf2RtgStamper(BuildRequest<?, SimpleOutput<IStrategoTerm>, ?, ?> parseSdfDefinition) {
+	public Sdf2RtgStamper(BuildRequest<?, IStrategoTerm, ?, ?> parseSdfDefinition) {
 		this.parseSdfDefinition = parseSdfDefinition;
 	}
 
@@ -29,8 +28,7 @@ public class Sdf2RtgStamper implements Stamper {
 		if (!FileCommands.exists(p))
 			return new ValueStamp<>(this, null);
 
-		SimpleOutput<IStrategoTerm> output = BuildManager.build(parseSdfDefinition);
-		IStrategoTerm term = output.val;
+		IStrategoTerm term = BuildManager.build(parseSdfDefinition);
 		
 		if (term == null)
 			return LastModifiedStamper.instance.stampOf(p);

@@ -45,7 +45,7 @@ public class ForceOnSave extends SpoofaxBuilder<SpoofaxInput, None> {
 				context.baseDir, 
 				new FileExtensionFilter("tmpl", "sdf3", "nab", "ts"));
 		for (RelativePath p : paths)
-			require(ForceOnSaveFile.factory, new ForceOnSaveFile.Input(context, p));
+			requireBuild(ForceOnSaveFile.factory, new ForceOnSaveFile.Input(context, p));
 		return None.val;
 	}
 }

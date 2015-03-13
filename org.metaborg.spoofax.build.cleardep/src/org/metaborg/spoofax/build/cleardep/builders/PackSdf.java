@@ -67,7 +67,7 @@ public class PackSdf extends SpoofaxBuilder<PackSdf.Input, None> {
 	@Override
 	public None build() throws IOException {
 		// This dependency was discovered by cleardep, due to an implicit dependency on 'org.strategoxt.imp.editors.template/src-gen/syntax/TemplateLang.sdf'.
-		require(ForceOnSave.factory, input);
+		requireBuild(ForceOnSave.factory, input);
 		
 		copySdf2();
 		
@@ -75,7 +75,7 @@ public class PackSdf extends SpoofaxBuilder<PackSdf.Input, None> {
 		RelativePath outputPath = context.basePath("${include}/" + input.sdfmodule + ".def");
 		String utilsInclude = FileCommands.exists(context.basePath("${utils}")) ? context.props.substitute("-I ${utils}") : "";
 		
-		requires(inputPath);
+		require(inputPath);
 		
 		ExecutionResult er = StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), 
 				main_pack_sdf_0_0.instance, "pack-sdf", new LoggingFilteringIOAgent(Pattern.quote("  including ") + ".*"),
@@ -86,9 +86,9 @@ public class PackSdf extends SpoofaxBuilder<PackSdf.Input, None> {
 				utilsInclude,
 				input.buildSdfImports);
 		
-		generates(outputPath);
+		generate(outputPath);
 		for (Path required : extractRequiredPaths(er.errLog))
-			requires(required);
+			require(required);
 		
 		setState(State.finished(er.success));
 		
@@ -120,9 +120,9 @@ public class PackSdf extends SpoofaxBuilder<PackSdf.Input, None> {
 	private void copySdf2() {
 		List<RelativePath> srcSdfFiles = FileCommands.listFilesRecursive(context.basePath("syntax"), new FileExtensionFilter("sdf"));
 		for (RelativePath p : srcSdfFiles) {
-			requires(p, LastModifiedStamper.instance);
+			require(p, LastModifiedStamper.instance);
 			Path target = FileCommands.copyFile(context.basePath("syntax"), context.basePath("${syntax}"), p, StandardCopyOption.COPY_ATTRIBUTES);
-			generates(target);
+			generate(target);
 		}		
 	}
 

@@ -91,9 +91,9 @@ public class StrategoJavaCompiler extends SpoofaxBuilder<StrategoJavaCompiler.In
 	public None build() throws IOException {
 		if (input.requiredUnits != null)
 			for (BuildRequest<?,?,?,?> req : input.requiredUnits)
-				require(req);
+				requireBuild(req);
 		
-		requires(input.inputPath);
+		require(input.inputPath);
 		
 		Path rtree = FileCommands.replaceExtension(input.outputPath, "rtree");
 		Path strdep = FileCommands.addExtension(input.outputPath, "dep");
@@ -127,9 +127,9 @@ public class StrategoJavaCompiler extends SpoofaxBuilder<StrategoJavaCompiler.In
 				StringCommands.printListSeparated(input.additionalArgs, " "));
 		FileCommands.delete(rtree);
 		
-		generates(input.outputPath);
-		generates(rtree);
-		generates(strdep);
+		generate(input.outputPath);
+		generate(rtree);
+		generate(strdep);
 		
 		registerUsedPaths(strdep);
 		
@@ -145,7 +145,7 @@ public class StrategoJavaCompiler extends SpoofaxBuilder<StrategoJavaCompiler.In
 			String line = lines[i];
 			Path p = new AbsolutePath(line);
 			RelativePath prel = FileCommands.getRelativePath(context.baseDir, p);
-			requires(prel != null ? prel : p);
+			require(prel != null ? prel : p);
 		}
 	}
 }

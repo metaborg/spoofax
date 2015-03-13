@@ -12,17 +12,16 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.stratego_sdf.parse_sdf_definition_file_0_0;
 import org.sugarj.cleardep.build.BuildRequest;
-import org.sugarj.cleardep.output.SimpleOutput;
-import org.sugarj.cleardep.stamp.ContentHashStamper;
+import org.sugarj.cleardep.stamp.FileHashStamper;
 import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.AbsolutePath;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
-public class ParseSdfDefinition extends SpoofaxBuilder<ParseSdfDefinition.Input, SimpleOutput<IStrategoTerm>> {
+public class ParseSdfDefinition extends SpoofaxBuilder<ParseSdfDefinition.Input, IStrategoTerm> {
 	
-	public final static SpoofaxBuilderFactory<Input, SimpleOutput<IStrategoTerm>, ParseSdfDefinition> factory = new SpoofaxBuilderFactory<ParseSdfDefinition.Input, SimpleOutput<IStrategoTerm>, ParseSdfDefinition>() {
+	public final static SpoofaxBuilderFactory<Input, IStrategoTerm, ParseSdfDefinition> factory = new SpoofaxBuilderFactory<ParseSdfDefinition.Input, IStrategoTerm, ParseSdfDefinition>() {
 		private static final long serialVersionUID = -2345729926864071894L;
 
 		@Override
@@ -54,7 +53,7 @@ public class ParseSdfDefinition extends SpoofaxBuilder<ParseSdfDefinition.Input,
 	
 	@Override
 	protected Stamper defaultStamper() {
-		return ContentHashStamper.instance;
+		return FileHashStamper.instance;
 	}
 
 	@Override
@@ -65,10 +64,10 @@ public class ParseSdfDefinition extends SpoofaxBuilder<ParseSdfDefinition.Input,
 	}
 
 	@Override
-	protected SimpleOutput<IStrategoTerm> build() throws Throwable {
-		require(input.requiredUnits);
+	protected IStrategoTerm build() throws Throwable {
+		requireBuild(input.requiredUnits);
 		
-		requires(input.defPath);
+		require(input.defPath);
 		if (!FileCommands.exists(input.defPath))
 			return null;
 
@@ -77,6 +76,6 @@ public class ParseSdfDefinition extends SpoofaxBuilder<ParseSdfDefinition.Input,
 				parse_sdf_definition_file_0_0.instance, "parse-sdf-definition", new LoggingFilteringIOAgent(),
 				factory.makeString(input.defPath.getAbsolutePath()));
 		
-		return new SimpleOutput<>(er.result);
+		return er.result;
 	}
 }

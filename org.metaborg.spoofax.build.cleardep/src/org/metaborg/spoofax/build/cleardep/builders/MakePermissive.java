@@ -54,20 +54,20 @@ public class MakePermissive extends SpoofaxBuilder<MakePermissive.Input, None> {
 
 	@Override
 	public None build() throws IOException {
-		require(CopySdf.factory, new CopySdf.Input(context, input.sdfmodule, input.externaldef));
-		require(PackSdf.factory, new PackSdf.Input(context,input.sdfmodule, input.buildSdfImports));
+		requireBuild(CopySdf.factory, new CopySdf.Input(context, input.sdfmodule, input.externaldef));
+		requireBuild(PackSdf.factory, new PackSdf.Input(context,input.sdfmodule, input.buildSdfImports));
 		
 		RelativePath inputPath = context.basePath("${include}/" + input.sdfmodule + ".def");
 		RelativePath outputPath = context.basePath("${include}/" + input.sdfmodule + "-Permissive.def");
 		
-		requires(inputPath);
+		require(inputPath);
 		ExecutionResult er = StrategoExecutor.runStrategoCLI(StrategoExecutor.permissiveGrammarsContext(), 
 				make_permissive.getMainStrategy(), "make-permissive", new LoggingFilteringIOAgent(Pattern.quote("[ make-permissive | info ]") + ".*"),
 				"-i", inputPath,
 				"-o", outputPath,
 				"--optimize", "on"
 				);
-		generates(outputPath);
+		generate(outputPath);
 		setState(State.finished(er.success));
 		return None.val;
 	}

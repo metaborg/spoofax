@@ -58,7 +58,7 @@ public class ForceOnSaveFile extends SpoofaxBuilder<ForceOnSaveFile.Input, None>
 	public None build() throws IOException {
 		RelativePath p = FileCommands.getRelativePath(context.baseDir, input.inputPath);
 		
-		requires(p);
+		require(p);
 		callOnSaveService(p);
 		switch(FileCommands.getExtension(p)) {
 //			case "tmpl": 
@@ -73,18 +73,18 @@ public class ForceOnSaveFile extends SpoofaxBuilder<ForceOnSaveFile.Input, None>
 			RelativePath genPP = context.basePath("${pp}/" + sdf3RelNoExt + "-pp.str");
 			RelativePath genCompletions = context.basePath("${completions}/" + sdf3RelNoExt + "-esv.esv");
 			RelativePath genSignatures = context.basePath("${signatures}/" + sdf3RelNoExt + "-sig.str");
-			generates(genSdf);
-			generates(genPP);
-			generates(genCompletions);
-			generates(genSignatures);
+			generate(genSdf);
+			generate(genPP);
+			generate(genCompletions);
+			generate(genSignatures);
 			break;
 		case "nab":
 			RelativePath gen = FileCommands.replaceExtension(p, "str");
-			generates(gen);
+			generate(gen);
 			break;
 		case "ts":
 			gen = FileCommands.replaceExtension(p, "generated.str");
-			generates(gen);
+			generate(gen);
 			break;
 		default:
 			throw new UnsupportedOperationException("Dependency management not implemented for files with extension " + FileCommands.getExtension(p) + ". File was " + p);

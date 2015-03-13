@@ -52,14 +52,14 @@ public class Sdf2ImpEclipse extends SpoofaxBuilder<Sdf2ImpEclipse.Input, None> {
 
 	@Override
 	public None build() throws IOException {
-		require(Sdf2Rtg.factory, new Sdf2Rtg.Input(context, input.sdfmodule, input.buildSdfImports));
+		requireBuild(Sdf2Rtg.factory, new Sdf2Rtg.Input(context, input.sdfmodule, input.buildSdfImports));
 		
 		RelativePath inputPath = new RelativePath(context.basePath("editor"), input.esvmodule + ".main.esv");
 
 		LoggingFilteringIOAgent agent = new LoggingFilteringIOAgent(".*");
 		agent.setWorkingDir(inputPath.getBasePath().getAbsolutePath());
 		
-		requires(inputPath);
+		require(inputPath);
 		ExecutionResult er = StrategoExecutor.runStratego(StrategoExecutor.generatorContext(), 
 				sdf2imp_jvm_0_0.instance, "sdf2imp", agent,
 				StrategoExecutor.generatorContext().getFactory().makeString(inputPath.getRelativePath()));
@@ -78,15 +78,15 @@ public class Sdf2ImpEclipse extends SpoofaxBuilder<Sdf2ImpEclipse.Input, None> {
 		for (String s : log.split("\\n")) {
 		    if (s.startsWith(reqPrefix)) {
 				String file = s.substring(reqPrefix.length());
-				requires(context.basePath(file));
+				require(context.basePath(file));
 			}
 			else if (s.startsWith(genPrefix)) {
 				String file = s.substring(genPrefix.length());
-				generates(context.basePath(file));
+				generate(context.basePath(file));
 			}
 			else if (s.startsWith(defPrefix)) {
 				String file = s.substring(defPrefix.length());
-				requires(context.basePath(file));
+				require(context.basePath(file));
 			}
 		}
 	}

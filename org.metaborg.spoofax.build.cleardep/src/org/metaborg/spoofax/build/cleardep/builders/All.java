@@ -37,9 +37,9 @@ public class All extends SpoofaxBuilder<SpoofaxInput, None> {
 	public None build() throws IOException {
 		RelativePath ppInput = context.basePath("${lib}/EditorService-pretty.pp");
 		RelativePath ppTermOutput = context.basePath("${include}/EditorService-pretty.pp.af");
-		require(PPPack.factory, new PPPack.Input(context, ppInput, ppTermOutput));
+		requireBuild(PPPack.factory, new PPPack.Input(context, ppInput, ppTermOutput));
 		
-		require(SpoofaxDefaultCtree.factory, input);
+		requireBuild(SpoofaxDefaultCtree.factory, input);
 		return None.val;
 	}
 

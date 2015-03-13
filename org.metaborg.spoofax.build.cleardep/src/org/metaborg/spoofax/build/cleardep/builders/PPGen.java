@@ -18,7 +18,6 @@ import org.strategoxt.tools.main_ppgen_0_0;
 import org.sugarj.cleardep.BuildUnit.State;
 import org.sugarj.cleardep.build.BuildRequest;
 import org.sugarj.cleardep.output.None;
-import org.sugarj.cleardep.output.SimpleOutput;
 import org.sugarj.common.FileCommands;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
@@ -53,18 +52,18 @@ public class PPGen extends SpoofaxBuilder<SpoofaxInput, None> {
 			return None.val;
 		
 		BuildRequest<?,?,?,?> packSdf = new BuildRequest<>(PackSdf.factory, new PackSdf.Input(context));
-		require(packSdf);
+		requireBuild(packSdf);
 
 		RelativePath inputPath = context.basePath("${include}/${sdfmodule}.def");
 		RelativePath ppOutputPath = context.basePath("${include}/${sdfmodule}.generated.pp");
 		RelativePath afOutputPath = context.basePath("${include}/${sdfmodule}.generated.pp.af");
 		
 		if (SpoofaxContext.BETTER_STAMPERS) {
-			BuildRequest<?, SimpleOutput<IStrategoTerm>, ?, ?> parseSdfDefinition = new BuildRequest<>(ParseSdfDefinition.factory, new ParseSdfDefinition.Input(context, inputPath, new BuildRequest<?,?,?,?>[]{packSdf}));
-			requires(inputPath, new PPGenStamper(parseSdfDefinition));
+			BuildRequest<?, IStrategoTerm, ?, ?> parseSdfDefinition = new BuildRequest<>(ParseSdfDefinition.factory, new ParseSdfDefinition.Input(context, inputPath, new BuildRequest<?,?,?,?>[]{packSdf}));
+			require(inputPath, new PPGenStamper(parseSdfDefinition));
 		}
 		else
-			requires(inputPath);
+			require(inputPath);
 		
 		ExecutionResult er1 = StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), 
 				main_ppgen_0_0.instance, "main-ppgen", new LoggingFilteringIOAgent(Pattern.quote("[ main-ppgen | warning ]") + ".*"),
@@ -72,18 +71,18 @@ public class PPGen extends SpoofaxBuilder<SpoofaxInput, None> {
 				"-t",
 				"-b",
 				"-o", afOutputPath);
-		generates(afOutputPath);
+		generate(afOutputPath);
 		
 		// requires(afOutputPath);
 		ExecutionResult er2 = StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), 
 				main_pp_pp_table_0_0.instance, "main-pp-pp-table", new LoggingFilteringIOAgent(),
 				"-i", afOutputPath,
 				"-o", ppOutputPath);
-		generates(ppOutputPath);
+		generate(ppOutputPath);
 		
 		if (!FileCommands.exists(afOutputPath)) {
 			FileCommands.writeToFile(afOutputPath, "PP-Table([])");
-			generates(afOutputPath);
+			generate(afOutputPath);
 		}
 		
 		setState(State.finished(er1.success && er2.success));

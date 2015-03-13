@@ -5,14 +5,13 @@ import java.io.Serializable;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.sugarj.cleardep.build.Builder;
 import org.sugarj.cleardep.build.BuilderFactory;
-import org.sugarj.cleardep.output.BuildOutput;
-import org.sugarj.cleardep.stamp.ContentHashStamper;
+import org.sugarj.cleardep.stamp.FileHashStamper;
 import org.sugarj.cleardep.stamp.LastModifiedStamper;
 import org.sugarj.cleardep.stamp.Stamper;
 
-abstract public class SpoofaxBuilder<In extends SpoofaxInput, Out extends BuildOutput> extends Builder<In, Out> {
+abstract public class SpoofaxBuilder<In extends SpoofaxInput, Out extends Serializable> extends Builder<In, Out> {
 
-	public static abstract class SpoofaxBuilderFactory<In extends SpoofaxInput, Out extends BuildOutput, B extends Builder<In, Out>>
+	public static abstract class SpoofaxBuilderFactory<In extends SpoofaxInput, Out extends Serializable, B extends Builder<In, Out>>
 		implements BuilderFactory<In, Out, B> {
 		private static final long serialVersionUID = 8998843329413855827L;
 
@@ -37,6 +36,6 @@ abstract public class SpoofaxBuilder<In extends SpoofaxInput, Out extends BuildO
 
 	@Override
 	protected Stamper defaultStamper() {
-		return SpoofaxContext.BETTER_STAMPERS ? ContentHashStamper.instance : LastModifiedStamper.instance;
+		return SpoofaxContext.BETTER_STAMPERS ? FileHashStamper.instance : LastModifiedStamper.instance;
 	}
 }

@@ -69,11 +69,11 @@ public class StrategoCtree extends SpoofaxBuilder<StrategoCtree.Input, None> {
 		if (!context.isBuildStrategoEnabled(this))
 			throw new IllegalArgumentException(context.props.substitute("Main stratego file '${strmodule}.str' not found."));
 		
-		require(CopyJar.factory, new CopyJar.Input(context, input.externaljar));
+		requireBuild(CopyJar.factory, new CopyJar.Input(context, input.externaljar));
 		
 		RelativePath inputPath = context.basePath("${trans}/" + input.strmodule + ".str");
 		RelativePath outputPath = context.basePath("${include}/" + input.strmodule + ".ctree");
-		require(StrategoJavaCompiler.factory,
+		requireBuild(StrategoJavaCompiler.factory,
 				new StrategoJavaCompiler.Input(
 						context,
 						inputPath, 

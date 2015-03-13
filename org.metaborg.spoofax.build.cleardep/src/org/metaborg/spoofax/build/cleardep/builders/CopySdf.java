@@ -52,9 +52,9 @@ public class CopySdf extends SpoofaxBuilder<CopySdf.Input, None> {
 	public None build() throws IOException {
 		if (input.externaldef != null) {
 			Path target = context.basePath("${include}/" + input.sdfmodule + ".def");
-			requires(input.externaldef, LastModifiedStamper.instance);
+			require(input.externaldef, LastModifiedStamper.instance);
 			FileCommands.copyFile(input.externaldef, target, StandardCopyOption.COPY_ATTRIBUTES);
-			generates(target);
+			generate(target);
 		}
 		return None.val;
 	}

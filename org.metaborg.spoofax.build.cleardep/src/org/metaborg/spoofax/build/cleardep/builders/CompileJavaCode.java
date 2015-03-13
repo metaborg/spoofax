@@ -38,7 +38,7 @@ public class CompileJavaCode extends SpoofaxBuilder<SpoofaxInput, None> {
 
 	@Override
 	public None build() throws IOException {
-		require(CopyUtils.factory, input);
+		requireBuild(CopyUtils.factory, input);
 		
 		Path targetDir = context.basePath("${build}");
 		boolean debug = true;
@@ -77,7 +77,7 @@ public class CompileJavaCode extends SpoofaxBuilder<SpoofaxInput, None> {
 		if (context.isJavaJarEnabled(this))
 			classPath.add(context.basePath("${include}/${strmodule}-java.jar"));
 
-		require(JavaBuilder.factory, 
+		requireBuild(JavaBuilder.factory, 
 				new JavaBuilder.Input(
 						sourceFiles,
 						targetDir,

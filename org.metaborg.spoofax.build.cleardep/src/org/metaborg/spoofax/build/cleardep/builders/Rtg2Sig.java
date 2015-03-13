@@ -54,18 +54,18 @@ public class Rtg2Sig extends SpoofaxBuilder<Rtg2Sig.Input, None> {
 		
 		if (context.isBuildStrategoEnabled(this)) {
 			// This dependency was discovered by cleardep, due to an implicit dependency on 'org.strategoxt.imp.editors.template/include/TemplateLang.rtg'.
-			require(Sdf2Rtg.factory, new Sdf2Rtg.Input(context, input.sdfmodule, input.buildSdfImports));
+			requireBuild(Sdf2Rtg.factory, new Sdf2Rtg.Input(context, input.sdfmodule, input.buildSdfImports));
 
 			RelativePath inputPath = context.basePath("${include}/" + input.sdfmodule + ".rtg");
 			RelativePath outputPath = context.basePath("${include}/" + input.sdfmodule + ".str");
 			
-			requires(inputPath);
+			require(inputPath);
 			ExecutionResult er = StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), 
 					main_rtg2sig_0_0.instance, "rtg2sig", new LoggingFilteringIOAgent(),
 					"-i", inputPath,
 					"--module", input.sdfmodule,
 					"-o", outputPath);
-			generates(outputPath);
+			generate(outputPath);
 			setState(State.finished(er.success));
 		}
 		

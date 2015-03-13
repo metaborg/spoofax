@@ -55,12 +55,12 @@ public class MetaSdf2Table extends SpoofaxBuilder<MetaSdf2Table.Input, None> {
 			throw new IllegalArgumentException("Property eclipse.spoofaximp.jars must point to the directory containing StrategoMix.def");
 		
 		RelativePath metamodule = context.basePath("${syntax}/${metasdfmodule}.sdf");
-		requires(metamodule, SpoofaxContext.BETTER_STAMPERS ? FileExistsStamper.instance : LastModifiedStamper.instance);
+		require(metamodule, SpoofaxContext.BETTER_STAMPERS ? FileExistsStamper.instance : LastModifiedStamper.instance);
 		boolean metasdfmoduleAvailable = FileCommands.exists(metamodule);
 		
 		if (metasdfmoduleAvailable) {
 			String sdfImports = context.props.substitute("-Idef ${eclipse.spoofaximp.jars}/StrategoMix.def ") + input.buildSdfImports;
-			require(Sdf2Table.factory, new Sdf2Table.Input(context, input.metasdfmodule, sdfImports, input.externaldef));
+			requireBuild(Sdf2Table.factory, new Sdf2Table.Input(context, input.metasdfmodule, sdfImports, input.externaldef));
 		}
 		
 		return None.val;

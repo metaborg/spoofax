@@ -16,7 +16,6 @@ import org.strategoxt.tools.main_sdf2rtg_0_0;
 import org.sugarj.cleardep.BuildUnit.State;
 import org.sugarj.cleardep.build.BuildRequest;
 import org.sugarj.cleardep.output.None;
-import org.sugarj.cleardep.output.SimpleOutput;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
@@ -59,17 +58,17 @@ public class Sdf2Rtg extends SpoofaxBuilder<Sdf2Rtg.Input, None> {
 	public None build() throws IOException {
 		// This dependency was discovered by cleardep, due to an implicit dependency on 'org.strategoxt.imp.editors.template/include/TemplateLang.def'.
 		BuildRequest<?, ?, ?, ?> packSdf = new BuildRequest<>(PackSdf.factory, new PackSdf.Input(context, input.sdfmodule, input.buildSdfImports));
-		require(packSdf);
+		requireBuild(packSdf);
 		
 		RelativePath inputPath = context.basePath("${include}/" + input.sdfmodule + ".def");
 		RelativePath outputPath = context.basePath("${include}/" + input.sdfmodule + ".rtg");
 
 		if (SpoofaxContext.BETTER_STAMPERS) {
-			BuildRequest<?, SimpleOutput<IStrategoTerm>, ?, ?> parseSdfDefinition = new BuildRequest<>(ParseSdfDefinition.factory, new ParseSdfDefinition.Input(context, inputPath, new BuildRequest<?,?,?,?>[]{packSdf}));
-			requires(inputPath, new Sdf2RtgStamper(parseSdfDefinition));
+			BuildRequest<?, IStrategoTerm, ?, ?> parseSdfDefinition = new BuildRequest<>(ParseSdfDefinition.factory, new ParseSdfDefinition.Input(context, inputPath, new BuildRequest<?,?,?,?>[]{packSdf}));
+			require(inputPath, new Sdf2RtgStamper(parseSdfDefinition));
 		}
 		else
-			requires(inputPath);
+			require(inputPath);
 		
 		// XXX avoid redundant call to sdf2table
 		ExecutionResult er = StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), 
@@ -79,7 +78,7 @@ public class Sdf2Rtg extends SpoofaxBuilder<Sdf2Rtg.Input, None> {
 				"-o", outputPath,
 				"--ignore-missing-cons" /*,
 				"-Xnativepath", context.basePath("${nativepath}/")*/);
-		generates(outputPath);
+		generate(outputPath);
 		setState(State.finished(er.success));
 		
 		return None.val;

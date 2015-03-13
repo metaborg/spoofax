@@ -52,19 +52,19 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, None> {
 
 	@Override
 	public None build() throws IOException {
-		require(MakePermissive.factory, new MakePermissive.Input(context, input.sdfmodule, input.buildSdfImports, input.externaldef));
+		requireBuild(MakePermissive.factory, new MakePermissive.Input(context, input.sdfmodule, input.buildSdfImports, input.externaldef));
 
 		RelativePath inputPath = context.basePath("${include}/" + input.sdfmodule + "-Permissive.def");
 		RelativePath outputPath = context.basePath("${include}/" + input.sdfmodule + ".tbl");
 
-		requires(inputPath);
+		require(inputPath);
 		ExecutionResult er = StrategoExecutor.runSdf2TableCLI(StrategoExecutor.xtcContext(), 
 				"-t",
 				"-i", inputPath,
 				"-m", input.sdfmodule,
 				"-o", outputPath);
 		
-		generates(outputPath);
+		generate(outputPath);
 		setState(State.finished(er.success));
 		return None.val;
 	}

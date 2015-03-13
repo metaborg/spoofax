@@ -52,15 +52,15 @@ public class SpoofaxDefaultCtree extends SpoofaxBuilder<SpoofaxInput, None> {
 		try {
 			checkClassPath();
 			
-			require(Sdf2Table.factory, new Sdf2Table.Input(context, sdfmodule, buildSdfImports, externaldef));
-			require(MetaSdf2Table.factory, new MetaSdf2Table.Input(context, metasdfmodule, buildSdfImports, externaldef));
-			require(PPGen.factory, input);
+			requireBuild(Sdf2Table.factory, new Sdf2Table.Input(context, sdfmodule, buildSdfImports, externaldef));
+			requireBuild(MetaSdf2Table.factory, new MetaSdf2Table.Input(context, metasdfmodule, buildSdfImports, externaldef));
+			requireBuild(PPGen.factory, input);
 			
 			RelativePath ppPackInputPath = context.basePath("${syntax}/${sdfmodule}.pp");
 			RelativePath ppPackOutputPath = context.basePath("${include}/${sdfmodule}.pp.af");
-			require(PPPack.factory, new PPPack.Input(context, ppPackInputPath, ppPackOutputPath, true));
+			requireBuild(PPPack.factory, new PPPack.Input(context, ppPackInputPath, ppPackOutputPath, true));
 			
-			require(StrategoAster.factory, new StrategoAster.Input(context, strmodule));
+			requireBuild(StrategoAster.factory, new StrategoAster.Input(context, strmodule));
 	
 			// This dependency was discovered by cleardep, due to an implicit dependency on 'org.strategoxt.imp.editors.template/lib/editor-common.generated.str'.
 
@@ -68,7 +68,7 @@ public class SpoofaxDefaultCtree extends SpoofaxBuilder<SpoofaxInput, None> {
 			// This dependency was discovered by cleardep, due to an implicit dependency on 'org.strategoxt.imp.editors.template/include/TemplateLang-parenthesize.str'.
 			BuildRequest<?,?,?,?> sdf2Parenthesize = new BuildRequest<>(Sdf2Parenthesize.factory, new Sdf2Parenthesize.Input(context, sdfmodule, buildSdfImports, externaldef));
 	
-			require(StrategoCtree.factory,
+			requireBuild(StrategoCtree.factory,
 					new StrategoCtree.Input(
 							context,
 							sdfmodule, 
@@ -81,7 +81,7 @@ public class SpoofaxDefaultCtree extends SpoofaxBuilder<SpoofaxInput, None> {
 			
 			// This dependency was discovered by cleardep, due to an implicit dependency on 'org.strategoxt.imp.editors.template/editor/java/org/strategoxt/imp/editors/template/strategies/InteropRegisterer.class'.
 			BuildRequest<?,?,?,?> compileJavaCode = new BuildRequest<>(CompileJavaCode.factory, input);
-			require(compileJavaCode);
+			requireBuild(compileJavaCode);
 			
 			javaJar(strmodule, compileJavaCode);
 			
@@ -114,7 +114,7 @@ public class SpoofaxDefaultCtree extends SpoofaxBuilder<SpoofaxInput, None> {
 				files[i] = new RelativePath(baseDir, sfiles[i]);
 		
 		Path jarPath = context.basePath("${include}/" + strmodule + "-java.jar");
-		require(JavaJar.factory, 
+		requireBuild(JavaJar.factory, 
 				new JavaJar.Input(
 						JavaJar.Mode.CreateOrUpdate,
 						jarPath,
@@ -125,7 +125,7 @@ public class SpoofaxDefaultCtree extends SpoofaxBuilder<SpoofaxInput, None> {
 
 	private void sdf2impEclipseReload() {
 		RelativePath packedEsv = context.basePath("${include}/${esvmodule}.packed.esv");
-		requires(packedEsv);
+		require(packedEsv);
 		AntDescriptorLoader.main(new String[]{packedEsv.getAbsolutePath()});
 	}
 

@@ -49,7 +49,7 @@ public class StrategoAster extends SpoofaxBuilder<StrategoAster.Input, None> {
 	public None build() throws IOException {
 		List<RelativePath> asterInputList = FileCommands.listFilesRecursive(context.baseDir, new FileExtensionFilter("astr"));
 		for (RelativePath p : asterInputList)
-			requires(p);
+			require(p);
 		
 //		String asterInput = StringCommands.printListSeparated(asterInputList, " ");
 //		RelativePath outputPath = context.basePath("${trans}/" + input.strmodule + ".rtree");

@@ -43,16 +43,16 @@ public class CopyUtils extends SpoofaxBuilder<SpoofaxInput, None> {
 		for (String p : new String[]{"make_permissive.jar", "sdf2imp.jar", "aster.jar", "StrategoMix.def"}) {
 			Path from = new AbsolutePath(base + "/" + p);
 			Path to = new RelativePath(utils, p);
-			requires(from, LastModifiedStamper.instance);
+			require(from, LastModifiedStamper.instance);
 			FileCommands.copyFile(from, to);
-			generates(to);
+			generate(to);
 		}
 		
 		Path strategojar = new AbsolutePath(context.props.getOrFail("eclipse.spoofaximp.strategojar"));
 		Path strategojarTo = new RelativePath(utils, FileCommands.dropDirectory(strategojar));
-		requires(strategojar, LastModifiedStamper.instance);
+		require(strategojar, LastModifiedStamper.instance);
 		FileCommands.copyFile(strategojar, strategojarTo);
-		generates(strategojarTo);
+		generate(strategojarTo);
 		
 		return None.val;
 	}

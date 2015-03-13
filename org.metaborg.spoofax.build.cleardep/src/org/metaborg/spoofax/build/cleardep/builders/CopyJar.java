@@ -55,9 +55,9 @@ public class CopyJar extends SpoofaxBuilder<CopyJar.Input, None> {
 	public None build() throws IOException {
 		if (input.externaljar != null) {
 			Path target = context.basePath("${include}/" + FileCommands.dropDirectory(input.externaljar));
-			requires(input.externaljar, LastModifiedStamper.instance);
+			require(input.externaljar, LastModifiedStamper.instance);
 			FileCommands.copyFile(input.externaljar, target, StandardCopyOption.COPY_ATTRIBUTES);
-			generates(target);
+			generate(target);
 		}
 		return None.val;
 	}
