@@ -195,7 +195,7 @@ public class Processor {
      */
     public void
         editorOpen(IEditorInput input, ISourceViewer viewer, String text, PresentationMerger presentationMerger) {
-        processEditor(input, viewer, text, presentationMerger, 0);
+        processEditor(input, viewer, text, presentationMerger, true);
     }
 
     /**
@@ -211,7 +211,7 @@ public class Processor {
      */
     public void editorChange(IEditorInput input, ISourceViewer viewer, String text,
         PresentationMerger presentationMerger) {
-        processEditor(input, viewer, text, presentationMerger, 100);
+        processEditor(input, viewer, text, presentationMerger, false);
     }
 
     /**
@@ -241,14 +241,14 @@ public class Processor {
         PresentationMerger presentationMerger) {
         logger.debug("Editor input changed from {} to {}", oldInput, newInput);
         cancelUpdateJobs(oldInput);
-        processEditor(newInput, viewer, text, presentationMerger, 0);
+        processEditor(newInput, viewer, text, presentationMerger, true);
     }
 
     private void processEditor(IEditorInput input, ISourceViewer viewer, String text,
-        PresentationMerger presentationMerger, long delay) {
+        PresentationMerger presentationMerger, boolean isNewEditor) {
         cancelUpdateJobs(input);
         // THREADING: invalidate text styling here on the main thread (instead of in the editor update job), to prevent
-        // consistency issues.
+        // race conditions.
         presentationMerger.invalidate();
         final IFileEditorInput fileInput = (IFileEditorInput) input;
         final IFile file = fileInput.getFile();
@@ -256,9 +256,9 @@ public class Processor {
         final Job job =
             new EditorUpdateJob(languageIdentifierService, contextService, syntaxService, analysisService,
                 categorizerService, stylerService, parseResultProcessor, analysisResultProcessor, fileInput, file,
-                resource, viewer, text, presentationMerger);
+                resource, viewer, text, presentationMerger, isNewEditor);
         job.setRule(new MultiRule(new ISchedulingRule[] { globalRules.startupReadLock(), file }));
-        job.schedule(delay);
+        job.schedule(isNewEditor ? 0 : 100);
     }
 
     private void cancelUpdateJobs(IEditorInput input) {

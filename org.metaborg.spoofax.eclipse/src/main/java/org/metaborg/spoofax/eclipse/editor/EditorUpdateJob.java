@@ -64,6 +64,7 @@ public class EditorUpdateJob extends Job {
     private final ISourceViewer sourceViewer;
     private final String text;
     private final PresentationMerger presentationMerger;
+    private final boolean isNewEditor;
 
     private ThreadKillerJob threadKiller;
 
@@ -73,7 +74,8 @@ public class EditorUpdateJob extends Job {
         ICategorizerService<IStrategoTerm, IStrategoTerm> categorizer,
         IStylerService<IStrategoTerm, IStrategoTerm> styler, ParseResultProcessor parseResultProcessor,
         AnalysisResultProcessor analysisResultProcessor, IFileEditorInput input, IResource eclipseResource,
-        FileObject resource, ISourceViewer sourceViewer, String text, PresentationMerger presentationMerger) {
+        FileObject resource, ISourceViewer sourceViewer, String text, PresentationMerger presentationMerger,
+        boolean isNewEditor) {
         super("Updating Spoofax editor");
         setPriority(Job.SHORT);
 
@@ -93,6 +95,7 @@ public class EditorUpdateJob extends Job {
         this.sourceViewer = sourceViewer;
         this.text = text;
         this.presentationMerger = presentationMerger;
+        this.isNewEditor = isNewEditor;
     }
 
 
@@ -199,12 +202,14 @@ public class EditorUpdateJob extends Job {
         }
 
         // Sleep before showing parse messages to prevent showing irrelevant messages while user is still typing.
-        try {
-            Thread.sleep(300);
-        } catch(InterruptedException e) {
-            return StatusUtils.cancel();
+        if(!isNewEditor) {
+            try {
+                Thread.sleep(300);
+            } catch(InterruptedException e) {
+                return StatusUtils.cancel();
+            }
         }
-        
+
         // Parse messages
         if(monitor.isCanceled())
             return StatusUtils.cancel();
@@ -227,10 +232,12 @@ public class EditorUpdateJob extends Job {
             return StatusUtils.silentError();
 
         // Sleep before analyzing to prevent running many analyses when small edits are made in succession.
-        try {
-            Thread.sleep(300);
-        } catch(InterruptedException e) {
-            return StatusUtils.cancel();
+        if(!isNewEditor) {
+            try {
+                Thread.sleep(300);
+            } catch(InterruptedException e) {
+                return StatusUtils.cancel();
+            }
         }
 
         // Analyze
