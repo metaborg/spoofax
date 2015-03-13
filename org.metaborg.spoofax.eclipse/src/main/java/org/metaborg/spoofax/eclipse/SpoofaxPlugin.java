@@ -1,5 +1,6 @@
 package org.metaborg.spoofax.eclipse;
 
+import org.eclipse.ui.IStartup;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.metaborg.spoofax.eclipse.editor.LatestEditorListener;
 import org.metaborg.spoofax.eclipse.logging.LoggingConfiguration;
@@ -10,7 +11,7 @@ import org.osgi.framework.BundleContext;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
-public class SpoofaxPlugin extends AbstractUIPlugin {
+public class SpoofaxPlugin extends AbstractUIPlugin implements IStartup {
     public static final String id = "org.metaborg.spoofax.eclipse";
 
     private static SpoofaxPlugin plugin;
@@ -34,6 +35,13 @@ public class SpoofaxPlugin extends AbstractUIPlugin {
         injector = null;
         plugin = null;
         super.stop(context);
+    }
+
+    @Override public void earlyStartup() {
+        /*
+         * Ignore early startup, but this forces this plugin to be started when Eclipse starts. This is required for
+         * setting up editor associations for languages in plugins, and languages in the workspace, as soon as possible.
+         */
     }
 
 

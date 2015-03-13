@@ -36,6 +36,10 @@ public class StylerService implements IStylerService<IStrategoTerm, IStrategoTer
 
     private @Nullable IRegionStyle<IStrategoTerm>
         style(StylerFacet facet, IRegionCategory<IStrategoTerm> regionCategory) {
+        if(regionCategory.region().length() == 0) {
+            // Skip empty regions for styling.
+            return null;
+        }
         final ICategory category = regionCategory.category();
         // GTODO: instanceof checks are nasty, but required since we do not have separate specifications for categories
         // and styles, they are intertwined.

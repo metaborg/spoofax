@@ -25,6 +25,7 @@ import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
 import org.metaborg.spoofax.core.messages.IMessage;
 import org.metaborg.spoofax.core.messages.MessageFactory;
 import org.metaborg.spoofax.core.messages.MessageType;
+import org.metaborg.spoofax.core.style.CategorizerValidator;
 import org.metaborg.spoofax.core.style.ICategorizerService;
 import org.metaborg.spoofax.core.style.IRegionCategory;
 import org.metaborg.spoofax.core.style.IRegionStyle;
@@ -144,7 +145,7 @@ public class EditorUpdateJob extends Job {
         if(thread == null) {
             return;
         }
-        
+
         logger.debug("Cancelling editor update job for {}, killing in {}ms", resource, killTimeMillis);
         threadKiller = new ThreadKillerJob(thread);
         threadKiller.schedule(killTimeMillis);
@@ -179,21 +180,31 @@ public class EditorUpdateJob extends Job {
         // Style
         if(monitor.isCanceled())
             return StatusUtils.cancel();
-        final Iterable<IRegionCategory<IStrategoTerm>> categories = categorizer.categorize(language, parseResult);
-        final Iterable<IRegionStyle<IStrategoTerm>> styles = styler.styleParsed(language, categories);
-        final TextPresentation textPresentation = StyleUtils.createTextPresentation(styles, display);
-        presentationMerger.set(textPresentation);
-        display.asyncExec(new Runnable() {
-            public void run() {
-                if(monitor.isCanceled())
-                    return;
-                // Also cancel if text presentation is not valid for current text any more.
-                if(!sourceViewer.getDocument().get().equals(text))
-                    return;
-                sourceViewer.changeTextPresentation(textPresentation, true);
-            }
-        });
+        if(parseResult.result != null) {
+            final Iterable<IRegionCategory<IStrategoTerm>> categories =
+                CategorizerValidator.validate(categorizer.categorize(language, parseResult));
+            final Iterable<IRegionStyle<IStrategoTerm>> styles = styler.styleParsed(language, categories);
+            final TextPresentation textPresentation = StyleUtils.createTextPresentation(styles, display);
+            presentationMerger.set(textPresentation);
+            display.asyncExec(new Runnable() {
+                public void run() {
+                    if(monitor.isCanceled())
+                        return;
+                    // Also cancel if text presentation is not valid for current text any more.
+                    if(!sourceViewer.getDocument().get().equals(text))
+                        return;
+                    sourceViewer.changeTextPresentation(textPresentation, true);
+                }
+            });
+        }
 
+        // Sleep before showing parse messages to prevent showing irrelevant messages while user is still typing.
+        try {
+            Thread.sleep(300);
+        } catch(InterruptedException e) {
+            return StatusUtils.cancel();
+        }
+        
         // Parse messages
         if(monitor.isCanceled())
             return StatusUtils.cancel();
@@ -210,7 +221,6 @@ public class EditorUpdateJob extends Job {
             }
         };
         workspace.run(parseMarkerUpdater, eclipseResource, IWorkspace.AVOID_UPDATE, monitor);
-        
 
         // Stop if parsing failed completely, no AST.
         if(parseResult.result == null)
@@ -218,12 +228,11 @@ public class EditorUpdateJob extends Job {
 
         // Sleep before analyzing to prevent running many analyses when small edits are made in succession.
         try {
-            Thread.sleep(600);
+            Thread.sleep(300);
         } catch(InterruptedException e) {
             return StatusUtils.cancel();
         }
 
-        
         // Analyze
         if(monitor.isCanceled())
             return StatusUtils.cancel();

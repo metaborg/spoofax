@@ -42,6 +42,10 @@ public class SourceRegion implements ISourceRegion {
     @Override public int endColumn() {
         return endColumn;
     }
+    
+    @Override public int length() {
+        return endOffset - startOffset;
+    }
 
 
     @Override public int hashCode() {

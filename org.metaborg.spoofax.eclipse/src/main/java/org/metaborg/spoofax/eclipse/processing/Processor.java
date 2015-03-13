@@ -211,7 +211,7 @@ public class Processor {
      */
     public void editorChange(IEditorInput input, ISourceViewer viewer, String text,
         PresentationMerger presentationMerger) {
-        processEditor(input, viewer, text, presentationMerger, 300);
+        processEditor(input, viewer, text, presentationMerger, 100);
     }
 
     /**
