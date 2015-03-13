@@ -89,10 +89,7 @@ public class JSGLRI implements IParser<IStrategoTerm> {
 
         try {
             ast = actuallyParse(input, fileName);
-            if(resource != null) {
-                SourceAttachment.putSource(ast, resource, config);
-            }
-        } catch(Exception e) {
+        } catch(SGLRException | InterruptedException e) {
             errorHandler.setRecoveryFailed(useRecovery);
             errorHandler.processFatalException(new NullTokenizer(input, fileName), e);
         }
@@ -100,6 +97,9 @@ public class JSGLRI implements IParser<IStrategoTerm> {
         if(ast != null) {
             errorHandler.setRecoveryFailed(false);
             errorHandler.gatherNonFatalErrors(ast);
+            if(resource != null) {
+                SourceAttachment.putSource(ast, resource, config);
+            }
         }
 
         // GTODO: measure parse time

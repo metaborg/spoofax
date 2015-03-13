@@ -27,7 +27,8 @@ public final class StyleUtils {
         createTextPresentation(Iterable<IRegionStyle<IStrategoTerm>> styles, Display display) {
         final TextPresentation presentation = new TextPresentation();
         for(IRegionStyle<IStrategoTerm> regionStyle : styles) {
-            presentation.addStyleRange(createStyleRange(regionStyle, display));
+            final StyleRange styleRange = createStyleRange(regionStyle, display);
+            presentation.addStyleRange(styleRange);
         }
         return presentation;
     }
