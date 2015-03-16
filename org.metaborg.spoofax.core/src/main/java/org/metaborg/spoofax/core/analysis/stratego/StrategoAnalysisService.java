@@ -24,6 +24,7 @@ import org.metaborg.spoofax.core.messages.MessageFactory;
 import org.metaborg.spoofax.core.messages.MessageSeverity;
 import org.metaborg.spoofax.core.resource.IResourceService;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
+import org.metaborg.spoofax.core.stratego.StrategoLocalPath;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeUtils;
 import org.metaborg.spoofax.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.syntax.jsglr.JSGLRSourceRegionFactory;
@@ -65,14 +66,17 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
     private final ITermFactoryService termFactoryService;
     private final IStrategoRuntimeService runtimeService;
 
+    private final StrategoLocalPath localPath;
+    
     private final IStrategoConstructor fileCons;
 
 
     @Inject public StrategoAnalysisService(IResourceService resourceService, ITermFactoryService termFactoryService,
-        IStrategoRuntimeService runtimeService) {
+        IStrategoRuntimeService runtimeService, StrategoLocalPath localPath) {
         this.resourceService = resourceService;
         this.termFactoryService = termFactoryService;
         this.runtimeService = runtimeService;
+        this.localPath = localPath;
 
         this.fileCons = termFactoryService.getGeneric().makeConstructor("File", 3);
     }
@@ -169,9 +173,8 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
                 continue;
             }
 
-            final IStrategoString path =
-                termFactory.makeString(localContextLocation.toURI().relativize(localResource.toURI()).getPath());
-            final IStrategoString contextPath = termFactory.makeString(localContextLocation.getAbsolutePath());
+            final IStrategoString path = localPath.localResourceTerm(localResource, localContextLocation);
+            final IStrategoString contextPath = localPath.localLocationTerm(localContextLocation);
             analysisInputs.add(P.p(input, termFactory.makeTuple(input.result, path, contextPath)));
         }
 
@@ -278,9 +281,8 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
                 continue;
             }
 
-            final String path = localContextLocation.toURI().relativize(localResource.toURI()).getPath();
-            final IStrategoString pathTerm = termFactory.makeString(path);
-            originalSources.put(path, resource);
+            final IStrategoString pathTerm = localPath.localResourceTerm(localResource, localContextLocation);
+            originalSources.put(pathTerm.stringValue(), resource);
             analysisInputs.add(termFactory.makeAppl(fileCons, pathTerm, input.result,
                 termFactory.makeReal(input.duration)));
         }

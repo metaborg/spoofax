@@ -26,6 +26,7 @@ import org.metaborg.spoofax.core.resource.IResourceService;
 import org.metaborg.spoofax.core.resource.LocalFileProvider;
 import org.metaborg.spoofax.core.resource.ResourceService;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
+import org.metaborg.spoofax.core.stratego.StrategoLocalPath;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeService;
 import org.metaborg.spoofax.core.stratego.primitives.DummyPrimitive;
 import org.metaborg.spoofax.core.stratego.primitives.ParseFilePrimitive;
@@ -44,8 +45,17 @@ import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.terms.TermFactoryService;
 import org.metaborg.spoofax.core.text.ISourceTextService;
 import org.metaborg.spoofax.core.text.SourceTextService;
+import org.metaborg.spoofax.core.transform.CompileGoal;
 import org.metaborg.spoofax.core.transform.ITransformer;
+import org.metaborg.spoofax.core.transform.ITransformerExecutor;
+import org.metaborg.spoofax.core.transform.ITransformerGoal;
+import org.metaborg.spoofax.core.transform.ITransformerResultHandler;
+import org.metaborg.spoofax.core.transform.NamedGoal;
+import org.metaborg.spoofax.core.transform.stratego.StrategoTransformerCommon;
+import org.metaborg.spoofax.core.transform.stratego.StrategoCompileTransformer;
+import org.metaborg.spoofax.core.transform.stratego.StrategoNamedTransformer;
 import org.metaborg.spoofax.core.transform.stratego.StrategoTransformer;
+import org.metaborg.spoofax.core.transform.stratego.StrategoTransformerFileWriter;
 import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.library.IOperatorRegistry;
 import org.spoofax.interpreter.library.index.legacy.LegacyIndexLibrary;
@@ -86,6 +96,9 @@ public class SpoofaxModule extends AbstractModule {
             bindSourceText();
             bindAnalysis();
             bindTransformer();
+            bindTransformerResultHandlers(MapBinder.newMapBinder(binder(),
+                new TypeLiteral<Class<? extends ITransformerGoal>>() {},
+                new TypeLiteral<ITransformerResultHandler<IStrategoTerm>>() {}));
             bindCategorizer();
             bindStyler();
             bindOther();
@@ -139,6 +152,7 @@ public class SpoofaxModule extends AbstractModule {
         bind(new TypeLiteral<IAnalysisService<IStrategoTerm, IStrategoTerm>>() {}).to(StrategoAnalysisService.class)
             .in(Singleton.class);
         bind(IStrategoRuntimeService.class).to(StrategoRuntimeService.class).in(Singleton.class);
+        bind(StrategoLocalPath.class).in(Singleton.class);
 
         bind(ParseFileStrategy.class).in(Singleton.class);
         bind(ParseStrategoFileStrategy.class).in(Singleton.class);
@@ -167,8 +181,22 @@ public class SpoofaxModule extends AbstractModule {
     }
 
     protected void bindTransformer() {
+        final MapBinder<Class<? extends ITransformerGoal>, ITransformerExecutor<IStrategoTerm, IStrategoTerm, IStrategoTerm>> executorBinder =
+            MapBinder.newMapBinder(binder(), new TypeLiteral<Class<? extends ITransformerGoal>>() {},
+                new TypeLiteral<ITransformerExecutor<IStrategoTerm, IStrategoTerm, IStrategoTerm>>() {});
+        executorBinder.addBinding(NamedGoal.class).to(StrategoNamedTransformer.class).in(Singleton.class);
+        executorBinder.addBinding(CompileGoal.class).to(StrategoCompileTransformer.class).in(Singleton.class);
+
+        bind(StrategoTransformerCommon.class).in(Singleton.class);
         bind(new TypeLiteral<ITransformer<IStrategoTerm, IStrategoTerm, IStrategoTerm>>() {}).to(
             StrategoTransformer.class).in(Singleton.class);
+    }
+
+    protected void bindTransformerResultHandlers(
+        MapBinder<Class<? extends ITransformerGoal>, ITransformerResultHandler<IStrategoTerm>> binder) {
+        bind(StrategoTransformerFileWriter.class).in(Singleton.class);
+        binder.addBinding(NamedGoal.class).to(StrategoTransformerFileWriter.class);
+        binder.addBinding(CompileGoal.class).to(StrategoTransformerFileWriter.class);
     }
 
     protected void bindCategorizer() {
