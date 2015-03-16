@@ -41,7 +41,7 @@ public class Sdf2ImpEclipse extends SpoofaxBuilder<Sdf2ImpEclipse.Input, None> {
 	}
 
 	@Override
-	protected String taskDescription() {
+	protected String description() {
 		return "Generate Eclipse IMP plug-in";
 	}
 	

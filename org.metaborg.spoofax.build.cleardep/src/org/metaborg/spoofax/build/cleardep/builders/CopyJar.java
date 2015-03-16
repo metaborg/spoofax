@@ -37,7 +37,7 @@ public class CopyJar extends SpoofaxBuilder<CopyJar.Input, None> {
 	}
 
 	@Override
-	protected String taskDescription() {
+	protected String description() {
 		return "Copy external Jar";
 	}
 	

@@ -29,7 +29,7 @@ public class SpoofaxDefaultCtree extends SpoofaxBuilder<SpoofaxInput, None> {
 	}
 	
 	@Override
-	protected String taskDescription() {
+	protected String description() {
 		return null;
 	}
 

@@ -43,7 +43,7 @@ public class ForceOnSaveFile extends SpoofaxBuilder<ForceOnSaveFile.Input, None>
 	}
 	
 	@Override
-	protected String taskDescription() {
+	protected String description() {
 		return "Force on-save handler for " + input.inputPath;
 	}
 	

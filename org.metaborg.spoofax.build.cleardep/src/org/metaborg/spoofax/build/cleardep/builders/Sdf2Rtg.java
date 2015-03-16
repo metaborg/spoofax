@@ -45,7 +45,7 @@ public class Sdf2Rtg extends SpoofaxBuilder<Sdf2Rtg.Input, None> {
 	}
 
 	@Override
-	protected String taskDescription() {
+	protected String description() {
 		return "Extract constructor signatures from grammar";
 	}
 	

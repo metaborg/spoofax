@@ -24,7 +24,7 @@ public class All extends SpoofaxBuilder<SpoofaxInput, None> {
 	}
 
 	@Override
-	protected String taskDescription() {
+	protected String description() {
 		return "Build Spoofax project";
 	}
 	

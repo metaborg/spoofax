@@ -55,7 +55,7 @@ public class PackSdf extends SpoofaxBuilder<PackSdf.Input, None> {
 	}
 	
 	@Override
-	protected String taskDescription() {
+	protected String description() {
 		return "Pack SDF modules";
 	}
 	

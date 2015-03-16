@@ -41,7 +41,7 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, None> {
 	}
 
 	@Override
-	protected String taskDescription() {
+	protected String description() {
 		return "Compile grammar to parse table";
 	}
 	

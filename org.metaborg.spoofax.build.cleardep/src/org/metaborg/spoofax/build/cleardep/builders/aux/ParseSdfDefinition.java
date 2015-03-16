@@ -47,7 +47,7 @@ public class ParseSdfDefinition extends SpoofaxBuilder<ParseSdfDefinition.Input,
 	}
 
 	@Override
-	protected String taskDescription() {
+	protected String description() {
 		return "Parse SDF definition";
 	}
 	

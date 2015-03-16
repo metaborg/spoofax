@@ -25,7 +25,7 @@ public class ForceOnSave extends SpoofaxBuilder<SpoofaxInput, None> {
 	}
 
 	@Override
-	protected String taskDescription() {
+	protected String description() {
 		return "Force on-save handlers for SDF3, NaBL, TS, etc.";
 	}
 	

@@ -40,7 +40,7 @@ public class MetaSdf2Table extends SpoofaxBuilder<MetaSdf2Table.Input, None> {
 	}
 
 	@Override
-	protected String taskDescription() {
+	protected String description() {
 		return "Compile metagrammar for concrete object syntax";
 	}
 	

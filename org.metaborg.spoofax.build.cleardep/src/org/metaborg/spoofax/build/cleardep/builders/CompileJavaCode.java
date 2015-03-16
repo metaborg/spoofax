@@ -27,7 +27,7 @@ public class CompileJavaCode extends SpoofaxBuilder<SpoofaxInput, None> {
 	}
 
 	@Override
-	protected String taskDescription() {
+	protected String description() {
 		return "Compile Java code";
 	}
 	

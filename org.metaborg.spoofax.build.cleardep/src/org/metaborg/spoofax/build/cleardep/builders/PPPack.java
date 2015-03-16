@@ -49,7 +49,7 @@ public class PPPack extends SpoofaxBuilder<PPPack.Input, None> {
 	}
 	
 	@Override
-	protected String taskDescription() {
+	protected String description() {
 		return "Compress pretty-print table";
 	}
 	

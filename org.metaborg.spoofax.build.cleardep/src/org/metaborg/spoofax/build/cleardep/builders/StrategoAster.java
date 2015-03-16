@@ -36,7 +36,7 @@ public class StrategoAster extends SpoofaxBuilder<StrategoAster.Input, None> {
 	}
 
 	@Override
-	protected String taskDescription() {
+	protected String description() {
 		return "Compile attribute grammar to Stratego";
 	}
 	

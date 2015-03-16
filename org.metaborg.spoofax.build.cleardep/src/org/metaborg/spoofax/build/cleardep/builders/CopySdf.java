@@ -37,7 +37,7 @@ public class CopySdf extends SpoofaxBuilder<CopySdf.Input, None> {
 	}
 
 	@Override
-	protected String taskDescription() {
+	protected String description() {
 		return "Copy external grammar definition.";
 	}
 	

@@ -36,7 +36,7 @@ public class PPGen extends SpoofaxBuilder<SpoofaxInput, None> {
 	}
 	
 	@Override
-	protected String taskDescription() {
+	protected String description() {
 		return "Generate pretty-print table from grammar";
 	}
 	

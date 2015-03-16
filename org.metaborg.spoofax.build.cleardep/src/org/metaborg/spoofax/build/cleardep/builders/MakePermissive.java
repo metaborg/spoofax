@@ -43,7 +43,7 @@ public class MakePermissive extends SpoofaxBuilder<MakePermissive.Input, None> {
 	}
 
 	@Override
-	protected String taskDescription() {
+	protected String description() {
 		return "Make grammar permissive for error-recovery parsing.";
 	}
 	

@@ -40,7 +40,7 @@ public class Rtg2Sig extends SpoofaxBuilder<Rtg2Sig.Input, None> {
 	}
 
 	@Override
-	protected String taskDescription() {
+	protected String description() {
 		return "Generate Stratego signatures for grammar constructors";
 	}
 	

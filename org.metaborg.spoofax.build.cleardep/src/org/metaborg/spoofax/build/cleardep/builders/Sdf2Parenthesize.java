@@ -47,7 +47,7 @@ public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input, Non
 	}
 
 	@Override
-	protected String taskDescription() {
+	protected String description() {
 		return "Extract parenthesis structure from grammar";
 	}
 	

@@ -76,7 +76,7 @@ public class StrategoJavaCompiler extends SpoofaxBuilder<StrategoJavaCompiler.In
 	}
 
 	@Override
-	protected String taskDescription() {
+	protected String description() {
 		return "Compile Stratego code";
 	}
 	

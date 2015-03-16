@@ -25,7 +25,7 @@ public class Clean extends SpoofaxBuilder<SpoofaxInput, None> {
 	}
 
 	@Override
-	protected String taskDescription() {
+	protected String description() {
 		return "Clean";
 	}
 	

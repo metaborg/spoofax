@@ -50,7 +50,7 @@ public class StrategoCtree extends SpoofaxBuilder<StrategoCtree.Input, None> {
 	}
 
 	@Override
-	protected String taskDescription() {
+	protected String description() {
 		return "Prepare Stratego code";
 	}
 	
