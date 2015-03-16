@@ -1,6 +1,8 @@
 package org.metaborg.spoofax.build.cleardep.builders;
 
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.metaborg.spoofax.build.cleardep.LoggingFilteringIOAgent;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
@@ -75,20 +77,29 @@ public class Sdf2ImpEclipse extends SpoofaxBuilder<Sdf2ImpEclipse.Input, None> {
 		String reqPrefix = "found file ";
 		String genPrefix = "Generating ";
 		
+		Set<Path> require = new HashSet<>();
+		Set<Path> provide = new HashSet<>();
+		
 		for (String s : log.split("\\n")) {
 		    if (s.startsWith(reqPrefix)) {
 				String file = s.substring(reqPrefix.length());
-				require(context.basePath(file));
+				require.add(context.basePath(file));
 			}
 			else if (s.startsWith(genPrefix)) {
 				String file = s.substring(genPrefix.length());
-				provide(context.basePath(file));
+				provide.add(context.basePath(file));
 			}
 			else if (s.startsWith(defPrefix)) {
 				String file = s.substring(defPrefix.length());
-				require(context.basePath(file));
+				require.add(context.basePath(file));
 			}
 		}
+		
+		require.removeAll(provide);
+		for (Path p : require)
+			require(p);
+		for (Path p : provide)
+			provide(p);
 	}
 
 }
