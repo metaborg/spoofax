@@ -70,14 +70,14 @@ public class PPPack extends SpoofaxBuilder<PPPack.Input, None> {
 		require(input.ppInput);
 		if (input.fallback && !FileCommands.exists(input.ppInput)) {
 			FileCommands.writeToFile(input.ppTermOutput, "PP-Table([])");
-			generate(input.ppTermOutput);
+			provide(input.ppTermOutput);
 		}
 		else {
 			ExecutionResult er = StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), 
 					main_parse_pp_table_0_0.instance, "parse-pp-table", new LoggingFilteringIOAgent(),
 						"-i", input.ppInput,
 						"-o", input.ppTermOutput);
-			generate(input.ppTermOutput);
+			provide(input.ppTermOutput);
 			setState(State.finished(er.success));
 		}
 		

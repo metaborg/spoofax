@@ -71,18 +71,18 @@ public class PPGen extends SpoofaxBuilder<SpoofaxInput, None> {
 				"-t",
 				"-b",
 				"-o", afOutputPath);
-		generate(afOutputPath);
+		provide(afOutputPath);
 		
 		// requires(afOutputPath);
 		ExecutionResult er2 = StrategoExecutor.runStrategoCLI(StrategoExecutor.toolsContext(), 
 				main_pp_pp_table_0_0.instance, "main-pp-pp-table", new LoggingFilteringIOAgent(),
 				"-i", afOutputPath,
 				"-o", ppOutputPath);
-		generate(ppOutputPath);
+		provide(ppOutputPath);
 		
 		if (!FileCommands.exists(afOutputPath)) {
 			FileCommands.writeToFile(afOutputPath, "PP-Table([])");
-			generate(afOutputPath);
+			provide(afOutputPath);
 		}
 		
 		setState(State.finished(er1.success && er2.success));

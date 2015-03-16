@@ -127,9 +127,9 @@ public class StrategoJavaCompiler extends SpoofaxBuilder<StrategoJavaCompiler.In
 				StringCommands.printListSeparated(input.additionalArgs, " "));
 		FileCommands.delete(rtree);
 		
-		generate(input.outputPath);
-		generate(rtree);
-		generate(strdep);
+		provide(input.outputPath);
+		provide(rtree);
+		provide(strdep);
 		
 		registerUsedPaths(strdep);
 		

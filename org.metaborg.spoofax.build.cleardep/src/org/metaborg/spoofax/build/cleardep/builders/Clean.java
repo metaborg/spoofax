@@ -72,25 +72,25 @@ public class Clean extends SpoofaxBuilder<SpoofaxInput, None> {
 			Path path = context.basePath(p);
 			Log.log.log("Delete " + path, Log.DETAIL); 
 			FileCommands.delete(path); 
-			generate(path);
+			provide(path);
 		}
 		
 		for (Path p : FileCommands.listFiles(context.basePath("${build}"))) {
 			Log.log.log("Delete " + p, Log.DETAIL); 
 			FileCommands.delete(p); 
-			generate(p);
+			provide(p);
 		}
 		
 		for (Path p : FileCommands.listFiles(context.basePath("${lib}"), new FileNameFilter(".*\\.generated\\.str"))) {
 			Log.log.log("Delete " + p, Log.DETAIL); 
 			FileCommands.delete(p); 
-			generate(p);
+			provide(p);
 		}
 		
 		for (Path p : FileCommands.listFilesRecursive(context.depDir(), new FileExtensionFilter("dep"))) {
 			Log.log.log("Delete " + p, Log.DETAIL); 
 			FileCommands.delete(p); 
-			generate(p);
+			provide(p);
 		}
 		
 		return None.val;

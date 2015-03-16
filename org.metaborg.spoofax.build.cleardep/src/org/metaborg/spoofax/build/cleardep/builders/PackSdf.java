@@ -86,7 +86,7 @@ public class PackSdf extends SpoofaxBuilder<PackSdf.Input, None> {
 				utilsInclude,
 				input.buildSdfImports);
 		
-		generate(outputPath);
+		provide(outputPath);
 		for (Path required : extractRequiredPaths(er.errLog))
 			require(required);
 		
@@ -122,7 +122,7 @@ public class PackSdf extends SpoofaxBuilder<PackSdf.Input, None> {
 		for (RelativePath p : srcSdfFiles) {
 			require(p, LastModifiedStamper.instance);
 			Path target = FileCommands.copyFile(context.basePath("syntax"), context.basePath("${syntax}"), p, StandardCopyOption.COPY_ATTRIBUTES);
-			generate(target);
+			provide(target);
 		}		
 	}
 

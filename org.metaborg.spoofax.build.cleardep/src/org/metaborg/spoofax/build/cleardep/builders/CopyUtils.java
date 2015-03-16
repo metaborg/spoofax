@@ -45,14 +45,14 @@ public class CopyUtils extends SpoofaxBuilder<SpoofaxInput, None> {
 			Path to = new RelativePath(utils, p);
 			require(from, LastModifiedStamper.instance);
 			FileCommands.copyFile(from, to);
-			generate(to);
+			provide(to);
 		}
 		
 		Path strategojar = new AbsolutePath(context.props.getOrFail("eclipse.spoofaximp.strategojar"));
 		Path strategojarTo = new RelativePath(utils, FileCommands.dropDirectory(strategojar));
 		require(strategojar, LastModifiedStamper.instance);
 		FileCommands.copyFile(strategojar, strategojarTo);
-		generate(strategojarTo);
+		provide(strategojarTo);
 		
 		return None.val;
 	}

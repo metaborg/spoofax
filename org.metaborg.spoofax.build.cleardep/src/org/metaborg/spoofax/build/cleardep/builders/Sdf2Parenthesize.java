@@ -88,7 +88,7 @@ public class Sdf2Parenthesize extends SpoofaxBuilder<Sdf2Parenthesize.Input, Non
 		if (!er.success)
 			FileCommands.writeToFile(outputPath, "module include/" + input.sdfmodule + "-parenthesize rules parenthesize-" + input.sdfmodule + " = id");
 		
-		generate(outputPath);
+		provide(outputPath);
 		
 		return None.val;
 	}

@@ -82,7 +82,7 @@ public class Sdf2ImpEclipse extends SpoofaxBuilder<Sdf2ImpEclipse.Input, None> {
 			}
 			else if (s.startsWith(genPrefix)) {
 				String file = s.substring(genPrefix.length());
-				generate(context.basePath(file));
+				provide(context.basePath(file));
 			}
 			else if (s.startsWith(defPrefix)) {
 				String file = s.substring(defPrefix.length());

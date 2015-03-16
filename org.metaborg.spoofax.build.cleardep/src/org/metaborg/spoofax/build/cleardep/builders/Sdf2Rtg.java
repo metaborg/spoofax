@@ -78,7 +78,7 @@ public class Sdf2Rtg extends SpoofaxBuilder<Sdf2Rtg.Input, None> {
 				"-o", outputPath,
 				"--ignore-missing-cons" /*,
 				"-Xnativepath", context.basePath("${nativepath}/")*/);
-		generate(outputPath);
+		provide(outputPath);
 		setState(State.finished(er.success));
 		
 		return None.val;

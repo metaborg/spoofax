@@ -54,7 +54,7 @@ public class CopySdf extends SpoofaxBuilder<CopySdf.Input, None> {
 			Path target = context.basePath("${include}/" + input.sdfmodule + ".def");
 			require(input.externaldef, LastModifiedStamper.instance);
 			FileCommands.copyFile(input.externaldef, target, StandardCopyOption.COPY_ATTRIBUTES);
-			generate(target);
+			provide(target);
 		}
 		return None.val;
 	}

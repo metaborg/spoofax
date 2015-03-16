@@ -65,7 +65,7 @@ public class Rtg2Sig extends SpoofaxBuilder<Rtg2Sig.Input, None> {
 					"-i", inputPath,
 					"--module", input.sdfmodule,
 					"-o", outputPath);
-			generate(outputPath);
+			provide(outputPath);
 			setState(State.finished(er.success));
 		}
 		

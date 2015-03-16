@@ -67,7 +67,7 @@ public class MakePermissive extends SpoofaxBuilder<MakePermissive.Input, None> {
 				"-o", outputPath,
 				"--optimize", "on"
 				);
-		generate(outputPath);
+		provide(outputPath);
 		setState(State.finished(er.success));
 		return None.val;
 	}

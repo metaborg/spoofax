@@ -64,7 +64,7 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, None> {
 				"-m", input.sdfmodule,
 				"-o", outputPath);
 		
-		generate(outputPath);
+		provide(outputPath);
 		setState(State.finished(er.success));
 		return None.val;
 	}
