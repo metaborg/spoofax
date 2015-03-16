@@ -22,14 +22,14 @@ public interface ITransformer<ParseT, AnalysisT, TransT> {
      *            Parse result to transform.
      * @param context
      *            Context in which to apply transformation.
-     * @param transformer
-     *            Name of the transformer to apply.
+     * @param goal
+     *            Goal of the transformation.
      * @return Transformed result.
      * @throws TransformerException
-     *             when transformation fails.
+     *             When transformation fails.
      */
-    public abstract TransformResult<ParseResult<ParseT>, TransT> transformParsed(ParseResult<ParseT> parseResult,
-        IContext context, String transformer) throws TransformerException;
+    public abstract TransformResult<ParseResult<ParseT>, TransT> transform(ParseResult<ParseT> parseResult,
+        IContext context, ITransformerGoal goal) throws TransformerException;
 
     /**
      * Transforms given analysis result.
@@ -38,13 +38,26 @@ public interface ITransformer<ParseT, AnalysisT, TransT> {
      *            Analysis result to transform.
      * @param context
      *            Context in which to apply transformation.
-     * @param transformer
-     *            Name of the transformer to apply.
+     * @param goal
+     *            Goal of the transformation.
      * @return Transformed result.
      * @throws TransformerException
-     *             when transformation fails.
+     *             When transformation fails.
      */
-    public abstract TransformResult<AnalysisFileResult<ParseT, AnalysisT>, TransT> transformAnalyzed(
-        AnalysisFileResult<ParseT, AnalysisT> analysisResult, IContext context, String transformer)
+    public abstract TransformResult<AnalysisFileResult<ParseT, AnalysisT>, TransT> transform(
+        AnalysisFileResult<ParseT, AnalysisT> analysisResult, IContext context, ITransformerGoal goal)
         throws TransformerException;
+
+    /**
+     * Returns if the transformation goal is available in given context.
+     * 
+     * @param goal
+     *            Goal to check for availability.
+     * @param context
+     *            Context in which to check for availability.
+     * @return True if available, false if not.
+     * @throws TransformerException
+     *             When no executor can be found for given goal.
+     */
+    public abstract boolean available(ITransformerGoal goal, IContext context);
 }

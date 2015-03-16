@@ -38,6 +38,9 @@ import org.metaborg.spoofax.core.syntax.ISyntaxService;
 import org.metaborg.spoofax.core.syntax.ParseException;
 import org.metaborg.spoofax.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.text.ISourceTextService;
+import org.metaborg.spoofax.core.transform.CompileGoal;
+import org.metaborg.spoofax.core.transform.ITransformer;
+import org.metaborg.spoofax.core.transform.TransformerException;
 import org.metaborg.spoofax.eclipse.SpoofaxPlugin;
 import org.metaborg.spoofax.eclipse.processing.AnalysisResultProcessor;
 import org.metaborg.spoofax.eclipse.processing.ParseResultProcessor;
@@ -50,6 +53,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.inject.Injector;
@@ -67,6 +71,7 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
     private final ISourceTextService sourceTextService;
     private final ISyntaxService<IStrategoTerm> syntaxService;
     private final IAnalysisService<IStrategoTerm, IStrategoTerm> analyzer;
+    private final ITransformer<IStrategoTerm, IStrategoTerm, IStrategoTerm> transformer;
 
     private final ParseResultProcessor parseResultProcessor;
     private final AnalysisResultProcessor analysisResultProcessor;
@@ -81,6 +86,9 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
         this.syntaxService = injector.getInstance(Key.get(new TypeLiteral<ISyntaxService<IStrategoTerm>>() {}));
         this.analyzer =
             injector.getInstance(Key.get(new TypeLiteral<IAnalysisService<IStrategoTerm, IStrategoTerm>>() {}));
+        this.transformer =
+            injector.getInstance(Key
+                .get(new TypeLiteral<ITransformer<IStrategoTerm, IStrategoTerm, IStrategoTerm>>() {}));
 
         this.parseResultProcessor = injector.getInstance(ParseResultProcessor.class);
         this.analysisResultProcessor = injector.getInstance(AnalysisResultProcessor.class);
@@ -165,7 +173,7 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
         final Collection<IMessage> extraMessages = Lists.newLinkedList();
 
         // Parse
-        final Collection<ParseResult<IStrategoTerm>> allParseResults = Lists.newArrayListWithCapacity(numChanges);
+        final Collection<ParseResult<IStrategoTerm>> allParseResults = Lists.newArrayListWithExpectedSize(numChanges);
         for(IResourceChange change : changes) {
             final FileObject resource = change.resource();
             final IResource eclipseResource = resourceService.unresolve(resource);
@@ -217,8 +225,8 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
         }
 
         // Analyze
-        final Collection<AnalysisResult<IStrategoTerm, IStrategoTerm>> allAnalysisResults =
-            Lists.newArrayListWithCapacity(allParseResultsPerContext.keySet().size());
+        final Map<IContext, AnalysisResult<IStrategoTerm, IStrategoTerm>> allAnalysisResults =
+            Maps.newHashMapWithExpectedSize(allParseResultsPerContext.keySet().size());
         for(Entry<IContext, Collection<ParseResult<IStrategoTerm>>> entry : allParseResultsPerContext.asMap()
             .entrySet()) {
             final IContext context = entry.getKey();
@@ -230,12 +238,41 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
                     final AnalysisResult<IStrategoTerm, IStrategoTerm> analysisResult =
                         analyzer.analyze(parseResults, context);
                     analysisResultProcessor.update(analysisResult);
-                    allAnalysisResults.add(analysisResult);
+                    allAnalysisResults.put(context, analysisResult);
                 }
+                // GTODO: also update messages for affected sources
             } catch(AnalysisException e) {
                 logger.error("Analysis failed", e);
                 analysisResultProcessor.error(parseResults, e);
                 extraMessages.add(MessageFactory.newAnalysisErrorAtTop(projectResource, "Analysis failed", e));
+            }
+        }
+
+        // Compile
+        final CompileGoal compileGoal = new CompileGoal();
+        for(Entry<IContext, AnalysisResult<IStrategoTerm, IStrategoTerm>> entry : allAnalysisResults.entrySet()) {
+            final IContext context = entry.getKey();
+            if(!transformer.available(compileGoal, context)) {
+                logger.debug("No compilation required for {}", context.language());
+                continue;
+            }
+            final AnalysisResult<IStrategoTerm, IStrategoTerm> analysisResult = entry.getValue();
+            synchronized(context) {
+                for(AnalysisFileResult<IStrategoTerm, IStrategoTerm> fileResult : analysisResult.fileResults) {
+                    if(fileResult.result == null) {
+                        logger.warn("Input result for {} is null, cannot compile it", fileResult.source);
+                        continue;
+                    }
+
+                    try {
+                        transformer.transform(fileResult, context, new CompileGoal());
+                    } catch(TransformerException e) {
+                        logger.error("Compilation failed", e);
+                        extraMessages
+                            .add(MessageFactory.newBuilderErrorAtTop(projectResource, "Compilation failed", e));
+                    }
+                }
+                // GTODO: also compile any affected sources
             }
         }
 
@@ -258,7 +295,7 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
                     }
                 }
 
-                for(AnalysisResult<IStrategoTerm, IStrategoTerm> result : allAnalysisResults) {
+                for(AnalysisResult<IStrategoTerm, IStrategoTerm> result : allAnalysisResults.values()) {
                     for(AnalysisFileResult<IStrategoTerm, IStrategoTerm> fileResult : result.fileResults) {
                         for(IMessage message : fileResult.messages) {
                             final IResource resource = resourceService.unresolve(message.source());

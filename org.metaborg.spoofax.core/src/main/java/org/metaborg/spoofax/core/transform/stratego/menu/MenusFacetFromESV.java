@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.core.transform.stratego;
+package org.metaborg.spoofax.core.transform.stratego.menu;
 
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.metaborg.spoofax.core.language.ILanguage;
