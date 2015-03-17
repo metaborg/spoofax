@@ -89,9 +89,7 @@ public class StrategoJavaCompiler extends SpoofaxBuilder<StrategoJavaCompiler.In
 
 	@Override
 	public None build() throws IOException {
-		if (input.requiredUnits != null)
-			for (BuildRequest<?,?,?,?> req : input.requiredUnits)
-				requireBuild(req);
+		requireBuild(input.requiredUnits);
 		
 		require(input.inputPath);
 		
