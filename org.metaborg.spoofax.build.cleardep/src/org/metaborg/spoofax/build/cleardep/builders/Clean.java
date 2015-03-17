@@ -49,13 +49,13 @@ public class Clean extends SpoofaxBuilder<SpoofaxInput, None> {
 				"${lib-gen}/${ppmodule}.jar",
 				"${lib-gen}/${ppmodule}.rtree",
 				"${lib-gen}/${sigmodule}.str",
-				"${lib-gen}/${sigmodule}.ctree",
+//				"${lib-gen}/${sigmodule}.ctree",
 				"${lib-gen}/${sigmodule}.rtree",
 				"${lib-gen}/${sigmodule}.ctree.dep",
 				"${include}/${sdfmodule}.str",
-				"${include}/${sdfmodule}.tbl",
+//				"${include}/${sdfmodule}.tbl",
 				"${include}/${strmodule}.rtree",
-				"${include}/${strmodule}.ctree",
+//				"${include}/${strmodule}.ctree",
 				"${include}/${strmodule}.ctree.dep",
 				"${include}/${strmodule}.jar",
 				"${src-gen}/trans",
@@ -87,10 +87,13 @@ public class Clean extends SpoofaxBuilder<SpoofaxInput, None> {
 			provide(p);
 		}
 		
+		Path cleanPath = persistentPath();
 		for (Path p : FileCommands.listFilesRecursive(context.depDir(), new FileExtensionFilter("dep"))) {
-			Log.log.log("Delete " + p, Log.DETAIL); 
-			FileCommands.delete(p); 
-			provide(p);
+			if (!p.equals(cleanPath)) {
+				Log.log.log("Delete " + p, Log.DETAIL); 
+				FileCommands.delete(p); 
+				provide(p);
+			}
 		}
 		
 		return None.val;

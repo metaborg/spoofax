@@ -1,8 +1,11 @@
 package org.metaborg.spoofax.build.cleardep;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -19,6 +22,8 @@ import org.strategoxt.imp.metatooling.NativePrefixAntPropertyProvider;
 import org.strategoxt.imp.metatooling.PluginClasspathProvider;
 import org.strategoxt.imp.metatooling.StrategoJarAntPropertyProvider;
 import org.strategoxt.imp.metatooling.StrategoMinJarAntPropertyProvider;
+import org.sugarj.cleardep.BuildUnit;
+import org.sugarj.cleardep.BuildUnit.ModuleVisitor;
 import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.cleardep.build.BuildRequest;
 import org.sugarj.common.Log;
@@ -132,6 +137,7 @@ public class EclipseBuilder extends IncrementalProjectBuilder {
 
 		try {
 			BuildManager.build(new BuildRequest<>(All.factory, input));
+			logFileStatistics(new BuildRequest<>(All.factory, input));
 		} finally {
 			monitor.done();
 			try {
@@ -141,6 +147,49 @@ public class EclipseBuilder extends IncrementalProjectBuilder {
 			}
 		}
 		return null;
+	}
+
+	private void logFileStatistics(BuildRequest<?,?,?,?> req) {
+		try {
+			BuildUnit<?> result = BuildManager.readResult(req);
+			
+			final Set<Path> requiredFiles = new HashSet<>();
+			final Set<Path> providedFiles = new HashSet<>();
+			result.visit(new ModuleVisitor<Void>() {
+
+				@Override
+				public Void visit(BuildUnit<?> mod) {
+					requiredFiles.addAll(mod.getExternalFileDependencies());
+					providedFiles.addAll(mod.getGeneratedFiles());
+					return null;
+				}
+
+				@Override
+				public Void combine(Void t1, Void t2) {
+					return null;
+				}
+
+				@Override
+				public Void init() {
+					return null;
+				}
+
+				@Override
+				public boolean cancel(Void t) {
+					return false;
+				}
+			});
+			
+			int allRequired = requiredFiles.size();
+			requiredFiles.removeAll(providedFiles);
+			int nongeneratedRequired = requiredFiles.size();
+			int generatedRequired = allRequired - nongeneratedRequired;
+			
+			System.out.println("Generated " + providedFiles.size() + " files.");
+			System.out.println("Required " + generatedRequired + " generated files.");
+			System.out.println("Required " + nongeneratedRequired + " nongenerated files.");
+		} catch (IOException e) {
+		}		
 	}
 
 	@Override
