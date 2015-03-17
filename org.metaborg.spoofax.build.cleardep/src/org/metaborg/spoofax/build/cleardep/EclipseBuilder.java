@@ -139,7 +139,7 @@ public class EclipseBuilder extends IncrementalProjectBuilder {
 
 		try {
 			BuildManager.build(new BuildRequest<>(All.factory, input));
-			logFileStatistics(new BuildRequest<>(All.factory, input));
+//			logFileStatistics(new BuildRequest<>(All.factory, input));
 		} finally {
 			monitor.done();
 			try {
