@@ -16,17 +16,17 @@ public class Language implements ILanguage {
     private final String name;
     private final LanguageVersion version;
     private final FileObject location;
-    private final Date loadedDate;
+    private final Date createdDate;
 
     private final ClassToInstanceMap<ILanguageFacet> facets = MutableClassToInstanceMap.create();
     private final Subject<LanguageFacetChange, LanguageFacetChange> facetChanges = PublishSubject.create();
 
 
-    public Language(String name, LanguageVersion version, FileObject location, Date loadedDate) {
+    public Language(String name, LanguageVersion version, FileObject location, Date createdDate) {
         this.name = name;
         this.version = version;
         this.location = location;
-        this.loadedDate = loadedDate;
+        this.createdDate = createdDate;
     }
 
 
@@ -43,7 +43,7 @@ public class Language implements ILanguage {
     }
 
     @Override public Date createdDate() {
-        return loadedDate;
+        return createdDate;
     }
 
 
@@ -66,7 +66,7 @@ public class Language implements ILanguage {
                 + name);
         }
         facets.putInstance(type, facet);
-        facetChanges.onNext(new LanguageFacetChange(facet, LanguageFacetChange.Kind.ADDED));
+        facetChanges.onNext(new LanguageFacetChange(facet, LanguageFacetChange.Kind.ADD));
         return facet;
     }
 
@@ -76,7 +76,7 @@ public class Language implements ILanguage {
                 + " does not exists in language " + name);
         }
         final ILanguageFacet removedFacet = facets.remove(type);
-        facetChanges.onNext(new LanguageFacetChange(removedFacet, LanguageFacetChange.Kind.REMOVED));
+        facetChanges.onNext(new LanguageFacetChange(removedFacet, LanguageFacetChange.Kind.REMOVE));
         return removedFacet;
     }
 
@@ -86,7 +86,6 @@ public class Language implements ILanguage {
         return ComparisonChain.start()
             .compare(name, other.name())
             .compare(version, other.version())
-            .compare(loadedDate, other.createdDate())
             .compare(location.getName(), other.location().getName())
             .result();
         // @formatter:on

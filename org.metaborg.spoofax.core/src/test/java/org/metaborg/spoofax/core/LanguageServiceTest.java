@@ -43,13 +43,16 @@ public class LanguageServiceTest extends SpoofaxTest {
         return language;
     }
 
-    private ILanguage language(String name, LanguageVersion version, FileObject location,
-        String... extensions) {
+    private ILanguage language(String name, LanguageVersion version, FileObject location, String... extensions) {
         final ILanguage language = language(name, version, location);
         final IdentificationFacet identificationFacet =
             new IdentificationFacet(new ResourceExtensionsIdentifier(Iterables2.from(extensions)));
         language.addFacet(identificationFacet);
         return language;
+    }
+
+    private void removeLanguage(ILanguage language) {
+        languageService.remove(language);
     }
 
 
@@ -187,9 +190,9 @@ public class LanguageServiceTest extends SpoofaxTest {
     }
 
     /**
-     * The 'res:' filesystem redirects to resources inside the tests' JAR file or class file location, which
-     * are copied to the class file location from src/test/resources by Maven. The binary files of the Entity
-     * language are located in the resources to test language discovery.
+     * The 'res:' filesystem redirects to resources inside the tests' JAR file or class file location, which are copied
+     * to the class file location from src/test/resources by Maven. The binary files of the Entity language are located
+     * in the resources to test language discovery.
      */
     @Test public void discoverLanguage() throws Exception {
         final FileObject location = resourceService.resolve("res:");
@@ -213,10 +216,8 @@ public class LanguageServiceTest extends SpoofaxTest {
 
         final StrategoFacet strategoFacet = language.facet(StrategoFacet.class);
 
-        assertIterableEquals(strategoFacet.ctreeFiles(),
-            resourceService.resolve("res:Entity/include/entity.ctree"));
-        assertIterableEquals(strategoFacet.jarFiles(),
-            resourceService.resolve("res:Entity/include/entity-java.jar"));
+        assertIterableEquals(strategoFacet.ctreeFiles(), resourceService.resolve("res:Entity/include/entity.ctree"));
+        assertIterableEquals(strategoFacet.jarFiles(), resourceService.resolve("res:Entity/include/entity-java.jar"));
         assertEquals("editor-analyze", strategoFacet.analysisStrategy());
         assertEquals("editor-save", strategoFacet.onSaveStrategy());
 
@@ -224,58 +225,113 @@ public class LanguageServiceTest extends SpoofaxTest {
     }
 
     @Test public void observables() throws Exception {
-        final LanguageVersion version = version(0, 0, 1, 0);
-        final FileObject location = createDirectory("ram:///");
+        final LanguageVersion version1 = version(0, 0, 1, 0);
+        final LanguageVersion version2 = version(0, 0, 2, 0);
+        final FileObject location1 = createDirectory("ram:///Entity1");
+        final FileObject location2 = createDirectory("ram:///Entity2");
+        final FileObject location3 = createDirectory("ram:///Entity3");
         final ITestableObserver<LanguageChange> languageObserver = new TestableObserver<LanguageChange>();
-        final ITestableObserver<LanguageFacetChange> facetObserver =
-            new TestableObserver<LanguageFacetChange>();
+        final ITestableObserver<LanguageFacetChange> facetObserver = new TestableObserver<LanguageFacetChange>();
 
         languageService.changes().subscribe(languageObserver);
 
-        final ILanguage language = language("Entity", version, location);
 
-        final TimestampedNotification<LanguageChange> loaded = languageObserver.poll();
-        final TimestampedNotification<LanguageChange> activated = languageObserver.poll();
+        // Add language, expect ADD_FIRST and ADD.
+        final ILanguage language1 = language("Entity", version1, location1);
+        final TimestampedNotification<LanguageChange> language1Load = languageObserver.poll();
+        final TimestampedNotification<LanguageChange> language1Add = languageObserver.poll();
+        assertTrue(language1Load.notification.isOnNext());
+        assertEquals(new LanguageChange(LanguageChange.Kind.ADD_FIRST, null, language1),
+            language1Load.notification.getValue());
+        assertTrue(language1Add.notification.isOnNext());
+        assertEquals(new LanguageChange(LanguageChange.Kind.ADD, null, language1), language1Add.notification.getValue());
 
-        assertTrue(loaded.notification.isOnNext());
-        assertEquals(loaded.notification.getValue(), new LanguageChange(language, LanguageChange.Kind.LOADED));
-        assertTrue(activated.notification.isOnNext());
-        assertEquals(activated.notification.getValue(), new LanguageChange(language,
-            LanguageChange.Kind.ACTIVATED));
 
+        // Create and remove facet, expect ADD and REMOVE.
+        language1.facetChanges().subscribe(facetObserver);
+        final ILanguageFacet facet = language1.addFacet(new DescriptionFacet("Entity language", null));
+        final TimestampedNotification<LanguageFacetChange> addedFacet = facetObserver.poll();
+        assertTrue(addedFacet.notification.isOnNext());
+        assertEquals(new LanguageFacetChange(facet, LanguageFacetChange.Kind.ADD), addedFacet.notification.getValue());
 
-        language.facetChanges().subscribe(facetObserver);
-
-        final ILanguageFacet facet = language.addFacet(new DescriptionFacet("Entity language", null));
-
-        final TimestampedNotification<LanguageFacetChange> added = facetObserver.poll();
-
-        assertTrue(added.notification.isOnNext());
-        assertEquals(added.notification.getValue(), new LanguageFacetChange(facet,
-            LanguageFacetChange.Kind.ADDED));
-
-        language.removeFacet(DescriptionFacet.class);
-
+        language1.removeFacet(DescriptionFacet.class);
         final TimestampedNotification<LanguageFacetChange> removed = facetObserver.poll();
-
         assertTrue(removed.notification.isOnNext());
-        assertEquals(removed.notification.getValue(), new LanguageFacetChange(facet,
-            LanguageFacetChange.Kind.REMOVED));
-
+        assertEquals(new LanguageFacetChange(facet, LanguageFacetChange.Kind.REMOVE), removed.notification.getValue());
         assertEquals(facetObserver.size(), 0);
 
 
-        languageService.remove(language);
+        // Add language2 with same name and version, but different location. Expect ADD and REPLACE_ACTIVE.
+        final ILanguage language2 = language("Entity", version1, location2);
+        final TimestampedNotification<LanguageChange> language2Add = languageObserver.poll();
+        final TimestampedNotification<LanguageChange> language2Replace = languageObserver.poll();
+        assertTrue(language2Add.notification.isOnNext());
+        assertEquals(new LanguageChange(LanguageChange.Kind.ADD, null, language2), language2Add.notification.getValue());
+        assertTrue(language2Replace.notification.isOnNext());
+        assertEquals(new LanguageChange(LanguageChange.Kind.REPLACE_ACTIVE, language1, language2),
+            language2Replace.notification.getValue());
 
-        final TimestampedNotification<LanguageChange> deactivated = languageObserver.poll();
-        final TimestampedNotification<LanguageChange> unloaded = languageObserver.poll();
 
-        assertTrue(deactivated.notification.isOnNext());
-        assertEquals(deactivated.notification.getValue(), new LanguageChange(language,
-            LanguageChange.Kind.DEACTIVATED));
-        assertTrue(unloaded.notification.isOnNext());
-        assertEquals(unloaded.notification.getValue(), new LanguageChange(language,
-            LanguageChange.Kind.UNLOADED));
+        // Add language2 again, expect RELOAD_ACTIVE.
+        final ILanguage language2Again = language("Entity", version1, location2);
+        assertEquals(language2Again, language2);
+        final TimestampedNotification<LanguageChange> language2ReloadActive = languageObserver.poll();
+        assertTrue(language2ReloadActive.notification.isOnNext());
+        assertEquals(new LanguageChange(LanguageChange.Kind.RELOAD_ACTIVE, language2, language2),
+            language2ReloadActive.notification.getValue());
+
+
+        // Add language3 with same name, but higher version and different location. Expect ADD and REPLACE_ACTIVE.
+        final ILanguage language3 = language("Entity", version2, location3);
+        final TimestampedNotification<LanguageChange> language3Add = languageObserver.poll();
+        final TimestampedNotification<LanguageChange> language3Replace = languageObserver.poll();
+        assertTrue(language3Add.notification.isOnNext());
+        assertEquals(new LanguageChange(LanguageChange.Kind.ADD, null, language3), language3Add.notification.getValue());
+        assertTrue(language3Replace.notification.isOnNext());
+        assertEquals(new LanguageChange(LanguageChange.Kind.REPLACE_ACTIVE, language2, language3),
+            language3Replace.notification.getValue());
+
+
+        // Add language2 again, expect RELOAD.
+        final ILanguage language2AgainAgain = language("Entity", version1, location2);
+        assertEquals(language2AgainAgain, language2Again);
+        final TimestampedNotification<LanguageChange> language2Reload = languageObserver.poll();
+        assertTrue(language2Reload.notification.isOnNext());
+        assertEquals(new LanguageChange(LanguageChange.Kind.RELOAD, language2, language2),
+            language2Reload.notification.getValue());
+
+
+        // Remove language2, expect REMOVE.
+        removeLanguage(language2);
+        final TimestampedNotification<LanguageChange> language2Remove = languageObserver.poll();
+        assertTrue(language2Remove.notification.isOnNext());
+        assertEquals(new LanguageChange(LanguageChange.Kind.REMOVE, language2, null),
+            language2Remove.notification.getValue());
+
+
+        // Remove language3, expect REMOVE and REPLACE_ACTIVE.
+        removeLanguage(language3);
+        final TimestampedNotification<LanguageChange> language3Remove = languageObserver.poll();
+        final TimestampedNotification<LanguageChange> language3Replaced = languageObserver.poll();
+        assertTrue(language3Remove.notification.isOnNext());
+        assertEquals(new LanguageChange(LanguageChange.Kind.REMOVE, language3, null),
+            language3Remove.notification.getValue());
+        assertTrue(language3Replaced.notification.isOnNext());
+        assertEquals(new LanguageChange(LanguageChange.Kind.REPLACE_ACTIVE, language3, language1),
+            language3Replaced.notification.getValue());
+
+
+        // Remove language1, expect REMOVE and REMOVE_LAST.
+        languageService.remove(language1);
+        final TimestampedNotification<LanguageChange> language1Remove = languageObserver.poll();
+        final TimestampedNotification<LanguageChange> language1Unload = languageObserver.poll();
+        assertTrue(language1Remove.notification.isOnNext());
+        assertEquals(new LanguageChange(LanguageChange.Kind.REMOVE, language1, null),
+            language1Remove.notification.getValue());
+        assertTrue(language1Unload.notification.isOnNext());
+        assertEquals(new LanguageChange(LanguageChange.Kind.REMOVE_LAST, language1, null),
+            language1Unload.notification.getValue());
+
 
         assertEquals(languageObserver.size(), 0);
     }
