@@ -2,10 +2,9 @@ package org.metaborg.spoofax.build.cleardep;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Pattern;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -26,6 +25,9 @@ import org.sugarj.cleardep.BuildUnit;
 import org.sugarj.cleardep.BuildUnit.ModuleVisitor;
 import org.sugarj.cleardep.build.BuildManager;
 import org.sugarj.cleardep.build.BuildRequest;
+import org.sugarj.cleardep.dependency.FileRequirement;
+import org.sugarj.cleardep.dependency.Requirement;
+import org.sugarj.cleardep.stamp.Stamper;
 import org.sugarj.common.Log;
 import org.sugarj.common.path.AbsolutePath;
 import org.sugarj.common.path.Path;
@@ -148,19 +150,38 @@ public class EclipseBuilder extends IncrementalProjectBuilder {
 		}
 		return null;
 	}
+	
+	private <K> void mapInc(Map<K, Integer> map, K key) {
+		Integer i = map.get(key);
+		if (i == null)
+			map.put(key, 1);
+		else
+			map.put(key, i+1);
+	}
 
 	private void logFileStatistics(BuildRequest<?,?,?,?> req) {
 		try {
 			BuildUnit<?> result = BuildManager.readResult(req);
 			
-			final Set<Path> requiredFiles = new HashSet<>();
-			final Set<Path> providedFiles = new HashSet<>();
-			result.visit(new ModuleVisitor<Void>() {
+			final List<Path> requiredFiles = new ArrayList<>();
+			final List<Path> providedFiles = new ArrayList<>();
+			final Map<Class<? extends Stamper>, Integer> requireStampers = new HashMap<>();
+			final Map<Class<? extends Stamper>, Integer> providerStampers = new HashMap<>();
 
+			result.visit(new ModuleVisitor<Void>() {
 				@Override
 				public Void visit(BuildUnit<?> mod) {
-					requiredFiles.addAll(mod.getExternalFileDependencies());
 					providedFiles.addAll(mod.getGeneratedFiles());
+					
+					for (FileRequirement freq : mod.getGeneratedFileRequirements())
+						mapInc(providerStampers, freq.stamp.getStamper().getClass());
+					
+					for (Requirement req : mod.getRequirements())
+						if (req instanceof FileRequirement) {
+							mapInc(requireStampers, ((FileRequirement) req).stamp.getStamper().getClass());
+							requiredFiles.add(((FileRequirement) req).path);
+						}
+					
 					return null;
 				}
 
@@ -180,14 +201,19 @@ public class EclipseBuilder extends IncrementalProjectBuilder {
 				}
 			});
 			
-			int allRequired = requiredFiles.size();
-			requiredFiles.removeAll(providedFiles);
-			int nongeneratedRequired = requiredFiles.size();
-			int generatedRequired = allRequired - nongeneratedRequired;
+			int nongeneratedRequired = 0;
+			int generatedRequired = 0;
+			for (Path p : requiredFiles)
+				if (providedFiles.contains(p))
+					generatedRequired++;
+				else
+					nongeneratedRequired++;
 			
 			System.out.println("Generated " + providedFiles.size() + " files.");
 			System.out.println("Required " + generatedRequired + " generated files.");
 			System.out.println("Required " + nongeneratedRequired + " nongenerated files.");
+			System.out.println("Requiremenet stampers: " + requireStampers);
+			System.out.println("Provision stampers: " + providerStampers);
 		} catch (IOException e) {
 		}		
 	}
