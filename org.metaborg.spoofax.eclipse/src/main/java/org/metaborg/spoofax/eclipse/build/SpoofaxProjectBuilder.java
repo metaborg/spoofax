@@ -20,7 +20,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.metaborg.spoofax.core.SpoofaxRuntimeException;
 import org.metaborg.spoofax.core.analysis.AnalysisException;
-import org.metaborg.spoofax.core.analysis.AnalysisFileResult;
 import org.metaborg.spoofax.core.analysis.AnalysisResult;
 import org.metaborg.spoofax.core.analysis.IAnalysisService;
 import org.metaborg.spoofax.core.context.ContextException;
@@ -38,9 +37,7 @@ import org.metaborg.spoofax.core.syntax.ISyntaxService;
 import org.metaborg.spoofax.core.syntax.ParseException;
 import org.metaborg.spoofax.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.text.ISourceTextService;
-import org.metaborg.spoofax.core.transform.CompileGoal;
 import org.metaborg.spoofax.core.transform.ITransformer;
-import org.metaborg.spoofax.core.transform.TransformerException;
 import org.metaborg.spoofax.eclipse.SpoofaxPlugin;
 import org.metaborg.spoofax.eclipse.processing.AnalysisResultProcessor;
 import org.metaborg.spoofax.eclipse.processing.ParseResultProcessor;
@@ -63,7 +60,7 @@ import com.google.inject.TypeLiteral;
 public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
     public static final String id = SpoofaxPlugin.id + ".builder";
 
-    private static final Logger logger = LoggerFactory.getLogger(SpoofaxProjectBuilder.class);
+    static final Logger logger = LoggerFactory.getLogger(SpoofaxProjectBuilder.class);
 
     private final IEclipseResourceService resourceService;
     private final ILanguageIdentifierService languageIdentifier;
@@ -248,77 +245,19 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
             }
         }
 
-        // Compile
-        final CompileGoal compileGoal = new CompileGoal();
-        for(Entry<IContext, AnalysisResult<IStrategoTerm, IStrategoTerm>> entry : allAnalysisResults.entrySet()) {
-            final IContext context = entry.getKey();
-            if(!transformer.available(compileGoal, context)) {
-                logger.debug("No compilation required for {}", context.language());
-                continue;
-            }
-            final AnalysisResult<IStrategoTerm, IStrategoTerm> analysisResult = entry.getValue();
-            synchronized(context) {
-                for(AnalysisFileResult<IStrategoTerm, IStrategoTerm> fileResult : analysisResult.fileResults) {
-                    if(fileResult.result == null) {
-                        logger.warn("Input result for {} is null, cannot compile it", fileResult.source);
-                        continue;
-                    }
-
-                    try {
-                        transformer.transform(fileResult, context, new CompileGoal());
-                    } catch(TransformerException e) {
-                        logger.error("Compilation failed", e);
-                        extraMessages
-                            .add(MessageFactory.newBuilderErrorAtTop(projectResource, "Compilation failed", e));
-                    }
-                }
-                // GTODO: also compile any affected sources
-            }
-        }
-
-        // Update markers atomically using a workspace runnable, to prevent flashing/jumping markers.
-        final IWorkspaceRunnable markerUpdater = new IWorkspaceRunnable() {
-            @Override public void run(IProgressMonitor workspaceMonitor) throws CoreException {
-                MarkerUtils.clearAll(project);
-                for(IResource resource : changedResources) {
-                    MarkerUtils.clearAll(resource);
-                }
-
-                for(ParseResult<IStrategoTerm> result : allParseResults) {
-                    for(IMessage message : result.messages) {
-                        final IResource resource = resourceService.unresolve(message.source());
-                        if(resource == null) {
-                            logger.error("Cannot create marker for {}", message.source());
-                            continue;
-                        }
-                        MarkerUtils.createMarker(resource, message);
-                    }
-                }
-
-                for(AnalysisResult<IStrategoTerm, IStrategoTerm> result : allAnalysisResults.values()) {
-                    for(AnalysisFileResult<IStrategoTerm, IStrategoTerm> fileResult : result.fileResults) {
-                        for(IMessage message : fileResult.messages) {
-                            final IResource resource = resourceService.unresolve(message.source());
-                            if(resource == null) {
-                                logger.error("Cannot create marker for {}", message.source());
-                                continue;
-                            }
-                            MarkerUtils.createMarker(resource, message);
-                        }
-                    }
-                }
-
-                for(IMessage message : extraMessages) {
-                    final IResource resource = resourceService.unresolve(message.source());
-                    if(resource == null) {
-                        logger.error("Cannot create marker for {}", message.source());
-                        continue;
-                    }
-                    MarkerUtils.createMarker(resource, message);
-                }
-            }
-        };
         final IWorkspace workspace = ResourcesPlugin.getWorkspace();
+
+        // Compile atomically using a workspace runnable, because new files will be generated, which need to be batched
+        // up and built in the next project build.
+        final IWorkspaceRunnable compilerRunnable =
+            new CompilerRunnable(transformer, projectResource, allAnalysisResults.entrySet(), extraMessages);
+        workspace.run(compilerRunnable, project, IWorkspace.AVOID_UPDATE, monitor);
+
+        // Update markers atomically using a workspace runnable, which batches resource and marker changes, to prevent
+        // flashing/jumping markers.
+        final IWorkspaceRunnable markerUpdater =
+            new MarkerUpdaterRunnable(resourceService, extraMessages, changedResources, allAnalysisResults.values(),
+                allParseResults, project);
         workspace.run(markerUpdater, project, IWorkspace.AVOID_UPDATE, monitor);
     }
 
