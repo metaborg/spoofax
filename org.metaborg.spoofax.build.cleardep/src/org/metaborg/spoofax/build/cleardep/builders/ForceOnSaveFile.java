@@ -1,14 +1,20 @@
 package org.metaborg.spoofax.build.cleardep.builders;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.imp.model.ModelFactory.ModelException;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder;
 import org.metaborg.spoofax.build.cleardep.SpoofaxBuilder.SpoofaxInput;
 import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
 import org.spoofax.interpreter.library.ssl.SSLLibrary;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.imp.runtime.FileState;
+import org.strategoxt.imp.runtime.dynamicloading.BadDescriptorException;
 import org.strategoxt.imp.runtime.services.OnSaveService;
 import org.strategoxt.imp.runtime.services.StrategoObserver;
 import org.strategoxt.imp.runtime.services.StrategoObserverUpdateJob;
@@ -55,7 +61,7 @@ public class ForceOnSaveFile extends SpoofaxBuilder<ForceOnSaveFile.Input, None>
 	}
 
 	@Override
-	public None build() throws IOException {
+	public None build() throws IOException, BadDescriptorException, ModelException, CoreException {
 		RelativePath p = FileCommands.getRelativePath(context.baseDir, input.inputPath);
 		
 		require(p);
@@ -93,23 +99,22 @@ public class ForceOnSaveFile extends SpoofaxBuilder<ForceOnSaveFile.Input, None>
 		return None.val;
 	}
 	
-	private void callOnSaveService(RelativePath p) {
-		try {
-			FileState fileState = FileState.getFile(new org.eclipse.core.runtime.Path(p.getAbsolutePath()), null);
-			if (fileState == null) {
-				Log.log.logErr("Could not call on-save handler: File state could not be retrieved for file " + p, Log.CORE);
-				return;
-			}
-			StrategoObserver observer = fileState.getDescriptor().createService(StrategoObserver.class, fileState.getParseController());
-			SSLLibrary lib = SSLLibrary.instance(observer.getRuntime().getContext());
-			if (lib.getIOAgent() instanceof EditorIOAgent && ((EditorIOAgent) lib.getIOAgent()).getJob() == null)
-				((EditorIOAgent) lib.getIOAgent()).setJob(new StrategoObserverUpdateJob(observer));
-			IStrategoTerm ast = fileState.getAnalyzedAst();
-			OnSaveService onSave = fileState.getDescriptor().createService(OnSaveService.class, fileState.getParseController());
-			onSave.invokeOnSave(ast);
-		} catch (Exception e) {
-			throw new RuntimeException("Could not call on-save handler.", e);
+	private void callOnSaveService(RelativePath p) throws FileNotFoundException, BadDescriptorException, ModelException, CoreException {
+		FileState fileState = FileState.getFile(new org.eclipse.core.runtime.Path(p.getAbsolutePath()), null);
+		if (fileState == null) {
+			Log.log.logErr("Could not call on-save handler: File state could not be retrieved for file " + p, Log.CORE);
+			return;
 		}
+		StrategoObserver observer = fileState.getDescriptor().createService(StrategoObserver.class, fileState.getParseController());
+		SSLLibrary lib = SSLLibrary.instance(observer.getRuntime().getContext());
+		if (lib.getIOAgent() instanceof EditorIOAgent && ((EditorIOAgent) lib.getIOAgent()).getJob() == null)
+			((EditorIOAgent) lib.getIOAgent()).setJob(new StrategoObserverUpdateJob(observer));
+		fileState.getParseController().getResource().refreshLocal(IProject.DEPTH_INFINITE, new NullProgressMonitor());
+		IStrategoTerm ast = fileState.getAnalyzedAst();
+		if (ast == null)
+			throw new IllegalStateException("Failed to parse " + p);
+		OnSaveService onSave = fileState.getDescriptor().createService(OnSaveService.class, fileState.getParseController());
+		onSave.invokeOnSave(ast);
 	}
 
 }
