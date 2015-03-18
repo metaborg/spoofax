@@ -36,8 +36,8 @@ public class LanguageService implements ILanguageService {
      * {@link LanguageCreationDateComparator} for sorting, such that languages created at a later date are sorted higher
      * than those created at an earlier date.
      * 
-     * Note: do not use the sorted set for contains checks of languages, since it will take the creation date into
-     * account.
+     * Note: do not use {@code contains} on the sorted set, since it will take the creation date into account when
+     * checking for equality. Use {@code nameToLanguages} for that instead.
      */
     private final Map<String, SortedSet<ILanguage>> nameToLanguagesSorted = Maps.newHashMap();
     /**
@@ -118,27 +118,32 @@ public class LanguageService implements ILanguageService {
             sendLanguageChange(LanguageChange.Kind.ADD_FIRST, null, language);
             sendLanguageChange(LanguageChange.Kind.ADD, null, language);
         } else {
+            // Cannot be null, languagesSet is not empty.
+            final ILanguage activeLanguage = getActiveLanguage(languagesSorted);
+            
             if(languagesSet.contains(language)) {
                 // Language already exists.
+                // Cannot be null, languagesSet contains language.
+                final ILanguage reloadedLanguage = getEqualLanguage(languagesSet, language);
+                removeLanguage(reloadedLanguage, languagesSorted, languagesSet);
+                addLanguage(language, languagesSorted, languagesSet);
                 if(isActive(language, languagesSorted)) {
                     logger.debug("Reloading active {}", language);
-                    sendLanguageChange(LanguageChange.Kind.RELOAD_ACTIVE, language, language);
+                    sendLanguageChange(LanguageChange.Kind.RELOAD_ACTIVE, reloadedLanguage, language);
                 } else {
                     logger.debug("Reloading {}", language);
-                    sendLanguageChange(LanguageChange.Kind.RELOAD, language, language);
+                    sendLanguageChange(LanguageChange.Kind.RELOAD, reloadedLanguage, language);
                 }
             } else {
                 // Language with same name exists, but not with this version or at this location.
                 validateLocation(language);
-                // This cannot be null, since languagesSet is not empty.
-                final ILanguage oldActiveLanguage = getActiveLanguage(languagesSorted);
                 final boolean activate = canBecomeActive(language, languagesSorted);
                 logger.debug("Adding {}", language);
                 addLanguage(language, languagesSorted, languagesSet);
                 sendLanguageChange(LanguageChange.Kind.ADD, null, language);
                 if(activate) {
-                    logger.debug("Replacing {} with {}", oldActiveLanguage, language);
-                    sendLanguageChange(LanguageChange.Kind.REPLACE_ACTIVE, oldActiveLanguage, language);
+                    logger.debug("Replacing {} with {}", activeLanguage, language);
+                    sendLanguageChange(LanguageChange.Kind.REPLACE_ACTIVE, activeLanguage, language);
                 }
             }
         }
@@ -163,7 +168,7 @@ public class LanguageService implements ILanguageService {
             // Last language with this name.
             sendLanguageChange(LanguageChange.Kind.REMOVE_LAST, language, null);
         } else if(wasActive) {
-            // This cannot be null, since languagesSet is not empty.
+            // Cannot be null, languagesSet is not empty.
             final ILanguage newActiveLanguage = getActiveLanguage(languagesSorted);
             sendLanguageChange(LanguageChange.Kind.REPLACE_ACTIVE, language, newActiveLanguage);
         }
@@ -196,7 +201,6 @@ public class LanguageService implements ILanguageService {
         return set;
     }
 
-
     private Iterable<ILanguage> getLanguages(String name) {
         Iterable<ILanguage> languages = getLanguagesSorted(name);
         if(languages == null) {
@@ -218,6 +222,15 @@ public class LanguageService implements ILanguageService {
             return null;
         }
         return languages.last();
+    }
+    
+    private @Nullable ILanguage getEqualLanguage(Set<ILanguage> languageSet, ILanguage equalLanguage) {
+        for(ILanguage language : languageSet) {
+            if(language.equals(equalLanguage)) {
+                return language;
+            }
+        }
+        return null;
     }
 
 

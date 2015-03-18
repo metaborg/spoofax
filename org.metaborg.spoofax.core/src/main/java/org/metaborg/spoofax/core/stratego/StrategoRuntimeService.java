@@ -13,6 +13,7 @@ import org.metaborg.spoofax.core.SpoofaxException;
 import org.metaborg.spoofax.core.analysis.stratego.StrategoFacet;
 import org.metaborg.spoofax.core.context.IContext;
 import org.metaborg.spoofax.core.language.ILanguage;
+import org.metaborg.spoofax.core.language.ILanguageCache;
 import org.metaborg.spoofax.core.resource.IResourceService;
 import org.metaborg.spoofax.core.stratego.strategies.ParseStrategoFileStrategy;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
@@ -29,7 +30,7 @@ import org.strategoxt.strc.parse_stratego_file_0_0;
 import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 
-public class StrategoRuntimeService implements IStrategoRuntimeService {
+public class StrategoRuntimeService implements IStrategoRuntimeService, ILanguageCache {
     private static final Logger logger = LoggerFactory.getLogger(StrategoRuntimeService.class);
 
     private final IResourceService resourceService;
@@ -77,6 +78,12 @@ public class StrategoRuntimeService implements IStrategoRuntimeService {
     @Override public HybridInterpreter genericRuntime() {
         return createRuntime(new ImploderOriginTermFactory(termFactoryService.getGeneric()));
     }
+
+    @Override public void invalidateCache(ILanguage language) {
+        logger.debug("Removing cached stratego runtime for {}", language);
+        prototypes.remove(language);
+    }
+
 
     private HybridInterpreter createRuntime(ITermFactory termFactory) {
         final HybridInterpreter interpreter = new HybridInterpreter(termFactory);
