@@ -12,6 +12,7 @@ import org.metaborg.spoofax.core.context.LanguageContextStrategy;
 import org.metaborg.spoofax.core.context.ProjectContextStrategy;
 import org.metaborg.spoofax.core.context.ResourceContextStrategy;
 import org.metaborg.spoofax.core.context.SpoofaxContextFactory;
+import org.metaborg.spoofax.core.language.ILanguageCache;
 import org.metaborg.spoofax.core.language.ILanguageDiscoveryService;
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
 import org.metaborg.spoofax.core.language.ILanguageService;
@@ -51,10 +52,10 @@ import org.metaborg.spoofax.core.transform.ITransformerExecutor;
 import org.metaborg.spoofax.core.transform.ITransformerGoal;
 import org.metaborg.spoofax.core.transform.ITransformerResultHandler;
 import org.metaborg.spoofax.core.transform.NamedGoal;
-import org.metaborg.spoofax.core.transform.stratego.StrategoTransformerCommon;
 import org.metaborg.spoofax.core.transform.stratego.StrategoCompileTransformer;
 import org.metaborg.spoofax.core.transform.stratego.StrategoNamedTransformer;
 import org.metaborg.spoofax.core.transform.stratego.StrategoTransformer;
+import org.metaborg.spoofax.core.transform.stratego.StrategoTransformerCommon;
 import org.metaborg.spoofax.core.transform.stratego.StrategoTransformerFileWriter;
 import org.spoofax.interpreter.library.AbstractPrimitive;
 import org.spoofax.interpreter.library.IOperatorRegistry;
@@ -74,6 +75,8 @@ import com.google.inject.name.Names;
 public class SpoofaxModule extends AbstractModule {
     private final ClassLoader resourceClassLoader;
 
+    protected Multibinder<ILanguageCache> languageCacheBinder;
+
 
     public SpoofaxModule() {
         this(SpoofaxModule.class.getClassLoader());
@@ -85,28 +88,26 @@ public class SpoofaxModule extends AbstractModule {
 
 
     @Override protected void configure() {
-        try {
-            bindResource();
-            bindLocalFileProviders(MapBinder.newMapBinder(binder(), String.class, ILocalFileProvider.class));
-            bindLanguage();
-            bindContext();
-            bindContextStrategies(MapBinder.newMapBinder(binder(), String.class, IContextStrategy.class));
-            bindProject();
-            bindSyntax();
-            bindSourceText();
-            bindAnalysis();
-            bindTransformer();
-            bindTransformerResultHandlers(MapBinder.newMapBinder(binder(),
-                new TypeLiteral<Class<? extends ITransformerGoal>>() {},
-                new TypeLiteral<ITransformerResultHandler<IStrategoTerm>>() {}));
-            bindCategorizer();
-            bindStyler();
-            bindOther();
+        languageCacheBinder = Multibinder.newSetBinder(binder(), ILanguageCache.class);
 
-            bind(ClassLoader.class).annotatedWith(Names.named("ResourceClassLoader")).toInstance(resourceClassLoader);
-        } catch(Exception e) {
-            throw new RuntimeException(e);
-        }
+        bindResource();
+        bindLocalFileProviders(MapBinder.newMapBinder(binder(), String.class, ILocalFileProvider.class));
+        bindLanguage();
+        bindContext();
+        bindContextStrategies(MapBinder.newMapBinder(binder(), String.class, IContextStrategy.class));
+        bindProject();
+        bindSyntax();
+        bindSourceText();
+        bindAnalysis();
+        bindTransformer();
+        bindTransformerResultHandlers(MapBinder.newMapBinder(binder(),
+            new TypeLiteral<Class<? extends ITransformerGoal>>() {},
+            new TypeLiteral<ITransformerResultHandler<IStrategoTerm>>() {}));
+        bindCategorizer();
+        bindStyler();
+        bindOther();
+
+        bind(ClassLoader.class).annotatedWith(Names.named("ResourceClassLoader")).toInstance(resourceClassLoader);
     }
 
     protected void bindResource() {
@@ -140,7 +141,9 @@ public class SpoofaxModule extends AbstractModule {
     }
 
     protected void bindSyntax() {
-        bind(new TypeLiteral<ISyntaxService<IStrategoTerm>>() {}).to(JSGLRParseService.class).in(Singleton.class);
+        bind(JSGLRParseService.class).in(Singleton.class);
+        bind(new TypeLiteral<ISyntaxService<IStrategoTerm>>() {}).to(JSGLRParseService.class);
+        languageCacheBinder.addBinding().to(JSGLRParseService.class);
         bind(ITermFactoryService.class).to(TermFactoryService.class).in(Singleton.class);
     }
 
@@ -151,7 +154,9 @@ public class SpoofaxModule extends AbstractModule {
     protected void bindAnalysis() {
         bind(new TypeLiteral<IAnalysisService<IStrategoTerm, IStrategoTerm>>() {}).to(StrategoAnalysisService.class)
             .in(Singleton.class);
-        bind(IStrategoRuntimeService.class).to(StrategoRuntimeService.class).in(Singleton.class);
+        bind(StrategoRuntimeService.class).in(Singleton.class);
+        bind(IStrategoRuntimeService.class).to(StrategoRuntimeService.class);
+        languageCacheBinder.addBinding().to(StrategoRuntimeService.class);
         bind(StrategoLocalPath.class).in(Singleton.class);
 
         bind(ParseFileStrategy.class).in(Singleton.class);

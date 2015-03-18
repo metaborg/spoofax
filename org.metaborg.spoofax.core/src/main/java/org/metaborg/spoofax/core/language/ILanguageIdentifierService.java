@@ -17,7 +17,7 @@ public interface ILanguageIdentifierService {
     public @Nullable ILanguage identify(FileObject file);
 
     /**
-     * Attempts to identify the languages (with the same name) of given file object.
+     * Attempts to identify the languages with the same name of given file object.
      * 
      * @param file
      *            The file to identify.

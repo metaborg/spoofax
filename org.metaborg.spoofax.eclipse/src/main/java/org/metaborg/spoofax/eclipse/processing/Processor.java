@@ -1,8 +1,12 @@
 package org.metaborg.spoofax.eclipse.processing;
 
+import java.util.Set;
+
 import org.apache.commons.vfs2.FileObject;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.jobs.IJobManager;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.core.runtime.jobs.Job;
@@ -14,7 +18,7 @@ import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.PlatformUI;
 import org.metaborg.spoofax.core.analysis.IAnalysisService;
 import org.metaborg.spoofax.core.context.IContextService;
-import org.metaborg.spoofax.core.language.ILanguage;
+import org.metaborg.spoofax.core.language.ILanguageCache;
 import org.metaborg.spoofax.core.language.ILanguageDiscoveryService;
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
 import org.metaborg.spoofax.core.language.ILanguageService;
@@ -25,7 +29,10 @@ import org.metaborg.spoofax.core.syntax.ISyntaxService;
 import org.metaborg.spoofax.eclipse.editor.EditorUpdateJob;
 import org.metaborg.spoofax.eclipse.editor.PresentationMerger;
 import org.metaborg.spoofax.eclipse.job.GlobalSchedulingRules;
-import org.metaborg.spoofax.eclipse.language.AssociateLanguageJob;
+import org.metaborg.spoofax.eclipse.language.LanguageAddedJob;
+import org.metaborg.spoofax.eclipse.language.LanguageInvalidatedJob;
+import org.metaborg.spoofax.eclipse.language.LanguageReloadedActiveJob;
+import org.metaborg.spoofax.eclipse.language.LanguageRemovedJob;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,11 +54,13 @@ public class Processor {
     private final IAnalysisService<IStrategoTerm, IStrategoTerm> analysisService;
     private final ICategorizerService<IStrategoTerm, IStrategoTerm> categorizerService;
     private final IStylerService<IStrategoTerm, IStrategoTerm> stylerService;
+    private final Set<ILanguageCache> languageCaches;
 
     private final ParseResultProcessor parseResultProcessor;
     private final AnalysisResultProcessor analysisResultProcessor;
     private final GlobalSchedulingRules globalRules;
 
+    private final IWorkspace workspace;
     private final IJobManager jobManager;
     private final IEditorRegistry editorRegistry;
 
@@ -61,8 +70,9 @@ public class Processor {
         IContextService contextService, ISyntaxService<IStrategoTerm> syntaxService,
         IAnalysisService<IStrategoTerm, IStrategoTerm> analysisService,
         ICategorizerService<IStrategoTerm, IStrategoTerm> categorizerService,
-        IStylerService<IStrategoTerm, IStrategoTerm> stylerService, ParseResultProcessor parseResultProcessor,
-        AnalysisResultProcessor analysisResultProcessor, GlobalSchedulingRules globalRules) {
+        IStylerService<IStrategoTerm, IStrategoTerm> stylerService, Set<ILanguageCache> languageCaches,
+        ParseResultProcessor parseResultProcessor, AnalysisResultProcessor analysisResultProcessor,
+        GlobalSchedulingRules globalRules) {
         this.resourceService = resourceService;
         this.languageService = languageService;
         this.languageIdentifierService = languageIdentifierService;
@@ -72,30 +82,19 @@ public class Processor {
         this.analysisService = analysisService;
         this.categorizerService = categorizerService;
         this.stylerService = stylerService;
+        this.languageCaches = languageCaches;
 
         this.parseResultProcessor = parseResultProcessor;
         this.analysisResultProcessor = analysisResultProcessor;
         this.globalRules = globalRules;
 
+        this.workspace = ResourcesPlugin.getWorkspace();
         this.jobManager = Job.getJobManager();
         this.editorRegistry = PlatformUI.getWorkbench().getEditorRegistry();
 
         this.languageService.changes().subscribe(new Action1<LanguageChange>() {
             @Override public void call(LanguageChange change) {
-                switch(change.kind) {
-                    case LOADED:
-                        languageLoaded(change.language);
-                        break;
-                    case ACTIVATED:
-                        languageActivated(change.language);
-                        break;
-                    case DEACTIVATED:
-                        languageDeactivated(change.language);
-                        break;
-                    case UNLOADED:
-                        languageUnloaded(change.language);
-                        break;
-                }
+                languageChange(change);
             }
         });
     }
@@ -111,51 +110,40 @@ public class Processor {
     }
 
 
-    /**
-     * Notifies that a language has been loaded.
-     * 
-     * @param language
-     *            Language that was loaded.
-     */
-    public void languageLoaded(ILanguage language) {
+    private void languageChange(LanguageChange change) {
+        final Job changeJob;
+        switch(change.kind) {
+            case ADD_FIRST:
+                changeJob =
+                    new LanguageAddedJob(resourceService, languageIdentifierService, editorRegistry, workspace,
+                        change.newLanguage);
+                break;
+            case REPLACE_ACTIVE:
+            case RELOAD_ACTIVE:
+                changeJob =
+                    new LanguageReloadedActiveJob(languageCaches, editorRegistry, change.oldLanguage,
+                        change.newLanguage);
+                break;
+            case RELOAD:
+            case REMOVE:
+                changeJob = new LanguageInvalidatedJob(languageCaches, change.oldLanguage);
+                break;
+            case REMOVE_LAST:
+                changeJob =
+                    new LanguageRemovedJob(resourceService, languageIdentifierService, editorRegistry, workspace,
+                        change.oldLanguage);
+                break;
+            default:
+                changeJob = null;
+                break;
+        }
 
-    }
+        if(changeJob == null) {
+            return;
+        }
 
-    /**
-     * Notifies that a language has been activated.
-     * 
-     * @param language
-     *            Language that was activated.
-     */
-    public void languageActivated(ILanguage language) {
-        final AssociateLanguageJob associateJob = new AssociateLanguageJob(language, editorRegistry);
-        associateJob.setRule(globalRules.startupReadLock());
-        associateJob.schedule();
-
-        // TODO: Start update jobs for all editors of this language.
-    }
-
-    /**
-     * Notifies that a language has been deactivated.
-     * 
-     * @param language
-     *            Language that was deactivated.
-     */
-    public void languageDeactivated(ILanguage language) {
-        // TODO: Cancel all project build of this language.
-        // TODO: Cancel all update jobs of this language.
-        // TODO: Color all editors of this language grey, to indicate that the language is unloaded.
-        // Remove editor associations for this language
-    }
-
-    /**
-     * Notifies that a language has been unloaded.
-     * 
-     * @param language
-     *            Language that was unloaded.
-     */
-    public void languageUnloaded(ILanguage language) {
-
+        changeJob.setRule(workspace.getRoot());
+        changeJob.schedule();
     }
 
 

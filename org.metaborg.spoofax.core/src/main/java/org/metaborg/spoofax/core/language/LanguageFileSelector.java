@@ -15,7 +15,11 @@ public class LanguageFileSelector implements FileSelector {
 
 
     @Override public boolean includeFile(FileSelectInfo fileInfo) throws Exception {
-        return languageIdentifierService.identify(fileInfo.getFile()).equals(language);
+        final ILanguage identifiedLanguage = languageIdentifierService.identify(fileInfo.getFile());
+        if(identifiedLanguage == null) {
+            return false;
+        }
+        return identifiedLanguage.equals(language);
     }
 
     @Override public boolean traverseDescendents(FileSelectInfo fileInfo) throws Exception {

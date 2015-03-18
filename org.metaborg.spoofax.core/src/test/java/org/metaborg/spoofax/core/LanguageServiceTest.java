@@ -274,11 +274,14 @@ public class LanguageServiceTest extends SpoofaxTest {
 
         // Add language2 again, expect RELOAD_ACTIVE.
         final ILanguage language2Again = language("Entity", version1, location2);
-        assertEquals(language2Again, language2);
         final TimestampedNotification<LanguageChange> language2ReloadActive = languageObserver.poll();
+        assertEquals(language2, language2Again);
+        assertNotSame(language2, language2Again);
         assertTrue(language2ReloadActive.notification.isOnNext());
-        assertEquals(new LanguageChange(LanguageChange.Kind.RELOAD_ACTIVE, language2, language2),
+        assertEquals(new LanguageChange(LanguageChange.Kind.RELOAD_ACTIVE, language2, language2Again),
             language2ReloadActive.notification.getValue());
+        assertSame(language2, language2ReloadActive.notification.getValue().oldLanguage);
+        assertSame(language2Again, language2ReloadActive.notification.getValue().newLanguage);
 
 
         // Add language3 with same name, but higher version and different location. Expect ADD and REPLACE_ACTIVE.
@@ -294,11 +297,15 @@ public class LanguageServiceTest extends SpoofaxTest {
 
         // Add language2 again, expect RELOAD.
         final ILanguage language2AgainAgain = language("Entity", version1, location2);
-        assertEquals(language2AgainAgain, language2Again);
         final TimestampedNotification<LanguageChange> language2Reload = languageObserver.poll();
+        assertEquals(language2Again, language2AgainAgain);
+        assertNotSame(language2Again, language2AgainAgain);
+        assertNotSame(language2, language2AgainAgain);
         assertTrue(language2Reload.notification.isOnNext());
-        assertEquals(new LanguageChange(LanguageChange.Kind.RELOAD, language2, language2),
+        assertEquals(new LanguageChange(LanguageChange.Kind.RELOAD, language2Again, language2AgainAgain),
             language2Reload.notification.getValue());
+        assertSame(language2Again, language2Reload.notification.getValue().oldLanguage);
+        assertSame(language2AgainAgain, language2Reload.notification.getValue().newLanguage);
 
 
         // Remove language2, expect REMOVE.

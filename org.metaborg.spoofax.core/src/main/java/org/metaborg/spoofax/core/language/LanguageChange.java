@@ -21,7 +21,7 @@ public class LanguageChange {
          */
         REPLACE_ACTIVE,
         /**
-         * Active language is reloaded.
+         * Active language is reloaded. Fired instead of {@link #RELOAD}.
          */
         RELOAD_ACTIVE,
         /**
@@ -44,27 +44,33 @@ public class LanguageChange {
      * Kind of language change.
      */
     public final Kind kind;
+
     /**
      * Existing language. Value under different kinds:
      * <ul>
      * <li>{@link Kind#ADD_FIRST}: null</li>
      * <li>{@link Kind#ADD}: null</li>
      * <li>{@link Kind#REPLACE_ACTIVE}: Language that is being replaced.</li>
-     * <li>{@link Kind#RELOAD_ACTIVE}: Language that was reloaded, same value as {@link #newLanguage}.</li>
-     * <li>{@link Kind#RELOAD}: Language that was reloaded, same value as {@link #newLanguage}.</li>
+     * <li>{@link Kind#RELOAD_ACTIVE}: Language before the reload. Equal to {@link #newLanguage}, but creation date and
+     * facets may differ.</li>
+     * <li>{@link Kind#RELOAD}: Language before the reload. Equal to {@link #newLanguage}, but creation date and facets
+     * may differ.</li>
      * <li>{@link Kind#REMOVE}: Language that was removed.</li>
      * <li>{@link Kind#REMOVE_LAST}: Language that was unloaded.</li>
      * </ul>
      */
     public final @Nullable ILanguage oldLanguage;
+
     /**
      * New language. Value under different kinds:
      * <ul>
      * <li>{@link Kind#ADD_FIRST}: Language that was loaded.</li>
      * <li>{@link Kind#ADD}: Language that was added.</li>
      * <li>{@link Kind#REPLACE_ACTIVE}: Language that is replacing previously active language.</li>
-     * <li>{@link Kind#RELOAD_ACTIVE}: Language that was reloaded, same value as {@link #oldLanguage}.</li>
-     * <li>{@link Kind#RELOAD}: Language that was reloaded, same value as {@link #oldLanguage}.</li>
+     * <li>{@link Kind#RELOAD_ACTIVE}: Language before the reload. Equal to {@link #newLanguage}, but creation date and
+     * facets may differ.</li>
+     * <li>{@link Kind#RELOAD}: Language before the reload. Equal to {@link #newLanguage}, but creation date and facets
+     * may differ.</li>
      * <li>{@link Kind#REMOVE}: null</li>
      * <li>{@link Kind#REMOVE_LAST}: null</li>
      * </ul>
