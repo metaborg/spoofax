@@ -10,6 +10,7 @@ import org.eclipse.ui.IEditorRegistry;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageCache;
 import org.metaborg.spoofax.core.language.ResourceExtensionFacet;
+import org.metaborg.spoofax.eclipse.editor.ISpoofaxEditorListener;
 import org.metaborg.spoofax.eclipse.editor.SpoofaxEditor;
 import org.metaborg.spoofax.eclipse.util.EditorMappingUtils;
 import org.metaborg.spoofax.eclipse.util.StatusUtils;
@@ -24,17 +25,21 @@ public class LanguageReloadedActiveJob extends Job {
 
     private final Set<ILanguageCache> languageCaches;
 
+    private final ISpoofaxEditorListener spoofaxEditorListener;
+
     private final IEditorRegistry editorRegistry;
 
     private final ILanguage oldLanguage;
     private final ILanguage newLanguage;
 
 
-    public LanguageReloadedActiveJob(Set<ILanguageCache> languageCaches, IEditorRegistry editorRegistry,
-        ILanguage oldLanguage, ILanguage newLanguage) {
-        super("Active language reloaded");
+    public LanguageReloadedActiveJob(Set<ILanguageCache> languageCaches, ISpoofaxEditorListener spoofaxEditorListener,
+        IEditorRegistry editorRegistry, ILanguage oldLanguage, ILanguage newLanguage) {
+        super("Processing language reload");
 
         this.languageCaches = languageCaches;
+
+        this.spoofaxEditorListener = spoofaxEditorListener;
 
         this.editorRegistry = editorRegistry;
 
@@ -45,7 +50,7 @@ public class LanguageReloadedActiveJob extends Job {
 
     @Override protected IStatus run(IProgressMonitor monitor) {
         logger.debug("Running language reloaded job for {}", newLanguage);
-        
+
         final Display display = Display.getDefault();
 
         // Update editor associations
@@ -65,8 +70,8 @@ public class LanguageReloadedActiveJob extends Job {
             final Set<String> removeExtensions = Sets.difference(oldExtensions, newExtensions);
             final Set<String> addExtensions = Sets.difference(newExtensions, removeExtensions);
             if(removeExtensions.size() > 0) {
-                logger.debug("Unassociating extension(s) {} from Spoofax editor",
-                    Joiner.on(", ").join(removeExtensions));
+                logger.debug("Unassociating extension(s) {} from Spoofax editor", Joiner.on(", ")
+                    .join(removeExtensions));
             }
             if(addExtensions.size() > 0) {
                 logger.debug("Associating extension(s) {} to Spoofax editor", Joiner.on(", ").join(addExtensions));
@@ -84,9 +89,11 @@ public class LanguageReloadedActiveJob extends Job {
             languageCache.invalidateCache(oldLanguage);
         }
 
-        // GTODO: Mark editors as changed, trigger editor update.
-
-        // GTODO: Mark workspace resources as changed, trigger project builds.
+        // Update editors
+        final Iterable<SpoofaxEditor> spoofaxEditors = spoofaxEditorListener.openEditors();
+        for(SpoofaxEditor editor : spoofaxEditors) {
+            editor.forceUpdate();
+        }
 
         return StatusUtils.success();
     }

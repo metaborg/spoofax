@@ -125,7 +125,7 @@ public class EditorUpdateJob extends Job {
                             return;
                         MarkerUtils.clearAll(eclipseResource);
                         MarkerUtils.createMarker(eclipseResource, MessageFactory.newErrorAtTop(resource,
-                            "Failed to update editor", MessageType.INTERNAL_MESSAGE, null));
+                            "Failed to update editor", MessageType.INTERNAL, null));
                     }
                 };
                 workspace.run(parseMarkerUpdater, eclipseResource, IWorkspace.AVOID_UPDATE, monitor);

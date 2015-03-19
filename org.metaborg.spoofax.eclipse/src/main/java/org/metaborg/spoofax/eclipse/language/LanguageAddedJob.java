@@ -1,16 +1,14 @@
 package org.metaborg.spoofax.eclipse.language;
 
-import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorRegistry;
 import org.metaborg.spoofax.core.language.ILanguage;
-import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
 import org.metaborg.spoofax.core.language.ResourceExtensionFacet;
+import org.metaborg.spoofax.eclipse.editor.ISpoofaxEditorListener;
 import org.metaborg.spoofax.eclipse.editor.SpoofaxEditor;
-import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
 import org.metaborg.spoofax.eclipse.util.EditorMappingUtils;
 import org.metaborg.spoofax.eclipse.util.StatusUtils;
 import org.slf4j.Logger;
@@ -21,26 +19,22 @@ import com.google.common.base.Joiner;
 public class LanguageAddedJob extends Job {
     private static final Logger logger = LoggerFactory.getLogger(LanguageAddedJob.class);
 
-    private final IEclipseResourceService resourceService;
-    private final ILanguageIdentifierService languageIdentifier;
+    private final ISpoofaxEditorListener spoofaxEditorListener;
 
     private final IEditorRegistry editorRegistry;
-    private final IWorkspace workspace;
 
     private final ILanguage language;
 
 
-    public LanguageAddedJob(IEclipseResourceService resourceService, ILanguageIdentifierService languageIdentifier,
-        IEditorRegistry editorRegistry, IWorkspace workspace, ILanguage language) {
-        super("Language added");
+    public LanguageAddedJob(ISpoofaxEditorListener spoofaxEditorListener, IEditorRegistry editorRegistry,
+        ILanguage language) {
+        super("Processing added language");
 
-        this.resourceService = resourceService;
-        this.languageIdentifier = languageIdentifier;
-
-        this.language = language;
+        this.spoofaxEditorListener = spoofaxEditorListener;
 
         this.editorRegistry = editorRegistry;
-        this.workspace = workspace;
+
+        this.language = language;
     }
 
 
@@ -66,25 +60,11 @@ public class LanguageAddedJob extends Job {
             });
         }
 
-        // Disable marking resources as changed for now, since it will cause many resources to be re-built
-        // unnecessarily.
-
-        // try {
-        // final Collection<IResource> resources =
-        // WorkspaceUtils.languageResources(resourceService, languageIdentifier, language, workspace.getRoot());
-        // logger.debug("Marking {} workspace resources as changed", resources.size());
-        // for(IResource resource : resources) {
-        // try {
-        // resource.touch(monitor);
-        // } catch(CoreException e) {
-        // final String message = String.format("Cannot mark resource %s as changed", resource);
-        // logger.error(message, e);
-        // }
-        // }
-        // } catch(FileSystemException e) {
-        // final String message = String.format("Cannot retrieve all workspace resources for %s", language);
-        // logger.error(message, e);
-        // }
+        // Enable editors
+        final Iterable<SpoofaxEditor> spoofaxEditors = spoofaxEditorListener.openEditors();
+        for(SpoofaxEditor editor : spoofaxEditors) {
+            editor.enable();
+        }
 
         return StatusUtils.success();
     }

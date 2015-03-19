@@ -2,6 +2,7 @@ package org.metaborg.spoofax.eclipse.editor;
 
 import java.util.Collection;
 
+import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextPresentationListener;
 import org.eclipse.jface.text.TextPresentation;
 import org.eclipse.swt.custom.StyleRange;
@@ -13,9 +14,9 @@ public class PresentationMerger implements ITextPresentationListener {
 
 
     public void set(TextPresentation presentation) {
-        sourcePresentation = presentation;
         // Make a deep copy of style ranges to prevent sharing with other ITextPresentationListeners.
         styleRanges = StyleUtils.deepCopies(presentation);
+        sourcePresentation = presentation;
     }
 
     public void invalidate() {
@@ -30,14 +31,13 @@ public class PresentationMerger implements ITextPresentationListener {
             return;
         }
 
-        // Merge style ranges inside the default style range from the source presentation to the target presentation.
-        final StyleRange defaultStyleRange = targetPresentation.getDefaultStyleRange();
-        final int defaultStyleEnd = defaultStyleRange.start + defaultStyleRange.length;
+        final IRegion extent = targetPresentation.getExtent();
+        final int min = extent.getOffset();
+        final int max = min + extent.getLength();
         for(StyleRange styleRange : styleRanges) {
             final int styleRangeEnd = styleRange.start + styleRange.length;
-            // It is not allowed to change style ranges outside of the default range. Safe to skip since they will not
-            // be redrawn.
-            if(styleRange.start < defaultStyleRange.start || styleRangeEnd > defaultStyleEnd) {
+            // Not allowed to change style ranges outside of extent. Safe to skip since they will not be redrawn.
+            if(styleRange.start < min || styleRangeEnd > max) {
                 continue;
             }
             targetPresentation.mergeStyleRange(styleRange);
