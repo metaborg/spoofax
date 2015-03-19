@@ -15,6 +15,27 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
  */
 public final class StyleUtils {
     /**
+     * Creates an Eclipse text presentation that colors the entire range as one color.
+     * 
+     * @param color
+     *            Text foreground color to use.
+     * @param length
+     *            Length of the text.
+     * @param display
+     *            Display to create the Eclipse text presentation on.
+     * @return Eclipse text presentation.
+     */
+    public static TextPresentation createTextPresentation(java.awt.Color color, int length, Display display) {
+        final TextPresentation presentation = new TextPresentation();
+        final StyleRange styleRange = new StyleRange();
+        styleRange.start = 0;
+        styleRange.length = length;
+        styleRange.foreground = createColor(color, display);
+        presentation.addStyleRange(styleRange);
+        return presentation;
+    }
+
+    /**
      * Creates an Eclipse text presentation from given Spoofax styles.
      * 
      * @param styles
@@ -30,6 +51,11 @@ public final class StyleUtils {
             final StyleRange styleRange = createStyleRange(regionStyle, display);
             presentation.addStyleRange(styleRange);
         }
+        final StyleRange defaultStyleRange = new StyleRange();
+        defaultStyleRange.start = presentation.getExtent().getOffset();
+        defaultStyleRange.length = defaultStyleRange.start + presentation.getExtent().getLength();
+        defaultStyleRange.foreground = createColor(java.awt.Color.BLACK, display);
+        presentation.setDefaultStyleRange(defaultStyleRange);
         return presentation;
     }
 

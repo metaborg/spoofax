@@ -12,7 +12,6 @@ import org.spoofax.terms.io.binary.TermReader;
 public class FileParseTableProvider implements IParseTableProvider {
     private final FileObject resource;
     private final ITermFactory termFactory;
-    private final TermReader termReader;
 
     private ParseTable parseTable;
 
@@ -20,7 +19,6 @@ public class FileParseTableProvider implements IParseTableProvider {
     public FileParseTableProvider(FileObject resource, ITermFactory termFactory) {
         this.resource = resource;
         this.termFactory = termFactory;
-        this.termReader = new TermReader(termFactory);
     }
 
 
@@ -32,6 +30,7 @@ public class FileParseTableProvider implements IParseTableProvider {
             throw new IOException("Could not load parse table, file does not exist");
 
         try(final InputStream stream = resource.getContent().getInputStream()) {
+            final TermReader termReader = new TermReader(termFactory);
             final IStrategoTerm parseTableTerm = termReader.parseFromStream(stream);
             parseTable = new ParseTable(parseTableTerm, termFactory);
         } catch(Exception e) {

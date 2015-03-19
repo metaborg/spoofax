@@ -20,7 +20,7 @@ public class LanguageInvalidatedJob extends Job {
 
 
     public LanguageInvalidatedJob(Set<ILanguageCache> languageCaches, ILanguage language) {
-        super("Language invalidated");
+        super("Processing language invalidation");
 
         this.languageCaches = languageCaches;
         this.language = language;

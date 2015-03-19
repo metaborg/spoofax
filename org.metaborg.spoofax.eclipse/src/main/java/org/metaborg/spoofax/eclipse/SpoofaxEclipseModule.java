@@ -9,7 +9,8 @@ import org.metaborg.spoofax.core.transform.CompileGoal;
 import org.metaborg.spoofax.core.transform.ITransformerGoal;
 import org.metaborg.spoofax.core.transform.ITransformerResultHandler;
 import org.metaborg.spoofax.core.transform.NamedGoal;
-import org.metaborg.spoofax.eclipse.editor.LatestEditorListener;
+import org.metaborg.spoofax.eclipse.editor.ISpoofaxEditorListener;
+import org.metaborg.spoofax.eclipse.editor.SpoofaxEditorListener;
 import org.metaborg.spoofax.eclipse.job.GlobalSchedulingRules;
 import org.metaborg.spoofax.eclipse.processing.AnalysisResultProcessor;
 import org.metaborg.spoofax.eclipse.processing.ParseResultProcessor;
@@ -65,6 +66,7 @@ public class SpoofaxEclipseModule extends SpoofaxModule {
         bind(Processor.class).asEagerSingleton();
         bind(ParseResultProcessor.class).asEagerSingleton();
         bind(AnalysisResultProcessor.class).asEagerSingleton();
-        bind(LatestEditorListener.class).asEagerSingleton();
+        bind(SpoofaxEditorListener.class).asEagerSingleton();
+        bind(ISpoofaxEditorListener.class).to(SpoofaxEditorListener.class);
     }
 }

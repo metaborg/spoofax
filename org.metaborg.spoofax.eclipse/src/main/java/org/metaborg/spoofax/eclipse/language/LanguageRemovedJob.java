@@ -14,6 +14,7 @@ import org.eclipse.ui.IEditorRegistry;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
 import org.metaborg.spoofax.core.language.ResourceExtensionFacet;
+import org.metaborg.spoofax.eclipse.editor.ISpoofaxEditorListener;
 import org.metaborg.spoofax.eclipse.editor.SpoofaxEditor;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
 import org.metaborg.spoofax.eclipse.util.EditorMappingUtils;
@@ -31,6 +32,8 @@ public class LanguageRemovedJob extends Job {
     private final IEclipseResourceService resourceService;
     private final ILanguageIdentifierService languageIdentifier;
 
+    private final ISpoofaxEditorListener spoofaxEditorListener;
+
     private final IEditorRegistry editorRegistry;
     private final IWorkspace workspace;
 
@@ -38,16 +41,19 @@ public class LanguageRemovedJob extends Job {
 
 
     public LanguageRemovedJob(IEclipseResourceService resourceService, ILanguageIdentifierService languageIdentifier,
-        IEditorRegistry editorRegistry, IWorkspace workspace, ILanguage language) {
-        super("Language removed");
+        ISpoofaxEditorListener spoofaxEditorListener, IEditorRegistry editorRegistry, IWorkspace workspace,
+        ILanguage language) {
+        super("Processing language removal");
 
         this.resourceService = resourceService;
         this.languageIdentifier = languageIdentifier;
 
-        this.language = language;
-
+        this.spoofaxEditorListener = spoofaxEditorListener;
+        
         this.editorRegistry = editorRegistry;
         this.workspace = workspace;
+
+        this.language = language;
     }
 
 
@@ -73,7 +79,11 @@ public class LanguageRemovedJob extends Job {
             });
         }
 
-        // GTODO: Disable editors
+        // Disable editors
+        final Iterable<SpoofaxEditor> spoofaxEditors = spoofaxEditorListener.openEditors();
+        for(SpoofaxEditor editor : spoofaxEditors) {
+            editor.disable();
+        }
 
         // Remove markers
         try {
