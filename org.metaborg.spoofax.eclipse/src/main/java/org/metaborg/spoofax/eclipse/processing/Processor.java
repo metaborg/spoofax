@@ -31,11 +31,11 @@ public class Processor {
 
     private final IEclipseResourceService resourceService;
     private final ILanguageService languageService;
-    private final ILanguageIdentifierService languageIdentifierService;
+    private final ILanguageIdentifierService languageIdentifier;
     private final ILanguageDiscoveryService languageDiscoveryService;
     private final Set<ILanguageCache> languageCaches;
 
-    private final ISpoofaxEditorListener spoofaxEditorListener;
+    private final ISpoofaxEditorListener editorListener;
     private final GlobalSchedulingRules globalRules;
 
     private final IWorkspace workspace;
@@ -48,11 +48,11 @@ public class Processor {
         GlobalSchedulingRules globalRules) {
         this.resourceService = resourceService;
         this.languageService = languageService;
-        this.languageIdentifierService = languageIdentifierService;
+        this.languageIdentifier = languageIdentifierService;
         this.languageDiscoveryService = languageDiscoveryService;
         this.languageCaches = languageCaches;
 
-        this.spoofaxEditorListener = spoofaxEditorListener;
+        this.editorListener = spoofaxEditorListener;
         this.globalRules = globalRules;
 
         this.workspace = ResourcesPlugin.getWorkspace();
@@ -67,54 +67,44 @@ public class Processor {
 
     public void startup() {
         final Job job = new StartupJob(resourceService, languageDiscoveryService);
-        job.setRule(new MultiRule(new ISchedulingRule[] { globalRules.startupWriteLock(),
+        job.setRule(new MultiRule(new ISchedulingRule[] { workspace.getRoot(), globalRules.startupWriteLock(),
             globalRules.languageServiceLock() }));
         job.schedule();
     }
 
-    // public void projectOpen(IProject project) {
-    // // TODO: Check if there is a language inside this project, if so, load it.
-    // }
-    //
-    // public void projectClose(IProject project) {
-    // // TODO: Check if there is a loaded language inside this project, if so, unload it.
-    // // TODO: Cancel all build jobs in this project.
-    // // TODO: Cancel all update jobs in this project, this may happen automatically because all
-    // // editors inside this project will be closed when the project is closed.
-    // }
-
 
     private void languageChange(LanguageChange change) {
-        final Job changeJob;
+        final Job job;
         switch(change.kind) {
             case ADD_FIRST:
-                changeJob = new LanguageAddedJob(spoofaxEditorListener, editorRegistry, change.newLanguage);
+                job = new LanguageAddedJob(editorListener, editorRegistry, change.newLanguage);
                 break;
             case REPLACE_ACTIVE:
             case RELOAD_ACTIVE:
-                changeJob =
-                    new LanguageReloadedActiveJob(languageCaches, spoofaxEditorListener, editorRegistry,
-                        change.oldLanguage, change.newLanguage);
+                job =
+                    new LanguageReloadedActiveJob(languageCaches, editorListener, editorRegistry, change.oldLanguage,
+                        change.newLanguage);
                 break;
             case RELOAD:
             case REMOVE:
-                changeJob = new LanguageInvalidatedJob(languageCaches, change.oldLanguage);
+                job = new LanguageInvalidatedJob(languageCaches, change.oldLanguage);
                 break;
             case REMOVE_LAST:
-                changeJob =
-                    new LanguageRemovedJob(resourceService, languageIdentifierService, spoofaxEditorListener,
-                        editorRegistry, workspace, change.oldLanguage);
+                job =
+                    new LanguageRemovedJob(resourceService, languageIdentifier, editorListener, editorRegistry,
+                        workspace, change.oldLanguage);
                 break;
             default:
-                changeJob = null;
+                job = null;
                 break;
         }
 
-        if(changeJob == null) {
+        if(job == null) {
             return;
         }
 
-        changeJob.setRule(workspace.getRoot());
-        changeJob.schedule();
+        job.setRule(new MultiRule(new ISchedulingRule[] { workspace.getRoot(), globalRules.startupReadLock(),
+            globalRules.languageServiceLock() }));
+        job.schedule();
     }
 }
