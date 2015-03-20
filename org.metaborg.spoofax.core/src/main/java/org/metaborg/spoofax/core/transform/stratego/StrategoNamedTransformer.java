@@ -42,6 +42,8 @@ public class StrategoNamedTransformer implements IStrategoTransformerExecutor {
                 transformer.builderInputTerm(parseResult.result, resource, context.location());
             logger.debug("Transforming parse result of {} with '{}'", resource, action.name);
             return transformer.transform(context, parseResult, action.strategy, inputTerm, resource);
+        } catch(TransformerException e) {
+            throw e;
         } catch(SpoofaxException e) {
             throw new TransformerException("Cannot create input term", e);
         }
@@ -57,6 +59,8 @@ public class StrategoNamedTransformer implements IStrategoTransformerExecutor {
                 transformer.builderInputTerm(analysisResult.result, resource, context.location());
             logger.debug("Transforming analysis result of {} with '{}'", resource, action.name);
             return transformer.transform(context, analysisResult, action.strategy, inputTerm, resource);
+        } catch(TransformerException e) {
+            throw e;
         } catch(SpoofaxException e) {
             throw new TransformerException("Cannot create input term", e);
         }
