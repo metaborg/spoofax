@@ -27,6 +27,10 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.IStrategoTuple;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.strategoxt.HybridInterpreter;
+import org.strategoxt.lang.Context;
+import org.strategoxt.stratego_aterm.aterm_escape_strings_0_0;
+import org.strategoxt.stratego_aterm.pp_aterm_box_0_0;
+import org.strategoxt.stratego_gpp.box2text_string_0_1;
 
 import com.google.inject.Inject;
 
@@ -43,8 +47,9 @@ public class StrategoTransformerCommon {
     private final StrategoLocalPath localPath;
 
 
-    @Inject public StrategoTransformerCommon(IResourceService resourceService, IStrategoRuntimeService strategoRuntimeService,
-        ITermFactoryService termFactoryService, StrategoLocalPath localPath) {
+    @Inject public StrategoTransformerCommon(IResourceService resourceService,
+        IStrategoRuntimeService strategoRuntimeService, ITermFactoryService termFactoryService,
+        StrategoLocalPath localPath) {
         this.resourceService = resourceService;
         this.strategoRuntimeService = strategoRuntimeService;
         this.termFactoryService = termFactoryService;
@@ -158,8 +163,13 @@ public class StrategoTransformerCommon {
             if(resultTerm.getTermType() == IStrategoTerm.STRING) {
                 resultContents = ((IStrategoString) resultTerm).stringValue();
             } else {
-                // GTODO: pretty print the ATerm.
-                resultContents = resultTerm.toString();
+                final IStrategoString pp = ppATerm(resultTerm);
+                if(pp != null) {
+                    resultContents = pp.stringValue();
+                } else {
+                    logger.error("Could not pretty print ATerm, falling back to non-pretty printed ATerm");
+                    resultContents = resultTerm.toString();
+                }
             }
 
             try {
@@ -176,5 +186,21 @@ public class StrategoTransformerCommon {
         }
 
         return null;
+    }
+
+    /**
+     * Pretty prints an ATerm.
+     * 
+     * @param term
+     *            ATerm to pretty print.
+     * @return Pretty printed ATerm as a Stratego string.
+     */
+    private IStrategoString ppATerm(IStrategoTerm term) {
+        final Context context = strategoRuntimeService.genericRuntime().getCompiledContext();
+        final ITermFactory termFactory = termFactoryService.getGeneric();
+        term = aterm_escape_strings_0_0.instance.invoke(context, term);
+        term = pp_aterm_box_0_0.instance.invoke(context, term);
+        term = box2text_string_0_1.instance.invoke(context, term, termFactory.makeInt(120));
+        return (IStrategoString) term;
     }
 }
