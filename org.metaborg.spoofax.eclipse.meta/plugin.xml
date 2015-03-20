@@ -11,6 +11,7 @@
       <run class="org.metaborg.spoofax.eclipse.meta.nature.SpoofaxMetaNature"/>
     </runtime>
     <builder id="org.metaborg.spoofax.eclipse.meta.builder" />
+    <requires-nature id="org.metaborg.spoofax.eclipse.nature" />
   </extension>
   <extension
     id="builder"

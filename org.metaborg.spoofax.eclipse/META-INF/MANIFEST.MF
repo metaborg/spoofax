@@ -26,6 +26,7 @@ Bundle-Vendor: metaborg.org
 Eclipse-RegisterBuddy: org.spoofax.interpreter.externaldeps, org.metaborg.util
 Export-Package: org.metaborg.spoofax.eclipse,
  org.metaborg.spoofax.eclipse.job,
+ org.metaborg.spoofax.eclipse.nature,
  org.metaborg.spoofax.eclipse.processing,
  org.metaborg.spoofax.eclipse.resource
 Bundle-ActivationPolicy: lazy
