@@ -3,8 +3,8 @@ package org.metaborg.spoofax.eclipse;
 import org.eclipse.ui.IStartup;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.metaborg.spoofax.eclipse.editor.SpoofaxEditorListener;
+import org.metaborg.spoofax.eclipse.language.LanguageChangeProcessor;
 import org.metaborg.spoofax.eclipse.logging.LoggingConfiguration;
-import org.metaborg.spoofax.eclipse.processing.Processor;
 import org.metaborg.util.log.SystemRedirectLogger;
 import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
@@ -34,7 +34,7 @@ public class SpoofaxPlugin extends AbstractUIPlugin implements IStartup {
 
         injector = Guice.createInjector(new SpoofaxEclipseModule());
         injector.getInstance(SpoofaxEditorListener.class).register();
-        injector.getInstance(Processor.class).startup();
+        injector.getInstance(LanguageChangeProcessor.class).discover();
 
     }
 

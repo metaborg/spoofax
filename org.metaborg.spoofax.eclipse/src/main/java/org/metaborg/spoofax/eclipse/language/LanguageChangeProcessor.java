@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.eclipse.processing;
+package org.metaborg.spoofax.eclipse.language;
 
 import java.util.Set;
 
@@ -16,19 +16,13 @@ import org.metaborg.spoofax.core.language.ILanguageService;
 import org.metaborg.spoofax.core.language.LanguageChange;
 import org.metaborg.spoofax.eclipse.editor.ISpoofaxEditorListener;
 import org.metaborg.spoofax.eclipse.job.GlobalSchedulingRules;
-import org.metaborg.spoofax.eclipse.language.LanguageAddedJob;
-import org.metaborg.spoofax.eclipse.language.LanguageInvalidatedJob;
-import org.metaborg.spoofax.eclipse.language.LanguageReloadedActiveJob;
-import org.metaborg.spoofax.eclipse.language.LanguageRemovedJob;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
 
 import rx.functions.Action1;
 
 import com.google.inject.Inject;
 
-public class Processor {
-    // private static final Logger logger = LoggerFactory.getLogger(Processor.class);
-
+public class LanguageChangeProcessor {
     private final IEclipseResourceService resourceService;
     private final ILanguageService languageService;
     private final ILanguageIdentifierService languageIdentifier;
@@ -42,7 +36,7 @@ public class Processor {
     private final IEditorRegistry editorRegistry;
 
 
-    @Inject public Processor(IEclipseResourceService resourceService, ILanguageService languageService,
+    @Inject public LanguageChangeProcessor(IEclipseResourceService resourceService, ILanguageService languageService,
         ILanguageIdentifierService languageIdentifierService, ILanguageDiscoveryService languageDiscoveryService,
         Set<ILanguageCache> languageCaches, ISpoofaxEditorListener spoofaxEditorListener,
         GlobalSchedulingRules globalRules) {
@@ -65,8 +59,8 @@ public class Processor {
         });
     }
 
-    public void startup() {
-        final Job job = new StartupJob(resourceService, languageDiscoveryService);
+    public void discover() {
+        final Job job = new DiscoverLanguagesJob(resourceService, languageDiscoveryService);
         job.setRule(new MultiRule(new ISchedulingRule[] { workspace.getRoot(), globalRules.startupWriteLock(),
             globalRules.languageServiceLock() }));
         job.schedule();

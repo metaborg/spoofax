@@ -12,9 +12,9 @@ import org.metaborg.spoofax.core.transform.NamedGoal;
 import org.metaborg.spoofax.eclipse.editor.ISpoofaxEditorListener;
 import org.metaborg.spoofax.eclipse.editor.SpoofaxEditorListener;
 import org.metaborg.spoofax.eclipse.job.GlobalSchedulingRules;
+import org.metaborg.spoofax.eclipse.language.LanguageChangeProcessor;
 import org.metaborg.spoofax.eclipse.processing.AnalysisResultProcessor;
 import org.metaborg.spoofax.eclipse.processing.ParseResultProcessor;
-import org.metaborg.spoofax.eclipse.processing.Processor;
 import org.metaborg.spoofax.eclipse.resource.EclipseFileSystemManagerProvider;
 import org.metaborg.spoofax.eclipse.resource.EclipseLocalFileProvider;
 import org.metaborg.spoofax.eclipse.resource.EclipseProjectService;
@@ -63,7 +63,7 @@ public class SpoofaxEclipseModule extends SpoofaxModule {
 
     @Override protected void bindOther() {
         bind(GlobalSchedulingRules.class).asEagerSingleton();
-        bind(Processor.class).asEagerSingleton();
+        bind(LanguageChangeProcessor.class).asEagerSingleton();
         bind(ParseResultProcessor.class).asEagerSingleton();
         bind(AnalysisResultProcessor.class).asEagerSingleton();
         bind(SpoofaxEditorListener.class).asEagerSingleton();

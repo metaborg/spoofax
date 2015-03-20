@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.eclipse.processing;
+package org.metaborg.spoofax.eclipse.language;
 
 import java.io.File;
 
@@ -20,14 +20,14 @@ import org.osgi.framework.Bundle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class StartupJob extends Job {
-    private static final Logger logger = LoggerFactory.getLogger(StartupJob.class);
+public class DiscoverLanguagesJob extends Job {
+    private static final Logger logger = LoggerFactory.getLogger(DiscoverLanguagesJob.class);
 
     private final IEclipseResourceService resourceService;
     private final ILanguageDiscoveryService languageDiscoveryService;
 
 
-    public StartupJob(IEclipseResourceService resourceService, ILanguageDiscoveryService languageDiscoveryService) {
+    public DiscoverLanguagesJob(IEclipseResourceService resourceService, ILanguageDiscoveryService languageDiscoveryService) {
         super("Loading all Spoofax languages in workspace");
         setPriority(Job.LONG);
 
@@ -37,7 +37,8 @@ public class StartupJob extends Job {
 
 
     @Override protected IStatus run(IProgressMonitor monitor) {
-        logger.debug("Running startup job");
+        logger.debug("Running discover languages job")
+        ;
         logger.debug("Loading static languages");
         final IExtensionRegistry registry = Platform.getExtensionRegistry();
         final IExtensionPoint point = registry.getExtensionPoint("org.metaborg.spoofax.eclipse.language");
