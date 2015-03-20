@@ -1,16 +1,17 @@
 package org.metaborg.spoofax.core;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 import static org.metaborg.util.test.Assert2.assertIterableEquals;
-
-import java.util.Date;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.junit.Test;
 import org.metaborg.spoofax.core.analysis.stratego.StrategoFacet;
 import org.metaborg.spoofax.core.language.DescriptionFacet;
-import org.metaborg.spoofax.core.language.ResourceExtensionsIdentifier;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageFacet;
 import org.metaborg.spoofax.core.language.IdentificationFacet;
@@ -18,6 +19,7 @@ import org.metaborg.spoofax.core.language.Language;
 import org.metaborg.spoofax.core.language.LanguageChange;
 import org.metaborg.spoofax.core.language.LanguageFacetChange;
 import org.metaborg.spoofax.core.language.LanguageVersion;
+import org.metaborg.spoofax.core.language.ResourceExtensionsIdentifier;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.observable.ITestableObserver;
@@ -220,8 +222,6 @@ public class LanguageServiceTest extends SpoofaxTest {
         assertIterableEquals(strategoFacet.jarFiles(), resourceService.resolve("res:Entity/include/entity-java.jar"));
         assertEquals("editor-analyze", strategoFacet.analysisStrategy());
         assertEquals("editor-save", strategoFacet.onSaveStrategy());
-
-        // TODO: test actions facet.
     }
 
     @Test public void observables() throws Exception {
@@ -329,7 +329,7 @@ public class LanguageServiceTest extends SpoofaxTest {
 
 
         // Remove language1, expect REMOVE and REMOVE_LAST.
-        languageService.remove(language1);
+        removeLanguage(language1);
         final TimestampedNotification<LanguageChange> language1Remove = languageObserver.poll();
         final TimestampedNotification<LanguageChange> language1Unload = languageObserver.poll();
         assertTrue(language1Remove.notification.isOnNext());
@@ -382,7 +382,7 @@ public class LanguageServiceTest extends SpoofaxTest {
         final LanguageVersion version = version(0, 0, 1, 0);
         final FileObject location = createDirectory("ram:///");
 
-        languageService.remove(new Language("Entity", version, location, new Date()));
+        languageService.remove(new Language("Entity", location, version, 0));
     }
 
     @Test(expected = IllegalStateException.class) public void nonExistantFacet() throws Exception {
