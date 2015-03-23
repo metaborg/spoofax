@@ -1,5 +1,6 @@
 package org.metaborg.spoofax.eclipse.processing;
 
+import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.vfs2.FileName;
@@ -25,6 +26,7 @@ import rx.subjects.BehaviorSubject;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
 /**
@@ -171,17 +173,40 @@ public class AnalysisResultProcessor {
      *            Result to update.
      * @param parentResult
      *            Parent of the result to update.
+     * @param removedResources
+     *            Set of resources that have actually been removed instead of updated. Used for legacy analysis where
+     *            removal is indicated by an empty tuple as parse result.
      */
     public void update(AnalysisFileResult<IStrategoTerm, IStrategoTerm> result,
-        AnalysisResult<IStrategoTerm, IStrategoTerm> parentResult) {
-        // LEGACY: analysis always returns resource on the local file system, but we expect resources in the Eclipse
-        // file system here. Need to convert these, otherwise updates will not match invalidates.
+        AnalysisResult<IStrategoTerm, IStrategoTerm> parentResult, Set<FileName> removedResources) {
+        // LEGACY: analysis always returns resources on the local file system, but we expect resources in the Eclipse
+        // file system here. Need to rebase resources on the local file system to the Eclipse file system, otherwise
+        // updates will not match invalidates.
         final FileObject resourceInEclipse = resourceService.rebase(result.source);
         final FileName name = resourceInEclipse.getName();
+        if(removedResources.contains(name)) {
+            remove(resourceInEclipse);
+        } else {
+            logger.trace("Pushing analysis result for {}", name);
+            final BehaviorSubject<AnalysisChange> updates = getUpdates(name);
+            updates.onNext(AnalysisChange.update(resourceInEclipse, result, parentResult));
+        }
+    }
 
-        logger.trace("Pushing analysis result for {}", name);
-        final BehaviorSubject<AnalysisChange> updates = getUpdates(name);
-        updates.onNext(AnalysisChange.update(resourceInEclipse, result, parentResult));
+    /**
+     * Updates the analysis results for resources in given result. Pushes analysis results to subscribed requests.
+     * Removes cached analysis results for given removed resource.
+     * 
+     * @param parentResult
+     *            Parent of the results to update.
+     * @param removedResources
+     *            Set of resources that have actually been removed instead of updated. Used for legacy analysis where
+     *            removal is indicated by an empty tuple as parse result.
+     */
+    public void update(AnalysisResult<IStrategoTerm, IStrategoTerm> parentResult, Set<FileName> removedResources) {
+        for(AnalysisFileResult<IStrategoTerm, IStrategoTerm> result : parentResult.fileResults) {
+            update(result, parentResult, removedResources);
+        }
     }
 
     /**
@@ -191,9 +216,7 @@ public class AnalysisResultProcessor {
      *            Parent of the results to update.
      */
     public void update(AnalysisResult<IStrategoTerm, IStrategoTerm> parentResult) {
-        for(AnalysisFileResult<IStrategoTerm, IStrategoTerm> result : parentResult.fileResults) {
-            update(result, parentResult);
-        }
+        update(parentResult, Sets.<FileName>newHashSet());
     }
 
     /**

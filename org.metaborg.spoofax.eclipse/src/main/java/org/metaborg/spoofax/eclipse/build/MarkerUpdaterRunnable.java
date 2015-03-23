@@ -1,5 +1,9 @@
 package org.metaborg.spoofax.eclipse.build;
 
+import java.util.Set;
+
+import org.apache.commons.vfs2.FileName;
+import org.apache.commons.vfs2.FileObject;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRunnable;
@@ -11,24 +15,32 @@ import org.metaborg.spoofax.core.messages.IMessage;
 import org.metaborg.spoofax.core.syntax.ParseResult;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
 import org.metaborg.spoofax.eclipse.util.MarkerUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 final public class MarkerUpdaterRunnable implements IWorkspaceRunnable {
+    private static final Logger logger = LoggerFactory.getLogger(MarkerUpdaterRunnable.class);
+
     private final IEclipseResourceService resourceService;
 
+    private final Set<FileName> removedResources;
+    private final Iterable<FileObject> changedResources;
     private final Iterable<IMessage> extraMessages;
-    private final Iterable<IResource> changedResources;
     private final Iterable<AnalysisResult<IStrategoTerm, IStrategoTerm>> analysisResults;
     private final Iterable<ParseResult<IStrategoTerm>> parseResults;
     private final IProject project;
 
-    MarkerUpdaterRunnable(IEclipseResourceService resourceService, Iterable<IMessage> extraMessages,
-        Iterable<IResource> changedResources, Iterable<AnalysisResult<IStrategoTerm, IStrategoTerm>> analysisResults,
+
+    MarkerUpdaterRunnable(IEclipseResourceService resourceService, Set<FileName> removedResources,
+        Iterable<FileObject> changedResources, Iterable<IMessage> extraMessages,
+        Iterable<AnalysisResult<IStrategoTerm, IStrategoTerm>> analysisResults,
         Iterable<ParseResult<IStrategoTerm>> parseResults, IProject project) {
         this.resourceService = resourceService;
 
-        this.extraMessages = extraMessages;
+        this.removedResources = removedResources;
         this.changedResources = changedResources;
+        this.extraMessages = extraMessages;
         this.analysisResults = analysisResults;
         this.parseResults = parseResults;
         this.project = project;
@@ -36,41 +48,53 @@ final public class MarkerUpdaterRunnable implements IWorkspaceRunnable {
 
     @Override public void run(IProgressMonitor workspaceMonitor) throws CoreException {
         MarkerUtils.clearAll(project);
-        for(IResource resource : changedResources) {
-            MarkerUtils.clearAll(resource);
+        for(FileObject resource : changedResources) {
+            final IResource eclipseResource = resourceService.unresolve(resource);
+            if(eclipseResource == null) {
+                logger.error("Cannot clear markers for {}", resource);
+                continue;
+            }
+            MarkerUtils.clearAll(eclipseResource);
         }
 
         for(ParseResult<IStrategoTerm> result : parseResults) {
             for(IMessage message : result.messages) {
-                final IResource resource = resourceService.unresolve(message.source());
-                if(resource == null) {
-                    SpoofaxProjectBuilder.logger.error("Cannot create marker for {}", message.source());
+                final FileObject resource = message.source();
+                final IResource eclipseResource = resourceService.unresolve(resource);
+                if(eclipseResource == null) {
+                    logger.error("Cannot create marker for {}", resource);
                     continue;
                 }
-                MarkerUtils.createMarker(resource, message);
+                MarkerUtils.createMarker(eclipseResource, message);
             }
         }
 
         for(AnalysisResult<IStrategoTerm, IStrategoTerm> result : analysisResults) {
             for(AnalysisFileResult<IStrategoTerm, IStrategoTerm> fileResult : result.fileResults) {
                 for(IMessage message : fileResult.messages) {
-                    final IResource resource = resourceService.unresolve(message.source());
-                    if(resource == null) {
-                        SpoofaxProjectBuilder.logger.error("Cannot create marker for {}", message.source());
+                    final FileObject resource = message.source();
+                    if(removedResources.contains(resource.getName())) {
+                        // Don't create markers for removed resources. Only analysis results contain removed resources.
                         continue;
                     }
-                    MarkerUtils.createMarker(resource, message);
+                    final IResource eclipseResource = resourceService.unresolve(resource);
+                    if(eclipseResource == null) {
+                        logger.error("Cannot create marker for {}", resource);
+                        continue;
+                    }
+                    MarkerUtils.createMarker(eclipseResource, message);
                 }
             }
         }
 
         for(IMessage message : extraMessages) {
-            final IResource resource = resourceService.unresolve(message.source());
-            if(resource == null) {
-                SpoofaxProjectBuilder.logger.error("Cannot create marker for {}", message.source());
+            final FileObject resource = message.source();
+            final IResource eclipseResource = resourceService.unresolve(resource);
+            if(eclipseResource == null) {
+                logger.error("Cannot create marker for {}", resource);
                 continue;
             }
-            MarkerUtils.createMarker(resource, message);
+            MarkerUtils.createMarker(eclipseResource, message);
         }
     }
 }
