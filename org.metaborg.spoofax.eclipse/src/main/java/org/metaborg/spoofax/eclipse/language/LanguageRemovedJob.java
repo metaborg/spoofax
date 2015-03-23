@@ -2,6 +2,7 @@ package org.metaborg.spoofax.eclipse.language;
 
 import java.util.Collection;
 
+import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
@@ -13,14 +14,15 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorRegistry;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
+import org.metaborg.spoofax.core.language.LanguageFileSelector;
 import org.metaborg.spoofax.core.language.ResourceExtensionFacet;
 import org.metaborg.spoofax.eclipse.editor.ISpoofaxEditorListener;
 import org.metaborg.spoofax.eclipse.editor.SpoofaxEditor;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
 import org.metaborg.spoofax.eclipse.util.EditorMappingUtils;
 import org.metaborg.spoofax.eclipse.util.MarkerUtils;
+import org.metaborg.spoofax.eclipse.util.ResourceUtils;
 import org.metaborg.spoofax.eclipse.util.StatusUtils;
-import org.metaborg.spoofax.eclipse.util.WorkspaceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +51,7 @@ public class LanguageRemovedJob extends Job {
         this.languageIdentifier = languageIdentifier;
 
         this.spoofaxEditorListener = spoofaxEditorListener;
-        
+
         this.editorRegistry = editorRegistry;
         this.workspace = workspace;
 
@@ -87,10 +89,12 @@ public class LanguageRemovedJob extends Job {
 
         // Remove markers
         try {
-            final Collection<IResource> resources =
-                WorkspaceUtils.languageResources(resourceService, languageIdentifier, language, workspace.getRoot());
+            final Collection<FileObject> resources =
+                ResourceUtils.workspaceResources(resourceService,
+                    new LanguageFileSelector(languageIdentifier, language), workspace.getRoot());
+            final Collection<IResource> eclipseResources = ResourceUtils.toEclipseResources(resourceService, resources);
             logger.debug("Removing markers from {} workspace resources", resources.size());
-            for(IResource resource : resources) {
+            for(IResource resource : eclipseResources) {
                 try {
                     MarkerUtils.clearAll(resource);
                 } catch(CoreException e) {
