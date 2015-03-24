@@ -46,7 +46,11 @@
   <root level="debug">
     <appender-ref ref="eclipse-log" />
     <appender-ref ref="eclipse-console" />
-    <appender-ref ref="stdout"/>
+    <appender-ref ref="stdout" />
     <appender-ref ref="eclipse-dev-console" />
   </root>
+
+  <logger
+    name="org.metaborg.spoofax.eclipse.editor.SpoofaxEditorListener"
+    level="debug" />
 </configuration>

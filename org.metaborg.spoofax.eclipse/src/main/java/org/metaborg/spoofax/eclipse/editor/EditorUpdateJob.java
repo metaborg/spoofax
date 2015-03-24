@@ -9,6 +9,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.TextPresentation;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.widgets.Display;
@@ -194,8 +195,10 @@ public class EditorUpdateJob extends Job {
                     if(monitor.isCanceled())
                         return;
                     // Also cancel if text presentation is not valid for current text any more.
-                    if(!sourceViewer.getDocument().get().equals(text))
+                    final IDocument document = sourceViewer.getDocument();
+                    if(document == null || !document.get().equals(text)) {
                         return;
+                    }
                     sourceViewer.changeTextPresentation(textPresentation, true);
                 }
             });
