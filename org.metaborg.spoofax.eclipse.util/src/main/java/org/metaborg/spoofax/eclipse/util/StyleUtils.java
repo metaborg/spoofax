@@ -3,6 +3,7 @@ package org.metaborg.spoofax.eclipse.util;
 import java.util.Collection;
 import java.util.Iterator;
 
+import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.TextPresentation;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
@@ -56,11 +57,14 @@ public final class StyleUtils {
             final StyleRange styleRange = createStyleRange(regionStyle, display);
             presentation.addStyleRange(styleRange);
         }
-        final StyleRange defaultStyleRange = new StyleRange();
-        defaultStyleRange.start = presentation.getExtent().getOffset();
-        defaultStyleRange.length = defaultStyleRange.start + presentation.getExtent().getLength();
-        defaultStyleRange.foreground = createColor(java.awt.Color.BLACK, display);
-        presentation.setDefaultStyleRange(defaultStyleRange);
+        final IRegion extent = presentation.getExtent();
+        if(extent != null) {
+            final StyleRange defaultStyleRange = new StyleRange();
+            defaultStyleRange.start = extent.getOffset();
+            defaultStyleRange.length = defaultStyleRange.start + presentation.getExtent().getLength();
+            defaultStyleRange.foreground = createColor(java.awt.Color.BLACK, display);
+            presentation.setDefaultStyleRange(defaultStyleRange);
+        }
         return presentation;
     }
 
