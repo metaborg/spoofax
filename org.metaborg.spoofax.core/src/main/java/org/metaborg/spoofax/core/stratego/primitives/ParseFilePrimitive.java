@@ -54,13 +54,13 @@ public class ParseFilePrimitive extends AbstractPrimitive {
             String input;
             try {
                 resource = resourceService.resolve(pathOrInput);
-                if(resource.getType() != FileType.FILE) {
+                if(!resource.exists() || resource.getType() != FileType.FILE) {
                     resource = resourceService.resolve(pathOrInput2);
                     input = pathOrInput;
                 } else {
                     input = sourceTextService.text(resource);
                 }
-            } catch(SpoofaxRuntimeException e) {
+            } catch(SpoofaxRuntimeException | IOException e) {
                 resource = resourceService.resolve(pathOrInput2);
                 input = pathOrInput;
             }
