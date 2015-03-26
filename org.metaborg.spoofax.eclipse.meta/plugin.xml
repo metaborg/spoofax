@@ -47,6 +47,7 @@
   <extension point="org.eclipse.ui.commands">
     <command id="org.metaborg.spoofax.eclipse.meta.command.language.load" name="Load language"/>
     <command id="org.metaborg.spoofax.eclipse.meta.command.language.unload" name="Unload language"/>
+    <command id="org.metaborg.spoofax.eclipse.meta.command.language.upgrade" name="Upgrade language project"/>
   </extension>  
   <extension point="org.eclipse.ui.handlers">
     <handler 
@@ -57,6 +58,46 @@
       commandId="org.metaborg.spoofax.eclipse.meta.command.language.unload"
       class="org.metaborg.spoofax.eclipse.meta.language.UnloadLanguageHandler"
     />
+    <handler 
+      commandId="org.metaborg.spoofax.eclipse.meta.command.language.upgrade"
+      class="org.metaborg.spoofax.eclipse.meta.language.UpgradeLanguageProjectHandler"
+    />
+  </extension>
+
+
+  <!-- Issue reporting commands -->
+  <extension point="org.eclipse.ui.commands">
+    <command id="org.metaborg.spoofax.eclipse.meta.command.issue.report" name="Report issue"/>
+  </extension>  
+  <extension point="org.eclipse.ui.handlers">
+    <handler 
+      commandId="org.metaborg.spoofax.eclipse.meta.command.issue.report"
+      class="org.metaborg.spoofax.eclipse.meta.issue.ReportIssueHandler"
+    />
+  </extension>
+  
+  
+  <!-- Main menu -->
+  <extension point="org.eclipse.ui.menus">
+    <menuContribution locationURI="menu:org.eclipse.ui.main.menu">
+      <menu label="Spoofax (meta)">
+        <command commandId="org.metaborg.spoofax.eclipse.meta.command.issue.report" />
+      </menu>
+    </menuContribution>
+  </extension>
+  
+  
+  <!-- Reusable command expressions for menus -->
+  <extension point="org.eclipse.core.expressions.definitions">
+    <definition id="org.metaborg.spoofax.eclipse.meta.expression.hasnature">
+      <iterate operator="and" ifEmpty="false">
+        <test
+          forcePluginActivation="true"
+          property="org.metaborg.spoofax.eclipse.util.hasNature" 
+          value="org.metaborg.spoofax.eclipse.meta.nature"
+        />
+      </iterate>
+    </definition>
   </extension>
   
   
@@ -66,37 +107,52 @@
     <menuContribution locationURI="popup:org.eclipse.jdt.ui.PackageExplorer?after=additions">
       <menu id="org.metaborg.spoofax.eclipse.meta.menu.project" label="Spoofax (meta)">
         <visibleWhen>
-          <iterate ifEmpty="false" operator="and">
-            <or>
-              <instanceof value="org.eclipse.core.resources.IProject" />
-              <instanceof value="org.eclipse.core.resources.IProjectNature" />
-            </or>
-          </iterate>
+          <and>
+            <count value="1" />
+            <reference definitionId="org.metaborg.spoofax.eclipse.util.expression.isproject" />
+          </and>
         </visibleWhen>
       </menu>
     </menuContribution>
-    
     <!-- Project Explorer -->
     <menuContribution locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?after=additions">
       <menu id="org.metaborg.spoofax.eclipse.meta.menu.project" label="Spoofax (meta)">
         <visibleWhen>
-          <iterate ifEmpty="false" operator="and">
-            <or>
-              <instanceof value="org.eclipse.core.resources.IProject" />
-              <instanceof value="org.eclipse.core.resources.IProjectNature" />
-            </or>
-          </iterate>
+          <and>
+            <count value="1" />
+            <reference definitionId="org.metaborg.spoofax.eclipse.util.expression.isproject" />
+          </and>
         </visibleWhen>
       </menu>
     </menuContribution>
     
     <!-- Commands -->
     <menuContribution locationURI="popup:org.metaborg.spoofax.eclipse.meta.menu.project?after=additions">
-      <command commandId="org.metaborg.spoofax.eclipse.meta.command.nature.add" />
-      <command commandId="org.metaborg.spoofax.eclipse.meta.command.nature.remove" />
+      <command commandId="org.metaborg.spoofax.eclipse.meta.command.nature.add">
+        <visibleWhen>
+          <not>
+            <reference definitionId="org.metaborg.spoofax.eclipse.meta.expression.hasnature" />
+          </not>
+        </visibleWhen>
+      </command>
+      <command commandId="org.metaborg.spoofax.eclipse.meta.command.nature.remove">
+        <visibleWhen>
+          <reference definitionId="org.metaborg.spoofax.eclipse.meta.expression.hasnature" />
+        </visibleWhen>
+      </command>
       <separator name="separator1" visible="true "/>
-      <command commandId="org.metaborg.spoofax.eclipse.meta.command.language.load" />
-      <command commandId="org.metaborg.spoofax.eclipse.meta.command.language.unload" />
+      <command commandId="org.metaborg.spoofax.eclipse.meta.command.language.load">
+        <visibleWhen>
+          <reference definitionId="org.metaborg.spoofax.eclipse.meta.expression.hasnature" />
+        </visibleWhen>
+      </command>
+      <command commandId="org.metaborg.spoofax.eclipse.meta.command.language.unload">
+        <visibleWhen>
+          <reference definitionId="org.metaborg.spoofax.eclipse.meta.expression.hasnature" />
+        </visibleWhen>
+      </command>
+      <separator name="separator2" visible="true "/>
+      <command commandId="org.metaborg.spoofax.eclipse.meta.command.language.upgrade" />
     </menuContribution>
   </extension>
 </plugin>

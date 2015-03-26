@@ -312,6 +312,7 @@
     />
   </extension>
 
+
   <!-- Main menu -->
   <extension point="org.eclipse.ui.menus">
     <menuContribution locationURI="menu:org.eclipse.ui.main.menu">
@@ -325,40 +326,59 @@
   </extension>
 
 
+  <!-- Reusable command expressions for menus -->
+  <extension point="org.eclipse.core.expressions.definitions">
+    <definition id="org.metaborg.spoofax.eclipse.expression.hasnature">
+      <iterate operator="and" ifEmpty="false">
+        <test
+          forcePluginActivation="true"
+          property="org.metaborg.spoofax.eclipse.util.hasNature" 
+          value="org.metaborg.spoofax.eclipse.nature"
+        />
+      </iterate>
+    </definition>
+  </extension>
+
+
   <!-- Project context menu -->
   <extension point="org.eclipse.ui.menus">
     <!-- Package Explorer -->
     <menuContribution locationURI="popup:org.eclipse.jdt.ui.PackageExplorer?after=additions">
       <menu id="org.metaborg.spoofax.eclipse.menu.project" label="Spoofax">
         <visibleWhen>
-          <iterate ifEmpty="false" operator="and">
-            <or>
-              <instanceof value="org.eclipse.core.resources.IProject" />
-              <instanceof value="org.eclipse.core.resources.IProjectNature" />
-            </or>
-          </iterate>
+          <and>
+            <count value="1" />
+            <reference definitionId="org.metaborg.spoofax.eclipse.util.expression.isproject" />
+          </and>
         </visibleWhen>
       </menu>
     </menuContribution>
-    
     <!-- Project Explorer -->
     <menuContribution locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?after=additions">
       <menu id="org.metaborg.spoofax.eclipse.menu.project" label="Spoofax">
         <visibleWhen>
-          <iterate ifEmpty="false" operator="and">
-            <or>
-              <instanceof value="org.eclipse.core.resources.IProject" />
-              <instanceof value="org.eclipse.core.resources.IProjectNature" />
-            </or>
-          </iterate>
+          <and>
+            <count value="1" />
+            <reference definitionId="org.metaborg.spoofax.eclipse.util.expression.isproject" />
+          </and>
         </visibleWhen>
       </menu>
     </menuContribution>
     
     <!-- Commands -->
     <menuContribution locationURI="popup:org.metaborg.spoofax.eclipse.menu.project?after=additions">
-      <command commandId="org.metaborg.spoofax.eclipse.command.nature.add" />
-      <command commandId="org.metaborg.spoofax.eclipse.command.nature.remove" />
+      <command commandId="org.metaborg.spoofax.eclipse.command.nature.add">
+        <visibleWhen>
+          <not>
+            <reference definitionId="org.metaborg.spoofax.eclipse.expression.hasnature" />
+          </not>
+        </visibleWhen>
+      </command>
+      <command commandId="org.metaborg.spoofax.eclipse.command.nature.remove">
+        <visibleWhen>
+          <reference definitionId="org.metaborg.spoofax.eclipse.expression.hasnature" />
+        </visibleWhen>
+      </command>
     </menuContribution>
   </extension>
 </plugin>
