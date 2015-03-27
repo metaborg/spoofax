@@ -37,7 +37,7 @@ public class UpgradeLanguageProjectWizardPage extends WizardPage {
         container.setLayout(layout);
 
         final Label description = new Label(container, SWT.NULL);
-        description.setText("Language name and id are retrieved from the packed.esv file if it exists. "
+        description.setText("Language name and id are retrieved from the packed.esv file if it exists.\n"
             + "If it does not exist, please copy the language name and id from the main.esv file.");
         GridData gridData = new GridData(GridData.VERTICAL_ALIGN_END);
         gridData.horizontalSpan = 2;
@@ -65,7 +65,7 @@ public class UpgradeLanguageProjectWizardPage extends WizardPage {
         });
         
         setControl(container);
-        setPageComplete(false);
+        onChange();
     }
 
 
