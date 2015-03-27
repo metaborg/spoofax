@@ -49,6 +49,7 @@ import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 public class UpgradeLanguageProjectWizard extends Wizard {
@@ -200,13 +201,16 @@ public class UpgradeLanguageProjectWizard extends Wizard {
         final Set<String> requiredDependencies =
             Sets.newHashSet("org.metaborg.spoofax.eclipse", "org.spoofax.terms", "org.spoofax.interpreter.core",
                 "org.spoofax.interpreter.externaldeps", "org.strategoxt.strj");
-        changed = upgradeListAttribute(attributes, "Require-Bundle", removedDependencies, requiredDependencies) | changed;
+        changed =
+            upgradeListAttribute(attributes, "Require-Bundle", removedDependencies, requiredDependencies) || changed;
         changed =
             upgradeListAttribute(attributes, "Import-Package", Sets.newHashSet("org.osgi.framework;version=\"1.3.0\""),
-                Sets.<String>newHashSet()) | changed;
+                Sets.<String>newHashSet()) || changed;
         changed =
-            upgradeListAttribute(attributes, "Export-Package", Sets.newHashSet(packageName), Sets.<String>newHashSet()) | changed;
-        changed = (attributes.remove(new Attributes.Name("Bundle-Activator")) == null ? false : true) | changed;
+            upgradeListAttribute(attributes, "Export-Package", Sets.newHashSet(packageName), Sets.<String>newHashSet())
+                || changed;
+        changed = (attributes.remove(new Attributes.Name("Bundle-Activator")) == null ? false : true) || changed;
+        changed = (attributes.remove(new Attributes.Name("Eclipse-RegisterBuddy")) == null ? false : true) || changed;
 
         if(changed) {
             try(final OutputStream out = manifestFile.getContent().getOutputStream()) {
@@ -217,11 +221,12 @@ public class UpgradeLanguageProjectWizard extends Wizard {
 
     private boolean upgradeListAttribute(Attributes attributes, String name, Set<String> removed, Set<String> required) {
         final String attribute = attributes.getValue(name);
-        final Set<String> current;
+        final Set<String> current = Sets.newHashSet();
         if(attribute != null) {
-            current = Sets.newHashSet(attribute.split(","));
-        } else {
-            current = Sets.newHashSet();
+            final Iterable<String> items = Lists.newArrayList(attribute.split("\\s*,[,\\s]*"));
+            for(String item : items) {
+                current.add(item.trim());
+            }
         }
 
         boolean changed = current.removeAll(removed);
@@ -264,8 +269,8 @@ public class UpgradeLanguageProjectWizard extends Wizard {
         }
 
         final Node impLanguageExtensionNode =
-            (Node) xpath.evaluate("//plugin/extension[@point='org.eclipse.imp.runtime.languageDescription']",
-                document, XPathConstants.NODE);
+            (Node) xpath.evaluate("//plugin/extension[@point='org.eclipse.imp.runtime.languageDescription']", document,
+                XPathConstants.NODE);
         if(impLanguageExtensionNode != null) {
             pluginNode.removeChild(impLanguageExtensionNode);
             changed = true;
@@ -291,7 +296,7 @@ public class UpgradeLanguageProjectWizard extends Wizard {
             extensionElem.appendChild(languageElem);
             changed = true;
         }
-        
+
         if(changed) {
             writeXML(pluginFile, document);
         }

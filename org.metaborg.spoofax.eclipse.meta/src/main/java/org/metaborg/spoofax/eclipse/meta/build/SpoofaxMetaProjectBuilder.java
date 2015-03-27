@@ -13,6 +13,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.eclipse.ant.core.AntRunner;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
@@ -84,7 +85,7 @@ public class SpoofaxMetaProjectBuilder extends IncrementalProjectBuilder {
         }
     }
 
-    private void runAnt(IProject project, String buildFilePath, String[] targets, IProgressMonitor monitor)
+    private void runAnt(final IProject project, String buildFilePath, String[] targets, IProgressMonitor monitor)
         throws CoreException, IOException {
         final AntRunner runner = new AntRunner();
         runner.setBuildFileLocation(buildFilePath);
@@ -97,6 +98,7 @@ public class SpoofaxMetaProjectBuilder extends IncrementalProjectBuilder {
         final IWorkspaceRunnable antRunnable = new IWorkspaceRunnable() {
             @Override public void run(IProgressMonitor workspaceMonitor) throws CoreException {
                 runner.run(workspaceMonitor);
+                project.refreshLocal(IResource.DEPTH_INFINITE, workspaceMonitor);
             }
         };
         final IWorkspace workspace = ResourcesPlugin.getWorkspace();
