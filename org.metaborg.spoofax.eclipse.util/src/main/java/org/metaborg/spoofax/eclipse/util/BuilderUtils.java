@@ -1,5 +1,7 @@
 package org.metaborg.spoofax.eclipse.util;
 
+import java.util.Collection;
+
 import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IProject;
@@ -9,8 +11,28 @@ import org.eclipse.core.runtime.CoreException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Lists;
+import com.google.common.primitives.Ints;
+
 public class BuilderUtils {
     private static final Logger logger = LoggerFactory.getLogger(BuilderUtils.class);
+
+    /**
+     * Returns if project contains builder with given identifier.
+     * 
+     * @param id
+     *            Identifier of the builder to check.
+     * @param project
+     *            Project to check for the builder.
+     * @return True if project contains the builder, false if not.
+     * @throws When
+     *             {@link IProject#getDescription} throws a CoreException.
+     */
+    public static boolean contains(String id, IProject project) throws CoreException {
+        final IProjectDescription projectDesc = project.getDescription();
+        final ICommand[] builders = projectDesc.getBuildSpec();
+        return contains(id, builders);
+    }
 
     /**
      * Adds builder to given project. Does nothing if builder has already been added to the project.
@@ -24,11 +46,15 @@ public class BuilderUtils {
      *            configured (isConfigurable="true" in plugin.xml).
      * @throws CoreException
      *             When {@link IProject#getDescription} throws a CoreException.
+     * @see IncrementalProjectBuilder#FULL_BUILD
+     * @see IncrementalProjectBuilder#INCREMENTAL_BUILD
+     * @see IncrementalProjectBuilder#AUTO_BUILD
+     * @see IncrementalProjectBuilder#CLEAN_BUILD
      */
     public static void addTo(String id, IProject project, int... triggers) throws CoreException {
         final IProjectDescription projectDesc = project.getDescription();
         final ICommand[] builders = projectDesc.getBuildSpec();
-        if(index(id, builders) == -1) {
+        if(!contains(id, builders)) {
             final ICommand newBuilder = projectDesc.newCommand();
             newBuilder.setBuilderName(id);
             if(triggers.length > 0) {
@@ -53,7 +79,8 @@ public class BuilderUtils {
     }
 
     /**
-     * Removes builder from given project. Does nothing if the builder has not been added to the project.
+     * Removes all builders with given identifier from given project. Does nothing if the builder has not been added to
+     * the project.
      * 
      * @param id
      *            Identifier of the builder to remove.
@@ -65,21 +92,24 @@ public class BuilderUtils {
     public static void removeFrom(String id, IProject project) throws CoreException {
         final IProjectDescription projectDesc = project.getDescription();
         final ICommand[] builders = projectDesc.getBuildSpec();
-        final int builderIndex = index(id, builders);
-        if(builderIndex != -1) {
-            final ICommand[] newBuilders = ArrayUtils.remove(builders, builderIndex);
-            projectDesc.setBuildSpec(newBuilders);
-            project.setDescription(projectDesc, null);
-        }
+        final int[] builderIndexes = indexes(id, builders);
+        final ICommand[] newBuilders = ArrayUtils.removeAll(builders, builderIndexes);
+        projectDesc.setBuildSpec(newBuilders);
+        project.setDescription(projectDesc, null);
     }
 
-    private static int index(String id, ICommand[] builders) throws CoreException {
+    private static int[] indexes(String id, ICommand[] builders) throws CoreException {
+        final Collection<Integer> indexes = Lists.newArrayList();
         for(int i = 0; i < builders.length; ++i) {
             final ICommand builder = builders[i];
             if(builder.getBuilderName().equals(id)) {
-                return i;
+                indexes.add(i);
             }
         }
-        return -1;
+        return Ints.toArray(indexes);
+    }
+
+    private static boolean contains(String id, ICommand[] builders) throws CoreException {
+        return indexes(id, builders).length != 0;
     }
 }
