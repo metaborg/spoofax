@@ -16,7 +16,12 @@ Require-Bundle: org.eclipse.ui,
  org.apache.ant;bundle-version="1.9.2",
  org.eclipse.ui.console,
  org.metaborg.spoofax.eclipse.util,
- org.metaborg.util
+ org.metaborg.util,
+ org.eclipse.equinox.p2.ui,
+ org.eclipse.equinox.p2.operations,
+ org.eclipse.equinox.p2.metadata,
+ org.eclipse.equinox.p2.engine,
+ org.eclipse.equinox.p2.core
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: metaborg.org
