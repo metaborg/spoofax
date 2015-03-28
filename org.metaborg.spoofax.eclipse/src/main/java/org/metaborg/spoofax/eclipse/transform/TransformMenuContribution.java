@@ -13,11 +13,11 @@ import org.eclipse.ui.menus.IWorkbenchContribution;
 import org.eclipse.ui.services.IServiceLocator;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
-import org.metaborg.spoofax.core.transform.stratego.Action;
-import org.metaborg.spoofax.core.transform.stratego.Menu;
-import org.metaborg.spoofax.core.transform.stratego.MenusFacet;
+import org.metaborg.spoofax.core.transform.stratego.menu.Action;
+import org.metaborg.spoofax.core.transform.stratego.menu.Menu;
+import org.metaborg.spoofax.core.transform.stratego.menu.MenusFacet;
 import org.metaborg.spoofax.eclipse.SpoofaxPlugin;
-import org.metaborg.spoofax.eclipse.editor.LatestEditorListener;
+import org.metaborg.spoofax.eclipse.editor.ISpoofaxEditorListener;
 import org.metaborg.spoofax.eclipse.editor.SpoofaxEditor;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
 import org.slf4j.Logger;
@@ -35,7 +35,7 @@ public class TransformMenuContribution extends CompoundContributionItem implemen
 
     private final IEclipseResourceService resourceService;
     private final ILanguageIdentifierService languageIdentifier;
-    private final LatestEditorListener latestEditorListener;
+    private final ISpoofaxEditorListener latestEditorListener;
 
     private IServiceLocator serviceLocator;
 
@@ -44,16 +44,16 @@ public class TransformMenuContribution extends CompoundContributionItem implemen
         final Injector injector = SpoofaxPlugin.injector();
         this.resourceService = injector.getInstance(IEclipseResourceService.class);
         this.languageIdentifier = injector.getInstance(ILanguageIdentifierService.class);
-        this.latestEditorListener = injector.getInstance(LatestEditorListener.class);
+        this.latestEditorListener = injector.getInstance(ISpoofaxEditorListener.class);
     }
 
 
-    @Override public void initialize(IServiceLocator serviceLocator) {
-        this.serviceLocator = serviceLocator;
+    @Override public void initialize(IServiceLocator newServiceLocator) {
+        this.serviceLocator = newServiceLocator;
     }
 
     @Override protected IContributionItem[] getContributionItems() {
-        final SpoofaxEditor editor = latestEditorListener.latestActive();
+        final SpoofaxEditor editor = latestEditorListener.previousEditor();
         if(editor == null) {
             logger.debug("Cannot create menu items; there is no latest active editor");
             return null;

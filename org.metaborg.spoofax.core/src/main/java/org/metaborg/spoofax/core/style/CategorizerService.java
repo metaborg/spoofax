@@ -7,14 +7,15 @@ import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.messages.ISourceRegion;
 import org.metaborg.spoofax.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.syntax.jsglr.JSGLRSourceRegionFactory;
+import org.metaborg.util.iterators.Iterables2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.jsglr.client.imploder.IToken;
 import org.spoofax.jsglr.client.imploder.ITokenizer;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
+import org.spoofax.terms.attachments.ParentAttachment;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
@@ -30,47 +31,38 @@ public class CategorizerService implements ICategorizerService<IStrategoTerm, IS
 
     @Override public Iterable<IRegionCategory<IStrategoTerm>> categorize(ILanguage language,
         ParseResult<IStrategoTerm> parseResult) {
+        if(parseResult.result == null) {
+            logger.error("Cannot categorize input of {}, parse result is empty", language);
+            // GTODO: throw exception instead
+            return Iterables2.empty();
+        }
         final StylerFacet facet = language.facet(StylerFacet.class);
+        if(facet == null) {
+            logger.error("Cannot categorize input of {}, it does not have a styler facet", language);
+            // GTODO: throw exception instead
+            return Iterables2.empty();
+        }
         final List<IRegionCategory<IStrategoTerm>> regionCategories = Lists.newLinkedList();
 
         final ImploderAttachment rootImploderAttachment = ImploderAttachment.get(parseResult.result);
         final ITokenizer tokenzier = rootImploderAttachment.getLeftToken().getTokenizer();
         final int tokenCount = tokenzier.getTokenCount();
+        int offset = -1;
         for(int i = 0; i < tokenCount; ++i) {
             final IToken token = tokenzier.getTokenAt(i);
-            final ISimpleTerm term = token.getAstNode();
-
-            final ICategory category;
-            if(term == null) {
-                category = tokenCategory(token);
-            } else {
-                final IStrategoTerm strategoTerm = (IStrategoTerm) term;
-                final ImploderAttachment imploderAttachment = ImploderAttachment.get(strategoTerm);
-                final String sort = imploderAttachment.getSort();
-                if(strategoTerm.getTermType() == IStrategoTerm.APPL) {
-                    final String cons = ((IStrategoAppl) strategoTerm).getConstructor().getName();
-
-                    if(facet.hasSortConsStyle(sort, cons)) {
-                        category = new SortConsCategory(sort, cons);
-                    } else if(facet.hasConsStyle(cons)) {
-                        category = new ConsCategory(cons);
-                    } else if(facet.hasSortStyle(sort)) {
-                        category = new SortCategory(sort);
-                    } else {
-                        category = tokenCategory(token);
-                    }
-                } else {
-                    if(facet.hasSortStyle(sort)) {
-                        category = new SortCategory(sort);
-                    } else {
-                        category = tokenCategory(token);
-                    }
-                }
+            if(tokenzier.isAmbigous() && token.getStartOffset() < offset) {
+                // In case of ambiguities, tokens inside the ambiguity are duplicated, ignore.
+                continue;
             }
-
+            if(token.getStartOffset() > token.getEndOffset()) {
+                // Not sure what these tokens mean, but they are invalid, ignore.
+                continue;
+            }
+            offset = token.getEndOffset();
+            final ICategory category = category(facet, token);
             if(category != null) {
                 final ISourceRegion region = JSGLRSourceRegionFactory.fromToken(token);
-                regionCategories.add(new RegionCategory<IStrategoTerm>(null, region, category));
+                regionCategories.add(new RegionCategory<IStrategoTerm>(region, category, null));
             }
         }
 
@@ -82,6 +74,54 @@ public class CategorizerService implements ICategorizerService<IStrategoTerm, IS
         throw new UnsupportedOperationException();
     }
 
+
+    private ICategory category(StylerFacet facet, IToken token) {
+        IStrategoTerm term = (IStrategoTerm) token.getAstNode();
+        if(term == null) {
+            return tokenCategory(token);
+        }
+
+        final int termType = term.getTermType();
+        if(termType != IStrategoTerm.APPL && termType != IStrategoTerm.TUPLE && termType != IStrategoTerm.LIST) {
+            // Try to use the parent of terminal nodes, mimicking behavior of old Spoofax/IMP runtime.
+            final IStrategoTerm parentTerm = ParentAttachment.getParent(term);
+            if(parentTerm != null) {
+                final ICategory category = sortConsCategory(facet, parentTerm);
+                if(category != null) {
+                    return category;
+                }
+            }
+        }
+
+        final ICategory category = sortConsCategory(facet, term);
+        if(category != null) {
+            return category;
+        }
+
+        return tokenCategory(token);
+    }
+
+    private ICategory sortConsCategory(StylerFacet facet, IStrategoTerm term) {
+        final ImploderAttachment imploderAttachment = ImploderAttachment.get(term);
+        final String sort = imploderAttachment.getSort();
+        if(term.getTermType() == IStrategoTerm.APPL) {
+            final String cons = ((IStrategoAppl) term).getConstructor().getName();
+            if(facet.hasSortConsStyle(sort, cons)) {
+                return new SortConsCategory(sort, cons);
+            } else if(facet.hasConsStyle(cons)) {
+                return new ConsCategory(cons);
+            } else if(facet.hasSortStyle(sort)) {
+                return new SortCategory(sort);
+            }
+            return null;
+        }
+
+        if(facet.hasSortStyle(sort)) {
+            return new SortCategory(sort);
+        }
+
+        return null;
+    }
 
     private ICategory tokenCategory(IToken token) {
         switch(token.getKind()) {
@@ -101,12 +141,10 @@ public class CategorizerService implements ICategorizerService<IStrategoTerm, IS
             case IToken.TK_ERROR_LAYOUT:
             case IToken.TK_LAYOUT:
                 return new TokenCategory("TK_LAYOUT");
-            case IToken.TK_ERROR:
-                return new TokenCategory("TK_ERROR");
-            case IToken.TK_UNKNOWN:
-                return new TokenCategory("TK_UNKNOWN");
             default:
                 logger.debug("Unhandled token kind " + token.getKind());
+            case IToken.TK_UNKNOWN:
+            case IToken.TK_ERROR:
             case IToken.TK_EOF:
             case IToken.TK_ERROR_EOF_UNEXPECTED:
             case IToken.TK_ESCAPE_OPERATOR:

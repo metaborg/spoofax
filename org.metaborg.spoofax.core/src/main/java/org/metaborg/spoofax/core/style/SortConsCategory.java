@@ -14,4 +14,9 @@ public class SortConsCategory implements ICategory {
     @Override public String name() {
         return sort + "." + cons;
     }
+    
+    
+    @Override public String toString() {
+        return name();
+    }
 }

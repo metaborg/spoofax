@@ -1,6 +1,7 @@
 package org.strategoxt.imp.metatooling.stratego;
 
-import static org.spoofax.interpreter.terms.IStrategoTerm.*;
+import static org.spoofax.interpreter.terms.IStrategoTerm.LIST;
+import static org.spoofax.interpreter.terms.IStrategoTerm.STRING;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -30,25 +31,20 @@ import org.strategoxt.lang.compat.SSL_EXT_call;
 import org.strategoxt.stratego_xtc.xtc_command_1_0;
 
 /**
- * Overrides the xtc-command strategy to use sdf2table from the SDF plugin.
+ * Overrides the xtc-command strategy to use sdf2table from the nativebundle plugin.
  */
-public class SDFBundleCommand extends xtc_command_1_0 {
-    private static final Logger logger = LoggerFactory.getLogger(SDFBundleCommand.class);
-    
+public class NativeBundleCommand extends xtc_command_1_0 {
+    private static final Logger logger = LoggerFactory.getLogger(NativeBundleCommand.class);
     private static final String NATIVE_PATH = "native/";
-
     private static final boolean ENABLED = true;
 
     private final xtc_command_1_0 proceed = xtc_command_1_0.instance;
-
     private final String[] windowsEnvironment = createWindowsEnvironment();
-
     private String binaryPath;
-
     private String binaryExtension;
-
     private boolean initialized;
 
+    
     public void init() throws IOException {
         if(initialized)
             return;
@@ -82,26 +78,26 @@ public class SDFBundleCommand extends xtc_command_1_0 {
 
         File result = null;
         final Bundle nativeBundle = Platform.getBundle("org.strategoxt.imp.nativebundle");
-		if (nativeBundle != null) {
-        	final IPath path = new Path(NATIVE_PATH + subdir);
-        	final URL url = FileLocator.find(nativeBundle, path, null);
-        	result = new File(FileLocator.toFileURL(url).getPath());
-		} else {
-			// Fallback in the case that OSGI is not initialized
-			// Query classpath
-			String classpath = System.getProperty("java.class.path");
-			java.util.List<String> classpathEntries = new java.util.ArrayList<>(Arrays.asList(classpath
-							.split(File.pathSeparator)));
-			for (String entry : classpathEntries) {
-				if (entry.contains("org.strategoxt.imp.nativebundle")) {
-					result = new File(entry + "/" + NATIVE_PATH + subdir);
-					break;
-				}
-			}
-			if (result == null) {
-				throw new IOException("Unable to find nativebundle");
-			}
-		}
+        if(nativeBundle != null) {
+            final IPath path = new Path(NATIVE_PATH + subdir);
+            final URL url = FileLocator.find(nativeBundle, path, null);
+            result = new File(FileLocator.toFileURL(url).getPath());
+        } else {
+            // Fallback in the case that OSGI is not initialized
+            // Query classpath
+            String classpath = System.getProperty("java.class.path");
+            java.util.List<String> classpathEntries =
+                new java.util.ArrayList<>(Arrays.asList(classpath.split(File.pathSeparator)));
+            for(String entry : classpathEntries) {
+                if(entry.contains("org.strategoxt.imp.nativebundle")) {
+                    result = new File(entry + "/" + NATIVE_PATH + subdir);
+                    break;
+                }
+            }
+            if(result == null) {
+                throw new IOException("Unable to find nativebundle");
+            }
+        }
 
         if(!result.exists())
             throw new FileNotFoundException(result.getAbsolutePath());
@@ -112,11 +108,11 @@ public class SDFBundleCommand extends xtc_command_1_0 {
         return isWindowsOS() ? ".exe" : "";
     }
 
-    public static SDFBundleCommand getInstance() {
-        if(!(instance instanceof SDFBundleCommand))
-            instance = new SDFBundleCommand();
+    public static NativeBundleCommand getInstance() {
+        if(!(instance instanceof NativeBundleCommand))
+            instance = new NativeBundleCommand();
 
-        return (SDFBundleCommand) instance;
+        return (NativeBundleCommand) instance;
     }
 
     @Override public IStrategoTerm invoke(Context context, IStrategoTerm args,
@@ -130,8 +126,9 @@ public class SDFBundleCommand extends xtc_command_1_0 {
                     + "/" + System.getProperty("os.arch") + ")", e);
             return proceed.invoke(context, args, commandStrategy);
         } catch(RuntimeException e) {
-            logger.error("Failed to initialize the native tool bundle (" + System.getProperty("os.name")
-                + "/" + System.getProperty("os.arch") + ")", e);
+            logger.error(
+                "Failed to initialize the native tool bundle (" + System.getProperty("os.name") + "/"
+                    + System.getProperty("os.arch") + ")", e);
             return proceed.invoke(context, args, commandStrategy);
         }
 
@@ -180,9 +177,9 @@ public class SDFBundleCommand extends xtc_command_1_0 {
                 + "\n");
             int result = new NativeCallHelper().call(commandArgs, environment, new File(io.getWorkingDir()), out, err);
             if(result != 0) {
-                logger.error("Native tool " + command + " exited with error code " + result
-                    + "\nCommand:\n  " + Arrays.toString(commandArgs) + "\nEnvironment:\n "
-                    + Arrays.toString(environment) + "\nWorking dir:\n  " + io.getWorkingDir());
+                logger.error("Native tool " + command + " exited with error code " + result + "\nCommand:\n  "
+                    + Arrays.toString(commandArgs) + "\nEnvironment:\n " + Arrays.toString(environment)
+                    + "\nWorking dir:\n  " + io.getWorkingDir());
             }
             return result == 0;
         } catch(IOException e) {

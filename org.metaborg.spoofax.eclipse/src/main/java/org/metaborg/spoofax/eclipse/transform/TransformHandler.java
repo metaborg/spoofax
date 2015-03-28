@@ -8,7 +8,8 @@ import org.metaborg.spoofax.core.context.IContextService;
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
 import org.metaborg.spoofax.core.transform.ITransformer;
 import org.metaborg.spoofax.eclipse.SpoofaxPlugin;
-import org.metaborg.spoofax.eclipse.editor.LatestEditorListener;
+import org.metaborg.spoofax.eclipse.editor.ISpoofaxEditorListener;
+import org.metaborg.spoofax.eclipse.editor.SpoofaxEditorListener;
 import org.metaborg.spoofax.eclipse.editor.SpoofaxEditor;
 import org.metaborg.spoofax.eclipse.processing.AnalysisResultProcessor;
 import org.metaborg.spoofax.eclipse.processing.ParseResultProcessor;
@@ -28,7 +29,7 @@ public class TransformHandler extends AbstractHandler {
     private final ParseResultProcessor parseResultProcessor;
     private final AnalysisResultProcessor analysisResultProcessor;
 
-    private final LatestEditorListener latestEditorListener;
+    private final ISpoofaxEditorListener latestEditorListener;
 
 
     public TransformHandler() {
@@ -44,12 +45,12 @@ public class TransformHandler extends AbstractHandler {
         this.parseResultProcessor = injector.getInstance(ParseResultProcessor.class);
         this.analysisResultProcessor = injector.getInstance(AnalysisResultProcessor.class);
 
-        this.latestEditorListener = injector.getInstance(LatestEditorListener.class);
+        this.latestEditorListener = injector.getInstance(SpoofaxEditorListener.class);
     }
 
 
     @Override public Object execute(ExecutionEvent event) throws ExecutionException {
-        final SpoofaxEditor latestEditor = latestEditorListener.latestActive();
+        final SpoofaxEditor latestEditor = latestEditorListener.previousEditor();
         final String actionName = event.getParameter(TransformMenuContribution.actionNameParam);
         final Job transformJob =
             new TransformJob(resourceService, langaugeIdentifierService, contextService, transformer,

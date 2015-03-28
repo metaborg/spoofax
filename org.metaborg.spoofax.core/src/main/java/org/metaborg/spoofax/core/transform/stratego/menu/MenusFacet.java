@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.core.transform.stratego;
+package org.metaborg.spoofax.core.transform.stratego.menu;
 
 import java.util.Collection;
 import java.util.Map;

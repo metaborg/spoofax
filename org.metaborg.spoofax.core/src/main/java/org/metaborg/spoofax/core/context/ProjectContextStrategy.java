@@ -21,7 +21,7 @@ public class ProjectContextStrategy implements IContextStrategy {
     @Override public ContextIdentifier get(FileObject resource, ILanguage language) throws ContextException {
         final IProject project = projectService.get(resource);
         if(project == null) {
-            final String message = String.format("Cannot create context, %s does not have a project", resource);
+            final String message = String.format("Cannot create or retrieve context, %s does not have a project", resource);
             throw new ContextException(resource, language, message);
         }
         return new ContextIdentifier(project.location(), language);

@@ -6,10 +6,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.IWorkspace;
@@ -20,10 +20,10 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.metaborg.spoofax.core.SpoofaxRuntimeException;
 import org.metaborg.spoofax.core.analysis.AnalysisException;
-import org.metaborg.spoofax.core.analysis.AnalysisFileResult;
 import org.metaborg.spoofax.core.analysis.AnalysisResult;
 import org.metaborg.spoofax.core.analysis.IAnalysisService;
 import org.metaborg.spoofax.core.context.ContextException;
+import org.metaborg.spoofax.core.context.ContextUtils;
 import org.metaborg.spoofax.core.context.IContext;
 import org.metaborg.spoofax.core.context.IContextService;
 import org.metaborg.spoofax.core.language.AllLanguagesFileSelector;
@@ -37,12 +37,16 @@ import org.metaborg.spoofax.core.resource.ResourceChangeKind;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
 import org.metaborg.spoofax.core.syntax.ParseException;
 import org.metaborg.spoofax.core.syntax.ParseResult;
+import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.text.ISourceTextService;
+import org.metaborg.spoofax.core.transform.ITransformer;
 import org.metaborg.spoofax.eclipse.SpoofaxPlugin;
 import org.metaborg.spoofax.eclipse.processing.AnalysisResultProcessor;
 import org.metaborg.spoofax.eclipse.processing.ParseResultProcessor;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
 import org.metaborg.spoofax.eclipse.util.MarkerUtils;
+import org.metaborg.spoofax.eclipse.util.ResourceUtils;
+import org.metaborg.util.iterators.Iterables2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -50,6 +54,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.inject.Injector;
@@ -66,7 +71,9 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
     private final IContextService contextService;
     private final ISourceTextService sourceTextService;
     private final ISyntaxService<IStrategoTerm> syntaxService;
+    private final ITermFactoryService termFactoryService;
     private final IAnalysisService<IStrategoTerm, IStrategoTerm> analyzer;
+    private final ITransformer<IStrategoTerm, IStrategoTerm, IStrategoTerm> transformer;
 
     private final ParseResultProcessor parseResultProcessor;
     private final AnalysisResultProcessor analysisResultProcessor;
@@ -79,8 +86,12 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
         this.contextService = injector.getInstance(IContextService.class);
         this.sourceTextService = injector.getInstance(ISourceTextService.class);
         this.syntaxService = injector.getInstance(Key.get(new TypeLiteral<ISyntaxService<IStrategoTerm>>() {}));
+        this.termFactoryService = injector.getInstance(ITermFactoryService.class);
         this.analyzer =
             injector.getInstance(Key.get(new TypeLiteral<IAnalysisService<IStrategoTerm, IStrategoTerm>>() {}));
+        this.transformer =
+            injector.getInstance(Key
+                .get(new TypeLiteral<ITransformer<IStrategoTerm, IStrategoTerm, IStrategoTerm>>() {}));
 
         this.parseResultProcessor = injector.getInstance(ParseResultProcessor.class);
         this.analysisResultProcessor = injector.getInstance(AnalysisResultProcessor.class);
@@ -117,6 +128,20 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
             final IWorkspaceRunnable markerDeleter = new IWorkspaceRunnable() {
                 @Override public void run(IProgressMonitor workspaceMonitor) throws CoreException {
                     MarkerUtils.clearAllRec(project);
+
+                    try {
+                        final Collection<FileObject> resources =
+                            ResourceUtils.projectResources(resourceService, new AllLanguagesFileSelector(
+                                languageIdentifier), project);
+                        final Set<IContext> contexts =
+                            ContextUtils.getAll(resources, languageIdentifier, contextService);
+                        for(IContext context : contexts) {
+                            context.clean();
+                        }
+                    } catch(FileSystemException e) {
+                        final String message = String.format("Could not clean contexts for {}", project);
+                        logger.error(message, e);
+                    }
                 }
             };
             final IWorkspace workspace = ResourcesPlugin.getWorkspace();
@@ -161,44 +186,50 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
             return;
 
         final FileObject projectResource = resourceService.resolve(project);
-        final Set<IResource> changedResources = Sets.newHashSet();
+        final Collection<FileObject> changedResources = Sets.newHashSet();
+        final Set<FileName> removedResources = Sets.newHashSet();
         final Collection<IMessage> extraMessages = Lists.newLinkedList();
 
         // Parse
-        final Collection<ParseResult<IStrategoTerm>> allParseResults = Lists.newArrayListWithCapacity(numChanges);
+        final Collection<ParseResult<IStrategoTerm>> allParseResults = Lists.newArrayListWithExpectedSize(numChanges);
         for(IResourceChange change : changes) {
             final FileObject resource = change.resource();
-            final IResource eclipseResource = resourceService.unresolve(resource);
             final ILanguage language = languageIdentifier.identify(resource);
             final ResourceChangeKind changeKind = change.kind();
 
             try {
                 if(changeKind == ResourceChangeKind.Delete) {
                     parseResultProcessor.remove(resource);
-                    analysisResultProcessor.remove(resource);
-
                     // Don't add resource as changed when it has been deleted, because it does not exist any more
                     // according to Eclipse and will be null.
+                    removedResources.add(resource.getName());
+                    // LEGACY: add parse result with empty tuple, to indicate to analysis that this resource was
+                    // removed. There is special handling in updating the analysis result processor, the marker
+                    // updater, and the compiler, to exclude removed resources.
+                    final ParseResult<IStrategoTerm> emptyParseResult =
+                        new ParseResult<IStrategoTerm>(termFactoryService.getGeneric().makeTuple(), resource,
+                            Iterables2.<IMessage>empty(), -1, language);
+                    allParseResults.add(emptyParseResult);
                 } else {
                     final String sourceText = sourceTextService.text(resource);
                     parseResultProcessor.invalidate(resource);
                     final ParseResult<IStrategoTerm> parseResult = syntaxService.parse(sourceText, resource, language);
                     allParseResults.add(parseResult);
                     parseResultProcessor.update(resource, parseResult);
-                    changedResources.add(eclipseResource);
+                    changedResources.add(resource);
                 }
             } catch(ParseException e) {
                 final String message = String.format("Parsing failed for %s", resource);
                 logger.error(message, e);
                 parseResultProcessor.error(resource, e);
                 extraMessages.add(MessageFactory.newParseErrorAtTop(resource, "Parsing failed", e));
-                changedResources.add(eclipseResource);
+                changedResources.add(resource);
             } catch(IOException e) {
                 final String message = String.format("Parsing failed for %s", resource);
                 logger.error(message, e);
                 parseResultProcessor.error(resource, new ParseException(resource, language, e));
                 extraMessages.add(MessageFactory.newParseErrorAtTop(resource, "Parsing failed", e));
-                changedResources.add(eclipseResource);
+                changedResources.add(resource);
             }
         }
 
@@ -210,15 +241,16 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
                 final IContext context = contextService.get(resource, parseResult.parsedWith);
                 allParseResultsPerContext.put(context, parseResult);
             } catch(ContextException e) {
-                final String message = String.format("Could not retrieve context for %s", resource);
+                final String message = String.format("Could not retrieve context for parse result of %s", resource);
                 logger.error(message, e);
                 extraMessages.add(MessageFactory.newAnalysisErrorAtTop(resource, "Failed to retrieve context", e));
             }
         }
 
+
         // Analyze
-        final Collection<AnalysisResult<IStrategoTerm, IStrategoTerm>> allAnalysisResults =
-            Lists.newArrayListWithCapacity(allParseResultsPerContext.keySet().size());
+        final Map<IContext, AnalysisResult<IStrategoTerm, IStrategoTerm>> allAnalysisResults =
+            Maps.newHashMapWithExpectedSize(allParseResultsPerContext.keySet().size());
         for(Entry<IContext, Collection<ParseResult<IStrategoTerm>>> entry : allParseResultsPerContext.asMap()
             .entrySet()) {
             final IContext context = entry.getKey();
@@ -229,9 +261,10 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
                     analysisResultProcessor.invalidate(parseResults);
                     final AnalysisResult<IStrategoTerm, IStrategoTerm> analysisResult =
                         analyzer.analyze(parseResults, context);
-                    analysisResultProcessor.update(analysisResult);
-                    allAnalysisResults.add(analysisResult);
+                    analysisResultProcessor.update(analysisResult, removedResources);
+                    allAnalysisResults.put(context, analysisResult);
                 }
+                // GTODO: also update messages for affected sources
             } catch(AnalysisException e) {
                 logger.error("Analysis failed", e);
                 analysisResultProcessor.error(parseResults, e);
@@ -239,49 +272,21 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
             }
         }
 
-        // Update markers atomically using a workspace runnable, to prevent flashing/jumping markers.
-        final IWorkspaceRunnable markerUpdater = new IWorkspaceRunnable() {
-            @Override public void run(IProgressMonitor workspaceMonitor) throws CoreException {
-                MarkerUtils.clearAll(project);
-                for(IResource resource : changedResources) {
-                    MarkerUtils.clearAll(resource);
-                }
 
-                for(ParseResult<IStrategoTerm> result : allParseResults) {
-                    for(IMessage message : result.messages) {
-                        final IResource resource = resourceService.unresolve(message.source());
-                        if(resource == null) {
-                            logger.error("Cannot create marker for {}", message.source());
-                            continue;
-                        }
-                        MarkerUtils.createMarker(resource, message);
-                    }
-                }
-
-                for(AnalysisResult<IStrategoTerm, IStrategoTerm> result : allAnalysisResults) {
-                    for(AnalysisFileResult<IStrategoTerm, IStrategoTerm> fileResult : result.fileResults) {
-                        for(IMessage message : fileResult.messages) {
-                            final IResource resource = resourceService.unresolve(message.source());
-                            if(resource == null) {
-                                logger.error("Cannot create marker for {}", message.source());
-                                continue;
-                            }
-                            MarkerUtils.createMarker(resource, message);
-                        }
-                    }
-                }
-
-                for(IMessage message : extraMessages) {
-                    final IResource resource = resourceService.unresolve(message.source());
-                    if(resource == null) {
-                        logger.error("Cannot create marker for {}", message.source());
-                        continue;
-                    }
-                    MarkerUtils.createMarker(resource, message);
-                }
-            }
-        };
         final IWorkspace workspace = ResourcesPlugin.getWorkspace();
+
+        // Compile atomically using a workspace runnable, because new files will be generated, which need to be batched
+        // up and built in the next project build.
+        final IWorkspaceRunnable compilerRunnable =
+            new CompilerRunnable(transformer, projectResource, removedResources, allAnalysisResults.entrySet(),
+                extraMessages);
+        workspace.run(compilerRunnable, project, IWorkspace.AVOID_UPDATE, monitor);
+
+        // Update markers atomically using a workspace runnable, which batches resource and marker changes, to prevent
+        // flashing/jumping markers.
+        final IWorkspaceRunnable markerUpdater =
+            new MarkerUpdaterRunnable(resourceService, removedResources, changedResources, extraMessages,
+                allAnalysisResults.values(), allParseResults, project);
         workspace.run(markerUpdater, project, IWorkspace.AVOID_UPDATE, monitor);
     }
 
@@ -322,9 +327,9 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
     }
 
     private Iterable<IResourceChange> changes(IProject project) throws FileSystemException {
-        final Collection<IResourceChange> changes = Lists.newLinkedList();
-        final FileObject projectResource = resourceService.resolve(project);
-        final FileObject[] resources = projectResource.findFiles(new AllLanguagesFileSelector(languageIdentifier));
+        final Collection<FileObject> resources =
+            ResourceUtils.projectResources(resourceService, new AllLanguagesFileSelector(languageIdentifier), project);
+        final Collection<IResourceChange> changes = Lists.newArrayListWithCapacity(resources.size());
         for(FileObject resource : resources) {
             changes.add(new ResourceChange(resource, ResourceChangeKind.Create, null, null));
         }

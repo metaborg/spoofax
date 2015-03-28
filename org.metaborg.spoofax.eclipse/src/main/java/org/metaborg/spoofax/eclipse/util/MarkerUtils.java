@@ -78,7 +78,9 @@ public final class MarkerUtils {
      *             When clearing markers fails.
      */
     public static void clearInternal(IResource resource) throws CoreException {
-        resource.deleteMarkers(id, false, IResource.DEPTH_ZERO);
+        resource.deleteMarkers(type(MessageType.INTERNAL, MessageSeverity.ERROR), false, IResource.DEPTH_ZERO);
+        resource.deleteMarkers(type(MessageType.INTERNAL, MessageSeverity.WARNING), false, IResource.DEPTH_ZERO);
+        resource.deleteMarkers(type(MessageType.INTERNAL, MessageSeverity.NOTE), false, IResource.DEPTH_ZERO);
     }
 
     /**
@@ -91,7 +93,9 @@ public final class MarkerUtils {
      *             When clearing markers fails.
      */
     public static void clearInternalRec(IResource resource) throws CoreException {
-        resource.deleteMarkers(id, false, IResource.DEPTH_INFINITE);
+        resource.deleteMarkers(type(MessageType.INTERNAL, MessageSeverity.ERROR), false, IResource.DEPTH_INFINITE);
+        resource.deleteMarkers(type(MessageType.INTERNAL, MessageSeverity.WARNING), false, IResource.DEPTH_INFINITE);
+        resource.deleteMarkers(type(MessageType.INTERNAL, MessageSeverity.NOTE), false, IResource.DEPTH_INFINITE);
     }
 
     /**
@@ -188,6 +192,29 @@ public final class MarkerUtils {
     }
 
     /**
+     * Converts a Spoofax message type, into an Eclipse message type.
+     * 
+     * @param type
+     *            Spoofax message type.
+     * @param severity
+     *            Spoofax severity.
+     * @return Eclipse message type.
+     */
+    public static String type(MessageType type) {
+        switch(type) {
+            case PARSER:
+                return parserId;
+            case ANALYSIS:
+                return analysisId;
+            case TRANSFORMATION:
+                return transformationId;
+            case INTERNAL:
+            default:
+                return id;
+        }
+    }
+
+    /**
      * Converts a Spoofax message type and severity, into an Eclipse message type.
      * 
      * @param type
@@ -199,16 +226,16 @@ public final class MarkerUtils {
     public static String type(MessageType type, MessageSeverity severity) {
         final String prefix;
         switch(type) {
-            case PARSER_MESSAGE:
+            case PARSER:
                 prefix = parserId;
                 break;
-            case ANALYSIS_MESSAGE:
+            case ANALYSIS:
                 prefix = analysisId;
                 break;
-            case BUILDER_MESSAGE:
+            case TRANSFORMATION:
                 prefix = transformationId;
                 break;
-            case INTERNAL_MESSAGE:
+            case INTERNAL:
                 prefix = id;
                 break;
             default:

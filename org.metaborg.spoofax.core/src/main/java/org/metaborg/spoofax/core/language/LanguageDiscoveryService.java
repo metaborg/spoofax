@@ -15,8 +15,10 @@ import org.metaborg.spoofax.core.style.StylerFacetFromESV;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 import org.metaborg.spoofax.core.syntax.SyntaxFacetFromESV;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
-import org.metaborg.spoofax.core.transform.stratego.MenusFacet;
-import org.metaborg.spoofax.core.transform.stratego.MenusFacetFromESV;
+import org.metaborg.spoofax.core.transform.stratego.compile.CompilerFacet;
+import org.metaborg.spoofax.core.transform.stratego.compile.CompilerFacetFromESV;
+import org.metaborg.spoofax.core.transform.stratego.menu.MenusFacet;
+import org.metaborg.spoofax.core.transform.stratego.menu.MenusFacetFromESV;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.resource.ContainsFileSelector;
 import org.slf4j.Logger;
@@ -101,6 +103,9 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
         final MenusFacet menusFacet = MenusFacetFromESV.create(esvTerm, language);
         language.addFacet(menusFacet);
+
+        final CompilerFacet compilerFacet = CompilerFacetFromESV.create(esvTerm, language);
+        language.addFacet(compilerFacet);
 
         final StylerFacet stylerFacet = StylerFacetFromESV.create(esvTerm);
         language.addFacet(stylerFacet);

@@ -4,50 +4,39 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.apache.commons.vfs2.FileObject;
+import org.spoofax.interpreter.terms.IStrategoTerm;
+import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.ParseTable;
-import org.spoofax.jsglr.io.ParseTableManager;
+import org.spoofax.terms.io.binary.TermReader;
 
 public class FileParseTableProvider implements IParseTableProvider {
-    private final FileObject file;
-    private final ParseTableManager parseTableManager;
-    private final boolean caching;
+    private final FileObject resource;
+    private final ITermFactory termFactory;
 
-    private ParseTable cachedTable;
+    private ParseTable parseTable;
 
 
-    public FileParseTableProvider(FileObject file, ParseTableManager parseTableManager) {
-        this(file, parseTableManager, true);
-    }
-
-    public FileParseTableProvider(FileObject file, ParseTableManager parseTableManager, boolean caching) {
-        this.file = file;
-        this.parseTableManager = parseTableManager;
-        this.caching = caching;
+    public FileParseTableProvider(FileObject resource, ITermFactory termFactory) {
+        this.resource = resource;
+        this.termFactory = termFactory;
     }
 
 
     @Override public ParseTable parseTable() throws IOException {
-        if(this.cachedTable != null)
-            return this.cachedTable;
+        if(parseTable != null)
+            return parseTable;
 
-        if(!file.exists())
+        if(!resource.exists())
             throw new IOException("Could not load parse table, file does not exist");
 
-        final ParseTable table;
-        try(final InputStream stream = file.getContent().getInputStream()) {
-            table = parseTableManager.loadFromStream(stream);
+        try(final InputStream stream = resource.getContent().getInputStream()) {
+            final TermReader termReader = new TermReader(termFactory);
+            final IStrategoTerm parseTableTerm = termReader.parseFromStream(stream);
+            parseTable = new ParseTable(parseTableTerm, termFactory);
         } catch(Exception e) {
             throw new IOException("Could not load parse table", e);
         }
 
-        if(caching) {
-            this.cachedTable = table;
-        }
-
-        return table;
-    }
-
-    @Override public String toString() {
-        return file.getName().toString();
+        return parseTable;
     }
 }

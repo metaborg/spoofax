@@ -9,9 +9,18 @@
   />
   
   
+  <!-- Startup -->
+  <extension
+    point="org.eclipse.ui.startup"
+  >
+    <startup class="org.metaborg.spoofax.eclipse.SpoofaxPlugin"/>
+  </extension>
+  
+  
   <!-- Editor -->
   <extension
-    point="org.eclipse.ui.editors">
+    point="org.eclipse.ui.editors"
+  >
     <editor
       id="org.metaborg.spoofax.eclipse.editor"
       name="Spoofax 2 Editor"

@@ -1,10 +1,11 @@
 package org.metaborg.spoofax.core.language;
 
 import java.util.Collection;
-import java.util.Date;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedSet;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
@@ -16,49 +17,42 @@ import rx.Observable;
 import rx.subjects.PublishSubject;
 import rx.subjects.Subject;
 
-import com.google.common.collect.Iterables;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import com.google.inject.Inject;
+import com.google.common.collect.SetMultimap;
 
 public class LanguageService implements ILanguageService {
     private static final Logger logger = LoggerFactory.getLogger(LanguageService.class);
 
-    private final Map<String, SortedSet<ILanguage>> nameToLanguages = Maps.newHashMap();
-    private final Map<String, ILanguage> nameToActiveLanguage = Maps.newHashMap();
+    /**
+     * Atomic integer for generating monotonically increasing sequence identifiers.
+     */
+    private final AtomicInteger sequenceIdGenerator = new AtomicInteger(0);
+    /**
+     * Mapping from language names to a set of all language objects with that name.
+     */
+    private final SetMultimap<String, ILanguage> nameToLanguages = HashMultimap.create();
+    /**
+     * Mapping from locations to language objects.
+     */
     private final Map<FileName, ILanguage> locationToLanguage = Maps.newHashMap();
+    /**
+     * Rx subject for pushing language changes.
+     */
     private final Subject<LanguageChange, LanguageChange> languageChanges = PublishSubject.create();
 
 
-    @Inject public LanguageService() {
-
+    @Override public @Nullable ILanguage get(String name) {
+        return getActiveLanguage(nameToLanguages.get(name));
     }
 
-
-    private SortedSet<ILanguage> getLanguageSet(String name) {
-        SortedSet<ILanguage> set = nameToLanguages.get(name);
-        if(set == null) {
-            set = Sets.newTreeSet();
-            nameToLanguages.put(name, set);
-        }
-        return set;
-    }
-
-    private boolean isActive(ILanguage language) {
-        return language.equals(nameToActiveLanguage.get(language.name()));
-    }
-
-    @Override public ILanguage get(String name) {
-        return nameToActiveLanguage.get(name);
-    }
-
-    @Override public ILanguage get(FileName location) {
+    @Override public @Nullable ILanguage get(FileName location) {
         return locationToLanguage.get(location);
     }
 
-    @Override public ILanguage get(String name, LanguageVersion version, FileObject location) {
-        final Set<ILanguage> languages = getLanguageSet(name);
+    @Override public @Nullable ILanguage get(String name, LanguageVersion version, FileObject location) {
+        final Iterable<ILanguage> languages = nameToLanguages.get(name);
         for(ILanguage language : languages) {
             if(language.version().equals(version) && language.location().equals(location)) {
                 return language;
@@ -68,20 +62,26 @@ public class LanguageService implements ILanguageService {
     }
 
     @Override public Iterable<ILanguage> getAll() {
-        return Iterables.concat(nameToLanguages.values());
+        return nameToLanguages.values();
     }
 
     @Override public Iterable<ILanguage> getAllActive() {
-        return nameToActiveLanguage.values();
+        final Collection<ILanguage> activeLanguages = Lists.newLinkedList();
+        for(Collection<ILanguage> languages : nameToLanguages.asMap().values()) {
+            if(!languages.isEmpty()) {
+                activeLanguages.add(getActiveLanguage(languages));
+            }
+        }
+        return activeLanguages;
     }
 
     @Override public Iterable<ILanguage> getAll(String name) {
-        return getLanguageSet(name);
+        return nameToLanguages.get(name);
     }
 
     @Override public Iterable<ILanguage> getAll(String name, LanguageVersion version) {
-        final Set<ILanguage> languages = getLanguageSet(name);
         final Collection<ILanguage> matchedLanguages = Lists.newLinkedList();
+        final Iterable<ILanguage> languages = nameToLanguages.get(name);
         for(ILanguage language : languages) {
             if(language.version().equals(version)) {
                 matchedLanguages.add(language);
@@ -94,127 +94,145 @@ public class LanguageService implements ILanguageService {
         return languageChanges;
     }
 
-    private void sendLanguageChange(ILanguage language, LanguageChange.Kind kind) {
-        languageChanges.onNext(new LanguageChange(language, kind));
-    }
-
-    private void load(ILanguage language, Set<ILanguage> existingLanguages) {
-        logger.debug("Loading {}", language);
-
-        try {
-            if(!language.location().exists()) {
-                throw new IllegalStateException("Cannot load language, location " + language.location()
-                    + " does not exist.");
-            }
-        } catch(FileSystemException e) {
-            throw new IllegalStateException("Cannot load language, could not determine if location "
-                + language.location() + " exists: " + e.getMessage(), e);
-        }
-
-        final ILanguage existingLanguage = locationToLanguage.get(language.location().getName());
-        if(existingLanguage != null && !existingLanguage.name().equals(language.name())) {
-            throw new IllegalStateException("Cannot load language, location " + language.location()
-                + " is already used by language " + existingLanguage.name());
-        }
-
-        locationToLanguage.put(language.location().getName(), language);
-        existingLanguages.add(language);
-        sendLanguageChange(language, LanguageChange.Kind.LOADED);
-    }
-
-    private void unload(ILanguage language, Set<ILanguage> existingLanguages) {
-        logger.debug("Unloading {}", language);
-
-        existingLanguages.remove(language);
-        locationToLanguage.remove(language.location().getName());
-        sendLanguageChange(language, LanguageChange.Kind.UNLOADED);
-    }
-
-    private void activate(ILanguage language) {
-        logger.debug("Activating {}", language);
-
-        nameToActiveLanguage.put(language.name(), language);
-
-        sendLanguageChange(language, LanguageChange.Kind.ACTIVATED);
-    }
-
-    private void tryActivate(ILanguage language, SortedSet<ILanguage> existingLanguages) {
-        final ILanguage activeLanguage = nameToActiveLanguage.get(language.name());
-
-        if(activeLanguage == null) {
-            activate(language);
-        } else if(!isActive(language) && language.equals(existingLanguages.last())) {
-            deactivate(activeLanguage);
-            activate(language);
-        }
-    }
-
-    private void tryActivateNew(String name, SortedSet<ILanguage> existingLanguages) {
-        if(existingLanguages.isEmpty()) {
-            return;
-        }
-
-        final ILanguage activeLanguage = nameToActiveLanguage.get(name);
-        final ILanguage firstLanguage = existingLanguages.last();
-        if(!firstLanguage.equals(activeLanguage)) {
-            activate(firstLanguage);
-        }
-    }
-
-    private void deactivate(ILanguage language) {
-        logger.debug("Deactivating {}", language);
-
-        nameToActiveLanguage.remove(language.name());
-
-        sendLanguageChange(language, LanguageChange.Kind.DEACTIVATED);
-    }
-
-    private void tryDeactivate(ILanguage language) {
-        if(isActive(language)) {
-            deactivate(language);
-        }
-    }
-
     @Override public ILanguage create(String name, LanguageVersion version, FileObject location) {
-        logger.debug("Creating language {}", name);
-        final ILanguage language = new Language(name, version, location, new Date());
+        logger.trace("Creating language {}", name);
+        final ILanguage language = new Language(name, location, version, sequenceIdGenerator.getAndIncrement());
         return language;
     }
 
     @Override public void add(ILanguage language) {
-        logger.debug("Adding language {}", language);
-
-        final SortedSet<ILanguage> existingLanguages = getLanguageSet(language.name());
-        if(existingLanguages.isEmpty()) {
-            // Language does not exist yet.
-            load(language, existingLanguages);
-            activate(language);
+        final Set<ILanguage> languages = nameToLanguages.get(language.name());
+        if(languages.isEmpty()) {
+            // Language does not exist at all yet.
+            validateLocation(language);
+            logger.debug("Loading {}", language);
+            addLanguage(language);
+            sendLanguageChange(LanguageChange.Kind.ADD_FIRST, null, language);
+            sendLanguageChange(LanguageChange.Kind.ADD, null, language);
         } else {
-            final ILanguage languageAtLocation = locationToLanguage.get(language.location().getName());
-            if(languageAtLocation != null) {
-                // Language at same location exists.
-                tryDeactivate(languageAtLocation);
-                unload(languageAtLocation, existingLanguages);
-                load(language, existingLanguages);
-                tryActivate(language, existingLanguages);
+            // Cannot be null, languagesSet is not empty.
+            final ILanguage activeLanguage = getActiveLanguage(languages);
+
+            if(languages.contains(language)) {
+                // Language already exists.
+                // Cannot be null, languagesSet contains language.
+                final ILanguage reloadedLanguage = getEqualLanguage(languages, language);
+                removeLanguage(reloadedLanguage);
+                addLanguage(language);
+                if(isActive(language, languages)) {
+                    logger.debug("Reloading active {}", language);
+                    sendLanguageChange(LanguageChange.Kind.RELOAD_ACTIVE, reloadedLanguage, language);
+                } else {
+                    logger.debug("Reloading {}", language);
+                    sendLanguageChange(LanguageChange.Kind.RELOAD, reloadedLanguage, language);
+                }
             } else {
-                // Language at different location exists.
-                load(language, existingLanguages);
-                tryActivate(language, existingLanguages);
+                // Language with same name exists, but not with this version or at this location.
+                validateLocation(language);
+                final boolean activate = canBecomeActive(language, languages);
+                logger.debug("Adding {}", language);
+                addLanguage(language);
+                sendLanguageChange(LanguageChange.Kind.ADD, null, language);
+                if(activate) {
+                    logger.debug("Replacing {} with {}", activeLanguage, language);
+                    sendLanguageChange(LanguageChange.Kind.REPLACE_ACTIVE, activeLanguage, language);
+                }
             }
         }
     }
 
     @Override public void remove(ILanguage language) {
-        logger.debug("Destroying {}", language);
-
-        final SortedSet<ILanguage> existingLanguages = getLanguageSet(language.name());
-        if(existingLanguages.isEmpty()) {
-            throw new IllegalStateException("Cannot remove language, language with name " + language.name()
-                + " does not exist");
+        final Set<ILanguage> languages = nameToLanguages.get(language.name());
+        if(languages == null || languages.isEmpty()) {
+            throw new IllegalStateException("Cannot remove language with name " + language.name()
+                + ", it was not added before");
         }
-        tryDeactivate(language);
-        unload(language, existingLanguages);
-        tryActivateNew(language.name(), existingLanguages);
+        if(!languages.contains(language)) {
+            throw new IllegalStateException("Cannot remove " + language + ", it was not added before");
+        }
+
+        // Remove language
+        boolean wasActive = isActive(language, languages);
+        removeLanguage(language);
+        sendLanguageChange(LanguageChange.Kind.REMOVE, language, null);
+        if(languages.size() == 0) {
+            // Last language with this name.
+            sendLanguageChange(LanguageChange.Kind.REMOVE_LAST, language, null);
+        } else if(wasActive) {
+            // Cannot be null, languagesSet is not empty.
+            final ILanguage newActiveLanguage = getActiveLanguage(languages);
+            sendLanguageChange(LanguageChange.Kind.REPLACE_ACTIVE, language, newActiveLanguage);
+        }
+    }
+
+    private boolean isGreater(ILanguage language, ILanguage other) {
+        int compareVersion = language.version().compareTo(other.version());
+        if(compareVersion > 0 || (compareVersion == 0 && language.sequenceId() > other.sequenceId())) {
+            return true;
+        }
+        return false;
+    }
+
+    private @Nullable ILanguage getActiveLanguage(Iterable<ILanguage> languages) {
+        ILanguage activeLanguage = null;
+        for(ILanguage language : languages) {
+            if(activeLanguage == null || isGreater(language, activeLanguage)) {
+                activeLanguage = language;
+            }
+
+        }
+        return activeLanguage;
+    }
+
+    private boolean isActive(ILanguage language, Iterable<ILanguage> languages) {
+        final ILanguage activeLanguage = getActiveLanguage(languages);
+        return activeLanguage != null && language.equals(activeLanguage);
+    }
+
+    private boolean canBecomeActive(ILanguage language, Iterable<ILanguage> languages) {
+        final ILanguage activeLanguage = getActiveLanguage(languages);
+        return activeLanguage == null || isGreater(language, activeLanguage);
+    }
+
+    private @Nullable ILanguage getEqualLanguage(Iterable<ILanguage> languages, ILanguage language) {
+        for(ILanguage equalLanguage : languages) {
+            if(equalLanguage.equals(language)) {
+                return equalLanguage;
+            }
+        }
+        return null;
+    }
+
+    private void validateLocation(ILanguage language) {
+        try {
+            if(!language.location().exists()) {
+                throw new IllegalStateException("Cannot load language at location " + language.location()
+                    + ", location does not exist");
+            }
+        } catch(FileSystemException e) {
+            throw new IllegalStateException("Cannot load language at location " + language.location(), e);
+        }
+
+        final ILanguage existingLanguage = locationToLanguage.get(language.location().getName());
+        if(existingLanguage != null) {
+            throw new IllegalStateException("Cannot load language, location " + language.location()
+                + " is already used by " + existingLanguage);
+        }
+    }
+
+
+    private void addLanguage(ILanguage language) {
+        locationToLanguage.put(language.location().getName(), language);
+        nameToLanguages.put(language.name(), language);
+    }
+
+    private void removeLanguage(ILanguage language) {
+        locationToLanguage.remove(language.location().getName());
+        nameToLanguages.remove(language.name(), language);
+    }
+
+
+    private void sendLanguageChange(LanguageChange.Kind kind, ILanguage oldLanguage, ILanguage newLanguage) {
+        languageChanges.onNext(new LanguageChange(kind, oldLanguage, newLanguage));
     }
 }

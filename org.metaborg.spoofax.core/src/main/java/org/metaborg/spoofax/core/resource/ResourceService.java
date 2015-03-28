@@ -10,6 +10,7 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.provider.res.ResourceFileSystemConfigBuilder;
+import org.metaborg.spoofax.core.SpoofaxRuntimeException;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
@@ -36,7 +37,7 @@ public class ResourceService implements IResourceService {
         try {
             return fileSystemManager.getBaseFile();
         } catch(FileSystemException e) {
-            throw new RuntimeException(e);
+            throw new SpoofaxRuntimeException(e);
         }
     }
 
@@ -44,7 +45,7 @@ public class ResourceService implements IResourceService {
         try {
             return fileSystemManager.resolveFile(uri, fileSystemOptions);
         } catch(FileSystemException e) {
-            throw new RuntimeException(e);
+            throw new SpoofaxRuntimeException(e);
         }
     }
 
@@ -52,7 +53,7 @@ public class ResourceService implements IResourceService {
         try {
             return fileSystemManager.toFileObject(file);
         } catch(FileSystemException e) {
-            throw new RuntimeException(e);
+            throw new SpoofaxRuntimeException(e);
         }
     }
 
@@ -68,7 +69,7 @@ public class ResourceService implements IResourceService {
         try {
             return fileSystemManager.resolveURI(uri);
         } catch(FileSystemException e) {
-            throw new RuntimeException(e);
+            throw new SpoofaxRuntimeException(e);
         }
     }
 
@@ -87,7 +88,7 @@ public class ResourceService implements IResourceService {
             storageDir.createFolder();
             return storageDir;
         } catch(FileSystemException e) {
-            throw new RuntimeException(e);
+            throw new SpoofaxRuntimeException(e);
         }
     }
 

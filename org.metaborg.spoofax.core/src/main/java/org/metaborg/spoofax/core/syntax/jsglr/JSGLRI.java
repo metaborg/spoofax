@@ -10,6 +10,7 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.Asfix2TreeBuilder;
 import org.spoofax.jsglr.client.Disambiguator;
 import org.spoofax.jsglr.client.FilterException;
+import org.spoofax.jsglr.client.StartSymbolException;
 import org.spoofax.jsglr.client.imploder.NullTokenizer;
 import org.spoofax.jsglr.client.imploder.TermTreeFactory;
 import org.spoofax.jsglr.client.imploder.TreeBuilder;
@@ -88,10 +89,7 @@ public class JSGLRI implements IParser<IStrategoTerm> {
 
         try {
             ast = actuallyParse(input, fileName);
-            if(resource != null) {
-                SourceAttachment.putSource(ast, resource, config);
-            }
-        } catch(Exception e) {
+        } catch(SGLRException | InterruptedException e) {
             errorHandler.setRecoveryFailed(useRecovery);
             errorHandler.processFatalException(new NullTokenizer(input, fileName), e);
         }
@@ -99,6 +97,9 @@ public class JSGLRI implements IParser<IStrategoTerm> {
         if(ast != null) {
             errorHandler.setRecoveryFailed(false);
             errorHandler.gatherNonFatalErrors(ast);
+            if(resource != null) {
+                SourceAttachment.putSource(ast, resource, config);
+            }
         }
 
         // GTODO: measure parse time
@@ -109,8 +110,8 @@ public class JSGLRI implements IParser<IStrategoTerm> {
         IStrategoTerm result;
         try {
             result = (IStrategoTerm) parser.parse(input, filename, config.getStartSymbol(), false, cursorLocation);
-        } catch(FilterException fex) {
-            if(fex.getCause() == null && parser.getDisambiguator().getFilterPriorities()) {
+        } catch(FilterException e) {
+            if(e.getCause() == null && parser.getDisambiguator().getFilterPriorities()) {
                 disambiguator.setFilterPriorities(false);
                 try {
                     result = (IStrategoTerm) parser.parse(input, filename, config.getStartSymbol());
@@ -118,8 +119,10 @@ public class JSGLRI implements IParser<IStrategoTerm> {
                     disambiguator.setFilterPriorities(true);
                 }
             } else {
-                throw fex;
+                throw e;
             }
+        } catch(StartSymbolException e) {
+            result = (IStrategoTerm) parser.parse(input, filename, null, false, cursorLocation);
         }
         return result;
     }

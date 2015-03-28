@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.eclipse.stratego.primitives;
+package org.metaborg.spoofax.core.stratego.primitives;
 
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.InterpreterException;
@@ -12,7 +12,8 @@ public class DummyPrimitive extends AbstractPrimitive {
     }
 
 
-    @Override public boolean call(IContext env, Strategy[] svars, IStrategoTerm[] tvars) throws InterpreterException {
+    @Override public boolean call(IContext env, Strategy[] strategies, IStrategoTerm[] terms)
+        throws InterpreterException {
         return true;
     }
 }

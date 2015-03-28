@@ -1,23 +1,21 @@
 package org.metaborg.spoofax.core.style;
 
+import javax.annotation.Nullable;
+
 import org.metaborg.spoofax.core.messages.ISourceRegion;
 
 public class RegionCategory<T> implements IRegionCategory<T> {
-    private final T fragment;
     private final ISourceRegion region;
     private final ICategory categeory;
+    private final @Nullable T fragment;
 
 
-    public RegionCategory(T fragment, ISourceRegion region, ICategory categeory) {
+    public RegionCategory(ISourceRegion region, ICategory categeory, @Nullable T fragment) {
         this.fragment = fragment;
         this.region = region;
         this.categeory = categeory;
     }
 
-
-    @Override public T fragment() {
-        return fragment;
-    }
 
     @Override public ISourceRegion region() {
         return region;
@@ -25,5 +23,14 @@ public class RegionCategory<T> implements IRegionCategory<T> {
 
     @Override public ICategory category() {
         return categeory;
+    }
+
+    @Override public @Nullable T fragment() {
+        return fragment;
+    }
+
+
+    @Override public String toString() {
+        return String.format("RegionCategory [region=%s, categeory=%s, fragment=%s]", region, categeory, fragment);
     }
 }

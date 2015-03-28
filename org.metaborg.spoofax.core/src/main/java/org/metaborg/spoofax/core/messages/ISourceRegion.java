@@ -21,4 +21,6 @@ public interface ISourceRegion {
     public int endRow();
 
     public int endColumn();
+    
+    public int length();
 }

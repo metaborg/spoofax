@@ -25,6 +25,7 @@ import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
 import org.metaborg.spoofax.core.messages.IMessage;
 import org.metaborg.spoofax.core.messages.MessageFactory;
 import org.metaborg.spoofax.core.messages.MessageType;
+import org.metaborg.spoofax.core.style.CategorizerValidator;
 import org.metaborg.spoofax.core.style.ICategorizerService;
 import org.metaborg.spoofax.core.style.IRegionCategory;
 import org.metaborg.spoofax.core.style.IRegionStyle;
@@ -32,6 +33,7 @@ import org.metaborg.spoofax.core.style.IStylerService;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
 import org.metaborg.spoofax.core.syntax.ParseException;
 import org.metaborg.spoofax.core.syntax.ParseResult;
+import org.metaborg.spoofax.eclipse.job.ThreadKillerJob;
 import org.metaborg.spoofax.eclipse.processing.AnalysisResultProcessor;
 import org.metaborg.spoofax.eclipse.processing.ParseResultProcessor;
 import org.metaborg.spoofax.eclipse.util.MarkerUtils;
@@ -44,6 +46,7 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 
 public class EditorUpdateJob extends Job {
     private static final Logger logger = LoggerFactory.getLogger(EditorUpdateJob.class);
+    private static final long killTimeMillis = 3000;
 
     private final ILanguageIdentifierService languageIdentifierService;
     private final IContextService contextService;
@@ -60,6 +63,9 @@ public class EditorUpdateJob extends Job {
     private final FileObject resource;
     private final ISourceViewer sourceViewer;
     private final String text;
+    private final PresentationMerger presentationMerger;
+
+    private ThreadKillerJob threadKiller;
 
 
     public EditorUpdateJob(ILanguageIdentifierService languageIdentifierService, IContextService contextService,
@@ -67,10 +73,9 @@ public class EditorUpdateJob extends Job {
         ICategorizerService<IStrategoTerm, IStrategoTerm> categorizer,
         IStylerService<IStrategoTerm, IStrategoTerm> styler, ParseResultProcessor parseResultProcessor,
         AnalysisResultProcessor analysisResultProcessor, IFileEditorInput input, IResource eclipseResource,
-        FileObject resource, ISourceViewer sourceViewer, String text) {
+        FileObject resource, ISourceViewer sourceViewer, String text, PresentationMerger presentationMerger) {
         super("Updating Spoofax editor");
-        setSystem(true);
-        setPriority(Job.BUILD);
+        setPriority(Job.SHORT);
 
         this.languageIdentifierService = languageIdentifierService;
         this.contextService = contextService;
@@ -87,6 +92,7 @@ public class EditorUpdateJob extends Job {
         this.resource = resource;
         this.sourceViewer = sourceViewer;
         this.text = text;
+        this.presentationMerger = presentationMerger;
     }
 
 
@@ -95,12 +101,16 @@ public class EditorUpdateJob extends Job {
     }
 
     @Override protected IStatus run(final IProgressMonitor monitor) {
-        logger.debug("Running editor update job for {}", input.getFile());
+        logger.debug("Running editor update job for {}", resource);
 
         final IWorkspace workspace = ResourcesPlugin.getWorkspace();
 
         try {
-            return update(workspace, monitor);
+            final IStatus status = update(workspace, monitor);
+            if(threadKiller != null) {
+                threadKiller.cancel();
+            }
+            return status;
         } catch(SpoofaxException | CoreException e) {
             if(monitor.isCanceled())
                 return StatusUtils.cancel();
@@ -112,7 +122,7 @@ public class EditorUpdateJob extends Job {
                             return;
                         MarkerUtils.clearAll(eclipseResource);
                         MarkerUtils.createMarker(eclipseResource, MessageFactory.newErrorAtTop(resource,
-                            "Failed to update editor", MessageType.INTERNAL_MESSAGE, null));
+                            "Failed to update editor", MessageType.INTERNAL, null));
                     }
                 };
                 workspace.run(parseMarkerUpdater, eclipseResource, IWorkspace.AVOID_UPDATE, monitor);
@@ -125,7 +135,20 @@ public class EditorUpdateJob extends Job {
             final String message = String.format("Failed to update editor for %s", resource);
             logger.error(message, e);
             return StatusUtils.silentError(message, e);
+        } catch(ThreadDeath e) {
+            return StatusUtils.cancel();
         }
+    }
+
+    @Override protected void canceling() {
+        final Thread thread = getThread();
+        if(thread == null) {
+            return;
+        }
+
+        logger.debug("Cancelling editor update job for {}, killing in {}ms", resource, killTimeMillis);
+        threadKiller = new ThreadKillerJob(thread);
+        threadKiller.schedule(killTimeMillis);
     }
 
 
@@ -149,8 +172,40 @@ public class EditorUpdateJob extends Job {
         } catch(ParseException e) {
             parseResultProcessor.error(resource, e);
             throw e;
+        } catch(ThreadDeath e) {
+            parseResultProcessor.error(resource, new ParseException(resource, language, "Editor update job killed", e));
+            throw e;
         }
 
+        // Style
+        if(monitor.isCanceled())
+            return StatusUtils.cancel();
+        if(parseResult.result != null) {
+            final Iterable<IRegionCategory<IStrategoTerm>> categories =
+                CategorizerValidator.validate(categorizer.categorize(language, parseResult));
+            final Iterable<IRegionStyle<IStrategoTerm>> styles = styler.styleParsed(language, categories);
+            final TextPresentation textPresentation = StyleUtils.createTextPresentation(styles, display);
+            presentationMerger.set(textPresentation);
+            display.asyncExec(new Runnable() {
+                public void run() {
+                    if(monitor.isCanceled())
+                        return;
+                    // Also cancel if text presentation is not valid for current text any more.
+                    if(!sourceViewer.getDocument().get().equals(text))
+                        return;
+                    sourceViewer.changeTextPresentation(textPresentation, true);
+                }
+            });
+        }
+
+        // Sleep before showing parse messages to prevent showing irrelevant messages while user is still typing.
+        try {
+            Thread.sleep(300);
+        } catch(InterruptedException e) {
+            return StatusUtils.cancel();
+        }
+        
+        // Parse messages
         if(monitor.isCanceled())
             return StatusUtils.cancel();
         // Update markers atomically using a workspace runnable, to prevent flashing/jumping markers.
@@ -167,32 +222,18 @@ public class EditorUpdateJob extends Job {
         };
         workspace.run(parseMarkerUpdater, eclipseResource, IWorkspace.AVOID_UPDATE, monitor);
 
-        // Style
-        if(monitor.isCanceled())
-            return StatusUtils.cancel();
-        final Iterable<IRegionCategory<IStrategoTerm>> categories = categorizer.categorize(language, parseResult);
-        final Iterable<IRegionStyle<IStrategoTerm>> styles = styler.styleParsed(language, categories);
-        final TextPresentation textPresentation = StyleUtils.createTextPresentation(styles, display);
-        if(monitor.isCanceled())
-            return StatusUtils.cancel();
-        display.asyncExec(new Runnable() {
-            public void run() {
-                if(monitor.isCanceled())
-                    return;
-                // Also cancel if text presentation is not valid for current text any more.
-                if(sourceViewer.getDocument().get().length() != text.length())
-                    return;
-                sourceViewer.changeTextPresentation(textPresentation, false);
-            }
-        });
+        // Stop if parsing failed completely, no AST.
+        if(parseResult.result == null)
+            return StatusUtils.silentError();
 
-        // Analyze
+        // Sleep before analyzing to prevent running many analyses when small edits are made in succession.
         try {
-            Thread.sleep(600);
+            Thread.sleep(300);
         } catch(InterruptedException e) {
-            return StatusUtils.error(e);
+            return StatusUtils.cancel();
         }
 
+        // Analyze
         if(monitor.isCanceled())
             return StatusUtils.cancel();
         final IContext context = contextService.get(resource, language);
@@ -204,10 +245,15 @@ public class EditorUpdateJob extends Job {
             } catch(AnalysisException e) {
                 analysisResultProcessor.error(resource, e);
                 throw e;
+            } catch(ThreadDeath e) {
+                analysisResultProcessor.error(resource, new AnalysisException(Iterables2.singleton(parseResult.source),
+                    context, "Editor update job killed", e));
+                throw e;
             }
             analysisResultProcessor.update(analysisResult);
         }
 
+        // Analysis markers
         if(monitor.isCanceled())
             return StatusUtils.cancel();
         // Update markers atomically using a workspace runnable, to prevent flashing/jumping markers.

@@ -41,4 +41,10 @@ public class Style implements IStyle {
     @Override public boolean underscore() {
         return underscore;
     }
+
+
+    @Override public String toString() {
+        return String.format("Style [color=%s, backgroundColor=%s, bold=%s, italic=%s, underscore=%s]", color,
+            backgroundColor, bold, italic, underscore);
+    }
 }

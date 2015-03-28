@@ -5,7 +5,7 @@ package org.metaborg.spoofax.core.language;
  */
 public class LanguageFacetChange {
     public enum Kind {
-        ADDED, REMOVED
+        ADD, REMOVE
     }
 
 

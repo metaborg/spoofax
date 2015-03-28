@@ -12,4 +12,9 @@ public class SortCategory implements ICategory {
     @Override public String name() {
         return sort + "._";
     }
+
+
+    @Override public String toString() {
+        return name();
+    }
 }
