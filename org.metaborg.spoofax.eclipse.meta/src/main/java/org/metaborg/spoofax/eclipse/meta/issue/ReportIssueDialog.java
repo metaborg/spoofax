@@ -1,6 +1,5 @@
 package org.metaborg.spoofax.eclipse.meta.issue;
 
-
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
@@ -33,7 +32,6 @@ import org.osgi.framework.Bundle;
 
 import com.google.common.collect.Iterables;
 
-
 public class ReportIssueDialog extends Dialog {
     public ReportIssueDialog(Shell parent) {
         super(parent);
@@ -49,7 +47,6 @@ public class ReportIssueDialog extends Dialog {
             @Override public void widgetSelected(SelectionEvent event) {
                 try {
                     PlatformUI.getWorkbench().getBrowserSupport().getExternalBrowser().openURL(new URL(event.text));
-                    
                 } catch(PartInitException | MalformedURLException e) {
 
                 }
@@ -65,12 +62,13 @@ public class ReportIssueDialog extends Dialog {
         final Bundle spoofaxBundle = bundles.get(SpoofaxPlugin.id);
 
         final String systemText = SystemUtils.OS_NAME + " " + SystemUtils.OS_ARCH + " " + SystemUtils.OS_VERSION;
-        
+
         final Text text = new Text(container, SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
         text.setLayoutData(new GridData(GridData.FILL_BOTH));
-        text.setText("Eclipse: " + getProfileIUText() + "\nSpoofax: " + getBundleText(spoofaxBundle) + "\nSystem: " + systemText);
+        text.setText("Eclipse: " + getProfileIUText() + "\nSpoofax: " + getBundleText(spoofaxBundle) + "\nSystem: "
+            + systemText);
         text.setEditable(false);
-        
+
         return container;
     }
 
