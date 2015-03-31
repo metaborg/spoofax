@@ -5,6 +5,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
 
+import org.apache.commons.lang3.SystemUtils;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.equinox.p2.engine.IProfileRegistry;
 import org.eclipse.equinox.p2.metadata.IInstallableUnit;
@@ -63,11 +64,13 @@ public class ReportIssueDialog extends Dialog {
         final Map<String, Bundle> bundles = BundleUtils.bundlesBySymbolicName(SpoofaxMetaPlugin.context());
         final Bundle spoofaxBundle = bundles.get(SpoofaxPlugin.id);
 
+        final String systemText = SystemUtils.OS_NAME + " " + SystemUtils.OS_ARCH + " " + SystemUtils.OS_VERSION;
+        
         final Text text = new Text(container, SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
         text.setLayoutData(new GridData(GridData.FILL_BOTH));
-        text.setText("Eclipse version: " + getProfileIUText() + "\nSpoofax version: " + getBundleText(spoofaxBundle));
+        text.setText("Eclipse: " + getProfileIUText() + "\nSpoofax: " + getBundleText(spoofaxBundle) + "\nSystem: " + systemText);
         text.setEditable(false);
-
+        
         return container;
     }
 
