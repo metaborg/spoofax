@@ -56,25 +56,25 @@ public class TransformMenuContribution extends CompoundContributionItem implemen
         final SpoofaxEditor editor = latestEditorListener.previousEditor();
         if(editor == null) {
             logger.debug("Cannot create menu items; there is no latest active editor");
-            return null;
+            return new IContributionItem[0];
         }
 
         final FileObject resource = resourceService.resolve(editor.getEditorInput());
         if(resource == null) {
             logger.error("Cannot create menu items; cannot resolve input resource for {}", editor);
-            return null;
+            return new IContributionItem[0];
         }
 
         final ILanguage language = languageIdentifier.identify(resource);
         if(language == null) {
             logger.error("Cannot create menu items; cannot identify language for {}", resource);
-            return null;
+            return new IContributionItem[0];
         }
 
         final MenusFacet facet = language.facet(MenusFacet.class);
         if(facet == null) {
             logger.error("Cannot create menu items; cannot find menus facet in {}", language);
-            return null;
+            return new IContributionItem[0];
         }
 
         final Collection<IContributionItem> items = Lists.newLinkedList();
