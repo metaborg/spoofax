@@ -80,7 +80,7 @@ public class LoggingFilteringIOAgent extends IOAgent {
 
 		@Override
 		public void write(char[] cbuf, int off, int len) throws IOException {
-			boolean lineEnd = cbuf[off + len - 1] == '\n';
+			boolean lineEnd = (off + len - 1 < 0) || cbuf[off + len - 1] == '\n';
 			
 			msg.append(cbuf, off, len);
 			if (lineEnd) {
