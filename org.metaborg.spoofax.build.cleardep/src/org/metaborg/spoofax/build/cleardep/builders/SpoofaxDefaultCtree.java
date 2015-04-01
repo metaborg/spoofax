@@ -30,7 +30,7 @@ public class SpoofaxDefaultCtree extends SpoofaxBuilder<SpoofaxInput, None> {
 	
 	@Override
 	protected String description() {
-		return null;
+		return "Build Spoofax project";
 	}
 
 	@Override

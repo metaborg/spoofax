@@ -67,6 +67,7 @@ public class ForceOnSaveFile extends SpoofaxBuilder<ForceOnSaveFile.Input, None>
 		require(p);
 		callOnSaveService(p);
 		switch(FileCommands.getExtension(p)) {
+			// TODO support template files
 //			case "tmpl": 
 //				break;
 		case "sdf3":
@@ -75,6 +76,7 @@ public class ForceOnSaveFile extends SpoofaxBuilder<ForceOnSaveFile.Input, None>
 				break;
 			String sdf3RelNoExt = FileCommands.dropExtension(sdf3.getRelativePath());
 			
+			// TODO SDF3 files depend on other SDF3 files
 			RelativePath genSdf = FileCommands.replaceExtension(context.basePath("${syntax}/" + sdf3.getRelativePath()), "sdf");
 			RelativePath genPP = context.basePath("${pp}/" + sdf3RelNoExt + "-pp.str");
 			RelativePath genCompletions = context.basePath("${completions}/" + sdf3RelNoExt + "-esv.esv");
