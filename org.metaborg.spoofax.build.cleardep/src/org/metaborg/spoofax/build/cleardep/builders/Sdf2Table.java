@@ -8,14 +8,13 @@ import org.metaborg.spoofax.build.cleardep.SpoofaxContext;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor;
 import org.metaborg.spoofax.build.cleardep.StrategoExecutor.ExecutionResult;
 import org.sugarj.cleardep.BuildUnit.State;
-import org.sugarj.cleardep.output.None;
 import org.sugarj.common.path.Path;
 import org.sugarj.common.path.RelativePath;
 
-public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, None> {
+public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, Path> {
 
 
-	public static SpoofaxBuilderFactory<Input, None, Sdf2Table> factory = new SpoofaxBuilderFactory<Input, None, Sdf2Table>() {
+	public static SpoofaxBuilderFactory<Input, Path, Sdf2Table> factory = new SpoofaxBuilderFactory<Input, Path, Sdf2Table>() {
 		private static final long serialVersionUID = -5551917492018980172L;
 
 		@Override
@@ -51,7 +50,7 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, None> {
 	}
 
 	@Override
-	public None build() throws IOException {
+	public Path build() throws IOException {
 		requireBuild(MakePermissive.factory, new MakePermissive.Input(context, input.sdfmodule, input.buildSdfImports, input.externaldef));
 
 		RelativePath inputPath = context.basePath("${include}/" + input.sdfmodule + "-Permissive.def");
@@ -66,7 +65,7 @@ public class Sdf2Table extends SpoofaxBuilder<Sdf2Table.Input, None> {
 		
 		provide(outputPath);
 		setState(State.finished(er.success));
-		return None.val;
+		return outputPath;
 	}
 
 }

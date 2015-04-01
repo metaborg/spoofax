@@ -52,7 +52,7 @@ public class SpoofaxDefaultCtree extends SpoofaxBuilder<SpoofaxInput, None> {
 		try {
 			checkClassPath();
 			
-			requireBuild(Sdf2Table.factory, new Sdf2Table.Input(context, sdfmodule, buildSdfImports, externaldef));
+			Path parseTable = requireBuild(Sdf2Table.factory, new Sdf2Table.Input(context, sdfmodule, buildSdfImports, externaldef));
 			requireBuild(MetaSdf2Table.factory, new MetaSdf2Table.Input(context, metasdfmodule, buildSdfImports, externaldef));
 			requireBuild(PPGen.factory, input);
 			
@@ -68,7 +68,7 @@ public class SpoofaxDefaultCtree extends SpoofaxBuilder<SpoofaxInput, None> {
 			// This dependency was discovered by cleardep, due to an implicit dependency on 'org.strategoxt.imp.editors.template/include/TemplateLang-parenthesize.str'.
 			BuildRequest<?,?,?,?> sdf2Parenthesize = new BuildRequest<>(Sdf2Parenthesize.factory, new Sdf2Parenthesize.Input(context, sdfmodule, buildSdfImports, externaldef));
 	
-			requireBuild(StrategoCtree.factory,
+			Path ctree = requireBuild(StrategoCtree.factory,
 					new StrategoCtree.Input(
 							context,
 							sdfmodule, 
@@ -85,7 +85,7 @@ public class SpoofaxDefaultCtree extends SpoofaxBuilder<SpoofaxInput, None> {
 			
 			javaJar(strmodule, compileJavaCode);
 			
-			sdf2impEclipseReload();
+			sdf2impEclipseReload(parseTable, ctree);
 			
 			return None.val;
 			
@@ -123,11 +123,11 @@ public class SpoofaxDefaultCtree extends SpoofaxBuilder<SpoofaxInput, None> {
 						new BuildRequest<?,?,?,?>[] {compileJavaCode}));
 	}
 
-	private void sdf2impEclipseReload() {
+	private void sdf2impEclipseReload(Path parseTable, Path ctree) {
 		RelativePath packedEsv = context.basePath("${include}/${esvmodule}.packed.esv");
 		require(packedEsv);
-		// TODO require parse table
-		// TODO require Jar or Ctree
+		require(parseTable);
+		require(ctree);
 		AntDescriptorLoader.main(new String[]{packedEsv.getAbsolutePath()});
 		Log.log.log("Reloaded Spoofax plug-in", Log.CORE);
 	}
