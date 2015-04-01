@@ -127,6 +127,7 @@ public class SpoofaxDefaultCtree extends SpoofaxBuilder<SpoofaxInput, None> {
 		RelativePath packedEsv = context.basePath("${include}/${esvmodule}.packed.esv");
 		require(packedEsv);
 		AntDescriptorLoader.main(new String[]{packedEsv.getAbsolutePath()});
+		Log.log.log("Reloaded Spoofax plug-in", Log.CORE);
 	}
 
 	protected void forceWorkspaceRefresh() {
