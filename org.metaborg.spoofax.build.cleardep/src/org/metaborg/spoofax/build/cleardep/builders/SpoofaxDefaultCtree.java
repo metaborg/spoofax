@@ -126,6 +126,8 @@ public class SpoofaxDefaultCtree extends SpoofaxBuilder<SpoofaxInput, None> {
 	private void sdf2impEclipseReload() {
 		RelativePath packedEsv = context.basePath("${include}/${esvmodule}.packed.esv");
 		require(packedEsv);
+		// TODO require parse table
+		// TODO require Jar or Ctree
 		AntDescriptorLoader.main(new String[]{packedEsv.getAbsolutePath()});
 		Log.log.log("Reloaded Spoofax plug-in", Log.CORE);
 	}
