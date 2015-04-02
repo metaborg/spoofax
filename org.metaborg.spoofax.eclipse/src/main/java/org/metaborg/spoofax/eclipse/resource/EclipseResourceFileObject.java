@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
 import java.nio.file.FileSystemException;
 
 import org.apache.commons.vfs2.FileObject;
@@ -93,10 +94,15 @@ public class EclipseResourceFileObject extends AbstractFileObject {
     }
 
     private void updateFileInfo() throws Exception {
-        if(resource != null) {
-            final IFileStore store = EFS.getStore(resource.getLocationURI());
-            info = store.fetchInfo();
+        if(resource == null) {
+            return;
         }
+        final URI locationURI = resource.getLocationURI();
+        if(locationURI == null) {
+            return;
+        }
+        final IFileStore store = EFS.getStore(locationURI);
+        info = store.fetchInfo();
     }
 
     private IPath getPath() {
