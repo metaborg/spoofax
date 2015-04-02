@@ -8,6 +8,8 @@ imports
 strategies
 
   create-build-xml =
+    MavenBuild
+  <+
     // Note that we cannot call this file build.xml,
     // as Eclipse will delete it as it deploys plugins
     <file-exists> "build.main.xml"
@@ -77,6 +79,8 @@ strategies
     ]
   
   create-build-generated-xml =
+    MavenBuild
+  <+
     name       := <get-sdf-main-module>;
     name'      := <trans-module-name>;
     classname  := <get-main-class-name>;

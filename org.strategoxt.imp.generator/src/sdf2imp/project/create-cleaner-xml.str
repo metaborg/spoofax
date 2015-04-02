@@ -11,6 +11,8 @@ strategies
     !$[[<get-sdf-main-module>] clean-project.xml.launch]
 
   create-cleaner-xml =
+    MavenBuild
+  <+
     <file-exists> $[.externalToolBuilders/[<cleaner-xml-name>]]
   <+
     not(ProjectName);

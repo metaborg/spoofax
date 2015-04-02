@@ -6,6 +6,8 @@ imports
 strategies
 
   create-maven-pom =
+    MavenBuild
+  <+
     <file-exists> "pom.xml"
   <+
     pkgname := <BasePackage <+ default-package-name>;
