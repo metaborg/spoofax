@@ -27,7 +27,7 @@ public class FileParseTableProvider implements IParseTableProvider {
             return parseTable;
 
         if(!resource.exists())
-            throw new IOException("Could not load parse table, file does not exist");
+            throw new IOException("Could not load parse table, "+resource+"does not exist");
 
         try(final InputStream stream = resource.getContent().getInputStream()) {
             final TermReader termReader = new TermReader(termFactory);

@@ -66,6 +66,7 @@ import com.google.inject.TypeLiteral;
 import com.google.inject.multibindings.MapBinder;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
+import org.metaborg.spoofax.core.stratego.primitives.ParseFilePtPrimitive;
 
 /**
  * Guice module that specifies which implementations to use for services and factories.
@@ -174,6 +175,7 @@ public class SpoofaxModule extends AbstractModule {
         final Multibinder<AbstractPrimitive> spoofaxJSGLRLibrary =
             Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named("SpoofaxJSGLRLibrary"));
         bindPrimitive(spoofaxJSGLRLibrary, ParseFilePrimitive.class);
+        bindPrimitive(spoofaxJSGLRLibrary, ParseFilePtPrimitive.class);
         bindPrimitive(spoofaxJSGLRLibrary, new DummyPrimitive("STRSGLR_open_parse_table", 0, 1));
         bindPrimitive(spoofaxJSGLRLibrary, new DummyPrimitive("STRSGLR_close_parse_table", 0, 1));
     }

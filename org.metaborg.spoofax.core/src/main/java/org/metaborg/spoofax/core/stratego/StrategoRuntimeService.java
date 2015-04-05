@@ -129,7 +129,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, ILanguag
             for(FileObject jar : jars) {
                 final File localJar = resourceService.localFile(jar);
                 if(localJar == null) {
-                    throw new RuntimeException("Loading JARs from non-filesystem resources is not supported");
+                    throw new RuntimeException("Failed to load "+jar);
                 }
                 classpath[i] = localJar.toURI().toURL();
                 ++i;
