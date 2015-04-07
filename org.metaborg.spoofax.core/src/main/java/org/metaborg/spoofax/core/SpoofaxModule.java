@@ -22,9 +22,7 @@ import org.metaborg.spoofax.core.language.LanguageService;
 import org.metaborg.spoofax.core.project.DummyProjectService;
 import org.metaborg.spoofax.core.project.IProjectService;
 import org.metaborg.spoofax.core.resource.DefaultFileSystemManagerProvider;
-import org.metaborg.spoofax.core.resource.ILocalFileProvider;
 import org.metaborg.spoofax.core.resource.IResourceService;
-import org.metaborg.spoofax.core.resource.LocalFileProvider;
 import org.metaborg.spoofax.core.resource.ResourceService;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.stratego.StrategoLocalPath;
@@ -68,6 +66,7 @@ import com.google.inject.TypeLiteral;
 import com.google.inject.multibindings.MapBinder;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
+import org.metaborg.spoofax.core.stratego.primitives.ParseFilePtPrimitive;
 
 /**
  * Guice module that specifies which implementations to use for services and factories.
@@ -91,7 +90,6 @@ public class SpoofaxModule extends AbstractModule {
         languageCacheBinder = Multibinder.newSetBinder(binder(), ILanguageCache.class);
 
         bindResource();
-        bindLocalFileProviders(MapBinder.newMapBinder(binder(), String.class, ILocalFileProvider.class));
         bindLanguage();
         bindContext();
         bindContextStrategies(MapBinder.newMapBinder(binder(), String.class, IContextStrategy.class));
@@ -113,10 +111,6 @@ public class SpoofaxModule extends AbstractModule {
     protected void bindResource() {
         bind(IResourceService.class).to(ResourceService.class).in(Singleton.class);
         bind(FileSystemManager.class).toProvider(DefaultFileSystemManagerProvider.class).in(Singleton.class);
-    }
-
-    protected void bindLocalFileProviders(MapBinder<String, ILocalFileProvider> binder) {
-        binder.addBinding(LocalFileProvider.scheme).to(LocalFileProvider.class).in(Singleton.class);
     }
 
     protected void bindLanguage() {
@@ -181,6 +175,7 @@ public class SpoofaxModule extends AbstractModule {
         final Multibinder<AbstractPrimitive> spoofaxJSGLRLibrary =
             Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named("SpoofaxJSGLRLibrary"));
         bindPrimitive(spoofaxJSGLRLibrary, ParseFilePrimitive.class);
+        bindPrimitive(spoofaxJSGLRLibrary, ParseFilePtPrimitive.class);
         bindPrimitive(spoofaxJSGLRLibrary, new DummyPrimitive("STRSGLR_open_parse_table", 0, 1));
         bindPrimitive(spoofaxJSGLRLibrary, new DummyPrimitive("STRSGLR_close_parse_table", 0, 1));
     }

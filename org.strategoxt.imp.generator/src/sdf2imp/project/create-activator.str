@@ -6,6 +6,8 @@ imports
 strategies
 
   create-activator =
+    MavenBuild
+  <+
     // TODO: never overwrite existing activator
     name    := <get-main-class-name>;
     pkgname := <get-package-name>;

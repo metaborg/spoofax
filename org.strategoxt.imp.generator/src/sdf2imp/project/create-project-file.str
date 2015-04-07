@@ -6,6 +6,8 @@ imports
 strategies
 
   create-project-file =
+    MavenBuild
+  <+
     <file-exists> ".project";
     where(InputFile) // if no input file: create a new .project, overwriting Eclipse's default
   <+

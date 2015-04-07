@@ -7,12 +7,14 @@ imports
 
 strategies
 	
-	create-external-builder-xml =
-		<file-exists> "build.generated.external.xml";
-		create-build-external-xml;
-		create-build-generated-external-xml <+ id
+  create-external-builder-xml =
+    MavenBuild
+  <+
+    <file-exists> "build.generated.external.xml";
+    create-build-external-xml;
+    create-build-generated-external-xml <+ id
 	
-	create-build-external-xml =
+  create-build-external-xml =
     // Note that we cannot call this file build.xml,
     // as Eclipse will delete it as it deploys plugins
     <file-exists> "build.main.external.xml"

@@ -6,6 +6,8 @@ imports
 strategies
 
   create-manifest =
+    MavenBuild
+  <+
     <file-exists> "META-INF/MANIFEST.MF"
   <+
     name    := <get-main-class-name>;
