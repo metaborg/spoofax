@@ -31,7 +31,14 @@ public class ParseFilePrimitive extends AbstractPrimitive {
     @Inject public ParseFilePrimitive(IResourceService resourceService,
         ILanguageIdentifierService languageIdentifierService, ISourceTextService sourceTextService,
         ISyntaxService<IStrategoTerm> syntaxService) {
-        super("STRSGLR_parse_string", 1, 4);
+        this("STRSGLR_parse_string", resourceService, languageIdentifierService,
+                sourceTextService, syntaxService);
+    }
+
+    protected ParseFilePrimitive(String name, IResourceService resourceService,
+        ILanguageIdentifierService languageIdentifierService, ISourceTextService sourceTextService,
+        ISyntaxService<IStrategoTerm> syntaxService) {
+        super(name, 1, 4);
 
         this.resourceService = resourceService;
         this.languageIdentifierService = languageIdentifierService;
