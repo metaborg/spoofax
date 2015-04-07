@@ -3,7 +3,6 @@ package org.metaborg.spoofax.eclipse;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.metaborg.spoofax.core.SpoofaxModule;
 import org.metaborg.spoofax.core.project.IProjectService;
-import org.metaborg.spoofax.core.resource.ILocalFileProvider;
 import org.metaborg.spoofax.core.resource.IResourceService;
 import org.metaborg.spoofax.core.transform.CompileGoal;
 import org.metaborg.spoofax.core.transform.ITransformerGoal;
@@ -16,7 +15,6 @@ import org.metaborg.spoofax.eclipse.processing.AnalysisResultProcessor;
 import org.metaborg.spoofax.eclipse.processing.ParseResultProcessor;
 import org.metaborg.spoofax.eclipse.processing.Processor;
 import org.metaborg.spoofax.eclipse.resource.EclipseFileSystemManagerProvider;
-import org.metaborg.spoofax.eclipse.resource.EclipseLocalFileProvider;
 import org.metaborg.spoofax.eclipse.resource.EclipseProjectService;
 import org.metaborg.spoofax.eclipse.resource.EclipseResourceService;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
@@ -42,12 +40,6 @@ public class SpoofaxEclipseModule extends SpoofaxModule {
         bind(IEclipseResourceService.class).to(EclipseResourceService.class);
 
         bind(FileSystemManager.class).toProvider(EclipseFileSystemManagerProvider.class).in(Singleton.class);
-    }
-
-    protected void bindLocalFileProviders(MapBinder<String, ILocalFileProvider> binder) {
-        super.bindLocalFileProviders(binder);
-
-        binder.addBinding(EclipseLocalFileProvider.scheme).to(EclipseLocalFileProvider.class).in(Singleton.class);
     }
 
     @Override protected void bindProject() {
