@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
@@ -38,25 +37,6 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
         }
 
         return identifiedLanguage;
-    }
-
-    @Override public Iterable<ILanguage> identifyAll(FileObject resource) {
-        final Collection<String> identifiedLanguageNames = Sets.newHashSet();
-        final Collection<ILanguage> identifiedLanguages = Lists.newLinkedList();
-
-        for(ILanguage language : languageService.getAll()) {
-            if(identify(resource, language)) {
-                identifiedLanguageNames.add(language.name());
-                identifiedLanguages.add(language);
-            }
-        }
-
-        if(identifiedLanguageNames.size() > 1) {
-            throw new IllegalStateException("File " + resource + " identifies to multiple languages: "
-                + Joiner.on(", ").join(identifiedLanguageNames));
-        }
-
-        return identifiedLanguages;
     }
 
     @Override public boolean identify(FileObject resource, ILanguage language) {

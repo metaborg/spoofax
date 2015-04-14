@@ -23,18 +23,21 @@ public class FileParseTableProvider implements IParseTableProvider {
 
 
     @Override public ParseTable parseTable() throws IOException {
-        if(parseTable != null)
+        if(parseTable != null) {
             return parseTable;
+        }
 
-        if(!resource.exists())
-            throw new IOException("Could not load parse table, "+resource+"does not exist");
+        resource.refresh();
+        if(!resource.exists()) {
+            throw new IOException("Could not load parse table from " + resource + ", file does not exist");
+        }
 
         try(final InputStream stream = resource.getContent().getInputStream()) {
             final TermReader termReader = new TermReader(termFactory);
             final IStrategoTerm parseTableTerm = termReader.parseFromStream(stream);
             parseTable = new ParseTable(parseTableTerm, termFactory);
         } catch(Exception e) {
-            throw new IOException("Could not load parse table", e);
+            throw new IOException("Could not load parse table from " + resource, e);
         }
 
         return parseTable;

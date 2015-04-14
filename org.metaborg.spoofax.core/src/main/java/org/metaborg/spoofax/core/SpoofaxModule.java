@@ -19,6 +19,10 @@ import org.metaborg.spoofax.core.language.ILanguageService;
 import org.metaborg.spoofax.core.language.LanguageDiscoveryService;
 import org.metaborg.spoofax.core.language.LanguageIdentifierService;
 import org.metaborg.spoofax.core.language.LanguageService;
+import org.metaborg.spoofax.core.language.dialect.DialectProcessor;
+import org.metaborg.spoofax.core.language.dialect.DialectService;
+import org.metaborg.spoofax.core.language.dialect.IDialectProcessor;
+import org.metaborg.spoofax.core.language.dialect.IDialectService;
 import org.metaborg.spoofax.core.project.DummyProjectService;
 import org.metaborg.spoofax.core.project.IProjectService;
 import org.metaborg.spoofax.core.resource.DefaultFileSystemManagerProvider;
@@ -117,6 +121,9 @@ public class SpoofaxModule extends AbstractModule {
         bind(ILanguageService.class).to(LanguageService.class).in(Singleton.class);
         bind(ILanguageDiscoveryService.class).to(LanguageDiscoveryService.class).in(Singleton.class);
         bind(ILanguageIdentifierService.class).to(LanguageIdentifierService.class).in(Singleton.class);
+
+        bind(IDialectService.class).to(DialectService.class).in(Singleton.class);
+        bind(IDialectProcessor.class).to(DialectProcessor.class).in(Singleton.class);
     }
 
     protected void bindContext() {

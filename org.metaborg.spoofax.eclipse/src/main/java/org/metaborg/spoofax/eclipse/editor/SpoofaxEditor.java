@@ -25,6 +25,7 @@ import org.eclipse.ui.editors.text.TextEditor;
 import org.metaborg.spoofax.core.analysis.IAnalysisService;
 import org.metaborg.spoofax.core.context.IContextService;
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
+import org.metaborg.spoofax.core.language.dialect.IDialectService;
 import org.metaborg.spoofax.core.style.ICategorizerService;
 import org.metaborg.spoofax.core.style.IStylerService;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
@@ -49,6 +50,7 @@ public class SpoofaxEditor extends TextEditor {
 
     private final IEclipseResourceService resourceService;
     private final ILanguageIdentifierService languageIdentifier;
+    private final IDialectService dialectService;
     private final IContextService contextService;
     private final ISyntaxService<IStrategoTerm> syntaxService;
     private final IAnalysisService<IStrategoTerm, IStrategoTerm> analysisService;
@@ -77,6 +79,7 @@ public class SpoofaxEditor extends TextEditor {
         final Injector injector = SpoofaxPlugin.injector();
         this.resourceService = injector.getInstance(IEclipseResourceService.class);
         this.languageIdentifier = injector.getInstance(ILanguageIdentifierService.class);
+        this.dialectService = injector.getInstance(IDialectService.class);
         this.contextService = injector.getInstance(IContextService.class);
         this.syntaxService = injector.getInstance(Key.get(new TypeLiteral<ISyntaxService<IStrategoTerm>>() {}));
         this.analysisService =
@@ -218,9 +221,9 @@ public class SpoofaxEditor extends TextEditor {
         final IFile file = fileInput.getFile();
         final FileObject resource = resourceService.resolve(file);
         final Job job =
-            new EditorUpdateJob(languageIdentifier, contextService, syntaxService, analysisService, categorizerService,
-                stylerService, parseResultProcessor, analysisResultProcessor, fileInput, file, resource, sourceViewer,
-                document.get(), presentationMerger, instantaneous);
+            new EditorUpdateJob(languageIdentifier, dialectService, contextService, syntaxService, analysisService,
+                categorizerService, stylerService, parseResultProcessor, analysisResultProcessor, fileInput, file,
+                resource, sourceViewer, document.get(), presentationMerger, instantaneous);
         job.setRule(new MultiRule(new ISchedulingRule[] { globalRules.startupReadLock(), file }));
         job.schedule(instantaneous ? 0 : 100);
     }

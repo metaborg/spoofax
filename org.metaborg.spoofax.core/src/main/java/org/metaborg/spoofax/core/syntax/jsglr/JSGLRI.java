@@ -22,6 +22,7 @@ public class JSGLRI implements IParser<IStrategoTerm> {
     private final IParserConfig config;
     private final ITermFactory termFactory;
     private final ILanguage language;
+    private final ILanguage dialect;
     private final FileObject resource;
     private final String input;
 
@@ -33,11 +34,12 @@ public class JSGLRI implements IParser<IStrategoTerm> {
     private boolean implodeEnabled = true;
 
 
-    public JSGLRI(IParserConfig config, ITermFactory termFactory, ILanguage language, FileObject resource, String input)
-        throws IOException {
+    public JSGLRI(IParserConfig config, ITermFactory termFactory, ILanguage language, ILanguage dialect,
+        FileObject resource, String input) throws IOException {
         this.config = config;
         this.termFactory = termFactory;
         this.language = language;
+        this.dialect = dialect;
         this.resource = resource;
         this.input = input;
 
@@ -103,18 +105,18 @@ public class JSGLRI implements IParser<IStrategoTerm> {
         }
 
         // GTODO: measure parse time
-        return new ParseResult<IStrategoTerm>(ast, resource, errorHandler.messages(), -1, language);
+        return new ParseResult<IStrategoTerm>(ast, resource, errorHandler.messages(), -1, language, dialect);
     }
 
-    public IStrategoTerm actuallyParse(String input, String filename) throws SGLRException, InterruptedException {
+    public IStrategoTerm actuallyParse(String text, String filename) throws SGLRException, InterruptedException {
         IStrategoTerm result;
         try {
-            result = (IStrategoTerm) parser.parse(input, filename, config.getStartSymbol(), false, cursorLocation);
+            result = (IStrategoTerm) parser.parse(text, filename, config.getStartSymbol(), false, cursorLocation);
         } catch(FilterException e) {
             if(e.getCause() == null && parser.getDisambiguator().getFilterPriorities()) {
                 disambiguator.setFilterPriorities(false);
                 try {
-                    result = (IStrategoTerm) parser.parse(input, filename, config.getStartSymbol());
+                    result = (IStrategoTerm) parser.parse(text, filename, config.getStartSymbol());
                 } finally {
                     disambiguator.setFilterPriorities(true);
                 }
@@ -122,7 +124,7 @@ public class JSGLRI implements IParser<IStrategoTerm> {
                 throw e;
             }
         } catch(StartSymbolException e) {
-            result = (IStrategoTerm) parser.parse(input, filename, null, false, cursorLocation);
+            result = (IStrategoTerm) parser.parse(text, filename, null, false, cursorLocation);
         }
         return result;
     }

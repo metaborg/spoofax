@@ -6,6 +6,7 @@ import java.util.Map;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageCache;
+import org.metaborg.spoofax.core.language.dialect.IDialectService;
 import org.metaborg.spoofax.core.messages.ISourceRegion;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
 import org.metaborg.spoofax.core.syntax.ParseException;
@@ -27,12 +28,14 @@ import com.google.inject.Inject;
 public class JSGLRParseService implements ISyntaxService<IStrategoTerm>, ILanguageCache {
     private static final Logger logger = LoggerFactory.getLogger(JSGLRParseService.class);
 
+    private final IDialectService dialectService;
     private final ITermFactoryService termFactoryService;
 
     private final Map<ILanguage, IParserConfig> parserConfigs = Maps.newHashMap();
 
 
-    @Inject public JSGLRParseService(ITermFactoryService termFactoryService) {
+    @Inject public JSGLRParseService(IDialectService dialectService, ITermFactoryService termFactoryService) {
+        this.dialectService = dialectService;
         this.termFactoryService = termFactoryService;
     }
 
@@ -42,7 +45,13 @@ public class JSGLRParseService implements ISyntaxService<IStrategoTerm>, ILangua
         final IParserConfig config = getParserConfig(language);
         try {
             logger.trace("Parsing {}", resource);
-            final JSGLRI parser = new JSGLRI(config, termFactoryService.get(language), language, resource, text);
+            final ILanguage base = dialectService.getBase(language);
+            final JSGLRI parser;
+            if(base != null) {
+                parser = new JSGLRI(config, termFactoryService.get(language), base, language, resource, text);
+            } else {
+                parser = new JSGLRI(config, termFactoryService.get(language), language, null, resource, text);
+            }
             return parser.parse();
         } catch(IOException e) {
             throw new ParseException(resource, language, e);
