@@ -7,8 +7,8 @@ import rx.Observable;
  */
 public interface IResourceChangeService {
     /**
-     * Returns an observable over resource changes. This returns a 'hot' observable, meaning that any changes
-     * that occurred before subscribing are NOT observed.
+     * Returns an observable over resource changes. This returns a 'hot' observable, meaning that any changes that
+     * occurred before subscribing are NOT observed.
      */
     public abstract Observable<IResourceChange> changes();
 }

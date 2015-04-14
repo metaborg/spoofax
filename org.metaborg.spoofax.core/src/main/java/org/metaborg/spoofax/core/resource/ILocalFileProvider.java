@@ -8,6 +8,6 @@ import org.apache.commons.vfs2.FileObject;
 
 public interface ILocalFileProvider {
     public abstract @Nullable File localFile(FileObject resource);
-    
+
     public String scheme();
 }

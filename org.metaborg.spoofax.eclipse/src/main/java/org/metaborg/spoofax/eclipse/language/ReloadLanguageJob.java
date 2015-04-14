@@ -22,6 +22,7 @@ public class ReloadLanguageJob extends Job {
     public ReloadLanguageJob(ILanguageService languageService, ILanguageDiscoveryService languageDiscoveryService,
         FileObject location) {
         super("Reloading Spoofax language");
+        setPriority(Job.SHORT);
 
         this.languageService = languageService;
         this.languageDiscoveryService = languageDiscoveryService;
@@ -36,12 +37,13 @@ public class ReloadLanguageJob extends Job {
             try {
                 languageDiscoveryService.discover(location);
             } catch(Exception e) {
-                final String message = "Could not load language at location " + location;
+                final String message = String.format("Could not load language at location %", location);
                 logger.error(message, e);
                 return StatusUtils.error(message, e);
             }
         } else {
-            final String message = "Failed to unload language at location" + location + " because it does not exist";
+            final String message =
+                String.format("Failed to unload language at location % because it does not exist", location);
             logger.error(message);
             return StatusUtils.error(message);
         }

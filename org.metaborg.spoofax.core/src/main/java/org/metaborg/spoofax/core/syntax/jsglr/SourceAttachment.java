@@ -20,8 +20,8 @@ import org.spoofax.terms.attachments.VolatileTermAttachmentType;
 public class SourceAttachment extends AbstractTermAttachment {
     private static final long serialVersionUID = -8114392265614382463L;
 
-    public static TermAttachmentType<SourceAttachment> TYPE =
-        new VolatileTermAttachmentType<SourceAttachment>(SourceAttachment.class);
+    public static TermAttachmentType<SourceAttachment> TYPE = new VolatileTermAttachmentType<SourceAttachment>(
+        SourceAttachment.class);
 
     private final FileObject resource;
     private final IParserConfig controller;

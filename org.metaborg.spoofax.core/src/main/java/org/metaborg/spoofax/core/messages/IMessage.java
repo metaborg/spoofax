@@ -11,7 +11,7 @@ public interface IMessage {
 
     public MessageType type();
 
-    @Nullable public FileObject source();
+    public FileObject source();
 
     public ISourceRegion region();
 

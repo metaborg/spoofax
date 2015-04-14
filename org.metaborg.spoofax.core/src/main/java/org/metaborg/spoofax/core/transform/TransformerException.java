@@ -1,8 +1,8 @@
 package org.metaborg.spoofax.core.transform;
 
-import org.metaborg.spoofax.core.SpoofaxException;
+import org.metaborg.spoofax.core.SpoofaxRuntimeException;
 
-public class TransformerException extends SpoofaxException {
+public class TransformerException extends SpoofaxRuntimeException {
     private static final long serialVersionUID = -1803216442012616216L;
 
 

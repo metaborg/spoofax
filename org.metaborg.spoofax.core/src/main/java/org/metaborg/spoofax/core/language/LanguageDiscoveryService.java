@@ -12,10 +12,13 @@ import static org.metaborg.spoofax.core.esv.ESVReader.resolverStrategy;
 import static org.metaborg.spoofax.core.esv.ESVReader.startSymbol;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.analysis.stratego.StrategoFacet;
+import org.metaborg.spoofax.core.context.ContextFacet;
+import org.metaborg.spoofax.core.context.IContextStrategy;
 import org.metaborg.spoofax.core.style.StylerFacet;
 import org.metaborg.spoofax.core.style.StylerFacetFromESV;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
@@ -40,12 +43,15 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
     private final ILanguageService languageService;
     private final ITermFactoryService termFactoryService;
+    private final Map<String, IContextStrategy> contextStrategies;
     @Inject(optional = true) @Named("LanguageDiscoveryAnalysisOverride") private String analysisStrategyOverride;
 
 
-    @Inject public LanguageDiscoveryService(ILanguageService languageService, ITermFactoryService termFactoryService) {
+    @Inject public LanguageDiscoveryService(ILanguageService languageService, ITermFactoryService termFactoryService,
+        Map<String, IContextStrategy> contextStrategies) {
         this.languageService = languageService;
         this.termFactoryService = termFactoryService;
+        this.contextStrategies = contextStrategies;
     }
 
 
@@ -89,6 +95,12 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
         final ResourceExtensionFacet resourceExtensionsFacet = new ResourceExtensionFacet(extensions);
         language.addFacet(resourceExtensionsFacet);
+
+        // TODO: get facet strategy from language specification. Currently there is no specification yet so always
+        // choose 'project' as the context strategy.
+        final IContextStrategy contextStrategy = contextStrategies.get("project");
+        final ContextFacet contextFacet = new ContextFacet(contextStrategy);
+        language.addFacet(contextFacet);
 
         final FileObject parseTable = location.resolveFile(parseTableName(esvTerm));
         final String startSymbol = startSymbol(esvTerm); // GTODO: what about multiple start symbols?

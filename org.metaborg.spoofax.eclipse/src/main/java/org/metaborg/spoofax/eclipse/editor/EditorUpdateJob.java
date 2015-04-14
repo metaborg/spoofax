@@ -1,7 +1,5 @@
 package org.metaborg.spoofax.eclipse.editor;
 
-import java.io.IOException;
-
 import org.apache.commons.vfs2.FileObject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspace;
@@ -15,10 +13,13 @@ import org.eclipse.jface.text.TextPresentation;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IFileEditorInput;
+import org.metaborg.spoofax.core.analysis.AnalysisException;
 import org.metaborg.spoofax.core.analysis.AnalysisFileResult;
 import org.metaborg.spoofax.core.analysis.AnalysisResult;
 import org.metaborg.spoofax.core.analysis.IAnalysisService;
-import org.metaborg.spoofax.core.context.SpoofaxContext;
+import org.metaborg.spoofax.core.context.ContextException;
+import org.metaborg.spoofax.core.context.IContext;
+import org.metaborg.spoofax.core.context.IContextService;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
 import org.metaborg.spoofax.core.messages.IMessage;
@@ -27,10 +28,11 @@ import org.metaborg.spoofax.core.style.IRegionCategory;
 import org.metaborg.spoofax.core.style.IRegionStyle;
 import org.metaborg.spoofax.core.style.IStylerService;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
+import org.metaborg.spoofax.core.syntax.ParseException;
 import org.metaborg.spoofax.core.syntax.ParseResult;
-import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
+import org.metaborg.spoofax.eclipse.processing.AnalysisResultProcessor;
+import org.metaborg.spoofax.eclipse.processing.ParseResultProcessor;
 import org.metaborg.spoofax.eclipse.util.MarkerUtils;
-import org.metaborg.spoofax.eclipse.util.ResourceUtils;
 import org.metaborg.spoofax.eclipse.util.StatusUtils;
 import org.metaborg.spoofax.eclipse.util.StyleUtils;
 import org.metaborg.util.iterators.Iterables2;
@@ -40,33 +42,47 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 
 public class EditorUpdateJob extends Job {
     private static final Logger logger = LoggerFactory.getLogger(EditorUpdateJob.class);
-    
-    private final IEclipseResourceService resourceService;
-    private final ILanguageIdentifierService languageIdentifier;
+
+    private final ILanguageIdentifierService languageIdentifierService;
+    private final IContextService contextService;
     private final ISyntaxService<IStrategoTerm> syntaxService;
     private final IAnalysisService<IStrategoTerm, IStrategoTerm> analyzer;
     private final ICategorizerService<IStrategoTerm, IStrategoTerm> categorizer;
     private final IStylerService<IStrategoTerm, IStrategoTerm> styler;
 
+    private final ParseResultProcessor parseResultProcessor;
+    private final AnalysisResultProcessor analysisResultProcessor;
+
     private final IFileEditorInput input;
+    private final IResource eclipseResource;
+    private final FileObject resource;
     private final ISourceViewer sourceViewer;
     private final String text;
 
 
-    public EditorUpdateJob(IEclipseResourceService resourceService, ILanguageIdentifierService languageIdentifier,
+    public EditorUpdateJob(ILanguageIdentifierService languageIdentifierService, IContextService contextService,
         ISyntaxService<IStrategoTerm> syntaxService, IAnalysisService<IStrategoTerm, IStrategoTerm> analyzer,
         ICategorizerService<IStrategoTerm, IStrategoTerm> categorizer,
-        IStylerService<IStrategoTerm, IStrategoTerm> styler, IFileEditorInput input, ISourceViewer sourceViewer,
-        String text) {
+        IStylerService<IStrategoTerm, IStrategoTerm> styler, ParseResultProcessor parseResultProcessor,
+        AnalysisResultProcessor analysisResultProcessor, IFileEditorInput input, IResource eclipseResource,
+        FileObject resource, ISourceViewer sourceViewer, String text) {
         super("Updating Spoofax editor");
-        this.resourceService = resourceService;
-        this.languageIdentifier = languageIdentifier;
+        setSystem(true);
+        setPriority(Job.BUILD);
+
+        this.languageIdentifierService = languageIdentifierService;
+        this.contextService = contextService;
         this.syntaxService = syntaxService;
         this.analyzer = analyzer;
         this.categorizer = categorizer;
         this.styler = styler;
 
+        this.parseResultProcessor = parseResultProcessor;
+        this.analysisResultProcessor = analysisResultProcessor;
+
         this.input = input;
+        this.eclipseResource = eclipseResource;
+        this.resource = resource;
         this.sourceViewer = sourceViewer;
         this.text = text;
     }
@@ -78,32 +94,40 @@ public class EditorUpdateJob extends Job {
 
     @Override protected IStatus run(final IProgressMonitor monitor) {
         logger.debug("Running editor update job for {}", input.getFile());
-        
+
         try {
             return update(monitor);
-        } catch(IOException | CoreException e) {
-            e.printStackTrace();
-            return StatusUtils.error("Updating editor failed", e);
+        } catch(ParseException | ContextException | AnalysisException | CoreException e) {
+            String message = String.format("Updating editor for % failed", input);
+            logger.error(message, e);
+            return StatusUtils.error(message, e);
         }
     }
 
 
-    private IStatus update(final IProgressMonitor monitor) throws IOException, CoreException {
-        final IResource eclipseResource = input.getFile();
-        final IResource eclipseLocation = ResourceUtils.getProjectDirectory(eclipseResource);
+    private IStatus update(final IProgressMonitor monitor) throws ParseException, AnalysisException, CoreException,
+        ContextException {
+        final ILanguage language = languageIdentifierService.identify(resource);
+
         final Display display = Display.getDefault();
         final IWorkspace workspace = ResourcesPlugin.getWorkspace();
-
-        final FileObject resource = resourceService.resolve(eclipseResource);
-        final FileObject location = resourceService.resolve(eclipseLocation);
-        final ILanguage language = languageIdentifier.identify(resource);
 
         // Parse
         if(monitor.isCanceled())
             return StatusUtils.cancel();
-        final ParseResult<IStrategoTerm> parseResult = syntaxService.parse(text, resource, language);
+        final ParseResult<IStrategoTerm> parseResult;
+        try {
+            parseResultProcessor.invalidate(resource);
+            parseResult = syntaxService.parse(text, resource, language);
+            parseResultProcessor.update(resource, parseResult);
+        } catch(ParseException e) {
+            parseResultProcessor.error(resource, e);
+            throw e;
+        }
+
         if(monitor.isCanceled())
             return StatusUtils.cancel();
+        // Update markers atomically using a workspace runnable, to prevent flashing/jumping markers.
         final IWorkspaceRunnable parseMarkerUpdater = new IWorkspaceRunnable() {
             @Override public void run(IProgressMonitor workspaceMonitor) throws CoreException {
                 if(workspaceMonitor.isCanceled())
@@ -144,10 +168,22 @@ public class EditorUpdateJob extends Job {
 
         if(monitor.isCanceled())
             return StatusUtils.cancel();
-        final AnalysisResult<IStrategoTerm, IStrategoTerm> analysisResult =
-            analyzer.analyze(Iterables2.singleton(parseResult), new SpoofaxContext(language, location));
+        final IContext context = contextService.get(resource, language);
+        final AnalysisResult<IStrategoTerm, IStrategoTerm> analysisResult;
+        synchronized(context) {
+            analysisResultProcessor.invalidate(parseResult.source);
+            try {
+                analysisResult = analyzer.analyze(Iterables2.singleton(parseResult), context);
+            } catch(AnalysisException e) {
+                analysisResultProcessor.error(resource, e);
+                throw e;
+            }
+            analysisResultProcessor.update(analysisResult);
+        }
+
         if(monitor.isCanceled())
             return StatusUtils.cancel();
+        // Update markers atomically using a workspace runnable, to prevent flashing/jumping markers.
         final IWorkspaceRunnable analysisMarkerUpdater = new IWorkspaceRunnable() {
             @Override public void run(IProgressMonitor workspaceMonitor) throws CoreException {
                 if(workspaceMonitor.isCanceled())

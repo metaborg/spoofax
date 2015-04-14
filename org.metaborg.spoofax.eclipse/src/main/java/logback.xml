@@ -25,8 +25,9 @@
 
   <appender
     name="stdout"
-    class="ch.qos.logback.core.ConsoleAppender"
+    class="org.metaborg.util.log.StaticConsoleAppender"
   >
+    <target>System.out</target>
     <encoder>
       <pattern>%date{HH:mm:ss.SSS} | %-12.12thread | %-5level | %-40.40logger{30} - %message%n</pattern>
     </encoder>
@@ -45,7 +46,7 @@
   <root level="debug">
     <appender-ref ref="eclipse-log" />
     <appender-ref ref="eclipse-console" />
-    <appender-ref ref="stdout" />
+    <appender-ref ref="stdout"/>
     <appender-ref ref="eclipse-dev-console" />
   </root>
 </configuration>

@@ -23,4 +23,5 @@ Require-Bundle: org.eclipse.core.runtime,
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-Vendor: metaborg.org
 Bundle-ActivationPolicy: lazy
-Eclipse-RegisterBuddy: org.spoofax.interpreter.externaldeps
+Eclipse-RegisterBuddy: org.spoofax.interpreter.externaldeps, org.metaborg.util
+

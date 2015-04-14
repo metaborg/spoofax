@@ -12,16 +12,15 @@ public class SpoofaxDocumentListener implements IDocumentListener {
     private final Processor processor;
 
 
-    public SpoofaxDocumentListener(IEditorInput input, ISourceViewer sourceViewer,
-        Processor processor) {
+    public SpoofaxDocumentListener(IEditorInput input, ISourceViewer sourceViewer, Processor processor) {
         this.input = input;
         this.sourceViewer = sourceViewer;
         this.processor = processor;
     }
 
-    
+
     @Override public void documentAboutToBeChanged(DocumentEvent event) {
-        
+
     }
 
     @Override public void documentChanged(DocumentEvent event) {

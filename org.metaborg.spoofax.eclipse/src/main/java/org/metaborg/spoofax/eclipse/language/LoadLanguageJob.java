@@ -18,6 +18,7 @@ public class LoadLanguageJob extends Job {
 
     public LoadLanguageJob(ILanguageDiscoveryService languageDiscoveryService, FileObject location) {
         super("Loading Spoofax language");
+        setPriority(Job.SHORT);
 
         this.languageDiscoveryService = languageDiscoveryService;
         this.location = location;
@@ -28,7 +29,7 @@ public class LoadLanguageJob extends Job {
         try {
             languageDiscoveryService.discover(location);
         } catch(Exception e) {
-            final String message = "Could not load language at location " + location;
+            final String message = String.format("Could not load language at location %", location);
             logger.error(message, e);
             return StatusUtils.error(message, e);
         }

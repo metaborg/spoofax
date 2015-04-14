@@ -19,6 +19,7 @@ public class UnloadLanguageJob extends Job {
 
     public UnloadLanguageJob(ILanguageService languageService, FileObject location) {
         super("Reloading Spoofax language");
+        setPriority(Job.SHORT);
 
         this.languageService = languageService;
         this.location = location;
@@ -30,7 +31,8 @@ public class UnloadLanguageJob extends Job {
         if(language != null) {
             languageService.remove(language);
         } else {
-            final String message = "Failed to unload language at location" + location + " because it does not exist";
+            final String message =
+                String.format("Failed to unload language at location % because it does not exist", location);
             logger.error(message);
             return StatusUtils.error(message);
         }

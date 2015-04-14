@@ -11,9 +11,8 @@ public class DummyPrimitive extends AbstractPrimitive {
         super(name, strategyArity, termArity);
     }
 
-    
-    @Override public boolean call(IContext env, Strategy[] svars, IStrategoTerm[] tvars)
-        throws InterpreterException {
+
+    @Override public boolean call(IContext env, Strategy[] svars, IStrategoTerm[] tvars) throws InterpreterException {
         return true;
     }
 }

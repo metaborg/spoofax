@@ -19,14 +19,14 @@ public interface IResourceChange {
     public abstract ResourceChangeKind kind();
 
     /**
-     * When {@link IResourceChange#kind()} returns {@link ResourceChangeKind#Rename}, returns the resource it
-     * was renamed from. Otherwise returns null.
+     * When {@link IResourceChange#kind()} returns {@link ResourceChangeKind#Rename}, returns the resource it was
+     * renamed from. Otherwise returns null.
      */
     public abstract @Nullable FileObject renamedFrom();
 
     /**
-     * When {@link IResourceChange#kind()} returns {@link ResourceChangeKind#Rename}, returns the resource it
-     * was renamed to. Otherwise returns null.
+     * When {@link IResourceChange#kind()} returns {@link ResourceChangeKind#Rename}, returns the resource it was
+     * renamed to. Otherwise returns null.
      */
     public abstract @Nullable FileObject renamedTo();
 }

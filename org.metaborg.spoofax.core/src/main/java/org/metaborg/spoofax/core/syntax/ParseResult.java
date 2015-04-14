@@ -16,8 +16,7 @@ public class ParseResult<T> {
     public final ILanguage parsedWith;
 
 
-    public ParseResult(T result, FileObject source, Iterable<IMessage> messages, long duration,
-        ILanguage parsedWith) {
+    public ParseResult(T result, FileObject source, Iterable<IMessage> messages, long duration, ILanguage parsedWith) {
         this.result = result;
         this.source = source;
         this.messages = Lists.newLinkedList(messages);

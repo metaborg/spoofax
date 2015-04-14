@@ -47,8 +47,7 @@ public class ESVReader {
         return results;
     }
 
-    private static void
-        collectTerms(IStrategoTerm term, String constructor, ArrayList<IStrategoAppl> results) {
+    private static void collectTerms(IStrategoTerm term, String constructor, ArrayList<IStrategoAppl> results) {
         if(term.getTermType() == IStrategoTerm.APPL && cons(term).equals(constructor))
             results.add((IStrategoAppl) term);
 
@@ -81,7 +80,7 @@ public class ESVReader {
 
         return result;
     }
-    
+
     public static String getProperty(IStrategoAppl document, String name) {
         return getProperty(document, name, null);
     }
@@ -117,14 +116,14 @@ public class ESVReader {
         return ((IStrategoAppl) t).getConstructor().getName();
     }
 
-    
+
     public static String observerFunction(IStrategoAppl document) {
         final IStrategoAppl observer = findTerm(document, "SemanticObserver");
         final String observerFunction = termContents(termAt(observer, 0));
         return observerFunction;
     }
 
-    
+
     public static String onSaveFunction(IStrategoAppl document) {
         IStrategoAppl onsave = findTerm(document, "OnSave");
         onsave = onsave == null ? findTerm(document, "OnSaveDeprecated") : onsave;
@@ -135,7 +134,7 @@ public class ESVReader {
         return null;
     }
 
-    
+
     public static @Nullable String resolverStrategy(IStrategoAppl document) {
         final IStrategoAppl resolver = findTerm(document, "ReferenceRule");
         if(resolver == null)
@@ -150,7 +149,7 @@ public class ESVReader {
         return termContents(termAt(hover, 1));
     }
 
-    
+
     public static @Nullable String completionStrategy(IStrategoAppl document) {
         final IStrategoAppl completer = findTerm(document, "CompletionProposer");
         if(completer == null)
@@ -158,7 +157,7 @@ public class ESVReader {
         return termContents(termAt(completer, 1));
     }
 
-    
+
     public static String startSymbol(IStrategoAppl document) {
         final IStrategoAppl result = findTerm(document, "StartSymbols");
         if(result == null)
@@ -174,9 +173,8 @@ public class ESVReader {
         return file;
     }
 
-    
-    public static Set<FileObject> attachedFiles(IStrategoAppl document, FileObject basepath)
-        throws FileSystemException {
+
+    public static Set<FileObject> attachedFiles(IStrategoAppl document, FileObject basepath) throws FileSystemException {
         final Set<FileObject> attachedFiles = Sets.newLinkedHashSet(); // Use LinkedHashSet: must maintain JAR
                                                                        // order.
 
@@ -187,7 +185,7 @@ public class ESVReader {
         return attachedFiles;
     }
 
-    
+
     public static String languageName(IStrategoAppl document) {
         return getProperty(document, "LanguageName");
     }
@@ -196,7 +194,7 @@ public class ESVReader {
         return getProperty(document, "Extensions").split(",");
     }
 
-    
+
     public static Iterable<IStrategoAppl> builders(IStrategoAppl document) {
         return collectTerms(document, "Action");
     }
@@ -245,11 +243,11 @@ public class ESVReader {
         return annos;
     }
 
-    
+
     public static Iterable<IStrategoAppl> styleDefinitions(IStrategoAppl document) {
         return collectTerms(document, "ColorDef");
     }
-    
+
     public static Iterable<IStrategoAppl> styleRules(IStrategoAppl document) {
         return collectTerms(document, "ColorRule");
     }

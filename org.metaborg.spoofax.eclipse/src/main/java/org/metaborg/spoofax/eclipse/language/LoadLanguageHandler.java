@@ -10,7 +10,7 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.jobs.MultiRule;
 import org.metaborg.spoofax.core.language.ILanguageDiscoveryService;
 import org.metaborg.spoofax.eclipse.SpoofaxPlugin;
-import org.metaborg.spoofax.eclipse.processing.GlobalMutexes;
+import org.metaborg.spoofax.eclipse.job.GlobalSchedulingRules;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
 import org.metaborg.spoofax.eclipse.util.AbstractHandlerUtils;
 
@@ -19,14 +19,14 @@ import com.google.inject.Injector;
 public class LoadLanguageHandler extends AbstractHandler {
     private final IEclipseResourceService resourceService;
     private final ILanguageDiscoveryService languageDiscoveryService;
-    private final GlobalMutexes mutexes;
+    private final GlobalSchedulingRules mutexes;
 
 
     public LoadLanguageHandler() {
         final Injector injector = SpoofaxPlugin.injector();
         this.resourceService = injector.getInstance(IEclipseResourceService.class);
         this.languageDiscoveryService = injector.getInstance(ILanguageDiscoveryService.class);
-        this.mutexes = injector.getInstance(GlobalMutexes.class);
+        this.mutexes = injector.getInstance(GlobalSchedulingRules.class);
     }
 
 
@@ -37,8 +37,7 @@ public class LoadLanguageHandler extends AbstractHandler {
 
         final FileObject location = resourceService.resolve(project);
         final Job job = new LoadLanguageJob(languageDiscoveryService, location);
-        job.setRule(new MultiRule(new ISchedulingRule[] { mutexes.startupMutex,
-            mutexes.languageServiceMutex }));
+        job.setRule(new MultiRule(new ISchedulingRule[] { mutexes.startupReadLock(), mutexes.languageServiceLock() }));
         job.schedule();
 
         return null;
