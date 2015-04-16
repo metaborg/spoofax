@@ -143,6 +143,10 @@ public class JSGLRI implements IParser<IStrategoTerm> {
         return language;
     }
 
+    public ILanguage getDialect() {
+        return dialect;
+    }
+    
     public FileObject getResource() {
         return resource;
     }

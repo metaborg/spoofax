@@ -1,7 +1,5 @@
 package org.metaborg.spoofax.eclipse.resource;
 
-import java.util.Map;
-
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.eclipse.core.resources.IResource;
@@ -11,7 +9,6 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
 import org.metaborg.spoofax.core.SpoofaxRuntimeException;
-import org.metaborg.spoofax.core.resource.ILocalFileProvider;
 import org.metaborg.spoofax.core.resource.IResourceChange;
 import org.metaborg.spoofax.core.resource.ResourceChange;
 import org.metaborg.spoofax.core.resource.ResourceChangeKind;
@@ -28,9 +25,8 @@ public class EclipseResourceService extends ResourceService implements IEclipseR
 
 
     @Inject public EclipseResourceService(FileSystemManager fileSystemManager,
-        @Named("ResourceClassLoader") ClassLoader classLoader, Map<String, ILocalFileProvider> localFileProviders) {
-        super(fileSystemManager, classLoader, localFileProviders);
-
+        @Named("ResourceClassLoader") ClassLoader classLoader) {
+        super(fileSystemManager, classLoader);
     }
 
 
