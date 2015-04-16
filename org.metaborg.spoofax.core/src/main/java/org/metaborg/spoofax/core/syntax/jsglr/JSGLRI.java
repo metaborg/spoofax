@@ -109,11 +109,17 @@ public class JSGLRI implements IParser<IStrategoTerm> {
     }
 
     public IStrategoTerm actuallyParse(String text, String filename) throws SGLRException, InterruptedException {
+        if(dialect != null) {
+            disambiguator.setHeuristicFilters(true);
+        } else {
+            disambiguator.setHeuristicFilters(false);
+        }
+        
         IStrategoTerm result;
         try {
             result = (IStrategoTerm) parser.parse(text, filename, config.getStartSymbol(), false, cursorLocation);
         } catch(FilterException e) {
-            if(e.getCause() == null && parser.getDisambiguator().getFilterPriorities()) {
+            if(e.getCause() == null && disambiguator.getFilterPriorities()) {
                 disambiguator.setFilterPriorities(false);
                 try {
                     result = (IStrategoTerm) parser.parse(text, filename, config.getStartSymbol());
