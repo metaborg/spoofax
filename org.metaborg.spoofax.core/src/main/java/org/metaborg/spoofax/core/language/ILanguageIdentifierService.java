@@ -17,17 +17,6 @@ public interface ILanguageIdentifierService {
     public abstract @Nullable ILanguage identify(FileObject resource);
 
     /**
-     * Attempts to identify the languages with the same name of given file object.
-     * 
-     * @param resource
-     *            Resource to identify.
-     * @return Identified languages.
-     * @throws IllegalStateException
-     *             when a resource can be identified to languages with different names.
-     */
-    public abstract Iterable<ILanguage> identifyAll(FileObject resource);
-
-    /**
      * Checks if given resource is of given language.
      * 
      * @param resource

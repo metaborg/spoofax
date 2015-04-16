@@ -44,7 +44,7 @@ public class ResourceUtils {
         }
         return resources;
     }
-    
+
     /**
      * Returns all resources in the workspace using given file selector.
      * 
@@ -69,6 +69,15 @@ public class ResourceUtils {
         return resources;
     }
 
+    /**
+     * Converts Apache VFS resources on the Eclipse filesystem, to Eclipse resources.
+     * 
+     * @param resourceService
+     *            Resource service used to convert resources.
+     * @param resources
+     *            The VFS resources to convert.
+     * @return Eclipse resources.
+     */
     public static Collection<IResource> toEclipseResources(IEclipseResourceService resourceService,
         Collection<FileObject> resources) {
         final Collection<IResource> eclipseResources = Lists.newArrayListWithExpectedSize(resources.size());

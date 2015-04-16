@@ -14,6 +14,7 @@ import org.metaborg.spoofax.core.language.ILanguageDiscoveryService;
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
 import org.metaborg.spoofax.core.language.ILanguageService;
 import org.metaborg.spoofax.core.language.LanguageChange;
+import org.metaborg.spoofax.core.language.dialect.IDialectProcessor;
 import org.metaborg.spoofax.eclipse.editor.ISpoofaxEditorListener;
 import org.metaborg.spoofax.eclipse.job.GlobalSchedulingRules;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
@@ -28,6 +29,7 @@ public class LanguageChangeProcessor {
     private final ILanguageIdentifierService languageIdentifier;
     private final ILanguageDiscoveryService languageDiscoveryService;
     private final Set<ILanguageCache> languageCaches;
+    private final IDialectProcessor dialectProcessor;
 
     private final ISpoofaxEditorListener editorListener;
     private final GlobalSchedulingRules globalRules;
@@ -38,13 +40,14 @@ public class LanguageChangeProcessor {
 
     @Inject public LanguageChangeProcessor(IEclipseResourceService resourceService, ILanguageService languageService,
         ILanguageIdentifierService languageIdentifierService, ILanguageDiscoveryService languageDiscoveryService,
-        Set<ILanguageCache> languageCaches, ISpoofaxEditorListener spoofaxEditorListener,
-        GlobalSchedulingRules globalRules) {
+        Set<ILanguageCache> languageCaches, IDialectProcessor dialectProcessor,
+        ISpoofaxEditorListener spoofaxEditorListener, GlobalSchedulingRules globalRules) {
         this.resourceService = resourceService;
         this.languageService = languageService;
         this.languageIdentifier = languageIdentifierService;
         this.languageDiscoveryService = languageDiscoveryService;
         this.languageCaches = languageCaches;
+        this.dialectProcessor = dialectProcessor;
 
         this.editorListener = spoofaxEditorListener;
         this.globalRules = globalRules;
@@ -60,7 +63,7 @@ public class LanguageChangeProcessor {
     }
 
     public void discover() {
-        final Job job = new DiscoverLanguagesJob(resourceService, languageDiscoveryService);
+        final Job job = new DiscoverLanguagesJob(resourceService, languageDiscoveryService, dialectProcessor);
         job.setRule(new MultiRule(new ISchedulingRule[] { workspace.getRoot(), globalRules.startupWriteLock(),
             globalRules.languageServiceLock() }));
         job.schedule();

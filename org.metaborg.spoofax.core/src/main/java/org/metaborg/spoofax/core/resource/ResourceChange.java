@@ -23,6 +23,14 @@ public final class ResourceChange implements IResourceChange, Serializable {
         this.renamedTo = renamedTo;
     }
 
+    public ResourceChange(FileObject resource, ResourceChangeKind kind) {
+        this(resource, kind, null, null);
+    }
+
+    public ResourceChange(FileObject resource) {
+        this(resource, ResourceChangeKind.Create);
+    }
+
 
     @Override public FileObject resource() {
         return resource;
@@ -32,11 +40,11 @@ public final class ResourceChange implements IResourceChange, Serializable {
         return kind;
     }
 
-    @Override public @Nullable FileObject renamedFrom() {
+    @Override public @Nullable FileObject from() {
         return renamedFrom;
     }
 
-    @Override public @Nullable FileObject renamedTo() {
+    @Override public @Nullable FileObject to() {
         return renamedTo;
     }
 }

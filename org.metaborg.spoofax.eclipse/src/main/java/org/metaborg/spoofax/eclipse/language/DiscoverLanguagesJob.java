@@ -14,6 +14,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.jobs.Job;
 import org.metaborg.spoofax.core.language.ILanguageDiscoveryService;
+import org.metaborg.spoofax.core.language.dialect.IDialectProcessor;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
 import org.metaborg.spoofax.eclipse.util.StatusUtils;
 import org.osgi.framework.Bundle;
@@ -25,20 +26,22 @@ public class DiscoverLanguagesJob extends Job {
 
     private final IEclipseResourceService resourceService;
     private final ILanguageDiscoveryService languageDiscoveryService;
+    private final IDialectProcessor dialectProcessor;
 
 
-    public DiscoverLanguagesJob(IEclipseResourceService resourceService, ILanguageDiscoveryService languageDiscoveryService) {
+    public DiscoverLanguagesJob(IEclipseResourceService resourceService,
+        ILanguageDiscoveryService languageDiscoveryService, IDialectProcessor dialectProcessor) {
         super("Loading all Spoofax languages in workspace");
         setPriority(Job.LONG);
 
         this.resourceService = resourceService;
         this.languageDiscoveryService = languageDiscoveryService;
+        this.dialectProcessor = dialectProcessor;
     }
 
 
     @Override protected IStatus run(IProgressMonitor monitor) {
-        logger.debug("Running discover languages job")
-        ;
+        logger.debug("Running discover languages job");
         logger.debug("Loading static languages");
         final IExtensionRegistry registry = Platform.getExtensionRegistry();
         final IExtensionPoint point = registry.getExtensionPoint("org.metaborg.spoofax.eclipse.language");
@@ -60,7 +63,7 @@ public class DiscoverLanguagesJob extends Job {
             }
         }
 
-        logger.debug("Loading dynamic languages");
+        logger.debug("Loading dynamic languages and dialects");
         for(final IProject project : ResourcesPlugin.getWorkspace().getRoot().getProjects()) {
             if(project.isOpen()) {
                 final FileObject location = resourceService.resolve(project);
@@ -70,8 +73,16 @@ public class DiscoverLanguagesJob extends Job {
                     final String message = String.format("Could not load language at location %s", location);
                     logger.error(message, e);
                 }
+
+                try {
+                    dialectProcessor.loadAll(location);
+                } catch(Exception e) {
+                    final String message = String.format("Could not load dialects at location %s", location);
+                    logger.error(message, e);
+                }
             }
         }
+
         return StatusUtils.success();
     }
 }

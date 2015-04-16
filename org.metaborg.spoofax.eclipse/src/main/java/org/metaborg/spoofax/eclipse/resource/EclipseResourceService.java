@@ -5,12 +5,18 @@ import java.util.Map;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
+import org.metaborg.spoofax.core.SpoofaxRuntimeException;
 import org.metaborg.spoofax.core.resource.ILocalFileProvider;
+import org.metaborg.spoofax.core.resource.IResourceChange;
+import org.metaborg.spoofax.core.resource.ResourceChange;
+import org.metaborg.spoofax.core.resource.ResourceChangeKind;
 import org.metaborg.spoofax.core.resource.ResourceService;
+import org.metaborg.spoofax.eclipse.util.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +36,32 @@ public class EclipseResourceService extends ResourceService implements IEclipseR
 
     @Override public FileObject resolve(IResource resource) {
         return resolve("eclipse://" + resource.getFullPath().toString());
+    }
+
+    @Override public @Nullable IResourceChange resolve(IResourceDelta delta) {
+        final FileObject resource = resolve(delta.getResource());
+        final int eclipseKind = delta.getKind();
+        final ResourceChangeKind kind;
+        // GTODO: handle move/copies better
+        switch(eclipseKind) {
+            case IResourceDelta.NO_CHANGE:
+                return null;
+            case IResourceDelta.ADDED:
+                kind = ResourceChangeKind.Create;
+                break;
+            case IResourceDelta.REMOVED:
+                kind = ResourceChangeKind.Delete;
+                break;
+            case IResourceDelta.CHANGED:
+                kind = ResourceChangeKind.Modify;
+                break;
+            default:
+                final String message = String.format("Unhandled resource delta type: %s", eclipseKind);
+                logger.error(message);
+                throw new SpoofaxRuntimeException(message);
+        }
+
+        return new ResourceChange(resource, kind);
     }
 
     @Override public FileObject resolve(IEditorInput input) {

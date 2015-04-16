@@ -23,6 +23,7 @@ import org.metaborg.spoofax.core.context.IContext;
 import org.metaborg.spoofax.core.context.IContextService;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
+import org.metaborg.spoofax.core.language.dialect.IDialectService;
 import org.metaborg.spoofax.core.messages.IMessage;
 import org.metaborg.spoofax.core.messages.MessageFactory;
 import org.metaborg.spoofax.core.messages.MessageType;
@@ -50,6 +51,7 @@ public class EditorUpdateJob extends Job {
     private static final long killTimeMillis = 3000;
 
     private final ILanguageIdentifierService languageIdentifierService;
+    private final IDialectService dialectService;
     private final IContextService contextService;
     private final ISyntaxService<IStrategoTerm> syntaxService;
     private final IAnalysisService<IStrategoTerm, IStrategoTerm> analyzer;
@@ -70,8 +72,9 @@ public class EditorUpdateJob extends Job {
     private ThreadKillerJob threadKiller;
 
 
-    public EditorUpdateJob(ILanguageIdentifierService languageIdentifierService, IContextService contextService,
-        ISyntaxService<IStrategoTerm> syntaxService, IAnalysisService<IStrategoTerm, IStrategoTerm> analyzer,
+    public EditorUpdateJob(ILanguageIdentifierService languageIdentifierService, IDialectService dialectService,
+        IContextService contextService, ISyntaxService<IStrategoTerm> syntaxService,
+        IAnalysisService<IStrategoTerm, IStrategoTerm> analyzer,
         ICategorizerService<IStrategoTerm, IStrategoTerm> categorizer,
         IStylerService<IStrategoTerm, IStrategoTerm> styler, ParseResultProcessor parseResultProcessor,
         AnalysisResultProcessor analysisResultProcessor, IFileEditorInput input, IResource eclipseResource,
@@ -81,6 +84,7 @@ public class EditorUpdateJob extends Job {
         setPriority(Job.SHORT);
 
         this.languageIdentifierService = languageIdentifierService;
+        this.dialectService = dialectService;
         this.contextService = contextService;
         this.syntaxService = syntaxService;
         this.analyzer = analyzer;
@@ -160,9 +164,16 @@ public class EditorUpdateJob extends Job {
         final Display display = Display.getDefault();
 
         // Identify language
-        final ILanguage language = languageIdentifierService.identify(resource);
-        if(language == null) {
+        final ILanguage parserLanguage = languageIdentifierService.identify(resource);
+        if(parserLanguage == null) {
             throw new SpoofaxException("Language could not be identified");
+        }
+        ILanguage baseLanguage = dialectService.getBase(parserLanguage);
+        final ILanguage language;
+        if(baseLanguage == null) {
+            language = parserLanguage;
+        } else {
+            language = baseLanguage;
         }
 
         // Parse
@@ -171,13 +182,14 @@ public class EditorUpdateJob extends Job {
         final ParseResult<IStrategoTerm> parseResult;
         try {
             parseResultProcessor.invalidate(resource);
-            parseResult = syntaxService.parse(text, resource, language);
+            parseResult = syntaxService.parse(text, resource, parserLanguage);
             parseResultProcessor.update(resource, parseResult);
         } catch(ParseException e) {
             parseResultProcessor.error(resource, e);
             throw e;
         } catch(ThreadDeath e) {
-            parseResultProcessor.error(resource, new ParseException(resource, language, "Editor update job killed", e));
+            parseResultProcessor.error(resource, new ParseException(resource, parserLanguage,
+                "Editor update job killed", e));
             throw e;
         }
 
