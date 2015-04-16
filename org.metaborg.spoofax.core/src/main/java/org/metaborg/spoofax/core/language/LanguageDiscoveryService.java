@@ -48,9 +48,12 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
 
     @Override public Iterable<ILanguage> discover(FileObject location) throws Exception {
-        final FileObject[] esvFiles = location.findFiles(new ContainsFileSelector("packed.esv"));
-        final Set<FileObject> parents = Sets.newHashSet();
         final Collection<ILanguage> languages = Lists.newLinkedList();
+        final FileObject[] esvFiles = location.findFiles(new ContainsFileSelector("packed.esv"));
+        if(esvFiles == null) {
+            return languages;
+        }
+        final Set<FileObject> parents = Sets.newHashSet();
         for(FileObject esvFile : esvFiles) {
             final FileObject languageLocation = esvFile.getParent().getParent();
             if(parents.contains(languageLocation)) {
