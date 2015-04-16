@@ -1,11 +1,14 @@
 package org.metaborg.spoofax.eclipse.resource;
 
+import java.io.File;
+
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
 import org.metaborg.spoofax.core.SpoofaxRuntimeException;
@@ -89,5 +92,25 @@ public class EclipseResourceService extends ResourceService implements IEclipseR
 
     @Override public FileObject rebase(FileObject resource) {
         return resolve("eclipse://" + resource.getName().getPath());
+    }
+
+    @Override public File localPath(FileObject resource) {
+        if(!(resource instanceof EclipseResourceFileObject)) {
+            return super.localPath(resource);
+        }
+
+        try {
+            final IResource eclipseResource = unresolve(resource);
+            IPath path = eclipseResource.getRawLocation();
+            if(path == null) {
+                path = eclipseResource.getLocation();
+            }
+            if(path == null) {
+                return null;
+            }
+            return path.makeAbsolute().toFile();
+        } catch(Exception e) {
+            return null;
+        }
     }
 }

@@ -2,20 +2,20 @@ package org.metaborg.spoofax.core.resource;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Map;
 
+import org.apache.commons.vfs2.AllFileSelector;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.FileSystemOptions;
+import org.apache.commons.vfs2.provider.local.LocalFile;
 import org.apache.commons.vfs2.provider.res.ResourceFileSystemConfigBuilder;
 import org.metaborg.spoofax.core.SpoofaxRuntimeException;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
-import org.apache.commons.vfs2.AllFileSelector;
 
 public class ResourceService implements IResourceService {
     private final FileSystemManager fileSystemManager;
@@ -76,9 +76,16 @@ public class ResourceService implements IResourceService {
     @Override public File localFile(FileObject resource) {
         try {
             return resource.getFileSystem().replicateFile(resource, new AllFileSelector());
-        } catch (FileSystemException ex) {
-            return null;
+        } catch(FileSystemException e) {
+            throw new SpoofaxRuntimeException(e);
         }
+    }
+
+    @Override public File localPath(FileObject resource) {
+        if(resource instanceof LocalFile) {
+            return new File(resource.getName().getPath());
+        }
+        return null;
     }
 
 

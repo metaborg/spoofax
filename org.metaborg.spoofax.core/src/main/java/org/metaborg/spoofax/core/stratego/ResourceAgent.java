@@ -300,9 +300,9 @@ public class ResourceAgent extends IOAgent {
         // GTODO: does not work for files that do not reside on the local file system
         try {
             final FileObject resource = resolve(workingDir, fn);
-            File localResource = resourceService.localFile(resource);
+            File localResource = resourceService.localPath(resource);
             if(localResource == null) {
-                final File localWorkingDir = resourceService.localFile(workingDir);
+                final File localWorkingDir = resourceService.localPath(workingDir);
                 if(localWorkingDir == null) {
                     // Local working directory does not reside on the local file system, just return a File.
                     return new File(fn);
