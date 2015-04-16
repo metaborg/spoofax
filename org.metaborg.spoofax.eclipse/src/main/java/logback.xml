@@ -25,7 +25,7 @@
 
   <appender
     name="stdout"
-    class="org.metaborg.util.log.StaticConsoleAppender"
+    class="org.metaborg.spoofax.eclipse.logging.StaticConsoleAppender"
   >
     <target>System.out</target>
     <encoder>
