@@ -10,6 +10,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.SpoofaxException;
+import org.metaborg.spoofax.core.SpoofaxRuntimeException;
 import org.metaborg.spoofax.core.analysis.AnalysisDebugResult;
 import org.metaborg.spoofax.core.analysis.AnalysisException;
 import org.metaborg.spoofax.core.analysis.AnalysisFileResult;
@@ -67,7 +68,7 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
     private final IStrategoRuntimeService runtimeService;
 
     private final StrategoLocalPath localPath;
-    
+
     private final IStrategoConstructor fileCons;
 
 
@@ -149,12 +150,13 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
         Iterable<FileObject> sources, IContext context, HybridInterpreter interpreter, String analysisStrategy,
         ITermFactory termFactory) throws AnalysisException {
         final FileObject contextLocation = context.location();
-        final File localContextLocation = resourceService.localFile(contextLocation);
-        if(localContextLocation == null) {
-            final String message =
-                String.format("Context %s does not reside on the local file system, cannot analyze", contextLocation);
+        final File localContextLocation;
+        try {
+            localContextLocation = resourceService.localFile(contextLocation);
+        } catch(SpoofaxRuntimeException e) {
+            final String message = String.format("Context location %s does not exist, cannot analyze", contextLocation);
             logger.error(message);
-            throw new AnalysisException(sources, context, message);
+            throw new AnalysisException(sources, context, message, e);
         }
 
         logger.trace("Creating input terms for analysis (3-tuple terms)");
@@ -166,10 +168,12 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
             }
 
             final FileObject resource = input.source;
-            final File localResource = resourceService.localFile(resource);
-            if(localResource == null) {
-                logger.error("Input result for {} does not reside on the local file system, cannot analyze it",
-                    resource);
+            final File localResource;
+            try {
+                localResource = resourceService.localFile(resource);
+            } catch(SpoofaxRuntimeException e) {
+                final String message = String.format("Input %s does not exist, cannot analyze it", resource);
+                logger.error(message, e);
                 continue;
             }
 
@@ -254,14 +258,14 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
         Iterable<FileObject> sources, IContext context, HybridInterpreter interpreter, String analysisStrategy,
         ITermFactory termFactory) throws AnalysisException {
         final FileObject contextLocation = context.location();
-        final File localContextLocation = resourceService.localFile(contextLocation);
-        if(localContextLocation == null) {
-            final String message =
-                String.format("Context %s does not reside on the local file system, cannot analyze", contextLocation);
+        final File localContextLocation;
+        try {
+            localContextLocation = resourceService.localFile(contextLocation);
+        } catch(SpoofaxRuntimeException e) {
+            final String message = String.format("Context location %s does not exist, cannot analyze", contextLocation);
             logger.error(message);
-            throw new AnalysisException(sources, context, message);
+            throw new AnalysisException(sources, context, message, e);
         }
-
         final ILanguage language = context.language();
 
         logger.trace("Creating input terms for analysis (File/3 terms)");
@@ -274,10 +278,12 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
             }
 
             final FileObject resource = input.source;
-            final File localResource = resourceService.localFile(resource);
-            if(localResource == null) {
-                logger.error("Input result for {} does not reside on the local file system, cannot analyze it",
-                    resource);
+            final File localResource;
+            try {
+                localResource = resourceService.localFile(resource);
+            } catch(SpoofaxRuntimeException e) {
+                final String message = String.format("Input %s does not exist, cannot analyze it", resource);
+                logger.error(message, e);
                 continue;
             }
 

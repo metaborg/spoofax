@@ -131,13 +131,6 @@ public class SpoofaxMetaProjectBuilder extends IncrementalProjectBuilder {
             throw new CoreException(StatusUtils.error(message));
         }
         final File buildFile = resourceService.localFile(buildFileLocation);
-        if(buildFile == null) {
-            final String message =
-                String.format("Cannot %s language project, build file %s does not reside on the local file system",
-                    action, buildFileLocation);
-            logger.error(message);
-            throw new CoreException(StatusUtils.error(message));
-        }
         final String buildFilePath = buildFile.getAbsolutePath();
         return buildFilePath;
     }

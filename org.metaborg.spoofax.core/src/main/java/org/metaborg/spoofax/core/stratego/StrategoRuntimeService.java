@@ -10,6 +10,7 @@ import java.util.Set;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.SpoofaxException;
+import org.metaborg.spoofax.core.SpoofaxRuntimeException;
 import org.metaborg.spoofax.core.analysis.stratego.StrategoFacet;
 import org.metaborg.spoofax.core.context.IContext;
 import org.metaborg.spoofax.core.language.ILanguage;
@@ -94,7 +95,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, ILanguag
         for(IOperatorRegistry library : strategoLibraries) {
             interpreter.getCompiledContext().addOperatorRegistry(library);
         }
-        
+
         // Override parse Stratego file strategy with one that works with Spoofax core.
         parse_stratego_file_0_0.instance = parseStrategoFileStrategy;
 
@@ -128,15 +129,12 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, ILanguag
             int i = 0;
             for(FileObject jar : jars) {
                 final File localJar = resourceService.localFile(jar);
-                if(localJar == null) {
-                    throw new RuntimeException("Failed to load "+jar);
-                }
                 classpath[i] = localJar.toURI().toURL();
                 ++i;
             }
             logger.trace("Loading jar files {}", (Object) classpath);
             interp.loadJars(classpath);
-        } catch(IncompatibleJarException | IOException e) {
+        } catch(IncompatibleJarException | IOException | SpoofaxRuntimeException e) {
             throw new SpoofaxException("Failed to load JAR", e);
         }
     }

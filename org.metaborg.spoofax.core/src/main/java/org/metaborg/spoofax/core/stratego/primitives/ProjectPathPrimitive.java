@@ -31,10 +31,6 @@ public class ProjectPathPrimitive extends AbstractPrimitive {
             (org.metaborg.spoofax.core.context.IContext) env.contextObject();
         final FileObject resource = context.location();
         final File localFile = resourceService.localFile(resource);
-        if(localFile == null) {
-            throw new InterpreterException("Cannot retrieve project path on local filesystem for resource "
-                + resource.getName());
-        }
         final IStrategoTerm pathTerm = factory.makeString(localFile.toString());
         env.setCurrent(pathTerm);
         return true;
