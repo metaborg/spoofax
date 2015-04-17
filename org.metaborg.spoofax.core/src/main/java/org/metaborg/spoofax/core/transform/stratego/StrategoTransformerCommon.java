@@ -132,11 +132,9 @@ public class StrategoTransformerCommon {
         }
         final IStrategoString locationTerm = localPath.localLocationTerm(localLocation);
 
-        final File localResource;
-        try {
-            localResource = resourceService.localFile(resource);
-        } catch(SpoofaxRuntimeException e) {
-            final String message = String.format("Resource %s does not exist", resource);
+        final File localResource = resourceService.localPath(resource);
+        if(localResource == null) {
+            final String message = String.format("Resource %s does not reside on the local file system", resource);
             logger.error(message);
             throw new SpoofaxException(message);
         }
