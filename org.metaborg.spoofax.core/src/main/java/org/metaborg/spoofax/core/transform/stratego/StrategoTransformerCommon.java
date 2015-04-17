@@ -8,6 +8,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.spoofax.core.SpoofaxException;
+import org.metaborg.spoofax.core.SpoofaxRuntimeException;
 import org.metaborg.spoofax.core.context.IContext;
 import org.metaborg.spoofax.core.messages.IMessage;
 import org.metaborg.spoofax.core.resource.IResourceService;
@@ -121,17 +122,21 @@ public class StrategoTransformerCommon {
         // GTODO: support position
         final IStrategoTerm position = termFactory.makeList();
 
-        final File localLocation = resourceService.localFile(location);
-        if(localLocation == null) {
-            final String message = String.format("Locaion %s does not reside on the local file system", location);
-            logger.error(message);
+        final File localLocation;
+        try {
+            localLocation = resourceService.localFile(location);
+        } catch(SpoofaxRuntimeException e) {
+            final String message = String.format("Location %s does not exist", location);
+            logger.error(message, e);
             throw new SpoofaxException(message);
         }
         final IStrategoString locationTerm = localPath.localLocationTerm(localLocation);
 
-        final File localResource = resourceService.localFile(resource);
-        if(localResource == null) {
-            final String message = String.format("Resource %s does not reside on the local file system", resource);
+        final File localResource;
+        try {
+            localResource = resourceService.localFile(resource);
+        } catch(SpoofaxRuntimeException e) {
+            final String message = String.format("Resource %s does not exist", resource);
             logger.error(message);
             throw new SpoofaxException(message);
         }
