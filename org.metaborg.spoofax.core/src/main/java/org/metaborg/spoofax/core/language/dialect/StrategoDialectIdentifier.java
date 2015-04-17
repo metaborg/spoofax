@@ -5,43 +5,76 @@ import java.io.IOException;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
+import org.metaborg.spoofax.core.SpoofaxException;
+import org.metaborg.spoofax.core.SpoofaxRuntimeException;
+import org.metaborg.spoofax.core.language.ILanguage;
+import org.metaborg.spoofax.core.language.ILanguageService;
+import org.metaborg.spoofax.core.language.IdentificationFacet;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.terms.ParseError;
 import org.spoofax.terms.io.binary.TermReader;
 
-import rx.functions.Func1;
+import com.google.inject.Inject;
 
-public class ResourceDialectIdentifier implements Func1<FileObject, Boolean> {
+public class StrategoDialectIdentifier implements IDialectIdentifier {
+    private static final Logger logger = LoggerFactory.getLogger(StrategoDialectIdentifier.class);
+
+    private final ILanguageService languageService;
+    private final IDialectService dialectService;
     private final ITermFactoryService termFactoryService;
-    private final String dialectName;
 
 
-    public ResourceDialectIdentifier(ITermFactoryService termFactoryService, String dialectName) {
+    @Inject public StrategoDialectIdentifier(ILanguageService languageService, IDialectService dialectService,
+        ITermFactoryService termFactoryService) {
+        this.languageService = languageService;
+        this.dialectService = dialectService;
         this.termFactoryService = termFactoryService;
-        this.dialectName = dialectName;
     }
 
 
-    @Override public Boolean call(FileObject resource) {
+    @Override public ILanguage identify(FileObject resource) throws SpoofaxException {
+        final ILanguage strategoLanguage = languageService.get("Stratego-Sugar");
+        if(strategoLanguage == null) {
+            final String message = "Could not find Stratego language, Stratego dialects cannot be identified";
+            logger.debug(message);
+            throw new SpoofaxRuntimeException(message);
+        }
+
+        if(!strategoLanguage.facet(IdentificationFacet.class).identify(resource)) {
+            return null;
+        }
+
         try {
             final FileObject metaResource = metaResource(resource);
             if(metaResource == null) {
-                return false;
+                return null;
             }
             final TermReader termReader = new TermReader(termFactoryService.getGeneric());
             final IStrategoTerm term = termReader.parseFromStream(metaResource.getContent().getInputStream());
             final String name = getSyntaxName(term.getSubterm(0));
             if(name == null) {
-                return false;
+                return null;
             }
-            return dialectName.equals(name);
+            final ILanguage dialect = dialectService.getDialect(name);
+            if(dialect == null) {
+                final String message =
+                    String.format("Resource %s requires dialect %s, but that dialect does not exist", resource, name);
+                throw new SpoofaxException(message);
+            }
+            return dialect;
         } catch(ParseError | IOException e) {
-
+            throw new SpoofaxException("Unable to open or parse .meta file", e);
         }
-        return false;
+    }
+
+    @Override public boolean identify(FileObject resource, ILanguage dialect) throws SpoofaxException {
+        final ILanguage identified = identify(resource);
+        return dialect.equals(identified);
     }
 
 
@@ -67,7 +100,6 @@ public class ResourceDialectIdentifier implements Func1<FileObject, Boolean> {
         }
     }
 
-
     private static String getSyntaxName(IStrategoTerm entries) {
         for(IStrategoTerm entry : entries.getAllSubterms()) {
             final String cons = ((IStrategoAppl) entry).getConstructor().getName();
@@ -77,5 +109,4 @@ public class ResourceDialectIdentifier implements Func1<FileObject, Boolean> {
         }
         return null;
     }
-
 }

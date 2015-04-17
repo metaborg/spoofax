@@ -3,7 +3,6 @@ package org.metaborg.spoofax.core.language;
 import java.util.Set;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.spoofax.core.language.dialect.ResourceDialectIdentifier;
 
 import rx.functions.Func1;
 
@@ -19,10 +18,6 @@ public class ResourceExtensionsIdentifier implements Func1<FileObject, Boolean> 
 
 
     @Override public Boolean call(FileObject resource) {
-        if(extensions.contains(resource.getName().getExtension())
-            && ResourceDialectIdentifier.metaResource(resource) == null) {
-            return true;
-        }
-        return false;
+        return extensions.contains(resource.getName().getExtension());
     }
 }

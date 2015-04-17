@@ -23,14 +23,14 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
-public class DialectProcessor implements IDialectProcessor {
-    private static final Logger logger = LoggerFactory.getLogger(DialectProcessor.class);
+public class StrategoDialectProcessor implements IDialectProcessor {
+    private static final Logger logger = LoggerFactory.getLogger(StrategoDialectProcessor.class);
 
     private final ILanguageService languageService;
     private final IDialectService dialectService;
 
 
-    @Inject public DialectProcessor(ILanguageService languageService, IDialectService dialectService) {
+    @Inject public StrategoDialectProcessor(ILanguageService languageService, IDialectService dialectService) {
         this.languageService = languageService;
         this.dialectService = dialectService;
     }

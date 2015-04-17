@@ -13,7 +13,6 @@ import org.metaborg.spoofax.core.language.ILanguageService;
 import org.metaborg.spoofax.core.language.IdentificationFacet;
 import org.metaborg.spoofax.core.language.ResourceExtensionFacet;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
-import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,20 +26,18 @@ public class DialectService implements IDialectService {
     private static final Logger logger = LoggerFactory.getLogger(DialectService.class);
 
     private final ILanguageService languageService;
-    private final ITermFactoryService termFactoryService;
 
-    private final Class<? extends ILanguageFacet> syntaxFacetClass = SyntaxFacet.class;
-    private final Class<? extends ILanguageFacet> identifierFacetClass = IdentificationFacet.class;
-    private final Class<? extends ILanguageFacet> resourceExtensionFacetClass = ResourceExtensionFacet.class;
+    private final Class<SyntaxFacet> syntaxFacetClass = SyntaxFacet.class;
+    private final Class<IdentificationFacet> identificationFacetClass = IdentificationFacet.class;
+    private final Class<ResourceExtensionFacet> resourceExtensionFacetClass = ResourceExtensionFacet.class;
 
     private final Map<String, ILanguage> nameToDialect = Maps.newHashMap();
     private final Map<ILanguage, ILanguage> dialectToBase = Maps.newHashMap();
     private final Multimap<ILanguage, ILanguage> baseLanguageToDialects = HashMultimap.create();
 
 
-    @Inject public DialectService(ILanguageService languageService, ITermFactoryService termFactoryService) {
+    @Inject public DialectService(ILanguageService languageService) {
         this.languageService = languageService;
-        this.termFactoryService = termFactoryService;
     }
 
 
@@ -75,7 +72,7 @@ public class DialectService implements IDialectService {
             dialect.addFacet(facet);
         }
         dialect.addFacet(syntaxFacet);
-        dialect.addFacet(new IdentificationFacet(new ResourceDialectIdentifier(termFactoryService, name)));
+        dialect.addFacet(new IdentificationFacet(new MetaFileIdentifier(base.facet(identificationFacetClass))));
         // Add dialect before updating maps, adding can cause an exception; maps should not be updated.
         languageService.add(dialect);
         nameToDialect.put(name, dialect);
@@ -115,7 +112,7 @@ public class DialectService implements IDialectService {
                 newDialect.addFacet(facet);
             }
             newDialect.addFacet(parserFacet);
-            newDialect.addFacet(new IdentificationFacet(new ResourceDialectIdentifier(termFactoryService, name)));
+            dialect.addFacet(new IdentificationFacet(new MetaFileIdentifier(newBase.facet(identificationFacetClass))));
             try {
                 // Add dialect before updating maps, adding can cause an exception; maps should not be updated.
                 // Adding reloads the dialect because location is the same, no need to remove old dialect.
@@ -182,7 +179,7 @@ public class DialectService implements IDialectService {
 
 
     private boolean ignoreFacet(Class<? extends ILanguageFacet> facetClass) {
-        return facetClass.equals(syntaxFacetClass) || facetClass.equals(identifierFacetClass)
+        return facetClass.equals(syntaxFacetClass) || facetClass.equals(identificationFacetClass)
             || facetClass.equals(resourceExtensionFacetClass);
     }
 }
