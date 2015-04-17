@@ -19,10 +19,12 @@ import org.metaborg.spoofax.core.language.ILanguageService;
 import org.metaborg.spoofax.core.language.LanguageDiscoveryService;
 import org.metaborg.spoofax.core.language.LanguageIdentifierService;
 import org.metaborg.spoofax.core.language.LanguageService;
-import org.metaborg.spoofax.core.language.dialect.DialectProcessor;
 import org.metaborg.spoofax.core.language.dialect.DialectService;
+import org.metaborg.spoofax.core.language.dialect.IDialectIdentifier;
 import org.metaborg.spoofax.core.language.dialect.IDialectProcessor;
 import org.metaborg.spoofax.core.language.dialect.IDialectService;
+import org.metaborg.spoofax.core.language.dialect.StrategoDialectIdentifier;
+import org.metaborg.spoofax.core.language.dialect.StrategoDialectProcessor;
 import org.metaborg.spoofax.core.project.DummyProjectService;
 import org.metaborg.spoofax.core.project.IProjectService;
 import org.metaborg.spoofax.core.resource.DefaultFileSystemManagerProvider;
@@ -33,6 +35,7 @@ import org.metaborg.spoofax.core.stratego.StrategoLocalPath;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeService;
 import org.metaborg.spoofax.core.stratego.primitives.DummyPrimitive;
 import org.metaborg.spoofax.core.stratego.primitives.ParseFilePrimitive;
+import org.metaborg.spoofax.core.stratego.primitives.ParseFilePtPrimitive;
 import org.metaborg.spoofax.core.stratego.primitives.ProjectPathPrimitive;
 import org.metaborg.spoofax.core.stratego.primitives.SpoofaxJSGLRLibrary;
 import org.metaborg.spoofax.core.stratego.primitives.SpoofaxPrimitiveLibrary;
@@ -70,7 +73,6 @@ import com.google.inject.TypeLiteral;
 import com.google.inject.multibindings.MapBinder;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
-import org.metaborg.spoofax.core.stratego.primitives.ParseFilePtPrimitive;
 
 /**
  * Guice module that specifies which implementations to use for services and factories.
@@ -123,7 +125,8 @@ public class SpoofaxModule extends AbstractModule {
         bind(ILanguageIdentifierService.class).to(LanguageIdentifierService.class).in(Singleton.class);
 
         bind(IDialectService.class).to(DialectService.class).in(Singleton.class);
-        bind(IDialectProcessor.class).to(DialectProcessor.class).in(Singleton.class);
+        bind(IDialectIdentifier.class).to(StrategoDialectIdentifier.class).in(Singleton.class);
+        bind(IDialectProcessor.class).to(StrategoDialectProcessor.class).in(Singleton.class);
     }
 
     protected void bindContext() {

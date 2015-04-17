@@ -15,6 +15,7 @@ public class Language implements ILanguage {
     private final LanguageVersion version;
     private final int sequenceId;
 
+
     private final ClassToInstanceMap<ILanguageFacet> facets = MutableClassToInstanceMap.create();
     private final Subject<LanguageFacetChange, LanguageFacetChange> facetChanges = PublishSubject.create();
 
