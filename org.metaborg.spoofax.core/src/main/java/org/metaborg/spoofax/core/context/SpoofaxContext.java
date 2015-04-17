@@ -76,7 +76,7 @@ public class SpoofaxContext implements IContext, IContextInternal {
 
 
     private URI locationURI() {
-        final File localLocation = resourceService.localFile(identifier.location);
+        final File localLocation = resourceService.localPath(identifier.location);
         if(localLocation == null) {
             return null;
         }

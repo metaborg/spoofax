@@ -1,7 +1,6 @@
 package org.metaborg.spoofax.eclipse.resource;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Collection;
 
 import org.apache.commons.vfs2.Capability;
@@ -38,14 +37,14 @@ public class EclipseResourceFileSystem extends AbstractFileSystem {
         final EclipseResourceFileObject eclipseResource = (EclipseResourceFileObject) file;
         final IResource resource = eclipseResource.resource();
         if(resource == null) {
-            throw new IOException("Cannot get Eclipse resource corresponding to " + file);
+            return super.doReplicateFile(file, selector);
         }
         IPath path = resource.getRawLocation();
         if(path == null) {
             path = resource.getLocation();
         }
         if(path == null) {
-            throw new IOException("Resource " + file + " does not reside on the local file system");
+            return super.doReplicateFile(file, selector);
         }
         return path.makeAbsolute().toFile();
     }

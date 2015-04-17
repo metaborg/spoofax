@@ -70,13 +70,25 @@ public interface IResourceService {
     public FileName resolveURI(String uri);
 
     /**
-     * Attempts to get a local file handle for given resource, if that resource is located on the local file system.
+     * Attempts to get a local file for given resource, or copies the resource to the local file system if it does not
+     * reside on the local file system.
+     * 
+     * @param resource
+     *            Resource to get a local file for.
+     * @return Local file.
+     * @throws SpoofaxRuntimeException
+     *             When given resource does not exist.
+     */
+    public File localFile(FileObject resource);
+
+    /**
+     * Attempts to get a local file handle for given resource.
      * 
      * @param resource
      *            Resource to get a local file handle for.
-     * @return Local file handle, or null if resource does not reside on the local file system.
+     * @return Local file handle, or null if given resource does not reside on the local file system.
      */
-    public @Nullable File localFile(FileObject resource);
+    public @Nullable File localPath(FileObject resource);
 
     /**
      * Returns a file system object that points to a directory where user-specific data can be stored.

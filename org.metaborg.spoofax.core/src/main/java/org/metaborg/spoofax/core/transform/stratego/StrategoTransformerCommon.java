@@ -123,7 +123,7 @@ public class StrategoTransformerCommon {
 
         final File localLocation = resourceService.localFile(location);
         if(localLocation == null) {
-            final String message = String.format("Context %s does not reside on the local file system", location);
+            final String message = String.format("Locaion %s does not reside on the local file system", location);
             logger.error(message);
             throw new SpoofaxException(message);
         }
@@ -131,7 +131,7 @@ public class StrategoTransformerCommon {
 
         final File localResource = resourceService.localFile(resource);
         if(localResource == null) {
-            final String message = String.format("Context %s does not reside on the local file system", resource);
+            final String message = String.format("Resource %s does not reside on the local file system", resource);
             logger.error(message);
             throw new SpoofaxException(message);
         }
