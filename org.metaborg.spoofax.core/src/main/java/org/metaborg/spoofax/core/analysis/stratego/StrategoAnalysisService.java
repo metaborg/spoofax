@@ -168,12 +168,11 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
             }
 
             final FileObject resource = input.source;
-            final File localResource;
-            try {
-                localResource = resourceService.localFile(resource);
-            } catch(SpoofaxRuntimeException e) {
-                final String message = String.format("Input %s does not exist, cannot analyze it", resource);
-                logger.error(message, e);
+            final File localResource = resourceService.localPath(resource);
+            if(localResource == null) {
+                final String message =
+                    String.format("Input %s does not reside on the local file system, cannot analyze it", resource);
+                logger.error(message);
                 continue;
             }
 
@@ -278,12 +277,11 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
             }
 
             final FileObject resource = input.source;
-            final File localResource;
-            try {
-                localResource = resourceService.localFile(resource);
-            } catch(SpoofaxRuntimeException e) {
-                final String message = String.format("Input %s does not exist, cannot analyze it", resource);
-                logger.error(message, e);
+            final File localResource = resourceService.localPath(resource);
+            if(localResource == null) {
+                final String message =
+                    String.format("Input %s does not reside on the local file system, cannot analyze it", resource);
+                logger.error(message);
                 continue;
             }
 
