@@ -1,10 +1,12 @@
 package org.metaborg.spoofax.core.messages;
 
+import java.io.Serializable;
+
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 
-public interface IMessage {
+public interface IMessage extends Serializable {
     public String message();
 
     public MessageSeverity severity();

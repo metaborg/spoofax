@@ -36,7 +36,7 @@ public class StrategoNamedTransformer implements IStrategoTransformerExecutor {
     @Override public TransformResult<ParseResult<IStrategoTerm>, IStrategoTerm> transform(
         ParseResult<IStrategoTerm> parseResult, IContext context, ITransformerGoal goal) throws TransformerException {
         final Action action = action(context.language(), goal);
-        final FileObject resource = parseResult.source;
+        final FileObject resource = parseResult.source();
         try {
             final IStrategoTerm inputTerm =
                 transformer.builderInputTerm(parseResult.result, resource, context.location());
@@ -53,7 +53,7 @@ public class StrategoNamedTransformer implements IStrategoTransformerExecutor {
         AnalysisFileResult<IStrategoTerm, IStrategoTerm> analysisResult, IContext context, ITransformerGoal goal)
         throws TransformerException {
         final Action action = action(context.language(), goal);
-        final FileObject resource = analysisResult.source;
+        final FileObject resource = analysisResult.source();
         try {
             final IStrategoTerm inputTerm =
                 transformer.builderInputTerm(analysisResult.result, resource, context.location());

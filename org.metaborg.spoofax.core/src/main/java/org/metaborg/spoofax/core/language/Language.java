@@ -1,6 +1,11 @@
 package org.metaborg.spoofax.core.language;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.spoofax.core.resource.ResourceService;
 
 import rx.Observable;
 import rx.subjects.PublishSubject;
@@ -10,15 +15,15 @@ import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.MutableClassToInstanceMap;
 
 public class Language implements ILanguage {
-    private final String name;
-    private final FileObject location;
+	private static final long serialVersionUID = 5329634831598144245L;
+	
+	private final String name;
+    private transient FileObject location;
     private final LanguageVersion version;
     private final int sequenceId;
 
-
-    private final ClassToInstanceMap<ILanguageFacet> facets = MutableClassToInstanceMap.create();
-    private final Subject<LanguageFacetChange, LanguageFacetChange> facetChanges = PublishSubject.create();
-
+    private transient ClassToInstanceMap<ILanguageFacet> facets = MutableClassToInstanceMap.create();
+    private transient Subject<LanguageFacetChange, LanguageFacetChange> facetChanges = PublishSubject.create();
 
     public Language(String name, FileObject location, LanguageVersion version, int sequenceId) {
         this.name = name;
@@ -108,4 +113,30 @@ public class Language implements ILanguage {
     @Override public String toString() {
         return "Language [name=" + name + ", version=" + version + ", location=" + location + "]";
     }
+
+
+	private void writeObject(ObjectOutputStream out) throws IOException {
+		out.defaultWriteObject();
+		
+		ResourceService.writeFileObject(location, out);
+		
+		out.writeInt(facets.size());
+		for (ILanguageFacet facet : facets.values())
+			out.writeObject(facet);
+	}
+
+
+	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+		in.defaultReadObject();
+		
+		location = ResourceService.readFileObject(in);
+		facets = MutableClassToInstanceMap.create();
+		facetChanges = PublishSubject.create();		
+		
+		int facetCount = in.readInt();
+		for (int i = 0; i < facetCount; i++) {
+			ILanguageFacet facet = (ILanguageFacet) in.readObject();
+			facets.put(facet.getClass(), facet);
+		}
+	}
 }

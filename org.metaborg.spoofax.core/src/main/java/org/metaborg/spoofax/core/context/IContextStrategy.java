@@ -1,12 +1,14 @@
 package org.metaborg.spoofax.core.context;
 
+import java.io.Serializable;
+
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.language.ILanguage;
 
 /**
  * Interface for {@link IContext} creation/retrieval strategies.
  */
-public interface IContextStrategy {
+public interface IContextStrategy extends Serializable {
     /**
      * Returns the context identifier for given resource and language.
      * 

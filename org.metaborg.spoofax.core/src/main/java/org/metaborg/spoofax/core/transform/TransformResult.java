@@ -1,13 +1,24 @@
 package org.metaborg.spoofax.core.transform;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.util.List;
+
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.context.IContext;
 import org.metaborg.spoofax.core.messages.IMessage;
+import org.metaborg.spoofax.core.resource.ResourceService;
 
-public class TransformResult<PrevT, TransT> {
-    public final TransT result;
+import com.google.common.collect.Lists;
+
+public class TransformResult<PrevT, TransT> implements Serializable {
+	private static final long serialVersionUID = 9088183760418269222L;
+	
+	public final TransT result;
     public final Iterable<IMessage> messages;
-    public final Iterable<FileObject> sources;
+    public transient Iterable<FileObject> sources;
     public final IContext context;
     public final long duration;
     public final PrevT previousResult;
@@ -22,4 +33,24 @@ public class TransformResult<PrevT, TransT> {
         this.duration = duration;
         this.previousResult = previousResult;
     }
+    
+	private void writeObject(ObjectOutputStream out) throws IOException {
+		out.defaultWriteObject();
+
+		List<FileObject> ctreeList = Lists.newArrayList(sources);
+    	out.writeInt(ctreeList.size());
+    	for (FileObject fo : ctreeList)
+    		ResourceService.writeFileObject(fo, out);
+	}
+
+
+	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+		in.defaultReadObject();
+		
+		List<FileObject> sourceList = Lists.newArrayList();
+    	int sourceCount = in.readInt();
+    	for (int i = 0; i < sourceCount; i++)
+    		sourceList.add(ResourceService.readFileObject(in));
+    	this.sources = sourceList;
+	}    
 }

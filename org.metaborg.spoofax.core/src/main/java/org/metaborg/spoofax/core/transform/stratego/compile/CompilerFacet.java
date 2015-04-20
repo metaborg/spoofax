@@ -5,7 +5,9 @@ import javax.annotation.Nullable;
 import org.metaborg.spoofax.core.language.ILanguageFacet;
 
 public class CompilerFacet implements ILanguageFacet {
-    public final @Nullable String strategyName;
+	private static final long serialVersionUID = 3377061041002083621L;
+	
+	public final @Nullable String strategyName;
 
 
     public CompilerFacet() {

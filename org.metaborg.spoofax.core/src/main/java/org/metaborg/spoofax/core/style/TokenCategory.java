@@ -1,7 +1,9 @@
 package org.metaborg.spoofax.core.style;
 
 public class TokenCategory implements ICategory {
-    public final String token;
+    private static final long serialVersionUID = 5080900364515756478L;
+    
+	public final String token;
 
 
     public TokenCategory(String token) {

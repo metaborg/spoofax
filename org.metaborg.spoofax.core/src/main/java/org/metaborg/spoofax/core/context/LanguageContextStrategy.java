@@ -4,7 +4,9 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.language.ILanguage;
 
 public class LanguageContextStrategy implements IContextStrategy {
-    public static final String name = "language";
+    private static final long serialVersionUID = 2867818677887710472L;
+    
+	public static final String name = "language";
 
 
     @Override public ContextIdentifier get(FileObject resource, ILanguage language) {

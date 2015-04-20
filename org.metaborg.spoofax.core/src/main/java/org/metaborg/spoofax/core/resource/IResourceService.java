@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.core.resource;
 
 import java.io.File;
+import java.io.Serializable;
 
 import javax.annotation.Nullable;
 

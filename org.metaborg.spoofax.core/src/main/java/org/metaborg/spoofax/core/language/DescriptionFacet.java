@@ -6,7 +6,9 @@ import javax.annotation.Nullable;
  * Represents a facet that provides basic information about a language
  */
 public class DescriptionFacet implements ILanguageFacet {
-    /**
+    private static final long serialVersionUID = 1359431428699292452L;
+    
+	/**
      * Description of the language.
      */
     public final String description;

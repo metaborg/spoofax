@@ -9,6 +9,7 @@ import org.metaborg.spoofax.core.analysis.stratego.StrategoFacet;
 import org.metaborg.spoofax.core.analysis.stratego.StrategoFacetFromESV;
 import org.metaborg.spoofax.core.context.ContextFacet;
 import org.metaborg.spoofax.core.context.IContextStrategy;
+import org.metaborg.spoofax.core.context.LanguageContextStrategy;
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.metaborg.spoofax.core.style.StylerFacet;
 import org.metaborg.spoofax.core.style.StylerFacetFromESV;
@@ -94,7 +95,7 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
         // TODO: get facet strategy from language specification. Currently there is no specification yet so always
         // choose 'project' as the context strategy.
-        final IContextStrategy contextStrategy = contextStrategies.get("project");
+        final IContextStrategy contextStrategy = new LanguageContextStrategy(); // was: contextStrategies.get("project");
         final ContextFacet contextFacet = new ContextFacet(contextStrategy);
         language.addFacet(contextFacet);
 

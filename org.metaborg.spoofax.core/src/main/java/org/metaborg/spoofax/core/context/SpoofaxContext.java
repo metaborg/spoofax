@@ -14,17 +14,18 @@ import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.library.index.IndexManager;
 
 public class SpoofaxContext implements IContext, IContextInternal {
-    private static final Logger logger = LoggerFactory.getLogger(SpoofaxContext.class);
+    private static final long serialVersionUID = 4177944175684703453L;
 
-    private final IResourceService resourceService;
+	private static final Logger logger = LoggerFactory.getLogger(SpoofaxContext.class);
+
+    private final URI locationURI;
 
     private final ContextIdentifier identifier;
 
 
     public SpoofaxContext(IResourceService resourceService, ContextIdentifier identifier) {
-        this.resourceService = resourceService;
-
         this.identifier = identifier;
+        this.locationURI = locationURI(resourceService);
     }
 
 
@@ -33,7 +34,7 @@ public class SpoofaxContext implements IContext, IContextInternal {
     }
 
     @Override public FileObject location() {
-        return identifier.location;
+        return identifier.location();
     }
 
     @Override public ILanguage language() {
@@ -44,14 +45,13 @@ public class SpoofaxContext implements IContext, IContextInternal {
 
     @Override public void clean() {
         try {
-            final FileObject cacheDir = identifier.location.resolveFile(".cache");
+            final FileObject cacheDir = identifier.location().resolveFile(".cache");
             cacheDir.delete(new AllFileSelector());
         } catch(FileSystemException e) {
             final String message = String.format("Cannot delete cache directory in %s", this);
             logger.error(message, e);
         }
 
-        final URI locationURI = locationURI();
         if(locationURI == null) {
             logger.error("{} does not reside on the local file system, cannot clean the index and task engine", this);
             return;
@@ -75,8 +75,8 @@ public class SpoofaxContext implements IContext, IContextInternal {
     }
 
 
-    private URI locationURI() {
-        final File localLocation = resourceService.localPath(identifier.location);
+    private URI locationURI(IResourceService resourceService) {
+        final File localLocation = resourceService.localPath(identifier.location());
         if(localLocation == null) {
             return null;
         }
@@ -105,6 +105,6 @@ public class SpoofaxContext implements IContext, IContextInternal {
     }
 
     @Override public String toString() {
-        return String.format("Context for %s, %s", identifier.location, identifier.language);
+        return String.format("Context for %s, %s", identifier.location(), identifier.language);
     }
 }

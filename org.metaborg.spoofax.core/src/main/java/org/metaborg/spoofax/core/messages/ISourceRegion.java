@@ -1,5 +1,7 @@
 package org.metaborg.spoofax.core.messages;
 
+import java.io.Serializable;
+
 /**
  * Interface for representing a finite region in source code text. A region has:
  * <ul>
@@ -9,7 +11,7 @@ package org.metaborg.spoofax.core.messages;
  * </ul>
  * Both the starting and ending locations for these numbers are available.
  */
-public interface ISourceRegion {
+public interface ISourceRegion extends Serializable {
     public int startOffset();
 
     public int startRow();

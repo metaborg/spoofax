@@ -5,7 +5,9 @@ import java.awt.Color;
 import javax.annotation.Nullable;
 
 public class Style implements IStyle {
-    private final @Nullable Color color;
+    private static final long serialVersionUID = -8435127070824031921L;
+    
+	private final @Nullable Color color;
     private final @Nullable Color backgroundColor;
     private final boolean bold;
     private final boolean italic;

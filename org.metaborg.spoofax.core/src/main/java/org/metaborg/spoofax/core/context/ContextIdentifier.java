@@ -1,18 +1,28 @@
 package org.metaborg.spoofax.core.context;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.language.ILanguage;
+import org.metaborg.spoofax.core.resource.ResourceService;
 
-public class ContextIdentifier {
-    public final FileObject location;
+public class ContextIdentifier implements Serializable {
+    private static final long serialVersionUID = -5397372170660560878L;
+    
+	private transient FileObject location;
     public final ILanguage language;
-
 
     public ContextIdentifier(FileObject location, ILanguage language) {
         this.location = location;
         this.language = language;
     }
 
+    public FileObject location() {
+    	return location;
+	}
 
     @Override public int hashCode() {
         final int prime = 31;
@@ -36,4 +46,15 @@ public class ContextIdentifier {
             return false;
         return true;
     }
+
+	private void writeObject(ObjectOutputStream out) throws IOException {
+		out.defaultWriteObject();
+		ResourceService.writeFileObject(location, out);
+	}
+
+
+	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+		in.defaultReadObject();
+		location = ResourceService.readFileObject(in);
+	}
 }

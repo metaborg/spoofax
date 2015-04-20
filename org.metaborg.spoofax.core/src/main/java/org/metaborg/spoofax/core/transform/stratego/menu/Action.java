@@ -1,11 +1,15 @@
 package org.metaborg.spoofax.core.transform.stratego.menu;
 
+import java.io.Serializable;
+
 import javax.annotation.Nullable;
 
 import org.metaborg.spoofax.core.language.ILanguage;
 
-public class Action {
-    /**
+public class Action implements Serializable {
+    private static final long serialVersionUID = 727107590910189637L;
+    
+	/**
      * Name of the action.
      */
     public final String name;

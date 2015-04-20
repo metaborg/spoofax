@@ -90,7 +90,7 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
 
         final Collection<FileObject> sources = Lists.newLinkedList();
         for(ParseResult<IStrategoTerm> input : inputs) {
-            sources.add(input.source);
+            sources.add(input.source());
         }
 
         final StrategoFacet facet = language.facet(StrategoFacet.class);
@@ -163,11 +163,11 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
         final Collection<P2<ParseResult<IStrategoTerm>, IStrategoTuple>> analysisInputs = Lists.newLinkedList();
         for(ParseResult<IStrategoTerm> input : inputs) {
             if(input.result == null) {
-                logger.warn("Input result for {} is null, cannot analyze it", input.source);
+                logger.warn("Input result for {} is null, cannot analyze it", input.source());
                 continue;
             }
 
-            final FileObject resource = input.source;
+            final FileObject resource = input.source();
             final File localResource = resourceService.localPath(resource);
             if(localResource == null) {
                 final String message =
@@ -184,7 +184,7 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
         final Collection<AnalysisFileResult<IStrategoTerm, IStrategoTerm>> results = Lists.newLinkedList();
         for(P2<ParseResult<IStrategoTerm>, IStrategoTuple> input : analysisInputs) {
             final ParseResult<IStrategoTerm> parseResult = input._1();
-            final FileObject resource = parseResult.source;
+            final FileObject resource = parseResult.source();
             final IStrategoTuple inputTerm = input._2();
             try {
                 logger.trace("Analysing {}", resource);
@@ -221,7 +221,7 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
 
     private AnalysisFileResult<IStrategoTerm, IStrategoTerm> singleASTMakeResult(IStrategoTerm result,
         ParseResult<IStrategoTerm> parseResult) {
-        final FileObject source = parseResult.source;
+        final FileObject source = parseResult.source();
         final Collection<IMessage> messages = Lists.newLinkedList();
         messages.addAll(StrategoAnalysisService.makeMessages(source, MessageSeverity.ERROR, result.getSubterm(1)));
         messages.addAll(StrategoAnalysisService.makeMessages(source, MessageSeverity.WARNING, result.getSubterm(2)));
@@ -231,7 +231,7 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
 
     private AnalysisFileResult<IStrategoTerm, IStrategoTerm> singleASTMakeResultNoAST(IStrategoTerm result,
         ParseResult<IStrategoTerm> parseResult) {
-        final FileObject source = parseResult.source;
+        final FileObject source = parseResult.source();
         final Collection<IMessage> messages = Lists.newLinkedList();
         messages.addAll(StrategoAnalysisService.makeMessages(source, MessageSeverity.ERROR, result.getSubterm(0)));
         messages.addAll(StrategoAnalysisService.makeMessages(source, MessageSeverity.WARNING, result.getSubterm(1)));
@@ -246,7 +246,7 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
         } else {
             logger.error(errorString);
         }
-        final FileObject source = parseResult.source;
+        final FileObject source = parseResult.source();
         final IMessage message = MessageFactory.newAnalysisErrorAtTop(source, errorString, e);
         return new AnalysisFileResult<IStrategoTerm, IStrategoTerm>(null, source, Iterables2.singleton(message),
             parseResult);
@@ -272,11 +272,11 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
         final Map<String, FileObject> originalSources = Maps.newHashMap();
         for(ParseResult<IStrategoTerm> input : inputs) {
             if(input.result == null) {
-                logger.warn("Input result for {} is null, cannot analyze it", input.source);
+                logger.warn("Input result for {} is null, cannot analyze it", input.source());
                 continue;
             }
 
-            final FileObject resource = input.source;
+            final FileObject resource = input.source();
             final File localResource = resourceService.localPath(resource);
             if(localResource == null) {
                 final String message =

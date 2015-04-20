@@ -1,11 +1,14 @@
 package org.metaborg.spoofax.core.transform.stratego.menu;
 
+import java.io.Serializable;
 import java.util.Collection;
 
 import com.google.common.collect.Lists;
 
-public class Menu {
-    private final String name;
+public class Menu implements Serializable {
+    private static final long serialVersionUID = -6007776925818381805L;
+    
+	private final String name;
     private final Collection<Menu> submenus;
     private final Collection<Action> actions;
 
