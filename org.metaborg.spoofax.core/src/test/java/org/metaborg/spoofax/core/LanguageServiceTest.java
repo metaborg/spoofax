@@ -351,7 +351,7 @@ public class LanguageServiceTest extends SpoofaxTest {
         language("Entity2", version, location);
     }
 
-    @Test(expected = SpoofaxRuntimeException.class) public void conflictingExtension() throws Exception {
+    @Test(expected = IllegalStateException.class) public void conflictingExtension() throws Exception {
         final LanguageVersion version = version(0, 0, 1, 0);
         final FileObject location1 = createDirectory("ram:///Entity1");
         final FileObject location2 = createDirectory("ram:///Entity2");
