@@ -12,13 +12,12 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.FileSystemOptions;
+import org.apache.commons.vfs2.VFS;
 import org.apache.commons.vfs2.provider.local.LocalFile;
 import org.apache.commons.vfs2.provider.res.ResourceFileSystemConfigBuilder;
-import org.metaborg.spoofax.core.SpoofaxModule;
 import org.metaborg.spoofax.core.SpoofaxRuntimeException;
 
 import com.google.common.collect.Lists;
-import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 
@@ -26,16 +25,12 @@ public class ResourceService implements IResourceService {
     private final FileSystemManager fileSystemManager;
     private final FileSystemOptions fileSystemOptions;
 
-    private static IResourceService resourceService;
     public static void writeFileObject(FileObject fo, ObjectOutput out) throws IOException {
     	out.writeObject(fo.getName().getURI());
     }
     public static FileObject readFileObject(ObjectInput in) throws ClassNotFoundException, IOException {
-    	if (resourceService == null)
-    		resourceService = Guice.createInjector(new SpoofaxModule()).getInstance(IResourceService.class);
-    	
     	String uri = (String) in.readObject();
-    	return resourceService.resolve(uri);
+    	return VFS.getManager().resolveFile(uri);
     }
 
     @Inject public ResourceService(FileSystemManager fileSystemManager,
