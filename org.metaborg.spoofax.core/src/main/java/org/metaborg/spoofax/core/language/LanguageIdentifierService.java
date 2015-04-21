@@ -4,6 +4,7 @@ import java.util.Set;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.SpoofaxException;
+import org.metaborg.spoofax.core.SpoofaxRuntimeException;
 import org.metaborg.spoofax.core.language.dialect.IDialectIdentifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +35,8 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
         } catch(SpoofaxException e) {
             logger.error("Error identifying dialect", e);
             return null;
+        } catch(SpoofaxRuntimeException e) {
+            // Ignore
         }
 
         final Set<String> identifiedLanguageNames = Sets.newLinkedHashSet();
