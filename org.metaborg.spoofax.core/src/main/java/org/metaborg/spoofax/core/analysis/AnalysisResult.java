@@ -5,9 +5,9 @@ import java.io.Serializable;
 import org.metaborg.spoofax.core.context.IContext;
 
 public class AnalysisResult<ParseT, AnalysisT> implements Serializable {
-	private static final long serialVersionUID = -5857696366569348427L;
+    private static final long serialVersionUID = -5857696366569348427L;
 
-	public final IContext context;
+    public final IContext context;
     public final Iterable<AnalysisFileResult<ParseT, AnalysisT>> fileResults;
     public final Iterable<String> affectedPartitions;
     public final AnalysisDebugResult debugResult;

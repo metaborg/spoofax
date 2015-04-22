@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
 public class StrategoDialectProcessor implements IDialectProcessor {
@@ -68,7 +67,9 @@ public class StrategoDialectProcessor implements IDialectProcessor {
         for(IResourceChange change : changes) {
             final FileObject resource = change.resource();
             final String name = FilenameUtils.getBaseName(resource.getName().getBaseName());
-            final SyntaxFacet newFacet = new SyntaxFacet(resource, Sets.newHashSet(baseFacet.startSymbols()));
+            final SyntaxFacet newFacet =
+                new SyntaxFacet(resource, baseFacet.startSymbols, baseFacet.singleLineCommentPrefixes,
+                    baseFacet.multiLineCommentCharacters, baseFacet.fenceCharacters);
             final ResourceChangeKind changeKind = change.kind();
             try {
                 switch(changeKind) {

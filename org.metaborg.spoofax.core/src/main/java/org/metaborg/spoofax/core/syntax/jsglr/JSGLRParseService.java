@@ -8,7 +8,9 @@ import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageCache;
 import org.metaborg.spoofax.core.language.dialect.IDialectService;
 import org.metaborg.spoofax.core.messages.ISourceRegion;
+import org.metaborg.spoofax.core.syntax.FenceCharacters;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
+import org.metaborg.spoofax.core.syntax.MultiLineCommentCharacters;
 import org.metaborg.spoofax.core.syntax.ParseException;
 import org.metaborg.spoofax.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
@@ -70,6 +72,22 @@ public class JSGLRParseService implements ISyntaxService<IStrategoTerm>, ILangua
         return JSGLRSourceRegionFactory.fromTokens(left, right);
     }
 
+    @Override public Iterable<String> singleLineCommentPrefixes(ILanguage language) {
+        final SyntaxFacet facet = language.facet(SyntaxFacet.class);
+        return facet.singleLineCommentPrefixes;
+    }
+
+    @Override public Iterable<MultiLineCommentCharacters> multiLineCommentCharacters(ILanguage language) {
+        final SyntaxFacet facet = language.facet(SyntaxFacet.class);
+        return facet.multiLineCommentCharacters;
+    }
+
+    @Override public Iterable<FenceCharacters> fenceCharacters(ILanguage language) {
+        final SyntaxFacet facet = language.facet(SyntaxFacet.class);
+        return facet.fenceCharacters;
+    }
+
+
     @Override public void invalidateCache(ILanguage language) {
         logger.debug("Removing cached parse table for {}", language);
         parserConfigs.remove(language);
@@ -82,8 +100,8 @@ public class JSGLRParseService implements ISyntaxService<IStrategoTerm>, ILangua
             final ITermFactory termFactory =
                 termFactoryService.getGeneric().getFactoryWithStorageType(IStrategoTerm.MUTABLE);
             final SyntaxFacet facet = lang.facet(SyntaxFacet.class);
-            final IParseTableProvider provider = new FileParseTableProvider(facet.parseTable(), termFactory);
-            config = new ParserConfig(Iterables.get(facet.startSymbols(), 0), provider, 5000);
+            final IParseTableProvider provider = new FileParseTableProvider(facet.parseTable, termFactory);
+            config = new ParserConfig(Iterables.get(facet.startSymbols, 0), provider, 5000);
             parserConfigs.put(lang, config);
         }
         return config;

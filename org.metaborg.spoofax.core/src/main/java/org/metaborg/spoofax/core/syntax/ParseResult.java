@@ -15,9 +15,9 @@ import org.metaborg.spoofax.core.resource.ResourceService;
 import com.google.common.collect.Lists;
 
 public class ParseResult<T> implements Serializable {
-	private static final long serialVersionUID = 7584042729127258710L;
+    private static final long serialVersionUID = 7584042729127258710L;
 
-	/**
+    /**
      * Parser output, or null if parsing failed.
      */
     public @Nullable T result;
@@ -25,7 +25,7 @@ public class ParseResult<T> implements Serializable {
     /**
      * Resource that was parsed.
      */
-    private transient FileObject source;
+    public transient FileObject source;
 
     /**
      * Messages produced during parsing.
@@ -57,10 +57,6 @@ public class ParseResult<T> implements Serializable {
         this.language = language;
         this.dialect = dialect;
     }
-
-    public FileObject source() {
-    	return source;
-	}
 
     @Override public int hashCode() {
         final int prime = 31;
@@ -97,14 +93,14 @@ public class ParseResult<T> implements Serializable {
         return result.toString();
     }
 
+
     private void writeObject(ObjectOutputStream out) throws IOException {
-    	out.defaultWriteObject();
-    	ResourceService.writeFileObject(source, out);
+        out.defaultWriteObject();
+        ResourceService.writeFileObject(source, out);
     }
 
-
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-    	in.defaultReadObject();
-    	source = ResourceService.readFileObject(in);
+        in.defaultReadObject();
+        source = ResourceService.readFileObject(in);
     }
 }

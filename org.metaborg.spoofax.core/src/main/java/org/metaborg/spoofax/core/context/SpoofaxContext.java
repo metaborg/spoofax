@@ -15,11 +15,9 @@ import org.spoofax.interpreter.library.index.IndexManager;
 
 public class SpoofaxContext implements IContext, IContextInternal {
     private static final long serialVersionUID = 4177944175684703453L;
-
-	private static final Logger logger = LoggerFactory.getLogger(SpoofaxContext.class);
+    private static final Logger logger = LoggerFactory.getLogger(SpoofaxContext.class);
 
     private final URI locationURI;
-
     private final ContextIdentifier identifier;
 
 

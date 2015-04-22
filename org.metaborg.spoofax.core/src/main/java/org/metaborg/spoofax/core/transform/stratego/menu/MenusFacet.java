@@ -12,9 +12,10 @@ import com.google.common.collect.Maps;
 
 public class MenusFacet implements ILanguageFacet {
     private static final long serialVersionUID = -2695936811141361719L;
-    
-	private final Collection<Menu> menus;
+
+    private final Collection<Menu> menus;
     private final Map<String, Action> actions = Maps.newHashMap();
+
 
     public MenusFacet() {
         this(Lists.<Menu>newLinkedList());

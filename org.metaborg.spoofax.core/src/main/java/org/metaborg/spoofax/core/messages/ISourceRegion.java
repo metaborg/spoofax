@@ -23,6 +23,6 @@ public interface ISourceRegion extends Serializable {
     public int endRow();
 
     public int endColumn();
-    
+
     public int length();
 }

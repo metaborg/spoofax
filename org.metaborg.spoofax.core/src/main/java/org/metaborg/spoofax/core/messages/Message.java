@@ -11,8 +11,8 @@ import org.metaborg.spoofax.core.resource.ResourceService;
 
 public class Message implements IMessage {
     private static final long serialVersionUID = -8129122671657252297L;
-    
-	private final String message;
+
+    private final String message;
     private final MessageSeverity severity;
     private final MessageType type;
     private transient FileObject source;
@@ -20,8 +20,8 @@ public class Message implements IMessage {
     @Nullable private Throwable exception;
 
 
-    public Message(String message, MessageSeverity severity, MessageType type, FileObject source,
-        ISourceRegion region, @Nullable Throwable exception) {
+    public Message(String message, MessageSeverity severity, MessageType type, FileObject source, ISourceRegion region,
+        @Nullable Throwable exception) {
         this.message = message;
         this.severity = severity;
         this.type = type;
@@ -60,13 +60,13 @@ public class Message implements IMessage {
     }
 
 
-	private void writeObject(ObjectOutputStream out) throws IOException {
-		out.defaultWriteObject();
-		ResourceService.writeFileObject(source, out);
-	}
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        ResourceService.writeFileObject(source, out);
+    }
 
-	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-		in.defaultReadObject();
-		source = ResourceService.readFileObject(in);
-	}
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        source = ResourceService.readFileObject(in);
+    }
 }

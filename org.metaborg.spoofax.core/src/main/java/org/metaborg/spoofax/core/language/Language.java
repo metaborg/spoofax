@@ -15,9 +15,9 @@ import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.MutableClassToInstanceMap;
 
 public class Language implements ILanguage {
-	private static final long serialVersionUID = 5329634831598144245L;
-	
-	private final String name;
+    private static final long serialVersionUID = 5329634831598144245L;
+
+    private final String name;
     private transient FileObject location;
     private final LanguageVersion version;
     private final int sequenceId;
@@ -115,28 +115,27 @@ public class Language implements ILanguage {
     }
 
 
-	private void writeObject(ObjectOutputStream out) throws IOException {
-		out.defaultWriteObject();
-		
-		ResourceService.writeFileObject(location, out);
-		
-		out.writeInt(facets.size());
-		for (ILanguageFacet facet : facets.values())
-			out.writeObject(facet);
-	}
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
 
+        ResourceService.writeFileObject(location, out);
 
-	private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-		in.defaultReadObject();
-		
-		location = ResourceService.readFileObject(in);
-		facets = MutableClassToInstanceMap.create();
-		facetChanges = PublishSubject.create();		
-		
-		int facetCount = in.readInt();
-		for (int i = 0; i < facetCount; i++) {
-			ILanguageFacet facet = (ILanguageFacet) in.readObject();
-			facets.put(facet.getClass(), facet);
-		}
-	}
+        out.writeInt(facets.size());
+        for(ILanguageFacet facet : facets.values())
+            out.writeObject(facet);
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+
+        location = ResourceService.readFileObject(in);
+        facets = MutableClassToInstanceMap.create();
+        facetChanges = PublishSubject.create();
+
+        int facetCount = in.readInt();
+        for(int i = 0; i < facetCount; i++) {
+            final ILanguageFacet facet = (ILanguageFacet) in.readObject();
+            facets.put(facet.getClass(), facet);
+        }
+    }
 }

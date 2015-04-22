@@ -64,7 +64,7 @@ public class TransformJob extends Job {
 
     @Override protected IStatus run(IProgressMonitor monitor) {
         final IEditorInput input = editor.getEditorInput();
-        final String text = editor.currentDocument().get();
+        final String text = editor.document().get();
         final FileObject resource = resourceService.resolve(input);
 
         if(resource == null) {

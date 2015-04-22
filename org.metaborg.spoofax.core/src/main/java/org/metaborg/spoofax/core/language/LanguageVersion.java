@@ -9,9 +9,9 @@ import com.google.common.collect.ComparisonChain;
  * plugins.
  */
 public class LanguageVersion implements Comparable<LanguageVersion>, Serializable {
-	private static final long serialVersionUID = -4814753959508772739L;
-	
-	public final int major;
+    private static final long serialVersionUID = -4814753959508772739L;
+
+    public final int major;
     public final int minor;
     public final int patch;
     public final int qualifier;

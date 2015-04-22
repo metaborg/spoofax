@@ -12,8 +12,8 @@ import com.google.common.collect.Lists;
  */
 public class ResourceExtensionFacet implements ILanguageFacet {
     private static final long serialVersionUID = -1843776488565651809L;
-    
-	private transient Iterable<String> extensions;
+
+    private transient Iterable<String> extensions;
 
 
     public ResourceExtensionFacet(Iterable<String> extensions) {
@@ -24,18 +24,20 @@ public class ResourceExtensionFacet implements ILanguageFacet {
     public Iterable<String> extensions() {
         return extensions;
     }
-    
+
+
     private void writeObject(ObjectOutputStream out) throws IOException {
-    	out.defaultWriteObject();
-    	if (extensions instanceof Serializable)
-    		out.writeObject(extensions);
-    	else
-    		out.writeObject(Lists.newArrayList(extensions));
-	}
-    
-    @SuppressWarnings("unchecked")
-	private void readObject(ObjectInputStream in) throws ClassNotFoundException, IOException {
-    	in.defaultReadObject();
-    	extensions = (Iterable<String>) in.readObject();
+        out.defaultWriteObject();
+        if(extensions instanceof Serializable) {
+            out.writeObject(extensions);
+        } else {
+            out.writeObject(Lists.newArrayList(extensions));
+        }
+    }
+
+    @SuppressWarnings("unchecked") private void readObject(ObjectInputStream in) throws ClassNotFoundException,
+        IOException {
+        in.defaultReadObject();
+        extensions = (Iterable<String>) in.readObject();
     }
 }

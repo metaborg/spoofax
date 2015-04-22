@@ -25,21 +25,16 @@ public class ResourceService implements IResourceService {
     private final FileSystemManager fileSystemManager;
     private final FileSystemOptions fileSystemOptions;
 
-    public static void writeFileObject(FileObject fo, ObjectOutput out) throws IOException {
-    	out.writeObject(fo.getName().getURI());
-    }
-    public static FileObject readFileObject(ObjectInput in) throws ClassNotFoundException, IOException {
-    	String uri = (String) in.readObject();
-    	return VFS.getManager().resolveFile(uri);
-    }
 
     @Inject public ResourceService(FileSystemManager fileSystemManager,
         @Named("ResourceClassLoader") ClassLoader classLoader) {
         this.fileSystemManager = fileSystemManager;
         this.fileSystemOptions = new FileSystemOptions();
 
-        if(classLoader == null)
+        if(classLoader == null) {
             classLoader = this.getClass().getClassLoader();
+        }
+
         ResourceFileSystemConfigBuilder.getInstance().setClassLoader(fileSystemOptions, classLoader);
     }
 
@@ -112,5 +107,15 @@ public class ResourceService implements IResourceService {
 
     @Override public FileSystemManager manager() {
         return fileSystemManager;
+    }
+
+
+    public static void writeFileObject(FileObject fo, ObjectOutput out) throws IOException {
+        out.writeObject(fo.getName().getURI());
+    }
+
+    public static FileObject readFileObject(ObjectInput in) throws ClassNotFoundException, IOException {
+        String uri = (String) in.readObject();
+        return VFS.getManager().resolveFile(uri);
     }
 }

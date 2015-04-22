@@ -8,8 +8,8 @@ import org.metaborg.spoofax.core.language.ILanguage;
 
 public class Action implements Serializable {
     private static final long serialVersionUID = 727107590910189637L;
-    
-	/**
+
+    /**
      * Name of the action.
      */
     public final String name;

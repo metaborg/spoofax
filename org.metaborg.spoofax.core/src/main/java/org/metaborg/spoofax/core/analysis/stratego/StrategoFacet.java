@@ -18,8 +18,8 @@ import com.google.common.collect.Lists;
  */
 public class StrategoFacet implements ILanguageFacet {
     private static final long serialVersionUID = -5993564430060643452L;
-    
-	private transient Iterable<FileObject> ctreeFiles;
+
+    private transient Iterable<FileObject> ctreeFiles;
     private transient Iterable<FileObject> jarFiles;
     private final @Nullable String analysisStrategy;
     private final @Nullable StrategoAnalysisMode analysisMode;
@@ -118,34 +118,35 @@ public class StrategoFacet implements ILanguageFacet {
     public @Nullable String completionStrategy() {
         return completionStrategy;
     }
-    
+
+
     private void writeObject(ObjectOutputStream out) throws IOException {
-    	out.defaultWriteObject();
-    	
-    	List<FileObject> ctreeList = Lists.newArrayList(ctreeFiles);
-    	out.writeInt(ctreeList.size());
-    	for (FileObject fo : ctreeList)
-    		ResourceService.writeFileObject(fo, out);
-    	
-    	List<FileObject> jarList = Lists.newArrayList(jarFiles);
-    	out.writeInt(jarList.size());
-    	for (FileObject fo : jarList)
-    		ResourceService.writeFileObject(fo, out);
-	}
-    
-	private void readObject(ObjectInputStream in) throws ClassNotFoundException, IOException {
-    	in.defaultReadObject();
-    	
-    	List<FileObject> ctreeList = Lists.newArrayList();
-    	int ctreeCount = in.readInt();
-    	for (int i = 0; i < ctreeCount; i++)
-    		ctreeList.add(ResourceService.readFileObject(in));
-    	this.ctreeFiles = ctreeList;
-    	
-    	List<FileObject> jarList = Lists.newArrayList();
-    	int jarCount = in.readInt();
-    	for (int i = 0; i < jarCount; i++)
-    		jarList.add(ResourceService.readFileObject(in));
-    	this.jarFiles = jarList;
+        out.defaultWriteObject();
+
+        List<FileObject> ctreeList = Lists.newArrayList(ctreeFiles);
+        out.writeInt(ctreeList.size());
+        for(FileObject fo : ctreeList)
+            ResourceService.writeFileObject(fo, out);
+
+        List<FileObject> jarList = Lists.newArrayList(jarFiles);
+        out.writeInt(jarList.size());
+        for(FileObject fo : jarList)
+            ResourceService.writeFileObject(fo, out);
+    }
+
+    private void readObject(ObjectInputStream in) throws ClassNotFoundException, IOException {
+        in.defaultReadObject();
+
+        List<FileObject> ctreeList = Lists.newArrayList();
+        int ctreeCount = in.readInt();
+        for(int i = 0; i < ctreeCount; i++)
+            ctreeList.add(ResourceService.readFileObject(in));
+        this.ctreeFiles = ctreeList;
+
+        List<FileObject> jarList = Lists.newArrayList();
+        int jarCount = in.readInt();
+        for(int i = 0; i < jarCount; i++)
+            jarList.add(ResourceService.readFileObject(in));
+        this.jarFiles = jarList;
     }
 }

@@ -213,8 +213,8 @@ public class LanguageServiceTest extends SpoofaxTest {
 
         final SyntaxFacet syntaxFacet = language.facet(SyntaxFacet.class);
 
-        assertEquals(resourceService.resolve("res:Entity/include/Entity.tbl"), syntaxFacet.parseTable());
-        assertIterableEquals(syntaxFacet.startSymbols(), "Start");
+        assertEquals(resourceService.resolve("res:Entity/include/Entity.tbl"), syntaxFacet.parseTable);
+        assertIterableEquals(syntaxFacet.startSymbols, "Start");
 
         final StrategoFacet strategoFacet = language.facet(StrategoFacet.class);
 
