@@ -48,4 +48,19 @@ public interface ISyntaxService<T> {
      * @return Source region for parsed fragment, or null if no source region can be retrieved.
      */
     public abstract @Nullable ISourceRegion region(T parsed);
+
+    /**
+     * @return Single line comment prefix characters for given language.
+     */
+    public abstract Iterable<String> singleLineCommentPrefixes(ILanguage language);
+
+    /**
+     * @return Multi line comment prefix and postfix characters for given language.
+     */
+    public abstract Iterable<MultiLineCommentCharacters> multiLineCommentCharacters(ILanguage language);
+
+    /**
+     * @return Fence (brackets, parentheses, etc.) open and close characters for given language.
+     */
+    public abstract Iterable<FenceCharacters> fenceCharacters(ILanguage language);
 }

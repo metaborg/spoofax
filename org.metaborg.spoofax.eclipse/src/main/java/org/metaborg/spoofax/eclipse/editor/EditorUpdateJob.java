@@ -13,7 +13,7 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.TextPresentation;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.IFileEditorInput;
+import org.eclipse.ui.IEditorInput;
 import org.metaborg.spoofax.core.SpoofaxException;
 import org.metaborg.spoofax.core.analysis.AnalysisException;
 import org.metaborg.spoofax.core.analysis.AnalysisFileResult;
@@ -61,7 +61,7 @@ public class EditorUpdateJob extends Job {
     private final ParseResultProcessor parseResultProcessor;
     private final AnalysisResultProcessor analysisResultProcessor;
 
-    private final IFileEditorInput input;
+    private final IEditorInput input;
     private final IResource eclipseResource;
     private final FileObject resource;
     private final ISourceViewer sourceViewer;
@@ -77,7 +77,7 @@ public class EditorUpdateJob extends Job {
         IAnalysisService<IStrategoTerm, IStrategoTerm> analyzer,
         ICategorizerService<IStrategoTerm, IStrategoTerm> categorizer,
         IStylerService<IStrategoTerm, IStrategoTerm> styler, ParseResultProcessor parseResultProcessor,
-        AnalysisResultProcessor analysisResultProcessor, IFileEditorInput input, IResource eclipseResource,
+        AnalysisResultProcessor analysisResultProcessor, IEditorInput input, IResource eclipseResource,
         FileObject resource, ISourceViewer sourceViewer, String text, PresentationMerger presentationMerger,
         boolean isNewEditor) {
         super("Updating Spoofax editor");

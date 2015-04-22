@@ -20,7 +20,7 @@
     />
   </extension>
 
-  <!-- Reusable command expressions for menus -->
+  <!-- Reusable command expressions -->
   <extension point="org.eclipse.core.expressions.definitions">
     <definition id="org.metaborg.spoofax.eclipse.util.expression.isproject">
       <iterate ifEmpty="false" operator="and">

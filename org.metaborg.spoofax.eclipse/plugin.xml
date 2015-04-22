@@ -17,6 +17,20 @@
   </extension>
   
   
+  <!-- Reusable command expressions -->
+  <extension point="org.eclipse.core.expressions.definitions">
+    <definition id="org.metaborg.spoofax.eclipse.expression.hasnature">
+      <iterate operator="and" ifEmpty="false">
+        <test
+          forcePluginActivation="true"
+          property="org.metaborg.spoofax.eclipse.util.hasNature" 
+          value="org.metaborg.spoofax.eclipse.nature"
+        />
+      </iterate>
+    </definition>
+  </extension>
+  
+  
   <!-- Editor -->
   <extension
     point="org.eclipse.ui.editors"
@@ -29,7 +43,22 @@
       class="org.metaborg.spoofax.eclipse.editor.SpoofaxEditor"
     />
   </extension>
-  
+  <!-- Editor commands -->
+  <extension point="org.eclipse.ui.commands">
+    <command id="org.metaborg.spoofax.eclipse.command.editor.togglecomment" name="Toggle comment"/>
+  </extension>
+  <extension point="org.eclipse.ui.handlers">
+    <handler
+      commandId="org.metaborg.spoofax.eclipse.command.editor.togglecomment"
+      class="org.metaborg.spoofax.eclipse.editor.ToggleCommentHandler"
+    />
+  </extension>
+  <!-- Editor context menu -->
+  <extension point="org.eclipse.ui.menus">
+    <menuContribution locationURI="popup:#SpoofaxEditorContext?after=additions">
+      <command commandId="org.metaborg.spoofax.eclipse.command.editor.togglecomment"/>
+    </menuContribution>
+  </extension>
   
   <!-- Nature, builder, and support commands -->
   <extension
@@ -69,6 +98,76 @@
       commandId="org.metaborg.spoofax.eclipse.command.nature.remove"
       class="org.metaborg.spoofax.eclipse.nature.RemoveNatureHandler"
     />
+  </extension>
+  
+  
+  <!-- Language transformations command -->
+  <extension point="org.eclipse.ui.commands">
+    <command id="org.metaborg.spoofax.eclipse.command.transform" name="Transform">
+      <commandParameter id="action-name" name="Action name" optional="false"/>
+    </command>
+  </extension>
+  <extension point="org.eclipse.ui.handlers">
+    <handler 
+      commandId="org.metaborg.spoofax.eclipse.command.transform"
+      class="org.metaborg.spoofax.eclipse.transform.TransformHandler"
+    />
+  </extension>
+
+
+  <!-- Main menu -->
+  <extension point="org.eclipse.ui.menus">
+    <menuContribution locationURI="menu:org.eclipse.ui.main.menu">
+      <menu label="Spoofax">
+        <dynamic 
+          id="org.metaborg.spoofax.eclipse.menu" 
+          class="org.metaborg.spoofax.eclipse.transform.TransformMenuContribution"
+        />
+      </menu>
+    </menuContribution>
+  </extension>
+
+
+  <!-- Project context menu -->
+  <extension point="org.eclipse.ui.menus">
+    <!-- Package Explorer -->
+    <menuContribution locationURI="popup:org.eclipse.jdt.ui.PackageExplorer?after=additions">
+      <menu id="org.metaborg.spoofax.eclipse.menu.project" label="Spoofax">
+        <visibleWhen>
+          <and>
+            <count value="1" />
+            <reference definitionId="org.metaborg.spoofax.eclipse.util.expression.isproject" />
+          </and>
+        </visibleWhen>
+      </menu>
+    </menuContribution>
+    <!-- Project Explorer -->
+    <menuContribution locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?after=additions">
+      <menu id="org.metaborg.spoofax.eclipse.menu.project" label="Spoofax">
+        <visibleWhen>
+          <and>
+            <count value="1" />
+            <reference definitionId="org.metaborg.spoofax.eclipse.util.expression.isproject" />
+          </and>
+        </visibleWhen>
+      </menu>
+    </menuContribution>
+    
+    <!-- Commands -->
+    <menuContribution locationURI="popup:org.metaborg.spoofax.eclipse.menu.project?after=additions">
+      <command commandId="org.metaborg.spoofax.eclipse.command.nature.add">
+        <visibleWhen>
+          <not>
+            <reference definitionId="org.metaborg.spoofax.eclipse.expression.hasnature" />
+          </not>
+        </visibleWhen>
+      </command>
+      <command commandId="org.metaborg.spoofax.eclipse.command.nature.remove">
+        <visibleWhen>
+          <reference definitionId="org.metaborg.spoofax.eclipse.expression.hasnature" />
+        </visibleWhen>
+      </command>
+    </menuContribution>
   </extension>
   
   
@@ -296,89 +395,5 @@
       markerSeverity="2"
       name="Spoofax transformation error annotation"
     />
-  </extension>
-
-
-  <!-- Language transformations command -->
-  <extension point="org.eclipse.ui.commands">
-    <command id="org.metaborg.spoofax.eclipse.command.transform" name="Transform">
-      <commandParameter id="action-name" name="Action name" optional="false"/>
-    </command>
-  </extension>
-  <extension point="org.eclipse.ui.handlers">
-    <handler 
-      commandId="org.metaborg.spoofax.eclipse.command.transform"
-      class="org.metaborg.spoofax.eclipse.transform.TransformHandler"
-    />
-  </extension>
-
-
-  <!-- Main menu -->
-  <extension point="org.eclipse.ui.menus">
-    <menuContribution locationURI="menu:org.eclipse.ui.main.menu">
-      <menu label="Spoofax">
-        <dynamic 
-          id="org.metaborg.spoofax.eclipse.menu" 
-          class="org.metaborg.spoofax.eclipse.transform.TransformMenuContribution"
-        />
-      </menu>
-    </menuContribution>
-  </extension>
-
-
-  <!-- Reusable command expressions for menus -->
-  <extension point="org.eclipse.core.expressions.definitions">
-    <definition id="org.metaborg.spoofax.eclipse.expression.hasnature">
-      <iterate operator="and" ifEmpty="false">
-        <test
-          forcePluginActivation="true"
-          property="org.metaborg.spoofax.eclipse.util.hasNature" 
-          value="org.metaborg.spoofax.eclipse.nature"
-        />
-      </iterate>
-    </definition>
-  </extension>
-
-
-  <!-- Project context menu -->
-  <extension point="org.eclipse.ui.menus">
-    <!-- Package Explorer -->
-    <menuContribution locationURI="popup:org.eclipse.jdt.ui.PackageExplorer?after=additions">
-      <menu id="org.metaborg.spoofax.eclipse.menu.project" label="Spoofax">
-        <visibleWhen>
-          <and>
-            <count value="1" />
-            <reference definitionId="org.metaborg.spoofax.eclipse.util.expression.isproject" />
-          </and>
-        </visibleWhen>
-      </menu>
-    </menuContribution>
-    <!-- Project Explorer -->
-    <menuContribution locationURI="popup:org.eclipse.ui.navigator.ProjectExplorer#PopupMenu?after=additions">
-      <menu id="org.metaborg.spoofax.eclipse.menu.project" label="Spoofax">
-        <visibleWhen>
-          <and>
-            <count value="1" />
-            <reference definitionId="org.metaborg.spoofax.eclipse.util.expression.isproject" />
-          </and>
-        </visibleWhen>
-      </menu>
-    </menuContribution>
-    
-    <!-- Commands -->
-    <menuContribution locationURI="popup:org.metaborg.spoofax.eclipse.menu.project?after=additions">
-      <command commandId="org.metaborg.spoofax.eclipse.command.nature.add">
-        <visibleWhen>
-          <not>
-            <reference definitionId="org.metaborg.spoofax.eclipse.expression.hasnature" />
-          </not>
-        </visibleWhen>
-      </command>
-      <command commandId="org.metaborg.spoofax.eclipse.command.nature.remove">
-        <visibleWhen>
-          <reference definitionId="org.metaborg.spoofax.eclipse.expression.hasnature" />
-        </visibleWhen>
-      </command>
-    </menuContribution>
   </extension>
 </plugin>

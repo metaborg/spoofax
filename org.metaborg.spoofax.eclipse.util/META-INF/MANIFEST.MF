@@ -6,14 +6,14 @@ Bundle-Version: 1.5.0.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-Vendor: metaborg.org
 Export-Package: org.metaborg.spoofax.eclipse.util
-Require-Bundle: org.eclipse.core.runtime,
+Require-Bundle: org.metaborg.spoofax.core,
+ org.spoofax.terms,
+ org.spoofax.interpreter.externaldeps,
+ org.eclipse.core.runtime,
  org.eclipse.core.commands,
  org.eclipse.core.resources,
  org.eclipse.jface,
  org.eclipse.ui.workbench,
- org.spoofax.interpreter.externaldeps,
  org.eclipse.ui.console,
- org.metaborg.spoofax.core,
- org.spoofax.terms,
  org.eclipse.jface.text,
  org.eclipse.core.expressions
