@@ -1,12 +1,16 @@
 package org.metaborg.spoofax.core.language;
 
+import java.io.Serializable;
+
 import com.google.common.collect.ComparisonChain;
 
 /**
  * Representation for the version of a language. Follows the versioning style of OSGI to be compatible with Eclipse
  * plugins.
  */
-public class LanguageVersion implements Comparable<LanguageVersion> {
+public class LanguageVersion implements Comparable<LanguageVersion>, Serializable {
+    private static final long serialVersionUID = -4814753959508772739L;
+
     public final int major;
     public final int minor;
     public final int patch;

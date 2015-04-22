@@ -1,7 +1,9 @@
 package org.metaborg.spoofax.core.style;
 
 public class ConsCategory implements ICategory {
-    public final String cons;
+    private static final long serialVersionUID = -1986900934532701035L;
+    
+	public final String cons;
 
 
     public ConsCategory(String cons) {

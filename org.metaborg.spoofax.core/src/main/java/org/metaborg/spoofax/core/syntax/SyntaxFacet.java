@@ -1,14 +1,21 @@
 package org.metaborg.spoofax.core.syntax;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.language.ILanguageFacet;
+import org.metaborg.spoofax.core.resource.ResourceService;
 import org.metaborg.util.iterators.Iterables2;
 
 /**
  * Represents the syntax (or parsing) facet of a language.
  */
 public class SyntaxFacet implements ILanguageFacet {
-    public final FileObject parseTable;
+    private static final long serialVersionUID = 2342326101518124130L;
+
+    public transient FileObject parseTable;
     public final Iterable<String> startSymbols;
     public final Iterable<String> singleLineCommentPrefixes;
     public final Iterable<MultiLineCommentCharacters> multiLineCommentCharacters;
@@ -50,5 +57,16 @@ public class SyntaxFacet implements ILanguageFacet {
         this.singleLineCommentPrefixes = singleLineCommentPrefixes;
         this.multiLineCommentCharacters = multiLineCommentCharacters;
         this.fenceCharacters = fenceCharacters;
+    }
+
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        ResourceService.writeFileObject(parseTable, out);
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        parseTable = ResourceService.readFileObject(in);
     }
 }

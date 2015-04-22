@@ -1,6 +1,10 @@
 package org.metaborg.spoofax.core.syntax;
 
-public class MultiLineCommentCharacters {
+import java.io.Serializable;
+
+public class MultiLineCommentCharacters implements Serializable {
+    private static final long serialVersionUID = 4321993787571991571L;
+
     public final String prefix;
     public final String postfix;
 

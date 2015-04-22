@@ -1,23 +1,31 @@
 package org.metaborg.spoofax.core.syntax;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.messages.IMessage;
+import org.metaborg.spoofax.core.resource.ResourceService;
 
 import com.google.common.collect.Lists;
 
-public class ParseResult<T> {
+public class ParseResult<T> implements Serializable {
+    private static final long serialVersionUID = 7584042729127258710L;
+
     /**
      * Parser output, or null if parsing failed.
      */
-    public final @Nullable T result;
+    public @Nullable T result;
 
     /**
      * Resource that was parsed.
      */
-    public final FileObject source;
+    public transient FileObject source;
 
     /**
      * Messages produced during parsing.
@@ -49,7 +57,6 @@ public class ParseResult<T> {
         this.language = language;
         this.dialect = dialect;
     }
-
 
     @Override public int hashCode() {
         final int prime = 31;
@@ -84,5 +91,16 @@ public class ParseResult<T> {
             return "null";
         }
         return result.toString();
+    }
+
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        ResourceService.writeFileObject(source, out);
+    }
+
+    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+        in.defaultReadObject();
+        source = ResourceService.readFileObject(in);
     }
 }

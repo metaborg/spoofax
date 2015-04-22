@@ -1,6 +1,10 @@
 package org.metaborg.spoofax.core.transform.stratego.menu;
 
-public class ActionFlags {
+import java.io.Serializable;
+
+public class ActionFlags implements Serializable {
+    private static final long serialVersionUID = 5829545541865216121L;
+
     /**
      * Flag indicating if the strategy should be invoked on the parsed AST instead of the analyzed AST.
      */

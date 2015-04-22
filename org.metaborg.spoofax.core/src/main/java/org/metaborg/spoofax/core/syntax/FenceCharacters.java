@@ -1,6 +1,10 @@
 package org.metaborg.spoofax.core.syntax;
 
-public class FenceCharacters {
+import java.io.Serializable;
+
+public class FenceCharacters implements Serializable {
+    private static final long serialVersionUID = 8335721588273074820L;
+
     public final String open;
     public final String close;
 

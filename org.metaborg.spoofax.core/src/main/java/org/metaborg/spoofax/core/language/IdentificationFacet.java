@@ -8,6 +8,8 @@ import rx.functions.Func1;
  * Represents a facet that can identify resources languages.
  */
 public class IdentificationFacet implements ILanguageFacet {
+    private static final long serialVersionUID = -6626732531285139299L;
+
     private Func1<FileObject, Boolean> identifier;
 
 

@@ -1,6 +1,9 @@
 package org.metaborg.spoofax.core.resource;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.ObjectInput;
+import java.io.ObjectOutput;
 import java.util.Collection;
 
 import org.apache.commons.vfs2.AllFileSelector;
@@ -9,6 +12,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileSystemManager;
 import org.apache.commons.vfs2.FileSystemOptions;
+import org.apache.commons.vfs2.VFS;
 import org.apache.commons.vfs2.provider.local.LocalFile;
 import org.apache.commons.vfs2.provider.res.ResourceFileSystemConfigBuilder;
 import org.metaborg.spoofax.core.SpoofaxRuntimeException;
@@ -27,8 +31,10 @@ public class ResourceService implements IResourceService {
         this.fileSystemManager = fileSystemManager;
         this.fileSystemOptions = new FileSystemOptions();
 
-        if(classLoader == null)
+        if(classLoader == null) {
             classLoader = this.getClass().getClassLoader();
+        }
+
         ResourceFileSystemConfigBuilder.getInstance().setClassLoader(fileSystemOptions, classLoader);
     }
 
@@ -101,5 +107,15 @@ public class ResourceService implements IResourceService {
 
     @Override public FileSystemManager manager() {
         return fileSystemManager;
+    }
+
+
+    public static void writeFileObject(FileObject fo, ObjectOutput out) throws IOException {
+        out.writeObject(fo.getName().getURI());
+    }
+
+    public static FileObject readFileObject(ObjectInput in) throws ClassNotFoundException, IOException {
+        String uri = (String) in.readObject();
+        return VFS.getManager().resolveFile(uri);
     }
 }

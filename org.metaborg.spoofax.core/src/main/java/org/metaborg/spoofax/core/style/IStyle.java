@@ -1,13 +1,14 @@
 package org.metaborg.spoofax.core.style;
 
 import java.awt.Color;
+import java.io.Serializable;
 
 import javax.annotation.Nullable;
 
 /**
  * Interface for text styles.
  */
-public interface IStyle {
+public interface IStyle extends Serializable {
     /**
      * @return Text color
      */

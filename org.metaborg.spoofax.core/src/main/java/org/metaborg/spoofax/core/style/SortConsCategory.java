@@ -1,7 +1,9 @@
 package org.metaborg.spoofax.core.style;
 
 public class SortConsCategory implements ICategory {
-    public final String sort;
+    private static final long serialVersionUID = 8423515260404604295L;
+    
+	public final String sort;
     public final String cons;
 
 

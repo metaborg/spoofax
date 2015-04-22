@@ -3,6 +3,7 @@ package org.metaborg.spoofax.core.transform.stratego;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Collections;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.vfs2.FileObject;
@@ -18,7 +19,6 @@ import org.metaborg.spoofax.core.stratego.StrategoRuntimeUtils;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.transform.TransformResult;
 import org.metaborg.spoofax.core.transform.TransformerException;
-import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.time.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,8 +95,8 @@ public class StrategoTransformerCommon {
         }
 
         final TransformResult<PrevT, IStrategoTerm> transResult =
-            new TransformResult<PrevT, IStrategoTerm>(result, Iterables2.<IMessage>empty(),
-                Iterables2.singleton(resource), context, duration, prevResult);
+            new TransformResult<PrevT, IStrategoTerm>(result, Collections.<IMessage>emptyList(),
+                Collections.singletonList(resource), context, duration, prevResult);
         return transResult;
     }
 
