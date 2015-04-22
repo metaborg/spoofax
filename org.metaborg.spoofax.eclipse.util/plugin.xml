@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+  <extension
+    point="org.eclipse.core.expressions.propertyTesters"
+  >
+    <propertyTester
+      class="org.metaborg.spoofax.eclipse.util.expressions.SpoofaxPropertyTester"
+      id="org.metaborg.spoofax.eclipse.util.propertyTester.hasNature"
+      namespace="org.metaborg.spoofax.eclipse.util"
+      properties="hasNature"
+      type="java.lang.Object"
+    />
+    <propertyTester
+      class="org.metaborg.spoofax.eclipse.util.expressions.SpoofaxPropertyTester"
+      id="org.metaborg.spoofax.eclipse.util.propertyTester.isOpen"
+      namespace="org.metaborg.spoofax.eclipse.util"
+      properties="isOpen"
+      type="java.lang.Object"
+    />
+  </extension>
+
+  <!-- Reusable command expressions -->
+  <extension point="org.eclipse.core.expressions.definitions">
+    <definition id="org.metaborg.spoofax.eclipse.util.expression.isproject">
+      <iterate ifEmpty="false" operator="and">
+        <and>
+          <or>
+            <instanceof value="org.eclipse.core.resources.IProject" />
+            <!-- Test for project nature as well, in the Package explorer, Java projects of class JavaProject, 
+            which implements IProjectNature -->
+            <instanceof value="org.eclipse.core.resources.IProjectNature" />
+          </or>
+          <test
+            forcePluginActivation="true"
+            property="org.metaborg.spoofax.eclipse.util.isOpen" 
+          />
+        </and>
+      </iterate>
+    </definition>
+  </extension>
+</plugin>

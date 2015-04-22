@@ -9,10 +9,11 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.TextPresentation;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.IFileEditorInput;
+import org.eclipse.ui.IEditorInput;
 import org.metaborg.spoofax.core.SpoofaxException;
 import org.metaborg.spoofax.core.analysis.AnalysisException;
 import org.metaborg.spoofax.core.analysis.AnalysisFileResult;
@@ -60,12 +61,13 @@ public class EditorUpdateJob extends Job {
     private final ParseResultProcessor parseResultProcessor;
     private final AnalysisResultProcessor analysisResultProcessor;
 
-    private final IFileEditorInput input;
+    private final IEditorInput input;
     private final IResource eclipseResource;
     private final FileObject resource;
     private final ISourceViewer sourceViewer;
     private final String text;
     private final PresentationMerger presentationMerger;
+    private final boolean isNewEditor;
 
     private ThreadKillerJob threadKiller;
 
@@ -75,8 +77,9 @@ public class EditorUpdateJob extends Job {
         IAnalysisService<IStrategoTerm, IStrategoTerm> analyzer,
         ICategorizerService<IStrategoTerm, IStrategoTerm> categorizer,
         IStylerService<IStrategoTerm, IStrategoTerm> styler, ParseResultProcessor parseResultProcessor,
-        AnalysisResultProcessor analysisResultProcessor, IFileEditorInput input, IResource eclipseResource,
-        FileObject resource, ISourceViewer sourceViewer, String text, PresentationMerger presentationMerger) {
+        AnalysisResultProcessor analysisResultProcessor, IEditorInput input, IResource eclipseResource,
+        FileObject resource, ISourceViewer sourceViewer, String text, PresentationMerger presentationMerger,
+        boolean isNewEditor) {
         super("Updating Spoofax editor");
         setPriority(Job.SHORT);
 
@@ -97,6 +100,7 @@ public class EditorUpdateJob extends Job {
         this.sourceViewer = sourceViewer;
         this.text = text;
         this.presentationMerger = presentationMerger;
+        this.isNewEditor = isNewEditor;
     }
 
 
@@ -203,20 +207,24 @@ public class EditorUpdateJob extends Job {
                     if(monitor.isCanceled())
                         return;
                     // Also cancel if text presentation is not valid for current text any more.
-                    if(!sourceViewer.getDocument().get().equals(text))
+                    final IDocument document = sourceViewer.getDocument();
+                    if(document == null || !document.get().equals(text)) {
                         return;
+                    }
                     sourceViewer.changeTextPresentation(textPresentation, true);
                 }
             });
         }
 
         // Sleep before showing parse messages to prevent showing irrelevant messages while user is still typing.
-        try {
-            Thread.sleep(300);
-        } catch(InterruptedException e) {
-            return StatusUtils.cancel();
+        if(!isNewEditor) {
+            try {
+                Thread.sleep(300);
+            } catch(InterruptedException e) {
+                return StatusUtils.cancel();
+            }
         }
-        
+
         // Parse messages
         if(monitor.isCanceled())
             return StatusUtils.cancel();
@@ -239,10 +247,12 @@ public class EditorUpdateJob extends Job {
             return StatusUtils.silentError();
 
         // Sleep before analyzing to prevent running many analyses when small edits are made in succession.
-        try {
-            Thread.sleep(300);
-        } catch(InterruptedException e) {
-            return StatusUtils.cancel();
+        if(!isNewEditor) {
+            try {
+                Thread.sleep(300);
+            } catch(InterruptedException e) {
+                return StatusUtils.cancel();
+            }
         }
 
         // Analyze

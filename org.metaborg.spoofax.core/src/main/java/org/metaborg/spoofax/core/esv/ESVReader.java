@@ -98,10 +98,6 @@ public class ESVReader {
         return results.toString();
     }
 
-    public static int parseIntAt(IStrategoTerm t, int index) {
-        return Integer.parseInt(termContents(t.getSubterm(index)));
-    }
-
     public static String cons(IStrategoTerm t) {
         if(t == null || t.getTermType() != APPL)
             return null;

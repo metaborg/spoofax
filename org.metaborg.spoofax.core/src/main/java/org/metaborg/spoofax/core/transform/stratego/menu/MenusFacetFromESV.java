@@ -56,13 +56,13 @@ public class MenusFacetFromESV {
         // * ToolbarMenu: Label(String("\"Name\""))
         // * Submenu: String("\"Name\"")
         // * Action: String("\"Name\"")
-        final String nameQuoted;
+        final IStrategoTerm term;
         if(Tools.hasConstructor((IStrategoAppl) nameTerm, "Label")) {
-            nameQuoted = Tools.asJavaString(nameTerm.getSubterm(0).getSubterm(0));
+            term = nameTerm.getSubterm(0);
         } else {
-            nameQuoted = Tools.asJavaString(nameTerm.getSubterm(0));
+            term = nameTerm;
         }
-        return nameQuoted.replace("\"", "");
+        return ESVReader.termContents(term);
     }
 
     private static Action action(IStrategoTerm action, ActionFlags flags, ILanguage inputLanguage) {
