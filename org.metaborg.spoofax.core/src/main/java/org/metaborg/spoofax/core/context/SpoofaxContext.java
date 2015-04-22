@@ -32,7 +32,7 @@ public class SpoofaxContext implements IContext, IContextInternal {
     }
 
     @Override public FileObject location() {
-        return identifier.location();
+        return identifier.location;
     }
 
     @Override public ILanguage language() {
@@ -43,7 +43,7 @@ public class SpoofaxContext implements IContext, IContextInternal {
 
     @Override public void clean() {
         try {
-            final FileObject cacheDir = identifier.location().resolveFile(".cache");
+            final FileObject cacheDir = identifier.location.resolveFile(".cache");
             cacheDir.delete(new AllFileSelector());
         } catch(FileSystemException e) {
             final String message = String.format("Cannot delete cache directory in %s", this);
@@ -74,7 +74,7 @@ public class SpoofaxContext implements IContext, IContextInternal {
 
 
     private URI locationURI(IResourceService resourceService) {
-        final File localLocation = resourceService.localPath(identifier.location());
+        final File localLocation = resourceService.localPath(identifier.location);
         if(localLocation == null) {
             return null;
         }
@@ -103,6 +103,6 @@ public class SpoofaxContext implements IContext, IContextInternal {
     }
 
     @Override public String toString() {
-        return String.format("Context for %s, %s", identifier.location(), identifier.language);
+        return String.format("Context for %s, %s", identifier.location, identifier.language);
     }
 }
