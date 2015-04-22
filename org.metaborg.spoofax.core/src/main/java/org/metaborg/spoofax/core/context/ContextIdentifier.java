@@ -12,7 +12,7 @@ import org.metaborg.spoofax.core.resource.ResourceService;
 public class ContextIdentifier implements Serializable {
     private static final long serialVersionUID = -5397372170660560878L;
 
-    private transient FileObject location;
+    public transient FileObject location;
     public final ILanguage language;
 
 
@@ -21,10 +21,6 @@ public class ContextIdentifier implements Serializable {
         this.language = language;
     }
 
-
-    public FileObject location() {
-        return location;
-    }
 
     @Override public int hashCode() {
         final int prime = 31;
