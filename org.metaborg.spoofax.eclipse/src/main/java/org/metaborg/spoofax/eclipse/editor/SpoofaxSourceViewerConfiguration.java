@@ -41,7 +41,7 @@ public class SpoofaxSourceViewerConfiguration extends SourceViewerConfiguration 
         final ILanguage language = editor.language();
         if(language == null) {
             logger.warn("Cannot get language-specific single line comment prefix, identified language for {} is null, "
-                + "toggle comment is disabled", editor.resource());
+                + "toggle comment is disabled until language is identified", editor.resource());
             return new String[0];
         }
         return Iterables.toArray(syntaxService.singleLineCommentPrefixes(language), String.class);

@@ -92,7 +92,11 @@ public class LanguageReloadedActiveJob extends Job {
         // Update editors
         final Iterable<SpoofaxEditor> spoofaxEditors = spoofaxEditorListener.openEditors();
         for(SpoofaxEditor editor : spoofaxEditors) {
-            editor.forceUpdate();
+            final ILanguage editorLanguage = editor.language();
+            if(editorLanguage == null || oldLanguage.equals(editorLanguage)) {
+                editor.reconfigure();
+                editor.forceUpdate();
+            }
         }
 
         return StatusUtils.success();

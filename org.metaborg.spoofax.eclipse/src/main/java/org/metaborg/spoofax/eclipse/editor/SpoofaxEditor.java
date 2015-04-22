@@ -18,6 +18,7 @@ import org.eclipse.jface.text.TextPresentation;
 import org.eclipse.jface.text.source.DefaultCharacterPairMatcher;
 import org.eclipse.jface.text.source.ICharacterPairMatcher;
 import org.eclipse.jface.text.source.ISourceViewer;
+import org.eclipse.jface.text.source.ISourceViewerExtension2;
 import org.eclipse.jface.text.source.IVerticalRuler;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
 import org.eclipse.swt.widgets.Composite;
@@ -81,12 +82,13 @@ public class SpoofaxEditor extends TextEditor {
     private IDocument document;
     private ILanguage language;
     private ISourceViewer sourceViewer;
-    private ITextViewerExtension4 textViewerExt;
+    private ISourceViewerExtension2 sourceViewerExt2;
+    private ITextViewerExtension4 textViewerExt4;
     private DocumentListener documentListener;
 
 
     public SpoofaxEditor() {
-        super();
+        super(); // Super constructor will call into initializeEditor, initialize fields in that method.
 
         this.editorInputChangedListener = new EditorInputChangedListener();
         this.presentationMerger = new PresentationMerger();
@@ -168,19 +170,24 @@ public class SpoofaxEditor extends TextEditor {
     }
 
     /**
+     * @return If this editor is enabled.
+     */
+    public boolean enabled() {
+        return documentListener != null;
+    }
+
+    /**
      * Enables parsing, analysis, and editor services. Does nothing if editor has not been initialized, or if it has
      * been disposed, or if the editor is already enabled.
      */
     public void enable() {
-        if(!checkInitialized()) {
+        if(!checkInitialized() || enabled()) {
             return;
         }
-        if(documentListener == null) {
-            logger.debug("Enabling editor for {}", input);
-            documentListener = new DocumentListener();
-            document.addDocumentListener(documentListener);
-            scheduleJob(true);
-        }
+        logger.debug("Enabling editor for {}", resource);
+        documentListener = new DocumentListener();
+        document.addDocumentListener(documentListener);
+        scheduleJob(true);
     }
 
     /**
@@ -188,24 +195,22 @@ public class SpoofaxEditor extends TextEditor {
      * been disposed, or if the editor is already disabled.
      */
     public void disable() {
-        if(!checkInitialized()) {
+        if(!checkInitialized() || !enabled()) {
             return;
         }
-        if(documentListener != null) {
-            logger.debug("Disabling editor for {}", input);
-            document.removeDocumentListener(documentListener);
-            documentListener = null;
+        logger.debug("Disabling editor for {}", resource);
+        document.removeDocumentListener(documentListener);
+        documentListener = null;
 
-            final Display display = Display.getDefault();
-            final TextPresentation blackPresentation =
-                StyleUtils.createTextPresentation(Color.BLACK, document.getLength(), display);
-            presentationMerger.invalidate();
-            display.asyncExec(new Runnable() {
-                @Override public void run() {
-                    sourceViewer.changeTextPresentation(blackPresentation, true);
-                }
-            });
-        }
+        final Display display = Display.getDefault();
+        final TextPresentation blackPresentation =
+            StyleUtils.createTextPresentation(Color.BLACK, document.getLength(), display);
+        presentationMerger.invalidate();
+        display.asyncExec(new Runnable() {
+            @Override public void run() {
+                sourceViewer.changeTextPresentation(blackPresentation, true);
+            }
+        });
     }
 
     /**
@@ -216,16 +221,41 @@ public class SpoofaxEditor extends TextEditor {
         if(!checkInitialized()) {
             return;
         }
-        logger.debug("Force updating editor for {}", input);
+        logger.debug("Force updating editor for {}", resource);
         scheduleJob(true);
     }
 
+    /**
+     * Reconfigure the editor, causing its language to be updated and its source viewer to be reconfigured. Source
+     * viewer reconfiguration will be executed on the UI thread. Does nothing if editor has not been initialized, or if
+     * it has been disposed.
+     */
+    public void reconfigure() {
+        if(!checkInitialized()) {
+            return;
+        }
+        logger.debug("Reconfiguring editor for {}", resource);
+        language = languageIdentifier.identify(resource);
+
+        final Display display = Display.getDefault();
+        display.asyncExec(new Runnable() {
+            @Override public void run() {
+                sourceViewerExt2.unconfigure();
+                sourceViewer.configure(getSourceViewerConfiguration());
+                final SourceViewerDecorationSupport decorationSupport = getSourceViewerDecorationSupport(sourceViewer);
+                configureSourceViewerDecorationSupport(decorationSupport);
+                decorationSupport.uninstall();
+                decorationSupport.install(getPreferenceStore());
+            }
+        });
+    }
 
     @Override protected void initializeEditor() {
         super.initializeEditor();
 
         SpoofaxEditorPreferences.setDefaults(getPreferenceStore());
-        
+
+        // Initialize fields here instead of constructor, so that we can pass fields to the source viewer configuration.
         final Injector injector = SpoofaxPlugin.injector();
         this.resourceService = injector.getInstance(IEclipseResourceService.class);
         this.languageIdentifier = injector.getInstance(ILanguageIdentifierService.class);
@@ -253,8 +283,6 @@ public class SpoofaxEditor extends TextEditor {
         // Store current input and document so we have access to them when the editor input changes.
         input = getEditorInput();
         document = getDocumentProvider().getDocument(input);
-        documentListener = new DocumentListener();
-        document.addDocumentListener(documentListener);
 
         // Store resources for future use.
         resource = resourceService.resolve(input);
@@ -266,14 +294,19 @@ public class SpoofaxEditor extends TextEditor {
 
         // Create source viewer after input, document, resources, and language have been set.
         sourceViewer = super.createSourceViewer(parent, ruler, styles);
-        textViewerExt = (ITextViewerExtension4) sourceViewer;
+        sourceViewerExt2 = (ISourceViewerExtension2) sourceViewer;
+        textViewerExt4 = (ITextViewerExtension4) sourceViewer;
+
+        // Register for changes in the text, to schedule editor updates.
+        documentListener = new DocumentListener();
+        document.addDocumentListener(documentListener);
 
         // Register for changes in the editor input, to handle renaming or moving of resources of open editors.
         this.addPropertyListener(editorInputChangedListener);
 
         // Register for changes in text presentation, to merge our text presentation with presentations from other
         // sources, such as marker annotations.
-        textViewerExt.addTextPresentationListener(presentationMerger);
+        textViewerExt4.addTextPresentationListener(presentationMerger);
 
         scheduleJob(true);
 
@@ -284,8 +317,8 @@ public class SpoofaxEditor extends TextEditor {
         super.configureSourceViewerDecorationSupport(support);
 
         if(language == null) {
-            logger.warn("Cannot get language-specific fences, identified language for {} is null, "
-                + "bracket matching is disabled", resource);
+            logger.debug("Cannot get language-specific fences, identified language for {} is null, "
+                + "bracket matching is disabled until language is identified", resource);
             return;
         }
 
@@ -317,12 +350,15 @@ public class SpoofaxEditor extends TextEditor {
             document.removeDocumentListener(documentListener);
         }
         this.removePropertyListener(editorInputChangedListener);
-        textViewerExt.removeTextPresentationListener(presentationMerger);
+        textViewerExt4.removeTextPresentationListener(presentationMerger);
 
         input = null;
+        resource = null;
+        eclipseResource = null;
         document = null;
+        language = null;
         sourceViewer = null;
-        textViewerExt = null;
+        textViewerExt4 = null;
         documentListener = null;
 
         super.dispose();
@@ -380,15 +416,16 @@ public class SpoofaxEditor extends TextEditor {
         documentListener = new DocumentListener();
         document.addDocumentListener(documentListener);
 
-        // Store new resource and language, because these have changed as a result of the input change.
+        // Store new resource, because these may have changed as a result of the input change.
         resource = resourceService.resolve(input);
         eclipseResource = resourceService.unresolve(resource);
-        language = languageIdentifier.identify(resource);
+
+        // Reconfigure the editor because the language may have changed.
+        reconfigure();
 
         cancelJobs(oldInput);
         scheduleJob(true);
     }
-
 
     private final class DocumentListener implements IDocumentListener {
         @Override public void documentAboutToBeChanged(DocumentEvent event) {

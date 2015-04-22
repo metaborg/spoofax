@@ -63,7 +63,12 @@ public class LanguageAddedJob extends Job {
         // Enable editors
         final Iterable<SpoofaxEditor> spoofaxEditors = spoofaxEditorListener.openEditors();
         for(SpoofaxEditor editor : spoofaxEditors) {
-            editor.enable();
+            if(editor.language() == null) {
+                editor.reconfigure();
+            }
+            if(!editor.enabled() && language.equals(editor.language())) {
+                editor.enable();
+            }
         }
 
         return StatusUtils.success();

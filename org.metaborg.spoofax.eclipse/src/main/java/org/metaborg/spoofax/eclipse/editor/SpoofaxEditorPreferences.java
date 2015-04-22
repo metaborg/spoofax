@@ -13,11 +13,11 @@ public class SpoofaxEditorPreferences {
     public static final String bracketMatchingHighlightPeers = bracketMatching + ".highlight-peers";
 
 
-    public static void setDefaults(IPreferenceStore prefs) {
-        prefs.setDefault(bracketMatchingEnabled, true);
-        prefs.setDefault(bracketMatchingColor, "128, 128, 128");
-        prefs.setDefault(bracketMatchingHighlightAtCaret, true);
-        prefs.setDefault(bracketMatchingHighlightPeers, false);
+    public static void setDefaults(IPreferenceStore store) {
+        store.setDefault(bracketMatchingEnabled, true);
+        store.setDefault(bracketMatchingColor, "128, 128, 128");
+        store.setDefault(bracketMatchingHighlightAtCaret, true);
+        store.setDefault(bracketMatchingHighlightPeers, false);
     }
 
 

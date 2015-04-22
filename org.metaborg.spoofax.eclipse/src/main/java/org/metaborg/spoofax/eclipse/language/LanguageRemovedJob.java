@@ -84,7 +84,10 @@ public class LanguageRemovedJob extends Job {
         // Disable editors
         final Iterable<SpoofaxEditor> spoofaxEditors = spoofaxEditorListener.openEditors();
         for(SpoofaxEditor editor : spoofaxEditors) {
-            editor.disable();
+            if(editor.language().equals(language)) {
+                editor.reconfigure();
+                editor.disable();
+            }
         }
 
         // Remove markers
