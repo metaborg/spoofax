@@ -1,0 +1,15 @@
+module Entity
+
+imports
+  
+  Common
+
+context-free start-symbols
+  
+  
+
+context-free syntax
+  
+  .Dummy = <>
+
+]

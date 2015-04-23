@@ -1,0 +1,9 @@
+module names
+
+imports
+  
+  include/{{sdfMainModule}}
+  
+namespaces
+ 
+binding rules

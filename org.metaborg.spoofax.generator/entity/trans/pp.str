@@ -1,0 +1,40 @@
+module pp
+
+imports
+
+  libstratego-gpp
+  lib/runtime/refactoring/-
+  include/Entity-parenthesize
+  src-gen/pp/Entity-pp
+
+rules
+  
+  pp-Entity-string =
+    parenthesize-Entity
+    ; prettyprint-SDF-start-symbols
+    ; !V([], <id>)
+    ; box2text-string(|120)
+      
+  pp-partial-Entity-string =
+    parenthesize-Entity
+    ; prettyprint-example
+    ; !V([], <id>)
+    ; box2text-string(|120)
+      
+  pp-debug :
+    ast -> result
+    with
+       result := <pp-Entity-string> ast
+    <+ <bottomup(try(not(is-string); not(is-list); not(pp-Entity-string); debug(!"cannot pp ")))> ast
+    ;  result := ""
+
+rules
+  
+  /**
+  * Given an old AST and a new AST, pretty-prints the new AST while presevering 
+  * layout (e.g. whitespacing and comments) associated with the old AST.
+  *
+  * Example:
+  *   new-text := <construct-textual-change> (old-ast, new-ast)
+  */
+  construct-textual-change = construct-textual-change(pp-partial-Entity-string, parenthesize, override-reconstruction, resugar)
