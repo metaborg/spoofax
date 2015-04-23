@@ -29,7 +29,7 @@ public class Generator {
         generateNabl();
         generateTest();
         generateCommonTrans();
-        generateRuntimeLibraries();
+        generateRuntimeLibrary();
         generateIgnoreFiles();
     }
 
@@ -67,8 +67,8 @@ public class Generator {
         write("lib/refactor-common.generated.str", null, true);
     }
 
-    public void generateRuntimeLibraries() throws IOException {
-        write("lib/runtime.rtree", null, true);
+    public void generateRuntimeLibrary() throws IOException {
+        write("lib/libruntime.rtree", null, true);
     }
 
     public void generateIgnoreFiles() throws IOException {
