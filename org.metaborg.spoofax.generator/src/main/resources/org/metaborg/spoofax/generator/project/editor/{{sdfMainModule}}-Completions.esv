@@ -1,0 +1,20 @@
+module {{sdfMainModule}}-Completions
+
+imports src-gen/completions/{{sdfMainModule}}-esv
+
+completions
+                                                                   
+  // This file is used to define content completion.               
+  //                                                               
+  // See the imported file for a brief introduction and examples.  
+                                                                   
+
+completions
+    
+
+completions
+  // Semantic (identifier) completion:   
+                                         
+  completion proposer                  : editor-complete
+                                         
+  completion trigger                   : "."

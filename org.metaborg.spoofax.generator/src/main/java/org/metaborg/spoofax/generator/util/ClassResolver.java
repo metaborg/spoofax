@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.generator;
+package org.metaborg.spoofax.generator.util;
 
 import com.github.mustachejava.MustacheResolver;
 import java.io.InputStream;

@@ -1,0 +1,33 @@
+module {{sdfMainModule}}.main
+
+imports
+  {{sdfMainModule}}-Colorer
+  {{sdfMainModule}}-Completions
+  {{sdfMainModule}}-Folding
+  {{sdfMainModule}}-Menus
+  {{sdfMainModule}}-Refactorings
+  {{sdfMainModule}}-References
+  {{sdfMainModule}}-Syntax
+  {{sdfMainModule}}-Views
+
+language General properties
+  
+  name:          {{sdfMainModule}}
+  id:            {{sdfMainModule}}
+  extends:       Root
+  
+  description:   "Spoofax-generated {{sdfMainModule}} language"
+  url:           http://metaborg.org/spoofax
+  
+  extensions:    {{editorExtensions}}
+  table:         include/{{sdfMainModule}}.tbl
+  start symbols: {{startSymbol}}
+  
+  provider:      include/{{transModuleName}}.ctree
+  provider:      include/{{transModuleName}}-java.jar
+  
+  observer:      editor-analyze (multifile)
+  
+  on save:       editor-save
+  
+  jvm opts:      -server -Xss8m -Xmx1024m

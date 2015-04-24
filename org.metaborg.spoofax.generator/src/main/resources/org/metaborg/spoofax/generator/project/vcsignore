@@ -20,7 +20,7 @@ syntax/{{sdfMainModule}}*.generated.esv
 syntax/{{sdfMainModule}}.generated.pp
 syntax/*.sdf
 trans/*.pp.generated.str
-lib/runtime.rtree
+lib/libruntime.rtree
 lib/*.generated.str
 lib-refactoring/*.generated.str
 /src-gen

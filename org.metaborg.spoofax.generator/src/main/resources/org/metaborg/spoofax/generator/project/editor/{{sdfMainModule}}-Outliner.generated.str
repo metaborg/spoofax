@@ -1,0 +1,10 @@
+module editor/{{sdfMainModule}}-Outliner.generated
+
+imports
+  
+  include/{{sdfMainModule}}
+  lib/runtime/editor/outline-library
+
+rules
+  
+  to-outline-label = fail
