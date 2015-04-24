@@ -23,4 +23,5 @@ trans/*.pp.generated.str
 lib/libruntime.rtree
 lib/*.generated.str
 lib-refactoring/*.generated.str
-/src-gen
+src-gen
+.cache
