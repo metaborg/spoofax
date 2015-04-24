@@ -5,6 +5,25 @@
     <artifactId>org.metaborg.spoofax.nativebundle</artifactId>
     <version>1.5.0-SNAPSHOT</version>
     <packaging>jar</packaging>
+    <build>
+        <plugins>
+            <!-- some JAR trickery to include the native files 
+                 including them as normal resources doesn't work
+                 Maven will lose their execution permissions
+              -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.6</version>
+                <configuration>
+                    <classesDirectory>${basedir}</classesDirectory>
+                    <includes>
+                        <include>native/**</include>
+                    </includes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
     <scm>
         <connection>scm:git:git@github.com:metaborg/spoofax.git</connection>
         <developerConnection>scm:git:git@github.com:metaborg/spoofax.git</developerConnection>
