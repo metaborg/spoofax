@@ -13,7 +13,7 @@ imports
 language General properties
   
   name:          {{sdfMainModule}}
-  id:            {{sdfMainModule}}
+  id:            {{packageName}}
   extends:       Root
   
   description:   "Spoofax-generated {{sdfMainModule}} language"

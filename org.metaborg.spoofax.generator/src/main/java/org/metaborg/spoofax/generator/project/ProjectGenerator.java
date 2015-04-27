@@ -11,6 +11,7 @@ public class ProjectGenerator extends BaseGenerator {
     private boolean minimal = false;
     private String startSymbol = "Start";
     private String format;
+    private String pkg;
 
     public ProjectGenerator(File root, String sdfMainModule, String[] editorExtensions) {
         super(root, sdfMainModule);
@@ -53,11 +54,16 @@ public class ProjectGenerator extends BaseGenerator {
     }
 
     public String packageName() {
-        return sdfMainModule().toLowerCase();
+        return pkg != null && !pkg.isEmpty() ?
+                pkg : sdfMainModule().toLowerCase();
+    }
+
+    public void setPackageName(String name) {
+        pkg = name;
     }
 
     public String packagePath() {
-        return packageName().replace(".", "/")+"/";
+        return packageName().replace('.', '/');
     }
 
     public void generateAll() throws IOException {
@@ -92,7 +98,7 @@ public class ProjectGenerator extends BaseGenerator {
     }
 
     public void generateJavaStrategy() throws IOException {
-        String path = "editor/java/{{packagePath}}strategies/";
+        String path = "editor/java/{{packagePath}}/strategies/";
         writer.write(path+"InteropRegisterer.java", false);
         writer.write(path+"java_strategy_0_0.java", false);
         writer.write(path+"Main.java", false);
