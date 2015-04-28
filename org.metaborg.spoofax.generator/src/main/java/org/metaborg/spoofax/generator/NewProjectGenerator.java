@@ -1,11 +1,10 @@
-package org.metaborg.spoofax.generator.project;
+package org.metaborg.spoofax.generator;
 
 import java.io.File;
 import java.io.IOException;
 import org.apache.commons.lang3.StringUtils;
-import org.metaborg.spoofax.generator.BaseGenerator;
 
-public class ProjectGenerator extends BaseGenerator {
+public class NewProjectGenerator extends BaseGenerator {
     
     private final String[] editorExtensions;
     private boolean minimal = false;
@@ -13,7 +12,7 @@ public class ProjectGenerator extends BaseGenerator {
     private String format;
     private String pkg;
 
-    public ProjectGenerator(File root, String sdfMainModule, String[] editorExtensions) {
+    public NewProjectGenerator(File root, String sdfMainModule, String[] editorExtensions) {
         super(root, sdfMainModule);
         this.editorExtensions = editorExtensions;
     }
@@ -117,20 +116,13 @@ public class ProjectGenerator extends BaseGenerator {
 
     public void generateEditorServices() throws IOException {
         writer.write("editor/{{sdfMainModule}}-Colorer.esv", false);
-        writer.write("editor/{{sdfMainModule}}-Colorer.generated.esv", true);
         writer.write("editor/{{sdfMainModule}}-Completions.esv", false);
-        writer.write("editor/{{sdfMainModule}}-Completions.generated.esv", true);
         writer.write("editor/{{sdfMainModule}}-Folding.esv", false);
-        writer.write("editor/{{sdfMainModule}}-Folding.generated.esv", true);
         writer.write("editor/{{sdfMainModule}}-Menus.esv", false);
         writer.write("editor/{{sdfMainModule}}-Outliner.str", false);
-        writer.write("editor/{{sdfMainModule}}-Outliner.generated.str", true);
         writer.write("editor/{{sdfMainModule}}-Refactorings.esv", false);
-        writer.write("editor/{{sdfMainModule}}-Refactorings.generated.esv", true);
         writer.write("editor/{{sdfMainModule}}-References.esv", false);
-        writer.write("editor/{{sdfMainModule}}-References.generated.esv", true);
         writer.write("editor/{{sdfMainModule}}-Syntax.esv", false);
-        writer.write("editor/{{sdfMainModule}}-Syntax.generated.esv", true);
         writer.write("editor/{{sdfMainModule}}-Views.esv", false);
         writer.write("editor/{{sdfMainModule}}.main.esv", false);
     }
