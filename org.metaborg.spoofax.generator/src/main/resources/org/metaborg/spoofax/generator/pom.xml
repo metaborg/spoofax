@@ -22,7 +22,7 @@
             <plugin>
                 <groupId>org.metaborg</groupId>
                 <artifactId>spoofax-maven-plugin</artifactId>
-                <version>${metaborg.version}</version>
+                <version>${metaborg-version}</version>
                 <configuration>
                     {{#format}}
                     <format>{{.}}</format>
