@@ -6,6 +6,6 @@ include
 src-gen
 syntax/*.generated.*
 target
-trans/*.pp.generated.str
+trans/*.generated.*
 lib/runtime
 lib/*.generated.*

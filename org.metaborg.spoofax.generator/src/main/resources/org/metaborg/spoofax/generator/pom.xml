@@ -32,7 +32,6 @@
 						<arg>-la</arg><arg>stratego-gpp</arg>
 						<arg>-la</arg><arg>stratego-xtc</arg>
 						<arg>-la</arg><arg>stratego-aterm</arg>
-						<arg>-la</arg><arg>stratego-parallel</arg>
 					</strategoArgs>
                 </configuration>
                 <dependencies>
