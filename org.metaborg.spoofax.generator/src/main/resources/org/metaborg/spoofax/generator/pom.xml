@@ -10,12 +10,12 @@
     <version>1.0.0-SNAPSHOT</version>
     <packaging>spoofax-language</packaging>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.7</maven.compiler.source>
-        <maven.compiler.target>1.7</maven.compiler.target>
-        <metaborg.version>1.5.0-SNAPSHOT</metaborg.version>
-    </properties>
+	<parent>
+		<groupId>org.metaborg</groupId>
+		<artifactId>org.metaborg.maven.parent.language</artifactId>
+		<version>1.5.0-SNAPSHOT</version>
+		<relativePath>../../spoofax-deploy/org.metaborg.maven.parent.language</relativePath>
+	</parent>
 
     <build>
         <plugins>
@@ -23,35 +23,42 @@
                 <groupId>org.metaborg</groupId>
                 <artifactId>spoofax-maven-plugin</artifactId>
                 <version>${metaborg.version}</version>
-                <extensions>true</extensions>
                 <configuration>
                     {{#format}}
                     <format>{{.}}</format>
                     {{/format}}
+					<strategoArgs>
+						<arg>-la</arg><arg>stratego-lib</arg>
+						<arg>-la</arg><arg>stratego-sglr</arg>
+						<arg>-la</arg><arg>stratego-gpp</arg>
+						<arg>-la</arg><arg>stratego-xtc</arg>
+						<arg>-la</arg><arg>stratego-aterm</arg>
+						<arg>-la</arg><arg>stratego-parallel</arg>
+					</strategoArgs>
                 </configuration>
                 <dependencies>
                     <dependency>
                         <groupId>org.metaborg</groupId>
                         <artifactId>org.metaborg.meta.lang.sdf</artifactId>
-                        <version>${metaborg.version}</version>
+                        <version>${metaborg-version}</version>
                         <type>spoofax-language</type>
                     </dependency>
                     <dependency>
                         <groupId>org.metaborg</groupId>
                         <artifactId>org.metaborg.meta.lang.template</artifactId>
-                        <version>${metaborg.version}</version>
+                        <version>${metaborg-version}</version>
                         <type>spoofax-language</type>
                     </dependency>
                     <dependency>
                         <groupId>org.metaborg</groupId>
                         <artifactId>org.metaborg.meta.lang.nabl</artifactId>
-                        <version>${metaborg.version}</version>
+                        <version>${metaborg-version}</version>
                         <type>spoofax-language</type>
                     </dependency>
                     <dependency>
                         <groupId>org.metaborg</groupId>
                         <artifactId>org.metaborg.meta.lang.esv</artifactId>
-                        <version>${metaborg.version}</version>
+                        <version>${metaborg-version}</version>
                         <type>spoofax-language</type>
                     </dependency>
                 </dependencies>
