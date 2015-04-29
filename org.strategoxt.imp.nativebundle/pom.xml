@@ -32,7 +32,7 @@
 								<artifactItem>
 									<groupId>${project.groupId}</groupId>
 									<artifactId>org.metaborg.spoofax.nativebundle</artifactId>
-									<version>${project.version}</version>
+									<version>${metaborg-version}</version>
 									<includes>native/**</includes>
 									<outputDirectory>${project.build.outputDirectory}</outputDirectory>
 								</artifactItem>
