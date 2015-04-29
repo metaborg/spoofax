@@ -39,12 +39,6 @@
                 <dependencies>
                     <dependency>
                         <groupId>org.metaborg</groupId>
-                        <artifactId>org.metaborg.meta.lang.sdf</artifactId>
-                        <version>${metaborg-version}</version>
-                        <type>spoofax-language</type>
-                    </dependency>
-                    <dependency>
-                        <groupId>org.metaborg</groupId>
                         <artifactId>org.metaborg.meta.lang.template</artifactId>
                         <version>${metaborg-version}</version>
                         <type>spoofax-language</type>
@@ -52,6 +46,12 @@
                     <dependency>
                         <groupId>org.metaborg</groupId>
                         <artifactId>org.metaborg.meta.lang.nabl</artifactId>
+                        <version>${metaborg-version}</version>
+                        <type>spoofax-language</type>
+                    </dependency>
+                    <dependency>
+                        <groupId>org.metaborg</groupId>
+                        <artifactId>org.metaborg.meta.lang.ts</artifactId>
                         <version>${metaborg-version}</version>
                         <type>spoofax-language</type>
                     </dependency>
