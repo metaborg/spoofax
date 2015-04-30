@@ -7,33 +7,33 @@ imports
 
 strategies
 
-  parse-file = parse-{{transModuleName}}-file
-  parse-{{transModuleName}}-file =
+  parse-file = parse-{{strategoName}}-file
+  parse-{{strategoName}}-file =
     parse-file(
       strsglr-perror, strsglr-report-parse-error
-    | <import-term(include/{{sdfMainModule}}.tbl)>
+    | <import-term(include/{{name}}.tbl)>
     )
 
-  parse-string = parse-{{transModuleName}}-string
-  parse-{{transModuleName}}-string =
+  parse-string = parse-{{strategoName}}-string
+  parse-{{strategoName}}-string =
     parse-string(
       strsglr-report-parse-error
-    | <import-term(include/{{sdfMainModule}}.tbl)>
+    | <import-term(include/{{name}}.tbl)>
     )
   
-  parse-stream = parse-{{transModuleName}}-stream
-  parse-{{transModuleName}}-stream =
+  parse-stream = parse-{{strategoName}}-stream
+  parse-{{strategoName}}-stream =
     parse-stream(
       strsglr-report-parse-error
-    | <import-term(include/{{sdfMainModule}}.tbl)>
+    | <import-term(include/{{name}}.tbl)>
     )
 
-  pp-{{transModuleName}}-string =
-    ast2abox(|[<import-term(include/{{sdfMainModule}}.generated.pp.af)>,
-               <import-term(include/{{sdfMainModule}}.pp.af)>]);
+  pp-{{strategoName}}-string =
+    ast2abox(|[<import-term(include/{{name}}.generated.pp.af)>,
+               <import-term(include/{{name}}.pp.af)>]);
     box2text-string(|100)
     
-  language = !"{{sdfMainModule}}"
+  language = !"{{name}}"
 
 strategies
   
@@ -144,7 +144,7 @@ strategies
     Fst
   
   origin-surrounding-comments =
-    prim("SSL_EXT_origin_surrounding_comments", "{{sdfMainModule}}", <id>)
+    prim("SSL_EXT_origin_surrounding_comments", "{{name}}", <id>)
     
   origin-documentation-comment =
     origin-surrounding-comments;

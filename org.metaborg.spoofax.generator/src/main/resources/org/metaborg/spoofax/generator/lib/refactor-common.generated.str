@@ -63,5 +63,5 @@ input-dialog:
 strategies //pp-table
 
 get-pp-table=
-  import-term(include/{{sdfMainModule}}.generated.pp.af)
+  import-term(include/{{name}}.generated.pp.af)
 

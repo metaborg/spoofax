@@ -1,7 +1,0 @@
-module {{sdfMainModule}}-Refactorings
-
-imports {{sdfMainModule}}-Refactorings.generated
-
-refactorings
-
-  text reconstruction : construct-textual-change

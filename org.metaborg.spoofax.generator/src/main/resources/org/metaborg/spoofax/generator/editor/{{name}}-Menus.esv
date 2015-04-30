@@ -1,4 +1,4 @@
-module {{sdfMainModule}}-Menus
+module {{name}}-Menus
 
 menus
   

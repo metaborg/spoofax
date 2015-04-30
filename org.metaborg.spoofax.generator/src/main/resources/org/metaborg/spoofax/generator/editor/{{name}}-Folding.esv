@@ -1,6 +1,6 @@
-module {{sdfMainModule}}-Folding
+module {{name}}-Folding
 
-imports {{sdfMainModule}}-Folding.generated
+imports {{name}}-Folding.generated
 
 folding
   

@@ -1,8 +1,8 @@
-module editor/{{sdfMainModule}}-Outliner.generated
+module editor/{{name}}-Outliner.generated
 
 imports
   
-  include/{{sdfMainModule}}
+  include/{{name}}
   lib/runtime/editor/outline-library
 
 rules

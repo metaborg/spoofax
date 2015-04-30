@@ -1,4 +1,4 @@
-module {{sdfMainModule}}-Syntax.generated
+module {{name}}-Syntax.generated
 
 language Syntax properties (static defaults)
                                            

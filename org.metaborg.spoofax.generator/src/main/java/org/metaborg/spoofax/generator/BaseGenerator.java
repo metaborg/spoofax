@@ -8,30 +8,18 @@ import java.io.OutputStream;
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import org.apache.commons.io.IOUtils;
+import org.metaborg.spoofax.generator.project.ProjectSettings;
 import org.metaborg.spoofax.generator.util.MustacheWriter;
 
 public abstract class BaseGenerator {
     
-    private final File root;
-    private final String sdfMainModule;
+    private final File basedir;
     protected final MustacheWriter writer;
 
-    public BaseGenerator(File root, String sdfMainModule) {
-        this.root = root;
-        this.sdfMainModule = sdfMainModule;
-        this.writer = new MustacheWriter(root, this, getClass());
-    }
-
-    public File getRoot() {
-        return root;
-    }
-
-    public String sdfMainModule() {
-        return sdfMainModule;
-    }
-
-    public String transModuleName() {
-        return sdfMainModule.toLowerCase();
+    public BaseGenerator(ProjectSettings projectSettings) {
+        this.basedir = projectSettings.getBaseDir();
+        this.writer = new MustacheWriter(projectSettings.getBaseDir(),
+                new Object[]{ this, projectSettings }, getClass());
     }
 
     protected void unpack(String name) throws IOException {
@@ -47,7 +35,7 @@ public abstract class BaseGenerator {
                 IOUtils.copy(is,os);
             }
         }
-        File dst = new File(root, dstDir);
+        File dst = new File(basedir, dstDir);
         dst.mkdirs();
         ZipFile z;
         try {

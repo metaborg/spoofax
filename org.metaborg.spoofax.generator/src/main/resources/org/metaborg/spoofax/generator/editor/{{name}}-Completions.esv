@@ -1,6 +1,6 @@
-module {{sdfMainModule}}-Completions
+module {{name}}-Completions
 
-imports src-gen/completions/{{sdfMainModule}}-esv
+imports src-gen/completions/{{name}}-esv
 
 completions
                                                                    

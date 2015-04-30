@@ -1,6 +1,6 @@
-module {{sdfMainModule}}-Syntax
+module {{name}}-Syntax
 
-imports {{sdfMainModule}}-Syntax.generated
+imports {{name}}-Syntax.generated
 
 language
                                                                    

@@ -1,4 +1,4 @@
-module {{sdfMainModule}}-References.generated
+module {{name}}-References.generated
 
 references
                                                                                           

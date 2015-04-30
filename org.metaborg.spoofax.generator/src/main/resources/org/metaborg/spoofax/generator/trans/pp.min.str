@@ -4,19 +4,19 @@ imports
 
   libstratego-gpp
   lib/runtime/refactoring/-
-  include/{{sdfMainModule}}-parenthesize
-  src-gen/pp/{{sdfMainModule}}-pp
+  include/{{name}}-parenthesize
+  src-gen/pp/{{name}}-pp
 
 rules
   
-  pp-{{sdfMainModule}}-string =
-    parenthesize-{{sdfMainModule}}
+  pp-{{name}}-string =
+    parenthesize-{{name}}
     ; prettyprint-SDF-start-symbols
     ; !V([], <id>)
     ; box2text-string(|120)
       
-  pp-partial-{{sdfMainModule}}-string =
-    parenthesize-{{sdfMainModule}}
+  pp-partial-{{name}}-string =
+    parenthesize-{{name}}
     ; prettyprint-example
     ; !V([], <id>)
     ; box2text-string(|120)
@@ -24,8 +24,8 @@ rules
   pp-debug :
     ast -> result
     with
-       result := <pp-{{sdfMainModule}}-string> ast
-    <+ <bottomup(try(not(is-string); not(is-list); not(pp-{{sdfMainModule}}-string); debug(!"cannot pp ")))> ast
+       result := <pp-{{name}}-string> ast
+    <+ <bottomup(try(not(is-string); not(is-list); not(pp-{{name}}-string); debug(!"cannot pp ")))> ast
     ;  result := ""
 
 rules
@@ -37,4 +37,4 @@ rules
   * Example:
   *   new-text := <construct-textual-change> (old-ast, new-ast)
   */
-  construct-textual-change = construct-textual-change(pp-partial-{{sdfMainModule}}-string, parenthesize, override-reconstruction, resugar)
+  construct-textual-change = construct-textual-change(pp-partial-{{name}}-string, parenthesize, override-reconstruction, resugar)

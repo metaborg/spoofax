@@ -11,12 +11,12 @@ import java.io.StringWriter;
 public class MustacheWriter {
     
     private final File root;
-    private final Object obj;
+    private final Object[] objs;
     private final MustacheFactory mf;
 
-    public MustacheWriter(File root, Object obj, Class cls) {
+    public MustacheWriter(File root, Object[] objs, Class cls) {
         this.root = root;
-        this.obj = obj;
+        this.objs = objs;
         this.mf = new StrictMustacheFactory(new ClassResolver(cls));
     }
 
@@ -24,10 +24,20 @@ public class MustacheWriter {
         write(name,name,force);
     }
 
+    public void write(String name, String ifNameTemplate) throws IOException {
+        write(name,name,ifNameTemplate);
+    }
+
+    public void write(String srcName, String dstNameTemplate, String ifNameTemplate) throws IOException {
+        String ifName = writeString(ifNameTemplate);
+        if ( new File(root, ifName).exists() ) {
+            write(srcName, dstNameTemplate, true);
+        }
+    }
+
     public void write(String srcName, String dstNameTemplate, boolean force) throws IOException {
         Mustache content = mf.compile(srcName);
-        Mustache dst = mf.compile(new StringReader(dstNameTemplate), "nameOf("+dstNameTemplate+")");
-        String dstName = dst.execute(new StringWriter(), obj).toString();
+        String dstName = writeString(dstNameTemplate);
         write(content, new File(root, dstName), force);
     }
 
@@ -35,8 +45,13 @@ public class MustacheWriter {
         if ( dst.exists() && !force ) { return; }
         dst.getParentFile().mkdirs();
         FileWriter fw = new FileWriter(dst);
-        m.execute(fw, obj);
+        m.execute(fw, objs);
         fw.close();
+    }
+
+    public String writeString(String template) {
+        Mustache dst = mf.compile(new StringReader(template), "nameOf("+template+")");
+        return dst.execute(new StringWriter(), objs).toString();
     }
 
 }

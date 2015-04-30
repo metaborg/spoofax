@@ -2,6 +2,6 @@ module generate
 
 imports
 	
-  include/{{sdfMainModule}}
+  include/{{name}}
 
 rules 

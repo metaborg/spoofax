@@ -2,7 +2,7 @@ module check
 
 imports
 
-  include/{{sdfMainModule}}
+  include/{{name}}
   lib/editor-common.generated
 
 rules

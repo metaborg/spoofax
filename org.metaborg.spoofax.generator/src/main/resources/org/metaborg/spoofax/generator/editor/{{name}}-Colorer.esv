@@ -1,6 +1,6 @@
-module {{sdfMainModule}}-Colorer
+module {{name}}-Colorer
 
-imports {{sdfMainModule}}-Colorer.generated
+imports {{name}}-Colorer.generated
 
 colorer
                                                                       

@@ -1,6 +1,6 @@
-module {{sdfMainModule}}-References
+module {{name}}-References
 
-imports {{sdfMainModule}}-References.generated
+imports {{name}}-References.generated
 
 references
                                                                                                    

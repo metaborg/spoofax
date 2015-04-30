@@ -1,7 +1,7 @@
-// Grammar for the {{sdfMainModule}} language
+// Grammar for the {{name}} language
 // By default, based on an example "entity language" syntax
 
-module {{sdfMainModule}}
+module {{name}}
 
 imports 
 

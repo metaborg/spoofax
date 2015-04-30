@@ -1,4 +1,4 @@
-module {{sdfMainModule}}-Completions.generated
+module {{name}}-Completions.generated
 
 completions
                                                                                           

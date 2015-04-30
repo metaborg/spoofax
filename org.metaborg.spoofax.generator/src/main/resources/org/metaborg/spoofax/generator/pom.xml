@@ -5,8 +5,8 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>{{packageName}}</groupId>
-    <artifactId>{{sdfMainModule}}</artifactId>
+    <groupId>{{id}}</groupId>
+    <artifactId>{{name}}</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>spoofax-language</packaging>
 
@@ -21,19 +21,6 @@
             <plugin>
                 <groupId>org.metaborg</groupId>
                 <artifactId>spoofax-maven-plugin</artifactId>
-                <version>${metaborg-version}</version>
-                <configuration>
-                    {{#format}}
-                    <format>{{.}}</format>
-                    {{/format}}
-					<strategoArgs>
-						<arg>-la</arg><arg>stratego-lib</arg>
-						<arg>-la</arg><arg>stratego-sglr</arg>
-						<arg>-la</arg><arg>stratego-gpp</arg>
-						<arg>-la</arg><arg>stratego-xtc</arg>
-						<arg>-la</arg><arg>stratego-aterm</arg>
-					</strategoArgs>
-                </configuration>
                 <dependencies>
                     <dependency>
                         <groupId>org.metaborg</groupId>

@@ -2,7 +2,7 @@ module names
 
 imports
   
-  include/{{sdfMainModule}}
+  include/{{name}}
   
 namespaces
   

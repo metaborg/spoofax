@@ -1,4 +1,4 @@
-module {{sdfMainModule}}-Colorer.generated
+module {{name}}-Colorer.generated
 
 colorer
                                                                                              

@@ -1,21 +1,40 @@
 package org.metaborg.spoofax.generator;
 
-import java.io.File;
 import java.io.IOException;
 import org.apache.commons.lang3.StringUtils;
+import org.metaborg.spoofax.generator.project.NameUtil;
+import org.metaborg.spoofax.generator.project.ProjectException;
+import org.metaborg.spoofax.generator.project.ProjectSettings;
 
 public class NewProjectGenerator extends BaseGenerator {
     
-    private final String[] editorExtensions;
-    private boolean minimal = false;
-    private String startSymbol = "Start";
-    private String format;
-    private String pkg;
+    private final String[] fileExtensions;
 
-    public NewProjectGenerator(File root, String sdfMainModule, String[] editorExtensions) {
-        super(root, sdfMainModule);
-        this.editorExtensions = editorExtensions;
+    public NewProjectGenerator(ProjectSettings projectSettings,
+            String[] fileExtensions) throws ProjectException {
+        super(projectSettings);
+        if ( fileExtensions.length < 1 ) {
+            throw new ProjectException("At least one fileExtension is required.");
+        }
+        for ( String ext : fileExtensions ) {
+            if ( !NameUtil.isValidFileExtension(ext) ) {
+                throw new ProjectException("Invalid file extension: "+ext);
+            }
+        }
+        this.fileExtensions = fileExtensions;
     }
+
+    public String fileExtensions() {
+        return StringUtils.join(fileExtensions, " ");
+    }
+
+    public String fileExtension() {
+        return fileExtensions[0];
+    }
+
+    //////////////////////////////////////////////////////////////////
+
+    private boolean minimal = false;
 
     public boolean minimal() {
         return minimal;
@@ -25,45 +44,13 @@ public class NewProjectGenerator extends BaseGenerator {
         this.minimal = minimal;
     }
 
+    //////////////////////////////////////////////////////////////////
+
     public String startSymbol() {
-        return startSymbol;
+        return "Start";
     }
 
-    public void setStartSymbol(String startSymbol) {
-        this.startSymbol = startSymbol;
-    }
-
-    public String editorExtensions() {
-        return StringUtils.join(editorExtensions, " ");
-    }
-
-    public String editorExtension() {
-        return editorExtensions[0];
-    }
-
-    public String[] format() {
-        if ( format == null ) {
-            return new String[0];
-        }
-        return new String[] { format };
-    }
-
-    public void setFormat(String format) {
-        this.format = format;
-    }
-
-    public String packageName() {
-        return pkg != null && !pkg.isEmpty() ?
-                pkg : sdfMainModule().toLowerCase();
-    }
-
-    public void setPackageName(String name) {
-        pkg = name;
-    }
-
-    public String packagePath() {
-        return packageName().replace('.', '/');
-    }
+    //////////////////////////////////////////////////////////////////
 
     public void generateAll() throws IOException {
         generatePOM();
@@ -82,12 +69,12 @@ public class NewProjectGenerator extends BaseGenerator {
 
     public void generateGrammar() throws IOException {
         writer.write("syntax/Common.sdf3", false);
-        String name = "syntax/{{sdfMainModule}}.sdf3";
-        writer.write(minimal ? "syntax/{{sdfMainModule}}.min.sdf3" : name, name, false);
+        String name = "syntax/{{name}}.sdf3";
+        writer.write(minimal ? "syntax/{{name}}.min.sdf3" : name, name, false);
     }
 
     public void generateTrans() throws IOException {
-        writer.write("trans/{{transModuleName}}.str", false);
+        writer.write("trans/{{strategoName}}.str", false);
         String generateName = "trans/generate.str";
         writer.write(minimal ? "trans/generate.min.str" : generateName, generateName, false);
         String checkName = "trans/check.str";
@@ -110,21 +97,21 @@ public class NewProjectGenerator extends BaseGenerator {
 
     public void generateTest() throws IOException {
         if ( minimal ) { return; }
-        writer.write("test/example.{{editorExtension}}", false);
+        writer.write("test/example.{{fileExtension}}", false);
         writer.write("test/test-example.spt", false);
     }
 
     public void generateEditorServices() throws IOException {
-        writer.write("editor/{{sdfMainModule}}-Colorer.esv", false);
-        writer.write("editor/{{sdfMainModule}}-Completions.esv", false);
-        writer.write("editor/{{sdfMainModule}}-Folding.esv", false);
-        writer.write("editor/{{sdfMainModule}}-Menus.esv", false);
-        writer.write("editor/{{sdfMainModule}}-Outliner.str", false);
-        writer.write("editor/{{sdfMainModule}}-Refactorings.esv", false);
-        writer.write("editor/{{sdfMainModule}}-References.esv", false);
-        writer.write("editor/{{sdfMainModule}}-Syntax.esv", false);
-        writer.write("editor/{{sdfMainModule}}-Views.esv", false);
-        writer.write("editor/{{sdfMainModule}}.main.esv", false);
+        writer.write("editor/{{name}}-Colorer.esv", false);
+        writer.write("editor/{{name}}-Completions.esv", false);
+        writer.write("editor/{{name}}-Folding.esv", false);
+        writer.write("editor/{{name}}-Menus.esv", false);
+        writer.write("editor/{{name}}-Outliner.str", false);
+        writer.write("editor/{{name}}-Refactorings.esv", false);
+        writer.write("editor/{{name}}-References.esv", false);
+        writer.write("editor/{{name}}-Syntax.esv", false);
+        writer.write("editor/{{name}}-Views.esv", false);
+        writer.write("editor/{{name}}.main.esv", false);
     }
 
     public void generateIgnoreFile() throws IOException {

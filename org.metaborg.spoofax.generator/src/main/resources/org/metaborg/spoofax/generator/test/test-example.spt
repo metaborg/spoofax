@@ -1,9 +1,9 @@
 /**
- * Unit tests for the {{sdfMainModule}} language.
+ * Unit tests for the {{name}} language.
  */
 module test-example
 
-language {{sdfMainModule}}
+language {{name}}
 
 setup Common [[
   module test

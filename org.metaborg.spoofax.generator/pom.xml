@@ -12,6 +12,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>org.metaborg.spoofax.core</artifactId>
+            <version>${metaborg-version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.github.spullara.mustache.java</groupId>
             <artifactId>compiler</artifactId>
             <version>0.8.17</version>

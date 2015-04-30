@@ -1,4 +1,4 @@
-module {{sdfMainModule}}-Refactorings.generated
+module {{name}}-Refactorings.generated
 
 keybindings Predefined Keybindings
 

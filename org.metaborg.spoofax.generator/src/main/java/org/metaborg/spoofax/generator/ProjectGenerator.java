@@ -1,15 +1,14 @@
 package org.metaborg.spoofax.generator;
 
-import java.io.File;
 import java.io.IOException;
-import org.metaborg.spoofax.generator.BaseGenerator;
+import org.metaborg.spoofax.generator.project.ProjectSettings;
 
 public class ProjectGenerator extends BaseGenerator {
 
-    public ProjectGenerator(File root, String sdfMainModule) {
-        super(root, sdfMainModule);
+    public ProjectGenerator(ProjectSettings projectSettings) {
+        super(projectSettings);
     }
-    
+
     public void generateAll() throws IOException {
         generateCommonLibrary();
         generateRuntimeLibrary();
@@ -26,13 +25,16 @@ public class ProjectGenerator extends BaseGenerator {
     }
 
     public void generateEditorServices() throws IOException {
-        writer.write("editor/{{sdfMainModule}}-Colorer.generated.esv", true);
-        writer.write("editor/{{sdfMainModule}}-Completions.generated.esv", true);
-        writer.write("editor/{{sdfMainModule}}-Folding.generated.esv", true);
-        writer.write("editor/{{sdfMainModule}}-Outliner.generated.str", true);
-        writer.write("editor/{{sdfMainModule}}-Refactorings.generated.esv", true);
-        writer.write("editor/{{sdfMainModule}}-References.generated.esv", true);
-        writer.write("editor/{{sdfMainModule}}-Syntax.generated.esv", true);
+        for ( String service : new String[] {
+            "Builders", "Colorer", "Completions", "Folding",
+            "Outliner", "Refactorings", "References", "Syntax"
+        }) {
+            writer.write(
+                    String.format("editor/{{name}}-%s.generated.esv", service),
+                    String.format("editor/{{name}}-%s.esv", service));
+        }
+        writer.write("editor/{{name}}-Outliner.generated.str",
+                "editor/{{name}}-Outliner.str");
     }
 
 }
