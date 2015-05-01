@@ -97,12 +97,12 @@ public class ProjectSettings {
         return new File(basedir, "editor");
     }
 
-    public File getEditorJavaDirectory() {
+    public File getJavaDirectory() {
         return new File(getEditorDirectory(), "java");
     }
 
     public File getJavaTransDirectory() {
-        return new File(getEditorJavaDirectory(), "trans");
+        return new File(getJavaDirectory(), "trans");
     }
 
     public File getGeneratedSyntaxDirectory() {
