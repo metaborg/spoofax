@@ -36,4 +36,19 @@
         </dependency>
     </dependencies>
 
+   <developers>
+        <developer>
+            <name>Hendrik van Antwerpen</name>
+            <email>h.vanantwerpen@tudelft.nl</email>
+            <organization>Delft University of Technology</organization>
+            <organizationUrl>http://www.ewi.tudelft.nl/en</organizationUrl>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git@github.com:metaborg/spoofax.git</connection>
+        <developerConnection>scm:git:git@github.com:metaborg/spoofax.git</developerConnection>
+        <url>https://github.com/metaborg/spoofax</url>
+    </scm>
+
 </project>
