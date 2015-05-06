@@ -18,9 +18,14 @@ public class ParseResult<T> implements Serializable {
     private static final long serialVersionUID = 7584042729127258710L;
 
     /**
+     * Parser input string.
+     */
+    public final String input;
+    
+    /**
      * Parser output, or null if parsing failed.
      */
-    public @Nullable T result;
+    public final @Nullable T result;
 
     /**
      * Resource that was parsed.
@@ -46,16 +51,23 @@ public class ParseResult<T> implements Serializable {
      * Dialect the source was parsed with, or null if no dialect was used.
      */
     public final @Nullable ILanguage dialect;
+    
+    /**
+     * Optional parser specific data.
+     */
+    public final @Nullable Object parserSpecificData;
 
 
-    public ParseResult(@Nullable T result, FileObject source, Iterable<IMessage> messages, long duration,
-        ILanguage language, @Nullable ILanguage dialect) {
+    public ParseResult(String input, @Nullable T result, FileObject source, Iterable<IMessage> messages, long duration,
+        ILanguage language, @Nullable ILanguage dialect, Object parserSpecificData) {
+        this.input = input;
         this.result = result;
         this.source = source;
         this.messages = Lists.newLinkedList(messages);
         this.duration = duration;
         this.language = language;
         this.dialect = dialect;
+        this.parserSpecificData = parserSpecificData;
     }
 
     @Override public int hashCode() {

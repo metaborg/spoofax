@@ -357,7 +357,8 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
         final IStrategoTerm previousAst = res.getSubterm(3);
 
         return new AnalysisFileResult<IStrategoTerm, IStrategoTerm>(ast, resource, messages,
-            new ParseResult<IStrategoTerm>(previousAst, resource, Arrays.asList(new IMessage[] {}), -1, language, null));
+            new ParseResult<IStrategoTerm>("", previousAst, resource, Arrays.asList(new IMessage[] {}), -1, language,
+                null, null));
     }
 
     private Collection<String> makeAffectedPartitions(IStrategoTerm affectedTerm) {

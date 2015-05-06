@@ -235,8 +235,8 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
                     // removed. There is special handling in updating the analysis result processor, the marker
                     // updater, and the compiler, to exclude removed resources.
                     final ParseResult<IStrategoTerm> emptyParseResult =
-                        new ParseResult<IStrategoTerm>(termFactoryService.getGeneric().makeTuple(), resource,
-                            Iterables2.<IMessage>empty(), -1, language, dialect);
+                        new ParseResult<IStrategoTerm>("", termFactoryService.getGeneric().makeTuple(), resource,
+                            Iterables2.<IMessage>empty(), -1, language, dialect, null);
                     allParseResults.add(emptyParseResult);
                 } else {
                     final String sourceText = sourceTextService.text(resource);

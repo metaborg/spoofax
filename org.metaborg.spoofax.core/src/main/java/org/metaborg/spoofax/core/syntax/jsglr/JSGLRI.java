@@ -10,6 +10,7 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.Asfix2TreeBuilder;
 import org.spoofax.jsglr.client.Disambiguator;
 import org.spoofax.jsglr.client.FilterException;
+import org.spoofax.jsglr.client.SGLRParseResult;
 import org.spoofax.jsglr.client.StartSymbolException;
 import org.spoofax.jsglr.client.imploder.NullTokenizer;
 import org.spoofax.jsglr.client.imploder.TermTreeFactory;
@@ -83,56 +84,58 @@ public class JSGLRI implements IParser<IStrategoTerm> {
     @Override public ParseResult<IStrategoTerm> parse() throws IOException {
         final String fileName = resource.getName().getPath();
 
-        IStrategoTerm ast = null;
-
         final JSGLRParseErrorHandler errorHandler =
             new JSGLRParseErrorHandler(this, termFactory, resource, config.getParseTableProvider().parseTable()
                 .hasRecovers());
 
+        SGLRParseResult result;
         try {
-            ast = actuallyParse(input, fileName);
+            result = actuallyParse(input, fileName);
         } catch(SGLRException | InterruptedException e) {
+            result = null;
             errorHandler.setRecoveryFailed(useRecovery);
             errorHandler.processFatalException(new NullTokenizer(input, fileName), e);
         }
 
-        if(ast != null) {
+        final IStrategoTerm ast;
+        if(result != null) {
+            ast = (IStrategoTerm) result.output;
             errorHandler.setRecoveryFailed(false);
             errorHandler.gatherNonFatalErrors(ast);
             if(resource != null) {
                 SourceAttachment.putSource(ast, resource, config);
             }
+        } else {
+            ast = null;
         }
 
         // GTODO: measure parse time
-        return new ParseResult<IStrategoTerm>(ast, resource, errorHandler.messages(), -1, language, dialect);
+        return new ParseResult<IStrategoTerm>(input, ast, resource, errorHandler.messages(), -1, language, dialect,
+            result);
     }
 
-    public IStrategoTerm actuallyParse(String text, String filename) throws SGLRException, InterruptedException {
+    public SGLRParseResult actuallyParse(String text, String filename) throws SGLRException, InterruptedException {
         if(dialect != null) {
             disambiguator.setHeuristicFilters(true);
         } else {
             disambiguator.setHeuristicFilters(false);
         }
-        
-        IStrategoTerm result;
+
         try {
-            result = (IStrategoTerm) parser.parse(text, filename, config.getStartSymbol(), false, cursorLocation);
+            return parser.parse(text, filename, config.getStartSymbol());
         } catch(FilterException e) {
             if(e.getCause() == null && disambiguator.getFilterPriorities()) {
                 disambiguator.setFilterPriorities(false);
                 try {
-                    result = (IStrategoTerm) parser.parse(text, filename, config.getStartSymbol());
+                    return parser.parse(text, filename, config.getStartSymbol());
                 } finally {
                     disambiguator.setFilterPriorities(true);
                 }
-            } else {
-                throw e;
             }
+            throw e;
         } catch(StartSymbolException e) {
-            result = (IStrategoTerm) parser.parse(text, filename, null, false, cursorLocation);
+            return parser.parse(text, filename, null);
         }
-        return result;
     }
 
     public IParserConfig getConfig() {
@@ -146,7 +149,7 @@ public class JSGLRI implements IParser<IStrategoTerm> {
     public ILanguage getDialect() {
         return dialect;
     }
-    
+
     public FileObject getResource() {
         return resource;
     }
