@@ -54,11 +54,10 @@ public class SpoofaxEclipseModule extends SpoofaxModule {
     }
 
     @Override protected void bindOther() {
-        bind(GlobalSchedulingRules.class).asEagerSingleton();
-        bind(LanguageChangeProcessor.class).asEagerSingleton();
-        bind(ParseResultProcessor.class).asEagerSingleton();
-        bind(AnalysisResultProcessor.class).asEagerSingleton();
-        bind(SpoofaxEditorListener.class).asEagerSingleton();
-        bind(ISpoofaxEditorListener.class).to(SpoofaxEditorListener.class);
+        bind(GlobalSchedulingRules.class).in(Singleton.class);
+        bind(LanguageChangeProcessor.class).in(Singleton.class);
+        bind(ParseResultProcessor.class).in(Singleton.class);
+        bind(AnalysisResultProcessor.class).in(Singleton.class);
+        bind(ISpoofaxEditorListener.class).to(SpoofaxEditorListener.class).in(Singleton.class);
     }
 }
