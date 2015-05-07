@@ -29,6 +29,7 @@ import org.eclipse.ui.IPropertyListener;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
 import org.metaborg.spoofax.core.analysis.IAnalysisService;
+import org.metaborg.spoofax.core.completion.ICompletionService;
 import org.metaborg.spoofax.core.context.IContextService;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
@@ -66,6 +67,7 @@ public class SpoofaxEditor extends TextEditor {
     private IAnalysisService<IStrategoTerm, IStrategoTerm> analysisService;
     private ICategorizerService<IStrategoTerm, IStrategoTerm> categorizerService;
     private IStylerService<IStrategoTerm, IStrategoTerm> stylerService;
+    private ICompletionService completionService;
 
     private ParseResultProcessor parseResultProcessor;
     private AnalysisResultProcessor analysisResultProcessor;
@@ -268,6 +270,7 @@ public class SpoofaxEditor extends TextEditor {
             injector.getInstance(Key.get(new TypeLiteral<ICategorizerService<IStrategoTerm, IStrategoTerm>>() {}));
         this.stylerService =
             injector.getInstance(Key.get(new TypeLiteral<IStylerService<IStrategoTerm, IStrategoTerm>>() {}));
+        this.completionService = injector.getInstance(ICompletionService.class);
 
         this.parseResultProcessor = injector.getInstance(ParseResultProcessor.class);
         this.analysisResultProcessor = injector.getInstance(AnalysisResultProcessor.class);
@@ -276,7 +279,8 @@ public class SpoofaxEditor extends TextEditor {
         this.jobManager = Job.getJobManager();
 
         setEditorContextMenuId("#SpoofaxEditorContext");
-        setSourceViewerConfiguration(new SpoofaxSourceViewerConfiguration(this, syntaxService));
+        setSourceViewerConfiguration(new SpoofaxSourceViewerConfiguration(syntaxService, completionService,
+            parseResultProcessor, this));
     }
 
     @Override protected ISourceViewer createSourceViewer(Composite parent, IVerticalRuler ruler, int styles) {

@@ -6,6 +6,7 @@ import java.util.Map;
 import javax.annotation.Nullable;
 
 import org.metaborg.spoofax.core.SpoofaxRuntimeException;
+import org.metaborg.spoofax.core.completion.ICompletionItem;
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.metaborg.spoofax.core.syntax.jsglr.SortCons;
 import org.slf4j.Logger;
@@ -42,7 +43,7 @@ public class CompletionFacetFromESV {
         if(descriptionTerm.getSubtermCount() == 0) {
             description = "";
         } else {
-            description = ESVReader.termContents(descriptionTerm.getSubterm(0).getSubterm(0)); 
+            description = ESVReader.termContents(descriptionTerm.getSubterm(0).getSubterm(0));
         }
         final Iterable<IStrategoTerm> itemTerms = term.getSubterm(2);
         final Collection<ICompletionItem> items = Lists.newLinkedList();
@@ -59,7 +60,7 @@ public class CompletionFacetFromESV {
         final String consName = term.getConstructor().getName();
         switch(consName) {
             case "String":
-                return new StringCompletionItem(ESVReader.termContents(term.getSubterm(0)));
+                return new TextCompletionItem(ESVReader.termContents(term.getSubterm(0)));
             case "PlaceholderWithSort":
                 final String name = Tools.asJavaString(term.getSubterm(0));
                 // HACK: strip first and last character of the name, to get rid of : and >.

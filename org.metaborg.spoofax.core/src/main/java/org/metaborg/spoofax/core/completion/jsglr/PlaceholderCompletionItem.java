@@ -1,12 +1,24 @@
 package org.metaborg.spoofax.core.completion.jsglr;
 
-public class PlaceholderCompletionItem implements ICompletionItem {
+import org.metaborg.spoofax.core.completion.IPlaceholderCompletionItem;
+
+public class PlaceholderCompletionItem implements IPlaceholderCompletionItem {
     public final String sort;
-    public final String placeholderName;
+    public final String name;
 
 
-    public PlaceholderCompletionItem(String sort, String placeholderName) {
+    public PlaceholderCompletionItem(String sort, String name) {
         this.sort = sort;
-        this.placeholderName = placeholderName;
+        this.name = name;
+    }
+
+
+    @Override public String name() {
+        return name;
+    }
+
+
+    @Override public String placeholderText() {
+        return name;
     }
 }

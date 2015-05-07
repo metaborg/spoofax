@@ -1,5 +1,7 @@
 package org.metaborg.spoofax.core.completion.jsglr;
 
+import org.metaborg.spoofax.core.completion.ICompletionItem;
+
 public class CompletionDefinition {
     public final String sort;
     public final String cons;

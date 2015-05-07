@@ -3,7 +3,9 @@ package org.metaborg.spoofax.core.completion.jsglr;
 import java.util.Set;
 
 import org.metaborg.spoofax.core.SpoofaxException;
+import org.metaborg.spoofax.core.completion.Completion;
 import org.metaborg.spoofax.core.completion.ICompletion;
+import org.metaborg.spoofax.core.completion.ICompletionItem;
 import org.metaborg.spoofax.core.completion.ICompletionService;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
@@ -49,10 +51,18 @@ public class JSGLRCompletionService implements ICompletionService {
             throw e;
         }
 
+        if(completionParseResult.parserSpecificData == null) {
+            return Iterables2.<ICompletion>empty();
+        }
+        
         final SGLRParseResult sglrParseResult = (SGLRParseResult) completionParseResult.parserSpecificData;
         final Set<State> completionStates = sglrParseResult.completionStates;
-
         // TODO: finish this when eduardo completes item sets.
-        return Iterables2.<ICompletion>empty();
+
+        return Iterables2.from(new ICompletion[] {
+            new Completion(Iterables2.from(new ICompletionItem[] { new TextCompletionItem("This is a"),
+                new TextCompletionItem(" completion!") })),
+            new Completion(Iterables2.from(new ICompletionItem[] { new TextCompletionItem("And this is "),
+                new TextCompletionItem("another completion!?") })) });
     }
 }

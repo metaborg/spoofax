@@ -8,6 +8,7 @@ import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
 import org.metaborg.spoofax.core.syntax.ParseException;
 import org.metaborg.spoofax.core.syntax.ParseResult;
+import org.metaborg.spoofax.eclipse.util.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -117,6 +118,21 @@ public class ParseResultProcessor {
      */
     public Observable<ParseChange> updates(FileObject resource) {
         return getUpdates(resource.getName());
+    }
+
+    /**
+     * @return Latest parse result for given resource, or null if there is none.
+     */
+    public @Nullable ParseResult<IStrategoTerm> get(FileObject resource) {
+        final BehaviorSubject<ParseChange> subject = updatesPerResource.get(resource.getName());
+        if(subject == null) {
+            return null;
+        }
+        final ParseChange change = subject.toBlocking().firstOrDefault(null);
+        if(change == null) {
+            return null;
+        }
+        return change.result;
     }
 
 
