@@ -3,6 +3,7 @@ package org.metaborg.spoofax.eclipse.editor;
 
 
 import org.apache.commons.vfs2.FileObject;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
@@ -22,15 +23,17 @@ public class SpoofaxContentAssistProcessor implements IContentAssistProcessor {
     private final ParseResultProcessor parseResultProcessor;
 
     private final FileObject resource;
+    private final IDocument document;
 
 
     public SpoofaxContentAssistProcessor(ICompletionService completionService,
-        ParseResultProcessor parseResultProcessor, FileObject resource) {
+        ParseResultProcessor parseResultProcessor, FileObject resource, IDocument document) {
         this.completionService = completionService;
 
         this.parseResultProcessor = parseResultProcessor;
 
         this.resource = resource;
+        this.document = document;
     }
 
 
@@ -40,6 +43,10 @@ public class SpoofaxContentAssistProcessor implements IContentAssistProcessor {
             return null;
         }
 
+        return proposals(parseResult, viewer, offset);
+    }
+    
+    private ICompletionProposal[] proposals(ParseResult<?> parseResult, ITextViewer viewer, int offset) {
         final Iterable<ICompletion> completions;
         try {
             completions = completionService.get(parseResult, offset);
@@ -51,7 +58,7 @@ public class SpoofaxContentAssistProcessor implements IContentAssistProcessor {
         final ICompletionProposal[] proposals = new ICompletionProposal[numCompletions];
         int i = 0;
         for(ICompletion completion : completions) {
-            proposals[i] = new SpoofaxCompletionProposal(offset, completion);
+            proposals[i] = new SpoofaxCompletionProposal(document, viewer, offset, completion);
             ++i;
         }
         return proposals;

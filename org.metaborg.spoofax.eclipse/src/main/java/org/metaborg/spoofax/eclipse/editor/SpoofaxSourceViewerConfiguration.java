@@ -64,7 +64,8 @@ public class SpoofaxSourceViewerConfiguration extends SourceViewerConfiguration 
     @Override public IContentAssistant getContentAssistant(ISourceViewer sourceViewer) {
         final ContentAssistant assistant = new ContentAssistant();
         final SpoofaxContentAssistProcessor processor =
-            new SpoofaxContentAssistProcessor(completionService, parseResultProcessor, editor.resource());
+            new SpoofaxContentAssistProcessor(completionService, parseResultProcessor, editor.resource(),
+                editor.document());
         assistant.setContentAssistProcessor(processor, IDocument.DEFAULT_CONTENT_TYPE);
         return assistant;
     }

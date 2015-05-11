@@ -54,7 +54,7 @@ public class JSGLRCompletionService implements ICompletionService {
         if(completionParseResult.parserSpecificData == null) {
             return Iterables2.<ICompletion>empty();
         }
-        
+
         final SGLRParseResult sglrParseResult = (SGLRParseResult) completionParseResult.parserSpecificData;
         final Set<State> completionStates = sglrParseResult.completionStates;
         // TODO: finish this when eduardo completes item sets.
@@ -62,7 +62,11 @@ public class JSGLRCompletionService implements ICompletionService {
         return Iterables2.from(new ICompletion[] {
             new Completion(Iterables2.from(new ICompletionItem[] { new TextCompletionItem("This is a"),
                 new TextCompletionItem(" completion!") })),
-            new Completion(Iterables2.from(new ICompletionItem[] { new TextCompletionItem("And this is "),
-                new TextCompletionItem("another completion!?") })) });
+            new Completion(Iterables2.from(new ICompletionItem[] { new TextCompletionItem("if "),
+                new PlaceholderCompletionItem("Exp", "condition"), new TextCompletionItem(" then\n  "),
+                new PlaceholderCompletionItem("Exp", "condition"), new TextCompletionItem("\n  "),
+                new CursorCompletionItem(), new TextCompletionItem("\nfi") })),
+            new Completion(Iterables2.from(new ICompletionItem[] { new PlaceholderCompletionItem("Exp", "left"),
+                new TextCompletionItem(" + "), new PlaceholderCompletionItem("Exp", "right") })), });
     }
 }

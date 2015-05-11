@@ -17,8 +17,12 @@ public class PlaceholderCompletionItem implements IPlaceholderCompletionItem {
         return name;
     }
 
-
     @Override public String placeholderText() {
         return name;
+    }
+
+
+    @Override public String toString() {
+        return "[" + name + "]";
     }
 }

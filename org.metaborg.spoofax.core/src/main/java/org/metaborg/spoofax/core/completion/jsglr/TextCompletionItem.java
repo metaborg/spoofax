@@ -15,4 +15,9 @@ public class TextCompletionItem implements ITextCompletionItem {
     @Override public String text() {
         return text;
     }
+    
+    
+    @Override public String toString() {
+        return text;
+    }
 }
