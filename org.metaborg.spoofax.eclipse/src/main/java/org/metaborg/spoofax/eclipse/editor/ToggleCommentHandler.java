@@ -31,7 +31,7 @@ public class ToggleCommentHandler extends AbstractHandler {
 
     @Override public Object execute(ExecutionEvent event) throws ExecutionException {
         final IEditorPart part = HandlerUtil.getActiveEditor(event);
-        if(!(part instanceof SpoofaxEditor)) {
+        if(!(part instanceof ISpoofaxEditor)) {
             throw new SpoofaxRuntimeException("Editor is not a Spoofax editor");
         }
         final SpoofaxEditor editor = (SpoofaxEditor) part;

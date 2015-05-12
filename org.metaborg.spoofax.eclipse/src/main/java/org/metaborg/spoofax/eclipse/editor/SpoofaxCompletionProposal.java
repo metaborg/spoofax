@@ -32,12 +32,44 @@ public class SpoofaxCompletionProposal implements ICompletionProposal {
         public final int cursorSequence;
 
 
-        public CompletionData(String text, Multimap<String, LinkedPosition> placeholders, int cursorPosition,
-            int cursorSequence) {
-            this.text = text;
-            this.cursorPosition = cursorPosition;
-            this.cursorSequence = cursorSequence;
-            this.placeholders = placeholders;
+        public CompletionData(IDocument document, int offset, ICompletion completion) {
+            placeholders = ArrayListMultimap.create();
+
+            final StringBuilder stringBuilder = new StringBuilder();
+
+            int sequence = 0;
+            int textOffset = offset;
+            int curCursorOffset = -1;
+            int curCursorSequence = -1;
+            for(ICompletionItem item : completion.items()) {
+                if(item instanceof ITextCompletionItem) {
+                    final ITextCompletionItem textItem = (ITextCompletionItem) item;
+                    final String itemText = textItem.text();
+                    stringBuilder.append(itemText);
+                    textOffset += itemText.length();
+                } else if(item instanceof IPlaceholderCompletionItem) {
+                    final IPlaceholderCompletionItem placeholderItem = (IPlaceholderCompletionItem) item;
+                    final String itemText = placeholderItem.placeholderText();
+                    final int textLength = itemText.length();
+                    final String name = placeholderItem.name();
+                    stringBuilder.append(itemText);
+                    final LinkedPosition position = new LinkedPosition(document, textOffset, textLength, sequence++);
+                    placeholders.put(name, position);
+                    textOffset += itemText.length();
+                } else if(item instanceof ICursorCompletionItem) {
+                    curCursorOffset = textOffset;
+                    curCursorSequence = sequence++;
+                }
+            }
+
+            if(curCursorOffset == -1) {
+                curCursorOffset = textOffset;
+                curCursorSequence = sequence++;
+            }
+
+            text = stringBuilder.toString();
+            cursorPosition = curCursorOffset;
+            cursorSequence = curCursorSequence;
         }
     }
 
@@ -46,17 +78,21 @@ public class SpoofaxCompletionProposal implements ICompletionProposal {
 
     private final ITextViewer textViewer;
     private final int offset;
-    private final CompletionData data;
+    private final ICompletion completion;
+
+    private CompletionData data;
 
 
-    public SpoofaxCompletionProposal(IDocument document, ITextViewer textViewer, int offset, ICompletion completion) {
+    public SpoofaxCompletionProposal(ITextViewer textViewer, int offset, ICompletion completion) {
         this.textViewer = textViewer;
         this.offset = offset;
-        this.data = completionData(document, offset, completion);
+        this.completion = completion;
     }
 
 
     @Override public void apply(IDocument document) {
+        this.data = new CompletionData(document, offset, completion);
+
         try {
             final Point selection = textViewer.getSelectedRange();
             document.replace(offset, selection.y, data.text);
@@ -88,7 +124,7 @@ public class SpoofaxCompletionProposal implements ICompletionProposal {
         }
 
         // There are placeholders, let linked mode take care of moving the cursor to the first placeholder. Returning
-        // null signals no selection change should happen.
+        // null signals that selection should not be changed by the completion proposal.
         return null;
     }
 
@@ -97,7 +133,7 @@ public class SpoofaxCompletionProposal implements ICompletionProposal {
     }
 
     @Override public String getDisplayString() {
-        return data.text;
+        return completion.toString();
     }
 
     @Override public Image getImage() {
@@ -106,41 +142,5 @@ public class SpoofaxCompletionProposal implements ICompletionProposal {
 
     @Override public IContextInformation getContextInformation() {
         return null;
-    }
-
-
-    private static CompletionData completionData(IDocument document, int offset, ICompletion completion) {
-        final StringBuilder stringBuilder = new StringBuilder();
-        final Multimap<String, LinkedPosition> placeholders = ArrayListMultimap.create();
-        int sequence = 0;
-        int textOffset = offset;
-        int cursorOffset = -1;
-        int cursorSequence = -1;
-        for(ICompletionItem item : completion.items()) {
-            if(item instanceof ITextCompletionItem) {
-                final ITextCompletionItem textItem = (ITextCompletionItem) item;
-                final String text = textItem.text();
-                stringBuilder.append(text);
-                textOffset += text.length();
-            } else if(item instanceof IPlaceholderCompletionItem) {
-                final IPlaceholderCompletionItem placeholderItem = (IPlaceholderCompletionItem) item;
-                final String text = placeholderItem.placeholderText();
-                final int textLength = text.length();
-                final String name = placeholderItem.name();
-                stringBuilder.append(text);
-                final LinkedPosition position = new LinkedPosition(document, textOffset, textLength, sequence++);
-                placeholders.put(name, position);
-                textOffset += text.length();
-            } else if(item instanceof ICursorCompletionItem) {
-                cursorOffset = textOffset;
-                cursorSequence = sequence++;
-            }
-        }
-        final String text = stringBuilder.toString();
-        if(cursorOffset == -1) {
-            cursorOffset = textOffset;
-            cursorSequence = sequence++;
-        }
-        return new CompletionData(text, placeholders, cursorOffset, cursorSequence);
     }
 }

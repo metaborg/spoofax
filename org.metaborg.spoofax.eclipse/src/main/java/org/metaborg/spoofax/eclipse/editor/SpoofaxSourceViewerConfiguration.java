@@ -1,5 +1,6 @@
 package org.metaborg.spoofax.eclipse.editor;
 
+import org.apache.commons.vfs2.FileObject;
 import org.eclipse.jface.text.DefaultTextHover;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextHover;
@@ -54,19 +55,28 @@ public class SpoofaxSourceViewerConfiguration extends SourceViewerConfiguration 
     @Override public String[] getDefaultPrefixes(ISourceViewer sourceViewer, String contentType) {
         final ILanguage language = editor.language();
         if(language == null) {
-            logger.warn("Cannot get language-specific single line comment prefix, identified language for {} is null, "
-                + "toggle comment is disabled until language is identified", editor.resource());
+            logger.warn("Identified language for {} is null, toggle comment is disabled until language is identified",
+                editor.resource());
             return new String[0];
         }
         return Iterables.toArray(syntaxService.singleLineCommentPrefixes(language), String.class);
     }
 
     @Override public IContentAssistant getContentAssistant(ISourceViewer sourceViewer) {
+        final FileObject resource = editor.resource();
+        final ILanguage language = editor.language();
+        final IDocument document = editor.document();
+        if(language == null) {
+            logger.warn("Identified language for {} is null, content assist is disabled until language is identified",
+                resource);
+            return null;
+        }
+
         final ContentAssistant assistant = new ContentAssistant();
         final SpoofaxContentAssistProcessor processor =
-            new SpoofaxContentAssistProcessor(completionService, parseResultProcessor, editor.resource(),
-                editor.document());
+            new SpoofaxContentAssistProcessor(completionService, parseResultProcessor, resource, document, language);
         assistant.setContentAssistProcessor(processor, IDocument.DEFAULT_CONTENT_TYPE);
+        assistant.setRepeatedInvocationMode(true);
         return assistant;
     }
 }
