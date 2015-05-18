@@ -32,7 +32,7 @@ strategies
     ast2abox(|[<import-term(include/{{name}}.generated.pp.af)>,
                <import-term(include/{{name}}.pp.af)>]);
     box2text-string(|100)
-    
+ 
   language = !"{{name}}"
 
 strategies
@@ -103,6 +103,18 @@ strategies
   
   plugin-path = prim("SSL_EXT_pluginpath")
   
+  language-sources = prim("SSL_EXT_language_sources", <id>)
+  language-includes = prim("SSL_EXT_language_includes", <id>)
+  language-sources-and-includes = Dupl ; (language-sources,language-includes) ; conc
+
+  {{strategoName}}-sources = language ; language-sources
+  {{strategoName}}-includes = language ; language-includes
+  {{strategoName}}-sources-and-includes = language ; language-sources-and-includes
+
+  resolve-in-path(|path): name -> file
+    where
+      file := <!path;getfirst(!$[[<id>]/[name]];file-exists)> name
+
   candidate-sorts = prim("SSL_EXT_candidatesorts")
 
   is-newer:

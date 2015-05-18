@@ -73,6 +73,10 @@ import com.google.inject.TypeLiteral;
 import com.google.inject.multibindings.MapBinder;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
+import org.metaborg.spoofax.core.context.DummyLanguagePathService;
+import org.metaborg.spoofax.core.context.ILanguagePathService;
+import org.metaborg.spoofax.core.stratego.primitives.LanguageIncludesPrimitive;
+import org.metaborg.spoofax.core.stratego.primitives.LanguageSourcesPrimitive;
 
 /**
  * Guice module that specifies which implementations to use for services and factories.
@@ -97,6 +101,7 @@ public class SpoofaxModule extends AbstractModule {
 
         bindResource();
         bindLanguage();
+        bindLanguagePath();
         bindContext();
         bindContextStrategies(MapBinder.newMapBinder(binder(), String.class, IContextStrategy.class));
         bindProject();
@@ -127,6 +132,10 @@ public class SpoofaxModule extends AbstractModule {
         bind(IDialectService.class).to(DialectService.class).in(Singleton.class);
         bind(IDialectIdentifier.class).to(StrategoDialectIdentifier.class).in(Singleton.class);
         bind(IDialectProcessor.class).to(StrategoDialectProcessor.class).in(Singleton.class);
+    }
+
+    protected void bindLanguagePath() {
+        bind(ILanguagePathService.class).to(DummyLanguagePathService.class).in(Singleton.class);
     }
 
     protected void bindContext() {
@@ -176,6 +185,8 @@ public class SpoofaxModule extends AbstractModule {
         final Multibinder<AbstractPrimitive> spoofaxPrimitiveLibrary =
             Multibinder.newSetBinder(binder(), AbstractPrimitive.class, Names.named("SpoofaxPrimitiveLibrary"));
         bindPrimitive(spoofaxPrimitiveLibrary, ProjectPathPrimitive.class);
+        bindPrimitive(spoofaxPrimitiveLibrary, LanguageSourcesPrimitive.class);
+        bindPrimitive(spoofaxPrimitiveLibrary, LanguageIncludesPrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, new DummyPrimitive("SSL_EXT_set_total_work_units", 0, 0));
         bindPrimitive(spoofaxPrimitiveLibrary, new DummyPrimitive("SSL_EXT_set_markers", 0, 1));
         bindPrimitive(spoofaxPrimitiveLibrary, new DummyPrimitive("SSL_EXT_refreshresource", 0, 1));

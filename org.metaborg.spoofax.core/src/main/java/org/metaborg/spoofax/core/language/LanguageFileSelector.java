@@ -2,6 +2,7 @@ package org.metaborg.spoofax.core.language;
 
 import org.apache.commons.vfs2.FileSelectInfo;
 import org.apache.commons.vfs2.FileSelector;
+import org.apache.commons.vfs2.FileType;
 
 public class LanguageFileSelector implements FileSelector {
     private final ILanguageIdentifierService languageIdentifierService;
@@ -15,7 +16,8 @@ public class LanguageFileSelector implements FileSelector {
 
 
     @Override public boolean includeFile(FileSelectInfo fileInfo) throws Exception {
-        return languageIdentifierService.identify(fileInfo.getFile(), language);
+        return FileType.FILE.equals(fileInfo.getFile().getType()) &&
+                languageIdentifierService.identify(fileInfo.getFile(), language);
     }
 
     @Override public boolean traverseDescendents(FileSelectInfo fileInfo) throws Exception {
