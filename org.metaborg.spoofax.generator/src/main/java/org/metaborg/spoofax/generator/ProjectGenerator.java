@@ -20,10 +20,6 @@ public class ProjectGenerator extends BaseGenerator {
         writer.write("lib/refactor-common.generated.str", true);
     }
 
-    private void generateRuntimeLibrary() throws IOException {
-        unpack("lib/runtime.zip");
-    }
-
     public void generateEditorServices() throws IOException {
         for ( String service : new String[] {
             "Builders", "Colorer", "Completions", "Folding",
