@@ -1,8 +1,8 @@
-module lib/refactor-common.generated
+module refactor-common.generated
 
 imports
   libstratego-lib
-  lib/editor-common.generated
+  editor-common.generated
   
 
 strategies //transformation

@@ -7,14 +7,14 @@ imports
   libstratego-aterm
   include/{{name}}
   editor/{{name}}-Outliner
-  lib/editor-common.generated
-  lib/runtime/index/-
-  lib/runtime/nabl/-
-  lib/runtime/properties/-
-  lib/runtime/types/-
-  lib/runtime/task/-
-  lib/runtime/analysis/-
-  lib/runtime/editor/-
+  editor-common.generated
+  runtime/index/-
+  runtime/nabl/-
+  runtime/properties/-
+  runtime/types/-
+  runtime/task/-
+  runtime/analysis/-
+  runtime/editor/-
   names
   check
   generate

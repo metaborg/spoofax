@@ -11,7 +11,6 @@ public class ProjectGenerator extends BaseGenerator {
 
     public void generateAll() throws IOException {
         generateCommonLibrary();
-        generateRuntimeLibrary();
         generateEditorServices();
     }
 

@@ -3,7 +3,7 @@ module check
 imports
 
   include/{{name}}
-  lib/editor-common.generated
+  editor-common.generated
 
 rules
   

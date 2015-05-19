@@ -25,7 +25,7 @@ public class NewProjectGenerator extends BaseGenerator {
     }
 
     public String fileExtensions() {
-        return StringUtils.join(fileExtensions, " ");
+        return StringUtils.join(fileExtensions, ", ");
     }
 
     public String fileExtension() {

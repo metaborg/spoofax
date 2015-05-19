@@ -3,7 +3,7 @@ package org.metaborg.spoofax.generator.project;
 import java.io.File;
 
 public class ProjectSettings {
-    
+ 
     public enum Format {
         ctree,
         jar
@@ -61,6 +61,10 @@ public class ProjectSettings {
 
     public String strategoName() {
         return NameUtil.toJavaId(name().toLowerCase());
+    }
+
+    public String javaName() {
+        return NameUtil.toJavaId(name());
     }
 
     public String packageName() {

@@ -3,7 +3,7 @@ module editor/{{name}}-Outliner.generated
 imports
   
   include/{{name}}
-  lib/runtime/editor/outline-library
+  runtime/editor/outline-library
 
 rules
   

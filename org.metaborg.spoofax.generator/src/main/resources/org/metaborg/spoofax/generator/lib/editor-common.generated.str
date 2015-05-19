@@ -1,4 +1,4 @@
-module lib/editor-common.generated
+module editor-common.generated
 
 imports
   libstratego-lib

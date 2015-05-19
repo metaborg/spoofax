@@ -1,6 +1,6 @@
 module {{name}}-Completions
 
-imports src-gen/completions/{{name}}-esv
+imports completions/{{name}}-esv
 
 completions
                                                                    

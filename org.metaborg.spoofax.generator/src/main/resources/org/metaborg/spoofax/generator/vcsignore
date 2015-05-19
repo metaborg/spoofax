@@ -4,5 +4,4 @@
 /include
 /src-gen
 /target
-/lib/runtime
 *.generated.*
