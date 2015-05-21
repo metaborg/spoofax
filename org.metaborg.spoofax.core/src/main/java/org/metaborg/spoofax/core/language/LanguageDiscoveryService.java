@@ -34,105 +34,104 @@ import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
 public class LanguageDiscoveryService implements ILanguageDiscoveryService {
-	private static final Logger logger = LoggerFactory.getLogger(LanguageDiscoveryService.class);
+    private static final Logger logger = LoggerFactory.getLogger(LanguageDiscoveryService.class);
 
-	private final ILanguageService languageService;
-	private final ITermFactoryService termFactoryService;
-	private final Map<String, IContextStrategy> contextStrategies;
-
-
-	@Inject
-	public LanguageDiscoveryService(ILanguageService languageService, ITermFactoryService termFactoryService,
-			Map<String, IContextStrategy> contextStrategies) {
-		this.languageService = languageService;
-		this.termFactoryService = termFactoryService;
-		this.contextStrategies = contextStrategies;
-	}
+    private final ILanguageService languageService;
+    private final ITermFactoryService termFactoryService;
+    private final Map<String, IContextStrategy> contextStrategies;
 
 
-	@Override
-	public Iterable<ILanguage> discover(FileObject location) throws Exception {
-		final Collection<ILanguage> languages = Lists.newLinkedList();
-		final FileObject[] esvFiles = location.findFiles(new ContainsFileSelector("packed.esv"));
-		if (esvFiles == null) {
-			return languages;
-		}
-		final Set<FileObject> parents = Sets.newHashSet();
-		for (FileObject esvFile : esvFiles) {
-			final FileObject languageLocation = esvFile.getParent().getParent();
-			if (parents.contains(languageLocation)) {
-				logger.error("Found multiple packed ESV files in language directory: " + languageLocation
-						+ ", skipping.");
-				continue;
-			}
-			parents.add(languageLocation);
-			// GTODO: get language version from ESV?
-			languages.add(languageFromESV(languageLocation, esvFile, new LanguageVersion(1, 0, 0, 0)));
-		}
-		return languages;
-	}
+    @Inject public LanguageDiscoveryService(ILanguageService languageService, ITermFactoryService termFactoryService,
+        Map<String, IContextStrategy> contextStrategies) {
+        this.languageService = languageService;
+        this.termFactoryService = termFactoryService;
+        this.contextStrategies = contextStrategies;
+    }
 
 
-	private ILanguage languageFromESV(FileObject location, FileObject esvFile, LanguageVersion version)
-			throws Exception {
-		logger.debug("Discovering language at {}", location);
+    @Override public Iterable<ILanguage> discover(FileObject location) throws Exception {
+        final Collection<ILanguage> languages = Lists.newLinkedList();
+        final FileObject[] esvFiles = location.findFiles(new ContainsFileSelector("packed.esv"));
+        if(esvFiles == null) {
+            return languages;
+        }
+        final Set<FileObject> parents = Sets.newHashSet();
+        for(FileObject esvFile : esvFiles) {
+            final FileObject languageLocation = esvFile.getParent().getParent();
+            if(parents.contains(languageLocation)) {
+                logger.error("Found multiple packed ESV files in language directory: " + languageLocation
+                    + ", skipping.");
+                continue;
+            }
+            parents.add(languageLocation);
+            // GTODO: get language version from ESV?
+            languages.add(languageFromESV(languageLocation, esvFile, new LanguageVersion(1, 0, 0, 0)));
+        }
+        return languages;
+    }
 
-		final TermReader reader = new TermReader(termFactoryService.getGeneric().getFactoryWithStorageType(
-				IStrategoTerm.MUTABLE));
-		final IStrategoTerm term = reader.parseFromStream(esvFile.getContent().getInputStream());
-		if (term.getTermType() != IStrategoTerm.APPL) {
-			throw new IllegalStateException("Packed ESV file does not contain a valid ESV term.");
-		}
-		final IStrategoAppl esvTerm = (IStrategoAppl) term;
 
-		final String name = languageName(esvTerm);
-		final Iterable<String> extensions = Iterables2.from(extensions(esvTerm));
-		final ILanguage language = languageService.create(name, version, location);
+    private ILanguage languageFromESV(FileObject location, FileObject esvFile, LanguageVersion version)
+        throws Exception {
+        logger.debug("Discovering language at {}", location);
 
-		final IdentificationFacet identificationFacet = new IdentificationFacet(new ResourceExtensionsIdentifier(
-				extensions));
-		language.addFacet(identificationFacet);
+        final TermReader reader =
+            new TermReader(termFactoryService.getGeneric().getFactoryWithStorageType(IStrategoTerm.MUTABLE));
+        final IStrategoTerm term = reader.parseFromStream(esvFile.getContent().getInputStream());
+        if(term.getTermType() != IStrategoTerm.APPL) {
+            throw new IllegalStateException("Packed ESV file does not contain a valid ESV term.");
+        }
+        final IStrategoAppl esvTerm = (IStrategoAppl) term;
 
-		final ResourceExtensionFacet resourceExtensionsFacet = new ResourceExtensionFacet(extensions);
-		language.addFacet(resourceExtensionsFacet);
+        final String name = languageName(esvTerm);
+        final Iterable<String> extensions = Iterables2.from(extensions(esvTerm));
+        final ILanguage language = languageService.create(name, version, location);
 
-		// TODO: get facet strategy from language specification. Currently there
-		// is no specification yet so always
-		// choose 'project' as the context strategy.
-		final IContextStrategy contextStrategy = contextStrategies.get("project");
-		final ContextFacet contextFacet = new ContextFacet(contextStrategy);
-		language.addFacet(contextFacet);
+        final IdentificationFacet identificationFacet =
+            new IdentificationFacet(new ResourceExtensionsIdentifier(extensions));
+        language.addFacet(identificationFacet);
 
-		final SyntaxFacet syntaxFacet = SyntaxFacetFromESV.create(esvTerm, location);
-		language.addFacet(syntaxFacet);
+        final ResourceExtensionFacet resourceExtensionsFacet = new ResourceExtensionFacet(extensions);
+        language.addFacet(resourceExtensionsFacet);
 
-		final FileObject itemSetsFile = esvFile.getParent().resolveFile("item-sets.aterm");
-		final IStrategoTerm itemSetsTerm = reader.parseFromStream(itemSetsFile.getContent().getInputStream());
-		final CompletionFacet completionFacet = CompletionFacetFromItemSets.create((IStrategoAppl) itemSetsTerm);
-		language.addFacet(completionFacet);
+        // TODO: get facet strategy from language specification. Currently there is no specification yet so always
+        // choose 'project' as the context strategy.
+        final IContextStrategy contextStrategy = contextStrategies.get("project");
+        final ContextFacet contextFacet = new ContextFacet(contextStrategy);
+        language.addFacet(contextFacet);
 
-		final StrategoFacet strategoFacet = StrategoFacetFromESV.create(esvTerm, location);
-		language.addFacet(strategoFacet);
+        final SyntaxFacet syntaxFacet = SyntaxFacetFromESV.create(esvTerm, location);
+        language.addFacet(syntaxFacet);
 
-		final MenusFacet menusFacet = MenusFacetFromESV.create(esvTerm, language);
-		language.addFacet(menusFacet);
+        final FileObject itemSetsFile = esvFile.getParent().resolveFile("item-sets.aterm");
+        if(itemSetsFile.exists()) {
+            final IStrategoTerm itemSetsTerm = reader.parseFromStream(itemSetsFile.getContent().getInputStream());
+            final CompletionFacet completionFacet = CompletionFacetFromItemSets.create((IStrategoAppl) itemSetsTerm);
+            language.addFacet(completionFacet);
+        }
 
-		final CompilerFacet compilerFacet = CompilerFacetFromESV.create(esvTerm, language);
-		language.addFacet(compilerFacet);
+        final StrategoFacet strategoFacet = StrategoFacetFromESV.create(esvTerm, location);
+        language.addFacet(strategoFacet);
 
-		final StylerFacet stylerFacet = StylerFacetFromESV.create(esvTerm);
-		language.addFacet(stylerFacet);
+        final MenusFacet menusFacet = MenusFacetFromESV.create(esvTerm, language);
+        language.addFacet(menusFacet);
 
-		languageService.add(language);
+        final CompilerFacet compilerFacet = CompilerFacetFromESV.create(esvTerm, language);
+        language.addFacet(compilerFacet);
 
-		return language;
-	}
+        final StylerFacet stylerFacet = StylerFacetFromESV.create(esvTerm);
+        language.addFacet(stylerFacet);
 
-	private static String languageName(IStrategoAppl document) {
-		return ESVReader.getProperty(document, "LanguageName");
-	}
+        languageService.add(language);
 
-	private static String[] extensions(IStrategoAppl document) {
-		return ESVReader.getProperty(document, "Extensions").split(",");
-	}
+        return language;
+    }
+
+    private static String languageName(IStrategoAppl document) {
+        return ESVReader.getProperty(document, "LanguageName");
+    }
+
+    private static String[] extensions(IStrategoAppl document) {
+        return ESVReader.getProperty(document, "Extensions").split(",");
+    }
 }
