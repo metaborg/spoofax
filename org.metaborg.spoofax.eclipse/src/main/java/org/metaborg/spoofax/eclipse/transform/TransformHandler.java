@@ -10,7 +10,6 @@ import org.metaborg.spoofax.core.transform.ITransformer;
 import org.metaborg.spoofax.eclipse.SpoofaxPlugin;
 import org.metaborg.spoofax.eclipse.editor.ISpoofaxEclipseEditor;
 import org.metaborg.spoofax.eclipse.editor.ISpoofaxEditorListener;
-import org.metaborg.spoofax.eclipse.editor.SpoofaxEditorListener;
 import org.metaborg.spoofax.eclipse.processing.AnalysisResultProcessor;
 import org.metaborg.spoofax.eclipse.processing.ParseResultProcessor;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
@@ -45,7 +44,7 @@ public class TransformHandler extends AbstractHandler {
         this.parseResultProcessor = injector.getInstance(ParseResultProcessor.class);
         this.analysisResultProcessor = injector.getInstance(AnalysisResultProcessor.class);
 
-        this.latestEditorListener = injector.getInstance(SpoofaxEditorListener.class);
+        this.latestEditorListener = injector.getInstance(ISpoofaxEditorListener.class);
     }
 
 
