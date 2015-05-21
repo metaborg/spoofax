@@ -1,19 +1,22 @@
 package org.metaborg.spoofax.core.completion.jsglr;
 
+import java.util.Collection;
+
 import org.metaborg.spoofax.core.SpoofaxException;
+import org.metaborg.spoofax.core.completion.Completion;
 import org.metaborg.spoofax.core.completion.ICompletion;
 import org.metaborg.spoofax.core.completion.ICompletionService;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
 import org.metaborg.spoofax.core.syntax.ParseException;
 import org.metaborg.spoofax.core.syntax.ParseResult;
-import org.metaborg.util.iterators.Iterables2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spoofax.jsglr.client.CompletionStateSet;
 import org.spoofax.jsglr.client.SGLRParseResult;
 import org.spoofax.jsglr.client.State;
 
+import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
 public class JSGLRCompletionService implements ICompletionService {
@@ -42,7 +45,6 @@ public class JSGLRCompletionService implements ICompletionService {
 
 		final ParseResult<?> completionParseResult;
 		try {
-			// TODO: set completion mode + cursor position
 			completionParseResult = syntaxService.parse(input, parseResult.source, language);
 		} catch (ParseException e) {
 			final String message = "Cannot get completions, parsinged failed unexpectedly";
@@ -55,6 +57,12 @@ public class JSGLRCompletionService implements ICompletionService {
 
 		final State lastState = completionStates.getLast();
 		final int state = lastState.stateNumber;
-		final Iterable<CompletionDefinition> completions = facet.get(state);
+		final Iterable<CompletionDefinition> completionDefinitions = facet.get(state);
+
+		final Collection<ICompletion> completions = Lists.newLinkedList();
+		for (CompletionDefinition completionDefinition : completionDefinitions) {
+			completions.add(new Completion(completionDefinition.items));
+		}
+		return completions;
 	}
 }

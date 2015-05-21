@@ -20,145 +20,147 @@ import org.spoofax.jsglr.shared.SGLRException;
 import org.spoofax.terms.attachments.ParentTermFactory;
 
 public class JSGLRI implements IParser<IStrategoTerm> {
-    private final IParserConfig config;
-    private final ITermFactory termFactory;
-    private final ILanguage language;
-    private final ILanguage dialect;
-    private final FileObject resource;
-    private final String input;
+	private final IParserConfig config;
+	private final ITermFactory termFactory;
+	private final ILanguage language;
+	private final ILanguage dialect;
+	private final FileObject resource;
+	private final String input;
 
-    private final SGLR parser;
+	private final SGLR parser;
 
-    private Disambiguator disambiguator;
-    private int cursorLocation = Integer.MAX_VALUE;
-    private boolean useRecovery = true;
-    private boolean implodeEnabled = true;
-
-
-    public JSGLRI(IParserConfig config, ITermFactory termFactory, ILanguage language, ILanguage dialect,
-        FileObject resource, String input) throws IOException {
-        this.config = config;
-        this.termFactory = termFactory;
-        this.language = language;
-        this.dialect = dialect;
-        this.resource = resource;
-        this.input = input;
-
-        final TermTreeFactory factory = new TermTreeFactory(new ParentTermFactory(termFactory));
-        this.parser = new SGLR(new TreeBuilder(factory), config.getParseTableProvider().parseTable());
-
-        resetState();
-    }
+	private Disambiguator disambiguator;
+	private int cursorLocation = Integer.MAX_VALUE;
+	private boolean useRecovery = true;
+	private boolean implodeEnabled = true;
 
 
-    public void setCursorLocation(int cursorLocation) {
-        this.cursorLocation = cursorLocation;
-    }
+	public JSGLRI(IParserConfig config, ITermFactory termFactory, ILanguage language, ILanguage dialect,
+			FileObject resource, String input) throws IOException {
+		this.config = config;
+		this.termFactory = termFactory;
+		this.language = language;
+		this.dialect = dialect;
+		this.resource = resource;
+		this.input = input;
 
-    public void setUseRecovery(boolean useRecovery) {
-        this.useRecovery = useRecovery;
-        parser.setUseStructureRecovery(useRecovery);
-    }
+		final TermTreeFactory factory = new TermTreeFactory(new ParentTermFactory(termFactory));
+		this.parser = new SGLR(new TreeBuilder(factory), config.getParseTableProvider().parseTable());
 
-    public void setImplodeEnabled(boolean implode) {
-        this.implodeEnabled = implode;
-        resetState();
-    }
+		resetState();
+	}
 
-    private void resetState() {
-        parser.setTimeout(config.getTimeout());
 
-        if(disambiguator != null) {
-            parser.setDisambiguator(disambiguator);
-        } else {
-            disambiguator = parser.getDisambiguator();
-        }
+	public void setCursorLocation(int cursorLocation) {
+		this.cursorLocation = cursorLocation;
+	}
 
-        setUseRecovery(useRecovery);
+	public void setUseRecovery(boolean useRecovery) {
+		this.useRecovery = useRecovery;
+		parser.setUseStructureRecovery(useRecovery);
+	}
 
-        if(!implodeEnabled) {
-            parser.setTreeBuilder(new Asfix2TreeBuilder(termFactory));
-        }
-    }
+	public void setImplodeEnabled(boolean implode) {
+		this.implodeEnabled = implode;
+		resetState();
+	}
 
-    @Override public ParseResult<IStrategoTerm> parse() throws IOException {
-        final String fileName = resource.getName().getPath();
+	private void resetState() {
+		parser.setTimeout(config.getTimeout());
 
-        final JSGLRParseErrorHandler errorHandler =
-            new JSGLRParseErrorHandler(this, termFactory, resource, config.getParseTableProvider().parseTable()
-                .hasRecovers());
+		if (disambiguator != null) {
+			parser.setDisambiguator(disambiguator);
+		} else {
+			disambiguator = parser.getDisambiguator();
+		}
 
-        SGLRParseResult result;
-        try {
-            result = actuallyParse(input, fileName);
-        } catch(SGLRException | InterruptedException e) {
-            result = null;
-            errorHandler.setRecoveryFailed(useRecovery);
-            errorHandler.processFatalException(new NullTokenizer(input, fileName), e);
-        }
+		setUseRecovery(useRecovery);
 
-        final IStrategoTerm ast;
-        if(result != null) {
-            ast = (IStrategoTerm) result.output;
-            errorHandler.setRecoveryFailed(false);
-            errorHandler.gatherNonFatalErrors(ast);
-            if(resource != null) {
-                SourceAttachment.putSource(ast, resource, config);
-            }
-        } else {
-            ast = null;
-        }
+		if (!implodeEnabled) {
+			parser.setTreeBuilder(new Asfix2TreeBuilder(termFactory));
+		}
+	}
 
-        // GTODO: measure parse time
-        return new ParseResult<IStrategoTerm>(input, ast, resource, errorHandler.messages(), -1, language, dialect,
-            result);
-    }
+	@Override
+	public ParseResult<IStrategoTerm> parse() throws IOException {
+		final String fileName = resource.getName().getPath();
 
-    public SGLRParseResult actuallyParse(String text, String filename) throws SGLRException, InterruptedException {
-        if(dialect != null) {
-            disambiguator.setHeuristicFilters(true);
-        } else {
-            disambiguator.setHeuristicFilters(false);
-        }
+		final JSGLRParseErrorHandler errorHandler = new JSGLRParseErrorHandler(this, termFactory, resource, config
+				.getParseTableProvider().parseTable().hasRecovers());
 
-        try {
-            return parser.parse(text, filename, config.getStartSymbol());
-        } catch(FilterException e) {
-            if(e.getCause() == null && disambiguator.getFilterPriorities()) {
-                disambiguator.setFilterPriorities(false);
-                try {
-                    return parser.parse(text, filename, config.getStartSymbol());
-                } finally {
-                    disambiguator.setFilterPriorities(true);
-                }
-            }
-            throw e;
-        } catch(StartSymbolException e) {
-            return parser.parse(text, filename, null);
-        }
-    }
+		SGLRParseResult result;
+		try {
+			result = actuallyParse(input, fileName);
+		} catch (SGLRException | InterruptedException e) {
+			result = null;
+			errorHandler.setRecoveryFailed(useRecovery);
+			errorHandler.processFatalException(new NullTokenizer(input, fileName), e);
+		}
 
-    public IParserConfig getConfig() {
-        return config;
-    }
+		final IStrategoTerm ast;
+		if (result != null) {
+			ast = (IStrategoTerm) result.output;
+			if (ast != null) {
+				errorHandler.setRecoveryFailed(false);
+				errorHandler.gatherNonFatalErrors(ast);
+				if (resource != null) {
+					SourceAttachment.putSource(ast, resource, config);
+				}
+			}
+		} else {
+			ast = null;
+		}
 
-    public ILanguage getLanguage() {
-        return language;
-    }
+		// GTODO: measure parse time
+		return new ParseResult<IStrategoTerm>(input, ast, resource, errorHandler.messages(), -1, language, dialect,
+				result);
+	}
 
-    public ILanguage getDialect() {
-        return dialect;
-    }
+	public SGLRParseResult actuallyParse(String text, String filename) throws SGLRException, InterruptedException {
+		if (dialect != null) {
+			disambiguator.setHeuristicFilters(true);
+		} else {
+			disambiguator.setHeuristicFilters(false);
+		}
 
-    public FileObject getResource() {
-        return resource;
-    }
+		try {
+			return parser.parse(text, filename, config.getStartSymbol());
+		} catch (FilterException e) {
+			if (e.getCause() == null && disambiguator.getFilterPriorities()) {
+				disambiguator.setFilterPriorities(false);
+				try {
+					return parser.parse(text, filename, config.getStartSymbol());
+				} finally {
+					disambiguator.setFilterPriorities(true);
+				}
+			}
+			throw e;
+		} catch (StartSymbolException e) {
+			return parser.parse(text, filename, null);
+		}
+	}
 
-    public String getInput() {
-        return input;
-    }
+	public IParserConfig getConfig() {
+		return config;
+	}
 
-    protected SGLR getParser() {
-        return parser;
-    }
+	public ILanguage getLanguage() {
+		return language;
+	}
+
+	public ILanguage getDialect() {
+		return dialect;
+	}
+
+	public FileObject getResource() {
+		return resource;
+	}
+
+	public String getInput() {
+		return input;
+	}
+
+	protected SGLR getParser() {
+		return parser;
+	}
 }

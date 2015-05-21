@@ -2,6 +2,7 @@ package org.metaborg.spoofax.core.completion.jsglr;
 
 import java.util.Collection;
 
+import org.metaborg.spoofax.core.completion.ICompletionItem;
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;
@@ -46,7 +47,7 @@ public class CompletionFacetFromItemSets {
 			final String item = Tools.asJavaString(completion.getSubterm(2));
 
 			final Collection<ICompletionItem> items = Lists.newLinkedList();
-			items.add(new StringCompletionItem(item));
+			items.add(new TextCompletionItem(item));
 			final CompletionDefinition completionDefinition = new CompletionDefinition(sortTerm, description, items);
 			completionDefinitions.add(completionDefinition);
 		}

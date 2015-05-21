@@ -1,5 +1,6 @@
 package org.metaborg.spoofax.core.completion.jsglr;
 
+import org.metaborg.spoofax.core.completion.ICompletionItem;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 public class CompletionDefinition {
