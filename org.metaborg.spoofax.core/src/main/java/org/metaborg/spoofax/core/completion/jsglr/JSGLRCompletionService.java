@@ -58,11 +58,28 @@ public class JSGLRCompletionService implements ICompletionService {
 
         final State lastState = completionStates.getLast();
         final int state = lastState.stateNumber;
+        final Collection<ICompletion> completions = Lists.newLinkedList();
         final Iterable<CompletionDefinition> completionDefinitions = facet.get(state);
 
-        final Collection<ICompletion> completions = Lists.newLinkedList();
+
+
         for(CompletionDefinition completionDefinition : completionDefinitions) {
             completions.add(new Completion(completionDefinition.items));
+            
+            for(State s : completionStates.getStates()) {
+                
+                if(!s.equals(lastState)) {
+                    final Iterable<CompletionDefinition> enclosingCompletions = facet.get(s.stateNumber);
+                    for(CompletionDefinition enclosingCompletionDefinition : enclosingCompletions) {
+                        if(enclosingCompletionDefinition.expectedSort.equals(completionDefinition.producedSort)) {
+                            completions.add(new Completion(enclosingCompletionDefinition.items));
+                        }
+                    }
+                }
+
+            }
+
+
         }
         return completions;
     }

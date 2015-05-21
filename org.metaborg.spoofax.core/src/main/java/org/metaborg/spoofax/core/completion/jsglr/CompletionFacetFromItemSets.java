@@ -32,7 +32,7 @@ public class CompletionFacetFromItemSets {
 	public static Iterable<CompletionDefinition> completionDefinition(IStrategoAppl term) {
 		// ItemSet : Label * List(Item) * List(goto) * Completions -> ItemSet
 		// Completions : List(CompletionItem) -> Completions
-		// CompletionItem : Sort * Description * String -> CompletionItem
+		// CompletionItem : ProducedSort * Expected * Description * String -> CompletionItem
 
 		// CompletionItem(cf(sort("Stm")),
 		// "Stm-CF = \"print\" Num-LEX {default(appl(unquoted(\"cons\"),[[fun(quoted(\"Print\"))]]))}",
@@ -42,13 +42,14 @@ public class CompletionFacetFromItemSets {
 		final IStrategoTerm completions = term.getSubterm(3).getSubterm(0);
 
 		for (IStrategoTerm completion : completions) {
-			final IStrategoTerm sortTerm = completion.getSubterm(0);
-			final String description = Tools.asJavaString(completion.getSubterm(1));
-			final String item = Tools.asJavaString(completion.getSubterm(2));
+			final IStrategoTerm producedSortTerm = completion.getSubterm(0);
+			final IStrategoTerm expectedSortTerm = completion.getSubterm(1);
+			final String description = Tools.asJavaString(completion.getSubterm(2));
+			final String item = Tools.asJavaString(completion.getSubterm(3));
 
 			final Collection<ICompletionItem> items = Lists.newLinkedList();
 			items.add(new TextCompletionItem(item));
-			final CompletionDefinition completionDefinition = new CompletionDefinition(sortTerm, description, items);
+			final CompletionDefinition completionDefinition = new CompletionDefinition(producedSortTerm, expectedSortTerm, description, items);
 			completionDefinitions.add(completionDefinition);
 		}
 
