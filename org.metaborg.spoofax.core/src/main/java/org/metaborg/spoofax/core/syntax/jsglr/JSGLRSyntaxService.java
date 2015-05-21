@@ -3,12 +3,15 @@ package org.metaborg.spoofax.core.syntax.jsglr;
 import java.io.IOException;
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageCache;
 import org.metaborg.spoofax.core.language.dialect.IDialectService;
 import org.metaborg.spoofax.core.messages.ISourceRegion;
 import org.metaborg.spoofax.core.syntax.FenceCharacters;
+import org.metaborg.spoofax.core.syntax.IParserConfiguration;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
 import org.metaborg.spoofax.core.syntax.MultiLineCommentCharacters;
 import org.metaborg.spoofax.core.syntax.ParseException;
@@ -27,8 +30,8 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 
-public class JSGLRParseService implements ISyntaxService<IStrategoTerm>, ILanguageCache {
-    private static final Logger logger = LoggerFactory.getLogger(JSGLRParseService.class);
+public class JSGLRSyntaxService implements ISyntaxService<IStrategoTerm>, ILanguageCache {
+    private static final Logger logger = LoggerFactory.getLogger(JSGLRSyntaxService.class);
 
     private final IDialectService dialectService;
     private final ITermFactoryService termFactoryService;
@@ -36,14 +39,14 @@ public class JSGLRParseService implements ISyntaxService<IStrategoTerm>, ILangua
     private final Map<ILanguage, IParserConfig> parserConfigs = Maps.newHashMap();
 
 
-    @Inject public JSGLRParseService(IDialectService dialectService, ITermFactoryService termFactoryService) {
+    @Inject public JSGLRSyntaxService(IDialectService dialectService, ITermFactoryService termFactoryService) {
         this.dialectService = dialectService;
         this.termFactoryService = termFactoryService;
     }
 
 
-    @Override public ParseResult<IStrategoTerm> parse(String text, FileObject resource, ILanguage language)
-        throws ParseException {
+    @Override public ParseResult<IStrategoTerm> parse(String text, FileObject resource, ILanguage language,
+        @Nullable IParserConfiguration parserConfig) throws ParseException {
         final IParserConfig config = getParserConfig(language);
         try {
             logger.trace("Parsing {}", resource);
@@ -54,7 +57,7 @@ public class JSGLRParseService implements ISyntaxService<IStrategoTerm>, ILangua
             } else {
                 parser = new JSGLRI(config, termFactoryService.get(language), language, null, resource, text);
             }
-            return parser.parse();
+            return parser.parse(parserConfig);
         } catch(IOException e) {
             throw new ParseException(resource, language, e);
         }
@@ -101,7 +104,7 @@ public class JSGLRParseService implements ISyntaxService<IStrategoTerm>, ILangua
                 termFactoryService.getGeneric().getFactoryWithStorageType(IStrategoTerm.MUTABLE);
             final SyntaxFacet facet = lang.facet(SyntaxFacet.class);
             final IParseTableProvider provider = new FileParseTableProvider(facet.parseTable, termFactory);
-            config = new ParserConfig(Iterables.get(facet.startSymbols, 0), provider, 5000);
+            config = new ParserConfig(Iterables.get(facet.startSymbols, 0), provider);
             parserConfigs.put(lang, config);
         }
         return config;

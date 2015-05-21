@@ -210,7 +210,7 @@ public class ParseResultProcessor {
             updatesPerResource.put(name, updates);
             try {
                 logger.trace("Parsing for {}", resource);
-                final ParseResult<IStrategoTerm> result = syntaxService.parse(text, resource, language);
+                final ParseResult<IStrategoTerm> result = syntaxService.parse(text, resource, language, null);
                 updates.onNext(ParseChange.update(result));
             } catch(ParseException e) {
                 final String message = String.format("Parsing for % failed", name);

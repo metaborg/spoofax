@@ -14,7 +14,7 @@ import org.metaborg.spoofax.core.messages.ISourceRegion;
  */
 public interface ISyntaxService<T> {
     /**
-     * Parses a resource, using parsing rules from given language.
+     * Parses text, using parsing rules from given language.
      * 
      * @param text
      *            Text to parse.
@@ -22,11 +22,14 @@ public interface ISyntaxService<T> {
      *            Resource associated with the {@code text} to parse.
      * @param language
      *            Language to parse with.
+     * @param parserConfig
+     *            Parser-specific configuration, or null to use the default configuration.
      * @return Result of parsing.
      * @throws ParseException
      *             when parsing fails unexpectedly.
      */
-    public abstract ParseResult<T> parse(String text, FileObject resource, ILanguage language) throws ParseException;
+    public abstract ParseResult<T> parse(String text, FileObject resource, ILanguage language,
+        @Nullable IParserConfiguration parserConfig) throws ParseException;
 
     /**
      * Unparses a parsed fragment back into a string, using unparsing rules from given language.

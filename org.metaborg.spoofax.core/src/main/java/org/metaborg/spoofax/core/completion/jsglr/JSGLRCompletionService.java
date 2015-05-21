@@ -7,9 +7,11 @@ import org.metaborg.spoofax.core.completion.Completion;
 import org.metaborg.spoofax.core.completion.ICompletion;
 import org.metaborg.spoofax.core.completion.ICompletionService;
 import org.metaborg.spoofax.core.language.ILanguage;
+import org.metaborg.spoofax.core.syntax.IParserConfiguration;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
 import org.metaborg.spoofax.core.syntax.ParseException;
 import org.metaborg.spoofax.core.syntax.ParseResult;
+import org.metaborg.spoofax.core.syntax.jsglr.JSGLRParserConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spoofax.jsglr.client.CompletionStateSet;
@@ -20,49 +22,48 @@ import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
 public class JSGLRCompletionService implements ICompletionService {
-	private static final Logger logger = LoggerFactory.getLogger(JSGLRCompletionService.class);
+    private static final Logger logger = LoggerFactory.getLogger(JSGLRCompletionService.class);
 
-	private final ISyntaxService<?> syntaxService;
-
-
-	@Inject
-	public JSGLRCompletionService(ISyntaxService<?> syntaxService) {
-		this.syntaxService = syntaxService;
-	}
+    private final ISyntaxService<?> syntaxService;
 
 
-	@Override
-	public Iterable<ICompletion> get(ParseResult<?> parseResult, int position) throws SpoofaxException {
-		final ILanguage language = parseResult.language;
-		final CompletionFacet facet = language.facet(CompletionFacet.class);
-		if (facet == null) {
-			final String message = String.format("Cannot get completions of %s, it does not have a completion facet",
-					language);
-			logger.error(message);
-			throw new SpoofaxException(message);
-		}
-		final String input = parseResult.input.substring(0, position);
+    @Inject public JSGLRCompletionService(ISyntaxService<?> syntaxService) {
+        this.syntaxService = syntaxService;
+    }
 
-		final ParseResult<?> completionParseResult;
-		try {
-			completionParseResult = syntaxService.parse(input, parseResult.source, language);
-		} catch (ParseException e) {
-			final String message = "Cannot get completions, parsinged failed unexpectedly";
-			logger.error(message, e);
-			throw e;
-		}
 
-		final SGLRParseResult sglrParseResult = (SGLRParseResult) completionParseResult.parserSpecificData;
-		final CompletionStateSet completionStates = sglrParseResult.completionStates;
+    @Override public Iterable<ICompletion> get(ParseResult<?> parseResult, int position) throws SpoofaxException {
+        final ILanguage language = parseResult.language;
+        final CompletionFacet facet = language.facet(CompletionFacet.class);
+        if(facet == null) {
+            final String message =
+                String.format("Cannot get completions of %s, it does not have a completion facet", language);
+            logger.error(message);
+            throw new SpoofaxException(message);
+        }
+        final String input = parseResult.input.substring(0, position);
 
-		final State lastState = completionStates.getLast();
-		final int state = lastState.stateNumber;
-		final Iterable<CompletionDefinition> completionDefinitions = facet.get(state);
+        final ParseResult<?> completionParseResult;
+        try {
+            final IParserConfiguration config = new JSGLRParserConfiguration(true, false, true, 2000);
+            completionParseResult = syntaxService.parse(input, parseResult.source, language, config);
+        } catch(ParseException e) {
+            final String message = "Cannot get completions, parsinged failed unexpectedly";
+            logger.error(message, e);
+            throw e;
+        }
 
-		final Collection<ICompletion> completions = Lists.newLinkedList();
-		for (CompletionDefinition completionDefinition : completionDefinitions) {
-			completions.add(new Completion(completionDefinition.items));
-		}
-		return completions;
-	}
+        final SGLRParseResult sglrParseResult = (SGLRParseResult) completionParseResult.parserSpecificData;
+        final CompletionStateSet completionStates = sglrParseResult.completionStates;
+
+        final State lastState = completionStates.getLast();
+        final int state = lastState.stateNumber;
+        final Iterable<CompletionDefinition> completionDefinitions = facet.get(state);
+
+        final Collection<ICompletion> completions = Lists.newLinkedList();
+        for(CompletionDefinition completionDefinition : completionDefinitions) {
+            completions.add(new Completion(completionDefinition.items));
+        }
+        return completions;
+    }
 }

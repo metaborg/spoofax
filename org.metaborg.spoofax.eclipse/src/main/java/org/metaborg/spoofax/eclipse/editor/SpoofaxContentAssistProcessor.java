@@ -73,6 +73,10 @@ public class SpoofaxContentAssistProcessor implements IContentAssistProcessor {
                 }
                 cachedProposals = proposals(parseResult, viewer, offset);
 
+                if(cachedProposals == null) {
+                    return;
+                }
+                
                 Display.getDefault().syncExec(new Runnable() {
                     @Override public void run() {
                         if(subscriber.isUnsubscribed()) {

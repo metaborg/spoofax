@@ -51,7 +51,7 @@ public class ParseFileStrategy extends Strategy {
                 return null;
             }
             final String text = sourceTextService.text(resource);
-            final ParseResult<IStrategoTerm> result = syntaxService.parse(text, resource, language);
+            final ParseResult<IStrategoTerm> result = syntaxService.parse(text, resource, language, null);
             return result.result;
         } catch(ParseException | IOException e) {
             throw new StrategoException("Parsing failed", e);

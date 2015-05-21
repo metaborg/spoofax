@@ -48,7 +48,7 @@ import org.metaborg.spoofax.core.style.ICategorizerService;
 import org.metaborg.spoofax.core.style.IStylerService;
 import org.metaborg.spoofax.core.style.StylerService;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
-import org.metaborg.spoofax.core.syntax.jsglr.JSGLRParseService;
+import org.metaborg.spoofax.core.syntax.jsglr.JSGLRSyntaxService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.terms.TermFactoryService;
 import org.metaborg.spoofax.core.text.ISourceTextService;
@@ -148,10 +148,10 @@ public class SpoofaxModule extends AbstractModule {
     }
 
     protected void bindSyntax() {
-        bind(JSGLRParseService.class).in(Singleton.class);
-        bind(new TypeLiteral<ISyntaxService<IStrategoTerm>>() {}).to(JSGLRParseService.class);
-        bind(new TypeLiteral<ISyntaxService<?>>() {}).to(JSGLRParseService.class);
-        languageCacheBinder.addBinding().to(JSGLRParseService.class);
+        bind(JSGLRSyntaxService.class).in(Singleton.class);
+        bind(new TypeLiteral<ISyntaxService<IStrategoTerm>>() {}).to(JSGLRSyntaxService.class);
+        bind(new TypeLiteral<ISyntaxService<?>>() {}).to(JSGLRSyntaxService.class);
+        languageCacheBinder.addBinding().to(JSGLRSyntaxService.class);
         bind(ITermFactoryService.class).to(TermFactoryService.class).in(Singleton.class);
     }
 

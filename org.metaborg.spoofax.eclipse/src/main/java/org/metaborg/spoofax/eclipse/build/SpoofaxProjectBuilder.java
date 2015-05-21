@@ -242,7 +242,7 @@ public class SpoofaxProjectBuilder extends IncrementalProjectBuilder {
                     final String sourceText = sourceTextService.text(resource);
                     parseResultProcessor.invalidate(resource);
                     final ParseResult<IStrategoTerm> parseResult =
-                        syntaxService.parse(sourceText, resource, parserLanguage);
+                        syntaxService.parse(sourceText, resource, parserLanguage, null);
                     allParseResults.add(parseResult);
                     parseResultProcessor.update(resource, parseResult);
                     changedResources.add(resource);
