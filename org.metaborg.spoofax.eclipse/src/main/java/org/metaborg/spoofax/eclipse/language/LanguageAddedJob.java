@@ -5,11 +5,11 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorRegistry;
+import org.metaborg.spoofax.core.editor.IEditor;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ResourceExtensionFacet;
-import org.metaborg.spoofax.eclipse.editor.ISpoofaxEclipseEditor;
-import org.metaborg.spoofax.eclipse.editor.ISpoofaxEditorListener;
-import org.metaborg.spoofax.eclipse.editor.SpoofaxEditor;
+import org.metaborg.spoofax.eclipse.editor.IEclipseEditor;
+import org.metaborg.spoofax.eclipse.editor.IEclipseEditorRegistry;
 import org.metaborg.spoofax.eclipse.util.EditorMappingUtils;
 import org.metaborg.spoofax.eclipse.util.StatusUtils;
 import org.slf4j.Logger;
@@ -20,14 +20,14 @@ import com.google.common.base.Joiner;
 public class LanguageAddedJob extends Job {
     private static final Logger logger = LoggerFactory.getLogger(LanguageAddedJob.class);
 
-    private final ISpoofaxEditorListener spoofaxEditorListener;
+    private final IEclipseEditorRegistry spoofaxEditorListener;
 
     private final IEditorRegistry editorRegistry;
 
     private final ILanguage language;
 
 
-    public LanguageAddedJob(ISpoofaxEditorListener spoofaxEditorListener, IEditorRegistry editorRegistry,
+    public LanguageAddedJob(IEclipseEditorRegistry spoofaxEditorListener, IEditorRegistry editorRegistry,
         ILanguage language) {
         super("Processing added language");
 
@@ -56,14 +56,14 @@ public class LanguageAddedJob extends Job {
             logger.debug("Associating extension(s) {} to Spoofax editor", Joiner.on(", ").join(extensions));
             display.asyncExec(new Runnable() {
                 @Override public void run() {
-                    EditorMappingUtils.set(editorRegistry, SpoofaxEditor.id, extensions);
+                    EditorMappingUtils.set(editorRegistry, IEclipseEditor.id, extensions);
                 }
             });
         }
 
         // Enable editors
-        final Iterable<ISpoofaxEclipseEditor> spoofaxEditors = spoofaxEditorListener.openEditors();
-        for(ISpoofaxEclipseEditor editor : spoofaxEditors) {
+        final Iterable<IEditor> editors = spoofaxEditorListener.openEditors();
+        for(IEditor editor : editors) {
             if(editor.language() == null) {
                 editor.reconfigure();
             }

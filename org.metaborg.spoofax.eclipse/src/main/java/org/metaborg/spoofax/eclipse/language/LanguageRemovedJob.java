@@ -12,13 +12,13 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorRegistry;
+import org.metaborg.spoofax.core.editor.IEditor;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
 import org.metaborg.spoofax.core.language.LanguageFileSelector;
 import org.metaborg.spoofax.core.language.ResourceExtensionFacet;
-import org.metaborg.spoofax.eclipse.editor.ISpoofaxEclipseEditor;
-import org.metaborg.spoofax.eclipse.editor.ISpoofaxEditorListener;
-import org.metaborg.spoofax.eclipse.editor.SpoofaxEditor;
+import org.metaborg.spoofax.eclipse.editor.IEclipseEditor;
+import org.metaborg.spoofax.eclipse.editor.IEclipseEditorRegistry;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
 import org.metaborg.spoofax.eclipse.util.EditorMappingUtils;
 import org.metaborg.spoofax.eclipse.util.MarkerUtils;
@@ -35,7 +35,7 @@ public class LanguageRemovedJob extends Job {
     private final IEclipseResourceService resourceService;
     private final ILanguageIdentifierService languageIdentifier;
 
-    private final ISpoofaxEditorListener spoofaxEditorListener;
+    private final IEclipseEditorRegistry spoofaxEditorListener;
 
     private final IEditorRegistry editorRegistry;
     private final IWorkspace workspace;
@@ -44,7 +44,7 @@ public class LanguageRemovedJob extends Job {
 
 
     public LanguageRemovedJob(IEclipseResourceService resourceService, ILanguageIdentifierService languageIdentifier,
-        ISpoofaxEditorListener spoofaxEditorListener, IEditorRegistry editorRegistry, IWorkspace workspace,
+        IEclipseEditorRegistry spoofaxEditorListener, IEditorRegistry editorRegistry, IWorkspace workspace,
         ILanguage language) {
         super("Processing language removal");
 
@@ -77,14 +77,14 @@ public class LanguageRemovedJob extends Job {
             logger.debug("Unassociating extension(s) {} from Spoofax editor", Joiner.on(", ").join(extensions));
             display.asyncExec(new Runnable() {
                 @Override public void run() {
-                    EditorMappingUtils.remove(editorRegistry, SpoofaxEditor.id, extensions);
+                    EditorMappingUtils.remove(editorRegistry, IEclipseEditor.id, extensions);
                 }
             });
         }
 
         // Disable editors
-        final Iterable<ISpoofaxEclipseEditor> spoofaxEditors = spoofaxEditorListener.openEditors();
-        for(ISpoofaxEclipseEditor editor : spoofaxEditors) {
+        final Iterable<IEditor> editors = spoofaxEditorListener.openEditors();
+        for(IEditor editor : editors) {
             if(editor.language().equals(language)) {
                 editor.reconfigure();
                 editor.disable();

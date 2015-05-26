@@ -54,7 +54,7 @@ import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.TypeLiteral;
 
-public class SpoofaxEditor extends TextEditor implements ISpoofaxEclipseEditor {
+public class SpoofaxEditor extends TextEditor implements IEclipseEditor {
     private static final Logger logger = LoggerFactory.getLogger(SpoofaxEditor.class);
 
 
