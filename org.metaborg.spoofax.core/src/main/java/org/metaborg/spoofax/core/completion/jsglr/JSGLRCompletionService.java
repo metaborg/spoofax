@@ -56,20 +56,17 @@ public class JSGLRCompletionService implements ICompletionService {
         final SGLRParseResult sglrParseResult = (SGLRParseResult) completionParseResult.parserSpecificData;
         final CompletionStateSet completionStates = sglrParseResult.completionStates;
 
-        final State lastState = completionStates.getLast();
-        final int state = lastState.stateNumber;
+        final State lastState = completionStates.last();
+        final int stateId = lastState.stateNumber;
         final Collection<ICompletion> completions = Lists.newLinkedList();
-        final Iterable<CompletionDefinition> completionDefinitions = facet.get(state);
-
-
+        final Iterable<CompletionDefinition> completionDefinitions = facet.get(stateId);
 
         for(CompletionDefinition completionDefinition : completionDefinitions) {
             completions.add(new Completion(completionDefinition.items));
-            
-            for(State s : completionStates.getStates()) {
-                
-                if(!s.equals(lastState)) {
-                    final Iterable<CompletionDefinition> enclosingCompletions = facet.get(s.stateNumber);
+
+            for(State state : completionStates.states()) {
+                if(!state.equals(lastState)) {
+                    final Iterable<CompletionDefinition> enclosingCompletions = facet.get(state.stateNumber);
                     for(CompletionDefinition enclosingCompletionDefinition : enclosingCompletions) {
                         if(enclosingCompletionDefinition.expectedSort.equals(completionDefinition.producedSort)) {
                             completions.add(new Completion(enclosingCompletionDefinition.items));
@@ -78,8 +75,6 @@ public class JSGLRCompletionService implements ICompletionService {
                 }
 
             }
-
-
         }
         return completions;
     }
