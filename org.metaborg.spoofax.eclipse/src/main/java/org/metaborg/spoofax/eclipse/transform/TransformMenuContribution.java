@@ -17,8 +17,8 @@ import org.metaborg.spoofax.core.transform.stratego.menu.Action;
 import org.metaborg.spoofax.core.transform.stratego.menu.Menu;
 import org.metaborg.spoofax.core.transform.stratego.menu.MenusFacet;
 import org.metaborg.spoofax.eclipse.SpoofaxPlugin;
+import org.metaborg.spoofax.eclipse.editor.ISpoofaxEclipseEditor;
 import org.metaborg.spoofax.eclipse.editor.ISpoofaxEditorListener;
-import org.metaborg.spoofax.eclipse.editor.SpoofaxEditor;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,13 +53,13 @@ public class TransformMenuContribution extends CompoundContributionItem implemen
     }
 
     @Override protected IContributionItem[] getContributionItems() {
-        final SpoofaxEditor editor = latestEditorListener.previousEditor();
+        final ISpoofaxEclipseEditor editor = latestEditorListener.previousEditor();
         if(editor == null) {
             logger.debug("Cannot create menu items; there is no latest active editor");
             return new IContributionItem[0];
         }
 
-        final FileObject resource = resourceService.resolve(editor.getEditorInput());
+        final FileObject resource = resourceService.resolve(editor.input());
         if(resource == null) {
             logger.error("Cannot create menu items; cannot resolve input resource for {}", editor);
             return new IContributionItem[0];

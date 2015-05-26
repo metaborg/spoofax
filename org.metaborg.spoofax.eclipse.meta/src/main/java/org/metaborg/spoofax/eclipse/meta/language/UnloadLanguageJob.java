@@ -32,7 +32,7 @@ public class UnloadLanguageJob extends Job {
             languageService.remove(language);
         } else {
             final String message =
-                String.format("Failed to unload language at location % because it does not exist", location);
+                String.format("Failed to unload language at location %s because it does not exist", location);
             logger.error(message);
             return StatusUtils.error(message);
         }

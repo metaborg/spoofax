@@ -7,6 +7,8 @@ import java.util.Set;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.analysis.stratego.StrategoFacet;
 import org.metaborg.spoofax.core.analysis.stratego.StrategoFacetFromESV;
+import org.metaborg.spoofax.core.completion.jsglr.CompletionFacetFromItemSets;
+import org.metaborg.spoofax.core.completion.jsglr.CompletionFacet;
 import org.metaborg.spoofax.core.context.ContextFacet;
 import org.metaborg.spoofax.core.context.IContextStrategy;
 import org.metaborg.spoofax.core.esv.ESVReader;
@@ -100,6 +102,13 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
         final SyntaxFacet syntaxFacet = SyntaxFacetFromESV.create(esvTerm, location);
         language.addFacet(syntaxFacet);
+
+        final FileObject itemSetsFile = esvFile.getParent().resolveFile("item-sets.aterm");
+        if(itemSetsFile.exists()) {
+            final IStrategoTerm itemSetsTerm = reader.parseFromStream(itemSetsFile.getContent().getInputStream());
+            final CompletionFacet completionFacet = CompletionFacetFromItemSets.create((IStrategoAppl) itemSetsTerm);
+            language.addFacet(completionFacet);
+        }
 
         final StrategoFacet strategoFacet = StrategoFacetFromESV.create(esvTerm, location);
         language.addFacet(strategoFacet);

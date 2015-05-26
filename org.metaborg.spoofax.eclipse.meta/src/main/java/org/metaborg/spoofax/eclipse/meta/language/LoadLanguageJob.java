@@ -29,7 +29,7 @@ public class LoadLanguageJob extends Job {
         try {
             languageDiscoveryService.discover(location);
         } catch(Exception e) {
-            final String message = String.format("Could not load language at location %", location);
+            final String message = String.format("Could not load language at location %s", location);
             logger.error(message, e);
             return StatusUtils.error(message, e);
         }

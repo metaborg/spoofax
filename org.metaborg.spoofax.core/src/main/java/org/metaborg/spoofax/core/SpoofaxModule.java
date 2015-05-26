@@ -4,6 +4,8 @@ import org.apache.commons.vfs2.FileSystemManager;
 import org.metaborg.runtime.task.primitives.TaskLibrary;
 import org.metaborg.spoofax.core.analysis.IAnalysisService;
 import org.metaborg.spoofax.core.analysis.stratego.StrategoAnalysisService;
+import org.metaborg.spoofax.core.completion.ICompletionService;
+import org.metaborg.spoofax.core.completion.jsglr.JSGLRCompletionService;
 import org.metaborg.spoofax.core.context.ContextService;
 import org.metaborg.spoofax.core.context.IContextFactory;
 import org.metaborg.spoofax.core.context.IContextService;
@@ -46,7 +48,7 @@ import org.metaborg.spoofax.core.style.ICategorizerService;
 import org.metaborg.spoofax.core.style.IStylerService;
 import org.metaborg.spoofax.core.style.StylerService;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
-import org.metaborg.spoofax.core.syntax.jsglr.JSGLRParseService;
+import org.metaborg.spoofax.core.syntax.jsglr.JSGLRSyntaxService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.terms.TermFactoryService;
 import org.metaborg.spoofax.core.text.ISourceTextService;
@@ -101,6 +103,7 @@ public class SpoofaxModule extends AbstractModule {
         bindContextStrategies(MapBinder.newMapBinder(binder(), String.class, IContextStrategy.class));
         bindProject();
         bindSyntax();
+        bindCompletion();
         bindSourceText();
         bindAnalysis();
         bindTransformer();
@@ -145,10 +148,15 @@ public class SpoofaxModule extends AbstractModule {
     }
 
     protected void bindSyntax() {
-        bind(JSGLRParseService.class).in(Singleton.class);
-        bind(new TypeLiteral<ISyntaxService<IStrategoTerm>>() {}).to(JSGLRParseService.class);
-        languageCacheBinder.addBinding().to(JSGLRParseService.class);
+        bind(JSGLRSyntaxService.class).in(Singleton.class);
+        bind(new TypeLiteral<ISyntaxService<IStrategoTerm>>() {}).to(JSGLRSyntaxService.class);
+        bind(new TypeLiteral<ISyntaxService<?>>() {}).to(JSGLRSyntaxService.class);
+        languageCacheBinder.addBinding().to(JSGLRSyntaxService.class);
         bind(ITermFactoryService.class).to(TermFactoryService.class).in(Singleton.class);
+    }
+
+    protected void bindCompletion() {
+        bind(ICompletionService.class).to(JSGLRCompletionService.class).in(Singleton.class);
     }
 
     protected void bindSourceText() {

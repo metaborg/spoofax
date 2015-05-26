@@ -16,6 +16,7 @@ import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
 import org.metaborg.spoofax.core.language.LanguageFileSelector;
 import org.metaborg.spoofax.core.language.ResourceExtensionFacet;
+import org.metaborg.spoofax.eclipse.editor.ISpoofaxEclipseEditor;
 import org.metaborg.spoofax.eclipse.editor.ISpoofaxEditorListener;
 import org.metaborg.spoofax.eclipse.editor.SpoofaxEditor;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
@@ -82,8 +83,8 @@ public class LanguageRemovedJob extends Job {
         }
 
         // Disable editors
-        final Iterable<SpoofaxEditor> spoofaxEditors = spoofaxEditorListener.openEditors();
-        for(SpoofaxEditor editor : spoofaxEditors) {
+        final Iterable<ISpoofaxEclipseEditor> spoofaxEditors = spoofaxEditorListener.openEditors();
+        for(ISpoofaxEclipseEditor editor : spoofaxEditors) {
             if(editor.language().equals(language)) {
                 editor.reconfigure();
                 editor.disable();

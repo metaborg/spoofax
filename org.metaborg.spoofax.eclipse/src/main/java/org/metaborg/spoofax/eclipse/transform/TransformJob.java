@@ -19,7 +19,7 @@ import org.metaborg.spoofax.core.transform.NamedGoal;
 import org.metaborg.spoofax.core.transform.TransformerException;
 import org.metaborg.spoofax.core.transform.stratego.menu.Action;
 import org.metaborg.spoofax.core.transform.stratego.menu.MenusFacet;
-import org.metaborg.spoofax.eclipse.editor.SpoofaxEditor;
+import org.metaborg.spoofax.eclipse.editor.ISpoofaxEclipseEditor;
 import org.metaborg.spoofax.eclipse.processing.AnalysisResultProcessor;
 import org.metaborg.spoofax.eclipse.processing.ParseResultProcessor;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
@@ -39,14 +39,14 @@ public class TransformJob extends Job {
     private final ParseResultProcessor parseResultProcessor;
     private final AnalysisResultProcessor analysisResultProcessor;
 
-    private final SpoofaxEditor editor;
+    private final ISpoofaxEclipseEditor editor;
     private final String actionName;
 
 
     public TransformJob(IEclipseResourceService resourceService, ILanguageIdentifierService langaugeIdentifierService,
         IContextService contextService, ITransformer<IStrategoTerm, IStrategoTerm, IStrategoTerm> transformer,
         ParseResultProcessor parseResultProcessor, AnalysisResultProcessor analysisResultProcessor,
-        SpoofaxEditor editor, String actionName) {
+        ISpoofaxEclipseEditor editor, String actionName) {
         super("Transforming file");
 
         this.resourceService = resourceService;
@@ -63,7 +63,7 @@ public class TransformJob extends Job {
 
 
     @Override protected IStatus run(IProgressMonitor monitor) {
-        final IEditorInput input = editor.getEditorInput();
+        final IEditorInput input = editor.input();
         final String text = editor.document().get();
         final FileObject resource = resourceService.resolve(input);
 

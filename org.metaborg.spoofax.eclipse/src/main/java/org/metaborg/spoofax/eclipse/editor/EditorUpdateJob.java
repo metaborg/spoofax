@@ -182,7 +182,7 @@ public class EditorUpdateJob extends Job {
         final ParseResult<IStrategoTerm> parseResult;
         try {
             parseResultProcessor.invalidate(resource);
-            parseResult = syntaxService.parse(text, resource, parserLanguage);
+            parseResult = syntaxService.parse(text, resource, parserLanguage, null);
             parseResultProcessor.update(resource, parseResult);
         } catch(ParseException e) {
             parseResultProcessor.error(resource, e);

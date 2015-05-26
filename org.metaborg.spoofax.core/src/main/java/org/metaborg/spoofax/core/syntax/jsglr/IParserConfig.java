@@ -4,6 +4,4 @@ public interface IParserConfig {
     public String getStartSymbol();
 
     public IParseTableProvider getParseTableProvider();
-
-    public int getTimeout();
 }

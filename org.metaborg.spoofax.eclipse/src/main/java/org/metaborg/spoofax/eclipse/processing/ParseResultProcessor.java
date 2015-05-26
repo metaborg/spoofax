@@ -8,6 +8,7 @@ import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
 import org.metaborg.spoofax.core.syntax.ParseException;
 import org.metaborg.spoofax.core.syntax.ParseResult;
+import org.metaborg.spoofax.eclipse.util.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -119,6 +120,21 @@ public class ParseResultProcessor {
         return getUpdates(resource.getName());
     }
 
+    /**
+     * @return Latest parse result for given resource, or null if there is none.
+     */
+    public @Nullable ParseResult<IStrategoTerm> get(FileObject resource) {
+        final BehaviorSubject<ParseChange> subject = updatesPerResource.get(resource.getName());
+        if(subject == null) {
+            return null;
+        }
+        final ParseChange change = subject.toBlocking().firstOrDefault(null);
+        if(change == null) {
+            return null;
+        }
+        return change.result;
+    }
+
 
     /**
      * Invalidates the parse result for given resource. Must be followed by a call to {@link #update} or {@link #error}
@@ -194,7 +210,7 @@ public class ParseResultProcessor {
             updatesPerResource.put(name, updates);
             try {
                 logger.trace("Parsing for {}", resource);
-                final ParseResult<IStrategoTerm> result = syntaxService.parse(text, resource, language);
+                final ParseResult<IStrategoTerm> result = syntaxService.parse(text, resource, language, null);
                 updates.onNext(ParseChange.update(result));
             } catch(ParseException e) {
                 final String message = String.format("Parsing for % failed", name);

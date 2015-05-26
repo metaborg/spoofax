@@ -29,6 +29,7 @@ import org.eclipse.ui.IPropertyListener;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
 import org.metaborg.spoofax.core.analysis.IAnalysisService;
+import org.metaborg.spoofax.core.completion.ICompletionService;
 import org.metaborg.spoofax.core.context.IContextService;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
@@ -53,10 +54,9 @@ import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.TypeLiteral;
 
-public class SpoofaxEditor extends TextEditor {
+public class SpoofaxEditor extends TextEditor implements ISpoofaxEclipseEditor {
     private static final Logger logger = LoggerFactory.getLogger(SpoofaxEditor.class);
 
-    public static final String id = SpoofaxPlugin.id + ".editor";
 
     private IEclipseResourceService resourceService;
     private ILanguageIdentifierService languageIdentifier;
@@ -66,6 +66,7 @@ public class SpoofaxEditor extends TextEditor {
     private IAnalysisService<IStrategoTerm, IStrategoTerm> analysisService;
     private ICategorizerService<IStrategoTerm, IStrategoTerm> categorizerService;
     private IStylerService<IStrategoTerm, IStrategoTerm> stylerService;
+    private ICompletionService completionService;
 
     private ParseResultProcessor parseResultProcessor;
     private AnalysisResultProcessor analysisResultProcessor;
@@ -97,90 +98,25 @@ public class SpoofaxEditor extends TextEditor {
     }
 
 
-    /**
-     * @return Current input, or null if the editor has not been initialized yet, or if it has been disposed.
-     */
-    public @Nullable IEditorInput input() {
-        if(!checkInitialized()) {
-            return null;
-        }
-        return input;
-    }
-
-    /**
-     * @return Current resource, or null if the editor has not been initialized yet, or if it has been disposed.
-     */
-    public @Nullable FileObject resource() {
+    @Override public @Nullable FileObject resource() {
         if(!checkInitialized()) {
             return null;
         }
         return resource;
     }
 
-    /**
-     * @return Current Eclipse resource, or null if the editor has not been initialized yet, or if it has been disposed.
-     */
-    public @Nullable IResource eclipseResource() {
-        if(!checkInitialized()) {
-            return null;
-        }
-        return eclipseResource;
-    }
-
-    /**
-     * @return Current document, or null if the editor has not been initialized yet, or if it has been disposed.
-     */
-    public @Nullable IDocument document() {
-        if(!checkInitialized()) {
-            return null;
-        }
-        return document;
-    }
-
-    /**
-     * @return Language of the current input/document, or null if the editor has not been initialized yet, if it has
-     *         been disposed, or if the editor was opened before languages were loaded.
-     */
-    public @Nullable ILanguage language() {
+    @Override public @Nullable ILanguage language() {
         if(!checkInitialized()) {
             return null;
         }
         return language;
     }
 
-    /**
-     * @return Source viewer, or null if the editor has not been initialized yet, or if it has been disposed.
-     */
-    public @Nullable ISourceViewer sourceViewer() {
-        if(!checkInitialized()) {
-            return null;
-        }
-        return getSourceViewer();
-    }
-
-    /**
-     * @return Source viewer configuration, or null if the editor has not been initialized yet, or if it has been
-     *         disposed.
-     */
-    public @Nullable SourceViewerConfiguration configuration() {
-        if(!checkInitialized()) {
-            return null;
-        }
-        return getSourceViewerConfiguration();
-    }
-
-    /**
-     * @return If this editor is enabled.
-     */
-    public boolean enabled() {
+    @Override public boolean enabled() {
         return documentListener != null;
     }
 
-    /**
-     * Enables parsing, analysis, and editor services. Does nothing if editor has not been initialized, or if it has
-     * been disposed, or if the editor is already enabled.
-     */
-    public void enable() {
+    @Override public void enable() {
         if(!checkInitialized() || enabled()) {
             return;
         }
@@ -190,11 +126,7 @@ public class SpoofaxEditor extends TextEditor {
         scheduleJob(true);
     }
 
-    /**
-     * Disables parsing, analysis, and editor services. Does nothing if editor has not been initialized, or if it has
-     * been disposed, or if the editor is already disabled.
-     */
-    public void disable() {
+    @Override public void disable() {
         if(!checkInitialized() || !enabled()) {
             return;
         }
@@ -213,11 +145,7 @@ public class SpoofaxEditor extends TextEditor {
         });
     }
 
-    /**
-     * Force a parser, analysis, and editor services update. Does nothing if editor has not been initialized, or if it
-     * has been disposed.
-     */
-    public void forceUpdate() {
+    @Override public void forceUpdate() {
         if(!checkInitialized()) {
             return;
         }
@@ -225,12 +153,7 @@ public class SpoofaxEditor extends TextEditor {
         scheduleJob(true);
     }
 
-    /**
-     * Reconfigure the editor, causing its language to be updated and its source viewer to be reconfigured. Source
-     * viewer reconfiguration will be executed on the UI thread. Does nothing if editor has not been initialized, or if
-     * it has been disposed.
-     */
-    public void reconfigure() {
+    @Override public void reconfigure() {
         if(!checkInitialized()) {
             return;
         }
@@ -250,6 +173,43 @@ public class SpoofaxEditor extends TextEditor {
         });
     }
 
+
+    @Override public @Nullable IEditorInput input() {
+        if(!checkInitialized()) {
+            return null;
+        }
+        return input;
+    }
+
+    @Override public @Nullable IResource eclipseResource() {
+        if(!checkInitialized()) {
+            return null;
+        }
+        return eclipseResource;
+    }
+
+    @Override public @Nullable IDocument document() {
+        if(!checkInitialized()) {
+            return null;
+        }
+        return document;
+    }
+
+    @Override public @Nullable ISourceViewer sourceViewer() {
+        if(!checkInitialized()) {
+            return null;
+        }
+        return getSourceViewer();
+    }
+
+    @Override public @Nullable SourceViewerConfiguration configuration() {
+        if(!checkInitialized()) {
+            return null;
+        }
+        return getSourceViewerConfiguration();
+    }
+
+
     @Override protected void initializeEditor() {
         super.initializeEditor();
 
@@ -268,6 +228,7 @@ public class SpoofaxEditor extends TextEditor {
             injector.getInstance(Key.get(new TypeLiteral<ICategorizerService<IStrategoTerm, IStrategoTerm>>() {}));
         this.stylerService =
             injector.getInstance(Key.get(new TypeLiteral<IStylerService<IStrategoTerm, IStrategoTerm>>() {}));
+        this.completionService = injector.getInstance(ICompletionService.class);
 
         this.parseResultProcessor = injector.getInstance(ParseResultProcessor.class);
         this.analysisResultProcessor = injector.getInstance(AnalysisResultProcessor.class);
@@ -276,7 +237,8 @@ public class SpoofaxEditor extends TextEditor {
         this.jobManager = Job.getJobManager();
 
         setEditorContextMenuId("#SpoofaxEditorContext");
-        setSourceViewerConfiguration(new SpoofaxSourceViewerConfiguration(this, syntaxService));
+        setSourceViewerConfiguration(new SpoofaxSourceViewerConfiguration(syntaxService, completionService,
+            parseResultProcessor, this));
     }
 
     @Override protected ISourceViewer createSourceViewer(Composite parent, IVerticalRuler ruler, int styles) {
@@ -383,6 +345,8 @@ public class SpoofaxEditor extends TextEditor {
         // THREADING: invalidate text styling here on the main thread (instead of in the editor update job), to prevent
         // race conditions.
         presentationMerger.invalidate();
+        parseResultProcessor.invalidate(resource);
+        analysisResultProcessor.invalidate(resource);
 
         final Job job =
             new EditorUpdateJob(languageIdentifier, dialectService, contextService, syntaxService, analysisService,

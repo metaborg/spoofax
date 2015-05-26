@@ -80,7 +80,7 @@ public class ParseFilePrimitive extends AbstractPrimitive {
             if(language == null) {
                 return false;
             }
-            final ParseResult<IStrategoTerm> result = syntaxService.parse(input, resource, language);
+            final ParseResult<IStrategoTerm> result = syntaxService.parse(input, resource, language, null);
             if(result.result == null) {
                 return false;
             }

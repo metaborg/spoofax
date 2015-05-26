@@ -7,6 +7,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorRegistry;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ResourceExtensionFacet;
+import org.metaborg.spoofax.eclipse.editor.ISpoofaxEclipseEditor;
 import org.metaborg.spoofax.eclipse.editor.ISpoofaxEditorListener;
 import org.metaborg.spoofax.eclipse.editor.SpoofaxEditor;
 import org.metaborg.spoofax.eclipse.util.EditorMappingUtils;
@@ -61,8 +62,8 @@ public class LanguageAddedJob extends Job {
         }
 
         // Enable editors
-        final Iterable<SpoofaxEditor> spoofaxEditors = spoofaxEditorListener.openEditors();
-        for(SpoofaxEditor editor : spoofaxEditors) {
+        final Iterable<ISpoofaxEclipseEditor> spoofaxEditors = spoofaxEditorListener.openEditors();
+        for(ISpoofaxEclipseEditor editor : spoofaxEditors) {
             if(editor.language() == null) {
                 editor.reconfigure();
             }
