@@ -24,6 +24,8 @@ import org.metaborg.spoofax.core.language.dialect.IDialectProcessor;
 import org.metaborg.spoofax.core.language.dialect.IDialectService;
 import org.metaborg.spoofax.core.messages.IMessage;
 import org.metaborg.spoofax.core.messages.MessageFactory;
+import org.metaborg.spoofax.core.processing.analyze.IAnalysisResultUpdater;
+import org.metaborg.spoofax.core.processing.parse.IParseResultUpdater;
 import org.metaborg.spoofax.core.resource.IResourceChange;
 import org.metaborg.spoofax.core.resource.ResourceChangeKind;
 import org.metaborg.spoofax.core.resource.SpoofaxIgnoredDirectories;

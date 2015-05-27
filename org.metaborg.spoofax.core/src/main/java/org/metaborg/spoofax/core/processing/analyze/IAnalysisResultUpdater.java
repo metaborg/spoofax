@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.core.processing;
+package org.metaborg.spoofax.core.processing.analyze;
 
 import java.util.Set;
 

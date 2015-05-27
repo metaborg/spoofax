@@ -1,4 +1,5 @@
-package org.metaborg.spoofax.core.processing;
+package org.metaborg.spoofax.core.processing.parse;
+
 
 /**
  * Typedef interface for combining {@link IParseResultRequester} and {@link IParseResultUpdater}.

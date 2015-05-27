@@ -14,7 +14,7 @@ import org.metaborg.spoofax.core.SpoofaxException;
 import org.metaborg.spoofax.core.completion.ICompletion;
 import org.metaborg.spoofax.core.completion.ICompletionService;
 import org.metaborg.spoofax.core.language.ILanguage;
-import org.metaborg.spoofax.core.processing.IParseResultRequester;
+import org.metaborg.spoofax.core.processing.parse.IParseResultRequester;
 import org.metaborg.spoofax.core.syntax.ParseResult;
 
 import rx.Observable;

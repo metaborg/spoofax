@@ -12,7 +12,7 @@ import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
 import org.metaborg.spoofax.core.completion.ICompletionService;
 import org.metaborg.spoofax.core.language.ILanguage;
-import org.metaborg.spoofax.core.processing.IParseResultRequester;
+import org.metaborg.spoofax.core.processing.parse.IParseResultRequester;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

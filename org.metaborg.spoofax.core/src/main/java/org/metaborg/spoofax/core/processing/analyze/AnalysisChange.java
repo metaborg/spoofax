@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.core.processing;
+package org.metaborg.spoofax.core.processing.analyze;
 
 import javax.annotation.Nullable;
 
@@ -6,6 +6,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.analysis.AnalysisException;
 import org.metaborg.spoofax.core.analysis.AnalysisFileResult;
 import org.metaborg.spoofax.core.analysis.AnalysisResult;
+import org.metaborg.spoofax.core.processing.UpdateKind;
 
 public class AnalysisChange<P, A> {
     public final UpdateKind kind;

@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.core.processing;
+package org.metaborg.spoofax.core.processing.analyze;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
@@ -11,6 +11,8 @@ import org.metaborg.spoofax.core.analysis.AnalysisFileResult;
 import org.metaborg.spoofax.core.analysis.AnalysisResult;
 import org.metaborg.spoofax.core.analysis.IAnalysisService;
 import org.metaborg.spoofax.core.context.IContext;
+import org.metaborg.spoofax.core.processing.UpdateKind;
+import org.metaborg.spoofax.core.processing.parse.IParseResultRequester;
 import org.metaborg.spoofax.core.syntax.ParseResult;
 import org.metaborg.util.iterators.Iterables2;
 import org.slf4j.Logger;
