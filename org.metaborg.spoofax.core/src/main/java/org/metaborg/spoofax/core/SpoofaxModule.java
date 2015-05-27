@@ -27,6 +27,23 @@ import org.metaborg.spoofax.core.language.dialect.IDialectProcessor;
 import org.metaborg.spoofax.core.language.dialect.IDialectService;
 import org.metaborg.spoofax.core.language.dialect.StrategoDialectIdentifier;
 import org.metaborg.spoofax.core.language.dialect.StrategoDialectProcessor;
+import org.metaborg.spoofax.core.processing.IAnalysisResultProcessor;
+import org.metaborg.spoofax.core.processing.IAnalysisResultRequester;
+import org.metaborg.spoofax.core.processing.IAnalysisResultUpdater;
+import org.metaborg.spoofax.core.processing.IBuilder;
+import org.metaborg.spoofax.core.processing.IParseResultProcessor;
+import org.metaborg.spoofax.core.processing.IParseResultRequester;
+import org.metaborg.spoofax.core.processing.IParseResultUpdater;
+import org.metaborg.spoofax.core.processing.ISpoofaxAnalysisResultProcessor;
+import org.metaborg.spoofax.core.processing.ISpoofaxAnalysisResultRequester;
+import org.metaborg.spoofax.core.processing.ISpoofaxAnalysisResultUpdater;
+import org.metaborg.spoofax.core.processing.ISpoofaxBuilder;
+import org.metaborg.spoofax.core.processing.ISpoofaxParseResultProcessor;
+import org.metaborg.spoofax.core.processing.ISpoofaxParseResultRequester;
+import org.metaborg.spoofax.core.processing.ISpoofaxParseResultUpdater;
+import org.metaborg.spoofax.core.processing.SpoofaxAnalysisResultProcessor;
+import org.metaborg.spoofax.core.processing.SpoofaxBuilder;
+import org.metaborg.spoofax.core.processing.SpoofaxParseResultProcessor;
 import org.metaborg.spoofax.core.project.DummyProjectService;
 import org.metaborg.spoofax.core.project.IProjectService;
 import org.metaborg.spoofax.core.resource.DefaultFileSystemManagerProvider;
@@ -59,6 +76,7 @@ import org.metaborg.spoofax.core.transform.ITransformerExecutor;
 import org.metaborg.spoofax.core.transform.ITransformerGoal;
 import org.metaborg.spoofax.core.transform.ITransformerResultHandler;
 import org.metaborg.spoofax.core.transform.NamedGoal;
+import org.metaborg.spoofax.core.transform.stratego.IStrategoTransformer;
 import org.metaborg.spoofax.core.transform.stratego.StrategoCompileTransformer;
 import org.metaborg.spoofax.core.transform.stratego.StrategoNamedTransformer;
 import org.metaborg.spoofax.core.transform.stratego.StrategoTransformer;
@@ -110,6 +128,7 @@ public class SpoofaxModule extends AbstractModule {
         bindTransformerResultHandlers(MapBinder.newMapBinder(binder(),
             new TypeLiteral<Class<? extends ITransformerGoal>>() {},
             new TypeLiteral<ITransformerResultHandler<IStrategoTerm>>() {}));
+        bindBuilder();
         bindCategorizer();
         bindStyler();
         bindOther();
@@ -206,8 +225,12 @@ public class SpoofaxModule extends AbstractModule {
         executorBinder.addBinding(CompileGoal.class).to(StrategoCompileTransformer.class).in(Singleton.class);
 
         bind(StrategoTransformerCommon.class).in(Singleton.class);
+
+        bind(StrategoTransformer.class).in(Singleton.class);
+        bind(IStrategoTransformer.class).to(StrategoTransformer.class);
         bind(new TypeLiteral<ITransformer<IStrategoTerm, IStrategoTerm, IStrategoTerm>>() {}).to(
-            StrategoTransformer.class).in(Singleton.class);
+            StrategoTransformer.class);
+        bind(new TypeLiteral<ITransformer<?, ?, ?>>() {}).to(StrategoTransformer.class);
     }
 
     protected void bindTransformerResultHandlers(
@@ -215,6 +238,46 @@ public class SpoofaxModule extends AbstractModule {
         bind(StrategoTransformerFileWriter.class).in(Singleton.class);
         binder.addBinding(NamedGoal.class).to(StrategoTransformerFileWriter.class);
         binder.addBinding(CompileGoal.class).to(StrategoTransformerFileWriter.class);
+    }
+
+    protected void bindBuilder() {
+        bind(SpoofaxParseResultProcessor.class).in(Singleton.class);
+
+        bind(ISpoofaxParseResultRequester.class).to(SpoofaxParseResultProcessor.class);
+        bind(new TypeLiteral<IParseResultRequester<IStrategoTerm>>() {}).to(SpoofaxParseResultProcessor.class);
+        bind(new TypeLiteral<IParseResultRequester<?>>() {}).to(SpoofaxParseResultProcessor.class);
+
+        bind(ISpoofaxParseResultUpdater.class).to(SpoofaxParseResultProcessor.class);
+        bind(new TypeLiteral<IParseResultUpdater<IStrategoTerm>>() {}).to(SpoofaxParseResultProcessor.class);
+        bind(new TypeLiteral<IParseResultUpdater<?>>() {}).to(SpoofaxParseResultProcessor.class);
+
+        bind(ISpoofaxParseResultProcessor.class).to(SpoofaxParseResultProcessor.class);
+        bind(new TypeLiteral<IParseResultProcessor<IStrategoTerm>>() {}).to(SpoofaxParseResultProcessor.class);
+        bind(new TypeLiteral<IParseResultProcessor<?>>() {}).to(SpoofaxParseResultProcessor.class);
+
+
+        bind(SpoofaxAnalysisResultProcessor.class).in(Singleton.class);
+
+        bind(ISpoofaxAnalysisResultRequester.class).to(SpoofaxAnalysisResultProcessor.class);
+        bind(new TypeLiteral<IAnalysisResultRequester<IStrategoTerm, IStrategoTerm>>() {}).to(
+            SpoofaxAnalysisResultProcessor.class);
+        bind(new TypeLiteral<IAnalysisResultRequester<?, ?>>() {}).to(SpoofaxAnalysisResultProcessor.class);
+
+        bind(ISpoofaxAnalysisResultUpdater.class).to(SpoofaxAnalysisResultProcessor.class);
+        bind(new TypeLiteral<IAnalysisResultUpdater<IStrategoTerm, IStrategoTerm>>() {}).to(
+            SpoofaxAnalysisResultProcessor.class);
+        bind(new TypeLiteral<IAnalysisResultUpdater<?, ?>>() {}).to(SpoofaxAnalysisResultProcessor.class);
+
+        bind(ISpoofaxAnalysisResultProcessor.class).to(SpoofaxAnalysisResultProcessor.class);
+        bind(new TypeLiteral<IAnalysisResultProcessor<IStrategoTerm, IStrategoTerm>>() {}).to(
+            SpoofaxAnalysisResultProcessor.class);
+        bind(new TypeLiteral<IAnalysisResultProcessor<?, ?>>() {}).to(SpoofaxAnalysisResultProcessor.class);
+
+
+        bind(SpoofaxBuilder.class).in(Singleton.class);
+        bind(ISpoofaxBuilder.class).to(SpoofaxBuilder.class);
+        bind(new TypeLiteral<IBuilder<IStrategoTerm, IStrategoTerm, IStrategoTerm>>() {}).to(SpoofaxBuilder.class);
+        bind(new TypeLiteral<IBuilder<?, ?, ?>>() {}).to(SpoofaxBuilder.class);
     }
 
     protected void bindCategorizer() {

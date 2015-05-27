@@ -2,6 +2,7 @@ package org.metaborg.spoofax.eclipse.build;
 
 import java.util.Collection;
 
+import org.metaborg.spoofax.core.processing.IdentifiedResourceChange;
 import org.metaborg.spoofax.core.resource.IResourceChange;
 
 public class BuildChanges {

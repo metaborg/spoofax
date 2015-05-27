@@ -1,17 +1,17 @@
-package org.metaborg.spoofax.eclipse.processing;
+package org.metaborg.spoofax.core.processing;
+
+import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.analysis.AnalysisException;
 import org.metaborg.spoofax.core.analysis.AnalysisFileResult;
 import org.metaborg.spoofax.core.analysis.AnalysisResult;
-import org.metaborg.spoofax.eclipse.util.Nullable;
-import org.spoofax.interpreter.terms.IStrategoTerm;
 
-public class AnalysisChange {
+public class AnalysisChange<P, A> {
     public final UpdateKind kind;
     public final FileObject resource;
-    @Nullable public final AnalysisFileResult<IStrategoTerm, IStrategoTerm> result;
-    @Nullable public final AnalysisResult<IStrategoTerm, IStrategoTerm> parentResult;
+    @Nullable public final AnalysisFileResult<P, A> result;
+    @Nullable public final AnalysisResult<P, A> parentResult;
     @Nullable public final AnalysisException exception;
 
 
@@ -26,9 +26,9 @@ public class AnalysisChange {
      *            Parent of the updated analysis result.
      * @return Analysis change.
      */
-    public static AnalysisChange update(FileObject resource, AnalysisFileResult<IStrategoTerm, IStrategoTerm> result,
-        AnalysisResult<IStrategoTerm, IStrategoTerm> parentResult) {
-        return new AnalysisChange(UpdateKind.Update, result.source, result, parentResult, null);
+    public static <P, A> AnalysisChange<P, A> update(FileObject resource, AnalysisFileResult<P, A> result,
+        AnalysisResult<P, A> parentResult) {
+        return new AnalysisChange<P, A>(UpdateKind.Update, result.source, result, parentResult, null);
     }
 
     /**
@@ -38,8 +38,8 @@ public class AnalysisChange {
      *            Resource to invalidate.
      * @return Analysis change.
      */
-    public static AnalysisChange invalidate(FileObject resource) {
-        return new AnalysisChange(UpdateKind.Invalidate, resource, null, null, null);
+    public static <P, A> AnalysisChange<P, A> invalidate(FileObject resource) {
+        return new AnalysisChange<P, A>(UpdateKind.Invalidate, resource, null, null, null);
     }
 
     /**
@@ -51,8 +51,8 @@ public class AnalysisChange {
      *            Error that occurred.
      * @return Analysis change.
      */
-    public static AnalysisChange error(FileObject resource, AnalysisException exception) {
-        return new AnalysisChange(UpdateKind.Error, resource, null, null, exception);
+    public static <P, A> AnalysisChange<P, A> error(FileObject resource, AnalysisException exception) {
+        return new AnalysisChange<P, A>(UpdateKind.Error, resource, null, null, exception);
     }
 
     /**
@@ -62,17 +62,16 @@ public class AnalysisChange {
      *            Resource that was removed.
      * @return Analysis change.
      */
-    public static AnalysisChange remove(FileObject resource) {
-        return new AnalysisChange(UpdateKind.Remove, resource, null, null, null);
+    public static <P, A> AnalysisChange<P, A> remove(FileObject resource) {
+        return new AnalysisChange<P, A>(UpdateKind.Remove, resource, null, null, null);
     }
 
 
     /*
      * Use static methods to create instances.
      */
-    protected AnalysisChange(UpdateKind kind, FileObject resource,
-        AnalysisFileResult<IStrategoTerm, IStrategoTerm> result,
-        AnalysisResult<IStrategoTerm, IStrategoTerm> parentResult, AnalysisException exception) {
+    protected AnalysisChange(UpdateKind kind, FileObject resource, AnalysisFileResult<P, A> result,
+        AnalysisResult<P, A> parentResult, AnalysisException exception) {
         this.kind = kind;
         this.resource = resource;
         this.result = result;

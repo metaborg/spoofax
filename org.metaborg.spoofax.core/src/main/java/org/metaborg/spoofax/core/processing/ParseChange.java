@@ -1,15 +1,15 @@
-package org.metaborg.spoofax.eclipse.processing;
+package org.metaborg.spoofax.core.processing;
+
+import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.syntax.ParseException;
 import org.metaborg.spoofax.core.syntax.ParseResult;
-import org.metaborg.spoofax.eclipse.util.Nullable;
-import org.spoofax.interpreter.terms.IStrategoTerm;
 
-public class ParseChange {
+public class ParseChange<P> {
     public final UpdateKind kind;
     public final FileObject resource;
-    @Nullable public final ParseResult<IStrategoTerm> result;
+    @Nullable public final ParseResult<P> result;
     @Nullable public final ParseException exception;
 
 
@@ -24,8 +24,8 @@ public class ParseChange {
      *            Parent of the updated parse result.
      * @return Parse change.
      */
-    public static ParseChange update(ParseResult<IStrategoTerm> result) {
-        return new ParseChange(UpdateKind.Update, result.source, result, null);
+    public static <P> ParseChange<P> update(ParseResult<P> result) {
+        return new ParseChange<P>(UpdateKind.Update, result.source, result, null);
     }
 
     /**
@@ -35,8 +35,8 @@ public class ParseChange {
      *            Resource to invalidate.
      * @return Parse change.
      */
-    public static ParseChange invalidate(FileObject resource) {
-        return new ParseChange(UpdateKind.Invalidate, resource, null, null);
+    public static <P> ParseChange<P> invalidate(FileObject resource) {
+        return new ParseChange<P>(UpdateKind.Invalidate, resource, null, null);
     }
 
     /**
@@ -48,8 +48,8 @@ public class ParseChange {
      *            Error that occurred.
      * @return Parse change.
      */
-    public static ParseChange error(ParseException exception) {
-        return new ParseChange(UpdateKind.Error, exception.resource, null, exception);
+    public static <P> ParseChange<P> error(ParseException exception) {
+        return new ParseChange<P>(UpdateKind.Error, exception.resource, null, exception);
     }
 
     /**
@@ -59,16 +59,15 @@ public class ParseChange {
      *            Resource that was removed.
      * @return Parse change.
      */
-    public static ParseChange remove(FileObject resource) {
-        return new ParseChange(UpdateKind.Remove, resource, null, null);
+    public static <P> ParseChange<P> remove(FileObject resource) {
+        return new ParseChange<P>(UpdateKind.Remove, resource, null, null);
     }
 
 
     /*
      * Use static methods to create instances.
      */
-    protected ParseChange(UpdateKind kind, FileObject resource, ParseResult<IStrategoTerm> result,
-        ParseException exception) {
+    protected ParseChange(UpdateKind kind, FileObject resource, ParseResult<P> result, ParseException exception) {
         this.kind = kind;
         this.resource = resource;
         this.result = result;

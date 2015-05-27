@@ -12,8 +12,8 @@ import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
 import org.metaborg.spoofax.core.completion.ICompletionService;
 import org.metaborg.spoofax.core.language.ILanguage;
+import org.metaborg.spoofax.core.processing.IParseResultRequester;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
-import org.metaborg.spoofax.eclipse.processing.ParseResultProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -26,19 +26,19 @@ public class SpoofaxSourceViewerConfiguration extends SourceViewerConfiguration 
     private final ISyntaxService<IStrategoTerm> syntaxService;
     private final ICompletionService completionService;
 
-    private final ParseResultProcessor parseResultProcessor;
+    private final IParseResultRequester<?> parseResultRequester;
 
     private final SpoofaxEditor editor;
 
 
     public SpoofaxSourceViewerConfiguration(ISyntaxService<IStrategoTerm> syntaxService,
-        ICompletionService completionService, ParseResultProcessor parseResultProcessor, SpoofaxEditor editor) {
+        ICompletionService completionService, IParseResultRequester<?> parseResultRequester, SpoofaxEditor editor) {
         super();
 
         this.syntaxService = syntaxService;
         this.completionService = completionService;
 
-        this.parseResultProcessor = parseResultProcessor;
+        this.parseResultRequester = parseResultRequester;
 
         this.editor = editor;
     }
@@ -74,7 +74,7 @@ public class SpoofaxSourceViewerConfiguration extends SourceViewerConfiguration 
 
         final ContentAssistant assistant = new ContentAssistant();
         final SpoofaxContentAssistProcessor processor =
-            new SpoofaxContentAssistProcessor(completionService, parseResultProcessor, resource, document, language);
+            new SpoofaxContentAssistProcessor(completionService, parseResultRequester, resource, document, language);
         assistant.setContentAssistProcessor(processor, IDocument.DEFAULT_CONTENT_TYPE);
         assistant.setRepeatedInvocationMode(true);
         return assistant;

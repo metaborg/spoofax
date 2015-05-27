@@ -27,6 +27,8 @@ import org.metaborg.spoofax.core.language.dialect.IDialectService;
 import org.metaborg.spoofax.core.messages.IMessage;
 import org.metaborg.spoofax.core.messages.MessageFactory;
 import org.metaborg.spoofax.core.messages.MessageType;
+import org.metaborg.spoofax.core.processing.IAnalysisResultUpdater;
+import org.metaborg.spoofax.core.processing.IParseResultUpdater;
 import org.metaborg.spoofax.core.style.CategorizerValidator;
 import org.metaborg.spoofax.core.style.ICategorizerService;
 import org.metaborg.spoofax.core.style.IRegionCategory;
@@ -36,30 +38,27 @@ import org.metaborg.spoofax.core.syntax.ISyntaxService;
 import org.metaborg.spoofax.core.syntax.ParseException;
 import org.metaborg.spoofax.core.syntax.ParseResult;
 import org.metaborg.spoofax.eclipse.job.ThreadKillerJob;
-import org.metaborg.spoofax.eclipse.processing.AnalysisResultProcessor;
-import org.metaborg.spoofax.eclipse.processing.ParseResultProcessor;
 import org.metaborg.spoofax.eclipse.util.MarkerUtils;
 import org.metaborg.spoofax.eclipse.util.StatusUtils;
 import org.metaborg.spoofax.eclipse.util.StyleUtils;
 import org.metaborg.util.iterators.Iterables2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spoofax.interpreter.terms.IStrategoTerm;
 
-public class EditorUpdateJob extends Job {
+public class EditorUpdateJob<P, A> extends Job {
     private static final Logger logger = LoggerFactory.getLogger(EditorUpdateJob.class);
     private static final long killTimeMillis = 3000;
 
     private final ILanguageIdentifierService languageIdentifierService;
     private final IDialectService dialectService;
     private final IContextService contextService;
-    private final ISyntaxService<IStrategoTerm> syntaxService;
-    private final IAnalysisService<IStrategoTerm, IStrategoTerm> analyzer;
-    private final ICategorizerService<IStrategoTerm, IStrategoTerm> categorizer;
-    private final IStylerService<IStrategoTerm, IStrategoTerm> styler;
+    private final ISyntaxService<P> syntaxService;
+    private final IAnalysisService<P, A> analyzer;
+    private final ICategorizerService<P, A> categorizer;
+    private final IStylerService<P, A> styler;
 
-    private final ParseResultProcessor parseResultProcessor;
-    private final AnalysisResultProcessor analysisResultProcessor;
+    private final IParseResultUpdater<P> parseResultProcessor;
+    private final IAnalysisResultUpdater<P, A> analysisResultProcessor;
 
     private final IEditorInput input;
     private final IResource eclipseResource;
@@ -73,13 +72,11 @@ public class EditorUpdateJob extends Job {
 
 
     public EditorUpdateJob(ILanguageIdentifierService languageIdentifierService, IDialectService dialectService,
-        IContextService contextService, ISyntaxService<IStrategoTerm> syntaxService,
-        IAnalysisService<IStrategoTerm, IStrategoTerm> analyzer,
-        ICategorizerService<IStrategoTerm, IStrategoTerm> categorizer,
-        IStylerService<IStrategoTerm, IStrategoTerm> styler, ParseResultProcessor parseResultProcessor,
-        AnalysisResultProcessor analysisResultProcessor, IEditorInput input, IResource eclipseResource,
-        FileObject resource, ISourceViewer sourceViewer, String text, PresentationMerger presentationMerger,
-        boolean isNewEditor) {
+        IContextService contextService, ISyntaxService<P> syntaxService, IAnalysisService<P, A> analyzer,
+        ICategorizerService<P, A> categorizer, IStylerService<P, A> styler,
+        IParseResultUpdater<P> parseResultProcessor, IAnalysisResultUpdater<P, A> analysisResultProcessor,
+        IEditorInput input, IResource eclipseResource, FileObject resource, ISourceViewer sourceViewer, String text,
+        PresentationMerger presentationMerger, boolean isNewEditor) {
         super("Updating Spoofax editor");
         setPriority(Job.SHORT);
 
@@ -179,7 +176,7 @@ public class EditorUpdateJob extends Job {
         // Parse
         if(monitor.isCanceled())
             return StatusUtils.cancel();
-        final ParseResult<IStrategoTerm> parseResult;
+        final ParseResult<P> parseResult;
         try {
             parseResultProcessor.invalidate(resource);
             parseResult = syntaxService.parse(text, resource, parserLanguage, null);
@@ -197,9 +194,9 @@ public class EditorUpdateJob extends Job {
         if(monitor.isCanceled())
             return StatusUtils.cancel();
         if(parseResult.result != null) {
-            final Iterable<IRegionCategory<IStrategoTerm>> categories =
+            final Iterable<IRegionCategory<P>> categories =
                 CategorizerValidator.validate(categorizer.categorize(language, parseResult));
-            final Iterable<IRegionStyle<IStrategoTerm>> styles = styler.styleParsed(language, categories);
+            final Iterable<IRegionStyle<P>> styles = styler.styleParsed(language, categories);
             final TextPresentation textPresentation = StyleUtils.createTextPresentation(styles, display);
             presentationMerger.set(textPresentation);
             display.asyncExec(new Runnable() {
@@ -259,7 +256,7 @@ public class EditorUpdateJob extends Job {
         if(monitor.isCanceled())
             return StatusUtils.cancel();
         final IContext context = contextService.get(resource, language);
-        final AnalysisResult<IStrategoTerm, IStrategoTerm> analysisResult;
+        final AnalysisResult<P, A> analysisResult;
         synchronized(context) {
             analysisResultProcessor.invalidate(parseResult.source);
             try {
@@ -285,7 +282,7 @@ public class EditorUpdateJob extends Job {
                     return;
                 MarkerUtils.clearInternal(eclipseResource);
                 MarkerUtils.clearAnalysis(eclipseResource);
-                for(AnalysisFileResult<IStrategoTerm, IStrategoTerm> fileResult : analysisResult.fileResults) {
+                for(AnalysisFileResult<P, A> fileResult : analysisResult.fileResults) {
                     for(IMessage message : fileResult.messages) {
                         MarkerUtils.createMarker(eclipseResource, message);
                     }

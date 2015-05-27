@@ -22,7 +22,7 @@ public class ThreadKillerJob extends Job {
     }
 
 
-    @Override protected IStatus run(IProgressMonitor monitor) {
+    @SuppressWarnings("deprecation") @Override protected IStatus run(IProgressMonitor monitor) {
         if(monitor.isCanceled())
             return StatusUtils.cancel();
         logger.warn("Killing {}", thread);
