@@ -27,9 +27,9 @@ import com.google.common.collect.Sets;
 /**
  * Keeps track of all Spoofax editors, which one is currently active, and which one was active previously.
  */
-public class SpoofaxEditorListener implements IWindowListener, IPartListener2, IEclipseEditorRegistry,
+public class SpoofaxEditorRegistry implements IWindowListener, IPartListener2, IEclipseEditorRegistry,
     IEclipseEditorRegistryInternal {
-    private static final Logger logger = LoggerFactory.getLogger(SpoofaxEditorListener.class);
+    private static final Logger logger = LoggerFactory.getLogger(SpoofaxEditorRegistry.class);
 
     public static final String contextId = IEclipseEditor.id + ".context";
 
@@ -72,7 +72,7 @@ public class SpoofaxEditorListener implements IWindowListener, IPartListener2, I
                         }
                     }
                 }
-                workbench.addWindowListener(SpoofaxEditorListener.this);
+                workbench.addWindowListener(SpoofaxEditorRegistry.this);
             }
         });
     }
