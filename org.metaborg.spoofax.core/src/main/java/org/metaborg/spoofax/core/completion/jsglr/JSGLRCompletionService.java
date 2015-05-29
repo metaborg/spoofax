@@ -5,6 +5,7 @@ import java.util.Collection;
 import org.metaborg.spoofax.core.SpoofaxException;
 import org.metaborg.spoofax.core.completion.Completion;
 import org.metaborg.spoofax.core.completion.ICompletion;
+import org.metaborg.spoofax.core.completion.ICompletionItem;
 import org.metaborg.spoofax.core.completion.ICompletionService;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.syntax.IParserConfiguration;
@@ -41,11 +42,11 @@ public class JSGLRCompletionService implements ICompletionService {
             logger.error(message);
             throw new SpoofaxException(message);
         }
-        final String input = parseResult.input.substring(0, position);
+        final String input = parseResult.input;
 
         final ParseResult<?> completionParseResult;
         try {
-            final IParserConfiguration config = new JSGLRParserConfiguration(true, false, true, 2000);
+            final IParserConfiguration config = new JSGLRParserConfiguration(true, false, true, 2000, position);
             completionParseResult = syntaxService.parse(input, parseResult.source, language, config);
         } catch(ParseException e) {
             final String message = "Cannot get completions, parsinged failed unexpectedly";
@@ -62,14 +63,15 @@ public class JSGLRCompletionService implements ICompletionService {
         final Iterable<CompletionDefinition> completionDefinitions = facet.get(stateId);
 
         for(CompletionDefinition completionDefinition : completionDefinitions) {
-            completions.add(new Completion(completionDefinition.items));
+            completions.add(new Completion(completionDefinition.items, completionDefinition.description));
 
             for(State state : completionStates.states()) {
                 if(!state.equals(lastState)) {
                     final Iterable<CompletionDefinition> enclosingCompletions = facet.get(state.stateNumber);
                     for(CompletionDefinition enclosingCompletionDefinition : enclosingCompletions) {
                         if(enclosingCompletionDefinition.expectedSort.equals(completionDefinition.producedSort)) {
-                            completions.add(new Completion(enclosingCompletionDefinition.items));
+                            completions.add(new Completion(mixedCompletion(completionDefinition.items,
+                                enclosingCompletionDefinition.items), enclosingCompletionDefinition.description));
                         }
                     }
                 }
@@ -77,5 +79,33 @@ public class JSGLRCompletionService implements ICompletionService {
             }
         }
         return completions;
+    }
+
+    /**
+     * Concatenates completions from a state and its enclosing states
+     * @param items completion items from current state
+     * @param items2 completion items from enclosing state 
+     * @return
+     */
+    private Iterable<ICompletionItem>
+        mixedCompletion(Iterable<ICompletionItem> items, Iterable<ICompletionItem> items2) {
+
+        Collection<ICompletionItem> resultingItems = Lists.newLinkedList();
+
+        for(ICompletionItem firstItems : items) {
+            resultingItems.add(firstItems);
+        }
+        
+        boolean first = true;
+
+        for(ICompletionItem remainingItems : items2) {
+            if(first) {
+                first = false;
+                continue;
+            }
+            resultingItems.add(remainingItems);
+        }
+
+        return resultingItems;
     }
 }

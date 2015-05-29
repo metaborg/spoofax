@@ -1,13 +1,13 @@
 package org.metaborg.spoofax.core.completion;
 
-import com.google.common.base.Joiner;
 
 public class Completion implements ICompletion {
     private final Iterable<ICompletionItem> items;
+    private final String description;
 
-
-    public Completion(Iterable<ICompletionItem> items) {
+    public Completion(Iterable<ICompletionItem> items, String description) {
         this.items = items;
+        this.description = description;
     }
 
 
@@ -17,6 +17,6 @@ public class Completion implements ICompletion {
     
     
     @Override public String toString() {
-        return Joiner.on("").join(items);
+        return description;
     }
 }

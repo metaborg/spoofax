@@ -7,16 +7,18 @@ public class JSGLRParserConfiguration implements IParserConfiguration {
     public final boolean recovery;
     public final boolean completion;
     public final int timeout;
+    public int cursorPosition;
 
 
     public JSGLRParserConfiguration() {
-        this(true, true, false, 5000);
+        this(true, true, false, 5000, Integer.MAX_VALUE);
     }
 
-    public JSGLRParserConfiguration(boolean implode, boolean recovery, boolean completion, int timeout) {
+    public JSGLRParserConfiguration(boolean implode, boolean recovery, boolean completion, int timeout, int cursorPosition) {
         this.implode = implode;
         this.recovery = recovery;
         this.completion = completion;
         this.timeout = timeout;
+        this.cursorPosition = cursorPosition;
     }
 }
