@@ -2,7 +2,7 @@ package org.metaborg.spoofax.eclipse;
 
 import org.eclipse.ui.IStartup;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
-import org.metaborg.spoofax.eclipse.editor.ISpoofaxEditorListener;
+import org.metaborg.spoofax.eclipse.editor.IEclipseEditorRegistryInternal;
 import org.metaborg.spoofax.eclipse.language.LanguageChangeProcessor;
 import org.metaborg.spoofax.eclipse.logging.LoggingConfiguration;
 import org.metaborg.util.log.SystemRedirectLogger;
@@ -33,7 +33,7 @@ public class SpoofaxPlugin extends AbstractUIPlugin implements IStartup {
         logger.debug("Starting Spoofax plugin");
 
         injector = Guice.createInjector(new SpoofaxEclipseModule());
-        injector.getInstance(ISpoofaxEditorListener.class).register();
+        injector.getInstance(IEclipseEditorRegistryInternal.class).register();
         injector.getInstance(LanguageChangeProcessor.class).discover();
     }
 

@@ -72,8 +72,7 @@ public class EclipseLogAppender extends UnsynchronizedAppenderBase<ILoggingEvent
     private String format(ILoggingEvent event) {
         if(encoder != null) {
             return encoder.getLayout().doLayout(event);
-        } else {
-            return event.getFormattedMessage();
         }
+        return event.getFormattedMessage();
     }
 }

@@ -34,14 +34,14 @@ import org.metaborg.spoofax.core.context.IContextService;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
 import org.metaborg.spoofax.core.language.dialect.IDialectService;
+import org.metaborg.spoofax.core.processing.analyze.ISpoofaxAnalysisResultUpdater;
+import org.metaborg.spoofax.core.processing.parse.ISpoofaxParseResultProcessor;
 import org.metaborg.spoofax.core.style.ICategorizerService;
 import org.metaborg.spoofax.core.style.IStylerService;
 import org.metaborg.spoofax.core.syntax.FenceCharacters;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
 import org.metaborg.spoofax.eclipse.SpoofaxPlugin;
 import org.metaborg.spoofax.eclipse.job.GlobalSchedulingRules;
-import org.metaborg.spoofax.eclipse.processing.AnalysisResultProcessor;
-import org.metaborg.spoofax.eclipse.processing.ParseResultProcessor;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
 import org.metaborg.spoofax.eclipse.util.Nullable;
 import org.metaborg.spoofax.eclipse.util.StyleUtils;
@@ -54,7 +54,7 @@ import com.google.inject.Injector;
 import com.google.inject.Key;
 import com.google.inject.TypeLiteral;
 
-public class SpoofaxEditor extends TextEditor implements ISpoofaxEclipseEditor {
+public class SpoofaxEditor extends TextEditor implements IEclipseEditor {
     private static final Logger logger = LoggerFactory.getLogger(SpoofaxEditor.class);
 
 
@@ -68,8 +68,8 @@ public class SpoofaxEditor extends TextEditor implements ISpoofaxEclipseEditor {
     private IStylerService<IStrategoTerm, IStrategoTerm> stylerService;
     private ICompletionService completionService;
 
-    private ParseResultProcessor parseResultProcessor;
-    private AnalysisResultProcessor analysisResultProcessor;
+    private ISpoofaxParseResultProcessor parseResultProcessor;
+    private ISpoofaxAnalysisResultUpdater analysisResultUpdater;
     private GlobalSchedulingRules globalRules;
 
     private IJobManager jobManager;
@@ -230,8 +230,8 @@ public class SpoofaxEditor extends TextEditor implements ISpoofaxEclipseEditor {
             injector.getInstance(Key.get(new TypeLiteral<IStylerService<IStrategoTerm, IStrategoTerm>>() {}));
         this.completionService = injector.getInstance(ICompletionService.class);
 
-        this.parseResultProcessor = injector.getInstance(ParseResultProcessor.class);
-        this.analysisResultProcessor = injector.getInstance(AnalysisResultProcessor.class);
+        this.parseResultProcessor = injector.getInstance(ISpoofaxParseResultProcessor.class);
+        this.analysisResultUpdater = injector.getInstance(ISpoofaxAnalysisResultUpdater.class);
         this.globalRules = injector.getInstance(GlobalSchedulingRules.class);
 
         this.jobManager = Job.getJobManager();
@@ -346,12 +346,13 @@ public class SpoofaxEditor extends TextEditor implements ISpoofaxEclipseEditor {
         // race conditions.
         presentationMerger.invalidate();
         parseResultProcessor.invalidate(resource);
-        analysisResultProcessor.invalidate(resource);
+        analysisResultUpdater.invalidate(resource);
 
         final Job job =
-            new EditorUpdateJob(languageIdentifier, dialectService, contextService, syntaxService, analysisService,
-                categorizerService, stylerService, parseResultProcessor, analysisResultProcessor, input,
-                eclipseResource, resource, sourceViewer, document.get(), presentationMerger, instantaneous);
+            new EditorUpdateJob<IStrategoTerm, IStrategoTerm>(languageIdentifier, dialectService, contextService,
+                syntaxService, analysisService, categorizerService, stylerService, parseResultProcessor,
+                analysisResultUpdater, input, eclipseResource, resource, sourceViewer, document.get(),
+                presentationMerger, instantaneous);
         job.setRule(new MultiRule(new ISchedulingRule[] { globalRules.startupReadLock(), eclipseResource }));
         job.schedule(instantaneous ? 0 : 100);
     }

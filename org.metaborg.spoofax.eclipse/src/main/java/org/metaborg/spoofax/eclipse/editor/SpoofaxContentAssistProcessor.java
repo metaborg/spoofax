@@ -14,8 +14,8 @@ import org.metaborg.spoofax.core.SpoofaxException;
 import org.metaborg.spoofax.core.completion.ICompletion;
 import org.metaborg.spoofax.core.completion.ICompletionService;
 import org.metaborg.spoofax.core.language.ILanguage;
+import org.metaborg.spoofax.core.processing.parse.IParseResultRequester;
 import org.metaborg.spoofax.core.syntax.ParseResult;
-import org.metaborg.spoofax.eclipse.processing.ParseResultProcessor;
 
 import rx.Observable;
 import rx.Observable.OnSubscribe;
@@ -28,7 +28,7 @@ import com.google.common.collect.Iterables;
 public class SpoofaxContentAssistProcessor implements IContentAssistProcessor {
     private final ICompletionService completionService;
 
-    private final ParseResultProcessor parseResultProcessor;
+    private final IParseResultRequester<?> parseResultRequester;
 
     private final FileObject resource;
     private final IDocument document;
@@ -39,10 +39,10 @@ public class SpoofaxContentAssistProcessor implements IContentAssistProcessor {
 
 
     public SpoofaxContentAssistProcessor(ICompletionService completionService,
-        ParseResultProcessor parseResultProcessor, FileObject resource, IDocument document, ILanguage language) {
+        IParseResultRequester<?> parseResultRequester, FileObject resource, IDocument document, ILanguage language) {
         this.completionService = completionService;
 
-        this.parseResultProcessor = parseResultProcessor;
+        this.parseResultRequester = parseResultRequester;
 
         this.resource = resource;
         this.document = document;
@@ -66,7 +66,7 @@ public class SpoofaxContentAssistProcessor implements IContentAssistProcessor {
                     return;
                 }
                 final ParseResult<?> parseResult =
-                    parseResultProcessor.request(resource, language, document.get()).toBlocking().first();
+                    parseResultRequester.request(resource, language, document.get()).toBlocking().first();
 
                 if(subscriber.isUnsubscribed()) {
                     return;
@@ -76,7 +76,7 @@ public class SpoofaxContentAssistProcessor implements IContentAssistProcessor {
                 if(cachedProposals == null) {
                     return;
                 }
-                
+
                 Display.getDefault().syncExec(new Runnable() {
                     @Override public void run() {
                         if(subscriber.isUnsubscribed()) {

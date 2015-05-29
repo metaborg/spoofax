@@ -4,7 +4,7 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
 
 public class SpoofaxEditorPreferences {
-    public static final String id = SpoofaxEditor.id + ".prefs";
+    public static final String id = IEclipseEditor.id + ".prefs";
 
     private static final String bracketMatching = id + ".bracketmatching";
     public static final String bracketMatchingEnabled = bracketMatching + ".enabled";

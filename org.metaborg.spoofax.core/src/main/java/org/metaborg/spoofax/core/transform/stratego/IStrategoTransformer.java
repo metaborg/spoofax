@@ -4,7 +4,7 @@ import org.metaborg.spoofax.core.transform.ITransformer;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 /**
- * Typedef interface for {@link ITransformer} with {@link IStrategoTerm} as type arguments.
+ * Typedef interface for {@link ITransformer} with {@link IStrategoTerm}.
  */
 public interface IStrategoTransformer extends ITransformer<IStrategoTerm, IStrategoTerm, IStrategoTerm> {
 

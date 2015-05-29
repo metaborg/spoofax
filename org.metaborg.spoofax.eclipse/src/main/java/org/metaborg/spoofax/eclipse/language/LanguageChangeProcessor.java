@@ -15,7 +15,7 @@ import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
 import org.metaborg.spoofax.core.language.ILanguageService;
 import org.metaborg.spoofax.core.language.LanguageChange;
 import org.metaborg.spoofax.core.language.dialect.IDialectProcessor;
-import org.metaborg.spoofax.eclipse.editor.ISpoofaxEditorListener;
+import org.metaborg.spoofax.eclipse.editor.IEclipseEditorRegistry;
 import org.metaborg.spoofax.eclipse.job.GlobalSchedulingRules;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
 
@@ -31,7 +31,7 @@ public class LanguageChangeProcessor {
     private final Set<ILanguageCache> languageCaches;
     private final IDialectProcessor dialectProcessor;
 
-    private final ISpoofaxEditorListener editorListener;
+    private final IEclipseEditorRegistry editorListener;
     private final GlobalSchedulingRules globalRules;
 
     private final IWorkspace workspace;
@@ -41,7 +41,7 @@ public class LanguageChangeProcessor {
     @Inject public LanguageChangeProcessor(IEclipseResourceService resourceService, ILanguageService languageService,
         ILanguageIdentifierService languageIdentifierService, ILanguageDiscoveryService languageDiscoveryService,
         Set<ILanguageCache> languageCaches, IDialectProcessor dialectProcessor,
-        ISpoofaxEditorListener spoofaxEditorListener, GlobalSchedulingRules globalRules) {
+        IEclipseEditorRegistry spoofaxEditorListener, GlobalSchedulingRules globalRules) {
         this.resourceService = resourceService;
         this.languageService = languageService;
         this.languageIdentifier = languageIdentifierService;

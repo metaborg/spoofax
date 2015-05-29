@@ -6,29 +6,27 @@ import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.runtime.jobs.Job;
 import org.metaborg.spoofax.core.context.IContextService;
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
-import org.metaborg.spoofax.core.transform.ITransformer;
+import org.metaborg.spoofax.core.processing.analyze.ISpoofaxAnalysisResultRequester;
+import org.metaborg.spoofax.core.processing.parse.ISpoofaxParseResultRequester;
+import org.metaborg.spoofax.core.transform.stratego.IStrategoTransformer;
 import org.metaborg.spoofax.eclipse.SpoofaxPlugin;
-import org.metaborg.spoofax.eclipse.editor.ISpoofaxEclipseEditor;
-import org.metaborg.spoofax.eclipse.editor.ISpoofaxEditorListener;
-import org.metaborg.spoofax.eclipse.processing.AnalysisResultProcessor;
-import org.metaborg.spoofax.eclipse.processing.ParseResultProcessor;
+import org.metaborg.spoofax.eclipse.editor.IEclipseEditor;
+import org.metaborg.spoofax.eclipse.editor.IEclipseEditorRegistry;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.inject.Injector;
-import com.google.inject.Key;
-import com.google.inject.TypeLiteral;
 
 public class TransformHandler extends AbstractHandler {
     private final IEclipseResourceService resourceService;
     private final ILanguageIdentifierService langaugeIdentifierService;
     private final IContextService contextService;
-    private final ITransformer<IStrategoTerm, IStrategoTerm, IStrategoTerm> transformer;
+    private final IStrategoTransformer transformer;
 
-    private final ParseResultProcessor parseResultProcessor;
-    private final AnalysisResultProcessor analysisResultProcessor;
+    private final ISpoofaxParseResultRequester parseResultRequester;
+    private final ISpoofaxAnalysisResultRequester analysisResultRequester;
 
-    private final ISpoofaxEditorListener latestEditorListener;
+    private final IEclipseEditorRegistry latestEditorListener;
 
 
     public TransformHandler() {
@@ -37,23 +35,21 @@ public class TransformHandler extends AbstractHandler {
         this.resourceService = injector.getInstance(IEclipseResourceService.class);
         this.langaugeIdentifierService = injector.getInstance(ILanguageIdentifierService.class);
         this.contextService = injector.getInstance(IContextService.class);
-        this.transformer =
-            injector.getInstance(Key
-                .get(new TypeLiteral<ITransformer<IStrategoTerm, IStrategoTerm, IStrategoTerm>>() {}));
+        this.transformer = injector.getInstance(IStrategoTransformer.class);
 
-        this.parseResultProcessor = injector.getInstance(ParseResultProcessor.class);
-        this.analysisResultProcessor = injector.getInstance(AnalysisResultProcessor.class);
+        this.parseResultRequester = injector.getInstance(ISpoofaxParseResultRequester.class);
+        this.analysisResultRequester = injector.getInstance(ISpoofaxAnalysisResultRequester.class);
 
-        this.latestEditorListener = injector.getInstance(ISpoofaxEditorListener.class);
+        this.latestEditorListener = injector.getInstance(IEclipseEditorRegistry.class);
     }
 
 
     @Override public Object execute(ExecutionEvent event) throws ExecutionException {
-        final ISpoofaxEclipseEditor latestEditor = latestEditorListener.previousEditor();
+        final IEclipseEditor latestEditor = latestEditorListener.previousEditor();
         final String actionName = event.getParameter(TransformMenuContribution.actionNameParam);
         final Job transformJob =
-            new TransformJob(resourceService, langaugeIdentifierService, contextService, transformer,
-                parseResultProcessor, analysisResultProcessor, latestEditor, actionName);
+            new TransformJob<IStrategoTerm, IStrategoTerm, IStrategoTerm>(resourceService, langaugeIdentifierService,
+                contextService, transformer, parseResultRequester, analysisResultRequester, latestEditor, actionName);
         transformJob.schedule();
 
         return null;

@@ -1,14 +1,14 @@
-package org.metaborg.spoofax.eclipse.editor;
+package org.metaborg.spoofax.core.editor;
+
+import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.language.ILanguage;
-import org.metaborg.spoofax.eclipse.SpoofaxPlugin;
-import org.metaborg.spoofax.eclipse.util.Nullable;
 
-public interface ISpoofaxEditor {
-    public static final String id = SpoofaxPlugin.id + ".editor";
-
-
+/**
+ * Interface for an editor in an IDE.
+ */
+public interface IEditor {
     /**
      * @return Current resource, or null if the editor has not been initialized yet, or if it has been disposed.
      */

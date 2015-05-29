@@ -13,40 +13,39 @@ import org.metaborg.spoofax.core.context.IContext;
 import org.metaborg.spoofax.core.context.IContextService;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
+import org.metaborg.spoofax.core.processing.analyze.IAnalysisResultRequester;
+import org.metaborg.spoofax.core.processing.parse.IParseResultRequester;
 import org.metaborg.spoofax.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.transform.ITransformer;
 import org.metaborg.spoofax.core.transform.NamedGoal;
 import org.metaborg.spoofax.core.transform.TransformerException;
 import org.metaborg.spoofax.core.transform.stratego.menu.Action;
 import org.metaborg.spoofax.core.transform.stratego.menu.MenusFacet;
-import org.metaborg.spoofax.eclipse.editor.ISpoofaxEclipseEditor;
-import org.metaborg.spoofax.eclipse.processing.AnalysisResultProcessor;
-import org.metaborg.spoofax.eclipse.processing.ParseResultProcessor;
+import org.metaborg.spoofax.eclipse.editor.IEclipseEditor;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
 import org.metaborg.spoofax.eclipse.util.StatusUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spoofax.interpreter.terms.IStrategoTerm;
 
-public class TransformJob extends Job {
+public class TransformJob<P, A, T> extends Job {
     private static final Logger logger = LoggerFactory.getLogger(TransformJob.class);
 
     private final IEclipseResourceService resourceService;
     private final ILanguageIdentifierService langaugeIdentifierService;
     private final IContextService contextService;
-    private final ITransformer<IStrategoTerm, IStrategoTerm, IStrategoTerm> transformer;
+    private final ITransformer<P, A, T> transformer;
 
-    private final ParseResultProcessor parseResultProcessor;
-    private final AnalysisResultProcessor analysisResultProcessor;
+    private final IParseResultRequester<P> parseResultRequester;
+    private final IAnalysisResultRequester<P, A> analysisResultRequester;
 
-    private final ISpoofaxEclipseEditor editor;
+    private final IEclipseEditor editor;
     private final String actionName;
 
 
     public TransformJob(IEclipseResourceService resourceService, ILanguageIdentifierService langaugeIdentifierService,
-        IContextService contextService, ITransformer<IStrategoTerm, IStrategoTerm, IStrategoTerm> transformer,
-        ParseResultProcessor parseResultProcessor, AnalysisResultProcessor analysisResultProcessor,
-        ISpoofaxEclipseEditor editor, String actionName) {
+        IContextService contextService, ITransformer<P, A, T> transformer,
+        IParseResultRequester<P> parseResultProcessor, IAnalysisResultRequester<P, A> analysisResultProcessor,
+        IEclipseEditor editor, String actionName) {
         super("Transforming file");
 
         this.resourceService = resourceService;
@@ -54,8 +53,8 @@ public class TransformJob extends Job {
         this.contextService = contextService;
         this.transformer = transformer;
 
-        this.parseResultProcessor = parseResultProcessor;
-        this.analysisResultProcessor = analysisResultProcessor;
+        this.parseResultRequester = parseResultProcessor;
+        this.analysisResultRequester = analysisResultProcessor;
 
         this.editor = editor;
         this.actionName = actionName;
@@ -112,12 +111,11 @@ public class TransformJob extends Job {
 
         final IContext context = contextService.get(resource, language);
         if(action.flags.parsed) {
-            final ParseResult<IStrategoTerm> result =
-                parseResultProcessor.request(resource, language, text).toBlocking().single();
+            final ParseResult<P> result = parseResultRequester.request(resource, language, text).toBlocking().single();
             transformer.transform(result, context, new NamedGoal(action.name));
         } else {
-            final AnalysisFileResult<IStrategoTerm, IStrategoTerm> result =
-                analysisResultProcessor.request(resource, context, text).toBlocking().single();
+            final AnalysisFileResult<P, A> result =
+                analysisResultRequester.request(resource, context, text).toBlocking().single();
             transformer.transform(result, context, new NamedGoal(action.name));
         }
 

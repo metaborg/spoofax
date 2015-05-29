@@ -12,7 +12,6 @@ import org.eclipse.swt.widgets.Display;
 import org.metaborg.spoofax.core.messages.ISourceRegion;
 import org.metaborg.spoofax.core.style.IRegionStyle;
 import org.metaborg.spoofax.core.style.IStyle;
-import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.common.collect.Lists;
 
@@ -50,10 +49,9 @@ public final class StyleUtils {
      *            Display to create the Eclipse text presentation on.
      * @return Eclipse text presentation.
      */
-    public static TextPresentation
-        createTextPresentation(Iterable<IRegionStyle<IStrategoTerm>> styles, Display display) {
+    public static <T> TextPresentation createTextPresentation(Iterable<IRegionStyle<T>> styles, Display display) {
         final TextPresentation presentation = new TextPresentation();
-        for(IRegionStyle<IStrategoTerm> regionStyle : styles) {
+        for(IRegionStyle<T> regionStyle : styles) {
             final StyleRange styleRange = createStyleRange(regionStyle, display);
             presentation.addStyleRange(styleRange);
         }
@@ -77,7 +75,7 @@ public final class StyleUtils {
      *            Display to create the Eclipse style range on.
      * @return Eclipse style range.
      */
-    public static StyleRange createStyleRange(IRegionStyle<IStrategoTerm> regionStyle, Display display) {
+    public static StyleRange createStyleRange(IRegionStyle<?> regionStyle, Display display) {
         final IStyle style = regionStyle.style();
         final ISourceRegion region = regionStyle.region();
 

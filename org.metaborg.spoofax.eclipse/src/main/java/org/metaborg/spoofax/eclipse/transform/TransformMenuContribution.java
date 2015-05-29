@@ -17,8 +17,8 @@ import org.metaborg.spoofax.core.transform.stratego.menu.Action;
 import org.metaborg.spoofax.core.transform.stratego.menu.Menu;
 import org.metaborg.spoofax.core.transform.stratego.menu.MenusFacet;
 import org.metaborg.spoofax.eclipse.SpoofaxPlugin;
-import org.metaborg.spoofax.eclipse.editor.ISpoofaxEclipseEditor;
-import org.metaborg.spoofax.eclipse.editor.ISpoofaxEditorListener;
+import org.metaborg.spoofax.eclipse.editor.IEclipseEditor;
+import org.metaborg.spoofax.eclipse.editor.IEclipseEditorRegistry;
 import org.metaborg.spoofax.eclipse.resource.IEclipseResourceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +35,7 @@ public class TransformMenuContribution extends CompoundContributionItem implemen
 
     private final IEclipseResourceService resourceService;
     private final ILanguageIdentifierService languageIdentifier;
-    private final ISpoofaxEditorListener latestEditorListener;
+    private final IEclipseEditorRegistry latestEditorListener;
 
     private IServiceLocator serviceLocator;
 
@@ -44,7 +44,7 @@ public class TransformMenuContribution extends CompoundContributionItem implemen
         final Injector injector = SpoofaxPlugin.injector();
         this.resourceService = injector.getInstance(IEclipseResourceService.class);
         this.languageIdentifier = injector.getInstance(ILanguageIdentifierService.class);
-        this.latestEditorListener = injector.getInstance(ISpoofaxEditorListener.class);
+        this.latestEditorListener = injector.getInstance(IEclipseEditorRegistry.class);
     }
 
 
@@ -53,7 +53,7 @@ public class TransformMenuContribution extends CompoundContributionItem implemen
     }
 
     @Override protected IContributionItem[] getContributionItems() {
-        final ISpoofaxEclipseEditor editor = latestEditorListener.previousEditor();
+        final IEclipseEditor editor = latestEditorListener.previousEditor();
         if(editor == null) {
             logger.debug("Cannot create menu items; there is no latest active editor");
             return new IContributionItem[0];

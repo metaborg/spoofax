@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import com.google.inject.Inject;
 
 public class EclipseProjectService implements IProjectService {
+    private static final long serialVersionUID = 8717538165326861701L;
     private static final Logger logger = LoggerFactory.getLogger(EclipseProjectService.class);
 
     private final IEclipseResourceService resourceService;

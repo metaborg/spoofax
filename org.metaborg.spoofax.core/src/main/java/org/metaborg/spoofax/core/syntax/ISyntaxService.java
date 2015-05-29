@@ -66,4 +66,10 @@ public interface ISyntaxService<T> {
      * @return Fence (brackets, parentheses, etc.) open and close characters for given language.
      */
     public abstract Iterable<FenceCharacters> fenceCharacters(ILanguage language);
+
+    /**
+     * @return Empty parse result for given resource, language, and optionally a dialect.
+     */
+    public abstract ParseResult<T>
+        emptyParseResult(FileObject resource, ILanguage language, @Nullable ILanguage dialect);
 }

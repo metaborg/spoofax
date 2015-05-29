@@ -1,5 +1,6 @@
 package org.metaborg.spoofax.eclipse.editor;
 
+import java.util.Collection;
 import java.util.Set;
 
 import org.eclipse.swt.widgets.Display;
@@ -15,26 +16,29 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.contexts.IContextActivation;
 import org.eclipse.ui.contexts.IContextService;
+import org.metaborg.spoofax.core.editor.IEditor;
 import org.metaborg.spoofax.eclipse.util.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
  * Keeps track of all Spoofax editors, which one is currently active, and which one was active previously.
  */
-public class SpoofaxEditorListener implements IWindowListener, IPartListener2, ISpoofaxEditorListener {
-    private static final Logger logger = LoggerFactory.getLogger(SpoofaxEditorListener.class);
+public class SpoofaxEditorRegistry implements IWindowListener, IPartListener2, IEclipseEditorRegistry,
+    IEclipseEditorRegistryInternal {
+    private static final Logger logger = LoggerFactory.getLogger(SpoofaxEditorRegistry.class);
 
-    public static final String contextId = ISpoofaxEclipseEditor.id + ".context";
+    public static final String contextId = IEclipseEditor.id + ".context";
 
     private IContextService contextService;
     private IContextActivation contextActivation;
 
-    private volatile Set<ISpoofaxEclipseEditor> editors = Sets.newConcurrentHashSet();
-    private volatile ISpoofaxEclipseEditor currentActive;
-    private volatile ISpoofaxEclipseEditor previousActive;
+    private volatile Set<IEclipseEditor> editors = Sets.newConcurrentHashSet();
+    private volatile IEclipseEditor currentActive;
+    private volatile IEclipseEditor previousActive;
 
 
     @Override public void register() {
@@ -48,7 +52,7 @@ public class SpoofaxEditorListener implements IWindowListener, IPartListener2, I
                     windowOpened(window);
                     for(IWorkbenchPage page : window.getPages()) {
                         for(IEditorReference editorRef : page.getEditorReferences()) {
-                            final ISpoofaxEclipseEditor editor = get(editorRef);
+                            final IEclipseEditor editor = get(editorRef);
                             if(editor != null) {
                                 add(editor);
                             }
@@ -61,39 +65,48 @@ public class SpoofaxEditorListener implements IWindowListener, IPartListener2, I
                     if(activePage != null) {
                         final IEditorPart activeEditorPart = activePage.getActiveEditor();
                         if(activeEditorPart != null) {
-                            final ISpoofaxEclipseEditor editor = get(activeEditorPart);
+                            final IEclipseEditor editor = get(activeEditorPart);
                             if(editor != null) {
                                 activate(editor);
                             }
                         }
                     }
                 }
-                workbench.addWindowListener(SpoofaxEditorListener.this);
+                workbench.addWindowListener(SpoofaxEditorRegistry.this);
             }
         });
     }
 
 
-    @Override public Iterable<ISpoofaxEclipseEditor> openEditors() {
+    @Override public Iterable<IEditor> openEditors() {
+        final Collection<IEditor> openEditors = Lists.newArrayListWithCapacity(editors.size());
+        for(IEclipseEditor editor : editors) {
+            openEditors.add(editor);
+        }
+        return openEditors;
+    }
+
+    @Override public Iterable<IEclipseEditor> openEclipseEditors() {
         return editors;
     }
 
-    @Override public @Nullable ISpoofaxEclipseEditor currentEditor() {
+
+    @Override public @Nullable IEclipseEditor currentEditor() {
         return currentActive;
     }
 
-    @Override public @Nullable ISpoofaxEclipseEditor previousEditor() {
+    @Override public @Nullable IEclipseEditor previousEditor() {
         return previousActive;
     }
 
 
-    private ISpoofaxEclipseEditor get(IWorkbenchPartReference part) {
+    private IEclipseEditor get(IWorkbenchPartReference part) {
         return get(part.getPart(false));
     }
 
-    private ISpoofaxEclipseEditor get(IWorkbenchPart part) {
-        if(part instanceof ISpoofaxEclipseEditor) {
-            return (ISpoofaxEclipseEditor) part;
+    private IEclipseEditor get(IWorkbenchPart part) {
+        if(part instanceof IEclipseEditor) {
+            return (IEclipseEditor) part;
         }
         return null;
     }
@@ -102,7 +115,7 @@ public class SpoofaxEditorListener implements IWindowListener, IPartListener2, I
         return part instanceof IEditorReference;
     }
 
-    private void setCurrent(ISpoofaxEclipseEditor editor) {
+    private void setCurrent(IEclipseEditor editor) {
         currentActive = editor;
         if(contextActivation == null) {
             contextActivation = contextService.activateContext(contextId);
@@ -117,12 +130,12 @@ public class SpoofaxEditorListener implements IWindowListener, IPartListener2, I
         }
     }
 
-    private void add(ISpoofaxEclipseEditor editor) {
+    private void add(IEclipseEditor editor) {
         logger.trace("Adding {}", editor);
         editors.add(editor);
     }
 
-    private void remove(ISpoofaxEclipseEditor editor) {
+    private void remove(IEclipseEditor editor) {
         logger.trace("Removing {}", editor);
         editors.remove(editor);
         if(currentActive == editor) {
@@ -135,7 +148,7 @@ public class SpoofaxEditorListener implements IWindowListener, IPartListener2, I
         }
     }
 
-    private void activate(ISpoofaxEclipseEditor editor) {
+    private void activate(IEclipseEditor editor) {
         logger.trace("Setting active {}", editor);
         setCurrent(editor);
         logger.trace("Setting latest {}", editor);
@@ -149,7 +162,7 @@ public class SpoofaxEditorListener implements IWindowListener, IPartListener2, I
         previousActive = null;
     }
 
-    private void deactivate(ISpoofaxEclipseEditor editor) {
+    private void deactivate(IEclipseEditor editor) {
         if(currentActive == editor) {
             logger.trace("Unsetting active (by deactivate) {}", currentActive);
             unsetCurrent();
@@ -158,7 +171,7 @@ public class SpoofaxEditorListener implements IWindowListener, IPartListener2, I
 
 
     @Override public void windowActivated(IWorkbenchWindow window) {
-        final ISpoofaxEclipseEditor editor = get(window.getPartService().getActivePart());
+        final IEclipseEditor editor = get(window.getPartService().getActivePart());
         if(editor == null) {
             return;
         }
@@ -166,7 +179,7 @@ public class SpoofaxEditorListener implements IWindowListener, IPartListener2, I
     }
 
     @Override public void windowDeactivated(IWorkbenchWindow window) {
-        final ISpoofaxEclipseEditor editor = get(window.getPartService().getActivePart());
+        final IEclipseEditor editor = get(window.getPartService().getActivePart());
         if(editor == null) {
             return;
         }
@@ -183,7 +196,7 @@ public class SpoofaxEditorListener implements IWindowListener, IPartListener2, I
 
 
     @Override public void partActivated(IWorkbenchPartReference partRef) {
-        final ISpoofaxEclipseEditor editor = get(partRef);
+        final IEclipseEditor editor = get(partRef);
         if(editor != null) {
             activate(editor);
         } else if(isEditor(partRef)) {
@@ -196,21 +209,21 @@ public class SpoofaxEditorListener implements IWindowListener, IPartListener2, I
     }
 
     @Override public void partClosed(IWorkbenchPartReference partRef) {
-        final ISpoofaxEclipseEditor editor = get(partRef);
+        final IEclipseEditor editor = get(partRef);
         if(editor != null) {
             remove(editor);
         }
     }
 
     @Override public void partDeactivated(IWorkbenchPartReference partRef) {
-        final ISpoofaxEclipseEditor editor = get(partRef);
+        final IEclipseEditor editor = get(partRef);
         if(editor != null) {
             deactivate(editor);
         }
     }
 
     @Override public void partOpened(IWorkbenchPartReference partRef) {
-        final ISpoofaxEclipseEditor editor = get(partRef);
+        final IEclipseEditor editor = get(partRef);
         if(editor != null) {
             add(editor);
         }

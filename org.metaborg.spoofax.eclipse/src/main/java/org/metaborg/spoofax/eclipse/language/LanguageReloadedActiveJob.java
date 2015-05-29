@@ -7,12 +7,12 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorRegistry;
+import org.metaborg.spoofax.core.editor.IEditor;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageCache;
 import org.metaborg.spoofax.core.language.ResourceExtensionFacet;
-import org.metaborg.spoofax.eclipse.editor.ISpoofaxEclipseEditor;
-import org.metaborg.spoofax.eclipse.editor.ISpoofaxEditorListener;
-import org.metaborg.spoofax.eclipse.editor.SpoofaxEditor;
+import org.metaborg.spoofax.eclipse.editor.IEclipseEditor;
+import org.metaborg.spoofax.eclipse.editor.IEclipseEditorRegistry;
 import org.metaborg.spoofax.eclipse.util.EditorMappingUtils;
 import org.metaborg.spoofax.eclipse.util.StatusUtils;
 import org.slf4j.Logger;
@@ -26,7 +26,7 @@ public class LanguageReloadedActiveJob extends Job {
 
     private final Set<ILanguageCache> languageCaches;
 
-    private final ISpoofaxEditorListener spoofaxEditorListener;
+    private final IEclipseEditorRegistry spoofaxEditorListener;
 
     private final IEditorRegistry editorRegistry;
 
@@ -34,7 +34,7 @@ public class LanguageReloadedActiveJob extends Job {
     private final ILanguage newLanguage;
 
 
-    public LanguageReloadedActiveJob(Set<ILanguageCache> languageCaches, ISpoofaxEditorListener spoofaxEditorListener,
+    public LanguageReloadedActiveJob(Set<ILanguageCache> languageCaches, IEclipseEditorRegistry spoofaxEditorListener,
         IEditorRegistry editorRegistry, ILanguage oldLanguage, ILanguage newLanguage) {
         super("Processing language reload");
 
@@ -79,8 +79,8 @@ public class LanguageReloadedActiveJob extends Job {
             }
             display.asyncExec(new Runnable() {
                 @Override public void run() {
-                    EditorMappingUtils.remove(editorRegistry, SpoofaxEditor.id, removeExtensions);
-                    EditorMappingUtils.set(editorRegistry, SpoofaxEditor.id, addExtensions);
+                    EditorMappingUtils.remove(editorRegistry, IEclipseEditor.id, removeExtensions);
+                    EditorMappingUtils.set(editorRegistry, IEclipseEditor.id, addExtensions);
                 }
             });
         }
@@ -91,8 +91,8 @@ public class LanguageReloadedActiveJob extends Job {
         }
 
         // Update editors
-        final Iterable<ISpoofaxEclipseEditor> spoofaxEditors = spoofaxEditorListener.openEditors();
-        for(ISpoofaxEclipseEditor editor : spoofaxEditors) {
+        final Iterable<IEditor> editors = spoofaxEditorListener.openEditors();
+        for(IEditor editor : editors) {
             final ILanguage editorLanguage = editor.language();
             if(editorLanguage == null || oldLanguage.equals(editorLanguage)) {
                 editor.reconfigure();

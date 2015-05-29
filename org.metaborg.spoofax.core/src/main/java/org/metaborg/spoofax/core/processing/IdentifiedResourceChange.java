@@ -1,8 +1,9 @@
-package org.metaborg.spoofax.eclipse.build;
+package org.metaborg.spoofax.core.processing;
+
+import javax.annotation.Nullable;
 
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.resource.IResourceChange;
-import org.metaborg.spoofax.eclipse.util.Nullable;
 
 public class IdentifiedResourceChange {
     public final IResourceChange change;

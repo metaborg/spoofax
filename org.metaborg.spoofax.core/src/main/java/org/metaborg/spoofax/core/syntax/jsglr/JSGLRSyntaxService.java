@@ -9,6 +9,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageCache;
 import org.metaborg.spoofax.core.language.dialect.IDialectService;
+import org.metaborg.spoofax.core.messages.IMessage;
 import org.metaborg.spoofax.core.messages.ISourceRegion;
 import org.metaborg.spoofax.core.syntax.FenceCharacters;
 import org.metaborg.spoofax.core.syntax.IParserConfiguration;
@@ -18,6 +19,7 @@ import org.metaborg.spoofax.core.syntax.ParseException;
 import org.metaborg.spoofax.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
+import org.metaborg.util.iterators.Iterables2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.terms.IStrategoTerm;
@@ -108,5 +110,12 @@ public class JSGLRSyntaxService implements ISyntaxService<IStrategoTerm>, ILangu
             parserConfigs.put(lang, config);
         }
         return config;
+    }
+
+
+    @Override public ParseResult<IStrategoTerm> emptyParseResult(FileObject resource, ILanguage language,
+        @Nullable ILanguage dialect) {
+        return new ParseResult<IStrategoTerm>("", termFactoryService.getGeneric().makeTuple(), resource,
+            Iterables2.<IMessage>empty(), -1, language, dialect, null);
     }
 }
