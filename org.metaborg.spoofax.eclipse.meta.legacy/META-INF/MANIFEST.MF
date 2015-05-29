@@ -9,9 +9,9 @@ Require-Bundle: org.eclipse.core.runtime,
  org.spoofax.interpreter.externaldeps,
  org.strategoxt.strj,
  org.strategoxt.imp.generator,
- org.strategoxt.imp.nativebundle,
  org.spoofax.interpreter.core,
- org.spoofax.terms
+ org.spoofax.terms,
+ org.metaborg.spoofax.nativebundle
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: metaborg.org
