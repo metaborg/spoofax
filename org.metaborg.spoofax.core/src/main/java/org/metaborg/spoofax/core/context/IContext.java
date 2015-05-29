@@ -21,7 +21,6 @@ public interface IContext extends Serializable {
      */
     public abstract ILanguage language();
 
-
     /**
      * Cleans given context, resetting its state.
      */

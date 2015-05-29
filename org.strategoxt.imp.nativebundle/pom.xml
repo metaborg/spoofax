@@ -14,6 +14,36 @@
 		<relativePath>../../spoofax-deploy/org.metaborg.maven.parent.plugin</relativePath>
 	</parent>
 
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>2.10</version>
+				<executions>
+					<execution>
+						<id>unpack</id>
+						<phase>generate-resources</phase>
+						<goals>
+							<goal>unpack</goal>
+						</goals>
+						<configuration>
+							<artifactItems>
+								<artifactItem>
+									<groupId>${project.groupId}</groupId>
+									<artifactId>org.metaborg.spoofax.nativebundle</artifactId>
+									<version>${metaborg-version}</version>
+									<includes>native/**</includes>
+									<outputDirectory>${project.build.outputDirectory}</outputDirectory>
+								</artifactItem>
+							</artifactItems>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
 	<developers>
 	</developers>
 

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>org.metaborg.spoofax.nativebundle</artifactId>
+
+    <parent>
+        <groupId>org.metaborg</groupId>
+        <artifactId>org.metaborg.maven.parent.java</artifactId>
+        <version>1.5.0-SNAPSHOT</version>
+        <relativePath>../../spoofax-deploy/org.metaborg.maven.parent.java</relativePath>
+    </parent>
+
+    <build>
+        <plugins>
+            <!-- some JAR trickery to include the native files 
+                 including them as normal resources doesn't work
+                 Maven will lose their execution permissions
+              -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.6</version>
+                <configuration>
+                    <classesDirectory>${basedir}</classesDirectory>
+                    <includes>
+                        <include>native/**</include>
+                        <include>dist/**</include>
+                    </includes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <scm>
+        <connection>scm:git:git@github.com:metaborg/spoofax.git</connection>
+        <developerConnection>scm:git:git@github.com:metaborg/spoofax.git</developerConnection>
+        <url>https://github.com/metaborg/spoofax</url>
+    </scm>
+</project>

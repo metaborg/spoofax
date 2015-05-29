@@ -122,6 +122,9 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         final StylerFacet stylerFacet = StylerFacetFromESV.create(esvTerm);
         language.addFacet(stylerFacet);
 
+        final LanguagePathFacet languageComponentsFacet = LanguagePathFacetFromESV.create(esvTerm);
+        language.addFacet(languageComponentsFacet);
+
         languageService.add(language);
 
         return language;

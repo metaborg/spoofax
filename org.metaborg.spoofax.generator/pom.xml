@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>org.metaborg.spoofax.generator</artifactId>
+
+    <parent>
+        <groupId>org.metaborg</groupId>
+        <artifactId>org.metaborg.maven.parent.java</artifactId>
+        <version>1.5.0-SNAPSHOT</version>
+        <relativePath>../../spoofax-deploy/org.metaborg.maven.parent.java</relativePath>
+    </parent>
+
+    <dependencies>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>org.metaborg.spoofax.core</artifactId>
+            <version>${metaborg-version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.spullara.mustache.java</groupId>
+            <artifactId>compiler</artifactId>
+            <version>0.8.17</version>
+        </dependency>
+        <dependency>
+            <groupId>net.lingala.zip4j</groupId>
+            <artifactId>zip4j</artifactId>
+            <version>1.3.2</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+    </dependencies>
+
+   <developers>
+        <developer>
+            <name>Hendrik van Antwerpen</name>
+            <email>h.vanantwerpen@tudelft.nl</email>
+            <organization>Delft University of Technology</organization>
+            <organizationUrl>http://www.ewi.tudelft.nl/en</organizationUrl>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git@github.com:metaborg/spoofax.git</connection>
+        <developerConnection>scm:git:git@github.com:metaborg/spoofax.git</developerConnection>
+        <url>https://github.com/metaborg/spoofax</url>
+    </scm>
+
+</project>

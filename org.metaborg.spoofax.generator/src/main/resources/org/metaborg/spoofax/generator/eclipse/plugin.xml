@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.0"?>
+<plugin>
+    <extension point="org.eclipse.imp.runtime.languageDescription">
+        <language extensions="{{fileExtensions}}"
+                  description="{{name}}"
+                  language="{{name}}"
+                  derivedFrom="DynamicRoot"
+                  validator="{{packageName}}.eclipse.{{javaName}}Validator"
+                  validatorClass="{{packageName}}.eclipse.{{javaName}}Validator"/>
+    </extension>
+    <extension id="{{packageName}}.eclipse.parser"
+               name="{{name}} Parser"
+               point="org.eclipse.imp.runtime.parser">
+        <parser class="{{packageName}}.eclipse.{{javaName}}ParseController"
+                language="{{name}}"/>
+    </extension>    
+</plugin>
