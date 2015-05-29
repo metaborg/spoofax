@@ -21,7 +21,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 public class LegacyBuildProperties {
-    private static String nativeBundleId = "org.strategoxt.imp.nativebundle";
+    private static String nativeBundleId = "org.metaborg.spoofax.nativebundle";
 
     private static final Logger logger = LoggerFactory.getLogger(LegacyBuildProperties.class);
 
