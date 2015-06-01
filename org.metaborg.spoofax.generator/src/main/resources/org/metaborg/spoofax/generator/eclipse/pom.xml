@@ -1,68 +1,67 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
-         xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-    <modelVersion>4.0.0</modelVersion>
-    <name>{{name}}</name>
-    <artifactId>{{id}}.eclipse</artifactId>
-    <packaging>eclipse-plugin</packaging>
+<project
+  xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>{{groupId}}</groupId>
+  <artifactId>{{id}}.eclipse</artifactId>
+  <version>{{version}}</version>
+  <packaging>eclipse-plugin</packaging>
+  <name>{{name}}</name>
 
-    <parent>
+  <parent>
+    <groupId>org.metaborg</groupId>
+    <artifactId>org.metaborg.maven.parent.plugin</artifactId>
+    <version>{{metaborgVersion}}</version>
+    <relativePath />
+  </parent>
+
+  <dependencies>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>{{id}}</artifactId>
+      <version>${project.version}</version>
+      <type>spoofax-language</type>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
         <groupId>org.metaborg</groupId>
-        <artifactId>org.metaborg.maven.parent.plugin</artifactId>
-        <version>1.5.0-SNAPSHOT</version>
-    </parent>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.metaborg</groupId>
-                <artifactId>spoofax-maven-plugin</artifactId>
-                <version>${metaborg-version}</version>
-                <extensions>true</extensions>
-                <executions>
-                    <execution>
-                        <id>generate-spoofax-sources</id>
-                        <goals>
-                            <goal>generate-eclipse-sources</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>2.10</version>
-                <dependencies>
-                    <!-- if this is not there, unpacking won't work -->
-                    <dependency>
-                        <groupId>org.metaborg</groupId>
-                        <artifactId>spoofax-maven-plugin</artifactId>
-                        <version>${metaborg-version}</version>
-                    </dependency>
-                </dependencies>
-                <executions>
-                    <execution>
-                        <id>unpack</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>unpack</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>${project.groupId}</groupId>
-                                    <artifactId>{{id}}</artifactId>
-                                    <version>${project.version}</version>
-                                    <type>spoofax-language</type>
-                                </artifactItem>
-                            </artifactItems>
-                            <outputDirectory>${project.build.outputDirectory}</outputDirectory>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
-
+        <artifactId>spoofax-maven-plugin</artifactId>
+        <version>${metaborg-version}</version>
+        <extensions>true</extensions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <!-- Required to add a dependency on the Spoofax plugin, otherwise unpacking will fail with a class cast 
+          exception on archivers. Fix from: http://maven.40175.n5.nabble.com/Problems-with-register-new-archive-type-td4574906.html -->
+        <dependencies>
+          <dependency>
+            <groupId>org.metaborg</groupId>
+            <artifactId>spoofax-maven-plugin</artifactId>
+            <version>${metaborg-version}</version>
+          </dependency>
+        </dependencies>
+        <executions>
+          <execution>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>unpack-dependencies</goal>
+            </goals>
+            <configuration>
+              <actTransitively>false</actTransitively>
+              <excludeTransitive>true</excludeTransitive>
+              <includeTypes>spoofax-language</includeTypes>
+              <outputDirectory>${project.build.directory}/unpacked</outputDirectory>
+              <markersDirectory>${project.build.directory}/unpacked-markers</markersDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 </project>
