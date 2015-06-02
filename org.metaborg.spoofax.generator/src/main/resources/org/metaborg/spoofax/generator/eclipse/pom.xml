@@ -8,7 +8,7 @@
   <artifactId>{{id}}.eclipse</artifactId>
   <version>{{version}}</version>
   <packaging>eclipse-plugin</packaging>
-  <name>{{name}}</name>
+  <name>{{name}} Eclipse plugin</name>
 
   <parent>
     <groupId>org.metaborg</groupId>

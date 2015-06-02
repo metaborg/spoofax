@@ -1,5 +1,6 @@
 package org.metaborg.spoofax.generator.eclipse;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.metaborg.spoofax.generator.BaseGenerator;
@@ -8,6 +9,11 @@ import org.metaborg.spoofax.generator.project.ProjectSettings;
 public class EclipseProjectGenerator extends BaseGenerator {
     public EclipseProjectGenerator(ProjectSettings projectSettings) {
         super(projectSettings);
+    }
+
+
+    public static File childBaseDir(File baseDir, String id) {
+        return new File(baseDir, id + ".eclipse");
     }
 
 
