@@ -34,7 +34,11 @@ public class ProjectSettings {
     private String groupId;
 
     public String groupId() {
-        return groupId != null && !groupId.isEmpty() ? groupId : "org.metaborg";
+        // Return null when group id equals org.metaborg, because group id is a duplicate of the parent group id.
+        if(groupId == null || groupId.isEmpty() || groupId.equals("org.metaborg")) {
+            return null;
+        }
+        return groupId;
     }
 
     public void setGroupId(String groupId) throws ProjectException {
@@ -43,7 +47,7 @@ public class ProjectSettings {
         }
         this.groupId = groupId;
     }
-    
+
     // ////////////////////////////////////////////////////////////
 
     private String id;
@@ -64,17 +68,24 @@ public class ProjectSettings {
     private String version;
 
     public String version() {
-        return version != null && !version.isEmpty() ? version : "1.0.0-SNAPSHOT";
+        // Return null when version equals MetaBorg version, because version is a duplicate of the parent version.
+        if(version == null || version.isEmpty() || version.equals(metaborgVersion)) {
+            return null;
+        }
+        return version;
     }
 
     public String eclipseVersion() {
-        return version().replace("-SNAPSHOT", ".qualifier");
+        if(version == null) {
+            return null;
+        }
+        return version.replace("-SNAPSHOT", ".qualifier");
     }
 
     public void setVersion(String version) throws ProjectException {
         this.version = version;
     }
-    
+
     // ////////////////////////////////////////////////////////////
 
     private String metaborgVersion;
