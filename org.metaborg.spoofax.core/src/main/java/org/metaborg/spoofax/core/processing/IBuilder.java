@@ -20,7 +20,7 @@ public interface IBuilder<P, A, T> {
      *            Build input.
      * @return Result of building.
      */
-    public abstract BuildOutput<P, A, T> build(BuildInput input);
+    public abstract IBuildOutput<P, A, T> build(BuildInput input);
 
     /**
      * Cleans derived resources and contexts from given location.

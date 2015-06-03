@@ -80,11 +80,12 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
     }
 
 
-    @Override public BuildOutput<P, A, T> build(BuildInput input) {
+    @Override public IBuildOutput<P, A, T> build(BuildInput input) {
         final FileObject location = input.location;
+        final Iterable<ILanguage> languages = input.languages;
 
         final Collection<IResourceChange> parseTableChanges = Lists.newLinkedList();
-        final Collection<IdentifiedResourceChange> languageResourceChanges = Lists.newLinkedList();
+        final Multimap<ILanguage, IdentifiedResourceChange> languageResourceChanges = ArrayListMultimap.create();
 
         for(IResourceChange change : input.resourceChanges) {
             final FileObject resource = change.resource();
@@ -97,19 +98,29 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                 continue;
             }
 
-            final ILanguage language = languageIdentifier.identify(resource);
+            final ILanguage language = languageIdentifier.identify(resource, languages);
             if(language != null) {
                 final ILanguage base = dialectService.getBase(language);
                 if(base == null) {
-                    languageResourceChanges.add(new IdentifiedResourceChange(change, language, null));
+                    languageResourceChanges.put(language, new IdentifiedResourceChange(change, language, null));
                 } else {
-                    languageResourceChanges.add(new IdentifiedResourceChange(change, base, language));
+                    languageResourceChanges.put(language, new IdentifiedResourceChange(change, base, language));
                 }
             }
         }
 
         updateDialectResource(parseTableChanges);
-        return updateLanguageResources(location, languageResourceChanges);
+
+        final BuildOutput<P, A, T> buildOutput = new BuildOutput<P, A, T>();
+        for(Iterable<ILanguage> languageGroup : input.buildOrder) {
+            final Collection<IdentifiedResourceChange> changes = Lists.newLinkedList();
+            for(ILanguage language : languageGroup) {
+                changes.addAll(languageResourceChanges.get(language));
+            }
+            updateLanguageResources(location, changes, buildOutput);
+        }
+
+        return buildOutput;
     }
 
     @Override public void clean(FileObject location) {
@@ -132,11 +143,19 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
 
 
     private void updateDialectResource(Collection<IResourceChange> changes) {
+        if(changes.isEmpty()) {
+            return;
+        }
+
         dialectProcessor.update(changes);
     }
 
-    private BuildOutput<P, A, T> updateLanguageResources(FileObject location,
-        Collection<IdentifiedResourceChange> changes) {
+    private void updateLanguageResources(FileObject location, Collection<IdentifiedResourceChange> changes,
+        BuildOutput<P, A, T> output) {
+        if(changes.isEmpty()) {
+            return;
+        }
+
         logger.debug("Building " + location);
 
         final int numChanges = changes.size();
@@ -261,7 +280,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
             }
         }
 
-        return new BuildOutput<P, A, T>(removedResources, changedResources, allParseResults, allAnalysisResults,
-            allTransformResults, extraMessages);
+        output.add(removedResources, changedResources, allParseResults, allAnalysisResults, allTransformResults,
+            extraMessages);
     }
 }

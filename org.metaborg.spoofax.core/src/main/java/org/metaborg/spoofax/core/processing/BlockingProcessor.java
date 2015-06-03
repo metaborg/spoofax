@@ -14,9 +14,9 @@ public class BlockingProcessor<P, A, T> implements IProcessor<P, A, T> {
     }
 
 
-    @Override public ITask<BuildOutput<P, A, T>> build(final BuildInput input) {
-        return new BlockingTask<BuildOutput<P, A, T>>(new Func0<BuildOutput<P, A, T>>() {
-            @Override public BuildOutput<P, A, T> call() {
+    @Override public ITask<IBuildOutput<P, A, T>> build(final BuildInput input) {
+        return new BlockingTask<IBuildOutput<P, A, T>>(new Func0<IBuildOutput<P, A, T>>() {
+            @Override public IBuildOutput<P, A, T> call() {
                 return builder.build(input);
             }
         });
@@ -26,19 +26,9 @@ public class BlockingProcessor<P, A, T> implements IProcessor<P, A, T> {
         return new BlockingTask<Object>(new Func0<Object>() {
             @Override public Object call() {
                 builder.clean(location);
-                return new Object();
+                return null;
             }
         });
-    }
-
-    @Override public ITask<?> metaBuild(FileObject location) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override public ITask<?> metaClean(FileObject location) {
-        // TODO Auto-generated method stub
-        return null;
     }
 
     @Override public ITask<?> languageChange(LanguageChange change) {

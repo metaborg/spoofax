@@ -27,6 +27,20 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
 
 
     @Override public ILanguage identify(FileObject resource) {
+        return identify(resource, languageService.getAllActive());
+    }
+
+    @Override public boolean identify(FileObject resource, ILanguage language) {
+        final IdentificationFacet identification = language.facet(IdentificationFacet.class);
+        if(identification == null) {
+            logger.error("Cannot identify resources of {}, language does not have an identification facet", language);
+            return false;
+        }
+        return identification.identify(resource);
+    }
+
+
+    @Override public ILanguage identify(FileObject resource, Iterable<ILanguage> languages) {
         try {
             final ILanguage dialect = dialectIdentifier.identify(resource);
             if(dialect != null) {
@@ -41,7 +55,7 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
 
         final Set<String> identifiedLanguageNames = Sets.newLinkedHashSet();
         ILanguage identifiedLanguage = null;
-        for(ILanguage language : languageService.getAllActive()) {
+        for(ILanguage language : languages) {
             if(identify(resource, language)) {
                 identifiedLanguageNames.add(language.name());
                 identifiedLanguage = language;
@@ -54,14 +68,5 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
         }
 
         return identifiedLanguage;
-    }
-
-    @Override public boolean identify(FileObject resource, ILanguage language) {
-        final IdentificationFacet identification = language.facet(IdentificationFacet.class);
-        if(identification == null) {
-            logger.error("Cannot identify resources of {}, language does not have an identification facet", language);
-            return false;
-        }
-        return identification.identify(resource);
     }
 }
