@@ -64,7 +64,7 @@ public class DialectService implements IDialectService {
             throw new SpoofaxRuntimeException(message);
         }
         logger.debug("Adding dialect {} from {} with {} as base", name, location, base);
-        final ILanguage dialect = languageService.create(name, base.version(), location);
+        final ILanguage dialect = languageService.create(name, base.version(), location, base.id());
         for(ILanguageFacet facet : base.facets()) {
             if(ignoreFacet(facet.getClass())) {
                 continue;
@@ -104,7 +104,8 @@ public class DialectService implements IDialectService {
         for(ILanguage dialect : dialects) {
             final String name = dialect.name();
             final ILanguageFacet parserFacet = dialect.facet(syntaxFacetClass);
-            final ILanguage newDialect = languageService.create(name, newBase.version(), dialect.location());
+            final ILanguage newDialect =
+                languageService.create(name, newBase.version(), dialect.location(), newBase.id());
             for(ILanguageFacet facet : newBase.facets()) {
                 if(ignoreFacet(facet.getClass())) {
                     continue;

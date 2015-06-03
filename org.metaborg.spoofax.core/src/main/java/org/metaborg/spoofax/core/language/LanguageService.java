@@ -34,6 +34,10 @@ public class LanguageService implements ILanguageService {
      */
     private final SetMultimap<String, ILanguage> nameToLanguages = HashMultimap.create();
     /**
+     * Mapping from language identifiers to a set of all language objects with that name.
+     */
+    private final SetMultimap<String, ILanguage> idToLanguages = HashMultimap.create();
+    /**
      * Mapping from locations to language objects.
      */
     private final Map<FileName, ILanguage> locationToLanguage = Maps.newHashMap();
@@ -90,13 +94,24 @@ public class LanguageService implements ILanguageService {
         return matchedLanguages;
     }
 
+    @Override public Iterable<ILanguage> getAllWithId(String id, LanguageVersion version) {
+        final Collection<ILanguage> matchedLanguages = Lists.newLinkedList();
+        final Iterable<ILanguage> languages = idToLanguages.get(id);
+        for(ILanguage language : languages) {
+            if(language.version().equals(version)) {
+                matchedLanguages.add(language);
+            }
+        }
+        return matchedLanguages;
+    }
+
     @Override public Observable<LanguageChange> changes() {
         return languageChanges;
     }
 
-    @Override public ILanguage create(String name, LanguageVersion version, FileObject location) {
+    @Override public ILanguage create(String name, LanguageVersion version, FileObject location, String id) {
         logger.trace("Creating language {}", name);
-        final ILanguage language = new Language(name, location, version, sequenceIdGenerator.getAndIncrement());
+        final ILanguage language = new Language(name, location, version, sequenceIdGenerator.getAndIncrement(), id);
         return language;
     }
 
@@ -224,11 +239,13 @@ public class LanguageService implements ILanguageService {
     private void addLanguage(ILanguage language) {
         locationToLanguage.put(language.location().getName(), language);
         nameToLanguages.put(language.name(), language);
+        idToLanguages.put(language.id(), language);
     }
 
     private void removeLanguage(ILanguage language) {
         locationToLanguage.remove(language.location().getName());
         nameToLanguages.remove(language.name(), language);
+        idToLanguages.remove(language.id(), language);
     }
 
 

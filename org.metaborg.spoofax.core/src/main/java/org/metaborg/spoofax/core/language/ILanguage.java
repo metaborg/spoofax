@@ -34,6 +34,11 @@ public interface ILanguage extends Serializable {
      */
     public int sequenceId();
 
+    /**
+     * Returns the identifier of the language.
+     */
+    public String id();
+
 
     /**
      * Returns the facets of this language.
