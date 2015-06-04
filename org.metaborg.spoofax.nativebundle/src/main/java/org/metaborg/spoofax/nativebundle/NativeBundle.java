@@ -7,18 +7,26 @@ public class NativeBundle {
  
     public static URL getNative() {
         if ( SystemUtils.IS_OS_WINDOWS ) {
-            return NativeBundle.class.getResource("native/cygwin");
+            return getResource("native/cygwin");
         } else if ( SystemUtils.IS_OS_MAC_OSX ) {
-            return NativeBundle.class.getResource("native/macosx");
+            return getResource("native/macosx");
         } else if ( SystemUtils.IS_OS_LINUX ) {
-            return NativeBundle.class.getResource("native/linux");
+            return getResource("native/linux");
         } else {
             throw new UnsupportedOperationException("Unsupported platform "+SystemUtils.OS_NAME);
         }
     }
 
     public static URL getDist() {
-        return NativeBundle.class.getResource("dist");
+        return getResource("dist");
+    }
+
+    private static URL getResource(String name) {
+        URL url = NativeBundle.class.getResource(name);
+        if ( url == null ) {
+            throw new IllegalStateException("Resource "+name+" should be in this package.");
+        }
+        return url;
     }
 
     private NativeBundle() {

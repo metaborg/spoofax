@@ -11,19 +11,6 @@
     </parent>
 
     <build>
-        <!-- This looses the executable permissions,
-             you'll have to re-enable them after unpacking.
-         -->
-        <resources>
-            <resource>
-                <targetPath>/dist/</targetPath>
-                <directory>dist</directory>
-            </resource>
-            <resource>
-                <targetPath>/native/</targetPath>
-                <directory>native</directory>
-            </resource>
-        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
