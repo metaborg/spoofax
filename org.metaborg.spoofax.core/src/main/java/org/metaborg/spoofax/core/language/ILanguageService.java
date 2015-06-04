@@ -79,6 +79,17 @@ public interface ILanguageService {
     public Iterable<ILanguage> getAll(String name, LanguageVersion version);
 
     /**
+     * Returns all languages with given identifier and version.
+     * 
+     * @param id
+     *            Identifier of the languages.
+     * @param version
+     *            Version of the languages.
+     * @return Iterable over all languages with given identifier and version.
+     */
+    public Iterable<ILanguage> getAllWithId(String id, LanguageVersion version);
+
+    /**
      * Returns an observable over language loaded, unloaded, activated, and deactivated changes.
      * 
      * @return Observable over language changes.
@@ -94,9 +105,11 @@ public interface ILanguageService {
      *            Version of the language.
      * @param location
      *            Location of the language.
+     * @param id
+     *            Identifier of the language.
      * @return Created language
      */
-    public ILanguage create(String name, LanguageVersion version, FileObject location);
+    public ILanguage create(String name, LanguageVersion version, FileObject location, String id);
 
     /**
      * Adds given language.

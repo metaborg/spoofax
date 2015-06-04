@@ -4,4 +4,4 @@ language Generated properties
   
 //name:          {{name}}
   id:            {{id}}
-//version:       {{version}}
+//version:       {{mavenVersion}}

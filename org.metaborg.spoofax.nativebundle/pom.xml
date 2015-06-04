@@ -24,6 +24,17 @@
                 <directory>native</directory>
             </resource>
         </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                <!-- Add the generated MANIFEST.MF to the resulting JAR file.
+                     Copied from parent POM, because configuration is not merged properly. -->
+                <manifestFile>${manifest-location}/MANIFEST.MF</manifestFile>
+            </configuration>
+	    </plugin>
+	</plugins>
     </build>
 
     <scm>

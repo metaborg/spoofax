@@ -39,14 +39,15 @@ public class LanguageServiceTest extends SpoofaxTest {
         return file;
     }
 
-    private ILanguage language(String name, LanguageVersion version, FileObject location) {
-        final ILanguage language = languageService.create(name, version, location);
+    private ILanguage language(String name, LanguageVersion version, FileObject location, String id) {
+        final ILanguage language = languageService.create(name, version, location, id);
         languageService.add(language);
         return language;
     }
 
-    private ILanguage language(String name, LanguageVersion version, FileObject location, String... extensions) {
-        final ILanguage language = language(name, version, location);
+    private ILanguage language(String name, LanguageVersion version, FileObject location, String id,
+        String... extensions) {
+        final ILanguage language = language(name, version, location, id);
         final IdentificationFacet identificationFacet =
             new IdentificationFacet(new ResourceExtensionsIdentifier(Iterables2.from(extensions)));
         language.addFacet(identificationFacet);
@@ -62,7 +63,7 @@ public class LanguageServiceTest extends SpoofaxTest {
         final LanguageVersion version = version(0, 0, 1);
         final FileObject location = createDirectory("ram:///");
 
-        final ILanguage language = language("Entity", version, location);
+        final ILanguage language = language("Entity", version, location, "org.metaborg.lang.entity");
 
         assertEquals(language, languageService.get("Entity"));
         assertSame(language, languageService.get("Entity"));
@@ -77,9 +78,9 @@ public class LanguageServiceTest extends SpoofaxTest {
         final FileObject location2 = createDirectory("ram:///Entity2");
         final FileObject location3 = createDirectory("ram:///Entity3");
 
-        final ILanguage language1 = language("Entity1", version, location1);
-        final ILanguage language2 = language("Entity2", version, location2);
-        final ILanguage language3 = language("Entity3", version, location3);
+        final ILanguage language1 = language("Entity1", version, location1, "org.metaborg.lang.entity1");
+        final ILanguage language2 = language("Entity2", version, location2, "org.metaborg.lang.entity2");
+        final ILanguage language3 = language("Entity3", version, location3, "org.metaborg.lang.entity3");
 
         assertEquals(language1, languageService.get("Entity1"));
         assertEquals(language2, languageService.get("Entity2"));
@@ -98,12 +99,12 @@ public class LanguageServiceTest extends SpoofaxTest {
         final FileObject location1 = createDirectory("ram:///Entity1");
         final FileObject location2 = createDirectory("ram:///Entity2");
 
-        final ILanguage language1 = language("Entity", version1, location1);
+        final ILanguage language1 = language("Entity", version1, location1, "org.metaborg.lang.entity");
 
         assertEquals(language1, languageService.get("Entity"));
         assertEquals(language1, languageService.get("Entity", version1, location1));
 
-        final ILanguage language2 = language("Entity", version2, location2);
+        final ILanguage language2 = language("Entity", version2, location2, "org.metaborg.lang.entity");
 
         // Language 2 with higher version number becomes active.
         assertEquals(language2, languageService.get("Entity"));
@@ -118,12 +119,12 @@ public class LanguageServiceTest extends SpoofaxTest {
         final FileObject location1 = createDirectory("ram:///Entity1/");
         final FileObject location2 = createDirectory("ram:///Entity2/");
 
-        final ILanguage language1 = language("Entity", version1, location1);
+        final ILanguage language1 = language("Entity", version1, location1, "org.metaborg.lang.entity");
 
         assertEquals(language1, languageService.get("Entity"));
         assertEquals(language1, languageService.get("Entity", version1, location1));
 
-        final ILanguage language2 = language("Entity", version2, location2);
+        final ILanguage language2 = language("Entity", version2, location2, "org.metaborg.lang.entity");
 
         // Language 1 with higher version number stays active.
         assertEquals(language1, languageService.get("Entity"));
@@ -139,18 +140,18 @@ public class LanguageServiceTest extends SpoofaxTest {
         final FileObject location3 = createDirectory("ram:///Entity3");
         final FileObject location4 = createDirectory("ram:///Entity3");
 
-        final ILanguage language1 = language("Entity", version, location1);
+        final ILanguage language1 = language("Entity", version, location1, "org.metaborg.lang.entity");
         assertEquals(language1, languageService.get("Entity"));
-        final ILanguage language2 = language("Entity", version, location2);
+        final ILanguage language2 = language("Entity", version, location2, "org.metaborg.lang.entity");
         assertEquals(language2, languageService.get("Entity"));
-        final ILanguage language3 = language("Entity", version, location3);
+        final ILanguage language3 = language("Entity", version, location3, "org.metaborg.lang.entity");
         assertEquals(language3, languageService.get("Entity"));
 
         languageService.remove(language3);
         assertEquals(language2, languageService.get("Entity"));
         languageService.remove(language1);
         assertEquals(language2, languageService.get("Entity"));
-        final ILanguage language4 = language("Entity", version, location4);
+        final ILanguage language4 = language("Entity", version, location4, "org.metaborg.lang.entity");
         assertEquals(language4, languageService.get("Entity"));
         languageService.remove(language4);
         assertEquals(language2, languageService.get("Entity"));
@@ -162,12 +163,12 @@ public class LanguageServiceTest extends SpoofaxTest {
         final LanguageVersion version = version(0, 0, 1);
         final FileObject location = createDirectory("ram:///");
 
-        ILanguage language = language("Entity", version, location);
+        ILanguage language = language("Entity", version, location, "org.metaborg.lang.entity");
 
         assertEquals(language, languageService.get("Entity"));
         assertEquals(language, languageService.get("Entity", version, location));
 
-        language = language("Entity", version, location);
+        language = language("Entity", version, location, "org.metaborg.lang.entity");
 
         assertEquals(language, languageService.get("Entity"));
         assertEquals(language, languageService.get("Entity", version, location));
@@ -179,8 +180,8 @@ public class LanguageServiceTest extends SpoofaxTest {
         final FileObject location1 = createDirectory("ram:///Entity1");
         final FileObject location2 = createDirectory("ram:///Entity2");
 
-        final ILanguage language1 = language("Entity1", version, location1, "ent1");
-        final ILanguage language2 = language("Entity2", version, location2, "ent2");
+        final ILanguage language1 = language("Entity1", version, location1, "org.metaborg.lang.entity1", "ent1");
+        final ILanguage language2 = language("Entity2", version, location2, "org.metaborg.lang.entity2", "ent2");
 
         final IdentificationFacet identificationFacet1 = language1.facet(IdentificationFacet.class);
         assertTrue(identificationFacet1.identify(resourceService.resolve("ram:///Entity1/test.ent1")));
@@ -237,7 +238,7 @@ public class LanguageServiceTest extends SpoofaxTest {
 
 
         // Add language, expect ADD_FIRST and ADD.
-        final ILanguage language1 = language("Entity", version1, location1);
+        final ILanguage language1 = language("Entity", version1, location1, "org.metaborg.lang.entity");
         final TimestampedNotification<LanguageChange> language1Load = languageObserver.poll();
         final TimestampedNotification<LanguageChange> language1Add = languageObserver.poll();
         assertTrue(language1Load.notification.isOnNext());
@@ -262,7 +263,7 @@ public class LanguageServiceTest extends SpoofaxTest {
 
 
         // Add language2 with same name and version, but different location. Expect ADD and REPLACE_ACTIVE.
-        final ILanguage language2 = language("Entity", version1, location2);
+        final ILanguage language2 = language("Entity", version1, location2, "org.metaborg.lang.entity");
         final TimestampedNotification<LanguageChange> language2Add = languageObserver.poll();
         final TimestampedNotification<LanguageChange> language2Replace = languageObserver.poll();
         assertTrue(language2Add.notification.isOnNext());
@@ -273,7 +274,7 @@ public class LanguageServiceTest extends SpoofaxTest {
 
 
         // Add language2 again, expect RELOAD_ACTIVE.
-        final ILanguage language2Again = language("Entity", version1, location2);
+        final ILanguage language2Again = language("Entity", version1, location2, "org.metaborg.lang.entity");
         final TimestampedNotification<LanguageChange> language2ReloadActive = languageObserver.poll();
         assertEquals(language2, language2Again);
         assertNotSame(language2, language2Again);
@@ -285,7 +286,7 @@ public class LanguageServiceTest extends SpoofaxTest {
 
 
         // Add language3 with same name, but higher version and different location. Expect ADD and REPLACE_ACTIVE.
-        final ILanguage language3 = language("Entity", version2, location3);
+        final ILanguage language3 = language("Entity", version2, location3, "org.metaborg.lang.entity");
         final TimestampedNotification<LanguageChange> language3Add = languageObserver.poll();
         final TimestampedNotification<LanguageChange> language3Replace = languageObserver.poll();
         assertTrue(language3Add.notification.isOnNext());
@@ -296,7 +297,7 @@ public class LanguageServiceTest extends SpoofaxTest {
 
 
         // Add language2 again, expect RELOAD.
-        final ILanguage language2AgainAgain = language("Entity", version1, location2);
+        final ILanguage language2AgainAgain = language("Entity", version1, location2, "org.metaborg.lang.entity");
         final TimestampedNotification<LanguageChange> language2Reload = languageObserver.poll();
         assertEquals(language2Again, language2AgainAgain);
         assertNotSame(language2Again, language2AgainAgain);
@@ -347,8 +348,8 @@ public class LanguageServiceTest extends SpoofaxTest {
         final LanguageVersion version = version(0, 0, 1);
         final FileObject location = createDirectory("ram:///");
 
-        language("Entity1", version, location);
-        language("Entity2", version, location);
+        language("Entity1", version, location, "org.metaborg.lang.entity1");
+        language("Entity2", version, location, "org.metaborg.lang.entity2");
     }
 
     @Test(expected = IllegalStateException.class) public void conflictingExtension() throws Exception {
@@ -356,8 +357,8 @@ public class LanguageServiceTest extends SpoofaxTest {
         final FileObject location1 = createDirectory("ram:///Entity1");
         final FileObject location2 = createDirectory("ram:///Entity2");
 
-        language("Entity1", version, location1, "ent");
-        language("Entity2", version, location2, "ent");
+        language("Entity1", version, location1, "org.metaborg.lang.entity1", "ent");
+        language("Entity2", version, location2, "org.metaborg.lang.entity2", "ent");
 
         languageIdentifierService.identify(resourceService.resolve("ram:///Entity/test.ent"));
     }
@@ -366,7 +367,7 @@ public class LanguageServiceTest extends SpoofaxTest {
         final LanguageVersion version = version(0, 0, 1);
         final FileObject location = createDirectory("ram:///");
 
-        final ILanguage language = language("Entity", version, location);
+        final ILanguage language = language("Entity", version, location, "org.metaborg.lang.entity");
         language.addFacet(new DescriptionFacet("Entity language", null));
         language.addFacet(new DescriptionFacet("Entity language", null));
     }
@@ -375,21 +376,21 @@ public class LanguageServiceTest extends SpoofaxTest {
         final LanguageVersion version = version(0, 0, 1);
         final FileObject location = resourceService.resolve("ram:///doesnotexist");
 
-        language("Entity", version, location);
+        language("Entity", version, location, "org.metaborg.lang.entity");
     }
 
     @Test(expected = IllegalStateException.class) public void nonExistantLanguage() throws Exception {
         final LanguageVersion version = version(0, 0, 1);
         final FileObject location = createDirectory("ram:///");
 
-        languageService.remove(new Language("Entity", location, version, 0));
+        languageService.remove(new Language("Entity", location, version, 0, "org.metaborg.lang.entity"));
     }
 
     @Test(expected = IllegalStateException.class) public void nonExistantFacet() throws Exception {
         final LanguageVersion version = version(0, 0, 1);
         final FileObject location = createDirectory("ram:///");
 
-        final ILanguage language = language("Entity", version, location);
+        final ILanguage language = language("Entity", version, location, "org.metaborg.lang.entity");
         language.removeFacet(DescriptionFacet.class);
     }
 }
