@@ -5,9 +5,9 @@ import com.google.inject.Inject;
 import java.io.File;
 import java.util.List;
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.spoofax.core.context.ILanguagePathService;
-import org.metaborg.spoofax.core.language.ILanguage;
-import org.metaborg.spoofax.core.language.ILanguageService;
+import org.metaborg.spoofax.core.project.ILanguagePathService;
+import org.metaborg.spoofax.core.project.IProject;
+import org.metaborg.spoofax.core.project.IProjectService;
 import org.metaborg.spoofax.core.resource.IResourceService;
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.InterpreterException;
@@ -18,15 +18,15 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 
 public class LanguageIncludesPrimitive extends AbstractPrimitive {
-    private final ILanguageService languageService;
     private final ILanguagePathService languagePathService;
     private final IResourceService resourceService;
+    private final IProjectService projectService;
 
     @Inject public LanguageIncludesPrimitive(IResourceService resourceService,
-            ILanguageService languageService,
+            IProjectService projectService,
             ILanguagePathService languagePathService) {
         super("SSL_EXT_language_includes", 0, 1);
-        this.languageService = languageService;
+        this.projectService = projectService;
         this.languagePathService = languagePathService;
         this.resourceService = resourceService;
     }
@@ -39,15 +39,15 @@ public class LanguageIncludesPrimitive extends AbstractPrimitive {
         }
         final ITermFactory factory = env.getFactory();
         final String languageName = Tools.asJavaString(tvars[0]);
-        final ILanguage language = languageService.get(languageName);
-        if ( language == null ) {
+        org.metaborg.spoofax.core.context.IContext context =
+                (org.metaborg.spoofax.core.context.IContext) env.contextObject();
+        IProject project = projectService.get(context.location());
+        if ( project == null ) {
             env.setCurrent(factory.makeList());
             return true;
         }
-        org.metaborg.spoofax.core.context.IContext context =
-                (org.metaborg.spoofax.core.context.IContext) env.contextObject();
         final Iterable<FileObject> includes =
-                languagePathService.getIncludes(context, language);
+                languagePathService.includes(project, languageName);
         final List<IStrategoTerm> terms = Lists.newArrayList();
         for ( FileObject include : includes ) {
             File localFile = resourceService.localFile(include);

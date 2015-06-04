@@ -11,23 +11,19 @@
     </parent>
 
     <build>
-        <plugins>
-            <!-- some JAR trickery to include the native files 
-                 including them as normal resources doesn't work
-                 Maven will lose their execution permissions
-              -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <configuration>
-                    <classesDirectory>${basedir}</classesDirectory>
-                    <includes>
-                        <include>native/**</include>
-                        <include>dist/**</include>
-                    </includes>
-                </configuration>
-            </plugin>
-        </plugins>
+        <!-- This looses the executable permissions,
+             you'll have to re-enable them after unpacking.
+         -->
+        <resources>
+            <resource>
+                <targetPath>/dist/</targetPath>
+                <directory>dist</directory>
+            </resource>
+            <resource>
+                <targetPath>/native/</targetPath>
+                <directory>native</directory>
+            </resource>
+        </resources>
     </build>
 
     <scm>
@@ -35,4 +31,12 @@
         <developerConnection>scm:git:git@github.com:metaborg/spoofax.git</developerConnection>
         <url>https://github.com/metaborg/spoofax</url>
     </scm>
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.4</version>
+            <type>jar</type>
+        </dependency>
+    </dependencies>
 </project>

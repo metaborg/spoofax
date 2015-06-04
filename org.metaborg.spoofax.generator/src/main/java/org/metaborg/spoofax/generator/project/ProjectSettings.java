@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.generator.project;
 
 import java.io.File;
+import static org.metaborg.spoofax.core.project.SpoofaxProjectConstants.*;
 
 public class ProjectSettings {
  
@@ -44,6 +45,16 @@ public class ProjectSettings {
         this.id = id;
     }
 
+    private String version;
+
+    public String version() {
+        return version != null ? version : "1.0-SNAPSHOT";
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
     ////////////////////////////////////////////////////////////////
 
     private Format format;
@@ -78,11 +89,11 @@ public class ProjectSettings {
     ////////////////////////////////////////////////////////////////
 
     public File getGeneratedSourceDirectory() {
-        return new File(basedir, "src-gen");
+        return new File(basedir, DIR_SRCGEN);
     }
 
     public File getOutputDirectory() {
-        return new File(basedir, "include");
+        return new File(basedir, DIR_INCLUDE);
     }
 
     public File getIconsDirectory() {
@@ -90,35 +101,35 @@ public class ProjectSettings {
     }
 
     public File getLibDirectory() {
-        return new File(basedir, "lib");
+        return new File(basedir, DIR_LIB);
     }
 
     public File getSyntaxDirectory() {
-        return new File(basedir, "syntax");
+        return new File(basedir, DIR_SYNTAX);
     }
 
     public File getEditorDirectory() {
-        return new File(basedir, "editor");
+        return new File(basedir, DIR_EDITOR);
     }
 
     public File getJavaDirectory() {
-        return new File(getEditorDirectory(), "java");
+        return new File(basedir, DIR_JAVA);
     }
 
     public File getJavaTransDirectory() {
-        return new File(getJavaDirectory(), "trans");
+        return new File(basedir, DIR_JAVA_TRANS);
     }
 
     public File getGeneratedSyntaxDirectory() {
-        return new File(getGeneratedSourceDirectory(), "syntax");
+        return new File(basedir, DIR_SRCGEN_SYNTAX);
     }
 
     public File getTransDirectory() {
-        return new File(basedir, "trans");
+        return new File(basedir, DIR_TRANS);
     }
 
     public File getCacheDirectory() {
-        return new File(basedir, ".cache");
+        return new File(basedir, DIR_CACHE);
     }
 
 }

@@ -15,4 +15,5 @@ public class BuildInput {
         this.languages = languages;
         this.resourceChanges = resourceChanges;
     }
+
 }

@@ -93,8 +93,13 @@ import com.google.inject.TypeLiteral;
 import com.google.inject.multibindings.MapBinder;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
-import org.metaborg.spoofax.core.context.DummyLanguagePathService;
-import org.metaborg.spoofax.core.context.ILanguagePathService;
+import org.metaborg.spoofax.core.project.ActiveLanguagesDependencyService;
+import org.metaborg.spoofax.core.project.DependencyPathProvider;
+import org.metaborg.spoofax.core.project.IDependencyService;
+import org.metaborg.spoofax.core.project.ILanguagePathProvider;
+import org.metaborg.spoofax.core.project.ILanguagePathService;
+import org.metaborg.spoofax.core.project.SpoofaxLanguagePathService;
+import org.metaborg.spoofax.core.project.SpoofaxProjectPathProvider;
 import org.metaborg.spoofax.core.stratego.primitives.LanguageIncludesPrimitive;
 import org.metaborg.spoofax.core.stratego.primitives.LanguageSourcesPrimitive;
 
@@ -122,9 +127,11 @@ public class SpoofaxModule extends AbstractModule {
         bindResource();
         bindLanguage();
         bindLanguagePath();
+        bindLanguagePathProviders(Multibinder.newSetBinder(binder(), ILanguagePathProvider.class));
         bindContext();
         bindContextStrategies(MapBinder.newMapBinder(binder(), String.class, IContextStrategy.class));
         bindProject();
+        bindDependency();
         bindSyntax();
         bindCompletion();
         bindSourceText();
@@ -157,7 +164,12 @@ public class SpoofaxModule extends AbstractModule {
     }
 
     protected void bindLanguagePath() {
-        bind(ILanguagePathService.class).to(DummyLanguagePathService.class).in(Singleton.class);
+        bind(ILanguagePathService.class).to(SpoofaxLanguagePathService.class).in(Singleton.class);
+    }
+
+    protected void bindLanguagePathProviders(Multibinder<ILanguagePathProvider> binder) {
+        binder.addBinding().to(SpoofaxProjectPathProvider.class);
+        binder.addBinding().to(DependencyPathProvider.class);
     }
 
     protected void bindContext() {
@@ -173,6 +185,10 @@ public class SpoofaxModule extends AbstractModule {
 
     protected void bindProject() {
         bind(IProjectService.class).to(DummyProjectService.class).in(Singleton.class);
+    }
+
+    protected void bindDependency() {
+        bind(IDependencyService.class).to(ActiveLanguagesDependencyService.class).in(Singleton.class);
     }
 
     protected void bindSyntax() {

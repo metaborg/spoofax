@@ -29,8 +29,8 @@ import org.metaborg.util.observable.TimestampedNotification;
 import com.google.common.collect.Iterables;
 
 public class LanguageServiceTest extends SpoofaxTest {
-    private LanguageVersion version(int major, int minor, int patch, int qualifier) {
-        return new LanguageVersion(major, minor, patch, qualifier);
+    private LanguageVersion version(int major, int minor, int patch) {
+        return new LanguageVersion(major, minor, patch, "");
     }
 
     private FileObject createDirectory(String uri) throws FileSystemException {
@@ -59,7 +59,7 @@ public class LanguageServiceTest extends SpoofaxTest {
 
 
     @Test public void addSingleLanguage() throws Exception {
-        final LanguageVersion version = version(0, 0, 1, 0);
+        final LanguageVersion version = version(0, 0, 1);
         final FileObject location = createDirectory("ram:///");
 
         final ILanguage language = language("Entity", version, location);
@@ -72,7 +72,7 @@ public class LanguageServiceTest extends SpoofaxTest {
     }
 
     @Test public void addDifferentLanguages() throws Exception {
-        final LanguageVersion version = version(0, 0, 1, 0);
+        final LanguageVersion version = version(0, 0, 1);
         final FileObject location1 = createDirectory("ram:///Entity1");
         final FileObject location2 = createDirectory("ram:///Entity2");
         final FileObject location3 = createDirectory("ram:///Entity3");
@@ -93,8 +93,8 @@ public class LanguageServiceTest extends SpoofaxTest {
     }
 
     @Test public void addHigherVersionLanguage() throws Exception {
-        final LanguageVersion version1 = version(0, 0, 1, 0);
-        final LanguageVersion version2 = version(0, 1, 0, 0);
+        final LanguageVersion version1 = version(0, 0, 1);
+        final LanguageVersion version2 = version(0, 1, 0);
         final FileObject location1 = createDirectory("ram:///Entity1");
         final FileObject location2 = createDirectory("ram:///Entity2");
 
@@ -113,8 +113,8 @@ public class LanguageServiceTest extends SpoofaxTest {
     }
 
     @Test public void addLowerVersionLanguage() throws Exception {
-        final LanguageVersion version1 = version(0, 1, 0, 0);
-        final LanguageVersion version2 = version(0, 0, 1, 0);
+        final LanguageVersion version1 = version(0, 1, 0);
+        final LanguageVersion version2 = version(0, 0, 1);
         final FileObject location1 = createDirectory("ram:///Entity1/");
         final FileObject location2 = createDirectory("ram:///Entity2/");
 
@@ -133,7 +133,7 @@ public class LanguageServiceTest extends SpoofaxTest {
     }
 
     @Test public void mostRecentLanguageActive() throws Exception {
-        final LanguageVersion version = version(0, 0, 1, 0);
+        final LanguageVersion version = version(0, 0, 1);
         final FileObject location1 = createDirectory("ram:///Entity1");
         final FileObject location2 = createDirectory("ram:///Entity2");
         final FileObject location3 = createDirectory("ram:///Entity3");
@@ -159,7 +159,7 @@ public class LanguageServiceTest extends SpoofaxTest {
     }
 
     @Test public void reloadLanguage() throws Exception {
-        final LanguageVersion version = version(0, 0, 1, 0);
+        final LanguageVersion version = version(0, 0, 1);
         final FileObject location = createDirectory("ram:///");
 
         ILanguage language = language("Entity", version, location);
@@ -175,7 +175,7 @@ public class LanguageServiceTest extends SpoofaxTest {
     }
 
     @Test public void identification() throws Exception {
-        final LanguageVersion version = version(0, 0, 1, 0);
+        final LanguageVersion version = version(0, 0, 1);
         final FileObject location1 = createDirectory("ram:///Entity1");
         final FileObject location2 = createDirectory("ram:///Entity2");
 
@@ -225,8 +225,8 @@ public class LanguageServiceTest extends SpoofaxTest {
     }
 
     @Test public void observables() throws Exception {
-        final LanguageVersion version1 = version(0, 0, 1, 0);
-        final LanguageVersion version2 = version(0, 0, 2, 0);
+        final LanguageVersion version1 = version(0, 0, 1);
+        final LanguageVersion version2 = version(0, 0, 2);
         final FileObject location1 = createDirectory("ram:///Entity1");
         final FileObject location2 = createDirectory("ram:///Entity2");
         final FileObject location3 = createDirectory("ram:///Entity3");
@@ -344,7 +344,7 @@ public class LanguageServiceTest extends SpoofaxTest {
     }
 
     @Test(expected = IllegalStateException.class) public void conflictingLocation() throws Exception {
-        final LanguageVersion version = version(0, 0, 1, 0);
+        final LanguageVersion version = version(0, 0, 1);
         final FileObject location = createDirectory("ram:///");
 
         language("Entity1", version, location);
@@ -352,7 +352,7 @@ public class LanguageServiceTest extends SpoofaxTest {
     }
 
     @Test(expected = IllegalStateException.class) public void conflictingExtension() throws Exception {
-        final LanguageVersion version = version(0, 0, 1, 0);
+        final LanguageVersion version = version(0, 0, 1);
         final FileObject location1 = createDirectory("ram:///Entity1");
         final FileObject location2 = createDirectory("ram:///Entity2");
 
@@ -363,7 +363,7 @@ public class LanguageServiceTest extends SpoofaxTest {
     }
 
     @Test(expected = IllegalStateException.class) public void conflictingFacet() throws Exception {
-        final LanguageVersion version = version(0, 0, 1, 0);
+        final LanguageVersion version = version(0, 0, 1);
         final FileObject location = createDirectory("ram:///");
 
         final ILanguage language = language("Entity", version, location);
@@ -372,21 +372,21 @@ public class LanguageServiceTest extends SpoofaxTest {
     }
 
     @Test(expected = IllegalStateException.class) public void nonExistantLocation() throws Exception {
-        final LanguageVersion version = version(0, 0, 1, 0);
+        final LanguageVersion version = version(0, 0, 1);
         final FileObject location = resourceService.resolve("ram:///doesnotexist");
 
         language("Entity", version, location);
     }
 
     @Test(expected = IllegalStateException.class) public void nonExistantLanguage() throws Exception {
-        final LanguageVersion version = version(0, 0, 1, 0);
+        final LanguageVersion version = version(0, 0, 1);
         final FileObject location = createDirectory("ram:///");
 
         languageService.remove(new Language("Entity", location, version, 0));
     }
 
     @Test(expected = IllegalStateException.class) public void nonExistantFacet() throws Exception {
-        final LanguageVersion version = version(0, 0, 1, 0);
+        final LanguageVersion version = version(0, 0, 1);
         final FileObject location = createDirectory("ram:///");
 
         final ILanguage language = language("Entity", version, location);

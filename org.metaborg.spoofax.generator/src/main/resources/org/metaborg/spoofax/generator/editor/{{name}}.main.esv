@@ -1,6 +1,7 @@
 module {{name}}.main
 
 imports
+  {{name}}-Id.generated
   {{name}}-Colorer
   {{name}}-Completions
   {{name}}-Folding
@@ -12,8 +13,6 @@ imports
 
 language General properties
   
-  name:          {{name}}
-  id:            {{id}}
   extends:       Root
   
   description:   "Spoofax-generated {{name}} language"

@@ -64,15 +64,12 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
                 continue;
             }
             parents.add(languageLocation);
-            // GTODO: get language version from ESV?
-            languages.add(languageFromESV(languageLocation, esvFile, new LanguageVersion(1, 0, 0, 0)));
+            languages.add(languageFromESV(languageLocation, esvFile));
         }
         return languages;
     }
 
-
-    private ILanguage languageFromESV(FileObject location, FileObject esvFile, LanguageVersion version)
-        throws Exception {
+    private ILanguage languageFromESV(FileObject location, FileObject esvFile) throws Exception {
         logger.debug("Discovering language at {}", location);
 
         final TermReader reader =
@@ -84,9 +81,10 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         final IStrategoAppl esvTerm = (IStrategoAppl) term;
 
         final String name = languageName(esvTerm);
-        final Iterable<String> extensions = Iterables2.from(extensions(esvTerm));
+        final LanguageVersion version = LanguageVersion.parse(languageVersion(esvTerm));
         final ILanguage language = languageService.create(name, version, location);
 
+        final Iterable<String> extensions = Iterables2.from(extensions(esvTerm));
         final IdentificationFacet identificationFacet =
             new IdentificationFacet(new ResourceExtensionsIdentifier(extensions));
         language.addFacet(identificationFacet);
@@ -132,6 +130,10 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
     private static String languageName(IStrategoAppl document) {
         return ESVReader.getProperty(document, "LanguageName");
+    }
+
+    private static String languageVersion(IStrategoAppl document) {
+        return ESVReader.getProperty(document, "LanguageVersion", "");
     }
 
     private static String[] extensions(IStrategoAppl document) {
