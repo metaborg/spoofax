@@ -1,5 +1,5 @@
-/target
-/META-INF
-/.project
 /.classpath
+/.project
 /.settings
+/META-INF
+/target
