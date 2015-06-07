@@ -2,6 +2,6 @@ module {{name}}.generated
 
 language Generated properties
   
-//name:          {{name}}
+  name:          {{name}}
   id:            {{id}}
-//version:       {{mavenVersion}}
+  version:       {{mavenVersion}}
