@@ -45,6 +45,26 @@ public interface ILanguageService {
     public @Nullable ILanguage get(String name, LanguageVersion version, FileObject location);
 
     /**
+     * Returns the language with a given id.
+     * 
+     * @param id
+     *            Id of the language.
+     * @return Language with the given id, or null if it does not exist.
+     */
+    public @Nullable ILanguage getWithId(String id);
+
+    /**
+     * Returns the language with a given id and version.
+     * 
+     * @param id
+     *            Id of the language.
+     * @param version
+     *            Version of the language.
+     * @return Language with the given id and version, or null if it does not exist.
+     */
+    public @Nullable ILanguage getWithId(String id, LanguageVersion version);
+
+    /**
      * Returns all languages
      * 
      * @return Iterable over all languages.

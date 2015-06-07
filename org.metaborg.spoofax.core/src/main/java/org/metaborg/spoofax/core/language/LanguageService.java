@@ -65,6 +65,20 @@ public class LanguageService implements ILanguageService {
         return null;
     }
 
+    @Override public @Nullable ILanguage getWithId(String id) {
+        return getActiveLanguage(idToLanguages.get(id));
+    }
+
+    @Override public @Nullable ILanguage getWithId(String id, LanguageVersion version) {
+        final Iterable<ILanguage> languages = idToLanguages.get(id);
+        for(ILanguage language : languages) {
+            if(language.version().equals(version)) {
+                return language;
+            }
+        }
+        return null;
+    }
+
     @Override public Iterable<ILanguage> getAll() {
         return nameToLanguages.values();
     }
