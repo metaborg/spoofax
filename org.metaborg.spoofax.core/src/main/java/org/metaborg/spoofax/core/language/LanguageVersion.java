@@ -97,7 +97,7 @@ public class LanguageVersion implements Comparable<LanguageVersion>, Serializabl
                 (qualifier.isEmpty() ? "" : ("-"+qualifier)));
     }
 
-    private static final Pattern VERSION_PATTERN = Pattern.compile("((\\d+)(\\.(\\d+)(\\.(\\d+))?)?(-(\\w+))?)?");
+    private static final Pattern VERSION_PATTERN = Pattern.compile("((\\d+)(\\.(\\d+)(\\.(\\d+))?)?(-(\\w[\\w\\-]*))?)?");
 
     public static LanguageVersion parse(String version) {
         Matcher matcher = VERSION_PATTERN.matcher(version);

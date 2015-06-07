@@ -21,6 +21,7 @@ public class LanguageVersionTest {
         assertEquals(new LanguageVersion(1, 2, 0, ""), LanguageVersion.parse("1.2"));
         assertEquals(new LanguageVersion(1, 2, 3, ""), LanguageVersion.parse("1.2.3"));
         assertEquals(new LanguageVersion(1, 2, 3, "SNAPSHOT"), LanguageVersion.parse("1.2.3-SNAPSHOT"));
+        assertEquals(new LanguageVersion(1, 2, 3, "baseline-20150607"), LanguageVersion.parse("1.2.3-baseline-20150607"));
     }
     
     @Test
