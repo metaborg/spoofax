@@ -19,8 +19,8 @@ public class SpoofaxMetaModule extends SpoofaxModule {
 
     @Override
     protected void bindProject() {
-        bind(IProjectService.class).to(DefaultMavenProjectService.class).in(Singleton.class);
-        bind(IMavenProjectService.class).to(DefaultMavenProjectService.class).in(Singleton.class);
+        bind(IProjectService.class).to(DummyMavenProjectService.class).in(Singleton.class);
+        bind(IMavenProjectService.class).to(DummyMavenProjectService.class).in(Singleton.class);
     }
 
     @Override
