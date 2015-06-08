@@ -1,5 +1,7 @@
 package org.metaborg.spoofax.core.processing.analyze;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.analysis.AnalysisFileResult;
 import org.metaborg.spoofax.core.context.IContext;
@@ -47,4 +49,9 @@ public interface IAnalysisResultRequester<P, A> {
      * @return Hot observable that pushes updates to subscribers for given resource.
      */
     public abstract Observable<AnalysisChange<P, A>> updates(FileObject resource);
+
+    /**
+     * @return Latest analysis result for given resource, or null if there is none.
+     */
+    public abstract @Nullable AnalysisFileResult<P, A> get(FileObject resource);
 }

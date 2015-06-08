@@ -93,6 +93,10 @@
       <groupId>org.functionaljava</groupId>
       <artifactId>functionaljava</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.javabits.jgrapht</groupId>
+      <artifactId>jgrapht-core</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>junit</groupId>
@@ -113,11 +117,6 @@
       <groupId>org.slf4j</groupId>
       <artifactId>jcl-over-slf4j</artifactId>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.javabits.jgrapht</groupId>
-      <artifactId>jgrapht-core</artifactId>
-      <version>0.9.3</version>
     </dependency>
   </dependencies>
 

@@ -44,8 +44,15 @@ import org.metaborg.spoofax.core.processing.parse.ISpoofaxParseResultProcessor;
 import org.metaborg.spoofax.core.processing.parse.ISpoofaxParseResultRequester;
 import org.metaborg.spoofax.core.processing.parse.ISpoofaxParseResultUpdater;
 import org.metaborg.spoofax.core.processing.parse.SpoofaxParseResultProcessor;
+import org.metaborg.spoofax.core.project.ActiveLanguagesDependencyService;
+import org.metaborg.spoofax.core.project.DependencyPathProvider;
 import org.metaborg.spoofax.core.project.DummyProjectService;
+import org.metaborg.spoofax.core.project.IDependencyService;
+import org.metaborg.spoofax.core.project.ILanguagePathProvider;
+import org.metaborg.spoofax.core.project.ILanguagePathService;
 import org.metaborg.spoofax.core.project.IProjectService;
+import org.metaborg.spoofax.core.project.SpoofaxLanguagePathService;
+import org.metaborg.spoofax.core.project.SpoofaxProjectPathProvider;
 import org.metaborg.spoofax.core.resource.DefaultFileSystemManagerProvider;
 import org.metaborg.spoofax.core.resource.IResourceService;
 import org.metaborg.spoofax.core.resource.ResourceService;
@@ -53,6 +60,8 @@ import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.stratego.StrategoLocalPath;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeService;
 import org.metaborg.spoofax.core.stratego.primitives.DummyPrimitive;
+import org.metaborg.spoofax.core.stratego.primitives.LanguageIncludesPrimitive;
+import org.metaborg.spoofax.core.stratego.primitives.LanguageSourcesPrimitive;
 import org.metaborg.spoofax.core.stratego.primitives.ParseFilePrimitive;
 import org.metaborg.spoofax.core.stratego.primitives.ParseFilePtPrimitive;
 import org.metaborg.spoofax.core.stratego.primitives.ProjectPathPrimitive;
@@ -70,6 +79,9 @@ import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.terms.TermFactoryService;
 import org.metaborg.spoofax.core.text.ISourceTextService;
 import org.metaborg.spoofax.core.text.SourceTextService;
+import org.metaborg.spoofax.core.tracing.ITracingService;
+import org.metaborg.spoofax.core.tracing.spoofax.ISpoofaxTracingService;
+import org.metaborg.spoofax.core.tracing.spoofax.SpoofaxTracingService;
 import org.metaborg.spoofax.core.transform.CompileGoal;
 import org.metaborg.spoofax.core.transform.ITransformer;
 import org.metaborg.spoofax.core.transform.ITransformerExecutor;
@@ -93,15 +105,6 @@ import com.google.inject.TypeLiteral;
 import com.google.inject.multibindings.MapBinder;
 import com.google.inject.multibindings.Multibinder;
 import com.google.inject.name.Names;
-import org.metaborg.spoofax.core.project.ActiveLanguagesDependencyService;
-import org.metaborg.spoofax.core.project.DependencyPathProvider;
-import org.metaborg.spoofax.core.project.IDependencyService;
-import org.metaborg.spoofax.core.project.ILanguagePathProvider;
-import org.metaborg.spoofax.core.project.ILanguagePathService;
-import org.metaborg.spoofax.core.project.SpoofaxLanguagePathService;
-import org.metaborg.spoofax.core.project.SpoofaxProjectPathProvider;
-import org.metaborg.spoofax.core.stratego.primitives.LanguageIncludesPrimitive;
-import org.metaborg.spoofax.core.stratego.primitives.LanguageSourcesPrimitive;
 
 /**
  * Guice module that specifies which implementations to use for services and factories.
@@ -143,6 +146,7 @@ public class SpoofaxModule extends AbstractModule {
         bindBuilder();
         bindCategorizer();
         bindStyler();
+        bindTracing();
         bindOther();
 
         bind(ClassLoader.class).annotatedWith(Names.named("ResourceClassLoader")).toInstance(resourceClassLoader);
@@ -317,6 +321,12 @@ public class SpoofaxModule extends AbstractModule {
             Singleton.class);
     }
 
+    protected void bindTracing() {
+        bind(SpoofaxTracingService.class).in(Singleton.class);
+        bind(ISpoofaxTracingService.class).to(SpoofaxTracingService.class);
+        bind(new TypeLiteral<ITracingService<IStrategoTerm, IStrategoTerm, IStrategoTerm>>() {}).to(
+            SpoofaxTracingService.class);
+    }
 
     protected void bindOther() {
 

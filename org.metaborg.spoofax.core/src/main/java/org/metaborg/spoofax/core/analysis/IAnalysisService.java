@@ -1,9 +1,6 @@
 package org.metaborg.spoofax.core.analysis;
 
-import javax.annotation.Nullable;
-
 import org.metaborg.spoofax.core.context.IContext;
-import org.metaborg.spoofax.core.messages.ISourceRegion;
 import org.metaborg.spoofax.core.syntax.ParseResult;
 
 /**
@@ -28,24 +25,4 @@ public interface IAnalysisService<ParseT, AnalysisT> {
      */
     public abstract AnalysisResult<ParseT, AnalysisT> analyze(Iterable<ParseResult<ParseT>> inputs, IContext context)
         throws AnalysisException;
-
-    /**
-     * Returns the origin fragment for given analyzed fragment.
-     * 
-     * @param analyzed
-     *            Analyzed fragment
-     * 
-     * @return Origin fragment for analyzed fragment.
-     */
-    public abstract ParseT origin(AnalysisT analyzed);
-
-    /**
-     * Attempts to retrieve the source region for given analyzed fragment.
-     * 
-     * @param analyzed
-     *            Analyzed fragment
-     * 
-     * @return Source region for analyzed fragment, or null if no source region can be retrieved.
-     */
-    public abstract @Nullable ISourceRegion region(AnalysisT analyzed);
 }

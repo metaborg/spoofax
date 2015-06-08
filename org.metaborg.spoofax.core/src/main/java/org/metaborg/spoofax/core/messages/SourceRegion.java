@@ -2,8 +2,8 @@ package org.metaborg.spoofax.core.messages;
 
 public class SourceRegion implements ISourceRegion {
     private static final long serialVersionUID = -3699054067428073315L;
-    
-	private final int startOffset;
+
+    private final int startOffset;
     private final int startRow;
     private final int startColumn;
     private final int endOffset;
@@ -44,9 +44,14 @@ public class SourceRegion implements ISourceRegion {
     @Override public int endColumn() {
         return endColumn;
     }
-    
+
     @Override public int length() {
         return endOffset - startOffset;
+    }
+
+    @Override public boolean contains(ISourceRegion region) {
+        return region.startOffset() >= this.startOffset && region.startOffset() <= this.endOffset()
+            && region.endOffset() <= this.endOffset();
     }
 
 

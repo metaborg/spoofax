@@ -6,8 +6,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 
-import javax.annotation.Nullable;
-
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.SpoofaxException;
 import org.metaborg.spoofax.core.SpoofaxRuntimeException;
@@ -128,21 +126,6 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
                 throw new AnalysisException(sources, context, message);
             }
         }
-    }
-
-    @Override public @Nullable IStrategoTerm origin(IStrategoTerm analyzed) {
-        return OriginAttachment.getOrigin(analyzed);
-    }
-
-    @Override public @Nullable ISourceRegion region(IStrategoTerm analyzed) {
-        final IStrategoTerm origin = origin(analyzed);
-        if(origin == null)
-            return null;
-        final IToken left = ImploderAttachment.getLeftToken(origin);
-        final IToken right = ImploderAttachment.getRightToken(origin);
-        if(left == null || right == null)
-            return null;
-        return JSGLRSourceRegionFactory.fromTokens(left, right);
     }
 
 

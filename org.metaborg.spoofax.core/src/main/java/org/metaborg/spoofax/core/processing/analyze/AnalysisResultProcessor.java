@@ -3,6 +3,8 @@ package org.metaborg.spoofax.core.processing.analyze;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.SpoofaxRuntimeException;
@@ -103,6 +105,18 @@ public class AnalysisResultProcessor<P, A> implements IAnalysisResultProcessor<P
 
     @Override public Observable<AnalysisChange<P, A>> updates(FileObject resource) {
         return getUpdates(resource.getName());
+    }
+
+    @Override public @Nullable AnalysisFileResult<P, A> get(FileObject resource) {
+        final BehaviorSubject<AnalysisChange<P, A>> subject = updatesPerResource.get(resource.getName());
+        if(subject == null) {
+            return null;
+        }
+        final AnalysisChange<P, A> change = subject.toBlocking().firstOrDefault(null);
+        if(change == null) {
+            return null;
+        }
+        return change.result;
     }
 
 

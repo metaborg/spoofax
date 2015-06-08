@@ -24,21 +24,15 @@ public class SourceAttachment extends AbstractTermAttachment {
         SourceAttachment.class);
 
     private final FileObject resource;
-    private final IParserConfig controller;
 
 
-    private SourceAttachment(FileObject resource, IParserConfig parserConfig) {
+    private SourceAttachment(FileObject resource) {
         this.resource = resource;
-        this.controller = parserConfig;
     }
 
 
     public FileObject getFile() {
         return resource;
-    }
-
-    public IParserConfig getParseController() {
-        return controller;
     }
 
     public TermAttachmentType<SourceAttachment> getAttachmentType() {
@@ -66,17 +60,12 @@ public class SourceAttachment extends AbstractTermAttachment {
         return resourceService.resolve(fileName);
     }
 
-    public static IParserConfig getParserConfig(ISimpleTerm term) {
-        SourceAttachment resource = ParentAttachment.getRoot(term).getAttachment(TYPE);
-        return resource == null ? null : resource.controller;
-    }
-
     /**
      * Sets the resource for a term tree. Should only be applied to the root of a tree.
      */
-    public static void putSource(ISimpleTerm term, FileObject resource, IParserConfig controller) {
+    public static void putSource(ISimpleTerm term, FileObject resource) {
         ISimpleTerm root = ParentAttachment.getRoot(term);
         assert term == root;
-        root.putAttachment(new SourceAttachment(resource, controller));
+        root.putAttachment(new SourceAttachment(resource));
     }
 }
