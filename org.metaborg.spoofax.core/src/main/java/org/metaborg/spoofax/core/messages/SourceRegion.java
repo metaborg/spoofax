@@ -11,6 +11,40 @@ public class SourceRegion implements ISourceRegion {
     private final int endColumn;
 
 
+    /**
+     * Creates a zero-length source region from a single offset. Row and column fields are set to -1 to indicate that
+     * they are not supported.
+     * 
+     * @param offset
+     *            Offset in the source file.
+     */
+    public SourceRegion(int offset) {
+        this.startOffset = offset;
+        this.startRow = -1;
+        this.startColumn = -1;
+        this.endOffset = offset;
+        this.endRow = -1;
+        this.endColumn = -1;
+    }
+
+    /**
+     * Creates a source region from a starting and ending offset. Row and column fields are set to -1 to indicate that
+     * they are not supported.
+     * 
+     * @param startOffset
+     *            Starting offset in the source file.
+     * @param endOffset
+     *            Ending offset in the source file.
+     */
+    public SourceRegion(int startOffset, int endOffset) {
+        this.startOffset = startOffset;
+        this.startRow = -1;
+        this.startColumn = -1;
+        this.endOffset = endOffset;
+        this.endRow = -1;
+        this.endColumn = -1;
+    }
+
     public SourceRegion(int startOffset, int startRow, int startColumn, int endOffset, int endRow, int endColumn) {
         this.startOffset = startOffset;
         this.startRow = startRow;
@@ -91,14 +125,18 @@ public class SourceRegion implements ISourceRegion {
         sb.append(startOffset);
         sb.append("-");
         sb.append(endOffset);
-        sb.append(" ");
-        sb.append(startRow);
-        sb.append("-");
-        sb.append(endRow);
-        sb.append(" ");
-        sb.append(startColumn);
-        sb.append("-");
-        sb.append(endColumn);
+        if(startRow >= 0 && endRow >= 0) {
+            sb.append(" ");
+            sb.append(startRow);
+            sb.append("-");
+            sb.append(endRow);
+        }
+        if(startColumn >= 0 && endColumn >= 0) {
+            sb.append(" ");
+            sb.append(startColumn);
+            sb.append("-");
+            sb.append(endColumn);
+        }
         return sb.toString();
     }
 }

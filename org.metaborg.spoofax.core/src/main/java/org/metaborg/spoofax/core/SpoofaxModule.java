@@ -79,8 +79,11 @@ import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.metaborg.spoofax.core.terms.TermFactoryService;
 import org.metaborg.spoofax.core.text.ISourceTextService;
 import org.metaborg.spoofax.core.text.SourceTextService;
+import org.metaborg.spoofax.core.tracing.IReferenceResolver;
 import org.metaborg.spoofax.core.tracing.ITracingService;
+import org.metaborg.spoofax.core.tracing.spoofax.ISpoofaxReferenceResolver;
 import org.metaborg.spoofax.core.tracing.spoofax.ISpoofaxTracingService;
+import org.metaborg.spoofax.core.tracing.spoofax.SpoofaxReferenceResolver;
 import org.metaborg.spoofax.core.tracing.spoofax.SpoofaxTracingService;
 import org.metaborg.spoofax.core.transform.CompileGoal;
 import org.metaborg.spoofax.core.transform.ITransformer;
@@ -326,6 +329,10 @@ public class SpoofaxModule extends AbstractModule {
         bind(ISpoofaxTracingService.class).to(SpoofaxTracingService.class);
         bind(new TypeLiteral<ITracingService<IStrategoTerm, IStrategoTerm, IStrategoTerm>>() {}).to(
             SpoofaxTracingService.class);
+
+        bind(SpoofaxReferenceResolver.class).in(Singleton.class);
+        bind(ISpoofaxReferenceResolver.class).to(SpoofaxReferenceResolver.class);
+        bind(new TypeLiteral<IReferenceResolver<IStrategoTerm, IStrategoTerm>>() {}).to(SpoofaxReferenceResolver.class);
     }
 
     protected void bindOther() {

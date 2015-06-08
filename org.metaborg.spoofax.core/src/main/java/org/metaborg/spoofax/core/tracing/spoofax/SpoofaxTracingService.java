@@ -56,8 +56,9 @@ public class SpoofaxTracingService implements ISpoofaxTracingService {
 
     private @Nullable ISourceLocation fromOrigin(IStrategoTerm fragment) {
         final IStrategoTerm origin = origin(fragment);
-        if(origin == null)
-            return null;
+        if(origin == null) {
+            return fromParsed(fragment);
+        }
         return fromParsed(origin);
     }
 

@@ -174,27 +174,27 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
                 final IStrategoTerm resultTerm = StrategoRuntimeUtils.invoke(interpreter, inputTerm, analysisStrategy);
                 if(resultTerm == null) {
                     logger.trace("Analysis for {} failed", resource);
-                    results.add(singleASTMakeResult(analysisFailedMessage(interpreter), parseResult, null));
+                    results.add(singleASTMakeResult(analysisFailedMessage(interpreter), parseResult, context, null));
                 } else if(!(resultTerm instanceof IStrategoTuple)) {
                     logger.trace("Analysis for {} has unexpected result, not a tuple", resource);
                     results.add(singleASTMakeResult(String.format("Unexpected results from analysis {}", resultTerm),
-                        parseResult, null));
+                        parseResult, context, null));
                 } else if(resultTerm.getSubtermCount() == 4) {
                     logger.trace("Analysis for {} done", resource);
-                    results.add(singleASTMakeResult(resultTerm, parseResult));
+                    results.add(singleASTMakeResult(resultTerm, parseResult, context));
                 } else if(resultTerm.getSubtermCount() == 3) {
                     logger.trace("Analysis for {} done", resource);
-                    results.add(singleASTMakeResultNoAST(resultTerm, parseResult));
+                    results.add(singleASTMakeResultNoAST(resultTerm, parseResult, context));
                 } else {
                     logger.trace(
                         "Analysis for {} has unexpected result, tuple with more than 4 or less than 2 elements",
                         resource);
                     results.add(singleASTMakeResult(String.format("Unexpected results from analysis {}", resultTerm),
-                        parseResult, null));
+                        parseResult, context, null));
                 }
             } catch(SpoofaxException e) {
                 logger.trace("Analysis for {} failed", resource);
-                results.add(singleASTMakeResult(analysisFailedMessage(interpreter), parseResult, e));
+                results.add(singleASTMakeResult(analysisFailedMessage(interpreter), parseResult, context, e));
             }
         }
 
@@ -203,27 +203,28 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
     }
 
     private AnalysisFileResult<IStrategoTerm, IStrategoTerm> singleASTMakeResult(IStrategoTerm result,
-        ParseResult<IStrategoTerm> parseResult) {
+        ParseResult<IStrategoTerm> parseResult, IContext context) {
         final FileObject source = parseResult.source;
         final Collection<IMessage> messages = Lists.newLinkedList();
         messages.addAll(StrategoAnalysisService.makeMessages(source, MessageSeverity.ERROR, result.getSubterm(1)));
         messages.addAll(StrategoAnalysisService.makeMessages(source, MessageSeverity.WARNING, result.getSubterm(2)));
         messages.addAll(StrategoAnalysisService.makeMessages(source, MessageSeverity.NOTE, result.getSubterm(3)));
-        return new AnalysisFileResult<IStrategoTerm, IStrategoTerm>(result.getSubterm(0), source, messages, parseResult);
+        return new AnalysisFileResult<IStrategoTerm, IStrategoTerm>(result.getSubterm(0), source, context, messages,
+            parseResult);
     }
 
     private AnalysisFileResult<IStrategoTerm, IStrategoTerm> singleASTMakeResultNoAST(IStrategoTerm result,
-        ParseResult<IStrategoTerm> parseResult) {
+        ParseResult<IStrategoTerm> parseResult, IContext context) {
         final FileObject source = parseResult.source;
         final Collection<IMessage> messages = Lists.newLinkedList();
         messages.addAll(StrategoAnalysisService.makeMessages(source, MessageSeverity.ERROR, result.getSubterm(0)));
         messages.addAll(StrategoAnalysisService.makeMessages(source, MessageSeverity.WARNING, result.getSubterm(1)));
         messages.addAll(StrategoAnalysisService.makeMessages(source, MessageSeverity.NOTE, result.getSubterm(2)));
-        return new AnalysisFileResult<IStrategoTerm, IStrategoTerm>(null, source, messages, parseResult);
+        return new AnalysisFileResult<IStrategoTerm, IStrategoTerm>(null, source, context, messages, parseResult);
     }
 
     private AnalysisFileResult<IStrategoTerm, IStrategoTerm> singleASTMakeResult(String errorString,
-        ParseResult<IStrategoTerm> parseResult, Throwable e) {
+        ParseResult<IStrategoTerm> parseResult, IContext context, Throwable e) {
         if(e != null) {
             logger.error(errorString, e);
         } else {
@@ -231,8 +232,8 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
         }
         final FileObject source = parseResult.source;
         final IMessage message = MessageFactory.newAnalysisErrorAtTop(source, errorString, e);
-        return new AnalysisFileResult<IStrategoTerm, IStrategoTerm>(null, source, Iterables2.singleton(message),
-            parseResult);
+        return new AnalysisFileResult<IStrategoTerm, IStrategoTerm>(null, source, context,
+            Iterables2.singleton(message), parseResult);
     }
 
 
@@ -248,7 +249,6 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
             logger.error(message);
             throw new AnalysisException(sources, context, message, e);
         }
-        final ILanguage language = context.language();
 
         logger.trace("Creating input terms for analysis (File/3 terms)");
         final Collection<IStrategoAppl> analysisInputs = Lists.newLinkedList();
@@ -306,7 +306,7 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
         final Collection<AnalysisFileResult<IStrategoTerm, IStrategoTerm>> fileResults = Sets.newHashSet();
         for(IStrategoTerm result : fileResultsTerm) {
             final AnalysisFileResult<IStrategoTerm, IStrategoTerm> fileResult =
-                multiASTMakeResult(result, language, originalSources);
+                multiASTMakeResult(result, context, originalSources);
             if(fileResult == null) {
                 continue;
             }
@@ -321,27 +321,24 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
             timeResult);
     }
 
-    private AnalysisFileResult<IStrategoTerm, IStrategoTerm> multiASTMakeResult(IStrategoTerm res, ILanguage language,
+    private AnalysisFileResult<IStrategoTerm, IStrategoTerm> multiASTMakeResult(IStrategoTerm result, IContext context,
         Map<String, FileObject> originalSources) {
-        assert res != null;
-        assert res.getSubtermCount() == 8;
-
-        final String file = Tools.asJavaString(res.getSubterm(2));
+        final String file = Tools.asJavaString(result.getSubterm(2));
         final FileObject resource = originalSources.get(file);
         if(resource == null) {
             logger.error("Cannot find original source for {}, skipping result", file);
             return null;
         }
         final Collection<IMessage> messages = Sets.newHashSet();
-        messages.addAll(StrategoAnalysisService.makeMessages(resource, MessageSeverity.ERROR, res.getSubterm(5)));
-        messages.addAll(StrategoAnalysisService.makeMessages(resource, MessageSeverity.WARNING, res.getSubterm(6)));
-        messages.addAll(StrategoAnalysisService.makeMessages(resource, MessageSeverity.NOTE, res.getSubterm(7)));
-        final IStrategoTerm ast = res.getSubterm(4);
-        final IStrategoTerm previousAst = res.getSubterm(3);
+        messages.addAll(StrategoAnalysisService.makeMessages(resource, MessageSeverity.ERROR, result.getSubterm(5)));
+        messages.addAll(StrategoAnalysisService.makeMessages(resource, MessageSeverity.WARNING, result.getSubterm(6)));
+        messages.addAll(StrategoAnalysisService.makeMessages(resource, MessageSeverity.NOTE, result.getSubterm(7)));
+        final IStrategoTerm ast = result.getSubterm(4);
+        final IStrategoTerm previousAst = result.getSubterm(3);
 
-        return new AnalysisFileResult<IStrategoTerm, IStrategoTerm>(ast, resource, messages,
-            new ParseResult<IStrategoTerm>("", previousAst, resource, Arrays.asList(new IMessage[] {}), -1, language,
-                null, null));
+        return new AnalysisFileResult<IStrategoTerm, IStrategoTerm>(ast, resource, context, messages,
+            new ParseResult<IStrategoTerm>("", previousAst, resource, Arrays.asList(new IMessage[] {}), -1,
+                context.language(), null, null));
     }
 
     private Collection<String> makeAffectedPartitions(IStrategoTerm affectedTerm) {
