@@ -60,6 +60,7 @@ import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.stratego.StrategoLocalPath;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeService;
 import org.metaborg.spoofax.core.stratego.primitives.DummyPrimitive;
+import org.metaborg.spoofax.core.stratego.primitives.ForeignCallPrimitive;
 import org.metaborg.spoofax.core.stratego.primitives.LanguageIncludesPrimitive;
 import org.metaborg.spoofax.core.stratego.primitives.LanguageSourcesPrimitive;
 import org.metaborg.spoofax.core.stratego.primitives.ParseFilePrimitive;
@@ -239,6 +240,7 @@ public class SpoofaxModule extends AbstractModule {
         bindPrimitive(spoofaxPrimitiveLibrary, ProjectPathPrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, LanguageSourcesPrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, LanguageIncludesPrimitive.class);
+        bindPrimitive(spoofaxPrimitiveLibrary, ForeignCallPrimitive.class);
         bindPrimitive(spoofaxPrimitiveLibrary, new DummyPrimitive("SSL_EXT_set_total_work_units", 0, 0));
         bindPrimitive(spoofaxPrimitiveLibrary, new DummyPrimitive("SSL_EXT_set_markers", 0, 1));
         bindPrimitive(spoofaxPrimitiveLibrary, new DummyPrimitive("SSL_EXT_refreshresource", 0, 1));
