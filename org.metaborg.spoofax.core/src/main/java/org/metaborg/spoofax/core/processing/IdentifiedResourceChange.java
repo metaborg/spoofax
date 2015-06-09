@@ -16,4 +16,9 @@ public class IdentifiedResourceChange {
         this.language = language;
         this.dialect = dialect;
     }
+
+
+    @Override public String toString() {
+        return change.toString() + " in " + language.toString();
+    }
 }
