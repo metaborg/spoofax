@@ -25,6 +25,7 @@ import org.metaborg.spoofax.core.tracing.IReferenceResolver;
 import org.metaborg.spoofax.core.tracing.Resolution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoString;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
@@ -130,7 +131,15 @@ public class SpoofaxReferences implements IReferenceResolver<IStrategoTerm, IStr
             final IStrategoTerm output = tuple._1();
             final ISourceRegion offsetRegion = tuple._2();
 
-            return new Hover(offsetRegion, output.toString());
+            final String text;
+            if(output.getTermType() == IStrategoTerm.STRING) {
+                text = Tools.asJavaString(output);
+            } else {
+                text = output.toString();
+            }
+            final String massagedText = text.replace("\\\"", "\"").replace("\\n", "");
+            
+            return new Hover(offsetRegion, massagedText);
         } catch(SpoofaxException e) {
             throw new SpoofaxException("Hover information creation failed unexpectedly", e);
         }
