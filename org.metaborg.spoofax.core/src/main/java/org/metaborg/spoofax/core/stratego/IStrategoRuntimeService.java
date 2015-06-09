@@ -1,7 +1,6 @@
 package org.metaborg.spoofax.core.stratego;
 
 import org.metaborg.spoofax.core.SpoofaxException;
-import org.metaborg.spoofax.core.analysis.stratego.StrategoFacet;
 import org.metaborg.spoofax.core.context.IContext;
 import org.strategoxt.HybridInterpreter;
 

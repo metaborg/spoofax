@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.core.analysis.stratego;
+package org.metaborg.spoofax.core.stratego;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -8,6 +8,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.spoofax.core.analysis.stratego.StrategoAnalysisMode;
 import org.metaborg.spoofax.core.language.ILanguageFacet;
 import org.metaborg.spoofax.core.resource.ResourceService;
 

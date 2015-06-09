@@ -5,13 +5,13 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.spoofax.core.analysis.stratego.StrategoFacet;
-import org.metaborg.spoofax.core.analysis.stratego.StrategoFacetFromESV;
 import org.metaborg.spoofax.core.completion.jsglr.CompletionFacet;
 import org.metaborg.spoofax.core.completion.jsglr.CompletionFacetFromItemSets;
 import org.metaborg.spoofax.core.context.ContextFacet;
 import org.metaborg.spoofax.core.context.IContextStrategy;
 import org.metaborg.spoofax.core.esv.ESVReader;
+import org.metaborg.spoofax.core.stratego.StrategoFacet;
+import org.metaborg.spoofax.core.stratego.StrategoFacetFromESV;
 import org.metaborg.spoofax.core.style.StylerFacet;
 import org.metaborg.spoofax.core.style.StylerFacetFromESV;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;

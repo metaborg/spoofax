@@ -15,6 +15,7 @@ import org.metaborg.spoofax.core.messages.ISourceRegion;
 import org.metaborg.spoofax.core.messages.SourceRegion;
 import org.metaborg.spoofax.core.resource.IResourceService;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
+import org.metaborg.spoofax.core.stratego.StrategoFacet;
 import org.metaborg.spoofax.core.stratego.StrategoLocalPath;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeUtils;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
@@ -60,8 +61,18 @@ public class SpoofaxReferences implements IReferenceResolver<IStrategoTerm, IStr
 
     @Override public @Nullable Resolution resolve(int offset, AnalysisFileResult<IStrategoTerm, IStrategoTerm> result)
         throws SpoofaxException {
+        final ILanguage language = result.context.language();
+        final StrategoFacet facet = language.facet(StrategoFacet.class);
+        if(facet == null) {
+            return null;
+        }
+        final String resolverStrategy = facet.resolverStrategy();
+        if(resolverStrategy == null) {
+            return null;
+        }
+
         try {
-            final P2<IStrategoTerm, ISourceRegion> tuple = outputs(offset, result, "editor-resolve");
+            final P2<IStrategoTerm, ISourceRegion> tuple = outputs(offset, result, resolverStrategy);
             if(tuple == null) {
                 return null;
             }
@@ -100,8 +111,18 @@ public class SpoofaxReferences implements IReferenceResolver<IStrategoTerm, IStr
 
     @Override public Hover hover(int offset, AnalysisFileResult<IStrategoTerm, IStrategoTerm> result)
         throws SpoofaxException {
+        final ILanguage language = result.context.language();
+        final StrategoFacet facet = language.facet(StrategoFacet.class);
+        if(facet == null) {
+            return null;
+        }
+        final String hoverStrategy = facet.hoverStrategy();
+        if(hoverStrategy == null) {
+            return null;
+        }
+
         try {
-            final P2<IStrategoTerm, ISourceRegion> tuple = outputs(offset, result, "editor-hover");
+            final P2<IStrategoTerm, ISourceRegion> tuple = outputs(offset, result, hoverStrategy);
             if(tuple == null) {
                 return null;
             }
