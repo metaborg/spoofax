@@ -11,6 +11,10 @@
 /strategoxt-distrib.tar
 /includes
 /META-INF
+/morepoms/**/.classpath
+/morepoms/**/.project
+/morepoms/**/.settings
 /morepoms/**/target
+/morepoms/**/bin
 
 *.rtree
