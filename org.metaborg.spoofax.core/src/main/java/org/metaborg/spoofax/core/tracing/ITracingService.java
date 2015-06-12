@@ -21,7 +21,7 @@ public interface ITracingService<P, A, T> {
 
     public abstract Iterable<P> toParsed(ParseResult<P> result, ISourceRegion region);
 
-    public abstract Iterable<P> toAnalyzed(AnalysisFileResult<P, A> result, ISourceRegion region);
+    public abstract Iterable<A> toAnalyzed(AnalysisFileResult<P, A> result, ISourceRegion region);
 
-    public abstract Iterable<P> toTransformed(TransformResult<?, T> result, ISourceRegion region);
+    public abstract Iterable<T> toTransformed(TransformResult<?, T> result, ISourceRegion region);
 }
