@@ -1,32 +1,10 @@
 package org.metaborg.spoofax.meta.core;
 
+import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
-import org.metaborg.spoofax.core.SpoofaxModule;
-import org.metaborg.spoofax.core.project.IDependencyService;
-import org.metaborg.spoofax.core.project.IProjectService;
 
-public class SpoofaxMetaModule extends SpoofaxModule {
-
-    @Override
-    protected void configure() {
-        super.configure();
-    }
-
-    @Override
-    protected void bindDependency() {
-        bind(IDependencyService.class).to(MavenDependencyService.class).in(Singleton.class);
-    }
-
-    @Override
-    protected void bindProject() {
-        bind(IProjectService.class).to(DummyMavenProjectService.class).in(Singleton.class);
-        bind(IMavenProjectService.class).to(DummyMavenProjectService.class).in(Singleton.class);
-    }
-
-    @Override
-    protected void bindBuilder() {
-        super.bindBuilder();
+public class SpoofaxMetaModule extends AbstractModule {
+    @Override protected void configure() {
         bind(SpoofaxMetaBuilder.class).in(Singleton.class);
     }
-
 }

@@ -1,7 +1,8 @@
 package org.metaborg.spoofax.generator.project;
 
 import java.io.File;
-import static org.metaborg.spoofax.core.project.SpoofaxProjectConstants.*;
+
+import static org.metaborg.spoofax.core.build.paths.SpoofaxProjectConstants.*;
 
 public class ProjectSettings {
     public enum Format {

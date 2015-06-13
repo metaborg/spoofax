@@ -1,14 +1,19 @@
-package org.metaborg.spoofax.core.project;
+package org.metaborg.spoofax.core.build.paths;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
+
 import java.util.List;
+
 import javax.annotation.Nullable;
+
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.spoofax.core.SpoofaxRuntimeException;
+import org.metaborg.spoofax.core.build.dependency.IDependencyService;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.LanguagePathFacet;
+import org.metaborg.spoofax.core.project.IProject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,20 +22,20 @@ public class DependencyPathProvider implements ILanguagePathProvider {
 
     private final IDependencyService dependencyService;
 
-    @Inject
-    public DependencyPathProvider(IDependencyService dependencyService) {
+    
+    @Inject public DependencyPathProvider(IDependencyService dependencyService) {
         this.dependencyService = dependencyService;
     }
 
-    @Override
-    public Iterable<FileObject> sources(IProject project, String language) {
+    
+    @Override public Iterable<FileObject> sources(IProject project, String language) {
         Iterable<ILanguage> dependencies = dependencyService.compileDependencies(project);
         List<FileObject> sources = Lists.newArrayList();
-        for ( ILanguage dependency : dependencies ) {
+        for(ILanguage dependency : dependencies) {
             LanguagePathFacet facet = dependency.facet(LanguagePathFacet.class);
-            if ( facet != null ) {
+            if(facet != null) {
                 List<String> paths = facet.sources.get(language);
-                if ( paths != null ) {
+                if(paths != null) {
                     resolve(project.location(), paths, sources);
                 }
             }
@@ -38,15 +43,14 @@ public class DependencyPathProvider implements ILanguagePathProvider {
         return sources;
     }
 
-    @Override
-    public Iterable<FileObject> includes(IProject project, String language) {
+    @Override public Iterable<FileObject> includes(IProject project, String language) {
         Iterable<ILanguage> dependencies = dependencyService.runtimeDependencies(project);
         List<FileObject> includes = Lists.newArrayList();
-        for ( ILanguage dependency : dependencies ) {
+        for(ILanguage dependency : dependencies) {
             LanguagePathFacet facet = dependency.facet(LanguagePathFacet.class);
-            if ( facet != null ) {
+            if(facet != null) {
                 List<String> paths = facet.includes.get(language);
-                if ( paths != null ) {
+                if(paths != null) {
                     resolve(dependency.location(), paths, includes);
                 }
             }
@@ -54,13 +58,12 @@ public class DependencyPathProvider implements ILanguagePathProvider {
         return includes;
     }
 
-    private void resolve(FileObject basedir, @Nullable List<String> paths,
-            List<FileObject> filesToAppend) {
-        if ( paths != null ) {
-            for ( String path : paths ) {
+    private void resolve(FileObject basedir, @Nullable List<String> paths, List<FileObject> filesToAppend) {
+        if(paths != null) {
+            for(String path : paths) {
                 try {
                     filesToAppend.add(basedir.resolveFile(path));
-                } catch (FileSystemException ex) {
+                } catch(FileSystemException ex) {
                     throw new SpoofaxRuntimeException(ex);
                 }
             }

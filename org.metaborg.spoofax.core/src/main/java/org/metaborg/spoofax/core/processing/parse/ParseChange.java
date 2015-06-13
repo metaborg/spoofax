@@ -3,7 +3,7 @@ package org.metaborg.spoofax.core.processing.parse;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.spoofax.core.processing.UpdateKind;
+import org.metaborg.spoofax.core.build.UpdateKind;
 import org.metaborg.spoofax.core.syntax.ParseException;
 import org.metaborg.spoofax.core.syntax.ParseResult;
 

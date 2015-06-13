@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.core.processing;
+package org.metaborg.spoofax.core.build;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;

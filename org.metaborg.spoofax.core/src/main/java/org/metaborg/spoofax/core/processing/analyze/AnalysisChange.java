@@ -6,7 +6,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.analysis.AnalysisException;
 import org.metaborg.spoofax.core.analysis.AnalysisFileResult;
 import org.metaborg.spoofax.core.analysis.AnalysisResult;
-import org.metaborg.spoofax.core.processing.UpdateKind;
+import org.metaborg.spoofax.core.build.UpdateKind;
 
 public class AnalysisChange<P, A> {
     public final UpdateKind kind;

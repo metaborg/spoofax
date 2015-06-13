@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.core.processing;
+package org.metaborg.spoofax.core.build;
 
 import java.io.IOException;
 import java.util.Set;

@@ -1,11 +1,14 @@
-package org.metaborg.spoofax.core.project;
+package org.metaborg.spoofax.core.build.paths;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
+
 import java.util.List;
 import java.util.Set;
+
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.spoofax.core.project.IProject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

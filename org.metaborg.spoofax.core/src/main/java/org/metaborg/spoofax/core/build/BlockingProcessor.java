@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.core.processing;
+package org.metaborg.spoofax.core.build;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.language.LanguageChange;

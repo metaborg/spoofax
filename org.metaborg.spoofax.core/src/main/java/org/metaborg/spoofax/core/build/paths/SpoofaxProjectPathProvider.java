@@ -1,15 +1,19 @@
-package org.metaborg.spoofax.core.project;
+package org.metaborg.spoofax.core.build.paths;
 
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
+
 import java.util.Collection;
 import java.util.List;
+
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.spoofax.core.SpoofaxRuntimeException;
-import static org.metaborg.spoofax.core.project.SpoofaxProjectConstants.*;
+import org.metaborg.spoofax.core.project.IProject;
+
+import static org.metaborg.spoofax.core.build.paths.SpoofaxProjectConstants.*;
 
 public class SpoofaxProjectPathProvider implements ILanguagePathProvider {
 

@@ -1,7 +1,6 @@
-package org.metaborg.spoofax.core.project;
+package org.metaborg.spoofax.core.build.paths;
 
 public class SpoofaxProjectConstants {
-    
     public static final String LANG_STRATEGO = "Stratego";
     public static final String LANG_SDF = "SDF";
     public static final String LANG_ESV = "EditorService";
@@ -15,12 +14,11 @@ public class SpoofaxProjectConstants {
     public static final String DIR_INCLUDE = "include";
     public static final String DIR_LIB = "lib";
     public static final String DIR_SRCGEN = "src-gen";
-    public static final String DIR_SRCGEN_SYNTAX = DIR_SRCGEN+"/syntax";
-    public static final String DIR_JAVA = DIR_EDITOR+"/java";
-    public static final String DIR_JAVA_TRANS = DIR_JAVA+"/trans";
+    public static final String DIR_SRCGEN_SYNTAX = DIR_SRCGEN + "/syntax";
+    public static final String DIR_JAVA = DIR_EDITOR + "/java";
+    public static final String DIR_JAVA_TRANS = DIR_JAVA + "/trans";
 
 
     private SpoofaxProjectConstants() {
     }
-
 }
