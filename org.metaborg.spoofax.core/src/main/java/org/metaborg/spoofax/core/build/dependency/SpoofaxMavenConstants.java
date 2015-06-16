@@ -1,8 +1,10 @@
 package org.metaborg.spoofax.core.build.dependency;
 
 public class SpoofaxMavenConstants {
-    public static final String SPOOFAX_MAVEN_PLUGIN = "spoofax-maven-plugin";
-    public static final String TYPE_SPOOFAX_LANGUAGE = "spoofax-language";
+    public static final String GROUP_ID = "org.metaborg";
+    public static final String PLUGIN_NAME = "spoofax-maven-plugin";
+    public static final String QUAL_PLUGIN_NAME = GROUP_ID + ":" + PLUGIN_NAME;
+    public static final String PACKAGING_TYPE = "spoofax-language";
 
 
     private SpoofaxMavenConstants() {

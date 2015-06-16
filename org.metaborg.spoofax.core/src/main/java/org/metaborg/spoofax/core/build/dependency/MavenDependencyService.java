@@ -58,9 +58,9 @@ public class MavenDependencyService implements IDependencyService {
     private Iterable<LanguageIdentifier> compileDependencies(MavenProject project) {
         final Collection<LanguageIdentifier> dependencies = Lists.newLinkedList();
         for(Plugin plugin : project.getModel().getBuild().getPlugins()) {
-            if(SpoofaxMavenConstants.SPOOFAX_MAVEN_PLUGIN.equals(plugin.getArtifactId())) {
+            if(SpoofaxMavenConstants.PLUGIN_NAME.equals(plugin.getArtifactId())) {
                 for(Dependency dependency : plugin.getDependencies()) {
-                    if(SpoofaxMavenConstants.TYPE_SPOOFAX_LANGUAGE.equalsIgnoreCase(dependency.getType())) {
+                    if(SpoofaxMavenConstants.PACKAGING_TYPE.equalsIgnoreCase(dependency.getType())) {
                         dependencies.add(new LanguageIdentifier(dependency.getArtifactId(), LanguageVersion
                             .parse(dependency.getVersion())));
                     }
@@ -73,7 +73,7 @@ public class MavenDependencyService implements IDependencyService {
     private Iterable<LanguageIdentifier> runtimeDependencies(MavenProject project) {
         final Collection<LanguageIdentifier> dependencies = Lists.newLinkedList();
         for(Dependency dependency : project.getModel().getDependencies()) {
-            if(SpoofaxMavenConstants.TYPE_SPOOFAX_LANGUAGE.equalsIgnoreCase(dependency.getType())) {
+            if(SpoofaxMavenConstants.PACKAGING_TYPE.equalsIgnoreCase(dependency.getType())) {
                 dependencies.add(new LanguageIdentifier(dependency.getArtifactId(), LanguageVersion.parse(dependency
                     .getVersion())));
             }

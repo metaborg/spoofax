@@ -48,7 +48,7 @@
     <dependency>
       <groupId>org.apache.ant</groupId>
       <artifactId>ant</artifactId>
-      <version>1.9.4</version>
+      <version>1.9.2</version>
     </dependency>
     <dependency>
       <groupId>org.apache.maven</groupId>
@@ -69,6 +69,7 @@
               !sun.misc,
               !sun.nio.cs,
               org.apache.maven.*;provider=m2e;mandatory:=provider,
+              org.codehaus.plexus.*;provider=m2e;mandatory:=provider,
               *
             </Import-Package>
           </instructions>
