@@ -125,26 +125,6 @@
     </dependency>
   </dependencies>
 
-  <build>
-    <plugins>
-      <!-- Special import instruction for Maven, to use M2E's embedded Maven runtime. -->
-      <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-bundle-plugin</artifactId>
-        <configuration>
-          <instructions>
-            <Import-Package>
-              !sun.misc,
-              !sun.nio.cs,
-              org.apache.maven.*;provider=m2e;mandatory:=provider,
-              *
-            </Import-Package>
-          </instructions>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
-
   <developers>
     <developer>
       <name>Gabriël Konat</name>

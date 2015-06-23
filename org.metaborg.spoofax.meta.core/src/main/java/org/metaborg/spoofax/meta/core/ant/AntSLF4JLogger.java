@@ -1,13 +1,20 @@
-package org.metaborg.spoofax.meta.core;
+package org.metaborg.spoofax.meta.core.ant;
 
 import org.apache.tools.ant.BuildEvent;
 import org.apache.tools.ant.BuildListener;
 import org.apache.tools.ant.Project;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AntSLF4JLogger implements BuildListener {
+    static final Logger thisLog = LoggerFactory.getLogger(AntSLF4JLogger.class);
+
     private final Logger log;
 
+
+    public AntSLF4JLogger() {
+        this(thisLog);
+    }
 
     public AntSLF4JLogger(Logger log) {
         this.log = log;
