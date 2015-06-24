@@ -97,6 +97,11 @@
       <groupId>org.javabits.jgrapht</groupId>
       <artifactId>jgrapht-core</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.apache.maven</groupId>
+      <artifactId>maven-core</artifactId>
+      <version>3.3.3</version>
+    </dependency>
 
     <dependency>
       <groupId>junit</groupId>

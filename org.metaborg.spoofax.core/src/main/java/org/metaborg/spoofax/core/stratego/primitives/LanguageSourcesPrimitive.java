@@ -2,10 +2,12 @@ package org.metaborg.spoofax.core.stratego.primitives;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
+
 import java.io.File;
 import java.util.List;
+
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.spoofax.core.project.ILanguagePathService;
+import org.metaborg.spoofax.core.build.paths.ILanguagePathService;
 import org.metaborg.spoofax.core.project.IProject;
 import org.metaborg.spoofax.core.project.IProjectService;
 import org.metaborg.spoofax.core.resource.IResourceService;
