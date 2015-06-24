@@ -1,0 +1,15 @@
+module {{name}}
+
+imports
+  
+  Common
+
+context-free start-symbols
+  
+  {{startSymbol}}
+
+context-free syntax
+  
+  {{startSymbol}}.Dummy = <>
+
+]

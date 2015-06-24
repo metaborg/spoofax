@@ -75,7 +75,7 @@ public class JSGLRI {
                 errorHandler.setRecoveryFailed(false);
                 errorHandler.gatherNonFatalErrors(ast);
                 if(resource != null) {
-                    SourceAttachment.putSource(ast, resource, config);
+                    SourceAttachment.putSource(ast, resource);
                 }
             }
         } else {

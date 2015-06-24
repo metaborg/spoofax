@@ -6,8 +6,8 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.spoofax.core.build.UpdateKind;
 import org.metaborg.spoofax.core.language.ILanguage;
-import org.metaborg.spoofax.core.processing.UpdateKind;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
 import org.metaborg.spoofax.core.syntax.ParseException;
 import org.metaborg.spoofax.core.syntax.ParseResult;

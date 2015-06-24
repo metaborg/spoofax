@@ -1,0 +1,16 @@
+module check
+
+imports
+
+  include/{{name}}
+
+rules // Extensions for error/warning/note reporting
+  
+  constraint-error:
+    _ -> <fail>
+ 
+  constraint-warning:
+    _ -> <fail>
+    
+  constraint-note:
+    _ -> <fail>

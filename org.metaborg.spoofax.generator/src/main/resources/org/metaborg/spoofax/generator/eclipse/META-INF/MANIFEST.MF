@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: {{name}} language Eclipse plugin
+Bundle-SymbolicName: {{id}}.eclipse;singleton:=true
+Bundle-Version: {{eclipseVersion}}
+Bundle-Vendor: metaborg.org
+Bundle-ActivationPolicy: lazy
+Require-Bundle: org.metaborg.spoofax.eclipse
+Bundle-RequiredExecutionEnvironment: JavaSE-1.7

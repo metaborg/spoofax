@@ -21,15 +21,17 @@ public class Language implements ILanguage {
     private transient FileObject location;
     private final LanguageVersion version;
     private final int sequenceId;
+    private final String id;
 
     private transient ClassToInstanceMap<ILanguageFacet> facets = MutableClassToInstanceMap.create();
     private transient Subject<LanguageFacetChange, LanguageFacetChange> facetChanges = PublishSubject.create();
 
-    public Language(String name, FileObject location, LanguageVersion version, int sequenceId) {
+    public Language(String name, FileObject location, LanguageVersion version, int sequenceId, String id) {
         this.name = name;
         this.location = location;
         this.version = version;
         this.sequenceId = sequenceId;
+        this.id = id;
     }
 
 
@@ -47,6 +49,10 @@ public class Language implements ILanguage {
 
     @Override public int sequenceId() {
         return sequenceId;
+    }
+
+    @Override public String id() {
+        return id;
     }
 
 

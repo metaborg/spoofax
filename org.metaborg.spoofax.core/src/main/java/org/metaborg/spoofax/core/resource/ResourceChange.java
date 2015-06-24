@@ -47,4 +47,9 @@ public final class ResourceChange implements IResourceChange, Serializable {
     @Override public @Nullable FileObject to() {
         return renamedTo;
     }
+
+
+    @Override public String toString() {
+        return kind.toString() + " " + resource.toString();
+    }
 }

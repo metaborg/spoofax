@@ -24,6 +24,19 @@ public interface IContextService {
     public IContext get(FileObject resource, ILanguage language) throws ContextException;
 
     /**
+     * Retrieves a context for given location inside {@code context} and given language.
+     * 
+     * @param context
+     *            Context to use the location from.
+     * @param language
+     *            Language to get a context for.
+     * @return Existing or created context.
+     * @throws ContextException
+     *             When an error occurs when retrieving or creating a context.
+     */
+    public IContext get(IContext context, ILanguage language) throws ContextException;
+
+    /**
      * Unloads given context, optionally persisting it to disk and removing it from memory.
      * 
      * @param context

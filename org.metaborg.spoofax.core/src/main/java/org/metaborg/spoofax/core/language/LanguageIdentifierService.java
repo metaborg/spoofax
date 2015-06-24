@@ -3,6 +3,8 @@ package org.metaborg.spoofax.core.language;
 import java.util.Set;
 
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
+import org.apache.commons.vfs2.FileType;
 import org.metaborg.spoofax.core.SpoofaxException;
 import org.metaborg.spoofax.core.SpoofaxRuntimeException;
 import org.metaborg.spoofax.core.language.dialect.IDialectIdentifier;
@@ -27,6 +29,30 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
 
 
     @Override public ILanguage identify(FileObject resource) {
+        return identify(resource, languageService.getAllActive());
+    }
+
+    @Override public boolean identify(FileObject resource, ILanguage language) {
+        final IdentificationFacet identification = language.facet(IdentificationFacet.class);
+        if(identification == null) {
+            logger.error("Cannot identify resources of {}, language does not have an identification facet", language);
+            return false;
+        }
+        return identification.identify(resource);
+    }
+
+
+    @Override public ILanguage identify(FileObject resource, Iterable<ILanguage> languages) {
+        // Ignore directories.
+        try {
+            if(resource.getType() == FileType.FOLDER) {
+                return null;
+            }
+        } catch(FileSystemException e1) {
+            return null;
+        }
+        
+        // Try to identify using the dialect identifier first.
         try {
             final ILanguage dialect = dialectIdentifier.identify(resource);
             if(dialect != null) {
@@ -39,9 +65,10 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
             // Ignore
         }
 
+        // Identify using identification facet.
         final Set<String> identifiedLanguageNames = Sets.newLinkedHashSet();
         ILanguage identifiedLanguage = null;
-        for(ILanguage language : languageService.getAllActive()) {
+        for(ILanguage language : languages) {
             if(identify(resource, language)) {
                 identifiedLanguageNames.add(language.name());
                 identifiedLanguage = language;
@@ -54,14 +81,5 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
         }
 
         return identifiedLanguage;
-    }
-
-    @Override public boolean identify(FileObject resource, ILanguage language) {
-        final IdentificationFacet identification = language.facet(IdentificationFacet.class);
-        if(identification == null) {
-            logger.error("Cannot identify resources of {}, language does not have an identification facet", language);
-            return false;
-        }
-        return identification.identify(resource);
     }
 }

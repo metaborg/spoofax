@@ -10,7 +10,6 @@ import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.ILanguageCache;
 import org.metaborg.spoofax.core.language.dialect.IDialectService;
 import org.metaborg.spoofax.core.messages.IMessage;
-import org.metaborg.spoofax.core.messages.ISourceRegion;
 import org.metaborg.spoofax.core.syntax.FenceCharacters;
 import org.metaborg.spoofax.core.syntax.IParserConfiguration;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
@@ -24,8 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
-import org.spoofax.jsglr.client.imploder.IToken;
-import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.terms.util.NotImplementedException;
 
 import com.google.common.collect.Iterables;
@@ -69,13 +66,6 @@ public class JSGLRSyntaxService implements ISyntaxService<IStrategoTerm>, ILangu
         throw new NotImplementedException();
     }
 
-    @Override public ISourceRegion region(IStrategoTerm parsed) {
-        final IToken left = ImploderAttachment.getLeftToken(parsed);
-        final IToken right = ImploderAttachment.getRightToken(parsed);
-        if(left == null || right == null)
-            return null;
-        return JSGLRSourceRegionFactory.fromTokens(left, right);
-    }
 
     @Override public Iterable<String> singleLineCommentPrefixes(ILanguage language) {
         final SyntaxFacet facet = language.facet(SyntaxFacet.class);

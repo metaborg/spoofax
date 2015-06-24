@@ -3,6 +3,8 @@ package org.metaborg.spoofax.core.processing.analyze;
 import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.SpoofaxRuntimeException;
@@ -10,8 +12,8 @@ import org.metaborg.spoofax.core.analysis.AnalysisException;
 import org.metaborg.spoofax.core.analysis.AnalysisFileResult;
 import org.metaborg.spoofax.core.analysis.AnalysisResult;
 import org.metaborg.spoofax.core.analysis.IAnalysisService;
+import org.metaborg.spoofax.core.build.UpdateKind;
 import org.metaborg.spoofax.core.context.IContext;
-import org.metaborg.spoofax.core.processing.UpdateKind;
 import org.metaborg.spoofax.core.processing.parse.IParseResultRequester;
 import org.metaborg.spoofax.core.syntax.ParseResult;
 import org.metaborg.util.iterators.Iterables2;
@@ -103,6 +105,18 @@ public class AnalysisResultProcessor<P, A> implements IAnalysisResultProcessor<P
 
     @Override public Observable<AnalysisChange<P, A>> updates(FileObject resource) {
         return getUpdates(resource.getName());
+    }
+
+    @Override public @Nullable AnalysisFileResult<P, A> get(FileObject resource) {
+        final BehaviorSubject<AnalysisChange<P, A>> subject = updatesPerResource.get(resource.getName());
+        if(subject == null) {
+            return null;
+        }
+        final AnalysisChange<P, A> change = subject.toBlocking().firstOrDefault(null);
+        if(change == null) {
+            return null;
+        }
+        return change.result;
     }
 
 

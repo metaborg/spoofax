@@ -4,7 +4,6 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.language.ILanguage;
-import org.metaborg.spoofax.core.messages.ISourceRegion;
 
 /**
  * Interface for parsing, unparsing, and retrieving origin information.
@@ -42,15 +41,6 @@ public interface ISyntaxService<T> {
      */
     public abstract String unparse(T parsed, ILanguage language);
 
-    /**
-     * Attempts to retrieve the source region for given parsed fragment.
-     * 
-     * @param parsed
-     *            Parsed fragment.
-     * 
-     * @return Source region for parsed fragment, or null if no source region can be retrieved.
-     */
-    public abstract @Nullable ISourceRegion region(T parsed);
 
     /**
      * @return Single line comment prefix characters for given language.

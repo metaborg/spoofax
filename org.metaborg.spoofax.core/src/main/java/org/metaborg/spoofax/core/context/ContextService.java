@@ -25,22 +25,15 @@ public class ContextService implements IContextService {
 
 
     @Override public IContext get(FileObject resource, ILanguage language) throws ContextException {
-        final ContextFacet facet = language.facet(ContextFacet.class);
-        if(facet == null) {
-            final String message = String.format("Cannot get a context, % does not have a context facet", language);
-            logger.error(message);
-            throw new SpoofaxRuntimeException(message);
-        }
-
+        final ContextFacet facet = getFacet(language);
         final IContextStrategy strategy = facet.strategy();
         final ContextIdentifier identifier = strategy.get(resource, language);
-        final IContextInternal newContext = contextFactory.create(identifier);
-        final IContextInternal prevContext = contexts.putIfAbsent(identifier, newContext);
-        if(prevContext == null) {
-            newContext.initialize();
-            return newContext;
-        }
-        return prevContext;
+        return getOrCreate(identifier);
+    }
+
+    @Override public IContext get(IContext context, ILanguage language) throws ContextException {
+        final ContextIdentifier identifier = new ContextIdentifier(context.location(), language);
+        return getOrCreate(identifier);
     }
 
     @Override public void unload(IContext context) {
@@ -48,5 +41,25 @@ public class ContextService implements IContextService {
         contextInternal.unload();
         final ContextIdentifier identifier = contextInternal.identifier();
         contexts.remove(identifier);
+    }
+    
+    private ContextFacet getFacet(ILanguage language) {
+        final ContextFacet facet = language.facet(ContextFacet.class);
+        if(facet == null) {
+            final String message = String.format("Cannot get a context, % does not have a context facet", language);
+            logger.error(message);
+            throw new SpoofaxRuntimeException(message);
+        }
+        return facet;
+    }
+    
+    private IContextInternal getOrCreate(ContextIdentifier identifier) {
+        final IContextInternal newContext = contextFactory.create(identifier);
+        final IContextInternal prevContext = contexts.putIfAbsent(identifier, newContext);
+        if(prevContext == null) {
+            newContext.initialize();
+            return newContext;
+        }
+        return prevContext;
     }
 }

@@ -5,13 +5,13 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.spoofax.core.analysis.stratego.StrategoFacet;
-import org.metaborg.spoofax.core.analysis.stratego.StrategoFacetFromESV;
-import org.metaborg.spoofax.core.completion.jsglr.CompletionFacetFromItemSets;
 import org.metaborg.spoofax.core.completion.jsglr.CompletionFacet;
+import org.metaborg.spoofax.core.completion.jsglr.CompletionFacetFromItemSets;
 import org.metaborg.spoofax.core.context.ContextFacet;
 import org.metaborg.spoofax.core.context.IContextStrategy;
 import org.metaborg.spoofax.core.esv.ESVReader;
+import org.metaborg.spoofax.core.stratego.StrategoFacet;
+import org.metaborg.spoofax.core.stratego.StrategoFacetFromESV;
 import org.metaborg.spoofax.core.style.StylerFacet;
 import org.metaborg.spoofax.core.style.StylerFacetFromESV;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
@@ -64,15 +64,12 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
                 continue;
             }
             parents.add(languageLocation);
-            // GTODO: get language version from ESV?
-            languages.add(languageFromESV(languageLocation, esvFile, new LanguageVersion(1, 0, 0, 0)));
+            languages.add(languageFromESV(languageLocation, esvFile));
         }
         return languages;
     }
 
-
-    private ILanguage languageFromESV(FileObject location, FileObject esvFile, LanguageVersion version)
-        throws Exception {
+    private ILanguage languageFromESV(FileObject location, FileObject esvFile) throws Exception {
         logger.debug("Discovering language at {}", location);
 
         final TermReader reader =
@@ -84,9 +81,11 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         final IStrategoAppl esvTerm = (IStrategoAppl) term;
 
         final String name = languageName(esvTerm);
-        final Iterable<String> extensions = Iterables2.from(extensions(esvTerm));
-        final ILanguage language = languageService.create(name, version, location);
+        final String id = languageId(esvTerm);
+        final LanguageVersion version = LanguageVersion.parse(languageVersion(esvTerm));
+        final ILanguage language = languageService.create(name, version, location, id);
 
+        final Iterable<String> extensions = Iterables2.from(extensions(esvTerm));
         final IdentificationFacet identificationFacet =
             new IdentificationFacet(new ResourceExtensionsIdentifier(extensions));
         language.addFacet(identificationFacet);
@@ -122,6 +121,9 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         final StylerFacet stylerFacet = StylerFacetFromESV.create(esvTerm);
         language.addFacet(stylerFacet);
 
+        final LanguagePathFacet languageComponentsFacet = LanguagePathFacetFromESV.create(esvTerm);
+        language.addFacet(languageComponentsFacet);
+
         languageService.add(language);
 
         return language;
@@ -129,6 +131,14 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
 
     private static String languageName(IStrategoAppl document) {
         return ESVReader.getProperty(document, "LanguageName");
+    }
+
+    private static String languageId(IStrategoAppl document) {
+        return ESVReader.getProperty(document, "LanguageId");
+    }
+
+    private static String languageVersion(IStrategoAppl document) {
+        return ESVReader.getProperty(document, "LanguageVersion", "");
     }
 
     private static String[] extensions(IStrategoAppl document) {
