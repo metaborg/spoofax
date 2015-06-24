@@ -40,8 +40,7 @@ class MetaBuildAntRunnerFactory {
 
     public IAntRunner create(MetaBuildInput input, @Nullable URL[] classpaths, @Nullable BuildListener listener)
         throws FileSystemException {
-        final FileObject antFile =
-            resourceService.resolve(getClass().getResource("ant").toString()).resolveFile("build.main.xml");
+        final FileObject antFile = resourceService.resolve(getClass().getResource("build.xml").toString());
         final FileObject baseDir = input.project.location();
 
         final Map<String, String> properties = Maps.newHashMap();

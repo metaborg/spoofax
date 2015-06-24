@@ -1,8 +1,5 @@
 package org.metaborg.spoofax.core.build.paths;
 
-import com.google.common.collect.Lists;
-import com.google.inject.Inject;
-
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -14,20 +11,19 @@ import org.metaborg.spoofax.core.build.dependency.IDependencyService;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.language.LanguagePathFacet;
 import org.metaborg.spoofax.core.project.IProject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import com.google.common.collect.Lists;
+import com.google.inject.Inject;
 
 public class DependencyPathProvider implements ILanguagePathProvider {
-    private static final Logger log = LoggerFactory.getLogger(DependencyPathProvider.class);
-
     private final IDependencyService dependencyService;
 
-    
+
     @Inject public DependencyPathProvider(IDependencyService dependencyService) {
         this.dependencyService = dependencyService;
     }
 
-    
+
     @Override public Iterable<FileObject> sources(IProject project, String language) {
         Iterable<ILanguage> dependencies = dependencyService.compileDependencies(project);
         List<FileObject> sources = Lists.newArrayList();
@@ -58,6 +54,7 @@ public class DependencyPathProvider implements ILanguagePathProvider {
         return includes;
     }
 
+
     private void resolve(FileObject basedir, @Nullable List<String> paths, List<FileObject> filesToAppend) {
         if(paths != null) {
             for(String path : paths) {
@@ -69,5 +66,4 @@ public class DependencyPathProvider implements ILanguagePathProvider {
             }
         }
     }
-
 }
