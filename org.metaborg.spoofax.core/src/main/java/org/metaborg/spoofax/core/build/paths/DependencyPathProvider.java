@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.core.build.paths;
 
-import java.util.List;
+import java.util.Collection;
 
 import javax.annotation.Nullable;
 
@@ -25,12 +25,12 @@ public class DependencyPathProvider implements ILanguagePathProvider {
 
 
     @Override public Iterable<FileObject> sources(IProject project, String language) {
-        Iterable<ILanguage> dependencies = dependencyService.compileDependencies(project);
-        List<FileObject> sources = Lists.newArrayList();
+        final Iterable<ILanguage> dependencies = dependencyService.compileDependencies(project);
+        final Collection<FileObject> sources = Lists.newArrayList();
         for(ILanguage dependency : dependencies) {
-            LanguagePathFacet facet = dependency.facet(LanguagePathFacet.class);
+            final LanguagePathFacet facet = dependency.facet(LanguagePathFacet.class);
             if(facet != null) {
-                List<String> paths = facet.sources.get(language);
+                final Collection<String> paths = facet.sources.get(language);
                 if(paths != null) {
                     resolve(project.location(), paths, sources);
                 }
@@ -40,12 +40,12 @@ public class DependencyPathProvider implements ILanguagePathProvider {
     }
 
     @Override public Iterable<FileObject> includes(IProject project, String language) {
-        Iterable<ILanguage> dependencies = dependencyService.runtimeDependencies(project);
-        List<FileObject> includes = Lists.newArrayList();
+        final Iterable<ILanguage> dependencies = dependencyService.runtimeDependencies(project);
+        final Collection<FileObject> includes = Lists.newArrayList();
         for(ILanguage dependency : dependencies) {
-            LanguagePathFacet facet = dependency.facet(LanguagePathFacet.class);
+            final LanguagePathFacet facet = dependency.facet(LanguagePathFacet.class);
             if(facet != null) {
-                List<String> paths = facet.includes.get(language);
+                final Collection<String> paths = facet.includes.get(language);
                 if(paths != null) {
                     resolve(dependency.location(), paths, includes);
                 }
@@ -55,7 +55,7 @@ public class DependencyPathProvider implements ILanguagePathProvider {
     }
 
 
-    private void resolve(FileObject basedir, @Nullable List<String> paths, List<FileObject> filesToAppend) {
+    private void resolve(FileObject basedir, @Nullable Collection<String> paths, Collection<FileObject> filesToAppend) {
         if(paths != null) {
             for(String path : paths) {
                 try {

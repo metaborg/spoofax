@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.core.language;
 
 import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 
 /**
@@ -8,14 +9,13 @@ import com.google.common.collect.Multimaps;
  */
 public class LanguagePathFacet implements ILanguageFacet {
     private static final long serialVersionUID = 3431122939520390353L;
- 
-    public final ListMultimap<String,String> sources;
-    public final ListMultimap<String,String> includes;
 
-    public LanguagePathFacet(ListMultimap<String, String> sources,
-            ListMultimap<String, String> includes) {
+    public final Multimap<String, String> sources;
+    public final Multimap<String, String> includes;
+   
+    
+    public LanguagePathFacet(ListMultimap<String, String> sources, ListMultimap<String, String> includes) {
         this.sources = Multimaps.unmodifiableListMultimap(sources);
         this.includes = Multimaps.unmodifiableListMultimap(includes);
     }
-
 }

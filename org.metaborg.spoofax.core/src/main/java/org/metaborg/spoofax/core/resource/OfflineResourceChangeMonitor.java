@@ -103,7 +103,7 @@ public class OfflineResourceChangeMonitor {
             return;
         }
         try(final Input input = new Input(storageFile.getContent().getInputStream())) {
-            modificationDates = (Map<String, Long>) serializer.readObject(input, HashMap.class);
+            modificationDates = serializer.readObject(input, HashMap.class);
         }
     }
 

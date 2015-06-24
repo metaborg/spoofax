@@ -1,6 +1,8 @@
 package org.metaborg.spoofax.generator.project;
 
 public class ProjectException extends Exception {
+    private static final long serialVersionUID = 300295066638212450L;
+
 
     public ProjectException() {
     }
@@ -16,5 +18,4 @@ public class ProjectException extends Exception {
     public ProjectException(Throwable cause) {
         super(cause);
     }
-    
 }
