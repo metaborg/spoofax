@@ -5,10 +5,10 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 >
   <modelVersion>4.0.0</modelVersion>
-{{#groupId}}<groupId>{{groupId}}</groupId>
-{{/groupId}}  <artifactId>{{id}}</artifactId>
-  {{#version}}<version>{{version}}</version>
-{{/version}}  <name>{{name}}</name>  
+{{#generateGroupId}}  <groupId>{{groupId}}</groupId>
+{{/generateGroupId}}  <artifactId>{{id}}</artifactId>
+{{#generateVersion}}  <version>{{version}}</version>
+{{/generateVersion}}  <name>{{name}}</name>  
   <packaging>spoofax-language</packaging>
 
   <parent>

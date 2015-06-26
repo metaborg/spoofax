@@ -1,106 +1,86 @@
 package org.metaborg.spoofax.generator.project;
 
-import java.io.File;
+import static org.metaborg.spoofax.core.build.paths.SpoofaxProjectConstants.DIR_CACHE;
+import static org.metaborg.spoofax.core.build.paths.SpoofaxProjectConstants.DIR_EDITOR;
+import static org.metaborg.spoofax.core.build.paths.SpoofaxProjectConstants.DIR_ICONS;
+import static org.metaborg.spoofax.core.build.paths.SpoofaxProjectConstants.DIR_INCLUDE;
+import static org.metaborg.spoofax.core.build.paths.SpoofaxProjectConstants.DIR_JAVA;
+import static org.metaborg.spoofax.core.build.paths.SpoofaxProjectConstants.DIR_JAVA_TRANS;
+import static org.metaborg.spoofax.core.build.paths.SpoofaxProjectConstants.DIR_LIB;
+import static org.metaborg.spoofax.core.build.paths.SpoofaxProjectConstants.DIR_SRCGEN;
+import static org.metaborg.spoofax.core.build.paths.SpoofaxProjectConstants.DIR_SRCGEN_SYNTAX;
+import static org.metaborg.spoofax.core.build.paths.SpoofaxProjectConstants.DIR_SYNTAX;
+import static org.metaborg.spoofax.core.build.paths.SpoofaxProjectConstants.DIR_TRANS;
 
-import static org.metaborg.spoofax.core.build.paths.SpoofaxProjectConstants.*;
+import javax.annotation.Nullable;
+
+import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSystemException;
+import org.metaborg.spoofax.core.SpoofaxRuntimeException;
 
 public class ProjectSettings {
-    public enum Format {
-        ctree, jar
-    }
-
-
+    private final String groupId;
+    private final String id;
+    private final String version;
     private final String name;
-    private final File basedir;
+    private final FileObject location;
 
 
-    public ProjectSettings(String name, File basedir) throws ProjectException {
+    public ProjectSettings(String groupId, String id, String version, String name, FileObject location)
+        throws ProjectException {
+        if(!NameUtil.isValidId(groupId)) {
+            throw new ProjectException("Invalid group id: " + groupId);
+        }
+        if(!NameUtil.isValidId(id)) {
+            throw new ProjectException("Invalid id: " + id);
+        }
         if(!NameUtil.isValidName(name)) {
             throw new ProjectException("Invalid name: " + name);
         }
+
+        this.groupId = groupId;
+        this.id = id;
+        this.version = version;
         this.name = name;
-        this.basedir = basedir;
+        this.location = location;
     }
 
+
+    public String groupId() {
+        return groupId;
+    }
+
+    public String id() {
+        return id;
+    }
+
+    public String version() {
+        return version;
+    }
+
+    public String eclipseVersion() {
+        return version.replace("-SNAPSHOT", ".qualifier");
+    }
 
     public String name() {
         return name;
     }
 
-    public File getBaseDir() {
-        return basedir;
+    public FileObject location() {
+        return location;
     }
 
-    // ////////////////////////////////////////////////////////////
-
-    private String groupId;
-
-    public String groupId() {
-        // Return null when group id equals org.metaborg, because group id is a duplicate of the parent group id.
-        if(groupId == null || groupId.isEmpty() || groupId.equals("org.metaborg")) {
-            return null;
-        }
-        return groupId;
-    }
-
-    public void setGroupId(String groupId) throws ProjectException {
-        if(!NameUtil.isValidId(groupId)) {
-            throw new ProjectException("Invalid group id: " + groupId);
-        }
-        this.groupId = groupId;
-    }
-
-    // ////////////////////////////////////////////////////////////
-
-    private String id;
-
-    public String id() {
-        return id != null && !id.isEmpty() ? id : name().toLowerCase();
-    }
-
-    public void setId(String id) throws ProjectException {
-        if(!NameUtil.isValidId(id)) {
-            throw new ProjectException("Invalid id: " + id);
-        }
-        this.id = id;
-    }
-
-    // ////////////////////////////////////////////////////////////
-
-    private String version;
-
-    public String version() {
-        // Return null when version equals MetaBorg version, because version is a duplicate of the parent version.
-        if(version == null || version.isEmpty() || version.equals(metaborgVersion)) {
-            return null;
-        }
-        return version;
-    }
-
-    public String mavenVersion() {
-        return version != null ? version : "";
-    }    
-    
-    public String eclipseVersion() {
-        if(version == null) {
-            return null;
-        }
-        return version.replace("-SNAPSHOT", ".qualifier");
-    }
-
-    public void setVersion(String version) throws ProjectException {
-        this.version = version;
-    }
-
-    // ////////////////////////////////////////////////////////////
 
     private String metaborgVersion;
 
-    public String metaborgVersion() {
-        return metaborgVersion != null && !metaborgVersion.isEmpty() ? metaborgVersion : "1.5.0-SNAPSHOT";
+    public @Nullable String metaborgVersion() {
+        return metaborgVersion;
     }
 
-    public String eclipseMetaborgVersion() {
+    public @Nullable String eclipseMetaborgVersion() {
+        if(metaborgVersion == null) {
+            return null;
+        }
         return metaborgVersion().replace("-SNAPSHOT", ".qualifier");
     }
 
@@ -108,19 +88,17 @@ public class ProjectSettings {
         this.metaborgVersion = metaborgVersion;
     }
 
-    // //////////////////////////////////////////////////////////////
 
     private Format format;
 
-    public Format format() {
-        return format != null ? format : Format.ctree;
+    public @Nullable Format format() {
+        return format;
     }
 
     public void setFormat(Format format) {
         this.format = format;
     }
 
-    // //////////////////////////////////////////////////////////////
 
     public String strategoName() {
         return NameUtil.toJavaId(name().toLowerCase());
@@ -138,49 +116,57 @@ public class ProjectSettings {
         return packageName().replace('.', '/');
     }
 
-    // //////////////////////////////////////////////////////////////
 
-    public File getGeneratedSourceDirectory() {
-        return new File(basedir, DIR_SRCGEN);
+    public FileObject getGeneratedSourceDirectory() {
+        return resolve(DIR_SRCGEN);
     }
 
-    public File getOutputDirectory() {
-        return new File(basedir, DIR_INCLUDE);
+    public FileObject getOutputDirectory() {
+        return resolve(DIR_INCLUDE);
     }
 
-    public File getIconsDirectory() {
-        return new File(basedir, "icons");
+    public FileObject getIconsDirectory() {
+        return resolve(DIR_ICONS);
     }
 
-    public File getLibDirectory() {
-        return new File(basedir, DIR_LIB);
+    public FileObject getLibDirectory() {
+        return resolve(DIR_LIB);
     }
 
-    public File getSyntaxDirectory() {
-        return new File(basedir, DIR_SYNTAX);
+    public FileObject getSyntaxDirectory() {
+        return resolve(DIR_SYNTAX);
     }
 
-    public File getEditorDirectory() {
-        return new File(basedir, DIR_EDITOR);
+    public FileObject getEditorDirectory() {
+        return resolve(DIR_EDITOR);
     }
 
-    public File getJavaDirectory() {
-        return new File(basedir, DIR_JAVA);
+    public FileObject getJavaDirectory() {
+        return resolve(DIR_JAVA);
     }
 
-    public File getJavaTransDirectory() {
-        return new File(basedir, DIR_JAVA_TRANS);
+    public FileObject getJavaTransDirectory() {
+        return resolve(DIR_JAVA_TRANS);
     }
 
-    public File getGeneratedSyntaxDirectory() {
-        return new File(basedir, DIR_SRCGEN_SYNTAX);
+    public FileObject getGeneratedSyntaxDirectory() {
+        return resolve(DIR_SRCGEN_SYNTAX);
     }
 
-    public File getTransDirectory() {
-        return new File(basedir, DIR_TRANS);
+    public FileObject getTransDirectory() {
+        return resolve(DIR_TRANS);
     }
 
-    public File getCacheDirectory() {
-        return new File(basedir, DIR_CACHE);
+    public FileObject getCacheDirectory() {
+        return resolve(DIR_CACHE);
+    }
+
+
+    private FileObject resolve(String directory) {
+        try {
+            return location.resolveFile(directory);
+        } catch(FileSystemException e) {
+            throw new SpoofaxRuntimeException(e);
+        }
     }
 }

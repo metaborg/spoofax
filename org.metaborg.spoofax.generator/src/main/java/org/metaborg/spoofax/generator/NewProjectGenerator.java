@@ -1,24 +1,26 @@
 package org.metaborg.spoofax.generator;
 
 import java.io.IOException;
+
 import org.apache.commons.lang3.StringUtils;
+import org.metaborg.spoofax.core.resource.IResourceService;
 import org.metaborg.spoofax.generator.project.NameUtil;
 import org.metaborg.spoofax.generator.project.ProjectException;
 import org.metaborg.spoofax.generator.project.ProjectSettings;
 
 public class NewProjectGenerator extends BaseGenerator {
-    
     private final String[] fileExtensions;
 
-    public NewProjectGenerator(ProjectSettings projectSettings,
-            String[] fileExtensions) throws ProjectException {
-        super(projectSettings);
-        if ( fileExtensions.length < 1 ) {
+    public NewProjectGenerator(IResourceService resourceService, ProjectSettings projectSettings,
+        String[] fileExtensions) throws ProjectException {
+        super(resourceService, projectSettings);
+        
+        if(fileExtensions.length < 1) {
             throw new ProjectException("At least one fileExtension is required.");
         }
-        for ( String ext : fileExtensions ) {
-            if ( !NameUtil.isValidFileExtension(ext) ) {
-                throw new ProjectException("Invalid file extension: "+ext);
+        for(String ext : fileExtensions) {
+            if(!NameUtil.isValidFileExtension(ext)) {
+                throw new ProjectException("Invalid file extension: " + ext);
             }
         }
         this.fileExtensions = fileExtensions;
@@ -32,7 +34,7 @@ public class NewProjectGenerator extends BaseGenerator {
         return fileExtensions[0];
     }
 
-    //////////////////////////////////////////////////////////////////
+    // ////////////////////////////////////////////////////////////////
 
     private boolean minimal = false;
 
@@ -44,13 +46,13 @@ public class NewProjectGenerator extends BaseGenerator {
         this.minimal = minimal;
     }
 
-    //////////////////////////////////////////////////////////////////
+    // ////////////////////////////////////////////////////////////////
 
     public String startSymbol() {
         return "Start";
     }
 
-    //////////////////////////////////////////////////////////////////
+    // ////////////////////////////////////////////////////////////////
 
     public void generateAll() throws IOException {
         generatePOM();
@@ -85,9 +87,9 @@ public class NewProjectGenerator extends BaseGenerator {
 
     public void generateJavaStrategy() throws IOException {
         String path = "editor/java/{{packagePath}}/strategies/";
-        writer.write(path+"InteropRegisterer.java", false);
-        writer.write(path+"java_strategy_0_0.java", false);
-        writer.write(path+"Main.java", false);
+        writer.write(path + "InteropRegisterer.java", false);
+        writer.write(path + "java_strategy_0_0.java", false);
+        writer.write(path + "Main.java", false);
     }
 
     public void generateNabl() throws IOException {
@@ -96,7 +98,9 @@ public class NewProjectGenerator extends BaseGenerator {
     }
 
     public void generateTest() throws IOException {
-        if ( minimal ) { return; }
+        if(minimal) {
+            return;
+        }
         writer.write("test/example.{{fileExtension}}", false);
         writer.write("test/test-example.spt", false);
     }
@@ -117,5 +121,4 @@ public class NewProjectGenerator extends BaseGenerator {
     public void generateIgnoreFile() throws IOException {
         writer.write("vcsignore", ".gitignore", false);
     }
-
 }

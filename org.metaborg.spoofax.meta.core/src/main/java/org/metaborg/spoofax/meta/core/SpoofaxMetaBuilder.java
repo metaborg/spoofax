@@ -1,11 +1,14 @@
 package org.metaborg.spoofax.meta.core;
 
-import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 
 import javax.annotation.Nullable;
 
+import org.apache.commons.vfs2.AllFileSelector;
+import org.apache.commons.vfs2.FileSystemException;
 import org.apache.tools.ant.BuildListener;
+import org.metaborg.spoofax.core.resource.IResourceService;
 import org.metaborg.spoofax.generator.ProjectGenerator;
 import org.metaborg.spoofax.generator.project.ProjectSettings;
 import org.metaborg.spoofax.meta.core.ant.IAntRunner;
@@ -17,32 +20,28 @@ import com.google.inject.Inject;
 public class SpoofaxMetaBuilder {
     private static final Logger log = LoggerFactory.getLogger(SpoofaxMetaBuilder.class);
 
+    private final IResourceService resourceService;
     private final MetaBuildAntRunnerFactory antRunner;
 
 
-    @Inject public SpoofaxMetaBuilder(MetaBuildAntRunnerFactory antRunner) {
+    @Inject public SpoofaxMetaBuilder(IResourceService resourceService, MetaBuildAntRunnerFactory antRunner) {
+        this.resourceService = resourceService;
         this.antRunner = antRunner;
     }
 
 
-    public void initialize(MetaBuildInput input) {
+    public void initialize(MetaBuildInput input) throws FileSystemException {
         final ProjectSettings settings = input.projectSettings;
-        mkdirs(settings.getOutputDirectory());
-        mkdirs(settings.getLibDirectory());
-        mkdirs(settings.getGeneratedSourceDirectory());
-        mkdirs(settings.getGeneratedSyntaxDirectory());
-    }
-
-    private void mkdirs(File dir) {
-        if(!dir.exists()) {
-            dir.mkdirs();
-        }
+        settings.getOutputDirectory().createFolder();
+        settings.getLibDirectory().createFolder();
+        settings.getGeneratedSourceDirectory().createFolder();
+        settings.getGeneratedSyntaxDirectory().createFolder();
     }
 
     public void generateSources(MetaBuildInput input) throws Exception {
         log.debug("Generating sources for {}", input.project.location());
 
-        final ProjectGenerator generator = new ProjectGenerator(input.projectSettings);
+        final ProjectGenerator generator = new ProjectGenerator(resourceService, input.projectSettings);
         generator.generateAll();
     }
 
@@ -60,5 +59,14 @@ public class SpoofaxMetaBuilder {
 
         final IAntRunner runner = antRunner.create(input, classpaths, listener);
         runner.execute("package");
+    }
+
+    public void clean(ProjectSettings projectSettings) throws IOException {
+        log.debug("Cleaning {}", projectSettings.location());
+        final AllFileSelector selector = new AllFileSelector();
+        projectSettings.getJavaTransDirectory().delete(selector);
+        projectSettings.getOutputDirectory().delete(selector);
+        projectSettings.getGeneratedSourceDirectory().delete(selector);
+        projectSettings.getCacheDirectory().delete(selector);
     }
 }

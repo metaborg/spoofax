@@ -3,10 +3,10 @@ package org.metaborg.spoofax.generator.project;
 import java.util.regex.Pattern;
 
 public class NameUtil {
- 
     private static final Pattern PART = Pattern.compile("[A-Za-z][A-Za-z0-9]*");
-    private static final Pattern NAME = Pattern.compile(PART+"(-"+PART+")*");
-    private static final Pattern ID = Pattern.compile(NAME+"(\\."+NAME+")*");
+    private static final Pattern NAME = Pattern.compile(PART + "(-" + PART + ")*");
+    private static final Pattern ID = Pattern.compile(NAME + "(\\." + NAME + ")*");
+
 
     public static boolean isValidName(String name) {
         return name != null && !name.isEmpty() && NAME.matcher(name).matches();
@@ -24,7 +24,7 @@ public class NameUtil {
         return id.replace('-', '_');
     }
 
+
     private NameUtil() {
     }
-
 }

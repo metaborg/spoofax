@@ -9,9 +9,9 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.metaborg.spoofax.core.build.dependency.SpoofaxMavenConstants;
 import org.metaborg.spoofax.core.project.IProject;
+import org.metaborg.spoofax.generator.project.Format;
 import org.metaborg.spoofax.generator.project.ProjectException;
 import org.metaborg.spoofax.generator.project.ProjectSettings;
-import org.metaborg.spoofax.generator.project.ProjectSettings.Format;
 
 import com.google.common.collect.Lists;
 
@@ -109,10 +109,9 @@ public class MetaBuildInput {
             externalJarFlags = null;
         }
 
-        final ProjectSettings projectSettings = new ProjectSettings(mavenProject.getName(), mavenProject.getBasedir());
-        projectSettings.setGroupId(mavenProject.getGroupId());
-        projectSettings.setId(mavenProject.getArtifactId());
-        projectSettings.setVersion(mavenProject.getVersion());
+        final ProjectSettings projectSettings =
+            new ProjectSettings(mavenProject.getGroupId(), mavenProject.getArtifactId(), mavenProject.getVersion(),
+                mavenProject.getName(), project.location());
         projectSettings.setFormat(format);
 
         return new MetaBuildInput(project, pardonedLanguages, projectSettings, sdfArgs, strategoArgs, externalDef,

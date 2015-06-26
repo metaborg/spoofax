@@ -1,5 +1,7 @@
 package org.metaborg.spoofax.generator;
 
+import org.metaborg.spoofax.core.resource.IResourceService;
+import org.metaborg.spoofax.generator.project.MustacheProjectSettings;
 import org.metaborg.spoofax.generator.project.ProjectSettings;
 import org.metaborg.spoofax.generator.util.MustacheWriter;
 
@@ -7,8 +9,11 @@ public abstract class BaseGenerator {
     protected final MustacheWriter writer;
 
 
-    public BaseGenerator(ProjectSettings projectSettings) {
+    public BaseGenerator(IResourceService resourceService, ProjectSettings projectSettings) {
+        final MustacheProjectSettings mustacheProjectSettings =
+            new MustacheProjectSettings(resourceService, projectSettings);
         this.writer =
-            new MustacheWriter(projectSettings.getBaseDir(), new Object[] { this, projectSettings }, getClass());
+            new MustacheWriter(mustacheProjectSettings.getBaseDir(), new Object[] { this, mustacheProjectSettings },
+                getClass());
     }
 }

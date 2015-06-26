@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.meta.core.ant;
 
 import java.io.File;
+import java.net.URL;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -19,11 +20,14 @@ public class AntRunner implements IAntRunner {
 
 
     public AntRunner(IResourceService resourceService, FileObject antFile, FileObject baseDir,
-        Map<String, String> properties, @Nullable BuildListener listener) {
+        Map<String, String> properties, @SuppressWarnings("unused") @Nullable URL[] classpaths,
+        @Nullable BuildListener listener) {
         this.antProject = new Project();
 
         final File localAntFile = resourceService.localFile(antFile);
         final File localBaseDir = resourceService.localPath(baseDir);
+
+        // GTODO: use classpaths
 
         antProject.setProperty(MagicNames.ANT_FILE, localAntFile.getPath());
         antProject.setBaseDir(localBaseDir);

@@ -13,10 +13,14 @@ public class SpoofaxProjectConstants {
     public static final String DIR_TRANS = "trans";
     public static final String DIR_INCLUDE = "include";
     public static final String DIR_LIB = "lib";
+    public static final String DIR_ICONS = "icons";
     public static final String DIR_SRCGEN = "src-gen";
     public static final String DIR_SRCGEN_SYNTAX = DIR_SRCGEN + "/syntax";
     public static final String DIR_JAVA = DIR_EDITOR + "/java";
     public static final String DIR_JAVA_TRANS = DIR_JAVA + "/trans";
+
+    public static final String METABORG_GROUP_ID = "org.metaborg";
+    public static final String METABORG_VERSION = "1.5.0-SNAPSHOT";
 
 
     private SpoofaxProjectConstants() {

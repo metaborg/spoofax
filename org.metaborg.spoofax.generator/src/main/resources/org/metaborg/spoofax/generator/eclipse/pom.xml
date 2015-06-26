@@ -4,10 +4,10 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
 >
   <modelVersion>4.0.0</modelVersion>
-  {{#groupId}}<groupId>{{groupId}}</groupId>
-{{/groupId}}  <artifactId>{{id}}.eclipse</artifactId>
-  {{#version}}<version>{{version}}</version>
-{{/version}}  <packaging>eclipse-plugin</packaging>
+{{#qenerateGroupId}}  <groupId>{{groupId}}</groupId>
+{{/qenerateGroupId}}  <artifactId>{{id}}.eclipse</artifactId>
+{{#qenerateVersion}}  <version>{{version}}</version>
+{{/qenerateVersion}}  <packaging>eclipse-plugin</packaging>
 
   <parent>
     <groupId>org.metaborg</groupId>

@@ -22,7 +22,6 @@ public class AntRunnerService implements IAntRunnerService {
 
     @Override public IAntRunner get(FileObject antFile, FileObject baseDir, Map<String, String> properties,
         @Nullable URL[] classpaths, @Nullable BuildListener listener) {
-        // TODO: use classpaths
-        return new AntRunner(resourceService, antFile, baseDir, properties, listener);
+        return new AntRunner(resourceService, antFile, baseDir, properties, classpaths, listener);
     }
 }
