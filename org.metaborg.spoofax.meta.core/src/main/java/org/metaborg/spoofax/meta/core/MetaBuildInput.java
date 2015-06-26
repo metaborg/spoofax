@@ -62,11 +62,11 @@ public class MetaBuildInput {
                     format = Format.ctree;
                     break;
                 default:
-                    format = Format.jar;
+                    format = Format.ctree;
                     break;
             }
         } else {
-            format = Format.jar;
+            format = Format.ctree;
         }
 
         final Collection<String> sdfArgs = Lists.newLinkedList();

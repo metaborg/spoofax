@@ -16,7 +16,7 @@
     <artifactId>org.metaborg.maven.parent.language</artifactId>
     <version>{{metaborgVersion}}</version>
   </parent>
-
+  
   <dependencies>
     <dependency>
       <groupId>org.metaborg</groupId>

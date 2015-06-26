@@ -9,12 +9,9 @@ import org.spoofax.interpreter.terms.IStrategoTerm;
 import com.google.inject.Inject;
 
 public class ParseFilePtPrimitive extends ParseFilePrimitive {
-
     @Inject public ParseFilePtPrimitive(IResourceService resourceService,
         ILanguageIdentifierService languageIdentifierService, ISourceTextService sourceTextService,
         ISyntaxService<IStrategoTerm> syntaxService) {
-        super("STRSGLR_parse_string_pt", resourceService,
-                languageIdentifierService, sourceTextService, syntaxService);
+        super("STRSGLR_parse_string_pt", resourceService, languageIdentifierService, sourceTextService, syntaxService);
     }
-
 }
