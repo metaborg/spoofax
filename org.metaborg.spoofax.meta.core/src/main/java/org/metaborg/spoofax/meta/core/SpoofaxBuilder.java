@@ -49,7 +49,7 @@ public class SpoofaxBuilder {
     private final IAnalysisService<IStrategoTerm, IStrategoTerm> analysisService;
     private final ITransformer<IStrategoTerm, IStrategoTerm, IStrategoTerm> transformer;
 
-    
+
     @Inject public SpoofaxBuilder(IContextService contextService, ILanguageIdentifierService languageIdentifierService,
         ISyntaxService<IStrategoTerm> syntaxService, IAnalysisService<IStrategoTerm, IStrategoTerm> analysisService,
         ITransformer<IStrategoTerm, IStrategoTerm, IStrategoTerm> transformer) {
@@ -60,55 +60,56 @@ public class SpoofaxBuilder {
         this.transformer = transformer;
     }
 
-    
-    public void build(final ITransformerGoal goal, final Iterable<FileObject> sources,
-        final Iterable<FileObject> includes, final Collection<ILanguage> pardonedLanguages) throws Exception {
 
-        Multimap<ILanguage, FileObject> sourcesPerLanguage = HashMultimap.create();
-        for(FileObject source : sources) {
-            for(FileObject sourceFile : expand(source)) {
+    public void build(final ITransformerGoal goal, final Iterable<FileObject> sourceLocations,
+        final Iterable<FileObject> includeLocations, final Collection<ILanguage> pardonedLanguages) throws Exception {
+
+        final Multimap<ILanguage, FileObject> sourcesPerLang = HashMultimap.create();
+        for(FileObject sourceLocation : sourceLocations) {
+            for(FileObject sourceFile : expand(sourceLocation)) {
                 ILanguage language = languageIdentifierService.identify(sourceFile);
                 if(language != null) {
-                    sourcesPerLanguage.put(language, sourceFile);
+                    sourcesPerLang.put(language, sourceFile);
                 }
             }
         }
 
-        Multimap<ILanguage, FileObject> includesPerLanguage = HashMultimap.create();
-        for(FileObject include : includes) {
-            for(FileObject includeFile : expand(include)) {
+        final Multimap<ILanguage, FileObject> includesPerLang = HashMultimap.create();
+        for(FileObject includeLocation : includeLocations) {
+            for(FileObject includeFile : expand(includeLocation)) {
                 ILanguage language = languageIdentifierService.identify(includeFile);
                 if(language != null) {
-                    includesPerLanguage.put(language, includeFile);
+                    includesPerLang.put(language, includeFile);
                 }
             }
         }
 
-        doBuild(goal, sourcesPerLanguage, includesPerLanguage, pardonedLanguages);
+        doBuild(goal, sourcesPerLang, includesPerLang, pardonedLanguages);
     }
 
-    public void build(final ITransformerGoal goal, final Multimap<ILanguage, FileObject> sources,
-        final Multimap<ILanguage, FileObject> includes, final Collection<ILanguage> pardonedLanguages) throws Exception {
+    public void build(final ITransformerGoal goal, final Multimap<ILanguage, FileObject> sourceLocationsPerLang,
+        final Multimap<ILanguage, FileObject> includeLocationsPerLang, final Collection<ILanguage> pardonedLanguages)
+        throws Exception {
 
-        Multimap<ILanguage, FileObject> sourcesPerLanguage = HashMultimap.create();
-        for(Entry<ILanguage, FileObject> source : sources.entries()) {
-            for(FileObject sourceFile : expand(source.getValue())) {
-                if(languageIdentifierService.identify(sourceFile, source.getKey())) {
-                    sourcesPerLanguage.put(source.getKey(), sourceFile);
+        Multimap<ILanguage, FileObject> sourcesPerLang = HashMultimap.create();
+        for(Entry<ILanguage, FileObject> sourceLocations : sourceLocationsPerLang.entries()) {
+            for(FileObject sourceFile : expand(sourceLocations.getValue())) {
+                if(languageIdentifierService.identify(sourceFile, sourceLocations.getKey())) {
+                    sourcesPerLang.put(sourceLocations.getKey(), sourceFile);
                 }
             }
         }
 
-        Multimap<ILanguage, FileObject> includesPerLanguage = HashMultimap.create();
-        for(Entry<ILanguage, FileObject> include : includes.entries()) {
-            for(FileObject includeFile : expand(include.getValue())) {
-                if(languageIdentifierService.identify(includeFile, include.getKey())) {
-                    includesPerLanguage.put(include.getKey(), includeFile);
+        Multimap<ILanguage, FileObject> includesPerLang = HashMultimap.create();
+        for(Entry<ILanguage, FileObject> includeLocations : includeLocationsPerLang.entries()) {
+            for(FileObject includeFile : expand(includeLocations.getValue())) {
+                if(languageIdentifierService.identify(includeFile, includeLocations.getKey())) {
+                    includesPerLang.put(includeLocations.getKey(), includeFile);
                 }
             }
         }
 
-        doBuild(goal, sourcesPerLanguage, includesPerLanguage, pardonedLanguages);
+        doBuild(goal, sourcesPerLang, includesPerLang, pardonedLanguages);
     }
 
     private Iterable<FileObject> expand(FileObject fileOrDirectory) throws FileSystemException {

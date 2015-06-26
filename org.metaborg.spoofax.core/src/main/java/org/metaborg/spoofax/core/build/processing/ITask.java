@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.core.build;
+package org.metaborg.spoofax.core.build.processing;
 
 import javax.annotation.Nullable;
 
