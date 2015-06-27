@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map.Entry;
 
 import org.apache.commons.vfs2.FileObject;
@@ -121,8 +120,8 @@ public class SpoofaxBuilder {
 
     private void doBuild(final ITransformerGoal goal, final Multimap<ILanguage, FileObject> sources,
         final Multimap<ILanguage, FileObject> includes, final Collection<ILanguage> pardonedLanguages) throws Exception {
-        List<ILanguage> compileLanguages = BuildOrder.sort(sources.keySet());
-        for(ILanguage language : compileLanguages) {
+        final BuildOrder buildOrder = new BuildOrder(sources.keySet());
+        for(ILanguage language : buildOrder.buildOrder()) {
             final Collection<FileObject> includeFiles =
                 includes.containsKey(language) ? includes.get(language) : Collections.<FileObject>emptyList();
             doBuild(language, goal, sources.get(language), includeFiles, pardonedLanguages.contains(language));

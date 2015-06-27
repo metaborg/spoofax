@@ -1,19 +1,14 @@
 package org.metaborg.spoofax.core.build;
 
-import java.util.Collection;
-
-import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.language.ILanguage;
+import org.metaborg.spoofax.core.project.IProject;
 import org.metaborg.spoofax.core.resource.IResourceChange;
-
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 
 public class BuildInput {
     /**
-     * Base location of the build.
+     * Project to build.
      */
-    public final FileObject location;
+    public final IProject project;
 
     /**
      * Resources that have changed.
@@ -21,28 +16,14 @@ public class BuildInput {
     public final Iterable<IResourceChange> resourceChanges;
 
     /**
-     * Language build order. The inner iterable is a language group; languages that can be built together. The outer
-     * iterable determines the build order.
+     * Language build order.
      */
-    public final Iterable<Iterable<ILanguage>> buildOrder;
-
-    /**
-     * Languages that can be used during the build. Derived from {@code buildOrder}.
-     */
-    public final Iterable<ILanguage> languages;
+    public final BuildOrder buildOrder;
 
 
-    public BuildInput(FileObject location, Iterable<IResourceChange> resourceChanges,
-        Iterable<Iterable<ILanguage>> buildOrder) {
-        this.location = location;
+    public BuildInput(IProject location, Iterable<IResourceChange> resourceChanges, Iterable<ILanguage> languages) {
+        this.project = location;
         this.resourceChanges = resourceChanges;
-        this.buildOrder = buildOrder;
-
-        final Collection<ILanguage> allLanguages = Lists.newLinkedList();
-        for(Iterable<ILanguage> languageGroup : buildOrder) {
-            Iterables.addAll(allLanguages, languageGroup);
-        }
-        this.languages = allLanguages;
+        this.buildOrder = new BuildOrder(languages);
     }
-
 }

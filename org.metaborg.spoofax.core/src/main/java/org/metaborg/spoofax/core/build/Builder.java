@@ -81,8 +81,8 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
 
 
     @Override public IBuildOutput<P, A, T> build(BuildInput input) {
-        final FileObject location = input.location;
-        final Iterable<ILanguage> languages = input.languages;
+        final FileObject location = input.project.location();
+        final Iterable<ILanguage> languages = input.buildOrder.languages();
 
         final Collection<IResourceChange> parseTableChanges = Lists.newLinkedList();
         final Multimap<ILanguage, IdentifiedResourceChange> languageResourceChanges = ArrayListMultimap.create();
@@ -112,12 +112,8 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         updateDialectResource(parseTableChanges);
 
         final BuildOutput<P, A, T> buildOutput = new BuildOutput<P, A, T>();
-        for(Iterable<ILanguage> languageGroup : input.buildOrder) {
-            final Collection<IdentifiedResourceChange> changes = Lists.newLinkedList();
-            for(ILanguage language : languageGroup) {
-                changes.addAll(languageResourceChanges.get(language));
-            }
-            updateLanguageResources(location, changes, buildOutput);
+        for(ILanguage language : input.buildOrder.buildOrder()) {
+            updateLanguageResources(location, languageResourceChanges.get(language), buildOutput);
         }
 
         return buildOutput;

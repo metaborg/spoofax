@@ -89,7 +89,7 @@ public class ProjectSettings {
     }
 
 
-    private Format format;
+    private Format format = Format.ctree;
 
     public @Nullable Format format() {
         return format;
