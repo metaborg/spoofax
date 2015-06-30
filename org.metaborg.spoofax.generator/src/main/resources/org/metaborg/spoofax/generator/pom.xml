@@ -16,7 +16,7 @@
     <artifactId>org.metaborg.maven.parent.language</artifactId>
     <version>{{metaborgVersion}}</version>
   </parent>
-  
+
   <dependencies>
     <dependency>
       <groupId>org.metaborg</groupId>
@@ -55,6 +55,12 @@
           <dependency>
             <groupId>org.metaborg</groupId>
             <artifactId>org.metaborg.meta.lang.esv</artifactId>
+            <version>${metaborg-version}</version>
+            <type>spoofax-language</type>
+          </dependency>
+          <dependency>
+            <groupId>org.metaborg</groupId>
+            <artifactId>org.metaborg.meta.lang.stratego</artifactId>
             <version>${metaborg-version}</version>
             <type>spoofax-language</type>
           </dependency>
