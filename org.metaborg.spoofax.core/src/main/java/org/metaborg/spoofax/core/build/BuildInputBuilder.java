@@ -10,6 +10,7 @@ import org.apache.commons.vfs2.FileSelector;
 import org.metaborg.spoofax.core.build.dependency.IDependencyService;
 import org.metaborg.spoofax.core.build.paths.ILanguagePathService;
 import org.metaborg.spoofax.core.language.ILanguage;
+import org.metaborg.spoofax.core.messages.IMessagePrinter;
 import org.metaborg.spoofax.core.project.IProject;
 import org.metaborg.spoofax.core.resource.IResourceChange;
 import org.metaborg.spoofax.core.resource.ResourceChange;
@@ -24,6 +25,11 @@ import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
+/**
+ * Fluent interface for creating {@link BuildInput} objects.
+ * 
+ * @see BuildInput
+ */
 public class BuildInputBuilder {
     private final IProject project;
 
@@ -36,7 +42,7 @@ public class BuildInputBuilder {
     private Collection<IResourceChange> resourceChanges;
     private boolean addResourcesFromDefaultSourceLocations;
 
-    private @Nullable FileSelector parseSelector;
+    private @Nullable FileSelector selector;
 
     private boolean analyze;
     private @Nullable FileSelector analyzeSelector;
@@ -45,6 +51,7 @@ public class BuildInputBuilder {
     private @Nullable FileSelector transformSelector;
     private Collection<ITransformerGoal> transformGoals;
 
+    private @Nullable IMessagePrinter messagePrinter;
     private boolean throwOnErrors;
     private Collection<ILanguage> pardonedLanguages;
     private Set<String> pardonedLanguageStrings;
@@ -63,12 +70,13 @@ public class BuildInputBuilder {
         addDefaultIncludeLocations = true;
         resourceChanges = Lists.newLinkedList();
         addResourcesFromDefaultSourceLocations = false;
-        parseSelector = null;
+        selector = null;
         analyze = true;
         analyzeSelector = null;
         transform = true;
         transformSelector = null;
         transformGoals = Lists.newLinkedList();
+        messagePrinter = null;
         throwOnErrors = false;
         pardonedLanguages = Lists.newLinkedList();
         pardonedLanguageStrings = Sets.newHashSet();
@@ -154,8 +162,8 @@ public class BuildInputBuilder {
     }
 
 
-    public BuildInputBuilder withParseSelector(FileSelector parseSelector) {
-        this.parseSelector = parseSelector;
+    public BuildInputBuilder withSelector(FileSelector selector) {
+        this.selector = selector;
         return this;
     }
 
@@ -192,11 +200,15 @@ public class BuildInputBuilder {
     }
 
 
+    public BuildInputBuilder withMessagePrinter(IMessagePrinter messagePrinter) {
+        this.messagePrinter = messagePrinter;
+        return this;
+    }
+
     public BuildInputBuilder withThrowOnErrors(boolean throwOnErrors) {
         this.throwOnErrors = throwOnErrors;
         return this;
     }
-
 
     public BuildInputBuilder withPardonedLanguages(Collection<ILanguage> pardonedLanguages) {
         this.pardonedLanguages = pardonedLanguages;
@@ -247,8 +259,8 @@ public class BuildInputBuilder {
         }
 
         final BuildInput input =
-            new BuildInput(project, resourceChanges, includeLocations, new BuildOrder(languages), parseSelector,
-                analyze, analyzeSelector, transform, transformSelector, transformGoals, throwOnErrors,
+            new BuildInput(project, resourceChanges, includeLocations, new BuildOrder(languages), selector,
+                analyze, analyzeSelector, transform, transformSelector, transformGoals, messagePrinter, throwOnErrors,
                 pardonedLanguages);
         return input;
     }

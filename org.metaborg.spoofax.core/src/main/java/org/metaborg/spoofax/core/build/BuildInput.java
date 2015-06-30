@@ -5,12 +5,18 @@ import javax.annotation.Nullable;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSelector;
 import org.metaborg.spoofax.core.language.ILanguage;
+import org.metaborg.spoofax.core.messages.IMessagePrinter;
 import org.metaborg.spoofax.core.project.IProject;
 import org.metaborg.spoofax.core.resource.IResourceChange;
 import org.metaborg.spoofax.core.transform.ITransformerGoal;
 
 import com.google.common.collect.Multimap;
 
+/**
+ * Input for a build. Use {@link BuildInputBuilder} fluent interface to create objects of this class.
+ * 
+ * @see BuildInputBuilder
+ */
 public class BuildInput {
     /**
      * Project to build.
@@ -34,9 +40,9 @@ public class BuildInput {
 
 
     /**
-     * File selector to determine which files should be parsed, or null to parse everything.
+     * File selector to determine which resources should be processed, or null to processed everything.
      */
-    public final @Nullable FileSelector parseSelector;
+    public final @Nullable FileSelector selector;
 
 
     /**
@@ -45,7 +51,7 @@ public class BuildInput {
     public final boolean analyze;
 
     /**
-     * File selector to determine which files should be analyzed, or null to analyze everything.
+     * File selector to determine which resources should be analyzed, or null to analyze everything.
      */
     public final @Nullable FileSelector analyzeSelector;
 
@@ -56,7 +62,7 @@ public class BuildInput {
     public final boolean transform;
 
     /**
-     * File selector to determine which files should be transformed, or null to transform everything.
+     * File selector to determine which resources should be transformed, or null to transform everything.
      */
     public final @Nullable FileSelector transformSelector;
 
@@ -65,6 +71,11 @@ public class BuildInput {
      */
     public final Iterable<ITransformerGoal> transformGoals;
 
+
+    /**
+     * Message printer to use during build, or null to skip printing messages.
+     */
+    public final @Nullable IMessagePrinter messagePrinter;
 
     /**
      * If an exception should be thrown when there are parsing, analysis, or transformation errors.
@@ -78,19 +89,21 @@ public class BuildInput {
 
 
     public BuildInput(IProject project, Iterable<IResourceChange> resourceChanges,
-        Multimap<ILanguage, FileObject> includeLocations, BuildOrder buildOrder, FileSelector parseSelector,
-        boolean analyze, FileSelector analyzeSelector, boolean transform, FileSelector transformSelector,
-        Iterable<ITransformerGoal> transformGoals, boolean throwOnErrors, Iterable<ILanguage> pardonedLanguages) {
+        Multimap<ILanguage, FileObject> includeLocations, BuildOrder buildOrder, @Nullable FileSelector parseSelector,
+        boolean analyze, FileSelector analyzeSelector, boolean transform, @Nullable FileSelector transformSelector,
+        Iterable<ITransformerGoal> transformGoals, @Nullable IMessagePrinter messagePrinter, boolean throwOnErrors,
+        Iterable<ILanguage> pardonedLanguages) {
         this.project = project;
         this.resourceChanges = resourceChanges;
         this.includeLocations = includeLocations;
         this.buildOrder = buildOrder;
-        this.parseSelector = parseSelector;
+        this.selector = parseSelector;
         this.analyze = analyze;
         this.analyzeSelector = analyzeSelector;
         this.transform = transform;
         this.transformSelector = transformSelector;
         this.transformGoals = transformGoals;
+        this.messagePrinter = messagePrinter;
         this.throwOnErrors = throwOnErrors;
         this.pardonedLanguages = pardonedLanguages;
     }
