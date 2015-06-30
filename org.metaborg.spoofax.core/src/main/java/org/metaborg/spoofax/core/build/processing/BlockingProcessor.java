@@ -4,7 +4,6 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.build.BuildInput;
 import org.metaborg.spoofax.core.build.IBuildOutput;
 import org.metaborg.spoofax.core.build.IBuilder;
-import org.metaborg.spoofax.core.build.IProcessor;
 import org.metaborg.spoofax.core.language.LanguageChange;
 
 import rx.functions.Func0;

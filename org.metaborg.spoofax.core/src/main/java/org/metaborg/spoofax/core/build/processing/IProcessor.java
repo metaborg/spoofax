@@ -1,7 +1,8 @@
-package org.metaborg.spoofax.core.build;
+package org.metaborg.spoofax.core.build.processing;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.spoofax.core.build.processing.ITask;
+import org.metaborg.spoofax.core.build.BuildInput;
+import org.metaborg.spoofax.core.build.IBuildOutput;
 import org.metaborg.spoofax.core.language.LanguageChange;
 
 public interface IProcessor<P, A, T> {

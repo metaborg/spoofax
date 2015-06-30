@@ -56,6 +56,11 @@ public class StrategoDialectProcessor implements IDialectProcessor {
     }
 
     @Override public void update(Iterable<IResourceChange> changes) {
+        final int numChanges = Iterables.size(changes);
+        if(numChanges <= 0) {
+            return;
+        }
+
         final ILanguage strategoLanguage = languageService.get("Stratego-Sugar");
         if(strategoLanguage == null) {
             logger.debug("Could not find Stratego language, Stratego dialects cannot be updated.");
@@ -63,7 +68,7 @@ public class StrategoDialectProcessor implements IDialectProcessor {
         }
         final SyntaxFacet baseFacet = strategoLanguage.facet(SyntaxFacet.class);
 
-        logger.debug("Updating {} Stratego dialects", Iterables.size(changes));
+        logger.debug("Updating {} Stratego dialects", numChanges);
         for(IResourceChange change : changes) {
             final FileObject resource = change.resource();
             final String name = FilenameUtils.getBaseName(resource.getName().getBaseName());

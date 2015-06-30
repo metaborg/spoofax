@@ -38,7 +38,7 @@ public class MavenDependencyService implements IDependencyService {
         if(mavenProject != null) {
             return getLanguages(compileDependencies(mavenProject));
         }
-        logger.warn(
+        logger.trace(
             "No corresponding Maven project found for project {}, using all active languages as compile dependencies",
             project);
         return languageService.getAllActive();
@@ -49,7 +49,7 @@ public class MavenDependencyService implements IDependencyService {
         if(mavenProject != null) {
             return getLanguages(runtimeDependencies(mavenProject));
         }
-        logger.warn("No corresponding Maven project found for project {}, using no languages as runtime dependencies",
+        logger.trace("No corresponding Maven project found for project {}, using disabling runtime dependencies",
             project);
         return Iterables2.empty();
     }
@@ -91,7 +91,10 @@ public class MavenDependencyService implements IDependencyService {
             }
             language = languageService.getWithId(dependency.id());
             if(language != null) {
-                logger.warn("Cannot find dependency {}, using version {}.", dependency, language.version());
+                final LanguageVersion version = language.version();
+                if(version.major() != 0 || version.minor() != 0 || version.patch() != 0) {
+                    logger.warn("Cannot find dependency {}, using version {}.", dependency, language.version());
+                }
                 languages.add(language);
                 continue;
             }

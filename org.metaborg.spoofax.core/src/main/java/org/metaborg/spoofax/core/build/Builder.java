@@ -5,6 +5,8 @@ import java.util.Collection;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSelector;
@@ -27,6 +29,7 @@ import org.metaborg.spoofax.core.messages.MessageFactory;
 import org.metaborg.spoofax.core.processing.analyze.IAnalysisResultUpdater;
 import org.metaborg.spoofax.core.processing.parse.IParseResultUpdater;
 import org.metaborg.spoofax.core.resource.IResourceChange;
+import org.metaborg.spoofax.core.resource.ResourceChange;
 import org.metaborg.spoofax.core.resource.ResourceChangeKind;
 import org.metaborg.spoofax.core.resource.SpoofaxIgnoredDirectories;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
@@ -38,10 +41,12 @@ import org.metaborg.spoofax.core.transform.ITransformer;
 import org.metaborg.spoofax.core.transform.TransformResult;
 import org.metaborg.spoofax.core.transform.TransformerException;
 import org.metaborg.util.iterators.Iterables2;
+import org.metaborg.util.resource.ResourceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
@@ -81,11 +86,10 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
 
 
     @Override public IBuildOutput<P, A, T> build(BuildInput input) {
-        final FileObject location = input.project.location();
         final Iterable<ILanguage> languages = input.buildOrder.languages();
 
         final Collection<IResourceChange> parseTableChanges = Lists.newLinkedList();
-        final Multimap<ILanguage, IdentifiedResourceChange> languageResourceChanges = ArrayListMultimap.create();
+        final Multimap<ILanguage, IdentifiedResourceChange> changes = ArrayListMultimap.create();
 
         for(IResourceChange change : input.resourceChanges) {
             final FileObject resource = change.resource();
@@ -98,14 +102,9 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                 continue;
             }
 
-            final ILanguage language = languageIdentifier.identify(resource, languages);
-            if(language != null) {
-                final ILanguage base = dialectService.getBase(language);
-                if(base == null) {
-                    languageResourceChanges.put(language, new IdentifiedResourceChange(change, language, null));
-                } else {
-                    languageResourceChanges.put(language, new IdentifiedResourceChange(change, base, language));
-                }
+            final IdentifiedResourceChange identifiedChange = identify(change, languages);
+            if(identifiedChange != null) {
+                changes.put(identifiedChange.language, identifiedChange);
             }
         }
 
@@ -113,7 +112,18 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
 
         final BuildOutput<P, A, T> buildOutput = new BuildOutput<P, A, T>();
         for(ILanguage language : input.buildOrder.buildOrder()) {
-            updateLanguageResources(location, languageResourceChanges.get(language), buildOutput);
+            final Iterable<FileObject> includeLocations = input.includeLocations.get(language);
+            final Collection<IdentifiedResourceChange> includes = Lists.newLinkedList();
+            for(FileObject includeLocation : includeLocations) {
+                for(FileObject includeResource : ResourceUtils.expand(includeLocation)) {
+                    final IResourceChange change = new ResourceChange(includeResource);
+                    final IdentifiedResourceChange identifiedChange = identify(change, language);
+                    if(identifiedChange != null) {
+                        includes.add(identifiedChange);
+                    }
+                }
+            }
+            updateLanguageResources(input, language, changes.get(language), includes, buildOutput);
         }
 
         return buildOutput;
@@ -146,16 +156,17 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         dialectProcessor.update(changes);
     }
 
-    private void updateLanguageResources(FileObject location, Collection<IdentifiedResourceChange> changes,
+    private void updateLanguageResources(BuildInput input, ILanguage language,
+        Collection<IdentifiedResourceChange> changes, Collection<IdentifiedResourceChange> includes,
         BuildOutput<P, A, T> output) {
         if(changes.isEmpty()) {
             return;
         }
 
-        logger.debug("Building " + location);
+        logger.debug("Building " + input.project.location());
 
+        final FileObject location = input.project.location();
         final int numChanges = changes.size();
-
         final Collection<FileObject> changedResources = Sets.newHashSet();
         final Set<FileName> removedResources = Sets.newHashSet();
         final Collection<IMessage> extraMessages = Lists.newLinkedList();
@@ -163,10 +174,10 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         // Parse
         logger.debug("Parsing {} resources", numChanges);
         final Collection<ParseResult<P>> allParseResults = Lists.newArrayListWithExpectedSize(numChanges);
-        for(IdentifiedResourceChange identifiedChange : changes) {
+        for(IdentifiedResourceChange identifiedChange : Iterables.concat(changes, includes)) {
             final IResourceChange change = identifiedChange.change;
             final FileObject resource = change.resource();
-            final ILanguage language = identifiedChange.language;
+            // final ILanguage language = identifiedChange.language;
             final ILanguage dialect = identifiedChange.dialect;
             final ILanguage parserLanguage = dialect != null ? dialect : language;
             final ResourceChangeKind changeKind = change.kind();
@@ -242,6 +253,10 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         }
 
         // Compile
+        final Set<FileName> includeSet = Sets.newHashSet();
+        for(IdentifiedResourceChange include : includes) {
+            includeSet.add(include.change.resource().getName());
+        }
         final Collection<TransformResult<AnalysisFileResult<P, A>, T>> allTransformResults =
             Lists.newArrayListWithExpectedSize(numChanges);
         final CompileGoal compileGoal = new CompileGoal();
@@ -253,13 +268,15 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
             }
             synchronized(context) {
                 for(AnalysisFileResult<P, A> fileResult : analysisResult.fileResults) {
-                    if(removedResources.contains(fileResult.source.getName())) {
-                        // Don't compile removed resources. Only analysis results contain removed resources.
+                    final FileName name = fileResult.source.getName();
+                    if(includeSet.contains(name) || removedResources.contains(name)) {
+                        // Don't transform included resources, they should just be parsed and analyzed.
+                        // Don't compile removed resources, which the analysis results contain for legacy reasons.
                         continue;
                     }
 
                     if(fileResult.result == null) {
-                        logger.warn("Input result for {} is null, cannot compile it", fileResult.source);
+                        logger.warn("Input result for {} is null, cannot transform it", fileResult.source);
                         continue;
                     }
 
@@ -269,7 +286,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                         allTransformResults.add(result);
                     } catch(TransformerException e) {
                         logger.error("Compilation failed", e);
-                        extraMessages.add(MessageFactory.newBuilderErrorAtTop(location, "Compilation failed", e));
+                        extraMessages.add(MessageFactory.newBuilderErrorAtTop(location, "Transformation failed", e));
                     }
                 }
                 // GTODO: also compile any affected sources
@@ -278,5 +295,32 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
 
         output.add(removedResources, changedResources, allParseResults, allAnalysisResults, allTransformResults,
             extraMessages);
+    }
+
+    private @Nullable IdentifiedResourceChange identify(IResourceChange change, Iterable<ILanguage> languages) {
+        final FileObject resource = change.resource();
+        final ILanguage language = languageIdentifier.identify(resource, languages);
+        if(language != null) {
+            final ILanguage base = dialectService.getBase(language);
+            if(base == null) {
+                return new IdentifiedResourceChange(change, language, null);
+            } else {
+                return new IdentifiedResourceChange(change, base, language);
+            }
+        }
+        return null;
+    }
+    
+    private @Nullable IdentifiedResourceChange identify(IResourceChange change, ILanguage language) {
+        final FileObject resource = change.resource();
+        if(languageIdentifier.identify(resource, language)) {
+            final ILanguage base = dialectService.getBase(language);
+            if(base == null) {
+                return new IdentifiedResourceChange(change, language, null);
+            } else {
+                return new IdentifiedResourceChange(change, base, language);
+            }
+        }
+        return null;
     }
 }

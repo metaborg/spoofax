@@ -317,6 +317,7 @@ public class SpoofaxModule extends AbstractModule {
 
         bind(SpoofaxBuilder.class).in(Singleton.class);
         bind(ISpoofaxBuilder.class).to(SpoofaxBuilder.class);
+        bind(IBuilder.class).to(SpoofaxBuilder.class);
         bind(new TypeLiteral<IBuilder<IStrategoTerm, IStrategoTerm, IStrategoTerm>>() {}).to(SpoofaxBuilder.class);
         bind(new TypeLiteral<IBuilder<?, ?, ?>>() {}).to(SpoofaxBuilder.class);
     }
