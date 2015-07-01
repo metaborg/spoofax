@@ -13,8 +13,8 @@ import java.util.List;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.messages.IMessage;
-import org.metaborg.spoofax.core.messages.ISourceRegion;
 import org.metaborg.spoofax.core.messages.MessageFactory;
+import org.metaborg.spoofax.core.source.ISourceRegion;
 import org.spoofax.interpreter.terms.IStrategoConstructor;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;

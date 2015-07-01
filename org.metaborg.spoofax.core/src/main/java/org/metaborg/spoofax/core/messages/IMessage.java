@@ -5,6 +5,7 @@ import java.io.Serializable;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.spoofax.core.source.ISourceRegion;
 
 public interface IMessage extends Serializable {
     public String message();

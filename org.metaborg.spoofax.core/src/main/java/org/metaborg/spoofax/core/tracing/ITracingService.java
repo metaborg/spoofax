@@ -3,8 +3,8 @@ package org.metaborg.spoofax.core.tracing;
 import javax.annotation.Nullable;
 
 import org.metaborg.spoofax.core.analysis.AnalysisFileResult;
-import org.metaborg.spoofax.core.messages.ISourceLocation;
-import org.metaborg.spoofax.core.messages.ISourceRegion;
+import org.metaborg.spoofax.core.source.ISourceLocation;
+import org.metaborg.spoofax.core.source.ISourceRegion;
 import org.metaborg.spoofax.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.transform.TransformResult;
 

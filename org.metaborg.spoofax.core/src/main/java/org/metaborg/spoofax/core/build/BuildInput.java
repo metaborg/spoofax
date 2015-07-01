@@ -5,7 +5,6 @@ import javax.annotation.Nullable;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSelector;
 import org.metaborg.spoofax.core.language.ILanguage;
-import org.metaborg.spoofax.core.messages.IMessagePrinter;
 import org.metaborg.spoofax.core.project.IProject;
 import org.metaborg.spoofax.core.resource.IResourceChange;
 import org.metaborg.spoofax.core.transform.ITransformerGoal;
@@ -75,7 +74,7 @@ public class BuildInput {
     /**
      * Message printer to use during build, or null to skip printing messages.
      */
-    public final @Nullable IMessagePrinter messagePrinter;
+    public final @Nullable IBuildMessagePrinter messagePrinter;
 
     /**
      * If an exception should be thrown when there are parsing, analysis, or transformation errors.
@@ -91,7 +90,7 @@ public class BuildInput {
     public BuildInput(IProject project, Iterable<IResourceChange> resourceChanges,
         Multimap<ILanguage, FileObject> includeLocations, BuildOrder buildOrder, @Nullable FileSelector parseSelector,
         boolean analyze, FileSelector analyzeSelector, boolean transform, @Nullable FileSelector transformSelector,
-        Iterable<ITransformerGoal> transformGoals, @Nullable IMessagePrinter messagePrinter, boolean throwOnErrors,
+        Iterable<ITransformerGoal> transformGoals, @Nullable IBuildMessagePrinter messagePrinter, boolean throwOnErrors,
         Iterable<ILanguage> pardonedLanguages) {
         this.project = project;
         this.resourceChanges = resourceChanges;

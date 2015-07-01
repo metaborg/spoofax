@@ -26,7 +26,6 @@ import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
 import org.metaborg.spoofax.core.language.dialect.IDialectProcessor;
 import org.metaborg.spoofax.core.language.dialect.IDialectService;
 import org.metaborg.spoofax.core.messages.IMessage;
-import org.metaborg.spoofax.core.messages.IMessagePrinter;
 import org.metaborg.spoofax.core.messages.MessageFactory;
 import org.metaborg.spoofax.core.messages.MessageSeverity;
 import org.metaborg.spoofax.core.messages.MessageUtils;
@@ -36,10 +35,10 @@ import org.metaborg.spoofax.core.resource.IResourceChange;
 import org.metaborg.spoofax.core.resource.ResourceChange;
 import org.metaborg.spoofax.core.resource.ResourceChangeKind;
 import org.metaborg.spoofax.core.resource.SpoofaxIgnoredDirectories;
+import org.metaborg.spoofax.core.source.ISourceTextService;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
 import org.metaborg.spoofax.core.syntax.ParseException;
 import org.metaborg.spoofax.core.syntax.ParseResult;
-import org.metaborg.spoofax.core.text.ISourceTextService;
 import org.metaborg.spoofax.core.transform.CompileGoal;
 import org.metaborg.spoofax.core.transform.ITransformer;
 import org.metaborg.spoofax.core.transform.TransformResult;
@@ -208,6 +207,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                 }
             } catch(ParseException e) {
                 final String message = String.format("Parsing failed unexpectedly for %s", resource);
+                input.messagePrinter.print(resource, message, e);
                 if(input.throwOnErrors) {
                     throw new SpoofaxRuntimeException(message, e);
                 }
@@ -217,6 +217,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                 changedResources.add(resource);
             } catch(IOException e) {
                 final String message = String.format("Parsing failed unexpectedly for %s", resource);
+                input.messagePrinter.print(resource, message, e);
                 if(input.throwOnErrors) {
                     throw new SpoofaxRuntimeException(message, e);
                 }
@@ -236,6 +237,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                 allParseResultsPerContext.put(context, parseResult);
             } catch(ContextException e) {
                 final String message = String.format("Failed to retrieve context for parse result of %s", resource);
+                input.messagePrinter.print(resource, message, e);
                 if(input.throwOnErrors) {
                     throw new SpoofaxRuntimeException(message, e);
                 }
@@ -264,6 +266,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                 // GTODO: also update messages for affected sources
             } catch(AnalysisException e) {
                 final String message = "Analysis failed unexpectedly";
+                input.messagePrinter.print(input.project, message, e);
                 if(input.throwOnErrors) {
                     throw new SpoofaxRuntimeException(message, e);
                 }
@@ -289,7 +292,8 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
             }
             synchronized(context) {
                 for(AnalysisFileResult<P, A> fileResult : analysisResult.fileResults) {
-                    final FileName name = fileResult.source.getName();
+                    final FileObject resource = fileResult.source;
+                    final FileName name = resource.getName();
                     if(includeSet.contains(name) || removedResources.contains(name)) {
                         // Don't transform included resources, they should just be parsed and analyzed.
                         // Don't compile removed resources, which the analysis results contain for legacy reasons.
@@ -297,7 +301,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                     }
 
                     if(fileResult.result == null) {
-                        logger.warn("Input result for {} is null, cannot transform it", fileResult.source);
+                        logger.warn("Input result for {} is null, cannot transform it", resource);
                         continue;
                     }
 
@@ -308,6 +312,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                         allTransformResults.add(result);
                     } catch(TransformerException e) {
                         final String message = String.format("Transformation failed unexpectedly for %s", name);
+                        input.messagePrinter.print(resource, message, e);
                         if(input.throwOnErrors) {
                             throw new SpoofaxRuntimeException(message, e);
                         }
@@ -352,7 +357,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
     }
 
     private void printMessages(Iterable<IMessage> messages, BuildInput input, String phase) {
-        final IMessagePrinter printer = input.messagePrinter;
+        final IBuildMessagePrinter printer = input.messagePrinter;
         if(printer != null) {
             for(IMessage message : messages) {
                 printer.print(message);

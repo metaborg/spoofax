@@ -6,10 +6,10 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.analysis.AnalysisFileResult;
-import org.metaborg.spoofax.core.messages.ISourceLocation;
-import org.metaborg.spoofax.core.messages.ISourceRegion;
-import org.metaborg.spoofax.core.messages.SourceLocation;
 import org.metaborg.spoofax.core.resource.IResourceService;
+import org.metaborg.spoofax.core.source.ISourceLocation;
+import org.metaborg.spoofax.core.source.ISourceRegion;
+import org.metaborg.spoofax.core.source.SourceLocation;
 import org.metaborg.spoofax.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.syntax.jsglr.JSGLRSourceRegionFactory;
 import org.metaborg.spoofax.core.syntax.jsglr.SourceAttachment;

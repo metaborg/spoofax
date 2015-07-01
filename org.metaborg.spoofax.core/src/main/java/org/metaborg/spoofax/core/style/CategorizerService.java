@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.metaborg.spoofax.core.analysis.AnalysisFileResult;
 import org.metaborg.spoofax.core.language.ILanguage;
-import org.metaborg.spoofax.core.messages.ISourceRegion;
+import org.metaborg.spoofax.core.source.ISourceRegion;
 import org.metaborg.spoofax.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.syntax.jsglr.JSGLRSourceRegionFactory;
 import org.metaborg.util.iterators.Iterables2;

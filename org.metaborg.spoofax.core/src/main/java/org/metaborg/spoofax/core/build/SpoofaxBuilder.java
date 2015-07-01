@@ -7,8 +7,8 @@ import org.metaborg.spoofax.core.language.dialect.IDialectProcessor;
 import org.metaborg.spoofax.core.language.dialect.IDialectService;
 import org.metaborg.spoofax.core.processing.analyze.IAnalysisResultUpdater;
 import org.metaborg.spoofax.core.processing.parse.IParseResultUpdater;
+import org.metaborg.spoofax.core.source.ISourceTextService;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
-import org.metaborg.spoofax.core.text.ISourceTextService;
 import org.metaborg.spoofax.core.transform.ITransformer;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 

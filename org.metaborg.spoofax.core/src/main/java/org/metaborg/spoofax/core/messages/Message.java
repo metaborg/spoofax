@@ -8,6 +8,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.resource.ResourceService;
+import org.metaborg.spoofax.core.source.ISourceRegion;
 
 public class Message implements IMessage {
     private static final long serialVersionUID = -8129122671657252297L;

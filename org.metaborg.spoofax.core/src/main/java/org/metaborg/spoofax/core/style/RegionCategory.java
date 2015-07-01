@@ -2,7 +2,7 @@ package org.metaborg.spoofax.core.style;
 
 import javax.annotation.Nullable;
 
-import org.metaborg.spoofax.core.messages.ISourceRegion;
+import org.metaborg.spoofax.core.source.ISourceRegion;
 
 public class RegionCategory<T> implements IRegionCategory<T> {
     private final ISourceRegion region;

@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.core.tracing;
 
-import org.metaborg.spoofax.core.messages.ISourceRegion;
+import org.metaborg.spoofax.core.source.ISourceRegion;
 
 /**
  * Represents hover information produced by the hover service.

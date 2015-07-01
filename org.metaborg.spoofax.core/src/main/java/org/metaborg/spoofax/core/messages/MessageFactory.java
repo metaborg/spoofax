@@ -3,6 +3,8 @@ package org.metaborg.spoofax.core.messages;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.spoofax.core.source.ISourceRegion;
+import org.metaborg.spoofax.core.source.SourceRegion;
 
 public class MessageFactory {
     public static Message newMessage(FileObject resource, ISourceRegion region, String msg, MessageSeverity severity,

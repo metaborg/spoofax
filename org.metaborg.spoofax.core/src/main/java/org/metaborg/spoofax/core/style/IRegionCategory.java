@@ -2,7 +2,7 @@ package org.metaborg.spoofax.core.style;
 
 import javax.annotation.Nullable;
 
-import org.metaborg.spoofax.core.messages.ISourceRegion;
+import org.metaborg.spoofax.core.source.ISourceRegion;
 
 /**
  * Interface for categories that range over a region in source text. Created by the {@link ICategorizerService} from a

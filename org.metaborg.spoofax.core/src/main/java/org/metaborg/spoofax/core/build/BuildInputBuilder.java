@@ -10,7 +10,6 @@ import org.apache.commons.vfs2.FileSelector;
 import org.metaborg.spoofax.core.build.dependency.IDependencyService;
 import org.metaborg.spoofax.core.build.paths.ILanguagePathService;
 import org.metaborg.spoofax.core.language.ILanguage;
-import org.metaborg.spoofax.core.messages.IMessagePrinter;
 import org.metaborg.spoofax.core.project.IProject;
 import org.metaborg.spoofax.core.resource.IResourceChange;
 import org.metaborg.spoofax.core.resource.ResourceChange;
@@ -51,7 +50,7 @@ public class BuildInputBuilder {
     private @Nullable FileSelector transformSelector;
     private Collection<ITransformerGoal> transformGoals;
 
-    private @Nullable IMessagePrinter messagePrinter;
+    private @Nullable IBuildMessagePrinter messagePrinter;
     private boolean throwOnErrors;
     private Collection<ILanguage> pardonedLanguages;
     private Set<String> pardonedLanguageStrings;
@@ -200,7 +199,7 @@ public class BuildInputBuilder {
     }
 
 
-    public BuildInputBuilder withMessagePrinter(IMessagePrinter messagePrinter) {
+    public BuildInputBuilder withMessagePrinter(IBuildMessagePrinter messagePrinter) {
         this.messagePrinter = messagePrinter;
         return this;
     }

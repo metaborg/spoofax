@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.core.messages;
+package org.metaborg.spoofax.core.source;
 
 import java.io.Serializable;
 

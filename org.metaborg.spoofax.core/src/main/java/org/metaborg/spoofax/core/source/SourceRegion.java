@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.core.messages;
+package org.metaborg.spoofax.core.source;
 
 public class SourceRegion implements ISourceRegion {
     private static final long serialVersionUID = -3699054067428073315L;

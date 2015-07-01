@@ -1,7 +1,7 @@
 package org.metaborg.spoofax.core.tracing;
 
-import org.metaborg.spoofax.core.messages.ISourceLocation;
-import org.metaborg.spoofax.core.messages.ISourceRegion;
+import org.metaborg.spoofax.core.source.ISourceLocation;
+import org.metaborg.spoofax.core.source.ISourceRegion;
 
 /**
  * Represents a resolution produced by reference resolution.

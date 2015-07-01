@@ -2,8 +2,8 @@ package org.metaborg.spoofax.core.stratego.primitives;
 
 import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
 import org.metaborg.spoofax.core.resource.IResourceService;
+import org.metaborg.spoofax.core.source.ISourceTextService;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
-import org.metaborg.spoofax.core.text.ISourceTextService;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.inject.Inject;

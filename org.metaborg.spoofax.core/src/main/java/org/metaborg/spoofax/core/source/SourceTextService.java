@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.core.text;
+package org.metaborg.spoofax.core.source;
 
 import java.io.IOException;
 
