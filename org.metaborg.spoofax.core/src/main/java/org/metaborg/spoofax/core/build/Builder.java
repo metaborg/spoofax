@@ -39,8 +39,8 @@ import org.metaborg.spoofax.core.source.ISourceTextService;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
 import org.metaborg.spoofax.core.syntax.ParseException;
 import org.metaborg.spoofax.core.syntax.ParseResult;
-import org.metaborg.spoofax.core.transform.CompileGoal;
 import org.metaborg.spoofax.core.transform.ITransformer;
+import org.metaborg.spoofax.core.transform.ITransformerGoal;
 import org.metaborg.spoofax.core.transform.TransformResult;
 import org.metaborg.spoofax.core.transform.TransformerException;
 import org.metaborg.util.iterators.Iterables2;
@@ -267,13 +267,9 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         }
         final Collection<TransformResult<AnalysisFileResult<P, A>, T>> allTransformResults =
             Lists.newArrayListWithExpectedSize(numChanges);
-        final CompileGoal compileGoal = new CompileGoal();
+
         for(AnalysisResult<P, A> analysisResult : allAnalysisResults) {
             final IContext context = analysisResult.context;
-            if(!transformer.available(compileGoal, context)) {
-                logger.trace("No compilation required for {}", context.language());
-                continue;
-            }
             synchronized(context) {
                 for(AnalysisFileResult<P, A> fileResult : analysisResult.fileResults) {
                     final FileObject resource = fileResult.source;
@@ -290,10 +286,16 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                     }
 
                     try {
-                        final TransformResult<AnalysisFileResult<P, A>, T> result =
-                            transformer.transform(fileResult, context, compileGoal);
-                        printMessages(result.messages, "Transformation", input, language);
-                        allTransformResults.add(result);
+                        for(ITransformerGoal goal : input.transformGoals) {
+                            if(!transformer.available(goal, context)) {
+                                logger.trace("No {} transformation required for {}", goal, context.language());
+                                continue;
+                            }
+                            final TransformResult<AnalysisFileResult<P, A>, T> result =
+                                transformer.transform(fileResult, context, goal);
+                            printMessages(result.messages, goal + " transformation", input, language);
+                            allTransformResults.add(result);
+                        }
                     } catch(TransformerException e) {
                         final String message = String.format("Transformation failed unexpectedly for %s", name);
                         printMessage(resource, message, e, input, language);
