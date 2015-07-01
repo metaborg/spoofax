@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.core.build.processing;
 
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSelector;
 import org.metaborg.spoofax.core.build.BuildInput;
 import org.metaborg.spoofax.core.build.IBuildOutput;
 import org.metaborg.spoofax.core.build.IBuilder;
@@ -25,10 +26,10 @@ public class BlockingProcessor<P, A, T> implements IProcessor<P, A, T> {
         });
     }
 
-    @Override public ITask<?> clean(final FileObject location) {
+    @Override public ITask<?> clean(final FileObject location, final FileSelector excludeSelector) {
         return new BlockingTask<Object>(new Func0<Object>() {
             @Override public Object call() {
-                builder.clean(location);
+                builder.clean(location, excludeSelector);
                 return null;
             }
         });

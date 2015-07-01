@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.core.analysis;
+package org.metaborg.spoofax.core.analysis.stratego;
 
 import java.io.Serializable;
 

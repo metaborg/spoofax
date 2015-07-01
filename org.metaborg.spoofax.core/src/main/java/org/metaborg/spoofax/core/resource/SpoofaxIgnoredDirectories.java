@@ -15,7 +15,11 @@ public class SpoofaxIgnoredDirectories {
     }
 
     public static FileSelector ignoreFileSelector(FileSelector includeSelector) {
-        return new FilterFileSelector(includeSelector, new FileSelector() {
+        return new FilterFileSelector(includeSelector, excludeFileSelector());
+    }
+
+    public static FileSelector excludeFileSelector() {
+        return new FileSelector() {
             @Override public boolean traverseDescendents(FileSelectInfo fileInfo) throws Exception {
                 return ignoreResource(fileInfo.getFile());
             }
@@ -23,6 +27,18 @@ public class SpoofaxIgnoredDirectories {
             @Override public boolean includeFile(FileSelectInfo fileInfo) throws Exception {
                 return ignoreResource(fileInfo.getFile());
             }
-        });
+        };
+    }
+    
+    public static FileSelector includeFileSelector() {
+        return new FileSelector() {
+            @Override public boolean traverseDescendents(FileSelectInfo fileInfo) throws Exception {
+                return !ignoreResource(fileInfo.getFile());
+            }
+
+            @Override public boolean includeFile(FileSelectInfo fileInfo) throws Exception {
+                return !ignoreResource(fileInfo.getFile());
+            }
+        };
     }
 }

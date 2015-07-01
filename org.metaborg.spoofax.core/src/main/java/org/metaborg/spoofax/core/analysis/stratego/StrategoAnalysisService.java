@@ -9,12 +9,11 @@ import java.util.Map;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.spoofax.core.SpoofaxException;
 import org.metaborg.spoofax.core.SpoofaxRuntimeException;
-import org.metaborg.spoofax.core.analysis.AnalysisDebugResult;
 import org.metaborg.spoofax.core.analysis.AnalysisException;
 import org.metaborg.spoofax.core.analysis.AnalysisFileResult;
 import org.metaborg.spoofax.core.analysis.AnalysisResult;
-import org.metaborg.spoofax.core.analysis.AnalysisTimeResult;
 import org.metaborg.spoofax.core.analysis.IAnalysisService;
+import org.metaborg.spoofax.core.analysis.IAnalyzerData;
 import org.metaborg.spoofax.core.context.IContext;
 import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.messages.IMessage;
@@ -101,9 +100,11 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
 
         if(facet.analysisStrategy() == null || facet.analysisMode() == null) {
             logger.debug("No analysis required for {}", language);
+            final IAnalyzerData data =
+                new StrategoAnalyzerData(Iterables2.<String>empty(), new AnalysisDebugResult(termFactory),
+                    new AnalysisTimeResult());
             return new AnalysisResult<IStrategoTerm, IStrategoTerm>(context,
-                Iterables2.<AnalysisFileResult<IStrategoTerm, IStrategoTerm>>empty(), Iterables2.<String>empty(),
-                new AnalysisDebugResult(termFactory), new AnalysisTimeResult());
+                Iterables2.<AnalysisFileResult<IStrategoTerm, IStrategoTerm>>empty(), data);
         }
 
         logger.debug("Analyzing {} inputs of {}", Iterables.size(inputs), language);
@@ -128,7 +129,6 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
             }
         }
     }
-
 
     private AnalysisResult<IStrategoTerm, IStrategoTerm> analyzeSingleAST(Iterable<ParseResult<IStrategoTerm>> inputs,
         Iterable<FileObject> sources, IContext context, HybridInterpreter interpreter, String analysisStrategy,
@@ -199,8 +199,10 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
             }
         }
 
-        return new AnalysisResult<IStrategoTerm, IStrategoTerm>(context, results, Iterables2.<String>empty(),
-            new AnalysisDebugResult(termFactory), new AnalysisTimeResult());
+        final IAnalyzerData data =
+            new StrategoAnalyzerData(Iterables2.<String>empty(), new AnalysisDebugResult(termFactory),
+                new AnalysisTimeResult());
+        return new AnalysisResult<IStrategoTerm, IStrategoTerm>(context, results, data);
     }
 
     private AnalysisFileResult<IStrategoTerm, IStrategoTerm> singleASTMakeResult(IStrategoTerm result,
@@ -318,8 +320,8 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
         final AnalysisDebugResult debugResult = makeAnalysisDebugResult(debugResultTerm);
         final AnalysisTimeResult timeResult = makeAnalysisTimeResult(timeResultTerm);
 
-        return new AnalysisResult<IStrategoTerm, IStrategoTerm>(context, fileResults, affectedPartitions, debugResult,
-            timeResult);
+        final IAnalyzerData data = new StrategoAnalyzerData(affectedPartitions, debugResult, timeResult);
+        return new AnalysisResult<IStrategoTerm, IStrategoTerm>(context, fileResults, data);
     }
 
     private AnalysisFileResult<IStrategoTerm, IStrategoTerm> multiASTMakeResult(IStrategoTerm result, IContext context,

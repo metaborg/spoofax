@@ -1,60 +1,21 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <project
   xmlns="http://maven.apache.org/POM/4.0.0"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
 >
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>org.metaborg.spoofax.core</artifactId>
-  <description>Spoofax core library</description>
-  <url>https://github.com/metaborg/spoofax</url>
+  <artifactId>org.metaborg.core</artifactId>
 
   <parent>
     <groupId>org.metaborg</groupId>
     <artifactId>org.metaborg.maven.parent.java</artifactId>
     <version>1.5.0-SNAPSHOT</version>
-    <relativePath>../../spoofax-deploy/org.metaborg.maven.parent.java</relativePath>
   </parent>
 
   <dependencies>
     <dependency>
       <groupId>org.metaborg</groupId>
       <artifactId>org.metaborg.util</artifactId>
-      <version>${metaborg-version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.metaborg</groupId>
-      <artifactId>org.metaborg.core</artifactId>
-      <version>${metaborg-version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.metaborg</groupId>
-      <artifactId>org.spoofax.terms</artifactId>
-      <version>${metaborg-version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.metaborg</groupId>
-      <artifactId>org.spoofax.interpreter.core</artifactId>
-      <version>${metaborg-version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.metaborg</groupId>
-      <artifactId>org.strategoxt.imp.generator</artifactId>
-      <version>${metaborg-version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.metaborg</groupId>
-      <artifactId>org.strategoxt.strj</artifactId>
-      <version>${metaborg-version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.metaborg</groupId>
-      <artifactId>org.spoofax.interpreter.library.index</artifactId>
-      <version>${metaborg-version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.metaborg</groupId>
-      <artifactId>org.metaborg.runtime.task</artifactId>
       <version>${metaborg-version}</version>
     </dependency>
 
@@ -95,8 +56,8 @@
       <artifactId>kryo</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.functionaljava</groupId>
-      <artifactId>functionaljava</artifactId>
+      <groupId>org.javabits.jgrapht</groupId>
+      <artifactId>jgrapht-core</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.maven</groupId>
@@ -129,12 +90,6 @@
     <developer>
       <name>Gabriël Konat</name>
       <email>g.d.p.konat@tudelft.nl</email>
-      <organization>Delft University of Technology</organization>
-      <organizationUrl>http://www.ewi.tudelft.nl/en</organizationUrl>
-    </developer>
-    <developer>
-      <name>Vlad Vergu</name>
-      <email>v.a.vergu@tudelft.nl</email>
       <organization>Delft University of Technology</organization>
       <organizationUrl>http://www.ewi.tudelft.nl/en</organizationUrl>
     </developer>

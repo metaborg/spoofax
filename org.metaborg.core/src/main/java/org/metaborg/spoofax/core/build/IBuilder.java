@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.core.build;
 
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSelector;
 import org.metaborg.spoofax.core.SpoofaxRuntimeException;
 
 /**
@@ -31,5 +32,5 @@ public interface IBuilder<P, A, T> {
      * @param location
      *            Location to clean.
      */
-    public abstract void clean(FileObject location);
+    public abstract void clean(FileObject location, FileSelector excludeSelector);
 }

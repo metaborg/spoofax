@@ -9,6 +9,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSelectInfo;
 import org.apache.commons.vfs2.FileSelector;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.spoofax.core.SpoofaxRuntimeException;
@@ -34,7 +35,6 @@ import org.metaborg.spoofax.core.processing.parse.IParseResultUpdater;
 import org.metaborg.spoofax.core.resource.IResourceChange;
 import org.metaborg.spoofax.core.resource.ResourceChange;
 import org.metaborg.spoofax.core.resource.ResourceChangeKind;
-import org.metaborg.spoofax.core.resource.SpoofaxIgnoredDirectories;
 import org.metaborg.spoofax.core.source.ISourceTextService;
 import org.metaborg.spoofax.core.syntax.ISyntaxService;
 import org.metaborg.spoofax.core.syntax.ParseException;
@@ -44,6 +44,8 @@ import org.metaborg.spoofax.core.transform.ITransformerGoal;
 import org.metaborg.spoofax.core.transform.TransformResult;
 import org.metaborg.spoofax.core.transform.TransformerException;
 import org.metaborg.util.iterators.Iterables2;
+import org.metaborg.util.resource.DefaultFileSelectInfo;
+import org.metaborg.util.resource.FilterFileSelector;
 import org.metaborg.util.resource.ResourceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,10 +96,19 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         final Collection<IResourceChange> parseTableChanges = Lists.newLinkedList();
         final Multimap<ILanguage, IdentifiedResourceChange> changes = ArrayListMultimap.create();
 
+        final FileObject location = input.project.location();
         for(IResourceChange change : input.resourceChanges) {
             final FileObject resource = change.resource();
-            if(SpoofaxIgnoredDirectories.ignoreResource(resource)) {
-                continue;
+
+            if(input.selector != null) {
+                final FileSelectInfo info = new DefaultFileSelectInfo(location, resource, -1);
+                try {
+                    if(!input.selector.includeFile(info)) {
+                        continue;
+                    }
+                } catch(Exception e) {
+                    // Ignore exception, just include file.
+                }
             }
 
             if(resource.getName().getExtension().equals("tbl")) {
@@ -132,12 +143,12 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         return buildOutput;
     }
 
-    @Override public void clean(FileObject location) {
+    @Override public void clean(FileObject location, FileSelector excludeSelector) {
         logger.debug("Cleaning " + location);
 
         try {
             final FileSelector selector =
-                SpoofaxIgnoredDirectories.ignoreFileSelector(new AllLanguagesFileSelector(languageIdentifier));
+                new FilterFileSelector(new AllLanguagesFileSelector(languageIdentifier), excludeSelector);
             final FileObject[] resources = location.findFiles(selector);
             final Set<IContext> contexts =
                 ContextUtils.getAll(Iterables2.from(resources), languageIdentifier, contextService);
