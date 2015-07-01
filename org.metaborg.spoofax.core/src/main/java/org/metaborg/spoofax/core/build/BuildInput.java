@@ -1,5 +1,7 @@
 package org.metaborg.spoofax.core.build;
 
+import java.util.Set;
+
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
@@ -84,14 +86,14 @@ public class BuildInput {
     /**
      * Languages for which errors are pardoned; prevents throwing an exception when {@code throwOnErrors} is true.
      */
-    public final Iterable<ILanguage> pardonedLanguages;
+    public final Set<ILanguage> pardonedLanguages;
 
 
     public BuildInput(IProject project, Iterable<IResourceChange> resourceChanges,
         Multimap<ILanguage, FileObject> includeLocations, BuildOrder buildOrder, @Nullable FileSelector parseSelector,
         boolean analyze, FileSelector analyzeSelector, boolean transform, @Nullable FileSelector transformSelector,
-        Iterable<ITransformerGoal> transformGoals, @Nullable IBuildMessagePrinter messagePrinter, boolean throwOnErrors,
-        Iterable<ILanguage> pardonedLanguages) {
+        Iterable<ITransformerGoal> transformGoals, @Nullable IBuildMessagePrinter messagePrinter,
+        boolean throwOnErrors, Set<ILanguage> pardonedLanguages) {
         this.project = project;
         this.resourceChanges = resourceChanges;
         this.includeLocations = includeLocations;

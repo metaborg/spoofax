@@ -200,28 +200,20 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                     final String sourceText = sourceTextService.text(resource);
                     parseResultProcessor.invalidate(resource);
                     final ParseResult<P> parseResult = syntaxService.parse(sourceText, resource, parserLanguage, null);
-                    printMessages(parseResult.messages, input, "Parsing");
+                    printMessages(parseResult.messages, "Parsing", input, language);
                     allParseResults.add(parseResult);
                     parseResultProcessor.update(resource, parseResult);
                     changedResources.add(resource);
                 }
             } catch(ParseException e) {
                 final String message = String.format("Parsing failed unexpectedly for %s", resource);
-                input.messagePrinter.print(resource, message, e);
-                if(input.throwOnErrors) {
-                    throw new SpoofaxRuntimeException(message, e);
-                }
-                logger.error(message, e);
+                printMessage(resource, message, e, input, language);
                 parseResultProcessor.error(resource, e);
                 extraMessages.add(MessageFactory.newParseErrorAtTop(resource, "Parsing failed unexpectedly", e));
                 changedResources.add(resource);
             } catch(IOException e) {
                 final String message = String.format("Parsing failed unexpectedly for %s", resource);
-                input.messagePrinter.print(resource, message, e);
-                if(input.throwOnErrors) {
-                    throw new SpoofaxRuntimeException(message, e);
-                }
-                logger.error(message, e);
+                printMessage(resource, message, e, input, language);
                 parseResultProcessor.error(resource, new ParseException(resource, parserLanguage, e));
                 extraMessages.add(MessageFactory.newParseErrorAtTop(resource, "Parsing failed unexpectedly", e));
                 changedResources.add(resource);
@@ -237,11 +229,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                 allParseResultsPerContext.put(context, parseResult);
             } catch(ContextException e) {
                 final String message = String.format("Failed to retrieve context for parse result of %s", resource);
-                input.messagePrinter.print(resource, message, e);
-                if(input.throwOnErrors) {
-                    throw new SpoofaxRuntimeException(message, e);
-                }
-                logger.error(message, e);
+                printMessage(resource, message, e, input, language);
                 extraMessages.add(MessageFactory.newAnalysisErrorAtTop(resource, "Failed to retrieve context", e));
             }
         }
@@ -258,7 +246,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                     analysisResultProcessor.invalidate(parseResults);
                     final AnalysisResult<P, A> analysisResult = analyzer.analyze(parseResults, context);
                     for(AnalysisFileResult<P, A> fileResult : analysisResult.fileResults) {
-                        printMessages(fileResult.messages, input, "Analysis");
+                        printMessages(fileResult.messages, "Analysis", input, language);
                     }
                     analysisResultProcessor.update(analysisResult, removedResources);
                     allAnalysisResults.add(analysisResult);
@@ -266,11 +254,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                 // GTODO: also update messages for affected sources
             } catch(AnalysisException e) {
                 final String message = "Analysis failed unexpectedly";
-                input.messagePrinter.print(input.project, message, e);
-                if(input.throwOnErrors) {
-                    throw new SpoofaxRuntimeException(message, e);
-                }
-                logger.error(message, e);
+                printMessage(message, e, input, language);
                 analysisResultProcessor.error(parseResults, e);
                 extraMessages.add(MessageFactory.newAnalysisErrorAtTop(location, message, e));
             }
@@ -308,15 +292,11 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                     try {
                         final TransformResult<AnalysisFileResult<P, A>, T> result =
                             transformer.transform(fileResult, context, compileGoal);
-                        printMessages(result.messages, input, "Transformation");
+                        printMessages(result.messages, "Transformation", input, language);
                         allTransformResults.add(result);
                     } catch(TransformerException e) {
                         final String message = String.format("Transformation failed unexpectedly for %s", name);
-                        input.messagePrinter.print(resource, message, e);
-                        if(input.throwOnErrors) {
-                            throw new SpoofaxRuntimeException(message, e);
-                        }
-                        logger.error(message, e);
+                        printMessage(resource, message, e, input, language);
                         extraMessages.add(MessageFactory.newBuilderErrorAtTop(location,
                             "Transformation failed unexpectedly", e));
                     }
@@ -324,6 +304,8 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                 // GTODO: also compile any affected sources
             }
         }
+
+        printMessages(extraMessages, "Something", input, language);
 
         output.add(removedResources, changedResources, allParseResults, allAnalysisResults, allTransformResults,
             extraMessages);
@@ -356,7 +338,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         return null;
     }
 
-    private void printMessages(Iterable<IMessage> messages, BuildInput input, String phase) {
+    private void printMessages(Iterable<IMessage> messages, String phase, BuildInput input, ILanguage language) {
         final IBuildMessagePrinter printer = input.messagePrinter;
         if(printer != null) {
             for(IMessage message : messages) {
@@ -364,8 +346,24 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
             }
         }
 
-        if(input.throwOnErrors && MessageUtils.containsSeverity(messages, MessageSeverity.ERROR)) {
+        if(input.throwOnErrors && !input.pardonedLanguages.contains(language)
+            && MessageUtils.containsSeverity(messages, MessageSeverity.ERROR)) {
             throw new SpoofaxRuntimeException(phase + " produced errors");
+        }
+    }
+
+    private void printMessage(FileObject resource, String message, @Nullable Throwable e, BuildInput input,
+        ILanguage language) {
+        input.messagePrinter.print(resource, message, e);
+        if(input.throwOnErrors && !input.pardonedLanguages.contains(language)) {
+            throw new SpoofaxRuntimeException(message, e);
+        }
+    }
+
+    private void printMessage(String message, @Nullable Throwable e, BuildInput input, ILanguage language) {
+        input.messagePrinter.print(input.project, message, e);
+        if(input.throwOnErrors && !input.pardonedLanguages.contains(language)) {
+            throw new SpoofaxRuntimeException(message, e);
         }
     }
 }

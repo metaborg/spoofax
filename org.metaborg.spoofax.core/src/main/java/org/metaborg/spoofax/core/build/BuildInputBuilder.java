@@ -52,7 +52,7 @@ public class BuildInputBuilder {
 
     private @Nullable IBuildMessagePrinter messagePrinter;
     private boolean throwOnErrors;
-    private Collection<ILanguage> pardonedLanguages;
+    private Set<ILanguage> pardonedLanguages;
     private Set<String> pardonedLanguageStrings;
 
 
@@ -77,7 +77,7 @@ public class BuildInputBuilder {
         transformGoals = Lists.newLinkedList();
         messagePrinter = null;
         throwOnErrors = false;
-        pardonedLanguages = Lists.newLinkedList();
+        pardonedLanguages = Sets.newHashSet();
         pardonedLanguageStrings = Sets.newHashSet();
         return this;
     }
@@ -209,7 +209,7 @@ public class BuildInputBuilder {
         return this;
     }
 
-    public BuildInputBuilder withPardonedLanguages(Collection<ILanguage> pardonedLanguages) {
+    public BuildInputBuilder withPardonedLanguages(Set<ILanguage> pardonedLanguages) {
         this.pardonedLanguages = pardonedLanguages;
         return this;
     }
