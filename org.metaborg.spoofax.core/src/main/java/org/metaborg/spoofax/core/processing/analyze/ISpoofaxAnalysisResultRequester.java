@@ -1,5 +1,6 @@
 package org.metaborg.spoofax.core.processing.analyze;
 
+import org.metaborg.core.processing.analyze.IAnalysisResultRequester;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 /**

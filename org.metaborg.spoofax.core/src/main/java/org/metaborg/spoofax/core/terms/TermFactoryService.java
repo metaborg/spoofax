@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.core.terms;
 
-import org.metaborg.spoofax.core.language.ILanguage;
+import org.metaborg.core.language.ILanguage;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.terms.TermFactory;
 

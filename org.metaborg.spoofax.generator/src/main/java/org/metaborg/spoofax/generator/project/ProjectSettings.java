@@ -16,7 +16,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.metaborg.spoofax.core.SpoofaxRuntimeException;
+import org.metaborg.core.SpoofaxRuntimeException;
 
 public class ProjectSettings {
     private final String groupId;

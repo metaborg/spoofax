@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
+import org.metaborg.core.language.LanguageVersion;
 
 public class LanguageVersionTest {
     @Test public void testParse() {

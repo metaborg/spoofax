@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.core.analysis.stratego;
 
-import org.metaborg.spoofax.core.analysis.IAnalyzerData;
+import org.metaborg.core.analysis.IAnalyzerData;
 
 public class StrategoAnalyzerData implements IAnalyzerData {
     public final Iterable<String> affectedPartitions;

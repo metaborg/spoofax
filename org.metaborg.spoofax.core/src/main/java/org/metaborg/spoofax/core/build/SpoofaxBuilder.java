@@ -1,15 +1,16 @@
 package org.metaborg.spoofax.core.build;
 
-import org.metaborg.spoofax.core.analysis.IAnalysisService;
-import org.metaborg.spoofax.core.context.IContextService;
-import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
-import org.metaborg.spoofax.core.language.dialect.IDialectProcessor;
-import org.metaborg.spoofax.core.language.dialect.IDialectService;
-import org.metaborg.spoofax.core.processing.analyze.IAnalysisResultUpdater;
-import org.metaborg.spoofax.core.processing.parse.IParseResultUpdater;
-import org.metaborg.spoofax.core.source.ISourceTextService;
-import org.metaborg.spoofax.core.syntax.ISyntaxService;
-import org.metaborg.spoofax.core.transform.ITransformer;
+import org.metaborg.core.analysis.IAnalysisService;
+import org.metaborg.core.build.Builder;
+import org.metaborg.core.context.IContextService;
+import org.metaborg.core.language.ILanguageIdentifierService;
+import org.metaborg.core.language.dialect.IDialectProcessor;
+import org.metaborg.core.language.dialect.IDialectService;
+import org.metaborg.core.processing.analyze.IAnalysisResultUpdater;
+import org.metaborg.core.processing.parse.IParseResultUpdater;
+import org.metaborg.core.source.ISourceTextService;
+import org.metaborg.core.syntax.ISyntaxService;
+import org.metaborg.core.transform.ITransformer;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.inject.Inject;

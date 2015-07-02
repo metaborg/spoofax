@@ -4,7 +4,13 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import org.metaborg.spoofax.core.language.ILanguage;
+import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.style.ICategory;
+import org.metaborg.core.style.IRegionCategory;
+import org.metaborg.core.style.IRegionStyle;
+import org.metaborg.core.style.IStyle;
+import org.metaborg.core.style.IStylerService;
+import org.metaborg.core.style.RegionStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.terms.IStrategoTerm;

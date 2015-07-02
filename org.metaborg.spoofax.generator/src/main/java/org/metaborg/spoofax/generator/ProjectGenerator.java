@@ -2,7 +2,7 @@ package org.metaborg.spoofax.generator;
 
 import java.io.IOException;
 
-import org.metaborg.spoofax.core.resource.IResourceService;
+import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.generator.project.ProjectSettings;
 
 public class ProjectGenerator extends BaseGenerator {

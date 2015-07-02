@@ -9,12 +9,12 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.spoofax.core.SpoofaxException;
-import org.metaborg.spoofax.core.SpoofaxRuntimeException;
-import org.metaborg.spoofax.core.context.IContext;
-import org.metaborg.spoofax.core.language.ILanguage;
-import org.metaborg.spoofax.core.language.ILanguageCache;
-import org.metaborg.spoofax.core.resource.IResourceService;
+import org.metaborg.core.SpoofaxException;
+import org.metaborg.core.SpoofaxRuntimeException;
+import org.metaborg.core.context.IContext;
+import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageCache;
+import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.core.stratego.strategies.ParseStrategoFileStrategy;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.slf4j.Logger;

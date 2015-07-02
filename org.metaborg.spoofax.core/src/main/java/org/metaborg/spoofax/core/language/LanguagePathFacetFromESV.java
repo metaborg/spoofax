@@ -2,6 +2,7 @@ package org.metaborg.spoofax.core.language;
 
 import java.util.Collection;
 
+import org.metaborg.core.language.LanguagePathFacet;
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;

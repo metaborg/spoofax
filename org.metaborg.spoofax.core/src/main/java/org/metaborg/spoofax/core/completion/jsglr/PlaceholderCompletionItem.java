@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.core.completion.jsglr;
 
-import org.metaborg.spoofax.core.completion.IPlaceholderCompletionItem;
+import org.metaborg.core.completion.IPlaceholderCompletionItem;
 
 public class PlaceholderCompletionItem implements IPlaceholderCompletionItem {
     public final String sort;

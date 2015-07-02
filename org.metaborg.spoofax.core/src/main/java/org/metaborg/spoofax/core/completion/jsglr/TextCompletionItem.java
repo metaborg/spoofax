@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.core.completion.jsglr;
 
-import org.metaborg.spoofax.core.completion.ITextCompletionItem;
+import org.metaborg.core.completion.ITextCompletionItem;
 
 
 public class TextCompletionItem implements ITextCompletionItem {

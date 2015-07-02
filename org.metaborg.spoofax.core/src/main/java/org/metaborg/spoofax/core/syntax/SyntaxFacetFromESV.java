@@ -6,6 +6,8 @@ import java.util.Collection;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
+import org.metaborg.core.syntax.FenceCharacters;
+import org.metaborg.core.syntax.MultiLineCommentCharacters;
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.metaborg.util.iterators.Iterables2;
 import org.spoofax.interpreter.terms.IStrategoAppl;

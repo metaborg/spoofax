@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.core.transform.stratego;
 
-import org.metaborg.spoofax.core.transform.ITransformerExecutor;
+import org.metaborg.core.transform.ITransformerExecutor;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 /**

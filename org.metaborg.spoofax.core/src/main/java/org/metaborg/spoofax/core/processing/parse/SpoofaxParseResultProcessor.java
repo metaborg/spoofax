@@ -1,6 +1,7 @@
 package org.metaborg.spoofax.core.processing.parse;
 
-import org.metaborg.spoofax.core.syntax.ISyntaxService;
+import org.metaborg.core.processing.parse.ParseResultProcessor;
+import org.metaborg.core.syntax.ISyntaxService;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.inject.Inject;

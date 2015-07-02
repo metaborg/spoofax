@@ -1,7 +1,7 @@
 package org.metaborg.spoofax.core.transform.stratego;
 
-import org.metaborg.spoofax.core.transform.ITransformerGoal;
-import org.metaborg.spoofax.core.transform.TransformResult;
+import org.metaborg.core.transform.ITransformerGoal;
+import org.metaborg.core.transform.TransformResult;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.inject.Inject;

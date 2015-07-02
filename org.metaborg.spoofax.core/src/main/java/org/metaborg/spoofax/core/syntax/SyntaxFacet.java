@@ -5,8 +5,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.spoofax.core.language.ILanguageFacet;
-import org.metaborg.spoofax.core.resource.ResourceService;
+import org.metaborg.core.language.ILanguageFacet;
+import org.metaborg.core.resource.ResourceService;
+import org.metaborg.core.syntax.FenceCharacters;
+import org.metaborg.core.syntax.MultiLineCommentCharacters;
 import org.metaborg.util.iterators.Iterables2;
 
 /**

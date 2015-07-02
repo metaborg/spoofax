@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.core.tracing.spoofax;
 
-import org.metaborg.spoofax.core.tracing.IReferenceResolver;
+import org.metaborg.core.tracing.IReferenceResolver;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 /**

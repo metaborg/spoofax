@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 import javax.annotation.Nullable;
 
-import org.metaborg.spoofax.core.language.ILanguage;
+import org.metaborg.core.language.ILanguage;
 
 public class Action implements Serializable {
     private static final long serialVersionUID = 727107590910189637L;

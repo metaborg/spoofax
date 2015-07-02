@@ -3,6 +3,8 @@ package org.metaborg.spoofax.core.style;
 import java.awt.Color;
 import java.util.Map;
 
+import org.metaborg.core.style.IStyle;
+import org.metaborg.core.style.Style;
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

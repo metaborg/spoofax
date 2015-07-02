@@ -2,15 +2,15 @@ package org.metaborg.spoofax.core.completion.jsglr;
 
 import java.util.Collection;
 
-import org.metaborg.spoofax.core.SpoofaxException;
-import org.metaborg.spoofax.core.completion.Completion;
-import org.metaborg.spoofax.core.completion.ICompletion;
-import org.metaborg.spoofax.core.completion.ICompletionService;
-import org.metaborg.spoofax.core.language.ILanguage;
-import org.metaborg.spoofax.core.syntax.IParserConfiguration;
-import org.metaborg.spoofax.core.syntax.ISyntaxService;
-import org.metaborg.spoofax.core.syntax.ParseException;
-import org.metaborg.spoofax.core.syntax.ParseResult;
+import org.metaborg.core.SpoofaxException;
+import org.metaborg.core.completion.Completion;
+import org.metaborg.core.completion.ICompletion;
+import org.metaborg.core.completion.ICompletionService;
+import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.syntax.IParserConfiguration;
+import org.metaborg.core.syntax.ISyntaxService;
+import org.metaborg.core.syntax.ParseException;
+import org.metaborg.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.syntax.jsglr.JSGLRParserConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

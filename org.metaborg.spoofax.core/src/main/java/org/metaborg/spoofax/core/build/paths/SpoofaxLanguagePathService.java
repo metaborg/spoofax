@@ -4,7 +4,9 @@ import java.util.Collection;
 import java.util.Set;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.spoofax.core.project.IProject;
+import org.metaborg.core.build.paths.ILanguagePathProvider;
+import org.metaborg.core.build.paths.ILanguagePathService;
+import org.metaborg.core.project.IProject;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;

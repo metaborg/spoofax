@@ -5,9 +5,9 @@ import java.io.IOException;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.spoofax.core.language.ILanguage;
-import org.metaborg.spoofax.core.syntax.IParserConfiguration;
-import org.metaborg.spoofax.core.syntax.ParseResult;
+import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.syntax.IParserConfiguration;
+import org.metaborg.core.syntax.ParseResult;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.spoofax.interpreter.terms.ITermFactory;
 import org.spoofax.jsglr.client.Asfix2TreeBuilder;

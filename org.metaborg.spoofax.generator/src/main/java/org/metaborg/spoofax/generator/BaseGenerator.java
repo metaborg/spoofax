@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.generator;
 
-import org.metaborg.spoofax.core.resource.IResourceService;
+import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.generator.project.MustacheProjectSettings;
 import org.metaborg.spoofax.generator.project.ProjectSettings;
 import org.metaborg.spoofax.generator.util.MustacheWriter;

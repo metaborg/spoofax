@@ -2,7 +2,7 @@ package org.metaborg.spoofax.core.stratego;
 
 import javax.annotation.Nullable;
 
-import org.metaborg.spoofax.core.SpoofaxException;
+import org.metaborg.core.SpoofaxException;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 import org.strategoxt.HybridInterpreter;

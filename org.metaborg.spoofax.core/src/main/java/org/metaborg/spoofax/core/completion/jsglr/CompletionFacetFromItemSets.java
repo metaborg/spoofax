@@ -2,7 +2,7 @@ package org.metaborg.spoofax.core.completion.jsglr;
 
 import java.util.Collection;
 
-import org.metaborg.spoofax.core.completion.ICompletionItem;
+import org.metaborg.core.completion.ICompletionItem;
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.spoofax.interpreter.core.Tools;
 import org.spoofax.interpreter.terms.IStrategoAppl;

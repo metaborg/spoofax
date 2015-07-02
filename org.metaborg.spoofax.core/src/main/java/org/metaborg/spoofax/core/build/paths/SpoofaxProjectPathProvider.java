@@ -10,8 +10,9 @@ import java.util.List;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.metaborg.spoofax.core.SpoofaxRuntimeException;
-import org.metaborg.spoofax.core.project.IProject;
+import org.metaborg.core.SpoofaxRuntimeException;
+import org.metaborg.core.build.paths.ILanguagePathProvider;
+import org.metaborg.core.project.IProject;
 
 import static org.metaborg.spoofax.core.build.paths.SpoofaxProjectConstants.*;
 

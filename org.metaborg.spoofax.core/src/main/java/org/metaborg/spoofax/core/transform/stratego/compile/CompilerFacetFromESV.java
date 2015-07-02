@@ -2,8 +2,8 @@ package org.metaborg.spoofax.core.transform.stratego.compile;
 
 import java.util.List;
 
+import org.metaborg.core.language.ILanguage;
 import org.metaborg.spoofax.core.esv.ESVReader;
-import org.metaborg.spoofax.core.language.ILanguage;
 import org.metaborg.spoofax.core.transform.stratego.menu.MenusFacetFromESV;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

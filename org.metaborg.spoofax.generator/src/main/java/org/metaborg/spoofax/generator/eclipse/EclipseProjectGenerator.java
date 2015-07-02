@@ -3,7 +3,7 @@ package org.metaborg.spoofax.generator.eclipse;
 import java.io.File;
 import java.io.IOException;
 
-import org.metaborg.spoofax.core.resource.IResourceService;
+import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.generator.BaseGenerator;
 import org.metaborg.spoofax.generator.project.ProjectSettings;
 

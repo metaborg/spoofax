@@ -4,7 +4,8 @@ import java.util.Map;
 
 import javax.annotation.Nullable;
 
-import org.metaborg.spoofax.core.language.ILanguageFacet;
+import org.metaborg.core.language.ILanguageFacet;
+import org.metaborg.core.style.IStyle;
 
 import com.google.common.collect.Maps;
 

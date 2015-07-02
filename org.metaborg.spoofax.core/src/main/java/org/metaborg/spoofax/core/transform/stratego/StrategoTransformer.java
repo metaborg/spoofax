@@ -2,10 +2,10 @@ package org.metaborg.spoofax.core.transform.stratego;
 
 import java.util.Map;
 
-import org.metaborg.spoofax.core.transform.ITransformerExecutor;
-import org.metaborg.spoofax.core.transform.ITransformerGoal;
-import org.metaborg.spoofax.core.transform.ITransformerResultHandler;
-import org.metaborg.spoofax.core.transform.Transformer;
+import org.metaborg.core.transform.ITransformerExecutor;
+import org.metaborg.core.transform.ITransformerGoal;
+import org.metaborg.core.transform.ITransformerResultHandler;
+import org.metaborg.core.transform.Transformer;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.inject.Inject;

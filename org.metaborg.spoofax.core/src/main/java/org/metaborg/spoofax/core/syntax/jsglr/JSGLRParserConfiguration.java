@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.core.syntax.jsglr;
 
-import org.metaborg.spoofax.core.syntax.IParserConfiguration;
+import org.metaborg.core.syntax.IParserConfiguration;
 
 public class JSGLRParserConfiguration implements IParserConfiguration {
     public final boolean implode;

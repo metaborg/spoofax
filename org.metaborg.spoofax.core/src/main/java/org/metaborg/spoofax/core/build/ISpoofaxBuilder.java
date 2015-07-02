@@ -1,5 +1,6 @@
 package org.metaborg.spoofax.core.build;
 
+import org.metaborg.core.build.IBuilder;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 /**

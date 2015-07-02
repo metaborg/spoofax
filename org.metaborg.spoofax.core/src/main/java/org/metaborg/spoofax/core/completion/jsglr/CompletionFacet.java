@@ -2,7 +2,7 @@ package org.metaborg.spoofax.core.completion.jsglr;
 
 import javax.annotation.Nullable;
 
-import org.metaborg.spoofax.core.language.ILanguageFacet;
+import org.metaborg.core.language.ILanguageFacet;
 
 import com.google.common.collect.Multimap;
 

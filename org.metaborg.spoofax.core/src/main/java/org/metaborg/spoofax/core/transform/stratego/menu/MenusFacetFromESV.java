@@ -1,7 +1,7 @@
 package org.metaborg.spoofax.core.transform.stratego.menu;
 
+import org.metaborg.core.language.ILanguage;
 import org.metaborg.spoofax.core.esv.ESVReader;
-import org.metaborg.spoofax.core.language.ILanguage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.core.Tools;

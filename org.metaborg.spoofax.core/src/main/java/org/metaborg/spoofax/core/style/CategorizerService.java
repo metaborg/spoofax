@@ -2,10 +2,14 @@ package org.metaborg.spoofax.core.style;
 
 import java.util.List;
 
-import org.metaborg.spoofax.core.analysis.AnalysisFileResult;
-import org.metaborg.spoofax.core.language.ILanguage;
-import org.metaborg.spoofax.core.source.ISourceRegion;
-import org.metaborg.spoofax.core.syntax.ParseResult;
+import org.metaborg.core.analysis.AnalysisFileResult;
+import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.source.ISourceRegion;
+import org.metaborg.core.style.ICategorizerService;
+import org.metaborg.core.style.ICategory;
+import org.metaborg.core.style.IRegionCategory;
+import org.metaborg.core.style.RegionCategory;
+import org.metaborg.core.syntax.ParseResult;
 import org.metaborg.spoofax.core.syntax.jsglr.JSGLRSourceRegionFactory;
 import org.metaborg.util.iterators.Iterables2;
 import org.slf4j.Logger;

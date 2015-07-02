@@ -5,10 +5,10 @@ import java.util.List;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.metaborg.spoofax.core.build.paths.ILanguagePathService;
-import org.metaborg.spoofax.core.project.IProject;
-import org.metaborg.spoofax.core.project.IProjectService;
-import org.metaborg.spoofax.core.resource.IResourceService;
+import org.metaborg.core.build.paths.ILanguagePathService;
+import org.metaborg.core.project.IProject;
+import org.metaborg.core.project.IProjectService;
+import org.metaborg.core.resource.IResourceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.core.IContext;
@@ -45,8 +45,8 @@ public class LanguageSourcesPrimitive extends AbstractPrimitive {
         }
         final ITermFactory factory = env.getFactory();
         final String languageName = Tools.asJavaString(tvars[0]);
-        org.metaborg.spoofax.core.context.IContext context =
-            (org.metaborg.spoofax.core.context.IContext) env.contextObject();
+        org.metaborg.core.context.IContext context =
+            (org.metaborg.core.context.IContext) env.contextObject();
         final IProject project = projectService.get(context.location());
         if(project == null) {
             env.setCurrent(factory.makeList());

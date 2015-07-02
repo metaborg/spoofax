@@ -4,7 +4,7 @@ import static org.spoofax.jsglr.client.imploder.ImploderAttachment.hasImploderOr
 import static org.spoofax.terms.attachments.OriginAttachment.getOrigin;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.spoofax.core.resource.IResourceService;
+import org.metaborg.core.resource.IResourceService;
 import org.spoofax.interpreter.terms.ISimpleTerm;
 import org.spoofax.jsglr.client.imploder.ImploderAttachment;
 import org.spoofax.terms.attachments.AbstractTermAttachment;

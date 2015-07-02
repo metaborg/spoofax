@@ -1,10 +1,10 @@
 package org.metaborg.spoofax.core;
 
 import org.junit.Before;
-import org.metaborg.spoofax.core.language.ILanguageDiscoveryService;
-import org.metaborg.spoofax.core.language.ILanguageIdentifierService;
-import org.metaborg.spoofax.core.language.ILanguageService;
-import org.metaborg.spoofax.core.resource.IResourceService;
+import org.metaborg.core.language.ILanguageDiscoveryService;
+import org.metaborg.core.language.ILanguageIdentifierService;
+import org.metaborg.core.language.ILanguageService;
+import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 
 import com.google.inject.Guice;

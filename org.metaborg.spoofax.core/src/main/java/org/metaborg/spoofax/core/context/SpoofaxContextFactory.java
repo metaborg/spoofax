@@ -1,6 +1,9 @@
 package org.metaborg.spoofax.core.context;
 
-import org.metaborg.spoofax.core.resource.IResourceService;
+import org.metaborg.core.context.ContextIdentifier;
+import org.metaborg.core.context.IContextFactory;
+import org.metaborg.core.context.IContextInternal;
+import org.metaborg.core.resource.IResourceService;
 
 import com.google.inject.Inject;
 

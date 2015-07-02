@@ -8,9 +8,9 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
+import org.metaborg.core.language.ILanguageFacet;
+import org.metaborg.core.resource.ResourceService;
 import org.metaborg.spoofax.core.analysis.stratego.StrategoAnalysisMode;
-import org.metaborg.spoofax.core.language.ILanguageFacet;
-import org.metaborg.spoofax.core.resource.ResourceService;
 
 import com.google.common.collect.Lists;
 

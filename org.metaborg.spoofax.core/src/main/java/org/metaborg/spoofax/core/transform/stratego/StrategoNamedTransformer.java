@@ -1,16 +1,16 @@
 package org.metaborg.spoofax.core.transform.stratego;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.spoofax.core.SpoofaxException;
-import org.metaborg.spoofax.core.SpoofaxRuntimeException;
-import org.metaborg.spoofax.core.analysis.AnalysisFileResult;
-import org.metaborg.spoofax.core.context.IContext;
-import org.metaborg.spoofax.core.language.ILanguage;
-import org.metaborg.spoofax.core.syntax.ParseResult;
-import org.metaborg.spoofax.core.transform.ITransformerGoal;
-import org.metaborg.spoofax.core.transform.NamedGoal;
-import org.metaborg.spoofax.core.transform.TransformResult;
-import org.metaborg.spoofax.core.transform.TransformerException;
+import org.metaborg.core.SpoofaxException;
+import org.metaborg.core.SpoofaxRuntimeException;
+import org.metaborg.core.analysis.AnalysisFileResult;
+import org.metaborg.core.context.IContext;
+import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.syntax.ParseResult;
+import org.metaborg.core.transform.ITransformerGoal;
+import org.metaborg.core.transform.NamedGoal;
+import org.metaborg.core.transform.TransformResult;
+import org.metaborg.core.transform.TransformerException;
 import org.metaborg.spoofax.core.transform.stratego.menu.Action;
 import org.metaborg.spoofax.core.transform.stratego.menu.MenusFacet;
 import org.slf4j.Logger;

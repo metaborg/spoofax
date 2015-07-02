@@ -1,7 +1,8 @@
 package org.metaborg.spoofax.core.processing.analyze;
 
-import org.metaborg.spoofax.core.analysis.IAnalysisService;
-import org.metaborg.spoofax.core.processing.parse.IParseResultRequester;
+import org.metaborg.core.analysis.IAnalysisService;
+import org.metaborg.core.processing.analyze.AnalysisResultProcessor;
+import org.metaborg.core.processing.parse.IParseResultRequester;
 import org.spoofax.interpreter.terms.IStrategoTerm;
 
 import com.google.inject.Inject;

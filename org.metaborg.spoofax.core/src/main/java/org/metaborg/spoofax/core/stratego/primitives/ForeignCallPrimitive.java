@@ -1,10 +1,10 @@
 package org.metaborg.spoofax.core.stratego.primitives;
 
-import org.metaborg.spoofax.core.SpoofaxException;
-import org.metaborg.spoofax.core.context.ContextException;
-import org.metaborg.spoofax.core.context.IContextService;
-import org.metaborg.spoofax.core.language.ILanguage;
-import org.metaborg.spoofax.core.language.ILanguageService;
+import org.metaborg.core.SpoofaxException;
+import org.metaborg.core.context.ContextException;
+import org.metaborg.core.context.IContextService;
+import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageService;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeUtils;
 import org.spoofax.interpreter.core.IContext;
@@ -47,9 +47,9 @@ public class ForeignCallPrimitive extends AbstractPrimitive {
         }
 
         try {
-            final org.metaborg.spoofax.core.context.IContext currentContext =
-                (org.metaborg.spoofax.core.context.IContext) env.contextObject();
-            final org.metaborg.spoofax.core.context.IContext context = contextService.get(currentContext, language);
+            final org.metaborg.core.context.IContext currentContext =
+                (org.metaborg.core.context.IContext) env.contextObject();
+            final org.metaborg.core.context.IContext context = contextService.get(currentContext, language);
             final HybridInterpreter strategoRuntime = strategoRuntimeService.runtime(context);
             final IStrategoTerm output = StrategoRuntimeUtils.invoke(strategoRuntime, env.current(), strategyName);
             if(output == null) {
