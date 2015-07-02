@@ -5,8 +5,8 @@ import java.io.IOException;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.metaborg.core.SpoofaxException;
-import org.metaborg.core.SpoofaxRuntimeException;
+import org.metaborg.core.MetaborgException;
+import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.language.ILanguage;
 import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.IdentificationFacet;
@@ -39,12 +39,12 @@ public class StrategoDialectIdentifier implements IDialectIdentifier {
     }
 
 
-    @Override public ILanguage identify(FileObject resource) throws SpoofaxException {
+    @Override public ILanguage identify(FileObject resource) throws MetaborgException {
         final ILanguage strategoLanguage = languageService.get("Stratego-Sugar");
         if(strategoLanguage == null) {
             final String message = "Could not find Stratego language, Stratego dialects cannot be identified";
             logger.debug(message);
-            throw new SpoofaxRuntimeException(message);
+            throw new MetaborgRuntimeException(message);
         }
 
         if(!strategoLanguage.facet(IdentificationFacet.class).identify(resource)) {
@@ -66,15 +66,15 @@ public class StrategoDialectIdentifier implements IDialectIdentifier {
             if(dialect == null) {
                 final String message =
                     String.format("Resource %s requires dialect %s, but that dialect does not exist", resource, name);
-                throw new SpoofaxException(message);
+                throw new MetaborgException(message);
             }
             return dialect;
         } catch(ParseError | IOException e) {
-            throw new SpoofaxException("Unable to open or parse .meta file", e);
+            throw new MetaborgException("Unable to open or parse .meta file", e);
         }
     }
 
-    @Override public boolean identify(FileObject resource, ILanguage dialect) throws SpoofaxException {
+    @Override public boolean identify(FileObject resource, ILanguage dialect) throws MetaborgException {
         final ILanguage identified = identify(resource);
         return dialect.equals(identified);
     }

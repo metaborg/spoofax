@@ -6,7 +6,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.metaborg.core.SpoofaxRuntimeException;
+import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.language.ILanguage;
 import org.metaborg.core.language.LanguagePathFacet;
@@ -61,7 +61,7 @@ public class DependencyPathProvider implements ILanguagePathProvider {
                 try {
                     filesToAppend.add(basedir.resolveFile(path));
                 } catch(FileSystemException ex) {
-                    throw new SpoofaxRuntimeException(ex);
+                    throw new MetaborgRuntimeException(ex);
                 }
             }
         }

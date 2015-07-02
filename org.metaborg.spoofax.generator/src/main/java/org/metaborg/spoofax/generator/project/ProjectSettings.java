@@ -16,7 +16,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.metaborg.core.SpoofaxRuntimeException;
+import org.metaborg.core.MetaborgRuntimeException;
 
 public class ProjectSettings {
     private final String groupId;
@@ -166,7 +166,7 @@ public class ProjectSettings {
         try {
             return location.resolveFile(directory);
         } catch(FileSystemException e) {
-            throw new SpoofaxRuntimeException(e);
+            throw new MetaborgRuntimeException(e);
         }
     }
 }

@@ -1,7 +1,7 @@
 package org.metaborg.core.context;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.SpoofaxRuntimeException;
+import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.language.ILanguage;
 
 /**
@@ -18,7 +18,7 @@ public interface IContextService {
      * @return Existing or created context.
      * @throws ContextException
      *             When an error occurs when retrieving or creating a context.
-     * @throws SpoofaxRuntimeException
+     * @throws MetaborgRuntimeException
      *             When {@code language} does not have a {@link ContextFacet}.
      */
     public IContext get(FileObject resource, ILanguage language) throws ContextException;

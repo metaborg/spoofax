@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.metaborg.core.SpoofaxRuntimeException;
+import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.language.ILanguage;
 import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.LanguageChange;
@@ -115,7 +115,7 @@ public class StrategoDialectProcessor implements IDialectProcessor {
                         logger.error("Unhandled resource change kind {}", changeKind);
                         break;
                 }
-            } catch(SpoofaxRuntimeException e) {
+            } catch(MetaborgRuntimeException e) {
                 logger.error("Failed to update dialect", e);
             }
         }

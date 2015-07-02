@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileType;
-import org.metaborg.core.SpoofaxRuntimeException;
+import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.language.ILanguage;
 import org.metaborg.core.language.ILanguageIdentifierService;
 import org.metaborg.core.resource.IResourceService;
@@ -67,7 +67,7 @@ public class ParseFilePrimitive extends AbstractPrimitive {
                 } else {
                     input = sourceTextService.text(resource);
                 }
-            } catch(SpoofaxRuntimeException | IOException e) {
+            } catch(MetaborgRuntimeException | IOException e) {
                 resource = resourceService.resolve(pathOrInput2);
                 input = pathOrInput;
             }

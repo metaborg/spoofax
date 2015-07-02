@@ -8,7 +8,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.metaborg.spoofax.core.analysis.stratego.StrategoAnalysisMode;
+import org.metaborg.spoofax.core.analysis.StrategoAnalysisMode;
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

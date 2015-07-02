@@ -15,7 +15,7 @@ import org.apache.commons.vfs2.FileSystemOptions;
 import org.apache.commons.vfs2.VFS;
 import org.apache.commons.vfs2.provider.local.LocalFile;
 import org.apache.commons.vfs2.provider.res.ResourceFileSystemConfigBuilder;
-import org.metaborg.core.SpoofaxRuntimeException;
+import org.metaborg.core.MetaborgRuntimeException;
 
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
@@ -43,7 +43,7 @@ public class ResourceService implements IResourceService {
         try {
             return fileSystemManager.getBaseFile();
         } catch(FileSystemException e) {
-            throw new SpoofaxRuntimeException(e);
+            throw new MetaborgRuntimeException(e);
         }
     }
 
@@ -51,7 +51,7 @@ public class ResourceService implements IResourceService {
         try {
             return fileSystemManager.resolveFile(uri, fileSystemOptions);
         } catch(FileSystemException e) {
-            throw new SpoofaxRuntimeException(e);
+            throw new MetaborgRuntimeException(e);
         }
     }
 
@@ -59,7 +59,7 @@ public class ResourceService implements IResourceService {
         try {
             return fileSystemManager.toFileObject(file);
         } catch(FileSystemException e) {
-            throw new SpoofaxRuntimeException(e);
+            throw new MetaborgRuntimeException(e);
         }
     }
 
@@ -75,7 +75,7 @@ public class ResourceService implements IResourceService {
         try {
             return fileSystemManager.resolveURI(uri);
         } catch(FileSystemException e) {
-            throw new SpoofaxRuntimeException(e);
+            throw new MetaborgRuntimeException(e);
         }
     }
 
@@ -83,7 +83,7 @@ public class ResourceService implements IResourceService {
         try {
             return resource.getFileSystem().replicateFile(resource, new AllFileSelector());
         } catch(FileSystemException e) {
-            throw new SpoofaxRuntimeException(e);
+            throw new MetaborgRuntimeException(e);
         }
     }
 
@@ -101,7 +101,7 @@ public class ResourceService implements IResourceService {
             storageDir.createFolder();
             return storageDir;
         } catch(FileSystemException e) {
-            throw new SpoofaxRuntimeException(e);
+            throw new MetaborgRuntimeException(e);
         }
     }
 

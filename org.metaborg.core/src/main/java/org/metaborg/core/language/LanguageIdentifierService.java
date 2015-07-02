@@ -5,8 +5,8 @@ import java.util.Set;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileType;
-import org.metaborg.core.SpoofaxException;
-import org.metaborg.core.SpoofaxRuntimeException;
+import org.metaborg.core.MetaborgException;
+import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.language.dialect.IDialectIdentifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,10 +58,10 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
             if(dialect != null) {
                 return dialect;
             }
-        } catch(SpoofaxException e) {
+        } catch(MetaborgException e) {
             logger.error("Error identifying dialect", e);
             return null;
-        } catch(SpoofaxRuntimeException e) {
+        } catch(MetaborgRuntimeException e) {
             // Ignore
         }
 

@@ -3,7 +3,7 @@ package org.metaborg.core.context;
 import java.util.concurrent.ConcurrentMap;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.SpoofaxRuntimeException;
+import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.language.ILanguage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +48,7 @@ public class ContextService implements IContextService {
         if(facet == null) {
             final String message = String.format("Cannot get a context, % does not have a context facet", language);
             logger.error(message);
-            throw new SpoofaxRuntimeException(message);
+            throw new MetaborgRuntimeException(message);
         }
         return facet;
     }

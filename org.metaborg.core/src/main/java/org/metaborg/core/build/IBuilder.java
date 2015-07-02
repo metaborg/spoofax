@@ -2,7 +2,7 @@ package org.metaborg.core.build;
 
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSelector;
-import org.metaborg.core.SpoofaxRuntimeException;
+import org.metaborg.core.MetaborgRuntimeException;
 
 /**
  * Incrementally parses, analyses, and compiles source files.
@@ -21,7 +21,7 @@ public interface IBuilder<P, A, T> {
      * @param input
      *            Build input.
      * @return Result of building.
-     * @throws SpoofaxRuntimeException
+     * @throws MetaborgRuntimeException
      *             When {@code input.throwOnErrors} is set to true and errors occur.
      */
     public abstract IBuildOutput<P, A, T> build(BuildInput input);

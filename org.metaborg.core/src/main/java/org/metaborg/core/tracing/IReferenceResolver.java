@@ -2,7 +2,7 @@ package org.metaborg.core.tracing;
 
 import javax.annotation.Nullable;
 
-import org.metaborg.core.SpoofaxException;
+import org.metaborg.core.MetaborgException;
 import org.metaborg.core.analysis.AnalysisFileResult;
 
 /**
@@ -24,8 +24,8 @@ public interface IReferenceResolver<P, A> {
      *            Analysis result to use for resolving and tracing.
      * 
      * @return Resolution if reference resolution was successful, or null if no resolution could be made.
-     * @throws SpoofaxException
+     * @throws MetaborgException
      *             When reference resolution fails unexpectedly.
      */
-    public abstract @Nullable Resolution resolve(int offset, AnalysisFileResult<P, A> result) throws SpoofaxException;
+    public abstract @Nullable Resolution resolve(int offset, AnalysisFileResult<P, A> result) throws MetaborgException;
 }

@@ -12,11 +12,13 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSelectInfo;
 import org.apache.commons.vfs2.FileSelector;
 import org.apache.commons.vfs2.FileSystemException;
-import org.metaborg.core.SpoofaxRuntimeException;
+import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.analysis.AnalysisException;
 import org.metaborg.core.analysis.AnalysisFileResult;
 import org.metaborg.core.analysis.AnalysisResult;
 import org.metaborg.core.analysis.IAnalysisService;
+import org.metaborg.core.build.processing.analyze.IAnalysisResultUpdater;
+import org.metaborg.core.build.processing.parse.IParseResultUpdater;
 import org.metaborg.core.context.ContextException;
 import org.metaborg.core.context.ContextUtils;
 import org.metaborg.core.context.IContext;
@@ -30,8 +32,6 @@ import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.messages.MessageUtils;
-import org.metaborg.core.processing.analyze.IAnalysisResultUpdater;
-import org.metaborg.core.processing.parse.IParseResultUpdater;
 import org.metaborg.core.resource.IResourceChange;
 import org.metaborg.core.resource.ResourceChange;
 import org.metaborg.core.resource.ResourceChangeKind;
@@ -361,7 +361,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
 
         if(input.throwOnErrors && !input.pardonedLanguages.contains(language)
             && MessageUtils.containsSeverity(messages, MessageSeverity.ERROR)) {
-            throw new SpoofaxRuntimeException(phase + " produced errors");
+            throw new MetaborgRuntimeException(phase + " produced errors");
         }
     }
 
@@ -369,14 +369,14 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         ILanguage language) {
         input.messagePrinter.print(resource, message, e);
         if(input.throwOnErrors && !input.pardonedLanguages.contains(language)) {
-            throw new SpoofaxRuntimeException(message, e);
+            throw new MetaborgRuntimeException(message, e);
         }
     }
 
     private void printMessage(String message, @Nullable Throwable e, BuildInput input, ILanguage language) {
         input.messagePrinter.print(input.project, message, e);
         if(input.throwOnErrors && !input.pardonedLanguages.contains(language)) {
-            throw new SpoofaxRuntimeException(message, e);
+            throw new MetaborgRuntimeException(message, e);
         }
     }
 }

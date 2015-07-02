@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.core.stratego.primitives;
 
-import org.metaborg.core.SpoofaxException;
+import org.metaborg.core.MetaborgException;
 import org.metaborg.core.context.ContextException;
 import org.metaborg.core.context.IContextService;
 import org.metaborg.core.language.ILanguage;
@@ -61,7 +61,7 @@ public class ForeignCallPrimitive extends AbstractPrimitive {
             final String message =
                 String.format("Foreign call of '%s' into language %s failed", strategyName, languageName);
             throw new InterpreterException(message, e);
-        } catch(SpoofaxException e) {
+        } catch(MetaborgException e) {
             final String message =
                 String.format("Foreign call of '%s' into language %s failed", strategyName, languageName);
             throw new InterpreterException(message, e);

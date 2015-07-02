@@ -3,7 +3,7 @@ package org.metaborg.core.language.dialect;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.SpoofaxRuntimeException;
+import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.language.ILanguage;
 import org.metaborg.core.language.ILanguageFacet;
 
@@ -58,7 +58,7 @@ public interface IDialectService {
      * @param syntaxFacet
      *            Syntax facet to replace the base language's syntax facet with.
      * @return Created dialect language.
-     * @throws SpoofaxRuntimeException
+     * @throws MetaborgRuntimeException
      *             When dialect with given name already exists.
      */
     public abstract ILanguage add(String name, FileObject location, ILanguage base, ILanguageFacet syntaxFacet);
@@ -71,7 +71,7 @@ public interface IDialectService {
      * @param parserFacet
      *            Parser facet to update the dialect with.
      * @return Updated dialect language.
-     * @throws SpoofaxRuntimeException
+     * @throws MetaborgRuntimeException
      *             When dialect with given name does not exist.
      */
     public abstract ILanguage update(String name, ILanguageFacet parserFacet);
@@ -93,7 +93,7 @@ public interface IDialectService {
      * 
      * @param name
      *            Name of the dialect to remove.
-     * @throws SpoofaxRuntimeException
+     * @throws MetaborgRuntimeException
      *             When dialect with given name does not exist.
      * @return Removed dialect language.
      */

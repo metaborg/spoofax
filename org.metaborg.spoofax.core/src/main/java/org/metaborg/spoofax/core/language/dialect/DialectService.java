@@ -6,7 +6,7 @@ import java.util.Map;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.SpoofaxRuntimeException;
+import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.language.ILanguage;
 import org.metaborg.core.language.ILanguageFacet;
 import org.metaborg.core.language.ILanguageService;
@@ -62,7 +62,7 @@ public class DialectService implements IDialectService {
         if(nameToDialect.containsKey(name)) {
             final String message = String.format("Dialect with name %s already exists", name);
             logger.error(message);
-            throw new SpoofaxRuntimeException(message);
+            throw new MetaborgRuntimeException(message);
         }
         logger.debug("Adding dialect {} from {} with {} as base", name, location, base);
         final ILanguage dialect = languageService.create(name, base.version(), location, base.id());
@@ -87,7 +87,7 @@ public class DialectService implements IDialectService {
         if(dialect == null) {
             final String message = String.format("Dialect with name %s does not exist", name);
             logger.error(message);
-            throw new SpoofaxRuntimeException(message);
+            throw new MetaborgRuntimeException(message);
         }
         logger.debug("Updating syntax facet for dialect {}", name);
         dialect.removeFacet(syntaxFacet.getClass());
@@ -139,7 +139,7 @@ public class DialectService implements IDialectService {
         if(dialect == null) {
             final String message = String.format("Dialect with name %s does not exist", name);
             logger.error(message);
-            throw new SpoofaxRuntimeException(message);
+            throw new MetaborgRuntimeException(message);
         }
         logger.debug("Removing dialect {}", name);
         final ILanguage base = dialectToBase.remove(dialect);

@@ -7,7 +7,7 @@ import javax.annotation.Nullable;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemManager;
-import org.metaborg.core.SpoofaxRuntimeException;
+import org.metaborg.core.MetaborgRuntimeException;
 
 /**
  * Interface for access to the virtual file system.
@@ -17,7 +17,7 @@ public interface IResourceService {
      * Returns the root file system object.
      * 
      * @return The root file system object.
-     * @throws SpoofaxRuntimeException
+     * @throws MetaborgRuntimeException
      *             if an error occurs.
      */
     public FileObject root();
@@ -29,7 +29,7 @@ public interface IResourceService {
      * @param uri
      *            relative URI to resolve.
      * @return File system object for given URI.
-     * @throws SpoofaxRuntimeException
+     * @throws MetaborgRuntimeException
      *             when uri is invalid.
      */
     public FileObject resolve(String uri);
@@ -40,7 +40,7 @@ public interface IResourceService {
      * @param file
      *            Java file system object to resolve.
      * @return File system object for given Java file system object.
-     * @throws SpoofaxRuntimeException
+     * @throws MetaborgRuntimeException
      *             when file is invalid.
      */
     public FileObject resolve(File file);
@@ -52,7 +52,7 @@ public interface IResourceService {
      * @param uris
      *            URIs to resolve.
      * @return File system objects for given URIs.
-     * @throws SpoofaxRuntimeException
+     * @throws MetaborgRuntimeException
      *             when any uri is invalid.
      */
     public Iterable<FileObject> resolveAll(Iterable<String> uris);
@@ -64,7 +64,7 @@ public interface IResourceService {
      * @param uri
      *            URI to resolve.
      * @return File system name for given URI.
-     * @throws SpoofaxRuntimeException
+     * @throws MetaborgRuntimeException
      *             when uri is invalid.
      */
     public FileName resolveURI(String uri);
@@ -76,7 +76,7 @@ public interface IResourceService {
      * @param resource
      *            Resource to get a local file for.
      * @return Local file.
-     * @throws SpoofaxRuntimeException
+     * @throws MetaborgRuntimeException
      *             When given resource does not exist.
      */
     public File localFile(FileObject resource);
@@ -93,7 +93,7 @@ public interface IResourceService {
     /**
      * Returns a file system object that points to a directory where user-specific data can be stored.
      * 
-     * @throws SpoofaxRuntimeException
+     * @throws MetaborgRuntimeException
      *             when an internal error occurs.
      */
     public FileObject userStorage();

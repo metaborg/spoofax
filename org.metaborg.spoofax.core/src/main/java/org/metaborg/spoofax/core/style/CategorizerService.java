@@ -10,7 +10,7 @@ import org.metaborg.core.style.ICategory;
 import org.metaborg.core.style.IRegionCategory;
 import org.metaborg.core.style.RegionCategory;
 import org.metaborg.core.syntax.ParseResult;
-import org.metaborg.spoofax.core.syntax.jsglr.JSGLRSourceRegionFactory;
+import org.metaborg.spoofax.core.syntax.JSGLRSourceRegionFactory;
 import org.metaborg.util.iterators.Iterables2;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

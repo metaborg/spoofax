@@ -9,8 +9,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.SpoofaxException;
-import org.metaborg.core.SpoofaxRuntimeException;
+import org.metaborg.core.MetaborgException;
+import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.language.ILanguage;
 import org.metaborg.core.language.ILanguageCache;
@@ -50,7 +50,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, ILanguag
     }
 
 
-    @Override public HybridInterpreter runtime(IContext context) throws SpoofaxException {
+    @Override public HybridInterpreter runtime(IContext context) throws MetaborgException {
         final ILanguage language = context.language();
         HybridInterpreter prototype = prototypes.get(language);
         if(prototype == null) {
@@ -101,7 +101,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, ILanguag
         return interpreter;
     }
 
-    private HybridInterpreter createPrototypeRuntime(ILanguage language) throws SpoofaxException {
+    private HybridInterpreter createPrototypeRuntime(ILanguage language) throws MetaborgException {
         logger.debug("Creating prototype runtime for {}", language);
         final HybridInterpreter interpreter =
             createRuntime(new ImploderOriginTermFactory(termFactoryService.get(language)));
@@ -110,7 +110,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, ILanguag
         return interpreter;
     }
 
-    private void loadCompilerFiles(HybridInterpreter interp, ILanguage lang) throws SpoofaxException {
+    private void loadCompilerFiles(HybridInterpreter interp, ILanguage lang) throws MetaborgException {
         final StrategoFacet strategoFacet = lang.facet(StrategoFacet.class);
         final Iterable<FileObject> jars = strategoFacet.jarFiles();
         final Iterable<FileObject> ctrees = strategoFacet.ctreeFiles();
@@ -122,7 +122,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, ILanguag
             loadCompilerJar(interp, jars);
     }
 
-    private void loadCompilerJar(HybridInterpreter interp, Iterable<FileObject> jars) throws SpoofaxException {
+    private void loadCompilerJar(HybridInterpreter interp, Iterable<FileObject> jars) throws MetaborgException {
         try {
             final URL[] classpath = new URL[Iterables.size(jars)];
             int i = 0;
@@ -133,20 +133,20 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, ILanguag
             }
             logger.trace("Loading jar files {}", (Object) classpath);
             interp.loadJars(classpath);
-        } catch(IncompatibleJarException | IOException | SpoofaxRuntimeException e) {
-            throw new SpoofaxException("Failed to load JAR", e);
+        } catch(IncompatibleJarException | IOException | MetaborgRuntimeException e) {
+            throw new MetaborgException("Failed to load JAR", e);
         }
     }
 
     private static void loadCompilerCTree(HybridInterpreter interp, Iterable<FileObject> ctrees)
-        throws SpoofaxException {
+        throws MetaborgException {
         try {
             for(FileObject file : ctrees) {
                 logger.trace("Loading ctree {}", file.getName());
                 interp.load(new BufferedInputStream(file.getContent().getInputStream()));
             }
         } catch(IOException | InterpreterException e) {
-            throw new SpoofaxException("Failed to load ctree", e);
+            throw new MetaborgException("Failed to load ctree", e);
         }
     }
 }

@@ -4,7 +4,7 @@ import java.util.Iterator;
 import java.util.Map;
 
 import org.jgrapht.experimental.dag.DirectedAcyclicGraph;
-import org.metaborg.core.SpoofaxRuntimeException;
+import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.language.ILanguage;
 import org.metaborg.core.language.LanguagePathFacet;
 import org.metaborg.util.iterators.Iterables2;
@@ -18,7 +18,7 @@ public class BuildOrder {
     private final DirectedAcyclicGraph<ILanguage, Object> dag;
 
 
-    public BuildOrder(Iterable<ILanguage> languages) throws SpoofaxRuntimeException {
+    public BuildOrder(Iterable<ILanguage> languages) throws MetaborgRuntimeException {
         this.languages = languages;
         this.dag = new DirectedAcyclicGraph<ILanguage, Object>(Object.class);
 
@@ -37,7 +37,7 @@ public class BuildOrder {
                         try {
                             dag.addDagEdge(source, target);
                         } catch(DirectedAcyclicGraph.CycleFoundException e) {
-                            throw new SpoofaxRuntimeException(
+                            throw new MetaborgRuntimeException(
                                 "Languages induce build cycle, cannot determine build order", e);
                         }
                     }
