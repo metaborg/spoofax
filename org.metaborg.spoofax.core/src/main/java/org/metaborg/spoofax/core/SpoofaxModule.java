@@ -6,18 +6,19 @@ import org.metaborg.core.build.IBuilder;
 import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.paths.ILanguagePathProvider;
 import org.metaborg.core.build.paths.ILanguagePathService;
-import org.metaborg.core.build.processing.analyze.IAnalysisResultProcessor;
-import org.metaborg.core.build.processing.analyze.IAnalysisResultRequester;
-import org.metaborg.core.build.processing.analyze.IAnalysisResultUpdater;
-import org.metaborg.core.build.processing.parse.IParseResultProcessor;
-import org.metaborg.core.build.processing.parse.IParseResultRequester;
-import org.metaborg.core.build.processing.parse.IParseResultUpdater;
 import org.metaborg.core.completion.ICompletionService;
 import org.metaborg.core.context.IContextFactory;
 import org.metaborg.core.language.ILanguageDiscoveryService;
 import org.metaborg.core.language.dialect.IDialectIdentifier;
 import org.metaborg.core.language.dialect.IDialectProcessor;
 import org.metaborg.core.language.dialect.IDialectService;
+import org.metaborg.core.processing.IProcessorRunner;
+import org.metaborg.core.processing.analyze.IAnalysisResultProcessor;
+import org.metaborg.core.processing.analyze.IAnalysisResultRequester;
+import org.metaborg.core.processing.analyze.IAnalysisResultUpdater;
+import org.metaborg.core.processing.parse.IParseResultProcessor;
+import org.metaborg.core.processing.parse.IParseResultRequester;
+import org.metaborg.core.processing.parse.IParseResultUpdater;
 import org.metaborg.core.style.ICategorizerService;
 import org.metaborg.core.style.IStylerService;
 import org.metaborg.core.syntax.ISyntaxService;
@@ -37,20 +38,22 @@ import org.metaborg.spoofax.core.build.SpoofaxBuilder;
 import org.metaborg.spoofax.core.build.dependency.MavenDependencyService;
 import org.metaborg.spoofax.core.build.paths.SpoofaxLanguagePathService;
 import org.metaborg.spoofax.core.build.paths.SpoofaxProjectPathProvider;
-import org.metaborg.spoofax.core.build.processing.analyze.ISpoofaxAnalysisResultProcessor;
-import org.metaborg.spoofax.core.build.processing.analyze.ISpoofaxAnalysisResultRequester;
-import org.metaborg.spoofax.core.build.processing.analyze.ISpoofaxAnalysisResultUpdater;
-import org.metaborg.spoofax.core.build.processing.analyze.SpoofaxAnalysisResultProcessor;
-import org.metaborg.spoofax.core.build.processing.parse.ISpoofaxParseResultProcessor;
-import org.metaborg.spoofax.core.build.processing.parse.ISpoofaxParseResultRequester;
-import org.metaborg.spoofax.core.build.processing.parse.ISpoofaxParseResultUpdater;
-import org.metaborg.spoofax.core.build.processing.parse.SpoofaxParseResultProcessor;
 import org.metaborg.spoofax.core.completion.JSGLRCompletionService;
 import org.metaborg.spoofax.core.context.SpoofaxContextFactory;
 import org.metaborg.spoofax.core.language.LanguageDiscoveryService;
 import org.metaborg.spoofax.core.language.dialect.DialectService;
 import org.metaborg.spoofax.core.language.dialect.StrategoDialectIdentifier;
 import org.metaborg.spoofax.core.language.dialect.StrategoDialectProcessor;
+import org.metaborg.spoofax.core.processing.ISpoofaxProcessorRunner;
+import org.metaborg.spoofax.core.processing.SpoofaxProcessorRunner;
+import org.metaborg.spoofax.core.processing.analyze.ISpoofaxAnalysisResultProcessor;
+import org.metaborg.spoofax.core.processing.analyze.ISpoofaxAnalysisResultRequester;
+import org.metaborg.spoofax.core.processing.analyze.ISpoofaxAnalysisResultUpdater;
+import org.metaborg.spoofax.core.processing.analyze.SpoofaxAnalysisResultProcessor;
+import org.metaborg.spoofax.core.processing.parse.ISpoofaxParseResultProcessor;
+import org.metaborg.spoofax.core.processing.parse.ISpoofaxParseResultRequester;
+import org.metaborg.spoofax.core.processing.parse.ISpoofaxParseResultUpdater;
+import org.metaborg.spoofax.core.processing.parse.SpoofaxParseResultProcessor;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.stratego.StrategoLocalPath;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeService;
@@ -269,6 +272,19 @@ public class SpoofaxModule extends MetaborgModule {
         bind(IBuilder.class).to(SpoofaxBuilder.class);
         bind(new TypeLiteral<IBuilder<IStrategoTerm, IStrategoTerm, IStrategoTerm>>() {}).to(SpoofaxBuilder.class);
         bind(new TypeLiteral<IBuilder<?, ?, ?>>() {}).to(SpoofaxBuilder.class);
+    }
+
+    /**
+     * Overrides {@link MetaborgModule#bindProcessing()} to provide Spoofax-specific bindings with generics filled in as
+     * {@link IStrategoTerm}.
+     */
+    @Override protected void bindProcessing() {
+        bind(SpoofaxProcessorRunner.class).in(Singleton.class);
+        bind(ISpoofaxProcessorRunner.class).to(SpoofaxProcessorRunner.class);
+        bind(new TypeLiteral<IProcessorRunner<IStrategoTerm, IStrategoTerm, IStrategoTerm>>() {}).to(
+            SpoofaxProcessorRunner.class);
+        bind(new TypeLiteral<IProcessorRunner<?, ?, ?>>() {}).to(SpoofaxProcessorRunner.class);
+        bind(IProcessorRunner.class).to(SpoofaxProcessorRunner.class);
     }
 
     protected void bindCategorizer() {

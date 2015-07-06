@@ -14,7 +14,7 @@ import org.metaborg.core.transform.ITransformerGoal;
 import com.google.common.collect.Multimap;
 
 /**
- * Input for a build. Use {@link BuildInputBuilder} fluent interface to create objects of this class.
+ * Input for a build. Use the {@link BuildInputBuilder} fluent interface to create objects of this class.
  * 
  * @see BuildInputBuilder
  */

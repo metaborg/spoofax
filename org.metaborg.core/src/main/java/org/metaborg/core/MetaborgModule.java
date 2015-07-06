@@ -5,14 +5,6 @@ import org.metaborg.core.build.Builder;
 import org.metaborg.core.build.IBuilder;
 import org.metaborg.core.build.paths.DependencyPathProvider;
 import org.metaborg.core.build.paths.ILanguagePathProvider;
-import org.metaborg.core.build.processing.analyze.AnalysisResultProcessor;
-import org.metaborg.core.build.processing.analyze.IAnalysisResultProcessor;
-import org.metaborg.core.build.processing.analyze.IAnalysisResultRequester;
-import org.metaborg.core.build.processing.analyze.IAnalysisResultUpdater;
-import org.metaborg.core.build.processing.parse.IParseResultProcessor;
-import org.metaborg.core.build.processing.parse.IParseResultRequester;
-import org.metaborg.core.build.processing.parse.IParseResultUpdater;
-import org.metaborg.core.build.processing.parse.ParseResultProcessor;
 import org.metaborg.core.context.ContextService;
 import org.metaborg.core.context.IContextService;
 import org.metaborg.core.context.IContextStrategy;
@@ -24,6 +16,18 @@ import org.metaborg.core.language.ILanguageIdentifierService;
 import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.LanguageIdentifierService;
 import org.metaborg.core.language.LanguageService;
+import org.metaborg.core.processing.ILanguageChangeProcessor;
+import org.metaborg.core.processing.IProcessorRunner;
+import org.metaborg.core.processing.LanguageChangeProcessor;
+import org.metaborg.core.processing.ProcessorRunner;
+import org.metaborg.core.processing.analyze.AnalysisResultProcessor;
+import org.metaborg.core.processing.analyze.IAnalysisResultProcessor;
+import org.metaborg.core.processing.analyze.IAnalysisResultRequester;
+import org.metaborg.core.processing.analyze.IAnalysisResultUpdater;
+import org.metaborg.core.processing.parse.IParseResultProcessor;
+import org.metaborg.core.processing.parse.IParseResultRequester;
+import org.metaborg.core.processing.parse.IParseResultUpdater;
+import org.metaborg.core.processing.parse.ParseResultProcessor;
 import org.metaborg.core.project.DummyProjectService;
 import org.metaborg.core.project.IMavenProjectService;
 import org.metaborg.core.project.IProjectService;
@@ -68,10 +72,11 @@ public class MetaborgModule extends AbstractModule {
         bindProject();
         bindSourceText();
         bindBuilder();
+        bindProcessing();
+        bindLanguageChangeProcessing();
 
         bind(ClassLoader.class).annotatedWith(Names.named("ResourceClassLoader")).toInstance(resourceClassLoader);
     }
-
 
     protected void bindResource() {
         bind(IResourceService.class).to(ResourceService.class).in(Singleton.class);
@@ -119,5 +124,13 @@ public class MetaborgModule extends AbstractModule {
         bind(IAnalysisResultProcessor.class).to(AnalysisResultProcessor.class);
 
         bind(IBuilder.class).to(Builder.class).in(Singleton.class);
+    }
+
+    protected void bindProcessing() {
+        bind(IProcessorRunner.class).to(ProcessorRunner.class).in(Singleton.class);
+    }
+
+    protected void bindLanguageChangeProcessing() {
+        bind(ILanguageChangeProcessor.class).to(LanguageChangeProcessor.class).in(Singleton.class);
     }
 }

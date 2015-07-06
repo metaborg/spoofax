@@ -17,8 +17,6 @@ import org.metaborg.core.analysis.AnalysisException;
 import org.metaborg.core.analysis.AnalysisFileResult;
 import org.metaborg.core.analysis.AnalysisResult;
 import org.metaborg.core.analysis.IAnalysisService;
-import org.metaborg.core.build.processing.analyze.IAnalysisResultUpdater;
-import org.metaborg.core.build.processing.parse.IParseResultUpdater;
 import org.metaborg.core.context.ContextException;
 import org.metaborg.core.context.ContextUtils;
 import org.metaborg.core.context.IContext;
@@ -32,6 +30,10 @@ import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
 import org.metaborg.core.messages.MessageUtils;
+import org.metaborg.core.processing.ICancellationToken;
+import org.metaborg.core.processing.IProgressReporter;
+import org.metaborg.core.processing.analyze.IAnalysisResultUpdater;
+import org.metaborg.core.processing.parse.IParseResultUpdater;
 import org.metaborg.core.resource.IResourceChange;
 import org.metaborg.core.resource.ResourceChange;
 import org.metaborg.core.resource.ResourceChangeKind;
@@ -56,6 +58,16 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
+/**
+ * Builder implementation.
+ * 
+ * @param <P>
+ *            Type of parsed fragments.
+ * @param <A>
+ *            Type of analyzed fragments.
+ * @param <T>
+ *            Type of transformed fragments.
+ */
 public class Builder<P, A, T> implements IBuilder<P, A, T> {
     private static final Logger logger = LoggerFactory.getLogger(Builder.class);
 
@@ -90,7 +102,8 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
     }
 
 
-    @Override public IBuildOutput<P, A, T> build(BuildInput input) {
+    @Override public IBuildOutput<P, A, T> build(BuildInput input, IProgressReporter progressReporter,
+        ICancellationToken cancellationToken) {
         final Iterable<ILanguage> languages = input.buildOrder.languages();
 
         final Collection<IResourceChange> parseTableChanges = Lists.newLinkedList();
@@ -143,12 +156,14 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         return buildOutput;
     }
 
-    @Override public void clean(FileObject location, FileSelector excludeSelector) {
+    @Override public void clean(CleanInput input, IProgressReporter progressReporter,
+        ICancellationToken cancellationToken) {
+        final FileObject location = input.project.location();
         logger.debug("Cleaning " + location);
 
         try {
             final FileSelector selector =
-                new FilterFileSelector(new AllLanguagesFileSelector(languageIdentifier), excludeSelector);
+                new FilterFileSelector(new AllLanguagesFileSelector(languageIdentifier), input.selector);
             final FileObject[] resources = location.findFiles(selector);
             final Set<IContext> contexts =
                 ContextUtils.getAll(Iterables2.from(resources), languageIdentifier, contextService);

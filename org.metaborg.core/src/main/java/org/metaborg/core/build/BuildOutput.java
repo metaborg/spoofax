@@ -47,7 +47,7 @@ public class BuildOutput<P, A, T> implements IBuildOutput<P, A, T> {
         return extraMessages;
     }
 
-    
+
     public void add(Set<FileName> removedResources, Collection<FileObject> changedResources,
         Collection<ParseResult<P>> parseResults, Collection<AnalysisResult<P, A>> analysisResults,
         Collection<TransformResult<AnalysisFileResult<P, A>, T>> transformResults, Collection<IMessage> extraMessages) {

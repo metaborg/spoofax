@@ -13,11 +13,22 @@ import rx.functions.Func0;
 
 import com.google.common.collect.Maps;
 
+/**
+ * Language build order calculation.
+ */
 public class BuildOrder {
     private final Iterable<ILanguage> languages;
     private final DirectedAcyclicGraph<ILanguage, Object> dag;
 
 
+    /**
+     * Creates a build order for given languages, using their dependencies.
+     * 
+     * @param languages
+     *            Languages to create a build order for.
+     * @throws MetaborgRuntimeException
+     *             When there is a cyclic dependency between languages.
+     */
     public BuildOrder(Iterable<ILanguage> languages) throws MetaborgRuntimeException {
         this.languages = languages;
         this.dag = new DirectedAcyclicGraph<ILanguage, Object>(Object.class);
@@ -47,6 +58,9 @@ public class BuildOrder {
     }
 
 
+    /**
+     * @return Build order.
+     */
     public Iterable<ILanguage> buildOrder() {
         return Iterables2.from(new Func0<Iterator<ILanguage>>() {
             @Override public Iterator<ILanguage> call() {
@@ -55,6 +69,9 @@ public class BuildOrder {
         });
     }
 
+    /**
+     * @return Languages in this build order, in the same order that they were passed in the constructor.
+     */
     public Iterable<ILanguage> languages() {
         return languages;
     }

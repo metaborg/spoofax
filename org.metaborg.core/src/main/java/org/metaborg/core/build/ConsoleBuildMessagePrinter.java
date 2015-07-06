@@ -14,6 +14,9 @@ import org.metaborg.core.project.IProject;
 import org.metaborg.core.source.AffectedSourceHelper;
 import org.metaborg.core.source.ISourceTextService;
 
+/**
+ * Build message printer implementation that prints detailed messages to a stream.
+ */
 public class ConsoleBuildMessagePrinter implements IBuildMessagePrinter {
     private final ISourceTextService sourceTextService;
     private final PrintStream stream;

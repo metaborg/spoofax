@@ -1,8 +1,8 @@
 package org.metaborg.core.build;
 
-import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSelector;
 import org.metaborg.core.MetaborgRuntimeException;
+import org.metaborg.core.processing.ICancellationToken;
+import org.metaborg.core.processing.IProgressReporter;
 
 /**
  * Incrementally parses, analyses, and compiles source files.
@@ -24,13 +24,15 @@ public interface IBuilder<P, A, T> {
      * @throws MetaborgRuntimeException
      *             When {@code input.throwOnErrors} is set to true and errors occur.
      */
-    public abstract IBuildOutput<P, A, T> build(BuildInput input);
+    public abstract IBuildOutput<P, A, T> build(BuildInput input, IProgressReporter progressReporter,
+        ICancellationToken cancellationToken);
 
     /**
      * Cleans derived resources and contexts from given location.
      * 
-     * @param location
-     *            Location to clean.
+     * @param input
+     *            Clean input.
      */
-    public abstract void clean(FileObject location, FileSelector excludeSelector);
+    public abstract void clean(CleanInput input, IProgressReporter progressReporter,
+        ICancellationToken cancellationToken);
 }
