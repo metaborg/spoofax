@@ -11,12 +11,16 @@ import org.metaborg.core.context.IContextStrategy;
 import org.metaborg.core.context.LanguageContextStrategy;
 import org.metaborg.core.context.ProjectContextStrategy;
 import org.metaborg.core.context.ResourceContextStrategy;
+import org.metaborg.core.editor.DummyEditorRegistry;
+import org.metaborg.core.editor.IEditorRegistry;
 import org.metaborg.core.language.ILanguageCache;
 import org.metaborg.core.language.ILanguageIdentifierService;
 import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.LanguageIdentifierService;
 import org.metaborg.core.language.LanguageService;
+import org.metaborg.core.processing.BlockingProcessor;
 import org.metaborg.core.processing.ILanguageChangeProcessor;
+import org.metaborg.core.processing.IProcessor;
 import org.metaborg.core.processing.IProcessorRunner;
 import org.metaborg.core.processing.LanguageChangeProcessor;
 import org.metaborg.core.processing.ProcessorRunner;
@@ -74,6 +78,7 @@ public class MetaborgModule extends AbstractModule {
         bindBuilder();
         bindProcessing();
         bindLanguageChangeProcessing();
+        bindEditor();
 
         bind(ClassLoader.class).annotatedWith(Names.named("ResourceClassLoader")).toInstance(resourceClassLoader);
     }
@@ -128,9 +133,14 @@ public class MetaborgModule extends AbstractModule {
 
     protected void bindProcessing() {
         bind(IProcessorRunner.class).to(ProcessorRunner.class).in(Singleton.class);
+        bind(IProcessor.class).to(BlockingProcessor.class).in(Singleton.class);
     }
 
     protected void bindLanguageChangeProcessing() {
         bind(ILanguageChangeProcessor.class).to(LanguageChangeProcessor.class).in(Singleton.class);
+    }
+
+    protected void bindEditor() {
+        bind(IEditorRegistry.class).to(DummyEditorRegistry.class).in(Singleton.class);
     }
 }

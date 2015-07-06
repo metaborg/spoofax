@@ -12,6 +12,7 @@ import org.metaborg.core.language.ILanguageDiscoveryService;
 import org.metaborg.core.language.dialect.IDialectIdentifier;
 import org.metaborg.core.language.dialect.IDialectProcessor;
 import org.metaborg.core.language.dialect.IDialectService;
+import org.metaborg.core.processing.IProcessor;
 import org.metaborg.core.processing.IProcessorRunner;
 import org.metaborg.core.processing.analyze.IAnalysisResultProcessor;
 import org.metaborg.core.processing.analyze.IAnalysisResultRequester;
@@ -44,7 +45,9 @@ import org.metaborg.spoofax.core.language.LanguageDiscoveryService;
 import org.metaborg.spoofax.core.language.dialect.DialectService;
 import org.metaborg.spoofax.core.language.dialect.StrategoDialectIdentifier;
 import org.metaborg.spoofax.core.language.dialect.StrategoDialectProcessor;
+import org.metaborg.spoofax.core.processing.ISpoofaxProcessor;
 import org.metaborg.spoofax.core.processing.ISpoofaxProcessorRunner;
+import org.metaborg.spoofax.core.processing.SpoofaxBlockingProcessor;
 import org.metaborg.spoofax.core.processing.SpoofaxProcessorRunner;
 import org.metaborg.spoofax.core.processing.analyze.ISpoofaxAnalysisResultProcessor;
 import org.metaborg.spoofax.core.processing.analyze.ISpoofaxAnalysisResultRequester;
@@ -279,12 +282,19 @@ public class SpoofaxModule extends MetaborgModule {
      * {@link IStrategoTerm}.
      */
     @Override protected void bindProcessing() {
+        bind(SpoofaxBlockingProcessor.class).in(Singleton.class);
+        bind(ISpoofaxProcessor.class).to(SpoofaxBlockingProcessor.class);
+        bind(IProcessor.class).to(SpoofaxBlockingProcessor.class);
+        bind(new TypeLiteral<IProcessor<IStrategoTerm, IStrategoTerm, IStrategoTerm>>() {}).to(
+            SpoofaxBlockingProcessor.class);
+        bind(new TypeLiteral<IProcessor<?, ?, ?>>() {}).to(SpoofaxBlockingProcessor.class);
+
         bind(SpoofaxProcessorRunner.class).in(Singleton.class);
         bind(ISpoofaxProcessorRunner.class).to(SpoofaxProcessorRunner.class);
+        bind(IProcessorRunner.class).to(SpoofaxProcessorRunner.class);
         bind(new TypeLiteral<IProcessorRunner<IStrategoTerm, IStrategoTerm, IStrategoTerm>>() {}).to(
             SpoofaxProcessorRunner.class);
         bind(new TypeLiteral<IProcessorRunner<?, ?, ?>>() {}).to(SpoofaxProcessorRunner.class);
-        bind(IProcessorRunner.class).to(SpoofaxProcessorRunner.class);
     }
 
     protected void bindCategorizer() {
