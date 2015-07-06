@@ -12,6 +12,10 @@ import rx.functions.Func0;
 
 import com.google.inject.Inject;
 
+/**
+ * Processor implementation that uses {@link BlockingTask} as task implementation. Tasks execute and block when
+ * scheduled.
+ */
 public class BlockingProcessor<P, A, T> implements IProcessor<P, A, T> {
     private final IBuilder<P, A, T> builder;
     private final ILanguageChangeProcessor languageChangeProcessor;

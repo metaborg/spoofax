@@ -12,6 +12,9 @@ import org.metaborg.core.language.LanguageChange;
 
 import com.google.inject.Inject;
 
+/**
+ * Default implementation for the language change processor.
+ */
 public class LanguageChangeProcessor implements ILanguageChangeProcessor {
     private final IEditorRegistry editorRegistry;
     private final Set<ILanguageCache> languageCaches;

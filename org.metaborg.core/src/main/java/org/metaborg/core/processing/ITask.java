@@ -3,9 +3,10 @@ package org.metaborg.core.processing;
 import javax.annotation.Nullable;
 
 /**
- * Interface for asynchronous task with cancellation and progress reporting.
+ * Interface for asynchronous task with cancellation.
  * 
  * @param <T>
+ *            Type of the result.
  */
 public interface ITask<T> {
     /**
@@ -37,7 +38,10 @@ public interface ITask<T> {
     public abstract @Nullable T result();
 
     /**
-     * Blocks until the task has been killed or completed.
+     * Blocks until the task has been completed or cancelled.
+     * 
+     * @throws InterruptedException
+     *             When the task has been cancelled while blocking.
      */
     public abstract void block() throws InterruptedException;
 }

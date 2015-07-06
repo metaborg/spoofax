@@ -12,6 +12,9 @@ import rx.functions.Action1;
 
 import com.google.inject.Inject;
 
+/**
+ * Default implementation for the processor runner.
+ */
 public class ProcessorRunner<P, A, T> implements IProcessorRunner<P, A, T> {
     private final IProcessor<P, A, T> processor;
 

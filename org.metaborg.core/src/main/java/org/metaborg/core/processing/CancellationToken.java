@@ -1,5 +1,8 @@
 package org.metaborg.core.processing;
 
+/**
+ * Simple cancellation token implementation.
+ */
 public class CancellationToken implements ICancellationToken {
     private volatile boolean cancelled = false;
 

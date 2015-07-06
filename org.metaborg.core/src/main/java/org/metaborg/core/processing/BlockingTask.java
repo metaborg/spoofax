@@ -2,6 +2,9 @@ package org.metaborg.core.processing;
 
 import rx.functions.Func0;
 
+/**
+ * Task implementation that executes a function in blocking way when scheduled. Does not support cancellation.
+ */
 public class BlockingTask<T> implements ITask<T> {
     private final Func0<T> func;
 
