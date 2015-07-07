@@ -76,7 +76,8 @@ public class MetaborgModule extends AbstractModule {
         bindProject();
         bindSourceText();
         bindBuilder();
-        bindProcessing();
+        bindProcessor();
+        bindProcessorRunner();
         bindLanguageChangeProcessing();
         bindEditor();
 
@@ -131,8 +132,11 @@ public class MetaborgModule extends AbstractModule {
         bind(IBuilder.class).to(Builder.class).in(Singleton.class);
     }
 
-    protected void bindProcessing() {
+    protected void bindProcessorRunner() {
         bind(IProcessorRunner.class).to(ProcessorRunner.class).in(Singleton.class);
+    }
+
+    protected void bindProcessor() {
         bind(IProcessor.class).to(BlockingProcessor.class).in(Singleton.class);
     }
 

@@ -278,23 +278,29 @@ public class SpoofaxModule extends MetaborgModule {
     }
 
     /**
-     * Overrides {@link MetaborgModule#bindProcessing()} to provide Spoofax-specific bindings with generics filled in as
-     * {@link IStrategoTerm}.
+     * Overrides {@link MetaborgModule#bindProcessorRunner()} to provide Spoofax-specific bindings with generics filled
+     * in as {@link IStrategoTerm}.
      */
-    @Override protected void bindProcessing() {
-        bind(SpoofaxBlockingProcessor.class).in(Singleton.class);
-        bind(ISpoofaxProcessor.class).to(SpoofaxBlockingProcessor.class);
-        bind(IProcessor.class).to(SpoofaxBlockingProcessor.class);
-        bind(new TypeLiteral<IProcessor<IStrategoTerm, IStrategoTerm, IStrategoTerm>>() {}).to(
-            SpoofaxBlockingProcessor.class);
-        bind(new TypeLiteral<IProcessor<?, ?, ?>>() {}).to(SpoofaxBlockingProcessor.class);
-
+    @Override protected void bindProcessorRunner() {
         bind(SpoofaxProcessorRunner.class).in(Singleton.class);
         bind(ISpoofaxProcessorRunner.class).to(SpoofaxProcessorRunner.class);
         bind(IProcessorRunner.class).to(SpoofaxProcessorRunner.class);
         bind(new TypeLiteral<IProcessorRunner<IStrategoTerm, IStrategoTerm, IStrategoTerm>>() {}).to(
             SpoofaxProcessorRunner.class);
         bind(new TypeLiteral<IProcessorRunner<?, ?, ?>>() {}).to(SpoofaxProcessorRunner.class);
+    }
+
+    /**
+     * Overrides {@link MetaborgModule#bindProcessor()} to provide Spoofax-specific bindings with generics filled in as
+     * {@link IStrategoTerm}.
+     */
+    @Override protected void bindProcessor() {
+        bind(SpoofaxBlockingProcessor.class).in(Singleton.class);
+        bind(ISpoofaxProcessor.class).to(SpoofaxBlockingProcessor.class);
+        bind(IProcessor.class).to(SpoofaxBlockingProcessor.class);
+        bind(new TypeLiteral<IProcessor<IStrategoTerm, IStrategoTerm, IStrategoTerm>>() {}).to(
+            SpoofaxBlockingProcessor.class);
+        bind(new TypeLiteral<IProcessor<?, ?, ?>>() {}).to(SpoofaxBlockingProcessor.class);
     }
 
     protected void bindCategorizer() {
