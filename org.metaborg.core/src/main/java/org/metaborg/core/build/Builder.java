@@ -142,10 +142,22 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
 
         updateDialectResources(parseTableChanges);
 
+        if(changes.size() == 0) {
+            // When there are no source changes, keep the old state and skip building.
+            return new BuildOutput<>(input.state);
+        }
+
         final BuildState newState = new BuildState();
-        final BuildOutput<P, A, T> buildOutput = new BuildOutput<P, A, T>(newState);
+        final BuildOutput<P, A, T> buildOutput = new BuildOutput<>(newState);
         for(ILanguage language : input.buildOrder.buildOrder()) {
             final LanguageBuildState languageState = input.state.get(resourceService, languageIdentifier, language);
+            final Collection<IdentifiedResourceChange> sourceChanges = changes.get(language);
+            if(sourceChanges.size() == 0) {
+                // When there are no source changes for this language, keep the old state and don't build.
+                newState.add(language, languageState);
+                continue;
+            }
+
             final Iterable<FileObject> includeLocations = input.includeLocations.get(language);
             final Collection<IdentifiedResource> includeFiles = Lists.newLinkedList();
             for(FileObject includeLocation : includeLocations) {
@@ -175,13 +187,10 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
 
     private void updateLanguageResources(BuildInput input, ILanguage language, LanguageBuildDiff diff,
         BuildOutput<P, A, T> output) {
+        logger.debug("Building " + input.project.location());
+
         final Iterable<IdentifiedResourceChange> sourceChanges = diff.sourceChanges;
         final int numSourceChanges = Iterables.size(sourceChanges);
-        if(numSourceChanges == 0) {
-            return;
-        }
-
-        logger.debug("Building " + input.project.location());
 
         final Iterable<IdentifiedResourceChange> includeChanges = diff.includeChanges;
         final int numIncludeChanges = Iterables.size(includeChanges);
@@ -240,6 +249,10 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         Iterable<IdentifiedResourceChange> changes, int size, Collection<FileObject> changedResources,
         Set<FileName> removedResources, Collection<IMessage> extraMessages) {
         final Collection<ParseResult<P>> allParseResults = Lists.newArrayListWithExpectedSize(size);
+        if(size == 0) {
+            return allParseResults;
+        }
+
         for(IdentifiedResourceChange identifiedChange : changes) {
             final ResourceChange change = identifiedChange.change;
             final FileObject resource = change.resource;
@@ -288,6 +301,10 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         Multimap<IContext, ParseResult<P>> sourceParseResults, Iterable<ParseResult<P>> includeParseResults, int size,
         Set<FileName> removedResources, Collection<IMessage> extraMessages) {
         final Collection<AnalysisResult<P, A>> allAnalysisResults = Lists.newArrayListWithExpectedSize(size);
+        if(size == 0) {
+            return allAnalysisResults;
+        }
+
         for(Entry<IContext, Collection<ParseResult<P>>> entry : sourceParseResults.asMap().entrySet()) {
             final IContext context = entry.getKey();
             final Iterable<ParseResult<P>> parseResults = Iterables.concat(entry.getValue(), includeParseResults);
@@ -318,6 +335,10 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         Set<FileName> removedResources, Collection<IMessage> extraMessages) {
         final Collection<TransformResult<AnalysisFileResult<P, A>, T>> allTransformResults =
             Lists.newArrayListWithExpectedSize(size);
+        if(size == 0) {
+            return allTransformResults;
+        }
+
         for(AnalysisResult<P, A> analysisResult : allAnalysisResults) {
             final IContext context = analysisResult.context;
             synchronized(context) {

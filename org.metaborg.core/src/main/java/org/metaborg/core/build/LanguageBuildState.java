@@ -101,6 +101,7 @@ public class LanguageBuildState {
         }
 
         for(FileName name : existingFiles) {
+            newState.include.remove(name);
             final FileObject resource = resourceService.resolve(name.getURI());
             final IdentifiedResource identifiedResource =
                 languageIdentifierService.identifyToResource(resource, Iterables2.singleton(language));
