@@ -6,7 +6,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.resource.IResourceService;
-import org.metaborg.spoofax.core.build.paths.SpoofaxProjectConstants;
+import org.metaborg.spoofax.core.SpoofaxProjectConstants;
 
 public class MustacheProjectSettings {
     private final IResourceService resourceService;

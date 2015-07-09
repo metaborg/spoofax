@@ -49,7 +49,6 @@ import org.metaborg.core.transform.TransformerException;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.resource.DefaultFileSelectInfo;
 import org.metaborg.util.resource.FilterFileSelector;
-import org.metaborg.util.resource.ResourceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -111,10 +110,12 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         final Collection<ResourceChange> parseTableChanges = Lists.newLinkedList();
         final Multimap<ILanguage, IdentifiedResourceChange> changes = ArrayListMultimap.create();
 
+        final FileSelector selector = input.selector;
         final FileObject location = input.project.location();
-        for(ResourceChange change : input.resourceChanges) {
+        for(ResourceChange change : input.sourceChanges) {
             final FileObject resource = change.resource;
-            final FileSelector selector = input.selector;
+            final FileName name = resource.getName();
+
             if(selector != null) {
                 final FileSelectInfo info = new DefaultFileSelectInfo(location, resource, -1);
                 try {
@@ -127,7 +128,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
             }
 
             // GTODO: abstract this into dialect processor, because it is implementation-specific.
-            if(resource.getName().getExtension().equals("tbl")) {
+            if(name.getParent().getBaseName().equals("lib") && name.getExtension().equals("tbl")) {
                 parseTableChanges.add(change);
                 continue;
             }
@@ -158,18 +159,16 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                 continue;
             }
 
-            final Iterable<FileObject> includeLocations = input.includeLocations.get(language);
-            final Collection<IdentifiedResource> includeFiles = Lists.newLinkedList();
-            for(FileObject includeLocation : includeLocations) {
-                for(FileObject includeResource : ResourceUtils.expand(includeLocation)) {
-                    final IdentifiedResource identifiedResource =
-                        languageIdentifier.identifyToResource(includeResource, Iterables2.singleton(language));
-                    if(identifiedResource != null) {
-                        includeFiles.add(identifiedResource);
-                    }
+            final Iterable<FileObject> includeFiles = input.includeFiles.get(language);
+            final Collection<IdentifiedResource> identifiedIncludeFiles = Lists.newLinkedList();
+            for(FileObject includeResource : includeFiles) {
+                final IdentifiedResource identifiedResource =
+                    languageIdentifier.identifyToResource(includeResource, Iterables2.singleton(language));
+                if(identifiedResource != null) {
+                    identifiedIncludeFiles.add(identifiedResource);
                 }
             }
-            final LanguageBuildDiff diff = languageState.diff(changes.get(language), includeFiles);
+            final LanguageBuildDiff diff = languageState.diff(changes.get(language), identifiedIncludeFiles);
             updateLanguageResources(input, language, diff, buildOutput);
             newState.add(language, diff.newState);
         }

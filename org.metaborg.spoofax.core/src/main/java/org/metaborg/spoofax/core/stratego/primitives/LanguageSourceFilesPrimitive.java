@@ -8,7 +8,6 @@ import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.IProjectService;
 import org.metaborg.core.resource.IResourceService;
-import org.metaborg.util.resource.ResourceUtils;
 import org.spoofax.interpreter.core.IContext;
 import org.spoofax.interpreter.core.InterpreterException;
 import org.spoofax.interpreter.core.Tools;
@@ -47,13 +46,11 @@ public class LanguageSourceFilesPrimitive extends AbstractPrimitive {
             env.setCurrent(factory.makeList());
             return true;
         }
-        final Iterable<FileObject> sourceLocations = languagePathService.sources(project, languageName);
+        final Iterable<FileObject> sourceFiles = languagePathService.sourceFiles(project, languageName);
         final List<IStrategoTerm> terms = Lists.newArrayList();
-        for(FileObject sourceLocation : sourceLocations) {
-            for(FileObject sourceFile : ResourceUtils.expand(sourceLocation)) {
-                final File localFile = resourceService.localFile(sourceFile);
-                terms.add(factory.makeString(localFile.getPath()));
-            }
+        for(FileObject sourceFile : sourceFiles) {
+            final File localFile = resourceService.localFile(sourceFile);
+            terms.add(factory.makeString(localFile.getPath()));
         }
         env.setCurrent(factory.makeList(terms));
         return true;

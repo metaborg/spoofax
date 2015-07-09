@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.core.build.paths;
+package org.metaborg.spoofax.core;
 
 public class SpoofaxProjectConstants {
     public static final String LANG_STRATEGO = "Stratego-Sugar";

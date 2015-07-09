@@ -13,7 +13,7 @@ import org.metaborg.core.language.dialect.IDialectProcessor;
 import org.metaborg.core.language.dialect.IDialectService;
 import org.metaborg.core.resource.ResourceChange;
 import org.metaborg.core.resource.ResourceChangeKind;
-import org.metaborg.spoofax.core.build.paths.SpoofaxProjectConstants;
+import org.metaborg.spoofax.core.SpoofaxProjectConstants;
 import org.metaborg.spoofax.core.resource.SpoofaxIgnoredDirectories;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 import org.metaborg.util.resource.ExtensionFileSelector;

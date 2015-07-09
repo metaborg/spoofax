@@ -24,7 +24,7 @@ public class DependencyPathProvider implements ILanguagePathProvider {
     }
 
 
-    @Override public Iterable<FileObject> sources(IProject project, String language) {
+    @Override public Iterable<FileObject> sourcePaths(IProject project, String language) {
         final Iterable<ILanguage> dependencies = dependencyService.compileDependencies(project);
         final Collection<FileObject> sources = Lists.newArrayList();
         for(ILanguage dependency : dependencies) {
@@ -39,7 +39,7 @@ public class DependencyPathProvider implements ILanguagePathProvider {
         return sources;
     }
 
-    @Override public Iterable<FileObject> includes(IProject project, String language) {
+    @Override public Iterable<FileObject> includePaths(IProject project, String language) {
         final Iterable<ILanguage> dependencies = dependencyService.runtimeDependencies(project);
         final Collection<FileObject> includes = Lists.newArrayList();
         for(ILanguage dependency : dependencies) {

@@ -51,7 +51,7 @@ public class LanguageIncludeLocationsPrimitive extends AbstractPrimitive {
             env.setCurrent(factory.makeList());
             return true;
         }
-        final Iterable<FileObject> includeLocations = languagePathService.includes(project, languageName);
+        final Iterable<FileObject> includeLocations = languagePathService.includePaths(project, languageName);
         final List<IStrategoTerm> terms = Lists.newArrayList();
         for(FileObject includeLocation : includeLocations) {
             try {

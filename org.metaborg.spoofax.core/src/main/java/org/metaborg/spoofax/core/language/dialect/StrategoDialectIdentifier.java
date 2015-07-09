@@ -13,7 +13,7 @@ import org.metaborg.core.language.IdentificationFacet;
 import org.metaborg.core.language.dialect.IDialectIdentifier;
 import org.metaborg.core.language.dialect.IDialectService;
 import org.metaborg.core.language.dialect.IdentifiedDialect;
-import org.metaborg.spoofax.core.build.paths.SpoofaxProjectConstants;
+import org.metaborg.spoofax.core.SpoofaxProjectConstants;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

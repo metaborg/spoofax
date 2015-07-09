@@ -30,14 +30,14 @@ public class BuildInput {
     public final IProject project;
 
     /**
-     * Resources that have changed.
+     * Sources that have changed.
      */
-    public final Iterable<ResourceChange> resourceChanges;
+    public final Iterable<ResourceChange> sourceChanges;
 
     /**
-     * Per-language locations for include files.
+     * Per-language include files.
      */
-    public final Multimap<ILanguage, FileObject> includeLocations;
+    public final Multimap<ILanguage, FileObject> includeFiles;
 
     /**
      * Language build order.
@@ -101,8 +101,8 @@ public class BuildInput {
         boolean throwOnErrors, Set<ILanguage> pardonedLanguages) {
         this.state = state;
         this.project = project;
-        this.resourceChanges = resourceChanges;
-        this.includeLocations = includeLocations;
+        this.sourceChanges = resourceChanges;
+        this.includeFiles = includeLocations;
         this.buildOrder = buildOrder;
         this.selector = parseSelector;
         this.analyze = analyze;

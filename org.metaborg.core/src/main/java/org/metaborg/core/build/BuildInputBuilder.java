@@ -36,11 +36,11 @@ public class BuildInputBuilder {
     private Collection<ILanguage> languages;
     private boolean addDependencyLanguages;
 
-    private Multimap<ILanguage, FileObject> includeLocations;
-    private boolean addDefaultIncludeLocations;
+    private Multimap<ILanguage, FileObject> includeFiles;
+    private boolean addDefaultIncludeFiles;
 
-    private Collection<ResourceChange> resourceChanges;
-    private boolean addResourcesFromDefaultSourceLocations;
+    private Collection<ResourceChange> sourceChanges;
+    private boolean addSourcesFromDefaultSourceLocations;
 
     private @Nullable FileSelector selector;
 
@@ -70,10 +70,10 @@ public class BuildInputBuilder {
         state = null;
         languages = Lists.newLinkedList();
         addDependencyLanguages = true;
-        includeLocations = HashMultimap.create();
-        addDefaultIncludeLocations = true;
-        resourceChanges = Lists.newLinkedList();
-        addResourcesFromDefaultSourceLocations = false;
+        includeFiles = HashMultimap.create();
+        addDefaultIncludeFiles = true;
+        sourceChanges = Lists.newLinkedList();
+        addSourcesFromDefaultSourceLocations = false;
         selector = null;
         analyze = true;
         analyzeSelector = null;
@@ -130,89 +130,86 @@ public class BuildInputBuilder {
 
 
     /**
-     * Sets the include locations to given locations.
+     * Sets the source changes to given resource changes.
      */
-    public BuildInputBuilder withIncludeLocations(Multimap<ILanguage, FileObject> includeLocations) {
-        this.includeLocations = includeLocations;
+    public BuildInputBuilder withSourceChanges(Collection<ResourceChange> sourceChanges) {
+        this.sourceChanges = sourceChanges;
         return this;
     }
 
     /**
-     * Add given include locations for given language.
+     * Adds a source change.
      */
-    public BuildInputBuilder addIncludeLocations(ILanguage language, Iterable<FileObject> includeLocations) {
-        this.includeLocations.putAll(language, includeLocations);
+    public BuildInputBuilder addSourceChanges(Iterable<ResourceChange> sourceChanges) {
+        Iterables.addAll(this.sourceChanges, sourceChanges);
         return this;
     }
 
     /**
-     * Sets if default include locations should be added when the input is build. Defaults to true.
+     * Set the source changes to additions from given sources.
      */
-    public BuildInputBuilder withDefaultIncludeLocations(boolean addDefaultIncludeLocations) {
-        this.addDefaultIncludeLocations = addDefaultIncludeLocations;
-        return this;
-    }
-
-
-    /**
-     * Sets the resource changes to given resource changes.
-     */
-    public BuildInputBuilder withResourceChanges(Collection<ResourceChange> resourceChanges) {
-        this.resourceChanges = resourceChanges;
-        return this;
+    public BuildInputBuilder withSources(Iterable<FileObject> sources) {
+        this.sourceChanges = Lists.newLinkedList();
+        return addSources(sources);
     }
 
     /**
-     * Adds a resource change.
+     * Add addition source changes from given sources.
      */
-    public BuildInputBuilder addResourceChanges(Iterable<ResourceChange> resourceChanges) {
-        Iterables.addAll(this.resourceChanges, resourceChanges);
-        return this;
-    }
-
-    /**
-     * Set the resource changes to additions from given resources.
-     */
-    public BuildInputBuilder withResources(Iterable<FileObject> resources) {
-        this.resourceChanges = Lists.newLinkedList();
-        return addResources(resources);
-    }
-
-    /**
-     * Add addition resource changes from given resources.
-     */
-    public BuildInputBuilder addResources(Iterable<FileObject> resources) {
-        for(FileObject resource : resources) {
-            addResource(resource);
+    public BuildInputBuilder addSources(Iterable<FileObject> sources) {
+        for(FileObject source : sources) {
+            addSource(source);
         }
         return this;
     }
 
     /**
-     * Add addition resource changes from resources at given source locations.
+     * Adds a single addition source change from given source.
      */
-    public BuildInputBuilder addResourcesFromSourceLocations(Iterable<FileObject> sourceLocations) {
-        for(FileObject sourceLocation : sourceLocations) {
-            final Iterable<FileObject> sources = ResourceUtils.expand(sourceLocation);
-            addResources(sources);
-        }
+    public BuildInputBuilder addSource(FileObject source) {
+        sourceChanges.add(new ResourceChange(source));
         return this;
     }
 
     /**
-     * Sets if addition resource changes should be added from resources at default source locations when the input is
-     * built. Defaults to false.
+     * Add addition source changes from source files at given source locations.
      */
-    public BuildInputBuilder withResourcesFromDefaultSourceLocations(boolean addResourcesFromDefaultSourceLocations) {
-        this.addResourcesFromDefaultSourceLocations = addResourcesFromDefaultSourceLocations;
+    public BuildInputBuilder addSourcesFromSourceLocations(Iterable<FileObject> sourceLocations) {
+        addSources(ResourceUtils.expand(sourceLocations));
         return this;
     }
 
     /**
-     * Adds a single addition resource change from given resource.
+     * Sets if addition source changes should be added from source at default source locations, when the input is built.
+     * Defaults to false.
      */
-    public BuildInputBuilder addResource(FileObject resource) {
-        resourceChanges.add(new ResourceChange(resource));
+    public BuildInputBuilder withSourcesFromDefaultSourceLocations(boolean addSourcesFromDefaultSourceLocations) {
+        this.addSourcesFromDefaultSourceLocations = addSourcesFromDefaultSourceLocations;
+        return this;
+    }
+
+
+    /**
+     * Sets the include files to given files.
+     */
+    public BuildInputBuilder withIncludeFiles(Multimap<ILanguage, FileObject> includeFiles) {
+        this.includeFiles = includeFiles;
+        return this;
+    }
+
+    /**
+     * Add given include files for given language.
+     */
+    public BuildInputBuilder addIncludeFiles(ILanguage language, Iterable<FileObject> includeFiles) {
+        this.includeFiles.putAll(language, includeFiles);
+        return this;
+    }
+
+    /**
+     * Sets if default include files should be added when the input is build. Defaults to true.
+     */
+    public BuildInputBuilder withDefaultIncludeFiles(boolean addDefaultIncludeFiles) {
+        this.addDefaultIncludeFiles = addDefaultIncludeFiles;
         return this;
     }
 
@@ -338,17 +335,16 @@ public class BuildInputBuilder {
             addLanguages(compileLanguages);
         }
 
-        if(addDefaultIncludeLocations) {
+        if(addDefaultIncludeFiles) {
             for(ILanguage language : compileLanguages) {
-                addIncludeLocations(language, languagePathService.includes(project, language.name()));
+                addIncludeFiles(language, languagePathService.includeFiles(project, language.name()));
             }
         }
 
-        if(addResourcesFromDefaultSourceLocations) {
+        if(addSourcesFromDefaultSourceLocations) {
             for(ILanguage language : compileLanguages) {
-                final Iterable<FileObject> sourceLocations = languagePathService.sources(project, language.name());
-                final Iterable<FileObject> sources = ResourceUtils.expand(sourceLocations);
-                addResources(sources);
+                final Iterable<FileObject> sources = languagePathService.sourceFiles(project, language.name());
+                addSources(sources);
             }
         }
 
@@ -359,8 +355,8 @@ public class BuildInputBuilder {
         }
 
         final BuildInput input =
-            new BuildInput(state, project, resourceChanges, includeLocations, new BuildOrder(languages), selector,
-                analyze, analyzeSelector, transform, transformSelector, transformGoals, messagePrinter, throwOnErrors,
+            new BuildInput(state, project, sourceChanges, includeFiles, new BuildOrder(languages), selector, analyze,
+                analyzeSelector, transform, transformSelector, transformGoals, messagePrinter, throwOnErrors,
                 pardonedLanguages);
         return input;
     }

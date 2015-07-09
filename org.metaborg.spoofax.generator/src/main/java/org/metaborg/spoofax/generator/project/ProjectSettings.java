@@ -1,16 +1,16 @@
 package org.metaborg.spoofax.generator.project;
 
-import static org.metaborg.spoofax.core.build.paths.SpoofaxProjectConstants.DIR_CACHE;
-import static org.metaborg.spoofax.core.build.paths.SpoofaxProjectConstants.DIR_EDITOR;
-import static org.metaborg.spoofax.core.build.paths.SpoofaxProjectConstants.DIR_ICONS;
-import static org.metaborg.spoofax.core.build.paths.SpoofaxProjectConstants.DIR_INCLUDE;
-import static org.metaborg.spoofax.core.build.paths.SpoofaxProjectConstants.DIR_JAVA;
-import static org.metaborg.spoofax.core.build.paths.SpoofaxProjectConstants.DIR_JAVA_TRANS;
-import static org.metaborg.spoofax.core.build.paths.SpoofaxProjectConstants.DIR_LIB;
-import static org.metaborg.spoofax.core.build.paths.SpoofaxProjectConstants.DIR_SRCGEN;
-import static org.metaborg.spoofax.core.build.paths.SpoofaxProjectConstants.DIR_SRCGEN_SYNTAX;
-import static org.metaborg.spoofax.core.build.paths.SpoofaxProjectConstants.DIR_SYNTAX;
-import static org.metaborg.spoofax.core.build.paths.SpoofaxProjectConstants.DIR_TRANS;
+import static org.metaborg.spoofax.core.SpoofaxProjectConstants.DIR_CACHE;
+import static org.metaborg.spoofax.core.SpoofaxProjectConstants.DIR_EDITOR;
+import static org.metaborg.spoofax.core.SpoofaxProjectConstants.DIR_ICONS;
+import static org.metaborg.spoofax.core.SpoofaxProjectConstants.DIR_INCLUDE;
+import static org.metaborg.spoofax.core.SpoofaxProjectConstants.DIR_JAVA;
+import static org.metaborg.spoofax.core.SpoofaxProjectConstants.DIR_JAVA_TRANS;
+import static org.metaborg.spoofax.core.SpoofaxProjectConstants.DIR_LIB;
+import static org.metaborg.spoofax.core.SpoofaxProjectConstants.DIR_SRCGEN;
+import static org.metaborg.spoofax.core.SpoofaxProjectConstants.DIR_SRCGEN_SYNTAX;
+import static org.metaborg.spoofax.core.SpoofaxProjectConstants.DIR_SYNTAX;
+import static org.metaborg.spoofax.core.SpoofaxProjectConstants.DIR_TRANS;
 
 import javax.annotation.Nullable;
 

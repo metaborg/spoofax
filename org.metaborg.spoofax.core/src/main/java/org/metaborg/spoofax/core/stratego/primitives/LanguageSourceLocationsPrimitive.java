@@ -51,7 +51,7 @@ public class LanguageSourceLocationsPrimitive extends AbstractPrimitive {
             env.setCurrent(factory.makeList());
             return true;
         }
-        final Iterable<FileObject> sourceLocations = languagePathService.sources(project, languageName);
+        final Iterable<FileObject> sourceLocations = languagePathService.sourcePaths(project, languageName);
         final List<IStrategoTerm> terms = Lists.newArrayList();
         for(FileObject sourceLocation : sourceLocations) {
             try {
