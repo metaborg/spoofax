@@ -20,6 +20,7 @@ import org.metaborg.spoofax.meta.core.ant.IAntRunner;
 import org.metaborg.spoofax.meta.core.ant.IAntRunnerService;
 import org.metaborg.spoofax.nativebundle.NativeBundle;
 
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.inject.Inject;
@@ -96,7 +97,10 @@ class MetaBuildAntRunnerFactory {
     private Collection<String> buildStrategoArgs(MetaBuildInput input) {
         final Collection<String> args = Lists.newArrayList(input.strategoArgs);
         final Iterable<FileObject> paths = languagePathService.sourcesAndIncludes(input.project, LANG_STRATEGO);
-        for(FileObject path : paths) {
+        // HACK: Stratego language name was wronly named "Stratego" instead of "Stratego-Sugar". Also include paths from
+        // the wrong language name to support the older baseline languages used for bootstrapping.
+        final Iterable<FileObject> legacyPaths = languagePathService.sourcesAndIncludes(input.project, "Stratego");
+        for(FileObject path : Iterables.concat(paths, legacyPaths)) {
             File file = resourceService.localFile(path);
             if(file.exists()) {
                 args.add("-I");

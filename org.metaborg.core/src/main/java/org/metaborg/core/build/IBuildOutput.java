@@ -24,9 +24,20 @@ import org.metaborg.core.transform.TransformResult;
  */
 public interface IBuildOutput<P, A, T> {
     /**
+     * @return State produced by the build.
+     */
+    public abstract BuildState state();
+
+    /**
      * @return Resources that were removed prior to the build.
      */
     public abstract Set<FileName> removedResources();
+
+    /**
+     * @return Resources that were included into the build, but not used as source files. These files were parsed and
+     *         analyzed, but not transformed.
+     */
+    public abstract Set<FileName> includedResources();
 
     /**
      * @return Resources that were added or changed prior to the build.

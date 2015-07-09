@@ -6,7 +6,6 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
-import org.apache.commons.vfs2.FileSystemManager;
 import org.metaborg.core.MetaborgRuntimeException;
 
 /**
@@ -97,9 +96,4 @@ public interface IResourceService {
      *             when an internal error occurs.
      */
     public FileObject userStorage();
-
-    /**
-     * Temporary hack to get the internal file system manager.
-     */
-    public FileSystemManager manager();
 }

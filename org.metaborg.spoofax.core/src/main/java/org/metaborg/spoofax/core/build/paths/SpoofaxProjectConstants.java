@@ -1,7 +1,7 @@
 package org.metaborg.spoofax.core.build.paths;
 
 public class SpoofaxProjectConstants {
-    public static final String LANG_STRATEGO = "Stratego";
+    public static final String LANG_STRATEGO = "Stratego-Sugar";
     public static final String LANG_SDF = "SDF";
     public static final String LANG_ESV = "EditorService";
     public static final String LANG_SDF3 = "TemplateLang";

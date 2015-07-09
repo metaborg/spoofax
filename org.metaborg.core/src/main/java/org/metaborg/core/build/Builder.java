@@ -24,8 +24,8 @@ import org.metaborg.core.context.IContextService;
 import org.metaborg.core.language.AllLanguagesFileSelector;
 import org.metaborg.core.language.ILanguage;
 import org.metaborg.core.language.ILanguageIdentifierService;
+import org.metaborg.core.language.IdentifiedResource;
 import org.metaborg.core.language.dialect.IDialectProcessor;
-import org.metaborg.core.language.dialect.IDialectService;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
@@ -34,7 +34,8 @@ import org.metaborg.core.processing.ICancellationToken;
 import org.metaborg.core.processing.IProgressReporter;
 import org.metaborg.core.processing.analyze.IAnalysisResultUpdater;
 import org.metaborg.core.processing.parse.IParseResultUpdater;
-import org.metaborg.core.resource.IResourceChange;
+import org.metaborg.core.resource.IResourceService;
+import org.metaborg.core.resource.IdentifiedResourceChange;
 import org.metaborg.core.resource.ResourceChange;
 import org.metaborg.core.resource.ResourceChangeKind;
 import org.metaborg.core.source.ISourceTextService;
@@ -57,6 +58,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import com.google.inject.Inject;
 
 /**
  * Builder implementation.
@@ -71,8 +73,8 @@ import com.google.common.collect.Sets;
 public class Builder<P, A, T> implements IBuilder<P, A, T> {
     private static final Logger logger = LoggerFactory.getLogger(Builder.class);
 
+    private final IResourceService resourceService;
     private final ILanguageIdentifierService languageIdentifier;
-    private final IDialectService dialectService;
     private final IDialectProcessor dialectProcessor;
     private final IContextService contextService;
     private final ISourceTextService sourceTextService;
@@ -84,12 +86,12 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
     private final IAnalysisResultUpdater<P, A> analysisResultProcessor;
 
 
-    public Builder(ILanguageIdentifierService languageIdentifier, IDialectService dialectService,
+    @Inject public Builder(IResourceService resourceService, ILanguageIdentifierService languageIdentifier,
         IDialectProcessor dialectProcessor, IContextService contextService, ISourceTextService sourceTextService,
         ISyntaxService<P> syntaxService, IAnalysisService<P, A> analyzer, ITransformer<P, A, T> transformer,
         IParseResultUpdater<P> parseResultProcessor, IAnalysisResultUpdater<P, A> analysisResultProcessor) {
+        this.resourceService = resourceService;
         this.languageIdentifier = languageIdentifier;
-        this.dialectService = dialectService;
         this.dialectProcessor = dialectProcessor;
         this.contextService = contextService;
         this.sourceTextService = sourceTextService;
@@ -106,17 +108,17 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         ICancellationToken cancellationToken) {
         final Iterable<ILanguage> languages = input.buildOrder.languages();
 
-        final Collection<IResourceChange> parseTableChanges = Lists.newLinkedList();
+        final Collection<ResourceChange> parseTableChanges = Lists.newLinkedList();
         final Multimap<ILanguage, IdentifiedResourceChange> changes = ArrayListMultimap.create();
 
         final FileObject location = input.project.location();
-        for(IResourceChange change : input.resourceChanges) {
-            final FileObject resource = change.resource();
-
-            if(input.selector != null) {
+        for(ResourceChange change : input.resourceChanges) {
+            final FileObject resource = change.resource;
+            final FileSelector selector = input.selector;
+            if(selector != null) {
                 final FileSelectInfo info = new DefaultFileSelectInfo(location, resource, -1);
                 try {
-                    if(!input.selector.includeFile(info)) {
+                    if(!selector.includeFile(info)) {
                         continue;
                     }
                 } catch(Exception e) {
@@ -124,60 +126,46 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                 }
             }
 
+            // GTODO: abstract this into dialect processor, because it is implementation-specific.
             if(resource.getName().getExtension().equals("tbl")) {
                 parseTableChanges.add(change);
                 continue;
             }
 
-            final IdentifiedResourceChange identifiedChange = identify(change, languages);
-            if(identifiedChange != null) {
+            final IdentifiedResource identifiedResource = languageIdentifier.identifyToResource(resource, languages);
+            if(identifiedResource != null) {
+                final IdentifiedResourceChange identifiedChange =
+                    new IdentifiedResourceChange(change, identifiedResource);
                 changes.put(identifiedChange.language, identifiedChange);
             }
         }
 
-        updateDialectResource(parseTableChanges);
+        updateDialectResources(parseTableChanges);
 
-        final BuildOutput<P, A, T> buildOutput = new BuildOutput<P, A, T>();
+        final BuildState newState = new BuildState();
+        final BuildOutput<P, A, T> buildOutput = new BuildOutput<P, A, T>(newState);
         for(ILanguage language : input.buildOrder.buildOrder()) {
+            final LanguageBuildState languageState = input.state.get(resourceService, languageIdentifier, language);
             final Iterable<FileObject> includeLocations = input.includeLocations.get(language);
-            final Collection<IdentifiedResourceChange> includes = Lists.newLinkedList();
+            final Collection<IdentifiedResource> includeFiles = Lists.newLinkedList();
             for(FileObject includeLocation : includeLocations) {
                 for(FileObject includeResource : ResourceUtils.expand(includeLocation)) {
-                    final IResourceChange change = new ResourceChange(includeResource);
-                    final IdentifiedResourceChange identifiedChange = identify(change, language);
-                    if(identifiedChange != null) {
-                        includes.add(identifiedChange);
+                    final IdentifiedResource identifiedResource =
+                        languageIdentifier.identifyToResource(includeResource, Iterables2.singleton(language));
+                    if(identifiedResource != null) {
+                        includeFiles.add(identifiedResource);
                     }
                 }
             }
-            updateLanguageResources(input, language, changes.get(language), includes, buildOutput);
+            final LanguageBuildDiff diff = languageState.diff(changes.get(language), includeFiles);
+            updateLanguageResources(input, language, diff, buildOutput);
+            newState.add(language, diff.newState);
         }
 
         return buildOutput;
     }
 
-    @Override public void clean(CleanInput input, IProgressReporter progressReporter,
-        ICancellationToken cancellationToken) {
-        final FileObject location = input.project.location();
-        logger.debug("Cleaning " + location);
-
-        try {
-            final FileSelector selector =
-                new FilterFileSelector(new AllLanguagesFileSelector(languageIdentifier), input.selector);
-            final FileObject[] resources = location.findFiles(selector);
-            final Set<IContext> contexts =
-                ContextUtils.getAll(Iterables2.from(resources), languageIdentifier, contextService);
-            for(IContext context : contexts) {
-                context.clean();
-            }
-        } catch(FileSystemException e) {
-            final String message = String.format("Could not clean contexts for {}", location);
-            logger.error(message, e);
-        }
-    }
-
-
-    private void updateDialectResource(Collection<IResourceChange> changes) {
+    private void updateDialectResources(Collection<ResourceChange> changes) {
         if(changes.isEmpty()) {
             return;
         }
@@ -185,36 +173,83 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         dialectProcessor.update(changes);
     }
 
-    private void updateLanguageResources(BuildInput input, ILanguage language,
-        Collection<IdentifiedResourceChange> changes, Collection<IdentifiedResourceChange> includes,
+    private void updateLanguageResources(BuildInput input, ILanguage language, LanguageBuildDiff diff,
         BuildOutput<P, A, T> output) {
-        if(changes.isEmpty()) {
+        final Iterable<IdentifiedResourceChange> sourceChanges = diff.sourceChanges;
+        final int numSourceChanges = Iterables.size(sourceChanges);
+        if(numSourceChanges == 0) {
             return;
         }
 
         logger.debug("Building " + input.project.location());
 
+        final Iterable<IdentifiedResourceChange> includeChanges = diff.includeChanges;
+        final int numIncludeChanges = Iterables.size(includeChanges);
+        final Set<FileName> includedResources = Sets.newHashSet();
+        for(IdentifiedResourceChange includeChange : includeChanges) {
+            includedResources.add(includeChange.change.resource.getName());
+        }
+
         final FileObject location = input.project.location();
-        final int numChanges = changes.size();
         final Collection<FileObject> changedResources = Sets.newHashSet();
         final Set<FileName> removedResources = Sets.newHashSet();
         final Collection<IMessage> extraMessages = Lists.newLinkedList();
 
         // Parse
-        logger.debug("Parsing {} resources", numChanges);
-        final Collection<ParseResult<P>> allParseResults = Lists.newArrayListWithExpectedSize(numChanges);
-        for(IdentifiedResourceChange identifiedChange : Iterables.concat(changes, includes)) {
-            final IResourceChange change = identifiedChange.change;
-            final FileObject resource = change.resource();
-            // final ILanguage language = identifiedChange.language;
+        final int numChanges = numSourceChanges + numIncludeChanges;
+        logger.debug("Parsing {} sources, {} includes", numSourceChanges, numIncludeChanges);
+        final Collection<ParseResult<P>> sourceParseResults =
+            parse(input, language, sourceChanges, numSourceChanges, changedResources, removedResources, extraMessages);
+        // GTODO: when a new context is created, all include files need to be parsed and analyzed, this approach
+        // does not do that!
+        final Collection<ParseResult<P>> includeParseResults =
+            parse(input, language, includeChanges, numIncludeChanges, changedResources, removedResources, extraMessages);
+        final Iterable<ParseResult<P>> allParseResults = Iterables.concat(sourceParseResults, includeParseResults);
+
+        // Segregate by context
+        final Multimap<IContext, ParseResult<P>> sourceResultsPerContext = ArrayListMultimap.create();
+        for(ParseResult<P> parseResult : sourceParseResults) {
+            final FileObject resource = parseResult.source;
+            try {
+                final IContext context = contextService.get(resource, parseResult.language);
+                sourceResultsPerContext.put(context, parseResult);
+            } catch(ContextException e) {
+                final String message = String.format("Failed to retrieve context for parse result of %s", resource);
+                printMessage(resource, message, e, input, language);
+                extraMessages.add(MessageFactory.newAnalysisErrorAtTop(resource, "Failed to retrieve context", e));
+            }
+        }
+
+        // Analyze
+        final Collection<AnalysisResult<P, A>> allAnalysisResults =
+            analyze(input, language, location, sourceResultsPerContext, includeParseResults, numChanges,
+                removedResources, extraMessages);
+
+        // Compile
+        final Collection<TransformResult<AnalysisFileResult<P, A>, T>> allTransformResults =
+            compile(input, language, location, allAnalysisResults, includedResources, numSourceChanges,
+                removedResources, extraMessages);
+
+        printMessages(extraMessages, "Something", input, language);
+
+        output.add(removedResources, includedResources, changedResources, allParseResults, allAnalysisResults,
+            allTransformResults, extraMessages);
+    }
+
+    private Collection<ParseResult<P>> parse(BuildInput input, ILanguage language,
+        Iterable<IdentifiedResourceChange> changes, int size, Collection<FileObject> changedResources,
+        Set<FileName> removedResources, Collection<IMessage> extraMessages) {
+        final Collection<ParseResult<P>> allParseResults = Lists.newArrayListWithExpectedSize(size);
+        for(IdentifiedResourceChange identifiedChange : changes) {
+            final ResourceChange change = identifiedChange.change;
+            final FileObject resource = change.resource;
             final ILanguage dialect = identifiedChange.dialect;
             final ILanguage parserLanguage = dialect != null ? dialect : language;
-            final ResourceChangeKind changeKind = change.kind();
+            final ResourceChangeKind changeKind = change.kind;
 
             try {
                 if(changeKind == ResourceChangeKind.Delete) {
                     parseResultProcessor.remove(resource);
-                    // Don't add resource as changed when it has been deleted, because it does not exist any more.
                     removedResources.add(resource.getName());
                     // LEGACY: add empty parse result, to indicate to analysis that this resource was
                     // removed. There is special handling in updating the analysis result processor, the marker
@@ -222,6 +257,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                     final ParseResult<P> emptyParseResult =
                         syntaxService.emptyParseResult(resource, parserLanguage, dialect);
                     allParseResults.add(emptyParseResult);
+                    // Don't add resource as changed when it has been deleted, because it does not exist any more.
                 } else {
                     final String sourceText = sourceTextService.text(resource);
                     parseResultProcessor.invalidate(resource);
@@ -245,27 +281,16 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                 changedResources.add(resource);
             }
         }
+        return allParseResults;
+    }
 
-        // Segregate by context
-        final Multimap<IContext, ParseResult<P>> allParseResultsPerContext = ArrayListMultimap.create();
-        for(ParseResult<P> parseResult : allParseResults) {
-            final FileObject resource = parseResult.source;
-            try {
-                final IContext context = contextService.get(resource, parseResult.language);
-                allParseResultsPerContext.put(context, parseResult);
-            } catch(ContextException e) {
-                final String message = String.format("Failed to retrieve context for parse result of %s", resource);
-                printMessage(resource, message, e, input, language);
-                extraMessages.add(MessageFactory.newAnalysisErrorAtTop(resource, "Failed to retrieve context", e));
-            }
-        }
-
-
-        // Analyze
-        final Collection<AnalysisResult<P, A>> allAnalysisResults = Lists.newArrayListWithExpectedSize(numChanges);
-        for(Entry<IContext, Collection<ParseResult<P>>> entry : allParseResultsPerContext.asMap().entrySet()) {
+    private Collection<AnalysisResult<P, A>> analyze(BuildInput input, ILanguage language, FileObject location,
+        Multimap<IContext, ParseResult<P>> sourceParseResults, Iterable<ParseResult<P>> includeParseResults, int size,
+        Set<FileName> removedResources, Collection<IMessage> extraMessages) {
+        final Collection<AnalysisResult<P, A>> allAnalysisResults = Lists.newArrayListWithExpectedSize(size);
+        for(Entry<IContext, Collection<ParseResult<P>>> entry : sourceParseResults.asMap().entrySet()) {
             final IContext context = entry.getKey();
-            final Iterable<ParseResult<P>> parseResults = entry.getValue();
+            final Iterable<ParseResult<P>> parseResults = Iterables.concat(entry.getValue(), includeParseResults);
 
             try {
                 synchronized(context) {
@@ -285,24 +310,23 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                 extraMessages.add(MessageFactory.newAnalysisErrorAtTop(location, message, e));
             }
         }
+        return allAnalysisResults;
+    }
 
-        // Compile
-        final Set<FileName> includeSet = Sets.newHashSet();
-        for(IdentifiedResourceChange include : includes) {
-            includeSet.add(include.change.resource().getName());
-        }
+    private Collection<TransformResult<AnalysisFileResult<P, A>, T>> compile(BuildInput input, ILanguage language,
+        FileObject location, Collection<AnalysisResult<P, A>> allAnalysisResults, Set<FileName> includeFiles, int size,
+        Set<FileName> removedResources, Collection<IMessage> extraMessages) {
         final Collection<TransformResult<AnalysisFileResult<P, A>, T>> allTransformResults =
-            Lists.newArrayListWithExpectedSize(numChanges);
-
+            Lists.newArrayListWithExpectedSize(size);
         for(AnalysisResult<P, A> analysisResult : allAnalysisResults) {
             final IContext context = analysisResult.context;
             synchronized(context) {
                 for(AnalysisFileResult<P, A> fileResult : analysisResult.fileResults) {
                     final FileObject resource = fileResult.source;
                     final FileName name = resource.getName();
-                    if(includeSet.contains(name) || removedResources.contains(name)) {
-                        // Don't transform included resources, they should just be parsed and analyzed.
+                    if(removedResources.contains(name) || includeFiles.contains(name)) {
                         // Don't compile removed resources, which the analysis results contain for legacy reasons.
+                        // Don't transform included resources, they should just be parsed and analyzed.
                         continue;
                     }
 
@@ -332,38 +356,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                 // GTODO: also compile any affected sources
             }
         }
-
-        printMessages(extraMessages, "Something", input, language);
-
-        output.add(removedResources, changedResources, allParseResults, allAnalysisResults, allTransformResults,
-            extraMessages);
-    }
-
-    private @Nullable IdentifiedResourceChange identify(IResourceChange change, Iterable<ILanguage> languages) {
-        final FileObject resource = change.resource();
-        final ILanguage language = languageIdentifier.identify(resource, languages);
-        if(language != null) {
-            final ILanguage base = dialectService.getBase(language);
-            if(base == null) {
-                return new IdentifiedResourceChange(change, language, null);
-            } else {
-                return new IdentifiedResourceChange(change, base, language);
-            }
-        }
-        return null;
-    }
-
-    private @Nullable IdentifiedResourceChange identify(IResourceChange change, ILanguage language) {
-        final FileObject resource = change.resource();
-        if(languageIdentifier.identify(resource, language)) {
-            final ILanguage base = dialectService.getBase(language);
-            if(base == null) {
-                return new IdentifiedResourceChange(change, language, null);
-            } else {
-                return new IdentifiedResourceChange(change, base, language);
-            }
-        }
-        return null;
+        return allTransformResults;
     }
 
     private void printMessages(Iterable<IMessage> messages, String phase, BuildInput input, ILanguage language) {
@@ -382,16 +375,45 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
 
     private void printMessage(FileObject resource, String message, @Nullable Throwable e, BuildInput input,
         ILanguage language) {
-        input.messagePrinter.print(resource, message, e);
+        final IBuildMessagePrinter printer = input.messagePrinter;
+        if(printer != null) {
+            printer.print(resource, message, e);
+        }
+
         if(input.throwOnErrors && !input.pardonedLanguages.contains(language)) {
             throw new MetaborgRuntimeException(message, e);
         }
     }
 
     private void printMessage(String message, @Nullable Throwable e, BuildInput input, ILanguage language) {
-        input.messagePrinter.print(input.project, message, e);
+        final IBuildMessagePrinter printer = input.messagePrinter;
+        if(printer != null) {
+            printer.print(input.project, message, e);
+        }
+
         if(input.throwOnErrors && !input.pardonedLanguages.contains(language)) {
             throw new MetaborgRuntimeException(message, e);
+        }
+    }
+
+
+    @Override public void clean(CleanInput input, IProgressReporter progressReporter,
+        ICancellationToken cancellationToken) {
+        final FileObject location = input.project.location();
+        logger.debug("Cleaning " + location);
+
+        try {
+            final FileSelector selector =
+                new FilterFileSelector(new AllLanguagesFileSelector(languageIdentifier), input.selector);
+            final FileObject[] resources = location.findFiles(selector);
+            final Set<IContext> contexts =
+                ContextUtils.getAll(Iterables2.from(resources), languageIdentifier, contextService);
+            for(IContext context : contexts) {
+                context.clean();
+            }
+        } catch(FileSystemException e) {
+            final String message = String.format("Could not clean contexts for {}", location);
+            logger.error(message, e);
         }
     }
 }

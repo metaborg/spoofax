@@ -105,10 +105,6 @@ public class ResourceService implements IResourceService {
         }
     }
 
-    @Override public FileSystemManager manager() {
-        return fileSystemManager;
-    }
-
 
     public static void writeFileObject(FileObject fo, ObjectOutput out) throws IOException {
         out.writeObject(fo.getName().getURI());

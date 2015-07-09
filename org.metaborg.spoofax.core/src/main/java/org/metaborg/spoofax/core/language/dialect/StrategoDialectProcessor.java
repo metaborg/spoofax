@@ -11,9 +11,9 @@ import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.LanguageChange;
 import org.metaborg.core.language.dialect.IDialectProcessor;
 import org.metaborg.core.language.dialect.IDialectService;
-import org.metaborg.core.resource.IResourceChange;
 import org.metaborg.core.resource.ResourceChange;
 import org.metaborg.core.resource.ResourceChangeKind;
+import org.metaborg.spoofax.core.build.paths.SpoofaxProjectConstants;
 import org.metaborg.spoofax.core.resource.SpoofaxIgnoredDirectories;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 import org.metaborg.util.resource.ExtensionFileSelector;
@@ -40,7 +40,7 @@ public class StrategoDialectProcessor implements IDialectProcessor {
     @Override public void loadAll(FileObject directory) throws FileSystemException {
         final FileObject[] resources =
             directory.findFiles(SpoofaxIgnoredDirectories.ignoreFileSelector(new ExtensionFileSelector("tbl")));
-        final ArrayList<IResourceChange> changes = Lists.newArrayListWithCapacity(resources.length);
+        final ArrayList<ResourceChange> changes = Lists.newArrayListWithCapacity(resources.length);
         for(FileObject resource : resources) {
             changes.add(new ResourceChange(resource));
         }
@@ -50,20 +50,20 @@ public class StrategoDialectProcessor implements IDialectProcessor {
     @Override public void removeAll(FileObject directory) throws FileSystemException {
         final FileObject[] resources =
             directory.findFiles(SpoofaxIgnoredDirectories.ignoreFileSelector(new ExtensionFileSelector("tbl")));
-        final ArrayList<IResourceChange> changes = Lists.newArrayListWithCapacity(resources.length);
+        final ArrayList<ResourceChange> changes = Lists.newArrayListWithCapacity(resources.length);
         for(FileObject resource : resources) {
             changes.add(new ResourceChange(resource, ResourceChangeKind.Delete));
         }
         update(changes);
     }
 
-    @Override public void update(Iterable<IResourceChange> changes) {
+    @Override public void update(Iterable<ResourceChange> changes) {
         final int numChanges = Iterables.size(changes);
         if(numChanges <= 0) {
             return;
         }
 
-        final ILanguage strategoLanguage = languageService.get("Stratego-Sugar");
+        final ILanguage strategoLanguage = languageService.get(SpoofaxProjectConstants.LANG_STRATEGO);
         if(strategoLanguage == null) {
             logger.debug("Could not find Stratego language, Stratego dialects cannot be updated.");
             return;
@@ -71,13 +71,13 @@ public class StrategoDialectProcessor implements IDialectProcessor {
         final SyntaxFacet baseFacet = strategoLanguage.facet(SyntaxFacet.class);
 
         logger.debug("Updating {} Stratego dialects", numChanges);
-        for(IResourceChange change : changes) {
-            final FileObject resource = change.resource();
+        for(ResourceChange change : changes) {
+            final FileObject resource = change.resource;
             final String name = FilenameUtils.getBaseName(resource.getName().getBaseName());
             final SyntaxFacet newFacet =
                 new SyntaxFacet(resource, baseFacet.startSymbols, baseFacet.singleLineCommentPrefixes,
                     baseFacet.multiLineCommentCharacters, baseFacet.fenceCharacters);
-            final ResourceChangeKind changeKind = change.kind();
+            final ResourceChangeKind changeKind = change.kind;
             try {
                 switch(changeKind) {
                     case Create:
@@ -93,10 +93,10 @@ public class StrategoDialectProcessor implements IDialectProcessor {
                         dialectService.update(name, newFacet);
                         break;
                     case Rename:
-                        if(change.from() != null) {
+                        if(change.from != null) {
                             dialectService.remove(name);
                         }
-                        if(change.to() != null) {
+                        if(change.to != null) {
                             if(dialectService.hasDialect(name)) {
                                 break;
                             }
@@ -104,7 +104,7 @@ public class StrategoDialectProcessor implements IDialectProcessor {
                         }
                         break;
                     case Copy:
-                        if(change.to() != null) {
+                        if(change.to != null) {
                             if(dialectService.hasDialect(name)) {
                                 break;
                             }

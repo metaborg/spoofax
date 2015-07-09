@@ -8,7 +8,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSelector;
 import org.metaborg.core.language.ILanguage;
 import org.metaborg.core.project.IProject;
-import org.metaborg.core.resource.IResourceChange;
+import org.metaborg.core.resource.ResourceChange;
 import org.metaborg.core.transform.ITransformerGoal;
 
 import com.google.common.collect.Multimap;
@@ -20,6 +20,11 @@ import com.google.common.collect.Multimap;
  */
 public class BuildInput {
     /**
+     * Build state with information about previous builds.
+     */
+    public final BuildState state;
+
+    /**
      * Project to build.
      */
     public final IProject project;
@@ -27,7 +32,7 @@ public class BuildInput {
     /**
      * Resources that have changed.
      */
-    public final Iterable<IResourceChange> resourceChanges;
+    public final Iterable<ResourceChange> resourceChanges;
 
     /**
      * Per-language locations for include files.
@@ -89,11 +94,12 @@ public class BuildInput {
     public final Set<ILanguage> pardonedLanguages;
 
 
-    public BuildInput(IProject project, Iterable<IResourceChange> resourceChanges,
+    public BuildInput(BuildState state, IProject project, Iterable<ResourceChange> resourceChanges,
         Multimap<ILanguage, FileObject> includeLocations, BuildOrder buildOrder, @Nullable FileSelector parseSelector,
         boolean analyze, FileSelector analyzeSelector, boolean transform, @Nullable FileSelector transformSelector,
         Iterable<ITransformerGoal> transformGoals, @Nullable IBuildMessagePrinter messagePrinter,
         boolean throwOnErrors, Set<ILanguage> pardonedLanguages) {
+        this.state = state;
         this.project = project;
         this.resourceChanges = resourceChanges;
         this.includeLocations = includeLocations;

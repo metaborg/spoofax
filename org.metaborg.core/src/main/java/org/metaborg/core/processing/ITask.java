@@ -38,10 +38,10 @@ public interface ITask<T> {
     public abstract @Nullable T result();
 
     /**
-     * Blocks until the task has been completed or cancelled.
+     * Blocks until the task has been completed or cancelled, and return itself.
      * 
      * @throws InterruptedException
      *             When the task has been cancelled while blocking.
      */
-    public abstract void block() throws InterruptedException;
+    public abstract ITask<T> block() throws InterruptedException;
 }

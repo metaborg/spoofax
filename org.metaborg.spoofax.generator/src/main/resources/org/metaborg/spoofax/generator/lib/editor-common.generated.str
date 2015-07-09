@@ -103,13 +103,21 @@ strategies
   
   plugin-path = prim("SSL_EXT_pluginpath")
   
-  language-sources = prim("SSL_EXT_language_sources", <id>)
-  language-includes = prim("SSL_EXT_language_includes", <id>)
-  language-sources-and-includes = Dupl ; (language-sources,language-includes) ; conc
-
-  {{strategoName}}-sources = language ; language-sources
-  {{strategoName}}-includes = language ; language-includes
-  {{strategoName}}-sources-and-includes = language ; language-sources-and-includes
+  language-source-locations = prim("SSL_EXT_language_source_locations", <id>)
+  language-include-locations = prim("SSL_EXT_language_include_locations", <id>)
+  language-source-and-include-locations = Dupl; (language-source-locations, language-include-locations); conc
+  
+  {{strategoName}}-source-locations = language; language-source-locations
+  {{strategoName}}-include-locations = language; language-include-locations
+  {{strategoName}}-source-and-include-locations = language; language-source-and-include-locations
+  
+  language-source-files = prim("SSL_EXT_language_source_files", <id>)
+  language-include-files = prim("SSL_EXT_language_include_files", <id>)
+  language-source-and-include-files = Dupl; (language-source-files, language-include-files); conc
+  
+  {{strategoName}}-source-files = language; language-source-files
+  {{strategoName}}-include-files = language; language-include-files
+  {{strategoName}}-source-and-include-files = language; language-source-and-include-files
 
   resolve-in-path(|path): name -> file
     where

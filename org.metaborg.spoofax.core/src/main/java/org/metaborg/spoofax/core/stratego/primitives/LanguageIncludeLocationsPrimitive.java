@@ -22,17 +22,17 @@ import org.spoofax.interpreter.terms.ITermFactory;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
-public class LanguageIncludesPrimitive extends AbstractPrimitive {
-    private static final Logger logger = LoggerFactory.getLogger(LanguageIncludesPrimitive.class);
+public class LanguageIncludeLocationsPrimitive extends AbstractPrimitive {
+    private static final Logger logger = LoggerFactory.getLogger(LanguageIncludeLocationsPrimitive.class);
 
     private final ILanguagePathService languagePathService;
     private final IResourceService resourceService;
     private final IProjectService projectService;
 
 
-    @Inject public LanguageIncludesPrimitive(IResourceService resourceService, IProjectService projectService,
+    @Inject public LanguageIncludeLocationsPrimitive(IResourceService resourceService, IProjectService projectService,
         ILanguagePathService languagePathService) {
-        super("SSL_EXT_language_includes", 0, 1);
+        super("SSL_EXT_language_include_locations", 0, 1);
         this.projectService = projectService;
         this.languagePathService = languagePathService;
         this.resourceService = resourceService;
@@ -45,25 +45,24 @@ public class LanguageIncludesPrimitive extends AbstractPrimitive {
         }
         final ITermFactory factory = env.getFactory();
         final String languageName = Tools.asJavaString(tvars[0]);
-        org.metaborg.core.context.IContext context =
-            (org.metaborg.core.context.IContext) env.contextObject();
+        org.metaborg.core.context.IContext context = (org.metaborg.core.context.IContext) env.contextObject();
         final IProject project = projectService.get(context.location());
         if(project == null) {
             env.setCurrent(factory.makeList());
             return true;
         }
-        final Iterable<FileObject> includes = languagePathService.includes(project, languageName);
+        final Iterable<FileObject> includeLocations = languagePathService.includes(project, languageName);
         final List<IStrategoTerm> terms = Lists.newArrayList();
-        for(FileObject include : includes) {
+        for(FileObject includeLocation : includeLocations) {
             try {
-                if(!include.exists()) {
-                    logger.warn("Cannot add {} as include path, it does not exist", include);
+                if(!includeLocation.exists()) {
+                    logger.warn("Cannot add {} as include location, it does not exist", includeLocation);
                     continue;
                 }
-                final File localFile = resourceService.localFile(include);
+                final File localFile = resourceService.localFile(includeLocation);
                 terms.add(factory.makeString(localFile.getPath()));
             } catch(FileSystemException e) {
-                logger.warn("Cannot add {} as include path, it does not exist", include);
+                logger.warn("Cannot add {} as include location, it does not exist", includeLocation);
             }
         }
         env.setCurrent(factory.makeList(terms));

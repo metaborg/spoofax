@@ -6,21 +6,46 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 
-public final class ResourceChange implements IResourceChange, Serializable {
+public final class ResourceChange implements Serializable {
     private static final long serialVersionUID = -2752072627773810604L;
 
-    private final FileObject resource;
-    private final ResourceChangeKind kind;
-    private final @Nullable FileObject renamedFrom;
-    private final @Nullable FileObject renamedTo;
+    /**
+     * Resource that has changed.
+     */
+    public final FileObject resource;
+
+    /**
+     * Kind of change.
+     */
+    public final ResourceChangeKind kind;
+
+    /**
+     * Resource based on the value of {@link ResourceChange#kind}.
+     * <ul>
+     * <li>{@link ResourceChangeKind#Rename}: resource it was renamed from.</li>
+     * <li>{@link ResourceChangeKind#Copy}: resource it was copied from.</li>
+     * <li>otherwise: null</li>
+     * </ul>
+     */
+    public final @Nullable FileObject from;
+
+    /**
+     * Resource based on the value of {@link ResourceChange#kind}.
+     * <ul>
+     * <li>{@link ResourceChangeKind#Rename}: resource it was renamed to.</li>
+     * <li>{@link ResourceChangeKind#Copy}: resource it was copied to.</li>
+     * <li>otherwise: null</li>
+     * </ul>
+     */
+    public final @Nullable FileObject to;
 
 
     public ResourceChange(FileObject resource, ResourceChangeKind kind, @Nullable FileObject renamedFrom,
         @Nullable FileObject renamedTo) {
         this.resource = resource;
         this.kind = kind;
-        this.renamedFrom = renamedFrom;
-        this.renamedTo = renamedTo;
+        this.from = renamedFrom;
+        this.to = renamedTo;
     }
 
     public ResourceChange(FileObject resource, ResourceChangeKind kind) {
@@ -29,23 +54,6 @@ public final class ResourceChange implements IResourceChange, Serializable {
 
     public ResourceChange(FileObject resource) {
         this(resource, ResourceChangeKind.Create);
-    }
-
-
-    @Override public FileObject resource() {
-        return resource;
-    }
-
-    @Override public ResourceChangeKind kind() {
-        return kind;
-    }
-
-    @Override public @Nullable FileObject from() {
-        return renamedFrom;
-    }
-
-    @Override public @Nullable FileObject to() {
-        return renamedTo;
     }
 
 

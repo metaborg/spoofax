@@ -44,7 +44,8 @@ public class BlockingTask<T> implements ITask<T> {
         return value;
     }
 
-    @Override public void block() {
+    @Override public ITask<T> block() {
         // Does nothing, schedule already blocks.
+        return this;
     }
 }

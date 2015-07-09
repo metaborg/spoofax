@@ -54,8 +54,8 @@ public class OfflineResourceChangeMonitor {
      * @throws FileSystemException
      *             when resolving resources from last known state fails.
      */
-    public Iterable<IResourceChange> update() throws FileSystemException {
-        final Collection<IResourceChange> changes = Lists.newLinkedList();
+    public Iterable<ResourceChange> update() throws FileSystemException {
+        final Collection<ResourceChange> changes = Lists.newLinkedList();
         final Set<String> oldResourceNames = Sets.newHashSet(modificationDates.keySet());
         final FileObject[] newResources = watchDir.findFiles(selector);
 

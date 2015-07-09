@@ -42,6 +42,9 @@ public class SpoofaxContext implements IContext, IContextInternal {
         return identifier.language;
     }
 
+    @Override public ContextIdentifier id() {
+        return identifier;
+    }
 
 
     @Override public void clean() {

@@ -12,6 +12,8 @@ import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.IdentificationFacet;
 import org.metaborg.core.language.dialect.IDialectIdentifier;
 import org.metaborg.core.language.dialect.IDialectService;
+import org.metaborg.core.language.dialect.IdentifiedDialect;
+import org.metaborg.spoofax.core.build.paths.SpoofaxProjectConstants;
 import org.metaborg.spoofax.core.terms.ITermFactoryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,8 +41,8 @@ public class StrategoDialectIdentifier implements IDialectIdentifier {
     }
 
 
-    @Override public ILanguage identify(FileObject resource) throws MetaborgException {
-        final ILanguage strategoLanguage = languageService.get("Stratego-Sugar");
+    @Override public IdentifiedDialect identify(FileObject resource) throws MetaborgException {
+        final ILanguage strategoLanguage = languageService.get(SpoofaxProjectConstants.LANG_STRATEGO);
         if(strategoLanguage == null) {
             final String message = "Could not find Stratego language, Stratego dialects cannot be identified";
             logger.debug(message);
@@ -68,15 +70,16 @@ public class StrategoDialectIdentifier implements IDialectIdentifier {
                     String.format("Resource %s requires dialect %s, but that dialect does not exist", resource, name);
                 throw new MetaborgException(message);
             }
-            return dialect;
+            final ILanguage base = dialectService.getBase(dialect);
+            return new IdentifiedDialect(dialect, base);
         } catch(ParseError | IOException e) {
             throw new MetaborgException("Unable to open or parse .meta file", e);
         }
     }
 
     @Override public boolean identify(FileObject resource, ILanguage dialect) throws MetaborgException {
-        final ILanguage identified = identify(resource);
-        return dialect.equals(identified);
+        final IdentifiedDialect identified = identify(resource);
+        return dialect.equals(identified.dialect);
     }
 
 

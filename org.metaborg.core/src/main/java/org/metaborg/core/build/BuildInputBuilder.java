@@ -11,7 +11,6 @@ import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.language.ILanguage;
 import org.metaborg.core.project.IProject;
-import org.metaborg.core.resource.IResourceChange;
 import org.metaborg.core.resource.ResourceChange;
 import org.metaborg.core.transform.ITransformerGoal;
 import org.metaborg.util.resource.ResourceUtils;
@@ -32,13 +31,15 @@ import com.google.inject.Injector;
 public class BuildInputBuilder {
     private final IProject project;
 
+    private BuildState state;
+
     private Collection<ILanguage> languages;
     private boolean addDependencyLanguages;
 
     private Multimap<ILanguage, FileObject> includeLocations;
     private boolean addDefaultIncludeLocations;
 
-    private Collection<IResourceChange> resourceChanges;
+    private Collection<ResourceChange> resourceChanges;
     private boolean addResourcesFromDefaultSourceLocations;
 
     private @Nullable FileSelector selector;
@@ -66,6 +67,7 @@ public class BuildInputBuilder {
      * Resets the builder to its original state.
      */
     public BuildInputBuilder reset() {
+        state = null;
         languages = Lists.newLinkedList();
         addDependencyLanguages = true;
         includeLocations = HashMultimap.create();
@@ -85,6 +87,14 @@ public class BuildInputBuilder {
         return this;
     }
 
+
+    /**
+     * Sets the build state to given build state.
+     */
+    public BuildInputBuilder withState(@Nullable BuildState state) {
+        this.state = state;
+        return this;
+    }
 
     /**
      * Sets the languages to given languagues.
@@ -147,7 +157,7 @@ public class BuildInputBuilder {
     /**
      * Sets the resource changes to given resource changes.
      */
-    public BuildInputBuilder withResourceChanges(Collection<IResourceChange> resourceChanges) {
+    public BuildInputBuilder withResourceChanges(Collection<ResourceChange> resourceChanges) {
         this.resourceChanges = resourceChanges;
         return this;
     }
@@ -155,7 +165,7 @@ public class BuildInputBuilder {
     /**
      * Adds a resource change.
      */
-    public BuildInputBuilder addResourceChanges(Iterable<IResourceChange> resourceChanges) {
+    public BuildInputBuilder addResourceChanges(Iterable<ResourceChange> resourceChanges) {
         Iterables.addAll(this.resourceChanges, resourceChanges);
         return this;
     }
@@ -319,8 +329,11 @@ public class BuildInputBuilder {
      * Builds a build input object from the current state.
      */
     public BuildInput build(IDependencyService dependencyService, ILanguagePathService languagePathService) {
-        final Iterable<ILanguage> compileLanguages = dependencyService.compileDependencies(project);
+        if(state == null) {
+            state = new BuildState();
+        }
 
+        final Iterable<ILanguage> compileLanguages = dependencyService.compileDependencies(project);
         if(addDependencyLanguages) {
             addLanguages(compileLanguages);
         }
@@ -346,8 +359,8 @@ public class BuildInputBuilder {
         }
 
         final BuildInput input =
-            new BuildInput(project, resourceChanges, includeLocations, new BuildOrder(languages), selector, analyze,
-                analyzeSelector, transform, transformSelector, transformGoals, messagePrinter, throwOnErrors,
+            new BuildInput(state, project, resourceChanges, includeLocations, new BuildOrder(languages), selector,
+                analyze, analyzeSelector, transform, transformSelector, transformGoals, messagePrinter, throwOnErrors,
                 pardonedLanguages);
         return input;
     }

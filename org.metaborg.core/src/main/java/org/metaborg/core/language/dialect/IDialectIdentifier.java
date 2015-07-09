@@ -6,6 +6,9 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.language.ILanguage;
 
+/**
+ * Interface for identifying the dialect of a resource.
+ */
 public interface IDialectIdentifier {
     /**
      * Attempts to identify the dialect of given resource.
@@ -18,7 +21,7 @@ public interface IDialectIdentifier {
      * @throws MetaborgException
      *             When resource requires a dialect that is not available.
      */
-    public abstract @Nullable ILanguage identify(FileObject resource) throws MetaborgException;
+    public abstract @Nullable IdentifiedDialect identify(FileObject resource) throws MetaborgException;
 
     /**
      * Checks if given resource is of given dialect.

@@ -10,7 +10,7 @@ import rx.subjects.PublishSubject;
 import com.google.inject.Inject;
 
 public class OfflineResourceChangeService implements IResourceChangeService {
-    private final PublishSubject<IResourceChange> subject = PublishSubject.create();
+    private final PublishSubject<ResourceChange> subject = PublishSubject.create();
 
     private final OfflineResourceChangeMonitor monitor;
 
@@ -23,12 +23,12 @@ public class OfflineResourceChangeService implements IResourceChangeService {
     }
 
 
-    @Override public Observable<IResourceChange> changes() {
+    @Override public Observable<ResourceChange> changes() {
         return subject;
     }
 
     public void update() throws FileSystemException {
-        for(IResourceChange change : monitor.update()) {
+        for(ResourceChange change : monitor.update()) {
             subject.onNext(change);
         }
     }

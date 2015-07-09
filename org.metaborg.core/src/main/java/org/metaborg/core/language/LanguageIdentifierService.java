@@ -2,12 +2,15 @@ package org.metaborg.core.language;
 
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.apache.commons.vfs2.FileType;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.language.dialect.IDialectIdentifier;
+import org.metaborg.core.language.dialect.IdentifiedDialect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,10 +31,6 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
     }
 
 
-    @Override public ILanguage identify(FileObject resource) {
-        return identify(resource, languageService.getAllActive());
-    }
-
     @Override public boolean identify(FileObject resource, ILanguage language) {
         final IdentificationFacet identification = language.facet(IdentificationFacet.class);
         if(identification == null) {
@@ -41,8 +40,24 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
         return identification.identify(resource);
     }
 
+    @Override public @Nullable ILanguage identify(FileObject resource) {
+        return identify(resource, languageService.getAllActive());
+    }
 
-    @Override public ILanguage identify(FileObject resource, Iterable<ILanguage> languages) {
+    @Override public @Nullable IdentifiedResource identifyToResource(FileObject resource) {
+        return identifyToResource(resource, languageService.getAllActive());
+    }
+
+    @Override public @Nullable ILanguage identify(FileObject resource, Iterable<ILanguage> languages) {
+        final IdentifiedResource identified = identifyToResource(resource, languages);
+        if(identified == null) {
+            return null;
+        }
+        return identified.dialectOrLanguage();
+    }
+
+    @Override public @Nullable IdentifiedResource
+        identifyToResource(FileObject resource, Iterable<ILanguage> languages) {
         // Ignore directories.
         try {
             if(resource.getType() == FileType.FOLDER) {
@@ -51,12 +66,12 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
         } catch(FileSystemException e1) {
             return null;
         }
-        
+
         // Try to identify using the dialect identifier first.
         try {
-            final ILanguage dialect = dialectIdentifier.identify(resource);
+            final IdentifiedDialect dialect = dialectIdentifier.identify(resource);
             if(dialect != null) {
-                return dialect;
+                return new IdentifiedResource(resource, dialect);
             }
         } catch(MetaborgException e) {
             logger.error("Error identifying dialect", e);
@@ -80,6 +95,10 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
                 + Joiner.on(", ").join(identifiedLanguageNames));
         }
 
-        return identifiedLanguage;
+        if(identifiedLanguage == null) {
+            return null;
+        }
+
+        return new IdentifiedResource(resource, null, identifiedLanguage);
     }
 }
