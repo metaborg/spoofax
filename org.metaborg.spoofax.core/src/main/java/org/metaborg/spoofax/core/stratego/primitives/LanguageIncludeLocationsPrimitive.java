@@ -6,6 +6,8 @@ import java.util.List;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.build.paths.ILanguagePathService;
+import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.IProjectService;
 import org.metaborg.core.resource.IResourceService;
@@ -25,17 +27,19 @@ import com.google.inject.Inject;
 public class LanguageIncludeLocationsPrimitive extends AbstractPrimitive {
     private static final Logger logger = LoggerFactory.getLogger(LanguageIncludeLocationsPrimitive.class);
 
-    private final ILanguagePathService languagePathService;
     private final IResourceService resourceService;
+    private final ILanguageService languageService;
+    private final ILanguagePathService languagePathService;
     private final IProjectService projectService;
 
 
-    @Inject public LanguageIncludeLocationsPrimitive(IResourceService resourceService, IProjectService projectService,
-        ILanguagePathService languagePathService) {
+    @Inject public LanguageIncludeLocationsPrimitive(IResourceService resourceService,
+        ILanguageService languageService, ILanguagePathService languagePathService, IProjectService projectService) {
         super("SSL_EXT_language_include_locations", 0, 1);
-        this.projectService = projectService;
-        this.languagePathService = languagePathService;
         this.resourceService = resourceService;
+        this.languageService = languageService;
+        this.languagePathService = languagePathService;
+        this.projectService = projectService;
     }
 
 
@@ -43,6 +47,7 @@ public class LanguageIncludeLocationsPrimitive extends AbstractPrimitive {
         if(!Tools.isTermString(tvars[0])) {
             return false;
         }
+
         final ITermFactory factory = env.getFactory();
         final String languageName = Tools.asJavaString(tvars[0]);
         org.metaborg.core.context.IContext context = (org.metaborg.core.context.IContext) env.contextObject();
@@ -51,7 +56,9 @@ public class LanguageIncludeLocationsPrimitive extends AbstractPrimitive {
             env.setCurrent(factory.makeList());
             return true;
         }
-        final Iterable<FileObject> includeLocations = languagePathService.includePaths(project, languageName);
+
+        final ILanguage language = languageService.get(languageName);
+        final Iterable<FileObject> includeLocations = languagePathService.includePaths(project, language.name());
         final List<IStrategoTerm> terms = Lists.newArrayList();
         for(FileObject includeLocation : includeLocations) {
             try {

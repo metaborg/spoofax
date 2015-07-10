@@ -9,18 +9,38 @@ import rx.Observable;
 
 /**
  * Interface for a language service that creates and destroys languages, maps names to active languages, and provides an
- * observable of language changes.
+ * observable of language changes. A language is active if it has the highest version, and highest loading date.
  */
 public interface ILanguageService {
     /**
-     * Returns the active language for given language name. A language is active if it has the highest version, and
-     * highest loading date.
+     * Returns the active language with a given id and version.
+     * 
+     * @param identifier
+     *            Identifier of the language.
+     * @return Language with given identifier, or null if it does not exist.
+     */
+    public @Nullable ILanguage get(LanguageIdentifier identifier);
+
+    /**
+     * Returns the active language with a given group id and id.
+     * 
+     * @param groupId
+     *            Group id of the language.
+     * @param id
+     *            Id of the language.
+     * @return Language with given group id and id, or null if it does not exist.
+     */
+    public @Nullable ILanguage get(String groupId, String id);
+
+    /**
+     * Returns the active language for given language name.
      * 
      * @param name
      *            Name of the language.
      * @return Active language for given name, or null if there is none.
      */
     public @Nullable ILanguage get(String name);
+
 
     /**
      * Returns the language at given location.
@@ -31,52 +51,15 @@ public interface ILanguageService {
      */
     public @Nullable ILanguage get(FileName location);
 
-    /**
-     * Returns the language with given name, version, and location.
-     * 
-     * @param name
-     *            Name of the language.
-     * @param version
-     *            Version of the language.
-     * @param location
-     *            Location of the language.
-     * @return Language with given name, version, and location, or null if it does not exist.
-     */
-    public @Nullable ILanguage get(String name, LanguageVersion version, FileObject location);
 
     /**
-     * Returns the language with a given id.
+     * Returns all languages with given identifier and version.
      * 
-     * @param id
-     *            Id of the language.
-     * @return Language with the given id, or null if it does not exist.
+     * @param identifier
+     *            Identifier of the language.
+     * @return Iterable over all languages with given identifier and version.
      */
-    public @Nullable ILanguage getWithId(String id);
-
-    /**
-     * Returns the language with a given id and version.
-     * 
-     * @param id
-     *            Id of the language.
-     * @param version
-     *            Version of the language.
-     * @return Language with the given id and version, or null if it does not exist.
-     */
-    public @Nullable ILanguage getWithId(String id, LanguageVersion version);
-
-    /**
-     * Returns all languages
-     * 
-     * @return Iterable over all languages.
-     */
-    public Iterable<ILanguage> getAll();
-
-    /**
-     * Returns all active languages.
-     * 
-     * @return Iterable over all active languages.
-     */
-    public Iterable<ILanguage> getAllActive();
+    public Iterable<ILanguage> getAll(LanguageIdentifier identifier);
 
     /**
      * Returns all languages with given name.
@@ -88,26 +71,19 @@ public interface ILanguageService {
     public Iterable<ILanguage> getAll(String name);
 
     /**
-     * Returns all languages with given name and version.
+     * Returns all active languages.
      * 
-     * @param name
-     *            Name of the languages.
-     * @param version
-     *            Version of the languages.
-     * @return Iterable over all languages with given name and version.
+     * @return Iterable over all active languages.
      */
-    public Iterable<ILanguage> getAll(String name, LanguageVersion version);
+    public Iterable<ILanguage> getAllActive();
 
     /**
-     * Returns all languages with given identifier and version.
+     * Returns all languages
      * 
-     * @param id
-     *            Identifier of the languages.
-     * @param version
-     *            Version of the languages.
-     * @return Iterable over all languages with given identifier and version.
+     * @return Iterable over all languages.
      */
-    public Iterable<ILanguage> getAllWithId(String id, LanguageVersion version);
+    public Iterable<ILanguage> getAll();
+
 
     /**
      * Returns an observable over language loaded, unloaded, activated, and deactivated changes.
@@ -116,20 +92,20 @@ public interface ILanguageService {
      */
     public Observable<LanguageChange> changes();
 
+
     /**
-     * Creates a new empty language with given name, version, and location.
+     * Creates a new empty language with given identifier, location, and name.
      * 
-     * @param name
-     *            Name of the language.
-     * @param version
-     *            Version of the language.
+     * @param identifier
+     *            Identifier of the language.
      * @param location
      *            Location of the language.
-     * @param id
-     *            Identifier of the language.
+     * @param name
+     *            Name of the language.
+     * 
      * @return Created language
      */
-    public ILanguage create(String name, LanguageVersion version, FileObject location, String id);
+    public ILanguage create(LanguageIdentifier identifier, FileObject location, String name);
 
     /**
      * Adds given language.

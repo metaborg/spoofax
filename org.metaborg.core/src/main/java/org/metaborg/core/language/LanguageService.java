@@ -29,58 +29,56 @@ public class LanguageService implements ILanguageService {
      * Atomic integer for generating monotonically increasing sequence identifiers.
      */
     private final AtomicInteger sequenceIdGenerator = new AtomicInteger(0);
+
     /**
-     * Mapping from language names to a set of all language objects with that name.
+     * Mapping from language identifier to a set of all language objects with that name.
      */
-    private final SetMultimap<String, ILanguage> nameToLanguages = HashMultimap.create();
+    private final SetMultimap<LanguageIdentifier, ILanguage> identifierToLanguages = HashMultimap.create();
+
     /**
-     * Mapping from language identifiers to a set of all language objects with that name.
+     * Mapping from language group id and id to a set of all language objects with that name.
      */
     private final SetMultimap<String, ILanguage> idToLanguages = HashMultimap.create();
+
     /**
      * Mapping from locations to language objects.
      */
     private final Map<FileName, ILanguage> locationToLanguage = Maps.newHashMap();
+
+    /**
+     * Mapping from language names to a set of all language objects with that name.
+     */
+    private final SetMultimap<String, ILanguage> nameToLanguages = HashMultimap.create();
+
     /**
      * Rx subject for pushing language changes.
      */
     private final Subject<LanguageChange, LanguageChange> languageChanges = PublishSubject.create();
 
 
-    @Override public @Nullable ILanguage get(String name) {
-        return getActiveLanguage(nameToLanguages.get(name));
+    @Override public @Nullable ILanguage get(LanguageIdentifier identifier) {
+        return getActiveLanguage(identifierToLanguages.get(identifier));
+    }
+
+    @Override public @Nullable ILanguage get(String groupId, String id) {
+        return getActiveLanguage(idToLanguages.get(groupIdId(groupId, id)));
     }
 
     @Override public @Nullable ILanguage get(FileName location) {
         return locationToLanguage.get(location);
     }
 
-    @Override public @Nullable ILanguage get(String name, LanguageVersion version, FileObject location) {
-        final Iterable<ILanguage> languages = nameToLanguages.get(name);
-        for(ILanguage language : languages) {
-            if(language.version().equals(version) && language.location().equals(location)) {
-                return language;
-            }
-        }
-        return null;
+    @Override public @Nullable ILanguage get(String name) {
+        return getActiveLanguage(nameToLanguages.get(name));
     }
 
-    @Override public @Nullable ILanguage getWithId(String id) {
-        return getActiveLanguage(idToLanguages.get(id));
+
+    @Override public Iterable<ILanguage> getAll(LanguageIdentifier identifier) {
+        return identifierToLanguages.get(identifier);
     }
 
-    @Override public @Nullable ILanguage getWithId(String id, LanguageVersion version) {
-        final Iterable<ILanguage> languages = idToLanguages.get(id);
-        for(ILanguage language : languages) {
-            if(language.version().equals(version)) {
-                return language;
-            }
-        }
-        return null;
-    }
-
-    @Override public Iterable<ILanguage> getAll() {
-        return nameToLanguages.values();
+    @Override public Iterable<ILanguage> getAll(String name) {
+        return nameToLanguages.get(name);
     }
 
     @Override public Iterable<ILanguage> getAllActive() {
@@ -93,41 +91,21 @@ public class LanguageService implements ILanguageService {
         return activeLanguages;
     }
 
-    @Override public Iterable<ILanguage> getAll(String name) {
-        return nameToLanguages.get(name);
+    @Override public Iterable<ILanguage> getAll() {
+        return nameToLanguages.values();
     }
 
-    @Override public Iterable<ILanguage> getAll(String name, LanguageVersion version) {
-        final Collection<ILanguage> matchedLanguages = Lists.newLinkedList();
-        final Iterable<ILanguage> languages = nameToLanguages.get(name);
-        for(ILanguage language : languages) {
-            if(language.version().equals(version)) {
-                matchedLanguages.add(language);
-            }
-        }
-        return matchedLanguages;
-    }
-
-    @Override public Iterable<ILanguage> getAllWithId(String id, LanguageVersion version) {
-        final Collection<ILanguage> matchedLanguages = Lists.newLinkedList();
-        final Iterable<ILanguage> languages = idToLanguages.get(id);
-        for(ILanguage language : languages) {
-            if(language.version().equals(version)) {
-                matchedLanguages.add(language);
-            }
-        }
-        return matchedLanguages;
-    }
 
     @Override public Observable<LanguageChange> changes() {
         return languageChanges;
     }
 
-    @Override public ILanguage create(String name, LanguageVersion version, FileObject location, String id) {
-        logger.trace("Creating language {}", name);
-        final ILanguage language = new Language(name, location, version, sequenceIdGenerator.getAndIncrement(), id);
+    @Override public ILanguage create(LanguageIdentifier identifier, FileObject location, String name) {
+        logger.trace("Creating language {}", identifier);
+        final ILanguage language = new Language(identifier, location, name, sequenceIdGenerator.getAndIncrement());
         return language;
     }
+
 
     @Override public void add(ILanguage language) {
         final Set<ILanguage> languages = nameToLanguages.get(language.name());
@@ -195,7 +173,7 @@ public class LanguageService implements ILanguageService {
     }
 
     private boolean isGreater(ILanguage language, ILanguage other) {
-        int compareVersion = language.version().compareTo(other.version());
+        int compareVersion = language.id().version.compareTo(other.id().version);
         if(compareVersion > 0 || (compareVersion == 0 && language.sequenceId() > other.sequenceId())) {
             return true;
         }
@@ -251,15 +229,28 @@ public class LanguageService implements ILanguageService {
 
 
     private void addLanguage(ILanguage language) {
+        final LanguageIdentifier id = language.id();
+        identifierToLanguages.put(id, language);
+        idToLanguages.put(groupIdId(id), language);
         locationToLanguage.put(language.location().getName(), language);
         nameToLanguages.put(language.name(), language);
-        idToLanguages.put(language.id(), language);
     }
 
     private void removeLanguage(ILanguage language) {
+        final LanguageIdentifier id = language.id();
+        identifierToLanguages.remove(id, language);
+        idToLanguages.remove(groupIdId(id), language);
         locationToLanguage.remove(language.location().getName());
         nameToLanguages.remove(language.name(), language);
-        idToLanguages.remove(language.id(), language);
+    }
+
+
+    private String groupIdId(String groupId, String id) {
+        return groupId + ":" + id;
+    }
+
+    private String groupIdId(LanguageIdentifier identifier) {
+        return groupIdId(identifier.groupId, identifier.id);
     }
 
 

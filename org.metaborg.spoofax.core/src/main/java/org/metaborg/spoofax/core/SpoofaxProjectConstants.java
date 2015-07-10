@@ -1,11 +1,16 @@
 package org.metaborg.spoofax.core;
 
 public class SpoofaxProjectConstants {
-    public static final String LANG_STRATEGO = "Stratego-Sugar";
-    public static final String LANG_SDF = "SDF";
-    public static final String LANG_ESV = "EditorService";
-    public static final String LANG_SDF3 = "TemplateLang";
-    public static final String LANG_DYNSEM = "ds";
+    public static final String LANG_ID_STRATEGO = "org.metaborg.meta.lang.stratego";
+    public static final String LANG_NAME_STRATEGO = "Stratego-Sugar";
+    public static final String LANG_ID_SDF = "org.metaborg.meta.lang.sdf";
+    public static final String LANG_NAME_SDF = "SDF";
+    public static final String LANG_ID_ESV = "org.metaborg.meta.lang.esv";
+    public static final String LANG_NAME_ESV = "EditorService";
+    public static final String LANG_ID_SDF3 = "org.metaborg.meta.lang.template";
+    public static final String LANG_NAME_SDF3 = "TemplateLang";
+    public static final String LANG_ID_DYNSEM = "org.metaborg.meta.lang.dynsem";
+    public static final String LANG_NAME_DYNSEM = "ds";
 
     public static final String DIR_CACHE = ".cache";
     public static final String DIR_EDITOR = "editor";

@@ -2,6 +2,7 @@ package org.metaborg.spoofax.core.build;
 
 import org.metaborg.core.analysis.IAnalysisService;
 import org.metaborg.core.build.Builder;
+import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.context.IContextService;
 import org.metaborg.core.language.ILanguageIdentifierService;
 import org.metaborg.core.language.dialect.IDialectProcessor;
@@ -20,12 +21,12 @@ import com.google.inject.Inject;
  */
 public class SpoofaxBuilder extends Builder<IStrategoTerm, IStrategoTerm, IStrategoTerm> implements ISpoofaxBuilder {
     @Inject public SpoofaxBuilder(IResourceService resourceService, ILanguageIdentifierService languageIdentifier,
-        IDialectProcessor dialectProcessor, IContextService contextService, ISourceTextService sourceTextService,
+        ILanguagePathService languagePathService, IDialectProcessor dialectProcessor, IContextService contextService, ISourceTextService sourceTextService,
         ISyntaxService<IStrategoTerm> syntaxService, IAnalysisService<IStrategoTerm, IStrategoTerm> analyzer,
         ITransformer<IStrategoTerm, IStrategoTerm, IStrategoTerm> transformer,
         IParseResultUpdater<IStrategoTerm> parseResultProcessor,
         IAnalysisResultUpdater<IStrategoTerm, IStrategoTerm> analysisResultProcessor) {
-        super(resourceService, languageIdentifier, dialectProcessor, contextService, sourceTextService, syntaxService,
+        super(resourceService, languageIdentifier, languagePathService, dialectProcessor, contextService, sourceTextService, syntaxService,
             analyzer, transformer, parseResultProcessor, analysisResultProcessor);
     }
 }

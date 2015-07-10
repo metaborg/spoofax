@@ -1,11 +1,6 @@
 package org.metaborg.core.language;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.resource.ResourceService;
 
 import rx.Observable;
 import rx.subjects.PublishSubject;
@@ -15,44 +10,37 @@ import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.MutableClassToInstanceMap;
 
 public class Language implements ILanguage {
-    private static final long serialVersionUID = 5329634831598144245L;
-
+    private final LanguageIdentifier identifier;
+    private final FileObject location;
     private final String name;
-    private transient FileObject location;
-    private final LanguageVersion version;
     private final int sequenceId;
-    private final String id;
 
-    private transient ClassToInstanceMap<ILanguageFacet> facets = MutableClassToInstanceMap.create();
-    private transient Subject<LanguageFacetChange, LanguageFacetChange> facetChanges = PublishSubject.create();
+    private final ClassToInstanceMap<ILanguageFacet> facets = MutableClassToInstanceMap.create();
+    private final Subject<LanguageFacetChange, LanguageFacetChange> facetChanges = PublishSubject.create();
 
-    public Language(String name, FileObject location, LanguageVersion version, int sequenceId, String id) {
-        this.name = name;
+
+    public Language(LanguageIdentifier identifier, FileObject location, String name, int sequenceId) {
+        this.identifier = identifier;
         this.location = location;
-        this.version = version;
+        this.name = name;
         this.sequenceId = sequenceId;
-        this.id = id;
     }
 
 
-    @Override public String name() {
-        return name;
-    }
-
-    @Override public LanguageVersion version() {
-        return version;
+    @Override public LanguageIdentifier id() {
+        return identifier;
     }
 
     @Override public FileObject location() {
         return location;
     }
 
-    @Override public int sequenceId() {
-        return sequenceId;
+    @Override public String name() {
+        return name;
     }
 
-    @Override public String id() {
-        return id;
+    @Override public int sequenceId() {
+        return sequenceId;
     }
 
 
@@ -93,9 +81,9 @@ public class Language implements ILanguage {
     @Override public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + name.hashCode();
+        result = prime * result + identifier.hashCode();
         result = prime * result + location.hashCode();
-        result = prime * result + version.hashCode();
+        result = prime * result + name.hashCode();
         return result;
     }
 
@@ -107,41 +95,16 @@ public class Language implements ILanguage {
         if(getClass() != obj.getClass())
             return false;
         final Language other = (Language) obj;
-        if(!name.equals(other.name))
+        if(!identifier.equals(other.identifier))
             return false;
         if(!location.equals(other.location))
             return false;
-        if(!version.equals(other.version))
+        if(!name.equals(other.name))
             return false;
         return true;
     }
 
     @Override public String toString() {
-        return "Language [name=" + name + ", version=" + version + ", location=" + location + "]";
-    }
-
-
-    private void writeObject(ObjectOutputStream out) throws IOException {
-        out.defaultWriteObject();
-
-        ResourceService.writeFileObject(location, out);
-
-        out.writeInt(facets.size());
-        for(ILanguageFacet facet : facets.values())
-            out.writeObject(facet);
-    }
-
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-
-        location = ResourceService.readFileObject(in);
-        facets = MutableClassToInstanceMap.create();
-        facetChanges = PublishSubject.create();
-
-        int facetCount = in.readInt();
-        for(int i = 0; i < facetCount; i++) {
-            final ILanguageFacet facet = (ILanguageFacet) in.readObject();
-            facets.put(facet.getClass(), facet);
-        }
+        return "language " + identifier + "@" + location;
     }
 }

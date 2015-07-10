@@ -62,8 +62,8 @@ public class MavenDependencyService implements IDependencyService {
             if(SpoofaxMavenConstants.PLUGIN_NAME.equals(plugin.getArtifactId())) {
                 for(Dependency dependency : plugin.getDependencies()) {
                     if(SpoofaxMavenConstants.PACKAGING_TYPE.equalsIgnoreCase(dependency.getType())) {
-                        dependencies.add(new LanguageIdentifier(dependency.getArtifactId(), LanguageVersion
-                            .parse(dependency.getVersion())));
+                        dependencies.add(new LanguageIdentifier(dependency.getGroupId(), dependency.getArtifactId(),
+                            LanguageVersion.parse(dependency.getVersion())));
                     }
                 }
             }
@@ -75,8 +75,8 @@ public class MavenDependencyService implements IDependencyService {
         final Collection<LanguageIdentifier> dependencies = Lists.newLinkedList();
         for(Dependency dependency : project.getModel().getDependencies()) {
             if(SpoofaxMavenConstants.PACKAGING_TYPE.equalsIgnoreCase(dependency.getType())) {
-                dependencies.add(new LanguageIdentifier(dependency.getArtifactId(), LanguageVersion.parse(dependency
-                    .getVersion())));
+                dependencies.add(new LanguageIdentifier(dependency.getGroupId(), dependency.getArtifactId(),
+                    LanguageVersion.parse(dependency.getVersion())));
             }
         }
         return dependencies;
@@ -85,21 +85,23 @@ public class MavenDependencyService implements IDependencyService {
     private Iterable<ILanguage> getLanguages(Iterable<LanguageIdentifier> dependencies) {
         final List<ILanguage> languages = Lists.newArrayList();
         for(LanguageIdentifier dependency : dependencies) {
-            ILanguage language = languageService.getWithId(dependency.id(), dependency.version());
+            ILanguage language = languageService.get(dependency);
             if(language != null) {
                 languages.add(language);
                 continue;
             }
-            language = languageService.getWithId(dependency.id());
+            language = languageService.get(dependency.groupId, dependency.id);
             if(language != null) {
-                final LanguageVersion version = language.version();
+                final LanguageVersion version = language.id().version;
+                // HACK: baseline languages have version 0.0.0, don't complain about version if a baseline version is
+                // found.
                 if(version.major() != 0 || version.minor() != 0 || version.patch() != 0) {
-                    logger.warn("Cannot find dependency {}, using version {}.", dependency, language.version());
+                    logger.warn("Cannot find dependency {}, using version {}", dependency, version);
                 }
                 languages.add(language);
                 continue;
             }
-            logger.error("Cannot find dependency {}, make sure it is loaded.", dependency);
+            logger.error("Cannot find dependency {}, make sure it is loaded", dependency);
         }
         return languages;
     }

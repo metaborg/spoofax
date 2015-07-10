@@ -1,7 +1,5 @@
 package org.metaborg.core.language;
 
-import java.io.Serializable;
-
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
@@ -12,16 +10,11 @@ import rx.Observable;
  * Interface that represents a language and its facets. Implementors implement {@link #hashCode()}, and
  * {@link #equals(Object)} using {@link #name()}, {@link #version()}, and {@link #location()}.
  */
-public interface ILanguage extends Serializable {
+public interface ILanguage {
     /**
-     * Returns the name of the language.
+     * Returns the identifier of the language.
      */
-    public String name();
-
-    /**
-     * Returns the version of the language.
-     */
-    public LanguageVersion version();
+    public LanguageIdentifier id();
 
     /**
      * Returns the location of the language.
@@ -29,15 +22,16 @@ public interface ILanguage extends Serializable {
     public FileObject location();
 
     /**
+     * Returns the name of the language.
+     */
+    public String name();
+
+    /**
      * Returns the sequence identifier of the language. Used to find out if a language was created after or before
      * another language.
      */
     public int sequenceId();
 
-    /**
-     * Returns the identifier of the language.
-     */
-    public String id();
 
 
     /**

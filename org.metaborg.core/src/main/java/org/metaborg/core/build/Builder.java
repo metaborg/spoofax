@@ -17,6 +17,7 @@ import org.metaborg.core.analysis.AnalysisException;
 import org.metaborg.core.analysis.AnalysisFileResult;
 import org.metaborg.core.analysis.AnalysisResult;
 import org.metaborg.core.analysis.IAnalysisService;
+import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.context.ContextException;
 import org.metaborg.core.context.ContextUtils;
 import org.metaborg.core.context.IContext;
@@ -74,6 +75,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
 
     private final IResourceService resourceService;
     private final ILanguageIdentifierService languageIdentifier;
+    private final ILanguagePathService languagePathService;
     private final IDialectProcessor dialectProcessor;
     private final IContextService contextService;
     private final ISourceTextService sourceTextService;
@@ -86,11 +88,13 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
 
 
     @Inject public Builder(IResourceService resourceService, ILanguageIdentifierService languageIdentifier,
-        IDialectProcessor dialectProcessor, IContextService contextService, ISourceTextService sourceTextService,
-        ISyntaxService<P> syntaxService, IAnalysisService<P, A> analyzer, ITransformer<P, A, T> transformer,
-        IParseResultUpdater<P> parseResultProcessor, IAnalysisResultUpdater<P, A> analysisResultProcessor) {
+        ILanguagePathService languagePathService, IDialectProcessor dialectProcessor, IContextService contextService,
+        ISourceTextService sourceTextService, ISyntaxService<P> syntaxService, IAnalysisService<P, A> analyzer,
+        ITransformer<P, A, T> transformer, IParseResultUpdater<P> parseResultProcessor,
+        IAnalysisResultUpdater<P, A> analysisResultProcessor) {
         this.resourceService = resourceService;
         this.languageIdentifier = languageIdentifier;
+        this.languagePathService = languagePathService;
         this.dialectProcessor = dialectProcessor;
         this.contextService = contextService;
         this.sourceTextService = sourceTextService;
@@ -107,14 +111,12 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         ICancellationToken cancellationToken) {
         final Iterable<ILanguage> languages = input.buildOrder.languages();
 
-        final Collection<ResourceChange> parseTableChanges = Lists.newLinkedList();
         final Multimap<ILanguage, IdentifiedResourceChange> changes = ArrayListMultimap.create();
 
         final FileSelector selector = input.selector;
         final FileObject location = input.project.location();
         for(ResourceChange change : input.sourceChanges) {
             final FileObject resource = change.resource;
-            final FileName name = resource.getName();
 
             if(selector != null) {
                 final FileSelectInfo info = new DefaultFileSelectInfo(location, resource, -1);
@@ -127,12 +129,6 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                 }
             }
 
-            // GTODO: abstract this into dialect processor, because it is implementation-specific.
-            if(name.getParent().getBaseName().equals("lib") && name.getExtension().equals("tbl")) {
-                parseTableChanges.add(change);
-                continue;
-            }
-
             final IdentifiedResource identifiedResource = languageIdentifier.identifyToResource(resource, languages);
             if(identifiedResource != null) {
                 final IdentifiedResourceChange identifiedChange =
@@ -141,7 +137,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
             }
         }
 
-        updateDialectResources(parseTableChanges);
+        dialectProcessor.update(input.sourceChanges);
 
         if(changes.size() == 0) {
             // When there are no source changes, keep the old state and skip building.
@@ -159,16 +155,9 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                 continue;
             }
 
-            final Iterable<FileObject> includeFiles = input.includeFiles.get(language);
-            final Collection<IdentifiedResource> identifiedIncludeFiles = Lists.newLinkedList();
-            for(FileObject includeResource : includeFiles) {
-                final IdentifiedResource identifiedResource =
-                    languageIdentifier.identifyToResource(includeResource, Iterables2.singleton(language));
-                if(identifiedResource != null) {
-                    identifiedIncludeFiles.add(identifiedResource);
-                }
-            }
-            final LanguageBuildDiff diff = languageState.diff(changes.get(language), identifiedIncludeFiles);
+            final Iterable<FileObject> includePaths = input.includePaths.get(language);
+            final Iterable<IdentifiedResource> includeFiles = languagePathService.toFiles(includePaths, language);
+            final LanguageBuildDiff diff = languageState.diff(changes.get(language), includeFiles);
             updateLanguageResources(input, language, diff, buildOutput);
             newState.add(language, diff.newState);
         }
@@ -176,13 +165,6 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         return buildOutput;
     }
 
-    private void updateDialectResources(Collection<ResourceChange> changes) {
-        if(changes.isEmpty()) {
-            return;
-        }
-
-        dialectProcessor.update(changes);
-    }
 
     private void updateLanguageResources(BuildInput input, ILanguage language, LanguageBuildDiff diff,
         BuildOutput<P, A, T> output) {

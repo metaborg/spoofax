@@ -11,6 +11,7 @@ import org.metaborg.core.language.ILanguage;
 import org.metaborg.core.language.ILanguageDiscoveryService;
 import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.IdentificationFacet;
+import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguagePathFacet;
 import org.metaborg.core.language.LanguageVersion;
 import org.metaborg.core.language.ResourceExtensionFacet;
@@ -88,10 +89,12 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         }
         final IStrategoAppl esvTerm = (IStrategoAppl) term;
 
-        final String name = languageName(esvTerm);
+        // GTODO: fetch this from ESV.
+        final String groupId = "org.metaborg";
         final String id = languageId(esvTerm);
         final LanguageVersion version = LanguageVersion.parse(languageVersion(esvTerm));
-        final ILanguage language = languageService.create(name, version, location, id);
+        final String name = languageName(esvTerm);
+        final ILanguage language = languageService.create(new LanguageIdentifier(groupId, id, version), location, name);
 
         final Iterable<String> extensions = Iterables2.from(extensions(esvTerm));
         final IdentificationFacet identificationFacet =

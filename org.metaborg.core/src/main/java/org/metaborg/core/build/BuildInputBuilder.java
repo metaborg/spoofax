@@ -10,6 +10,7 @@ import org.apache.commons.vfs2.FileSelector;
 import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.paths.ILanguagePathService;
 import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.IdentifiedResource;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.resource.ResourceChange;
 import org.metaborg.core.transform.ITransformerGoal;
@@ -36,8 +37,8 @@ public class BuildInputBuilder {
     private Collection<ILanguage> languages;
     private boolean addDependencyLanguages;
 
-    private Multimap<ILanguage, FileObject> includeFiles;
-    private boolean addDefaultIncludeFiles;
+    private Multimap<ILanguage, FileObject> includePaths;
+    private boolean addDefaultIncludePaths;
 
     private Collection<ResourceChange> sourceChanges;
     private boolean addSourcesFromDefaultSourceLocations;
@@ -70,8 +71,8 @@ public class BuildInputBuilder {
         state = null;
         languages = Lists.newLinkedList();
         addDependencyLanguages = true;
-        includeFiles = HashMultimap.create();
-        addDefaultIncludeFiles = true;
+        includePaths = HashMultimap.create();
+        addDefaultIncludePaths = true;
         sourceChanges = Lists.newLinkedList();
         addSourcesFromDefaultSourceLocations = false;
         selector = null;
@@ -154,12 +155,30 @@ public class BuildInputBuilder {
     }
 
     /**
+     * Add addition source changes from given identified sources.
+     */
+    public BuildInputBuilder addIdentifiedSources(Iterable<IdentifiedResource> sources) {
+        for(IdentifiedResource source : sources) {
+            addSource(source);
+        }
+        return this;
+    }
+
+    /**
      * Add addition source changes from given sources.
      */
     public BuildInputBuilder addSources(Iterable<FileObject> sources) {
         for(FileObject source : sources) {
             addSource(source);
         }
+        return this;
+    }
+
+    /**
+     * Adds a single addition source change from given identified source.
+     */
+    public BuildInputBuilder addSource(IdentifiedResource source) {
+        sourceChanges.add(new ResourceChange(source.resource));
         return this;
     }
 
@@ -192,24 +211,24 @@ public class BuildInputBuilder {
     /**
      * Sets the include files to given files.
      */
-    public BuildInputBuilder withIncludeFiles(Multimap<ILanguage, FileObject> includeFiles) {
-        this.includeFiles = includeFiles;
+    public BuildInputBuilder withIncludePaths(Multimap<ILanguage, FileObject> includePaths) {
+        this.includePaths = includePaths;
         return this;
     }
 
     /**
      * Add given include files for given language.
      */
-    public BuildInputBuilder addIncludeFiles(ILanguage language, Iterable<FileObject> includeFiles) {
-        this.includeFiles.putAll(language, includeFiles);
+    public BuildInputBuilder addIncludePaths(ILanguage language, Iterable<FileObject> includePaths) {
+        this.includePaths.putAll(language, includePaths);
         return this;
     }
 
     /**
      * Sets if default include files should be added when the input is build. Defaults to true.
      */
-    public BuildInputBuilder withDefaultIncludeFiles(boolean addDefaultIncludeFiles) {
-        this.addDefaultIncludeFiles = addDefaultIncludeFiles;
+    public BuildInputBuilder withDefaultIncludePaths(boolean addDefaultIncludePaths) {
+        this.addDefaultIncludePaths = addDefaultIncludePaths;
         return this;
     }
 
@@ -335,16 +354,16 @@ public class BuildInputBuilder {
             addLanguages(compileLanguages);
         }
 
-        if(addDefaultIncludeFiles) {
+        if(addDefaultIncludePaths) {
             for(ILanguage language : compileLanguages) {
-                addIncludeFiles(language, languagePathService.includeFiles(project, language.name()));
+                addIncludePaths(language, languagePathService.includePaths(project, language.name()));
             }
         }
 
         if(addSourcesFromDefaultSourceLocations) {
             for(ILanguage language : compileLanguages) {
-                final Iterable<FileObject> sources = languagePathService.sourceFiles(project, language.name());
-                addSources(sources);
+                final Iterable<IdentifiedResource> sources = languagePathService.sourceFiles(project, language);
+                addIdentifiedSources(sources);
             }
         }
 
@@ -355,7 +374,7 @@ public class BuildInputBuilder {
         }
 
         final BuildInput input =
-            new BuildInput(state, project, sourceChanges, includeFiles, new BuildOrder(languages), selector, analyze,
+            new BuildInput(state, project, sourceChanges, includePaths, new BuildOrder(languages), selector, analyze,
                 analyzeSelector, transform, transformSelector, transformGoals, messagePrinter, throwOnErrors,
                 pardonedLanguages);
         return input;

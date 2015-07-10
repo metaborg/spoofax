@@ -3,6 +3,7 @@ package org.metaborg.spoofax.core.language.dialect;
 import java.util.ArrayList;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgRuntimeException;
@@ -59,21 +60,25 @@ public class StrategoDialectProcessor implements IDialectProcessor {
 
     @Override public void update(Iterable<ResourceChange> changes) {
         final int numChanges = Iterables.size(changes);
-        if(numChanges <= 0) {
+        if(numChanges == 0) {
             return;
         }
 
-        final ILanguage strategoLanguage = languageService.get(SpoofaxProjectConstants.LANG_STRATEGO);
+        final ILanguage strategoLanguage = languageService.get(SpoofaxProjectConstants.LANG_NAME_STRATEGO);
         if(strategoLanguage == null) {
             logger.debug("Could not find Stratego language, Stratego dialects cannot be updated.");
             return;
         }
         final SyntaxFacet baseFacet = strategoLanguage.facet(SyntaxFacet.class);
 
-        logger.debug("Updating {} Stratego dialects", numChanges);
         for(ResourceChange change : changes) {
             final FileObject resource = change.resource;
-            final String name = FilenameUtils.getBaseName(resource.getName().getBaseName());
+            final FileName name = resource.getName();
+            if(!name.getExtension().equals("tbl") || name.getParent().getBaseName().equals("include")) {
+                continue;
+            }
+
+            final String fileName = FilenameUtils.getBaseName(resource.getName().getBaseName());
             final SyntaxFacet newFacet =
                 new SyntaxFacet(resource, baseFacet.startSymbols, baseFacet.singleLineCommentPrefixes,
                     baseFacet.multiLineCommentCharacters, baseFacet.fenceCharacters);
@@ -81,34 +86,34 @@ public class StrategoDialectProcessor implements IDialectProcessor {
             try {
                 switch(changeKind) {
                     case Create:
-                        if(dialectService.hasDialect(name)) {
+                        if(dialectService.hasDialect(fileName)) {
                             break;
                         }
-                        dialectService.add(name, resource, strategoLanguage, newFacet);
+                        dialectService.add(fileName, resource, strategoLanguage, newFacet);
                         break;
                     case Delete:
-                        dialectService.remove(name);
+                        dialectService.remove(fileName);
                         break;
                     case Modify:
-                        dialectService.update(name, newFacet);
+                        dialectService.update(fileName, newFacet);
                         break;
                     case Rename:
                         if(change.from != null) {
-                            dialectService.remove(name);
+                            dialectService.remove(fileName);
                         }
                         if(change.to != null) {
-                            if(dialectService.hasDialect(name)) {
+                            if(dialectService.hasDialect(fileName)) {
                                 break;
                             }
-                            dialectService.add(name, resource, strategoLanguage, newFacet);
+                            dialectService.add(fileName, resource, strategoLanguage, newFacet);
                         }
                         break;
                     case Copy:
                         if(change.to != null) {
-                            if(dialectService.hasDialect(name)) {
+                            if(dialectService.hasDialect(fileName)) {
                                 break;
                             }
-                            dialectService.add(name, resource, strategoLanguage, newFacet);
+                            dialectService.add(fileName, resource, strategoLanguage, newFacet);
                         }
                         break;
                     default:

@@ -104,6 +104,12 @@
     </dependency>
 
     <dependency>
+      <groupId>org.metaborg</groupId>
+      <artifactId>org.metaborg.core.test</artifactId>
+      <version>${metaborg-version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <scope>test</scope>

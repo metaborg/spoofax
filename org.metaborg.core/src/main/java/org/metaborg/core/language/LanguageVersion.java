@@ -42,6 +42,7 @@ public class LanguageVersion implements Comparable<LanguageVersion>, Serializabl
         return qualifier;
     }
 
+
     @Override public int compareTo(LanguageVersion other) {
         // @formatter:off
         int result = ComparisonChain.start()
@@ -50,12 +51,12 @@ public class LanguageVersion implements Comparable<LanguageVersion>, Serializabl
             .compare(this.patch, other.patch)
             .result();
         // @formatter:on
-        if ( result == 0 ) {
+        if(result == 0) {
             result = this.qualifier.compareToIgnoreCase(other.qualifier);
-            if ( result != 0 ) {
-                if ( SNAPSHOT.equalsIgnoreCase(this.qualifier) ) {
+            if(result != 0) {
+                if(SNAPSHOT.equalsIgnoreCase(this.qualifier)) {
                     result = -1;
-                } else if ( SNAPSHOT.equalsIgnoreCase(this.qualifier) ) {
+                } else if(SNAPSHOT.equalsIgnoreCase(this.qualifier)) {
                     result = 1;
                 }
             }
@@ -93,16 +94,16 @@ public class LanguageVersion implements Comparable<LanguageVersion>, Serializabl
     }
 
     @Override public String toString() {
-        return String.format("%d.%d.%d%s", major, minor, patch,
-                (qualifier.isEmpty() ? "" : ("-"+qualifier)));
+        return String.format("%d.%d.%d%s", major, minor, patch, (qualifier.isEmpty() ? "" : ("-" + qualifier)));
     }
 
-    private static final Pattern VERSION_PATTERN = Pattern.compile("((\\d+)(\\.(\\d+)(\\.(\\d+))?)?(-(\\w[\\w\\-]*))?)?");
+    private static final Pattern VERSION_PATTERN = Pattern
+        .compile("((\\d+)(\\.(\\d+)(\\.(\\d+))?)?(-(\\w[\\w\\-]*))?)?");
 
     public static LanguageVersion parse(String version) {
-        Matcher matcher = VERSION_PATTERN.matcher(version);
-        if ( !matcher.matches() ) {
-            throw new IllegalArgumentException("Invalid version string "+version);
+        final Matcher matcher = VERSION_PATTERN.matcher(version);
+        if(!matcher.matches()) {
+            throw new IllegalArgumentException("Invalid version string " + version);
         }
 
         String major = matcher.group(2);
@@ -117,11 +118,6 @@ public class LanguageVersion implements Comparable<LanguageVersion>, Serializabl
         String qualifier = matcher.group(8);
         qualifier = qualifier == null || qualifier.isEmpty() ? "" : qualifier;
 
-        return new LanguageVersion(
-                Integer.parseInt(major),
-                Integer.parseInt(minor),
-                Integer.parseInt(patch),
-                qualifier);
+        return new LanguageVersion(Integer.parseInt(major), Integer.parseInt(minor), Integer.parseInt(patch), qualifier);
     }
-
 }

@@ -35,9 +35,9 @@ public class BuildInput {
     public final Iterable<ResourceChange> sourceChanges;
 
     /**
-     * Per-language include files.
+     * Per-language include paths;
      */
-    public final Multimap<ILanguage, FileObject> includeFiles;
+    public final Multimap<ILanguage, FileObject> includePaths;
 
     /**
      * Language build order.
@@ -95,14 +95,14 @@ public class BuildInput {
 
 
     public BuildInput(BuildState state, IProject project, Iterable<ResourceChange> resourceChanges,
-        Multimap<ILanguage, FileObject> includeLocations, BuildOrder buildOrder, @Nullable FileSelector parseSelector,
+        Multimap<ILanguage, FileObject> includePaths, BuildOrder buildOrder, @Nullable FileSelector parseSelector,
         boolean analyze, FileSelector analyzeSelector, boolean transform, @Nullable FileSelector transformSelector,
         Iterable<ITransformerGoal> transformGoals, @Nullable IBuildMessagePrinter messagePrinter,
         boolean throwOnErrors, Set<ILanguage> pardonedLanguages) {
         this.state = state;
         this.project = project;
         this.sourceChanges = resourceChanges;
-        this.includeFiles = includeLocations;
+        this.includePaths = includePaths;
         this.buildOrder = buildOrder;
         this.selector = parseSelector;
         this.analyze = analyze;

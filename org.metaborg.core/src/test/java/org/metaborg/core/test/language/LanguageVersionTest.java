@@ -1,4 +1,4 @@
-package org.metaborg.spoofax.core.language;
+package org.metaborg.core.test.language;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;

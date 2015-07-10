@@ -1,7 +1,7 @@
 package org.metaborg.spoofax.meta.core;
 
-import static org.metaborg.spoofax.core.SpoofaxProjectConstants.LANG_SDF;
-import static org.metaborg.spoofax.core.SpoofaxProjectConstants.LANG_STRATEGO;
+import static org.metaborg.spoofax.core.SpoofaxProjectConstants.LANG_NAME_SDF;
+import static org.metaborg.spoofax.core.SpoofaxProjectConstants.LANG_NAME_STRATEGO;
 
 import java.io.File;
 import java.net.URL;
@@ -78,7 +78,7 @@ class MetaBuildAntRunnerFactory {
 
     private Collection<String> buildSdfArgs(MetaBuildInput input) {
         final Collection<String> args = Lists.newArrayList(input.sdfArgs);
-        final Iterable<FileObject> paths = languagePathService.sourceAndIncludePaths(input.project, LANG_SDF);
+        final Iterable<FileObject> paths = languagePathService.sourceAndIncludePaths(input.project, LANG_NAME_SDF);
         for(FileObject path : paths) {
             final File file = resourceService.localFile(path);
             if(file.exists()) {
@@ -96,8 +96,8 @@ class MetaBuildAntRunnerFactory {
 
     private Collection<String> buildStrategoArgs(MetaBuildInput input) {
         final Collection<String> args = Lists.newArrayList(input.strategoArgs);
-        final Iterable<FileObject> paths = languagePathService.sourceAndIncludePaths(input.project, LANG_STRATEGO);
-        // HACK: Stratego language name was wronly named "Stratego" instead of "Stratego-Sugar". Also include paths from
+        final Iterable<FileObject> paths = languagePathService.sourceAndIncludePaths(input.project, LANG_NAME_STRATEGO);
+        // HACK: Stratego language name was wrongly named "Stratego" instead of "Stratego-Sugar". Also include paths from
         // the wrong language name to support the older baseline languages used for bootstrapping.
         final Iterable<FileObject> legacyPaths = languagePathService.sourceAndIncludePaths(input.project, "Stratego");
         for(FileObject path : Iterables.concat(paths, legacyPaths)) {
