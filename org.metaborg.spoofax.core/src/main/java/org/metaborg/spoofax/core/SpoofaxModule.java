@@ -38,7 +38,7 @@ import org.metaborg.spoofax.core.analysis.StrategoAnalysisService;
 import org.metaborg.spoofax.core.build.ISpoofaxBuilder;
 import org.metaborg.spoofax.core.build.SpoofaxBuilder;
 import org.metaborg.spoofax.core.build.dependency.MavenDependencyService;
-import org.metaborg.spoofax.core.build.paths.SpoofaxProjectPathProvider;
+import org.metaborg.spoofax.core.build.paths.SpoofaxLanguagePathProvider;
 import org.metaborg.spoofax.core.completion.JSGLRCompletionService;
 import org.metaborg.spoofax.core.context.SpoofaxContextFactory;
 import org.metaborg.spoofax.core.language.LanguageDiscoveryService;
@@ -150,7 +150,7 @@ public class SpoofaxModule extends MetaborgModule {
     @Override protected void bindLanguagePathProviders(Multibinder<ILanguagePathProvider> binder) {
         super.bindLanguagePathProviders(binder);
 
-        binder.addBinding().to(SpoofaxProjectPathProvider.class);
+        binder.addBinding().to(SpoofaxLanguagePathProvider.class);
     }
 
     @Override protected void bindContext() {

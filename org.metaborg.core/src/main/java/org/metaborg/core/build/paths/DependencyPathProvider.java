@@ -24,13 +24,13 @@ public class DependencyPathProvider implements ILanguagePathProvider {
     }
 
 
-    @Override public Iterable<FileObject> sourcePaths(IProject project, String language) {
+    @Override public Iterable<FileObject> sourcePaths(IProject project, String languageName) {
         final Iterable<ILanguage> dependencies = dependencyService.compileDependencies(project);
         final Collection<FileObject> sources = Lists.newArrayList();
         for(ILanguage dependency : dependencies) {
             final LanguagePathFacet facet = dependency.facet(LanguagePathFacet.class);
             if(facet != null) {
-                final Collection<String> paths = facet.sources.get(language);
+                final Collection<String> paths = facet.sources.get(languageName);
                 if(paths != null) {
                     resolve(project.location(), paths, sources);
                 }
@@ -39,13 +39,13 @@ public class DependencyPathProvider implements ILanguagePathProvider {
         return sources;
     }
 
-    @Override public Iterable<FileObject> includePaths(IProject project, String language) {
+    @Override public Iterable<FileObject> includePaths(IProject project, String languageName) {
         final Iterable<ILanguage> dependencies = dependencyService.runtimeDependencies(project);
         final Collection<FileObject> includes = Lists.newArrayList();
         for(ILanguage dependency : dependencies) {
             final LanguagePathFacet facet = dependency.facet(LanguagePathFacet.class);
             if(facet != null) {
-                final Collection<String> paths = facet.includes.get(language);
+                final Collection<String> paths = facet.includes.get(languageName);
                 if(paths != null) {
                     resolve(dependency.location(), paths, includes);
                 }

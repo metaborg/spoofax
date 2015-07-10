@@ -7,7 +7,7 @@ import org.metaborg.core.project.IProject;
  * Interface for providers for source and include paths.
  */
 public interface ILanguagePathProvider {
-    public Iterable<FileObject> sourcePaths(IProject project, String language);
+    public Iterable<FileObject> sourcePaths(IProject project, String languageName);
 
-    public Iterable<FileObject> includePaths(IProject project, String language);
+    public Iterable<FileObject> includePaths(IProject project, String languageName);
 }
