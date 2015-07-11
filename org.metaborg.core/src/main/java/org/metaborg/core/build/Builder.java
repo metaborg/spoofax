@@ -49,7 +49,7 @@ import org.metaborg.core.transform.TransformResult;
 import org.metaborg.core.transform.TransformerException;
 import org.metaborg.util.iterators.Iterables2;
 import org.metaborg.util.resource.DefaultFileSelectInfo;
-import org.metaborg.util.resource.FilterFileSelector;
+import org.metaborg.util.resource.FileSelectorUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -137,7 +137,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
             }
         }
 
-        dialectProcessor.update(input.sourceChanges);
+        dialectProcessor.update(input.project, input.sourceChanges);
 
         if(changes.size() == 0) {
             // When there are no source changes, keep the old state and skip building.
@@ -406,7 +406,7 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
 
         try {
             final FileSelector selector =
-                new FilterFileSelector(new AllLanguagesFileSelector(languageIdentifier), input.selector);
+                FileSelectorUtils.and(new AllLanguagesFileSelector(languageIdentifier), input.selector);
             final FileObject[] resources = location.findFiles(selector);
             final Set<IContext> contexts =
                 ContextUtils.getAll(Iterables2.from(resources), languageIdentifier, contextService);

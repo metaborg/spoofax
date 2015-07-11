@@ -3,8 +3,8 @@ package org.metaborg.spoofax.core.language.dialect;
 import java.util.ArrayList;
 
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
+import org.apache.commons.vfs2.FileSelector;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.language.ILanguage;
@@ -12,12 +12,14 @@ import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.LanguageChange;
 import org.metaborg.core.language.dialect.IDialectProcessor;
 import org.metaborg.core.language.dialect.IDialectService;
+import org.metaborg.core.project.IProject;
 import org.metaborg.core.resource.ResourceChange;
 import org.metaborg.core.resource.ResourceChangeKind;
 import org.metaborg.spoofax.core.SpoofaxProjectConstants;
-import org.metaborg.spoofax.core.resource.SpoofaxIgnoredDirectories;
+import org.metaborg.spoofax.core.resource.SpoofaxIgnoresSelector;
 import org.metaborg.spoofax.core.syntax.SyntaxFacet;
 import org.metaborg.util.resource.ExtensionFileSelector;
+import org.metaborg.util.resource.FileSelectorUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,34 +33,38 @@ public class StrategoDialectProcessor implements IDialectProcessor {
     private final ILanguageService languageService;
     private final IDialectService dialectService;
 
+    private final FileSelector selector;
+
 
     @Inject public StrategoDialectProcessor(ILanguageService languageService, IDialectService dialectService) {
         this.languageService = languageService;
         this.dialectService = dialectService;
+
+        this.selector = FileSelectorUtils.and(new ExtensionFileSelector("tbl"), new SpoofaxIgnoresSelector());
     }
 
 
-    @Override public void loadAll(FileObject directory) throws FileSystemException {
-        final FileObject[] resources =
-            directory.findFiles(SpoofaxIgnoredDirectories.ignoreFileSelector(new ExtensionFileSelector("tbl")));
+    @Override public void loadAll(IProject project) throws FileSystemException {
+        final FileObject location = project.location();
+        final FileObject[] resources = location.findFiles(selector);
         final ArrayList<ResourceChange> changes = Lists.newArrayListWithCapacity(resources.length);
         for(FileObject resource : resources) {
             changes.add(new ResourceChange(resource));
         }
-        update(changes);
+        update(project, changes);
     }
 
-    @Override public void removeAll(FileObject directory) throws FileSystemException {
-        final FileObject[] resources =
-            directory.findFiles(SpoofaxIgnoredDirectories.ignoreFileSelector(new ExtensionFileSelector("tbl")));
+    @Override public void removeAll(IProject project) throws FileSystemException {
+        final FileObject location = project.location();
+        final FileObject[] resources = location.findFiles(selector);
         final ArrayList<ResourceChange> changes = Lists.newArrayListWithCapacity(resources.length);
         for(FileObject resource : resources) {
             changes.add(new ResourceChange(resource, ResourceChangeKind.Delete));
         }
-        update(changes);
+        update(project, changes);
     }
 
-    @Override public void update(Iterable<ResourceChange> changes) {
+    @Override public void update(IProject project, Iterable<ResourceChange> changes) {
         final int numChanges = Iterables.size(changes);
         if(numChanges == 0) {
             return;
@@ -73,8 +79,11 @@ public class StrategoDialectProcessor implements IDialectProcessor {
 
         for(ResourceChange change : changes) {
             final FileObject resource = change.resource;
-            final FileName name = resource.getName();
-            if(!name.getExtension().equals("tbl") || name.getParent().getBaseName().equals("include")) {
+            try {
+                if(!FileSelectorUtils.include(selector, resource, project.location())) {
+                    continue;
+                }
+            } catch(FileSystemException e) {
                 continue;
             }
 
