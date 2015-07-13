@@ -1,6 +1,5 @@
 package org.metaborg.core.language.dialect;
 
-import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.language.LanguageChange;
 import org.metaborg.core.project.IProject;
