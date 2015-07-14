@@ -7,6 +7,8 @@ import org.metaborg.core.build.CleanInput;
 import org.metaborg.core.build.IBuildOutput;
 import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.LanguageChange;
+import org.metaborg.core.project.IProject;
+import org.metaborg.core.resource.ResourceChange;
 
 import rx.functions.Action1;
 
@@ -37,6 +39,12 @@ public class ProcessorRunner<P, A, T> implements IProcessorRunner<P, A, T> {
     @Override public ITask<?> clean(CleanInput input, @Nullable IProgressReporter progressReporter) {
         return processor.clean(input, progressReporter);
     }
+
+
+    @Override public ITask<?> updateDialects(IProject project, Iterable<ResourceChange> changes) {
+        return processor.updateDialects(project, changes);
+    }
+
 
     private void languageChange(LanguageChange change) {
         final ITask<?> task = processor.languageChange(change);

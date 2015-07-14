@@ -9,6 +9,7 @@ import org.metaborg.core.editor.IEditorRegistry;
 import org.metaborg.core.language.ILanguage;
 import org.metaborg.core.language.ILanguageCache;
 import org.metaborg.core.language.LanguageChange;
+import org.metaborg.core.language.dialect.IDialectProcessor;
 
 import com.google.inject.Inject;
 
@@ -16,11 +17,14 @@ import com.google.inject.Inject;
  * Default implementation for the language change processor.
  */
 public class LanguageChangeProcessor implements ILanguageChangeProcessor {
+    private final IDialectProcessor dialectProcessor;
     private final IEditorRegistry editorRegistry;
     private final Set<ILanguageCache> languageCaches;
 
 
-    @Inject public LanguageChangeProcessor(IEditorRegistry editorRegistry, Set<ILanguageCache> languageCaches) {
+    @Inject public LanguageChangeProcessor(IDialectProcessor dialectProcessor, IEditorRegistry editorRegistry,
+        Set<ILanguageCache> languageCaches) {
+        this.dialectProcessor = dialectProcessor;
         this.editorRegistry = editorRegistry;
         this.languageCaches = languageCaches;
     }
@@ -47,6 +51,8 @@ public class LanguageChangeProcessor implements ILanguageChangeProcessor {
                 // Nothing to do when adding new implementation of existing language.
                 break;
         }
+
+        dialectProcessor.update(change);
     }
 
 

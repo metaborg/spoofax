@@ -5,6 +5,8 @@ import javax.annotation.Nullable;
 import org.metaborg.core.build.BuildInput;
 import org.metaborg.core.build.CleanInput;
 import org.metaborg.core.build.IBuildOutput;
+import org.metaborg.core.project.IProject;
+import org.metaborg.core.resource.ResourceChange;
 
 /**
  * Interface for language processing. Handles building and cleaning on-demand, and language change events automatically.
@@ -41,4 +43,16 @@ public interface IProcessorRunner<P, A, T> {
      * @return Task that cleans with given input.
      */
     public abstract ITask<?> clean(CleanInput input, @Nullable IProgressReporter progressReporter);
+
+
+    /**
+     * Creates a task that updates dialects using given changes.
+     * 
+     * @param project
+     *            Project to process changes for.
+     * @param changes
+     *            Resource changes to process.
+     * @return Task that processes dialect updates.
+     */
+    public abstract ITask<?> updateDialects(IProject project, Iterable<ResourceChange> changes);
 }

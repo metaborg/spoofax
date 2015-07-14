@@ -1,7 +1,5 @@
 package org.metaborg.spoofax.core.language.dialect;
 
-import java.util.ArrayList;
-
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSelector;
@@ -24,7 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
 public class StrategoDialectProcessor implements IDialectProcessor {
@@ -43,26 +40,6 @@ public class StrategoDialectProcessor implements IDialectProcessor {
         this.selector = FileSelectorUtils.and(new ExtensionFileSelector("tbl"), new SpoofaxIgnoresSelector());
     }
 
-
-    @Override public void loadAll(IProject project) throws FileSystemException {
-        final FileObject location = project.location();
-        final FileObject[] resources = location.findFiles(selector);
-        final ArrayList<ResourceChange> changes = Lists.newArrayListWithCapacity(resources.length);
-        for(FileObject resource : resources) {
-            changes.add(new ResourceChange(resource));
-        }
-        update(project, changes);
-    }
-
-    @Override public void removeAll(IProject project) throws FileSystemException {
-        final FileObject location = project.location();
-        final FileObject[] resources = location.findFiles(selector);
-        final ArrayList<ResourceChange> changes = Lists.newArrayListWithCapacity(resources.length);
-        for(FileObject resource : resources) {
-            changes.add(new ResourceChange(resource, ResourceChangeKind.Delete));
-        }
-        update(project, changes);
-    }
 
     @Override public void update(IProject project, Iterable<ResourceChange> changes) {
         final int numChanges = Iterables.size(changes);

@@ -26,7 +26,6 @@ import org.metaborg.core.language.AllLanguagesFileSelector;
 import org.metaborg.core.language.ILanguage;
 import org.metaborg.core.language.ILanguageIdentifierService;
 import org.metaborg.core.language.IdentifiedResource;
-import org.metaborg.core.language.dialect.IDialectProcessor;
 import org.metaborg.core.messages.IMessage;
 import org.metaborg.core.messages.MessageFactory;
 import org.metaborg.core.messages.MessageSeverity;
@@ -76,7 +75,6 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
     private final IResourceService resourceService;
     private final ILanguageIdentifierService languageIdentifier;
     private final ILanguagePathService languagePathService;
-    private final IDialectProcessor dialectProcessor;
     private final IContextService contextService;
     private final ISourceTextService sourceTextService;
     private final ISyntaxService<P> syntaxService;
@@ -88,14 +86,12 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
 
 
     @Inject public Builder(IResourceService resourceService, ILanguageIdentifierService languageIdentifier,
-        ILanguagePathService languagePathService, IDialectProcessor dialectProcessor, IContextService contextService,
-        ISourceTextService sourceTextService, ISyntaxService<P> syntaxService, IAnalysisService<P, A> analyzer,
-        ITransformer<P, A, T> transformer, IParseResultUpdater<P> parseResultProcessor,
-        IAnalysisResultUpdater<P, A> analysisResultProcessor) {
+        ILanguagePathService languagePathService, IContextService contextService, ISourceTextService sourceTextService,
+        ISyntaxService<P> syntaxService, IAnalysisService<P, A> analyzer, ITransformer<P, A, T> transformer,
+        IParseResultUpdater<P> parseResultProcessor, IAnalysisResultUpdater<P, A> analysisResultProcessor) {
         this.resourceService = resourceService;
         this.languageIdentifier = languageIdentifier;
         this.languagePathService = languagePathService;
-        this.dialectProcessor = dialectProcessor;
         this.contextService = contextService;
         this.sourceTextService = sourceTextService;
         this.syntaxService = syntaxService;
@@ -136,8 +132,6 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
                 changes.put(identifiedChange.language, identifiedChange);
             }
         }
-
-        dialectProcessor.update(input.project, input.sourceChanges);
 
         if(changes.size() == 0) {
             // When there are no source changes, keep the old state and skip building.
