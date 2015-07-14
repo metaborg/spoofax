@@ -1,21 +1,11 @@
 package org.metaborg.core.source;
 
-import java.util.Arrays;
-import java.util.List;
-
-import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
+import com.google.common.base.Strings;
 
 /**
  * Helper class for highlighting code in consoles.
  */
 public class AffectedSourceHelper {
-    public static final char AFFECTED = '^';
-    public static final char BLANK = ' ';
-    public static final char TAB = '\t';
-    public static final char NEWLINE = '\n';
-
-
     /**
      * Returns a multi-line string that highlights the affected source code region, given the full source text and
      * indentation to use.
@@ -29,52 +19,59 @@ public class AffectedSourceHelper {
      * @return Multi-line string that highlights the affected source code region.
      */
     public static String affectedSourceText(ISourceRegion region, String sourceText, String indentation) {
-        final String[] affectedRows = affectedRows(sourceText, region.startRow() + 1, region.endRow() + 1);
+        final int startOffset = region.startOffset();
+        final int endOffset = region.endOffset();
 
-        if(affectedRows == null || affectedRows.length == 0) {
-            return indentation + "(code region unavailable)" + NEWLINE;
-        }
+        int startRow = -1;
+        int endRow = -1;
+        int startExtend = Integer.MAX_VALUE;
+        int endExtend = -1;
+        int pos = 0;
+        final String[] lines = sourceText.split("\\r?\\n");
+        for(int i = 0; i < lines.length; ++i) {
+            final String line = lines[i];
+            final int length = line.length();
 
-        final String[] affectedLines =
-            weaveAffectedLines(affectedRows, region.startColumn() + 1, region.endColumn() + 1);
-        final StringBuilder sb = new StringBuilder();
-        for(String dl : affectedLines) {
-            sb.append(indentation + dl + NEWLINE);
-        }
-        return sb.toString();
-    }
-
-
-    private static String[] affectedRows(String originText, int beginLine, int endLine) {
-        if(originText.length() > 0 && beginLine > 0 && endLine > 0) {
-            final String[] lines = originText.split("\\r?\\n");
-            if(beginLine - 1 <= lines.length) {
-                return Arrays.copyOfRange(lines, beginLine - 1, endLine);
+            final int startDist = startOffset - pos;
+            if(startDist >= 0 && startDist <= length) {
+                startExtend = Math.min(startExtend, startDist);
             }
-        }
 
-        return new String[0];
-    }
+            final int endDist = endOffset - pos;
+            if(endDist >= 0 && endDist <= length) {
+                endExtend = Math.max(endExtend, endDist + 1);
+            }
 
-    private static String[] weaveAffectedLines(String[] lines, int beginColumn, int endColumn) {
-        final String[] affectedRows = new String[lines.length * 2];
-        for(int i = 0; i < lines.length; i++) {
-            final String line = lines[i].replace(TAB, BLANK);
-            affectedRows[i] = line;
-
-            final int beginOffset = i == 0 ? beginColumn - 1 : 0;
-            final int endOffset = i + 1 == lines.length ? endColumn - 1 : line.length();
-
-            final List<Character> newChars = Lists.newArrayList();
-            for(int j = 0; j < line.length(); j++) {
-                if(beginOffset <= j && endOffset >= j) {
-                    newChars.add(AFFECTED);
+            pos += length + 1; // + 1 because newline characters are stripped out.
+            if(startRow == -1 && pos >= startOffset) {
+                startRow = i;
+            }
+            if(startRow != -1) {
+                if(pos >= endOffset) {
+                    endRow = i;
+                    break;
                 } else {
-                    newChars.add(BLANK);
+                    startExtend = 0;
+                    endExtend = Math.max(endExtend, length);
                 }
             }
-            affectedRows[i + 1] = Joiner.on("").join(newChars);
         }
-        return affectedRows;
+
+        if(endRow == -1) {
+            return null;
+        }
+
+        final StringBuilder builder = new StringBuilder();
+        for(int i = startRow; i <= endRow; ++i) {
+            builder.append(indentation);
+            builder.append(lines[i].replace('\t', ' '));
+            builder.append('\n');
+        }
+        builder.append(indentation);
+        builder.append(Strings.repeat(" ", startExtend));
+        builder.append(Strings.repeat("^", endExtend - startExtend));
+        builder.append('\n');
+
+        return builder.toString();
     }
 }
