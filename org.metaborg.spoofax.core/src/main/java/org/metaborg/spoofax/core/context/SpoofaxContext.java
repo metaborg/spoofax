@@ -16,17 +16,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spoofax.interpreter.library.index.IndexManager;
 
+import com.google.inject.Injector;
+
 public class SpoofaxContext implements IContext, IContextInternal {
     private static final long serialVersionUID = 4177944175684703453L;
     private static final Logger logger = LoggerFactory.getLogger(SpoofaxContext.class);
 
     private final URI locationURI;
     private final ContextIdentifier identifier;
+    private final Injector injector;
 
 
-    public SpoofaxContext(IResourceService resourceService, ContextIdentifier identifier) {
+    public SpoofaxContext(IResourceService resourceService, ContextIdentifier identifier, Injector injector) {
         this.identifier = identifier;
         this.locationURI = locationURI(resourceService);
+        this.injector = injector;
     }
 
 
@@ -44,6 +48,11 @@ public class SpoofaxContext implements IContext, IContextInternal {
 
     @Override public ContextIdentifier id() {
         return identifier;
+    }
+
+
+    @Override public Injector injector() {
+        return injector;
     }
 
 
