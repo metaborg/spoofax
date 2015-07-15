@@ -32,12 +32,14 @@ public class ProcessorRunner<P, A, T> implements IProcessorRunner<P, A, T> {
     }
 
 
-    @Override public ITask<IBuildOutput<P, A, T>> build(BuildInput input, @Nullable IProgressReporter progressReporter) {
-        return processor.build(input, progressReporter);
+    @Override public ITask<IBuildOutput<P, A, T>> build(BuildInput input, @Nullable IProgressReporter progressReporter,
+        @Nullable ICancellationToken cancellationToken) {
+        return processor.build(input, progressReporter, cancellationToken);
     }
 
-    @Override public ITask<?> clean(CleanInput input, @Nullable IProgressReporter progressReporter) {
-        return processor.clean(input, progressReporter);
+    @Override public ITask<?> clean(CleanInput input, @Nullable IProgressReporter progressReporter,
+        @Nullable ICancellationToken cancellationToken) {
+        return processor.clean(input, progressReporter, cancellationToken);
     }
 
 

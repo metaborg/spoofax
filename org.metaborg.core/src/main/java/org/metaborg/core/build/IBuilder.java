@@ -21,18 +21,22 @@ public interface IBuilder<P, A, T> {
      * @param input
      *            Build input.
      * @return Result of building.
+     * @throws InterruptedException
+     *             When build is cancelled.
      * @throws MetaborgRuntimeException
      *             When {@code input.throwOnErrors} is set to true and errors occur.
      */
     public abstract IBuildOutput<P, A, T> build(BuildInput input, IProgressReporter progressReporter,
-        ICancellationToken cancellationToken);
+        ICancellationToken cancellationToken) throws InterruptedException;
 
     /**
      * Cleans derived resources and contexts from given location.
      * 
      * @param input
      *            Clean input.
+     * @throws InterruptedException
+     *             When clean is cancelled.
      */
     public abstract void clean(CleanInput input, IProgressReporter progressReporter,
-        ICancellationToken cancellationToken);
+        ICancellationToken cancellationToken) throws InterruptedException;
 }

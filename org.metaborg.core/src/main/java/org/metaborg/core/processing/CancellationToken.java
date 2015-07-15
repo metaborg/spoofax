@@ -12,7 +12,13 @@ public class CancellationToken implements ICancellationToken {
     }
 
 
-    public void cancel() {
+    @Override public void throwIfCancelled() throws InterruptedException {
+        if(cancelled) {
+            throw new InterruptedException();
+        }
+    }
+
+    @Override public void cancel() {
         cancelled = true;
     }
 }

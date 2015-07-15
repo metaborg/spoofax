@@ -34,20 +34,30 @@ public class BlockingProcessor<P, A, T> implements IProcessor<P, A, T> {
 
 
     @Override public ITask<IBuildOutput<P, A, T>> build(final BuildInput input,
-        final @Nullable IProgressReporter progressReporter) {
+        final @Nullable IProgressReporter progressReporter, final @Nullable ICancellationToken cancellationToken) {
         return new BlockingTask<>(new Func0<IBuildOutput<P, A, T>>() {
             @Override public IBuildOutput<P, A, T> call() {
-                return builder.build(input, progressReporter != null ? progressReporter : new NullProgressReporter(),
-                    new CancellationToken());
+                final IProgressReporter pr = progressReporter != null ? progressReporter : new NullProgressReporter();
+                final ICancellationToken ct = cancellationToken != null ? cancellationToken : new CancellationToken();
+                try {
+                    return builder.build(input, pr, ct);
+                } catch(InterruptedException e) {
+                }
+                return null;
             }
         });
     }
 
-    @Override public ITask<?> clean(final CleanInput input, final @Nullable IProgressReporter progressReporter) {
+    @Override public ITask<?> clean(final CleanInput input, final @Nullable IProgressReporter progressReporter,
+        final @Nullable ICancellationToken cancellationToken) {
         return new BlockingTask<>(new Func0<Object>() {
             @Override public Object call() {
-                builder.clean(input, progressReporter != null ? progressReporter : new NullProgressReporter(),
-                    new CancellationToken());
+                final IProgressReporter pr = progressReporter != null ? progressReporter : new NullProgressReporter();
+                final ICancellationToken ct = cancellationToken != null ? cancellationToken : new CancellationToken();
+                try {
+                    builder.clean(input, pr, ct);
+                } catch(InterruptedException e) {
+                }
                 return null;
             }
         });

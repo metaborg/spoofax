@@ -40,6 +40,10 @@ public class BlockingTask<T> implements ITask<T> {
         return completed;
     }
 
+    @Override public boolean cancelled() {
+        return false;
+    }
+
     @Override public T result() {
         return value;
     }

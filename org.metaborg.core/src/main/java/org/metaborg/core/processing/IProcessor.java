@@ -23,12 +23,14 @@ public interface IProcessor<P, A, T> {
     /**
      * @see IProcessorRunner#build(BuildInput, IProgressReporter)
      */
-    public abstract ITask<IBuildOutput<P, A, T>> build(BuildInput input, @Nullable IProgressReporter progressReporter);
+    public abstract ITask<IBuildOutput<P, A, T>> build(BuildInput input, @Nullable IProgressReporter progressReporter,
+        @Nullable ICancellationToken cancellationToken);
 
     /**
      * @see IProcessorRunner#clean(CleanInput, IProgressReporter)
      */
-    public abstract ITask<?> clean(CleanInput input, @Nullable IProgressReporter progressReporter);
+    public abstract ITask<?> clean(CleanInput input, @Nullable IProgressReporter progressReporter,
+        @Nullable ICancellationToken cancellationToken);
 
 
     /**

@@ -33,6 +33,11 @@ public interface ITask<T> {
     public abstract boolean completed();
 
     /**
+     * @return If the task has been cancelled.
+     */
+    public abstract boolean cancelled();
+
+    /**
      * @return Result of the task, or null if it has been cancelled, or not completed yet.
      */
     public abstract @Nullable T result();
