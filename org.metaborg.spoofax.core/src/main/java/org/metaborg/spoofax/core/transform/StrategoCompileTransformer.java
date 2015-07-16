@@ -35,13 +35,14 @@ public class StrategoCompileTransformer implements IStrategoTransformerExecutor 
         ParseResult<IStrategoTerm> parseResult, IContext context, ITransformerGoal goal) throws TransformerException {
         final String strategyName = strategyName(context.language());
         final FileObject resource = parseResult.source;
+        final IStrategoTerm inputTerm;
         try {
-            final IStrategoTerm inputTerm = transformer.builderInputTerm(parseResult.result, resource, context.location());
-            logger.debug("Compiling parse result of {}", resource);
-            return transformer.transform(context, parseResult, strategyName, inputTerm, resource);
+            inputTerm = transformer.builderInputTerm(parseResult.result, resource, context.location());
         } catch(MetaborgException e) {
             throw new TransformerException("Cannot create input term", e);
         }
+        logger.debug("Compiling parse result of {}", resource);
+        return transformer.transform(context, parseResult, strategyName, inputTerm, resource);
     }
 
     @Override public TransformResult<AnalysisFileResult<IStrategoTerm, IStrategoTerm>, IStrategoTerm> transform(
@@ -49,14 +50,14 @@ public class StrategoCompileTransformer implements IStrategoTransformerExecutor 
         throws TransformerException {
         final String strategyName = strategyName(context.language());
         final FileObject resource = analysisResult.source;
+        final IStrategoTerm inputTerm;
         try {
-            final IStrategoTerm inputTerm =
-                transformer.builderInputTerm(analysisResult.result, resource, context.location());
-            logger.debug("Compiling analysis result of {}", resource);
-            return transformer.transform(context, analysisResult, strategyName, inputTerm, resource);
+            inputTerm = transformer.builderInputTerm(analysisResult.result, resource, context.location());
         } catch(MetaborgException e) {
             throw new TransformerException("Cannot create input term", e);
         }
+        logger.debug("Compiling analysis result of {}", resource);
+        return transformer.transform(context, analysisResult, strategyName, inputTerm, resource);
     }
 
     @Override public boolean available(ITransformerGoal goal, IContext context) {

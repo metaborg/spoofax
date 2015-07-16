@@ -128,7 +128,7 @@ public class StrategoTransformerCommon {
         } catch(MetaborgRuntimeException e) {
             final String message = String.format("Location %s does not exist", location);
             logger.error(message, e);
-            throw new MetaborgException(message);
+            throw new MetaborgException(message, e);
         }
         final IStrategoString locationTerm = localPath.localLocationTerm(localLocation);
 
