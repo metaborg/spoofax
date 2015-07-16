@@ -62,17 +62,26 @@ public class LanguageSourceLocationsPrimitive extends AbstractPrimitive {
         final List<IStrategoTerm> terms = Lists.newArrayList();
         for(FileObject sourceLocation : sourceLocations) {
             try {
-                if(!sourceLocation.exists()) {
-                    logger.warn("Cannot add {} as source location, it does not exist", sourceLocation);
-                    continue;
+                File localFile = resourceService.localPath(sourceLocation);
+                if(localFile == null) {
+                    if(!sourceLocation.exists()) {
+                        warnNotExists(sourceLocation);
+                    }
+                    localFile = resourceService.localFile(sourceLocation);
                 }
-                final File localFile = resourceService.localFile(sourceLocation);
+
                 terms.add(factory.makeString(localFile.getPath()));
             } catch(FileSystemException e) {
-                logger.warn("Cannot add {} as source location, it does not exist", sourceLocation);
+                warnNotExists(sourceLocation);
             }
         }
         env.setCurrent(factory.makeList(terms));
         return true;
+    }
+
+
+    private void warnNotExists(FileObject location) {
+        logger.warn("Cannot add source location {}, it is not located on the local file system and does not exist",
+            location);
     }
 }

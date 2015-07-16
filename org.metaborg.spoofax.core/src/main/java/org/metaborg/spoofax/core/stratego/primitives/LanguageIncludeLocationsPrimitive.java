@@ -62,17 +62,26 @@ public class LanguageIncludeLocationsPrimitive extends AbstractPrimitive {
         final List<IStrategoTerm> terms = Lists.newArrayList();
         for(FileObject includeLocation : includeLocations) {
             try {
-                if(!includeLocation.exists()) {
-                    logger.warn("Cannot add {} as include location, it does not exist", includeLocation);
-                    continue;
+                File localFile = resourceService.localPath(includeLocation);
+                if(localFile == null) {
+                    if(!includeLocation.exists()) {
+                        warnNotExists(includeLocation);
+                    }
+                    localFile = resourceService.localFile(includeLocation);
                 }
-                final File localFile = resourceService.localFile(includeLocation);
+
                 terms.add(factory.makeString(localFile.getPath()));
             } catch(FileSystemException e) {
-                logger.warn("Cannot add {} as include location, it does not exist", includeLocation);
+                warnNotExists(includeLocation);
             }
         }
         env.setCurrent(factory.makeList(terms));
         return true;
+    }
+
+    
+    private void warnNotExists(FileObject location) {
+        logger.warn("Cannot add source location {}, it is not located on the local file system and does not exist",
+            location);
     }
 }
