@@ -142,6 +142,8 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
             return new BuildOutput<>(input.state);
         }
 
+        logger.debug("Building " + input.project.location());
+
         cancel.throwIfCancelled();
 
         final BuildState newState = new BuildState();
@@ -170,35 +172,29 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
 
     private void updateLanguageResources(BuildInput input, ILanguage language, LanguageBuildDiff diff,
         BuildOutput<P, A, T> output, ICancellationToken cancel) throws InterruptedException {
-        logger.debug("Building " + input.project.location());
 
         final Iterable<IdentifiedResourceChange> sourceChanges = diff.sourceChanges;
-        final int numSourceChanges = Iterables.size(sourceChanges);
-
         final Iterable<IdentifiedResourceChange> includeChanges = diff.includeChanges;
-        final int numIncludeChanges = Iterables.size(includeChanges);
         final Set<FileName> includedResources = Sets.newHashSet();
         for(IdentifiedResourceChange includeChange : includeChanges) {
             includedResources.add(includeChange.change.resource.getName());
         }
-
         final FileObject location = input.project.location();
         final Collection<FileObject> changedResources = Sets.newHashSet();
         final Set<FileName> removedResources = Sets.newHashSet();
         final Collection<IMessage> extraMessages = Lists.newLinkedList();
 
+        logger.debug("Processing {} sources, {} includes of {}", Iterables.size(sourceChanges),
+            Iterables.size(includeChanges), language);
+
         // Parse
         cancel.throwIfCancelled();
-        final int numChanges = numSourceChanges + numIncludeChanges;
-        logger.debug("Parsing {} sources, {} includes", numSourceChanges, numIncludeChanges);
         final Collection<ParseResult<P>> sourceParseResults =
-            parse(input, language, sourceChanges, numSourceChanges, changedResources, removedResources, extraMessages,
-                cancel);
-        // GTODO: when a new context is created, all include files need to be parsed and analyzed, this approach
-        // does not do that!
+            parse(input, language, sourceChanges, changedResources, removedResources, extraMessages, cancel);
+        // GTODO: when a new context is created, all include files need to be parsed and analyzed in that context, this
+        // approach does not do that!
         final Collection<ParseResult<P>> includeParseResults =
-            parse(input, language, includeChanges, numIncludeChanges, changedResources, removedResources,
-                extraMessages, cancel);
+            parse(input, language, includeChanges, changedResources, removedResources, extraMessages, cancel);
         final Iterable<ParseResult<P>> allParseResults = Iterables.concat(sourceParseResults, includeParseResults);
 
         // Segregate by context
@@ -220,14 +216,14 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
         // Analyze
         cancel.throwIfCancelled();
         final Collection<AnalysisResult<P, A>> allAnalysisResults =
-            analyze(input, language, location, sourceResultsPerContext, includeParseResults, numChanges,
-                removedResources, extraMessages, cancel);
+            analyze(input, language, location, sourceResultsPerContext, includeParseResults, removedResources,
+                extraMessages, cancel);
 
         // Compile
         cancel.throwIfCancelled();
         final Collection<TransformResult<AnalysisFileResult<P, A>, T>> allTransformResults =
-            compile(input, language, location, allAnalysisResults, includedResources, numSourceChanges,
-                removedResources, extraMessages, cancel);
+            compile(input, language, location, allAnalysisResults, includedResources, removedResources, extraMessages,
+                cancel);
 
         printMessages(extraMessages, "Something", input, language);
 
@@ -236,13 +232,16 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
     }
 
     private Collection<ParseResult<P>> parse(BuildInput input, ILanguage language,
-        Iterable<IdentifiedResourceChange> changes, int size, Collection<FileObject> changedResources,
+        Iterable<IdentifiedResourceChange> changes, Collection<FileObject> changedResources,
         Set<FileName> removedResources, Collection<IMessage> extraMessages, ICancellationToken cancel)
         throws InterruptedException {
-        final Collection<ParseResult<P>> allParseResults = Lists.newArrayListWithExpectedSize(size);
+        final int size = Iterables.size(changes);
+        final Collection<ParseResult<P>> allParseResults = Lists.newArrayListWithCapacity(size);
         if(size == 0) {
             return allParseResults;
         }
+
+        logger.debug("Parsing {} resources", size);
 
         for(IdentifiedResourceChange identifiedChange : changes) {
             cancel.throwIfCancelled();
@@ -290,13 +289,16 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
     }
 
     private Collection<AnalysisResult<P, A>> analyze(BuildInput input, ILanguage language, FileObject location,
-        Multimap<IContext, ParseResult<P>> sourceParseResults, Iterable<ParseResult<P>> includeParseResults, int size,
+        Multimap<IContext, ParseResult<P>> sourceParseResults, Iterable<ParseResult<P>> includeParseResults,
         Set<FileName> removedResources, Collection<IMessage> extraMessages, ICancellationToken cancel)
         throws InterruptedException {
-        final Collection<AnalysisResult<P, A>> allAnalysisResults = Lists.newArrayListWithExpectedSize(size);
+        final int size = sourceParseResults.size() + Iterables.size(includeParseResults);
+        final Collection<AnalysisResult<P, A>> allAnalysisResults = Lists.newArrayListWithCapacity(size);
         if(size == 0) {
             return allAnalysisResults;
         }
+
+        logger.debug("Analyzing {} parse results in {} context(s)", size, sourceParseResults.keySet().size());
 
         for(Entry<IContext, Collection<ParseResult<P>>> entry : sourceParseResults.asMap().entrySet()) {
             cancel.throwIfCancelled();
@@ -325,14 +327,20 @@ public class Builder<P, A, T> implements IBuilder<P, A, T> {
     }
 
     private Collection<TransformResult<AnalysisFileResult<P, A>, T>> compile(BuildInput input, ILanguage language,
-        FileObject location, Collection<AnalysisResult<P, A>> allAnalysisResults, Set<FileName> includeFiles, int size,
+        FileObject location, Iterable<AnalysisResult<P, A>> allAnalysisResults, Set<FileName> includeFiles,
         Set<FileName> removedResources, Collection<IMessage> extraMessages, ICancellationToken cancel)
         throws InterruptedException {
+        int size = 0;
+        for(AnalysisResult<P, A> analysisResult : allAnalysisResults) {
+            size += Iterables.size(analysisResult.fileResults);
+        }
         final Collection<TransformResult<AnalysisFileResult<P, A>, T>> allTransformResults =
-            Lists.newArrayListWithExpectedSize(size);
+            Lists.newArrayListWithCapacity(size);
         if(size == 0) {
             return allTransformResults;
         }
+
+        logger.debug("Compiling {} analysis results", size);
 
         for(AnalysisResult<P, A> analysisResult : allAnalysisResults) {
             cancel.throwIfCancelled();

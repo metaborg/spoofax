@@ -49,7 +49,6 @@ import org.strategoxt.imp.generator.postprocess_feedback_results_0_0;
 import org.strategoxt.imp.generator.sdf2imp;
 import org.strategoxt.lang.Context;
 
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -106,8 +105,6 @@ public class StrategoAnalysisService implements IAnalysisService<IStrategoTerm, 
             return new AnalysisResult<IStrategoTerm, IStrategoTerm>(context,
                 Iterables2.<AnalysisFileResult<IStrategoTerm, IStrategoTerm>>empty(), data);
         }
-
-        logger.debug("Analyzing {} inputs of {}", Iterables.size(inputs), language);
 
         final HybridInterpreter interpreter;
         try {
