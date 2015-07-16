@@ -10,7 +10,7 @@ public class JSGLRParserConfiguration implements IParserConfiguration {
 
 
     public JSGLRParserConfiguration() {
-        this(true, true, false, 5000);
+        this(true, true, false, 30000);
     }
 
     public JSGLRParserConfiguration(boolean implode, boolean recovery, boolean completion, int timeout) {
