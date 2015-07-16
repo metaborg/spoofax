@@ -58,12 +58,6 @@
             <version>${metaborg-version}</version>
             <type>spoofax-language</type>
           </dependency>
-          <dependency>
-            <groupId>org.metaborg</groupId>
-            <artifactId>org.metaborg.meta.lang.stratego</artifactId>
-            <version>${metaborg-version}</version>
-            <type>spoofax-language</type>
-          </dependency>
         </dependencies>
       </plugin>
     </plugins>
