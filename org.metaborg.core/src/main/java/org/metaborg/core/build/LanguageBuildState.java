@@ -6,7 +6,7 @@ import java.util.Set;
 import org.apache.commons.vfs2.FileName;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageIdentifierService;
 import org.metaborg.core.language.IdentifiedResource;
 import org.metaborg.core.resource.IResourceService;
@@ -23,14 +23,14 @@ import com.google.common.collect.Sets;
 public class LanguageBuildState {
     private final IResourceService resourceService;
     private final ILanguageIdentifierService languageIdentifierService;
-    private final ILanguage language;
+    private final ILanguageImpl language;
 
     private FilesBuildState source = new FilesBuildState();
     private FilesBuildState include = new FilesBuildState();
 
 
     public LanguageBuildState(IResourceService resourceService, ILanguageIdentifierService languageIdentifierService,
-        ILanguage language) {
+        ILanguageImpl language) {
         this.resourceService = resourceService;
         this.languageIdentifierService = languageIdentifierService;
         this.language = language;

@@ -13,121 +13,103 @@ import rx.Observable;
  */
 public interface ILanguageService {
     /**
-     * Returns the active language with a given id and version.
+     * Gets a language component by its location.
+     * 
+     * @param location
+     *            Location of the component to get.
+     * @return Component at given location, or null if it could not be found.
+     */
+    public @Nullable ILanguageComponent getComponent(FileName location);
+
+    /**
+     * Gets a language implementation by its identifier.
      * 
      * @param identifier
-     *            Identifier of the language.
-     * @return Language with given identifier, or null if it does not exist.
+     *            Identifier of the implementation to get.
+     * @return Implementation with given identifier, or null if it could not be found.
      */
-    public @Nullable ILanguage get(LanguageIdentifier identifier);
+    public @Nullable ILanguageImpl get(LanguageIdentifier identifier);
 
     /**
-     * Returns the active language with a given group id and id.
+     * Gets the active language implemention by its group id and id.
      * 
      * @param groupId
-     *            Group id of the language.
+     *            Group id of the implementation to get.
      * @param id
-     *            Id of the language.
-     * @return Language with given group id and id, or null if it does not exist.
+     *            ID of the implementation to get.
+     * @return Implementation with given group id and id, or null if it could not be found.
      */
-    public @Nullable ILanguage get(String groupId, String id);
+    public @Nullable ILanguageImpl get(String groupId, String id);
 
     /**
-     * Returns the active language for given language name.
+     * Gets a language by its name.
      * 
      * @param name
-     *            Name of the language.
-     * @return Active language for given name, or null if there is none.
+     *            Name of the language to get.
+     * @return Language with given name, or null if it could not be found.
      */
     public @Nullable ILanguage get(String name);
 
-
     /**
-     * Returns the language at given location.
-     * 
-     * @param location
-     *            Location of the language.
-     * @return Language at given location, or null if it does not exist.
+     * @return All languages
      */
-    public @Nullable ILanguage get(FileName location);
+    public Iterable<? extends ILanguage> getAll();
+
+    /**
+     * @return All active language implementations.
+     */
+    public Iterable<? extends ILanguageImpl> getAllActive();
 
 
     /**
-     * Returns all languages with given identifier and version.
+     * @return Observable over language component changes.
+     */
+    public Observable<LanguageComponentChange> componentChanges();
+
+    /**
+     * @return Observable over language implementation changes.
+     */
+    public Observable<LanguageImplChange> implChanges();
+
+
+    /**
+     * Creates a request object with given identifier and location, contributing to given language implementation
+     * identifiers. Returns a request object where facets can be added before passing it to
+     * {@link #add(ILanguageComponent)}.
      * 
      * @param identifier
-     *            Identifier of the language.
-     * @return Iterable over all languages with given identifier and version.
-     */
-    public Iterable<ILanguage> getAll(LanguageIdentifier identifier);
-
-    /**
-     * Returns all languages with given name.
-     * 
-     * @param name
-     *            Name of the languages.
-     * @return Iterable over all languages with given name.
-     */
-    public Iterable<ILanguage> getAll(String name);
-
-    /**
-     * Returns all active languages.
-     * 
-     * @return Iterable over all active languages.
-     */
-    public Iterable<ILanguage> getAllActive();
-
-    /**
-     * Returns all languages
-     * 
-     * @return Iterable over all languages.
-     */
-    public Iterable<ILanguage> getAll();
-
-
-    /**
-     * Returns an observable over language loaded, unloaded, activated, and deactivated changes.
-     * 
-     * @return Observable over language changes.
-     */
-    public Observable<LanguageChange> changes();
-
-
-    /**
-     * Creates a new empty language with given identifier, location, and name.
-     * 
-     * @param identifier
-     *            Identifier of the language.
+     *            Identifier of the component to create.
      * @param location
-     *            Location of the language.
-     * @param name
-     *            Name of the language.
+     *            Location of the component to create.
+     * @param implIds
+     *            Identifiers of language implementations that the component should contribute to.
      * 
-     * @return Created language
+     * @return Creation request object, when passed to {@link #add(ILanguageComponent)} actually adds the language.
      */
-    public ILanguage create(LanguageIdentifier identifier, FileObject location, String name);
+    public LanguageCreationRequest create(LanguageIdentifier identifier, FileObject location,
+        Iterable<LanguageImplIdentifier> implIds);
 
     /**
-     * Adds given language.
+     * Adds language component created from given request object, and return the created component.
      * 
-     * @param language
-     *            Language to add.
+     * @param request
+     *            Request object to process.
+     * @return Created component.
      * @throws IllegalStateException
-     *             when given language's location does not exist, or if it is not possible to determine if the location
+     *             When given component's location does not exist, or if it is not possible to determine if the location
      *             exists.
      * @throws IllegalStateException
-     *             when a language with a different name or version has already been created at given language's
-     *             location.
+     *             When a component with a different id has already been created at given component's location.
      */
-    public void add(ILanguage language);
+    public ILanguageComponent add(LanguageCreationRequest request);
 
     /**
-     * Removes given language.
+     * Removes given language component.
      * 
      * @param language
      *            Language to remove.
      * @throws IllegalStateException
-     *             when language does not exist or has already been removed.
+     *             When component does not exist or has already been removed.
      */
-    public void remove(ILanguage language);
+    public void remove(ILanguageComponent component);
 }

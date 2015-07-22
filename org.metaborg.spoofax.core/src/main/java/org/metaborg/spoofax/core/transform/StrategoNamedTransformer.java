@@ -5,7 +5,7 @@ import org.metaborg.core.MetaborgException;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.analysis.AnalysisFileResult;
 import org.metaborg.core.context.IContext;
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.syntax.ParseResult;
 import org.metaborg.core.transform.ITransformerGoal;
 import org.metaborg.core.transform.NamedGoal;
@@ -77,13 +77,13 @@ public class StrategoNamedTransformer implements IStrategoTransformerExecutor {
     }
 
 
-    private Action action(ILanguage language, ITransformerGoal goal) throws TransformerException {
+    private Action action(ILanguageImpl language, ITransformerGoal goal) throws TransformerException {
         if(!(goal instanceof NamedGoal)) {
             final String message = String.format("Goal %s is not a NamedGoal", goal);
             logger.error(message);
             throw new MetaborgRuntimeException(message);
         }
-        final MenusFacet facet = language.facet(MenusFacet.class);
+        final MenusFacet facet = language.facets(MenusFacet.class);
         if(facet == null) {
             final String message = String.format("No menus facet found for %s", language);
             logger.error(message);

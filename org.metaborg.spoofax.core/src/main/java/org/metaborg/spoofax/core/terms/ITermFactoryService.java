@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.core.terms;
 
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.spoofax.interpreter.terms.ITermFactory;
 
 /**
@@ -14,7 +14,7 @@ public interface ITermFactoryService {
      *            Language to get the term factory for.
      * @return Language-specific term factory.
      */
-    public ITermFactory get(ILanguage language);
+    public ITermFactory get(ILanguageImpl language);
 
     /**
      * Returns the generic term factory.

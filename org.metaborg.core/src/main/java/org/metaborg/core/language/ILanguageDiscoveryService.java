@@ -15,5 +15,5 @@ public interface ILanguageDiscoveryService {
      * @throws IllegalStateException
      *             when {@link ILanguageService} throws when adding a language.
      */
-    public Iterable<ILanguage> discover(FileObject location) throws Exception;
+    public Iterable<ILanguageImpl> discover(FileObject location) throws Exception;
 }

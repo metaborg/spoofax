@@ -8,7 +8,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.language.ILanguageFacet;
+import org.metaborg.core.language.IFacet;
 import org.metaborg.core.resource.ResourceService;
 import org.metaborg.spoofax.core.analysis.StrategoAnalysisMode;
 
@@ -17,7 +17,7 @@ import com.google.common.collect.Lists;
 /**
  * Represents the Stratego runtime facet of a language.
  */
-public class StrategoFacet implements ILanguageFacet {
+public class StrategoFacet implements IFacet {
     private static final long serialVersionUID = -5993564430060643452L;
 
     private transient Iterable<FileObject> ctreeFiles;

@@ -1,7 +1,7 @@
 package org.metaborg.core.style;
 
 import org.metaborg.core.analysis.AnalysisFileResult;
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.syntax.ParseResult;
 
 /**
@@ -23,7 +23,7 @@ public interface ICategorizerService<ParseT, AnalysisT> {
      * @return Iterable over categories assigned to regions of the source text. Regions do not overlap and are iterated
      *         over in ascending order.
      */
-    public abstract Iterable<IRegionCategory<ParseT>> categorize(ILanguage language, ParseResult<ParseT> parseResult);
+    public abstract Iterable<IRegionCategory<ParseT>> categorize(ILanguageImpl language, ParseResult<ParseT> parseResult);
 
     /**
      * Returns a categorization of given analysis result.
@@ -35,6 +35,6 @@ public interface ICategorizerService<ParseT, AnalysisT> {
      * @return Iterable over categories assigned to regions of the source text. Regions do not overlap and are iterated
      *         over in ascending order.
      */
-    public abstract Iterable<IRegionCategory<AnalysisT>> categorize(ILanguage language,
+    public abstract Iterable<IRegionCategory<AnalysisT>> categorize(ILanguageImpl language,
         AnalysisFileResult<ParseT, AnalysisT> analysisResult);
 }

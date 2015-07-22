@@ -3,7 +3,7 @@ package org.metaborg.core.context;
 import java.util.Set;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageIdentifierService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +28,7 @@ public class ContextUtils {
         IContextService contextService) {
         final Set<IContext> contexts = Sets.newHashSet();
         for(FileObject resource : resources) {
-            final ILanguage language = languageIdentifier.identify(resource);
+            final ILanguageImpl language = languageIdentifier.identify(resource);
             if(language == null) {
                 logger.error("Could not identify language for {}", resource);
                 continue;

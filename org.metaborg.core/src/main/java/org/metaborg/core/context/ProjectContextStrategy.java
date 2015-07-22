@@ -1,7 +1,7 @@
 package org.metaborg.core.context;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.IProjectService;
 
@@ -20,7 +20,7 @@ public class ProjectContextStrategy implements IContextStrategy {
     }
 
 
-    @Override public ContextIdentifier get(FileObject resource, ILanguage language) throws ContextException {
+    @Override public ContextIdentifier get(FileObject resource, ILanguageImpl language) throws ContextException {
         final IProject project = projectService.get(resource);
         if(project == null) {
             final String message =

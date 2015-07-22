@@ -9,7 +9,7 @@ import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.context.ContextIdentifier;
 import org.metaborg.core.context.IContext;
 import org.metaborg.core.context.IContextInternal;
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.runtime.task.engine.TaskManager;
 import org.slf4j.Logger;
@@ -42,7 +42,7 @@ public class SpoofaxContext implements IContext, IContextInternal {
         return identifier.location;
     }
 
-    @Override public ILanguage language() {
+    @Override public ILanguageImpl language() {
         return identifier.language;
     }
 

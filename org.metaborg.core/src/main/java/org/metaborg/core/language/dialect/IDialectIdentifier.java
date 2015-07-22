@@ -4,7 +4,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 
 /**
  * Interface for identifying the dialect of a resource.
@@ -36,5 +36,5 @@ public interface IDialectIdentifier {
      * @throws MetaborgException
      *             When resource requires a dialect that is not available.
      */
-    public abstract boolean identify(FileObject resource, ILanguage dialect) throws MetaborgException;
+    public abstract boolean identify(FileObject resource, ILanguageImpl dialect) throws MetaborgException;
 }

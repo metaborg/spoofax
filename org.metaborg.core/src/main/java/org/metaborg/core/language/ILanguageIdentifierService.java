@@ -17,7 +17,7 @@ public interface ILanguageIdentifierService {
      *            Language to check against.
      * @return True if resource is of given language, false otherwise.
      */
-    public abstract boolean identify(FileObject resource, ILanguage language);
+    public abstract boolean identify(FileObject resource, ILanguageImpl language);
 
     /**
      * Attempts to identify the active language of given resource.
@@ -28,7 +28,7 @@ public interface ILanguageIdentifierService {
      * @throws IllegalStateException
      *             When a resource can be identified to languages with different names.
      */
-    public abstract @Nullable ILanguage identify(FileObject resource);
+    public abstract @Nullable ILanguageImpl identify(FileObject resource);
 
     /**
      * Attempts to identify the active language of given resource, and return an identified resource.
@@ -50,7 +50,7 @@ public interface ILanguageIdentifierService {
      * @throws IllegalStateException
      *             When a resource can be identified to multiple languages.
      */
-    public abstract @Nullable ILanguage identify(FileObject resource, Iterable<ILanguage> languages);
+    public abstract @Nullable ILanguageImpl identify(FileObject resource, Iterable<ILanguageImpl> languages);
 
     /**
      * Attempts to identify the language of given resource, among given list of languages, and return an identified
@@ -62,5 +62,5 @@ public interface ILanguageIdentifierService {
      * @throws IllegalStateException
      *             When a resource can be identified to multiple languages.
      */
-    public abstract @Nullable IdentifiedResource identifyToResource(FileObject resource, Iterable<ILanguage> languages);
+    public abstract @Nullable IdentifiedResource identifyToResource(FileObject resource, Iterable<ILanguageImpl> languages);
 }

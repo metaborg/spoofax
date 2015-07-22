@@ -3,7 +3,7 @@ package org.metaborg.core.processing.parse;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.syntax.ParseResult;
 
 import rx.Observable;
@@ -36,7 +36,7 @@ public interface IParseResultRequester<P> {
      * @return Cold observable which pushes a single element when subscribed; the latest parse result, or pushes an
      *         error if an error occurred while getting it.
      */
-    public abstract Observable<ParseResult<P>> request(FileObject resource, ILanguage language, String text);
+    public abstract Observable<ParseResult<P>> request(FileObject resource, ILanguageImpl language, String text);
 
     /**
      * Returns an observable that pushes parse result updates to subscribers for given resource.

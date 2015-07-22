@@ -5,7 +5,7 @@ import java.util.Map;
 
 import org.jgrapht.experimental.dag.DirectedAcyclicGraph;
 import org.metaborg.core.MetaborgRuntimeException;
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.LanguagePathFacet;
 import org.metaborg.util.iterators.Iterables2;
 
@@ -17,8 +17,8 @@ import com.google.common.collect.Maps;
  * Language build order calculation.
  */
 public class BuildOrder {
-    private final Iterable<ILanguage> languages;
-    private final DirectedAcyclicGraph<ILanguage, Object> dag;
+    private final Iterable<ILanguageImpl> languages;
+    private final DirectedAcyclicGraph<ILanguageImpl, Object> dag;
 
 
     /**
@@ -29,21 +29,21 @@ public class BuildOrder {
      * @throws MetaborgRuntimeException
      *             When there is a cyclic dependency between languages.
      */
-    public BuildOrder(Iterable<ILanguage> languages) throws MetaborgRuntimeException {
+    public BuildOrder(Iterable<ILanguageImpl> languages) throws MetaborgRuntimeException {
         this.languages = languages;
-        this.dag = new DirectedAcyclicGraph<ILanguage, Object>(Object.class);
+        this.dag = new DirectedAcyclicGraph<ILanguageImpl, Object>(Object.class);
 
-        final Map<String, ILanguage> lookup = Maps.newHashMap();
-        for(ILanguage language : languages) {
+        final Map<String, ILanguageImpl> lookup = Maps.newHashMap();
+        for(ILanguageImpl language : languages) {
             dag.addVertex(language);
             lookup.put(language.name(), language);
         }
 
-        for(ILanguage source : languages) {
-            final LanguagePathFacet facet = source.facet(LanguagePathFacet.class);
+        for(ILanguageImpl source : languages) {
+            final LanguagePathFacet facet = source.facets(LanguagePathFacet.class);
             if(facet != null) {
                 for(String otherName : facet.sources.keySet()) {
-                    final ILanguage target = lookup.get(otherName);
+                    final ILanguageImpl target = lookup.get(otherName);
                     if(target != null) {
                         try {
                             dag.addDagEdge(source, target);
@@ -61,9 +61,9 @@ public class BuildOrder {
     /**
      * @return Build order.
      */
-    public Iterable<ILanguage> buildOrder() {
-        return Iterables2.from(new Func0<Iterator<ILanguage>>() {
-            @Override public Iterator<ILanguage> call() {
+    public Iterable<ILanguageImpl> buildOrder() {
+        return Iterables2.from(new Func0<Iterator<ILanguageImpl>>() {
+            @Override public Iterator<ILanguageImpl> call() {
                 return dag.iterator();
             }
         });
@@ -72,7 +72,7 @@ public class BuildOrder {
     /**
      * @return Languages in this build order, in the same order that they were passed in the constructor.
      */
-    public Iterable<ILanguage> languages() {
+    public Iterable<ILanguageImpl> languages() {
         return languages;
     }
 }

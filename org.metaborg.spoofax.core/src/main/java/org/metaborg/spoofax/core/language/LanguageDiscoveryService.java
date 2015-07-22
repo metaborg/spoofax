@@ -7,7 +7,7 @@ import java.util.Set;
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.context.ContextFacet;
 import org.metaborg.core.context.IContextStrategy;
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageDiscoveryService;
 import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.IdentificationFacet;
@@ -58,8 +58,8 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
     }
 
 
-    @Override public Iterable<ILanguage> discover(FileObject location) throws Exception {
-        final Collection<ILanguage> languages = Lists.newLinkedList();
+    @Override public Iterable<ILanguageImpl> discover(FileObject location) throws Exception {
+        final Collection<ILanguageImpl> languages = Lists.newLinkedList();
         final FileObject[] esvFiles = location.findFiles(new ContainsFileSelector("packed.esv"));
         if(esvFiles == null) {
             return languages;
@@ -78,7 +78,7 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         return languages;
     }
 
-    private ILanguage languageFromESV(FileObject location, FileObject esvFile) throws Exception {
+    private ILanguageImpl languageFromESV(FileObject location, FileObject esvFile) throws Exception {
         logger.debug("Discovering language at {}", location);
 
         final TermReader reader =
@@ -94,7 +94,7 @@ public class LanguageDiscoveryService implements ILanguageDiscoveryService {
         final String id = languageId(esvTerm);
         final LanguageVersion version = LanguageVersion.parse(languageVersion(esvTerm));
         final String name = languageName(esvTerm);
-        final ILanguage language = languageService.create(new LanguageIdentifier(groupId, id, version), location, name);
+        final ILanguageImpl language = languageService.create(new LanguageIdentifier(groupId, id, version), location, name);
 
         final Iterable<String> extensions = Iterables2.from(extensions(esvTerm));
         final IdentificationFacet identificationFacet =

@@ -6,7 +6,7 @@ import javax.annotation.Nullable;
 
 import org.metaborg.core.editor.IEditor;
 import org.metaborg.core.editor.IEditorRegistry;
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageCache;
 import org.metaborg.core.language.LanguageChange;
 import org.metaborg.core.language.dialect.IDialectProcessor;
@@ -56,7 +56,7 @@ public class LanguageChangeProcessor implements ILanguageChangeProcessor {
     }
 
 
-    protected void added(ILanguage language) {
+    protected void added(ILanguageImpl language) {
         // Enable editors
         final Iterable<IEditor> editors = editorRegistry.openEditors();
         for(IEditor editor : editors) {
@@ -69,13 +69,13 @@ public class LanguageChangeProcessor implements ILanguageChangeProcessor {
         }
     }
 
-    protected void invalidated(ILanguage language) {
+    protected void invalidated(ILanguageImpl language) {
         for(ILanguageCache languageCache : languageCaches) {
             languageCache.invalidateCache(language);
         }
     }
 
-    protected void reloadedActive(ILanguage oldLanguage, @SuppressWarnings("unused") ILanguage newLanguage) {
+    protected void reloadedActive(ILanguageImpl oldLanguage, @SuppressWarnings("unused") ILanguageImpl newLanguage) {
         // Invalidate cached language resources
         for(ILanguageCache languageCache : languageCaches) {
             languageCache.invalidateCache(oldLanguage);
@@ -84,7 +84,7 @@ public class LanguageChangeProcessor implements ILanguageChangeProcessor {
         // Update editors
         final Iterable<IEditor> editors = editorRegistry.openEditors();
         for(IEditor editor : editors) {
-            final ILanguage editorLanguage = editor.language();
+            final ILanguageImpl editorLanguage = editor.language();
             if(editorLanguage == null || oldLanguage.equals(editorLanguage)) {
                 editor.reconfigure();
                 editor.forceUpdate();
@@ -92,7 +92,7 @@ public class LanguageChangeProcessor implements ILanguageChangeProcessor {
         }
     }
 
-    protected void removed(ILanguage language) {
+    protected void removed(ILanguageImpl language) {
         // Disable editors
         final Iterable<IEditor> editors = editorRegistry.openEditors();
         for(IEditor editor : editors) {

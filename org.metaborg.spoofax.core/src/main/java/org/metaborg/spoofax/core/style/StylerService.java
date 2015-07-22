@@ -4,7 +4,7 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.style.ICategory;
 import org.metaborg.core.style.IRegionCategory;
 import org.metaborg.core.style.IRegionStyle;
@@ -21,9 +21,9 @@ public class StylerService implements IStylerService<IStrategoTerm, IStrategoTer
     private static final Logger logger = LoggerFactory.getLogger(StylerService.class);
 
 
-    @Override public Iterable<IRegionStyle<IStrategoTerm>> styleParsed(ILanguage language,
+    @Override public Iterable<IRegionStyle<IStrategoTerm>> styleParsed(ILanguageImpl language,
         Iterable<IRegionCategory<IStrategoTerm>> categorization) {
-        final StylerFacet facet = language.facet(StylerFacet.class);
+        final StylerFacet facet = language.facets(StylerFacet.class);
         final List<IRegionStyle<IStrategoTerm>> regionStyles = Lists.newLinkedList();
         for(IRegionCategory<IStrategoTerm> regionCategory : categorization) {
             final IRegionStyle<IStrategoTerm> regionStyle = style(facet, regionCategory);
@@ -35,7 +35,7 @@ public class StylerService implements IStylerService<IStrategoTerm, IStrategoTer
         return regionStyles;
     }
 
-    @Override public Iterable<IRegionStyle<IStrategoTerm>> styleAnalyzed(ILanguage language,
+    @Override public Iterable<IRegionStyle<IStrategoTerm>> styleAnalyzed(ILanguageImpl language,
         Iterable<IRegionCategory<IStrategoTerm>> categorization) {
         throw new UnsupportedOperationException();
     }

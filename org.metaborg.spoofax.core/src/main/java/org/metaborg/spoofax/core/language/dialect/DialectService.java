@@ -7,8 +7,8 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgRuntimeException;
-import org.metaborg.core.language.ILanguage;
-import org.metaborg.core.language.ILanguageFacet;
+import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.language.IFacet;
 import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.IdentificationFacet;
 import org.metaborg.core.language.LanguageIdentifier;
@@ -33,9 +33,9 @@ public class DialectService implements IDialectService {
     private final Class<IdentificationFacet> identificationFacetClass = IdentificationFacet.class;
     private final Class<ResourceExtensionFacet> resourceExtensionFacetClass = ResourceExtensionFacet.class;
 
-    private final Map<String, ILanguage> nameToDialect = Maps.newHashMap();
-    private final Map<ILanguage, ILanguage> dialectToBase = Maps.newHashMap();
-    private final Multimap<ILanguage, ILanguage> baseLanguageToDialects = HashMultimap.create();
+    private final Map<String, ILanguageImpl> nameToDialect = Maps.newHashMap();
+    private final Map<ILanguageImpl, ILanguageImpl> dialectToBase = Maps.newHashMap();
+    private final Multimap<ILanguageImpl, ILanguageImpl> baseLanguageToDialects = HashMultimap.create();
 
 
     @Inject public DialectService(ILanguageService languageService) {
@@ -47,19 +47,19 @@ public class DialectService implements IDialectService {
         return nameToDialect.containsKey(name);
     }
 
-    @Override public @Nullable ILanguage getDialect(String name) {
+    @Override public @Nullable ILanguageImpl getDialect(String name) {
         return nameToDialect.get(name);
     }
 
-    @Override public Iterable<ILanguage> getDialects(ILanguage base) {
+    @Override public Iterable<ILanguageImpl> getDialects(ILanguageImpl base) {
         return baseLanguageToDialects.get(base);
     }
 
-    @Override public ILanguage getBase(ILanguage dialect) {
+    @Override public ILanguageImpl getBase(ILanguageImpl dialect) {
         return dialectToBase.get(dialect);
     }
 
-    @Override public ILanguage add(String name, FileObject location, ILanguage base, ILanguageFacet syntaxFacet) {
+    @Override public ILanguageImpl add(String name, FileObject location, ILanguageImpl base, IFacet syntaxFacet) {
         if(nameToDialect.containsKey(name)) {
             final String message = String.format("Dialect with name %s already exists", name);
             logger.error(message);
@@ -67,17 +67,17 @@ public class DialectService implements IDialectService {
         }
         logger.debug("Adding dialect {} from {} with {} as base", name, location, base);
         final LanguageIdentifier baseId = base.id();
-        final ILanguage dialect =
+        final ILanguageImpl dialect =
             languageService.create(new LanguageIdentifier(baseId.groupId, baseId.id + "-" + name, baseId.version),
                 location, name);
-        for(ILanguageFacet facet : base.facets()) {
+        for(IFacet facet : base.facets()) {
             if(ignoreFacet(facet.getClass())) {
                 continue;
             }
             dialect.addFacet(facet);
         }
         dialect.addFacet(syntaxFacet);
-        dialect.addFacet(new IdentificationFacet(new MetaFileIdentifier(base.facet(identificationFacetClass))));
+        dialect.addFacet(new IdentificationFacet(new MetaFileIdentifier(base.facets(identificationFacetClass))));
         // Add dialect before updating maps, adding can cause an exception; maps should not be updated.
         languageService.add(dialect);
         nameToDialect.put(name, dialect);
@@ -86,8 +86,8 @@ public class DialectService implements IDialectService {
         return dialect;
     }
 
-    @Override public ILanguage update(String name, ILanguageFacet syntaxFacet) {
-        final ILanguage dialect = nameToDialect.get(name);
+    @Override public ILanguageImpl update(String name, IFacet syntaxFacet) {
+        final ILanguageImpl dialect = nameToDialect.get(name);
         if(dialect == null) {
             final String message = String.format("Dialect with name %s does not exist", name);
             logger.error(message);
@@ -99,25 +99,25 @@ public class DialectService implements IDialectService {
         return dialect;
     }
 
-    @Override public Iterable<ILanguage> update(ILanguage oldBase, ILanguage newBase) {
-        final Collection<ILanguage> dialects = baseLanguageToDialects.get(oldBase);
+    @Override public Iterable<ILanguageImpl> update(ILanguageImpl oldBase, ILanguageImpl newBase) {
+        final Collection<ILanguageImpl> dialects = baseLanguageToDialects.get(oldBase);
         if(dialects.isEmpty()) {
             return dialects;
         }
         logger.debug("Updating base language for {} dialects", dialects.size());
-        final Collection<ILanguage> newDialects = Lists.newArrayListWithCapacity(dialects.size());
-        for(ILanguage dialect : dialects) {
+        final Collection<ILanguageImpl> newDialects = Lists.newArrayListWithCapacity(dialects.size());
+        for(ILanguageImpl dialect : dialects) {
             final String name = dialect.name();
-            final ILanguageFacet parserFacet = dialect.facet(syntaxFacetClass);
-            final ILanguage newDialect = languageService.create(dialect.id(), dialect.location(), name);
-            for(ILanguageFacet facet : newBase.facets()) {
+            final IFacet parserFacet = dialect.facets(syntaxFacetClass);
+            final ILanguageImpl newDialect = languageService.create(dialect.id(), dialect.location(), name);
+            for(IFacet facet : newBase.facets()) {
                 if(ignoreFacet(facet.getClass())) {
                     continue;
                 }
                 newDialect.addFacet(facet);
             }
             newDialect.addFacet(parserFacet);
-            dialect.addFacet(new IdentificationFacet(new MetaFileIdentifier(newBase.facet(identificationFacetClass))));
+            dialect.addFacet(new IdentificationFacet(new MetaFileIdentifier(newBase.facets(identificationFacetClass))));
             try {
                 // Add dialect before updating maps, adding can cause an exception; maps should not be updated.
                 // Adding reloads the dialect because location is the same, no need to remove old dialect.
@@ -137,15 +137,15 @@ public class DialectService implements IDialectService {
         return newDialects;
     }
 
-    @Override public ILanguage remove(String name) {
-        final ILanguage dialect = nameToDialect.remove(name);
+    @Override public ILanguageImpl remove(String name) {
+        final ILanguageImpl dialect = nameToDialect.remove(name);
         if(dialect == null) {
             final String message = String.format("Dialect with name %s does not exist", name);
             logger.error(message);
             throw new MetaborgRuntimeException(message);
         }
         logger.debug("Removing dialect {}", name);
-        final ILanguage base = dialectToBase.remove(dialect);
+        final ILanguageImpl base = dialectToBase.remove(dialect);
         baseLanguageToDialects.remove(base, dialect);
         try {
             // Remove dialect after updating maps, exception indicates that dialect has already been removed.
@@ -157,14 +157,14 @@ public class DialectService implements IDialectService {
         return dialect;
     }
 
-    @Override public Iterable<ILanguage> remove(ILanguage base) {
-        final Collection<ILanguage> dialects = baseLanguageToDialects.get(base);
+    @Override public Iterable<ILanguageImpl> remove(ILanguageImpl base) {
+        final Collection<ILanguageImpl> dialects = baseLanguageToDialects.get(base);
         if(dialects.isEmpty()) {
             return dialects;
         }
         logger.debug("Removing {} dialects for base language {}", dialects.size(), base);
-        final Collection<ILanguage> removedDialects = Lists.newArrayListWithCapacity(dialects.size());
-        for(ILanguage dialect : dialects) {
+        final Collection<ILanguageImpl> removedDialects = Lists.newArrayListWithCapacity(dialects.size());
+        for(ILanguageImpl dialect : dialects) {
             final String name = dialect.name();
             nameToDialect.remove(name);
             dialectToBase.remove(dialect);
@@ -183,7 +183,7 @@ public class DialectService implements IDialectService {
     }
 
 
-    private boolean ignoreFacet(Class<? extends ILanguageFacet> facetClass) {
+    private boolean ignoreFacet(Class<? extends IFacet> facetClass) {
         return facetClass.equals(syntaxFacetClass) || facetClass.equals(identificationFacetClass)
             || facetClass.equals(resourceExtensionFacetClass);
     }

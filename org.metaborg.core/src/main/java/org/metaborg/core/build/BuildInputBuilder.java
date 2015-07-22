@@ -9,7 +9,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSelector;
 import org.metaborg.core.build.dependency.IDependencyService;
 import org.metaborg.core.build.paths.ILanguagePathService;
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.IdentifiedResource;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.resource.ResourceChange;
@@ -34,10 +34,10 @@ public class BuildInputBuilder {
 
     private BuildState state;
 
-    private Collection<ILanguage> languages;
+    private Collection<ILanguageImpl> languages;
     private boolean addDependencyLanguages;
 
-    private Multimap<ILanguage, FileObject> includePaths;
+    private Multimap<ILanguageImpl, FileObject> includePaths;
     private boolean addDefaultIncludePaths;
 
     private Collection<ResourceChange> sourceChanges;
@@ -54,7 +54,7 @@ public class BuildInputBuilder {
 
     private @Nullable IBuildMessagePrinter messagePrinter;
     private boolean throwOnErrors;
-    private Set<ILanguage> pardonedLanguages;
+    private Set<ILanguageImpl> pardonedLanguages;
     private Set<String> pardonedLanguageStrings;
 
 
@@ -100,7 +100,7 @@ public class BuildInputBuilder {
     /**
      * Sets the languages to given languagues.
      */
-    public BuildInputBuilder withLanguages(Collection<ILanguage> languages) {
+    public BuildInputBuilder withLanguages(Collection<ILanguageImpl> languages) {
         this.languages = languages;
         return this;
     }
@@ -108,7 +108,7 @@ public class BuildInputBuilder {
     /**
      * Adds given languages.
      */
-    public BuildInputBuilder addLanguages(Iterable<ILanguage> languages) {
+    public BuildInputBuilder addLanguages(Iterable<ILanguageImpl> languages) {
         Iterables.addAll(this.languages, languages);
         return this;
     }
@@ -116,7 +116,7 @@ public class BuildInputBuilder {
     /**
      * Adds a single language.
      */
-    public BuildInputBuilder addLanguage(ILanguage language) {
+    public BuildInputBuilder addLanguage(ILanguageImpl language) {
         this.languages.add(language);
         return this;
     }
@@ -211,7 +211,7 @@ public class BuildInputBuilder {
     /**
      * Sets the include files to given files.
      */
-    public BuildInputBuilder withIncludePaths(Multimap<ILanguage, FileObject> includePaths) {
+    public BuildInputBuilder withIncludePaths(Multimap<ILanguageImpl, FileObject> includePaths) {
         this.includePaths = includePaths;
         return this;
     }
@@ -219,7 +219,7 @@ public class BuildInputBuilder {
     /**
      * Add given include files for given language.
      */
-    public BuildInputBuilder addIncludePaths(ILanguage language, Iterable<FileObject> includePaths) {
+    public BuildInputBuilder addIncludePaths(ILanguageImpl language, Iterable<FileObject> includePaths) {
         this.includePaths.putAll(language, includePaths);
         return this;
     }
@@ -311,7 +311,7 @@ public class BuildInputBuilder {
     /**
      * Set the pardoned languages from given set of pardoned languages.
      */
-    public BuildInputBuilder withPardonedLanguages(Set<ILanguage> pardonedLanguages) {
+    public BuildInputBuilder withPardonedLanguages(Set<ILanguageImpl> pardonedLanguages) {
         this.pardonedLanguages = pardonedLanguages;
         return this;
     }
@@ -327,7 +327,7 @@ public class BuildInputBuilder {
     /**
      * Adds a single pardoned language.
      */
-    public BuildInputBuilder addPardonedLanguage(ILanguage pardonedLanguage) {
+    public BuildInputBuilder addPardonedLanguage(ILanguageImpl pardonedLanguage) {
         this.pardonedLanguages.add(pardonedLanguage);
         return this;
     }
@@ -349,25 +349,25 @@ public class BuildInputBuilder {
             state = new BuildState();
         }
 
-        final Iterable<ILanguage> compileLanguages = dependencyService.compileDependencies(project);
+        final Iterable<ILanguageImpl> compileLanguages = dependencyService.compileDependencies(project);
         if(addDependencyLanguages) {
             addLanguages(compileLanguages);
         }
 
         if(addDefaultIncludePaths) {
-            for(ILanguage language : compileLanguages) {
+            for(ILanguageImpl language : compileLanguages) {
                 addIncludePaths(language, languagePathService.includePaths(project, language.name()));
             }
         }
 
         if(addSourcesFromDefaultSourceLocations) {
-            for(ILanguage language : compileLanguages) {
+            for(ILanguageImpl language : compileLanguages) {
                 final Iterable<IdentifiedResource> sources = languagePathService.sourceFiles(project, language);
                 addIdentifiedSources(sources);
             }
         }
 
-        for(ILanguage language : languages) {
+        for(ILanguageImpl language : languages) {
             if(pardonedLanguageStrings.contains(language.name())) {
                 addPardonedLanguage(language);
             }

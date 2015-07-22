@@ -12,7 +12,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.MetaborgRuntimeException;
 import org.metaborg.core.context.IContext;
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageCache;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.spoofax.core.stratego.strategies.ParseStrategoFileStrategy;
@@ -38,7 +38,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, ILanguag
     private final Set<IOperatorRegistry> strategoLibraries;
     private final ParseStrategoFileStrategy parseStrategoFileStrategy;
 
-    private final Map<ILanguage, HybridInterpreter> prototypes = new HashMap<ILanguage, HybridInterpreter>();
+    private final Map<ILanguageImpl, HybridInterpreter> prototypes = new HashMap<ILanguageImpl, HybridInterpreter>();
 
 
     @Inject public StrategoRuntimeService(IResourceService resourceService, ITermFactoryService termFactoryService,
@@ -51,7 +51,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, ILanguag
 
 
     @Override public HybridInterpreter runtime(IContext context) throws MetaborgException {
-        final ILanguage language = context.language();
+        final ILanguageImpl language = context.language();
         HybridInterpreter prototype = prototypes.get(language);
         if(prototype == null) {
             prototype = createPrototypeRuntime(language);
@@ -79,7 +79,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, ILanguag
         return createRuntime(new ImploderOriginTermFactory(termFactoryService.getGeneric()));
     }
 
-    @Override public void invalidateCache(ILanguage language) {
+    @Override public void invalidateCache(ILanguageImpl language) {
         logger.debug("Removing cached stratego runtime for {}", language);
         prototypes.remove(language);
     }
@@ -101,7 +101,7 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, ILanguag
         return interpreter;
     }
 
-    private HybridInterpreter createPrototypeRuntime(ILanguage language) throws MetaborgException {
+    private HybridInterpreter createPrototypeRuntime(ILanguageImpl language) throws MetaborgException {
         logger.debug("Creating prototype runtime for {}", language);
         final HybridInterpreter interpreter =
             createRuntime(new ImploderOriginTermFactory(termFactoryService.get(language)));
@@ -110,8 +110,8 @@ public class StrategoRuntimeService implements IStrategoRuntimeService, ILanguag
         return interpreter;
     }
 
-    private void loadCompilerFiles(HybridInterpreter interp, ILanguage lang) throws MetaborgException {
-        final StrategoFacet strategoFacet = lang.facet(StrategoFacet.class);
+    private void loadCompilerFiles(HybridInterpreter interp, ILanguageImpl lang) throws MetaborgException {
+        final StrategoFacet strategoFacet = lang.facets(StrategoFacet.class);
         final Iterable<FileObject> jars = strategoFacet.jarFiles();
         final Iterable<FileObject> ctrees = strategoFacet.ctreeFiles();
 

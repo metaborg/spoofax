@@ -4,7 +4,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.analysis.AnalysisFileResult;
 import org.metaborg.core.context.IContext;
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.syntax.ParseResult;
 import org.metaborg.core.transform.CompileGoal;
 import org.metaborg.core.transform.ITransformerGoal;
@@ -61,7 +61,7 @@ public class StrategoCompileTransformer implements IStrategoTransformerExecutor 
     }
 
     @Override public boolean available(ITransformerGoal goal, IContext context) {
-        final CompilerFacet facet = context.language().facet(CompilerFacet.class);
+        final CompilerFacet facet = context.language().facets(CompilerFacet.class);
         if(facet == null) {
             return false;
         }
@@ -72,8 +72,8 @@ public class StrategoCompileTransformer implements IStrategoTransformerExecutor 
     }
 
 
-    private String strategyName(ILanguage language) throws TransformerException {
-        final CompilerFacet facet = language.facet(CompilerFacet.class);
+    private String strategyName(ILanguageImpl language) throws TransformerException {
+        final CompilerFacet facet = language.facets(CompilerFacet.class);
         if(facet == null) {
             final String message = String.format("No compiler facet found for %s", language);
             logger.error(message);

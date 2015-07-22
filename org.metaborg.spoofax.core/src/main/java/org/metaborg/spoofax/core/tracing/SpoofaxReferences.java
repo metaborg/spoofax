@@ -9,7 +9,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.analysis.AnalysisFileResult;
 import org.metaborg.core.context.IContext;
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.resource.IResourceService;
 import org.metaborg.core.source.ISourceLocation;
 import org.metaborg.core.source.ISourceRegion;
@@ -62,8 +62,8 @@ public class SpoofaxReferences implements IReferenceResolver<IStrategoTerm, IStr
 
     @Override public @Nullable Resolution resolve(int offset, AnalysisFileResult<IStrategoTerm, IStrategoTerm> result)
         throws MetaborgException {
-        final ILanguage language = result.context.language();
-        final StrategoFacet facet = language.facet(StrategoFacet.class);
+        final ILanguageImpl language = result.context.language();
+        final StrategoFacet facet = language.facets(StrategoFacet.class);
         if(facet == null) {
             return null;
         }
@@ -112,8 +112,8 @@ public class SpoofaxReferences implements IReferenceResolver<IStrategoTerm, IStr
 
     @Override public Hover hover(int offset, AnalysisFileResult<IStrategoTerm, IStrategoTerm> result)
         throws MetaborgException {
-        final ILanguage language = result.context.language();
-        final StrategoFacet facet = language.facet(StrategoFacet.class);
+        final ILanguageImpl language = result.context.language();
+        final StrategoFacet facet = language.facets(StrategoFacet.class);
         if(facet == null) {
             return null;
         }
@@ -153,7 +153,7 @@ public class SpoofaxReferences implements IReferenceResolver<IStrategoTerm, IStr
 
         final FileObject resource = result.source;
         final IContext context = result.context;
-        final ILanguage language = context.language();
+        final ILanguageImpl language = context.language();
         final ITermFactory termFactory = termFactoryService.get(language);
 
         final HybridInterpreter runtime = strategoRuntimeService.runtime(context);

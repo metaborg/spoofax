@@ -3,7 +3,7 @@ package org.metaborg.core.context;
 import java.io.Serializable;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 
 import com.google.inject.Injector;
 
@@ -21,7 +21,7 @@ public interface IContext extends Serializable {
     /**
      * @return Language of this context.
      */
-    public abstract ILanguage language();
+    public abstract ILanguageImpl language();
 
     /**
      * @return Identifier of this context.

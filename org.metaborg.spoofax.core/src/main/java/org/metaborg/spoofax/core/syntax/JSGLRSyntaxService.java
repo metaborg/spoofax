@@ -6,7 +6,7 @@ import java.util.Map;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageCache;
 import org.metaborg.core.language.dialect.IDialectService;
 import org.metaborg.core.messages.IMessage;
@@ -34,7 +34,7 @@ public class JSGLRSyntaxService implements ISyntaxService<IStrategoTerm>, ILangu
     private final IDialectService dialectService;
     private final ITermFactoryService termFactoryService;
 
-    private final Map<ILanguage, IParserConfig> parserConfigs = Maps.newHashMap();
+    private final Map<ILanguageImpl, IParserConfig> parserConfigs = Maps.newHashMap();
 
 
     @Inject public JSGLRSyntaxService(IDialectService dialectService, ITermFactoryService termFactoryService) {
@@ -43,12 +43,12 @@ public class JSGLRSyntaxService implements ISyntaxService<IStrategoTerm>, ILangu
     }
 
 
-    @Override public ParseResult<IStrategoTerm> parse(String text, FileObject resource, ILanguage language,
+    @Override public ParseResult<IStrategoTerm> parse(String text, FileObject resource, ILanguageImpl language,
         @Nullable IParserConfiguration parserConfig) throws ParseException {
         final IParserConfig config = getParserConfig(language);
         try {
             logger.trace("Parsing {}", resource);
-            final ILanguage base = dialectService.getBase(language);
+            final ILanguageImpl base = dialectService.getBase(language);
             final JSGLRI parser;
             if(base != null) {
                 parser = new JSGLRI(config, termFactoryService.get(language), base, language, resource, text);
@@ -61,39 +61,39 @@ public class JSGLRSyntaxService implements ISyntaxService<IStrategoTerm>, ILangu
         }
     }
 
-    @Override public String unparse(IStrategoTerm parsed, ILanguage language) {
+    @Override public String unparse(IStrategoTerm parsed, ILanguageImpl language) {
         throw new NotImplementedException();
     }
 
 
-    @Override public Iterable<String> singleLineCommentPrefixes(ILanguage language) {
-        final SyntaxFacet facet = language.facet(SyntaxFacet.class);
+    @Override public Iterable<String> singleLineCommentPrefixes(ILanguageImpl language) {
+        final SyntaxFacet facet = language.facets(SyntaxFacet.class);
         return facet.singleLineCommentPrefixes;
     }
 
-    @Override public Iterable<MultiLineCommentCharacters> multiLineCommentCharacters(ILanguage language) {
-        final SyntaxFacet facet = language.facet(SyntaxFacet.class);
+    @Override public Iterable<MultiLineCommentCharacters> multiLineCommentCharacters(ILanguageImpl language) {
+        final SyntaxFacet facet = language.facets(SyntaxFacet.class);
         return facet.multiLineCommentCharacters;
     }
 
-    @Override public Iterable<FenceCharacters> fenceCharacters(ILanguage language) {
-        final SyntaxFacet facet = language.facet(SyntaxFacet.class);
+    @Override public Iterable<FenceCharacters> fenceCharacters(ILanguageImpl language) {
+        final SyntaxFacet facet = language.facets(SyntaxFacet.class);
         return facet.fenceCharacters;
     }
 
 
-    @Override public void invalidateCache(ILanguage language) {
+    @Override public void invalidateCache(ILanguageImpl language) {
         logger.debug("Removing cached parse table for {}", language);
         parserConfigs.remove(language);
     }
 
 
-    public IParserConfig getParserConfig(ILanguage lang) {
+    public IParserConfig getParserConfig(ILanguageImpl lang) {
         IParserConfig config = parserConfigs.get(lang);
         if(config == null) {
             final ITermFactory termFactory =
                 termFactoryService.getGeneric().getFactoryWithStorageType(IStrategoTerm.MUTABLE);
-            final SyntaxFacet facet = lang.facet(SyntaxFacet.class);
+            final SyntaxFacet facet = lang.facets(SyntaxFacet.class);
             final IParseTableProvider provider = new FileParseTableProvider(facet.parseTable, termFactory);
             config = new ParserConfig(Iterables.get(facet.startSymbols, 0), provider);
             parserConfigs.put(lang, config);
@@ -102,8 +102,8 @@ public class JSGLRSyntaxService implements ISyntaxService<IStrategoTerm>, ILangu
     }
 
 
-    @Override public ParseResult<IStrategoTerm> emptyParseResult(FileObject resource, ILanguage language,
-        @Nullable ILanguage dialect) {
+    @Override public ParseResult<IStrategoTerm> emptyParseResult(FileObject resource, ILanguageImpl language,
+        @Nullable ILanguageImpl dialect) {
         return new ParseResult<IStrategoTerm>("", termFactoryService.getGeneric().makeTuple(), resource,
             Iterables2.<IMessage>empty(), -1, language, dialect, null);
     }

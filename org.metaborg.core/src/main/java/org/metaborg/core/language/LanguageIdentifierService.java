@@ -31,8 +31,8 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
     }
 
 
-    @Override public boolean identify(FileObject resource, ILanguage language) {
-        final IdentificationFacet identification = language.facet(IdentificationFacet.class);
+    @Override public boolean identify(FileObject resource, ILanguageImpl language) {
+        final IdentificationFacet identification = language.facets(IdentificationFacet.class);
         if(identification == null) {
             logger.error("Cannot identify resources of {}, language does not have an identification facet", language);
             return false;
@@ -40,7 +40,7 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
         return identification.identify(resource);
     }
 
-    @Override public @Nullable ILanguage identify(FileObject resource) {
+    @Override public @Nullable ILanguageImpl identify(FileObject resource) {
         return identify(resource, languageService.getAllActive());
     }
 
@@ -48,7 +48,7 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
         return identifyToResource(resource, languageService.getAllActive());
     }
 
-    @Override public @Nullable ILanguage identify(FileObject resource, Iterable<ILanguage> languages) {
+    @Override public @Nullable ILanguageImpl identify(FileObject resource, Iterable<ILanguageImpl> languages) {
         final IdentifiedResource identified = identifyToResource(resource, languages);
         if(identified == null) {
             return null;
@@ -57,7 +57,7 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
     }
 
     @Override public @Nullable IdentifiedResource
-        identifyToResource(FileObject resource, Iterable<ILanguage> languages) {
+        identifyToResource(FileObject resource, Iterable<ILanguageImpl> languages) {
         // Ignore directories.
         try {
             if(resource.getType() == FileType.FOLDER) {
@@ -82,8 +82,8 @@ public class LanguageIdentifierService implements ILanguageIdentifierService {
 
         // Identify using identification facet.
         final Set<String> identifiedLanguageNames = Sets.newLinkedHashSet();
-        ILanguage identifiedLanguage = null;
-        for(ILanguage language : languages) {
+        ILanguageImpl identifiedLanguage = null;
+        for(ILanguageImpl language : languages) {
             if(identify(resource, language)) {
                 identifiedLanguageNames.add(language.name());
                 identifiedLanguage = language;

@@ -6,7 +6,7 @@ import org.metaborg.core.MetaborgException;
 import org.metaborg.core.completion.Completion;
 import org.metaborg.core.completion.ICompletion;
 import org.metaborg.core.completion.ICompletionService;
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.syntax.IParserConfiguration;
 import org.metaborg.core.syntax.ISyntaxService;
 import org.metaborg.core.syntax.ParseException;
@@ -33,8 +33,8 @@ public class JSGLRCompletionService implements ICompletionService {
 
 
     @Override public Iterable<ICompletion> get(ParseResult<?> parseResult, int position) throws MetaborgException {
-        final ILanguage language = parseResult.language;
-        final CompletionFacet facet = language.facet(CompletionFacet.class);
+        final ILanguageImpl language = parseResult.language;
+        final CompletionFacet facet = language.facets(CompletionFacet.class);
         if(facet == null) {
             final String message =
                 String.format("Cannot get completions of %s, it does not have a completion facet", language);

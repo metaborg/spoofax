@@ -1,0 +1,105 @@
+package org.metaborg.core.language;
+
+import java.util.Collection;
+
+import org.apache.commons.vfs2.FileObject;
+
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
+
+public class LanguageComponent implements ILanguageComponentInternal {
+    private final LanguageIdentifier id;
+    private final FileObject location;
+    private final int sequenceId;
+    private final Iterable<ILanguageImplInternal> contributesTo;
+
+    private final Multimap<Class<? extends IFacet>, IFacet> facets = ArrayListMultimap.create();
+
+
+    public LanguageComponent(LanguageIdentifier identifier, FileObject location, int sequenceId,
+        Iterable<ILanguageImplInternal> contributesTo, Iterable<? extends IFacet> facets) {
+        this.id = identifier;
+        this.location = location;
+        this.sequenceId = sequenceId;
+        this.contributesTo = contributesTo;
+        for(IFacet facet : facets) {
+            this.facets.put(facet.getClass(), facet);
+        }
+    }
+
+
+    @Override public LanguageIdentifier id() {
+        return id;
+    }
+
+    @Override public FileObject location() {
+        return location;
+    }
+
+    @Override public int sequenceId() {
+        return sequenceId;
+    }
+
+
+    @Override public Iterable<? extends ILanguageImpl> contributesTo() {
+        return contributesTo;
+    }
+
+    @Override public Iterable<? extends ILanguageImplInternal> contributesToInternal() {
+        return contributesTo;
+    }
+
+
+    @Override public Iterable<IFacet> facets() {
+        return facets.values();
+    }
+
+    @Override public Iterable<FacetContribution<IFacet>> facetContributions() {
+        final Collection<FacetContribution<IFacet>> contributions = Lists.newLinkedList();
+        for(IFacet facet : facets()) {
+            contributions.add(new FacetContribution<IFacet>(facet, this));
+        }
+        return contributions;
+    }
+
+    @SuppressWarnings("unchecked") @Override public <T extends IFacet> Iterable<T> facets(Class<T> type) {
+        return (Iterable<T>) facets.get(type);
+    }
+
+    @Override public <T extends IFacet> Iterable<FacetContribution<T>> facetContributions(Class<T> type) {
+        final Collection<FacetContribution<T>> contributions = Lists.newLinkedList();
+        for(T facet : facets(type)) {
+            contributions.add(new FacetContribution<T>(facet, this));
+        }
+        return contributions;
+    }
+
+
+    @Override public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + id.hashCode();
+        result = prime * result + location.hashCode();
+        return result;
+    }
+
+    @Override public boolean equals(Object obj) {
+        if(this == obj)
+            return true;
+        if(obj == null)
+            return false;
+        if(getClass() != obj.getClass())
+            return false;
+        final LanguageComponent other = (LanguageComponent) obj;
+        if(!id.equals(other.id))
+            return false;
+        if(!location.equals(other.location))
+            return false;
+        return true;
+    }
+
+    @Override public String toString() {
+        return "language comp. " + id + "@" + location;
+    }
+}

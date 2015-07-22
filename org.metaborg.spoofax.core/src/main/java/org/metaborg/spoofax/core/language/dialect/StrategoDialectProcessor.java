@@ -5,7 +5,7 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSelector;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.MetaborgRuntimeException;
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.LanguageChange;
 import org.metaborg.core.language.dialect.IDialectProcessor;
@@ -49,12 +49,12 @@ public class StrategoDialectProcessor implements IDialectProcessor {
         
         logger.debug("Processing dialect updates for " + project.location());
 
-        final ILanguage strategoLanguage = languageService.get(SpoofaxProjectConstants.LANG_STRATEGO_NAME);
+        final ILanguageImpl strategoLanguage = languageService.get(SpoofaxProjectConstants.LANG_STRATEGO_NAME);
         if(strategoLanguage == null) {
             logger.debug("Could not find Stratego language, Stratego dialects cannot be updated.");
             return;
         }
-        final SyntaxFacet baseFacet = strategoLanguage.facet(SyntaxFacet.class);
+        final SyntaxFacet baseFacet = strategoLanguage.facets(SyntaxFacet.class);
 
         for(ResourceChange change : changes) {
             final FileObject resource = change.resource;

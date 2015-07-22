@@ -5,7 +5,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.language.ILanguageFacet;
+import org.metaborg.core.language.IFacet;
 import org.metaborg.core.resource.ResourceService;
 import org.metaborg.core.syntax.FenceCharacters;
 import org.metaborg.core.syntax.MultiLineCommentCharacters;
@@ -14,7 +14,7 @@ import org.metaborg.util.iterators.Iterables2;
 /**
  * Represents the syntax (or parsing) facet of a language.
  */
-public class SyntaxFacet implements ILanguageFacet {
+public class SyntaxFacet implements IFacet {
     private static final long serialVersionUID = 2342326101518124130L;
 
     public transient FileObject parseTable;

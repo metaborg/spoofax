@@ -3,7 +3,7 @@ package org.metaborg.spoofax.core.style;
 import java.util.List;
 
 import org.metaborg.core.analysis.AnalysisFileResult;
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.source.ISourceRegion;
 import org.metaborg.core.style.ICategorizerService;
 import org.metaborg.core.style.ICategory;
@@ -33,14 +33,14 @@ public class CategorizerService implements ICategorizerService<IStrategoTerm, IS
     }
 
 
-    @Override public Iterable<IRegionCategory<IStrategoTerm>> categorize(ILanguage language,
+    @Override public Iterable<IRegionCategory<IStrategoTerm>> categorize(ILanguageImpl language,
         ParseResult<IStrategoTerm> parseResult) {
         if(parseResult.result == null) {
             logger.error("Cannot categorize input of {}, parse result is empty", language);
             // GTODO: throw exception instead
             return Iterables2.empty();
         }
-        final StylerFacet facet = language.facet(StylerFacet.class);
+        final StylerFacet facet = language.facets(StylerFacet.class);
         if(facet == null) {
             logger.error("Cannot categorize input of {}, it does not have a styler facet", language);
             // GTODO: throw exception instead
@@ -73,7 +73,7 @@ public class CategorizerService implements ICategorizerService<IStrategoTerm, IS
         return regionCategories;
     }
 
-    @Override public Iterable<IRegionCategory<IStrategoTerm>> categorize(ILanguage language,
+    @Override public Iterable<IRegionCategory<IStrategoTerm>> categorize(ILanguageImpl language,
         AnalysisFileResult<IStrategoTerm, IStrategoTerm> analysisResult) {
         throw new UnsupportedOperationException();
     }

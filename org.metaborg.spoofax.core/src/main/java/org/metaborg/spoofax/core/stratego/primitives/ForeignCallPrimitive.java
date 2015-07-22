@@ -3,7 +3,7 @@ package org.metaborg.spoofax.core.stratego.primitives;
 import org.metaborg.core.MetaborgException;
 import org.metaborg.core.context.ContextException;
 import org.metaborg.core.context.IContextService;
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageService;
 import org.metaborg.spoofax.core.stratego.IStrategoRuntimeService;
 import org.metaborg.spoofax.core.stratego.StrategoRuntimeUtils;
@@ -38,7 +38,7 @@ public class ForeignCallPrimitive extends AbstractPrimitive {
         final String languageName = Tools.asJavaString(terms[0]);
         final String strategyName = Tools.asJavaString(terms[1]);
 
-        final ILanguage language = languageService.get(languageName);
+        final ILanguageImpl language = languageService.get(languageName);
         if(language == null) {
             final String message =
                 String.format("Foreign call of '%s' into language %s failed, language could not be found",

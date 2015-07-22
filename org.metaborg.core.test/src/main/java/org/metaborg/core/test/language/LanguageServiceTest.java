@@ -10,8 +10,8 @@ import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.junit.Test;
 import org.metaborg.core.language.DescriptionFacet;
-import org.metaborg.core.language.ILanguage;
-import org.metaborg.core.language.ILanguageFacet;
+import org.metaborg.core.language.ILanguageImpl;
+import org.metaborg.core.language.IFacet;
 import org.metaborg.core.language.IdentificationFacet;
 import org.metaborg.core.language.Language;
 import org.metaborg.core.language.LanguageChange;
@@ -47,30 +47,30 @@ public class LanguageServiceTest extends MetaborgTest {
         return file;
     }
 
-    private ILanguage language(String groupId, String id, LanguageVersion version, FileObject location, String name) {
+    private ILanguageImpl language(String groupId, String id, LanguageVersion version, FileObject location, String name) {
         return language(new LanguageIdentifier(groupId, id, version), location, name);
     }
 
-    private ILanguage language(LanguageIdentifier identifier, FileObject location, String name) {
-        final ILanguage language = languageService.create(identifier, location, name);
+    private ILanguageImpl language(LanguageIdentifier identifier, FileObject location, String name) {
+        final ILanguageImpl language = languageService.create(identifier, location, name);
         languageService.add(language);
         return language;
     }
 
-    private ILanguage language(String groupId, String id, LanguageVersion version, FileObject location, String name,
+    private ILanguageImpl language(String groupId, String id, LanguageVersion version, FileObject location, String name,
         String... extensions) {
         return language(new LanguageIdentifier(groupId, id, version), location, name, extensions);
     }
 
-    private ILanguage language(LanguageIdentifier identifier, FileObject location, String name, String... extensions) {
-        final ILanguage language = language(identifier, location, name);
+    private ILanguageImpl language(LanguageIdentifier identifier, FileObject location, String name, String... extensions) {
+        final ILanguageImpl language = language(identifier, location, name);
         final IdentificationFacet identificationFacet =
             new IdentificationFacet(new ResourceExtensionsIdentifier(Iterables2.from(extensions)));
         language.addFacet(identificationFacet);
         return language;
     }
 
-    private void removeLanguage(ILanguage language) {
+    private void removeLanguage(ILanguageImpl language) {
         languageService.remove(language);
     }
 
@@ -82,7 +82,7 @@ public class LanguageServiceTest extends MetaborgTest {
         final FileObject location = createDirectory("ram:///");
         final String name = "Entity";
 
-        final ILanguage language = language(identifier, location, name);
+        final ILanguageImpl language = language(identifier, location, name);
 
         assertEquals(language, languageService.get(identifier));
         assertSame(language, languageService.get(identifier));
@@ -113,9 +113,9 @@ public class LanguageServiceTest extends MetaborgTest {
         final String name2 = "Entity2";
         final String name3 = "Entity3";
 
-        final ILanguage language1 = language(identifier1, location1, name1);
-        final ILanguage language2 = language(identifier2, location2, name2);
-        final ILanguage language3 = language(identifier3, location3, name3);
+        final ILanguageImpl language1 = language(identifier1, location1, name1);
+        final ILanguageImpl language2 = language(identifier2, location2, name2);
+        final ILanguageImpl language3 = language(identifier3, location3, name3);
 
         assertEquals(language1, languageService.get(identifier1));
         assertSame(language1, languageService.get(identifier1));
@@ -161,14 +161,14 @@ public class LanguageServiceTest extends MetaborgTest {
         final FileObject location2 = createDirectory("ram:///Entity2");
         final String name = "Entity";
 
-        final ILanguage language1 = language(identifier1, location1, name);
+        final ILanguageImpl language1 = language(identifier1, location1, name);
 
         assertEquals(language1, languageService.get(identifier1));
         assertEquals(language1, languageService.get(groupId, id));
         assertEquals(language1, languageService.get(location1.getName()));
         assertEquals(language1, languageService.get(name));
 
-        final ILanguage language2 = language(identifier2, location2, name);
+        final ILanguageImpl language2 = language(identifier2, location2, name);
 
         // Language 2 with higher version number becomes active.
         assertEquals(language1, languageService.get(identifier1));
@@ -194,14 +194,14 @@ public class LanguageServiceTest extends MetaborgTest {
         final FileObject location2 = createDirectory("ram:///Entity2/");
         final String name = "Entity";
 
-        final ILanguage language1 = language(identifier1, location1, name);
+        final ILanguageImpl language1 = language(identifier1, location1, name);
 
         assertEquals(language1, languageService.get(identifier1));
         assertEquals(language1, languageService.get(groupId, id));
         assertEquals(language1, languageService.get(location1.getName()));
         assertEquals(language1, languageService.get(name));
 
-        final ILanguage language2 = language(identifier2, location2, name);
+        final ILanguageImpl language2 = language(identifier2, location2, name);
 
         // Language 1 with higher version number stays active.
         assertEquals(language1, languageService.get(identifier1));
@@ -226,18 +226,18 @@ public class LanguageServiceTest extends MetaborgTest {
         final FileObject location4 = createDirectory("ram:///Entity3");
         final String name = "Entity";
 
-        final ILanguage language1 = language(groupId, id, version, location1, name);
+        final ILanguageImpl language1 = language(groupId, id, version, location1, name);
         assertEquals(language1, languageService.get(name));
-        final ILanguage language2 = language(groupId, id, version, location2, name);
+        final ILanguageImpl language2 = language(groupId, id, version, location2, name);
         assertEquals(language2, languageService.get(name));
-        final ILanguage language3 = language(groupId, id, version, location3, name);
+        final ILanguageImpl language3 = language(groupId, id, version, location3, name);
         assertEquals(language3, languageService.get(name));
 
         languageService.remove(language3);
         assertEquals(language2, languageService.get(name));
         languageService.remove(language1);
         assertEquals(language2, languageService.get(name));
-        final ILanguage language4 = language(groupId, id, version, location4, name);
+        final ILanguageImpl language4 = language(groupId, id, version, location4, name);
         assertEquals(language4, languageService.get(name));
         languageService.remove(language4);
         assertEquals(language2, languageService.get(name));
@@ -251,7 +251,7 @@ public class LanguageServiceTest extends MetaborgTest {
         final FileObject location = createDirectory("ram:///");
         final String name = "Entity";
 
-        ILanguage language = language(groupId, id, version, location, name);
+        ILanguageImpl language = language(groupId, id, version, location, name);
 
         assertEquals(language, languageService.get(name));
 
@@ -266,16 +266,16 @@ public class LanguageServiceTest extends MetaborgTest {
         final FileObject location1 = createDirectory("ram:///Entity1");
         final FileObject location2 = createDirectory("ram:///Entity2");
 
-        final ILanguage language1 =
+        final ILanguageImpl language1 =
             language(groupId, "org.metaborg.lang.entity1", version, location1, "Entity1", "ent1");
-        final ILanguage language2 =
+        final ILanguageImpl language2 =
             language(groupId, "org.metaborg.lang.entity2", version, location2, "Entity2", "ent2");
 
-        final IdentificationFacet identificationFacet1 = language1.facet(IdentificationFacet.class);
+        final IdentificationFacet identificationFacet1 = language1.facets(IdentificationFacet.class);
         assertTrue(identificationFacet1.identify(resourceService.resolve("ram:///Entity1/test.ent1")));
         assertFalse(identificationFacet1.identify(resourceService.resolve("ram:///Entity2/test.ent2")));
 
-        final IdentificationFacet identificationFacet2 = language2.facet(IdentificationFacet.class);
+        final IdentificationFacet identificationFacet2 = language2.facets(IdentificationFacet.class);
         assertTrue(identificationFacet2.identify(resourceService.resolve("ram:///Entity2/test.ent2")));
         assertFalse(identificationFacet2.identify(resourceService.resolve("ram:///Entity1/test.ent1")));
     }
@@ -295,7 +295,7 @@ public class LanguageServiceTest extends MetaborgTest {
 
 
         // Add language, expect ADD_FIRST and ADD.
-        final ILanguage language1 = language(groupId, id, version1, location1, name);
+        final ILanguageImpl language1 = language(groupId, id, version1, location1, name);
         final TimestampedNotification<LanguageChange> language1Load = languageObserver.poll();
         final TimestampedNotification<LanguageChange> language1Add = languageObserver.poll();
         assertTrue(language1Load.notification.isOnNext());
@@ -307,7 +307,7 @@ public class LanguageServiceTest extends MetaborgTest {
 
         // Create and remove facet, expect ADD and REMOVE.
         language1.facetChanges().subscribe(facetObserver);
-        final ILanguageFacet facet = language1.addFacet(new DescriptionFacet("Entity language", null));
+        final IFacet facet = language1.addFacet(new DescriptionFacet("Entity language", null));
         final TimestampedNotification<LanguageFacetChange> addedFacet = facetObserver.poll();
         assertTrue(addedFacet.notification.isOnNext());
         assertEquals(new LanguageFacetChange(facet, LanguageFacetChange.Kind.ADD), addedFacet.notification.getValue());
@@ -320,7 +320,7 @@ public class LanguageServiceTest extends MetaborgTest {
 
 
         // Add language2 with same name and version, but different location. Expect ADD and REPLACE_ACTIVE.
-        final ILanguage language2 = language(groupId, id, version1, location2, name);
+        final ILanguageImpl language2 = language(groupId, id, version1, location2, name);
         final TimestampedNotification<LanguageChange> language2Add = languageObserver.poll();
         final TimestampedNotification<LanguageChange> language2Replace = languageObserver.poll();
         assertTrue(language2Add.notification.isOnNext());
@@ -331,7 +331,7 @@ public class LanguageServiceTest extends MetaborgTest {
 
 
         // Add language2 again, expect RELOAD_ACTIVE.
-        final ILanguage language2Again = language(groupId, id, version1, location2, name);
+        final ILanguageImpl language2Again = language(groupId, id, version1, location2, name);
         final TimestampedNotification<LanguageChange> language2ReloadActive = languageObserver.poll();
         assertEquals(language2, language2Again);
         assertNotSame(language2, language2Again);
@@ -343,7 +343,7 @@ public class LanguageServiceTest extends MetaborgTest {
 
 
         // Add language3 with same name, but higher version and different location. Expect ADD and REPLACE_ACTIVE.
-        final ILanguage language3 = language(groupId, id, version2, location3, name);
+        final ILanguageImpl language3 = language(groupId, id, version2, location3, name);
         final TimestampedNotification<LanguageChange> language3Add = languageObserver.poll();
         final TimestampedNotification<LanguageChange> language3Replace = languageObserver.poll();
         assertTrue(language3Add.notification.isOnNext());
@@ -354,7 +354,7 @@ public class LanguageServiceTest extends MetaborgTest {
 
 
         // Add language2 again, expect RELOAD.
-        final ILanguage language2AgainAgain = language(groupId, id, version1, location2, name);
+        final ILanguageImpl language2AgainAgain = language(groupId, id, version1, location2, name);
         final TimestampedNotification<LanguageChange> language2Reload = languageObserver.poll();
         assertEquals(language2Again, language2AgainAgain);
         assertNotSame(language2Again, language2AgainAgain);
@@ -424,7 +424,7 @@ public class LanguageServiceTest extends MetaborgTest {
         final LanguageVersion version = version(0, 0, 1);
         final FileObject location = createDirectory("ram:///");
 
-        final ILanguage language = language(groupId, "org.metaborg.lang.entity", version, location, "Entity");
+        final ILanguageImpl language = language(groupId, "org.metaborg.lang.entity", version, location, "Entity");
         language.addFacet(new DescriptionFacet("Entity language", null));
         language.addFacet(new DescriptionFacet("Entity language", null));
     }
@@ -448,7 +448,7 @@ public class LanguageServiceTest extends MetaborgTest {
         final LanguageVersion version = version(0, 0, 1);
         final FileObject location = createDirectory("ram:///");
 
-        final ILanguage language = language(groupId, "org.metaborg.lang.entity", version, location, "Entity");
+        final ILanguageImpl language = language(groupId, "org.metaborg.lang.entity", version, location, "Entity");
         language.removeFacet(DescriptionFacet.class);
     }
 }

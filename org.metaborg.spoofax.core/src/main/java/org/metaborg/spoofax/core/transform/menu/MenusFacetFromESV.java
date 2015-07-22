@@ -1,6 +1,6 @@
 package org.metaborg.spoofax.core.transform.menu;
 
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.spoofax.core.esv.ESVReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +12,7 @@ public class MenusFacetFromESV {
     private static final Logger logger = LoggerFactory.getLogger(MenusFacetFromESV.class);
 
 
-    public static MenusFacet create(IStrategoAppl esv, ILanguage inputLanguage) {
+    public static MenusFacet create(IStrategoAppl esv, ILanguageImpl inputLanguage) {
         final Iterable<IStrategoAppl> menuTerms = ESVReader.collectTerms(esv, "ToolbarMenu");
         final MenusFacet facet = new MenusFacet();
         for(IStrategoAppl menuTerm : menuTerms) {
@@ -22,7 +22,7 @@ public class MenusFacetFromESV {
         return facet;
     }
 
-    private static Menu menu(IStrategoTerm menuTerm, ActionFlags flags, ILanguage inputLanguage) {
+    private static Menu menu(IStrategoTerm menuTerm, ActionFlags flags, ILanguageImpl inputLanguage) {
         final String name = name(menuTerm.getSubterm(0));
         final ActionFlags extraFlags = flags(menuTerm.getSubterm(1));
         final ActionFlags mergedFlags = ActionFlags.merge(flags, extraFlags);
@@ -65,7 +65,7 @@ public class MenusFacetFromESV {
         return ESVReader.termContents(term);
     }
 
-    private static Action action(IStrategoTerm action, ActionFlags flags, ILanguage inputLanguage) {
+    private static Action action(IStrategoTerm action, ActionFlags flags, ILanguageImpl inputLanguage) {
         final String name = name(action.getSubterm(0));
         final String stategy = Tools.asJavaString(action.getSubterm(1).getSubterm(0));
         final ActionFlags extraFlags = flags(action.getSubterm(2));

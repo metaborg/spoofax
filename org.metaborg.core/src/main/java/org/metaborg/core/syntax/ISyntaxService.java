@@ -3,7 +3,7 @@ package org.metaborg.core.syntax;
 import javax.annotation.Nullable;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 
 /**
  * Interface for parsing, unparsing, and retrieving origin information.
@@ -27,7 +27,7 @@ public interface ISyntaxService<T> {
      * @throws ParseException
      *             when parsing fails unexpectedly.
      */
-    public abstract ParseResult<T> parse(String text, FileObject resource, ILanguage language,
+    public abstract ParseResult<T> parse(String text, FileObject resource, ILanguageImpl language,
         @Nullable IParserConfiguration parserConfig) throws ParseException;
 
     /**
@@ -39,27 +39,27 @@ public interface ISyntaxService<T> {
      *            Language to unparse with.
      * @return Unparsed string.
      */
-    public abstract String unparse(T parsed, ILanguage language);
+    public abstract String unparse(T parsed, ILanguageImpl language);
 
 
     /**
      * @return Single line comment prefix characters for given language.
      */
-    public abstract Iterable<String> singleLineCommentPrefixes(ILanguage language);
+    public abstract Iterable<String> singleLineCommentPrefixes(ILanguageImpl language);
 
     /**
      * @return Multi line comment prefix and postfix characters for given language.
      */
-    public abstract Iterable<MultiLineCommentCharacters> multiLineCommentCharacters(ILanguage language);
+    public abstract Iterable<MultiLineCommentCharacters> multiLineCommentCharacters(ILanguageImpl language);
 
     /**
      * @return Fence (brackets, parentheses, etc.) open and close characters for given language.
      */
-    public abstract Iterable<FenceCharacters> fenceCharacters(ILanguage language);
+    public abstract Iterable<FenceCharacters> fenceCharacters(ILanguageImpl language);
 
     /**
      * @return Empty parse result for given resource, language, and optionally a dialect.
      */
     public abstract ParseResult<T>
-        emptyParseResult(FileObject resource, ILanguage language, @Nullable ILanguage dialect);
+        emptyParseResult(FileObject resource, ILanguageImpl language, @Nullable ILanguageImpl dialect);
 }

@@ -6,7 +6,7 @@ import java.util.List;
 import org.apache.commons.vfs2.FileObject;
 import org.apache.commons.vfs2.FileSystemException;
 import org.metaborg.core.build.paths.ILanguagePathService;
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.project.IProject;
 import org.metaborg.core.project.IProjectService;
@@ -57,7 +57,7 @@ public class LanguageSourceLocationsPrimitive extends AbstractPrimitive {
             return true;
         }
 
-        final ILanguage language = languageService.get(languageName);
+        final ILanguageImpl language = languageService.get(languageName);
         final Iterable<FileObject> sourceLocations = languagePathService.sourcePaths(project, language.name());
         final List<IStrategoTerm> terms = Lists.newArrayList();
         for(FileObject sourceLocation : sourceLocations) {

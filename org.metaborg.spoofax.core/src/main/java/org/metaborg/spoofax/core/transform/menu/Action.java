@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 import javax.annotation.Nullable;
 
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 
 public class Action implements Serializable {
     private static final long serialVersionUID = 727107590910189637L;
@@ -16,11 +16,11 @@ public class Action implements Serializable {
     /**
      * Language of input terms this builder accepts, or null if it accepts any terms.
      */
-    @Nullable public final ILanguage inputLangauge;
+    @Nullable public final ILanguageImpl inputLangauge;
     /**
      * Language of output terms this builder creates, or null if unknown.
      */
-    @Nullable public final ILanguage outputLanguage;
+    @Nullable public final ILanguageImpl outputLanguage;
     /**
      * Name of the Stratego strategy this action executes.
      */
@@ -45,7 +45,7 @@ public class Action implements Serializable {
      * @param flags
      *            Flags for this action.
      */
-    public Action(String name, @Nullable ILanguage inputLanguage, @Nullable ILanguage outputLanguage, String strategy,
+    public Action(String name, @Nullable ILanguageImpl inputLanguage, @Nullable ILanguageImpl outputLanguage, String strategy,
         ActionFlags flags) {
         this.name = name;
         this.inputLangauge = inputLanguage;

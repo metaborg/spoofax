@@ -1,7 +1,7 @@
 package org.metaborg.core.build.paths;
 
 import org.apache.commons.vfs2.FileObject;
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.IdentifiedResource;
 import org.metaborg.core.project.IProject;
 
@@ -52,7 +52,7 @@ public interface ILanguagePathService {
      *            Language to get source files for.
      * @return Identified source files.
      */
-    public Iterable<IdentifiedResource> sourceFiles(IProject project, ILanguage language);
+    public Iterable<IdentifiedResource> sourceFiles(IProject project, ILanguageImpl language);
 
     /**
      * Gets include files in given project, for given language.
@@ -63,7 +63,7 @@ public interface ILanguagePathService {
      *            Language to get include files for.
      * @return Identified include files.
      */
-    public Iterable<IdentifiedResource> includeFiles(IProject project, ILanguage language);
+    public Iterable<IdentifiedResource> includeFiles(IProject project, ILanguageImpl language);
 
     /**
      * Gets source and include files in given project, for given language.
@@ -74,7 +74,7 @@ public interface ILanguagePathService {
      *            Language to get source and include files for.
      * @return Identified source and include files.
      */
-    public Iterable<IdentifiedResource> sourceAndIncludeFiles(IProject project, ILanguage language);
+    public Iterable<IdentifiedResource> sourceAndIncludeFiles(IProject project, ILanguageImpl language);
 
 
     /**
@@ -86,5 +86,5 @@ public interface ILanguagePathService {
      *            Language to get source and include files for.
      * @return Identified source and include files.
      */
-    public Iterable<IdentifiedResource> toFiles(Iterable<FileObject> paths, ILanguage language);
+    public Iterable<IdentifiedResource> toFiles(Iterable<FileObject> paths, ILanguageImpl language);
 }

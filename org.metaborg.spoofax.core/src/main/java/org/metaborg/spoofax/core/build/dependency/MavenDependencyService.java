@@ -7,7 +7,7 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.project.MavenProject;
 import org.metaborg.core.build.dependency.IDependencyService;
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 import org.metaborg.core.language.ILanguageService;
 import org.metaborg.core.language.LanguageIdentifier;
 import org.metaborg.core.language.LanguageVersion;
@@ -34,7 +34,7 @@ public class MavenDependencyService implements IDependencyService {
     }
 
 
-    @Override public Iterable<ILanguage> compileDependencies(IProject project) {
+    @Override public Iterable<ILanguageImpl> compileDependencies(IProject project) {
         final MavenProject mavenProject = mavenProjectService.get(project);
         if(mavenProject != null) {
             return getLanguages(compileDependencies(mavenProject));
@@ -45,7 +45,7 @@ public class MavenDependencyService implements IDependencyService {
         return languageService.getAllActive();
     }
 
-    @Override public Iterable<ILanguage> runtimeDependencies(IProject project) {
+    @Override public Iterable<ILanguageImpl> runtimeDependencies(IProject project) {
         final MavenProject mavenProject = mavenProjectService.get(project);
         if(mavenProject != null) {
             return getLanguages(runtimeDependencies(mavenProject));
@@ -82,10 +82,10 @@ public class MavenDependencyService implements IDependencyService {
         return dependencies;
     }
 
-    private Iterable<ILanguage> getLanguages(Iterable<LanguageIdentifier> dependencies) {
-        final List<ILanguage> languages = Lists.newArrayList();
+    private Iterable<ILanguageImpl> getLanguages(Iterable<LanguageIdentifier> dependencies) {
+        final List<ILanguageImpl> languages = Lists.newArrayList();
         for(LanguageIdentifier dependency : dependencies) {
-            ILanguage language = languageService.get(dependency);
+            ILanguageImpl language = languageService.get(dependency);
             if(language != null) {
                 languages.add(language);
                 continue;

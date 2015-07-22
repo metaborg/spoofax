@@ -7,13 +7,11 @@ import com.google.common.collect.Multimaps;
 /**
  * Facet to describe language components
  */
-public class LanguagePathFacet implements ILanguageFacet {
-    private static final long serialVersionUID = 3431122939520390353L;
-
+public class LanguagePathFacet implements IFacet {
     public final Multimap<String, String> sources;
     public final Multimap<String, String> includes;
-   
-    
+
+
     public LanguagePathFacet(ListMultimap<String, String> sources, ListMultimap<String, String> includes) {
         this.sources = Multimaps.unmodifiableListMultimap(sources);
         this.includes = Multimaps.unmodifiableListMultimap(includes);

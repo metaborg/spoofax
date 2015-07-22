@@ -1,6 +1,6 @@
 package org.metaborg.core.language.dialect;
 
-import org.metaborg.core.language.ILanguage;
+import org.metaborg.core.language.ILanguageImpl;
 
 /**
  * Dialect with its base language.
@@ -9,15 +9,15 @@ public class IdentifiedDialect {
     /**
      * The dialect.
      */
-    public final ILanguage dialect;
+    public final ILanguageImpl dialect;
 
     /**
      * Base language of the dialect.
      */
-    public final ILanguage base;
+    public final ILanguageImpl base;
 
 
-    public IdentifiedDialect(ILanguage dialect, ILanguage base) {
+    public IdentifiedDialect(ILanguageImpl dialect, ILanguageImpl base) {
         this.dialect = dialect;
         this.base = base;
     }
